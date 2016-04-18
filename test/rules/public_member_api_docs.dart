@@ -27,6 +27,9 @@ abstract class A //LINT
   c(); //LINT
 }
 
+main() //OK
+{ }
+
 typedef bool t(Object o); //LINT
 
 abstract class _B {

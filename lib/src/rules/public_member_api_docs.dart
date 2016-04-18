@@ -155,7 +155,7 @@ class Visitor extends GeneralizingAstVisitor {
     if (node.parent is! CompilationUnit) {
       return; // Skip inner functions.
     }
-    if (!isPrivate(node.name)) {
+    if (!isPrivate(node.name) && node.name.name != 'main') {
       check(node);
     }
   }
