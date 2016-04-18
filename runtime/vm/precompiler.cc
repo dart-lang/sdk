@@ -146,6 +146,7 @@ Precompiler::Precompiler(Thread* thread, bool reset_fields) :
     sent_selectors_(),
     enqueued_functions_(),
     fields_to_retain_(),
+    functions_to_retain_(),
     classes_to_retain_(),
     typeargs_to_retain_(),
     types_to_retain_(),
@@ -199,6 +200,7 @@ void Precompiler::DoCompileAll(
 
     I->set_compilation_allowed(false);
 
+    TraceForRetainedFunctions();
     DropFunctions();
     DropFields();
     TraceTypesFromRetainedClasses();
@@ -583,6 +585,10 @@ void Precompiler::AddTypesOf(const Class& cls) {
 
 
 void Precompiler::AddTypesOf(const Function& function) {
+  if (function.IsNull()) return;
+  if (functions_to_retain_.Lookup(&function) != NULL) return;
+  functions_to_retain_.Insert(&Function::ZoneHandle(Z, function.raw()));
+
   AbstractType& type = AbstractType::Handle(Z);
   type = function.result_type();
   AddType(type);
@@ -1210,12 +1216,71 @@ void Precompiler::TraceConstFunctions() {
 }
 
 
-void Precompiler::DropFunctions() {
+void Precompiler::TraceForRetainedFunctions() {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
   Function& function = Function::Handle(Z);
   Function& function2 = Function::Handle(Z);
+  GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
+
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      if (cls.IsDynamicClass()) {
+        continue;  // class 'dynamic' is in the read-only VM isolate.
+      }
+
+      functions = cls.functions();
+      for (intptr_t j = 0; j < functions.Length(); j++) {
+        function ^= functions.At(j);
+        bool retain = function.HasCode();
+        if (!retain && function.HasImplicitClosureFunction()) {
+          // It can happen that all uses of an implicit closure inline their
+          // target function, leaving the target function uncompiled. Keep
+          // the target function anyway so we can enumerate it to bind its
+          // static calls, etc.
+          function2 = function.ImplicitClosureFunction();
+          retain = function2.HasCode();
+        }
+        if (retain) {
+          function.DropUncompiledImplicitClosureFunction();
+          AddTypesOf(function);
+        }
+      }
+    }
+  }
+
+  closures = isolate()->object_store()->closure_functions();
+  for (intptr_t j = 0; j < closures.Length(); j++) {
+    function ^= closures.At(j);
+    bool retain = function.HasCode();
+    if (retain) {
+      AddTypesOf(function);
+
+      cls = function.Owner();
+      AddTypesOf(cls);
+
+      // It can happen that all uses of a function are inlined, leaving
+      // a compiled local function with an uncompiled parent. Retain such
+      // parents and their enclosing classes and libraries.
+      function = function.parent_function();
+      while (!function.IsNull()) {
+        AddTypesOf(function);
+        function = function.parent_function();
+      }
+    }
+  }
+}
+
+
+void Precompiler::DropFunctions() {
+  Library& lib = Library::Handle(Z);
+  Class& cls = Class::Handle(Z);
+  Array& functions = Array::Handle(Z);
+  Function& function = Function::Handle(Z);
   GrowableObjectArray& retained_functions = GrowableObjectArray::Handle(Z);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
   String& name = String::Handle(Z);
@@ -1233,19 +1298,10 @@ void Precompiler::DropFunctions() {
       retained_functions = GrowableObjectArray::New();
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
-        bool retain = function.HasCode();
-        if (!retain && function.HasImplicitClosureFunction()) {
-          // It can happen that all uses of an implicit closure inline their
-          // target function, leaving the target function uncompiled. Keep
-          // the target function anyway so we can enumerate it to bind its
-          // static calls, etc.
-          function2 = function.ImplicitClosureFunction();
-          retain = function2.HasCode();
-        }
+        bool retain = functions_to_retain_.Lookup(&function) != NULL;
+        function.DropUncompiledImplicitClosureFunction();
         if (retain) {
           retained_functions.Add(function);
-          function.DropUncompiledImplicitClosureFunction();
-          AddTypesOf(function);
         } else {
           bool top_level = cls.IsTopLevel();
           if (top_level &&
@@ -1277,10 +1333,9 @@ void Precompiler::DropFunctions() {
   retained_functions = GrowableObjectArray::New();
   for (intptr_t j = 0; j < closures.Length(); j++) {
     function ^= closures.At(j);
-    bool retain = function.HasCode();
+    bool retain = functions_to_retain_.Lookup(&function) != NULL;
     if (retain) {
       retained_functions.Add(function);
-      AddTypesOf(function);
     } else {
       dropped_function_count_++;
       if (FLAG_trace_precompiler) {
@@ -1619,7 +1674,6 @@ void Precompiler::BindStaticCalls() {
 
     void VisitFunction(const Function& function) {
       if (!function.HasCode()) {
-        ASSERT(function.HasImplicitClosureFunction());
         return;
       }
       code_ = function.CurrentCode();
@@ -1688,7 +1742,6 @@ void Precompiler::SwitchICCalls() {
 
     void VisitFunction(const Function& function) {
       if (!function.HasCode()) {
-        ASSERT(function.HasImplicitClosureFunction());
         return;
       }
 
@@ -1757,7 +1810,6 @@ void Precompiler::DedupStackmaps() {
 
     void VisitFunction(const Function& function) {
       if (!function.HasCode()) {
-        ASSERT(function.HasImplicitClosureFunction());
         return;
       }
       code_ = function.CurrentCode();
@@ -1808,7 +1860,6 @@ void Precompiler::DedupStackmapLists() {
 
     void VisitFunction(const Function& function) {
       if (!function.HasCode()) {
-        ASSERT(function.HasImplicitClosureFunction());
         return;
       }
       code_ = function.CurrentCode();
