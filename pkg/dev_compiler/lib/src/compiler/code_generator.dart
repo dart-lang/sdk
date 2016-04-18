@@ -2963,7 +2963,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (isLibraryPrefix(node.prefix)) {
       return _visit(node.identifier);
     } else {
-      return _emitGet(node.prefix, node.identifier);
+      return _emitAccess(node.prefix, node.identifier);
     }
   }
 
@@ -2972,7 +2972,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (node.operator.lexeme == '?.') {
       return _emitNullSafe(node);
     }
-    return _emitGet(_getTarget(node), node.propertyName);
+    return _emitAccess(_getTarget(node), node.propertyName);
   }
 
   JS.Expression _emitNullSafe(Expression node) {
@@ -3042,7 +3042,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   }
 
   /// Shared code for [PrefixedIdentifier] and [PropertyAccess].
-  JS.Expression _emitGet(Expression target, SimpleIdentifier memberId) {
+  JS.Expression _emitAccess(Expression target, SimpleIdentifier memberId) {
     var member = memberId.staticElement;
     if (member is PropertyAccessorElement) {
       member = (member as PropertyAccessorElement).variable;
@@ -3052,6 +3052,14 @@ class CodeGenerator extends GeneralizingAstVisitor
         type: getStaticType(target), isStatic: isStatic);
     if (DynamicInvoke.get(target)) {
       return js.call('dart.dload(#, #)', [_visit(target), name]);
+    }
+
+    if (target is SuperExpression &&
+        member is FieldElement &&
+        !member.isSynthetic) {
+      // If super.x is actually a field, then x is an instance property since
+      // subclasses cannot override x.
+      return js.call('this.#', [name]);
     }
 
     String code;
