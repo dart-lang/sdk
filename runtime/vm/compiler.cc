@@ -1997,7 +1997,6 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
 
 
 bool Compiler::IsBackgroundCompilation() {
-  UNREACHABLE();
   return false;
 }
 
