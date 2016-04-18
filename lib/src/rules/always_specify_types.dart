@@ -5,13 +5,7 @@
 library linter.src.rules.annotate_types;
 
 import 'package:analyzer/dart/ast/ast.dart'
-    show
-        AstVisitor,
-        DeclaredIdentifier,
-        SimpleAstVisitor,
-        SimpleFormalParameter,
-        VariableDeclarationList,
-        TypeName;
+    show AstVisitor, DeclaredIdentifier, ListLiteral, MapLiteral, SimpleAstVisitor, SimpleFormalParameter, TypeName, TypedLiteral, VariableDeclarationList;
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -102,11 +96,27 @@ class Visitor extends SimpleAstVisitor {
   final LintRule rule;
   Visitor(this.rule);
 
+  void checkLiteral(TypedLiteral literal) {
+    if (literal.typeArguments == null) {
+      rule.reportLintForToken(literal.beginToken);
+    }
+  }
+
   @override
   visitDeclaredIdentifier(DeclaredIdentifier node) {
     if (node.type == null) {
       rule.reportLintForToken(node.keyword);
     }
+  }
+
+  @override
+  visitListLiteral(ListLiteral literal) {
+    checkLiteral(literal);
+  }
+
+  @override
+  visitMapLiteral(MapLiteral literal) {
+    checkLiteral(literal);
   }
 
   @override

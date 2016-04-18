@@ -16,6 +16,9 @@ const _OptionalTypeArgs optionalTypeArgs = const _OptionalTypeArgs();
 // ... and replace w/:
 // import 'package:meta/meta.dart';
 
+Map<String, String> map = {}; //LINT
+List<String> strings = []; //LINT
+
 List list; // LINT
 List<List> lists; //LINT
 List<int> ints; //OK
