@@ -184,11 +184,9 @@ class Parser {
   Token parseConditionalUris(Token token) {
     listener.beginConditionalUris(token);
     int count = 0;
-    if (parserOptions.enableConditionalDirectives) {
-      while (optional('if', token)) {
-        count++;
-        token = parseConditionalUri(token);
-      }
+    while (optional('if', token)) {
+      count++;
+      token = parseConditionalUri(token);
     }
     listener.endConditionalUris(count);
     return token;
