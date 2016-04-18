@@ -157,12 +157,10 @@
 
 #if defined(TARGET_ARCH_ARM) ||                                                \
     defined(TARGET_ARCH_MIPS) ||                                               \
-    defined(TARGET_ARCH_ARM64) ||                                              \
-    defined(TARGET_ARCH_DBC)
+    defined(TARGET_ARCH_ARM64)
 #if defined(HOST_ARCH_ARM) ||                                                  \
     defined(HOST_ARCH_MIPS) ||                                                 \
-    defined(HOST_ARCH_ARM64) ||                                                \
-    !defined(TARGET_ARCH_DBC)
+    defined(HOST_ARCH_ARM64)
 // Running on actual ARM or MIPS hardware, execute code natively.
 #define EXECUTE_TEST_CODE_INT32(name, entry) reinterpret_cast<name>(entry)()
 #define EXECUTE_TEST_CODE_INT64(name, entry) reinterpret_cast<name>(entry)()
