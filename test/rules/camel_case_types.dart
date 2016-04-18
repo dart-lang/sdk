@@ -22,3 +22,6 @@ class Foo$Bar //LINT
 
 class Foo_Bar //LINT
 {}
+
+class $FooBar //OK
+{}
