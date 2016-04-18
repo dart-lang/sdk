@@ -294,9 +294,38 @@ var v = a.b.foo.c;
   }
 
   void test_infer_extractProperty_method() {
-    checkFile(r'''
+    var unit = checkFile(r'''
+class A {
+  int m(double p1, String p2) => 42;
+}
+var a = new A();
+var v = a.m;
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), '(double, String) → int');
+  }
+
+  void test_infer_extractProperty_method2() {
+    var unit = checkFile(r'''
 var a = 1.round;
   ''');
+    expect(unit.topLevelVariables[0].type.toString(), '() → int');
+  }
+
+  void test_infer_extractProperty_method_sequence() {
+    var unit = checkFile(r'''
+class A {
+  B b = new B();
+}
+class B {
+  C c = new C();
+}
+class C {
+  int m(double p1, String p2) => 42;
+}
+var a = new A();
+var v = a.b.c.m;
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), '(double, String) → int');
   }
 
   void test_infer_invokeConstructor_factoryRedirected() {

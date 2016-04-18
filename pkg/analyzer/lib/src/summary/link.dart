@@ -3151,10 +3151,15 @@ class NonstaticMemberElementForLink implements ReferenceableElementForLink {
   @override
   DartType get asStaticType {
     Element element = this.element;
-    if (element is PropertyAccessorElement && element.isGetter) {
-      return element.returnType;
+    if (element is PropertyAccessorElement) {
+      if (element.isGetter) {
+        return element.returnType;
+      }
+      return DynamicTypeImpl.instance;
     }
-    // TODO(paulberry): implement.
+    if (element is MethodElement) {
+      return element.type;
+    }
     return DynamicTypeImpl.instance;
   }
 
@@ -3175,6 +3180,7 @@ class NonstaticMemberElementForLink implements ReferenceableElementForLink {
       DartType type = asStaticType;
       if (type is InterfaceType) {
         Element nameElement = type.lookUpGetter(name, element.library);
+        nameElement ??= type.lookUpMethod(name, element.library);
         return new NonstaticMemberElementForLink(nameElement, _constNode);
       }
     }
@@ -4169,7 +4175,9 @@ class VariableElementForLink
     if (linker.strongMode) {
       DartType type = asStaticType;
       if (type is InterfaceType) {
-        return type.lookUpGetter(name, compilationUnit.library);
+        Element result = type.lookUpGetter(name, compilationUnit.library);
+        result ??= type.lookUpMethod(name, compilationUnit.library);
+        return result;
       }
     }
     // TODO(scheglov): implement for propagated types
