@@ -89,10 +89,12 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitFunctionTypeAlias(FunctionTypeAlias node) {
-    if (node.returnType == null) {
-      rule.reportLint(node.name);
-    } else {
-      node.parameters.accept(v);
+    if (!isPrivate(node.name)) {
+      if (node.returnType == null) {
+        rule.reportLint(node.name);
+      } else {
+        node.parameters.accept(v);
+      }
     }
   }
 

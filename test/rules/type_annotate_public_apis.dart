@@ -63,3 +63,6 @@ class A {
   static _j(x) {}
   static _k(var x) {}
 }
+
+typedef _PrivateMethod(int value); //OK
+typedef void _PrivateMethod2(value); //OK
