@@ -6,7 +6,6 @@ library mocks;
 
 import 'dart:async';
 import 'dart:io';
-@MirrorsUsed(targets: 'mocks', override: '*')
 import 'dart:mirrors';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart'
@@ -283,15 +282,15 @@ class MockServerOperation implements PerformAnalysisOperation {
  * A mock [WebSocket] for testing.
  */
 class MockSocket<T> implements WebSocket {
-  StreamController controller = new StreamController();
-  MockSocket twin;
-  Stream stream;
+  StreamController<T> controller = new StreamController<T>();
+  MockSocket<T> twin;
+  Stream<T> stream;
 
   MockSocket();
 
   factory MockSocket.pair() {
-    MockSocket socket1 = new MockSocket();
-    MockSocket socket2 = new MockSocket();
+    MockSocket<T> socket1 = new MockSocket<T>();
+    MockSocket<T> socket2 = new MockSocket<T>();
     socket1.twin = socket2;
     socket2.twin = socket1;
     socket1.stream = socket2.controller.stream;
@@ -315,7 +314,7 @@ class MockSocket<T> implements WebSocket {
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
-  Stream<T> where(bool test(T)) => stream.where(test);
+  Stream<T> where(bool test(T t)) => stream.where(test);
 }
 
 class MockSource extends StringTypedMock implements Source {

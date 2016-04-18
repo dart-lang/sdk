@@ -36,11 +36,12 @@ class AnalysisManager {
    * Otherwise there was no attached process or the signal could not be sent,
    * usually meaning that the process is already dead.
    */
-  Future<bool> stop() {
+  Future<bool> stop() async {
     if (process == null) {
-      return channel.close().then((_) => false);
+      await channel.close();
+      return false;
     }
-    return channel
+    int result = await channel
         .sendRequest(new ServerShutdownParams().toRequest('0'))
         .timeout(new Duration(seconds: 2), onTimeout: () {
       print('Expected shutdown response');
@@ -49,12 +50,11 @@ class AnalysisManager {
     }).timeout(new Duration(seconds: 2), onTimeout: () {
       print('Expected server to shutdown');
       process.kill();
-    }).then((int result) {
-      if (result != null && result != 0) {
-        exitCode = result;
-      }
-      return true;
     });
+    if (result != null && result != 0) {
+      exitCode = result;
+    }
+    return true;
   }
 
   /**
@@ -102,7 +102,7 @@ class AnalysisManager {
   /**
    * Open a connection to the analysis server using the given URL.
    */
-  Future<AnalysisManager> _openConnection(String serverUrl) {
+  Future<AnalysisManager> _openConnection(String serverUrl) async {
     Function onError = (error) {
       exitCode = 1;
       if (process != null) {
@@ -111,13 +111,9 @@ class AnalysisManager {
       throw 'Failed to connect to analysis server at $serverUrl\n  $error';
     };
     try {
-      return WebSocket
-          .connect(serverUrl)
-          .catchError(onError)
-          .then((WebSocket socket) {
-        this.channel = new WebSocketClientChannel(socket);
-        return this;
-      });
+      WebSocket socket = await WebSocket.connect(serverUrl).catchError(onError);
+      this.channel = new WebSocketClientChannel(socket);
+      return this;
     } catch (error) {
       onError(error);
     }
