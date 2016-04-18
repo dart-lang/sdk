@@ -77,6 +77,9 @@
       'Dart_Macos_simmips_Base': {
         'abstract': 1,
       },
+      'Dart_Macos_simdbc_Base': {
+        'abstract': 1,
+      },
       'Dart_Macos_Debug': {
         'abstract': 1,
         'xcode_settings': {
