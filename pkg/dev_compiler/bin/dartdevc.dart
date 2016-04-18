@@ -57,7 +57,7 @@ main(List<String> args) async {
 /// Bazel actions that support workers must provide all their per-WorkRequest
 /// arguments in a file like this instead of as normal args.
 List<String> _preprocessArgs(List<String> args) {
-  if (args.last.startsWith('@')) {
+  if (args.isNotEmpty && args.last.startsWith('@')) {
     return new List.from(args)
       ..addAll(new File(args.last.substring(1)).readAsLinesSync());
   } else {
