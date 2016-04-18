@@ -27,6 +27,14 @@ class OpType {
   bool includeConstructorSuggestions = false;
 
   /**
+   * If [includeConstructorSuggestions] is set to true, then this function may
+   * be set to a non-default function to filter out potential suggestions (null)
+   * based on their static [DartType], or change the relative relevance by
+   * returning a positive or negative integer.
+   */
+  Function constructorSuggestionsFilter = (DartType _) => 0;
+
+  /**
    * Indicates whether type names should be suggested.
    */
   bool includeTypeNameSuggestions = false;
@@ -495,6 +503,27 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (identical(entity, node.constructorName)) {
       optype.includeConstructorSuggestions = true;
+      optype.constructorSuggestionsFilter = (DartType dartType) {
+        DartType localTypeAssertion = null;
+        if(node.parent is VariableDeclaration) {
+          VariableDeclaration varDeclaration = node.parent as VariableDeclaration;
+          localTypeAssertion = varDeclaration.element.type;
+        } else if (node.parent is AssignmentExpression) {
+          AssignmentExpression assignmentExpression = node.parent as AssignmentExpression;
+          localTypeAssertion = assignmentExpression.leftHandSide.staticType;
+        }
+        if(localTypeAssertion == null ||
+            dartType == null ||
+            localTypeAssertion.isDynamic) {
+          return 0;
+        } else if (localTypeAssertion == dartType) {
+          return DART_RELEVANCE_INCREMENT;
+        } else if(dartType.isSubtypeOf(localTypeAssertion)) {
+          return 0;
+        } else {
+          return null;
+        }
+      };
     }
   }
 

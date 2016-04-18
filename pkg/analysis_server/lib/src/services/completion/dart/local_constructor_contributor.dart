@@ -165,8 +165,23 @@ class LocalConstructorContributor extends DartCompletionContributor {
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
     if (!optype.isPrefixed) {
       if (optype.includeConstructorSuggestions) {
-        _Visitor visitor = new _Visitor(request, suggestions);
-        visitor.visit(request.target.containingNode);
+        AstNode node = request.target.containingNode;
+        // TODO (jwren) not quite right, see the test
+        // test_InstanceCreationExpression_variable_declaration_filter,
+        // the node at this point is an InstanceCreationExpression, but we want
+        // the containing variable declaration resolved,
+        if (node is Expression) {
+          while (node.parent is Expression) {
+            node = node.parent;
+          }
+          await request.resolveExpression(node);
+
+          // Discard any cached target information
+          // because it may have changed as a result of the resolution
+          node = request.target.containingNode;
+        }
+        _Visitor visitor = new _Visitor(request, suggestions, optype);
+        visitor.visit(node);
       }
     }
     return suggestions;
@@ -178,9 +193,10 @@ class LocalConstructorContributor extends DartCompletionContributor {
  */
 class _Visitor extends LocalDeclarationVisitor {
   final DartCompletionRequest request;
+  final OpType optype;
   final List<CompletionSuggestion> suggestions;
 
-  _Visitor(DartCompletionRequest request, this.suggestions)
+  _Visitor(DartCompletionRequest request, this.suggestions, this.optype)
       : request = request,
         super(request.offset);
 
@@ -236,6 +252,14 @@ class _Visitor extends LocalDeclarationVisitor {
       ClassDeclaration classDecl, ConstructorDeclaration constructorDecl) {
     String completion = classDecl.name.name;
     SimpleIdentifier elemId;
+    int relevance = DART_RELEVANCE_DEFAULT;
+
+    int filter = optype.constructorSuggestionsFilter(classDecl.element?.type);
+    if (filter == null) {
+      return;
+    } else {
+      relevance += filter;
+    }
 
     // Build a suggestion for explicitly declared constructor
     if (constructorDecl != null) {
@@ -248,8 +272,8 @@ class _Visitor extends LocalDeclarationVisitor {
         }
       }
       if (elem != null) {
-        CompletionSuggestion suggestion =
-            createSuggestion(elem, completion: completion);
+        CompletionSuggestion suggestion = createSuggestion(elem,
+            completion: completion, relevance: relevance);
         if (suggestion != null) {
           suggestions.add(suggestion);
         }
@@ -264,7 +288,7 @@ class _Visitor extends LocalDeclarationVisitor {
       element.returnType = classDecl.name.name;
       CompletionSuggestion suggestion = new CompletionSuggestion(
           CompletionSuggestionKind.INVOCATION,
-          DART_RELEVANCE_DEFAULT,
+          relevance,
           completion,
           completion.length,
           0,
