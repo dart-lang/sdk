@@ -1651,12 +1651,14 @@ static bool IsRepresentable(const Integer& value, Representation rep) {
 
 
 RawInteger* UnaryIntegerOpInstr::Evaluate(const Integer& value) const {
-  Integer& result = Integer::Handle();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Integer& result = Integer::Handle(zone);
 
   switch (op_kind()) {
     case Token::kNEGATE:
       result = value.ArithmeticOp(Token::kMUL,
-                                  Smi::Handle(Smi::New(-1)),
+                                  Smi::Handle(zone, Smi::New(-1)),
                                   Heap::kOld);
       break;
 
@@ -1680,7 +1682,7 @@ RawInteger* UnaryIntegerOpInstr::Evaluate(const Integer& value) const {
       // specialized instructions that use this value under this assumption.
       return Integer::null();
     }
-    result ^= result.CheckAndCanonicalize(NULL);
+    result ^= result.CheckAndCanonicalize(thread, NULL);
   }
 
   return result.raw();
@@ -1689,7 +1691,9 @@ RawInteger* UnaryIntegerOpInstr::Evaluate(const Integer& value) const {
 
 RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
                                            const Integer& right) const {
-  Integer& result = Integer::Handle();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Integer& result = Integer::Handle(zone);
 
   switch (op_kind()) {
     case Token::kTRUNCDIV:
@@ -1738,7 +1742,7 @@ RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
       // specialized instructions that use this value under this assumption.
       return Integer::null();
     }
-    result ^= result.CheckAndCanonicalize(NULL);
+    result ^= result.CheckAndCanonicalize(thread, NULL);
   }
 
   return result.raw();

@@ -542,7 +542,7 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
       if (kind_ == Snapshot::kFull) {
         result->SetCanonical();
       } else {
-        *result = result->CheckAndCanonicalize(NULL);
+        *result = result->CheckAndCanonicalize(thread(), NULL);
         ASSERT(!result->IsNull());
       }
     }
@@ -647,7 +647,6 @@ RawApiError* SnapshotReader::ReadFullSnapshot() {
       }
     }
 
-
     // Validate the class table.
 #if defined(DEBUG)
     isolate->ValidateClassTable();
@@ -655,8 +654,17 @@ RawApiError* SnapshotReader::ReadFullSnapshot() {
 
     // Setup native resolver for bootstrap impl.
     Bootstrap::SetupNativeResolver();
-    return ApiError::null();
   }
+
+  Class& cls = Class::Handle(thread->zone());
+  for (intptr_t i = 0; i < backward_references_->length(); i++) {
+    if ((*backward_references_)[i].reference()->IsClass()) {
+      cls ^= (*backward_references_)[i].reference()->raw();
+      cls.RehashConstants(thread->zone());
+    }
+  }
+
+  return ApiError::null();
 }
 
 

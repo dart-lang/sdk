@@ -1538,15 +1538,21 @@ void Precompiler::TraceTypesFromRetainedClasses() {
           retained_constants.Add(constant);
         }
       }
-      if (retained_constants.Length() > 0) {
+      intptr_t cid = cls.id();
+      if ((cid == kMintCid) || (cid == kBigintCid) || (cid == kDoubleCid)) {
+        // Constants stored as a plain list, no rehashing needed.
         constants = Array::MakeArray(retained_constants);
         cls.set_constants(constants);
       } else {
-        constants = Object::empty_array().raw();
+        // Rehash.
         cls.set_constants(Object::empty_array());
+        for (intptr_t j = 0; j < retained_constants.Length(); j++) {
+          constant ^= retained_constants.At(j);
+          cls.InsertCanonicalConstant(Z, constant);
+        }
       }
 
-      if (constants.Length() > 0) {
+      if (retained_constants.Length() > 0) {
         ASSERT(retain);  // This shouldn't be the reason we keep a class.
         retain = true;
       }

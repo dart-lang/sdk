@@ -2302,7 +2302,7 @@ RawInstance* Instance::ReadFrom(SnapshotReader* reader,
                             Instance::InstanceSize(),
                             HEAP_SPACE(kind));
     if (RawObject::IsCanonical(tags)) {
-      obj = obj.CheckAndCanonicalize(NULL);
+      obj = obj.CheckAndCanonicalize(reader->thread(), NULL);
     }
   }
   reader->AddBackRef(object_id, &obj, kIsDeserialized);
@@ -2413,7 +2413,7 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
       // Set the canonical bit.
       obj.SetCanonical();
     } else {
-      obj ^= obj.CheckAndCanonicalize(NULL);
+      obj ^= obj.CheckAndCanonicalize(reader->thread(), NULL);
       ASSERT(!obj.IsNull());
       ASSERT(obj.IsCanonical());
     }
@@ -2840,7 +2840,7 @@ RawImmutableArray* ImmutableArray::ReadFrom(SnapshotReader* reader,
       if (kind == Snapshot::kFull) {
         array->SetCanonical();
       } else {
-        *array ^= array->CheckAndCanonicalize(NULL);
+        *array ^= array->CheckAndCanonicalize(reader->thread(), NULL);
       }
     }
   }
@@ -3256,7 +3256,7 @@ RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
       // Set the canonical bit.
       result.SetCanonical();
     } else {
-      result ^= result.CheckAndCanonicalize(NULL);
+      result ^= result.CheckAndCanonicalize(reader->thread(), NULL);
       ASSERT(!result.IsNull());
       ASSERT(result.IsCanonical());
     }

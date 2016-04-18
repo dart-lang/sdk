@@ -1213,16 +1213,18 @@ class Class : public Object {
                                    const Bigint& value, intptr_t* index) const;
   // The methods above are more efficient than this generic one.
   RawInstance* LookupCanonicalInstance(Zone* zone,
-                                       const Instance& value,
-                                       intptr_t* index) const;
+                                       const Instance& value) const;
 
-  void InsertCanonicalConstant(intptr_t index, const Instance& constant) const;
+  RawInstance* InsertCanonicalConstant(Zone* zone,
+                                       const Instance& constant) const;
   void InsertCanonicalNumber(Zone* zone,
                              intptr_t index,
                              const Number& constant) const;
 
   intptr_t FindCanonicalTypeIndex(const AbstractType& needle) const;
   RawAbstractType* CanonicalTypeFromIndex(intptr_t idx) const;
+
+  void RehashConstants(Zone* zone) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawClass));
@@ -5153,16 +5155,26 @@ class Instance : public Object {
   virtual bool OperatorEquals(const Instance& other) const;
   bool IsIdenticalTo(const Instance& other) const;
   virtual bool CanonicalizeEquals(const Instance& other) const;
+  virtual uword ComputeCanonicalTableHash() const;
+
+  intptr_t SizeFromClass() const {
+#if defined(DEBUG)
+    const Class& cls = Class::Handle(clazz());
+    ASSERT(cls.is_finalized() || cls.is_prefinalized());
+#endif
+    return (clazz()->ptr()->instance_size_in_words_ * kWordSize);
+  }
 
   // Returns Instance::null() if instance cannot be canonicalized.
   // Any non-canonical number of string will be canonicalized here.
   // An instance cannot be canonicalized if it still contains non-canonical
   // instances in its fields.
   // Returns error in error_str, pass NULL if an error cannot occur.
-  virtual RawInstance* CheckAndCanonicalize(const char** error_str) const;
+  virtual RawInstance* CheckAndCanonicalize(Thread* thread,
+                                            const char** error_str) const;
 
   // Returns true if all fields are OK for canonicalization.
-  virtual bool CheckAndCanonicalizeFields(Zone* zone,
+  virtual bool CheckAndCanonicalizeFields(Thread* thread,
                                           const char** error_str) const;
 
   RawObject* GetField(const Field& field) const {
@@ -5382,7 +5394,8 @@ class AbstractType : public Instance {
   virtual RawAbstractType* CloneUninstantiated(
       const Class& new_owner, TrailPtr trail = NULL) const;
 
-  virtual RawInstance* CheckAndCanonicalize(const char** error_str) const {
+  virtual RawInstance* CheckAndCanonicalize(Thread* thread,
+                                            const char** error_str) const {
     return Canonicalize();
   }
 
@@ -5954,7 +5967,8 @@ class Number : public Instance {
   RawString* ToString(Heap::Space space) const;
 
   // Numbers are canonicalized differently from other instances/strings.
-  virtual RawInstance* CheckAndCanonicalize(const char** error_str) const;
+  virtual RawInstance* CheckAndCanonicalize(Thread* thread,
+                                            const char** error_str) const;
 
  private:
   OBJECT_IMPLEMENTATION(Number, Instance);
@@ -5979,6 +5993,10 @@ class Integer : public Number {
   }
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
+  }
+  virtual uword ComputeCanonicalTableHash() const {
+    UNREACHABLE();
+    return 0;
   }
   virtual bool Equals(const Instance& other) const;
 
@@ -6165,7 +6183,7 @@ class Bigint : public Integer {
 
   virtual int CompareWith(const Integer& other) const;
 
-  virtual bool CheckAndCanonicalizeFields(Zone* zone,
+  virtual bool CheckAndCanonicalizeFields(Thread* thread,
                                           const char** error_str) const;
 
   virtual bool FitsIntoSmi() const;
@@ -6257,6 +6275,10 @@ class Double : public Number {
   bool BitwiseEqualsToDouble(double value) const;
   virtual bool OperatorEquals(const Instance& other) const;
   virtual bool CanonicalizeEquals(const Instance& other) const;
+  virtual uword ComputeCanonicalTableHash() const {
+    UNREACHABLE();
+    return 0;
+  }
 
   static RawDouble* New(double d, Heap::Space space = Heap::kNew);
 
@@ -6407,6 +6429,10 @@ class String : public Instance {
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
   }
+  virtual uword ComputeCanonicalTableHash() const {
+    UNREACHABLE();
+    return 0;
+  }
   virtual bool Equals(const Instance& other) const;
 
   intptr_t CompareTo(const String& other) const;
@@ -6414,7 +6440,8 @@ class String : public Instance {
   bool StartsWith(const String& other) const;
 
   // Strings are canonicalized using the symbol table.
-  virtual RawInstance* CheckAndCanonicalize(const char** error_str) const;
+  virtual RawInstance* CheckAndCanonicalize(Thread* thread,
+                                            const char** error_str) const;
 
   bool IsSymbol() const { return raw()->IsCanonical(); }
 
@@ -7096,6 +7123,7 @@ class Array : public Instance {
   }
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
+  virtual uword ComputeCanonicalTableHash() const;
 
   static const intptr_t kBytesPerElement = kWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
@@ -7117,7 +7145,7 @@ class Array : public Instance {
   }
 
   // Returns true if all elements are OK for canonicalization.
-  virtual bool CheckAndCanonicalizeFields(Zone* zone,
+  virtual bool CheckAndCanonicalizeFields(Thread* thread,
                                           const char** error_str) const;
 
   // Make the array immutable to Dart code by switching the class pointer
@@ -7269,9 +7297,14 @@ class GrowableObjectArray : public Instance {
     UNREACHABLE();
     return false;
   }
+  virtual uword ComputeCanonicalTableHash() const {
+    UNREACHABLE();
+    return 0;
+  }
 
   // We don't expect a growable object array to be canonicalized.
-  virtual RawInstance* CheckAndCanonicalize(const char** error_str) const {
+  virtual RawInstance* CheckAndCanonicalize(Thread* thread,
+                                            const char** error_str) const {
     UNREACHABLE();
     return Instance::null();
   }
@@ -7445,6 +7478,7 @@ class TypedData : public Instance {
   }
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
+  virtual uword ComputeCanonicalTableHash() const;
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
@@ -7960,7 +7994,7 @@ class Closure : public Instance {
   }
 
   // Returns true if all elements are OK for canonicalization.
-  virtual bool CheckAndCanonicalizeFields(Zone* zone,
+  virtual bool CheckAndCanonicalizeFields(Thread* thread,
                                           const char** error_str) const {
     // None of the fields of a closure are instances.
     return true;

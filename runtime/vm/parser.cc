@@ -12068,7 +12068,7 @@ RawInstance* Parser::TryCanonicalize(const Instance& instance,
   }
   const char* error_str = NULL;
   Instance& result =
-      Instance::Handle(Z, instance.CheckAndCanonicalize(&error_str));
+      Instance::Handle(Z, instance.CheckAndCanonicalize(thread(), &error_str));
   if (result.IsNull()) {
     ReportError(token_pos, "Invalid const object %s", error_str);
   }
@@ -12753,6 +12753,9 @@ AstNode* Parser::ParseListLiteral(TokenPosition type_pos,
 
   if (is_const) {
     // Allocate and initialize the const list at compile time.
+    if ((element_list.length() == 0) && list_type_arguments.IsNull()) {
+      return new(Z) LiteralNode(literal_pos, Object::empty_array());
+    }
     Array& const_list = Array::ZoneHandle(Z,
         Array::New(element_list.length(), Heap::kOld));
     const_list.SetTypeArguments(

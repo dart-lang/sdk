@@ -705,6 +705,7 @@ void Object::InitOnce(Isolate* isolate) {
         empty_array_,
         reinterpret_cast<RawArray*>(address + kHeapObjectTag));
     empty_array_->StoreSmi(&empty_array_->raw_ptr()->length_, Smi::New(0));
+    empty_array_->SetCanonical();
   }
 
   Smi& smi = Smi::Handle();
@@ -718,6 +719,7 @@ void Object::InitOnce(Isolate* isolate) {
     zero_array_->StoreSmi(&zero_array_->raw_ptr()->length_, Smi::New(1));
     smi = Smi::New(0);
     zero_array_->SetAt(0, smi);
+    zero_array_->SetCanonical();
   }
 
   // Allocate and initialize the canonical empty context scope object.
@@ -734,6 +736,7 @@ void Object::InitOnce(Isolate* isolate) {
         &empty_context_scope_->raw_ptr()->num_variables_, 0);
     empty_context_scope_->StoreNonPointer(
         &empty_context_scope_->raw_ptr()->is_implicit_, true);
+    empty_context_scope_->SetCanonical();
   }
 
   // Allocate and initialize the canonical empty object pool object.
@@ -749,6 +752,7 @@ void Object::InitOnce(Isolate* isolate) {
         reinterpret_cast<RawObjectPool*>(address + kHeapObjectTag));
     empty_object_pool_->StoreNonPointer(
         &empty_object_pool_->raw_ptr()->length_, 0);
+    empty_object_pool_->SetCanonical();
   }
 
   // Allocate and initialize the empty_descriptors instance.
@@ -762,6 +766,7 @@ void Object::InitOnce(Isolate* isolate) {
         reinterpret_cast<RawPcDescriptors*>(address + kHeapObjectTag));
     empty_descriptors_->StoreNonPointer(&empty_descriptors_->raw_ptr()->length_,
                                         0);
+    empty_descriptors_->SetCanonical();
   }
 
   // Allocate and initialize the canonical empty variable descriptor object.
@@ -777,6 +782,7 @@ void Object::InitOnce(Isolate* isolate) {
         reinterpret_cast<RawLocalVarDescriptors*>(address + kHeapObjectTag));
     empty_var_descriptors_->StoreNonPointer(
         &empty_var_descriptors_->raw_ptr()->num_entries_, 0);
+    empty_var_descriptors_->SetCanonical();
   }
 
   // Allocate and initialize the canonical empty exception handler info object.
@@ -794,6 +800,7 @@ void Object::InitOnce(Isolate* isolate) {
         reinterpret_cast<RawExceptionHandlers*>(address + kHeapObjectTag));
     empty_exception_handlers_->StoreNonPointer(
         &empty_exception_handlers_->raw_ptr()->num_entries_, 0);
+    empty_exception_handlers_->SetCanonical();
   }
 
   // The VM isolate snapshot object table is initialized to an empty array
@@ -4423,44 +4430,88 @@ RawBigint* Class::LookupCanonicalBigint(Zone* zone,
 }
 
 
-RawInstance* Class::LookupCanonicalInstance(Zone* zone,
-                                            const Instance& value,
-                                            intptr_t* index) const {
-  ASSERT(this->raw() == value.clazz());
-  const Array& constants = Array::Handle(zone, this->constants());
-  const intptr_t constants_len = constants.Length();
-  // Linear search to see whether this value is already present in the
-  // list of canonicalized constants.
-  Instance& canonical_value = Instance::Handle(zone);
-  while (*index < constants_len) {
-    canonical_value ^= constants.At(*index);
-    if (canonical_value.IsNull()) {
-      break;
-    }
-    if (value.CanonicalizeEquals(canonical_value)) {
-      ASSERT(canonical_value.IsCanonical());
-      return canonical_value.raw();
-    }
-    *index = *index + 1;
+class CanonicalInstanceKey {
+ public:
+  explicit CanonicalInstanceKey(const Instance& key) : key_(key) {
+    ASSERT(!(key.IsString() || key.IsInteger() || key.IsAbstractType()));
   }
-  return Instance::null();
+  bool Matches(const Instance& obj) const {
+    ASSERT(!(obj.IsString() || obj.IsInteger() || obj.IsAbstractType()));
+    if (key_.CanonicalizeEquals(obj)) {
+      ASSERT(obj.IsCanonical());
+      return true;
+    }
+    return false;
+  }
+  uword Hash() const {
+    return key_.ComputeCanonicalTableHash();
+  }
+  const Instance& key_;
+
+ private:
+  DISALLOW_ALLOCATION();
+};
+
+
+// Traits for looking up Canonical Instances based on a hash of the fields.
+class CanonicalInstanceTraits {
+ public:
+  static const char* Name() { return "CanonicalInstanceTraits"; }
+  static bool ReportStats() { return false; }
+
+  // Called when growing the table.
+  static bool IsMatch(const Object& a, const Object& b) {
+    ASSERT(!(a.IsString() || a.IsInteger() || a.IsAbstractType()));
+    ASSERT(!(b.IsString() || b.IsInteger() || b.IsAbstractType()));
+    return a.raw() == b.raw();
+  }
+  static bool IsMatch(const CanonicalInstanceKey& a, const Object& b) {
+    return a.Matches(Instance::Cast(b));
+  }
+  static uword Hash(const Object& key) {
+    ASSERT(!(key.IsString() || key.IsNumber() || key.IsAbstractType()));
+    ASSERT(key.IsInstance());
+    return Instance::Cast(key).ComputeCanonicalTableHash();
+  }
+  static uword Hash(const CanonicalInstanceKey& key) {
+    return key.Hash();
+  }
+  static RawObject* NewKey(const CanonicalInstanceKey& obj) {
+    return obj.key_.raw();
+  }
+};
+typedef UnorderedHashSet <CanonicalInstanceTraits> CanonicalInstancesSet;
+
+
+RawInstance* Class::LookupCanonicalInstance(Zone* zone,
+                                            const Instance& value) const {
+  ASSERT(this->raw() == value.clazz());
+  Instance& canonical_value = Instance::Handle(zone);
+  if (this->constants() != Object::empty_array().raw()) {
+    CanonicalInstancesSet constants(zone, this->constants());
+    canonical_value ^= constants.GetOrNull(CanonicalInstanceKey(value));
+    this->set_constants(constants.Release());
+  }
+  return canonical_value.raw();
 }
 
 
-void Class::InsertCanonicalConstant(intptr_t index,
-                                    const Instance& constant) const {
-  // The constant needs to be added to the list. Grow the list if it is full.
-  Array& canonical_list = Array::Handle(constants());
-  const intptr_t list_len = canonical_list.Length();
-  if (index >= list_len) {
-    const intptr_t new_length = (list_len == 0) ? 4 : list_len + 4;
-    const Array& new_canonical_list =
-        Array::Handle(Array::Grow(canonical_list, new_length, Heap::kOld));
-    set_constants(new_canonical_list);
-    new_canonical_list.SetAt(index, constant);
+RawInstance* Class::InsertCanonicalConstant(Zone* zone,
+                                            const Instance& constant) const {
+  ASSERT(this->raw() == constant.clazz());
+  Instance& canonical_value = Instance::Handle(zone);
+  if (this->constants() == Object::empty_array().raw()) {
+    CanonicalInstancesSet constants(
+        HashTables::New<CanonicalInstancesSet>(128, Heap::kOld));
+    canonical_value ^= constants.InsertNewOrGet(CanonicalInstanceKey(constant));
+    this->set_constants(constants.Release());
   } else {
-    canonical_list.SetAt(index, constant);
+    CanonicalInstancesSet constants(Thread::Current()->zone(),
+                                    this->constants());
+    canonical_value ^= constants.InsertNewOrGet(CanonicalInstanceKey(constant));
+    this->set_constants(constants.Release());
   }
+  return canonical_value.raw();
 }
 
 
@@ -4476,6 +4527,29 @@ void Class::InsertCanonicalNumber(Zone* zone,
     set_constants(canonical_list);
   }
   canonical_list.SetAt(index, constant);
+}
+
+
+void Class::RehashConstants(Zone* zone) const {
+  intptr_t cid = id();
+  if ((cid == kMintCid) || (cid == kBigintCid) || (cid == kDoubleCid)) {
+    // Constants stored as a plain list, no rehashing needed.
+    return;
+  }
+
+  const Array& old_constants = Array::Handle(zone, constants());
+  if (old_constants.Length() == 0) return;
+
+  set_constants(Object::empty_array());
+  CanonicalInstancesSet set(zone, old_constants.raw());
+  Instance& constant = Instance::Handle(zone);
+  CanonicalInstancesSet::Iterator it(&set);
+  while (it.MoveNext()) {
+    constant ^= set.GetKey(it.Current());
+    ASSERT(!constant.IsNull());
+    InsertCanonicalConstant(zone, constant);
+  }
+  set.Release();
 }
 
 
@@ -14780,8 +14854,13 @@ bool Instance::CanonicalizeEquals(const Instance& other) const {
   {
     NoSafepointScope no_safepoint;
     // Raw bits compare.
-    const intptr_t instance_size = Class::Handle(this->clazz()).instance_size();
+    const intptr_t instance_size = SizeFromClass();
     ASSERT(instance_size != 0);
+    const intptr_t other_instance_size = other.SizeFromClass();
+    ASSERT(other_instance_size != 0);
+    if (instance_size != other_instance_size) {
+      return false;
+    }
     uword this_addr = reinterpret_cast<uword>(this->raw_ptr());
     uword other_addr = reinterpret_cast<uword>(other.raw_ptr());
     for (intptr_t offset = Instance::NextFieldOffset();
@@ -14794,6 +14873,24 @@ bool Instance::CanonicalizeEquals(const Instance& other) const {
     }
   }
   return true;
+}
+
+
+uword Instance::ComputeCanonicalTableHash() const {
+  ASSERT(!IsNull());
+  NoSafepointScope no_safepoint;
+  const intptr_t instance_size = SizeFromClass();
+  ASSERT(instance_size != 0);
+  uword hash = instance_size;
+  uword this_addr = reinterpret_cast<uword>(this->raw_ptr());
+  for (intptr_t offset = Instance::NextFieldOffset();
+       offset < instance_size;
+       offset += kWordSize) {
+    uword value = reinterpret_cast<uword>(
+        *reinterpret_cast<RawObject**>(this_addr + offset));
+    hash = CombineHashes(hash, value);
+  }
+  return FinalizeHash(hash);
 }
 
 
@@ -14819,21 +14916,21 @@ class CheckForPointers : public ObjectPointerVisitor {
 #endif  // DEBUG
 
 
-bool Instance::CheckAndCanonicalizeFields(Zone* zone,
+bool Instance::CheckAndCanonicalizeFields(Thread* thread,
                                           const char** error_str) const {
-  const Class& cls = Class::Handle(zone, this->clazz());
-  if (cls.id() >= kNumPredefinedCids) {
+  if (GetClassId() >= kNumPredefinedCids) {
     // Iterate over all fields, canonicalize numbers and strings, expect all
     // other instances to be canonical otherwise report error (return false).
+    Zone* zone = thread->zone();
     Object& obj = Object::Handle(zone);
-    intptr_t end_field_offset = cls.instance_size() - kWordSize;
+    intptr_t end_field_offset = SizeFromClass() - kWordSize;
     for (intptr_t field_offset = 0;
          field_offset <= end_field_offset;
          field_offset += kWordSize) {
       obj = *this->FieldAddrAtOffset(field_offset);
       if (obj.IsInstance() && !obj.IsSmi() && !obj.IsCanonical()) {
         if (obj.IsNumber() || obj.IsString()) {
-          obj = Instance::Cast(obj).CheckAndCanonicalize(NULL);
+          obj = Instance::Cast(obj).CheckAndCanonicalize(thread, NULL);
           ASSERT(!obj.IsNull());
           this->SetFieldAtOffset(field_offset, obj);
         } else {
@@ -14856,46 +14953,35 @@ bool Instance::CheckAndCanonicalizeFields(Zone* zone,
 }
 
 
-RawInstance* Instance::CheckAndCanonicalize(const char** error_str) const {
+RawInstance* Instance::CheckAndCanonicalize(Thread* thread,
+                                            const char** error_str) const {
   ASSERT(!IsNull());
   if (this->IsCanonical()) {
     return this->raw();
   }
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  if (!CheckAndCanonicalizeFields(zone, error_str)) {
+  if (!CheckAndCanonicalizeFields(thread, error_str)) {
     return Instance::null();
   }
+  Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   Instance& result = Instance::Handle(zone);
   const Class& cls = Class::Handle(zone, this->clazz());
-  intptr_t index = 0;
-  result ^= cls.LookupCanonicalInstance(zone, *this, &index);
-  if (!result.IsNull()) {
-    return result.raw();
-  }
   {
     SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
-    // Retry lookup.
-    {
-      result ^= cls.LookupCanonicalInstance(zone, *this, &index);
+    if (IsNew()) {
+      result ^= cls.LookupCanonicalInstance(zone, *this);
       if (!result.IsNull()) {
         return result.raw();
       }
-    }
-
-    // The value needs to be added to the list. Grow the list if
-    // it is full.
-    result ^= this->raw();
-    ASSERT((isolate == Dart::vm_isolate()) || !result.InVMHeap());
-    if (result.IsNew()) {
+      ASSERT((isolate == Dart::vm_isolate()) || !InVMHeap());
       // Create a canonical object in old space.
-      result ^= Object::Clone(result, Heap::kOld);
+      result ^= Object::Clone(*this, Heap::kOld);
+    } else {
+      result ^= this->raw();
     }
     ASSERT(result.IsOld());
     result.SetCanonical();
-    cls.InsertCanonicalConstant(index, result);
-    return result.raw();
+    return cls.InsertCanonicalConstant(zone, result);
   }
 }
 
@@ -17526,7 +17612,8 @@ RawMixinAppType* MixinAppType::New(const AbstractType& super_type,
 }
 
 
-RawInstance* Number::CheckAndCanonicalize(const char** error_str) const {
+RawInstance* Number::CheckAndCanonicalize(Thread* thread,
+                                          const char** error_str) const {
   intptr_t cid = GetClassId();
   switch (cid) {
     case kSmiCid:
@@ -17536,10 +17623,9 @@ RawInstance* Number::CheckAndCanonicalize(const char** error_str) const {
     case kDoubleCid:
       return Double::NewCanonical(Double::Cast(*this).value());
     case kBigintCid: {
-      Thread* thread = Thread::Current();
       Zone* zone = thread->zone();
       Isolate* isolate = thread->isolate();
-      if (!CheckAndCanonicalizeFields(zone, error_str)) {
+      if (!CheckAndCanonicalizeFields(thread, error_str)) {
         return Instance::null();
       }
       Bigint& result = Bigint::Handle(zone);
@@ -18292,15 +18378,16 @@ bool Bigint::Equals(const Instance& other) const {
 }
 
 
-bool Bigint::CheckAndCanonicalizeFields(Zone* zone,
+bool Bigint::CheckAndCanonicalizeFields(Thread* thread,
                                         const char** error_str) const {
+  Zone* zone = thread->zone();
   // Bool field neg should always be canonical.
   ASSERT(Bool::Handle(zone, neg()).IsCanonical());
   // Smi field used is canonical by definition.
   if (Used() > 0) {
     // Canonicalize TypedData field digits.
     TypedData& digits_ = TypedData::Handle(zone, digits());
-    digits_ ^= digits_.CheckAndCanonicalize(NULL);
+    digits_ ^= digits_.CheckAndCanonicalize(thread, NULL);
     ASSERT(!digits_.IsNull());
     set_digits(digits_);
   } else {
@@ -19272,7 +19359,8 @@ bool String::StartsWith(const String& other) const {
 }
 
 
-RawInstance* String::CheckAndCanonicalize(const char** error_str) const {
+RawInstance* String::CheckAndCanonicalize(Thread* thread,
+                                          const char** error_str) const {
   if (IsCanonical()) {
     return this->raw();
   }
@@ -20729,6 +20817,9 @@ bool Array::CanonicalizeEquals(const Instance& other) const {
   }
 
   // Now check if both arrays have the same type arguments.
+  if (GetTypeArguments() == other.GetTypeArguments()) {
+    return true;
+  }
   const TypeArguments& type_args = TypeArguments::Handle(GetTypeArguments());
   const TypeArguments& other_type_args = TypeArguments::Handle(
       other.GetTypeArguments());
@@ -20736,6 +20827,20 @@ bool Array::CanonicalizeEquals(const Instance& other) const {
     return false;
   }
   return true;
+}
+
+
+uword Array::ComputeCanonicalTableHash() const {
+  ASSERT(!IsNull());
+  intptr_t len = Length();
+  uword hash = len;
+  uword value = reinterpret_cast<uword>(GetTypeArguments());
+  hash = CombineHashes(hash, value);
+  for (intptr_t i = 0; i < len; i++) {
+    value = reinterpret_cast<uword>(At(i));
+    hash = CombineHashes(hash, value);
+  }
+  return FinalizeHash(hash);
 }
 
 
@@ -20880,24 +20985,28 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
 }
 
 
-bool Array::CheckAndCanonicalizeFields(Zone* zone,
+bool Array::CheckAndCanonicalizeFields(Thread* thread,
                                        const char** error_str) const {
-  Object& obj = Object::Handle(zone);
-  // Iterate over all elements, canonicalize numbers and strings, expect all
-  // other instances to be canonical otherwise report error (return false).
-  for (intptr_t i = 0; i < Length(); i++) {
-    obj = At(i);
-    if (obj.IsInstance() && !obj.IsSmi() && !obj.IsCanonical()) {
-      if (obj.IsNumber() || obj.IsString()) {
-        obj = Instance::Cast(obj).CheckAndCanonicalize(NULL);
-        ASSERT(!obj.IsNull());
-        this->SetAt(i, obj);
-      } else {
-        ASSERT(error_str != NULL);
-        char* chars = OS::SCreate(Thread::Current()->zone(),
-            "element at index %" Pd ": %s\n", i, obj.ToCString());
-        *error_str = chars;
-        return false;
+  intptr_t len = Length();
+  if (len > 0) {
+    Zone* zone = thread->zone();
+    Object& obj = Object::Handle(zone);
+    // Iterate over all elements, canonicalize numbers and strings, expect all
+    // other instances to be canonical otherwise report error (return false).
+    for (intptr_t i = 0; i < len; i++) {
+      obj = At(i);
+      if (obj.IsInstance() && !obj.IsSmi() && !obj.IsCanonical()) {
+        if (obj.IsNumber() || obj.IsString()) {
+          obj = Instance::Cast(obj).CheckAndCanonicalize(thread, NULL);
+          ASSERT(!obj.IsNull());
+          this->SetAt(i, obj);
+        } else {
+          ASSERT(error_str != NULL);
+          char* chars = OS::SCreate(
+              zone, "element at index %" Pd ": %s\n", i, obj.ToCString());
+          *error_str = chars;
+          return false;
+        }
       }
     }
   }
@@ -21378,6 +21487,17 @@ bool TypedData::CanonicalizeEquals(const Instance& other) const {
   NoSafepointScope no_safepoint;
   return (len == 0) ||
       (memcmp(DataAddr(0), other_typed_data.DataAddr(0), len) == 0);
+}
+
+
+uword TypedData::ComputeCanonicalTableHash() const {
+  const intptr_t len = this->LengthInBytes();
+  ASSERT(len != 0);
+  uword hash = len;
+  for (intptr_t i = 0; i < len; i++) {
+    hash = CombineHashes(len, GetUint8(i));
+  }
+  return FinalizeHash(hash);
 }
 
 
