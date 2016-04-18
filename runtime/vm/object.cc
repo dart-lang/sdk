@@ -3057,7 +3057,8 @@ RawError* Class::EnsureIsFinalized(Thread* thread) const {
     return Error::null();
   }
   if (Compiler::IsBackgroundCompilation()) {
-    Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+    Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
+        "Class finalization while compiling");
   }
   ASSERT(thread->IsMutatorThread());
   ASSERT(thread != NULL);

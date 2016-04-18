@@ -2991,7 +2991,8 @@ void JitOptimizer::VisitStoreInstanceField(
       // - deoptimize dependent code.
       if (Compiler::IsBackgroundCompilation()) {
         isolate()->AddDeoptimizingBoxedField(field);
-        Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+        Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
+            "Unboxing instance field while compiling");
         UNREACHABLE();
       }
       if (FLAG_trace_optimization || FLAG_trace_field_guards) {

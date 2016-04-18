@@ -1145,7 +1145,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
             FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
           }
           // TODO(srdjan): Enable this and remove the one from
-          // 'BackgroundCompiler::CompileOptimize'
+          // 'BackgroundCompiler::CompileOptimized'
           // if (isolate()->heap()->NeedsGarbageCollection()) {
           //   isolate()->heap()->CollectAllGarbage();
           // }

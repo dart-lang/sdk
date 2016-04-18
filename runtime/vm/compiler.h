@@ -148,8 +148,7 @@ class Compiler : public AllStatic {
   // because the mutator thread changed the state (e.g., deoptimization,
   // deferred loading). The background compilation may retry to compile
   // the same function later.
-  static void AbortBackgroundCompilation(intptr_t deopt_id,
-                                         const char* msg = "");
+  static void AbortBackgroundCompilation(intptr_t deopt_id, const char* msg);
 };
 
 
