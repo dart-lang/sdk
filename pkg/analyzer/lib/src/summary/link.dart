@@ -200,6 +200,16 @@ EntityRefBuilder _createLinkedType(
       }
       return result;
     }
+    if (element is TopLevelFunctionElementForLink) {
+      result.reference = compilationUnit.addReference(element);
+      if (type.typeArguments.isNotEmpty) {
+        result.typeArguments = type.typeArguments
+            .map((DartType t) =>
+                _createLinkedType(t, compilationUnit, typeParameterContext))
+            .toList();
+      }
+      return result;
+    }
     if (element is MethodElementForLink) {
       result.reference = compilationUnit.addReference(element);
       if (type.typeArguments.isNotEmpty) {
@@ -666,6 +676,7 @@ abstract class CompilationUnitElementForLink
   Map<String, ReferenceableElementForLink> _containedNames;
   List<TopLevelVariableElementForLink> _topLevelVariables;
   List<ClassElementForLink_Enum> _enums;
+  List<TopLevelFunctionElementForLink> _functions;
 
   /**
    * Index of this unit in the list of units in the enclosing library.
@@ -689,6 +700,19 @@ abstract class CompilationUnitElementForLink
       }
     }
     return _enums;
+  }
+
+  @override
+  List<TopLevelFunctionElementForLink> get functions {
+    if (_functions == null) {
+      _functions = <TopLevelFunctionElementForLink>[];
+      for (UnlinkedExecutable executable in _unlinkedUnit.executables) {
+        if (executable.kind == UnlinkedExecutableKind.functionOrMethod) {
+          _functions.add(new TopLevelFunctionElementForLink(this, executable));
+        }
+      }
+    }
+    return _functions;
   }
 
   @override
@@ -760,6 +784,9 @@ abstract class CompilationUnitElementForLink
       }
       for (TopLevelVariableElementForLink variable in topLevelVariables) {
         _containedNames[variable.name] = variable;
+      }
+      for (TopLevelFunctionElementForLink function in functions) {
+        _containedNames[function.name] = function;
       }
       // TODO(paulberry): fill in other top level entities (typedefs
       // and executables).
@@ -944,13 +971,13 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
           numTypeParameters: element.typeParameters.length,
           unitNum: element.enclosingElement.unitNum);
     } else if (element is ExecutableElementForLink) {
-      // TODO(paulberry): will this code ever be executed for an executable
-      // element that's not inside a class?
-      assert(element.enclosingElement is ClassElementForLink_Class);
+      ClassElementForLink_Class enclosingClass = element.enclosingClass;
       ReferenceKind kind;
       switch (element._unlinkedExecutable.kind) {
         case UnlinkedExecutableKind.functionOrMethod:
-          kind = ReferenceKind.method;
+          kind = enclosingClass != null
+              ? ReferenceKind.method
+              : ReferenceKind.topLevelFunction;
           break;
         case UnlinkedExecutableKind.setter:
           kind = ReferenceKind.propertyAccessor;
@@ -961,7 +988,8 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
       }
       return addRawReference(element.name,
           numTypeParameters: element.typeParameters.length,
-          containingReference: addReference(element.enclosingElement),
+          containingReference:
+              enclosingClass != null ? addReference(enclosingClass) : null,
           kind: kind);
     }
     // TODO(paulberry): implement other cases
@@ -1146,7 +1174,7 @@ class ConstConstructorNode extends ConstNode {
             UnlinkedConstructorInitializerKind.thisInvocation) {
           defaultSuperInvocationNeeded = false;
           ConstructorElementForLink constructor = constructorElement
-              .enclosingElement
+              .enclosingClass
               .getContainedName(constructorInitializer.name)
               .asConstructor;
           safeAddDependency(constructor?._constNode);
@@ -1192,7 +1220,7 @@ class ConstConstructorNode extends ConstNode {
     EntityRef redirectedConstructor =
         constructorElement._unlinkedExecutable.redirectedConstructor;
     if (redirectedConstructor != null) {
-      return constructorElement.enclosingElement.enclosingElement
+      return constructorElement.enclosingUnit
           ._resolveRef(redirectedConstructor.reference)
           .asConstructor;
     } else {
@@ -1314,10 +1342,11 @@ class ConstructorElementForLink extends ExecutableElementForLink
    */
   ConstConstructorNode _constNode;
 
-  ConstructorElementForLink(ClassElementForLink_Class enclosingElement,
+  ConstructorElementForLink(ClassElementForLink_Class enclosingClass,
       UnlinkedExecutable unlinkedExecutable)
-      : super(enclosingElement, unlinkedExecutable) {
-    if (enclosingElement.enclosingElement.isInBuildUnit &&
+      : super(enclosingClass.enclosingElement, enclosingClass,
+            unlinkedExecutable) {
+    if (enclosingClass.enclosingElement.isInBuildUnit &&
         _unlinkedExecutable != null &&
         _unlinkedExecutable.constCycleSlot != 0) {
       _constNode = new ConstConstructorNode(this);
@@ -1573,18 +1602,18 @@ abstract class ExecutableElementForLink extends Object
   String _displayName;
 
   /**
-   * TODO(paulberry): this won't always be a class element.
+   * Return the class in which this executable appears, maybe `null` for a
+   * top-level function.
    */
-  @override
-  final ClassElementForLink_Class enclosingElement;
-
-  ExecutableElementForLink(this.enclosingElement, this._unlinkedExecutable);
+  final ClassElementForLink_Class enclosingClass;
 
   /**
    * Return the compilation unit in which this executable appears.
    */
-  CompilationUnitElementForLink get compilationUnit =>
-      enclosingElement.enclosingElement;
+  final CompilationUnitElementForLink enclosingUnit;
+
+  ExecutableElementForLink(
+      this.enclosingUnit, this.enclosingClass, this._unlinkedExecutable);
 
   @override
   String get displayName {
@@ -1598,8 +1627,11 @@ abstract class ExecutableElementForLink extends Object
   }
 
   @override
+  Element get enclosingElement => enclosingClass ?? enclosingUnit;
+
+  @override
   TypeParameterizedElementForLink get enclosingTypeParameterContext =>
-      enclosingElement;
+      enclosingClass;
 
   @override
   bool get hasImplicitReturnType => _unlinkedExecutable.returnType == null;
@@ -1632,7 +1664,7 @@ abstract class ExecutableElementForLink extends Object
       for (int i = 0; i < numParameters; i++) {
         UnlinkedParam unlinkedParam = _unlinkedExecutable.parameters[i];
         _parameters[i] = new ParameterElementForLink(
-            this, unlinkedParam, this, enclosingElement.enclosingElement, i);
+            this, unlinkedParam, this, enclosingUnit, i);
       }
     }
     return _parameters;
@@ -1647,8 +1679,8 @@ abstract class ExecutableElementForLink extends Object
         if (_unlinkedExecutable.kind == UnlinkedExecutableKind.constructor) {
           // TODO(paulberry): implement.
           throw new UnimplementedError();
-        } else if (!compilationUnit.isInBuildUnit) {
-          _inferredReturnType = compilationUnit.getLinkedType(
+        } else if (!enclosingUnit.isInBuildUnit) {
+          _inferredReturnType = enclosingUnit.getLinkedType(
               _unlinkedExecutable.inferredReturnTypeSlot, this);
           return _inferredReturnType;
         } else if (_unlinkedExecutable.kind == UnlinkedExecutableKind.setter &&
@@ -1660,8 +1692,8 @@ abstract class ExecutableElementForLink extends Object
           _declaredReturnType = DynamicTypeImpl.instance;
         }
       } else {
-        _declaredReturnType = enclosingElement.enclosingElement
-            ._resolveTypeRef(_unlinkedExecutable.returnType, this);
+        _declaredReturnType =
+            enclosingUnit._resolveTypeRef(_unlinkedExecutable.returnType, this);
       }
     }
     return _declaredReturnType;
@@ -2021,11 +2053,11 @@ class ExprTypeComputer {
     // to infer the type of type arguments.
     stack.length -= numNamed + numPositional;
     strPtr += numNamed;
-    EntityRef ref = unlinkedConst.references[refPtr++];
+    EntityRef ref = _getNextRef();
     ConstructorElementForLink element =
         unit._resolveRef(ref.reference).asConstructor;
     if (element != null) {
-      stack.add(element.enclosingElement.buildType(
+      stack.add(element.enclosingClass.buildType(
           (int i) => i >= ref.typeArguments.length
               ? DynamicTypeImpl.instance
               : unit._resolveTypeRef(
@@ -2066,7 +2098,7 @@ class ExprTypeComputer {
     List<String> namedArgNames = _getNextStrings(numNamed);
     List<DartType> namedArgTypeList = _popList(numNamed);
     List<DartType> positionalArgTypes = _popList(numPositional);
-    EntityRef ref = unlinkedConst.references[refPtr++];
+    EntityRef ref = _getNextRef();
     ReferenceableElementForLink element = unit._resolveRef(ref.reference);
     stack.add(() {
       DartType rawType = element.asStaticType;
@@ -2123,7 +2155,7 @@ class ExprTypeComputer {
   }
 
   void _doPushReference() {
-    EntityRef ref = unlinkedConst.references[refPtr++];
+    EntityRef ref = _getNextRef();
     if (ref.paramReference != 0) {
       stack.add(typeProvider.typeType);
     } else {
@@ -2133,8 +2165,7 @@ class ExprTypeComputer {
       // Nor can implicit function types derived from
       // function-typed parameters.
       assert(ref.implicitFunctionTypeIndices.isEmpty);
-      ReferenceableElementForLink element =
-          variable.compilationUnit._resolveRef(ref.reference);
+      ReferenceableElementForLink element = unit._resolveRef(ref.reference);
       stack.add(element.asStaticType);
     }
   }
@@ -2142,6 +2173,8 @@ class ExprTypeComputer {
   int _getNextInt() {
     return unlinkedConst.ints[intPtr++];
   }
+
+  EntityRef _getNextRef() => unlinkedConst.references[refPtr++];
 
   String _getNextString() {
     return unlinkedConst.strings[strPtr++];
@@ -2156,7 +2189,7 @@ class ExprTypeComputer {
   }
 
   DartType _getNextTypeRef() {
-    EntityRef ref = unlinkedConst.references[refPtr++];
+    EntityRef ref = _getNextRef();
     return unit._resolveTypeRef(ref, variable._typeParameterContext);
   }
 
@@ -3091,9 +3124,10 @@ class Linker {
  */
 class MethodElementForLink extends ExecutableElementForLink
     implements MethodElementImpl {
-  MethodElementForLink(ClassElementForLink_Class enclosingElement,
+  MethodElementForLink(ClassElementForLink_Class enclosingClass,
       UnlinkedExecutable unlinkedExecutable)
-      : super(enclosingElement, unlinkedExecutable);
+      : super(enclosingClass.enclosingElement, enclosingClass,
+            unlinkedExecutable);
 
   @override
   String get identifier => name;
@@ -3365,10 +3399,11 @@ class PropertyAccessorElementForLink_Executable extends ExecutableElementForLink
   SyntheticVariableElementForLink variable;
 
   PropertyAccessorElementForLink_Executable(
-      ClassElementForLink_Class enclosingElement,
+      ClassElementForLink_Class enclosingClass,
       UnlinkedExecutable unlinkedExecutable,
       this.variable)
-      : super(enclosingElement, unlinkedExecutable);
+      : super(enclosingClass.enclosingElement, enclosingClass,
+            unlinkedExecutable);
 
   @override
   PropertyAccessorElementForLink_Executable get correspondingGetter =>
@@ -3593,6 +3628,33 @@ class SyntheticVariableElementForLink implements PropertyInducingElementImpl {
 
   @override
   void set type(DartType inferredType) {}
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/**
+ * Element representing a top-level function.
+ */
+class TopLevelFunctionElementForLink extends ExecutableElementForLink
+    implements FunctionElementImpl, ReferenceableElementForLink {
+  DartType _returnType;
+
+  TopLevelFunctionElementForLink(
+      CompilationUnitElementForLink enclosingUnit, UnlinkedExecutable _buf)
+      : super(enclosingUnit, null, _buf);
+
+  @override
+  ConstVariableNode get asConstVariable => null;
+
+  @override
+  DartType get asStaticType => type;
+
+  @override
+  TypeInferenceNode get asTypeInferenceNode => null;
+
+  @override
+  ElementKind get kind => ElementKind.FUNCTION;
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
