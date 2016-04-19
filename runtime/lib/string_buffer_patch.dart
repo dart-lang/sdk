@@ -148,7 +148,8 @@ patch class StringBuffer {
     _partsCodeUnitsSinceCompaction += length;
 
     if (_parts == null) {
-      _parts = [ str ];
+      // Empirically this is a good capacity to minimize total bytes allocated.
+      _parts = new _GrowableList.withCapacity(10)..add(str);
     } else {
       _parts.add(str);
       int partsSinceCompaction = _parts.length - _partsCompactionIndex;
