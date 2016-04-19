@@ -953,19 +953,25 @@ LocationSummary* LoadClassIdInstr::MakeLocationSummary(Zone* zone,
 void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register object = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  Label done;
-
-  // We don't use Assembler::LoadTaggedClassIdMayBeSmi() here---which uses
-  // a conditional move instead, and requires an additional register---because
-  // it is slower, probably due to branch prediction usually working just fine
-  // in this case.
-  ASSERT(result != object);
-  __ movl(result, Immediate(kSmiCid << 1));
-  __ testl(object, Immediate(kSmiTagMask));
-  __ j(EQUAL, &done, Assembler::kNearJump);
-  __ LoadClassId(result, object);
-  __ SmiTag(result);
-  __ Bind(&done);
+  const AbstractType& value_type = *this->object()->Type()->ToAbstractType();
+  if (CompileType::Smi().IsAssignableTo(value_type) ||
+      value_type.IsTypeParameter()) {
+    // We don't use Assembler::LoadTaggedClassIdMayBeSmi() here---which uses
+    // a conditional move instead, and requires an additional register---because
+    // it is slower, probably due to branch prediction usually working just fine
+    // in this case.
+    ASSERT(result != object);
+    Label done;
+    __ movl(result, Immediate(kSmiCid << 1));
+    __ testl(object, Immediate(kSmiTagMask));
+    __ j(EQUAL, &done, Assembler::kNearJump);
+    __ LoadClassId(result, object);
+    __ SmiTag(result);
+    __ Bind(&done);
+  } else {
+    __ LoadClassId(result, object);
+    __ SmiTag(result);
+  }
 }
 
 

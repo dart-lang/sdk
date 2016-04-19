@@ -466,6 +466,11 @@ CompileType CompileType::Int() {
 }
 
 
+CompileType CompileType::Smi() {
+  return Create(kSmiCid, Type::ZoneHandle(Type::SmiType()));
+}
+
+
 CompileType CompileType::String() {
   return FromAbstractType(Type::ZoneHandle(Type::StringType()), kNonNullable);
 }
