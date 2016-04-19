@@ -297,6 +297,7 @@ class AnalyzerWorkerLoop extends SyncWorkerLoop {
    */
   void analyze(CommandLineOptions options) {
     new BuildMode(options, new AnalysisStats()).analyze();
+    AnalysisEngine.instance.clearCaches();
   }
 
   /**
