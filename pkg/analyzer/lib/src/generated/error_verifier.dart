@@ -4252,10 +4252,16 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             String paramName = param.name;
             if (!_containsNamedExpression(argumentList, paramName)) {
               DartObject constantValue = annotation.constantValue;
-              String reason =
-                  constantValue.getField('reason')?.toStringValue() ?? '';
-              _errorReporter.reportErrorForNode(
-                  HintCode.MISSING_REQUIRED_PARAM, node, [paramName, reason]);
+              String reason = constantValue.getField('reason')?.toStringValue();
+              if (reason != null) {
+                _errorReporter.reportErrorForNode(
+                    HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
+                    node,
+                    [paramName, reason]);
+              } else {
+                _errorReporter.reportErrorForNode(
+                    HintCode.MISSING_REQUIRED_PARAM, node, [paramName]);
+              }
             }
           }
         }

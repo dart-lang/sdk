@@ -2685,6 +2685,7 @@ abstract class ErrorCode {
     HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
     HintCode.MISSING_JS_LIB_ANNOTATION,
     HintCode.MISSING_REQUIRED_PARAM,
+    HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
     HintCode.MISSING_RETURN,
     HintCode.NULL_AWARE_IN_CONDITION,
     HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
@@ -3580,9 +3581,20 @@ class HintCode extends ErrorCode {
    *
    * Parameters:
    * 0: the name of the parameter
-   * 1: an optional reason
    */
   static const HintCode MISSING_REQUIRED_PARAM = const HintCode(
+      'MISSING_REQUIRED_PARAM', "The parameter '{0}' is required.");
+
+
+  /**
+   * Generate a hint for a constructor, function or method invocation where a
+   * required parameter is missing.
+   *
+   * Parameters:
+   * 0: the name of the parameter
+   * 1: message details
+   */
+  static const HintCode MISSING_REQUIRED_PARAM_WITH_DETAILS = const HintCode(
       'MISSING_REQUIRED_PARAM', "The parameter '{0}' is required. {1}");
 
   /**

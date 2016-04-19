@@ -1605,7 +1605,7 @@ main() {
 }
 ''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
     verify([source]);
   }
 
@@ -1671,7 +1671,7 @@ main() {
 }
 ''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
     verify([source]);
   }
 
@@ -1686,7 +1686,7 @@ f() {
 }
 ''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
     verify([source]);
   }
 
@@ -2909,7 +2909,8 @@ library L;
 import 'lib1.dart' show A, B;
 A a;''');
     Source source2 = addNamedSource(
-        "/lib1.dart", r'''
+        "/lib1.dart",
+        r'''
 library lib1;
 class A {}
 class B {}''');
@@ -2947,7 +2948,8 @@ library L;
 import 'lib1.dart' as p show A, B;
 p.A a;''');
     Source source2 = addNamedSource(
-        "/lib1.dart", r'''
+        "/lib1.dart",
+        r'''
 library lib1;
 class A {}
 class B {}''');
@@ -2965,16 +2967,16 @@ import 'lib1.dart' show C, D;
 A a;
 C c;''');
     Source source2 = addNamedSource(
-        "/lib1.dart", r'''
+        "/lib1.dart",
+        r'''
 library lib1;
 class A {}
 class B {}
 class C {}
 class D {}''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, [
-        HintCode.UNUSED_SHOWN_NAME,
-        HintCode.UNUSED_SHOWN_NAME]);
+    assertErrors(
+        source, [HintCode.UNUSED_SHOWN_NAME, HintCode.UNUSED_SHOWN_NAME]);
     assertNoErrors(source2);
     verify([source, source2]);
   }
