@@ -3645,6 +3645,9 @@ class TopLevelFunctionElementForLink extends ExecutableElementForLink
       : super(enclosingUnit, null, _buf);
 
   @override
+  ConstructorElementForLink get asConstructor => null;
+
+  @override
   ConstVariableNode get asConstVariable => null;
 
   @override
@@ -3655,6 +3658,17 @@ class TopLevelFunctionElementForLink extends ExecutableElementForLink
 
   @override
   ElementKind get kind => ElementKind.FUNCTION;
+
+  @override
+  DartType buildType(DartType getTypeArgument(int i),
+          List<int> implicitFunctionTypeIndices) =>
+      DynamicTypeImpl.instance;
+
+  @override
+  ReferenceableElementForLink getContainedName(String name) {
+    // TODO(paulberry): handle references to `call`.
+    return UndefinedElementForLink.instance;
+  }
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
