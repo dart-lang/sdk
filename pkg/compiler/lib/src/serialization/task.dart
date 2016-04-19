@@ -46,6 +46,16 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
     return deserializer != null && deserializer.isDeserialized(element);
   }
 
+  bool hasResolutionImpact(Element element) {
+    return deserializer != null && deserializer.hasResolutionImpact(element);
+  }
+
+  ResolutionImpact getResolutionImpact(Element element) {
+    return deserializer != null
+        ? deserializer.getResolutionImpact(element)
+        : null;
+  }
+
   /// Creates the [ResolutionWorkItem] for the deserialized [element].
   ResolutionWorkItem createResolutionWorkItem(
       Element element, ItemCompilationContext context) {
@@ -94,6 +104,7 @@ abstract class DeserializerSystem {
   bool isDeserialized(Element element);
   bool hasResolvedAst(Element element);
   ResolvedAst getResolvedAst(Element element);
+  bool hasResolutionImpact(Element element);
   ResolutionImpact getResolutionImpact(Element element);
   WorldImpact computeWorldImpact(Element element);
 }

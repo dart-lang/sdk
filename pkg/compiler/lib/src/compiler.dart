@@ -1878,6 +1878,9 @@ class _CompilerResolution implements Resolution {
   bool hasResolutionImpact(Element element) {
     assert(invariant(element, element.isDeclaration,
         message: "Element $element must be the declaration."));
+    if (compiler.serialization.isDeserialized(element)) {
+      return compiler.serialization.hasResolutionImpact(element);
+    }
     return _resolutionImpactCache.containsKey(element);
   }
 
@@ -1885,7 +1888,12 @@ class _CompilerResolution implements Resolution {
   ResolutionImpact getResolutionImpact(Element element) {
     assert(invariant(element, element.isDeclaration,
         message: "Element $element must be the declaration."));
-    ResolutionImpact resolutionImpact = _resolutionImpactCache[element];
+    ResolutionImpact resolutionImpact;
+    if (compiler.serialization.isDeserialized(element)) {
+      resolutionImpact = compiler.serialization.getResolutionImpact(element);
+    } else {
+      resolutionImpact = _resolutionImpactCache[element];
+    }
     assert(invariant(element, resolutionImpact != null,
         message: "ResolutionImpact not available for $element."));
     return resolutionImpact;
@@ -1910,6 +1918,7 @@ class _CompilerResolution implements Resolution {
       Node tree = compiler.parser.parse(element);
       assert(invariant(element, !element.isSynthesized || tree == null));
       ResolutionImpact resolutionImpact = compiler.resolver.resolve(element);
+
       if (compiler.serialization.supportSerialization ||
           retainCachesForTesting) {
         // [ResolutionImpact] is currently only used by serialization. The

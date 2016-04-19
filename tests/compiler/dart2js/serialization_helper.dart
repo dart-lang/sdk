@@ -23,7 +23,9 @@ import 'package:compiler/src/serialization/resolved_ast_serialization.dart';
 import 'package:compiler/src/serialization/serialization.dart';
 import 'package:compiler/src/serialization/task.dart';
 import 'package:compiler/src/tokens/token.dart';
+import 'package:compiler/src/universe/call_structure.dart';
 import 'package:compiler/src/universe/world_impact.dart';
+import 'package:compiler/src/universe/use.dart';
 
 import 'memory_compiler.dart';
 
@@ -142,7 +144,7 @@ class ResolutionImpactSerializer extends SerializerPlugin {
     if (resolution.hasBeenResolved(element)) {
       ResolutionImpact impact = resolution.getResolutionImpact(element);
       ObjectEncoder encoder = createEncoder(WORLD_IMPACT_TAG);
-      new ImpactSerializer(encoder).serialize(impact);
+      new ImpactSerializer(element, encoder).serialize(impact);
     }
   }
 }
@@ -154,7 +156,8 @@ class ResolutionImpactDeserializer extends DeserializerPlugin {
   void onElement(Element element, ObjectDecoder getDecoder(String tag)) {
     ObjectDecoder decoder = getDecoder(WORLD_IMPACT_TAG);
     if (decoder != null) {
-      impactMap[element] = ImpactDeserializer.deserializeImpact(decoder);
+      impactMap[element] =
+          ImpactDeserializer.deserializeImpact(element, decoder);
     }
   }
 }
@@ -221,7 +224,32 @@ class _DeserializerSystem extends DeserializerSystem {
   }
 
   @override
+  bool hasResolutionImpact(Element element) {
+    if (element.isConstructor &&
+            element.enclosingClass.isUnnamedMixinApplication) {
+      return true;
+    }
+    return _resolutionImpactDeserializer.impactMap.containsKey(element);
+  }
+
+  @override
   ResolutionImpact getResolutionImpact(Element element) {
+    if (element.isConstructor &&
+        element.enclosingClass.isUnnamedMixinApplication) {
+      ClassElement superclass =  element.enclosingClass.superclass;
+      ConstructorElement superclassConstructor =
+          superclass.lookupConstructor(element.name);
+      assert(invariant(element, superclassConstructor != null,
+          message: "Superclass constructor '${element.name}' called from "
+                   "${element} not found in ${superclass}."));
+      // TODO(johnniwinther): Compute callStructure. Currently not used.
+      CallStructure callStructure;
+      return _resolutionImpactDeserializer.impactMap.putIfAbsent(element, () {
+        return new DeserializedResolutionImpact(
+            staticUses: <StaticUse>[new StaticUse.superConstructorInvoke(
+                superclassConstructor, callStructure)]);
+      });
+    }
     return _resolutionImpactDeserializer.impactMap[element];
   }
 

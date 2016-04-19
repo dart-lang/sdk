@@ -4,6 +4,7 @@
 
 library dart2js.serialization.impact;
 
+import '../common.dart';
 import '../common/resolution.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
@@ -19,12 +20,13 @@ import 'serialization_util.dart';
 /// Visitor that serializes a [ResolutionImpact] object using an
 /// [ObjectEncoder].
 class ImpactSerializer implements WorldImpactVisitor {
+  final Element element;
   final ObjectEncoder objectEncoder;
   final ListEncoder staticUses;
   final ListEncoder dynamicUses;
   final ListEncoder typeUses;
 
-  ImpactSerializer(ObjectEncoder objectEncoder)
+  ImpactSerializer(this.element, ObjectEncoder objectEncoder)
       : this.objectEncoder = objectEncoder,
         staticUses = objectEncoder.createList(Key.STATIC_USES),
         dynamicUses = objectEncoder.createList(Key.DYNAMIC_USES),
@@ -64,14 +66,10 @@ class ImpactSerializer implements WorldImpactVisitor {
 
   @override
   void visitStaticUse(StaticUse staticUse) {
-    if (staticUse.element.isGenerativeConstructor &&
-        staticUse.element.enclosingClass.isUnnamedMixinApplication) {
-      // TODO(johnniwinther): Handle static use of forwarding constructors.
-      return;
-    }
     ObjectEncoder object = staticUses.createObject();
     object.setEnum(Key.KIND, staticUse.kind);
-    object.setElement(Key.ELEMENT, staticUse.element);
+    serializeElementReference(
+        element, Key.ELEMENT, Key.NAME, object, staticUse.element);
   }
 
   @override
@@ -95,29 +93,35 @@ class DeserializedResolutionImpact extends WorldImpact
   final Iterable<TypeUse> typeUses;
 
   DeserializedResolutionImpact(
-      {this.constSymbolNames,
-      this.constantLiterals,
-      this.dynamicUses,
+      {this.constSymbolNames: const <String>[],
+      this.constantLiterals: const <ConstantExpression>[],
+      this.dynamicUses: const <DynamicUse>[],
       EnumSet<Feature> features,
-      this.listLiterals,
-      this.mapLiterals,
-      this.staticUses,
-      this.typeUses})
+      this.listLiterals: const <ListLiteralUse>[],
+      this.mapLiterals: const <MapLiteralUse>[],
+      this.staticUses: const <StaticUse>[],
+      this.typeUses: const <TypeUse>[]})
       : this._features = features;
 
-  Iterable<Feature> get features => _features.iterable(Feature.values);
+  Iterable<Feature> get features {
+    return _features != null
+        ? _features.iterable(Feature.values)
+        : const <Feature>[];
+  }
 }
 
 class ImpactDeserializer {
   /// Deserializes a [WorldImpact] from [objectDecoder].
-  static ResolutionImpact deserializeImpact(ObjectDecoder objectDecoder) {
+  static ResolutionImpact deserializeImpact(
+      Element element, ObjectDecoder objectDecoder) {
     ListDecoder staticUseDecoder = objectDecoder.getList(Key.STATIC_USES);
     List<StaticUse> staticUses = <StaticUse>[];
     for (int index = 0; index < staticUseDecoder.length; index++) {
       ObjectDecoder object = staticUseDecoder.getObject(index);
       StaticUseKind kind = object.getEnum(Key.KIND, StaticUseKind.values);
-      Element element = object.getElement(Key.ELEMENT);
-      staticUses.add(new StaticUse.internal(element, kind));
+      Element usedElement =
+          deserializeElementReference(element, Key.ELEMENT, Key.NAME, object);
+      staticUses.add(new StaticUse.internal(usedElement, kind));
     }
 
     ListDecoder dynamicUseDecoder = objectDecoder.getList(Key.DYNAMIC_USES);

@@ -294,9 +294,20 @@ void checkLoadedLibraryMembers(
     if (member1.isClass && member2.isClass) {
       ClassElement class1 = member1;
       ClassElement class2 = member2;
+      if (!class1.isResolved) return;
+
       class1.forEachLocalMember((m1) {
-        checkMembers(m1, class2.lookupLocalMember(m1.name));
+        checkMembers(m1, class2.localLookup(m1.name));
       });
+      ClassElement superclass1 = class1.superclass;
+      ClassElement superclass2 = class2.superclass;
+      while (superclass1 != null && superclass1.isUnnamedMixinApplication) {
+        for (ConstructorElement c1 in superclass1.constructors) {
+          checkMembers(c1, superclass2.lookupConstructor(c1.name));
+        }
+        superclass1 = superclass1.superclass;
+        superclass2 = superclass2.superclass;
+      }
       return;
     }
 
@@ -305,7 +316,7 @@ void checkLoadedLibraryMembers(
     }
 
     if (member2 == null) {
-      return;
+      throw 'Missing member for ${member1}';
     }
 
     if (areElementsEquivalent(member1, member2)) {
@@ -348,13 +359,19 @@ void checkImpacts(Compiler compiler1, Element member1,
                   Compiler compiler2, Element member2,
                   {bool verbose: false}) {
   ResolutionImpact impact1 = compiler1.resolution.getResolutionImpact(member1);
-  ResolutionImpact impact2 =
-      compiler2.serialization.deserializer.getResolutionImpact(member2);
+  ResolutionImpact impact2 = compiler2.resolution.getResolutionImpact(member2);
 
-  if (impact1 == null || impact2 == null) return;
+  if (impact1 == null && impact2 == null) return;
 
   if (verbose) {
     print('Checking impacts for $member1 vs $member2');
+  }
+
+  if (impact1 == null) {
+    throw 'Missing impact for $member1. $member2 has $impact2';
+  }
+  if (impact2 == null) {
+    throw 'Missing impact for $member2. $member1 has $impact1';
   }
 
   testResolutionImpactEquivalence(impact1, impact2, const CheckStrategy());

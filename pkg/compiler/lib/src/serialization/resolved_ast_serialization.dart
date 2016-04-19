@@ -209,13 +209,8 @@ class ResolvedAstSerializer extends Visitor {
   visitNode(Node node) {
     Element nodeElement = elements[node];
     if (nodeElement != null) {
-      if (nodeElement.enclosingClass != null &&
-          nodeElement.enclosingClass.isUnnamedMixinApplication) {
-        // TODO(johnniwinther): Handle references to members of unnamed mixin
-        // applications.
-      } else {
-        getNodeDataEncoder(node).setElement(Key.ELEMENT, nodeElement);
-      }
+      serializeElementReference(element, Key.ELEMENT, Key.NAME,
+          getNodeDataEncoder(node), nodeElement);
     }
     DartType type = elements.getType(node);
     if (type != null) {
@@ -544,8 +539,9 @@ class ResolvedAstDeserializer {
         ObjectDecoder objectDecoder = dataDecoder.getObject(i);
         int id = objectDecoder.getInt(Key.ID);
         Node node = nodeList[id];
-        Element nodeElement =
-            objectDecoder.getElement(Key.ELEMENT, isOptional: true);
+        Element nodeElement = deserializeElementReference(
+            element, Key.ELEMENT, Key.NAME, objectDecoder,
+            isOptional: true);
         if (nodeElement != null) {
           elements[node] = nodeElement;
         }

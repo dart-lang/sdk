@@ -753,6 +753,14 @@ bool testResolutionImpactEquivalence(
 bool testResolvedAstEquivalence(
     ResolvedAst resolvedAst1, ResolvedAst resolvedAst2,
     [TestStrategy strategy = const TestStrategy()]) {
+  if (!strategy.test(resolvedAst1, resolvedAst1, 'kind', resolvedAst1.kind,
+      resolvedAst2.kind)) {
+    return false;
+  }
+  if (resolvedAst1.kind != ResolvedAstKind.PARSED) {
+    // Nothing more to check.
+    return true;
+  }
   return strategy.testElements(resolvedAst1, resolvedAst2, 'element',
           resolvedAst1.element, resolvedAst2.element) &&
       new NodeEquivalenceVisitor(strategy).testNodes(resolvedAst1, resolvedAst2,
