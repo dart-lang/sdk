@@ -3917,10 +3917,8 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   @override
   String get name {
     String name = super.name;
-    if (isOperator && name == "-") {
-      if (parameters.length == 0) {
-        return "unary-";
-      }
+    if (name == '-' && parameters.isEmpty) {
+      return 'unary-';
     }
     return super.name;
   }
