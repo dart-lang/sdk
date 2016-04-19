@@ -109,6 +109,19 @@ class C extends B {
     // No assertions--just make sure it doesn't crash.
   }
 
+  void test_constCycle_viaLength() {
+    createLinker('''
+class C {
+  final y;
+  const C() : y = x.length;
+}
+const x = [const C()];
+''');
+    testLibrary.libraryCycleForLink.ensureLinked();
+    ClassElementForLink classC = testLibrary.getContainedName('C');
+    expect(classC.unnamedConstructor.isCycleFree, false);
+  }
+
   void test_inferredType_instanceField_dynamic() {
     createLinker('''
 var x;
