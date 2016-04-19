@@ -62,10 +62,8 @@ config("dart_config") {
     defines += ["PRODUCT"]
   }
 
-
-  if (is_ios || is_mac) {
-    defines += ["DART_PRECOMPILER"]
-  }
+  # Ideally this would only be enabled for gen_snapshot
+  defines += ["DART_PRECOMPILER"]
 
   cflags = [
     "-Werror",
