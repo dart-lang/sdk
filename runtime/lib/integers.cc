@@ -290,28 +290,6 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
 }
 
 
-DEFINE_NATIVE_ENTRY(Integer_leftShiftWithMask32, 3) {
-  const Integer& value = Integer::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, shift_count, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(2));
-  ASSERT(CheckInteger(value));
-  ASSERT(CheckInteger(shift_count));
-  ASSERT(CheckInteger(mask));
-  if (!shift_count.IsSmi()) {
-    // Shift count is too large..
-    const Instance& exception =
-        Instance::Handle(isolate->object_store()->out_of_memory());
-    Exceptions::Throw(thread, exception);
-  }
-  const Smi& smi_shift_count = Smi::Cast(shift_count);
-  const Integer& shift_result = Integer::Handle(
-      ShiftOperationHelper(Token::kSHL, value, smi_shift_count));
-  const Integer& result =
-      Integer::Handle(shift_result.BitOp(Token::kBIT_AND, mask));
-  return result.AsValidInteger();
-}
-
-
 DEFINE_NATIVE_ENTRY(Smi_shrFromInt, 2) {
   const Smi& amount = Smi::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, value, arguments->NativeArgAt(1));

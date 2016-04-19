@@ -352,7 +352,6 @@ class ObjectPointerVisitor;
   V(_LocalTypeVariableMirror, "_LocalTypeVariableMirror")                      \
   V(_SourceLocation, "_SourceLocation")                                        \
   V(hashCode, "get:hashCode")                                                  \
-  V(_leftShiftWithMask32, "_leftShiftWithMask32")                              \
   V(OptimizedOut, "<optimized out>")                                           \
   V(NotInitialized, "<not initialized>")                                       \
   V(AllocationStubFor, "[Stub] Allocate ")                                     \

@@ -10524,7 +10524,6 @@ LocalVariable* Parser::CreateTempConstVariable(TokenPosition token_pos,
 }
 
 
-// TODO(srdjan): Implement other optimizations.
 AstNode* Parser::OptimizeBinaryOpNode(TokenPosition op_pos,
                                       Token::Kind binary_op,
                                       AstNode* lhs,
@@ -10550,20 +10549,6 @@ AstNode* Parser::OptimizeBinaryOpNode(TokenPosition op_pos,
       LiteralNode* temp = rhs_literal;
       rhs_literal = lhs_literal;
       lhs_literal = temp;
-    }
-    if ((rhs_literal != NULL) &&
-        (rhs_literal->literal().IsSmi() || rhs_literal->literal().IsMint())) {
-      const int64_t val = Integer::Cast(rhs_literal->literal()).AsInt64Value();
-      if ((0 <= val) && (Utils::IsUint(32, val))) {
-        if (lhs->IsBinaryOpNode() &&
-            (lhs->AsBinaryOpNode()->kind() == Token::kSHL)) {
-          // Merge SHL and BIT_AND into one "SHL with mask" node.
-          BinaryOpNode* old = lhs->AsBinaryOpNode();
-          BinaryOpWithMask32Node* binop = new(Z) BinaryOpWithMask32Node(
-              old->token_pos(), old->kind(), old->left(), old->right(), val);
-          return binop;
-        }
-      }
     }
   }
   if (binary_op == Token::kIFNULL) {

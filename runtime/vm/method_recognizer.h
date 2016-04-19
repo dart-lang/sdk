@@ -41,8 +41,6 @@ namespace dart {
   V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 2075229300)              \
   V(_StringBase, _interpolate, StringBaseInterpolate, 1597087225)              \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 150718448)              \
-  V(_IntegerImplementation, _leftShiftWithMask32,                              \
-      IntegerLeftShiftWithMask32, 1634465017)                                  \
   V(_Double, _add, DoubleAdd, 1190606283)                                      \
   V(_Double, _sub, DoubleSub, 1086286468)                                      \
   V(_Double, _mul, DoubleMul, 166332351)                                       \

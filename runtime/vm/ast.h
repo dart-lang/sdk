@@ -24,7 +24,6 @@ namespace dart {
   V(Type)                                                                      \
   V(Assignable)                                                                \
   V(BinaryOp)                                                                  \
-  V(BinaryOpWithMask32)                                                        \
   V(Comparison)                                                                \
   V(UnaryOp)                                                                   \
   V(ConditionalExpr)                                                           \
@@ -766,36 +765,6 @@ class BinaryOpNode : public AstNode {
   bool IsKindValid() const;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BinaryOpNode);
-};
-
-
-class BinaryOpWithMask32Node : public BinaryOpNode {
- public:
-  BinaryOpWithMask32Node(TokenPosition token_pos,
-                         Token::Kind kind_value,
-                         AstNode* left,
-                         AstNode* right,
-                         int64_t mask32)
-      : BinaryOpNode(token_pos, kind_value, left, right), mask32_(mask32) {
-    ASSERT(mask32 >= 0 && Utils::IsUint(32, mask32));
-    ASSERT((kind_value != Token::kAND) && (kind_value != Token::kOR));
-  }
-
-  // The optional 32-bit mask must be a an unsigned 32-bit value.
-  virtual bool has_mask32() const { return true; }
-  virtual int64_t mask32() const {
-    ASSERT(has_mask32());
-    return mask32_;
-  }
-
-  const char* TokenName() const;
-  DECLARE_COMMON_NODE_FUNCTIONS(BinaryOpWithMask32Node);
-
- private:
-  // Optional unsigned 32 bit mask applied on result. No mask: -1.
-  const int64_t mask32_;
-
-  DISALLOW_IMPLICIT_CONSTRUCTORS(BinaryOpWithMask32Node);
 };
 
 
