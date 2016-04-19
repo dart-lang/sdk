@@ -510,6 +510,46 @@ var b = p.a.b.m();
     expect(unit.topLevelVariables[0].type.toString(), 'int');
   }
 
+  void test_infer_invokeMethodRef_method_withInferredTypeInLibraryCycle() {
+    var unit = checkFile('''
+class Base {
+  int m() => 0;
+}
+class A extends Base {
+  m() => 0; // Inferred return type: int
+}
+var a = new A();
+var b = a.m();
+    ''');
+    // Type inference operates on static and top level variables prior to
+    // instance members.  So at the time `b` is inferred, `A.m` still has return
+    // type `dynamic`.
+    expect(unit.topLevelVariables[1].type.toString(), 'dynamic');
+  }
+
+  void test_infer_invokeMethodRef_method_withInferredTypeOutsideLibraryCycle() {
+    addFile(
+        '''
+class Base {
+  int m() => 0;
+}
+class A extends Base {
+  m() => 0; // Inferred return type: int
+}
+''',
+        name: '/a.dart');
+    var unit = checkFile('''
+import 'a.dart';
+var a = new A();
+var b = a.m();
+''');
+    // Since a.dart is in a separate library file from the compilation unit
+    // containing `a` and `b`, its types are inferred first; then `a` and `b`'s
+    // types are inferred.  So the inferred return type of `int` should be
+    // propagated to `b`.
+    expect(unit.topLevelVariables[1].type.toString(), 'int');
+  }
+
   @override
   @failingTest
   void test_inferCorrectlyOnMultipleVariablesDeclaredTogether() {

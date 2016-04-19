@@ -1615,6 +1615,19 @@ abstract class ExecutableElementForLink extends Object
   ExecutableElementForLink(
       this.enclosingUnit, this.enclosingClass, this._unlinkedExecutable);
 
+  /**
+   * If the executable element had an explicitly declared return type, return
+   * it.  Otherwise return `null`.
+   */
+  DartType get declaredReturnType {
+    if (_unlinkedExecutable.returnType == null) {
+      return null;
+    } else {
+      return _declaredReturnType ??=
+          enclosingUnit._resolveTypeRef(_unlinkedExecutable.returnType, this);
+    }
+  }
+
   @override
   String get displayName {
     if (_displayName == null) {
@@ -1635,6 +1648,35 @@ abstract class ExecutableElementForLink extends Object
 
   @override
   bool get hasImplicitReturnType => _unlinkedExecutable.returnType == null;
+
+  /**
+   * Return the inferred return type of the executable element.  Should only be
+   * called if no return type was explicitly declared.
+   */
+  DartType get inferredReturnType {
+    // We should only try to infer a return type when none is explicitly
+    // declared.
+    assert(_unlinkedExecutable.returnType == null);
+    if (Linker._initializerTypeInferenceCycle != null &&
+        Linker._initializerTypeInferenceCycle ==
+            enclosingUnit.library.libraryCycleForLink) {
+      // We are currently computing the type of an initializer expression in the
+      // current library cycle, so type inference results should be ignored.
+      return _computeDefaultReturnType();
+    }
+    if (_inferredReturnType == null) {
+      if (_unlinkedExecutable.kind == UnlinkedExecutableKind.constructor) {
+        // TODO(paulberry): implement.
+        throw new UnimplementedError();
+      } else if (enclosingUnit.isInBuildUnit) {
+        _inferredReturnType = _computeDefaultReturnType();
+      } else {
+        _inferredReturnType = enclosingUnit.getLinkedType(
+            _unlinkedExecutable.inferredReturnTypeSlot, this);
+      }
+    }
+    return _inferredReturnType;
+  }
 
   @override
   bool get isStatic => _unlinkedExecutable.isStatic;
@@ -1671,33 +1713,7 @@ abstract class ExecutableElementForLink extends Object
   }
 
   @override
-  DartType get returnType {
-    if (_inferredReturnType != null) {
-      return _inferredReturnType;
-    } else if (_declaredReturnType == null) {
-      if (_unlinkedExecutable.returnType == null) {
-        if (_unlinkedExecutable.kind == UnlinkedExecutableKind.constructor) {
-          // TODO(paulberry): implement.
-          throw new UnimplementedError();
-        } else if (!enclosingUnit.isInBuildUnit) {
-          _inferredReturnType = enclosingUnit.getLinkedType(
-              _unlinkedExecutable.inferredReturnTypeSlot, this);
-          return _inferredReturnType;
-        } else if (_unlinkedExecutable.kind == UnlinkedExecutableKind.setter &&
-            library._linker.strongMode) {
-          // In strong mode, setters without an explicit return type are
-          // considered to return `void`.
-          _declaredReturnType = VoidTypeImpl.instance;
-        } else {
-          _declaredReturnType = DynamicTypeImpl.instance;
-        }
-      } else {
-        _declaredReturnType =
-            enclosingUnit._resolveTypeRef(_unlinkedExecutable.returnType, this);
-      }
-    }
-    return _declaredReturnType;
-  }
+  DartType get returnType => declaredReturnType ?? inferredReturnType;
 
   @override
   void set returnType(DartType inferredType) {
@@ -1720,10 +1736,28 @@ abstract class ExecutableElementForLink extends Object
    * Store the results of type inference for this method in [compilationUnit].
    */
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
-    compilationUnit._storeLinkedType(
-        _unlinkedExecutable.inferredReturnTypeSlot, returnType, this);
+    if (_unlinkedExecutable.returnType == null) {
+      compilationUnit._storeLinkedType(
+          _unlinkedExecutable.inferredReturnTypeSlot, inferredReturnType, this);
+    }
     for (ParameterElementForLink parameterElement in parameters) {
       parameterElement.link(compilationUnit);
+    }
+  }
+
+  /**
+   * Compute the default return type for this type of executable element (if no
+   * return type is declared and strong mode type inference cannot infer a
+   * better return type).
+   */
+  DartType _computeDefaultReturnType() {
+    if (_unlinkedExecutable.kind == UnlinkedExecutableKind.setter &&
+        library._linker.strongMode) {
+      // In strong mode, setters without an explicit return type are
+      // considered to return `void`.
+      return VoidTypeImpl.instance;
+    } else {
+      return DynamicTypeImpl.instance;
     }
   }
 }
@@ -2989,6 +3023,17 @@ class LibraryNode extends Node<LibraryNode> {
  */
 class Linker {
   /**
+   * During linking, if type inference is currently being performed on the
+   * initializer of a static or instance variable, the library cycle in
+   * which inference is being performed.  Otherwise, `null`.
+   *
+   * This allows us to suppress instance member type inference results from a
+   * library cycle while doing inference on the right hand sides of static and
+   * instance variables in that same cycle.
+   */
+  static LibraryCycleForLink _initializerTypeInferenceCycle;
+
+  /**
    * Callback to ask the client for a [LinkedLibrary] for a
    * dependency.
    */
@@ -3748,8 +3793,11 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
    */
   DartType get inferredType {
     if (_inferredType == null) {
+      Linker._initializerTypeInferenceCycle =
+          variableElement.compilationUnit.library.libraryCycleForLink;
       new TypeInferenceDependencyWalker().walk(this);
       assert(_inferredType != null);
+      Linker._initializerTypeInferenceCycle = null;
     }
     return _inferredType;
   }
