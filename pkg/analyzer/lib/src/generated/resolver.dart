@@ -2794,7 +2794,7 @@ class DirectiveResolver extends SimpleAstVisitor with ExistingElementResolver {
    */
   ExportElement _findExport(
       ExportDirective node, List<ExportElement> exports, Source source) {
-    if (source == null || !_enclosingUnit.context.exists(source)) {
+    if (source == null) {
       return null;
     }
     for (ExportElement export in exports) {
@@ -2809,6 +2809,9 @@ class DirectiveResolver extends SimpleAstVisitor with ExistingElementResolver {
         return export;
       }
     }
+    if (!_enclosingUnit.context.exists(source)) {
+      return null;
+    }
     _mismatch("Could not find export element for '$source'", node);
     return null; // Never reached
   }
@@ -2820,7 +2823,7 @@ class DirectiveResolver extends SimpleAstVisitor with ExistingElementResolver {
    */
   ImportElement _findImport(
       ImportDirective node, List<ImportElement> imports, Source source) {
-    if (source == null || !_enclosingUnit.context.exists(source)) {
+    if (source == null) {
       return null;
     }
     SimpleIdentifier prefix = node.prefix;
@@ -2841,6 +2844,9 @@ class DirectiveResolver extends SimpleAstVisitor with ExistingElementResolver {
         // So, either the combinators are the same, or we build new elements.
         return element;
       }
+    }
+    if (!_enclosingUnit.context.exists(source)) {
+      return null;
     }
     if (foundSource) {
       if (prefix == null) {
