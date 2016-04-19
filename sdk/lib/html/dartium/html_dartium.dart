@@ -805,12 +805,12 @@ abstract class AbstractWorker extends DartHtmlDomObject implements EventTarget {
    */
   @DomName('AbstractWorker.errorEvent')
   @DocsEditable()
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+  static const EventStreamProvider<ErrorEvent> errorEvent = const EventStreamProvider<ErrorEvent>('error');
 
   /// Stream of `error` events handled by this [AbstractWorker].
   @DomName('AbstractWorker.onerror')
   @DocsEditable()
-  Stream<Event> get onError => errorEvent.forTarget(this);
+  Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4591,7 +4591,7 @@ class CompositorWorker extends EventTarget implements AbstractWorker {
   @DomName('CompositorWorker.errorEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+  static const EventStreamProvider<ErrorEvent> errorEvent = const EventStreamProvider<ErrorEvent>('error');
 
   @DomName('CompositorWorker.messageEvent')
   @DocsEditable()
@@ -4629,7 +4629,7 @@ class CompositorWorker extends EventTarget implements AbstractWorker {
   @DomName('CompositorWorker.onerror')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<Event> get onError => errorEvent.forTarget(this);
+  Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
 
   @DomName('CompositorWorker.onmessage')
   @DocsEditable()
@@ -21354,7 +21354,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.readystatechangeEvent')
   @DocsEditable()
-  static const EventStreamProvider<Event> readyStateChangeEvent = const EventStreamProvider<Event>('readystatechange');
+  static const EventStreamProvider<ProgressEvent> readyStateChangeEvent = const EventStreamProvider<ProgressEvent>('readystatechange');
 
   /**
    * General constructor for any type of request (GET, POST, etc).
@@ -21710,7 +21710,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.onreadystatechange')
   @DocsEditable()
-  Stream<Event> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
+  Stream<ProgressEvent> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33650,7 +33650,7 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   @DomName('SharedWorker.errorEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+  static const EventStreamProvider<ErrorEvent> errorEvent = const EventStreamProvider<ErrorEvent>('error');
 
   @DomName('SharedWorker.SharedWorker')
   @DocsEditable()
@@ -33678,7 +33678,7 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   @DomName('SharedWorker.onerror')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<Event> get onError => errorEvent.forTarget(this);
+  Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -37694,10 +37694,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -40949,7 +40949,7 @@ class Worker extends EventTarget implements AbstractWorker {
   @DomName('Worker.errorEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+  static const EventStreamProvider<ErrorEvent> errorEvent = const EventStreamProvider<ErrorEvent>('error');
 
   /**
    * Static factory designed to expose `message` events to event
@@ -40995,7 +40995,7 @@ class Worker extends EventTarget implements AbstractWorker {
   @DomName('Worker.onerror')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<Event> get onError => errorEvent.forTarget(this);
+  Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
 
   /// Stream of `message` events handled by this [Worker].
   @DomName('Worker.onmessage')
