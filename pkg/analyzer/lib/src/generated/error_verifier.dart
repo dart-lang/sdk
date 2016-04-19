@@ -4526,17 +4526,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // Loop through the set of all executable elements declared in the implicit
     // interface.
     //
-    MemberMap membersInheritedFromInterfaces = _inheritanceManager
-        .getMapOfMembersInheritedFromInterfaces(_enclosingClass);
-    MemberMap membersInheritedFromSuperclasses = _inheritanceManager
-        .getMapOfMembersInheritedFromClasses(_enclosingClass);
-    for (int i = 0; i < membersInheritedFromInterfaces.size; i++) {
-      String memberName = membersInheritedFromInterfaces.getKey(i);
+    Map<String, ExecutableElement> membersInheritedFromInterfaces =
+        _inheritanceManager
+            .getMapOfMembersInheritedFromInterfaces(_enclosingClass);
+    Map<String, ExecutableElement> membersInheritedFromSuperclasses =
+        _inheritanceManager
+            .getMapOfMembersInheritedFromClasses(_enclosingClass);
+    for (String memberName in membersInheritedFromInterfaces.keys) {
       ExecutableElement executableElt =
-          membersInheritedFromInterfaces.getValue(i);
-      if (memberName == null) {
-        break;
-      }
+          membersInheritedFromInterfaces[memberName];
       // If the element is not synthetic and can be determined to be defined in
       // Object, skip it.
       if (executableElt.enclosingElement != null &&
@@ -4554,7 +4552,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
       // First check to see if this element was declared in the superclass
       // chain, in which case there is already a concrete implementation.
-      ExecutableElement elt = membersInheritedFromSuperclasses.get(memberName);
+      ExecutableElement elt = membersInheritedFromSuperclasses[memberName];
       // Check to see if an element was found in the superclass chain with the
       // correct name.
       if (elt != null) {
