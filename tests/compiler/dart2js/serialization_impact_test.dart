@@ -16,15 +16,18 @@ import 'memory_compiler.dart';
 import 'serialization_helper.dart';
 import 'serialization_test_helper.dart';
 
-main(List<String> arguments) {
+main(List<String> args) {
+  Arguments arguments = new Arguments.from(args);
   asyncTest(() async {
-    String serializedData = await serializeDartCore();
-    if (arguments.isNotEmpty) {
-      Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.last));
+    String serializedData = await serializeDartCore(arguments: arguments);
+    if (arguments.filename != null) {
+      Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
       await check(serializedData, entryPoint);
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
-      await check(serializedData, entryPoint, {'main.dart': 'main() {}'});
+      await check(serializedData, entryPoint,
+                  sourceFiles:  {'main.dart': 'main() {}'},
+                  verbose: arguments.verbose);
     }
   });
 }
@@ -32,20 +35,21 @@ main(List<String> arguments) {
 Future check(
   String serializedData,
   Uri entryPoint,
-  [Map<String, String> sourceFiles = const <String, String>{}]) async {
+  {Map<String, String> sourceFiles: const <String, String>{},
+   bool verbose: false}) async {
 
   Compiler compilerNormal = compilerFor(
       memorySourceFiles: sourceFiles,
-      options: [Flags.analyzeOnly]);
+      options: [Flags.analyzeAll]);
   compilerNormal.resolution.retainCachesForTesting = true;
   await compilerNormal.run(entryPoint);
 
   Compiler compilerDeserialized = compilerFor(
       memorySourceFiles: sourceFiles,
-      options: [Flags.analyzeOnly]);
+      options: [Flags.analyzeAll]);
   compilerDeserialized.resolution.retainCachesForTesting = true;
   deserialize(compilerDeserialized, serializedData);
   await compilerDeserialized.run(entryPoint);
 
-  checkAllImpacts(compilerNormal, compilerDeserialized, verbose: true);
+  checkAllImpacts(compilerNormal, compilerDeserialized, verbose: verbose);
 }

@@ -340,7 +340,7 @@ void checkAllImpacts(
         return compiler1.resolution.hasResolutionImpact(member1);
       },
       checkImpacts,
-      verbose: true);
+      verbose: verbose);
 }
 
 /// Check equivalence of resolution impact for [member1] and [member2].

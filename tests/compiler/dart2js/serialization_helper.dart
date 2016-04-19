@@ -228,12 +228,9 @@ class _DeserializerSystem extends DeserializerSystem {
   @override
   WorldImpact computeWorldImpact(Element element) {
     ResolutionImpact resolutionImpact = getResolutionImpact(element);
-    if (resolutionImpact == null) {
-      print('No impact found for $element (${element.library})');
-      return const WorldImpact();
-    } else {
-      return _impactTransformer.transformResolutionImpact(resolutionImpact);
-    }
+    assert(invariant(element, resolutionImpact != null,
+        message: 'No impact found for $element (${element.library})'));
+    return _impactTransformer.transformResolutionImpact(resolutionImpact);
   }
 
   @override

@@ -8,6 +8,7 @@ import 'dart:io';
 import 'memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/common.dart';
 import 'package:compiler/src/constants/constructors.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/dart_types.dart';

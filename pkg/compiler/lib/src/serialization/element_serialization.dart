@@ -23,6 +23,7 @@ enum SerializedElementKind {
   NAMED_MIXIN_APPLICATION,
   GENERATIVE_CONSTRUCTOR,
   FACTORY_CONSTRUCTOR,
+  FORWARDING_CONSTRUCTOR,
   TOPLEVEL_FIELD,
   STATIC_FIELD,
   INSTANCE_FIELD,
@@ -339,7 +340,11 @@ class ConstructorSerializer implements ElementSerializer {
 
   SerializedElementKind getSerializedKind(Element element) {
     if (element.isGenerativeConstructor) {
-      return SerializedElementKind.GENERATIVE_CONSTRUCTOR;
+      if (element.enclosingClass.isNamedMixinApplication) {
+        return SerializedElementKind.FORWARDING_CONSTRUCTOR;
+      } else {
+        return SerializedElementKind.GENERATIVE_CONSTRUCTOR;
+      }
     } else if (element.isFactoryConstructor) {
       return SerializedElementKind.FACTORY_CONSTRUCTOR;
     }
@@ -349,18 +354,22 @@ class ConstructorSerializer implements ElementSerializer {
   void serialize(ConstructorElement element, ObjectEncoder encoder,
       SerializedElementKind kind) {
     SerializerUtil.serializeParentRelation(element, encoder);
-    encoder.setType(Key.TYPE, element.type);
-    encoder.setString(Key.NAME, element.name);
-    SerializerUtil.serializePosition(element, encoder);
-    SerializerUtil.serializeParameters(element, encoder);
-    encoder.setBool(Key.IS_CONST, element.isConst);
-    encoder.setBool(Key.IS_EXTERNAL, element.isExternal);
-    if (element.isExternal) return;
-    if (element.isConst && !element.isFromEnvironmentConstructor) {
-      ConstantConstructor constantConstructor = element.constantConstructor;
-      ObjectEncoder constantEncoder = encoder.createObject(Key.CONSTRUCTOR);
-      const ConstantConstructorSerializer()
-          .visit(constantConstructor, constantEncoder);
+    if (kind == SerializedElementKind.FORWARDING_CONSTRUCTOR) {
+      encoder.setElement(Key.ELEMENT, element.definingConstructor);
+    } else {
+      encoder.setType(Key.TYPE, element.type);
+      encoder.setString(Key.NAME, element.name);
+      SerializerUtil.serializePosition(element, encoder);
+      SerializerUtil.serializeParameters(element, encoder);
+      encoder.setBool(Key.IS_CONST, element.isConst);
+      encoder.setBool(Key.IS_EXTERNAL, element.isExternal);
+      if (element.isExternal) return;
+      if (element.isConst && !element.isFromEnvironmentConstructor) {
+        ConstantConstructor constantConstructor = element.constantConstructor;
+        ObjectEncoder constantEncoder = encoder.createObject(Key.CONSTRUCTOR);
+        const ConstantConstructorSerializer()
+            .visit(constantConstructor, constantEncoder);
+      }
     }
   }
 }
@@ -651,6 +660,9 @@ class ElementDeserializer {
         return new GenerativeConstructorElementZ(decoder);
       case SerializedElementKind.FACTORY_CONSTRUCTOR:
         return new FactoryConstructorElementZ(decoder);
+      case SerializedElementKind.FORWARDING_CONSTRUCTOR:
+        return new ForwardingConstructorElementZ(
+            decoder.getElement(Key.CLASS), decoder.getElement(Key.ELEMENT));
       case SerializedElementKind.TOPLEVEL_FUNCTION:
         return new TopLevelFunctionElementZ(decoder);
       case SerializedElementKind.STATIC_FUNCTION:

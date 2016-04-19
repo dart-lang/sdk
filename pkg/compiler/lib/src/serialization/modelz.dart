@@ -893,33 +893,16 @@ class ClassElementZ extends DeserializedElementZ
 
 abstract class MixinApplicationElementMixin
     implements ElementZ, MixinApplicationElement {
-  Link<ConstructorElement> _constructors;
-
   @override
-  bool get isMixinApplication => false;
+  bool get isMixinApplication => true;
 
   @override
   ClassElement get mixin => mixinType.element;
-
-  Link<ConstructorElement> get constructors {
-    if (_constructors == null) {
-      LinkBuilder<ConstructorElement> builder =
-          new LinkBuilder<ConstructorElement>();
-      for (ConstructorElement definingConstructor in superclass.constructors) {
-        if (definingConstructor.isGenerativeConstructor &&
-            definingConstructor.memberName.isAccessibleFrom(library)) {
-          builder.addLast(
-              new ForwardingConstructorElementZ(this, definingConstructor));
-        }
-      }
-      _constructors = builder.toLink();
-    }
-    return _constructors;
-  }
 }
 
 class NamedMixinApplicationElementZ extends ClassElementZ
-    with MixinApplicationElementCommon, MixinApplicationElementMixin {
+    with MixinApplicationElementMixin {
+  Link<Element> _constructors;
   InterfaceType _mixinType;
 
   NamedMixinApplicationElementZ(ObjectDecoder decoder) : super(decoder);
@@ -943,6 +926,7 @@ class UnnamedMixinApplicationElementZ extends ElementZ
   final InterfaceType supertype;
   final Link<DartType> interfaces;
   OrderedTypeSet _allSupertypesAndSelf;
+  Link<ConstructorElement> _constructors;
 
   UnnamedMixinApplicationElementZ(
       ClassElement subclass, InterfaceType supertype, InterfaceType mixin)
@@ -956,6 +940,22 @@ class UnnamedMixinApplicationElementZ extends ElementZ
 
   @override
   bool get isUnnamedMixinApplication => true;
+
+  Link<ConstructorElement> get constructors {
+    if (_constructors == null) {
+      LinkBuilder<ConstructorElement> builder =
+          new LinkBuilder<ConstructorElement>();
+      for (ConstructorElement definingConstructor in superclass.constructors) {
+        if (definingConstructor.isGenerativeConstructor &&
+            definingConstructor.memberName.isAccessibleFrom(library)) {
+          builder.addLast(
+              new ForwardingConstructorElementZ(this, definingConstructor));
+        }
+      }
+      _constructors = builder.toLink();
+    }
+    return _constructors;
+  }
 
   @override
   List<DartType> _getTypeVariables() {
