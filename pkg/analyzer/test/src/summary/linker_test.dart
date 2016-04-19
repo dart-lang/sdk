@@ -95,6 +95,19 @@ class C<T> extends B<T> {
     // No assertions--just make sure it doesn't crash.
   }
 
+  void test_baseClass_genericWithStaticFinal() {
+    createLinker('''
+class B<T> {
+  static final int i = 0;
+}
+class C<T> extends B<T> {
+  void f() {}
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+  }
+
   void test_baseClass_withPrivateField() {
     createLinker('''
 class B {
@@ -200,6 +213,7 @@ class C {
             .getContainedName('C')
             .getContainedName('y')
             .asTypeInferenceNode
+            .variableElement
             .inferredType
             .toString(),
         'dynamic');
@@ -215,6 +229,7 @@ var y = x;
             .getLibrary(linkerInputs.testDartUri)
             .getContainedName('y')
             .asTypeInferenceNode
+            .variableElement
             .inferredType
             .toString(),
         'dynamic');
@@ -237,6 +252,7 @@ var z = y; // Inferred type: dynamic
         library
             .getContainedName('z')
             .asTypeInferenceNode
+            .variableElement
             .inferredType
             .toString(),
         'dynamic');
@@ -260,9 +276,30 @@ var x = new C().f; // Inferred type: int
         library
             .getContainedName('x')
             .asTypeInferenceNode
+            .variableElement
             .inferredType
             .toString(),
         'int');
+  }
+
+  void test_inferredTypeFromOutsideBuildUnit_instanceField_toInstanceField() {
+    var bundle = createPackageBundle(
+        '''
+class C {
+  var f = 0; // Inferred type: int
+}
+''',
+        path: '/a.dart');
+    addBundle(bundle);
+    createLinker('''
+import 'a.dart';
+class D {
+  var g = new C().f; // Inferred type: int
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    ClassElementForLink_Class classD = library.getContainedName('D');
+    expect(classD.fields[0].inferredType.toString(), 'int');
   }
 
   void test_inferredTypeFromOutsideBuildUnit_methodParamType_viaGeneric() {
@@ -286,6 +323,7 @@ var x = new C().f(0); // Inferred type: int
         library
             .getContainedName('x')
             .asTypeInferenceNode
+            .variableElement
             .inferredType
             .toString(),
         'int');
@@ -339,6 +377,7 @@ var x = new C().f(); // Inferred type: int
         library
             .getContainedName('x')
             .asTypeInferenceNode
+            .variableElement
             .inferredType
             .toString(),
         'int');
@@ -379,6 +418,7 @@ class D extends C {
             .getLibrary(linkerInputs.testDartUri)
             .getContainedName('x')
             .asTypeInferenceNode
+            .variableElement
             .inferredType
             .toString(),
         'int');
@@ -393,6 +433,7 @@ class D extends C {
             .getLibrary(linkerInputs.testDartUri)
             .getContainedName('b')
             .asTypeInferenceNode
+            .variableElement
             .inferredType
             .toString(),
         'int');

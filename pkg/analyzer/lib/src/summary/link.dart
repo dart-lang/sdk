@@ -2414,11 +2414,9 @@ class FieldElementForLink_ClassField extends VariableElementForLink
 
   /**
    * If this is an instance field, the type that was computed by
-   * [InstanceMemberInferrer].
+   * [InstanceMemberInferrer] (if any).  Otherwise `null`.
    */
   DartType _inferredInstanceType;
-
-  DartType _declaredType;
 
   FieldElementForLink_ClassField(ClassElementForLink_Class enclosingElement,
       UnlinkedVariable unlinkedVariable)
@@ -2427,29 +2425,6 @@ class FieldElementForLink_ClassField extends VariableElementForLink
 
   @override
   bool get isStatic => unlinkedVariable.isStatic;
-
-  @override
-  DartType get type {
-    // TODO(paulberry): can this be unified with
-    // [VariableElementForLink.asStaticType]?
-    assert(!isStatic);
-    if (_inferredInstanceType != null) {
-      return _inferredInstanceType;
-    } else if (_declaredType == null) {
-      if (unlinkedVariable.type == null) {
-        if (!compilationUnit.isInBuildUnit) {
-          _inferredInstanceType = compilationUnit.getLinkedType(
-              unlinkedVariable.inferredTypeSlot, enclosingElement);
-          return _inferredInstanceType;
-        }
-        _declaredType = DynamicTypeImpl.instance;
-      } else {
-        _declaredType = compilationUnit._resolveTypeRef(
-            unlinkedVariable.type, enclosingElement);
-      }
-    }
-    return _declaredType;
-  }
 
   @override
   void set type(DartType inferredType) {
@@ -2467,16 +2442,10 @@ class FieldElementForLink_ClassField extends VariableElementForLink
    */
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
     if (hasImplicitType) {
-      if (isStatic) {
-        TypeInferenceNode typeInferenceNode = this.asTypeInferenceNode;
-        if (typeInferenceNode != null) {
-          compilationUnit._storeLinkedType(unlinkedVariable.inferredTypeSlot,
-              typeInferenceNode.inferredType, enclosingElement);
-        }
-      } else {
-        compilationUnit._storeLinkedType(unlinkedVariable.inferredTypeSlot,
-            _inferredInstanceType, enclosingElement);
-      }
+      compilationUnit._storeLinkedType(
+          unlinkedVariable.inferredTypeSlot,
+          isStatic ? inferredType : _inferredInstanceType,
+          _typeParameterContext);
     }
   }
 
@@ -2603,9 +2572,8 @@ class FunctionElementForLink_Initializer implements FunctionElementImpl {
   @override
   DartType get returnType {
     // If this is a variable whose type needs inferring, infer it.
-    TypeInferenceNode typeInferenceNode = _variable._typeInferenceNode;
-    if (typeInferenceNode != null) {
-      return typeInferenceNode.inferredType;
+    if (_variable.hasImplicitType) {
+      return _variable.inferredType;
     } else {
       // There's no reason linking should need to access the type of
       // this FunctionElement, since the variable doesn't need its
@@ -2618,7 +2586,8 @@ class FunctionElementForLink_Initializer implements FunctionElementImpl {
 
   @override
   void set returnType(DartType newType) {
-    // TODO(paulberry): store inferred type.
+    // InstanceMemberInferrer stores the new type both here and on the variable
+    // element.  We don't need to record both values, so we ignore it here.
   }
 
   @override
@@ -3743,8 +3712,8 @@ class TopLevelVariableElementForLink extends VariableElementForLink
     if (hasImplicitType) {
       TypeInferenceNode typeInferenceNode = this.asTypeInferenceNode;
       if (typeInferenceNode != null) {
-        compilationUnit._storeLinkedType(unlinkedVariable.inferredTypeSlot,
-            typeInferenceNode.inferredType, null);
+        compilationUnit._storeLinkedType(
+            unlinkedVariable.inferredTypeSlot, inferredType, null);
       }
     }
   }
@@ -3780,30 +3749,10 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
    */
   final VariableElementForLink variableElement;
 
-  /**
-   * If a type has been inferred for this node, the inferred type (may be
-   * `dynamic`).  Otherwise `null`.
-   */
-  DartType _inferredType;
-
   TypeInferenceNode(this.variableElement);
 
-  /**
-   * Infer a type for this node if necessary, and return it.
-   */
-  DartType get inferredType {
-    if (_inferredType == null) {
-      Linker._initializerTypeInferenceCycle =
-          variableElement.compilationUnit.library.libraryCycleForLink;
-      new TypeInferenceDependencyWalker().walk(this);
-      assert(_inferredType != null);
-      Linker._initializerTypeInferenceCycle = null;
-    }
-    return _inferredType;
-  }
-
   @override
-  bool get isEvaluated => _inferredType != null;
+  bool get isEvaluated => variableElement._inferredType != null;
 
   /**
    * Collect the type inference dependencies in [unlinkedConst] (which should be
@@ -3871,9 +3820,10 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
 
   void evaluate(bool inCycle) {
     if (inCycle) {
-      _inferredType = DynamicTypeImpl.instance;
+      variableElement._inferredType = DynamicTypeImpl.instance;
     } else {
-      _inferredType = new ExprTypeComputer(variableElement).compute();
+      variableElement._inferredType =
+          new ExprTypeComputer(variableElement).compute();
     }
   }
 }
@@ -4210,7 +4160,8 @@ class VariableElementForLink
   TypeInferenceNode _typeInferenceNode;
 
   FunctionElementForLink_Initializer _initializer;
-  DartType _staticType;
+  DartType _inferredType;
+  DartType _declaredType;
 
   /**
    * The compilation unit in which this variable appears.
@@ -4233,31 +4184,54 @@ class VariableElementForLink
   ConstVariableNode get asConstVariable => _constNode;
 
   @override
-  DartType get asStaticType {
-    if (_staticType == null) {
-      if (_typeInferenceNode != null) {
-        assert(_typeInferenceNode.isEvaluated);
-        _staticType = _typeInferenceNode.inferredType;
-      } else if (hasImplicitType) {
-        if (!compilationUnit.isInBuildUnit) {
-          _staticType = compilationUnit.getLinkedType(
-              unlinkedVariable.inferredTypeSlot, _typeParameterContext);
-        } else {
-          _staticType = DynamicTypeImpl.instance;
-        }
-      } else {
-        _staticType = compilationUnit._resolveTypeRef(
-            unlinkedVariable.type, _typeParameterContext);
-      }
-    }
-    return _staticType;
-  }
+  DartType get asStaticType => type;
 
   @override
   TypeInferenceNode get asTypeInferenceNode => _typeInferenceNode;
 
+  /**
+   * If the variable has an explicitly declared return type, return it.
+   * Otherwise return `null`.
+   */
+  DartType get declaredType {
+    if (unlinkedVariable.type == null) {
+      return null;
+    } else {
+      return _declaredType ??= compilationUnit._resolveTypeRef(
+          unlinkedVariable.type, _typeParameterContext);
+    }
+  }
+
   @override
   bool get hasImplicitType => unlinkedVariable.type == null;
+
+  /**
+   * Return the inferred type of the variable element.  Should only be called if
+   * no type was explicitly declared.
+   */
+  DartType get inferredType {
+    // We should only try to infer a type when none is explicitly declared.
+    assert(unlinkedVariable.type == null);
+    if (_inferredType == null) {
+      if (_typeInferenceNode != null) {
+        assert(Linker._initializerTypeInferenceCycle == null);
+        Linker._initializerTypeInferenceCycle =
+            compilationUnit.library.libraryCycleForLink;
+        try {
+          new TypeInferenceDependencyWalker().walk(_typeInferenceNode);
+          assert(_inferredType != null);
+        } finally {
+          Linker._initializerTypeInferenceCycle = null;
+        }
+      } else if (compilationUnit.isInBuildUnit) {
+        _inferredType = DynamicTypeImpl.instance;
+      } else {
+        _inferredType = compilationUnit.getLinkedType(
+            unlinkedVariable.inferredTypeSlot, _typeParameterContext);
+      }
+    }
+    return _inferredType;
+  }
 
   @override
   FunctionElementForLink_Initializer get initializer {
@@ -4288,6 +4262,9 @@ class VariableElementForLink
     // TODO(paulberry): implement propagated types in the linker.
     return DynamicTypeImpl.instance;
   }
+
+  @override
+  DartType get type => declaredType ?? inferredType;
 
   @override
   void set type(DartType newType) {

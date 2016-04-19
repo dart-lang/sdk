@@ -2372,6 +2372,69 @@ test() {
 ''');
   }
 
+  void test_instanceField_basedOnInstanceField_betweenCycles() {
+    // Verify that all instance fields in one library cycle are inferred before
+    // an instance fields in a dependent library cycle.
+    addFile(
+        '''
+import 'b.dart';
+class A {
+  var x = new B().y;
+  var y = 0;
+}
+''',
+        name: '/a.dart');
+    addFile(
+        '''
+class B {
+  var x = new B().y;
+  var y = 0;
+}
+''',
+        name: '/b.dart');
+    checkFile('''
+import 'a.dart';
+import 'b.dart';
+main() {
+  new A().x = /*warning:INVALID_ASSIGNMENT*/'foo';
+  new B().x = 'foo';
+}
+''');
+  }
+
+  void test_instanceField_basedOnInstanceField_withinCycle() {
+    // Verify that all instance field inferences that occur within the same
+    // library cycle happen as though they occurred "all at once", so no
+    // instance field in the library cycle can inherit its type from another
+    // instance field in the same library cycle.
+    addFile(
+        '''
+import 'b.dart';
+class A {
+  var x = new B().y;
+  var y = 0;
+}
+''',
+        name: '/a.dart');
+    addFile(
+        '''
+import 'a.dart';
+class B {
+  var x = new A().y;
+  var y = 0;
+}
+''',
+        name: '/b.dart');
+    checkFile('''
+import 'a.dart';
+import 'b.dart';
+main() {
+  new A().x = 'foo';
+  new B().x = 'foo';
+}
+''');
+  }
+
   void test_listLiterals() {
     checkFile(r'''
 test1() {
