@@ -74,9 +74,9 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
   final LibraryElementImpl libraryElement;
 
   /**
-   * Map from sources imported by this library to their modification times.
+   * Map from sources referenced by this library to their modification times.
    */
-  final Map<Source, int> importModificationTimeMap;
+  final Map<Source, int> sourceModificationTimeMap;
 
   /**
    * Map from sources imported by this library to their corresponding library
@@ -89,11 +89,6 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
    * kinds.
    */
   final Map<Source, SourceKind> importSourceKindMap;
-
-  /**
-   * Map from sources exported by this library to their modification times.
-   */
-  final Map<Source, int> exportModificationTimeMap;
 
   /**
    * Map from sources exported by this library to their corresponding library
@@ -136,10 +131,9 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
   DirectiveElementBuilder(
       this.context,
       this.libraryElement,
-      this.importModificationTimeMap,
+      this.sourceModificationTimeMap,
       this.importLibraryMap,
       this.importSourceKindMap,
-      this.exportModificationTimeMap,
       this.exportLibraryMap,
       this.exportSourceKindMap);
 
@@ -175,7 +169,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
     // Remove previous element. (It will remain null if the target is missing.)
     node.element = null;
     Source exportedSource = node.source;
-    int exportedTime = exportModificationTimeMap[exportedSource] ?? -1;
+    int exportedTime = sourceModificationTimeMap[exportedSource] ?? -1;
     if (exportedTime != -1) {
       // The exported source will be null if the URI in the export
       // directive was invalid.
@@ -218,7 +212,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
     // Remove previous element. (It will remain null if the target is missing.)
     node.element = null;
     Source importedSource = node.source;
-    int importedTime = importModificationTimeMap[importedSource] ?? -1;
+    int importedTime = sourceModificationTimeMap[importedSource] ?? -1;
     if (importedTime != -1) {
       // The imported source will be null if the URI in the import
       // directive was invalid.

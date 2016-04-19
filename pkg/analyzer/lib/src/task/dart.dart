@@ -616,6 +616,17 @@ final ResultDescriptor<ReferencedNames> REFERENCED_NAMES =
     new ResultDescriptor<ReferencedNames>('REFERENCED_NAMES', null);
 
 /**
+ * The sources of the Dart files that a library references.
+ *
+ * The list is the union of [IMPORTED_LIBRARIES], [EXPORTED_LIBRARIES] and
+ * [UNITS] of the defining unit and [INCLUDED_PARTS]. Never empty or `null`.
+ *
+ * The result is only available for [Source]s representing a library.
+ */
+final ListResultDescriptor<Source> REFERENCED_SOURCES =
+    new ListResultDescriptor<Source>('REFERENCED_SOURCES', Source.EMPTY_LIST);
+
+/**
  * The errors produced while resolving type names.
  *
  * The list will be empty if there were no errors, but will not be `null`.
@@ -995,18 +1006,10 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
   static const String UNIT_INPUT_NAME = 'UNIT_INPUT_NAME';
 
   /**
-   * The input with a map from imported library sources to their modification
-   * times.
+   * The input with a map from referenced sources to their modification times.
    */
-  static const String IMPORTS_MODIFICATION_TIME_INPUT_NAME =
-      'IMPORTS_MODIFICATION_TIME_INPUT_NAME';
-
-  /**
-   * The input with a map from exported library sources to their modification
-   * times.
-   */
-  static const String EXPORTS_MODIFICATION_TIME_INPUT_NAME =
-      'EXPORTS_MODIFICATION_TIME_INPUT_NAME';
+  static const String SOURCES_MODIFICATION_TIME_INPUT_NAME =
+      'SOURCES_MODIFICATION_TIME_INPUT_NAME';
 
   /**
    * The input with a list of [LIBRARY_ELEMENT3]s of imported libraries.
@@ -1055,10 +1058,8 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
     //
     LibraryElementImpl libraryElement = getRequiredInput(LIBRARY_INPUT);
     CompilationUnit libraryUnit = getRequiredInput(UNIT_INPUT_NAME);
-    Map<Source, int> importModificationTimeMap =
-        getRequiredInput(IMPORTS_MODIFICATION_TIME_INPUT_NAME);
-    Map<Source, int> exportModificationTimeMap =
-        getRequiredInput(EXPORTS_MODIFICATION_TIME_INPUT_NAME);
+    Map<Source, int> sourceModificationTimeMap =
+        getRequiredInput(SOURCES_MODIFICATION_TIME_INPUT_NAME);
     Map<Source, LibraryElement> importLibraryMap =
         getRequiredInput(IMPORTS_LIBRARY_ELEMENT_INPUT_NAME);
     Map<Source, LibraryElement> exportLibraryMap =
@@ -1090,10 +1091,9 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
       DirectiveElementBuilder builder = new DirectiveElementBuilder(
           context,
           libraryElement,
-          importModificationTimeMap,
+          sourceModificationTimeMap,
           importLibraryMap,
           importSourceKindMap,
-          exportModificationTimeMap,
           exportLibraryMap,
           exportSourceKindMap);
       libraryUnit.accept(builder);
@@ -1123,10 +1123,8 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
       LIBRARY_INPUT: LIBRARY_ELEMENT1.of(source),
       UNIT_INPUT_NAME:
           RESOLVED_UNIT1.of(new LibrarySpecificUnit(source, source)),
-      IMPORTS_MODIFICATION_TIME_INPUT_NAME:
-          IMPORTED_LIBRARIES.of(source).toMapOf(MODIFICATION_TIME),
-      EXPORTS_MODIFICATION_TIME_INPUT_NAME:
-          EXPORTED_LIBRARIES.of(source).toMapOf(MODIFICATION_TIME),
+      SOURCES_MODIFICATION_TIME_INPUT_NAME:
+          REFERENCED_SOURCES.of(source).toMapOf(MODIFICATION_TIME),
       IMPORTS_LIBRARY_ELEMENT_INPUT_NAME:
           IMPORTED_LIBRARIES.of(source).toMapOf(LIBRARY_ELEMENT1),
       EXPORTS_LIBRARY_ELEMENT_INPUT_NAME:
@@ -3500,7 +3498,8 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     PARSE_ERRORS,
     PARSED_UNIT,
     SOURCE_KIND,
-    UNITS
+    UNITS,
+    REFERENCED_SOURCES
   ]);
 
   /**
@@ -3594,6 +3593,11 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     List<Source> includedSources = includedSourceSet.toList();
     List<AnalysisError> parseErrors = getUniqueErrors(errorListener.errors);
     List<Source> unitSources = <Source>[source]..addAll(includedSourceSet);
+    List<Source> referencedSources = (new Set<Source>()
+          ..addAll(importedSources)
+          ..addAll(exportedSources)
+          ..addAll(unitSources))
+        .toList();
     List<LibrarySpecificUnit> librarySpecificUnits =
         unitSources.map((s) => new LibrarySpecificUnit(source, s)).toList();
     outputs[EXPLICITLY_IMPORTED_LIBRARIES] = explicitlyImportedSources;
@@ -3605,6 +3609,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     outputs[PARSED_UNIT] = unit;
     outputs[SOURCE_KIND] = sourceKind;
     outputs[UNITS] = unitSources;
+    outputs[REFERENCED_SOURCES] = referencedSources;
   }
 
   /**
