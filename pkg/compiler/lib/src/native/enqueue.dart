@@ -48,8 +48,6 @@ class NativeEnqueuer {
   /// Computes types instantiated due to setting a native field.
   void registerFieldStore(Element field) {}
 
-  NativeBehavior getNativeBehaviorOf(Send node) => new NativeBehavior();
-
   /// Returns whether native classes are being used.
   bool hasInstantiatedNativeClasses() => false;
 
@@ -94,10 +92,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   /// [queue] to register the class.
   final queue = new Queue();
   bool flushing = false;
-
-  /// Maps JS foreign calls to their computed native behavior.
-  final Map<Node, NativeBehavior> nativeBehaviors =
-      new Map<Node, NativeBehavior>();
 
   final Enqueuer world;
   final Compiler compiler;
@@ -493,8 +487,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     registerNativeBehavior(NativeBehavior.ofFieldStore(field, compiler), field);
   }
 
-  NativeBehavior getNativeBehaviorOf(Send node) => nativeBehaviors[node];
-
   processNativeBehavior(NativeBehavior behavior, cause) {
     // TODO(ahe): Is this really a global dependency?
     Registry registry = compiler.globalDependencies;
@@ -613,11 +605,12 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
    *     JS('_DOMWindowImpl', 'window')
    *
    */
-  void registerJsCall(Send node, ForeignResolver resolver) {
+  NativeBehavior resolveJsCall(Send node, ForeignResolver resolver) {
     NativeBehavior behavior = NativeBehavior.ofJsCall(
         node, reporter, compiler.parsingContext, compiler.coreTypes, resolver);
+    // TODO(johnniwinther): Move registration to the world impact application.
     registerNativeBehavior(behavior, node);
-    nativeBehaviors[node] = behavior;
+    return behavior;
   }
 
   /**
@@ -629,11 +622,13 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
    *     JS_EMBEDDED_GLOBAL('String', 'foo')
    *
    */
-  void registerJsEmbeddedGlobalCall(Send node, ForeignResolver resolver) {
+  NativeBehavior resolveJsEmbeddedGlobalCall(
+      Send node, ForeignResolver resolver) {
     NativeBehavior behavior = NativeBehavior.ofJsEmbeddedGlobalCall(
         node, reporter, compiler.parsingContext, compiler.coreTypes, resolver);
+    // TODO(johnniwinther): Move registration to the world impact application.
     registerNativeBehavior(behavior, node);
-    nativeBehaviors[node] = behavior;
+    return behavior;
   }
 
   /**
@@ -645,11 +640,12 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
    *     JS_BUILTIN('String', 'int2string', 0)
    *
    */
-  void registerJsBuiltinCall(Send node, ForeignResolver resolver) {
+  NativeBehavior resolveJsBuiltinCall(Send node, ForeignResolver resolver) {
     NativeBehavior behavior = NativeBehavior.ofJsBuiltinCall(
         node, reporter, compiler.parsingContext, compiler.coreTypes, resolver);
+    // TODO(johnniwinther): Move registration to the world impact application.
     registerNativeBehavior(behavior, node);
-    nativeBehaviors[node] = behavior;
+    return behavior;
   }
 }
 

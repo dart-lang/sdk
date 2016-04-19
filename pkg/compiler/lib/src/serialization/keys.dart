@@ -84,6 +84,7 @@ class Key {
   static const Key NAMED_ARGUMENTS = const Key('named-arguments');
   static const Key NAMED_PARAMETERS = const Key('named-parameters');
   static const Key NAMED_PARAMETER_TYPES = const Key('named-parameter-types');
+  static const Key NATIVE = const Key('native');
   static const Key NESTING_LEVEL = const Key('nestingLevel');
   static const Key NEW_STRUCTURE = const Key('newStructure');
   static const Key NODE = const Key('node');

@@ -376,8 +376,10 @@ abstract class Backend {
   void registerAsyncMarker(
       FunctionElement element, Enqueuer enqueuer, Registry registry) {}
 
-  /// Called when resolving a call to a foreign function.
-  void registerForeignCall(Send node, Element element,
+  /// Called when resolving a call to a foreign function. If a non-null value
+  /// is returned, this is stored as native data for [node] in the resolved
+  /// AST.
+  dynamic resolveForeignCall(Send node, Element element,
       CallStructure callStructure, ForeignResolver resolver) {}
 
   /// Returns the location of the patch-file associated with [libraryName]

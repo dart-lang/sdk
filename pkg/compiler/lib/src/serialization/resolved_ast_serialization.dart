@@ -56,13 +56,15 @@ enum AstKind {
 
 /// Serializer for [ResolvedAst]s.
 class ResolvedAstSerializer extends Visitor {
+  final SerializerPlugin nativeDataSerializer;
   final ObjectEncoder objectEncoder;
   final ResolvedAst resolvedAst;
   final AstIndexComputer indexComputer = new AstIndexComputer();
   final Map<int, ObjectEncoder> nodeData = <int, ObjectEncoder>{};
   ListEncoder _nodeDataEncoder;
 
-  ResolvedAstSerializer(this.objectEncoder, this.resolvedAst);
+  ResolvedAstSerializer(
+      this.objectEncoder, this.resolvedAst, this.nativeDataSerializer);
 
   AstElement get element => resolvedAst.element;
 
@@ -234,6 +236,11 @@ class ResolvedAstSerializer extends Visitor {
       getNodeDataEncoder(node).setInt(
           Key.JUMP_TARGET_DEFINITION, getJumpTargetId(jumpTargetDefinition));
     }
+    var nativeData = elements.getNativeData(node);
+    if (nativeData != null) {
+      nativeDataSerializer.onData(
+          nativeData, getNodeDataEncoder(node).createObject(Key.NATIVE));
+    }
     node.visitChildren(this);
   }
 
@@ -300,14 +307,18 @@ class ResolvedAstDeserializer {
   /// Deserializes the [ResolvedAst] for [element] from [objectDecoder].
   /// [parsing] and [getBeginToken] are used for parsing the [Node] for
   /// [element] from its source code.
-  static ResolvedAst deserialize(Element element, ObjectDecoder objectDecoder,
-      ParsingContext parsing, Token getBeginToken(Uri uri, int charOffset)) {
+  static ResolvedAst deserialize(
+      Element element,
+      ObjectDecoder objectDecoder,
+      ParsingContext parsing,
+      Token getBeginToken(Uri uri, int charOffset),
+      DeserializerPlugin nativeDataDeserializer) {
     ResolvedAstKind kind =
         objectDecoder.getEnum(Key.KIND, ResolvedAstKind.values);
     switch (kind) {
       case ResolvedAstKind.PARSED:
-        return deserializeParsed(
-            element, objectDecoder, parsing, getBeginToken);
+        return deserializeParsed(element, objectDecoder, parsing, getBeginToken,
+            nativeDataDeserializer);
       case ResolvedAstKind.DEFAULT_CONSTRUCTOR:
       case ResolvedAstKind.FORWARDING_CONSTRUCTOR:
         return new SynthesizedResolvedAst(element, kind);
@@ -320,7 +331,8 @@ class ResolvedAstDeserializer {
       Element element,
       ObjectDecoder objectDecoder,
       ParsingContext parsing,
-      Token getBeginToken(Uri uri, int charOffset)) {
+      Token getBeginToken(Uri uri, int charOffset),
+      DeserializerPlugin nativeDataDeserializer) {
     CompilationUnitElement compilationUnit = element.compilationUnit;
     DiagnosticReporter reporter = parsing.reporter;
 
@@ -595,6 +607,14 @@ class ResolvedAstDeserializer {
             objectDecoder.getInt(Key.TARGET_LABEL, isOptional: true);
         if (targetLabelId != null) {
           elements.registerTargetLabel(node, labelDefinitions[targetLabelId]);
+        }
+        ObjectDecoder nativeDataDecoder =
+            objectDecoder.getObject(Key.NATIVE, isOptional: true);
+        if (nativeDataDecoder != null) {
+          var nativeData = nativeDataDeserializer.onData(nativeDataDecoder);
+          if (nativeData != null) {
+            elements.registerNativeData(node, nativeData);
+          }
         }
       }
     }

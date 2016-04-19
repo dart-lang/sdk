@@ -33,6 +33,8 @@ class SideEffects {
     clearAllSideEffects();
   }
 
+  SideEffects.fromFlags(this._flags);
+
   bool operator ==(other) => _flags == other._flags;
 
   int get hashCode => throw new UnsupportedError('SideEffects.hashCode');
@@ -146,6 +148,8 @@ class SideEffects {
   void setTo(SideEffects other) {
     _flags = other._flags;
   }
+
+  int get flags => _flags;
 
   String toString() {
     StringBuffer buffer = new StringBuffer();

@@ -356,8 +356,11 @@ class ResolutionRegistry extends Registry {
 
   void registerForeignCall(Node node, Element element,
       CallStructure callStructure, ResolverVisitor visitor) {
-    backend.registerForeignCall(node, element, callStructure,
+    var nativeData = backend.resolveForeignCall(node, element, callStructure,
         new ForeignResolutionResolver(visitor, this));
+    if (nativeData != null) {
+      mapping.registerNativeData(node, nativeData);
+    }
   }
 
   void registerDynamicUse(DynamicUse dynamicUse) {

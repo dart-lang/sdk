@@ -1513,8 +1513,7 @@ class SimpleTypeInferrerVisitor<T>
     String name = element.name;
     handleStaticSend(node, selector, mask, element, arguments);
     if (name == 'JS' || name == 'JS_EMBEDDED_GLOBAL' || name == 'JS_BUILTIN') {
-      native.NativeBehavior nativeBehavior =
-          compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
+      native.NativeBehavior nativeBehavior = elements.getNativeData(node);
       sideEffects.add(nativeBehavior.sideEffects);
       return inferrer.typeOfNativeBehavior(nativeBehavior);
     } else if (name == 'JS_OPERATOR_AS_PREFIX' || name == 'JS_STRING_CONCAT') {

@@ -857,6 +857,9 @@ class SerializerPlugin {
   /// Use [creatorEncoder] to create a data object with id [tag] for storing
   /// additional data for [element].
   void onElement(Element element, ObjectEncoder createEncoder(String tag)) {}
+
+  /// Called to serialize custom [data].
+  void onData(var data, ObjectEncoder encoder) {}
 }
 
 /// Plugin for deserializing additional data for an [Element].
@@ -868,6 +871,9 @@ class DeserializerPlugin {
   /// Use [getDecoder] to retrieve the data object with id [tag] stored for
   /// [element]. If not object is stored for [tag], [getDecoder] returns `null`.
   void onElement(Element element, ObjectDecoder getDecoder(String tag)) {}
+
+  /// Called to deserialize custom data from [decoder].
+  dynamic onData(ObjectDecoder decoder) {}
 }
 
 /// Context for parallel deserialization.

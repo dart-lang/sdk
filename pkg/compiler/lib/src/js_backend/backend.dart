@@ -1294,16 +1294,16 @@ class JavaScriptBackend extends Backend {
   }
 
   /// Called when resolving a call to a foreign function.
-  void registerForeignCall(Send node, Element element,
+  native.NativeBehavior resolveForeignCall(Send node, Element element,
       CallStructure callStructure, ForeignResolver resolver) {
     native.NativeResolutionEnqueuer nativeEnqueuer =
         compiler.enqueuer.resolution.nativeEnqueuer;
     if (element.name == 'JS') {
-      nativeEnqueuer.registerJsCall(node, resolver);
+      return nativeEnqueuer.resolveJsCall(node, resolver);
     } else if (element.name == 'JS_EMBEDDED_GLOBAL') {
-      nativeEnqueuer.registerJsEmbeddedGlobalCall(node, resolver);
+      return nativeEnqueuer.resolveJsEmbeddedGlobalCall(node, resolver);
     } else if (element.name == 'JS_BUILTIN') {
-      nativeEnqueuer.registerJsBuiltinCall(node, resolver);
+      return nativeEnqueuer.resolveJsBuiltinCall(node, resolver);
     } else if (element.name == 'JS_INTERCEPTOR_CONSTANT') {
       // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
       // a class that will be instantiated outside the program by attaching a
@@ -1315,13 +1315,16 @@ class JavaScriptBackend extends Backend {
           TypeConstantExpression typeConstant = constant;
           if (typeConstant.type is InterfaceType) {
             resolver.registerInstantiatedType(typeConstant.type);
-            return;
+            // No native behavior for this call.
+            return null;
           }
         }
       }
       reporter.reportErrorMessage(
           node, MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
     }
+    // No native behavior for this call.
+    return null;
   }
 
   void enableNoSuchMethod(Enqueuer world) {

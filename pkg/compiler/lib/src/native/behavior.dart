@@ -28,6 +28,14 @@ class SpecialType {
   static const JsObject = const SpecialType._('=Object');
 
   int get hashCode => name.hashCode;
+
+  static SpecialType fromName(String name) {
+    if (name == '=Object') {
+      return JsObject;
+    } else {
+      throw new UnsupportedError("Unknown SpecialType '$name'.");
+    }
+  }
 }
 
 /// Description of the exception behaviour of native code.
@@ -70,6 +78,21 @@ class NativeThrowBehavior {
     if (this == MUST) return 'must';
     return 'NativeThrowBehavior($_bits)';
   }
+
+  /// Canonical list of marker values.
+  ///
+  /// Added to make [NativeThrowBehavior] enum-like.
+  static const List<NativeThrowBehavior> values = const <NativeThrowBehavior>[
+    NEVER,
+    MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS,
+    MAY,
+    MUST,
+  ];
+
+  /// Index to this marker within [values].
+  ///
+  /// Added to make [NativeThrowBehavior] enum-like.
+  int get index => values.indexOf(this);
 }
 
 /**
@@ -109,11 +132,12 @@ class NativeBehavior {
   /// [DartType]s or [SpecialType]s instantiated by the native element.
   final List typesInstantiated = [];
 
+  String codeTemplateText;
   // If this behavior is for a JS expression, [codeTemplate] contains the
   // parsed tree.
   js.Template codeTemplate;
 
-  final SideEffects sideEffects = new SideEffects.empty();
+  final SideEffects sideEffects;
 
   NativeThrowBehavior throwBehavior = NativeThrowBehavior.MAY;
 
@@ -127,6 +151,10 @@ class NativeBehavior {
       NativeBehavior._makePure(isAllocation: true);
   static NativeBehavior get CHANGES_OTHER => NativeBehavior._makeChangesOther();
   static NativeBehavior get DEPENDS_OTHER => NativeBehavior._makeDependsOther();
+
+  NativeBehavior() : sideEffects = new SideEffects.empty();
+
+  NativeBehavior.internal(this.sideEffects);
 
   String toString() {
     return 'NativeBehavior('
@@ -490,8 +518,8 @@ class NativeBehavior {
       return behavior;
     }
 
-    behavior.codeTemplate =
-        js.js.parseForeignJS(codeArgument.dartString.slowToString());
+    behavior.codeTemplateText = codeArgument.dartString.slowToString();
+    behavior.codeTemplate = js.js.parseForeignJS(behavior.codeTemplateText);
 
     String specString = specArgument.dartString.slowToString();
 

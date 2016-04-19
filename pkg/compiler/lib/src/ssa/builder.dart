@@ -4036,8 +4036,9 @@ class SsaBuilder extends ast.Visitor
       reporter.internalError(
           node.argumentsNode, 'At least two arguments expected.');
     }
-    native.NativeBehavior nativeBehavior =
-        compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
+    native.NativeBehavior nativeBehavior = elements.getNativeData(node);
+    assert(invariant(node, nativeBehavior != null,
+        message: "No NativeBehavior for $node"));
 
     List<HInstruction> inputs = <HInstruction>[];
     addGenericSendArgumentsToList(link.tail.tail, inputs);
@@ -4204,8 +4205,9 @@ class SsaBuilder extends ast.Visitor
       compiledArguments.add(pop());
     }
 
-    native.NativeBehavior nativeBehavior =
-        compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
+    native.NativeBehavior nativeBehavior = elements.getNativeData(node);
+    assert(invariant(node, nativeBehavior != null,
+        message: "No NativeBehavior for $node"));
 
     TypeMask ssaType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
@@ -4249,8 +4251,9 @@ class SsaBuilder extends ast.Visitor
     String globalName = constant.primitiveValue.slowToString();
     js.Template expr = js.js.expressionTemplateYielding(
         backend.emitter.generateEmbeddedGlobalAccess(globalName));
-    native.NativeBehavior nativeBehavior =
-        compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
+    native.NativeBehavior nativeBehavior = elements.getNativeData(node);
+    assert(invariant(node, nativeBehavior != null,
+        message: "No NativeBehavior for $node"));
     TypeMask ssaType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
     push(new HForeignCode(expr, ssaType, const [],

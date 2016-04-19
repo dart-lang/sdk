@@ -251,8 +251,10 @@ abstract class AnalyzableElementMixin implements AnalyzableElement, ElementZ {
 }
 
 abstract class AstElementMixin implements AstElement, ElementZ {
+  // TODO(johnniwinther): This is needed for the token invariant assertion. Find
+  // another way to bypass the test for modelz.
   @override
-  bool get hasNode => _unsupported('hasNode');
+  bool get hasNode => false;
 
   @override
   bool get hasResolvedAst => _unsupported('hasResolvedAst');

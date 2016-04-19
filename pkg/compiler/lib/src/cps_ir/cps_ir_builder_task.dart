@@ -3197,8 +3197,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     }
 
     Link<ast.Node> argumentNodes = argumentList.nodes;
-    NativeBehavior behavior =
-        compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
+    NativeBehavior behavior = elements.getNativeData(node);
     switch (function.name) {
       case 'JS':
         validateArgumentCount(minimum: 2);

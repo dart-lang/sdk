@@ -11,6 +11,9 @@ import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/visitor.dart';
+import '../js_backend/backend_serialization.dart'
+    show JavaScriptBackendSerializer;
+import '../native/native.dart' show NativeBehavior;
 import '../resolution/access_semantics.dart';
 import '../resolution/send_structure.dart';
 import '../resolution/tree_elements.dart';
@@ -836,6 +839,49 @@ class TreeElementsEquivalenceVisitor extends Visitor {
             a, b, 'isContinueTarget', a.isContinueTarget, b.isContinueTarget);
   }
 
+  bool testNativeData(Node node1, Node node2, String property, a, b) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null) return false;
+    if (a is NativeBehavior && b is NativeBehavior) {
+      return strategy.test(a, b, 'codeTemplateText', a.codeTemplateText,
+              b.codeTemplateText) &&
+          strategy.test(a, b, 'isAllocation', a.isAllocation, b.isAllocation) &&
+          strategy.test(a, b, 'sideEffects', a.sideEffects, b.sideEffects) &&
+          strategy.test(
+              a, b, 'throwBehavior', a.throwBehavior, b.throwBehavior) &&
+          strategy.testTypeLists(
+              a,
+              b,
+              'dartTypesReturned',
+              JavaScriptBackendSerializer.filterDartTypes(a.typesReturned),
+              JavaScriptBackendSerializer.filterDartTypes(b.typesReturned)) &&
+          strategy.testLists(
+              a,
+              b,
+              'specialTypesReturned',
+              JavaScriptBackendSerializer.filterSpecialTypes(a.typesReturned),
+              JavaScriptBackendSerializer
+                  .filterSpecialTypes(b.typesReturned)) &&
+          strategy.testTypeLists(
+              a,
+              b,
+              'dartTypesInstantiated',
+              JavaScriptBackendSerializer.filterDartTypes(a.typesInstantiated),
+              JavaScriptBackendSerializer
+                  .filterDartTypes(b.typesInstantiated)) &&
+          strategy.testLists(
+              a,
+              b,
+              'specialTypesInstantiated',
+              JavaScriptBackendSerializer
+                  .filterSpecialTypes(a.typesInstantiated),
+              JavaScriptBackendSerializer
+                  .filterSpecialTypes(b.typesInstantiated)) &&
+          strategy.test(a, b, 'useGvn', a.useGvn, b.useGvn);
+    }
+    return true;
+  }
+
   visitNode(Node node1) {
     if (!success) return;
     int index = indices1.nodeIndices[node1];
@@ -860,7 +906,9 @@ class TreeElementsEquivalenceVisitor extends Visitor {
             node2,
             'getTargetDefinition($index)',
             elements1.getTargetDefinition(node1),
-            elements2.getTargetDefinition(node2));
+            elements2.getTargetDefinition(node2)) &&
+        testNativeData(node1, node2, 'getNativeData($index)',
+            elements1.getNativeData(node1), elements2.getNativeData(node2));
 
     node1.visitChildren(this);
   }

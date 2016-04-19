@@ -106,7 +106,7 @@ Serializer serialize(
   serializer.plugins.add(new ResolutionImpactSerializer(compiler.resolution));
   if (serializeResolvedAst) {
     serializer.plugins.add(
-        new ResolvedAstSerializerPlugin(compiler.resolution));
+        new ResolvedAstSerializerPlugin(compiler.resolution, compiler.backend));
   }
 
   for (LibraryElement library in libraries) {
@@ -180,7 +180,8 @@ class _DeserializerSystem extends DeserializerSystem {
       : this._compiler = compiler,
         this._deserializeResolvedAst = deserializeResolvedAst,
         this._resolvedAstDeserializer = deserializeResolvedAst
-           ? new ResolvedAstDeserializerPlugin(compiler.parsingContext) : null {
+           ? new ResolvedAstDeserializerPlugin(
+               compiler.parsingContext, compiler.backend) : null {
     _deserializer.plugins.add(_resolutionImpactDeserializer);
     if (_deserializeResolvedAst) {
       _deserializer.plugins.add(_resolvedAstDeserializer);
@@ -271,8 +272,9 @@ const String RESOLVED_AST_TAG = 'resolvedAst';
 
 class ResolvedAstSerializerPlugin extends SerializerPlugin {
   final Resolution resolution;
+  final Backend backend;
 
-  ResolvedAstSerializerPlugin(this.resolution);
+  ResolvedAstSerializerPlugin(this.resolution, this.backend);
 
   @override
   void onElement(Element element, ObjectEncoder createEncoder(String tag)) {
@@ -283,20 +285,24 @@ class ResolvedAstSerializerPlugin extends SerializerPlugin {
           message: "Element $element must have a resolved ast"));
       ResolvedAst resolvedAst = resolution.getResolvedAst(element);
       ObjectEncoder objectEncoder = createEncoder(RESOLVED_AST_TAG);
-      new ResolvedAstSerializer(objectEncoder, resolvedAst).serialize();
+      new ResolvedAstSerializer(
+          objectEncoder,
+          resolvedAst,
+          backend.serialization.serializer).serialize();
     }
   }
 }
 
 class ResolvedAstDeserializerPlugin extends DeserializerPlugin {
   final ParsingContext parsingContext;
+  final Backend backend;
   final Map<Uri, SourceFile> sourceFiles = <Uri, SourceFile>{};
 
   Map<Element, ResolvedAst> _resolvedAstMap = <Element, ResolvedAst>{};
   Map<Element, ObjectDecoder> _decoderMap = <Element, ObjectDecoder>{};
   Map<Uri, Token> beginTokenMap = <Uri, Token>{};
 
-  ResolvedAstDeserializerPlugin(this.parsingContext);
+  ResolvedAstDeserializerPlugin(this.parsingContext, this.backend);
 
   bool hasResolvedAst(Element element) {
     return _resolvedAstMap.containsKey(element) ||
@@ -310,7 +316,8 @@ class ResolvedAstDeserializerPlugin extends DeserializerPlugin {
       if (decoder != null) {
         resolvedAst = _resolvedAstMap[element] =
             ResolvedAstDeserializer.deserialize(
-                element, decoder, parsingContext, findToken);
+                element, decoder, parsingContext, findToken,
+                backend.serialization.deserializer);
         _decoderMap.remove(element);
       }
     }
