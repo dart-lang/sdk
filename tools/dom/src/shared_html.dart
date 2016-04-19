@@ -4,17 +4,25 @@
 
 part of dart.dom.html;
 
-_wrapZone(callback(arg)) {
+// TODO(jacobr): remove these typedefs when dart:async supports generic types.
+typedef R _wrapZoneCallback<A, R>(A a);
+typedef R _wrapZoneBinaryCallback<A, B, R>(A a, B b);
+
+_wrapZoneCallback/*<A, R>*/ _wrapZone/*<A, R>*/(_wrapZoneCallback/*<A, R>*/ callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.ROOT) return callback;
   if (callback == null) return null;
-  return Zone.current.bindUnaryCallback(callback, runGuarded: true);
+  // TODO(jacobr): we cast to _wrapZoneCallback/*<A, R>*/ to hack around missing
+  // generic method support in zones.
+  return Zone.current.bindUnaryCallback(callback, runGuarded: true) as _wrapZoneCallback/*<A, R>*/;
 }
 
-_wrapBinaryZone(callback(arg1, arg2)) {
+_wrapZoneBinaryCallback/*<A, B, R>*/ _wrapBinaryZone/*<A, B, R>*/(_wrapZoneBinaryCallback/*<A, B, R>*/ callback) {
   if (Zone.current == Zone.ROOT) return callback;
   if (callback == null) return null;
-  return Zone.current.bindBinaryCallback(callback, runGuarded: true);
+  // We cast to _wrapZoneBinaryCallback/*<A, B, R>*/ to hack around missing
+  // generic method support in zones.
+  return Zone.current.bindBinaryCallback(callback, runGuarded: true) as _wrapZoneBinaryCallback/*<A, B, R>*/;
 }
 
 /**

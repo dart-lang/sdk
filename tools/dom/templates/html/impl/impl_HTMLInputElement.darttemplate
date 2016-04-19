@@ -28,7 +28,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements
     ButtonInputElement {
 
   factory InputElement({String type}) {
-    var e = document.createElement("input");
+    InputElement e = document.createElement("input");
     if (type != null) {
       try {
         // IE throws an exception for unknown types.

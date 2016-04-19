@@ -13,7 +13,7 @@ abstract class _AttributeMap implements Map<String, String> {
     other.forEach((k, v) { this[k] = v; });
   }
 
-  bool containsValue(String value) {
+  bool containsValue(Object value) {
     for (var v in this.values) {
       if (value == v) {
         return true;
@@ -45,10 +45,11 @@ abstract class _AttributeMap implements Map<String, String> {
   Iterable<String> get keys {
     // TODO: generate a lazy collection instead.
     var attributes = _element._attributes;
-    var keys = new List<String>();
+    var keys = <String>[];
     for (int i = 0, len = attributes.length; i < len; i++) {
-      if (_matches(attributes[i])) {
-        keys.add(attributes[i].name);
+      _Attr attr = attributes[i];
+      if (_matches(attr)) {
+        keys.add(attr.name);
       }
     }
     return keys;
@@ -57,10 +58,11 @@ abstract class _AttributeMap implements Map<String, String> {
   Iterable<String> get values {
     // TODO: generate a lazy collection instead.
     var attributes = _element._attributes;
-    var values = new List<String>();
+    var values = <String>[];
     for (int i = 0, len = attributes.length; i < len; i++) {
-      if (_matches(attributes[i])) {
-        values.add(attributes[i].value);
+      _Attr attr = attributes[i];
+      if (_matches(attr)) {
+        values.add(attr.value);
       }
     }
     return values;
@@ -91,11 +93,11 @@ class _ElementAttributeMap extends _AttributeMap {
 
   _ElementAttributeMap(Element element): super(element);
 
-  bool containsKey(String key) {
+  bool containsKey(Object key) {
     return _element._hasAttribute(key);
   }
 
-  String operator [](String key) {
+  String operator [](Object key) {
     return _element.getAttribute(key);
   }
 
@@ -103,7 +105,7 @@ class _ElementAttributeMap extends _AttributeMap {
     _element.setAttribute(key, value);
   }
 
-  String remove(String key) {
+  String remove(Object key) {
     String value = _element.getAttribute(key);
     _element._removeAttribute(key);
     return value;
@@ -128,11 +130,11 @@ class _NamespacedAttributeMap extends _AttributeMap {
 
   _NamespacedAttributeMap(Element element, this._namespace): super(element);
 
-  bool containsKey(String key) {
+  bool containsKey(Object key) {
     return _element._hasAttributeNS(_namespace, key);
   }
 
-  String operator [](String key) {
+  String operator [](Object key) {
     return _element.getAttributeNS(_namespace, key);
   }
 
@@ -140,7 +142,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
     _element.setAttributeNS(_namespace, key, value);
   }
 
-  String remove(String key) {
+  String remove(Object key) {
     String value = this[key];
     _element._removeAttributeNS(_namespace, key);
     return value;
@@ -174,11 +176,11 @@ class _DataAttributeMap implements Map<String, String> {
   }
 
   // TODO: Use lazy iterator when it is available on Map.
-  bool containsValue(String value) => values.any((v) => v == value);
+  bool containsValue(Object value) => values.any((v) => v == value);
 
-  bool containsKey(String key) => _attributes.containsKey(_attr(key));
+  bool containsKey(Object key) => _attributes.containsKey(_attr(key));
 
-  String operator [](String key) => _attributes[_attr(key)];
+  String operator [](Object key) => _attributes[_attr(key)];
 
   void operator []=(String key, String value) {
     _attributes[_attr(key)] = value;
@@ -187,7 +189,7 @@ class _DataAttributeMap implements Map<String, String> {
   String putIfAbsent(String key, String ifAbsent()) =>
     _attributes.putIfAbsent(_attr(key), ifAbsent);
 
-  String remove(String key) => _attributes.remove(_attr(key));
+  String remove(Object key) => _attributes.remove(_attr(key));
 
   void clear() {
     // Needs to operate on a snapshot since we are mutating the collection.
@@ -205,7 +207,7 @@ class _DataAttributeMap implements Map<String, String> {
   }
 
   Iterable<String> get keys {
-    final keys = new List<String>();
+    final keys = <String>[];
     _attributes.forEach((String key, String value) {
       if (_matches(key)) {
         keys.add(_strip(key));
@@ -215,7 +217,7 @@ class _DataAttributeMap implements Map<String, String> {
   }
 
   Iterable<String> get values {
-    final values = new List<String>();
+    final values = <String>[];
     _attributes.forEach((String key, String value) {
       if (_matches(key)) {
         values.add(value);

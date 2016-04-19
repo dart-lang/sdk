@@ -34,7 +34,7 @@ class EventStreamProvider<T extends Event> {
    * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
    */
   Stream<T> forTarget(EventTarget e, {bool useCapture: false}) =>
-    new _EventStream(e, _eventType, useCapture);
+    new _EventStream<T>(e, _eventType, useCapture);
 
   /**
    * Gets an [ElementEventStream] for this event type, on the specified element.
@@ -58,7 +58,7 @@ class EventStreamProvider<T extends Event> {
    * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
    */
   ElementStream<T> forElement(Element e, {bool useCapture: false}) {
-    return new _ElementEventStreamImpl(e, _eventType, useCapture);
+    return new _ElementEventStreamImpl<T>(e, _eventType, useCapture);
   }
 
   /**
@@ -129,8 +129,8 @@ class _EventStream<T extends Event> extends Stream<T> {
   _EventStream(this._target, this._eventType, this._useCapture);
 
   // DOM events are inherently multi-subscribers.
-  Stream<T> asBroadcastStream({void onListen(StreamSubscription subscription),
-                               void onCancel(StreamSubscription subscription)})
+  Stream<T> asBroadcastStream({void onListen(StreamSubscription<T> subscription),
+                               void onCancel(StreamSubscription<T> subscription)})
       => this;
   bool get isBroadcast => true;
 
@@ -144,6 +144,11 @@ class _EventStream<T extends Event> extends Stream<T> {
   }
 }
 
+bool _matchesWithAncestors(Event event, String selector) {
+  var target = event.target;
+  return target is Element ? target.matchesWithAncestors(selector) : false;
+}
+
 /**
  * Adapter for exposing DOM Element events as streams, while also allowing
  * event delegation.
@@ -154,7 +159,7 @@ class _ElementEventStreamImpl<T extends Event> extends _EventStream<T>
       super(target, eventType, useCapture);
 
   Stream<T> matches(String selector) => this.where(
-      (event) => event.target.matchesWithAncestors(selector)).map((e) {
+      (event) => _matchesWithAncestors(event, selector)).map((e) {
         e._selector = selector;
         return e;
       });
@@ -178,7 +183,7 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
       this._targetList, this._eventType, this._useCapture);
 
   Stream<T> matches(String selector) => this.where(
-      (event) => event.target.matchesWithAncestors(selector)).map((e) {
+      (event) => _matchesWithAncestors(event, selector)).map((e) {
         e._selector = selector;
         return e;
       });
@@ -188,37 +193,46 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
       { Function onError,
         void onDone(),
         bool cancelOnError}) {
-    var pool = new _StreamPool.broadcast();
+    var pool = new _StreamPool<T>.broadcast();
     for (var target in _targetList) {
-      pool.add(new _EventStream(target, _eventType, _useCapture));
+      pool.add(new _EventStream<T>(target, _eventType, _useCapture));
     }
     return pool.stream.listen(onData, onError: onError, onDone: onDone,
           cancelOnError: cancelOnError);
   }
 
   StreamSubscription<T> capture(void onData(T event)) {
-    var pool = new _StreamPool.broadcast();
+    var pool = new _StreamPool<T>.broadcast();
     for (var target in _targetList) {
-      pool.add(new _EventStream(target, _eventType, true));
+      pool.add(new _EventStream<T>(target, _eventType, true));
     }
     return pool.stream.listen(onData);
   }
 
-  Stream<T> asBroadcastStream({void onListen(StreamSubscription subscription),
-                               void onCancel(StreamSubscription subscription)})
+  Stream<T> asBroadcastStream({void onListen(StreamSubscription<T> subscription),
+                               void onCancel(StreamSubscription<T> subscription)})
       => this;
   bool get isBroadcast => true;
 }
+
+// We would like this to just be EventListener<T> but that typdef cannot
+// use generics until dartbug/26276 is fixed.
+typedef _EventListener<T extends Event>(T event);
 
 class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   int _pauseCount = 0;
   EventTarget _target;
   final String _eventType;
-  var _onData;
+  EventListener _onData;
   final bool _useCapture;
 
-  _EventStreamSubscription(this._target, this._eventType, onData,
-      this._useCapture) : _onData = _wrapZone(onData) {
+  // TODO(jacobr): for full strong mode correctness we should write
+  // _onData = onData == null ? null : _wrapZone/*<Event, dynamic>*/((e) => onData(e as T))
+  // but that breaks 114 co19 tests as well as multiple html tests as it is reasonable
+  // to pass the wrong type of event object to an event listener as part of a
+  // test.
+  _EventStreamSubscription(this._target, this._eventType, void onData(T event),
+      this._useCapture) : _onData = _wrapZone/*<Event, dynamic>*/(onData) {
     _tryResume();
   }
 
@@ -240,8 +254,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     }
     // Remove current event listener.
     _unlisten();
-
-    _onData = _wrapZone(handleData);
+    _onData = _wrapZone/*<Event, dynamic>*/(handleData);
     _tryResume();
   }
 
@@ -320,8 +333,8 @@ class _CustomEventStreamImpl<T extends Event> extends Stream<T>
         onDone: onDone, cancelOnError: cancelOnError);
   }
 
-  Stream<T> asBroadcastStream({void onListen(StreamSubscription subscription),
-                               void onCancel(StreamSubscription subscription)})
+  Stream<T> asBroadcastStream({void onListen(StreamSubscription<T> subscription),
+                               void onCancel(StreamSubscription<T> subscription)})
       => _streamController.stream;
 
   bool get isBroadcast => true;
@@ -412,16 +425,16 @@ class _CustomEventStreamProvider<T extends Event>
   const _CustomEventStreamProvider(this._eventTypeGetter);
 
   Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
-    return new _EventStream(e, _eventTypeGetter(e), useCapture);
+    return new _EventStream<T>(e, _eventTypeGetter(e), useCapture);
   }
 
   ElementStream<T> forElement(Element e, {bool useCapture: false}) {
-    return new _ElementEventStreamImpl(e, _eventTypeGetter(e), useCapture);
+    return new _ElementEventStreamImpl<T>(e, _eventTypeGetter(e), useCapture);
   }
 
   ElementStream<T> _forElementList(ElementList e,
       {bool useCapture: false}) {
-    return new _ElementListEventStreamImpl(e, _eventTypeGetter(e), useCapture);
+    return new _ElementListEventStreamImpl<T>(e, _eventTypeGetter(e), useCapture);
   }
 
   String getEventType(EventTarget target) {

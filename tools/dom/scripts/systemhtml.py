@@ -58,6 +58,10 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'Document.createTreeWalker',
     'DOMException.name',
     'DOMException.toString',
+    # ListMixin already provides this method although the implementation
+    # is slower. As this class is obsolete anyway, we ignore the slowdown in
+    # DOMStringList performance.
+    'DOMStringList.contains',
     'Element.animate',
     'Element.createShadowRoot',
     'Element.insertAdjacentElement',
@@ -913,7 +917,8 @@ class Dart2JSBackend(HtmlDartGenerator):
     # DomMatrixReadOnly and its subclass DomMatrix. Force the superclass
     # to generate getters. Hardcoding the known problem classes for now.
     # TODO(alanknight): Fix this more generally.
-    if (self._interface.id == 'DOMMatrixReadOnly' or self._interface.id == 'DOMPointReadOnly'):
+    if (self._interface.id == 'DOMMatrixReadOnly' or self._interface.id == 'DOMPointReadOnly'
+       or self._interface.id == 'DOMRectReadOnly'):
         self._AddAttributeUsingProperties(attribute, html_name, read_only)
         return
 

@@ -40,7 +40,7 @@ $endif
 
   set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
-    List copy = new List.from(value);
+    var copy = value.toList();
     var children = this.children;
     children.clear();
     children.addAll(copy);

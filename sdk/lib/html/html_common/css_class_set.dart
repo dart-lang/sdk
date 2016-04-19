@@ -56,11 +56,13 @@ abstract class CssClassSetImpl implements CssClassSet {
 
   String join([String separator = ""]) => readClasses().join(separator);
 
-  Iterable map(f(String element)) => readClasses().map(f);
+  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(String e)) =>
+      readClasses().map/*<T>*/(f);
 
   Iterable<String> where(bool f(String element)) => readClasses().where(f);
 
-  Iterable expand(Iterable f(String element)) => readClasses().expand(f);
+  Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(String element)) =>
+      readClasses().expand/*<T>*/(f);
 
   bool every(bool f(String element)) => readClasses().every(f);
 
@@ -76,10 +78,11 @@ abstract class CssClassSetImpl implements CssClassSet {
     return readClasses().reduce(combine);
   }
 
-  dynamic fold(dynamic initialValue,
-      dynamic combine(dynamic previousValue, String element)) {
-    return readClasses().fold(initialValue, combine);
+  dynamic/*=T*/ fold/*<T>*/(var/*=T*/ initialValue,
+      dynamic/*=T*/ combine(var/*=T*/ previousValue, String element)) {
+    return readClasses().fold/*<T>*/(initialValue, combine);
   }
+
   // interface Collection - END
 
   // interface Set - BEGIN
@@ -145,7 +148,7 @@ abstract class CssClassSetImpl implements CssClassSet {
    * [removeClass](http://api.jquery.com/removeClass/).
    */
   void removeAll(Iterable<Object> iterable) {
-    modify((s) => s.removeAll(iterable.map(_validateToken)));
+    modify((s) => s.removeAll(iterable));
   }
 
   /**
@@ -183,7 +186,7 @@ abstract class CssClassSetImpl implements CssClassSet {
   Set<String> union(Set<String> other) =>
     readClasses().union(other);
 
-  Set<String> difference(Set<String> other) =>
+  Set<String> difference(Set<Object> other) =>
     readClasses().difference(other);
 
   String get first => readClasses().first;
@@ -221,7 +224,7 @@ abstract class CssClassSetImpl implements CssClassSet {
    *   After f returns, the modified set is written to the
    *       className property of this element.
    */
-  modify( f(Set<String> s)) {
+  modify(f(Set<String> s)) {
     Set<String> s = readClasses();
     var ret = f(s);
     writeClasses(s);

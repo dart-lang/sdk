@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library ElementTest;
+
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'dart:async';
@@ -47,7 +48,7 @@ main() {
   Element makeElement() => new Element.tag('div');
 
   Element makeElementWithChildren() =>
-    new Element.html("<div><br/><img/><input/></div>");
+      new Element.html("<div><br/><img/><input/></div>");
 
   group('position', () {
     test('computedStyle', () {
@@ -87,8 +88,8 @@ main() {
       expect(() => new Element.html('<br/><br/>'), throwsStateError);
     });
 
-    test('.html has no parent', () =>
-        expect(new Element.html('<br/>').parent, isNull));
+    test('.html has no parent',
+        () => expect(new Element.html('<br/>').parent, isNull));
 
     test('.html table', () {
       // http://developers.whatwg.org/tabular-data.html#tabular-data
@@ -126,8 +127,10 @@ main() {
     test('.html caption', () {
       var table = new TableElement();
       var node = table.createFragment('<caption><p>Table 1.').nodes.single;
-      expect(node, predicate((x) => x is TableCaptionElement,
-          'is a TableCaptionElement'));
+      expect(
+          node,
+          predicate(
+              (x) => x is TableCaptionElement, 'is a TableCaptionElement'));
       expect(node.tagName, 'CAPTION');
       expect(node.parent, isNull);
       expect(node.innerHtml, '<p>Table 1.</p>');
@@ -137,8 +140,8 @@ main() {
       var table = new TableElement();
       var node =
           table.createFragment('<colgroup> <col> <col> <col>').nodes.single;
-      expect(node, predicate((x) => x is TableColElement,
-          'is a TableColElement'));
+      expect(
+          node, predicate((x) => x is TableColElement, 'is a TableColElement'));
       expect(node.tagName, 'COLGROUP');
       expect(node.parent, isNull);
       expect(node.innerHtml, ' <col> <col> <col>');
@@ -148,8 +151,10 @@ main() {
       var innerHtml = '<tr><td headers="n r1">Sad</td><td>Happy</td></tr>';
       var table = new TableElement();
       var node = table.createFragment('<tbody>$innerHtml').nodes.single;
-      expect(node, predicate((x) => x is TableSectionElement,
-          'is a TableSectionElement'));
+      expect(
+          node,
+          predicate(
+              (x) => x is TableSectionElement, 'is a TableSectionElement'));
       expect(node.tagName, 'TBODY');
       expect(node.parent, isNull);
       expect(node.rows.length, 1);
@@ -161,8 +166,10 @@ main() {
       var innerHtml = '<tr><th id="n">Negative</th><th>Positive</th></tr>';
       var table = new TableElement();
       var node = table.createFragment('<thead>$innerHtml').nodes.single;
-      expect(node, predicate((x) => x is TableSectionElement,
-          'is a TableSectionElement'));
+      expect(
+          node,
+          predicate(
+              (x) => x is TableSectionElement, 'is a TableSectionElement'));
       expect(node.tagName, 'THEAD');
       expect(node.parent, isNull);
       expect(node.rows.length, 1);
@@ -174,8 +181,10 @@ main() {
       var innerHtml = '<tr><th>percentage</th><td>34.3%</td></tr>';
       var table = new TableElement();
       var node = table.createFragment('<tfoot>$innerHtml').nodes.single;
-      expect(node, predicate((x) => x is TableSectionElement,
-          'is a TableSectionElement'));
+      expect(
+          node,
+          predicate(
+              (x) => x is TableSectionElement, 'is a TableSectionElement'));
       expect(node.tagName, 'TFOOT');
       expect(node.parent, isNull);
       expect(node.rows.length, 1);
@@ -188,8 +197,8 @@ main() {
       document.body.append(table);
       var tBody = table.createTBody();
       var node = tBody.createFragment('<tr><td>foo<td>bar').nodes.single;
-      expect(node, predicate((x) => x is TableRowElement,
-          'is a TableRowElement'));
+      expect(
+          node, predicate((x) => x is TableRowElement, 'is a TableRowElement'));
       expect(node.tagName, 'TR');
       expect(node.parent, isNull);
       expect(node.cells.map((c) => c.innerHtml), ['foo', 'bar']);
@@ -201,8 +210,8 @@ main() {
       var tBody = table.createTBody();
       var tRow = tBody.addRow();
       var node = tRow.createFragment('<td>foobar').nodes.single;
-      expect(node, predicate((x) => x is TableCellElement,
-          'is a TableCellElement'));
+      expect(node,
+          predicate((x) => x is TableCellElement, 'is a TableCellElement'));
       expect(node.tagName, 'TD');
       expect(node.parent, isNull);
       expect(node.innerHtml, 'foobar');
@@ -214,8 +223,8 @@ main() {
       var tBody = table.createTBody();
       var tRow = tBody.addRow();
       var node = tRow.createFragment('<th>foobar').nodes.single;
-      expect(node, predicate((x) => x is TableCellElement,
-          'is a TableCellElement'));
+      expect(node,
+          predicate((x) => x is TableCellElement, 'is a TableCellElement'));
       expect(node.tagName, 'TH');
       expect(node.parent, isNull);
       expect(node.innerHtml, 'foobar');
@@ -234,15 +243,15 @@ main() {
 
   group('eventListening', () {
     test('streams', () {
-      final target = new Element.tag('div');
+      final target = new TextAreaElement();
 
-      void testEvent(Stream stream, String type) {
+      void testEvent(Stream stream, String type, [createEvent(String type)]) {
         var firedOnEvent = false;
         stream.listen((e) {
           firedOnEvent = true;
         });
         expect(firedOnEvent, isFalse);
-        var event = new Event(type);
+        var event = createEvent != null ? createEvent(type) : new Event(type);
         target.dispatchEvent(event);
 
         expect(firedOnEvent, isTrue);
@@ -254,38 +263,53 @@ main() {
       testEvent(target.onBeforePaste, 'beforepaste');
       testEvent(target.onBlur, 'blur');
       testEvent(target.onChange, 'change');
-      testEvent(target.onContextMenu, 'contextmenu');
+      testEvent(
+          target.onContextMenu, 'contextmenu', (type) => new MouseEvent(type));
+      // We cannot test dispatching a true ClipboardEvent as the DOM does not
+      // provide a way to create a fake ClipboardEvent.
       testEvent(target.onCopy, 'copy');
       testEvent(target.onCut, 'cut');
-      testEvent(target.onDoubleClick, 'dblclick');
-      testEvent(target.onDrag, 'drag');
-      testEvent(target.onDragEnd, 'dragend');
-      testEvent(target.onDragEnter, 'dragenter');
-      testEvent(target.onDragLeave, 'dragleave');
-      testEvent(target.onDragOver, 'dragover');
-      testEvent(target.onDragStart, 'dragstart');
-      testEvent(target.onDrop, 'drop');
+      testEvent(target.onPaste, 'paste');
+
+      testEvent(
+          target.onDoubleClick, 'dblclick', (type) => new MouseEvent(type));
+      testEvent(target.onDrag, 'drag', (type) => new MouseEvent(type));
+      testEvent(target.onDragEnd, 'dragend', (type) => new MouseEvent(type));
+      testEvent(
+          target.onDragEnter, 'dragenter', (type) => new MouseEvent(type));
+      testEvent(
+          target.onDragLeave, 'dragleave', (type) => new MouseEvent(type));
+      testEvent(target.onDragOver, 'dragover', (type) => new MouseEvent(type));
+      testEvent(
+          target.onDragStart, 'dragstart', (type) => new MouseEvent(type));
+      testEvent(target.onDrop, 'drop', (type) => new MouseEvent(type));
       testEvent(target.onError, 'error');
       testEvent(target.onFocus, 'focus');
       testEvent(target.onFullscreenChange, 'webkitfullscreenchange');
       testEvent(target.onInput, 'input');
       testEvent(target.onInvalid, 'invalid');
-      testEvent(target.onKeyDown, 'keydown');
-      testEvent(target.onKeyPress, 'keypress');
-      testEvent(target.onKeyUp, 'keyup');
+      testEvent(target.onKeyDown, 'keydown', (type) => new KeyboardEvent(type));
+      testEvent(
+          target.onKeyPress, 'keypress', (type) => new KeyboardEvent(type));
+      testEvent(target.onKeyUp, 'keyup', (type) => new KeyboardEvent(type));
       testEvent(target.onLoad, 'load');
-      testEvent(target.onMouseDown, 'mousedown');
-      testEvent(target.onMouseMove, 'mousemove');
-      testEvent(target.onMouseOut, 'mouseout');
-      testEvent(target.onMouseOver, 'mouseover');
-      testEvent(target.onMouseUp, 'mouseup');
-      testEvent(target.onPaste, 'paste');
+      testEvent(
+          target.onMouseDown, 'mousedown', (type) => new MouseEvent(type));
+      testEvent(
+          target.onMouseMove, 'mousemove', (type) => new MouseEvent(type));
+      testEvent(target.onMouseOut, 'mouseout', (type) => new MouseEvent(type));
+      testEvent(
+          target.onMouseOver, 'mouseover', (type) => new MouseEvent(type));
+      testEvent(target.onMouseUp, 'mouseup', (type) => new MouseEvent(type));
       testEvent(target.onReset, 'reset');
       testEvent(target.onScroll, 'scroll');
       testEvent(target.onSearch, 'search');
       testEvent(target.onSelect, 'select');
       testEvent(target.onSelectStart, 'selectstart');
       testEvent(target.onSubmit, 'submit');
+      // We would prefer to create new touch events for this test via
+      // new TouchEvent(null, null, null, type)
+      // but that fails on desktop browsers as touch is not enabled.
       testEvent(target.onTouchCancel, 'touchcancel');
       testEvent(target.onTouchEnd, 'touchend');
       testEvent(target.onTouchLeave, 'touchleave');
@@ -319,66 +343,67 @@ main() {
   });
 
   group('attributes', () {
-      test('manipulation', () {
-        final element = new Element.html(
-            '''<div class="foo" style="overflow: hidden" data-foo="bar"
+    test('manipulation', () {
+      final element = new Element.html(
+          '''<div class="foo" style="overflow: hidden" data-foo="bar"
                    data-foo2="bar2" dir="rtl">
-               </div>''', treeSanitizer: new NullTreeSanitizer());
-        final attributes = element.attributes;
-        expect(attributes['class'], 'foo');
-        expect(attributes['style'], startsWith('overflow: hidden'));
-        expect(attributes['data-foo'], 'bar');
-        expect(attributes['data-foo2'], 'bar2');
-        expect(attributes.length, 5);
-        expect(element.dataset.length, 2);
-        element.dataset['foo'] = 'baz';
-        expect(element.dataset['foo'], 'baz');
-        expect(attributes['data-foo'], 'baz');
-        attributes['data-foo2'] = 'baz2';
-        expect(attributes['data-foo2'], 'baz2');
-        expect(element.dataset['foo2'], 'baz2');
-        expect(attributes['dir'], 'rtl');
+               </div>''',
+          treeSanitizer: new NullTreeSanitizer());
+      final attributes = element.attributes;
+      expect(attributes['class'], 'foo');
+      expect(attributes['style'], startsWith('overflow: hidden'));
+      expect(attributes['data-foo'], 'bar');
+      expect(attributes['data-foo2'], 'bar2');
+      expect(attributes.length, 5);
+      expect(element.dataset.length, 2);
+      element.dataset['foo'] = 'baz';
+      expect(element.dataset['foo'], 'baz');
+      expect(attributes['data-foo'], 'baz');
+      attributes['data-foo2'] = 'baz2';
+      expect(attributes['data-foo2'], 'baz2');
+      expect(element.dataset['foo2'], 'baz2');
+      expect(attributes['dir'], 'rtl');
 
-        final dataset = element.dataset;
-        dataset.remove('foo2');
-        expect(attributes.length, 4);
-        expect(dataset.length, 1);
-        attributes.remove('style');
-        expect(attributes.length, 3);
-        dataset['foo3'] = 'baz3';
-        expect(dataset.length, 2);
-        expect(attributes.length, 4);
-        attributes['style'] = 'width: 300px;';
-        expect(attributes.length, 5);
-      });
+      final dataset = element.dataset;
+      dataset.remove('foo2');
+      expect(attributes.length, 4);
+      expect(dataset.length, 1);
+      attributes.remove('style');
+      expect(attributes.length, 3);
+      dataset['foo3'] = 'baz3';
+      expect(dataset.length, 2);
+      expect(attributes.length, 4);
+      attributes['style'] = 'width: 300px;';
+      expect(attributes.length, 5);
+    });
 
-      test('namespaces', () {
-        var element = new svg.SvgElement.svg(
-          '''<svg xmlns="http://www.w3.org/2000/svg"
+    test('namespaces', () {
+      var element =
+          new svg.SvgElement.svg('''<svg xmlns="http://www.w3.org/2000/svg"
                   xmlns:xlink="http://www.w3.org/1999/xlink">
             <image xlink:href="foo" data-foo="bar"/>
           </svg>''').children[0];
 
-        var attributes = element.attributes;
-        expect(attributes.length, 1);
-        expect(attributes['data-foo'], 'bar');
+      var attributes = element.attributes;
+      expect(attributes.length, 1);
+      expect(attributes['data-foo'], 'bar');
 
-        var xlinkAttrs =
-            element.getNamespacedAttributes('http://www.w3.org/1999/xlink');
-        expect(xlinkAttrs.length, 1);
-        expect(xlinkAttrs['href'], 'foo');
+      var xlinkAttrs =
+          element.getNamespacedAttributes('http://www.w3.org/1999/xlink');
+      expect(xlinkAttrs.length, 1);
+      expect(xlinkAttrs['href'], 'foo');
 
-        xlinkAttrs.remove('href');
-        expect(xlinkAttrs.length, 0);
+      xlinkAttrs.remove('href');
+      expect(xlinkAttrs.length, 0);
 
-        xlinkAttrs['href'] = 'bar';
-        expect(xlinkAttrs['href'], 'bar');
+      xlinkAttrs['href'] = 'bar';
+      expect(xlinkAttrs['href'], 'bar');
 
-        var randomAttrs = element.getNamespacedAttributes('http://example.com');
-        expect(randomAttrs.length, 0);
-        randomAttrs['href'] = 'bar';
-        expect(randomAttrs.length, 1);
-      });
+      var randomAttrs = element.getNamespacedAttributes('http://example.com');
+      expect(randomAttrs.length, 0);
+      randomAttrs['href'] = 'bar';
+      expect(randomAttrs.length, 1);
+    });
   });
 
   group('children', () {
@@ -421,8 +446,8 @@ main() {
     });
 
     test('where', () {
-      var filtered = makeElementWithChildren().children.
-        where((n) => n is ImageElement);
+      var filtered =
+          makeElementWithChildren().children.where((n) => n is ImageElement);
       expect(1, filtered.length);
       expect(filtered.first, isImageElement);
       expect(filtered, isElementIterable);
@@ -764,25 +789,27 @@ main() {
     test('matches', () {
       Element clickOne = new Element.a();
       Element selectorOne = new Element.div()
-          ..classes.add('selector')
-          ..children.add(clickOne);
+        ..classes.add('selector')
+        ..children.add(clickOne);
 
       Element clickTwo = new Element.a();
       Element selectorTwo = new Element.div()
-          ..classes.add('selector')
-          ..children.add(clickTwo);
+        ..classes.add('selector')
+        ..children.add(clickTwo);
       document.body.append(selectorOne);
       document.body.append(selectorTwo);
 
-      document.body.onClick.matches('.selector').listen(expectAsync(
-          (Event event) {
+      document.body.onClick
+          .matches('.selector')
+          .listen(expectAsync((Event event) {
         expect(event.currentTarget, document.body);
         expect(event.target, clickOne);
         expect(event.matchingTarget, selectorOne);
       }));
 
-      selectorOne.onClick.matches('.selector').listen(expectAsync(
-          (Event event) {
+      selectorOne.onClick
+          .matches('.selector')
+          .listen(expectAsync((Event event) {
         expect(event.currentTarget, selectorOne);
         expect(event.target, clickOne);
         expect(event.matchingTarget, selectorOne);
@@ -896,12 +923,8 @@ main() {
 
       var event = new Event('custom_event', canBubble: true);
       c.dispatchEvent(event);
-      expect(eventOrder, [
-        'a capture',
-        'b capture',
-        'b no-capture',
-        'a no-capture'
-      ]);
+      expect(eventOrder,
+          ['a capture', 'b capture', 'b no-capture', 'a no-capture']);
     });
   });
 
@@ -917,7 +940,7 @@ main() {
 
     ElementList<Element> makeElementList() =>
         (new Element.html("<div>Foo<br/><!--baz--><br/><br/></div>"))
-        .queryAll('br');
+            .queryAll('br');
 
     test('hashCode', () {
       var nodes = makeElementList();
@@ -934,7 +957,7 @@ main() {
       var a = [makeElementList(), makeElementList(), null];
       for (int i = 0; i < a.length; i++) {
         for (int j = 0; j < a.length; j++) {
-          expect(i == j,  a[i] == a[j]);
+          expect(i == j, a[i] == a[j]);
         }
       }
     });
@@ -973,6 +996,5 @@ main() {
       expect(range[0], isBRElement);
       expect(range[1], isBRElement);
     });
-
   });
 }
