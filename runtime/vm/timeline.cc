@@ -85,17 +85,21 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
   const bool use_endless_recorder =
       (FLAG_timeline_dir != NULL) || FLAG_timing || FLAG_complete_timeline;
 
+  const bool use_startup_recorder = FLAG_startup_timeline;
+
   const char* flag = FLAG_timeline_recorder;
 
   if (use_endless_recorder || (flag != NULL)) {
-    if (use_endless_recorder || strcmp("endless", flag) == 0) {
+    if (use_endless_recorder || (strcmp("endless", flag) == 0)) {
       if (FLAG_trace_timeline) {
         THR_Print("Using the endless timeline recorder.\n");
       }
       return new TimelineEventEndlessRecorder();
     }
+  }
 
-    if (strcmp("startup", flag) == 0) {
+  if (use_startup_recorder || (flag != NULL)) {
+    if (use_startup_recorder || (strcmp("startup", flag) == 0)) {
       if (FLAG_trace_timeline) {
         THR_Print("Using the startup recorder.\n");
       }
