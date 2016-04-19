@@ -104,7 +104,10 @@ class LegacyModuleBuilder extends _ModuleBuilder {
 /// Generates node modules.
 class NodeModuleBuilder extends _ModuleBuilder {
   Program build(Program module) {
-    var importStatements = [js.statement("'use strict';"),];
+    var importStatements = [];
+
+    // Collect imports/exports/statements.
+    visitProgram(module);
 
     for (var import in imports) {
       // TODO(jmesserly): we could use destructuring once Atom supports it.
@@ -135,7 +138,13 @@ class NodeModuleBuilder extends _ModuleBuilder {
         }
       }
     }
-    return new Program(statements);
+
+    // TODO(vsm): See https://github.com/dart-lang/dev_compiler/issues/512
+    // This extra level of indirection should be unnecessary.
+    var block =
+        js.statement("(function() { 'use strict'; #; })()", [statements]);
+
+    return new Program([block]);
   }
 }
 
