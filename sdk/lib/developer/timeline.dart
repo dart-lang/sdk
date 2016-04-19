@@ -20,7 +20,7 @@ class Timeline {
     }
     var block = new _SyncBlock._(name, _getTraceClock());
     if (arguments is Map) {
-      block.arguments.addAll(arguments);
+      block._appendArguments(arguments);
     }
     _stack.add(block);
   }
@@ -108,7 +108,7 @@ class TimelineTask {
     }
     var block = new _AsyncBlock._(name, _taskId);
     if (arguments is Map) {
-      block.arguments.addAll(arguments);
+      block._appendArguments(arguments);
     }
     _stack.add(block);
     block._start();
@@ -171,7 +171,7 @@ class _AsyncBlock {
   final int _taskId;
   /// An (optional) set of arguments which will be serialized to JSON and
   /// associated with this block.
-  final Map arguments = {};
+  Map _arguments;
 
   _AsyncBlock._(this.name, this._taskId);
 
@@ -182,7 +182,7 @@ class _AsyncBlock {
                      'b',
                      category,
                      name,
-                     _argumentsAsJson(arguments));
+                     _argumentsAsJson(_arguments));
   }
 
   // Emit the finish event.
@@ -193,6 +193,13 @@ class _AsyncBlock {
                      category,
                      name,
                      _argumentsAsJson(null));
+  }
+
+  void _appendArguments(Map arguments) {
+    if (_arguments == null) {
+      _arguments = {};
+    }
+    _arguments.addAll(arguments);
   }
 }
 
@@ -205,7 +212,7 @@ class _SyncBlock {
   final String name;
   /// An (optional) set of arguments which will be serialized to JSON and
   /// associated with this block.
-  final Map arguments = {};
+  Map _arguments;
   // The start time stamp.
   final int _start;
 
@@ -220,7 +227,17 @@ class _SyncBlock {
                          _getTraceClock(),
                          category,
                          name,
-                         _argumentsAsJson(arguments));
+                         _argumentsAsJson(_arguments));
+  }
+
+  void _appendArguments(Map arguments) {
+    if (arguments == null) {
+      return;
+    }
+    if (_arguments == null) {
+      _arguments = {};
+    }
+    _arguments.addAll(arguments);
   }
 }
 
