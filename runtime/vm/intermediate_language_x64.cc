@@ -2695,6 +2695,12 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     const intptr_t value = Smi::Cast(constant).Value();
     ASSERT((0 < value) && (value < kCountLimit));
     if (shift_left->can_overflow()) {
+      if (value == 1) {
+        // Use overflow flag.
+        __ shlq(left, Immediate(1));
+        __ j(OVERFLOW, deopt);
+        return;
+      }
       // Check for overflow.
       Register temp = locs.temp(0).reg();
       __ movq(temp, left);
@@ -2934,6 +2940,10 @@ static bool CanBeImmediate(const Object& constant) {
     Immediate(reinterpret_cast<int64_t>(constant.raw())).is_int32();
 }
 
+static bool IsSmiValue(const Object& constant, intptr_t value) {
+  return constant.IsSmi() && (Smi::Cast(constant).Value() == value);
+}
+
 
 LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
@@ -2994,12 +3004,15 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
     summary->set_out(0, Location::SameAsFirstInput());
     return summary;
   } else if (op_kind() == Token::kSHL) {
-    const intptr_t kNumTemps = can_overflow() ? 1 : 0;
+    // Shift-by-1 overflow checking can use flags, otherwise we need a temp.
+    const bool shiftBy1 =
+        (right_constant != NULL) && IsSmiValue(right_constant->value(), 1);
+    const intptr_t kNumTemps = (can_overflow() && !shiftBy1) ? 1 : 0;
     LocationSummary* summary = new(zone) LocationSummary(
         zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), RCX));
-    if (can_overflow()) {
+    if (kNumTemps == 1) {
       summary->set_temp(0, Location::RequiresRegister());
     }
     summary->set_out(0, Location::SameAsFirstInput());
