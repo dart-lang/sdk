@@ -1182,6 +1182,7 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
     } else {
       library.InitResolvedNamesCache(kInitialNameCacheSize, reader);
     }
+    library.StorePointer(&library.raw_ptr()->exported_names_, Array::null());
     // Initialize cache of loaded scripts.
     library.StorePointer(&library.raw_ptr()->loaded_scripts_, Array::null());
   }

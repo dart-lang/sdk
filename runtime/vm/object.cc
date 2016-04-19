@@ -57,6 +57,7 @@ DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
 DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
+DEFINE_FLAG(bool, use_exp_cache, true, "Use library exported name cache");
 DEFINE_FLAG(bool, ignore_patch_signature_mismatch, false,
             "Ignore patch file member signature mismatch.");
 
@@ -9698,8 +9699,7 @@ bool Library::LookupResolvedNamesCache(const String& name,
 // the name does not resolve to anything in this library scope.
 void Library::AddToResolvedNamesCache(const String& name,
                                       const Object& obj) const {
-  ASSERT(!Compiler::IsBackgroundCompilation());
-  if (!FLAG_use_lib_cache) {
+  if (!FLAG_use_lib_cache || Compiler::IsBackgroundCompilation()) {
     return;
   }
   ResolvedNamesMap cache(resolved_names());
@@ -9708,11 +9708,63 @@ void Library::AddToResolvedNamesCache(const String& name,
 }
 
 
+bool Library::LookupExportedNamesCache(const String& name,
+                                       Object* obj) const {
+  ASSERT(FLAG_use_exp_cache);
+  if (exported_names() == Array::null()) {
+    return false;
+  }
+  ResolvedNamesMap cache(exported_names());
+  bool present = false;
+  *obj = cache.GetOrNull(name, &present);
+  // Mutator compiler thread may add entries and therefore
+  // change 'exported_names()' while running a background compilation;
+  // do not ASSERT that 'exported_names()' has not changed.
+#if defined(DEBUG)
+  if (Thread::Current()->IsMutatorThread()) {
+    ASSERT(cache.Release().raw() == exported_names());
+  } else {
+    // Release must be called in debug mode.
+    cache.Release();
+  }
+#endif
+  return present;
+}
+
+void Library::AddToExportedNamesCache(const String& name,
+                                      const Object& obj) const {
+  if (!FLAG_use_exp_cache || Compiler::IsBackgroundCompilation()) {
+    return;
+  }
+  if (exported_names() == Array::null()) {
+    AllocateExportedNamesCache();
+  }
+  ResolvedNamesMap cache(exported_names());
+  cache.UpdateOrInsert(name, obj);
+  StorePointer(&raw_ptr()->exported_names_, cache.Release().raw());
+}
+
+
 void Library::InvalidateResolvedName(const String& name) const {
-  Object& entry = Object::Handle();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Object& entry = Object::Handle(zone);
   if (LookupResolvedNamesCache(name, &entry)) {
     // TODO(koda): Support deleted sentinel in snapshots and remove only 'name'.
     InvalidateResolvedNamesCache();
+  }
+  // When a new name is added to a library, we need to invalidate all
+  // caches that contain an entry for this name. If the name was previously
+  // looked up but could not be resolved, the cache contains a null entry.
+  GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      zone, thread->isolate()->object_store()->libraries());
+  Library& lib = Library::Handle(zone);
+  intptr_t num_libs = libs.Length();
+  for (intptr_t i = 0; i < num_libs; i++) {
+    lib ^= libs.At(i);
+    if (LookupExportedNamesCache(name, &entry)) {
+      InitExportedNamesCache();
+    }
   }
 }
 
@@ -9720,6 +9772,19 @@ void Library::InvalidateResolvedName(const String& name) const {
 void Library::InvalidateResolvedNamesCache() const {
   const intptr_t kInvalidatedCacheSize = 16;
   InitResolvedNamesCache(kInvalidatedCacheSize);
+}
+
+
+// Invalidate all exported names caches in the isolate.
+void Library::InvalidateExportedNamesCaches() {
+  GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      Isolate::Current()->object_store()->libraries());
+  Library& lib = Library::Handle();
+  intptr_t num_libs = libs.Length();
+  for (intptr_t i = 0; i < num_libs; i++) {
+    lib ^= libs.At(i);
+    lib.InitExportedNamesCache();
+  }
 }
 
 
@@ -9798,42 +9863,45 @@ void Library::AddObject(const Object& obj, const String& name) const {
 // Lookup a name in the library's re-export namespace.
 // This lookup can occur from two different threads: background compiler and
 // mutator thread.
-RawObject* Library::LookupReExport(const String& name) const {
-  if (HasExports()) {
-    const bool is_background_compiler = Compiler::IsBackgroundCompilation();
-    Array& exports = Array::Handle();
-    if (is_background_compiler) {
-      exports = this->exports2();
-      // Break potential export cycle while looking up name.
-      StorePointer(&raw_ptr()->exports2_, Object::empty_array().raw());
-    } else {
-      exports = this->exports();
-      // Break potential export cycle while looking up name.
-      StorePointer(&raw_ptr()->exports_, Object::empty_array().raw());
-    }
-    Namespace& ns = Namespace::Handle();
-    Object& obj = Object::Handle();
-    for (int i = 0; i < exports.Length(); i++) {
-      ns ^= exports.At(i);
-      obj = ns.Lookup(name);
-      if (!obj.IsNull()) {
-        // The Lookup call above may return a setter x= when we are looking
-        // for the name x. Make sure we only return when a matching name
-        // is found.
-        String& obj_name = String::Handle(obj.DictionaryName());
-        if (Field::IsSetterName(obj_name) == Field::IsSetterName(name)) {
-          break;
-        }
-      }
-    }
-    if (is_background_compiler) {
-      StorePointer(&raw_ptr()->exports2_, exports.raw());
-    } else {
-      StorePointer(&raw_ptr()->exports_, exports.raw());
-    }
+RawObject* Library::LookupReExport(const String& name,
+                                   ZoneGrowableArray<intptr_t>* trail) const {
+  if (!HasExports()) {
+    return Object::null();
+  }
+
+  if (trail == NULL) {
+    trail = new ZoneGrowableArray<intptr_t>();
+  }
+  Object& obj = Object::Handle();
+  if (FLAG_use_exp_cache && LookupExportedNamesCache(name, &obj)) {
     return obj.raw();
   }
-  return Object::null();
+
+  const intptr_t lib_id = this->index();
+  ASSERT(lib_id >= 0);  // We use -1 to indicate that a cycle was found.
+  trail->Add(lib_id);
+  const Array& exports = Array::Handle(this->exports());
+  Namespace& ns = Namespace::Handle();
+  for (int i = 0; i < exports.Length(); i++) {
+    ns ^= exports.At(i);
+    obj = ns.Lookup(name, trail);
+    if (!obj.IsNull()) {
+      // The Lookup call above may return a setter x= when we are looking
+      // for the name x. Make sure we only return when a matching name
+      // is found.
+      String& obj_name = String::Handle(obj.DictionaryName());
+      if (Field::IsSetterName(obj_name) == Field::IsSetterName(name)) {
+        break;
+      }
+    }
+  }
+  bool in_cycle = (trail->RemoveLast() < 0);
+  if (FLAG_use_exp_cache &&
+      !in_cycle &&
+      !Compiler::IsBackgroundCompilation()) {
+    AddToExportedNamesCache(name, obj);
+  }
+  return obj.raw();
 }
 
 
@@ -9919,6 +9987,7 @@ bool Library::RemoveObject(const Object& obj, const String& name) const {
   dict.SetAt(dict_size, Smi::Handle(zone, Smi::New(used_elements)));
 
   InvalidateResolvedNamesCache();
+  InvalidateExportedNamesCaches();
 
   return true;
 }
@@ -10285,7 +10354,6 @@ bool Library::ImportsCorelib() const {
 void Library::DropDependencies() const {
   StorePointer(&raw_ptr()->imports_, Array::null());
   StorePointer(&raw_ptr()->exports_, Array::null());
-  StorePointer(&raw_ptr()->exports2_, Array::null());
 }
 
 
@@ -10318,7 +10386,6 @@ void Library::AddExport(const Namespace& ns) const {
   intptr_t num_exports = exports.Length();
   exports = Array::Grow(exports, num_exports + 1);
   StorePointer(&raw_ptr()->exports_, exports.raw());
-  StorePointer(&raw_ptr()->exports2_, exports.raw());
   exports.SetAt(num_exports, ns);
 }
 
@@ -10342,6 +10409,20 @@ void Library::InitResolvedNamesCache(intptr_t size,
     *reader->ArrayHandle() ^= reader->NewArray(len);
     StorePointer(&raw_ptr()->resolved_names_,
                  HashTables::New<ResolvedNamesMap>(*reader->ArrayHandle()));
+  }
+}
+
+
+void Library::AllocateExportedNamesCache() const {
+  StorePointer(&raw_ptr()->exported_names_,
+               HashTables::New<ResolvedNamesMap>(16));
+}
+
+
+void Library::InitExportedNamesCache() const {
+  if (exported_names() != Array::null()) {
+    StorePointer(&raw_ptr()->exported_names_,
+                 HashTables::New<ResolvedNamesMap>(16));
   }
 }
 
@@ -10380,6 +10461,8 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
   result.StorePointer(&result.raw_ptr()->resolved_names_,
                       Object::empty_array().raw());
+  result.StorePointer(&result.raw_ptr()->exported_names_,
+                      Array::null());
   result.StorePointer(&result.raw_ptr()->dictionary_,
                       Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->metadata_,
@@ -10390,8 +10473,6 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
                                                Heap::kOld));
   result.StorePointer(&result.raw_ptr()->imports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->exports_, Object::empty_array().raw());
-  result.StorePointer(&result.raw_ptr()->exports2_,
-      Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->loaded_scripts_, Array::null());
   result.StorePointer(&result.raw_ptr()->load_error_, Instance::null());
   result.set_native_entry_resolver(NULL);
@@ -11113,11 +11194,24 @@ bool Namespace::HidesName(const String& name) const {
 
 // Look up object with given name in library and filter out hidden
 // names. Also look up getters and setters.
-RawObject* Namespace::Lookup(const String& name) const {
+RawObject* Namespace::Lookup(const String& name,
+                             ZoneGrowableArray<intptr_t>* trail) const {
   Zone* zone = Thread::Current()->zone();
   const Library& lib = Library::Handle(zone, library());
-  intptr_t ignore = 0;
 
+  if (trail != NULL) {
+    // Look for cycle in reexport graph.
+    for (int i = 0; i < trail->length(); i++) {
+      if (trail->At(i) == lib.index()) {
+        for (int j = i+1; j < trail->length(); j++) {
+          (*trail)[j] = -1;
+        }
+        return Object::null();
+      }
+    }
+  }
+
+  intptr_t ignore = 0;
   // Lookup the name in the library's symbols.
   Object& obj = Object::Handle(zone, lib.LookupEntry(name, &ignore));
   if (!Field::IsGetterName(name) &&
@@ -11139,14 +11233,14 @@ RawObject* Namespace::Lookup(const String& name) const {
   // Library prefixes are not exported.
   if (obj.IsNull() || obj.IsLibraryPrefix()) {
     // Lookup in the re-exported symbols.
-    obj = lib.LookupReExport(name);
+    obj = lib.LookupReExport(name, trail);
     if (obj.IsNull() && !Field::IsSetterName(name)) {
       // LookupReExport() only returns objects that match the given name.
       // If there is no field/func/getter, try finding a setter.
       const String& setter_name =
           String::Handle(zone, Field::LookupSetterSymbol(name));
       if (!setter_name.IsNull()) {
-        obj = lib.LookupReExport(setter_name);
+        obj = lib.LookupReExport(setter_name, trail);
       }
     }
   }

@@ -3531,7 +3531,8 @@ class Library : public Object {
   void AddObject(const Object& obj, const String& name) const;
   void ReplaceObject(const Object& obj, const String& name) const;
   bool RemoveObject(const Object& obj, const String& name) const;
-  RawObject* LookupReExport(const String& name) const;
+  RawObject* LookupReExport(const String& name,
+                            ZoneGrowableArray<intptr_t>* visited = NULL) const;
   RawObject* LookupObjectAllowPrivate(const String& name) const;
   RawObject* LookupLocalObjectAllowPrivate(const String& name) const;
   RawObject* LookupLocalObject(const String& name) const;
@@ -3584,7 +3585,6 @@ class Library : public Object {
   // Library imports.
   RawArray* imports() const { return raw_ptr()->imports_; }
   RawArray* exports() const { return raw_ptr()->exports_; }
-  RawArray* exports2() const { return raw_ptr()->exports2_; }
   void AddImport(const Namespace& ns) const;
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   RawNamespace* ImportAt(intptr_t index) const;
@@ -3710,11 +3710,18 @@ class Library : public Object {
   RawArray* resolved_names() const { return raw_ptr()->resolved_names_; }
   void InitResolvedNamesCache(intptr_t size,
                               SnapshotReader* reader = NULL) const;
-  void GrowResolvedNamesCache() const;
+  void AllocateExportedNamesCache() const;
+  void InitExportedNamesCache() const;
+  static void InvalidateExportedNamesCaches();
   bool LookupResolvedNamesCache(const String& name, Object* obj) const;
   void AddToResolvedNamesCache(const String& name, const Object& obj) const;
   void InvalidateResolvedName(const String& name) const;
   void InvalidateResolvedNamesCache() const;
+
+  RawArray* exported_names() const { return raw_ptr()->exported_names_; }
+  bool LookupExportedNamesCache(const String& name, Object* obj) const;
+  void AddToExportedNamesCache(const String& name, const Object& obj) const;
+
 
   void InitImportList() const;
   void GrowDictionary(const Array& dict, intptr_t dict_size) const;
@@ -3736,6 +3743,7 @@ class Library : public Object {
   friend class Bootstrap;
   friend class Class;
   friend class Debugger;
+  friend class Isolate;
   friend class DictionaryIterator;
   friend class Namespace;
   friend class Object;
@@ -3758,7 +3766,8 @@ class Namespace : public Object {
   }
 
   bool HidesName(const String& name) const;
-  RawObject* Lookup(const String& name) const;
+  RawObject* Lookup(const String& name,
+                    ZoneGrowableArray<intptr_t>* trail = NULL) const;
 
   static RawNamespace* New(const Library& library,
                            const Array& show_names,
