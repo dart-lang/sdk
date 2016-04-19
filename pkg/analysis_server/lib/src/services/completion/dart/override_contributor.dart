@@ -39,14 +39,13 @@ class OverrideContributor implements DartCompletionContributor {
     // Generate a collection of inherited members
     ClassElement classElem = classDecl.element;
     InheritanceManager manager = new InheritanceManager(classElem.library);
-    Map<String, ExecutableElement> map =
-        manager.getMapOfMembersInheritedFromInterfaces(classElem);
+    MemberMap map = manager.getMapOfMembersInheritedFromInterfaces(classElem);
     List<String> memberNames = _computeMemberNames(map, classElem);
 
     // Build suggestions
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
     for (String memberName in memberNames) {
-      ExecutableElement element = map[memberName];
+      ExecutableElement element = map.get(memberName);
       // Gracefully degrade if the overridden element has not been resolved.
       if (element.returnType != null) {
         CompletionSuggestion suggestion =
@@ -107,10 +106,11 @@ class OverrideContributor implements DartCompletionContributor {
    * implemented members of the class represented by the given [element].
    * The [map] is used to find all of the members that are inherited.
    */
-  List<String> _computeMemberNames(
-      Map<String, ExecutableElement> map, ClassElement element) {
+  List<String> _computeMemberNames(MemberMap map, ClassElement element) {
     List<String> memberNames = <String>[];
-    for (String memberName in map.keys) {
+    int count = map.size;
+    for (int i = 0; i < count; i++) {
+      String memberName = map.getKey(i);
       if (!_hasMember(element, memberName)) {
         memberNames.add(memberName);
       }
