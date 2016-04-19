@@ -31,6 +31,11 @@ Log::~Log() {
 
 Log* Log::Current() {
   Thread* thread = Thread::Current();
+  if (thread == NULL) {
+    OSThread* os_thread = OSThread::Current();
+    ASSERT(os_thread != NULL);
+    return os_thread->log();
+  }
   Isolate* isolate = thread->isolate();
   if (isolate != NULL && Log::ShouldLogForIsolate(isolate)) {
     OSThread* os_thread = thread->os_thread();
