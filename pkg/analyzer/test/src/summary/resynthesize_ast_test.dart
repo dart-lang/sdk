@@ -562,18 +562,6 @@ var b = a.m();
     super.test_inferenceInCyclesIsDeterministic();
   }
 
-  @override
-  @failingTest
-  void test_inferTypesOnGenericInstantiations_5() {
-    super.test_inferTypesOnGenericInstantiations_5();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypesOnGenericInstantiationsInLibraryCycle() {
-    super.test_inferTypesOnGenericInstantiationsInLibraryCycle();
-  }
-
   void test_invokeMethod_notGeneric_genericClass() {
     var unit = checkFile(r'''
 class C<T> {

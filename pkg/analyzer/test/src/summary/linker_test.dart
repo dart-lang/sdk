@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:unittest/unittest.dart';
@@ -59,6 +60,20 @@ class B<T> {
 }
 class C<T> extends B<T> {
   void f() {}
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+    // No assertions--just make sure it doesn't crash.
+  }
+
+  void test_baseClass_genericWithFunctionTypedParameter() {
+    createLinker('''
+class B<T> {
+  void f(void g(T t));
+}
+class C<U> extends B<U> {
+  void f(g) {}
 }
 ''');
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
@@ -539,5 +554,33 @@ class D extends C {
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
     library.libraryCycleForLink.ensureLinked();
     // No assertions--just make sure it doesn't crash.
+  }
+
+  void test_parameterParentElementForLink_implicitFunctionTypeIndices() {
+    createLinker('void f(a, void g(b, c, d, void h())) {}');
+    TopLevelFunctionElementForLink f = testLibrary.getContainedName('f');
+    expect(f.implicitFunctionTypeIndices, []);
+    ParameterElementForLink g = f.parameters[1];
+    FunctionType gType = g.type;
+    FunctionElementForLink_FunctionTypedParam gTypeElement = gType.element;
+    expect(gTypeElement.implicitFunctionTypeIndices, [1]);
+    ParameterElementForLink h = gTypeElement.parameters[3];
+    FunctionType hType = h.type;
+    FunctionElementForLink_FunctionTypedParam hTypeElement = hType.element;
+    expect(hTypeElement.implicitFunctionTypeIndices, [1, 3]);
+  }
+
+  void test_parameterParentElementForLink_innermostExecutable() {
+    createLinker('void f(void g(void h())) {}');
+    TopLevelFunctionElementForLink f = testLibrary.getContainedName('f');
+    expect(f.innermostExecutable, same(f));
+    ParameterElementForLink g = f.parameters[0];
+    FunctionType gType = g.type;
+    FunctionElementForLink_FunctionTypedParam gTypeElement = gType.element;
+    expect(gTypeElement.innermostExecutable, same(f));
+    ParameterElementForLink h = gTypeElement.parameters[0];
+    FunctionType hType = h.type;
+    FunctionElementForLink_FunctionTypedParam hTypeElement = hType.element;
+    expect(hTypeElement.innermostExecutable, same(f));
   }
 }

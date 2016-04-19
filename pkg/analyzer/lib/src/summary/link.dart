@@ -190,7 +190,7 @@ EntityRefBuilder _createLinkedType(
     Element element = type.element;
     if (element is FunctionElementForLink_FunctionTypedParam) {
       result.reference =
-          compilationUnit.addReference(element.enclosingExecutable);
+          compilationUnit.addReference(element.innermostExecutable);
       result.implicitFunctionTypeIndices = element.implicitFunctionTypeIndices;
       if (type.typeArguments.isNotEmpty) {
         result.typeArguments = type.typeArguments
@@ -1586,7 +1586,7 @@ abstract class DependencyWalker<NodeType extends Node<NodeType>> {
  * linking.
  */
 abstract class ExecutableElementForLink extends Object
-    with TypeParameterizedElementForLink
+    with TypeParameterizedElementForLink, ParameterParentElementForLink
     implements ExecutableElementImpl {
   /**
    * The unlinked representation of the method in the summary.
@@ -1598,7 +1598,6 @@ abstract class ExecutableElementForLink extends Object
   FunctionTypeImpl _type;
   List<TypeParameterElementForLink> _typeParameters;
   String _name;
-  List<ParameterElementForLink> _parameters;
   String _displayName;
 
   /**
@@ -1649,6 +1648,9 @@ abstract class ExecutableElementForLink extends Object
   @override
   bool get hasImplicitReturnType => _unlinkedExecutable.returnType == null;
 
+  @override
+  List<int> get implicitFunctionTypeIndices => const <int>[];
+
   /**
    * Return the inferred return type of the executable element.  Should only be
    * called if no return type was explicitly declared.
@@ -1679,6 +1681,9 @@ abstract class ExecutableElementForLink extends Object
   }
 
   @override
+  ExecutableElementForLink get innermostExecutable => this;
+
+  @override
   bool get isStatic => _unlinkedExecutable.isStatic;
 
   @override
@@ -1699,20 +1704,6 @@ abstract class ExecutableElementForLink extends Object
   }
 
   @override
-  List<ParameterElementForLink> get parameters {
-    if (_parameters == null) {
-      int numParameters = _unlinkedExecutable.parameters.length;
-      _parameters = new List<ParameterElementForLink>(numParameters);
-      for (int i = 0; i < numParameters; i++) {
-        UnlinkedParam unlinkedParam = _unlinkedExecutable.parameters[i];
-        _parameters[i] = new ParameterElementForLink(
-            this, unlinkedParam, this, enclosingUnit, i);
-      }
-    }
-    return _parameters;
-  }
-
-  @override
   DartType get returnType => declaredReturnType ?? inferredReturnType;
 
   @override
@@ -1723,6 +1714,9 @@ abstract class ExecutableElementForLink extends Object
 
   @override
   FunctionTypeImpl get type => _type ??= new FunctionTypeImpl(this);
+
+  @override
+  List<UnlinkedParam> get unlinkedParameters => _unlinkedExecutable.parameters;
 
   @override
   List<UnlinkedTypeParam> get _unlinkedTypeParams =>
@@ -2516,26 +2510,34 @@ class FieldElementForLink_EnumField extends FieldElementForLink
  * Element representing a function-typed parameter resynthesied from a summary
  * during linking.
  */
-class FunctionElementForLink_FunctionTypedParam implements FunctionElement {
+class FunctionElementForLink_FunctionTypedParam extends Object
+    with ParameterParentElementForLink
+    implements FunctionElement {
   @override
   final ParameterElementForLink enclosingElement;
 
-  /**
-   * The executable element containing this function-typed parameter.
-   */
-  final Element enclosingExecutable;
+  @override
+  final ExecutableElementForLink innermostExecutable;
 
-  /**
-   * The appropriate integer list to store in
-   * [EntityRef.implicitFunctionTypeIndices] to refer to this function-typed
-   * parameter.
-   */
-  final List<int> implicitFunctionTypeIndices;
+  @override
+  final List<UnlinkedParam> unlinkedParameters;
 
   DartType _returnType;
+  List<int> _implicitFunctionTypeIndices;
 
-  FunctionElementForLink_FunctionTypedParam(this.enclosingElement,
-      this.enclosingExecutable, this.implicitFunctionTypeIndices);
+  FunctionElementForLink_FunctionTypedParam(
+      this.enclosingElement, this.innermostExecutable, this.unlinkedParameters);
+
+  @override
+  List<int> get implicitFunctionTypeIndices {
+    if (_implicitFunctionTypeIndices == null) {
+      _implicitFunctionTypeIndices = enclosingElement
+          .enclosingElement.implicitFunctionTypeIndices
+          .toList();
+      _implicitFunctionTypeIndices.add(enclosingElement._parameterIndex);
+    }
+    return _implicitFunctionTypeIndices;
+  }
 
   @override
   DartType get returnType {
@@ -2544,8 +2546,7 @@ class FunctionElementForLink_FunctionTypedParam implements FunctionElement {
         _returnType = DynamicTypeImpl.instance;
       } else {
         _returnType = enclosingElement.compilationUnit._resolveTypeRef(
-            enclosingElement._unlinkedParam.type,
-            enclosingElement._typeParameterContext);
+            enclosingElement._unlinkedParam.type, innermostExecutable);
       }
     }
     return _returnType;
@@ -3271,9 +3272,9 @@ class ParameterElementForLink implements ParameterElementImpl {
   final UnlinkedParam _unlinkedParam;
 
   /**
-   * The context in which type parameters should be interpreted.
+   * The innermost executable element containing this parameter.
    */
-  final TypeParameterizedElementForLink _typeParameterContext;
+  final ExecutableElementForLink _innermostExecutable;
 
   /**
    * If this parameter has a default value and the enclosing library
@@ -3293,13 +3294,13 @@ class ParameterElementForLink implements ParameterElementImpl {
   final int _parameterIndex;
 
   @override
-  final ExecutableElementForLink enclosingElement;
+  final ParameterParentElementForLink enclosingElement;
 
   DartType _inferredType;
   DartType _declaredType;
 
   ParameterElementForLink(this.enclosingElement, this._unlinkedParam,
-      this._typeParameterContext, this.compilationUnit, this._parameterIndex) {
+      this._innermostExecutable, this.compilationUnit, this._parameterIndex) {
     if (_unlinkedParam.defaultValue != null) {
       _constNode = new ConstParameterNode(this);
     }
@@ -3332,18 +3333,18 @@ class ParameterElementForLink implements ParameterElementImpl {
       if (_unlinkedParam.isFunctionTyped) {
         _declaredType = new FunctionTypeImpl(
             new FunctionElementForLink_FunctionTypedParam(
-                this, enclosingElement, <int>[_parameterIndex]));
+                this, _innermostExecutable, _unlinkedParam.parameters));
       } else if (_unlinkedParam.type == null) {
         if (!compilationUnit.isInBuildUnit) {
           _inferredType = compilationUnit.getLinkedType(
-              _unlinkedParam.inferredTypeSlot, _typeParameterContext);
+              _unlinkedParam.inferredTypeSlot, _innermostExecutable);
           return _inferredType;
         } else {
           _declaredType = DynamicTypeImpl.instance;
         }
       } else {
         _declaredType = compilationUnit._resolveTypeRef(
-            _unlinkedParam.type, _typeParameterContext);
+            _unlinkedParam.type, _innermostExecutable);
       }
     }
     return _declaredType;
@@ -3361,7 +3362,7 @@ class ParameterElementForLink implements ParameterElementImpl {
    */
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
     compilationUnit._storeLinkedType(
-        _unlinkedParam.inferredTypeSlot, _inferredType, _typeParameterContext);
+        _unlinkedParam.inferredTypeSlot, _inferredType, _innermostExecutable);
   }
 
   @override
@@ -3392,6 +3393,50 @@ class ParameterElementForLink_VariableSetter implements ParameterElementImpl {
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/**
+ * Mixin used by elements that can have parameters.
+ */
+abstract class ParameterParentElementForLink implements Element {
+  List<ParameterElementForLink> _parameters;
+
+  /**
+   * Get the appropriate integer list to store in
+   * [EntityRef.implicitFunctionTypeIndices] to refer to this element.  For an
+   * element representing a function-typed parameter, this should return a
+   * non-empty list.  For an element representing an executable, this should
+   * return the empty list.
+   */
+  List<int> get implicitFunctionTypeIndices;
+
+  /**
+   * Get the innermost enclosing ExecutableElement (which may be [this], or may
+   * be a parent when there are function-typed parameters).
+   */
+  ExecutableElementForLink get innermostExecutable;
+
+  /**
+   * Get all the parameters of this element.
+   */
+  List<ParameterElementForLink> get parameters {
+    if (_parameters == null) {
+      List<UnlinkedParam> unlinkedParameters = this.unlinkedParameters;
+      int numParameters = unlinkedParameters.length;
+      _parameters = new List<ParameterElementForLink>(numParameters);
+      for (int i = 0; i < numParameters; i++) {
+        UnlinkedParam unlinkedParam = unlinkedParameters[i];
+        _parameters[i] = new ParameterElementForLink(this, unlinkedParam,
+            innermostExecutable, innermostExecutable.enclosingUnit, i);
+      }
+    }
+    return _parameters;
+  }
+
+  /**
+   * Get the list of unlinked parameters of this element.
+   */
+  List<UnlinkedParam> get unlinkedParameters;
 }
 
 /**
