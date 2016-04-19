@@ -6,18 +6,18 @@ library linter.src.rules.empty_constructor_bodies;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:linter/src/linter.dart';
 
 const desc = 'Use `;` instead of `{}` for empty constructor bodies.';
 
-const details =
-'''
+const details = '''
 From the [style guide] (https://www.dartlang.org/articles/style-guide/):
 
 **DO** use ; instead of {} for empty constructor bodies.
 
-In Dart, a constructor with an empty body can be terminated with just a 
-semicolon. This is required for const constructors. For consistency and 
+In Dart, a constructor with an empty body can be terminated with just a
+semicolon. This is required for const constructors. For consistency and
 brevity, other constructors should also do this.
 
 **GOOD:**
@@ -40,13 +40,12 @@ class Point {
 ''';
 
 class EmptyConstructorBodies extends LintRule {
-
   EmptyConstructorBodies()
       : super(
-          name: 'empty_constructor_bodies',
-          description: desc,
-          details: details,
-          group: Group.style);
+            name: 'empty_constructor_bodies',
+            description: desc,
+            details: details,
+            group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);
@@ -54,7 +53,6 @@ class EmptyConstructorBodies extends LintRule {
 
 class Visitor extends SimpleAstVisitor {
   LintRule rule;
-
   Visitor(this.rule);
 
   @override
@@ -62,7 +60,9 @@ class Visitor extends SimpleAstVisitor {
     if (node.body is BlockFunctionBody) {
       Block block = (node.body as BlockFunctionBody).block;
       if (block.statements.length == 0) {
-        rule.reportLint(block);
+        if (block.endToken is! TokenWithComment) {
+          rule.reportLint(block);
+        }
       }
     }
   }

@@ -20,3 +20,9 @@ class D {
     print('hi');
   }
 }
+
+class E {
+  E() {
+    // Comments make this OK!
+  }
+}
