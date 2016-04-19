@@ -237,9 +237,11 @@ class Builder {
     {
       _currentVTable.computeFieldOffsets(tableTail);
       // Try to find an existing compatible VTable.
-      for (_VTable vTable in _vTables) {
+      for (int i = 0; i < _vTables.length; i++) {
+        _VTable vTable = _vTables[i];
         if (_currentVTable.canUseExistingVTable(vTable)) {
           vTableTail = vTable.tail;
+          break;
         }
       }
       // Write a new VTable.
