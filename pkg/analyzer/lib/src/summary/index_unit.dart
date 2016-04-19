@@ -204,6 +204,7 @@ class PackageIndexAssembler {
    * This method is static, so it cannot add any information to the index.
    */
   static ElementInfo newElementInfo(int unitId, Element element) {
+    int offset = null;
     IndexSyntheticElementKind kind = IndexSyntheticElementKind.notSynthetic;
     if (element.isSynthetic) {
       if (element is ConstructorElement) {
@@ -242,11 +243,11 @@ class PackageIndexAssembler {
         throw new ArgumentError(
             'Unsupported synthetic element ${element.runtimeType}');
       }
-    }
-    int offset = element.nameOffset;
-    if (element is LibraryElement || element is CompilationUnitElement) {
+    } else if (element is LibraryElement || element is CompilationUnitElement) {
+      kind = IndexSyntheticElementKind.unit;
       offset = 0;
     }
+    offset ??= element.nameOffset;
     return new ElementInfo(unitId, offset, kind);
   }
 }
