@@ -749,18 +749,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return result;
   };
   dart.LazyTagged = function(infoFn) {
-    class _Tagged {
+    return class _Tagged {
       get [dart._runtimeType]() {
         return infoFn();
       }
-    }
-    return _Tagged;
+    };
   };
   dart.read = function(value) {
     return value[dart._runtimeType];
   };
-  dart.tag = function(value, info) {
-    value[dart._runtimeType] = info;
+  dart.tag = function(value, t) {
+    value[dart._runtimeType] = t;
   };
   dart.tagComputed = function(value, compute) {
     dart.defineProperty(value, dart._runtimeType, {get: compute});
@@ -983,7 +982,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return dart.getMethodTypeFromType(type, 'call');
   };
   dart.isFunctionType = function(type) {
-    return type instanceof dart.AbstractFunctionType || type == core.Function;
+    return type instanceof dart.AbstractFunctionType || type === core.Function;
   };
   dart.isFunctionSubType = function(ft1, ft2) {
     if (ft2 == core.Function) {

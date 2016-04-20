@@ -145,24 +145,19 @@ _nonPrimitiveRuntimeType(obj) => JS('', '''(() => {
   return result;
 })()''');
 
-LazyTagged(infoFn) => JS('', '''(() => {
-  class _Tagged {
-    get [$_runtimeType]() {return $infoFn();}
-  }
-  return _Tagged;
-})()''');
+LazyTagged(infoFn) =>
+    JS('', 'class _Tagged { get [#]() {return #();} }', _runtimeType, infoFn);
 
-read(value) => JS('', '''(() => {
-  return $value[$_runtimeType];
-})()''');
+read(value) => JS('', '#[#]', value, _runtimeType);
 
-tag(value, info) => JS('', '''(() => {
-  $value[$_runtimeType] = $info;
-})()''');
+/// Tag the runtime type of [value] to be type [t].
+void tag(value, t) {
+  JS('', '#[#] = #', value, _runtimeType, t);
+}
 
-tagComputed(value, compute) => JS('', '''(() => {
-  $defineProperty($value, $_runtimeType, { get: $compute });
-})()''');
+tagComputed(value, compute) {
+  JS('', '#(#, #, { get: # })', defineProperty, value, _runtimeType, compute);
+}
 
 tagMemoized(value, compute) => JS('', '''(() => {
   let cache = null;

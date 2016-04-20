@@ -262,25 +262,21 @@ _functionType(definite, returnType, args, extra) => JS('', '''(() => {
 /// Create a "fuzzy" function type.  If any arguments are dynamic
 /// they will be replaced with bottom.
 ///
-functionType(returnType, args, extra) => JS('', '''(() => {
-  return $_functionType(false, $returnType, $args, $extra);
-})()''');
+functionType(returnType, args, extra) =>
+    _functionType(false, returnType, args, extra);
 
 ///
 /// Create a definite function type. No substitution of dynamic for
 /// bottom occurs.
 ///
-definiteFunctionType(returnType, args, extra) => JS('', '''(() => {
-  return $_functionType(true, $returnType, $args, $extra);
-})()''');
+definiteFunctionType(returnType, args, extra) =>
+    _functionType(true, returnType, args, extra);
 
-typedef(name, closure) => JS('', '''(() => {
-  return new $Typedef($name, $closure);
-})()''');
+typedef(name, closure) => JS('', 'new #(#, #)', Typedef, name, closure);
 
-isDartType(type) => JS('', '''(() => {
-  return $read($type) === $Type;
-})()''');
+bool isDartType(type) {
+  return JS('bool', '#(#) === #', read, type, Type);
+}
 
 typeName(type) => JS('', '''(() => {
   // Non-instance types
@@ -311,9 +307,9 @@ getImplicitFunctionType(type) => JS('', '''(() => {
   return $getMethodTypeFromType(type, 'call');
 })()''');
 
-isFunctionType(type) => JS('', '''(() => {
-  return $type instanceof $AbstractFunctionType || $type == $Function;
-})()''');
+isFunctionType(type) =>
+    JS('bool', '# instanceof # || # === #',
+        type, AbstractFunctionType, type, Function);
 
 isFunctionSubType(ft1, ft2) => JS('', '''(() => {
   if ($ft2 == $Function) {
@@ -392,18 +388,18 @@ isFunctionSubType(ft1, ft2) => JS('', '''(() => {
 /// This maps JS types onto their corresponding Dart Type.
 ///
 // TODO(jmesserly): lots more needs to be done here.
-canonicalType(t) => JS('', '''(() => {
-  if ($t === Object) return $Object;
-  if ($t === Function) return $Function;
-  if ($t === Array) return $List;
+canonicalType(t) {
+  if (JS('bool', '# === Object', t)) return Object;
+  if (JS('bool', '# === Function', t)) return Function;
+  if (JS('bool', '# === Array', t)) return List;
 
   // We shouldn't normally get here with these types, unless something strange
   // happens like subclassing Number in JS and passing it to Dart.
-  if ($t === String) return $String;
-  if ($t === Number) return $double;
-  if ($t === Boolean) return $bool;
-  return $t;
-})()''');
+  if (JS('bool', '# === String', t)) return String;
+  if (JS('bool', '# === Number', t)) return double;
+  if (JS('bool', '# === Boolean', t)) return bool;
+  return t;
+}
 
 final subtypeMap = JS('', 'new Map()');
 isSubtype(t1, t2) => JS('', '''(() => {
@@ -422,13 +418,9 @@ isSubtype(t1, t2) => JS('', '''(() => {
   return result;
 })()''');
 
-_isBottom(type) => JS('', '''(() => {
-  return $type == $bottom;
-})()''');
+_isBottom(type) => JS('bool', '# == #', type, bottom);
 
-_isTop(type) => JS('', '''(() => {
-  return $type == $Object || ($type == $dynamicR);
-})()''');
+_isTop(type) => JS('bool', '# == # || # == #', type, Object, type, dynamicR);
 
 isSubtype_(t1, t2) => JS('', '''(() => {
   $t1 = $canonicalType($t1);
