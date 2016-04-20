@@ -331,6 +331,45 @@ void main() {expect(foo: ^)}''');
     assertNotSuggested('main');
   }
 
+  test_ArgumentList_namedParam_filter() async {
+    // SimpleIdentifier  NamedExpression  ArgumentList
+    // InstanceCreationExpression
+    addTestSource('''
+        class A {}
+        class B extends A {}
+        class C implements A {}
+        class D {}
+        class E {
+          A a;
+          E({A someA});
+        }
+        A a = new A();
+        B b = new B();
+        C c = new C();
+        D d = new D();
+        E e = new E(someA: ^);
+  ''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestTopLevelVar('a', 'A',
+        relevance:
+        DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
+    assertSuggestTopLevelVar('b', 'B',
+        relevance:
+        DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
+    assertSuggestTopLevelVar('c', 'C',
+        relevance:
+        DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
+    assertSuggestTopLevelVar('d', 'D',
+        relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
+    assertSuggestTopLevelVar('e', 'E',
+        relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
+  }
+
+
+
   test_AsExpression_type() async {
     // SimpleIdentifier  TypeName  AsExpression
     addTestSource('''
@@ -1884,42 +1923,6 @@ class A {a(blat: ^) { }}''');
     assertNotSuggested('String');
     assertNotSuggested('identical');
     assertNotSuggested('bar');
-  }
-
-  test_DefaultFormalParameter_named_expression_filter() async {
-    // DefaultFormalParameter FormalParameterList MethodDeclaration
-    addTestSource('''
-        class A {}
-        class B extends A {}
-        class C implements A {}
-        class D {}
-        class E {
-          A a;
-          E({A someA});
-        }
-        A a = new A();
-        B b = new B();
-        C c = new C();
-        D d = new D();
-        E e = new E(someA: ^);
-  ''');
-    await computeSuggestions();
-
-    expect(replacementOffset, completionOffset);
-    expect(replacementLength, 0);
-    assertSuggestTopLevelVar('a', 'A',
-        relevance:
-            DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
-    assertSuggestTopLevelVar('b', 'B',
-        relevance:
-            DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
-    assertSuggestTopLevelVar('c', 'C',
-        relevance:
-            DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
-    assertSuggestTopLevelVar('d', 'D',
-        relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
-    assertSuggestTopLevelVar('e', 'E',
-        relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
   }
 
   test_enum() async {
