@@ -30596,14 +30596,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [_addEventListener](type, listener, useCapture) {
-      return this._addEventListener(type, listener, useCapture);
+    [_addEventListener](type, listener, capture) {
+      return this._addEventListener(type, listener, capture);
     }
     [dartx.dispatchEvent](event) {
       return this.dispatchEvent(event);
     }
-    [_removeEventListener](type, listener, useCapture) {
-      return this._removeEventListener(type, listener, useCapture);
+    [_removeEventListener](type, listener, capture) {
+      return this._removeEventListener(type, listener, capture);
     }
   };
   dart.defineNamedConstructor(html$.EventTarget, '_created');
@@ -30615,9 +30615,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     methods: () => ({
       [dartx.addEventListener]: [dart.void, [core.String, html$.EventListener], [core.bool]],
       [dartx.removeEventListener]: [dart.void, [core.String, html$.EventListener], [core.bool]],
-      [_addEventListener]: [dart.void, [], [core.String, html$.EventListener, core.bool]],
+      [_addEventListener]: [dart.void, [core.String, html$.EventListener], [core.bool]],
       [dartx.dispatchEvent]: [core.bool, [html$.Event]],
-      [_removeEventListener]: [dart.void, [], [core.String, html$.EventListener, core.bool]]
+      [_removeEventListener]: [dart.void, [core.String, html$.EventListener], [core.bool]]
     })
   });
   html$.EventTarget[dart.metadata] = () => [dart.const(new _metadata.DomName('EventTarget')), dart.const(new _js_helper.Native("EventTarget"))];
@@ -31533,7 +31533,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'stopPropagation',
     'bubbles',
     'cancelable',
-    'clipboardData',
     'defaultPrevented',
     'eventPhase',
     'path',
@@ -31563,26 +31562,34 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (this[_selector] == null) {
         dart.throw(new core.UnsupportedError('Cannot call matchingTarget if this Event did' + ' not arise as a result of event delegation.'));
       }
-      let currentTarget = this[dartx.currentTarget];
-      let target = this[dartx.target];
+      let currentTarget = dart.as(this[dartx.currentTarget], html$.Element);
+      let target = dart.as(this[dartx.target], html$.Element);
       let matchedTarget = null;
       do {
-        if (dart.notNull(dart.as(dart.dcall(target[dartx.matches], this[_selector]), core.bool))) return dart.as(target, html$.Element);
-        target = dart.as(dart.dload(target, dartx.parent), html$.EventTarget);
-      } while (target != null && !dart.equals(target, dart.dload(currentTarget, dartx.parent)));
+        if (dart.notNull(target[dartx.matches](this[_selector]))) return target;
+        target = target[dartx.parent];
+      } while (target != null && !dart.equals(target, currentTarget[dartx.parent]));
       dart.throw(new core.StateError('No selector matched for populating matchedTarget.'));
     }
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
+    static _(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.Event._create_1(type, eventInitDict_1);
+      }
+      return html$.Event._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new Event(type, eventInitDict), html$.Event);
+    }
+    static _create_2(type) {
+      return dart.as(new Event(type), html$.Event);
     }
     get [dartx.bubbles]() {
       return this.bubbles;
     }
     get [dartx.cancelable]() {
       return this.cancelable;
-    }
-    get [dartx.clipboardData]() {
-      return this.clipboardData;
     }
     get [dartx.currentTarget]() {
       return html$._convertNativeToDart_EventTarget(this[_get_currentTarget]);
@@ -31611,8 +31618,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.type]() {
       return this.type;
     }
-    [_initEvent](eventTypeArg, canBubbleArg, cancelableArg) {
-      return this._initEvent(eventTypeArg, canBubbleArg, cancelableArg);
+    [_initEvent](type, bubbles, cancelable) {
+      return this._initEvent(type, bubbles, cancelable);
     }
     [dartx.preventDefault]() {
       return this.preventDefault();
@@ -31628,16 +31635,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({
       new: [html$.Event, [core.String], {canBubble: core.bool, cancelable: core.bool}],
       eventType: [html$.Event, [core.String, core.String], {canBubble: core.bool, cancelable: core.bool}],
-      _: [html$.Event, []]
+      _: [html$.Event, [core.String], [core.Map]]
     }),
     methods: () => ({
       [_initEvent]: [dart.void, [core.String, core.bool, core.bool]],
       [dartx.preventDefault]: [dart.void, []],
       [dartx.stopImmediatePropagation]: [dart.void, []],
       [dartx.stopPropagation]: [dart.void, []]
-    })
+    }),
+    statics: () => ({
+      _create_1: [html$.Event, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.Event, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
-  html$.Event[dart.metadata] = () => [dart.const(new _metadata.DomName('Event')), dart.const(new _js_helper.Native("Event,InputEvent,ClipboardEvent"))];
+  html$.Event[dart.metadata] = () => [dart.const(new _metadata.DomName('Event')), dart.const(new _js_helper.Native("Event,InputEvent"))];
   html$.Event.AT_TARGET = 2;
   html$.Event.BUBBLING_PHASE = 3;
   html$.Event.CAPTURING_PHASE = 1;
@@ -31682,15 +31694,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   const _xtag = Symbol('_xtag');
   const _attributes$ = Symbol('_attributes');
-  const _clientHeight = Symbol('_clientHeight');
-  const _clientLeft = Symbol('_clientLeft');
-  const _clientTop = Symbol('_clientTop');
-  const _clientWidth = Symbol('_clientWidth');
   const _innerHtml = Symbol('_innerHtml');
-  const _offsetHeight = Symbol('_offsetHeight');
-  const _offsetLeft = Symbol('_offsetLeft');
-  const _offsetTop = Symbol('_offsetTop');
-  const _offsetWidth = Symbol('_offsetWidth');
   const _scrollHeight = Symbol('_scrollHeight');
   const _scrollLeft = Symbol('_scrollLeft');
   const _scrollTop = Symbol('_scrollTop');
@@ -31717,6 +31721,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _hasAttributeNS = Symbol('_hasAttributeNS');
   const _removeAttribute = Symbol('_removeAttribute');
   const _removeAttributeNS = Symbol('_removeAttributeNS');
+  const _scroll_1 = Symbol('_scroll_1');
+  const _scroll_2 = Symbol('_scroll_2');
+  const _scroll_3 = Symbol('_scroll_3');
+  const _scrollBy_1 = Symbol('_scrollBy_1');
+  const _scrollBy_2 = Symbol('_scrollBy_2');
+  const _scrollBy_3 = Symbol('_scrollBy_3');
+  const _scrollTo_1 = Symbol('_scrollTo_1');
+  const _scrollTo_2 = Symbol('_scrollTo_2');
+  const _scrollTo_3 = Symbol('_scrollTo_3');
   const _removeChild = Symbol('_removeChild');
   const _replaceChild = Symbol('_replaceChild');
   const _this = Symbol('_this');
@@ -31770,10 +31783,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return new html$._ChildNodeListLazy(this);
     }
     set [dartx.nodes](value) {
-      let copy = core.List.from(value);
+      let copy = value[dartx.toList]();
       this[dartx.text] = '';
       for (let node of copy) {
-        dart.as(node, html$.Node);
         this[dartx.append](node);
       }
     }
@@ -31868,8 +31880,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     set [dartx.text](value) {
       this.textContent = value;
     }
-    [dartx.append](newChild) {
-      return this.append(newChild);
+    [dartx.append](node) {
+      return this.append(node);
     }
     [dartx.clone](deep) {
       return this.clone(deep);
@@ -31880,14 +31892,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.hasChildNodes]() {
       return this.hasChildNodes();
     }
-    [dartx.insertBefore](newChild, refChild) {
-      return this.insertBefore(newChild, refChild);
+    [dartx.insertBefore](node, child) {
+      return this.insertBefore(node, child);
     }
-    [_removeChild](oldChild) {
-      return this._removeChild(oldChild);
+    [_removeChild](child) {
+      return this._removeChild(child);
     }
-    [_replaceChild](newChild, oldChild) {
-      return this._replaceChild(newChild, oldChild);
+    [_replaceChild](node, child) {
+      return this._replaceChild(node, child);
     }
   };
   dart.defineNamedConstructor(html$.Node, '_created');
@@ -31976,20 +31988,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'offsetLeft',
     'offsetTop',
     'offsetWidth',
-    'clientHeight',
-    'clientLeft',
-    'clientTop',
-    'clientWidth',
     'scrollHeight',
     'scrollLeft',
     'scrollLeft',
     'scrollTop',
     'scrollTop',
     'scrollWidth',
-    'click',
     'blur',
+    'click',
     'focus',
-    'getAnimationPlayers',
+    'closest',
+    'getAnimations',
     'getAttribute',
     'getAttributeNS',
     'getBoundingClientRect',
@@ -31998,8 +32007,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'getElementsByClassName',
     'requestFullscreen',
     'requestPointerLock',
+    'scroll',
+    'scrollBy',
+    'scrollTo',
     'setAttribute',
     'setAttributeNS',
+    'after',
+    'before',
     'querySelector',
     'onAbort',
     'onBeforeCopy',
@@ -32070,6 +32084,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'onWaiting',
     'onFullscreenChange',
     'onFullscreenError',
+    'offsetParent',
     'contentEditable',
     'contextMenu',
     'dir',
@@ -32078,15 +32093,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'isContentEditable',
     'lang',
     'spellcheck',
+    'style',
     'tabIndex',
     'title',
     'translate',
     'dropzone',
     'className',
+    'clientHeight',
+    'clientLeft',
+    'clientTop',
+    'clientWidth',
+    'computedName',
+    'computedRole',
     'id',
-    'offsetParent',
     'outerHtml',
-    'style',
     'tagName',
     'nextElementSibling',
     'previousElementSibling'
@@ -32100,6 +32120,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     created() {
       this[_xtag] = null;
+      this[dartx.offsetParent] = null;
       this[dartx.contentEditable] = null;
       this[dartx.contextMenu] = null;
       this[dartx.dir] = null;
@@ -32108,29 +32129,26 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[dartx.isContentEditable] = null;
       this[dartx.lang] = null;
       this[dartx.spellcheck] = null;
+      this[dartx.style] = null;
       this[dartx.tabIndex] = null;
       this[dartx.title] = null;
       this[dartx.translate] = null;
       this[dartx.dropzone] = null;
       this[_attributes$] = null;
       this[dartx.className] = null;
-      this[_clientHeight] = null;
-      this[_clientLeft] = null;
-      this[_clientTop] = null;
-      this[_clientWidth] = null;
+      this[dartx.clientHeight] = null;
+      this[dartx.clientLeft] = null;
+      this[dartx.clientTop] = null;
+      this[dartx.clientWidth] = null;
+      this[dartx.computedName] = null;
+      this[dartx.computedRole] = null;
       this[dartx.id] = null;
       this[_innerHtml] = null;
-      this[_offsetHeight] = null;
-      this[_offsetLeft] = null;
-      this[dartx.offsetParent] = null;
-      this[_offsetTop] = null;
-      this[_offsetWidth] = null;
       this[dartx.outerHtml] = null;
       this[_scrollHeight] = null;
       this[_scrollLeft] = null;
       this[_scrollTop] = null;
       this[_scrollWidth] = null;
-      this[dartx.style] = null;
       this[dartx.tagName] = null;
       this[dartx.nextElementSibling] = null;
       this[dartx.previousElementSibling] = null;
@@ -32245,10 +32263,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return new html$._ChildrenElementList._wrap(this);
     }
     set [dartx.children](value) {
-      let copy = core.List.from(value);
+      let copy = value[dartx.toList]();
       let children = this[dartx.children];
       children[dartx.clear]();
-      children[dartx.addAll](dart.as(copy, core.Iterable$(html$.Element)));
+      children[dartx.addAll](copy);
     }
     [dartx.querySelectorAll](selectors) {
       return new html$._FrozenElementList._wrap(this[_querySelectorAll](selectors));
@@ -32318,14 +32336,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (!dart.is(frames, core.Iterable) || !dart.notNull(frames[dartx.every](dart.fn(x => dart.is(x, core.Map), core.bool, [core.Map$(core.String, dart.dynamic)])))) {
         dart.throw(new core.ArgumentError("The frames parameter should be a List of Maps " + "with frame information"));
       }
-      let convertedFrames = frames;
-      if (dart.is(convertedFrames, core.Iterable)) {
-        convertedFrames = dart.as(frames[dartx.map](html_common.convertDartToNative_Dictionary)[dartx.toList](), core.Iterable$(core.Map$(core.String, dart.dynamic)));
+      let convertedFrames = null;
+      if (dart.is(frames, core.Iterable)) {
+        convertedFrames = frames[dartx.map](html_common.convertDartToNative_Dictionary)[dartx.toList]();
+      } else {
+        convertedFrames = frames;
       }
-      let convertedTiming = timing;
-      if (dart.is(convertedTiming, core.Map)) {
-        convertedTiming = html_common.convertDartToNative_Dictionary(dart.as(convertedTiming, core.Map));
-      }
+      let convertedTiming = dart.is(timing, core.Map) ? html_common.convertDartToNative_Dictionary(timing) : timing;
       return convertedTiming == null ? this[_animate](convertedFrames) : this[_animate](convertedFrames, convertedTiming);
     }
     [_animate](effect, timing) {
@@ -32524,8 +32541,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (html$.Element._parseDocument == null) {
         html$.Element._parseDocument = html$.document[dartx.implementation][dartx.createHtmlDocument]('');
         html$.Element._parseRange = html$.Element._parseDocument[dartx.createRange]();
-        let base = html$.Element._parseDocument[dartx.createElement]('base');
-        dart.dput(base, 'href', html$.document[dartx.baseUri]);
+        let base = dart.as(html$.Element._parseDocument[dartx.createElement]('base'), html$.BaseElement);
+        base[dartx.href] = html$.document[dartx.baseUri];
         html$.Element._parseDocument[dartx.head][dartx.append](base);
       }
       let contextElement = null;
@@ -32619,6 +32636,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
 
       return result;
     }
+    get [dartx.offsetParent]() {
+      return this.offsetParent;
+    }
     get [dartx.offsetHeight]() {
       return this.offsetHeight[dartx.round]();
     }
@@ -32630,18 +32650,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.offsetWidth]() {
       return this.offsetWidth[dartx.round]();
-    }
-    get [dartx.clientHeight]() {
-      return this.clientHeight[dartx.round]();
-    }
-    get [dartx.clientLeft]() {
-      return this.clientLeft[dartx.round]();
-    }
-    get [dartx.clientTop]() {
-      return this.clientTop[dartx.round]();
-    }
-    get [dartx.clientWidth]() {
-      return this.clientWidth[dartx.round]();
     }
     get [dartx.scrollHeight]() {
       return this.scrollHeight[dartx.round]();
@@ -32709,6 +32717,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     set [dartx.spellcheck](value) {
       this.spellcheck = value;
     }
+    get [dartx.style]() {
+      return this.style;
+    }
     get [dartx.tabIndex]() {
       return this.tabIndex;
     }
@@ -32733,8 +32744,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     set [dartx.dropzone](value) {
       this.webkitdropzone = value;
     }
+    [dartx.blur]() {
+      return this.blur();
+    }
     [dartx.click]() {
       return this.click();
+    }
+    [dartx.focus]() {
+      return this.focus();
     }
     get [_attributes$]() {
       return this.attributes;
@@ -32745,17 +32762,23 @@ dart_library.library('dart_sdk', null, /* Imports */[
     set [dartx.className](value) {
       this.className = value;
     }
-    get [_clientHeight]() {
+    get [dartx.clientHeight]() {
       return this.clientHeight;
     }
-    get [_clientLeft]() {
+    get [dartx.clientLeft]() {
       return this.clientLeft;
     }
-    get [_clientTop]() {
+    get [dartx.clientTop]() {
       return this.clientTop;
     }
-    get [_clientWidth]() {
+    get [dartx.clientWidth]() {
       return this.clientWidth;
+    }
+    get [dartx.computedName]() {
+      return this.computedName;
+    }
+    get [dartx.computedRole]() {
+      return this.computedRole;
     }
     get [dartx.id]() {
       return this.id;
@@ -32768,21 +32791,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     set [_innerHtml](value) {
       this.innerHTML = value;
-    }
-    get [_offsetHeight]() {
-      return this.offsetHeight;
-    }
-    get [_offsetLeft]() {
-      return this.offsetLeft;
-    }
-    get [dartx.offsetParent]() {
-      return this.offsetParent;
-    }
-    get [_offsetTop]() {
-      return this.offsetTop;
-    }
-    get [_offsetWidth]() {
-      return this.offsetWidth;
     }
     get [dartx.outerHtml]() {
       return this.outerHTML;
@@ -32805,20 +32813,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [_scrollWidth]() {
       return this.scrollWidth;
     }
-    get [dartx.style]() {
-      return this.style;
-    }
     get [dartx.tagName]() {
       return this.tagName;
     }
-    [dartx.blur]() {
-      return this.blur();
+    [dartx.closest](selectors) {
+      return this.closest(selectors);
     }
-    [dartx.focus]() {
-      return this.focus();
-    }
-    [dartx.getAnimationPlayers]() {
-      return this.getAnimationPlayers();
+    [dartx.getAnimations]() {
+      return this.getAnimations();
     }
     [dartx.getAttribute](name) {
       return this.getAttribute(name);
@@ -32838,8 +32840,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.getElementsByClassName](classNames) {
       return this.getElementsByClassName(classNames);
     }
-    [_getElementsByTagName](name) {
-      return this._getElementsByTagName(name);
+    [_getElementsByTagName](localName) {
+      return this._getElementsByTagName(localName);
     }
     [_hasAttribute](name) {
       return this._hasAttribute(name);
@@ -32859,17 +32861,104 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.requestPointerLock]() {
       return this.requestPointerLock();
     }
+    [dartx.scroll](options_OR_x, y) {
+      if (options_OR_x === void 0) options_OR_x = null;
+      if (y === void 0) y = null;
+      if (options_OR_x == null && y == null) {
+        this[_scroll_1]();
+        return;
+      }
+      if (dart.is(options_OR_x, core.Map) && y == null) {
+        let options_1 = html_common.convertDartToNative_Dictionary(options_OR_x);
+        this[_scroll_2](options_1);
+        return;
+      }
+      if (y != null && typeof options_OR_x == 'number') {
+        this[_scroll_3](options_OR_x, y);
+        return;
+      }
+      dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
+    }
+    [_scroll_1]() {
+      return this._scroll_1();
+    }
+    [_scroll_2](options) {
+      return this._scroll_2(options);
+    }
+    [_scroll_3](x, y) {
+      return this._scroll_3(x, y);
+    }
+    [dartx.scrollBy](options_OR_x, y) {
+      if (options_OR_x === void 0) options_OR_x = null;
+      if (y === void 0) y = null;
+      if (options_OR_x == null && y == null) {
+        this[_scrollBy_1]();
+        return;
+      }
+      if (dart.is(options_OR_x, core.Map) && y == null) {
+        let options_1 = html_common.convertDartToNative_Dictionary(options_OR_x);
+        this[_scrollBy_2](options_1);
+        return;
+      }
+      if (y != null && typeof options_OR_x == 'number') {
+        this[_scrollBy_3](options_OR_x, y);
+        return;
+      }
+      dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
+    }
+    [_scrollBy_1]() {
+      return this._scrollBy_1();
+    }
+    [_scrollBy_2](options) {
+      return this._scrollBy_2(options);
+    }
+    [_scrollBy_3](x, y) {
+      return this._scrollBy_3(x, y);
+    }
     [_scrollIntoView](alignWithTop) {
       return this._scrollIntoView(alignWithTop);
     }
     [_scrollIntoViewIfNeeded](centerIfNeeded) {
       return this._scrollIntoViewIfNeeded(centerIfNeeded);
     }
+    [dartx.scrollTo](options_OR_x, y) {
+      if (options_OR_x === void 0) options_OR_x = null;
+      if (y === void 0) y = null;
+      if (options_OR_x == null && y == null) {
+        this[_scrollTo_1]();
+        return;
+      }
+      if (dart.is(options_OR_x, core.Map) && y == null) {
+        let options_1 = html_common.convertDartToNative_Dictionary(options_OR_x);
+        this[_scrollTo_2](options_1);
+        return;
+      }
+      if (y != null && typeof options_OR_x == 'number') {
+        this[_scrollTo_3](options_OR_x, y);
+        return;
+      }
+      dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
+    }
+    [_scrollTo_1]() {
+      return this._scrollTo_1();
+    }
+    [_scrollTo_2](options) {
+      return this._scrollTo_2(options);
+    }
+    [_scrollTo_3](x, y) {
+      return this._scrollTo_3(x, y);
+    }
     [dartx.setAttribute](name, value) {
       return this.setAttribute(name, value);
     }
-    [dartx.setAttributeNS](namespaceURI, qualifiedName, value) {
-      return this.setAttributeNS(namespaceURI, qualifiedName, value);
+    [dartx.setAttributeNS](namespaceURI, name, value) {
+      return this.setAttributeNS(namespaceURI, name, value);
+    }
+    [dartx.after](nodes) {
+      return this.after(nodes);
+    }
+    [dartx.before](nodes) {
+      return this.before(nodes);
     }
     get [dartx.nextElementSibling]() {
       return this.nextElementSibling;
@@ -33104,7 +33193,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.defineNamedConstructor(html$.Element, 'created');
-  html$.Element[dart.implements] = () => [html$.GlobalEventHandlers, html$.ParentNode, html$.ChildNode];
+  html$.Element[dart.implements] = () => [html$.NonDocumentTypeChildNode, html$.GlobalEventHandlers, html$.ParentNode, html$.ChildNode];
   dart.setSignature(html$.Element, {
     constructors: () => ({
       html: [html$.Element, [core.String], {validator: html$.NodeValidator, treeSanitizer: html$.NodeTreeSanitizer}],
@@ -33153,8 +33242,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.detached]: [dart.void, []],
       [dartx.enteredView]: [dart.void, []],
       [dartx.leftView]: [dart.void, []],
-      [dartx.animate]: [html$.AnimationPlayer, [core.Iterable$(core.Map$(core.String, dart.dynamic))], [dart.dynamic]],
-      [_animate]: [html$.AnimationPlayer, [core.Object], [dart.dynamic]],
+      [dartx.animate]: [html$.Animation, [core.Iterable$(core.Map$(core.String, dart.dynamic))], [dart.dynamic]],
+      [_animate]: [html$.Animation, [core.Object], [dart.dynamic]],
       [dartx.attributeChanged]: [dart.void, [core.String, core.String, core.String]],
       [dartx.scrollIntoView]: [dart.void, [], [html$.ScrollAlignment]],
       [dartx.insertAdjacentText]: [dart.void, [core.String, core.String]],
@@ -33170,10 +33259,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.offsetTo]: [math.Point$(core.num), [html$.Element]],
       [dartx.createFragment]: [html$.DocumentFragment, [core.String], {validator: html$.NodeValidator, treeSanitizer: html$.NodeTreeSanitizer}],
       [dartx.setInnerHtml]: [dart.void, [core.String], {validator: html$.NodeValidator, treeSanitizer: html$.NodeTreeSanitizer}],
-      [dartx.click]: [dart.void, []],
       [dartx.blur]: [dart.void, []],
+      [dartx.click]: [dart.void, []],
       [dartx.focus]: [dart.void, []],
-      [dartx.getAnimationPlayers]: [core.List$(html$.AnimationPlayer), []],
+      [dartx.closest]: [html$.Element, [core.String]],
+      [dartx.getAnimations]: [core.List$(html$.Animation), []],
       [dartx.getAttribute]: [core.String, [core.String]],
       [dartx.getAttributeNS]: [core.String, [core.String, core.String]],
       [dartx.getBoundingClientRect]: [math.Rectangle$(core.num), []],
@@ -33187,10 +33277,24 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [_removeAttributeNS]: [dart.void, [core.String, core.String]],
       [dartx.requestFullscreen]: [dart.void, []],
       [dartx.requestPointerLock]: [dart.void, []],
+      [dartx.scroll]: [dart.void, [], [dart.dynamic, core.num]],
+      [_scroll_1]: [dart.void, []],
+      [_scroll_2]: [dart.void, [dart.dynamic]],
+      [_scroll_3]: [dart.void, [core.num, dart.dynamic]],
+      [dartx.scrollBy]: [dart.void, [], [dart.dynamic, core.num]],
+      [_scrollBy_1]: [dart.void, []],
+      [_scrollBy_2]: [dart.void, [dart.dynamic]],
+      [_scrollBy_3]: [dart.void, [core.num, dart.dynamic]],
       [_scrollIntoView]: [dart.void, [], [core.bool]],
       [_scrollIntoViewIfNeeded]: [dart.void, [], [core.bool]],
+      [dartx.scrollTo]: [dart.void, [], [dart.dynamic, core.num]],
+      [_scrollTo_1]: [dart.void, []],
+      [_scrollTo_2]: [dart.void, [dart.dynamic]],
+      [_scrollTo_3]: [dart.void, [core.num, dart.dynamic]],
       [dartx.setAttribute]: [dart.void, [core.String, core.String]],
       [dartx.setAttributeNS]: [dart.void, [core.String, core.String, core.String]],
+      [dartx.after]: [dart.void, [core.Object]],
+      [dartx.before]: [dart.void, [core.Object]],
       [dartx.querySelector]: [html$.Element, [core.String]],
       [_querySelectorAll]: [core.List$(html$.Node), [core.String]]
     }),
@@ -33249,10 +33353,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('contextmenu'));
     },
     get copyEvent() {
-      return dart.const(new (html$.EventStreamProvider$(html$.Event))('copy'));
+      return dart.const(new (html$.EventStreamProvider$(html$.ClipboardEvent))('copy'));
     },
     get cutEvent() {
-      return dart.const(new (html$.EventStreamProvider$(html$.Event))('cut'));
+      return dart.const(new (html$.EventStreamProvider$(html$.ClipboardEvent))('cut'));
     },
     get doubleClickEvent() {
       return dart.const(new (html$.EventStreamProvider$(html$.Event))('dblclick'));
@@ -33339,7 +33443,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mouseup'));
     },
     get pasteEvent() {
-      return dart.const(new (html$.EventStreamProvider$(html$.Event))('paste'));
+      return dart.const(new (html$.EventStreamProvider$(html$.ClipboardEvent))('paste'));
     },
     get pauseEvent() {
       return dart.const(new (html$.EventStreamProvider$(html$.Event))('pause'));
@@ -33446,14 +33550,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     dart.throw(new core.UnimplementedError());
   };
   dart.fn(html$.spawnDomUri, async.Future$(isolate.Isolate), [core.Uri, core.List$(core.String), dart.dynamic]);
-  html$.unwrap_jso = function(dartClass_instance) {
-    return dartClass_instance;
-  };
-  dart.fn(html$.unwrap_jso);
-  html$.wrap_jso = function(jsObject) {
-    return jsObject;
-  };
-  dart.fn(html$.wrap_jso);
   html$.createCustomUpgrader = function(customElementClass, $this) {
     return $this;
   };
@@ -33476,14 +33572,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.AbstractWorker[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('AbstractWorker'))];
   dart.defineLazy(html$.AbstractWorker, {
     get errorEvent() {
-      return dart.const(new (html$.EventStreamProvider$(html$.ErrorEvent))('error'));
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('error'));
     }
   });
   dart.defineExtensionNames([
     'toString',
     'download',
     'hreflang',
-    'integrity',
     'rel',
     'target',
     'type',
@@ -33505,14 +33600,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static new(opts) {
       let href = opts && 'href' in opts ? opts.href : null;
-      let e = html$.document[dartx.createElement]("a");
-      if (href != null) dart.dput(e, 'href', href);
-      return dart.as(e, html$.AnchorElement);
+      let e = dart.as(html$.document[dartx.createElement]("a"), html$.AnchorElement);
+      if (href != null) e[dartx.href] = href;
+      return e;
     }
     created() {
       this[dartx.download] = null;
       this[dartx.hreflang] = null;
-      this[dartx.integrity] = null;
       this[dartx.rel] = null;
       this[dartx.target] = null;
       this[dartx.type] = null;
@@ -33540,12 +33634,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     set [dartx.hreflang](value) {
       this.hreflang = value;
-    }
-    get [dartx.integrity]() {
-      return this.integrity;
-    }
-    set [dartx.integrity](value) {
-      this.integrity = value;
     }
     get [dartx.rel]() {
       return this.rel;
@@ -33644,134 +33732,22 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.AnchorElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('HTMLAnchorElement')), dart.const(new _js_helper.Native("HTMLAnchorElement"))];
   dart.registerExtension(dart.global.HTMLAnchorElement, html$.AnchorElement);
   dart.defineExtensionNames([
-    'activeDuration',
-    'currentIteration',
-    'duration',
-    'endTime',
-    'localTime',
-    'player',
-    'startTime',
-    'timing'
-  ]);
-  html$.AnimationNode = class AnimationNode extends _interceptors.Interceptor {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    get [dartx.activeDuration]() {
-      return this.activeDuration;
-    }
-    get [dartx.currentIteration]() {
-      return this.currentIteration;
-    }
-    get [dartx.duration]() {
-      return this.duration;
-    }
-    get [dartx.endTime]() {
-      return this.endTime;
-    }
-    get [dartx.localTime]() {
-      return this.localTime;
-    }
-    get [dartx.player]() {
-      return this.player;
-    }
-    get [dartx.startTime]() {
-      return this.startTime;
-    }
-    get [dartx.timing]() {
-      return this.timing;
-    }
-  };
-  dart.setSignature(html$.AnimationNode, {
-    constructors: () => ({_: [html$.AnimationNode, []]})
-  });
-  html$.AnimationNode[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('AnimationNode')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("AnimationNode"))];
-  dart.registerExtension(dart.global.AnimationNode, html$.AnimationNode);
-  html$.Animation = class Animation extends html$.AnimationNode {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    static new(target, keyframes, timingInput) {
-      if (timingInput === void 0) timingInput = null;
-      if ((dart.is(keyframes, core.List$(core.Map)) || keyframes == null) && (dart.is(target, html$.Element) || target == null) && timingInput == null) {
-        return html$.Animation._create_1(target, keyframes);
-      }
-      if ((typeof timingInput == 'number' || timingInput == null) && (dart.is(keyframes, core.List$(core.Map)) || keyframes == null) && (dart.is(target, html$.Element) || target == null)) {
-        return html$.Animation._create_2(target, keyframes, timingInput);
-      }
-      if ((dart.is(timingInput, core.Map) || timingInput == null) && (dart.is(keyframes, core.List$(core.Map)) || keyframes == null) && (dart.is(target, html$.Element) || target == null)) {
-        let timingInput_1 = html_common.convertDartToNative_Dictionary(dart.as(timingInput, core.Map));
-        return html$.Animation._create_3(target, keyframes, timingInput_1);
-      }
-      dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
-    }
-    static _create_1(target, keyframes) {
-      return dart.as(new Animation(target, keyframes), html$.Animation);
-    }
-    static _create_2(target, keyframes, timingInput) {
-      return dart.as(new Animation(target, keyframes, timingInput), html$.Animation);
-    }
-    static _create_3(target, keyframes, timingInput) {
-      return dart.as(new Animation(target, keyframes, timingInput), html$.Animation);
-    }
-  };
-  dart.setSignature(html$.Animation, {
-    constructors: () => ({
-      _: [html$.Animation, []],
-      new: [html$.Animation, [html$.Element, core.List$(core.Map)], [dart.dynamic]]
-    }),
-    statics: () => ({
-      _create_1: [html$.Animation, [dart.dynamic, dart.dynamic]],
-      _create_2: [html$.Animation, [dart.dynamic, dart.dynamic, dart.dynamic]],
-      _create_3: [html$.Animation, [dart.dynamic, dart.dynamic, dart.dynamic]]
-    }),
-    names: ['_create_1', '_create_2', '_create_3']
-  });
-  html$.Animation[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Animation')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("Animation"))];
-  dart.registerExtension(dart.global.Animation, html$.Animation);
-  html$.AnimationEffect = class AnimationEffect extends _interceptors.Interceptor {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-  };
-  dart.setSignature(html$.AnimationEffect, {
-    constructors: () => ({_: [html$.AnimationEffect, []]})
-  });
-  html$.AnimationEffect[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('AnimationEffect')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("AnimationEffect"))];
-  dart.registerExtension(dart.global.AnimationEffect, html$.AnimationEffect);
-  dart.defineExtensionNames([
-    'animationName',
-    'elapsedTime'
-  ]);
-  html$.AnimationEvent = class AnimationEvent extends html$.Event {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    get [dartx.animationName]() {
-      return this.animationName;
-    }
-    get [dartx.elapsedTime]() {
-      return this.elapsedTime;
-    }
-  };
-  dart.setSignature(html$.AnimationEvent, {
-    constructors: () => ({_: [html$.AnimationEvent, []]})
-  });
-  html$.AnimationEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('WebKitAnimationEvent')), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.CHROME)), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.SAFARI)), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("WebKitAnimationEvent"))];
-  dart.registerExtension(dart.global.WebKitAnimationEvent, html$.AnimationEvent);
-  dart.defineExtensionNames([
     'cancel',
     'finish',
     'pause',
     'play',
     'reverse',
     'currentTime',
+    'effect',
+    'endClip',
+    'finished',
     'playState',
     'playbackRate',
-    'source',
+    'ready',
+    'startClip',
     'startTime'
   ]);
-  html$.AnimationPlayer = class AnimationPlayer extends html$.EventTarget {
+  html$.Animation = class Animation extends html$.EventTarget {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
@@ -33784,6 +33760,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     set [dartx.currentTime](value) {
       this.currentTime = value;
     }
+    get [dartx.effect]() {
+      return this.effect;
+    }
+    set [dartx.effect](value) {
+      this.effect = value;
+    }
+    get [dartx.endClip]() {
+      return this.endClip;
+    }
+    set [dartx.endClip](value) {
+      this.endClip = value;
+    }
+    get [dartx.finished]() {
+      return this.finished;
+    }
     get [dartx.playState]() {
       return this.playState;
     }
@@ -33793,11 +33784,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     set [dartx.playbackRate](value) {
       this.playbackRate = value;
     }
-    get [dartx.source]() {
-      return this.source;
+    get [dartx.ready]() {
+      return this.ready;
     }
-    set [dartx.source](value) {
-      this.source = value;
+    get [dartx.startClip]() {
+      return this.startClip;
+    }
+    set [dartx.startClip](value) {
+      this.startClip = value;
     }
     get [dartx.startTime]() {
       return this.startTime;
@@ -33821,8 +33815,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.reverse();
     }
   };
-  dart.setSignature(html$.AnimationPlayer, {
-    constructors: () => ({_: [html$.AnimationPlayer, []]}),
+  dart.setSignature(html$.Animation, {
+    constructors: () => ({_: [html$.Animation, []]}),
     methods: () => ({
       [dartx.cancel]: [dart.void, []],
       [dartx.finish]: [dart.void, []],
@@ -33831,8 +33825,72 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.reverse]: [dart.void, []]
     })
   });
-  html$.AnimationPlayer[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('AnimationPlayer')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("AnimationPlayer"))];
-  dart.registerExtension(dart.global.AnimationPlayer, html$.AnimationPlayer);
+  html$.Animation[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Animation')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("Animation"))];
+  dart.registerExtension(dart.global.Animation, html$.Animation);
+  const _get_computedTiming = Symbol('_get_computedTiming');
+  html$.AnimationEffectReadOnly = class AnimationEffectReadOnly extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    get computedTiming() {
+      return html_common.convertNativeToDart_Dictionary(this[_get_computedTiming]);
+    }
+  };
+  dart.setSignature(html$.AnimationEffectReadOnly, {
+    constructors: () => ({_: [html$.AnimationEffectReadOnly, []]})
+  });
+  html$.AnimationEffectReadOnly[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('AnimationEffectReadOnly')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("AnimationEffectReadOnly"))];
+  html$.AnimationEffectTiming = class AnimationEffectTiming extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+  };
+  dart.setSignature(html$.AnimationEffectTiming, {
+    constructors: () => ({_: [html$.AnimationEffectTiming, []]})
+  });
+  html$.AnimationEffectTiming[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('AnimationEffectTiming')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("AnimationEffectTiming"))];
+  dart.defineExtensionNames([
+    'animationName',
+    'elapsedTime'
+  ]);
+  html$.AnimationEvent = class AnimationEvent extends html$.Event {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.AnimationEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.AnimationEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new AnimationEvent(type, eventInitDict), html$.AnimationEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new AnimationEvent(type), html$.AnimationEvent);
+    }
+    get [dartx.animationName]() {
+      return this.animationName;
+    }
+    get [dartx.elapsedTime]() {
+      return this.elapsedTime;
+    }
+  };
+  dart.setSignature(html$.AnimationEvent, {
+    constructors: () => ({
+      _: [html$.AnimationEvent, []],
+      new: [html$.AnimationEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.AnimationEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.AnimationEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
+  });
+  html$.AnimationEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('AnimationEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("AnimationEvent"))];
+  dart.registerExtension(dart.global.AnimationEvent, html$.AnimationEvent);
   dart.defineExtensionNames([
     'currentTime',
     'timelineTime'
@@ -33840,6 +33898,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.AnimationPlayerEvent = class AnimationPlayerEvent extends html$.Event {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.AnimationPlayerEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.AnimationPlayerEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new AnimationPlayerEvent(type, eventInitDict), html$.AnimationPlayerEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new AnimationPlayerEvent(type), html$.AnimationPlayerEvent);
     }
     get [dartx.currentTime]() {
       return this.currentTime;
@@ -33849,14 +33921,23 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$.AnimationPlayerEvent, {
-    constructors: () => ({_: [html$.AnimationPlayerEvent, []]})
+    constructors: () => ({
+      _: [html$.AnimationPlayerEvent, []],
+      new: [html$.AnimationPlayerEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.AnimationPlayerEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.AnimationPlayerEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.AnimationPlayerEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('AnimationPlayerEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("AnimationPlayerEvent"))];
   dart.registerExtension(dart.global.AnimationPlayerEvent, html$.AnimationPlayerEvent);
   dart.defineExtensionNames([
-    'getAnimationPlayers',
+    'getAnimations',
     'play',
-    'currentTime'
+    'currentTime',
+    'playbackRate'
   ]);
   html$.AnimationTimeline = class AnimationTimeline extends _interceptors.Interceptor {
     static _() {
@@ -33865,8 +33946,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.currentTime]() {
       return this.currentTime;
     }
-    [dartx.getAnimationPlayers]() {
-      return this.getAnimationPlayers();
+    set [dartx.currentTime](value) {
+      this.currentTime = value;
+    }
+    get [dartx.playbackRate]() {
+      return this.playbackRate;
+    }
+    set [dartx.playbackRate](value) {
+      this.playbackRate = value;
+    }
+    [dartx.getAnimations]() {
+      return this.getAnimations();
     }
     [dartx.play](source) {
       return this.play(source);
@@ -33875,12 +33965,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(html$.AnimationTimeline, {
     constructors: () => ({_: [html$.AnimationTimeline, []]}),
     methods: () => ({
-      [dartx.getAnimationPlayers]: [core.List$(html$.AnimationPlayer), []],
-      [dartx.play]: [html$.AnimationPlayer, [html$.AnimationNode]]
+      [dartx.getAnimations]: [core.List$(html$.Animation), []],
+      [dartx.play]: [html$.Animation, [html$.AnimationEffectReadOnly]]
     })
   });
   html$.AnimationTimeline[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('AnimationTimeline')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("AnimationTimeline"))];
   dart.registerExtension(dart.global.AnimationTimeline, html$.AnimationTimeline);
+  html$.AppBannerPromptResult = class AppBannerPromptResult extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+  };
+  dart.setSignature(html$.AppBannerPromptResult, {
+    constructors: () => ({_: [html$.AppBannerPromptResult, []]})
+  });
+  html$.AppBannerPromptResult[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('AppBannerPromptResult')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("AppBannerPromptResult"))];
   dart.defineExtensionNames([
     'abort',
     'swapCache',
@@ -33991,6 +34090,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.ApplicationCacheErrorEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.ApplicationCacheErrorEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new ApplicationCacheErrorEvent(type, eventInitDict), html$.ApplicationCacheErrorEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new ApplicationCacheErrorEvent(type), html$.ApplicationCacheErrorEvent);
+    }
     get [dartx.message]() {
       return this.message;
     }
@@ -34005,7 +34118,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$.ApplicationCacheErrorEvent, {
-    constructors: () => ({_: [html$.ApplicationCacheErrorEvent, []]})
+    constructors: () => ({
+      _: [html$.ApplicationCacheErrorEvent, []],
+      new: [html$.ApplicationCacheErrorEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.ApplicationCacheErrorEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.ApplicationCacheErrorEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.ApplicationCacheErrorEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ApplicationCacheErrorEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("ApplicationCacheErrorEvent"))];
   dart.registerExtension(dart.global.ApplicationCacheErrorEvent, html$.ApplicationCacheErrorEvent);
@@ -34161,6 +34282,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'pause',
     'play',
     'setMediaKeys',
+    'setSinkId',
     'addKey',
     'cancelKeyRequest',
     'generateKeyRequest',
@@ -34181,7 +34303,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'duration',
     'ended',
     'error',
-    'integrity',
     'loop',
     'mediaGroup',
     'mediaKeys',
@@ -34194,6 +34315,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'readyState',
     'seekable',
     'seeking',
+    'session',
+    'sinkId',
     'src',
     'textTracks',
     'videoTracks',
@@ -34219,7 +34342,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[dartx.duration] = null;
       this[dartx.ended] = null;
       this[dartx.error] = null;
-      this[dartx.integrity] = null;
       this[dartx.loop] = null;
       this[dartx.mediaGroup] = null;
       this[dartx.mediaKeys] = null;
@@ -34232,6 +34354,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[dartx.readyState] = null;
       this[dartx.seekable] = null;
       this[dartx.seeking] = null;
+      this[dartx.session] = null;
+      this[dartx.sinkId] = null;
       this[dartx.src] = null;
       this[dartx.textTracks] = null;
       this[dartx.videoTracks] = null;
@@ -34300,12 +34424,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.error]() {
       return this.error;
     }
-    get [dartx.integrity]() {
-      return this.integrity;
-    }
-    set [dartx.integrity](value) {
-      this.integrity = value;
-    }
     get [dartx.loop]() {
       return this.loop;
     }
@@ -34357,6 +34475,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.seeking]() {
       return this.seeking;
     }
+    get [dartx.session]() {
+      return this.session;
+    }
+    set [dartx.session](value) {
+      this.session = value;
+    }
+    get [dartx.sinkId]() {
+      return this.sinkId;
+    }
     get [dartx.src]() {
       return this.src;
     }
@@ -34399,6 +34526,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.setMediaKeys](mediaKeys) {
       return this.setMediaKeys(mediaKeys);
     }
+    [dartx.setSinkId](sinkId) {
+      return this.setSinkId(sinkId);
+    }
     [dartx.addKey](keySystem, key, initData, sessionId) {
       return this.addKey(keySystem, key, initData, sessionId);
     }
@@ -34434,6 +34564,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.pause]: [dart.void, []],
       [dartx.play]: [dart.void, []],
       [dartx.setMediaKeys]: [async.Future, [html$.MediaKeys]],
+      [dartx.setSinkId]: [async.Future, [core.String]],
       [dartx.addKey]: [dart.void, [core.String, typed_data.Uint8List], [typed_data.Uint8List, core.String]],
       [dartx.cancelKeyRequest]: [dart.void, [core.String, core.String]],
       [dartx.generateKeyRequest]: [dart.void, [core.String], [typed_data.Uint8List]]
@@ -34580,12 +34711,34 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.AutocompleteErrorEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.AutocompleteErrorEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new AutocompleteErrorEvent(type, eventInitDict), html$.AutocompleteErrorEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new AutocompleteErrorEvent(type), html$.AutocompleteErrorEvent);
+    }
     get [dartx.reason]() {
       return this.reason;
     }
   };
   dart.setSignature(html$.AutocompleteErrorEvent, {
-    constructors: () => ({_: [html$.AutocompleteErrorEvent, []]})
+    constructors: () => ({
+      _: [html$.AutocompleteErrorEvent, []],
+      new: [html$.AutocompleteErrorEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.AutocompleteErrorEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.AutocompleteErrorEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.AutocompleteErrorEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('AutocompleteErrorEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("AutocompleteErrorEvent"))];
   dart.registerExtension(dart.global.AutocompleteErrorEvent, html$.AutocompleteErrorEvent);
@@ -34693,6 +34846,44 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.BatteryManager[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('BatteryManager')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("BatteryManager"))];
   dart.registerExtension(dart.global.BatteryManager, html$.BatteryManager);
+  html$.BeforeInstallPromptEvent = class BeforeInstallPromptEvent extends html$.Event {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.BeforeInstallPromptEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.BeforeInstallPromptEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new BeforeInstallPromptEvent(type, eventInitDict), html$.BeforeInstallPromptEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new BeforeInstallPromptEvent(type), html$.BeforeInstallPromptEvent);
+    }
+    get platforms() {
+      return dart.as(this.platforms, core.List$(core.String));
+    }
+    prompt() {
+      return this.prompt();
+    }
+  };
+  dart.setSignature(html$.BeforeInstallPromptEvent, {
+    constructors: () => ({
+      _: [html$.BeforeInstallPromptEvent, []],
+      new: [html$.BeforeInstallPromptEvent, [core.String], [core.Map]]
+    }),
+    methods: () => ({prompt: [async.Future, []]}),
+    statics: () => ({
+      _create_1: [html$.BeforeInstallPromptEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.BeforeInstallPromptEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
+  });
+  html$.BeforeInstallPromptEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('BeforeInstallPromptEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("BeforeInstallPromptEvent"))];
   dart.defineExtensionNames([
     'returnValue',
     'returnValue'
@@ -34778,6 +34969,101 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.Blob[dart.metadata] = () => [dart.const(new _metadata.DomName('Blob')), dart.const(new _js_helper.Native("Blob"))];
   dart.registerExtension(dart.global.Blob, html$.Blob);
+  const _requestDevice_1 = Symbol('_requestDevice_1');
+  html$.Bluetooth = class Bluetooth extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    requestDevice(options) {
+      let options_1 = html_common.convertDartToNative_Dictionary(options);
+      return this[_requestDevice_1](options_1);
+    }
+    [_requestDevice_1](options) {
+      return this._requestDevice_1(options);
+    }
+  };
+  dart.setSignature(html$.Bluetooth, {
+    constructors: () => ({_: [html$.Bluetooth, []]}),
+    methods: () => ({
+      requestDevice: [async.Future, [core.Map]],
+      [_requestDevice_1]: [async.Future, [dart.dynamic]]
+    })
+  });
+  html$.Bluetooth[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Bluetooth')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("Bluetooth"))];
+  html$.BluetoothDevice = class BluetoothDevice extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    connectGatt() {
+      return this.connectGatt();
+    }
+  };
+  dart.setSignature(html$.BluetoothDevice, {
+    constructors: () => ({_: [html$.BluetoothDevice, []]}),
+    methods: () => ({connectGatt: [async.Future, []]})
+  });
+  html$.BluetoothDevice[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('BluetoothDevice')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("BluetoothDevice"))];
+  html$.BluetoothGattCharacteristic = class BluetoothGattCharacteristic extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    readValue() {
+      return this.readValue();
+    }
+    writeValue(value) {
+      return this.writeValue(value);
+    }
+  };
+  dart.setSignature(html$.BluetoothGattCharacteristic, {
+    constructors: () => ({_: [html$.BluetoothGattCharacteristic, []]}),
+    methods: () => ({
+      readValue: [async.Future, []],
+      writeValue: [async.Future, [dart.dynamic]]
+    })
+  });
+  html$.BluetoothGattCharacteristic[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('BluetoothGATTCharacteristic')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("BluetoothGATTCharacteristic"))];
+  html$.BluetoothGattRemoteServer = class BluetoothGattRemoteServer extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    getPrimaryService(service) {
+      return this.getPrimaryService(service);
+    }
+  };
+  dart.setSignature(html$.BluetoothGattRemoteServer, {
+    constructors: () => ({_: [html$.BluetoothGattRemoteServer, []]}),
+    methods: () => ({getPrimaryService: [async.Future, [dart.dynamic]]})
+  });
+  html$.BluetoothGattRemoteServer[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('BluetoothGATTRemoteServer')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("BluetoothGATTRemoteServer"))];
+  html$.BluetoothGattService = class BluetoothGattService extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    getCharacteristic(characteristic) {
+      return this.getCharacteristic(characteristic);
+    }
+  };
+  dart.setSignature(html$.BluetoothGattService, {
+    constructors: () => ({_: [html$.BluetoothGattService, []]}),
+    methods: () => ({getCharacteristic: [async.Future, [dart.dynamic]]})
+  });
+  html$.BluetoothGattService[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('BluetoothGATTService')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("BluetoothGATTService"))];
+  html$.BluetoothUuid = class BluetoothUuid extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+  };
+  dart.setSignature(html$.BluetoothUuid, {
+    constructors: () => ({_: [html$.BluetoothUuid, []]}),
+    statics: () => ({
+      canonicalUuid: [core.String, [core.int]],
+      getCharacteristic: [core.String, [core.Object]],
+      getDescriptor: [core.String, [core.Object]],
+      getService: [core.String, [core.Object]]
+    }),
+    names: ['canonicalUuid', 'getCharacteristic', 'getDescriptor', 'getService']
+  });
+  html$.BluetoothUuid[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('BluetoothUUID')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("BluetoothUUID"))];
   dart.defineExtensionNames([
     'arrayBuffer',
     'blob',
@@ -34935,6 +35221,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.registerExtension(dart.global.HTMLBodyElement, html$.BodyElement);
   dart.defineExtensionNames([
     'checkValidity',
+    'reportValidity',
     'setCustomValidity',
     'autofocus',
     'disabled',
@@ -35055,6 +35342,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.checkValidity]() {
       return this.checkValidity();
     }
+    [dartx.reportValidity]() {
+      return this.reportValidity();
+    }
     [dartx.setCustomValidity](error) {
       return this.setCustomValidity(error);
     }
@@ -35068,6 +35358,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }),
     methods: () => ({
       [dartx.checkValidity]: [core.bool, []],
+      [dartx.reportValidity]: [core.bool, []],
       [dartx.setCustomValidity]: [dart.void, [core.String]]
     })
   });
@@ -35080,6 +35371,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'insertData',
     'replaceData',
     'substringData',
+    'after',
+    'before',
     'data',
     'length',
     'nextElementSibling',
@@ -35101,17 +35394,23 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.appendData](data) {
       return this.appendData(data);
     }
-    [dartx.deleteData](offset, length) {
-      return this.deleteData(offset, length);
+    [dartx.deleteData](offset, count) {
+      return this.deleteData(offset, count);
     }
     [dartx.insertData](offset, data) {
       return this.insertData(offset, data);
     }
-    [dartx.replaceData](offset, length, data) {
-      return this.replaceData(offset, length, data);
+    [dartx.replaceData](offset, count, data) {
+      return this.replaceData(offset, count, data);
     }
-    [dartx.substringData](offset, length) {
-      return this.substringData(offset, length);
+    [dartx.substringData](offset, count) {
+      return this.substringData(offset, count);
+    }
+    [dartx.after](nodes) {
+      return this.after(nodes);
+    }
+    [dartx.before](nodes) {
+      return this.before(nodes);
     }
     get [dartx.nextElementSibling]() {
       return this.nextElementSibling;
@@ -35120,7 +35419,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.previousElementSibling;
     }
   };
-  html$.CharacterData[dart.implements] = () => [html$.ChildNode];
+  html$.CharacterData[dart.implements] = () => [html$.NonDocumentTypeChildNode, html$.ChildNode];
   dart.setSignature(html$.CharacterData, {
     constructors: () => ({_: [html$.CharacterData, []]}),
     methods: () => ({
@@ -35128,7 +35427,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.deleteData]: [dart.void, [core.int, core.int]],
       [dartx.insertData]: [dart.void, [core.int, core.String]],
       [dartx.replaceData]: [dart.void, [core.int, core.int, core.String]],
-      [dartx.substringData]: [core.String, [core.int, core.int]]
+      [dartx.substringData]: [core.String, [core.int, core.int]],
+      [dartx.after]: [dart.void, [core.Object]],
+      [dartx.before]: [dart.void, [core.Object]]
     })
   });
   html$.CharacterData[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CharacterData')), dart.const(new _js_helper.Native("CharacterData"))];
@@ -35177,25 +35478,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.CDataSection[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CDATASection')), core.deprecated, dart.const(new _js_helper.Native("CDATASection"))];
   dart.registerExtension(dart.global.CDATASection, html$.CDataSection);
+  const _match_1 = Symbol('_match_1');
+  const _match_2 = Symbol('_match_2');
   dart.defineExtensionNames([
-    'create',
     'delete',
-    'get',
     'has',
-    'keys'
+    'keys',
+    'match',
+    'open'
   ]);
   html$.CacheStorage = class CacheStorage extends _interceptors.Interceptor {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.create](cacheName) {
-      return this.create(cacheName);
-    }
     [dartx.delete](cacheName) {
       return this.delete(cacheName);
-    }
-    [dartx.get](cacheName) {
-      return this.get(cacheName);
     }
     [dartx.has](cacheName) {
       return this.has(cacheName);
@@ -35203,45 +35500,38 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.keys]() {
       return this.keys();
     }
+    [dartx.match](request, options) {
+      if (options === void 0) options = null;
+      if (options != null) {
+        let options_1 = html_common.convertDartToNative_Dictionary(options);
+        return this[_match_1](request, options_1);
+      }
+      return this[_match_2](request);
+    }
+    [_match_1](request, options) {
+      return this._match_1(request, options);
+    }
+    [_match_2](request) {
+      return this._match_2(request);
+    }
+    [dartx.open](cacheName) {
+      return this.open(cacheName);
+    }
   };
   dart.setSignature(html$.CacheStorage, {
     constructors: () => ({_: [html$.CacheStorage, []]}),
     methods: () => ({
-      [dartx.create]: [async.Future, [core.String]],
       [dartx.delete]: [async.Future, [core.String]],
-      [dartx.get]: [async.Future, [core.String]],
       [dartx.has]: [async.Future, [core.String]],
-      [dartx.keys]: [async.Future, []]
+      [dartx.keys]: [async.Future, []],
+      [dartx.match]: [async.Future, [dart.dynamic], [core.Map]],
+      [_match_1]: [async.Future, [dart.dynamic, dart.dynamic]],
+      [_match_2]: [async.Future, [dart.dynamic]],
+      [dartx.open]: [async.Future, [core.String]]
     })
   });
   html$.CacheStorage[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CacheStorage')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("CacheStorage"))];
   dart.registerExtension(dart.global.CacheStorage, html$.CacheStorage);
-  dart.defineExtensionNames([
-    'alpha',
-    'storage'
-  ]);
-  html$.Canvas2DContextAttributes = class Canvas2DContextAttributes extends _interceptors.Interceptor {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    get [dartx.alpha]() {
-      return this.alpha;
-    }
-    set [dartx.alpha](value) {
-      this.alpha = value;
-    }
-    get [dartx.storage]() {
-      return this.storage;
-    }
-    set [dartx.storage](value) {
-      this.storage = value;
-    }
-  };
-  dart.setSignature(html$.Canvas2DContextAttributes, {
-    constructors: () => ({_: [html$.Canvas2DContextAttributes, []]})
-  });
-  html$.Canvas2DContextAttributes[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Canvas2DContextAttributes')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("Canvas2DContextAttributes"))];
-  dart.registerExtension(dart.global.Canvas2DContextAttributes, html$.Canvas2DContextAttributes);
   const _getContext_1 = Symbol('_getContext_1');
   const _getContext_2 = Symbol('_getContext_2');
   const _toDataUrl = Symbol('_toDataUrl');
@@ -35262,10 +35552,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static new(opts) {
       let width = opts && 'width' in opts ? opts.width : null;
       let height = opts && 'height' in opts ? opts.height : null;
-      let e = html$.document[dartx.createElement]("canvas");
-      if (width != null) dart.dput(e, 'width', width);
-      if (height != null) dart.dput(e, 'height', height);
-      return dart.as(e, html$.CanvasElement);
+      let e = dart.as(html$.document[dartx.createElement]("canvas"), html$.CanvasElement);
+      if (width != null) e[dartx.width] = width;
+      if (height != null) e[dartx.height] = height;
+      return e;
     }
     created() {
       this[dartx.height] = null;
@@ -35284,22 +35574,22 @@ dart_library.library('dart_sdk', null, /* Imports */[
     set [dartx.width](value) {
       this.width = value;
     }
-    [dartx.getContext](contextId, attrs) {
-      if (attrs === void 0) attrs = null;
-      if (attrs != null) {
-        let attrs_1 = html_common.convertDartToNative_Dictionary(attrs);
-        return this[_getContext_1](contextId, attrs_1);
+    [dartx.getContext](contextId, attributes) {
+      if (attributes === void 0) attributes = null;
+      if (attributes != null) {
+        let attributes_1 = html_common.convertDartToNative_Dictionary(attributes);
+        return this[_getContext_1](contextId, attributes_1);
       }
       return this[_getContext_2](contextId);
     }
-    [_getContext_1](contextId, attrs) {
-      return this._getContext_1(contextId, attrs);
+    [_getContext_1](contextId, attributes) {
+      return this._getContext_1(contextId, attributes);
     }
     [_getContext_2](contextId) {
       return this._getContext_2(contextId);
     }
-    [_toDataUrl](type, quality) {
-      return this._toDataUrl(type, quality);
+    [_toDataUrl](type, arguments_OR_quality) {
+      return this._toDataUrl(type, arguments_OR_quality);
     }
     get [dartx.onWebGlContextLost]() {
       return html$.CanvasElement.webGlContextLostEvent.forElement(this);
@@ -35342,7 +35632,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.getContext]: [core.Object, [core.String], [core.Map]],
       [_getContext_1]: [core.Object, [dart.dynamic, dart.dynamic]],
       [_getContext_2]: [core.Object, [dart.dynamic]],
-      [_toDataUrl]: [core.String, [core.String], [core.num]],
+      [_toDataUrl]: [core.String, [core.String], [dart.dynamic]],
       [dartx.getContext3d]: [web_gl.RenderingContext, [], {alpha: dart.dynamic, depth: dart.dynamic, stencil: dart.dynamic, antialias: dart.dynamic, premultipliedAlpha: dart.dynamic, preserveDrawingBuffer: dart.dynamic}],
       [dartx.toDataUrl]: [core.String, [], [core.String, core.num]]
     })
@@ -35395,7 +35685,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _addHitRegion_1 = Symbol('_addHitRegion_1');
   const _addHitRegion_2 = Symbol('_addHitRegion_2');
   const _createImageData_1 = Symbol('_createImageData_1');
-  const _createImageDataFromImageData_1 = Symbol('_createImageDataFromImageData_1');
+  const _createImageData_2 = Symbol('_createImageData_2');
+  const _getContextAttributes_1 = Symbol('_getContextAttributes_1');
   const _getImageData_1 = Symbol('_getImageData_1');
   const _getLineDash = Symbol('_getLineDash');
   const _putImageData_1 = Symbol('_putImageData_1');
@@ -35408,10 +35699,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'clearRect',
     'clip',
     'createImageData',
-    'createImageDataFromImageData',
     'createLinearGradient',
     'createPattern',
-    'createPatternFromImage',
     'createRadialGradient',
     'drawFocusIfNeeded',
     'fillRect',
@@ -35443,11 +35732,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'moveTo',
     'quadraticCurveTo',
     'rect',
+    'createImageDataFromImageData',
     'setFillColorRgb',
     'setFillColorHsl',
     'setStrokeColorRgb',
     'setStrokeColorHsl',
     'arc',
+    'createPatternFromImage',
     'drawImageToRect',
     'drawImage',
     'drawImageScaled',
@@ -35463,6 +35754,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'currentTransform',
     'direction',
     'fillStyle',
+    'filter',
     'font',
     'globalAlpha',
     'globalCompositeOperation',
@@ -35503,6 +35795,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     set [dartx.fillStyle](value) {
       this.fillStyle = value;
+    }
+    get [dartx.filter]() {
+      return this.filter;
+    }
+    set [dartx.filter](value) {
+      this.filter = value;
     }
     get [dartx.font]() {
       return this.font;
@@ -35622,27 +35920,28 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.clip](path_OR_winding, winding) {
       return this.clip(path_OR_winding, winding);
     }
-    [dartx.createImageData](sw, sh) {
-      return html_common.convertNativeToDart_ImageData(this[_createImageData_1](sw, sh));
+    [dartx.createImageData](imagedata_OR_sw, sh) {
+      if (sh === void 0) sh = null;
+      if (dart.is(imagedata_OR_sw, html$.ImageData) && sh == null) {
+        let imagedata_1 = html_common.convertDartToNative_ImageData(imagedata_OR_sw);
+        return html_common.convertNativeToDart_ImageData(this[_createImageData_1](imagedata_1));
+      }
+      if (sh != null && typeof imagedata_OR_sw == 'number') {
+        return html_common.convertNativeToDart_ImageData(this[_createImageData_2](imagedata_OR_sw, sh));
+      }
+      dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
-    [_createImageData_1](sw, sh) {
-      return this._createImageData_1(sw, sh);
+    [_createImageData_1](imagedata) {
+      return this._createImageData_1(imagedata);
     }
-    [dartx.createImageDataFromImageData](imagedata) {
-      let imagedata_1 = html_common.convertDartToNative_ImageData(imagedata);
-      return html_common.convertNativeToDart_ImageData(this[_createImageDataFromImageData_1](imagedata_1));
-    }
-    [_createImageDataFromImageData_1](imagedata) {
-      return this._createImageDataFromImageData_1(imagedata);
+    [_createImageData_2](sw, sh) {
+      return this._createImageData_2(sw, sh);
     }
     [dartx.createLinearGradient](x0, y0, x1, y1) {
       return this.createLinearGradient(x0, y0, x1, y1);
     }
-    [dartx.createPattern](canvas_OR_image, repetitionType) {
-      return this.createPattern(canvas_OR_image, repetitionType);
-    }
-    [dartx.createPatternFromImage](image, repetitionType) {
-      return this.createPatternFromImage(image, repetitionType);
+    [dartx.createPattern](image, repetitionType) {
+      return this.createPattern(image, repetitionType);
     }
     [dartx.createRadialGradient](x0, y0, r0, x1, y1, r1) {
       return this.createRadialGradient(x0, y0, r0, x1, y1, r1);
@@ -35654,7 +35953,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.fillRect(x, y, width, height);
     }
     [dartx.getContextAttributes]() {
-      return this.getContextAttributes();
+      return html_common.convertNativeToDart_Dictionary(this[_getContextAttributes_1]());
+    }
+    [_getContextAttributes_1]() {
+      return this._getContextAttributes_1();
     }
     [dartx.getImageData](sx, sy, sw, sh) {
       return html_common.convertNativeToDart_ImageData(this[_getImageData_1](sx, sy, sw, sh));
@@ -35766,6 +36068,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.rect](x, y, width, height) {
       return this.rect(x, y, width, height);
     }
+    [dartx.createImageDataFromImageData](imagedata) {
+      return dart.as(this.createImageData(imagedata), html$.ImageData);
+    }
     [dartx.setFillColorRgb](r, g, b, a) {
       if (a === void 0) a = 1;
       this[dartx.fillStyle] = `rgba(${r}, ${g}, ${b}, ${a})`;
@@ -35785,6 +36090,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.arc](x, y, radius, startAngle, endAngle, anticlockwise) {
       if (anticlockwise === void 0) anticlockwise = false;
       this.arc(x, y, radius, startAngle, endAngle, anticlockwise);
+    }
+    [dartx.createPatternFromImage](image, repetitionType) {
+      return dart.as(this.createPattern(image, repetitionType), html$.CanvasPattern);
     }
     [dartx.drawImageToRect](source, destRect, opts) {
       let sourceRect = opts && 'sourceRect' in opts ? opts.sourceRect : null;
@@ -35850,17 +36158,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.clearHitRegions]: [dart.void, []],
       [dartx.clearRect]: [dart.void, [core.num, core.num, core.num, core.num]],
       [dartx.clip]: [dart.void, [], [dart.dynamic, core.String]],
-      [dartx.createImageData]: [html$.ImageData, [core.num, core.num]],
-      [_createImageData_1]: [dart.dynamic, [dart.dynamic, dart.dynamic]],
-      [dartx.createImageDataFromImageData]: [html$.ImageData, [html$.ImageData]],
-      [_createImageDataFromImageData_1]: [dart.dynamic, [dart.dynamic]],
+      [dartx.createImageData]: [html$.ImageData, [dart.dynamic], [core.num]],
+      [_createImageData_1]: [dart.dynamic, [dart.dynamic]],
+      [_createImageData_2]: [dart.dynamic, [core.num, dart.dynamic]],
       [dartx.createLinearGradient]: [html$.CanvasGradient, [core.num, core.num, core.num, core.num]],
-      [dartx.createPattern]: [html$.CanvasPattern, [dart.dynamic, core.String]],
-      [dartx.createPatternFromImage]: [html$.CanvasPattern, [html$.ImageElement, core.String]],
+      [dartx.createPattern]: [html$.CanvasPattern, [core.Object, core.String]],
       [dartx.createRadialGradient]: [html$.CanvasGradient, [core.num, core.num, core.num, core.num, core.num, core.num]],
       [dartx.drawFocusIfNeeded]: [dart.void, [dart.dynamic], [html$.Element]],
       [dartx.fillRect]: [dart.void, [core.num, core.num, core.num, core.num]],
-      [dartx.getContextAttributes]: [html$.Canvas2DContextAttributes, []],
+      [dartx.getContextAttributes]: [core.Map, []],
+      [_getContextAttributes_1]: [dart.dynamic, []],
       [dartx.getImageData]: [html$.ImageData, [core.num, core.num, core.num, core.num]],
       [_getImageData_1]: [dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]],
       [_getLineDash]: [core.List$(core.num), []],
@@ -35893,11 +36200,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.moveTo]: [dart.void, [core.num, core.num]],
       [dartx.quadraticCurveTo]: [dart.void, [core.num, core.num, core.num, core.num]],
       [dartx.rect]: [dart.void, [core.num, core.num, core.num, core.num]],
+      [dartx.createImageDataFromImageData]: [html$.ImageData, [html$.ImageData]],
       [dartx.setFillColorRgb]: [dart.void, [core.int, core.int, core.int], [core.num]],
       [dartx.setFillColorHsl]: [dart.void, [core.int, core.num, core.num], [core.num]],
       [dartx.setStrokeColorRgb]: [dart.void, [core.int, core.int, core.int], [core.num]],
       [dartx.setStrokeColorHsl]: [dart.void, [core.int, core.num, core.num], [core.num]],
       [dartx.arc]: [dart.void, [core.num, core.num, core.num, core.num, core.num], [core.bool]],
+      [dartx.createPatternFromImage]: [html$.CanvasPattern, [html$.ImageElement, core.String]],
       [dartx.drawImageToRect]: [dart.void, [html$.CanvasImageSource, math.Rectangle$(core.num)], {sourceRect: math.Rectangle$(core.num)}],
       [dartx.drawImage]: [dart.void, [html$.CanvasImageSource, core.num, core.num]],
       [dartx.drawImageScaled]: [dart.void, [html$.CanvasImageSource, core.num, core.num, core.num, core.num]],
@@ -35910,25 +36219,24 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.CanvasRenderingContext2D[dart.metadata] = () => [dart.const(new _metadata.DomName('CanvasRenderingContext2D')), dart.const(new _js_helper.Native("CanvasRenderingContext2D"))];
   dart.registerExtension(dart.global.CanvasRenderingContext2D, html$.CanvasRenderingContext2D);
-  dart.defineExtensionNames([
-    'nextElementSibling',
-    'previousElementSibling'
-  ]);
   html$.ChildNode = class ChildNode extends _interceptors.Interceptor {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    get [dartx.nextElementSibling]() {
-      return this.nextElementSibling;
-    }
-    get [dartx.previousElementSibling]() {
-      return this.previousElementSibling;
     }
   };
   dart.setSignature(html$.ChildNode, {
     constructors: () => ({_: [html$.ChildNode, []]})
   });
   html$.ChildNode[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ChildNode')), dart.const(new _metadata.Experimental())];
+  html$.ChromiumValuebuffer = class ChromiumValuebuffer extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+  };
+  dart.setSignature(html$.ChromiumValuebuffer, {
+    constructors: () => ({_: [html$.ChromiumValuebuffer, []]})
+  });
+  html$.ChromiumValuebuffer[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CHROMIUMValuebuffer')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("CHROMIUMValuebuffer"))];
   dart.defineExtensionNames([
     'id'
   ]);
@@ -35983,6 +36291,86 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.CircularGeofencingRegion.MAX_RADIUS = 100.0;
   html$.CircularGeofencingRegion.MIN_RADIUS = 1.0;
   dart.registerExtension(dart.global.CircularGeofencingRegion, html$.CircularGeofencingRegion);
+  const _postMessage_1 = Symbol('_postMessage_1');
+  const _postMessage_2 = Symbol('_postMessage_2');
+  html$.Client = class Client extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    postMessage(message, transfer) {
+      if (transfer === void 0) transfer = null;
+      if (transfer != null) {
+        let message_1 = html_common.convertDartToNative_SerializedScriptValue(message);
+        this[_postMessage_1](message_1, transfer);
+        return;
+      }
+      let message_1 = html_common.convertDartToNative_SerializedScriptValue(message);
+      this[_postMessage_2](message_1);
+      return;
+    }
+    [_postMessage_1](message, transfer) {
+      return this._postMessage_1(message, transfer);
+    }
+    [_postMessage_2](message) {
+      return this._postMessage_2(message);
+    }
+  };
+  dart.setSignature(html$.Client, {
+    constructors: () => ({_: [html$.Client, []]}),
+    methods: () => ({
+      postMessage: [dart.void, [dart.dynamic], [core.List$(html$.MessagePort)]],
+      [_postMessage_1]: [dart.void, [dart.dynamic, core.List$(html$.MessagePort)]],
+      [_postMessage_2]: [dart.void, [dart.dynamic]]
+    })
+  });
+  html$.Client[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Client')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("Client"))];
+  const _matchAll_1 = Symbol('_matchAll_1');
+  const _matchAll_2 = Symbol('_matchAll_2');
+  html$.Clients = class Clients extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    claim() {
+      return this.claim();
+    }
+    matchAll(options) {
+      if (options === void 0) options = null;
+      if (options != null) {
+        let options_1 = html_common.convertDartToNative_Dictionary(options);
+        return this[_matchAll_1](options_1);
+      }
+      return this[_matchAll_2]();
+    }
+    [_matchAll_1](options) {
+      return this._matchAll_1(options);
+    }
+    [_matchAll_2]() {
+      return this._matchAll_2();
+    }
+    openWindow(url) {
+      return this.openWindow(url);
+    }
+  };
+  dart.setSignature(html$.Clients, {
+    constructors: () => ({_: [html$.Clients, []]}),
+    methods: () => ({
+      claim: [async.Future, []],
+      matchAll: [async.Future, [], [core.Map]],
+      [_matchAll_1]: [async.Future, [dart.dynamic]],
+      [_matchAll_2]: [async.Future, []],
+      openWindow: [async.Future, [core.String]]
+    })
+  });
+  html$.Clients[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Clients')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("Clients"))];
+  html$.ClipboardEvent = class ClipboardEvent extends html$.Event {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+  };
+  dart.setSignature(html$.ClipboardEvent, {
+    constructors: () => ({_: [html$.ClipboardEvent, []]})
+  });
+  html$.ClipboardEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ClipboardEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("ClipboardEvent"))];
   dart.defineExtensionNames([
     'code',
     'reason',
@@ -35991,6 +36379,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.CloseEvent = class CloseEvent extends html$.Event {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.CloseEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.CloseEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new CloseEvent(type, eventInitDict), html$.CloseEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new CloseEvent(type), html$.CloseEvent);
     }
     get [dartx.code]() {
       return this.code;
@@ -36003,7 +36405,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$.CloseEvent, {
-    constructors: () => ({_: [html$.CloseEvent, []]})
+    constructors: () => ({
+      _: [html$.CloseEvent, []],
+      new: [html$.CloseEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.CloseEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.CloseEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.CloseEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CloseEvent')), dart.const(new _js_helper.Native("CloseEvent"))];
   dart.registerExtension(dart.global.CloseEvent, html$.CloseEvent);
@@ -36031,17 +36441,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _initUIEvent = Symbol('_initUIEvent');
   const _charCode = Symbol('_charCode');
   const _keyCode = Symbol('_keyCode');
-  const _layerX = Symbol('_layerX');
-  const _layerY = Symbol('_layerY');
-  const _pageX = Symbol('_pageX');
-  const _pageY = Symbol('_pageY');
   const _get_view = Symbol('_get_view');
+  const _which = Symbol('_which');
   dart.defineExtensionNames([
     'view',
-    'layer',
-    'page',
     'detail',
-    'which'
+    'sourceDevice'
   ]);
   html$.UIEvent = class UIEvent extends html$.Event {
     static new(type, opts) {
@@ -36052,12 +36457,23 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (view == null) {
         view = html$.window;
       }
-      let e = html$.document[_createEvent]("UIEvent");
-      dart.dcall(e[_initUIEvent], type, canBubble, cancelable, view, detail);
-      return dart.as(e, html$.UIEvent);
+      let e = dart.as(html$.document[_createEvent]("UIEvent"), html$.UIEvent);
+      e[_initUIEvent](type, canBubble, cancelable, view, detail);
+      return e;
     }
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
+    static _(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.UIEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.UIEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new UIEvent(type, eventInitDict), html$.UIEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new UIEvent(type), html$.UIEvent);
     }
     get [_charCode]() {
       return this.charCode;
@@ -36068,17 +36484,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [_keyCode]() {
       return this.keyCode;
     }
-    get [_layerX]() {
-      return this.layerX;
-    }
-    get [_layerY]() {
-      return this.layerY;
-    }
-    get [_pageX]() {
-      return this.pageX;
-    }
-    get [_pageY]() {
-      return this.pageY;
+    get [dartx.sourceDevice]() {
+      return this.sourceDevice;
     }
     get [dartx.view]() {
       return html$._convertNativeToDart_Window(this[_get_view]);
@@ -36086,32 +36493,28 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [_get_view]() {
       return this.view;
     }
-    get [dartx.which]() {
+    get [_which]() {
       return this.which;
     }
-    [_initUIEvent](type, canBubble, cancelable, view, detail) {
-      return this._initUIEvent(type, canBubble, cancelable, view, detail);
-    }
-    get [dartx.layer]() {
-      return new (math.Point$(core.num))(this[_layerX], this[_layerY]);
-    }
-    get [dartx.page]() {
-      return new (math.Point$(core.num))(this[_pageX], this[_pageY]);
+    [_initUIEvent](type, bubbles, cancelable, view, detail) {
+      return this._initUIEvent(type, bubbles, cancelable, view, detail);
     }
   };
   dart.setSignature(html$.UIEvent, {
     constructors: () => ({
       new: [html$.UIEvent, [core.String], {view: html$.Window, detail: core.int, canBubble: core.bool, cancelable: core.bool}],
-      _: [html$.UIEvent, []]
+      _: [html$.UIEvent, [core.String], [core.Map]]
     }),
-    methods: () => ({[_initUIEvent]: [dart.void, [core.String, core.bool, core.bool, html$.Window, core.int]]})
+    methods: () => ({[_initUIEvent]: [dart.void, [core.String, core.bool, core.bool, html$.Window, core.int]]}),
+    statics: () => ({
+      _create_1: [html$.UIEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.UIEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.UIEvent[dart.metadata] = () => [dart.const(new _metadata.DomName('UIEvent')), dart.const(new _js_helper.Native("UIEvent"))];
   dart.registerExtension(dart.global.UIEvent, html$.UIEvent);
   dart.defineExtensionNames([
-    'getSegments',
-    'activeSegmentEnd',
-    'activeSegmentStart',
     'data'
   ]);
   html$.CompositionEvent = class CompositionEvent extends html$.UIEvent {
@@ -36124,45 +36527,358 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (view == null) {
         view = html$.window;
       }
-      let e = html$.document[_createEvent]("CompositionEvent");
+      let e = dart.as(html$.document[_createEvent]("CompositionEvent"), html$.CompositionEvent);
       if (dart.notNull(html_common.Device.isFirefox)) {
         e.initCompositionEvent(type, canBubble, cancelable, view, data, locale);
       } else {
-        dart.dcall(e[_initCompositionEvent], type, canBubble, cancelable, view, data);
+        e[_initCompositionEvent](type, canBubble, cancelable, view, data);
       }
-      return dart.as(e, html$.CompositionEvent);
+      return e;
     }
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
+    static _(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.CompositionEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.CompositionEvent._create_2(type);
     }
-    get [dartx.activeSegmentEnd]() {
-      return this.activeSegmentEnd;
+    static _create_1(type, eventInitDict) {
+      return dart.as(new CompositionEvent(type, eventInitDict), html$.CompositionEvent);
     }
-    get [dartx.activeSegmentStart]() {
-      return this.activeSegmentStart;
+    static _create_2(type) {
+      return dart.as(new CompositionEvent(type), html$.CompositionEvent);
     }
     get [dartx.data]() {
       return this.data;
     }
-    [dartx.getSegments]() {
-      return this.getSegments();
-    }
-    [_initCompositionEvent](typeArg, canBubbleArg, cancelableArg, viewArg, dataArg) {
-      return this._initCompositionEvent(typeArg, canBubbleArg, cancelableArg, viewArg, dataArg);
+    [_initCompositionEvent](type, bubbles, cancelable, view, data) {
+      return this._initCompositionEvent(type, bubbles, cancelable, view, data);
     }
   };
   dart.setSignature(html$.CompositionEvent, {
     constructors: () => ({
       new: [html$.CompositionEvent, [core.String], {canBubble: core.bool, cancelable: core.bool, view: html$.Window, data: core.String, locale: core.String}],
-      _: [html$.CompositionEvent, []]
+      _: [html$.CompositionEvent, [core.String], [core.Map]]
     }),
-    methods: () => ({
-      [dartx.getSegments]: [core.List$(core.int), []],
-      [_initCompositionEvent]: [dart.void, [core.String, core.bool, core.bool, html$.Window, core.String]]
-    })
+    methods: () => ({[_initCompositionEvent]: [dart.void, [core.String, core.bool, core.bool, html$.Window, core.String]]}),
+    statics: () => ({
+      _create_1: [html$.CompositionEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.CompositionEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.CompositionEvent[dart.metadata] = () => [dart.const(new _metadata.DomName('CompositionEvent')), dart.const(new _js_helper.Native("CompositionEvent"))];
   dart.registerExtension(dart.global.CompositionEvent, html$.CompositionEvent);
+  html$.CompositorProxy = class CompositorProxy extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(element, attributeArray) {
+      return html$.CompositorProxy._create_1(element, attributeArray);
+    }
+    static _create_1(element, attributeArray) {
+      return dart.as(new CompositorProxy(element, attributeArray), html$.CompositorProxy);
+    }
+    disconnect() {
+      return this.disconnect();
+    }
+    supports(attribute) {
+      return this.supports(attribute);
+    }
+  };
+  dart.setSignature(html$.CompositorProxy, {
+    constructors: () => ({
+      _: [html$.CompositorProxy, []],
+      new: [html$.CompositorProxy, [html$.Element, core.List$(core.String)]]
+    }),
+    methods: () => ({
+      disconnect: [dart.void, []],
+      supports: [core.bool, [core.String]]
+    }),
+    statics: () => ({_create_1: [html$.CompositorProxy, [dart.dynamic, dart.dynamic]]}),
+    names: ['_create_1']
+  });
+  html$.CompositorProxy[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CompositorProxy')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("CompositorProxy"))];
+  html$.CompositorWorker = class CompositorWorker extends html$.EventTarget {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(scriptUrl) {
+      return html$.CompositorWorker._create_1(scriptUrl);
+    }
+    static _create_1(scriptUrl) {
+      return dart.as(new CompositorWorker(scriptUrl), html$.CompositorWorker);
+    }
+    postMessage(message, transfer) {
+      if (transfer === void 0) transfer = null;
+      if (transfer != null) {
+        let message_1 = html_common.convertDartToNative_SerializedScriptValue(message);
+        this[_postMessage_1](message_1, transfer);
+        return;
+      }
+      let message_1 = html_common.convertDartToNative_SerializedScriptValue(message);
+      this[_postMessage_2](message_1);
+      return;
+    }
+    [_postMessage_1](message, transfer) {
+      return this._postMessage_1(message, transfer);
+    }
+    [_postMessage_2](message) {
+      return this._postMessage_2(message);
+    }
+    terminate() {
+      return this.terminate();
+    }
+    get onError() {
+      return html$.CompositorWorker.errorEvent.forTarget(this);
+    }
+    get onMessage() {
+      return html$.CompositorWorker.messageEvent.forTarget(this);
+    }
+  };
+  html$.CompositorWorker[dart.implements] = () => [html$.AbstractWorker];
+  dart.setSignature(html$.CompositorWorker, {
+    constructors: () => ({
+      _: [html$.CompositorWorker, []],
+      new: [html$.CompositorWorker, [core.String]]
+    }),
+    methods: () => ({
+      postMessage: [dart.void, [dart.dynamic], [core.List$(html$.MessagePort)]],
+      [_postMessage_1]: [dart.void, [dart.dynamic, core.List$(html$.MessagePort)]],
+      [_postMessage_2]: [dart.void, [dart.dynamic]],
+      terminate: [dart.void, []]
+    }),
+    statics: () => ({_create_1: [html$.CompositorWorker, [dart.dynamic]]}),
+    names: ['_create_1']
+  });
+  dart.defineExtensionMembers(html$.CompositorWorker, ['onError']);
+  html$.CompositorWorker[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CompositorWorker')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("CompositorWorker"))];
+  dart.defineLazy(html$.CompositorWorker, {
+    get errorEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('error'));
+    },
+    get messageEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MessageEvent))('message'));
+    }
+  });
+  const _fetch_1 = Symbol('_fetch_1');
+  const _fetch_2 = Symbol('_fetch_2');
+  const _webkitRequestFileSystem = Symbol('_webkitRequestFileSystem');
+  const _webkitResolveLocalFileSystemUrl = Symbol('_webkitResolveLocalFileSystemUrl');
+  const _setInterval_String = Symbol('_setInterval_String');
+  const _setTimeout_String = Symbol('_setTimeout_String');
+  const _clearInterval = Symbol('_clearInterval');
+  const _clearTimeout = Symbol('_clearTimeout');
+  const _setInterval = Symbol('_setInterval');
+  const _setTimeout = Symbol('_setTimeout');
+  dart.defineExtensionNames([
+    'close',
+    'fetch',
+    'importScripts',
+    'webkitRequestFileSystem',
+    'requestFileSystemSync',
+    'resolveLocalFileSystemSyncUrl',
+    'webkitResolveLocalFileSystemUrl',
+    'atob',
+    'btoa',
+    'onError',
+    'caches',
+    'console',
+    'crypto',
+    'indexedDB',
+    'location',
+    'navigator',
+    'performance',
+    'self'
+  ]);
+  html$.WorkerGlobalScope = class WorkerGlobalScope extends html$.EventTarget {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    get [dartx.caches]() {
+      return this.caches;
+    }
+    get [dartx.console]() {
+      return this.console;
+    }
+    get [dartx.crypto]() {
+      return this.crypto;
+    }
+    get [dartx.indexedDB]() {
+      return this.indexedDB;
+    }
+    get [dartx.location]() {
+      return this.location;
+    }
+    get [dartx.navigator]() {
+      return this.navigator;
+    }
+    get [dartx.performance]() {
+      return this.performance;
+    }
+    get [dartx.self]() {
+      return this.self;
+    }
+    [dartx.close]() {
+      return this.close();
+    }
+    [dartx.fetch](input, init) {
+      if (init === void 0) init = null;
+      if (init != null) {
+        let init_1 = html_common.convertDartToNative_Dictionary(init);
+        return this[_fetch_1](input, init_1);
+      }
+      return this[_fetch_2](input);
+    }
+    [_fetch_1](input, init) {
+      return this._fetch_1(input, init);
+    }
+    [_fetch_2](input) {
+      return this._fetch_2(input);
+    }
+    [dartx.importScripts](urls) {
+      return this.importScripts(urls);
+    }
+    [_webkitRequestFileSystem](type, size, successCallback, errorCallback) {
+      return this._webkitRequestFileSystem(type, size, successCallback, errorCallback);
+    }
+    [dartx.webkitRequestFileSystem](type, size) {
+      let completer = async.Completer$(html$.FileSystem).new();
+      this[_webkitRequestFileSystem](type, size, dart.fn(value => {
+        completer.complete(value);
+      }, dart.void, [html$.FileSystem]), dart.fn(error => {
+        completer.completeError(error);
+      }, dart.void, [html$.FileError]));
+      return completer.future;
+    }
+    [dartx.requestFileSystemSync](type, size) {
+      return this.requestFileSystemSync(type, size);
+    }
+    [dartx.resolveLocalFileSystemSyncUrl](url) {
+      return this.resolveLocalFileSystemSyncUrl(url);
+    }
+    [_webkitResolveLocalFileSystemUrl](url, successCallback, errorCallback) {
+      return this._webkitResolveLocalFileSystemUrl(url, successCallback, errorCallback);
+    }
+    [dartx.webkitResolveLocalFileSystemUrl](url) {
+      let completer = async.Completer$(html$.Entry).new();
+      this[_webkitResolveLocalFileSystemUrl](url, dart.fn(value => {
+        completer.complete(value);
+      }, dart.void, [html$.Entry]), dart.fn(error => {
+        completer.completeError(error);
+      }, dart.void, [html$.FileError]));
+      return completer.future;
+    }
+    [dartx.atob](atob) {
+      return this.atob(atob);
+    }
+    [dartx.btoa](btoa) {
+      return this.btoa(btoa);
+    }
+    [_setInterval_String](handler, timeout, arguments$) {
+      return this._setInterval_String(handler, timeout, arguments$);
+    }
+    [_setTimeout_String](handler, timeout, arguments$) {
+      return this._setTimeout_String(handler, timeout, arguments$);
+    }
+    [_clearInterval](handle) {
+      return this._clearInterval(handle);
+    }
+    [_clearTimeout](handle) {
+      return this._clearTimeout(handle);
+    }
+    [_setInterval](handler, timeout) {
+      return this._setInterval(handler, timeout);
+    }
+    [_setTimeout](handler, timeout) {
+      return this._setTimeout(handler, timeout);
+    }
+    get [dartx.onError]() {
+      return html$.WorkerGlobalScope.errorEvent.forTarget(this);
+    }
+  };
+  html$.WorkerGlobalScope[dart.implements] = () => [html$._WindowTimers, html$.WindowBase64];
+  dart.setSignature(html$.WorkerGlobalScope, {
+    constructors: () => ({_: [html$.WorkerGlobalScope, []]}),
+    methods: () => ({
+      [dartx.close]: [dart.void, []],
+      [dartx.fetch]: [async.Future, [dart.dynamic], [core.Map]],
+      [_fetch_1]: [async.Future, [dart.dynamic, dart.dynamic]],
+      [_fetch_2]: [async.Future, [dart.dynamic]],
+      [dartx.importScripts]: [dart.void, [core.String]],
+      [_webkitRequestFileSystem]: [dart.void, [core.int, core.int], [html$._FileSystemCallback, html$._ErrorCallback]],
+      [dartx.webkitRequestFileSystem]: [async.Future$(html$.FileSystem), [core.int, core.int]],
+      [dartx.requestFileSystemSync]: [html$._DOMFileSystemSync, [core.int, core.int]],
+      [dartx.resolveLocalFileSystemSyncUrl]: [html$._EntrySync, [core.String]],
+      [_webkitResolveLocalFileSystemUrl]: [dart.void, [core.String, html$._EntryCallback], [html$._ErrorCallback]],
+      [dartx.webkitResolveLocalFileSystemUrl]: [async.Future$(html$.Entry), [core.String]],
+      [dartx.atob]: [core.String, [core.String]],
+      [dartx.btoa]: [core.String, [core.String]],
+      [_setInterval_String]: [core.int, [core.String], [core.int, core.Object]],
+      [_setTimeout_String]: [core.int, [core.String], [core.int, core.Object]],
+      [_clearInterval]: [dart.void, [], [core.int]],
+      [_clearTimeout]: [dart.void, [], [core.int]],
+      [_setInterval]: [core.int, [core.Object], [core.int]],
+      [_setTimeout]: [core.int, [core.Object], [core.int]]
+    })
+  });
+  html$.WorkerGlobalScope[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('WorkerGlobalScope')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("WorkerGlobalScope"))];
+  html$.WorkerGlobalScope.PERSISTENT = 1;
+  html$.WorkerGlobalScope.TEMPORARY = 0;
+  dart.defineLazy(html$.WorkerGlobalScope, {
+    get errorEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('error'));
+    }
+  });
+  dart.registerExtension(dart.global.WorkerGlobalScope, html$.WorkerGlobalScope);
+  html$.CompositorWorkerGlobalScope = class CompositorWorkerGlobalScope extends html$.WorkerGlobalScope {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    cancelAnimationFrame(handle) {
+      return this.cancelAnimationFrame(handle);
+    }
+    postMessage(message, transfer) {
+      if (transfer === void 0) transfer = null;
+      if (transfer != null) {
+        let message_1 = html_common.convertDartToNative_SerializedScriptValue(message);
+        this[_postMessage_1](message_1, transfer);
+        return;
+      }
+      let message_1 = html_common.convertDartToNative_SerializedScriptValue(message);
+      this[_postMessage_2](message_1);
+      return;
+    }
+    [_postMessage_1](message, transfer) {
+      return this._postMessage_1(message, transfer);
+    }
+    [_postMessage_2](message) {
+      return this._postMessage_2(message);
+    }
+    requestAnimationFrame(callback) {
+      return this.requestAnimationFrame(callback);
+    }
+    get onMessage() {
+      return html$.CompositorWorkerGlobalScope.messageEvent.forTarget(this);
+    }
+  };
+  dart.setSignature(html$.CompositorWorkerGlobalScope, {
+    constructors: () => ({_: [html$.CompositorWorkerGlobalScope, []]}),
+    methods: () => ({
+      cancelAnimationFrame: [dart.void, [core.int]],
+      postMessage: [dart.void, [dart.dynamic], [core.List$(html$.MessagePort)]],
+      [_postMessage_1]: [dart.void, [dart.dynamic, core.List$(html$.MessagePort)]],
+      [_postMessage_2]: [dart.void, [dart.dynamic]],
+      requestAnimationFrame: [core.int, [html$.FrameRequestCallback]]
+    })
+  });
+  html$.CompositorWorkerGlobalScope[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CompositorWorkerGlobalScope')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("CompositorWorkerGlobalScope"))];
+  dart.defineLazy(html$.CompositorWorkerGlobalScope, {
+    get messageEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MessageEvent))('message'));
+    }
+  });
   const _isConsoleDefined = Symbol('_isConsoleDefined');
   html$.Console = class Console extends core.Object {
     _safe() {
@@ -36277,12 +36993,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   });
   dart.defineExtensionNames([
+    'assertCondition',
     'timeline',
     'timelineEnd'
   ]);
   html$.ConsoleBase = class ConsoleBase extends _interceptors.Interceptor {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    [dartx.assertCondition](condition, arg) {
+      return this.assertCondition(condition, arg);
     }
     [dartx.timeline](title) {
       return this.timeline(title);
@@ -36294,6 +37014,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(html$.ConsoleBase, {
     constructors: () => ({_: [html$.ConsoleBase, []]}),
     methods: () => ({
+      [dartx.assertCondition]: [dart.void, [core.bool, core.Object]],
       [dartx.timeline]: [dart.void, [core.String]],
       [dartx.timelineEnd]: [dart.void, [core.String]]
     })
@@ -36380,22 +37101,26 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.Coordinates[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Coordinates')), dart.const(new _js_helper.Native("Coordinates"))];
   dart.registerExtension(dart.global.Coordinates, html$.Coordinates);
   dart.defineExtensionNames([
-    'avatarUrl',
+    'iconUrl',
     'id',
-    'name'
+    'name',
+    'type'
   ]);
   html$.Credential = class Credential extends _interceptors.Interceptor {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    get [dartx.avatarUrl]() {
-      return this.avatarURL;
+    get [dartx.iconUrl]() {
+      return this.iconURL;
     }
     get [dartx.id]() {
       return this.id;
     }
     get [dartx.name]() {
       return this.name;
+    }
+    get [dartx.type]() {
+      return this.type;
     }
   };
   dart.setSignature(html$.Credential, {
@@ -36406,23 +37131,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _request_1 = Symbol('_request_1');
   const _request_2 = Symbol('_request_2');
   dart.defineExtensionNames([
-    'notifyFailedSignIn',
     'notifySignedIn',
-    'notifySignedOut',
-    'request'
+    'request',
+    'requireUserMediation'
   ]);
   html$.CredentialsContainer = class CredentialsContainer extends _interceptors.Interceptor {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.notifyFailedSignIn](credential) {
-      return this.notifyFailedSignIn(credential);
-    }
     [dartx.notifySignedIn](credential) {
       return this.notifySignedIn(credential);
-    }
-    [dartx.notifySignedOut]() {
-      return this.notifySignedOut();
     }
     [dartx.request](options) {
       if (options === void 0) options = null;
@@ -36438,20 +37156,66 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [_request_2]() {
       return this._request_2();
     }
+    [dartx.requireUserMediation]() {
+      return this.requireUserMediation();
+    }
   };
   dart.setSignature(html$.CredentialsContainer, {
     constructors: () => ({_: [html$.CredentialsContainer, []]}),
     methods: () => ({
-      [dartx.notifyFailedSignIn]: [async.Future, [html$.Credential]],
       [dartx.notifySignedIn]: [async.Future, [html$.Credential]],
-      [dartx.notifySignedOut]: [async.Future, []],
       [dartx.request]: [async.Future, [], [core.Map]],
       [_request_1]: [async.Future, [dart.dynamic]],
-      [_request_2]: [async.Future, []]
+      [_request_2]: [async.Future, []],
+      [dartx.requireUserMediation]: [async.Future, []]
     })
   });
   html$.CredentialsContainer[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CredentialsContainer')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("CredentialsContainer"))];
   dart.registerExtension(dart.global.CredentialsContainer, html$.CredentialsContainer);
+  html$.CrossOriginConnectEvent = class CrossOriginConnectEvent extends html$.Event {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    acceptConnection(shouldAccept) {
+      return this.acceptConnection(shouldAccept);
+    }
+  };
+  dart.setSignature(html$.CrossOriginConnectEvent, {
+    constructors: () => ({_: [html$.CrossOriginConnectEvent, []]}),
+    methods: () => ({acceptConnection: [dart.void, [async.Future]]})
+  });
+  html$.CrossOriginConnectEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CrossOriginConnectEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("CrossOriginConnectEvent"))];
+  html$.CrossOriginServiceWorkerClient = class CrossOriginServiceWorkerClient extends html$.EventTarget {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    postMessage(message, transfer) {
+      if (transfer === void 0) transfer = null;
+      if (transfer != null) {
+        let message_1 = html_common.convertDartToNative_SerializedScriptValue(message);
+        this[_postMessage_1](message_1, transfer);
+        return;
+      }
+      let message_1 = html_common.convertDartToNative_SerializedScriptValue(message);
+      this[_postMessage_2](message_1);
+      return;
+    }
+    [_postMessage_1](message, transfer) {
+      return this._postMessage_1(message, transfer);
+    }
+    [_postMessage_2](message) {
+      return this._postMessage_2(message);
+    }
+  };
+  dart.setSignature(html$.CrossOriginServiceWorkerClient, {
+    constructors: () => ({_: [html$.CrossOriginServiceWorkerClient, []]}),
+    methods: () => ({
+      postMessage: [dart.void, [dart.dynamic], [core.List$(html$.MessagePort)]],
+      [_postMessage_1]: [dart.void, [dart.dynamic, core.List$(html$.MessagePort)]],
+      [_postMessage_2]: [dart.void, [dart.dynamic]]
+    })
+  });
+  html$.CrossOriginServiceWorkerClient[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CrossOriginServiceWorkerClient')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("CrossOriginServiceWorkerClient"))];
   const _getRandomValues = Symbol('_getRandomValues');
   dart.defineExtensionNames([
     'getRandomValues',
@@ -36511,27 +37275,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.CryptoKey[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CryptoKey')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("CryptoKey"))];
   dart.registerExtension(dart.global.CryptoKey, html$.CryptoKey);
-  dart.defineExtensionNames([
-    'supports',
-    'supportsCondition'
-  ]);
   html$.Css = class Css extends _interceptors.Interceptor {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.supports](property, value) {
-      return this.supports(property, value);
-    }
-    [dartx.supportsCondition](conditionText) {
-      return this.supportsCondition(conditionText);
-    }
   };
   dart.setSignature(html$.Css, {
     constructors: () => ({_: [html$.Css, []]}),
-    methods: () => ({
-      [dartx.supports]: [core.bool, [core.String, core.String]],
-      [dartx.supportsCondition]: [core.bool, [core.String]]
-    })
+    statics: () => ({
+      supports: [core.bool, [core.String, core.String]],
+      supportsCondition: [core.bool, [core.String]]
+    }),
+    names: ['supports', 'supportsCondition']
   });
   html$.Css[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CSS')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("CSS"))];
   dart.registerExtension(dart.global.CSS, html$.Css);
@@ -36575,7 +37330,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.CssRule.STYLE_RULE = 1;
   html$.CssRule.SUPPORTS_RULE = 12;
   html$.CssRule.VIEWPORT_RULE = 15;
-  html$.CssRule.WEBKIT_FILTER_RULE = 17;
   html$.CssRule.WEBKIT_KEYFRAMES_RULE = 7;
   html$.CssRule.WEBKIT_KEYFRAME_RULE = 8;
   dart.registerExtension(dart.global.CSSRule, html$.CssRule);
@@ -36601,22 +37355,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.defineExtensionNames([
     'style'
   ]);
-  html$.CssFilterRule = class CssFilterRule extends html$.CssRule {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    get [dartx.style]() {
-      return this.style;
-    }
-  };
-  dart.setSignature(html$.CssFilterRule, {
-    constructors: () => ({_: [html$.CssFilterRule, []]})
-  });
-  html$.CssFilterRule[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('WebKitCSSFilterRule')), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.CHROME)), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.SAFARI)), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("WebKitCSSFilterRule"))];
-  dart.registerExtension(dart.global.WebKitCSSFilterRule, html$.CssFilterRule);
-  dart.defineExtensionNames([
-    'style'
-  ]);
   html$.CssFontFaceRule = class CssFontFaceRule extends html$.CssRule {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -36630,6 +37368,25 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.CssFontFaceRule[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CSSFontFaceRule')), dart.const(new _js_helper.Native("CSSFontFaceRule"))];
   dart.registerExtension(dart.global.CSSFontFaceRule, html$.CssFontFaceRule);
+  html$.CssGroupingRule = class CssGroupingRule extends html$.CssRule {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    deleteRule(index) {
+      return this.deleteRule(index);
+    }
+    insertRule(rule, index) {
+      return this.insertRule(rule, index);
+    }
+  };
+  dart.setSignature(html$.CssGroupingRule, {
+    constructors: () => ({_: [html$.CssGroupingRule, []]}),
+    methods: () => ({
+      deleteRule: [dart.void, [core.int]],
+      insertRule: [core.int, [core.String, core.int]]
+    })
+  });
+  html$.CssGroupingRule[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CSSGroupingRule')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("CSSGroupingRule"))];
   dart.defineExtensionNames([
     'href',
     'media',
@@ -36678,9 +37435,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.CssKeyframeRule[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CSSKeyframeRule')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("CSSKeyframeRule,MozCSSKeyframeRule,WebKitCSSKeyframeRule"))];
   dart.registerExtension(dart.global.CSSKeyframeRule, html$.CssKeyframeRule);
   dart.defineExtensionNames([
+    'appendRule',
     'deleteRule',
     'findRule',
-    'appendRule',
     'cssRules',
     'name'
   ]);
@@ -36700,56 +37457,40 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [__getter__](index) {
       return this.__getter__(index);
     }
-    [dartx.deleteRule](key) {
-      return this.deleteRule(key);
-    }
-    [dartx.findRule](key) {
-      return this.findRule(key);
-    }
     [dartx.appendRule](rule) {
       return this.appendRule(rule);
+    }
+    [dartx.deleteRule](select) {
+      return this.deleteRule(select);
+    }
+    [dartx.findRule](select) {
+      return this.findRule(select);
     }
   };
   dart.setSignature(html$.CssKeyframesRule, {
     constructors: () => ({_: [html$.CssKeyframesRule, []]}),
     methods: () => ({
       [__getter__]: [html$.CssKeyframeRule, [core.int]],
+      [dartx.appendRule]: [dart.void, [core.String]],
       [dartx.deleteRule]: [dart.void, [core.String]],
-      [dartx.findRule]: [html$.CssKeyframeRule, [core.String]],
-      [dartx.appendRule]: [dart.void, [core.String]]
+      [dartx.findRule]: [html$.CssKeyframeRule, [core.String]]
     })
   });
   html$.CssKeyframesRule[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CSSKeyframesRule')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("CSSKeyframesRule,MozCSSKeyframesRule,WebKitCSSKeyframesRule"))];
   dart.registerExtension(dart.global.CSSKeyframesRule, html$.CssKeyframesRule);
   dart.defineExtensionNames([
-    'deleteRule',
-    'insertRule',
-    'cssRules',
     'media'
   ]);
-  html$.CssMediaRule = class CssMediaRule extends html$.CssRule {
+  html$.CssMediaRule = class CssMediaRule extends html$.CssGroupingRule {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    get [dartx.cssRules]() {
-      return this.cssRules;
     }
     get [dartx.media]() {
       return this.media;
     }
-    [dartx.deleteRule](index) {
-      return this.deleteRule(index);
-    }
-    [dartx.insertRule](rule, index) {
-      return this.insertRule(rule, index);
-    }
   };
   dart.setSignature(html$.CssMediaRule, {
-    constructors: () => ({_: [html$.CssMediaRule, []]}),
-    methods: () => ({
-      [dartx.deleteRule]: [dart.void, [core.int]],
-      [dartx.insertRule]: [core.int, [core.String, core.int]]
-    })
+    constructors: () => ({_: [html$.CssMediaRule, []]})
   });
   html$.CssMediaRule[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CSSMediaRule')), dart.const(new _js_helper.Native("CSSMediaRule"))];
   dart.registerExtension(dart.global.CSSMediaRule, html$.CssMediaRule);
@@ -36781,7 +37522,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _getPropertyValue = Symbol('_getPropertyValue');
   const _setPropertyHelper = Symbol('_setPropertyHelper');
   const _browserPropertyName = Symbol('_browserPropertyName');
-  const __setter__ = Symbol('__setter__');
   const _background = Symbol('_background');
   const _backgroundAttachment = Symbol('_backgroundAttachment');
   const _backgroundColor = Symbol('_backgroundColor');
@@ -39879,23 +40619,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.parentRule]() {
       return this.parentRule;
     }
-    [__getter__](name) {
-      return this.__getter__(name);
+    [dartx.getPropertyPriority](property) {
+      return this.getPropertyPriority(property);
     }
-    [__setter__](propertyName, propertyValue) {
-      return this.__setter__(propertyName, propertyValue);
-    }
-    [dartx.getPropertyPriority](propertyName) {
-      return this.getPropertyPriority(propertyName);
-    }
-    [_getPropertyValue](propertyName) {
-      return this._getPropertyValue(propertyName);
+    [_getPropertyValue](property) {
+      return this._getPropertyValue(property);
     }
     [dartx.item](index) {
       return this.item(index);
     }
-    [dartx.removeProperty](propertyName) {
-      return this.removeProperty(propertyName);
+    [dartx.removeProperty](property) {
+      return this.removeProperty(property);
     }
     get [dartx.background]() {
       return this[_background];
@@ -40992,8 +41726,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.setProperty]: [dart.void, [core.String, core.String], [core.String]],
       [_browserPropertyName]: [core.String, [core.String]],
       [_setPropertyHelper]: [dart.void, [core.String, core.String], [core.String]],
-      [__getter__]: [core.Object, [core.String]],
-      [__setter__]: [dart.void, [core.String, core.String]],
       [dartx.getPropertyPriority]: [core.String, [core.String]],
       [_getPropertyValue]: [core.String, [core.String]],
       [dartx.item]: [core.String, [core.int]],
@@ -41607,8 +42339,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       return this[_detail];
     }
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
+    static _(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.CustomEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.CustomEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new CustomEvent(type, eventInitDict), html$.CustomEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new CustomEvent(type), html$.CustomEvent);
     }
     get [_detail]() {
       return html_common.convertNativeToDart_SerializedScriptValue(this[_get__detail]);
@@ -41616,16 +42359,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [_get__detail]() {
       return this.detail;
     }
-    [_initCustomEvent](typeArg, canBubbleArg, cancelableArg, detailArg) {
-      return this._initCustomEvent(typeArg, canBubbleArg, cancelableArg, detailArg);
+    [_initCustomEvent](type, bubbles, cancelable, detail) {
+      return this._initCustomEvent(type, bubbles, cancelable, detail);
     }
   };
   dart.setSignature(html$.CustomEvent, {
     constructors: () => ({
       new: [html$.CustomEvent, [core.String], {canBubble: core.bool, cancelable: core.bool, detail: core.Object}],
-      _: [html$.CustomEvent, []]
+      _: [html$.CustomEvent, [core.String], [core.Map]]
     }),
-    methods: () => ({[_initCustomEvent]: [dart.void, [core.String, core.bool, core.bool, core.Object]]})
+    methods: () => ({[_initCustomEvent]: [dart.void, [core.String, core.bool, core.bool, core.Object]]}),
+    statics: () => ({
+      _create_1: [html$.CustomEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.CustomEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.CustomEvent[dart.metadata] = () => [dart.const(new _metadata.DomName('CustomEvent')), dart.const(new _js_helper.Native("CustomEvent"))];
   dart.registerExtension(dart.global.CustomEvent, html$.CustomEvent);
@@ -41717,14 +42465,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.types]() {
       return this.types;
     }
-    [dartx.clearData](type) {
-      return this.clearData(type);
+    [dartx.clearData](format) {
+      return this.clearData(format);
     }
-    [dartx.getData](type) {
-      return this.getData(type);
+    [dartx.getData](format) {
+      return this.getData(format);
     }
-    [dartx.setData](type, data) {
-      return this.setData(type, data);
+    [dartx.setData](format, data) {
+      return this.setData(format, data);
     }
     [dartx.setDragImage](image, x, y) {
       return this.setDragImage(image, x, y);
@@ -41792,6 +42540,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'addData',
     'addFile',
     'clear',
+    'item',
     'remove',
     'get',
     'length'
@@ -41802,9 +42551,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.length]() {
       return this.length;
-    }
-    [__getter__](index) {
-      return this.__getter__(index);
     }
     [dartx.add](data_OR_file, type) {
       return this.add(data_OR_file, type);
@@ -41818,6 +42564,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.clear]() {
       return this.clear();
     }
+    [dartx.item](index) {
+      return this.item(index);
+    }
     [dartx.remove](index) {
       return this.remove(index);
     }
@@ -41828,11 +42577,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(html$.DataTransferItemList, {
     constructors: () => ({_: [html$.DataTransferItemList, []]}),
     methods: () => ({
-      [__getter__]: [html$.DataTransferItem, [core.int]],
       [dartx.add]: [html$.DataTransferItem, [dart.dynamic], [core.String]],
       [dartx.addData]: [html$.DataTransferItem, [core.String, core.String]],
       [dartx.addFile]: [html$.DataTransferItem, [html$.File]],
       [dartx.clear]: [dart.void, []],
+      [dartx.item]: [html$.DataTransferItem, [core.int]],
       [dartx.remove]: [dart.void, [core.int]],
       [dartx.get]: [html$.DataTransferItem, [core.int]]
     })
@@ -41840,144 +42589,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.DataTransferItemList[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('DataTransferItemList')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("DataTransferItemList"))];
   dart.registerExtension(dart.global.DataTransferItemList, html$.DataTransferItemList);
   html$.DatabaseCallback = dart.typedef('DatabaseCallback', () => dart.functionType(dart.void, [web_sql.SqlDatabase]));
-  const _postMessage_1 = Symbol('_postMessage_1');
-  const _postMessage_2 = Symbol('_postMessage_2');
-  const _webkitRequestFileSystem = Symbol('_webkitRequestFileSystem');
-  const _webkitResolveLocalFileSystemUrl = Symbol('_webkitResolveLocalFileSystemUrl');
-  const _clearInterval = Symbol('_clearInterval');
-  const _clearTimeout = Symbol('_clearTimeout');
-  const _setInterval = Symbol('_setInterval');
-  const _setTimeout = Symbol('_setTimeout');
-  dart.defineExtensionNames([
-    'close',
-    'importScripts',
-    'webkitRequestFileSystem',
-    'requestFileSystemSync',
-    'resolveLocalFileSystemSyncUrl',
-    'webkitResolveLocalFileSystemUrl',
-    'atob',
-    'btoa',
-    'onError',
-    'console',
-    'crypto',
-    'indexedDB',
-    'location',
-    'navigator',
-    'performance',
-    'self'
-  ]);
-  html$.WorkerGlobalScope = class WorkerGlobalScope extends html$.EventTarget {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    get [dartx.console]() {
-      return this.console;
-    }
-    get [dartx.crypto]() {
-      return this.crypto;
-    }
-    get [dartx.indexedDB]() {
-      return this.indexedDB;
-    }
-    get [dartx.location]() {
-      return this.location;
-    }
-    get [dartx.navigator]() {
-      return this.navigator;
-    }
-    get [dartx.performance]() {
-      return this.performance;
-    }
-    get [dartx.self]() {
-      return this.self;
-    }
-    [dartx.close]() {
-      return this.close();
-    }
-    [dartx.importScripts](urls) {
-      return this.importScripts(urls);
-    }
-    [_webkitRequestFileSystem](type, size, successCallback, errorCallback) {
-      return this._webkitRequestFileSystem(type, size, successCallback, errorCallback);
-    }
-    [dartx.webkitRequestFileSystem](type, size) {
-      let completer = async.Completer$(html$.FileSystem).new();
-      this[_webkitRequestFileSystem](type, size, dart.fn(value => {
-        completer.complete(value);
-      }, dart.void, [html$.FileSystem]), dart.fn(error => {
-        completer.completeError(error);
-      }, dart.void, [html$.FileError]));
-      return completer.future;
-    }
-    [dartx.requestFileSystemSync](type, size) {
-      return this.requestFileSystemSync(type, size);
-    }
-    [dartx.resolveLocalFileSystemSyncUrl](url) {
-      return this.resolveLocalFileSystemSyncUrl(url);
-    }
-    [_webkitResolveLocalFileSystemUrl](url, successCallback, errorCallback) {
-      return this._webkitResolveLocalFileSystemUrl(url, successCallback, errorCallback);
-    }
-    [dartx.webkitResolveLocalFileSystemUrl](url) {
-      let completer = async.Completer$(html$.Entry).new();
-      this[_webkitResolveLocalFileSystemUrl](url, dart.fn(value => {
-        completer.complete(value);
-      }, dart.void, [html$.Entry]), dart.fn(error => {
-        completer.completeError(error);
-      }, dart.void, [html$.FileError]));
-      return completer.future;
-    }
-    [dartx.atob](string) {
-      return this.atob(string);
-    }
-    [dartx.btoa](string) {
-      return this.btoa(string);
-    }
-    [_clearInterval](handle) {
-      return this._clearInterval(handle);
-    }
-    [_clearTimeout](handle) {
-      return this._clearTimeout(handle);
-    }
-    [_setInterval](handler, timeout) {
-      return this._setInterval(handler, timeout);
-    }
-    [_setTimeout](handler, timeout) {
-      return this._setTimeout(handler, timeout);
-    }
-    get [dartx.onError]() {
-      return html$.WorkerGlobalScope.errorEvent.forTarget(this);
-    }
-  };
-  html$.WorkerGlobalScope[dart.implements] = () => [html$._WindowTimers, html$.WindowBase64];
-  dart.setSignature(html$.WorkerGlobalScope, {
-    constructors: () => ({_: [html$.WorkerGlobalScope, []]}),
-    methods: () => ({
-      [dartx.close]: [dart.void, []],
-      [dartx.importScripts]: [dart.void, [core.String]],
-      [_webkitRequestFileSystem]: [dart.void, [core.int, core.int], [html$._FileSystemCallback, html$._ErrorCallback]],
-      [dartx.webkitRequestFileSystem]: [async.Future$(html$.FileSystem), [core.int, core.int]],
-      [dartx.requestFileSystemSync]: [html$._DOMFileSystemSync, [core.int, core.int]],
-      [dartx.resolveLocalFileSystemSyncUrl]: [html$._EntrySync, [core.String]],
-      [_webkitResolveLocalFileSystemUrl]: [dart.void, [core.String, html$._EntryCallback], [html$._ErrorCallback]],
-      [dartx.webkitResolveLocalFileSystemUrl]: [async.Future$(html$.Entry), [core.String]],
-      [dartx.atob]: [core.String, [core.String]],
-      [dartx.btoa]: [core.String, [core.String]],
-      [_clearInterval]: [dart.void, [core.int]],
-      [_clearTimeout]: [dart.void, [core.int]],
-      [_setInterval]: [core.int, [core.Object, core.int]],
-      [_setTimeout]: [core.int, [core.Object, core.int]]
-    })
-  });
-  html$.WorkerGlobalScope[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('WorkerGlobalScope')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("WorkerGlobalScope"))];
-  html$.WorkerGlobalScope.PERSISTENT = 1;
-  html$.WorkerGlobalScope.TEMPORARY = 0;
-  dart.defineLazy(html$.WorkerGlobalScope, {
-    get errorEvent() {
-      return dart.const(new (html$.EventStreamProvider$(html$.Event))('error'));
-    }
-  });
-  dart.registerExtension(dart.global.WorkerGlobalScope, html$.WorkerGlobalScope);
   dart.defineExtensionNames([
     'postMessage',
     'onMessage'
@@ -42022,6 +42633,37 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   });
   dart.registerExtension(dart.global.DedicatedWorkerGlobalScope, html$.DedicatedWorkerGlobalScope);
+  html$.DefaultSessionStartEvent = class DefaultSessionStartEvent extends html$.Event {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.DefaultSessionStartEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.DefaultSessionStartEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new DefaultSessionStartEvent(type, eventInitDict), html$.DefaultSessionStartEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new DefaultSessionStartEvent(type), html$.DefaultSessionStartEvent);
+    }
+  };
+  dart.setSignature(html$.DefaultSessionStartEvent, {
+    constructors: () => ({
+      _: [html$.DefaultSessionStartEvent, []],
+      new: [html$.DefaultSessionStartEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.DefaultSessionStartEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.DefaultSessionStartEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
+  });
+  html$.DefaultSessionStartEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('DefaultSessionStartEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("DefaultSessionStartEvent"))];
   dart.defineExtensionNames([
     'queryUsageAndQuota',
     'requestQuota'
@@ -42137,12 +42779,34 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.DeviceLightEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.DeviceLightEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new DeviceLightEvent(type, eventInitDict), html$.DeviceLightEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new DeviceLightEvent(type), html$.DeviceLightEvent);
+    }
     get [dartx.value]() {
       return this.value;
     }
   };
   dart.setSignature(html$.DeviceLightEvent, {
-    constructors: () => ({_: [html$.DeviceLightEvent, []]})
+    constructors: () => ({
+      _: [html$.DeviceLightEvent, []],
+      new: [html$.DeviceLightEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.DeviceLightEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.DeviceLightEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.DeviceLightEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('DeviceLightEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("DeviceLightEvent"))];
   dart.registerExtension(dart.global.DeviceLightEvent, html$.DeviceLightEvent);
@@ -42194,9 +42858,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let beta = opts && 'beta' in opts ? opts.beta : 0;
       let gamma = opts && 'gamma' in opts ? opts.gamma : 0;
       let absolute = opts && 'absolute' in opts ? opts.absolute : false;
-      let e = html$.document[_createEvent]("DeviceOrientationEvent");
-      dart.dcall(e[_initDeviceOrientationEvent], type, canBubble, cancelable, alpha, beta, gamma, absolute);
-      return dart.as(e, html$.DeviceOrientationEvent);
+      let e = dart.as(html$.document[_createEvent]("DeviceOrientationEvent"), html$.DeviceOrientationEvent);
+      e[_initDeviceOrientationEvent](type, canBubble, cancelable, alpha, beta, gamma, absolute);
+      return e;
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -42652,6 +43316,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _selectedStylesheetSet = Symbol('_selectedStylesheetSet');
   const _styleSheets = Symbol('_styleSheets');
   const _title = Symbol('_title');
+  const _visibilityState = Symbol('_visibilityState');
   const _webkitFullscreenElement = Symbol('_webkitFullscreenElement');
   const _webkitFullscreenEnabled = Symbol('_webkitFullscreenEnabled');
   const _webkitHidden = Symbol('_webkitHidden');
@@ -42674,10 +43339,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'adoptNode',
     'createDocumentFragment',
     'createRange',
+    'elementsFromPoint',
     'execCommand',
     'exitFullscreen',
     'exitPointerLock',
-    'getElementById',
     'getElementsByClassName',
     'getElementsByName',
     'getElementsByTagName',
@@ -42688,6 +43353,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'queryCommandSupported',
     'queryCommandValue',
     'transformDocumentToTreeView',
+    'getElementById',
     'querySelector',
     'onAbort',
     'onBeforeCopy',
@@ -42767,6 +43433,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'supportsRegister',
     'createElement',
     'createElementNS',
+    'visibilityState',
     'activeElement',
     'contentType',
     'cookie',
@@ -42778,11 +43445,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'fullscreenEnabled',
     'hidden',
     'implementation',
+    'origin',
     'pointerLockElement',
     'readyState',
     'rootElement',
-    'timeline',
-    'visibilityState'
+    'scrollingElement',
+    'timeline'
   ]);
   html$.Document = class Document extends html$.Node {
     static _() {
@@ -42842,6 +43510,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [_lastModified]() {
       return this.lastModified;
     }
+    get [dartx.origin]() {
+      return this.origin;
+    }
     get [dartx.pointerLockElement]() {
       return this.pointerLockElement;
     }
@@ -42856,6 +43527,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.rootElement]() {
       return this.rootElement;
+    }
+    get [dartx.scrollingElement]() {
+      return this.scrollingElement;
     }
     get [_selectedStylesheetSet]() {
       return this.selectedStylesheetSet;
@@ -42875,7 +43549,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     set [_title](value) {
       this.title = value;
     }
-    get [dartx.visibilityState]() {
+    get [_visibilityState]() {
       return this.visibilityState;
     }
     get [_webkitFullscreenElement]() {
@@ -42914,12 +43588,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [_createTextNode](data) {
       return this._createTextNode(data);
     }
-    [_createTouch](window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) {
+    [_createTouch](window, target, identifier, pageX, pageY, screenX, screenY, radiusX, radiusY, rotationAngle, force) {
       let target_1 = html$._convertDartToNative_EventTarget(target);
-      return this[_createTouch_1](window, target_1, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
+      return this[_createTouch_1](window, target_1, identifier, pageX, pageY, screenX, screenY, radiusX, radiusY, rotationAngle, force);
     }
-    [_createTouch_1](window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) {
-      return this._createTouch_1(window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
+    [_createTouch_1](window, target, identifier, pageX, pageY, screenX, screenY, radiusX, radiusY, rotationAngle, force) {
+      return this._createTouch_1(window, target, identifier, pageX, pageY, screenX, screenY, radiusX, radiusY, rotationAngle, force);
     }
     [_createTouchList](touches) {
       return this._createTouchList(touches);
@@ -42927,8 +43601,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [_elementFromPoint](x, y) {
       return this._elementFromPoint(x, y);
     }
-    [dartx.execCommand](command, userInterface, value) {
-      return this.execCommand(command, userInterface, value);
+    [dartx.elementsFromPoint](x, y) {
+      return this.elementsFromPoint(x, y);
+    }
+    [dartx.execCommand](commandId, showUI, value) {
+      return this.execCommand(commandId, showUI, value);
     }
     [dartx.exitFullscreen]() {
       return this.exitFullscreen();
@@ -42938,9 +43615,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [_getCssCanvasContext](contextId, name, width, height) {
       return this._getCssCanvasContext(contextId, name, width, height);
-    }
-    [dartx.getElementById](elementId) {
-      return this.getElementById(elementId);
     }
     [dartx.getElementsByClassName](classNames) {
       return this.getElementsByClassName(classNames);
@@ -42954,26 +43628,29 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.importNode](node, deep) {
       return this.importNode(node, deep);
     }
-    [dartx.queryCommandEnabled](command) {
-      return this.queryCommandEnabled(command);
+    [dartx.queryCommandEnabled](commandId) {
+      return this.queryCommandEnabled(commandId);
     }
-    [dartx.queryCommandIndeterm](command) {
-      return this.queryCommandIndeterm(command);
+    [dartx.queryCommandIndeterm](commandId) {
+      return this.queryCommandIndeterm(commandId);
     }
-    [dartx.queryCommandState](command) {
-      return this.queryCommandState(command);
+    [dartx.queryCommandState](commandId) {
+      return this.queryCommandState(commandId);
     }
-    [dartx.queryCommandSupported](command) {
-      return this.queryCommandSupported(command);
+    [dartx.queryCommandSupported](commandId) {
+      return this.queryCommandSupported(commandId);
     }
-    [dartx.queryCommandValue](command) {
-      return this.queryCommandValue(command);
+    [dartx.queryCommandValue](commandId) {
+      return this.queryCommandValue(commandId);
     }
     [dartx.transformDocumentToTreeView](noStyleMessage) {
       return this.transformDocumentToTreeView(noStyleMessage);
     }
     [_webkitExitFullscreen]() {
       return this._webkitExitFullscreen();
+    }
+    [dartx.getElementById](elementId) {
+      return this.getElementById(elementId);
     }
     get [_childElementCount]() {
       return this.childElementCount;
@@ -43245,6 +43922,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (filter === void 0) filter = null;
       return dart.as(this.createTreeWalker(root, whatToShow, filter, false), html$.TreeWalker);
     }
+    get [dartx.visibilityState]() {
+      return this.visibilityState || this.mozVisibilityState || this.msVisibilityState || this.webkitVisibilityState;
+    }
   };
   dart.setSignature(html$.Document, {
     constructors: () => ({_: [html$.Document, []]}),
@@ -43261,11 +43941,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [_createTouch_1]: [html$.Touch, [html$.Window, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]],
       [_createTouchList]: [html$.TouchList, [html$.Touch]],
       [_elementFromPoint]: [html$.Element, [core.int, core.int]],
-      [dartx.execCommand]: [core.bool, [core.String, core.bool, core.String]],
+      [dartx.elementsFromPoint]: [core.List$(html$.Element), [core.int, core.int]],
+      [dartx.execCommand]: [core.bool, [core.String], [core.bool, core.String]],
       [dartx.exitFullscreen]: [dart.void, []],
       [dartx.exitPointerLock]: [dart.void, []],
       [_getCssCanvasContext]: [core.Object, [core.String, core.String, core.int, core.int]],
-      [dartx.getElementById]: [html$.Element, [core.String]],
       [dartx.getElementsByClassName]: [core.List$(html$.Node), [core.String]],
       [dartx.getElementsByName]: [core.List$(html$.Node), [core.String]],
       [dartx.getElementsByTagName]: [core.List$(html$.Node), [core.String]],
@@ -43277,6 +43957,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.queryCommandValue]: [core.String, [core.String]],
       [dartx.transformDocumentToTreeView]: [dart.void, [core.String]],
       [_webkitExitFullscreen]: [dart.void, []],
+      [dartx.getElementById]: [html$.Element, [core.String]],
       [dartx.querySelector]: [html$.Element, [core.String]],
       [_querySelectorAll]: [core.List$(html$.Node), [core.String]],
       [dartx.querySelectorAll]: [html$.ElementList$(html$.Element), [core.String]],
@@ -43354,10 +44035,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_docChildren];
     }
     set [dartx.children](value) {
-      let copy = core.List.from(value);
+      let copy = value[dartx.toList]();
       let children = this[dartx.children];
       children[dartx.clear]();
-      children[dartx.addAll](dart.as(copy, core.Iterable$(html$.Element)));
+      children[dartx.addAll](copy);
     }
     [dartx.querySelectorAll](selectors) {
       return new html$._FrozenElementList._wrap(this[_querySelectorAll](selectors));
@@ -43413,7 +44094,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this._querySelectorAll(selectors);
     }
   };
-  html$.DocumentFragment[dart.implements] = () => [html$.ParentNode];
+  html$.DocumentFragment[dart.implements] = () => [html$.NonElementParentNode, html$.ParentNode];
   dart.setSignature(html$.DocumentFragment, {
     constructors: () => ({
       new: [html$.DocumentFragment, []],
@@ -43543,8 +44224,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.createHtmlDocument](title) {
       return this.createHtmlDocument(title);
     }
-    [dartx.hasFeature](feature, version) {
-      return this.hasFeature(feature, version);
+    [dartx.hasFeature]() {
+      return this.hasFeature();
     }
   };
   dart.setSignature(html$.DomImplementation, {
@@ -43553,7 +44234,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.createDocument]: [html$.XmlDocument, [core.String, core.String, html$._DocumentType]],
       [dartx.createDocumentType]: [html$._DocumentType, [core.String, core.String, core.String]],
       [dartx.createHtmlDocument]: [html$.HtmlDocument, [core.String]],
-      [dartx.hasFeature]: [core.bool, [core.String, core.String]]
+      [dartx.hasFeature]: [core.bool, []]
     })
   });
   html$.DomImplementation[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('DOMImplementation')), dart.const(new _js_helper.Native("DOMImplementation"))];
@@ -43576,13 +44257,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.DomIterator[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Iterator')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("Iterator"))];
   dart.registerExtension(dart.global.Iterator, html$.DomIterator);
   dart.defineExtensionNames([
-    'multiply',
-    'scale',
-    'scale3d',
-    'scaleNonUniform',
-    'toFloat32Array',
-    'toFloat64Array',
-    'translate',
     'a',
     'b',
     'c',
@@ -43606,7 +44280,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'm41',
     'm42',
     'm43',
-    'm44'
+    'm44',
+    'multiply',
+    'scale',
+    'scale3d',
+    'scaleNonUniform',
+    'toFloat32Array',
+    'toFloat64Array',
+    'translate'
   ]);
   html$.DomMatrixReadOnly = class DomMatrixReadOnly extends _interceptors.Interceptor {
     static _() {
@@ -43687,14 +44368,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.multiply](other) {
       return this.multiply(other);
     }
-    [dartx.scale](scale, ox, oy) {
-      return this.scale(scale, ox, oy);
+    [dartx.scale](scale, originX, originY) {
+      return this.scale(scale, originX, originY);
     }
-    [dartx.scale3d](scale, ox, oy, oz) {
-      return this.scale3d(scale, ox, oy, oz);
+    [dartx.scale3d](scale, originX, originY, originZ) {
+      return this.scale3d(scale, originX, originY, originZ);
     }
-    [dartx.scaleNonUniform](sx, sy, sz, ox, oy, oz) {
-      return this.scaleNonUniform(sx, sy, sz, ox, oy, oz);
+    [dartx.scaleNonUniform](scaleX, scaleY, scaleZn, originX, originY, originZ) {
+      return this.scaleNonUniform(scaleX, scaleY, scaleZn, originX, originY, originZ);
     }
     [dartx.toFloat32Array]() {
       return this.toFloat32Array();
@@ -43930,14 +44611,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.preMultiplySelf](other) {
       return this.preMultiplySelf(other);
     }
-    [dartx.scale3dSelf](scale, ox, oy, oz) {
-      return this.scale3dSelf(scale, ox, oy, oz);
+    [dartx.scale3dSelf](scale, originX, originY, originZ) {
+      return this.scale3dSelf(scale, originX, originY, originZ);
     }
-    [dartx.scaleNonUniformSelf](sx, sy, sz, ox, oy, oz) {
-      return this.scaleNonUniformSelf(sx, sy, sz, ox, oy, oz);
+    [dartx.scaleNonUniformSelf](scaleX, scaleY, scaleZ, originX, originY, originZ) {
+      return this.scaleNonUniformSelf(scaleX, scaleY, scaleZ, originX, originY, originZ);
     }
-    [dartx.scaleSelf](scale, ox, oy) {
-      return this.scaleSelf(scale, ox, oy);
+    [dartx.scaleSelf](scale, originX, originY) {
+      return this.scaleSelf(scale, originX, originY);
     }
     [dartx.translateSelf](tx, ty, tz) {
       return this.translateSelf(tx, ty, tz);
@@ -43977,8 +44658,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _create_1() {
       return dart.as(new DOMParser(), html$.DomParser);
     }
-    [dartx.parseFromString](str, contentType) {
-      return this.parseFromString(str, contentType);
+    [dartx.parseFromString](str, type) {
+      return this.parseFromString(str, type);
     }
   };
   dart.setSignature(html$.DomParser, {
@@ -44050,37 +44731,43 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (y === void 0) y = null;
       if (z === void 0) z = null;
       if (w === void 0) w = null;
-      if (point_OR_x == null && y == null && z == null && w == null) {
-        return html$.DomPoint._create_1();
-      }
       if ((dart.is(point_OR_x, core.Map) || point_OR_x == null) && y == null && z == null && w == null) {
         let point_1 = html_common.convertDartToNative_Dictionary(dart.as(point_OR_x, core.Map));
-        return html$.DomPoint._create_2(point_1);
+        return html$.DomPoint._create_1(point_1);
+      }
+      if (point_OR_x == null && y == null && z == null && w == null) {
+        return html$.DomPoint._create_2();
+      }
+      if ((typeof point_OR_x == 'number' || point_OR_x == null) && y == null && z == null && w == null) {
+        return html$.DomPoint._create_3(point_OR_x);
       }
       if ((typeof y == 'number' || y == null) && (typeof point_OR_x == 'number' || point_OR_x == null) && z == null && w == null) {
-        return html$.DomPoint._create_3(point_OR_x, y);
+        return html$.DomPoint._create_4(point_OR_x, y);
       }
       if ((typeof z == 'number' || z == null) && (typeof y == 'number' || y == null) && (typeof point_OR_x == 'number' || point_OR_x == null) && w == null) {
-        return html$.DomPoint._create_4(point_OR_x, y, z);
+        return html$.DomPoint._create_5(point_OR_x, y, z);
       }
       if ((typeof w == 'number' || w == null) && (typeof z == 'number' || z == null) && (typeof y == 'number' || y == null) && (typeof point_OR_x == 'number' || point_OR_x == null)) {
-        return html$.DomPoint._create_5(point_OR_x, y, z, w);
+        return html$.DomPoint._create_6(point_OR_x, y, z, w);
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
-    static _create_1() {
-      return dart.as(new DOMPoint(), html$.DomPoint);
-    }
-    static _create_2(point_OR_x) {
+    static _create_1(point_OR_x) {
       return dart.as(new DOMPoint(point_OR_x), html$.DomPoint);
     }
-    static _create_3(point_OR_x, y) {
+    static _create_2() {
+      return dart.as(new DOMPoint(), html$.DomPoint);
+    }
+    static _create_3(point_OR_x) {
+      return dart.as(new DOMPoint(point_OR_x), html$.DomPoint);
+    }
+    static _create_4(point_OR_x, y) {
       return dart.as(new DOMPoint(point_OR_x, y), html$.DomPoint);
     }
-    static _create_4(point_OR_x, y, z) {
+    static _create_5(point_OR_x, y, z) {
       return dart.as(new DOMPoint(point_OR_x, y, z), html$.DomPoint);
     }
-    static _create_5(point_OR_x, y, z, w) {
+    static _create_6(point_OR_x, y, z, w) {
       return dart.as(new DOMPoint(point_OR_x, y, z, w), html$.DomPoint);
     }
     static get supported() {
@@ -44117,13 +44804,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
       new: [html$.DomPoint, [], [dart.dynamic, core.num, core.num, core.num]]
     }),
     statics: () => ({
-      _create_1: [html$.DomPoint, []],
-      _create_2: [html$.DomPoint, [dart.dynamic]],
-      _create_3: [html$.DomPoint, [dart.dynamic, dart.dynamic]],
-      _create_4: [html$.DomPoint, [dart.dynamic, dart.dynamic, dart.dynamic]],
-      _create_5: [html$.DomPoint, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]]
+      _create_1: [html$.DomPoint, [dart.dynamic]],
+      _create_2: [html$.DomPoint, []],
+      _create_3: [html$.DomPoint, [dart.dynamic]],
+      _create_4: [html$.DomPoint, [dart.dynamic, dart.dynamic]],
+      _create_5: [html$.DomPoint, [dart.dynamic, dart.dynamic, dart.dynamic]],
+      _create_6: [html$.DomPoint, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]]
     }),
-    names: ['_create_1', '_create_2', '_create_3', '_create_4', '_create_5']
+    names: ['_create_1', '_create_2', '_create_3', '_create_4', '_create_5', '_create_6']
   });
   html$.DomPoint[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('DOMPoint')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("DOMPoint"))];
   dart.registerExtension(dart.global.DOMPoint, html$.DomPoint);
@@ -44308,13 +44996,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     set [dartx.value](value) {
       this.value = value;
     }
-    [__getter__](index) {
-      return this.__getter__(index);
-    }
   };
   dart.setSignature(html$.DomSettableTokenList, {
-    constructors: () => ({_: [html$.DomSettableTokenList, []]}),
-    methods: () => ({[__getter__]: [core.String, [core.int]]})
+    constructors: () => ({_: [html$.DomSettableTokenList, []]})
   });
   html$.DomSettableTokenList[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('DOMSettableTokenList')), dart.const(new _js_helper.Native("DOMSettableTokenList"))];
   dart.registerExtension(dart.global.DOMSettableTokenList, html$.DomSettableTokenList);
@@ -44442,7 +45126,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'last',
     'single',
     'elementAt',
-    'contains',
     'item'
   ]);
   html$.DomStringList = class DomStringList extends dart.mixin(_interceptors.Interceptor, collection.ListMixin$(core.String), html$.ImmutableListMixin$(core.String)) {
@@ -44454,7 +45137,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.get](index) {
       if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
-      return this[index];
+      return this[dartx.item](index);
     }
     [dartx.set](index, value) {
       dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
@@ -44487,21 +45170,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.elementAt](index) {
       return this[dartx.get](index);
     }
-    [dartx.contains](string) {
-      return this.contains(string);
+    [__getter__](index) {
+      return this.__getter__(index);
     }
     [dartx.item](index) {
       return this.item(index);
     }
   };
-  html$.DomStringList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, core.List$(core.String)];
+  html$.DomStringList[dart.implements] = () => [core.List$(core.String)];
   dart.setSignature(html$.DomStringList, {
     constructors: () => ({_: [html$.DomStringList, []]}),
     methods: () => ({
       [dartx.get]: [core.String, [core.int]],
       [dartx.set]: [dart.void, [core.int, core.String]],
       [dartx.elementAt]: [core.String, [core.int]],
-      [dartx.contains]: [core.bool, [core.String]],
+      [__getter__]: [core.String, [core.int]],
       [dartx.item]: [core.String, [core.int]]
     })
   });
@@ -44516,6 +45199,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({_: [html$.DomStringMap, []]})
   });
   html$.DomStringMap[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('DOMStringMap'))];
+  html$.EffectModel = class EffectModel extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+  };
+  dart.setSignature(html$.EffectModel, {
+    constructors: () => ({_: [html$.EffectModel, []]})
+  });
+  html$.EffectModel[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('EffectModel')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("EffectModel"))];
   const _childElements = Symbol('_childElements');
   const _element$ = Symbol('_element');
   const _filter$ = Symbol('_filter');
@@ -44575,9 +45267,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [_filter$](test, retainMatching) {
       let removed = null;
       if (dart.notNull(retainMatching)) {
-        removed = this[_element$][dartx.children][dartx.where](dart.fn(e => !dart.notNull(dart.dcall(test, e)), core.bool, [html$.Element]));
+        removed = this[_element$][dartx.children][dartx.where](dart.fn(e => !dart.notNull(test(e)), core.bool, [html$.Element]));
       } else {
-        removed = this[_element$][dartx.children][dartx.where](dart.as(test, dart.functionType(core.bool, [html$.Element])));
+        removed = this[_element$][dartx.children][dartx.where](test);
       }
       for (let e of dart.as(removed, core.Iterable))
         dart.dsend(e, 'remove');
@@ -44663,7 +45355,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       sort: [dart.void, [], [dart.functionType(core.int, [html$.Element, html$.Element])]],
       removeWhere: [dart.void, [dart.functionType(core.bool, [html$.Element])]],
       retainWhere: [dart.void, [dart.functionType(core.bool, [html$.Element])]],
-      [_filter$]: [dart.void, [dart.functionType(core.bool, [dart.dynamic]), core.bool]],
+      [_filter$]: [dart.void, [dart.functionType(core.bool, [html$.Element]), core.bool]],
       setRange: [dart.void, [core.int, core.int, core.Iterable$(html$.Element)], [core.int]],
       replaceRange: [dart.void, [core.int, core.int, core.Iterable$(html$.Element)]],
       fillRange: [dart.void, [core.int, core.int], [html$.Element]],
@@ -44707,7 +45399,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.ElementList = html$.ElementList$();
   const _nodeList = Symbol('_nodeList');
   const _forElementList = Symbol('_forElementList');
-  html$._FrozenElementList = class _FrozenElementList extends collection.ListBase {
+  html$._FrozenElementList = class _FrozenElementList extends collection.ListBase$(html$.Element) {
     _wrap(nodeList) {
       this[_nodeList] = nodeList;
     }
@@ -44748,7 +45440,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return new html$._CssStyleDeclarationSet(this);
     }
     set classes(value) {
-      this[_nodeList][dartx.forEach](dart.fn(e => dart.dput(e, 'classes', value), core.Iterable$(core.String), [html$.Node]));
+      this[dartx.forEach](dart.fn(e => e[dartx.classes] = value, core.Iterable$(core.String), [html$.Element]));
     }
     get contentEdge() {
       return new html$._ContentCssListRect(this);
@@ -45030,9 +45722,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.const(new html$.ScrollAlignment._internal('BOTTOM'));
     }
   });
+  const __setter__ = Symbol('__setter__');
   dart.defineExtensionNames([
     'height',
-    'integrity',
     'name',
     'src',
     'type',
@@ -45047,7 +45739,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     created() {
       this[dartx.height] = null;
-      this[dartx.integrity] = null;
       this[dartx.name] = null;
       this[dartx.src] = null;
       this[dartx.type] = null;
@@ -45062,12 +45753,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     set [dartx.height](value) {
       this.height = value;
-    }
-    get [dartx.integrity]() {
-      return this.integrity;
-    }
-    set [dartx.integrity](value) {
-      this.integrity = value;
     }
     get [dartx.name]() {
       return this.name;
@@ -45128,6 +45813,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.ErrorEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.ErrorEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new ErrorEvent(type, eventInitDict), html$.ErrorEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new ErrorEvent(type), html$.ErrorEvent);
+    }
     get [dartx.colno]() {
       return this.colno;
     }
@@ -45145,7 +45844,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$.ErrorEvent, {
-    constructors: () => ({_: [html$.ErrorEvent, []]})
+    constructors: () => ({
+      _: [html$.ErrorEvent, []],
+      new: [html$.ErrorEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.ErrorEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.ErrorEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.ErrorEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ErrorEvent')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("ErrorEvent"))];
   dart.registerExtension(dart.global.ErrorEvent, html$.ErrorEvent);
@@ -45167,16 +45874,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    static _factoryEventSource(url, eventSourceInit) {
-      if (eventSourceInit === void 0) eventSourceInit = null;
-      if (eventSourceInit != null) {
-        let eventSourceInit_1 = html_common.convertDartToNative_Dictionary(eventSourceInit);
-        return html$.EventSource._create_1(url, eventSourceInit_1);
+    static _factoryEventSource(url, eventSourceInitDict) {
+      if (eventSourceInitDict === void 0) eventSourceInitDict = null;
+      if (eventSourceInitDict != null) {
+        let eventSourceInitDict_1 = html_common.convertDartToNative_Dictionary(eventSourceInitDict);
+        return html$.EventSource._create_1(url, eventSourceInitDict_1);
       }
       return html$.EventSource._create_2(url);
     }
-    static _create_1(url, eventSourceInit) {
-      return dart.as(new EventSource(url, eventSourceInit), html$.EventSource);
+    static _create_1(url, eventSourceInitDict) {
+      return dart.as(new EventSource(url, eventSourceInitDict), html$.EventSource);
     }
     static _create_2(url) {
       return dart.as(new EventSource(url), html$.EventSource);
@@ -45241,14 +45948,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return new html$._EventStream(this[_ptr], type, false);
     }
   };
-  dart.virtualField(html$.Events, _ptr);
   dart.setSignature(html$.Events, {
     constructors: () => ({Events: [html$.Events, [html$.EventTarget]]}),
     methods: () => ({get: [async.Stream, [core.String]]})
   });
   html$.ElementEvents = class ElementEvents extends html$.Events {
     ElementEvents(ptr) {
-      this[_ptr] = ptr;
       super.Events(ptr);
     }
     get(type) {
@@ -45260,7 +45965,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return new html$._ElementEventStreamImpl(this[_ptr], type, false);
     }
   };
-  dart.virtualField(html$.ElementEvents, _ptr);
   dart.setSignature(html$.ElementEvents, {
     constructors: () => ({ElementEvents: [html$.ElementEvents, [html$.Element]]})
   });
@@ -45276,39 +45980,66 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.ExtendableEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.ExtendableEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new ExtendableEvent(type, eventInitDict), html$.ExtendableEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new ExtendableEvent(type), html$.ExtendableEvent);
+    }
     [dartx.waitUntil](value) {
       return this.waitUntil(value);
     }
   };
   dart.setSignature(html$.ExtendableEvent, {
-    constructors: () => ({_: [html$.ExtendableEvent, []]}),
-    methods: () => ({[dartx.waitUntil]: [dart.void, [core.Object]]})
+    constructors: () => ({
+      _: [html$.ExtendableEvent, []],
+      new: [html$.ExtendableEvent, [core.String], [core.Map]]
+    }),
+    methods: () => ({[dartx.waitUntil]: [dart.void, [core.Object]]}),
+    statics: () => ({
+      _create_1: [html$.ExtendableEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.ExtendableEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.ExtendableEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ExtendableEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("ExtendableEvent"))];
   dart.registerExtension(dart.global.ExtendableEvent, html$.ExtendableEvent);
   dart.defineExtensionNames([
-    'federation'
+    'protocol',
+    'provider'
   ]);
   html$.FederatedCredential = class FederatedCredential extends html$.Credential {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    static new(id, name, avatarURL, federation) {
-      return html$.FederatedCredential._create_1(id, name, avatarURL, federation);
+    static new(data) {
+      let data_1 = html_common.convertDartToNative_Dictionary(data);
+      return html$.FederatedCredential._create_1(data_1);
     }
-    static _create_1(id, name, avatarURL, federation) {
-      return dart.as(new FederatedCredential(id, name, avatarURL, federation), html$.FederatedCredential);
+    static _create_1(data) {
+      return dart.as(new FederatedCredential(data), html$.FederatedCredential);
     }
-    get [dartx.federation]() {
-      return this.federation;
+    get [dartx.protocol]() {
+      return this.protocol;
+    }
+    get [dartx.provider]() {
+      return this.provider;
     }
   };
   dart.setSignature(html$.FederatedCredential, {
     constructors: () => ({
       _: [html$.FederatedCredential, []],
-      new: [html$.FederatedCredential, [core.String, core.String, core.String, core.String]]
+      new: [html$.FederatedCredential, [core.Map]]
     }),
-    statics: () => ({_create_1: [html$.FederatedCredential, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]]}),
+    statics: () => ({_create_1: [html$.FederatedCredential, [dart.dynamic]]}),
     names: ['_create_1']
   });
   html$.FederatedCredential[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('FederatedCredential')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("FederatedCredential"))];
@@ -45318,9 +46049,23 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'isReload',
     'request'
   ]);
-  html$.FetchEvent = class FetchEvent extends html$.Event {
+  html$.FetchEvent = class FetchEvent extends html$.ExtendableEvent {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.FetchEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.FetchEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new FetchEvent(type, eventInitDict), html$.FetchEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new FetchEvent(type), html$.FetchEvent);
     }
     get [dartx.isReload]() {
       return this.isReload;
@@ -45333,13 +46078,22 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$.FetchEvent, {
-    constructors: () => ({_: [html$.FetchEvent, []]}),
-    methods: () => ({[dartx.respondWith]: [dart.void, [core.Object]]})
+    constructors: () => ({
+      _: [html$.FetchEvent, []],
+      new: [html$.FetchEvent, [core.String], [core.Map]]
+    }),
+    methods: () => ({[dartx.respondWith]: [dart.void, [core.Object]]}),
+    statics: () => ({
+      _create_1: [html$.FetchEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.FetchEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.FetchEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('FetchEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("FetchEvent"))];
   dart.registerExtension(dart.global.FetchEvent, html$.FetchEvent);
   dart.defineExtensionNames([
     'checkValidity',
+    'reportValidity',
     'setCustomValidity',
     'disabled',
     'elements',
@@ -45401,6 +46155,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.checkValidity]() {
       return this.checkValidity();
     }
+    [dartx.reportValidity]() {
+      return this.reportValidity();
+    }
     [dartx.setCustomValidity](error) {
       return this.setCustomValidity(error);
     }
@@ -45414,6 +46171,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }),
     methods: () => ({
       [dartx.checkValidity]: [core.bool, []],
+      [dartx.reportValidity]: [core.bool, []],
       [dartx.setCustomValidity]: [dart.void, [core.String]]
     })
   });
@@ -45429,6 +46187,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.File = class File extends html$.Blob {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(fileBits, fileName, options) {
+      if (options === void 0) options = null;
+      if (options != null) {
+        let options_1 = html_common.convertDartToNative_Dictionary(options);
+        return html$.File._create_1(fileBits, fileName, options_1);
+      }
+      return html$.File._create_2(fileBits, fileName);
+    }
+    static _create_1(fileBits, fileName, options) {
+      return dart.as(new File(fileBits, fileName, options), html$.File);
+    }
+    static _create_2(fileBits, fileName) {
+      return dart.as(new File(fileBits, fileName), html$.File);
     }
     get [dartx.lastModified]() {
       return this.lastModified;
@@ -45447,7 +46219,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$.File, {
-    constructors: () => ({_: [html$.File, []]})
+    constructors: () => ({
+      _: [html$.File, []],
+      new: [html$.File, [core.List$(core.Object), core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.File, [dart.dynamic, dart.dynamic, dart.dynamic]],
+      _create_2: [html$.File, [dart.dynamic, dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.File[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('File')), dart.const(new _js_helper.Native("File"))];
   dart.registerExtension(dart.global.File, html$.File);
@@ -45642,8 +46422,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.readAsDataUrl](blob) {
       return this.readAsDataUrl(blob);
     }
-    [dartx.readAsText](blob, encoding) {
-      return this.readAsText(blob, encoding);
+    [dartx.readAsText](blob, label) {
+      return this.readAsText(blob, label);
     }
     get [dartx.onAbort]() {
       return html$.FileReader.abortEvent.forTarget(this);
@@ -45849,6 +46629,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.FocusEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.FocusEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new FocusEvent(type, eventInitDict), html$.FocusEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new FocusEvent(type), html$.FocusEvent);
+    }
     get [dartx.relatedTarget]() {
       return html$._convertNativeToDart_EventTarget(this[_get_relatedTarget]);
     }
@@ -45857,7 +46651,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$.FocusEvent, {
-    constructors: () => ({_: [html$.FocusEvent, []]})
+    constructors: () => ({
+      _: [html$.FocusEvent, []],
+      new: [html$.FocusEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.FocusEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.FocusEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.FocusEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('FocusEvent')), dart.const(new _js_helper.Native("FocusEvent"))];
   dart.registerExtension(dart.global.FocusEvent, html$.FocusEvent);
@@ -45879,46 +46681,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static new(family, source, descriptors) {
       if (descriptors === void 0) descriptors = null;
-      if ((typeof source == 'string' || source == null) && (typeof family == 'string' || family == null) && descriptors == null) {
-        return html$.FontFace._create_1(family, source);
-      }
-      if ((dart.is(descriptors, core.Map) || descriptors == null) && (typeof source == 'string' || source == null) && (typeof family == 'string' || family == null)) {
+      if (descriptors != null) {
         let descriptors_1 = html_common.convertDartToNative_Dictionary(descriptors);
-        return html$.FontFace._create_2(family, source, descriptors_1);
+        return html$.FontFace._create_1(family, source, descriptors_1);
       }
-      if ((dart.is(source, typed_data.TypedData) || source == null) && (typeof family == 'string' || family == null) && descriptors == null) {
-        return html$.FontFace._create_3(family, source);
-      }
-      if ((dart.is(descriptors, core.Map) || descriptors == null) && (dart.is(source, typed_data.TypedData) || source == null) && (typeof family == 'string' || family == null)) {
-        let descriptors_1 = html_common.convertDartToNative_Dictionary(descriptors);
-        return html$.FontFace._create_4(family, source, descriptors_1);
-      }
-      if ((dart.is(source, typed_data.ByteBuffer) || source == null) && (typeof family == 'string' || family == null) && descriptors == null) {
-        return html$.FontFace._create_5(family, source);
-      }
-      if ((dart.is(descriptors, core.Map) || descriptors == null) && (dart.is(source, typed_data.ByteBuffer) || source == null) && (typeof family == 'string' || family == null)) {
-        let descriptors_1 = html_common.convertDartToNative_Dictionary(descriptors);
-        return html$.FontFace._create_6(family, source, descriptors_1);
-      }
-      dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
+      return html$.FontFace._create_2(family, source);
     }
-    static _create_1(family, source) {
-      return dart.as(new FontFace(family, source), html$.FontFace);
-    }
-    static _create_2(family, source, descriptors) {
+    static _create_1(family, source, descriptors) {
       return dart.as(new FontFace(family, source, descriptors), html$.FontFace);
     }
-    static _create_3(family, source) {
+    static _create_2(family, source) {
       return dart.as(new FontFace(family, source), html$.FontFace);
-    }
-    static _create_4(family, source, descriptors) {
-      return dart.as(new FontFace(family, source, descriptors), html$.FontFace);
-    }
-    static _create_5(family, source) {
-      return dart.as(new FontFace(family, source), html$.FontFace);
-    }
-    static _create_6(family, source, descriptors) {
-      return dart.as(new FontFace(family, source, descriptors), html$.FontFace);
     }
     get [dartx.family]() {
       return this.family;
@@ -45975,18 +46748,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(html$.FontFace, {
     constructors: () => ({
       _: [html$.FontFace, []],
-      new: [html$.FontFace, [core.String, dart.dynamic], [core.Map]]
+      new: [html$.FontFace, [core.String, core.Object], [core.Map]]
     }),
     methods: () => ({[dartx.load]: [async.Future, []]}),
     statics: () => ({
-      _create_1: [html$.FontFace, [dart.dynamic, dart.dynamic]],
-      _create_2: [html$.FontFace, [dart.dynamic, dart.dynamic, dart.dynamic]],
-      _create_3: [html$.FontFace, [dart.dynamic, dart.dynamic]],
-      _create_4: [html$.FontFace, [dart.dynamic, dart.dynamic, dart.dynamic]],
-      _create_5: [html$.FontFace, [dart.dynamic, dart.dynamic]],
-      _create_6: [html$.FontFace, [dart.dynamic, dart.dynamic, dart.dynamic]]
+      _create_1: [html$.FontFace, [dart.dynamic, dart.dynamic, dart.dynamic]],
+      _create_2: [html$.FontFace, [dart.dynamic, dart.dynamic]]
     }),
-    names: ['_create_1', '_create_2', '_create_3', '_create_4', '_create_5', '_create_6']
+    names: ['_create_1', '_create_2']
   });
   html$.FontFace[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('FontFace')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("FontFace"))];
   dart.registerExtension(dart.global.FontFace, html$.FontFace);
@@ -46061,7 +46830,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.registerExtension(dart.global.FontFaceSetLoadEvent, html$.FontFaceSetLoadEvent);
   dart.defineExtensionNames([
     'append',
-    'appendBlob'
+    'appendBlob',
+    'delete',
+    'get',
+    'getAll',
+    'has',
+    'set'
   ]);
   html$.FormData = class FormData extends _interceptors.Interceptor {
     static _() {
@@ -46089,6 +46863,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.appendBlob](name, value, filename) {
       return this.appendBlob(name, value, filename);
     }
+    [dartx.delete](name) {
+      return this.delete(name);
+    }
+    [dartx.get](name) {
+      return this.get(name);
+    }
+    [dartx.getAll](name) {
+      return this.getAll(name);
+    }
+    [dartx.has](name) {
+      return this.has(name);
+    }
+    [dartx.set](name, value, filename) {
+      return this.set(name, value, filename);
+    }
   };
   dart.setSignature(html$.FormData, {
     constructors: () => ({
@@ -46097,7 +46886,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }),
     methods: () => ({
       [dartx.append]: [dart.void, [core.String, core.String]],
-      [dartx.appendBlob]: [dart.void, [core.String, html$.Blob], [core.String]]
+      [dartx.appendBlob]: [dart.void, [core.String, html$.Blob], [core.String]],
+      [dartx.delete]: [dart.void, [core.String]],
+      [dartx.get]: [core.Object, [core.String]],
+      [dartx.getAll]: [core.List$(core.Object), [core.String]],
+      [dartx.has]: [core.bool, [core.String]],
+      [dartx.set]: [dart.void, [core.String, dart.dynamic], [core.String]]
     }),
     statics: () => ({
       _create_1: [html$.FormData, [dart.dynamic]],
@@ -46110,6 +46904,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _requestAutocomplete_1 = Symbol('_requestAutocomplete_1');
   dart.defineExtensionNames([
     'checkValidity',
+    'item',
+    'reportValidity',
     'requestAutocomplete',
     'reset',
     'submit',
@@ -46201,11 +46997,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
     set [dartx.target](value) {
       this.target = value;
     }
-    [__getter__](index_OR_name) {
-      return this.__getter__(index_OR_name);
+    [__getter__](name) {
+      return this.__getter__(name);
     }
     [dartx.checkValidity]() {
       return this.checkValidity();
+    }
+    [dartx.item](index) {
+      return this.item(index);
+    }
+    [dartx.reportValidity]() {
+      return this.reportValidity();
     }
     [dartx.requestAutocomplete](details) {
       let details_1 = html_common.convertDartToNative_Dictionary(details);
@@ -46230,8 +47032,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       created: [html$.FormElement, []]
     }),
     methods: () => ({
-      [__getter__]: [html$.Element, [dart.dynamic]],
+      [__getter__]: [core.Object, [core.String]],
       [dartx.checkValidity]: [core.bool, []],
+      [dartx.item]: [html$.Element, [core.int]],
+      [dartx.reportValidity]: [core.bool, []],
       [dartx.requestAutocomplete]: [dart.void, [core.Map]],
       [_requestAutocomplete_1]: [dart.void, [dart.dynamic]],
       [dartx.reset]: [dart.void, []],
@@ -46240,8 +47044,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.FormElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('HTMLFormElement')), dart.const(new _js_helper.Native("HTMLFormElement"))];
   dart.registerExtension(dart.global.HTMLFormElement, html$.FormElement);
+  html$.FrameRequestCallback = dart.typedef('FrameRequestCallback', () => dart.functionType(dart.void, [core.num]));
   dart.defineExtensionNames([
     'axes',
+    'buttons',
     'connected',
     'id',
     'index',
@@ -46254,6 +47060,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.axes]() {
       return this.axes;
+    }
+    get [dartx.buttons]() {
+      return this.buttons;
     }
     get [dartx.connected]() {
       return this.connected;
@@ -46303,12 +47112,34 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.GamepadEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.GamepadEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new GamepadEvent(type, eventInitDict), html$.GamepadEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new GamepadEvent(type), html$.GamepadEvent);
+    }
     get [dartx.gamepad]() {
       return this.gamepad;
     }
   };
   dart.setSignature(html$.GamepadEvent, {
-    constructors: () => ({_: [html$.GamepadEvent, []]})
+    constructors: () => ({
+      _: [html$.GamepadEvent, []],
+      new: [html$.GamepadEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.GamepadEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.GamepadEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.GamepadEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('GamepadEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("GamepadEvent"))];
   dart.registerExtension(dart.global.GamepadEvent, html$.GamepadEvent);
@@ -46341,6 +47172,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.Geofencing[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Geofencing')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("Geofencing"))];
   dart.registerExtension(dart.global.Geofencing, html$.Geofencing);
+  html$.GeofencingEvent = class GeofencingEvent extends html$.Event {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+  };
+  dart.setSignature(html$.GeofencingEvent, {
+    constructors: () => ({_: [html$.GeofencingEvent, []]})
+  });
+  html$.GeofencingEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('GeofencingEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("GeofencingEvent"))];
   const _getCurrentPosition = Symbol('_getCurrentPosition');
   const _ensurePosition = Symbol('_ensurePosition');
   const _watchPosition = Symbol('_watchPosition');
@@ -46403,15 +47243,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
       controller = async.StreamController$(html$.Geoposition).new({sync: true, onListen: dart.fn(() => {
           dart.assert(watchId == null);
           watchId = this[_watchPosition](dart.fn(position => {
-            dart.dsend(controller, 'add', this[_ensurePosition](position));
+            controller.add(this[_ensurePosition](position));
           }, dart.void, [html$.Geoposition]), dart.fn(error => {
-            dart.dsend(controller, 'addError', error);
+            controller.addError(error);
           }, dart.void, [html$.PositionError]), options);
         }, dart.void, []), onCancel: dart.fn(() => {
           dart.assert(watchId != null);
           this[_clearWatch](watchId);
         })});
-      return dart.as(dart.dload(controller, 'stream'), async.Stream$(html$.Geoposition));
+      return controller.stream;
     }
     [_ensurePosition](domPosition) {
       try {
@@ -46953,8 +47793,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let options = dart.map({canBubble: canBubble, cancelable: cancelable, oldURL: oldUrl, newURL: newUrl});
       return dart.as(new HashChangeEvent(type, html_common.convertDartToNative_Dictionary(options)), html$.HashChangeEvent);
     }
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
+    static _(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.HashChangeEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.HashChangeEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new HashChangeEvent(type, eventInitDict), html$.HashChangeEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new HashChangeEvent(type), html$.HashChangeEvent);
     }
     static get supported() {
       return html_common.Device.isEventTypeSupported('HashChangeEvent');
@@ -46972,9 +47823,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(html$.HashChangeEvent, {
     constructors: () => ({
       new: [html$.HashChangeEvent, [core.String], {canBubble: core.bool, cancelable: core.bool, oldUrl: core.String, newUrl: core.String}],
-      _: [html$.HashChangeEvent, []]
+      _: [html$.HashChangeEvent, [core.String], [core.Map]]
     }),
-    methods: () => ({[_initHashChangeEvent]: [dart.void, [core.String, core.bool, core.bool, core.String, core.String]]})
+    methods: () => ({[_initHashChangeEvent]: [dart.void, [core.String, core.bool, core.bool, core.String, core.String]]}),
+    statics: () => ({
+      _create_1: [html$.HashChangeEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.HashChangeEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.HashChangeEvent[dart.metadata] = () => [dart.const(new _metadata.DomName('HashChangeEvent')), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.CHROME)), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.FIREFOX)), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.SAFARI)), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("HashChangeEvent"))];
   dart.registerExtension(dart.global.HashChangeEvent, html$.HashChangeEvent);
@@ -46999,10 +47855,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.HeadElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('HTMLHeadElement')), dart.const(new _js_helper.Native("HTMLHeadElement"))];
   dart.registerExtension(dart.global.HTMLHeadElement, html$.HeadElement);
-  dart.defineExtensionNames([
-    'forEach',
-    'size'
-  ]);
   html$.Headers = class Headers extends _interceptors.Interceptor {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -47012,12 +47864,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (input == null) {
         return html$.Headers._create_1();
       }
-      if (dart.is(input, html$.Headers) || input == null) {
+      if (dart.is(input, html$.Headers)) {
         return html$.Headers._create_2(input);
       }
-      if (dart.is(input, core.Map) || input == null) {
-        let input_1 = html_common.convertDartToNative_Dictionary(dart.as(input, core.Map));
+      if (dart.is(input, core.Map)) {
+        let input_1 = html_common.convertDartToNative_Dictionary(input);
         return html$.Headers._create_3(input_1);
+      }
+      if (dart.is(input, core.List$(core.Object))) {
+        return html$.Headers._create_4(input);
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
@@ -47030,11 +47885,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _create_3(input) {
       return dart.as(new Headers(input), html$.Headers);
     }
-    get [dartx.size]() {
-      return this.size;
-    }
-    [dartx.forEach](callback, thisArg) {
-      return this.forEach(callback, thisArg);
+    static _create_4(input) {
+      return dart.as(new Headers(input), html$.Headers);
     }
   };
   dart.setSignature(html$.Headers, {
@@ -47042,17 +47894,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _: [html$.Headers, []],
       new: [html$.Headers, [], [dart.dynamic]]
     }),
-    methods: () => ({[dartx.forEach]: [dart.void, [html$.HeadersForEachCallback], [core.Object]]}),
     statics: () => ({
       _create_1: [html$.Headers, []],
       _create_2: [html$.Headers, [dart.dynamic]],
-      _create_3: [html$.Headers, [dart.dynamic]]
+      _create_3: [html$.Headers, [dart.dynamic]],
+      _create_4: [html$.Headers, [dart.dynamic]]
     }),
-    names: ['_create_1', '_create_2', '_create_3']
+    names: ['_create_1', '_create_2', '_create_3', '_create_4']
   });
   html$.Headers[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Headers')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("Headers"))];
   dart.registerExtension(dart.global.Headers, html$.Headers);
-  html$.HeadersForEachCallback = dart.typedef('HeadersForEachCallback', () => dart.functionType(dart.void, [core.String, core.String, html$.Headers]));
   html$.HeadingElement = class HeadingElement extends html$.HtmlElement {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -47094,12 +47945,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.HeadingElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('HTMLHeadingElement')), dart.const(new _js_helper.Native("HTMLHeadingElement"))];
   dart.registerExtension(dart.global.HTMLHeadingElement, html$.HeadingElement);
+  const _get_options = Symbol('_get_options');
   const _get_state = Symbol('_get_state');
   const _pushState_1 = Symbol('_pushState_1');
   const _pushState_2 = Symbol('_pushState_2');
   const _replaceState_1 = Symbol('_replaceState_1');
   const _replaceState_2 = Symbol('_replaceState_2');
   dart.defineExtensionNames([
+    'options',
     'state',
     'back',
     'forward',
@@ -47118,6 +47971,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.length]() {
       return this.length;
     }
+    get [dartx.options]() {
+      return html_common.convertNativeToDart_Dictionary(this[_get_options]);
+    }
+    get [_get_options]() {
+      return this.options;
+    }
     get [dartx.state]() {
       return html_common.convertNativeToDart_SerializedScriptValue(this[_get_state]);
     }
@@ -47130,42 +47989,44 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.forward]() {
       return this.forward();
     }
-    [dartx.go](distance) {
-      return this.go(distance);
+    [dartx.go](delta) {
+      return this.go(delta);
     }
-    [dartx.pushState](data, title, url) {
-      if (url === void 0) url = null;
-      if (url != null) {
+    [dartx.pushState](data, title, url, options) {
+      if (options === void 0) options = null;
+      if (options != null) {
         let data_1 = html_common.convertDartToNative_SerializedScriptValue(data);
-        this[_pushState_1](data_1, title, url);
+        let options_2 = html_common.convertDartToNative_Dictionary(options);
+        this[_pushState_1](data_1, title, url, options_2);
         return;
       }
       let data_1 = html_common.convertDartToNative_SerializedScriptValue(data);
-      this[_pushState_2](data_1, title);
+      this[_pushState_2](data_1, title, url);
       return;
     }
-    [_pushState_1](data, title, url) {
-      return this._pushState_1(data, title, url);
+    [_pushState_1](data, title, url, options) {
+      return this._pushState_1(data, title, url, options);
     }
-    [_pushState_2](data, title) {
-      return this._pushState_2(data, title);
+    [_pushState_2](data, title, url) {
+      return this._pushState_2(data, title, url);
     }
-    [dartx.replaceState](data, title, url) {
-      if (url === void 0) url = null;
-      if (url != null) {
+    [dartx.replaceState](data, title, url, options) {
+      if (options === void 0) options = null;
+      if (options != null) {
         let data_1 = html_common.convertDartToNative_SerializedScriptValue(data);
-        this[_replaceState_1](data_1, title, url);
+        let options_2 = html_common.convertDartToNative_Dictionary(options);
+        this[_replaceState_1](data_1, title, url, options_2);
         return;
       }
       let data_1 = html_common.convertDartToNative_SerializedScriptValue(data);
-      this[_replaceState_2](data_1, title);
+      this[_replaceState_2](data_1, title, url);
       return;
     }
-    [_replaceState_1](data, title, url) {
-      return this._replaceState_1(data, title, url);
+    [_replaceState_1](data, title, url, options) {
+      return this._replaceState_1(data, title, url, options);
     }
-    [_replaceState_2](data, title) {
-      return this._replaceState_2(data, title);
+    [_replaceState_2](data, title, url) {
+      return this._replaceState_2(data, title, url);
     }
   };
   html$.History[dart.implements] = () => [html$.HistoryBase];
@@ -47174,17 +48035,45 @@ dart_library.library('dart_sdk', null, /* Imports */[
     methods: () => ({
       [dartx.back]: [dart.void, []],
       [dartx.forward]: [dart.void, []],
-      [dartx.go]: [dart.void, [core.int]],
-      [dartx.pushState]: [dart.void, [dart.dynamic, core.String], [core.String]],
-      [_pushState_1]: [dart.void, [dart.dynamic, dart.dynamic, dart.dynamic]],
-      [_pushState_2]: [dart.void, [dart.dynamic, dart.dynamic]],
-      [dartx.replaceState]: [dart.void, [dart.dynamic, core.String], [core.String]],
-      [_replaceState_1]: [dart.void, [dart.dynamic, dart.dynamic, dart.dynamic]],
-      [_replaceState_2]: [dart.void, [dart.dynamic, dart.dynamic]]
+      [dartx.go]: [dart.void, [], [core.int]],
+      [dartx.pushState]: [dart.void, [dart.dynamic, core.String, core.String], [core.Map]],
+      [_pushState_1]: [dart.void, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]],
+      [_pushState_2]: [dart.void, [dart.dynamic, dart.dynamic, dart.dynamic]],
+      [dartx.replaceState]: [dart.void, [dart.dynamic, core.String, core.String], [core.Map]],
+      [_replaceState_1]: [dart.void, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]],
+      [_replaceState_2]: [dart.void, [dart.dynamic, dart.dynamic, dart.dynamic]]
     })
   });
   html$.History[dart.metadata] = () => [dart.const(new _metadata.DomName('History')), dart.const(new _js_helper.Native("History"))];
   dart.registerExtension(dart.global.History, html$.History);
+  html$.VRDevice = class VRDevice extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+  };
+  dart.setSignature(html$.VRDevice, {
+    constructors: () => ({_: [html$.VRDevice, []]})
+  });
+  html$.VRDevice[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('VRDevice')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("VRDevice"))];
+  html$.HmdvrDevice = class HmdvrDevice extends html$.VRDevice {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    getEyeParameters(whichEye) {
+      return this.getEyeParameters(whichEye);
+    }
+    setFieldOfView(leftFov, rightFov) {
+      return this.setFieldOfView(leftFov, rightFov);
+    }
+  };
+  dart.setSignature(html$.HmdvrDevice, {
+    constructors: () => ({_: [html$.HmdvrDevice, []]}),
+    methods: () => ({
+      getEyeParameters: [html$.VREyeParameters, [core.String]],
+      setFieldOfView: [dart.void, [], [html$.VRFieldOfView, html$.VRFieldOfView]]
+    })
+  });
+  html$.HmdvrDevice[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('HMDVRDevice')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("HMDVRDevice"))];
   dart.defineExtensionNames([
     'length',
     'get',
@@ -47253,8 +48142,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.get]: [html$.Node, [core.int]],
       [dartx.set]: [dart.void, [core.int, html$.Node]],
       [dartx.elementAt]: [html$.Node, [core.int]],
-      [dartx.item]: [html$.Element, [core.int]],
-      [dartx.namedItem]: [html$.Element, [core.String]]
+      [dartx.item]: [html$.Node, [core.int]],
+      [dartx.namedItem]: [core.Object, [core.String]]
     })
   });
   html$.HtmlCollection[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('HTMLCollection')), dart.const(new _js_helper.Native("HTMLCollection"))];
@@ -47273,10 +48162,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'title',
     'title',
     'exitFullscreen',
-    'fullscreenElement',
-    'fullscreenEnabled',
-    'hidden',
-    'visibilityState',
     'registerElement',
     'register',
     'onVisibilityChange',
@@ -47335,18 +48220,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.exitFullscreen]() {
       this[_webkitExitFullscreen]();
     }
-    get [dartx.fullscreenElement]() {
-      return this[_webkitFullscreenElement];
-    }
-    get [dartx.fullscreenEnabled]() {
-      return this[_webkitFullscreenEnabled];
-    }
-    get [dartx.hidden]() {
-      return this[_webkitHidden];
-    }
-    get [dartx.visibilityState]() {
-      return this.visibilityState || this.mozVisibilityState || this.msVisibilityState || this.webkitVisibilityState;
-    }
     [dartx.registerElement](tag, customElementClass, opts) {
       let extendsTag = opts && 'extendsTag' in opts ? opts.extendsTag : null;
       html$._registerCustomElement(window, this, tag, customElementClass, extendsTag);
@@ -47396,19 +48269,22 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   dart.registerExtension(dart.global.HTMLDocument, html$.HtmlDocument);
   dart.defineExtensionNames([
+    'item',
     'namedItem'
   ]);
   html$.HtmlFormControlsCollection = class HtmlFormControlsCollection extends html$.HtmlCollection {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    [dartx.item](index) {
+      return this.item(index);
+    }
     [dartx.namedItem](name) {
       return this.namedItem(name);
     }
   };
   dart.setSignature(html$.HtmlFormControlsCollection, {
-    constructors: () => ({_: [html$.HtmlFormControlsCollection, []]}),
-    methods: () => ({[dartx.namedItem]: [core.Object, [core.String]]})
+    constructors: () => ({_: [html$.HtmlFormControlsCollection, []]})
   });
   html$.HtmlFormControlsCollection[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('HTMLFormControlsCollection')), dart.const(new _js_helper.Native("HTMLFormControlsCollection"))];
   dart.registerExtension(dart.global.HTMLFormControlsCollection, html$.HtmlFormControlsCollection);
@@ -47433,13 +48309,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.HtmlHtmlElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('HTMLHtmlElement')), dart.const(new _js_helper.Native("HTMLHtmlElement"))];
   dart.registerExtension(dart.global.HTMLHtmlElement, html$.HtmlHtmlElement);
+  const _item = Symbol('_item');
   html$.HtmlOptionsCollection = class HtmlOptionsCollection extends html$.HtmlCollection {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    [_item](index) {
+      return this._item(index);
+    }
   };
   dart.setSignature(html$.HtmlOptionsCollection, {
-    constructors: () => ({_: [html$.HtmlOptionsCollection, []]})
+    constructors: () => ({_: [html$.HtmlOptionsCollection, []]}),
+    methods: () => ({[_item]: [html$.Node, [core.int]]})
   });
   html$.HtmlOptionsCollection[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('HTMLOptionsCollection')), dart.const(new _js_helper.Native("HTMLOptionsCollection"))];
   dart.registerExtension(dart.global.HTMLOptionsCollection, html$.HtmlOptionsCollection);
@@ -47734,17 +48615,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.getAllResponseHeaders]() {
       return this.getAllResponseHeaders();
     }
-    [dartx.getResponseHeader](header) {
-      return this.getResponseHeader(header);
+    [dartx.getResponseHeader](name) {
+      return this.getResponseHeader(name);
     }
-    [dartx.overrideMimeType](override) {
-      return this.overrideMimeType(override);
+    [dartx.overrideMimeType](mime) {
+      return this.overrideMimeType(mime);
     }
-    [dartx.send](data) {
-      return this.send(data);
+    [dartx.send](body_OR_data) {
+      return this.send(body_OR_data);
     }
-    [dartx.setRequestHeader](header, value) {
-      return this.setRequestHeader(header, value);
+    [dartx.setRequestHeader](name, value) {
+      return this.setRequestHeader(name, value);
     }
     get [dartx.onReadyStateChange]() {
       return html$.HttpRequest.readyStateChangeEvent.forTarget(this);
@@ -47800,7 +48681,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'contentWindow',
     'allowFullscreen',
     'height',
-    'integrity',
     'name',
     'sandbox',
     'src',
@@ -47818,7 +48698,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[dartx.allowFullscreen] = null;
       this[_get_contentWindow] = null;
       this[dartx.height] = null;
-      this[dartx.integrity] = null;
       this[dartx.name] = null;
       this[dartx.sandbox] = null;
       this[dartx.src] = null;
@@ -47844,12 +48723,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     set [dartx.height](value) {
       this.height = value;
     }
-    get [dartx.integrity]() {
-      return this.integrity;
-    }
-    set [dartx.integrity](value) {
-      this.integrity = value;
-    }
     get [dartx.name]() {
       return this.name;
     }
@@ -47858,9 +48731,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.sandbox]() {
       return this.sandbox;
-    }
-    set [dartx.sandbox](value) {
-      this.sandbox = value;
     }
     get [dartx.src]() {
       return this.src;
@@ -47920,27 +48790,27 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    static new(data_OR_width, height_OR_width, height) {
-      if (height === void 0) height = null;
-      if ((typeof height_OR_width == 'number' || height_OR_width == null) && (typeof data_OR_width == 'number' || data_OR_width == null) && height == null) {
-        return html$.ImageData._create_1(data_OR_width, height_OR_width);
+    static new(data_OR_sw, sh_OR_sw, sh) {
+      if (sh === void 0) sh = null;
+      if (typeof sh_OR_sw == 'number' && typeof data_OR_sw == 'number' && sh == null) {
+        return html$.ImageData._create_1(data_OR_sw, sh_OR_sw);
       }
-      if ((typeof height_OR_width == 'number' || height_OR_width == null) && (dart.is(data_OR_width, typed_data.Uint8ClampedList) || data_OR_width == null) && height == null) {
-        return html$.ImageData._create_2(data_OR_width, height_OR_width);
+      if (typeof sh_OR_sw == 'number' && dart.is(data_OR_sw, typed_data.Uint8ClampedList) && sh == null) {
+        return html$.ImageData._create_2(data_OR_sw, sh_OR_sw);
       }
-      if ((typeof height == 'number' || height == null) && (typeof height_OR_width == 'number' || height_OR_width == null) && (dart.is(data_OR_width, typed_data.Uint8ClampedList) || data_OR_width == null)) {
-        return html$.ImageData._create_3(data_OR_width, height_OR_width, height);
+      if (typeof sh == 'number' && typeof sh_OR_sw == 'number' && dart.is(data_OR_sw, typed_data.Uint8ClampedList)) {
+        return html$.ImageData._create_3(data_OR_sw, sh_OR_sw, sh);
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
-    static _create_1(data_OR_width, height_OR_width) {
-      return dart.as(new ImageData(data_OR_width, height_OR_width), html$.ImageData);
+    static _create_1(data_OR_sw, sh_OR_sw) {
+      return dart.as(new ImageData(data_OR_sw, sh_OR_sw), html$.ImageData);
     }
-    static _create_2(data_OR_width, height_OR_width) {
-      return dart.as(new ImageData(data_OR_width, height_OR_width), html$.ImageData);
+    static _create_2(data_OR_sw, sh_OR_sw) {
+      return dart.as(new ImageData(data_OR_sw, sh_OR_sw), html$.ImageData);
     }
-    static _create_3(data_OR_width, height_OR_width, height) {
-      return dart.as(new ImageData(data_OR_width, height_OR_width, height), html$.ImageData);
+    static _create_3(data_OR_sw, sh_OR_sw, sh) {
+      return dart.as(new ImageData(data_OR_sw, sh_OR_sw, sh), html$.ImageData);
     }
     get [dartx.data]() {
       return this.data;
@@ -47972,7 +48842,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'crossOrigin',
     'currentSrc',
     'height',
-    'integrity',
     'isMap',
     'naturalHeight',
     'naturalWidth',
@@ -47990,11 +48859,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let src = opts && 'src' in opts ? opts.src : null;
       let width = opts && 'width' in opts ? opts.width : null;
       let height = opts && 'height' in opts ? opts.height : null;
-      let e = html$.document[dartx.createElement]("img");
-      if (src != null) dart.dput(e, 'src', src);
-      if (width != null) dart.dput(e, 'width', width);
-      if (height != null) dart.dput(e, 'height', height);
-      return dart.as(e, html$.ImageElement);
+      let e = dart.as(html$.document[dartx.createElement]("img"), html$.ImageElement);
+      if (src != null) e[dartx.src] = src;
+      if (width != null) e[dartx.width] = width;
+      if (height != null) e[dartx.height] = height;
+      return e;
     }
     created() {
       this[dartx.alt] = null;
@@ -48002,7 +48871,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[dartx.crossOrigin] = null;
       this[dartx.currentSrc] = null;
       this[dartx.height] = null;
-      this[dartx.integrity] = null;
       this[dartx.isMap] = null;
       this[dartx.naturalHeight] = null;
       this[dartx.naturalWidth] = null;
@@ -48036,12 +48904,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     set [dartx.height](value) {
       this.height = value;
-    }
-    get [dartx.integrity]() {
-      return this.integrity;
-    }
-    set [dartx.integrity](value) {
-      this.integrity = value;
     }
     get [dartx.isMap]() {
       return this.isMap;
@@ -48114,12 +48976,44 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.InjectedScriptHost[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('InjectedScriptHost')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("InjectedScriptHost"))];
   dart.registerExtension(dart.global.InjectedScriptHost, html$.InjectedScriptHost);
+  html$.InputDevice = class InputDevice extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(deviceInitDict) {
+      if (deviceInitDict === void 0) deviceInitDict = null;
+      if (deviceInitDict != null) {
+        let deviceInitDict_1 = html_common.convertDartToNative_Dictionary(deviceInitDict);
+        return html$.InputDevice._create_1(deviceInitDict_1);
+      }
+      return html$.InputDevice._create_2();
+    }
+    static _create_1(deviceInitDict) {
+      return dart.as(new InputDevice(deviceInitDict), html$.InputDevice);
+    }
+    static _create_2() {
+      return dart.as(new InputDevice(), html$.InputDevice);
+    }
+  };
+  dart.setSignature(html$.InputDevice, {
+    constructors: () => ({
+      _: [html$.InputDevice, []],
+      new: [html$.InputDevice, [], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.InputDevice, [dart.dynamic]],
+      _create_2: [html$.InputDevice, []]
+    }),
+    names: ['_create_1', '_create_2']
+  });
+  html$.InputDevice[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('InputDevice')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("InputDevice"))];
   const _get_valueAsDate = Symbol('_get_valueAsDate');
   const _set_valueAsDate = Symbol('_set_valueAsDate');
   dart.defineExtensionNames([
     'valueAsDate',
     'valueAsDate',
     'checkValidity',
+    'reportValidity',
     'select',
     'setCustomValidity',
     'setRangeText',
@@ -48128,6 +49022,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'stepUp',
     'accept',
     'alt',
+    'autocapitalize',
     'autocomplete',
     'autofocus',
     'capture',
@@ -48152,6 +49047,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'max',
     'maxLength',
     'min',
+    'minLength',
     'multiple',
     'name',
     'pattern',
@@ -48177,15 +49073,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.InputElement = class InputElement extends html$.HtmlElement {
     static new(opts) {
       let type = opts && 'type' in opts ? opts.type : null;
-      let e = html$.document[dartx.createElement]("input");
+      let e = dart.as(html$.document[dartx.createElement]("input"), html$.InputElement);
       if (type != null) {
         try {
-          dart.dput(e, 'type', type);
+          e[dartx.type] = type;
         } catch (_) {
         }
 
       }
-      return dart.as(e, html$.InputElement);
+      return e;
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -48193,6 +49089,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     created() {
       this[dartx.accept] = null;
       this[dartx.alt] = null;
+      this[dartx.autocapitalize] = null;
       this[dartx.autocomplete] = null;
       this[dartx.autofocus] = null;
       this[dartx.capture] = null;
@@ -48217,6 +49114,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[dartx.max] = null;
       this[dartx.maxLength] = null;
       this[dartx.min] = null;
+      this[dartx.minLength] = null;
       this[dartx.multiple] = null;
       this[dartx.name] = null;
       this[dartx.pattern] = null;
@@ -48252,6 +49150,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     set [dartx.alt](value) {
       this.alt = value;
+    }
+    get [dartx.autocapitalize]() {
+      return this.autocapitalize;
+    }
+    set [dartx.autocapitalize](value) {
+      this.autocapitalize = value;
     }
     get [dartx.autocomplete]() {
       return this.autocomplete;
@@ -48388,6 +49292,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     set [dartx.min](value) {
       this.min = value;
     }
+    get [dartx.minLength]() {
+      return this.minLength;
+    }
+    set [dartx.minLength](value) {
+      this.minLength = value;
+    }
     get [dartx.multiple]() {
       return this.multiple;
     }
@@ -48517,6 +49427,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.checkValidity]() {
       return this.checkValidity();
     }
+    [dartx.reportValidity]() {
+      return this.reportValidity();
+    }
     [dartx.select]() {
       return this.select();
     }
@@ -48546,6 +49459,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }),
     methods: () => ({
       [dartx.checkValidity]: [core.bool, []],
+      [dartx.reportValidity]: [core.bool, []],
       [dartx.select]: [dart.void, []],
       [dartx.setCustomValidity]: [dart.void, [core.String]],
       [dartx.setRangeText]: [dart.void, [core.String], {start: core.int, end: core.int, selectionMode: core.String}],
@@ -49348,71 +50262,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(html$.ButtonInputElement, {
     constructors: () => ({new: [html$.ButtonInputElement, []]})
   });
-  dart.defineExtensionNames([
-    'confirmComposition',
-    'compositionEndOffset',
-    'compositionStartOffset',
-    'locale',
-    'target'
-  ]);
-  html$.InputMethodContext = class InputMethodContext extends html$.EventTarget {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    get [dartx.compositionEndOffset]() {
-      return this.compositionEndOffset;
-    }
-    get [dartx.compositionStartOffset]() {
-      return this.compositionStartOffset;
-    }
-    get [dartx.locale]() {
-      return this.locale;
-    }
-    get [dartx.target]() {
-      return this.target;
-    }
-    [dartx.confirmComposition]() {
-      return this.confirmComposition();
-    }
-  };
-  dart.setSignature(html$.InputMethodContext, {
-    constructors: () => ({_: [html$.InputMethodContext, []]}),
-    methods: () => ({[dartx.confirmComposition]: [dart.void, []]})
-  });
-  html$.InputMethodContext[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('InputMethodContext')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("InputMethodContext"))];
-  dart.registerExtension(dart.global.InputMethodContext, html$.InputMethodContext);
-  dart.defineExtensionNames([
-    'reloadAll',
-    'replace'
-  ]);
-  html$.InstallEvent = class InstallEvent extends html$.ExtendableEvent {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    [dartx.reloadAll]() {
-      return this.reloadAll();
-    }
-    [dartx.replace]() {
-      return this.replace();
-    }
-  };
-  dart.setSignature(html$.InstallEvent, {
-    constructors: () => ({_: [html$.InstallEvent, []]}),
-    methods: () => ({
-      [dartx.reloadAll]: [async.Future, []],
-      [dartx.replace]: [dart.void, []]
-    })
-  });
-  html$.InstallEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('InstallEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("InstallEvent"))];
-  dart.registerExtension(dart.global.InstallEvent, html$.InstallEvent);
   const _initKeyboardEvent = Symbol('_initKeyboardEvent');
   const _keyIdentifier = Symbol('_keyIdentifier');
   dart.defineExtensionNames([
     'keyCode',
     'charCode',
+    'which',
     'getModifierState',
     'altKey',
+    'code',
     'ctrlKey',
+    'key',
     'keyLocation',
     'location',
     'metaKey',
@@ -49432,9 +50292,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (view == null) {
         view = html$.window;
       }
-      let e = html$.document[_createEvent]("KeyboardEvent");
-      dart.dcall(e[_initKeyboardEvent], type, canBubble, cancelable, view, "", keyLocation, ctrlKey, altKey, shiftKey, metaKey);
-      return dart.as(e, html$.KeyboardEvent);
+      let e = dart.as(html$.document[_createEvent]("KeyboardEvent"), html$.KeyboardEvent);
+      e[_initKeyboardEvent](type, canBubble, cancelable, view, "", keyLocation, ctrlKey, altKey, shiftKey, metaKey);
+      return e;
     }
     [_initKeyboardEvent](type, canBubble, cancelable, view, keyIdentifier, keyLocation, ctrlKey, altKey, shiftKey, metaKey) {
       if (typeof this.initKeyEvent == "function") {
@@ -49449,14 +50309,34 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.charCode]() {
       return this[_charCode];
     }
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
+    get [dartx.which]() {
+      return this[_which];
+    }
+    static _(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.KeyboardEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.KeyboardEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new KeyboardEvent(type, eventInitDict), html$.KeyboardEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new KeyboardEvent(type), html$.KeyboardEvent);
     }
     get [dartx.altKey]() {
       return this.altKey;
     }
+    get [dartx.code]() {
+      return this.code;
+    }
     get [dartx.ctrlKey]() {
       return this.ctrlKey;
+    }
+    get [dartx.key]() {
+      return this.key;
     }
     get [_keyIdentifier]() {
       return this.keyIdentifier;
@@ -49476,19 +50356,24 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.shiftKey]() {
       return this.shiftKey;
     }
-    [dartx.getModifierState](keyArgument) {
-      return this.getModifierState(keyArgument);
+    [dartx.getModifierState](keyArg) {
+      return this.getModifierState(keyArg);
     }
   };
   dart.setSignature(html$.KeyboardEvent, {
     constructors: () => ({
       new: [html$.KeyboardEvent, [core.String], {view: html$.Window, canBubble: core.bool, cancelable: core.bool, keyLocation: core.int, ctrlKey: core.bool, altKey: core.bool, shiftKey: core.bool, metaKey: core.bool}],
-      _: [html$.KeyboardEvent, []]
+      _: [html$.KeyboardEvent, [core.String], [core.Map]]
     }),
     methods: () => ({
       [_initKeyboardEvent]: [dart.void, [core.String, core.bool, core.bool, html$.Window, core.String, core.int, core.bool, core.bool, core.bool, core.bool]],
       [dartx.getModifierState]: [core.bool, [core.String]]
-    })
+    }),
+    statics: () => ({
+      _create_1: [html$.KeyboardEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.KeyboardEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.KeyboardEvent[dart.metadata] = () => [dart.const(new _metadata.DomName('KeyboardEvent')), dart.const(new _js_helper.Native("KeyboardEvent"))];
   html$.KeyboardEvent.DOM_KEY_LOCATION_LEFT = 1;
@@ -49496,8 +50381,50 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.KeyboardEvent.DOM_KEY_LOCATION_RIGHT = 2;
   html$.KeyboardEvent.DOM_KEY_LOCATION_STANDARD = 0;
   dart.registerExtension(dart.global.KeyboardEvent, html$.KeyboardEvent);
+  html$.KeyframeEffect = class KeyframeEffect extends html$.AnimationEffectReadOnly {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(target, keyframes, timing) {
+      if (timing === void 0) timing = null;
+      if (dart.is(keyframes, core.List$(core.Map)) && (dart.is(target, html$.Element) || target == null) && timing == null) {
+        return html$.KeyframeEffect._create_1(target, keyframes);
+      }
+      if (typeof timing == 'number' && dart.is(keyframes, core.List$(core.Map)) && (dart.is(target, html$.Element) || target == null)) {
+        return html$.KeyframeEffect._create_2(target, keyframes, timing);
+      }
+      if (dart.is(timing, core.Map) && dart.is(keyframes, core.List$(core.Map)) && (dart.is(target, html$.Element) || target == null)) {
+        let timing_1 = html_common.convertDartToNative_Dictionary(timing);
+        return html$.KeyframeEffect._create_3(target, keyframes, timing_1);
+      }
+      dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
+    }
+    static _create_1(target, keyframes) {
+      return dart.as(new KeyframeEffect(target, keyframes), html$.KeyframeEffect);
+    }
+    static _create_2(target, keyframes, timing) {
+      return dart.as(new KeyframeEffect(target, keyframes, timing), html$.KeyframeEffect);
+    }
+    static _create_3(target, keyframes, timing) {
+      return dart.as(new KeyframeEffect(target, keyframes, timing), html$.KeyframeEffect);
+    }
+  };
+  dart.setSignature(html$.KeyframeEffect, {
+    constructors: () => ({
+      _: [html$.KeyframeEffect, []],
+      new: [html$.KeyframeEffect, [html$.Element, core.List$(core.Map)], [dart.dynamic]]
+    }),
+    statics: () => ({
+      _create_1: [html$.KeyframeEffect, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.KeyframeEffect, [dart.dynamic, dart.dynamic, dart.dynamic]],
+      _create_3: [html$.KeyframeEffect, [dart.dynamic, dart.dynamic, dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2', '_create_3']
+  });
+  html$.KeyframeEffect[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('KeyframeEffect')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("KeyframeEffect"))];
   dart.defineExtensionNames([
     'checkValidity',
+    'reportValidity',
     'setCustomValidity',
     'autofocus',
     'challenge',
@@ -49586,6 +50513,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.checkValidity]() {
       return this.checkValidity();
     }
+    [dartx.reportValidity]() {
+      return this.reportValidity();
+    }
     [dartx.setCustomValidity](error) {
       return this.setCustomValidity(error);
     }
@@ -49599,6 +50529,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }),
     methods: () => ({
       [dartx.checkValidity]: [core.bool, []],
+      [dartx.reportValidity]: [core.bool, []],
       [dartx.setCustomValidity]: [dart.void, [core.String]]
     })
   });
@@ -49811,33 +50742,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.LinkElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('HTMLLinkElement')), dart.const(new _js_helper.Native("HTMLLinkElement"))];
   dart.registerExtension(dart.global.HTMLLinkElement, html$.LinkElement);
   dart.defineExtensionNames([
-    'password'
-  ]);
-  html$.LocalCredential = class LocalCredential extends html$.Credential {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    static new(id, name, avatarURL, password) {
-      return html$.LocalCredential._create_1(id, name, avatarURL, password);
-    }
-    static _create_1(id, name, avatarURL, password) {
-      return dart.as(new LocalCredential(id, name, avatarURL, password), html$.LocalCredential);
-    }
-    get [dartx.password]() {
-      return this.password;
-    }
-  };
-  dart.setSignature(html$.LocalCredential, {
-    constructors: () => ({
-      _: [html$.LocalCredential, []],
-      new: [html$.LocalCredential, [core.String, core.String, core.String, core.String]]
-    }),
-    statics: () => ({_create_1: [html$.LocalCredential, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]]}),
-    names: ['_create_1']
-  });
-  html$.LocalCredential[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('LocalCredential')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("LocalCredential"))];
-  dart.registerExtension(dart.global.LocalCredential, html$.LocalCredential);
-  dart.defineExtensionNames([
     'assign',
     'reload',
     'replace',
@@ -49938,8 +50842,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.Location[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Location')), dart.const(new _js_helper.Native("Location"))];
   dart.registerExtension(dart.global.Location, html$.Location);
-  html$.MidiErrorCallback = dart.typedef('MidiErrorCallback', () => dart.functionType(dart.void, [html$.DomError]));
-  html$.MidiSuccessCallback = dart.typedef('MidiSuccessCallback', () => dart.functionType(dart.void, [html$.MidiAccess, core.bool]));
   dart.defineExtensionNames([
     'areas',
     'name'
@@ -50103,7 +51005,62 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.MediaDeviceInfo[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MediaDeviceInfo')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("MediaDeviceInfo"))];
   dart.registerExtension(dart.global.MediaDeviceInfo, html$.MediaDeviceInfo);
-  html$.MediaDeviceInfoCallback = dart.typedef('MediaDeviceInfoCallback', () => dart.functionType(dart.void, [core.List$(html$.MediaDeviceInfo)]));
+  const _getUserMedia_1 = Symbol('_getUserMedia_1');
+  html$.MediaDevices = class MediaDevices extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    enumerateDevices() {
+      return this.enumerateDevices();
+    }
+    getUserMedia(options) {
+      let options_1 = html_common.convertDartToNative_Dictionary(options);
+      return this[_getUserMedia_1](options_1);
+    }
+    [_getUserMedia_1](options) {
+      return this._getUserMedia_1(options);
+    }
+  };
+  dart.setSignature(html$.MediaDevices, {
+    constructors: () => ({_: [html$.MediaDevices, []]}),
+    methods: () => ({
+      enumerateDevices: [async.Future, []],
+      getUserMedia: [async.Future, [core.Map]],
+      [_getUserMedia_1]: [async.Future, [dart.dynamic]]
+    })
+  });
+  html$.MediaDevices[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MediaDevices')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("MediaDevices"))];
+  html$.MediaEncryptedEvent = class MediaEncryptedEvent extends html$.Event {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.MediaEncryptedEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.MediaEncryptedEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new MediaEncryptedEvent(type, eventInitDict), html$.MediaEncryptedEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new MediaEncryptedEvent(type), html$.MediaEncryptedEvent);
+    }
+  };
+  dart.setSignature(html$.MediaEncryptedEvent, {
+    constructors: () => ({
+      _: [html$.MediaEncryptedEvent, []],
+      new: [html$.MediaEncryptedEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.MediaEncryptedEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.MediaEncryptedEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
+  });
+  html$.MediaEncryptedEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MediaEncryptedEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("MediaEncryptedEvent"))];
   dart.defineExtensionNames([
     'code'
   ]);
@@ -50121,7 +51078,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.MediaError[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MediaError')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("MediaError"))];
   html$.MediaError.MEDIA_ERR_ABORTED = 1;
   html$.MediaError.MEDIA_ERR_DECODE = 3;
-  html$.MediaError.MEDIA_ERR_ENCRYPTED = 5;
   html$.MediaError.MEDIA_ERR_NETWORK = 2;
   html$.MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
   dart.registerExtension(dart.global.MediaError, html$.MediaError);
@@ -50164,6 +51120,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.MediaKeyEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.MediaKeyEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new MediaKeyEvent(type, eventInitDict), html$.MediaKeyEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new MediaKeyEvent(type), html$.MediaKeyEvent);
+    }
     get [dartx.defaultUrl]() {
       return this.defaultURL;
     }
@@ -50187,57 +51157,69 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$.MediaKeyEvent, {
-    constructors: () => ({_: [html$.MediaKeyEvent, []]})
+    constructors: () => ({
+      _: [html$.MediaKeyEvent, []],
+      new: [html$.MediaKeyEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.MediaKeyEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.MediaKeyEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.MediaKeyEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MediaKeyEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("MediaKeyEvent"))];
   dart.registerExtension(dart.global.MediaKeyEvent, html$.MediaKeyEvent);
   dart.defineExtensionNames([
-    'destinationUrl',
-    'message'
+    'message',
+    'messageType'
   ]);
   html$.MediaKeyMessageEvent = class MediaKeyMessageEvent extends html$.Event {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    get [dartx.destinationUrl]() {
-      return this.destinationURL;
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.MediaKeyMessageEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.MediaKeyMessageEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new MediaKeyMessageEvent(type, eventInitDict), html$.MediaKeyMessageEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new MediaKeyMessageEvent(type), html$.MediaKeyMessageEvent);
     }
     get [dartx.message]() {
       return this.message;
     }
+    get [dartx.messageType]() {
+      return this.messageType;
+    }
   };
   dart.setSignature(html$.MediaKeyMessageEvent, {
-    constructors: () => ({_: [html$.MediaKeyMessageEvent, []]})
+    constructors: () => ({
+      _: [html$.MediaKeyMessageEvent, []],
+      new: [html$.MediaKeyMessageEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.MediaKeyMessageEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.MediaKeyMessageEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.MediaKeyMessageEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MediaKeyMessageEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("MediaKeyMessageEvent"))];
   dart.registerExtension(dart.global.MediaKeyMessageEvent, html$.MediaKeyMessageEvent);
-  dart.defineExtensionNames([
-    'contentType',
-    'initData'
-  ]);
-  html$.MediaKeyNeededEvent = class MediaKeyNeededEvent extends html$.Event {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    get [dartx.contentType]() {
-      return this.contentType;
-    }
-    get [dartx.initData]() {
-      return this.initData;
-    }
-  };
-  dart.setSignature(html$.MediaKeyNeededEvent, {
-    constructors: () => ({_: [html$.MediaKeyNeededEvent, []]})
-  });
-  html$.MediaKeyNeededEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MediaKeyNeededEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("MediaKeyNeededEvent"))];
-  dart.registerExtension(dart.global.MediaKeyNeededEvent, html$.MediaKeyNeededEvent);
   const _update$ = Symbol('_update');
   dart.defineExtensionNames([
+    'close',
     'generateRequest',
-    'release',
+    'load',
+    'remove',
     'closed',
-    'error',
-    'keySystem',
+    'expiration',
+    'keyStatuses',
     'sessionId'
   ]);
   html$.MediaKeySession = class MediaKeySession extends html$.EventTarget {
@@ -50247,20 +51229,26 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.closed]() {
       return this.closed;
     }
-    get [dartx.error]() {
-      return this.error;
+    get [dartx.expiration]() {
+      return this.expiration;
     }
-    get [dartx.keySystem]() {
-      return this.keySystem;
+    get [dartx.keyStatuses]() {
+      return this.keyStatuses;
     }
     get [dartx.sessionId]() {
       return this.sessionId;
     }
+    [dartx.close]() {
+      return this.close();
+    }
     [dartx.generateRequest](initDataType, initData) {
       return this.generateRequest(initDataType, initData);
     }
-    [dartx.release]() {
-      return this.release();
+    [dartx.load](sessionId) {
+      return this.load(sessionId);
+    }
+    [dartx.remove]() {
+      return this.remove();
     }
     [_update$](response) {
       return this._update(response);
@@ -50269,36 +51257,69 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(html$.MediaKeySession, {
     constructors: () => ({_: [html$.MediaKeySession, []]}),
     methods: () => ({
+      [dartx.close]: [async.Future, []],
       [dartx.generateRequest]: [async.Future, [core.String, dart.dynamic]],
-      [dartx.release]: [async.Future, []],
+      [dartx.load]: [async.Future, [core.String]],
+      [dartx.remove]: [async.Future, []],
       [_update$]: [async.Future, [dart.dynamic]]
     })
   });
   html$.MediaKeySession[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MediaKeySession')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("MediaKeySession"))];
   dart.registerExtension(dart.global.MediaKeySession, html$.MediaKeySession);
+  html$.MediaKeyStatusMap = class MediaKeyStatusMap extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+  };
+  dart.setSignature(html$.MediaKeyStatusMap, {
+    constructors: () => ({_: [html$.MediaKeyStatusMap, []]})
+  });
+  html$.MediaKeyStatusMap[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MediaKeyStatusMap')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("MediaKeyStatusMap"))];
+  const _getConfiguration_1 = Symbol('_getConfiguration_1');
+  html$.MediaKeySystemAccess = class MediaKeySystemAccess extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    createMediaKeys() {
+      return this.createMediaKeys();
+    }
+    getConfiguration() {
+      return html_common.convertNativeToDart_Dictionary(this[_getConfiguration_1]());
+    }
+    [_getConfiguration_1]() {
+      return this._getConfiguration_1();
+    }
+  };
+  dart.setSignature(html$.MediaKeySystemAccess, {
+    constructors: () => ({_: [html$.MediaKeySystemAccess, []]}),
+    methods: () => ({
+      createMediaKeys: [async.Future, []],
+      getConfiguration: [core.Map, []],
+      [_getConfiguration_1]: [dart.dynamic, []]
+    })
+  });
+  html$.MediaKeySystemAccess[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MediaKeySystemAccess')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("MediaKeySystemAccess"))];
   const _createSession = Symbol('_createSession');
   dart.defineExtensionNames([
-    'keySystem'
+    'setServerCertificate'
   ]);
   html$.MediaKeys = class MediaKeys extends _interceptors.Interceptor {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    get [dartx.keySystem]() {
-      return this.keySystem;
-    }
     [_createSession](sessionType) {
       return this._createSession(sessionType);
+    }
+    [dartx.setServerCertificate](serverCertificate) {
+      return this.setServerCertificate(serverCertificate);
     }
   };
   dart.setSignature(html$.MediaKeys, {
     constructors: () => ({_: [html$.MediaKeys, []]}),
-    methods: () => ({[_createSession]: [html$.MediaKeySession, [], [core.String]]}),
-    statics: () => ({
-      create: [async.Future, [core.String]],
-      isTypeSupported: [core.bool, [core.String, core.String]]
-    }),
-    names: ['create', 'isTypeSupported']
+    methods: () => ({
+      [_createSession]: [html$.MediaKeySession, [], [core.String]],
+      [dartx.setServerCertificate]: [async.Future, [dart.dynamic]]
+    })
   });
   html$.MediaKeys[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MediaKeys')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("MediaKeys"))];
   dart.registerExtension(dart.global.MediaKeys, html$.MediaKeys);
@@ -50322,11 +51343,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     set [dartx.mediaText](value) {
       this.mediaText = value;
     }
-    [dartx.appendMedium](newMedium) {
-      return this.appendMedium(newMedium);
+    [dartx.appendMedium](medium) {
+      return this.appendMedium(medium);
     }
-    [dartx.deleteMedium](oldMedium) {
-      return this.deleteMedium(oldMedium);
+    [dartx.deleteMedium](medium) {
+      return this.deleteMedium(medium);
     }
     [dartx.item](index) {
       return this.item(index);
@@ -50391,6 +51412,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.MediaQueryListEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.MediaQueryListEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new MediaQueryListEvent(type, eventInitDict), html$.MediaQueryListEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new MediaQueryListEvent(type), html$.MediaQueryListEvent);
+    }
     get [dartx.matches]() {
       return this.matches;
     }
@@ -50399,10 +51434,48 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$.MediaQueryListEvent, {
-    constructors: () => ({_: [html$.MediaQueryListEvent, []]})
+    constructors: () => ({
+      _: [html$.MediaQueryListEvent, []],
+      new: [html$.MediaQueryListEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.MediaQueryListEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.MediaQueryListEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.MediaQueryListEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MediaQueryListEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("MediaQueryListEvent"))];
   dart.registerExtension(dart.global.MediaQueryListEvent, html$.MediaQueryListEvent);
+  html$.MediaSession = class MediaSession extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new() {
+      return html$.MediaSession._create_1();
+    }
+    static _create_1() {
+      return dart.as(new MediaSession(), html$.MediaSession);
+    }
+    activate() {
+      return this.activate();
+    }
+    deactivate() {
+      return this.deactivate();
+    }
+  };
+  dart.setSignature(html$.MediaSession, {
+    constructors: () => ({
+      _: [html$.MediaSession, []],
+      new: [html$.MediaSession, []]
+    }),
+    methods: () => ({
+      activate: [dart.void, []],
+      deactivate: [dart.void, []]
+    }),
+    statics: () => ({_create_1: [html$.MediaSession, []]}),
+    names: ['_create_1']
+  });
+  html$.MediaSession[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MediaSession')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("MediaSession"))];
   dart.defineExtensionNames([
     'addSourceBuffer',
     'endOfStream',
@@ -50480,6 +51553,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'onAddTrack',
     'onEnded',
     'onRemoveTrack',
+    'active',
     'ended',
     'id',
     'label'
@@ -50509,6 +51583,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static _create_3(stream_OR_tracks) {
       return dart.as(new MediaStream(stream_OR_tracks), html$.MediaStream);
+    }
+    get [dartx.active]() {
+      return this.active;
     }
     get [dartx.ended]() {
       return this.ended;
@@ -50598,6 +51675,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.MediaStreamEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.MediaStreamEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new MediaStreamEvent(type, eventInitDict), html$.MediaStreamEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new MediaStreamEvent(type), html$.MediaStreamEvent);
+    }
     static get supported() {
       return html_common.Device.isEventTypeSupported('MediaStreamEvent');
     }
@@ -50606,7 +51697,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$.MediaStreamEvent, {
-    constructors: () => ({_: [html$.MediaStreamEvent, []]})
+    constructors: () => ({
+      _: [html$.MediaStreamEvent, []],
+      new: [html$.MediaStreamEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.MediaStreamEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.MediaStreamEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.MediaStreamEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MediaStreamEvent')), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.CHROME)), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("MediaStreamEvent"))];
   dart.registerExtension(dart.global.MediaStreamEvent, html$.MediaStreamEvent);
@@ -50783,7 +51882,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'checked',
     'defaultValue',
     'disabled',
+    'icon',
     'label',
+    'radiogroup',
     'type'
   ]);
   html$.MenuItemElement = class MenuItemElement extends html$.HtmlElement {
@@ -50794,7 +51895,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[dartx.checked] = null;
       this[dartx.defaultValue] = null;
       this[dartx.disabled] = null;
+      this[dartx.icon] = null;
       this[dartx.label] = null;
+      this[dartx.radiogroup] = null;
       this[dartx.type] = null;
       super.created();
     }
@@ -50816,11 +51919,23 @@ dart_library.library('dart_sdk', null, /* Imports */[
     set [dartx.disabled](value) {
       this.disabled = value;
     }
+    get [dartx.icon]() {
+      return this.icon;
+    }
+    set [dartx.icon](value) {
+      this.icon = value;
+    }
     get [dartx.label]() {
       return this.label;
     }
     set [dartx.label](value) {
       this.label = value;
+    }
+    get [dartx.radiogroup]() {
+      return this.radiogroup;
+    }
+    set [dartx.radiogroup](value) {
+      this.radiogroup = value;
     }
     get [dartx.type]() {
       return this.type;
@@ -50882,18 +51997,29 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (!dart.notNull(html_common.Device.isIE)) {
         return dart.as(new MessageEvent(type, {bubbles: canBubble, cancelable: cancelable, data: data, origin: origin, lastEventId: lastEventId, source: source, ports: messagePorts}), html$.MessageEvent);
       }
-      let event = html$.document[_createEvent]("MessageEvent");
-      dart.dcall(event[_initMessageEvent], type, canBubble, cancelable, data, origin, lastEventId, source, messagePorts);
-      return dart.as(event, html$.MessageEvent);
-    }
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
+      let event = dart.as(html$.document[_createEvent]("MessageEvent"), html$.MessageEvent);
+      event[_initMessageEvent](type, canBubble, cancelable, data, origin, lastEventId, source, messagePorts);
+      return event;
     }
     get [dartx.data]() {
       return html_common.convertNativeToDart_SerializedScriptValue(this[_get_data]);
     }
     get [_get_data]() {
       return this.data;
+    }
+    static _(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.MessageEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.MessageEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new MessageEvent(type, eventInitDict), html$.MessageEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new MessageEvent(type), html$.MessageEvent);
     }
     get [dartx.lastEventId]() {
       return this.lastEventId;
@@ -50907,16 +52033,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [_get_source]() {
       return this.source;
     }
-    [_initMessageEvent](typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, sourceArg, messagePorts) {
-      return this._initMessageEvent(typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, sourceArg, messagePorts);
+    [_initMessageEvent](typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, sourceArg, portsArg) {
+      return this._initMessageEvent(typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, sourceArg, portsArg);
     }
   };
   dart.setSignature(html$.MessageEvent, {
     constructors: () => ({
-      new: [html$.MessageEvent, [core.String], {canBubble: core.bool, cancelable: core.bool, data: core.Object, origin: core.String, lastEventId: core.String, source: html$.Window, messagePorts: core.List}],
-      _: [html$.MessageEvent, []]
+      new: [html$.MessageEvent, [core.String], {canBubble: core.bool, cancelable: core.bool, data: core.Object, origin: core.String, lastEventId: core.String, source: html$.Window, messagePorts: core.List$(html$.MessagePort)}],
+      _: [html$.MessageEvent, [core.String], [core.Map]]
     }),
-    methods: () => ({[_initMessageEvent]: [dart.void, [core.String, core.bool, core.bool, core.Object, core.String, core.String, html$.Window, core.List$(html$.MessagePort)]]})
+    methods: () => ({[_initMessageEvent]: [dart.void, [core.String, core.bool, core.bool, core.Object, core.String, core.String, html$.Window, core.List$(html$.MessagePort)]]}),
+    statics: () => ({
+      _create_1: [html$.MessageEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.MessageEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.MessageEvent[dart.metadata] = () => [dart.const(new _metadata.DomName('MessageEvent')), dart.const(new _js_helper.Native("MessageEvent"))];
   dart.registerExtension(dart.global.MessageEvent, html$.MessageEvent);
@@ -51126,8 +52257,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.MeterElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('HTMLMeterElement')), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.CHROME)), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.FIREFOX)), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.SAFARI)), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("HTMLMeterElement"))];
   dart.registerExtension(dart.global.HTMLMeterElement, html$.MeterElement);
   dart.defineExtensionNames([
-    'onConnect',
-    'onDisconnect',
     'inputs',
     'outputs',
     'sysexEnabled'
@@ -51145,25 +52274,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.sysexEnabled]() {
       return this.sysexEnabled;
     }
-    get [dartx.onConnect]() {
-      return html$.MidiAccess.connectEvent.forTarget(this);
-    }
-    get [dartx.onDisconnect]() {
-      return html$.MidiAccess.disconnectEvent.forTarget(this);
-    }
   };
   dart.setSignature(html$.MidiAccess, {
     constructors: () => ({_: [html$.MidiAccess, []]})
   });
   html$.MidiAccess[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MIDIAccess')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("MIDIAccess"))];
-  dart.defineLazy(html$.MidiAccess, {
-    get connectEvent() {
-      return dart.const(new (html$.EventStreamProvider$(html$.MidiConnectionEvent))('connect'));
-    },
-    get disconnectEvent() {
-      return dart.const(new (html$.EventStreamProvider$(html$.MidiConnectionEvent))('disconnect'));
-    }
-  });
   dart.registerExtension(dart.global.MIDIAccess, html$.MidiAccess);
   dart.defineExtensionNames([
     'port'
@@ -51172,26 +52287,54 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.MidiConnectionEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.MidiConnectionEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new MIDIConnectionEvent(type, eventInitDict), html$.MidiConnectionEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new MIDIConnectionEvent(type), html$.MidiConnectionEvent);
+    }
     get [dartx.port]() {
       return this.port;
     }
   };
   dart.setSignature(html$.MidiConnectionEvent, {
-    constructors: () => ({_: [html$.MidiConnectionEvent, []]})
+    constructors: () => ({
+      _: [html$.MidiConnectionEvent, []],
+      new: [html$.MidiConnectionEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.MidiConnectionEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.MidiConnectionEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.MidiConnectionEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MIDIConnectionEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("MIDIConnectionEvent"))];
   dart.registerExtension(dart.global.MIDIConnectionEvent, html$.MidiConnectionEvent);
   dart.defineExtensionNames([
-    'onDisconnect',
+    'close',
+    'open',
+    'connection',
     'id',
     'manufacturer',
     'name',
+    'state',
     'type',
     'version'
   ]);
   html$.MidiPort = class MidiPort extends html$.EventTarget {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    get [dartx.connection]() {
+      return this.connection;
     }
     get [dartx.id]() {
       return this.id;
@@ -51202,25 +52345,30 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.name]() {
       return this.name;
     }
+    get [dartx.state]() {
+      return this.state;
+    }
     get [dartx.type]() {
       return this.type;
     }
     get [dartx.version]() {
       return this.version;
     }
-    get [dartx.onDisconnect]() {
-      return html$.MidiPort.disconnectEvent.forTarget(this);
+    [dartx.close]() {
+      return this.close();
+    }
+    [dartx.open]() {
+      return this.open();
     }
   };
   dart.setSignature(html$.MidiPort, {
-    constructors: () => ({_: [html$.MidiPort, []]})
+    constructors: () => ({_: [html$.MidiPort, []]}),
+    methods: () => ({
+      [dartx.close]: [async.Future, []],
+      [dartx.open]: [async.Future, []]
+    })
   });
   html$.MidiPort[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MIDIPort')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("MIDIPort"))];
-  dart.defineLazy(html$.MidiPort, {
-    get disconnectEvent() {
-      return dart.const(new (html$.EventStreamProvider$(html$.MidiConnectionEvent))('disconnect'));
-    }
-  });
   dart.registerExtension(dart.global.MIDIPort, html$.MidiPort);
   dart.defineExtensionNames([
     'onMidiMessage'
@@ -51244,11 +52392,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   dart.registerExtension(dart.global.MIDIInput, html$.MidiInput);
   dart.defineExtensionNames([
-    'entries',
-    'get',
-    'has',
-    'keys',
-    'values',
     'size'
   ]);
   html$.MidiInputMap = class MidiInputMap extends _interceptors.Interceptor {
@@ -51258,31 +52401,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.size]() {
       return this.size;
     }
-    [dartx.entries]() {
-      return this.entries();
-    }
-    [dartx.get](id) {
-      return this.get(id);
-    }
-    [dartx.has](key) {
-      return this.has(key);
-    }
-    [dartx.keys]() {
-      return this.keys();
-    }
-    [dartx.values]() {
-      return this.values();
-    }
   };
   dart.setSignature(html$.MidiInputMap, {
-    constructors: () => ({_: [html$.MidiInputMap, []]}),
-    methods: () => ({
-      [dartx.entries]: [html$.DomIterator, []],
-      [dartx.get]: [core.Object, [core.String]],
-      [dartx.has]: [core.bool, [core.String]],
-      [dartx.keys]: [html$.DomIterator, []],
-      [dartx.values]: [html$.DomIterator, []]
-    })
+    constructors: () => ({_: [html$.MidiInputMap, []]})
   });
   html$.MidiInputMap[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MIDIInputMap')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("MIDIInputMap"))];
   dart.registerExtension(dart.global.MIDIInputMap, html$.MidiInputMap);
@@ -51294,6 +52415,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.MidiMessageEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.MidiMessageEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new MIDIMessageEvent(type, eventInitDict), html$.MidiMessageEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new MIDIMessageEvent(type), html$.MidiMessageEvent);
+    }
     get [dartx.data]() {
       return this.data;
     }
@@ -51302,7 +52437,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$.MidiMessageEvent, {
-    constructors: () => ({_: [html$.MidiMessageEvent, []]})
+    constructors: () => ({
+      _: [html$.MidiMessageEvent, []],
+      new: [html$.MidiMessageEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.MidiMessageEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.MidiMessageEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.MidiMessageEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MIDIMessageEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("MIDIMessageEvent"))];
   dart.registerExtension(dart.global.MIDIMessageEvent, html$.MidiMessageEvent);
@@ -51324,11 +52467,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.MidiOutput[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MIDIOutput')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("MIDIOutput"))];
   dart.registerExtension(dart.global.MIDIOutput, html$.MidiOutput);
   dart.defineExtensionNames([
-    'entries',
-    'get',
-    'has',
-    'keys',
-    'values',
     'size'
   ]);
   html$.MidiOutputMap = class MidiOutputMap extends _interceptors.Interceptor {
@@ -51338,31 +52476,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.size]() {
       return this.size;
     }
-    [dartx.entries]() {
-      return this.entries();
-    }
-    [dartx.get](id) {
-      return this.get(id);
-    }
-    [dartx.has](key) {
-      return this.has(key);
-    }
-    [dartx.keys]() {
-      return this.keys();
-    }
-    [dartx.values]() {
-      return this.values();
-    }
   };
   dart.setSignature(html$.MidiOutputMap, {
-    constructors: () => ({_: [html$.MidiOutputMap, []]}),
-    methods: () => ({
-      [dartx.entries]: [html$.DomIterator, []],
-      [dartx.get]: [core.Object, [core.String]],
-      [dartx.has]: [core.bool, [core.String]],
-      [dartx.keys]: [html$.DomIterator, []],
-      [dartx.values]: [html$.DomIterator, []]
-    })
+    constructors: () => ({_: [html$.MidiOutputMap, []]})
   });
   html$.MidiOutputMap[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('MIDIOutputMap')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("MIDIOutputMap"))];
   dart.registerExtension(dart.global.MIDIOutputMap, html$.MidiOutputMap);
@@ -51448,9 +52564,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.elementAt](index) {
       return this[dartx.get](index);
     }
-    [__getter__](name) {
-      return this.__getter__(name);
-    }
     [dartx.item](index) {
       return this.item(index);
     }
@@ -51465,7 +52578,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.get]: [html$.MimeType, [core.int]],
       [dartx.set]: [dart.void, [core.int, html$.MimeType]],
       [dartx.elementAt]: [html$.MimeType, [core.int]],
-      [__getter__]: [html$.MimeType, [core.String]],
       [dartx.item]: [html$.MimeType, [core.int]],
       [dartx.namedItem]: [html$.MimeType, [core.String]]
     })
@@ -51510,8 +52622,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _initMouseEvent = Symbol('_initMouseEvent');
   const _clientX = Symbol('_clientX');
   const _clientY = Symbol('_clientY');
+  const _layerX = Symbol('_layerX');
+  const _layerY = Symbol('_layerY');
   const _movementX = Symbol('_movementX');
   const _movementY = Symbol('_movementY');
+  const _pageX = Symbol('_pageX');
+  const _pageY = Symbol('_pageY');
   const _screenX = Symbol('_screenX');
   const _screenY = Symbol('_screenY');
   const _webkitMovementX = Symbol('_webkitMovementX');
@@ -51523,8 +52639,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'movement',
     'offset',
     'screen',
+    'layer',
+    'page',
     'altKey',
     'button',
+    'buttons',
     'ctrlKey',
     'dataTransfer',
     'fromElement',
@@ -51552,18 +52671,32 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (view == null) {
         view = html$.window;
       }
-      let event = html$.document[_createEvent]('MouseEvent');
-      dart.dcall(event[_initMouseEvent], type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
-      return dart.as(event, html$.MouseEvent);
+      let event = dart.as(html$.document[_createEvent]('MouseEvent'), html$.MouseEvent);
+      event[_initMouseEvent](type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
+      return event;
     }
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
+    static _(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.MouseEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.MouseEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new MouseEvent(type, eventInitDict), html$.MouseEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new MouseEvent(type), html$.MouseEvent);
     }
     get [dartx.altKey]() {
       return this.altKey;
     }
     get [dartx.button]() {
       return this.button;
+    }
+    get [dartx.buttons]() {
+      return this.buttons;
     }
     get [_clientX]() {
       return this.clientX;
@@ -51580,6 +52713,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.fromElement]() {
       return this.fromElement;
     }
+    get [_layerX]() {
+      return this.layerX;
+    }
+    get [_layerY]() {
+      return this.layerY;
+    }
     get [dartx.metaKey]() {
       return this.metaKey;
     }
@@ -51588,6 +52727,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [_movementY]() {
       return this.movementY;
+    }
+    get [_pageX]() {
+      return this.pageX;
+    }
+    get [_pageY]() {
+      return this.pageY;
     }
     get [dartx.region]() {
       return this.region;
@@ -51616,13 +52761,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [_webkitMovementY]() {
       return this.webkitMovementY;
     }
-    [_initMouseEvent](type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) {
+    [_initMouseEvent](type, bubbles, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) {
       let relatedTarget_1 = html$._convertDartToNative_EventTarget(relatedTarget);
-      this[_initMouseEvent_1](type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget_1);
+      this[_initMouseEvent_1](type, bubbles, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget_1);
       return;
     }
-    [_initMouseEvent_1](type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) {
-      return this._initMouseEvent_1(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
+    [_initMouseEvent_1](type, bubbles, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) {
+      return this._initMouseEvent_1(type, bubbles, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
     }
     get [dartx.client]() {
       return new (math.Point$(core.num))(this[_clientX], this[_clientY]);
@@ -51647,18 +52792,29 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.screen]() {
       return new (math.Point$(core.num))(this[_screenX], this[_screenY]);
     }
+    get [dartx.layer]() {
+      return new (math.Point$(core.num))(this[_layerX], this[_layerY]);
+    }
+    get [dartx.page]() {
+      return new (math.Point$(core.num))(this[_pageX], this[_pageY]);
+    }
   };
   dart.setSignature(html$.MouseEvent, {
     constructors: () => ({
       new: [html$.MouseEvent, [core.String], {view: html$.Window, detail: core.int, screenX: core.int, screenY: core.int, clientX: core.int, clientY: core.int, button: core.int, canBubble: core.bool, cancelable: core.bool, ctrlKey: core.bool, altKey: core.bool, shiftKey: core.bool, metaKey: core.bool, relatedTarget: html$.EventTarget}],
-      _: [html$.MouseEvent, []]
+      _: [html$.MouseEvent, [core.String], [core.Map]]
     }),
     methods: () => ({
       [_initMouseEvent]: [dart.void, [core.String, core.bool, core.bool, html$.Window, core.int, core.int, core.int, core.int, core.int, core.bool, core.bool, core.bool, core.bool, core.int, html$.EventTarget]],
       [_initMouseEvent_1]: [dart.void, [dart.dynamic, dart.dynamic, dart.dynamic, html$.Window, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]]
-    })
+    }),
+    statics: () => ({
+      _create_1: [html$.MouseEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.MouseEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
-  html$.MouseEvent[dart.metadata] = () => [dart.const(new _metadata.DomName('MouseEvent')), dart.const(new _js_helper.Native("MouseEvent,DragEvent,PointerEvent,MSPointerEvent"))];
+  html$.MouseEvent[dart.metadata] = () => [dart.const(new _metadata.DomName('MouseEvent')), dart.const(new _js_helper.Native("MouseEvent,DragEvent"))];
   dart.registerExtension(dart.global.MouseEvent, html$.MouseEvent);
   html$.MutationCallback = dart.typedef('MutationCallback', () => dart.functionType(dart.void, [core.List$(html$.MutationRecord), html$.MutationObserver]));
   const _observe_1 = Symbol('_observe_1');
@@ -51798,26 +52954,32 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.registerExtension(dart.global.MutationRecord, html$.MutationRecord);
   const _ensureGetUserMedia = Symbol('_ensureGetUserMedia');
   const _getUserMedia = Symbol('_getUserMedia');
+  const _requestMidiAccess_1 = Symbol('_requestMidiAccess_1');
+  const _requestMidiAccess_2 = Symbol('_requestMidiAccess_2');
   dart.defineExtensionNames([
     'language',
     'getUserMedia',
     'getBattery',
     'getGamepads',
-    'getStorageUpdates',
+    'getVRDevices',
     'registerProtocolHandler',
+    'requestMidiAccess',
+    'requestMediaKeySystemAccess',
     'sendBeacon',
+    'getStorageUpdates',
+    'bluetooth',
     'connection',
-    'cookieEnabled',
     'credentials',
     'doNotTrack',
-    'geofencing',
     'geolocation',
     'maxTouchPoints',
+    'mediaDevices',
     'mimeTypes',
+    'permissions',
     'presentation',
     'productSub',
-    'push',
     'serviceWorker',
+    'services',
     'storageQuota',
     'vendor',
     'vendorSub',
@@ -51832,7 +52994,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'product',
     'userAgent',
     'languages',
-    'onLine'
+    'onLine',
+    'cookieEnabled'
   ]);
   html$.Navigator = class Navigator extends _interceptors.Interceptor {
     get [dartx.language]() {
@@ -51862,11 +53025,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    get [dartx.bluetooth]() {
+      return this.bluetooth;
+    }
     get [dartx.connection]() {
       return this.connection;
-    }
-    get [dartx.cookieEnabled]() {
-      return this.cookieEnabled;
     }
     get [dartx.credentials]() {
       return this.credentials;
@@ -51874,17 +53037,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.doNotTrack]() {
       return this.doNotTrack;
     }
-    get [dartx.geofencing]() {
-      return this.geofencing;
-    }
     get [dartx.geolocation]() {
       return this.geolocation;
     }
     get [dartx.maxTouchPoints]() {
       return this.maxTouchPoints;
     }
+    get [dartx.mediaDevices]() {
+      return this.mediaDevices;
+    }
     get [dartx.mimeTypes]() {
       return this.mimeTypes;
+    }
+    get [dartx.permissions]() {
+      return this.permissions;
     }
     get [dartx.presentation]() {
       return this.presentation;
@@ -51892,11 +53058,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.productSub]() {
       return this.productSub;
     }
-    get [dartx.push]() {
-      return this.push;
-    }
     get [dartx.serviceWorker]() {
       return this.serviceWorker;
+    }
+    get [dartx.services]() {
+      return this.services;
     }
     get [dartx.storageQuota]() {
       return this.storageQuota;
@@ -51919,11 +53085,28 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.getGamepads]() {
       return this.getGamepads();
     }
-    [dartx.getStorageUpdates]() {
-      return this.getStorageUpdates();
+    [dartx.getVRDevices]() {
+      return this.getVRDevices();
     }
     [dartx.registerProtocolHandler](scheme, url, title) {
       return this.registerProtocolHandler(scheme, url, title);
+    }
+    [dartx.requestMidiAccess](options) {
+      if (options === void 0) options = null;
+      if (options != null) {
+        let options_1 = html_common.convertDartToNative_Dictionary(options);
+        return this[_requestMidiAccess_1](options_1);
+      }
+      return this[_requestMidiAccess_2]();
+    }
+    [_requestMidiAccess_1](options) {
+      return this._requestMidiAccess_1(options);
+    }
+    [_requestMidiAccess_2]() {
+      return this._requestMidiAccess_2();
+    }
+    [dartx.requestMediaKeySystemAccess](keySystem, supportedConfigurations) {
+      return this.requestMediaKeySystemAccess(keySystem, supportedConfigurations);
     }
     [dartx.sendBeacon](url, data) {
       return this.sendBeacon(url, data);
@@ -51958,8 +53141,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.onLine]() {
       return this.onLine;
     }
+    get [dartx.cookieEnabled]() {
+      return this.cookieEnabled;
+    }
+    [dartx.getStorageUpdates]() {
+      return this.getStorageUpdates();
+    }
   };
-  html$.Navigator[dart.implements] = () => [html$.NavigatorCpu, html$.NavigatorLanguage, html$.NavigatorOnLine, html$.NavigatorID];
+  html$.Navigator[dart.implements] = () => [html$.NavigatorStorageUtils, html$.NavigatorCpu, html$.NavigatorLanguage, html$.NavigatorOnLine, html$.NavigatorID];
   dart.setSignature(html$.Navigator, {
     constructors: () => ({_: [html$.Navigator, []]}),
     methods: () => ({
@@ -51968,9 +53157,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [_getUserMedia]: [dart.void, [dart.dynamic, html$._NavigatorUserMediaSuccessCallback, html$._NavigatorUserMediaErrorCallback]],
       [dartx.getBattery]: [async.Future, []],
       [dartx.getGamepads]: [core.List$(html$.Gamepad), []],
-      [dartx.getStorageUpdates]: [dart.void, []],
+      [dartx.getVRDevices]: [async.Future, []],
       [dartx.registerProtocolHandler]: [dart.void, [core.String, core.String, core.String]],
-      [dartx.sendBeacon]: [core.bool, [core.String, dart.dynamic]]
+      [dartx.requestMidiAccess]: [async.Future, [], [core.Map]],
+      [_requestMidiAccess_1]: [async.Future, [dart.dynamic]],
+      [_requestMidiAccess_2]: [async.Future, []],
+      [dartx.requestMediaKeySystemAccess]: [async.Future, [core.String, core.List$(core.Map)]],
+      [dartx.sendBeacon]: [core.bool, [core.String, core.Object]],
+      [dartx.getStorageUpdates]: [dart.void, []]
     })
   });
   html$.Navigator[dart.metadata] = () => [dart.const(new _metadata.DomName('Navigator')), dart.const(new _js_helper.Native("Navigator"))];
@@ -52063,6 +53257,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({_: [html$.NavigatorOnLine, []]})
   });
   html$.NavigatorOnLine[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('NavigatorOnLine')), dart.const(new _metadata.Experimental())];
+  html$.NavigatorStorageUtils = class NavigatorStorageUtils extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    getStorageUpdates() {
+      return this.getStorageUpdates();
+    }
+  };
+  dart.setSignature(html$.NavigatorStorageUtils, {
+    constructors: () => ({_: [html$.NavigatorStorageUtils, []]}),
+    methods: () => ({getStorageUpdates: [dart.void, []]})
+  });
+  html$.NavigatorStorageUtils[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('NavigatorStorageUtils')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("NavigatorStorageUtils"))];
   dart.defineExtensionNames([
     'constraintName',
     'message',
@@ -52357,7 +53564,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.NodeIterator[dart.metadata] = () => [dart.const(new _metadata.DomName('NodeIterator')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("NodeIterator"))];
   dart.registerExtension(dart.global.NodeIterator, html$.NodeIterator);
-  const _item = Symbol('_item');
   dart.defineExtensionNames([
     'length',
     'get',
@@ -52426,6 +53632,28 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.NodeList[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('NodeList')), dart.const(new _js_helper.Native("NodeList,RadioNodeList"))];
   dart.registerExtension(dart.global.NodeList, html$.NodeList);
+  html$.NonDocumentTypeChildNode = class NonDocumentTypeChildNode extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+  };
+  dart.setSignature(html$.NonDocumentTypeChildNode, {
+    constructors: () => ({_: [html$.NonDocumentTypeChildNode, []]})
+  });
+  html$.NonDocumentTypeChildNode[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('NonDocumentTypeChildNode')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("NonDocumentTypeChildNode"))];
+  html$.NonElementParentNode = class NonElementParentNode extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    getElementById(elementId) {
+      return this.getElementById(elementId);
+    }
+  };
+  dart.setSignature(html$.NonElementParentNode, {
+    constructors: () => ({_: [html$.NonElementParentNode, []]}),
+    methods: () => ({getElementById: [html$.Element, [core.String]]})
+  });
+  html$.NonElementParentNode[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('NonElementParentNode')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("NonElementParentNode"))];
   dart.defineExtensionNames([
     'close',
     'onClick',
@@ -52433,12 +53661,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'onError',
     'onShow',
     'body',
+    'data',
     'dir',
     'icon',
     'lang',
     'permission',
+    'silent',
     'tag',
-    'title'
+    'title',
+    'vibrate'
   ]);
   html$.Notification = class Notification extends html$.EventTarget {
     static new(title, opts) {
@@ -52478,6 +53709,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.body]() {
       return this.body;
     }
+    get [dartx.data]() {
+      return this.data;
+    }
     get [dartx.dir]() {
       return this.dir;
     }
@@ -52490,11 +53724,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.permission]() {
       return this.permission;
     }
+    get [dartx.silent]() {
+      return this.silent;
+    }
     get [dartx.tag]() {
       return this.tag;
     }
     get [dartx.title]() {
       return this.title;
+    }
+    get [dartx.vibrate]() {
+      return this.vibrate;
     }
     [dartx.close]() {
       return this.close();
@@ -52550,6 +53790,37 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   });
   dart.registerExtension(dart.global.Notification, html$.Notification);
+  html$.NotificationEvent = class NotificationEvent extends html$.ExtendableEvent {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.NotificationEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.NotificationEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new NotificationEvent(type, eventInitDict), html$.NotificationEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new NotificationEvent(type), html$.NotificationEvent);
+    }
+  };
+  dart.setSignature(html$.NotificationEvent, {
+    constructors: () => ({
+      _: [html$.NotificationEvent, []],
+      new: [html$.NotificationEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.NotificationEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.NotificationEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
+  });
+  html$.NotificationEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('NotificationEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("NotificationEvent"))];
   html$._NotificationPermissionCallback = dart.typedef('_NotificationPermissionCallback', () => dart.functionType(dart.void, [core.String]));
   dart.defineExtensionNames([
     'reversed',
@@ -52600,11 +53871,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.registerExtension(dart.global.HTMLOListElement, html$.OListElement);
   dart.defineExtensionNames([
     'checkValidity',
+    'reportValidity',
     'setCustomValidity',
     'data',
     'form',
     'height',
-    'integrity',
     'name',
     'type',
     'useMap',
@@ -52624,7 +53895,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[dartx.data] = null;
       this[dartx.form] = null;
       this[dartx.height] = null;
-      this[dartx.integrity] = null;
       this[dartx.name] = null;
       this[dartx.type] = null;
       this[dartx.useMap] = null;
@@ -52651,12 +53921,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     set [dartx.height](value) {
       this.height = value;
-    }
-    get [dartx.integrity]() {
-      return this.integrity;
-    }
-    set [dartx.integrity](value) {
-      this.integrity = value;
     }
     get [dartx.name]() {
       return this.name;
@@ -52700,6 +53964,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.checkValidity]() {
       return this.checkValidity();
     }
+    [dartx.reportValidity]() {
+      return this.reportValidity();
+    }
     [dartx.setCustomValidity](error) {
       return this.setCustomValidity(error);
     }
@@ -52715,6 +53982,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [__getter__]: [core.bool, [dart.dynamic]],
       [__setter__]: [dart.void, [dart.dynamic, html$.Node]],
       [dartx.checkValidity]: [core.bool, []],
+      [dartx.reportValidity]: [core.bool, []],
       [dartx.setCustomValidity]: [dart.void, [core.String]]
     })
   });
@@ -52876,6 +54144,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.registerExtension(dart.global.HTMLOptionElement, html$.OptionElement);
   dart.defineExtensionNames([
     'checkValidity',
+    'reportValidity',
     'setCustomValidity',
     'defaultValue',
     'form',
@@ -52953,6 +54222,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.checkValidity]() {
       return this.checkValidity();
     }
+    [dartx.reportValidity]() {
+      return this.reportValidity();
+    }
     [dartx.setCustomValidity](error) {
       return this.setCustomValidity(error);
     }
@@ -52966,38 +54238,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }),
     methods: () => ({
       [dartx.checkValidity]: [core.bool, []],
+      [dartx.reportValidity]: [core.bool, []],
       [dartx.setCustomValidity]: [dart.void, [core.String]]
     })
   });
   html$.OutputElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('HTMLOutputElement')), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.CHROME)), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.FIREFOX)), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.SAFARI)), dart.const(new _js_helper.Native("HTMLOutputElement"))];
   dart.registerExtension(dart.global.HTMLOutputElement, html$.OutputElement);
-  dart.defineExtensionNames([
-    'horizontalOverflow',
-    'orient',
-    'verticalOverflow'
-  ]);
-  html$.OverflowEvent = class OverflowEvent extends html$.Event {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    get [dartx.horizontalOverflow]() {
-      return this.horizontalOverflow;
-    }
-    get [dartx.orient]() {
-      return this.orient;
-    }
-    get [dartx.verticalOverflow]() {
-      return this.verticalOverflow;
-    }
-  };
-  dart.setSignature(html$.OverflowEvent, {
-    constructors: () => ({_: [html$.OverflowEvent, []]})
-  });
-  html$.OverflowEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('OverflowEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("OverflowEvent"))];
-  html$.OverflowEvent.BOTH = 2;
-  html$.OverflowEvent.HORIZONTAL = 0;
-  html$.OverflowEvent.VERTICAL = 1;
-  dart.registerExtension(dart.global.OverflowEvent, html$.OverflowEvent);
   dart.defineExtensionNames([
     'persisted'
   ]);
@@ -53005,12 +54251,34 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.PageTransitionEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.PageTransitionEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new PageTransitionEvent(type, eventInitDict), html$.PageTransitionEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new PageTransitionEvent(type), html$.PageTransitionEvent);
+    }
     get [dartx.persisted]() {
       return this.persisted;
     }
   };
   dart.setSignature(html$.PageTransitionEvent, {
-    constructors: () => ({_: [html$.PageTransitionEvent, []]})
+    constructors: () => ({
+      _: [html$.PageTransitionEvent, []],
+      new: [html$.PageTransitionEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.PageTransitionEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.PageTransitionEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.PageTransitionEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PageTransitionEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("PageTransitionEvent"))];
   dart.registerExtension(dart.global.PageTransitionEvent, html$.PageTransitionEvent);
@@ -53095,6 +54363,44 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({_: [html$.ParentNode, []]})
   });
   html$.ParentNode[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ParentNode')), dart.const(new _metadata.Experimental())];
+  html$.PasswordCredential = class PasswordCredential extends html$.Credential {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(id, password, name, iconURL) {
+      if (name === void 0) name = null;
+      if (iconURL === void 0) iconURL = null;
+      if (iconURL != null) {
+        return html$.PasswordCredential._create_1(id, password, name, iconURL);
+      }
+      if (name != null) {
+        return html$.PasswordCredential._create_2(id, password, name);
+      }
+      return html$.PasswordCredential._create_3(id, password);
+    }
+    static _create_1(id, password, name, iconURL) {
+      return dart.as(new PasswordCredential(id, password, name, iconURL), html$.PasswordCredential);
+    }
+    static _create_2(id, password, name) {
+      return dart.as(new PasswordCredential(id, password, name), html$.PasswordCredential);
+    }
+    static _create_3(id, password) {
+      return dart.as(new PasswordCredential(id, password), html$.PasswordCredential);
+    }
+  };
+  dart.setSignature(html$.PasswordCredential, {
+    constructors: () => ({
+      _: [html$.PasswordCredential, []],
+      new: [html$.PasswordCredential, [core.String, core.String], [core.String, core.String]]
+    }),
+    statics: () => ({
+      _create_1: [html$.PasswordCredential, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]],
+      _create_2: [html$.PasswordCredential, [dart.dynamic, dart.dynamic, dart.dynamic]],
+      _create_3: [html$.PasswordCredential, [dart.dynamic, dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2', '_create_3']
+  });
+  html$.PasswordCredential[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PasswordCredential')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("PasswordCredential"))];
   dart.defineExtensionNames([
     'addPath',
     'arc',
@@ -53192,6 +54498,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.Path2D[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Path2D')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("Path2D"))];
   dart.registerExtension(dart.global.Path2D, html$.Path2D);
   dart.defineExtensionNames([
+    'clearFrameTimings',
     'clearMarks',
     'clearMeasures',
     'getEntries',
@@ -53200,6 +54507,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'mark',
     'measure',
     'now',
+    'setFrameTimingBufferSize',
     'clearResourceTimings',
     'setResourceTimingBufferSize',
     'onResourceTimingBufferFull',
@@ -53222,6 +54530,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.timing]() {
       return this.timing;
+    }
+    [dartx.clearFrameTimings]() {
+      return this.clearFrameTimings();
     }
     [dartx.clearMarks](markName) {
       return this.clearMarks(markName);
@@ -53247,6 +54558,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.now]() {
       return this.now();
     }
+    [dartx.setFrameTimingBufferSize](maxSize) {
+      return this.setFrameTimingBufferSize(maxSize);
+    }
     [dartx.clearResourceTimings]() {
       return this.clearResourceTimings();
     }
@@ -53260,6 +54574,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(html$.Performance, {
     constructors: () => ({_: [html$.Performance, []]}),
     methods: () => ({
+      [dartx.clearFrameTimings]: [dart.void, []],
       [dartx.clearMarks]: [dart.void, [core.String]],
       [dartx.clearMeasures]: [dart.void, [core.String]],
       [dartx.getEntries]: [core.List$(html$.PerformanceEntry), []],
@@ -53268,6 +54583,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.mark]: [dart.void, [core.String]],
       [dartx.measure]: [dart.void, [core.String, core.String, core.String]],
       [dartx.now]: [core.double, []],
+      [dartx.setFrameTimingBufferSize]: [dart.void, [core.int]],
       [dartx.clearResourceTimings]: [dart.void, []],
       [dartx.setResourceTimingBufferSize]: [dart.void, [core.int]]
     })
@@ -53307,6 +54623,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.PerformanceEntry[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PerformanceEntry')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("PerformanceEntry"))];
   dart.registerExtension(dart.global.PerformanceEntry, html$.PerformanceEntry);
+  html$.PerformanceCompositeTiming = class PerformanceCompositeTiming extends html$.PerformanceEntry {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+  };
+  dart.setSignature(html$.PerformanceCompositeTiming, {
+    constructors: () => ({_: [html$.PerformanceCompositeTiming, []]})
+  });
+  html$.PerformanceCompositeTiming[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PerformanceCompositeTiming')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("PerformanceCompositeTiming"))];
   html$.PerformanceMark = class PerformanceMark extends html$.PerformanceEntry {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -53351,6 +54676,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.PerformanceNavigation.TYPE_RELOAD = 1;
   html$.PerformanceNavigation.TYPE_RESERVED = 255;
   dart.registerExtension(dart.global.PerformanceNavigation, html$.PerformanceNavigation);
+  html$.PerformanceRenderTiming = class PerformanceRenderTiming extends html$.PerformanceEntry {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+  };
+  dart.setSignature(html$.PerformanceRenderTiming, {
+    constructors: () => ({_: [html$.PerformanceRenderTiming, []]})
+  });
+  html$.PerformanceRenderTiming[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PerformanceRenderTiming')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("PerformanceRenderTiming"))];
   dart.defineExtensionNames([
     'connectEnd',
     'connectStart',
@@ -53363,7 +54697,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'requestStart',
     'responseEnd',
     'responseStart',
-    'secureConnectionStart'
+    'secureConnectionStart',
+    'workerStart'
   ]);
   html$.PerformanceResourceTiming = class PerformanceResourceTiming extends html$.PerformanceEntry {
     static _() {
@@ -53404,6 +54739,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.secureConnectionStart]() {
       return this.secureConnectionStart;
+    }
+    get [dartx.workerStart]() {
+      return this.workerStart;
     }
   };
   dart.setSignature(html$.PerformanceResourceTiming, {
@@ -53507,6 +54845,112 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.PerformanceTiming[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PerformanceTiming')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("PerformanceTiming"))];
   dart.registerExtension(dart.global.PerformanceTiming, html$.PerformanceTiming);
+  html$.PeriodicSyncEvent = class PeriodicSyncEvent extends html$.ExtendableEvent {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(type, init) {
+      let init_1 = html_common.convertDartToNative_Dictionary(init);
+      return html$.PeriodicSyncEvent._create_1(type, init_1);
+    }
+    static _create_1(type, init) {
+      return dart.as(new PeriodicSyncEvent(type, init), html$.PeriodicSyncEvent);
+    }
+  };
+  dart.setSignature(html$.PeriodicSyncEvent, {
+    constructors: () => ({
+      _: [html$.PeriodicSyncEvent, []],
+      new: [html$.PeriodicSyncEvent, [core.String, core.Map]]
+    }),
+    statics: () => ({_create_1: [html$.PeriodicSyncEvent, [dart.dynamic, dart.dynamic]]}),
+    names: ['_create_1']
+  });
+  html$.PeriodicSyncEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PeriodicSyncEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("PeriodicSyncEvent"))];
+  const _register_1 = Symbol('_register_1');
+  const _register_2 = Symbol('_register_2');
+  html$.PeriodicSyncManager = class PeriodicSyncManager extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    getRegistration(tag) {
+      return this.getRegistration(tag);
+    }
+    getRegistrations() {
+      return this.getRegistrations();
+    }
+    permissionState() {
+      return this.permissionState();
+    }
+    register(options) {
+      if (options === void 0) options = null;
+      if (options != null) {
+        let options_1 = html_common.convertDartToNative_Dictionary(options);
+        return this[_register_1](options_1);
+      }
+      return this[_register_2]();
+    }
+    [_register_1](options) {
+      return this._register_1(options);
+    }
+    [_register_2]() {
+      return this._register_2();
+    }
+  };
+  dart.setSignature(html$.PeriodicSyncManager, {
+    constructors: () => ({_: [html$.PeriodicSyncManager, []]}),
+    methods: () => ({
+      getRegistration: [async.Future, [core.String]],
+      getRegistrations: [async.Future, []],
+      permissionState: [async.Future, []],
+      register: [async.Future, [], [core.Map]],
+      [_register_1]: [async.Future, [dart.dynamic]],
+      [_register_2]: [async.Future, []]
+    })
+  });
+  html$.PeriodicSyncManager[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PeriodicSyncManager')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("PeriodicSyncManager"))];
+  html$.PeriodicSyncRegistration = class PeriodicSyncRegistration extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    unregister() {
+      return this.unregister();
+    }
+  };
+  dart.setSignature(html$.PeriodicSyncRegistration, {
+    constructors: () => ({_: [html$.PeriodicSyncRegistration, []]}),
+    methods: () => ({unregister: [async.Future, []]})
+  });
+  html$.PeriodicSyncRegistration[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PeriodicSyncRegistration')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("PeriodicSyncRegistration"))];
+  html$.PermissionStatus = class PermissionStatus extends html$.EventTarget {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    get onChange() {
+      return html$.PermissionStatus.changeEvent.forTarget(this);
+    }
+  };
+  dart.setSignature(html$.PermissionStatus, {
+    constructors: () => ({_: [html$.PermissionStatus, []]})
+  });
+  html$.PermissionStatus[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PermissionStatus')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("PermissionStatus"))];
+  dart.defineLazy(html$.PermissionStatus, {
+    get changeEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('change'));
+    }
+  });
+  html$.Permissions = class Permissions extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    query(permission) {
+      return this.query(permission);
+    }
+  };
+  dart.setSignature(html$.Permissions, {
+    constructors: () => ({_: [html$.Permissions, []]}),
+    methods: () => ({query: [async.Future, [core.Object]]})
+  });
+  html$.Permissions[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Permissions')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("Permissions"))];
   html$.PictureElement = class PictureElement extends html$.HtmlElement {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -53548,9 +54992,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.name]() {
       return this.name;
     }
-    [__getter__](name) {
-      return this.__getter__(name);
-    }
     [dartx.item](index) {
       return this.item(index);
     }
@@ -53561,7 +55002,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(html$.Plugin, {
     constructors: () => ({_: [html$.Plugin, []]}),
     methods: () => ({
-      [__getter__]: [html$.MimeType, [core.String]],
       [dartx.item]: [html$.MimeType, [core.int]],
       [dartx.namedItem]: [html$.MimeType, [core.String]]
     })
@@ -53623,9 +55063,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.elementAt](index) {
       return this[dartx.get](index);
     }
-    [__getter__](name) {
-      return this.__getter__(name);
-    }
     [dartx.item](index) {
       return this.item(index);
     }
@@ -53643,7 +55080,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.get]: [html$.Plugin, [core.int]],
       [dartx.set]: [dart.void, [core.int, html$.Plugin]],
       [dartx.elementAt]: [html$.Plugin, [core.int]],
-      [__getter__]: [html$.Plugin, [core.String]],
       [dartx.item]: [html$.Plugin, [core.int]],
       [dartx.namedItem]: [html$.Plugin, [core.String]],
       [dartx.refresh]: [dart.void, [core.bool]]
@@ -53653,6 +55089,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.registerExtension(dart.global.PluginArray, html$.PluginArray);
   dart.defineExtensionNames([
     'createdCallback',
+    'closeable',
     'message'
   ]);
   html$.PluginPlaceholderElement = class PluginPlaceholderElement extends html$.DivElement {
@@ -53660,8 +55097,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.UnsupportedError("Not supported"));
     }
     created() {
+      this[dartx.closeable] = null;
       this[dartx.message] = null;
       super.created();
+    }
+    get [dartx.closeable]() {
+      return this.closeable;
+    }
+    set [dartx.closeable](value) {
+      this.closeable = value;
     }
     get [dartx.message]() {
       return this.message;
@@ -53683,12 +55127,57 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.PluginPlaceholderElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PluginPlaceholderElement')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("PluginPlaceholderElement"))];
   dart.registerExtension(dart.global.PluginPlaceholderElement, html$.PluginPlaceholderElement);
+  html$.PointerEvent = class PointerEvent extends html$.MouseEvent {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.PointerEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.PointerEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new PointerEvent(type, eventInitDict), html$.PointerEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new PointerEvent(type), html$.PointerEvent);
+    }
+  };
+  dart.setSignature(html$.PointerEvent, {
+    constructors: () => ({
+      _: [html$.PointerEvent, []],
+      new: [html$.PointerEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.PointerEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.PointerEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
+  });
+  html$.PointerEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PointerEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("PointerEvent"))];
   dart.defineExtensionNames([
     'state'
   ]);
   html$.PopStateEvent = class PopStateEvent extends html$.Event {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.PopStateEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.PopStateEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new PopStateEvent(type, eventInitDict), html$.PopStateEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new PopStateEvent(type), html$.PopStateEvent);
     }
     get [dartx.state]() {
       return html_common.convertNativeToDart_SerializedScriptValue(this[_get_state]);
@@ -53698,7 +55187,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$.PopStateEvent, {
-    constructors: () => ({_: [html$.PopStateEvent, []]})
+    constructors: () => ({
+      _: [html$.PopStateEvent, []],
+      new: [html$.PopStateEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.PopStateEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.PopStateEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.PopStateEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PopStateEvent')), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.CHROME)), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.FIREFOX)), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.IE, '10')), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.SAFARI)), dart.const(new _js_helper.Native("PopStateEvent"))];
   dart.registerExtension(dart.global.PopStateEvent, html$.PopStateEvent);
@@ -53727,6 +55224,29 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.PositionError.TIMEOUT = 3;
   dart.registerExtension(dart.global.PositionError, html$.PositionError);
   html$._PositionErrorCallback = dart.typedef('_PositionErrorCallback', () => dart.functionType(dart.void, [html$.PositionError]));
+  html$.PositionSensorVRDevice = class PositionSensorVRDevice extends html$.VRDevice {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    getImmediateState() {
+      return this.getImmediateState();
+    }
+    getState() {
+      return this.getState();
+    }
+    resetSensor() {
+      return this.resetSensor();
+    }
+  };
+  dart.setSignature(html$.PositionSensorVRDevice, {
+    constructors: () => ({_: [html$.PositionSensorVRDevice, []]}),
+    methods: () => ({
+      getImmediateState: [html$.VRPositionState, []],
+      getState: [html$.VRPositionState, []],
+      resetSensor: [dart.void, []]
+    })
+  });
+  html$.PositionSensorVRDevice[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PositionSensorVRDevice')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("PositionSensorVRDevice"))];
   html$.PreElement = class PreElement extends html$.HtmlElement {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -53748,16 +55268,83 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.PreElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('HTMLPreElement')), dart.const(new _js_helper.Native("HTMLPreElement"))];
   dart.registerExtension(dart.global.HTMLPreElement, html$.PreElement);
+  dart.defineExtensionNames([
+    'getAvailability',
+    'joinSession',
+    'startSession',
+    'session'
+  ]);
   html$.Presentation = class Presentation extends html$.EventTarget {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    get [dartx.session]() {
+      return this.session;
+    }
+    [dartx.getAvailability](url) {
+      return this.getAvailability(url);
+    }
+    [dartx.joinSession](url, presentationId) {
+      return this.joinSession(url, presentationId);
+    }
+    [dartx.startSession](url) {
+      return this.startSession(url);
+    }
   };
   dart.setSignature(html$.Presentation, {
-    constructors: () => ({_: [html$.Presentation, []]})
+    constructors: () => ({_: [html$.Presentation, []]}),
+    methods: () => ({
+      [dartx.getAvailability]: [async.Future, [core.String]],
+      [dartx.joinSession]: [async.Future, [core.String, core.String]],
+      [dartx.startSession]: [async.Future, [core.String]]
+    })
   });
   html$.Presentation[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Presentation')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("Presentation"))];
   dart.registerExtension(dart.global.Presentation, html$.Presentation);
+  html$.PresentationAvailability = class PresentationAvailability extends html$.EventTarget {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    get onChange() {
+      return html$.PresentationAvailability.changeEvent.forTarget(this);
+    }
+  };
+  dart.setSignature(html$.PresentationAvailability, {
+    constructors: () => ({_: [html$.PresentationAvailability, []]})
+  });
+  html$.PresentationAvailability[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PresentationAvailability')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("PresentationAvailability"))];
+  dart.defineLazy(html$.PresentationAvailability, {
+    get changeEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('change'));
+    }
+  });
+  html$.PresentationSession = class PresentationSession extends html$.EventTarget {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    close() {
+      return this.close();
+    }
+    send(data_OR_message) {
+      return this.send(data_OR_message);
+    }
+    get onMessage() {
+      return html$.PresentationSession.messageEvent.forTarget(this);
+    }
+  };
+  dart.setSignature(html$.PresentationSession, {
+    constructors: () => ({_: [html$.PresentationSession, []]}),
+    methods: () => ({
+      close: [dart.void, []],
+      send: [dart.void, [dart.dynamic]]
+    })
+  });
+  html$.PresentationSession[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PresentationSession')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("PresentationSession"))];
+  dart.defineLazy(html$.PresentationSession, {
+    get messageEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MessageEvent))('message'));
+    }
+  });
   dart.defineExtensionNames([
     'sheet',
     'target'
@@ -53839,6 +55426,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.ProgressEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.ProgressEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new ProgressEvent(type, eventInitDict), html$.ProgressEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new ProgressEvent(type), html$.ProgressEvent);
+    }
     get [dartx.lengthComputable]() {
       return this.lengthComputable;
     }
@@ -53850,63 +55451,197 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$.ProgressEvent, {
-    constructors: () => ({_: [html$.ProgressEvent, []]})
+    constructors: () => ({
+      _: [html$.ProgressEvent, []],
+      new: [html$.ProgressEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.ProgressEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.ProgressEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.ProgressEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ProgressEvent')), dart.const(new _js_helper.Native("ProgressEvent"))];
   dart.registerExtension(dart.global.ProgressEvent, html$.ProgressEvent);
+  html$.PromiseRejectionEvent = class PromiseRejectionEvent extends html$.Event {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.PromiseRejectionEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.PromiseRejectionEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new PromiseRejectionEvent(type, eventInitDict), html$.PromiseRejectionEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new PromiseRejectionEvent(type), html$.PromiseRejectionEvent);
+    }
+  };
+  dart.setSignature(html$.PromiseRejectionEvent, {
+    constructors: () => ({
+      _: [html$.PromiseRejectionEvent, []],
+      new: [html$.PromiseRejectionEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.PromiseRejectionEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.PromiseRejectionEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
+  });
+  html$.PromiseRejectionEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PromiseRejectionEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("PromiseRejectionEvent"))];
   dart.defineExtensionNames([
     'data'
   ]);
-  html$.PushEvent = class PushEvent extends html$.Event {
+  html$.PushEvent = class PushEvent extends html$.ExtendableEvent {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.PushEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.PushEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new PushEvent(type, eventInitDict), html$.PushEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new PushEvent(type), html$.PushEvent);
     }
     get [dartx.data]() {
       return this.data;
     }
   };
   dart.setSignature(html$.PushEvent, {
-    constructors: () => ({_: [html$.PushEvent, []]})
+    constructors: () => ({
+      _: [html$.PushEvent, []],
+      new: [html$.PushEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.PushEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.PushEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.PushEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PushEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("PushEvent"))];
   dart.registerExtension(dart.global.PushEvent, html$.PushEvent);
+  const _permissionState_1 = Symbol('_permissionState_1');
+  const _permissionState_2 = Symbol('_permissionState_2');
+  const _subscribe_1 = Symbol('_subscribe_1');
+  const _subscribe_2 = Symbol('_subscribe_2');
   dart.defineExtensionNames([
-    'register'
+    'getSubscription',
+    'permissionState',
+    'subscribe'
   ]);
   html$.PushManager = class PushManager extends _interceptors.Interceptor {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.register](senderId) {
-      return this.register(senderId);
+    [dartx.getSubscription]() {
+      return this.getSubscription();
+    }
+    [dartx.permissionState](options) {
+      if (options === void 0) options = null;
+      if (options != null) {
+        let options_1 = html_common.convertDartToNative_Dictionary(options);
+        return this[_permissionState_1](options_1);
+      }
+      return this[_permissionState_2]();
+    }
+    [_permissionState_1](options) {
+      return this._permissionState_1(options);
+    }
+    [_permissionState_2]() {
+      return this._permissionState_2();
+    }
+    [dartx.subscribe](options) {
+      if (options === void 0) options = null;
+      if (options != null) {
+        let options_1 = html_common.convertDartToNative_Dictionary(options);
+        return this[_subscribe_1](options_1);
+      }
+      return this[_subscribe_2]();
+    }
+    [_subscribe_1](options) {
+      return this._subscribe_1(options);
+    }
+    [_subscribe_2]() {
+      return this._subscribe_2();
     }
   };
   dart.setSignature(html$.PushManager, {
     constructors: () => ({_: [html$.PushManager, []]}),
-    methods: () => ({[dartx.register]: [async.Future, [core.String]]})
+    methods: () => ({
+      [dartx.getSubscription]: [async.Future, []],
+      [dartx.permissionState]: [async.Future, [], [core.Map]],
+      [_permissionState_1]: [async.Future, [dart.dynamic]],
+      [_permissionState_2]: [async.Future, []],
+      [dartx.subscribe]: [async.Future, [], [core.Map]],
+      [_subscribe_1]: [async.Future, [dart.dynamic]],
+      [_subscribe_2]: [async.Future, []]
+    })
   });
   html$.PushManager[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PushManager')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("PushManager"))];
   dart.registerExtension(dart.global.PushManager, html$.PushManager);
-  dart.defineExtensionNames([
-    'pushEndpoint',
-    'pushRegistrationId'
-  ]);
-  html$.PushRegistration = class PushRegistration extends _interceptors.Interceptor {
+  html$.PushMessageData = class PushMessageData extends _interceptors.Interceptor {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    get [dartx.pushEndpoint]() {
-      return this.pushEndpoint;
+    static new(message) {
+      return html$.PushMessageData._create_1(message);
     }
-    get [dartx.pushRegistrationId]() {
-      return this.pushRegistrationId;
+    static _create_1(message) {
+      return dart.as(new PushMessageData(message), html$.PushMessageData);
+    }
+    arrayBuffer() {
+      return this.arrayBuffer();
+    }
+    blob() {
+      return this.blob();
+    }
+    json() {
+      return this.json();
+    }
+    text() {
+      return this.text();
     }
   };
-  dart.setSignature(html$.PushRegistration, {
-    constructors: () => ({_: [html$.PushRegistration, []]})
+  dart.setSignature(html$.PushMessageData, {
+    constructors: () => ({
+      _: [html$.PushMessageData, []],
+      new: [html$.PushMessageData, [core.String]]
+    }),
+    methods: () => ({
+      arrayBuffer: [typed_data.ByteBuffer, []],
+      blob: [html$.Blob, []],
+      json: [core.Object, []],
+      text: [core.String, []]
+    }),
+    statics: () => ({_create_1: [html$.PushMessageData, [dart.dynamic]]}),
+    names: ['_create_1']
   });
-  html$.PushRegistration[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PushRegistration')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("PushRegistration"))];
-  dart.registerExtension(dart.global.PushRegistration, html$.PushRegistration);
+  html$.PushMessageData[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PushMessageData')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("PushMessageData"))];
+  html$.PushSubscription = class PushSubscription extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    unsubscribe() {
+      return this.unsubscribe();
+    }
+  };
+  dart.setSignature(html$.PushSubscription, {
+    constructors: () => ({_: [html$.PushSubscription, []]}),
+    methods: () => ({unsubscribe: [async.Future, []]})
+  });
+  html$.PushSubscription[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PushSubscription')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("PushSubscription"))];
   dart.defineExtensionNames([
     'cite'
   ]);
@@ -54012,11 +55747,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.compareBoundaryPoints](how, sourceRange) {
       return this.compareBoundaryPoints(how, sourceRange);
     }
-    [dartx.comparePoint](refNode, offset) {
-      return this.comparePoint(refNode, offset);
+    [dartx.comparePoint](node, offset) {
+      return this.comparePoint(node, offset);
     }
-    [dartx.createContextualFragment](html) {
-      return this.createContextualFragment(html);
+    [dartx.createContextualFragment](fragment) {
+      return this.createContextualFragment(fragment);
     }
     [dartx.deleteContents]() {
       return this.deleteContents();
@@ -54036,35 +55771,35 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.getClientRects]() {
       return this.getClientRects();
     }
-    [dartx.insertNode](newNode) {
-      return this.insertNode(newNode);
+    [dartx.insertNode](node) {
+      return this.insertNode(node);
     }
-    [dartx.isPointInRange](refNode, offset) {
-      return this.isPointInRange(refNode, offset);
+    [dartx.isPointInRange](node, offset) {
+      return this.isPointInRange(node, offset);
     }
-    [dartx.selectNode](refNode) {
-      return this.selectNode(refNode);
+    [dartx.selectNode](node) {
+      return this.selectNode(node);
     }
-    [dartx.selectNodeContents](refNode) {
-      return this.selectNodeContents(refNode);
+    [dartx.selectNodeContents](node) {
+      return this.selectNodeContents(node);
     }
-    [dartx.setEnd](refNode, offset) {
-      return this.setEnd(refNode, offset);
+    [dartx.setEnd](node, offset) {
+      return this.setEnd(node, offset);
     }
-    [dartx.setEndAfter](refNode) {
-      return this.setEndAfter(refNode);
+    [dartx.setEndAfter](node) {
+      return this.setEndAfter(node);
     }
-    [dartx.setEndBefore](refNode) {
-      return this.setEndBefore(refNode);
+    [dartx.setEndBefore](node) {
+      return this.setEndBefore(node);
     }
-    [dartx.setStart](refNode, offset) {
-      return this.setStart(refNode, offset);
+    [dartx.setStart](node, offset) {
+      return this.setStart(node, offset);
     }
-    [dartx.setStartAfter](refNode) {
-      return this.setStartAfter(refNode);
+    [dartx.setStartAfter](node) {
+      return this.setStartAfter(node);
     }
-    [dartx.setStartBefore](refNode) {
-      return this.setStartBefore(refNode);
+    [dartx.setStartBefore](node) {
+      return this.setStartBefore(node);
     }
     [dartx.surroundContents](newParent) {
       return this.surroundContents(newParent);
@@ -54108,56 +55843,118 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.Range[dart.metadata] = () => [dart.const(new _metadata.DomName('Range')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("Range"))];
   html$.Range.END_TO_END = 2;
   html$.Range.END_TO_START = 3;
-  html$.Range.NODE_AFTER = 1;
-  html$.Range.NODE_BEFORE = 0;
-  html$.Range.NODE_BEFORE_AND_AFTER = 2;
-  html$.Range.NODE_INSIDE = 3;
   html$.Range.START_TO_END = 1;
   html$.Range.START_TO_START = 0;
   dart.registerExtension(dart.global.Range, html$.Range);
+  html$.ReadableByteStream = class ReadableByteStream extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    cancel(reason) {
+      return this.cancel(reason);
+    }
+    getReader() {
+      return this.getReader();
+    }
+  };
+  dart.setSignature(html$.ReadableByteStream, {
+    constructors: () => ({_: [html$.ReadableByteStream, []]}),
+    methods: () => ({
+      cancel: [async.Future, [], [core.Object]],
+      getReader: [html$.ReadableByteStreamReader, []]
+    })
+  });
+  html$.ReadableByteStream[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ReadableByteStream')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("ReadableByteStream"))];
+  html$.ReadableByteStreamReader = class ReadableByteStreamReader extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    cancel(reason) {
+      return this.cancel(reason);
+    }
+    read() {
+      return this.read();
+    }
+    releaseLock() {
+      return this.releaseLock();
+    }
+  };
+  dart.setSignature(html$.ReadableByteStreamReader, {
+    constructors: () => ({_: [html$.ReadableByteStreamReader, []]}),
+    methods: () => ({
+      cancel: [async.Future, [], [core.Object]],
+      read: [async.Future, []],
+      releaseLock: [dart.void, []]
+    })
+  });
+  html$.ReadableByteStreamReader[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ReadableByteStreamReader')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("ReadableByteStreamReader"))];
   dart.defineExtensionNames([
     'cancel',
-    'read',
-    'wait',
-    'closed',
-    'state'
+    'getReader'
   ]);
   html$.ReadableStream = class ReadableStream extends _interceptors.Interceptor {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    get [dartx.closed]() {
-      return this.closed;
-    }
-    get [dartx.state]() {
-      return this.state;
-    }
     [dartx.cancel](reason) {
       return this.cancel(reason);
     }
-    [dartx.read]() {
-      return this.read();
-    }
-    [dartx.wait]() {
-      return this.wait();
+    [dartx.getReader]() {
+      return this.getReader();
     }
   };
   dart.setSignature(html$.ReadableStream, {
     constructors: () => ({_: [html$.ReadableStream, []]}),
     methods: () => ({
-      [dartx.cancel]: [async.Future, [core.Object]],
-      [dartx.read]: [core.Object, []],
-      [dartx.wait]: [async.Future, []]
+      [dartx.cancel]: [async.Future, [], [core.Object]],
+      [dartx.getReader]: [html$.ReadableStreamReader, []]
     })
   });
   html$.ReadableStream[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ReadableStream')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("ReadableStream"))];
   dart.registerExtension(dart.global.ReadableStream, html$.ReadableStream);
+  html$.ReadableStreamReader = class ReadableStreamReader extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    cancel(reason) {
+      return this.cancel(reason);
+    }
+    read() {
+      return this.read();
+    }
+    releaseLock() {
+      return this.releaseLock();
+    }
+  };
+  dart.setSignature(html$.ReadableStreamReader, {
+    constructors: () => ({_: [html$.ReadableStreamReader, []]}),
+    methods: () => ({
+      cancel: [async.Future, [], [core.Object]],
+      read: [async.Future, []],
+      releaseLock: [dart.void, []]
+    })
+  });
+  html$.ReadableStreamReader[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ReadableStreamReader')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("ReadableStreamReader"))];
   dart.defineExtensionNames([
     'relatedTarget'
   ]);
   html$.RelatedEvent = class RelatedEvent extends html$.Event {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.RelatedEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.RelatedEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new RelatedEvent(type, eventInitDict), html$.RelatedEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new RelatedEvent(type), html$.RelatedEvent);
     }
     get [dartx.relatedTarget]() {
       return html$._convertNativeToDart_EventTarget(this[_get_relatedTarget]);
@@ -54167,12 +55964,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$.RelatedEvent, {
-    constructors: () => ({_: [html$.RelatedEvent, []]})
+    constructors: () => ({
+      _: [html$.RelatedEvent, []],
+      new: [html$.RelatedEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.RelatedEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.RelatedEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.RelatedEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('RelatedEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("RelatedEvent"))];
   dart.registerExtension(dart.global.RelatedEvent, html$.RelatedEvent);
   html$.RequestAnimationFrameCallback = dart.typedef('RequestAnimationFrameCallback', () => dart.functionType(dart.void, [core.num]));
-  html$.FrameRequestCallback = dart.typedef('FrameRequestCallback', () => dart.functionType(dart.void, [core.num]));
   dart.defineExtensionNames([
     'url'
   ]);
@@ -54379,12 +56183,24 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    static new(type, eventInitDict) {
+      let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+      return html$.RtcDtmfToneChangeEvent._create_1(type, eventInitDict_1);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new RTCDTMFToneChangeEvent(type, eventInitDict), html$.RtcDtmfToneChangeEvent);
+    }
     get [dartx.tone]() {
       return this.tone;
     }
   };
   dart.setSignature(html$.RtcDtmfToneChangeEvent, {
-    constructors: () => ({_: [html$.RtcDtmfToneChangeEvent, []]})
+    constructors: () => ({
+      _: [html$.RtcDtmfToneChangeEvent, []],
+      new: [html$.RtcDtmfToneChangeEvent, [core.String, core.Map]]
+    }),
+    statics: () => ({_create_1: [html$.RtcDtmfToneChangeEvent, [dart.dynamic, dart.dynamic]]}),
+    names: ['_create_1']
   });
   html$.RtcDtmfToneChangeEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('RTCDTMFToneChangeEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("RTCDTMFToneChangeEvent"))];
   dart.registerExtension(dart.global.RTCDTMFToneChangeEvent, html$.RtcDtmfToneChangeEvent);
@@ -54817,8 +56633,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'names',
     'stat',
     'id',
-    'local',
-    'remote',
     'type'
   ]);
   html$.RtcStatsReport = class RtcStatsReport extends _interceptors.Interceptor {
@@ -54827,12 +56641,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.id]() {
       return this.id;
-    }
-    get [dartx.local]() {
-      return this.local;
-    }
-    get [dartx.remote]() {
-      return this.remote;
     }
     get [dartx.timestamp]() {
       return html_common.convertNativeToDart_DateTime(this[_get_timestamp]);
@@ -54867,9 +56675,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [__getter__](name) {
-      return this.__getter__(name);
-    }
     [dartx.namedItem](name) {
       return this.namedItem(name);
     }
@@ -54880,7 +56685,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(html$.RtcStatsResponse, {
     constructors: () => ({_: [html$.RtcStatsResponse, []]}),
     methods: () => ({
-      [__getter__]: [html$.RtcStatsReport, [core.String]],
       [dartx.namedItem]: [html$.RtcStatsReport, [core.String]],
       [dartx.result]: [core.List$(html$.RtcStatsReport), []]
     })
@@ -55067,6 +56871,96 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.ScriptElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('HTMLScriptElement')), dart.const(new _js_helper.Native("HTMLScriptElement"))];
   dart.registerExtension(dart.global.HTMLScriptElement, html$.ScriptElement);
+  html$.ScrollState = class ScrollState extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning, isEnding) {
+      if (deltaX === void 0) deltaX = null;
+      if (deltaY === void 0) deltaY = null;
+      if (deltaGranularity === void 0) deltaGranularity = null;
+      if (velocityX === void 0) velocityX = null;
+      if (velocityY === void 0) velocityY = null;
+      if (inInertialPhase === void 0) inInertialPhase = null;
+      if (isBeginning === void 0) isBeginning = null;
+      if (isEnding === void 0) isEnding = null;
+      if (isEnding != null) {
+        return html$.ScrollState._create_1(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning, isEnding);
+      }
+      if (isBeginning != null) {
+        return html$.ScrollState._create_2(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning);
+      }
+      if (inInertialPhase != null) {
+        return html$.ScrollState._create_3(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase);
+      }
+      if (velocityY != null) {
+        return html$.ScrollState._create_4(deltaX, deltaY, deltaGranularity, velocityX, velocityY);
+      }
+      if (velocityX != null) {
+        return html$.ScrollState._create_5(deltaX, deltaY, deltaGranularity, velocityX);
+      }
+      if (deltaGranularity != null) {
+        return html$.ScrollState._create_6(deltaX, deltaY, deltaGranularity);
+      }
+      if (deltaY != null) {
+        return html$.ScrollState._create_7(deltaX, deltaY);
+      }
+      if (deltaX != null) {
+        return html$.ScrollState._create_8(deltaX);
+      }
+      return html$.ScrollState._create_9();
+    }
+    static _create_1(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning, isEnding) {
+      return dart.as(new ScrollState(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning, isEnding), html$.ScrollState);
+    }
+    static _create_2(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning) {
+      return dart.as(new ScrollState(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning), html$.ScrollState);
+    }
+    static _create_3(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase) {
+      return dart.as(new ScrollState(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase), html$.ScrollState);
+    }
+    static _create_4(deltaX, deltaY, deltaGranularity, velocityX, velocityY) {
+      return dart.as(new ScrollState(deltaX, deltaY, deltaGranularity, velocityX, velocityY), html$.ScrollState);
+    }
+    static _create_5(deltaX, deltaY, deltaGranularity, velocityX) {
+      return dart.as(new ScrollState(deltaX, deltaY, deltaGranularity, velocityX), html$.ScrollState);
+    }
+    static _create_6(deltaX, deltaY, deltaGranularity) {
+      return dart.as(new ScrollState(deltaX, deltaY, deltaGranularity), html$.ScrollState);
+    }
+    static _create_7(deltaX, deltaY) {
+      return dart.as(new ScrollState(deltaX, deltaY), html$.ScrollState);
+    }
+    static _create_8(deltaX) {
+      return dart.as(new ScrollState(deltaX), html$.ScrollState);
+    }
+    static _create_9() {
+      return dart.as(new ScrollState(), html$.ScrollState);
+    }
+    consumeDelta(x, y) {
+      return this.consumeDelta(x, y);
+    }
+  };
+  dart.setSignature(html$.ScrollState, {
+    constructors: () => ({
+      _: [html$.ScrollState, []],
+      new: [html$.ScrollState, [], [core.num, core.num, core.num, core.num, core.num, core.bool, core.bool, core.bool]]
+    }),
+    methods: () => ({consumeDelta: [dart.void, [core.num, core.num]]}),
+    statics: () => ({
+      _create_1: [html$.ScrollState, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]],
+      _create_2: [html$.ScrollState, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]],
+      _create_3: [html$.ScrollState, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]],
+      _create_4: [html$.ScrollState, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]],
+      _create_5: [html$.ScrollState, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]],
+      _create_6: [html$.ScrollState, [dart.dynamic, dart.dynamic, dart.dynamic]],
+      _create_7: [html$.ScrollState, [dart.dynamic, dart.dynamic]],
+      _create_8: [html$.ScrollState, [dart.dynamic]],
+      _create_9: [html$.ScrollState, []]
+    }),
+    names: ['_create_1', '_create_2', '_create_3', '_create_4', '_create_5', '_create_6', '_create_7', '_create_8', '_create_9']
+  });
+  html$.ScrollState[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ScrollState')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("ScrollState"))];
   dart.defineExtensionNames([
     'blockedUri',
     'columnNumber',
@@ -55082,6 +56976,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.SecurityPolicyViolationEvent = class SecurityPolicyViolationEvent extends html$.Event {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.SecurityPolicyViolationEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.SecurityPolicyViolationEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new SecurityPolicyViolationEvent(type, eventInitDict), html$.SecurityPolicyViolationEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new SecurityPolicyViolationEvent(type), html$.SecurityPolicyViolationEvent);
     }
     get [dartx.blockedUri]() {
       return this.blockedURI;
@@ -55115,7 +57023,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$.SecurityPolicyViolationEvent, {
-    constructors: () => ({_: [html$.SecurityPolicyViolationEvent, []]})
+    constructors: () => ({
+      _: [html$.SecurityPolicyViolationEvent, []],
+      new: [html$.SecurityPolicyViolationEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.SecurityPolicyViolationEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.SecurityPolicyViolationEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.SecurityPolicyViolationEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SecurityPolicyViolationEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("SecurityPolicyViolationEvent"))];
   dart.registerExtension(dart.global.SecurityPolicyViolationEvent, html$.SecurityPolicyViolationEvent);
@@ -55124,6 +57040,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'checkValidity',
     'item',
     'namedItem',
+    'reportValidity',
     'setCustomValidity',
     'options',
     'selectedOptions',
@@ -55240,8 +57157,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.willValidate]() {
       return this.willValidate;
     }
-    [__setter__](index, value) {
-      return this.__setter__(index, value);
+    [__setter__](index, option) {
+      return this.__setter__(index, option);
     }
     [dartx.add](element, before) {
       return this.add(element, before);
@@ -55255,11 +57172,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.namedItem](name) {
       return this.namedItem(name);
     }
+    [dartx.reportValidity]() {
+      return this.reportValidity();
+    }
     [dartx.setCustomValidity](error) {
       return this.setCustomValidity(error);
     }
     get [dartx.options]() {
-      let options = this[dartx.querySelectorAll]('option').where(dart.fn(e => dart.is(e, html$.OptionElement), core.bool, [html$.Element]))[dartx.toList]();
+      let options = core.List$(html$.OptionElement).from(this[dartx.querySelectorAll]('option'));
       return new (collection.UnmodifiableListView$(html$.OptionElement))(options);
     }
     get [dartx.selectedOptions]() {
@@ -55280,10 +57200,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }),
     methods: () => ({
       [__setter__]: [dart.void, [core.int, html$.OptionElement]],
-      [dartx.add]: [dart.void, [html$.HtmlElement, core.int]],
+      [dartx.add]: [dart.void, [core.Object, core.Object]],
       [dartx.checkValidity]: [core.bool, []],
       [dartx.item]: [html$.Element, [core.int]],
-      [dartx.namedItem]: [html$.Element, [core.String]],
+      [dartx.namedItem]: [html$.OptionElement, [core.String]],
+      [dartx.reportValidity]: [core.bool, []],
       [dartx.setCustomValidity]: [dart.void, [core.String]]
     })
   });
@@ -55365,8 +57286,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.collapseToStart]() {
       return this.collapseToStart();
     }
-    [dartx.containsNode](node, allowPartial) {
-      return this.containsNode(node, allowPartial);
+    [dartx.containsNode](node, allowPartialContainment) {
+      return this.containsNode(node, allowPartialContainment);
     }
     [dartx.deleteFromDocument]() {
       return this.deleteFromDocument();
@@ -55417,18 +57338,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.Selection[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Selection')), dart.const(new _js_helper.Native("Selection"))];
   dart.registerExtension(dart.global.Selection, html$.Selection);
-  dart.defineExtensionNames([
-    'postMessage',
-    'id'
-  ]);
-  html$.ServiceWorkerClient = class ServiceWorkerClient extends _interceptors.Interceptor {
+  html$.ServicePort = class ServicePort extends _interceptors.Interceptor {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    get [dartx.id]() {
-      return this.id;
+    close() {
+      return this.close();
     }
-    [dartx.postMessage](message, transfer) {
+    postMessage(message, transfer) {
       if (transfer === void 0) transfer = null;
       if (transfer != null) {
         let message_1 = html_common.convertDartToNative_SerializedScriptValue(message);
@@ -55446,59 +57363,124 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this._postMessage_2(message);
     }
   };
-  dart.setSignature(html$.ServiceWorkerClient, {
-    constructors: () => ({_: [html$.ServiceWorkerClient, []]}),
+  dart.setSignature(html$.ServicePort, {
+    constructors: () => ({_: [html$.ServicePort, []]}),
     methods: () => ({
-      [dartx.postMessage]: [dart.void, [dart.dynamic], [core.List$(html$.MessagePort)]],
+      close: [dart.void, []],
+      postMessage: [dart.void, [dart.dynamic], [core.List$(html$.MessagePort)]],
       [_postMessage_1]: [dart.void, [dart.dynamic, core.List$(html$.MessagePort)]],
       [_postMessage_2]: [dart.void, [dart.dynamic]]
     })
   });
-  html$.ServiceWorkerClient[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ServiceWorkerClient')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("ServiceWorkerClient"))];
-  dart.registerExtension(dart.global.ServiceWorkerClient, html$.ServiceWorkerClient);
-  const _getAll_1 = Symbol('_getAll_1');
-  const _getAll_2 = Symbol('_getAll_2');
-  dart.defineExtensionNames([
-    'getAll'
-  ]);
-  html$.ServiceWorkerClients = class ServiceWorkerClients extends _interceptors.Interceptor {
+  html$.ServicePort[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ServicePort')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("ServicePort"))];
+  const _connect_1 = Symbol('_connect_1');
+  const _connect_2 = Symbol('_connect_2');
+  html$.ServicePortCollection = class ServicePortCollection extends html$.EventTarget {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.getAll](options) {
+    connect(url, options) {
       if (options === void 0) options = null;
       if (options != null) {
         let options_1 = html_common.convertDartToNative_Dictionary(options);
-        return this[_getAll_1](options_1);
+        return this[_connect_1](url, options_1);
       }
-      return this[_getAll_2]();
+      return this[_connect_2](url);
     }
-    [_getAll_1](options) {
-      return this._getAll_1(options);
+    [_connect_1](url, options) {
+      return this._connect_1(url, options);
     }
-    [_getAll_2]() {
-      return this._getAll_2();
+    [_connect_2](url) {
+      return this._connect_2(url);
+    }
+    match(options) {
+      let options_1 = html_common.convertDartToNative_Dictionary(options);
+      return this[_match_1](options_1);
+    }
+    [_match_1](options) {
+      return this._match_1(options);
+    }
+    matchAll(options) {
+      if (options === void 0) options = null;
+      if (options != null) {
+        let options_1 = html_common.convertDartToNative_Dictionary(options);
+        return this[_matchAll_1](options_1);
+      }
+      return this[_matchAll_2]();
+    }
+    [_matchAll_1](options) {
+      return this._matchAll_1(options);
+    }
+    [_matchAll_2]() {
+      return this._matchAll_2();
+    }
+    get onMessage() {
+      return html$.ServicePortCollection.messageEvent.forTarget(this);
     }
   };
-  dart.setSignature(html$.ServiceWorkerClients, {
-    constructors: () => ({_: [html$.ServiceWorkerClients, []]}),
+  dart.setSignature(html$.ServicePortCollection, {
+    constructors: () => ({_: [html$.ServicePortCollection, []]}),
     methods: () => ({
-      [dartx.getAll]: [async.Future, [], [core.Map]],
-      [_getAll_1]: [async.Future, [dart.dynamic]],
-      [_getAll_2]: [async.Future, []]
+      connect: [async.Future, [core.String], [core.Map]],
+      [_connect_1]: [async.Future, [dart.dynamic, dart.dynamic]],
+      [_connect_2]: [async.Future, [dart.dynamic]],
+      match: [async.Future, [core.Map]],
+      [_match_1]: [async.Future, [dart.dynamic]],
+      matchAll: [async.Future, [], [core.Map]],
+      [_matchAll_1]: [async.Future, [dart.dynamic]],
+      [_matchAll_2]: [async.Future, []]
     })
   });
-  html$.ServiceWorkerClients[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ServiceWorkerClients')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("ServiceWorkerClients"))];
-  dart.registerExtension(dart.global.ServiceWorkerClients, html$.ServiceWorkerClients);
-  const _register_1 = Symbol('_register_1');
-  const _register_2 = Symbol('_register_2');
+  html$.ServicePortCollection[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ServicePortCollection')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("ServicePortCollection"))];
+  dart.defineLazy(html$.ServicePortCollection, {
+    get messageEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MessageEvent))('message'));
+    }
+  });
+  html$.ServicePortConnectEvent = class ServicePortConnectEvent extends html$.ExtendableEvent {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.ServicePortConnectEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.ServicePortConnectEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new ServicePortConnectEvent(type, eventInitDict), html$.ServicePortConnectEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new ServicePortConnectEvent(type), html$.ServicePortConnectEvent);
+    }
+    respondWith(response) {
+      return this.respondWith(response);
+    }
+  };
+  dart.setSignature(html$.ServicePortConnectEvent, {
+    constructors: () => ({
+      _: [html$.ServicePortConnectEvent, []],
+      new: [html$.ServicePortConnectEvent, [core.String], [core.Map]]
+    }),
+    methods: () => ({respondWith: [async.Future, [async.Future]]}),
+    statics: () => ({
+      _create_1: [html$.ServicePortConnectEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.ServicePortConnectEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
+  });
+  html$.ServicePortConnectEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ServicePortConnectEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("ServicePortConnectEvent"))];
   dart.defineExtensionNames([
     'getRegistration',
+    'getRegistrations',
     'register',
+    'onMessage',
     'controller',
     'ready'
   ]);
-  html$.ServiceWorkerContainer = class ServiceWorkerContainer extends _interceptors.Interceptor {
+  html$.ServiceWorkerContainer = class ServiceWorkerContainer extends html$.EventTarget {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
@@ -55510,6 +57492,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.getRegistration](documentURL) {
       return this.getRegistration(documentURL);
+    }
+    [dartx.getRegistrations]() {
+      return this.getRegistrations();
     }
     [dartx.register](url, options) {
       if (options === void 0) options = null;
@@ -55525,71 +57510,49 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [_register_2](url) {
       return this._register_2(url);
     }
+    get [dartx.onMessage]() {
+      return html$.ServiceWorkerContainer.messageEvent.forTarget(this);
+    }
   };
   dart.setSignature(html$.ServiceWorkerContainer, {
     constructors: () => ({_: [html$.ServiceWorkerContainer, []]}),
     methods: () => ({
       [dartx.getRegistration]: [async.Future, [], [core.String]],
+      [dartx.getRegistrations]: [async.Future, []],
       [dartx.register]: [async.Future, [core.String], [core.Map]],
       [_register_1]: [async.Future, [dart.dynamic, dart.dynamic]],
       [_register_2]: [async.Future, [dart.dynamic]]
     })
   });
   html$.ServiceWorkerContainer[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ServiceWorkerContainer')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("ServiceWorkerContainer"))];
+  dart.defineLazy(html$.ServiceWorkerContainer, {
+    get messageEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MessageEvent))('message'));
+    }
+  });
   dart.registerExtension(dart.global.ServiceWorkerContainer, html$.ServiceWorkerContainer);
-  const _fetch_1 = Symbol('_fetch_1');
-  const _fetch_2 = Symbol('_fetch_2');
-  const _fetch_3 = Symbol('_fetch_3');
-  const _fetch_4 = Symbol('_fetch_4');
-  const _fetch = Symbol('_fetch');
   dart.defineExtensionNames([
+    'skipWaiting',
     'onMessage',
-    'caches',
     'clients',
-    'scope'
+    'ports',
+    'registration'
   ]);
   html$.ServiceWorkerGlobalScope = class ServiceWorkerGlobalScope extends html$.WorkerGlobalScope {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    get [dartx.caches]() {
-      return this.caches;
-    }
     get [dartx.clients]() {
       return this.clients;
     }
-    get [dartx.scope]() {
-      return this.scope;
+    get [dartx.ports]() {
+      return this.ports;
     }
-    [_fetch](request, requestInitDict) {
-      if (requestInitDict === void 0) requestInitDict = null;
-      if ((typeof request == 'string' || request == null) && requestInitDict == null) {
-        return this[_fetch_1](dart.as(request, core.String));
-      }
-      if (requestInitDict != null && (typeof request == 'string' || request == null)) {
-        let requestInitDict_1 = html_common.convertDartToNative_Dictionary(requestInitDict);
-        return this[_fetch_2](dart.as(request, core.String), requestInitDict_1);
-      }
-      if ((dart.is(request, html$._Request) || request == null) && requestInitDict == null) {
-        return this[_fetch_3](dart.as(request, html$._Request));
-      }
-      if (requestInitDict != null && (dart.is(request, html$._Request) || request == null)) {
-        let requestInitDict_1 = html_common.convertDartToNative_Dictionary(requestInitDict);
-        return this[_fetch_4](dart.as(request, html$._Request), requestInitDict_1);
-      }
-      dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
+    get [dartx.registration]() {
+      return this.registration;
     }
-    [_fetch_1](request) {
-      return this._fetch_1(request);
-    }
-    [_fetch_2](request, requestInitDict) {
-      return this._fetch_2(request, requestInitDict);
-    }
-    [_fetch_3](request) {
-      return this._fetch_3(request);
-    }
-    [_fetch_4](request, requestInitDict) {
-      return this._fetch_4(request, requestInitDict);
+    [dartx.skipWaiting]() {
+      return this.skipWaiting();
     }
     get [dartx.onMessage]() {
       return html$.ServiceWorkerGlobalScope.messageEvent.forTarget(this);
@@ -55597,13 +57560,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.setSignature(html$.ServiceWorkerGlobalScope, {
     constructors: () => ({_: [html$.ServiceWorkerGlobalScope, []]}),
-    methods: () => ({
-      [_fetch]: [async.Future, [dart.dynamic], [core.Map]],
-      [_fetch_1]: [async.Future, [core.String]],
-      [_fetch_2]: [async.Future, [core.String, dart.dynamic]],
-      [_fetch_3]: [async.Future, [html$._Request]],
-      [_fetch_4]: [async.Future, [html$._Request, dart.dynamic]]
-    })
+    methods: () => ({[dartx.skipWaiting]: [async.Future, []]})
   });
   html$.ServiceWorkerGlobalScope[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ServiceWorkerGlobalScope')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("ServiceWorkerGlobalScope"))];
   dart.defineLazy(html$.ServiceWorkerGlobalScope, {
@@ -55612,11 +57569,56 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   });
   dart.registerExtension(dart.global.ServiceWorkerGlobalScope, html$.ServiceWorkerGlobalScope);
+  html$.ServiceWorkerMessageEvent = class ServiceWorkerMessageEvent extends html$.Event {
+    get data() {
+      return html_common.convertNativeToDart_SerializedScriptValue(this[_get_data]);
+    }
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.ServiceWorkerMessageEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.ServiceWorkerMessageEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new ServiceWorkerMessageEvent(type, eventInitDict), html$.ServiceWorkerMessageEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new ServiceWorkerMessageEvent(type), html$.ServiceWorkerMessageEvent);
+    }
+  };
+  dart.setSignature(html$.ServiceWorkerMessageEvent, {
+    constructors: () => ({
+      _: [html$.ServiceWorkerMessageEvent, []],
+      new: [html$.ServiceWorkerMessageEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.ServiceWorkerMessageEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.ServiceWorkerMessageEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
+  });
+  html$.ServiceWorkerMessageEvent[dart.metadata] = () => [dart.const(new _metadata.DomName('ServiceWorkerMessageEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("ServiceWorkerMessageEvent"))];
+  const _getNotifications_1 = Symbol('_getNotifications_1');
+  const _getNotifications_2 = Symbol('_getNotifications_2');
+  const _showNotification_1 = Symbol('_showNotification_1');
+  const _showNotification_2 = Symbol('_showNotification_2');
   dart.defineExtensionNames([
+    'getNotifications',
+    'showNotification',
     'unregister',
+    'update',
     'active',
+    'geofencing',
     'installing',
+    'periodicSync',
+    'pushManager',
     'scope',
+    'sync',
     'waiting'
   ]);
   html$.ServiceWorkerRegistration = class ServiceWorkerRegistration extends html$.EventTarget {
@@ -55626,22 +57628,74 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.active]() {
       return this.active;
     }
+    get [dartx.geofencing]() {
+      return this.geofencing;
+    }
     get [dartx.installing]() {
       return this.installing;
+    }
+    get [dartx.periodicSync]() {
+      return this.periodicSync;
+    }
+    get [dartx.pushManager]() {
+      return this.pushManager;
     }
     get [dartx.scope]() {
       return this.scope;
     }
+    get [dartx.sync]() {
+      return this.sync;
+    }
     get [dartx.waiting]() {
       return this.waiting;
+    }
+    [dartx.getNotifications](filter) {
+      if (filter === void 0) filter = null;
+      if (filter != null) {
+        let filter_1 = html_common.convertDartToNative_Dictionary(filter);
+        return this[_getNotifications_1](filter_1);
+      }
+      return this[_getNotifications_2]();
+    }
+    [_getNotifications_1](filter) {
+      return this._getNotifications_1(filter);
+    }
+    [_getNotifications_2]() {
+      return this._getNotifications_2();
+    }
+    [dartx.showNotification](title, options) {
+      if (options === void 0) options = null;
+      if (options != null) {
+        let options_1 = html_common.convertDartToNative_Dictionary(options);
+        return this[_showNotification_1](title, options_1);
+      }
+      return this[_showNotification_2](title);
+    }
+    [_showNotification_1](title, options) {
+      return this._showNotification_1(title, options);
+    }
+    [_showNotification_2](title) {
+      return this._showNotification_2(title);
     }
     [dartx.unregister]() {
       return this.unregister();
     }
+    [dartx.update]() {
+      return this.update();
+    }
   };
   dart.setSignature(html$.ServiceWorkerRegistration, {
     constructors: () => ({_: [html$.ServiceWorkerRegistration, []]}),
-    methods: () => ({[dartx.unregister]: [async.Future, []]})
+    methods: () => ({
+      [dartx.getNotifications]: [async.Future, [], [core.Map]],
+      [_getNotifications_1]: [async.Future, [dart.dynamic]],
+      [_getNotifications_2]: [async.Future, []],
+      [dartx.showNotification]: [async.Future, [core.String], [core.Map]],
+      [_showNotification_1]: [async.Future, [dart.dynamic, dart.dynamic]],
+      [_showNotification_2]: [async.Future, [dart.dynamic]],
+      [dartx.unregister]: [async.Future, []],
+      [dartx.update]: [dart.void, []]
+    })
   });
   html$.ServiceWorkerRegistration[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ServiceWorkerRegistration')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("ServiceWorkerRegistration"))];
   dart.registerExtension(dart.global.ServiceWorkerRegistration, html$.ServiceWorkerRegistration);
@@ -55679,14 +57733,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.defineExtensionNames([
     'clone',
     'elementFromPoint',
-    'getElementsByClassName',
-    'getElementsByTagName',
+    'elementsFromPoint',
     'getSelection',
     'resetStyleInheritance',
     'resetStyleInheritance',
     'applyAuthorStyles',
     'applyAuthorStyles',
     'activeElement',
+    'delegatesFocus',
     'host',
     'innerHtml',
     'olderShadowRoot',
@@ -55698,6 +57752,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.activeElement]() {
       return this.activeElement;
+    }
+    get [dartx.delegatesFocus]() {
+      return this.delegatesFocus;
     }
     get [dartx.host]() {
       return this.host;
@@ -55720,11 +57777,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.elementFromPoint](x, y) {
       return this.elementFromPoint(x, y);
     }
-    [dartx.getElementsByClassName](className) {
-      return this.getElementsByClassName(className);
-    }
-    [dartx.getElementsByTagName](tagName) {
-      return this.getElementsByTagName(tagName);
+    [dartx.elementsFromPoint](x, y) {
+      return this.elementsFromPoint(x, y);
     }
     [dartx.getSelection]() {
       return this.getSelection();
@@ -55758,8 +57812,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({_: [html$.ShadowRoot, []]}),
     methods: () => ({
       [dartx.elementFromPoint]: [html$.Element, [core.int, core.int]],
-      [dartx.getElementsByClassName]: [core.List$(html$.Node), [core.String]],
-      [dartx.getElementsByTagName]: [core.List$(html$.Node), [core.String]],
+      [dartx.elementsFromPoint]: [core.List$(html$.Element), [core.int, core.int]],
       [dartx.getSelection]: [html$.Selection, []]
     }),
     statics: () => ({_shadowRootDeprecationReport: [dart.void, []]}),
@@ -55768,6 +57821,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.ShadowRoot[dart.metadata] = () => [dart.const(new _metadata.DomName('ShadowRoot')), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.CHROME, '26')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("ShadowRoot"))];
   html$.ShadowRoot._shadowRootDeprecationReported = false;
   dart.registerExtension(dart.global.ShadowRoot, html$.ShadowRoot);
+  html$.SharedArrayBuffer = class SharedArrayBuffer extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+  };
+  dart.setSignature(html$.SharedArrayBuffer, {
+    constructors: () => ({_: [html$.SharedArrayBuffer, []]})
+  });
+  html$.SharedArrayBuffer[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SharedArrayBuffer')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("SharedArrayBuffer"))];
   dart.defineExtensionNames([
     'onError',
     'port',
@@ -55855,6 +57917,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'buffered',
     'mode',
     'timestampOffset',
+    'trackDefaults',
     'updating'
   ]);
   html$.SourceBuffer = class SourceBuffer extends html$.EventTarget {
@@ -55887,6 +57950,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     set [dartx.timestampOffset](value) {
       this.timestampOffset = value;
+    }
+    get [dartx.trackDefaults]() {
+      return this.trackDefaults;
+    }
+    set [dartx.trackDefaults](value) {
+      this.trackDefaults = value;
     }
     get [dartx.updating]() {
       return this.updating;
@@ -55989,7 +58058,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.SourceBufferList[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SourceBufferList')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("SourceBufferList"))];
   dart.registerExtension(dart.global.SourceBufferList, html$.SourceBufferList);
   dart.defineExtensionNames([
-    'integrity',
     'media',
     'sizes',
     'src',
@@ -56004,19 +58072,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.as(html$.document[dartx.createElement]("source"), html$.SourceElement);
     }
     created() {
-      this[dartx.integrity] = null;
       this[dartx.media] = null;
       this[dartx.sizes] = null;
       this[dartx.src] = null;
       this[dartx.srcset] = null;
       this[dartx.type] = null;
       super.created();
-    }
-    get [dartx.integrity]() {
-      return this.integrity;
-    }
-    set [dartx.integrity](value) {
-      this.integrity = value;
     }
     get [dartx.media]() {
       return this.media;
@@ -56250,11 +58311,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'onSpeechEnd',
     'onSpeechStart',
     'onStart',
+    'audioTrack',
     'continuous',
     'grammars',
     'interimResults',
     'lang',
-    'maxAlternatives'
+    'maxAlternatives',
+    'serviceUri'
   ]);
   html$.SpeechRecognition = class SpeechRecognition extends html$.EventTarget {
     static _() {
@@ -56262,6 +58325,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static get supported() {
       return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+    }
+    get [dartx.audioTrack]() {
+      return this.audioTrack;
+    }
+    set [dartx.audioTrack](value) {
+      this.audioTrack = value;
     }
     get [dartx.continuous]() {
       return this.continuous;
@@ -56292,6 +58361,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     set [dartx.maxAlternatives](value) {
       this.maxAlternatives = value;
+    }
+    get [dartx.serviceUri]() {
+      return this.serviceURI;
+    }
+    set [dartx.serviceUri](value) {
+      this.serviceURI = value;
     }
     [dartx.abort]() {
       return this.abort();
@@ -56415,6 +58490,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    static new(type, initDict) {
+      if (initDict === void 0) initDict = null;
+      if (initDict != null) {
+        let initDict_1 = html_common.convertDartToNative_Dictionary(initDict);
+        return html$.SpeechRecognitionError._create_1(type, initDict_1);
+      }
+      return html$.SpeechRecognitionError._create_2(type);
+    }
+    static _create_1(type, initDict) {
+      return dart.as(new SpeechRecognitionError(type, initDict), html$.SpeechRecognitionError);
+    }
+    static _create_2(type) {
+      return dart.as(new SpeechRecognitionError(type), html$.SpeechRecognitionError);
+    }
     get [dartx.error]() {
       return this.error;
     }
@@ -56423,7 +58512,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$.SpeechRecognitionError, {
-    constructors: () => ({_: [html$.SpeechRecognitionError, []]})
+    constructors: () => ({
+      _: [html$.SpeechRecognitionError, []],
+      new: [html$.SpeechRecognitionError, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.SpeechRecognitionError, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.SpeechRecognitionError, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.SpeechRecognitionError[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SpeechRecognitionError')), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.CHROME, '25')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("SpeechRecognitionError"))];
   dart.registerExtension(dart.global.SpeechRecognitionError, html$.SpeechRecognitionError);
@@ -56436,6 +58533,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.SpeechRecognitionEvent = class SpeechRecognitionEvent extends html$.Event {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(type, initDict) {
+      if (initDict === void 0) initDict = null;
+      if (initDict != null) {
+        let initDict_1 = html_common.convertDartToNative_Dictionary(initDict);
+        return html$.SpeechRecognitionEvent._create_1(type, initDict_1);
+      }
+      return html$.SpeechRecognitionEvent._create_2(type);
+    }
+    static _create_1(type, initDict) {
+      return dart.as(new SpeechRecognitionEvent(type, initDict), html$.SpeechRecognitionEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new SpeechRecognitionEvent(type), html$.SpeechRecognitionEvent);
     }
     get [dartx.emma]() {
       return this.emma;
@@ -56451,7 +58562,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$.SpeechRecognitionEvent, {
-    constructors: () => ({_: [html$.SpeechRecognitionEvent, []]})
+    constructors: () => ({
+      _: [html$.SpeechRecognitionEvent, []],
+      new: [html$.SpeechRecognitionEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.SpeechRecognitionEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.SpeechRecognitionEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.SpeechRecognitionEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SpeechRecognitionEvent')), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.CHROME, '25')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("SpeechRecognitionEvent"))];
   dart.registerExtension(dart.global.SpeechRecognitionEvent, html$.SpeechRecognitionEvent);
@@ -56534,7 +58653,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.defineExtensionNames([
     'charIndex',
     'elapsedTime',
-    'name'
+    'name',
+    'utterance'
   ]);
   html$.SpeechSynthesisEvent = class SpeechSynthesisEvent extends html$.Event {
     static _() {
@@ -56548,6 +58668,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.name]() {
       return this.name;
+    }
+    get [dartx.utterance]() {
+      return this.utterance;
     }
   };
   dart.setSignature(html$.SpeechSynthesisEvent, {
@@ -56713,6 +58836,36 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.SpeechSynthesisVoice[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SpeechSynthesisVoice')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("SpeechSynthesisVoice"))];
   dart.registerExtension(dart.global.SpeechSynthesisVoice, html$.SpeechSynthesisVoice);
+  html$.StashedMessagePort = class StashedMessagePort extends html$.MessagePort {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+  };
+  dart.setSignature(html$.StashedMessagePort, {
+    constructors: () => ({_: [html$.StashedMessagePort, []]})
+  });
+  html$.StashedMessagePort[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('StashedMessagePort')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("StashedMessagePort"))];
+  html$.StashedPortCollection = class StashedPortCollection extends html$.EventTarget {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    add(name, port) {
+      return this.add(name, port);
+    }
+    get onMessage() {
+      return html$.StashedPortCollection.messageEvent.forTarget(this);
+    }
+  };
+  dart.setSignature(html$.StashedPortCollection, {
+    constructors: () => ({_: [html$.StashedPortCollection, []]}),
+    methods: () => ({add: [html$.StashedMessagePort, [core.String, html$.MessagePort]]})
+  });
+  html$.StashedPortCollection[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('StashedPortCollection')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("StashedPortCollection"))];
+  dart.defineLazy(html$.StashedPortCollection, {
+    get messageEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MessageEvent))('message'));
+    }
+  });
   const _getItem = Symbol('_getItem');
   const _setItem = Symbol('_setItem');
   const _removeItem = Symbol('_removeItem');
@@ -56742,13 +58895,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }, dart.void, [core.String, core.String]));
     }
     [dartx.containsValue](value) {
-      return this[dartx.values][dartx.any](dart.fn(e => e == value, core.bool, [core.String]));
+      return this[dartx.values][dartx.any](dart.fn(e => dart.equals(e, value), core.bool, [core.String]));
     }
     [dartx.containsKey](key) {
-      return this[_getItem](key) != null;
+      return this[_getItem](dart.as(key, core.String)) != null;
     }
     [dartx.get](key) {
-      return this[_getItem](key);
+      return this[_getItem](dart.as(key, core.String));
     }
     [dartx.set](key, value) {
       this[_setItem](key, value);
@@ -56760,7 +58913,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.remove](key) {
       let value = this[dartx.get](key);
-      this[_removeItem](key);
+      this[_removeItem](dart.as(key, core.String));
       return value;
     }
     [dartx.clear]() {
@@ -56774,14 +58927,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     get [dartx.keys]() {
-      let keys = [];
+      let keys = dart.list([], core.String);
       this[dartx.forEach](dart.fn((k, v) => keys[dartx.add](k), dart.void, [core.String, core.String]));
-      return dart.as(keys, core.Iterable$(core.String));
+      return keys;
     }
     get [dartx.values]() {
-      let values = [];
+      let values = dart.list([], core.String);
       this[dartx.forEach](dart.fn((k, v) => values[dartx.add](v), dart.void, [core.String, core.String]));
-      return dart.as(values, core.Iterable$(core.String));
+      return values;
     }
     get [dartx.length]() {
       return this[_length$0];
@@ -56828,12 +58981,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({_: [html$.Storage, []]}),
     methods: () => ({
       [dartx.addAll]: [dart.void, [core.Map$(core.String, core.String)]],
-      [dartx.containsValue]: [core.bool, [core.String]],
-      [dartx.containsKey]: [core.bool, [core.String]],
-      [dartx.get]: [core.String, [core.String]],
+      [dartx.containsValue]: [core.bool, [core.Object]],
+      [dartx.containsKey]: [core.bool, [core.Object]],
+      [dartx.get]: [core.String, [core.Object]],
       [dartx.set]: [dart.void, [core.String, core.String]],
       [dartx.putIfAbsent]: [core.String, [core.String, dart.functionType(core.String, [])]],
-      [dartx.remove]: [core.String, [core.String]],
+      [dartx.remove]: [core.String, [core.Object]],
       [dartx.clear]: [dart.void, []],
       [dartx.forEach]: [dart.void, [dart.functionType(dart.void, [core.String, core.String])]],
       [__delete__]: [core.bool, [dart.dynamic]],
@@ -56866,12 +59019,23 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let newValue = opts && 'newValue' in opts ? opts.newValue : null;
       let url = opts && 'url' in opts ? opts.url : null;
       let storageArea = opts && 'storageArea' in opts ? opts.storageArea : null;
-      let e = html$.document[_createEvent]("StorageEvent");
-      dart.dcall(e[_initStorageEvent], type, canBubble, cancelable, key, oldValue, newValue, url, storageArea);
-      return dart.as(e, html$.StorageEvent);
+      let e = dart.as(html$.document[_createEvent]("StorageEvent"), html$.StorageEvent);
+      e[_initStorageEvent](type, canBubble, cancelable, key, oldValue, newValue, url, storageArea);
+      return e;
     }
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
+    static _(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.StorageEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.StorageEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new StorageEvent(type, eventInitDict), html$.StorageEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new StorageEvent(type), html$.StorageEvent);
     }
     get [dartx.key]() {
       return this.key;
@@ -56895,9 +59059,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(html$.StorageEvent, {
     constructors: () => ({
       new: [html$.StorageEvent, [core.String], {canBubble: core.bool, cancelable: core.bool, key: core.String, oldValue: core.String, newValue: core.String, url: core.String, storageArea: html$.Storage}],
-      _: [html$.StorageEvent, []]
+      _: [html$.StorageEvent, [core.String], [core.Map]]
     }),
-    methods: () => ({[_initStorageEvent]: [dart.void, [core.String, core.bool, core.bool, core.String, core.String, core.String, core.String, html$.Storage]]})
+    methods: () => ({[_initStorageEvent]: [dart.void, [core.String, core.bool, core.bool, core.String, core.String, core.String, core.String, html$.Storage]]}),
+    statics: () => ({
+      _create_1: [html$.StorageEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.StorageEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.StorageEvent[dart.metadata] = () => [dart.const(new _metadata.DomName('StorageEvent')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("StorageEvent"))];
   dart.registerExtension(dart.global.StorageEvent, html$.StorageEvent);
@@ -57025,6 +59194,80 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.StyleMedia[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('StyleMedia')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("StyleMedia"))];
   dart.registerExtension(dart.global.StyleMedia, html$.StyleMedia);
+  html$.SyncEvent = class SyncEvent extends html$.ExtendableEvent {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(type, init) {
+      let init_1 = html_common.convertDartToNative_Dictionary(init);
+      return html$.SyncEvent._create_1(type, init_1);
+    }
+    static _create_1(type, init) {
+      return dart.as(new SyncEvent(type, init), html$.SyncEvent);
+    }
+  };
+  dart.setSignature(html$.SyncEvent, {
+    constructors: () => ({
+      _: [html$.SyncEvent, []],
+      new: [html$.SyncEvent, [core.String, core.Map]]
+    }),
+    statics: () => ({_create_1: [html$.SyncEvent, [dart.dynamic, dart.dynamic]]}),
+    names: ['_create_1']
+  });
+  html$.SyncEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SyncEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("SyncEvent"))];
+  html$.SyncManager = class SyncManager extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    getRegistration(tag) {
+      return this.getRegistration(tag);
+    }
+    getRegistrations() {
+      return this.getRegistrations();
+    }
+    permissionState() {
+      return this.permissionState();
+    }
+    register(options) {
+      if (options === void 0) options = null;
+      if (options != null) {
+        let options_1 = html_common.convertDartToNative_Dictionary(options);
+        return this[_register_1](options_1);
+      }
+      return this[_register_2]();
+    }
+    [_register_1](options) {
+      return this._register_1(options);
+    }
+    [_register_2]() {
+      return this._register_2();
+    }
+  };
+  dart.setSignature(html$.SyncManager, {
+    constructors: () => ({_: [html$.SyncManager, []]}),
+    methods: () => ({
+      getRegistration: [async.Future, [core.String]],
+      getRegistrations: [async.Future, []],
+      permissionState: [async.Future, []],
+      register: [async.Future, [], [core.Map]],
+      [_register_1]: [async.Future, [dart.dynamic]],
+      [_register_2]: [async.Future, []]
+    })
+  });
+  html$.SyncManager[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SyncManager')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("SyncManager"))];
+  html$.SyncRegistration = class SyncRegistration extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    unregister() {
+      return this.unregister();
+    }
+  };
+  dart.setSignature(html$.SyncRegistration, {
+    constructors: () => ({_: [html$.SyncRegistration, []]}),
+    methods: () => ({unregister: [async.Future, []]})
+  });
+  html$.SyncRegistration[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SyncRegistration')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("SyncRegistration"))];
   html$.TableCaptionElement = class TableCaptionElement extends html$.HtmlElement {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -57472,10 +59715,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.registerExtension(dart.global.HTMLTemplateElement, html$.TemplateElement);
   dart.defineExtensionNames([
     'checkValidity',
+    'reportValidity',
     'select',
     'setCustomValidity',
     'setRangeText',
     'setSelectionRange',
+    'autocapitalize',
     'autofocus',
     'cols',
     'defaultValue',
@@ -57485,6 +59730,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'inputMode',
     'labels',
     'maxLength',
+    'minLength',
     'name',
     'placeholder',
     'readOnly',
@@ -57509,6 +59755,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.as(html$.document[dartx.createElement]("textarea"), html$.TextAreaElement);
     }
     created() {
+      this[dartx.autocapitalize] = null;
       this[dartx.autofocus] = null;
       this[dartx.cols] = null;
       this[dartx.defaultValue] = null;
@@ -57518,6 +59765,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[dartx.inputMode] = null;
       this[dartx.labels] = null;
       this[dartx.maxLength] = null;
+      this[dartx.minLength] = null;
       this[dartx.name] = null;
       this[dartx.placeholder] = null;
       this[dartx.readOnly] = null;
@@ -57534,6 +59782,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[dartx.willValidate] = null;
       this[dartx.wrap] = null;
       super.created();
+    }
+    get [dartx.autocapitalize]() {
+      return this.autocapitalize;
+    }
+    set [dartx.autocapitalize](value) {
+      this.autocapitalize = value;
     }
     get [dartx.autofocus]() {
       return this.autofocus;
@@ -57582,6 +59836,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     set [dartx.maxLength](value) {
       this.maxLength = value;
+    }
+    get [dartx.minLength]() {
+      return this.minLength;
+    }
+    set [dartx.minLength](value) {
+      this.minLength = value;
     }
     get [dartx.name]() {
       return this.name;
@@ -57661,6 +59921,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.checkValidity]() {
       return this.checkValidity();
     }
+    [dartx.reportValidity]() {
+      return this.reportValidity();
+    }
     [dartx.select]() {
       return this.select();
     }
@@ -57683,6 +59946,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }),
     methods: () => ({
       [dartx.checkValidity]: [core.bool, []],
+      [dartx.reportValidity]: [core.bool, []],
       [dartx.select]: [dart.void, []],
       [dartx.setCustomValidity]: [dart.void, [core.String]],
       [dartx.setRangeText]: [dart.void, [core.String], {start: core.int, end: core.int, selectionMode: core.String}],
@@ -57704,9 +59968,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (view == null) {
         view = html$.window;
       }
-      let e = html$.document[_createEvent]("TextEvent");
-      dart.dcall(e[_initTextEvent], type, canBubble, cancelable, view, data);
-      return dart.as(e, html$.TextEvent);
+      let e = dart.as(html$.document[_createEvent]("TextEvent"), html$.TextEvent);
+      e[_initTextEvent](type, canBubble, cancelable, view, data);
+      return e;
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -58118,84 +60382,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.TimeRanges[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('TimeRanges')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("TimeRanges"))];
   dart.registerExtension(dart.global.TimeRanges, html$.TimeRanges);
   html$.TimeoutHandler = dart.typedef('TimeoutHandler', () => dart.functionType(dart.void, []));
-  dart.defineExtensionNames([
-    'delay',
-    'direction',
-    'easing',
-    'endDelay',
-    'fill',
-    'iterationStart',
-    'iterations',
-    'playbackRate'
-  ]);
-  html$.Timing = class Timing extends _interceptors.Interceptor {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    get [dartx.delay]() {
-      return this.delay;
-    }
-    set [dartx.delay](value) {
-      this.delay = value;
-    }
-    get [dartx.direction]() {
-      return this.direction;
-    }
-    set [dartx.direction](value) {
-      this.direction = value;
-    }
-    get [dartx.easing]() {
-      return this.easing;
-    }
-    set [dartx.easing](value) {
-      this.easing = value;
-    }
-    get [dartx.endDelay]() {
-      return this.endDelay;
-    }
-    set [dartx.endDelay](value) {
-      this.endDelay = value;
-    }
-    get [dartx.fill]() {
-      return this.fill;
-    }
-    set [dartx.fill](value) {
-      this.fill = value;
-    }
-    get [dartx.iterationStart]() {
-      return this.iterationStart;
-    }
-    set [dartx.iterationStart](value) {
-      this.iterationStart = value;
-    }
-    get [dartx.iterations]() {
-      return this.iterations;
-    }
-    set [dartx.iterations](value) {
-      this.iterations = value;
-    }
-    get [dartx.playbackRate]() {
-      return this.playbackRate;
-    }
-    set [dartx.playbackRate](value) {
-      this.playbackRate = value;
-    }
-    [__getter__](name) {
-      return this.__getter__(name);
-    }
-    [__setter__](name, duration) {
-      return this.__setter__(name, duration);
-    }
-  };
-  dart.setSignature(html$.Timing, {
-    constructors: () => ({_: [html$.Timing, []]}),
-    methods: () => ({
-      [__getter__]: [core.Object, [core.String]],
-      [__setter__]: [dart.void, [core.String, core.num]]
-    })
-  });
-  html$.Timing[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Timing')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("Timing"))];
-  dart.registerExtension(dart.global.Timing, html$.Timing);
   html$.TitleElement = class TitleElement extends html$.HtmlElement {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -58266,6 +60452,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [_radiusY]() {
       return this.radiusY;
     }
+    get [dartx.rotationAngle]() {
+      return this.rotationAngle;
+    }
     get [_screenX]() {
       return this.screenX;
     }
@@ -58277,9 +60466,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [_get_target]() {
       return this.target;
-    }
-    get [dartx.rotationAngle]() {
-      return this.webkitRotationAngle;
     }
     get [__clientX]() {
       return this.clientX[dartx.round]();
@@ -58350,9 +60536,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (view == null) {
         view = html$.window;
       }
-      let e = html$.document[_createEvent]("TouchEvent");
-      dart.dcall(e[_initTouchEvent], touches, targetTouches, changedTouches, type, view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
-      return dart.as(e, html$.TouchEvent);
+      let e = dart.as(html$.document[_createEvent]("TouchEvent"), html$.TouchEvent);
+      e[_initTouchEvent](touches, targetTouches, changedTouches, type, view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
+      return e;
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -58472,9 +60658,74 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$.TouchList[dart.metadata] = () => [dart.const(new _metadata.DomName('TouchList')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("TouchList"))];
   dart.registerExtension(dart.global.TouchList, html$.TouchList);
+  html$.TrackDefault = class TrackDefault extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(type, language, label, kinds, byteStreamTrackID) {
+      if (byteStreamTrackID === void 0) byteStreamTrackID = null;
+      if (byteStreamTrackID != null) {
+        let kinds_1 = html_common.convertDartToNative_StringArray(kinds);
+        return html$.TrackDefault._create_1(type, language, label, kinds_1, byteStreamTrackID);
+      }
+      let kinds_1 = html_common.convertDartToNative_StringArray(kinds);
+      return html$.TrackDefault._create_2(type, language, label, kinds_1);
+    }
+    static _create_1(type, language, label, kinds, byteStreamTrackID) {
+      return dart.as(new TrackDefault(type, language, label, kinds, byteStreamTrackID), html$.TrackDefault);
+    }
+    static _create_2(type, language, label, kinds) {
+      return dart.as(new TrackDefault(type, language, label, kinds), html$.TrackDefault);
+    }
+  };
+  dart.setSignature(html$.TrackDefault, {
+    constructors: () => ({
+      _: [html$.TrackDefault, []],
+      new: [html$.TrackDefault, [core.String, core.String, core.String, core.List$(core.String)], [core.String]]
+    }),
+    statics: () => ({
+      _create_1: [html$.TrackDefault, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]],
+      _create_2: [html$.TrackDefault, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
+  });
+  html$.TrackDefault[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('TrackDefault')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("TrackDefault"))];
+  html$.TrackDefaultList = class TrackDefaultList extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(trackDefaults) {
+      if (trackDefaults === void 0) trackDefaults = null;
+      if (trackDefaults != null) {
+        return html$.TrackDefaultList._create_1(trackDefaults);
+      }
+      return html$.TrackDefaultList._create_2();
+    }
+    static _create_1(trackDefaults) {
+      return dart.as(new TrackDefaultList(trackDefaults), html$.TrackDefaultList);
+    }
+    static _create_2() {
+      return dart.as(new TrackDefaultList(), html$.TrackDefaultList);
+    }
+    item(index) {
+      return this.item(index);
+    }
+  };
+  dart.setSignature(html$.TrackDefaultList, {
+    constructors: () => ({
+      _: [html$.TrackDefaultList, []],
+      new: [html$.TrackDefaultList, [], [core.List$(html$.TrackDefault)]]
+    }),
+    methods: () => ({item: [html$.TrackDefault, [core.int]]}),
+    statics: () => ({
+      _create_1: [html$.TrackDefaultList, [dart.dynamic]],
+      _create_2: [html$.TrackDefaultList, []]
+    }),
+    names: ['_create_1', '_create_2']
+  });
+  html$.TrackDefaultList[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('TrackDefaultList')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("TrackDefaultList"))];
   dart.defineExtensionNames([
     'defaultValue',
-    'integrity',
     'kind',
     'label',
     'readyState',
@@ -58491,7 +60742,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     created() {
       this[dartx.defaultValue] = null;
-      this[dartx.integrity] = null;
       this[dartx.kind] = null;
       this[dartx.label] = null;
       this[dartx.readyState] = null;
@@ -58508,12 +60758,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     set [dartx.defaultValue](value) {
       this.default = value;
-    }
-    get [dartx.integrity]() {
-      return this.integrity;
-    }
-    set [dartx.integrity](value) {
-      this.integrity = value;
     }
     get [dartx.kind]() {
       return this.kind;
@@ -58567,12 +60811,34 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.TrackEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.TrackEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new TrackEvent(type, eventInitDict), html$.TrackEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new TrackEvent(type), html$.TrackEvent);
+    }
     get [dartx.track]() {
       return this.track;
     }
   };
   dart.setSignature(html$.TrackEvent, {
-    constructors: () => ({_: [html$.TrackEvent, []]})
+    constructors: () => ({
+      _: [html$.TrackEvent, []],
+      new: [html$.TrackEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.TrackEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.TrackEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.TrackEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('TrackEvent')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("TrackEvent"))];
   dart.registerExtension(dart.global.TrackEvent, html$.TrackEvent);
@@ -58585,6 +60851,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.TransitionEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.TransitionEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new TransitionEvent(type, eventInitDict), html$.TransitionEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new TransitionEvent(type), html$.TransitionEvent);
+    }
     get [dartx.elapsedTime]() {
       return this.elapsedTime;
     }
@@ -58596,7 +60876,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$.TransitionEvent, {
-    constructors: () => ({_: [html$.TransitionEvent, []]})
+    constructors: () => ({
+      _: [html$.TransitionEvent, []],
+      new: [html$.TransitionEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.TransitionEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.TransitionEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.TransitionEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('TransitionEvent')), dart.const(new _js_helper.Native("TransitionEvent,WebKitTransitionEvent"))];
   dart.registerExtension(dart.global.TransitionEvent, html$.TransitionEvent);
@@ -58958,6 +61246,55 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({_: [html$.UrlUtilsReadOnly, []]})
   });
   html$.UrlUtilsReadOnly[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('URLUtilsReadOnly')), dart.const(new _metadata.Experimental())];
+  html$.VREyeParameters = class VREyeParameters extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+  };
+  dart.setSignature(html$.VREyeParameters, {
+    constructors: () => ({_: [html$.VREyeParameters, []]})
+  });
+  html$.VREyeParameters[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('VREyeParameters')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("VREyeParameters"))];
+  html$.VRFieldOfView = class VRFieldOfView extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    static new(fov) {
+      if (fov === void 0) fov = null;
+      if (fov != null) {
+        let fov_1 = html_common.convertDartToNative_Dictionary(fov);
+        return html$.VRFieldOfView._create_1(fov_1);
+      }
+      return html$.VRFieldOfView._create_2();
+    }
+    static _create_1(fov) {
+      return dart.as(new VRFieldOfView(fov), html$.VRFieldOfView);
+    }
+    static _create_2() {
+      return dart.as(new VRFieldOfView(), html$.VRFieldOfView);
+    }
+  };
+  dart.setSignature(html$.VRFieldOfView, {
+    constructors: () => ({
+      _: [html$.VRFieldOfView, []],
+      new: [html$.VRFieldOfView, [], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [html$.VRFieldOfView, [dart.dynamic]],
+      _create_2: [html$.VRFieldOfView, []]
+    }),
+    names: ['_create_1', '_create_2']
+  });
+  html$.VRFieldOfView[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('VRFieldOfView')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("VRFieldOfView"))];
+  html$.VRPositionState = class VRPositionState extends _interceptors.Interceptor {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+  };
+  dart.setSignature(html$.VRPositionState, {
+    constructors: () => ({_: [html$.VRPositionState, []]})
+  });
+  html$.VRPositionState[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('VRPositionState')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("VRPositionState"))];
   dart.defineExtensionNames([
     'badInput',
     'customError',
@@ -58966,6 +61303,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'rangeUnderflow',
     'stepMismatch',
     'tooLong',
+    'tooShort',
     'typeMismatch',
     'valid',
     'valueMissing'
@@ -58994,6 +61332,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.tooLong]() {
       return this.tooLong;
+    }
+    get [dartx.tooShort]() {
+      return this.tooShort;
     }
     get [dartx.typeMismatch]() {
       return this.typeMismatch;
@@ -59416,28 +61757,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    static new(url, protocol_OR_protocols) {
-      if (protocol_OR_protocols === void 0) protocol_OR_protocols = null;
-      if ((typeof url == 'string' || url == null) && protocol_OR_protocols == null) {
-        return html$.WebSocket._create_1(url);
+    static new(url, protocols) {
+      if (protocols === void 0) protocols = null;
+      if (protocols != null) {
+        return html$.WebSocket._create_1(url, protocols);
       }
-      if ((typeof protocol_OR_protocols == 'string' || protocol_OR_protocols == null) && (typeof url == 'string' || url == null)) {
-        return html$.WebSocket._create_2(url, protocol_OR_protocols);
-      }
-      if ((dart.is(protocol_OR_protocols, core.List$(core.String)) || protocol_OR_protocols == null) && (typeof url == 'string' || url == null)) {
-        let protocols_1 = html_common.convertDartToNative_StringArray(dart.as(protocol_OR_protocols, core.List$(core.String)));
-        return html$.WebSocket._create_3(url, protocols_1);
-      }
-      dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
+      return html$.WebSocket._create_2(url);
     }
-    static _create_1(url) {
+    static _create_1(url, protocols) {
+      return dart.as(new WebSocket(url, protocols), html$.WebSocket);
+    }
+    static _create_2(url) {
       return dart.as(new WebSocket(url), html$.WebSocket);
-    }
-    static _create_2(url, protocol_OR_protocols) {
-      return dart.as(new WebSocket(url, protocol_OR_protocols), html$.WebSocket);
-    }
-    static _create_3(url, protocol_OR_protocols) {
-      return dart.as(new WebSocket(url, protocol_OR_protocols), html$.WebSocket);
     }
     static get supported() {
       return typeof window.WebSocket != "undefined";
@@ -59497,7 +61828,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(html$.WebSocket, {
     constructors: () => ({
       _: [html$.WebSocket, []],
-      new: [html$.WebSocket, [core.String], [dart.dynamic]]
+      new: [html$.WebSocket, [core.String], [core.Object]]
     }),
     methods: () => ({
       [dartx.close]: [dart.void, [], [core.int, core.String]],
@@ -59508,11 +61839,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.sendTypedData]: [dart.void, [typed_data.TypedData]]
     }),
     statics: () => ({
-      _create_1: [html$.WebSocket, [dart.dynamic]],
-      _create_2: [html$.WebSocket, [dart.dynamic, dart.dynamic]],
-      _create_3: [html$.WebSocket, [dart.dynamic, dart.dynamic]]
+      _create_1: [html$.WebSocket, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.WebSocket, [dart.dynamic]]
     }),
-    names: ['_create_1', '_create_2', '_create_3']
+    names: ['_create_1', '_create_2']
   });
   html$.WebSocket[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('WebSocket')), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.CHROME)), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.FIREFOX)), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.IE, '10')), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.SAFARI)), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("WebSocket"))];
   html$.WebSocket.CLOSED = 3;
@@ -59574,8 +61904,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       return dart.as(new WheelEvent(type, html_common.convertDartToNative_Dictionary(options)), html$.WheelEvent);
     }
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
+    static _(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return html$.WheelEvent._create_1(type, eventInitDict_1);
+      }
+      return html$.WheelEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new WheelEvent(type, eventInitDict), html$.WheelEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new WheelEvent(type), html$.WheelEvent);
     }
     get [_deltaX]() {
       return this.deltaX;
@@ -59629,12 +61970,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(html$.WheelEvent, {
     constructors: () => ({
       new: [html$.WheelEvent, [core.String], {view: html$.Window, deltaX: core.num, deltaY: core.num, deltaZ: core.num, deltaMode: core.int, detail: core.int, screenX: core.int, screenY: core.int, clientX: core.int, clientY: core.int, button: core.int, canBubble: core.bool, cancelable: core.bool, ctrlKey: core.bool, altKey: core.bool, shiftKey: core.bool, metaKey: core.bool, relatedTarget: html$.EventTarget}],
-      _: [html$.WheelEvent, []]
+      _: [html$.WheelEvent, [core.String], [core.Map]]
     }),
     methods: () => ({
       [_initMouseScrollEvent]: [dart.void, [core.String, core.bool, core.bool, html$.Window, core.int, core.int, core.int, core.int, core.int, core.bool, core.bool, core.bool, core.bool, core.int, html$.EventTarget, core.int]],
       [_initWheelEvent]: [dart.void, [core.String, core.bool, core.bool, html$.Window, core.int, core.int, core.int, core.int, core.int, core.int, html$.EventTarget, core.String, core.int, core.int, core.int, core.int]]
-    })
+    }),
+    statics: () => ({
+      _create_1: [html$.WheelEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$.WheelEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   html$.WheelEvent[dart.metadata] = () => [dart.const(new _metadata.DomName('WheelEvent')), dart.const(new _js_helper.Native("WheelEvent"))];
   html$.WheelEvent.DOM_DELTA_LINE = 1;
@@ -59656,18 +62002,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _get_top = Symbol('_get_top');
   const __getter___1 = Symbol('__getter___1');
   const __getter___2 = Symbol('__getter___2');
-  const _scroll_1 = Symbol('_scroll_1');
-  const _scroll_2 = Symbol('_scroll_2');
-  const _scroll_3 = Symbol('_scroll_3');
   const _scroll_4 = Symbol('_scroll_4');
-  const _scrollBy_1 = Symbol('_scrollBy_1');
-  const _scrollBy_2 = Symbol('_scrollBy_2');
-  const _scrollBy_3 = Symbol('_scrollBy_3');
+  const _scroll_5 = Symbol('_scroll_5');
   const _scrollBy_4 = Symbol('_scrollBy_4');
-  const _scrollTo_1 = Symbol('_scrollTo_1');
-  const _scrollTo_2 = Symbol('_scrollTo_2');
-  const _scrollTo_3 = Symbol('_scrollTo_3');
+  const _scrollBy_5 = Symbol('_scrollBy_5');
   const _scrollTo_4 = Symbol('_scrollTo_4');
+  const _scrollTo_5 = Symbol('_scrollTo_5');
   const __requestFileSystem = Symbol('__requestFileSystem');
   const _resolveLocalFileSystemUrl = Symbol('_resolveLocalFileSystemUrl');
   dart.defineExtensionNames([
@@ -59690,6 +62030,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'alert',
     'close',
     'confirm',
+    'fetch',
     'find',
     'getMatchedCssRules',
     'getSelection',
@@ -59703,7 +62044,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'scroll',
     'scrollBy',
     'scrollTo',
-    'showModalDialog',
     'stop',
     'resolveLocalFileSystemUrl',
     'atob',
@@ -59789,8 +62129,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'pageYOffset',
     'scrollX',
     'scrollY',
-    'css',
     'applicationCache',
+    'caches',
     'closed',
     'crypto',
     'defaultStatus',
@@ -59861,7 +62201,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.requestAnimationFrame](callback) {
       this[_ensureRequestAnimationFrame]();
-      return this[_requestAnimationFrame](dart.as(html$._wrapZone(callback), html$.RequestAnimationFrameCallback));
+      return this[_requestAnimationFrame](html$._wrapZone(callback));
     }
     [dartx.cancelAnimationFrame](id) {
       this[_ensureRequestAnimationFrame]();
@@ -59908,11 +62248,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    get [dartx.css]() {
-      return this.CSS;
-    }
     get [dartx.applicationCache]() {
       return this.applicationCache;
+    }
+    get [dartx.caches]() {
+      return this.caches;
     }
     get [dartx.closed]() {
       return this.closed;
@@ -60079,11 +62419,25 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.confirm](message) {
       return this.confirm(message);
     }
+    [dartx.fetch](input, init) {
+      if (init === void 0) init = null;
+      if (init != null) {
+        let init_1 = html_common.convertDartToNative_Dictionary(init);
+        return this[_fetch_1](input, init_1);
+      }
+      return this[_fetch_2](input);
+    }
+    [_fetch_1](input, init) {
+      return this._fetch_1(input, init);
+    }
+    [_fetch_2](input) {
+      return this._fetch_2(input);
+    }
     [dartx.find](string, caseSensitive, backwards, wrap, wholeWord, searchInFrames, showDialog) {
       return this.find(string, caseSensitive, backwards, wrap, wholeWord, searchInFrames, showDialog);
     }
-    [_getComputedStyle](element, pseudoElement) {
-      return this._getComputedStyle(element, pseudoElement);
+    [_getComputedStyle](elt, pseudoElt) {
+      return this._getComputedStyle(elt, pseudoElt);
     }
     [dartx.getMatchedCssRules](element, pseudoElement) {
       return this.getMatchedCssRules(element, pseudoElement);
@@ -60126,113 +62480,137 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.resizeBy](x, y) {
       return this.resizeBy(x, y);
     }
-    [dartx.resizeTo](width, height) {
-      return this.resizeTo(width, height);
+    [dartx.resizeTo](x, y) {
+      return this.resizeTo(x, y);
     }
-    [dartx.scroll](x, y, scrollOptions) {
+    [dartx.scroll](options_OR_x, y, scrollOptions) {
+      if (options_OR_x === void 0) options_OR_x = null;
+      if (y === void 0) y = null;
       if (scrollOptions === void 0) scrollOptions = null;
-      if (typeof y == 'number' && typeof x == 'number' && scrollOptions == null) {
-        this[_scroll_1](x, y);
+      if (options_OR_x == null && y == null && scrollOptions == null) {
+        this[_scroll_1]();
         return;
       }
-      if (scrollOptions != null && typeof y == 'number' && typeof x == 'number') {
+      if (dart.is(options_OR_x, core.Map) && y == null && scrollOptions == null) {
+        let options_1 = html_common.convertDartToNative_Dictionary(options_OR_x);
+        this[_scroll_2](options_1);
+        return;
+      }
+      if (typeof y == 'number' && typeof options_OR_x == 'number' && scrollOptions == null) {
+        this[_scroll_3](options_OR_x, y);
+        return;
+      }
+      if (typeof y == 'number' && typeof options_OR_x == 'number' && scrollOptions == null) {
+        this[_scroll_4](options_OR_x, y);
+        return;
+      }
+      if (scrollOptions != null && typeof y == 'number' && typeof options_OR_x == 'number') {
         let scrollOptions_1 = html_common.convertDartToNative_Dictionary(scrollOptions);
-        this[_scroll_2](x, y, scrollOptions_1);
-        return;
-      }
-      if (typeof y == 'number' && typeof x == 'number' && scrollOptions == null) {
-        this[_scroll_3](x, y);
-        return;
-      }
-      if (scrollOptions != null && typeof y == 'number' && typeof x == 'number') {
-        let scrollOptions_1 = html_common.convertDartToNative_Dictionary(scrollOptions);
-        this[_scroll_4](x, y, scrollOptions_1);
+        this[_scroll_5](options_OR_x, y, scrollOptions_1);
         return;
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
-    [_scroll_1](x, y) {
-      return this._scroll_1(x, y);
+    [_scroll_1]() {
+      return this._scroll_1();
     }
-    [_scroll_2](x, y, scrollOptions) {
-      return this._scroll_2(x, y, scrollOptions);
+    [_scroll_2](options) {
+      return this._scroll_2(options);
     }
     [_scroll_3](x, y) {
       return this._scroll_3(x, y);
     }
-    [_scroll_4](x, y, scrollOptions) {
-      return this._scroll_4(x, y, scrollOptions);
+    [_scroll_4](x, y) {
+      return this._scroll_4(x, y);
     }
-    [dartx.scrollBy](x, y, scrollOptions) {
+    [_scroll_5](x, y, scrollOptions) {
+      return this._scroll_5(x, y, scrollOptions);
+    }
+    [dartx.scrollBy](options_OR_x, y, scrollOptions) {
+      if (options_OR_x === void 0) options_OR_x = null;
+      if (y === void 0) y = null;
       if (scrollOptions === void 0) scrollOptions = null;
-      if (typeof y == 'number' && typeof x == 'number' && scrollOptions == null) {
-        this[_scrollBy_1](x, y);
+      if (options_OR_x == null && y == null && scrollOptions == null) {
+        this[_scrollBy_1]();
         return;
       }
-      if (scrollOptions != null && typeof y == 'number' && typeof x == 'number') {
+      if (dart.is(options_OR_x, core.Map) && y == null && scrollOptions == null) {
+        let options_1 = html_common.convertDartToNative_Dictionary(options_OR_x);
+        this[_scrollBy_2](options_1);
+        return;
+      }
+      if (typeof y == 'number' && typeof options_OR_x == 'number' && scrollOptions == null) {
+        this[_scrollBy_3](options_OR_x, y);
+        return;
+      }
+      if (typeof y == 'number' && typeof options_OR_x == 'number' && scrollOptions == null) {
+        this[_scrollBy_4](options_OR_x, y);
+        return;
+      }
+      if (scrollOptions != null && typeof y == 'number' && typeof options_OR_x == 'number') {
         let scrollOptions_1 = html_common.convertDartToNative_Dictionary(scrollOptions);
-        this[_scrollBy_2](x, y, scrollOptions_1);
-        return;
-      }
-      if (typeof y == 'number' && typeof x == 'number' && scrollOptions == null) {
-        this[_scrollBy_3](x, y);
-        return;
-      }
-      if (scrollOptions != null && typeof y == 'number' && typeof x == 'number') {
-        let scrollOptions_1 = html_common.convertDartToNative_Dictionary(scrollOptions);
-        this[_scrollBy_4](x, y, scrollOptions_1);
+        this[_scrollBy_5](options_OR_x, y, scrollOptions_1);
         return;
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
-    [_scrollBy_1](x, y) {
-      return this._scrollBy_1(x, y);
+    [_scrollBy_1]() {
+      return this._scrollBy_1();
     }
-    [_scrollBy_2](x, y, scrollOptions) {
-      return this._scrollBy_2(x, y, scrollOptions);
+    [_scrollBy_2](options) {
+      return this._scrollBy_2(options);
     }
     [_scrollBy_3](x, y) {
       return this._scrollBy_3(x, y);
     }
-    [_scrollBy_4](x, y, scrollOptions) {
-      return this._scrollBy_4(x, y, scrollOptions);
+    [_scrollBy_4](x, y) {
+      return this._scrollBy_4(x, y);
     }
-    [dartx.scrollTo](x, y, scrollOptions) {
+    [_scrollBy_5](x, y, scrollOptions) {
+      return this._scrollBy_5(x, y, scrollOptions);
+    }
+    [dartx.scrollTo](options_OR_x, y, scrollOptions) {
+      if (options_OR_x === void 0) options_OR_x = null;
+      if (y === void 0) y = null;
       if (scrollOptions === void 0) scrollOptions = null;
-      if (typeof y == 'number' && typeof x == 'number' && scrollOptions == null) {
-        this[_scrollTo_1](x, y);
+      if (options_OR_x == null && y == null && scrollOptions == null) {
+        this[_scrollTo_1]();
         return;
       }
-      if (scrollOptions != null && typeof y == 'number' && typeof x == 'number') {
+      if (dart.is(options_OR_x, core.Map) && y == null && scrollOptions == null) {
+        let options_1 = html_common.convertDartToNative_Dictionary(options_OR_x);
+        this[_scrollTo_2](options_1);
+        return;
+      }
+      if (typeof y == 'number' && typeof options_OR_x == 'number' && scrollOptions == null) {
+        this[_scrollTo_3](options_OR_x, y);
+        return;
+      }
+      if (typeof y == 'number' && typeof options_OR_x == 'number' && scrollOptions == null) {
+        this[_scrollTo_4](options_OR_x, y);
+        return;
+      }
+      if (scrollOptions != null && typeof y == 'number' && typeof options_OR_x == 'number') {
         let scrollOptions_1 = html_common.convertDartToNative_Dictionary(scrollOptions);
-        this[_scrollTo_2](x, y, scrollOptions_1);
-        return;
-      }
-      if (typeof y == 'number' && typeof x == 'number' && scrollOptions == null) {
-        this[_scrollTo_3](x, y);
-        return;
-      }
-      if (scrollOptions != null && typeof y == 'number' && typeof x == 'number') {
-        let scrollOptions_1 = html_common.convertDartToNative_Dictionary(scrollOptions);
-        this[_scrollTo_4](x, y, scrollOptions_1);
+        this[_scrollTo_5](options_OR_x, y, scrollOptions_1);
         return;
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
-    [_scrollTo_1](x, y) {
-      return this._scrollTo_1(x, y);
+    [_scrollTo_1]() {
+      return this._scrollTo_1();
     }
-    [_scrollTo_2](x, y, scrollOptions) {
-      return this._scrollTo_2(x, y, scrollOptions);
+    [_scrollTo_2](options) {
+      return this._scrollTo_2(options);
     }
     [_scrollTo_3](x, y) {
       return this._scrollTo_3(x, y);
     }
-    [_scrollTo_4](x, y, scrollOptions) {
-      return this._scrollTo_4(x, y, scrollOptions);
+    [_scrollTo_4](x, y) {
+      return this._scrollTo_4(x, y);
     }
-    [dartx.showModalDialog](url, dialogArgs, featureArgs) {
-      return this.showModalDialog(url, dialogArgs, featureArgs);
+    [_scrollTo_5](x, y, scrollOptions) {
+      return this._scrollTo_5(x, y, scrollOptions);
     }
     [dartx.stop]() {
       return this.stop();
@@ -60261,11 +62639,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }, dart.void, [html$.FileError]));
       return completer.future;
     }
-    [dartx.atob](string) {
-      return this.atob(string);
+    [dartx.atob](atob) {
+      return this.atob(atob);
     }
-    [dartx.btoa](string) {
-      return this.btoa(string);
+    [dartx.btoa](btoa) {
+      return this.btoa(btoa);
+    }
+    [_setInterval_String](handler, timeout, arguments$) {
+      return this._setInterval_String(handler, timeout, arguments$);
+    }
+    [_setTimeout_String](handler, timeout, arguments$) {
+      return this._setTimeout_String(handler, timeout, arguments$);
     }
     [_clearInterval](handle) {
       return this._clearInterval(handle);
@@ -60508,7 +62892,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.Window.beforeUnloadEvent.forTarget(this);
     }
     [dartx.moveTo](p) {
-      this[_moveTo](p.x, p.y);
+      this[_moveTo](dart.asInt(p.x), dart.asInt(p.y));
     }
     get [dartx.pageXOffset]() {
       return this.pageXOffset[dartx.round]();
@@ -60530,9 +62914,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [_open2]: [html$.WindowBase, [dart.dynamic, dart.dynamic]],
       [_open3]: [html$.WindowBase, [dart.dynamic, dart.dynamic, dart.dynamic]],
       [dartx.open]: [html$.WindowBase, [core.String, core.String], [core.String]],
-      [dartx.requestAnimationFrame]: [core.int, [html$.RequestAnimationFrameCallback]],
+      [dartx.requestAnimationFrame]: [core.int, [html$.FrameRequestCallback]],
       [dartx.cancelAnimationFrame]: [dart.void, [core.int]],
-      [_requestAnimationFrame]: [core.int, [html$.RequestAnimationFrameCallback]],
+      [_requestAnimationFrame]: [core.int, [html$.FrameRequestCallback]],
       [_cancelAnimationFrame]: [dart.void, [core.int]],
       [_ensureRequestAnimationFrame]: [dart.dynamic, []],
       [dartx.requestFileSystem]: [async.Future$(html$.FileSystem), [core.int], {persistent: core.bool}],
@@ -60542,36 +62926,41 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.alert]: [dart.void, [], [core.String]],
       [dartx.close]: [dart.void, []],
       [dartx.confirm]: [core.bool, [], [core.String]],
+      [dartx.fetch]: [async.Future, [dart.dynamic], [core.Map]],
+      [_fetch_1]: [async.Future, [dart.dynamic, dart.dynamic]],
+      [_fetch_2]: [async.Future, [dart.dynamic]],
       [dartx.find]: [core.bool, [core.String, core.bool, core.bool, core.bool, core.bool, core.bool, core.bool]],
       [_getComputedStyle]: [html$.CssStyleDeclaration, [html$.Element, core.String]],
       [dartx.getMatchedCssRules]: [core.List$(html$.CssRule), [html$.Element, core.String]],
       [dartx.getSelection]: [html$.Selection, []],
       [dartx.matchMedia]: [html$.MediaQueryList, [core.String]],
-      [dartx.moveBy]: [dart.void, [core.num, core.num]],
-      [_moveTo]: [dart.void, [core.num, core.num]],
+      [dartx.moveBy]: [dart.void, [core.int, core.int]],
+      [_moveTo]: [dart.void, [core.int, core.int]],
       [dartx.openDatabase]: [web_sql.SqlDatabase, [core.String, core.String, core.String, core.int], [html$.DatabaseCallback]],
       [dartx.postMessage]: [dart.void, [dart.dynamic, core.String], [core.List$(html$.MessagePort)]],
       [_postMessage_1]: [dart.void, [dart.dynamic, dart.dynamic, core.List$(html$.MessagePort)]],
       [_postMessage_2]: [dart.void, [dart.dynamic, dart.dynamic]],
       [dartx.print]: [dart.void, []],
-      [dartx.resizeBy]: [dart.void, [core.num, core.num]],
-      [dartx.resizeTo]: [dart.void, [core.num, core.num]],
-      [dartx.scroll]: [dart.void, [dart.dynamic, dart.dynamic], [core.Map]],
-      [_scroll_1]: [dart.void, [core.num, core.num]],
-      [_scroll_2]: [dart.void, [core.num, core.num, dart.dynamic]],
-      [_scroll_3]: [dart.void, [core.int, core.int]],
-      [_scroll_4]: [dart.void, [core.int, core.int, dart.dynamic]],
-      [dartx.scrollBy]: [dart.void, [dart.dynamic, dart.dynamic], [core.Map]],
-      [_scrollBy_1]: [dart.void, [core.num, core.num]],
-      [_scrollBy_2]: [dart.void, [core.num, core.num, dart.dynamic]],
-      [_scrollBy_3]: [dart.void, [core.int, core.int]],
-      [_scrollBy_4]: [dart.void, [core.int, core.int, dart.dynamic]],
-      [dartx.scrollTo]: [dart.void, [dart.dynamic, dart.dynamic], [core.Map]],
-      [_scrollTo_1]: [dart.void, [core.num, core.num]],
-      [_scrollTo_2]: [dart.void, [core.num, core.num, dart.dynamic]],
-      [_scrollTo_3]: [dart.void, [core.int, core.int]],
-      [_scrollTo_4]: [dart.void, [core.int, core.int, dart.dynamic]],
-      [dartx.showModalDialog]: [core.Object, [core.String], [core.Object, core.String]],
+      [dartx.resizeBy]: [dart.void, [core.int, core.int]],
+      [dartx.resizeTo]: [dart.void, [core.int, core.int]],
+      [dartx.scroll]: [dart.void, [], [dart.dynamic, dart.dynamic, core.Map]],
+      [_scroll_1]: [dart.void, []],
+      [_scroll_2]: [dart.void, [dart.dynamic]],
+      [_scroll_3]: [dart.void, [core.num, core.num]],
+      [_scroll_4]: [dart.void, [core.int, core.int]],
+      [_scroll_5]: [dart.void, [core.int, core.int, dart.dynamic]],
+      [dartx.scrollBy]: [dart.void, [], [dart.dynamic, dart.dynamic, core.Map]],
+      [_scrollBy_1]: [dart.void, []],
+      [_scrollBy_2]: [dart.void, [dart.dynamic]],
+      [_scrollBy_3]: [dart.void, [core.num, core.num]],
+      [_scrollBy_4]: [dart.void, [core.int, core.int]],
+      [_scrollBy_5]: [dart.void, [core.int, core.int, dart.dynamic]],
+      [dartx.scrollTo]: [dart.void, [], [dart.dynamic, dart.dynamic, core.Map]],
+      [_scrollTo_1]: [dart.void, []],
+      [_scrollTo_2]: [dart.void, [dart.dynamic]],
+      [_scrollTo_3]: [dart.void, [core.num, core.num]],
+      [_scrollTo_4]: [dart.void, [core.int, core.int]],
+      [_scrollTo_5]: [dart.void, [core.int, core.int, dart.dynamic]],
       [dartx.stop]: [dart.void, []],
       [__requestFileSystem]: [dart.void, [core.int, core.int, html$._FileSystemCallback], [html$._ErrorCallback]],
       [_requestFileSystem]: [async.Future$(html$.FileSystem), [core.int, core.int]],
@@ -60579,10 +62968,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.resolveLocalFileSystemUrl]: [async.Future$(html$.Entry), [core.String]],
       [dartx.atob]: [core.String, [core.String]],
       [dartx.btoa]: [core.String, [core.String]],
-      [_clearInterval]: [dart.void, [core.int]],
-      [_clearTimeout]: [dart.void, [core.int]],
-      [_setInterval]: [core.int, [core.Object, core.int]],
-      [_setTimeout]: [core.int, [core.Object, core.int]],
+      [_setInterval_String]: [core.int, [core.String], [core.int, core.Object]],
+      [_setTimeout_String]: [core.int, [core.String], [core.int, core.Object]],
+      [_clearInterval]: [dart.void, [], [core.int]],
+      [_clearTimeout]: [dart.void, [], [core.int]],
+      [_setInterval]: [core.int, [core.Object], [core.int]],
+      [_setTimeout]: [core.int, [core.Object], [core.int]],
       [dartx.moveTo]: [dart.void, [math.Point$(core.num)]]
     })
   });
@@ -60658,9 +63049,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get cancelable() {
       return this.wrapped[dartx.cancelable];
     }
-    get clipboardData() {
-      return this.wrapped[dartx.clipboardData];
-    }
     get currentTarget() {
       return this.wrapped[dartx.currentTarget];
     }
@@ -60695,17 +63083,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (this[_selector] == null) {
         dart.throw(new core.UnsupportedError('Cannot call matchingTarget if this Event did' + ' not arise as a result of event delegation.'));
       }
-      let currentTarget = this.currentTarget;
-      let target = this.target;
+      let currentTarget = dart.as(this.currentTarget, html$.Element);
+      let target = dart.as(this.target, html$.Element);
       let matchedTarget = null;
       do {
-        if (dart.notNull(dart.as(dart.dcall(target[dartx.matches], this[_selector]), core.bool))) return dart.as(target, html$.Element);
-        target = dart.as(dart.dload(target, dartx.parent), html$.EventTarget);
-      } while (target != null && !dart.equals(target, dart.dload(currentTarget, dartx.parent)));
+        if (dart.notNull(target[dartx.matches](this[_selector]))) return target;
+        target = target[dartx.parent];
+      } while (target != null && !dart.equals(target, currentTarget[dartx.parent]));
       dart.throw(new core.StateError('No selector matched for populating matchedTarget.'));
     }
     get path() {
-      return this.wrapped[dartx.path];
+      return dart.as(this.wrapped[dartx.path], core.List$(html$.Node));
     }
     get [_get_currentTarget]() {
       return this.wrapped[_get_currentTarget];
@@ -60733,7 +63121,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     _selector,
     'bubbles',
     'cancelable',
-    'clipboardData',
     'currentTarget',
     'defaultPrevented',
     'eventPhase',
@@ -60773,13 +63160,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     forTarget(e, opts) {
       let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
       let stream = new html$._EventStream(e, this[_eventType], useCapture);
-      let controller = async.StreamController.new({sync: true});
+      let controller = async.StreamController$(html$.BeforeUnloadEvent).new({sync: true});
       stream.listen(dart.fn(event => {
         let wrapped = new html$._BeforeUnloadEvent(dart.as(event, html$.Event));
         controller.add(wrapped);
-        return wrapped.returnValue;
       }, dart.void, [dart.dynamic]));
-      return dart.as(controller.stream, async.Stream$(html$.BeforeUnloadEvent));
+      return controller.stream;
     }
     getEventType(target) {
       return this[_eventType];
@@ -60812,6 +63198,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({_: [html$.WindowBase64, []]})
   });
   html$.WindowBase64[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('WindowBase64')), dart.const(new _metadata.Experimental())];
+  html$.WindowClient = class WindowClient extends html$.Client {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    focus() {
+      return this.focus();
+    }
+  };
+  dart.setSignature(html$.WindowClient, {
+    constructors: () => ({_: [html$.WindowClient, []]}),
+    methods: () => ({focus: [async.Future, []]})
+  });
+  html$.WindowClient[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('WindowClient')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("WindowClient"))];
   dart.defineExtensionNames([
     'onHashChange',
     'onMessage',
@@ -60956,23 +63355,70 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.WorkerConsole[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('WorkerConsole')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("WorkerConsole"))];
   dart.registerExtension(dart.global.WorkerConsole, html$.WorkerConsole);
   dart.defineExtensionNames([
+    'clearMarks',
+    'clearMeasures',
+    'getEntries',
+    'getEntriesByName',
+    'getEntriesByType',
+    'mark',
+    'measure',
     'now',
+    'clearResourceTimings',
+    'setResourceTimingBufferSize',
     'memory'
   ]);
-  html$.WorkerPerformance = class WorkerPerformance extends _interceptors.Interceptor {
+  html$.WorkerPerformance = class WorkerPerformance extends html$.EventTarget {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
     get [dartx.memory]() {
       return this.memory;
     }
+    [dartx.clearMarks](markName) {
+      return this.clearMarks(markName);
+    }
+    [dartx.clearMeasures](measureName) {
+      return this.clearMeasures(measureName);
+    }
+    [dartx.getEntries]() {
+      return this.getEntries();
+    }
+    [dartx.getEntriesByName](name, entryType) {
+      return this.getEntriesByName(name, entryType);
+    }
+    [dartx.getEntriesByType](entryType) {
+      return this.getEntriesByType(entryType);
+    }
+    [dartx.mark](markName) {
+      return this.mark(markName);
+    }
+    [dartx.measure](measureName, startMark, endMark) {
+      return this.measure(measureName, startMark, endMark);
+    }
     [dartx.now]() {
       return this.now();
+    }
+    [dartx.clearResourceTimings]() {
+      return this.clearResourceTimings();
+    }
+    [dartx.setResourceTimingBufferSize](maxSize) {
+      return this.setResourceTimingBufferSize(maxSize);
     }
   };
   dart.setSignature(html$.WorkerPerformance, {
     constructors: () => ({_: [html$.WorkerPerformance, []]}),
-    methods: () => ({[dartx.now]: [core.double, []]})
+    methods: () => ({
+      [dartx.clearMarks]: [dart.void, [core.String]],
+      [dartx.clearMeasures]: [dart.void, [core.String]],
+      [dartx.getEntries]: [core.List$(html$.PerformanceEntry), []],
+      [dartx.getEntriesByName]: [core.List$(html$.PerformanceEntry), [core.String, core.String]],
+      [dartx.getEntriesByType]: [core.List$(html$.PerformanceEntry), [core.String]],
+      [dartx.mark]: [dart.void, [core.String]],
+      [dartx.measure]: [dart.void, [core.String, core.String, core.String]],
+      [dartx.now]: [core.double, []],
+      [dartx.clearResourceTimings]: [dart.void, []],
+      [dartx.setResourceTimingBufferSize]: [dart.void, [core.int]]
+    })
   });
   html$.WorkerPerformance[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('WorkerPerformance')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("WorkerPerformance"))];
   dart.registerExtension(dart.global.WorkerPerformance, html$.WorkerPerformance);
@@ -61009,7 +63455,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     methods: () => ({
       [dartx.createExpression]: [html$.XPathExpression, [core.String, html$.XPathNSResolver]],
       [dartx.createNSResolver]: [html$.XPathNSResolver, [html$.Node]],
-      [dartx.evaluate]: [html$.XPathResult, [core.String, html$.Node, html$.XPathNSResolver, core.int, html$.XPathResult]]
+      [dartx.evaluate]: [html$.XPathResult, [core.String, html$.Node, html$.XPathNSResolver], [core.int, core.Object]]
     }),
     statics: () => ({_create_1: [html$.XPathEvaluator, []]}),
     names: ['_create_1']
@@ -61029,7 +63475,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.setSignature(html$.XPathExpression, {
     constructors: () => ({_: [html$.XPathExpression, []]}),
-    methods: () => ({[dartx.evaluate]: [html$.XPathResult, [html$.Node, core.int, html$.XPathResult]]})
+    methods: () => ({[dartx.evaluate]: [html$.XPathResult, [html$.Node], [core.int, core.Object]]})
   });
   html$.XPathExpression[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('XPathExpression')), core.deprecated, dart.const(new _js_helper.Native("XPathExpression"))];
   dart.registerExtension(dart.global.XPathExpression, html$.XPathExpression);
@@ -61135,8 +63581,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _create_1() {
       return dart.as(new XMLSerializer(), html$.XmlSerializer);
     }
-    [dartx.serializeToString](node) {
-      return this.serializeToString(node);
+    [dartx.serializeToString](root) {
+      return this.serializeToString(root);
     }
   };
   dart.setSignature(html$.XmlSerializer, {
@@ -61179,8 +63625,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.getParameter](namespaceURI, localName) {
       return this.getParameter(namespaceURI, localName);
     }
-    [dartx.importStylesheet](stylesheet) {
-      return this.importStylesheet(stylesheet);
+    [dartx.importStylesheet](style) {
+      return this.importStylesheet(style);
     }
     [dartx.removeParameter](namespaceURI, localName) {
       return this.removeParameter(namespaceURI, localName);
@@ -61194,8 +63640,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.transformToDocument](source) {
       return this.transformToDocument(source);
     }
-    [dartx.transformToFragment](source, docVal) {
-      return this.transformToFragment(source, docVal);
+    [dartx.transformToFragment](source, output) {
+      return this.transformToFragment(source, output);
     }
   };
   dart.setSignature(html$.XsltProcessor, {
@@ -61219,8 +63665,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.XsltProcessor[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('XSLTProcessor')), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.CHROME)), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.FIREFOX)), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.SAFARI)), core.deprecated, dart.const(new _js_helper.Native("XSLTProcessor"))];
   dart.registerExtension(dart.global.XSLTProcessor, html$.XsltProcessor);
   dart.defineExtensionNames([
-    'text',
-    'text',
     'name',
     'value'
   ]);
@@ -61230,12 +63674,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.name]() {
       return this.name;
-    }
-    get [dartx.text]() {
-      return this.textContent;
-    }
-    set [dartx.text](value) {
-      this.textContent = value;
     }
     get [dartx.value]() {
       return this.value;
@@ -61249,36 +63687,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$._Attr[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Attr')), dart.const(new _js_helper.Native("Attr"))];
   dart.registerExtension(dart.global.Attr, html$._Attr);
-  html$._CSSValue = class _CSSValue extends _interceptors.Interceptor {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-  };
-  dart.setSignature(html$._CSSValue, {
-    constructors: () => ({_: [html$._CSSValue, []]})
-  });
-  html$._CSSValue[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CSSValue')), core.deprecated, dart.const(new _js_helper.Native("CSSValue"))];
-  dart.registerExtension(dart.global.CSSValue, html$._CSSValue);
-  html$._CSSPrimitiveValue = class _CSSPrimitiveValue extends html$._CSSValue {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-  };
-  dart.setSignature(html$._CSSPrimitiveValue, {
-    constructors: () => ({_: [html$._CSSPrimitiveValue, []]})
-  });
-  html$._CSSPrimitiveValue[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CSSPrimitiveValue')), core.deprecated, dart.const(new _js_helper.Native("CSSPrimitiveValue"))];
-  dart.registerExtension(dart.global.CSSPrimitiveValue, html$._CSSPrimitiveValue);
-  html$._CSSUnknownRule = class _CSSUnknownRule extends html$.CssRule {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-  };
-  dart.setSignature(html$._CSSUnknownRule, {
-    constructors: () => ({_: [html$._CSSUnknownRule, []]})
-  });
-  html$._CSSUnknownRule[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CSSUnknownRule')), core.deprecated, dart.const(new _js_helper.Native("CSSUnknownRule"))];
-  dart.registerExtension(dart.global.CSSUnknownRule, html$._CSSUnknownRule);
   html$._Cache = class _Cache extends _interceptors.Interceptor {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -61451,7 +63859,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.get](index) {
       if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
-      return dart.as(this[index], math.Rectangle$(core.num));
+      return this[dartx.item](index);
     }
     [dartx.set](index, value) {
       dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
@@ -61484,32 +63892,26 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.elementAt](index) {
       return this[dartx.get](index);
     }
+    [__getter__](index) {
+      return this.__getter__(index);
+    }
     [dartx.item](index) {
       return this.item(index);
     }
   };
-  html$._ClientRectList[dart.implements] = () => [core.List$(math.Rectangle$(core.num)), _js_helper.JavaScriptIndexingBehavior];
+  html$._ClientRectList[dart.implements] = () => [core.List$(math.Rectangle$(core.num))];
   dart.setSignature(html$._ClientRectList, {
     constructors: () => ({_: [html$._ClientRectList, []]}),
     methods: () => ({
       [dartx.get]: [math.Rectangle$(core.num), [core.int]],
       [dartx.set]: [dart.void, [core.int, math.Rectangle$(core.num)]],
       [dartx.elementAt]: [math.Rectangle$(core.num), [core.int]],
+      [__getter__]: [math.Rectangle$(core.num), [core.int]],
       [dartx.item]: [math.Rectangle$(core.num), [core.int]]
     })
   });
   html$._ClientRectList[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ClientRectList')), dart.const(new _js_helper.Native("ClientRectList,DOMRectList"))];
   dart.registerExtension(dart.global.ClientRectList, html$._ClientRectList);
-  html$._Counter = class _Counter extends _interceptors.Interceptor {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-  };
-  dart.setSignature(html$._Counter, {
-    constructors: () => ({_: [html$._Counter, []]})
-  });
-  html$._Counter[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Counter')), core.deprecated, dart.const(new _js_helper.Native("Counter"))];
-  dart.registerExtension(dart.global.Counter, html$._Counter);
   dart.defineExtensionNames([
     'length',
     'get',
@@ -61579,75 +63981,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$._CssRuleList[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CSSRuleList')), dart.const(new _js_helper.Native("CSSRuleList"))];
   dart.registerExtension(dart.global.CSSRuleList, html$._CssRuleList);
-  dart.defineExtensionNames([
-    'length',
-    'get',
-    'set',
-    'length',
-    'first',
-    'last',
-    'single',
-    'elementAt',
-    'item'
-  ]);
-  html$._CssValueList = class _CssValueList extends dart.mixin(html$._CSSValue, collection.ListMixin$(html$._CSSValue), html$.ImmutableListMixin$(html$._CSSValue)) {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    get [dartx.length]() {
-      return this.length;
-    }
-    [dartx.get](index) {
-      if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
-      return dart.as(this[index], html$._CSSValue);
-    }
-    [dartx.set](index, value) {
-      dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
-      return value;
-    }
-    set [dartx.length](value) {
-      dart.throw(new core.UnsupportedError("Cannot resize immutable List."));
-    }
-    get [dartx.first]() {
-      if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], html$._CSSValue);
-      }
-      dart.throw(new core.StateError("No elements"));
-    }
-    get [dartx.last]() {
-      let len = this[dartx.length];
-      if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], html$._CSSValue);
-      }
-      dart.throw(new core.StateError("No elements"));
-    }
-    get [dartx.single]() {
-      let len = this[dartx.length];
-      if (len == 1) {
-        return dart.as(this[0], html$._CSSValue);
-      }
-      if (len == 0) dart.throw(new core.StateError("No elements"));
-      dart.throw(new core.StateError("More than one element"));
-    }
-    [dartx.elementAt](index) {
-      return this[dartx.get](index);
-    }
-    [dartx.item](index) {
-      return this.item(index);
-    }
-  };
-  html$._CssValueList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, core.List$(html$._CSSValue)];
-  dart.setSignature(html$._CssValueList, {
-    constructors: () => ({_: [html$._CssValueList, []]}),
-    methods: () => ({
-      [dartx.get]: [html$._CSSValue, [core.int]],
-      [dartx.set]: [dart.void, [core.int, html$._CSSValue]],
-      [dartx.elementAt]: [html$._CSSValue, [core.int]],
-      [dartx.item]: [html$._CSSValue, [core.int]]
-    })
-  });
-  html$._CssValueList[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('CSSValueList')), core.deprecated, dart.const(new _js_helper.Native("CSSValueList"))];
-  dart.registerExtension(dart.global.CSSValueList, html$._CssValueList);
   html$._DOMFileSystemSync = class _DOMFileSystemSync extends _interceptors.Interceptor {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -62015,32 +64348,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$._HTMLMarqueeElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('HTMLMarqueeElement')), core.deprecated, dart.const(new _js_helper.Native("HTMLMarqueeElement"))];
   dart.registerExtension(dart.global.HTMLMarqueeElement, html$._HTMLMarqueeElement);
-  const _initMutationEvent = Symbol('_initMutationEvent');
-  html$._MutationEvent = class _MutationEvent extends html$.Event {
-    static new(type, opts) {
-      let canBubble = opts && 'canBubble' in opts ? opts.canBubble : false;
-      let cancelable = opts && 'cancelable' in opts ? opts.cancelable : false;
-      let relatedNode = opts && 'relatedNode' in opts ? opts.relatedNode : null;
-      let prevValue = opts && 'prevValue' in opts ? opts.prevValue : null;
-      let newValue = opts && 'newValue' in opts ? opts.newValue : null;
-      let attrName = opts && 'attrName' in opts ? opts.attrName : null;
-      let attrChange = opts && 'attrChange' in opts ? opts.attrChange : 0;
-      let event = html$.document[_createEvent]('MutationEvent');
-      dart.dcall(event[_initMutationEvent], type, canBubble, cancelable, relatedNode, prevValue, newValue, attrName, attrChange);
-      return dart.as(event, html$._MutationEvent);
-    }
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-  };
-  dart.setSignature(html$._MutationEvent, {
-    constructors: () => ({
-      new: [html$._MutationEvent, [core.String], {canBubble: core.bool, cancelable: core.bool, relatedNode: html$.Node, prevValue: core.String, newValue: core.String, attrName: core.String, attrChange: core.int}],
-      _: [html$._MutationEvent, []]
-    })
-  });
-  html$._MutationEvent[dart.metadata] = () => [dart.const(new _metadata.DomName('MutationEvent')), core.deprecated, dart.const(new _js_helper.Native("MutationEvent"))];
-  dart.registerExtension(dart.global.MutationEvent, html$._MutationEvent);
   dart.defineExtensionNames([
     'length',
     'get',
@@ -62100,9 +64407,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.elementAt](index) {
       return this[dartx.get](index);
     }
-    [__getter__](name) {
-      return this.__getter__(name);
-    }
     [dartx.getNamedItem](name) {
       return this.getNamedItem(name);
     }
@@ -62118,11 +64422,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.removeNamedItemNS](namespaceURI, localName) {
       return this.removeNamedItemNS(namespaceURI, localName);
     }
-    [dartx.setNamedItem](node) {
-      return this.setNamedItem(node);
+    [dartx.setNamedItem](attr) {
+      return this.setNamedItem(attr);
     }
-    [dartx.setNamedItemNS](node) {
-      return this.setNamedItemNS(node);
+    [dartx.setNamedItemNS](attr) {
+      return this.setNamedItemNS(attr);
     }
   };
   html$._NamedNodeMap[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, core.List$(html$.Node)];
@@ -62132,14 +64436,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.get]: [html$.Node, [core.int]],
       [dartx.set]: [dart.void, [core.int, html$.Node]],
       [dartx.elementAt]: [html$.Node, [core.int]],
-      [__getter__]: [html$.Node, [core.String]],
-      [dartx.getNamedItem]: [html$.Node, [core.String]],
-      [dartx.getNamedItemNS]: [html$.Node, [core.String, core.String]],
-      [dartx.item]: [html$.Node, [core.int]],
-      [dartx.removeNamedItem]: [html$.Node, [core.String]],
-      [dartx.removeNamedItemNS]: [html$.Node, [core.String, core.String]],
-      [dartx.setNamedItem]: [html$.Node, [html$.Node]],
-      [dartx.setNamedItemNS]: [html$.Node, [html$.Node]]
+      [dartx.getNamedItem]: [html$._Attr, [core.String]],
+      [dartx.getNamedItemNS]: [html$._Attr, [core.String, core.String]],
+      [dartx.item]: [html$._Attr, [core.int]],
+      [dartx.removeNamedItem]: [html$._Attr, [core.String]],
+      [dartx.removeNamedItemNS]: [html$._Attr, [core.String, core.String]],
+      [dartx.setNamedItem]: [html$._Attr, [html$._Attr]],
+      [dartx.setNamedItemNS]: [html$._Attr, [html$._Attr]]
     })
   });
   html$._NamedNodeMap[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('NamedNodeMap')), core.deprecated, dart.const(new _js_helper.Native("NamedNodeMap,MozNamedAttrMap"))];
@@ -62154,28 +64457,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$._PagePopupController[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('PagePopupController')), core.deprecated, dart.const(new _js_helper.Native("PagePopupController"))];
   dart.registerExtension(dart.global.PagePopupController, html$._PagePopupController);
-  html$._RGBColor = class _RGBColor extends _interceptors.Interceptor {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-  };
-  dart.setSignature(html$._RGBColor, {
-    constructors: () => ({_: [html$._RGBColor, []]})
-  });
-  html$._RGBColor[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('RGBColor')), core.deprecated, dart.const(new _js_helper.Native("RGBColor"))];
-  dart.registerExtension(dart.global.RGBColor, html$._RGBColor);
-  html$._Rect = class _Rect extends _interceptors.Interceptor {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-  };
-  dart.setSignature(html$._Rect, {
-    constructors: () => ({_: [html$._Rect, []]})
-  });
-  html$._Rect[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Rect')), core.deprecated, dart.const(new _js_helper.Native("Rect"))];
-  dart.registerExtension(dart.global.Rect, html$._Rect);
   dart.defineExtensionNames([
     'clone',
+    'context',
     'credentials',
     'headers',
     'mode',
@@ -62188,33 +64472,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static new(input, requestInitDict) {
       if (requestInitDict === void 0) requestInitDict = null;
-      if ((typeof input == 'string' || input == null) && requestInitDict == null) {
-        return html$._Request._create_1(input);
-      }
-      if ((dart.is(requestInitDict, core.Map) || requestInitDict == null) && (typeof input == 'string' || input == null)) {
+      if (requestInitDict != null) {
         let requestInitDict_1 = html_common.convertDartToNative_Dictionary(requestInitDict);
-        return html$._Request._create_2(input, requestInitDict_1);
+        return html$._Request._create_1(input, requestInitDict_1);
       }
-      if ((dart.is(input, html$._Request) || input == null) && requestInitDict == null) {
-        return html$._Request._create_3(input);
-      }
-      if ((dart.is(requestInitDict, core.Map) || requestInitDict == null) && (dart.is(input, html$._Request) || input == null)) {
-        let requestInitDict_1 = html_common.convertDartToNative_Dictionary(requestInitDict);
-        return html$._Request._create_4(input, requestInitDict_1);
-      }
-      dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
+      return html$._Request._create_2(input);
     }
-    static _create_1(input) {
-      return dart.as(new Request(input), html$._Request);
-    }
-    static _create_2(input, requestInitDict) {
+    static _create_1(input, requestInitDict) {
       return dart.as(new Request(input, requestInitDict), html$._Request);
     }
-    static _create_3(input) {
+    static _create_2(input) {
       return dart.as(new Request(input), html$._Request);
     }
-    static _create_4(input, requestInitDict) {
-      return dart.as(new Request(input, requestInitDict), html$._Request);
+    get [dartx.context]() {
+      return this.context;
     }
     get [dartx.credentials]() {
       return this.credentials;
@@ -62238,16 +64509,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(html$._Request, {
     constructors: () => ({
       _: [html$._Request, []],
-      new: [html$._Request, [dart.dynamic], [core.Map]]
+      new: [html$._Request, [core.Object], [core.Map]]
     }),
     methods: () => ({[dartx.clone]: [html$._Request, []]}),
     statics: () => ({
-      _create_1: [html$._Request, [dart.dynamic]],
-      _create_2: [html$._Request, [dart.dynamic, dart.dynamic]],
-      _create_3: [html$._Request, [dart.dynamic]],
-      _create_4: [html$._Request, [dart.dynamic, dart.dynamic]]
+      _create_1: [html$._Request, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$._Request, [dart.dynamic]]
     }),
-    names: ['_create_1', '_create_2', '_create_3', '_create_4']
+    names: ['_create_1', '_create_2']
   });
   html$._Request[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Request')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("Request"))];
   dart.registerExtension(dart.global.Request, html$._Request);
@@ -62255,79 +64524,39 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    static new(body_OR_input, requestInitDict_OR_responseInitDict) {
-      if (requestInitDict_OR_responseInitDict === void 0) requestInitDict_OR_responseInitDict = null;
-      if ((typeof body_OR_input == 'string' || body_OR_input == null) && requestInitDict_OR_responseInitDict == null) {
-        return html$._Response._create_1(body_OR_input);
+    static new(body, responseInitDict) {
+      if (body === void 0) body = null;
+      if (responseInitDict === void 0) responseInitDict = null;
+      if (responseInitDict != null) {
+        let responseInitDict_1 = html_common.convertDartToNative_Dictionary(responseInitDict);
+        return html$._Response._create_1(body, responseInitDict_1);
       }
-      if ((dart.is(requestInitDict_OR_responseInitDict, core.Map) || requestInitDict_OR_responseInitDict == null) && (typeof body_OR_input == 'string' || body_OR_input == null)) {
-        let responseInitDict_1 = html_common.convertDartToNative_Dictionary(requestInitDict_OR_responseInitDict);
-        return html$._Response._create_2(body_OR_input, responseInitDict_1);
+      if (body != null) {
+        return html$._Response._create_2(body);
       }
-      if ((dart.is(body_OR_input, html$.Blob) || body_OR_input == null) && requestInitDict_OR_responseInitDict == null) {
-        return html$._Response._create_3(body_OR_input);
-      }
-      if ((dart.is(requestInitDict_OR_responseInitDict, core.Map) || requestInitDict_OR_responseInitDict == null) && (dart.is(body_OR_input, html$.Blob) || body_OR_input == null)) {
-        let responseInitDict_1 = html_common.convertDartToNative_Dictionary(requestInitDict_OR_responseInitDict);
-        return html$._Response._create_4(body_OR_input, responseInitDict_1);
-      }
-      if ((dart.is(body_OR_input, typed_data.TypedData) || body_OR_input == null) && requestInitDict_OR_responseInitDict == null) {
-        return html$._Response._create_5(body_OR_input);
-      }
-      if ((dart.is(requestInitDict_OR_responseInitDict, core.Map) || requestInitDict_OR_responseInitDict == null) && (dart.is(body_OR_input, typed_data.TypedData) || body_OR_input == null)) {
-        let requestInitDict_1 = html_common.convertDartToNative_Dictionary(requestInitDict_OR_responseInitDict);
-        return html$._Response._create_6(body_OR_input, requestInitDict_1);
-      }
-      if ((dart.is(body_OR_input, typed_data.ByteBuffer) || body_OR_input == null) && requestInitDict_OR_responseInitDict == null) {
-        return html$._Response._create_7(body_OR_input);
-      }
-      if ((dart.is(requestInitDict_OR_responseInitDict, core.Map) || requestInitDict_OR_responseInitDict == null) && (dart.is(body_OR_input, typed_data.ByteBuffer) || body_OR_input == null)) {
-        let requestInitDict_1 = html_common.convertDartToNative_Dictionary(requestInitDict_OR_responseInitDict);
-        return html$._Response._create_8(body_OR_input, requestInitDict_1);
-      }
-      dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
+      return html$._Response._create_3();
     }
-    static _create_1(body_OR_input) {
-      return dart.as(new Response(body_OR_input), html$._Response);
+    static _create_1(body, responseInitDict) {
+      return dart.as(new Response(body, responseInitDict), html$._Response);
     }
-    static _create_2(body_OR_input, requestInitDict_OR_responseInitDict) {
-      return dart.as(new Response(body_OR_input, requestInitDict_OR_responseInitDict), html$._Response);
+    static _create_2(body) {
+      return dart.as(new Response(body), html$._Response);
     }
-    static _create_3(body_OR_input) {
-      return dart.as(new Response(body_OR_input), html$._Response);
-    }
-    static _create_4(body_OR_input, requestInitDict_OR_responseInitDict) {
-      return dart.as(new Response(body_OR_input, requestInitDict_OR_responseInitDict), html$._Response);
-    }
-    static _create_5(body_OR_input) {
-      return dart.as(new Response(body_OR_input), html$._Response);
-    }
-    static _create_6(body_OR_input, requestInitDict_OR_responseInitDict) {
-      return dart.as(new Response(body_OR_input, requestInitDict_OR_responseInitDict), html$._Response);
-    }
-    static _create_7(body_OR_input) {
-      return dart.as(new Response(body_OR_input), html$._Response);
-    }
-    static _create_8(body_OR_input, requestInitDict_OR_responseInitDict) {
-      return dart.as(new Response(body_OR_input, requestInitDict_OR_responseInitDict), html$._Response);
+    static _create_3() {
+      return dart.as(new Response(), html$._Response);
     }
   };
   dart.setSignature(html$._Response, {
     constructors: () => ({
       _: [html$._Response, []],
-      new: [html$._Response, [dart.dynamic], [core.Map]]
+      new: [html$._Response, [], [core.Object, core.Map]]
     }),
     statics: () => ({
-      _create_1: [html$._Response, [dart.dynamic]],
-      _create_2: [html$._Response, [dart.dynamic, dart.dynamic]],
-      _create_3: [html$._Response, [dart.dynamic]],
-      _create_4: [html$._Response, [dart.dynamic, dart.dynamic]],
-      _create_5: [html$._Response, [dart.dynamic]],
-      _create_6: [html$._Response, [dart.dynamic, dart.dynamic]],
-      _create_7: [html$._Response, [dart.dynamic]],
-      _create_8: [html$._Response, [dart.dynamic, dart.dynamic]]
+      _create_1: [html$._Response, [dart.dynamic, dart.dynamic]],
+      _create_2: [html$._Response, [dart.dynamic]],
+      _create_3: [html$._Response, []]
     }),
-    names: ['_create_1', '_create_2', '_create_3', '_create_4', '_create_5', '_create_6', '_create_7', '_create_8']
+    names: ['_create_1', '_create_2', '_create_3']
   });
   html$._Response[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Response')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("Response"))];
   dart.registerExtension(dart.global.Response, html$._Response);
@@ -62494,16 +64723,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$._SubtleCrypto[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SubtleCrypto')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("SubtleCrypto"))];
   dart.registerExtension(dart.global.SubtleCrypto, html$._SubtleCrypto);
-  html$._WebKitCSSFilterValue = class _WebKitCSSFilterValue extends html$._CssValueList {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-  };
-  dart.setSignature(html$._WebKitCSSFilterValue, {
-    constructors: () => ({_: [html$._WebKitCSSFilterValue, []]})
-  });
-  html$._WebKitCSSFilterValue[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('WebKitCSSFilterValue')), core.deprecated, dart.const(new _js_helper.Native("WebKitCSSFilterValue"))];
-  dart.registerExtension(dart.global.WebKitCSSFilterValue, html$._WebKitCSSFilterValue);
   html$._WebKitCSSMatrix = class _WebKitCSSMatrix extends _interceptors.Interceptor {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -62535,16 +64754,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$._WebKitCSSMatrix[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('WebKitCSSMatrix')), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.CHROME)), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.SAFARI)), dart.const(new _metadata.Experimental()), core.deprecated, dart.const(new _js_helper.Native("WebKitCSSMatrix"))];
   dart.registerExtension(dart.global.WebKitCSSMatrix, html$._WebKitCSSMatrix);
-  html$._WebKitCSSTransformValue = class _WebKitCSSTransformValue extends html$._CssValueList {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-  };
-  dart.setSignature(html$._WebKitCSSTransformValue, {
-    constructors: () => ({_: [html$._WebKitCSSTransformValue, []]})
-  });
-  html$._WebKitCSSTransformValue[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('WebKitCSSTransformValue')), core.deprecated, dart.const(new _js_helper.Native("WebKitCSSTransformValue"))];
-  dart.registerExtension(dart.global.WebKitCSSTransformValue, html$._WebKitCSSTransformValue);
   html$._WindowTimers = class _WindowTimers extends _interceptors.Interceptor {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -62598,7 +64807,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     containsValue(value) {
       for (let v of this.values) {
-        if (value == v) {
+        if (dart.equals(value, v)) {
           return true;
         }
       }
@@ -62623,20 +64832,22 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get keys() {
       let attributes = this[_element$][_attributes$];
-      let keys = core.List$(core.String).new();
+      let keys = dart.list([], core.String);
       for (let i = 0, len = attributes[dartx.length]; i < dart.notNull(len); i++) {
-        if (dart.notNull(this[_matches](attributes[dartx.get](i)))) {
-          keys[dartx.add](dart.as(dart.dload(attributes[dartx.get](i), dartx.name), core.String));
+        let attr = dart.as(attributes[dartx.get](i), html$._Attr);
+        if (dart.notNull(this[_matches](attr))) {
+          keys[dartx.add](attr[dartx.name]);
         }
       }
       return keys;
     }
     get values() {
       let attributes = this[_element$][_attributes$];
-      let values = core.List$(core.String).new();
+      let values = dart.list([], core.String);
       for (let i = 0, len = attributes[dartx.length]; i < dart.notNull(len); i++) {
-        if (dart.notNull(this[_matches](attributes[dartx.get](i)))) {
-          values[dartx.add](dart.as(dart.dload(attributes[dartx.get](i), dartx.value), core.String));
+        let attr = dart.as(attributes[dartx.get](i), html$._Attr);
+        if (dart.notNull(this[_matches](attr))) {
+          values[dartx.add](attr[dartx.value]);
         }
       }
       return values;
@@ -62653,7 +64864,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({_AttributeMap: [html$._AttributeMap, [html$.Element]]}),
     methods: () => ({
       addAll: [dart.void, [core.Map$(core.String, core.String)]],
-      containsValue: [core.bool, [core.String]],
+      containsValue: [core.bool, [core.Object]],
       putIfAbsent: [core.String, [core.String, dart.functionType(core.String, [])]],
       clear: [dart.void, []],
       forEach: [dart.void, [dart.functionType(dart.void, [core.String, core.String])]]
@@ -62675,18 +64886,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super._AttributeMap(element);
     }
     containsKey(key) {
-      return this[_element$][_hasAttribute](key);
+      return this[_element$][_hasAttribute](dart.as(key, core.String));
     }
     get(key) {
-      return this[_element$][dartx.getAttribute](key);
+      return this[_element$][dartx.getAttribute](dart.as(key, core.String));
     }
     set(key, value) {
       this[_element$][dartx.setAttribute](key, value);
       return value;
     }
     remove(key) {
-      let value = this[_element$][dartx.getAttribute](key);
-      this[_element$][_removeAttribute](key);
+      let value = this[_element$][dartx.getAttribute](dart.as(key, core.String));
+      this[_element$][_removeAttribute](dart.as(key, core.String));
       return value;
     }
     get length() {
@@ -62699,10 +64910,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(html$._ElementAttributeMap, {
     constructors: () => ({_ElementAttributeMap: [html$._ElementAttributeMap, [html$.Element]]}),
     methods: () => ({
-      containsKey: [core.bool, [core.String]],
-      get: [core.String, [core.String]],
+      containsKey: [core.bool, [core.Object]],
+      get: [core.String, [core.Object]],
       set: [dart.void, [core.String, core.String]],
-      remove: [core.String, [core.String]],
+      remove: [core.String, [core.Object]],
       [_matches]: [core.bool, [html$.Node]]
     })
   });
@@ -62720,10 +64931,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super._AttributeMap(element);
     }
     containsKey(key) {
-      return this[_element$][_hasAttributeNS](this[_namespace], key);
+      return this[_element$][_hasAttributeNS](this[_namespace], dart.as(key, core.String));
     }
     get(key) {
-      return this[_element$][dartx.getAttributeNS](this[_namespace], key);
+      return this[_element$][dartx.getAttributeNS](this[_namespace], dart.as(key, core.String));
     }
     set(key, value) {
       this[_element$][dartx.setAttributeNS](this[_namespace], key, value);
@@ -62731,7 +64942,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     remove(key) {
       let value = this.get(key);
-      this[_element$][_removeAttributeNS](this[_namespace], key);
+      this[_element$][_removeAttributeNS](this[_namespace], dart.as(key, core.String));
       return value;
     }
     get length() {
@@ -62744,10 +64955,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(html$._NamespacedAttributeMap, {
     constructors: () => ({_NamespacedAttributeMap: [html$._NamespacedAttributeMap, [html$.Element, core.String]]}),
     methods: () => ({
-      containsKey: [core.bool, [core.String]],
-      get: [core.String, [core.String]],
+      containsKey: [core.bool, [core.Object]],
+      get: [core.String, [core.Object]],
       set: [dart.void, [core.String, core.String]],
-      remove: [core.String, [core.String]],
+      remove: [core.String, [core.Object]],
       [_matches]: [core.bool, [html$.Node]]
     })
   });
@@ -62772,13 +64983,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }, dart.void, [core.String, core.String]));
     }
     containsValue(value) {
-      return this.values[dartx.any](dart.fn(v => v == value, core.bool, [core.String]));
+      return this.values[dartx.any](dart.fn(v => dart.equals(v, value), core.bool, [core.String]));
     }
     containsKey(key) {
-      return this[_attributes$][dartx.containsKey](this[_attr](key));
+      return this[_attributes$][dartx.containsKey](this[_attr](dart.as(key, core.String)));
     }
     get(key) {
-      return this[_attributes$][dartx.get](this[_attr](key));
+      return this[_attributes$][dartx.get](this[_attr](dart.as(key, core.String)));
     }
     set(key, value) {
       this[_attributes$][dartx.set](this[_attr](key), value);
@@ -62788,7 +64999,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_attributes$][dartx.putIfAbsent](this[_attr](key), ifAbsent);
     }
     remove(key) {
-      return this[_attributes$][dartx.remove](this[_attr](key));
+      return this[_attributes$][dartx.remove](this[_attr](dart.as(key, core.String)));
     }
     clear() {
       for (let key of this.keys) {
@@ -62803,7 +65014,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }, dart.void, [core.String, core.String]));
     }
     get keys() {
-      let keys = core.List$(core.String).new();
+      let keys = dart.list([], core.String);
       this[_attributes$][dartx.forEach](dart.fn((key, value) => {
         if (dart.notNull(this[_matches](key))) {
           keys[dartx.add](this[_strip](key));
@@ -62812,7 +65023,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return keys;
     }
     get values() {
-      let values = core.List$(core.String).new();
+      let values = dart.list([], core.String);
       this[_attributes$][dartx.forEach](dart.fn((key, value) => {
         if (dart.notNull(this[_matches](key))) {
           values[dartx.add](value);
@@ -62865,12 +65076,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({_DataAttributeMap: [html$._DataAttributeMap, [core.Map$(core.String, core.String)]]}),
     methods: () => ({
       addAll: [dart.void, [core.Map$(core.String, core.String)]],
-      containsValue: [core.bool, [core.String]],
-      containsKey: [core.bool, [core.String]],
-      get: [core.String, [core.String]],
+      containsValue: [core.bool, [core.Object]],
+      containsKey: [core.bool, [core.Object]],
+      get: [core.String, [core.Object]],
       set: [dart.void, [core.String, core.String]],
       putIfAbsent: [core.String, [core.String, dart.functionType(core.String, [])]],
-      remove: [core.String, [core.String]],
+      remove: [core.String, [core.Object]],
       clear: [dart.void, []],
       forEach: [dart.void, [dart.functionType(dart.void, [core.String, core.String])]],
       [_attr]: [core.String, [core.String]],
@@ -62904,10 +65115,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.CssClassSet = class CssClassSet extends core.Object {};
   html$.CssClassSet[dart.implements] = () => [core.Set$(core.String)];
   const _addOrSubtractToBoxModel = Symbol('_addOrSubtractToBoxModel');
-  html$.CssRect = class CssRect extends math.MutableRectangle$(core.num) {
+  html$.CssRect = class CssRect extends core.Object {
     CssRect(element) {
       this[_element$] = element;
-      super.MutableRectangle(0, 0, 0, 0);
     }
     set height(newHeight) {
       dart.throw(new core.UnsupportedError("Can only set height for content rect."));
@@ -62931,14 +65141,94 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       return val;
     }
+    get right() {
+      return dart.notNull(this.left) + dart.notNull(this.width);
+    }
+    get bottom() {
+      return dart.notNull(this.top) + dart.notNull(this.height);
+    }
+    toString() {
+      return `Rectangle (${this.left}, ${this.top}) ${this.width} x ${this.height}`;
+    }
+    ['=='](other) {
+      if (!dart.is(other, math.Rectangle$(core.num))) return false;
+      return dart.equals(this.left, dart.dload(other, 'left')) && dart.equals(this.top, dart.dload(other, 'top')) && dart.equals(this.right, dart.dload(other, 'right')) && dart.equals(this.bottom, dart.dload(other, 'bottom'));
+    }
+    get hashCode() {
+      return html$._JenkinsSmiHash.hash4(dart.hashCode(this.left), dart.hashCode(this.top), dart.hashCode(this.right), dart.hashCode(this.bottom));
+    }
+    intersection(other) {
+      let x0 = math.max(this.left, other[dartx.left]);
+      let x1 = math.min(dart.notNull(this.left) + dart.notNull(this.width), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
+      if (dart.notNull(x0) <= dart.notNull(x1)) {
+        let y0 = math.max(this.top, other[dartx.top]);
+        let y1 = math.min(dart.notNull(this.top) + dart.notNull(this.height), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
+        if (dart.notNull(y0) <= dart.notNull(y1)) {
+          return new (math.Rectangle$(core.num))(x0, y0, dart.notNull(x1) - dart.notNull(x0), dart.notNull(y1) - dart.notNull(y0));
+        }
+      }
+      return null;
+    }
+    intersects(other) {
+      return dart.notNull(this.left) <= dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]) && dart.notNull(other[dartx.left]) <= dart.notNull(this.left) + dart.notNull(this.width) && dart.notNull(this.top) <= dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]) && dart.notNull(other[dartx.top]) <= dart.notNull(this.top) + dart.notNull(this.height);
+    }
+    boundingBox(other) {
+      let right = math.max(dart.notNull(this.left) + dart.notNull(this.width), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
+      let bottom = math.max(dart.notNull(this.top) + dart.notNull(this.height), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
+      let left = math.min(this.left, other[dartx.left]);
+      let top = math.min(this.top, other[dartx.top]);
+      return new (math.Rectangle$(core.num))(left, top, dart.notNull(right) - dart.notNull(left), dart.notNull(bottom) - dart.notNull(top));
+    }
+    containsRectangle(another) {
+      return dart.notNull(this.left) <= dart.notNull(another[dartx.left]) && dart.notNull(this.left) + dart.notNull(this.width) >= dart.notNull(another[dartx.left]) + dart.notNull(another[dartx.width]) && dart.notNull(this.top) <= dart.notNull(another[dartx.top]) && dart.notNull(this.top) + dart.notNull(this.height) >= dart.notNull(another[dartx.top]) + dart.notNull(another[dartx.height]);
+    }
+    containsPoint(another) {
+      return dart.notNull(another.x) >= dart.notNull(this.left) && dart.notNull(another.x) <= dart.notNull(this.left) + dart.notNull(this.width) && dart.notNull(another.y) >= dart.notNull(this.top) && dart.notNull(another.y) <= dart.notNull(this.top) + dart.notNull(this.height);
+    }
+    get topLeft() {
+      return new (math.Point$(core.num))(this.left, this.top);
+    }
+    get topRight() {
+      return new (math.Point$(core.num))(dart.notNull(this.left) + dart.notNull(this.width), this.top);
+    }
+    get bottomRight() {
+      return new (math.Point$(core.num))(dart.notNull(this.left) + dart.notNull(this.width), dart.notNull(this.top) + dart.notNull(this.height));
+    }
+    get bottomLeft() {
+      return new (math.Point$(core.num))(this.left, dart.notNull(this.top) + dart.notNull(this.height));
+    }
   };
+  html$.CssRect[dart.implements] = () => [math.Rectangle$(core.num)];
   dart.setSignature(html$.CssRect, {
     constructors: () => ({CssRect: [html$.CssRect, [html$.Element]]}),
-    methods: () => ({[_addOrSubtractToBoxModel]: [core.num, [core.List$(core.String), core.String]]})
+    methods: () => ({
+      [_addOrSubtractToBoxModel]: [core.num, [core.List$(core.String), core.String]],
+      intersection: [math.Rectangle$(core.num), [math.Rectangle$(core.num)]],
+      intersects: [core.bool, [math.Rectangle$(core.num)]],
+      boundingBox: [math.Rectangle$(core.num), [math.Rectangle$(core.num)]],
+      containsRectangle: [core.bool, [math.Rectangle$(core.num)]],
+      containsPoint: [core.bool, [math.Point$(core.num)]]
+    })
   });
+  dart.defineExtensionMembers(html$.CssRect, [
+    'toString',
+    '==',
+    'intersection',
+    'intersects',
+    'boundingBox',
+    'containsRectangle',
+    'containsPoint',
+    'right',
+    'bottom',
+    'hashCode',
+    'topLeft',
+    'topRight',
+    'bottomRight',
+    'bottomLeft'
+  ]);
   html$._ContentCssRect = class _ContentCssRect extends html$.CssRect {
     _ContentCssRect(element) {
-      super.CssRect(dart.as(element, html$.Element));
+      super.CssRect(element);
     }
     get height() {
       return dart.notNull(this[_element$][dartx.offsetHeight]) + dart.notNull(this[_addOrSubtractToBoxModel](html$._HEIGHT, html$._CONTENT));
@@ -62948,20 +65238,24 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     set height(newHeight) {
       if (dart.is(newHeight, html$.Dimension)) {
-        if (dart.notNull(dart.as(dart.dsend(dart.dload(newHeight, dartx.value), '<', 0), core.bool))) newHeight = new html$.Dimension.px(0);
+        if (dart.notNull(dart.as(dart.dsend(dart.dload(newHeight, 'value'), '<', 0), core.bool))) newHeight = new html$.Dimension.px(0);
         this[_element$][dartx.style][dartx.height] = dart.toString(newHeight);
-      } else {
-        if (dart.notNull(newHeight) < 0) newHeight = 0;
+      } else if (typeof newHeight == 'number') {
+        if (dart.notNull(dart.as(dart.dsend(newHeight, '<', 0), core.bool))) newHeight = 0;
         this[_element$][dartx.style][dartx.height] = `${newHeight}px`;
+      } else {
+        dart.throw(new core.ArgumentError("newHeight is not a Dimension or num"));
       }
     }
     set width(newWidth) {
       if (dart.is(newWidth, html$.Dimension)) {
-        if (dart.notNull(dart.as(dart.dsend(dart.dload(newWidth, dartx.value), '<', 0), core.bool))) newWidth = new html$.Dimension.px(0);
+        if (dart.notNull(dart.as(dart.dsend(dart.dload(newWidth, 'value'), '<', 0), core.bool))) newWidth = new html$.Dimension.px(0);
         this[_element$][dartx.style][dartx.width] = dart.toString(newWidth);
-      } else {
-        if (dart.notNull(newWidth) < 0) newWidth = 0;
+      } else if (typeof newWidth == 'number') {
+        if (dart.notNull(dart.as(dart.dsend(newWidth, '<', 0), core.bool))) newWidth = 0;
         this[_element$][dartx.style][dartx.width] = `${newWidth}px`;
+      } else {
+        dart.throw(new core.ArgumentError("newWidth is not a Dimension or num"));
       }
     }
     get left() {
@@ -62972,25 +65266,25 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$._ContentCssRect, {
-    constructors: () => ({_ContentCssRect: [html$._ContentCssRect, [dart.dynamic]]})
+    constructors: () => ({_ContentCssRect: [html$._ContentCssRect, [html$.Element]]})
   });
   dart.defineExtensionMembers(html$._ContentCssRect, ['height', 'width', 'left', 'top']);
   const _elementList = Symbol('_elementList');
   html$._ContentCssListRect = class _ContentCssListRect extends html$._ContentCssRect {
     _ContentCssListRect(elementList) {
       this[_elementList] = null;
-      super._ContentCssRect(dart.dload(elementList, 'first'));
-      this[_elementList] = dart.as(elementList, core.List$(html$.Element));
+      super._ContentCssRect(elementList[dartx.first]);
+      this[_elementList] = elementList;
     }
     set height(newHeight) {
-      this[_elementList][dartx.forEach](dart.fn(e => e[dartx.contentEdge].height = newHeight, core.num, [html$.Element]));
+      this[_elementList][dartx.forEach](dart.fn(e => e[dartx.contentEdge].height = newHeight, dart.void, [html$.Element]));
     }
     set width(newWidth) {
-      this[_elementList][dartx.forEach](dart.fn(e => e[dartx.contentEdge].width = newWidth, core.num, [html$.Element]));
+      this[_elementList][dartx.forEach](dart.fn(e => e[dartx.contentEdge].width = newWidth, dart.void, [html$.Element]));
     }
   };
   dart.setSignature(html$._ContentCssListRect, {
-    constructors: () => ({_ContentCssListRect: [html$._ContentCssListRect, [dart.dynamic]]})
+    constructors: () => ({_ContentCssListRect: [html$._ContentCssListRect, [core.List$(html$.Element)]]})
   });
   html$._PaddingCssRect = class _PaddingCssRect extends html$.CssRect {
     _PaddingCssRect(element) {
@@ -63163,7 +65457,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.modify(dart.fn(s => s.addAll(iterable[dartx.map](dart.bind(this, _validateToken))), dart.void, [core.Set$(core.String)]));
     }
     removeAll(iterable) {
-      this.modify(dart.fn(s => s.removeAll(iterable[dartx.map](dart.as(dart.bind(this, _validateToken), dart.functionType(core.String, [core.Object])))), dart.void, [core.Set$(core.String)]));
+      this.modify(dart.fn(s => s.removeAll(iterable), dart.void, [core.Set$(core.String)]));
     }
     toggleAll(iterable, shouldAdd) {
       if (shouldAdd === void 0) shouldAdd = null;
@@ -63269,7 +65563,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       containsAll: [core.bool, [core.Iterable$(core.Object)]],
       intersection: [core.Set$(core.String), [core.Set$(core.Object)]],
       union: [core.Set$(core.String), [core.Set$(core.String)]],
-      difference: [core.Set$(core.String), [core.Set$(core.String)]],
+      difference: [core.Set$(core.String), [core.Set$(core.Object)]],
       toList: [core.List$(core.String), [], {growable: core.bool}],
       toSet: [core.Set$(core.String), []],
       take: [core.Iterable$(core.String), [core.int]],
@@ -63406,7 +65700,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       html$._ElementCssClassSet._addAll(this[_element$], iterable);
     }
     removeAll(iterable) {
-      html$._ElementCssClassSet._removeAll(this[_element$], iterable);
+      html$._ElementCssClassSet._removeAll(this[_element$], dart.as(iterable, core.Iterable$(core.String)));
     }
     retainAll(iterable) {
       html$._ElementCssClassSet._removeWhere(this[_element$], dart.bind(iterable[dartx.toSet](), 'contains'), false);
@@ -63502,9 +65796,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({_ElementCssClassSet: [html$._ElementCssClassSet, [html$.Element]]}),
     methods: () => ({
       readClasses: [core.Set$(core.String), []],
-      writeClasses: [dart.void, [core.Set$(core.String)]],
-      removeAll: [dart.void, [core.Iterable$(core.String)]],
-      retainAll: [dart.void, [core.Iterable$(core.String)]]
+      writeClasses: [dart.void, [core.Set$(core.String)]]
     }),
     statics: () => ({
       _contains: [core.bool, [html$.Element, core.Object]],
@@ -63665,9 +65957,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       asBroadcastStream(opts) {
         let onListen = opts && 'onListen' in opts ? opts.onListen : null;
-        dart.as(onListen, dart.functionType(dart.void, [async.StreamSubscription]));
+        dart.as(onListen, dart.functionType(dart.void, [async.StreamSubscription$(T)]));
         let onCancel = opts && 'onCancel' in opts ? opts.onCancel : null;
-        dart.as(onCancel, dart.functionType(dart.void, [async.StreamSubscription]));
+        dart.as(onCancel, dart.functionType(dart.void, [async.StreamSubscription$(T)]));
         return this;
       }
       get isBroadcast() {
@@ -63685,13 +65977,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
     dart.setSignature(_EventStream, {
       constructors: () => ({_EventStream: [html$._EventStream$(T), [html$.EventTarget, core.String, core.bool]]}),
       methods: () => ({
-        asBroadcastStream: [async.Stream$(T), [], {onListen: dart.functionType(dart.void, [async.StreamSubscription]), onCancel: dart.functionType(dart.void, [async.StreamSubscription])}],
+        asBroadcastStream: [async.Stream$(T), [], {onListen: dart.functionType(dart.void, [async.StreamSubscription$(T)]), onCancel: dart.functionType(dart.void, [async.StreamSubscription$(T)])}],
         listen: [async.StreamSubscription$(T), [dart.functionType(dart.void, [T])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}]
       })
     });
     return _EventStream;
   });
   html$._EventStream = html$._EventStream$();
+  html$._matchesWithAncestors = function(event, selector) {
+    let target = event[dartx.target];
+    return dart.is(target, html$.Element) ? target[dartx.matchesWithAncestors](selector) : false;
+  };
+  dart.fn(html$._matchesWithAncestors, core.bool, [html$.Event, core.String]);
   html$._ElementEventStreamImpl$ = dart.generic(T => {
     class _ElementEventStreamImpl extends html$._EventStream$(T) {
       _ElementEventStreamImpl(target, eventType, useCapture) {
@@ -63700,7 +65997,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       matches(selector) {
         return this.where(dart.fn(event => {
           dart.as(event, T);
-          return dart.as(dart.dcall(event[dartx.target][dartx.matchesWithAncestors], selector), core.bool);
+          return html$._matchesWithAncestors(event, selector);
         }, core.bool, [T])).map(dart.fn(e => {
           dart.as(e, T);
           e[_selector] = selector;
@@ -63735,7 +66032,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       matches(selector) {
         return this.where(dart.fn(event => {
           dart.as(event, T);
-          return dart.as(dart.dcall(event[dartx.target][dartx.matchesWithAncestors], selector), core.bool);
+          return html$._matchesWithAncestors(event, selector);
         }, core.bool, [T])).map(dart.fn(e => {
           dart.as(e, T);
           e[_selector] = selector;
@@ -63748,25 +66045,25 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let onDone = opts && 'onDone' in opts ? opts.onDone : null;
         dart.as(onDone, dart.functionType(dart.void, []));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
-        let pool = new html$._StreamPool.broadcast();
+        let pool = new (html$._StreamPool$(T)).broadcast();
         for (let target of this[_targetList]) {
-          pool.add(new (html$._EventStream$(html$.Event))(target, this[_eventType], this[_useCapture]));
+          pool.add(new (html$._EventStream$(T))(target, this[_eventType], this[_useCapture]));
         }
-        return dart.as(pool.stream.listen(onData, {onError: onError, onDone: onDone, cancelOnError: cancelOnError}), async.StreamSubscription$(T));
+        return pool.stream.listen(onData, {onError: onError, onDone: onDone, cancelOnError: cancelOnError});
       }
       capture(onData) {
         dart.as(onData, dart.functionType(dart.void, [T]));
-        let pool = new html$._StreamPool.broadcast();
+        let pool = new (html$._StreamPool$(T)).broadcast();
         for (let target of this[_targetList]) {
-          pool.add(new (html$._EventStream$(html$.Event))(target, this[_eventType], true));
+          pool.add(new (html$._EventStream$(T))(target, this[_eventType], true));
         }
-        return dart.as(pool.stream.listen(onData), async.StreamSubscription$(T));
+        return pool.stream.listen(onData);
       }
       asBroadcastStream(opts) {
         let onListen = opts && 'onListen' in opts ? opts.onListen : null;
-        dart.as(onListen, dart.functionType(dart.void, [async.StreamSubscription]));
+        dart.as(onListen, dart.functionType(dart.void, [async.StreamSubscription$(T)]));
         let onCancel = opts && 'onCancel' in opts ? opts.onCancel : null;
-        dart.as(onCancel, dart.functionType(dart.void, [async.StreamSubscription]));
+        dart.as(onCancel, dart.functionType(dart.void, [async.StreamSubscription$(T)]));
         return this;
       }
       get isBroadcast() {
@@ -63780,12 +66077,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
         matches: [async.Stream$(T), [core.String]],
         listen: [async.StreamSubscription$(T), [dart.functionType(dart.void, [T])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}],
         capture: [async.StreamSubscription$(T), [dart.functionType(dart.void, [T])]],
-        asBroadcastStream: [async.Stream$(T), [], {onListen: dart.functionType(dart.void, [async.StreamSubscription]), onCancel: dart.functionType(dart.void, [async.StreamSubscription])}]
+        asBroadcastStream: [async.Stream$(T), [], {onListen: dart.functionType(dart.void, [async.StreamSubscription$(T)]), onCancel: dart.functionType(dart.void, [async.StreamSubscription$(T)])}]
       })
     });
     return _ElementListEventStreamImpl;
   });
   html$._ElementListEventStreamImpl = html$._ElementListEventStreamImpl$();
+  html$._EventListener$ = dart.generic(T => {
+    const _EventListener = dart.typedef('_EventListener', () => dart.functionType(dart.dynamic, [T]));
+    return _EventListener;
+  });
+  html$._EventListener = html$._EventListener$();
   const _onData$ = Symbol('_onData');
   const _pauseCount$ = Symbol('_pauseCount');
   const _tryResume = Symbol('_tryResume');
@@ -63797,7 +66099,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_target$] = target;
         this[_eventType] = eventType;
         this[_useCapture] = useCapture;
-        this[_onData$] = html$._wrapZone(dart.as(onData, dart.functionType(dart.dynamic, [dart.dynamic])));
+        this[_onData$] = html$._wrapZone(dart.as(onData, html$._wrapZoneCallback$(html$.Event, dart.dynamic)));
         this[_pauseCount$] = 0;
         this[_tryResume]();
       }
@@ -63817,7 +66119,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           dart.throw(new core.StateError("Subscription has been canceled."));
         }
         this[_unlisten]();
-        this[_onData$] = html$._wrapZone(handleData);
+        this[_onData$] = html$._wrapZone(dart.as(handleData, html$._wrapZoneCallback$(html$.Event, dart.dynamic)));
         this[_tryResume]();
       }
       onError(handleError) {}
@@ -63843,12 +66145,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [_tryResume]() {
         if (this[_onData$] != null && !dart.notNull(this.isPaused)) {
-          this[_target$][dartx.addEventListener](this[_eventType], dart.as(this[_onData$], html$.EventListener), this[_useCapture]);
+          this[_target$][dartx.addEventListener](this[_eventType], this[_onData$], this[_useCapture]);
         }
       }
       [_unlisten]() {
         if (this[_onData$] != null) {
-          this[_target$][dartx.removeEventListener](this[_eventType], dart.as(this[_onData$], html$.EventListener), this[_useCapture]);
+          this[_target$][dartx.removeEventListener](this[_eventType], this[_onData$], this[_useCapture]);
         }
       }
       asFuture(futureValue) {
@@ -63858,7 +66160,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_EventStreamSubscription, {
-      constructors: () => ({_EventStreamSubscription: [html$._EventStreamSubscription$(T), [html$.EventTarget, core.String, dart.dynamic, core.bool]]}),
+      constructors: () => ({_EventStreamSubscription: [html$._EventStreamSubscription$(T), [html$.EventTarget, core.String, dart.functionType(dart.void, [T]), core.bool]]}),
       methods: () => ({
         cancel: [async.Future, []],
         onData: [dart.void, [dart.functionType(dart.void, [T])]],
@@ -63901,9 +66203,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       asBroadcastStream(opts) {
         let onListen = opts && 'onListen' in opts ? opts.onListen : null;
-        dart.as(onListen, dart.functionType(dart.void, [async.StreamSubscription]));
+        dart.as(onListen, dart.functionType(dart.void, [async.StreamSubscription$(T)]));
         let onCancel = opts && 'onCancel' in opts ? opts.onCancel : null;
-        dart.as(onCancel, dart.functionType(dart.void, [async.StreamSubscription]));
+        dart.as(onCancel, dart.functionType(dart.void, [async.StreamSubscription$(T)]));
         return this[_streamController].stream;
       }
       get isBroadcast() {
@@ -63919,7 +66221,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       constructors: () => ({_CustomEventStreamImpl: [html$._CustomEventStreamImpl$(T), [core.String]]}),
       methods: () => ({
         listen: [async.StreamSubscription$(T), [dart.functionType(dart.void, [T])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}],
-        asBroadcastStream: [async.Stream$(T), [], {onListen: dart.functionType(dart.void, [async.StreamSubscription]), onCancel: dart.functionType(dart.void, [async.StreamSubscription])}],
+        asBroadcastStream: [async.Stream$(T), [], {onListen: dart.functionType(dart.void, [async.StreamSubscription$(T)]), onCancel: dart.functionType(dart.void, [async.StreamSubscription$(T)])}],
         add: [dart.void, [T]]
       })
     });
@@ -64047,8 +66349,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return html$.KeyCode._convertKeyCodeToKeyName(keyCode);
       }
     }
-    get clipboardData() {
-      return this[_parent$][dartx.clipboardData];
+    get code() {
+      return this[_parent$][dartx.code];
     }
     get ctrlKey() {
       return this[_parent$][dartx.ctrlKey];
@@ -64056,20 +66358,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get detail() {
       return this[_parent$][dartx.detail];
     }
+    get key() {
+      return this[_parent$][dartx.key];
+    }
     get keyLocation() {
       return this[_parent$][dartx.keyLocation];
-    }
-    get layer() {
-      return this[_parent$][dartx.layer];
     }
     get metaKey() {
       return this[_parent$][dartx.metaKey];
     }
-    get page() {
-      return this[_parent$][dartx.page];
-    }
     get shiftKey() {
       return this[_parent$][dartx.shiftKey];
+    }
+    get sourceDevice() {
+      return this[_parent$][dartx.sourceDevice];
     }
     get view() {
       return dart.as(this[_parent$][dartx.view], html$.Window);
@@ -64086,23 +66388,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [_keyCode]() {
       return this.keyCode;
     }
+    get [_which]() {
+      return this.which;
+    }
     get [_keyIdentifier]() {
       dart.throw(new core.UnsupportedError("keyIdentifier is unsupported."));
     }
     [_initKeyboardEvent](type, canBubble, cancelable, view, keyIdentifier, keyLocation, ctrlKey, altKey, shiftKey, metaKey) {
       dart.throw(new core.UnsupportedError("Cannot initialize a KeyboardEvent from a KeyEvent."));
-    }
-    get [_layerX]() {
-      return dart.throw(new core.UnsupportedError('Not applicable to KeyEvent'));
-    }
-    get [_layerY]() {
-      return dart.throw(new core.UnsupportedError('Not applicable to KeyEvent'));
-    }
-    get [_pageX]() {
-      return dart.throw(new core.UnsupportedError('Not applicable to KeyEvent'));
-    }
-    get [_pageY]() {
-      return dart.throw(new core.UnsupportedError('Not applicable to KeyEvent'));
     }
     getModifierState(keyArgument) {
       return dart.throw(new core.UnimplementedError());
@@ -64144,22 +66437,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'altKey',
     'which',
     'currentTarget',
-    'clipboardData',
+    'code',
     'ctrlKey',
     'detail',
+    'key',
     'keyLocation',
-    'layer',
     'metaKey',
-    'page',
     'shiftKey',
+    'sourceDevice',
     'view',
     _charCode,
     _keyCode,
+    _which,
     _keyIdentifier,
-    _layerX,
-    _layerY,
-    _pageX,
-    _pageY,
     'location',
     'repeat',
     _get_view
@@ -64248,15 +66538,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       forTarget(e, opts) {
         let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-        return new (html$._EventStream$(html$.Event))(e, dart.as(dart.dcall(this[_eventTypeGetter], e), core.String), useCapture);
+        return new (html$._EventStream$(T))(e, dart.as(dart.dcall(this[_eventTypeGetter], e), core.String), useCapture);
       }
       forElement(e, opts) {
         let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-        return new (html$._ElementEventStreamImpl$(html$.Event))(e, dart.dcall(this[_eventTypeGetter], e), useCapture);
+        return new (html$._ElementEventStreamImpl$(T))(e, dart.dcall(this[_eventTypeGetter], e), useCapture);
       }
       [_forElementList](e, opts) {
         let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-        return new (html$._ElementListEventStreamImpl$(html$.Event))(e, dart.as(dart.dcall(this[_eventTypeGetter], e), core.String), useCapture);
+        return new (html$._ElementListEventStreamImpl$(T))(e, dart.as(dart.dcall(this[_eventTypeGetter], e), core.String), useCapture);
       }
       getEventType(target) {
         return dart.as(dart.dcall(this[_eventTypeGetter], target), core.String);
@@ -64808,14 +67098,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return handler[_stream$];
     }
     _KeyboardEventHandler(type) {
-      this[_keyDownList] = dart.list([], html$.KeyboardEvent);
+      this[_keyDownList] = dart.list([], html$.KeyEvent);
       this[_type] = type;
       this[_stream$] = new html$._CustomKeyEventStreamImpl('event');
       this[_target$] = null;
       super.EventStreamProvider(html$._KeyboardEventHandler._EVENT_TYPE);
     }
     initializeAllEventListeners(type, target) {
-      this[_keyDownList] = dart.list([], html$.KeyboardEvent);
+      this[_keyDownList] = dart.list([], html$.KeyEvent);
       this[_type] = type;
       this[_target$] = target;
       this[_stream$] = null;
@@ -64826,15 +67116,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_stream$] = new html$._CustomKeyEventStreamImpl(this[_type]);
     }
     get [_capsLockOn]() {
-      return this[_keyDownList][dartx.any](dart.fn(element => element[dartx.keyCode] == html$.KeyCode.CAPS_LOCK, core.bool, [html$.KeyboardEvent]));
+      return this[_keyDownList][dartx.any](dart.fn(element => element.keyCode == html$.KeyCode.CAPS_LOCK, core.bool, [html$.KeyEvent]));
     }
     [_determineKeyCodeForKeypress](event) {
       for (let prevEvent of this[_keyDownList]) {
-        if (dart.equals(dart.dload(prevEvent, _shadowCharCode), event[dartx.charCode])) {
-          return prevEvent[dartx.keyCode];
+        if (prevEvent[_shadowCharCode] == event[dartx.charCode]) {
+          return prevEvent.keyCode;
         }
-        if ((dart.notNull(event[dartx.shiftKey]) || dart.notNull(this[_capsLockOn])) && dart.notNull(event[dartx.charCode]) >= dart.notNull("A"[dartx.codeUnits][dartx.get](0)) && dart.notNull(event[dartx.charCode]) <= dart.notNull("Z"[dartx.codeUnits][dartx.get](0)) && dart.equals(dart.notNull(event[dartx.charCode]) + dart.notNull(html$._KeyboardEventHandler._ROMAN_ALPHABET_OFFSET), dart.dload(prevEvent, _shadowCharCode))) {
-          return prevEvent[dartx.keyCode];
+        if ((dart.notNull(event[dartx.shiftKey]) || dart.notNull(this[_capsLockOn])) && dart.notNull(event[dartx.charCode]) >= dart.notNull("A"[dartx.codeUnits][dartx.get](0)) && dart.notNull(event[dartx.charCode]) <= dart.notNull("Z"[dartx.codeUnits][dartx.get](0)) && dart.notNull(event[dartx.charCode]) + dart.notNull(html$._KeyboardEventHandler._ROMAN_ALPHABET_OFFSET) == prevEvent[_shadowCharCode]) {
+          return prevEvent.keyCode;
         }
       }
       return html$.KeyCode.UNKNOWN;
@@ -64964,7 +67254,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (dart.notNull(event.altKey) && !dart.notNull(event.ctrlKey)) {
         return false;
       }
-      if (!dart.notNull(event.shiftKey) && (this[_keyDownList][dartx.last][dartx.keyCode] == html$.KeyCode.CTRL || this[_keyDownList][dartx.last][dartx.keyCode] == html$.KeyCode.ALT || dart.notNull(html_common.Device.userAgent[dartx.contains]('Mac')) && this[_keyDownList][dartx.last][dartx.keyCode] == html$.KeyCode.META)) {
+      if (!dart.notNull(event.shiftKey) && (this[_keyDownList][dartx.last].keyCode == html$.KeyCode.CTRL || this[_keyDownList][dartx.last].keyCode == html$.KeyCode.ALT || dart.notNull(html_common.Device.userAgent[dartx.contains]('Mac')) && this[_keyDownList][dartx.last].keyCode == html$.KeyCode.META)) {
         return false;
       }
       if (dart.notNull(html_common.Device.isWebKit) && dart.notNull(event.ctrlKey) && dart.notNull(event.shiftKey) && (event.keyCode == html$.KeyCode.BACKSLASH || event.keyCode == html$.KeyCode.OPEN_SQUARE_BRACKET || event.keyCode == html$.KeyCode.CLOSE_SQUARE_BRACKET || event.keyCode == html$.KeyCode.TILDE || event.keyCode == html$.KeyCode.SEMICOLON || event.keyCode == html$.KeyCode.DASH || event.keyCode == html$.KeyCode.EQUALS || event.keyCode == html$.KeyCode.COMMA || event.keyCode == html$.KeyCode.PERIOD || event.keyCode == html$.KeyCode.SLASH || event.keyCode == html$.KeyCode.APOSTROPHE || event.keyCode == html$.KeyCode.SINGLE_QUOTE)) {
@@ -65006,13 +67296,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return event[dartx.keyCode];
     }
     processKeyDown(e) {
-      if (dart.notNull(this[_keyDownList][dartx.length]) > 0 && (this[_keyDownList][dartx.last][dartx.keyCode] == html$.KeyCode.CTRL && !dart.notNull(e[dartx.ctrlKey]) || this[_keyDownList][dartx.last][dartx.keyCode] == html$.KeyCode.ALT && !dart.notNull(e[dartx.altKey]) || dart.notNull(html_common.Device.userAgent[dartx.contains]('Mac')) && this[_keyDownList][dartx.last][dartx.keyCode] == html$.KeyCode.META && !dart.notNull(e[dartx.metaKey]))) {
+      if (dart.notNull(this[_keyDownList][dartx.length]) > 0 && (this[_keyDownList][dartx.last].keyCode == html$.KeyCode.CTRL && !dart.notNull(e[dartx.ctrlKey]) || this[_keyDownList][dartx.last].keyCode == html$.KeyCode.ALT && !dart.notNull(e[dartx.altKey]) || dart.notNull(html_common.Device.userAgent[dartx.contains]('Mac')) && this[_keyDownList][dartx.last].keyCode == html$.KeyCode.META && !dart.notNull(e[dartx.metaKey]))) {
         this[_keyDownList][dartx.clear]();
       }
       let event = new html$.KeyEvent.wrap(e);
       event[_shadowKeyCode] = this[_normalizeKeyCodes](event);
       event[_shadowCharCode] = this[_findCharCodeKeyDown](event);
-      if (dart.notNull(this[_keyDownList][dartx.length]) > 0 && event.keyCode != this[_keyDownList][dartx.last][dartx.keyCode] && !dart.notNull(this[_firesKeyPressEvent](event))) {
+      if (dart.notNull(this[_keyDownList][dartx.length]) > 0 && event.keyCode != this[_keyDownList][dartx.last].keyCode && !dart.notNull(this[_firesKeyPressEvent](event))) {
         this.processKeyPress(e);
       }
       this[_keyDownList][dartx.add](event);
@@ -65033,19 +67323,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (e[_shadowKeyIdentifier] != null && dart.notNull(html$._KeyboardEventHandler._keyIdentifier[dartx.containsKey](e[_shadowKeyIdentifier]))) {
         e[_shadowKeyCode] = html$._KeyboardEventHandler._keyIdentifier[dartx.get](e[_shadowKeyIdentifier]);
       }
-      e[_shadowAltKey] = this[_keyDownList][dartx.any](dart.fn(element => element[dartx.altKey], core.bool, [html$.KeyboardEvent]));
+      e[_shadowAltKey] = this[_keyDownList][dartx.any](dart.fn(element => element.altKey, core.bool, [html$.KeyEvent]));
       this[_stream$].add(e);
     }
     processKeyUp(event) {
       let e = new html$.KeyEvent.wrap(event);
       let toRemove = null;
       for (let key of this[_keyDownList]) {
-        if (key[dartx.keyCode] == e.keyCode) {
+        if (key.keyCode == e.keyCode) {
           toRemove = key;
         }
       }
       if (toRemove != null) {
-        this[_keyDownList][dartx.removeWhere](dart.fn(element => dart.equals(element, toRemove), core.bool, [html$.KeyboardEvent]));
+        this[_keyDownList][dartx.removeWhere](dart.fn(element => dart.equals(element, toRemove), core.bool, [html$.KeyEvent]));
       } else if (dart.notNull(this[_keyDownList][dartx.length]) > 0) {
         this[_keyDownList][dartx.removeLast]();
       }
@@ -65143,18 +67433,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let attributes = opts && 'attributes' in opts ? opts.attributes : null;
       let uriAttributes = opts && 'uriAttributes' in opts ? opts.uriAttributes : null;
       let tagNameUpper = tagName[dartx.toUpperCase]();
-      let attrs = null;
-      if (attributes != null) {
-        attrs = attributes[dartx.map](dart.fn(name => `${tagNameUpper}::${name[dartx.toLowerCase]()}`, core.String, [core.String]));
-      }
-      let uriAttrs = null;
-      if (uriAttributes != null) {
-        uriAttrs = uriAttributes[dartx.map](dart.fn(name => `${tagNameUpper}::${name[dartx.toLowerCase]()}`, core.String, [core.String]));
-      }
+      let attrs = dart.nullSafe(attributes, _ => _[dartx.map](dart.fn(name => `${tagNameUpper}::${name[dartx.toLowerCase]()}`, core.String, [core.String])));
+      let uriAttrs = dart.nullSafe(uriAttributes, _ => _[dartx.map](dart.fn(name => `${tagNameUpper}::${name[dartx.toLowerCase]()}`, core.String, [core.String])));
       if (uriPolicy == null) {
         uriPolicy = html$.UriPolicy.new();
       }
-      this.add(new html$._CustomElementNodeValidator(uriPolicy, dart.list([tagNameUpper], core.String), dart.as(attrs, core.Iterable$(core.String)), dart.as(uriAttrs, core.Iterable$(core.String)), false, true));
+      this.add(new html$._CustomElementNodeValidator(uriPolicy, dart.list([tagNameUpper], core.String), attrs, uriAttrs, false, true));
     }
     allowTagExtension(tagName, baseName, opts) {
       let uriPolicy = opts && 'uriPolicy' in opts ? opts.uriPolicy : null;
@@ -65162,18 +67446,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let uriAttributes = opts && 'uriAttributes' in opts ? opts.uriAttributes : null;
       let baseNameUpper = baseName[dartx.toUpperCase]();
       let tagNameUpper = tagName[dartx.toUpperCase]();
-      let attrs = null;
-      if (attributes != null) {
-        attrs = attributes[dartx.map](dart.fn(name => `${baseNameUpper}::${name[dartx.toLowerCase]()}`, core.String, [core.String]));
-      }
-      let uriAttrs = null;
-      if (uriAttributes != null) {
-        uriAttrs = uriAttributes[dartx.map](dart.fn(name => `${baseNameUpper}::${name[dartx.toLowerCase]()}`, core.String, [core.String]));
-      }
+      let attrs = dart.nullSafe(attributes, _ => _[dartx.map](dart.fn(name => `${baseNameUpper}::${name[dartx.toLowerCase]()}`, core.String, [core.String])));
+      let uriAttrs = dart.nullSafe(uriAttributes, _ => _[dartx.map](dart.fn(name => `${baseNameUpper}::${name[dartx.toLowerCase]()}`, core.String, [core.String])));
       if (uriPolicy == null) {
         uriPolicy = html$.UriPolicy.new();
       }
-      this.add(new html$._CustomElementNodeValidator(uriPolicy, dart.list([tagNameUpper, baseNameUpper], core.String), dart.as(attrs, core.Iterable$(core.String)), dart.as(uriAttrs, core.Iterable$(core.String)), true, false));
+      this.add(new html$._CustomElementNodeValidator(uriPolicy, dart.list([tagNameUpper, baseNameUpper], core.String), attrs, uriAttrs, true, false));
     }
     allowElement(tagName, opts) {
       let uriPolicy = opts && 'uriPolicy' in opts ? opts.uriPolicy : null;
@@ -65396,15 +67674,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
       sort(compare) {
         if (compare === void 0) compare = null;
         dart.as(compare, dart.functionType(core.int, [E, E]));
-        this[_list$][dartx.sort](compare);
+        this[_list$][dartx.sort](dart.fn((a, b) => compare(dart.as(a, E), dart.as(b, E)), core.int, [html$.Node, html$.Node]));
       }
       indexOf(element, start) {
         if (start === void 0) start = 0;
-        return this[_list$][dartx.indexOf](element, start);
+        return this[_list$][dartx.indexOf](dart.as(element, html$.Node), start);
       }
       lastIndexOf(element, start) {
         if (start === void 0) start = null;
-        return this[_list$][dartx.lastIndexOf](element, start);
+        return this[_list$][dartx.lastIndexOf](dart.as(element, html$.Node), start);
       }
       insert(index, element) {
         dart.as(element, E);
@@ -65431,12 +67709,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_list$][dartx.fillRange](start, end, fillValue);
       }
       get rawList() {
-        return dart.as(this[_list$], core.List$(html$.Node));
+        return this[_list$];
       }
     }
     _WrappedList[dart.implements] = () => [html_common.NodeListWrapper];
     dart.setSignature(_WrappedList, {
-      constructors: () => ({_WrappedList: [html$._WrappedList$(E), [core.List]]}),
+      constructors: () => ({_WrappedList: [html$._WrappedList$(E), [core.List$(html$.Node)]]}),
       methods: () => ({
         add: [dart.void, [E]],
         get: [E, [core.int]],
@@ -65486,7 +67764,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _WrappedIterator[dart.implements] = () => [core.Iterator$(E)];
     dart.setSignature(_WrappedIterator, {
-      constructors: () => ({_WrappedIterator: [html$._WrappedIterator$(E), [core.Iterator]]}),
+      constructors: () => ({_WrappedIterator: [html$._WrappedIterator$(E), [core.Iterator$(html$.Node)]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return _WrappedIterator;
@@ -65780,8 +68058,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.throw(new core.UnsupportedError('You can only attach EventListeners to your own window.'));
     }
     [_addEventListener](type, listener, useCapture) {
-      if (type === void 0) type = null;
-      if (listener === void 0) listener = null;
       if (useCapture === void 0) useCapture = null;
       return dart.throw(new core.UnsupportedError('You can only attach EventListeners to your own window.'));
     }
@@ -65793,8 +68069,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.throw(new core.UnsupportedError('You can only attach EventListeners to your own window.'));
     }
     [_removeEventListener](type, listener, useCapture) {
-      if (type === void 0) type = null;
-      if (listener === void 0) listener = null;
       if (useCapture === void 0) useCapture = null;
       return dart.throw(new core.UnsupportedError('You can only attach EventListeners to your own window.'));
     }
@@ -65809,10 +68083,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     methods: () => ({
       close: [dart.void, []],
       postMessage: [dart.void, [dart.dynamic, core.String], [core.List]],
-      [_addEventListener]: [dart.void, [], [core.String, html$.EventListener, core.bool]],
+      [_addEventListener]: [dart.void, [core.String, html$.EventListener], [core.bool]],
       addEventListener: [dart.void, [core.String, html$.EventListener], [core.bool]],
       dispatchEvent: [core.bool, [html$.Event]],
-      [_removeEventListener]: [dart.void, [], [core.String, html$.EventListener, core.bool]],
+      [_removeEventListener]: [dart.void, [core.String, html$.EventListener], [core.bool]],
       removeEventListener: [dart.void, [core.String, html$.EventListener], [core.bool]]
     }),
     statics: () => ({_createSafe: [html$.WindowBase, [dart.dynamic]]}),
@@ -65903,18 +68177,28 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return !!window.ArrayBuffer;
     }
   });
+  html$._wrapZoneCallback$ = dart.generic((A, R) => {
+    const _wrapZoneCallback = dart.typedef('_wrapZoneCallback', () => dart.functionType(R, [A]));
+    return _wrapZoneCallback;
+  });
+  html$._wrapZoneCallback = html$._wrapZoneCallback$();
+  html$._wrapZoneBinaryCallback$ = dart.generic((A, B, R) => {
+    const _wrapZoneBinaryCallback = dart.typedef('_wrapZoneBinaryCallback', () => dart.functionType(R, [A, B]));
+    return _wrapZoneBinaryCallback;
+  });
+  html$._wrapZoneBinaryCallback = html$._wrapZoneBinaryCallback$();
   html$._wrapZone = function(callback) {
     if (dart.equals(async.Zone.current, async.Zone.ROOT)) return callback;
     if (callback == null) return null;
-    return async.Zone.current.bindUnaryCallback(callback, {runGuarded: true});
+    return dart.as(async.Zone.current.bindUnaryCallback(callback, {runGuarded: true}), html$._wrapZoneCallback);
   };
-  dart.fn(html$._wrapZone, dart.dynamic, [dart.functionType(dart.dynamic, [dart.dynamic])]);
+  dart.fn(html$._wrapZone, html$._wrapZoneCallback, [html$._wrapZoneCallback]);
   html$._wrapBinaryZone = function(callback) {
     if (dart.equals(async.Zone.current, async.Zone.ROOT)) return callback;
     if (callback == null) return null;
-    return async.Zone.current.bindBinaryCallback(callback, {runGuarded: true});
+    return dart.as(async.Zone.current.bindBinaryCallback(callback, {runGuarded: true}), html$._wrapZoneBinaryCallback);
   };
-  dart.fn(html$._wrapBinaryZone, dart.dynamic, [dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]);
+  dart.fn(html$._wrapBinaryZone, html$._wrapZoneBinaryCallback, [html$._wrapZoneBinaryCallback]);
   html$.query = function(relativeSelectors) {
     return html$.document[dartx.query](relativeSelectors);
   };
@@ -66315,8 +68599,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       convertNativeToDart_AcceptStructuredClone: [dart.dynamic, [dart.dynamic], {mustCopy: dart.dynamic}]
     })
   });
-  html_common._TypedContextAttributes = class _TypedContextAttributes extends core.Object {
-    _TypedContextAttributes(alpha, antialias, depth, failIfMajorPerformanceCaveat, premultipliedAlpha, preserveDrawingBuffer, stencil) {
+  html_common.ContextAttributes = class ContextAttributes extends core.Object {
+    ContextAttributes(alpha, antialias, depth, failIfMajorPerformanceCaveat, premultipliedAlpha, preserveDrawingBuffer, stencil) {
       this.alpha = alpha;
       this.antialias = antialias;
       this.depth = depth;
@@ -66326,33 +68610,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.stencil = stencil;
     }
   };
-  html_common._TypedContextAttributes[dart.implements] = () => [web_gl.ContextAttributes];
-  dart.setSignature(html_common._TypedContextAttributes, {
-    constructors: () => ({_TypedContextAttributes: [html_common._TypedContextAttributes, [core.bool, core.bool, core.bool, core.bool, core.bool, core.bool, core.bool]]})
+  dart.setSignature(html_common.ContextAttributes, {
+    constructors: () => ({ContextAttributes: [html_common.ContextAttributes, [core.bool, core.bool, core.bool, core.bool, core.bool, core.bool, core.bool]]})
   });
-  dart.defineExtensionMembers(html_common._TypedContextAttributes, [
-    'alpha',
-    'alpha',
-    'antialias',
-    'antialias',
-    'depth',
-    'depth',
-    'premultipliedAlpha',
-    'premultipliedAlpha',
-    'preserveDrawingBuffer',
-    'preserveDrawingBuffer',
-    'stencil',
-    'stencil',
-    'failIfMajorPerformanceCaveat',
-    'failIfMajorPerformanceCaveat'
-  ]);
   html_common.convertNativeToDart_ContextAttributes = function(nativeContextAttributes) {
-    if (dart.is(nativeContextAttributes, web_gl.ContextAttributes)) {
-      return nativeContextAttributes;
-    }
-    return new html_common._TypedContextAttributes(dart.as(nativeContextAttributes.alpha, core.bool), dart.as(nativeContextAttributes.antialias, core.bool), dart.as(nativeContextAttributes.depth, core.bool), dart.as(nativeContextAttributes.failIfMajorPerformanceCaveat, core.bool), dart.as(nativeContextAttributes.premultipliedAlpha, core.bool), dart.as(nativeContextAttributes.preserveDrawingBuffer, core.bool), dart.as(nativeContextAttributes.stencil, core.bool));
+    return new html_common.ContextAttributes(dart.as(nativeContextAttributes.alpha, core.bool), dart.as(nativeContextAttributes.antialias, core.bool), dart.as(nativeContextAttributes.depth, core.bool), dart.as(nativeContextAttributes.failIfMajorPerformanceCaveat, core.bool), dart.as(nativeContextAttributes.premultipliedAlpha, core.bool), dart.as(nativeContextAttributes.preserveDrawingBuffer, core.bool), dart.as(nativeContextAttributes.stencil, core.bool));
   };
-  dart.fn(html_common.convertNativeToDart_ContextAttributes, () => dart.definiteFunctionType(web_gl.ContextAttributes, [dart.dynamic]));
+  dart.fn(html_common.convertNativeToDart_ContextAttributes);
   html_common._TypedImageData = class _TypedImageData extends core.Object {
     _TypedImageData(data, height, width) {
       this.data = data;
@@ -66520,14 +68784,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return completer.future;
   };
   dart.fn(html_common.convertNativePromiseToDartFuture, async.Future, [dart.dynamic]);
-  html_common.wrap_jso = function(jsObject) {
-    return jsObject;
-  };
-  dart.fn(html_common.wrap_jso);
-  html_common.unwrap_jso = function(dartClass_instance) {
-    return dartClass_instance;
-  };
-  dart.fn(html_common.unwrap_jso);
   html_common.Device = class Device extends core.Object {
     static get userAgent() {
       return html$.window[dartx.navigator][dartx.userAgent];
@@ -66614,7 +68870,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_node] = node;
     }
     get [_iterable$]() {
-      return new (_internal.WhereIterable$(html$.Element))(this[_childNodes], dart.fn(n => dart.is(n, html$.Element), core.bool, [html$.Element]));
+      return this[_childNodes][dartx.where](dart.fn(n => dart.is(n, html$.Element), core.bool, [html$.Node]))[dartx.map](dart.fn(n => dart.as(n, html$.Element), html$.Element, [html$.Node]));
     }
     get [_filtered]() {
       return core.List$(html$.Element).from(this[_iterable$], {growable: false});
@@ -74371,7 +76627,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   web_audio.WaveShaperNode[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('WaveShaperNode')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("WaveShaperNode"))];
   dart.registerExtension(dart.global.WaveShaperNode, web_audio.WaveShaperNode);
-  const _getContextAttributes_1 = Symbol('_getContextAttributes_1');
+  const _getContextAttributes_1$ = Symbol('_getContextAttributes_1');
   const _texImage2D_1 = Symbol('_texImage2D_1');
   const _texImage2D_2 = Symbol('_texImage2D_2');
   const _texImage2D_3 = Symbol('_texImage2D_3');
@@ -74747,9 +77003,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.getBufferParameter(target, pname);
     }
     [dartx.getContextAttributes]() {
-      return html_common.convertNativeToDart_ContextAttributes(this[_getContextAttributes_1]());
+      return dart.as(html_common.convertNativeToDart_ContextAttributes(this[_getContextAttributes_1$]()), web_gl.ContextAttributes);
     }
-    [_getContextAttributes_1]() {
+    [_getContextAttributes_1$]() {
       return this._getContextAttributes_1();
     }
     [dartx.getError]() {
@@ -75172,7 +77428,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.getAttribLocation]: [core.int, [web_gl.Program, core.String]],
       [dartx.getBufferParameter]: [core.Object, [core.int, core.int]],
       [dartx.getContextAttributes]: [web_gl.ContextAttributes, []],
-      [_getContextAttributes_1]: [dart.dynamic, []],
+      [_getContextAttributes_1$]: [dart.dynamic, []],
       [dartx.getError]: [core.int, []],
       [dartx.getExtension]: [core.Object, [core.String]],
       [dartx.getFramebufferAttachmentParameter]: [core.Object, [core.int, core.int, core.int]],
