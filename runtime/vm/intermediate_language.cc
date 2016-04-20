@@ -2590,6 +2590,28 @@ Instruction* CheckClassIdInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+Definition* TestCidsInstr::Canonicalize(FlowGraph* flow_graph) {
+  CompileType* in_type = left()->Type();
+  intptr_t cid = in_type->ToCid();
+  if (cid == kDynamicCid) return this;
+
+  const ZoneGrowableArray<intptr_t>& data = cid_results();
+  const intptr_t true_result = (kind() == Token::kIS) ? 1 : 0;
+  for (intptr_t i = 0; i < data.length(); i += 2) {
+    if (data[i] == cid) {
+      return (data[i + 1] == true_result)
+          ? flow_graph->GetConstant(Bool::True())
+          : flow_graph->GetConstant(Bool::False());
+    }
+  }
+
+  // TODO(sra): Handle misses if the instruction is not deoptimizing.
+  // TODO(sra): Handle nullable input, possibly canonicalizing to a compare
+  // against `null`.
+  return this;
+}
+
+
 Instruction* GuardFieldClassInstr::Canonicalize(FlowGraph* flow_graph) {
   if (field().guarded_cid() == kDynamicCid) {
     return NULL;  // Nothing to guard.

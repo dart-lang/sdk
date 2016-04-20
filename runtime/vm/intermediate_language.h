@@ -3050,6 +3050,8 @@ class TestCidsInstr : public ComparisonInstr {
 
   virtual CompileType ComputeType() const;
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
   virtual bool CanDeoptimize() const {
     return GetDeoptId() != Thread::kNoDeoptId;
   }
