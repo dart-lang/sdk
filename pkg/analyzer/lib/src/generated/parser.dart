@@ -2413,7 +2413,7 @@ class Parser {
         return _parseOperator(
             commentAndMetadata, modifiers.externalKeyword, returnType);
       } else if (_matchesIdentifier() &&
-          _peek().matchesAny([
+          _peek().matchesAny(const <TokenType>[
             TokenType.OPEN_PAREN,
             TokenType.OPEN_CURLY_BRACKET,
             TokenType.FUNCTION,
@@ -2427,8 +2427,11 @@ class Parser {
         // We have found an error of some kind. Try to recover.
         //
         if (_matchesIdentifier()) {
-          if (_peek().matchesAny(
-              [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
+          if (_peek().matchesAny(const <TokenType>[
+            TokenType.EQ,
+            TokenType.COMMA,
+            TokenType.SEMICOLON
+          ])) {
             //
             // We appear to have a variable declaration with a type of "void".
             //
@@ -2586,8 +2589,11 @@ class Parser {
           methodName,
           typeParameters,
           parameters);
-    } else if (_peek()
-        .matchesAny([TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
+    } else if (_peek().matchesAny(const <TokenType>[
+      TokenType.EQ,
+      TokenType.COMMA,
+      TokenType.SEMICOLON
+    ])) {
       if (modifiers.constKeyword == null &&
           modifiers.finalKeyword == null &&
           modifiers.varKeyword == null) {
@@ -4076,8 +4082,8 @@ class Parser {
     if (afterParameters == null) {
       return false;
     }
-    if (afterParameters
-        .matchesAny([TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION])) {
+    if (afterParameters.matchesAny(
+        const <TokenType>[TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION])) {
       return true;
     }
     String lexeme = afterParameters.lexeme;
@@ -4125,7 +4131,7 @@ class Parser {
     if (_matchesKeyword(Keyword.CONST)) {
       // Look to see whether we might be at the start of a list or map literal,
       // otherwise this should be the start of a variable declaration.
-      return !_peek().matchesAny([
+      return !_peek().matchesAny(const <TokenType>[
         TokenType.LT,
         TokenType.OPEN_CURLY_BRACKET,
         TokenType.OPEN_SQUARE_BRACKET,
@@ -5184,7 +5190,7 @@ class Parser {
         return _convertToFunctionDeclaration(_parseOperator(
             commentAndMetadata, modifiers.externalKeyword, returnType));
       } else if (_matchesIdentifier() &&
-          _peek().matchesAny([
+          _peek().matchesAny(const <TokenType>[
             TokenType.OPEN_PAREN,
             TokenType.OPEN_CURLY_BRACKET,
             TokenType.FUNCTION,
@@ -5198,8 +5204,11 @@ class Parser {
         // We have found an error of some kind. Try to recover.
         //
         if (_matchesIdentifier()) {
-          if (_peek().matchesAny(
-              [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
+          if (_peek().matchesAny(const <TokenType>[
+            TokenType.EQ,
+            TokenType.COMMA,
+            TokenType.SEMICOLON
+          ])) {
             //
             // We appear to have a variable declaration with a type of "void".
             //
@@ -5257,8 +5266,11 @@ class Parser {
       _validateModifiersForTopLevelFunction(modifiers);
       return _parseFunctionDeclaration(
           commentAndMetadata, modifiers.externalKeyword, returnType);
-    } else if (_peek()
-        .matchesAny([TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
+    } else if (_peek().matchesAny(const <TokenType>[
+      TokenType.EQ,
+      TokenType.COMMA,
+      TokenType.SEMICOLON
+    ])) {
       if (modifiers.constKeyword == null &&
           modifiers.finalKeyword == null &&
           modifiers.varKeyword == null) {
@@ -5308,7 +5320,7 @@ class Parser {
           new VariableDeclarationList(null, null, null, returnType, variables),
           semicolon);
     }
-    if (_peek().matchesAny([
+    if (_peek().matchesAny(const <TokenType>[
       TokenType.OPEN_PAREN,
       TokenType.FUNCTION,
       TokenType.OPEN_CURLY_BRACKET,
@@ -7061,7 +7073,7 @@ class Parser {
       } else if (keyword == Keyword.VOID) {
         TypeName returnType = parseReturnType();
         if (_matchesIdentifier() &&
-            _peek().matchesAny([
+            _peek().matchesAny(const <TokenType>[
               TokenType.OPEN_PAREN,
               TokenType.OPEN_CURLY_BRACKET,
               TokenType.FUNCTION,
@@ -7074,8 +7086,11 @@ class Parser {
           // We have found an error of some kind. Try to recover.
           //
           if (_matchesIdentifier()) {
-            if (_peek().matchesAny(
-                [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
+            if (_peek().matchesAny(const <TokenType>[
+              TokenType.EQ,
+              TokenType.COMMA,
+              TokenType.SEMICOLON
+            ])) {
               //
               // We appear to have a variable declaration with a type of "void".
               //
@@ -7096,7 +7111,7 @@ class Parser {
           return new EmptyStatement(_createSyntheticToken(TokenType.SEMICOLON));
         }
       } else if (keyword == Keyword.CONST) {
-        if (_peek().matchesAny([
+        if (_peek().matchesAny(const <TokenType>[
           TokenType.LT,
           TokenType.OPEN_CURLY_BRACKET,
           TokenType.OPEN_SQUARE_BRACKET,
@@ -8485,14 +8500,15 @@ class Parser {
     // Look to see whether the token after the open parenthesis is something
     // that should only occur at the beginning of a parameter list.
     //
-    if (next.matchesAny([
+    if (next.matchesAny(const <TokenType>[
           TokenType.AT,
           TokenType.OPEN_SQUARE_BRACKET,
           TokenType.OPEN_CURLY_BRACKET
         ]) ||
         _tokenMatchesKeyword(next, Keyword.VOID) ||
         (_tokenMatchesIdentifier(next) &&
-            (next.next.matchesAny([TokenType.COMMA, TokenType.CLOSE_PAREN])))) {
+            (next.next.matchesAny(
+                const <TokenType>[TokenType.COMMA, TokenType.CLOSE_PAREN])))) {
       return _skipPastMatchingToken(startToken);
     }
     //
@@ -8503,8 +8519,8 @@ class Parser {
         _tokenMatches(next.next, TokenType.OPEN_PAREN)) {
       Token afterParameters = _skipFormalParameterList(next.next);
       if (afterParameters != null &&
-          (afterParameters
-              .matchesAny([TokenType.COMMA, TokenType.CLOSE_PAREN]))) {
+          afterParameters.matchesAny(
+              const <TokenType>[TokenType.COMMA, TokenType.CLOSE_PAREN])) {
         return _skipPastMatchingToken(startToken);
       }
     }
