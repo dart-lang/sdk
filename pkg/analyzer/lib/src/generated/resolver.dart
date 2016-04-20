@@ -5974,16 +5974,6 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitCompilationUnit(CompilationUnit node) {
-    //
-    // TODO(brianwilkerson) The goal of the code below is to visit the
-    // declarations in such an order that we can infer type information for
-    // top-level variables before we visit references to them. This is better
-    // than making no effort, but still doesn't completely satisfy that goal
-    // (consider for example "final var a = b; final var b = 0;"; we'll infer a
-    // type of 'int' for 'b', but not for 'a' because of the order of the
-    // visits). Ideally we would create a dependency graph, but that would
-    // require references to be resolved, which they are not.
-    //
     _overrideManager.enterScope();
     try {
       NodeList<Directive> directives = node.directives;
@@ -5994,16 +5984,7 @@ class ResolverVisitor extends ScopedVisitor {
       NodeList<CompilationUnitMember> declarations = node.declarations;
       int declarationCount = declarations.length;
       for (int i = 0; i < declarationCount; i++) {
-        CompilationUnitMember declaration = declarations[i];
-        if (declaration is! ClassDeclaration) {
-          declaration.accept(this);
-        }
-      }
-      for (int i = 0; i < declarationCount; i++) {
-        CompilationUnitMember declaration = declarations[i];
-        if (declaration is ClassDeclaration) {
-          declaration.accept(this);
-        }
+        declarations[i].accept(this);
       }
     } finally {
       _overrideManager.exitScope();
