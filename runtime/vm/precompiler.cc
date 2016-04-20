@@ -1638,6 +1638,7 @@ void Precompiler::DropClasses() {
 void Precompiler::DropLibraries() {
   const GrowableObjectArray& retained_libraries =
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  Library& root_lib = Library::Handle(Z, I->object_store()->root_library());
   Library& lib = Library::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
@@ -1649,7 +1650,12 @@ void Precompiler::DropLibraries() {
       it.GetNext();
       entries++;
     }
-    bool retain = (entries > 0) || lib.is_dart_scheme();
+    // The root library might have no surviving members if it only exports main
+    // from another library. It will still be referenced from the object store,
+    // so retain it.
+    bool retain = (entries > 0) ||
+                  lib.is_dart_scheme() ||
+                  (lib.raw() == root_lib.raw());
     if (retain) {
       lib.set_index(retained_libraries.Length());
       retained_libraries.Add(lib);
