@@ -214,7 +214,7 @@ static void WriteSnapshotFile(const char* filename,
   if (!file->WriteFully(buffer, size)) {
     Log::PrintErr("Error: Failed to write snapshot file.\n\n");
   }
-  delete file;
+  file->Release();
 }
 
 

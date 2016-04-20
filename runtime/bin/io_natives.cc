@@ -31,9 +31,10 @@ namespace bin {
   V(Directory_List, 3)                                                         \
   V(EventHandler_SendData, 3)                                                  \
   V(EventHandler_TimerMillisecondClock, 0)                                     \
+  V(File_GetPointer, 1)                                                        \
+  V(File_SetPointer, 2)                                                        \
   V(File_Open, 2)                                                              \
   V(File_Exists, 1)                                                            \
-  V(File_GetFD, 1)                                                             \
   V(File_Close, 1)                                                             \
   V(File_ReadByte, 1)                                                          \
   V(File_WriteByte, 2)                                                         \

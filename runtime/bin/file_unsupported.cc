@@ -11,6 +11,19 @@
 namespace dart {
 namespace bin {
 
+
+void FUNCTION_NAME(File_GetPointer)(Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewInternalError(
+        "File is not supported on this platform"));
+}
+
+
+void FUNCTION_NAME(File_SetPointer)(Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewInternalError(
+        "File is not supported on this platform"));
+}
+
+
 void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
         "File is not supported on this platform"));
@@ -24,12 +37,6 @@ void FUNCTION_NAME(File_Exists)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(File_Close)(Dart_NativeArguments args) {
-  Dart_ThrowException(DartUtils::NewInternalError(
-        "File is not supported on this platform"));
-}
-
-
-void FUNCTION_NAME(File_GetFD)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
         "File is not supported on this platform"));
 }

@@ -222,7 +222,8 @@ void DartUtils::WriteFile(const void* buffer,
 
 
 void DartUtils::CloseFile(void* stream) {
-  delete reinterpret_cast<File*>(stream);
+  File* file = reinterpret_cast<File*>(stream);
+  file->Release();
 }
 
 

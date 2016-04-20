@@ -36,11 +36,11 @@ check(String path, int start, int end, FileLock mode, {bool locked}) {
 }
 
 checkLocked(String path,
-            [int start, int end, FileLock mode = FileLock.EXCLUSIVE]) =>
+    [int start = 0, int end = -1, FileLock mode = FileLock.EXCLUSIVE]) =>
     check(path, start, end, mode, locked: true);
 
 checkNotLocked(String path,
-               [int start, int end, FileLock mode = FileLock.EXCLUSIVE]) =>
+    [int start = 0, int end = -1, FileLock mode = FileLock.EXCLUSIVE]) =>
     check(path, start, end, mode, locked: false);
 
 void testLockWholeFile() {

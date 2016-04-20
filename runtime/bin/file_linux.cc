@@ -38,7 +38,9 @@ class FileHandle {
 
 
 File::~File() {
-  Close();
+  if (!IsClosed()) {
+    Close();
+  }
   delete handle_;
 }
 
@@ -196,10 +198,7 @@ File* File::Open(const char* path, FileOpenMode mode) {
 
 
 File* File::OpenStdio(int fd) {
-  if ((fd < 0) || (2 < fd)) {
-    return NULL;
-  }
-  return new File(new FileHandle(fd));
+  return ((fd < 0) || (2 < fd)) ? NULL : new File(new FileHandle(fd));
 }
 
 

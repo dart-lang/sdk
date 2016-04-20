@@ -18,14 +18,66 @@
 namespace dart {
 namespace bin {
 
+static const int kFileNativeFieldIndex = 0;
 static const int kMSPerSecond = 1000;
 
 // The file pointer has been passed into Dart as an intptr_t and it is safe
 // to pull it out of Dart as a 64-bit integer, cast it to an intptr_t and
 // from there to a File pointer.
-static File* GetFilePointer(Dart_Handle handle) {
-  intptr_t value = DartUtils::GetIntptrValue(handle);
-  return reinterpret_cast<File*>(value);
+static File* GetFile(Dart_NativeArguments args) {
+  File* file;
+  Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
+  ASSERT(Dart_IsInstance(dart_this));
+  ThrowIfError(Dart_GetNativeInstanceField(
+      dart_this,
+      kFileNativeFieldIndex,
+      reinterpret_cast<intptr_t*>(&file)));
+  return file;
+}
+
+
+static void SetFile(Dart_Handle dart_this, intptr_t file_pointer) {
+  Dart_Handle result = Dart_SetNativeInstanceField(
+      dart_this,
+      kFileNativeFieldIndex,
+      file_pointer);
+  if (Dart_IsError(result)) {
+    Log::PrintErr("SetNativeInstanceField in SetFile() failed\n");
+    Dart_PropagateError(result);
+  }
+}
+
+
+void FUNCTION_NAME(File_GetPointer)(Dart_NativeArguments args) {
+  File* file = GetFile(args);
+  // If the file is already closed, GetFile() will return NULL.
+  if (file != NULL) {
+    // Increment file's reference count. File_GetPointer() should only be called
+    // when we are about to send the File* to the IO Service.
+    file->Retain();
+  }
+  intptr_t file_pointer = reinterpret_cast<intptr_t>(file);
+  Dart_SetReturnValue(args, Dart_NewInteger(file_pointer));
+}
+
+
+static void ReleaseFile(void* isolate_callback_data,
+                        Dart_WeakPersistentHandle handle,
+                        void* peer) {
+  File* file = reinterpret_cast<File*>(peer);
+  file->Release();
+}
+
+
+void FUNCTION_NAME(File_SetPointer)(Dart_NativeArguments args) {
+  Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
+  intptr_t file_pointer =
+      DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
+  File* file = reinterpret_cast<File*>(file_pointer);
+  Dart_WeakPersistentHandle handle = Dart_NewWeakPersistentHandle(
+      dart_this, reinterpret_cast<void*>(file), sizeof(*file), ReleaseFile);
+  file->SetWeakHandle(handle);
+  SetFile(dart_this, file_pointer);
 }
 
 
@@ -40,8 +92,7 @@ void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
   // reading. This is to prevent the opening of directories as
   // files. Directories can be opened for reading using the posix
   // 'open' call.
-  File* file = NULL;
-  file = File::ScopedOpen(filename, file_mode);
+  File* file = File::ScopedOpen(filename, file_mode);
   if (file != NULL) {
     Dart_SetReturnValue(args,
                         Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
@@ -60,22 +111,20 @@ void FUNCTION_NAME(File_Exists)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(File_Close)(Dart_NativeArguments args) {
-  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
+  File* file = GetFile(args);
   ASSERT(file != NULL);
-  delete file;
+  file->DeleteWeakHandle(Dart_CurrentIsolate());
+  file->Release();
+
+  // NULL-out the now potentially dangling pointer.
+  Dart_Handle dart_this = Dart_GetNativeArgument(args, 0);
+  SetFile(dart_this, 0);
   Dart_SetReturnValue(args, Dart_NewInteger(0));
 }
 
 
-void FUNCTION_NAME(File_GetFD)(Dart_NativeArguments args) {
-  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
-  ASSERT(file != NULL);
-  Dart_SetReturnValue(args, Dart_NewInteger(file->GetFD()));
-}
-
-
 void FUNCTION_NAME(File_ReadByte)(Dart_NativeArguments args) {
-  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
+  File* file = GetFile(args);
   ASSERT(file != NULL);
   uint8_t buffer;
   int64_t bytes_read = file->Read(reinterpret_cast<void*>(&buffer), 1);
@@ -90,7 +139,7 @@ void FUNCTION_NAME(File_ReadByte)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(File_WriteByte)(Dart_NativeArguments args) {
-  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
+  File* file = GetFile(args);
   ASSERT(file != NULL);
   int64_t byte = 0;
   if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &byte)) {
@@ -109,7 +158,7 @@ void FUNCTION_NAME(File_WriteByte)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(File_Read)(Dart_NativeArguments args) {
-  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
+  File* file = GetFile(args);
   ASSERT(file != NULL);
   Dart_Handle length_object = Dart_GetNativeArgument(args, 1);
   int64_t length = 0;
@@ -150,7 +199,7 @@ void FUNCTION_NAME(File_Read)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(File_ReadInto)(Dart_NativeArguments args) {
-  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
+  File* file = GetFile(args);
   ASSERT(file != NULL);
   Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
   ASSERT(Dart_IsList(buffer_obj));
@@ -185,7 +234,7 @@ void FUNCTION_NAME(File_ReadInto)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(File_WriteFrom)(Dart_NativeArguments args) {
-  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
+  File* file = GetFile(args);
   ASSERT(file != NULL);
 
   Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
@@ -233,7 +282,7 @@ void FUNCTION_NAME(File_WriteFrom)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(File_Position)(Dart_NativeArguments args) {
-  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
+  File* file = GetFile(args);
   ASSERT(file != NULL);
   intptr_t return_value = file->Position();
   if (return_value >= 0) {
@@ -245,7 +294,7 @@ void FUNCTION_NAME(File_Position)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(File_SetPosition)(Dart_NativeArguments args) {
-  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
+  File* file = GetFile(args);
   ASSERT(file != NULL);
   int64_t position = 0;
   if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &position)) {
@@ -262,7 +311,7 @@ void FUNCTION_NAME(File_SetPosition)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(File_Truncate)(Dart_NativeArguments args) {
-  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
+  File* file = GetFile(args);
   ASSERT(file != NULL);
   int64_t length = 0;
   if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &length)) {
@@ -279,7 +328,7 @@ void FUNCTION_NAME(File_Truncate)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(File_Length)(Dart_NativeArguments args) {
-  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
+  File* file = GetFile(args);
   ASSERT(file != NULL);
   int64_t return_value = file->Length();
   if (return_value >= 0) {
@@ -315,7 +364,7 @@ void FUNCTION_NAME(File_LastModified)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(File_Flush)(Dart_NativeArguments args) {
-  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
+  File* file = GetFile(args);
   ASSERT(file != NULL);
   if (file->Flush()) {
     Dart_SetReturnValue(args, Dart_True());
@@ -326,7 +375,7 @@ void FUNCTION_NAME(File_Flush)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(File_Lock)(Dart_NativeArguments args) {
-  File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
+  File* file = GetFile(args);
   ASSERT(file != NULL);
   int64_t lock;
   int64_t start;
@@ -704,9 +753,16 @@ CObject* File::CloseRequest(const CObjectArray& request) {
   intptr_t return_value = -1;
   if ((request.Length() == 1) && request[0]->IsIntptr()) {
     File* file = CObjectToFilePointer(request[0]);
-    ASSERT(file != NULL);
-    delete file;
+    RefCntReleaseScope<File> rs(file);
     return_value = 0;
+    // We have retained a reference to the file here. Therefore the file's
+    // destructor can't be running. Since no further requests are dispatched by
+    // the Dart code after an async close call, this Close() can't be racing
+    // with any other call on the file. We don't do an extra Release(), and we
+    // don't delete the weak persistent handle. The file is closed here, but the
+    // memory will be cleaned up when the finalizer runs.
+    ASSERT(!file->IsClosed());
+    file->Close();
   }
   return new CObjectIntptr(CObject::NewIntptr(return_value));
 }
@@ -715,7 +771,7 @@ CObject* File::CloseRequest(const CObjectArray& request) {
 CObject* File::PositionRequest(const CObjectArray& request) {
   if ((request.Length() == 1) && request[0]->IsIntptr()) {
     File* file = CObjectToFilePointer(request[0]);
-    ASSERT(file != NULL);
+    RefCntReleaseScope<File> rs(file);
     if (!file->IsClosed()) {
       intptr_t return_value = file->Position();
       if (return_value >= 0) {
@@ -736,7 +792,7 @@ CObject* File::SetPositionRequest(const CObjectArray& request) {
       request[0]->IsIntptr() &&
       request[1]->IsInt32OrInt64()) {
     File* file = CObjectToFilePointer(request[0]);
-    ASSERT(file != NULL);
+    RefCntReleaseScope<File> rs(file);
     if (!file->IsClosed()) {
       int64_t position = CObjectInt32OrInt64ToInt64(request[1]);
       if (file->SetPosition(position)) {
@@ -757,7 +813,7 @@ CObject* File::TruncateRequest(const CObjectArray& request) {
       request[0]->IsIntptr() &&
       request[1]->IsInt32OrInt64()) {
     File* file = CObjectToFilePointer(request[0]);
-    ASSERT(file != NULL);
+    RefCntReleaseScope<File> rs(file);
     if (!file->IsClosed()) {
       int64_t length = CObjectInt32OrInt64ToInt64(request[1]);
       if (file->Truncate(length)) {
@@ -776,7 +832,7 @@ CObject* File::TruncateRequest(const CObjectArray& request) {
 CObject* File::LengthRequest(const CObjectArray& request) {
   if ((request.Length() == 1) && request[0]->IsIntptr()) {
     File* file = CObjectToFilePointer(request[0]);
-    ASSERT(file != NULL);
+    RefCntReleaseScope<File> rs(file);
     if (!file->IsClosed()) {
       int64_t return_value = file->Length();
       if (return_value >= 0) {
@@ -823,7 +879,7 @@ CObject* File::LastModifiedRequest(const CObjectArray& request) {
 CObject* File::FlushRequest(const CObjectArray& request) {
   if ((request.Length() == 1) && request[0]->IsIntptr()) {
     File* file = CObjectToFilePointer(request[0]);
-    ASSERT(file != NULL);
+    RefCntReleaseScope<File> rs(file);
     if (!file->IsClosed()) {
       if (file->Flush()) {
         return CObject::True();
@@ -841,7 +897,7 @@ CObject* File::FlushRequest(const CObjectArray& request) {
 CObject* File::ReadByteRequest(const CObjectArray& request) {
   if ((request.Length() == 1) && request[0]->IsIntptr()) {
     File* file = CObjectToFilePointer(request[0]);
-    ASSERT(file != NULL);
+    RefCntReleaseScope<File> rs(file);
     if (!file->IsClosed()) {
       uint8_t buffer;
       int64_t bytes_read = file->Read(reinterpret_cast<void*>(&buffer), 1);
@@ -865,7 +921,7 @@ CObject* File::WriteByteRequest(const CObjectArray& request) {
       request[0]->IsIntptr() &&
       request[1]->IsInt32OrInt64()) {
     File* file = CObjectToFilePointer(request[0]);
-    ASSERT(file != NULL);
+    RefCntReleaseScope<File> rs(file);
     if (!file->IsClosed()) {
       int64_t byte = CObjectInt32OrInt64ToInt64(request[1]);
       uint8_t buffer = static_cast<uint8_t>(byte & 0xff);
@@ -888,7 +944,7 @@ CObject* File::ReadRequest(const CObjectArray& request) {
       request[0]->IsIntptr() &&
       request[1]->IsInt32OrInt64()) {
     File* file = CObjectToFilePointer(request[0]);
-    ASSERT(file != NULL);
+    RefCntReleaseScope<File> rs(file);
     if (!file->IsClosed()) {
       int64_t length = CObjectInt32OrInt64ToInt64(request[1]);
       Dart_CObject* io_buffer = CObject::NewIOBuffer(length);
@@ -920,7 +976,7 @@ CObject* File::ReadIntoRequest(const CObjectArray& request) {
       request[0]->IsIntptr() &&
       request[1]->IsInt32OrInt64()) {
     File* file = CObjectToFilePointer(request[0]);
-    ASSERT(file != NULL);
+    RefCntReleaseScope<File> rs(file);
     if (!file->IsClosed()) {
       int64_t length = CObjectInt32OrInt64ToInt64(request[1]);
       Dart_CObject* io_buffer = CObject::NewIOBuffer(length);
@@ -980,7 +1036,7 @@ CObject* File::WriteFromRequest(const CObjectArray& request) {
       request[2]->IsInt32OrInt64() &&
       request[3]->IsInt32OrInt64()) {
     File* file = CObjectToFilePointer(request[0]);
-    ASSERT(file != NULL);
+    RefCntReleaseScope<File> rs(file);
     if (!file->IsClosed()) {
       int64_t start = CObjectInt32OrInt64ToInt64(request[2]);
       int64_t end = CObjectInt32OrInt64ToInt64(request[3]);
@@ -1143,7 +1199,7 @@ CObject* File::LockRequest(const CObjectArray& request) {
       request[2]->IsInt32OrInt64() &&
       request[3]->IsInt32OrInt64()) {
     File* file = CObjectToFilePointer(request[0]);
-    ASSERT(file != NULL);
+    RefCntReleaseScope<File> rs(file);
     if (!file->IsClosed()) {
       int64_t lock = CObjectInt32OrInt64ToInt64(request[1]);
       int64_t start = CObjectInt32OrInt64ToInt64(request[2]);

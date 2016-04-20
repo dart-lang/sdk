@@ -1099,7 +1099,7 @@ static void WriteSnapshotFile(const char* snapshot_directory,
               "Unable to open file %s for writing snapshot\n",
               qualified_filename);
   }
-  delete file;
+  file->Release();
   if (concat != NULL) {
     delete concat;
   }

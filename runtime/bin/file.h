@@ -12,6 +12,8 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/log.h"
+#include "bin/reference_counting.h"
 
 namespace dart {
 namespace bin {
@@ -19,7 +21,7 @@ namespace bin {
 // Forward declaration.
 class FileHandle;
 
-class File {
+class File : public ReferenceCounted<File> {
  public:
   enum FileOpenMode {
     kRead = 0,
@@ -82,8 +84,6 @@ class File {
     kLockMax = 2
   };
 
-  ~File();
-
   intptr_t GetFD();
 
   // Read/Write attempt to transfer num_bytes to/from buffer. It returns
@@ -123,6 +123,26 @@ class File {
 
   // Returns whether the file has been closed.
   bool IsClosed();
+
+  // Calls the platform-specific functions to close the file.
+  void Close();
+
+  // Returns the weak persistent handle for the File's Dart wrapper.
+  Dart_WeakPersistentHandle WeakHandle() const { return weak_handle_; }
+
+  // Set the weak persistent handle for the File's Dart wrapper.
+  void SetWeakHandle(Dart_WeakPersistentHandle handle) {
+    ASSERT(weak_handle_ == NULL);
+    weak_handle_ = handle;
+  }
+
+  // Deletes the weak persistent handle for the File's Dart wrapper. Call
+  // when the file is explicitly closed and the finalizer is no longer
+  // needed.
+  void DeleteWeakHandle(Dart_Isolate isolate) {
+    Dart_DeleteWeakPersistentHandle(isolate, weak_handle_);
+    weak_handle_ = NULL;
+  }
 
   // Open the file with the given path. The file is always opened for
   // reading. If mode contains kWrite the file is opened for both
@@ -190,8 +210,12 @@ class File {
   static CObject* LockRequest(const CObjectArray& request);
 
  private:
-  explicit File(FileHandle* handle) : handle_(handle) { }
-  void Close();
+  explicit File(FileHandle* handle) :
+      ReferenceCounted(),
+      handle_(handle),
+      weak_handle_(NULL) {}
+
+  ~File();
 
   static File* FileOpenW(const wchar_t* system_name, FileOpenMode mode);
 
@@ -200,6 +224,12 @@ class File {
   // FileHandle is an OS specific class which stores data about the file.
   FileHandle* handle_;  // OS specific handle for the file.
 
+  // We retain the weak handle because we can do cleanup eagerly when Dart code
+  // calls closeSync(). In that case, we delete the weak handle so that the
+  // finalizer doesn't run.
+  Dart_WeakPersistentHandle weak_handle_;
+
+  friend class ReferenceCounted<File>;
   DISALLOW_COPY_AND_ASSIGN(File);
 };
 

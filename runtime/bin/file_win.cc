@@ -38,7 +38,9 @@ class FileHandle {
 
 
 File::~File() {
-  Close();
+  if (!IsClosed()) {
+    Close();
+  }
   delete handle_;
 }
 
