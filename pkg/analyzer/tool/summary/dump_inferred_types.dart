@@ -194,8 +194,22 @@ class InferredTypeCollector {
     for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
       unlinkedUnits[bundle.unlinkedUnitUris[i]] = bundle.unlinkedUnits[i];
     }
+    // Figure out which unlinked units are a part of another library so we won't
+    // visit them redundantly.
+    Set<String> partOfUris = new Set<String>();
+    unlinkedUnits.forEach((String unitUriString, UnlinkedUnit unlinkedUnit) {
+      Uri unitUri = Uri.parse(unitUriString);
+      for (String relativePartUriString in unlinkedUnit.publicNamespace.parts) {
+        partOfUris.add(
+            resolveRelativeUri(unitUri, Uri.parse(relativePartUriString))
+                .toString());
+      }
+    });
     linkedLibraries
         .forEach((String libraryUriString, LinkedLibrary linkedLibrary) {
+      if (partOfUris.contains(libraryUriString)) {
+        return;
+      }
       Uri libraryUri = Uri.parse(libraryUriString);
       UnlinkedUnit definingUnlinkedUnit = unlinkedUnits[libraryUriString];
       visitUnit(definingUnlinkedUnit, linkedLibrary.units[0], libraryUriString);
