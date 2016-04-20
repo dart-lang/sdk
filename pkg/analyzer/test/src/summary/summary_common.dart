@@ -7298,6 +7298,21 @@ p.B b;
     expect(unlinkedUnits[0].imports[0].uri, 'dart:async');
   }
 
+  test_inferred_type_keeps_leading_dynamic() {
+    if (!strongMode || skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedClass cls =
+        serializeClassText('class C { final x = <dynamic, int>{}; }');
+    EntityRef type = getTypeRefForSlot(cls.fields[0].inferredTypeSlot);
+    // Check that x has inferred type `Map<dynamic, int>`.
+    checkLinkedTypeRef(type, 'dart:core', 'dart:core', 'Map',
+        allowTypeArguments: true, numTypeParameters: 2);
+    expect(type.typeArguments, hasLength(2));
+    checkLinkedTypeRef(type.typeArguments[0], null, null, 'dynamic');
+    checkLinkedTypeRef(type.typeArguments[1], 'dart:core', 'dart:core', 'int');
+  }
+
   test_inferred_type_refers_to_bound_type_param() {
     if (!strongMode || skipFullyLinkedData) {
       return;
@@ -7433,6 +7448,32 @@ p.B b;
     expect(linkedReference.containingReference, isNot(0));
     expect(linkedReference.containingReference, lessThan(type.reference));
     checkReferenceIndex(linkedReference.containingReference, null, null, 'D');
+  }
+
+  test_inferred_type_skips_trailing_dynamic() {
+    if (!strongMode || skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedClass cls =
+        serializeClassText('class C { final x = <int, dynamic>{}; }');
+    EntityRef type = getTypeRefForSlot(cls.fields[0].inferredTypeSlot);
+    // Check that x has inferred type `Map<int>`.  The trailing type argument
+    // `dynamic` is omitted.
+    checkLinkedTypeRef(type, 'dart:core', 'dart:core', 'Map',
+        allowTypeArguments: true, numTypeParameters: 2);
+    expect(type.typeArguments, hasLength(1));
+    checkLinkedTypeRef(type.typeArguments[0], 'dart:core', 'dart:core', 'int');
+  }
+
+  test_inferred_type_skips_unnecessary_dynamic() {
+    if (!strongMode || skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedClass cls = serializeClassText('class C { final x = []; }');
+    EntityRef type = getTypeRefForSlot(cls.fields[0].inferredTypeSlot);
+    // Check that x has inferred type `List`, not `List<dynamic>`.
+    checkLinkedTypeRef(type, 'dart:core', 'dart:core', 'List',
+        numTypeParameters: 1);
   }
 
   test_initializer_executable_with_bottom_return_type() {

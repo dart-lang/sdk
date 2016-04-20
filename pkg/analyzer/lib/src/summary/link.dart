@@ -166,12 +166,8 @@ EntityRefBuilder _createLinkedType(
   if (type is InterfaceType) {
     ClassElementForLink element = type.element;
     result.reference = compilationUnit.addReference(element);
-    if (type.typeArguments.isNotEmpty) {
-      result.typeArguments = type.typeArguments
-          .map((DartType t) =>
-              _createLinkedType(t, compilationUnit, typeParameterContext))
-          .toList();
-    }
+    _storeTypeArguments(
+        type.typeArguments, result, compilationUnit, typeParameterContext);
     return result;
   } else if (type is DynamicTypeImpl) {
     result.reference = compilationUnit.addRawReference('dynamic');
@@ -193,32 +189,20 @@ EntityRefBuilder _createLinkedType(
       result.reference =
           compilationUnit.addReference(element.innermostExecutable);
       result.implicitFunctionTypeIndices = element.implicitFunctionTypeIndices;
-      if (type.typeArguments.isNotEmpty) {
-        result.typeArguments = type.typeArguments
-            .map((DartType t) =>
-                _createLinkedType(t, compilationUnit, typeParameterContext))
-            .toList();
-      }
+      _storeTypeArguments(
+          type.typeArguments, result, compilationUnit, typeParameterContext);
       return result;
     }
     if (element is TopLevelFunctionElementForLink) {
       result.reference = compilationUnit.addReference(element);
-      if (type.typeArguments.isNotEmpty) {
-        result.typeArguments = type.typeArguments
-            .map((DartType t) =>
-                _createLinkedType(t, compilationUnit, typeParameterContext))
-            .toList();
-      }
+      _storeTypeArguments(
+          type.typeArguments, result, compilationUnit, typeParameterContext);
       return result;
     }
     if (element is MethodElementForLink) {
       result.reference = compilationUnit.addReference(element);
-      if (type.typeArguments.isNotEmpty) {
-        result.typeArguments = type.typeArguments
-            .map((DartType t) =>
-                _createLinkedType(t, compilationUnit, typeParameterContext))
-            .toList();
-      }
+      _storeTypeArguments(
+          type.typeArguments, result, compilationUnit, typeParameterContext);
       return result;
     }
     // TODO(paulberry): implement other cases.
@@ -226,6 +210,34 @@ EntityRefBuilder _createLinkedType(
   }
   // TODO(paulberry): implement other cases.
   throw new UnimplementedError('${type.runtimeType}');
+}
+
+/**
+ * Store the given [typeArguments] in [encodedType], using [compilationUnit] and
+ * [typeParameterContext] to serialize them.
+ *
+ * Trailing arguments of type `dynamic` are dropped.
+ */
+void _storeTypeArguments(
+    List<DartType> typeArguments,
+    EntityRefBuilder encodedType,
+    CompilationUnitElementInBuildUnit compilationUnit,
+    TypeParameterizedElementForLink typeParameterContext) {
+  int count = typeArguments.length;
+  while (count > 0) {
+    if (typeArguments[count - 1].isDynamic) {
+      count--;
+    } else {
+      List<EntityRefBuilder> encodedTypeArguments =
+          new List<EntityRefBuilder>(count);
+      for (int i = 0; i < count; i++) {
+        encodedTypeArguments[i] = _createLinkedType(
+            typeArguments[i], compilationUnit, typeParameterContext);
+      }
+      encodedType.typeArguments = encodedTypeArguments;
+      break;
+    }
+  }
 }
 
 /**
