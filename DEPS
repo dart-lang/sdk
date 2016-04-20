@@ -45,8 +45,7 @@ vars = {
   "dartdoc_tag" : "@v0.9.0",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.4",
-  "dev_compiler_rev": "@0ed6aeca35fa0e618ad0f7f19f3eba64afdd80c4",
-  "func_rev": "@8d4aea75c21be2179cb00dc2b94a71414653094e",
+  "dev_compiler_rev": "@0c5dd2d1e999c421d978a478e267aac6279e087a",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
   "html_tag" : "@0.12.1+1",
   "http_tag" : "@0.11.3+3",
@@ -73,7 +72,7 @@ vars = {
   "plugin_tag": "@0.1.0",
   "pool_tag": "@1.2.1",
   "protobuf_tag": "@0.5.0+1",
-  "pub_rev": "@217fc8ae2bdee58ebf4b11a6fa3d49624d90c0c4",
+  "pub_rev": "@04ff0cc2cb6a3b698159b1aeef14cd3d7c90e287",
   "pub_cache_tag": "@v0.1.0",
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
@@ -177,8 +176,6 @@ deps = {
       (Var("github_mirror") % "dartdoc") + Var("dartdoc_tag"),
   Var("dart_root") + "/third_party/pkg/dev_compiler":
       (Var("github_mirror") % "dev_compiler") + Var("dev_compiler_rev"),
-  Var("dart_root") + "/third_party/pkg/func":
-      (Var("github_dartlang") % "func") + Var("func_rev"),
   Var("dart_root") + "/third_party/pkg/glob":
       (Var("github_mirror") % "glob") + Var("glob_rev"),
   Var("dart_root") + "/third_party/pkg/html":
