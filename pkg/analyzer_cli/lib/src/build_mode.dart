@@ -31,6 +31,92 @@ import 'package:analyzer_cli/src/options.dart';
 import 'package:bazel_worker/bazel_worker.dart';
 
 /**
+ * Persistent Bazel worker.
+ */
+class AnalyzerWorkerLoop extends SyncWorkerLoop {
+  final StringBuffer errorBuffer = new StringBuffer();
+  final StringBuffer outBuffer = new StringBuffer();
+
+  final String dartSdkPath;
+
+  AnalyzerWorkerLoop(SyncWorkerConnection connection, {this.dartSdkPath})
+      : super(connection: connection);
+
+  factory AnalyzerWorkerLoop.std(
+      {io.Stdin stdinStream, io.Stdout stdoutStream, String dartSdkPath}) {
+    SyncWorkerConnection connection = new StdSyncWorkerConnection(
+        stdinStream: stdinStream, stdoutStream: stdoutStream);
+    return new AnalyzerWorkerLoop(connection, dartSdkPath: dartSdkPath);
+  }
+
+  /**
+   * Performs analysis with given [options].
+   */
+  void analyze(CommandLineOptions options) {
+    new BuildMode(options, new AnalysisStats()).analyze();
+    AnalysisEngine.instance.clearCaches();
+  }
+
+  /**
+   * Perform a single loop step.
+   */
+  WorkResponse performRequest(WorkRequest request) {
+    errorBuffer.clear();
+    outBuffer.clear();
+    try {
+      // Add in the dart-sdk argument if `dartSdkPath` is not null, otherwise it
+      // will try to find the currently installed sdk.
+      var arguments = new List.from(request.arguments);
+      if (dartSdkPath != null &&
+          !arguments.any((arg) => arg.startsWith('--dart-sdk'))) {
+        arguments.add('--dart-sdk=$dartSdkPath');
+      }
+      // Prepare options.
+      CommandLineOptions options =
+          CommandLineOptions.parse(arguments, (String msg) {
+        throw new ArgumentError(msg);
+      });
+      // Analyze and respond.
+      analyze(options);
+      String msg = _getErrorOutputBuffersText();
+      return new WorkResponse()
+        ..exitCode = EXIT_CODE_OK
+        ..output = msg;
+    } catch (e, st) {
+      String msg = _getErrorOutputBuffersText();
+      msg += '$e\n$st';
+      return new WorkResponse()
+        ..exitCode = EXIT_CODE_ERROR
+        ..output = msg;
+    }
+  }
+
+  /**
+   * Run the worker loop.
+   */
+  @override
+  void run() {
+    errorSink = errorBuffer;
+    outSink = outBuffer;
+    exitHandler = (int exitCode) {
+      return throw new StateError('Exit called: $exitCode');
+    };
+    super.run();
+  }
+
+  String _getErrorOutputBuffersText() {
+    String msg = '';
+    if (errorBuffer.isNotEmpty) {
+      msg += errorBuffer.toString() + '\n';
+    }
+    if (outBuffer.isNotEmpty) {
+      msg += outBuffer.toString() + '\n';
+    }
+    return msg;
+  }
+}
+
+/**
  * Analyzer used when the "--build-mode" option is supplied.
  */
 class BuildMode {
@@ -270,91 +356,5 @@ class BuildMode {
       uriToFileMap[uri] = new JavaFile(path);
     }
     return uriToFileMap;
-  }
-}
-
-/**
- * Persistent Bazel worker.
- */
-class AnalyzerWorkerLoop extends SyncWorkerLoop {
-  final StringBuffer errorBuffer = new StringBuffer();
-  final StringBuffer outBuffer = new StringBuffer();
-
-  final String dartSdkPath;
-
-  AnalyzerWorkerLoop(SyncWorkerConnection connection, {this.dartSdkPath})
-      : super(connection: connection);
-
-  factory AnalyzerWorkerLoop.std(
-      {io.Stdin stdinStream, io.Stdout stdoutStream, String dartSdkPath}) {
-    SyncWorkerConnection connection = new StdSyncWorkerConnection(
-        stdinStream: stdinStream, stdoutStream: stdoutStream);
-    return new AnalyzerWorkerLoop(connection, dartSdkPath: dartSdkPath);
-  }
-
-  /**
-   * Performs analysis with given [options].
-   */
-  void analyze(CommandLineOptions options) {
-    new BuildMode(options, new AnalysisStats()).analyze();
-    AnalysisEngine.instance.clearCaches();
-  }
-
-  /**
-   * Perform a single loop step.
-   */
-  WorkResponse performRequest(WorkRequest request) {
-    errorBuffer.clear();
-    outBuffer.clear();
-    try {
-      // Add in the dart-sdk argument if `dartSdkPath` is not null, otherwise it
-      // will try to find the currently installed sdk.
-      var arguments = new List.from(request.arguments);
-      if (dartSdkPath != null &&
-          !arguments.any((arg) => arg.startsWith('--dart-sdk'))) {
-        arguments.add('--dart-sdk=$dartSdkPath');
-      }
-      // Prepare options.
-      CommandLineOptions options =
-          CommandLineOptions.parse(arguments, (String msg) {
-        throw new ArgumentError(msg);
-      });
-      // Analyze and respond.
-      analyze(options);
-      String msg = _getErrorOutputBuffersText();
-      return new WorkResponse()
-        ..exitCode = EXIT_CODE_OK
-        ..output = msg;
-    } catch (e, st) {
-      String msg = _getErrorOutputBuffersText();
-      msg += '$e\n$st';
-      return new WorkResponse()
-        ..exitCode = EXIT_CODE_ERROR
-        ..output = msg;
-    }
-  }
-
-  /**
-   * Run the worker loop.
-   */
-  @override
-  void run() {
-    errorSink = errorBuffer;
-    outSink = outBuffer;
-    exitHandler = (int exitCode) {
-      return throw new StateError('Exit called: $exitCode');
-    };
-    super.run();
-  }
-
-  String _getErrorOutputBuffersText() {
-    String msg = '';
-    if (errorBuffer.isNotEmpty) {
-      msg += errorBuffer.toString() + '\n';
-    }
-    if (outBuffer.isNotEmpty) {
-      msg += outBuffer.toString() + '\n';
-    }
-    return msg;
   }
 }
