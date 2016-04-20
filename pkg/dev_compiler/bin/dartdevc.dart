@@ -35,28 +35,30 @@
 ///   local file servers, and users have an expectation of it now, even though
 ///   it doesn't scale to typical apps that need their own real servers.
 
+import 'dart:async';
 import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:dev_compiler/src/compiler/command.dart';
 
-main(List<String> args) async {
+Future main(List<String> args) async {
   // Always returns a new modifiable list.
   args = _preprocessArgs(args);
 
   if (args.contains('--persistent_worker')) {
     new _CompilerWorker(args..remove('--persistent_worker')).run();
   } else {
-    exitCode = _runCommand(args);
+    exitCode = await _runCommand(args);
   }
 }
 
 /// Runs a single compile command, and returns an exit code.
-int _runCommand(List<String> args, {MessageHandler messageHandler}) {
+Future<int> _runCommand(List<String> args,
+    {MessageHandler messageHandler}) async {
   try {
     var runner = new CommandRunner('dartdevc', 'Dart Development Compiler');
     runner.addCommand(new CompileCommand(messageHandler: messageHandler));
-    runner.run(args);
+    await runner.run(args);
   } catch (e, s) {
     return _handleError(e, s, args, messageHandler: messageHandler);
   }
@@ -64,19 +66,19 @@ int _runCommand(List<String> args, {MessageHandler messageHandler}) {
 }
 
 /// Runs the compiler worker loop.
-class _CompilerWorker extends SyncWorkerLoop {
+class _CompilerWorker extends AsyncWorkerLoop {
   /// The original args supplied to the executable.
   final List<String> _startupArgs;
 
   _CompilerWorker(this._startupArgs) : super();
 
   /// Performs each individual work request.
-  WorkResponse performRequest(WorkRequest request) {
+  Future<WorkResponse> performRequest(WorkRequest request) async {
     var args = new List.from(_startupArgs)..addAll(request.arguments);
 
     var output = new StringBuffer();
     return new WorkResponse()
-      ..exitCode = _runCommand(args, messageHandler: output.writeln)
+      ..exitCode = await _runCommand(args, messageHandler: output.writeln)
       ..output = output.toString();
   }
 }
