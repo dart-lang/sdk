@@ -4322,7 +4322,7 @@ class ImportsVerifier {
         // exports from the libraryElement.
         //
         _addAdditionalLibrariesForExports(
-            libraryElement, importDirective, new List<LibraryElement>());
+            libraryElement, importDirective, new HashSet<LibraryElement>());
         _addShownNames(importDirective);
       }
     }
@@ -4470,15 +4470,14 @@ class ImportsVerifier {
    * Recursively add any exported library elements into the [libraryMap].
    */
   void _addAdditionalLibrariesForExports(LibraryElement library,
-      ImportDirective importDirective, List<LibraryElement> exportPath) {
-    if (exportPath.contains(library)) {
+      ImportDirective importDirective, Set<LibraryElement> visitedLibraries) {
+    if (!visitedLibraries.add(library)) {
       return;
     }
-    exportPath.add(library);
     for (LibraryElement exportedLibraryElt in library.exportedLibraries) {
       _putIntoLibraryMap(exportedLibraryElt, importDirective);
       _addAdditionalLibrariesForExports(
-          exportedLibraryElt, importDirective, exportPath);
+          exportedLibraryElt, importDirective, visitedLibraries);
     }
   }
 
