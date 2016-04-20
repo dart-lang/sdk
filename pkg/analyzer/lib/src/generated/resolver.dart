@@ -8504,38 +8504,42 @@ class ResolverVisitor extends ScopedVisitor {
       List<ParameterElement> parameters,
       void onError(ErrorCode errorCode, AstNode node, [List<Object> arguments]),
       {bool reportAsError: false}) {
-    List<ParameterElement> requiredParameters = new List<ParameterElement>();
-    List<ParameterElement> positionalParameters = new List<ParameterElement>();
-    HashMap<String, ParameterElement> namedParameters =
-        new HashMap<String, ParameterElement>();
+    if (parameters.isEmpty && argumentList.arguments.isEmpty) {
+      return const <ParameterElement>[];
+    }
+    int requiredParameterCount = 0;
+    int unnamedParameterCount = 0;
+    List<ParameterElement> unnamedParameters = new List<ParameterElement>();
+    HashMap<String, ParameterElement> namedParameters = null;
     for (ParameterElement parameter in parameters) {
       ParameterKind kind = parameter.parameterKind;
       if (kind == ParameterKind.REQUIRED) {
-        requiredParameters.add(parameter);
+        unnamedParameters.add(parameter);
+        unnamedParameterCount++;
+        requiredParameterCount++;
       } else if (kind == ParameterKind.POSITIONAL) {
-        positionalParameters.add(parameter);
+        unnamedParameters.add(parameter);
+        unnamedParameterCount++;
       } else {
+        namedParameters ??= new HashMap<String, ParameterElement>();
         namedParameters[parameter.name] = parameter;
       }
     }
-    List<ParameterElement> unnamedParameters =
-        new List<ParameterElement>.from(requiredParameters);
-    unnamedParameters.addAll(positionalParameters);
-    int unnamedParameterCount = unnamedParameters.length;
     int unnamedIndex = 0;
     NodeList<Expression> arguments = argumentList.arguments;
     int argumentCount = arguments.length;
     List<ParameterElement> resolvedParameters =
         new List<ParameterElement>(argumentCount);
     int positionalArgumentCount = 0;
-    HashSet<String> usedNames = new HashSet<String>();
+    HashSet<String> usedNames = null;
     bool noBlankArguments = true;
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments[i];
       if (argument is NamedExpression) {
         SimpleIdentifier nameNode = argument.name.label;
         String name = nameNode.name;
-        ParameterElement element = namedParameters[name];
+        ParameterElement element =
+            namedParameters != null ? namedParameters[name] : null;
         if (element == null) {
           ErrorCode errorCode = (reportAsError
               ? CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER
@@ -8547,6 +8551,7 @@ class ResolverVisitor extends ScopedVisitor {
           resolvedParameters[i] = element;
           nameNode.staticElement = element;
         }
+        usedNames ??= new HashSet<String>();
         if (!usedNames.add(name)) {
           if (onError != null) {
             onError(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode,
@@ -8563,14 +8568,13 @@ class ResolverVisitor extends ScopedVisitor {
         }
       }
     }
-    if (positionalArgumentCount < requiredParameters.length &&
-        noBlankArguments) {
+    if (positionalArgumentCount < requiredParameterCount && noBlankArguments) {
       ErrorCode errorCode = (reportAsError
           ? CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS
           : StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
       if (onError != null) {
         onError(errorCode, argumentList,
-            [requiredParameters.length, positionalArgumentCount]);
+            [requiredParameterCount, positionalArgumentCount]);
       }
     } else if (positionalArgumentCount > unnamedParameterCount &&
         noBlankArguments) {
