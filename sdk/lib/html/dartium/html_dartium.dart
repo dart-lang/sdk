@@ -805,12 +805,12 @@ abstract class AbstractWorker extends DartHtmlDomObject implements EventTarget {
    */
   @DomName('AbstractWorker.errorEvent')
   @DocsEditable()
-  static const EventStreamProvider<ErrorEvent> errorEvent = const EventStreamProvider<ErrorEvent>('error');
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   /// Stream of `error` events handled by this [AbstractWorker].
   @DomName('AbstractWorker.onerror')
   @DocsEditable()
-  Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
+  Stream<Event> get onError => errorEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4591,7 +4591,7 @@ class CompositorWorker extends EventTarget implements AbstractWorker {
   @DomName('CompositorWorker.errorEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<ErrorEvent> errorEvent = const EventStreamProvider<ErrorEvent>('error');
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   @DomName('CompositorWorker.messageEvent')
   @DocsEditable()
@@ -4629,7 +4629,7 @@ class CompositorWorker extends EventTarget implements AbstractWorker {
   @DomName('CompositorWorker.onerror')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
+  Stream<Event> get onError => errorEvent.forTarget(this);
 
   @DomName('CompositorWorker.onmessage')
   @DocsEditable()
@@ -33650,7 +33650,7 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   @DomName('SharedWorker.errorEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<ErrorEvent> errorEvent = const EventStreamProvider<ErrorEvent>('error');
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   @DomName('SharedWorker.SharedWorker')
   @DocsEditable()
@@ -33678,7 +33678,7 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   @DomName('SharedWorker.onerror')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
+  Stream<Event> get onError => errorEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40949,7 +40949,7 @@ class Worker extends EventTarget implements AbstractWorker {
   @DomName('Worker.errorEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<ErrorEvent> errorEvent = const EventStreamProvider<ErrorEvent>('error');
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   /**
    * Static factory designed to expose `message` events to event
@@ -40995,7 +40995,7 @@ class Worker extends EventTarget implements AbstractWorker {
   @DomName('Worker.onerror')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
+  Stream<Event> get onError => errorEvent.forTarget(this);
 
   /// Stream of `message` events handled by this [Worker].
   @DomName('Worker.onmessage')
