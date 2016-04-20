@@ -381,25 +381,23 @@ class ClosureScope {
   }
 
   String toString() {
+    String separator = '';
     StringBuffer sb = new StringBuffer();
+    sb.write('ClosureScope(');
     if (boxElement != null) {
       sb.write('box=$boxElement');
+      separator = ',';
     }
     if (boxedLoopVariables.isNotEmpty) {
-      if (sb.isNotEmpty) {
-        sb.write(',');
-      }
+      sb.write(separator);
       sb.write('boxedLoopVariables=${boxedLoopVariables}');
+      separator = ',';
     }
     if (capturedVariables.isNotEmpty) {
-      if (sb.isNotEmpty) {
-        sb.write(',');
-      }
-      sb.write('capturedVariables=');
-      capturedVariables.forEach((Local local, BoxFieldElement field) {
-        sb.write('$local->${field} ');
-      });
+      sb.write(separator);
+      sb.write('capturedVariables=$capturedVariables');
     }
+    sb.write(')');
     return sb.toString();
   }
 }
