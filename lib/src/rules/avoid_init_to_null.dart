@@ -74,7 +74,7 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitVariableDeclaration(VariableDeclaration node) {
-    if (node.initializer is NullLiteral) {
+    if (node.initializer is NullLiteral && !node.isConst && !node.isFinal) {
       rule.reportLint(node);
     }
   }

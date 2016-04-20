@@ -7,8 +7,12 @@
 var x = null; //LINT
 var y; //OK
 var z = 1; //OK
+const nil = null; //OK
+final nil2 = null; //OK
 
 class X {
+  static const nil = null; //OK
+  final nil2 = null; //OK
   int x = null; //LINT
   int y; //OK
 }
