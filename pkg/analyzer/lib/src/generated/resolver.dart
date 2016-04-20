@@ -7628,7 +7628,7 @@ class ResolverVisitor extends ScopedVisitor {
     Expression condition = node.condition;
     condition?.accept(this);
     Map<VariableElement, DartType> thenOverrides =
-        new HashMap<VariableElement, DartType>();
+        const <VariableElement, DartType>{};
     Statement thenStatement = node.thenStatement;
     if (thenStatement != null) {
       _overrideManager.enterScope();
@@ -7652,7 +7652,7 @@ class ResolverVisitor extends ScopedVisitor {
       }
     }
     Map<VariableElement, DartType> elseOverrides =
-        new HashMap<VariableElement, DartType>();
+        const <VariableElement, DartType>{};
     Statement elseStatement = node.elseStatement;
     if (elseStatement != null) {
       _overrideManager.enterScope();
@@ -7677,7 +7677,7 @@ class ResolverVisitor extends ScopedVisitor {
       _overrideManager.applyOverrides(elseOverrides);
     } else if (!thenIsAbrupt && !elseIsAbrupt) {
       List<Map<VariableElement, DartType>> perBranchOverrides =
-          new List<Map<VariableElement, DartType>>();
+          <Map<VariableElement, DartType>>[];
       perBranchOverrides.add(thenOverrides);
       perBranchOverrides.add(elseOverrides);
       _overrideManager.mergeOverrides(perBranchOverrides);

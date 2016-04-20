@@ -3446,12 +3446,17 @@ class Parser {
    *         label* nonLabeledStatement
    */
   Statement parseStatement2() {
-    List<Label> labels = new List<Label>();
+    List<Label> labels = null;
     while (_matchesIdentifier() && _tokenMatches(_peek(), TokenType.COLON)) {
-      labels.add(parseLabel(isDeclaration: true));
+      Label label = parseLabel(isDeclaration: true);
+      if (labels == null) {
+        labels = <Label>[label];
+      } else {
+        labels.add(label);
+      }
     }
     Statement statement = _parseNonLabeledStatement();
-    if (labels.isEmpty) {
+    if (labels == null) {
       return statement;
     }
     return new LabeledStatement(labels, statement);

@@ -81,12 +81,7 @@ class EnclosedScope extends Scope {
    * not initialized. According to the scoping rules these names are hidden,
    * even if they were defined in an outer scope.
    */
-  HashMap<String, Element> _hiddenElements = new HashMap<String, Element>();
-
-  /**
-   * A flag indicating whether there are any names hidden in this scope.
-   */
-  bool _hasHiddenName = false;
+  HashMap<String, Element> _hiddenElements = null;
 
   /**
    * Initialize a newly created scope, enclosed within the [enclosingScope].
@@ -105,8 +100,8 @@ class EnclosedScope extends Scope {
     if (element != null) {
       String name = element.name;
       if (name != null && !name.isEmpty) {
+        _hiddenElements ??= new HashMap<String, Element>();
         _hiddenElements[name] = element;
-        _hasHiddenName = true;
       }
     }
   }
@@ -119,7 +114,7 @@ class EnclosedScope extends Scope {
       return element;
     }
     // May be there is a hidden Element.
-    if (_hasHiddenName) {
+    if (_hiddenElements != null) {
       Element hiddenElement = _hiddenElements[name];
       if (hiddenElement != null) {
         errorListener.onError(new AnalysisError(
@@ -900,12 +895,7 @@ abstract class Scope {
    * A table mapping names that are defined in this scope to the element
    * representing the thing declared with that name.
    */
-  HashMap<String, Element> _definedNames = new HashMap<String, Element>();
-
-  /**
-   * A flag indicating whether there are any names defined in this scope.
-   */
-  bool _hasName = false;
+  HashMap<String, Element> _definedNames = null;
 
   /**
    * Return the scope in which this scope is lexically enclosed.
@@ -927,12 +917,12 @@ abstract class Scope {
   void define(Element element) {
     String name = _getName(element);
     if (name != null && !name.isEmpty) {
-      if (_definedNames.containsKey(name)) {
+      if (_definedNames != null && _definedNames.containsKey(name)) {
         errorListener
             .onError(getErrorForDuplicate(_definedNames[name], element));
       } else {
+        _definedNames ??= new HashMap<String, Element>();
         _definedNames[name] = element;
-        _hasName = true;
       }
     }
   }
@@ -942,8 +932,8 @@ abstract class Scope {
    * hiding.
    */
   void defineNameWithoutChecking(String name, Element element) {
+    _definedNames ??= new HashMap<String, Element>();
     _definedNames[name] = element;
-    _hasName = true;
   }
 
   /**
@@ -951,8 +941,8 @@ abstract class Scope {
    * hiding.
    */
   void defineWithoutChecking(Element element) {
+    _definedNames ??= new HashMap<String, Element>();
     _definedNames[_getName(element)] = element;
-    _hasName = true;
   }
 
   /**
@@ -1007,7 +997,7 @@ abstract class Scope {
    * contains the reference to the name, used to implement library-level privacy.
    */
   Element localLookup(String name, LibraryElement referencingLibrary) {
-    if (_hasName) {
+    if (_definedNames != null) {
       return _definedNames[name];
     }
     return null;

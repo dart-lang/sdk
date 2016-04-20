@@ -608,7 +608,7 @@ class WorkItem {
   /**
    * The inputs to the task that have been computed.
    */
-  Map<String, dynamic> inputs;
+  Map<String, dynamic> inputs = const <String, dynamic>{};
 
   /**
    * The exception that was found while trying to populate the inputs. If this
@@ -643,7 +643,6 @@ class WorkItem {
     if (!builder.moveNext()) {
       builder = null;
     }
-    inputs = new HashMap<String, dynamic>();
   }
 
   @override
