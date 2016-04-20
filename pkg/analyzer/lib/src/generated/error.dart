@@ -2695,9 +2695,11 @@ abstract class ErrorCode {
     HintCode.TYPE_CHECK_IS_NOT_NULL,
     HintCode.TYPE_CHECK_IS_NULL,
     HintCode.UNDEFINED_GETTER,
+    HintCode.UNDEFINED_HIDDEN_NAME,
     HintCode.UNDEFINED_METHOD,
     HintCode.UNDEFINED_OPERATOR,
     HintCode.UNDEFINED_SETTER,
+    HintCode.UNDEFINED_SHOWN_NAME,
     HintCode.UNNECESSARY_CAST,
     HintCode.UNNECESSARY_NO_SUCH_METHOD,
     HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
@@ -3698,6 +3700,13 @@ class HintCode extends ErrorCode {
       shared_messages.UNDEFINED_GETTER_HINT;
 
   /**
+   * An undefined name hidden in an import or export directive.
+   */
+  static const HintCode UNDEFINED_HIDDEN_NAME = const HintCode(
+      'UNDEFINED_HIDDEN_NAME',
+      "The library '{0}' doesn't export a member with the hidden name '{1}'");
+
+  /**
    * This hint is generated anywhere where the
    * [StaticTypeWarningCode.UNDEFINED_METHOD] would have been generated, if we
    * used propagated information for the warnings.
@@ -3733,6 +3742,13 @@ class HintCode extends ErrorCode {
    */
   static const HintCode UNDEFINED_SETTER =
       shared_messages.UNDEFINED_SETTER_HINT;
+
+  /**
+   * An undefined name shown in an import or export directive.
+   */
+  static const HintCode UNDEFINED_SHOWN_NAME = const HintCode(
+      'UNDEFINED_SHOWN_NAME',
+      "The library '{0}' doesn't export a member with the shown name '{1}'");
 
   /**
    * Unnecessary cast.

@@ -1880,6 +1880,21 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitExportDirective(ExportDirective node) {
+    ExportElement exportElement = node.element;
+    if (exportElement != null) {
+      // The element is null when the URI is invalid
+      LibraryElement library = exportElement.exportedLibrary;
+      if (library != null) {
+        for (Combinator combinator in node.combinators) {
+          _checkCombinator(exportElement.exportedLibrary, combinator);
+        }
+      }
+    }
+    return super.visitExportDirective(node);
+  }
+
+  @override
   Object visitIfStatement(IfStatement node) {
     Expression conditionExpression = node.condition;
     conditionExpression?.accept(this);
@@ -1906,6 +1921,21 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return super.visitIfStatement(node);
+  }
+
+  @override
+  Object visitImportDirective(ImportDirective node) {
+    ImportElement importElement = node.element;
+    if (importElement != null) {
+      // The element is null when the URI is invalid
+      LibraryElement library = importElement.importedLibrary;
+      if (library != null) {
+        for (Combinator combinator in node.combinators) {
+          _checkCombinator(library, combinator);
+        }
+      }
+    }
+    return super.visitImportDirective(node);
   }
 
   @override
@@ -2005,6 +2035,35 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
     }
     node.body?.accept(this);
     return null;
+  }
+
+  /**
+   * Resolve the names in the given [combinator] in the scope of the given
+   * [library].
+   */
+  void _checkCombinator(LibraryElement library, Combinator combinator) {
+    Namespace namespace =
+        new NamespaceBuilder().createExportNamespaceForLibrary(library);
+    NodeList<SimpleIdentifier> names;
+    ErrorCode hintCode;
+    if (combinator is HideCombinator) {
+      names = combinator.hiddenNames;
+      hintCode = HintCode.UNDEFINED_HIDDEN_NAME;
+    } else {
+      names = (combinator as ShowCombinator).shownNames;
+      hintCode = HintCode.UNDEFINED_SHOWN_NAME;
+    }
+    for (SimpleIdentifier name in names) {
+      String nameStr = name.name;
+      Element element = namespace.get(nameStr);
+      if (element == null) {
+        element = namespace.get("$nameStr=");
+      }
+      if (element == null) {
+        _errorReporter.reportErrorForNode(
+            hintCode, name, [library.identifier, nameStr]);
+      }
+    }
   }
 
   /**

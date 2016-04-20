@@ -1710,6 +1710,50 @@ m(i) {
     verify([source]);
   }
 
+  void test_undefinedIdentifier_importHide() {
+    Source source = addSource(r'''
+library L;
+import 'lib1.dart' hide a;''');
+    addNamedSource("/lib1.dart", "library lib1;");
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source,
+        [HintCode.UNUSED_IMPORT, HintCode.UNDEFINED_HIDDEN_NAME]);
+    verify([source]);
+  }
+
+  void test_undefinedIdentifier_importShow() {
+    Source source = addSource(r'''
+library L;
+import 'lib1.dart' show a;''');
+    addNamedSource("/lib1.dart", "library lib1;");
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source,
+        [HintCode.UNUSED_IMPORT, HintCode.UNDEFINED_SHOWN_NAME]);
+    verify([source]);
+  }
+
+  void test_undefinedIdentifier_exportHide() {
+    Source source = addSource(r'''
+library L;
+export 'lib1.dart' hide a;''');
+    addNamedSource("/lib1.dart", "library lib1;");
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.UNDEFINED_HIDDEN_NAME]);
+    verify([source]);
+  }
+
+  void test_undefinedIdentifier_exportShow() {
+    Source source = addSource(r'''
+library L;
+export 'lib1.dart' show a;''');
+    addNamedSource("/lib1.dart", "library lib1;");
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.UNDEFINED_SHOWN_NAME]);
+    verify([source]);
+  }
+
   void test_undefinedGetter() {
     Source source = addSource(r'''
 class A {}
