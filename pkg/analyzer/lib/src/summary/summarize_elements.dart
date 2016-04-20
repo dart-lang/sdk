@@ -137,7 +137,16 @@ class PackageBundleAssembler {
   final List<LinkedLibraryBuilder> _linkedLibraries = <LinkedLibraryBuilder>[];
   final List<String> _unlinkedUnitUris = <String>[];
   final List<UnlinkedUnitBuilder> _unlinkedUnits = <UnlinkedUnitBuilder>[];
-  final List<String> _unlinkedUnitHashes = <String>[];
+  final List<String> _unlinkedUnitHashes;
+  final bool _excludeHashes;
+
+  /**
+   * Create a [PackageBundleAssembler].  If [excludeHashes] is `true`, hash
+   * computation will be skipped.
+   */
+  PackageBundleAssembler({bool excludeHashes: false})
+      : _excludeHashes = excludeHashes,
+        _unlinkedUnitHashes = excludeHashes ? null : <String>[];
 
   /**
    * Add a fallback library to the package bundle, corresponding to the library
@@ -168,13 +177,15 @@ class PackageBundleAssembler {
   }
 
   void addUnlinkedUnit(Source source, UnlinkedUnitBuilder unit) {
-    addUnlinkedUnitWithHash(source.uri.toString(), unit, _hash(source.contents.data));
+    addUnlinkedUnitWithHash(source.uri.toString(), unit,
+        _excludeHashes ? null : _hash(source.contents.data));
   }
 
-  void addUnlinkedUnitWithHash(String uri, UnlinkedUnitBuilder unit, String hash) {
+  void addUnlinkedUnitWithHash(
+      String uri, UnlinkedUnitBuilder unit, String hash) {
     _unlinkedUnitUris.add(uri);
     _unlinkedUnits.add(unit);
-    _unlinkedUnitHashes.add(hash);
+    _unlinkedUnitHashes?.add(hash);
   }
 
   /**

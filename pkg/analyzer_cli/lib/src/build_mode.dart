@@ -129,7 +129,7 @@ class BuildMode {
   Map<Uri, JavaFile> uriToFileMap;
   final List<Source> explicitSources = <Source>[];
 
-  PackageBundleAssembler assembler = new PackageBundleAssembler();
+  PackageBundleAssembler assembler;
   final Set<Source> processedSources = new Set<Source>();
   final Map<Uri, UnlinkedUnit> uriToUnit = <Uri, UnlinkedUnit>{};
 
@@ -180,6 +180,8 @@ class BuildMode {
     }
 
     // Write summary.
+    assembler = new PackageBundleAssembler(
+        excludeHashes: options.buildSummaryExcludeInformative);
     if (options.buildSummaryOutput != null) {
       if (options.buildSummaryOnlyAst && !options.buildSummaryFallback) {
         _serializeAstBasedSummary(explicitSources);
@@ -203,7 +205,6 @@ class BuildMode {
       PackageBundleBuilder sdkBundle = assembler.assemble();
       if (options.buildSummaryExcludeInformative) {
         sdkBundle.flushInformative();
-        sdkBundle.unlinkedUnitHashes = null;
       }
       io.File file = new io.File(options.buildSummaryOutput);
       file.writeAsBytesSync(sdkBundle.toBuffer(), mode: io.FileMode.WRITE_ONLY);
