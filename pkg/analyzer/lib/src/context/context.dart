@@ -809,13 +809,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     CacheEntry entry = _cache.get(target);
     if (entry == null) {
       entry = new CacheEntry(target);
+      ImplicitAnalysisEvent event = null;
       if (target is Source) {
         entry.modificationTime = getModificationStamp(target);
+        event = new ImplicitAnalysisEvent(target, true);
       }
       _cache.put(entry);
-      if (target is Source) {
-        _implicitAnalysisEventsController
-            .add(new ImplicitAnalysisEvent(target, true));
+      if (event != null) {
+        _implicitAnalysisEventsController.add(event);
       }
     }
     return entry;
