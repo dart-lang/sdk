@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/config.dart';
 import 'package:linter/src/formatter.dart';
@@ -151,7 +152,7 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
     timer.stop();
 
     if (errors.length > 0) {
-      exitCode = _maxSeverity(errors);
+      exitCode = _maxSeverity(errors, lintOptions.filter);
     }
 
     var commonRoot = getRoot(options.rest);
@@ -173,9 +174,14 @@ $stack''');
   }
 }
 
-int _maxSeverity(List<AnalysisErrorInfo> errors) {
+int _maxSeverity(List<AnalysisErrorInfo> errors, LintFilter filter) {
   int max = 0;
-  errors.forEach((info) => info.errors.forEach(
-      (error) => max = math.max(max, error.errorCode.errorSeverity.ordinal)));
+  for (AnalysisErrorInfo info in errors) {
+    info.errors
+        .where((AnalysisError e) => !filter.filter(e))
+        .forEach((AnalysisError e) {
+      max = math.max(max, e.errorCode.errorSeverity.ordinal);
+    });
+  }
   return max;
 }

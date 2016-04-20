@@ -40,14 +40,16 @@ defineTests() {
         test('excludes', () {
           dartlint
               .main(['test/_data/p2', '-c', 'test/_data/p2/lintconfig.yaml']);
-          expect(exitCode, equals(1));
-          expect(collectingOut.trim(),
-              stringContainsInOrder(['4 files analyzed, 1 issue found (2 filtered), in']));
+          expect(exitCode, 1);
+          expect(
+              collectingOut.trim(),
+              stringContainsInOrder(
+                  ['4 files analyzed, 1 issue found (2 filtered), in']));
         });
         test('overrrides', () {
           dartlint
               .main(['test/_data/p2', '-c', 'test/_data/p2/lintconfig2.yaml']);
-          expect(exitCode, equals(0));
+          expect(exitCode, 0);
           expect(collectingOut.trim(),
               stringContainsInOrder(['4 files analyzed, 0 issues found, in']));
         });
@@ -63,8 +65,8 @@ defineTests() {
       });
       test('bad pubspec', () {
         dartlint.main(['test/_data/p3', 'test/_data/p3/_pubpspec.yaml']);
-        expect(
-            collectingOut.trim(), startsWith('1 file analyzed, 0 issues found, in'));
+        expect(collectingOut.trim(),
+            startsWith('1 file analyzed, 0 issues found, in'));
       });
     });
     group('p4', () {
@@ -112,7 +114,32 @@ defineTests() {
           dartlint
               .main(['test/_data/p5', '--packages', 'test/_data/p5/_packages']);
           // Should have 0 issues.
-          expect(exitCode, equals(0));
+          expect(exitCode, 0);
+        });
+      });
+    });
+
+    group('p8', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+      group('config', () {
+        test('filtered', () {
+          dartlint
+              .main(['test/_data/p8', '-c', 'test/_data/p8/lintconfig.yaml']);
+          expect(exitCode, 0);
+          expect(
+              collectingOut.trim(),
+              stringContainsInOrder(
+                  ['2 files analyzed, 0 issues found (1 filtered), in']));
         });
       });
     });
@@ -126,9 +153,9 @@ defineTests() {
             config.fileExcludes, unorderedEquals(['**/_data.dart', 'test/**']));
         expect(config.ruleConfigs, hasLength(1));
         var ruleConfig = config.ruleConfigs[0];
-        expect(ruleConfig.group, equals('style_guide'));
-        expect(ruleConfig.name, equals('unnecessary_getters'));
-        expect(ruleConfig.args, equals({'enabled': false}));
+        expect(ruleConfig.group, 'style_guide');
+        expect(ruleConfig.name, 'unnecessary_getters');
+        expect(ruleConfig.args, {'enabled': false});
       });
     });
   });
