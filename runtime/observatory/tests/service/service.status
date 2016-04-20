@@ -37,7 +37,7 @@ coverage_test: Pass, Slow
 *: SkipByDesign
 
 # Service protocol is not supported when running a full application snapshot.
-[ ($runtime == dart_product) ]
+[ $runtime == dart_product ]
 *: SkipByDesign
 
 [ $compiler == dart2analyzer ]

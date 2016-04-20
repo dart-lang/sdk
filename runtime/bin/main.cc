@@ -410,13 +410,13 @@ static bool ProcessFullSnapshotAfterRunOption(
 
 static bool ProcessRunFullSnapshotOption(
     const char* filename, CommandLineOptions* vm_options) {
-#ifndef DART_PRODUCT_BINARY
+#if !defined(PRODUCT)
   Log::PrintErr("Full Application snapshots can only be be run with"
-                " dart_product\n");
+                " product mode\n");
   return false;
 #else
   return ProcessSnapshotOptionHelper(filename, &run_full_snapshot);
-#endif  // defined(DART_PRODUCT_BINARY)
+#endif  // defined(PRODUCT)
 }
 
 
@@ -746,14 +746,12 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
                                                 int* exit_code) {
   ASSERT(script_uri != NULL);
 
-#if defined(DART_PRODUCT_BINARY)
-  const bool run_service_isolate = false;
-#elif defined(PRODUCT)
+#if defined(PRODUCT)
   const bool run_service_isolate = !run_full_snapshot &&
                                    !run_precompiled_snapshot;
 #else
   const bool run_service_isolate = !run_full_snapshot;
-#endif
+#endif  // PRODUCT
   if (!run_service_isolate &&
       (strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0)) {
     // We do not create a service isolate when running a full application
@@ -787,9 +785,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   Dart_Handle result = Dart_SetLibraryTagHandler(DartUtils::LibraryTagHandler);
   CHECK_RESULT(result);
 
-#if defined(DART_PRODUCT_BINARY)
-  ASSERT(!Dart_IsServiceIsolate(isolate));
-#else
   if (Dart_IsServiceIsolate(isolate)) {
     // If this is the service isolate, load embedder specific bits and return.
     if (!VmService::Setup(vm_service_server_ip,
@@ -806,7 +801,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
     Dart_ExitIsolate();
     return isolate;
   }
-#endif  // defined(DART_PRODUCT_BINARY)
 
   // Prepare builtin and other core libraries for use to resolve URIs.
   // Set up various closures, e.g: printing, timers etc.
@@ -1307,7 +1301,7 @@ bool RunMainIsolate(const char* script_name,
         reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
     result = Dart_LibraryImportLibrary(
         isolate_data->builtin_lib(), root_lib, Dart_Null());
-#if !defined(DART_PRODUCT_BINARY) && !defined(PRODUCT)
+#if !defined(PRODUCT)
     if (is_noopt || gen_precompiled_snapshot) {
       // Load the embedder's portion of the VM service's Dart code so it will
       // be included in the precompiled snapshot.
@@ -1319,7 +1313,7 @@ bool RunMainIsolate(const char* script_name,
         exit(kErrorExitCode);
       }
     }
-#endif  // !DART_PRODUCT_BINARY
+#endif  // PRODUCT
 
     if (compile_all) {
       result = Dart_CompileAll();
