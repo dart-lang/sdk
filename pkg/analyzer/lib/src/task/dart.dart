@@ -5093,6 +5093,11 @@ class ScanDartTask extends SourceBasedAnalysisTask {
   static const String CONTENT_INPUT_NAME = 'CONTENT_INPUT_NAME';
 
   /**
+   * The name of the input whose value is the modification time of the file.
+   */
+  static const String MODIFICATION_TIME_INPUT = 'MODIFICATION_TIME_INPUT';
+
+  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
@@ -5115,9 +5120,10 @@ class ScanDartTask extends SourceBasedAnalysisTask {
   @override
   void internalPerform() {
     Source source = getRequiredSource();
-
     RecordingErrorListener errorListener = new RecordingErrorListener();
-    if (context.getModificationStamp(target.source) < 0) {
+
+    int modificationTime = getRequiredInput(MODIFICATION_TIME_INPUT);
+    if (modificationTime < 0) {
       String message = 'Content could not be read';
       if (context is InternalAnalysisContext) {
         CacheEntry entry =
@@ -5174,16 +5180,23 @@ class ScanDartTask extends SourceBasedAnalysisTask {
   /**
    * Return a map from the names of the inputs of this kind of task to the task
    * input descriptors describing those inputs for a task with the given
-   * [source].
+   * [target].
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     if (target is Source) {
-      return <String, TaskInput>{CONTENT_INPUT_NAME: CONTENT.of(target)};
+      return <String, TaskInput>{
+        CONTENT_INPUT_NAME: CONTENT.of(target),
+        MODIFICATION_TIME_INPUT: MODIFICATION_TIME.of(target)
+      };
     } else if (target is DartScript) {
       // This task does not use the following input; it is included only to add
       // a dependency between this value and the containing source so that when
       // the containing source is modified these results will be invalidated.
-      return <String, TaskInput>{'-': DART_SCRIPTS.of(target.source)};
+      Source source = target.source;
+      return <String, TaskInput>{
+        '-': DART_SCRIPTS.of(source),
+        MODIFICATION_TIME_INPUT: MODIFICATION_TIME.of(source)
+      };
     }
     throw new AnalysisException(
         'Cannot build inputs for a ${target.runtimeType}');
