@@ -16,7 +16,6 @@ class Extensions {
   // TODO(whesse): Make extension load from a relative path relative to
   // the library it is in.  Currently loads from current working directory.
   static Dart_Handle LoadExtension(const char* extension_directory,
-                                   const char* extension_filename,
                                    const char* extension_name,
                                    Dart_Handle parent_library);
 

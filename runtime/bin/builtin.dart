@@ -822,20 +822,6 @@ String _resolveInWorkingDirectory(String fileName) {
 // Dart native extension scheme.
 const _DART_EXT = 'dart-ext:';
 
-String _nativeLibraryExtension() native "Builtin_NativeLibraryExtension";
-
-
-String _platformExtensionFileName(String name) {
-  var extension = _nativeLibraryExtension();
-
-  if (_isWindows) {
-    return '$name.$extension';
-  } else {
-    return 'lib$name.$extension';
-  }
-}
-
-
 // Returns either a file path or a URI starting with http[s]:, as a String.
 String _filePathFromUri(String userUri) {
   var uri = Uri.parse(userUri);
@@ -898,11 +884,9 @@ _extensionPathFromUri(String userUri) {
     name = userUri.substring(index + 1);
     path = userUri.substring(0, index + 1);
   }
-
   path = _filePathFromUri(path);
-  var filename = _platformExtensionFileName(name);
 
-  return [path, filename, name];
+  return [path, name];
 }
 
 
