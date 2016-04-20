@@ -35,6 +35,10 @@ class JavaScriptBackendSerialization implements BackendSerialization {
         deserializer = new JavaScriptBackendDeserializer(backend);
 }
 
+const Key JS_INTEROP_NAME = const Key('jsInteropName');
+const Key NATIVE_MEMBER_NAME = const Key('nativeMemberName');
+const Key NATIVE_CLASS_TAG_INFO = const Key('nativeClassTagInfo');
+
 class JavaScriptBackendSerializer implements SerializerPlugin {
   final JavaScriptBackend backend;
 
@@ -42,12 +46,22 @@ class JavaScriptBackendSerializer implements SerializerPlugin {
 
   @override
   void onElement(Element element, ObjectEncoder createEncoder(String tag)) {
-    // TODO(johnniwinther): Add more data, e.g. js-interop names, native tags,
-    // etc.
-    String nativeName = backend.nativeData.nativeMemberName[element];
-    if (nativeName != null) {
-      ObjectEncoder encoder = createEncoder(_BACKEND_DATA_TAG);
-      encoder.setString(Key.NAME, nativeName);
+    ObjectEncoder encoder;
+    ObjectEncoder getEncoder() {
+      return encoder ??= createEncoder(_BACKEND_DATA_TAG);
+    }
+
+    String jsInteropName = backend.nativeData.jsInteropNames[element];
+    if (jsInteropName != null) {
+      getEncoder().setString(JS_INTEROP_NAME, jsInteropName);
+    }
+    String nativeMemberName = backend.nativeData.nativeMemberName[element];
+    if (nativeMemberName != null) {
+      getEncoder().setString(NATIVE_MEMBER_NAME, nativeMemberName);
+    }
+    String nativeClassTagInfo = backend.nativeData.nativeClassTagInfo[element];
+    if (nativeClassTagInfo != null) {
+      getEncoder().setString(NATIVE_CLASS_TAG_INFO, nativeClassTagInfo);
     }
   }
 
@@ -96,8 +110,21 @@ class JavaScriptBackendDeserializer implements DeserializerPlugin {
   void onElement(Element element, ObjectDecoder getDecoder(String tag)) {
     ObjectDecoder decoder = getDecoder(_BACKEND_DATA_TAG);
     if (decoder != null) {
-      String nativeName = decoder.getString(Key.NAME);
-      backend.nativeData.nativeMemberName[element] = nativeName;
+      String jsInteropName =
+          decoder.getString(JS_INTEROP_NAME, isOptional: true);
+      if (jsInteropName != null) {
+        backend.nativeData.jsInteropNames[element] = jsInteropName;
+      }
+      String nativeMemberName =
+          decoder.getString(NATIVE_MEMBER_NAME, isOptional: true);
+      if (nativeMemberName != null) {
+        backend.nativeData.nativeMemberName[element] = nativeMemberName;
+      }
+      String nativeClassTagInfo =
+          decoder.getString(NATIVE_CLASS_TAG_INFO, isOptional: true);
+      if (nativeClassTagInfo != null) {
+        backend.nativeData.nativeClassTagInfo[element] = nativeClassTagInfo;
+      }
     }
   }
 

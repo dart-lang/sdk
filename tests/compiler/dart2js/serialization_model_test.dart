@@ -40,11 +40,6 @@ main(List<String> args) {
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
       for (Test test in TESTS) {
-        if (test.sourceFiles['main.dart']
-                .contains('main(List<String> arguments)')) {
-          // TODO(johnniwinther): Check this test.
-          continue;
-        }
         print('==============================================================');
         print(test.sourceFiles);
         await check(
