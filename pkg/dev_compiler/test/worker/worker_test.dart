@@ -103,8 +103,7 @@ main() {
 
     setUp(() {
       greetingDart.writeAsStringSync('String greeting = "hello";');
-      helloDart.writeAsStringSync(
-          'import "greeting.dart";'
+      helloDart.writeAsStringSync('import "greeting.dart";'
           'main() => print(greeting);');
     });
 
@@ -146,6 +145,37 @@ main() {
       expect(result.stdout, isEmpty);
       expect(result.stderr, isEmpty);
       expect(helloJS.existsSync(), isTrue);
+    });
+  });
+
+  group('Error handling', () {
+    final badFileDart = new File('test/worker/bad.dart').absolute;
+    final badFileJs = new File('test/worker/bad.js').absolute;
+
+    tearDown(() {
+      if (badFileDart.existsSync()) badFileDart.deleteSync();
+      if (badFileJs.existsSync()) badFileJs.deleteSync();
+    });
+
+    test('incorrect usage', () {
+      var result = Process.runSync('dart', ['bin/dartdevc.dart', 'oops',]);
+      expect(result.exitCode, 64);
+      expect(result.stdout, contains('Could not find a command named "oops"'));
+      expect(result.stdout, isNot(contains('#0')));
+    });
+
+    test('compile errors', () {
+      badFileDart.writeAsStringSync('main() => "hello world"');
+      var result = Process.runSync('dart', [
+        'bin/dartdevc.dart',
+        'compile',
+        '--no-source-map',
+        '-o',
+        badFileJs.path,
+        badFileDart.path,
+      ]);
+      expect(result.exitCode, 1);
+      expect(result.stdout, contains("[error] Expected to find ';'"));
     });
   });
 }
