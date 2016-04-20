@@ -131,6 +131,15 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
     return "VM already initialized or flags not initialized.";
   }
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (instructions_snapshot == NULL) {
+    return "Precompiled runtime requires a precompiled snapshot";
+  }
+#else
+  if (instructions_snapshot != NULL) {
+    return "JIT runtime cannot run a precompiled snapshot";
+  }
+#endif
   set_thread_exit_callback(thread_exit);
   SetFileCallbacks(file_open, file_read, file_write, file_close);
   set_entropy_source_callback(entropy_source);
