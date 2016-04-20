@@ -479,7 +479,11 @@ const intptr_t kExceptionObjectReg = 0;
 const intptr_t kStackTraceObjectReg = 0;
 const intptr_t CTX = 0;
 
-enum FpuRegister { kNoFpuRegister = -1, kFakeFpuRegister };
+enum FpuRegister {
+  kNoFpuRegister = -1,
+  kFakeFpuRegister,
+  kNumberOfDummyFpuRegisters,
+};
 const FpuRegister FpuTMP = kFakeFpuRegister;
 const intptr_t kNumberOfFpuRegisters = 1;
 

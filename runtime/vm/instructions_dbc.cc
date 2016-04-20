@@ -5,10 +5,12 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_DBC.
 #if defined(TARGET_ARCH_DBC)
 
+#include "vm/instructions.h"
+#include "vm/instructions_dbc.h"
+
 #include "vm/assembler.h"
 #include "vm/constants_dbc.h"
 #include "vm/cpu.h"
-#include "vm/instructions.h"
 #include "vm/object.h"
 
 namespace dart {
@@ -164,6 +166,7 @@ void SwitchableCallPattern::SetLookupStub(const Code& lookup_stub) const {
 
 
 ReturnPattern::ReturnPattern(uword pc) : pc_(pc) {
+  USE(pc_);
 }
 
 

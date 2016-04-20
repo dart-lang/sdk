@@ -356,7 +356,8 @@ DART_FORCE_INLINE static bool SignedAddWithOverflow(int32_t lhs,
                                                     intptr_t* out) {
   int32_t res = 1;
 #if defined(HAS_ADD_OVERFLOW)
-  res = static_cast<int32_t>(__builtin_sadd_overflow(lhs, rhs, out));
+  res = static_cast<int32_t>(__builtin_sadd_overflow(
+      lhs, rhs, reinterpret_cast<int32_t*>(out)));
 #elif defined(__i386__)
   asm volatile(
       "add %2, %1\n"
@@ -389,7 +390,8 @@ DART_FORCE_INLINE static bool SignedSubWithOverflow(int32_t lhs,
                                                     intptr_t* out) {
   int32_t res = 1;
 #if defined(HAS_SUB_OVERFLOW)
-  res = static_cast<int32_t>(__builtin_ssub_overflow(lhs, rhs, out));
+  res = static_cast<int32_t>(__builtin_ssub_overflow(
+      lhs, rhs, reinterpret_cast<int32_t*>(out)));
 #elif defined(__i386__)
   asm volatile(
       "sub %2, %1\n"
@@ -422,7 +424,8 @@ DART_FORCE_INLINE static bool SignedMulWithOverflow(int32_t lhs,
                                                     intptr_t* out) {
   int32_t res = 1;
 #if defined(HAS_MUL_OVERFLOW)
-  res = static_cast<int32_t>(__builtin_smul_overflow(lhs, rhs, out));
+  res = static_cast<int32_t>(__builtin_smul_overflow(
+      lhs, rhs, reinterpret_cast<int32_t*>(out)));
 #elif defined(__i386__)
   asm volatile(
       "imul %2, %1\n"
@@ -466,7 +469,7 @@ DART_FORCE_INLINE static bool AreBothSmis(intptr_t a, intptr_t b) {
 #define SMI_LT(lhs, rhs, pres) SMI_COND(<, lhs, rhs, pres)
 #define SMI_GT(lhs, rhs, pres) SMI_COND(>, lhs, rhs, pres)
 #define SMI_BITOR(lhs, rhs, pres) ((*(pres) = (lhs | rhs)), false)
-#define SMI_BITAND(lhs, rhs, pres) ((*(pres) = (lhs & rhs)), false)
+#define SMI_BITAND(lhs, rhs, pres) ((*(pres) = ((lhs) & (rhs))), false)
 
 
 void Simulator::CallRuntime(Thread* thread,

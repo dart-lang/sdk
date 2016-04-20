@@ -42,6 +42,8 @@ config("dart_config") {
       defines += [ "TARGET_ARCH_X64" ]
     } else if (dart_target_arch == "ia32") {
       defines += [ "TARGET_ARCH_IA32" ]
+    } else if (dart_target_arch == "dbc") {
+      defines += [ "TARGET_ARCH_DBC" ]
     } else  {
       print("Invalid |dart_target_arch|")
       assert(false)
@@ -112,6 +114,8 @@ config("dart_config_no_precompiler") {
       defines += [ "TARGET_ARCH_X64" ]
     } else if (dart_target_arch == "ia32") {
       defines += [ "TARGET_ARCH_IA32" ]
+    } else if (dart_target_arch == "dbc") {
+      defines += [ "TARGET_ARCH_DBC" ]
     } else  {
       print("Invalid |dart_target_arch|")
       assert(false)
