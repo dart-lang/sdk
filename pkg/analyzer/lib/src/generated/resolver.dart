@@ -4474,10 +4474,11 @@ class ImportsVerifier {
     if (!visitedLibraries.add(library)) {
       return;
     }
-    for (LibraryElement exportedLibraryElt in library.exportedLibraries) {
-      _putIntoLibraryMap(exportedLibraryElt, importDirective);
+    for (ExportElement exportElt in library.exports) {
+      LibraryElement exportedLibrary = exportElt.exportedLibrary;
+      _putIntoLibraryMap(exportedLibrary, importDirective);
       _addAdditionalLibrariesForExports(
-          exportedLibraryElt, importDirective, visitedLibraries);
+          exportedLibrary, importDirective, visitedLibraries);
     }
   }
 
