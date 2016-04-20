@@ -1782,6 +1782,7 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
    */
   void flushInformative() {
     _linkedLibraries?.forEach((b) => b.flushInformative());
+    _unlinkedUnitHashes = null;
     _unlinkedUnits?.forEach((b) => b.flushInformative());
   }
 
