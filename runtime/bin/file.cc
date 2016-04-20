@@ -788,20 +788,22 @@ CObject* File::PositionRequest(const CObjectArray& request) {
 
 
 CObject* File::SetPositionRequest(const CObjectArray& request) {
-  if ((request.Length() == 2) &&
-      request[0]->IsIntptr() &&
-      request[1]->IsInt32OrInt64()) {
+  if ((request.Length() >= 1) && request[0]->IsIntptr()) {
     File* file = CObjectToFilePointer(request[0]);
     RefCntReleaseScope<File> rs(file);
-    if (!file->IsClosed()) {
-      int64_t position = CObjectInt32OrInt64ToInt64(request[1]);
-      if (file->SetPosition(position)) {
-        return CObject::True();
+    if ((request.Length() == 2) && request[1]->IsInt32OrInt64()) {
+      if (!file->IsClosed()) {
+        int64_t position = CObjectInt32OrInt64ToInt64(request[1]);
+        if (file->SetPosition(position)) {
+          return CObject::True();
+        } else {
+          return CObject::NewOSError();
+        }
       } else {
-        return CObject::NewOSError();
+        return CObject::FileClosedError();
       }
     } else {
-      return CObject::FileClosedError();
+      return CObject::IllegalArgumentError();
     }
   }
   return CObject::IllegalArgumentError();
@@ -809,20 +811,22 @@ CObject* File::SetPositionRequest(const CObjectArray& request) {
 
 
 CObject* File::TruncateRequest(const CObjectArray& request) {
-  if ((request.Length() == 2) &&
-      request[0]->IsIntptr() &&
-      request[1]->IsInt32OrInt64()) {
+  if ((request.Length() >= 1) && request[0]->IsIntptr()) {
     File* file = CObjectToFilePointer(request[0]);
     RefCntReleaseScope<File> rs(file);
-    if (!file->IsClosed()) {
-      int64_t length = CObjectInt32OrInt64ToInt64(request[1]);
-      if (file->Truncate(length)) {
-        return CObject::True();
+    if ((request.Length() == 2) && request[1]->IsInt32OrInt64()) {
+      if (!file->IsClosed()) {
+        int64_t length = CObjectInt32OrInt64ToInt64(request[1]);
+        if (file->Truncate(length)) {
+          return CObject::True();
+        } else {
+          return CObject::NewOSError();
+        }
       } else {
-        return CObject::NewOSError();
+        return CObject::FileClosedError();
       }
     } else {
-      return CObject::FileClosedError();
+      return CObject::IllegalArgumentError();
     }
   }
   return CObject::IllegalArgumentError();
@@ -917,22 +921,24 @@ CObject* File::ReadByteRequest(const CObjectArray& request) {
 
 
 CObject* File::WriteByteRequest(const CObjectArray& request) {
-  if ((request.Length() == 2) &&
-      request[0]->IsIntptr() &&
-      request[1]->IsInt32OrInt64()) {
+  if ((request.Length() >= 1) && request[0]->IsIntptr()) {
     File* file = CObjectToFilePointer(request[0]);
     RefCntReleaseScope<File> rs(file);
-    if (!file->IsClosed()) {
-      int64_t byte = CObjectInt32OrInt64ToInt64(request[1]);
-      uint8_t buffer = static_cast<uint8_t>(byte & 0xff);
-      bool success = file->WriteFully(reinterpret_cast<void*>(&buffer), 1);
-      if (success) {
-        return new CObjectInt64(CObject::NewInt64(1));
+    if ((request.Length() == 2) && request[1]->IsInt32OrInt64()) {
+      if (!file->IsClosed()) {
+        int64_t byte = CObjectInt32OrInt64ToInt64(request[1]);
+        uint8_t buffer = static_cast<uint8_t>(byte & 0xff);
+        bool success = file->WriteFully(reinterpret_cast<void*>(&buffer), 1);
+        if (success) {
+          return new CObjectInt64(CObject::NewInt64(1));
+        } else {
+          return CObject::NewOSError();
+        }
       } else {
-        return CObject::NewOSError();
+        return CObject::FileClosedError();
       }
     } else {
-      return CObject::FileClosedError();
+      return CObject::IllegalArgumentError();
     }
   }
   return CObject::IllegalArgumentError();
@@ -940,31 +946,33 @@ CObject* File::WriteByteRequest(const CObjectArray& request) {
 
 
 CObject* File::ReadRequest(const CObjectArray& request) {
-  if ((request.Length() == 2) &&
-      request[0]->IsIntptr() &&
-      request[1]->IsInt32OrInt64()) {
+  if ((request.Length() >= 1) && request[0]->IsIntptr()) {
     File* file = CObjectToFilePointer(request[0]);
     RefCntReleaseScope<File> rs(file);
-    if (!file->IsClosed()) {
-      int64_t length = CObjectInt32OrInt64ToInt64(request[1]);
-      Dart_CObject* io_buffer = CObject::NewIOBuffer(length);
-      ASSERT(io_buffer != NULL);
-      uint8_t* data = io_buffer->value.as_external_typed_data.data;
-      int64_t bytes_read = file->Read(data, length);
-      if (bytes_read >= 0) {
-        CObjectExternalUint8Array* external_array =
-            new CObjectExternalUint8Array(io_buffer);
-        external_array->SetLength(bytes_read);
-        CObjectArray* result = new CObjectArray(CObject::NewArray(2));
-        result->SetAt(0, new CObjectIntptr(CObject::NewInt32(0)));
-        result->SetAt(1, external_array);
-        return result;
+    if ((request.Length() == 2) && request[1]->IsInt32OrInt64()) {
+      if (!file->IsClosed()) {
+        int64_t length = CObjectInt32OrInt64ToInt64(request[1]);
+        Dart_CObject* io_buffer = CObject::NewIOBuffer(length);
+        ASSERT(io_buffer != NULL);
+        uint8_t* data = io_buffer->value.as_external_typed_data.data;
+        int64_t bytes_read = file->Read(data, length);
+        if (bytes_read >= 0) {
+          CObjectExternalUint8Array* external_array =
+              new CObjectExternalUint8Array(io_buffer);
+          external_array->SetLength(bytes_read);
+          CObjectArray* result = new CObjectArray(CObject::NewArray(2));
+          result->SetAt(0, new CObjectIntptr(CObject::NewInt32(0)));
+          result->SetAt(1, external_array);
+          return result;
+        } else {
+          CObject::FreeIOBufferData(io_buffer);
+          return CObject::NewOSError();
+        }
       } else {
-        CObject::FreeIOBufferData(io_buffer);
-        return CObject::NewOSError();
+        return CObject::FileClosedError();
       }
     } else {
-      return CObject::FileClosedError();
+      return CObject::IllegalArgumentError();
     }
   }
   return CObject::IllegalArgumentError();
@@ -972,32 +980,34 @@ CObject* File::ReadRequest(const CObjectArray& request) {
 
 
 CObject* File::ReadIntoRequest(const CObjectArray& request) {
-  if ((request.Length() == 2) &&
-      request[0]->IsIntptr() &&
-      request[1]->IsInt32OrInt64()) {
+  if ((request.Length() >= 1) && request[0]->IsIntptr()) {
     File* file = CObjectToFilePointer(request[0]);
     RefCntReleaseScope<File> rs(file);
-    if (!file->IsClosed()) {
-      int64_t length = CObjectInt32OrInt64ToInt64(request[1]);
-      Dart_CObject* io_buffer = CObject::NewIOBuffer(length);
-      ASSERT(io_buffer != NULL);
-      uint8_t* data = io_buffer->value.as_external_typed_data.data;
-      int64_t bytes_read = file->Read(data, length);
-      if (bytes_read >= 0) {
-        CObjectExternalUint8Array* external_array =
-            new CObjectExternalUint8Array(io_buffer);
-        external_array->SetLength(bytes_read);
-        CObjectArray* result = new CObjectArray(CObject::NewArray(3));
-        result->SetAt(0, new CObjectIntptr(CObject::NewInt32(0)));
-        result->SetAt(1, new CObjectInt64(CObject::NewInt64(bytes_read)));
-        result->SetAt(2, external_array);
-        return result;
+    if ((request.Length() == 2) && request[1]->IsInt32OrInt64()) {
+      if (!file->IsClosed()) {
+        int64_t length = CObjectInt32OrInt64ToInt64(request[1]);
+        Dart_CObject* io_buffer = CObject::NewIOBuffer(length);
+        ASSERT(io_buffer != NULL);
+        uint8_t* data = io_buffer->value.as_external_typed_data.data;
+        int64_t bytes_read = file->Read(data, length);
+        if (bytes_read >= 0) {
+          CObjectExternalUint8Array* external_array =
+              new CObjectExternalUint8Array(io_buffer);
+          external_array->SetLength(bytes_read);
+          CObjectArray* result = new CObjectArray(CObject::NewArray(3));
+          result->SetAt(0, new CObjectIntptr(CObject::NewInt32(0)));
+          result->SetAt(1, new CObjectInt64(CObject::NewInt64(bytes_read)));
+          result->SetAt(2, external_array);
+          return result;
+        } else {
+          CObject::FreeIOBufferData(io_buffer);
+          return CObject::NewOSError();
+        }
       } else {
-        CObject::FreeIOBufferData(io_buffer);
-        return CObject::NewOSError();
+        return CObject::FileClosedError();
       }
     } else {
-      return CObject::FileClosedError();
+      return CObject::IllegalArgumentError();
     }
   }
   return CObject::IllegalArgumentError();
@@ -1030,46 +1040,49 @@ static int SizeInBytes(Dart_TypedData_Type type) {
 
 
 CObject* File::WriteFromRequest(const CObjectArray& request) {
-  if ((request.Length() == 4) &&
-      request[0]->IsIntptr() &&
-      (request[1]->IsTypedData() || request[1]->IsArray()) &&
-      request[2]->IsInt32OrInt64() &&
-      request[3]->IsInt32OrInt64()) {
+  if ((request.Length() >= 1) && request[0]->IsIntptr()) {
     File* file = CObjectToFilePointer(request[0]);
     RefCntReleaseScope<File> rs(file);
-    if (!file->IsClosed()) {
-      int64_t start = CObjectInt32OrInt64ToInt64(request[2]);
-      int64_t end = CObjectInt32OrInt64ToInt64(request[3]);
-      int64_t length = end - start;
-      uint8_t* buffer_start;
-      if (request[1]->IsTypedData()) {
-        CObjectTypedData typed_data(request[1]);
-        start = start * SizeInBytes(typed_data.Type());
-        length = length * SizeInBytes(typed_data.Type());
-        buffer_start = typed_data.Buffer() + start;
-      } else {
-        CObjectArray array(request[1]);
-        buffer_start = Dart_ScopeAllocate(length);
-        for (int i = 0; i < length; i++) {
-          if (array[i + start]->IsInt32OrInt64()) {
-            int64_t value = CObjectInt32OrInt64ToInt64(array[i + start]);
-            buffer_start[i] = static_cast<uint8_t>(value & 0xFF);
-          } else {
-            // Unsupported type.
-            return CObject::IllegalArgumentError();
+    if ((request.Length() == 4) &&
+        (request[1]->IsTypedData() || request[1]->IsArray()) &&
+        request[2]->IsInt32OrInt64() &&
+        request[3]->IsInt32OrInt64()) {
+      if (!file->IsClosed()) {
+        int64_t start = CObjectInt32OrInt64ToInt64(request[2]);
+        int64_t end = CObjectInt32OrInt64ToInt64(request[3]);
+        int64_t length = end - start;
+        uint8_t* buffer_start;
+        if (request[1]->IsTypedData()) {
+          CObjectTypedData typed_data(request[1]);
+          start = start * SizeInBytes(typed_data.Type());
+          length = length * SizeInBytes(typed_data.Type());
+          buffer_start = typed_data.Buffer() + start;
+        } else {
+          CObjectArray array(request[1]);
+          buffer_start = Dart_ScopeAllocate(length);
+          for (int i = 0; i < length; i++) {
+            if (array[i + start]->IsInt32OrInt64()) {
+              int64_t value = CObjectInt32OrInt64ToInt64(array[i + start]);
+              buffer_start[i] = static_cast<uint8_t>(value & 0xFF);
+            } else {
+              // Unsupported type.
+              return CObject::IllegalArgumentError();
+            }
           }
+          start = 0;
         }
-        start = 0;
-      }
-      bool success =
-          file->WriteFully(reinterpret_cast<void*>(buffer_start), length);
-      if (success) {
-        return new CObjectInt64(CObject::NewInt64(length));
+        bool success =
+            file->WriteFully(reinterpret_cast<void*>(buffer_start), length);
+        if (success) {
+          return new CObjectInt64(CObject::NewInt64(length));
+        } else {
+          return CObject::NewOSError();
+        }
       } else {
-        return CObject::NewOSError();
+        return CObject::FileClosedError();
       }
     } else {
-      return CObject::FileClosedError();
+      return CObject::IllegalArgumentError();
     }
   }
   return CObject::IllegalArgumentError();
@@ -1193,24 +1206,27 @@ CObject* File::StatRequest(const CObjectArray& request) {
 
 
 CObject* File::LockRequest(const CObjectArray& request) {
-  if ((request.Length() == 4) &&
-      request[0]->IsIntptr() &&
-      request[1]->IsInt32OrInt64() &&
-      request[2]->IsInt32OrInt64() &&
-      request[3]->IsInt32OrInt64()) {
+  if ((request.Length() >= 1) && request[0]->IsIntptr()) {
     File* file = CObjectToFilePointer(request[0]);
     RefCntReleaseScope<File> rs(file);
-    if (!file->IsClosed()) {
-      int64_t lock = CObjectInt32OrInt64ToInt64(request[1]);
-      int64_t start = CObjectInt32OrInt64ToInt64(request[2]);
-      int64_t end = CObjectInt32OrInt64ToInt64(request[3]);
-      if (file->Lock(static_cast<File::LockType>(lock), start, end)) {
-        return CObject::True();
+    if ((request.Length() == 4) &&
+        request[1]->IsInt32OrInt64() &&
+        request[2]->IsInt32OrInt64() &&
+        request[3]->IsInt32OrInt64()) {
+      if (!file->IsClosed()) {
+        int64_t lock = CObjectInt32OrInt64ToInt64(request[1]);
+        int64_t start = CObjectInt32OrInt64ToInt64(request[2]);
+        int64_t end = CObjectInt32OrInt64ToInt64(request[3]);
+        if (file->Lock(static_cast<File::LockType>(lock), start, end)) {
+          return CObject::True();
+        } else {
+          return CObject::NewOSError();
+        }
       } else {
-        return CObject::NewOSError();
+        return CObject::FileClosedError();
       }
     } else {
-      return CObject::FileClosedError();
+      return CObject::IllegalArgumentError();
     }
   }
   return CObject::IllegalArgumentError();

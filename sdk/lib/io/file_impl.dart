@@ -587,12 +587,6 @@ class _RandomAccessFile implements RandomAccessFile {
 
   final String path;
 
-  // Calling this function will increase the reference count on the native
-  // object that implements the file operations. It should only be called to
-  // pass the pointer to the IO Service, which will decrement the reference
-  // count when it is finished with it.
-  int _pointer() => _ops.getPointer();
-
   bool _asyncDispatched = false;
   SendPort _fileService;
 
@@ -626,7 +620,7 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> close() {
-    return _dispatch(_FILE_CLOSE, [_pointer()], markClosed: true).then((result) {
+    return _dispatch(_FILE_CLOSE, [null], markClosed: true).then((result) {
       if (result != -1) {
         closed = closed || (result == 0);
         _maybePerformCleanup();
@@ -648,7 +642,7 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<int> readByte() {
-    return _dispatch(_FILE_READ_BYTE, [_pointer()]).then((response) {
+    return _dispatch(_FILE_READ_BYTE, [null]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "readByte failed", path);
       }
@@ -671,7 +665,7 @@ class _RandomAccessFile implements RandomAccessFile {
     if (bytes is !int) {
       throw new ArgumentError(bytes);
     }
-    return _dispatch(_FILE_READ, [_pointer(), bytes]).then((response) {
+    return _dispatch(_FILE_READ, [null, bytes]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "read failed", path);
       }
@@ -704,7 +698,7 @@ class _RandomAccessFile implements RandomAccessFile {
       return new Future.value(0);
     }
     int length = end - start;
-    return _dispatch(_FILE_READ_INTO, [_pointer(), length]).then((response) {
+    return _dispatch(_FILE_READ_INTO, [null, length]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "readInto failed", path);
       }
@@ -739,7 +733,7 @@ class _RandomAccessFile implements RandomAccessFile {
     if (value is !int) {
       throw new ArgumentError(value);
     }
-    return _dispatch(_FILE_WRITE_BYTE, [_pointer(), value]).then((response) {
+    return _dispatch(_FILE_WRITE_BYTE, [null, value]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "writeByte failed", path);
       }
@@ -780,7 +774,7 @@ class _RandomAccessFile implements RandomAccessFile {
     }
 
     List request = new List(4);
-    request[0] = _pointer();
+    request[0] = null;
     request[1] = result.buffer;
     request[2] = result.start;
     request[3] = end - (start - result.start);
@@ -833,7 +827,7 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<int> position() {
-    return _dispatch(_FILE_POSITION, [_pointer()]).then((response) {
+    return _dispatch(_FILE_POSITION, [null]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "position failed", path);
       }
@@ -851,7 +845,7 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> setPosition(int position) {
-    return _dispatch(_FILE_SET_POSITION, [_pointer(), position])
+    return _dispatch(_FILE_SET_POSITION, [null, position])
         .then((response) {
           if (_isErrorResponse(response)) {
             throw _exceptionFromResponse(response, "setPosition failed", path);
@@ -869,7 +863,7 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> truncate(int length) {
-    return _dispatch(_FILE_TRUNCATE, [_pointer(), length]).then((response) {
+    return _dispatch(_FILE_TRUNCATE, [null, length]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "truncate failed", path);
       }
@@ -886,7 +880,7 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<int> length() {
-    return _dispatch(_FILE_LENGTH, [_pointer()]).then((response) {
+    return _dispatch(_FILE_LENGTH, [null]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "length failed", path);
       }
@@ -904,7 +898,7 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> flush() {
-    return _dispatch(_FILE_FLUSH, [_pointer()]).then((response) {
+    return _dispatch(_FILE_FLUSH, [null]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
                                      "flush failed",
@@ -935,7 +929,7 @@ class _RandomAccessFile implements RandomAccessFile {
       throw new ArgumentError();
     }
     int lock = (mode == FileLock.EXCLUSIVE) ? LOCK_EXCLUSIVE : LOCK_SHARED;
-    return _dispatch(_FILE_LOCK, [_pointer(), lock, start, end])
+    return _dispatch(_FILE_LOCK, [null, lock, start, end])
         .then((response) {
           if (_isErrorResponse(response)) {
             throw _exceptionFromResponse(response, 'lock failed', path);
@@ -951,7 +945,7 @@ class _RandomAccessFile implements RandomAccessFile {
     if (start == end) {
       throw new ArgumentError();
     }
-    return _dispatch(_FILE_LOCK, [_pointer(), LOCK_UNLOCK, start, end])
+    return _dispatch(_FILE_LOCK, [null, LOCK_UNLOCK, start, end])
         .then((response) {
           if (_isErrorResponse(response)) {
             throw _exceptionFromResponse(response, 'unlock failed', path);
@@ -992,6 +986,12 @@ class _RandomAccessFile implements RandomAccessFile {
 
   bool closed = false;
 
+  // Calling this function will increase the reference count on the native
+  // object that implements the file operations. It should only be called to
+  // pass the pointer to the IO Service, which will decrement the reference
+  // count when it is finished with it.
+  int _pointer() => _ops.getPointer();
+
   Future _dispatch(int request, List data, { bool markClosed: false }) {
     if (closed) {
       return new Future.error(new FileSystemException("File closed", path));
@@ -1006,6 +1006,7 @@ class _RandomAccessFile implements RandomAccessFile {
       closed = true;
     }
     _asyncDispatched = true;
+    data[0] = _pointer();
     return _IOService._dispatch(request, data)
         .whenComplete(() {
           _asyncDispatched = false;
