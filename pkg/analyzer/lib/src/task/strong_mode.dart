@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, InheritanceManager;
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 
 /**
  * Sets the type of the field. This is stored in the field itself, and the
