@@ -3655,9 +3655,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // Ensure that the inheritance manager has a chance to generate all errors
     // we may care about, note that we ensure that the interfaces data since
     // there are no errors.
-    _inheritanceManager.getMapOfMembersInheritedFromInterfaces(_enclosingClass);
-    HashSet<AnalysisError> errors =
-        _inheritanceManager.getErrors(_enclosingClass);
+    _inheritanceManager.getMembersInheritedFromInterfaces(_enclosingClass);
+    Set<AnalysisError> errors = _inheritanceManager.getErrors(_enclosingClass);
     if (errors == null || errors.isEmpty) {
       return;
     }
@@ -4526,14 +4525,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // Loop through the set of all executable elements declared in the implicit
     // interface.
     //
-    MemberMap membersInheritedFromInterfaces = _inheritanceManager
-        .getMapOfMembersInheritedFromInterfaces(_enclosingClass);
-    MemberMap membersInheritedFromSuperclasses = _inheritanceManager
-        .getMapOfMembersInheritedFromClasses(_enclosingClass);
-    for (int i = 0; i < membersInheritedFromInterfaces.size; i++) {
-      String memberName = membersInheritedFromInterfaces.getKey(i);
+    Map<String, ExecutableElement> membersInheritedFromInterfaces =
+        _inheritanceManager.getMembersInheritedFromInterfaces(_enclosingClass);
+    Map<String, ExecutableElement> membersInheritedFromSuperclasses =
+        _inheritanceManager.getMembersInheritedFromClasses(_enclosingClass);
+    for (String memberName in membersInheritedFromInterfaces.keys) {
       ExecutableElement executableElt =
-          membersInheritedFromInterfaces.getValue(i);
+          membersInheritedFromInterfaces[memberName];
       if (memberName == null) {
         break;
       }
@@ -4554,7 +4552,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
       // First check to see if this element was declared in the superclass
       // chain, in which case there is already a concrete implementation.
-      ExecutableElement elt = membersInheritedFromSuperclasses.get(memberName);
+      ExecutableElement elt = membersInheritedFromSuperclasses[memberName];
       // Check to see if an element was found in the superclass chain with the
       // correct name.
       if (elt != null) {
