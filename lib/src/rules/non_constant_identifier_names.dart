@@ -60,7 +60,9 @@ class Visitor extends SimpleAstVisitor {
   @override
   visitFormalParameterList(FormalParameterList node) {
     node.parameters.forEach((FormalParameter p) {
-      checkIdentifier(p.identifier, underscoresOk: true);
+      if (p is! FieldFormalParameter) {
+        checkIdentifier(p.identifier, underscoresOk: true);
+      }
     });
   }
 
