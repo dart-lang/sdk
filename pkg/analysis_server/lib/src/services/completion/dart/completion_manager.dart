@@ -225,11 +225,24 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   }
 
   @override
-  Future resolveExpression(Expression expression) async {
+  Future resolveContainingExpression(AstNode node) async {
+    // TODO When an Expression can be resolved instead of just an entire unit,
+    // this will be revisited with code searching up the parent until an
+    // Expression is found.
+
+    return resolveContainingStatement(node);
+  }
+
+  @override
+  Future resolveContainingStatement(AstNode node) async {
+    // TODO When a Statement can be resolved instead of just an entire unit,
+    // this will be revisited with code searching up the parent until a
+    // Statement is found.
+
     checkAborted();
 
     // Return immediately if the expression has already been resolved
-    if (expression.propagatedType != null) {
+    if (node is Expression && node.propagatedType != null) {
       return;
     }
 
@@ -240,7 +253,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
     // Resolve declarations in the target unit
     // TODO(danrubel) resolve the expression or containing method
-    // rather than the entire complilation unit
+    // rather than the entire compilation unit
     CompilationUnit resolvedUnit = await _computeAsync(
         this,
         new LibrarySpecificUnit(librarySource, source),
@@ -399,7 +412,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       if (node is Expression) {
         const FUNCTIONAL_ARG_TAG = 'resolve expression for isFunctionalArg';
         performance.logStartTime(FUNCTIONAL_ARG_TAG);
-        await dartRequest.resolveExpression(node);
+        await dartRequest.resolveContainingExpression(node);
         performance.logElapseTime(FUNCTIONAL_ARG_TAG);
         dartRequest.checkAborted();
       }

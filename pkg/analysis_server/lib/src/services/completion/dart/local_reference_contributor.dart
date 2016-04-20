@@ -160,11 +160,9 @@ class LocalReferenceContributor extends DartCompletionContributor {
         // If the target is in an expression
         // then resolve the outermost/entire expression
         AstNode node = request.target.containingNode;
+
         if (node is Expression) {
-          while (node.parent is Expression) {
-            node = node.parent;
-          }
-          await request.resolveExpression(node);
+          await request.resolveContainingExpression(node);
 
           // Discard any cached target information
           // because it may have changed as a result of the resolution

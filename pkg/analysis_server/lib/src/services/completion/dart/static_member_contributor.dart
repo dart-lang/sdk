@@ -29,7 +29,7 @@ class StaticMemberContributor extends DartCompletionContributor {
     }
 
     // Resolve the expression and the containing library
-    await request.resolveExpression(request.dotTarget);
+    await request.resolveContainingExpression(request.dotTarget);
 
     // Recompute the target since resolution may have changed it
     Expression targetId = request.dotTarget;

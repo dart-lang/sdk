@@ -115,7 +115,17 @@ abstract class DartCompletionRequest extends CompletionRequest {
    * Any information obtained from [target] prior to calling this method
    * should be discarded as it may have changed.
    */
-  Future resolveExpression(Expression expression);
+  Future resolveContainingExpression(Expression expression);
+
+  /**
+   * Return a [Future] that completes when the element associated with
+   * the given [statement] in the target compilation unit is available.
+   * It may also complete if the statement cannot be resolved
+   * (e.g. unknown identifier, completion aborted, etc).
+   * Any information obtained from [target] prior to calling this method
+   * should be discarded as it may have changed.
+   */
+  Future resolveContainingStatement(Statement expression);
 
   /**
      * Return a [Future] that completes with a list of [ImportElement]s

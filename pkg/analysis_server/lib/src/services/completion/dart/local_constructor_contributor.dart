@@ -166,20 +166,13 @@ class LocalConstructorContributor extends DartCompletionContributor {
     if (!optype.isPrefixed) {
       if (optype.includeConstructorSuggestions) {
         AstNode node = request.target.containingNode;
-        // TODO (jwren) not quite right, see the test
-        // test_InstanceCreationExpression_variable_declaration_filter,
-        // the node at this point is an InstanceCreationExpression, but we want
-        // the containing variable declaration resolved,
-        if (node is Expression) {
-          while (node.parent is Expression) {
-            node = node.parent;
-          }
-          await request.resolveExpression(node);
 
-          // Discard any cached target information
-          // because it may have changed as a result of the resolution
-          node = request.target.containingNode;
-        }
+        await request.resolveContainingStatement(node);
+
+        // Discard any cached target information
+        // because it may have changed as a result of the resolution
+        node = request.target.containingNode;
+
         _Visitor visitor = new _Visitor(request, suggestions, optype);
         visitor.visit(node);
       }
