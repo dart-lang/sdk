@@ -5313,6 +5313,13 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
   /**
+   * The name of the input of a mapping from [REFERENCED_SOURCES] to their
+   * [MODIFICATION_TIME]s.
+   */
+  static const String REFERENCED_SOURCE_MODIFICATION_TIME_MAP_INPUT =
+      'REFERENCED_SOURCE_MODIFICATION_TIME_MAP_INPUT';
+
+  /**
    * The name of the [TYPE_PROVIDER] input.
    */
   static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
@@ -5327,6 +5334,12 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
    * The [ErrorReporter] to report errors to.
    */
   ErrorReporter errorReporter;
+
+  /**
+   * The mapping from the current library referenced sources to their
+   * modification times.
+   */
+  Map<Source, int> sourceTimeMap;
 
   VerifyUnitTask(InternalAnalysisContext context, AnalysisTarget target)
       : super(context, target);
@@ -5344,6 +5357,8 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     //
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    sourceTimeMap =
+        getRequiredInput(REFERENCED_SOURCE_MODIFICATION_TIME_MAP_INPUT);
     CompilationUnitElement unitElement = unit.element;
     LibraryElement libraryElement = unitElement.library;
     if (libraryElement == null) {
@@ -5398,7 +5413,8 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
   void validateReferencedSource(UriBasedDirective directive) {
     Source source = directive.source;
     if (source != null) {
-      if (context.exists(source)) {
+      int modificationTime = sourceTimeMap[source] ?? -1;
+      if (modificationTime >= 0) {
         return;
       }
     } else {
@@ -5422,6 +5438,8 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     return <String, TaskInput>{
       'thisLibraryClosureIsReady': READY_RESOLVED_UNIT.of(unit.library),
       UNIT_INPUT: RESOLVED_UNIT.of(unit),
+      REFERENCED_SOURCE_MODIFICATION_TIME_MAP_INPUT:
+          REFERENCED_SOURCES.of(unit.library).toMapOf(MODIFICATION_TIME),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
   }

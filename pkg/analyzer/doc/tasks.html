@@ -180,6 +180,7 @@ digraph G {
   MODIFICATION_TIME -> BuildDirectiveElementsTask
   MODIFICATION_TIME -> ParseDartTask
   MODIFICATION_TIME -> ScanDartTask
+  MODIFICATION_TIME -> VerifyUnitTask
   MODIFICATION_TIME [shape=box]
   PARSED_UNIT -> BuildCompilationUnitElementTask
   PARSED_UNIT -> DartErrorsTask
@@ -226,6 +227,7 @@ digraph G {
   READY_RESOLVED_UNIT [shape=box]
   REFERENCED_NAMES [shape=box]
   REFERENCED_SOURCES -> BuildDirectiveElementsTask
+  REFERENCED_SOURCES -> VerifyUnitTask
   REFERENCED_SOURCES [shape=box]
   RESOLVED_UNIT -> GenerateHintsTask
   RESOLVED_UNIT -> GenerateLintsTask
