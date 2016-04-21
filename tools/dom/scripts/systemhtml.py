@@ -19,6 +19,21 @@ _logger = logging.getLogger('systemhtml')
 HTML_LIBRARY_NAMES = ['html', 'indexed_db', 'svg',
                       'web_audio', 'web_gl', 'web_sql']
 
+# The following two sets let us avoid shadowing fields with properties.
+# This information could be derived from the IDL files but would require
+# a significant refactor to compute accurately. Instead we manually compute
+# these sets based on manual triage of strong mode errors.
+_force_property_members = monitored.Set('systemhtml._force_property_members', [
+    'Element.outerHtml',
+    'Element.isContentEditable',
+    'AudioContext.createGain',
+    'AudioContext.createScriptProcessor',
+    ])
+_safe_to_ignore_shadowing_members = monitored.Set('systemhtml._safe_to_ignore_shadowing_members', [
+    'SVGElement.tabIndex',
+    'SVGStyleElement.title',
+    ])
+
 _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'AudioBufferSourceNode.start',
     'AudioBufferSourceNode.stop',
@@ -895,8 +910,13 @@ class Dart2JSBackend(HtmlDartGenerator):
     #  is renamed.
     (super_attribute, super_attribute_interface) = self._FindShadowedAttribute(
         attribute)
+    if self._ForcePropertyMember(html_name):
+      self._members_emitter.Emit('\n  // Using property as subclass shadows.');
+      self._AddAttributeUsingProperties(attribute, html_name, read_only)
+      return
+
     if super_attribute:
-      if read_only:
+      if read_only or self._SafeToIgnoreShadowingMember(html_name):
         if attribute.type.id == super_attribute.type.id:
           # Compatible attribute, use the superclass property.  This works
           # because JavaScript will do its own dynamic dispatch.
@@ -1160,6 +1180,14 @@ class Dart2JSBackend(HtmlDartGenerator):
   def _HasCustomImplementation(self, member_name):
     member_name = '%s.%s' % (self._interface.doc_js_name, member_name)
     return member_name in _js_custom_members
+
+  def _ForcePropertyMember(self, member_name):
+    member_name = '%s.%s' % (self._interface.doc_js_name, member_name)
+    return member_name in _force_property_members
+
+  def _SafeToIgnoreShadowingMember(self, member_name):
+    member_name = '%s.%s' % (self._interface.doc_js_name, member_name)
+    return member_name in _safe_to_ignore_shadowing_members
 
   def _RenamingAnnotation(self, idl_name, member_name):
     if member_name != idl_name:

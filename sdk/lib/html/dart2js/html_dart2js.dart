@@ -14836,9 +14836,8 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   @DocsEditable()
   bool hidden;
 
-  @DomName('Element.isContentEditable')
-  @DocsEditable()
-  final bool isContentEditable;
+  // Using property as subclass shadows.
+  bool get isContentEditable => JS("bool", "#.isContentEditable", this);
 
   @DomName('Element.lang')
   @DocsEditable()
@@ -14963,10 +14962,8 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   // Use implementation from Node.
   // final String _namespaceUri;
 
-  @JSName('outerHTML')
-  @DomName('Element.outerHTML')
-  @DocsEditable()
-  final String outerHtml;
+  // Using property as subclass shadows.
+  String get outerHtml => JS("String", "#.outerHTML", this);
 
   @JSName('scrollHeight')
   @DomName('Element.scrollHeight')
