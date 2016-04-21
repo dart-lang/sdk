@@ -115,7 +115,7 @@ abstract class DartCompletionRequest extends CompletionRequest {
    * Any information obtained from [target] prior to calling this method
    * should be discarded as it may have changed.
    */
-  Future resolveContainingExpression(Expression expression);
+  Future resolveContainingExpression(AstNode node);
 
   /**
    * Return a [Future] that completes when the element associated with
@@ -125,7 +125,7 @@ abstract class DartCompletionRequest extends CompletionRequest {
    * Any information obtained from [target] prior to calling this method
    * should be discarded as it may have changed.
    */
-  Future resolveContainingStatement(Statement expression);
+  Future resolveContainingStatement(AstNode node);
 
   /**
      * Return a [Future] that completes with a list of [ImportElement]s
