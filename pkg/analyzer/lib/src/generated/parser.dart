@@ -3043,18 +3043,14 @@ class Parser {
     // better.
     //
     List<FormalParameter> parameters = new List<FormalParameter>();
-    List<FormalParameter> normalParameters = new List<FormalParameter>();
-    List<FormalParameter> positionalParameters = new List<FormalParameter>();
-    List<FormalParameter> namedParameters = new List<FormalParameter>();
-    List<FormalParameter> currentParameters = normalParameters;
     Token leftSquareBracket = null;
     Token rightSquareBracket = null;
     Token leftCurlyBracket = null;
     Token rightCurlyBracket = null;
     ParameterKind kind = ParameterKind.REQUIRED;
     bool firstParameter = true;
-    bool reportedMuliplePositionalGroups = false;
-    bool reportedMulipleNamedGroups = false;
+    bool reportedMultiplePositionalGroups = false;
+    bool reportedMultipleNamedGroups = false;
     bool reportedMixedGroups = false;
     bool wasOptionalParameter = false;
     Token initialToken = null;
@@ -3079,31 +3075,29 @@ class Parser {
       //
       if (_matches(TokenType.OPEN_SQUARE_BRACKET)) {
         wasOptionalParameter = true;
-        if (leftSquareBracket != null && !reportedMuliplePositionalGroups) {
+        if (leftSquareBracket != null && !reportedMultiplePositionalGroups) {
           _reportErrorForCurrentToken(
               ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS);
-          reportedMuliplePositionalGroups = true;
+          reportedMultiplePositionalGroups = true;
         }
         if (leftCurlyBracket != null && !reportedMixedGroups) {
           _reportErrorForCurrentToken(ParserErrorCode.MIXED_PARAMETER_GROUPS);
           reportedMixedGroups = true;
         }
         leftSquareBracket = getAndAdvance();
-        currentParameters = positionalParameters;
         kind = ParameterKind.POSITIONAL;
       } else if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
         wasOptionalParameter = true;
-        if (leftCurlyBracket != null && !reportedMulipleNamedGroups) {
+        if (leftCurlyBracket != null && !reportedMultipleNamedGroups) {
           _reportErrorForCurrentToken(
               ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS);
-          reportedMulipleNamedGroups = true;
+          reportedMultipleNamedGroups = true;
         }
         if (leftSquareBracket != null && !reportedMixedGroups) {
           _reportErrorForCurrentToken(ParserErrorCode.MIXED_PARAMETER_GROUPS);
           reportedMixedGroups = true;
         }
         leftCurlyBracket = getAndAdvance();
-        currentParameters = namedParameters;
         kind = ParameterKind.NAMED;
       }
       //
@@ -3111,7 +3105,6 @@ class Parser {
       //
       FormalParameter parameter = _parseFormalParameter(kind);
       parameters.add(parameter);
-      currentParameters.add(parameter);
       if (kind == ParameterKind.REQUIRED && wasOptionalParameter) {
         _reportErrorForNode(
             ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS, parameter);
@@ -3123,7 +3116,6 @@ class Parser {
       // mismatched delimiters.
       if (_matches(TokenType.CLOSE_SQUARE_BRACKET)) {
         rightSquareBracket = getAndAdvance();
-        currentParameters = normalParameters;
         if (leftSquareBracket == null) {
           if (leftCurlyBracket != null) {
             _reportErrorForCurrentToken(
@@ -3139,7 +3131,6 @@ class Parser {
         kind = ParameterKind.REQUIRED;
       } else if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
         rightCurlyBracket = getAndAdvance();
-        currentParameters = normalParameters;
         if (leftCurlyBracket == null) {
           if (leftSquareBracket != null) {
             _reportErrorForCurrentToken(
@@ -4993,14 +4984,16 @@ class Parser {
    */
   CommentAndMetadata _parseCommentAndMetadata() {
     Comment comment = _parseDocumentationComment();
-    List<Annotation> metadata = new List<Annotation>();
+    List<Annotation> metadata = null;
     while (_matches(TokenType.AT)) {
+      metadata ??= new List<Annotation>();
       metadata.add(parseAnnotation());
       Comment optionalComment = _parseDocumentationComment();
       if (optionalComment != null) {
         comment = optionalComment;
       }
     }
+    metadata ??= const <Annotation>[];
     return new CommentAndMetadata(comment, metadata);
   }
 
