@@ -9762,8 +9762,8 @@ void Library::InvalidateResolvedName(const String& name) const {
   intptr_t num_libs = libs.Length();
   for (intptr_t i = 0; i < num_libs; i++) {
     lib ^= libs.At(i);
-    if (LookupExportedNamesCache(name, &entry)) {
-      InitExportedNamesCache();
+    if (lib.LookupExportedNamesCache(name, &entry)) {
+      lib.InitExportedNamesCache();
     }
   }
 }
