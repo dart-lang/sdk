@@ -304,8 +304,8 @@ class SubListIterable<E> extends ListIterable<E> {
     if (_endOrLength != null && _endOrLength < end) end = _endOrLength;
     int length = end - start;
     if (length < 0) length = 0;
-    List result = growable ? (new List<E>()..length = length)
-                           : new List<E>(length);
+    List<E> result = growable ? (new List<E>()..length = length)
+                              : new List<E>(length);
     for (int i = 0; i < length; i++) {
       result[i] = _iterable.elementAt(start + i);
       if (_iterable.length < end) throw new ConcurrentModificationError(this);
@@ -353,7 +353,7 @@ class MappedIterable<S, T> extends Iterable<T> {
   final Iterable<S> _iterable;
   final _Transformation<S, T> _f;
 
-  factory MappedIterable(Iterable iterable, T function(S value)) {
+  factory MappedIterable(Iterable<S> iterable, T function(S value)) {
     if (iterable is EfficientLength) {
       return new EfficientLengthMappedIterable<S, T>(iterable, function);
     }
@@ -377,7 +377,7 @@ class MappedIterable<S, T> extends Iterable<T> {
 
 class EfficientLengthMappedIterable<S, T> extends MappedIterable<S, T>
                                           implements EfficientLength {
-  EfficientLengthMappedIterable(Iterable iterable, T function(S value))
+  EfficientLengthMappedIterable(Iterable<S> iterable, T function(S value))
       : super._(iterable, function);
 }
 
@@ -421,7 +421,7 @@ typedef bool _ElementPredicate<E>(E element);
 
 class WhereIterable<E> extends Iterable<E> {
   final Iterable<E> _iterable;
-  final _ElementPredicate _f;
+  final _ElementPredicate<E> _f;
 
   WhereIterable(this._iterable, bool this._f(E element));
 
@@ -450,7 +450,7 @@ typedef Iterable<T> _ExpandFunction<S, T>(S sourceElement);
 
 class ExpandIterable<S, T> extends Iterable<T> {
   final Iterable<S> _iterable;
-  final _ExpandFunction _f;
+  final _ExpandFunction<S, T> _f;
 
   ExpandIterable(this._iterable, Iterable<T> this._f(S element));
 
@@ -459,7 +459,7 @@ class ExpandIterable<S, T> extends Iterable<T> {
 
 class ExpandIterator<S, T> implements Iterator<T> {
   final Iterator<S> _iterator;
-  final _ExpandFunction _f;
+  final _ExpandFunction<S, T> _f;
   // Initialize _currentExpansion to an empty iterable. A null value
   // marks the end of iteration, and we don't want to call _f before
   // the first moveNext call.
@@ -547,7 +547,7 @@ class TakeIterator<E> extends Iterator<E> {
 
 class TakeWhileIterable<E> extends Iterable<E> {
   final Iterable<E> _iterable;
-  final _ElementPredicate _f;
+  final _ElementPredicate<E> _f;
 
   TakeWhileIterable(this._iterable, bool this._f(E element));
 
