@@ -252,6 +252,12 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 }
 
+abstract class _AsyncDirectoryListerOps {
+  external factory _AsyncDirectoryListerOps(int pointer);
+
+  int getPointer();
+}
+
 class _AsyncDirectoryLister {
   static const int LIST_FILE = 0;
   static const int LIST_DIRECTORY = 1;
@@ -269,10 +275,10 @@ class _AsyncDirectoryLister {
   final bool followLinks;
 
   StreamController controller;
-  int id;
   bool canceled = false;
   bool nextRunning = false;
   bool closed = false;
+  _AsyncDirectoryListerOps _ops;
   Completer closeCompleter = new Completer();
 
   _AsyncDirectoryLister(this.path, this.recursive, this.followLinks) {
@@ -282,13 +288,21 @@ class _AsyncDirectoryLister {
                                       sync: true);
   }
 
+  // Calling this function will increase the reference count on the native
+  // object that implements the async directory lister operations. It should
+  // only be called to pass the pointer to the IO Service, which will decrement
+  // the reference count when it is finished with it.
+  int _pointer() {
+    return (_ops == null) ? null : _ops.getPointer();
+  }
+
   Stream get stream => controller.stream;
 
   void onListen() {
     _IOService._dispatch(_DIRECTORY_LIST_START, [path, recursive, followLinks])
         .then((response) {
           if (response is int) {
-            id = response;
+            _ops = new _AsyncDirectoryListerOps(response);
             next();
           } else if (response is Error) {
             controller.addError(response, response.stackTrace);
@@ -301,7 +315,9 @@ class _AsyncDirectoryLister {
   }
 
   void onResume() {
-    if (!nextRunning) next();
+    if (!nextRunning) {
+      next();
+    }
   }
 
   Future onCancel() {
@@ -319,11 +335,15 @@ class _AsyncDirectoryLister {
       close();
       return;
     }
-    if (id == null) return;
-    if (controller.isPaused) return;
-    if (nextRunning) return;
+    if (controller.isPaused || nextRunning) {
+      return;
+    }
+    var pointer = _pointer();
+    if (pointer == null) {
+      return;
+    }
     nextRunning = true;
-    _IOService._dispatch(_DIRECTORY_LIST_NEXT, [id]).then((result) {
+    _IOService._dispatch(_DIRECTORY_LIST_NEXT, [pointer]).then((result) {
       nextRunning = false;
       if (result is List) {
         next();
@@ -354,18 +374,27 @@ class _AsyncDirectoryLister {
     });
   }
 
+  void _cleanup() {
+    controller.close();
+    closeCompleter.complete();
+    _ops = null;
+  }
+
   void close() {
-    if (closed) return;
-    if (nextRunning) return;
-    void cleanup() {
-      controller.close();
-      closeCompleter.complete();
+    if (closed) {
+      return;
+    }
+    if (nextRunning) {
+      return;
     }
     closed = true;
-    if (id != null) {
-      _IOService._dispatch(_DIRECTORY_LIST_STOP, [id]).whenComplete(cleanup);
+
+    var pointer = _pointer();
+    if (pointer == null) {
+      _cleanup();
     } else {
-      cleanup();
+      _IOService._dispatch(_DIRECTORY_LIST_STOP, [pointer])
+                .whenComplete(_cleanup);
     }
   }
 

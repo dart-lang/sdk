@@ -16,3 +16,21 @@ patch class _Directory {
   /* patch */ static List _list(String path, bool recursive, bool followLinks)
       native "Directory_List";
 }
+
+patch class _AsyncDirectoryListerOps {
+  /* patch */ factory _AsyncDirectoryListerOps(int pointer) =>
+      new _AsyncDirectoryListerOpsImpl(pointer);
+}
+
+class _AsyncDirectoryListerOpsImpl extends NativeFieldWrapperClass1
+                                   implements _AsyncDirectoryListerOps {
+  _AsyncDirectoryListerOpsImpl._();
+
+  factory _AsyncDirectoryListerOpsImpl(int pointer)
+      => new _AsyncDirectoryListerOpsImpl._().._setPointer(pointer);
+
+  void _setPointer(int pointer)
+      native "Directory_SetAsyncDirectoryListerPointer";
+  int getPointer()
+      native "Directory_GetAsyncDirectoryListerPointer";
+}

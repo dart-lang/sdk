@@ -29,6 +29,8 @@ namespace bin {
   V(Directory_Delete, 2)                                                       \
   V(Directory_Rename, 2)                                                       \
   V(Directory_List, 3)                                                         \
+  V(Directory_GetAsyncDirectoryListerPointer, 1)                               \
+  V(Directory_SetAsyncDirectoryListerPointer, 2)                               \
   V(EventHandler_SendData, 3)                                                  \
   V(EventHandler_TimerMillisecondClock, 0)                                     \
   V(File_GetPointer, 1)                                                        \

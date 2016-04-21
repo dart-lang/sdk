@@ -45,6 +45,14 @@ class _Directory {
 }
 
 @patch
+class _AsyncDirectoryListerOps {
+  @patch
+  factory _AsyncDirectoryListerOps(int pointer) {
+    throw new UnsupportedError("Directory._list");
+  }
+}
+
+@patch
 class _EventHandler {
   @patch
   static void _sendData(Object sender,
