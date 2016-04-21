@@ -22,6 +22,7 @@ developer_extension_test: SkipByDesign
 address_mapper_test: Pass # https://github.com/dart-lang/observe/issues/85
 command_test: Pass # https://github.com/dart-lang/observe/issues/85
 read_stream_test: Pass # https://github.com/dart-lang/observe/issues/85
+get_isolate_after_language_error_test: SkipByDesign
 
 [ $arch == arm ]
 process_service_test: Pass, Fail # Issue 24344
