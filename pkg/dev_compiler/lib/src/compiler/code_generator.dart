@@ -81,7 +81,8 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   final _privateNames =
       new HashMap<LibraryElement, HashMap<String, JS.TemporaryId>>();
-  final _temps = new HashMap<Element, JS.TemporaryId>();
+  final _initializingFormalTemps =
+      new HashMap<ParameterElement, JS.TemporaryId>();
 
   final _dartxVar = new JS.Identifier('dartx');
   final _runtimeLibVar = new JS.Identifier('dart');
@@ -1912,12 +1913,9 @@ class CodeGenerator extends GeneralizingAstVisitor
       return _emitParameter(element);
     }
 
+    // If this is one of our compiler's temporary variables, return its JS form.
     if (element is TemporaryVariableElement) {
-      if (name[0] == '#') {
-        return new JS.InterpolatedExpression(name.substring(1));
-      } else {
-        return _getTemp(element, name);
-      }
+      return element.jsVariable;
     }
 
     return new JS.Identifier(name);
@@ -1931,15 +1929,13 @@ class CodeGenerator extends GeneralizingAstVisitor
       /// Rename private names so they don't shadow the private field symbol.
       /// The renamer would handle this, but it would prefer to rename the
       /// temporary used for the private symbol. Instead rename the parameter.
-      return _getTemp(element, '${element.name.substring(1)}');
+      return _initializingFormalTemps.putIfAbsent(
+          element, () => new JS.TemporaryId(element.name.substring(1)));
     }
 
     var type = declaration ? emitTypeRef(element.type) : null;
     return new JS.Identifier(element.name, type: type);
   }
-
-  JS.TemporaryId _getTemp(Element key, String name) =>
-      _temps.putIfAbsent(key, () => new JS.TemporaryId(name));
 
   List<Annotation> _parameterMetadata(FormalParameter p) =>
       (p is NormalFormalParameter)
@@ -2086,7 +2082,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
       // Handle the left hand side, to ensure each of its subexpressions are
       // evaluated only once.
-      var vars = <String, JS.Expression>{};
+      var vars = <JS.MetaLetVariable, JS.Expression>{};
       var x = _bindLeftHandSide(vars, left, context: left);
       // Capture the result of evaluating the left hand side in a temp.
       var t = _bindValue(vars, 't', x, context: x);
@@ -2097,7 +2093,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     // Desugar `x += y` as `x = x + y`, ensuring that if `x` has subexpressions
     // (for example, x is IndexExpression) we evaluate those once.
-    var vars = <String, JS.Expression>{};
+    var vars = <JS.MetaLetVariable, JS.Expression>{};
     var lhs = _bindLeftHandSide(vars, left, context: context);
     var inc = AstBuilder.binaryExpression(lhs, op, right);
     inc.staticElement = element;
@@ -2146,7 +2142,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     //
     // However with MetaLet, we get clean code in statement or void context,
     // or when one of the expressions is stateless, which seems common.
-    var vars = <String, JS.Expression>{};
+    var vars = <JS.MetaLetVariable, JS.Expression>{};
     var left = _bindValue(vars, 'l', node.target);
     var body = js.call('# == null ? null : #',
         [_visit(left), _emitSet(_stripNullAwareOp(node, left), right)]);
@@ -2722,7 +2718,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       // This should be a hint or warning for dead code.
       if (!isNullable(left)) return _visit(left);
 
-      var vars = <String, JS.Expression>{};
+      var vars = <JS.MetaLetVariable, JS.Expression>{};
       // Desugar `l ?? r` as `l != null ? l : r`
       var l = _visit(_bindValue(vars, 'l', left, context: left));
       return new JS.MetaLet(vars, [
@@ -2771,7 +2767,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   bool _isNull(Expression expr) => expr is NullLiteral;
 
   SimpleIdentifier _createTemporary(String name, DartType type,
-      {bool nullable: true}) {
+      {bool nullable: true, JS.Expression variable}) {
     // We use an invalid source location to signal that this is a temporary.
     // See [_isTemporary].
     // TODO(jmesserly): alternatives are
@@ -2781,7 +2777,10 @@ class CodeGenerator extends GeneralizingAstVisitor
     // * create a new subtype of LocalVariableElementImpl to mark a temp.
     var id =
         new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, -1));
-    id.staticElement = new TemporaryVariableElement.forNode(id);
+
+    variable ??= new JS.TemporaryId(name);
+
+    id.staticElement = new TemporaryVariableElement.forNode(id, variable);
     id.staticType = type;
     DynamicInvoke.set(id, type.isDynamic);
     addTemporaryVariable(id.staticElement, nullable: nullable);
@@ -2811,7 +2810,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// unless [expr] is a SimpleIdentifier, in which case a temporary is not
   /// needed.
   Expression _bindLeftHandSide(
-      Map<String, JS.Expression> scope, Expression expr,
+      Map<JS.MetaLetVariable, JS.Expression> scope, Expression expr,
       {Expression context}) {
     Expression result;
     if (expr is IndexExpression) {
@@ -2855,14 +2854,15 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// variables), then the resulting code will be simplified automatically.
   ///
   /// [scope] will be mutated to contain the new temporary's initialization.
-  Expression _bindValue(
-      Map<String, JS.Expression> scope, String name, Expression expr,
+  Expression _bindValue(Map<JS.MetaLetVariable, JS.Expression> scope,
+      String name, Expression expr,
       {Expression context}) {
     // No need to do anything for stateless expressions.
     if (isStateless(_currentFunction, expr, context)) return expr;
 
-    var t = _createTemporary('#$name', getStaticType(expr));
-    scope[name] = _visit(expr);
+    var variable = new JS.MetaLetVariable(name);
+    var t = _createTemporary(name, getStaticType(expr), variable: variable);
+    scope[variable] = _visit(expr);
     return t;
   }
 
@@ -2900,7 +2900,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     // Handle the left hand side, to ensure each of its subexpressions are
     // evaluated only once.
-    var vars = <String, JS.Expression>{};
+    var vars = <JS.MetaLetVariable, JS.Expression>{};
     var left = _bindLeftHandSide(vars, expr, context: expr);
 
     // Desugar `x++` as `(x1 = x0 + 1, x0)` where `x0` is the original value
@@ -2927,7 +2927,7 @@ class CodeGenerator extends GeneralizingAstVisitor
         return js.call('$op#', _visit(expr));
       } else if (op.lexeme == '++' || op.lexeme == '--') {
         // We need a null check, so the increment must be expanded out.
-        var vars = <String, JS.Expression>{};
+        var vars = <JS.MetaLetVariable, JS.Expression>{};
         var x = _bindLeftHandSide(vars, expr, context: expr);
 
         var one = AstBuilder.integerLiteral(1)..staticType = types.intType;
@@ -2960,7 +2960,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   JS.Node visitCascadeExpression(CascadeExpression node) {
     var savedCascadeTemp = _cascadeTarget;
 
-    var vars = <String, JS.Expression>{};
+    var vars = <JS.MetaLetVariable, JS.Expression>{};
     _cascadeTarget = _bindValue(vars, '_', node.target, context: node);
     var sections = _visitList(node.cascadeSections) as List<JS.Expression>;
     sections.add(_visit(_cascadeTarget));
@@ -3779,7 +3779,9 @@ JS.LiteralString _propertyName(String name) => js.string(name, "'");
 /// variable. These objects use instance equality, and should be shared
 /// everywhere in the tree where they are treated as the same variable.
 class TemporaryVariableElement extends LocalVariableElementImpl {
-  TemporaryVariableElement.forNode(Identifier name) : super.forNode(name);
+  final JS.Expression jsVariable;
+  TemporaryVariableElement.forNode(Identifier name, this.jsVariable)
+      : super.forNode(name);
 
   int get hashCode => identityHashCode(this);
   bool operator ==(Object other) => identical(this, other);

@@ -36,7 +36,7 @@ class MetaLet extends Expression {
   /// If the expression does not end up using `x` more than once, or if those
   /// expressions can be treated as [stateless] (e.g. they are non-mutated
   /// variables), then the resulting code will be simplified automatically.
-  final Map<String, Expression> variables;
+  final Map<MetaLetVariable, Expression> variables;
 
   /// A list of expressions in the body.
   /// The last value should represent the returned value.
@@ -171,49 +171,40 @@ class MetaLet extends Expression {
   }
 
   Block _finishStatement(List<Statement> statements) {
-    var params = <TemporaryId>[];
-    var values = <Expression>[];
-    var block = _build(params, values, new Block(statements));
-    if (params.isEmpty) return block;
-
-    var vars = [];
-    for (int i = 0; i < params.length; i++) {
-      vars.add(new VariableInitialization(params[i], values[i]));
-    }
-
-    return new Block(<Statement>[
-      new VariableDeclarationList('let', vars).toStatement(),
-      block
-    ]);
-  }
-
-  Node _build(List<TemporaryId> params, List<Expression> values, Node node) {
     // Visit the tree and count how many times each temp was used.
     var counter = new _VariableUseCounter();
+    var node = new Block(statements);
     node.accept(counter);
     // Also count the init expressions.
     for (var init in variables.values) init.accept(counter);
 
-    var substitutions = {};
-    _substitute(node) => new Template(null, node).safeCreate(substitutions);
-
-    variables.forEach((name, init) {
+    var initializers = <VariableInitialization>[];
+    var substitutions = <MetaLetVariable, Expression>{};
+    variables.forEach((variable, init) {
       // Since this is let*, subsequent variables can refer to previous ones,
       // so we need to substitute here.
-      init = _substitute(init);
-      int n = counter.counts[name];
-      if (n == null || n < 2) {
-        substitutions[name] = _substitute(init);
+      init = _substitute(init, substitutions);
+      int n = counter.counts[variable];
+      if (n == 1) {
+        // Replace interpolated exprs with their value, if it only occurs once.
+        substitutions[variable] = init;
       } else {
-        params.add(substitutions[name] = new TemporaryId(name));
-        values.add(init);
+        // Otherwise replace it with a temp, which will be assigned once.
+        var temp = new TemporaryId(variable.displayName);
+        substitutions[variable] = temp;
+        initializers.add(new VariableInitialization(temp, init));
       }
     });
 
-    // Interpolate the body:
-    // Replace interpolated exprs with their value, if it only occurs once.
-    // Otherwise replace it with a temp, which will be assigned once.
-    return _substitute(node);
+    // Interpolate the body.
+    node = _substitute(node, substitutions);
+    if (initializers.isNotEmpty) {
+      node = new Block([
+        new VariableDeclarationList('let', initializers).toStatement(),
+        node
+      ]);
+    }
+    return node;
   }
 
   /// If we finish with an assignment to an identifier, try to simplify the
@@ -231,11 +222,10 @@ class MetaLet extends Expression {
   ///
   MetaLet _simplifyAssignment(Identifier left, {bool isDeclaration: false}) {
     // See if the result value is a let* temporary variable.
-    if (body.last is! InterpolatedExpression) return null;
+    if (body.last is! MetaLetVariable) return null;
 
-    InterpolatedExpression last = body.last;
-    String name = last.nameOrPosition;
-    if (!variables.containsKey(name)) return null;
+    MetaLetVariable result = body.last;
+    if (!variables.containsKey(result)) return null;
 
     // Variables declared can't be used inside their initializer, so make
     // sure we don't transform an assignment into an initializer.
@@ -252,8 +242,8 @@ class MetaLet extends Expression {
       if (finder.found) return null;
     }
 
-    var vars = new Map<String, Expression>.from(variables);
-    var value = vars.remove(name);
+    var vars = new Map<MetaLetVariable, Expression>.from(variables);
+    var value = vars.remove(result);
     Expression assign;
     if (isDeclaration) {
       // Technically, putting one of these in a comma expression is not
@@ -266,18 +256,59 @@ class MetaLet extends Expression {
     }
 
     var newBody = new Expression.binary([assign]..addAll(body), ',');
-    Binary comma = new Template(null, newBody).safeCreate({name: left});
-    return new MetaLet(vars, comma.commaToExpressionList(),
+    newBody = _substitute(newBody, {result: left});
+    return new MetaLet(vars, newBody.commaToExpressionList(),
         statelessResult: statelessResult);
   }
 }
 
+/// Similar to [Template.instantiate] but works with free variables.
+Node _substitute(Node tree, Map<MetaLetVariable, Expression> substitutions) {
+  var generator = new InstantiatorGeneratorVisitor(/*forceCopy:*/ false);
+  var instantiator = generator.compile(tree);
+  var nodes = new List<MetaLetVariable>.from(generator
+      .analysis.containsInterpolatedNode
+      .where((n) => n is MetaLetVariable));
+  if (nodes.isEmpty) return tree;
+
+  return instantiator(new Map.fromIterable(nodes,
+      key: (v) => (v as MetaLetVariable).nameOrPosition,
+      value: (v) => substitutions[v] ?? v));
+}
+
+/// A temporary variable used in a [MetaLet].
+///
+/// Each instance of this class represents a fresh variable. The same object
+/// should be used everywhere to refer to the same variable. Different variables
+/// with the same name are different, and will be renamed later on, if needed.
+///
+/// These variables will be replaced when the `let*` is complete, depending on
+/// how often they occur and whether they can be optimized away. See [MetaLet]
+/// for more information.
+///
+/// This class should never reach our final JS code.
+class MetaLetVariable extends InterpolatedExpression {
+  /// The suggested display name of this variable.
+  ///
+  /// This name should not be used
+  final String displayName;
+
+  /// Compute fresh IDs to avoid
+  static int _uniqueId = 0;
+
+  MetaLetVariable(String displayName)
+      : displayName = displayName,
+        super(displayName + '@${++_uniqueId}');
+}
+
 class _VariableUseCounter extends BaseVisitor {
-  final counts = <String, int>{};
+  final counts = <MetaLetVariable, int>{};
   @override
   visitInterpolatedExpression(InterpolatedExpression node) {
-    int n = counts[node.nameOrPosition];
-    counts[node.nameOrPosition] = n == null ? 1 : n + 1;
+    if (node is MetaLetVariable) {
+      int n = counts[node];
+      counts[node] = n == null ? 1 : n + 1;
+    }
   }
 }
 
