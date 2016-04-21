@@ -13,7 +13,6 @@ dart_library.library('extensions', null, /* Imports */[
       super.IterableBase();
     }
   };
-  dart.virtualField(extensions.StringIterable, 'iterator');
   dart.setSignature(extensions.StringIterable, {});
   dart.defineExtensionMembers(extensions.StringIterable, ['iterator']);
   extensions.main = function() {

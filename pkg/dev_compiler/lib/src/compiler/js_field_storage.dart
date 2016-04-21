@@ -3,60 +3,45 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection' show HashSet;
+
 import 'package:analyzer/dart/ast/ast.dart' show Identifier;
 import 'package:analyzer/dart/element/element.dart';
+
 import 'extension_types.dart';
 
-/// We use a storage slot for fields that override or can be overridden by
-/// getter/setter pairs.
-HashSet<FieldElement> findFieldsNeedingStorage(
-    Iterable<CompilationUnitElement> units, ExtensionTypeSet extensionTypes) {
-  var overrides = new HashSet<FieldElement>();
-  for (var unit in units) {
-    for (var cls in unit.types) {
-      var superclasses = getSuperclasses(cls);
-      for (var field in cls.fields) {
-        if (!field.isSynthetic && !overrides.contains(field)) {
-          checkForPropertyOverride(
-              field, superclasses, overrides, extensionTypes);
-        }
-      }
-    }
-  }
+class PropertyOverrideResult {
+  final bool foundGetter;
+  final bool foundSetter;
 
-  return overrides;
+  PropertyOverrideResult(this.foundGetter, this.foundSetter);
 }
 
-void checkForPropertyOverride(
-    FieldElement field,
-    List<ClassElement> superclasses,
-    HashSet<FieldElement> overrides,
-    ExtensionTypeSet extensionTypes) {
-  assert(!field.isSynthetic);
+PropertyOverrideResult checkForPropertyOverride(FieldElement field,
+    List<ClassElement> superclasses, ExtensionTypeSet extensionTypes) {
+  bool foundGetter = false;
+  bool foundSetter = false;
 
-  var library = field.library;
-
-  bool found = false;
   for (var superclass in superclasses) {
-    var superprop = getProperty(superclass, library, field.name);
-    if (superprop != null) {
-      // If we find an abstract getter/setter pair, stop the search.
-      var getter = superprop.getter;
-      var setter = superprop.setter;
-      if (!extensionTypes.contains(superclass) &&
-          (getter == null || getter.isAbstract) &&
-          (setter == null || setter.isAbstract)) {
-        break;
-      }
+    // Stop if we reach a native type.
+    if (extensionTypes.contains(superclass)) break;
 
-      found = true;
-      // Record that the super property is overridden.
-      if (superprop.library == library) overrides.add(superprop);
-    }
+    var superprop = getProperty(superclass, field.library, field.name);
+    if (superprop == null) continue;
+
+    var getter = superprop.getter;
+    bool hasGetter = getter != null && !getter.isAbstract;
+    if (hasGetter) foundGetter = true;
+
+    var setter = superprop.setter;
+    bool hasSetter = setter != null && !setter.isAbstract;
+    if (hasSetter) foundSetter = true;
+
+    // Stop if this is an abstract getter/setter
+    // TODO(jmesserly): why were we doing this?
+    if (!hasGetter && !hasSetter) break;
   }
 
-  // If this we found a super property, then this property overrides it.
-  if (found) overrides.add(field);
+  return new PropertyOverrideResult(foundGetter, foundSetter);
 }
 
 FieldElement getProperty(

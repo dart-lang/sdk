@@ -4069,6 +4069,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get length() {
       return this[_string][dartx.length];
     }
+    set length(value) {
+      super.length = value;
+    }
     get(i) {
       return this[_string][dartx.codeUnitAt](i);
     }
@@ -17516,6 +17519,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       fork: [async.Zone, [async.Zone, async.ZoneSpecification, core.Map]]
     })
   });
+  const _map = Symbol('_map');
   async._Zone = class _Zone extends core.Object {
     _Zone() {
     }
@@ -17529,7 +17533,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     methods: () => ({inSameErrorZone: [core.bool, [async.Zone]]})
   });
   const _delegateCache = Symbol('_delegateCache');
-  const _map = Symbol('_map');
   async._CustomZone = class _CustomZone extends async._Zone {
     get [_delegate]() {
       if (this[_delegateCache] != null) return this[_delegateCache];
@@ -20294,6 +20297,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       get length() {
         return this[_source$0][dartx.length];
       }
+      set length(value) {
+        super.length = value;
+      }
       get(index) {
         return this[_source$0][dartx.elementAt](index);
       }
@@ -22211,6 +22217,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _root = Symbol('_root');
   const _count = Symbol('_count');
   const _splayCount = Symbol('_splayCount');
+  const _comparator = Symbol('_comparator');
   const _compare = Symbol('_compare');
   const _splay = Symbol('_splay');
   const _splayMin = Symbol('_splayMin');
@@ -22362,7 +22369,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return _SplayTree;
   });
   collection._SplayTree = collection._SplayTree$();
-  const _comparator = Symbol('_comparator');
   collection.SplayTreeMap$ = dart.generic((K, V) => {
     class SplayTreeMap extends collection._SplayTree$(K) {
       SplayTreeMap(compare, isValidKey) {
@@ -29876,10 +29882,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return new (math.Rectangle$(T))(left, top, width, height);
       }
     }
-    dart.virtualField(Rectangle, dartx.left);
-    dart.virtualField(Rectangle, dartx.top);
-    dart.virtualField(Rectangle, dartx.width);
-    dart.virtualField(Rectangle, dartx.height);
     dart.setSignature(Rectangle, {
       constructors: () => ({
         Rectangle: [math.Rectangle$(T), [T, T, T, T]],
@@ -29924,8 +29926,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_height] = height;
       }
     }
-    dart.virtualField(MutableRectangle, 'left');
-    dart.virtualField(MutableRectangle, 'top');
     MutableRectangle[dart.implements] = () => [math.Rectangle$(T)];
     dart.setSignature(MutableRectangle, {
       constructors: () => ({
@@ -57832,7 +57832,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       html$.ShadowRoot._shadowRootDeprecationReport();
     }
   };
-  dart.virtualField(html$.ShadowRoot, dartx.innerHtml);
   dart.setSignature(html$.ShadowRoot, {
     constructors: () => ({_: [html$.ShadowRoot, []]}),
     methods: () => ({
@@ -65304,8 +65303,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     set height(newHeight) {
       this[_elementList][dartx.forEach](dart.fn(e => e[dartx.contentEdge].height = newHeight, dart.void, [html$.Element]));
     }
+    get height() {
+      return super.height;
+    }
     set width(newWidth) {
       this[_elementList][dartx.forEach](dart.fn(e => e[dartx.contentEdge].width = newWidth, dart.void, [html$.Element]));
+    }
+    get width() {
+      return super.width;
     }
   };
   dart.setSignature(html$._ContentCssListRect, {
@@ -65318,8 +65323,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get height() {
       return dart.notNull(this[_element$][dartx.offsetHeight]) + dart.notNull(this[_addOrSubtractToBoxModel](html$._HEIGHT, html$._PADDING));
     }
+    set height(value) {
+      super.height = value;
+    }
     get width() {
       return dart.notNull(this[_element$][dartx.offsetWidth]) + dart.notNull(this[_addOrSubtractToBoxModel](html$._WIDTH, html$._PADDING));
+    }
+    set width(value) {
+      super.width = value;
     }
     get left() {
       return dart.notNull(this[_element$][dartx.getBoundingClientRect]()[dartx.left]) - dart.notNull(this[_addOrSubtractToBoxModel](dart.list(['left'], core.String), html$._PADDING));
@@ -65339,8 +65350,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get height() {
       return this[_element$][dartx.offsetHeight];
     }
+    set height(value) {
+      super.height = value;
+    }
     get width() {
       return this[_element$][dartx.offsetWidth];
+    }
+    set width(value) {
+      super.width = value;
     }
     get left() {
       return this[_element$][dartx.getBoundingClientRect]()[dartx.left];
@@ -65360,8 +65377,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get height() {
       return dart.notNull(this[_element$][dartx.offsetHeight]) + dart.notNull(this[_addOrSubtractToBoxModel](html$._HEIGHT, html$._MARGIN));
     }
+    set height(value) {
+      super.height = value;
+    }
     get width() {
       return dart.notNull(this[_element$][dartx.offsetWidth]) + dart.notNull(this[_addOrSubtractToBoxModel](html$._WIDTH, html$._MARGIN));
+    }
+    set width(value) {
+      super.width = value;
     }
     get left() {
       return dart.notNull(this[_element$][dartx.getBoundingClientRect]()[dartx.left]) - dart.notNull(this[_addOrSubtractToBoxModel](dart.list(['left'], core.String), html$._MARGIN));

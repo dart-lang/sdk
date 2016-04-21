@@ -5,11 +5,11 @@
 import 'dart:collection' show HashMap, HashSet;
 
 import 'package:analyzer/analyzer.dart' hide ConstantEvaluator;
+import 'package:analyzer/dart/ast/ast.dart' hide ConstantEvaluator;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/ast/ast.dart' hide ConstantEvaluator;
-
+import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
 //TODO(leafp): Remove deprecated dependency
 //ignore: DEPRECATED_MEMBER_USE
 import 'package:analyzer/src/generated/element.dart'
@@ -17,27 +17,26 @@ import 'package:analyzer/src/generated/element.dart'
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, NamespaceBuilder;
-import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
 import 'package:analyzer/src/generated/type_system.dart'
     show StrongTypeSystemImpl;
 import 'package:analyzer/src/summary/summarize_elements.dart'
     show PackageBundleAssembler;
 import 'package:analyzer/src/task/strong/info.dart' show DynamicInvoke;
+import 'package:source_maps/source_maps.dart';
 
+import '../closure/closure_annotator.dart' show ClosureAnnotator;
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
-import '../closure/closure_annotator.dart' show ClosureAnnotator;
-
 import 'ast_builder.dart' show AstBuilder;
 import 'compiler.dart'
     show BuildUnit, CompilerOptions, JSModuleFile, ModuleFormat;
 import 'element_helpers.dart';
 import 'element_loader.dart' show ElementLoader;
 import 'extension_types.dart' show ExtensionTypeSet;
-import 'js_field_storage.dart' show findFieldsNeedingStorage;
+import 'js_field_storage.dart' show checkForPropertyOverride, getSuperclasses;
 import 'js_interop.dart';
-import 'js_names.dart' as JS;
 import 'js_metalet.dart' as JS;
+import 'js_names.dart' as JS;
 import 'js_typeref_codegen.dart' show JsTypeRefCodegen;
 import 'module_builder.dart'
     show LegacyModuleBuilder, NodeModuleBuilder, pathToJSIdentifier;
@@ -45,7 +44,6 @@ import 'nullable_type_inference.dart' show NullableTypeInference;
 import 'reify_coercions.dart' show CoercionReifier;
 import 'side_effect_analysis.dart' show ConstFieldVisitor, isStateless;
 import 'source_map_printer.dart' show SourceMapPrintingContext;
-import 'package:source_maps/source_maps.dart';
 
 class CodeGenerator extends GeneralizingAstVisitor
     with ClosureAnnotator, JsTypeRefCodegen, NullableTypeInference {
@@ -68,10 +66,6 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   /// The global extension type table.
   final ExtensionTypeSet _extensionTypes;
-
-  /// Information that is precomputed for this library, indicates which fields
-  /// need storage slots.
-  HashSet<FieldElement> _fieldsNeedingStorage;
 
   /// The variable for the target of the current `..` cascade expression.
   ///
@@ -183,9 +177,6 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (_moduleItems.isNotEmpty) {
       throw new StateError('Can only call emitModule once.');
     }
-
-    _fieldsNeedingStorage = findFieldsNeedingStorage(
-        compilationUnits.map((u) => u.element), _extensionTypes);
 
     // Transform the AST to make coercions explicit.
     compilationUnits = CoercionReifier.reify(compilationUnits);
@@ -554,7 +545,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     // Emit things that come after the ES6 `class ... { ... }`.
     _setBaseClass(classElem, className, body);
     _defineNamedConstructors(ctors, body, className);
-    _emitVirtualFields(fields, className, body);
+    _emitVirtualFields(classElem, fields, className, body);
     _emitClassSignature(methods, classElem, ctors, extensions, className, body);
     _defineExtensionMembers(extensions, className, body);
     _emitClassMetadata(node.metadata, className, body);
@@ -774,6 +765,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
 
     bool hasJsPeer = findAnnotation(element, isJsPeerInterface) != null;
+    var superclasses = getSuperclasses(element);
 
     bool hasIterator = false;
     for (var m in node.members) {
@@ -781,6 +773,10 @@ class CodeGenerator extends GeneralizingAstVisitor
         jsMethods.add(_emitConstructor(m, type, fields, isObject));
       } else if (m is MethodDeclaration) {
         jsMethods.add(_emitMethodDeclaration(type, m));
+
+        if (m.element is PropertyAccessorElement) {
+          jsMethods.add(_emitSuperAccessorWrapper(m, type, superclasses));
+        }
 
         if (!hasJsPeer && m.isGetter && m.name.name == 'iterator') {
           hasIterator = true;
@@ -804,6 +800,32 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
 
     return jsMethods.where((m) => m != null).toList(growable: false);
+  }
+
+  JS.Method _emitSuperAccessorWrapper(MethodDeclaration method,
+      InterfaceType type, List<ClassElement> superclasses) {
+    var methodElement = method.element as PropertyAccessorElement;
+    var field = methodElement.variable;
+    if (!field.isSynthetic) return null;
+    var propertyOverrideResult = checkForPropertyOverride(
+        methodElement.variable, superclasses, _extensionTypes);
+
+    // Generate a corresponding virtual getter / setter.
+    var name = _elementMemberName(methodElement,
+        allowExtensions: _extensionTypes.contains(type.element));
+    if (method.isGetter) {
+      // Generate a setter
+      if (field.setter != null || !propertyOverrideResult.foundSetter)
+        return null;
+      var fn = js.call('function(value) { super[#] = value; }', [name]);
+      return new JS.Method(name, fn, isSetter: true);
+    } else {
+      // Generate a getter
+      if (field.getter != null || !propertyOverrideResult.foundGetter)
+        return null;
+      var fn = js.call('function() { return super[#]; }', [name]);
+      return new JS.Method(name, fn, isGetter: true);
+    }
   }
 
   bool _implementsIterable(InterfaceType t) =>
@@ -890,11 +912,18 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   /// Emits instance fields, if they are virtual
   /// (in other words, they override a getter/setter pair).
-  void _emitVirtualFields(List<FieldDeclaration> fields,
-      JS.Expression className, List<JS.Statement> body) {
+  void _emitVirtualFields(
+      ClassElement classElement,
+      List<FieldDeclaration> fields,
+      JS.Expression className,
+      List<JS.Statement> body) {
+    List<ClassElement> superclasses = getSuperclasses(classElement);
     for (FieldDeclaration member in fields) {
       for (VariableDeclaration field in member.fields.variables) {
-        if (_fieldsNeedingStorage.contains(field.element)) {
+        var propertyOverrideResult = checkForPropertyOverride(
+            field.element, superclasses, _extensionTypes);
+        if (propertyOverrideResult.foundGetter ||
+            propertyOverrideResult.foundSetter) {
           body.add(_overrideField(className, field.element));
         }
       }
