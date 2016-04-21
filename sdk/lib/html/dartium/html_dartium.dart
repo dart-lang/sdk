@@ -10938,9 +10938,8 @@ class Document extends Node
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  ElementList<Element> querySelectorAll(String selectors) {
-    return new _FrozenElementList._wrap(_querySelectorAll(selectors));
-  }
+  ElementList<Element /*=T*/> querySelectorAll/*<T extends Element>*/(String selectors) =>
+    new _FrozenElementList/*<T>*/._wrap(_querySelectorAll(selectors));
 
   /**
    * Alias for [querySelector]. Note this function is deprecated because its
@@ -10958,7 +10957,7 @@ class Document extends Node
   @deprecated
   @Experimental()
   @DomName('Document.querySelectorAll')
-  ElementList<Element> queryAll(String relativeSelectors) =>
+  ElementList<Element /*=T*/> queryAll/*<T extends Element>*/(String relativeSelectors) =>
       querySelectorAll(relativeSelectors);
 
   /// Checks if [registerElement] is supported on the current platform.
@@ -11047,8 +11046,9 @@ class DocumentFragment extends Node implements NonElementParentNode, ParentNode 
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  ElementList<Element> querySelectorAll(String selectors) =>
-    new _FrozenElementList._wrap(_querySelectorAll(selectors));
+  ElementList<Element /*=T*/> querySelectorAll/*<T extends Element>*/(String selectors) =>
+    new _FrozenElementList/*<T>*/._wrap(_querySelectorAll(selectors));
+
 
   String get innerHtml {
     final e = new Element.tag("div");
@@ -11105,9 +11105,8 @@ class DocumentFragment extends Node implements NonElementParentNode, ParentNode 
   @deprecated
   @Experimental()
   @DomName('DocumentFragment.querySelectorAll')
-  ElementList<Element> queryAll(String relativeSelectors) {
-    return querySelectorAll(relativeSelectors);
-  }
+  ElementList<Element /*=T*/> queryAll/*<T extends Element>*/(String relativeSelectors) =>
+    querySelectorAll(relativeSelectors);
   // To suppress missing implicit constructor warnings.
   factory DocumentFragment._() { throw new UnsupportedError("Not supported"); }
 
@@ -13142,8 +13141,8 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
 // declared to return `ElementList`.  This provides all the static analysis
 // benefit so there is no need for this class have a constrained type parameter.
 //
-class _FrozenElementList extends ListBase<Element>
-    implements ElementList<Element>, NodeListWrapper {
+class _FrozenElementList<E extends Element> extends ListBase<E>
+    implements ElementList<E>, NodeListWrapper {
   final List<Node> _nodeList;
 
   var dartClass_instance;
@@ -13154,9 +13153,9 @@ class _FrozenElementList extends ListBase<Element>
 
   int get length => _nodeList.length;
 
-  Element operator [](int index) => _nodeList[index];
+  E operator [](int index) => _nodeList[index] as E;
 
-  void operator []=(int index, Element value) {
+  void operator []=(int index, E value) {
     throw new UnsupportedError('Cannot modify list');
   }
 
@@ -13164,7 +13163,7 @@ class _FrozenElementList extends ListBase<Element>
     throw new UnsupportedError('Cannot modify list');
   }
 
-  void sort([Comparator<Element> compare]) {
+  void sort([Comparator<E> compare]) {
     throw new UnsupportedError('Cannot sort list');
   }
 
@@ -13172,11 +13171,11 @@ class _FrozenElementList extends ListBase<Element>
     throw new UnsupportedError('Cannot shuffle list');
   }
 
-  Element get first => _nodeList.first;
+  E get first => _nodeList.first as E;
 
-  Element get last => _nodeList.last;
+  E get last => _nodeList.last as E;
 
-  Element get single => _nodeList.single;
+  E get single => _nodeList.single as E;
 
   CssClassSet get classes => new _MultiElementCssClassSet(this);
 
@@ -13951,8 +13950,8 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   @DomName('Element.querySelectorAll')
-  ElementList<Element> querySelectorAll(String selectors) =>
-    new _FrozenElementList._wrap(_querySelectorAll(selectors));
+  ElementList<Element /*=T*/> querySelectorAll/*<T extends Element>*/(String selectors) =>
+    new _FrozenElementList/*<T>*/._wrap(_querySelectorAll(selectors));
 
   /**
    * Alias for [querySelector]. Note this function is deprecated because its
@@ -13970,7 +13969,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   @deprecated
   @DomName('Element.querySelectorAll')
   @Experimental()
-  ElementList<Element> queryAll(String relativeSelectors) =>
+  ElementList<Element /*=T*/> queryAll/*<T extends Element>*/(String relativeSelectors) =>
       querySelectorAll(relativeSelectors);
 
   /**
