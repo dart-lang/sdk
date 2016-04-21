@@ -3455,14 +3455,27 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     if (_enclosingFunction.isAsynchronous) {
       if (_enclosingFunction.isGenerator) {
-        if (!_typeSystem.isAssignableTo(
+        if (_options.strongMode) {
+          if (_enclosingFunction.returnType.element !=
+              _typeProvider.streamType.element) {
+            _errorReporter.reportErrorForNode(
+                StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
+                returnType);
+          }
+        } else if (!_typeSystem.isAssignableTo(
             _enclosingFunction.returnType, _typeProvider.streamDynamicType)) {
           _errorReporter.reportErrorForNode(
               StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
               returnType);
         }
       } else {
-        if (!_typeSystem.isAssignableTo(
+        if (_options.strongMode) {
+          if (_enclosingFunction.returnType.element !=
+              _typeProvider.futureType.element) {
+            _errorReporter.reportErrorForNode(
+                StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, returnType);
+          }
+        } else if (!_typeSystem.isAssignableTo(
             _enclosingFunction.returnType, _typeProvider.futureDynamicType)) {
           _errorReporter.reportErrorForNode(
               StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, returnType);
