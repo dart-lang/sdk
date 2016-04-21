@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show createSuggestion, ElementSuggestionBuilder;
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
@@ -51,7 +52,14 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
       }
     }
     if (optype.includeConstructorSuggestions) {
-      _addConstructorSuggestions(element, DART_RELEVANCE_DEFAULT);
+      int relevance = DART_RELEVANCE_DEFAULT;
+      int filter = optype.constructorSuggestionsFilter(element.type);
+      if (filter == null) {
+        return;
+      } else {
+        relevance += filter;
+      }
+      _addConstructorSuggestions(element, relevance);
     }
   }
 
@@ -170,6 +178,16 @@ class LocalLibraryContributor extends DartCompletionContributor {
     if (libraryUnits == null) {
       return EMPTY_LIST;
     }
+
+    AstNode node = request.target.containingNode;
+
+    // If the target is in an expression
+    // then resolve the outermost/entire expression
+    await request.resolveContainingExpression(node);
+
+    // Discard any cached target information
+    // because it may have changed as a result of the resolution
+    node = request.target.containingNode;
 
     OpType optype = (request as DartCompletionRequestImpl).opType;
     LibraryElementSuggestionBuilder visitor =
