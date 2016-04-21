@@ -36,6 +36,10 @@ class FieldFormalContributor extends DartCompletionContributor {
     // Compute the list of fields already referenced in the constructor
     List<String> referencedFields = new List<String>();
     for (FormalParameter param in constructorDecl.parameters.parameters) {
+      if (param is DefaultFormalParameter &&
+          param.parameter is FieldFormalParameter) {
+        param = (param as DefaultFormalParameter).parameter;
+      }
       if (param is FieldFormalParameter) {
         SimpleIdentifier fieldId = param.identifier;
         if (fieldId != null && fieldId != request.target.entity) {

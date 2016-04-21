@@ -4113,7 +4113,7 @@ class X{}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    // Contributed by FieldFormalConstructorContributor
+    // Contributed by FieldFormalContributor
     assertNotSuggested('b');
     assertNotSuggested('_c');
     assertNotSuggested('sb');
@@ -4151,7 +4151,7 @@ class X{}''');
 
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
-    // Contributed by FieldFormalConstructorContributor
+    // Contributed by FieldFormalContributor
     assertNotSuggested('b');
     assertNotSuggested('_c');
     assertNotSuggested('d');
@@ -4188,7 +4188,7 @@ class X{}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 1);
-    // Contributed by FieldFormalConstructorContributor
+    // Contributed by FieldFormalContributor
     assertNotSuggested('b');
     assertNotSuggested('_c');
     assertNotSuggested('d');
@@ -4226,7 +4226,7 @@ class X{}''');
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertNotSuggested('b');
-    // Contributed by FieldFormalConstructorContributor
+    // Contributed by FieldFormalContributor
     assertNotSuggested('_c');
     assertNotSuggested('d');
     assertNotSuggested('_e');
