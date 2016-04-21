@@ -216,7 +216,7 @@ class PackageBundleAssembler {
     _unlinkedUnitUris.addAll(libraryResult.unitUris);
     _unlinkedUnits.addAll(libraryResult.unlinkedUnits);
     for (Source source in libraryResult.unitSources) {
-      _unlinkedUnitHashes.add(_hash(source.contents.data));
+      _unlinkedUnitHashes?.add(_hash(source.contents.data));
     }
   }
 
