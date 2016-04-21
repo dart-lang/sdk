@@ -473,6 +473,7 @@ class CompileParsedFunctionHelper : public ValueObject {
   void FinalizeCompilation(Assembler* assembler,
                            FlowGraphCompiler* graph_compiler,
                            FlowGraph* flow_graph);
+  void CheckIfBackgroundCompilerIsBeingStopped();
 
   ParsedFunction* parsed_function_;
   const bool optimized_;
@@ -662,6 +663,16 @@ NOT_IN_PRODUCT(
     for (intptr_t i = 0; i < prefixes->length(); i++) {
       (*prefixes)[i]->RegisterDependentCode(code);
     }
+  }
+}
+
+
+void CompileParsedFunctionHelper::CheckIfBackgroundCompilerIsBeingStopped() {
+  ASSERT(Compiler::IsBackgroundCompilation());
+  if (!isolate()->background_compiler()->is_running()) {
+    // The background compiler is being stopped.
+    Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
+        "Background compilation is being stopped");
   }
 }
 
@@ -1133,19 +1144,17 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           // changes code page access permissions (makes them temporary not
           // executable).
           {
+            CheckIfBackgroundCompilerIsBeingStopped();
             SafepointOperationScope safepoint_scope(thread());
             // Do not Garbage collect during this stage and instead allow the
             // heap to grow.
             NoHeapGrowthControlScope no_growth_control;
-            if (!isolate()->background_compiler()->is_running()) {
-              // The background compiler is being stopped.
-              Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
-                  "Background compilation is being stopped");
-            }
+            CheckIfBackgroundCompilerIsBeingStopped();
             FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
           }
           // TODO(srdjan): Enable this and remove the one from
-          // 'BackgroundCompiler::CompileOptimized'
+          // 'BackgroundCompiler::CompileOptimized' once cause of time-outs
+          // is resolved.
           // if (isolate()->heap()->NeedsGarbageCollection()) {
           //   isolate()->heap()->CollectAllGarbage();
           // }
@@ -1916,7 +1925,10 @@ void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
 
 void BackgroundCompiler::Stop(Isolate* isolate) {
   BackgroundCompiler* task = isolate->background_compiler();
-  ASSERT(task != NULL);
+  if (task == NULL) {
+    // Nothing to stop.
+    return;
+  }
   BackgroundCompilationQueue* function_queue = task->function_queue();
 
   Monitor* queue_monitor = task->queue_monitor_;

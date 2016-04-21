@@ -1405,6 +1405,9 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
       if (FLAG_enable_inlining_annotations) {
         FATAL("Cannot enable inlining annotations and background compilation");
       }
+      if (FLAG_background_compilation_stop_alot) {
+        BackgroundCompiler::Stop(isolate);
+      }
       // Reduce the chance of triggering optimization while the function is
       // being optimized in the background. INT_MIN should ensure that it takes
       // long time to trigger optimization.

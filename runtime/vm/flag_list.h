@@ -33,6 +33,8 @@ P(always_megamorphic_calls, bool, false,                                       \
   "Instance call always as megamorphic.")                                      \
 C(background_compilation, false, true, bool, true,                             \
   "Run optimizing compilation in background")                                  \
+R(background_compilation_stop_alot, false, bool, false,                        \
+  "Stress test system: stop background compiler often.")                       \
 R(break_at_isolate_spawn, false, bool, false,                                  \
   "Insert a one-time breakpoint at the entrypoint for all spawned isolates")   \
 C(collect_code, false, true, bool, true,                                       \
