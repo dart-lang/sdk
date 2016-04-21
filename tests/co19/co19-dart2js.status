@@ -919,6 +919,7 @@ LayoutTests/fast/dom/Range/range-insertNode-splittext_t01: RuntimeError # Please
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList-2_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/StyleSheet/detached-parent-rule-without-wrapper_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/TreeWalker/TreeWalker-basic_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Window/getMatchedCSSRules-nested-rules_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Window/getMatchedCSSRules-with-pseudo-elements-complex_t01: RuntimeError # Please triage this failure
@@ -936,6 +937,7 @@ LayoutTests/fast/dom/css-selectorText_t01: RuntimeError # Please triage this fai
 LayoutTests/fast/dom/custom/document-register-basic_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/dom/custom/document-register-svg-extends_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/custom/element-names_t01: Pass, RuntimeError # Please triage this failure
+LayoutTests/fast/dom/custom/upgrade-candidate-remove-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/dataset-xhtml_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/dataset_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/document-importNode-arguments_t01: RuntimeError # Please triage this failure
@@ -1470,6 +1472,9 @@ WebPlatformTest/shadow-dom/events/event-dispatch/test-003_t01: RuntimeError # Pl
 WebPlatformTest/shadow-dom/events/event-retargeting/test-001_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/events/event-retargeting/test-002_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/events/event-retargeting/test-004_t01: RuntimeError # Please triage this failure
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-004_t01: RuntimeError # Please triage this failure
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-005_t01: RuntimeError # Please triage this failure
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-007_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t02: Skip # Times out. Please triage this failure
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t05: Skip # Times out. Please triage this failure
