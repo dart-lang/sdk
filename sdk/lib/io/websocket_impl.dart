@@ -105,10 +105,11 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
     });
   }
 
-  void addError(Object error, [StackTrace stackTrace]) =>
-      _eventSink.addError(error, stackTrace);
+  void addError(Object error, [StackTrace stackTrace]) {
+    _eventSink.addError(error, stackTrace);
+  }
 
-  void close() => _eventSink.close();
+  void close() { _eventSink.close(); }
 
   /**
    * Process data received from the underlying communication channel.
@@ -677,8 +678,9 @@ class _WebSocketOutgoingTransformer implements StreamTransformer, EventSink {
     addFrame(opcode, data);
   }
 
-  void addError(Object error, [StackTrace stackTrace]) =>
-      _eventSink.addError(error, stackTrace);
+  void addError(Object error, [StackTrace stackTrace]) {
+    _eventSink.addError(error, stackTrace);
+  }
 
   void close() {
     int code = webSocket._outCloseCode;
@@ -1161,9 +1163,10 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
   int get closeCode => _closeCode;
   String get closeReason => _closeReason;
 
-  void add(data) => _sink.add(data);
-  void addError(error, [StackTrace stackTrace]) =>
-      _sink.addError(error, stackTrace);
+  void add(data) { _sink.add(data); }
+  void addError(error, [StackTrace stackTrace]) {
+    _sink.addError(error, stackTrace);
+  }
   Future addStream(Stream stream) => _sink.addStream(stream);
   Future get done => _sink.done;
 

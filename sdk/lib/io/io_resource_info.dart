@@ -54,7 +54,7 @@ abstract class _ReadWriteResourceInfo extends _IOResourceInfo {
   // In cases where we read but did not neccesarily get any bytes, use this to
   // update the readCount and timestamp. Manually update totalRead if any bytes
   // where acutally read.
-  void didRead() => addRead(0);
+  void didRead() { addRead(0); }
 
   void addWrite(int bytes) {
     totalWritten += bytes;
@@ -153,7 +153,7 @@ class _ProcessResourceInfo extends _IOResourceInfo{
 
   String get name => process._path;
 
-  void stopped() => ProcessStopped(this);
+  void stopped() { ProcessStopped(this); }
 
   Map<String, String> get fullValueMap =>
     {

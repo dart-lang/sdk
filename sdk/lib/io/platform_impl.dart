@@ -109,8 +109,8 @@ class _CaseInsensitiveStringMap<V> implements Map<String, V> {
     other.forEach((key, value) => this[key.toUpperCase()] = value);
   }
   V remove(String key) => _map.remove(key.toUpperCase());
-  void clear() => _map.clear();
-  void forEach(void f(String key, V value)) => _map.forEach(f);
+  void clear() { _map.clear(); }
+  void forEach(void f(String key, V value)) { _map.forEach(f); }
   Iterable<String> get keys => _map.keys;
   Iterable<V> get values => _map.values;
   int get length => _map.length;

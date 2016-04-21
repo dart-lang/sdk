@@ -213,10 +213,11 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
   _HandlerEventSink(this._handleData, this._handleError, this._handleDone,
                     this._sink);
 
-  void add(S data) => _handleData(data, _sink);
-  void addError(Object error, [StackTrace stackTrace])
-      => _handleError(error, stackTrace, _sink);
-  void close() => _handleDone(_sink);
+  void add(S data) { _handleData(data, _sink); }
+  void addError(Object error, [StackTrace stackTrace]) {
+    _handleError(error, stackTrace, _sink);
+  }
+  void close() { _handleDone(_sink); }
 }
 
 /**
