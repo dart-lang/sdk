@@ -17,8 +17,6 @@
 
     'libdart_deps': ['libdart_lib_nosnapshot', 'libdart_lib',
                      'libdart_vm_nosnapshot', 'libdart_vm',
-                     'libdart_vm_noopt',
-                     'libdart_vm_precompiled_runtime',
                      'libdouble_conversion',],
   },
   'targets': [
