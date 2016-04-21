@@ -59,6 +59,8 @@ class PrelinkerTest extends SummarizeElementsTest {
   @override
   void serializeLibraryElement(LibraryElement library) {
     super.serializeLibraryElement(library);
+    uriToPublicNamespace[library.source.uri.toString()] =
+        unlinkedUnits[0].publicNamespace;
     Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
     expect(unlinkedUnits.length, unitUris.length);
     for (int i = 1; i < unlinkedUnits.length; i++) {

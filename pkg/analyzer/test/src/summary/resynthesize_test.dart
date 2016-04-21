@@ -1212,7 +1212,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
 @reflectiveTest
 class ResynthesizeElementTest extends ResynthesizeTest {
   @override
-  void checkLibrary(String text,
+  LibraryElementImpl checkLibrary(String text,
       {bool allowErrors: false, bool dumpSummaries: false}) {
     Source source = addTestSource(text);
     LibraryElementImpl original = context.computeLibraryElement(source);
@@ -1222,6 +1222,7 @@ class ResynthesizeElementTest extends ResynthesizeTest {
         source.uri.toString(),
         original);
     checkLibraryElements(original, resynthesized);
+    return resynthesized;
   }
 
   @override
@@ -1317,7 +1318,7 @@ class ResynthesizeElementTest extends ResynthesizeTest {
 
 @reflectiveTest
 abstract class ResynthesizeTest extends AbstractResynthesizeTest {
-  void checkLibrary(String text,
+  LibraryElementImpl checkLibrary(String text,
       {bool allowErrors: false, bool dumpSummaries: false});
 
   /**
@@ -3163,6 +3164,18 @@ get x => null;''');
   test_import_prefixed() {
     addLibrarySource('/a.dart', 'library a; class C {}');
     checkLibrary('import "a.dart" as a; a.C c;');
+  }
+
+  test_import_self() {
+    LibraryElementImpl resynthesized = checkLibrary('''
+import 'test.dart' as p;
+class C {}
+class D extends p.C {} // Prevent "unused import" warning
+''');
+    expect(resynthesized.imports, hasLength(2));
+    expect(resynthesized.imports[0].importedLibrary.location,
+        resynthesized.location);
+    expect(resynthesized.imports[1].importedLibrary.isDartCore, true);
   }
 
   test_import_show() {

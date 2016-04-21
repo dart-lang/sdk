@@ -617,12 +617,13 @@ class ResynthesizeAstTest extends ResynthesizeTest
   bool get checkPropagatedTypes => false;
 
   @override
-  void checkLibrary(String text,
+  LibraryElementImpl checkLibrary(String text,
       {bool allowErrors: false, bool dumpSummaries: false}) {
     Source source = addTestSource(text);
     LibraryElementImpl resynthesized = _encodeDecodeLibraryElement(source);
     LibraryElementImpl original = context.computeLibraryElement(source);
     checkLibraryElements(original, resynthesized);
+    return resynthesized;
   }
 
   @override

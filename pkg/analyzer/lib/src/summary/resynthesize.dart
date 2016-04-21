@@ -1054,18 +1054,25 @@ class _LibraryResynthesizer {
   /**
    * Resynthesize an [ImportElement].
    */
-  ImportElement buildImport(_UnitResynthesizer definingUnitResynthesizer,
-      UnlinkedImport serializedImport, int dependency) {
+  ImportElement buildImport(
+      _UnitResynthesizer definingUnitResynthesizer,
+      UnlinkedImport serializedImport,
+      int dependency,
+      LibraryElement libraryBeingResynthesized) {
     bool isSynthetic = serializedImport.isImplicit;
     ImportElementImpl importElement =
         new ImportElementImpl(isSynthetic ? -1 : serializedImport.offset);
-    String absoluteUri = summaryResynthesizer.sourceFactory
-        .resolveUri(librarySource, linkedLibrary.dependencies[dependency].uri)
-        .uri
-        .toString();
-    importElement.importedLibrary = new LibraryElementHandle(
-        summaryResynthesizer,
-        new ElementLocationImpl.con3(<String>[absoluteUri]));
+    if (dependency == 0) {
+      importElement.importedLibrary = libraryBeingResynthesized;
+    } else {
+      String absoluteUri = summaryResynthesizer.sourceFactory
+          .resolveUri(librarySource, linkedLibrary.dependencies[dependency].uri)
+          .uri
+          .toString();
+      importElement.importedLibrary = new LibraryElementHandle(
+          summaryResynthesizer,
+          new ElementLocationImpl.con3(<String>[absoluteUri]));
+    }
     if (isSynthetic) {
       importElement.synthetic = true;
     } else {
@@ -1130,7 +1137,8 @@ class _LibraryResynthesizer {
       imports.add(buildImport(
           definingUnitResynthesizer,
           unlinkedDefiningUnit.imports[i],
-          linkedLibrary.importDependencies[i]));
+          linkedLibrary.importDependencies[i],
+          library));
     }
     library.imports = imports;
     // Create exports.

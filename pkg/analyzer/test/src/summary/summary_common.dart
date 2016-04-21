@@ -7272,6 +7272,27 @@ p.B b;
         expectedPrefix: 'p');
   }
 
+  test_import_self() {
+    if (!checkAstDerivedData) {
+      // TODO(paulberry): this test fails when building the summary from the
+      // element model because the element model can't tell the difference
+      // between self references via a local name and self references via a
+      // self-import.
+      return;
+    }
+    serializeLibraryText('''
+import 'test.dart' as p;
+class C {}
+class D extends p.C {} // Prevent "unused import" warning
+''');
+    expect(unlinkedUnits[0].imports[0].uri, 'test.dart');
+    checkDependency(
+        linked.importDependencies[0], absUri('/test.dart'), 'test.dart');
+    checkTypeRef(unlinkedUnits[0].classes[1].supertype, absUri('/test.dart'),
+        'test.dart', 'C',
+        expectedPrefix: 'p');
+  }
+
   test_import_show_order() {
     String libraryText =
         'import "dart:async" show Future, Stream; Future x; Stream y;';
