@@ -264,8 +264,8 @@ $!STREAM_GETTER_SIGNATURES
 // declared to return `ElementList`.  This provides all the static analysis
 // benefit so there is no need for this class have a constrained type parameter.
 //
-class _FrozenElementList extends ListBase
-    implements ElementList, NodeListWrapper {
+class _FrozenElementList extends ListBase<Element>
+    implements ElementList<Element>, NodeListWrapper {
   final List<Node> _nodeList;
 
 $if JSINTEROP
@@ -1530,7 +1530,7 @@ $else
     } catch (e) {}
     return 'element tag unavailable';
   }
-$endif
+$endif  
 
 $if DART2JS
   @DomName('Element.offsetParent')
