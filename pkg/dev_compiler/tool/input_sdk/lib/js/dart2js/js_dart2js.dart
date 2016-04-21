@@ -421,7 +421,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     int length = end - start;
     if (length == 0) return;
     if (skipCount < 0) throw new ArgumentError(skipCount);
-    var args = [start, length]..addAll(iterable.skip(skipCount).take(length));
+    var args = <Object>[start, length]..addAll(iterable.skip(skipCount).take(length));
     callMethod('splice', args);
   }
 

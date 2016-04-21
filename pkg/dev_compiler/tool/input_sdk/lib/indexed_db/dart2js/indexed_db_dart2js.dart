@@ -553,14 +553,14 @@ class IdbFactory extends Interceptor {
 
   @DomName('IDBFactory.deleteDatabase')
   Future<IdbFactory> deleteDatabase(String name,
-      {void onBlocked(Event)}) {
+      {void onBlocked(Event e)}) {
     try {
       var request = _deleteDatabase(name);
 
       if (onBlocked != null) {
         request.onBlocked.listen(onBlocked);
       }
-      var completer = new Completer.sync();
+      var completer = new Completer<IdbFactory>.sync();
       request.onSuccess.listen((e) {
         completer.complete(this);
       });
@@ -630,12 +630,12 @@ class IdbFactory extends Interceptor {
  * Ties a request to a completer, so the completer is completed when it succeeds
  * and errors out when the request errors.
  */
-Future _completeRequest(Request request) {
-  var completer = new Completer.sync();
+Future/*<T>*/ _completeRequest/*<T>*/(Request request) {
+  var completer = new Completer/*<T>*/.sync();
   // TODO: make sure that completer.complete is synchronous as transactions
   // may be committed if the result is not processed immediately.
   request.onSuccess.listen((e) {
-    completer.complete(request.result);
+    completer.complete(request.result as dynamic/*=T*/);
   });
   request.onError.listen(completer.completeError);
   return completer.future;
@@ -773,6 +773,16 @@ class Index extends Interceptor {
   @Creates('Request')
   @annotation_Creates_SerializedScriptValue
   Request _get(Object key) native;
+
+  @DomName('IDBIndex.getAll')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Request getAll(Object range, [int maxCount]) native;
+
+  @DomName('IDBIndex.getAllKeys')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Request getAllKeys(Object range, [int maxCount]) native;
 
   @JSName('getKey')
   @DomName('IDBIndex.getKey')
@@ -1072,41 +1082,21 @@ class ObjectStore extends Interceptor {
 
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable()
-  Index _createIndex(String name, keyPath, [Map options]) {
-    if ((keyPath is String || keyPath == null) && options == null) {
-      return _createIndex_1(name, keyPath);
-    }
-    if (options != null && (keyPath is String || keyPath == null)) {
+  Index _createIndex(String name, Object keyPath, [Map options]) {
+    if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
-      return _createIndex_2(name, keyPath, options_1);
+      return _createIndex_1(name, keyPath, options_1);
     }
-    if ((keyPath is List<String> || keyPath == null) && options == null) {
-      List keyPath_1 = convertDartToNative_StringArray(keyPath);
-      return _createIndex_3(name, keyPath_1);
-    }
-    if (options != null && (keyPath is List<String> || keyPath == null)) {
-      List keyPath_1 = convertDartToNative_StringArray(keyPath);
-      var options_2 = convertDartToNative_Dictionary(options);
-      return _createIndex_4(name, keyPath_1, options_2);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
+    return _createIndex_2(name, keyPath);
   }
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable()
-  Index _createIndex_1(name, String keyPath) native;
+  Index _createIndex_1(name, keyPath, options) native;
   @JSName('createIndex')
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable()
-  Index _createIndex_2(name, String keyPath, options) native;
-  @JSName('createIndex')
-  @DomName('IDBObjectStore.createIndex')
-  @DocsEditable()
-  Index _createIndex_3(name, List keyPath) native;
-  @JSName('createIndex')
-  @DomName('IDBObjectStore.createIndex')
-  @DocsEditable()
-  Index _createIndex_4(name, List keyPath, options) native;
+  Index _createIndex_2(name, keyPath) native;
 
   @JSName('delete')
   @DomName('IDBObjectStore.delete')
@@ -1124,6 +1114,16 @@ class ObjectStore extends Interceptor {
   @Creates('Request')
   @annotation_Creates_SerializedScriptValue
   Request _get(Object key) native;
+
+  @DomName('IDBObjectStore.getAll')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Request getAll(Object range, [int maxCount]) native;
+
+  @DomName('IDBObjectStore.getAllKeys')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Request getAllKeys(Object range, [int maxCount]) native;
 
   @DomName('IDBObjectStore.index')
   @DocsEditable()
@@ -1175,18 +1175,18 @@ class ObjectStore extends Interceptor {
   /**
    * Helper for iterating over cursors in a request.
    */
-  static Stream<Cursor> _cursorStreamFromResult(Request request,
+  static Stream/*<T>*/ _cursorStreamFromResult/*<T extends Cursor>*/(Request request,
       bool autoAdvance) {
     // TODO: need to guarantee that the controller provides the values
     // immediately as waiting until the next tick will cause the transaction to
     // close.
-    var controller = new StreamController(sync: true);
+    var controller = new StreamController/*<T>*/(sync: true);
 
     //TODO: Report stacktrace once issue 4061 is resolved.
     request.onError.listen(controller.addError);
 
     request.onSuccess.listen((e) {
-      Cursor cursor = request.result;
+      var cursor = request.result as dynamic /*=T*/;
       if (cursor == null) {
         controller.close();
       } else {
@@ -1394,6 +1394,13 @@ class Transaction extends EventTarget {
   @DocsEditable()
   final String mode;
 
+  @DomName('IDBTransaction.objectStoreNames')
+  @DocsEditable()
+  @Experimental() // untriaged
+  @Returns('DomStringList')
+  @Creates('DomStringList')
+  final List<String> objectStoreNames;
+
   @DomName('IDBTransaction.abort')
   @DocsEditable()
   void abort() native;
@@ -1430,6 +1437,18 @@ class Transaction extends EventTarget {
 class VersionChangeEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory VersionChangeEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('IDBVersionChangeEvent.IDBVersionChangeEvent')
+  @DocsEditable()
+  factory VersionChangeEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return VersionChangeEvent._create_1(type, eventInitDict_1);
+    }
+    return VersionChangeEvent._create_2(type);
+  }
+  static VersionChangeEvent _create_1(type, eventInitDict) => JS('VersionChangeEvent', 'new IDBVersionChangeEvent(#,#)', type, eventInitDict);
+  static VersionChangeEvent _create_2(type) => JS('VersionChangeEvent', 'new IDBVersionChangeEvent(#)', type);
 
   @DomName('IDBVersionChangeEvent.dataLoss')
   @DocsEditable()

@@ -29288,7 +29288,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let length = dart.notNull(end) - dart.notNull(start);
         if (length == 0) return;
         if (dart.notNull(skipCount) < 0) dart.throw(new core.ArgumentError(skipCount));
-        let args = dart.list([start, length], core.int);
+        let args = dart.list([start, length], core.Object);
         args[dartx.addAll](iterable[dartx.skip](skipCount)[dartx.take](length));
         this.callMethod('splice', args);
       }
@@ -30815,7 +30815,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (onBlocked != null) {
           dart.dsend(dart.dload(request, 'onBlocked'), 'listen', onBlocked);
         }
-        return dart.as(indexed_db._completeRequest(dart.as(request, indexed_db.Request)), async.Future$(indexed_db.Database));
+        return indexed_db._completeRequest(dart.as(request, indexed_db.Request));
       } catch (e) {
         let stacktrace = dart.stackTrace(e);
         return async.Future$(indexed_db.Database).error(e, stacktrace);
@@ -30827,14 +30827,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
       try {
         let request = this[_deleteDatabase](name);
         if (onBlocked != null) {
-          request[dartx.onBlocked].listen(dart.as(onBlocked, dart.functionType(dart.void, [html$.Event])));
+          request[dartx.onBlocked].listen(onBlocked);
         }
-        let completer = async.Completer.sync();
+        let completer = async.Completer$(indexed_db.IdbFactory).sync();
         request[dartx.onSuccess].listen(dart.fn(e => {
           completer.complete(this);
         }, dart.void, [html$.Event]));
         request[dartx.onError].listen(dart.bind(completer, 'completeError'));
-        return dart.as(completer.future, async.Future$(indexed_db.IdbFactory));
+        return completer.future;
       } catch (e) {
         let stacktrace = dart.stackTrace(e);
         return async.Future$(indexed_db.IdbFactory).error(e, stacktrace);
@@ -30844,7 +30844,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.getDatabaseNames]() {
       try {
         let request = this[_webkitGetDatabaseNames]();
-        return dart.as(indexed_db._completeRequest(request), async.Future$(core.List$(core.String)));
+        return indexed_db._completeRequest(request);
       } catch (e) {
         let stacktrace = dart.stackTrace(e);
         return async.Future$(core.List$(core.String)).error(e, stacktrace);
@@ -30874,7 +30874,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({_: [indexed_db.IdbFactory, []]}),
     methods: () => ({
       [dartx.open]: [async.Future$(indexed_db.Database), [core.String], {version: core.int, onUpgradeNeeded: dart.functionType(dart.void, [dart.dynamic]), onBlocked: dart.functionType(dart.void, [dart.dynamic])}],
-      [dartx.deleteDatabase]: [async.Future$(indexed_db.IdbFactory), [core.String], {onBlocked: dart.functionType(dart.void, [dart.dynamic])}],
+      [dartx.deleteDatabase]: [async.Future$(indexed_db.IdbFactory), [core.String], {onBlocked: dart.functionType(dart.void, [html$.Event])}],
       [dartx.getDatabaseNames]: [async.Future$(core.List$(core.String)), []],
       [dartx.cmp]: [core.int, [core.Object, core.Object]],
       [_deleteDatabase]: [indexed_db.OpenDBRequest, [core.String]],
@@ -30887,7 +30887,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   indexed_db._completeRequest = function(request) {
     let completer = async.Completer.sync();
     request[dartx.onSuccess].listen(dart.fn(e => {
-      completer.complete(request[dartx.result]);
+      completer.complete(dart.as(request[dartx.result], dart.dynamic));
     }, dart.void, [html$.Event]));
     request[dartx.onError].listen(dart.bind(completer, 'completeError'));
     return completer.future;
@@ -30904,6 +30904,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'getKey',
     'openCursor',
     'openKeyCursor',
+    'getAll',
+    'getAllKeys',
     'keyPath',
     'multiEntry',
     'name',
@@ -30915,7 +30917,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (key_OR_range === void 0) key_OR_range = null;
       try {
         let request = this[_count$](key_OR_range);
-        return dart.as(indexed_db._completeRequest(request), async.Future$(core.int));
+        return indexed_db._completeRequest(request);
       } catch (e) {
         let stacktrace = dart.stackTrace(e);
         return async.Future$(core.int).error(e, stacktrace);
@@ -30962,7 +30964,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       } else {
         request = this[_openCursor](key_OR_range, direction);
       }
-      return dart.as(indexed_db.ObjectStore._cursorStreamFromResult(dart.as(request, indexed_db.Request), autoAdvance), async.Stream$(indexed_db.CursorWithValue));
+      return indexed_db.ObjectStore._cursorStreamFromResult(dart.as(request, indexed_db.Request), autoAdvance);
     }
     [dartx.openKeyCursor](opts) {
       let key = opts && 'key' in opts ? opts.key : null;
@@ -31010,6 +31012,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [_get$](key) {
       return this._get(key);
     }
+    [dartx.getAll](range, maxCount) {
+      return this.getAll(range, maxCount);
+    }
+    [dartx.getAllKeys](range, maxCount) {
+      return this.getAllKeys(range, maxCount);
+    }
     [_getKey$](key) {
       return this._getKey(key);
     }
@@ -31030,6 +31038,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.openKeyCursor]: [async.Stream$(indexed_db.Cursor), [], {key: dart.dynamic, range: indexed_db.KeyRange, direction: core.String, autoAdvance: core.bool}],
       [_count$]: [indexed_db.Request, [core.Object]],
       [_get$]: [indexed_db.Request, [core.Object]],
+      [dartx.getAll]: [indexed_db.Request, [core.Object], [core.int]],
+      [dartx.getAllKeys]: [indexed_db.Request, [core.Object], [core.int]],
       [_getKey$]: [indexed_db.Request, [core.Object]],
       [_openCursor]: [indexed_db.Request, [core.Object], [core.String]],
       [_openKeyCursor]: [indexed_db.Request, [core.Object], [core.String]]
@@ -31102,8 +31112,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _add_2 = Symbol('_add_2');
   const _createIndex_1 = Symbol('_createIndex_1');
   const _createIndex_2 = Symbol('_createIndex_2');
-  const _createIndex_3 = Symbol('_createIndex_3');
-  const _createIndex_4 = Symbol('_createIndex_4');
   const _put_1 = Symbol('_put_1');
   const _put_2 = Symbol('_put_2');
   dart.defineExtensionNames([
@@ -31116,6 +31124,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'openCursor',
     'createIndex',
     'deleteIndex',
+    'getAll',
+    'getAllKeys',
     'index',
     'openKeyCursor',
     'autoIncrement',
@@ -31163,7 +31173,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (key_OR_range === void 0) key_OR_range = null;
       try {
         let request = this[_count$](key_OR_range);
-        return dart.as(indexed_db._completeRequest(request), async.Future$(core.int));
+        return indexed_db._completeRequest(request);
       } catch (e) {
         let stacktrace = dart.stackTrace(e);
         return async.Future$(core.int).error(e, stacktrace);
@@ -31216,7 +31226,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       } else {
         request = this[_openCursor](key_OR_range, direction);
       }
-      return dart.as(indexed_db.ObjectStore._cursorStreamFromResult(dart.as(request, indexed_db.Request), autoAdvance), async.Stream$(indexed_db.CursorWithValue));
+      return indexed_db.ObjectStore._cursorStreamFromResult(dart.as(request, indexed_db.Request), autoAdvance);
     }
     [dartx.createIndex](name, keyPath, opts) {
       let unique = opts && 'unique' in opts ? opts.unique : null;
@@ -31272,35 +31282,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [_createIndex](name, keyPath, options) {
       if (options === void 0) options = null;
-      if ((typeof keyPath == 'string' || keyPath == null) && options == null) {
-        return this[_createIndex_1](name, dart.as(keyPath, core.String));
-      }
-      if (options != null && (typeof keyPath == 'string' || keyPath == null)) {
+      if (options != null) {
         let options_1 = html_common.convertDartToNative_Dictionary(options);
-        return this[_createIndex_2](name, dart.as(keyPath, core.String), options_1);
+        return this[_createIndex_1](name, keyPath, options_1);
       }
-      if ((dart.is(keyPath, core.List$(core.String)) || keyPath == null) && options == null) {
-        let keyPath_1 = html_common.convertDartToNative_StringArray(dart.as(keyPath, core.List$(core.String)));
-        return this[_createIndex_3](name, keyPath_1);
-      }
-      if (options != null && (dart.is(keyPath, core.List$(core.String)) || keyPath == null)) {
-        let keyPath_1 = html_common.convertDartToNative_StringArray(dart.as(keyPath, core.List$(core.String)));
-        let options_2 = html_common.convertDartToNative_Dictionary(options);
-        return this[_createIndex_4](name, keyPath_1, options_2);
-      }
-      dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
+      return this[_createIndex_2](name, keyPath);
     }
-    [_createIndex_1](name, keyPath) {
-      return this._createIndex_1(name, keyPath);
+    [_createIndex_1](name, keyPath, options) {
+      return this._createIndex_1(name, keyPath, options);
     }
-    [_createIndex_2](name, keyPath, options) {
-      return this._createIndex_2(name, keyPath, options);
-    }
-    [_createIndex_3](name, keyPath) {
-      return this._createIndex_3(name, keyPath);
-    }
-    [_createIndex_4](name, keyPath, options) {
-      return this._createIndex_4(name, keyPath, options);
+    [_createIndex_2](name, keyPath) {
+      return this._createIndex_2(name, keyPath);
     }
     [_delete](key) {
       return this._delete(key);
@@ -31310,6 +31302,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [_get$](key) {
       return this._get(key);
+    }
+    [dartx.getAll](range, maxCount) {
+      return this.getAll(range, maxCount);
+    }
+    [dartx.getAllKeys](range, maxCount) {
+      return this.getAllKeys(range, maxCount);
     }
     [dartx.index](name) {
       return this.index(name);
@@ -31340,7 +31338,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let controller = async.StreamController.new({sync: true});
       request[dartx.onError].listen(dart.bind(controller, 'addError'));
       request[dartx.onSuccess].listen(dart.fn(e => {
-        let cursor = dart.as(request[dartx.result], indexed_db.Cursor);
+        let cursor = dart.as(request[dartx.result], dart.dynamic);
         if (cursor == null) {
           controller.close();
         } else {
@@ -31350,7 +31348,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           }
         }
       }, dart.void, [html$.Event]));
-      return dart.as(controller.stream, async.Stream$(indexed_db.Cursor));
+      return controller.stream;
     }
   };
   dart.setSignature(indexed_db.ObjectStore, {
@@ -31369,14 +31367,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [_add_2]: [indexed_db.Request, [dart.dynamic]],
       [_clear$0]: [indexed_db.Request, []],
       [_count$]: [indexed_db.Request, [core.Object]],
-      [_createIndex]: [indexed_db.Index, [core.String, dart.dynamic], [core.Map]],
-      [_createIndex_1]: [indexed_db.Index, [dart.dynamic, core.String]],
-      [_createIndex_2]: [indexed_db.Index, [dart.dynamic, core.String, dart.dynamic]],
-      [_createIndex_3]: [indexed_db.Index, [dart.dynamic, core.List]],
-      [_createIndex_4]: [indexed_db.Index, [dart.dynamic, core.List, dart.dynamic]],
+      [_createIndex]: [indexed_db.Index, [core.String, core.Object], [core.Map]],
+      [_createIndex_1]: [indexed_db.Index, [dart.dynamic, dart.dynamic, dart.dynamic]],
+      [_createIndex_2]: [indexed_db.Index, [dart.dynamic, dart.dynamic]],
       [_delete]: [indexed_db.Request, [core.Object]],
       [dartx.deleteIndex]: [dart.void, [core.String]],
       [_get$]: [indexed_db.Request, [core.Object]],
+      [dartx.getAll]: [indexed_db.Request, [core.Object], [core.int]],
+      [dartx.getAllKeys]: [indexed_db.Request, [core.Object], [core.int]],
       [dartx.index]: [indexed_db.Index, [core.String]],
       [_openCursor]: [indexed_db.Request, [core.Object], [core.String]],
       [dartx.openKeyCursor]: [indexed_db.Request, [core.Object], [core.String]],
@@ -31384,7 +31382,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [_put_1]: [indexed_db.Request, [dart.dynamic, dart.dynamic]],
       [_put_2]: [indexed_db.Request, [dart.dynamic]]
     }),
-    statics: () => ({_cursorStreamFromResult: [async.Stream$(indexed_db.Cursor), [indexed_db.Request, core.bool]]}),
+    statics: () => ({_cursorStreamFromResult: [async.Stream, [indexed_db.Request, core.bool]]}),
     names: ['_cursorStreamFromResult']
   });
   indexed_db.ObjectStore[dart.metadata] = () => [dart.const(new _metadata.DomName('IDBObjectStore')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("IDBObjectStore"))];
@@ -31478,7 +31476,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'onError',
     'db',
     'error',
-    'mode'
+    'mode',
+    'objectStoreNames'
   ]);
   indexed_db.Transaction = class Transaction extends html$.EventTarget {
     get [dartx.completed]() {
@@ -31507,6 +31506,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.mode]() {
       return this.mode;
+    }
+    get [dartx.objectStoreNames]() {
+      return this.objectStoreNames;
     }
     [dartx.abort]() {
       return this.abort();
@@ -31689,6 +31691,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
+    static new(type, eventInitDict) {
+      if (eventInitDict === void 0) eventInitDict = null;
+      if (eventInitDict != null) {
+        let eventInitDict_1 = html_common.convertDartToNative_Dictionary(eventInitDict);
+        return indexed_db.VersionChangeEvent._create_1(type, eventInitDict_1);
+      }
+      return indexed_db.VersionChangeEvent._create_2(type);
+    }
+    static _create_1(type, eventInitDict) {
+      return dart.as(new IDBVersionChangeEvent(type, eventInitDict), indexed_db.VersionChangeEvent);
+    }
+    static _create_2(type) {
+      return dart.as(new IDBVersionChangeEvent(type), indexed_db.VersionChangeEvent);
+    }
     get [dartx.dataLoss]() {
       return this.dataLoss;
     }
@@ -31703,7 +31719,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(indexed_db.VersionChangeEvent, {
-    constructors: () => ({_: [indexed_db.VersionChangeEvent, []]})
+    constructors: () => ({
+      _: [indexed_db.VersionChangeEvent, []],
+      new: [indexed_db.VersionChangeEvent, [core.String], [core.Map]]
+    }),
+    statics: () => ({
+      _create_1: [indexed_db.VersionChangeEvent, [dart.dynamic, dart.dynamic]],
+      _create_2: [indexed_db.VersionChangeEvent, [dart.dynamic]]
+    }),
+    names: ['_create_1', '_create_2']
   });
   indexed_db.VersionChangeEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('IDBVersionChangeEvent')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("IDBVersionChangeEvent"))];
   dart.registerExtension(dart.global.IDBVersionChangeEvent, indexed_db.VersionChangeEvent);
@@ -32019,9 +32043,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'scrollTop',
     'scrollTop',
     'scrollWidth',
+    'isContentEditable',
     'blur',
     'click',
     'focus',
+    'outerHtml',
     'closest',
     'getAnimations',
     'getAttribute',
@@ -32115,7 +32141,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'dir',
     'draggable',
     'hidden',
-    'isContentEditable',
     'lang',
     'spellcheck',
     'style',
@@ -32131,7 +32156,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'computedName',
     'computedRole',
     'id',
-    'outerHtml',
     'tagName',
     'nextElementSibling',
     'previousElementSibling'
@@ -32151,7 +32175,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[dartx.dir] = null;
       this[dartx.draggable] = null;
       this[dartx.hidden] = null;
-      this[dartx.isContentEditable] = null;
       this[dartx.lang] = null;
       this[dartx.spellcheck] = null;
       this[dartx.style] = null;
@@ -32169,7 +32192,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[dartx.computedRole] = null;
       this[dartx.id] = null;
       this[_innerHtml] = null;
-      this[dartx.outerHtml] = null;
       this[_scrollHeight] = null;
       this[_scrollLeft] = null;
       this[_scrollTop] = null;
@@ -33256,9 +33278,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _: [html$.Element, []]
     }),
     methods: () => ({
-      [dartx.querySelectorAll]: [html$.ElementList$(html$.Element), [core.String]],
+      [dartx.querySelectorAll]: [html$.ElementList, [core.String]],
       [dartx.query]: [html$.Element, [core.String]],
-      [dartx.queryAll]: [html$.ElementList$(html$.Element), [core.String]],
+      [dartx.queryAll]: [html$.ElementList, [core.String]],
       [dartx.getNamespacedAttributes]: [core.Map$(core.String, core.String), [core.String]],
       [dartx.getComputedStyle]: [html$.CssStyleDeclaration, [], [core.String]],
       [dartx.appendText]: [dart.void, [core.String]],
@@ -43985,9 +44007,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.getElementById]: [html$.Element, [core.String]],
       [dartx.querySelector]: [html$.Element, [core.String]],
       [_querySelectorAll]: [core.List$(html$.Node), [core.String]],
-      [dartx.querySelectorAll]: [html$.ElementList$(html$.Element), [core.String]],
+      [dartx.querySelectorAll]: [html$.ElementList, [core.String]],
       [dartx.query]: [html$.Element, [core.String]],
-      [dartx.queryAll]: [html$.ElementList$(html$.Element), [core.String]],
+      [dartx.queryAll]: [html$.ElementList, [core.String]],
       [dartx.createElement]: [html$.Element, [core.String], [core.String]],
       [_createElement_2]: [dart.dynamic, [core.String]],
       [_createElementNS_2]: [dart.dynamic, [core.String, core.String]],
@@ -44128,12 +44150,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _: [html$.DocumentFragment, []]
     }),
     methods: () => ({
-      [dartx.querySelectorAll]: [html$.ElementList$(html$.Element), [core.String]],
+      [dartx.querySelectorAll]: [html$.ElementList, [core.String]],
       [dartx.setInnerHtml]: [dart.void, [core.String], {validator: html$.NodeValidator, treeSanitizer: html$.NodeTreeSanitizer}],
       [dartx.appendText]: [dart.void, [core.String]],
       [dartx.appendHtml]: [dart.void, [core.String], {validator: html$.NodeValidator, NodeTreeSanitizer: dart.dynamic, treeSanitizer: dart.dynamic}],
       [dartx.query]: [html$.Element, [core.String]],
-      [dartx.queryAll]: [html$.ElementList$(html$.Element), [core.String]],
+      [dartx.queryAll]: [html$.ElementList, [core.String]],
       [dartx.getElementById]: [html$.Element, [core.String]],
       [dartx.querySelector]: [html$.Element, [core.String]],
       [_querySelectorAll]: [core.List$(html$.Node), [core.String]]
@@ -45424,293 +45446,302 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.ElementList = html$.ElementList$();
   const _nodeList = Symbol('_nodeList');
   const _forElementList = Symbol('_forElementList');
-  html$._FrozenElementList = class _FrozenElementList extends collection.ListBase$(html$.Element) {
-    _wrap(nodeList) {
-      this[_nodeList] = nodeList;
-    }
-    get length() {
-      return this[_nodeList][dartx.length];
-    }
-    get(index) {
-      return dart.as(this[_nodeList][dartx.get](index), html$.Element);
-    }
-    set(index, value) {
-      dart.throw(new core.UnsupportedError('Cannot modify list'));
-      return value;
-    }
-    set length(newLength) {
-      dart.throw(new core.UnsupportedError('Cannot modify list'));
-    }
-    sort(compare) {
-      if (compare === void 0) compare = null;
-      dart.throw(new core.UnsupportedError('Cannot sort list'));
-    }
-    shuffle(random) {
-      if (random === void 0) random = null;
-      dart.throw(new core.UnsupportedError('Cannot shuffle list'));
-    }
-    get first() {
-      return dart.as(this[_nodeList][dartx.first], html$.Element);
-    }
-    get last() {
-      return dart.as(this[_nodeList][dartx.last], html$.Element);
-    }
-    get single() {
-      return dart.as(this[_nodeList][dartx.single], html$.Element);
-    }
-    get classes() {
-      return html$._MultiElementCssClassSet.new(this);
-    }
-    get style() {
-      return new html$._CssStyleDeclarationSet(this);
-    }
-    set classes(value) {
-      this[dartx.forEach](dart.fn(e => e[dartx.classes] = value, core.Iterable$(core.String), [html$.Element]));
-    }
-    get contentEdge() {
-      return new html$._ContentCssListRect(this);
-    }
-    get paddingEdge() {
-      return this.first[dartx.paddingEdge];
-    }
-    get borderEdge() {
-      return this.first[dartx.borderEdge];
-    }
-    get marginEdge() {
-      return this.first[dartx.marginEdge];
-    }
-    get rawList() {
-      return this[_nodeList];
-    }
-    get onAbort() {
-      return html$.Element.abortEvent[_forElementList](this);
-    }
-    get onBeforeCopy() {
-      return html$.Element.beforeCopyEvent[_forElementList](this);
-    }
-    get onBeforeCut() {
-      return html$.Element.beforeCutEvent[_forElementList](this);
-    }
-    get onBeforePaste() {
-      return html$.Element.beforePasteEvent[_forElementList](this);
-    }
-    get onBlur() {
-      return html$.Element.blurEvent[_forElementList](this);
-    }
-    get onCanPlay() {
-      return html$.Element.canPlayEvent[_forElementList](this);
-    }
-    get onCanPlayThrough() {
-      return html$.Element.canPlayThroughEvent[_forElementList](this);
-    }
-    get onChange() {
-      return html$.Element.changeEvent[_forElementList](this);
-    }
-    get onClick() {
-      return html$.Element.clickEvent[_forElementList](this);
-    }
-    get onContextMenu() {
-      return html$.Element.contextMenuEvent[_forElementList](this);
-    }
-    get onCopy() {
-      return html$.Element.copyEvent[_forElementList](this);
-    }
-    get onCut() {
-      return html$.Element.cutEvent[_forElementList](this);
-    }
-    get onDoubleClick() {
-      return html$.Element.doubleClickEvent[_forElementList](this);
-    }
-    get onDrag() {
-      return html$.Element.dragEvent[_forElementList](this);
-    }
-    get onDragEnd() {
-      return html$.Element.dragEndEvent[_forElementList](this);
-    }
-    get onDragEnter() {
-      return html$.Element.dragEnterEvent[_forElementList](this);
-    }
-    get onDragLeave() {
-      return html$.Element.dragLeaveEvent[_forElementList](this);
-    }
-    get onDragOver() {
-      return html$.Element.dragOverEvent[_forElementList](this);
-    }
-    get onDragStart() {
-      return html$.Element.dragStartEvent[_forElementList](this);
-    }
-    get onDrop() {
-      return html$.Element.dropEvent[_forElementList](this);
-    }
-    get onDurationChange() {
-      return html$.Element.durationChangeEvent[_forElementList](this);
-    }
-    get onEmptied() {
-      return html$.Element.emptiedEvent[_forElementList](this);
-    }
-    get onEnded() {
-      return html$.Element.endedEvent[_forElementList](this);
-    }
-    get onError() {
-      return html$.Element.errorEvent[_forElementList](this);
-    }
-    get onFocus() {
-      return html$.Element.focusEvent[_forElementList](this);
-    }
-    get onInput() {
-      return html$.Element.inputEvent[_forElementList](this);
-    }
-    get onInvalid() {
-      return html$.Element.invalidEvent[_forElementList](this);
-    }
-    get onKeyDown() {
-      return html$.Element.keyDownEvent[_forElementList](this);
-    }
-    get onKeyPress() {
-      return html$.Element.keyPressEvent[_forElementList](this);
-    }
-    get onKeyUp() {
-      return html$.Element.keyUpEvent[_forElementList](this);
-    }
-    get onLoad() {
-      return html$.Element.loadEvent[_forElementList](this);
-    }
-    get onLoadedData() {
-      return html$.Element.loadedDataEvent[_forElementList](this);
-    }
-    get onLoadedMetadata() {
-      return html$.Element.loadedMetadataEvent[_forElementList](this);
-    }
-    get onMouseDown() {
-      return html$.Element.mouseDownEvent[_forElementList](this);
-    }
-    get onMouseEnter() {
-      return html$.Element.mouseEnterEvent[_forElementList](this);
-    }
-    get onMouseLeave() {
-      return html$.Element.mouseLeaveEvent[_forElementList](this);
-    }
-    get onMouseMove() {
-      return html$.Element.mouseMoveEvent[_forElementList](this);
-    }
-    get onMouseOut() {
-      return html$.Element.mouseOutEvent[_forElementList](this);
-    }
-    get onMouseOver() {
-      return html$.Element.mouseOverEvent[_forElementList](this);
-    }
-    get onMouseUp() {
-      return html$.Element.mouseUpEvent[_forElementList](this);
-    }
-    get onMouseWheel() {
-      return html$.Element.mouseWheelEvent[_forElementList](this);
-    }
-    get onPaste() {
-      return html$.Element.pasteEvent[_forElementList](this);
-    }
-    get onPause() {
-      return html$.Element.pauseEvent[_forElementList](this);
-    }
-    get onPlay() {
-      return html$.Element.playEvent[_forElementList](this);
-    }
-    get onPlaying() {
-      return html$.Element.playingEvent[_forElementList](this);
-    }
-    get onRateChange() {
-      return html$.Element.rateChangeEvent[_forElementList](this);
-    }
-    get onReset() {
-      return html$.Element.resetEvent[_forElementList](this);
-    }
-    get onResize() {
-      return html$.Element.resizeEvent[_forElementList](this);
-    }
-    get onScroll() {
-      return html$.Element.scrollEvent[_forElementList](this);
-    }
-    get onSearch() {
-      return html$.Element.searchEvent[_forElementList](this);
-    }
-    get onSeeked() {
-      return html$.Element.seekedEvent[_forElementList](this);
-    }
-    get onSeeking() {
-      return html$.Element.seekingEvent[_forElementList](this);
-    }
-    get onSelect() {
-      return html$.Element.selectEvent[_forElementList](this);
-    }
-    get onSelectStart() {
-      return html$.Element.selectStartEvent[_forElementList](this);
-    }
-    get onStalled() {
-      return html$.Element.stalledEvent[_forElementList](this);
-    }
-    get onSubmit() {
-      return html$.Element.submitEvent[_forElementList](this);
-    }
-    get onSuspend() {
-      return html$.Element.suspendEvent[_forElementList](this);
-    }
-    get onTimeUpdate() {
-      return html$.Element.timeUpdateEvent[_forElementList](this);
-    }
-    get onTouchCancel() {
-      return html$.Element.touchCancelEvent[_forElementList](this);
-    }
-    get onTouchEnd() {
-      return html$.Element.touchEndEvent[_forElementList](this);
-    }
-    get onTouchEnter() {
-      return html$.Element.touchEnterEvent[_forElementList](this);
-    }
-    get onTouchLeave() {
-      return html$.Element.touchLeaveEvent[_forElementList](this);
-    }
-    get onTouchMove() {
-      return html$.Element.touchMoveEvent[_forElementList](this);
-    }
-    get onTouchStart() {
-      return html$.Element.touchStartEvent[_forElementList](this);
-    }
-    get onTransitionEnd() {
-      return html$.Element.transitionEndEvent[_forElementList](this);
-    }
-    get onVolumeChange() {
-      return html$.Element.volumeChangeEvent[_forElementList](this);
-    }
-    get onWaiting() {
-      return html$.Element.waitingEvent[_forElementList](this);
-    }
-    get onFullscreenChange() {
-      return html$.Element.fullscreenChangeEvent[_forElementList](this);
-    }
-    get onFullscreenError() {
-      return html$.Element.fullscreenErrorEvent[_forElementList](this);
-    }
-  };
-  dart.defineNamedConstructor(html$._FrozenElementList, '_wrap');
-  html$._FrozenElementList[dart.implements] = () => [html$.ElementList$(html$.Element), html_common.NodeListWrapper];
-  dart.setSignature(html$._FrozenElementList, {
-    constructors: () => ({_wrap: [html$._FrozenElementList, [core.List$(html$.Node)]]}),
-    methods: () => ({
-      get: [html$.Element, [core.int]],
-      set: [dart.void, [core.int, html$.Element]],
-      sort: [dart.void, [], [core.Comparator$(html$.Element)]]
-    })
+  html$._FrozenElementList$ = dart.generic(E => {
+    class _FrozenElementList extends collection.ListBase$(E) {
+      _wrap(nodeList) {
+        this[_nodeList] = nodeList;
+      }
+      get length() {
+        return this[_nodeList][dartx.length];
+      }
+      get(index) {
+        return dart.as(this[_nodeList][dartx.get](index), E);
+      }
+      set(index, value) {
+        dart.as(value, E);
+        dart.throw(new core.UnsupportedError('Cannot modify list'));
+        return value;
+      }
+      set length(newLength) {
+        dart.throw(new core.UnsupportedError('Cannot modify list'));
+      }
+      sort(compare) {
+        if (compare === void 0) compare = null;
+        dart.as(compare, core.Comparator$(E));
+        dart.throw(new core.UnsupportedError('Cannot sort list'));
+      }
+      shuffle(random) {
+        if (random === void 0) random = null;
+        dart.throw(new core.UnsupportedError('Cannot shuffle list'));
+      }
+      get first() {
+        return dart.as(this[_nodeList][dartx.first], E);
+      }
+      get last() {
+        return dart.as(this[_nodeList][dartx.last], E);
+      }
+      get single() {
+        return dart.as(this[_nodeList][dartx.single], E);
+      }
+      get classes() {
+        return html$._MultiElementCssClassSet.new(this);
+      }
+      get style() {
+        return new html$._CssStyleDeclarationSet(this);
+      }
+      set classes(value) {
+        this[dartx.forEach](dart.fn(e => {
+          dart.as(e, E);
+          return e[dartx.classes] = value;
+        }, core.Iterable$(core.String), [E]));
+      }
+      get contentEdge() {
+        return new html$._ContentCssListRect(this);
+      }
+      get paddingEdge() {
+        return this.first[dartx.paddingEdge];
+      }
+      get borderEdge() {
+        return this.first[dartx.borderEdge];
+      }
+      get marginEdge() {
+        return this.first[dartx.marginEdge];
+      }
+      get rawList() {
+        return this[_nodeList];
+      }
+      get onAbort() {
+        return html$.Element.abortEvent[_forElementList](this);
+      }
+      get onBeforeCopy() {
+        return html$.Element.beforeCopyEvent[_forElementList](this);
+      }
+      get onBeforeCut() {
+        return html$.Element.beforeCutEvent[_forElementList](this);
+      }
+      get onBeforePaste() {
+        return html$.Element.beforePasteEvent[_forElementList](this);
+      }
+      get onBlur() {
+        return html$.Element.blurEvent[_forElementList](this);
+      }
+      get onCanPlay() {
+        return html$.Element.canPlayEvent[_forElementList](this);
+      }
+      get onCanPlayThrough() {
+        return html$.Element.canPlayThroughEvent[_forElementList](this);
+      }
+      get onChange() {
+        return html$.Element.changeEvent[_forElementList](this);
+      }
+      get onClick() {
+        return html$.Element.clickEvent[_forElementList](this);
+      }
+      get onContextMenu() {
+        return html$.Element.contextMenuEvent[_forElementList](this);
+      }
+      get onCopy() {
+        return html$.Element.copyEvent[_forElementList](this);
+      }
+      get onCut() {
+        return html$.Element.cutEvent[_forElementList](this);
+      }
+      get onDoubleClick() {
+        return html$.Element.doubleClickEvent[_forElementList](this);
+      }
+      get onDrag() {
+        return html$.Element.dragEvent[_forElementList](this);
+      }
+      get onDragEnd() {
+        return html$.Element.dragEndEvent[_forElementList](this);
+      }
+      get onDragEnter() {
+        return html$.Element.dragEnterEvent[_forElementList](this);
+      }
+      get onDragLeave() {
+        return html$.Element.dragLeaveEvent[_forElementList](this);
+      }
+      get onDragOver() {
+        return html$.Element.dragOverEvent[_forElementList](this);
+      }
+      get onDragStart() {
+        return html$.Element.dragStartEvent[_forElementList](this);
+      }
+      get onDrop() {
+        return html$.Element.dropEvent[_forElementList](this);
+      }
+      get onDurationChange() {
+        return html$.Element.durationChangeEvent[_forElementList](this);
+      }
+      get onEmptied() {
+        return html$.Element.emptiedEvent[_forElementList](this);
+      }
+      get onEnded() {
+        return html$.Element.endedEvent[_forElementList](this);
+      }
+      get onError() {
+        return html$.Element.errorEvent[_forElementList](this);
+      }
+      get onFocus() {
+        return html$.Element.focusEvent[_forElementList](this);
+      }
+      get onInput() {
+        return html$.Element.inputEvent[_forElementList](this);
+      }
+      get onInvalid() {
+        return html$.Element.invalidEvent[_forElementList](this);
+      }
+      get onKeyDown() {
+        return html$.Element.keyDownEvent[_forElementList](this);
+      }
+      get onKeyPress() {
+        return html$.Element.keyPressEvent[_forElementList](this);
+      }
+      get onKeyUp() {
+        return html$.Element.keyUpEvent[_forElementList](this);
+      }
+      get onLoad() {
+        return html$.Element.loadEvent[_forElementList](this);
+      }
+      get onLoadedData() {
+        return html$.Element.loadedDataEvent[_forElementList](this);
+      }
+      get onLoadedMetadata() {
+        return html$.Element.loadedMetadataEvent[_forElementList](this);
+      }
+      get onMouseDown() {
+        return html$.Element.mouseDownEvent[_forElementList](this);
+      }
+      get onMouseEnter() {
+        return html$.Element.mouseEnterEvent[_forElementList](this);
+      }
+      get onMouseLeave() {
+        return html$.Element.mouseLeaveEvent[_forElementList](this);
+      }
+      get onMouseMove() {
+        return html$.Element.mouseMoveEvent[_forElementList](this);
+      }
+      get onMouseOut() {
+        return html$.Element.mouseOutEvent[_forElementList](this);
+      }
+      get onMouseOver() {
+        return html$.Element.mouseOverEvent[_forElementList](this);
+      }
+      get onMouseUp() {
+        return html$.Element.mouseUpEvent[_forElementList](this);
+      }
+      get onMouseWheel() {
+        return html$.Element.mouseWheelEvent[_forElementList](this);
+      }
+      get onPaste() {
+        return html$.Element.pasteEvent[_forElementList](this);
+      }
+      get onPause() {
+        return html$.Element.pauseEvent[_forElementList](this);
+      }
+      get onPlay() {
+        return html$.Element.playEvent[_forElementList](this);
+      }
+      get onPlaying() {
+        return html$.Element.playingEvent[_forElementList](this);
+      }
+      get onRateChange() {
+        return html$.Element.rateChangeEvent[_forElementList](this);
+      }
+      get onReset() {
+        return html$.Element.resetEvent[_forElementList](this);
+      }
+      get onResize() {
+        return html$.Element.resizeEvent[_forElementList](this);
+      }
+      get onScroll() {
+        return html$.Element.scrollEvent[_forElementList](this);
+      }
+      get onSearch() {
+        return html$.Element.searchEvent[_forElementList](this);
+      }
+      get onSeeked() {
+        return html$.Element.seekedEvent[_forElementList](this);
+      }
+      get onSeeking() {
+        return html$.Element.seekingEvent[_forElementList](this);
+      }
+      get onSelect() {
+        return html$.Element.selectEvent[_forElementList](this);
+      }
+      get onSelectStart() {
+        return html$.Element.selectStartEvent[_forElementList](this);
+      }
+      get onStalled() {
+        return html$.Element.stalledEvent[_forElementList](this);
+      }
+      get onSubmit() {
+        return html$.Element.submitEvent[_forElementList](this);
+      }
+      get onSuspend() {
+        return html$.Element.suspendEvent[_forElementList](this);
+      }
+      get onTimeUpdate() {
+        return html$.Element.timeUpdateEvent[_forElementList](this);
+      }
+      get onTouchCancel() {
+        return html$.Element.touchCancelEvent[_forElementList](this);
+      }
+      get onTouchEnd() {
+        return html$.Element.touchEndEvent[_forElementList](this);
+      }
+      get onTouchEnter() {
+        return html$.Element.touchEnterEvent[_forElementList](this);
+      }
+      get onTouchLeave() {
+        return html$.Element.touchLeaveEvent[_forElementList](this);
+      }
+      get onTouchMove() {
+        return html$.Element.touchMoveEvent[_forElementList](this);
+      }
+      get onTouchStart() {
+        return html$.Element.touchStartEvent[_forElementList](this);
+      }
+      get onTransitionEnd() {
+        return html$.Element.transitionEndEvent[_forElementList](this);
+      }
+      get onVolumeChange() {
+        return html$.Element.volumeChangeEvent[_forElementList](this);
+      }
+      get onWaiting() {
+        return html$.Element.waitingEvent[_forElementList](this);
+      }
+      get onFullscreenChange() {
+        return html$.Element.fullscreenChangeEvent[_forElementList](this);
+      }
+      get onFullscreenError() {
+        return html$.Element.fullscreenErrorEvent[_forElementList](this);
+      }
+    }
+    dart.defineNamedConstructor(_FrozenElementList, '_wrap');
+    _FrozenElementList[dart.implements] = () => [html$.ElementList$(E), html_common.NodeListWrapper];
+    dart.setSignature(_FrozenElementList, {
+      constructors: () => ({_wrap: [html$._FrozenElementList$(E), [core.List$(html$.Node)]]}),
+      methods: () => ({
+        get: [E, [core.int]],
+        set: [dart.void, [core.int, E]],
+        sort: [dart.void, [], [core.Comparator$(E)]]
+      })
+    });
+    dart.defineExtensionMembers(_FrozenElementList, [
+      'get',
+      'set',
+      'sort',
+      'shuffle',
+      'length',
+      'length',
+      'first',
+      'last',
+      'single'
+    ]);
+    return _FrozenElementList;
   });
-  dart.defineExtensionMembers(html$._FrozenElementList, [
-    'get',
-    'set',
-    'sort',
-    'shuffle',
-    'length',
-    'length',
-    'first',
-    'last',
-    'single'
-  ]);
+  html$._FrozenElementList = html$._FrozenElementList$();
   html$._ElementFactoryProvider = class _ElementFactoryProvider extends core.Object {
     static createElement_tag(tag, typeExtension) {
       if (typeExtension != null) {
@@ -69141,8 +69172,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'insertAdjacentElement',
     'isContentEditable',
     'click',
-    'tabIndex',
-    'tabIndex',
+    'blur',
+    'focus',
     'onAbort',
     'onBlur',
     'onCanPlay',
@@ -69196,10 +69227,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'onVolumeChange',
     'onWaiting',
     'ownerSvgElement',
-    'viewportElement',
-    'xmlbase',
-    'xmllang',
-    'xmlspace'
+    'viewportElement'
   ]);
   svg$.SvgElement = class SvgElement extends html$.Element {
     static tag(tag) {
@@ -69297,9 +69325,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     created() {
       this[dartx.ownerSvgElement] = null;
       this[dartx.viewportElement] = null;
-      this[dartx.xmlbase] = null;
-      this[dartx.xmllang] = null;
-      this[dartx.xmlspace] = null;
       super.created();
     }
     get [_svgClassName]() {
@@ -69308,188 +69333,170 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.ownerSvgElement]() {
       return this.ownerSVGElement;
     }
-    get [dartx.tabIndex]() {
-      return this.tabIndex;
-    }
-    set [dartx.tabIndex](value) {
-      this.tabIndex = value;
-    }
     get [dartx.viewportElement]() {
       return this.viewportElement;
     }
-    get [dartx.xmlbase]() {
-      return this.xmlbase;
+    [dartx.blur]() {
+      return this.blur();
     }
-    set [dartx.xmlbase](value) {
-      this.xmlbase = value;
-    }
-    get [dartx.xmllang]() {
-      return this.xmllang;
-    }
-    set [dartx.xmllang](value) {
-      this.xmllang = value;
-    }
-    get [dartx.xmlspace]() {
-      return this.xmlspace;
-    }
-    set [dartx.xmlspace](value) {
-      this.xmlspace = value;
+    [dartx.focus]() {
+      return this.focus();
     }
     get [dartx.onAbort]() {
-      return html$.Element.abortEvent.forElement(this);
+      return svg$.SvgElement.abortEvent.forElement(this);
     }
     get [dartx.onBlur]() {
-      return html$.Element.blurEvent.forElement(this);
+      return svg$.SvgElement.blurEvent.forElement(this);
     }
     get [dartx.onCanPlay]() {
-      return html$.Element.canPlayEvent.forElement(this);
+      return svg$.SvgElement.canPlayEvent.forElement(this);
     }
     get [dartx.onCanPlayThrough]() {
-      return html$.Element.canPlayThroughEvent.forElement(this);
+      return svg$.SvgElement.canPlayThroughEvent.forElement(this);
     }
     get [dartx.onChange]() {
-      return html$.Element.changeEvent.forElement(this);
+      return svg$.SvgElement.changeEvent.forElement(this);
     }
     get [dartx.onClick]() {
-      return html$.Element.clickEvent.forElement(this);
+      return svg$.SvgElement.clickEvent.forElement(this);
     }
     get [dartx.onContextMenu]() {
-      return html$.Element.contextMenuEvent.forElement(this);
+      return svg$.SvgElement.contextMenuEvent.forElement(this);
     }
     get [dartx.onDoubleClick]() {
-      return html$.Element.doubleClickEvent.forElement(this);
+      return svg$.SvgElement.doubleClickEvent.forElement(this);
     }
     get [dartx.onDrag]() {
-      return html$.Element.dragEvent.forElement(this);
+      return svg$.SvgElement.dragEvent.forElement(this);
     }
     get [dartx.onDragEnd]() {
-      return html$.Element.dragEndEvent.forElement(this);
+      return svg$.SvgElement.dragEndEvent.forElement(this);
     }
     get [dartx.onDragEnter]() {
-      return html$.Element.dragEnterEvent.forElement(this);
+      return svg$.SvgElement.dragEnterEvent.forElement(this);
     }
     get [dartx.onDragLeave]() {
-      return html$.Element.dragLeaveEvent.forElement(this);
+      return svg$.SvgElement.dragLeaveEvent.forElement(this);
     }
     get [dartx.onDragOver]() {
-      return html$.Element.dragOverEvent.forElement(this);
+      return svg$.SvgElement.dragOverEvent.forElement(this);
     }
     get [dartx.onDragStart]() {
-      return html$.Element.dragStartEvent.forElement(this);
+      return svg$.SvgElement.dragStartEvent.forElement(this);
     }
     get [dartx.onDrop]() {
-      return html$.Element.dropEvent.forElement(this);
+      return svg$.SvgElement.dropEvent.forElement(this);
     }
     get [dartx.onDurationChange]() {
-      return html$.Element.durationChangeEvent.forElement(this);
+      return svg$.SvgElement.durationChangeEvent.forElement(this);
     }
     get [dartx.onEmptied]() {
-      return html$.Element.emptiedEvent.forElement(this);
+      return svg$.SvgElement.emptiedEvent.forElement(this);
     }
     get [dartx.onEnded]() {
-      return html$.Element.endedEvent.forElement(this);
+      return svg$.SvgElement.endedEvent.forElement(this);
     }
     get [dartx.onError]() {
-      return html$.Element.errorEvent.forElement(this);
+      return svg$.SvgElement.errorEvent.forElement(this);
     }
     get [dartx.onFocus]() {
-      return html$.Element.focusEvent.forElement(this);
+      return svg$.SvgElement.focusEvent.forElement(this);
     }
     get [dartx.onInput]() {
-      return html$.Element.inputEvent.forElement(this);
+      return svg$.SvgElement.inputEvent.forElement(this);
     }
     get [dartx.onInvalid]() {
-      return html$.Element.invalidEvent.forElement(this);
+      return svg$.SvgElement.invalidEvent.forElement(this);
     }
     get [dartx.onKeyDown]() {
-      return html$.Element.keyDownEvent.forElement(this);
+      return svg$.SvgElement.keyDownEvent.forElement(this);
     }
     get [dartx.onKeyPress]() {
-      return html$.Element.keyPressEvent.forElement(this);
+      return svg$.SvgElement.keyPressEvent.forElement(this);
     }
     get [dartx.onKeyUp]() {
-      return html$.Element.keyUpEvent.forElement(this);
+      return svg$.SvgElement.keyUpEvent.forElement(this);
     }
     get [dartx.onLoad]() {
-      return html$.Element.loadEvent.forElement(this);
+      return svg$.SvgElement.loadEvent.forElement(this);
     }
     get [dartx.onLoadedData]() {
-      return html$.Element.loadedDataEvent.forElement(this);
+      return svg$.SvgElement.loadedDataEvent.forElement(this);
     }
     get [dartx.onLoadedMetadata]() {
-      return html$.Element.loadedMetadataEvent.forElement(this);
+      return svg$.SvgElement.loadedMetadataEvent.forElement(this);
     }
     get [dartx.onMouseDown]() {
-      return html$.Element.mouseDownEvent.forElement(this);
+      return svg$.SvgElement.mouseDownEvent.forElement(this);
     }
     get [dartx.onMouseEnter]() {
-      return html$.Element.mouseEnterEvent.forElement(this);
+      return svg$.SvgElement.mouseEnterEvent.forElement(this);
     }
     get [dartx.onMouseLeave]() {
-      return html$.Element.mouseLeaveEvent.forElement(this);
+      return svg$.SvgElement.mouseLeaveEvent.forElement(this);
     }
     get [dartx.onMouseMove]() {
-      return html$.Element.mouseMoveEvent.forElement(this);
+      return svg$.SvgElement.mouseMoveEvent.forElement(this);
     }
     get [dartx.onMouseOut]() {
-      return html$.Element.mouseOutEvent.forElement(this);
+      return svg$.SvgElement.mouseOutEvent.forElement(this);
     }
     get [dartx.onMouseOver]() {
-      return html$.Element.mouseOverEvent.forElement(this);
+      return svg$.SvgElement.mouseOverEvent.forElement(this);
     }
     get [dartx.onMouseUp]() {
-      return html$.Element.mouseUpEvent.forElement(this);
+      return svg$.SvgElement.mouseUpEvent.forElement(this);
     }
     get [dartx.onMouseWheel]() {
-      return html$.Element.mouseWheelEvent.forElement(this);
+      return svg$.SvgElement.mouseWheelEvent.forElement(this);
     }
     get [dartx.onPause]() {
-      return html$.Element.pauseEvent.forElement(this);
+      return svg$.SvgElement.pauseEvent.forElement(this);
     }
     get [dartx.onPlay]() {
-      return html$.Element.playEvent.forElement(this);
+      return svg$.SvgElement.playEvent.forElement(this);
     }
     get [dartx.onPlaying]() {
-      return html$.Element.playingEvent.forElement(this);
+      return svg$.SvgElement.playingEvent.forElement(this);
     }
     get [dartx.onRateChange]() {
-      return html$.Element.rateChangeEvent.forElement(this);
+      return svg$.SvgElement.rateChangeEvent.forElement(this);
     }
     get [dartx.onReset]() {
-      return html$.Element.resetEvent.forElement(this);
+      return svg$.SvgElement.resetEvent.forElement(this);
     }
     get [dartx.onResize]() {
-      return html$.Element.resizeEvent.forElement(this);
+      return svg$.SvgElement.resizeEvent.forElement(this);
     }
     get [dartx.onScroll]() {
-      return html$.Element.scrollEvent.forElement(this);
+      return svg$.SvgElement.scrollEvent.forElement(this);
     }
     get [dartx.onSeeked]() {
-      return html$.Element.seekedEvent.forElement(this);
+      return svg$.SvgElement.seekedEvent.forElement(this);
     }
     get [dartx.onSeeking]() {
-      return html$.Element.seekingEvent.forElement(this);
+      return svg$.SvgElement.seekingEvent.forElement(this);
     }
     get [dartx.onSelect]() {
-      return html$.Element.selectEvent.forElement(this);
+      return svg$.SvgElement.selectEvent.forElement(this);
     }
     get [dartx.onStalled]() {
-      return html$.Element.stalledEvent.forElement(this);
+      return svg$.SvgElement.stalledEvent.forElement(this);
     }
     get [dartx.onSubmit]() {
-      return html$.Element.submitEvent.forElement(this);
+      return svg$.SvgElement.submitEvent.forElement(this);
     }
     get [dartx.onSuspend]() {
-      return html$.Element.suspendEvent.forElement(this);
+      return svg$.SvgElement.suspendEvent.forElement(this);
     }
     get [dartx.onTimeUpdate]() {
-      return html$.Element.timeUpdateEvent.forElement(this);
+      return svg$.SvgElement.timeUpdateEvent.forElement(this);
     }
     get [dartx.onVolumeChange]() {
-      return html$.Element.volumeChangeEvent.forElement(this);
+      return svg$.SvgElement.volumeChangeEvent.forElement(this);
     }
     get [dartx.onWaiting]() {
-      return html$.Element.waitingEvent.forElement(this);
+      return svg$.SvgElement.waitingEvent.forElement(this);
     }
   };
   dart.defineNamedConstructor(svg$.SvgElement, 'created');
@@ -69503,6 +69510,58 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   svg$.SvgElement[dart.metadata] = () => [dart.const(new _metadata.DomName('SVGElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGElement"))];
+  svg$.SvgElement.abortEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('abort'));
+  svg$.SvgElement.blurEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('blur'));
+  svg$.SvgElement.canPlayEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('canplay'));
+  svg$.SvgElement.canPlayThroughEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('canplaythrough'));
+  svg$.SvgElement.changeEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('change'));
+  svg$.SvgElement.clickEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('click'));
+  svg$.SvgElement.contextMenuEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('contextmenu'));
+  svg$.SvgElement.doubleClickEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('dblclick'));
+  svg$.SvgElement.dragEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('drag'));
+  svg$.SvgElement.dragEndEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('dragend'));
+  svg$.SvgElement.dragEnterEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('dragenter'));
+  svg$.SvgElement.dragLeaveEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('dragleave'));
+  svg$.SvgElement.dragOverEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('dragover'));
+  svg$.SvgElement.dragStartEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('dragstart'));
+  svg$.SvgElement.dropEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('drop'));
+  svg$.SvgElement.durationChangeEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('durationchange'));
+  svg$.SvgElement.emptiedEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('emptied'));
+  svg$.SvgElement.endedEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('ended'));
+  svg$.SvgElement.errorEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('error'));
+  svg$.SvgElement.focusEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('focus'));
+  svg$.SvgElement.inputEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('input'));
+  svg$.SvgElement.invalidEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('invalid'));
+  svg$.SvgElement.keyDownEvent = dart.const(new (html$.EventStreamProvider$(html$.KeyboardEvent))('keydown'));
+  svg$.SvgElement.keyPressEvent = dart.const(new (html$.EventStreamProvider$(html$.KeyboardEvent))('keypress'));
+  svg$.SvgElement.keyUpEvent = dart.const(new (html$.EventStreamProvider$(html$.KeyboardEvent))('keyup'));
+  svg$.SvgElement.loadEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('load'));
+  svg$.SvgElement.loadedDataEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('loadeddata'));
+  svg$.SvgElement.loadedMetadataEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('loadedmetadata'));
+  svg$.SvgElement.mouseDownEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mousedown'));
+  svg$.SvgElement.mouseEnterEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mouseenter'));
+  svg$.SvgElement.mouseLeaveEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mouseleave'));
+  svg$.SvgElement.mouseMoveEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mousemove'));
+  svg$.SvgElement.mouseOutEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mouseout'));
+  svg$.SvgElement.mouseOverEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mouseover'));
+  svg$.SvgElement.mouseUpEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mouseup'));
+  svg$.SvgElement.mouseWheelEvent = dart.const(new (html$.EventStreamProvider$(html$.WheelEvent))('mousewheel'));
+  svg$.SvgElement.pauseEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('pause'));
+  svg$.SvgElement.playEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('play'));
+  svg$.SvgElement.playingEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('playing'));
+  svg$.SvgElement.rateChangeEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('ratechange'));
+  svg$.SvgElement.resetEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('reset'));
+  svg$.SvgElement.resizeEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('resize'));
+  svg$.SvgElement.scrollEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('scroll'));
+  svg$.SvgElement.seekedEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('seeked'));
+  svg$.SvgElement.seekingEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('seeking'));
+  svg$.SvgElement.selectEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('select'));
+  svg$.SvgElement.stalledEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('stalled'));
+  svg$.SvgElement.submitEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('submit'));
+  svg$.SvgElement.suspendEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('suspend'));
+  svg$.SvgElement.timeUpdateEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('timeupdate'));
+  svg$.SvgElement.volumeChangeEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('volumechange'));
+  svg$.SvgElement.waitingEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('waiting'));
   dart.defineLazy(svg$.SvgElement, {
     get _START_TAG_REGEXP() {
       return core.RegExp.new('<(\\w+)');
@@ -69620,177 +69679,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   svg$.AElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGAElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGAElement"))];
   dart.registerExtension(dart.global.SVGAElement, svg$.AElement);
-  dart.defineExtensionNames([
-    'getCharNumAtPosition',
-    'getComputedTextLength',
-    'getEndPositionOfChar',
-    'getExtentOfChar',
-    'getNumberOfChars',
-    'getRotationOfChar',
-    'getStartPositionOfChar',
-    'getSubStringLength',
-    'selectSubString',
-    'lengthAdjust',
-    'textLength'
-  ]);
-  svg$.TextContentElement = class TextContentElement extends svg$.GraphicsElement {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    created() {
-      this[dartx.lengthAdjust] = null;
-      this[dartx.textLength] = null;
-      super.created();
-    }
-    get [dartx.lengthAdjust]() {
-      return this.lengthAdjust;
-    }
-    get [dartx.textLength]() {
-      return this.textLength;
-    }
-    [dartx.getCharNumAtPosition](point) {
-      return this.getCharNumAtPosition(point);
-    }
-    [dartx.getComputedTextLength]() {
-      return this.getComputedTextLength();
-    }
-    [dartx.getEndPositionOfChar](offset) {
-      return this.getEndPositionOfChar(offset);
-    }
-    [dartx.getExtentOfChar](offset) {
-      return this.getExtentOfChar(offset);
-    }
-    [dartx.getNumberOfChars]() {
-      return this.getNumberOfChars();
-    }
-    [dartx.getRotationOfChar](offset) {
-      return this.getRotationOfChar(offset);
-    }
-    [dartx.getStartPositionOfChar](offset) {
-      return this.getStartPositionOfChar(offset);
-    }
-    [dartx.getSubStringLength](offset, length) {
-      return this.getSubStringLength(offset, length);
-    }
-    [dartx.selectSubString](offset, length) {
-      return this.selectSubString(offset, length);
-    }
-  };
-  dart.defineNamedConstructor(svg$.TextContentElement, 'created');
-  dart.setSignature(svg$.TextContentElement, {
-    constructors: () => ({
-      _: [svg$.TextContentElement, []],
-      created: [svg$.TextContentElement, []]
-    }),
-    methods: () => ({
-      [dartx.getCharNumAtPosition]: [core.int, [svg$.Point]],
-      [dartx.getComputedTextLength]: [core.double, []],
-      [dartx.getEndPositionOfChar]: [svg$.Point, [core.int]],
-      [dartx.getExtentOfChar]: [svg$.Rect, [core.int]],
-      [dartx.getNumberOfChars]: [core.int, []],
-      [dartx.getRotationOfChar]: [core.double, [core.int]],
-      [dartx.getStartPositionOfChar]: [svg$.Point, [core.int]],
-      [dartx.getSubStringLength]: [core.double, [core.int, core.int]],
-      [dartx.selectSubString]: [dart.void, [core.int, core.int]]
-    })
-  });
-  svg$.TextContentElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGTextContentElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGTextContentElement"))];
-  svg$.TextContentElement.LENGTHADJUST_SPACING = 1;
-  svg$.TextContentElement.LENGTHADJUST_SPACINGANDGLYPHS = 2;
-  svg$.TextContentElement.LENGTHADJUST_UNKNOWN = 0;
-  dart.registerExtension(dart.global.SVGTextContentElement, svg$.TextContentElement);
-  dart.defineExtensionNames([
-    'dx',
-    'dy',
-    'rotate',
-    'x',
-    'y'
-  ]);
-  svg$.TextPositioningElement = class TextPositioningElement extends svg$.TextContentElement {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    created() {
-      this[dartx.dx] = null;
-      this[dartx.dy] = null;
-      this[dartx.rotate] = null;
-      this[dartx.x] = null;
-      this[dartx.y] = null;
-      super.created();
-    }
-    get [dartx.dx]() {
-      return this.dx;
-    }
-    get [dartx.dy]() {
-      return this.dy;
-    }
-    get [dartx.rotate]() {
-      return this.rotate;
-    }
-    get [dartx.x]() {
-      return this.x;
-    }
-    get [dartx.y]() {
-      return this.y;
-    }
-  };
-  dart.defineNamedConstructor(svg$.TextPositioningElement, 'created');
-  dart.setSignature(svg$.TextPositioningElement, {
-    constructors: () => ({
-      _: [svg$.TextPositioningElement, []],
-      created: [svg$.TextPositioningElement, []]
-    })
-  });
-  svg$.TextPositioningElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGTextPositioningElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGTextPositioningElement"))];
-  dart.registerExtension(dart.global.SVGTextPositioningElement, svg$.TextPositioningElement);
-  dart.defineExtensionNames([
-    'format',
-    'glyphRef',
-    'href'
-  ]);
-  svg$.AltGlyphElement = class AltGlyphElement extends svg$.TextPositioningElement {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    static new() {
-      return dart.as(svg$._SvgElementFactoryProvider.createSvgElement_tag("altGlyph"), svg$.AltGlyphElement);
-    }
-    created() {
-      this[dartx.format] = null;
-      this[dartx.glyphRef] = null;
-      this[dartx.href] = null;
-      super.created();
-    }
-    static get supported() {
-      return dart.notNull(svg$.SvgElement.isTagSupported('altGlyph')) && dart.is(svg$.SvgElement.tag('altGlyph'), svg$.AltGlyphElement);
-    }
-    get [dartx.format]() {
-      return this.format;
-    }
-    set [dartx.format](value) {
-      this.format = value;
-    }
-    get [dartx.glyphRef]() {
-      return this.glyphRef;
-    }
-    set [dartx.glyphRef](value) {
-      this.glyphRef = value;
-    }
-    get [dartx.href]() {
-      return this.href;
-    }
-  };
-  dart.defineNamedConstructor(svg$.AltGlyphElement, 'created');
-  svg$.AltGlyphElement[dart.implements] = () => [svg$.UriReference];
-  dart.setSignature(svg$.AltGlyphElement, {
-    constructors: () => ({
-      _: [svg$.AltGlyphElement, []],
-      new: [svg$.AltGlyphElement, []],
-      created: [svg$.AltGlyphElement, []]
-    })
-  });
-  svg$.AltGlyphElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGAltGlyphElement')), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.CHROME)), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.FIREFOX)), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.SAFARI)), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGAltGlyphElement"))];
-  dart.registerExtension(dart.global.SVGAltGlyphElement, svg$.AltGlyphElement);
   dart.defineExtensionNames([
     'convertToSpecifiedUnits',
     'newValueSpecifiedUnits',
@@ -71617,6 +71505,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.registerExtension(dart.global.SVGFEPointLightElement, svg$.FEPointLightElement);
   dart.defineExtensionNames([
     'in1',
+    'kernelUnitLengthX',
+    'kernelUnitLengthY',
     'specularConstant',
     'specularExponent',
     'surfaceScale',
@@ -71635,6 +71525,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     created() {
       this[dartx.in1] = null;
+      this[dartx.kernelUnitLengthX] = null;
+      this[dartx.kernelUnitLengthY] = null;
       this[dartx.specularConstant] = null;
       this[dartx.specularExponent] = null;
       this[dartx.surfaceScale] = null;
@@ -71650,6 +71542,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.in1]() {
       return this.in1;
+    }
+    get [dartx.kernelUnitLengthX]() {
+      return this.kernelUnitLengthX;
+    }
+    get [dartx.kernelUnitLengthY]() {
+      return this.kernelUnitLengthY;
     }
     get [dartx.specularConstant]() {
       return this.specularConstant;
@@ -71899,9 +71797,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   svg$.FETurbulenceElement.SVG_TURBULENCE_TYPE_UNKNOWN = 0;
   dart.registerExtension(dart.global.SVGFETurbulenceElement, svg$.FETurbulenceElement);
   dart.defineExtensionNames([
-    'setFilterRes',
-    'filterResX',
-    'filterResY',
     'filterUnits',
     'height',
     'primitiveUnits',
@@ -71918,8 +71813,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.as(svg$._SvgElementFactoryProvider.createSvgElement_tag("filter"), svg$.FilterElement);
     }
     created() {
-      this[dartx.filterResX] = null;
-      this[dartx.filterResY] = null;
       this[dartx.filterUnits] = null;
       this[dartx.height] = null;
       this[dartx.primitiveUnits] = null;
@@ -71931,12 +71824,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static get supported() {
       return dart.notNull(svg$.SvgElement.isTagSupported('filter')) && dart.is(svg$.SvgElement.tag('filter'), svg$.FilterElement);
-    }
-    get [dartx.filterResX]() {
-      return this.filterResX;
-    }
-    get [dartx.filterResY]() {
-      return this.filterResY;
     }
     get [dartx.filterUnits]() {
       return this.filterUnits;
@@ -71956,9 +71843,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.y]() {
       return this.y;
     }
-    [dartx.setFilterRes](filterResX, filterResY) {
-      return this.setFilterRes(filterResX, filterResY);
-    }
     get [dartx.href]() {
       return this.href;
     }
@@ -71970,8 +71854,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _: [svg$.FilterElement, []],
       new: [svg$.FilterElement, []],
       created: [svg$.FilterElement, []]
-    }),
-    methods: () => ({[dartx.setFilterRes]: [dart.void, [core.int, core.int]]})
+    })
   });
   svg$.FilterElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGFilterElement')), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.CHROME)), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.FIREFOX)), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.IE, '10')), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.SAFARI)), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGFilterElement"))];
   dart.registerExtension(dart.global.SVGFilterElement, svg$.FilterElement);
@@ -72270,11 +72153,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.elementAt](index) {
       return this[dartx.get](index);
     }
-    [__setter__$](index, value) {
-      return this.__setter__(index, value);
+    [__setter__$](index, newItem) {
+      return this.__setter__(index, newItem);
     }
-    [dartx.appendItem](item) {
-      return this.appendItem(item);
+    [dartx.appendItem](newItem) {
+      return this.appendItem(newItem);
     }
     [dartx.clear]() {
       return this.clear();
@@ -72282,17 +72165,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.getItem](index) {
       return this.getItem(index);
     }
-    [dartx.initialize](item) {
-      return this.initialize(item);
+    [dartx.initialize](newItem) {
+      return this.initialize(newItem);
     }
-    [dartx.insertItemBefore](item, index) {
-      return this.insertItemBefore(item, index);
+    [dartx.insertItemBefore](newItem, index) {
+      return this.insertItemBefore(newItem, index);
     }
     [dartx.removeItem](index) {
       return this.removeItem(index);
     }
-    [dartx.replaceItem](item, index) {
-      return this.replaceItem(item, index);
+    [dartx.replaceItem](newItem, index) {
+      return this.replaceItem(newItem, index);
     }
   };
   svg$.LengthList[dart.implements] = () => [core.List$(svg$.Length)];
@@ -72814,11 +72697,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.elementAt](index) {
       return this[dartx.get](index);
     }
-    [__setter__$](index, value) {
-      return this.__setter__(index, value);
+    [__setter__$](index, newItem) {
+      return this.__setter__(index, newItem);
     }
-    [dartx.appendItem](item) {
-      return this.appendItem(item);
+    [dartx.appendItem](newItem) {
+      return this.appendItem(newItem);
     }
     [dartx.clear]() {
       return this.clear();
@@ -72826,17 +72709,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.getItem](index) {
       return this.getItem(index);
     }
-    [dartx.initialize](item) {
-      return this.initialize(item);
+    [dartx.initialize](newItem) {
+      return this.initialize(newItem);
     }
-    [dartx.insertItemBefore](item, index) {
-      return this.insertItemBefore(item, index);
+    [dartx.insertItemBefore](newItem, index) {
+      return this.insertItemBefore(newItem, index);
     }
     [dartx.removeItem](index) {
       return this.removeItem(index);
     }
-    [dartx.replaceItem](item, index) {
-      return this.replaceItem(item, index);
+    [dartx.replaceItem](newItem, index) {
+      return this.replaceItem(newItem, index);
     }
   };
   svg$.NumberList[dart.implements] = () => [core.List$(svg$.Number)];
@@ -73700,8 +73583,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.elementAt](index) {
       return this[dartx.get](index);
     }
-    [__setter__$](index, value) {
-      return this.__setter__(index, value);
+    [__setter__$](index, newItem) {
+      return this.__setter__(index, newItem);
     }
     [dartx.appendItem](newItem) {
       return this.appendItem(newItem);
@@ -73941,11 +73824,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.numberOfItems]() {
       return this.numberOfItems;
     }
-    [__setter__$](index, value) {
-      return this.__setter__(index, value);
+    [__setter__$](index, newItem) {
+      return this.__setter__(index, newItem);
     }
-    [dartx.appendItem](item) {
-      return this.appendItem(item);
+    [dartx.appendItem](newItem) {
+      return this.appendItem(newItem);
     }
     [dartx.clear]() {
       return this.clear();
@@ -73953,17 +73836,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.getItem](index) {
       return this.getItem(index);
     }
-    [dartx.initialize](item) {
-      return this.initialize(item);
+    [dartx.initialize](newItem) {
+      return this.initialize(newItem);
     }
-    [dartx.insertItemBefore](item, index) {
-      return this.insertItemBefore(item, index);
+    [dartx.insertItemBefore](newItem, index) {
+      return this.insertItemBefore(newItem, index);
     }
     [dartx.removeItem](index) {
       return this.removeItem(index);
     }
-    [dartx.replaceItem](item, index) {
-      return this.replaceItem(item, index);
+    [dartx.replaceItem](newItem, index) {
+      return this.replaceItem(newItem, index);
     }
   };
   dart.setSignature(svg$.PointList, {
@@ -74233,22 +74116,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   svg$.RectElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGRectElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGRectElement"))];
   dart.registerExtension(dart.global.SVGRectElement, svg$.RectElement);
-  svg$.RenderingIntent = class RenderingIntent extends _interceptors.Interceptor {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-  };
-  dart.setSignature(svg$.RenderingIntent, {
-    constructors: () => ({_: [svg$.RenderingIntent, []]})
-  });
-  svg$.RenderingIntent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGRenderingIntent')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGRenderingIntent"))];
-  svg$.RenderingIntent.RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
-  svg$.RenderingIntent.RENDERING_INTENT_AUTO = 1;
-  svg$.RenderingIntent.RENDERING_INTENT_PERCEPTUAL = 2;
-  svg$.RenderingIntent.RENDERING_INTENT_RELATIVE_COLORIMETRIC = 3;
-  svg$.RenderingIntent.RENDERING_INTENT_SATURATION = 4;
-  svg$.RenderingIntent.RENDERING_INTENT_UNKNOWN = 0;
-  dart.registerExtension(dart.global.SVGRenderingIntent, svg$.RenderingIntent);
   dart.defineExtensionNames([
     'type',
     'href'
@@ -74401,11 +74268,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.elementAt](index) {
       return this[dartx.get](index);
     }
-    [__setter__$](index, value) {
-      return this.__setter__(index, value);
+    [__setter__$](index, newItem) {
+      return this.__setter__(index, newItem);
     }
-    [dartx.appendItem](item) {
-      return this.appendItem(item);
+    [dartx.appendItem](newItem) {
+      return this.appendItem(newItem);
     }
     [dartx.clear]() {
       return this.clear();
@@ -74413,8 +74280,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.getItem](index) {
       return this.getItem(index);
     }
-    [dartx.initialize](item) {
-      return this.initialize(item);
+    [dartx.initialize](newItem) {
+      return this.initialize(newItem);
     }
     [dartx.insertItemBefore](item, index) {
       return this.insertItemBefore(item, index);
@@ -74422,8 +74289,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.removeItem](index) {
       return this.removeItem(index);
     }
-    [dartx.replaceItem](item, index) {
-      return this.replaceItem(item, index);
+    [dartx.replaceItem](newItem, index) {
+      return this.replaceItem(newItem, index);
     }
   };
   svg$.StringList[dart.implements] = () => [core.List$(core.String)];
@@ -74445,8 +74312,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   svg$.StringList[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGStringList')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGStringList"))];
   dart.registerExtension(dart.global.SVGStringList, svg$.StringList);
   dart.defineExtensionNames([
-    'title',
-    'title',
     'disabled',
     'media',
     'sheet',
@@ -74480,12 +74345,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.sheet]() {
       return this.sheet;
-    }
-    get [dartx.title]() {
-      return this.title;
-    }
-    set [dartx.title](value) {
-      this.title = value;
     }
     get [dartx.type]() {
       return this.type;
@@ -74818,6 +74677,129 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   svg$.SymbolElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGSymbolElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGSymbolElement"))];
   dart.registerExtension(dart.global.SVGSymbolElement, svg$.SymbolElement);
+  dart.defineExtensionNames([
+    'getCharNumAtPosition',
+    'getComputedTextLength',
+    'getEndPositionOfChar',
+    'getExtentOfChar',
+    'getNumberOfChars',
+    'getRotationOfChar',
+    'getStartPositionOfChar',
+    'getSubStringLength',
+    'selectSubString',
+    'lengthAdjust',
+    'textLength'
+  ]);
+  svg$.TextContentElement = class TextContentElement extends svg$.GraphicsElement {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    created() {
+      this[dartx.lengthAdjust] = null;
+      this[dartx.textLength] = null;
+      super.created();
+    }
+    get [dartx.lengthAdjust]() {
+      return this.lengthAdjust;
+    }
+    get [dartx.textLength]() {
+      return this.textLength;
+    }
+    [dartx.getCharNumAtPosition](point) {
+      return this.getCharNumAtPosition(point);
+    }
+    [dartx.getComputedTextLength]() {
+      return this.getComputedTextLength();
+    }
+    [dartx.getEndPositionOfChar](charnum) {
+      return this.getEndPositionOfChar(charnum);
+    }
+    [dartx.getExtentOfChar](charnum) {
+      return this.getExtentOfChar(charnum);
+    }
+    [dartx.getNumberOfChars]() {
+      return this.getNumberOfChars();
+    }
+    [dartx.getRotationOfChar](charnum) {
+      return this.getRotationOfChar(charnum);
+    }
+    [dartx.getStartPositionOfChar](charnum) {
+      return this.getStartPositionOfChar(charnum);
+    }
+    [dartx.getSubStringLength](charnum, nchars) {
+      return this.getSubStringLength(charnum, nchars);
+    }
+    [dartx.selectSubString](charnum, nchars) {
+      return this.selectSubString(charnum, nchars);
+    }
+  };
+  dart.defineNamedConstructor(svg$.TextContentElement, 'created');
+  dart.setSignature(svg$.TextContentElement, {
+    constructors: () => ({
+      _: [svg$.TextContentElement, []],
+      created: [svg$.TextContentElement, []]
+    }),
+    methods: () => ({
+      [dartx.getCharNumAtPosition]: [core.int, [svg$.Point]],
+      [dartx.getComputedTextLength]: [core.double, []],
+      [dartx.getEndPositionOfChar]: [svg$.Point, [core.int]],
+      [dartx.getExtentOfChar]: [svg$.Rect, [core.int]],
+      [dartx.getNumberOfChars]: [core.int, []],
+      [dartx.getRotationOfChar]: [core.double, [core.int]],
+      [dartx.getStartPositionOfChar]: [svg$.Point, [core.int]],
+      [dartx.getSubStringLength]: [core.double, [core.int, core.int]],
+      [dartx.selectSubString]: [dart.void, [core.int, core.int]]
+    })
+  });
+  svg$.TextContentElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGTextContentElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGTextContentElement"))];
+  svg$.TextContentElement.LENGTHADJUST_SPACING = 1;
+  svg$.TextContentElement.LENGTHADJUST_SPACINGANDGLYPHS = 2;
+  svg$.TextContentElement.LENGTHADJUST_UNKNOWN = 0;
+  dart.registerExtension(dart.global.SVGTextContentElement, svg$.TextContentElement);
+  dart.defineExtensionNames([
+    'dx',
+    'dy',
+    'rotate',
+    'x',
+    'y'
+  ]);
+  svg$.TextPositioningElement = class TextPositioningElement extends svg$.TextContentElement {
+    static _() {
+      dart.throw(new core.UnsupportedError("Not supported"));
+    }
+    created() {
+      this[dartx.dx] = null;
+      this[dartx.dy] = null;
+      this[dartx.rotate] = null;
+      this[dartx.x] = null;
+      this[dartx.y] = null;
+      super.created();
+    }
+    get [dartx.dx]() {
+      return this.dx;
+    }
+    get [dartx.dy]() {
+      return this.dy;
+    }
+    get [dartx.rotate]() {
+      return this.rotate;
+    }
+    get [dartx.x]() {
+      return this.x;
+    }
+    get [dartx.y]() {
+      return this.y;
+    }
+  };
+  dart.defineNamedConstructor(svg$.TextPositioningElement, 'created');
+  dart.setSignature(svg$.TextPositioningElement, {
+    constructors: () => ({
+      _: [svg$.TextPositioningElement, []],
+      created: [svg$.TextPositioningElement, []]
+    })
+  });
+  svg$.TextPositioningElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGTextPositioningElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGTextPositioningElement"))];
+  dart.registerExtension(dart.global.SVGTextPositioningElement, svg$.TextPositioningElement);
   svg$.TSpanElement = class TSpanElement extends svg$.TextPositioningElement {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -75078,11 +75060,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.elementAt](index) {
       return this[dartx.get](index);
     }
-    [__setter__$](index, value) {
-      return this.__setter__(index, value);
+    [__setter__$](index, newItem) {
+      return this.__setter__(index, newItem);
     }
-    [dartx.appendItem](item) {
-      return this.appendItem(item);
+    [dartx.appendItem](newItem) {
+      return this.appendItem(newItem);
     }
     [dartx.clear]() {
       return this.clear();
@@ -75096,17 +75078,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.getItem](index) {
       return this.getItem(index);
     }
-    [dartx.initialize](item) {
-      return this.initialize(item);
+    [dartx.initialize](newItem) {
+      return this.initialize(newItem);
     }
-    [dartx.insertItemBefore](item, index) {
-      return this.insertItemBefore(item, index);
+    [dartx.insertItemBefore](newItem, index) {
+      return this.insertItemBefore(newItem, index);
     }
     [dartx.removeItem](index) {
       return this.removeItem(index);
     }
-    [dartx.replaceItem](item, index) {
-      return this.replaceItem(item, index);
+    [dartx.replaceItem](newItem, index) {
+      return this.replaceItem(newItem, index);
     }
   };
   svg$.TransformList[dart.implements] = () => [core.List$(svg$.Transform)];
@@ -75358,40 +75340,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   svg$.ZoomEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGZoomEvent')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGZoomEvent"))];
   dart.registerExtension(dart.global.SVGZoomEvent, svg$.ZoomEvent);
-  svg$._SVGAltGlyphDefElement = class _SVGAltGlyphDefElement extends svg$.SvgElement {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    created() {
-      super.created();
-    }
-  };
-  dart.defineNamedConstructor(svg$._SVGAltGlyphDefElement, 'created');
-  dart.setSignature(svg$._SVGAltGlyphDefElement, {
-    constructors: () => ({
-      _: [svg$._SVGAltGlyphDefElement, []],
-      created: [svg$._SVGAltGlyphDefElement, []]
-    })
-  });
-  svg$._SVGAltGlyphDefElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGAltGlyphDefElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGAltGlyphDefElement"))];
-  dart.registerExtension(dart.global.SVGAltGlyphDefElement, svg$._SVGAltGlyphDefElement);
-  svg$._SVGAltGlyphItemElement = class _SVGAltGlyphItemElement extends svg$.SvgElement {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    created() {
-      super.created();
-    }
-  };
-  dart.defineNamedConstructor(svg$._SVGAltGlyphItemElement, 'created');
-  dart.setSignature(svg$._SVGAltGlyphItemElement, {
-    constructors: () => ({
-      _: [svg$._SVGAltGlyphItemElement, []],
-      created: [svg$._SVGAltGlyphItemElement, []]
-    })
-  });
-  svg$._SVGAltGlyphItemElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGAltGlyphItemElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGAltGlyphItemElement"))];
-  dart.registerExtension(dart.global.SVGAltGlyphItemElement, svg$._SVGAltGlyphItemElement);
   svg$._SVGCursorElement = class _SVGCursorElement extends svg$.SvgElement {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -75435,168 +75383,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   svg$._SVGFEDropShadowElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGFEDropShadowElement')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("SVGFEDropShadowElement"))];
   dart.registerExtension(dart.global.SVGFEDropShadowElement, svg$._SVGFEDropShadowElement);
-  svg$._SVGFontElement = class _SVGFontElement extends svg$.SvgElement {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    created() {
-      super.created();
-    }
-  };
-  dart.defineNamedConstructor(svg$._SVGFontElement, 'created');
-  dart.setSignature(svg$._SVGFontElement, {
-    constructors: () => ({
-      _: [svg$._SVGFontElement, []],
-      created: [svg$._SVGFontElement, []]
-    })
-  });
-  svg$._SVGFontElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGFontElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGFontElement"))];
-  dart.registerExtension(dart.global.SVGFontElement, svg$._SVGFontElement);
-  svg$._SVGFontFaceElement = class _SVGFontFaceElement extends svg$.SvgElement {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    created() {
-      super.created();
-    }
-  };
-  dart.defineNamedConstructor(svg$._SVGFontFaceElement, 'created');
-  dart.setSignature(svg$._SVGFontFaceElement, {
-    constructors: () => ({
-      _: [svg$._SVGFontFaceElement, []],
-      created: [svg$._SVGFontFaceElement, []]
-    })
-  });
-  svg$._SVGFontFaceElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGFontFaceElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGFontFaceElement"))];
-  dart.registerExtension(dart.global.SVGFontFaceElement, svg$._SVGFontFaceElement);
-  svg$._SVGFontFaceFormatElement = class _SVGFontFaceFormatElement extends svg$.SvgElement {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    created() {
-      super.created();
-    }
-  };
-  dart.defineNamedConstructor(svg$._SVGFontFaceFormatElement, 'created');
-  dart.setSignature(svg$._SVGFontFaceFormatElement, {
-    constructors: () => ({
-      _: [svg$._SVGFontFaceFormatElement, []],
-      created: [svg$._SVGFontFaceFormatElement, []]
-    })
-  });
-  svg$._SVGFontFaceFormatElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGFontFaceFormatElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGFontFaceFormatElement"))];
-  dart.registerExtension(dart.global.SVGFontFaceFormatElement, svg$._SVGFontFaceFormatElement);
-  svg$._SVGFontFaceNameElement = class _SVGFontFaceNameElement extends svg$.SvgElement {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    created() {
-      super.created();
-    }
-  };
-  dart.defineNamedConstructor(svg$._SVGFontFaceNameElement, 'created');
-  dart.setSignature(svg$._SVGFontFaceNameElement, {
-    constructors: () => ({
-      _: [svg$._SVGFontFaceNameElement, []],
-      created: [svg$._SVGFontFaceNameElement, []]
-    })
-  });
-  svg$._SVGFontFaceNameElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGFontFaceNameElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGFontFaceNameElement"))];
-  dart.registerExtension(dart.global.SVGFontFaceNameElement, svg$._SVGFontFaceNameElement);
-  svg$._SVGFontFaceSrcElement = class _SVGFontFaceSrcElement extends svg$.SvgElement {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    created() {
-      super.created();
-    }
-  };
-  dart.defineNamedConstructor(svg$._SVGFontFaceSrcElement, 'created');
-  dart.setSignature(svg$._SVGFontFaceSrcElement, {
-    constructors: () => ({
-      _: [svg$._SVGFontFaceSrcElement, []],
-      created: [svg$._SVGFontFaceSrcElement, []]
-    })
-  });
-  svg$._SVGFontFaceSrcElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGFontFaceSrcElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGFontFaceSrcElement"))];
-  dart.registerExtension(dart.global.SVGFontFaceSrcElement, svg$._SVGFontFaceSrcElement);
-  svg$._SVGFontFaceUriElement = class _SVGFontFaceUriElement extends svg$.SvgElement {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    created() {
-      super.created();
-    }
-  };
-  dart.defineNamedConstructor(svg$._SVGFontFaceUriElement, 'created');
-  dart.setSignature(svg$._SVGFontFaceUriElement, {
-    constructors: () => ({
-      _: [svg$._SVGFontFaceUriElement, []],
-      created: [svg$._SVGFontFaceUriElement, []]
-    })
-  });
-  svg$._SVGFontFaceUriElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGFontFaceUriElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGFontFaceUriElement"))];
-  dart.registerExtension(dart.global.SVGFontFaceUriElement, svg$._SVGFontFaceUriElement);
-  svg$._SVGGlyphElement = class _SVGGlyphElement extends svg$.SvgElement {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    static new() {
-      return dart.as(svg$._SvgElementFactoryProvider.createSvgElement_tag("glyph"), svg$._SVGGlyphElement);
-    }
-    created() {
-      super.created();
-    }
-  };
-  dart.defineNamedConstructor(svg$._SVGGlyphElement, 'created');
-  dart.setSignature(svg$._SVGGlyphElement, {
-    constructors: () => ({
-      _: [svg$._SVGGlyphElement, []],
-      new: [svg$._SVGGlyphElement, []],
-      created: [svg$._SVGGlyphElement, []]
-    })
-  });
-  svg$._SVGGlyphElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGGlyphElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGGlyphElement"))];
-  dart.registerExtension(dart.global.SVGGlyphElement, svg$._SVGGlyphElement);
-  svg$._SVGGlyphRefElement = class _SVGGlyphRefElement extends svg$.SvgElement {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    created() {
-      super.created();
-    }
-  };
-  dart.defineNamedConstructor(svg$._SVGGlyphRefElement, 'created');
-  svg$._SVGGlyphRefElement[dart.implements] = () => [svg$.UriReference];
-  dart.setSignature(svg$._SVGGlyphRefElement, {
-    constructors: () => ({
-      _: [svg$._SVGGlyphRefElement, []],
-      created: [svg$._SVGGlyphRefElement, []]
-    })
-  });
-  svg$._SVGGlyphRefElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGGlyphRefElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGGlyphRefElement"))];
-  dart.registerExtension(dart.global.SVGGlyphRefElement, svg$._SVGGlyphRefElement);
-  svg$._SVGHKernElement = class _SVGHKernElement extends svg$.SvgElement {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    static new() {
-      return dart.as(svg$._SvgElementFactoryProvider.createSvgElement_tag("hkern"), svg$._SVGHKernElement);
-    }
-    created() {
-      super.created();
-    }
-  };
-  dart.defineNamedConstructor(svg$._SVGHKernElement, 'created');
-  dart.setSignature(svg$._SVGHKernElement, {
-    constructors: () => ({
-      _: [svg$._SVGHKernElement, []],
-      new: [svg$._SVGHKernElement, []],
-      created: [svg$._SVGHKernElement, []]
-    })
-  });
-  svg$._SVGHKernElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGHKernElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGHKernElement"))];
-  dart.registerExtension(dart.global.SVGHKernElement, svg$._SVGHKernElement);
   svg$._SVGMPathElement = class _SVGMPathElement extends svg$.SvgElement {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -75619,44 +75405,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   svg$._SVGMPathElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGMPathElement')), dart.const(new _js_helper.Native("SVGMPathElement"))];
   dart.registerExtension(dart.global.SVGMPathElement, svg$._SVGMPathElement);
-  svg$._SVGMissingGlyphElement = class _SVGMissingGlyphElement extends svg$.SvgElement {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    created() {
-      super.created();
-    }
-  };
-  dart.defineNamedConstructor(svg$._SVGMissingGlyphElement, 'created');
-  dart.setSignature(svg$._SVGMissingGlyphElement, {
-    constructors: () => ({
-      _: [svg$._SVGMissingGlyphElement, []],
-      created: [svg$._SVGMissingGlyphElement, []]
-    })
-  });
-  svg$._SVGMissingGlyphElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGMissingGlyphElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGMissingGlyphElement"))];
-  dart.registerExtension(dart.global.SVGMissingGlyphElement, svg$._SVGMissingGlyphElement);
-  svg$._SVGVKernElement = class _SVGVKernElement extends svg$.SvgElement {
-    static _() {
-      dart.throw(new core.UnsupportedError("Not supported"));
-    }
-    static new() {
-      return dart.as(svg$._SvgElementFactoryProvider.createSvgElement_tag("vkern"), svg$._SVGVKernElement);
-    }
-    created() {
-      super.created();
-    }
-  };
-  dart.defineNamedConstructor(svg$._SVGVKernElement, 'created');
-  dart.setSignature(svg$._SVGVKernElement, {
-    constructors: () => ({
-      _: [svg$._SVGVKernElement, []],
-      new: [svg$._SVGVKernElement, []],
-      created: [svg$._SVGVKernElement, []]
-    })
-  });
-  svg$._SVGVKernElement[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('SVGVKernElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGVKernElement"))];
-  dart.registerExtension(dart.global.SVGVKernElement, svg$._SVGVKernElement);
   const _connect = Symbol('_connect');
   dart.defineExtensionNames([
     'disconnect',
