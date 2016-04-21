@@ -148,7 +148,7 @@ class Uri {
    * except for the unreserved characters, and replaces spaces with `+`.
    * If `query` is the empty string, it is equivalent to omitting it.
    * To have an actual empty query part,
-   * use an empty list for `queryParameters`.
+   * use an empty map for `queryParameters`.
    *
    * If both `query` and `queryParameters` are omitted or `null`,
    * the URI has no query part.
@@ -165,7 +165,7 @@ class Uri {
                String path,
                Iterable<String> pathSegments,
                String query,
-               Map<String, dynamic> queryParameters,
+               Map<String, dynamic/*String|Iterable<String>*/> queryParameters,
                String fragment}) {
     scheme = _makeScheme(scheme, 0, _stringOrNullLength(scheme));
     userInfo = _makeUserInfo(userInfo, 0, _stringOrNullLength(userInfo));
@@ -1010,7 +1010,7 @@ class Uri {
                String path,
                Iterable<String> pathSegments,
                String query,
-               Map<String, String> queryParameters,
+               Map<String, dynamic/*String|Iterable<String>*/> queryParameters,
                String fragment}) {
     // Set to true if the scheme has (potentially) changed.
     // In that case, the default port may also have changed and we need
@@ -1373,8 +1373,9 @@ class Uri {
     return _removeDotSegments(path);
   }
 
-  static String _makeQuery(String query, int start, int end,
-                           Map<String, String> queryParameters) {
+  static String _makeQuery(
+      String query, int start, int end,
+      Map<String, dynamic/*String|Iterable<String>*/> queryParameters) {
     if (query == null && queryParameters == null) return null;
     if (query != null && queryParameters != null) {
       throw new ArgumentError('Both query and queryParameters specified');
@@ -1469,7 +1470,7 @@ class Uri {
 
   static String _escapeChar(int char) {
     assert(char <= 0x10ffff);  // It's a valid unicode code point.
-    List codeUnits;
+    List<int> codeUnits;
     if (char < 0x80) {
       // ASCII, a single percent encoded sequence.
       codeUnits = new List(3);
@@ -2365,8 +2366,7 @@ class Uri {
     } else if (parts.length != 8) {
       error('an address without a wildcard must contain exactly 8 parts');
     }
-    // TODO(ajohnsen): Consider using Uint8List.
-    List bytes = new List<int>(16);
+    List<int> bytes = new Uint8List(16);
     for (int i = 0, index = 0; i < parts.length; i++) {
       int value = parts[i];
       if (value == -1) {
@@ -2830,7 +2830,7 @@ class UriData {
                               Map<String, String> parameters,
                               bool base64: false}) {
     StringBuffer buffer = new StringBuffer();
-    List indices = [_noScheme];
+    List<int> indices = [_noScheme];
     String charsetName;
     String encodingName;
     if (parameters != null) charsetName = parameters["charset"];
@@ -2867,7 +2867,7 @@ class UriData {
                              Map<String, String> parameters,
                              percentEncoded: false}) {
     StringBuffer buffer = new StringBuffer();
-    List indices = [_noScheme];
+    List<int> indices = [_noScheme];
     _writeUri(mimeType, null, parameters, buffer, indices);
     indices.add(buffer.length);
     if (percentEncoded) {
@@ -3231,7 +3231,7 @@ class UriData {
     const int slash     = 0x2f;
     const int semicolon = 0x3b;
     const int equals    = 0x3d;
-    List indices = [start - 1];
+    List<int> indices = [start - 1];
     int slashIndex = -1;
     var char;
     int i = start;

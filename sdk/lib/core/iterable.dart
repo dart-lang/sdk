@@ -451,7 +451,7 @@ abstract class Iterable<E> {
    * equivalent to `(iterator..moveNext())..current`.
    */
   E get first {
-    Iterator it = iterator;
+    Iterator<E> it = iterator;
     if (!it.moveNext()) {
       throw IterableElementError.noElement();
     }
@@ -469,7 +469,7 @@ abstract class Iterable<E> {
    * without iterating through the previous ones).
    */
   E get last {
-    Iterator it = iterator;
+    Iterator<E> it = iterator;
     if (!it.moveNext()) {
       throw IterableElementError.noElement();
     }
@@ -486,7 +486,7 @@ abstract class Iterable<E> {
    * Throws a [StateError] if `this` is empty or has more than one element.
    */
   E get single {
-    Iterator it = iterator;
+    Iterator<E> it = iterator;
     if (!it.moveNext()) throw IterableElementError.noElement();
     E result = it.current;
     if (it.moveNext()) throw IterableElementError.tooMany();
@@ -610,9 +610,19 @@ class _GeneratorIterable<E> extends Iterable<E>
   final int _start;
   final int _end;
   final _Generator<E> _generator;
+
+  /// Creates an iterable that builds the elements from a generator function.
+  ///
+  /// The [generator] may be null, in which case the default generator
+  /// enumerating the integer positions is used. This means that [int] must
+  /// be assignable to [E] when no generator is provided. In practice this means
+  /// that the generator can only be emitted when [E] is equal to `dynamic`,
+  /// `int`, or `num`. The constructor will check that the types match.
   _GeneratorIterable(this._end, E generator(int n))
       : _start = 0,
-        _generator = (generator != null) ? generator : _id;
+        // The `as` below is used as check to make sure that `int` is assignable
+        // to [E].
+        _generator = (generator != null) ? generator : _id as _Generator<E>;
 
   _GeneratorIterable.slice(this._start, this._end, this._generator);
 
