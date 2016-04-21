@@ -1984,6 +1984,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(_interceptors.UnknownJavaScriptObject, {
     constructors: () => ({UnknownJavaScriptObject: [_interceptors.UnknownJavaScriptObject, []]})
   });
+  _interceptors.findInterceptorConstructorForType = function(type) {
+  };
+  dart.fn(_interceptors.findInterceptorConstructorForType, () => dart.definiteFunctionType(dart.dynamic, [core.Type]));
+  _interceptors.findConstructorForNativeSubclassType = function(type, name) {
+  };
+  dart.fn(_interceptors.findConstructorForNativeSubclassType, () => dart.definiteFunctionType(dart.dynamic, [core.Type, core.String]));
+  _interceptors.getNativeInterceptor = function(object) {
+  };
+  dart.fn(_interceptors.getNativeInterceptor);
+  _interceptors.setDispatchProperty = function(object, value) {
+  };
+  dart.fn(_interceptors.setDispatchProperty);
   _interceptors.JSArray$ = dart.generic(E => {
     dart.defineExtensionNames([
       'checkGrowable',
@@ -9536,6 +9548,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
     Object.defineProperty(obj, property, {value: value, enumerable: false, writable: true, configurable: true});
   };
   dart.fn(_js_helper.defineProperty, () => dart.definiteFunctionType(dart.void, [dart.dynamic, core.String, dart.dynamic]));
+  _js_helper.convertDartClosureToJS = function(closure, arity) {
+    return closure;
+  };
+  dart.fn(_js_helper.convertDartClosureToJS, dart.dynamic, [dart.dynamic, core.int]);
+  _js_helper.setNativeSubclassDispatchRecord = function(proto, interceptor) {
+  };
+  dart.fn(_js_helper.setNativeSubclassDispatchRecord);
+  _js_helper.findDispatchTagForInterceptorClass = function(interceptorClassConstructor) {
+  };
+  dart.fn(_js_helper.findDispatchTagForInterceptorClass);
+  _js_helper.makeLeafDispatchRecord = function(interceptor) {
+  };
+  dart.fn(_js_helper.makeLeafDispatchRecord);
   const _nativeRegExp = Symbol('_nativeRegExp');
   _js_helper.regExpGetNative = function(regexp) {
     return regexp[_nativeRegExp];
@@ -48510,11 +48535,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       let xhr = new XDomainRequest();
       xhr.open(method, url);
-      xhr.onload = dart.dcall(/* Unimplemented unknown name */convertDartClosureToJS, dart.fn(e => {
+      xhr.onload = _js_helper.convertDartClosureToJS(dart.fn(e => {
         let response = xhr.responseText;
         completer.complete(response);
       }), 1);
-      xhr.onerror = dart.dcall(/* Unimplemented unknown name */convertDartClosureToJS, dart.fn(e => {
+      xhr.onerror = _js_helper.convertDartClosureToJS(dart.fn(e => {
         completer.completeError(e);
       }), 1);
       xhr.onprogress = {};
@@ -52881,7 +52906,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static new(callback) {
       0;
-      return dart.as(new (window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver)(dart.dcall(/* Unimplemented unknown name */convertDartClosureToJS, html$._wrapBinaryZone(callback), 2)), html$.MutationObserver);
+      return dart.as(new (window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver)(_js_helper.convertDartClosureToJS(html$._wrapBinaryZone(callback), 2)), html$.MutationObserver);
     }
   };
   dart.setSignature(html$.MutationObserver, {
@@ -66261,7 +66286,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static _makeRecord() {
       let interceptor = _foreign_helper.JS_INTERCEPTOR_CONSTANT(html$.KeyboardEvent);
-      return dart.dcall(/* Unimplemented unknown name */makeLeafDispatchRecord, interceptor);
+      return _js_helper.makeLeafDispatchRecord(interceptor);
     }
     wrap(parent) {
       this[_parent$] = null;
@@ -66324,7 +66349,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         eventObj.keyCodeVal = keyCode;
         eventObj.charCodeVal = charCode;
       }
-      dart.dcall(/* Unimplemented unknown name */setDispatchProperty, eventObj, html$.KeyEvent._keyboardEventDispatchRecord);
+      _interceptors.setDispatchProperty(eventObj, html$.KeyEvent._keyboardEventDispatchRecord);
       let keyEvent = new html$.KeyEvent.wrap(dart.as(eventObj, html$.KeyboardEvent));
       if (keyEvent[_currentTarget] == null) {
         keyEvent[_currentTarget] = currentTarget == null ? html$.window : currentTarget;
@@ -67888,7 +67913,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.fn(html$._convertNativeToDart_XHR_Response);
   html$._callConstructor = function(constructor, interceptor) {
     return dart.fn(receiver => {
-      dart.dcall(/* Unimplemented unknown name */setNativeSubclassDispatchRecord, receiver, interceptor);
+      _js_helper.setNativeSubclassDispatchRecord(receiver, interceptor);
       receiver.constructor = receiver.__proto__.constructor;
       return constructor(receiver);
     });
@@ -67911,7 +67936,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return function() {
         return invokeCallback(this);
       };
-    })(dart.dcall(/* Unimplemented unknown name */convertDartClosureToJS, callback, 1));
+    })(_js_helper.convertDartClosureToJS(callback, 1));
   };
   dart.fn(html$._makeCallbackMethod);
   html$._makeCallbackMethod3 = function(callback) {
@@ -67919,21 +67944,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return function(arg1, arg2, arg3) {
         return invokeCallback(this, arg1, arg2, arg3);
       };
-    })(dart.dcall(/* Unimplemented unknown name */convertDartClosureToJS, callback, 4));
+    })(_js_helper.convertDartClosureToJS(callback, 4));
   };
   dart.fn(html$._makeCallbackMethod3);
   html$._registerCustomElement = function(context, document, tag, type, extendsTagName) {
-    let interceptorClass = dart.dcall(/* Unimplemented unknown name */findInterceptorConstructorForType, type);
+    let interceptorClass = _interceptors.findInterceptorConstructorForType(type);
     if (interceptorClass == null) {
       dart.throw(new core.ArgumentError(type));
     }
     let interceptor = interceptorClass.prototype;
-    let constructor = dart.dcall(/* Unimplemented unknown name */findConstructorForNativeSubclassType, type, 'created');
+    let constructor = _interceptors.findConstructorForNativeSubclassType(type, 'created');
     if (constructor == null) {
       dart.throw(new core.ArgumentError(`${type} has no constructor called 'created'`));
     }
-    dart.dcall(/* Unimplemented unknown name */getNativeInterceptor, html$.Element.tag('article'));
-    let baseClassName = dart.as(dart.dcall(/* Unimplemented unknown name */findDispatchTagForInterceptorClass, interceptorClass), core.String);
+    _interceptors.getNativeInterceptor(html$.Element.tag('article'));
+    let baseClassName = dart.as(_js_helper.findDispatchTagForInterceptorClass(interceptorClass), core.String);
     if (baseClassName == null) {
       dart.throw(new core.ArgumentError(type));
     }
@@ -67954,7 +67979,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     properties.attributeChangedCallback = {value: html$._makeCallbackMethod3(html$._callAttributeChanged)};
     let baseProto = baseConstructor.prototype;
     let proto = Object.create(baseProto, properties);
-    dart.dcall(/* Unimplemented unknown name */setNativeSubclassDispatchRecord, proto, interceptor);
+    _js_helper.setNativeSubclassDispatchRecord(proto, interceptor);
     let options = {prototype: proto};
     if (extendsTagName != null) {
       options.extends = extendsTagName;
@@ -67973,16 +67998,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_interceptor] = null;
       this[_constructor] = null;
       this[_nativeType] = null;
-      let interceptorClass = dart.dcall(/* Unimplemented unknown name */findInterceptorConstructorForType, type);
+      let interceptorClass = _interceptors.findInterceptorConstructorForType(type);
       if (interceptorClass == null) {
         dart.throw(new core.ArgumentError(type));
       }
-      this[_constructor] = dart.dcall(/* Unimplemented unknown name */findConstructorForNativeSubclassType, type, 'created');
+      this[_constructor] = _interceptors.findConstructorForNativeSubclassType(type, 'created');
       if (this[_constructor] == null) {
         dart.throw(new core.ArgumentError(`${type} has no constructor called 'created'`));
       }
-      dart.dcall(/* Unimplemented unknown name */getNativeInterceptor, html$.Element.tag('article'));
-      let baseClassName = dart.dcall(/* Unimplemented unknown name */findDispatchTagForInterceptorClass, interceptorClass);
+      _interceptors.getNativeInterceptor(html$.Element.tag('article'));
+      let baseClassName = _js_helper.findDispatchTagForInterceptorClass(interceptorClass);
       if (baseClassName == null) {
         dart.throw(new core.ArgumentError(type));
       }
@@ -68004,7 +68029,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (!dart.equals(dart.runtimeType(element), this[_nativeType])) {
         dart.throw(new core.ArgumentError(`element is not subclass of ${this[_nativeType]}`));
       }
-      dart.dcall(/* Unimplemented unknown name */setNativeSubclassDispatchRecord, element, this[_interceptor]);
+      _js_helper.setNativeSubclassDispatchRecord(element, this[_interceptor]);
       this[_constructor](element);
       return element;
     }
@@ -68778,8 +68803,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.fn(html_common.isJavaScriptPromise, core.bool, [dart.dynamic]);
   html_common.convertNativePromiseToDartFuture = function(promise) {
     let completer = async.Completer.new();
-    let then = dart.dcall(/* Unimplemented unknown name */convertDartClosureToJS, dart.fn(result => completer.complete(result), dart.void, [dart.dynamic]), 1);
-    let error = dart.dcall(/* Unimplemented unknown name */convertDartClosureToJS, dart.fn(result => completer.completeError(result), dart.void, [dart.dynamic]), 1);
+    let then = _js_helper.convertDartClosureToJS(dart.fn(result => completer.complete(result), dart.void, [dart.dynamic]), 1);
+    let error = _js_helper.convertDartClosureToJS(dart.fn(result => completer.completeError(result), dart.void, [dart.dynamic]), 1);
     let newPromise = promise.then(then).catch(error);
     return completer.future;
   };
