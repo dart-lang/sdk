@@ -142,9 +142,7 @@ class DocumentationCommentToken extends CommentToken {
  * A token representing a keyword in the language.
  */
 class KeywordToken extends SimpleToken {
-  /**
-   * The keyword being represented by this token.
-   */
+  @override
   final Keyword keyword;
 
   /**
@@ -251,6 +249,9 @@ class SimpleToken implements Token {
 
   @override
   bool get isUserDefinableOperator => type.isUserDefinableOperator;
+
+  @override
+  Keyword get keyword => null;
 
   @override
   int get length => lexeme.length;

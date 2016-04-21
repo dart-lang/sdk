@@ -484,18 +484,15 @@ class ReplacementRange {
       }
       if (token is StringToken) {
         SimpleStringLiteral uri = new SimpleStringLiteral(token, token.lexeme);
-        Token previous = token.previous;
-        if (previous is KeywordToken) {
-          Keyword keyword = previous.keyword;
-          if (keyword == Keyword.IMPORT ||
-              keyword == Keyword.EXPORT ||
-              keyword == Keyword.PART) {
-            int start = uri.contentsOffset;
-            var end = uri.contentsEnd;
-            if (start <= requestOffset && requestOffset <= end) {
-              // Replacement range for import URI
-              return new ReplacementRange(start, end - start);
-            }
+        Keyword keyword = token.previous?.keyword;
+        if (keyword == Keyword.IMPORT ||
+            keyword == Keyword.EXPORT ||
+            keyword == Keyword.PART) {
+          int start = uri.contentsOffset;
+          var end = uri.contentsEnd;
+          if (start <= requestOffset && requestOffset <= end) {
+            // Replacement range for import URI
+            return new ReplacementRange(start, end - start);
           }
         }
       }

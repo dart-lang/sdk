@@ -3699,7 +3699,7 @@ class C {
         (obj) => obj is FieldDeclaration, FieldDeclaration, classMember);
     VariableDeclarationList fieldList =
         (classMember as FieldDeclaration).fields;
-    expect((fieldList.keyword as KeywordToken).keyword, Keyword.CONST);
+    expect(fieldList.keyword.keyword, Keyword.CONST);
     NodeList<VariableDeclaration> fields = fieldList.variables;
     expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
@@ -3725,7 +3725,7 @@ class C {
         (obj) => obj is FieldDeclaration, FieldDeclaration, classMember);
     VariableDeclarationList fieldList =
         (classMember as FieldDeclaration).fields;
-    expect((fieldList.keyword as KeywordToken).keyword, Keyword.FINAL);
+    expect(fieldList.keyword.keyword, Keyword.FINAL);
     NodeList<VariableDeclaration> fields = fieldList.variables;
     expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
@@ -3751,7 +3751,7 @@ class C {
         (obj) => obj is FieldDeclaration, FieldDeclaration, classMember);
     VariableDeclarationList fieldList =
         (classMember as FieldDeclaration).fields;
-    expect((fieldList.keyword as KeywordToken).keyword, Keyword.VAR);
+    expect(fieldList.keyword.keyword, Keyword.VAR);
     NodeList<VariableDeclaration> fields = fieldList.variables;
     expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
@@ -7505,7 +7505,7 @@ void''');
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
     expect(keyword.type, TokenType.KEYWORD);
-    expect((keyword as KeywordToken).keyword, Keyword.CONST);
+    expect(keyword.keyword, Keyword.CONST);
     expect(result.type, isNull);
   }
 
@@ -7515,7 +7515,7 @@ void''');
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
     expect(keyword.type, TokenType.KEYWORD);
-    expect((keyword as KeywordToken).keyword, Keyword.CONST);
+    expect(keyword.keyword, Keyword.CONST);
     expect(result.type, isNotNull);
   }
 
@@ -7525,7 +7525,7 @@ void''');
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
     expect(keyword.type, TokenType.KEYWORD);
-    expect((keyword as KeywordToken).keyword, Keyword.FINAL);
+    expect(keyword.keyword, Keyword.FINAL);
     expect(result.type, isNull);
   }
 
@@ -7535,7 +7535,7 @@ void''');
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
     expect(keyword.type, TokenType.KEYWORD);
-    expect((keyword as KeywordToken).keyword, Keyword.FINAL);
+    expect(keyword.keyword, Keyword.FINAL);
     expect(result.type, isNotNull);
   }
 
@@ -7545,7 +7545,7 @@ void''');
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
     expect(keyword.type, TokenType.KEYWORD);
-    expect((keyword as KeywordToken).keyword, Keyword.FINAL);
+    expect(keyword.keyword, Keyword.FINAL);
     expect(result.type, isNotNull);
   }
 
@@ -7590,7 +7590,7 @@ void''');
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
     expect(keyword.type, TokenType.KEYWORD);
-    expect((keyword as KeywordToken).keyword, Keyword.VAR);
+    expect(keyword.keyword, Keyword.VAR);
     expect(result.type, isNull);
   }
 

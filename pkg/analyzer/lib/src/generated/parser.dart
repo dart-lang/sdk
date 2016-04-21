@@ -4268,11 +4268,8 @@ class Parser {
         _tokenMatches(token.next, TokenType.COLON)) {
       token = token.next.next;
     }
-    if (token.type == TokenType.KEYWORD) {
-      Keyword keyword = (token as KeywordToken).keyword;
-      return keyword == Keyword.CASE || keyword == Keyword.DEFAULT;
-    }
-    return false;
+    Keyword keyword = token.keyword;
+    return keyword == Keyword.CASE || keyword == Keyword.DEFAULT;
   }
 
   /**
@@ -6302,7 +6299,7 @@ class Parser {
         _parseFunctionDeclaration(commentAndMetadata, null, returnType);
     Token propertyKeyword = declaration.propertyKeyword;
     if (propertyKeyword != null) {
-      if ((propertyKeyword as KeywordToken).keyword == Keyword.GET) {
+      if (propertyKeyword.keyword == Keyword.GET) {
         _reportErrorForToken(
             ParserErrorCode.GETTER_IN_FUNCTION, propertyKeyword);
       } else {
@@ -7037,8 +7034,8 @@ class Parser {
       }
       return parseBlock();
     } else if (_matches(TokenType.KEYWORD) &&
-        !(_currentToken as KeywordToken).keyword.isPseudoKeyword) {
-      Keyword keyword = (_currentToken as KeywordToken).keyword;
+        !_currentToken.keyword.isPseudoKeyword) {
+      Keyword keyword = _currentToken.keyword;
       // TODO(jwren) compute some metrics to figure out a better order for this
       // if-then sequence to optimize performance
       if (keyword == Keyword.ASSERT) {
@@ -8851,15 +8848,13 @@ class Parser {
    * Return `true` if the given [token] matches the given [keyword].
    */
   bool _tokenMatchesKeyword(Token token, Keyword keyword) =>
-      token.type == TokenType.KEYWORD &&
-      (token as KeywordToken).keyword == keyword;
+      token.keyword == keyword;
 
   /**
    * Return `true` if the given [token] matches a pseudo keyword.
    */
   bool _tokenMatchesPseudoKeyword(Token token) =>
-      _tokenMatches(token, TokenType.KEYWORD) &&
-      (token as KeywordToken).keyword.isPseudoKeyword;
+      token.keyword?.isPseudoKeyword ?? false;
 
   /**
    * Return `true` if the given [token] matches the given [identifier].

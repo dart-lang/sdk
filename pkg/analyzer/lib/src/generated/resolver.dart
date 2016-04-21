@@ -2395,9 +2395,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object>
             accessors = _enclosingUnit.accessors;
           }
           PropertyAccessorElement accessor;
-          if ((property as KeywordToken).keyword == Keyword.GET) {
+          if (property.keyword == Keyword.GET) {
             accessor = _findIdentifier(accessors, functionName);
-          } else if ((property as KeywordToken).keyword == Keyword.SET) {
+          } else if (property.keyword == Keyword.SET) {
             accessor = _findWithNameAndOffset(accessors, functionName,
                 functionName.name + '=', functionName.offset);
             _expectedElements.remove(accessor);
@@ -2508,9 +2508,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object>
         methodName.staticElement = _enclosingExecutable;
       } else {
         PropertyAccessorElement accessor;
-        if ((property as KeywordToken).keyword == Keyword.GET) {
+        if (property.keyword == Keyword.GET) {
           accessor = _findIdentifier(_enclosingClass.accessors, methodName);
-        } else if ((property as KeywordToken).keyword == Keyword.SET) {
+        } else if (property.keyword == Keyword.SET) {
           accessor = _findWithNameAndOffset(_enclosingClass.accessors,
               methodName, nameOfMethod + '=', methodName.offset);
           _expectedElements.remove(accessor);
