@@ -394,7 +394,9 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       ClassDeclaration classDecl,
       FormalParameterList param,
       int relevance: DART_RELEVANCE_DEFAULT}) {
-    if (optype.typeNameSuggestionsFilter(_staticTypeOfIdentifier(id))) {
+    relevance = optype.typeNameSuggestionsFilter(
+        _staticTypeOfIdentifier(id), relevance);
+    if (relevance != null) {
       _addLocalSuggestion(id, typeName, elemKind,
           isAbstract: isAbstract,
           isDeprecated: isDeprecated,
@@ -411,15 +413,15 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       ClassDeclaration classDecl,
       FormalParameterList param,
       int relevance: DART_RELEVANCE_DEFAULT}) {
-    int filterResult =
-        optype.returnValueSuggestionsFilter(_staticTypeOfIdentifier(id));
-    if (filterResult != null) {
+    relevance = optype.returnValueSuggestionsFilter(
+        _staticTypeOfIdentifier(id), relevance);
+    if (relevance != null) {
       _addLocalSuggestion(id, typeName, elemKind,
           isAbstract: isAbstract,
           isDeprecated: isDeprecated,
           classDecl: classDecl,
           param: param,
-          relevance: relevance + filterResult);
+          relevance: relevance);
     }
   }
 

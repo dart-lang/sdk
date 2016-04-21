@@ -15,6 +15,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
+typedef int SuggestionsFilter(DartType dartType, int relevance);
+
 /**
  * An [AstVisitor] for determining whether top level suggestions or invocation
  * suggestions should be made based upon the type of node in which the
@@ -30,9 +32,10 @@ class OpType {
    * If [includeConstructorSuggestions] is set to true, then this function may
    * be set to a non-default function to filter out potential suggestions (null)
    * based on their static [DartType], or change the relative relevance by
-   * returning a positive or negative integer.
+   * returning a higher or lower relevance.
    */
-  Function constructorSuggestionsFilter = (DartType _) => 0;
+  SuggestionsFilter constructorSuggestionsFilter =
+      (DartType _, int relevance) => relevance;
 
   /**
    * Indicates whether type names should be suggested.
@@ -40,11 +43,13 @@ class OpType {
   bool includeTypeNameSuggestions = false;
 
   /**
-   * If [includeTypeNameSuggestions] is set to true, then this function may be
-   * set to a non-default function to filter out potential suggestions based
-   * on their static [DartType].
+   * If [includeTypeNameSuggestions] is set to true, then this function may
+   * be set to a non-default function to filter out potential suggestions (null)
+   * based on their static [DartType], or change the relative relevance by
+   * returning a higher or lower relevance.
    */
-  Function typeNameSuggestionsFilter = (DartType _) => true;
+  SuggestionsFilter typeNameSuggestionsFilter =
+      (DartType _, int relevance) => relevance;
 
   /**
    * Indicates whether setters along with methods and functions that
@@ -62,9 +67,10 @@ class OpType {
    * If [includeReturnValueSuggestions] is set to true, then this function may
    * be set to a non-default function to filter out potential suggestions (null)
    * based on their static [DartType], or change the relative relevance by
-   * returning a positive or negative integer.
+   * returning a higher or lower relevance.
    */
-  Function returnValueSuggestionsFilter = (DartType _) => 0;
+  SuggestionsFilter returnValueSuggestionsFilter =
+      (DartType _, int relevance) => relevance;
 
   /**
    * Indicates whether named arguments should be suggested.
@@ -198,10 +204,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitAsExpression(AsExpression node) {
     if (identical(entity, node.type)) {
       optype.includeTypeNameSuggestions = true;
-      optype.typeNameSuggestionsFilter = (DartType dartType) {
+      optype.typeNameSuggestionsFilter = (DartType dartType, int relevance) {
         DartType staticType = node.expression.staticType;
-        return staticType.isDynamic ||
-            (dartType.isSubtypeOf(staticType) && dartType != staticType);
+        if (staticType.isDynamic ||
+            (dartType.isSubtypeOf(staticType) && dartType != staticType)) {
+          return relevance;
+        } else {
+          return null;
+        }
       };
     }
   }
@@ -503,23 +513,25 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (identical(entity, node.constructorName)) {
       optype.includeConstructorSuggestions = true;
-      optype.constructorSuggestionsFilter = (DartType dartType) {
+      optype.constructorSuggestionsFilter = (DartType dartType, int relevance) {
         DartType localTypeAssertion = null;
-        if(node.parent is VariableDeclaration) {
-          VariableDeclaration varDeclaration = node.parent as VariableDeclaration;
+        if (node.parent is VariableDeclaration) {
+          VariableDeclaration varDeclaration =
+              node.parent as VariableDeclaration;
           localTypeAssertion = varDeclaration.element.type;
         } else if (node.parent is AssignmentExpression) {
-          AssignmentExpression assignmentExpression = node.parent as AssignmentExpression;
+          AssignmentExpression assignmentExpression =
+              node.parent as AssignmentExpression;
           localTypeAssertion = assignmentExpression.leftHandSide.staticType;
         }
-        if(localTypeAssertion == null ||
+        if (localTypeAssertion == null ||
             dartType == null ||
             localTypeAssertion.isDynamic) {
-          return 0;
+          return relevance;
         } else if (localTypeAssertion == dartType) {
-          return DART_RELEVANCE_INCREMENT;
-        } else if(dartType.isSubtypeOf(localTypeAssertion)) {
-          return 0;
+          return relevance + DART_RELEVANCE_INCREMENT;
+        } else if (dartType.isSubtypeOf(localTypeAssertion)) {
+          return relevance;
         } else {
           return null;
         }
@@ -541,10 +553,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitIsExpression(IsExpression node) {
     if (identical(entity, node.type)) {
       optype.includeTypeNameSuggestions = true;
-      optype.typeNameSuggestionsFilter = (DartType dartType) {
+      optype.typeNameSuggestionsFilter = (DartType dartType, int relevance) {
         DartType staticType = node.expression.staticType;
-        return staticType.isDynamic ||
-            (dartType.isSubtypeOf(staticType) && dartType != staticType);
+        if (staticType.isDynamic ||
+            (dartType.isSubtypeOf(staticType) && dartType != staticType)) {
+          return relevance;
+        } else {
+          return null;
+        }
       };
     }
   }
@@ -586,13 +602,17 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitNamedExpression(NamedExpression node) {
     if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;
-      optype.returnValueSuggestionsFilter = (DartType dartType) {
+      optype.returnValueSuggestionsFilter = (DartType dartType, int relevance) {
         DartType type = node.element?.type;
-        bool isCorrectType = type != null &&
+        if (type != null &&
             dartType != null &&
             !type.isDynamic &&
-            dartType.isSubtypeOf(type);
-        return isCorrectType ? DART_RELEVANCE_INCREMENT : 0;
+            dartType.isSubtypeOf(type)) {
+          // is correct type
+          return relevance + DART_RELEVANCE_INCREMENT;
+        } else {
+          return relevance;
+        }
       };
       optype.includeTypeNameSuggestions = true;
     }

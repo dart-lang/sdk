@@ -46,20 +46,18 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   void visitClassElement(ClassElement element) {
     if (optype.includeTypeNameSuggestions) {
       // if includeTypeNameSuggestions, then use the filter
-      if (optype.typeNameSuggestionsFilter(element.type)) {
-        addSuggestion(element,
-            prefix: prefix, relevance: DART_RELEVANCE_DEFAULT);
+      int relevance = optype.typeNameSuggestionsFilter(
+          element.type, DART_RELEVANCE_DEFAULT);
+      if (relevance != null) {
+        addSuggestion(element, prefix: prefix, relevance: relevance);
       }
     }
     if (optype.includeConstructorSuggestions) {
-      int relevance = DART_RELEVANCE_DEFAULT;
-      int filter = optype.constructorSuggestionsFilter(element.type);
-      if (filter == null) {
-        return;
-      } else {
-        relevance += filter;
+      int relevance = optype.constructorSuggestionsFilter(
+          element.type, DART_RELEVANCE_DEFAULT);
+      if (relevance != null) {
+        _addConstructorSuggestions(element, relevance);
       }
-      _addConstructorSuggestions(element, relevance);
     }
   }
 

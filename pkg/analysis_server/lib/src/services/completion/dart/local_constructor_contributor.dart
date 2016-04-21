@@ -245,13 +245,11 @@ class _Visitor extends LocalDeclarationVisitor {
       ClassDeclaration classDecl, ConstructorDeclaration constructorDecl) {
     String completion = classDecl.name.name;
     SimpleIdentifier elemId;
-    int relevance = DART_RELEVANCE_DEFAULT;
 
-    int filter = optype.constructorSuggestionsFilter(classDecl.element?.type);
-    if (filter == null) {
+    int relevance = optype.constructorSuggestionsFilter(
+        classDecl.element?.type, DART_RELEVANCE_DEFAULT);
+    if (relevance == null) {
       return;
-    } else {
-      relevance += filter;
     }
 
     // Build a suggestion for explicitly declared constructor
