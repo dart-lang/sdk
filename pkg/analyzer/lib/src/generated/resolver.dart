@@ -13,7 +13,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -2060,8 +2059,8 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
         element = namespace.get("$nameStr=");
       }
       if (element == null) {
-        _errorReporter.reportErrorForNode(
-            hintCode, name, [library.identifier, nameStr]);
+        _errorReporter
+            .reportErrorForNode(hintCode, name, [library.identifier, nameStr]);
       }
     }
   }

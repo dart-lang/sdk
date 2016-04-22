@@ -25,7 +25,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart' show AnalysisFutureHelper;
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';

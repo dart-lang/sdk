@@ -6,7 +6,6 @@ library mocks;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:mirrors';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide Element, ElementKind;
