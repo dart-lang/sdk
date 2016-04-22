@@ -6797,7 +6797,7 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   visitVariableDeclarationList(VariableDeclarationList node) {
     for (VariableDeclaration decl in node.variables) {
-      InferenceContext.setType(decl, node.type?.type);
+      InferenceContext.setType(decl, decl.element?.type);
     }
     super.visitVariableDeclarationList(node);
   }

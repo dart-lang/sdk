@@ -1686,10 +1686,10 @@ void main() {
                l = <int>[i, /*info:DOWN_CAST_IMPLICIT*/n, /*warning:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/s];
             }
             {
-               List l = [i];
-               l = [s];
-               l = [n];
-               l = [i, n, s];
+               List l = /*info:INFERRED_TYPE_LITERAL*/[i];
+               l = /*info:INFERRED_TYPE_LITERAL*/[s];
+               l = /*info:INFERRED_TYPE_LITERAL*/[n];
+               l = /*info:INFERRED_TYPE_LITERAL*/[i, n, s];
             }
             {
                Map<String, int> m = <String, int>{s: i};
@@ -1702,13 +1702,15 @@ void main() {
            // TODO(leafp): We can't currently test for key errors since the
            // error marker binds to the entire entry.
             {
-               Map m = {s: i};
-               m = {s: s};
-               m = {s: n};
-               m = {s: i,
+               Map m = /*info:INFERRED_TYPE_LITERAL*/{s: i};
+               m = /*info:INFERRED_TYPE_LITERAL*/{s: s};
+               m = /*info:INFERRED_TYPE_LITERAL*/{s: n};
+               m = /*info:INFERRED_TYPE_LITERAL*/
+                   {s: i,
                     s: n,
                     s: s};
-               m = {i: s,
+               m = /*info:INFERRED_TYPE_LITERAL*/
+                   {i: s,
                     n: s,
                     s: s};
             }
