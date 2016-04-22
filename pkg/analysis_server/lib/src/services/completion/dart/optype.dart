@@ -88,6 +88,11 @@ class OpType {
   bool includeCaseLabelSuggestions = false;
 
   /**
+   * Indicates whether variable names should be suggested.
+   */
+  bool includeVarNameSuggestions = false;
+
+  /**
    * Indicates whether the completion location is in the body of a static method.
    */
   bool inStaticMethodBody = false;
@@ -122,18 +127,18 @@ class OpType {
   /**
    * Indicate whether only type names should be suggested
    */
-  bool get includeOnlyTypeNameSuggestions =>
-      includeTypeNameSuggestions &&
-      !includeNamedArgumentSuggestions &&
+  bool get includeOnlyNamedArgumentSuggestions =>
+      includeNamedArgumentSuggestions &&
+      !includeTypeNameSuggestions &&
       !includeReturnValueSuggestions &&
       !includeVoidReturnSuggestions;
 
   /**
    * Indicate whether only type names should be suggested
    */
-  bool get includeOnlyNamedArgumentSuggestions =>
-      includeNamedArgumentSuggestions &&
-      !includeTypeNameSuggestions &&
+  bool get includeOnlyTypeNameSuggestions =>
+      includeTypeNameSuggestions &&
+      !includeNamedArgumentSuggestions &&
       !includeReturnValueSuggestions &&
       !includeVoidReturnSuggestions;
 }
@@ -379,6 +384,10 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       if (token.lexeme == '[]' && offset == token.offset + 1) {
         optype.includeReturnValueSuggestions = true;
         optype.includeTypeNameSuggestions = true;
+      }
+      if ((token.isSynthetic || token.lexeme == ';') &&
+          node.expression is Identifier) {
+        optype.includeVarNameSuggestions = true;
       }
     }
   }
@@ -798,9 +807,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    if ((node.keyword == null || node.keyword.lexeme != 'var') &&
-        (node.type == null || identical(entity, node.type))) {
-      optype.includeTypeNameSuggestions = true;
+    if (node.keyword == null || node.keyword.lexeme != 'var') {
+      if (node.type == null || identical(entity, node.type)) {
+        optype.includeTypeNameSuggestions = true;
+      } else if (node.type != null && entity is VariableDeclaration) {
+        optype.includeVarNameSuggestions = true;
+      }
     }
   }
 
