@@ -11,7 +11,6 @@ import 'package:analyzer/dart/ast/ast.dart'
         PrefixExpression,
         PrefixedIdentifier,
         PropertyAccess,
-        SimpleAstVisitor,
         SimpleIdentifier;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';

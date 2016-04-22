@@ -4,8 +4,7 @@
 
 library linter.src.rules.avoid_as;
 
-import 'package:analyzer/dart/ast/ast.dart'
-    show AsExpression, AstVisitor, SimpleAstVisitor;
+import 'package:analyzer/dart/ast/ast.dart' show AsExpression, AstVisitor;
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/linter.dart';
 

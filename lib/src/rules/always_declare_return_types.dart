@@ -5,12 +5,7 @@
 library linter.src.rules.always_declare_return_types;
 
 import 'package:analyzer/dart/ast/ast.dart'
-    show
-        AstVisitor,
-        FunctionDeclaration,
-        FunctionTypeAlias,
-        MethodDeclaration,
-        SimpleAstVisitor;
+    show AstVisitor, FunctionDeclaration, FunctionTypeAlias, MethodDeclaration;
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/linter.dart';
 

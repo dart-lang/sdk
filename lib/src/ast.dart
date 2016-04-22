@@ -35,11 +35,7 @@ import 'package:analyzer/dart/ast/ast.dart'
         VariableDeclaration;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart'
-    show
-        Element,
-        GeneralizingElementVisitor,
-        ParameterElement,
-        PropertyAccessorElement;
+    show Element, ParameterElement, PropertyAccessorElement;
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:linter/src/util.dart';

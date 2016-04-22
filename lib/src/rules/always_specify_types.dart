@@ -5,7 +5,15 @@
 library linter.src.rules.annotate_types;
 
 import 'package:analyzer/dart/ast/ast.dart'
-    show AstVisitor, DeclaredIdentifier, ListLiteral, MapLiteral, SimpleAstVisitor, SimpleFormalParameter, TypeName, TypedLiteral, VariableDeclarationList;
+    show
+        AstVisitor,
+        DeclaredIdentifier,
+        ListLiteral,
+        MapLiteral,
+        SimpleFormalParameter,
+        TypeName,
+        TypedLiteral,
+        VariableDeclarationList;
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';

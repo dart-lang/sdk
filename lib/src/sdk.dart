@@ -11,8 +11,7 @@ import 'package:analyzer/src/context/cache.dart'
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, ChangeSet;
-import 'package:analyzer/src/generated/sdk.dart'
-    show DartSdk, LibraryMap, SdkLibrary;
+import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
 import 'package:analyzer/src/generated/source.dart'
     show DartUriResolver, Source, SourceFactory;
 
