@@ -3430,11 +3430,11 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   @override
   visitSymbolLiteral(SymbolLiteral node) {
-    JS.New emitSymbol() {
+    JS.Expression emitSymbol() {
       // TODO(vsm): When we canonicalize, we need to treat private symbols
       // correctly.
       var name = js.string(node.components.join('.'), "'");
-      return new JS.New(_emitTypeName(types.symbolType), [name]);
+      return js.call('#.new(#)', [_emitTypeName(types.symbolType), name]);
     }
     return _emitConst(emitSymbol);
   }

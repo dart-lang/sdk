@@ -280,7 +280,6 @@
       'switch_label2_test',
       'switch_label_test',
       'switch_try_catch_test',
-      'symbol_literal_test_none_multi',
       'sync_generator1_test_none_multi',
       'throwing_lazy_variable_test',
       'top_level_non_prefixed_library_test',
