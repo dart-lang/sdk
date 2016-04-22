@@ -4,7 +4,7 @@
 
 library compiler_configuration;
 
-import 'dart:io' show Directory, Platform;
+import 'dart:io' show Platform;
 
 import 'runtime_configuration.dart' show RuntimeConfiguration;
 
@@ -47,7 +47,6 @@ abstract class CompilerConfiguration {
     // which can eventually completely replace the Map-based configuration
     // object.
     bool isDebug = configuration['mode'] == 'debug';
-    bool isProduct = configuration['mode'] == 'product';
     bool isChecked = configuration['checked'];
     bool isHostChecked = configuration['host_checked'];
     bool useSdk = configuration['use_sdk'];
@@ -78,7 +77,6 @@ abstract class CompilerConfiguration {
         return new PrecompilerCompilerConfiguration(
             isDebug: isDebug,
             isChecked: isChecked,
-            isProduct: isProduct,
             arch: configuration['arch']);
       case 'none':
         return new NoneCompilerConfiguration(
@@ -301,12 +299,9 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
 
 class PrecompilerCompilerConfiguration extends CompilerConfiguration {
   final String arch;
-  final bool isProduct;
 
-  PrecompilerCompilerConfiguration(
-      {bool isDebug, bool isChecked, bool isProduct, String arch})
+  PrecompilerCompilerConfiguration({bool isDebug, bool isChecked, String arch})
       : super._subclass(isDebug: isDebug, isChecked: isChecked),
-        isProduct = isProduct,
         arch = arch;
 
   int computeTimeoutMultiplier() {
@@ -338,25 +333,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       CommandBuilder commandBuilder,
       List arguments,
       Map<String, String> environmentOverrides) {
-    var sourceDir = Directory.current.path;
-    var exec = "$buildDir/gen_snapshot";
+    var exec = "$buildDir/dart_bootstrap";
     var args = new List();
-
-    var precompiledVMIsolate = "$tempDir/precompiled.vmisolate";
-    var precompiledIsolate = "$tempDir/precompiled.isolate";
-    var precompiledInstructions = "$tempDir/precompiled.S";
-    var dartProductEntries = "$sourceDir/runtime/bin/dart_product_entries.txt";
-    var dartEntries = "$sourceDir/runtime/bin/dart_entries.txt";
-    var vmServiceIoMain = "$sourceDir/runtime/bin/vmservice/vmservice_io.dart";
-
-    args.add("--embedder_entry_points_manifest=$dartProductEntries");
-    if (!isProduct) {
-      args.add("--embedder_entry_points_manifest=$dartEntries");
-    }
-    args.add("--vm_isolate_snapshot=$precompiledVMIsolate");
-    args.add("--isolate_snapshot=$precompiledIsolate");
-    args.add("--instructions_snapshot=$precompiledInstructions");
-    args.add("--url_mapping=dart:vmservice_io,$vmServiceIoMain");
+    args.add("--gen-precompiled-snapshot=$tempDir");
     args.addAll(arguments);
 
     return commandBuilder.getCompilationCommand('precompiler', tempDir, !useSdk,
