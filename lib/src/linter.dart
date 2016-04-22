@@ -11,8 +11,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisErrorInfo, AnalysisErrorInfoImpl, Logger;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
-import 'package:analyzer/src/generated/source.dart'
-    show LineInfo, LineInfo_Location, Source;
+import 'package:analyzer/src/generated/source.dart' show LineInfo;
+import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/services/lint.dart' show Linter;
 import 'package:glob/glob.dart';
 import 'package:linter/src/analysis.dart';
@@ -282,10 +282,11 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
 
     // Cache error and location info for creating AnalysisErrorInfos
     // Note that error columns are 1-based
-    var error = new AnalysisError(source, node.span.start.column + 1,
+    AnalysisError error = new AnalysisError(source, node.span.start.column + 1,
         node.span.length, new _LintCode(name, description));
+    LineInfo lineInfo = new LineInfo.fromContent(source.contents.data);
 
-    _locationInfo.add(new AnalysisErrorInfoImpl([error], new _LineInfo(node)));
+    _locationInfo.add(new AnalysisErrorInfoImpl([error], lineInfo));
 
     // Then do the reporting
     reporter?.reportError(error);
@@ -418,20 +419,6 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
       lintPubspecSource(
           contents: sourceFile.readAsStringSync(), sourcePath: sourceFile.path);
-}
-
-class _LineInfo implements LineInfo {
-  PSNode node;
-  _LineInfo(this.node);
-
-  @override
-  LineInfo_Location getLocation(int offset) => new LineInfo_Location(
-      node.span.start.line + 1, node.span.start.column + 1);
-
-  @override
-  int getOffsetOfLine(int lineNumber) {
-    throw new UnsupportedError('Cannot get line offset from a yaml node');
-  }
 }
 
 class _LintCode extends LintCode {
