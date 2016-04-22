@@ -280,7 +280,7 @@ $endif
 
   int get length => _nodeList.length;
 
-  E operator [](int index) => _nodeList[index] as E;
+  E operator [](int index) => _downcast/*<Node, E>*/(_nodeList[index]);
 
   void operator []=(int index, E value) {
     throw new UnsupportedError('Cannot modify list');
@@ -298,11 +298,11 @@ $endif
     throw new UnsupportedError('Cannot shuffle list');
   }
 
-  E get first => _nodeList.first as E;
+  E get first => _downcast/*<Node, E>*/(_nodeList.first);
 
-  E get last => _nodeList.last as E;
+  E get last => _downcast/*<Node, E>*/(_nodeList.last);
 
-  E get single => _nodeList.single as E;
+  E get single => _downcast/*<Node, E>*/(_nodeList.single);
 
   CssClassSet get classes => new _MultiElementCssClassSet(this);
 

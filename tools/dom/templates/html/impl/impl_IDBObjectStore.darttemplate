@@ -148,7 +148,7 @@ $!MEMBERS
     request.onError.listen(controller.addError);
 
     request.onSuccess.listen((e) {
-      var cursor = request.result as dynamic /*=T*/;
+      var cursor = _cast/*<T>*/(request.result);
       if (cursor == null) {
         controller.close();
       } else {
@@ -161,3 +161,6 @@ $!MEMBERS
     return controller.stream;
   }
 }
+
+// ignore: STRONG_MODE_DOWN_CAST_COMPOSITE
+/*=To*/ _cast/*<To>*/(dynamic x) => x;

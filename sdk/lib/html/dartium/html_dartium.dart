@@ -13153,7 +13153,7 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
 
   int get length => _nodeList.length;
 
-  E operator [](int index) => _nodeList[index] as E;
+  E operator [](int index) => _downcast/*<Node, E>*/(_nodeList[index]);
 
   void operator []=(int index, E value) {
     throw new UnsupportedError('Cannot modify list');
@@ -13171,11 +13171,11 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
     throw new UnsupportedError('Cannot shuffle list');
   }
 
-  E get first => _nodeList.first as E;
+  E get first => _downcast/*<Node, E>*/(_nodeList.first);
 
-  E get last => _nodeList.last as E;
+  E get last => _downcast/*<Node, E>*/(_nodeList.last);
 
-  E get single => _nodeList.single as E;
+  E get single => _downcast/*<Node, E>*/(_nodeList.single);
 
   CssClassSet get classes => new _MultiElementCssClassSet(this);
 
@@ -47362,13 +47362,13 @@ class _WrappedList<E extends Node> extends ListBase<E>
 
   // List APIs
 
-  E operator [](int index) => _list[index] as E;
+  E operator [](int index) => _downcast/*<Node, E>*/(_list[index]);
 
   void operator []=(int index, E value) { _list[index] = value; }
 
   set length(int newLength) { _list.length = newLength; }
 
-  void sort([int compare(E a, E b)]) { _list.sort((Node a, Node b) => compare(a as E, b as E)); }
+  void sort([int compare(E a, E b)]) { _list.sort((Node a, Node b) => compare(_downcast/*<Node, E>*/(a), _downcast/*<Node, E>*/(b))); }
 
   int indexOf(Object element, [int start = 0]) => _list.indexOf(element, start);
 
@@ -47376,7 +47376,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
 
   void insert(int index, E element) => _list.insert(index, element);
 
-  E removeAt(int index) => _list.removeAt(index) as E;
+  E removeAt(int index) => _downcast/*<Node, E>*/(_list.removeAt(index));
 
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
     _list.setRange(start, end, iterable, skipCount);
@@ -47398,7 +47398,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
 /**
  * Iterator wrapper for _WrappedList.
  */
-class _WrappedIterator<E> implements Iterator<E> {
+class _WrappedIterator<E extends Node> implements Iterator<E> {
   Iterator<Node> _iterator;
 
   _WrappedIterator(this._iterator);
@@ -47407,8 +47407,11 @@ class _WrappedIterator<E> implements Iterator<E> {
     return _iterator.moveNext();
   }
 
-  E get current => _iterator.current as E;
+  E get current => _downcast/*<Node, E>*/(_iterator.current);
 }
+
+// ignore: STRONG_MODE_DOWN_CAST_COMPOSITE
+/*=To*/ _downcast/*<From, To extends From>*/(dynamic /*=From*/ x) => x;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

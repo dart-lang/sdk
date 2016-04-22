@@ -579,7 +579,8 @@ Future/*<T>*/ _completeRequest/*<T>*/(Request request) {
   // TODO: make sure that completer.complete is synchronous as transactions
   // may be committed if the result is not processed immediately.
   request.onSuccess.listen((e) {
-    completer.complete(request.result as dynamic/*=T*/);
+    var result = _cast/*<T>*/(request.result);
+    completer.complete(result);
   });
   request.onError.listen(completer.completeError);
   return completer.future;
@@ -1086,7 +1087,7 @@ class ObjectStore extends DartHtmlDomObject {
     request.onError.listen(controller.addError);
 
     request.onSuccess.listen((e) {
-      var cursor = request.result as dynamic /*=T*/;
+      var cursor = _cast/*<T>*/(request.result);
       if (cursor == null) {
         controller.close();
       } else {
@@ -1099,6 +1100,9 @@ class ObjectStore extends DartHtmlDomObject {
     return controller.stream;
   }
 }
+
+// ignore: STRONG_MODE_DOWN_CAST_COMPOSITE
+/*=To*/ _cast/*<To>*/(dynamic x) => x;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
