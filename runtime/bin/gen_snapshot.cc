@@ -22,18 +22,38 @@
 
 #include "include/dart_api.h"
 
+#include "platform/hashmap.h"
 #include "platform/globals.h"
 
 namespace dart {
 namespace bin {
 
+// Exit code indicating an API error.
+static const int kApiErrorExitCode = 253;
+// Exit code indicating a compilation error.
+static const int kCompilationErrorExitCode = 254;
+// Exit code indicating an unhandled error that is not a compilation error.
+static const int kErrorExitCode = 255;
+// Exit code indicating a vm restart request.  Never returned to the user.
+static const int kRestartRequestExitCode = 1000;
+
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \
+    intptr_t exit_code = 0;                                                    \
     Log::PrintErr("Error: %s", Dart_GetError(result));                         \
+    if (Dart_IsCompilationError(result)) {                                     \
+      exit_code = kCompilationErrorExitCode;                                   \
+    } else if (Dart_IsApiError(result)) {                                      \
+      exit_code = kApiErrorExitCode;                                           \
+    } else if (Dart_IsVMRestartRequest(result)) {                              \
+      exit_code = kRestartRequestExitCode;                                     \
+    } else {                                                                   \
+      exit_code = kErrorExitCode;                                              \
+    }                                                                          \
     Dart_ExitScope();                                                          \
     Dart_ShutdownIsolate();                                                    \
-    exit(255);                                                                 \
-  }                                                                            \
+    exit(exit_code);                                                           \
+  }
 
 
 // Global state that indicates whether a snapshot is to be created and
@@ -41,7 +61,6 @@ namespace bin {
 static const char* vm_isolate_snapshot_filename = NULL;
 static const char* isolate_snapshot_filename = NULL;
 static const char* instructions_snapshot_filename = NULL;
-static const char* embedder_entry_points_manifest = NULL;
 static const char* package_root = NULL;
 
 
@@ -54,6 +73,10 @@ static char* app_script_name = NULL;
 // Global state that captures the URL mappings specified on the command line.
 static CommandLineOptions* url_mapping = NULL;
 
+// Global state that captures the entry point manifest files specified on the
+// command line.
+static CommandLineOptions* entry_points_files = NULL;
+
 static bool IsValidFlag(const char* name,
                         const char* prefix,
                         intptr_t prefix_length) {
@@ -61,6 +84,93 @@ static bool IsValidFlag(const char* name,
   return ((name_length > prefix_length) &&
           (strncmp(name, prefix, prefix_length) == 0));
 }
+
+
+// The environment provided through the command line using -D options.
+static dart::HashMap* environment = NULL;
+
+static void* GetHashmapKeyFromString(char* key) {
+  return reinterpret_cast<void*>(key);
+}
+
+static bool ProcessEnvironmentOption(const char* arg) {
+  ASSERT(arg != NULL);
+  if (*arg == '\0') {
+    return false;
+  }
+  if (*arg != '-') {
+    return false;
+  }
+  if (*(arg + 1) != 'D') {
+    return false;
+  }
+  arg = arg + 2;
+  if (*arg == '\0') {
+    return true;
+  }
+  if (environment == NULL) {
+    environment = new HashMap(&HashMap::SameStringValue, 4);
+  }
+  // Split the name=value part of the -Dname=value argument.
+  char* name;
+  char* value = NULL;
+  const char* equals_pos = strchr(arg, '=');
+  if (equals_pos == NULL) {
+    // No equal sign (name without value) currently not supported.
+    Log::PrintErr("No value given to -D option\n");
+    return false;
+  } else {
+    int name_len = equals_pos - arg;
+    if (name_len == 0) {
+      Log::PrintErr("No name given to -D option\n");
+      return false;
+    }
+    // Split name=value into name and value.
+    name = reinterpret_cast<char*>(malloc(name_len + 1));
+    strncpy(name, arg, name_len);
+    name[name_len] = '\0';
+    value = strdup(equals_pos + 1);
+  }
+  HashMap::Entry* entry = environment->Lookup(
+      GetHashmapKeyFromString(name), HashMap::StringHash(name), true);
+  ASSERT(entry != NULL);  // Lookup adds an entry if key not found.
+  entry->value = value;
+  return true;
+}
+
+
+static Dart_Handle EnvironmentCallback(Dart_Handle name) {
+  uint8_t* utf8_array;
+  intptr_t utf8_len;
+  Dart_Handle result = Dart_Null();
+  Dart_Handle handle = Dart_StringToUTF8(name, &utf8_array, &utf8_len);
+  if (Dart_IsError(handle)) {
+    handle = Dart_ThrowException(
+        DartUtils::NewDartArgumentError(Dart_GetError(handle)));
+  } else {
+    char* name_chars = reinterpret_cast<char*>(malloc(utf8_len + 1));
+    memmove(name_chars, utf8_array, utf8_len);
+    name_chars[utf8_len] = '\0';
+    const char* value = NULL;
+    printf("Looking for %s\n", name_chars);
+    if (environment != NULL) {
+      HashMap::Entry* entry = environment->Lookup(
+          GetHashmapKeyFromString(name_chars),
+          HashMap::StringHash(name_chars),
+          false);
+      if (entry != NULL) {
+        value = reinterpret_cast<char*>(entry->value);
+      }
+    }
+    if (value != NULL) {
+      result = Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(value),
+                                      strlen(value));
+    }
+    free(name_chars);
+  }
+  return result;
+}
+
 
 
 static const char* ProcessOption(const char* option, const char* name) {
@@ -105,7 +215,7 @@ static bool ProcessInstructionsSnapshotOption(const char* option) {
 static bool ProcessEmbedderEntryPointsManifestOption(const char* option) {
   const char* name = ProcessOption(option, "--embedder_entry_points_manifest=");
   if (name != NULL) {
-    embedder_entry_points_manifest = name;
+    entry_points_files->AddArgument(name);
     return true;
   }
   return false;
@@ -114,6 +224,9 @@ static bool ProcessEmbedderEntryPointsManifestOption(const char* option) {
 
 static bool ProcessPackageRootOption(const char* option) {
   const char* name = ProcessOption(option, "--package_root=");
+  if (name == NULL) {
+    name = ProcessOption(option, "--package-root=");
+  }
   if (name != NULL) {
     package_root = name;
     return true;
@@ -141,7 +254,7 @@ static int ParseArguments(int argc,
                           char** argv,
                           CommandLineOptions* vm_options,
                           char** script_name) {
-  const char* kPrefix = "--";
+  const char* kPrefix = "-";
   const intptr_t kPrefixLen = strlen(kPrefix);
 
   // Skip the binary name.
@@ -154,7 +267,8 @@ static int ParseArguments(int argc,
         ProcessInstructionsSnapshotOption(argv[i]) ||
         ProcessEmbedderEntryPointsManifestOption(argv[i]) ||
         ProcessURLmappingOption(argv[i]) ||
-        ProcessPackageRootOption(argv[i])) {
+        ProcessPackageRootOption(argv[i]) ||
+        ProcessEnvironmentOption(argv[i])) {
       i += 1;
       continue;
     }
@@ -181,14 +295,14 @@ static int ParseArguments(int argc,
   }
 
   if ((instructions_snapshot_filename != NULL) &&
-      (embedder_entry_points_manifest == NULL)) {
+      (entry_points_files->count() == 0)) {
     Log::PrintErr(
         "Specifying an instructions snapshot filename indicates precompilation"
         ". But no embedder entry points manifest was specified.\n\n");
     return -1;
   }
 
-  if ((embedder_entry_points_manifest != NULL) &&
+  if ((entry_points_files->count() > 0) &&
       (instructions_snapshot_filename == NULL)) {
     Log::PrintErr(
         "Specifying the embedder entry points manifest indicates "
@@ -201,8 +315,8 @@ static int ParseArguments(int argc,
 
 
 static bool IsSnapshottingForPrecompilation(void) {
-  return embedder_entry_points_manifest != NULL &&
-         instructions_snapshot_filename != NULL;
+  return (entry_points_files->count() > 0) &&
+         (instructions_snapshot_filename != NULL);
 }
 
 
@@ -510,9 +624,7 @@ static void VerifyLoaded(Dart_Handle library) {
   if (Dart_IsError(library)) {
     const char* err_msg = Dart_GetError(library);
     Log::PrintErr("Errors encountered while loading: %s\n", err_msg);
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-    exit(255);
+    CHECK_RESULT(library);
   }
   ASSERT(Dart_IsLibrary(library));
 }
@@ -781,31 +893,34 @@ int64_t ParseEntryPointsManifestLines(FILE* file,
 }
 
 
-static Dart_QualifiedFunctionName* ParseEntryPointsManifestFile(
-    const char* path) {
-  if (path == NULL) {
-    return NULL;
-  }
+static Dart_QualifiedFunctionName* ParseEntryPointsManifestFiles() {
+  // Total number of entries across all manifest files.
+  int64_t entry_count = 0;
 
-  FILE* file = fopen(path, "r");
-
-  if (file == NULL) {
-    Log::PrintErr("Could not open entry points manifest file\n");
-    return NULL;
-  }
-
-  // Parse the file once but don't store the results. This is done to first
+  // Parse the files once but don't store the results. This is done to first
   // determine the number of entries in the manifest
-  int64_t entry_count = ParseEntryPointsManifestLines(file, NULL);
+  for (intptr_t i = 0; i < entry_points_files->count(); i++) {
+    const char* path = entry_points_files->GetArgument(i);
 
-  if (entry_count <= 0) {
-    Log::PrintErr(
-        "Manifest file specified is invalid or contained no entries\n");
+    FILE* file = fopen(path, "r");
+
+    if (file == NULL) {
+      Log::PrintErr("Could not open entry points manifest file `%s`\n", path);
+      return NULL;
+    }
+
+    int64_t entries = ParseEntryPointsManifestLines(file, NULL);
     fclose(file);
-    return NULL;
-  }
 
-  rewind(file);
+    if (entries <= 0) {
+      Log::PrintErr(
+          "Manifest file `%s` specified is invalid or contained no entries\n",
+          path);
+      return NULL;
+    }
+
+    entry_count += entries;
+  }
 
   // Allocate enough storage for the entries in the file plus a termination
   // sentinel and parse it again to populate the allocation
@@ -813,10 +928,16 @@ static Dart_QualifiedFunctionName* ParseEntryPointsManifestFile(
       reinterpret_cast<Dart_QualifiedFunctionName*>(
           calloc(entry_count + 1, sizeof(Dart_QualifiedFunctionName)));
 
-  int64_t parsed_entry_count = ParseEntryPointsManifestLines(file, entries);
-  ASSERT(parsed_entry_count == entry_count);
+  int64_t parsed_entry_count = 0;
+  for (intptr_t i = 0; i < entry_points_files->count(); i++) {
+    const char* path = entry_points_files->GetArgument(i);
+    FILE* file = fopen(path, "r");
+    parsed_entry_count +=
+        ParseEntryPointsManifestLines(file, &entries[parsed_entry_count]);
+    fclose(file);
+  }
 
-  fclose(file);
+  ASSERT(parsed_entry_count == entry_count);
 
   // The entries allocation must be explicitly cleaned up via
   // |CleanupEntryPointsCollection|
@@ -825,8 +946,7 @@ static Dart_QualifiedFunctionName* ParseEntryPointsManifestFile(
 
 
 static Dart_QualifiedFunctionName* ParseEntryPointsManifestIfPresent() {
-  Dart_QualifiedFunctionName* entries =
-      ParseEntryPointsManifestFile(embedder_entry_points_manifest);
+  Dart_QualifiedFunctionName* entries = ParseEntryPointsManifestFiles();
   if ((entries == NULL) && IsSnapshottingForPrecompilation()) {
     Log::PrintErr(
         "Could not find native embedder entry points during precompilation\n");
@@ -998,6 +1118,10 @@ int main(int argc, char** argv) {
   CommandLineOptions url_mapping_array(argc);
   url_mapping = &url_mapping_array;
 
+  // Initialize the entrypoints array.
+  CommandLineOptions entry_points_files_array(argc);
+  entry_points_files = &entry_points_files_array;
+
   // Parse command line arguments.
   if (ParseArguments(argc,
                      argv,
@@ -1067,6 +1191,9 @@ int main(int argc, char** argv) {
   Dart_Handle library;
   Dart_EnterScope();
 
+  result = Dart_SetEnvironmentCallback(EnvironmentCallback);
+  CHECK_RESULT(result);
+
   ASSERT(vm_isolate_snapshot_filename != NULL);
   ASSERT(isolate_snapshot_filename != NULL);
   // Load up the script before a snapshot is created.
@@ -1108,6 +1235,8 @@ int main(int argc, char** argv) {
       exit(255);
     }
     Dart_EnterScope();
+    result = Dart_SetEnvironmentCallback(EnvironmentCallback);
+    CHECK_RESULT(result);
 
     // Set up the library tag handler in such a manner that it will use the
     // URL mapping specified on the command line to load the libraries.
@@ -1129,8 +1258,7 @@ int main(int argc, char** argv) {
     result = Dart_FinalizeLoading(false);
     CHECK_RESULT(result);
 
-    if (entry_points == NULL) {
-      ASSERT(!IsSnapshottingForPrecompilation());
+    if (!IsSnapshottingForPrecompilation()) {
       CreateAndWriteSnapshot();
     } else {
       CreateAndWritePrecompiledSnapshot(entry_points);

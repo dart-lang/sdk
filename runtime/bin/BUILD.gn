@@ -119,7 +119,7 @@ builtin_impl_sources_gypi =
                 ["builtin_impl_sources.gypi"])
 
 static_library("libdart_builtin") {
-  configs += ["..:dart_config"]
+  configs += ["..:dart_config", "..:dart_product_config"]
   public_configs = [":libdart_builtin_config"]
   deps = [
     ":generate_builtin_cc_file",
@@ -140,7 +140,9 @@ static_library("libdart_builtin") {
 
 
 static_library("libdart_nosnapshot") {
-  configs += ["..:dart_config"]
+  configs += ["..:dart_config",
+              "..:dart_product_config",
+              "..:dart_precompiled_runtime_config"]
   deps = [
     "../vm:libdart_lib_nosnapshot",
     "../vm:libdart_vm_nosnapshot",
@@ -171,8 +173,44 @@ static_library("libdart_nosnapshot") {
 }
 
 
+static_library("libdart_nosnapshot_with_precompiler") {
+  configs += ["..:dart_config",
+              "..:dart_product_config",
+              "..:dart_precompiler_config"]
+  deps = [
+    "../vm:libdart_lib_nosnapshot_with_precompiler",
+    "../vm:libdart_vm_nosnapshot_with_precompiler",
+    "../vm:libdart_platform",
+    "../third_party/double-conversion/src:libdouble_conversion",
+    "..:generate_version_cc_file",
+  ]
+
+  sources = [
+    "../include/dart_api.h",
+    "../include/dart_mirrors_api.h",
+    "../include/dart_native_api.h",
+    "../include/dart_tools_api.h",
+    "../vm/dart_api_impl.cc",
+    "../vm/debugger_api_impl.cc",
+    "../vm/mirrors_api_impl.cc",
+    "../vm/native_api_impl.cc",
+    "$target_gen_dir/../version.cc",
+  ]
+
+  include_dirs = [
+    "..",
+  ]
+
+  defines = [
+    "DART_SHARED_LIB",
+  ]
+}
+
+
 executable("gen_snapshot") {
-  configs += ["..:dart_config"]
+  configs += ["..:dart_config",
+              "..:dart_product_config",
+              "..:dart_precompiler_config"]
   deps = [
     ":gen_resources_cc",
     ":gen_snapshot_dart_io",
@@ -180,7 +218,7 @@ executable("gen_snapshot") {
     ":generate_io_cc_file",
     ":generate_io_patch_cc_file",
     ":libdart_builtin",
-    ":libdart_nosnapshot",
+    ":libdart_nosnapshot_with_precompiler",
   ]
 
   sources = [
@@ -207,7 +245,9 @@ executable("gen_snapshot") {
 
 
 source_set("libdart_embedder_noio") {
-  configs += ["..:dart_config",]
+  configs += ["..:dart_config",
+              "..:dart_product_config",
+              "..:dart_precompiled_runtime_config"]
   deps = [
     "..:libdart",
     "../vm:libdart_platform",
@@ -224,7 +264,9 @@ io_impl_sources_gypi =
 # A source set for the implementation of 'dart:io' library
 # (without secure sockets) suitable for linking with gen_snapshot.
 source_set("gen_snapshot_dart_io") {
-  configs += ["..:dart_config",]
+  configs += ["..:dart_config",
+              "..:dart_product_config",
+              "..:dart_precompiler_config"]
 
   deps = [
     "//third_party/zlib",
@@ -263,7 +305,9 @@ source_set("gen_snapshot_dart_io") {
 # A source set for the implementation of 'dart:io' library
 # (without secure sockets).
 source_set("embedded_dart_io") {
-  configs += ["..:dart_config",]
+  configs += ["..:dart_config",
+              "..:dart_product_config",
+              "..:dart_precompiled_runtime_config"]
 
   custom_sources_filter = [
     "*_test.cc",
