@@ -69343,160 +69343,160 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.focus();
     }
     get [dartx.onAbort]() {
-      return svg$.SvgElement.abortEvent.forElement(this);
+      return html$.Element.abortEvent.forElement(this);
     }
     get [dartx.onBlur]() {
-      return svg$.SvgElement.blurEvent.forElement(this);
+      return html$.Element.blurEvent.forElement(this);
     }
     get [dartx.onCanPlay]() {
-      return svg$.SvgElement.canPlayEvent.forElement(this);
+      return html$.Element.canPlayEvent.forElement(this);
     }
     get [dartx.onCanPlayThrough]() {
-      return svg$.SvgElement.canPlayThroughEvent.forElement(this);
+      return html$.Element.canPlayThroughEvent.forElement(this);
     }
     get [dartx.onChange]() {
-      return svg$.SvgElement.changeEvent.forElement(this);
+      return html$.Element.changeEvent.forElement(this);
     }
     get [dartx.onClick]() {
-      return svg$.SvgElement.clickEvent.forElement(this);
+      return html$.Element.clickEvent.forElement(this);
     }
     get [dartx.onContextMenu]() {
-      return svg$.SvgElement.contextMenuEvent.forElement(this);
+      return html$.Element.contextMenuEvent.forElement(this);
     }
     get [dartx.onDoubleClick]() {
-      return svg$.SvgElement.doubleClickEvent.forElement(this);
+      return html$.Element.doubleClickEvent.forElement(this);
     }
     get [dartx.onDrag]() {
-      return svg$.SvgElement.dragEvent.forElement(this);
+      return html$.Element.dragEvent.forElement(this);
     }
     get [dartx.onDragEnd]() {
-      return svg$.SvgElement.dragEndEvent.forElement(this);
+      return html$.Element.dragEndEvent.forElement(this);
     }
     get [dartx.onDragEnter]() {
-      return svg$.SvgElement.dragEnterEvent.forElement(this);
+      return html$.Element.dragEnterEvent.forElement(this);
     }
     get [dartx.onDragLeave]() {
-      return svg$.SvgElement.dragLeaveEvent.forElement(this);
+      return html$.Element.dragLeaveEvent.forElement(this);
     }
     get [dartx.onDragOver]() {
-      return svg$.SvgElement.dragOverEvent.forElement(this);
+      return html$.Element.dragOverEvent.forElement(this);
     }
     get [dartx.onDragStart]() {
-      return svg$.SvgElement.dragStartEvent.forElement(this);
+      return html$.Element.dragStartEvent.forElement(this);
     }
     get [dartx.onDrop]() {
-      return svg$.SvgElement.dropEvent.forElement(this);
+      return html$.Element.dropEvent.forElement(this);
     }
     get [dartx.onDurationChange]() {
-      return svg$.SvgElement.durationChangeEvent.forElement(this);
+      return html$.Element.durationChangeEvent.forElement(this);
     }
     get [dartx.onEmptied]() {
-      return svg$.SvgElement.emptiedEvent.forElement(this);
+      return html$.Element.emptiedEvent.forElement(this);
     }
     get [dartx.onEnded]() {
-      return svg$.SvgElement.endedEvent.forElement(this);
+      return html$.Element.endedEvent.forElement(this);
     }
     get [dartx.onError]() {
-      return svg$.SvgElement.errorEvent.forElement(this);
+      return html$.Element.errorEvent.forElement(this);
     }
     get [dartx.onFocus]() {
-      return svg$.SvgElement.focusEvent.forElement(this);
+      return html$.Element.focusEvent.forElement(this);
     }
     get [dartx.onInput]() {
-      return svg$.SvgElement.inputEvent.forElement(this);
+      return html$.Element.inputEvent.forElement(this);
     }
     get [dartx.onInvalid]() {
-      return svg$.SvgElement.invalidEvent.forElement(this);
+      return html$.Element.invalidEvent.forElement(this);
     }
     get [dartx.onKeyDown]() {
-      return svg$.SvgElement.keyDownEvent.forElement(this);
+      return html$.Element.keyDownEvent.forElement(this);
     }
     get [dartx.onKeyPress]() {
-      return svg$.SvgElement.keyPressEvent.forElement(this);
+      return html$.Element.keyPressEvent.forElement(this);
     }
     get [dartx.onKeyUp]() {
-      return svg$.SvgElement.keyUpEvent.forElement(this);
+      return html$.Element.keyUpEvent.forElement(this);
     }
     get [dartx.onLoad]() {
-      return svg$.SvgElement.loadEvent.forElement(this);
+      return html$.Element.loadEvent.forElement(this);
     }
     get [dartx.onLoadedData]() {
-      return svg$.SvgElement.loadedDataEvent.forElement(this);
+      return html$.Element.loadedDataEvent.forElement(this);
     }
     get [dartx.onLoadedMetadata]() {
-      return svg$.SvgElement.loadedMetadataEvent.forElement(this);
+      return html$.Element.loadedMetadataEvent.forElement(this);
     }
     get [dartx.onMouseDown]() {
-      return svg$.SvgElement.mouseDownEvent.forElement(this);
+      return html$.Element.mouseDownEvent.forElement(this);
     }
     get [dartx.onMouseEnter]() {
-      return svg$.SvgElement.mouseEnterEvent.forElement(this);
+      return html$.Element.mouseEnterEvent.forElement(this);
     }
     get [dartx.onMouseLeave]() {
-      return svg$.SvgElement.mouseLeaveEvent.forElement(this);
+      return html$.Element.mouseLeaveEvent.forElement(this);
     }
     get [dartx.onMouseMove]() {
-      return svg$.SvgElement.mouseMoveEvent.forElement(this);
+      return html$.Element.mouseMoveEvent.forElement(this);
     }
     get [dartx.onMouseOut]() {
-      return svg$.SvgElement.mouseOutEvent.forElement(this);
+      return html$.Element.mouseOutEvent.forElement(this);
     }
     get [dartx.onMouseOver]() {
-      return svg$.SvgElement.mouseOverEvent.forElement(this);
+      return html$.Element.mouseOverEvent.forElement(this);
     }
     get [dartx.onMouseUp]() {
-      return svg$.SvgElement.mouseUpEvent.forElement(this);
+      return html$.Element.mouseUpEvent.forElement(this);
     }
     get [dartx.onMouseWheel]() {
-      return svg$.SvgElement.mouseWheelEvent.forElement(this);
+      return html$.Element.mouseWheelEvent.forElement(this);
     }
     get [dartx.onPause]() {
-      return svg$.SvgElement.pauseEvent.forElement(this);
+      return html$.Element.pauseEvent.forElement(this);
     }
     get [dartx.onPlay]() {
-      return svg$.SvgElement.playEvent.forElement(this);
+      return html$.Element.playEvent.forElement(this);
     }
     get [dartx.onPlaying]() {
-      return svg$.SvgElement.playingEvent.forElement(this);
+      return html$.Element.playingEvent.forElement(this);
     }
     get [dartx.onRateChange]() {
-      return svg$.SvgElement.rateChangeEvent.forElement(this);
+      return html$.Element.rateChangeEvent.forElement(this);
     }
     get [dartx.onReset]() {
-      return svg$.SvgElement.resetEvent.forElement(this);
+      return html$.Element.resetEvent.forElement(this);
     }
     get [dartx.onResize]() {
-      return svg$.SvgElement.resizeEvent.forElement(this);
+      return html$.Element.resizeEvent.forElement(this);
     }
     get [dartx.onScroll]() {
-      return svg$.SvgElement.scrollEvent.forElement(this);
+      return html$.Element.scrollEvent.forElement(this);
     }
     get [dartx.onSeeked]() {
-      return svg$.SvgElement.seekedEvent.forElement(this);
+      return html$.Element.seekedEvent.forElement(this);
     }
     get [dartx.onSeeking]() {
-      return svg$.SvgElement.seekingEvent.forElement(this);
+      return html$.Element.seekingEvent.forElement(this);
     }
     get [dartx.onSelect]() {
-      return svg$.SvgElement.selectEvent.forElement(this);
+      return html$.Element.selectEvent.forElement(this);
     }
     get [dartx.onStalled]() {
-      return svg$.SvgElement.stalledEvent.forElement(this);
+      return html$.Element.stalledEvent.forElement(this);
     }
     get [dartx.onSubmit]() {
-      return svg$.SvgElement.submitEvent.forElement(this);
+      return html$.Element.submitEvent.forElement(this);
     }
     get [dartx.onSuspend]() {
-      return svg$.SvgElement.suspendEvent.forElement(this);
+      return html$.Element.suspendEvent.forElement(this);
     }
     get [dartx.onTimeUpdate]() {
-      return svg$.SvgElement.timeUpdateEvent.forElement(this);
+      return html$.Element.timeUpdateEvent.forElement(this);
     }
     get [dartx.onVolumeChange]() {
-      return svg$.SvgElement.volumeChangeEvent.forElement(this);
+      return html$.Element.volumeChangeEvent.forElement(this);
     }
     get [dartx.onWaiting]() {
-      return svg$.SvgElement.waitingEvent.forElement(this);
+      return html$.Element.waitingEvent.forElement(this);
     }
   };
   dart.defineNamedConstructor(svg$.SvgElement, 'created');
@@ -69510,58 +69510,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   svg$.SvgElement[dart.metadata] = () => [dart.const(new _metadata.DomName('SVGElement')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("SVGElement"))];
-  svg$.SvgElement.abortEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('abort'));
-  svg$.SvgElement.blurEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('blur'));
-  svg$.SvgElement.canPlayEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('canplay'));
-  svg$.SvgElement.canPlayThroughEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('canplaythrough'));
-  svg$.SvgElement.changeEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('change'));
-  svg$.SvgElement.clickEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('click'));
-  svg$.SvgElement.contextMenuEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('contextmenu'));
-  svg$.SvgElement.doubleClickEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('dblclick'));
-  svg$.SvgElement.dragEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('drag'));
-  svg$.SvgElement.dragEndEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('dragend'));
-  svg$.SvgElement.dragEnterEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('dragenter'));
-  svg$.SvgElement.dragLeaveEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('dragleave'));
-  svg$.SvgElement.dragOverEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('dragover'));
-  svg$.SvgElement.dragStartEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('dragstart'));
-  svg$.SvgElement.dropEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('drop'));
-  svg$.SvgElement.durationChangeEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('durationchange'));
-  svg$.SvgElement.emptiedEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('emptied'));
-  svg$.SvgElement.endedEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('ended'));
-  svg$.SvgElement.errorEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('error'));
-  svg$.SvgElement.focusEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('focus'));
-  svg$.SvgElement.inputEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('input'));
-  svg$.SvgElement.invalidEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('invalid'));
-  svg$.SvgElement.keyDownEvent = dart.const(new (html$.EventStreamProvider$(html$.KeyboardEvent))('keydown'));
-  svg$.SvgElement.keyPressEvent = dart.const(new (html$.EventStreamProvider$(html$.KeyboardEvent))('keypress'));
-  svg$.SvgElement.keyUpEvent = dart.const(new (html$.EventStreamProvider$(html$.KeyboardEvent))('keyup'));
-  svg$.SvgElement.loadEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('load'));
-  svg$.SvgElement.loadedDataEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('loadeddata'));
-  svg$.SvgElement.loadedMetadataEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('loadedmetadata'));
-  svg$.SvgElement.mouseDownEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mousedown'));
-  svg$.SvgElement.mouseEnterEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mouseenter'));
-  svg$.SvgElement.mouseLeaveEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mouseleave'));
-  svg$.SvgElement.mouseMoveEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mousemove'));
-  svg$.SvgElement.mouseOutEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mouseout'));
-  svg$.SvgElement.mouseOverEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mouseover'));
-  svg$.SvgElement.mouseUpEvent = dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mouseup'));
-  svg$.SvgElement.mouseWheelEvent = dart.const(new (html$.EventStreamProvider$(html$.WheelEvent))('mousewheel'));
-  svg$.SvgElement.pauseEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('pause'));
-  svg$.SvgElement.playEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('play'));
-  svg$.SvgElement.playingEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('playing'));
-  svg$.SvgElement.rateChangeEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('ratechange'));
-  svg$.SvgElement.resetEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('reset'));
-  svg$.SvgElement.resizeEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('resize'));
-  svg$.SvgElement.scrollEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('scroll'));
-  svg$.SvgElement.seekedEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('seeked'));
-  svg$.SvgElement.seekingEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('seeking'));
-  svg$.SvgElement.selectEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('select'));
-  svg$.SvgElement.stalledEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('stalled'));
-  svg$.SvgElement.submitEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('submit'));
-  svg$.SvgElement.suspendEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('suspend'));
-  svg$.SvgElement.timeUpdateEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('timeupdate'));
-  svg$.SvgElement.volumeChangeEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('volumechange'));
-  svg$.SvgElement.waitingEvent = dart.const(new (html$.EventStreamProvider$(html$.Event))('waiting'));
   dart.defineLazy(svg$.SvgElement, {
     get _START_TAG_REGEXP() {
       return core.RegExp.new('<(\\w+)');
