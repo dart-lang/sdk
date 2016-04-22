@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test write barrier verification mode.
-// VMOptions=--verify_before_gc --verify_after_gc --old_gen_growth_rate=1
+// VMOptions=--verify_before_gc --verify_after_gc --old_gen_growth_rate=1 --no-background-compilation
 // VMOptions=
 
 import "package:expect/expect.dart";
