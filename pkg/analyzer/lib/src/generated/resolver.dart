@@ -9284,13 +9284,20 @@ class TypeResolverVisitor extends ScopedVisitor {
 
   @override
   void visitClassMembersInScope(ClassDeclaration node) {
+    node.documentationComment?.accept(this);
+    node.metadata.accept(this);
     //
     // Process field declarations before constructors and methods so that the
     // types of field formal parameters can be correctly resolved.
     //
     List<ClassMember> nonFields = new List<ClassMember>();
-    node.visitChildren(
-        new _TypeResolverVisitor_visitClassMembersInScope(this, nonFields));
+    for (ClassMember member in node.members) {
+      if (member is ConstructorDeclaration) {
+        nonFields.add(member);
+      } else {
+        member.accept(this);
+      }
+    }
     int count = nonFields.length;
     for (int i = 0; i < count; i++) {
       nonFields[i].accept(this);
@@ -10775,39 +10782,4 @@ class _ResolverVisitor_isVariablePotentiallyMutatedIn
     }
     return null;
   }
-}
-
-class _TypeResolverVisitor_visitClassMembersInScope
-    extends UnifyingAstVisitor<Object> {
-  final TypeResolverVisitor TypeResolverVisitor_this;
-
-  List<ClassMember> nonFields;
-
-  _TypeResolverVisitor_visitClassMembersInScope(
-      this.TypeResolverVisitor_this, this.nonFields)
-      : super();
-
-  @override
-  Object visitConstructorDeclaration(ConstructorDeclaration node) {
-    nonFields.add(node);
-    return null;
-  }
-
-  @override
-  Object visitExtendsClause(ExtendsClause node) => null;
-
-  @override
-  Object visitImplementsClause(ImplementsClause node) => null;
-
-  @override
-  Object visitMethodDeclaration(MethodDeclaration node) {
-    nonFields.add(node);
-    return null;
-  }
-
-  @override
-  Object visitNode(AstNode node) => node.accept(TypeResolverVisitor_this);
-
-  @override
-  Object visitWithClause(WithClause node) => null;
 }
