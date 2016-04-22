@@ -2423,12 +2423,18 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
     outputs[DART_ERRORS] = errors;
   }
 
+  Token _advanceToLine(Token token, LineInfo lineInfo, int line) {
+    int offset = lineInfo.getOffsetOfLine(line - 1); // 0-based
+    while (token.offset < offset) {
+      token = token.next;
+    }
+    return token;
+  }
+
   List<AnalysisError> _filterIgnores(List<AnalysisError> errors) {
     if (errors.isEmpty) {
       return errors;
     }
-
-    List<AnalysisError> filtered = <AnalysisError>[];
 
     // Sort errors.
     errors.sort((AnalysisError e1, AnalysisError e2) => e1.offset - e2.offset);
@@ -2437,58 +2443,50 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
     Token token = cu.beginToken;
     LineInfo lineInfo = getRequiredInput(LINE_INFO_INPUT);
 
-    int errorIndex = 0;
+    bool isIgnored(AnalysisError error) {
+      int errorLine = lineInfo.getLocation(error.offset).lineNumber;
+      token = _advanceToLine(token, lineInfo, errorLine);
 
-    // Step through tokens looking for comments.
-    while (errorIndex < errors.length && token.type != TokenType.EOF) {
-      // Find leading comment.
+      //Check for leading comment.
       Token comments = token.precedingComments;
       while (comments?.next != null) {
         comments = comments.next;
       }
+      if (_isIgnoredBy(error, comments)) {
+        return true;
+      }
 
-      // Normalize content.
-      String comment =
-          comments?.lexeme?.toLowerCase()?.replaceAll(spacesRegExp, '');
-
-      // Check for ignores.
-      if (comment != null && comment.startsWith(_normalizedIgnorePrefix)) {
-        int affectedLine = lineInfo.getLocation(token.offset).lineNumber;
-
-        // Process all affected errors.
-        while (errorIndex < errors.length) {
-          AnalysisError currentError = errors[errorIndex++];
-          int errorLine = lineInfo.getLocation(currentError.offset).lineNumber;
-          if (errorLine < affectedLine) {
-            filtered.add(currentError);
-          } else if (errorLine == affectedLine) {
-            // Check for an ignore.
-            if (!_isIgnoredBy(currentError, comment)) {
-              filtered.add(currentError);
-            }
-          } else {
-            // Back up index and break.
-            --errorIndex;
-            break;
+      //Check for trailing comment.
+      int lineNumber = errorLine + 1;
+      if (lineNumber <= lineInfo.lineCount) {
+        Token nextLine = _advanceToLine(token, lineInfo, lineNumber);
+        comments = nextLine.precedingComments;
+        if (comments != null && nextLine.previous.type != TokenType.EOF) {
+          int commentLine = lineInfo.getLocation(comments.offset).lineNumber;
+          if (commentLine == errorLine) {
+            return _isIgnoredBy(error, comments);
           }
         }
       }
 
-      token = token.next;
+      return false;
     }
 
-    // Add remaining errors.
-    if (errorIndex < errors.length) {
-      filtered.addAll(errors.sublist(errorIndex));
-    }
-
-    return filtered;
+    return errors.where((AnalysisError e) => !isIgnored(e)).toList();
   }
 
-  bool _isIgnoredBy(AnalysisError error, String comment) => comment
-      .substring(_normalizedIgnorePrefix.length)
-      .split(',')
-      .contains(error.errorCode.name.toLowerCase());
+  bool _isIgnoredBy(AnalysisError error, Token comment) {
+    //Normalize first.
+    String contents =
+        comment?.lexeme?.toLowerCase()?.replaceAll(spacesRegExp, '');
+    if (contents == null || !contents.startsWith(_normalizedIgnorePrefix)) {
+      return false;
+    }
+    return contents
+        .substring(_normalizedIgnorePrefix.length)
+        .split(',')
+        .contains(error.errorCode.name.toLowerCase());
+  }
 
   /**
    * Return a map from the names of the inputs of this kind of task to the task

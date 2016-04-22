@@ -217,6 +217,11 @@ class LineInfo {
   }
 
   /**
+   * The number of lines.
+   */
+  int get lineCount => _lineStarts.length;
+
+  /**
    * Return the location information for the character at the given [offset].
    */
   LineInfo_Location getLocation(int offset) {
@@ -258,11 +263,12 @@ class LineInfo {
    * [lineNumber].
    */
   int getOffsetOfLine(int lineNumber) {
-    if (lineNumber < 0 || lineNumber >= _lineStarts.length) {
+    if (lineNumber < 0 || lineNumber >= lineCount) {
       throw new ArgumentError('Invalid line number: $lineNumber');
     }
     return _lineStarts[lineNumber];
   }
+
 }
 
 /**
