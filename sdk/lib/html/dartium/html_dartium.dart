@@ -20146,6 +20146,10 @@ class HtmlDocument extends Document {
       js.JsNative.setProperty(elemProto, 'createdCallback', js.allowInteropCaptureThis(($this) {
         // The created callback has already been called by the very act of passing a JS
         // custom element from JS to Dart.
+
+        //  Make element's interceptor a CustomElementClass.
+        _blink.Blink_Utils.setInstanceInterceptorCustomUpgrade($this);
+
         if (oldCreatedCallback != null)
           oldCreatedCallback.apply([], thisArg: $this);
       }));

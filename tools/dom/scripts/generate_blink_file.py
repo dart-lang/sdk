@@ -133,6 +133,7 @@ class Blink_Utils {
   static defineInterceptorCustomElement(jsObject, Type type) native "Utils_defineInterceptorCustomElement";
   static defineInterceptor(jsObject, Type type) native "Utils_defineInterceptor";
   static setInstanceInterceptor(o, Type type, {bool customElement: false}) native "Utils_setInstanceInterceptor";
+  static setInstanceInterceptorCustomUpgrade(o) native "Utils_setInstanceInterceptorCustomUpgrade";
 
   // This method will throw if the element isn't actually a real Element.
   static initializeCustomElement(element) native "Utils_initializeCustomElement";
