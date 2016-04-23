@@ -15,7 +15,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, allow_absolute_addresses);
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
 

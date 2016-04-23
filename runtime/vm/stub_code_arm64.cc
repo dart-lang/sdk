@@ -652,8 +652,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ b(&slow_case, GT);
 
   const intptr_t cid = kArrayCid;
-  __ MaybeTraceAllocation(kArrayCid, R4, &slow_case,
-                          /* inline_isolate = */ false);
+  __ MaybeTraceAllocation(kArrayCid, R4, &slow_case);
 
   Heap::Space space = Heap::SpaceForAllocation(cid);
   __ LoadIsolate(R8);
@@ -694,8 +693,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // R8: heap.
   __ StoreToOffset(R7, R8, Heap::TopOffset(space));
   __ add(R0, R0, Operand(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(cid, R3, space,
-                                   /* inline_isolate = */ false);
+  __ UpdateAllocationStatsWithSize(cid, R3, space);
 
   // R0: new object start as a tagged pointer.
   // R1: array element type.
@@ -919,8 +917,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     ASSERT(kSmiTagShift == 1);
     __ andi(R2, R2, Immediate(~(kObjectAlignment - 1)));
 
-    __ MaybeTraceAllocation(kContextCid, R4, &slow_case,
-                            /* inline_isolate = */ false);
+    __ MaybeTraceAllocation(kContextCid, R4, &slow_case);
     // Now allocate the object.
     // R1: number of context variables.
     // R2: object size.
@@ -953,8 +950,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R5: heap.
     __ str(R3, Address(R5, Heap::TopOffset(space)));
     __ add(R0, R0, Operand(kHeapObjectTag));
-    __ UpdateAllocationStatsWithSize(cid, R2, space,
-                                     /* inline_isolate = */ false);
+    __ UpdateAllocationStatsWithSize(cid, R2, space);
 
     // Calculate the size tag.
     // R0: new object.
@@ -1128,7 +1124,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       __ b(&slow_case, CS);  // Unsigned higher or equal.
     }
     __ str(R3, Address(R5, Heap::TopOffset(space)));
-    __ UpdateAllocationStats(cls.id(), space, /* inline_isolate = */ false);
+    __ UpdateAllocationStats(cls.id(), space);
 
     // R2: new object start.
     // R3: next object start.

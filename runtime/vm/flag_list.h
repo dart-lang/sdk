@@ -27,8 +27,6 @@
 //   R(name, product_value, type, default_value, comment)
 //   C(name, precompiled_value, product_value, type, default_value, comment)
 #define FLAG_LIST(P, R, D, C)                                                  \
-P(allow_absolute_addresses, bool, true,                                        \
-  "Allow embedding absolute addresses in generated code.")                     \
 P(always_megamorphic_calls, bool, false,                                       \
   "Instance call always as megamorphic.")                                      \
 C(background_compilation, false, true, bool, true,                             \

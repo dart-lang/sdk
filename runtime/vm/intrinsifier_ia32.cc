@@ -199,8 +199,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_factor)          \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 1 * kWordSize;                      \
-  __ MaybeTraceAllocation(cid, EDI, &fall_through, false,                      \
-                          /* inline_isolate = */ false);                       \
+  __ MaybeTraceAllocation(cid, EDI, &fall_through, false);                     \
   __ movl(EDI, Address(ESP, kArrayLengthStackOffset));  /* Array length. */    \
   /* Check that length is a positive Smi. */                                   \
   /* EDI: requested array length argument. */                                  \
@@ -244,8 +243,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* next object start and initialize the object. */                           \
   __ movl(Address(ECX, Heap::TopOffset(space)), EBX);                          \
   __ addl(EAX, Immediate(kHeapObjectTag));                                     \
-  __ UpdateAllocationStatsWithSize(cid, EDI, ECX, space,                       \
-                                   /* inline_isolate = */ false);              \
+  __ UpdateAllocationStatsWithSize(cid, EDI, ECX, space);                      \
                                                                                \
   /* Initialize the tags. */                                                   \
   /* EAX: new object start as a tagged pointer. */                             \
@@ -1889,8 +1887,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure,
                                      Register length_reg) {
-  __ MaybeTraceAllocation(kOneByteStringCid, EAX, failure, false,
-                          /* inline_isolate = */ false);
+  __ MaybeTraceAllocation(kOneByteStringCid, EAX, failure, false);
   if (length_reg != EDI) {
     __ movl(EDI, length_reg);
   }
@@ -1924,8 +1921,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ movl(Address(ECX, Heap::TopOffset(space)), EBX);
   __ addl(EAX, Immediate(kHeapObjectTag));
 
-  __ UpdateAllocationStatsWithSize(cid, EDI, ECX, space,
-                                   /* inline_isolate = */ false);
+  __ UpdateAllocationStatsWithSize(cid, EDI, ECX, space);
 
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.

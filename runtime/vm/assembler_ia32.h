@@ -892,24 +892,20 @@ class Assembler : public ValueObject {
   void MaybeTraceAllocation(intptr_t cid,
                             Register temp_reg,
                             Label* trace,
-                            bool near_jump,
-                            bool inline_isolate = true);
+                            bool near_jump);
 
   void UpdateAllocationStats(intptr_t cid,
                              Register temp_reg,
-                             Heap::Space space,
-                             bool inline_isolate = true);
+                             Heap::Space space);
 
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      Register size_reg,
                                      Register temp_reg,
-                                     Heap::Space space,
-                                     bool inline_isolate = true);
+                                     Heap::Space space);
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      intptr_t instance_size,
                                      Register temp_reg,
-                                     Heap::Space space,
-                                     bool inline_isolate = true);
+                                     Heap::Space space);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.

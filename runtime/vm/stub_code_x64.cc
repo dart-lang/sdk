@@ -590,8 +590,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // Check for allocation tracing.
   __ MaybeTraceAllocation(kArrayCid,
                           &slow_case,
-                          Assembler::kFarJump,
-                          /* inline_isolate = */ false);
+                          Assembler::kFarJump);
 
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ leaq(RDI, Address(RDI, TIMES_4, fixed_size));  // RDI is a Smi.
@@ -620,8 +619,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // next object start and initialize the object.
   __ movq(Address(R13, Heap::TopOffset(space)), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(cid, RDI, space,
-                                   /* inline_isolate = */ false);
+  __ UpdateAllocationStatsWithSize(cid, RDI, space);
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.
   // RDI: allocation size.
@@ -847,8 +845,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // Check for allocation tracing.
     __ MaybeTraceAllocation(kContextCid,
                             &slow_case,
-                            Assembler::kFarJump,
-                            /* inline_isolate = */ false);
+                            Assembler::kFarJump);
 
     // Now allocate the object.
     // R10: number of context variables.
@@ -880,8 +877,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ subq(R13, RAX);
     __ addq(RAX, Immediate(kHeapObjectTag));
     // Generate isolate-independent code to allow sharing between isolates.
-    __ UpdateAllocationStatsWithSize(cid, R13, space,
-                                     /* inline_isolate */ false);
+    __ UpdateAllocationStatsWithSize(cid, R13, space);
 
     // Calculate the size tag.
     // RAX: new object.
@@ -1072,7 +1068,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       __ j(ABOVE_EQUAL, &slow_case);
     }
     __ movq(Address(RCX, Heap::TopOffset(space)), RBX);
-    __ UpdateAllocationStats(cls.id(), space, /* inline_isolate = */ false);
+    __ UpdateAllocationStats(cls.id(), space);
 
     // RAX: new object start (untagged).
     // RBX: next object start.

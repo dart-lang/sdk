@@ -588,14 +588,7 @@ void Assembler::LoadObjectHelper(Register rd,
                   : object_pool_wrapper_.FindObject(object));
     LoadWordFromPoolOffset(rd, offset - kHeapObjectTag);
   } else {
-    ASSERT(FLAG_allow_absolute_addresses);
-    ASSERT(object.IsOld());
-    // Make sure that class CallPattern is able to decode this load immediate.
-    int32_t object_raw = reinterpret_cast<int32_t>(object.raw());
-    const uint16_t object_low = Utils::Low16Bits(object_raw);
-    const uint16_t object_high = Utils::High16Bits(object_raw);
-    lui(rd, Immediate(object_high));
-    ori(rd, rd, Immediate(object_low));
+    UNREACHABLE();
   }
 }
 
@@ -912,34 +905,18 @@ void Assembler::LeaveStubFrameAndReturn(Register ra) {
 
 void Assembler::UpdateAllocationStats(intptr_t cid,
                                       Register temp_reg,
-                                      Heap::Space space,
-                                      bool inline_isolate) {
+                                      Heap::Space space) {
   ASSERT(!in_delay_slot_);
   ASSERT(temp_reg != kNoRegister);
   ASSERT(temp_reg != TMP);
   ASSERT(cid > 0);
   intptr_t counter_offset =
       ClassTable::CounterOffsetFor(cid, space == Heap::kNew);
-  if (inline_isolate) {
-    ASSERT(FLAG_allow_absolute_addresses);
-    ClassTable* class_table = Isolate::Current()->class_table();
-    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
-    if (cid < kNumPredefinedCids) {
-      LoadImmediate(
-          temp_reg, reinterpret_cast<uword>(*table_ptr) + counter_offset);
-    } else {
-      ASSERT(temp_reg != kNoRegister);
-      LoadImmediate(temp_reg, reinterpret_cast<uword>(table_ptr));
-      lw(temp_reg, Address(temp_reg, 0));
-      AddImmediate(temp_reg, counter_offset);
-    }
-  } else {
-    LoadIsolate(temp_reg);
-    intptr_t table_offset =
-        Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
-    lw(temp_reg, Address(temp_reg, table_offset));
-    AddImmediate(temp_reg, counter_offset);
-  }
+  LoadIsolate(temp_reg);
+  intptr_t table_offset =
+      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  lw(temp_reg, Address(temp_reg, table_offset));
+  AddImmediate(temp_reg, counter_offset);
   lw(TMP, Address(temp_reg, 0));
   AddImmediate(TMP, 1);
   sw(TMP, Address(temp_reg, 0));
@@ -949,8 +926,7 @@ void Assembler::UpdateAllocationStats(intptr_t cid,
 void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
                                               Register size_reg,
                                               Register temp_reg,
-                                              Heap::Space space,
-                                              bool inline_isolate) {
+                                              Heap::Space space) {
   ASSERT(!in_delay_slot_);
   ASSERT(temp_reg != kNoRegister);
   ASSERT(cid > 0);
@@ -962,25 +938,11 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
   const uword size_field_offset = (space == Heap::kNew) ?
     ClassHeapStats::allocated_size_since_gc_new_space_offset() :
     ClassHeapStats::allocated_size_since_gc_old_space_offset();
-  if (inline_isolate) {
-    ClassTable* class_table = Isolate::Current()->class_table();
-    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
-    if (cid < kNumPredefinedCids) {
-      LoadImmediate(temp_reg,
-                    reinterpret_cast<uword>(*table_ptr) + class_offset);
-    } else {
-      ASSERT(temp_reg != kNoRegister);
-      LoadImmediate(temp_reg, reinterpret_cast<uword>(table_ptr));
-      lw(temp_reg, Address(temp_reg, 0));
-      AddImmediate(temp_reg, class_offset);
-    }
-  } else {
-    LoadIsolate(temp_reg);
-    intptr_t table_offset =
-        Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
-    lw(temp_reg, Address(temp_reg, table_offset));
-    AddImmediate(temp_reg, class_offset);
-  }
+  LoadIsolate(temp_reg);
+  intptr_t table_offset =
+      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  lw(temp_reg, Address(temp_reg, table_offset));
+  AddImmediate(temp_reg, class_offset);
   lw(TMP, Address(temp_reg, count_field_offset));
   AddImmediate(TMP, 1);
   sw(TMP, Address(temp_reg, count_field_offset));
@@ -992,32 +954,17 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
 
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Register temp_reg,
-                                     Label* trace,
-                                     bool inline_isolate) {
+                                     Label* trace) {
   ASSERT(cid > 0);
   ASSERT(!in_delay_slot_);
   ASSERT(temp_reg != kNoRegister);
   ASSERT(temp_reg != TMP);
   intptr_t state_offset = ClassTable::StateOffsetFor(cid);
-  if (inline_isolate) {
-    ASSERT(FLAG_allow_absolute_addresses);
-    ClassTable* class_table = Isolate::Current()->class_table();
-    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
-    if (cid < kNumPredefinedCids) {
-      LoadImmediate(temp_reg,
-                    reinterpret_cast<uword>(*table_ptr) + state_offset);
-    } else {
-      LoadImmediate(temp_reg, reinterpret_cast<uword>(table_ptr));
-      lw(temp_reg, Address(temp_reg, 0));
-      AddImmediate(temp_reg, state_offset);
-    }
-  } else {
-    LoadIsolate(temp_reg);
-    intptr_t table_offset =
-        Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
-    lw(temp_reg, Address(temp_reg, table_offset));
-    AddImmediate(temp_reg, state_offset);
-  }
+  LoadIsolate(temp_reg);
+  intptr_t table_offset =
+    Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  lw(temp_reg, Address(temp_reg, table_offset));
+  AddImmediate(temp_reg, state_offset);
   lw(temp_reg, Address(temp_reg, 0));
   andi(CMPRES1, temp_reg, Immediate(ClassHeapStats::TraceAllocationMask()));
   bne(CMPRES1, ZR, trace);
@@ -1034,8 +981,7 @@ void Assembler::TryAllocate(const Class& cls,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cls.id(), temp_reg, failure,
-                         /* inline_isolate = */ false);
+    MaybeTraceAllocation(cls.id(), temp_reg, failure);
     const intptr_t instance_size = cls.instance_size();
     Heap::Space space = Heap::SpaceForAllocation(cls.id());
     lw(temp_reg, Address(THR, Thread::heap_offset()));
@@ -1054,8 +1000,7 @@ void Assembler::TryAllocate(const Class& cls,
 
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
-    UpdateAllocationStats(cls.id(), temp_reg, space,
-                          /* inline_isolate = */ false);
+    UpdateAllocationStats(cls.id(), temp_reg, space);
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
@@ -1079,7 +1024,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cid, temp1, failure, /* inline_isolate = */ false);
+    MaybeTraceAllocation(cid, temp1, failure);
     Isolate* isolate = Isolate::Current();
     Heap* heap = isolate->heap();
     Heap::Space space = heap->SpaceForAllocation(cid);
@@ -1102,8 +1047,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     sw(end_address, Address(temp1, Heap::TopOffset(space)));
     addiu(instance, instance, Immediate(kHeapObjectTag));
     LoadImmediate(temp1, instance_size);
-    UpdateAllocationStatsWithSize(cid, temp1, temp2, space,
-                                  /* inline_isolate = */ false);
+    UpdateAllocationStatsWithSize(cid, temp1, temp2, space);
 
     // Initialize the tags.
     // instance: new object start as a tagged pointer.

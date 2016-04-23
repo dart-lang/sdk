@@ -79,7 +79,6 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_inlining_constant_arguments_max_size_threshold = 100;
     FLAG_inlining_constant_arguments_min_size_threshold = 30;
 
-    FLAG_allow_absolute_addresses = false;
     FLAG_always_megamorphic_calls = true;
     FLAG_collect_dynamic_function_names = true;
     FLAG_fields_may_be_reset = true;

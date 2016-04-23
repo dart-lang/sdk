@@ -141,8 +141,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_factor)          \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 1 * kWordSize;                      \
-  __ MaybeTraceAllocation(cid, &fall_through, false,                           \
-                          /* inline_isolate = */ false);                       \
+  __ MaybeTraceAllocation(cid, &fall_through, false);                          \
   __ movq(RDI, Address(RSP, kArrayLengthStackOffset));  /* Array length. */    \
   /* Check that length is a positive Smi. */                                   \
   /* RDI: requested array length argument. */                                  \
@@ -186,8 +185,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* next object start and initialize the object. */                           \
   __ movq(Address(R13, Heap::TopOffset(space)), RCX);                          \
   __ addq(RAX, Immediate(kHeapObjectTag));                                     \
-  __ UpdateAllocationStatsWithSize(cid, RDI, space,                            \
-                                   /* inline_isolate = */ false);              \
+  __ UpdateAllocationStatsWithSize(cid, RDI, space);                           \
   /* Initialize the tags. */                                                   \
   /* RAX: new object start as a tagged pointer. */                             \
   /* RCX: new object end address. */                                           \
@@ -1845,8 +1843,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure,
                                      Register length_reg) {
-  __ MaybeTraceAllocation(kOneByteStringCid, failure, false,
-                          /* inline_isolate = */ false);
+  __ MaybeTraceAllocation(kOneByteStringCid, failure, false);
   if (length_reg != RDI) {
     __ movq(RDI, length_reg);
   }
@@ -1879,8 +1876,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // next object start and initialize the object.
   __ movq(Address(R13, Heap::TopOffset(space)), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(cid, RDI, space,
-                                   /* inline_isolate = */ false);
+  __ UpdateAllocationStatsWithSize(cid, RDI, space);
 
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.
