@@ -26801,20 +26801,6 @@ class MouseEvent extends UIEvent {
   @deprecated
   Node get toElement => _blink.BlinkMouseEvent.instance.toElement_Getter_(this);
   
-  @DomName('MouseEvent.webkitMovementX')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  int get _webkitMovementX => _blink.BlinkMouseEvent.instance.webkitMovementX_Getter_(this);
-  
-  @DomName('MouseEvent.webkitMovementY')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  int get _webkitMovementY => _blink.BlinkMouseEvent.instance.webkitMovementY_Getter_(this);
-  
   @DomName('MouseEvent.which')
   @DocsEditable()
   @Experimental() // untriaged
@@ -26849,9 +26835,9 @@ class MouseEvent extends UIEvent {
   @DomName('MouseEvent.movementX')
   @DomName('MouseEvent.movementY')
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
   @Experimental()
-  Point get movement => new Point(_webkitMovementX, _webkitMovementY);
+  Point get movement => new Point(movementX, movementY);
 
   /**
    * The coordinates of the mouse pointer in target node coordinates.
@@ -37697,10 +37683,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");

@@ -24049,22 +24049,6 @@ class MouseEvent extends UIEvent {
   @deprecated
   final Node toElement;
 
-  @JSName('webkitMovementX')
-  @DomName('MouseEvent.webkitMovementX')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  final int _webkitMovementX;
-
-  @JSName('webkitMovementY')
-  @DomName('MouseEvent.webkitMovementY')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  final int _webkitMovementY;
-
   // Use implementation from UIEvent.
   // final int _which;
 
@@ -24088,9 +24072,9 @@ class MouseEvent extends UIEvent {
   @DomName('MouseEvent.movementX')
   @DomName('MouseEvent.movementY')
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
   @Experimental()
-  Point get movement => new Point(_webkitMovementX, _webkitMovementY);
+  Point get movement => new Point(movementX, movementY);
 
   /**
    * The coordinates of the mouse pointer in target node coordinates.
