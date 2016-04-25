@@ -194,12 +194,14 @@ class SingleContextManager implements ContextManager {
     if (_isImplicitlyExcludedResource(resource)) {
       return;
     }
-    // TODO(scheglov) apply pathFilter
-    if (_isEqualOrWithinAny(excludedPaths, resource.path)) {
+    String path = resource.path;
+    if (_isEqualOrWithinAny(excludedPaths, path)) {
       return;
     }
-    if (resource is File && resource.exists) {
-      addedFiles.add(resource);
+    if (resource is File) {
+      if (_matchesAnyAnalyzedFilesGlob(path) && resource.exists) {
+        addedFiles.add(resource);
+      }
     } else if (resource is Folder) {
       for (Resource child in _getChildrenSafe(resource)) {
         _addFilesInResource(addedFiles, child, excludedPaths);
@@ -245,6 +247,18 @@ class SingleContextManager implements ContextManager {
     String shortName = resource.shortName;
     if (shortName.startsWith('.')) {
       return true;
+    }
+    return false;
+  }
+
+  /**
+   * Return `true` if the given [path] matches one of the [analyzedFilesGlobs].
+   */
+  bool _matchesAnyAnalyzedFilesGlob(String path) {
+    for (Glob glob in analyzedFilesGlobs) {
+      if (glob.matches(path)) {
+        return true;
+      }
     }
     return false;
   }

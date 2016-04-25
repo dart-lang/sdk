@@ -247,6 +247,41 @@ class SingleContextManagerTest {
     callbacks.assertContextFiles(project, [fileA, fileB]);
   }
 
+  void test_setRoots_ignoreGlobs() {
+    String file1 = '$projPath/file.dart';
+    String file2 = '$projPath/file.foo';
+    // create files
+    resourceProvider.newFile(file1, '');
+    resourceProvider.newFile(file2, '');
+    // set roots
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    callbacks.assertContextPaths([projPath]);
+    callbacks.assertContextFiles(projPath, [file1]);
+  }
+
+  void test_setRoots_newContextFolder_coverNewRoot() {
+    String contextPath = '/context';
+    String root1 = '$contextPath/root1';
+    String file1 = '$root1/file1.dart';
+    String root2 = '$contextPath/root2';
+    String file2 = '$root2/file1.dart';
+    // create files
+    resourceProvider.newFile(file1, '');
+    resourceProvider.newFile(file2, '');
+    // cover single root '/context/root1'
+    manager.setRoots(<String>[root1], <String>[], <String, String>{});
+    callbacks.assertContextPaths([root1]);
+    callbacks.assertContextFiles(root1, [file1]);
+    // cover two roots
+    manager.setRoots(<String>[root1, root2], <String>[], <String, String>{});
+    callbacks.assertContextPaths([contextPath]);
+    callbacks.assertContextFiles(contextPath, [file1, file2]);
+    // cover single root '/context/root2'
+    manager.setRoots(<String>[root2], <String>[], <String, String>{});
+    callbacks.assertContextPaths([root2]);
+    callbacks.assertContextFiles(root2, [file2]);
+  }
+
   void test_setRoots_newContextFolder_replace() {
     String contextPath1 = '/context1';
     String root11 = '$contextPath1/root1';
