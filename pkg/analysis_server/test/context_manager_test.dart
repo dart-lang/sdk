@@ -2373,6 +2373,11 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
    */
   final ResourceProvider resourceProvider;
 
+  /**
+   * The list of `flushedFiles` in the last [removeContext] invocation.
+   */
+  List<String> lastFlushedFiles;
+
   TestContextManagerCallbacks(this.resourceProvider);
 
   /**
@@ -2448,12 +2453,28 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
+  void moveContext(Folder from, Folder to) {
+    String path = from.path;
+    String path2 = to.path;
+    expect(currentContextFilePaths, contains(path));
+    expect(currentContextTimestamps, contains(path));
+    expect(currentContextSources, contains(path));
+    expect(currentContextFilePaths, isNot(contains(path2)));
+    expect(currentContextTimestamps, isNot(contains(path2)));
+    expect(currentContextSources, isNot(contains(path2)));
+    currentContextFilePaths[path2] = currentContextFilePaths.remove(path);
+    currentContextTimestamps[path2] = currentContextTimestamps.remove(path);
+    currentContextSources[path2] = currentContextSources.remove(path);
+  }
+
+  @override
   void removeContext(Folder folder, List<String> flushedFiles) {
     String path = folder.path;
     expect(currentContextPaths, contains(path));
     currentContextTimestamps.remove(path);
     currentContextFilePaths.remove(path);
     currentContextSources.remove(path);
+    lastFlushedFiles = flushedFiles;
   }
 
   @override

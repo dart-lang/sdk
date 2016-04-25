@@ -1583,6 +1583,13 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       analysisServer._computingPackageMap(computing);
 
   @override
+  void moveContext(Folder from, Folder to) {
+    // There is nothing to do.
+    // This method is mostly for tests.
+    // Context managers manage folders and contexts themselves.
+  }
+
+  @override
   void removeContext(Folder folder, List<String> flushedFiles) {
     AnalysisContext context = analysisServer.folderMap.remove(folder);
     sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);

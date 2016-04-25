@@ -76,7 +76,7 @@ class SingleContextManagerTest {
       return new MockSdk();
     });
     manager = new SingleContextManager(resourceProvider, sdkManager,
-        _providePackageResolver, analysisFilesGlobs);
+        () => packageResolver, analysisFilesGlobs);
     callbacks = new TestContextManagerCallbacks(resourceProvider);
     manager.callbacks = callbacks;
     resourceProvider.newFolder(projPath);
@@ -247,6 +247,32 @@ class SingleContextManagerTest {
     callbacks.assertContextFiles(project, [fileA, fileB]);
   }
 
+  void test_setRoots_newContextFolder_replace() {
+    String contextPath1 = '/context1';
+    String root11 = '$contextPath1/root1';
+    String root12 = '$contextPath1/root2';
+    String file11 = '$root11/file1.dart';
+    String file12 = '$root12/file2.dart';
+    String contextPath2 = '/context2';
+    String root21 = '$contextPath2/root1';
+    String root22 = '$contextPath2/root2';
+    String file21 = '$root21/file1.dart';
+    String file22 = '$root22/file2.dart';
+    // create files
+    resourceProvider.newFile(file11, '');
+    resourceProvider.newFile(file12, '');
+    resourceProvider.newFile(file21, '');
+    resourceProvider.newFile(file22, '');
+    // set roots in '/context1'
+    manager.setRoots(<String>[root11, root12], <String>[], <String, String>{});
+    callbacks.assertContextPaths([contextPath1]);
+    callbacks.assertContextFiles(contextPath1, [file11, file12]);
+    // set roots in '/context2'
+    manager.setRoots(<String>[root21, root22], <String>[], <String, String>{});
+    callbacks.assertContextPaths([contextPath2]);
+    callbacks.assertContextFiles(contextPath2, [file21, file22]);
+  }
+
   void test_setRoots_pathContainsDotFile() {
     // If the path to a file (relative to the context root) contains a folder
     // whose name begins with '.', then the file is ignored.
@@ -281,8 +307,6 @@ class SingleContextManagerTest {
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
   }
-
-  UriResolver _providePackageResolver(Folder folder) => packageResolver;
 }
 
 class TestUriResolver extends UriResolver {

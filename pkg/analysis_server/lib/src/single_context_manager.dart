@@ -9,13 +9,18 @@ import 'dart:math' as math;
 
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/path_filter.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:path/path.dart' as path;
+
+/**
+ * A function that will return a [UriResolver] that can be used to resolve
+ * `package:` URIs in [SingleContextManager].
+ */
+typedef UriResolver PackageResolverProvider();
 
 /**
  * Implementation of [ContextManager] that supports only one [AnalysisContext].
@@ -38,10 +43,9 @@ class SingleContextManager implements ContextManager {
 
   /**
    * A function that will return a [UriResolver] that can be used to resolve
-   * `package:` URI's within a given folder, or `null` if we should fall back
-   * to the standard URI resolver.
+   * `package:` URIs.
    */
-  final ResolverProvider packageResolverProvider;
+  final PackageResolverProvider packageResolverProvider;
 
   /**
    * A list of the globs used to determine which files should be analyzed.
@@ -149,21 +153,26 @@ class SingleContextManager implements ContextManager {
     excludedPaths = _nonOverlappingPaths(excludedPaths);
     this.packageRoots = packageRoots;
     _updateNormalizedPackageRoots();
-    if (context == null) {
+    // Update context path.
+    {
       String contextPath = _commonPrefix(includedPaths);
-      contextFolder = resourceProvider.getFolder(contextPath);
-      // TODO(scheglov) watch for changes in `contextFolder`
-      pathFilter = new PathFilter(
-          contextFolder.path, null, resourceProvider.pathContext);
-      AnalysisOptions options = new AnalysisOptionsImpl();
-      FolderDisposition disposition = new CustomPackageResolverDisposition(
-          packageResolverProvider(contextFolder));
-      context = callbacks.addContext(contextFolder, options, disposition);
+      Folder contextFolder = resourceProvider.getFolder(contextPath);
+      if (contextFolder != this.contextFolder) {
+        if (context != null) {
+          callbacks.moveContext(this.contextFolder, contextFolder);
+        }
+        this.contextFolder = contextFolder;
+        // TODO(scheglov) watch for changes in `contextFolder`
+      }
+    }
+    if (context == null) {
+      UriResolver packageResolver = packageResolverProvider();
+      context = callbacks.addContext(contextFolder, new AnalysisOptionsImpl(),
+          new CustomPackageResolverDisposition(packageResolver));
       ChangeSet changeSet =
           _buildChangeSet(added: _includedFiles(includedPaths, excludedPaths));
       callbacks.applyChangesToContext(contextFolder, changeSet);
     } else {
-      // TODO(scheglov) in general 'contextFolder' may be different now
       // TODO(brianwilkerson) Optimize this.
       List<File> oldFiles =
           _includedFiles(this.includedPaths, this.excludedPaths);
@@ -286,11 +295,11 @@ class SingleContextManager implements ContextManager {
     }
     List<String> left = path.split(paths[0]);
     int count = left.length;
-    for (int i = 0; i < paths.length; i++) {
-      List<String> right = path.split(paths[0]);
+    for (int i = 1; i < paths.length; i++) {
+      List<String> right = path.split(paths[i]);
       count = _commonComponents(left, count, right);
     }
-    return path.joinAll(left);
+    return path.joinAll(left.sublist(0, count));
   }
 
   /**
