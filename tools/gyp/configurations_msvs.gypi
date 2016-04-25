@@ -39,6 +39,9 @@
       'Dart_Win_simdbc_Base': {
         'abstract': 1,
       },
+      'Dart_Win_simdbc64_Base': {
+        'abstract': 1,
+      },
       'Dart_Win_Debug': {
         'abstract': 1,
         'msvs_settings': {

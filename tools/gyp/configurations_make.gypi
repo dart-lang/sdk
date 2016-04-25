@@ -119,6 +119,12 @@
         'ldflags': [ '-m32', ],
       },
 
+      'Dart_Linux_simdbc64_Base': {
+        'abstract': 1,
+        'cflags': [ '-O3', '-m64', '-msse2', '-mfpmath=sse' ],
+        'ldflags': [ '-m64', ],
+      },
+
       # ARM cross-build
       'Dart_Linux_xarm_Base': {
         'abstract': 1,

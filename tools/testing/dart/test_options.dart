@@ -149,7 +149,8 @@ class TestOptionsParser {
             'simarmv5te',
             'simarm64',
             'simmips',
-            'simdbc'
+            'simdbc',
+            'simdbc64',
           ],
           'x64'),
       new _TestOptionSpecification(

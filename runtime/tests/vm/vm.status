@@ -33,7 +33,7 @@ cc/Service_Profile: Skip
 cc/Dart2JSCompilerStats: Skip
 cc/CorelibCompilerStats: Skip
 
-[ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simarm64 || $arch == simmips || $arch == simdbc  ]
+[ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simarm64 || $arch == simmips || $arch == simdbc  || $arch == simdbc64 ]
 cc/Service_Profile: Skip
 
 [ $compiler == dart2js ]
@@ -98,7 +98,7 @@ cc/IsolateSetCheckedMode: Fail,OK  # Expects exact type name.
 cc/LibraryGetClassNames: Fail,OK  # Expects exact type name.
 cc/StackTraceFormat: Fail,OK  # Expects exact type name.
 
-[ $arch == simdbc ]
+[ $arch == simdbc || $arch == simdbc64 ]
 # TODO(vegorov) Profiler is completely disabled in SIMDBC builds.
 cc/Profiler_AllocationSampleTest: Skip
 cc/Profiler_ArrayAllocation: Skip

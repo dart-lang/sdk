@@ -286,7 +286,7 @@ package/scenarios/empty_packages_file/empty_packages_file_noimports_test: Skip
 package/scenarios/packages_option_only/packages_option_only_noimports_test: Skip
 package/scenarios/packages_option_only/packages_option_only_test: Skip
 
-[ $arch == simdbc ]
+[ $arch == simdbc || $arch == simdbc64 ]
 # TODO(vegorov) SIMDBC interpreter doesn't support coverage yet.
 full_coverage_test: Skip
 

@@ -106,11 +106,13 @@ DART_FORCE_INLINE static RawObject** FrameArguments(RawObject** FP,
 class SimulatorHelpers {
  public:
   DART_FORCE_INLINE static RawSmi* GetClassIdAsSmi(RawObject* obj) {
-    return Smi::New(obj->IsHeapObject() ? obj->GetClassId() : kSmiCid);
+    return Smi::New(obj->IsHeapObject() ? obj->GetClassId()
+                                        : static_cast<intptr_t>(kSmiCid));
   }
 
   DART_FORCE_INLINE static intptr_t GetClassId(RawObject* obj) {
-    return obj->IsHeapObject() ? obj->GetClassId() : kSmiCid;
+    return obj->IsHeapObject() ? obj->GetClassId()
+                               : static_cast<intptr_t>(kSmiCid);
   }
 
   DART_FORCE_INLINE static void IncrementUsageCounter(RawICData* icdata) {
@@ -312,10 +314,10 @@ uword Simulator::StackTop() const {
 typedef void (*SimulatorRuntimeCall)(NativeArguments arguments);
 
 // Calls to leaf Dart runtime functions are based on this interface.
-typedef int32_t (*SimulatorLeafRuntimeCall)(int32_t r0,
-                                            int32_t r1,
-                                            int32_t r2,
-                                            int32_t r3);
+typedef intptr_t (*SimulatorLeafRuntimeCall)(intptr_t r0,
+                                             intptr_t r1,
+                                             intptr_t r2,
+                                             intptr_t r3);
 
 // Calls to leaf float Dart runtime functions are based on this interface.
 typedef double (*SimulatorLeafFloatRuntimeCall)(double d0, double d1);
@@ -337,28 +339,15 @@ void Simulator::Exit(Thread* thread,
   thread->set_top_exit_frame_info(reinterpret_cast<uword>(sp_));
 }
 
-
-#if defined(__has_builtin)
-#if __has_builtin(__builtin_smul_overflow)
-#define HAS_MUL_OVERFLOW
-#endif
-#if __has_builtin(__builtin_sadd_overflow)
-#define HAS_ADD_OVERFLOW
-#endif
-#if __has_builtin(__builtin_ssub_overflow)
-#define HAS_SUB_OVERFLOW
-#endif
-#endif
-
-
-DART_FORCE_INLINE static bool SignedAddWithOverflow(int32_t lhs,
-                                                    int32_t rhs,
+// TODO(vegorov): Investigate advantages of using
+// __builtin_s{add,sub,mul}_overflow() intrinsics here and below.
+// Note that they may clobber the output location even when there is overflow:
+// https://gcc.gnu.org/onlinedocs/gcc/Integer-Overflow-Builtins.html
+DART_FORCE_INLINE static bool SignedAddWithOverflow(intptr_t lhs,
+                                                    intptr_t rhs,
                                                     intptr_t* out) {
-  int32_t res = 1;
-#if defined(HAS_ADD_OVERFLOW)
-  res = static_cast<int32_t>(__builtin_sadd_overflow(
-      lhs, rhs, reinterpret_cast<int32_t*>(out)));
-#elif defined(__i386__)
+  intptr_t res = 1;
+#if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
   asm volatile(
       "add %2, %1\n"
       "jo 1f;\n"
@@ -368,16 +357,16 @@ DART_FORCE_INLINE static bool SignedAddWithOverflow(int32_t lhs,
       : "+r"(res), "+r"(lhs)
       : "r"(rhs), "r"(out)
       : "cc");
-#elif defined(__arm__)
+#elif defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
   asm volatile(
       "adds %1, %1, %2;\n"
       "bvs 1f;\n"
-      "mov %0, $0;\n"
+      "mov %0, #0;\n"
       "str %1, [%3, #0]\n"
       "1:"
       : "+r"(res), "+r"(lhs)
       : "r"(rhs), "r"(out)
-      : "cc", "r12");
+      : "cc");
 #else
 #error "Unsupported platform"
 #endif
@@ -385,14 +374,11 @@ DART_FORCE_INLINE static bool SignedAddWithOverflow(int32_t lhs,
 }
 
 
-DART_FORCE_INLINE static bool SignedSubWithOverflow(int32_t lhs,
-                                                    int32_t rhs,
+DART_FORCE_INLINE static bool SignedSubWithOverflow(intptr_t lhs,
+                                                    intptr_t rhs,
                                                     intptr_t* out) {
-  int32_t res = 1;
-#if defined(HAS_SUB_OVERFLOW)
-  res = static_cast<int32_t>(__builtin_ssub_overflow(
-      lhs, rhs, reinterpret_cast<int32_t*>(out)));
-#elif defined(__i386__)
+  intptr_t res = 1;
+#if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
   asm volatile(
       "sub %2, %1\n"
       "jo 1f;\n"
@@ -402,16 +388,16 @@ DART_FORCE_INLINE static bool SignedSubWithOverflow(int32_t lhs,
       : "+r"(res), "+r"(lhs)
       : "r"(rhs), "r"(out)
       : "cc");
-#elif defined(__arm__)
+#elif defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
   asm volatile(
       "subs %1, %1, %2;\n"
       "bvs 1f;\n"
-      "mov %0, $0;\n"
+      "mov %0, #0;\n"
       "str %1, [%3, #0]\n"
       "1:"
       : "+r"(res), "+r"(lhs)
       : "r"(rhs), "r"(out)
-      : "cc", "r12");
+      : "cc");
 #else
 #error "Unsupported platform"
 #endif
@@ -419,14 +405,11 @@ DART_FORCE_INLINE static bool SignedSubWithOverflow(int32_t lhs,
 }
 
 
-DART_FORCE_INLINE static bool SignedMulWithOverflow(int32_t lhs,
-                                                    int32_t rhs,
+DART_FORCE_INLINE static bool SignedMulWithOverflow(intptr_t lhs,
+                                                    intptr_t rhs,
                                                     intptr_t* out) {
-  int32_t res = 1;
-#if defined(HAS_MUL_OVERFLOW)
-  res = static_cast<int32_t>(__builtin_smul_overflow(
-      lhs, rhs, reinterpret_cast<int32_t*>(out)));
-#elif defined(__i386__)
+  intptr_t res = 1;
+#if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
   asm volatile(
       "imul %2, %1\n"
       "jo 1f;\n"
@@ -436,7 +419,7 @@ DART_FORCE_INLINE static bool SignedMulWithOverflow(int32_t lhs,
       : "+r"(res), "+r"(lhs)
       : "r"(rhs), "r"(out)
       : "cc");
-#elif defined(__arm__)
+#elif defined(HOST_ARCH_ARM)
   asm volatile(
       "smull %1, ip, %1, %2;\n"
       "cmp ip, %1, ASR #31;\n"
@@ -447,6 +430,19 @@ DART_FORCE_INLINE static bool SignedMulWithOverflow(int32_t lhs,
       : "+r"(res), "+r"(lhs)
       : "r"(rhs), "r"(out)
       : "cc", "r12");
+#elif defined(HOST_ARCH_ARM64)
+  int64_t prod_lo;
+  asm volatile(
+      "mul %1, %2, %3\n"
+      "smulh %2, %2, %3\n"
+      "cmp %2, %1, ASR #63;\n"
+      "bne 1f;\n"
+      "mov %0, #0;\n"
+      "str %1, [%4, #0]\n"
+      "1:"
+      : "+r"(res), "=r"(prod_lo), "+r"(lhs)
+      : "r"(rhs), "r"(out)
+      : "cc");
 #else
 #error "Unsupported platform"
 #endif

@@ -80,6 +80,9 @@
       'Dart_Macos_simdbc_Base': {
         'abstract': 1,
       },
+      'Dart_Macos_simdbc64_Base': {
+        'abstract': 1,
+      },
       'Dart_Macos_Debug': {
         'abstract': 1,
         'xcode_settings': {

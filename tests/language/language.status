@@ -212,7 +212,7 @@ library_env_test/has_no_mirror_support: RuntimeError, OK
 # The following tests are supposed to fail.
 library_env_test/has_mirror_support: RuntimeError, OK
 
-[ $arch == simdbc ]
+[ $arch == simdbc || $arch == simdbc64 ]
 # TODO(vegorov) StopInstr is unimplemented.
 vm/debug_break_enabled_vm_test/none: Skip
 

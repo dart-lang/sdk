@@ -363,7 +363,7 @@ mirrors/*: SkipByDesign
 convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
 
-[ $arch == simdbc ]
+[ $arch == simdbc || $arch == simdbc64 ]
 # TODO(vegorov) LoadField bytecode supports only up to 256 fields. Need a long
 # version.
 mirrors/accessor_cache_overflow_test: Skip

@@ -103,7 +103,7 @@ def ProcessOptions(options, args):
   for arch in options.arch:
     archs = ['ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6',
              'simarmv5te', 'armv5te', 'simmips', 'mips', 'simarm64', 'arm64',
-             'simdbc',]
+             'simdbc', 'simdbc64']
     if not arch in archs:
       print "Unknown arch %s" % arch
       return False
@@ -121,7 +121,7 @@ def ProcessOptions(options, args):
                % (os_name, HOST_OS))
         return False
       if not arch in ['ia32', 'x64', 'arm', 'armv6', 'armv5te', 'arm64', 'mips',
-                      'simdbc',]:
+                      'simdbc', 'simdbc64']:
         print ("Cross-compilation to %s is not supported for architecture %s."
                % (os_name, arch))
         return False
@@ -141,7 +141,7 @@ def GetToolchainPrefix(target_os, arch, options):
     android_toolchain = GetAndroidToolchainDir(HOST_OS, arch)
     if arch == 'arm' or arch == 'simdbc':
       return os.path.join(android_toolchain, 'arm-linux-androideabi')
-    if arch == 'arm64':
+    if arch == 'arm64' or arch == 'simdbc64':
       return os.path.join(android_toolchain, 'aarch64-linux-android')
     if arch == 'ia32':
       return os.path.join(android_toolchain, 'i686-linux-android')
@@ -199,7 +199,7 @@ def GetAndroidToolchainDir(host_os, target_arch):
   global THIRD_PARTY_ROOT
   if host_os not in ['linux']:
     raise Exception('Unsupported host os %s' % host_os)
-  if target_arch not in ['ia32', 'x64', 'arm', 'arm64', 'simdbc']:
+  if target_arch not in ['ia32', 'x64', 'arm', 'arm64', 'simdbc', 'simdbc64']:
     raise Exception('Unsupported target architecture %s' % target_arch)
 
   # Set up path to the Android NDK.
@@ -211,7 +211,7 @@ def GetAndroidToolchainDir(host_os, target_arch):
 
   # Set up the directory of the Android NDK cross-compiler toolchain.
   toolchain_arch = 'arm-linux-androideabi-4.9'
-  if target_arch == 'arm64':
+  if target_arch == 'arm64' or target_arch == 'simdbc64':
     toolchain_arch = 'aarch64-linux-android-4.9'
   if target_arch == 'ia32':
     toolchain_arch = 'x86-4.9'

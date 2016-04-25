@@ -44,7 +44,7 @@ coverage_test: Pass, Slow
 [ $compiler == dart2analyzer ]
 evaluate_activation_in_method_class_test: CompileTimeError # Issue 24478
 
-[ $arch == simdbc ]
+[ $arch == simdbc || $arch == simdbc64 ]
 # TODO(vegorov) re-enable when debugger, coverage and profiling is completely
 # fixed for SIMDBC.
 *: Skip

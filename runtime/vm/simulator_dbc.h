@@ -37,7 +37,7 @@ typedef bool (*IntrinsicHandler)(Thread* thread,
 
 class Simulator {
  public:
-  static const uword kSimulatorStackUnderflowSize = 64;
+  static const uword kSimulatorStackUnderflowSize = 0x80;
 
   Simulator();
   ~Simulator();

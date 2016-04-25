@@ -27,6 +27,7 @@
       ['"<(target_arch)"=="mips"', { 'dart_target_arch': 'MIPS', }],
       ['"<(target_arch)"=="simmips"', { 'dart_target_arch': 'SIMMIPS', }],
       ['"<(target_arch)"=="simdbc"', { 'dart_target_arch': 'SIMDBC', }],
+      ['"<(target_arch)"=="simdbc64"', { 'dart_target_arch': 'SIMDBC64', }],
       [ 'OS=="linux"', { 'dart_target_os': 'Linux', } ],
       [ 'OS=="mac"', { 'dart_target_os': 'Macos', } ],
       [ 'OS=="win"', { 'dart_target_os': 'Win', } ],
@@ -382,6 +383,27 @@
           'Dart_Base', 'Dart_simdbc_Base', 'Dart_Release',
           'Dart_<(dart_target_os)_Base',
           'Dart_<(dart_target_os)_simdbc_Base',
+          'Dart_<(dart_target_os)_Release',
+        ],
+      },
+
+      'DebugSIMDBC64': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_simdbc_Base', 'Dart_Debug',
+          'Dart_<(dart_target_os)_Base',
+          'Dart_<(dart_target_os)_simdbc64_Base',
+          'Dart_<(dart_target_os)_Debug',
+        ],
+        'defines': [
+          'DEBUG',
+        ],
+      },
+
+      'ReleaseSIMDBC64': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_simdbc_Base', 'Dart_Release',
+          'Dart_<(dart_target_os)_Base',
+          'Dart_<(dart_target_os)_simdbc64_Base',
           'Dart_<(dart_target_os)_Release',
         ],
       },
@@ -767,6 +789,52 @@
           'Dart_Android_Base',
           'Dart_Android_arm64_Base',
           'Dart_Android_Product',
+        ],
+      },
+
+      'DebugAndroidSIMDBC': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_simdbc_Base', 'Dart_Debug',
+          'Dart_Android_Base',
+          # Default SIMDBC on Android targets arm.
+          'Dart_Android_arm_Base',
+          'Dart_Android_Debug',
+        ],
+        'defines': [
+          'DEBUG',
+        ],
+      },
+
+      'ReleaseAndroidSIMDBC': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_simdbc_Base', 'Dart_Release',
+          'Dart_Android_Base',
+          # Default SIMDBC on Android targets arm.
+          'Dart_Android_arm_Base',
+          'Dart_Android_Release',
+        ],
+      },
+
+      'DebugAndroidSIMDBC64': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_simdbc_Base', 'Dart_Debug',
+          'Dart_Android_Base',
+          # Default SIMDBC on Android targets arm64.
+          'Dart_Android_arm64_Base',
+          'Dart_Android_Debug',
+        ],
+        'defines': [
+          'DEBUG',
+        ],
+      },
+
+      'ReleaseAndroidSIMDBC64': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_simdbc_Base', 'Dart_Release',
+          'Dart_Android_Base',
+          # Default SIMDBC on Android targets arm64.
+          'Dart_Android_arm64_Base',
+          'Dart_Android_Release',
         ],
       },
 
