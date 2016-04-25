@@ -39,7 +39,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
   NativeEmitter get nativeEmitter => backend.emitter.nativeEmitter;
 
   js.Fun buildJavaScriptFunction(
-      FunctionElement element, List<js.Parameter> parameters, js.Block body) {
+      ResolvedAst resolvedAst, List<js.Parameter> parameters, js.Block body) {
+    FunctionElement element = resolvedAst.element;
     js.AsyncModifier asyncModifier = element.asyncMarker.isAsync
         ? (element.asyncMarker.isYielding
             ? const js.AsyncModifier.asyncStar()
@@ -50,8 +51,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
     return new js.Fun(parameters, body, asyncModifier: asyncModifier)
         .withSourceInformation(sourceInformationFactory
-            .createBuilderForContext(element)
-            .buildDeclaration(element));
+            .createBuilderForContext(resolvedAst.element)
+            .buildDeclaration(resolvedAst));
   }
 
   js.Expression generateCode(CodegenWorkItem work, HGraph graph) {
@@ -62,12 +63,12 @@ class SsaCodeGeneratorTask extends CompilerTask {
     }
   }
 
-  js.Expression generateLazyInitializer(work, graph) {
+  js.Expression generateLazyInitializer(CodegenWorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
       SourceInformation sourceInformation = sourceInformationFactory
           .createBuilderForContext(work.element)
-          .buildDeclaration(work.element);
+          .buildDeclaration(work.resolvedAst);
       SsaCodeGenerator codegen = new SsaCodeGenerator(backend, work);
       codegen.visitGraph(graph);
       return new js.Fun(codegen.parameters, codegen.body)
@@ -84,7 +85,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
       SsaCodeGenerator codegen = new SsaCodeGenerator(backend, work);
       codegen.visitGraph(graph);
       compiler.tracer.traceGraph("codegen", graph);
-      return buildJavaScriptFunction(element, codegen.parameters, codegen.body);
+      return buildJavaScriptFunction(
+          work.resolvedAst, codegen.parameters, codegen.body);
     });
   }
 }

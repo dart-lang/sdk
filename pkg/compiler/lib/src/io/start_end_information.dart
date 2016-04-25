@@ -9,7 +9,7 @@ library dart2js.source_information.start_end;
 
 import '../common.dart';
 import '../diagnostics/messages.dart' show MessageTemplate;
-import '../elements/elements.dart' show AstElement;
+import '../elements/elements.dart' show AstElement, ResolvedAst, ResolvedAstKind;
 import '../js/js.dart' as js;
 import '../js/js_source_mapping.dart';
 import '../tokens/token.dart' show Token;
@@ -60,30 +60,31 @@ class StartEndSourceInformation extends SourceInformation {
   // TODO(johnniwinther): Inline this in
   // [StartEndSourceInformationBuilder.buildDeclaration].
   static StartEndSourceInformation _computeSourceInformation(
-      AstElement element) {
-    AstElement implementation = element.implementation;
-    SourceFile sourceFile = implementation.compilationUnit.script.file;
-    String name = computeElementNameForSourceMaps(element);
-    Node node = implementation.node;
-    Token beginToken;
-    Token endToken;
-    if (node == null) {
+      ResolvedAst resolvedAst) {
+    String name = computeElementNameForSourceMaps(resolvedAst.element);
+    SourceFile sourceFile;
+    int begin;
+    int end;
+    if (resolvedAst.kind != ResolvedAstKind.PARSED) {
       // Synthesized node. Use the enclosing element for the location.
-      beginToken = endToken = element.position;
+      sourceFile = resolvedAst.element.compilationUnit.script.file;
+      begin = end = resolvedAst.element.sourcePosition.begin;
     } else {
-      beginToken = node.getBeginToken();
-      endToken = node.getEndToken();
+      AstElement implementation = resolvedAst.element.implementation;
+      sourceFile = implementation.compilationUnit.script.file;
+      Node node = resolvedAst.node;
+      begin = node.getBeginToken().charOffset;
+      end = node.getEndToken().charOffset;
     }
     // TODO(johnniwinther): find the right sourceFile here and remove offset
     // checks below.
     SourceLocation sourcePosition, endSourcePosition;
-    if (beginToken.charOffset < sourceFile.length) {
+    if (begin < sourceFile.length) {
       sourcePosition =
-          new OffsetSourceLocation(sourceFile, beginToken.charOffset, name);
+          new OffsetSourceLocation(sourceFile, begin, name);
     }
-    if (endToken.charOffset < sourceFile.length) {
-      endSourcePosition =
-          new OffsetSourceLocation(sourceFile, endToken.charOffset, name);
+    if (end < sourceFile.length) {
+      endSourcePosition = new OffsetSourceLocation(sourceFile, end, name);
     }
     return new StartEndSourceInformation(sourcePosition, endSourcePosition);
   }
@@ -161,8 +162,8 @@ class StartEndSourceInformationBuilder extends SourceInformationBuilder {
       : sourceFile = element.compilationUnit.script.file,
         name = computeElementNameForSourceMaps(element);
 
-  SourceInformation buildDeclaration(AstElement element) {
-    return StartEndSourceInformation._computeSourceInformation(element);
+  SourceInformation buildDeclaration(ResolvedAst resolvedAst) {
+    return StartEndSourceInformation._computeSourceInformation(resolvedAst);
   }
 
   SourceLocation sourceFileLocationForToken(Token token) {

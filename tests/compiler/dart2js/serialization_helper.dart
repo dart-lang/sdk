@@ -19,6 +19,7 @@ import 'package:compiler/src/scanner/scanner.dart';
 import 'package:compiler/src/script.dart';
 import 'package:compiler/src/serialization/impact_serialization.dart';
 import 'package:compiler/src/serialization/json_serializer.dart';
+import 'package:compiler/src/serialization/modelz.dart';
 import 'package:compiler/src/serialization/resolved_ast_serialization.dart';
 import 'package:compiler/src/serialization/serialization.dart';
 import 'package:compiler/src/serialization/task.dart';
@@ -196,9 +197,10 @@ class _DeserializerSystem extends DeserializerSystem {
       if (_deserializeResolvedAst) {
         return Future.forEach(library.compilationUnits,
             (CompilationUnitElement compilationUnit) {
-          Script script = compilationUnit.script;
+          ScriptZ script = compilationUnit.script;
           return _compiler.readScript(script.readableUri)
               .then((Script newScript) {
+            script.file = newScript.file;
             _resolvedAstDeserializer.sourceFiles[script.resourceUri] =
                 newScript.file;
           });

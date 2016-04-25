@@ -8,7 +8,7 @@
 library dart2js.source_information.position;
 
 import '../common.dart';
-import '../elements/elements.dart' show AstElement, FieldElement;
+import '../elements/elements.dart' show AstElement, FieldElement, ResolvedAst, ResolvedAstKind;
 import '../js/js.dart' as js;
 import '../js/js_debug.dart';
 import '../js/js_source_mapping.dart';
@@ -147,16 +147,17 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
         sourceFile = element.implementation.compilationUnit.script.file,
         name = computeElementNameForSourceMaps(element);
 
-  SourceInformation buildDeclaration(AstElement element) {
-    if (element.isSynthesized) {
+  SourceInformation buildDeclaration(ResolvedAst resolvedAst) {
+    if (resolvedAst.kind != ResolvedAstKind.PARSED) {
+      SourceSpan span = resolvedAst.element.sourcePosition;
       return new PositionSourceInformation(new OffsetSourceLocation(
-          sourceFile, element.position.charOffset, name));
+          sourceFile, span.begin, name));
     } else {
       return new PositionSourceInformation(
           new OffsetSourceLocation(sourceFile,
-              element.resolvedAst.node.getBeginToken().charOffset, name),
+              resolvedAst.node.getBeginToken().charOffset, name),
           new OffsetSourceLocation(sourceFile,
-              element.resolvedAst.node.getEndToken().charOffset, name));
+              resolvedAst.node.getEndToken().charOffset, name));
     }
   }
 

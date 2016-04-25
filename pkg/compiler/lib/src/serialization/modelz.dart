@@ -83,7 +83,7 @@ abstract class ElementZ extends Element with ElementCommon {
   bool get isClassMember => false;
 
   @override
-  bool get isClosure => _unsupported('isClosure');
+  bool get isClosure => false;
 
   @override
   bool get isConst => _unsupported('isConst');
@@ -476,6 +476,7 @@ class LibraryElementZ extends DeserializedElementZ
 
 class ScriptZ implements Script {
   final Uri resourceUri;
+  SourceFile _file;
 
   ScriptZ(this.resourceUri);
 
@@ -485,13 +486,27 @@ class ScriptZ implements Script {
   }
 
   @override
-  SourceFile get file => throw new UnsupportedError('ScriptZ.file');
+  SourceFile get file {
+    if (_file == null) {
+      throw new UnsupportedError('ScriptZ.file');
+    }
+    return _file;
+  }
+
+  void set file(SourceFile value) {
+    _file = value;
+  }
 
   @override
   bool get isSynthesized => throw new UnsupportedError('ScriptZ.isSynthesized');
 
   @override
-  String get name => resourceUri.toString();
+  String get name {
+    if (_file != null) {
+      return _file.filename;
+    }
+    return resourceUri.toString();
+  }
 
   // TODO(johnniwinther): Support the distinction between [readableUri] and
   // [resourceUri]; needed for platform libraries.
@@ -499,7 +514,12 @@ class ScriptZ implements Script {
   Uri get readableUri => resourceUri;
 
   @override
-  String get text => throw new UnsupportedError('ScriptZ.text');
+  String get text {
+    if (_file != null) {
+      return _file.slowText();
+    }
+    throw new UnsupportedError('ScriptZ.text');
+  }
 }
 
 class CompilationUnitElementZ extends DeserializedElementZ
