@@ -34,8 +34,11 @@ bool isJsSpreadInvocation(MethodInvocation i) =>
     _isJsLibType('spread', i.methodName?.bestElement);
 
 // TODO(jmesserly): Move JsPeerInterface to package:js (see issue #135).
+// TODO(jacobr): The 'JS' annotation is the new, publically accessible one.
+// The 'JsName' annotation is the old one using internally by dart2js and
+// html libraries.  These two concepts will probably merge eventually.
 bool isJSAnnotation(DartObjectImpl value) =>
-    _isJsLibType('JS', value.type.element);
+    _isJsLibType('JS', value.type.element) || isJsName(value);
 
 bool _isBuiltinAnnotation(
     DartObjectImpl value, String libraryName, String annotationName) {

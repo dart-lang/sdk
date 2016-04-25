@@ -10539,7 +10539,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   ]);
   _native_typed_data.NativeByteBuffer = class NativeByteBuffer extends core.Object {
     get [dartx.lengthInBytes]() {
-      return this.lengthInBytes;
+      return this.byteLength;
     }
     get runtimeType() {
       return typed_data.ByteBuffer;
@@ -11577,13 +11577,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.buffer;
     }
     get [dartx.lengthInBytes]() {
-      return this.lengthInBytes;
+      return this.byteLength;
     }
     get [dartx.offsetInBytes]() {
-      return this.offsetInBytes;
+      return this.byteOffset;
     }
     get [dartx.elementSizeInBytes]() {
-      return this.elementSizeInBytes;
+      return this.BYTES_PER_ELEMENT;
     }
     [_invalidIndex](index, length) {
       if (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(length)) {
@@ -11699,28 +11699,28 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_getFloat32](byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     [_getFloat32](byteOffset, littleEndian) {
-      return this._getFloat32(byteOffset, littleEndian);
+      return this.getFloat32(byteOffset, littleEndian);
     }
     [dartx.getFloat64](byteOffset, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       return this[_getFloat64](byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     [_getFloat64](byteOffset, littleEndian) {
-      return this._getFloat64(byteOffset, littleEndian);
+      return this.getFloat64(byteOffset, littleEndian);
     }
     [dartx.getInt16](byteOffset, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       return this[_getInt16](byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     [_getInt16](byteOffset, littleEndian) {
-      return this._getInt16(byteOffset, littleEndian);
+      return this.getInt16(byteOffset, littleEndian);
     }
     [dartx.getInt32](byteOffset, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       return this[_getInt32](byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     [_getInt32](byteOffset, littleEndian) {
-      return this._getInt32(byteOffset, littleEndian);
+      return this.getInt32(byteOffset, littleEndian);
     }
     [dartx.getInt64](byteOffset, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
@@ -11734,14 +11734,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_getUint16](byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     [_getUint16](byteOffset, littleEndian) {
-      return this._getUint16(byteOffset, littleEndian);
+      return this.getUint16(byteOffset, littleEndian);
     }
     [dartx.getUint32](byteOffset, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       return this[_getUint32](byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     [_getUint32](byteOffset, littleEndian) {
-      return this._getUint32(byteOffset, littleEndian);
+      return this.getUint32(byteOffset, littleEndian);
     }
     [dartx.getUint64](byteOffset, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
@@ -11755,28 +11755,28 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_setFloat32](byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     [_setFloat32](byteOffset, value, littleEndian) {
-      return this._setFloat32(byteOffset, value, littleEndian);
+      return this.setFloat32(byteOffset, value, littleEndian);
     }
     [dartx.setFloat64](byteOffset, value, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       return this[_setFloat64](byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     [_setFloat64](byteOffset, value, littleEndian) {
-      return this._setFloat64(byteOffset, value, littleEndian);
+      return this.setFloat64(byteOffset, value, littleEndian);
     }
     [dartx.setInt16](byteOffset, value, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       return this[_setInt16](byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     [_setInt16](byteOffset, value, littleEndian) {
-      return this._setInt16(byteOffset, value, littleEndian);
+      return this.setInt16(byteOffset, value, littleEndian);
     }
     [dartx.setInt32](byteOffset, value, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       return this[_setInt32](byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     [_setInt32](byteOffset, value, littleEndian) {
-      return this._setInt32(byteOffset, value, littleEndian);
+      return this.setInt32(byteOffset, value, littleEndian);
     }
     [dartx.setInt64](byteOffset, value, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
@@ -11790,14 +11790,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_setUint16](byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     [_setUint16](byteOffset, value, littleEndian) {
-      return this._setUint16(byteOffset, value, littleEndian);
+      return this.setUint16(byteOffset, value, littleEndian);
     }
     [dartx.setUint32](byteOffset, value, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       return this[_setUint32](byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
     [_setUint32](byteOffset, value, littleEndian) {
-      return this._setUint32(byteOffset, value, littleEndian);
+      return this.setUint32(byteOffset, value, littleEndian);
     }
     [dartx.setUint64](byteOffset, value, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
@@ -30542,14 +30542,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.continuePrimaryKey(key, primaryKey);
     }
     [_delete]() {
-      return this._delete();
+      return this.delete();
     }
     [_update](value) {
       let value_1 = html_common.convertDartToNative_SerializedScriptValue(value);
       return this[_update_1](value_1);
     }
     [_update_1](value) {
-      return this._update_1(value);
+      return this.update(value);
     }
   };
   dart.setSignature(indexed_db.Cursor, {
@@ -30622,13 +30622,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.UnsupportedError("Not supported"));
     }
     [_addEventListener](type, listener, capture) {
-      return this._addEventListener(type, listener, capture);
+      return this.addEventListener(type, listener, capture);
     }
     [dartx.dispatchEvent](event) {
       return this.dispatchEvent(event);
     }
     [_removeEventListener](type, listener, capture) {
-      return this._removeEventListener(type, listener, capture);
+      return this.removeEventListener(type, listener, capture);
     }
   };
   dart.defineNamedConstructor(html$.EventTarget, '_created');
@@ -30702,7 +30702,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_transaction](storeNames, mode);
     }
     [_transaction](stores, mode) {
-      return this._transaction(stores, mode);
+      return this.transaction(stores, mode);
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -30728,10 +30728,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_createObjectStore_2](name);
     }
     [_createObjectStore_1](name, options) {
-      return this._createObjectStore_1(name, options);
+      return this.createObjectStore(name, options);
     }
     [_createObjectStore_2](name) {
-      return this._createObjectStore_2(name);
+      return this.createObjectStore(name);
     }
     [dartx.deleteObjectStore](name) {
       return this.deleteObjectStore(name);
@@ -30861,13 +30861,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.cmp(first, second);
     }
     [_deleteDatabase](name) {
-      return this._deleteDatabase(name);
+      return this.deleteDatabase(name);
     }
     [_open](name, version) {
-      return this._open(name, version);
+      return this.open(name, version);
     }
     [_webkitGetDatabaseNames]() {
-      return this._webkitGetDatabaseNames();
+      return this.webkitGetDatabaseNames();
     }
   };
   dart.setSignature(indexed_db.IdbFactory, {
@@ -31008,10 +31008,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.unique;
     }
     [_count$](key) {
-      return this._count(key);
+      return this.count(key);
     }
     [_get$](key) {
-      return this._get(key);
+      return this.get(key);
     }
     [dartx.getAll](range, maxCount) {
       return this.getAll(range, maxCount);
@@ -31020,13 +31020,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.getAllKeys(range, maxCount);
     }
     [_getKey$](key) {
-      return this._getKey(key);
+      return this.getKey(key);
     }
     [_openCursor](range, direction) {
-      return this._openCursor(range, direction);
+      return this.openCursor(range, direction);
     }
     [_openKeyCursor](range, direction) {
-      return this._openKeyCursor(range, direction);
+      return this.openKeyCursor(range, direction);
     }
   };
   dart.setSignature(indexed_db.Index, {
@@ -31270,16 +31270,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_add_2](value_1);
     }
     [_add_1](value, key) {
-      return this._add_1(value, key);
+      return this.add(value, key);
     }
     [_add_2](value) {
-      return this._add_2(value);
+      return this.add(value);
     }
     [_clear$0]() {
-      return this._clear();
+      return this.clear();
     }
     [_count$](key) {
-      return this._count(key);
+      return this.count(key);
     }
     [_createIndex](name, keyPath, options) {
       if (options === void 0) options = null;
@@ -31290,19 +31290,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_createIndex_2](name, keyPath);
     }
     [_createIndex_1](name, keyPath, options) {
-      return this._createIndex_1(name, keyPath, options);
+      return this.createIndex(name, keyPath, options);
     }
     [_createIndex_2](name, keyPath) {
-      return this._createIndex_2(name, keyPath);
+      return this.createIndex(name, keyPath);
     }
     [_delete](key) {
-      return this._delete(key);
+      return this.delete(key);
     }
     [dartx.deleteIndex](name) {
       return this.deleteIndex(name);
     }
     [_get$](key) {
-      return this._get(key);
+      return this.get(key);
     }
     [dartx.getAll](range, maxCount) {
       return this.getAll(range, maxCount);
@@ -31314,7 +31314,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.index(name);
     }
     [_openCursor](range, direction) {
-      return this._openCursor(range, direction);
+      return this.openCursor(range, direction);
     }
     [dartx.openKeyCursor](range, direction) {
       return this.openKeyCursor(range, direction);
@@ -31330,10 +31330,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_put_2](value_1);
     }
     [_put_1](value, key) {
-      return this._put_1(value, key);
+      return this.put(value, key);
     }
     [_put_2](value) {
-      return this._put_2(value);
+      return this.put(value);
     }
     static _cursorStreamFromResult(request, autoAdvance) {
       let controller = async.StreamController.new({sync: true});
@@ -31651,7 +31651,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.type;
     }
     [_initEvent](type, bubbles, cancelable) {
-      return this._initEvent(type, bubbles, cancelable);
+      return this.initEvent(type, bubbles, cancelable);
     }
     [dartx.preventDefault]() {
       return this.preventDefault();
@@ -31935,10 +31935,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.textContent = value;
     }
     [dartx.append](node) {
-      return this.append(node);
+      return this.appendChild(node);
     }
     [dartx.clone](deep) {
-      return this.clone(deep);
+      return this.cloneNode(deep);
     }
     [dartx.contains](other) {
       return this.contains(other);
@@ -31950,10 +31950,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.insertBefore(node, child);
     }
     [_removeChild](child) {
-      return this._removeChild(child);
+      return this.removeChild(child);
     }
     [_replaceChild](node, child) {
-      return this._replaceChild(node, child);
+      return this.replaceChild(node, child);
     }
   };
   dart.defineNamedConstructor(html$.Node, '_created');
@@ -32398,7 +32398,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return convertedTiming == null ? this[_animate](convertedFrames) : this[_animate](convertedFrames, convertedTiming);
     }
     [_animate](effect, timing) {
-      return this._animate(effect, timing);
+      return this.animate(effect, timing);
     }
     [dartx.attributeChanged](name, oldValue, newValue) {}
     get [_xtag]() {
@@ -32459,7 +32459,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     [_insertAdjacentText](where, text) {
-      return this._insertAdjacentText(where, text);
+      return this.insertAdjacentText(where, text);
     }
     [dartx.insertAdjacentHtml](where, html, opts) {
       let validator = opts && 'validator' in opts ? opts.validator : null;
@@ -32471,7 +32471,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     [_insertAdjacentHtml](where, text) {
-      return this._insertAdjacentHtml(where, text);
+      return this.insertAdjacentHTML(where, text);
     }
     [dartx.insertAdjacentElement](where, element) {
       if (!!this.insertAdjacentElement) {
@@ -32482,7 +32482,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return element;
     }
     [_insertAdjacentElement](where, element) {
-      return this._insertAdjacentElement(where, element);
+      return this.insertAdjacentElement(where, element);
     }
     [_insertAdjacentNode](where, node) {
       switch (where[dartx.toLowerCase]()) {
@@ -32893,19 +32893,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.getElementsByClassName(classNames);
     }
     [_getElementsByTagName](localName) {
-      return this._getElementsByTagName(localName);
+      return this.getElementsByTagName(localName);
     }
     [_hasAttribute](name) {
-      return this._hasAttribute(name);
+      return this.hasAttribute(name);
     }
     [_hasAttributeNS](namespaceURI, localName) {
-      return this._hasAttributeNS(namespaceURI, localName);
+      return this.hasAttributeNS(namespaceURI, localName);
     }
     [_removeAttribute](name) {
-      return this._removeAttribute(name);
+      return this.removeAttribute(name);
     }
     [_removeAttributeNS](namespaceURI, localName) {
-      return this._removeAttributeNS(namespaceURI, localName);
+      return this.removeAttributeNS(namespaceURI, localName);
     }
     [dartx.requestFullscreen]() {
       return this.requestFullscreen();
@@ -32932,13 +32932,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
     [_scroll_1]() {
-      return this._scroll_1();
+      return this.scroll();
     }
     [_scroll_2](options) {
-      return this._scroll_2(options);
+      return this.scroll(options);
     }
     [_scroll_3](x, y) {
-      return this._scroll_3(x, y);
+      return this.scroll(x, y);
     }
     [dartx.scrollBy](options_OR_x, y) {
       if (options_OR_x === void 0) options_OR_x = null;
@@ -32959,19 +32959,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
     [_scrollBy_1]() {
-      return this._scrollBy_1();
+      return this.scrollBy();
     }
     [_scrollBy_2](options) {
-      return this._scrollBy_2(options);
+      return this.scrollBy(options);
     }
     [_scrollBy_3](x, y) {
-      return this._scrollBy_3(x, y);
+      return this.scrollBy(x, y);
     }
     [_scrollIntoView](alignWithTop) {
-      return this._scrollIntoView(alignWithTop);
+      return this.scrollIntoView(alignWithTop);
     }
     [_scrollIntoViewIfNeeded](centerIfNeeded) {
-      return this._scrollIntoViewIfNeeded(centerIfNeeded);
+      return this.scrollIntoViewIfNeeded(centerIfNeeded);
     }
     [dartx.scrollTo](options_OR_x, y) {
       if (options_OR_x === void 0) options_OR_x = null;
@@ -32992,13 +32992,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
     [_scrollTo_1]() {
-      return this._scrollTo_1();
+      return this.scrollTo();
     }
     [_scrollTo_2](options) {
-      return this._scrollTo_2(options);
+      return this.scrollTo(options);
     }
     [_scrollTo_3](x, y) {
-      return this._scrollTo_3(x, y);
+      return this.scrollTo(x, y);
     }
     [dartx.setAttribute](name, value) {
       return this.setAttribute(name, value);
@@ -33034,7 +33034,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.querySelector(selectors);
     }
     [_querySelectorAll](selectors) {
-      return this._querySelectorAll(selectors);
+      return this.querySelectorAll(selectors);
     }
     get [dartx.onAbort]() {
       return html$.Element.abortEvent.forElement(this);
@@ -34582,13 +34582,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.setSinkId(sinkId);
     }
     [dartx.addKey](keySystem, key, initData, sessionId) {
-      return this.addKey(keySystem, key, initData, sessionId);
+      return this.webkitAddKey(keySystem, key, initData, sessionId);
     }
     [dartx.cancelKeyRequest](keySystem, sessionId) {
-      return this.cancelKeyRequest(keySystem, sessionId);
+      return this.webkitCancelKeyRequest(keySystem, sessionId);
     }
     [dartx.generateKeyRequest](keySystem, initData) {
-      return this.generateKeyRequest(keySystem, initData);
+      return this.webkitGenerateKeyRequest(keySystem, initData);
     }
     get [dartx.onKeyAdded]() {
       return html$.MediaElement.keyAddedEvent.forElement(this);
@@ -35031,7 +35031,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_requestDevice_1](options_1);
     }
     [_requestDevice_1](options) {
-      return this._requestDevice_1(options);
+      return this.requestDevice(options);
     }
   };
   dart.setSignature(html$.Bluetooth, {
@@ -35047,7 +35047,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.UnsupportedError("Not supported"));
     }
     connectGatt() {
-      return this.connectGatt();
+      return this.connectGATT();
     }
   };
   dart.setSignature(html$.BluetoothDevice, {
@@ -35561,10 +35561,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_match_2](request);
     }
     [_match_1](request, options) {
-      return this._match_1(request, options);
+      return this.match(request, options);
     }
     [_match_2](request) {
-      return this._match_2(request);
+      return this.match(request);
     }
     [dartx.open](cacheName) {
       return this.open(cacheName);
@@ -35635,13 +35635,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_getContext_2](contextId);
     }
     [_getContext_1](contextId, attributes) {
-      return this._getContext_1(contextId, attributes);
+      return this.getContext(contextId, attributes);
     }
     [_getContext_2](contextId) {
-      return this._getContext_2(contextId);
+      return this.getContext(contextId);
     }
     [_toDataUrl](type, arguments_OR_quality) {
-      return this._toDataUrl(type, arguments_OR_quality);
+      return this.toDataURL(type, arguments_OR_quality);
     }
     get [dartx.onWebGlContextLost]() {
       return html$.CanvasElement.webGlContextLostEvent.forElement(this);
@@ -35955,10 +35955,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_addHitRegion_1](options) {
-      return this._addHitRegion_1(options);
+      return this.addHitRegion(options);
     }
     [_addHitRegion_2]() {
-      return this._addHitRegion_2();
+      return this.addHitRegion();
     }
     [dartx.beginPath]() {
       return this.beginPath();
@@ -35984,10 +35984,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
     [_createImageData_1](imagedata) {
-      return this._createImageData_1(imagedata);
+      return this.createImageData(imagedata);
     }
     [_createImageData_2](sw, sh) {
-      return this._createImageData_2(sw, sh);
+      return this.createImageData(sw, sh);
     }
     [dartx.createLinearGradient](x0, y0, x1, y1) {
       return this.createLinearGradient(x0, y0, x1, y1);
@@ -36008,16 +36008,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html_common.convertNativeToDart_Dictionary(this[_getContextAttributes_1]());
     }
     [_getContextAttributes_1]() {
-      return this._getContextAttributes_1();
+      return this.getContextAttributes();
     }
     [dartx.getImageData](sx, sy, sw, sh) {
       return html_common.convertNativeToDart_ImageData(this[_getImageData_1](sx, sy, sw, sh));
     }
     [_getImageData_1](sx, sy, sw, sh) {
-      return this._getImageData_1(sx, sy, sw, sh);
+      return this.getImageData(sx, sy, sw, sh);
     }
     [_getLineDash]() {
-      return this._getLineDash();
+      return this.getLineDash();
     }
     [dartx.isContextLost]() {
       return this.isContextLost();
@@ -36049,10 +36049,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
     [_putImageData_1](imagedata, dx, dy) {
-      return this._putImageData_1(imagedata, dx, dy);
+      return this.putImageData(imagedata, dx, dy);
     }
     [_putImageData_2](imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) {
-      return this._putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+      return this.putImageData(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
     }
     [dartx.removeHitRegion](id) {
       return this.removeHitRegion(id);
@@ -36094,7 +36094,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.translate(x, y);
     }
     [_arc](x, y, radius, startAngle, endAngle, anticlockwise) {
-      return this._arc(x, y, radius, startAngle, endAngle, anticlockwise);
+      return this.arc(x, y, radius, startAngle, endAngle, anticlockwise);
     }
     [dartx.arcTo](x1, y1, x2, y2, radius) {
       return this.arcTo(x1, y1, x2, y2, radius);
@@ -36158,10 +36158,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.drawImage(source, destX, destY);
     }
     [dartx.drawImageScaled](source, destX, destY, destWidth, destHeight) {
-      return this.drawImageScaled(source, destX, destY, destWidth, destHeight);
+      return this.drawImage(source, destX, destY, destWidth, destHeight);
     }
     [dartx.drawImageScaledFromSource](source, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight) {
-      return this.drawImageScaledFromSource(source, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);
+      return this.drawImage(source, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);
     }
     get [dartx.lineDashOffset]() {
       return this.lineDashOffset || this.webkitLineDashOffset;
@@ -36361,10 +36361,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_postMessage_1](message, transfer) {
-      return this._postMessage_1(message, transfer);
+      return this.postMessage(message, transfer);
     }
     [_postMessage_2](message) {
-      return this._postMessage_2(message);
+      return this.postMessage(message);
     }
   };
   dart.setSignature(html$.Client, {
@@ -36394,10 +36394,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_matchAll_2]();
     }
     [_matchAll_1](options) {
-      return this._matchAll_1(options);
+      return this.matchAll(options);
     }
     [_matchAll_2]() {
-      return this._matchAll_2();
+      return this.matchAll();
     }
     openWindow(url) {
       return this.openWindow(url);
@@ -36549,7 +36549,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.which;
     }
     [_initUIEvent](type, bubbles, cancelable, view, detail) {
-      return this._initUIEvent(type, bubbles, cancelable, view, detail);
+      return this.initUIEvent(type, bubbles, cancelable, view, detail);
     }
   };
   dart.setSignature(html$.UIEvent, {
@@ -36605,7 +36605,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.data;
     }
     [_initCompositionEvent](type, bubbles, cancelable, view, data) {
-      return this._initCompositionEvent(type, bubbles, cancelable, view, data);
+      return this.initCompositionEvent(type, bubbles, cancelable, view, data);
     }
   };
   dart.setSignature(html$.CompositionEvent, {
@@ -36674,10 +36674,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_postMessage_1](message, transfer) {
-      return this._postMessage_1(message, transfer);
+      return this.postMessage(message, transfer);
     }
     [_postMessage_2](message) {
-      return this._postMessage_2(message);
+      return this.postMessage(message);
     }
     terminate() {
       return this.terminate();
@@ -36784,16 +36784,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_fetch_2](input);
     }
     [_fetch_1](input, init) {
-      return this._fetch_1(input, init);
+      return this.fetch(input, init);
     }
     [_fetch_2](input) {
-      return this._fetch_2(input);
+      return this.fetch(input);
     }
     [dartx.importScripts](urls) {
       return this.importScripts(urls);
     }
     [_webkitRequestFileSystem](type, size, successCallback, errorCallback) {
-      return this._webkitRequestFileSystem(type, size, successCallback, errorCallback);
+      return this.webkitRequestFileSystem(type, size, successCallback, errorCallback);
     }
     [dartx.webkitRequestFileSystem](type, size) {
       let completer = async.Completer$(html$.FileSystem).new();
@@ -36805,13 +36805,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return completer.future;
     }
     [dartx.requestFileSystemSync](type, size) {
-      return this.requestFileSystemSync(type, size);
+      return this.webkitRequestFileSystemSync(type, size);
     }
     [dartx.resolveLocalFileSystemSyncUrl](url) {
-      return this.resolveLocalFileSystemSyncUrl(url);
+      return this.webkitResolveLocalFileSystemSyncURL(url);
     }
     [_webkitResolveLocalFileSystemUrl](url, successCallback, errorCallback) {
-      return this._webkitResolveLocalFileSystemUrl(url, successCallback, errorCallback);
+      return this.webkitResolveLocalFileSystemURL(url, successCallback, errorCallback);
     }
     [dartx.webkitResolveLocalFileSystemUrl](url) {
       let completer = async.Completer$(html$.Entry).new();
@@ -36829,22 +36829,22 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.btoa(btoa);
     }
     [_setInterval_String](handler, timeout, arguments$) {
-      return this._setInterval_String(handler, timeout, arguments$);
+      return this.setInterval(handler, timeout, arguments$);
     }
     [_setTimeout_String](handler, timeout, arguments$) {
-      return this._setTimeout_String(handler, timeout, arguments$);
+      return this.setTimeout(handler, timeout, arguments$);
     }
     [_clearInterval](handle) {
-      return this._clearInterval(handle);
+      return this.clearInterval(handle);
     }
     [_clearTimeout](handle) {
-      return this._clearTimeout(handle);
+      return this.clearTimeout(handle);
     }
     [_setInterval](handler, timeout) {
-      return this._setInterval(handler, timeout);
+      return this.setInterval(handler, timeout);
     }
     [_setTimeout](handler, timeout) {
-      return this._setTimeout(handler, timeout);
+      return this.setTimeout(handler, timeout);
     }
     get [dartx.onError]() {
       return html$.WorkerGlobalScope.errorEvent.forTarget(this);
@@ -36903,10 +36903,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_postMessage_1](message, transfer) {
-      return this._postMessage_1(message, transfer);
+      return this.postMessage(message, transfer);
     }
     [_postMessage_2](message) {
-      return this._postMessage_2(message);
+      return this.postMessage(message);
     }
     requestAnimationFrame(callback) {
       return this.requestAnimationFrame(callback);
@@ -37054,7 +37054,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.UnsupportedError("Not supported"));
     }
     [dartx.assertCondition](condition, arg) {
-      return this.assertCondition(condition, arg);
+      return this.assert(condition, arg);
     }
     [dartx.timeline](title) {
       return this.timeline(title);
@@ -37203,10 +37203,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_request_2]();
     }
     [_request_1](options) {
-      return this._request_1(options);
+      return this.request(options);
     }
     [_request_2]() {
-      return this._request_2();
+      return this.request();
     }
     [dartx.requireUserMediation]() {
       return this.requireUserMediation();
@@ -37253,10 +37253,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_postMessage_1](message, transfer) {
-      return this._postMessage_1(message, transfer);
+      return this.postMessage(message, transfer);
     }
     [_postMessage_2](message) {
-      return this._postMessage_2(message);
+      return this.postMessage(message);
     }
   };
   dart.setSignature(html$.CrossOriginServiceWorkerClient, {
@@ -37287,7 +37287,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.subtle;
     }
     [_getRandomValues](array) {
-      return this._getRandomValues(array);
+      return this.getRandomValues(array);
     }
   };
   dart.setSignature(html$.Crypto, {
@@ -40675,7 +40675,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.getPropertyPriority(property);
     }
     [_getPropertyValue](property) {
-      return this._getPropertyValue(property);
+      return this.getPropertyValue(property);
     }
     [dartx.item](index) {
       return this.item(index);
@@ -42412,7 +42412,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.detail;
     }
     [_initCustomEvent](type, bubbles, cancelable, detail) {
-      return this._initCustomEvent(type, bubbles, cancelable, detail);
+      return this.initCustomEvent(type, bubbles, cancelable, detail);
     }
   };
   dart.setSignature(html$.CustomEvent, {
@@ -42563,7 +42563,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.getAsFile();
     }
     [_getAsString](callback) {
-      return this._getAsString(callback);
+      return this.getAsString(callback);
     }
     [dartx.getAsString]() {
       let completer = async.Completer$(core.String).new();
@@ -42573,7 +42573,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return completer.future;
     }
     [dartx.getAsEntry]() {
-      return this.getAsEntry();
+      return this.webkitGetAsEntry();
     }
   };
   dart.setSignature(html$.DataTransferItem, {
@@ -42608,10 +42608,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.add(data_OR_file, type);
     }
     [dartx.addData](data, type) {
-      return this.addData(data, type);
+      return this.add(data, type);
     }
     [dartx.addFile](file) {
-      return this.addFile(file);
+      return this.add(file);
     }
     [dartx.clear]() {
       return this.clear();
@@ -42661,10 +42661,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_postMessage_1](message, transfer) {
-      return this._postMessage_1(message, transfer);
+      return this.postMessage(message, transfer);
     }
     [_postMessage_2](message) {
-      return this._postMessage_2(message);
+      return this.postMessage(message);
     }
     get [dartx.onMessage]() {
       return html$.DedicatedWorkerGlobalScope.messageEvent.forTarget(this);
@@ -42930,7 +42930,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.gamma;
     }
     [_initDeviceOrientationEvent](type, bubbles, cancelable, alpha, beta, gamma, absolute) {
-      return this._initDeviceOrientationEvent(type, bubbles, cancelable, alpha, beta, gamma, absolute);
+      return this.initDeviceOrientationEvent(type, bubbles, cancelable, alpha, beta, gamma, absolute);
     }
   };
   dart.setSignature(html$.DeviceOrientationEvent, {
@@ -43069,7 +43069,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.name;
     }
     [_copyTo](parent, opts) {
-      return this._copyTo(parent, opts);
+      return this.copyTo(parent, opts);
     }
     [dartx.copyTo](parent, opts) {
       let name = opts && 'name' in opts ? opts.name : null;
@@ -43082,7 +43082,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return completer.future;
     }
     [_getMetadata](successCallback, errorCallback) {
-      return this._getMetadata(successCallback, errorCallback);
+      return this.getMetadata(successCallback, errorCallback);
     }
     [dartx.getMetadata]() {
       let completer = async.Completer$(html$.Metadata).new();
@@ -43094,7 +43094,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return completer.future;
     }
     [_getParent](successCallback, errorCallback) {
-      return this._getParent(successCallback, errorCallback);
+      return this.getParent(successCallback, errorCallback);
     }
     [dartx.getParent]() {
       let completer = async.Completer$(html$.Entry).new();
@@ -43106,7 +43106,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return completer.future;
     }
     [_moveTo](parent, opts) {
-      return this._moveTo(parent, opts);
+      return this.moveTo(parent, opts);
     }
     [dartx.moveTo](parent, opts) {
       let name = opts && 'name' in opts ? opts.name : null;
@@ -43119,7 +43119,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return completer.future;
     }
     [_remove$](successCallback, errorCallback) {
-      return this._remove(successCallback, errorCallback);
+      return this.remove(successCallback, errorCallback);
     }
     [dartx.remove]() {
       let completer = async.Completer.new();
@@ -43131,7 +43131,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return completer.future;
     }
     [dartx.toUrl]() {
-      return this.toUrl();
+      return this.toURL();
     }
   };
   dart.setSignature(html$.Entry, {
@@ -43204,16 +43204,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [__getDirectory_1](path, options, successCallback, errorCallback) {
-      return this.__getDirectory_1(path, options, successCallback, errorCallback);
+      return this.getDirectory(path, options, successCallback, errorCallback);
     }
     [__getDirectory_2](path, options, successCallback) {
-      return this.__getDirectory_2(path, options, successCallback);
+      return this.getDirectory(path, options, successCallback);
     }
     [__getDirectory_3](path, options) {
-      return this.__getDirectory_3(path, options);
+      return this.getDirectory(path, options);
     }
     [__getDirectory_4](path) {
-      return this.__getDirectory_4(path);
+      return this.getDirectory(path);
     }
     [_getDirectory](path, opts) {
       let options = opts && 'options' in opts ? opts.options : null;
@@ -43248,16 +43248,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [__getFile_1](path, options, successCallback, errorCallback) {
-      return this.__getFile_1(path, options, successCallback, errorCallback);
+      return this.getFile(path, options, successCallback, errorCallback);
     }
     [__getFile_2](path, options, successCallback) {
-      return this.__getFile_2(path, options, successCallback);
+      return this.getFile(path, options, successCallback);
     }
     [__getFile_3](path, options) {
-      return this.__getFile_3(path, options);
+      return this.getFile(path, options);
     }
     [__getFile_4](path) {
-      return this.__getFile_4(path);
+      return this.getFile(path);
     }
     [_getFile](path, opts) {
       let options = opts && 'options' in opts ? opts.options : null;
@@ -43270,7 +43270,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return completer.future;
     }
     [_removeRecursively](successCallback, errorCallback) {
-      return this._removeRecursively(successCallback, errorCallback);
+      return this.removeRecursively(successCallback, errorCallback);
     }
     [dartx.removeRecursively]() {
       let completer = async.Completer.new();
@@ -43317,7 +43317,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.UnsupportedError("Not supported"));
     }
     [_readEntries](successCallback, errorCallback) {
-      return this._readEntries(successCallback, errorCallback);
+      return this.readEntries(successCallback, errorCallback);
     }
     [dartx.readEntries]() {
       let completer = async.Completer$(core.List$(html$.Entry)).new();
@@ -43620,38 +43620,38 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.adoptNode(node);
     }
     [_caretRangeFromPoint](x, y) {
-      return this._caretRangeFromPoint(x, y);
+      return this.caretRangeFromPoint(x, y);
     }
     [dartx.createDocumentFragment]() {
       return this.createDocumentFragment();
     }
     [_createElement](localName_OR_tagName, typeExtension) {
-      return this._createElement(localName_OR_tagName, typeExtension);
+      return this.createElement(localName_OR_tagName, typeExtension);
     }
     [_createElementNS](namespaceURI, qualifiedName, typeExtension) {
-      return this._createElementNS(namespaceURI, qualifiedName, typeExtension);
+      return this.createElementNS(namespaceURI, qualifiedName, typeExtension);
     }
     [_createEvent](eventType) {
-      return this._createEvent(eventType);
+      return this.createEvent(eventType);
     }
     [dartx.createRange]() {
       return this.createRange();
     }
     [_createTextNode](data) {
-      return this._createTextNode(data);
+      return this.createTextNode(data);
     }
     [_createTouch](window, target, identifier, pageX, pageY, screenX, screenY, radiusX, radiusY, rotationAngle, force) {
       let target_1 = html$._convertDartToNative_EventTarget(target);
       return this[_createTouch_1](window, target_1, identifier, pageX, pageY, screenX, screenY, radiusX, radiusY, rotationAngle, force);
     }
     [_createTouch_1](window, target, identifier, pageX, pageY, screenX, screenY, radiusX, radiusY, rotationAngle, force) {
-      return this._createTouch_1(window, target, identifier, pageX, pageY, screenX, screenY, radiusX, radiusY, rotationAngle, force);
+      return this.createTouch(window, target, identifier, pageX, pageY, screenX, screenY, radiusX, radiusY, rotationAngle, force);
     }
     [_createTouchList](touches) {
-      return this._createTouchList(touches);
+      return this.createTouchList(touches);
     }
     [_elementFromPoint](x, y) {
-      return this._elementFromPoint(x, y);
+      return this.elementFromPoint(x, y);
     }
     [dartx.elementsFromPoint](x, y) {
       return this.elementsFromPoint(x, y);
@@ -43666,7 +43666,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.exitPointerLock();
     }
     [_getCssCanvasContext](contextId, name, width, height) {
-      return this._getCssCanvasContext(contextId, name, width, height);
+      return this.getCSSCanvasContext(contextId, name, width, height);
     }
     [dartx.getElementsByClassName](classNames) {
       return this.getElementsByClassName(classNames);
@@ -43699,7 +43699,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.transformDocumentToTreeView(noStyleMessage);
     }
     [_webkitExitFullscreen]() {
-      return this._webkitExitFullscreen();
+      return this.webkitExitFullscreen();
     }
     [dartx.getElementById](elementId) {
       return this.getElementById(elementId);
@@ -43720,7 +43720,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.querySelector(selectors);
     }
     [_querySelectorAll](selectors) {
-      return this._querySelectorAll(selectors);
+      return this.querySelectorAll(selectors);
     }
     get [dartx.onAbort]() {
       return html$.Element.abortEvent.forTarget(this);
@@ -44143,7 +44143,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.querySelector(selectors);
     }
     [_querySelectorAll](selectors) {
-      return this._querySelectorAll(selectors);
+      return this.querySelectorAll(selectors);
     }
   };
   html$.DocumentFragment[dart.implements] = () => [html$.NonElementParentNode, html$.ParentNode];
@@ -44274,7 +44274,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.createDocumentType(qualifiedName, publicId, systemId);
     }
     [dartx.createHtmlDocument](title) {
-      return this.createHtmlDocument(title);
+      return this.createHTMLDocument(title);
     }
     [dartx.hasFeature]() {
       return this.hasFeature();
@@ -46304,7 +46304,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.UnsupportedError("Not supported"));
     }
     [_createWriter](successCallback, errorCallback) {
-      return this._createWriter(successCallback, errorCallback);
+      return this.createWriter(successCallback, errorCallback);
     }
     [dartx.createWriter]() {
       let completer = async.Completer$(html$.FileWriter).new();
@@ -46316,7 +46316,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return completer.future;
     }
     [_file](successCallback, errorCallback) {
-      return this._file(successCallback, errorCallback);
+      return this.file(successCallback, errorCallback);
     }
     [dartx.file]() {
       let completer = async.Completer$(html$.File).new();
@@ -46481,7 +46481,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.readAsArrayBuffer(blob);
     }
     [dartx.readAsDataUrl](blob) {
-      return this.readAsDataUrl(blob);
+      return this.readAsDataURL(blob);
     }
     [dartx.readAsText](blob, label) {
       return this.readAsText(blob, label);
@@ -46922,7 +46922,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.append(name, value);
     }
     [dartx.appendBlob](name, value, filename) {
-      return this.appendBlob(name, value, filename);
+      return this.append(name, value, filename);
     }
     [dartx.delete](name) {
       return this.delete(name);
@@ -47076,7 +47076,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_requestAutocomplete_1](details) {
-      return this._requestAutocomplete_1(details);
+      return this.requestAutocomplete(details);
     }
     [dartx.reset]() {
       return this.reset();
@@ -47328,7 +47328,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.UnsupportedError("Not supported"));
     }
     [_clearWatch](watchID) {
-      return this._clearWatch(watchID);
+      return this.clearWatch(watchID);
     }
     [_getCurrentPosition](successCallback, errorCallback, options) {
       if (errorCallback === void 0) errorCallback = null;
@@ -47346,13 +47346,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_getCurrentPosition_1](successCallback, errorCallback, options) {
-      return this._getCurrentPosition_1(successCallback, errorCallback, options);
+      return this.getCurrentPosition(successCallback, errorCallback, options);
     }
     [_getCurrentPosition_2](successCallback, errorCallback) {
-      return this._getCurrentPosition_2(successCallback, errorCallback);
+      return this.getCurrentPosition(successCallback, errorCallback);
     }
     [_getCurrentPosition_3](successCallback) {
-      return this._getCurrentPosition_3(successCallback);
+      return this.getCurrentPosition(successCallback);
     }
     [_watchPosition](successCallback, errorCallback, options) {
       if (errorCallback === void 0) errorCallback = null;
@@ -47367,13 +47367,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_watchPosition_3](successCallback);
     }
     [_watchPosition_1](successCallback, errorCallback, options) {
-      return this._watchPosition_1(successCallback, errorCallback, options);
+      return this.watchPosition(successCallback, errorCallback, options);
     }
     [_watchPosition_2](successCallback, errorCallback) {
-      return this._watchPosition_2(successCallback, errorCallback);
+      return this.watchPosition(successCallback, errorCallback);
     }
     [_watchPosition_3](successCallback) {
-      return this._watchPosition_3(successCallback);
+      return this.watchPosition(successCallback);
     }
   };
   dart.setSignature(html$.Geolocation, {
@@ -47878,7 +47878,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.oldURL;
     }
     [_initHashChangeEvent](type, canBubble, cancelable, oldURL, newURL) {
-      return this._initHashChangeEvent(type, canBubble, cancelable, oldURL, newURL);
+      return this.initHashChangeEvent(type, canBubble, cancelable, oldURL, newURL);
     }
   };
   dart.setSignature(html$.HashChangeEvent, {
@@ -48066,10 +48066,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_pushState_1](data, title, url, options) {
-      return this._pushState_1(data, title, url, options);
+      return this.pushState(data, title, url, options);
     }
     [_pushState_2](data, title, url) {
-      return this._pushState_2(data, title, url);
+      return this.pushState(data, title, url);
     }
     [dartx.replaceState](data, title, url, options) {
       if (options === void 0) options = null;
@@ -48084,10 +48084,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_replaceState_1](data, title, url, options) {
-      return this._replaceState_1(data, title, url, options);
+      return this.replaceState(data, title, url, options);
     }
     [_replaceState_2](data, title, url) {
-      return this._replaceState_2(data, title, url);
+      return this.replaceState(data, title, url);
     }
   };
   html$.History[dart.implements] = () => [html$.HistoryBase];
@@ -48376,7 +48376,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.UnsupportedError("Not supported"));
     }
     [_item](index) {
-      return this._item(index);
+      return this.item(index);
     }
   };
   dart.setSignature(html$.HtmlOptionsCollection, {
@@ -51079,7 +51079,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_getUserMedia_1](options_1);
     }
     [_getUserMedia_1](options) {
-      return this._getUserMedia_1(options);
+      return this.getUserMedia(options);
     }
   };
   dart.setSignature(html$.MediaDevices, {
@@ -51312,7 +51312,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.remove();
     }
     [_update$](response) {
-      return this._update(response);
+      return this.update(response);
     }
   };
   dart.setSignature(html$.MediaKeySession, {
@@ -51348,7 +51348,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html_common.convertNativeToDart_Dictionary(this[_getConfiguration_1]());
     }
     [_getConfiguration_1]() {
-      return this._getConfiguration_1();
+      return this.getConfiguration();
     }
   };
   dart.setSignature(html$.MediaKeySystemAccess, {
@@ -51369,7 +51369,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.UnsupportedError("Not supported"));
     }
     [_createSession](sessionType) {
-      return this._createSession(sessionType);
+      return this.createSession(sessionType);
     }
     [dartx.setServerCertificate](serverCertificate) {
       return this.setServerCertificate(serverCertificate);
@@ -52095,7 +52095,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.source;
     }
     [_initMessageEvent](typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, sourceArg, portsArg) {
-      return this._initMessageEvent(typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, sourceArg, portsArg);
+      return this.initMessageEvent(typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, sourceArg, portsArg);
     }
   };
   dart.setSignature(html$.MessageEvent, {
@@ -52137,10 +52137,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_postMessage_1](message, transfer) {
-      return this._postMessage_1(message, transfer);
+      return this.postMessage(message, transfer);
     }
     [_postMessage_2](message) {
-      return this._postMessage_2(message);
+      return this.postMessage(message);
     }
     [dartx.start]() {
       return this.start();
@@ -52828,7 +52828,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_initMouseEvent_1](type, bubbles, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) {
-      return this._initMouseEvent_1(type, bubbles, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
+      return this.initMouseEvent(type, bubbles, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
     }
     get [dartx.client]() {
       return new (math.Point$(core.num))(this[_clientX], this[_clientY]);
@@ -52896,7 +52896,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_observe_1](target, options) {
-      return this._observe_1(target, options);
+      return this.observe(target, options);
     }
     [dartx.takeRecords]() {
       return this.takeRecords();
@@ -52938,7 +52938,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return list;
     }
     [_call](target, options) {
-      return this._call(target, options);
+      return this.observe(target, options);
     }
     static new(callback) {
       0;
@@ -53081,7 +53081,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     [_getUserMedia](options, success, error) {
-      return this._getUserMedia(options, success, error);
+      return this.getUserMedia(options, success, error);
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -53161,10 +53161,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_requestMidiAccess_2]();
     }
     [_requestMidiAccess_1](options) {
-      return this._requestMidiAccess_1(options);
+      return this.requestMIDIAccess(options);
     }
     [_requestMidiAccess_2]() {
-      return this._requestMidiAccess_2();
+      return this.requestMIDIAccess();
     }
     [dartx.requestMediaKeySystemAccess](keySystem, supportedConfigurations) {
       return this.requestMediaKeySystemAccess(keySystem, supportedConfigurations);
@@ -53678,7 +53678,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[dartx.get](index);
     }
     [_item](index) {
-      return this._item(index);
+      return this.item(index);
     }
   };
   html$.NodeList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, core.List$(html$.Node)];
@@ -54623,10 +54623,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.setFrameTimingBufferSize(maxSize);
     }
     [dartx.clearResourceTimings]() {
-      return this.clearResourceTimings();
+      return this.webkitClearResourceTimings();
     }
     [dartx.setResourceTimingBufferSize](maxSize) {
-      return this.setResourceTimingBufferSize(maxSize);
+      return this.webkitSetResourceTimingBufferSize(maxSize);
     }
     get [dartx.onResourceTimingBufferFull]() {
       return html$.Performance.resourceTimingBufferFullEvent.forTarget(this);
@@ -54951,10 +54951,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_register_2]();
     }
     [_register_1](options) {
-      return this._register_1(options);
+      return this.register(options);
     }
     [_register_2]() {
-      return this._register_2();
+      return this.register();
     }
   };
   dart.setSignature(html$.PeriodicSyncManager, {
@@ -55618,10 +55618,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_permissionState_2]();
     }
     [_permissionState_1](options) {
-      return this._permissionState_1(options);
+      return this.permissionState(options);
     }
     [_permissionState_2]() {
-      return this._permissionState_2();
+      return this.permissionState();
     }
     [dartx.subscribe](options) {
       if (options === void 0) options = null;
@@ -55632,10 +55632,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_subscribe_2]();
     }
     [_subscribe_1](options) {
-      return this._subscribe_1(options);
+      return this.subscribe(options);
     }
     [_subscribe_2]() {
-      return this._subscribe_2();
+      return this.subscribe();
     }
   };
   dart.setSignature(html$.PushManager, {
@@ -56124,16 +56124,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.send(data);
     }
     [dartx.sendBlob](data) {
-      return this.sendBlob(data);
+      return this.send(data);
     }
     [dartx.sendByteBuffer](data) {
-      return this.sendByteBuffer(data);
+      return this.send(data);
     }
     [dartx.sendString](data) {
-      return this.sendString(data);
+      return this.send(data);
     }
     [dartx.sendTypedData](data) {
-      return this.sendTypedData(data);
+      return this.send(data);
     }
     get [dartx.onClose]() {
       return html$.RtcDataChannel.closeEvent.forTarget(this);
@@ -56220,7 +56220,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.track;
     }
     [dartx.insertDtmf](tones, duration, interToneGap) {
-      return this.insertDtmf(tones, duration, interToneGap);
+      return this.insertDTMF(tones, duration, interToneGap);
     }
     get [dartx.onToneChange]() {
       return html$.RtcDtmfSender.toneChangeEvent.forTarget(this);
@@ -56445,10 +56445,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_addStream_1](stream, mediaConstraints) {
-      return this._addStream_1(stream, mediaConstraints);
+      return this.addStream(stream, mediaConstraints);
     }
     [_addStream_2](stream) {
-      return this._addStream_2(stream);
+      return this.addStream(stream);
     }
     [dartx.close]() {
       return this.close();
@@ -56465,13 +56465,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_createAnswer_1](successCallback, failureCallback, mediaConstraints) {
-      return this._createAnswer_1(successCallback, failureCallback, mediaConstraints);
+      return this.createAnswer(successCallback, failureCallback, mediaConstraints);
     }
     [_createAnswer_2](successCallback, failureCallback) {
-      return this._createAnswer_2(successCallback, failureCallback);
+      return this.createAnswer(successCallback, failureCallback);
     }
     [dartx.createDtmfSender](track) {
-      return this.createDtmfSender(track);
+      return this.createDTMFSender(track);
     }
     [dartx.createDataChannel](label, options) {
       if (options === void 0) options = null;
@@ -56482,10 +56482,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_createDataChannel_2](label);
     }
     [_createDataChannel_1](label, options) {
-      return this._createDataChannel_1(label, options);
+      return this.createDataChannel(label, options);
     }
     [_createDataChannel_2](label) {
-      return this._createDataChannel_2(label);
+      return this.createDataChannel(label);
     }
     [_createOffer](successCallback, failureCallback, rtcOfferOptions) {
       if (failureCallback === void 0) failureCallback = null;
@@ -56499,10 +56499,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_createOffer_1](successCallback, failureCallback, rtcOfferOptions) {
-      return this._createOffer_1(successCallback, failureCallback, rtcOfferOptions);
+      return this.createOffer(successCallback, failureCallback, rtcOfferOptions);
     }
     [_createOffer_2](successCallback, failureCallback) {
-      return this._createOffer_2(successCallback, failureCallback);
+      return this.createOffer(successCallback, failureCallback);
     }
     [dartx.getLocalStreams]() {
       return this.getLocalStreams();
@@ -56511,7 +56511,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.getRemoteStreams();
     }
     [_getStats](successCallback, selector) {
-      return this._getStats(successCallback, selector);
+      return this.getStats(successCallback, selector);
     }
     [dartx.getStreamById](streamId) {
       return this.getStreamById(streamId);
@@ -56520,7 +56520,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.removeStream(stream);
     }
     [_setLocalDescription](description, successCallback, failureCallback) {
-      return this._setLocalDescription(description, successCallback, failureCallback);
+      return this.setLocalDescription(description, successCallback, failureCallback);
     }
     [dartx.setLocalDescription](description) {
       let completer = async.Completer.new();
@@ -56532,7 +56532,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return completer.future;
     }
     [_setRemoteDescription](description, successCallback, failureCallback) {
-      return this._setRemoteDescription(description, successCallback, failureCallback);
+      return this.setRemoteDescription(description, successCallback, failureCallback);
     }
     [dartx.setRemoteDescription](description) {
       let completer = async.Completer.new();
@@ -56561,13 +56561,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_updateIce_1](configuration, mediaConstraints) {
-      return this._updateIce_1(configuration, mediaConstraints);
+      return this.updateIce(configuration, mediaConstraints);
     }
     [_updateIce_2](configuration) {
-      return this._updateIce_2(configuration);
+      return this.updateIce(configuration);
     }
     [_updateIce_3]() {
-      return this._updateIce_3();
+      return this.updateIce();
     }
     get [dartx.onAddStream]() {
       return html$.RtcPeerConnection.addStreamEvent.forTarget(this);
@@ -57418,10 +57418,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_postMessage_1](message, transfer) {
-      return this._postMessage_1(message, transfer);
+      return this.postMessage(message, transfer);
     }
     [_postMessage_2](message) {
-      return this._postMessage_2(message);
+      return this.postMessage(message);
     }
   };
   dart.setSignature(html$.ServicePort, {
@@ -57449,17 +57449,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_connect_2](url);
     }
     [_connect_1](url, options) {
-      return this._connect_1(url, options);
+      return this.connect(url, options);
     }
     [_connect_2](url) {
-      return this._connect_2(url);
+      return this.connect(url);
     }
     match(options) {
       let options_1 = html_common.convertDartToNative_Dictionary(options);
       return this[_match_1](options_1);
     }
     [_match_1](options) {
-      return this._match_1(options);
+      return this.match(options);
     }
     matchAll(options) {
       if (options === void 0) options = null;
@@ -57470,10 +57470,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_matchAll_2]();
     }
     [_matchAll_1](options) {
-      return this._matchAll_1(options);
+      return this.matchAll(options);
     }
     [_matchAll_2]() {
-      return this._matchAll_2();
+      return this.matchAll();
     }
     get onMessage() {
       return html$.ServicePortCollection.messageEvent.forTarget(this);
@@ -57566,10 +57566,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_register_2](url);
     }
     [_register_1](url, options) {
-      return this._register_1(url, options);
+      return this.register(url, options);
     }
     [_register_2](url) {
-      return this._register_2(url);
+      return this.register(url);
     }
     get [dartx.onMessage]() {
       return html$.ServiceWorkerContainer.messageEvent.forTarget(this);
@@ -57719,10 +57719,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_getNotifications_2]();
     }
     [_getNotifications_1](filter) {
-      return this._getNotifications_1(filter);
+      return this.getNotifications(filter);
     }
     [_getNotifications_2]() {
-      return this._getNotifications_2();
+      return this.getNotifications();
     }
     [dartx.showNotification](title, options) {
       if (options === void 0) options = null;
@@ -57733,10 +57733,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_showNotification_2](title);
     }
     [_showNotification_1](title, options) {
-      return this._showNotification_1(title, options);
+      return this.showNotification(title, options);
     }
     [_showNotification_2](title) {
-      return this._showNotification_2(title);
+      return this.showNotification(title);
     }
     [dartx.unregister]() {
       return this.unregister();
@@ -57833,7 +57833,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.styleSheets;
     }
     [dartx.clone](deep) {
-      return this.clone(deep);
+      return this.cloneNode(deep);
     }
     [dartx.elementFromPoint](x, y) {
       return this.elementFromPoint(x, y);
@@ -58030,7 +58030,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.appendStream(stream, maxSize);
     }
     [dartx.appendTypedData](data) {
-      return this.appendTypedData(data);
+      return this.appendBuffer(data);
     }
     [dartx.remove](start, end) {
       return this.remove(start, end);
@@ -59021,19 +59021,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.__setter__(index_OR_name, value);
     }
     [_clear$1]() {
-      return this._clear();
+      return this.clear();
     }
     [_getItem](key) {
-      return this._getItem(key);
+      return this.getItem(key);
     }
     [_key$](index) {
-      return this._key(index);
+      return this.key(index);
     }
     [_removeItem](key) {
-      return this._removeItem(key);
+      return this.removeItem(key);
     }
     [_setItem](key, data) {
-      return this._setItem(key, data);
+      return this.setItem(key, data);
     }
   };
   html$.Storage[dart.implements] = () => [core.Map$(core.String, core.String)];
@@ -59113,7 +59113,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.url;
     }
     [_initStorageEvent](typeArg, canBubbleArg, cancelableArg, keyArg, oldValueArg, newValueArg, urlArg, storageAreaArg) {
-      return this._initStorageEvent(typeArg, canBubbleArg, cancelableArg, keyArg, oldValueArg, newValueArg, urlArg, storageAreaArg);
+      return this.initStorageEvent(typeArg, canBubbleArg, cancelableArg, keyArg, oldValueArg, newValueArg, urlArg, storageAreaArg);
     }
   };
   dart.setSignature(html$.StorageEvent, {
@@ -59297,10 +59297,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_register_2]();
     }
     [_register_1](options) {
-      return this._register_1(options);
+      return this.register(options);
     }
     [_register_2]() {
-      return this._register_2();
+      return this.register();
     }
   };
   dart.setSignature(html$.SyncManager, {
@@ -59492,7 +59492,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.as(tbody, html$.TableSectionElement);
     }
     [_nativeCreateTBody]() {
-      return this._nativeCreateTBody();
+      return this.createTBody();
     }
     [dartx.createFragment](html, opts) {
       let validator = opts && 'validator' in opts ? opts.validator : null;
@@ -59545,13 +59545,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.tHead = value;
     }
     [_createCaption]() {
-      return this._createCaption();
+      return this.createCaption();
     }
     [_createTFoot]() {
-      return this._createTFoot();
+      return this.createTFoot();
     }
     [_createTHead]() {
-      return this._createTHead();
+      return this.createTHead();
     }
     [dartx.deleteCaption]() {
       return this.deleteCaption();
@@ -59566,7 +59566,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.deleteTHead();
     }
     [_insertRow](index) {
-      return this._insertRow(index);
+      return this.insertRow(index);
     }
   };
   dart.defineNamedConstructor(html$.TableElement, 'created');
@@ -59655,7 +59655,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.deleteCell(index);
     }
     [_insertCell](index) {
-      return this._insertCell(index);
+      return this.insertCell(index);
     }
   };
   dart.defineNamedConstructor(html$.TableRowElement, 'created');
@@ -59716,7 +59716,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.deleteRow(index);
     }
     [_insertRow](index) {
-      return this._insertRow(index);
+      return this.insertRow(index);
     }
   };
   dart.defineNamedConstructor(html$.TableSectionElement, 'created');
@@ -60039,7 +60039,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.data;
     }
     [_initTextEvent](typeArg, canBubbleArg, cancelableArg, viewArg, dataArg) {
-      return this._initTextEvent(typeArg, canBubbleArg, cancelableArg, viewArg, dataArg);
+      return this.initTextEvent(typeArg, canBubbleArg, cancelableArg, viewArg, dataArg);
     }
   };
   dart.setSignature(html$.TextEvent, {
@@ -60625,7 +60625,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.touches;
     }
     [_initTouchEvent](touches, targetTouches, changedTouches, type, view, unused1, unused2, unused3, unused4, ctrlKey, altKey, shiftKey, metaKey) {
-      return this._initTouchEvent(touches, targetTouches, changedTouches, type, view, unused1, unused2, unused3, unused4, ctrlKey, altKey, shiftKey, metaKey);
+      return this.initTouchEvent(touches, targetTouches, changedTouches, type, view, unused1, unused2, unused3, unused4, ctrlKey, altKey, shiftKey, metaKey);
     }
     static get supported() {
       return html_common.Device.isEventTypeSupported('TouchEvent');
@@ -61474,10 +61474,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.getVideoPlaybackQuality();
     }
     [dartx.enterFullscreen]() {
-      return this.enterFullscreen();
+      return this.webkitEnterFullscreen();
     }
     [dartx.exitFullscreen]() {
-      return this.exitFullscreen();
+      return this.webkitExitFullscreen();
     }
   };
   dart.defineNamedConstructor(html$.VideoElement, 'created');
@@ -61670,7 +61670,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.vertical = value;
     }
     [dartx.getCueAsHtml]() {
-      return this.getCueAsHtml();
+      return this.getCueAsHTML();
     }
   };
   dart.setSignature(html$.VttCue, {
@@ -61861,16 +61861,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.send(data);
     }
     [dartx.sendBlob](data) {
-      return this.sendBlob(data);
+      return this.send(data);
     }
     [dartx.sendByteBuffer](data) {
-      return this.sendByteBuffer(data);
+      return this.send(data);
     }
     [dartx.sendString](data) {
-      return this.sendString(data);
+      return this.send(data);
     }
     [dartx.sendTypedData](data) {
-      return this.sendTypedData(data);
+      return this.send(data);
     }
     get [dartx.onClose]() {
       return html$.WebSocket.closeEvent.forTarget(this);
@@ -62018,13 +62018,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return !!this.initMouseScrollEvent;
     }
     [_initMouseScrollEvent](type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget, axis) {
-      return this._initMouseScrollEvent(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget, axis);
+      return this.initMouseScrollEvent(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget, axis);
     }
     get [_hasInitWheelEvent]() {
       return !!this.initWheelEvent;
     }
     [_initWheelEvent](eventType, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, button, relatedTarget, modifiersList, deltaX, deltaY, deltaZ, deltaMode) {
-      return this._initWheelEvent(eventType, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, button, relatedTarget, modifiersList, deltaX, deltaY, deltaZ, deltaMode);
+      return this.initWheelEvent(eventType, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, button, relatedTarget, modifiersList, deltaX, deltaY, deltaZ, deltaMode);
     }
   };
   dart.setSignature(html$.WheelEvent, {
@@ -62268,10 +62268,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_cancelAnimationFrame](id);
     }
     [_requestAnimationFrame](callback) {
-      return this._requestAnimationFrame(callback);
+      return this.requestAnimationFrame(callback);
     }
     [_cancelAnimationFrame](id) {
-      return this._cancelAnimationFrame(id);
+      return this.cancelAnimationFrame(id);
     }
     [_ensureRequestAnimationFrame]() {
       if (!!(this.requestAnimationFrame && this.cancelAnimationFrame)) return;
@@ -62465,10 +62465,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
     [__getter___1](index) {
-      return this.__getter___1(index);
+      return this.__getter__(index);
     }
     [__getter___2](name) {
-      return this.__getter___2(name);
+      return this.__getter__(name);
     }
     [dartx.alert](message) {
       return this.alert(message);
@@ -62488,19 +62488,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_fetch_2](input);
     }
     [_fetch_1](input, init) {
-      return this._fetch_1(input, init);
+      return this.fetch(input, init);
     }
     [_fetch_2](input) {
-      return this._fetch_2(input);
+      return this.fetch(input);
     }
     [dartx.find](string, caseSensitive, backwards, wrap, wholeWord, searchInFrames, showDialog) {
       return this.find(string, caseSensitive, backwards, wrap, wholeWord, searchInFrames, showDialog);
     }
     [_getComputedStyle](elt, pseudoElt) {
-      return this._getComputedStyle(elt, pseudoElt);
+      return this.getComputedStyle(elt, pseudoElt);
     }
     [dartx.getMatchedCssRules](element, pseudoElement) {
-      return this.getMatchedCssRules(element, pseudoElement);
+      return this.getMatchedCSSRules(element, pseudoElement);
     }
     [dartx.getSelection]() {
       return this.getSelection();
@@ -62512,7 +62512,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.moveBy(x, y);
     }
     [_moveTo](x, y) {
-      return this._moveTo(x, y);
+      return this.moveTo(x, y);
     }
     [dartx.openDatabase](name, version, displayName, estimatedSize, creationCallback) {
       return this.openDatabase(name, version, displayName, estimatedSize, creationCallback);
@@ -62529,10 +62529,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_postMessage_1](message, targetOrigin, transfer) {
-      return this._postMessage_1(message, targetOrigin, transfer);
+      return this.postMessage(message, targetOrigin, transfer);
     }
     [_postMessage_2](message, targetOrigin) {
-      return this._postMessage_2(message, targetOrigin);
+      return this.postMessage(message, targetOrigin);
     }
     [dartx.print]() {
       return this.print();
@@ -62572,19 +62572,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
     [_scroll_1]() {
-      return this._scroll_1();
+      return this.scroll();
     }
     [_scroll_2](options) {
-      return this._scroll_2(options);
+      return this.scroll(options);
     }
     [_scroll_3](x, y) {
-      return this._scroll_3(x, y);
+      return this.scroll(x, y);
     }
     [_scroll_4](x, y) {
-      return this._scroll_4(x, y);
+      return this.scroll(x, y);
     }
     [_scroll_5](x, y, scrollOptions) {
-      return this._scroll_5(x, y, scrollOptions);
+      return this.scroll(x, y, scrollOptions);
     }
     [dartx.scrollBy](options_OR_x, y, scrollOptions) {
       if (options_OR_x === void 0) options_OR_x = null;
@@ -62615,19 +62615,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
     [_scrollBy_1]() {
-      return this._scrollBy_1();
+      return this.scrollBy();
     }
     [_scrollBy_2](options) {
-      return this._scrollBy_2(options);
+      return this.scrollBy(options);
     }
     [_scrollBy_3](x, y) {
-      return this._scrollBy_3(x, y);
+      return this.scrollBy(x, y);
     }
     [_scrollBy_4](x, y) {
-      return this._scrollBy_4(x, y);
+      return this.scrollBy(x, y);
     }
     [_scrollBy_5](x, y, scrollOptions) {
-      return this._scrollBy_5(x, y, scrollOptions);
+      return this.scrollBy(x, y, scrollOptions);
     }
     [dartx.scrollTo](options_OR_x, y, scrollOptions) {
       if (options_OR_x === void 0) options_OR_x = null;
@@ -62658,25 +62658,25 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
     [_scrollTo_1]() {
-      return this._scrollTo_1();
+      return this.scrollTo();
     }
     [_scrollTo_2](options) {
-      return this._scrollTo_2(options);
+      return this.scrollTo(options);
     }
     [_scrollTo_3](x, y) {
-      return this._scrollTo_3(x, y);
+      return this.scrollTo(x, y);
     }
     [_scrollTo_4](x, y) {
-      return this._scrollTo_4(x, y);
+      return this.scrollTo(x, y);
     }
     [_scrollTo_5](x, y, scrollOptions) {
-      return this._scrollTo_5(x, y, scrollOptions);
+      return this.scrollTo(x, y, scrollOptions);
     }
     [dartx.stop]() {
       return this.stop();
     }
     [__requestFileSystem](type, size, successCallback, errorCallback) {
-      return this.__requestFileSystem(type, size, successCallback, errorCallback);
+      return this.webkitRequestFileSystem(type, size, successCallback, errorCallback);
     }
     [_requestFileSystem](type, size) {
       let completer = async.Completer$(html$.FileSystem).new();
@@ -62688,7 +62688,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return completer.future;
     }
     [_resolveLocalFileSystemUrl](url, successCallback, errorCallback) {
-      return this._resolveLocalFileSystemUrl(url, successCallback, errorCallback);
+      return this.webkitResolveLocalFileSystemURL(url, successCallback, errorCallback);
     }
     [dartx.resolveLocalFileSystemUrl](url) {
       let completer = async.Completer$(html$.Entry).new();
@@ -62706,22 +62706,22 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.btoa(btoa);
     }
     [_setInterval_String](handler, timeout, arguments$) {
-      return this._setInterval_String(handler, timeout, arguments$);
+      return this.setInterval(handler, timeout, arguments$);
     }
     [_setTimeout_String](handler, timeout, arguments$) {
-      return this._setTimeout_String(handler, timeout, arguments$);
+      return this.setTimeout(handler, timeout, arguments$);
     }
     [_clearInterval](handle) {
-      return this._clearInterval(handle);
+      return this.clearInterval(handle);
     }
     [_clearTimeout](handle) {
-      return this._clearTimeout(handle);
+      return this.clearTimeout(handle);
     }
     [_setInterval](handler, timeout) {
-      return this._setInterval(handler, timeout);
+      return this.setInterval(handler, timeout);
     }
     [_setTimeout](handler, timeout) {
-      return this._setTimeout(handler, timeout);
+      return this.setTimeout(handler, timeout);
     }
     get [dartx.onContentLoaded]() {
       return html$.Window.contentLoadedEvent.forTarget(this);
@@ -63364,10 +63364,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_postMessage_1](message, transfer) {
-      return this._postMessage_1(message, transfer);
+      return this.postMessage(message, transfer);
     }
     [_postMessage_2](message) {
-      return this._postMessage_2(message);
+      return this.postMessage(message);
     }
     [dartx.terminate]() {
       return this.terminate();
@@ -63459,10 +63459,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.now();
     }
     [dartx.clearResourceTimings]() {
-      return this.clearResourceTimings();
+      return this.webkitClearResourceTimings();
     }
     [dartx.setResourceTimingBufferSize](maxSize) {
-      return this.setResourceTimingBufferSize(maxSize);
+      return this.webkitSetResourceTimingBufferSize(maxSize);
     }
   };
   dart.setSignature(html$.WorkerPerformance, {
@@ -63547,7 +63547,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.UnsupportedError("Not supported"));
     }
     [dartx.lookupNamespaceUri](prefix) {
-      return this.lookupNamespaceUri(prefix);
+      return this.lookupNamespaceURI(prefix);
     }
   };
   dart.setSignature(html$.XPathNSResolver, {
@@ -64296,7 +64296,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.UnsupportedError("Not supported"));
     }
     [_item](index) {
-      return this._item(index);
+      return this.item(index);
     }
   };
   dart.setSignature(html$._HTMLAllCollection, {
@@ -69564,10 +69564,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.getBBox();
     }
     [dartx.getCtm]() {
-      return this.getCtm();
+      return this.getCTM();
     }
     [dartx.getScreenCtm]() {
-      return this.getScreenCtm();
+      return this.getScreenCTM();
     }
     [dartx.getTransformToElement](element) {
       return this.getTransformToElement(element);
@@ -72757,61 +72757,61 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.pathSegList;
     }
     [dartx.createSvgPathSegArcAbs](x, y, r1, r2, angle, largeArcFlag, sweepFlag) {
-      return this.createSvgPathSegArcAbs(x, y, r1, r2, angle, largeArcFlag, sweepFlag);
+      return this.createSVGPathSegArcAbs(x, y, r1, r2, angle, largeArcFlag, sweepFlag);
     }
     [dartx.createSvgPathSegArcRel](x, y, r1, r2, angle, largeArcFlag, sweepFlag) {
-      return this.createSvgPathSegArcRel(x, y, r1, r2, angle, largeArcFlag, sweepFlag);
+      return this.createSVGPathSegArcRel(x, y, r1, r2, angle, largeArcFlag, sweepFlag);
     }
     [dartx.createSvgPathSegClosePath]() {
-      return this.createSvgPathSegClosePath();
+      return this.createSVGPathSegClosePath();
     }
     [dartx.createSvgPathSegCurvetoCubicAbs](x, y, x1, y1, x2, y2) {
-      return this.createSvgPathSegCurvetoCubicAbs(x, y, x1, y1, x2, y2);
+      return this.createSVGPathSegCurvetoCubicAbs(x, y, x1, y1, x2, y2);
     }
     [dartx.createSvgPathSegCurvetoCubicRel](x, y, x1, y1, x2, y2) {
-      return this.createSvgPathSegCurvetoCubicRel(x, y, x1, y1, x2, y2);
+      return this.createSVGPathSegCurvetoCubicRel(x, y, x1, y1, x2, y2);
     }
     [dartx.createSvgPathSegCurvetoCubicSmoothAbs](x, y, x2, y2) {
-      return this.createSvgPathSegCurvetoCubicSmoothAbs(x, y, x2, y2);
+      return this.createSVGPathSegCurvetoCubicSmoothAbs(x, y, x2, y2);
     }
     [dartx.createSvgPathSegCurvetoCubicSmoothRel](x, y, x2, y2) {
-      return this.createSvgPathSegCurvetoCubicSmoothRel(x, y, x2, y2);
+      return this.createSVGPathSegCurvetoCubicSmoothRel(x, y, x2, y2);
     }
     [dartx.createSvgPathSegCurvetoQuadraticAbs](x, y, x1, y1) {
-      return this.createSvgPathSegCurvetoQuadraticAbs(x, y, x1, y1);
+      return this.createSVGPathSegCurvetoQuadraticAbs(x, y, x1, y1);
     }
     [dartx.createSvgPathSegCurvetoQuadraticRel](x, y, x1, y1) {
-      return this.createSvgPathSegCurvetoQuadraticRel(x, y, x1, y1);
+      return this.createSVGPathSegCurvetoQuadraticRel(x, y, x1, y1);
     }
     [dartx.createSvgPathSegCurvetoQuadraticSmoothAbs](x, y) {
-      return this.createSvgPathSegCurvetoQuadraticSmoothAbs(x, y);
+      return this.createSVGPathSegCurvetoQuadraticSmoothAbs(x, y);
     }
     [dartx.createSvgPathSegCurvetoQuadraticSmoothRel](x, y) {
-      return this.createSvgPathSegCurvetoQuadraticSmoothRel(x, y);
+      return this.createSVGPathSegCurvetoQuadraticSmoothRel(x, y);
     }
     [dartx.createSvgPathSegLinetoAbs](x, y) {
-      return this.createSvgPathSegLinetoAbs(x, y);
+      return this.createSVGPathSegLinetoAbs(x, y);
     }
     [dartx.createSvgPathSegLinetoHorizontalAbs](x) {
-      return this.createSvgPathSegLinetoHorizontalAbs(x);
+      return this.createSVGPathSegLinetoHorizontalAbs(x);
     }
     [dartx.createSvgPathSegLinetoHorizontalRel](x) {
-      return this.createSvgPathSegLinetoHorizontalRel(x);
+      return this.createSVGPathSegLinetoHorizontalRel(x);
     }
     [dartx.createSvgPathSegLinetoRel](x, y) {
-      return this.createSvgPathSegLinetoRel(x, y);
+      return this.createSVGPathSegLinetoRel(x, y);
     }
     [dartx.createSvgPathSegLinetoVerticalAbs](y) {
-      return this.createSvgPathSegLinetoVerticalAbs(y);
+      return this.createSVGPathSegLinetoVerticalAbs(y);
     }
     [dartx.createSvgPathSegLinetoVerticalRel](y) {
-      return this.createSvgPathSegLinetoVerticalRel(y);
+      return this.createSVGPathSegLinetoVerticalRel(y);
     }
     [dartx.createSvgPathSegMovetoAbs](x, y) {
-      return this.createSvgPathSegMovetoAbs(x, y);
+      return this.createSVGPathSegMovetoAbs(x, y);
     }
     [dartx.createSvgPathSegMovetoRel](x, y) {
-      return this.createSvgPathSegMovetoRel(x, y);
+      return this.createSVGPathSegMovetoRel(x, y);
     }
     [dartx.getPathSegAtLength](distance) {
       return this.getPathSegAtLength(distance);
@@ -74471,28 +74471,28 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.checkIntersection(element, rect);
     }
     [dartx.createSvgAngle]() {
-      return this.createSvgAngle();
+      return this.createSVGAngle();
     }
     [dartx.createSvgLength]() {
-      return this.createSvgLength();
+      return this.createSVGLength();
     }
     [dartx.createSvgMatrix]() {
-      return this.createSvgMatrix();
+      return this.createSVGMatrix();
     }
     [dartx.createSvgNumber]() {
-      return this.createSvgNumber();
+      return this.createSVGNumber();
     }
     [dartx.createSvgPoint]() {
-      return this.createSvgPoint();
+      return this.createSVGPoint();
     }
     [dartx.createSvgRect]() {
-      return this.createSvgRect();
+      return this.createSVGRect();
     }
     [dartx.createSvgTransform]() {
-      return this.createSvgTransform();
+      return this.createSVGTransform();
     }
     [dartx.createSvgTransformFromMatrix](matrix) {
-      return this.createSvgTransformFromMatrix(matrix);
+      return this.createSVGTransformFromMatrix(matrix);
     }
     [dartx.deselectAll]() {
       return this.deselectAll();
@@ -75030,7 +75030,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.consolidate();
     }
     [dartx.createSvgTransformFromMatrix](matrix) {
-      return this.createSvgTransformFromMatrix(matrix);
+      return this.createSVGTransformFromMatrix(matrix);
     }
     [dartx.getItem](index) {
       return this.getItem(index);
@@ -75406,7 +75406,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.numberOfOutputs;
     }
     [_connect](destination, output, input) {
-      return this._connect(destination, output, input);
+      return this.connect(destination, output, input);
     }
     [dartx.disconnect](output) {
       return this.disconnect(output);
@@ -75721,7 +75721,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.createWaveShaper();
     }
     [_decodeAudioData](audioData, successCallback, errorCallback) {
-      return this._decodeAudioData(audioData, successCallback, errorCallback);
+      return this.decodeAudioData(audioData, successCallback, errorCallback);
     }
     [dartx.startRendering]() {
       return this.startRendering();
@@ -76603,22 +76603,22 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.blendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha);
     }
     [dartx.bufferByteData](target, data, usage) {
-      return this.bufferByteData(target, data, usage);
+      return this.bufferData(target, data, usage);
     }
     [dartx.bufferData](target, data_OR_size, usage) {
       return this.bufferData(target, data_OR_size, usage);
     }
     [dartx.bufferDataTyped](target, data, usage) {
-      return this.bufferDataTyped(target, data, usage);
+      return this.bufferData(target, data, usage);
     }
     [dartx.bufferSubByteData](target, offset, data) {
-      return this.bufferSubByteData(target, offset, data);
+      return this.bufferSubData(target, offset, data);
     }
     [dartx.bufferSubData](target, offset, data) {
       return this.bufferSubData(target, offset, data);
     }
     [dartx.bufferSubDataTyped](target, offset, data) {
-      return this.bufferSubDataTyped(target, offset, data);
+      return this.bufferSubData(target, offset, data);
     }
     [dartx.checkFramebufferStatus](target) {
       return this.checkFramebufferStatus(target);
@@ -76759,7 +76759,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.as(html_common.convertNativeToDart_ContextAttributes(this[_getContextAttributes_1$]()), web_gl.ContextAttributes);
     }
     [_getContextAttributes_1$]() {
-      return this._getContextAttributes_1();
+      return this.getContextAttributes();
     }
     [dartx.getError]() {
       return this.getError();
@@ -76912,25 +76912,25 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
     [_texImage2D_1](target, level, internalformat, width, height, border, format, type, pixels) {
-      return this._texImage2D_1(target, level, internalformat, width, height, border, format, type, pixels);
+      return this.texImage2D(target, level, internalformat, width, height, border, format, type, pixels);
     }
     [_texImage2D_2](target, level, internalformat, format, type, pixels) {
-      return this._texImage2D_2(target, level, internalformat, format, type, pixels);
+      return this.texImage2D(target, level, internalformat, format, type, pixels);
     }
     [_texImage2D_3](target, level, internalformat, format, type, image) {
-      return this._texImage2D_3(target, level, internalformat, format, type, image);
+      return this.texImage2D(target, level, internalformat, format, type, image);
     }
     [_texImage2D_4](target, level, internalformat, format, type, canvas) {
-      return this._texImage2D_4(target, level, internalformat, format, type, canvas);
+      return this.texImage2D(target, level, internalformat, format, type, canvas);
     }
     [_texImage2D_5](target, level, internalformat, format, type, video) {
-      return this._texImage2D_5(target, level, internalformat, format, type, video);
+      return this.texImage2D(target, level, internalformat, format, type, video);
     }
     [dartx.texImage2DCanvas](target, level, internalformat, format, type, canvas) {
-      return this.texImage2DCanvas(target, level, internalformat, format, type, canvas);
+      return this.texImage2D(target, level, internalformat, format, type, canvas);
     }
     [dartx.texImage2DImage](target, level, internalformat, format, type, image) {
-      return this.texImage2DImage(target, level, internalformat, format, type, image);
+      return this.texImage2D(target, level, internalformat, format, type, image);
     }
     [dartx.texImage2DImageData](target, level, internalformat, format, type, pixels) {
       let pixels_1 = html_common.convertDartToNative_ImageData(pixels);
@@ -76938,10 +76938,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_texImage2DImageData_1](target, level, internalformat, format, type, pixels) {
-      return this._texImage2DImageData_1(target, level, internalformat, format, type, pixels);
+      return this.texImage2D(target, level, internalformat, format, type, pixels);
     }
     [dartx.texImage2DVideo](target, level, internalformat, format, type, video) {
-      return this.texImage2DVideo(target, level, internalformat, format, type, video);
+      return this.texImage2D(target, level, internalformat, format, type, video);
     }
     [dartx.texParameterf](target, pname, param) {
       return this.texParameterf(target, pname, param);
@@ -76976,25 +76976,25 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
     [_texSubImage2D_1](target, level, xoffset, yoffset, width, height, format, type, pixels) {
-      return this._texSubImage2D_1(target, level, xoffset, yoffset, width, height, format, type, pixels);
+      return this.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixels);
     }
     [_texSubImage2D_2](target, level, xoffset, yoffset, format, type, pixels) {
-      return this._texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels);
+      return this.texSubImage2D(target, level, xoffset, yoffset, format, type, pixels);
     }
     [_texSubImage2D_3](target, level, xoffset, yoffset, format, type, image) {
-      return this._texSubImage2D_3(target, level, xoffset, yoffset, format, type, image);
+      return this.texSubImage2D(target, level, xoffset, yoffset, format, type, image);
     }
     [_texSubImage2D_4](target, level, xoffset, yoffset, format, type, canvas) {
-      return this._texSubImage2D_4(target, level, xoffset, yoffset, format, type, canvas);
+      return this.texSubImage2D(target, level, xoffset, yoffset, format, type, canvas);
     }
     [_texSubImage2D_5](target, level, xoffset, yoffset, format, type, video) {
-      return this._texSubImage2D_5(target, level, xoffset, yoffset, format, type, video);
+      return this.texSubImage2D(target, level, xoffset, yoffset, format, type, video);
     }
     [dartx.texSubImage2DCanvas](target, level, xoffset, yoffset, format, type, canvas) {
-      return this.texSubImage2DCanvas(target, level, xoffset, yoffset, format, type, canvas);
+      return this.texSubImage2D(target, level, xoffset, yoffset, format, type, canvas);
     }
     [dartx.texSubImage2DImage](target, level, xoffset, yoffset, format, type, image) {
-      return this.texSubImage2DImage(target, level, xoffset, yoffset, format, type, image);
+      return this.texSubImage2D(target, level, xoffset, yoffset, format, type, image);
     }
     [dartx.texSubImage2DImageData](target, level, xoffset, yoffset, format, type, pixels) {
       let pixels_1 = html_common.convertDartToNative_ImageData(pixels);
@@ -77002,10 +77002,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return;
     }
     [_texSubImage2DImageData_1](target, level, xoffset, yoffset, format, type, pixels) {
-      return this._texSubImage2DImageData_1(target, level, xoffset, yoffset, format, type, pixels);
+      return this.texSubImage2D(target, level, xoffset, yoffset, format, type, pixels);
     }
     [dartx.texSubImage2DVideo](target, level, xoffset, yoffset, format, type, video) {
-      return this.texSubImage2DVideo(target, level, xoffset, yoffset, format, type, video);
+      return this.texSubImage2D(target, level, xoffset, yoffset, format, type, video);
     }
     [dartx.uniform1f](location, x) {
       return this.uniform1f(location, x);
@@ -77101,16 +77101,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.viewport(x, y, width, height);
     }
     [dartx.texImage2DUntyped](targetTexture, levelOfDetail, internalFormat, format, type, data) {
-      return this.texImage2DUntyped(targetTexture, levelOfDetail, internalFormat, format, type, data);
+      return this.texImage2D(targetTexture, levelOfDetail, internalFormat, format, type, data);
     }
     [dartx.texImage2DTyped](targetTexture, levelOfDetail, internalFormat, width, height, border, format, type, data) {
-      return this.texImage2DTyped(targetTexture, levelOfDetail, internalFormat, width, height, border, format, type, data);
+      return this.texImage2D(targetTexture, levelOfDetail, internalFormat, width, height, border, format, type, data);
     }
     [dartx.texSubImage2DUntyped](targetTexture, levelOfDetail, xOffset, yOffset, format, type, data) {
-      return this.texSubImage2DUntyped(targetTexture, levelOfDetail, xOffset, yOffset, format, type, data);
+      return this.texSubImage2D(targetTexture, levelOfDetail, xOffset, yOffset, format, type, data);
     }
     [dartx.texSubImage2DTyped](targetTexture, levelOfDetail, xOffset, yOffset, width, height, border, format, type, data) {
-      return this.texSubImage2DTyped(targetTexture, levelOfDetail, xOffset, yOffset, width, height, border, format, type, data);
+      return this.texSubImage2D(targetTexture, levelOfDetail, xOffset, yOffset, width, height, border, format, type, data);
     }
   };
   web_gl.RenderingContext[dart.implements] = () => [html$.CanvasRenderingContext];
@@ -77924,13 +77924,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.UnsupportedError("Not supported"));
     }
     [dartx.drawArraysInstancedAngle](mode, first, count, primcount) {
-      return this.drawArraysInstancedAngle(mode, first, count, primcount);
+      return this.drawArraysInstancedANGLE(mode, first, count, primcount);
     }
     [dartx.drawElementsInstancedAngle](mode, count, type, offset, primcount) {
-      return this.drawElementsInstancedAngle(mode, count, type, offset, primcount);
+      return this.drawElementsInstancedANGLE(mode, count, type, offset, primcount);
     }
     [dartx.vertexAttribDivisorAngle](index, divisor) {
-      return this.vertexAttribDivisorAngle(index, divisor);
+      return this.vertexAttribDivisorANGLE(index, divisor);
     }
   };
   dart.setSignature(web_gl.AngleInstancedArrays, {
@@ -78131,7 +78131,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.UnsupportedError("Not supported"));
     }
     [dartx.drawBuffersWebgl](buffers) {
-      return this.drawBuffersWebgl(buffers);
+      return this.drawBuffersWEBGL(buffers);
     }
   };
   dart.setSignature(web_gl.DrawBuffers, {
@@ -78314,16 +78314,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.UnsupportedError("Not supported"));
     }
     [dartx.bindVertexArray](arrayObject) {
-      return this.bindVertexArray(arrayObject);
+      return this.bindVertexArrayOES(arrayObject);
     }
     [dartx.createVertexArray]() {
-      return this.createVertexArray();
+      return this.createVertexArrayOES();
     }
     [dartx.deleteVertexArray](arrayObject) {
-      return this.deleteVertexArray(arrayObject);
+      return this.deleteVertexArrayOES(arrayObject);
     }
     [dartx.isVertexArray](arrayObject) {
-      return this.isVertexArray(arrayObject);
+      return this.isVertexArrayOES(arrayObject);
     }
   };
   dart.setSignature(web_gl.OesVertexArrayObject, {
@@ -78581,7 +78581,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html_common.convertNativeToDart_Dictionary(this[_item_1](index));
     }
     [_item_1](index) {
-      return this._item_1(index);
+      return this.item(index);
     }
   };
   web_sql.SqlResultSetRowList[dart.implements] = () => [core.List$(core.Map)];
