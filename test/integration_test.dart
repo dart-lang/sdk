@@ -53,6 +53,12 @@ defineTests() {
           expect(collectingOut.trim(),
               stringContainsInOrder(['4 files analyzed, 0 issues found, in']));
         });
+        test('default', () {
+          dartlint.main(['test/_data/p2']);
+          expect(exitCode, 1);
+          expect(collectingOut.trim(),
+              stringContainsInOrder(['4 files analyzed, 3 issues found, in']));
+        });
       });
     });
     group('p3', () {

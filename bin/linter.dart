@@ -174,12 +174,16 @@ $stack''');
   }
 }
 
+Iterable<AnalysisError> _filtered(
+        List<AnalysisError> errors, LintFilter filter) =>
+    (filter == null)
+        ? errors
+        : errors.where((AnalysisError e) => !filter.filter(e));
+
 int _maxSeverity(List<AnalysisErrorInfo> errors, LintFilter filter) {
   int max = 0;
   for (AnalysisErrorInfo info in errors) {
-    info.errors
-        .where((AnalysisError e) => !filter.filter(e))
-        .forEach((AnalysisError e) {
+    _filtered(info.errors, filter).forEach((AnalysisError e) {
       max = math.max(max, e.errorCode.errorSeverity.ordinal);
     });
   }
