@@ -22,6 +22,7 @@ import 'protocol_test.dart' as protocol_test;
 import 'search/test_all.dart' as search_all;
 import 'server_options_test.dart' as server_options;
 import 'services/test_all.dart' as services_all;
+import 'single_context_manager_test.dart' as single_context_manager_test;
 import 'socket_server_test.dart' as socket_server_test;
 import 'source/test_all.dart' as source_all;
 import 'src/test_all.dart' as src_all;
@@ -51,6 +52,7 @@ main() {
     search_all.main();
     server_options.main();
     services_all.main();
+    single_context_manager_test.main();
     socket_server_test.main();
     source_all.main();
     src_all.main();
