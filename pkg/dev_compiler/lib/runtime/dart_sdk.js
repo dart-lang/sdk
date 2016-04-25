@@ -30887,7 +30887,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   indexed_db._completeRequest = function(request) {
     let completer = async.Completer.sync();
     request[dartx.onSuccess].listen(dart.fn(e => {
-      completer.complete(dart.as(request[dartx.result], dart.dynamic));
+      let result = indexed_db._cast(request[dartx.result]);
+      completer.complete(result);
     }, dart.void, [html$.Event]));
     request[dartx.onError].listen(dart.bind(completer, 'completeError'));
     return completer.future;
@@ -31338,7 +31339,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let controller = async.StreamController.new({sync: true});
       request[dartx.onError].listen(dart.bind(controller, 'addError'));
       request[dartx.onSuccess].listen(dart.fn(e => {
-        let cursor = dart.as(request[dartx.result], dart.dynamic);
+        let cursor = indexed_db._cast(request[dartx.result]);
         if (cursor == null) {
           controller.close();
         } else {
@@ -31387,6 +31388,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   indexed_db.ObjectStore[dart.metadata] = () => [dart.const(new _metadata.DomName('IDBObjectStore')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("IDBObjectStore"))];
   dart.registerExtension(dart.global.IDBObjectStore, indexed_db.ObjectStore);
+  indexed_db._cast = function(x) {
+    return dart.as(x, dart.dynamic);
+  };
+  dart.fn(indexed_db._cast, dart.dynamic, [dart.dynamic]);
   const _get_result = Symbol('_get_result');
   dart.defineExtensionNames([
     'result',
@@ -45455,7 +45460,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_nodeList][dartx.length];
       }
       get(index) {
-        return dart.as(this[_nodeList][dartx.get](index), E);
+        return html$._downcast(this[_nodeList][dartx.get](index));
       }
       set(index, value) {
         dart.as(value, E);
@@ -45475,13 +45480,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(new core.UnsupportedError('Cannot shuffle list'));
       }
       get first() {
-        return dart.as(this[_nodeList][dartx.first], E);
+        return html$._downcast(this[_nodeList][dartx.first]);
       }
       get last() {
-        return dart.as(this[_nodeList][dartx.last], E);
+        return html$._downcast(this[_nodeList][dartx.last]);
       }
       get single() {
-        return dart.as(this[_nodeList][dartx.single], E);
+        return html$._downcast(this[_nodeList][dartx.single]);
       }
       get classes() {
         return html$._MultiElementCssClassSet.new(this);
@@ -67740,7 +67745,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_list$][dartx.clear]();
       }
       get(index) {
-        return dart.as(this[_list$][dartx.get](index), E);
+        return html$._downcast(this[_list$][dartx.get](index));
       }
       set(index, value) {
         dart.as(value, E);
@@ -67753,7 +67758,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       sort(compare) {
         if (compare === void 0) compare = null;
         dart.as(compare, dart.functionType(core.int, [E, E]));
-        this[_list$][dartx.sort](dart.fn((a, b) => compare(dart.as(a, E), dart.as(b, E)), core.int, [html$.Node, html$.Node]));
+        this[_list$][dartx.sort](dart.fn((a, b) => compare(html$._downcast(a), html$._downcast(b)), core.int, [html$.Node, html$.Node]));
       }
       indexOf(element, start) {
         if (start === void 0) start = 0;
@@ -67768,7 +67773,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_list$][dartx.insert](index, element);
       }
       removeAt(index) {
-        return dart.as(this[_list$][dartx.removeAt](index), E);
+        return html$._downcast(this[_list$][dartx.removeAt](index));
       }
       setRange(start, end, iterable, skipCount) {
         dart.as(iterable, core.Iterable$(E));
@@ -67838,7 +67843,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_iterator$1].moveNext();
       }
       get current() {
-        return dart.as(this[_iterator$1].current, E);
+        return html$._downcast(this[_iterator$1].current);
       }
     }
     _WrappedIterator[dart.implements] = () => [core.Iterator$(E)];
@@ -67849,6 +67854,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return _WrappedIterator;
   });
   html$._WrappedIterator = html$._WrappedIterator$();
+  html$._downcast = function(x) {
+    return dart.as(x, dart.dynamic);
+  };
+  dart.fn(html$._downcast, dart.dynamic, [dart.dynamic]);
   html$._HttpRequestUtils = class _HttpRequestUtils extends core.Object {
     static get(url, onComplete, withCredentials) {
       let request = html$.HttpRequest.new();
