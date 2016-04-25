@@ -7,6 +7,7 @@ import 'dart:mirrors';
 
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/base.dart';
+import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
 const int MAX_LINE_LENGTH = 80;
@@ -280,6 +281,8 @@ class SummaryInspector {
         '${bundle.majorVersion}.${bundle.minorVersion}');
     restOfMap.remove('majorVersion');
     restOfMap.remove('minorVersion');
+    result['linkedLibraryUris'] = restOfMap['linkedLibraryUris'];
+    result['unlinkedUnitUris'] = restOfMap['unlinkedUnitUris'];
     for (int i = 0; i < bundle.linkedLibraries.length; i++) {
       String libraryUriString = bundle.linkedLibraryUris[i];
       Uri libraryUri = Uri.parse(libraryUriString);
@@ -331,7 +334,7 @@ class SummaryInspector {
   DecodedEntity decodeUnit(UnitWrapper obj) {
     try {
       LinkedUnit linked = obj._linked;
-      UnlinkedUnit unlinked = obj._unlinked;
+      UnlinkedUnit unlinked = obj._unlinked ?? new UnlinkedUnitBuilder();
       Map<String, Object> unlinkedMap = unlinked.toMap();
       Map<String, Object> linkedMap =
           linked != null ? linked.toMap() : <String, Object>{};
