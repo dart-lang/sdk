@@ -39,6 +39,8 @@ class Profiler : public AllStatic {
     return sample_buffer_;
   }
 
+  static void DumpStackTrace(bool native_stack_trace = true);
+
   static void SampleAllocation(Thread* thread, intptr_t cid);
 
   // SampleThread is called from inside the signal handler and hence it is very
