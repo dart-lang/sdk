@@ -213,8 +213,11 @@ abstract class Compiler implements LibraryLoaderListener {
   /// The [String.fromEnvironment] constructor.
   ConstructorElement stringEnvironment;
 
+  // TODO(zarah): Remove this map and incorporate compile-time errors
+  // in the model.
   /// Tracks elements with compile-time errors.
-  final Set<Element> elementsWithCompileTimeErrors = new Set<Element>();
+  final Map<Element, List<DiagnosticMessage>> elementsWithCompileTimeErrors =
+      new Map<Element, List<DiagnosticMessage>>();
 
   final Environment environment;
   // TODO(sigmund): delete once we migrate the rest of the compiler to use
@@ -272,16 +275,7 @@ abstract class Compiler implements LibraryLoaderListener {
   static const int PHASE_COMPILING = 3;
   int phase;
 
-  bool compilationFailedInternal = false;
-
-  bool get compilationFailed => compilationFailedInternal;
-
-  void set compilationFailed(bool value) {
-    if (value) {
-      elementsWithCompileTimeErrors.add(currentElement);
-    }
-    compilationFailedInternal = value;
-  }
+  bool compilationFailed = false;
 
   Compiler(
       {CompilerOptions options,
@@ -1096,6 +1090,7 @@ abstract class Compiler implements LibraryLoaderListener {
     if (markCompilationAsFailed(message, kind)) {
       compilationFailed = true;
     }
+    registerCompiletimeError(currentElement, message);
   }
 
   /**
@@ -1231,8 +1226,24 @@ abstract class Compiler implements LibraryLoaderListener {
     backend.forgetElement(element);
   }
 
+  /// Returns [true] if a compile-time error has been reported for element.
   bool elementHasCompileTimeError(Element element) {
-    return elementsWithCompileTimeErrors.contains(element);
+    return elementsWithCompileTimeErrors.containsKey(element);
+  }
+
+  /// Associate [element] with a compile-time error [message].
+  void registerCompiletimeError(Element element, DiagnosticMessage message) {
+    // The information is only needed if [generateCodeWithCompileTimeErrors].
+    if (options.generateCodeWithCompileTimeErrors) {
+      if (element == null) {
+        // Record as global error.
+        // TODO(zarah): Extend element model to represent compile-time
+        // errors instead of using a map.
+        element = mainFunction;
+      }
+      elementsWithCompileTimeErrors.
+          putIfAbsent(element, () => <DiagnosticMessage>[]).add(message);
+    }
   }
 
   EventSink<String> outputProvider(String name, String extension) {
@@ -1495,6 +1506,13 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     if (kind == api.Diagnostic.ERROR ||
         kind == api.Diagnostic.CRASH ||
         (options.fatalWarnings && kind == api.Diagnostic.WARNING)) {
+      Element errorElement;
+      if (message.spannable is Element) {
+        errorElement = message.spannable;
+      } else {
+        errorElement = currentElement;
+      }
+      compiler.registerCompiletimeError(errorElement, message);
       compiler.fatalDiagnosticReported(message, infos, kind);
     }
   }
