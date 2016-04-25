@@ -12,6 +12,21 @@ import 'package:analyzer/dart/element/type.dart';
 List<String> _KNOWN_METHOD_NAME_PREFIXES = ['get', 'is', 'to'];
 
 /**
+ * Returns all variants of names by removing leading words one by one.
+ */
+List<String> getCamelWordCombinations(String name) {
+  List<String> result = [];
+  List<String> parts = getCamelWords(name);
+  for (int i = 0; i < parts.length; i++) {
+    var s1 = parts[i].toLowerCase();
+    var s2 = parts.skip(i + 1).join();
+    String suggestion = '$s1$s2';
+    result.add(suggestion);
+  }
+  return result;
+}
+
+/**
  * Returns possible names for a variable with the given expected type and
  * expression assigned.
  */
@@ -23,12 +38,12 @@ List<String> getVariableNameSuggestionsForExpression(DartType expectedType,
     String nameFromExpression = _getBaseNameFromExpression(assignedExpression);
     if (nameFromExpression != null) {
       nameFromExpression = removeStart(nameFromExpression, '_');
-      _addAll(excluded, res, _getCamelWordCombinations(nameFromExpression));
+      _addAll(excluded, res, getCamelWordCombinations(nameFromExpression));
     }
     String nameFromParent =
         _getBaseNameFromLocationInParent(assignedExpression);
     if (nameFromParent != null) {
-      _addAll(excluded, res, _getCamelWordCombinations(nameFromParent));
+      _addAll(excluded, res, getCamelWordCombinations(nameFromParent));
     }
   }
   // use type
@@ -41,7 +56,7 @@ List<String> getVariableNameSuggestionsForExpression(DartType expectedType,
     } else if ('String' == typeName) {
       _addSingleCharacterName(excluded, res, 0x73);
     } else {
-      _addAll(excluded, res, _getCamelWordCombinations(typeName));
+      _addAll(excluded, res, getCamelWordCombinations(typeName));
     }
     res.remove(typeName);
   }
@@ -80,7 +95,7 @@ List<String> getVariableNameSuggestionsForText(
   }
   // split camel-case into separate suggested names
   Set<String> res = new Set();
-  _addAll(excluded, res, _getCamelWordCombinations(text));
+  _addAll(excluded, res, getCamelWordCombinations(text));
   return new List.from(res);
 }
 
@@ -199,19 +214,4 @@ String _getBaseNameFromLocationInParent(Expression expression) {
   }
   // unknown
   return null;
-}
-
-/**
- * Returns all variants of names by removing leading words one by one.
- */
-List<String> _getCamelWordCombinations(String name) {
-  List<String> result = [];
-  List<String> parts = getCamelWords(name);
-  for (int i = 0; i < parts.length; i++) {
-    var s1 = parts[i].toLowerCase();
-    var s2 = parts.skip(i + 1).join();
-    String suggestion = '$s1$s2';
-    result.add(suggestion);
-  }
-  return result;
 }

@@ -817,6 +817,16 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+   if (entity is Token) {
+     Token token = entity;
+     if (token.isSynthetic || token.lexeme == ';') {
+       optype.includeVarNameSuggestions = true;
+     }
+   }
+  }
+
+  @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {}
 
   @override

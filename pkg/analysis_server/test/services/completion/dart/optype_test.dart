@@ -1427,7 +1427,18 @@ class C2 {
   test_TopLevelVariableDeclaration_typed_name() {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // TopLevelVariableDeclaration
+    // _OpTypeAstVisitor.visitVariableDeclarationList is executed with this
+    // source, but _OpTypeAstVisitor.visitTopLevelVariableDeclaration is called
+    // for test_TopLevelVariableDeclaration_typed_name_semicolon
     addTestSource('class A {} B ^');
+    assertOpType(varNames: true);
+  }
+
+  test_TopLevelVariableDeclaration_typed_name_semicolon() {
+    // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
+    // TopLevelVariableDeclaration
+    // See comment in test_TopLevelVariableDeclaration_typed_name
+    addTestSource('class A {} B ^;');
     assertOpType(varNames: true);
   }
 
