@@ -83,6 +83,54 @@ class SingleContextManagerTest {
     resourceProvider.newFolder(projPath);
   }
 
+  void test_isIgnored_false() {
+    String project = '/project';
+    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    expect(manager.isIgnored('$project/file.dart'), isFalse);
+  }
+
+  void test_isIgnored_true_inDotFolder() {
+    String project = '/project';
+    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    expect(manager.isIgnored('$project/foo/.bar/file.dart'), isTrue);
+  }
+
+  void test_isIgnored_true_inExcludedPath() {
+    String project = '/project';
+    String excludedPath = '/project/excluded';
+    manager.setRoots(
+        <String>[project], <String>[excludedPath], <String, String>{});
+    expect(manager.isIgnored('$excludedPath/file.dart'), isTrue);
+  }
+
+  void test_isIgnored_true_notInRoot() {
+    String root1 = '/context/root1';
+    String root2 = '/context/root2';
+    manager.setRoots(<String>[root1, root2], <String>[], <String, String>{});
+    expect(manager.isIgnored('$context/root3/file.dart'), isTrue);
+  }
+
+  void test_isInAnalysisRoot_false_inExcludedPath() {
+    String project = '/project';
+    String excludedPath = '/project/excluded';
+    manager.setRoots(
+        <String>[project], <String>[excludedPath], <String, String>{});
+    expect(manager.isInAnalysisRoot('$excludedPath/file.dart'), isFalse);
+  }
+
+  void test_isInAnalysisRoot_false_notInRoot() {
+    String root1 = '/context/root1';
+    String root2 = '/context/root2';
+    manager.setRoots(<String>[root1, root2], <String>[], <String, String>{});
+    expect(manager.isInAnalysisRoot('$context/root3/file.dart'), isFalse);
+  }
+
+  void test_isInAnalysisRoot_true() {
+    String project = '/project';
+    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    expect(manager.isInAnalysisRoot('$project/file.dart'), isTrue);
+  }
+
   void test_setRoots_addFolderWithDartFile() {
     String filePath = posix.join(projPath, 'lib', 'foo.dart');
     resourceProvider.newFile(filePath, 'contents');

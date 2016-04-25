@@ -10,7 +10,6 @@ import 'dart:math' as math;
 
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/path_filter.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -101,11 +100,6 @@ class SingleContextManager implements ContextManager {
   StreamSubscription<WatchEvent> watchSubscription;
 
   /**
-   * The [PathFilter] used to filter sources from being analyzed.
-   */
-  PathFilter pathFilter;
-
-  /**
    * The [packageResolverProvider] must not be `null`.
    */
   SingleContextManager(this.resourceProvider, this.sdkManager,
@@ -139,7 +133,9 @@ class SingleContextManager implements ContextManager {
   }
 
   @override
-  bool isIgnored(String path) => pathFilter.ignored(path);
+  bool isIgnored(String path) {
+    return !_isContainedIn(includedPaths, path) || _isExcludedPath(path);
+  }
 
   @override
   bool isInAnalysisRoot(String path) {
@@ -155,7 +151,6 @@ class SingleContextManager implements ContextManager {
       context.dispose();
       context = null;
       contextFolder = null;
-      pathFilter = null;
       if (watchSubscription != null) {
         watchSubscription.cancel();
         watchSubscription = null;
