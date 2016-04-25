@@ -24,6 +24,7 @@ import 'package:unittest/unittest.dart';
 
 import 'context_manager_test.dart' show TestContextManagerCallbacks;
 import 'mock_sdk.dart';
+import 'mocks.dart';
 import 'utils.dart';
 
 main() {
@@ -87,9 +88,7 @@ class SingleContextManagerTest {
     resourceProvider.newFile(filePath, 'contents');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
-    Map<String, int> filePaths = callbacks.currentContextFilePaths[projPath];
-    expect(filePaths, hasLength(1));
-    expect(filePaths, contains(filePath));
+    callbacks.assertContextFiles(projPath, [filePath]);
     // There is an analysis context.
     List<AnalysisContext> contextsInAnalysisRoot =
         manager.contextsInAnalysisRoot(rootFolder);
@@ -107,9 +106,7 @@ class SingleContextManagerTest {
     resourceProvider.newFile(filePath, 'contents');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
-    Map<String, int> filePaths = callbacks.currentContextFilePaths[projPath];
-    expect(filePaths, hasLength(1));
-    expect(filePaths, contains(filePath));
+    callbacks.assertContextFiles(projPath, [filePath]);
   }
 
   void test_setRoots_addFolderWithDummyLink() {
@@ -117,17 +114,7 @@ class SingleContextManagerTest {
     resourceProvider.newDummyLink(filePath);
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
-    Map<String, int> filePaths = callbacks.currentContextFilePaths[projPath];
-    expect(filePaths, isEmpty);
-  }
-
-  void test_setRoots_addFolderWithNestedPackageSpec() {
-    newFile([projPath, 'aaa', 'pubspec.yaml']);
-    newFile([projPath, 'bbb', 'pubspec.yaml']);
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    // We don't care about pubspec.yaml files - still just one context.
-    callbacks.assertContextPaths([projPath]);
-    expect(manager.contextsInAnalysisRoot(rootFolder), hasLength(1));
+    callbacks.assertContextFiles(projPath, []);
   }
 
   void test_setRoots_exclude_newRoot_withExcludedFile() {
@@ -331,6 +318,129 @@ class SingleContextManagerTest {
     manager.setRoots(<String>[project], <String>[], <String, String>{});
     callbacks.assertContextPaths([project]);
     callbacks.assertContextFiles(project, [fileA]);
+  }
+
+  test_watch_addFile() async {
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // empty folder initially
+    callbacks.assertContextFiles(projPath, []);
+    // add file
+    String filePath = posix.join(projPath, 'foo.dart');
+    resourceProvider.newFile(filePath, 'contents');
+    // the file was added
+    await pumpEventQueue();
+    callbacks.assertContextFiles(projPath, [filePath]);
+  }
+
+  test_watch_addFile_excluded() async {
+    String folderA = '$projPath/aaa';
+    String folderB = '$projPath/bbb';
+    String fileA = '$folderA/a.dart';
+    String fileB = '$folderB/b.dart';
+    // create files
+    resourceProvider.newFile(fileA, 'library a;');
+    // set roots
+    manager.setRoots(<String>[projPath], <String>[folderB], <String, String>{});
+    callbacks.assertContextPaths([projPath]);
+    callbacks.assertContextFiles(projPath, [fileA]);
+    // add a file, ignored as excluded
+    resourceProvider.newFile(fileB, 'library b;');
+    await pumpEventQueue();
+    callbacks.assertContextPaths([projPath]);
+    callbacks.assertContextFiles(projPath, [fileA]);
+  }
+
+  test_watch_addFile_notInRoot() async {
+    String contextPath = '/roots';
+    String root1 = '$contextPath/root1';
+    String root2 = '$contextPath/root2';
+    String root3 = '$contextPath/root3';
+    String file1 = '$root1/file1.dart';
+    String file2 = '$root2/file2.dart';
+    String file3 = '$root3/file3.dart';
+    // create files
+    resourceProvider.newFile(file1, '');
+    resourceProvider.newFile(file2, '');
+    // set roots
+    manager.setRoots(<String>[root1, root2], <String>[], <String, String>{});
+    callbacks.assertContextPaths([contextPath]);
+    callbacks.assertContextFiles(contextPath, [file1, file2]);
+    // add a file, not in a root - ignored
+    resourceProvider.newFile(file3, '');
+    await pumpEventQueue();
+    callbacks.assertContextPaths([contextPath]);
+    callbacks.assertContextFiles(contextPath, [file1, file2]);
+  }
+
+  test_watch_addFile_pathContainsDotFile() async {
+    // If a file is added and the absolute path to it contains a folder whose
+    // name begins with '.', then the file is ignored.
+    String project = '/project';
+    String fileA = '$project/foo.dart';
+    String fileB = '$project/.pub/bar.dart';
+    resourceProvider.newFile(fileA, '');
+    manager.setRoots(<String>[project], <String>[], <String, String>{});
+    callbacks.assertContextPaths([project]);
+    callbacks.assertContextFiles(project, [fileA]);
+    resourceProvider.newFile(fileB, '');
+    await pumpEventQueue();
+    callbacks.assertContextPaths([project]);
+    callbacks.assertContextFiles(project, [fileA]);
+  }
+
+  test_watch_addFileInSubfolder() async {
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // empty folder initially
+    callbacks.assertContextFiles(projPath, []);
+    // add file in subfolder
+    String filePath = posix.join(projPath, 'foo', 'bar.dart');
+    resourceProvider.newFile(filePath, 'contents');
+    // the file was added
+    await pumpEventQueue();
+    callbacks.assertContextFiles(projPath, [filePath]);
+  }
+
+  test_watch_deleteFile() async {
+    String filePath = posix.join(projPath, 'foo.dart');
+    // add root with a file
+    resourceProvider.newFile(filePath, 'contents');
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // the file was added
+    callbacks.assertContextFiles(projPath, [filePath]);
+    // delete the file
+    resourceProvider.deleteFile(filePath);
+    await pumpEventQueue();
+    callbacks.assertContextFiles(projPath, []);
+  }
+
+  test_watch_deleteFolder() async {
+    String filePath = posix.join(projPath, 'foo.dart');
+    // add root with a file
+    resourceProvider.newFile(filePath, 'contents');
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // the file was added
+    callbacks.assertContextFiles(projPath, [filePath]);
+    // delete the folder
+    resourceProvider.deleteFolder(projPath);
+    await pumpEventQueue();
+    callbacks.assertContextFiles(projPath, []);
+  }
+
+  test_watch_modifyFile() async {
+    String filePath = posix.join(projPath, 'foo.dart');
+    // add root with a file
+    resourceProvider.newFile(filePath, 'contents');
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // the file was added
+    Map<String, int> filePaths = callbacks.currentContextFilePaths[projPath];
+    expect(filePaths, hasLength(1));
+    expect(filePaths, contains(filePath));
+    expect(filePaths[filePath], equals(callbacks.now));
+    // update the file
+    callbacks.now++;
+    resourceProvider.modifyFile(filePath, 'new contents');
+    await pumpEventQueue();
+    return expect(filePaths[filePath], equals(callbacks.now));
   }
 
   void _processRequiredPlugins() {

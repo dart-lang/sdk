@@ -4,6 +4,7 @@
 
 library analysis_server.src.single_context_manager;
 
+import 'dart:async';
 import 'dart:core' hide Resource;
 import 'dart:math' as math;
 
@@ -15,6 +16,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:path/path.dart' as path;
+import 'package:watcher/watcher.dart';
 
 /**
  * A function that will return a [UriResolver] that can be used to resolve
@@ -34,6 +36,11 @@ class SingleContextManager implements ContextManager {
    * The [ResourceProvider] using which paths are converted into [Resource]s.
    */
   final ResourceProvider resourceProvider;
+
+  /**
+   * The context used to work with file system paths.
+   */
+  path.Context pathContext;
 
   /**
    * The manager used to access the SDK that should be associated with a
@@ -89,6 +96,11 @@ class SingleContextManager implements ContextManager {
   Folder contextFolder;
 
   /**
+   * The current [contextFolder] watch subscription.
+   */
+  StreamSubscription<WatchEvent> watchSubscription;
+
+  /**
    * The [PathFilter] used to filter sources from being analyzed.
    */
   PathFilter pathFilter;
@@ -97,7 +109,9 @@ class SingleContextManager implements ContextManager {
    * The [packageResolverProvider] must not be `null`.
    */
   SingleContextManager(this.resourceProvider, this.sdkManager,
-      this.packageResolverProvider, this.analyzedFilesGlobs);
+      this.packageResolverProvider, this.analyzedFilesGlobs) {
+    pathContext = resourceProvider.pathContext;
+  }
 
   @override
   Iterable<AnalysisContext> get analysisContexts =>
@@ -142,6 +156,10 @@ class SingleContextManager implements ContextManager {
       context = null;
       contextFolder = null;
       pathFilter = null;
+      if (watchSubscription != null) {
+        watchSubscription.cancel();
+        watchSubscription = null;
+      }
       setRoots(includedPaths, excludedPaths, packageRoots);
     }
   }
@@ -162,7 +180,11 @@ class SingleContextManager implements ContextManager {
           callbacks.moveContext(this.contextFolder, contextFolder);
         }
         this.contextFolder = contextFolder;
-        // TODO(scheglov) watch for changes in `contextFolder`
+        // Start new watcher and cancel the old one.
+        StreamSubscription<WatchEvent> watchSubscription =
+            this.contextFolder.changes.listen(_handleWatchEvent);
+        this.watchSubscription?.cancel();
+        this.watchSubscription = watchSubscription;
       }
     }
     if (context == null) {
@@ -209,6 +231,36 @@ class SingleContextManager implements ContextManager {
     }
   }
 
+  ChangeSet _buildChangeSet({List<File> added, List<File> removed}) {
+    ChangeSet changeSet = new ChangeSet();
+    if (added != null) {
+      for (File file in added) {
+        Source source = createSourceInContext(context, file);
+        changeSet.addedSource(source);
+      }
+    }
+    if (removed != null) {
+      for (File file in removed) {
+        Source source = createSourceInContext(context, file);
+        changeSet.removedSource(source);
+      }
+    }
+    return changeSet;
+  }
+
+  String _commonPrefix(List<String> paths) {
+    if (paths.isEmpty) {
+      return '';
+    }
+    List<String> left = pathContext.split(paths[0]);
+    int count = left.length;
+    for (int i = 1; i < paths.length; i++) {
+      List<String> right = pathContext.split(paths[i]);
+      count = _commonComponents(left, count, right);
+    }
+    return pathContext.joinAll(left.sublist(0, count));
+  }
+
   List<Resource> _existingResources(List<String> pathList) {
     List<Resource> resources = <Resource>[];
     for (String path in pathList) {
@@ -229,6 +281,46 @@ class SingleContextManager implements ContextManager {
     return resources;
   }
 
+  void _handleWatchEvent(WatchEvent event) {
+    String path = event.path;
+    // Ignore if excluded.
+    if (_isExcludedPath(path)) {
+      return;
+    }
+    // Ignore if not in a root.
+    if (!_isContainedIn(includedPaths, path)) {
+      return;
+    }
+    // Handle the change.
+    switch (event.type) {
+      case ChangeType.ADD:
+        Resource resource = resourceProvider.getResource(path);
+        if (resource is File) {
+          if (_matchesAnyAnalyzedFilesGlob(path)) {
+            callbacks.applyChangesToContext(
+                contextFolder, _buildChangeSet(added: <File>[resource]));
+          }
+        }
+        break;
+      case ChangeType.REMOVE:
+        List<Source> sources = context.getSourcesWithFullName(path);
+        if (!sources.isEmpty) {
+          ChangeSet changeSet = new ChangeSet();
+          sources.forEach(changeSet.removedSource);
+          callbacks.applyChangesToContext(contextFolder, changeSet);
+        }
+        break;
+      case ChangeType.MODIFY:
+        List<Source> sources = context.getSourcesWithFullName(path);
+        if (!sources.isEmpty) {
+          ChangeSet changeSet = new ChangeSet();
+          sources.forEach(changeSet.changedSource);
+          callbacks.applyChangesToContext(contextFolder, changeSet);
+        }
+        break;
+    }
+  }
+
   List<File> _includedFiles(
       List<String> includedPaths, List<String> excludedPaths) {
     List<Resource> includedResources = _existingResources(includedPaths);
@@ -237,6 +329,48 @@ class SingleContextManager implements ContextManager {
       _addFilesInResource(includedFiles, resource, excludedPaths);
     }
     return includedFiles;
+  }
+
+  bool _isContainedIn(List<String> pathList, String path) {
+    for (String pathInList in pathList) {
+      if (_isEqualOrWithin(pathInList, path)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _isEqualOrWithin(String parent, String child) {
+    return child == parent || pathContext.isWithin(parent, child);
+  }
+
+  bool _isEqualOrWithinAny(List<String> parents, String child) {
+    for (String parent in parents) {
+      if (_isEqualOrWithin(parent, child)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Return `true` if the given [path] should be excluded, using explicit
+   * or implicit rules.
+   */
+  bool _isExcludedPath(String path) {
+    List<String> parts = resourceProvider.pathContext.split(path);
+    // Implicit rules.
+    for (String part in parts) {
+      if (part.startsWith('.')) {
+        return true;
+      }
+    }
+    // Explicitly excluded paths.
+    if (_isEqualOrWithinAny(excludedPaths, path)) {
+      return true;
+    }
+    // OK
+    return false;
   }
 
   /**
@@ -264,6 +398,34 @@ class SingleContextManager implements ContextManager {
   }
 
   /**
+   * Return a list consisting of the elements from [pathList] that describe the
+   * minimal set of directories that include everything in the original list of
+   * paths and nothing more. In particular:
+   *
+   *  * if a path is in the input list multiple times it will appear at most
+   *    once in the output list, and
+   *  * if a directory D and a subdirectory of it are both in the input list
+   *    then only the directory D will be in the output list.
+   *
+   * The original list is not modified.
+   */
+  List<String> _nonOverlappingPaths(List<String> pathList) {
+    List<String> sortedPaths = new List<String>.from(pathList);
+    sortedPaths.sort((a, b) => a.length - b.length);
+    int pathCount = sortedPaths.length;
+    for (int i = pathCount - 1; i > 0; i--) {
+      String path = sortedPaths[i];
+      for (int j = 0; j < i; j++) {
+        if (_isEqualOrWithin(path, sortedPaths[j])) {
+          sortedPaths.removeAt(i);
+          break;
+        }
+      }
+    }
+    return sortedPaths;
+  }
+
+  /**
    *  Normalize all package root sources by mapping them to folders on the
    * filesystem.  Ignore any package root sources that aren't folders.
    */
@@ -277,19 +439,19 @@ class SingleContextManager implements ContextManager {
     });
   }
 
-  static ChangeSet _buildChangeSet({List<File> added, List<File> removed}) {
-    ChangeSet changeSet = new ChangeSet();
-    if (added != null) {
-      for (File file in added) {
-        changeSet.addedSource(file.createSource());
-      }
+  /**
+   * Create and return a source representing the given [file] within the given
+   * [context].
+   */
+  static Source createSourceInContext(AnalysisContext context, File file) {
+    // TODO(brianwilkerson) Optimize this, by allowing support for source
+    // factories to restore URI's from a file path rather than a source.
+    Source source = file.createSource();
+    if (context == null) {
+      return source;
     }
-    if (removed != null) {
-      for (File file in removed) {
-        changeSet.removedSource(file.createSource());
-      }
-    }
-    return changeSet;
+    Uri uri = context.sourceFactory.restoreUri(source);
+    return file.createSource(uri);
   }
 
   static int _commonComponents(
@@ -301,19 +463,6 @@ class SingleContextManager implements ContextManager {
       }
     }
     return max;
-  }
-
-  static String _commonPrefix(List<String> paths) {
-    if (paths.isEmpty) {
-      return '';
-    }
-    List<String> left = path.split(paths[0]);
-    int count = left.length;
-    for (int i = 1; i < paths.length; i++) {
-      List<String> right = path.split(paths[i]);
-      count = _commonComponents(left, count, right);
-    }
-    return path.joinAll(left.sublist(0, count));
   }
 
   /**
@@ -335,55 +484,5 @@ class SingleContextManager implements ContextManager {
       // Either way, there are no children.
       return const <Resource>[];
     }
-  }
-
-  static bool _isContainedIn(List<String> pathList, String path) {
-    for (String pathInList in pathList) {
-      if (_isEqualOrWithin(path, pathInList)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  static bool _isEqualOrWithin(String parent, String child) {
-    return child == parent || path.isWithin(parent, child);
-  }
-
-  static bool _isEqualOrWithinAny(List<String> parents, String child) {
-    for (String parent in parents) {
-      if (_isEqualOrWithin(parent, child)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Return a list consisting of the elements from [pathList] that describe the
-   * minimal set of directories that include everything in the original list of
-   * paths and nothing more. In particular:
-   *
-   *  * if a path is in the input list multiple times it will appear at most
-   *    once in the output list, and
-   *  * if a directory D and a subdirectory of it are both in the input list
-   *    then only the directory D will be in the output list.
-   *
-   * The original list is not modified.
-   */
-  static List<String> _nonOverlappingPaths(List<String> pathList) {
-    List<String> sortedPaths = new List<String>.from(pathList);
-    sortedPaths.sort((a, b) => a.length - b.length);
-    int pathCount = sortedPaths.length;
-    for (int i = pathCount - 1; i > 0; i--) {
-      String path = sortedPaths[i];
-      for (int j = 0; j < i; j++) {
-        if (_isEqualOrWithin(path, sortedPaths[j])) {
-          sortedPaths.removeAt(i);
-          break;
-        }
-      }
-    }
-    return sortedPaths;
   }
 }
