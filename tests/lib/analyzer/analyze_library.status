@@ -17,12 +17,12 @@ lib/web_gl/dart2js/web_gl_dart2js: CompileTimeError # Issue 16522
 lib/web_sql/dart2js/web_sql_dart2js: CompileTimeError # Issue 16522
 
 [ $compiler == dart2analyzer ]
-lib/web_gl/dartium/web_gl_dartium: CompileTimeError # Issue 21647
-lib/web_sql/dartium/web_sql_dartium: CompileTimeError # Issue 21647
-lib/html/dartium/html_dartium: CompileTimeError # Issue 21647
-lib/html/html_common/html_common: CompileTimeError # Issue 21647
-lib/indexed_db/dartium/indexed_db_dartium: CompileTimeError # Issue 21647
-lib/web_audio/dartium/web_audio_dartium: CompileTimeError # Issue 21647
-lib/svg/dartium/svg_dartium: CompileTimeError # Issue 21647
-lib/_blink/dartium/_blink_dartium: CompileTimeError # Undefined Creates and Returns classes
-lib/js/dartium/js_dartium: CompileTimeError # Undefined Creates and Returns classes
+lib/web_gl/dartium/web_gl_dartium: StaticWarning # Issue 21647
+lib/web_sql/dartium/web_sql_dartium: StaticWarning # Issue 21647
+lib/html/dartium/html_dartium: StaticWarning # Issue 21647
+lib/html/html_common/html_common: StaticWarning # Issue 21647
+lib/indexed_db/dartium/indexed_db_dartium: StaticWarning # Issue 21647
+lib/web_audio/dartium/web_audio_dartium: StaticWarning # Issue 21647
+lib/svg/dartium/svg_dartium: StaticWarning # Issue 21647
+lib/_blink/dartium/_blink_dartium: StaticWarning # Undefined Creates and Returns classes
+lib/js/dartium/js_dartium: StaticWarning # Undefined Creates and Returns classes
