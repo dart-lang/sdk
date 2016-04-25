@@ -4517,20 +4517,12 @@ class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
       //
       // Resolve references.
       //
-      // TODO(leafp): This code only needs to re-resolve the right hand sides of
-      // instance fields.  We could do incremental resolution on each field
-      // only using the incremental resolver.  However, this caused a massive
-      // performance degredation on the large_class_declaration_test.dart test.
-      // I would hypothesize that incremental resolution of field is linear in
-      // the size of the enclosing class, and hence incrementally resolving each
-      // field was quadratic.  We may wish to revisit this if we can resolve
-      // this performance issue.
-      PartialResolverVisitor visitor = new PartialResolverVisitor(
+      InstanceFieldResolverVisitor visitor = new InstanceFieldResolverVisitor(
           libraryElement,
           unitElement.source,
           typeProvider,
           AnalysisErrorListener.NULL_LISTENER);
-      unit.accept(visitor);
+      visitor.resolveCompilationUnit(unit);
     }
     //
     // Record outputs.

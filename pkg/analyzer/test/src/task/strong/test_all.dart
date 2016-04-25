@@ -13,7 +13,7 @@ import 'inferred_type_test.dart' as inferred_type_test;
 /// Utility for manually running all tests.
 main() {
   initializeTestEnvironment();
-  group('task tests', () {
+  group('strong tests', () {
     checker_test.main();
     inferred_type_test.main();
   });

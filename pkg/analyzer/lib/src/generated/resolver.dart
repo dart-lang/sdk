@@ -4903,6 +4903,96 @@ class INIT_STATE extends Enum<INIT_STATE> {
 }
 
 /**
+ * An AST visitor that is used to re-resolve the initializers of instance
+ * fields. Although this class is an AST visitor, clients are expected to use
+ * the method [resolveCompilationUnit] to run it over a compilation unit.
+ */
+class InstanceFieldResolverVisitor extends ResolverVisitor {
+  /**
+   * Initialize a newly created visitor to resolve the nodes in an AST node.
+   *
+   * The [definingLibrary] is the element for the library containing the node
+   * being visited. The [source] is the source representing the compilation unit
+   * containing the node being visited. The [typeProvider] is the object used to
+   * access the types from the core library. The [errorListener] is the error
+   * listener that will be informed of any errors that are found during
+   * resolution. The [nameScope] is the scope used to resolve identifiers in the
+   * node that will first be visited.  If `null` or unspecified, a new
+   * [LibraryScope] will be created based on the [definingLibrary].
+   */
+  InstanceFieldResolverVisitor(LibraryElement definingLibrary, Source source,
+      TypeProvider typeProvider, AnalysisErrorListener errorListener,
+      {Scope nameScope})
+      : super(definingLibrary, source, typeProvider, errorListener,
+            nameScope: nameScope);
+
+  /**
+   * Resolve the instance fields in the given compilation unit [node].
+   */
+  void resolveCompilationUnit(CompilationUnit node) {
+    _overrideManager.enterScope();
+    try {
+      NodeList<CompilationUnitMember> declarations = node.declarations;
+      int declarationCount = declarations.length;
+      for (int i = 0; i < declarationCount; i++) {
+        CompilationUnitMember declaration = declarations[i];
+        if (declaration is ClassDeclaration) {
+          _resolveClassDeclaration(declaration);
+        }
+      }
+    } finally {
+      _overrideManager.exitScope();
+    }
+  }
+
+  /**
+   * Resolve the instance fields in the given class declaration [node].
+   */
+  void _resolveClassDeclaration(ClassDeclaration node) {
+    _enclosingClassDeclaration = node;
+    ClassElement outerType = enclosingClass;
+    Scope outerScope = nameScope;
+    try {
+      enclosingClass = node.element;
+      typeAnalyzer.thisType = enclosingClass?.type;
+      if (enclosingClass == null) {
+        AnalysisEngine.instance.logger.logInformation(
+            "Missing element for class declaration ${node.name.name} in ${definingLibrary.source.fullName}",
+            new CaughtException(new AnalysisException(), null));
+        // Don't try to re-resolve the initializers if we cannot set up the
+        // right name scope for resolution.
+      } else {
+        nameScope = new ClassScope(nameScope, enclosingClass);
+        NodeList<ClassMember> members = node.members;
+        int length = members.length;
+        for (int i = 0; i < length; i++) {
+          ClassMember member = members[i];
+          if (member is FieldDeclaration) {
+            _resolveFieldDeclaration(member);
+          }
+        }
+      }
+    } finally {
+      nameScope = outerScope;
+      typeAnalyzer.thisType = outerType?.type;
+      enclosingClass = outerType;
+      _enclosingClassDeclaration = null;
+    }
+  }
+
+  /**
+   * Resolve the instance fields in the given field declaration [node].
+   */
+  void _resolveFieldDeclaration(FieldDeclaration node) {
+    if (!node.isStatic) {
+      for (VariableDeclaration field in node.fields.variables) {
+        field.initializer?.accept(this);
+      }
+    }
+  }
+}
+
+/**
  * Instances of the class `OverrideVerifier` visit all of the declarations in a compilation
  * unit to verify that if they have an override annotation it is being used correctly.
  */
