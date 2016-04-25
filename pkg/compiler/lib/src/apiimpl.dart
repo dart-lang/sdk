@@ -278,18 +278,33 @@ class CompilerImpl extends Compiler {
 
   void callUserHandler(Message message, Uri uri, int begin, int end,
       String text, api.Diagnostic kind) {
-    userHandlerTask.measure(() {
-      handler.report(message, uri, begin, end, text, kind);
-    });
+    try {
+      userHandlerTask.measure(() {
+        handler.report(message, uri, begin, end, text, kind);
+      });
+    } catch (ex, s) {
+      reportCrashInUserCode('Uncaught exception in diagnostic handler', ex, s);
+      rethrow;
+    }
   }
 
   Future callUserProvider(Uri uri) {
-    return userProviderTask.measure(() => provider.readFromUri(uri));
+    try {
+      return userProviderTask.measure(() => provider.readFromUri(uri));
+    } catch (ex, s) {
+      reportCrashInUserCode('Uncaught exception in input provider', ex, s);
+      rethrow;
+    }
   }
 
   Future<Packages> callUserPackagesDiscovery(Uri uri) {
-    return userPackagesDiscoveryTask
-        .measure(() => options.packagesDiscoveryProvider(uri));
+    try {
+      return userPackagesDiscoveryTask
+          .measure(() => options.packagesDiscoveryProvider(uri));
+    } catch (ex, s) {
+      reportCrashInUserCode('Uncaught exception in package discovery', ex, s);
+      rethrow;
+    }
   }
 
   Uri resolvePatchUri(String libraryName) {

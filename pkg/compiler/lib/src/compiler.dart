@@ -1057,7 +1057,7 @@ abstract class Compiler implements LibraryLoaderListener {
       List<DiagnosticMessage> infos, api.Diagnostic kind);
 
   void reportCrashInUserCode(String message, exception, stackTrace) {
-    _reporter.onCrashInUserCode(message, exception, stackTrace);
+    reporter.onCrashInUserCode(message, exception, stackTrace);
   }
 
   /// Messages for which compile-time errors are reported but compilation
@@ -1771,6 +1771,7 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
     throw error;
   }
 
+  @override
   void onCrashInUserCode(String message, exception, stackTrace) {
     hasCrashed = true;
     print('$message: ${tryToString(exception)}');

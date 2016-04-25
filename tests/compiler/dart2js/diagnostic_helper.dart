@@ -36,11 +36,6 @@ class CollectedMessage {
 class DiagnosticCollector implements CompilerDiagnostics {
   List<CollectedMessage> messages = <CollectedMessage>[];
 
-  void call(Uri uri, int begin, int end, String message, Diagnostic kind) {
-    throw '';
-    report(null, uri, begin, end, message, kind);
-  }
-
   @override
   void report(Message message,
               Uri uri, int begin, int end, String text, Diagnostic kind) {

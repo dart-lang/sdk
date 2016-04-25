@@ -345,7 +345,17 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     return measure(() {
       assert(currentHandler == null);
 
-      wrapper(lib) => reuseLibrary(lib).then((reuse) => reuse ? lib : null);
+      Future<LibraryElement> wrapper(LibraryElement library) {
+        try {
+          return reuseLibrary(library)
+              .then((bool reuse) => reuse ? library : null);
+        } catch (exception, trace) {
+          reporter.onCrashInUserCode(
+              'Uncaught exception in reuseLibrary', exception, trace);
+          rethrow;
+        }
+      }
+
       List<Future<LibraryElement>> reusedLibrariesFuture =
           // TODO(sigmund): make measurements separate from compiler
           compiler.reuseLibraryTask.measure(
