@@ -80,6 +80,29 @@ class InferredTypeCollector {
   }
 
   /**
+   * Interpret the given [param] as a parameter in a synthetic typedef, and
+   * format it as a string.
+   */
+  String formatParam(UnlinkedParam param) {
+    if (param.isFunctionTyped) {
+      // TODO(paulberry): fix this case.
+      return 'BAD(${JSON.encode(param)})';
+    }
+    String result;
+    if (param.type != null) {
+      result = '${formatType(param.type)} ${param.name}';
+    } else {
+      result = param.name;
+    }
+    if (param.kind == UnlinkedParamKind.named) {
+      result = '{$result}';
+    } else if (param.kind == UnlinkedParamKind.positional) {
+      result = '[$result]';
+    }
+    return result;
+  }
+
+  /**
    * Convert the reference with index [index] into a string.  If [typeOf] is
    * `true`, the reference is being used in the context of naming a type, so
    * if the entity being referenced is not a type, it will be enclosed in
@@ -92,6 +115,10 @@ class InferredTypeCollector {
       case ReferenceKind.function:
       case ReferenceKind.propertyAccessor:
       case ReferenceKind.topLevelFunction:
+      case ReferenceKind.method:
+      case ReferenceKind.typedef:
+      case ReferenceKind.prefix:
+      case ReferenceKind.topLevelPropertyAccessor:
         break;
       default:
         // TODO(paulberry): fix this case.
@@ -116,7 +143,9 @@ class InferredTypeCollector {
       assert(name.isEmpty);
       result += 'localFunction[${linkedRef.localIndex}]';
     }
-    if (!typeOf || linkedRef.kind == ReferenceKind.classOrEnum) {
+    if (!typeOf ||
+        linkedRef.kind == ReferenceKind.classOrEnum ||
+        linkedRef.kind == ReferenceKind.typedef) {
       return result;
     } else {
       return 'typeof($result)';
@@ -128,11 +157,12 @@ class InferredTypeCollector {
    * a string.
    */
   String formatType(EntityRef entityRef) {
-    if (entityRef.implicitFunctionTypeIndices.isNotEmpty ||
-        entityRef.syntheticParams.isNotEmpty ||
-        entityRef.syntheticReturnType != null) {
-      // TODO(paulberry): fix these cases.
-      return 'BAD(${JSON.encode(entityRef.toJson())})';
+    List<int> implicitFunctionTypeIndices =
+        entityRef.implicitFunctionTypeIndices;
+    if (entityRef.syntheticReturnType != null) {
+      String params = entityRef.syntheticParams.map(formatParam).join(', ');
+      String retType = formatType(entityRef.syntheticReturnType);
+      return '($params) -> $retType';
     }
     if (entityRef.paramReference != 0) {
       return typeParamsInScope[
@@ -141,6 +171,10 @@ class InferredTypeCollector {
     String result = formatReference(entityRef.reference, typeOf: true);
     if (entityRef.typeArguments.isNotEmpty) {
       result += '<${entityRef.typeArguments.map(formatType).join(', ')}>';
+    }
+    if (implicitFunctionTypeIndices.isNotEmpty) {
+      result =
+          'parameterOf($result, ${implicitFunctionTypeIndices.join(', ')})';
     }
     return result;
   }
