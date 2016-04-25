@@ -247,13 +247,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitParameterValue(HParameterValue node) {
-    // HParameterValue is either the parameter value, or the local variable
-    // containing the parameter value. If the parameter is used as a mutable
-    // variable we cannot replace the variable with a value.
-    bool userIsLocalAccess(HInstruction user) {
-      return user is HLocalGet || (user is HLocalSet && user.local == node);
+    // It is possible for the parameter value to be assigned to in the function
+    // body. If that happens then we should not forward the constant value to
+    // its uses since since the uses reachable from the assignment may have
+    // values in addition to the constant passed to the function.
+    if (node.usedBy
+        .any((user) => user is HLocalSet && identical(user.local, node))) {
+      return node;
     }
-    if (node.usedBy.any(userIsLocalAccess)) return node;
     propagateConstantValueToUses(node);
     return node;
   }

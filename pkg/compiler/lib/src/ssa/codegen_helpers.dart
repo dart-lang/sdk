@@ -353,7 +353,7 @@ class SsaInstructionMerger extends HBaseVisitor {
           input is! HPhi &&
           input is! HLocalValue &&
           !input.isJsStatement()) {
-        if (isEffectivelyPure(input)) {
+        if (input.isPure()) {
           // Only consider a pure input if it is in the same loop.
           // Otherwise, we might move GVN'ed instruction back into the
           // loop.
@@ -380,25 +380,6 @@ class SsaInstructionMerger extends HBaseVisitor {
         }
       }
     }
-  }
-
-  // Some non-pure instructions may be treated as pure. HLocalGet depends on
-  // assignments, but we can ignore the initializing assignment since it will by
-  // construction always precede a use.
-  bool isEffectivelyPure(HInstruction instruction) {
-    if (instruction is HLocalGet) return !isAssignedLocal(instruction.local);
-    return instruction.isPure();
-  }
-
-  bool isAssignedLocal(HLocalValue local) {
-    // [HLocalValue]s have an initializing assignment which is guaranteed to
-    // precede the use, except for [HParameterValue]s which are 'assigned' at
-    // entry.
-    int initializingAssignmentCount = (local is HParameterValue) ? 0 : 1;
-    return local.usedBy
-        .where((user) => user is HLocalSet)
-        .skip(initializingAssignmentCount)
-        .isNotEmpty;
   }
 
   void visitInstruction(HInstruction instruction) {
@@ -500,7 +481,7 @@ class SsaInstructionMerger extends HBaseVisitor {
     // Pop instructions from expectedInputs until instruction is found.
     // Return true if it is found, or false if not.
     bool findInInputsAndPopNonMatching(HInstruction instruction) {
-      assert(!isEffectivelyPure(instruction));
+      assert(!instruction.isPure());
       while (!expectedInputs.isEmpty) {
         HInstruction nextInput = expectedInputs.removeLast();
         assert(!generateAtUseSite.contains(nextInput));
@@ -523,7 +504,7 @@ class SsaInstructionMerger extends HBaseVisitor {
         markAsGenerateAtUseSite(instruction);
         continue;
       }
-      if (isEffectivelyPure(instruction)) {
+      if (instruction.isPure()) {
         if (pureInputs.contains(instruction)) {
           tryGenerateAtUseSite(instruction);
         } else {
@@ -569,7 +550,7 @@ class SsaInstructionMerger extends HBaseVisitor {
           // push expected-inputs from left-to right, and the `pure` function
           // invocation is "more left" (i.e. before) the first argument of `f`.
           // With that approach we end up with:
-          //   t3 = pure(foo());
+          //   t3 = pure(foo();
           //   f(bar(), t3);
           //   use(t3);
           //
