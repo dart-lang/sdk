@@ -656,7 +656,8 @@ class RawObject {
   friend class RetainingPathVisitor;  // GetClassId
   friend class SkippedCodeFunctions;  // StorePointer
   friend class InstructionsReader;  // tags_ check
-  friend class InstructionsWriter;
+  friend class AssemblyInstructionsWriter;
+  friend class BlobInstructionsWriter;
   friend class SnapshotReader;
   friend class SnapshotWriter;
   friend class String;

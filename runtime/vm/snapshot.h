@@ -844,31 +844,22 @@ class ForwardList {
 
 class InstructionsWriter : public ZoneAllocated {
  public:
-  InstructionsWriter(uint8_t** buffer,
-                     ReAlloc alloc,
-                     intptr_t initial_size)
-    : stream_(buffer, alloc, initial_size),
-      next_offset_(InstructionsSnapshot::kHeaderSize),
+  InstructionsWriter()
+    : next_offset_(InstructionsSnapshot::kHeaderSize),
       next_object_offset_(DataSnapshot::kHeaderSize),
-      binary_size_(0),
       instructions_(),
       objects_() {
-    ASSERT(buffer != NULL);
-    ASSERT(alloc != NULL);
   }
-
-  // Size of the snapshot (assembly code).
-  intptr_t BytesWritten() const { return stream_.bytes_written(); }
-
-  intptr_t binary_size() { return binary_size_; }
+  virtual ~InstructionsWriter() { }
 
   int32_t GetOffsetFor(RawInstructions* instructions, RawCode* code);
 
   int32_t GetObjectOffsetFor(RawObject* raw_object);
 
-  void WriteAssembly();
+  virtual void Write() = 0;
+  virtual intptr_t binary_size() = 0;
 
- private:
+ protected:
   struct InstructionsData {
     explicit InstructionsData(RawInstructions* insns,
                               RawCode* code,
@@ -896,24 +887,76 @@ class InstructionsWriter : public ZoneAllocated {
     };
   };
 
+  intptr_t next_offset_;
+  intptr_t next_object_offset_;
+  GrowableArray<InstructionsData> instructions_;
+  GrowableArray<ObjectData> objects_;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(InstructionsWriter);
+};
+
+
+class AssemblyInstructionsWriter : public InstructionsWriter {
+ public:
+  AssemblyInstructionsWriter(uint8_t** assembly_buffer,
+                             ReAlloc alloc,
+                             intptr_t initial_size)
+    : InstructionsWriter(),
+      assembly_stream_(assembly_buffer, alloc, initial_size) {
+  }
+
+  virtual void Write();
+  virtual intptr_t binary_size() { return binary_size_; }
+
+  intptr_t AssemblySize() const { return assembly_stream_.bytes_written(); }
+
+ private:
   void WriteWordLiteral(uword value) {
     // Padding is helpful for comparing the .S with --disassemble.
 #if defined(ARCH_IS_64_BIT)
-    stream_.Print(".quad 0x%0.16" Px "\n", value);
+    assembly_stream_.Print(".quad 0x%0.16" Px "\n", value);
 #else
-    stream_.Print(".long 0x%0.8" Px "\n", value);
+    assembly_stream_.Print(".long 0x%0.8" Px "\n", value);
 #endif
     binary_size_ += sizeof(value);
   }
 
-  WriteStream stream_;
-  intptr_t next_offset_;
-  intptr_t next_object_offset_;
+  WriteStream assembly_stream_;
   intptr_t binary_size_;
-  GrowableArray<InstructionsData> instructions_;
-  GrowableArray<ObjectData> objects_;
 
-  DISALLOW_COPY_AND_ASSIGN(InstructionsWriter);
+  DISALLOW_COPY_AND_ASSIGN(AssemblyInstructionsWriter);
+};
+
+
+class BlobInstructionsWriter : public InstructionsWriter {
+ public:
+  BlobInstructionsWriter(uint8_t** instructions_blob_buffer,
+                         uint8_t** rodata_blob_buffer,
+                         ReAlloc alloc,
+                         intptr_t initial_size)
+    : InstructionsWriter(),
+      instructions_blob_stream_(instructions_blob_buffer, alloc, initial_size),
+      rodata_blob_stream_(rodata_blob_buffer, alloc, initial_size) {
+  }
+
+  virtual void Write();
+  virtual intptr_t binary_size() {
+    return InstructionsBlobSize() + RodataBlobSize();
+  }
+
+  intptr_t InstructionsBlobSize() const {
+    return instructions_blob_stream_.bytes_written();
+  }
+  intptr_t RodataBlobSize() const {
+    return rodata_blob_stream_.bytes_written();
+  }
+
+ private:
+  WriteStream instructions_blob_stream_;
+  WriteStream rodata_blob_stream_;
+
+  DISALLOW_COPY_AND_ASSIGN(BlobInstructionsWriter);
 };
 
 
@@ -1070,8 +1113,8 @@ class FullSnapshotWriter {
   static const intptr_t kInitialSize = 64 * KB;
   FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
                      uint8_t** isolate_snapshot_buffer,
-                     uint8_t** instructions_snapshot_buffer,
                      ReAlloc alloc,
+                     InstructionsWriter* instructions_writer,
                      bool snapshot_code,
                      bool vm_isolate_is_symbolic);
   ~FullSnapshotWriter();
@@ -1098,9 +1141,6 @@ class FullSnapshotWriter {
   intptr_t IsolateSnapshotSize() const {
     return isolate_snapshot_size_;
   }
-  intptr_t InstructionsSnapshotSize() const {
-    return instructions_snapshot_size_;
-  }
 
  private:
   // Writes a snapshot of the VM Isolate.
@@ -1112,11 +1152,9 @@ class FullSnapshotWriter {
   Thread* thread_;
   uint8_t** vm_isolate_snapshot_buffer_;
   uint8_t** isolate_snapshot_buffer_;
-  uint8_t** instructions_snapshot_buffer_;
   ReAlloc alloc_;
   intptr_t vm_isolate_snapshot_size_;
   intptr_t isolate_snapshot_size_;
-  intptr_t instructions_snapshot_size_;
   ForwardList* forward_list_;
   InstructionsWriter* instructions_writer_;
   Array& scripts_;
@@ -1132,8 +1170,8 @@ class PrecompiledSnapshotWriter : public FullSnapshotWriter {
  public:
   PrecompiledSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
                             uint8_t** isolate_snapshot_buffer,
-                            uint8_t** instructions_snapshot_buffer,
-                            ReAlloc alloc);
+                            ReAlloc alloc,
+                            InstructionsWriter* instructions_writer);
   ~PrecompiledSnapshotWriter();
 };
 

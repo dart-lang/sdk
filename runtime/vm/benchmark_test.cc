@@ -526,8 +526,8 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
   // Write snapshot with object content.
   FullSnapshotWriter writer(&vm_isolate_snapshot_buffer,
                             &isolate_snapshot_buffer,
-                            NULL, /* instructions_snapshot_buffer */
                             &malloc_allocator,
+                            NULL, /* instructions_writer */
                             false, /* snapshot_code */
                             true /* vm_isolate_is_symbolic */);
   writer.WriteFullSnapshot();
@@ -563,8 +563,8 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
   // Write snapshot with object content.
   FullSnapshotWriter writer(&vm_isolate_snapshot_buffer,
                             &isolate_snapshot_buffer,
-                            NULL, /* instructions_snapshot_buffer */
                             &malloc_allocator,
+                            NULL, /* instructions_writer */
                             false, /* snapshot_code */
                             true /* vm_isolate_is_symbolic */);
   writer.WriteFullSnapshot();

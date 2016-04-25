@@ -1495,8 +1495,8 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
 
   FullSnapshotWriter writer(vm_isolate_snapshot_buffer,
                             isolate_snapshot_buffer,
-                            NULL, /* instructions_snapshot_buffer */
                             ApiReallocate,
+                            NULL, /* instructions_writer */
                             false, /* snapshot_code */
                             true /* vm_isolate_is_symbolic */);
   writer.WriteFullSnapshot();
@@ -6035,13 +6035,27 @@ DART_EXPORT Dart_Handle Dart_Precompile(
 }
 
 
-DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
+DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
     uint8_t** vm_isolate_snapshot_buffer,
     intptr_t* vm_isolate_snapshot_size,
     uint8_t** isolate_snapshot_buffer,
     intptr_t* isolate_snapshot_size,
-    uint8_t** instructions_snapshot_buffer,
-    intptr_t* instructions_snapshot_size) {
+    uint8_t** assembly_buffer,
+    intptr_t* assembly_size) {
+  UNREACHABLE();
+  return 0;
+}
+
+
+DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
+    uint8_t** vm_isolate_snapshot_buffer,
+    intptr_t* vm_isolate_snapshot_size,
+    uint8_t** isolate_snapshot_buffer,
+    intptr_t* isolate_snapshot_size,
+    uint8_t** instructions_blob_buffer,
+    intptr_t* instructions_blob_size,
+    uint8_t** rodata_blob_buffer,
+    intptr_t* rodata_blob_size) {
   UNREACHABLE();
   return 0;
 }
@@ -6070,13 +6084,13 @@ DART_EXPORT Dart_Handle Dart_Precompile(
 }
 
 
-DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
+DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
     uint8_t** vm_isolate_snapshot_buffer,
     intptr_t* vm_isolate_snapshot_size,
     uint8_t** isolate_snapshot_buffer,
     intptr_t* isolate_snapshot_size,
-    uint8_t** instructions_snapshot_buffer,
-    intptr_t* instructions_snapshot_size) {
+    uint8_t** assembly_buffer,
+    intptr_t* assembly_size) {
   ASSERT(FLAG_load_deferred_eagerly);
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
@@ -6097,26 +6111,84 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
   if (isolate_snapshot_size == NULL) {
     RETURN_NULL_ERROR(isolate_snapshot_size);
   }
-  if (instructions_snapshot_buffer == NULL) {
-    RETURN_NULL_ERROR(instructions_snapshot_buffer);
+  if (assembly_buffer == NULL) {
+    RETURN_NULL_ERROR(assembly_buffer);
   }
-  if (instructions_snapshot_size == NULL) {
-    RETURN_NULL_ERROR(instructions_snapshot_size);
-  }
-  // Finalize all classes if needed.
-  Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
-  if (::Dart_IsError(state)) {
-    return state;
+  if (assembly_size == NULL) {
+    RETURN_NULL_ERROR(assembly_size);
   }
   I->heap()->CollectAllGarbage();
+  AssemblyInstructionsWriter instructions_writer(assembly_buffer,
+                                                 ApiReallocate,
+                                                 2 * MB /* initial_size */);
   PrecompiledSnapshotWriter writer(vm_isolate_snapshot_buffer,
                                    isolate_snapshot_buffer,
-                                   instructions_snapshot_buffer,
-                                   ApiReallocate);
+                                   ApiReallocate,
+                                   &instructions_writer);
   writer.WriteFullSnapshot();
   *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
   *isolate_snapshot_size = writer.IsolateSnapshotSize();
-  *instructions_snapshot_size = writer.InstructionsSnapshotSize();
+  *assembly_size = instructions_writer.AssemblySize();
+
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
+    uint8_t** vm_isolate_snapshot_buffer,
+    intptr_t* vm_isolate_snapshot_size,
+    uint8_t** isolate_snapshot_buffer,
+    intptr_t* isolate_snapshot_size,
+    uint8_t** instructions_blob_buffer,
+    intptr_t* instructions_blob_size,
+    uint8_t** rodata_blob_buffer,
+    intptr_t* rodata_blob_size) {
+  ASSERT(FLAG_load_deferred_eagerly);
+  API_TIMELINE_DURATION;
+  DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
+  if (I->compilation_allowed()) {
+    return Dart_NewApiError("Isolate is not precompiled. "
+                            "Did you forget to call Dart_Precompile?");
+  }
+  if (vm_isolate_snapshot_buffer == NULL) {
+    RETURN_NULL_ERROR(vm_isolate_snapshot_buffer);
+  }
+  if (vm_isolate_snapshot_size == NULL) {
+    RETURN_NULL_ERROR(vm_isolate_snapshot_size);
+  }
+  if (isolate_snapshot_buffer == NULL) {
+    RETURN_NULL_ERROR(isolate_snapshot_buffer);
+  }
+  if (isolate_snapshot_size == NULL) {
+    RETURN_NULL_ERROR(isolate_snapshot_size);
+  }
+  if (instructions_blob_buffer == NULL) {
+    RETURN_NULL_ERROR(instructions_blob_buffer);
+  }
+  if (instructions_blob_size == NULL) {
+    RETURN_NULL_ERROR(instructions_blob_size);
+  }
+  if (rodata_blob_buffer == NULL) {
+    RETURN_NULL_ERROR(instructions_blob_buffer);
+  }
+  if (rodata_blob_size == NULL) {
+    RETURN_NULL_ERROR(instructions_blob_size);
+  }
+  I->heap()->CollectAllGarbage();
+  BlobInstructionsWriter instructions_writer(instructions_blob_buffer,
+                                             rodata_blob_buffer,
+                                             ApiReallocate,
+                                             2 * MB /* initial_size */);
+  PrecompiledSnapshotWriter writer(vm_isolate_snapshot_buffer,
+                                   isolate_snapshot_buffer,
+                                   ApiReallocate,
+                                   &instructions_writer);
+  writer.WriteFullSnapshot();
+  *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
+  *isolate_snapshot_size = writer.IsolateSnapshotSize();
+  *instructions_blob_size = instructions_writer.InstructionsBlobSize();
+  *rodata_blob_size = instructions_writer.RodataBlobSize();
 
   return Api::Success();
 }

@@ -19,6 +19,8 @@ class RuntimeConfiguration {
   // [RuntimeConfiguration] in [configuration] there.
   factory RuntimeConfiguration(Map configuration) {
     String runtime = configuration['runtime'];
+    bool useBlobs = configuration['use_blobs'];
+
     switch (runtime) {
       case 'ContentShellOnAndroid':
       case 'DartiumOnAndroid':
@@ -52,7 +54,7 @@ class RuntimeConfiguration {
         return new DartProductRuntimeConfiguration();
 
       case 'dart_precompiled':
-        return new DartPrecompiledRuntimeConfiguration();
+        return new DartPrecompiledRuntimeConfiguration(useBlobs: useBlobs);
 
       case 'drt':
         return new DrtRuntimeConfiguration();
@@ -244,6 +246,9 @@ class DartProductRuntimeConfiguration extends DartVmRuntimeConfiguration {
 }
 
 class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
+  final bool useBlobs;
+  DartPrecompiledRuntimeConfiguration({bool useBlobs}) : useBlobs = useBlobs;
+
   List<Command> computeRuntimeCommands(
       TestSuite suite,
       CommandBuilder commandBuilder,
@@ -258,6 +263,9 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
     var augmentedArgs = new List();
     augmentedArgs.add("--run-precompiled-snapshot=${artifact.filename}");
+    if (useBlobs) {
+      augmentedArgs.add("--use_blobs");
+    }
     augmentedArgs.addAll(arguments);
 
     return <Command>[

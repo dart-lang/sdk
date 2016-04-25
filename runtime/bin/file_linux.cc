@@ -10,6 +10,7 @@
 #include <errno.h>  // NOLINT
 #include <fcntl.h>  // NOLINT
 #include <libgen.h>  // NOLINT
+#include <sys/mman.h>  // NOLINT
 #include <sys/sendfile.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT
 #include <sys/types.h>  // NOLINT
@@ -72,6 +73,21 @@ intptr_t File::GetFD() {
 
 bool File::IsClosed() {
   return handle_->fd() == kClosedFd;
+}
+
+
+void* File::MapExecutable(intptr_t* len) {
+  ASSERT(handle_->fd() >= 0);
+  intptr_t length = Length();
+  void* addr = mmap(0, length,
+                    PROT_READ | PROT_EXEC, MAP_PRIVATE,
+                    handle_->fd(), 0);
+  if (addr == MAP_FAILED) {
+    *len = -1;
+  } else {
+    *len = length;
+  }
+  return addr;
 }
 
 

@@ -1196,7 +1196,7 @@ static void EnsureIdentifier(char* label) {
 }
 
 
-void InstructionsWriter::WriteAssembly() {
+void AssemblyInstructionsWriter::Write() {
   Zone* zone = Thread::Current()->zone();
 
   // Handlify collected raw pointers as building the names below
@@ -1212,12 +1212,12 @@ void InstructionsWriter::WriteAssembly() {
     data.obj_ = &Object::Handle(zone, data.raw_obj_);
   }
 
-  stream_.Print(".text\n");
-  stream_.Print(".globl _kInstructionsSnapshot\n");
+  assembly_stream_.Print(".text\n");
+  assembly_stream_.Print(".globl _kInstructionsSnapshot\n");
   // Start snapshot at page boundary.
   ASSERT(VirtualMemory::PageSize() >= OS::kMaxPreferredCodeAlignment);
-  stream_.Print(".balign %" Pd ", 0\n", VirtualMemory::PageSize());
-  stream_.Print("_kInstructionsSnapshot:\n");
+  assembly_stream_.Print(".balign %" Pd ", 0\n", VirtualMemory::PageSize());
+  assembly_stream_.Print("_kInstructionsSnapshot:\n");
 
   // This head also provides the gap to make the instructions snapshot
   // look like a HeapPage.
@@ -1241,16 +1241,17 @@ void InstructionsWriter::WriteAssembly() {
     owner = code.owner();
     if (owner.IsNull()) {
       const char* name = StubCode::NameOfStub(insns.EntryPoint());
-      stream_.Print("Precompiled_Stub_%s:\n", name);
+      assembly_stream_.Print("Precompiled_Stub_%s:\n", name);
     } else if (owner.IsClass()) {
       str = Class::Cast(owner).Name();
       const char* name = str.ToCString();
       EnsureIdentifier(const_cast<char*>(name));
-      stream_.Print("Precompiled_AllocationStub_%s_%" Pd ":\n", name, i);
+      assembly_stream_.Print("Precompiled_AllocationStub_%s_%" Pd ":\n",
+                             name, i);
     } else if (owner.IsFunction()) {
       const char* name = Function::Cast(owner).ToQualifiedCString();
       EnsureIdentifier(const_cast<char*>(name));
-      stream_.Print("Precompiled_%s_%" Pd ":\n", name, i);
+      assembly_stream_.Print("Precompiled_%s_%" Pd ":\n", name, i);
     } else {
       UNREACHABLE();
     }
@@ -1276,24 +1277,25 @@ void InstructionsWriter::WriteAssembly() {
     }
   }
 #if defined(TARGET_OS_LINUX)
-  stream_.Print(".section .rodata\n");
+  assembly_stream_.Print(".section .rodata\n");
 #elif defined(TARGET_OS_MACOS)
-  stream_.Print(".const\n");
+  assembly_stream_.Print(".const\n");
 #else
   // Unsupported platform.
   UNREACHABLE();
 #endif
-  stream_.Print(".globl _kDataSnapshot\n");
+  assembly_stream_.Print(".globl _kDataSnapshot\n");
   // Start snapshot at page boundary.
-  stream_.Print(".balign %" Pd ", 0\n", VirtualMemory::PageSize());
-  stream_.Print("_kDataSnapshot:\n");
+  assembly_stream_.Print(".balign %" Pd ", 0\n", VirtualMemory::PageSize());
+  assembly_stream_.Print("_kDataSnapshot:\n");
   WriteWordLiteral(next_object_offset_);  // Data length.
   COMPILE_ASSERT(OS::kMaxPreferredCodeAlignment >= kObjectAlignment);
-  stream_.Print(".balign %" Pd ", 0\n", OS::kMaxPreferredCodeAlignment);
+  assembly_stream_.Print(".balign %" Pd ", 0\n",
+                         OS::kMaxPreferredCodeAlignment);
 
   for (intptr_t i = 0; i < objects_.length(); i++) {
     const Object& obj = *objects_[i].obj_;
-    stream_.Print("Precompiled_Obj_%d:\n", i);
+    assembly_stream_.Print("Precompiled_Obj_%d:\n", i);
 
     NoSafepointScope no_safepoint;
     uword start = reinterpret_cast<uword>(obj.raw()) - kHeapObjectTag;
@@ -1309,6 +1311,84 @@ void InstructionsWriter::WriteAssembly() {
          cursor < reinterpret_cast<uword*>(end);
          cursor++) {
       WriteWordLiteral(*cursor);
+    }
+  }
+}
+
+
+void BlobInstructionsWriter::Write() {
+  Zone* zone = Thread::Current()->zone();
+
+  // Handlify collected raw pointers as building the names below
+  // will allocate on the Dart heap.
+  for (intptr_t i = 0; i < instructions_.length(); i++) {
+    InstructionsData& data = instructions_[i];
+    data.insns_ = &Instructions::Handle(zone, data.raw_insns_);
+    ASSERT(data.raw_code_ != NULL);
+    data.code_ = &Code::Handle(zone, data.raw_code_);
+  }
+  for (intptr_t i = 0; i < objects_.length(); i++) {
+    ObjectData& data = objects_[i];
+    data.obj_ = &Object::Handle(zone, data.raw_obj_);
+  }
+
+  // This head also provides the gap to make the instructions snapshot
+  // look like a HeapPage.
+  intptr_t instructions_length = next_offset_;
+  instructions_blob_stream_.WriteWord(instructions_length);
+  intptr_t header_words = InstructionsSnapshot::kHeaderSize / sizeof(uword);
+  for (intptr_t i = 1; i < header_words; i++) {
+    instructions_blob_stream_.WriteWord(0);
+  }
+
+  for (intptr_t i = 0; i < instructions_.length(); i++) {
+    const Instructions& insns = *instructions_[i].insns_;
+
+    {
+      // 2. Write from the entry point to the end.
+      NoSafepointScope no_safepoint;
+      uword beginning = reinterpret_cast<uword>(insns.raw()) - kHeapObjectTag;
+      uword entry = beginning + Instructions::HeaderSize();
+      uword payload_size = insns.size();
+      payload_size = Utils::RoundUp(payload_size, OS::PreferredCodeAlignment());
+      uword end = entry + payload_size;
+
+      ASSERT(Utils::IsAligned(beginning, sizeof(uint64_t)));
+      ASSERT(Utils::IsAligned(entry, sizeof(uint64_t)));
+      ASSERT(Utils::IsAligned(end, sizeof(uint64_t)));
+
+      for (uword* cursor = reinterpret_cast<uword*>(entry);
+           cursor < reinterpret_cast<uword*>(end);
+           cursor++) {
+        instructions_blob_stream_.WriteWord(*cursor);
+      }
+    }
+  }
+
+  rodata_blob_stream_.WriteWord(next_object_offset_);  // Data length.
+  COMPILE_ASSERT(OS::kMaxPreferredCodeAlignment >= kObjectAlignment);
+  while (!Utils::IsAligned(rodata_blob_stream_.bytes_written(),
+                           OS::kMaxPreferredCodeAlignment)) {
+    rodata_blob_stream_.WriteWord(0);
+  }
+
+  for (intptr_t i = 0; i < objects_.length(); i++) {
+    const Object& obj = *objects_[i].obj_;
+
+    NoSafepointScope no_safepoint;
+    uword start = reinterpret_cast<uword>(obj.raw()) - kHeapObjectTag;
+    uword end = start + obj.raw()->Size();
+
+    // Write object header with the mark and VM heap bits set.
+    uword marked_tags = obj.raw()->ptr()->tags_;
+    marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
+    marked_tags = RawObject::MarkBit::update(true, marked_tags);
+    rodata_blob_stream_.WriteWord(marked_tags);
+    start += sizeof(uword);
+    for (uword* cursor = reinterpret_cast<uword*>(start);
+         cursor < reinterpret_cast<uword*>(end);
+         cursor++) {
+      rodata_blob_stream_.WriteWord(*cursor);
     }
   }
 }
@@ -1883,20 +1963,18 @@ class ScriptVisitor : public ObjectVisitor {
 
 FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
                                        uint8_t** isolate_snapshot_buffer,
-                                       uint8_t** instructions_snapshot_buffer,
                                        ReAlloc alloc,
+                                       InstructionsWriter* instructions_writer,
                                        bool snapshot_code,
                                        bool vm_isolate_is_symbolic)
     : thread_(Thread::Current()),
       vm_isolate_snapshot_buffer_(vm_isolate_snapshot_buffer),
       isolate_snapshot_buffer_(isolate_snapshot_buffer),
-      instructions_snapshot_buffer_(instructions_snapshot_buffer),
       alloc_(alloc),
       vm_isolate_snapshot_size_(0),
       isolate_snapshot_size_(0),
-      instructions_snapshot_size_(0),
       forward_list_(NULL),
-      instructions_writer_(NULL),
+      instructions_writer_(instructions_writer),
       scripts_(Array::Handle(zone())),
       symbol_table_(Array::Handle(zone())),
       snapshot_code_(snapshot_code),
@@ -1935,12 +2013,6 @@ FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
 
   forward_list_ = new ForwardList(thread(), SnapshotWriter::FirstObjectId());
   ASSERT(forward_list_ != NULL);
-
-  if (instructions_snapshot_buffer != NULL) {
-    instructions_writer_ = new InstructionsWriter(instructions_snapshot_buffer,
-                                                  alloc,
-                                                  kInitialSize);
-  }
 }
 
 
@@ -2059,8 +2131,7 @@ void FullSnapshotWriter::WriteFullSnapshot() {
   }
   WriteIsolateFullSnapshot();
   if (snapshot_code_) {
-    instructions_writer_->WriteAssembly();
-    instructions_snapshot_size_ = instructions_writer_->BytesWritten();
+    instructions_writer_->Write();
 
     OS::Print("VMIsolate(CodeSize): %" Pd "\n", VmIsolateSnapshotSize());
     OS::Print("Isolate(CodeSize): %" Pd "\n", IsolateSnapshotSize());
@@ -2077,12 +2148,12 @@ void FullSnapshotWriter::WriteFullSnapshot() {
 PrecompiledSnapshotWriter::PrecompiledSnapshotWriter(
     uint8_t** vm_isolate_snapshot_buffer,
     uint8_t** isolate_snapshot_buffer,
-    uint8_t** instructions_snapshot_buffer,
-    ReAlloc alloc)
+    ReAlloc alloc,
+    InstructionsWriter* instructions_writer)
   : FullSnapshotWriter(vm_isolate_snapshot_buffer,
                        isolate_snapshot_buffer,
-                       instructions_snapshot_buffer,
                        alloc,
+                       instructions_writer,
                        true, /* snapshot_code */
                        false /* vm_isolate_is_symbolic */) {
 }

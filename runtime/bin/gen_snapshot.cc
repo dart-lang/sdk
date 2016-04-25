@@ -60,7 +60,9 @@ static const int kRestartRequestExitCode = 1000;
 // if so which file to write the snapshot into.
 static const char* vm_isolate_snapshot_filename = NULL;
 static const char* isolate_snapshot_filename = NULL;
-static const char* instructions_snapshot_filename = NULL;
+static const char* assembly_filename = NULL;
+static const char* instructions_blob_filename = NULL;
+static const char* rodata_blob_filename = NULL;
 static const char* package_root = NULL;
 
 
@@ -202,10 +204,30 @@ static bool ProcessIsolateSnapshotOption(const char* option) {
 }
 
 
-static bool ProcessInstructionsSnapshotOption(const char* option) {
-  const char* name = ProcessOption(option, "--instructions_snapshot=");
+static bool ProcessAssemblyOption(const char* option) {
+  const char* name = ProcessOption(option, "--assembly=");
   if (name != NULL) {
-    instructions_snapshot_filename = name;
+    assembly_filename = name;
+    return true;
+  }
+  return false;
+}
+
+
+static bool ProcessInstructionsBlobOption(const char* option) {
+  const char* name = ProcessOption(option, "--instructions_blob=");
+  if (name != NULL) {
+    instructions_blob_filename = name;
+    return true;
+  }
+  return false;
+}
+
+
+static bool ProcessRodataBlobOption(const char* option) {
+  const char* name = ProcessOption(option, "--rodata_blob=");
+  if (name != NULL) {
+    rodata_blob_filename = name;
     return true;
   }
   return false;
@@ -248,6 +270,11 @@ static bool ProcessURLmappingOption(const char* option) {
 }
 
 
+static bool IsSnapshottingForPrecompilation() {
+  return (assembly_filename != NULL) || (instructions_blob_filename != NULL);
+}
+
+
 // Parse out the command line arguments. Returns -1 if the arguments
 // are incorrect, 0 otherwise.
 static int ParseArguments(int argc,
@@ -264,7 +291,9 @@ static int ParseArguments(int argc,
   while ((i < argc) && IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
     if (ProcessVmIsolateSnapshotOption(argv[i]) ||
         ProcessIsolateSnapshotOption(argv[i]) ||
-        ProcessInstructionsSnapshotOption(argv[i]) ||
+        ProcessAssemblyOption(argv[i]) ||
+        ProcessInstructionsBlobOption(argv[i]) ||
+        ProcessRodataBlobOption(argv[i]) ||
         ProcessEmbedderEntryPointsManifestOption(argv[i]) ||
         ProcessURLmappingOption(argv[i]) ||
         ProcessPackageRootOption(argv[i]) ||
@@ -294,7 +323,25 @@ static int ParseArguments(int argc,
     return -1;
   }
 
-  if ((instructions_snapshot_filename != NULL) &&
+  bool precompiled_as_assembly = assembly_filename != NULL;
+  bool precompiled_as_blobs = (instructions_blob_filename != NULL) ||
+                              (rodata_blob_filename != NULL);
+  if (precompiled_as_assembly && precompiled_as_blobs) {
+    Log::PrintErr(
+      "Cannot request a precompiled snapshot simultaneously as "
+      "assembly (--assembly=<output.file>) and as blobs "
+      "(--instructions-blob=<output.file> and "
+      "--rodata-blob=<output.file>)\n\n");
+    return -1;
+  }
+  if ((instructions_blob_filename != NULL) != (rodata_blob_filename != NULL)) {
+    Log::PrintErr(
+      "Requesting a precompiled snapshot as blobs requires both "
+      "(--instructions-blob=<output.file> and "
+      "--rodata-blob=<output.file>)\n\n");
+    return -1;
+  }
+  if (IsSnapshottingForPrecompilation() &&
       (entry_points_files->count() == 0)) {
     Log::PrintErr(
         "Specifying an instructions snapshot filename indicates precompilation"
@@ -302,21 +349,7 @@ static int ParseArguments(int argc,
     return -1;
   }
 
-  if ((entry_points_files->count() > 0) &&
-      (instructions_snapshot_filename == NULL)) {
-    Log::PrintErr(
-        "Specifying the embedder entry points manifest indicates "
-        "precompilation. But no instuctions snapshot was specified.\n\n");
-    return -1;
-  }
-
   return 0;
-}
-
-
-static bool IsSnapshottingForPrecompilation(void) {
-  return (entry_points_files->count() > 0) &&
-         (instructions_snapshot_filename != NULL);
 }
 
 
@@ -583,17 +616,23 @@ static void PrintUsage() {
 "  optional.                                                                 \n"
 "                                                                            \n"
 "  Precompilation:                                                           \n"
-"  In order to configure the snapshotter for precompilation, both the        \n"
-"  instructions snapshot and embedder entry points manifest must be          \n"
-"  specified. Assembly for the target architecture will be dumped into the   \n"
-"  instructions snapshot. This must be linked into the target binary in a    \n"
-"  separate step. The embedder entry points manifest lists the standalone    \n"
-"  entry points into the VM. Not specifying these will cause the tree shaker \n"
-"  to disregard the same as being used. The format of this manifest is as    \n"
-"  follows. Each line in the manifest is a comma separated list of three     \n"
-"  elements. The first entry is the library URI, the second entry is the     \n"
-"  class name and the final entry the function name. The file must be        \n"
-"  terminated with a newline charater.                                       \n"
+"  In order to configure the snapshotter for precompilation, either          \n"
+"  --assembly=outputfile or --instructions_blob=outputfile1 and              \n"
+"  --rodata_blob=outputfile2 must be specified. If the former is choosen,    \n"
+"  assembly for the target architecture will be output into the given file,  \n"
+"  which must be compiled separately and either statically linked or         \n"
+"  dynamically loaded in the target executable. The symbols                  \n"
+"  kInstructionsSnapshot and kDataSnapshot must be passed to Dart_Initialize.\n"
+"  If the latter is choosen, binary data is output into the given files,     \n"
+"  which should be mmapped and passed to Dart_Initialize, with the           \n"
+"  instruction blob being mapped as executable.                              \n"
+"  In both cases, a entry points manifest must be given to list the places   \n"
+"  in the Dart program the embedder calls from the C API (Dart_Invoke, etc). \n"
+"  Not specifying these may cause the tree shaker to remove them from the    \n"
+"  program. The format of this manifest is as follows. Each line in the      \n"
+"  manifest is a comma separated list of three elements. The first entry is  \n"
+"  the library URI, the second entry is the class name and the final entry   \n"
+"  the function name. The file must be terminated with a newline charater.   \n"
 "                                                                            \n"
 "    Example:                                                                \n"
 "      dart:something,SomeClass,doSomething                                  \n"
@@ -611,12 +650,18 @@ static void PrintUsage() {
 "                                      the command line to load the          \n"
 "                                      libraries.                            \n"
 "                                                                            \n"
-"    --instructions_snapshot=<file>    (Precompilation only) Contains the    \n"
+"    --assembly=<file>                 (Precompilation only) Contains the    \n"
 "                                      assembly that must be linked into     \n"
 "                                      the target binary                     \n"
 "                                                                            \n"
-"    --embedder_entry_points_manifest=<file> (Precompilation only) Contains  \n"
-"                                      the stanalone embedder entry points\n");
+"    --instructions_blob=<file>        (Precompilation only) Contains the    \n"
+"    --rodata_blob=<file>              instructions and read-only data that  \n"
+"                                      must be mapped into the target binary \n"
+"                                                                            \n"
+"    --embedder_entry_points_manifest=<file> (Precompilation or app          \n"
+"                                      snapshots) Contains embedder's entry  \n"
+"                                      points into Dart code from the C API. \n"
+"\n");
 }
 
 
@@ -994,34 +1039,58 @@ static void CreateAndWritePrecompiledSnapshot(
   intptr_t vm_isolate_size = 0;
   uint8_t* isolate_buffer = NULL;
   intptr_t isolate_size = 0;
-  uint8_t* instructions_buffer = NULL;
-  intptr_t instructions_size = 0;
+  uint8_t* assembly_buffer = NULL;
+  intptr_t assembly_size = 0;
+  uint8_t* instructions_blob_buffer = NULL;
+  intptr_t instructions_blob_size = 0;
+  uint8_t* rodata_blob_buffer = NULL;
+  intptr_t rodata_blob_size = 0;
 
   // Precompile with specified embedder entry points
   result = Dart_Precompile(standalone_entry_points, true);
   CHECK_RESULT(result);
 
-  // Create a precompiled snapshot. This gives us an instruction buffer with
-  // machine code
-  result = Dart_CreatePrecompiledSnapshot(&vm_isolate_buffer,
-                                          &vm_isolate_size,
-                                          &isolate_buffer,
-                                          &isolate_size,
-                                          &instructions_buffer,
-                                          &instructions_size);
-  CHECK_RESULT(result);
+  // Create a precompiled snapshot.
+  bool as_assembly = assembly_filename != NULL;
+  if (as_assembly) {
+    result = Dart_CreatePrecompiledSnapshotAssembly(&vm_isolate_buffer,
+                                                    &vm_isolate_size,
+                                                    &isolate_buffer,
+                                                    &isolate_size,
+                                                    &assembly_buffer,
+                                                    &assembly_size);
+    CHECK_RESULT(result);
+  } else {
+    result = Dart_CreatePrecompiledSnapshotBlob(&vm_isolate_buffer,
+                                                &vm_isolate_size,
+                                                &isolate_buffer,
+                                                &isolate_size,
+                                                &instructions_blob_buffer,
+                                                &instructions_blob_size,
+                                                &rodata_blob_buffer,
+                                                &rodata_blob_size);
+    CHECK_RESULT(result);
+  }
 
-  // Now write the vm isolate, isolate and instructions snapshots out to the
-  // specified files and exit.
+  // Now write the snapshot pieces out to the specified files and exit.
   WriteSnapshotFile(vm_isolate_snapshot_filename,
                     vm_isolate_buffer,
                     vm_isolate_size);
   WriteSnapshotFile(isolate_snapshot_filename,
                     isolate_buffer,
                     isolate_size);
-  WriteSnapshotFile(instructions_snapshot_filename,
-                    instructions_buffer,
-                    instructions_size);
+  if (as_assembly) {
+    WriteSnapshotFile(assembly_filename,
+                      assembly_buffer,
+                      assembly_size);
+  } else {
+    WriteSnapshotFile(instructions_blob_filename,
+                      instructions_blob_buffer,
+                      instructions_blob_size);
+    WriteSnapshotFile(rodata_blob_filename,
+                      rodata_blob_buffer,
+                      rodata_blob_size);
+  }
   Dart_ExitScope();
 
   // Shutdown the isolate.

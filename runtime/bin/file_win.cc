@@ -73,6 +73,12 @@ bool File::IsClosed() {
 }
 
 
+void* File::MapExecutable(intptr_t* len) {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
 int64_t File::Read(void* buffer, int64_t num_bytes) {
   ASSERT(handle_->fd() >= 0);
   return read(handle_->fd(), buffer, num_bytes);

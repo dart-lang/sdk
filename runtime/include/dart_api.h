@@ -2957,13 +2957,24 @@ DART_EXPORT Dart_Handle Dart_Precompile(
     bool reset_fields);
 
 
-DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
+DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
     uint8_t** vm_isolate_snapshot_buffer,
     intptr_t* vm_isolate_snapshot_size,
     uint8_t** isolate_snapshot_buffer,
     intptr_t* isolate_snapshot_size,
-    uint8_t** instructions_snapshot_buffer,
-    intptr_t* instructions_snapshot_size);
+    uint8_t** instructions_assembly_buffer,
+    intptr_t* instructions_assembly_size);
+
+
+DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
+    uint8_t** vm_isolate_snapshot_buffer,
+    intptr_t* vm_isolate_snapshot_size,
+    uint8_t** isolate_snapshot_buffer,
+    intptr_t* isolate_snapshot_size,
+    uint8_t** instructions_blob_buffer,
+    intptr_t* instructions_blob_size,
+    uint8_t** rodata_blob_buffer,
+    intptr_t* rodata_blob_size);
 
 
 DART_EXPORT bool Dart_IsRunningPrecompiledCode();

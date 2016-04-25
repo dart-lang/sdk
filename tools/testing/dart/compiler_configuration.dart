@@ -52,6 +52,7 @@ abstract class CompilerConfiguration {
     bool useSdk = configuration['use_sdk'];
     bool isCsp = configuration['csp'];
     bool useCps = configuration['cps_ir'];
+    bool useBlobs = configuration['use_blobs'];
 
     switch (compiler) {
       case 'dart2analyzer':
@@ -77,7 +78,8 @@ abstract class CompilerConfiguration {
         return new PrecompilerCompilerConfiguration(
             isDebug: isDebug,
             isChecked: isChecked,
-            arch: configuration['arch']);
+            arch: configuration['arch'],
+            useBlobs: useBlobs);
       case 'none':
         return new NoneCompilerConfiguration(
             isDebug: isDebug,
@@ -299,10 +301,12 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
 
 class PrecompilerCompilerConfiguration extends CompilerConfiguration {
   final String arch;
+  final bool useBlobs;
 
-  PrecompilerCompilerConfiguration({bool isDebug, bool isChecked, String arch})
+  PrecompilerCompilerConfiguration({bool isDebug, bool isChecked, String arch, bool useBlobs})
       : super._subclass(isDebug: isDebug, isChecked: isChecked),
-        arch = arch;
+        arch = arch,
+        useBlobs = useBlobs;
 
   int computeTimeoutMultiplier() {
     int multiplier = 2;
@@ -317,14 +321,16 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       CommandBuilder commandBuilder,
       List arguments,
       Map<String, String> environmentOverrides) {
-    return new CommandArtifact(<Command>[
-      this.computeCompilationCommand(tempDir, buildDir, CommandBuilder.instance,
-          arguments, environmentOverrides),
-      this.computeAssembleCommand(tempDir, buildDir, CommandBuilder.instance,
-          arguments, environmentOverrides),
-      this.computeRemoveAssemblyCommand(tempDir, buildDir,
-          CommandBuilder.instance, arguments, environmentOverrides)
-    ], '$tempDir', 'application/dart-precompiled');
+    var commands = new List<Command>();
+    commands.add(this.computeCompilationCommand(tempDir, buildDir, CommandBuilder.instance,
+          arguments, environmentOverrides));
+    if (!useBlobs) {
+      commands.add(this.computeAssembleCommand(tempDir, buildDir, CommandBuilder.instance,
+          arguments, environmentOverrides));
+      commands.add(this.computeRemoveAssemblyCommand(tempDir, buildDir,
+          CommandBuilder.instance, arguments, environmentOverrides));
+    }
+    return new CommandArtifact(commands, '$tempDir', 'application/dart-precompiled');
   }
 
   CompilationCommand computeCompilationCommand(
@@ -336,6 +342,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     var exec = "$buildDir/dart_bootstrap";
     var args = new List();
     args.add("--gen-precompiled-snapshot=$tempDir");
+    if (useBlobs) {
+      args.add("--use_blobs");
+    }
     args.addAll(arguments);
 
     return commandBuilder.getCompilationCommand('precompiler', tempDir, !useSdk,
