@@ -26837,7 +26837,7 @@ class MouseEvent extends UIEvent {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @Experimental()
-  Point get movement => new Point(movementX, movementY);
+  Point get movement => new Point(_movementX, _movementY);
 
   /**
    * The coordinates of the mouse pointer in target node coordinates.
