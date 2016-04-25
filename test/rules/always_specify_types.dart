@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 // Hack to work around issues importing `meta.dart` in tests.
 // Ideally, remove:
 library meta;
@@ -82,5 +81,12 @@ class Foo {
   var foo; //LINT
   Foo(var bar); //LINT [7:3]
   void f(List l) { } //LINT
+}
+
+void m() {
+  if ('' is Map) //OK {
+  {
+     print("won't happen");
+  }
 }
 

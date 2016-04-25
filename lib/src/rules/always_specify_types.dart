@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart'
     show
         AstVisitor,
         DeclaredIdentifier,
+        IsExpression,
         ListLiteral,
         MapLiteral,
         SimpleFormalParameter,
@@ -144,6 +145,7 @@ class Visitor extends SimpleAstVisitor {
     if (type is ParameterizedType) {
       if (type.typeParameters.isNotEmpty &&
           typeName.typeArguments == null &&
+          typeName.parent is! IsExpression &&
           !_isOptionallyParameterized(type)) {
         rule.reportLint(typeName);
       }
