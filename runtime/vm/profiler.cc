@@ -953,7 +953,7 @@ void Profiler::DumpStackTrace(bool native_stack_trace) {
 
   OS::Print("Dumping %s stack trace for thread %" Px "\n",
             native_stack_trace ? "native" : "dart-only",
-            static_cast<uintptr_t>(os_thread->trace_id()));
+            OSThread::ThreadIdToIntPtr(os_thread->trace_id()));
 
   uintptr_t sp = Thread::GetCurrentStackPointer();
   uintptr_t fp = 0;
