@@ -447,8 +447,8 @@ abstract class Iterable<E> {
    * Returns the first element.
    *
    * Throws a [StateError] if `this` is empty.
-   * Otherwise returs the first element in the iteration order,
-   * equivalent to `(iterator..moveNext())..current`.
+   * Otherwise returns the first element in the iteration order,
+   * equivalent to `this.elementAt(0)`.
    */
   E get first {
     Iterator<E> it = iterator;
