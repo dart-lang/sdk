@@ -390,9 +390,9 @@ class LibraryImportScope extends Scope {
         }
       }
     }
-    if (foundElement is MultiplyDefinedElementImpl) {
-      foundElement = _removeSdkElements(
-          identifier, name, foundElement as MultiplyDefinedElementImpl);
+    Element element = foundElement;
+    if (element is MultiplyDefinedElementImpl) {
+      foundElement = _removeSdkElements(identifier, name, element);
     }
     if (foundElement is MultiplyDefinedElementImpl) {
       String foundEltName = foundElement.displayName;

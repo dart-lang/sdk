@@ -3267,12 +3267,12 @@ class ErrorReporter {
       for (int i = 0; i < count; i++) {
         Object argument = arguments[i];
         if (argument is DartType) {
-          DartType type = argument;
-          Element element = type.element;
+          Element element = argument.element;
           if (element == null) {
-            arguments[i] = displayName(type);
+            arguments[i] = displayName(argument);
           } else {
-            arguments[i] = element.getExtendedDisplayName(displayName(type));
+            arguments[i] =
+                element.getExtendedDisplayName(displayName(argument));
           }
         }
       }
@@ -3295,8 +3295,8 @@ class ErrorReporter {
     int count = arguments.length;
     HashSet<String> typeNames = new HashSet<String>();
     for (int i = 0; i < count; i++) {
-      if (arguments[i] is DartType &&
-          !typeNames.add((arguments[i] as DartType).displayName)) {
+      Object argument = arguments[i];
+      if (argument is DartType && !typeNames.add(argument.displayName)) {
         return true;
       }
     }
@@ -3586,7 +3586,6 @@ class HintCode extends ErrorCode {
    */
   static const HintCode MISSING_REQUIRED_PARAM = const HintCode(
       'MISSING_REQUIRED_PARAM', "The parameter '{0}' is required.");
-
 
   /**
    * Generate a hint for a constructor, function or method invocation where a

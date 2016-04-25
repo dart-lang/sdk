@@ -12,11 +12,11 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, InheritanceManager;
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 
 /**
  * Sets the type of the field. This is stored in the field itself, and the
@@ -469,10 +469,13 @@ class VariableGatherer extends RecursiveAstVisitor {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (!node.inDeclarationContext()) {
-      Element element = node.staticElement;
-      if (element is PropertyAccessorElement && element.isSynthetic) {
-        element = (element as PropertyAccessorElement).variable;
+      Element nonAccessor(Element element) {
+        if (element is PropertyAccessorElement && element.isSynthetic) {
+          return element.variable;
+        }
+        return element;
       }
+      Element element = nonAccessor(node.staticElement);
       if (element is VariableElement && (filter == null || filter(element))) {
         results.add(element);
       }

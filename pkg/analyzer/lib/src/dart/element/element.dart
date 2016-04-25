@@ -1718,9 +1718,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   }
 
   @override
-  bool get isJS => element is ConstructorElement &&
-        element.enclosingElement.name == _JS_CLASS_NAME &&
-        element.library?.name == _JS_LIB_NAME;
+  bool get isJS =>
+      element is ConstructorElement &&
+      element.enclosingElement.name == _JS_CLASS_NAME &&
+      element.library?.name == _JS_LIB_NAME;
 
   @override
   bool get isMustCallSuper =>
@@ -3283,18 +3284,18 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   int get codeLength {
-    if (_definingCompilationUnit is CompilationUnitElementImpl) {
-      return (_definingCompilationUnit as CompilationUnitElementImpl)
-          .codeLength;
+    CompilationUnitElement unit = _definingCompilationUnit;
+    if (unit is CompilationUnitElementImpl) {
+      return unit.codeLength;
     }
     return null;
   }
 
   @override
   int get codeOffset {
-    if (_definingCompilationUnit is CompilationUnitElementImpl) {
-      return (_definingCompilationUnit as CompilationUnitElementImpl)
-          .codeOffset;
+    CompilationUnitElement unit = _definingCompilationUnit;
+    if (unit is CompilationUnitElementImpl) {
+      return unit.codeOffset;
     }
     return null;
   }
@@ -3684,15 +3685,13 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     // are in the case where library cycles have simply never been computed from
     // a newly reachable node.
     Set<LibraryElementImpl> active = new HashSet();
-    void invalidate(LibraryElement library) {
-      if (library is LibraryElementHandle) {
-        library = (library as LibraryElementHandle).actualElement;
-      }
-      LibraryElementImpl libraryImpl = library;
-      if (active.add(libraryImpl)) {
-        if (libraryImpl._libraryCycle != null) {
-          libraryImpl._libraryCycle.forEach(invalidate);
-          libraryImpl._libraryCycle = null;
+    void invalidate(LibraryElement element) {
+      LibraryElementImpl library =
+          element is LibraryElementHandle ? element.actualElement : element;
+      if (active.add(library)) {
+        if (library._libraryCycle != null) {
+          library._libraryCycle.forEach(invalidate);
+          library._libraryCycle = null;
         }
         library.exportedLibraries.forEach(invalidate);
         library.importedLibraries.forEach(invalidate);
@@ -4700,8 +4699,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     }
     if (enclosingElement is ClassElement) {
       return getNodeMatching((node) => node is MethodDeclaration);
-    }
-    if (enclosingElement is CompilationUnitElement) {
+    } else if (enclosingElement is CompilationUnitElement) {
       return getNodeMatching((node) => node is FunctionDeclaration);
     }
     return null;

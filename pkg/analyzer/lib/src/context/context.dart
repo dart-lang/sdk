@@ -374,8 +374,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     List<Source> sources = <Source>[];
     for (Source source in _cache.sources) {
       CacheEntry entry = _cache.get(source);
-      if (source is Source &&
-          entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY &&
+      if (entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY &&
           !source.isInSystemLibrary &&
           isServerLibrary(source)) {
         sources.add(source);

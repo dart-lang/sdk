@@ -772,8 +772,7 @@ class AssignmentExpressionImpl extends ExpressionImpl
         if (leftElement is ExecutableElement) {
           executableElement = leftElement;
         }
-      }
-      if (_leftHandSide is PropertyAccess) {
+      } else if (_leftHandSide is PropertyAccess) {
         SimpleIdentifier identifier =
             (_leftHandSide as PropertyAccess).propertyName;
         Element leftElement = identifier.propagatedElement;
@@ -808,8 +807,7 @@ class AssignmentExpressionImpl extends ExpressionImpl
         if (leftElement is ExecutableElement) {
           executableElement = leftElement;
         }
-      }
-      if (_leftHandSide is PropertyAccess) {
+      } else if (_leftHandSide is PropertyAccess) {
         Element leftElement =
             (_leftHandSide as PropertyAccess).propertyName.staticElement;
         if (leftElement is ExecutableElement) {
@@ -8914,11 +8912,9 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
     AstNode parent = this.parent;
     if (parent is PrefixedIdentifier) {
       return identical(parent.identifier, this);
-    }
-    if (parent is PropertyAccess) {
+    } else if (parent is PropertyAccess) {
       return identical(parent.propertyName, this);
-    }
-    if (parent is MethodInvocation) {
+    } else if (parent is MethodInvocation) {
       MethodInvocation invocation = parent;
       return identical(invocation.methodName, this) &&
           invocation.realTarget != null;
@@ -10563,7 +10559,7 @@ class VariableDeclarationImpl extends DeclarationImpl
       super._childEntities..add(_name)..add(equals)..add(_initializer);
 
   /**
-   * This overridden implementation of getDocumentationComment() looks in the
+   * This overridden implementation of [documentationComment] looks in the
    * grandparent node for Dartdoc comments if no documentation is specifically
    * available on the node.
    */
@@ -10571,11 +10567,9 @@ class VariableDeclarationImpl extends DeclarationImpl
   Comment get documentationComment {
     Comment comment = super.documentationComment;
     if (comment == null) {
-      if (parent != null && parent.parent != null) {
-        AstNode node = parent.parent;
-        if (node is AnnotatedNode) {
-          return node.documentationComment;
-        }
+      AstNode node = parent?.parent;
+      if (node is AnnotatedNode) {
+        return node.documentationComment;
       }
     }
     return comment;

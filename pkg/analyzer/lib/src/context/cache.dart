@@ -315,9 +315,7 @@ class CacheEntry {
       new HashMap<ResultDescriptor, ResultData>();
 
   CacheEntry(this.target) {
-    if (target is ElementImpl) {
-      (target as ElementImpl).setModifier(Modifier.CACHE_KEY, true);
-    }
+    _markAsCacheKey(target);
   }
 
   /**
@@ -628,6 +626,15 @@ class CacheEntry {
       if (entry != null) {
         entry._invalidate(id, dependentResult.result, delta, level);
       }
+    }
+  }
+
+  /**
+   * If the given `target` is an element, mark it as being a cache key.
+   */
+  void _markAsCacheKey(AnalysisTarget target) {
+    if (target is ElementImpl) {
+      target.setModifier(Modifier.CACHE_KEY, true);
     }
   }
 

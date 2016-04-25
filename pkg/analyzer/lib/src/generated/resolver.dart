@@ -521,10 +521,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       if (element == null) {
         return false;
       } else if (element is PropertyAccessorElement && element.isSynthetic) {
-        element = (element as PropertyAccessorElement).variable;
-        if (element == null) {
+        // TODO(brianwilkerson) Why isn't this the implementation for PropertyAccessorElement?
+        Element variable = element.variable;
+        if (variable == null) {
           return false;
         }
+        return variable.isDeprecated;
       }
       return element.isDeprecated;
     }
@@ -534,10 +536,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         // TODO(jwren) We should modify ConstructorElement.getDisplayName(),
         // or have the logic centralized elsewhere, instead of doing this logic
         // here.
-        ConstructorElement constructorElement = element;
-        displayName = constructorElement.enclosingElement.displayName;
-        if (!constructorElement.displayName.isEmpty) {
-          displayName = "$displayName.${constructorElement.displayName}";
+        displayName = element.enclosingElement.displayName;
+        if (!element.displayName.isEmpty) {
+          displayName = "$displayName.${element.displayName}";
         }
       }
       _errorReporter.reportErrorForNode(
@@ -598,16 +599,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     // Report error if the (x/y) has toInt() invoked on it
-    if (node.parent is ParenthesizedExpression) {
+    AstNode parent = node.parent;
+    if (parent is ParenthesizedExpression) {
       ParenthesizedExpression parenthesizedExpression =
-          _wrapParenthesizedExpression(node.parent as ParenthesizedExpression);
-      if (parenthesizedExpression.parent is MethodInvocation) {
-        MethodInvocation methodInvocation =
-            parenthesizedExpression.parent as MethodInvocation;
-        if (_TO_INT_METHOD_NAME == methodInvocation.methodName.name &&
-            methodInvocation.argumentList.arguments.isEmpty) {
+          _wrapParenthesizedExpression(parent);
+      AstNode grandParent = parenthesizedExpression.parent;
+      if (grandParent is MethodInvocation) {
+        if (_TO_INT_METHOD_NAME == grandParent.methodName.name &&
+            grandParent.argumentList.arguments.isEmpty) {
           _errorReporter.reportErrorForNode(
-              HintCode.DIVISION_OPTIMIZATION, methodInvocation);
+              HintCode.DIVISION_OPTIMIZATION, grandParent);
           return true;
         }
       }
@@ -1029,9 +1030,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    */
   static ParenthesizedExpression _wrapParenthesizedExpression(
       ParenthesizedExpression parenthesizedExpression) {
-    if (parenthesizedExpression.parent is ParenthesizedExpression) {
-      return _wrapParenthesizedExpression(
-          parenthesizedExpression.parent as ParenthesizedExpression);
+    AstNode parent = parenthesizedExpression.parent;
+    if (parent is ParenthesizedExpression) {
+      return _wrapParenthesizedExpression(parent);
     }
     return parenthesizedExpression;
   }
@@ -1166,9 +1167,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     // check annotation creation
     Element element = node.element;
     if (element is ConstructorElement) {
-      ConstructorElement constructorElement = element;
-      // should 'const' constructor
-      if (!constructorElement.isConst) {
+      // should be 'const' constructor
+      if (!element.isConst) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR, node);
         return null;
@@ -1331,8 +1331,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     DartType firstType = null;
     for (SwitchMember switchMember in switchMembers) {
       if (switchMember is SwitchCase) {
-        SwitchCase switchCase = switchMember;
-        Expression expression = switchCase.expression;
+        Expression expression = switchMember.expression;
         DartObjectImpl caseResult = _validate(
             expression, CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION);
         if (caseResult != null) {
@@ -1520,11 +1519,10 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
    */
   void _validateConstantArguments(ArgumentList argumentList) {
     for (Expression argument in argumentList.arguments) {
-      if (argument is NamedExpression) {
-        argument = (argument as NamedExpression).expression;
-      }
+      Expression realArgument =
+          argument is NamedExpression ? argument.expression : argument;
       _validate(
-          argument, CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT);
+          realArgument, CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT);
     }
   }
 
@@ -1540,19 +1538,16 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     NodeList<ConstructorInitializer> initializers = constructor.initializers;
     for (ConstructorInitializer initializer in initializers) {
       if (initializer is ConstructorFieldInitializer) {
-        ConstructorFieldInitializer fieldInitializer = initializer;
         _validateInitializerExpression(
-            parameterElements, fieldInitializer.expression);
+            parameterElements, initializer.expression);
       }
       if (initializer is RedirectingConstructorInvocation) {
-        RedirectingConstructorInvocation invocation = initializer;
         _validateInitializerInvocationArguments(
-            parameterElements, invocation.argumentList);
+            parameterElements, initializer.argumentList);
       }
       if (initializer is SuperConstructorInvocation) {
-        SuperConstructorInvocation invocation = initializer;
         _validateInitializerInvocationArguments(
-            parameterElements, invocation.argumentList);
+            parameterElements, initializer.argumentList);
       }
     }
   }
@@ -1569,8 +1564,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     }
     for (FormalParameter parameter in parameters.parameters) {
       if (parameter is DefaultFormalParameter) {
-        DefaultFormalParameter defaultParameter = parameter;
-        Expression defaultValue = defaultParameter.defaultValue;
+        Expression defaultValue = parameter.defaultValue;
         DartObjectImpl result;
         if (defaultValue == null) {
           result =
@@ -1603,30 +1597,27 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
       ClassDeclaration classDeclaration, ConstructorDeclaration errorSite) {
     NodeList<ClassMember> members = classDeclaration.members;
     for (ClassMember member in members) {
-      if (member is FieldDeclaration) {
-        FieldDeclaration fieldDeclaration = member;
-        if (!fieldDeclaration.isStatic) {
-          for (VariableDeclaration variableDeclaration
-              in fieldDeclaration.fields.variables) {
-            Expression initializer = variableDeclaration.initializer;
-            if (initializer != null) {
-              // Ignore any errors produced during validation--if the constant
-              // can't be eavluated we'll just report a single error.
-              AnalysisErrorListener errorListener =
-                  AnalysisErrorListener.NULL_LISTENER;
-              ErrorReporter subErrorReporter =
-                  new ErrorReporter(errorListener, _errorReporter.source);
-              DartObjectImpl result = initializer.accept(new ConstantVisitor(
-                  new ConstantEvaluationEngine(_typeProvider, declaredVariables,
-                      typeSystem: _typeSystem),
-                  subErrorReporter));
-              if (result == null) {
-                _errorReporter.reportErrorForNode(
-                    CompileTimeErrorCode
-                        .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
-                    errorSite,
-                    [variableDeclaration.name.name]);
-              }
+      if (member is FieldDeclaration && !member.isStatic) {
+        for (VariableDeclaration variableDeclaration
+            in member.fields.variables) {
+          Expression initializer = variableDeclaration.initializer;
+          if (initializer != null) {
+            // Ignore any errors produced during validation--if the constant
+            // can't be eavluated we'll just report a single error.
+            AnalysisErrorListener errorListener =
+                AnalysisErrorListener.NULL_LISTENER;
+            ErrorReporter subErrorReporter =
+                new ErrorReporter(errorListener, _errorReporter.source);
+            DartObjectImpl result = initializer.accept(new ConstantVisitor(
+                new ConstantEvaluationEngine(_typeProvider, declaredVariables,
+                    typeSystem: _typeSystem),
+                subErrorReporter));
+            if (result == null) {
+              _errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode
+                      .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
+                  errorSite,
+                  [variableDeclaration.name.name]);
             }
           }
         }
@@ -2136,11 +2127,9 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   bool _isDebugConstant(Expression expression) {
     Element element = null;
     if (expression is Identifier) {
-      Identifier identifier = expression;
-      element = identifier.staticElement;
+      element = expression.staticElement;
     } else if (expression is PropertyAccess) {
-      PropertyAccess propertyAccess = expression;
-      element = propertyAccess.propertyName.staticElement;
+      element = expression.propertyName.staticElement;
     }
     if (element is PropertyAccessorElement) {
       PropertyInducingElement variable = element.variable;
@@ -3491,8 +3480,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     // evaluates to a constant false value?
     if (operatorType == TokenType.BAR_BAR) {
       if (lhsExpression is BooleanLiteral) {
-        BooleanLiteral booleanLiteral = lhsExpression;
-        if (!booleanLiteral.value) {
+        if (!lhsExpression.value) {
           return _nodeExits(rhsExpression);
         }
       }
@@ -3502,8 +3490,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     // expression if the left hand side is the true literal.
     if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
       if (lhsExpression is BooleanLiteral) {
-        BooleanLiteral booleanLiteral = lhsExpression;
-        if (booleanLiteral.value) {
+        if (lhsExpression.value) {
           return _nodeExits(rhsExpression);
         }
       }
@@ -3564,11 +3551,10 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       }
       // TODO(jwren) Do we want to take all constant expressions into account?
       if (conditionExpression is BooleanLiteral) {
-        BooleanLiteral booleanLiteral = conditionExpression;
         // If do {} while (true), and the body doesn't return or the body
         // doesn't have a break, then return true.
         bool blockReturns = _nodeExits(node.body);
-        if (booleanLiteral.value &&
+        if (conditionExpression.value &&
             (blockReturns || !_enclosingBlockContainsBreak)) {
           return true;
         }
@@ -3661,8 +3647,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     }
     // TODO(jwren) Do we want to take all constant expressions into account?
     if (conditionExpression is BooleanLiteral) {
-      BooleanLiteral booleanLiteral = conditionExpression;
-      if (booleanLiteral.value) {
+      if (conditionExpression.value) {
         // if(true) ...
         return _nodeExits(thenStatement);
       } else if (elseStatement != null) {
@@ -3856,11 +3841,10 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       }
       // TODO(jwren) Do we want to take all constant expressions into account?
       if (conditionExpression is BooleanLiteral) {
-        BooleanLiteral booleanLiteral = conditionExpression;
         // If while(true), and the body doesn't return or the body doesn't have
         // a break, then return true.
         bool blockReturns = node.body.accept(this);
-        if (booleanLiteral.value &&
+        if (conditionExpression.value &&
             (blockReturns || !_enclosingBlockContainsBreak)) {
           return true;
         }
@@ -3988,8 +3972,7 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
     // If the element is multiply defined then call this method recursively for
     // each of the conflicting elements.
     if (element is MultiplyDefinedElement) {
-      MultiplyDefinedElement multiplyDefinedElement = element;
-      for (Element elt in multiplyDefinedElement.conflictingElements) {
+      for (Element elt in element.conflictingElements) {
         _visitIdentifier(identifier, elt);
       }
       return;
@@ -4346,27 +4329,25 @@ class ImportsVerifier {
   void addImports(CompilationUnit node) {
     for (Directive directive in node.directives) {
       if (directive is ImportDirective) {
-        ImportDirective importDirective = directive;
-        LibraryElement libraryElement = importDirective.uriElement;
+        LibraryElement libraryElement = directive.uriElement;
         if (libraryElement == null) {
           continue;
         }
-        _unusedImports.add(importDirective);
+        _unusedImports.add(directive);
         //
         // Initialize prefixElementMap
         //
-        if (importDirective.asKeyword != null) {
-          SimpleIdentifier prefixIdentifier = importDirective.prefix;
+        if (directive.asKeyword != null) {
+          SimpleIdentifier prefixIdentifier = directive.prefix;
           if (prefixIdentifier != null) {
             Element element = prefixIdentifier.staticElement;
             if (element is PrefixElement) {
-              PrefixElement prefixElementKey = element;
-              List<ImportDirective> list = _prefixElementMap[prefixElementKey];
+              List<ImportDirective> list = _prefixElementMap[element];
               if (list == null) {
                 list = new List<ImportDirective>();
-                _prefixElementMap[prefixElementKey] = list;
+                _prefixElementMap[element] = list;
               }
-              list.add(importDirective);
+              list.add(directive);
             }
             // TODO (jwren) Can the element ever not be a PrefixElement?
           }
@@ -4374,14 +4355,14 @@ class ImportsVerifier {
         //
         // Initialize libraryMap: libraryElement -> importDirective
         //
-        _putIntoLibraryMap(libraryElement, importDirective);
+        _putIntoLibraryMap(libraryElement, directive);
         //
         // For this new addition to the libraryMap, also recursively add any
         // exports from the libraryElement.
         //
         _addAdditionalLibrariesForExports(
-            libraryElement, importDirective, new HashSet<LibraryElement>());
-        _addShownNames(importDirective);
+            libraryElement, directive, new HashSet<LibraryElement>());
+        _addShownNames(directive);
       }
     }
     if (_unusedImports.length > 1) {
@@ -6943,18 +6924,16 @@ class ResolverVisitor extends ScopedVisitor {
   DartType _getIteratorElementType(Expression iteratorExpression) {
     DartType expressionType = iteratorExpression.bestType;
     if (expressionType is InterfaceType) {
-      InterfaceType interfaceType = expressionType;
       PropertyAccessorElement iteratorFunction =
-          interfaceType.lookUpInheritedGetter("iterator");
+          expressionType.lookUpInheritedGetter("iterator");
       if (iteratorFunction == null) {
         // TODO(brianwilkerson) Should we report this error?
         return null;
       }
       DartType iteratorType = iteratorFunction.returnType;
       if (iteratorType is InterfaceType) {
-        InterfaceType iteratorInterfaceType = iteratorType;
         PropertyAccessorElement currentFunction =
-            iteratorInterfaceType.lookUpInheritedGetter("current");
+            iteratorType.lookUpInheritedGetter("current");
         if (currentFunction == null) {
           // TODO(brianwilkerson) Should we report this error?
           return null;
@@ -7218,18 +7197,16 @@ class ResolverVisitor extends ScopedVisitor {
    */
   void _promoteTypes(Expression condition) {
     if (condition is BinaryExpression) {
-      BinaryExpression binary = condition;
-      if (binary.operator.type == TokenType.AMPERSAND_AMPERSAND) {
-        Expression left = binary.leftOperand;
-        Expression right = binary.rightOperand;
+      if (condition.operator.type == TokenType.AMPERSAND_AMPERSAND) {
+        Expression left = condition.leftOperand;
+        Expression right = condition.rightOperand;
         _promoteTypes(left);
         _promoteTypes(right);
         _clearTypePromotionsIfPotentiallyMutatedIn(right);
       }
     } else if (condition is IsExpression) {
-      IsExpression is2 = condition;
-      if (is2.notOperator == null) {
-        _promote(is2.expression, is2.type.type);
+      if (condition.notOperator == null) {
+        _promote(condition.expression, condition.type.type);
       }
     } else if (condition is ParenthesizedExpression) {
       _promoteTypes(condition.expression);
@@ -7244,23 +7221,21 @@ class ResolverVisitor extends ScopedVisitor {
    */
   void _propagateFalseState(Expression condition) {
     if (condition is BinaryExpression) {
-      BinaryExpression binary = condition;
-      if (binary.operator.type == TokenType.BAR_BAR) {
-        _propagateFalseState(binary.leftOperand);
-        _propagateFalseState(binary.rightOperand);
+      if (condition.operator.type == TokenType.BAR_BAR) {
+        _propagateFalseState(condition.leftOperand);
+        _propagateFalseState(condition.rightOperand);
       }
     } else if (condition is IsExpression) {
-      IsExpression is2 = condition;
-      if (is2.notOperator != null) {
+      if (condition.notOperator != null) {
         // Since an is-statement doesn't actually change the type, we don't
         // let it affect the propagated type when it would result in a loss
         // of precision.
-        overrideExpression(is2.expression, is2.type.type, false, false);
+        overrideExpression(
+            condition.expression, condition.type.type, false, false);
       }
     } else if (condition is PrefixExpression) {
-      PrefixExpression prefix = condition;
-      if (prefix.operator.type == TokenType.BANG) {
-        _propagateTrueState(prefix.operand);
+      if (condition.operator.type == TokenType.BANG) {
+        _propagateTrueState(condition.operand);
       }
     } else if (condition is ParenthesizedExpression) {
       _propagateFalseState(condition.expression);
@@ -7285,23 +7260,21 @@ class ResolverVisitor extends ScopedVisitor {
    */
   void _propagateTrueState(Expression condition) {
     if (condition is BinaryExpression) {
-      BinaryExpression binary = condition;
-      if (binary.operator.type == TokenType.AMPERSAND_AMPERSAND) {
-        _propagateTrueState(binary.leftOperand);
-        _propagateTrueState(binary.rightOperand);
+      if (condition.operator.type == TokenType.AMPERSAND_AMPERSAND) {
+        _propagateTrueState(condition.leftOperand);
+        _propagateTrueState(condition.rightOperand);
       }
     } else if (condition is IsExpression) {
-      IsExpression is2 = condition;
-      if (is2.notOperator == null) {
+      if (condition.notOperator == null) {
         // Since an is-statement doesn't actually change the type, we don't
         // let it affect the propagated type when it would result in a loss
         // of precision.
-        overrideExpression(is2.expression, is2.type.type, false, false);
+        overrideExpression(
+            condition.expression, condition.type.type, false, false);
       }
     } else if (condition is PrefixExpression) {
-      PrefixExpression prefix = condition;
-      if (prefix.operator.type == TokenType.BANG) {
-        _propagateFalseState(prefix.operand);
+      if (condition.operator.type == TokenType.BANG) {
+        _propagateFalseState(condition.operand);
       }
     } else if (condition is ParenthesizedExpression) {
       _propagateTrueState(condition.expression);
@@ -8091,15 +8064,13 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     for (int i = 0; i < statementCount; i++) {
       Statement statement = statements[i];
       if (statement is VariableDeclarationStatement) {
-        VariableDeclarationStatement vds = statement;
-        NodeList<VariableDeclaration> variables = vds.variables.variables;
+        NodeList<VariableDeclaration> variables = statement.variables.variables;
         int variableCount = variables.length;
         for (int j = 0; j < variableCount; j++) {
           scope.hide(variables[j].element);
         }
       } else if (statement is FunctionDeclarationStatement) {
-        FunctionDeclarationStatement fds = statement;
-        scope.hide(fds.functionDeclaration.element);
+        scope.hide(statement.functionDeclaration.element);
       }
     }
   }
@@ -8526,17 +8497,16 @@ class TypeOverrideManager_TypeOverrideScope {
    * @return the overridden type of the given element
    */
   DartType getType(Element element) {
-    if (element is PropertyAccessorElement) {
-      element = (element as PropertyAccessorElement).variable;
-    }
-    DartType type = _overridenTypes[element];
-    if (_overridenTypes.containsKey(element)) {
+    Element nonAccessor =
+        element is PropertyAccessorElement ? element.variable : element;
+    DartType type = _overridenTypes[nonAccessor];
+    if (_overridenTypes.containsKey(nonAccessor)) {
       return type;
     }
     if (type != null) {
       return type;
     } else if (_outerScope != null) {
-      return _outerScope.getType(element);
+      return _outerScope.getType(nonAccessor);
     }
     return null;
   }
@@ -9370,7 +9340,6 @@ class TypeResolverVisitor extends ScopedVisitor {
     super.visitFieldFormalParameter(node);
     Element element = node.identifier.staticElement;
     if (element is ParameterElementImpl) {
-      ParameterElementImpl parameter = element;
       FormalParameterList parameterList = node.parameters;
       if (parameterList == null) {
         DartType type;
@@ -9378,9 +9347,9 @@ class TypeResolverVisitor extends ScopedVisitor {
         if (typeName == null) {
           element.hasImplicitType = true;
           type = _dynamicType;
-          if (parameter is FieldFormalParameterElement) {
+          if (element is FieldFormalParameterElement) {
             FieldElement fieldElement =
-                (parameter as FieldFormalParameterElement).field;
+                (element as FieldFormalParameterElement).field;
             if (fieldElement != null) {
               type = fieldElement.type;
             }
@@ -9388,9 +9357,9 @@ class TypeResolverVisitor extends ScopedVisitor {
         } else {
           type = _getType(typeName);
         }
-        parameter.type = type;
+        element.type = type;
       } else {
-        _setFunctionTypedParameterType(parameter, node.type, node.parameters);
+        _setFunctionTypedParameterType(element, node.type, node.parameters);
       }
     } else {
       // TODO(brianwilkerson) Report this internal error
@@ -9491,8 +9460,8 @@ class TypeResolverVisitor extends ScopedVisitor {
       declaredType = _getType(typeName);
     }
     Element element = node.identifier.staticElement;
-    if (element is ParameterElement) {
-      (element as ParameterElementImpl).type = declaredType;
+    if (element is ParameterElementImpl) {
+      element.type = declaredType;
     } else {
       // TODO(brianwilkerson) Report the internal error.
     }
@@ -9785,13 +9754,12 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (element is VariableElement) {
       (element as VariableElementImpl).type = declaredType;
       if (element is PropertyInducingElement) {
-        PropertyInducingElement variableElement = element;
         PropertyAccessorElementImpl getter =
-            variableElement.getter as PropertyAccessorElementImpl;
+            element.getter as PropertyAccessorElementImpl;
         getter.returnType = declaredType;
         getter.type = new FunctionTypeImpl(getter);
         PropertyAccessorElementImpl setter =
-            variableElement.setter as PropertyAccessorElementImpl;
+            element.setter as PropertyAccessorElementImpl;
         if (setter != null) {
           List<ParameterElement> parameters = setter.parameters;
           if (parameters.length > 0) {
@@ -9900,11 +9868,10 @@ class TypeResolverVisitor extends ScopedVisitor {
   RedirectingConstructorKind _getRedirectingConstructorKind(TypeName typeName) {
     AstNode parent = typeName.parent;
     if (parent is ConstructorName) {
-      ConstructorName constructorName = parent as ConstructorName;
-      parent = constructorName.parent;
-      if (parent is ConstructorDeclaration) {
-        if (identical(parent.redirectedConstructor, constructorName)) {
-          if (parent.constKeyword != null) {
+      AstNode grandParent = parent.parent;
+      if (grandParent is ConstructorDeclaration) {
+        if (identical(grandParent.redirectedConstructor, parent)) {
+          if (grandParent.constKeyword != null) {
             return RedirectingConstructorKind.CONST;
           }
           return RedirectingConstructorKind.NORMAL;
@@ -9985,8 +9952,7 @@ class TypeResolverVisitor extends ScopedVisitor {
   bool _isTypeNameInAsExpression(TypeName typeName) {
     AstNode parent = typeName.parent;
     if (parent is AsExpression) {
-      AsExpression asExpression = parent;
-      return identical(asExpression.type, typeName);
+      return identical(parent.type, typeName);
     }
     return false;
   }
@@ -10000,8 +9966,7 @@ class TypeResolverVisitor extends ScopedVisitor {
   bool _isTypeNameInCatchClause(TypeName typeName) {
     AstNode parent = typeName.parent;
     if (parent is CatchClause) {
-      CatchClause catchClause = parent;
-      return identical(catchClause.exceptionType, typeName);
+      return identical(parent.exceptionType, typeName);
     }
     return false;
   }
@@ -10017,9 +9982,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     AstNode parent = typeName.parent;
     if (parent is ConstructorName &&
         parent.parent is InstanceCreationExpression) {
-      ConstructorName constructorName = parent;
-      return constructorName != null &&
-          identical(constructorName.type, typeName);
+      return parent != null && identical(parent.type, typeName);
     }
     return false;
   }
@@ -10033,8 +9996,7 @@ class TypeResolverVisitor extends ScopedVisitor {
   bool _isTypeNameInIsExpression(TypeName typeName) {
     AstNode parent = typeName.parent;
     if (parent is IsExpression) {
-      IsExpression isExpression = parent;
-      return identical(isExpression.type, typeName);
+      return identical(parent.type, typeName);
     }
     return false;
   }
@@ -10231,11 +10193,9 @@ class TypeResolverVisitor extends ScopedVisitor {
     AstNode parent = node.parent;
     if (parent is VariableDeclarationList) {
       return identical(parent.type, node);
-    }
-    if (parent is FieldFormalParameter) {
+    } else if (parent is FieldFormalParameter) {
       return identical(parent.type, node);
-    }
-    if (parent is SimpleFormalParameter) {
+    } else if (parent is SimpleFormalParameter) {
       return identical(parent.type, node);
     }
     return false;

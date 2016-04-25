@@ -1686,9 +1686,9 @@ class PoorMansIncrementalResolver {
           setElementDocumentationComment(parentElement, parent);
         } else if (parentElement == null && parent is FieldDeclaration) {
           for (VariableDeclaration field in parent.fields.variables) {
-            if (field.element is ElementImpl) {
-              setElementDocumentationComment(
-                  field.element as ElementImpl, parent);
+            Element fieldElement = field.element;
+            if (fieldElement is ElementImpl) {
+              setElementDocumentationComment(fieldElement, parent);
             }
           }
         }
@@ -1866,7 +1866,7 @@ class PoorMansIncrementalResolver {
   static Token _getBeginTokenNotComment(AstNode node) {
     Token oldBeginToken = node.beginToken;
     if (oldBeginToken is CommentToken) {
-      oldBeginToken = (oldBeginToken as CommentToken).parent;
+      return oldBeginToken.parent;
     }
     return oldBeginToken;
   }

@@ -1517,8 +1517,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   DartType _computePropagatedReturnTypeOfFunction(FunctionBody body) {
     if (body is ExpressionFunctionBody) {
-      ExpressionFunctionBody expressionBody = body;
-      return expressionBody.expression.bestType;
+      return body.expression.bestType;
     }
     if (body is BlockFunctionBody) {
       _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction visitor =
@@ -1758,16 +1757,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * Return the propagated type of the given [Element], or `null`.
    */
   DartType _getPropertyPropagatedType(Element element, DartType currentType) {
-    if (element is PropertyAccessorElement) {
-      PropertyAccessorElement accessor = element;
-      if (accessor.isGetter) {
-        PropertyInducingElement variable = accessor.variable;
-        DartType propagatedType = variable.propagatedType;
-        if (currentType == null ||
-            propagatedType != null &&
-                propagatedType.isMoreSpecificThan(currentType)) {
-          return propagatedType;
-        }
+    if (element is PropertyAccessorElement && element.isGetter) {
+      PropertyInducingElement variable = element.variable;
+      DartType propagatedType = variable.propagatedType;
+      if (currentType == null ||
+          propagatedType != null &&
+              propagatedType.isMoreSpecificThan(currentType)) {
+        return propagatedType;
       }
     }
     return currentType;
@@ -1924,12 +1920,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       VariableDeclaration node, Expression initializer) {
     if (initializer != null &&
         (node.parent as VariableDeclarationList).type == null &&
-        (node.element is LocalVariableElementImpl) &&
         (initializer.staticType != null) &&
         (!initializer.staticType.isBottom)) {
-      LocalVariableElementImpl element = node.element;
-      element.type = initializer.staticType;
-      node.name.staticType = initializer.staticType;
+      VariableElement element = node.element;
+      if (element is LocalVariableElementImpl) {
+        element.type = initializer.staticType;
+        node.name.staticType = initializer.staticType;
+      }
     }
   }
 

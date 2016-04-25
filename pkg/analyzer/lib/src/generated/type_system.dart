@@ -310,8 +310,12 @@ class StrongTypeSystemImpl extends TypeSystem {
 
   bool isGroundType(DartType t) {
     // TODO(leafp): Revisit this.
-    if (t is TypeParameterType) return false;
-    if (_isTop(t)) return true;
+    if (t is TypeParameterType) {
+      return false;
+    }
+    if (_isTop(t)) {
+      return true;
+    }
 
     if (t is FunctionType) {
       if (!_isTop(t.returnType) ||
@@ -323,8 +327,8 @@ class StrongTypeSystemImpl extends TypeSystem {
     }
 
     if (t is InterfaceType) {
-      var typeArguments = t.typeArguments;
-      for (var typeArgument in typeArguments) {
+      List<DartType> typeArguments = t.typeArguments;
+      for (DartType typeArgument in typeArguments) {
         if (!_isTop(typeArgument)) return false;
       }
       return true;

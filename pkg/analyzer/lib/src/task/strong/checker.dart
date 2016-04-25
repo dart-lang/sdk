@@ -117,10 +117,8 @@ class CodeChecker extends RecursiveAstVisitor {
   void checkArgument(Expression arg, DartType expectedType) {
     // Preserve named argument structure, so their immediate parent is the
     // method invocation.
-    if (arg is NamedExpression) {
-      arg = (arg as NamedExpression).expression;
-    }
-    checkAssignment(arg, expectedType);
+    Expression baseExpression = arg is NamedExpression ? arg.expression : arg;
+    checkAssignment(baseExpression, expectedType);
   }
 
   void checkArgumentList(ArgumentList node, FunctionType type) {
@@ -427,16 +425,22 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitListLiteral(ListLiteral node) {
-    var type = DynamicTypeImpl.instance;
+    DartType type = DynamicTypeImpl.instance;
     if (node.typeArguments != null) {
-      var targs = node.typeArguments.arguments;
-      if (targs.length > 0) type = targs[0].type;
-    } else if (node.staticType is InterfaceType) {
-      InterfaceType listT = node.staticType;
-      var targs = listT.typeArguments;
-      if (targs != null && targs.length > 0) type = targs[0];
+      NodeList<TypeName> targs = node.typeArguments.arguments;
+      if (targs.length > 0) {
+        type = targs[0].type;
+      }
+    } else {
+      DartType staticType = node.staticType;
+      if (staticType is InterfaceType) {
+        List<DartType> targs = staticType.typeArguments;
+        if (targs != null && targs.length > 0) {
+          type = targs[0];
+        }
+      }
     }
-    var elements = node.elements;
+    NodeList<Expression> elements = node.elements;
     for (int i = 0; i < elements.length; i++) {
       checkArgument(elements[i], type);
     }
@@ -445,23 +449,33 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitMapLiteral(MapLiteral node) {
-    var ktype = DynamicTypeImpl.instance;
-    var vtype = DynamicTypeImpl.instance;
+    DartType ktype = DynamicTypeImpl.instance;
+    DartType vtype = DynamicTypeImpl.instance;
     if (node.typeArguments != null) {
-      var targs = node.typeArguments.arguments;
-      if (targs.length > 0) ktype = targs[0].type;
-      if (targs.length > 1) vtype = targs[1].type;
-    } else if (node.staticType is InterfaceType) {
-      InterfaceType mapT = node.staticType;
-      var targs = mapT.typeArguments;
-      if (targs != null) {
-        if (targs.length > 0) ktype = targs[0];
-        if (targs.length > 1) vtype = targs[1];
+      NodeList<TypeName> targs = node.typeArguments.arguments;
+      if (targs.length > 0) {
+        ktype = targs[0].type;
+      }
+      if (targs.length > 1) {
+        vtype = targs[1].type;
+      }
+    } else {
+      DartType staticType = node.staticType;
+      if (staticType is InterfaceType) {
+        List<DartType> targs = staticType.typeArguments;
+        if (targs != null) {
+          if (targs.length > 0) {
+            ktype = targs[0];
+          }
+          if (targs.length > 1) {
+            vtype = targs[1];
+          }
+        }
       }
     }
-    var entries = node.entries;
+    NodeList<MapLiteralEntry> entries = node.entries;
     for (int i = 0; i < entries.length; i++) {
-      var entry = entries[i];
+      MapLiteralEntry entry = entries[i];
       checkArgument(entry.key, ktype);
       checkArgument(entry.value, vtype);
     }
@@ -820,7 +834,9 @@ class CodeChecker extends RecursiveAstVisitor {
     if (t is InterfaceType) {
       return rules.getCallMethodType(t);
     }
-    if (t is FunctionType) return t;
+    if (t is FunctionType) {
+      return t;
+    }
     return null;
   }
 
@@ -1011,11 +1027,15 @@ class _OverrideChecker {
       InterfaceType baseType, Set<String> seen, bool isSubclass) {
     for (var member in node.members) {
       if (member is FieldDeclaration) {
-        if (member.isStatic) continue;
+        if (member.isStatic) {
+          continue;
+        }
         for (var variable in member.fields.variables) {
           var element = variable.element as PropertyInducingElement;
           var name = element.name;
-          if (seen.contains(name)) continue;
+          if (seen.contains(name)) {
+            continue;
+          }
           var getter = element.getter;
           var setter = element.setter;
           bool found = _checkSingleOverride(
@@ -1026,12 +1046,18 @@ class _OverrideChecker {
                   setter, baseType, variable.name, member, isSubclass)) {
             found = true;
           }
-          if (found) seen.add(name);
+          if (found) {
+            seen.add(name);
+          }
         }
       } else if (member is MethodDeclaration) {
-        if (member.isStatic) continue;
+        if (member.isStatic) {
+          continue;
+        }
         var method = member.element;
-        if (seen.contains(method.name)) continue;
+        if (seen.contains(method.name)) {
+          continue;
+        }
         if (_checkSingleOverride(
             method, baseType, member.name, member, isSubclass)) {
           seen.add(method.name);

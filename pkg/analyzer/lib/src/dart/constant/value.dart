@@ -372,8 +372,9 @@ class DartObjectImpl implements DartObject {
 
   @override
   DartObject getField(String name) {
-    if (_state is GenericState) {
-      return (_state as GenericState).fields[name];
+    InstanceState state = _state;
+    if (state is GenericState) {
+      return state.fields[name];
     }
     return null;
   }
@@ -652,40 +653,45 @@ class DartObjectImpl implements DartObject {
 
   @override
   bool toBoolValue() {
-    if (_state is BoolState) {
-      return (_state as BoolState).value;
+    InstanceState state = _state;
+    if (state is BoolState) {
+      return state.value;
     }
     return null;
   }
 
   @override
   double toDoubleValue() {
-    if (_state is DoubleState) {
-      return (_state as DoubleState).value;
+    InstanceState state = _state;
+    if (state is DoubleState) {
+      return state.value;
     }
     return null;
   }
 
   @override
   int toIntValue() {
-    if (_state is IntState) {
-      return (_state as IntState).value;
+    InstanceState state = _state;
+    if (state is IntState) {
+      return state.value;
     }
     return null;
   }
 
   @override
   List<DartObject> toListValue() {
-    if (_state is ListState) {
-      return (_state as ListState)._elements;
+    InstanceState state = _state;
+    if (state is ListState) {
+      return state._elements;
     }
     return null;
   }
 
   @override
   Map<DartObject, DartObject> toMapValue() {
-    if (_state is MapState) {
-      return (_state as MapState)._entries;
+    InstanceState state = _state;
+    if (state is MapState) {
+      return state._entries;
     }
     return null;
   }
@@ -695,24 +701,27 @@ class DartObjectImpl implements DartObject {
 
   @override
   String toStringValue() {
-    if (_state is StringState) {
-      return (_state as StringState).value;
+    InstanceState state = _state;
+    if (state is StringState) {
+      return state.value;
     }
     return null;
   }
 
   @override
   String toSymbolValue() {
-    if (_state is SymbolState) {
-      return (_state as SymbolState).value;
+    InstanceState state = _state;
+    if (state is SymbolState) {
+      return state.value;
     }
     return null;
   }
 
   @override
   DartType toTypeValue() {
-    if (_state is TypeState) {
-      Element element = (_state as TypeState)._element;
+    InstanceState state = _state;
+    if (state is TypeState) {
+      Element element = state._element;
       if (element is TypeDefiningElement) {
         return element.type;
       }

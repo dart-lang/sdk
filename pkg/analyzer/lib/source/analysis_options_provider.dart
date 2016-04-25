@@ -38,19 +38,21 @@ class AnalysisOptionsProvider {
   /// Provide the options found in [optionsSource].
   /// Return an empty options map if the source is null.
   Map<String, YamlNode> getOptionsFromString(String optionsSource) {
-    var options = <String, YamlNode>{};
+    Map<String, YamlNode> options = <String, YamlNode>{};
     if (optionsSource == null) {
       return options;
     }
 
-    YamlNode doc;
-    try {
-      doc = loadYamlNode(optionsSource);
-    } on YamlException catch (e) {
-      throw new OptionsFormatException(e.message, e.span);
-    } catch (e) {
-      throw new OptionsFormatException('Unable to parse YAML document.');
+    YamlNode safelyLoadYamlNode() {
+      try {
+        return loadYamlNode(optionsSource);
+      } on YamlException catch (e) {
+        throw new OptionsFormatException(e.message, e.span);
+      } catch (e) {
+        throw new OptionsFormatException('Unable to parse YAML document.');
+      }
     }
+    YamlNode doc = safelyLoadYamlNode();
 
     // Empty options.
     if (doc is YamlScalar && doc.value == null) {
@@ -62,7 +64,7 @@ class AnalysisOptionsProvider {
           doc.span);
     }
     if (doc is YamlMap) {
-      (doc as YamlMap).nodes.forEach((k, v) {
+      doc.nodes.forEach((k, YamlNode v) {
         var key;
         if (k is YamlScalar) {
           key = k.value;

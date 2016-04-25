@@ -1382,16 +1382,15 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         libraryNameNode = directive.name;
         directivesToResolve.add(directive);
       } else if (directive is PartDirective) {
-        PartDirective partDirective = directive;
-        StringLiteral partUri = partDirective.uri;
-        Source partSource = partDirective.source;
+        StringLiteral partUri = directive.uri;
+        Source partSource = directive.source;
         hasPartDirective = true;
         CompilationUnit partUnit = partUnitMap[partSource];
         if (partUnit != null) {
           CompilationUnitElementImpl partElement = partUnit.element;
           partElement.uriOffset = partUri.offset;
           partElement.uriEnd = partUri.end;
-          partElement.uri = partDirective.uriContent;
+          partElement.uri = directive.uriContent;
           //
           // Validate that the part contains a part-of directive with the same
           // name as the library.

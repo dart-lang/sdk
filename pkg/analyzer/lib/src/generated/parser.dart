@@ -4465,21 +4465,24 @@ class Parser {
       while (_isLikelyArgumentList()) {
         TypeArgumentList typeArguments = _parseOptionalTypeArguments();
         ArgumentList argumentList = parseArgumentList();
-        if (expression is SimpleIdentifier) {
-          expression = new MethodInvocation(null, null,
-              expression as SimpleIdentifier, typeArguments, argumentList);
-        } else if (expression is PrefixedIdentifier) {
-          PrefixedIdentifier identifier = expression as PrefixedIdentifier;
+        Expression currentExpression = expression;
+        if (currentExpression is SimpleIdentifier) {
           expression = new MethodInvocation(
-              identifier.prefix,
-              identifier.period,
-              identifier.identifier,
+              null, null, currentExpression, typeArguments, argumentList);
+        } else if (currentExpression is PrefixedIdentifier) {
+          expression = new MethodInvocation(
+              currentExpression.prefix,
+              currentExpression.period,
+              currentExpression.identifier,
               typeArguments,
               argumentList);
-        } else if (expression is PropertyAccess) {
-          PropertyAccess access = expression as PropertyAccess;
-          expression = new MethodInvocation(access.target, access.operator,
-              access.propertyName, typeArguments, argumentList);
+        } else if (currentExpression is PropertyAccess) {
+          expression = new MethodInvocation(
+              currentExpression.target,
+              currentExpression.operator,
+              currentExpression.propertyName,
+              typeArguments,
+              argumentList);
         } else {
           expression = new FunctionExpressionInvocation(
               expression, typeArguments, argumentList);
@@ -4701,12 +4704,12 @@ class Parser {
         progress = true;
         while (_isLikelyArgumentList()) {
           TypeArgumentList typeArguments = _parseOptionalTypeArguments();
-          if (expression is PropertyAccess) {
-            PropertyAccess propertyAccess = expression as PropertyAccess;
+          Expression currentExpression = expression;
+          if (currentExpression is PropertyAccess) {
             expression = new MethodInvocation(
-                propertyAccess.target,
-                propertyAccess.operator,
-                propertyAccess.propertyName,
+                currentExpression.target,
+                currentExpression.operator,
+                currentExpression.propertyName,
                 typeArguments,
                 parseArgumentList());
           } else {
@@ -7330,10 +7333,14 @@ class Parser {
         if (_isLikelyArgumentList()) {
           TypeArgumentList typeArguments = _parseOptionalTypeArguments();
           ArgumentList argumentList = parseArgumentList();
-          if (operand is PropertyAccess) {
-            PropertyAccess access = operand as PropertyAccess;
-            operand = new MethodInvocation(access.target, access.operator,
-                access.propertyName, typeArguments, argumentList);
+          Expression currentOperand = operand;
+          if (currentOperand is PropertyAccess) {
+            operand = new MethodInvocation(
+                currentOperand.target,
+                currentOperand.operator,
+                currentOperand.propertyName,
+                typeArguments,
+                argumentList);
           } else {
             operand = new FunctionExpressionInvocation(
                 operand, typeArguments, argumentList);
