@@ -282,48 +282,6 @@ void _registerJsInterfaces(List<Type> classes) {
 
 _finalizeJsInterfaces() native "Js_finalizeJsInterfaces";
 
-// Create the files for the generated Dart files from IDLs.  These only change
-// when browser's Dart files change (dart:*).
-@Deprecated("Internal Use Only")
-String createCachedPatchesFile() {
-  var patches = _generateInteropPatchFiles(['dart:html',
-                                            'dart:indexed_db',
-                                            'dart:web_gl',
-                                            'dart:web_sql',
-                                            'dart:svg',
-                                            'dart:web_audio']);
-  var sb = new StringBuffer();
-
-  sb.write("""
-
-// START_OF_CACHED_PATCHES
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// DO NOT EDIT GENERATED FILE.
-
-library cached_patches;
-
-var cached_patches = {""");
-
-  for (var baseIndex = 0; baseIndex < patches.length; baseIndex += 3) {
-    var uri = patches[baseIndex + 0];
-    var uri_js_interop = patches[baseIndex + 1];
-    var source = patches[baseIndex + 2];
-
-    if (uri != 'dart:js') {
-      sb.write('"$uri": ["$uri", "$uri_js_interop", """$source"""],');
-    }
-  }
-
-  sb.write("""};
-// END_OF_CACHED_PATCHES
-  """);
-
-  return "$sb";
-}
-
 String _getJsName(mirrors.DeclarationMirror mirror) {
   if (_atJsType != null) {
     for (var annotation in mirror.metadata) {
@@ -499,18 +457,22 @@ bool _isExternal(mirrors.MethodMirror mirror) {
   return false;
 }
 
-List<String> _generateExternalMethods(List<String> libraryPaths) {
+List<String> _generateExternalMethods(List<String> libraryPaths, bool useCachedPatches) {
   var staticCodegen = <String>[];
 
   if (libraryPaths.length == 0) {
     mirrors.currentMirrorSystem().libraries.forEach((uri, library) {
       var library_name = "${uri.scheme}:${uri.path}";
-      if (cached_patches.containsKey(library_name)) {
+      if (useCachedPatches && cached_patches.containsKey(library_name)) {
         // Use the pre-generated patch files for DOM dart:nnnn libraries.
         var patch = cached_patches[library_name];
         staticCodegen.addAll(patch);
       } else if (_hasJsName(library)) {
         // Library marked with @JS
+        _generateLibraryCodegen(uri, library, staticCodegen);
+      } else if (!useCachedPatches) {
+        // Can't use the cached patches file, instead this is a signal to generate
+        // the patches for this file.
         _generateLibraryCodegen(uri, library, staticCodegen);
       }
     });    // End of library foreach
@@ -676,8 +638,11 @@ var _atJsType = -1;
  * Generates part files defining source code for JSObjectImpl, all DOM classes
  * classes. This codegen  is needed so that type checks for all registered
  * JavaScript interop classes pass.
+ * If genCachedPatches is true then the patch files don't exist this is a special
+ * signal to generate and emit the patches to stdout to be captured and put into
+ * the file sdk/lib/js/dartium/cached_patches.dart
  */
-List<String> _generateInteropPatchFiles(List<String> libraryPaths) {
+List<String> _generateInteropPatchFiles(List<String> libraryPaths, genCachedPatches) {
   // Cache the @JS Type.
   if (_atJsType == -1) {
     var uri = new Uri(scheme: "package", path: "js/js.dart");
@@ -692,7 +657,7 @@ List<String> _generateInteropPatchFiles(List<String> libraryPaths) {
     }
   }
 
-  var ret = _generateExternalMethods(libraryPaths);
+  var ret = _generateExternalMethods(libraryPaths, genCachedPatches ? false : true);
   var libraryPrefixes = new Map<mirrors.LibraryMirror, String>();
   var prefixNames = new Set<String>();
   var sb = new StringBuffer();
