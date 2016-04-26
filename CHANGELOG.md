@@ -5,6 +5,11 @@
   * `Uri.replace` supports iterables as values for the query parameters.
   * `Uri.parseIPv6Address` returns a `Uint8List`.
 
+* `dart:io`
+  * Added `NetworkInterface.listSupported`, which is `true` when
+    `NetworkInterface.list` is supported, and `false` otherwise. Currently,
+    `NetworkInterface.list` is not supported on Android.
+
 ## 1.16.0
 
 ### Core library changes

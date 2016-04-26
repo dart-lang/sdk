@@ -78,6 +78,7 @@ namespace bin {
   V(Filter_Processed, 3)                                                       \
   V(InternetAddress_Parse, 1)                                                  \
   V(IOService_NewServicePort, 0)                                               \
+  V(NetworkInterface_ListSupported, 0)                                         \
   V(Platform_NumberOfProcessors, 0)                                            \
   V(Platform_OperatingSystem, 0)                                               \
   V(Platform_PathSeparator, 0)                                                 \

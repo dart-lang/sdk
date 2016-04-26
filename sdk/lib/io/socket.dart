@@ -145,8 +145,8 @@ abstract class InternetAddress {
 
 
 /**
- * A [NetworkInterface] represent an active network interface on the current
- * system. It contains a list of [InternetAddress]s, that's bound to the
+ * A [NetworkInterface] represents an active network interface on the current
+ * system. It contains a list of [InternetAddress]es that are bound to the
  * interface.
  */
 abstract class NetworkInterface {
@@ -161,10 +161,17 @@ abstract class NetworkInterface {
   String get index;
 
   /**
-   * Get a list of [InternetAddress]s currently bound to this
+   * Get a list of [InternetAddress]es currently bound to this
    * [NetworkInterface].
    */
   List<InternetAddress> get addresses;
+
+  /**
+   * Whether [list] is supported.
+   *
+   * [list] is currently unsupported on Android.
+   */
+  external static bool get listSupported;
 
   /**
    * Query the system for [NetworkInterface]s.

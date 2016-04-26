@@ -336,6 +336,11 @@ static bool ShouldIncludeIfaAddrs(struct ifaddrs* ifa, int lookup_family) {
 }
 
 
+bool Socket::ListInterfacesSupported() {
+  return true;
+}
+
+
 AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
     int type,
     OSError** os_error) {

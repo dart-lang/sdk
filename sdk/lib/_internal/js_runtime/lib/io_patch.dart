@@ -313,6 +313,10 @@ class InternetAddress {
 @patch
 class NetworkInterface {
   @patch
+  static bool get listSupported {
+    throw new UnsupportedError("NetworkInterface.listSupported");
+  }
+  @patch
   static Future<List<NetworkInterface>> list({
       bool includeLoopback: false,
       bool includeLinkLocal: false,

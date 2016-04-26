@@ -411,6 +411,11 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
 }
 
 
+bool Socket::ListInterfacesSupported() {
+  return true;
+}
+
+
 AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
     int type,
     OSError** os_error) {
