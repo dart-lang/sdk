@@ -310,6 +310,14 @@ class Driver implements ServerStarter {
   ResolverProvider packageResolverProvider;
 
   /**
+   * If this flag is `true`, then single analysis context should be used for
+   * analysis of multiple analysis roots, special files that could otherwise
+   * cause creating additional contexts, such as `pubspec.yaml`, or `.packages`,
+   * or `.analysis_options` are ignored.
+   */
+  bool useSingleContextManager = false;
+
+  /**
    * The plugins that are defined outside the analysis_server package.
    */
   List<Plugin> _userDefinedPlugins = <Plugin>[];
@@ -436,8 +444,9 @@ class Driver implements ServerStarter {
         defaultSdk,
         service,
         serverPlugin,
+        embeddedUriResolverProvider,
         packageResolverProvider,
-        embeddedUriResolverProvider);
+        useSingleContextManager);
     httpServer = new HttpAnalysisServer(socketServer);
     stdioServer = new StdioAnalysisServer(socketServer);
     socketServer.userDefinedPlugins = _userDefinedPlugins;

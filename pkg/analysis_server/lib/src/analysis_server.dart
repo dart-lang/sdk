@@ -22,6 +22,7 @@ import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analysis_server/src/single_context_manager.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -312,8 +313,9 @@ class AnalysisServer {
       this.options,
       this.defaultSdkCreator,
       this.instrumentationService,
-      {ResolverProvider packageResolverProvider: null,
-      EmbeddedResolverProvider embeddedResolverProvider: null,
+      {EmbeddedResolverProvider embeddedResolverProvider: null,
+      ResolverProvider packageResolverProvider: null,
+      bool useSingleContextManager: false,
       this.rethrowExceptions: true})
       : index = _index,
         searchEngine = _index != null ? new SearchEngineImpl(_index) : null {
@@ -326,15 +328,20 @@ class AnalysisServer {
     defaultContextOptions.generateImplicitErrors = false;
     operationQueue = new ServerOperationQueue();
     sdkManager = new DartSdkManager(defaultSdkCreator);
-    contextManager = new ContextManagerImpl(
-        resourceProvider,
-        sdkManager,
-        packageResolverProvider,
-        embeddedResolverProvider,
-        packageMapProvider,
-        analyzedFilesGlobs,
-        instrumentationService,
-        defaultContextOptions);
+    if (useSingleContextManager) {
+      contextManager = new SingleContextManager(resourceProvider, sdkManager,
+          () => packageResolverProvider(null), analyzedFilesGlobs);
+    } else {
+      contextManager = new ContextManagerImpl(
+          resourceProvider,
+          sdkManager,
+          packageResolverProvider,
+          embeddedResolverProvider,
+          packageMapProvider,
+          analyzedFilesGlobs,
+          instrumentationService,
+          defaultContextOptions);
+    }
     ServerContextManagerCallbacks contextManagerCallbacks =
         new ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
