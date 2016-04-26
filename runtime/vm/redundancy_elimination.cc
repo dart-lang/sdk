@@ -2347,8 +2347,6 @@ class LoadOptimizer : public ValueObject {
   // Insert the given phi into the graph. Attempt to find an equal one in the
   // target block first.
   // Returns true if the phi was inserted and false if it was replaced.
-  // TODO(fschneider): Generalize this to allow replacing a phi with a non-phi
-  // definition as well so that we don't need Phi::HasReplacement anymore.
   bool EmitPhi(PhiInstr* phi) {
     for (PhiIterator it(phi->block()); !it.Done(); it.Advance()) {
       if (ReplacePhiWith(phi, it.Current())) {
@@ -3439,7 +3437,6 @@ void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
       for (intptr_t i = 0; i < join->phis_->length(); ++i) {
         PhiInstr* phi = (*join->phis_)[i];
         if (phi != NULL) {
-          Definition* replacement = NULL;
           if (!phi->is_alive()) {
             phi->ReplaceUsesWith(flow_graph->constant_null());
             phi->UnuseAllInputs();
@@ -3453,16 +3450,7 @@ void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
             (*join->phis_)[i] = NULL;
             if (FLAG_trace_optimization) {
               THR_Print("Removing redundant phi v%" Pd "\n",
-                        phi->ssa_temp_index());
-            }
-          } else if (phi->HasReplacement(&replacement)) {
-            phi->ReplaceUsesWith(replacement);
-            phi->UnuseAllInputs();
-            (*join->phis_)[i] = NULL;
-            if (FLAG_trace_optimization) {
-              THR_Print("Replace redundant phi v%" Pd " with v%" Pd "\n",
-                        phi->ssa_temp_index(),
-                        replacement->ssa_temp_index());
+                         phi->ssa_temp_index());
             }
           } else {
             (*join->phis_)[to_index++] = phi;

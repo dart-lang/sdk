@@ -3520,22 +3520,6 @@ bool PhiInstr::IsRedundant() const {
 }
 
 
-bool PhiInstr::HasReplacement(Definition** replacement) const {
-  ASSERT(InputCount() > 1);
-  ASSERT(!IsRedundant());
-  // At least >=1 inputs are different from 'this': Check for
-  // v <- phi (v, v, ..., r, v, ..., v)
-  // where r is the replacement.
-  intptr_t i = 0;
-  while (InputAt(i)->definition() == this) ++i;
-  *replacement = InputAt(i)->definition();
-  while (++i < InputCount()) {
-    if (InputAt(i)->definition() != this) return false;
-  }
-  return true;
-}
-
-
 bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {
   return LoadFieldInstr::IsFixedLengthArrayCid(cid);
 }
