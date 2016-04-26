@@ -212,7 +212,14 @@ abstract class Resolution implements Frontend {
   FunctionSignature resolveSignature(FunctionElement function);
   DartType resolveTypeAnnotation(Element element, TypeAnnotation node);
 
+  /// Returns `true` if [element] has been resolved.
+  // TODO(johnniwinther): Normalize semantics between normal and deserialized
+  // elements; deserialized elements are always resolved but the method will
+  // return `false`.
   bool hasBeenResolved(Element element);
+
+  /// Resolve [element] if it has not already been resolved.
+  void ensureResolved(Element element);
 
   ResolutionWorkItem createWorkItem(
       Element element, ItemCompilationContext compilationContext);
@@ -228,6 +235,9 @@ abstract class Resolution implements Frontend {
 
   /// Returns the precomputed [ResolutionImpact] for [element].
   ResolutionImpact getResolutionImpact(Element element);
+
+  /// Returns the [ResolvedAst] for [element], computing it if necessary.
+  ResolvedAst computeResolvedAst(Element element);
 
   /// Returns the precomputed [WorldImpact] for [element].
   WorldImpact getWorldImpact(Element element);

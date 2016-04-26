@@ -1879,6 +1879,14 @@ class _CompilerResolution implements Resolution {
   }
 
   @override
+  void ensureResolved(Element element) {
+    if (compiler.serialization.isDeserialized(element)) {
+      return;
+    }
+    computeWorldImpact(element);
+  }
+
+  @override
   bool hasResolvedAst(Element element) {
     assert(invariant(element, element.isDeclaration,
         message: "Element $element must be the declaration."));
@@ -1904,6 +1912,12 @@ class _CompilerResolution implements Resolution {
     assert(invariant(element, hasResolvedAst(element),
         message: "ResolvedAst not available for $element."));
     return null;
+  }
+
+  @override
+  ResolvedAst computeResolvedAst(Element element) {
+    ensureResolved(element);
+    return getResolvedAst(element);
   }
 
   @override
