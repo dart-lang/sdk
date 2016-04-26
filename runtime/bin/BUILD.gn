@@ -329,7 +329,9 @@ source_set("embedded_dart_io") {
       "Security.framework",
     ]
   } else {
-    defines = [ "DART_IO_SECURE_SOCKET_DISABLED" ]
+    deps = [
+      "../../third_party/boringssl",
+    ]
   }
 
   sources = io_impl_sources_gypi.sources + builtin_impl_sources_gypi.sources
