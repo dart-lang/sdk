@@ -6,16 +6,19 @@ import 'dart:io';
 
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/inspect.dart';
+import 'package:args/args.dart';
 
 main(List<String> args) {
-  if (args.length != 1) {
-    print('Usage: inspect PATH');
+  ArgParser argParser = new ArgParser()..addFlag('raw');
+  ArgResults argResults = argParser.parse(args);
+  if (argResults.rest.length != 1) {
+    print(argParser.usage);
     exitCode = 1;
     return;
   }
-  String path = args[0];
+  String path = argResults.rest[0];
   List<int> bytes = new File(path).readAsBytesSync();
   PackageBundle bundle = new PackageBundle.fromBuffer(bytes);
-  SummaryInspector inspector = new SummaryInspector();
+  SummaryInspector inspector = new SummaryInspector(argResults['raw']);
   print(inspector.dumpPackageBundle(bundle).join('\n'));
 }

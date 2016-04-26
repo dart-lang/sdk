@@ -155,11 +155,21 @@ class SummaryInspector {
   List<ReferenceWrapper> _references;
 
   /**
+   * Indicates whether summary inspection should operate in "raw" mode.  In this
+   * mode, the structure of the summary file is not altered for easier
+   * readability; everything is output in exactly the form in which it appears
+   * in the file.
+   */
+  final bool raw;
+
+  SummaryInspector(this.raw);
+
+  /**
    * Decode the object [obj], which was reached by examining [key] inside
    * another object.
    */
   DecodedEntity decode(Object obj, String key) {
-    if (obj is PackageBundle) {
+    if (!raw && obj is PackageBundle) {
       return decodePackageBundle(obj);
     }
     if (obj is LibraryWrapper) {
