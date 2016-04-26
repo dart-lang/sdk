@@ -16,7 +16,7 @@ import 'common/names.dart' show Identifiers, Uris;
 import 'common/registry.dart' show EagerRegistry, Registry;
 import 'common/resolution.dart'
     show ParsingContext, Resolution, ResolutionWorkItem, ResolutionImpact;
-import 'common/tasks.dart' show CompilerTask, GenericTask;
+import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
 import 'common/work.dart' show ItemCompilationContext, WorkItem;
 import 'common.dart';
 import 'compile_time_constants.dart';
@@ -85,7 +85,12 @@ typedef CompilerDiagnosticReporter MakeReporterFunction(
     Compiler compiler, CompilerOptions options);
 
 abstract class Compiler implements LibraryLoaderListener {
-  final Stopwatch totalCompileTime = new Stopwatch();
+  /// Helper instance for measurements in [CompilerTask].
+  ///
+  /// Note: MUST be first field to ensure [Measurer.wallclock] is started
+  /// before other computations.
+  final Measurer measurer = new Measurer();
+
   final IdGenerator idGenerator = new IdGenerator();
   World world;
   Types types;
@@ -140,7 +145,6 @@ abstract class Compiler implements LibraryLoaderListener {
 
   Tracer tracer;
 
-  CompilerTask measuredTask;
   LibraryElement coreLibrary;
   LibraryElement asyncLibrary;
 
@@ -241,6 +245,8 @@ abstract class Compiler implements LibraryLoaderListener {
   Backend backend;
 
   GenericTask reuseLibraryTask;
+
+  GenericTask selfTask;
 
   /// The constant environment for the frontend interpretation of compile-time
   /// constants.
@@ -356,6 +362,7 @@ abstract class Compiler implements LibraryLoaderListener {
       enqueuer = backend.makeEnqueuer(),
       dumpInfoTask = new DumpInfoTask(this),
       reuseLibraryTask = new GenericTask('Reuse library', this),
+      selfTask = new GenericTask('self', this),
     ];
 
     _parsingContext =
@@ -395,18 +402,18 @@ abstract class Compiler implements LibraryLoaderListener {
   //
   // The resulting future will complete with true if the compilation
   // succeeded.
-  Future<bool> run(Uri uri) {
-    totalCompileTime.start();
+  Future<bool> run(Uri uri) => selfTask.measureSubtask("Compiler.run", () {
+    measurer.startWallClock();
 
     return new Future.sync(() => runInternal(uri))
         .catchError((error) => _reporter.onError(uri, error))
         .whenComplete(() {
       tracer.close();
-      totalCompileTime.stop();
+      measurer.stopWallClock();
     }).then((_) {
       return !compilationFailed;
     });
-  }
+  });
 
   /// This method is called immediately after the [LibraryElement] [library] has
   /// been created.
@@ -793,7 +800,9 @@ abstract class Compiler implements LibraryLoaderListener {
   }
 
   /// Performs the compilation when all libraries have been loaded.
-  void compileLoadedLibraries() {
+  void compileLoadedLibraries()
+      => selfTask.measureSubtask("Compiler.compileLoadedLibraries", () {
+
     computeMain();
 
     mirrorUsageAnalyzerTask.analyzeUsage(mainApp);
@@ -896,7 +905,7 @@ abstract class Compiler implements LibraryLoaderListener {
     backend.sourceInformationStrategy.onComplete();
 
     checkQueues();
-  }
+  });
 
   void fullyEnqueueLibrary(LibraryElement library, Enqueuer world) {
     void enqueueAll(Element element) {
@@ -932,15 +941,20 @@ abstract class Compiler implements LibraryLoaderListener {
   /**
    * Empty the [world] queue.
    */
-  void emptyQueue(Enqueuer world) {
+  void emptyQueue(Enqueuer world)
+      => selfTask.measureSubtask("Compiler.emptyQueue", () {
     world.forEach((WorkItem work) {
-      reporter.withCurrentElement(work.element, () {
-        world.applyImpact(work.element, work.run(this, world));
-      });
+      reporter.withCurrentElement(
+          work.element, () => selfTask.measureSubtask("world.applyImpact", () {
+        world.applyImpact(
+            work.element,
+            selfTask.measureSubtask("work.run", () => work.run(this, world)));
+      }));
     });
-  }
+  });
 
-  void processQueue(Enqueuer world, Element main) {
+  void processQueue(Enqueuer world, Element main)
+      => selfTask.measureSubtask("Compiler.processQueue", () {
     world.nativeEnqueuer.processNativeClasses(libraryLoader.libraries);
     if (main != null && !main.isMalformed) {
       FunctionElement mainMethod = main;
@@ -968,7 +982,7 @@ abstract class Compiler implements LibraryLoaderListener {
     impactStrategy.onImpactUsed(world.impactUse);
     backend.onQueueClosed();
     assert(compilationFailed || world.checkNoEnqueuedInvokedInstanceMethods());
-  }
+  });
 
   /**
    * Perform various checks of the queues. This includes checking that
@@ -1009,7 +1023,8 @@ abstract class Compiler implements LibraryLoaderListener {
     }
   }
 
-  WorldImpact analyzeElement(Element element) {
+  WorldImpact analyzeElement(Element element)
+      => selfTask.measureSubtask("Compiler.analyzeElement", () {
     assert(invariant(
         element,
         element.impliesType ||
@@ -1023,9 +1038,11 @@ abstract class Compiler implements LibraryLoaderListener {
         message: 'Element $element is not analyzable.'));
     assert(invariant(element, element.isDeclaration));
     return resolution.computeWorldImpact(element);
-  }
+  });
 
-  WorldImpact analyze(ResolutionWorkItem work, ResolutionEnqueuer world) {
+  WorldImpact analyze(ResolutionWorkItem work,
+                      ResolutionEnqueuer world)
+      => selfTask.measureSubtask("Compiler.analyze", () {
     assert(invariant(work.element, identical(world, enqueuer.resolution)));
     assert(invariant(work.element, !work.isAnalyzed,
         message: 'Element ${work.element} has already been analyzed'));
@@ -1046,7 +1063,7 @@ abstract class Compiler implements LibraryLoaderListener {
     backend.onElementResolved(element);
     world.registerProcessedElement(element);
     return worldImpact;
-  }
+  });
 
   WorldImpact codegen(CodegenWorkItem work, CodegenEnqueuer world) {
     assert(invariant(work.element, identical(world, enqueuer.codegen)));
