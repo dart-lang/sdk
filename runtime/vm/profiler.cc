@@ -1006,6 +1006,7 @@ void Profiler::DumpStackTrace(bool native_stack_trace) {
                                               fp,
                                               sp);
   }
+  OS::Print("-- End of DumpStackTrace");
 }
 
 
