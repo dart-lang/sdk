@@ -338,7 +338,7 @@ class _CompilationUnitSerializer {
       new UnlinkedReferenceBuilder()
     ];
     linkedReferences = <LinkedReferenceBuilder>[
-      new LinkedReferenceBuilder(kind: ReferenceKind.classOrEnum)
+      new LinkedReferenceBuilder(kind: ReferenceKind.unresolved)
     ];
     List<UnlinkedPublicNameBuilder> names = <UnlinkedPublicNameBuilder>[];
     for (PropertyAccessorElement accessor in compilationUnit.accessors) {

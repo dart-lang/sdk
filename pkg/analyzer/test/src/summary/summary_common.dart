@@ -8405,6 +8405,23 @@ f(x) => 42;
     expect(unlinkedUnits[1].publicNamespace.names[0].name, 'C');
   }
 
+  test_reference_zero() {
+    // Element zero of the references table should be populated in a standard
+    // way.
+    serializeLibraryText('');
+    UnlinkedReference unlinkedReference0 = unlinkedUnits[0].references[0];
+    expect(unlinkedReference0.name, '');
+    expect(unlinkedReference0.prefixReference, 0);
+    LinkedReference linkedReference0 = linked.units[0].references[0];
+    expect(linkedReference0.containingReference, 0);
+    expect(linkedReference0.dependency, 0);
+    expect(linkedReference0.kind, ReferenceKind.unresolved);
+    expect(linkedReference0.localIndex, 0);
+    expect(linkedReference0.name, '');
+    expect(linkedReference0.numTypeParameters, 0);
+    expect(linkedReference0.unit, 0);
+  }
+
   test_setter_documented() {
     String text = '''
 // Extra comment so doc comment offset != 0
