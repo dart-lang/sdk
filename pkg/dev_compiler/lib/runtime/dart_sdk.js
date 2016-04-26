@@ -179,19 +179,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.hasMethod = function(obj, name) {
     return dart.getMethodType(obj, name) !== void 0;
   };
-  dart.virtualField = function(subclass, fieldName) {
-    let prop = dart.getOwnPropertyDescriptor(subclass.prototype, fieldName);
-    if (prop) return;
-    let symbol = Symbol(subclass.name + '.' + fieldName.toString());
-    dart.defineProperty(subclass.prototype, fieldName, {
-      get: function() {
-        return this[symbol];
-      },
-      set: function(x) {
-        this[symbol] = x;
-      }
-    });
-  };
   dart.defineNamedConstructor = function(clazz, name) {
     let proto = clazz.prototype;
     let initMethod = proto[name];

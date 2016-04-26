@@ -66,11 +66,17 @@ dart_library.library('fieldtest', null, /* Imports */[
   };
   fieldtest.Derived = class Derived extends fieldtest.BaseWithGetter {
     Derived() {
-      this.foo = 2;
+      this[foo] = 2;
       this.bar = 3;
     }
+    get foo() {
+      return this[foo];
+    }
+    set foo(value) {
+      this[foo] = value;
+    }
   };
-  dart.virtualField(fieldtest.Derived, 'foo');
+  const foo = Symbol(fieldtest.Derived.name + "." + 'foo'.toString());
   fieldtest.Generic$ = dart.generic(T => {
     class Generic extends core.Object {
       foo(t) {
