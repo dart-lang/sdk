@@ -2316,10 +2316,11 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
     for (MapLiteralEntry entry in node.entries) {
       Object key = entry.key.accept(this);
       Object value = entry.value.accept(this);
-      if (key is! String || identical(value, NOT_A_CONSTANT)) {
+      if (key is String && !identical(value, NOT_A_CONSTANT)) {
+        map[(key as String)] = value;
+      } else {
         return NOT_A_CONSTANT;
       }
-      map[(key as String)] = value;
     }
     return map;
   }

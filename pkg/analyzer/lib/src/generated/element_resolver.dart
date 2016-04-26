@@ -351,8 +351,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   Object visitConstructorName(ConstructorName node) {
     DartType type = node.type.type;
     if (type != null && type.isDynamic) {
-      return null;
-    } else if (type is! InterfaceType) {
+      // Nothing to do.
+    } else if (type is InterfaceType) {
+      // look up ConstructorElement
+      ConstructorElement constructor;
+      SimpleIdentifier name = node.name;
+      if (name == null) {
+        constructor = type.lookUpConstructor(null, _definingLibrary);
+      } else {
+        constructor = type.lookUpConstructor(name.name, _definingLibrary);
+        name.staticElement = constructor;
+      }
+      node.staticElement = constructor;
+    } else {
 // TODO(brianwilkerson) Report these errors.
 //      ASTNode parent = node.getParent();
 //      if (parent instanceof InstanceCreationExpression) {
@@ -364,20 +375,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 //      } else {
 //        // This is part of a redirecting factory constructor; not sure which error code to use
 //      }
-      return null;
     }
-    // look up ConstructorElement
-    ConstructorElement constructor;
-    SimpleIdentifier name = node.name;
-    InterfaceType interfaceType = type as InterfaceType;
-    if (name == null) {
-      constructor = interfaceType.lookUpConstructor(null, _definingLibrary);
-    } else {
-      constructor =
-          interfaceType.lookUpConstructor(name.name, _definingLibrary);
-      name.staticElement = constructor;
-    }
-    node.staticElement = constructor;
     return null;
   }
 
@@ -1085,7 +1083,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         _resolver.reportErrorForNode(
             CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
       } else {
-        AstNode parent = node.parent;
         if (parent is Annotation) {
           _resolver.reportErrorForNode(
               CompileTimeErrorCode.INVALID_ANNOTATION, parent);
@@ -1112,9 +1109,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     //
     // Validate annotation element.
     //
-    if (node.parent is Annotation) {
-      Annotation annotation = node.parent as Annotation;
-      _resolveAnnotationElement(annotation);
+    if (parent is Annotation) {
+      _resolveAnnotationElement(parent);
     }
     return null;
   }
@@ -1417,12 +1413,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Assuming that the given [expression] is a prefix for a deferred import,
+   * Assuming that the given [identifier] is a prefix for a deferred import,
    * return the library that is being imported.
    */
-  LibraryElement _getImportedLibrary(Expression expression) {
-    PrefixElement prefixElement =
-        (expression as SimpleIdentifier).staticElement as PrefixElement;
+  LibraryElement _getImportedLibrary(SimpleIdentifier identifier) {
+    PrefixElement prefixElement = identifier.staticElement as PrefixElement;
     List<ImportElement> imports =
         prefixElement.enclosingElement.getImportsWithPrefix(prefixElement);
     return imports[0].importedLibrary;
@@ -1544,20 +1539,18 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * Return `true` if the given [expression] is a prefix for a deferred import.
    */
   bool _isDeferredPrefix(Expression expression) {
-    if (expression is! SimpleIdentifier) {
-      return false;
+    if (expression is SimpleIdentifier) {
+      Element element = expression.staticElement;
+      if (element is PrefixElement) {
+        List<ImportElement> imports =
+            element.enclosingElement.getImportsWithPrefix(element);
+        if (imports.length != 1) {
+          return false;
+        }
+        return imports[0].isDeferred;
+      }
     }
-    Element element = (expression as SimpleIdentifier).staticElement;
-    if (element is! PrefixElement) {
-      return false;
-    }
-    PrefixElement prefixElement = element as PrefixElement;
-    List<ImportElement> imports =
-        prefixElement.enclosingElement.getImportsWithPrefix(prefixElement);
-    if (imports.length != 1) {
-      return false;
-    }
-    return imports[0].isDeferred;
+    return false;
   }
 
   /**
@@ -1870,9 +1863,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     {
       Identifier annName = annotation.name;
       if (annName is PrefixedIdentifier) {
-        PrefixedIdentifier prefixed = annName;
-        nameNode1 = prefixed.prefix;
-        nameNode2 = prefixed.identifier;
+        nameNode1 = annName.prefix;
+        nameNode2 = annName.identifier;
       } else {
         nameNode1 = annName as SimpleIdentifier;
         nameNode2 = null;

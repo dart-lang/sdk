@@ -581,7 +581,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       SimpleIdentifier fieldName = node.fieldName;
       Element staticElement = fieldName.staticElement;
       _checkForInvalidField(node, fieldName, staticElement);
-      _checkForFieldInitializerNotAssignable(node, staticElement);
+      if (staticElement is FieldElement) {
+        _checkForFieldInitializerNotAssignable(node, staticElement);
+      }
       return super.visitConstructorFieldInitializer(node);
     } finally {
       _isInConstructorInitializer = false;
@@ -1812,27 +1814,26 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     bool problemReported = false;
     for (TypeName mixinName in withClause.mixinTypes) {
       DartType mixinType = mixinName.type;
-      if (mixinType is! InterfaceType) {
-        continue;
-      }
-      if (_checkForExtendsOrImplementsDisallowedClass(
-          mixinName, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS)) {
-        problemReported = true;
-      } else {
-        ClassElement mixinElement = (mixinType as InterfaceType).element;
-        if (_checkForExtendsOrImplementsDeferredClass(
-            mixinName, CompileTimeErrorCode.MIXIN_DEFERRED_CLASS)) {
+      if (mixinType is InterfaceType) {
+        if (_checkForExtendsOrImplementsDisallowedClass(
+            mixinName, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS)) {
           problemReported = true;
-        }
-        if (_checkForMixinDeclaresConstructor(mixinName, mixinElement)) {
-          problemReported = true;
-        }
-        if (!enableSuperMixins &&
-            _checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
-          problemReported = true;
-        }
-        if (_checkForMixinReferencesSuper(mixinName, mixinElement)) {
-          problemReported = true;
+        } else {
+          ClassElement mixinElement = mixinType.element;
+          if (_checkForExtendsOrImplementsDeferredClass(
+              mixinName, CompileTimeErrorCode.MIXIN_DEFERRED_CLASS)) {
+            problemReported = true;
+          }
+          if (_checkForMixinDeclaresConstructor(mixinName, mixinElement)) {
+            problemReported = true;
+          }
+          if (!enableSuperMixins &&
+              _checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
+            problemReported = true;
+          }
+          if (_checkForMixinReferencesSuper(mixinName, mixinElement)) {
+            problemReported = true;
+          }
         }
       }
     }
@@ -1922,9 +1923,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         : functionType.returnType;
     Expression returnExpression = statement.expression;
     // RETURN_IN_GENERATIVE_CONSTRUCTOR
-    bool isGenerativeConstructor = _enclosingFunction is ConstructorElement &&
-        !(_enclosingFunction as ConstructorElement).isFactory;
-    if (isGenerativeConstructor) {
+    bool isGenerativeConstructor(ExecutableElement element) =>
+        element is ConstructorElement && !element.isFactory;
+    if (isGenerativeConstructor(_enclosingFunction)) {
       if (returnExpression == null) {
         return;
       }
@@ -3278,19 +3279,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   /**
    * Verify that the given constructor field [initializer] has compatible field
-   * and initializer expression types. The [staticElement] is the static element
+   * and initializer expression types. The [fieldElement] is the static element
    * from the name in the [ConstructorFieldInitializer].
    *
    * See [CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE], and
    * [StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE].
    */
   void _checkForFieldInitializerNotAssignable(
-      ConstructorFieldInitializer initializer, Element staticElement) {
-    // prepare field element
-    if (staticElement is! FieldElement) {
-      return;
-    }
-    FieldElement fieldElement = staticElement as FieldElement;
+      ConstructorFieldInitializer initializer, FieldElement fieldElement) {
     // prepare field type
     DartType fieldType = fieldElement.type;
     // prepare expression type
@@ -3740,23 +3736,20 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // prepare member Element
     Element element = name.staticElement;
-    if (element is! ExecutableElement) {
-      return;
+    if (element is ExecutableElement) {
+      // OK, top-level element
+      if (element.enclosingElement is! ClassElement) {
+        return;
+      }
+      // OK, instance member
+      if (!element.isStatic) {
+        return;
+      }
+      _errorReporter.reportErrorForNode(
+          StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+          name,
+          [name.name]);
     }
-    ExecutableElement executableElement = element as ExecutableElement;
-    // OK, top-level element
-    if (executableElement.enclosingElement is! ClassElement) {
-      return;
-    }
-    // OK, instance member
-    if (!executableElement.isStatic) {
-      return;
-    }
-
-    _errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
-        name,
-        [name.name]);
   }
 
   /**
@@ -4093,82 +4086,81 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       Declaration accessorDeclaration, String accessorTextName) {
     ExecutableElement accessorElement =
         accessorDeclaration.element as ExecutableElement;
-    if (accessorElement is! PropertyAccessorElement) {
-      return;
-    }
-    PropertyAccessorElement propertyAccessorElement =
-        accessorElement as PropertyAccessorElement;
-    PropertyAccessorElement counterpartAccessor = null;
-    ClassElement enclosingClassForCounterpart = null;
-    if (propertyAccessorElement.isGetter) {
-      counterpartAccessor = propertyAccessorElement.correspondingSetter;
-    } else {
-      counterpartAccessor = propertyAccessorElement.correspondingGetter;
-      // If the setter and getter are in the same enclosing element, return,
-      // this prevents having MISMATCHED_GETTER_AND_SETTER_TYPES reported twice.
-      if (counterpartAccessor != null &&
-          identical(counterpartAccessor.enclosingElement,
-              propertyAccessorElement.enclosingElement)) {
-        return;
-      }
-    }
-    if (counterpartAccessor == null) {
-      // If the accessor is declared in a class, check the superclasses.
-      if (_enclosingClass != null) {
-        // Figure out the correct identifier to lookup in the inheritance graph,
-        // if 'x', then 'x=', or if 'x=', then 'x'.
-        String lookupIdentifier = propertyAccessorElement.name;
-        if (StringUtilities.endsWithChar(lookupIdentifier, 0x3D)) {
-          lookupIdentifier =
-              lookupIdentifier.substring(0, lookupIdentifier.length - 1);
-        } else {
-          lookupIdentifier += "=";
-        }
-        // lookup with the identifier.
-        ExecutableElement elementFromInheritance = _inheritanceManager
-            .lookupInheritance(_enclosingClass, lookupIdentifier);
-        // Verify that we found something, and that it is an accessor
-        if (elementFromInheritance != null &&
-            elementFromInheritance is PropertyAccessorElement) {
-          enclosingClassForCounterpart =
-              elementFromInheritance.enclosingElement as ClassElement;
-          counterpartAccessor = elementFromInheritance;
+    if (accessorElement is PropertyAccessorElement) {
+      PropertyAccessorElement counterpartAccessor = null;
+      ClassElement enclosingClassForCounterpart = null;
+      if (accessorElement.isGetter) {
+        counterpartAccessor = accessorElement.correspondingSetter;
+      } else {
+        counterpartAccessor = accessorElement.correspondingGetter;
+        // If the setter and getter are in the same enclosing element, return,
+        // this prevents having MISMATCHED_GETTER_AND_SETTER_TYPES reported twice.
+        if (counterpartAccessor != null &&
+            identical(counterpartAccessor.enclosingElement,
+                accessorElement.enclosingElement)) {
+          return;
         }
       }
       if (counterpartAccessor == null) {
-        return;
+        // If the accessor is declared in a class, check the superclasses.
+        if (_enclosingClass != null) {
+          // Figure out the correct identifier to lookup in the inheritance graph,
+          // if 'x', then 'x=', or if 'x=', then 'x'.
+          String lookupIdentifier = accessorElement.name;
+          if (StringUtilities.endsWithChar(lookupIdentifier, 0x3D)) {
+            lookupIdentifier =
+                lookupIdentifier.substring(0, lookupIdentifier.length - 1);
+          } else {
+            lookupIdentifier += "=";
+          }
+          // lookup with the identifier.
+          ExecutableElement elementFromInheritance = _inheritanceManager
+              .lookupInheritance(_enclosingClass, lookupIdentifier);
+          // Verify that we found something, and that it is an accessor
+          if (elementFromInheritance != null &&
+              elementFromInheritance is PropertyAccessorElement) {
+            enclosingClassForCounterpart =
+                elementFromInheritance.enclosingElement as ClassElement;
+            counterpartAccessor = elementFromInheritance;
+          }
+        }
+        if (counterpartAccessor == null) {
+          return;
+        }
       }
-    }
-    // Default of null == no accessor or no type (dynamic)
-    DartType getterType = null;
-    DartType setterType = null;
-    // Get an existing counterpart accessor if any.
-    if (propertyAccessorElement.isGetter) {
-      getterType = _getGetterType(propertyAccessorElement);
-      setterType = _getSetterType(counterpartAccessor);
-    } else if (propertyAccessorElement.isSetter) {
-      setterType = _getSetterType(propertyAccessorElement);
-      getterType = _getGetterType(counterpartAccessor);
-    }
-    // If either types are not assignable to each other, report an error
-    // (if the getter is null, it is dynamic which is assignable to everything).
-    if (setterType != null &&
-        getterType != null &&
-        !_typeSystem.isAssignableTo(getterType, setterType)) {
-      if (enclosingClassForCounterpart == null) {
-        _errorReporter.reportTypeErrorForNode(
-            StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
-            accessorDeclaration,
-            [accessorTextName, setterType, getterType]);
-      } else {
-        _errorReporter.reportTypeErrorForNode(
-            StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE,
-            accessorDeclaration, [
-          accessorTextName,
-          setterType,
-          getterType,
-          enclosingClassForCounterpart.displayName
-        ]);
+      // Default of null == no accessor or no type (dynamic)
+      DartType getterType = null;
+      DartType setterType = null;
+      // Get an existing counterpart accessor if any.
+      if (accessorElement.isGetter) {
+        getterType = _getGetterType(accessorElement);
+        setterType = _getSetterType(counterpartAccessor);
+      } else if (accessorElement.isSetter) {
+        setterType = _getSetterType(accessorElement);
+        getterType = _getGetterType(counterpartAccessor);
+      }
+      // If either types are not assignable to each other, report an error
+      // (if the getter is null, it is dynamic which is assignable to everything).
+      if (setterType != null &&
+          getterType != null &&
+          !_typeSystem.isAssignableTo(getterType, setterType)) {
+        if (enclosingClassForCounterpart == null) {
+          _errorReporter.reportTypeErrorForNode(
+              StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
+              accessorDeclaration,
+              [accessorTextName, setterType, getterType]);
+        } else {
+          _errorReporter.reportTypeErrorForNode(
+              StaticWarningCode
+                  .MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE,
+              accessorDeclaration,
+              [
+                accessorTextName,
+                setterType,
+                getterType,
+                enclosingClassForCounterpart.displayName
+              ]);
+        }
       }
     }
   }
@@ -4187,45 +4179,44 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return;
     }
     Element expressionElement = expressionType.element;
-    if (expressionElement is! ClassElement) {
-      return;
-    }
-    ClassElement classElement = expressionElement as ClassElement;
-    if (!classElement.isEnum) {
-      return;
-    }
-    List<String> constantNames = <String>[];
-    List<FieldElement> fields = classElement.fields;
-    int fieldCount = fields.length;
-    for (int i = 0; i < fieldCount; i++) {
-      FieldElement field = fields[i];
-      if (field.isStatic && !field.isSynthetic) {
-        constantNames.add(field.name);
-      }
-    }
-    NodeList<SwitchMember> members = statement.members;
-    int memberCount = members.length;
-    for (int i = 0; i < memberCount; i++) {
-      SwitchMember member = members[i];
-      if (member is SwitchDefault) {
+    if (expressionElement is ClassElement) {
+      if (!expressionElement.isEnum) {
         return;
       }
-      String constantName = _getConstantName((member as SwitchCase).expression);
-      if (constantName != null) {
-        constantNames.remove(constantName);
+      List<String> constantNames = <String>[];
+      List<FieldElement> fields = expressionElement.fields;
+      int fieldCount = fields.length;
+      for (int i = 0; i < fieldCount; i++) {
+        FieldElement field = fields[i];
+        if (field.isStatic && !field.isSynthetic) {
+          constantNames.add(field.name);
+        }
       }
-    }
-    if (constantNames.isEmpty) {
-      return;
-    }
-    for (int i = 0; i < constantNames.length; i++) {
-      int offset = statement.offset;
-      int end = statement.rightParenthesis.end;
-      _errorReporter.reportErrorForOffset(
-          StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
-          offset,
-          end - offset,
-          [constantNames[i]]);
+      NodeList<SwitchMember> members = statement.members;
+      int memberCount = members.length;
+      for (int i = 0; i < memberCount; i++) {
+        SwitchMember member = members[i];
+        if (member is SwitchDefault) {
+          return;
+        }
+        String constantName =
+            _getConstantName((member as SwitchCase).expression);
+        if (constantName != null) {
+          constantNames.remove(constantName);
+        }
+      }
+      if (constantNames.isEmpty) {
+        return;
+      }
+      for (int i = 0; i < constantNames.length; i++) {
+        int offset = statement.offset;
+        int end = statement.rightParenthesis.end;
+        _errorReporter.reportErrorForOffset(
+            StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+            offset,
+            end - offset,
+            [constantNames[i]]);
+      }
     }
   }
 
@@ -5128,17 +5119,16 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // prepare member Element
     Element element = name.staticElement;
-    if (element is! ExecutableElement) {
-      return;
+    if (element is ExecutableElement) {
+      // OK, static
+      if (element.isStatic) {
+        return;
+      }
+      _errorReporter.reportErrorForNode(
+          StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
+          name,
+          [name.name]);
     }
-    ExecutableElement memberElement = element as ExecutableElement;
-    // OK, static
-    if (memberElement.isStatic) {
-      return;
-    }
-
-    _errorReporter.reportErrorForNode(
-        StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, name, [name.name]);
   }
 
   /**
@@ -5217,37 +5207,37 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // prepare ClassElement
     Element element = type.element;
-    if (element is! ClassElement) {
-      return;
-    }
-    ClassElement classElement = element as ClassElement;
-    // prepare type parameters
-    List<DartType> typeParameters = classElement.type.typeArguments;
-    List<TypeParameterElement> boundingElts = classElement.typeParameters;
-    // iterate over each bounded type parameter and corresponding argument
-    NodeList<TypeName> typeNameArgList = typeName.typeArguments.arguments;
-    List<DartType> typeArguments = (type as InterfaceType).typeArguments;
-    int loopThroughIndex =
-        math.min(typeNameArgList.length, boundingElts.length);
+    if (element is ClassElement) {
+      // prepare type parameters
+      List<DartType> typeParameters = element.type.typeArguments;
+      List<TypeParameterElement> boundingElts = element.typeParameters;
+      // iterate over each bounded type parameter and corresponding argument
+      NodeList<TypeName> typeNameArgList = typeName.typeArguments.arguments;
+      List<DartType> typeArguments = (type as InterfaceType).typeArguments;
+      int loopThroughIndex =
+          math.min(typeNameArgList.length, boundingElts.length);
 
-    for (int i = 0; i < loopThroughIndex; i++) {
-      TypeName argTypeName = typeNameArgList[i];
-      DartType argType = argTypeName.type;
-      DartType boundType = boundingElts[i].bound;
-      if (argType != null && boundType != null) {
-        if (typeArguments.length != 0 &&
-            typeArguments.length == typeParameters.length) {
-          boundType = boundType.substitute2(typeArguments, typeParameters);
-        }
-        if (!_typeSystem.isSubtypeOf(argType, boundType)) {
-          ErrorCode errorCode;
-          if (_isInConstInstanceCreation) {
-            errorCode = CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS;
-          } else {
-            errorCode = StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS;
+      for (int i = 0; i < loopThroughIndex; i++) {
+        TypeName argTypeName = typeNameArgList[i];
+        DartType argType = argTypeName.type;
+        DartType boundType = boundingElts[i].bound;
+        if (argType != null && boundType != null) {
+          if (typeArguments.length != 0 &&
+              typeArguments.length == typeParameters.length) {
+            boundType = boundType.substitute2(typeArguments, typeParameters);
           }
-          _errorReporter.reportTypeErrorForNode(
-              errorCode, argTypeName, [argType, boundType]);
+          if (!_typeSystem.isSubtypeOf(argType, boundType)) {
+            ErrorCode errorCode;
+            if (_isInConstInstanceCreation) {
+              errorCode =
+                  CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS;
+            } else {
+              errorCode =
+                  StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS;
+            }
+            _errorReporter.reportTypeErrorForNode(
+                errorCode, argTypeName, [argType, boundType]);
+          }
         }
       }
     }
@@ -5905,14 +5895,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     String executableName = executableElement.name;
     if (executableElement is MethodElement) {
       foundElt = classElement.getMethod(executableName);
-      if (foundElt != null && !(foundElt as MethodElement).isAbstract) {
+      if (foundElt != null && !foundElt.isAbstract) {
         return true;
       }
       List<InterfaceType> mixins = classElement.mixins;
       for (int i = 0; i < mixins.length && foundElt == null; i++) {
         foundElt = mixins[i].getMethod(executableName);
       }
-      if (foundElt != null && !(foundElt as MethodElement).isAbstract) {
+      if (foundElt != null && !foundElt.isAbstract) {
         return true;
       }
     } else if (executableElement is PropertyAccessorElement) {
@@ -5933,8 +5923,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           foundElt = mixins[i].getSetter(executableName);
         }
       }
-      if (foundElt != null &&
-          !(foundElt as PropertyAccessorElement).isAbstract) {
+      if (foundElt != null && !foundElt.isAbstract) {
         return true;
       }
     }

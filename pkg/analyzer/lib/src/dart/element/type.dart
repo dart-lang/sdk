@@ -418,15 +418,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     List<DartType> optionalParameterTypes = this.optionalParameterTypes;
     Iterable<DartType> namedParameterTypes = this.namedParameterTypes.values;
     // Generate the hashCode
-    int code = (returnType as TypeImpl).hashCode;
+    int code = returnType.hashCode;
     for (int i = 0; i < normalParameterTypes.length; i++) {
-      code = (code << 1) + (normalParameterTypes[i] as TypeImpl).hashCode;
+      code = (code << 1) + normalParameterTypes[i].hashCode;
     }
     for (int i = 0; i < optionalParameterTypes.length; i++) {
-      code = (code << 1) + (optionalParameterTypes[i] as TypeImpl).hashCode;
+      code = (code << 1) + optionalParameterTypes[i].hashCode;
     }
     for (DartType type in namedParameterTypes) {
-      code = (code << 1) + (type as TypeImpl).hashCode;
+      code = (code << 1) + type.hashCode;
     }
     return code;
   }
@@ -612,32 +612,30 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   bool operator ==(Object object) {
-    if (object is! FunctionTypeImpl) {
-      return false;
-    }
-    FunctionTypeImpl otherType = object as FunctionTypeImpl;
-    if (typeFormals.length != otherType.typeFormals.length) {
-      return false;
-    }
-    // `<T>T -> T` should be equal to `<U>U -> U`
-    // To test this, we instantiate both types with the same (unique) type
-    // variables, and see if the result is equal.
-    if (typeFormals.isNotEmpty) {
-      List<DartType> freshVariables =
-          relateTypeFormals(this, otherType, (t, s) => t == s);
-      if (freshVariables == null) {
+    if (object is FunctionTypeImpl) {
+      if (typeFormals.length != object.typeFormals.length) {
         return false;
       }
-      return instantiate(freshVariables) ==
-          otherType.instantiate(freshVariables);
+      // `<T>T -> T` should be equal to `<U>U -> U`
+      // To test this, we instantiate both types with the same (unique) type
+      // variables, and see if the result is equal.
+      if (typeFormals.isNotEmpty) {
+        List<DartType> freshVariables =
+            relateTypeFormals(this, object, (t, s) => t == s);
+        if (freshVariables == null) {
+          return false;
+        }
+        return instantiate(freshVariables) ==
+            object.instantiate(freshVariables);
+      }
+      return returnType == object.returnType &&
+          TypeImpl.equalArrays(
+              normalParameterTypes, object.normalParameterTypes) &&
+          TypeImpl.equalArrays(
+              optionalParameterTypes, object.optionalParameterTypes) &&
+          _equals(namedParameterTypes, object.namedParameterTypes);
     }
-
-    return returnType == otherType.returnType &&
-        TypeImpl.equalArrays(
-            normalParameterTypes, otherType.normalParameterTypes) &&
-        TypeImpl.equalArrays(
-            optionalParameterTypes, otherType.optionalParameterTypes) &&
-        _equals(namedParameterTypes, otherType.namedParameterTypes);
+    return false;
   }
 
   @override
@@ -1310,12 +1308,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (identical(object, this)) {
       return true;
     }
-    if (object is! InterfaceTypeImpl) {
-      return false;
+    if (object is InterfaceTypeImpl) {
+      return (element == object.element) &&
+          TypeImpl.equalArrays(typeArguments, object.typeArguments);
     }
-    InterfaceTypeImpl otherType = object as InterfaceTypeImpl;
-    return (element == otherType.element) &&
-        TypeImpl.equalArrays(typeArguments, otherType.typeArguments);
+    return false;
   }
 
   @override
@@ -2232,7 +2229,7 @@ abstract class TypeImpl implements DartType {
   bool isAssignableTo(DartType type) {
     // An interface type T may be assigned to a type S, written T <=> S, iff
     // either T <: S or S <: T.
-    return isSubtypeOf(type) || (type as TypeImpl).isSubtypeOf(this);
+    return isSubtypeOf(type) || type.isSubtypeOf(this);
   }
 
   /**

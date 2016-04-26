@@ -753,38 +753,34 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * @return `true` if and only if a hint code is generated on the passed node
    * See [HintCode.MISSING_RETURN].
    */
-  bool _checkForMissingReturn(TypeName returnType, FunctionBody body) {
+  void _checkForMissingReturn(TypeName returnType, FunctionBody body) {
     // Check that the method or function has a return type, and a function body
     if (returnType == null || body == null) {
-      return false;
+      return;
     }
     // Check that the body is a BlockFunctionBody
-    if (body is! BlockFunctionBody) {
-      return false;
+    if (body is BlockFunctionBody) {
+      // Generators are never required to have a return statement.
+      if (body.isGenerator) {
+        return;
+      }
+      // Check that the type is resolvable, and is not "void"
+      DartType returnTypeType = returnType.type;
+      if (returnTypeType == null || returnTypeType.isVoid) {
+        return;
+      }
+      // For async, give no hint if Future<Null> is assignable to the return
+      // type.
+      if (body.isAsynchronous &&
+          _typeSystem.isAssignableTo(_futureNullType, returnTypeType)) {
+        return;
+      }
+      // Check the block for a return statement, if not, create the hint
+      if (!ExitDetector.exits(body)) {
+        _errorReporter.reportErrorForNode(
+            HintCode.MISSING_RETURN, returnType, [returnTypeType.displayName]);
+      }
     }
-    // Generators are never required to have a return statement.
-    if (body.isGenerator) {
-      return false;
-    }
-    // Check that the type is resolvable, and is not "void"
-    DartType returnTypeType = returnType.type;
-    if (returnTypeType == null || returnTypeType.isVoid) {
-      return false;
-    }
-    // For async, give no hint if Future<Null> is assignable to the return
-    // type.
-    if (body.isAsynchronous &&
-        _typeSystem.isAssignableTo(_futureNullType, returnTypeType)) {
-      return false;
-    }
-    // Check the block for a return statement, if not, create the hint
-    BlockFunctionBody blockFunctionBody = body as BlockFunctionBody;
-    if (!ExitDetector.exits(blockFunctionBody)) {
-      _errorReporter.reportErrorForNode(
-          HintCode.MISSING_RETURN, returnType, [returnTypeType.displayName]);
-      return true;
-    }
-    return false;
   }
 
   /**
@@ -975,28 +971,22 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 //  }
 
   /**
-   * Check for situations where the result of a method or function is used, when it returns 'void'.
+   * Check for situations where the result of a method or function is used, when
+   * it returns 'void'.
    *
-   * TODO(jwren) Many other situations of use could be covered. We currently cover the cases var x =
-   * m() and x = m(), but we could also cover cases such as m().x, m()[k], a + m(), f(m()), return
-   * m().
-   *
-   * @param node expression on the RHS of some assignment
-   * @return `true` if and only if a hint code is generated on the passed node
    * See [HintCode.USE_OF_VOID_RESULT].
    */
-  bool _checkForUseOfVoidResult(Expression expression) {
-    if (expression == null || expression is! MethodInvocation) {
-      return false;
+  void _checkForUseOfVoidResult(Expression expression) {
+    // TODO(jwren) Many other situations of use could be covered. We currently
+    // cover the cases var x = m() and x = m(), but we could also cover cases
+    // such as m().x, m()[k], a + m(), f(m()), return m().
+    if (expression is MethodInvocation) {
+      if (identical(expression.staticType, VoidTypeImpl.instance)) {
+        SimpleIdentifier methodName = expression.methodName;
+        _errorReporter.reportErrorForNode(
+            HintCode.USE_OF_VOID_RESULT, methodName, [methodName.name]);
+      }
     }
-    MethodInvocation methodInvocation = expression as MethodInvocation;
-    if (identical(methodInvocation.staticType, VoidTypeImpl.instance)) {
-      SimpleIdentifier methodName = methodInvocation.methodName;
-      _errorReporter.reportErrorForNode(
-          HintCode.USE_OF_VOID_RESULT, methodName, [methodName.name]);
-      return true;
-    }
-    return false;
   }
 
   bool _hasSuperClassOrMixin(ClassElement element, InterfaceType type) {
@@ -1421,18 +1411,17 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     }
     // prepare ClassElement
     Element element = type.element;
-    if (element is! ClassElement) {
-      return false;
+    if (element is ClassElement) {
+      // lookup for ==
+      MethodElement method =
+          element.lookUpConcreteMethod("==", _currentLibrary);
+      if (method == null || method.enclosingElement.type.isObject) {
+        return false;
+      }
+      // there is == that we don't like
+      return true;
     }
-    ClassElement classElement = element as ClassElement;
-    // lookup for ==
-    MethodElement method =
-        classElement.lookUpConcreteMethod("==", _currentLibrary);
-    if (method == null || method.enclosingElement.type.isObject) {
-      return false;
-    }
-    // there is == that we don't like
-    return true;
+    return false;
   }
 
   /**
@@ -5619,20 +5608,15 @@ class ResolverVisitor extends ScopedVisitor {
     while (expression is ParenthesizedExpression) {
       expression = (expression as ParenthesizedExpression).expression;
     }
-    if (expression is! SimpleIdentifier) {
-      return null;
-    }
-    SimpleIdentifier identifier = expression as SimpleIdentifier;
-    Element element = identifier.staticElement;
-    if (element is! VariableElement) {
-      return null;
-    }
-    ElementKind kind = element.kind;
-    if (kind == ElementKind.LOCAL_VARIABLE) {
-      return element as VariableElement;
-    }
-    if (kind == ElementKind.PARAMETER) {
-      return element as VariableElement;
+    if (expression is SimpleIdentifier) {
+      Element element = expression.staticElement;
+      if (element is VariableElement) {
+        ElementKind kind = element.kind;
+        if (kind == ElementKind.LOCAL_VARIABLE ||
+            kind == ElementKind.PARAMETER) {
+          return element;
+        }
+      }
     }
     return null;
   }
@@ -9614,8 +9598,9 @@ class TypeResolverVisitor extends ScopedVisitor {
           SimpleIdentifier prefix = prefixedIdentifier.prefix;
           element = nameScope.lookup(prefix, definingLibrary);
           if (element is PrefixElement) {
-            if (parent.parent is InstanceCreationExpression &&
-                (parent.parent as InstanceCreationExpression).isConst) {
+            AstNode grandParent = parent.parent;
+            if (grandParent is InstanceCreationExpression &&
+                grandParent.isConst) {
               // If, if this is a const expression, then generate a
               // CompileTimeErrorCode.CONST_WITH_NON_TYPE error.
               reportErrorForNode(
@@ -9896,12 +9881,12 @@ class TypeResolverVisitor extends ScopedVisitor {
       return null;
     }
     Element element = identifier.staticElement;
-    if (element is! ClassElementImpl) {
-      // TODO(brianwilkerson) Report this
-      // Internal error: Failed to create an element for a class declaration.
-      return null;
+    if (element is ClassElementImpl) {
+      return element;
     }
-    return element as ClassElementImpl;
+    // TODO(brianwilkerson) Report this
+    // Internal error: Failed to create an element for a class declaration.
+    return null;
   }
 
   /**

@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -826,13 +827,10 @@ class InheritanceManager {
     for (String memberName in map.keys) {
       ExecutableElement executableElement = map[memberName];
       if (executableElement is MethodMember) {
-        executableElement =
-            MethodMember.from(executableElement as MethodMember, superType);
-        map[memberName] = executableElement;
+        map[memberName] = MethodMember.from(executableElement, superType);
       } else if (executableElement is PropertyAccessorMember) {
-        executableElement = PropertyAccessorMember.from(
-            executableElement as PropertyAccessorMember, superType);
-        map[memberName] = executableElement;
+        map[memberName] =
+            PropertyAccessorMember.from(executableElement, superType);
       }
     }
   }
@@ -956,15 +954,16 @@ class InheritanceManager {
           new MultiplyInheritedMethodElementImpl(nameIdentifier);
       unionedMethod.inheritedElements = elementArrayToMerge;
       executable = unionedMethod;
-    } else {
+    } else if (elementToMerge is PropertyAccessorElement) {
       MultiplyInheritedPropertyAccessorElementImpl unionedPropertyAccessor =
           new MultiplyInheritedPropertyAccessorElementImpl(nameIdentifier);
-      unionedPropertyAccessor.getter =
-          (elementToMerge as PropertyAccessorElement).isGetter;
-      unionedPropertyAccessor.setter =
-          (elementToMerge as PropertyAccessorElement).isSetter;
+      unionedPropertyAccessor.getter = elementToMerge.isGetter;
+      unionedPropertyAccessor.setter = elementToMerge.isSetter;
       unionedPropertyAccessor.inheritedElements = elementArrayToMerge;
       executable = unionedPropertyAccessor;
+    } else {
+      throw new AnalysisException(
+          'Invalid class of element in merge: ${elementToMerge.runtimeType}');
     }
     int numOfParameters = numOfRequiredParameters +
         numOfPositionalParameters +

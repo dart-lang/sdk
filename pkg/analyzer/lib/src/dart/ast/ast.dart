@@ -766,16 +766,14 @@ class AssignmentExpressionImpl extends ExpressionImpl
     if (propagatedElement != null) {
       executableElement = propagatedElement;
     } else {
-      if (_leftHandSide is Identifier) {
-        Identifier identifier = _leftHandSide as Identifier;
-        Element leftElement = identifier.propagatedElement;
+      Expression left = _leftHandSide;
+      if (left is Identifier) {
+        Element leftElement = left.propagatedElement;
         if (leftElement is ExecutableElement) {
           executableElement = leftElement;
         }
-      } else if (_leftHandSide is PropertyAccess) {
-        SimpleIdentifier identifier =
-            (_leftHandSide as PropertyAccess).propertyName;
-        Element leftElement = identifier.propagatedElement;
+      } else if (left is PropertyAccess) {
+        Element leftElement = left.propertyName.propagatedElement;
         if (leftElement is ExecutableElement) {
           executableElement = leftElement;
         }
@@ -802,14 +800,14 @@ class AssignmentExpressionImpl extends ExpressionImpl
     if (staticElement != null) {
       executableElement = staticElement;
     } else {
-      if (_leftHandSide is Identifier) {
-        Element leftElement = (_leftHandSide as Identifier).staticElement;
+      Expression left = _leftHandSide;
+      if (left is Identifier) {
+        Element leftElement = left.staticElement;
         if (leftElement is ExecutableElement) {
           executableElement = leftElement;
         }
-      } else if (_leftHandSide is PropertyAccess) {
-        Element leftElement =
-            (_leftHandSide as PropertyAccess).propertyName.staticElement;
+      } else if (left is PropertyAccess) {
+        Element leftElement = left.propertyName.staticElement;
         if (leftElement is ExecutableElement) {
           executableElement = leftElement;
         }
@@ -8235,16 +8233,15 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   @override
   bool get isDeferred {
     Element element = _prefix.staticElement;
-    if (element is! PrefixElement) {
-      return false;
+    if (element is PrefixElement) {
+      List<ImportElement> imports =
+          element.enclosingElement.getImportsWithPrefix(element);
+      if (imports.length != 1) {
+        return false;
+      }
+      return imports[0].isDeferred;
     }
-    PrefixElement prefixElement = element as PrefixElement;
-    List<ImportElement> imports =
-        prefixElement.enclosingElement.getImportsWithPrefix(prefixElement);
-    if (imports.length != 1) {
-      return false;
-    }
-    return imports[0].isDeferred;
+    return false;
   }
 
   @override
@@ -8957,23 +8954,22 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   @override
   bool inGetterContext() {
     // TODO(brianwilkerson) Convert this to a getter.
-    AstNode parent = this.parent;
+    AstNode initialParent = this.parent;
+    AstNode parent = initialParent;
     AstNode target = this;
     // skip prefix
-    if (parent is PrefixedIdentifier) {
-      PrefixedIdentifier prefixed = parent as PrefixedIdentifier;
-      if (identical(prefixed.prefix, this)) {
+    if (initialParent is PrefixedIdentifier) {
+      if (identical(initialParent.prefix, this)) {
         return true;
       }
-      parent = prefixed.parent;
-      target = prefixed;
-    } else if (parent is PropertyAccess) {
-      PropertyAccess access = parent as PropertyAccess;
-      if (identical(access.target, this)) {
+      parent = initialParent.parent;
+      target = initialParent;
+    } else if (initialParent is PropertyAccess) {
+      if (identical(initialParent.target, this)) {
         return true;
       }
-      parent = access.parent;
-      target = access;
+      parent = initialParent.parent;
+      target = initialParent;
     }
     // skip label
     if (parent is Label) {
@@ -8997,24 +8993,23 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   @override
   bool inSetterContext() {
     // TODO(brianwilkerson) Convert this to a getter.
-    AstNode parent = this.parent;
+    AstNode initialParent = this.parent;
+    AstNode parent = initialParent;
     AstNode target = this;
     // skip prefix
-    if (parent is PrefixedIdentifier) {
-      PrefixedIdentifier prefixed = parent as PrefixedIdentifier;
+    if (initialParent is PrefixedIdentifier) {
       // if this is the prefix, then return false
-      if (identical(prefixed.prefix, this)) {
+      if (identical(initialParent.prefix, this)) {
         return false;
       }
-      parent = prefixed.parent;
-      target = prefixed;
-    } else if (parent is PropertyAccess) {
-      PropertyAccess access = parent as PropertyAccess;
-      if (identical(access.target, this)) {
+      parent = initialParent.parent;
+      target = initialParent;
+    } else if (initialParent is PropertyAccess) {
+      if (identical(initialParent.target, this)) {
         return false;
       }
-      parent = access.parent;
-      target = access;
+      parent = initialParent.parent;
+      target = initialParent;
     }
     // analyze usage
     if (parent is PrefixExpression) {

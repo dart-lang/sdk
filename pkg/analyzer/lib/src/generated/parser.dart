@@ -1832,7 +1832,7 @@ class IncrementalParser {
     ResolutionCopier.copyResolutionData(oldNode, newNode);
     IncrementalAstCloner cloner =
         new IncrementalAstCloner(oldNode, newNode, _tokenMap);
-    return originalStructure.accept(cloner) as AstNode;
+    return originalStructure.accept(cloner);
   }
 
   /**

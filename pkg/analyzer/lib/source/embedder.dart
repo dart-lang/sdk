@@ -211,11 +211,9 @@ class EmbedderUriResolver extends DartUriResolver {
     if (embedded_libs == null) {
       return;
     }
-    if (embedded_libs is! YamlMap) {
-      return;
+    if (embedded_libs is YamlMap) {
+      embedded_libs.forEach((k, v) => _processEmbeddedLibs(k, v, libDir));
     }
-    (embedded_libs as YamlMap)
-        .forEach((k, v) => _processEmbeddedLibs(k, v, libDir));
   }
 }
 

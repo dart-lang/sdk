@@ -214,11 +214,10 @@ class DartObjectImpl implements DartObject {
 
   @override
   bool operator ==(Object object) {
-    if (object is! DartObjectImpl) {
-      return false;
+    if (object is DartObjectImpl) {
+      return type == object.type && _state == object._state;
     }
-    DartObjectImpl dartObject = object as DartObjectImpl;
-    return type == dartObject.type && _state == dartObject._state;
+    return false;
   }
 
   /**
@@ -1355,24 +1354,23 @@ class GenericState extends InstanceState {
 
   @override
   bool operator ==(Object object) {
-    if (object is! GenericState) {
-      return false;
-    }
-    GenericState state = object as GenericState;
-    HashSet<String> otherFields =
-        new HashSet<String>.from(state._fieldMap.keys.toSet());
-    for (String fieldName in _fieldMap.keys.toSet()) {
-      if (_fieldMap[fieldName] != state._fieldMap[fieldName]) {
-        return false;
+    if (object is GenericState) {
+      HashSet<String> otherFields =
+          new HashSet<String>.from(object._fieldMap.keys.toSet());
+      for (String fieldName in _fieldMap.keys.toSet()) {
+        if (_fieldMap[fieldName] != object._fieldMap[fieldName]) {
+          return false;
+        }
+        otherFields.remove(fieldName);
       }
-      otherFields.remove(fieldName);
-    }
-    for (String fieldName in otherFields) {
-      if (state._fieldMap[fieldName] != _fieldMap[fieldName]) {
-        return false;
+      for (String fieldName in otherFields) {
+        if (object._fieldMap[fieldName] != _fieldMap[fieldName]) {
+          return false;
+        }
       }
+      return true;
     }
-    return true;
+    return false;
   }
 
   @override
@@ -2308,22 +2306,22 @@ class ListState extends InstanceState {
 
   @override
   bool operator ==(Object object) {
-    if (object is! ListState) {
-      return false;
-    }
-    List<DartObjectImpl> otherElements = (object as ListState)._elements;
-    int count = _elements.length;
-    if (otherElements.length != count) {
-      return false;
-    } else if (count == 0) {
+    if (object is ListState) {
+      List<DartObjectImpl> otherElements = object._elements;
+      int count = _elements.length;
+      if (otherElements.length != count) {
+        return false;
+      } else if (count == 0) {
+        return true;
+      }
+      for (int i = 0; i < count; i++) {
+        if (_elements[i] != otherElements[i]) {
+          return false;
+        }
+      }
       return true;
     }
-    for (int i = 0; i < count; i++) {
-      if (_elements[i] != otherElements[i]) {
-        return false;
-      }
-    }
-    return true;
+    return false;
   }
 
   @override
@@ -2390,25 +2388,24 @@ class MapState extends InstanceState {
 
   @override
   bool operator ==(Object object) {
-    if (object is! MapState) {
-      return false;
-    }
-    HashMap<DartObjectImpl, DartObjectImpl> otherElements =
-        (object as MapState)._entries;
-    int count = _entries.length;
-    if (otherElements.length != count) {
-      return false;
-    } else if (count == 0) {
+    if (object is MapState) {
+      HashMap<DartObjectImpl, DartObjectImpl> otherElements = object._entries;
+      int count = _entries.length;
+      if (otherElements.length != count) {
+        return false;
+      } else if (count == 0) {
+        return true;
+      }
+      for (DartObjectImpl key in _entries.keys) {
+        DartObjectImpl value = _entries[key];
+        DartObjectImpl otherValue = otherElements[key];
+        if (value != otherValue) {
+          return false;
+        }
+      }
       return true;
     }
-    for (DartObjectImpl key in _entries.keys) {
-      DartObjectImpl value = _entries[key];
-      DartObjectImpl otherValue = otherElements[key];
-      if (value != otherValue) {
-        return false;
-      }
-    }
-    return true;
+    return false;
   }
 
   @override

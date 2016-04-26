@@ -268,7 +268,6 @@ class LineInfo {
     }
     return _lineStarts[lineNumber];
   }
-
 }
 
 /**
@@ -756,12 +755,10 @@ class SourceRange {
   int get hashCode => 31 * offset + length;
 
   @override
-  bool operator ==(Object obj) {
-    if (obj is! SourceRange) {
-      return false;
-    }
-    SourceRange sourceRange = obj as SourceRange;
-    return sourceRange.offset == offset && sourceRange.length == length;
+  bool operator ==(Object other) {
+    return other is SourceRange &&
+        other.offset == offset &&
+        other.length == length;
   }
 
   /**

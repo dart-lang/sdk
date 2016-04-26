@@ -359,8 +359,9 @@ class CacheEntry {
       }
     });
     _resultMap.clear();
-    if (target is ElementImpl) {
-      (target as ElementImpl).setModifier(Modifier.CACHE_KEY, false);
+    AnalysisTarget oldTarget = target;
+    if (oldTarget is ElementImpl) {
+      oldTarget.setModifier(Modifier.CACHE_KEY, false);
     }
   }
 

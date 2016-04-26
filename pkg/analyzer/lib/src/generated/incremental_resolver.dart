@@ -423,8 +423,9 @@ class DeclarationMatcher extends RecursiveAstVisitor {
         (node.parent as VariableDeclarationList).type, element.type);
     // matches, restore the existing element
     node.name.staticElement = element;
-    if (element is VariableElementImpl) {
-      (element as VariableElementImpl).initializer = newElement.initializer;
+    Element variable = element;
+    if (variable is VariableElementImpl) {
+      variable.initializer = newElement.initializer;
     }
   }
 
