@@ -1338,6 +1338,15 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
         constructor = serializeConstructorName(
             new TypeName(annotation.name, null)..type = nameElement.type,
             annotation.constructorName);
+      } else if (nameElement == null) {
+        // Unresolved annotation.
+        if (name is PrefixedIdentifier && annotation.constructorName == null) {
+          constructor = serializeConstructorName(
+              new TypeName(name.prefix, null), name.identifier);
+        } else {
+          constructor = serializeConstructorName(
+              new TypeName(annotation.name, null), annotation.constructorName);
+        }
       } else {
         throw new StateError('Unexpected annotation nameElement type:'
             ' ${nameElement.runtimeType}');
