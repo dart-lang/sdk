@@ -200,7 +200,19 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       }
     }
     if (inputType != outputType) {
-      input.replaceAllUsersDominatedBy(instruction.next, instruction);
+      // Replace dominated uses of input with uses of this HTypeConversion so
+      // the uses benefit from the stronger type.
+      //
+      // The dependency on the checked value also improves the generated
+      // JavaScript. Many checks are compiled to a function call expression that
+      // returns the checked result, so the check can be generated as a
+      // subexpression rather than a separate statement.
+      //
+      // Do not replace local accesses, since the local must be a HLocalValue,
+      // not a HTypeConversion.
+      if (!(input is HParameterValue && input.usedAsVariable())) {
+        input.replaceAllUsersDominatedBy(instruction.next, instruction);
+      }
     }
     return outputType;
   }

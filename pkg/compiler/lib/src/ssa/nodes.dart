@@ -2265,6 +2265,17 @@ class HLocalValue extends HInstruction {
 class HParameterValue extends HLocalValue {
   HParameterValue(Entity variable, type) : super(variable, type);
 
+  // [HParameterValue]s are either the value of the parameter (in fully SSA
+  // converted code), or the mutable variable containing the value (in
+  // incompletely SSA converted code, e.g. methods containing exceptions).
+  bool usedAsVariable() {
+    for (HInstruction user in usedBy) {
+      if (user is HLocalGet) return true;
+      if (user is HLocalSet && user.local == this) return true;
+    }
+    return false;
+  }
+
   toString() => 'parameter ${sourceElement.name}';
   accept(HVisitor visitor) => visitor.visitParameterValue(this);
 }
