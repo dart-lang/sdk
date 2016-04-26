@@ -15516,7 +15516,9 @@ TokenPosition AbstractType::token_pos() const {
 bool AbstractType::IsInstantiated(TrailPtr trail) const {
   // AbstractType is an abstract class.
   // TODO(srdjan) : Remove temporary code.
+NOT_IN_PRODUCT(
   Profiler::DumpStackTrace(true);  // Only native stack trace.
+)
   if (Compiler::IsBackgroundCompilation()) {
     UNREACHABLE();
   }
