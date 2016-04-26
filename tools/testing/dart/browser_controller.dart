@@ -767,7 +767,10 @@ class Firefox extends Browser {
         ];
         var environment = new Map<String, String>.from(Platform.environment);
         environment["MOZ_CRASHREPORTER_DISABLE"] = "1";
-        return startBrowserProcess(_binary, args, environment: environment);
+        // TODO(26060): Remove delay when dart2js stops hanging under load.
+        return new Future.delayed(new Duration(seconds: 10)).then((_) {
+          return startBrowserProcess(_binary, args, environment: environment);
+        });
       });
     }).catchError((e) {
       _logEvent("Running $_binary --version failed with $e");
