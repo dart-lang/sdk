@@ -1984,6 +1984,8 @@ class PhiInstr : public Definition {
   // A phi is redundant if all input operands are the same.
   bool IsRedundant() const;
 
+  bool HasReplacement(Definition** replacement) const;
+
   void set_induction_variable_info(InductionVariableInfo* info) {
     loop_variable_info_ = info;
   }
