@@ -138,7 +138,7 @@ BENCHMARK(CorelibCompilerStats) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
   TransitionNativeToVM transition(thread);
-  CompilerStats* stats = thread->isolate()->compiler_stats();
+  CompilerStats* stats = thread->isolate()->aggregate_compiler_stats();
   ASSERT(stats != NULL);
   stats->EnableBenchmark();
   Timer timer(true, "Compiler stats compiling all of Core lib");
@@ -174,7 +174,7 @@ BENCHMARK(Dart2JSCompilerStats) {
         reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
     EXPECT_VALID(lib);
   }
-  CompilerStats* stats = thread->isolate()->compiler_stats();
+  CompilerStats* stats = thread->isolate()->aggregate_compiler_stats();
   ASSERT(stats != NULL);
   stats->EnableBenchmark();
   Timer timer(true, "Compile all of dart2js benchmark");

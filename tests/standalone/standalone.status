@@ -13,7 +13,7 @@ package/scenarios/empty_packages_file/empty_packages_file_discovery_test: Fail, 
 package/scenarios/empty_packages_file/empty_packages_file_option_test: Fail, OK # CompileTimeErrors intentionally
 package/scenarios/invalid/invalid_package_name_test: RuntimeError, CompileTimeError # Errors intentionally
 package/scenarios/invalid/same_package_twice_test.dart: RuntimeError, CompileTimeError # Errors intentionally
-full_coverage_test: Pass, Slow
+full_coverage_test: Pass, Slow, Timeout
 
 
 issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
@@ -44,6 +44,8 @@ io/directory_fuzz_test: Skip
 # This is expected as MacOS by default runs with a very low number
 # of allowed open files ('ulimit -n' says something like 256).
 io/socket_many_connections_test: Skip
+# Re-enable once the bots have been updated. Issue #26057
+io/secure_server_client_certificate_test: Skip
 
 [ $runtime == vm && $system == linux ]
 # These tests have started timing out and issue 25649 has been filed to
@@ -65,9 +67,9 @@ vmservice/*: SkipByDesign # Do not run standalone vm service tests in browser.
 issue14236_test: Skip # Issue 14236 Script snapshots do not work in the browser.
 oom_error_stacktrace_test: Skip
 out_of_memory_test: Skip
+map_insert_remove_oom_test: Skip  # Issue 24571
 verbose_gc_to_bmu_test: Skip
-precompilation_test: Skip # Standalone only test.
-precompilation_dart2js_test: Skip # Standalone only test.
+regress_26031_test: SkipByDesign # Standalone only test
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 issue14236_test: Skip # Analyzer can't handle Script snapshots.
@@ -105,20 +107,13 @@ vmservice/*: Skip # Do not run standalone vm service tests with dart2js.
 issue14236_test: Skip # dart2js does not deal with Script snapshots.
 unboxed_int_converter_test: Skip
 pair_location_remapping_test: Skip
-precompilation_test: Skip # Standalone only test.
-precompilation_dart2js_test: Skip # Standalone only test.
 regress_25335_test: Skip # Int64List not supported.
 
-[ ($runtime == vm || $runtime == dart_product) && $mode == debug ]
-precompilation_dart2js_test: Pass, Slow
+[ $compiler == dart2js && $cps_ir && $checked ]
+*: Skip # `assert` not implemented
 
-[ ($runtime == vm || $runtime == dart_product) && $arch == ia32 ]
-precompilation_test: SkipByDesign # Not expected to pass on ia32.
-precompilation_dart2js_test: SkipByDesign # Not expected to pass on ia32.
-
-[ ($runtime == vm || $runtime == dart_product) && ($arch == mips || $arch == arm || $arch == arm64) ]
-precompilation_test: SkipSlow
-precompilation_dart2js_test: SkipSlow
+[ ($runtime == vm || $runtime == dart_product) && ($arch == arm || $arch == arm64) ]
+io/file_stream_test: Skip # Issue 26109
 
 [ $compiler == dart2js && $jscl ]
 assert_test: RuntimeError, OK # Assumes unspecified fields on the AssertionError.
@@ -139,11 +134,9 @@ out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 
 [ $arch == mips ]
-io/signals_test: Fail # Issue 17440
 io/file_stat_test: Fail # Issue 17440
 io/process_sync_test: Skip # Starts 10 dart subprocesses, uses too much memory.
 io/signals_test: Skip # Starts 10 dart subprocesses, uses too much memory
-io/file_read_special_device_test: Fail # Issue 17440
 io/socket_source_address_test: Fail # Issue 22597
 
 [ $arch == mips && $mode == debug ]
@@ -154,9 +147,6 @@ io/http_client_stays_alive_test: Skip # Timing dependent test, MIPS machine too 
 
 [ $compiler == none && $runtime == dartium && $unchecked ]
 assert_test: Fail # Issue 14651.
-
-[ $compiler == none && $runtime == drt ]
-map_literal_oom_test: RuntimeError # Issue 24571
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 io/directory_invalid_arguments_test: StaticWarning
@@ -216,15 +206,14 @@ link_natives_lazily_test: SkipByDesign # Not supported.
 assert_test: Pass, RuntimeError
 
 [ $noopt || $compiler == precompiler ]
-map_literal_oom_test: Pass, Crash # Issue 24678
+map_insert_remove_oom_test: Skip # Heap limit too low. Increasing iteration count to make a higher limit a meaningful test makes it too slow for simarm[64] bots.
 io/web_socket_test: Pass, RuntimeError # Issue 24674
-precompilation_test: Skip # Platform.executable
-precompilation_dart2js_test: Skip  # Platform.executable
 io/test_extension_test: Skip # Platform.executable
 io/test_extension_fail_test: Skip # Platform.executable
 io/platform_test: Skip # Platform.executable
 io/code_collection_test: Skip # Platform.executable
 full_coverage_test: Skip # Platform.executable
+regress_26031_test: Skip # Platform.resolvedExecutable
 
 [ $runtime == dart_precompiled ]
 io/compile_all_test: Crash # Incompatible flag --compile_all
@@ -234,8 +223,6 @@ io/stdout_bad_argument_test: Skip # Test exits and so can't generate snapshot.
 
 [ $runtime == dart_precompiled || $runtime == dart_product ]
 debugger/*: Skip
-precompilation_test: Skip # Platform.executable
-precompilation_dart2js_test: Skip # Platform.executable
 full_coverage_test: Skip # Platform.executable
 http_launch_test: Skip # Platform.executable
 io/addlatexhash_test: Skip # Platform.executable
@@ -249,7 +236,6 @@ io/skipping_dart2js_compilations_test: Skip # Platform.executable
 io/snapshot_fail_test: Skip # Platform.executable
 io/stdin_sync_test: Skip # Platform.executable
 io/test_extension_fail_test: Skip # Platform.executable
-precompilation_test: Skip # Platform.executable
 io/file_read_special_device_test: Skip # Platform.executable
 verbose_gc_to_bmu_test: Skip # Platform.executable
 io/http_server_close_response_after_error_test: Skip # Platform.executable
@@ -271,6 +257,8 @@ io/raw_socket_cross_process_test: Skip # Platform.executable
 io/test_extension_test: Skip # Platform.executable
 io/regress_7679_test: Skip # Platform.executable
 io/process_*: Skip # Most use Platform.executable
+assert_test: SkipByDesign # Requires checked mode.
+no_assert_test: SkipByDesign # Requires checked mode.
 
 # Code coverage is not supported in product mode.
 [ $mode == product ]
@@ -287,7 +275,7 @@ no_support_service_test: SkipByDesign
 no_support_timeline_test: SkipByDesign
 
 # Following tests are skipped on dart_product as package mapping is not supported.
-[ $runtime == dart_product ]
+[ $runtime == dart_precompiled || $runtime == dart_product ]
 package/scenarios/packages_file_strange_formatting/mixed_line_ends_test: Skip
 package/scenarios/packages_file_strange_formatting/empty_lines_test: Skip
 package/scenarios/invalid/invalid_utf8_test: Skip

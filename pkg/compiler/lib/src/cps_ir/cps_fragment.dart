@@ -118,25 +118,22 @@ class CpsFragment {
     return letPrim(new Refinement(value, type));
   }
 
-  Primitive invokeBuiltin(BuiltinMethod method,
-                          Primitive receiver,
-                          List<Primitive> arguments,
-                          {bool receiverIsNotNull: false}) {
+  Primitive invokeBuiltin(
+      BuiltinMethod method, Primitive receiver, List<Primitive> arguments,
+      {bool receiverIsNotNull: false}) {
     ApplyBuiltinMethod apply =
         new ApplyBuiltinMethod(method, receiver, arguments, sourceInformation);
     return letPrim(apply);
   }
 
   /// Inserts an invocation and returns a primitive holding the returned value.
-  Primitive invokeMethod(Primitive receiver,
-      Selector selector,
-      TypeMask mask,
+  Primitive invokeMethod(Primitive receiver, Selector selector, TypeMask mask,
       List<Primitive> arguments,
-      [CallingConvention callingConvention = CallingConvention.Normal]) {
-    InvokeMethod invoke =
-        new InvokeMethod(receiver, selector, mask, arguments,
-                         sourceInformation: sourceInformation,
-                         callingConvention: callingConvention);
+      {Primitive interceptor, CallingConvention callingConvention}) {
+    InvokeMethod invoke = new InvokeMethod(receiver, selector, mask, arguments,
+        sourceInformation: sourceInformation,
+        callingConvention: callingConvention,
+        interceptor: interceptor);
     return letPrim(invoke);
   }
 
@@ -166,8 +163,8 @@ class CpsFragment {
   /// Call [continueLoop] with the returned continuation to iterate the loop.
   ///
   /// The loop body becomes the new hole.
-  Continuation beginLoop([List<Parameter> loopVars,
-                          List<Primitive> initialValues]) {
+  Continuation beginLoop(
+      [List<Parameter> loopVars, List<Primitive> initialValues]) {
     if (initialValues == null) {
       assert(loopVars == null);
       loopVars = <Parameter>[];
@@ -193,12 +190,14 @@ class CpsFragment {
   ///
   /// The other branch becomes the new hole.
   CpsFragment branch(Primitive condition,
-                     {bool negate: false,
-                      bool strict: false}) {
+      {bool negate: false, bool strict: false}) {
     Continuation trueCont = new Continuation(<Parameter>[]);
     Continuation falseCont = new Continuation(<Parameter>[]);
-    put(new LetCont.two(trueCont, falseCont,
-            new Branch(condition, trueCont, falseCont, strict: strict)));
+    put(new LetCont.two(
+        trueCont,
+        falseCont,
+        new Branch(condition, trueCont, falseCont, sourceInformation,
+            strict: strict)));
     if (negate) {
       context = trueCont;
       return new CpsFragment(sourceInformation, falseCont);
@@ -275,12 +274,14 @@ class CpsFragment {
   /// remains open, even if [target] never returns.
   ///
   /// The [target] function is destroyed and should not be reused.
-  Primitive inlineFunction(FunctionDefinition target,
-                           Primitive thisArgument,
-                           List<Primitive> arguments,
-                           {Entity hint}) {
-    if (thisArgument != null) {
-      target.thisParameter.replaceUsesWith(thisArgument);
+  Primitive inlineFunction(
+      FunctionDefinition target, Primitive receiver, List<Primitive> arguments,
+      {Entity hint, Primitive interceptor}) {
+    if (interceptor != null) {
+      target.interceptorParameter.replaceUsesWith(interceptor);
+    }
+    if (receiver != null) {
+      target.receiverParameter.replaceUsesWith(receiver);
     }
     for (int i = 0; i < arguments.length; ++i) {
       target.parameters[i].replaceUsesWith(arguments[i]);

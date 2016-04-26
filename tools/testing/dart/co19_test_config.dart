@@ -11,15 +11,14 @@ class Co19TestSuite extends StandardTestSuite {
   RegExp _testRegExp = new RegExp(r"t[0-9]{2}.dart$");
 
   Co19TestSuite(Map configuration)
-      : super(configuration,
-              "co19",
-              new Path("tests/co19/src"),
-              ["tests/co19/co19-co19.status",
-               "tests/co19/co19-analyzer.status",
-               "tests/co19/co19-analyzer2.status",
-               "tests/co19/co19-runtime.status",
-               "tests/co19/co19-dart2js.status",
-               "tests/co19/co19-dartium.status"]);
+      : super(configuration, "co19", new Path("tests/co19/src"), [
+          "tests/co19/co19-co19.status",
+          "tests/co19/co19-analyzer.status",
+          "tests/co19/co19-analyzer2.status",
+          "tests/co19/co19-runtime.status",
+          "tests/co19/co19-dart2js.status",
+          "tests/co19/co19-dartium.status"
+        ]);
 
   bool isTestFile(String filename) => _testRegExp.hasMatch(filename);
   bool get listRecursively => true;

@@ -5,16 +5,12 @@
 library dart2js.call_structure;
 
 import '../common.dart';
-import '../common/names.dart' show
-    Identifiers,
-    Names,
-    Selectors;
+import '../common/names.dart' show Identifiers, Names, Selectors;
 import '../elements/elements.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
 
-import 'selector.dart' show
-    Selector;
+import 'selector.dart' show Selector;
 
 /// The structure of the arguments at a call-site.
 // TODO(johnniwinther): Should these be cached?
@@ -64,9 +60,9 @@ class CallStructure {
 
   bool match(CallStructure other) {
     if (identical(this, other)) return true;
-    return this.argumentCount == other.argumentCount
-        && this.namedArgumentCount == other.namedArgumentCount
-        && sameNames(this.namedArguments, other.namedArguments);
+    return this.argumentCount == other.argumentCount &&
+        this.namedArgumentCount == other.namedArgumentCount &&
+        sameNames(this.namedArguments, other.namedArguments);
   }
 
   // TODO(johnniwinther): Cache hash code?
@@ -180,7 +176,7 @@ class CallStructure {
    * Returns [:true:] if the signature of the [caller] matches the
    * signature of the [callee], [:false:] otherwise.
    */
-  static /*<T>*/ bool addForwardingElementArgumentsToList(
+  static/*<T>*/ bool addForwardingElementArgumentsToList(
       ConstructorElement caller,
       List/*<T>*/ list,
       ConstructorElement callee,
@@ -188,7 +184,7 @@ class CallStructure {
       /*T*/ compileConstant(ParameterElement element)) {
     assert(invariant(caller, !callee.isMalformed,
         message: "Cannot compute arguments to malformed constructor: "
-                 "$caller calling $callee."));
+            "$caller calling $callee."));
 
     FunctionSignature signature = caller.functionSignature;
     Map<Node, ParameterElement> mapping = <Node, ParameterElement>{};
@@ -236,10 +232,7 @@ class CallStructure {
       return false;
     }
     list.addAll(callStructure.makeArgumentsList(
-        nodes,
-        callee,
-        internalCompileArgument,
-        compileConstant));
+        nodes, callee, internalCompileArgument, compileConstant));
 
     return true;
   }

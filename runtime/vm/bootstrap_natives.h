@@ -95,16 +95,17 @@ namespace dart {
   V(Double_truncate, 1)                                                        \
   V(Double_toInt, 1)                                                           \
   V(Double_parse, 3)                                                           \
+  V(Double_toString, 1)                                                        \
   V(Double_toStringAsFixed, 2)                                                 \
   V(Double_toStringAsExponential, 2)                                           \
   V(Double_toStringAsPrecision, 2)                                             \
   V(Double_flipSignBit, 1)                                                     \
-  V(JSSyntaxRegExp_factory, 4)                                                 \
-  V(JSSyntaxRegExp_getPattern, 1)                                              \
-  V(JSSyntaxRegExp_getIsMultiLine, 1)                                          \
-  V(JSSyntaxRegExp_getIsCaseSensitive, 1)                                      \
-  V(JSSyntaxRegExp_getGroupCount, 1)                                           \
-  V(JSSyntaxRegExp_ExecuteMatch, 3)                                            \
+  V(RegExp_factory, 4)                                                         \
+  V(RegExp_getPattern, 1)                                                      \
+  V(RegExp_getIsMultiLine, 1)                                                  \
+  V(RegExp_getIsCaseSensitive, 1)                                              \
+  V(RegExp_getGroupCount, 1)                                                   \
+  V(RegExp_ExecuteMatch, 3)                                                    \
   V(List_allocate, 2)                                                          \
   V(List_getIndexed, 2)                                                        \
   V(List_setIndexed, 3)                                                        \
@@ -164,34 +165,34 @@ namespace dart {
   V(Timeline_reportCompleteEvent, 5)                                           \
   V(Timeline_reportInstantEvent, 4)                                            \
   V(Timeline_reportTaskEvent, 6)                                               \
-  V(TypedData_Int8Array_new, 1)                                                \
-  V(TypedData_Uint8Array_new, 1)                                               \
-  V(TypedData_Uint8ClampedArray_new, 1)                                        \
-  V(TypedData_Int16Array_new, 1)                                               \
-  V(TypedData_Uint16Array_new, 1)                                              \
-  V(TypedData_Int32Array_new, 1)                                               \
-  V(TypedData_Uint32Array_new, 1)                                              \
-  V(TypedData_Int64Array_new, 1)                                               \
-  V(TypedData_Uint64Array_new, 1)                                              \
-  V(TypedData_Float32Array_new, 1)                                             \
-  V(TypedData_Float64Array_new, 1)                                             \
-  V(TypedData_Float32x4Array_new, 1)                                           \
-  V(TypedData_Int32x4Array_new, 1)                                             \
-  V(TypedData_Float64x2Array_new, 1)                                           \
-  V(ExternalTypedData_Int8Array_new, 1)                                        \
-  V(ExternalTypedData_Uint8Array_new, 1)                                       \
-  V(ExternalTypedData_Uint8ClampedArray_new, 1)                                \
-  V(ExternalTypedData_Int16Array_new, 1)                                       \
-  V(ExternalTypedData_Uint16Array_new, 1)                                      \
-  V(ExternalTypedData_Int32Array_new, 1)                                       \
-  V(ExternalTypedData_Uint32Array_new, 1)                                      \
-  V(ExternalTypedData_Int64Array_new, 1)                                       \
-  V(ExternalTypedData_Uint64Array_new, 1)                                      \
-  V(ExternalTypedData_Float32Array_new, 1)                                     \
-  V(ExternalTypedData_Float64Array_new, 1)                                     \
-  V(ExternalTypedData_Float32x4Array_new, 1)                                   \
-  V(ExternalTypedData_Int32x4Array_new, 1)                                     \
-  V(ExternalTypedData_Float64x2Array_new, 1)                                   \
+  V(TypedData_Int8Array_new, 2)                                                \
+  V(TypedData_Uint8Array_new, 2)                                               \
+  V(TypedData_Uint8ClampedArray_new, 2)                                        \
+  V(TypedData_Int16Array_new, 2)                                               \
+  V(TypedData_Uint16Array_new, 2)                                              \
+  V(TypedData_Int32Array_new, 2)                                               \
+  V(TypedData_Uint32Array_new, 2)                                              \
+  V(TypedData_Int64Array_new, 2)                                               \
+  V(TypedData_Uint64Array_new, 2)                                              \
+  V(TypedData_Float32Array_new, 2)                                             \
+  V(TypedData_Float64Array_new, 2)                                             \
+  V(TypedData_Float32x4Array_new, 2)                                           \
+  V(TypedData_Int32x4Array_new, 2)                                             \
+  V(TypedData_Float64x2Array_new, 2)                                           \
+  V(ExternalTypedData_Int8Array_new, 2)                                        \
+  V(ExternalTypedData_Uint8Array_new, 2)                                       \
+  V(ExternalTypedData_Uint8ClampedArray_new, 2)                                \
+  V(ExternalTypedData_Int16Array_new, 2)                                       \
+  V(ExternalTypedData_Uint16Array_new, 2)                                      \
+  V(ExternalTypedData_Int32Array_new, 2)                                       \
+  V(ExternalTypedData_Uint32Array_new, 2)                                      \
+  V(ExternalTypedData_Int64Array_new, 2)                                       \
+  V(ExternalTypedData_Uint64Array_new, 2)                                      \
+  V(ExternalTypedData_Float32Array_new, 2)                                     \
+  V(ExternalTypedData_Float64Array_new, 2)                                     \
+  V(ExternalTypedData_Float32x4Array_new, 2)                                   \
+  V(ExternalTypedData_Int32x4Array_new, 2)                                     \
+  V(ExternalTypedData_Float64x2Array_new, 2)                                   \
   V(TypedData_length, 1)                                                       \
   V(TypedData_setRange, 7)                                                     \
   V(TypedData_GetInt8, 2)                                                      \
@@ -352,7 +353,6 @@ namespace dart {
   V(UserTag_makeCurrent, 1)                                                    \
   V(Profiler_getCurrentTag, 0)                                                 \
   V(ClassID_getID, 1)                                                          \
-  V(Num_toString, 1)                                                           \
   V(VMService_SendIsolateServiceMessage, 2)                                    \
   V(VMService_SendRootServiceMessage, 1)                                       \
   V(VMService_OnStart, 0)                                                      \

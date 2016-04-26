@@ -380,6 +380,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'UIEvent.layerY',
   'UIEvent.pageX',
   'UIEvent.pageY',
+  'UIEvent.which',
   'WheelEvent.initWebKitWheelEvent',
   'WheelEvent.deltaX',
   'WheelEvent.deltaY',
@@ -453,38 +454,6 @@ renamed_overloads = monitored.Dict('htmldartgenerator.renamed_overloads', {
       '_createObjectUrlFromWebKitSource',
   'URL.createObjectURL(MediaStream stream)': 'createObjectUrlFromStream',
   'URL.createObjectURL(Blob blob)': 'createObjectUrlFromBlob',
-  'WebGLRenderingContextBase.texImage2D(unsigned long target, long level, '
-      'unsigned long internalformat, unsigned long format, unsigned long '
-      'type, ImageData pixels)': 'texImage2DImageData',
-  'WebGLRenderingContextBase.texImage2D(unsigned long target, long level, '
-      'unsigned long internalformat, unsigned long format, unsigned long '
-      'type, HTMLImageElement image)': 'texImage2DImage',
-  'WebGLRenderingContextBase.texImage2D(unsigned long target, long level, '
-      'unsigned long internalformat, unsigned long format, unsigned long '
-      'type, HTMLCanvasElement canvas)': 'texImage2DCanvas',
-  'WebGLRenderingContextBase.texImage2D(unsigned long target, long level, '
-      'unsigned long internalformat, unsigned long format, unsigned long '
-      'type, HTMLVideoElement video)': 'texImage2DVideo',
-  'WebGLRenderingContextBase.texSubImage2D(unsigned long target, long level, '
-      'long xoffset, long yoffset, unsigned long format, unsigned long type, '
-      'ImageData pixels)': 'texSubImage2DImageData',
-  'WebGLRenderingContextBase.texSubImage2D(unsigned long target, long level, '
-      'long xoffset, long yoffset, unsigned long format, unsigned long type, '
-      'HTMLImageElement image)': 'texSubImage2DImage',
-  'WebGLRenderingContextBase.texSubImage2D(unsigned long target, long level, '
-      'long xoffset, long yoffset, unsigned long format, unsigned long type, '
-      'HTMLCanvasElement canvas)': 'texSubImage2DCanvas',
-  'WebGLRenderingContextBase.texSubImage2D(unsigned long target, long level, '
-      'long xoffset, long yoffset, unsigned long format, unsigned long type, '
-      'HTMLVideoElement video)': 'texSubImage2DVideo',
-  'WebGLRenderingContextBase.bufferData(unsigned long target, '
-      'ArrayBuffer data, unsigned long usage)': 'bufferByteData',
-  'WebGLRenderingContextBase.bufferData(unsigned long target, '
-      'ArrayBufferView data, unsigned long usage)': 'bufferDataTyped',
-  'WebGLRenderingContextBase.bufferSubData(unsigned long target, '
-      'long long offset, ArrayBuffer data)': 'bufferSubByteData',
-  'WebGLRenderingContextBase.bufferSubData(unsigned long target, '
-      'long long offset, ArrayBufferView data)': 'bufferSubDataTyped',
   'WebSocket.send(ArrayBuffer data)': 'sendByteBuffer',
   'WebSocket.send(ArrayBufferView data)': 'sendTypedData',
   'WebSocket.send(DOMString data)': 'sendString',
@@ -524,10 +493,6 @@ overloaded_and_renamed = monitored.Set(
   'CanvasRenderingContext2D.isPointInStroke',
   'CanvasRenderingContext2D.stroke',
   'Navigator.sendBeacon',
-  'WebGLRenderingContextBase.bufferData',
-  'WebGLRenderingContextBase.bufferSubData',
-  'WebGLRenderingContextBase.texImage2D',
-  'WebGLRenderingContextBase.texSubImage2D',
 ])
 
 for member in convert_to_future_members:
@@ -563,6 +528,8 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'CanvasRenderingContext2D.webkitImageSmoothingEnabled',
     'CharacterData.remove',
     'ChildNode.replaceWith',
+    'CSSStyleDeclaration.__getter__',
+    'CSSStyleDeclaration.__setter__',
     'Window.call:blur',
     'Window.call:focus',
     'Window.clientInformation',
@@ -794,6 +761,9 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'HTMLUListElement.compact',
     'HTMLUListElement.type',
     'IDBDatabase.transaction', # We do this in a template without the generated implementation at all.
+    'KeyboardEvent.charCode',
+    'KeyboardEvent.keyCode',
+    'KeyboardEvent.which',
     'Location.valueOf',
     'MessageEvent.data',
     'MessageEvent.ports',
@@ -828,6 +798,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'NodeList.item',
     'ParentNode.append',
     'ParentNode.prepend',
+    'ServiceWorkerMessageEvent.data',
     'ShadowRoot.getElementsByTagNameNS',
     'SVGElement.getPresentationAttribute',
     'SVGElementInstance.on:wheel',
@@ -850,6 +821,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
 # Manual dart: library name lookup.
 _library_names = monitored.Dict('htmlrenamer._library_names', {
   'ANGLEInstancedArrays': 'web_gl',
+  'CHROMIUMSubscribeUniform': 'web_gl',
   'Database': 'web_sql',
   'Navigator': 'html',
   'Window': 'html',
@@ -857,6 +829,7 @@ _library_names = monitored.Dict('htmlrenamer._library_names', {
 
 _library_ids = monitored.Dict('htmlrenamer._library_names', {
   'ANGLEInstancedArrays': 'WebGl',
+  'CHROMIUMSubscribeUniform': 'WebGl',
   'Database': 'WebSql',
   'Navigator': 'Html',
   'Window': 'Html',

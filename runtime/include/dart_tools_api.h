@@ -902,36 +902,25 @@ DART_EXPORT int64_t Dart_TimelineGetMicros();
 #define DART_TIMELINE_STREAM_GC (1 << 5)
 /** Timeline stream for isolate events */
 #define DART_TIMELINE_STREAM_ISOLATE (1 << 6)
-
 /** Timeline stream for VM events */
 #define DART_TIMELINE_STREAM_VM (1 << 7)
 
-/** Enable all timeline stream recording for an isolate */
+/** All timeline streams */
 #define DART_TIMELINE_STREAM_ALL (DART_TIMELINE_STREAM_API |                   \
                                   DART_TIMELINE_STREAM_COMPILER |              \
                                   DART_TIMELINE_STREAM_DART |                  \
                                   DART_TIMELINE_STREAM_DEBUGGER |              \
                                   DART_TIMELINE_STREAM_EMBEDDER |              \
                                   DART_TIMELINE_STREAM_GC |                    \
-                                  DART_TIMELINE_STREAM_ISOLATE)
+                                  DART_TIMELINE_STREAM_ISOLATE |               \
+                                  DART_TIMELINE_STREAM_VM)
 
 /** Disable all timeline stream recording */
 #define DART_TIMELINE_STREAM_DISABLE 0
 
-/**
- * Start recording timeline events for the current isolate.
- *
- * \param stream_mask A bitmask of streams that should be recorded.
- *
- * NOTE: Calling with 0 disables recording of all streams.
- */
-DART_EXPORT void Dart_TimelineSetRecordedStreams(int64_t stream_mask);
-
 
 /**
  * Start recording timeline events for the entire VM (including all isolates).
- *
- * NOTE: When enabled, the global flag, will override the per-isolate flag.
  *
  * \param stream_mask A bitmask of streams that should be recorded.
  *
@@ -977,20 +966,6 @@ typedef void (*Dart_StreamConsumer)(
     intptr_t buffer_length,
     void* stream_callback_data);
 
-
-/**
- * Get the timeline for the current isolate in trace-event format
- *
- * \param consumer A Dart_StreamConsumer.
- * \param user_data User data passed into consumer.
- *
- * NOTE: The trace-event format is documented here: https://goo.gl/hDZw5M
- *
- * \return True if a stream was output.
- */
-DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
-                                       void* user_data);
-
 /**
  * Get the timeline for entire VM (including all isolates).
  *
@@ -1007,75 +982,67 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
 DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
                                              void* user_data);
 
-/**
- * Add a duration timeline event to the embedder stream for the current isolate.
- *
- * \param label The name of the event.
- * \param start_micros The start of the duration (in microseconds)
- * \param end_micros The end of the duration (in microseconds)
- *
- * NOTE: All timestamps should be acquired from Dart_TimelineGetMicros.
- */
-DART_EXPORT Dart_Handle Dart_TimelineDuration(const char* label,
-                                              int64_t start_micros,
-                                              int64_t end_micros);
-
+typedef enum {
+  Dart_Timeline_Event_Begin,          // Phase = 'B'.
+  Dart_Timeline_Event_End,            // Phase = 'E'.
+  Dart_Timeline_Event_Instant,        // Phase = 'i'.
+  Dart_Timeline_Event_Duration,       // Phase = 'X'.
+  Dart_Timeline_Event_Async_Begin,    // Phase = 'b'.
+  Dart_Timeline_Event_Async_End,      // Phase = 'e'.
+  Dart_Timeline_Event_Async_Instant,  // Phase = 'n'.
+  Dart_Timeline_Event_Counter,        // Phase = 'C'.
+} Dart_Timeline_Event_Type;
 
 /**
- * Add an instant timeline event to the embedder stream for the current isolate.
+ * Add a timeline event to the embedder stream.
  *
- * \param label The name of event.
- *
- * NOTE: All timestamps should be acquired from Dart_TimelineGetMicros.
+ * \param label The name of the evnet.
+ * \param timestamp0 The first timestamp of the event.
+ * \param timestamp1_or_async_id The second timestamp of the event or
+ *     the async id.
+ * \param argument_count The number of argument names and values.
+ * \param argument_names An array of names of the arguments.
+ * \param argument_values An array of values of the arguments.
  */
-DART_EXPORT Dart_Handle Dart_TimelineInstant(const char* label);
-
+DART_EXPORT void Dart_TimelineEvent(const char* label,
+                                    int64_t timestamp0,
+                                    int64_t timestamp1_or_async_id,
+                                    Dart_Timeline_Event_Type type,
+                                    intptr_t argument_count,
+                                    const char** argument_names,
+                                    const char** argument_values);
 
 /**
- * Adds an asynchronous begin timeline event to the embedder stream for the
- * current isolate.
+ * Associates a name with the current thread. This name will be used to name
+ * threads in the timeline. Can only be called after a call to Dart_Initialize.
  *
- * \param label The name of event.
- *
- * \return Returns an asynchronous id that must be passed to
- * Dart_TimelineAsyncInstant and Dart_TimelineAsyncEnd. If the asynchronous
- * id is less than 0 the event was not added to the timeline and subsequent
- * calls to Dart_TimelineAsyncInstant and Dart_TimelineAsyncEnd will become
- * no-ops.
- *
- * NOTE: All timestamps should be acquired from Dart_TimelineGetMicros.
+ * \param name The name of the thread.
  */
-DART_EXPORT Dart_Handle Dart_TimelineAsyncBegin(const char* label,
-                                                int64_t* async_id);
-
+DART_EXPORT void Dart_SetThreadName(const char* name);
 
 /**
- * Adds an asynchronous instant timeline event to the embedder stream for the
- * current isolate.
- *
- * \param label The name of event.
- *
- * \return Returns an asynchronous id that must be passed to
- * Dart_TimelineAsyncInstant and Dart_TimelineAsyncEnd.
- *
- * NOTE: All timestamps should be acquired from Dart_TimelineGetMicros.
+ * Called by the VM to let the embedder know when to start recording into the
+ * timeline. Can be called from any thread.
  */
-DART_EXPORT Dart_Handle Dart_TimelineAsyncInstant(const char* label,
-                                                  int64_t async_id);
-
+typedef void (*Dart_EmbedderTimelineStartRecording)();
 
 /**
- * Adds an asynchronous end timeline event to the embedder stream for the
- * current isolate.
- *
- * \param label The name of event.
- *
- * \return Returns an asynchronous id that must be passed to
- * Dart_TimelineAsyncInstant and Dart_TimelineAsyncEnd.
- *
- * NOTE: All timestamps should be acquired from Dart_TimelineGetMicros.
+ * Called by the VM to let the embedder know when to stop recording into the
+ * timeline. Can be called from any thread.
  */
-DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
-                                              int64_t async_id);
+typedef void (*Dart_EmbedderTimelineStopRecording)();
+
+/**
+ * Sets the embedder timeline callbacks. These callbacks are used by the VM
+ * to notify the embedder of timeline recording state changes.
+ *
+ * \param start_recording See Dart_EmbedderTimelineStartRecording.
+ * \param stop_recording See Dart_EmbedderTimelineStopRecording.
+ *
+ * NOTE: To avoid races, this should be called before Dart_Initialize.
+ */
+DART_EXPORT void Dart_SetEmbedderTimelineCallbacks(
+    Dart_EmbedderTimelineStartRecording start_recording,
+    Dart_EmbedderTimelineStopRecording stop_recording);
 
 #endif  // INCLUDE_DART_TOOLS_API_H_

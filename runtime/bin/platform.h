@@ -7,7 +7,6 @@
 
 #include "bin/builtin.h"
 
-
 namespace dart {
 namespace bin {
 
@@ -32,14 +31,12 @@ class Platform {
   // Extracts the local hostname.
   static bool LocalHostname(char* buffer, intptr_t buffer_length);
 
-  // Extracts the environment variables for the current process.  The
-  // array of strings returned must be deallocated using
-  // FreeEnvironment. The number of elements in the array is returned
-  // in the count argument.
+  // Extracts the environment variables for the current process.  The array of
+  // strings is Dart_ScopeAllocated. The number of elements in the array is
+  // returned in the count argument.
   static char** Environment(intptr_t* count);
-  static void FreeEnvironment(char** env, intptr_t count);
 
-  static char* ResolveExecutablePath();
+  static const char* ResolveExecutablePath();
 
   // Stores the executable name.
   static void SetExecutableName(const char* executable_name) {
@@ -51,7 +48,7 @@ class Platform {
   static const char* GetResolvedExecutableName() {
     if (resolved_executable_name_ == NULL) {
       // Try to resolve the executable path using platform specific APIs.
-      resolved_executable_name_ = Platform::ResolveExecutablePath();
+      resolved_executable_name_ = strdup(Platform::ResolveExecutablePath());
     }
     return resolved_executable_name_;
   }
@@ -74,7 +71,7 @@ class Platform {
   // The path to the executable.
   static const char* executable_name_;
   // The path to the resolved executable.
-  static const char* resolved_executable_name_;
+  static char* resolved_executable_name_;
 
   static int script_index_;
   static char** argv_;  // VM flags are argv_[1 ... script_index_ - 1]

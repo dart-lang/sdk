@@ -55,7 +55,7 @@ VM_TEST_CASE(FindCodeObject) {
   source = String::New(scriptChars);
   script = Script::New(url, source, RawScript::kScriptTag);
   EXPECT(CompilerTest::TestCompileScript(lib, script));
-  clsA = lib.LookupClass(String::Handle(Symbols::New("A")));
+  clsA = lib.LookupClass(String::Handle(Symbols::New(thread, "A")));
   EXPECT(!clsA.IsNull());
   ClassFinalizer::ProcessPendingClasses();
   for (int i = 0; i < kNumFunctions; i++) {
@@ -105,7 +105,7 @@ VM_TEST_CASE(FindCodeObject) {
   source = String::New(scriptChars);
   script = Script::New(url, source, RawScript::kScriptTag);
   EXPECT(CompilerTest::TestCompileScript(lib, script));
-  clsB = lib.LookupClass(String::Handle(Symbols::New("B")));
+  clsB = lib.LookupClass(String::Handle(Symbols::New(thread, "B")));
   EXPECT(!clsB.IsNull());
   ClassFinalizer::ProcessPendingClasses();
   for (int i = 0; i < kNumFunctions; i++) {

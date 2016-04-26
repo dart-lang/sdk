@@ -82,7 +82,7 @@ static bootstrap_lib_props bootstrap_libraries[] = {
   INIT_LIBRARY(ObjectStore::kTypedData,
                typed_data,
                Bootstrap::typed_data_source_paths_,
-               Bootstrap::typed_data_patch_paths_),
+               NULL),
   INIT_LIBRARY(ObjectStore::kVMService,
                _vmservice,
                Bootstrap::_vmservice_source_paths_,
@@ -132,9 +132,9 @@ static RawString* GetLibrarySource(const Library& lib,
   const uint8_t* utf8_array = NULL;
   intptr_t file_length = -1;
 
-  Dart_FileOpenCallback file_open = Isolate::file_open_callback();
-  Dart_FileReadCallback file_read = Isolate::file_read_callback();
-  Dart_FileCloseCallback file_close = Isolate::file_close_callback();
+  Dart_FileOpenCallback file_open = Dart::file_open_callback();
+  Dart_FileReadCallback file_read = Dart::file_read_callback();
+  Dart_FileCloseCallback file_close = Dart::file_close_callback();
   if ((file_open != NULL) && (file_read != NULL) && (file_close != NULL)) {
     // Try to open and read the file.
     void* stream = (*file_open)(source_path, false);
@@ -300,7 +300,7 @@ RawError* Bootstrap::LoadandCompileScripts() {
       continue;
     }
 #endif  // !PRODUCT
-    uri = Symbols::New(bootstrap_libraries[i].uri_);
+    uri = Symbols::New(thread, bootstrap_libraries[i].uri_);
     lib = Library::LookupLibrary(uri);
     if (lib.IsNull()) {
       lib = Library::NewLibraryHelper(uri, false);
@@ -320,7 +320,7 @@ RawError* Bootstrap::LoadandCompileScripts() {
       continue;
     }
 #endif  // PRODUCT
-    uri = Symbols::New(bootstrap_libraries[i].uri_);
+    uri = Symbols::New(thread, bootstrap_libraries[i].uri_);
     lib = Library::LookupLibrary(uri);
     ASSERT(!lib.IsNull());
     source = GetLibrarySource(lib, uri, false);
@@ -338,7 +338,7 @@ RawError* Bootstrap::LoadandCompileScripts() {
     }
     // If a patch exists, load and patch the script.
     if (bootstrap_libraries[i].patch_paths_ != NULL) {
-      patch_uri = Symbols::New(bootstrap_libraries[i].patch_uri_);
+      patch_uri = Symbols::New(thread, bootstrap_libraries[i].patch_uri_);
       error = LoadPatchFiles(zone,
                              lib,
                              patch_uri,
@@ -355,8 +355,11 @@ RawError* Bootstrap::LoadandCompileScripts() {
     // Eagerly compile the _Closure class as it is the class of all closure
     // instances. This allows us to just finalize function types
     // without going through the hoops of trying to compile their scope class.
-    const Class& cls =
+    Class& cls =
         Class::Handle(zone, isolate->object_store()->closure_class());
+    Compiler::CompileClass(cls);
+    // Eagerly compile Bool class, bool constants are used from within compiler.
+    cls = isolate->object_store()->bool_class();
     Compiler::CompileClass(cls);
   }
 

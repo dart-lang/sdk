@@ -8,8 +8,9 @@ import 'dart:async';
 import 'dart:core' hide Resource;
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart' show posix;

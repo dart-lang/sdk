@@ -86,9 +86,9 @@ class Notification {
   /**
    * Initialize a newly created instance based on the given JSON data.
    */
-  factory Notification.fromJson(Map<String, Object> json) {
-    return new Notification(
-        json[Notification.EVENT], json[Notification.PARAMS]);
+  factory Notification.fromJson(Map json) {
+    return new Notification(json[Notification.EVENT],
+        json[Notification.PARAMS] as Map<String, Object>);
   }
 
   /**
@@ -194,7 +194,7 @@ class Request {
     }
     var params = result[Request.PARAMS];
     if (params is Map || params == null) {
-      return new Request(id, method, params, time);
+      return new Request(id, method, params as Map<String, Object>, time);
     } else {
       return null;
     }
@@ -224,7 +224,7 @@ class Request {
     try {
       var result = JSON.decode(data);
       if (result is Map) {
-        return new Request.fromJson(result);
+        return new Request.fromJson(result as Map<String, dynamic>);
       }
       return null;
     } catch (exception) {
@@ -368,7 +368,7 @@ class Response {
   /**
    * Initialize a newly created instance based on the given JSON data.
    */
-  factory Response.fromJson(Map<String, Object> json) {
+  factory Response.fromJson(Map json) {
     try {
       Object id = json[Response.ID];
       if (id is! String) {
@@ -383,7 +383,7 @@ class Response {
       Object result = json[Response.RESULT];
       Map<String, Object> decodedResult;
       if (result is Map) {
-        decodedResult = result;
+        decodedResult = result as Map<String, Object>;
       }
       return new Response(id, error: decodedError, result: decodedResult);
     } catch (exception) {

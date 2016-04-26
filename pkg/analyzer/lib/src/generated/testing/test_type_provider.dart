@@ -248,7 +248,7 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get futureDynamicType {
     if (_futureDynamicType == null) {
-      _futureDynamicType = futureType.substitute4(<DartType>[dynamicType]);
+      _futureDynamicType = futureType.instantiate(<DartType>[dynamicType]);
     }
     return _futureDynamicType;
   }
@@ -256,7 +256,7 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get futureNullType {
     if (_futureNullType == null) {
-      _futureNullType = futureType.substitute4(<DartType>[nullType]);
+      _futureNullType = futureType.instantiate(<DartType>[nullType]);
     }
     return _futureNullType;
   }
@@ -291,7 +291,7 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get iterableDynamicType {
     if (_iterableDynamicType == null) {
-      _iterableDynamicType = iterableType.substitute4(<DartType>[dynamicType]);
+      _iterableDynamicType = iterableType.instantiate(<DartType>[dynamicType]);
     }
     return _iterableDynamicType;
   }
@@ -305,7 +305,7 @@ class TestTypeProvider implements TypeProvider {
       DartType eType = iterableElement.typeParameters[0].type;
       _setAccessors(iterableElement, <PropertyAccessorElement>[
         ElementFactory.getterElement(
-            "iterator", false, iteratorType.substitute4(<DartType>[eType])),
+            "iterator", false, iteratorType.instantiate(<DartType>[eType])),
         ElementFactory.getterElement("last", false, eType)
       ]);
       iterableElement.constructors = <ConstructorElement>[
@@ -345,7 +345,7 @@ class TestTypeProvider implements TypeProvider {
       _listType = listElement.type;
       DartType eType = listElement.typeParameters[0].type;
       InterfaceType iterableType =
-          this.iterableType.substitute4(<DartType>[eType]);
+          this.iterableType.instantiate(<DartType>[eType]);
       listElement.interfaces = <InterfaceType>[iterableType];
       _setAccessors(listElement, <PropertyAccessorElement>[
         ElementFactory.getterElement("length", false, intType)
@@ -464,7 +464,7 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get streamDynamicType {
     if (_streamDynamicType == null) {
-      _streamDynamicType = streamType.substitute4(<DartType>[dynamicType]);
+      _streamDynamicType = streamType.instantiate(<DartType>[dynamicType]);
     }
     return _streamDynamicType;
   }
@@ -486,7 +486,7 @@ class TestTypeProvider implements TypeProvider {
         ElementFactory.getterElement("isEmpty", false, boolType),
         ElementFactory.getterElement("length", false, intType),
         ElementFactory.getterElement(
-            "codeUnits", false, listType.substitute4(<DartType>[intType]))
+            "codeUnits", false, listType.instantiate(<DartType>[intType]))
       ]);
       stringElement.methods = <MethodElement>[
         ElementFactory.methodElement("+", _stringType, [_stringType]),

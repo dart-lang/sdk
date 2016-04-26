@@ -45,8 +45,8 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
   List<String> notificationSwitchContents = <String>[];
 
   CodegenInttestMethodsVisitor(Api api)
-      : super(api),
-        toHtmlVisitor = new ToHtmlVisitor(api) {
+      : toHtmlVisitor = new ToHtmlVisitor(api),
+        super(api) {
     codeGeneratorSettings.commentLineLength = 79;
     codeGeneratorSettings.languageName = 'dart';
   }

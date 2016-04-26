@@ -5,18 +5,23 @@
 library analyzer.test.src.summary.resynthesize_strong_test;
 
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
+import '../context/abstract_context.dart';
 import 'resynthesize_test.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ResynthStrongTest);
+  runReflectiveTests(ResynthesizeStrongTest);
 }
 
 @reflectiveTest
-class ResynthStrongTest extends ResynthTest {
+class ResynthesizeStrongTest extends ResynthesizeElementTest {
+  @override
+  DartSdk createDartSdk() => AbstractContextTest.SHARED_STRONG_MOCK_SDK;
+
   @override
   AnalysisOptionsImpl createOptions() =>
       super.createOptions()..strongMode = true;

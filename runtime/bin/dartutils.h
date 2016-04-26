@@ -5,13 +5,11 @@
 #ifndef BIN_DARTUTILS_H_
 #define BIN_DARTUTILS_H_
 
+#include "bin/isolate_data.h"
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
-
 #include "platform/assert.h"
 #include "platform/globals.h"
-
-#include "bin/isolate_data.h"
 
 namespace dart {
 namespace bin {
@@ -163,6 +161,23 @@ class DartUtils {
     ASSERT(str != NULL);
     return Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(str),
                                   strlen(str));
+  }
+
+  // Allocate length bytes for a C string with Dart_ScopeAllocate.
+  static char* ScopedCString(intptr_t length) {
+    char* result = NULL;
+    result = reinterpret_cast<char*>(
+        Dart_ScopeAllocate(length * sizeof(*result)));
+    return result;
+  }
+
+  // Copy str into a buffer allocated with Dart_ScopeAllocate.
+  static char* ScopedCopyCString(const char* str) {
+    size_t str_len = strlen(str);
+    char* result = ScopedCString(str_len + 1);
+    memmove(result, str, str_len);
+    result[str_len] = '\0';
+    return result;
   }
 
   // Create a new Dart InternalError object with the provided message.

@@ -4,66 +4,44 @@
 
 library dart2js.enqueue;
 
-import 'dart:collection' show
-    Queue;
+import 'dart:collection' show Queue;
 
 import 'common.dart';
-import 'common/names.dart' show
-    Identifiers;
-import 'common/resolution.dart' show
-    Resolution;
-import 'common/work.dart' show
-    ItemCompilationContext,
-    WorkItem;
-import 'common/tasks.dart' show
-    CompilerTask,
-    DeferredAction,
-    DeferredTask;
-import 'common/codegen.dart' show
-    CodegenWorkItem;
-import 'common/resolution.dart' show
-    ResolutionWorkItem;
-import 'compiler.dart' show
-    Compiler;
-import 'dart_types.dart' show
-    DartType,
-    InterfaceType;
-import 'elements/elements.dart' show
-    AnalyzableElement,
-    AstElement,
-    ClassElement,
-    ConstructorElement,
-    Element,
-    Elements,
-    FunctionElement,
-    LibraryElement,
-    LocalFunctionElement,
-    Member,
-    MemberElement,
-    MethodElement,
-    Name,
-    TypedElement,
-    TypedefElement;
+import 'common/names.dart' show Identifiers;
+import 'common/resolution.dart' show Resolution;
+import 'common/work.dart' show ItemCompilationContext, WorkItem;
+import 'common/tasks.dart' show CompilerTask, DeferredAction, DeferredTask;
+import 'common/codegen.dart' show CodegenWorkItem;
+import 'common/resolution.dart' show ResolutionWorkItem;
+import 'compiler.dart' show Compiler;
+import 'dart_types.dart' show DartType, InterfaceType;
+import 'elements/elements.dart'
+    show
+        AnalyzableElement,
+        AstElement,
+        ClassElement,
+        ConstructorElement,
+        Element,
+        Elements,
+        FunctionElement,
+        LibraryElement,
+        LocalFunctionElement,
+        Member,
+        MemberElement,
+        MethodElement,
+        Name,
+        TypedElement,
+        TypedefElement;
 import 'js/js.dart' as js;
 import 'native/native.dart' as native;
-import 'types/types.dart' show
-    TypeMaskStrategy;
-import 'universe/selector.dart' show
-    Selector;
+import 'types/types.dart' show TypeMaskStrategy;
+import 'universe/selector.dart' show Selector;
 import 'universe/universe.dart';
-import 'universe/use.dart' show
-    DynamicUse,
-    StaticUse,
-    StaticUseKind,
-    TypeUse,
-    TypeUseKind;
-import 'universe/world_impact.dart' show
-    ImpactUseCase,
-    WorldImpact,
-    WorldImpactVisitor;
-import 'util/util.dart' show
-    Link,
-    Setlet;
+import 'universe/use.dart'
+    show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
+import 'universe/world_impact.dart'
+    show ImpactUseCase, WorldImpact, WorldImpactVisitor;
+import 'util/util.dart' show Link, Setlet;
 
 typedef ItemCompilationContext ItemCompilationContextCreator();
 
@@ -74,14 +52,17 @@ class EnqueueTask extends CompilerTask {
   String get name => 'Enqueue';
 
   EnqueueTask(Compiler compiler)
-    : resolution = new ResolutionEnqueuer(
-          compiler, compiler.backend.createItemCompilationContext,
-          compiler.analyzeOnly && compiler.analyzeMain
-              ? const EnqueuerStrategy() : const TreeShakingEnqueuerStrategy()),
-      codegen = new CodegenEnqueuer(
-          compiler, compiler.backend.createItemCompilationContext,
-          const TreeShakingEnqueuerStrategy()),
-      super(compiler) {
+      : resolution = new ResolutionEnqueuer(
+            compiler,
+            compiler.backend.createItemCompilationContext,
+            compiler.options.analyzeOnly && compiler.options.analyzeMain
+                ? const EnqueuerStrategy()
+                : const TreeShakingEnqueuerStrategy()),
+        codegen = new CodegenEnqueuer(
+            compiler,
+            compiler.backend.createItemCompilationContext,
+            const TreeShakingEnqueuerStrategy()),
+        super(compiler) {
     codegen.task = this;
     resolution.task = this;
 
@@ -101,10 +82,10 @@ abstract class Enqueuer {
   final Compiler compiler; // TODO(ahe): Remove this dependency.
   final EnqueuerStrategy strategy;
   final ItemCompilationContextCreator itemCompilationContextCreator;
-  final Map<String, Set<Element>> instanceMembersByName
-      = new Map<String, Set<Element>>();
-  final Map<String, Set<Element>> instanceFunctionsByName
-      = new Map<String, Set<Element>>();
+  final Map<String, Set<Element>> instanceMembersByName =
+      new Map<String, Set<Element>>();
+  final Map<String, Set<Element>> instanceFunctionsByName =
+      new Map<String, Set<Element>>();
   final Set<ClassElement> _processedClasses = new Set<ClassElement>();
   Set<ClassElement> recentClasses = new Setlet<ClassElement>();
   final Universe universe = new Universe(const TypeMaskStrategy());
@@ -114,17 +95,15 @@ abstract class Enqueuer {
 
   bool queueIsClosed = false;
   EnqueueTask task;
-  native.NativeEnqueuer nativeEnqueuer;  // Set by EnqueueTask
+  native.NativeEnqueuer nativeEnqueuer; // Set by EnqueueTask
 
   bool hasEnqueuedReflectiveElements = false;
   bool hasEnqueuedReflectiveStaticFields = false;
 
   WorldImpactVisitor impactVisitor;
 
-  Enqueuer(this.name,
-           this.compiler,
-           this.itemCompilationContextCreator,
-           this.strategy) {
+  Enqueuer(this.name, this.compiler, this.itemCompilationContextCreator,
+      this.strategy) {
     impactVisitor = new _EnqueuerImpactVisitor(this);
   }
 
@@ -157,11 +136,11 @@ abstract class Enqueuer {
    */
   void addToWorkList(Element element) {
     assert(invariant(element, element.isDeclaration));
-    if (internalAddToWorkList(element) && compiler.dumpInfo) {
+    if (internalAddToWorkList(element) && compiler.options.dumpInfo) {
       // TODO(sigmund): add other missing dependencies (internals, selectors
       // enqueued after allocations), also enable only for the codegen enqueuer.
-      compiler.dumpInfoTask.registerDependency(
-          compiler.currentElement, element);
+      compiler.dumpInfoTask
+          .registerDependency(compiler.currentElement, element);
     }
   }
 
@@ -174,23 +153,20 @@ abstract class Enqueuer {
 
   /// Apply the [worldImpact] of processing [element] to this enqueuer.
   void applyImpact(Element element, WorldImpact worldImpact) {
-    compiler.impactStrategy.visitImpact(
-        element, worldImpact, impactVisitor, impactUse);
+    compiler.impactStrategy
+        .visitImpact(element, worldImpact, impactVisitor, impactUse);
   }
 
-  void registerInstantiatedType(InterfaceType type,
-                                {bool mirrorUsage: false}) {
+  void registerInstantiatedType(InterfaceType type, {bool mirrorUsage: false}) {
     task.measure(() {
       ClassElement cls = type.element;
       cls.ensureResolved(resolution);
       bool isNative = compiler.backend.isNative(cls);
-      universe.registerTypeInstantiation(
-          type,
+      universe.registerTypeInstantiation(type,
           isNative: isNative,
-          byMirrors: mirrorUsage,
-          onImplemented: (ClassElement cls) {
-        compiler.backend.registerImplementedClass(
-                    cls, this, compiler.globalDependencies);
+          byMirrors: mirrorUsage, onImplemented: (ClassElement cls) {
+        compiler.backend
+            .registerImplementedClass(cls, this, compiler.globalDependencies);
       });
       // TODO(johnniwinther): Share this reasoning with [Universe].
       if (!cls.isAbstract || isNative || mirrorUsage) {
@@ -260,8 +236,7 @@ abstract class Enqueuer {
       if (function.name == Identifiers.noSuchMethod_) {
         registerNoSuchMethod(function);
       }
-      if (function.name == Identifiers.call &&
-          !cls.typeVariables.isEmpty) {
+      if (function.name == Identifiers.call && !cls.typeVariables.isEmpty) {
         registerCallMethodWithFreeTypeVariables(function);
       }
       // If there is a property access with the same name as a method we
@@ -273,7 +248,8 @@ abstract class Enqueuer {
       }
       // Store the member in [instanceFunctionsByName] to catch
       // getters on the function.
-      instanceFunctionsByName.putIfAbsent(memberName, () => new Set<Element>())
+      instanceFunctionsByName
+          .putIfAbsent(memberName, () => new Set<Element>())
           .add(member);
       if (universe.hasInvocation(function, compiler.world)) {
         addToWorkList(function);
@@ -303,7 +279,8 @@ abstract class Enqueuer {
 
     // The element is not yet used. Add it to the list of instance
     // members to still be processed.
-    instanceMembersByName.putIfAbsent(memberName, () => new Set<Element>())
+    instanceMembersByName
+        .putIfAbsent(memberName, () => new Set<Element>())
         .add(member);
   }
 
@@ -368,7 +345,7 @@ abstract class Enqueuer {
    * The actual implementation depends on the current compiler phase.
    */
   bool shouldIncludeElementDueToMirrors(Element element,
-                                        {bool includedEnclosing});
+      {bool includedEnclosing});
 
   void logEnqueueReflectiveAction(action, [msg = ""]) {
     if (TRACE_MIRROR_ENQUEUING) {
@@ -380,16 +357,14 @@ abstract class Enqueuer {
   ///
   /// [enclosingWasIncluded] provides a hint whether the enclosing element was
   /// needed for reflection.
-  void enqueueReflectiveConstructor(ConstructorElement ctor,
-                                    bool enclosingWasIncluded) {
+  void enqueueReflectiveConstructor(
+      ConstructorElement ctor, bool enclosingWasIncluded) {
     if (shouldIncludeElementDueToMirrors(ctor,
         includedEnclosing: enclosingWasIncluded)) {
       logEnqueueReflectiveAction(ctor);
       ClassElement cls = ctor.declaration.enclosingClass;
       compiler.backend.registerInstantiatedType(
-          cls.rawType,
-          this,
-          compiler.mirrorDependencies,
+          cls.rawType, this, compiler.mirrorDependencies,
           mirrorUsage: true);
       registerStaticUse(new StaticUse.foreignUse(ctor.declaration));
     }
@@ -401,7 +376,7 @@ abstract class Enqueuer {
   /// needed for reflection.
   void enqueueReflectiveMember(Element element, bool enclosingWasIncluded) {
     if (shouldIncludeElementDueToMirrors(element,
-            includedEnclosing: enclosingWasIncluded)) {
+        includedEnclosing: enclosingWasIncluded)) {
       logEnqueueReflectiveAction(element);
       if (element.isTypedef) {
         TypedefElement typedef = element;
@@ -413,13 +388,14 @@ abstract class Enqueuer {
         // We need to enqueue all members matching this one in subclasses, as
         // well.
         // TODO(herhut): Use TypedSelector.subtype for enqueueing
-        DynamicUse dynamicUse = new DynamicUse(
-            new Selector.fromElement(element), null);
+        DynamicUse dynamicUse =
+            new DynamicUse(new Selector.fromElement(element), null);
         registerDynamicUse(dynamicUse);
         if (element.isField) {
           DynamicUse dynamicUse = new DynamicUse(
-              new Selector.setter(new Name(
-                  element.name, element.library, isSetter: true)), null);
+              new Selector.setter(
+                  new Name(element.name, element.library, isSetter: true)),
+              null);
           registerDynamicUse(dynamicUse);
         }
       }
@@ -431,8 +407,7 @@ abstract class Enqueuer {
   /// [enclosingWasIncluded] provides a hint whether the enclosing element was
   /// needed for reflection.
   void enqueueReflectiveElementsInClass(ClassElement cls,
-                                        Iterable<ClassElement> recents,
-                                        bool enclosingWasIncluded) {
+      Iterable<ClassElement> recents, bool enclosingWasIncluded) {
     if (cls.library.isInternalLibrary || cls.isInjected) return;
     bool includeClass = shouldIncludeElementDueToMirrors(cls,
         includedEnclosing: enclosingWasIncluded);
@@ -441,9 +416,7 @@ abstract class Enqueuer {
       ClassElement decl = cls.declaration;
       decl.ensureResolved(resolution);
       compiler.backend.registerInstantiatedType(
-          decl.rawType,
-          this,
-          compiler.mirrorDependencies,
+          decl.rawType, this, compiler.mirrorDependencies,
           mirrorUsage: true);
     }
     // If the class is never instantiated, we know nothing of it can possibly
@@ -475,9 +448,7 @@ abstract class Enqueuer {
         logEnqueueReflectiveAction(cls);
         cls.ensureResolved(resolution);
         compiler.backend.registerInstantiatedType(
-            cls.rawType,
-            this,
-            compiler.mirrorDependencies,
+            cls.rawType, this, compiler.mirrorDependencies,
             mirrorUsage: true);
       }
     }
@@ -485,10 +456,10 @@ abstract class Enqueuer {
 
   /// Enqeue all local members of the library [lib] if they are required for
   /// reflection.
-  void enqueueReflectiveElementsInLibrary(LibraryElement lib,
-                                          Iterable<ClassElement> recents) {
-    bool includeLibrary = shouldIncludeElementDueToMirrors(lib,
-        includedEnclosing: false);
+  void enqueueReflectiveElementsInLibrary(
+      LibraryElement lib, Iterable<ClassElement> recents) {
+    bool includeLibrary =
+        shouldIncludeElementDueToMirrors(lib, includedEnclosing: false);
     lib.forEachLocalMember((Element member) {
       if (member.isClass) {
         enqueueReflectiveElementsInClass(member, recents, includeLibrary);
@@ -522,7 +493,9 @@ abstract class Enqueuer {
       // Keep looking at new classes until fixpoint is reached.
       logEnqueueReflectiveAction("!START enqueueRecents");
       recents.forEach((ClassElement cls) {
-        enqueueReflectiveElementsInClass(cls, recents,
+        enqueueReflectiveElementsInClass(
+            cls,
+            recents,
             shouldIncludeElementDueToMirrors(cls.library,
                 includedEnclosing: false));
       });
@@ -541,9 +514,7 @@ abstract class Enqueuer {
   }
 
   void processSet(
-      Map<String, Set<Element>> map,
-      String memberName,
-      bool f(Element e)) {
+      Map<String, Set<Element>> map, String memberName, bool f(Element e)) {
     Set<Element> members = map[memberName];
     if (members == null) return;
     // [f] might add elements to [: map[memberName] :] during the loop below
@@ -577,7 +548,8 @@ abstract class Enqueuer {
         if (member.isFunction && selector.isGetter) {
           registerClosurizedMember(member);
         }
-        if (member.isField && compiler.backend.isNative(member.enclosingClass)) {
+        if (member.isField &&
+            compiler.backend.isNative(member.enclosingClass)) {
           if (selector.isGetter || selector.isCall) {
             nativeEnqueuer.registerFieldLoad(member);
             // We have to also handle storing to the field because we only get
@@ -663,7 +635,7 @@ abstract class Enqueuer {
         _registerIsCheck(type);
         break;
       case TypeUseKind.CHECKED_MODE_CHECK:
-        if (compiler.enableTypeAssertions) {
+        if (compiler.options.enableTypeAssertions) {
           _registerIsCheck(type);
         }
         break;
@@ -677,8 +649,7 @@ abstract class Enqueuer {
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
     // against the type variable of a typedef.
-    assert(!type.isTypeVariable ||
-           !type.element.enclosingElement.isTypedef);
+    assert(!type.isTypeVariable || !type.element.enclosingElement.isTypedef);
   }
 
   void registerCallMethodWithFreeTypeVariables(Element element) {
@@ -748,17 +719,17 @@ class ResolutionEnqueuer extends Enqueuer {
    */
   final Queue<DeferredTask> deferredTaskQueue;
 
-  static const ImpactUseCase IMPACT_USE = const ImpactUseCase('ResolutionEnqueuer');
+  static const ImpactUseCase IMPACT_USE =
+      const ImpactUseCase('ResolutionEnqueuer');
 
   ImpactUseCase get impactUse => IMPACT_USE;
 
-  ResolutionEnqueuer(Compiler compiler,
-                     ItemCompilationContext itemCompilationContextCreator(),
-                     EnqueuerStrategy strategy)
-      : super('resolution enqueuer',
-              compiler,
-              itemCompilationContextCreator,
-              strategy),
+  ResolutionEnqueuer(
+      Compiler compiler,
+      ItemCompilationContext itemCompilationContextCreator(),
+      EnqueuerStrategy strategy)
+      : super('resolution enqueuer', compiler, itemCompilationContextCreator,
+            strategy),
         processedElements = new Set<AstElement>(),
         queue = new Queue<ResolutionWorkItem>(),
         deferredTaskQueue = new Queue<DeferredTask>();
@@ -786,8 +757,9 @@ class ResolutionEnqueuer extends Enqueuer {
    * yet.
    */
   bool shouldIncludeElementDueToMirrors(Element element,
-                                        {bool includedEnclosing}) {
-    return includedEnclosing || compiler.backend.requiredByMirrorSystem(element);
+      {bool includedEnclosing}) {
+    return includedEnclosing ||
+        compiler.backend.requiredByMirrorSystem(element);
   }
 
   bool internalAddToWorkList(Element element) {
@@ -797,28 +769,21 @@ class ResolutionEnqueuer extends Enqueuer {
         message: 'Element $element is not analyzable.'));
     if (hasBeenProcessed(element)) return false;
     if (queueIsClosed) {
-      throw new SpannableAssertionFailure(element,
-          "Resolution work list is closed. Trying to add $element.");
+      throw new SpannableAssertionFailure(
+          element, "Resolution work list is closed. Trying to add $element.");
     }
 
     compiler.world.registerUsedElement(element);
 
-    ResolutionWorkItem workItem;
-    if (compiler.serialization.isDeserialized(element)) {
-      workItem = compiler.serialization.createResolutionWorkItem(
-          element, itemCompilationContextCreator());
-    } else {
-      workItem = new ResolutionWorkItem(
-          element, itemCompilationContextCreator());
-    }
+    ResolutionWorkItem workItem = compiler.resolution
+        .createWorkItem(element, itemCompilationContextCreator());
     queue.add(workItem);
 
     // Enable isolate support if we start using something from the isolate
     // library, or timers for the async library.  We exclude constant fields,
     // which are ending here because their initializing expression is compiled.
     LibraryElement library = element.library;
-    if (!compiler.hasIsolateSupport &&
-        (!element.isField || !element.isConst)) {
+    if (!compiler.hasIsolateSupport && (!element.isField || !element.isConst)) {
       String uri = library.canonicalUri.toString();
       if (uri == 'dart:isolate') {
         enableIsolateSupport();
@@ -867,7 +832,8 @@ class ResolutionEnqueuer extends Enqueuer {
    */
   void addDeferredAction(Element element, DeferredAction action) {
     if (queueIsClosed) {
-      throw new SpannableAssertionFailure(element,
+      throw new SpannableAssertionFailure(
+          element,
           "Resolution work list is closed. "
           "Trying to add deferred action for $element");
     }
@@ -907,18 +873,20 @@ class CodegenEnqueuer extends Enqueuer {
 
   bool enabledNoSuchMethod = false;
 
-  static const ImpactUseCase IMPACT_USE = const ImpactUseCase('CodegenEnqueuer');
+  static const ImpactUseCase IMPACT_USE =
+      const ImpactUseCase('CodegenEnqueuer');
 
   ImpactUseCase get impactUse => IMPACT_USE;
 
-  CodegenEnqueuer(Compiler compiler,
-                  ItemCompilationContext itemCompilationContextCreator(),
-                  EnqueuerStrategy strategy)
+  CodegenEnqueuer(
+      Compiler compiler,
+      ItemCompilationContext itemCompilationContextCreator(),
+      EnqueuerStrategy strategy)
       : queue = new Queue<CodegenWorkItem>(),
         newlyEnqueuedElements = compiler.cacheStrategy.newSet(),
         newlySeenSelectors = compiler.cacheStrategy.newSet(),
         super('codegen enqueuer', compiler, itemCompilationContextCreator,
-              strategy);
+            strategy);
 
   bool isProcessed(Element member) =>
       member.isAbstract || generatedCode.containsKey(member);
@@ -931,7 +899,7 @@ class CodegenEnqueuer extends Enqueuer {
    * subtyping constraints into account.
    */
   bool shouldIncludeElementDueToMirrors(Element element,
-                                        {bool includedEnclosing}) {
+      {bool includedEnclosing}) {
     return compiler.backend.isAccessibleByReflection(element);
   }
 
@@ -942,22 +910,22 @@ class CodegenEnqueuer extends Enqueuer {
     // Codegen inlines field initializers. It only needs to generate
     // code for checked setters.
     if (element.isField && element.isInstanceMember) {
-      if (!compiler.enableTypeAssertions
-          || element.enclosingElement.isClosure) {
+      if (!compiler.options.enableTypeAssertions ||
+          element.enclosingElement.isClosure) {
         return false;
       }
     }
 
-    if (compiler.hasIncrementalSupport && !isProcessed(element)) {
+    if (compiler.options.hasIncrementalSupport && !isProcessed(element)) {
       newlyEnqueuedElements.add(element);
     }
 
     if (queueIsClosed) {
-      throw new SpannableAssertionFailure(element,
-          "Codegen work list is closed. Trying to add $element");
+      throw new SpannableAssertionFailure(
+          element, "Codegen work list is closed. Trying to add $element");
     }
-    CodegenWorkItem workItem = new CodegenWorkItem(
-        compiler, element, itemCompilationContextCreator());
+    CodegenWorkItem workItem =
+        new CodegenWorkItem(compiler, element, itemCompilationContextCreator());
     queue.add(workItem);
     return true;
   }
@@ -986,7 +954,7 @@ class CodegenEnqueuer extends Enqueuer {
   }
 
   void handleUnseenSelector(DynamicUse dynamicUse) {
-    if (compiler.hasIncrementalSupport) {
+    if (compiler.options.hasIncrementalSupport) {
       newlySeenSelectors.add(dynamicUse);
     }
     super.handleUnseenSelector(dynamicUse);
@@ -998,11 +966,11 @@ class QueueFilter {
   bool checkNoEnqueuedInvokedInstanceMethods(Enqueuer enqueuer) {
     enqueuer.task.measure(() {
       // Run through the classes and see if we need to compile methods.
-      for (ClassElement classElement in
-               enqueuer.universe.directlyInstantiatedClasses) {
+      for (ClassElement classElement
+          in enqueuer.universe.directlyInstantiatedClasses) {
         for (ClassElement currentClass = classElement;
-             currentClass != null;
-             currentClass = currentClass.superclass) {
+            currentClass != null;
+            currentClass = currentClass.superclass) {
           enqueuer.processInstantiatedClassMembers(currentClass);
         }
       }

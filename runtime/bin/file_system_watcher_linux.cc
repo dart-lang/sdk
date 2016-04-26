@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_IO_DISABLED)
+
 #include "platform/globals.h"
 #if defined(TARGET_OS_LINUX)
 
@@ -12,9 +14,7 @@
 
 #include "bin/fdutils.h"
 #include "bin/socket.h"
-
 #include "platform/signal_blocker.h"
-
 
 namespace dart {
 namespace bin {
@@ -26,7 +26,9 @@ bool FileSystemWatcher::IsSupported() {
 
 intptr_t FileSystemWatcher::Init() {
   int id = NO_RETRY_EXPECTED(inotify_init1(IN_CLOEXEC));
-  if (id < 0) return -1;
+  if (id < 0) {
+    return -1;
+  }
   // Some systems dosn't support setting this as non-blocking. Since watching
   // internals are kept away from the user, we know it's possible to continue,
   // even if setting non-blocking fails.
@@ -45,10 +47,18 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
                                       int events,
                                       bool recursive) {
   int list_events = IN_DELETE_SELF | IN_MOVE_SELF;
-  if (events & kCreate) list_events |= IN_CREATE;
-  if (events & kModifyContent) list_events |= IN_CLOSE_WRITE | IN_ATTRIB;
-  if (events & kDelete) list_events |= IN_DELETE;
-  if (events & kMove) list_events |= IN_MOVE;
+  if ((events & kCreate) != 0) {
+    list_events |= IN_CREATE;
+  }
+  if ((events & kModifyContent) != 0) {
+    list_events |= IN_CLOSE_WRITE | IN_ATTRIB;
+  }
+  if ((events & kDelete) != 0) {
+    list_events |= IN_DELETE;
+  }
+  if ((events & kMove) != 0) {
+    list_events |= IN_MOVE;
+  }
   int path_id = NO_RETRY_EXPECTED(inotify_add_watch(id, path, list_events));
   if (path_id < 0) {
     return -1;
@@ -65,6 +75,33 @@ void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
 intptr_t FileSystemWatcher::GetSocketId(intptr_t id, intptr_t path_id) {
   USE(path_id);
   return id;
+}
+
+
+static int InotifyEventToMask(struct inotify_event* e) {
+  int mask = 0;
+  if ((e->mask & IN_CLOSE_WRITE) != 0) {
+    mask |= FileSystemWatcher::kModifyContent;
+  }
+  if ((e->mask & IN_ATTRIB) != 0) {
+    mask |= FileSystemWatcher::kModefyAttribute;
+  }
+  if ((e->mask & IN_CREATE) != 0) {
+    mask |= FileSystemWatcher::kCreate;
+  }
+  if ((e->mask & IN_MOVE) != 0) {
+    mask |= FileSystemWatcher::kMove;
+  }
+  if ((e->mask & IN_DELETE) != 0) {
+    mask |= FileSystemWatcher::kDelete;
+  }
+  if ((e->mask & (IN_DELETE_SELF | IN_MOVE_SELF)) != 0) {
+    mask |= FileSystemWatcher::kDeleteSelf;
+  }
+  if ((e->mask & IN_ISDIR) != 0) {
+    mask |= FileSystemWatcher::kIsDir;
+  }
+  return mask;
 }
 
 
@@ -86,14 +123,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
         reinterpret_cast<struct inotify_event*>(buffer + offset);
     if ((e->mask & IN_IGNORED) == 0) {;
       Dart_Handle event = Dart_NewList(5);
-      int mask = 0;
-      if (e->mask & IN_CLOSE_WRITE) mask |= kModifyContent;
-      if (e->mask & IN_ATTRIB) mask |= kModefyAttribute;
-      if (e->mask & IN_CREATE) mask |= kCreate;
-      if (e->mask & IN_MOVE) mask |= kMove;
-      if (e->mask & IN_DELETE) mask |= kDelete;
-      if (e->mask & (IN_DELETE_SELF | IN_MOVE_SELF)) mask |= kDeleteSelf;
-      if (e->mask & IN_ISDIR) mask |= kIsDir;
+      int mask = InotifyEventToMask(e);
       Dart_ListSetAt(event, 0, Dart_NewInteger(mask));
       Dart_ListSetAt(event, 1, Dart_NewInteger(e->cookie));
       if (e->len > 0) {
@@ -117,3 +147,5 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_LINUX)
+
+#endif  // !defined(DART_IO_DISABLED)

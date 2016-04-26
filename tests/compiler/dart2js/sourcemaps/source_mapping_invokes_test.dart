@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'source_mapping_tester.dart' as tester;
+import 'source_mapping_tester.dart';
 
 void main() {
-  tester.main(['invokes']);
+  test(['invokes']);
 }

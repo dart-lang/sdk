@@ -24,13 +24,8 @@ import 'memory_compiler.dart';
  * Use an identifiable suffix of the file uri as key. Use a fixed substring of
  * the error/warning message in the list of white-listings for each file.
  */
-// TODO(johnniwinther): Support canonical URIs as keys and message kinds as
-// values.
+// TODO(johnniwinther): Support canonical URIs as keys.
 const Map<String, List/*<String|MessageKind>*/> WHITE_LIST = const {
-  // Several tests import mirrors; any of these might trigger the warning.
-  ".dart": const [
-      MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
-  ],
   "/test/src/util/": const [
       "Library 'package:async/async.dart' doesn't export a "
       "'ForkableStream' declaration.",
@@ -56,28 +51,54 @@ const List<String> SKIP_LIST = const <String>[
   "http_test.dart",
 ];
 
-main(List<String> arguments) {
-  bool verbose = arguments.contains('-v');
+const List<MessageKind> MESSAGE_SKIP_LIST = const <MessageKind>[
+  // TODO(johnniwinther): Support checking of this warning. (Issue 26132)
+  MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
+];
 
-  List<String> options = <String>[
-    Flags.analyzeOnly,
-    Flags.analyzeMain,
-    '--categories=Client,Server'];
-  if (verbose) {
-    options.add(Flags.verbose);
+main(List<String> arguments) {
+  List<String> options = <String>[];
+  for (String argument in arguments) {
+    if (argument == '-v') {
+      options.add(Flags.verbose);
+    } else if (argument.startsWith('-')) {
+      options.add(argument);
+    }
   }
-  asyncTest(() async {
-    List<Uri> uriList = <Uri>[];
-    Directory dir =
-        new Directory.fromUri(Uri.base.resolve('tests/compiler/dart2js/'));
-    for (FileSystemEntity entity in dir.listSync(recursive: true)) {
-      if (entity is File && entity.path.endsWith('.dart')) {
-        Uri file = Uri.base.resolve(nativeToUriPath(entity.path));
-        if (!SKIP_LIST.any((skip) => file.path.contains(skip))) {
-          uriList.add(file);
+  List<Uri> uriList = <Uri>[];
+  for (String arg in arguments) {
+    if (!arg.startsWith('-')) {
+      for (String line in new File(arg).readAsLinesSync()) {
+        line = line.trim();
+        if (line.startsWith('Analyzing uri: ')) {
+          int filenameOffset = line.indexOf('tests/compiler/dart2js/');
+          if (filenameOffset != -1) {
+            uriList.add(Uri.base.resolve(
+                nativeToUriPath(line.substring(filenameOffset))));
+          }
         }
       }
     }
-    await analyze(uriList, WHITE_LIST, mode: AnalysisMode.URI);
+  }
+
+  asyncTest(() async {
+    if (uriList.isEmpty) {
+      Directory dir =
+          new Directory.fromUri(Uri.base.resolve('tests/compiler/dart2js/'));
+      for (FileSystemEntity entity in dir.listSync(recursive: true)) {
+        if (entity is File && entity.path.endsWith('.dart')) {
+          Uri file = Uri.base.resolve(nativeToUriPath(entity.path));
+          if (!SKIP_LIST.any((skip) => file.path.contains(skip))) {
+            uriList.add(file);
+          }
+        }
+      }
+    }
+    await analyze(
+        uriList,
+        WHITE_LIST,
+        mode: AnalysisMode.URI,
+        options: options,
+        skipList: MESSAGE_SKIP_LIST);
   });
 }

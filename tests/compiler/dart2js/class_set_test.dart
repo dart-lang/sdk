@@ -411,7 +411,7 @@ testForEach() async {
     visited = <ClassElement>[];
     classSet.forEachSubclass((ClassElement cls) {
       visited.add(cls);
-      return ForEach.CONTINUE;
+      return IterationStep.CONTINUE;
     }, ClassHierarchyNode.ALL);
 
     Expect.listEquals(expected, visited,
@@ -444,7 +444,7 @@ testForEach() async {
     visited = <ClassElement>[];
     classSet.forEachSubtype((ClassElement cls) {
       visited.add(cls);
-      return ForEach.CONTINUE;
+      return IterationStep.CONTINUE;
     }, ClassHierarchyNode.ALL);
 
     Expect.listEquals(expected, visited,
@@ -478,14 +478,14 @@ testForEach() async {
     ClassSet classSet = world.getClassSet(cls);
     List<ClassElement> visited = <ClassElement>[];
 
-    ForEach visit(ClassElement cls) {
+    IterationStep visit(ClassElement cls) {
       visited.add(cls);
       if (cls == stop) {
-        return ForEach.STOP;
+        return IterationStep.STOP;
       } else if (skipSubclasses.contains(cls)) {
-        return ForEach.SKIP_SUBCLASSES;
+        return IterationStep.SKIP_SUBCLASSES;
       }
-      return ForEach.CONTINUE;
+      return IterationStep.CONTINUE;
     }
 
     if (forEachSubtype) {

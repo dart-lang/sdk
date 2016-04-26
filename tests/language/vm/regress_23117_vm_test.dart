@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test location summary for Uint32 multiplication.
-// VMOptions=--optimization-counter-threshold=5
+// VMOptions=--optimization-counter-threshold=5 --no-background-compilation
 
 import 'package:expect/expect.dart';
 

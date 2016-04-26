@@ -257,6 +257,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else {
       ExecutableElement staticMethodElement = node.staticElement;
       DartType staticType = _computeStaticReturnType(staticMethodElement);
+      staticType =
+          _refineAssignmentExpressionType(node, staticType, _getStaticType);
       _recordStaticType(node, staticType);
       MethodElement propagatedMethodElement = node.propagatedElement;
       if (!identical(propagatedMethodElement, staticMethodElement)) {
@@ -635,13 +637,16 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         _resolver.inferenceContext.recordInference(node, contextType);
       } else if (node.elements.isNotEmpty) {
         // Infer the list type from the arguments.
+        // TODO(jmesserly): record inference here?
         staticType =
             node.elements.map((e) => e.staticType).reduce(_leastUpperBound);
-        // TODO(jmesserly): record inference here?
+        if (staticType.isBottom) {
+          staticType = _dynamicType;
+        }
       }
     }
     _recordStaticType(
-        node, _typeProvider.listType.substitute4(<DartType>[staticType]));
+        node, _typeProvider.listType.instantiate(<DartType>[staticType]));
     return null;
   }
 
@@ -686,18 +691,24 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         _resolver.inferenceContext.recordInference(node, contextType);
       } else if (node.entries.isNotEmpty) {
         // Infer the list type from the arguments.
+        // TODO(jmesserly): record inference here?
         staticKeyType =
             node.entries.map((e) => e.key.staticType).reduce(_leastUpperBound);
         staticValueType = node.entries
             .map((e) => e.value.staticType)
             .reduce(_leastUpperBound);
-        // TODO(jmesserly): record inference here?
+        if (staticKeyType.isBottom) {
+          staticKeyType = _dynamicType;
+        }
+        if (staticValueType.isBottom) {
+          staticValueType = _dynamicType;
+        }
       }
     }
     _recordStaticType(
         node,
         _typeProvider.mapType
-            .substitute4(<DartType>[staticKeyType, staticValueType]));
+            .instantiate(<DartType>[staticKeyType, staticValueType]));
     return null;
   }
 
@@ -787,7 +798,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
               if (returnType != null) {
                 // prepare the type of the returned Future
                 InterfaceType newFutureType = _typeProvider.futureType
-                    .substitute4([returnType.flattenFutures(_typeSystem)]);
+                    .instantiate([returnType.flattenFutures(_typeSystem)]);
                 // set the 'then' invocation type
                 _resolver.recordPropagatedTypeIfBetter(node, newFutureType);
                 needPropagatedType = false;
@@ -1485,10 +1496,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       InterfaceType genericType = body.isAsynchronous
           ? _typeProvider.streamType
           : _typeProvider.iterableType;
-      return genericType.substitute4(<DartType>[type]);
+      return genericType.instantiate(<DartType>[type]);
     } else if (body.isAsynchronous) {
       return _typeProvider.futureType
-          .substitute4(<DartType>[type.flattenFutures(_typeSystem)]);
+          .instantiate(<DartType>[type.flattenFutures(_typeSystem)]);
     } else {
       return type;
     }
@@ -1604,7 +1615,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         if (returnType.typeParameters.isNotEmpty) {
           // Caller can't deal with unbound type parameters, so substitute
           // `dynamic`.
-          return returnType.type.substitute4(
+          return returnType.type.instantiate(
               returnType.typeParameters.map((_) => _dynamicType).toList());
         }
         return returnType.type;
@@ -2083,6 +2094,44 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else {
       expression.staticType = type;
     }
+  }
+
+  /**
+   * Attempts to make a better guess for the type of the given assignment
+   * [expression], given that resolution has so far produced the [currentType].
+   * The [typeAccessor] is used to access the corresponding type of the left
+   * and right operands.
+   */
+  DartType _refineAssignmentExpressionType(AssignmentExpression expression,
+      DartType currentType, DartType typeAccessor(Expression node)) {
+    Expression leftHandSize = expression.leftHandSide;
+    Expression rightHandSide = expression.rightHandSide;
+    TokenType operator = expression.operator.type;
+    DartType intType = _typeProvider.intType;
+    if (typeAccessor(leftHandSize) == intType) {
+      // int op= double
+      if (operator == TokenType.MINUS_EQ ||
+          operator == TokenType.PERCENT_EQ ||
+          operator == TokenType.PLUS_EQ ||
+          operator == TokenType.STAR_EQ) {
+        DartType doubleType = _typeProvider.doubleType;
+        if (typeAccessor(rightHandSide) == doubleType) {
+          return doubleType;
+        }
+      }
+      // int op= int
+      if (operator == TokenType.MINUS_EQ ||
+          operator == TokenType.PERCENT_EQ ||
+          operator == TokenType.PLUS_EQ ||
+          operator == TokenType.STAR_EQ ||
+          operator == TokenType.TILDE_SLASH_EQ) {
+        if (typeAccessor(rightHandSide) == intType) {
+          return intType;
+        }
+      }
+    }
+    // default
+    return currentType;
   }
 
   /**

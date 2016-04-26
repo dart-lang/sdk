@@ -113,53 +113,62 @@
     <style>
     .statusBox {
       height: 100%;
-      padding: 1em;
+      padding: 0.5em;
+    }
+    .row {
+      display: flex;
     }
     </style>
     <div class="content-centered-big">
       <template if="{{ show }}">
         <h2>Tree display</h2>
         <hr>
-        <div class="memberList">
-          <template if="{{ showModeSelector }}">
-            <div class="memberItem">
-              <div class="memberName">Mode</div>
-              <div class="memberValue">
-                <select value="{{modeSelector}}">
-                  <option value="Code">Code</option>
-                  <option value="Function">Function</option>
-                </select>
-              </div>
+        <div class="row">
+          <div>
+            <div class="memberList">
+              <template if="{{ showModeSelector }}">
+                <div class="memberItem">
+                  <div class="memberName">Mode</div>
+                  <div class="memberValue">
+                    <select value="{{modeSelector}}">
+                      <option value="Code">Code</option>
+                      <option value="Function">Function</option>
+                    </select>
+                  </div>
+                </div>
+              </template>
+              <template if="{{ showDirectionSelector }}">
+                <div class="memberItem">
+                  <div class="memberName">Call Tree Direction</div>
+                  <span class="memberValue">
+                    <select value="{{directionSelector}}">
+                      <option value="Down">Top down</option>
+                      <option value="Up">Bottom up</option>
+                    </select>
+                    <template if="{{ directionSelector == 'Down' }}">
+                      <span>
+                        Tree is rooted at "main". Child nodes are callees.
+                      </span>
+                    </template>
+                    <template if="{{ directionSelector == 'Up' }}">
+                      <span>
+                        Tree is rooted at executing function / code. Child nodes are callers.
+                      </span>
+                    </template>
+                  </span>
+                </div>
+              </template>
+              <template if="{{ showFilter }}">
+                <div class="memberItem">
+                  <div title="case-sensitive substring match" class="memberName">Call Tree Filter</div>
+                  <span class="memberValue">
+                    <input type="text" placeholder="Search filter" id="filterInput">
+                  </span>
+                </div>
+              </template>
             </div>
-          </template>
-          <template if="{{ showDirectionSelector }}">
-            <div class="memberItem">
-              <div class="memberName">Call Tree Direction</div>
-              <div class="memberValue">
-                <select value="{{directionSelector}}">
-                  <option value="Down">Top down</option>
-                  <option value="Up">Bottom up</option>
-                </select>
-              </div>
-            </div>
-          </template>
+          </div>
         </div>
-        <template if="{{ directionSelector == 'Down' }}">
-          <br>
-          <div class="statusBox shadow">
-            <div>Tree is rooted at main.</div>
-            <br>
-            <div>Child nodes are callees.</div>
-          </div>
-        </template>
-        <template if="{{ directionSelector == 'Up' }}">
-          <br>
-          <div class="statusBox shadow">
-            <div>Tree is rooted at executing function / code.</div>
-            <br>
-            <div>Child nodes are callers.</div>
-          </div>
-        </template>
       </template>
     </div>
   </template>
@@ -236,6 +245,20 @@
     </table>
   </template>
 </polymer-element>
+
+<polymer-element name="cpu-profile-virtual-tree" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <style>
+    .full {
+      height: 50%;
+      width: 100%;
+    }
+    </style>
+    <div id="tree" class="full"></div>
+  </template>
+</polymer-element>
+
 
 <polymer-element name="cpu-profile-table" extends="observatory-element">
   <template>
@@ -472,12 +495,7 @@
     <br>
     <stack-trace-tree-config id="stackTraceTreeConfig"></stack-trace-tree-config>
     <br>
-    <div class="content-centered-big">
-      <div class="tableWell shadow">
-        <cpu-profile-tree id="cpuProfileTree"></cpu-profile-tree>
-      </div>
-    </div>
-    <view-footer></view-footer>
+    <cpu-profile-virtual-tree id="cpuProfileVirtualTree"></cpu-profile-virtual-tree>
   </template>
 </polymer-element>
 

@@ -138,7 +138,7 @@ intptr_t ObjectGraph::StackIterator::OffsetFromParentInWords() const {
 
 class Unmarker : public ObjectVisitor {
  public:
-  explicit Unmarker(Isolate* isolate) : ObjectVisitor(isolate) { }
+  Unmarker() { }
 
   void VisitObject(RawObject* obj) {
     if (obj->IsMarked()) {
@@ -147,7 +147,7 @@ class Unmarker : public ObjectVisitor {
   }
 
   static void UnmarkAll(Isolate* isolate) {
-    Unmarker unmarker(isolate);
+    Unmarker unmarker;
     isolate->heap()->IterateObjects(&unmarker);
   }
 
@@ -192,10 +192,8 @@ void ObjectGraph::IterateObjectsFrom(const Object& root,
 
 class InstanceAccumulator : public ObjectVisitor {
  public:
-  explicit InstanceAccumulator(ObjectGraph::Stack* stack,
-                               intptr_t class_id,
-                               Isolate* isolate)
-    : ObjectVisitor(isolate), stack_(stack), class_id_(class_id) { }
+  InstanceAccumulator(ObjectGraph::Stack* stack, intptr_t class_id)
+      : stack_(stack), class_id_(class_id) { }
 
   void VisitObject(RawObject* obj) {
     if (obj->GetClassId() == class_id_) {
@@ -217,7 +215,7 @@ void ObjectGraph::IterateObjectsFrom(intptr_t class_id,
   NoSafepointScope no_safepoint_scope_;
   Stack stack(isolate());
 
-  InstanceAccumulator accumulator(&stack, class_id, isolate());
+  InstanceAccumulator accumulator(&stack, class_id);
   isolate()->heap()->IterateObjects(&accumulator);
 
   stack.TraverseGraph(visitor);
@@ -376,7 +374,7 @@ class InboundReferencesVisitor : public ObjectVisitor,
                            RawObject* target,
                            const Array& references,
                            Object* scratch)
-    : ObjectVisitor(isolate), ObjectPointerVisitor(isolate), source_(NULL),
+    : ObjectPointerVisitor(isolate), source_(NULL),
       target_(target), references_(references), scratch_(scratch), length_(0) {
     ASSERT(Thread::Current()->no_safepoint_scope_depth() != 0);
   }
@@ -511,9 +509,13 @@ class WriteGraphVisitor : public ObjectGraph::Visitor {
 };
 
 
-intptr_t ObjectGraph::Serialize(WriteStream* stream) {
+intptr_t ObjectGraph::Serialize(WriteStream* stream, bool collect_garbage) {
+  if (collect_garbage) {
+    isolate()->heap()->CollectAllGarbage();
+  }
   // Current encoding assumes objects do not move, so promote everything to old.
   isolate()->heap()->new_space()->Evacuate();
+
   WriteGraphVisitor visitor(isolate(), stream);
   stream->WriteUnsigned(kObjectAlignment);
   stream->WriteUnsigned(0);

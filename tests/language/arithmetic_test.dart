@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program to test arithmetic operations.
-// VMOptions=--optimization-counter-threshold=10 --no-use-osr
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
 library arithmetic_test;
 import "package:expect/expect.dart";
@@ -423,24 +423,24 @@ class ArithmeticTest {
     var b = -1;
     for (var i = 0; i < 10; i++) Expect.equals(0x40000000, div(a, b));
   }
-  
-  
+
+
   static int divMod(a, b) => a ~/ b + a % b;
-  
+
   static void testSmiDivModDeopt() {
     var a = -0x40000000;
     var b = -1;
     for (var i = 0; i < 10; i++) Expect.equals(0x40000000, divMod(a, b));
   }
-  
+
   static double sinCosSub(double a) => sin(a) - cos(a);
-  
+
   static double sinCosAddCos(double a)  => sin(a) * cos(a) + cos(a);
 
   static void testSinCos() {
     var e = sin(1.234) - cos(1.234);
     var f = sin(1.234) * cos(1.234) + cos(1.234);
-    
+
     for (var i = 0; i < 20; i++) {
       Expect.approxEquals(e, sinCosSub(1.234));
       Expect.approxEquals(f, sinCosAddCos(1.234));
@@ -456,7 +456,7 @@ class ArithmeticTest {
       cos(i);
     }
   }
-    
+
   static mySqrt(var x) => sqrt(x);
 
   static testSqrtDeopt() {

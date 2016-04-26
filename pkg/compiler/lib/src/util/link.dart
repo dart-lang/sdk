@@ -4,7 +4,7 @@
 
 part of dart2js.util;
 
-class Link<T> {
+class Link<T> implements Iterable<T> {
   T get head => throw new StateError("no elements");
   Link<T> get tail => null;
 
@@ -16,10 +16,9 @@ class Link<T> {
 
   Iterator<T> get iterator => new LinkIterator<T>(this);
 
-  void printOn(StringBuffer buffer, [separatedBy]) {
-  }
+  void printOn(StringBuffer buffer, [separatedBy]) {}
 
-  List<T> toList({ bool growable: true }) {
+  List<T> toList({bool growable: true}) {
     List<T> result;
     if (!growable) {
       result = new List<T>(slowLength());
@@ -36,12 +35,12 @@ class Link<T> {
 
   /// Lazily maps over this linked list, returning an [Iterable].
   Iterable map(dynamic fn(T item)) {
-    return new MappedLinkIterable<T,dynamic>(this, fn);
+    return new MappedLinkIterable<T, dynamic>(this, fn);
   }
 
   /// Invokes `fn` for every item in the linked list and returns the results
   /// in a [List].
-  List mapToList(dynamic fn(T item), { bool growable: true }) {
+  List mapToList(dynamic fn(T item), {bool growable: true}) {
     List result;
     if (!growable) {
       result = new List(slowLength());
@@ -74,7 +73,7 @@ class Link<T> {
   void forEach(void f(T element)) {}
 
   bool operator ==(other) {
-    if (other is !Link<T>) return false;
+    if (other is! Link<T>) return false;
     return other.isEmpty;
   }
 
@@ -113,13 +112,34 @@ class Link<T> {
   ///
   /// Returns true for the empty list.
   bool every(bool f(T)) {
-    for (Link<T> link = this; !link.isEmpty; link = link.tail){
+    for (Link<T> link = this; !link.isEmpty; link = link.tail) {
       if (!f(link.head)) return false;
     }
     return true;
   }
 
   Link copyWithout(e) => this;
+
+  //
+  // Unsupported Iterable<T> methods.
+  //
+  bool any(bool f(T e)) => _unsupported('any');
+  T elementAt(int i) => _unsupported('elementAt');
+  Iterable expand(Iterable f(T e)) => _unsupported('expand');
+  T firstWhere(bool f(T e), {T orElse()}) => _unsupported('firstWhere');
+  fold(initialValue, combine(value, T element)) => _unsupported('fold');
+  T get last => _unsupported('get:last');
+  T lastWhere(bool f(T e), {T orElse()}) => _unsupported('lastWhere');
+  String join([separator = '']) => _unsupported('join');
+  T reduce(T combine(T a, T b)) => _unsupported('reduce');
+  T singleWhere(bool f(T e)) => _unsupported('singleWhere');
+  Iterable<T> skipWhile(bool f(T e)) => _unsupported('skipWhile');
+  Iterable<T> take(int n) => _unsupported('take');
+  Iterable<T> takeWhile(bool f(T e)) => _unsupported('takeWhile');
+  Set<T> toSet() => _unsupported('toSet');
+  Iterable<T> where(bool f(T e)) => _unsupported('where');
+
+  _unsupported(String method) => throw new UnsupportedError(method);
 }
 
 /// Builder object for creating linked lists using [Link] or fixed-length [List]

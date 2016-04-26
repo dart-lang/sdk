@@ -12,7 +12,6 @@ import 'node_tracer.dart';
 import 'type_graph_nodes.dart';
 import 'debug.dart' as debug;
 
-
 class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
   final Iterable<FunctionElement> tracedElements;
   final List<CallSiteTypeInformation> _callsToAnalyze =
@@ -25,7 +24,7 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
     analyze();
     if (!continueAnalyzing) return;
     _callsToAnalyze.forEach(_analyzeCall);
-    for(FunctionElement e in tracedElements) {
+    for (FunctionElement e in tracedElements) {
       e.functionSignature.forEachParameter((Element parameter) {
         ElementTypeInformation info =
             inferrer.types.getInferredTypeOf(parameter);
@@ -50,8 +49,9 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
     TypeMask mask = info.mask;
     tracedElements.forEach((FunctionElement functionElement) {
       if (!selector.signatureApplies(functionElement)) return;
-      inferrer.updateParameterAssignments(info, functionElement, info.arguments,
-          selector, mask, remove: false, addToQueue: false);
+      inferrer.updateParameterAssignments(
+          info, functionElement, info.arguments, selector, mask,
+          remove: false, addToQueue: false);
     });
   }
 
@@ -75,10 +75,10 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
         bailout('Used in JS ${info.call}');
       }
     }
-    if (called.isGetter
-        && info.selector != null
-        && info.selector.isCall
-        && inferrer.types.getInferredTypeOf(called) == currentUser) {
+    if (called.isGetter &&
+        info.selector != null &&
+        info.selector.isCall &&
+        inferrer.types.getInferredTypeOf(called) == currentUser) {
       // This node can be a closure call as well. For example, `foo()`
       // where `foo` is a getter.
       _registerCallForLaterAnalysis(info);
@@ -125,9 +125,9 @@ class StaticTearOffClosureTracerVisitor extends ClosureTracerVisitor {
   @override
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     super.visitStaticCallSiteTypeInformation(info);
-    if (info.calledElement == tracedElements.first
-        && info.selector != null
-        && info.selector.isGetter) {
+    if (info.calledElement == tracedElements.first &&
+        info.selector != null &&
+        info.selector.isGetter) {
       addNewEscapeInformation(info);
     }
   }

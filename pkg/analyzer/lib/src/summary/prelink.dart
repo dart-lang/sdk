@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
@@ -284,8 +285,16 @@ class _Prelinker {
       });
     }
     for (UnlinkedEnum enm in unit.enums) {
-      privateNamespace.putIfAbsent(enm.name,
-          () => new _Meaning(unitNum, ReferenceKind.classOrEnum, 0, 0));
+      privateNamespace.putIfAbsent(enm.name, () {
+        Map<String, _Meaning> namespace = <String, _Meaning>{};
+        enm.values.forEach((UnlinkedEnumValue value) {
+          namespace[value.name] =
+              new _Meaning(unitNum, ReferenceKind.propertyAccessor, 0, 0);
+        });
+        namespace['values'] =
+            new _Meaning(unitNum, ReferenceKind.propertyAccessor, 0, 0);
+        return new _ClassMeaning(unitNum, 0, 0, namespace);
+      });
     }
     for (UnlinkedExecutable executable in unit.executables) {
       privateNamespace.putIfAbsent(
@@ -412,24 +421,8 @@ class _Prelinker {
         // Prefix references must always point backward.
         assert(reference.prefixReference < i);
         namespace = prefixNamespaces[reference.prefixReference];
-        // If in `a.length` the `a` prefix is a top-level variable or a field,
-        // then it must be the `String.length` property reference.
-        if (namespace == null && reference.name == 'length') {
-          ReferenceKind prefixKind = references[reference.prefixReference].kind;
-          if (prefixKind == ReferenceKind.topLevelPropertyAccessor ||
-              prefixKind == ReferenceKind.propertyAccessor) {
-            references
-                .add(new LinkedReferenceBuilder(kind: ReferenceKind.length));
-            continue;
-          }
-        }
-        // Anything prefixed with 'unresolved' is unresolved.
-        if (references[reference.prefixReference].kind ==
-            ReferenceKind.unresolved) {
-          namespace = const <String, _Meaning>{};
-        }
-        // Prefix references must always point to proper prefixes.
-        assert(namespace != null);
+        // Expressions like 'a.b.c.d' cannot be prelinked.
+        namespace ??= const <String, _Meaning>{};
       }
       _Meaning meaning = namespace[reference.name];
       if (meaning != null) {
@@ -484,9 +477,12 @@ class _Prelinker {
       }
     }
 
-    // Fill in imported names.
+    // Fill in imported and exported names.
     List<int> importDependencies =
         definingUnit.imports.map(handleImport).toList();
+    List<int> exportDependencies = definingUnit.publicNamespace.exports
+        .map((UnlinkedExportPublic exp) => uriToDependency[exp.uri])
+        .toList();
 
     // Link each compilation unit.
     List<LinkedUnitBuilder> linkedUnits = units.map(linkUnit).toList();
@@ -495,6 +491,7 @@ class _Prelinker {
         units: linkedUnits,
         dependencies: dependencies,
         importDependencies: importDependencies,
+        exportDependencies: exportDependencies,
         exportNames: exportNames,
         numPrelinkedDependencies: dependencies.length);
   }
@@ -507,7 +504,8 @@ class _Prelinker {
     if (sourceUri == null) {
       return relativeUri;
     } else {
-      return Uri.parse(sourceUri).resolve(relativeUri).toString();
+      return resolveRelativeUri(Uri.parse(sourceUri), Uri.parse(relativeUri))
+          .toString();
     }
   }
 }

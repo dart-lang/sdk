@@ -451,7 +451,8 @@ class FlowGraphCompiler : public ValueObject {
                                    const Array& argument_names,
                                    intptr_t deopt_id,
                                    TokenPosition token_pos,
-                                   LocationSummary* locs);
+                                   LocationSummary* locs,
+                                   bool complete);
 
   // Pass a value for try-index where block is not available (e.g. slow path).
   void EmitMegamorphicInstanceCall(
@@ -460,7 +461,8 @@ class FlowGraphCompiler : public ValueObject {
       intptr_t deopt_id,
       TokenPosition token_pos,
       LocationSummary* locs,
-      intptr_t try_index = CatchClauseNode::kInvalidTryIndex);
+      intptr_t try_index,
+      intptr_t slow_path_argument_count = 0);
 
   void EmitSwitchableInstanceCall(const ICData& ic_data,
                                   intptr_t argument_count,
@@ -475,7 +477,8 @@ class FlowGraphCompiler : public ValueObject {
                        Label* match_found,
                        intptr_t deopt_id,
                        TokenPosition token_index,
-                       LocationSummary* locs);
+                       LocationSummary* locs,
+                       bool complete);
 
   Condition EmitEqualityRegConstCompare(Register reg,
                                         const Object& obj,
@@ -514,7 +517,8 @@ class FlowGraphCompiler : public ValueObject {
                             intptr_t deopt_id,
                             TokenPosition token_pos);
 
-  void RecordSafepoint(LocationSummary* locs);
+  void RecordSafepoint(LocationSummary* locs,
+                       intptr_t slow_path_argument_count = 0);
 
   Label* AddDeoptStub(intptr_t deopt_id,
                       ICData::DeoptReasonId reason,

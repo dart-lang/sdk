@@ -19,12 +19,21 @@ bool _isWebSocketDisconnect(e) {
   return e is NetworkRpcException;
 }
 
+
 const String _TESTEE_ENV_KEY = 'SERVICE_TEST_TESTEE';
 const Map<String, String> _TESTEE_SPAWN_ENV = const {
   _TESTEE_ENV_KEY: 'true'
 };
 bool _isTestee() {
   return Platform.environment.containsKey(_TESTEE_ENV_KEY);
+}
+
+const String _SKY_SHELL_ENV_KEY = 'SERVICE_TEST_SKY_SHELL';
+bool _shouldLaunchSkyShell() {
+  return Platform.environment.containsKey(_SKY_SHELL_ENV_KEY);
+}
+String _skyShellPath() {
+  return Platform.environment[_SKY_SHELL_ENV_KEY];
 }
 
 class _SerivceTesteeRunner {
@@ -79,10 +88,7 @@ class _ServiceTesteeLauncher {
   bool killedByTester = false;
 
   _ServiceTesteeLauncher() :
-      args = ['--enable-vm-service:0',
-              Platform.script.toFilePath()] {}
-
-  String get executablePath => Platform.executable;
+      args = [Platform.script.toFilePath()] {}
 
   // Spawn the testee process.
   Future<Process> _spawnProcess(bool pause_on_start,
@@ -92,11 +98,38 @@ class _ServiceTesteeLauncher {
                                 bool trace_compiler) {
     assert(pause_on_start != null);
     assert(pause_on_exit != null);
+    assert(pause_on_unhandled_exceptions != null);
     assert(trace_service != null);
+    assert(trace_compiler != null);
+
     // TODO(turnidge): I have temporarily turned on service tracing for
     // all tests to help diagnose flaky tests.
     trace_service = true;
+
+    if (_shouldLaunchSkyShell()) {
+      return _spawnSkyProcess(pause_on_start,
+                              pause_on_exit,
+                              pause_on_unhandled_exceptions,
+                              trace_service,
+                              trace_compiler);
+    } else {
+      return _spawnDartProcess(pause_on_start,
+                               pause_on_exit,
+                               pause_on_unhandled_exceptions,
+                               trace_service,
+                               trace_compiler);
+    }
+  }
+
+  Future<Process> _spawnDartProcess(bool pause_on_start,
+                                    bool pause_on_exit,
+                                    bool pause_on_unhandled_exceptions,
+                                    bool trace_service,
+                                    bool trace_compiler) {
+    assert(!_shouldLaunchSkyShell());
+
     String dartExecutable = Platform.executable;
+
     var fullArgs = [];
     if (trace_service) {
       fullArgs.add('--trace-service');
@@ -114,12 +147,56 @@ class _ServiceTesteeLauncher {
     if (pause_on_unhandled_exceptions) {
       fullArgs.add('--pause-isolates-on-unhandled-exceptions');
     }
+
     fullArgs.addAll(Platform.executableArguments);
+    fullArgs.add('--enable-vm-service:0');
     fullArgs.addAll(args);
-    print('** Launching $dartExecutable ${fullArgs.join(' ')}');
-    return Process.start(dartExecutable,
-                         fullArgs,
-                         environment: _TESTEE_SPAWN_ENV);
+
+    return _spawnCommon(dartExecutable, fullArgs);
+  }
+
+  Future<Process> _spawnSkyProcess(bool pause_on_start,
+                                   bool pause_on_exit,
+                                   bool pause_on_unhandled_exceptions,
+                                   bool trace_service,
+                                   bool trace_compiler) {
+    assert(_shouldLaunchSkyShell());
+
+    String dartExecutable = _skyShellPath();
+
+    var dartFlags = [];
+    var fullArgs = [];
+    if (trace_service) {
+      dartFlags.add('--trace_service');
+      dartFlags.add('--trace_service_verbose');
+    }
+    if (trace_compiler) {
+      dartFlags.add('--trace_compiler');
+    }
+    if (pause_on_start) {
+      dartFlags.add('--pause_isolates_on_start');
+      fullArgs.add('--start-paused');
+    }
+    if (pause_on_exit) {
+      dartFlags.add('--pause_isolates_on_exit');
+    }
+    if (pause_on_unhandled_exceptions) {
+      dartFlags.add('--pause_isolates_on_unhandled_exceptions');
+    }
+    // Override mirrors.
+    dartFlags.add('--enable_mirrors=true');
+
+    fullArgs.addAll(Platform.executableArguments);
+    fullArgs.add('--observatory-port=0');
+    fullArgs.add('--dart-flags=${dartFlags.join(' ')}');
+    fullArgs.addAll(args);
+
+    return _spawnCommon(dartExecutable, fullArgs);
+  }
+
+  Future<Process> _spawnCommon(String executable, List<String> arguments) {
+    print('** Launching $executable ${arguments.join(' ')}');
+    return Process.start(executable, arguments, environment: _TESTEE_SPAWN_ENV);
   }
 
   Future<int> launch(bool pause_on_start,
@@ -198,37 +275,39 @@ class _ServiceTesterRunner {
       serviceWebsocketAddress = 'ws://localhost:$port/ws';
       serviceHttpAddress = 'http://localhost:$port';
       var name = Platform.script.pathSegments.last;
-      runZoned(() {
-        new WebSocketVM(new WebSocketVMTarget(serviceWebsocketAddress)).load()
-            .then((VM vm) async {
+      runZoned(() async {
+        var vm =
+            new WebSocketVM(new WebSocketVMTarget(serviceWebsocketAddress));
+        print('Loading VM...');
+        await vm.load();
+        print('Done loading VM');
 
-              // Run vm tests.
-              if (vmTests != null) {
-                var testIndex = 1;
-                var totalTests = vmTests.length;
-                for (var test in vmTests) {
-                  vm.verbose = verbose_vm;
-                  print('Running $name [$testIndex/$totalTests]');
-                  testIndex++;
-                  await test(vm);
-                }
-              }
+        // Run vm tests.
+        if (vmTests != null) {
+          var testIndex = 1;
+          var totalTests = vmTests.length;
+          for (var test in vmTests) {
+            vm.verbose = verbose_vm;
+            print('Running $name [$testIndex/$totalTests]');
+            testIndex++;
+            await test(vm);
+          }
+        }
 
-              // Run isolate tests.
-              if (isolateTests != null) {
-                var isolate = await vm.isolates.first.load();
-                var testIndex = 1;
-                var totalTests = isolateTests.length;
-                for (var test in isolateTests) {
-                  vm.verbose = verbose_vm;
-                  print('Running $name [$testIndex/$totalTests]');
-                  testIndex++;
-                  await test(isolate);
-                }
-              }
+        // Run isolate tests.
+        if (isolateTests != null) {
+          var isolate = await vm.isolates.first.load();
+          var testIndex = 1;
+          var totalTests = isolateTests.length;
+          for (var test in isolateTests) {
+            vm.verbose = verbose_vm;
+            print('Running $name [$testIndex/$totalTests]');
+            testIndex++;
+            await test(isolate);
+          }
+        }
 
-              await process.requestExit();
-            });
+        await process.requestExit();
       }, onError: (e, st) {
         process.requestExit();
         if (!_isWebSocketDisconnect(e)) {

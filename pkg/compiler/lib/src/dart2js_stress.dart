@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library dart2js.stress;
+
 import "dart2js.dart" as dart2js;
 
 const ITERATIONS_FLAG_PREFIX = "--iterations=";
@@ -16,23 +17,21 @@ void main(List<String> args) {
   }
   if (maxCount == null) {
     print("Running indefinitely.\n"
-          "Use '$ITERATIONS_FLAG_PREFIX<count>' to set a repetition count"
-          " (as first flag).");
+        "Use '$ITERATIONS_FLAG_PREFIX<count>' to set a repetition count"
+        " (as first flag).");
   }
   args = ["--suppress-warnings", "--suppress-hints"]..addAll(args);
   void iterate() {
     count++;
     sw.reset();
     sw.start();
-    dart2js.internalMain(args)
-      .then((_) {
-        print("$count: ${sw.elapsedMilliseconds}ms");
-      })
-      .then((_) {
-        if (maxCount == null || count < maxCount) {
-          iterate();
-        }
-      });
+    dart2js.internalMain(args).then((_) {
+      print("$count: ${sw.elapsedMilliseconds}ms");
+    }).then((_) {
+      if (maxCount == null || count < maxCount) {
+        iterate();
+      }
+    });
   }
   iterate();
 }

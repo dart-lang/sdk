@@ -21,11 +21,11 @@ class TrustTypesAnalysisResult implements AnalysisResult {
 
   TrustTypesAnalysisResult(this.elements, this.world);
 
-  ReceiverInfo infoForReceiver(Node receiver) =>
-    new TrustTypesReceiverInfo(receiver, elements.typesCache[receiver], world);
+  ReceiverInfo infoForReceiver(Node receiver) => new TrustTypesReceiverInfo(
+      receiver, elements.typesCache[receiver], world);
   SelectorInfo infoForSelector(Node receiver, Selector selector) =>
-    new TrustTypesSelectorInfo(
-        receiver, elements.typesCache[receiver], selector, world);
+      new TrustTypesSelectorInfo(
+          receiver, elements.typesCache[receiver], selector, world);
 }
 
 class _SelectorLookupResult {
@@ -37,7 +37,8 @@ class _SelectorLookupResult {
   _SelectorLookupResult(this.exists, this.possibleTargets);
 
   const _SelectorLookupResult.dontKnow()
-    : exists = Boolish.maybe, possibleTargets = -1;
+      : exists = Boolish.maybe,
+        possibleTargets = -1;
 }
 
 _SelectorLookupResult _lookupSelector(
@@ -48,17 +49,19 @@ _SelectorLookupResult _lookupSelector(
   var uniqueTargets = new Set();
   for (var cls in world.subtypesOf(type.element)) {
     var member = cls.lookupMember(selectorName);
-    if (member != null && !member.isAbstract
+    if (member != null &&
+        !member.isAbstract
         // Don't match nsm in Object
-        && (!isNsm || !member.enclosingClass.isObject)) {
+        &&
+        (!isNsm || !member.enclosingClass.isObject)) {
       uniqueTargets.add(member);
     } else {
       notFound = true;
     }
   }
   Boolish exists = uniqueTargets.length > 0
-        ? (notFound ? Boolish.maybe : Boolish.yes)
-        : Boolish.no;
+      ? (notFound ? Boolish.maybe : Boolish.yes)
+      : Boolish.no;
   return new _SelectorLookupResult(exists, uniqueTargets.length);
 }
 
@@ -72,12 +75,12 @@ class TrustTypesReceiverInfo implements ReceiverInfo {
       Node receiver, InterfaceType type, ClassWorld world) {
     // TODO(sigmund): refactor, maybe just store nsm as a SelectorInfo
     var res = _lookupSelector('noSuchMethod', type, world);
-    return new TrustTypesReceiverInfo._(receiver,
-        res.exists, res.possibleTargets);
+    return new TrustTypesReceiverInfo._(
+        receiver, res.exists, res.possibleTargets);
   }
 
-  TrustTypesReceiverInfo._(this.receiver, this.hasNoSuchMethod,
-      this.possibleNsmTargets);
+  TrustTypesReceiverInfo._(
+      this.receiver, this.hasNoSuchMethod, this.possibleNsmTargets);
 }
 
 class TrustTypesSelectorInfo implements SelectorInfo {
@@ -89,16 +92,13 @@ class TrustTypesSelectorInfo implements SelectorInfo {
   final int possibleTargets;
   final bool isAccurate;
 
-  factory TrustTypesSelectorInfo(Node receiver, InterfaceType type,
-      Selector selector, ClassWorld world) {
-    var res = _lookupSelector(
-        selector != null ? selector.name : null, type, world);
+  factory TrustTypesSelectorInfo(
+      Node receiver, InterfaceType type, Selector selector, ClassWorld world) {
+    var res =
+        _lookupSelector(selector != null ? selector.name : null, type, world);
     return new TrustTypesSelectorInfo._(receiver, selector, res.exists,
-        res.usesInterceptor, res.possibleTargets,
-        res.exists != Boolish.maybe);
+        res.usesInterceptor, res.possibleTargets, res.exists != Boolish.maybe);
   }
-  TrustTypesSelectorInfo._(
-      this.receiver, this.selector, this.exists, this.usesInterceptor,
-      this.possibleTargets, this.isAccurate);
+  TrustTypesSelectorInfo._(this.receiver, this.selector, this.exists,
+      this.usesInterceptor, this.possibleTargets, this.isAccurate);
 }
-

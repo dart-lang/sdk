@@ -100,17 +100,13 @@ template("generate_library_source") {
   assert(defined(invoker.filename), "Need a filename in $target_name")
   assert(defined(invoker.kind), "Need kind in $target_name")
   assert(defined(invoker.output), "Need output in $target_name")
+  assert(defined(invoker.path), "Need path in $target_name")
   action(target_name) {
     visibility = [ ":*" ]  # Only targets in this file can see this.
     libname = invoker.libname
     filename = invoker.filename
     kind = invoker.kind
-
-    if (kind == "source") {
-      path = "../../sdk/lib/${filename}"
-    } else {
-      path = "../lib"
-    }
+    path = invoker.path
 
     lib_sources_gypi =
         exec_script("../../tools/gypi_to_gn.py",
@@ -155,17 +151,24 @@ template("generate_core_libraries") {
   foreach(lib, invoker.sources) {
     libname = lib[0]
     filename = lib[1]
+    do_patch = lib[2]
+    source_path = lib[3]
     generate_library_source("generate_${filename}_cc_file") {
       libname = libname
       filename = filename
       kind = "source"
+      path = source_path
       output = "$target_gen_dir/${filename}_gen.cc"
     }
-    generate_library_source("generate_${filename}_patch_cc_file") {
-      libname = libname
-      filename = filename
-      kind = "patch"
-      output = "$target_gen_dir/${filename}_patch_gen.cc"
+    if (do_patch) {
+      patch_path = lib[4]
+      generate_library_source("generate_${filename}_patch_cc_file") {
+        libname = libname
+        filename = filename
+        kind = "patch"
+        path = patch_path
+        output = "$target_gen_dir/${filename}_patch_gen.cc"
+      }
     }
     lib_sources_gypi =
         exec_script("../../tools/gypi_to_gn.py",
@@ -173,10 +176,12 @@ template("generate_core_libraries") {
                     "scope",
                     ["../lib/${filename}_sources.gypi"])
     libsources += rebase_path(lib_sources_gypi.sources, ".", "../lib")
-    liboutputs += ["$target_gen_dir/${filename}_gen.cc",
-                   "$target_gen_dir/${filename}_patch_gen.cc"]
-    libdeps += [":generate_${filename}_cc_file",
-                ":generate_${filename}_patch_cc_file"]
+    liboutputs += ["$target_gen_dir/${filename}_gen.cc"]
+    libdeps += [":generate_${filename}_cc_file"]
+    if (do_patch) {
+      liboutputs += ["$target_gen_dir/${filename}_patch_gen.cc"]
+      libdeps += [":generate_${filename}_patch_cc_file"]
+    }
   }
 
   static_library("libdart_lib_nosnapshot") {
@@ -207,17 +212,17 @@ template("generate_core_libraries") {
 
 generate_core_libraries("core_libraries") {
   sources = [
-    ["async", "async"],
-    ["core", "core"],
-    ["collection", "collection"],
-    ["convert", "convert"],
-    ["developer", "developer"],
-    ["_internal", "internal"],
-    ["isolate", "isolate"],
-    ["math", "math"],
-    ["mirrors", "mirrors"],
-    ["profiler", "profiler"],
-    ["typed_data", "typed_data"],
-    ["_vmservice", "vmservice"],
+    ["async", "async", true, "../../sdk/lib/async", "../lib"],
+    ["core", "core", true, "../../sdk/lib/core", "../lib"],
+    ["collection", "collection", true, "../../sdk/lib/collection", "../lib"],
+    ["convert", "convert", true, "../../sdk/lib/convert", "../lib"],
+    ["developer", "developer", true, "../../sdk/lib/developer", "../lib"],
+    ["_internal", "internal", true, "../../sdk/lib/internal", "../lib"],
+    ["isolate", "isolate", true, "../../sdk/lib/isolate", "../lib"],
+    ["math", "math", true, "../../sdk/lib/math", "../lib"],
+    ["mirrors", "mirrors", true, "../../sdk/lib/mirrors", "../lib"],
+    ["profiler", "profiler", false, "../../sdk/lib/profiler"],
+    ["typed_data", "typed_data", false, "../lib"],
+    ["_vmservice", "vmservice", true, "../../sdk/lib/vmservice", "../lib"],
   ]
 }

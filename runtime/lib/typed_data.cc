@@ -163,9 +163,10 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 7) {
 // array based on available physical addressable memory on the system. The
 // maximum possible length is a scaled value of kSmiMax which is set up based
 // on whether the underlying architecture is 32-bit or 64-bit.
+// Argument 0 is type arguments and is ignored.
 #define TYPED_DATA_NEW(name)                                                   \
-DEFINE_NATIVE_ENTRY(TypedData_##name##_new, 1) {                               \
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));        \
+DEFINE_NATIVE_ENTRY(TypedData_##name##_new, 2) {                               \
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(1));        \
   intptr_t cid = kTypedData##name##Cid;                                        \
   intptr_t len = length.Value();                                               \
   intptr_t max = TypedData::MaxElements(cid);                                  \
@@ -178,10 +179,11 @@ DEFINE_NATIVE_ENTRY(TypedData_##name##_new, 1) {                               \
 // array based on available physical addressable memory on the system. The
 // maximum possible length is a scaled value of kSmiMax which is set up based
 // on whether the underlying architecture is 32-bit or 64-bit.
+// Argument 0 is type arguments and is ignored.
 #define EXT_TYPED_DATA_NEW(name)                                               \
-DEFINE_NATIVE_ENTRY(ExternalTypedData_##name##_new, 1) {                       \
+DEFINE_NATIVE_ENTRY(ExternalTypedData_##name##_new, 2) {                       \
   const int kAlignment = 16;                                                   \
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));        \
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(1));        \
   intptr_t cid = kExternalTypedData##name##Cid;                                \
   intptr_t len = length.Value();                                               \
   intptr_t max = ExternalTypedData::MaxElements(cid);                          \

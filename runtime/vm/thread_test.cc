@@ -111,7 +111,7 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
                          intptr_t id)
       : isolate_(isolate), monitor_(monitor), done_(done), id_(id) {}
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(isolate_);
+    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
     {
       Thread* thread = Thread::Current();
       // Create a zone (which is also a stack resource) and exercise it a bit.
@@ -259,7 +259,7 @@ class SafepointTestTask : public ThreadPool::Task {
       local_done_(false) {}
 
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(isolate_);
+    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
     {
       MonitorLocker ml(monitor_);
       ++*expected_count_;
@@ -534,7 +534,7 @@ class AllocAndGCTask : public ThreadPool::Task {
   }
 
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(isolate_);
+    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
     {
       Thread* thread = Thread::Current();
       StackZone stack_zone(thread);

@@ -4,8 +4,9 @@
 
 part of js_backend;
 
-class FrequencyBasedNamer extends Namer with _MinifiedFieldNamer,
-    _MinifiedOneShotInterceptorNamer implements jsAst.TokenFinalizer {
+class FrequencyBasedNamer extends Namer
+    with _MinifiedFieldNamer, _MinifiedOneShotInterceptorNamer
+    implements jsAst.TokenFinalizer {
   _FieldNamingRegistry fieldRegistry;
   List<TokenName> tokens = new List<TokenName>();
 
@@ -45,19 +46,15 @@ class FrequencyBasedNamer extends Namer with _MinifiedFieldNamer,
 
   @override
   jsAst.Name getFreshName(NamingScope scope, String proposedName,
-                          {bool sanitizeForNatives: false,
-                           bool sanitizeForAnnotations: false}) {
+      {bool sanitizeForNatives: false, bool sanitizeForAnnotations: false}) {
     // Grab the scope for this token
-    TokenScope tokenScope = _tokenScopes.putIfAbsent(scope,
-                                                     () => newScopeFor(scope));
+    TokenScope tokenScope =
+        _tokenScopes.putIfAbsent(scope, () => newScopeFor(scope));
 
     // Get the name the normal namer would use as a key.
-    String proposed = _generateFreshStringForName(proposedName,
-                                                  scope,
-                                                  sanitizeForNatives:
-                                                  sanitizeForNatives,
-                                                  sanitizeForAnnotations:
-                                                  sanitizeForAnnotations);
+    String proposed = _generateFreshStringForName(proposedName, scope,
+        sanitizeForNatives: sanitizeForNatives,
+        sanitizeForAnnotations: sanitizeForAnnotations);
 
     TokenName name = new TokenName(tokenScope, proposed);
     tokens.add(name);
@@ -136,9 +133,8 @@ class TokenScope {
       proposal = new String.fromCharCodes(_nextName);
       _incrementName();
     } while (MinifyNamer._hasBannedPrefix(proposal) ||
-             illegalNames.contains(proposal));
+        illegalNames.contains(proposal));
 
     return proposal;
   }
 }
-

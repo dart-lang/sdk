@@ -5,45 +5,36 @@
 library dart2js.parser.diet.task;
 
 import '../common.dart';
-import '../common/tasks.dart' show
-    CompilerTask;
-import '../compiler.dart' show
-    Compiler;
-import '../elements/elements.dart' show
-    CompilationUnitElement;
-import '../tokens/token.dart' show
-    Token;
+import '../common/tasks.dart' show CompilerTask;
+import '../compiler.dart' show Compiler;
+import '../elements/elements.dart' show CompilationUnitElement;
+import '../id_generator.dart';
+import '../tokens/token.dart' show Token;
 
-import 'listener.dart' show
-    ParserError;
-import 'element_listener.dart' show
-    ElementListener,
-    ScannerOptions;
-import 'partial_parser.dart' show
-    PartialParser;
+import 'listener.dart' show ParserError;
+import 'element_listener.dart' show ElementListener, ScannerOptions;
+import '../options.dart' show ParserOptions;
+import 'partial_parser.dart' show PartialParser;
 
 class DietParserTask extends CompilerTask {
-  final bool _enableConditionalDirectives;
+  final ParserOptions _parserOptions;
+  final IdGenerator _idGenerator;
 
-  DietParserTask(Compiler compiler, {bool enableConditionalDirectives})
-      : this._enableConditionalDirectives = enableConditionalDirectives,
-        super(compiler);
+  DietParserTask(Compiler compiler, this._parserOptions, this._idGenerator)
+      : super(compiler);
 
   final String name = 'Diet Parser';
 
   dietParse(CompilationUnitElement compilationUnit, Token tokens) {
     measure(() {
-      Function idGenerator = compiler.getNextFreeClassId;
-      ScannerOptions scannerOptions = new ScannerOptions(
-          canUseNative: compiler.backend.canLibraryUseNative(
-              compilationUnit.library));
+      ScannerOptions scannerOptions =
+          new ScannerOptions.from(compiler, compilationUnit.library);
       ElementListener listener = new ElementListener(
-          scannerOptions, compiler.reporter, compilationUnit, idGenerator);
-      PartialParser parser = new PartialParser(
-          listener, enableConditionalDirectives: _enableConditionalDirectives);
+          scannerOptions, compiler.reporter, compilationUnit, _idGenerator);
+      PartialParser parser = new PartialParser(listener, _parserOptions);
       try {
         parser.parseUnit(tokens);
-      } on ParserError catch(_) {
+      } on ParserError catch (_) {
         assert(invariant(compilationUnit, compiler.compilationFailed));
       }
     });

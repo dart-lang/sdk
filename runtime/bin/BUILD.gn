@@ -191,11 +191,6 @@ executable("gen_snapshot") {
     "builtin_gen_snapshot.cc",
     "builtin.cc",
     "builtin.h",
-    "platform_android.cc",
-    "platform_linux.cc",
-    "platform_macos.cc",
-    "platform_win.cc",
-    "platform.h",
     "vmservice_impl.cc",
     "vmservice_impl.h",
     # Include generated source files.
@@ -231,24 +226,13 @@ io_impl_sources_gypi =
 source_set("gen_snapshot_dart_io") {
   configs += ["..:dart_config",]
 
-  # Set custom sources assignment filter. The custom filters does three things:
-  # 1) Filters out unnecessary files pulled in from the gypi files.
-  # 2) Filters out secure socket support.
-  # 3) Enables dart:io by filtering out _unsupported.cc implementations.
+  deps = [
+    "//third_party/zlib",
+  ]
+
   custom_sources_filter = [
-    "*net/nss_memio.cc",
-    "*net/nss_memio.h",
-    "*root_certificates.cc",
-    "*secure_socket.cc",
-    "*secure_socket.h",
-    "filter.cc",
-    "*io_service_unsupported.cc",
-    "platform_*.cc",
-    "*io_service.cc",
-    "*io_service.h",
     "*_test.cc",
     "*_test.h",
-    "*dbg*",
     "builtin.cc",
     "builtin_common.cc",
     "builtin_gen_snapshot.cc",
@@ -268,11 +252,6 @@ source_set("gen_snapshot_dart_io") {
   sources += [
     "io_natives.cc",
     "io_natives.h",
-    "log_android.cc",
-    "log_linux.cc",
-    "log_macos.cc",
-    "log_win.cc",
-    "log.h",
   ]
 
   include_dirs = [
@@ -286,23 +265,9 @@ source_set("gen_snapshot_dart_io") {
 source_set("embedded_dart_io") {
   configs += ["..:dart_config",]
 
-  # Set custom sources assignment filter. The custom filters does three things:
-  # 1) Filters out unnecessary files pulled in from the gypi files.
-  # 2) Filters out secure socket support.
-  # 3) Enables dart:io by filtering out _unsupported.cc implementations.
   custom_sources_filter = [
-    "*net/nss_memio.cc",
-    "*net/nss_memio.h",
-    "*root_certificates.cc",
-    "*secure_socket.cc",
-    "*secure_socket.h",
-    "*filter_unsupported.cc",
-    "*io_service_unsupported.cc",
-    "*io_service.cc",
-    "*io_service.h",
     "*_test.cc",
     "*_test.h",
-    "*dbg*",
     "builtin.cc",
     "builtin_gen_snapshot.cc",
   ]
@@ -315,7 +280,13 @@ source_set("embedded_dart_io") {
   }
   set_sources_assignment_filter(custom_sources_filter)
 
-  defines = [ "DART_IO_SECURE_SOCKET_DISABLED" ]
+  if (is_mac || is_ios) {
+    libs = [
+      "Security.framework",
+    ]
+  } else {
+    defines = [ "DART_IO_SECURE_SOCKET_DISABLED" ]
+  }
 
   sources = io_impl_sources_gypi.sources + builtin_impl_sources_gypi.sources
   sources += [

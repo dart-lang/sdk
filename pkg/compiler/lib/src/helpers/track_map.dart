@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.helpers;
-
 /**
  * The track map is a simple wrapper around a map that keeps track
  * of the 'final' size of maps grouped by description. It allows
@@ -23,7 +21,7 @@ class TrackMap<K, V> implements Map<K, V> {
   TrackMap._internal(this._counts) : _map = new Map<K, V>();
 
   factory TrackMap(String description) {
-    List counts = _countsMap.putIfAbsent(description, () => [ 0 ]);
+    List counts = _countsMap.putIfAbsent(description, () => [0]);
     Map result = new TrackMap<K, V>._internal(counts);
     counts[0]++;
     return result;
@@ -62,14 +60,14 @@ class TrackMap<K, V> implements Map<K, V> {
   bool containsKey(K key) => _map.containsKey(key);
   bool containsValue(V value) => _map.containsValue(value);
 
-  V operator[](K key) => _map[key];
+  V operator [](K key) => _map[key];
   String toString() => _map.toString();
 
   void forEach(void action(K key, V value)) {
     _map.forEach(action);
   }
 
-  void operator[]=(K key, V value) {
+  void operator []=(K key, V value) {
     if (!_map.containsKey(key)) {
       _notifyLengthChanged(1);
       _map[key] = value;

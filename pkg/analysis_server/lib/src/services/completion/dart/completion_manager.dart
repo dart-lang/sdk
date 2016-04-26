@@ -18,6 +18,7 @@ import 'package:analysis_server/src/services/completion/dart/common_usage_sorter
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -25,7 +26,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart'
     show AnalysisFutureHelper, AnalysisContextImpl;
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -299,7 +299,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       CompilationUnit unit = await _computeAsync(
           this,
           new LibrarySpecificUnit(libElem.source, unresolvedUnit.source),
-          RESOLVED_UNIT3,
+          RESOLVED_UNIT4,
           performance,
           'resolve library unit');
       checkAborted();
@@ -376,7 +376,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       unit = await _computeAsync(
           request,
           new LibrarySpecificUnit(libSource, source),
-          resultDescriptor ?? RESOLVED_UNIT3,
+          resultDescriptor ?? RESOLVED_UNIT4,
           performance,
           'resolve declarations');
     }

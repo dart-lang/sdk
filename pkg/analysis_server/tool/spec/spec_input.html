@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.14.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.15.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -2086,6 +2086,12 @@
               correction message should indicate how the user can fix
               the error. The field is omitted if there is no correction
               message associated with the error code.
+            </p>
+          </field>
+          <field name="code">
+            <ref>String</ref>
+            <p>
+              The name, as a string, of the error code associated with this error.
             </p>
           </field>
           <field name="hasFix" optional="true">

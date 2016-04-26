@@ -11,11 +11,38 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_targe
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
+
+/**
+ * Return the class containing the target
+ * or `null` if the target is in a static method or field
+ * or not in a class.
+ */
+ClassDeclaration _enclosingClass(CompletionTarget target) {
+  AstNode node = target.containingNode;
+  while (node != null) {
+    if (node is ClassDeclaration) {
+      return node;
+    }
+    if (node is MethodDeclaration) {
+      if (node.isStatic) {
+        return null;
+      }
+    }
+    if (node is FieldDeclaration) {
+      if (node.isStatic) {
+        return null;
+      }
+    }
+    node = node.parent;
+  }
+  return null;
+}
 
 /**
  * A contributor for calculating suggestions for inherited references.
@@ -75,30 +102,4 @@ class InheritedReferenceContributor extends DartCompletionContributor
     }
     return suggestions;
   }
-}
-
-/**
- * Return the class containing the target
- * or `null` if the target is in a static method or field
- * or not in a class.
- */
-ClassDeclaration _enclosingClass(CompletionTarget target) {
-  AstNode node = target.containingNode;
-  while (node != null) {
-    if (node is ClassDeclaration) {
-      return node;
-    }
-    if (node is MethodDeclaration) {
-      if (node.isStatic) {
-        return null;
-      }
-    }
-    if (node is FieldDeclaration) {
-      if (node.isStatic) {
-        return null;
-      }
-    }
-    node = node.parent;
-  }
-  return null;
 }

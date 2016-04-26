@@ -169,6 +169,7 @@ class OptionsWorkManager implements WorkManager {
   }
 
   /// Return `true` if the given target is an `.analysis_options` source.
-  static bool _isOptionsSource(AnalysisTarget target) => target is Source &&
+  static bool _isOptionsSource(AnalysisTarget target) =>
+      target is Source &&
       AnalysisEngine.isAnalysisOptionsFileName(target.fullName);
 }

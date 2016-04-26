@@ -8,6 +8,7 @@
 #include "vm/debugger.h"
 
 class DebuggerEvent;
+class TimelineEventBlock;
 
 namespace dart {
 
@@ -28,6 +29,7 @@ class ServiceEvent {
     kPauseBreakpoint,
     kPauseInterrupted,
     kPauseException,
+    kNone,               // isolate has not been made runnable yet.
     kResume,
     kBreakpointAdded,
     kBreakpointResolved,
@@ -42,6 +44,8 @@ class ServiceEvent {
     kLogging,
 
     kExtension,
+
+    kTimelineEvents,
 
     kIllegal,
   };
@@ -182,6 +186,15 @@ class ServiceEvent {
     return timestamp_;
   }
 
+  const TimelineEventBlock* timeline_event_block() const {
+    return timeline_event_block_;
+  }
+
+  void set_timeline_event_block(const TimelineEventBlock* block) {
+    ASSERT(kind() == kTimelineEvents);
+    timeline_event_block_ = block;
+  }
+
   void PrintJSON(JSONStream* js) const;
 
   void PrintJSONHeader(JSONObject* jsobj) const;
@@ -193,6 +206,7 @@ class ServiceEvent {
   const char* embedder_stream_id_;
   Breakpoint* breakpoint_;
   ActivationFrame* top_frame_;
+  const TimelineEventBlock* timeline_event_block_;
   const String* extension_rpc_;
   const Object* exception_;
   bool at_async_jump_;

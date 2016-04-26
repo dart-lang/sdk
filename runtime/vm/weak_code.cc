@@ -66,7 +66,7 @@ void WeakCodeReferences::DisableCode() {
   if (code_objects.IsNull()) {
     return;
   }
-  ASSERT(!FLAG_precompiled_mode);
+  ASSERT(!FLAG_precompiled_runtime);
   UpdateArrayTo(Object::null_array());
   // Disable all code on stack.
   Code& code = Code::Handle();
@@ -113,6 +113,7 @@ void WeakCodeReferences::DisableCode() {
       function.SwitchToUnoptimizedCode();
     } else if (function.unoptimized_code() == code.raw()) {
       ReportSwitchingCode(code);
+      function.set_was_compiled(false);
       function.ClearICDataArray();
       // Remove the code object from the function. The next time the
       // function is invoked, it will be compiled again.

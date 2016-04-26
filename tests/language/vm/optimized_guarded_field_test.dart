@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test correct handling of phis with only environment uses that were inserted
 // by store to load forwarding.
-// VMOptions=--optimization_counter_threshold=10
+// VMOptions=--optimization_counter_threshold=10 --no-background_compilation
 
 import "package:expect/expect.dart";
 import "dart:typed_data";

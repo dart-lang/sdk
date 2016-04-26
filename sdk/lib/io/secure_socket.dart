@@ -842,7 +842,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   void _tryFilter() {
-    if (_status == CLOSED) return;
+    if (_status == CLOSED) {
+      return;
+    }
     if (_filterPending && !_filterActive) {
       _filterActive = true;
       _filterPending = false;
@@ -858,7 +860,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         if (_filterStatus.writeEmpty && _closedWrite && !_socketClosedWrite) {
           // Checks for and handles all cases of partially closed sockets.
           shutdown(SocketDirection.SEND);
-          if (_status == CLOSED) return;
+          if (_status == CLOSED) {
+            return;
+          }
         }
         if (_filterStatus.readEmpty && _socketClosedRead && !_closedRead) {
           if (_status == HANDSHAKE) {
@@ -870,14 +874,26 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
           }
           _closeHandler();
         }
-        if (_status == CLOSED) return;
+        if (_status == CLOSED) {
+          return;
+        }
         if (_filterStatus.progress) {
           _filterPending = true;
-          if (_filterStatus.writePlaintextNoLongerFull) _sendWriteEvent();
-          if (_filterStatus.readEncryptedNoLongerFull) _readSocket();
-          if (_filterStatus.writeEncryptedNoLongerEmpty) _writeSocket();
-          if (_filterStatus.readPlaintextNoLongerEmpty) _scheduleReadEvent();
-          if (_status == HANDSHAKE) _secureHandshake();
+          if (_filterStatus.writeEncryptedNoLongerEmpty) {
+            _writeSocket();
+          }
+          if (_filterStatus.writePlaintextNoLongerFull) {
+            _sendWriteEvent();
+          }
+          if (_filterStatus.readEncryptedNoLongerFull) {
+            _readSocket();
+          }
+          if (_filterStatus.readPlaintextNoLongerEmpty) {
+            _scheduleReadEvent();
+          }
+          if (_status == HANDSHAKE) {
+            _secureHandshake();
+          }
         }
         _tryFilter();
       }).catchError(_reportError);
@@ -970,8 +986,16 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
     return _IOService._dispatch(_SSL_PROCESS_FILTER, args).then((response) {
       if (response.length == 2) {
-        _reportError(new TlsException('${response[1]} error ${response[0]}'),
-                     null);
+        if (wasInHandshake) {
+          // If we're in handshake, throw a handshake error.
+          _reportError(
+              new HandshakeException('${response[1]} error ${response[0]}'),
+              null);
+        } else {
+          // If we're connected, throw a TLS error.
+          _reportError(new TlsException('${response[1]} error ${response[0]}'),
+                       null);
+        }
       }
       int start(int index) => response[2 * index];
       int end(int index) => response[2 * index + 1];

@@ -53,7 +53,7 @@ void compileTests(Map<String, String> sources) {
       inputProvider: memoryCompiler.provider,
       outputProvider: memoryCompiler.userOutputProvider,
       diagnosticHandler: memoryCompiler.handler,
-      packageRoot: memoryCompiler.packageRoot,
+      packageRoot: memoryCompiler.options.packageRoot,
       options: options);
   Future.forEach(sources.keys, (String path) {
     UserTag.defaultTag.makeCurrent();

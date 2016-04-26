@@ -10,11 +10,14 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/task/dart.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
 import '../utils.dart';
-import 'resolver_test.dart';
+import 'resolver_test_case.dart';
 import 'test_support.dart';
 
 main() {
@@ -145,6 +148,17 @@ class DeclarationResolverMetadataTest extends ResolverTestCase {
     checkMetadata('import');
   }
 
+  void test_metadata_importDirective_partiallyResolved() {
+    addNamedSource('/foo.dart', 'class C {}');
+    this.code = 'const a = null; @a import "foo.dart";';
+    Source source = addNamedSource('/test.dart', code);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    analysisContext.computeResult(source, LIBRARY_ELEMENT1);
+    unit = analysisContext.computeResult(target, RESOLVED_UNIT1);
+    unit2 = _cloneResolveUnit(unit);
+    checkMetadata('import');
+  }
+
   void test_metadata_libraryDirective() {
     setupCode('@a library L;');
     checkMetadata('L');
@@ -242,6 +256,18 @@ class DeclarationResolverTest extends ResolverTestCase {
   @override
   void setUp() {
     super.setUp();
+  }
+
+  void test_enumConstant_partiallyResolved() {
+    String code = r'''
+enum Fruit {apple, pear}
+''';
+    Source source = addNamedSource('/test.dart', code);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    analysisContext.computeResult(source, LIBRARY_ELEMENT1);
+    CompilationUnit unit =
+        analysisContext.computeResult(target, RESOLVED_UNIT1);
+    _cloneResolveUnit(unit);
   }
 
   void test_functionDeclaration_getter() {

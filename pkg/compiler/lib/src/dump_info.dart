@@ -4,41 +4,26 @@
 
 library dump_info;
 
-import 'dart:convert' show
-    ChunkedConversionSink,
-    HtmlEscape,
-    JsonEncoder,
-    StringConversionSink;
+import 'dart:convert'
+    show ChunkedConversionSink, HtmlEscape, JsonEncoder, StringConversionSink;
 
 import 'package:dart2js_info/info.dart';
 
 import 'common.dart';
-import 'common/tasks.dart' show
-    CompilerTask;
-import 'constants/values.dart' show
-    ConstantValue,
-    InterceptorConstantValue;
-import 'compiler.dart' show
-    Compiler;
-import 'deferred_load.dart' show
-    OutputUnit;
+import 'common/tasks.dart' show CompilerTask;
+import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
+import 'compiler.dart' show Compiler;
+import 'deferred_load.dart' show OutputUnit;
 import 'elements/elements.dart';
 import 'elements/visitor.dart';
-import 'info/send_info.dart' show
-    collectSendMeasurements;
-import 'js_backend/js_backend.dart' show
-    JavaScriptBackend;
-import 'js_emitter/full_emitter/emitter.dart' as full show
-    Emitter;
+import 'info/send_info.dart' show collectSendMeasurements;
+import 'js_backend/js_backend.dart' show JavaScriptBackend;
+import 'js_emitter/full_emitter/emitter.dart' as full show Emitter;
 import 'js/js.dart' as jsAst;
-import 'types/types.dart' show
-    TypeMask;
-import 'universe/universe.dart' show
-    ReceiverConstraint;
-import 'universe/world_impact.dart' show
-    ImpactUseCase,
-    WorldImpact,
-    WorldImpactVisitorImpl;
+import 'types/types.dart' show TypeMask;
+import 'universe/universe.dart' show ReceiverConstraint;
+import 'universe/world_impact.dart'
+    show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
 
 class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   final Compiler compiler;
@@ -431,7 +416,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   }
 
   void registerImpact(Element element, WorldImpact impact) {
-    if (compiler.dumpInfo) {
+    if (compiler.options.dumpInfo) {
       impacts[element] = impact;
     }
   }
@@ -453,16 +438,13 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     compiler.impactStrategy.visitImpact(
         element,
         impact,
-        new WorldImpactVisitorImpl(
-            visitDynamicUse: (dynamicUse) {
-              selections.addAll(compiler.world.allFunctions
-                        .filter(dynamicUse.selector, dynamicUse.mask)
-                        .map((e) => new Selection(e, dynamicUse.mask)));
-            },
-            visitStaticUse: (staticUse) {
-              selections.add(new Selection(staticUse.element, null));
-            }
-        ),
+        new WorldImpactVisitorImpl(visitDynamicUse: (dynamicUse) {
+          selections.addAll(compiler.world.allFunctions
+              .filter(dynamicUse.selector, dynamicUse.mask)
+              .map((e) => new Selection(e, dynamicUse.mask)));
+        }, visitStaticUse: (staticUse) {
+          selections.add(new Selection(staticUse.element, null));
+        }),
         IMPACT_USE);
     return selections;
   }
@@ -470,7 +452,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   // Returns true if we care about tracking the size of
   // this node.
   bool isTracking(jsAst.Node code) {
-    if (compiler.dumpInfo) {
+    if (compiler.options.dumpInfo) {
       return _tracking.contains(code);
     } else {
       return false;
@@ -480,7 +462,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   // Registers that a javascript AST node `code` was produced by the
   // dart Element `element`.
   void registerElementAst(Element element, jsAst.Node code) {
-    if (compiler.dumpInfo) {
+    if (compiler.options.dumpInfo) {
       _elementToNodes
           .putIfAbsent(element, () => new List<jsAst.Node>())
           .add(code);
@@ -489,7 +471,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   }
 
   void registerConstantAst(ConstantValue constant, jsAst.Node code) {
-    if (compiler.dumpInfo) {
+    if (compiler.options.dumpInfo) {
       assert(_constantToNode[constant] == null ||
           _constantToNode[constant] == code);
       _constantToNode[constant] = code;
@@ -594,13 +576,14 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     result.program = new ProgramInfo(
         entrypoint: infoCollector._elementToInfo[compiler.mainFunction],
         size: _programSize,
-        dart2jsVersion: compiler.hasBuildId ? compiler.buildId : null,
+        dart2jsVersion:
+            compiler.options.hasBuildId ? compiler.options.buildId : null,
         compilationMoment: new DateTime.now(),
         compilationDuration: compiler.totalCompileTime.elapsed,
         toJsonDuration: stopwatch.elapsedMilliseconds,
         dumpInfoDuration: this.timing,
         noSuchMethodEnabled: compiler.backend.enabledNoSuchMethod,
-        minified: compiler.enableMinification);
+        minified: compiler.options.enableMinification);
 
     ChunkedConversionSink<Object> sink = encoder.startChunkedConversion(
         new StringConversionSink.fromStringSink(buffer));

@@ -1,8 +1,8 @@
 name: analyzer
-version: 0.27.3-alpha.0
+version: 0.27.3-alpha.7
 author: Dart Team <misc@dartlang.org>
 description: Static analyzer for Dart.
-homepage: http://www.dartlang.org
+homepage: https://github.com/dart-lang/sdk/tree/master/pkg/analyzer
 environment:
   sdk: '>=1.12.0 <2.0.0'
 dependencies:

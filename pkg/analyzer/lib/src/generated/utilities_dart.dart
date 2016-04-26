@@ -6,8 +6,47 @@ library analyzer.src.generated.utilities_dart;
 
 import 'package:analyzer/dart/ast/ast.dart' show AnnotatedNode, Comment;
 import 'package:analyzer/dart/ast/token.dart' show Token;
-import 'package:analyzer/src/generated/element.dart' show ElementImpl;
+import 'package:analyzer/src/dart/element/element.dart' show ElementImpl;
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/source.dart';
+
+/**
+ * Resolve the [containedUri] against [baseUri] using Dart rules.
+ *
+ * This function behaves similarly to [Uri.resolveUri], except that it properly
+ * handles situations like the following:
+ *
+ *     resolveRelativeUri(dart:core, bool.dart) -> dart:core/bool.dart
+ *     resolveRelativeUri(package:a/b.dart, ../c.dart) -> package:a/c.dart
+ */
+Uri resolveRelativeUri(Uri baseUri, Uri containedUri) {
+  if (containedUri.isAbsolute) {
+    return containedUri;
+  }
+  Uri origBaseUri = baseUri;
+  try {
+    bool isOpaque = baseUri.isAbsolute && !baseUri.path.startsWith('/');
+    if (isOpaque) {
+      String scheme = baseUri.scheme;
+      String part = baseUri.path;
+      if (scheme == DartUriResolver.DART_SCHEME && part.indexOf('/') < 0) {
+        part = "$part/$part.dart";
+      }
+      baseUri = parseUriWithException("$scheme:/$part");
+    }
+    Uri result = baseUri.resolveUri(containedUri);
+    if (isOpaque) {
+      result =
+          parseUriWithException("${result.scheme}:${result.path.substring(1)}");
+    }
+    return result;
+  } catch (exception, stackTrace) {
+    throw new AnalysisException(
+        "Could not resolve URI ($containedUri) relative to source ($origBaseUri)",
+        new CaughtException(exception, stackTrace));
+  }
+}
 
 /**
  * If the given [node] has a documentation comment, remember its content

@@ -52,7 +52,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     throw 'The IR tracer reached an unexpected IR instruction: $node';
   }
 
-
   int countUses(cps_ir.Definition definition) {
     int count = 0;
     cps_ir.Reference ref = definition.firstRef;
@@ -84,11 +83,14 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
           return '${names.name(param)} ${param.type}';
         }
         if (entryPoint != null) {
-          String thisParam = entryPoint.thisParameter != null
-              ? formatParameter(entryPoint.thisParameter)
+          String thisParam = entryPoint.receiverParameter != null
+              ? formatParameter(entryPoint.receiverParameter)
               : 'no receiver';
+          String interceptorParam = entryPoint.interceptorParameter != null
+              ? formatParameter(entryPoint.interceptorParameter)
+              : 'no interceptor';
           String params = entryPoint.parameters.map(formatParameter).join(', ');
-          printStmt('x0', 'Entry ($thisParam) ($params)');
+          printStmt('x0', 'Entry ($interceptorParam) ($thisParam) ($params)');
         }
         String params = block.parameters.map(formatParameter).join(', ');
         printStmt('x0', 'Parameters ($params)');
@@ -304,7 +306,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitInterceptor(cps_ir.Interceptor node) {
     return 'Interceptor(${formatReference(node.inputRef)}, '
-           '${node.interceptedClasses})';
+        '${node.interceptedClasses})';
   }
 
   visitGetMutable(cps_ir.GetMutable node) {
@@ -358,8 +360,8 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitForeignCode(cps_ir.ForeignCode node) {
     String id = names.name(node);
     String arguments = node.argumentRefs.map(formatReference).join(', ');
-    printStmt(id,
-        "ForeignCode ${node.type} ${node.codeTemplate.source} $arguments");
+    printStmt(
+        id, "ForeignCode ${node.type} ${node.codeTemplate.source} $arguments");
   }
 
   visitGetLength(cps_ir.GetLength node) {
@@ -388,12 +390,10 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitBoundsCheck(cps_ir.BoundsCheck node) {
     String object = formatReference(node.objectRef);
-    String index = node.indexRef == null
-        ? 'no-index'
-        : formatReference(node.indexRef);
-    String length = node.lengthRef == null
-        ? 'no-length'
-        : formatReference(node.lengthRef);
+    String index =
+        node.indexRef == null ? 'no-index' : formatReference(node.indexRef);
+    String length =
+        node.lengthRef == null ? 'no-length' : formatReference(node.lengthRef);
     return 'BoundsCheck $object $index $length ${node.checkString}';
   }
 
@@ -413,13 +413,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
  */
 class Names {
   final Map<Object, String> names = {};
-  final Map<String, int> counters = {
-    'r': 0,
-    'B': 0,
-    'v': 0,
-    'x': 0,
-    'c': 0
-  };
+  final Map<String, int> counters = {'r': 0, 'B': 0, 'v': 0, 'x': 0, 'c': 0};
 
   String prefix(x) {
     if (x is cps_ir.Parameter) return 'r';
@@ -529,14 +523,11 @@ class BlockCollector implements cps_ir.Visitor {
     unexpectedNode(node);
   }
 
-  visitThrow(cps_ir.Throw exp) {
-  }
+  visitThrow(cps_ir.Throw exp) {}
 
-  visitRethrow(cps_ir.Rethrow exp) {
-  }
+  visitRethrow(cps_ir.Rethrow exp) {}
 
-  visitUnreachable(cps_ir.Unreachable node) {
-  }
+  visitUnreachable(cps_ir.Unreachable node) {}
 
   visitGetLazyStatic(cps_ir.GetLazyStatic node) {
     unexpectedNode(node);

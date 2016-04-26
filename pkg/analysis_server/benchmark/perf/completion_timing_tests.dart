@@ -33,13 +33,13 @@ main(List<String> arguments) {
   Future.wait([new CompletionTimingTest().test_timing()]);
 }
 
+const COMPLETION_OFFSET = 'offset';
 const PRIORITY_FILE_OPTION = 'priority';
 const SOURCE_OPTION = 'source';
-const COMPLETION_OFFSET = 'offset';
 
+int offset;
 String priorityFile;
 String source;
-int offset;
 
 ArgParser _createArgParser() => new ArgParser()
   ..addOption(SOURCE_OPTION, help: 'full path to source directory for analysis')

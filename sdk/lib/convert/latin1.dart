@@ -59,9 +59,9 @@ class Latin1Codec extends Encoding {
     }
   }
 
-  Converter<String, List<int>> get encoder => const Latin1Encoder();
+  Latin1Encoder get encoder => const Latin1Encoder();
 
-  Converter<List<int>, String> get decoder =>
+  Latin1Decoder get decoder =>
       _allowInvalid ? const Latin1Decoder(allowInvalid: true)
                     : const Latin1Decoder(allowInvalid: false);
 }

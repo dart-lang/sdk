@@ -53,7 +53,7 @@ main() {
         null,
         serverPlugin,
         new AnalysisServerOptions(),
-        () => new MockSdk(),
+        (_) => new MockSdk(),
         InstrumentationService.NULL_SERVICE);
     handler = new DiagnosticDomainHandler(server);
   });
@@ -73,7 +73,7 @@ main() {
 
       int fileCount = 1 /* test.dart */;
 
-      var json = response.toJson()[Response.RESULT];
+      Map json = response.toJson()[Response.RESULT];
       expect(json['contexts'], hasLength(1));
       var context = json['contexts'][0];
       expect(context['name'], '/project');
@@ -86,7 +86,7 @@ main() {
     test('getDiagnostics - (no root)', () async {
       var request = new DiagnosticGetDiagnosticsParams().toRequest('0');
       var response = handler.handleRequest(request);
-      var json = response.toJson()[Response.RESULT];
+      Map json = response.toJson()[Response.RESULT];
       expect(json['contexts'], hasLength(0));
     });
   });

@@ -9,9 +9,9 @@ import 'dart:mirrors';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/ast/ast.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/type.dart' as engine;
-import 'package:analyzer/src/generated/ast.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -69,6 +69,7 @@ class AnalysisErrorTest {
       },
       MESSAGE: 'my message',
       CORRECTION: 'my correction',
+      CODE: 'ambiguous_export',
       HAS_FIX: false
     });
   }
@@ -87,6 +88,7 @@ class AnalysisErrorTest {
         START_COLUMN: 2
       },
       MESSAGE: 'my message',
+      CODE: 'ambiguous_export',
       HAS_FIX: false
     });
   }
@@ -105,6 +107,7 @@ class AnalysisErrorTest {
         START_COLUMN: -1
       },
       MESSAGE: 'my message',
+      CODE: 'ambiguous_export',
       HAS_FIX: false
     });
   }
@@ -170,7 +173,8 @@ class EnumTester<EngineEnum, ApiEnum extends Enum> {
         return;
       }
       String enumName = MirrorSystem.getName(symbol);
-      EngineEnum engineValue = engineClass.getField(symbol).reflectee;
+      EngineEnum engineValue =
+          engineClass.getField(symbol).reflectee as EngineEnum;
       expect(engineValue, new isInstanceOf<EngineEnum>());
       if (exceptions.containsKey(engineValue)) {
         ApiEnum expectedResult = exceptions[engineValue];

@@ -61,7 +61,7 @@ void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
   // it is considered in the search for an exception handler.
   code.set_exception_handlers(Object::empty_exception_handlers());
   const Class& cls =
-      Class::Handle(Type::Handle(Type::Function()).type_class());
+      Class::Handle(Type::Handle(Type::DartFunctionType()).type_class());
   const Function& function =
       Function::Handle(Function::New(Symbols::MegamorphicMiss(),
                                      RawFunction::kRegularFunction,

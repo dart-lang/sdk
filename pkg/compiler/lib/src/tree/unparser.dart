@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of tree;
+import '../tokens/token.dart' show BeginGroupToken, Token;
+import '../tokens/token_constants.dart' as Tokens
+    show IDENTIFIER_TOKEN, KEYWORD_TOKEN, PLUS_TOKEN;
+import '../util/util.dart';
+import 'nodes.dart';
 
 String unparse(Node node, {minify: true}) {
   Unparser unparser = new Unparser(minify: minify);
@@ -34,8 +38,8 @@ class Unparser extends Indentation implements Visitor {
   void addToken(Token token) {
     if (token == null) return;
     write(token.value);
-    if (identical(token.kind, Tokens.KEYWORD_TOKEN)
-        || identical(token.kind, Tokens.IDENTIFIER_TOKEN)) {
+    if (identical(token.kind, Tokens.KEYWORD_TOKEN) ||
+        identical(token.kind, Tokens.IDENTIFIER_TOKEN)) {
       write(' ');
     }
   }
@@ -52,7 +56,9 @@ class Unparser extends Indentation implements Visitor {
     onEmptyLine = false;
   }
 
-  unparse(Node node) { visit(node); }
+  unparse(Node node) {
+    visit(node);
+  }
 
   visit(Node node) {
     if (node != null) node.accept(this);
@@ -91,7 +97,6 @@ class Unparser extends Indentation implements Visitor {
       write(statements.endToken.value);
     }
   }
-
 
   visitCascade(Cascade node) {
     visit(node.expression);
@@ -213,7 +218,7 @@ class Unparser extends Indentation implements Visitor {
     // arguments.
     if (name is Send) {
       Send send = name;
-      assert(send is !SendSet);
+      assert(send is! SendSet);
       if (!send.isOperator) {
         // Looks like a factory method.
         visit(send.receiver);
@@ -292,7 +297,7 @@ class Unparser extends Indentation implements Visitor {
       space();
       write(node.elseToken.value);
       space();
-      if (node.elsePart is !Block && minify) write(' ');
+      if (node.elsePart is! Block && minify) write(' ');
       visit(node.elsePart);
     }
   }
@@ -423,7 +428,6 @@ class Unparser extends Indentation implements Visitor {
     write(node.endToken.value);
   }
 
-
   unparseSendReceiver(Send node, {bool spacesNeeded: false}) {
     if (node.receiver == null) return;
     visit(node.receiver);
@@ -445,7 +449,7 @@ class Unparser extends Indentation implements Visitor {
   unparseSendArgument(Send node, {bool spacesNeeded: false}) {
     if (node.argumentsNode == null) return;
 
-    if(node.isIsNotCheck) {
+    if (node.isIsNotCheck) {
       Send argNode = node.arguments.head;
       visit(argNode.selector);
       space();
@@ -466,7 +470,9 @@ class Unparser extends Indentation implements Visitor {
     void minusMinusSpace(Node other) {
       if (other != null && opString == '-') {
         Token beginToken = other.getBeginToken();
-        if (beginToken != null && beginToken.stringValue != null && beginToken.stringValue.startsWith('-')) {
+        if (beginToken != null &&
+            beginToken.stringValue != null &&
+            beginToken.stringValue.startsWith('-')) {
           sb.write(' ');
           spacesNeeded = false;
         }
@@ -573,7 +579,7 @@ class Unparser extends Indentation implements Visitor {
 
   visitDoWhile(DoWhile node) {
     write(node.doKeyword.value);
-    if (node.body is !Block) {
+    if (node.body is! Block) {
       write(' ');
     } else {
       space();
@@ -633,9 +639,7 @@ class Unparser extends Indentation implements Visitor {
     visitGotoStatement(node);
   }
 
-  visitAsyncForIn(AsyncForIn node) {
-    write(node.awaitToken.value);
-    write(' ');
+  visitForIn(ForIn node) {
     write(node.forToken.value);
     space();
     write('(');
@@ -648,24 +652,20 @@ class Unparser extends Indentation implements Visitor {
     visit(node.body);
   }
 
+  visitAsyncForIn(AsyncForIn node) {
+    write(node.awaitToken.value);
+    write(' ');
+    visitForIn(node);
+  }
 
   visitSyncForIn(SyncForIn node) {
-    write(node.forToken.value);
-    space();
-    write('(');
-    visit(node.declaredIdentifier);
-    write(' ');
-    addToken(node.inToken);
-    visit(node.expression);
-    write(')');
-    space();
-    visit(node.body);
+    visitForIn(node);
   }
 
   visitLabel(Label node) {
     visit(node.identifier);
     write(node.colonToken.value);
-   }
+  }
 
   visitLabeledStatement(LabeledStatement node) {
     visit(node.labels);
@@ -715,9 +715,10 @@ class Unparser extends Indentation implements Visitor {
     newline();
   }
 
-  unparseImportTag(String uri, {String prefix,
-                                List<String> shows: const <String>[],
-                                bool isDeferred: false}) {
+  unparseImportTag(String uri,
+      {String prefix,
+      List<String> shows: const <String>[],
+      bool isDeferred: false}) {
     String deferredString = isDeferred ? ' deferred' : '';
     String prefixString = prefix == null ? '' : ' as $prefix';
     String showString = shows.isEmpty ? '' : ' show ${shows.join(", ")}';

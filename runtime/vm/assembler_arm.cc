@@ -2720,7 +2720,7 @@ void Assembler::Branch(const StubEntry& stub_entry,
                        Patchability patchable,
                        Register pp,
                        Condition cond) {
-  const Code& target_code = Code::Handle(stub_entry.code());
+  const Code& target_code = Code::ZoneHandle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindObject(target_code, patchable));
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, pp, cond);
@@ -2744,7 +2744,7 @@ void Assembler::BranchLink(const Code& target, Patchability patchable) {
 
 void Assembler::BranchLink(const StubEntry& stub_entry,
                            Patchability patchable) {
-  const Code& code = Code::Handle(stub_entry.code());
+  const Code& code = Code::ZoneHandle(stub_entry.code());
   BranchLink(code, patchable);
 }
 
@@ -2754,9 +2754,16 @@ void Assembler::BranchLinkPatchable(const Code& target) {
 }
 
 
+void Assembler::BranchLinkToRuntime() {
+  ldr(IP, Address(THR, Thread::call_to_runtime_entry_point_offset()));
+  ldr(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
+  blx(IP);
+}
+
+
 void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
                                           const Object& equivalence) {
-  const Code& target = Code::Handle(stub_entry.code());
+  const Code& target = Code::ZoneHandle(stub_entry.code());
   // Make sure that class CallPattern is able to patch the label referred
   // to by this code sequence.
   // For added code robustness, use 'blx lr' in a patchable sequence and
@@ -2776,7 +2783,7 @@ void Assembler::BranchLink(const ExternalLabel* label) {
 
 
 void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
-  BranchLinkPatchable(Code::Handle(stub_entry.code()));
+  BranchLinkPatchable(Code::ZoneHandle(stub_entry.code()));
 }
 
 

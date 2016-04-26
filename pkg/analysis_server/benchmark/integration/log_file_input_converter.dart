@@ -13,9 +13,9 @@ import 'input_converter.dart';
 import 'operation.dart';
 
 const CONNECTED_MSG_FRAGMENT = ' <= {"event":"server.connected"';
-final int NINE = '9'.codeUnitAt(0);
 const RECEIVED_FRAGMENT = ' <= {';
 const SENT_FRAGMENT = ' => {';
+final int NINE = '9'.codeUnitAt(0);
 final int ZERO = '0'.codeUnitAt(0);
 
 /**
@@ -32,14 +32,14 @@ class LogFileInputConverter extends CommonInputConverter {
       String timeStampString = _parseTimeStamp(line);
       String data = line.substring(timeStampString.length);
       if (data.startsWith(RECEIVED_FRAGMENT)) {
-        Map<String, dynamic> json = JSON.decode(data.substring(4));
+        Map<String, dynamic> json = asMap(JSON.decode(data.substring(4)));
         if (json.containsKey('event')) {
           return convertNotification(json);
         } else {
           return convertResponse(json);
         }
       } else if (data.startsWith(SENT_FRAGMENT)) {
-        Map<String, dynamic> json = JSON.decode(data.substring(4));
+        Map<String, dynamic> json = asMap(JSON.decode(data.substring(4)));
         if (json.containsKey('method')) {
           return convertRequest(json);
         }

@@ -56,6 +56,11 @@ abstract class AbstractAnalysisServerPerformanceTest
   }
 
   /**
+   * After every test, the server is stopped.
+   */
+  Future shutdown() async => await shutdownIfNeeded();
+
+  /**
    * Enable [SERVER_STATUS] notifications so that [analysisFinished]
    * can be used.
    */
@@ -64,11 +69,6 @@ abstract class AbstractAnalysisServerPerformanceTest
     futures.add(sendServerSetSubscriptions([ServerService.STATUS]));
     return Future.wait(futures);
   }
-
-  /**
-   * After every test, the server is stopped.
-   */
-  Future shutdown() async => await shutdownIfNeeded();
 }
 
 class AbstractTimingTest extends AbstractAnalysisServerPerformanceTest {

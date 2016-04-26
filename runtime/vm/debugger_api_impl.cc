@@ -568,7 +568,9 @@ DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target_in,
                                           Array::empty_array()));
   } else if (target.IsInstance()) {
     const Instance& inst = Instance::Cast(target);
-    return Api::NewHandle(T, inst.Evaluate(expr,
+    const Class& receiver_cls = Class::Handle(Z, inst.clazz());
+    return Api::NewHandle(T, inst.Evaluate(receiver_cls,
+                                           expr,
                                            Array::empty_array(),
                                            Array::empty_array()));
   } else if (target.IsLibrary()) {

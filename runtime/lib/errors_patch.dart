@@ -45,69 +45,44 @@ class _AssertionError extends Error implements AssertionError {
 }
 
 class _TypeError extends _AssertionError implements TypeError {
-  _TypeError._create(String url, int line, int column,
-                     this._srcType, this._dstType, this._dstName,
-                     this._errorMsg)
+  _TypeError._create(String url, int line, int column, this._errorMsg)
       : super._create("is assignable", url, line, column);
 
   static _throwNew(int location,
                    Object src_value,
-                   String dst_type_name,
+                   _Type dst_type,
                    String dst_name,
-                   String error_msg)
+                   String bound_error_msg)
       native "TypeError_throwNew";
 
   static _throwNewIfNotLoaded(_LibraryPrefix prefix,
                               int location,
                               Object src_value,
-                              String dst_type_name,
+                              _Type dst_type,
                               String dst_name,
-                              String error_msg) {
+                              String bound_error_msg) {
     if (!prefix.isLoaded()) {
-      _throwNew(location, src_value, dst_type_name, dst_name, error_msg);
+      _throwNew(location, src_value, dst_type, dst_name, bound_error_msg);
     }
   }
 
+  String toString() => _errorMsg;
 
-  String toString() {
-    String str = (_errorMsg != null) ? _errorMsg : "";
-    if ((_dstName != null) && (_dstName.length > 0)) {
-      str = "${str}type '$_srcType' is not a subtype of "
-            "type '$_dstType' of '$_dstName'.";
-    } else {
-      str = "${str}type error.";
-    }
-    return str;
-  }
-
-  final String _srcType;
-  final String _dstType;
-  final String _dstName;
   final String _errorMsg;
 }
 
 class _CastError extends Error implements CastError {
-  _CastError._create(this._url, this._line, this._column,
-                     this._srcType, this._dstType, this._dstName,
-                     this._errorMsg);
+  _CastError._create(this._url, this._line, this._column, this._errorMsg);
 
   // A CastError is allocated by TypeError._throwNew() when dst_name equals
-  // Exceptions::kCastErrorDstName.
+  // Symbols::InTypeCast().
 
-  String toString() {
-    String str = (_errorMsg != null) ? _errorMsg : "";
-    str = "${str}type '$_srcType' is not a subtype of "
-          "type '$_dstType' in type cast.";
-    return str;
-  }
+  String toString() => _errorMsg;
 
   // Fields _url, _line, and _column are only used for debugging purposes.
   final String _url;
   final int _line;
   final int _column;
-  final String _srcType;
-  final String _dstType;
-  final String _dstName;
   final String _errorMsg;
 }
 

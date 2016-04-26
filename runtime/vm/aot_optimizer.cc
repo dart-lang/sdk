@@ -29,6 +29,10 @@
 
 namespace dart {
 
+DEFINE_FLAG(int, max_exhaustive_polymorphic_checks, 5,
+            "If a call receiver is known to be of at most this many classes, "
+            "generate exhaustive class tests instead of a megamorphic call");
+
 // Quick access to the current isolate and zone.
 #define I (isolate())
 #define Z (zone())
@@ -227,32 +231,6 @@ bool AotOptimizer::TryCreateICData(InstanceCallInstr* call) {
     }
   }
 
-  // Check if getter or setter in function's class and class is currently leaf.
-  if (FLAG_guess_icdata_cid &&
-      ((call->token_kind() == Token::kGET) ||
-          (call->token_kind() == Token::kSET))) {
-    const Class& owner_class = Class::Handle(Z, function().Owner());
-    if (!owner_class.is_abstract() &&
-        !CHA::HasSubclasses(owner_class) &&
-        !CHA::IsImplemented(owner_class)) {
-      const Array& args_desc_array = Array::Handle(Z,
-          ArgumentsDescriptor::New(call->ArgumentCount(),
-                                   call->argument_names()));
-      ArgumentsDescriptor args_desc(args_desc_array);
-      const Function& function = Function::Handle(Z,
-          Resolver::ResolveDynamicForReceiverClass(owner_class,
-                                                   call->function_name(),
-                                                   args_desc));
-      if (!function.IsNull()) {
-        const ICData& ic_data = ICData::ZoneHandle(Z,
-            ICData::NewFrom(*call->ic_data(), class_ids.length()));
-        ic_data.AddReceiverCheck(owner_class.id(), function);
-        call->set_ic_data(&ic_data);
-        return true;
-      }
-    }
-  }
-
   return false;
 }
 
@@ -307,11 +285,11 @@ void AotOptimizer::SpecializePolymorphicInstanceCall(
     return;
   }
 
-  const bool with_checks = false;
   PolymorphicInstanceCallInstr* specialized =
       new(Z) PolymorphicInstanceCallInstr(call->instance_call(),
                                           ic_data,
-                                          with_checks);
+                                          /* with_checks = */ false,
+                                          /* complete = */ false);
   call->ReplaceWith(specialized, current_iterator());
 }
 
@@ -1337,40 +1315,6 @@ RawField* AotOptimizer::GetField(intptr_t class_id,
 }
 
 
-// Use CHA to determine if the call needs a class check: if the callee's
-// receiver is the same as the caller's receiver and there are no overriden
-// callee functions, then no class check is needed.
-bool AotOptimizer::InstanceCallNeedsClassCheck(
-    InstanceCallInstr* call, RawFunction::Kind kind) const {
-  if (!FLAG_use_cha_deopt && !isolate()->all_classes_finalized()) {
-    // Even if class or function are private, lazy class finalization
-    // may later add overriding methods.
-    return true;
-  }
-  Definition* callee_receiver = call->ArgumentAt(0);
-  ASSERT(callee_receiver != NULL);
-  const Function& function = flow_graph_->function();
-  if (function.IsDynamicFunction() &&
-      callee_receiver->IsParameter() &&
-      (callee_receiver->AsParameter()->index() == 0)) {
-    const String& name = (kind == RawFunction::kMethodExtractor)
-        ? String::Handle(Z, Field::NameFromGetter(call->function_name()))
-        : call->function_name();
-    const Class& cls = Class::Handle(Z, function.Owner());
-    if (!thread()->cha()->HasOverride(cls, name)) {
-      if (FLAG_trace_cha) {
-        THR_Print("  **(CHA) Instance call needs no check, "
-            "no overrides of '%s' '%s'\n",
-            name.ToCString(), cls.ToCString());
-      }
-      thread()->cha()->AddToLeafClasses(cls);
-      return false;
-    }
-  }
-  return true;
-}
-
-
 bool AotOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
@@ -1385,7 +1329,8 @@ bool AotOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
       Field::ZoneHandle(Z, GetField(class_ids[0], field_name));
   ASSERT(!field.IsNull());
 
-  if (InstanceCallNeedsClassCheck(call, RawFunction::kImplicitGetter)) {
+  if (flow_graph()->InstanceCallNeedsClassCheck(
+          call, RawFunction::kImplicitGetter)) {
     return false;
   }
   LoadFieldInstr* load = new(Z) LoadFieldInstr(
@@ -2386,14 +2331,12 @@ void AotOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
       return;
     }
   }
-  const String& dst_name = String::ZoneHandle(Z,
-      Symbols::New(Exceptions::kCastErrorDstName));
   AssertAssignableInstr* assert_as =
       new(Z) AssertAssignableInstr(call->token_pos(),
                                    new(Z) Value(left),
                                    new(Z) Value(type_args),
                                    type,
-                                   dst_name,
+                                   Symbols::InTypeCast(),
                                    call->deopt_id());
   ReplaceCall(call, assert_as);
 }
@@ -2406,8 +2349,30 @@ bool AotOptimizer::IsBlackListedForInlining(intptr_t call_deopt_id) {
   return false;
 }
 
-// Special optimizations when running in --noopt mode.
-void AotOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
+
+static bool HasLikelySmiOperand(InstanceCallInstr* instr) {
+  // Phis with at least one known smi are // guessed to be likely smi as well.
+  for (intptr_t i = 0; i < instr->ArgumentCount(); ++i) {
+    PhiInstr* phi = instr->ArgumentAt(i)->AsPhi();
+    if (phi != NULL) {
+      for (intptr_t j = 0; j < phi->InputCount(); ++j) {
+        if (phi->InputAt(j)->Type()->ToCid() == kSmiCid) return true;
+      }
+    }
+  }
+  // If all of the inputs are known smis or the result of CheckedSmiOp,
+  // we guess the operand to be likely smi.
+  for (intptr_t i = 0; i < instr->ArgumentCount(); ++i) {
+    if (!instr->ArgumentAt(i)->IsCheckedSmiOp()) return false;
+  }
+  return true;
+}
+
+
+// Tries to optimize instance call by replacing it with a faster instruction
+// (e.g, binary op, field load, ..).
+void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
+  ASSERT(FLAG_precompiled_mode);
   // TODO(srdjan): Investigate other attempts, as they are not allowed to
   // deoptimize.
 
@@ -2476,12 +2441,146 @@ void AotOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
   if (has_one_target) {
     RawFunction::Kind function_kind =
         Function::Handle(Z, unary_checks.GetTargetAt(0)).kind();
-    if (!InstanceCallNeedsClassCheck(instr, function_kind)) {
+    if (!flow_graph()->InstanceCallNeedsClassCheck(
+            instr, function_kind)) {
       PolymorphicInstanceCallInstr* call =
           new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
-                                              /* with_checks = */ false);
+                                              /* with_checks = */ false,
+                                              /* complete = */ true);
       instr->ReplaceWith(call, current_iterator());
       return;
+    }
+  }
+  switch (instr->token_kind()) {
+    case Token::kEQ:
+    case Token::kLT:
+    case Token::kLTE:
+    case Token::kGT:
+    case Token::kGTE:
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
+    case Token::kBIT_AND:
+    case Token::kADD:
+    case Token::kSUB:
+    case Token::kMUL: {
+      if (HasOnlyTwoOf(*instr->ic_data(), kSmiCid) ||
+          HasLikelySmiOperand(instr)) {
+        Definition* left = instr->ArgumentAt(0);
+        Definition* right = instr->ArgumentAt(1);
+        CheckedSmiOpInstr* smi_op =
+            new(Z) CheckedSmiOpInstr(instr->token_kind(),
+                                     new(Z) Value(left),
+                                     new(Z) Value(right),
+                                     instr);
+
+        ReplaceCall(instr, smi_op);
+        return;
+      }
+      break;
+    }
+    default:
+      break;
+  }
+
+  // No IC data checks. Try resolve target using the propagated type.
+  // If the propagated type has a method with the target name and there are
+  // no overrides with that name according to CHA, call the method directly.
+  const intptr_t receiver_cid =
+      instr->PushArgumentAt(0)->value()->Type()->ToCid();
+  if (receiver_cid != kDynamicCid) {
+    const Class& receiver_class = Class::Handle(Z,
+        isolate()->class_table()->At(receiver_cid));
+
+    const Array& args_desc_array = Array::Handle(Z,
+        ArgumentsDescriptor::New(instr->ArgumentCount(),
+                                 instr->argument_names()));
+    ArgumentsDescriptor args_desc(args_desc_array);
+    const Function& function = Function::Handle(Z,
+        Resolver::ResolveDynamicForReceiverClass(
+            receiver_class,
+            instr->function_name(),
+            args_desc));
+    if (!function.IsNull()) {
+      if (!thread()->cha()->HasOverride(receiver_class,
+                                        instr->function_name())) {
+        if (FLAG_trace_cha) {
+          THR_Print("  **(CHA) Instance call needs no check, "
+              "no overrides of '%s' '%s'\n",
+              instr->function_name().ToCString(), receiver_class.ToCString());
+        }
+
+        // Create fake IC data with the resolved target.
+        const ICData& ic_data = ICData::Handle(
+            ICData::New(flow_graph_->function(),
+                        instr->function_name(),
+                        args_desc_array,
+                        Thread::kNoDeoptId,
+                        /* args_tested = */ 1));
+        ic_data.AddReceiverCheck(receiver_class.id(), function);
+        PolymorphicInstanceCallInstr* call =
+            new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
+                                                /* with_checks = */ false,
+                                                /* complete = */ true);
+        instr->ReplaceWith(call, current_iterator());
+        return;
+      }
+    }
+  }
+
+  Definition* callee_receiver = instr->ArgumentAt(0);
+  const Function& function = flow_graph_->function();
+  if (function.IsDynamicFunction() &&
+      flow_graph_->IsReceiver(callee_receiver)) {
+    // Call receiver is method receiver.
+    Class& receiver_class = Class::Handle(Z, function.Owner());
+    GrowableArray<intptr_t> class_ids(6);
+    if (thread()->cha()->ConcreteSubclasses(receiver_class, &class_ids)) {
+      if (class_ids.length() <= FLAG_max_exhaustive_polymorphic_checks) {
+        if (FLAG_trace_cha) {
+          THR_Print("  **(CHA) Only %" Pd " concrete subclasses of %s for %s\n",
+                    class_ids.length(),
+                    receiver_class.ToCString(),
+                    instr->function_name().ToCString());
+        }
+
+        const Array& args_desc_array = Array::Handle(Z,
+            ArgumentsDescriptor::New(instr->ArgumentCount(),
+                                     instr->argument_names()));
+        ArgumentsDescriptor args_desc(args_desc_array);
+
+        const ICData& ic_data = ICData::Handle(
+            ICData::New(function,
+                        instr->function_name(),
+                        args_desc_array,
+                        Thread::kNoDeoptId,
+                        /* args_tested = */ 1));
+
+        Function& target = Function::Handle(Z);
+        Class& cls = Class::Handle(Z);
+        bool includes_dispatcher_case = false;
+        for (intptr_t i = 0; i < class_ids.length(); i++) {
+          intptr_t cid = class_ids[i];
+          cls = isolate()->class_table()->At(cid);
+          target = Resolver::ResolveDynamicForReceiverClass(
+              cls,
+              instr->function_name(),
+              args_desc);
+          if (target.IsNull()) {
+            // noSuchMethod, call through getter or closurization
+            includes_dispatcher_case = true;
+          } else {
+            ic_data.AddReceiverCheck(cid, target);
+          }
+        }
+        if (!includes_dispatcher_case && (ic_data.NumberOfChecks() > 0)) {
+          PolymorphicInstanceCallInstr* call =
+              new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
+                                                  /* with_checks = */ true,
+                                                  /* complete = */ true);
+          instr->ReplaceWith(call, current_iterator());
+          return;
+        }
+      }
     }
   }
 
@@ -2493,62 +2592,11 @@ void AotOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
     // deoptimization is allowed.
     PolymorphicInstanceCallInstr* call =
         new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
-                                            /* with_checks = */ true);
+                                            /* with_checks = */ true,
+                                            /* complete = */ false);
     instr->ReplaceWith(call, current_iterator());
     return;
   }
-
-  // No IC data checks. Try resolve target using the propagated type.
-  // If the propagated type has a method with the target name and there are
-  // no overrides with that name according to CHA, call the method directly.
-  const intptr_t receiver_cid =
-      instr->PushArgumentAt(0)->value()->Type()->ToCid();
-  if (receiver_cid == kDynamicCid) return;
-  const Class& receiver_class = Class::Handle(Z,
-      isolate()->class_table()->At(receiver_cid));
-
-  const Array& args_desc_array = Array::Handle(Z,
-      ArgumentsDescriptor::New(instr->ArgumentCount(),
-                               instr->argument_names()));
-  ArgumentsDescriptor args_desc(args_desc_array);
-  const Function& function = Function::Handle(Z,
-      Resolver::ResolveDynamicForReceiverClass(
-          receiver_class,
-          instr->function_name(),
-          args_desc));
-  if (function.IsNull()) {
-    return;
-  }
-  if (!thread()->cha()->HasOverride(receiver_class, instr->function_name())) {
-    if (FLAG_trace_cha) {
-      THR_Print("  **(CHA) Instance call needs no check, "
-          "no overrides of '%s' '%s'\n",
-          instr->function_name().ToCString(), receiver_class.ToCString());
-    }
-    thread()->cha()->AddToLeafClasses(receiver_class);
-
-    // Create fake IC data with the resolved target.
-    const ICData& ic_data = ICData::Handle(
-        ICData::New(flow_graph_->function(),
-                    instr->function_name(),
-                    args_desc_array,
-                    Thread::kNoDeoptId,
-                    /* args_tested = */ 1));
-    ic_data.AddReceiverCheck(receiver_class.id(), function);
-    PolymorphicInstanceCallInstr* call =
-        new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
-                                            /* with_checks = */ false);
-    instr->ReplaceWith(call, current_iterator());
-    return;
-  }
-}
-
-
-// Tries to optimize instance call by replacing it with a faster instruction
-// (e.g, binary op, field load, ..).
-void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
-  ASSERT(FLAG_precompiled_mode);
-  InstanceCallNoopt(instr);
 }
 
 
@@ -2712,41 +2760,6 @@ void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
 }
 
 
-void AotOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
-  // Replace generic allocation with a sequence of inlined allocation and
-  // explicit initalizing stores.
-  AllocateUninitializedContextInstr* replacement =
-      new AllocateUninitializedContextInstr(instr->token_pos(),
-                                            instr->num_context_variables());
-  instr->ReplaceWith(replacement, current_iterator());
-
-  StoreInstanceFieldInstr* store =
-      new(Z) StoreInstanceFieldInstr(Context::parent_offset(),
-                                     new Value(replacement),
-                                     new Value(flow_graph_->constant_null()),
-                                     kNoStoreBarrier,
-                                     instr->token_pos());
-  // Storing into uninitialized memory; remember to prevent dead store
-  // elimination and ensure proper GC barrier.
-  store->set_is_object_reference_initialization(true);
-  flow_graph_->InsertAfter(replacement, store, NULL, FlowGraph::kEffect);
-  Definition* cursor = store;
-  for (intptr_t i = 0; i < instr->num_context_variables(); ++i) {
-    store =
-        new(Z) StoreInstanceFieldInstr(Context::variable_offset(i),
-                                       new Value(replacement),
-                                       new Value(flow_graph_->constant_null()),
-                                       kNoStoreBarrier,
-                                       instr->token_pos());
-    // Storing into uninitialized memory; remember to prevent dead store
-    // elimination and ensure proper GC barrier.
-    store->set_is_object_reference_initialization(true);
-    flow_graph_->InsertAfter(cursor, store, NULL, FlowGraph::kEffect);
-    cursor = store;
-  }
-}
-
-
 void AotOptimizer::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
   // TODO(zerny): Use kUnboxedUint32 once it is fully supported/optimized.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
@@ -2790,7 +2803,8 @@ bool AotOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
       Field::ZoneHandle(Z, GetField(class_id, field_name));
   ASSERT(!field.IsNull());
 
-  if (InstanceCallNeedsClassCheck(instr, RawFunction::kImplicitSetter)) {
+  if (flow_graph()->InstanceCallNeedsClassCheck(
+          instr, RawFunction::kImplicitSetter)) {
     return false;
   }
 

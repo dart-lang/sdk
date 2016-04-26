@@ -49,8 +49,8 @@ backend_dart/opt_redundant_phi_test: Skip
 
 # Source information is not correct due to inlining.
 js_backend_cps_ir_source_information_test: Fail
-sourcemaps/source_mapping_operators_test: Fail, Slow # Issue 25304 for checked mode, was: Pass, Slow
-sourcemaps/source_mapping_invokes_test: Fail, Slow # Issue 25304 for checked mode, was: Pass, Slow
+sourcemaps/source_mapping_operators_test: Pass, Slow
+sourcemaps/source_mapping_invokes_test: Pass, Slow
 
 check_elements_invariants_test: Slow, Pass, Timeout # Slow due to inlining in the CPS backend
 
@@ -68,6 +68,7 @@ import_mirrors_test: Slow, Pass
 interop_anonymous_unreachable_test: Pass, Slow
 mirror_final_field_inferrer2_test: Pass, Slow
 source_map_pub_build_validity_test: Pass, Slow
+serialization*: Slow, Pass
 uri_retention_test: Pass, Slow
 value_range_test: Pass, Slow
 

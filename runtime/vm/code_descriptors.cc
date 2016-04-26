@@ -124,7 +124,7 @@ RawExceptionHandlers* ExceptionHandlerList::FinalizeExceptionHandlers(
                               list_[i].pc_offset,
                               list_[i].needs_stacktrace,
                               has_catch_all);
-      handlers.SetHandledTypes(i, Array::null_array());
+      handlers.SetHandledTypes(i, Array::empty_array());
     } else {
       const bool has_catch_all = ContainsDynamic(*list_[i].handler_types);
       handlers.SetHandlerInfo(i,

@@ -108,10 +108,10 @@ import '22/new_name.dart';
 
   test_file_importedLibrary_package() async {
     // configure packages
-    testFile = '/packages/my_pkg/aaa/test.dart';
+    testFile = '/packages/my_pkg/lib/aaa/test.dart';
     provider.newFile(testFile, '');
     Map<String, List<Folder>> packageMap = {
-      'my_pkg': [provider.getResource('/packages/my_pkg')]
+      'my_pkg': [provider.getResource('/packages/my_pkg/lib')]
     };
     context.sourceFactory = new SourceFactory([
       AbstractContextTest.SDK_RESOLVER,
@@ -125,10 +125,10 @@ import '22/new_name.dart';
         '''
 import 'package:my_pkg/aaa/test.dart';
 ''');
-    addTestSource('');
+    addTestSource('', Uri.parse('package:my_pkg/aaa/test.dart'));
     _performAnalysis();
     // perform refactoring
-    _createRefactoring('/packages/my_pkg/bbb/ccc/new_name.dart');
+    _createRefactoring('/packages/my_pkg/lib/bbb/ccc/new_name.dart');
     await _assertSuccessfulRefactoring();
     assertFileChangeResult(
         pathA,
@@ -291,7 +291,7 @@ export 'package:newName/myLib.dart';
       }
       for (ChangeNotice notice in result.changeNotices) {
         if (notice.source.fullName.startsWith('/project/')) {
-          index.index(context, notice.resolvedDartUnit);
+          index.indexUnit(notice.resolvedDartUnit);
         }
       }
     }

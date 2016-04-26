@@ -5,7 +5,9 @@
 [ $compiler == dart2analyzer ]
 
 WebPlatformTest/html/semantics/forms/the-textarea-element/textarea-type_t01: fail
+LayoutTests/fast/events/event-creation_t01: Skip # Roll 45 OverflowEvent removed
 LayoutTests/fast/forms/checkValidity-001_t01: fail
+LayoutTests/fast/xmlhttprequest/xmlhttprequest-get_t01: Skip # Roll 45 clipboardData changed
 Language/Expressions/Assignable_Expressions/syntax_t08: StaticWarning
 Language/Libraries_and_Scripts/Parts/compilation_t15: fail, pass # Issue 23595
 
@@ -296,19 +298,6 @@ WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-obje
 WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t05: StaticWarning # Please triage this failure.
 WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t06: StaticWarning # Please triage this failure.
 LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: StaticWarning # Please triage this failure.
-
-# Missing concrete implementation of setter 'XPathNSResolver.blink_jsObject' and getter 'XPathNSResolver.blink_jsObject'
-# TODO(terry): Dartium only because of implements instead of extends consider fixing by making blink_jsObject private
-#              with private wrap_jso and unwrap_jso in each library that delegates to the public wrap/unwrap_jso.
-LayoutTests/fast/xpath/4XPath/Core/test_core_functions_t02: StaticWarning # Please triage this failure.
-LayoutTests/fast/xpath/4XPath/Core/test_node_test_t01: StaticWarning # Please triage this failure.
-LayoutTests/fast/xpath/4XPath/Core/test_node_test_t02: StaticWarning # Please triage this failure.
-LayoutTests/fast/xpath/attr-namespace_t01: StaticWarning # Please triage this failure.
-LayoutTests/fast/xpath/attr-namespace_t02: StaticWarning # Please triage this failure.
-LayoutTests/fast/xpath/node-name-case-sensitivity_t01: StaticWarning # Please triage this failure.
-LayoutTests/fast/xpath/node-name-case-sensitivity_t02: StaticWarning # Please triage this failure.
-LayoutTests/fast/xpath/py-dom-xpath/data_t01: StaticWarning # Please triage this failure.
-LayoutTests/fast/svg/getbbox_t01: StaticWarning # Please triage this failure.
 
 # co19 roll to Sep 29 2015 (3ed795ea02e022ef19c77cf1b6095b7c8f5584d0)
 Language/Classes/Abstract_Instance_Members/invocation_t03: MissingStaticWarning # Please triage this failure.

@@ -7,7 +7,6 @@ getter_setter_in_lib_test: Fail # Issue 23288
 method_name_test: Fail # issue 25574
 
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
-async_star_await_pauses_test: Fail, Timeout # Issue 22853
 tearoff_basic_test: Skip # Tear-off not supported
 tearoff_constructor_basic_test: Skip # Tear-off not supported
 
@@ -36,9 +35,15 @@ accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
 accessor_conflict_import_test: RuntimeError # Issue 25626
 
+# Experimental feature: Syntactic support for generic methods.
+generic_functions_test: CompileTimeError # Issue 25835
+generic_methods_test: CompileTimeError # Issue 25835
+generic_sends_test: CompileTimeError # Issue 25835
+
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
+regress_23996_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
 async_star_no_cancel_test: RuntimeError # Need triage
 async_star_no_cancel2_test: RuntimeError # Need triage
 
@@ -203,12 +208,6 @@ expect_test: RuntimeError, OK # Issue 13080
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
-[ $compiler == dart2js && $runtime == chrome && $system == macos ]
-await_future_test: Pass, Timeout # Issue 22695.
-async_await_test/none: Pass, Timeout # Issue 22695.
-async_await_test/02: Pass, Timeout # Issue 22695.
-async_await_test/03: Pass, Timeout # Issue 22695.
-
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim)]
 round_test: Fail, OK # Common JavaScript engine Math.round bug.
 
@@ -309,8 +308,14 @@ switch8_test: Crash # Pending statics: JSArray
 regress_21795_test: Pass, RuntimeError # Due to inlining?
 
 [ $compiler == dart2js && $cps_ir && $host_checked ]
+accessor_conflict_export2_test: Crash # Duplicate export of 'x'
+accessor_conflict_export_test: Crash # Duplicate export of 'x'
 async_throw_in_catch_test/forceAwait: Crash # Issue 24485
 async_throw_in_catch_test/none: Crash # Issue 24485
 execute_finally9_test: Crash # Issue 24485
 regress_21795_test: Crash # Issue 24485
 regress_23537_test: Crash # Issue 24485
+try_finally_regress_25333_test: Crash # Issue 24485
+
+[ $compiler == dart2js && $cps_ir && $checked ]
+*: Skip # `assert` not implemented

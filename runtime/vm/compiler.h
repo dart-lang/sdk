@@ -146,7 +146,8 @@ class Compiler : public AllStatic {
   // because the mutator thread changed the state (e.g., deoptimization,
   // deferred loading). The background compilation may retry to compile
   // the same function later.
-  static void AbortBackgroundCompilation(intptr_t deopt_id);
+  static void AbortBackgroundCompilation(intptr_t deopt_id,
+                                         const char* msg = "");
 };
 
 
@@ -156,9 +157,12 @@ class Compiler : public AllStatic {
 // No OSR compilation in the background compiler.
 class BackgroundCompiler : public ThreadPool::Task {
  public:
+  virtual ~BackgroundCompiler();
+
   static void EnsureInit(Thread* thread);
 
-  static void Stop(BackgroundCompiler* task);
+  // Stops background compiler of the given isolate.
+  static void Stop(Isolate* isolate);
 
   // Call to optimize a function in the background, enters the function in the
   // compilation queue.
@@ -167,6 +171,7 @@ class BackgroundCompiler : public ThreadPool::Task {
   void VisitPointers(ObjectPointerVisitor* visitor);
 
   BackgroundCompilationQueue* function_queue() const { return function_queue_; }
+  bool is_running() const { return running_; }
 
  private:
   explicit BackgroundCompiler(Isolate* isolate);

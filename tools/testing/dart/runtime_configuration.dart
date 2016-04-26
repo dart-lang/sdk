@@ -4,17 +4,13 @@
 
 library runtime_configuration;
 
-import 'compiler_configuration.dart' show
-    CommandArtifact;
+import 'compiler_configuration.dart' show CommandArtifact;
 
 // TODO(ahe): Remove this import, we can precompute all the values required
 // from TestSuite once the refactoring is complete.
-import 'test_suite.dart' show
-    TestSuite;
+import 'test_suite.dart' show TestSuite;
 
-import 'test_runner.dart' show
-    Command,
-    CommandBuilder;
+import 'test_runner.dart' show Command, CommandBuilder;
 
 // TODO(ahe): I expect this class will become abstract very soon.
 class RuntimeConfiguration {
@@ -68,10 +64,8 @@ class RuntimeConfiguration {
 
   RuntimeConfiguration._subclass();
 
-  int computeTimeoutMultiplier({
-      String mode,
-      bool isChecked: false,
-      String arch}) {
+  int computeTimeoutMultiplier(
+      {String mode, bool isChecked: false, String arch}) {
     return 1;
   }
 
@@ -90,8 +84,7 @@ class RuntimeConfiguration {
 
 /// The 'none' runtime configuration.
 class NoneRuntimeConfiguration extends RuntimeConfiguration {
-  NoneRuntimeConfiguration()
-      : super._subclass();
+  NoneRuntimeConfiguration() : super._subclass();
 
   List<Command> computeRuntimeCommands(
       TestSuite suite,
@@ -106,8 +99,7 @@ class NoneRuntimeConfiguration extends RuntimeConfiguration {
 class CommandLineJavaScriptRuntime extends RuntimeConfiguration {
   final String moniker;
 
-  CommandLineJavaScriptRuntime(this.moniker)
-      : super._subclass();
+  CommandLineJavaScriptRuntime(this.moniker) : super._subclass();
 
   void checkArtifact(CommandArtifact artifact) {
     String type = artifact.mimeType;
@@ -119,8 +111,7 @@ class CommandLineJavaScriptRuntime extends RuntimeConfiguration {
 
 /// Chrome/V8-based development shell (d8).
 class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
-  D8RuntimeConfiguration()
-      : super('d8');
+  D8RuntimeConfiguration() : super('d8');
 
   List<Command> computeRuntimeCommands(
       TestSuite suite,
@@ -131,8 +122,9 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
     // TODO(ahe): Avoid duplication of this method between d8 and jsshell.
     checkArtifact(artifact);
     return <Command>[
-        commandBuilder.getJSCommandlineCommand(
-            moniker, suite.d8FileName, arguments, environmentOverrides)];
+      commandBuilder.getJSCommandlineCommand(
+          moniker, suite.d8FileName, arguments, environmentOverrides)
+    ];
   }
 
   List<String> dart2jsPreambles(Uri preambleDir) {
@@ -142,8 +134,7 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
 
 /// Firefox/SpiderMonkey-based development shell (jsshell).
 class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
-  JsshellRuntimeConfiguration()
-      : super('jsshell');
+  JsshellRuntimeConfiguration() : super('jsshell');
 
   List<Command> computeRuntimeCommands(
       TestSuite suite,
@@ -153,8 +144,9 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
       Map<String, String> environmentOverrides) {
     checkArtifact(artifact);
     return <Command>[
-        commandBuilder.getJSCommandlineCommand(
-            moniker, suite.jsShellFileName, arguments, environmentOverrides)];
+      commandBuilder.getJSCommandlineCommand(
+          moniker, suite.jsShellFileName, arguments, environmentOverrides)
+    ];
   }
 
   List<String> dart2jsPreambles(Uri preambleDir) {
@@ -164,20 +156,17 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
 
 /// Common runtime configuration for runtimes based on the Dart VM.
 class DartVmRuntimeConfiguration extends RuntimeConfiguration {
-  DartVmRuntimeConfiguration()
-      : super._subclass();
+  DartVmRuntimeConfiguration() : super._subclass();
 
-  int computeTimeoutMultiplier({
-      String mode,
-      bool isChecked: false,
-      String arch}) {
+  int computeTimeoutMultiplier(
+      {String mode, bool isChecked: false, String arch}) {
     int multiplier = 1;
     switch (arch) {
       case 'simarm':
       case 'arm':
       case 'simarmv6':
       case 'armv6':
-      case' simarmv5te':
+      case ' simarmv5te':
       case 'armv5te':
       case 'simmips':
       case 'mips':
@@ -195,16 +184,14 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
 /// Runtime configuration for Content Shell.  We previously used a similar
 /// program named Dump Render Tree, hence the name.
 class DrtRuntimeConfiguration extends DartVmRuntimeConfiguration {
-  int computeTimeoutMultiplier({
-      String mode,
-      bool isChecked: false,
-      String arch}) {
+  int computeTimeoutMultiplier(
+      {String mode, bool isChecked: false, String arch}) {
     return 4 // Allow additional time for browser testing to run.
         // TODO(ahe): We might need to distinquish between DRT for running
         // JavaScript and Dart code.  I'm not convinced the inherited timeout
         // multiplier is relevant for JavaScript.
-        * super.computeTimeoutMultiplier(
-            mode: mode, isChecked: isChecked);
+        *
+        super.computeTimeoutMultiplier(mode: mode, isChecked: isChecked);
   }
 }
 
@@ -224,8 +211,9 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
     String executable = suite.configuration['noopt']
         ? suite.dartVmNooptBinaryFileName
         : suite.dartVmBinaryFileName;
-    return <Command>[commandBuilder.getVmCommand(
-          executable, arguments, environmentOverrides)];
+    return <Command>[
+      commandBuilder.getVmCommand(executable, arguments, environmentOverrides)
+    ];
   }
 }
 
@@ -246,10 +234,10 @@ class DartProductRuntimeConfiguration extends DartVmRuntimeConfiguration {
     augmentedArgs.add("--run-full-snapshot=${artifact.filename}");
     augmentedArgs.addAll(arguments);
 
-    return <Command>[commandBuilder.getVmCommand(
-          suite.dartVmProductBinaryFileName,
-          augmentedArgs,
-          environmentOverrides)];
+    return <Command>[
+      commandBuilder.getVmCommand(suite.dartVmProductBinaryFileName,
+          augmentedArgs, environmentOverrides)
+    ];
   }
 }
 
@@ -270,11 +258,10 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
     augmentedArgs.add("--run-precompiled-snapshot=${artifact.filename}");
     augmentedArgs.addAll(arguments);
 
-    var augmentedEnv = new Map.from(environmentOverrides);
-    augmentedEnv['LD_LIBRARY_PATH'] = artifact.filename;
-
-    return <Command>[commandBuilder.getVmCommand(
-          suite.dartPrecompiledBinaryFileName, augmentedArgs, augmentedEnv)];
+    return <Command>[
+      commandBuilder.getVmCommand(suite.dartPrecompiledBinaryFileName,
+          augmentedArgs, environmentOverrides)
+    ];
   }
 }
 

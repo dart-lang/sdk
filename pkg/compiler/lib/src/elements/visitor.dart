@@ -6,9 +6,7 @@ library visitor;
 
 import 'elements.dart';
 import '../closure.dart'
-    show BoxFieldElement,
-         ClosureClassElement,
-         ClosureFieldElement;
+    show BoxFieldElement, ClosureClassElement, ClosureFieldElement;
 
 abstract class ElementVisitor<R, A> {
   const ElementVisitor();
@@ -24,13 +22,16 @@ abstract class ElementVisitor<R, A> {
   R visitExportElement(ExportElement e, A arg) => null;
   R visitPrefixElement(PrefixElement e, A arg) => null;
   R visitTypedefElement(TypedefElement e, A arg) => null;
-  R visitVariableElement(VariableElement e, A arg) => null;
+  R visitLocalVariableElement(LocalVariableElement e, A arg) => null;
   R visitParameterElement(ParameterElement e, A arg) => null;
   R visitFormalElement(FormalElement e, A arg) => null;
   R visitFieldElement(FieldElement e, A arg) => null;
   R visitFieldParameterElement(InitializingFormalElement e, A arg) => null;
   R visitAbstractFieldElement(AbstractFieldElement e, A arg) => null;
-  R visitFunctionElement(FunctionElement e, A arg) => null;
+  R visitMethodElement(FunctionElement e, A arg) => null;
+  R visitGetterElement(GetterElement e, A arg) => null;
+  R visitSetterElement(SetterElement e, A arg) => null;
+  R visitLocalFunctionElement(LocalFunctionElement e, A arg) => null;
   R visitConstructorElement(ConstructorElement e, A arg) => null;
   R visitConstructorBodyElement(ConstructorBodyElement e, A arg) => null;
   R visitClassElement(ClassElement e, A arg) => null;
@@ -41,7 +42,6 @@ abstract class ElementVisitor<R, A> {
   R visitClosureClassElement(ClosureClassElement e, A arg) => null;
   R visitClosureFieldElement(ClosureFieldElement e, A arg) => null;
 }
-
 
 abstract class BaseElementVisitor<R, A> extends ElementVisitor<R, A> {
   const BaseElementVisitor();
@@ -97,9 +97,13 @@ abstract class BaseElementVisitor<R, A> extends ElementVisitor<R, A> {
     return visitElement(e, arg);
   }
 
-  @override
   R visitVariableElement(VariableElement e, A arg) {
     return visitElement(e, arg);
+  }
+
+  @override
+  R visitLocalVariableElement(LocalVariableElement e, A arg) {
+    return visitVariableElement(e, arg);
   }
 
   @override
@@ -127,9 +131,28 @@ abstract class BaseElementVisitor<R, A> extends ElementVisitor<R, A> {
     return visitElement(e, arg);
   }
 
-  @override
   R visitFunctionElement(FunctionElement e, A arg) {
     return visitElement(e, arg);
+  }
+
+  @override
+  R visitMethodElement(MethodElement e, A arg) {
+    return visitFunctionElement(e, arg);
+  }
+
+  @override
+  R visitGetterElement(GetterElement e, A arg) {
+    return visitFunctionElement(e, arg);
+  }
+
+  @override
+  R visitSetterElement(SetterElement e, A arg) {
+    return visitFunctionElement(e, arg);
+  }
+
+  @override
+  R visitLocalFunctionElement(LocalFunctionElement e, A arg) {
+    return visitFunctionElement(e, arg);
   }
 
   @override

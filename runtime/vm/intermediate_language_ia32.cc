@@ -1412,7 +1412,8 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (field_cid == kDynamicCid) {
     if (Compiler::IsBackgroundCompilation()) {
       // Field state changed while compiling.
-      Compiler::AbortBackgroundCompilation(deopt_id());
+      Compiler::AbortBackgroundCompilation(deopt_id(),
+          "GuardFieldClassInstr: field state changed while compiling");
     }
     ASSERT(!compiler->is_optimizing());
     return;  // Nothing to emit.
@@ -1571,7 +1572,8 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (field().guarded_list_length() == Field::kNoFixedLength) {
     if (Compiler::IsBackgroundCompilation()) {
       // Field state changed while compiling.
-      Compiler::AbortBackgroundCompilation(deopt_id());
+      Compiler::AbortBackgroundCompilation(deopt_id(),
+          "GuardFieldLengthInstr: field state changed while compiling");
     }
     ASSERT(!compiler->is_optimizing());
     return;  // Nothing to emit.
@@ -2583,11 +2585,10 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (FLAG_use_osr && osr_entry_label()->IsLinked()) {
-      uword flags_address = Isolate::Current()->stack_overflow_flags_address();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
-      __ movl(Address::Absolute(flags_address),
-              Immediate(Isolate::kOsrRequest));
+      __ movl(Address(THR, Thread::stack_overflow_flags_offset()),
+              Immediate(Thread::kOsrRequest));
     }
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
@@ -2629,13 +2630,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  if (compiler->is_optimizing()) {
-    __ cmpl(ESP, Address::Absolute(Isolate::Current()->stack_limit_address()));
-  } else {
-    Register tmp = locs()->temp(0).reg();
-    __ LoadIsolate(tmp);
-    __ cmpl(ESP, Address(tmp, Isolate::stack_limit_offset()));
-  }
+  __ cmpl(ESP, Address(THR, Thread::stack_limit_offset()));
   __ j(BELOW_EQUAL, slow_path->entry_label());
   if (compiler->CanOSRFunction() && in_loop()) {
     // In unoptimized code check the usage counter to trigger OSR at loop
@@ -2763,6 +2758,19 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   }
 }
 
+
+LocationSummary* CheckedSmiOpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  // Only for precompiled code, not on ia32 currently.
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Only for precompiled code, not on ia32 currently.
+  UNIMPLEMENTED();
+}
 
 LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
@@ -6507,7 +6515,7 @@ LocationSummary* GotoInstr::MakeLocationSummary(Zone* zone,
 
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->is_optimizing()) {
-    if (FLAG_emit_edge_counters) {
+    if (FLAG_reorder_basic_blocks) {
       compiler->EmitEdgeCounter(block()->preorder_number());
     }
     // Add a deoptimization descriptor for deoptimizing instructions that
@@ -6548,8 +6556,11 @@ void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Load code object from frame.
   __ movl(target_reg, Address(EBP, kPcMarkerSlotFromFp * kWordSize));
-  // Load instructions entry point.
-  __ movl(target_reg, FieldAddress(target_reg, Code::entry_point_offset()));
+  // Load instructions object (active_instructions and Code::entry_point() may
+  // not point to this instruction object any more; see Code::DisableDartCode).
+  __ movl(target_reg,
+      FieldAddress(target_reg, Code::saved_instructions_offset()));
+  __ addl(target_reg, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
 
   // Add the offset.
   Register offset_reg = locs()->in(0).reg();

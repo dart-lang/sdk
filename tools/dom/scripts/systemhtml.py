@@ -586,7 +586,7 @@ class HtmlDartInterfaceGenerator(object):
         class_modifiers = ''
       else:
         # For Dartium w/ JsInterop these suppressed interfaces are needed to
-        # instanciate the internal classes when wrap_jso is called for a JS object.
+        # instanciate the internal classes.
         if (self._renamer.ShouldSuppressInterface(self._interface) and
             not(isinstance(self._backend, Dart2JSBackend)) and
             self._options.dart_js_interop):
@@ -600,21 +600,10 @@ class HtmlDartInterfaceGenerator(object):
 
     class_name = self._interface_type_info.implementation_name()
 
-    js_interop_equivalence_op = \
-      '  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);\n' \
-      + '  int get hashCode => unwrap_jso(this).hashCode;\n'
-    # ClientRect overrides the equivalence operator.
-    if interface_name == 'ClientRect' or interface_name == 'DomRectReadOnly':
-        js_interop_equivalence_op = ''
-
     js_interop_wrapper = '''
 
   @Deprecated("Internal Use Only")
-  static {0} internalCreate{0}() {{
-    return new {0}._internalWrap();
-  }}
-
-  external factory {0}._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   {0}.internal_() : super.internal_();
@@ -622,19 +611,13 @@ class HtmlDartInterfaceGenerator(object):
 '''.format(class_name)
     if base_class == 'NativeFieldWrapperClass2' or base_class == 'DartHtmlDomObject':
         js_interop_wrapper = '''
-  @Deprecated("Internal Use Only")
-  static {0} internalCreate{0}() {{
-    return new {0}._internalWrap();
-  }}
 
-  factory {0}._internalWrap() {{
-    return new {0}.internal_();
-  }}
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   {0}.internal_() {{ }}
-
-{1}'''.format(class_name, js_interop_equivalence_op)
+'''.format(class_name)
         # Change to use the synthesized class so we can construct with a mixin
         # classes prefixed with name of NativeFieldWrapperClass2 don't have a
         # default constructor so classes with mixins can't be new'd.
@@ -737,7 +720,7 @@ class Dart2JSBackend(HtmlDartGenerator):
   """
 
   def __init__(self, interface, options, logging_level=logging.WARNING):
-    super(Dart2JSBackend, self).__init__(interface, options, False)
+    super(Dart2JSBackend, self).__init__(interface, options, False, _logger)
 
     self._database = options.database
     self._template_loader = options.templates
@@ -747,7 +730,6 @@ class Dart2JSBackend(HtmlDartGenerator):
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._current_secondary_parent = None
     self._library_name = self._renamer.GetLibraryName(self._interface)
-
     _logger.setLevel(logging_level)
 
   def ImplementsMergedMembers(self):
@@ -829,7 +811,8 @@ class Dart2JSBackend(HtmlDartGenerator):
     ext_attrs = self._interface.ext_attrs
     has_indexed_getter = 'CustomIndexedGetter' in ext_attrs
     for operation in self._interface.operations:
-      if operation.id == 'item' and 'getter' in operation.specials:
+      if operation.id == 'item' and 'getter' in operation.specials \
+          and not self._OperationRequiresConversions(operation):
         has_indexed_getter = True
         break
     return has_indexed_getter
@@ -1285,13 +1268,9 @@ class DartLibrary():
     emitters = library_emitter.Emit(
         self._template, AUXILIARY_DIR=massage_path(auxiliary_dir))
     if isinstance(emitters, tuple):
-      if self._dart_js_interop:
-        imports_emitter, map_emitter, function_emitter = emitters
-      else:
-        imports_emitter, map_emitter = emitters
-        function_emitter = None
+      imports_emitter, map_emitter = emitters
     else:
-      imports_emitter, map_emitter, function_emitter = emitters, None, None
+      imports_emitter, map_emitter = emitters, None
 
     for path in sorted(self._paths):
       relpath = os.path.relpath(path, library_file_dir)
@@ -1304,25 +1283,9 @@ class DartLibrary():
       items.sort()
       for (idl_name, dart_name) in items:
         map_emitter.Emit(
-          "  '$IDL_NAME': () => $DART_NAME,\n",
+          "  '$IDL_NAME': () => $DART_NAME.instanceRuntimeType,\n",
           IDL_NAME=idl_name,
           DART_NAME=dart_name)
-
-    # Emit the $!TYPE_FUNCTION_MAP
-    if function_emitter:
-      items = self._typeMap.items()
-      items.sort()
-      for (idl_name, dart_name) in items:
-        # DOMStringMap is in the abstract list but is used as a concrete class
-        # in Dartium.
-        if not IsPureInterface(idl_name):
-          # Handle classes that are concrete (abstract can't be instantiated).
-          function_emitter.Emit(
-            "  '$IDL_NAME': () => $DART_NAME.internalCreate$DART_NAME,\n",
-            IDL_NAME=idl_name,
-            DART_NAME=dart_name)
-      if self._dart_path.endswith('html_dartium.dart'):
-        function_emitter.Emit("  'polymer-element': () => HtmlElement.internalCreateHtmlElement,\n")
 
 
 # ------------------------------------------------------------------------------

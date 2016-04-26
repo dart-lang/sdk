@@ -37,6 +37,7 @@ class Resolver : public AllStatic {
 
   // If 'allow_add' is true we may add a function to the class during lookup.
   static RawFunction* ResolveDynamicAnyArgs(
+      Zone* zone,
       const Class& receiver_class,
       const String& function_name,
       bool allow_add = true);

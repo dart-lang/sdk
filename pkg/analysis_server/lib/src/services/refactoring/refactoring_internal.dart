@@ -12,7 +12,15 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
+
+/**
+ * Return a new [SourceReference] instance for the given [match].
+ */
+SourceReference getSourceReference(SearchMatch match) {
+  return new SourceReference(match);
+}
 
 /**
  * When a [Source] (a file) is used in more than one context, [SearchEngine]
@@ -22,11 +30,7 @@ import 'package:analyzer/src/generated/source.dart';
 List<SourceReference> getSourceReferences(List<SearchMatch> matches) {
   var uniqueReferences = new HashMap<SourceReference, SourceReference>();
   for (SearchMatch match in matches) {
-    Element element = match.element;
-    String file = element.source.fullName;
-    SourceRange range = match.sourceRange;
-    SourceReference newReference = new SourceReference(
-        file, range, element, match.isResolved, match.isQualified);
+    SourceReference newReference = getSourceReference(match);
     SourceReference oldReference = uniqueReferences[newReference];
     if (oldReference == null) {
       uniqueReferences[newReference] = newReference;
@@ -56,16 +60,22 @@ abstract class RefactoringImpl implements Refactoring {
 
 /**
  * The [SourceRange] in some [Source].
+ *
+ * TODO(scheglov) inline this class as SearchMatch
  */
 class SourceReference {
-  final String file;
-  final SourceRange range;
-  final Element element;
-  final bool isResolved;
-  final bool isQualified;
+  final SearchMatch _match;
 
-  SourceReference(
-      this.file, this.range, this.element, this.isResolved, this.isQualified);
+  SourceReference(this._match);
+
+  AnalysisContext get context => _match.context;
+
+  Element get element => _match.element;
+
+  /**
+   * The full path of the file containing the match.
+   */
+  String get file => _match.file;
 
   @override
   int get hashCode {
@@ -73,6 +83,12 @@ class SourceReference {
     hash = ((hash << 16) & 0xFFFFFFFF) + range.hashCode;
     return hash;
   }
+
+  bool get isResolved => _match.isResolved;
+
+  SourceRange get range => _match.sourceRange;
+
+  Source get unitSource => _match.unitSource;
 
   @override
   bool operator ==(Object other) {
@@ -90,7 +106,7 @@ class SourceReference {
    */
   void addEdit(SourceChange change, String newText, {String id}) {
     SourceEdit edit = createEdit(newText, id: id);
-    doSourceChange_addElementEdit(change, element, edit);
+    doSourceChange_addSourceEdit(change, context, unitSource, edit);
   }
 
   /**

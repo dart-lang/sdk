@@ -16,14 +16,7 @@ abstract class _NamerName extends jsAst.Name {
   }
 }
 
-enum _NamerNameKinds {
-  StringBacked,
-  Getter,
-  Setter,
-  Async,
-  Compound,
-  Token
-}
+enum _NamerNameKinds { StringBacked, Getter, Setter, Async, Compound, Token }
 
 class StringBackedName extends _NamerName {
   final String name;
@@ -33,7 +26,7 @@ class StringBackedName extends _NamerName {
 
   String get key => name;
 
-  operator==(other) {
+  operator ==(other) {
     if (other is _NameReference) other = other._target;
     if (identical(this, other)) return true;
     return (other is StringBackedName) && other.name == name;
@@ -61,7 +54,7 @@ abstract class _PrefixedName extends _NamerName implements jsAst.AstContainer {
 
   String get key => prefix.key + base.key;
 
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is _NameReference) other = other._target;
     if (identical(this, other)) return true;
     if (other is! _PrefixedName) return false;
@@ -125,7 +118,7 @@ class CompoundName extends _NamerName implements jsAst.AstContainer {
 
   String get key => _parts.map((_NamerName name) => name.key).join();
 
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is _NameReference) other = other._target;
     if (identical(this, other)) return true;
     if (other is! CompoundName) return false;
@@ -188,7 +181,7 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
   markSeen(jsAst.TokenCounter counter) => _rc++;
 
   @override
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is _NameReference) other = other._target;
     if (identical(this, other)) return true;
     return false;
@@ -220,7 +213,7 @@ class _NameReference extends _NamerName implements jsAst.AstContainer {
   int compareTo(_NamerName other) => _target.compareTo(other);
 
   @override
-  bool operator==(other) => _target == other;
+  bool operator ==(other) => _target == other;
 
   @override
   int get hashCode => _target.hashCode;

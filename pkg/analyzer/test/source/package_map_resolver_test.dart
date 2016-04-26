@@ -21,7 +21,8 @@ main() {
 
 @reflectiveTest
 class _PackageMapUriResolverTest {
-  static const Map EMPTY_MAP = const <String, List<Folder>>{};
+  static const Map<String, List<Folder>> EMPTY_MAP =
+      const <String, List<Folder>>{};
   MemoryResourceProvider provider = new MemoryResourceProvider();
 
   void test_isPackageUri() {

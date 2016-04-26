@@ -8,7 +8,6 @@
 #include "bin/builtin.h"
 #include "platform/globals.h"
 
-
 namespace dart {
 namespace bin {
 

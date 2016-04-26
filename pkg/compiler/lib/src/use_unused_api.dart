@@ -40,14 +40,13 @@ import 'resolution/semantic_visitor.dart' as semantic_visitor;
 import 'resolution/operators.dart' as operators;
 import 'script.dart';
 import 'source_file_provider.dart' as source_file_provider;
-import 'ssa/ssa.dart' as ssa;
+import 'ssa/nodes.dart' as ssa;
 import 'tree/tree.dart' as tree;
 import 'util/util.dart' as util;
 import 'world.dart';
 
-import 'parser/partial_elements.dart' show
-    PartialClassElement,
-    PartialFunctionElement;
+import 'parser/partial_elements.dart'
+    show PartialClassElement, PartialFunctionElement;
 
 class ElementVisitor extends elements_visitor.BaseElementVisitor {
   visitElement(e, a) {}
@@ -93,36 +92,33 @@ useApi([api.ReadStringFromUri uri, compiler.Compiler compiler]) {
 class NullConstantConstructorVisitor
     extends constants.ConstantConstructorVisitor {
   @override
-  visitGenerative(constants.GenerativeConstantConstructor constructor, arg) {
-  }
+  visitGenerative(constants.GenerativeConstantConstructor constructor, arg) {}
 
   @override
   visitRedirectingFactory(
-      constants.RedirectingFactoryConstantConstructor constructor, arg) {
-  }
+      constants.RedirectingFactoryConstantConstructor constructor, arg) {}
 
   @override
   visitRedirectingGenerative(
-      constants.RedirectingGenerativeConstantConstructor constructor, arg) {
-  }
+      constants.RedirectingGenerativeConstantConstructor constructor, arg) {}
 }
 
-void useConstant([constants.ConstantValue constant,
-                  constants.ConstantExpression expression,
-                  constants.ConstructedConstantExpression constructedConstant,
-                  constants.ConstantSystem cs,
-                  constants.Environment env]) {
+void useConstant(
+    [constants.ConstantValue constant,
+    constants.ConstantExpression expression,
+    constants.ConstructedConstantExpression constructedConstant,
+    constants.ConstantSystem cs,
+    constants.Environment env]) {
   constant.isObject;
   cs.isBool(constant);
   constructedConstant.computeInstanceType();
   constructedConstant.computeInstanceFields();
   expression.evaluate(null, null);
   new NullConstantConstructorVisitor()
-      ..visit(null, null)
-      ..visitGenerative(null, null)
-      ..visitRedirectingFactory(null, null)
-      ..visitRedirectingGenerative(null, null);
-
+    ..visit(null, null)
+    ..visitGenerative(null, null)
+    ..visitRedirectingFactory(null, null)
+    ..visitRedirectingGenerative(null, null);
 }
 
 void useNode(tree.Node node) {
@@ -246,12 +242,12 @@ useSsa(ssa.HInstruction instruction) {
   new ssa.HStatementSequenceInformation(null);
 }
 
-useIo([io.LineColumnMap map,
-       io.LineColumnProvider provider]) {
-  map..addFirst(null, null, null)
-     ..forEachLine(null)
-     ..getFirstElementsInLine(null)
-     ..forEachColumn(null, null);
+useIo([io.LineColumnMap map, io.LineColumnProvider provider]) {
+  map
+    ..addFirst(null, null, null)
+    ..forEachLine(null)
+    ..getFirstElementsInLine(null)
+    ..forEachColumn(null, null);
   provider.getOffset(null, null);
 }
 
@@ -275,11 +271,11 @@ usedByTests() {
 
 useElements(
     [elements.ClassElement e,
-     elements.Name n,
-     modelx.FieldElementX f,
-     PartialClassElement pce,
-     PartialFunctionElement pfe,
-     elements.LibraryElement l]) {
+    elements.Name n,
+    modelx.FieldElementX f,
+    PartialClassElement pce,
+    PartialFunctionElement pfe,
+    elements.LibraryElement l]) {
   e.lookupClassMember(null);
   e.lookupInterfaceMember(null);
   n.isAccessibleFrom(null);
@@ -290,23 +286,20 @@ useElements(
 }
 
 useIr(ir_builder.IrBuilder builder) {
-  builder
-    ..buildStringConstant(null);
+  builder..buildStringConstant(null);
 }
 
 useCompiler(compiler.Compiler c) {
   c.libraryLoader
-      ..reset()
-      ..resetAsync(null)
-      ..lookupLibrary(null);
+    ..reset()
+    ..resetAsync(null)
+    ..lookupLibrary(null);
   c.forgetElement(null);
   c.backend.constantCompilerTask.copyConstantValues(null);
   c.currentlyInUserCode();
-
 }
 
-useTypes() {
-}
+useTypes() {}
 
 useCodeEmitterTask(js_emitter.CodeEmitterTask codeEmitterTask) {
   full.Emitter fullEmitter = codeEmitterTask.emitter;
@@ -332,7 +325,7 @@ useSemanticVisitor() {
 }
 
 class TreeVisitor1 extends tree_ir.ExpressionVisitor1
-                      with tree_ir.StatementVisitor1 {
+    with tree_ir.StatementVisitor1 {
   noSuchMethod(inv) {}
 }
 

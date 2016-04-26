@@ -13,14 +13,8 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, trace_ast_visitor, false,
-            "Trace AstVisitor.");
-
 #define DEFINE_VISIT_FUNCTION(BaseName)                                        \
 void BaseName##Node::Visit(AstNodeVisitor* visitor) {                          \
-  if (FLAG_trace_ast_visitor) {                                                \
-    THR_Print("Visiting %s\n", Name());                                        \
-  }                                                                            \
   visitor->Visit##BaseName##Node(this);                                        \
 }
 
@@ -110,13 +104,15 @@ LetNode::LetNode(TokenPosition token_pos)
 
 
 LocalVariable* LetNode::AddInitializer(AstNode* node) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   initializers_.Add(node);
   char name[64];
   OS::SNPrint(name, sizeof(name), ":lt%s_%" Pd "",
       token_pos().ToCString(), vars_.length());
   LocalVariable* temp_var =
       new LocalVariable(token_pos(),
-                        String::ZoneHandle(Symbols::New(name)),
+                        String::ZoneHandle(zone, Symbols::New(thread, name)),
                         Object::dynamic_type());
   vars_.Add(temp_var);
   return temp_var;
@@ -641,7 +637,7 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
         String::ZoneHandle(zone, Field::LookupSetterSymbol(field_name_));
     Function& setter = Function::ZoneHandle(zone);
     if (!setter_name.IsNull()) {
-      setter = Resolver::ResolveDynamicAnyArgs(cls(), setter_name);
+      setter = Resolver::ResolveDynamicAnyArgs(zone, cls(), setter_name);
     }
     if (setter.IsNull() || setter.is_abstract()) {
       // No instance setter found in super class chain,

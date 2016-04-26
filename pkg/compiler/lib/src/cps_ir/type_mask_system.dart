@@ -104,9 +104,8 @@ class TypeMaskSystem implements AbstractValueDomain {
           new TypeMask.nonNullSubtype(classWorld.stringClass, classWorld);
       TypeMask anyBool =
           new TypeMask.nonNullSubtype(classWorld.boolClass, classWorld);
-      _numStringBoolType =
-          new TypeMask.unionOf(<TypeMask>[anyNum, anyString, anyBool],
-              classWorld);
+      _numStringBoolType = new TypeMask.unionOf(
+          <TypeMask>[anyNum, anyString, anyBool], classWorld);
     }
     return _numStringBoolType;
   }
@@ -114,8 +113,10 @@ class TypeMaskSystem implements AbstractValueDomain {
   @override
   TypeMask get fixedLengthType {
     if (_fixedLengthType == null) {
-      List<TypeMask> fixedLengthTypes =
-          <TypeMask>[stringType, backend.fixedArrayType];
+      List<TypeMask> fixedLengthTypes = <TypeMask>[
+        stringType,
+        backend.fixedArrayType
+      ];
       if (classWorld.isInstantiated(helpers.typedArrayClass)) {
         fixedLengthTypes.add(nonNullSubclass(helpers.typedArrayClass));
       }
@@ -128,13 +129,14 @@ class TypeMaskSystem implements AbstractValueDomain {
   TypeMask get interceptorType {
     if (_interceptorType == null) {
       _interceptorType =
-        new TypeMask.nonNullSubtype(helpers.jsInterceptorClass, classWorld);
+          new TypeMask.nonNullSubtype(helpers.jsInterceptorClass, classWorld);
     }
     return _interceptorType;
   }
 
   @override
-  TypeMask get interceptedTypes { // Does not include null.
+  TypeMask get interceptedTypes {
+    // Does not include null.
     if (_interceptedTypes == null) {
       // We redundantly include subtypes of num/string/bool as intercepted
       // types, because the type system does not infer that their
@@ -154,9 +156,8 @@ class TypeMaskSystem implements AbstractValueDomain {
           new TypeMask.nonNullSubtype(helpers.jsIndexableClass, classWorld);
       TypeMask anyString =
           new TypeMask.nonNullSubtype(classWorld.stringClass, classWorld);
-      __indexableTypeTest = new TypeMask.unionOf(
-          <TypeMask>[indexable, anyString],
-          classWorld);
+      __indexableTypeTest =
+          new TypeMask.unionOf(<TypeMask>[indexable, anyString], classWorld);
     }
     return __indexableTypeTest;
   }
@@ -169,15 +170,14 @@ class TypeMaskSystem implements AbstractValueDomain {
   TypeMaskSystem(dart2js.Compiler compiler)
       : inferrer = compiler.typesTask,
         classWorld = compiler.world,
-        backend = compiler.backend {
-  }
+        backend = compiler.backend {}
 
   @override
   bool methodIgnoresReceiverArgument(FunctionElement function) {
     assert(backend.isInterceptedMethod(function));
     ClassElement clazz = function.enclosingClass.declaration;
     return !clazz.isSubclassOf(helpers.jsInterceptorClass) &&
-           !classWorld.isUsedAsMixin(clazz);
+        !classWorld.isUsedAsMixin(clazz);
   }
 
   @override
@@ -191,7 +191,7 @@ class TypeMaskSystem implements AbstractValueDomain {
       if (target is! FunctionElement) return false;
       FunctionElement function = target;
       return selector.isGetter && !function.isGetter ||
-             !methodIgnoresReceiverArgument(function);
+          !methodIgnoresReceiverArgument(function);
     }
     return !classWorld.allFunctions.filter(selector, type).any(needsReceiver);
   }
@@ -271,8 +271,8 @@ class TypeMaskSystem implements AbstractValueDomain {
     return a.intersection(b, classWorld);
   }
 
-  void associateConstantValueWithElement(ConstantValue constant,
-                                         Element element) {
+  void associateConstantValueWithElement(
+      ConstantValue constant, Element element) {
     // TODO(25093): Replace this code with an approach that works for anonymous
     // constants and non-constant literals.
     if (constant is ListConstantValue || constant is MapConstantValue) {
@@ -281,7 +281,7 @@ class TypeMaskSystem implements AbstractValueDomain {
       TypeMask computed = computeTypeMask(inferrer.compiler, constant);
       TypeMask inferred = inferrer.getGuaranteedTypeOfElement(element);
       TypeMask best = intersection(inferred, computed);
-      assert(!best.isEmpty);
+      assert(!best.isEmptyOrNull);
       _constantMasks[constant] = best;
     }
   }
@@ -289,13 +289,13 @@ class TypeMaskSystem implements AbstractValueDomain {
   @override
   TypeMask getTypeOf(ConstantValue constant) {
     return _constantMasks[constant] ??
-           computeTypeMask(inferrer.compiler, constant);
+        computeTypeMask(inferrer.compiler, constant);
   }
 
   @override
   ConstantValue getConstantOf(TypeMask mask) {
     if (!mask.isValue) return null;
-    if (mask.isNullable) return null;  // e.g. 'true or null'.
+    if (mask.isNullable) return null; // e.g. 'true or null'.
     ValueTypeMask valueMask = mask;
     if (valueMask.value.isBool) return valueMask.value;
     // TODO(sra): Consider other values. Be careful with large strings.
@@ -420,8 +420,9 @@ class TypeMaskSystem implements AbstractValueDomain {
   @override
   bool isDefinitelyExtendableArray(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.nonNullable().satisfies(helpers.jsExtendableArrayClass,
-                                     classWorld);
+    return t
+        .nonNullable()
+        .satisfies(helpers.jsExtendableArrayClass, classWorld);
   }
 
   @override
@@ -433,8 +434,9 @@ class TypeMaskSystem implements AbstractValueDomain {
   @override
   bool isDefinitelyMutableIndexable(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.nonNullable().satisfies(helpers.jsMutableIndexableClass,
-        classWorld);
+    return t
+        .nonNullable()
+        .satisfies(helpers.jsMutableIndexableClass, classWorld);
   }
 
   @override
@@ -480,9 +482,8 @@ class TypeMaskSystem implements AbstractValueDomain {
   }
 
   @override
-  AbstractBool isSubtypeOf(TypeMask value,
-                           types.DartType type,
-                           {bool allowNull}) {
+  AbstractBool isSubtypeOf(TypeMask value, types.DartType type,
+      {bool allowNull}) {
     assert(allowNull != null);
     if (type is types.DynamicType) {
       return AbstractBool.True;
@@ -543,8 +544,7 @@ class TypeMaskSystem implements AbstractValueDomain {
       if (element == classWorld.stringClass) {
         return stringType;
       }
-      if (element == classWorld.numClass ||
-          element == classWorld.doubleClass) {
+      if (element == classWorld.numClass || element == classWorld.doubleClass) {
         return numType;
       }
       if (element == classWorld.intClass) {

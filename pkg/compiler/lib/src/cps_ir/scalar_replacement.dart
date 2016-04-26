@@ -8,8 +8,7 @@ import 'optimizers.dart';
 import 'dart:collection' show Queue;
 
 import '../common.dart';
-import '../compiler.dart' as dart2js show
-    Compiler;
+import '../compiler.dart' as dart2js show Compiler;
 import '../constants/values.dart';
 import '../elements/elements.dart';
 import '../types/types.dart';
@@ -44,7 +43,6 @@ class ScalarReplacer extends Pass {
  * can create new candidates, iterate until all scalar replacements are done.
  */
 class ScalarReplacementVisitor extends TrampolineRecursiveVisitor {
-
   final InternalErrorFunction internalError;
   final World classWorld;
   ScalarReplacementRemovalVisitor removalVisitor;
@@ -71,7 +69,6 @@ class ScalarReplacementVisitor extends TrampolineRecursiveVisitor {
   }
 
   void tryScalarReplacement(Primitive allocation) {
-
     // We can do scalar replacement of an aggregate if all uses of an allocation
     // are reads or writes.
     for (Reference ref = allocation.firstRef; ref != null; ref = ref.next) {
@@ -101,11 +98,10 @@ class ScalarReplacementVisitor extends TrampolineRecursiveVisitor {
     if (allocation is CreateInstance) {
       int i = 0;
       allocation.classElement.forEachInstanceField(
-        (ClassElement enclosingClass, FieldElement field) {
-          Primitive argument = allocation.argument(i++);
-          fieldInitialValues[field] = argument;
-        },
-        includeSuperAndInjectedMembers: true);
+          (ClassElement enclosingClass, FieldElement field) {
+        Primitive argument = allocation.argument(i++);
+        fieldInitialValues[field] = argument;
+      }, includeSuperAndInjectedMembers: true);
     }
 
     // Create [MutableVariable]s for each written field. Initialize the
@@ -113,7 +109,7 @@ class ScalarReplacementVisitor extends TrampolineRecursiveVisitor {
     // `null` constant if there is not initial value.
     Map<FieldElement, MutableVariable> cells =
         <FieldElement, MutableVariable>{};
-    InteriorNode insertionPoint = allocation.parent;  // LetPrim
+    InteriorNode insertionPoint = allocation.parent; // LetPrim
     for (FieldElement field in writes) {
       MutableVariable variable = new MutableVariable(field);
       variable.type = new TypeMask.nonNullEmpty();
@@ -213,7 +209,6 @@ class ScalarReplacementVisitor extends TrampolineRecursiveVisitor {
     enqueue(node);
   }
 }
-
 
 /// Visit a just-deleted subterm and unlink all [Reference]s in it.  Reconsider
 /// allocations for scalar replacement.

@@ -11,6 +11,22 @@ import 'package:unittest/unittest.dart';
 typedef Future IsolateTest(Isolate isolate);
 typedef Future VMTest(VM vm);
 
+Map<String, StreamSubscription> streamSubscriptions = {};
+
+Future subscribeToStream(VM vm, String streamName, onEvent) async {
+  assert(streamSubscriptions[streamName] == null);
+
+  Stream stream = await vm.getEventStream(streamName);
+  StreamSubscription subscription = stream.listen(onEvent);
+  streamSubscriptions[streamName] = subscription;
+}
+
+Future cancelStreamSubscription(String streamName) async {
+  StreamSubscription subscription = streamSubscriptions[streamName];
+  subscription.cancel();
+  streamSubscriptions.remove(streamName);
+}
+
 Future asyncStepOver(Isolate isolate) async {
   final Completer pausedAtSyntheticBreakpoint = new Completer();
   StreamSubscription subscription;
@@ -88,10 +104,10 @@ Future<Isolate> hasPausedFor(Isolate isolate, String kind) {
     var subscription;
     subscription = stream.listen((ServiceEvent event) {
         if (event.kind == kind) {
-          print('Paused with $kind');
-          subscription.cancel();
           if (completer != null) {
             // Reload to update isolate.pauseEvent.
+            print('Paused with $kind');
+            subscription.cancel();
             completer.complete(isolate.reload());
             completer = null;
           }
@@ -103,9 +119,9 @@ Future<Isolate> hasPausedFor(Isolate isolate, String kind) {
       if ((isolate.pauseEvent != null) &&
          (isolate.pauseEvent.kind == kind)) {
         // Already waiting at a breakpoint.
-        print('Paused with $kind');
-        subscription.cancel();
         if (completer != null) {
+          print('Paused with $kind');
+          subscription.cancel();
           completer.complete(isolate);
           completer = null;
         }

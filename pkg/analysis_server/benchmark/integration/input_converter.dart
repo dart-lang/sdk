@@ -72,6 +72,8 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
 
   CommonInputConverter(this.tmpSrcDirPath, this.srcPathMap);
 
+  Map<String, dynamic> asMap(dynamic value) => value as Map<String, dynamic>;
+
   /**
    * Return an operation for the notification or `null` if none.
    */
@@ -79,9 +81,9 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
     String event = json['event'];
     if (event == SERVER_STATUS) {
       // {"event":"server.status","params":{"analysis":{"isAnalyzing":false}}}
-      Map<String, dynamic> params = json['params'];
+      Map<String, dynamic> params = asMap(json['params']);
       if (params != null) {
-        Map<String, dynamic> analysis = params['analysis'];
+        Map<String, dynamic> analysis = asMap(params['analysis']);
         if (analysis != null && analysis['isAnalyzing'] == false) {
           return new WaitForAnalysisCompleteOperation();
         }
@@ -101,7 +103,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
    * Return an operation for the request or `null` if none.
    */
   Operation convertRequest(Map<String, dynamic> origJson) {
-    Map<String, dynamic> json = translateSrcPaths(origJson);
+    Map<String, dynamic> json = asMap(translateSrcPaths(origJson));
     requestMap[json['id']] = json;
     String method = json['method'];
     // Sanity check operations that modify source
@@ -172,8 +174,8 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
    * Return an operation for the recorded/expected response.
    */
   Operation convertResponse(Map<String, dynamic> json) {
-    return new ResponseOperation(
-        this, requestMap.remove(json['id']), translateSrcPaths(json));
+    return new ResponseOperation(this, asMap(requestMap.remove(json['id'])),
+        asMap(translateSrcPaths(json)));
   }
 
   void logOverlayContent() {
@@ -269,7 +271,9 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
  * into a series of operations to be sent to the analysis server.
  * The input stream can be either an instrumenation or log file.
  */
-class InputConverter extends Converter<String, Operation> {
+class InputConverter
+    extends ChunkedConverter<String, Operation, String, Operation> {
+
   final Logger logger = new Logger('InputConverter');
 
   /**

@@ -121,7 +121,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   Zone* zone = compiler->zone();
 
   builder->AddPp(current->function(), slot_ix++);
-  builder->AddPcMarker(Function::Handle(zone), slot_ix++);
+  builder->AddPcMarker(Function::ZoneHandle(zone), slot_ix++);
   builder->AddCallerFp(slot_ix++);
   builder->AddReturnAddress(current->function(), deopt_id(), slot_ix++);
 
@@ -516,7 +516,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ Bind(&fall_through);
     return type_test_cache.raw();
   }
-  if (type.IsType() || type.IsFunctionType()) {
+  if (type.IsType()) {
     const Register kInstanceReg = R0;
     const Register kTypeArgumentsReg = R1;
     __ tst(kInstanceReg, Operand(kSmiTagMask));  // Is instance Smi?
@@ -1309,7 +1309,8 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     intptr_t deopt_id,
     TokenPosition token_pos,
     LocationSummary* locs,
-    intptr_t try_index) {
+    intptr_t try_index,
+    intptr_t slow_path_argument_count) {
   const String& name = String::Handle(zone(), ic_data.target_name());
   const Array& arguments_descriptor =
       Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
@@ -1327,7 +1328,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   }
   __ blx(R1);
 
-  RecordSafepoint(locs);
+  RecordSafepoint(locs, slow_path_argument_count);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (FLAG_precompiled_mode) {
     // Megamorphic calls may occur in slow path stubs.
@@ -1366,7 +1367,7 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(
   __ LoadFromOffset(kWord, R0, SP, (argument_count - 1) * kWordSize);
   if (ic_data.NumArgsTested() == 1) {
     __ LoadUniqueObject(R9, ic_data);
-    __ BranchLinkPatchable(*StubCode::ICLookup_entry());
+    __ BranchLinkPatchable(*StubCode::ICLookupThroughFunction_entry());
   } else {
     const String& name = String::Handle(zone(), ic_data.target_name());
     const Array& arguments_descriptor =
@@ -1595,7 +1596,8 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         Label* match_found,
                                         intptr_t deopt_id,
                                         TokenPosition token_index,
-                                        LocationSummary* locs) {
+                                        LocationSummary* locs,
+                                        bool complete) {
   ASSERT(is_optimizing());
   __ Comment("EmitTestAndCall");
   const Array& arguments_descriptor =
@@ -1612,8 +1614,8 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   ASSERT(!ic_data.IsNull() && (kNumChecks > 0));
 
   Label after_smi_test;
-  __ tst(R0, Operand(kSmiTagMask));
   if (kFirstCheckIsSmi) {
+    __ tst(R0, Operand(kSmiTagMask));
     // Jump if receiver is not Smi.
     if (kNumChecks == 1) {
       __ b(failed, NE);
@@ -1637,7 +1639,10 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   } else {
     // Receiver is Smi, but Smi is not a valid class therefore fail.
     // (Smi class must be first in the list).
-    __ b(failed, EQ);
+    if (!complete) {
+      __ tst(R0, Operand(kSmiTagMask));
+      __ b(failed, EQ);
+    }
   }
   __ Bind(&after_smi_test);
 
@@ -1656,11 +1661,18 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     const bool kIsLastCheck = (i == (kSortedLen - 1));
     ASSERT(sorted[i].cid != kSmiCid);
     Label next_test;
-    __ CompareImmediate(R2, sorted[i].cid);
-    if (kIsLastCheck) {
-      __ b(failed, NE);
+    if (!complete) {
+      __ CompareImmediate(R2, sorted[i].cid);
+      if (kIsLastCheck) {
+        __ b(failed, NE);
+      } else {
+        __ b(&next_test, NE);
+      }
     } else {
-      __ b(&next_test, NE);
+      if (!kIsLastCheck) {
+        __ CompareImmediate(R2, sorted[i].cid);
+        __ b(&next_test, NE);
+      }
     }
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.

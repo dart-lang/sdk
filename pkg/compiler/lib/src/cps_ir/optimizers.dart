@@ -42,7 +42,7 @@ abstract class Pass {
 /// Returns true if [value] is false, null, 0, -0, NaN, or the empty string.
 bool isFalsyConstant(ConstantValue value) {
   return value.isFalse ||
-      value.isNull  ||
+      value.isNull ||
       value.isZero ||
       value.isMinusZero ||
       value.isNaN ||
@@ -59,6 +59,10 @@ bool isTruthyConstant(ConstantValue value, {bool strict: false}) {
 
 /// Selectors that do not throw when invoked on the null value.
 final List<Selector> selectorsOnNull = <Selector>[
-    Selectors.equals, Selectors.hashCode_, Selectors.runtimeType_,
-    Selectors.toString_, Selectors.toStringGetter,
-    Selectors.noSuchMethodGetter];
+  Selectors.equals,
+  Selectors.hashCode_,
+  Selectors.runtimeType_,
+  Selectors.toString_,
+  Selectors.toStringGetter,
+  Selectors.noSuchMethodGetter
+];

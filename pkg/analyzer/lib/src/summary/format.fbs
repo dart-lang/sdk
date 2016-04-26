@@ -7,6 +7,15 @@
 
 
 /**
+ * Kind of a source in the cache.
+ */
+enum CacheSourceKind : byte {
+  library,
+
+  part
+}
+
+/**
  * Enum used to indicate the kind of a name in index.
  */
 enum IndexNameKind : byte {
@@ -25,6 +34,13 @@ enum IndexNameKind : byte {
  * Enum used to indicate the kind of an index relation.
  */
 enum IndexRelationKind : byte {
+  /**
+   * Left: class.
+   *   Is ancestor of (is extended or implemented, directly or indirectly).
+   * Right: other class declaration.
+   */
+  IS_ANCESTOR_OF,
+
   /**
    * Left: class.
    *   Is extended by.
@@ -58,7 +74,28 @@ enum IndexRelationKind : byte {
    *   Is referenced (and not invoked, read/written) at.
    * Right: location.
    */
-  IS_REFERENCED_BY
+  IS_REFERENCED_BY,
+
+  /**
+   * Left: unresolved member name.
+   *   Is read at.
+   * Right: location.
+   */
+  IS_READ_BY,
+
+  /**
+   * Left: unresolved member name.
+   *   Is both read and written at.
+   * Right: location.
+   */
+  IS_READ_WRITTEN_BY,
+
+  /**
+   * Left: unresolved member name.
+   *   Is written at.
+   * Right: location.
+   */
+  IS_WRITTEN_BY
 }
 
 /**
@@ -78,6 +115,11 @@ enum IndexSyntheticElementKind : byte {
   constructor,
 
   /**
+   * The synthetic field element.
+   */
+  field,
+
+  /**
    * The synthetic getter of a property introducing element.
    */
   getter,
@@ -85,7 +127,27 @@ enum IndexSyntheticElementKind : byte {
   /**
    * The synthetic setter of a property introducing element.
    */
-  setter
+  setter,
+
+  /**
+   * The synthetic top-level variable element.
+   */
+  topLevelVariable,
+
+  /**
+   * The synthetic `loadLibrary` element.
+   */
+  loadLibrary,
+
+  /**
+   * The synthetic `index` getter of an enum.
+   */
+  enumIndex,
+
+  /**
+   * The synthetic `values` getter of an enum.
+   */
+  enumValues
 }
 
 /**
@@ -114,11 +176,6 @@ enum ReferenceKind : byte {
    * The entity is a method.
    */
   method,
-
-  /**
-   * The `length` property access.
-   */
-  length,
 
   /**
    * The entity is a typedef.
@@ -245,6 +302,13 @@ enum UnlinkedConstOperation : byte {
   pushReference,
 
   /**
+   * Pop the top value from the stack, extract the value of the property with
+   * the name obtained from [UnlinkedConst.strings], and push the result back
+   * onto the stack.
+   */
+  extractProperty,
+
+  /**
    * Pop the top `n` values from the stack (where `n` is obtained from
    * [UnlinkedConst.ints]) into a list (filled from the end) and take the next
    * `n` values from [UnlinkedConst.strings] and use the lists of names and
@@ -294,12 +358,6 @@ enum UnlinkedConstOperation : byte {
    * the [Map] are obtained from [UnlinkedConst.references].
    */
   makeTypedMap,
-
-  /**
-   * Pop the top 2 values from the stack, pass them to the predefined Dart
-   * function `identical`, and push the result back onto the stack.
-   */
-  identical,
 
   /**
    * Pop the top 2 values from the stack, evaluate `v1 == v2`, and push the
@@ -440,10 +498,118 @@ enum UnlinkedConstOperation : byte {
   conditional,
 
   /**
-   * Pop the top value from the stack, evaluate `v.length`, and push the result
-   * back onto the stack.
+   * Pop from the stack `value` and get the next `target` reference from
+   * [UnlinkedConst.references] - a top-level variable (prefixed or not), an
+   * assignable field of a class (prefixed or not), or a sequence of getters
+   * ending with an assignable property `a.b.b.c.d.e`.  In general `a.b` cannot
+   * not be distinguished between: `a` is a prefix and `b` is a top-level
+   * variable; or `a` is an object and `b` is the name of a property.  Perform
+   * `reference op= value` where `op` is the next assignment operator from
+   * [UnlinkedConst.assignmentOperators].  Push `value` back into the stack.
+   *
+   * If the assignment operator is a prefix/postfix increment/decrement, then
+   * `value` is not present in the stack, so it should not be popped and the
+   * corresponding value of the `target` after/before update is pushed into the
+   * stack instead.
    */
-  length
+  assignToRef,
+
+  /**
+   * Pop from the stack `target` and `value`.  Get the name of the property from
+   * `UnlinkedConst.strings` and assign the `value` to the named property of the
+   * `target`.  This operation is used when we know that the `target` is an
+   * object reference expression, e.g. `new Foo().a.b.c` or `a.b[0].c.d`.
+   * Perform `target.property op= value` where `op` is the next assignment
+   * operator from [UnlinkedConst.assignmentOperators].  Push `value` back into
+   * the stack.
+   *
+   * If the assignment operator is a prefix/postfix increment/decrement, then
+   * `value` is not present in the stack, so it should not be popped and the
+   * corresponding value of the `target` after/before update is pushed into the
+   * stack instead.
+   */
+  assignToProperty,
+
+  /**
+   * Pop from the stack `index`, `target` and `value`.  Perform
+   * `target[index] op= value`  where `op` is the next assignment operator from
+   * [UnlinkedConst.assignmentOperators].  Push `value` back into the stack.
+   *
+   * If the assignment operator is a prefix/postfix increment/decrement, then
+   * `value` is not present in the stack, so it should not be popped and the
+   * corresponding value of the `target` after/before update is pushed into the
+   * stack instead.
+   */
+  assignToIndex,
+
+  /**
+   * Pop from the stack `index` and `target`.  Push into the stack the result
+   * of evaluation of `target[index]`.
+   */
+  extractIndex,
+
+  /**
+   * Pop the top `n` values from the stack (where `n` is obtained from
+   * [UnlinkedConst.ints]) into a list (filled from the end) and take the next
+   * `n` values from [UnlinkedConst.strings] and use the lists of names and
+   * values to create named arguments.  Then pop the top `m` values from the
+   * stack (where `m` is obtained from [UnlinkedConst.ints]) into a list (filled
+   * from the end) and use them as positional arguments.  Use the lists of
+   * positional and names arguments to invoke a method (or a function) with
+   * the reference from [UnlinkedConst.references].  Push the result of
+   * invocation value into the stack.
+   *
+   * In general `a.b` cannot not be distinguished between: `a` is a prefix and
+   * `b` is a top-level function; or `a` is an object and `b` is the name of a
+   * method.  This operation should be used for a sequence of identifiers
+   * `a.b.b.c.d.e` ending with an invokable result.
+   */
+  invokeMethodRef,
+
+  /**
+   * Pop the top `n` values from the stack (where `n` is obtained from
+   * [UnlinkedConst.ints]) into a list (filled from the end) and take the next
+   * `n` values from [UnlinkedConst.strings] and use the lists of names and
+   * values to create named arguments.  Then pop the top `m` values from the
+   * stack (where `m` is obtained from [UnlinkedConst.ints]) into a list (filled
+   * from the end) and use them as positional arguments.  Use the lists of
+   * positional and names arguments to invoke the method with the name from
+   * [UnlinkedConst.strings] of the target popped from the stack, and push the
+   * resulting value into the stack.
+   *
+   * This operation should be used for invocation of a method invocation
+   * where `target` is know to be an object instance.
+   */
+  invokeMethod,
+
+  /**
+   * Begin a new cascade section.  Duplicate the top value of the stack.
+   */
+  cascadeSectionBegin,
+
+  /**
+   * End a new cascade section.  Pop the top value from the stack and throw it
+   * away.
+   */
+  cascadeSectionEnd,
+
+  /**
+   * Pop the top value from the stack and cast it to the type with reference
+   * from [UnlinkedConst.references], push the result into the stack.
+   */
+  typeCast,
+
+  /**
+   * Pop the top value from the stack and check whether it is a subclass of the
+   * type with reference from [UnlinkedConst.references], push the result into
+   * the stack.
+   */
+  typeCheck,
+
+  /**
+   * Pop the top value from the stack and raise an exception with this value.
+   */
+  throwException
 }
 
 /**
@@ -492,6 +658,100 @@ enum UnlinkedExecutableKind : byte {
 }
 
 /**
+ * Enum representing the various kinds of assignment operations combined
+ * with:
+ *    [UnlinkedConstOperation.assignToRef],
+ *    [UnlinkedConstOperation.assignToProperty],
+ *    [UnlinkedConstOperation.assignToIndex].
+ */
+enum UnlinkedExprAssignOperator : byte {
+  /**
+   * Perform simple assignment `target = operand`.
+   */
+  assign,
+
+  /**
+   * Perform `target ??= operand`.
+   */
+  ifNull,
+
+  /**
+   * Perform `target *= operand`.
+   */
+  multiply,
+
+  /**
+   * Perform `target /= operand`.
+   */
+  divide,
+
+  /**
+   * Perform `target ~/= operand`.
+   */
+  floorDivide,
+
+  /**
+   * Perform `target %= operand`.
+   */
+  modulo,
+
+  /**
+   * Perform `target += operand`.
+   */
+  plus,
+
+  /**
+   * Perform `target -= operand`.
+   */
+  minus,
+
+  /**
+   * Perform `target <<= operand`.
+   */
+  shiftLeft,
+
+  /**
+   * Perform `target >>= operand`.
+   */
+  shiftRight,
+
+  /**
+   * Perform `target &= operand`.
+   */
+  bitAnd,
+
+  /**
+   * Perform `target ^= operand`.
+   */
+  bitXor,
+
+  /**
+   * Perform `target |= operand`.
+   */
+  bitOr,
+
+  /**
+   * Perform `++target`.
+   */
+  prefixIncrement,
+
+  /**
+   * Perform `--target`.
+   */
+  prefixDecrement,
+
+  /**
+   * Perform `target++`.
+   */
+  postfixIncrement,
+
+  /**
+   * Perform `target++`.
+   */
+  postfixDecrement
+}
+
+/**
  * Enum used to indicate the kind of a parameter.
  */
 enum UnlinkedParamKind : byte {
@@ -509,6 +769,49 @@ enum UnlinkedParamKind : byte {
    * Parameter is named optional (enclosed in `{}`)
    */
   named
+}
+
+/**
+ * Information about a source that depends only on its content.
+ */
+table CacheSourceContent {
+  /**
+   * The list of exported URIs, e.g. `dart:core`, or `foo/bar.dart`,
+   * or `package:foo/bar.dart`.  Empty if [kind] is [CacheSourceKind.part].
+   */
+  exportedUris:[string] (id: 2);
+
+  /**
+   * The list of explicitly imported URIs, e.g. `dart:core`, or `foo/bar.dart`,
+   * or `package:foo/bar.dart`.  Empty if [kind] is [CacheSourceKind.part].
+   */
+  importedUris:[string] (id: 1);
+
+  /**
+   * The kind of the source.
+   */
+  kind:CacheSourceKind (id: 0);
+
+  /**
+   * The list of part URIs, e.g. `foo/bar.dart`.  Empty if [kind] is
+   * [CacheSourceKind.part].
+   */
+  partUris:[string] (id: 3);
+}
+
+/**
+ * Information about an element code range.
+ */
+table CodeRange {
+  /**
+   * Length of the element code.
+   */
+  length:uint (id: 1);
+
+  /**
+   * Offset of the element code relative to the beginning of the file.
+   */
+  offset:uint (id: 0);
 }
 
 /**
@@ -675,6 +978,12 @@ table LinkedLibrary {
   dependencies:[LinkedDependency] (id: 0);
 
   /**
+   * For each export in [UnlinkedUnit.exports], an index into [dependencies]
+   * of the library being exported.
+   */
+  exportDependencies:[uint] (id: 6);
+
+  /**
    * Information about entities in the export namespace of the library that are
    * not in the public namespace of the library (that is, entities that are
    * brought into the namespace via `export` directives).
@@ -682,6 +991,12 @@ table LinkedLibrary {
    * Sorted by name.
    */
   exportNames:[LinkedExportName] (id: 4);
+
+  /**
+   * Indicates whether this library was summarized in "fallback mode".  If
+   * true, all other fields in the data structure have their default values.
+   */
+  fallbackMode:bool (id: 5);
 
   /**
    * For each import in [UnlinkedUnit.imports], an index into [dependencies]
@@ -777,6 +1092,12 @@ table LinkedReference {
  */
 table LinkedUnit {
   /**
+   * List of slot ids (referring to [UnlinkedExecutable.constCycleSlot])
+   * corresponding to const constructors that are part of cycles.
+   */
+  constCycles:[uint] (id: 2);
+
+  /**
    * Information about the resolution of references within the compilation
    * unit.  Each element of [UnlinkedUnit.references] has a corresponding
    * element in this list (at the same index).  If this list has additional
@@ -863,7 +1184,9 @@ table PackageIndex {
   elementUnits:[uint] (id: 0);
 
   /**
-   * List of unique element strings used in this [PackageIndex].
+   * List of unique element strings used in this [PackageIndex].  The list is
+   * sorted in ascending order, so that the client can quickly check the
+   * presence of a string in this [PackageIndex].
    */
   strings:[string] (id: 6);
 
@@ -946,6 +1269,12 @@ table UnitIndex {
   usedElements:[uint] (id: 3);
 
   /**
+   * Each item of this list is the `true` if the corresponding name usage
+   * is qualified with some prefix.
+   */
+  usedNameIsQualifiedFlags:[ubyte] (id: 12);
+
+  /**
    * Each item of this list is the kind of the name usage.
    */
   usedNameKinds:[IndexRelationKind] (id: 10);
@@ -972,6 +1301,11 @@ table UnlinkedClass {
    * Annotations for this class.
    */
   annotations:[UnlinkedConst] (id: 5);
+
+  /**
+   * Code range of the class.
+   */
+  codeRange:CodeRange (id: 13);
 
   /**
    * Documentation comment for the class, or `null` if there is no
@@ -1078,6 +1412,11 @@ table UnlinkedCombinator {
  */
 table UnlinkedConst {
   /**
+   * Sequence of operators used by assignment operations.
+   */
+  assignmentOperators:[UnlinkedExprAssignOperator] (id: 6);
+
+  /**
    * Sequence of 64-bit doubles consumed by the operation `pushDouble`.
    */
   doubles:[double] (id: 4);
@@ -1090,10 +1429,10 @@ table UnlinkedConst {
   ints:[uint] (id: 1);
 
   /**
-   * Indicates whether the expression is not a valid potentially constant
+   * Indicates whether the expression is a valid potentially constant
    * expression.
    */
-  isInvalid:bool (id: 5);
+  isValidConst:bool (id: 5);
 
   /**
    * Sequence of operations to execute (starting with an empty stack) to form
@@ -1180,6 +1519,11 @@ table UnlinkedEnum {
   annotations:[UnlinkedConst] (id: 4);
 
   /**
+   * Code range of the enum.
+   */
+  codeRange:CodeRange (id: 5);
+
+  /**
    * Documentation comment for the enum, or `null` if there is no documentation
    * comment.
    */
@@ -1234,10 +1578,25 @@ table UnlinkedExecutable {
   annotations:[UnlinkedConst] (id: 6);
 
   /**
+   * Code range of the executable.
+   */
+  codeRange:CodeRange (id: 26);
+
+  /**
    * If a constant [UnlinkedExecutableKind.constructor], the constructor
    * initializers.  Otherwise empty.
    */
   constantInitializers:[UnlinkedConstructorInitializer] (id: 14);
+
+  /**
+   * If [kind] is [UnlinkedExecutableKind.constructor] and [isConst] is `true`,
+   * a nonzero slot id which is unique within this compilation unit.  If this id
+   * is found in [LinkedUnit.constCycles], then this constructor is part of a
+   * cycle.
+   *
+   * Otherwise, zero.
+   */
+  constCycleSlot:uint (id: 25);
 
   /**
    * Documentation comment for the executable, or `null` if there is no
@@ -1524,6 +1883,11 @@ table UnlinkedParam {
   annotations:[UnlinkedConst] (id: 9);
 
   /**
+   * Code range of the parameter.
+   */
+  codeRange:CodeRange (id: 14);
+
+  /**
    * If the parameter has a default value, the constant expression in the
    * default value.  Note that the presence of this expression does not mean
    * that it is a valid, check [UnlinkedConst.isInvalid].
@@ -1720,6 +2084,11 @@ table UnlinkedTypedef {
   annotations:[UnlinkedConst] (id: 4);
 
   /**
+   * Code range of the typedef.
+   */
+  codeRange:CodeRange (id: 7);
+
+  /**
    * Documentation comment for the typedef, or `null` if there is no
    * documentation comment.
    */
@@ -1767,6 +2136,11 @@ table UnlinkedTypeParam {
   bound:EntityRef (id: 2);
 
   /**
+   * Code range of the type parameter.
+   */
+  codeRange:CodeRange (id: 4);
+
+  /**
    * Name of the type parameter.
    */
   name:string (id: 0);
@@ -1787,6 +2161,11 @@ table UnlinkedUnit {
   classes:[UnlinkedClass] (id: 2);
 
   /**
+   * Code range of the unit.
+   */
+  codeRange:CodeRange (id: 15);
+
+  /**
    * Enums declared in the compilation unit.
    */
   enums:[UnlinkedEnum] (id: 12);
@@ -1801,6 +2180,15 @@ table UnlinkedUnit {
    * Export declarations in the compilation unit.
    */
   exports:[UnlinkedExportNonPublic] (id: 13);
+
+  /**
+   * If this compilation unit was summarized in fallback mode, the path where
+   * the compilation unit may be found on disk.  Otherwise empty.
+   *
+   * When this field is non-empty, all other fields in the data structure have
+   * their default values.
+   */
+  fallbackModePath:string (id: 16);
 
   /**
    * Import declarations in the compilation unit.
@@ -1875,6 +2263,11 @@ table UnlinkedVariable {
    * Annotations for this variable.
    */
   annotations:[UnlinkedConst] (id: 8);
+
+  /**
+   * Code range of the variable.
+   */
+  codeRange:CodeRange (id: 14);
 
   /**
    * If [isConst] is true, and the variable has an initializer, the constant

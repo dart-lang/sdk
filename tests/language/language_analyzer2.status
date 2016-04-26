@@ -42,9 +42,6 @@ multiline_newline_test/06: MissingCompileTimeError # Issue 23888
 
 const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
 
-# Unsupported configuration specific imports.
-config_import_test: CompileTimeError # Issue 24579
-
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
 #
@@ -517,3 +514,11 @@ accessor_conflict_import2_test: StaticWarning # Issue 25624
 accessor_conflict_import_prefixed2_test: StaticWarning # Issue 25624
 accessor_conflict_import_prefixed_test: StaticWarning # Issue 25624
 accessor_conflict_import_test: StaticWarning # Issue 25624
+
+for_in3_test: StaticWarning, OK # Test should have warning by design.
+for_in_side_effects_test: StaticWarning, OK # Test uses custom class that does not implement Iterable in for-in.
+
+# Experimental feature: Syntactic support for generic methods.
+generic_functions_test: CompileTimeError # Issue 25868
+generic_methods_test: CompileTimeError # Issue 25868
+generic_sends_test: CompileTimeError # Issue 25868

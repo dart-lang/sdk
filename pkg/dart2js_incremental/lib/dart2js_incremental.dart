@@ -20,6 +20,9 @@ import 'package:compiler/compiler_new.dart' show
     CompilerOutput,
     Diagnostic;
 
+import 'package:compiler/src/options.dart' show
+    CompilerOptions;
+
 import 'package:compiler/src/null_compiler_output.dart' show
     NullCompilerOutput;
 

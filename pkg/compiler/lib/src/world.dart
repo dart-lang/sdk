@@ -4,34 +4,27 @@
 
 library dart2js.world;
 
-import 'closure.dart' show
-    SynthesizedCallMethodElementX;
+import 'closure.dart' show SynthesizedCallMethodElementX;
 import 'common.dart';
-import 'common/backend_api.dart' show
-    Backend;
-import 'compiler.dart' show
-    Compiler;
-import 'core_types.dart' show
-    CoreClasses;
+import 'common/backend_api.dart' show Backend;
+import 'compiler.dart' show Compiler;
+import 'core_types.dart' show CoreClasses;
 import 'dart_types.dart';
-import 'elements/elements.dart' show
-    ClassElement,
-    Element,
-    FunctionElement,
-    MixinApplicationElement,
-    TypedefElement,
-    VariableElement;
+import 'elements/elements.dart'
+    show
+        ClassElement,
+        Element,
+        FunctionElement,
+        MixinApplicationElement,
+        TypedefElement,
+        VariableElement;
 import 'ordered_typeset.dart';
 import 'types/types.dart' as ti;
 import 'universe/class_set.dart';
-import 'universe/function_set.dart' show
-    FunctionSet;
-import 'universe/selector.dart' show
-    Selector;
-import 'universe/side_effects.dart' show
-    SideEffects;
-import 'util/util.dart' show
-    Link;
+import 'universe/function_set.dart' show FunctionSet;
+import 'universe/selector.dart' show Selector;
+import 'universe/side_effects.dart' show SideEffects;
+import 'util/util.dart' show Link;
 
 abstract class ClassWorld {
   // TODO(johnniwinther): Refine this into a `BackendClasses` interface.
@@ -99,7 +92,8 @@ abstract class ClassWorld {
 
   /// Applies [f] to each live class that extend [cls] _not_ including [cls]
   /// itself.
-  void forEachStrictSubclassOf(ClassElement cls, ForEach f(ClassElement cls));
+  void forEachStrictSubclassOf(
+      ClassElement cls, IterationStep f(ClassElement cls));
 
   /// Returns `true` if [predicate] applies to any live class that extend [cls]
   /// _not_ including [cls] itself.
@@ -119,7 +113,8 @@ abstract class ClassWorld {
 
   /// Applies [f] to each live class that implements [cls] _not_ including [cls]
   /// itself.
-  void forEachStrictSubtypeOf(ClassElement cls, ForEach f(ClassElement cls));
+  void forEachStrictSubtypeOf(
+      ClassElement cls, IterationStep f(ClassElement cls));
 
   /// Returns `true` if [predicate] applies to any live class that implements
   /// [cls] _not_ including [cls] itself.
@@ -157,8 +152,8 @@ abstract class ClassWorld {
   bool isUsedAsMixin(ClassElement cls);
 
   /// Returns `true` if any live class that mixes in [cls] implements [type].
-  bool hasAnySubclassOfMixinUseThatImplements(ClassElement cls,
-                                              ClassElement type);
+  bool hasAnySubclassOfMixinUseThatImplements(
+      ClassElement cls, ClassElement type);
 
   /// Returns `true` if any live class that mixes in [mixin] is also a subclass
   /// of [superclass].
@@ -193,16 +188,17 @@ class World implements ClassWorld {
       new List<Map<ClassElement, ti.TypeMask>>.filled(8, null);
 
   bool checkInvariants(ClassElement cls, {bool mustBeInstantiated: true}) {
-    return
-      invariant(cls, cls.isDeclaration,
+    return invariant(cls, cls.isDeclaration,
                 message: '$cls must be the declaration.') &&
-      invariant(cls, cls.isResolved,
-                message: '$cls must be resolved.')/* &&
+            invariant(cls, cls.isResolved,
+                message:
+                    '$cls must be resolved.') /* &&
       // TODO(johnniwinther): Reinsert this or similar invariant.
       (!mustBeInstantiated ||
        invariant(cls, isInstantiated(cls),
-                 message: '$cls is not instantiated.'))*/;
- }
+                 message: '$cls is not instantiated.'))*/
+        ;
+  }
 
   /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
   /// instance of [y].
@@ -259,8 +255,7 @@ class World implements ClassWorld {
   Iterable<ClassElement> subclassesOf(ClassElement cls) {
     ClassHierarchyNode hierarchy = _classHierarchyNodes[cls.declaration];
     if (hierarchy == null) return const <ClassElement>[];
-    return hierarchy.subclassesByMask(
-        ClassHierarchyNode.DIRECTLY_INSTANTIATED);
+    return hierarchy.subclassesByMask(ClassHierarchyNode.DIRECTLY_INSTANTIATED);
   }
 
   /// Returns an iterable over the directly instantiated classes that extend
@@ -268,8 +263,8 @@ class World implements ClassWorld {
   Iterable<ClassElement> strictSubclassesOf(ClassElement cls) {
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return const <ClassElement>[];
-    return subclasses.subclassesByMask(
-        ClassHierarchyNode.DIRECTLY_INSTANTIATED, strict: true);
+    return subclasses.subclassesByMask(ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+        strict: true);
   }
 
   /// Returns the number of live classes that extend [cls] _not_
@@ -282,12 +277,11 @@ class World implements ClassWorld {
 
   /// Applies [f] to each live class that extend [cls] _not_ including [cls]
   /// itself.
-  void forEachStrictSubclassOf(ClassElement cls, ForEach f(ClassElement cls)) {
+  void forEachStrictSubclassOf(
+      ClassElement cls, IterationStep f(ClassElement cls)) {
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return;
-    subclasses.forEachSubclass(
-        f,
-        ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+    subclasses.forEachSubclass(f, ClassHierarchyNode.DIRECTLY_INSTANTIATED,
         strict: true);
   }
 
@@ -297,8 +291,7 @@ class World implements ClassWorld {
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return false;
     return subclasses.anySubclass(
-        predicate,
-        ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+        predicate, ClassHierarchyNode.DIRECTLY_INSTANTIATED,
         strict: true);
   }
 
@@ -320,8 +313,7 @@ class World implements ClassWorld {
     if (classSet == null) {
       return const <ClassElement>[];
     } else {
-      return classSet.subtypesByMask(
-          ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+      return classSet.subtypesByMask(ClassHierarchyNode.DIRECTLY_INSTANTIATED,
           strict: true);
     }
   }
@@ -336,12 +328,11 @@ class World implements ClassWorld {
 
   /// Applies [f] to each live class that implements [cls] _not_ including [cls]
   /// itself.
-  void forEachStrictSubtypeOf(ClassElement cls, ForEach f(ClassElement cls)) {
+  void forEachStrictSubtypeOf(
+      ClassElement cls, IterationStep f(ClassElement cls)) {
     ClassSet classSet = _classSets[cls.declaration];
     if (classSet == null) return;
-    classSet.forEachSubtype(
-        f,
-        ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+    classSet.forEachSubtype(f, ClassHierarchyNode.DIRECTLY_INSTANTIATED,
         strict: true);
   }
 
@@ -351,8 +342,7 @@ class World implements ClassWorld {
     ClassSet classSet = _classSets[cls.declaration];
     if (classSet == null) return false;
     return classSet.anySubtype(
-        predicate,
-        ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+        predicate, ClassHierarchyNode.DIRECTLY_INSTANTIATED,
         strict: true);
   }
 
@@ -402,14 +392,14 @@ class World implements ClassWorld {
   ClassElement getLubOfInstantiatedSubclasses(ClassElement cls) {
     ClassHierarchyNode hierarchy = _classHierarchyNodes[cls.declaration];
     return hierarchy != null
-        ? hierarchy.getLubOfInstantiatedSubclasses() : null;
+        ? hierarchy.getLubOfInstantiatedSubclasses()
+        : null;
   }
 
   @override
   ClassElement getLubOfInstantiatedSubtypes(ClassElement cls) {
     ClassSet classSet = _classSets[cls.declaration];
-    return classSet != null
-        ? classSet.getLubOfInstantiatedSubtypes() : null;
+    return classSet != null ? classSet.getLubOfInstantiatedSubtypes() : null;
   }
 
   /// Returns an iterable over the common supertypes of the [classes].
@@ -436,8 +426,8 @@ class World implements ClassWorld {
 
     List<ClassElement> commonSupertypes = <ClassElement>[];
     OUTER: for (Link<DartType> link = typeSet[depth];
-                link.head.element != objectClass;
-                link = link.tail) {
+        link.head.element != objectClass;
+        link = link.tail) {
       ClassElement cls = link.head.element;
       for (Link<OrderedTypeSet> link = otherTypeSets;
           !link.isEmpty;
@@ -493,10 +483,10 @@ class World implements ClassWorld {
   }
 
   /// Returns `true` if any live class that mixes in [cls] implements [type].
-  bool hasAnySubclassOfMixinUseThatImplements(ClassElement cls,
-                                              ClassElement type) {
-    return mixinUsesOf(cls).any(
-        (use) => hasAnySubclassThatImplements(use, type));
+  bool hasAnySubclassOfMixinUseThatImplements(
+      ClassElement cls, ClassElement type) {
+    return mixinUsesOf(cls)
+        .any((use) => hasAnySubclassThatImplements(use, type));
   }
 
   /// Returns `true` if any live class that mixes in [mixin] is also a subclass
@@ -506,8 +496,8 @@ class World implements ClassWorld {
   }
 
   /// Returns `true` if any subclass of [superclass] implements [type].
-  bool hasAnySubclassThatImplements(ClassElement superclass,
-                                    ClassElement type) {
+  bool hasAnySubclassThatImplements(
+      ClassElement superclass, ClassElement type) {
     Set<ClassElement> subclasses = typesImplementedBySubclassesOf(superclass);
     if (subclasses == null) return false;
     return subclasses.contains(type);
@@ -532,8 +522,7 @@ class World implements ClassWorld {
   // distinct sets to make class hierarchy analysis faster.
   final Map<ClassElement, ClassHierarchyNode> _classHierarchyNodes =
       <ClassElement, ClassHierarchyNode>{};
-  final Map<ClassElement, ClassSet> _classSets =
-        <ClassElement, ClassSet>{};
+  final Map<ClassElement, ClassSet> _classSets = <ClassElement, ClassSet>{};
 
   final Set<Element> sideEffectsFreeElements = new Set<Element>();
 
@@ -634,8 +623,7 @@ class World implements ClassWorld {
     }
   }
 
-  void _updateClassHierarchyNodeForClass(
-      ClassElement cls,
+  void _updateClassHierarchyNodeForClass(ClassElement cls,
       {bool directlyInstantiated: false}) {
     ClassHierarchyNode node = getClassHierarchyNode(cls);
     _updateSuperClassHierarchyNodeForClass(node);
@@ -649,7 +637,8 @@ class World implements ClassWorld {
     /// properties of the [ClassHierarchyNode] for [cls].
 
     void addSubtypes(ClassElement cls) {
-      if (compiler.hasIncrementalSupport && !alreadyPopulated.add(cls)) {
+      if (compiler.options.hasIncrementalSupport &&
+          !alreadyPopulated.add(cls)) {
         return;
       }
       assert(cls.isDeclaration);
@@ -693,14 +682,13 @@ class World implements ClassWorld {
     return sb.toString();
   }
 
-  void registerMixinUse(MixinApplicationElement mixinApplication,
-                        ClassElement mixin) {
+  void registerMixinUse(
+      MixinApplicationElement mixinApplication, ClassElement mixin) {
     // TODO(johnniwinther): Add map restricted to live classes.
     // We don't support patch classes as mixin.
     assert(mixin.isDeclaration);
-    List<MixinApplicationElement> users =
-        _mixinUses.putIfAbsent(mixin, () =>
-                               new List<MixinApplicationElement>());
+    List<MixinApplicationElement> users = _mixinUses.putIfAbsent(
+        mixin, () => new List<MixinApplicationElement>());
     users.add(mixinApplication);
   }
 
@@ -720,17 +708,14 @@ class World implements ClassWorld {
   }
 
   Element locateSingleElement(Selector selector, ti.TypeMask mask) {
-    mask = mask == null
-        ? compiler.typesTask.dynamicType
-        : mask;
+    mask = mask == null ? compiler.typesTask.dynamicType : mask;
     return mask.locateSingleElement(selector, mask, compiler);
   }
 
   ti.TypeMask extendMaskIfReachesAll(Selector selector, ti.TypeMask mask) {
     bool canReachAll = true;
     if (mask != null) {
-      canReachAll =
-          compiler.enabledInvokeOn &&
+      canReachAll = compiler.enabledInvokeOn &&
           mask.needsNoSuchMethodHandling(selector, this);
     }
     return canReachAll ? compiler.typesTask.dynamicType : mask;
@@ -759,7 +744,7 @@ class World implements ClassWorld {
     }
     if (element.isInstanceMember) {
       return !compiler.resolverWorld.hasInvokedSetter(element, this) &&
-             !compiler.resolverWorld.fieldSetters.contains(element);
+          !compiler.resolverWorld.fieldSetters.contains(element);
     }
     return false;
   }
@@ -837,5 +822,5 @@ class World implements ClassWorld {
     return functionsThatMightBePassedToApply.contains(element);
   }
 
-  bool get hasClosedWorldAssumption => !compiler.hasIncrementalSupport;
+  bool get hasClosedWorldAssumption => !compiler.options.hasIncrementalSupport;
 }

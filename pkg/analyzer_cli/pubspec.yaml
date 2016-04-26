@@ -12,6 +12,7 @@ dependencies:
   linter: ^0.1.10
   package_config: ^0.1.1
   plugin: ^0.1.0
+  protobuf: ^0.5.0
   yaml: ^2.1.2
 dev_dependencies:
   test_reflective_loader: '>=0.0.3 <0.1.0'

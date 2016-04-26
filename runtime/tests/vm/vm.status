@@ -36,10 +36,6 @@ cc/CorelibCompilerStats: Skip
 [ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simarm64 || $arch == simmips ]
 cc/Service_Profile: Skip
 
-[ $arch == arm ]
-cc/Int8ListLengthMaxElements: Skip # Issue 23314
-cc/ArrayLengthMaxElements: Skip # Issue 23314
-
 [ $compiler == dart2js ]
 dart/redirection_type_shuffling_test: Skip # Depends on lazy enforcement of type bounds
 dart/byte_array_test: Skip # compilers not aware of byte arrays
@@ -55,13 +51,14 @@ dart/optimized_stacktrace_test: RuntimeError
 # minifying they can be renamed, which is issue 7953.
 dart/inline_stack_frame_test: RuntimeError, Pass # Issue 7953
 
+[ $compiler == dart2js && $cps_ir && $checked ]
+dart/*: Skip # checked mode + cpsir not supported yet. Issue 25761
+
 [ $compiler == dart2js || $compiler == dart2analyzer ]
 # Data uri's not supported by dart2js or the analyzer.
 dart/data_uri*test: Skip
 
 [ $arch == mips ]
-cc/StaticNonNullSumCallCodegen: Crash, Pass # Issue 17440
-cc/ArrayLengthMaxElements: Crash  # Issue 23275
 cc/Int8ListLengthMaxElements: Skip # Issue 23536, uses 1 GB memory.
 
 [ $arch == mips && $mode == debug ]
@@ -84,7 +81,7 @@ cc/CodeImmutability: Fail,OK # Address Sanitizer turns a crash into a failure.
 [ $noopt ]
 dart/byte_array_test: Crash # Incompatible flag --disable_alloc_stubs_after_gc
 
-[ $noopt || $compiler == precompiler || $compiler == dart2app ]
+[ $noopt || $compiler == precompiler || $mode == product ]
 dart/redirection_type_shuffling_test: CompileTimeError # Imports dart:mirrors
 
 [ $noopt || $runtime == dart_precompiled ]
@@ -94,6 +91,7 @@ dart/optimized_stacktrace_test: Pass, RuntimeError
 
 [ $runtime == dart_product || $runtime == dart_precompiled ]
 dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
+dart/optimized_stacktrace_test: SkipByDesign # Requires line numbers
 
 [ $runtime == vm && $mode == product ]
 cc/IsolateSetCheckedMode: Fail,OK  # Expects exact type name.

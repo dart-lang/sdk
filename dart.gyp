@@ -12,6 +12,7 @@
         'create_sdk',
         'dart2js',
         'dartanalyzer',
+        'dartdevc',
         'packages',
         'runtime',
         'samples',
@@ -28,7 +29,7 @@
         'runtime/dart-runtime.gyp:dart_noopt',
         'runtime/dart-runtime.gyp:dart_precompiled_runtime',
         'runtime/dart-runtime.gyp:dart_product',
-        'runtime/dart-runtime.gyp:dart_no_snapshot',
+        'runtime/dart-runtime.gyp:dart_bootstrap#host',
         'runtime/dart-runtime.gyp:run_vm_tests',
         'runtime/dart-runtime.gyp:process_test',
         'packages',
@@ -55,6 +56,13 @@
       'type': 'none',
       'dependencies': [
         'utils/dartanalyzer/dartanalyzer.gyp:dartanalyzer',
+      ],
+    },
+    {
+      'target_name': 'dartdevc',
+      'type': 'none',
+      'dependencies': [
+        'utils/dartdevc/dartdevc.gyp:dartdevc',
       ],
     },
     {

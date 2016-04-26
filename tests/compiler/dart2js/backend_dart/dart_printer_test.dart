@@ -22,6 +22,7 @@ import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/string_validator.dart';
 import 'package:compiler/src/tree/tree.dart' show DartString;
 import 'package:compiler/src/tree/tree.dart' as tree;
+import '../options_helper.dart';
 
 /// For debugging the [AstBuilder] stack. Prints information about [x].
 void show(x) {
@@ -232,6 +233,7 @@ class AstBuilder extends Listener {
   }
   endSend(t) {
     List<Argument> arguments = pop();
+    pop(); // typeArguments
     if (arguments == null)
       return; // not a function call
     Expression selector = pop();
@@ -673,7 +675,7 @@ Expression parseExpression(String code) {
   Scanner scan = new Scanner(file);
   Token tok = scan.tokenize();
   AstBuilder builder = new AstBuilder();
-  Parser parser = new Parser(builder);
+  Parser parser = new Parser(builder, new MockParserOptions());
   tok = parser.parseExpression(tok);
   if (builder.stack.length != 1 || tok.kind != EOF_TOKEN) {
     throw "Parse error in $code";
@@ -685,7 +687,7 @@ Statement parseStatement(String code) {
   Scanner scan = new Scanner(file);
   Token tok = scan.tokenize();
   AstBuilder builder = new AstBuilder();
-  Parser parser = new Parser(builder);
+  Parser parser = new Parser(builder, new MockParserOptions());
   tok = parser.parseStatement(tok);
   if (builder.stack.length != 1 || tok.kind != EOF_TOKEN) {
     throw "Parse error in $code";

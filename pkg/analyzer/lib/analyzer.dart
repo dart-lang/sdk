@@ -35,8 +35,7 @@ export 'package:analyzer/src/generated/utilities_dart.dart';
 /// parsed.
 CompilationUnit parseCompilationUnit(String contents,
     {String name, bool suppressErrors: false, bool parseFunctionBodies: true}) {
-  if (name == null) name = '<unknown source>';
-  var source = new StringSource(contents, name);
+  Source source = new StringSource(contents, name);
   return _parseSource(contents, source,
       suppressErrors: suppressErrors, parseFunctionBodies: parseFunctionBodies);
 }
@@ -78,7 +77,6 @@ CompilationUnit parseDartFile(String path,
 /// [suppressErrors] is `true`, in which case any errors are discarded.
 CompilationUnit parseDirectives(String contents,
     {String name, bool suppressErrors: false}) {
-  if (name == null) name = '<unknown source>';
   var source = new StringSource(contents, name);
   var errorCollector = new _ErrorCollector();
   var reader = new CharSequenceReader(contents);

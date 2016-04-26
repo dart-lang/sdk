@@ -26,6 +26,7 @@ class Dart : public AllStatic {
       const uint8_t* data_snapshot,
       Dart_IsolateCreateCallback create,
       Dart_IsolateShutdownCallback shutdown,
+      Dart_ThreadExitCallback thread_exit,
       Dart_FileOpenCallback file_open,
       Dart_FileReadCallback file_read,
       Dart_FileWriteCallback file_write,
@@ -76,6 +77,42 @@ class Dart : public AllStatic {
     data_snapshot_buffer_ = buffer;
   }
 
+  static Dart_ThreadExitCallback thread_exit_callback() {
+    return thread_exit_callback_;
+  }
+  static void set_thread_exit_callback(Dart_ThreadExitCallback cback) {
+    thread_exit_callback_ = cback;
+  }
+  static void SetFileCallbacks(Dart_FileOpenCallback file_open,
+                               Dart_FileReadCallback file_read,
+                               Dart_FileWriteCallback file_write,
+                               Dart_FileCloseCallback file_close) {
+    file_open_callback_ = file_open;
+    file_read_callback_ = file_read;
+    file_write_callback_ = file_write;
+    file_close_callback_ = file_close;
+  }
+
+  static Dart_FileOpenCallback file_open_callback() {
+    return file_open_callback_;
+  }
+  static Dart_FileReadCallback file_read_callback() {
+    return file_read_callback_;
+  }
+  static Dart_FileWriteCallback file_write_callback() {
+    return file_write_callback_;
+  }
+  static Dart_FileCloseCallback file_close_callback() {
+    return file_close_callback_;
+  }
+
+  static void set_entropy_source_callback(Dart_EntropySource entropy_source) {
+    entropy_source_callback_ = entropy_source;
+  }
+  static Dart_EntropySource entropy_source_callback() {
+    return entropy_source_callback_;
+  }
+
  private:
   static void WaitForIsolateShutdown();
 
@@ -86,6 +123,12 @@ class Dart : public AllStatic {
   static ReadOnlyHandles* predefined_handles_;
   static const uint8_t* instructions_snapshot_buffer_;
   static const uint8_t* data_snapshot_buffer_;
+  static Dart_ThreadExitCallback thread_exit_callback_;
+  static Dart_FileOpenCallback file_open_callback_;
+  static Dart_FileReadCallback file_read_callback_;
+  static Dart_FileWriteCallback file_write_callback_;
+  static Dart_FileCloseCallback file_close_callback_;
+  static Dart_EntropySource entropy_source_callback_;
 };
 
 }  // namespace dart

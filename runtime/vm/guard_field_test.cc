@@ -13,12 +13,14 @@ RawField* LookupField(Dart_Handle library, const char* class_name,
                       const char* field_name) {
   RawLibrary* raw_library = Library::RawCast(Api::UnwrapHandle(library));
   Library& lib = Library::ZoneHandle(raw_library);
-  const String& classname = String::Handle(Symbols::New(class_name));
+  const String& classname = String::Handle(Symbols::New(Thread::Current(),
+                                                        class_name));
   Class& cls = Class::Handle(lib.LookupClass(classname));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
 
   String& fieldname = String::Handle(String::New(field_name));
-  Field& field = Field::ZoneHandle(cls.LookupInstanceField(fieldname));
+  Field& field =
+      Field::ZoneHandle(cls.LookupInstanceFieldAllowPrivate(fieldname));
   EXPECT(!field.IsNull());
   return field.raw();
 }

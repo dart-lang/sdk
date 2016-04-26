@@ -769,9 +769,10 @@ streamId | event types provided
 -------- | -----------
 VM | VMUpdate
 Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, ServiceExtensionAdded
-Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect
+Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect, None
 GC | GC
 Extension | Extension
+Timeline | TimelineEvents
 
 Additionally, some embedders provide the _Stdout_ and _Stderr_
 streams.  These streams allow the client to subscribe to writes to
@@ -970,10 +971,20 @@ class Class extends Object {
   // The superclass of this class, if any.
   @Class super [optional];
 
-  // A list of interface types for this class.
+  // The supertype for this class, if any.
   //
   // The value will be of the kind: Type.
+  @Instance superType [optional];
+
+  // A list of interface types for this class.
+  //
+  // The values will be of the kind: Type.
   @Instance[] interfaces;
+
+  // The mixin type for this class, if any.
+  //
+  // The value will be of the kind: Type.
+  @Instance mixin [optional];
 
   // A list of fields in this class. Does not include fields from
   // superclasses.
@@ -1213,6 +1224,11 @@ class Event extends Response {
   // This is provided for the Extension event.
   ExtensionData extensionData [optional];
 
+  // An array of TimelineEvents
+  //
+  // This is provided for the TimelineEvents event.
+  TimelineEvent[] timelineEvents [optional];
+
   // Is the isolate paused at an await, yield, or yield* statement?
   //
   // This is provided for the event kinds:
@@ -1270,6 +1286,10 @@ enum EventKind {
 
   // An isolate has started or resumed execution.
   Resume,
+
+  // Indicates an isolate is not yet runnable. Only appears in an Isolate's
+  // pauseEvent. Never sent over a stream.
+  None,
 
   // A breakpoint has been added for an isolate.
   BreakpointAdded,
@@ -2361,6 +2381,15 @@ class Success extends Response {
 
 The _Success_ type is used to indicate that an operation completed successfully.
 
+### TimelineEvent
+
+```
+class TimelineEvent {
+}
+```
+
+An _TimelineEvent_ is an arbitrary map that contains a [Trace Event Format](https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview) event.
+
 ### TypeArguments
 
 ```
@@ -2489,5 +2518,5 @@ version | comments
 3.1 | Add the getSourceReport RPC.  The getObject RPC now accepts offset and count for string objects.  String objects now contain length, offset, and count properties.
 3.2 | Isolate objects now include the runnable bit and many debugger related RPCs will return an error if executed on an isolate before it is runnable.
 3.3 | Pause event now indicates if the isolate is paused at an await, yield, or yield* suspension point via the 'atAsyncSuspension' field. Resume command now supports the step parameter 'OverAsyncSuspension'. A Breakpoint added synthetically by an 'OverAsyncSuspension' resume command identifies itself as such via the 'isSyntheticAsyncContinuation' field.
-
+3.4 | Add the superType and mixin fields to Class. Added new pause event 'None'.
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

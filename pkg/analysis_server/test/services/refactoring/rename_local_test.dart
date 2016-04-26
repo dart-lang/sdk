@@ -101,6 +101,32 @@ main() {
     return assertRefactoringConditionsOK();
   }
 
+  test_checkFinalConditions_hasLocalVariable_otherForEachLoop() {
+    indexTestUnit('''
+main() {
+  for (int newName in []) {}
+  for (int test in []) {}
+}
+''');
+    createRenameRefactoringAtString('test in');
+    // check status
+    refactoring.newName = 'newName';
+    return assertRefactoringConditionsOK();
+  }
+
+  test_checkFinalConditions_hasLocalVariable_otherForLoop() {
+    indexTestUnit('''
+main() {
+  for (int newName = 0; newName < 10; newName++) {}
+  for (int test = 0; test < 10; test++) {}
+}
+''');
+    createRenameRefactoringAtString('test = 0');
+    // check status
+    refactoring.newName = 'newName';
+    return assertRefactoringConditionsOK();
+  }
+
   test_checkFinalConditions_hasLocalVariable_otherFunction() {
     indexTestUnit('''
 main() {

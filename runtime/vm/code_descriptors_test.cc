@@ -221,7 +221,7 @@ TEST_CASE(StackmapGC) {
   const Library& lib = Library::Handle(Library::LookupLibrary(name));
   EXPECT(!lib.IsNull());
   Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("A"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   EXPECT(!cls.IsNull());
 
   // Now compile the two functions 'A.foo' and 'A.moo'

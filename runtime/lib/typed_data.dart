@@ -2,233 +2,84 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// patch classes for Int8List ..... Float64List and ByteData implementations.
+library dart.typed_data;
 
 import "dart:_internal";
+import "dart:collection" show ListBase;
 import 'dart:math' show Random;
 
-patch class Int8List {
-  /* patch */ factory Int8List(int length) {
-    return new _Int8Array(length);
-  }
+/**
+ * A typed view of a sequence of bytes.
+ */
+abstract class TypedData {
+  /**
+   * Returns the number of bytes in the representation of each element in this
+   * list.
+   */
+  int get elementSizeInBytes;
 
-  /* patch */ factory Int8List.fromList(List<int> elements) {
-    return new _Int8Array(elements.length)
-        ..setRange(0, elements.length, elements);
-  }
+  /**
+   * Returns the offset in bytes into the underlying byte buffer of this view.
+   */
+  int get offsetInBytes;
+
+  /**
+   * Returns the length of this view, in bytes.
+   */
+  int get lengthInBytes;
+
+  /**
+   * Returns the byte buffer associated with this object.
+   */
+  ByteBuffer get buffer;
 }
 
 
-patch class Uint8List {
-  /* patch */ factory Uint8List(int length) {
-    return new _Uint8Array(length);
-  }
+/**
+ * Describes endianness to be used when accessing or updating a
+ * sequence of bytes.
+ */
+class Endianness {
+  const Endianness._(this._littleEndian);
 
-  /* patch */ factory Uint8List.fromList(List<int> elements) {
-    return new _Uint8Array(elements.length)
-        ..setRange(0, elements.length, elements);
-  }
+  static const Endianness BIG_ENDIAN = const Endianness._(false);
+  static const Endianness LITTLE_ENDIAN = const Endianness._(true);
+  static final Endianness HOST_ENDIAN =
+    (new ByteData.view(new Uint16List.fromList([1]).buffer)).getInt8(0) == 1 ?
+    LITTLE_ENDIAN : BIG_ENDIAN;
+
+  final bool _littleEndian;
 }
 
 
-patch class Uint8ClampedList {
-  /* patch */ factory Uint8ClampedList(int length) {
-    return new _Uint8ClampedArray(length);
-  }
-
-  /* patch */ factory Uint8ClampedList.fromList(List<int> elements) {
-    return new _Uint8ClampedArray(elements.length)
-        ..setRange(0, elements.length, elements);
-  }
-}
-
-
-patch class Int16List {
-  /* patch */ factory Int16List(int length) {
-    return new _Int16Array(length);
-  }
-
-  /* patch */ factory Int16List.fromList(List<int> elements) {
-    return new _Int16Array(elements.length)
-        ..setRange(0, elements.length, elements);
-  }
-}
-
-
-patch class Uint16List {
-  /* patch */ factory Uint16List(int length) {
-    return new _Uint16Array(length);
-  }
-
-  /* patch */ factory Uint16List.fromList(List<int> elements) {
-    return new _Uint16Array(elements.length)
-        ..setRange(0, elements.length, elements);
-  }
-}
-
-
-patch class Int32List {
-  /* patch */ factory Int32List(int length) {
-    return new _Int32Array(length);
-  }
-
-  /* patch */ factory Int32List.fromList(List<int> elements) {
-    return new _Int32Array(elements.length)
-        ..setRange(0, elements.length, elements);
-  }
-}
-
-
-patch class Uint32List {
-  /* patch */ factory Uint32List(int length) {
-    return new _Uint32Array(length);
-  }
-
-  /* patch */ factory Uint32List.fromList(List<int> elements) {
-    return new _Uint32Array(elements.length)
-        ..setRange(0, elements.length, elements);
-  }
-}
-
-
-patch class Int64List {
-  /* patch */ factory Int64List(int length) {
-    return new _Int64Array(length);
-  }
-
-  /* patch */ factory Int64List.fromList(List<int> elements) {
-    return new _Int64Array(elements.length)
-        ..setRange(0, elements.length, elements);
-  }
-}
-
-
-patch class Uint64List {
-  /* patch */ factory Uint64List(int length) {
-    return new _Uint64Array(length);
-  }
-
-  /* patch */ factory Uint64List.fromList(List<int> elements) {
-    return new _Uint64Array(elements.length)
-        ..setRange(0, elements.length, elements);
-  }
-}
-
-
-patch class Float32List {
-  /* patch */ factory Float32List(int length) {
-    return new _Float32Array(length);
-  }
-
-  /* patch */ factory Float32List.fromList(List<double> elements) {
-    return new _Float32Array(elements.length)
-        ..setRange(0, elements.length, elements);
-  }
-}
-
-
-patch class Float64List {
-  /* patch */ factory Float64List(int length) {
-    return new _Float64Array(length);
-  }
-
-  /* patch */ factory Float64List.fromList(List<double> elements) {
-    return new _Float64Array(elements.length)
-        ..setRange(0, elements.length, elements);
-  }
-}
-
-
-patch class Float32x4List {
-  /* patch */ factory Float32x4List(int length) {
-    return new _Float32x4Array(length);
-  }
-
-  /* patch */ factory Float32x4List.fromList(List<Float32x4> elements) {
-    return new _Float32x4Array(elements.length)
-        ..setRange(0, elements.length, elements);
-  }
-}
-
-
-patch class Int32x4List {
-  /* patch */ factory Int32x4List(int length) {
-    return new _Int32x4Array(length);
-  }
-
-  /* patch */ factory Int32x4List.fromList(List<Int32x4> elements) {
-    return new _Int32x4Array(elements.length)
-        ..setRange(0, elements.length, elements);
-  }
-
-}
-
-patch class Float64x2List {
-  /* patch */ factory Float64x2List(int length) {
-    return new _Float64x2Array(length);
-  }
-
-  /* patch */ factory Float64x2List.fromList(List<Float64x2> elements) {
-    return new _Float64x2Array(elements.length)
-        ..setRange(0, elements.length, elements);
-  }
-}
-
-
-patch class Float32x4 {
-  /* patch */ factory Float32x4(double x, double y, double z, double w) {
-    return new _Float32x4(x, y, z, w);
-  }
-  /* patch */ factory Float32x4.splat(double v) {
-    return new _Float32x4.splat(v);
-  }
-  /* patch */ factory Float32x4.zero() {
-    return new _Float32x4.zero();
-  }
-  /* patch */ factory Float32x4.fromInt32x4Bits(Int32x4 x) {
-    return new _Float32x4.fromInt32x4Bits(x);
-  }
-  /* patch */ factory Float32x4.fromFloat64x2(Float64x2 v) {
-    return new _Float32x4.fromFloat64x2(v);
-  }
-}
-
-
-patch class Int32x4 {
-  /* patch */ factory Int32x4(int x, int y, int z, int w) {
-    return new _Int32x4(x, y, z, w);
-  }
-  /* patch */ factory Int32x4.bool(bool x, bool y, bool z, bool w) {
-    return new _Int32x4.bool(x, y, z, w);
-  }
-  /* patch */ factory Int32x4.fromFloat32x4Bits(Float32x4 x) {
-    return new _Int32x4.fromFloat32x4Bits(x);
-  }
-}
-
-
-patch class Float64x2 {
-  /* patch */ factory Float64x2(double x, double y) {
-    return new _Float64x2(x, y);
-  }
-
-  /* patch */ factory Float64x2.splat(double v) {
-    return new _Float64x2.splat(v);
-  }
-
-  /* patch */ factory Float64x2.zero() {
-    return new _Float64x2.zero();
-  }
-
-  /* patch */ factory Float64x2.fromFloat32x4(Float32x4 v) {
-    return new _Float64x2.fromFloat32x4(v);
-  }
-}
-
-
-patch class ByteData {
-  /* patch */ factory ByteData(int length) {
-    var list = new _Uint8Array(length);
+/**
+ * A fixed-length, random-access sequence of bytes that also provides random
+ * and unaligned access to the fixed-width integers and floating point
+ * numbers represented by those bytes.
+ *
+ * `ByteData` may be used to pack and unpack data from external sources
+ * (such as networks or files systems), and to process large quantities
+ * of numerical data more efficiently than would be possible
+ * with ordinary [List] implementations.
+ * `ByteData` can save space, by eliminating the need for object headers,
+ * and time, by eliminating the need for data copies.
+ * Finally, `ByteData` may be used to intentionally reinterpret the bytes
+ * representing one arithmetic type as another.
+ * For example this code fragment determine what 32-bit signed integer
+ * is represented by the bytes of a 32-bit floating point number:
+ *
+ *     var buffer = new Uint8List(8).buffer;
+ *     var bdata = new ByteData.view(buffer);
+ *     bdata.setFloat32(0, 3.04);
+ *     int huh = bdata.getInt32(0);
+ */
+class ByteData implements TypedData {
+  /**
+   * Creates a [ByteData] of the specified length (in elements), all of
+   * whose bytes are initially zero.
+   */
+  factory ByteData(int length) {
+    var list = new Uint8List(length);
     return new _ByteDataView(list, 0, length);
   }
 
@@ -236,6 +87,292 @@ patch class ByteData {
   factory ByteData._view(TypedData typedData, int offsetInBytes, int length) {
     return new _ByteDataView(typedData, offsetInBytes, length);
   }
+
+  /**
+   * Creates an [ByteData] _view_ of the specified region in [buffer].
+   *
+   * Changes in the [ByteData] will be visible in the byte
+   * buffer and vice versa.
+   * If the [offsetInBytes] index of the region is not specified,
+   * it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to `null`,
+   * which indicates that the view extends to the end of the byte buffer.
+   *
+   * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
+   * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
+   * the length of [buffer].
+   */
+  factory ByteData.view(ByteBuffer buffer,
+                        [int offsetInBytes = 0, int length]) {
+    return buffer.asByteData(offsetInBytes, length);
+  }
+
+  /**
+   * Returns the (possibly negative) integer represented by the byte at the
+   * specified [byteOffset] in this object, in two's complement binary
+   * representation.
+   *
+   * The return value will be between -128 and 127, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * greater than or equal to the length of this object.
+   */
+  int getInt8(int byteOffset);
+
+  /**
+   * Sets the byte at the specified [byteOffset] in this object to the
+   * two's complement binary representation of the specified [value], which
+   * must fit in a single byte.
+   *
+   * In other words, [value] must be between -128 and 127, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * greater than or equal to the length of this object.
+   */
+  void setInt8(int byteOffset, int value);
+
+  /**
+   * Returns the positive integer represented by the byte at the specified
+   * [byteOffset] in this object, in unsigned binary form.
+   *
+   * The return value will be between 0 and 255, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * greater than or equal to the length of this object.
+   */
+  int getUint8(int byteOffset);
+
+  /**
+   * Sets the byte at the specified [byteOffset] in this object to the
+   * unsigned binary representation of the specified [value], which must fit
+   * in a single byte.
+   *
+   * In other words, [value] must be between 0 and 255, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative,
+   * or greater than or equal to the length of this object.
+   */
+  void setUint8(int byteOffset, int value);
+
+  /**
+   * Returns the (possibly negative) integer represented by the two bytes at
+   * the specified [byteOffset] in this object, in two's complement binary
+   * form.
+   *
+   * The return value will be between 2<sup>15</sup> and 2<sup>15</sup> - 1,
+   * inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 2` is greater than the length of this object.
+   */
+  int getInt16(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]);
+
+  /**
+   * Sets the two bytes starting at the specified [byteOffset] in this
+   * object to the two's complement binary representation of the specified
+   * [value], which must fit in two bytes.
+   *
+   * In other words, [value] must lie
+   * between 2<sup>15</sup> and 2<sup>15</sup> - 1, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 2` is greater than the length of this object.
+   */
+  void setInt16(int byteOffset,
+                int value,
+                [Endianness endian = Endianness.BIG_ENDIAN]);
+
+  /**
+   * Returns the positive integer represented by the two bytes starting
+   * at the specified [byteOffset] in this object, in unsigned binary
+   * form.
+   *
+   * The return value will be between 0 and  2<sup>16</sup> - 1, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 2` is greater than the length of this object.
+   */
+  int getUint16(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]);
+
+  /**
+   * Sets the two bytes starting at the specified [byteOffset] in this object
+   * to the unsigned binary representation of the specified [value],
+   * which must fit in two bytes.
+   *
+   * In other words, [value] must be between
+   * 0 and 2<sup>16</sup> - 1, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 2` is greater than the length of this object.
+   */
+  void setUint16(int byteOffset,
+                 int value,
+                 [Endianness endian = Endianness.BIG_ENDIAN]);
+
+  /**
+   * Returns the (possibly negative) integer represented by the four bytes at
+   * the specified [byteOffset] in this object, in two's complement binary
+   * form.
+   *
+   * The return value will be between 2<sup>31</sup> and 2<sup>31</sup> - 1,
+   * inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 4` is greater than the length of this object.
+   */
+  int getInt32(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]);
+
+  /**
+   * Sets the four bytes starting at the specified [byteOffset] in this
+   * object to the two's complement binary representation of the specified
+   * [value], which must fit in four bytes.
+   *
+   * In other words, [value] must lie
+   * between 2<sup>31</sup> and 2<sup>31</sup> - 1, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 4` is greater than the length of this object.
+   */
+  void setInt32(int byteOffset,
+                int value,
+                [Endianness endian = Endianness.BIG_ENDIAN]);
+
+  /**
+   * Returns the positive integer represented by the four bytes starting
+   * at the specified [byteOffset] in this object, in unsigned binary
+   * form.
+   *
+   * The return value will be between 0 and  2<sup>32</sup> - 1, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 4` is greater than the length of this object.
+   */
+  int getUint32(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]);
+
+  /**
+   * Sets the four bytes starting at the specified [byteOffset] in this object
+   * to the unsigned binary representation of the specified [value],
+   * which must fit in four bytes.
+   *
+   * In other words, [value] must be between
+   * 0 and 2<sup>32</sup> - 1, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 4` is greater than the length of this object.
+   */
+  void setUint32(int byteOffset,
+                 int value,
+                 [Endianness endian = Endianness.BIG_ENDIAN]);
+
+  /**
+   * Returns the (possibly negative) integer represented by the eight bytes at
+   * the specified [byteOffset] in this object, in two's complement binary
+   * form.
+   *
+   * The return value will be between 2<sup>63</sup> and 2<sup>63</sup> - 1,
+   * inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 8` is greater than the length of this object.
+   */
+  int getInt64(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]);
+
+  /**
+   * Sets the eight bytes starting at the specified [byteOffset] in this
+   * object to the two's complement binary representation of the specified
+   * [value], which must fit in eight bytes.
+   *
+   * In other words, [value] must lie
+   * between 2<sup>63</sup> and 2<sup>63</sup> - 1, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 8` is greater than the length of this object.
+   */
+  void setInt64(int byteOffset,
+                int value,
+                [Endianness endian = Endianness.BIG_ENDIAN]);
+
+  /**
+   * Returns the positive integer represented by the eight bytes starting
+   * at the specified [byteOffset] in this object, in unsigned binary
+   * form.
+   *
+   * The return value will be between 0 and  2<sup>64</sup> - 1, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 8` is greater than the length of this object.
+   */
+  int getUint64(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]);
+
+  /**
+   * Sets the eight bytes starting at the specified [byteOffset] in this object
+   * to the unsigned binary representation of the specified [value],
+   * which must fit in eight bytes.
+   *
+   * In other words, [value] must be between
+   * 0 and 2<sup>64</sup> - 1, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 8` is greater than the length of this object.
+   */
+  void setUint64(int byteOffset,
+                 int value,
+                 [Endianness endian = Endianness.BIG_ENDIAN]);
+
+  /**
+   * Returns the floating point number represented by the four bytes at
+   * the specified [byteOffset] in this object, in IEEE 754
+   * single-precision binary floating-point format (binary32).
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 4` is greater than the length of this object.
+   */
+  double getFloat32(int byteOffset,
+                    [Endianness endian = Endianness.BIG_ENDIAN]);
+
+  /**
+   * Sets the four bytes starting at the specified [byteOffset] in this
+   * object to the IEEE 754 single-precision binary floating-point
+   * (binary32) representation of the specified [value].
+   *
+   * **Note that this method can lose precision.** The input [value] is
+   * a 64-bit floating point value, which will be converted to 32-bit
+   * floating point value by IEEE 754 rounding rules before it is stored.
+   * If [value] cannot be represented exactly as a binary32, it will be
+   * converted to the nearest binary32 value.  If two binary32 values are
+   * equally close, the one whose least significant bit is zero will be used.
+   * Note that finite (but large) values can be converted to infinity, and
+   * small non-zero values can be converted to zero.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 4` is greater than the length of this object.
+   */
+  void setFloat32(int byteOffset,
+                  double value,
+                  [Endianness endian = Endianness.BIG_ENDIAN]);
+
+  /**
+   * Returns the floating point number represented by the eight bytes at
+   * the specified [byteOffset] in this object, in IEEE 754
+   * double-precision binary floating-point format (binary64).
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 8` is greater than the length of this object.
+   */
+  double getFloat64(int byteOffset,
+                    [Endianness endian = Endianness.BIG_ENDIAN]);
+
+  /**
+   * Sets the eight bytes starting at the specified [byteOffset] in this
+   * object to the IEEE 754 double-precision binary floating-point
+   * (binary64) representation of the specified [value].
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 8` is greater than the length of this object.
+   */
+  void setFloat64(int byteOffset,
+                  double value,
+                  [Endianness endian = Endianness.BIG_ENDIAN]);
 }
 
 
@@ -711,18 +848,18 @@ class _Float64x2ListMixin {
 }
 
 
-class _ByteBuffer implements ByteBuffer {
+class ByteBuffer {
   final _TypedList _data;
 
-  _ByteBuffer(this._data);
+  ByteBuffer(this._data);
 
-  factory _ByteBuffer._New(data) => new _ByteBuffer(data);
+  factory ByteBuffer._New(data) => new ByteBuffer(data);
 
   // Forward calls to _data.
   int get lengthInBytes => _data.lengthInBytes;
   int get hashCode => _data.hashCode;
   bool operator==(Object other) =>
-      (other is _ByteBuffer) && identical(_data, other._data);
+      (other is ByteBuffer) && identical(_data, other._data);
 
   ByteData asByteData([int offsetInBytes = 0, int length]) {
     if (length == null) {
@@ -852,7 +989,7 @@ abstract class _TypedList extends _TypedListBase {
     return length * elementSizeInBytes;
   }
 
-  ByteBuffer get buffer => new _ByteBuffer(this);
+  ByteBuffer get buffer => new ByteBuffer(this);
 
   // Methods implementing the collection interface.
 
@@ -924,13 +1061,20 @@ abstract class _TypedList extends _TypedListBase {
 }
 
 
-class _Int8Array extends _TypedList with _IntListMixin implements Int8List {
+class Int8List extends _TypedList with _IntListMixin implements List<int>, TypedData {
   // Factory constructors.
 
-  factory _Int8Array(int length) {
-    return _new(length);
+  factory Int8List(int length) native "TypedData_Int8Array_new";
+
+  factory Int8List.fromList(List<int> elements) {
+    return new Int8List(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
+  factory Int8List.view(ByteBuffer buffer,
+                        [int offsetInBytes = 0, int length]) {
+    return buffer.asInt8List(offsetInBytes, length);
+  }
 
   // Method(s) implementing List interface.
 
@@ -948,6 +1092,7 @@ class _Int8Array extends _TypedList with _IntListMixin implements Int8List {
     _setInt8(index, _toInt8(value));
   }
 
+  static const int BYTES_PER_ELEMENT = 1;
 
   // Method(s) implementing TypedData interface.
 
@@ -958,21 +1103,26 @@ class _Int8Array extends _TypedList with _IntListMixin implements Int8List {
 
   // Internal utility methods.
 
-  _Int8Array _createList(int length) {
-    return _new(length);
+  Int8List _createList(int length) {
+    return new Int8List(length);
   }
-
-  static _Int8Array _new(int length) native "TypedData_Int8Array_new";
 }
 
 
-class _Uint8Array extends _TypedList with _IntListMixin implements Uint8List {
+class Uint8List extends _TypedList with _IntListMixin implements List<int>, TypedData {
   // Factory constructors.
 
-  factory _Uint8Array(int length) {
-    return _new(length);
+  factory Uint8List(int length) native "TypedData_Uint8Array_new";
+
+  factory Uint8List.fromList(List<int> elements) {
+    return new Uint8List(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
+  factory Uint8List.view(ByteBuffer buffer,
+                         [int offsetInBytes = 0, int length]) {
+    return buffer.asUint8List(offsetInBytes, length);
+  }
 
   // Methods implementing List interface.
   int operator[](int index) {
@@ -989,6 +1139,7 @@ class _Uint8Array extends _TypedList with _IntListMixin implements Uint8List {
     _setUint8(index, _toUint8(value));
   }
 
+  static const int BYTES_PER_ELEMENT = 1;
 
   // Methods implementing TypedData interface.
   int get elementSizeInBytes {
@@ -998,19 +1149,25 @@ class _Uint8Array extends _TypedList with _IntListMixin implements Uint8List {
 
   // Internal utility methods.
 
-  _Uint8Array _createList(int length) {
-    return _new(length);
+  Uint8List _createList(int length) {
+    return new Uint8List(length);
   }
-
-  static _Uint8Array _new(int length) native "TypedData_Uint8Array_new";
 }
 
 
-class _Uint8ClampedArray extends _TypedList with _IntListMixin implements Uint8ClampedList {
+class Uint8ClampedList extends _TypedList with _IntListMixin implements List<int>, TypedData {
   // Factory constructors.
 
-  factory _Uint8ClampedArray(int length) {
-    return _new(length);
+  factory Uint8ClampedList(int length) native "TypedData_Uint8ClampedArray_new";
+
+  factory Uint8ClampedList.fromList(List<int> elements) {
+    return new Uint8ClampedList(elements.length)
+        ..setRange(0, elements.length, elements);
+  }
+
+  factory Uint8ClampedList.view(ByteBuffer buffer,
+                                [int offsetInBytes = 0, int length]) {
+    return buffer.asUint8ClampedList(offsetInBytes, length);
   }
 
   // Methods implementing List interface.
@@ -1029,6 +1186,7 @@ class _Uint8ClampedArray extends _TypedList with _IntListMixin implements Uint8C
     _setUint8(index, _toClampedUint8(value));
   }
 
+  static const int BYTES_PER_ELEMENT = 1;
 
   // Methods implementing TypedData interface.
   int get elementSizeInBytes {
@@ -1038,22 +1196,26 @@ class _Uint8ClampedArray extends _TypedList with _IntListMixin implements Uint8C
 
   // Internal utility methods.
 
-  _Uint8ClampedArray _createList(int length) {
-    return _new(length);
+  Uint8ClampedList _createList(int length) {
+    return new Uint8ClampedList(length);
   }
-
-  static _Uint8ClampedArray _new(int length)
-      native "TypedData_Uint8ClampedArray_new";
 }
 
 
-class _Int16Array extends _TypedList with _IntListMixin implements Int16List {
+class Int16List extends _TypedList with _IntListMixin implements List<int>, TypedData {
   // Factory constructors.
 
-  factory _Int16Array(int length) {
-    return _new(length);
+  factory Int16List(int length) native "TypedData_Int16Array_new";
+
+  factory Int16List.fromList(List<int> elements) {
+    return new Int16List(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
+  factory Int16List.view(ByteBuffer buffer,
+                         [int offsetInBytes = 0, int length]) {
+    return buffer.asInt16List(offsetInBytes, length);
+  }
 
   // Method(s) implementing List interface.
 
@@ -1083,6 +1245,7 @@ class _Int16Array extends _TypedList with _IntListMixin implements Int16List {
   }
 
   // Method(s) implementing TypedData interface.
+  static const int BYTES_PER_ELEMENT = 2;
 
   int get elementSizeInBytes {
     return Int16List.BYTES_PER_ELEMENT;
@@ -1091,8 +1254,8 @@ class _Int16Array extends _TypedList with _IntListMixin implements Int16List {
 
   // Internal utility methods.
 
-  _Int16Array _createList(int length) {
-    return _new(length);
+  Int16List _createList(int length) {
+    return new Int16List(length);
   }
 
   int _getIndexedInt16(int index) {
@@ -1102,18 +1265,23 @@ class _Int16Array extends _TypedList with _IntListMixin implements Int16List {
   void _setIndexedInt16(int index, int value) {
     _setInt16(index * Int16List.BYTES_PER_ELEMENT, value);
   }
-
-  static _Int16Array _new(int length) native "TypedData_Int16Array_new";
 }
 
 
-class _Uint16Array extends _TypedList with _IntListMixin implements Uint16List {
+class Uint16List extends _TypedList with _IntListMixin implements List<int>, TypedData {
   // Factory constructors.
 
-  factory _Uint16Array(int length) {
-    return _new(length);
+  factory Uint16List(int length) native "TypedData_Uint16Array_new";
+
+  factory Uint16List.fromList(List<int> elements) {
+    return new Uint16List(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
+  factory Uint16List.view(ByteBuffer buffer,
+                          [int offsetInBytes = 0, int length]) {
+    return buffer.asUint16List(offsetInBytes, length);
+  }
 
   // Method(s) implementing the List interface.
 
@@ -1143,6 +1311,7 @@ class _Uint16Array extends _TypedList with _IntListMixin implements Uint16List {
   }
 
   // Method(s) implementing the TypedData interface.
+  static const int BYTES_PER_ELEMENT = 2;
 
   int get elementSizeInBytes {
     return Uint16List.BYTES_PER_ELEMENT;
@@ -1151,8 +1320,8 @@ class _Uint16Array extends _TypedList with _IntListMixin implements Uint16List {
 
   // Internal utility methods.
 
-  _Uint16Array _createList(int length) {
-    return _new(length);
+  Uint16List _createList(int length) {
+    return new Uint16List(length);
   }
 
   int _getIndexedUint16(int index) {
@@ -1162,18 +1331,23 @@ class _Uint16Array extends _TypedList with _IntListMixin implements Uint16List {
   void _setIndexedUint16(int index, int value) {
     _setUint16(index * Uint16List.BYTES_PER_ELEMENT, value);
   }
-
-  static _Uint16Array _new(int length) native "TypedData_Uint16Array_new";
 }
 
 
-class _Int32Array extends _TypedList with _IntListMixin implements Int32List {
+class Int32List extends _TypedList with _IntListMixin implements List<int>, TypedData {
   // Factory constructors.
 
-  factory _Int32Array(int length) {
-    return _new(length);
+  factory Int32List(int length) native "TypedData_Int32Array_new";
+
+  factory Int32List.fromList(List<int> elements) {
+    return new Int32List(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
+  factory Int32List.view(ByteBuffer buffer,
+                         [int offsetInBytes = 0, int length]) {
+    return buffer.asInt32List(offsetInBytes, length);
+  }
 
   // Method(s) implementing the List interface.
 
@@ -1193,6 +1367,7 @@ class _Int32Array extends _TypedList with _IntListMixin implements Int32List {
 
 
   // Method(s) implementing TypedData interface.
+  static const int BYTES_PER_ELEMENT = 4;
 
   int get elementSizeInBytes {
     return Int32List.BYTES_PER_ELEMENT;
@@ -1201,8 +1376,8 @@ class _Int32Array extends _TypedList with _IntListMixin implements Int32List {
 
   // Internal utility methods.
 
-  _Int32Array _createList(int length) {
-    return _new(length);
+  Int32List _createList(int length) {
+    return new Int32List(length);
   }
 
   int _getIndexedInt32(int index) {
@@ -1213,17 +1388,23 @@ class _Int32Array extends _TypedList with _IntListMixin implements Int32List {
     _setInt32(index * Int32List.BYTES_PER_ELEMENT, value);
   }
 
-  static _Int32Array _new(int length) native "TypedData_Int32Array_new";
 }
 
 
-class _Uint32Array extends _TypedList with _IntListMixin implements Uint32List {
+class Uint32List extends _TypedList with _IntListMixin implements List<int>, TypedData {
   // Factory constructors.
 
-  factory _Uint32Array(int length) {
-    return _new(length);
+  factory Uint32List(int length) native "TypedData_Uint32Array_new";
+
+  factory Uint32List.fromList(List<int> elements) {
+    return new Uint32List(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
+  factory Uint32List.view(ByteBuffer buffer,
+                          [int offsetInBytes = 0, int length]) {
+    return buffer.asUint32List(offsetInBytes, length);
+  }
 
   // Method(s) implementing the List interface.
 
@@ -1243,6 +1424,7 @@ class _Uint32Array extends _TypedList with _IntListMixin implements Uint32List {
 
 
   // Method(s) implementing the TypedData interface.
+  static const int BYTES_PER_ELEMENT = 4;
 
   int get elementSizeInBytes {
     return Uint32List.BYTES_PER_ELEMENT;
@@ -1251,8 +1433,8 @@ class _Uint32Array extends _TypedList with _IntListMixin implements Uint32List {
 
   // Internal utility methods.
 
-  _Uint32Array _createList(int length) {
-    return _new(length);
+  Uint32List _createList(int length) {
+    return new Uint32List(length);
   }
 
   int _getIndexedUint32(int index) {
@@ -1262,18 +1444,23 @@ class _Uint32Array extends _TypedList with _IntListMixin implements Uint32List {
   void _setIndexedUint32(int index, int value) {
     _setUint32(index * Uint32List.BYTES_PER_ELEMENT, value);
   }
-
-  static _Uint32Array _new(int length) native "TypedData_Uint32Array_new";
 }
 
 
-class _Int64Array extends _TypedList with _IntListMixin implements Int64List {
+class Int64List extends _TypedList with _IntListMixin implements List<int>, TypedData {
   // Factory constructors.
 
-  factory _Int64Array(int length) {
-    return _new(length);
+  factory Int64List(int length) native "TypedData_Int64Array_new";
+
+  factory Int64List.fromList(List<int> elements) {
+    return new Int64List(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
+  factory Int64List.view(ByteBuffer buffer,
+                         [int offsetInBytes = 0, int length]) {
+    return buffer.asInt64List(offsetInBytes, length);
+  }
 
   // Method(s) implementing the List interface.
 
@@ -1293,6 +1480,7 @@ class _Int64Array extends _TypedList with _IntListMixin implements Int64List {
 
 
   // Method(s) implementing the TypedData interface.
+  static const int BYTES_PER_ELEMENT = 8;
 
   int get elementSizeInBytes {
     return Int64List.BYTES_PER_ELEMENT;
@@ -1301,8 +1489,8 @@ class _Int64Array extends _TypedList with _IntListMixin implements Int64List {
 
   // Internal utility methods.
 
-  _Int64Array _createList(int length) {
-    return _new(length);
+  Int64List _createList(int length) {
+    return new Int64List(length);
   }
 
   int _getIndexedInt64(int index) {
@@ -1312,18 +1500,23 @@ class _Int64Array extends _TypedList with _IntListMixin implements Int64List {
   void _setIndexedInt64(int index, int value) {
     _setInt64(index * Int64List.BYTES_PER_ELEMENT, value);
   }
-
-  static _Int64Array _new(int length) native "TypedData_Int64Array_new";
 }
 
 
-class _Uint64Array extends _TypedList with _IntListMixin implements Uint64List {
+class Uint64List extends _TypedList with _IntListMixin implements List<int>, TypedData {
   // Factory constructors.
 
-  factory _Uint64Array(int length) {
-    return _new(length);
+  factory Uint64List(int length) native "TypedData_Uint64Array_new";
+
+  factory Uint64List.fromList(List<int> elements) {
+    return new Uint64List(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
+  factory Uint64List.view(ByteBuffer buffer,
+                          [int offsetInBytes = 0, int length]) {
+    return buffer.asUint64List(offsetInBytes, length);
+  }
 
   // Method(s) implementing the List interface.
 
@@ -1343,6 +1536,7 @@ class _Uint64Array extends _TypedList with _IntListMixin implements Uint64List {
 
 
   // Method(s) implementing the TypedData interface.
+  static const int BYTES_PER_ELEMENT = 8;
 
   int get elementSizeInBytes {
     return Uint64List.BYTES_PER_ELEMENT;
@@ -1351,8 +1545,8 @@ class _Uint64Array extends _TypedList with _IntListMixin implements Uint64List {
 
   // Internal utility methods.
 
-  _Uint64Array _createList(int length) {
-    return _new(length);
+  Uint64List _createList(int length) {
+    return new Uint64List(length);
   }
 
   int _getIndexedUint64(int index) {
@@ -1362,18 +1556,23 @@ class _Uint64Array extends _TypedList with _IntListMixin implements Uint64List {
   void _setIndexedUint64(int index, int value) {
     _setUint64(index * Uint64List.BYTES_PER_ELEMENT, value);
   }
-
-  static _Uint64Array _new(int length) native "TypedData_Uint64Array_new";
 }
 
 
-class _Float32Array extends _TypedList with _DoubleListMixin implements Float32List {
+class Float32List extends _TypedList with _DoubleListMixin implements List<double>, TypedData {
   // Factory constructors.
 
-  factory _Float32Array(int length) {
-    return _new(length);
+  factory Float32List(int length) native "TypedData_Float32Array_new";
+
+  factory Float32List.fromList(List<double> elements) {
+    return new Float32List(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
+  factory Float32List.view(ByteBuffer buffer,
+                           [int offsetInBytes = 0, int length]) {
+    return buffer.asFloat32List(offsetInBytes, length);
+  }
 
   // Method(s) implementing the List interface.
 
@@ -1393,6 +1592,7 @@ class _Float32Array extends _TypedList with _DoubleListMixin implements Float32L
 
 
   // Method(s) implementing the TypedData interface.
+  static const int BYTES_PER_ELEMENT = 4;
 
   int get elementSizeInBytes {
     return Float32List.BYTES_PER_ELEMENT;
@@ -1401,8 +1601,8 @@ class _Float32Array extends _TypedList with _DoubleListMixin implements Float32L
 
   // Internal utility methods.
 
-  _Float32Array _createList(int length) {
-    return _new(length);
+  Float32List _createList(int length) {
+    return new Float32List(length);
   }
 
   double _getIndexedFloat32(int index) {
@@ -1412,18 +1612,23 @@ class _Float32Array extends _TypedList with _DoubleListMixin implements Float32L
   void _setIndexedFloat32(int index, double value) {
     _setFloat32(index * Float32List.BYTES_PER_ELEMENT, value);
   }
-
-  static _Float32Array _new(int length) native "TypedData_Float32Array_new";
 }
 
 
-class _Float64Array extends _TypedList with _DoubleListMixin implements Float64List {
+class Float64List extends _TypedList with _DoubleListMixin implements List<double>, TypedData {
   // Factory constructors.
 
-  factory _Float64Array(int length) {
-    return _new(length);
+  factory Float64List(int length) native "TypedData_Float64Array_new";
+
+  factory Float64List.fromList(List<double> elements) {
+    return new Float64List(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
+  factory Float64List.view(ByteBuffer buffer,
+                           [int offsetInBytes = 0, int length]) {
+    return buffer.asFloat64List(offsetInBytes, length);
+  }
 
   // Method(s) implementing the List interface.
 
@@ -1443,6 +1648,7 @@ class _Float64Array extends _TypedList with _DoubleListMixin implements Float64L
 
 
   // Method(s) implementing the TypedData interface.
+  static const int BYTES_PER_ELEMENT = 8;
 
   int get elementSizeInBytes {
     return Float64List.BYTES_PER_ELEMENT;
@@ -1451,8 +1657,8 @@ class _Float64Array extends _TypedList with _DoubleListMixin implements Float64L
 
   // Internal utility methods.
 
-  _Float64Array _createList(int length) {
-    return _new(length);
+  Float64List _createList(int length) {
+    return new Float64List(length);
   }
 
   double _getIndexedFloat64(int index) {
@@ -1462,18 +1668,23 @@ class _Float64Array extends _TypedList with _DoubleListMixin implements Float64L
   void _setIndexedFloat64(int index, double value) {
     _setFloat64(index * Float64List.BYTES_PER_ELEMENT, value);
   }
-
-  static _Float64Array _new(int length) native "TypedData_Float64Array_new";
 }
 
 
-class _Float32x4Array extends _TypedList with _Float32x4ListMixin implements Float32x4List {
+class Float32x4List extends _TypedList with _Float32x4ListMixin implements List<Float32x4>, TypedData {
   // Factory constructors.
 
-  factory _Float32x4Array(int length) {
-    return _new(length);
+  factory Float32x4List(int length) native "TypedData_Float32x4Array_new";
+
+  factory Float32x4List.fromList(List<Float32x4> elements) {
+    return new Float32x4List(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
+  factory Float32x4List.view(ByteBuffer buffer,
+                             [int offsetInBytes = 0, int length]) {
+    return buffer.asFloat32x4List(offsetInBytes, length);
+  }
 
   Float32x4 operator[](int index) {
     if (index < 0 || index >= length) {
@@ -1491,6 +1702,7 @@ class _Float32x4Array extends _TypedList with _Float32x4ListMixin implements Flo
 
 
   // Method(s) implementing the TypedData interface.
+  static const int BYTES_PER_ELEMENT = 16;
 
   int get elementSizeInBytes {
     return Float32x4List.BYTES_PER_ELEMENT;
@@ -1499,8 +1711,8 @@ class _Float32x4Array extends _TypedList with _Float32x4ListMixin implements Flo
 
   // Internal utility methods.
 
-  _Float32x4Array _createList(int length) {
-    return _new(length);
+  Float32x4List _createList(int length) {
+    return new Float32x4List(length);
   }
 
   Float32x4 _getIndexedFloat32x4(int index) {
@@ -1510,18 +1722,23 @@ class _Float32x4Array extends _TypedList with _Float32x4ListMixin implements Flo
   void _setIndexedFloat32x4(int index, Float32x4 value) {
     _setFloat32x4(index * Float32x4List.BYTES_PER_ELEMENT, value);
   }
-
-  static _Float32x4Array _new(int length) native "TypedData_Float32x4Array_new";
 }
 
 
-class _Int32x4Array extends _TypedList with _Int32x4ListMixin implements Int32x4List {
+class Int32x4List extends _TypedList with _Int32x4ListMixin implements List<Int32x4>, TypedData {
   // Factory constructors.
 
-  factory _Int32x4Array(int length) {
-    return _new(length);
+  factory Int32x4List(int length) native "TypedData_Int32x4Array_new";
+
+  factory Int32x4List.fromList(List<Int32x4> elements) {
+    return new Int32x4List(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
+  factory Int32x4List.view(ByteBuffer buffer,
+                             [int offsetInBytes = 0, int length]) {
+    return buffer.asInt32x4List(offsetInBytes, length);
+  }
 
   Int32x4 operator[](int index) {
     if (index < 0 || index >= length) {
@@ -1539,6 +1756,7 @@ class _Int32x4Array extends _TypedList with _Int32x4ListMixin implements Int32x4
 
 
   // Method(s) implementing the TypedData interface.
+  static const int BYTES_PER_ELEMENT = 16;
 
   int get elementSizeInBytes {
     return Int32x4List.BYTES_PER_ELEMENT;
@@ -1547,8 +1765,8 @@ class _Int32x4Array extends _TypedList with _Int32x4ListMixin implements Int32x4
 
   // Internal utility methods.
 
-  _Int32x4Array _createList(int length) {
-    return _new(length);
+  Int32x4List _createList(int length) {
+    return new Int32x4List(length);
   }
 
   Int32x4 _getIndexedInt32x4(int index) {
@@ -1558,18 +1776,23 @@ class _Int32x4Array extends _TypedList with _Int32x4ListMixin implements Int32x4
   void _setIndexedInt32x4(int index, Int32x4 value) {
     _setInt32x4(index * Int32x4List.BYTES_PER_ELEMENT, value);
   }
-
-  static _Int32x4Array _new(int length) native "TypedData_Int32x4Array_new";
 }
 
 
-class _Float64x2Array extends _TypedList with _Float64x2ListMixin implements Float64x2List {
+class Float64x2List extends _TypedList with _Float64x2ListMixin implements List<Float64x2>, TypedData {
   // Factory constructors.
 
-  factory _Float64x2Array(int length) {
-    return _new(length);
+  factory Float64x2List(int length) native "TypedData_Float64x2Array_new";
+
+  factory Float64x2List.fromList(List<Float64x2> elements) {
+    return new Float64x2List(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
+  factory Float64x2List.view(ByteBuffer buffer,
+                             [int offsetInBytes = 0, int length]) {
+    return buffer.asFloat64x2List(offsetInBytes, length);
+  }
 
   Float64x2 operator[](int index) {
     if (index < 0 || index >= length) {
@@ -1587,6 +1810,7 @@ class _Float64x2Array extends _TypedList with _Float64x2ListMixin implements Flo
 
 
   // Method(s) implementing the TypedData interface.
+  static const int BYTES_PER_ELEMENT = 16;
 
   int get elementSizeInBytes {
     return Float64x2List.BYTES_PER_ELEMENT;
@@ -1595,8 +1819,8 @@ class _Float64x2Array extends _TypedList with _Float64x2ListMixin implements Flo
 
   // Internal utility methods.
 
-  _Float64x2Array _createList(int length) {
-    return _new(length);
+  Float64x2List _createList(int length) {
+    return new Float64x2List(length);
   }
 
   Float64x2 _getIndexedFloat64x2(int index) {
@@ -1606,18 +1830,13 @@ class _Float64x2Array extends _TypedList with _Float64x2ListMixin implements Flo
   void _setIndexedFloat64x2(int index, Float64x2 value) {
     _setFloat64x2(index * Float64x2List.BYTES_PER_ELEMENT, value);
   }
-
-  static _Float64x2Array _new(int length) native "TypedData_Float64x2Array_new";
 }
 
 
 class _ExternalInt8Array extends _TypedList with _IntListMixin implements Int8List {
   // Factory constructors.
 
-  factory _ExternalInt8Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalInt8Array(int length) native "ExternalTypedData_Int8Array_new";
 
   // Method(s) implementing the List interface.
   int operator[](int index) {
@@ -1647,19 +1866,13 @@ class _ExternalInt8Array extends _TypedList with _IntListMixin implements Int8Li
   Int8List _createList(int length) {
     return new Int8List(length);
   }
-
-  static _ExternalInt8Array _new(int length) native
-      "ExternalTypedData_Int8Array_new";
 }
 
 
 class _ExternalUint8Array extends _TypedList with _IntListMixin implements Uint8List {
   // Factory constructors.
 
-  factory _ExternalUint8Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalUint8Array(int length) native "ExternalTypedData_Uint8Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -1690,18 +1903,13 @@ class _ExternalUint8Array extends _TypedList with _IntListMixin implements Uint8
   Uint8List _createList(int length) {
     return new Uint8List(length);
   }
-
-  static _ExternalUint8Array _new(int length) native
-      "ExternalTypedData_Uint8Array_new";
 }
 
 
 class _ExternalUint8ClampedArray extends _TypedList with _IntListMixin implements Uint8ClampedList {
   // Factory constructors.
 
-  factory _ExternalUint8ClampedArray(int length) {
-    return _new(length);
-  }
+  factory _ExternalUint8ClampedArray(int length) native "ExternalTypedData_Uint8ClampedArray_new";
 
   // Method(s) implementing the List interface.
 
@@ -1732,19 +1940,13 @@ class _ExternalUint8ClampedArray extends _TypedList with _IntListMixin implement
   Uint8ClampedList _createList(int length) {
     return new Uint8ClampedList(length);
   }
-
-  static _ExternalUint8ClampedArray _new(int length) native
-      "ExternalTypedData_Uint8ClampedArray_new";
 }
 
 
 class _ExternalInt16Array extends _TypedList with _IntListMixin implements Int16List {
   // Factory constructors.
 
-  factory _ExternalInt16Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalInt16Array(int length) native "ExternalTypedData_Int16Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -1783,19 +1985,13 @@ class _ExternalInt16Array extends _TypedList with _IntListMixin implements Int16
   void _setIndexedInt16(int index, int value) {
     _setInt16(index * Int16List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalInt16Array _new(int length) native
-      "ExternalTypedData_Int16Array_new";
 }
 
 
 class _ExternalUint16Array extends _TypedList with _IntListMixin implements Uint16List {
   // Factory constructors.
 
-  factory _ExternalUint16Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalUint16Array(int length) native "ExternalTypedData_Uint16Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -1834,19 +2030,13 @@ class _ExternalUint16Array extends _TypedList with _IntListMixin implements Uint
   void _setIndexedUint16(int index, int value) {
     _setUint16(index * Uint16List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalUint16Array _new(int length) native
-      "ExternalTypedData_Uint16Array_new";
 }
 
 
 class _ExternalInt32Array extends _TypedList with _IntListMixin implements Int32List {
   // Factory constructors.
 
-  factory _ExternalInt32Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalInt32Array(int length) native "ExternalTypedData_Int32Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -1885,19 +2075,13 @@ class _ExternalInt32Array extends _TypedList with _IntListMixin implements Int32
   void _setIndexedInt32(int index, int value) {
     _setInt32(index * Int32List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalInt32Array _new(int length) native
-      "ExternalTypedData_Int32Array_new";
 }
 
 
 class _ExternalUint32Array extends _TypedList with _IntListMixin implements Uint32List {
   // Factory constructors.
 
-  factory _ExternalUint32Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalUint32Array(int length) native "ExternalTypedData_Uint32Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -1936,19 +2120,13 @@ class _ExternalUint32Array extends _TypedList with _IntListMixin implements Uint
   void _setIndexedUint32(int index, int value) {
     _setUint32(index * Uint32List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalUint32Array _new(int length) native
-      "ExternalTypedData_Uint32Array_new";
 }
 
 
 class _ExternalInt64Array extends _TypedList with _IntListMixin implements Int64List {
   // Factory constructors.
 
-  factory _ExternalInt64Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalInt64Array(int length) native "ExternalTypedData_Int64Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -1987,19 +2165,13 @@ class _ExternalInt64Array extends _TypedList with _IntListMixin implements Int64
   void _setIndexedInt64(int index, int value) {
     _setInt64(index * Int64List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalInt64Array _new(int length) native
-      "ExternalTypedData_Int64Array_new";
 }
 
 
 class _ExternalUint64Array extends _TypedList with _IntListMixin implements Uint64List {
   // Factory constructors.
 
-  factory _ExternalUint64Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalUint64Array(int length) native "ExternalTypedData_Uint64Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -2038,19 +2210,13 @@ class _ExternalUint64Array extends _TypedList with _IntListMixin implements Uint
   void _setIndexedUint64(int index, int value) {
     _setUint64(index * Uint64List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalUint64Array _new(int length) native
-      "ExternalTypedData_Uint64Array_new";
 }
 
 
 class _ExternalFloat32Array extends _TypedList with _DoubleListMixin implements Float32List {
   // Factory constructors.
 
-  factory _ExternalFloat32Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalFloat32Array(int length) native "ExternalTypedData_Float32Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -2089,19 +2255,13 @@ class _ExternalFloat32Array extends _TypedList with _DoubleListMixin implements 
   void _setIndexedFloat32(int index, double value) {
     _setFloat32(index * Float32List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalFloat32Array _new(int length) native
-      "ExternalTypedData_Float32Array_new";
 }
 
 
 class _ExternalFloat64Array extends _TypedList with _DoubleListMixin implements Float64List {
   // Factory constructors.
 
-  factory _ExternalFloat64Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalFloat64Array(int length) native "ExternalTypedData_Float64Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -2140,19 +2300,13 @@ class _ExternalFloat64Array extends _TypedList with _DoubleListMixin implements 
   void _setIndexedFloat64(int index, double value) {
     _setFloat64(index * Float64List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalFloat64Array _new(int length) native
-      "ExternalTypedData_Float64Array_new";
 }
 
 
 class _ExternalFloat32x4Array extends _TypedList with _Float32x4ListMixin implements Float32x4List {
   // Factory constructors.
 
-  factory _ExternalFloat32x4Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalFloat32x4Array(int length) native "ExternalTypedData_Float32x4Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -2191,19 +2345,13 @@ class _ExternalFloat32x4Array extends _TypedList with _Float32x4ListMixin implem
   void _setIndexedFloat32x4(int index, Float32x4 value) {
     _setFloat32x4(index * Float32x4List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalFloat32x4Array _new(int length) native
-      "ExternalTypedData_Float32x4Array_new";
 }
 
 
 class _ExternalInt32x4Array extends _TypedList with _Int32x4ListMixin implements Int32x4List {
   // Factory constructors.
 
-  factory _ExternalInt32x4Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalInt32x4Array(int length) native "ExternalTypedData_Int32x4Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -2242,19 +2390,13 @@ class _ExternalInt32x4Array extends _TypedList with _Int32x4ListMixin implements
   void _setIndexedInt32x4(int index, Int32x4 value) {
     _setInt32x4(index * Int32x4List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalInt32x4Array _new(int length) native
-      "ExternalTypedData_Int32x4Array_new";
 }
 
 
 class _ExternalFloat64x2Array extends _TypedList with _Float64x2ListMixin implements Float64x2List {
   // Factory constructors.
 
-  factory _ExternalFloat64x2Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalFloat64x2Array(int length) native "ExternalTypedData_Float64x2Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -2293,20 +2435,17 @@ class _ExternalFloat64x2Array extends _TypedList with _Float64x2ListMixin implem
   void _setIndexedFloat64x2(int index, Float64x2 value) {
     _setFloat64x2(index * Float64x2List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalFloat64x2Array _new(int length) native
-      "ExternalTypedData_Float64x2Array_new";
 }
 
 
-class _Float32x4 implements Float32x4 {
-  factory _Float32x4(double x, double y, double z, double w)
+class Float32x4 {
+  factory Float32x4(double x, double y, double z, double w)
       native "Float32x4_fromDoubles";
-  factory _Float32x4.splat(double v) native "Float32x4_splat";
-  factory _Float32x4.zero() native "Float32x4_zero";
-  factory _Float32x4.fromInt32x4Bits(Int32x4 x)
+  factory Float32x4.splat(double v) native "Float32x4_splat";
+  factory Float32x4.zero() native "Float32x4_zero";
+  factory Float32x4.fromInt32x4Bits(Int32x4 x)
       native "Float32x4_fromInt32x4Bits";
-  factory _Float32x4.fromFloat64x2(Float64x2 v)
+  factory Float32x4.fromFloat64x2(Float64x2 v)
       native "Float32x4_fromFloat64x2";
   Float32x4 operator +(Float32x4 other) {
     return _add(other);
@@ -2400,15 +2539,274 @@ class _Float32x4 implements Float32x4 {
     return _reciprocalSqrt();
   }
   Float32x4 _reciprocalSqrt() native "Float32x4_reciprocalSqrt";
+
+  /// Mask passed to [shuffle] or [shuffleMix].
+  static const int XXXX = 0x0;
+  static const int XXXY = 0x40;
+  static const int XXXZ = 0x80;
+  static const int XXXW = 0xC0;
+  static const int XXYX = 0x10;
+  static const int XXYY = 0x50;
+  static const int XXYZ = 0x90;
+  static const int XXYW = 0xD0;
+  static const int XXZX = 0x20;
+  static const int XXZY = 0x60;
+  static const int XXZZ = 0xA0;
+  static const int XXZW = 0xE0;
+  static const int XXWX = 0x30;
+  static const int XXWY = 0x70;
+  static const int XXWZ = 0xB0;
+  static const int XXWW = 0xF0;
+  static const int XYXX = 0x4;
+  static const int XYXY = 0x44;
+  static const int XYXZ = 0x84;
+  static const int XYXW = 0xC4;
+  static const int XYYX = 0x14;
+  static const int XYYY = 0x54;
+  static const int XYYZ = 0x94;
+  static const int XYYW = 0xD4;
+  static const int XYZX = 0x24;
+  static const int XYZY = 0x64;
+  static const int XYZZ = 0xA4;
+  static const int XYZW = 0xE4;
+  static const int XYWX = 0x34;
+  static const int XYWY = 0x74;
+  static const int XYWZ = 0xB4;
+  static const int XYWW = 0xF4;
+  static const int XZXX = 0x8;
+  static const int XZXY = 0x48;
+  static const int XZXZ = 0x88;
+  static const int XZXW = 0xC8;
+  static const int XZYX = 0x18;
+  static const int XZYY = 0x58;
+  static const int XZYZ = 0x98;
+  static const int XZYW = 0xD8;
+  static const int XZZX = 0x28;
+  static const int XZZY = 0x68;
+  static const int XZZZ = 0xA8;
+  static const int XZZW = 0xE8;
+  static const int XZWX = 0x38;
+  static const int XZWY = 0x78;
+  static const int XZWZ = 0xB8;
+  static const int XZWW = 0xF8;
+  static const int XWXX = 0xC;
+  static const int XWXY = 0x4C;
+  static const int XWXZ = 0x8C;
+  static const int XWXW = 0xCC;
+  static const int XWYX = 0x1C;
+  static const int XWYY = 0x5C;
+  static const int XWYZ = 0x9C;
+  static const int XWYW = 0xDC;
+  static const int XWZX = 0x2C;
+  static const int XWZY = 0x6C;
+  static const int XWZZ = 0xAC;
+  static const int XWZW = 0xEC;
+  static const int XWWX = 0x3C;
+  static const int XWWY = 0x7C;
+  static const int XWWZ = 0xBC;
+  static const int XWWW = 0xFC;
+  static const int YXXX = 0x1;
+  static const int YXXY = 0x41;
+  static const int YXXZ = 0x81;
+  static const int YXXW = 0xC1;
+  static const int YXYX = 0x11;
+  static const int YXYY = 0x51;
+  static const int YXYZ = 0x91;
+  static const int YXYW = 0xD1;
+  static const int YXZX = 0x21;
+  static const int YXZY = 0x61;
+  static const int YXZZ = 0xA1;
+  static const int YXZW = 0xE1;
+  static const int YXWX = 0x31;
+  static const int YXWY = 0x71;
+  static const int YXWZ = 0xB1;
+  static const int YXWW = 0xF1;
+  static const int YYXX = 0x5;
+  static const int YYXY = 0x45;
+  static const int YYXZ = 0x85;
+  static const int YYXW = 0xC5;
+  static const int YYYX = 0x15;
+  static const int YYYY = 0x55;
+  static const int YYYZ = 0x95;
+  static const int YYYW = 0xD5;
+  static const int YYZX = 0x25;
+  static const int YYZY = 0x65;
+  static const int YYZZ = 0xA5;
+  static const int YYZW = 0xE5;
+  static const int YYWX = 0x35;
+  static const int YYWY = 0x75;
+  static const int YYWZ = 0xB5;
+  static const int YYWW = 0xF5;
+  static const int YZXX = 0x9;
+  static const int YZXY = 0x49;
+  static const int YZXZ = 0x89;
+  static const int YZXW = 0xC9;
+  static const int YZYX = 0x19;
+  static const int YZYY = 0x59;
+  static const int YZYZ = 0x99;
+  static const int YZYW = 0xD9;
+  static const int YZZX = 0x29;
+  static const int YZZY = 0x69;
+  static const int YZZZ = 0xA9;
+  static const int YZZW = 0xE9;
+  static const int YZWX = 0x39;
+  static const int YZWY = 0x79;
+  static const int YZWZ = 0xB9;
+  static const int YZWW = 0xF9;
+  static const int YWXX = 0xD;
+  static const int YWXY = 0x4D;
+  static const int YWXZ = 0x8D;
+  static const int YWXW = 0xCD;
+  static const int YWYX = 0x1D;
+  static const int YWYY = 0x5D;
+  static const int YWYZ = 0x9D;
+  static const int YWYW = 0xDD;
+  static const int YWZX = 0x2D;
+  static const int YWZY = 0x6D;
+  static const int YWZZ = 0xAD;
+  static const int YWZW = 0xED;
+  static const int YWWX = 0x3D;
+  static const int YWWY = 0x7D;
+  static const int YWWZ = 0xBD;
+  static const int YWWW = 0xFD;
+  static const int ZXXX = 0x2;
+  static const int ZXXY = 0x42;
+  static const int ZXXZ = 0x82;
+  static const int ZXXW = 0xC2;
+  static const int ZXYX = 0x12;
+  static const int ZXYY = 0x52;
+  static const int ZXYZ = 0x92;
+  static const int ZXYW = 0xD2;
+  static const int ZXZX = 0x22;
+  static const int ZXZY = 0x62;
+  static const int ZXZZ = 0xA2;
+  static const int ZXZW = 0xE2;
+  static const int ZXWX = 0x32;
+  static const int ZXWY = 0x72;
+  static const int ZXWZ = 0xB2;
+  static const int ZXWW = 0xF2;
+  static const int ZYXX = 0x6;
+  static const int ZYXY = 0x46;
+  static const int ZYXZ = 0x86;
+  static const int ZYXW = 0xC6;
+  static const int ZYYX = 0x16;
+  static const int ZYYY = 0x56;
+  static const int ZYYZ = 0x96;
+  static const int ZYYW = 0xD6;
+  static const int ZYZX = 0x26;
+  static const int ZYZY = 0x66;
+  static const int ZYZZ = 0xA6;
+  static const int ZYZW = 0xE6;
+  static const int ZYWX = 0x36;
+  static const int ZYWY = 0x76;
+  static const int ZYWZ = 0xB6;
+  static const int ZYWW = 0xF6;
+  static const int ZZXX = 0xA;
+  static const int ZZXY = 0x4A;
+  static const int ZZXZ = 0x8A;
+  static const int ZZXW = 0xCA;
+  static const int ZZYX = 0x1A;
+  static const int ZZYY = 0x5A;
+  static const int ZZYZ = 0x9A;
+  static const int ZZYW = 0xDA;
+  static const int ZZZX = 0x2A;
+  static const int ZZZY = 0x6A;
+  static const int ZZZZ = 0xAA;
+  static const int ZZZW = 0xEA;
+  static const int ZZWX = 0x3A;
+  static const int ZZWY = 0x7A;
+  static const int ZZWZ = 0xBA;
+  static const int ZZWW = 0xFA;
+  static const int ZWXX = 0xE;
+  static const int ZWXY = 0x4E;
+  static const int ZWXZ = 0x8E;
+  static const int ZWXW = 0xCE;
+  static const int ZWYX = 0x1E;
+  static const int ZWYY = 0x5E;
+  static const int ZWYZ = 0x9E;
+  static const int ZWYW = 0xDE;
+  static const int ZWZX = 0x2E;
+  static const int ZWZY = 0x6E;
+  static const int ZWZZ = 0xAE;
+  static const int ZWZW = 0xEE;
+  static const int ZWWX = 0x3E;
+  static const int ZWWY = 0x7E;
+  static const int ZWWZ = 0xBE;
+  static const int ZWWW = 0xFE;
+  static const int WXXX = 0x3;
+  static const int WXXY = 0x43;
+  static const int WXXZ = 0x83;
+  static const int WXXW = 0xC3;
+  static const int WXYX = 0x13;
+  static const int WXYY = 0x53;
+  static const int WXYZ = 0x93;
+  static const int WXYW = 0xD3;
+  static const int WXZX = 0x23;
+  static const int WXZY = 0x63;
+  static const int WXZZ = 0xA3;
+  static const int WXZW = 0xE3;
+  static const int WXWX = 0x33;
+  static const int WXWY = 0x73;
+  static const int WXWZ = 0xB3;
+  static const int WXWW = 0xF3;
+  static const int WYXX = 0x7;
+  static const int WYXY = 0x47;
+  static const int WYXZ = 0x87;
+  static const int WYXW = 0xC7;
+  static const int WYYX = 0x17;
+  static const int WYYY = 0x57;
+  static const int WYYZ = 0x97;
+  static const int WYYW = 0xD7;
+  static const int WYZX = 0x27;
+  static const int WYZY = 0x67;
+  static const int WYZZ = 0xA7;
+  static const int WYZW = 0xE7;
+  static const int WYWX = 0x37;
+  static const int WYWY = 0x77;
+  static const int WYWZ = 0xB7;
+  static const int WYWW = 0xF7;
+  static const int WZXX = 0xB;
+  static const int WZXY = 0x4B;
+  static const int WZXZ = 0x8B;
+  static const int WZXW = 0xCB;
+  static const int WZYX = 0x1B;
+  static const int WZYY = 0x5B;
+  static const int WZYZ = 0x9B;
+  static const int WZYW = 0xDB;
+  static const int WZZX = 0x2B;
+  static const int WZZY = 0x6B;
+  static const int WZZZ = 0xAB;
+  static const int WZZW = 0xEB;
+  static const int WZWX = 0x3B;
+  static const int WZWY = 0x7B;
+  static const int WZWZ = 0xBB;
+  static const int WZWW = 0xFB;
+  static const int WWXX = 0xF;
+  static const int WWXY = 0x4F;
+  static const int WWXZ = 0x8F;
+  static const int WWXW = 0xCF;
+  static const int WWYX = 0x1F;
+  static const int WWYY = 0x5F;
+  static const int WWYZ = 0x9F;
+  static const int WWYW = 0xDF;
+  static const int WWZX = 0x2F;
+  static const int WWZY = 0x6F;
+  static const int WWZZ = 0xAF;
+  static const int WWZW = 0xEF;
+  static const int WWWX = 0x3F;
+  static const int WWWY = 0x7F;
+  static const int WWWZ = 0xBF;
+  static const int WWWW = 0xFF;
+
 }
 
 
-class _Int32x4 implements Int32x4 {
-  factory _Int32x4(int x, int y, int z, int w)
+class Int32x4 {
+  factory Int32x4(int x, int y, int z, int w)
       native "Int32x4_fromInts";
-  factory _Int32x4.bool(bool x, bool y, bool z, bool w)
+  factory Int32x4.bool(bool x, bool y, bool z, bool w)
       native "Int32x4_fromBools";
-  factory _Int32x4.fromFloat32x4Bits(Float32x4 x)
+  factory Int32x4.fromFloat32x4Bits(Float32x4 x)
       native "Int32x4_fromFloat32x4Bits";
   Int32x4 operator |(Int32x4 other) {
     return _or(other);
@@ -2456,14 +2854,273 @@ class _Int32x4 implements Int32x4 {
   Float32x4 _select(Float32x4 trueValue,
                            Float32x4 falseValue)
       native "Int32x4_select";
+
+  /// Mask passed to [shuffle] or [shuffleMix].
+  static const int XXXX = 0x0;
+  static const int XXXY = 0x40;
+  static const int XXXZ = 0x80;
+  static const int XXXW = 0xC0;
+  static const int XXYX = 0x10;
+  static const int XXYY = 0x50;
+  static const int XXYZ = 0x90;
+  static const int XXYW = 0xD0;
+  static const int XXZX = 0x20;
+  static const int XXZY = 0x60;
+  static const int XXZZ = 0xA0;
+  static const int XXZW = 0xE0;
+  static const int XXWX = 0x30;
+  static const int XXWY = 0x70;
+  static const int XXWZ = 0xB0;
+  static const int XXWW = 0xF0;
+  static const int XYXX = 0x4;
+  static const int XYXY = 0x44;
+  static const int XYXZ = 0x84;
+  static const int XYXW = 0xC4;
+  static const int XYYX = 0x14;
+  static const int XYYY = 0x54;
+  static const int XYYZ = 0x94;
+  static const int XYYW = 0xD4;
+  static const int XYZX = 0x24;
+  static const int XYZY = 0x64;
+  static const int XYZZ = 0xA4;
+  static const int XYZW = 0xE4;
+  static const int XYWX = 0x34;
+  static const int XYWY = 0x74;
+  static const int XYWZ = 0xB4;
+  static const int XYWW = 0xF4;
+  static const int XZXX = 0x8;
+  static const int XZXY = 0x48;
+  static const int XZXZ = 0x88;
+  static const int XZXW = 0xC8;
+  static const int XZYX = 0x18;
+  static const int XZYY = 0x58;
+  static const int XZYZ = 0x98;
+  static const int XZYW = 0xD8;
+  static const int XZZX = 0x28;
+  static const int XZZY = 0x68;
+  static const int XZZZ = 0xA8;
+  static const int XZZW = 0xE8;
+  static const int XZWX = 0x38;
+  static const int XZWY = 0x78;
+  static const int XZWZ = 0xB8;
+  static const int XZWW = 0xF8;
+  static const int XWXX = 0xC;
+  static const int XWXY = 0x4C;
+  static const int XWXZ = 0x8C;
+  static const int XWXW = 0xCC;
+  static const int XWYX = 0x1C;
+  static const int XWYY = 0x5C;
+  static const int XWYZ = 0x9C;
+  static const int XWYW = 0xDC;
+  static const int XWZX = 0x2C;
+  static const int XWZY = 0x6C;
+  static const int XWZZ = 0xAC;
+  static const int XWZW = 0xEC;
+  static const int XWWX = 0x3C;
+  static const int XWWY = 0x7C;
+  static const int XWWZ = 0xBC;
+  static const int XWWW = 0xFC;
+  static const int YXXX = 0x1;
+  static const int YXXY = 0x41;
+  static const int YXXZ = 0x81;
+  static const int YXXW = 0xC1;
+  static const int YXYX = 0x11;
+  static const int YXYY = 0x51;
+  static const int YXYZ = 0x91;
+  static const int YXYW = 0xD1;
+  static const int YXZX = 0x21;
+  static const int YXZY = 0x61;
+  static const int YXZZ = 0xA1;
+  static const int YXZW = 0xE1;
+  static const int YXWX = 0x31;
+  static const int YXWY = 0x71;
+  static const int YXWZ = 0xB1;
+  static const int YXWW = 0xF1;
+  static const int YYXX = 0x5;
+  static const int YYXY = 0x45;
+  static const int YYXZ = 0x85;
+  static const int YYXW = 0xC5;
+  static const int YYYX = 0x15;
+  static const int YYYY = 0x55;
+  static const int YYYZ = 0x95;
+  static const int YYYW = 0xD5;
+  static const int YYZX = 0x25;
+  static const int YYZY = 0x65;
+  static const int YYZZ = 0xA5;
+  static const int YYZW = 0xE5;
+  static const int YYWX = 0x35;
+  static const int YYWY = 0x75;
+  static const int YYWZ = 0xB5;
+  static const int YYWW = 0xF5;
+  static const int YZXX = 0x9;
+  static const int YZXY = 0x49;
+  static const int YZXZ = 0x89;
+  static const int YZXW = 0xC9;
+  static const int YZYX = 0x19;
+  static const int YZYY = 0x59;
+  static const int YZYZ = 0x99;
+  static const int YZYW = 0xD9;
+  static const int YZZX = 0x29;
+  static const int YZZY = 0x69;
+  static const int YZZZ = 0xA9;
+  static const int YZZW = 0xE9;
+  static const int YZWX = 0x39;
+  static const int YZWY = 0x79;
+  static const int YZWZ = 0xB9;
+  static const int YZWW = 0xF9;
+  static const int YWXX = 0xD;
+  static const int YWXY = 0x4D;
+  static const int YWXZ = 0x8D;
+  static const int YWXW = 0xCD;
+  static const int YWYX = 0x1D;
+  static const int YWYY = 0x5D;
+  static const int YWYZ = 0x9D;
+  static const int YWYW = 0xDD;
+  static const int YWZX = 0x2D;
+  static const int YWZY = 0x6D;
+  static const int YWZZ = 0xAD;
+  static const int YWZW = 0xED;
+  static const int YWWX = 0x3D;
+  static const int YWWY = 0x7D;
+  static const int YWWZ = 0xBD;
+  static const int YWWW = 0xFD;
+  static const int ZXXX = 0x2;
+  static const int ZXXY = 0x42;
+  static const int ZXXZ = 0x82;
+  static const int ZXXW = 0xC2;
+  static const int ZXYX = 0x12;
+  static const int ZXYY = 0x52;
+  static const int ZXYZ = 0x92;
+  static const int ZXYW = 0xD2;
+  static const int ZXZX = 0x22;
+  static const int ZXZY = 0x62;
+  static const int ZXZZ = 0xA2;
+  static const int ZXZW = 0xE2;
+  static const int ZXWX = 0x32;
+  static const int ZXWY = 0x72;
+  static const int ZXWZ = 0xB2;
+  static const int ZXWW = 0xF2;
+  static const int ZYXX = 0x6;
+  static const int ZYXY = 0x46;
+  static const int ZYXZ = 0x86;
+  static const int ZYXW = 0xC6;
+  static const int ZYYX = 0x16;
+  static const int ZYYY = 0x56;
+  static const int ZYYZ = 0x96;
+  static const int ZYYW = 0xD6;
+  static const int ZYZX = 0x26;
+  static const int ZYZY = 0x66;
+  static const int ZYZZ = 0xA6;
+  static const int ZYZW = 0xE6;
+  static const int ZYWX = 0x36;
+  static const int ZYWY = 0x76;
+  static const int ZYWZ = 0xB6;
+  static const int ZYWW = 0xF6;
+  static const int ZZXX = 0xA;
+  static const int ZZXY = 0x4A;
+  static const int ZZXZ = 0x8A;
+  static const int ZZXW = 0xCA;
+  static const int ZZYX = 0x1A;
+  static const int ZZYY = 0x5A;
+  static const int ZZYZ = 0x9A;
+  static const int ZZYW = 0xDA;
+  static const int ZZZX = 0x2A;
+  static const int ZZZY = 0x6A;
+  static const int ZZZZ = 0xAA;
+  static const int ZZZW = 0xEA;
+  static const int ZZWX = 0x3A;
+  static const int ZZWY = 0x7A;
+  static const int ZZWZ = 0xBA;
+  static const int ZZWW = 0xFA;
+  static const int ZWXX = 0xE;
+  static const int ZWXY = 0x4E;
+  static const int ZWXZ = 0x8E;
+  static const int ZWXW = 0xCE;
+  static const int ZWYX = 0x1E;
+  static const int ZWYY = 0x5E;
+  static const int ZWYZ = 0x9E;
+  static const int ZWYW = 0xDE;
+  static const int ZWZX = 0x2E;
+  static const int ZWZY = 0x6E;
+  static const int ZWZZ = 0xAE;
+  static const int ZWZW = 0xEE;
+  static const int ZWWX = 0x3E;
+  static const int ZWWY = 0x7E;
+  static const int ZWWZ = 0xBE;
+  static const int ZWWW = 0xFE;
+  static const int WXXX = 0x3;
+  static const int WXXY = 0x43;
+  static const int WXXZ = 0x83;
+  static const int WXXW = 0xC3;
+  static const int WXYX = 0x13;
+  static const int WXYY = 0x53;
+  static const int WXYZ = 0x93;
+  static const int WXYW = 0xD3;
+  static const int WXZX = 0x23;
+  static const int WXZY = 0x63;
+  static const int WXZZ = 0xA3;
+  static const int WXZW = 0xE3;
+  static const int WXWX = 0x33;
+  static const int WXWY = 0x73;
+  static const int WXWZ = 0xB3;
+  static const int WXWW = 0xF3;
+  static const int WYXX = 0x7;
+  static const int WYXY = 0x47;
+  static const int WYXZ = 0x87;
+  static const int WYXW = 0xC7;
+  static const int WYYX = 0x17;
+  static const int WYYY = 0x57;
+  static const int WYYZ = 0x97;
+  static const int WYYW = 0xD7;
+  static const int WYZX = 0x27;
+  static const int WYZY = 0x67;
+  static const int WYZZ = 0xA7;
+  static const int WYZW = 0xE7;
+  static const int WYWX = 0x37;
+  static const int WYWY = 0x77;
+  static const int WYWZ = 0xB7;
+  static const int WYWW = 0xF7;
+  static const int WZXX = 0xB;
+  static const int WZXY = 0x4B;
+  static const int WZXZ = 0x8B;
+  static const int WZXW = 0xCB;
+  static const int WZYX = 0x1B;
+  static const int WZYY = 0x5B;
+  static const int WZYZ = 0x9B;
+  static const int WZYW = 0xDB;
+  static const int WZZX = 0x2B;
+  static const int WZZY = 0x6B;
+  static const int WZZZ = 0xAB;
+  static const int WZZW = 0xEB;
+  static const int WZWX = 0x3B;
+  static const int WZWY = 0x7B;
+  static const int WZWZ = 0xBB;
+  static const int WZWW = 0xFB;
+  static const int WWXX = 0xF;
+  static const int WWXY = 0x4F;
+  static const int WWXZ = 0x8F;
+  static const int WWXW = 0xCF;
+  static const int WWYX = 0x1F;
+  static const int WWYY = 0x5F;
+  static const int WWYZ = 0x9F;
+  static const int WWYW = 0xDF;
+  static const int WWZX = 0x2F;
+  static const int WWZY = 0x6F;
+  static const int WWZZ = 0xAF;
+  static const int WWZW = 0xEF;
+  static const int WWWX = 0x3F;
+  static const int WWWY = 0x7F;
+  static const int WWWZ = 0xBF;
+  static const int WWWW = 0xFF;
+
 }
 
 
-class _Float64x2 implements Float64x2 {
-  factory _Float64x2(double x, double y) native "Float64x2_fromDoubles";
-  factory _Float64x2.splat(double v) native "Float64x2_splat";
-  factory _Float64x2.zero() native "Float64x2_zero";
-  factory _Float64x2.fromFloat32x4(Float32x4 v) native "Float64x2_fromFloat32x4";
+class Float64x2 {
+  factory Float64x2(double x, double y) native "Float64x2_fromDoubles";
+  factory Float64x2.splat(double v) native "Float64x2_splat";
+  factory Float64x2.zero() native "Float64x2_zero";
+  factory Float64x2.fromFloat32x4(Float32x4 v) native "Float64x2_fromFloat32x4";
 
   Float64x2 operator +(Float64x2 other) {
     return _add(other);
@@ -2549,7 +3206,7 @@ class _TypedListIterator<E> implements Iterator<E> {
 
 
 class _TypedListView extends _TypedListBase implements TypedData {
-  _TypedListView(_ByteBuffer _buffer, int _offset, int _length)
+  _TypedListView(ByteBuffer _buffer, int _offset, int _length)
     : _typedData = _buffer._data,
       offsetInBytes = _offset,
       length = _length {

@@ -14,9 +14,9 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/local_declaration_visitor.dart'
     show LocalDeclarationVisitor;
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 import '../../../protocol_server.dart'
@@ -191,8 +191,8 @@ class _LabelVisitor extends LocalDeclarationVisitor {
 
   _LabelVisitor(DartCompletionRequest request, this.includeStatementLabels,
       this.includeCaseLabels, this.suggestions)
-      : super(request.offset),
-        request = request;
+      : request = request,
+        super(request.offset);
 
   @override
   void declaredClass(ClassDeclaration declaration) {

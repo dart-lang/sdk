@@ -7,25 +7,18 @@
 
 library dart2js.helpers;
 
-import 'dart:async' show
-    EventSink;
-import 'dart:collection';
-import 'dart:convert';
-
-import '../../compiler.dart';
 import '../common.dart';
-import '../compiler.dart' show
-    Compiler;
-import '../diagnostics/invariant.dart' show
-    DEBUG_MODE;
+import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../util/util.dart';
 
-part 'debug_collection.dart';
-part 'trace.dart';
-part 'expensive_map.dart';
-part 'expensive_set.dart';
-part 'stats.dart';
-part 'track_map.dart';
+import 'trace.dart';
+
+export 'debug_collection.dart';
+export 'trace.dart';
+export 'expensive_map.dart';
+export 'expensive_set.dart';
+export 'stats.dart';
+export 'track_map.dart';
 
 /// Global flag to enable [debugPrint]. This should always be `true` by default
 /// and be set to `false` as a means to temporarily turn off all debugging
@@ -42,6 +35,7 @@ void enableDebugMode() {
 class _DebugIndentation extends Indentation {
   final String indentationUnit = " ";
 }
+
 _DebugIndentation _indentation = new _DebugIndentation();
 
 /// Function signature of [debugPrint].
@@ -85,9 +79,8 @@ debugBreak() {
 }
 
 /// Function signature of [reportHere].
-typedef ReportHere(DiagnosticReporter reporter,
-                   Spannable node,
-                   String debugMessage);
+typedef ReportHere(
+    DiagnosticReporter reporter, Spannable node, String debugMessage);
 
 /// Print a message with a source location.
 ReportHere get reportHere {
@@ -97,8 +90,8 @@ ReportHere get reportHere {
 
 /// Implementation of [reportHere]
 _reportHere(DiagnosticReporter reporter, Spannable node, String debugMessage) {
-  reporter.reportInfo(node,
-      MessageKind.GENERIC, {'text': 'HERE: $debugMessage'});
+  reporter
+      .reportInfo(node, MessageKind.GENERIC, {'text': 'HERE: $debugMessage'});
 }
 
 /// Set of tracked objects used by [track] and [ifTracked].

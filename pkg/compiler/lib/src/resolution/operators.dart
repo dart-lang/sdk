@@ -5,17 +5,10 @@
 library dart2js.operators;
 
 import '../elements/elements.dart';
-import '../universe/call_structure.dart' show
-    CallStructure;
-import '../universe/selector.dart' show
-    Selector,
-    SelectorKind;
+import '../universe/call_structure.dart' show CallStructure;
+import '../universe/selector.dart' show Selector, SelectorKind;
 
-enum UnaryOperatorKind {
-  NOT,
-  NEGATE,
-  COMPLEMENT,
-}
+enum UnaryOperatorKind { NOT, NEGATE, COMPLEMENT, }
 
 class UnaryOperator {
   final UnaryOperatorKind kind;
@@ -26,10 +19,8 @@ class UnaryOperator {
 
   bool get isUserDefinable => selectorName != null;
 
-  Selector get selector => new Selector(
-      SelectorKind.OPERATOR,
-      new PublicName(selectorName),
-      CallStructure.NO_ARGS);
+  Selector get selector => new Selector(SelectorKind.OPERATOR,
+      new PublicName(selectorName), CallStructure.NO_ARGS);
 
   String toString() => name;
 
@@ -47,18 +38,25 @@ class UnaryOperator {
 
   static UnaryOperator parse(String value) {
     switch (value) {
-      case '!': return NOT;
-      case '-': return NEGATE;
-      case '~': return COMPLEMENT;
-      default: return null;
+      case '!':
+        return NOT;
+      case '-':
+        return NEGATE;
+      case '~':
+        return COMPLEMENT;
+      default:
+        return null;
     }
   }
 
   static UnaryOperator fromKind(UnaryOperatorKind kind) {
     switch (kind) {
-      case UnaryOperatorKind.NOT: return NOT;
-      case UnaryOperatorKind.NEGATE: return NEGATE;
-      case UnaryOperatorKind.COMPLEMENT: return COMPLEMENT;
+      case UnaryOperatorKind.NOT:
+        return NOT;
+      case UnaryOperatorKind.NEGATE:
+        return NEGATE;
+      case UnaryOperatorKind.COMPLEMENT:
+        return COMPLEMENT;
     }
   }
 }
@@ -186,54 +184,97 @@ class BinaryOperator {
 
   static BinaryOperator parse(String value) {
     switch (value) {
-      case '==': return EQ;
-      case '!=': return NOT_EQ;
-      case '[]': return INDEX;
-      case '*': return MUL;
-      case '/': return DIV;
-      case '%': return MOD;
-      case '~/': return IDIV;
-      case '+': return ADD;
-      case '-': return SUB;
-      case '<<': return SHL;
-      case '>>': return SHR;
-      case '>=': return GTEQ;
-      case '>': return GT;
-      case '<=': return LTEQ;
-      case '<': return LT;
-      case '&': return AND;
-      case '^': return XOR;
-      case '|': return OR;
-      case '&&': return LOGICAL_AND;
-      case '||': return LOGICAL_OR;
-      case '??': return IF_NULL;
-      default: return null;
+      case '==':
+        return EQ;
+      case '!=':
+        return NOT_EQ;
+      case '[]':
+        return INDEX;
+      case '*':
+        return MUL;
+      case '/':
+        return DIV;
+      case '%':
+        return MOD;
+      case '~/':
+        return IDIV;
+      case '+':
+        return ADD;
+      case '-':
+        return SUB;
+      case '<<':
+        return SHL;
+      case '>>':
+        return SHR;
+      case '>=':
+        return GTEQ;
+      case '>':
+        return GT;
+      case '<=':
+        return LTEQ;
+      case '<':
+        return LT;
+      case '&':
+        return AND;
+      case '^':
+        return XOR;
+      case '|':
+        return OR;
+      case '&&':
+        return LOGICAL_AND;
+      case '||':
+        return LOGICAL_OR;
+      case '??':
+        return IF_NULL;
+      default:
+        return null;
     }
   }
 
   static BinaryOperator fromKind(BinaryOperatorKind kind) {
     switch (kind) {
-      case BinaryOperatorKind.EQ: return EQ;
-      case BinaryOperatorKind.NOT_EQ: return NOT_EQ;
-      case BinaryOperatorKind.INDEX: return INDEX;
-      case BinaryOperatorKind.MUL: return MUL;
-      case BinaryOperatorKind.DIV: return DIV;
-      case BinaryOperatorKind.MOD: return MOD;
-      case BinaryOperatorKind.IDIV: return IDIV;
-      case BinaryOperatorKind.ADD: return ADD;
-      case BinaryOperatorKind.SUB: return SUB;
-      case BinaryOperatorKind.SHL: return SHL;
-      case BinaryOperatorKind.SHR: return SHR;
-      case BinaryOperatorKind.GTEQ: return GTEQ;
-      case BinaryOperatorKind.GT: return GT;
-      case BinaryOperatorKind.LTEQ: return LTEQ;
-      case BinaryOperatorKind.LT: return LT;
-      case BinaryOperatorKind.AND: return AND;
-      case BinaryOperatorKind.XOR: return XOR;
-      case BinaryOperatorKind.OR: return OR;
-      case BinaryOperatorKind.LOGICAL_AND: return LOGICAL_AND;
-      case BinaryOperatorKind.LOGICAL_OR: return LOGICAL_OR;
-      case BinaryOperatorKind.IF_NULL: return IF_NULL;
+      case BinaryOperatorKind.EQ:
+        return EQ;
+      case BinaryOperatorKind.NOT_EQ:
+        return NOT_EQ;
+      case BinaryOperatorKind.INDEX:
+        return INDEX;
+      case BinaryOperatorKind.MUL:
+        return MUL;
+      case BinaryOperatorKind.DIV:
+        return DIV;
+      case BinaryOperatorKind.MOD:
+        return MOD;
+      case BinaryOperatorKind.IDIV:
+        return IDIV;
+      case BinaryOperatorKind.ADD:
+        return ADD;
+      case BinaryOperatorKind.SUB:
+        return SUB;
+      case BinaryOperatorKind.SHL:
+        return SHL;
+      case BinaryOperatorKind.SHR:
+        return SHR;
+      case BinaryOperatorKind.GTEQ:
+        return GTEQ;
+      case BinaryOperatorKind.GT:
+        return GT;
+      case BinaryOperatorKind.LTEQ:
+        return LTEQ;
+      case BinaryOperatorKind.LT:
+        return LT;
+      case BinaryOperatorKind.AND:
+        return AND;
+      case BinaryOperatorKind.XOR:
+        return XOR;
+      case BinaryOperatorKind.OR:
+        return OR;
+      case BinaryOperatorKind.LOGICAL_AND:
+        return LOGICAL_AND;
+      case BinaryOperatorKind.LOGICAL_OR:
+        return LOGICAL_OR;
+      case BinaryOperatorKind.IF_NULL:
+        return IF_NULL;
     }
   }
 }
@@ -292,104 +333,121 @@ class AssignmentOperator {
   final bool isUserDefinable;
 
   const AssignmentOperator._(this.kind, this.name, this.binaryOperator,
-                             {this.isUserDefinable: true});
+      {this.isUserDefinable: true});
 
   String get selectorName {
-    return binaryOperator != null ? binaryOperator.selectorName: null;
+    return binaryOperator != null ? binaryOperator.selectorName : null;
   }
 
   String toString() => name;
 
   /// The = operator.
-  static const AssignmentOperator ASSIGN =
-      const AssignmentOperator._(AssignmentOperatorKind.ASSIGN, '=',
-                                 null, isUserDefinable: false);
+  static const AssignmentOperator ASSIGN = const AssignmentOperator._(
+      AssignmentOperatorKind.ASSIGN, '=', null,
+      isUserDefinable: false);
 
   /// The ??= operator.
-  static const AssignmentOperator IF_NULL =
-      const AssignmentOperator._(AssignmentOperatorKind.IF_NULL, '??=',
-                                 BinaryOperator.IF_NULL,
-                                 isUserDefinable: false);
+  static const AssignmentOperator IF_NULL = const AssignmentOperator._(
+      AssignmentOperatorKind.IF_NULL, '??=', BinaryOperator.IF_NULL,
+      isUserDefinable: false);
 
   /// The += assignment operator.
-  static const AssignmentOperator ADD =
-      const AssignmentOperator._(AssignmentOperatorKind.ADD, '+=',
-                                 BinaryOperator.ADD);
+  static const AssignmentOperator ADD = const AssignmentOperator._(
+      AssignmentOperatorKind.ADD, '+=', BinaryOperator.ADD);
 
   /// The -= assignment operator.
-  static const AssignmentOperator SUB =
-      const AssignmentOperator._(AssignmentOperatorKind.SUB, '-=',
-                                 BinaryOperator.SUB);
+  static const AssignmentOperator SUB = const AssignmentOperator._(
+      AssignmentOperatorKind.SUB, '-=', BinaryOperator.SUB);
 
   /// The *= assignment operator.
-  static const AssignmentOperator MUL =
-      const AssignmentOperator._(AssignmentOperatorKind.MUL, '*=',
-                                 BinaryOperator.MUL);
+  static const AssignmentOperator MUL = const AssignmentOperator._(
+      AssignmentOperatorKind.MUL, '*=', BinaryOperator.MUL);
 
   /// The /= assignment operator.
-  static const AssignmentOperator DIV =
-      const AssignmentOperator._(AssignmentOperatorKind.DIV, '/=',
-                                 BinaryOperator.DIV);
+  static const AssignmentOperator DIV = const AssignmentOperator._(
+      AssignmentOperatorKind.DIV, '/=', BinaryOperator.DIV);
 
   /// The ~/= assignment operator.
-  static const AssignmentOperator IDIV =
-      const AssignmentOperator._(AssignmentOperatorKind.IDIV, '~/=',
-                                 BinaryOperator.IDIV);
+  static const AssignmentOperator IDIV = const AssignmentOperator._(
+      AssignmentOperatorKind.IDIV, '~/=', BinaryOperator.IDIV);
 
   /// The %= assignment operator.
-  static const AssignmentOperator MOD =
-      const AssignmentOperator._(AssignmentOperatorKind.MOD, '%=',
-                                 BinaryOperator.MOD);
+  static const AssignmentOperator MOD = const AssignmentOperator._(
+      AssignmentOperatorKind.MOD, '%=', BinaryOperator.MOD);
 
   /// The <<= assignment operator.
-  static const AssignmentOperator SHL =
-      const AssignmentOperator._(AssignmentOperatorKind.SHL, '<<=',
-                                 BinaryOperator.SHL);
+  static const AssignmentOperator SHL = const AssignmentOperator._(
+      AssignmentOperatorKind.SHL, '<<=', BinaryOperator.SHL);
 
   /// The >>= assignment operator.
-  static const AssignmentOperator SHR =
-      const AssignmentOperator._(AssignmentOperatorKind.SHR, '>>=',
-                                 BinaryOperator.SHR);
+  static const AssignmentOperator SHR = const AssignmentOperator._(
+      AssignmentOperatorKind.SHR, '>>=', BinaryOperator.SHR);
 
   /// The &= assignment operator.
-  static const AssignmentOperator AND =
-      const AssignmentOperator._(AssignmentOperatorKind.AND, '&=',
-                                 BinaryOperator.AND);
+  static const AssignmentOperator AND = const AssignmentOperator._(
+      AssignmentOperatorKind.AND, '&=', BinaryOperator.AND);
 
   /// The |= assignment operator.
-  static const AssignmentOperator OR =
-      const AssignmentOperator._(AssignmentOperatorKind.OR, '|=',
-                                 BinaryOperator.OR);
+  static const AssignmentOperator OR = const AssignmentOperator._(
+      AssignmentOperatorKind.OR, '|=', BinaryOperator.OR);
 
   /// The ^= assignment operator.
-  static const AssignmentOperator XOR =
-      const AssignmentOperator._(AssignmentOperatorKind.XOR, '^=',
-                                 BinaryOperator.XOR);
+  static const AssignmentOperator XOR = const AssignmentOperator._(
+      AssignmentOperatorKind.XOR, '^=', BinaryOperator.XOR);
 
   static AssignmentOperator parse(String value) {
     switch (value) {
-      case '=': return ASSIGN;
-      case '??=': return IF_NULL;
-      case '*=': return MUL;
-      case '/=': return DIV;
-      case '%=': return MOD;
-      case '~/=': return IDIV;
-      case '+=': return ADD;
-      case '-=': return SUB;
-      case '<<=': return SHL;
-      case '>>=': return SHR;
-      case '&=': return AND;
-      case '^=': return XOR;
-      case '|=': return OR;
-      default: return null;
+      case '=':
+        return ASSIGN;
+      case '??=':
+        return IF_NULL;
+      case '*=':
+        return MUL;
+      case '/=':
+        return DIV;
+      case '%=':
+        return MOD;
+      case '~/=':
+        return IDIV;
+      case '+=':
+        return ADD;
+      case '-=':
+        return SUB;
+      case '<<=':
+        return SHL;
+      case '>>=':
+        return SHR;
+      case '&=':
+        return AND;
+      case '^=':
+        return XOR;
+      case '|=':
+        return OR;
+      default:
+        return null;
+    }
+  }
+
+  static AssignmentOperator fromKind(AssignmentOperatorKind kind) {
+    switch (kind) {
+      case AssignmentOperatorKind.ASSIGN: return ASSIGN;
+      case AssignmentOperatorKind.IF_NULL: return IF_NULL;
+      case AssignmentOperatorKind.ADD: return ADD;
+      case AssignmentOperatorKind.SUB: return SUB;
+      case AssignmentOperatorKind.MUL: return MUL;
+      case AssignmentOperatorKind.DIV: return DIV;
+      case AssignmentOperatorKind.IDIV: return IDIV;
+      case AssignmentOperatorKind.MOD: return MOD;
+      case AssignmentOperatorKind.SHL: return SHL;
+      case AssignmentOperatorKind.SHR: return SHR;
+      case AssignmentOperatorKind.AND: return AND;
+      case AssignmentOperatorKind.OR: return OR;
+      case AssignmentOperatorKind.XOR: return XOR;
     }
   }
 }
 
-
-enum IncDecOperatorKind {
-  INC, DEC
-}
+enum IncDecOperatorKind { INC, DEC }
 
 class IncDecOperator {
   final IncDecOperatorKind kind;
@@ -412,9 +470,19 @@ class IncDecOperator {
 
   static IncDecOperator parse(String value) {
     switch (value) {
-      case '++': return INC;
-      case '--': return DEC;
-      default: return null;
+      case '++':
+        return INC;
+      case '--':
+        return DEC;
+      default:
+        return null;
+    }
+  }
+
+  static IncDecOperator fromKind(IncDecOperatorKind kind) {
+    switch (kind) {
+      case IncDecOperatorKind.INC: return INC;
+      case IncDecOperatorKind.DEC: return DEC;
     }
   }
 }

@@ -19,7 +19,7 @@ import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:unittest/unittest.dart';
 
-import 'resolver_test.dart';
+import 'analysis_context_factory.dart';
 
 /**
  * The class `EngineTestCase` defines utility methods for making assertions.
@@ -624,10 +624,6 @@ class TestSource extends Source {
     throw new UnsupportedOperationException();
   }
 
-  Uri resolveRelativeUri(Uri uri) {
-    return new Uri(scheme: 'file', path: _name).resolveUri(uri);
-  }
-
   void setContents(String value) {
     generateExceptionOnRead = false;
     _modificationStamp = new DateTime.now().millisecondsSinceEpoch;
@@ -662,9 +658,5 @@ class TestSourceWithUri extends TestSource {
       return other.uri == uri;
     }
     return false;
-  }
-
-  Uri resolveRelativeUri(Uri uri) {
-    return this.uri.resolveUri(uri);
   }
 }

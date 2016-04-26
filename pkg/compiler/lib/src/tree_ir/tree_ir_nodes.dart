@@ -56,6 +56,8 @@ abstract class Node {
 abstract class Expression extends Node {
   accept(ExpressionVisitor v);
   accept1(ExpressionVisitor1 v, arg);
+
+  SourceInformation get sourceInformation => null;
 }
 
 abstract class Statement extends Node {
@@ -123,9 +125,10 @@ class Variable extends Node {
 /// Read the value of a variable.
 class VariableUse extends Expression {
   Variable variable;
+  SourceInformation sourceInformation;
 
   /// Creates a use of [variable] and updates its `readCount`.
-  VariableUse(this.variable) {
+  VariableUse(this.variable, {this.sourceInformation}) {
     variable.readCount++;
   }
 
@@ -138,17 +141,17 @@ class VariableUse extends Expression {
 class Assign extends Expression {
   Variable variable;
   Expression value;
+  SourceInformation sourceInformation;
 
-  Assign(this.variable, this.value) {
+  Assign(this.variable, this.value, {this.sourceInformation}) {
     variable.writeCount++;
   }
 
   accept(ExpressionVisitor v) => v.visitAssign(this);
   accept1(ExpressionVisitor1 v, arg) => v.visitAssign(this, arg);
 
-  static ExpressionStatement makeStatement(Variable variable,
-                                           Expression value,
-                                           [Statement next]) {
+  static ExpressionStatement makeStatement(Variable variable, Expression value,
+      [Statement next]) {
     return new ExpressionStatement(new Assign(variable, value), next);
   }
 }
@@ -172,7 +175,7 @@ class InvokeStatic extends Expression implements Invoke {
   final SourceInformation sourceInformation;
 
   InvokeStatic(this.target, this.selector, this.arguments,
-               [this.sourceInformation]);
+      [this.sourceInformation]);
 
   accept(ExpressionVisitor visitor) => visitor.visitInvokeStatic(this);
   accept1(ExpressionVisitor1 visitor, arg) {
@@ -196,11 +199,8 @@ class InvokeMethod extends Expression implements Invoke {
   /// If true, it is known that the receiver cannot be `null`.
   bool receiverIsNotNull = false;
 
-  InvokeMethod(this.receiver,
-               this.selector,
-               this.mask,
-               this.arguments,
-               this.sourceInformation) {
+  InvokeMethod(this.receiver, this.selector, this.mask, this.arguments,
+      this.sourceInformation) {
     assert(receiver != null);
   }
 
@@ -241,12 +241,14 @@ class InvokeConstructor extends Expression implements Invoke {
   final List<Expression> arguments;
   final Selector selector;
   final SourceInformation sourceInformation;
+
   /// TODO(karlklose): get rid of this field.  Instead use the constant's
   /// expression to find the constructor to be called in dart2dart.
   final values.ConstantValue constant;
 
   InvokeConstructor(this.type, this.target, this.selector, this.arguments,
-                    this.sourceInformation, [this.constant]);
+      this.sourceInformation,
+      [this.constant]);
 
   ClassElement get targetClass => target.enclosingElement;
 
@@ -268,10 +270,8 @@ class OneShotInterceptor extends Expression implements Invoke {
   final List<Expression> arguments;
   final SourceInformation sourceInformation;
 
-  OneShotInterceptor(this.selector,
-                     this.mask,
-                     this.arguments,
-                     this.sourceInformation);
+  OneShotInterceptor(
+      this.selector, this.mask, this.arguments, this.sourceInformation);
 
   accept(ExpressionVisitor visitor) => visitor.visitOneShotInterceptor(this);
   accept1(ExpressionVisitor1 visitor, arg) {
@@ -326,7 +326,7 @@ class TypeOperator extends Expression {
   final bool isTypeTest;
 
   TypeOperator(this.value, this.type, this.typeArguments,
-               {bool this.isTypeTest});
+      {bool this.isTypeTest});
 
   accept(ExpressionVisitor visitor) => visitor.visitTypeOperator(this);
   accept1(ExpressionVisitor1 visitor, arg) {
@@ -345,12 +345,14 @@ class TypeOperator extends Expression {
 class ApplyBuiltinOperator extends Expression {
   BuiltinOperator operator;
   List<Expression> arguments;
+  SourceInformation sourceInformation;
 
-  ApplyBuiltinOperator(this.operator, this.arguments);
+  ApplyBuiltinOperator(this.operator, this.arguments, this.sourceInformation);
 
   accept(ExpressionVisitor visitor) {
     return visitor.visitApplyBuiltinOperator(this);
   }
+
   accept1(ExpressionVisitor1 visitor, arg) {
     return visitor.visitApplyBuiltinOperator(this, arg);
   }
@@ -363,14 +365,13 @@ class ApplyBuiltinMethod extends Expression {
 
   bool receiverIsNotNull;
 
-  ApplyBuiltinMethod(this.method,
-                     this.receiver,
-                     this.arguments,
-                     {this.receiverIsNotNull: false});
+  ApplyBuiltinMethod(this.method, this.receiver, this.arguments,
+      {this.receiverIsNotNull: false});
 
   accept(ExpressionVisitor visitor) {
     return visitor.visitApplyBuiltinMethod(this);
   }
+
   accept1(ExpressionVisitor1 visitor, arg) {
     return visitor.visitApplyBuiltinMethod(this, arg);
   }
@@ -390,7 +391,7 @@ class Conditional extends Expression {
   }
 
   String toString() => 'Conditional(condition=$condition,thenExpression='
-                       '$thenExpression,elseExpression=$elseExpression)';
+      '$thenExpression,elseExpression=$elseExpression)';
 }
 
 /// An && or || expression. The operator is internally represented as a boolean
@@ -455,8 +456,7 @@ class LabeledStatement extends JumpTarget {
 }
 
 /// A [WhileTrue] or [For] loop.
-abstract class Loop extends JumpTarget {
-}
+abstract class Loop extends JumpTarget {}
 
 /**
  * A labeled while(true) loop.
@@ -496,11 +496,7 @@ class For extends Loop {
   Statement body;
   Statement next;
 
-  For(this.label,
-      this.condition,
-      this.updates,
-      this.body,
-      this.next) {
+  For(this.label, this.condition, this.updates, this.body, this.next) {
     assert(label.binding == null);
     label.binding = this;
   }
@@ -598,11 +594,13 @@ class If extends Statement {
   Expression condition;
   Statement thenStatement;
   Statement elseStatement;
+  SourceInformation sourceInformation;
 
   Statement get next => null;
   void set next(Statement s) => throw 'UNREACHABLE';
 
-  If(this.condition, this.thenStatement, this.elseStatement);
+  If(this.condition, this.thenStatement, this.elseStatement,
+      this.sourceInformation);
 
   accept(StatementVisitor visitor) => visitor.visitIf(this);
   accept1(StatementVisitor1 visitor, arg) => visitor.visitIf(this, arg);
@@ -654,10 +652,12 @@ class Unreachable extends Statement {
 class FunctionDefinition extends Node {
   final ExecutableElement element;
   final List<Variable> parameters;
+  final SourceInformation sourceInformation;
   Statement body;
 
   /// Creates a function definition and updates `writeCount` for [parameters].
-  FunctionDefinition(this.element, this.parameters, this.body) {
+  FunctionDefinition(this.element, this.parameters, this.body,
+      {this.sourceInformation}) {
     for (Variable param in parameters) {
       param.writeCount++; // Being a parameter counts as a write.
     }
@@ -675,8 +675,8 @@ class CreateInstance extends Expression {
   Expression typeInformation;
   SourceInformation sourceInformation;
 
-  CreateInstance(this.classElement, this.arguments,
-                 this.typeInformation, this.sourceInformation);
+  CreateInstance(this.classElement, this.arguments, this.typeInformation,
+      this.sourceInformation);
 
   accept(ExpressionVisitor visitor) => visitor.visitCreateInstance(this);
   accept1(ExpressionVisitor1 visitor, arg) {
@@ -688,8 +688,10 @@ class GetField extends Expression {
   Expression object;
   Element field;
   bool objectIsNotNull;
+  SourceInformation sourceInformation;
 
-  GetField(this.object, this.field, {this.objectIsNotNull: false});
+  GetField(this.object, this.field, this.sourceInformation,
+      {this.objectIsNotNull: false});
 
   accept(ExpressionVisitor visitor) => visitor.visitGetField(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitGetField(this, arg);
@@ -699,17 +701,18 @@ class SetField extends Expression {
   Expression object;
   Element field;
   Expression value;
+  SourceInformation sourceInformation;
 
   /// If non-null, this is a compound assignment to the field, using the given
   /// operator.  The operator must be a compoundable operator.
   BuiltinOperator compound;
 
-  SetField(this.object, this.field, this.value, {this.compound});
+  SetField(this.object, this.field, this.value, this.sourceInformation,
+      {this.compound});
 
   accept(ExpressionVisitor visitor) => visitor.visitSetField(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitSetField(this, arg);
 }
-
 
 /// Read the type test property from [object]. The value is truthy/fasly rather
 /// than bool. [object] must not be `null`.
@@ -719,8 +722,7 @@ class GetTypeTestProperty extends Expression {
 
   GetTypeTestProperty(this.object, this.dartType);
 
-  accept(ExpressionVisitor visitor) =>
-      visitor.visitGetTypeTestProperty(this);
+  accept(ExpressionVisitor visitor) => visitor.visitGetTypeTestProperty(this);
   accept1(ExpressionVisitor1 visitor, arg) =>
       visitor.visitGetTypeTestProperty(this, arg);
 }
@@ -850,23 +852,27 @@ class ForeignCode extends Node {
   final types.TypeMask type;
   final List<Expression> arguments;
   final native.NativeBehavior nativeBehavior;
-  final List<bool> nullableArguments;  // One 'bit' per argument.
+  final List<bool> nullableArguments; // One 'bit' per argument.
   final Element dependency;
+  final SourceInformation sourceInformation;
 
   ForeignCode(this.codeTemplate, this.type, this.arguments, this.nativeBehavior,
-      this.nullableArguments, this.dependency) {
+      this.nullableArguments, this.dependency, this.sourceInformation) {
     assert(arguments.length == nullableArguments.length);
   }
 }
 
 class ForeignExpression extends ForeignCode implements Expression {
   ForeignExpression(
-      js.Template codeTemplate, types.TypeMask type,
-      List<Expression> arguments, native.NativeBehavior nativeBehavior,
+      js.Template codeTemplate,
+      types.TypeMask type,
+      List<Expression> arguments,
+      native.NativeBehavior nativeBehavior,
       List<bool> nullableArguments,
-      Element dependency)
+      Element dependency,
+      SourceInformation sourceInformation)
       : super(codeTemplate, type, arguments, nativeBehavior, nullableArguments,
-          dependency);
+            dependency, sourceInformation);
 
   accept(ExpressionVisitor visitor) {
     return visitor.visitForeignExpression(this);
@@ -879,12 +885,15 @@ class ForeignExpression extends ForeignCode implements Expression {
 
 class ForeignStatement extends ForeignCode implements Statement {
   ForeignStatement(
-      js.Template codeTemplate, types.TypeMask type,
-      List<Expression> arguments, native.NativeBehavior nativeBehavior,
+      js.Template codeTemplate,
+      types.TypeMask type,
+      List<Expression> arguments,
+      native.NativeBehavior nativeBehavior,
       List<bool> nullableArguments,
-      Element dependency)
+      Element dependency,
+      SourceInformation sourceInformation)
       : super(codeTemplate, type, arguments, nativeBehavior, nullableArguments,
-          dependency);
+            dependency, sourceInformation);
 
   accept(StatementVisitor visitor) {
     return visitor.visitForeignStatement(this);
@@ -959,8 +968,14 @@ class ReceiverCheck extends Statement {
   Statement next;
   SourceInformation sourceInformation;
 
-  ReceiverCheck({this.condition, this.value, this.selector, this.useSelector,
-      this.useInvoke, this.next, this.sourceInformation});
+  ReceiverCheck(
+      {this.condition,
+      this.value,
+      this.selector,
+      this.useSelector,
+      this.useInvoke,
+      this.next,
+      this.sourceInformation});
 
   accept(StatementVisitor visitor) {
     return visitor.visitReceiverCheck(this);
@@ -1205,8 +1220,7 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
     visitExpression(node.value);
   }
 
-  visitGetStatic(GetStatic node) {
-  }
+  visitGetStatic(GetStatic node) {}
 
   visitSetStatic(SetStatic node) {
     visitExpression(node.value);
@@ -1216,8 +1230,7 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
     visitExpression(node.object);
   }
 
-  visitCreateBox(CreateBox node) {
-  }
+  visitCreateBox(CreateBox node) {}
 
   visitCreateInstance(CreateInstance node) {
     node.arguments.forEach(visitExpression);
@@ -1240,8 +1253,7 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
     node.arguments.forEach(visitExpression);
   }
 
-  visitUnreachable(Unreachable node) {
-  }
+  visitUnreachable(Unreachable node) {}
 
   visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
     node.arguments.forEach(visitExpression);
@@ -1294,10 +1306,10 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   }
 }
 
-abstract class Transformer implements ExpressionVisitor<Expression>,
-                                      StatementVisitor<Statement> {
-   Expression visitExpression(Expression e) => e.accept(this);
-   Statement visitStatement(Statement s) => s.accept(this);
+abstract class Transformer
+    implements ExpressionVisitor<Expression>, StatementVisitor<Statement> {
+  Expression visitExpression(Expression e) => e.accept(this);
+  Statement visitStatement(Statement s) => s.accept(this);
 }
 
 class RecursiveTransformer extends Transformer {
@@ -1566,8 +1578,9 @@ class FallthroughTarget {
 
 /// A stack machine for tracking fallthrough while traversing the Tree IR.
 class FallthroughStack {
-  final List<FallthroughTarget> _stack =
-    <FallthroughTarget>[new FallthroughTarget(null)];
+  final List<FallthroughTarget> _stack = <FallthroughTarget>[
+    new FallthroughTarget(null)
+  ];
 
   /// Set a new fallthrough target.
   void push(Statement newFallthrough) {

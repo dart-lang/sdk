@@ -404,11 +404,6 @@ class NonExistingSource extends Source {
 
   @override
   bool exists() => false;
-
-  @override
-  Uri resolveRelativeUri(Uri relativeUri) {
-    throw new UnsupportedOperationException('$fullName does not exist.');
-  }
 }
 
 /**
@@ -547,21 +542,6 @@ abstract class Source implements AnalysisTarget {
    * @return `true` if this source exists
    */
   bool exists();
-
-  /**
-   * Resolve the relative URI against the URI associated with this source object.
-   *
-   * Note: This method is not intended for public use, it is only visible out of necessity. It is
-   * only intended to be invoked by a [SourceFactory]. Source factories will
-   * only invoke this method if the URI is relative, so implementations of this method are not
-   * required to, and generally do not, verify the argument. The result of invoking this method with
-   * an absolute URI is intentionally left unspecified.
-   *
-   * @param relativeUri the relative URI to be resolved against this source
-   * @return the URI to which given URI was resolved
-   * @throws AnalysisException if the relative URI could not be resolved
-   */
-  Uri resolveRelativeUri(Uri relativeUri);
 }
 
 /**

@@ -144,7 +144,7 @@ import "../foo/foo.dart";
         null,
         plugin,
         new AnalysisServerOptions(),
-        () => new MockSdk(),
+        (_) => new MockSdk(),
         InstrumentationService.NULL_SERVICE,
         rethrowExceptions: true);
     processRequiredPlugins();

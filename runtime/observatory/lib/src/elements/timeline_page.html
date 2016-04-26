@@ -11,7 +11,7 @@
       <top-nav-menu></top-nav-menu>
       <vm-nav-menu vm="{{ app.vm }}"></vm-nav-menu>
       <nav-menu link="{{ makeLink('/timeline') }}" anchor="timeline" last="{{ true }}"></nav-menu>
-      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-refresh id="refresh" callback="{{ refresh }}"></nav-refresh>
       <nav-refresh callback="{{ clear }}" label="Clear"></nav-refresh>
       <nav-refresh callback="{{ recordOn }}" label="Start recording"></nav-refresh>
       <nav-refresh callback="{{ recordOff }}" label="Stop recording"></nav-refresh>

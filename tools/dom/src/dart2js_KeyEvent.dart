@@ -33,22 +33,22 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** The "fixed" value of whether the alt key is being pressed. */
   bool _shadowAltKey;
 
-  /** Caculated value of what the estimated charCode is for this event. */
+  /** Calculated value of what the estimated charCode is for this event. */
   int _shadowCharCode;
 
-  /** Caculated value of what the estimated keyCode is for this event. */
+  /** Calculated value of what the estimated keyCode is for this event. */
   int _shadowKeyCode;
 
-  /** Caculated value of what the estimated keyCode is for this event. */
+  /** Calculated value of what the estimated keyCode is for this event. */
   int get keyCode => _shadowKeyCode;
 
-  /** Caculated value of what the estimated charCode is for this event. */
+  /** Calculated value of what the estimated charCode is for this event. */
   int get charCode => this.type == 'keypress' ? _shadowCharCode : 0;
 
-  /** Caculated value of whether the alt key is pressed is for this event. */
+  /** Calculated value of whether the alt key is pressed is for this event. */
   bool get altKey => _shadowAltKey;
 
-  /** Caculated value of what the estimated keyCode is for this event. */
+  /** Calculated value of what the estimated keyCode is for this event. */
   int get which => keyCode;
 
   /** Accessor to the underlying keyCode value is the parent event. */
@@ -185,23 +185,22 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   static EventStreamProvider<KeyEvent> keyPressEvent =
       new _KeyboardEventHandler('keypress');
 
-  /** Accessor to the clipboardData available for this event. */
-  DataTransfer get clipboardData => _parent.clipboardData;
+  String get code => _parent.code;
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;
   int get detail => _parent.detail;
+  String get key => _parent.key;
   /**
    * Accessor to the part of the keyboard that the key was pressed from (one of
    * KeyLocation.STANDARD, KeyLocation.RIGHT, KeyLocation.LEFT,
    * KeyLocation.NUMPAD, KeyLocation.MOBILE, KeyLocation.JOYSTICK).
    */
   int get keyLocation => _parent.keyLocation;
-  Point get layer => _parent.layer;
   /** True if the Meta (or Mac command) key is pressed during this event. */
   bool get metaKey => _parent.metaKey;
-  Point get page => _parent.page;
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
+  InputDevice get sourceDevice => _parent.sourceDevice;
   Window get view => _parent.view;
   void _initUIEvent(String type, bool canBubble, bool cancelable,
       Window view, int detail) {
@@ -211,6 +210,8 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
   int get _charCode => charCode;
   int get _keyCode => keyCode;
+  int get _which => which;
+
   String get _keyIdentifier {
     throw new UnsupportedError("keyIdentifier is unsupported.");
   }
@@ -220,10 +221,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     throw new UnsupportedError(
         "Cannot initialize a KeyboardEvent from a KeyEvent.");
   }
-  int get _layerX => throw new UnsupportedError('Not applicable to KeyEvent');
-  int get _layerY => throw new UnsupportedError('Not applicable to KeyEvent');
-  int get _pageX => throw new UnsupportedError('Not applicable to KeyEvent');
-  int get _pageY => throw new UnsupportedError('Not applicable to KeyEvent');
   @Experimental() // untriaged
   bool getModifierState(String keyArgument) => throw new UnimplementedError();
   @Experimental() // untriaged

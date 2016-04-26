@@ -15,9 +15,11 @@ import 'package:analysis_server/src/services/completion/dart/local_declaration_v
     show LocalDeclarationVisitor;
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
 
@@ -155,9 +157,19 @@ class LocalReferenceContributor extends DartCompletionContributor {
       if (optype.includeReturnValueSuggestions ||
           optype.includeTypeNameSuggestions ||
           optype.includeVoidReturnSuggestions) {
-        _LocalVisitor visitor =
-            new _LocalVisitor(request, request.offset, optype);
+        // If the target is in an expression
+        // then resolve the outermost/entire expression
         AstNode node = request.target.containingNode;
+        if (node is Expression) {
+          while (node.parent is Expression) {
+            node = node.parent;
+          }
+          await request.resolveExpression(node);
+
+          // Discard any cached target information
+          // because it may have changed as a result of the resolution
+          node = request.target.containingNode;
+        }
 
         // Do not suggest local vars within the current expression
         while (node is Expression) {
@@ -170,6 +182,8 @@ class LocalReferenceContributor extends DartCompletionContributor {
           node = node.parent;
         }
 
+        _LocalVisitor visitor =
+            new _LocalVisitor(request, request.offset, optype);
         visitor.visit(node);
         return visitor.suggestions;
       }
@@ -388,7 +402,14 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           suggestion.completion.startsWith('_')) {
         suggestion.relevance = privateMemberRelevance;
       }
-      suggestionMap.putIfAbsent(suggestion.completion, () => suggestion);
+      // if includeTypeNameSuggestions, then use the filter
+      if (optype.includeTypeNameSuggestions) {
+        if (optype.typeNameSuggestionsFilter(_staticTypeOfIdentifier(id))) {
+          suggestionMap.putIfAbsent(suggestion.completion, () => suggestion);
+        }
+      } else {
+        suggestionMap.putIfAbsent(suggestion.completion, () => suggestion);
+      }
       suggestion.element = _createLocalElement(request.source, elemKind, id,
           isAbstract: isAbstract,
           isDeprecated: isDeprecated,
@@ -447,5 +468,13 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       }
     }
     return false;
+  }
+
+  DartType _staticTypeOfIdentifier(Identifier id) {
+    if (id.staticElement is ClassElement) {
+      return (id.staticElement as ClassElement).type;
+    } else {
+      return id.staticType;
+    }
   }
 }

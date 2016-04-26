@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/embedder.dart';
+import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/context/source.dart';
@@ -417,14 +418,15 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  Future<CompilationUnit> computeResolvedCompilationUnitAsync(
+  CancelableFuture<CompilationUnit> computeResolvedCompilationUnitAsync(
       Source source, Source librarySource) {
     fail("Unexpected invocation of getResolvedCompilationUnitFuture");
     return null;
   }
 
   @override
-  Object computeResult(AnalysisTarget target, ResultDescriptor result) {
+  Object/*=V*/ computeResult/*<V>*/(
+      AnalysisTarget target, ResultDescriptor/*<V>*/ result) {
     fail("Unexpected invocation of computeResult");
     return null;
   }
@@ -460,7 +462,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  Object getConfigurationData(ResultDescriptor key) {
+  Object/*=V*/ getConfigurationData/*<V>*/(ResultDescriptor/*<V>*/ key) {
     fail("Unexpected invocation of getConfigurationData");
     return null;
   }
@@ -564,7 +566,8 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  Object getResult(AnalysisTarget target, ResultDescriptor result) {
+  Object/*=V*/ getResult/*<V>*/(
+      AnalysisTarget target, ResultDescriptor/*<V>*/ result) {
     fail("Unexpected invocation of getResult");
     return null;
   }
@@ -599,6 +602,13 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return false;
   }
 
+  @override
+  Stream<ResultChangedEvent> onResultChanged(ResultDescriptor descriptor) {
+    fail("Unexpected invocation of onResultChanged");
+    return null;
+  }
+
+  @deprecated
   @override
   Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
     fail("Unexpected invocation of onResultComputed");

@@ -112,12 +112,12 @@ class SocketServerTest {
     ServerPlugin serverPlugin = new ServerPlugin();
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins([serverPlugin]);
-    SdkCreator sdkCreator = () =>
+    SdkCreator sdkCreator = (_) =>
         new DirectoryBasedDartSdk(DirectoryBasedDartSdk.defaultSdkDirectory);
     return new SocketServer(
         new AnalysisServerOptions(),
         sdkCreator,
-        sdkCreator(),
+        sdkCreator(null),
         InstrumentationService.NULL_SERVICE,
         serverPlugin,
         null,

@@ -4,6 +4,7 @@
 
 library analyzer.test.generated.compile_time_error_code_test;
 
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
@@ -11,8 +12,7 @@ import 'package:unittest/unittest.dart' show expect;
 
 import '../reflective_tests.dart';
 import '../utils.dart';
-import 'resolver_test.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'resolver_test_case.dart';
 
 main() {
   initializeTestEnvironment();
@@ -5478,6 +5478,22 @@ class D implements A {}''');
     verify([source]);
   }
 
+  void test_recursiveInterfaceInheritanceBaseCaseExtends_abstract() {
+    Source source = addSource(r'''
+class C extends C {
+  var bar = 0;
+  m();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS,
+      StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
+    ]);
+    verify([source]);
+  }
+
   void test_recursiveInterfaceInheritanceBaseCaseImplements() {
     Source source = addSource("class A implements A {}");
     computeLibrarySourceErrors(source);
@@ -6045,6 +6061,21 @@ main() {
     assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
   }
 
+  void test_uriDoesNotExist_import_appears_after_deleting_target() {
+    Source test = addSource("import 'target.dart';");
+    Source target = addNamedSource("/target.dart", "");
+    computeLibrarySourceErrors(test);
+    assertErrors(test, [HintCode.UNUSED_IMPORT]);
+
+    // Remove the overlay in the same way as AnalysisServer.
+    analysisContext2.setContents(target, null);
+    ChangeSet changeSet = new ChangeSet()..removedSource(target);
+    analysisContext2.applyChanges(changeSet);
+
+    computeLibrarySourceErrors(test);
+    assertErrors(test, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+  }
+
   void test_uriDoesNotExist_import_disappears_when_fixed() {
     Source source = addSource("import 'target.dart';");
     computeLibrarySourceErrors(source);
@@ -6063,21 +6094,6 @@ main() {
     // Make sure the error goes away.
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_IMPORT]);
-  }
-
-  void test_uriDoesNotExist_import_appears_after_deleting_target() {
-    Source test = addSource("import 'target.dart';");
-    Source target = addNamedSource("/target.dart", "");
-    computeLibrarySourceErrors(test);
-    assertErrors(test, [HintCode.UNUSED_IMPORT]);
-
-    // Remove the overlay in the same way as AnalysisServer.
-    analysisContext2.setContents(target, null);
-    ChangeSet changeSet = new ChangeSet()..removedSource(target);
-    analysisContext2.applyChanges(changeSet);
-
-    computeLibrarySourceErrors(test);
-    assertErrors(test, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
   }
 
   void test_uriDoesNotExist_part() {

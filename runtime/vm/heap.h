@@ -102,6 +102,7 @@ class Heap {
 
   void IterateObjects(ObjectVisitor* visitor) const;
   void IterateOldObjects(ObjectVisitor* visitor) const;
+  void IterateOldObjectsNoEmbedderPages(ObjectVisitor* visitor) const;
   void IterateObjectPointers(ObjectVisitor* visitor) const;
 
   // Find an object by visiting all pointers in the specified heap space,
@@ -124,8 +125,13 @@ class Heap {
     return old_space_.NeedsGarbageCollection();
   }
 
+#if defined(DEBUG)
+  void WaitForSweeperTasks();
+#endif
+
   // Enables growth control on the page space heaps.  This should be
   // called before any user code is executed.
+  void InitGrowthControl();
   void EnableGrowthControl() { SetGrowthControlState(true); }
   void DisableGrowthControl() { SetGrowthControlState(false); }
   void SetGrowthControlState(bool state);
@@ -133,7 +139,7 @@ class Heap {
 
   // Protect access to the heap. Note: Code pages are made
   // executable/non-executable when 'read_only' is true/false, respectively.
-  void WriteProtect(bool read_only, bool include_code_pages);
+  void WriteProtect(bool read_only);
   void WriteProtectCode(bool read_only) {
     old_space_.WriteProtectCode(read_only);
   }
@@ -190,9 +196,11 @@ class Heap {
   // Associate an id with an object (used when serializing an object).
   // A non-existant id is equal to 0.
   void SetObjectId(RawObject* raw_obj, intptr_t object_id) {
+    ASSERT(Thread::Current()->IsMutatorThread());
     SetWeakEntry(raw_obj, kObjectIds, object_id);
   }
   intptr_t GetObjectId(RawObject* raw_obj) const {
+    ASSERT(Thread::Current()->IsMutatorThread());
     return GetWeakEntry(raw_obj, kObjectIds);
   }
   int64_t ObjectIdCount() const;
@@ -386,11 +394,8 @@ class NoHeapGrowthControlScope : public StackResource {
 // Note: During this scope, the code pages are non-executable.
 class WritableVMIsolateScope : StackResource {
  public:
-  explicit WritableVMIsolateScope(Thread* thread, bool include_code_pages);
+  explicit WritableVMIsolateScope(Thread* thread);
   ~WritableVMIsolateScope();
-
- private:
-  bool include_code_pages_;
 };
 
 }  // namespace dart

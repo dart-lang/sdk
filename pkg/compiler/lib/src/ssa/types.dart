@@ -2,7 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of ssa;
+import '../compiler.dart' show Compiler;
+import '../core_types.dart' show CoreClasses;
+import '../elements/elements.dart';
+import '../js_backend/js_backend.dart';
+import '../native/native.dart' as native;
+import '../tree/tree.dart' as ast;
+import '../types/types.dart';
+import '../universe/selector.dart' show Selector;
+import '../world.dart' show ClassWorld, World;
 
 class TypeMaskFactory {
   static TypeMask fromInferredType(TypeMask mask, Compiler compiler) {
@@ -14,33 +22,29 @@ class TypeMaskFactory {
   static TypeMask inferredReturnTypeForElement(
       Element element, Compiler compiler) {
     return fromInferredType(
-        compiler.typesTask.getGuaranteedReturnTypeOfElement(element),
-        compiler);
+        compiler.typesTask.getGuaranteedReturnTypeOfElement(element), compiler);
   }
 
   static TypeMask inferredTypeForElement(Element element, Compiler compiler) {
     return fromInferredType(
-        compiler.typesTask.getGuaranteedTypeOfElement(element),
-        compiler);
+        compiler.typesTask.getGuaranteedTypeOfElement(element), compiler);
   }
 
-  static TypeMask inferredTypeForSelector(Selector selector,
-                                          TypeMask mask,
-                                          Compiler compiler) {
+  static TypeMask inferredTypeForSelector(
+      Selector selector, TypeMask mask, Compiler compiler) {
     return fromInferredType(
         compiler.typesTask.getGuaranteedTypeOfSelector(selector, mask),
         compiler);
   }
 
-  static TypeMask inferredForNode(Element owner, ast.Node node,
-                                  Compiler compiler) {
+  static TypeMask inferredForNode(
+      Element owner, ast.Node node, Compiler compiler) {
     return fromInferredType(
-        compiler.typesTask.getGuaranteedTypeOfNode(owner, node),
-        compiler);
+        compiler.typesTask.getGuaranteedTypeOfNode(owner, node), compiler);
   }
 
-  static TypeMask fromNativeBehavior(native.NativeBehavior nativeBehavior,
-                                     Compiler compiler) {
+  static TypeMask fromNativeBehavior(
+      native.NativeBehavior nativeBehavior, Compiler compiler) {
     ClassWorld classWorld = compiler.world;
     JavaScriptBackend backend = compiler.backend;
     if (nativeBehavior.typesReturned.isEmpty) return backend.dynamicType;
@@ -48,7 +52,7 @@ class TypeMaskFactory {
     TypeMask result = nativeBehavior.typesReturned
         .map((type) => fromNativeType(type, compiler))
         .reduce((t1, t2) => t1.union(t2, classWorld));
-    assert(!(result.isEmpty && !result.isNullable));
+    assert(!result.isEmpty);
     return result;
   }
 

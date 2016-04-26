@@ -8,6 +8,7 @@
 #include "vm/lockers.h"
 #include "vm/log.h"
 #include "vm/thread_interrupter.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -59,6 +60,18 @@ OSThread::~OSThread() {
   timeline_block_ = NULL;
   delete timeline_block_lock_;
   free(name_);
+}
+
+
+
+void OSThread::SetName(const char* name) {
+  MutexLocker ml(thread_list_lock_);
+  // Clear the old thread name.
+  if (name_ != NULL) {
+    free(name_);
+    name_ = NULL;
+  }
+  set_name(name);
 }
 
 

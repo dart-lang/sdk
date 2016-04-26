@@ -20,6 +20,23 @@ namespace dart {
 
 #ifndef PRODUCT
 
+void AppendJSONStreamConsumer(Dart_StreamConsumer_State state,
+                              const char* stream_name,
+                              const uint8_t* buffer,
+                              intptr_t buffer_length,
+                              void* user_data) {
+  if ((state == Dart_StreamConsumer_kStart) ||
+      (state == Dart_StreamConsumer_kFinish)) {
+    // Ignore.
+    return;
+  }
+  ASSERT(state == Dart_StreamConsumer_kData);
+  JSONStream* js = reinterpret_cast<JSONStream*>(user_data);
+  ASSERT(js != NULL);
+  js->AppendSerializedObject(buffer, buffer_length);
+}
+
+
 DECLARE_FLAG(bool, trace_service);
 
 JSONStream::JSONStream(intptr_t buf_size)
@@ -263,6 +280,11 @@ void JSONStream::AppendSerializedObject(const char* serialized_object) {
 }
 
 
+void JSONStream::AppendSerializedObject(const uint8_t* buffer,
+                                        intptr_t buffer_length) {
+  buffer_.AddRaw(buffer, buffer_length);
+}
+
 void JSONStream::AppendSerializedObject(const char* property_name,
                                         const char* serialized_object) {
   PrintCommaIfNeeded();
@@ -475,9 +497,15 @@ void JSONStream::PrintValue(Isolate* isolate, bool ref) {
 }
 
 
-void JSONStream::PrintValue(TimelineEvent* timeline_event) {
+void JSONStream::PrintValue(const TimelineEvent* timeline_event) {
   PrintCommaIfNeeded();
   timeline_event->PrintJSON(this);
+}
+
+
+void JSONStream::PrintValue(const TimelineEventBlock* timeline_event_block) {
+  PrintCommaIfNeeded();
+  timeline_event_block->PrintJSON(this);
 }
 
 
@@ -593,9 +621,16 @@ void JSONStream::PrintProperty(const char* name, Isolate* isolate) {
 
 
 void JSONStream::PrintProperty(const char* name,
-                               TimelineEvent* timeline_event) {
+                               const TimelineEvent* timeline_event) {
   PrintPropertyName(name);
   PrintValue(timeline_event);
+}
+
+
+void JSONStream::PrintProperty(const char* name,
+                               const TimelineEventBlock* timeline_event_block) {
+  PrintPropertyName(name);
+  PrintValue(timeline_event_block);
 }
 
 

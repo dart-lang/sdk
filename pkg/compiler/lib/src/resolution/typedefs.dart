@@ -5,36 +5,24 @@
 library dart2js.resolution.typedefs;
 
 import '../common.dart';
-import '../compiler.dart' show
-    Compiler;
+import '../compiler.dart' show Compiler;
 import '../dart_types.dart';
-import '../elements/elements.dart' show
-    FunctionSignature,
-    TypedefElement,
-    TypeVariableElement;
-import '../elements/modelx.dart' show
-    ErroneousElementX,
-    TypedefElementX;
+import '../elements/elements.dart'
+    show FunctionSignature, TypedefElement, TypeVariableElement;
+import '../elements/modelx.dart' show ErroneousElementX, TypedefElementX;
 import '../tree/tree.dart';
-import '../util/util.dart' show
-    Link;
+import '../util/util.dart' show Link;
 
-import 'class_hierarchy.dart' show
-    TypeDefinitionVisitor;
-import 'registry.dart' show
-    ResolutionRegistry;
-import 'scope.dart' show
-    MethodScope,
-    TypeDeclarationScope;
-import 'signatures.dart' show
-    SignatureResolver;
+import 'class_hierarchy.dart' show TypeDefinitionVisitor;
+import 'registry.dart' show ResolutionRegistry;
+import 'scope.dart' show MethodScope, TypeDeclarationScope;
+import 'signatures.dart' show SignatureResolver;
 
 class TypedefResolverVisitor extends TypeDefinitionVisitor {
   TypedefElementX get element => enclosingElement;
 
-  TypedefResolverVisitor(Compiler compiler,
-                         TypedefElement typedefElement,
-                         ResolutionRegistry registry)
+  TypedefResolverVisitor(Compiler compiler, TypedefElement typedefElement,
+      ResolutionRegistry registry)
       : super(compiler, typedefElement, registry);
 
   visitTypedef(Typedef node) {
@@ -88,33 +76,31 @@ class TypedefCyclicVisitor extends BaseDartTypeVisitor {
         hasCyclicReference = true;
         if (seenTypedefsCount == 1) {
           // Direct cyclicity.
-          reporter.reportErrorMessage(
-              element,
-              MessageKind.CYCLIC_TYPEDEF,
+          reporter.reportErrorMessage(element, MessageKind.CYCLIC_TYPEDEF,
               {'typedefName': element.name});
         } else if (seenTypedefsCount == 2) {
           // Cyclicity through one other typedef.
-          reporter.reportErrorMessage(
-              element,
-              MessageKind.CYCLIC_TYPEDEF_ONE,
-              {'typedefName': element.name,
-               'otherTypedefName': seenTypedefs.head.name});
+          reporter.reportErrorMessage(element, MessageKind.CYCLIC_TYPEDEF_ONE, {
+            'typedefName': element.name,
+            'otherTypedefName': seenTypedefs.head.name
+          });
         } else {
           // Cyclicity through more than one other typedef.
           for (TypedefElement cycle in seenTypedefs) {
             if (!identical(typedefElement, cycle)) {
               reporter.reportErrorMessage(
-                  element,
-                  MessageKind.CYCLIC_TYPEDEF_ONE,
-                  {'typedefName': element.name,
-                   'otherTypedefName': cycle.name});
+                  element, MessageKind.CYCLIC_TYPEDEF_ONE, {
+                'typedefName': element.name,
+                'otherTypedefName': cycle.name
+              });
             }
           }
         }
         ErroneousElementX erroneousElement = new ErroneousElementX(
-              MessageKind.CYCLIC_TYPEDEF,
-              {'typedefName': element.name},
-              element.name, element);
+            MessageKind.CYCLIC_TYPEDEF,
+            {'typedefName': element.name},
+            element.name,
+            element);
         element.aliasCache =
             new MalformedType(erroneousElement, typedefElement.aliasCache);
         element.hasBeenCheckedForCycles = true;

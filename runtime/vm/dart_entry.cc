@@ -41,25 +41,23 @@ class ScopedIsolateStackLimits : public ValueObject {
     // grows from high to low addresses).
     OSThread* os_thread = thread->os_thread();
     ASSERT(os_thread != NULL);
-    uword current_sp = Isolate::GetCurrentStackPointer();
+    uword current_sp = Thread::GetCurrentStackPointer();
     if (current_sp > os_thread->stack_base()) {
       os_thread->set_stack_base(current_sp);
     }
-    // Save the Isolate's current stack limit and adjust the stack
+    // Save the Thread's current stack limit and adjust the stack
     // limit based on the thread's stack_base.
-    Isolate* isolate = thread->isolate();
-    ASSERT(isolate == Isolate::Current());
-    saved_stack_limit_ = isolate->saved_stack_limit();
-    isolate->SetStackLimitFromStackBase(os_thread->stack_base());
+    ASSERT(thread->isolate() == Isolate::Current());
+    saved_stack_limit_ = thread->saved_stack_limit();
+    thread->SetStackLimitFromStackBase(os_thread->stack_base());
   }
 
   ~ScopedIsolateStackLimits() {
-    Isolate* isolate = thread_->isolate();
-    ASSERT(isolate == Isolate::Current());
+    ASSERT(thread_->isolate() == Isolate::Current());
     // Since we started with a stack limit of 0 we should be getting back
     // to a stack limit of 0 when all nested invocations are done and
     // we have bottomed out.
-    isolate->SetStackLimit(saved_stack_limit_);
+    thread_->SetStackLimit(saved_stack_limit_);
   }
 
  private:
@@ -138,12 +136,14 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments) {
 
 RawObject* DartEntry::InvokeClosure(const Array& arguments,
                                     const Array& arguments_descriptor) {
-  Instance& instance = Instance::Handle();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Instance& instance = Instance::Handle(zone);
   instance ^= arguments.At(0);
   // Get the entrypoint corresponding to the closure function or to the call
   // method of the instance. This will result in a compilation of the function
   // if it is not already compiled.
-  Function& function = Function::Handle();
+  Function& function = Function::Handle(zone);
   if (instance.IsCallable(&function)) {
     // Only invoke the function if its arguments are compatible.
     const ArgumentsDescriptor args_desc(arguments_descriptor);
@@ -162,29 +162,29 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
     // call method. If the arguments didn't match, go to noSuchMethod instead
     // of infinitely recursing on the getter.
   } else {
-    const String& getter_name = String::Handle(Symbols::New("get:call"));
-    Class& cls = Class::Handle(instance.clazz());
+    const String& getter_name = Symbols::GetCall();
+    Class& cls = Class::Handle(zone, instance.clazz());
     while (!cls.IsNull()) {
       function ^= cls.LookupDynamicFunction(getter_name);
       if (!function.IsNull()) {
-        Isolate* isolate = Isolate::Current();
-        volatile uword c_stack_pos = Isolate::GetCurrentStackPointer();
+        Isolate* isolate = thread->isolate();
+        volatile uword c_stack_pos = Thread::GetCurrentStackPointer();
         volatile uword c_stack_limit = OSThread::Current()->stack_base() -
                                        OSThread::GetSpecifiedStackSize();
 #if !defined(USING_SIMULATOR)
-        ASSERT(c_stack_limit == isolate->saved_stack_limit());
+        ASSERT(c_stack_limit == thread->saved_stack_limit());
 #endif
 
         if (c_stack_pos < c_stack_limit) {
           const Instance& exception =
-            Instance::Handle(isolate->object_store()->stack_overflow());
-          return UnhandledException::New(exception, Stacktrace::Handle());
+            Instance::Handle(zone, isolate->object_store()->stack_overflow());
+          return UnhandledException::New(exception, Stacktrace::Handle(zone));
         }
 
-        const Array& getter_arguments = Array::Handle(Array::New(1));
+        const Array& getter_arguments = Array::Handle(zone, Array::New(1));
         getter_arguments.SetAt(0, instance);
         const Object& getter_result =
-              Object::Handle(DartEntry::InvokeFunction(function,
+              Object::Handle(zone, DartEntry::InvokeFunction(function,
                                                        getter_arguments));
         if (getter_result.IsError()) {
           return getter_result.raw();
@@ -195,8 +195,8 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
         // This otherwise unnecessary handle is used to prevent clang from
         // doing tail call elimination, which would make the stack overflow
         // check above ineffective.
-        Object& result = Object::Handle(InvokeClosure(arguments,
-                                                      arguments_descriptor));
+        Object& result = Object::Handle(zone,
+            InvokeClosure(arguments, arguments_descriptor));
         return result.raw();
       }
       cls = cls.SuperClass();

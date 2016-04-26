@@ -5,7 +5,7 @@
 library test.services.dependencies.import_collector;
 
 import 'package:analysis_server/src/services/dependencies/reachable_source_collector.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';

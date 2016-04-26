@@ -5,11 +5,8 @@
 library dart2js.constants.constructors;
 
 import '../dart_types.dart';
-import '../elements/elements.dart' show
-    ConstructorElement,
-    FieldElement;
-import '../universe/call_structure.dart' show
-    CallStructure;
+import '../elements/elements.dart' show ConstructorElement, FieldElement;
+import '../universe/call_structure.dart' show CallStructure;
 import '../util/util.dart';
 import 'evaluation.dart';
 import 'expressions.dart';
@@ -31,8 +28,7 @@ abstract class ConstantConstructor {
   /// Computes the constant expressions of the fields of the created instance
   /// in a const constructor invocation with [arguments].
   Map<FieldElement, ConstantExpression> computeInstanceFields(
-      List<ConstantExpression> arguments,
-      CallStructure callStructure);
+      List<ConstantExpression> arguments, CallStructure callStructure);
 
   accept(ConstantConstructorVisitor visitor, arg);
 }
@@ -52,16 +48,13 @@ abstract class ConstantConstructorVisitor<R, A> {
 }
 
 /// A generative constant constructor.
-class GenerativeConstantConstructor implements ConstantConstructor{
+class GenerativeConstantConstructor implements ConstantConstructor {
   final InterfaceType type;
-  final Map<dynamic/*int|String*/, ConstantExpression> defaultValues;
+  final Map<dynamic /*int|String*/, ConstantExpression> defaultValues;
   final Map<FieldElement, ConstantExpression> fieldMap;
   final ConstructedConstantExpression superConstructorInvocation;
 
-  GenerativeConstantConstructor(
-      this.type,
-      this.defaultValues,
-      this.fieldMap,
+  GenerativeConstantConstructor(this.type, this.defaultValues, this.fieldMap,
       this.superConstructorInvocation);
 
   ConstantConstructorKind get kind => ConstantConstructorKind.GENERATIVE;
@@ -71,14 +64,13 @@ class GenerativeConstantConstructor implements ConstantConstructor{
   }
 
   Map<FieldElement, ConstantExpression> computeInstanceFields(
-      List<ConstantExpression> arguments,
-      CallStructure callStructure) {
-    NormalizedArguments args = new NormalizedArguments(
-        defaultValues, callStructure, arguments);
+      List<ConstantExpression> arguments, CallStructure callStructure) {
+    NormalizedArguments args =
+        new NormalizedArguments(defaultValues, callStructure, arguments);
     Map<FieldElement, ConstantExpression> appliedFieldMap =
         applyFields(args, superConstructorInvocation);
     fieldMap.forEach((FieldElement field, ConstantExpression constant) {
-     appliedFieldMap[field] = constant.apply(args);
+      appliedFieldMap[field] = constant.apply(args);
     });
     return appliedFieldMap;
   }
@@ -97,8 +89,7 @@ class GenerativeConstantConstructor implements ConstantConstructor{
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! GenerativeConstantConstructor) return false;
-    return
-        type == other.type &&
+    return type == other.type &&
         superConstructorInvocation == other.superConstructorInvocation &&
         mapEquals(defaultValues, other.defaultValues) &&
         mapEquals(fieldMap, other.fieldMap);
@@ -151,25 +142,24 @@ class GenerativeConstantConstructor implements ConstantConstructor{
 
 /// A redirecting generative constant constructor.
 class RedirectingGenerativeConstantConstructor implements ConstantConstructor {
-  final Map<dynamic/*int|String*/, ConstantExpression> defaultValues;
+  final Map<dynamic /*int|String*/, ConstantExpression> defaultValues;
   final ConstructedConstantExpression thisConstructorInvocation;
 
   RedirectingGenerativeConstantConstructor(
-      this.defaultValues,
-      this.thisConstructorInvocation);
+      this.defaultValues, this.thisConstructorInvocation);
 
   ConstantConstructorKind get kind {
     return ConstantConstructorKind.REDIRECTING_GENERATIVE;
   }
 
   InterfaceType computeInstanceType(InterfaceType newType) {
-    return thisConstructorInvocation.computeInstanceType()
+    return thisConstructorInvocation
+        .computeInstanceType()
         .substByContext(newType);
   }
 
   Map<FieldElement, ConstantExpression> computeInstanceFields(
-      List<ConstantExpression> arguments,
-      CallStructure callStructure) {
+      List<ConstantExpression> arguments, CallStructure callStructure) {
     NormalizedArguments args =
         new NormalizedArguments(defaultValues, callStructure, arguments);
     Map<FieldElement, ConstantExpression> appliedFieldMap =
@@ -190,8 +180,7 @@ class RedirectingGenerativeConstantConstructor implements ConstantConstructor {
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! RedirectingGenerativeConstantConstructor) return false;
-    return
-        thisConstructorInvocation == other.thisConstructorInvocation &&
+    return thisConstructorInvocation == other.thisConstructorInvocation &&
         GenerativeConstantConstructor.mapEquals(
             defaultValues, other.defaultValues);
   }
@@ -219,13 +208,13 @@ class RedirectingFactoryConstantConstructor implements ConstantConstructor {
   }
 
   InterfaceType computeInstanceType(InterfaceType newType) {
-    return targetConstructorInvocation.computeInstanceType()
+    return targetConstructorInvocation
+        .computeInstanceType()
         .substByContext(newType);
   }
 
   Map<FieldElement, ConstantExpression> computeInstanceFields(
-      List<ConstantExpression> arguments,
-      CallStructure callStructure) {
+      List<ConstantExpression> arguments, CallStructure callStructure) {
     ConstantConstructor constantConstructor =
         targetConstructorInvocation.target.constantConstructor;
     return constantConstructor.computeInstanceFields(arguments, callStructure);

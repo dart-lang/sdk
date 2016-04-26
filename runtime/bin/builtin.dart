@@ -295,7 +295,18 @@ Uri _resolvePackageUri(Uri uri) {
     if (mapping == null) {
       throw "No mapping for '$packageName' package when resolving '$uri'.";
     }
-    var path = uri.path.substring(packageName.length + 1);
+    var path;
+    if (uri.path.length > packageName.length) {
+      path = uri.path.substring(packageName.length + 1);
+    } else {
+      // Handle naked package resolution to the default package name:
+      // package:foo is equivalent to package:foo/foo.dart
+      assert(uri.path.length == packageName.length);
+      path = "$packageName.dart";
+    }
+    if (_traceLoading) {
+      _log("Path to be resolved in package: $path");
+    }
     resolvedUri = mapping.resolve(path);
   }
   if (_traceLoading) {
@@ -754,7 +765,17 @@ Future<Uri> _resolvePackageUriFuture(Uri packageUri) async {
   }
   assert(_packagesReady);
 
-  var result = _resolvePackageUri(packageUri);
+  var result;
+  try {
+    result = _resolvePackageUri(packageUri);
+  } catch (e, s) {
+    // Any error during resolution will resolve this package as not mapped,
+    // which is indicated by a null return.
+    if (_traceLoading) {
+      _log("Exception ($e) when resolving package URI: $packageUri");
+    }
+    result = null;
+  }
   if (_traceLoading) {
     _log("Resolved '$packageUri' to '$result'");
   }

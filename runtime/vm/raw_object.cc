@@ -343,13 +343,6 @@ intptr_t RawType::VisitTypePointers(
 }
 
 
-intptr_t RawFunctionType::VisitFunctionTypePointers(
-    RawFunctionType* raw_obj, ObjectPointerVisitor* visitor) {
-  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return FunctionType::InstanceSize();
-}
-
-
 intptr_t RawTypeRef::VisitTypeRefPointers(
     RawTypeRef* raw_obj, ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
@@ -542,8 +535,11 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
 
   RawCode* obj = raw_obj->ptr();
   intptr_t length = Code::PtrOffBits::decode(obj->state_bits_);
+#if defined(TARGET_ARCH_IA32)
+  // On IA32 only we embed pointers to objects directly in the generated
+  // instructions. The variable portion of a Code object describes where to
+  // find those pointers for tracing.
   if (Code::AliveBit::decode(obj->state_bits_)) {
-    // Also visit all the embedded pointers in the corresponding instructions.
     uword entry_point = reinterpret_cast<uword>(obj->instructions_->ptr()) +
         Instructions::HeaderSize();
     for (intptr_t i = 0; i < length; i++) {
@@ -553,6 +549,12 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
     }
   }
   return Code::InstanceSize(length);
+#else
+  // On all other architectures, objects are referenced indirectly through
+  // either an ObjectPool or Thread.
+  ASSERT(length == 0);
+  return Code::InstanceSize(0);
+#endif
 }
 
 
@@ -931,12 +933,12 @@ intptr_t RawStacktrace::VisitStacktracePointers(RawStacktrace* raw_obj,
 }
 
 
-intptr_t RawJSRegExp::VisitJSRegExpPointers(RawJSRegExp* raw_obj,
-                                            ObjectPointerVisitor* visitor) {
+intptr_t RawRegExp::VisitRegExpPointers(RawRegExp* raw_obj,
+                                        ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return JSRegExp::InstanceSize();
+  return RegExp::InstanceSize();
 }
 
 

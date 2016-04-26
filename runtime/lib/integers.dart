@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _IntegerImplementation extends _Num {
+abstract class _IntegerImplementation {
   // The Dart class _Bigint extending _IntegerImplementation requires a
   // default constructor.
 
@@ -410,9 +410,8 @@ class _Smi extends _IntegerImplementation implements int {
     throw new UnsupportedError(
         "_Smi can only be allocated by the VM");
   }
-  int get _identityHashCode {
-    return this;
-  }
+  int get _identityHashCode => this;
+  int get hashCode => this;
   int operator ~() native "Smi_bitNegate";
   int get bitLength native "Smi_bitLength";
 
@@ -608,9 +607,8 @@ class _Mint extends _IntegerImplementation implements int {
     throw new UnsupportedError(
         "_Mint can only be allocated by the VM");
   }
-  int get _identityHashCode {
-    return this;
-  }
+  int get _identityHashCode => this;
+  int get hashCode => this;
   int operator ~() native "Mint_bitNegate";
   int get bitLength native "Mint_bitLength";
 

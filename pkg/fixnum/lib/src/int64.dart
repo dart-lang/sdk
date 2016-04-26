@@ -30,7 +30,7 @@ class Int64 implements IntX {
   static const int _MASK = 4194303; // (1 << _BITS) - 1
   static const int _MASK2 = 1048575; // (1 << _BITS2) - 1
   static const int _SIGN_BIT = 19; // _BITS2 - 1
-  static const int _SIGN_BIT_MASK = 524288; // 1 << _SIGN_BIT
+  static const int _SIGN_BIT_MASK = 1 << _SIGN_BIT;
 
   /**
    * The maximum positive value attainable by an [Int64], namely

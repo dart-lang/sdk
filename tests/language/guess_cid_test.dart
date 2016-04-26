@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program to test cid guessing optimizations.
-// VMOptions=--optimization-counter-threshold=10
+// VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
 import "package:expect/expect.dart";
 
@@ -17,17 +17,17 @@ main() {
   Expect.equals(3, compareInt(3));
   Expect.equals(-2, compareInt(-2));
   Expect.equals(0, compareInt(-1));
-  
+
   Expect.equals(3, binOpInt(3, 3));
   Expect.equals(0, binOpInt(-2, -2));
-  
+
   Expect.equals(3.0, binOpDouble(3.0, 3.0));
   Expect.equals(0.0, binOpDouble(-2.0, -2.0));
-  
+
   Expect.equals(3.0, compareDouble(3.0));
   Expect.equals(-2.0, compareDouble(-2.0));
   Expect.equals(0.0, compareDouble(-1.0));
-  
+
   testOSR();
 }
 

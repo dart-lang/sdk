@@ -7,23 +7,18 @@ library dart2js.mirrors;
 import 'dart:collection' show UnmodifiableListView, UnmodifiableMapView;
 
 import '../common.dart';
-import '../compiler.dart' show
-    Compiler;
+import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
-import '../elements/modelx.dart' show
-    LibraryElementX;
-import '../resolution/scope.dart' show
-    Scope;
+import '../elements/modelx.dart' show LibraryElementX;
+import '../resolution/scope.dart' show Scope;
 import '../script.dart';
 import '../tokens/token.dart';
 import '../tokens/token_constants.dart' as Tokens;
 import '../tree/tree.dart';
-import '../util/util.dart'
-    show Link,
-         LinkBuilder;
+import '../util/util.dart' show Link, LinkBuilder;
 import '../util/characters.dart' show $CR, $LF;
 
 import 'source_mirrors.dart';
@@ -48,17 +43,16 @@ bool _isPrivate(String name) {
 }
 
 List<ParameterMirror> _parametersFromFunctionSignature(
-    Dart2JsDeclarationMirror owner,
-    FunctionSignature signature) {
+    Dart2JsDeclarationMirror owner, FunctionSignature signature) {
   var parameters = <ParameterMirror>[];
   signature.requiredParameters.forEach((FormalElement parameter) {
-    parameters.add(new Dart2JsParameterMirror(
-        owner, parameter, isOptional: false, isNamed: false));
+    parameters.add(new Dart2JsParameterMirror(owner, parameter,
+        isOptional: false, isNamed: false));
   });
   bool isNamed = signature.optionalParametersAreNamed;
   signature.optionalParameters.forEach((FormalElement parameter) {
-    parameters.add(new Dart2JsParameterMirror(
-        owner, parameter, isOptional: true, isNamed: isNamed));
+    parameters.add(new Dart2JsParameterMirror(owner, parameter,
+        isOptional: true, isNamed: isNamed));
   });
   return parameters;
 }
@@ -82,7 +76,6 @@ abstract class Dart2JsMirror implements Mirror {
 
 abstract class Dart2JsDeclarationMirror extends Dart2JsMirror
     implements DeclarationSourceMirror {
-
   bool get isTopLevel => owner != null && owner is LibraryMirror;
 
   bool get isPrivate => _isPrivate(_simpleNameString);
@@ -130,8 +123,8 @@ abstract class Dart2JsDeclarationMirror extends Dart2JsMirror
       }
       return members;
     }
-    mirrorSystem.compiler.reporter.internalError(element,
-        "Unexpected member type $element ${element.kind}.");
+    mirrorSystem.compiler.reporter.internalError(
+        element, "Unexpected member type $element ${element.kind}.");
     return null;
   }
 }
@@ -142,8 +135,8 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
   List<InstanceMirror> _metadata;
 
   Dart2JsElementMirror(this.mirrorSystem, this._element) {
-    assert (mirrorSystem != null);
-    assert (_element != null);
+    assert(mirrorSystem != null);
+    assert(_element != null);
   }
 
   String get _simpleNameString => _element.name;
@@ -203,8 +196,8 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
       span = new SourceSpan(script.resourceUri, 0, 0);
     } else {
       Token endToken = getEndToken();
-      span = new SourceSpan.fromTokens(
-          script.resourceUri, beginToken, endToken);
+      span =
+          new SourceSpan.fromTokens(script.resourceUri, beginToken, endToken);
     }
     return new Dart2JsSourceLocation(script, span);
   }
@@ -213,8 +206,8 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
 
   void _appendCommentTokens(Token commentToken) {
     while (commentToken != null && commentToken.kind == Tokens.COMMENT_TOKEN) {
-      _metadata.add(new Dart2JsCommentInstanceMirror(
-          mirrorSystem, commentToken.value));
+      _metadata.add(
+          new Dart2JsCommentInstanceMirror(mirrorSystem, commentToken.value));
       commentToken = commentToken.next;
     }
   }
@@ -227,9 +220,10 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
             mirrorSystem.compiler.commentMap[metadata.beginToken]);
         metadata.ensureResolved(mirrorSystem.compiler.resolution);
         _metadata.add(_convertConstantToInstanceMirror(
-            mirrorSystem, metadata.constant,
-            mirrorSystem.compiler.constants.getConstantValue(
-                metadata.constant)));
+            mirrorSystem,
+            metadata.constant,
+            mirrorSystem.compiler.constants
+                .getConstantValue(metadata.constant)));
       }
       _appendCommentTokens(mirrorSystem.compiler.commentMap[getBeginToken()]);
     }
@@ -245,7 +239,7 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
     if (index != -1) {
       // Lookup [: prefix.id :].
       String prefix = name.substring(0, index);
-      String id = name.substring(index+1);
+      String id = name.substring(index + 1);
       result = scope.lookup(prefix);
       if (result != null && result.isPrefix) {
         PrefixElement prefix = result;
@@ -265,8 +259,7 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
     if (identical(this, other)) return true;
     if (other == null) return false;
     if (other is! Dart2JsElementMirror) return false;
-    return _element == other._element &&
-           owner == other.owner;
+    return _element == other._element && owner == other.owner;
   }
 
   int get hashCode {
@@ -314,11 +307,9 @@ class Dart2JsMirrorSystem extends MirrorSystem {
 
   Dart2JsMirrorSystem get mirrorSystem => this;
 
-  TypeMirror get dynamicType =>
-      _convertTypeToTypeMirror(const DynamicType());
+  TypeMirror get dynamicType => _convertTypeToTypeMirror(const DynamicType());
 
-  TypeMirror get voidType =>
-      _convertTypeToTypeMirror(const VoidType());
+  TypeMirror get voidType => _convertTypeToTypeMirror(const VoidType());
 
   TypeMirror _convertTypeToTypeMirror(DartType type) {
     assert(type != null);
@@ -343,8 +334,8 @@ class Dart2JsMirrorSystem extends MirrorSystem {
         return new Dart2JsTypedefMirror(this, type);
       }
     }
-    compiler.reporter.internalError(type.element,
-        "Unexpected type $type of kind ${type.kind}.");
+    compiler.reporter.internalError(
+        type.element, "Unexpected type $type of kind ${type.kind}.");
     return null;
   }
 
@@ -367,10 +358,10 @@ abstract class ContainerMixin {
       var declarations = <Symbol, DeclarationMirror>{};
       _forEachElement((Element element) {
         for (DeclarationMirror mirror in _getDeclarationMirrors(element)) {
-          assert(invariant(_element,
-              !declarations.containsKey(mirror.simpleName),
-              message: "Declaration name '${nameOf(mirror)}' "
-                       "is not unique in $_element."));
+          assert(
+              invariant(_element, !declarations.containsKey(mirror.simpleName),
+                  message: "Declaration name '${nameOf(mirror)}' "
+                      "is not unique in $_element."));
           declarations[mirror.simpleName] = mirror;
         }
       });
@@ -397,8 +388,8 @@ abstract class ContainerMixin {
  * If [element] is an [AbstractFieldElement] the mirror for its getter is
  * returned or, if not present, the mirror for its setter.
  */
-DeclarationMirror _convertElementToDeclarationMirror(Dart2JsMirrorSystem system,
-                                                     Element element) {
+DeclarationMirror _convertElementToDeclarationMirror(
+    Dart2JsMirrorSystem system, Element element) {
   if (element.isTypeVariable) {
     TypeVariableElement typeVariable = element;
     return new Dart2JsTypeVariableMirror(system, typeVariable.type);
@@ -421,8 +412,8 @@ DeclarationMirror _convertElementToDeclarationMirror(Dart2JsMirrorSystem system,
     Dart2JsMethodMirror method = _convertElementMethodToMethodMirror(
         container, element.outermostEnclosingMemberOrTopLevel);
     // TODO(johnniwinther): Find the right info for [isOptional] and [isNamed].
-    return new Dart2JsParameterMirror(
-        method, element, isOptional: false, isNamed: false);
+    return new Dart2JsParameterMirror(method, element,
+        isOptional: false, isNamed: false);
   }
   Iterable<DeclarationMirror> members =
       container._getDeclarationMirrors(element);
@@ -462,8 +453,8 @@ class Dart2JsCompilationUnitMirror extends Dart2JsMirror with ContainerMixin {
 class BackDoor {
   /// Return the compilation units comprising [library].
   static List<Mirror> compilationUnitsOf(Dart2JsLibraryMirror library) {
-    return library._element.compilationUnits.mapToList(
-        (cu) => new Dart2JsCompilationUnitMirror(cu, library));
+    return library._element.compilationUnits
+        .mapToList((cu) => new Dart2JsCompilationUnitMirror(cu, library));
   }
 
   static Iterable<ConstantExpression> metadataSyntaxOf(
@@ -477,7 +468,7 @@ class BackDoor {
   }
 
   static ConstantExpression defaultValueSyntaxOf(
-        Dart2JsParameterMirror parameter) {
+      Dart2JsParameterMirror parameter) {
     if (!parameter.hasDefaultValue) return null;
     ParameterElement parameterElement = parameter._element;
     Compiler compiler = parameter.mirrorSystem.compiler;

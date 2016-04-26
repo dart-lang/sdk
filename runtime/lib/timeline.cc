@@ -53,7 +53,7 @@ DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 6) {
     return Object::null();
   }
 
-  TimelineEvent* event = isolate->GetDartStream()->StartEvent();
+  TimelineEvent* event = Timeline::GetDartStream()->StartEvent();
   if (event == NULL) {
     // Stream was turned off.
     return Object::null();
@@ -118,7 +118,7 @@ DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
     return Object::null();
   }
 
-  TimelineEvent* event = isolate->GetDartStream()->StartEvent();
+  TimelineEvent* event = Timeline::GetDartStream()->StartEvent();
   if (event == NULL) {
     // Stream was turned off.
     return Object::null();
@@ -163,7 +163,7 @@ DEFINE_NATIVE_ENTRY(Timeline_reportInstantEvent, 4) {
     return Object::null();
   }
 
-  TimelineEvent* event = isolate->GetDartStream()->StartEvent();
+  TimelineEvent* event = Timeline::GetDartStream()->StartEvent();
   if (event == NULL) {
     // Stream was turned off.
     return Object::null();

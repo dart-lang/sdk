@@ -79,7 +79,7 @@ DEFINE_NATIVE_ENTRY(Math_doublePow, 2) {
 static RawTypedData* GetRandomStateArray(const Instance& receiver) {
   const Class& random_class = Class::Handle(receiver.clazz());
   const Field& state_field =
-      Field::Handle(random_class.LookupField(Symbols::_state()));
+      Field::Handle(random_class.LookupFieldAllowPrivate(Symbols::_state()));
   ASSERT(!state_field.IsNull());
   const Instance& state_field_value =
       Instance::Cast(Object::Handle(receiver.GetField(state_field)));
@@ -205,7 +205,7 @@ DEFINE_NATIVE_ENTRY(SecureRandom_getBytes, 1) {
   const intptr_t n = count.Value();
   ASSERT((n > 0) && (n <= 8));
   uint8_t buffer[8];
-  Dart_EntropySource entropy_source = isolate->entropy_source_callback();
+  Dart_EntropySource entropy_source = Dart::entropy_source_callback();
   if ((entropy_source == NULL) || !entropy_source(buffer, n)) {
     const String& error = String::Handle(String::New(
         "No source of cryptographically secure random numbers available."));

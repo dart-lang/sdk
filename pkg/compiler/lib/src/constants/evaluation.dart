@@ -4,10 +4,8 @@
 
 library dart2js.constants.evaluation;
 
-import '../compiler.dart' show
-    Compiler;
-import '../universe/call_structure.dart' show
-    CallStructure;
+import '../compiler.dart' show Compiler;
+import '../universe/call_structure.dart' show CallStructure;
 import 'expressions.dart';
 
 /// Environment used for evaluating constant expressions.
@@ -22,7 +20,7 @@ abstract class Environment {
 /// The normalized arguments passed to a const constructor computed from the
 /// actual [arguments] and the [defaultValues] of the called construrctor.
 class NormalizedArguments {
-  final Map<dynamic/*int|String*/, ConstantExpression> defaultValues;
+  final Map<dynamic /*int|String*/, ConstantExpression> defaultValues;
   final CallStructure callStructure;
   final List<ConstantExpression> arguments;
 

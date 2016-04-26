@@ -100,7 +100,7 @@ class ParseYamlTask extends SourceBasedAnalysisTask {
    * input descriptors describing those inputs for a task with the given
    * [source].
    */
-  static Map<String, TaskInput> buildInputs(Source source) {
+  static Map<String, TaskInput> buildInputs(AnalysisTarget source) {
     return <String, TaskInput>{CONTENT_INPUT_NAME: CONTENT.of(source)};
   }
 

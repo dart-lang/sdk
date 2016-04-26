@@ -4,19 +4,11 @@
 
 library dart2js.new_js_emitter.model;
 
-import '../common.dart';
-import '../constants/values.dart' show
-    ConstantValue;
-import '../deferred_load.dart' show
-    OutputUnit;
-import '../elements/elements.dart' show
-    Element;
-import '../js/js.dart' as js show
-    Expression,
-    Literal,
-    Name,
-    Statement,
-    TokenFinalizer;
+import '../constants/values.dart' show ConstantValue;
+import '../deferred_load.dart' show OutputUnit;
+import '../elements/elements.dart' show Element;
+import '../js/js.dart' as js
+    show Expression, Literal, Name, Statement, TokenFinalizer;
 
 import 'js_emitter.dart' show MetadataCollector;
 
@@ -26,8 +18,10 @@ class Program {
   final bool outputContainsConstantList;
   final bool needsNativeSupport;
   final bool hasIsolateSupport;
+
   /// A map from load id to the list of fragments that need to be loaded.
   final Map<String, List<Fragment>> loadMap;
+
   /// A map from names to strings.
   ///
   /// This map is needed to support `const Symbol` expressions;
@@ -42,16 +36,11 @@ class Program {
   final MetadataCollector _metadataCollector;
   final Iterable<js.TokenFinalizer> finalizers;
 
-  Program(this.fragments,
-          this.holders,
-          this.loadMap,
-          this.symbolsMap,
-          this.typeToInterceptorMap,
-          this._metadataCollector,
-          this.finalizers,
-          {this.needsNativeSupport,
-           this.outputContainsConstantList,
-           this.hasIsolateSupport}) {
+  Program(this.fragments, this.holders, this.loadMap, this.symbolsMap,
+      this.typeToInterceptorMap, this._metadataCollector, this.finalizers,
+      {this.needsNativeSupport,
+      this.outputContainsConstantList,
+      this.hasIsolateSupport}) {
     assert(needsNativeSupport != null);
     assert(outputContainsConstantList != null);
     assert(hasIsolateSupport != null);
@@ -122,12 +111,13 @@ abstract class Fragment {
   /// Output file name without extension.
   final String outputFileName;
 
-  Fragment(this.outputUnit,
-           this.outputFileName,
-           this.libraries,
-           this.staticNonFinalFields,
-           this.staticLazilyInitializedFields,
-           this.constants);
+  Fragment(
+      this.outputUnit,
+      this.outputFileName,
+      this.libraries,
+      this.staticNonFinalFields,
+      this.staticLazilyInitializedFields,
+      this.constants);
 
   bool get isMainFragment;
 }
@@ -141,19 +131,16 @@ abstract class Fragment {
 class MainFragment extends Fragment {
   final js.Statement invokeMain;
 
-  MainFragment(OutputUnit outputUnit,
-               String outputFileName,
-               this.invokeMain,
-               List<Library> libraries,
-               List<StaticField> staticNonFinalFields,
-               List<StaticField> staticLazilyInitializedFields,
-               List<Constant> constants)
-      : super(outputUnit,
-              outputFileName,
-              libraries,
-              staticNonFinalFields,
-              staticLazilyInitializedFields,
-              constants);
+  MainFragment(
+      OutputUnit outputUnit,
+      String outputFileName,
+      this.invokeMain,
+      List<Library> libraries,
+      List<StaticField> staticNonFinalFields,
+      List<StaticField> staticLazilyInitializedFields,
+      List<Constant> constants)
+      : super(outputUnit, outputFileName, libraries, staticNonFinalFields,
+            staticLazilyInitializedFields, constants);
 
   bool get isMainFragment => true;
 }
@@ -164,19 +151,16 @@ class MainFragment extends Fragment {
 class DeferredFragment extends Fragment {
   final String name;
 
-  DeferredFragment(OutputUnit outputUnit,
-                   String outputFileName,
-                   this.name,
-                   List<Library> libraries,
-                   List<StaticField> staticNonFinalFields,
-                   List<StaticField> staticLazilyInitializedFields,
-                   List<Constant> constants)
-      : super(outputUnit,
-              outputFileName,
-              libraries,
-              staticNonFinalFields,
-              staticLazilyInitializedFields,
-              constants);
+  DeferredFragment(
+      OutputUnit outputUnit,
+      String outputFileName,
+      this.name,
+      List<Library> libraries,
+      List<StaticField> staticNonFinalFields,
+      List<StaticField> staticLazilyInitializedFields,
+      List<Constant> constants)
+      : super(outputUnit, outputFileName, libraries, staticNonFinalFields,
+            staticLazilyInitializedFields, constants);
 
   bool get isMainFragment => false;
 }
@@ -205,7 +189,7 @@ class Library implements FieldContainer {
   final List<Field> staticFieldsForReflection;
 
   Library(this.element, this.uri, this.statics, this.classes,
-          this.staticFieldsForReflection);
+      this.staticFieldsForReflection);
 }
 
 class StaticField {
@@ -221,9 +205,8 @@ class StaticField {
   final bool isFinal;
   final bool isLazy;
 
-  StaticField(this.element,
-              this.name, this.holder, this.code,
-              this.isFinal, this.isLazy);
+  StaticField(this.element, this.name, this.holder, this.code, this.isFinal,
+      this.isLazy);
 }
 
 class Class implements FieldContainer {
@@ -268,19 +251,22 @@ class Class implements FieldContainer {
   /// Native extensions. See [NativeEmitter.prepareNativeClasses].
   List<Class> nativeExtensions;
 
-  Class(this.element, this.name, this.holder,
-        this.methods,
-        this.fields,
-        this.staticFieldsForReflection,
-        this.callStubs,
-        this.typeVariableReaderStubs,
-        this.noSuchMethodStubs,
-        this.checkedSetters,
-        this.isChecks,
-        this.functionTypeIndex,
-        {this.onlyForRti,
-         this.isDirectlyInstantiated,
-         this.isNative}) {
+  Class(
+      this.element,
+      this.name,
+      this.holder,
+      this.methods,
+      this.fields,
+      this.staticFieldsForReflection,
+      this.callStubs,
+      this.typeVariableReaderStubs,
+      this.noSuchMethodStubs,
+      this.checkedSetters,
+      this.isChecks,
+      this.functionTypeIndex,
+      {this.onlyForRti,
+      this.isDirectlyInstantiated,
+      this.isNative}) {
     assert(onlyForRti != null);
     assert(isDirectlyInstantiated != null);
     assert(isNative != null);
@@ -293,40 +279,44 @@ class Class implements FieldContainer {
     _superclass = superclass;
   }
 
-  js.Name get superclassName
-      => superclass == null ? null : superclass.name;
+  js.Name get superclassName => superclass == null ? null : superclass.name;
 
-  int get superclassHolderIndex
-      => (superclass == null) ? 0 : superclass.holder.index;
+  int get superclassHolderIndex =>
+      (superclass == null) ? 0 : superclass.holder.index;
 }
 
 class MixinApplication extends Class {
   Class _mixinClass;
 
-  MixinApplication(Element element, js.Name name, Holder holder,
-                   List<Field> instanceFields,
-                   List<Field> staticFieldsForReflection,
-                   List<StubMethod> callStubs,
-                   List<StubMethod> typeVariableReaderStubs,
-                   List<StubMethod> checkedSetters,
-                   List<StubMethod> isChecks,
-                   js.Expression functionTypeIndex,
-                   {bool onlyForRti,
-                    bool isDirectlyInstantiated})
-      : super(element,
-              name, holder,
-              const <Method>[],
-              instanceFields,
-              staticFieldsForReflection,
-              callStubs,
-              typeVariableReaderStubs,
-              const <StubMethod>[],
-              checkedSetters,
-              isChecks,
-              functionTypeIndex,
-              onlyForRti: onlyForRti,
-              isDirectlyInstantiated: isDirectlyInstantiated,
-              isNative: false);
+  MixinApplication(
+      Element element,
+      js.Name name,
+      Holder holder,
+      List<Field> instanceFields,
+      List<Field> staticFieldsForReflection,
+      List<StubMethod> callStubs,
+      List<StubMethod> typeVariableReaderStubs,
+      List<StubMethod> checkedSetters,
+      List<StubMethod> isChecks,
+      js.Expression functionTypeIndex,
+      {bool onlyForRti,
+      bool isDirectlyInstantiated})
+      : super(
+            element,
+            name,
+            holder,
+            const <Method>[],
+            instanceFields,
+            staticFieldsForReflection,
+            callStubs,
+            typeVariableReaderStubs,
+            const <StubMethod>[],
+            checkedSetters,
+            isChecks,
+            functionTypeIndex,
+            onlyForRti: onlyForRti,
+            isDirectlyInstantiated: isDirectlyInstantiated,
+            isNative: false);
 
   bool get isMixinApplication => true;
   Class get mixinClass => _mixinClass;
@@ -363,9 +353,8 @@ class Field {
   final bool needsCheckedSetter;
 
   // TODO(floitsch): support renamed fields.
-  Field(this.element, this.name, this.accessorName,
-        this.getterFlags, this.setterFlags,
-        this.needsCheckedSetter);
+  Field(this.element, this.name, this.accessorName, this.getterFlags,
+      this.setterFlags, this.needsCheckedSetter);
 
   bool get needsGetter => getterFlags != 0;
   bool get needsUncheckedSetter => setterFlags != 0;
@@ -384,6 +373,7 @@ abstract class Method {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
   final Element element;
+
   /// The name of the method. If the method is a [ParameterStubMethod] for a
   /// static function, then the name can be `null`. In that case, only the
   /// [ParameterStubMethod.callName] should be used.
@@ -419,17 +409,21 @@ abstract class DartMethod extends Method {
   final js.Name callName;
 
   DartMethod(Element element, js.Name name, js.Expression code,
-             this.parameterStubs, this.callName,
-             {this.needsTearOff, this.tearOffName, this.canBeApplied,
-              this.canBeReflected, this.requiredParameterCount,
-              this.optionalParameterDefaultValues, this.functionType})
+      this.parameterStubs, this.callName,
+      {this.needsTearOff,
+      this.tearOffName,
+      this.canBeApplied,
+      this.canBeReflected,
+      this.requiredParameterCount,
+      this.optionalParameterDefaultValues,
+      this.functionType})
       : super(element, name, code) {
     assert(needsTearOff != null);
     assert(!needsTearOff || tearOffName != null);
     assert(canBeApplied != null);
     assert(canBeReflected != null);
     assert((!canBeReflected && !canBeApplied) ||
-           (requiredParameterCount != null &&
+        (requiredParameterCount != null &&
             optionalParameterDefaultValues != null));
   }
 
@@ -448,27 +442,25 @@ class InstanceMethod extends DartMethod {
   /// functions that can be torn off.
   final bool isClosureCallMethod;
 
-
   InstanceMethod(Element element, js.Name name, js.Expression code,
-                 List<ParameterStubMethod> parameterStubs,
-                 js.Name callName,
-                 {bool needsTearOff,
-                  js.Name tearOffName,
-                  this.aliasName,
-                  bool canBeApplied,
-                  bool canBeReflected,
-                  int requiredParameterCount,
-                  /* List | Map */ optionalParameterDefaultValues,
-                  this.isClosureCallMethod,
-                  js.Expression functionType})
+      List<ParameterStubMethod> parameterStubs, js.Name callName,
+      {bool needsTearOff,
+      js.Name tearOffName,
+      this.aliasName,
+      bool canBeApplied,
+      bool canBeReflected,
+      int requiredParameterCount,
+      /* List | Map */ optionalParameterDefaultValues,
+      this.isClosureCallMethod,
+      js.Expression functionType})
       : super(element, name, code, parameterStubs, callName,
-              needsTearOff: needsTearOff,
-              tearOffName: tearOffName,
-              canBeApplied: canBeApplied,
-              canBeReflected: canBeReflected,
-              requiredParameterCount: requiredParameterCount,
-              optionalParameterDefaultValues: optionalParameterDefaultValues,
-              functionType: functionType) {
+            needsTearOff: needsTearOff,
+            tearOffName: tearOffName,
+            canBeApplied: canBeApplied,
+            canBeReflected: canBeReflected,
+            requiredParameterCount: requiredParameterCount,
+            optionalParameterDefaultValues: optionalParameterDefaultValues,
+            functionType: functionType) {
     assert(isClosureCallMethod != null);
   }
 
@@ -479,8 +471,7 @@ class InstanceMethod extends DartMethod {
 /// to a method in the original Dart program. Examples are getter and setter
 /// stubs and stubs to dispatch calls to methods with optional parameters.
 class StubMethod extends Method {
-  StubMethod(js.Name name, js.Expression code,
-             {Element element})
+  StubMethod(js.Name name, js.Expression code, {Element element})
       : super(element, name, code);
 }
 
@@ -512,22 +503,28 @@ abstract class StaticMethod implements Method {
 class StaticDartMethod extends DartMethod implements StaticMethod {
   final Holder holder;
 
-  StaticDartMethod(Element element, js.Name name, this.holder,
-                   js.Expression code, List<ParameterStubMethod> parameterStubs,
-                   js.Name callName,
-                   {bool needsTearOff, js.Name tearOffName,
-                    bool canBeApplied, bool canBeReflected,
-                    int requiredParameterCount,
-                    /* List | Map */ optionalParameterDefaultValues,
-                    js.Expression functionType})
+  StaticDartMethod(
+      Element element,
+      js.Name name,
+      this.holder,
+      js.Expression code,
+      List<ParameterStubMethod> parameterStubs,
+      js.Name callName,
+      {bool needsTearOff,
+      js.Name tearOffName,
+      bool canBeApplied,
+      bool canBeReflected,
+      int requiredParameterCount,
+      /* List | Map */ optionalParameterDefaultValues,
+      js.Expression functionType})
       : super(element, name, code, parameterStubs, callName,
-              needsTearOff: needsTearOff,
-              tearOffName : tearOffName,
-              canBeApplied : canBeApplied,
-              canBeReflected : canBeReflected,
-              requiredParameterCount: requiredParameterCount,
-              optionalParameterDefaultValues: optionalParameterDefaultValues,
-              functionType: functionType);
+            needsTearOff: needsTearOff,
+            tearOffName: tearOffName,
+            canBeApplied: canBeApplied,
+            canBeReflected: canBeReflected,
+            requiredParameterCount: requiredParameterCount,
+            optionalParameterDefaultValues: optionalParameterDefaultValues,
+            functionType: functionType);
 
   bool get isStatic => true;
 }

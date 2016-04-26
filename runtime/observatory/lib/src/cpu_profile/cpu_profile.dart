@@ -4,24 +4,52 @@
 
 part of cpu_profiler;
 
-class CodeCallTreeNode {
-  final ProfileCode profileCode;
+abstract class CallTreeNode {
+  final List<CallTreeNode> children;
   final int count;
   double get percentage => _percentage;
   double _percentage = 0.0;
-  final children;
   final Set<String> attributes = new Set<String>();
-  CodeCallTreeNode(this.profileCode, this.count, int childCount)
-      : children = new List<CodeCallTreeNode>(childCount) {
+
+  // Either a ProfileCode or a ProfileFunction.
+  Object get profileData;
+  String get name;
+
+  CallTreeNode(this.children, this.count);
+}
+
+class CodeCallTreeNode extends CallTreeNode {
+  final ProfileCode profileCode;
+
+  Object get profileData => profileCode;
+
+  String get name => profileCode.code.name;
+
+  final Set<String> attributes = new Set<String>();
+  CodeCallTreeNode(this.profileCode, int count)
+      : super(new List<CodeCallTreeNode>(), count) {
     attributes.addAll(profileCode.attributes);
   }
 }
 
-class CodeCallTree {
+class CallTree {
   final bool inclusive;
-  final CodeCallTreeNode root;
-  CodeCallTree(this.inclusive, this.root) {
+  final CallTreeNode root;
+
+  CallTree(this.inclusive, this.root);
+}
+
+class CodeCallTree extends CallTree {
+  CodeCallTree(bool inclusive, CodeCallTreeNode root)
+      : super(inclusive, root) {
     _setCodePercentage(null, root);
+  }
+
+  CodeCallTree filtered(CallTreeNodeFilter filter) {
+    var treeFilter = new _FilteredCodeCallTreeBuilder(filter, this);
+    treeFilter.build();
+    _setCodePercentage(null, treeFilter.filtered.root);
+    return treeFilter.filtered;
   }
 
   _setCodePercentage(CodeCallTreeNode parent, CodeCallTreeNode node) {
@@ -67,18 +95,17 @@ class FunctionCallTreeNodeCode {
   FunctionCallTreeNodeCode(this.code, this.ticks);
 }
 
-class FunctionCallTreeNode {
+class FunctionCallTreeNode extends CallTreeNode {
   final ProfileFunction profileFunction;
-  final int count;
-  double get percentage => _percentage;
-  double _percentage = 0.0;
-  final children = new List<FunctionCallTreeNode>();
-  final Set<String> attributes = new Set<String>();
   final codes = new List<FunctionCallTreeNodeCode>();
   int _totalCodeTicks = 0;
   int get totalCodesTicks => _totalCodeTicks;
 
-  FunctionCallTreeNode(this.profileFunction, this.count){
+  String get name => profileFunction.function.name;
+  Object get profileData => profileFunction;
+
+  FunctionCallTreeNode(this.profileFunction, int count)
+      : super(new List<FunctionCallTreeNode>(), count) {
     profileFunction._addKindBasedAttributes(attributes);
   }
 
@@ -140,27 +167,21 @@ class FunctionCallTreeNode {
 
 /// Predicate filter function. Returns true if path from root to [node] and all
 /// of [node]'s children should be added to the filtered tree.
-typedef bool FunctionCallTreeNodeFilter(FunctionCallTreeNode node);
+typedef bool CallTreeNodeFilter(CallTreeNode node);
 
 /// Build a filter version of a FunctionCallTree.
-class _FilteredFunctionCallTreeBuilder {
+abstract class _FilteredCallTreeBuilder {
   /// The filter.
-  final FunctionCallTreeNodeFilter filter;
+  final CallTreeNodeFilter filter;
   /// The unfiltered tree.
-  final FunctionCallTree _unfilteredTree;
+  final CallTree _unfilteredTree;
   /// The filtered tree (construct by [build]).
-  final FunctionCallTree filtered;
+  final CallTree filtered;
   final List _currentPath = [];
 
   /// Construct a filtered tree builder using [filter] and [tree].
-  _FilteredFunctionCallTreeBuilder(this.filter, FunctionCallTree tree)
-      : _unfilteredTree = tree,
-        filtered =
-          new FunctionCallTree(
-              tree.inclusive,
-              new FunctionCallTreeNode(
-                  tree.root.profileFunction,
-                  tree.root.count));
+  _FilteredCallTreeBuilder(this.filter, CallTree tree, this.filtered)
+      : _unfilteredTree = tree;
 
   /// Build the filtered tree.
   build() {
@@ -170,15 +191,17 @@ class _FilteredFunctionCallTreeBuilder {
     _descend(_unfilteredTree.root);
   }
 
-  FunctionCallTreeNode _findFunctionInChildren(FunctionCallTreeNode current,
-                                               FunctionCallTreeNode needle) {
+  CallTreeNode _findInChildren(CallTreeNode current,
+                               CallTreeNode needle) {
     for (var child in current.children) {
-      if (child.profileFunction == needle.profileFunction) {
+      if (child.profileData == needle.profileData) {
         return child;
       }
     }
     return null;
   }
+
+  CallTreeNode _copyNode(CallTreeNode node);
 
   /// Add all nodes in [_currentPath].
   FunctionCallTreeNode _addCurrentPath() {
@@ -191,10 +214,10 @@ class _FilteredFunctionCallTreeBuilder {
       // toAdd is from the unfiltered tree.
       var toAdd = _currentPath[i];
       // See if we already have a node for toAdd in the filtered tree.
-      var child = _findFunctionInChildren(current, toAdd);
+      var child = _findInChildren(current, toAdd);
       if (child == null) {
         // New node.
-        child = new FunctionCallTreeNode(toAdd.profileFunction, toAdd.count);
+        child = _copyNode(toAdd);
         current.children.add(child);
       }
       current = child;
@@ -204,13 +227,13 @@ class _FilteredFunctionCallTreeBuilder {
   }
 
   /// Starting at [current] append [next] and all of [next]'s sub-trees
-  _appendTree(FunctionCallTreeNode current, FunctionCallTreeNode next) {
+  _appendTree(CallTreeNode current, CallTreeNode next) {
     if (next == null) {
       return;
     }
-    var child = _findFunctionInChildren(current, next);
+    var child = _findInChildren(current, next);
     if (child == null) {
-      child = new FunctionCallTreeNode(next.profileFunction, next.count);
+      child = _copyNode(next);
       current.children.add(child);
     }
     current = child;
@@ -221,13 +244,13 @@ class _FilteredFunctionCallTreeBuilder {
 
   /// Add path from root to [child], [child], and all of [child]'s sub-trees
   /// to filtered tree.
-  _addTree(FunctionCallTreeNode child) {
+  _addTree(CallTreeNode child) {
     var current = _addCurrentPath();
     _appendTree(current, child);
   }
 
   /// Descend further into the tree. [current] is from the unfiltered tree.
-  _descend(FunctionCallTreeNode current) {
+  _descend(CallTreeNode current) {
     if (current == null) {
       return;
     }
@@ -256,14 +279,39 @@ class _FilteredFunctionCallTreeBuilder {
   }
 }
 
-class FunctionCallTree {
-  final bool inclusive;
-  final FunctionCallTreeNode root;
-  FunctionCallTree(this.inclusive, this.root) {
+class _FilteredFunctionCallTreeBuilder extends _FilteredCallTreeBuilder {
+  _FilteredFunctionCallTreeBuilder(CallTreeNodeFilter filter,
+                                   FunctionCallTree tree)
+    : super(filter, tree,
+            new FunctionCallTree(tree.inclusive,
+                new FunctionCallTreeNode(tree.root.profileData,
+                                         tree.root.count)));
+
+  _copyNode(FunctionCallTreeNode node) {
+    return new FunctionCallTreeNode(node.profileData, node.count);
+  }
+}
+
+class _FilteredCodeCallTreeBuilder extends _FilteredCallTreeBuilder {
+  _FilteredCodeCallTreeBuilder(CallTreeNodeFilter filter,
+                               CodeCallTree tree)
+    : super(filter, tree,
+            new CodeCallTree(tree.inclusive,
+                new CodeCallTreeNode(tree.root.profileData,
+                                     tree.root.count)));
+
+  _copyNode(CodeCallTreeNode node) {
+    return new CodeCallTreeNode(node.profileData, node.count);
+  }
+}
+
+class FunctionCallTree extends CallTree {
+  FunctionCallTree(bool inclusive, FunctionCallTreeNode root)
+      : super(inclusive, root) {
     _setFunctionPercentage(null, root);
   }
 
-  FunctionCallTree filtered(FunctionCallTreeNodeFilter filter) {
+  FunctionCallTree filtered(CallTreeNodeFilter filter) {
     var treeFilter = new _FilteredFunctionCallTreeBuilder(filter, this);
     treeFilter.build();
     _setFunctionPercentage(null, treeFilter.filtered.root);
@@ -732,7 +780,8 @@ class CpuProfile {
     // Child node count.
     var children = data[_dataCursor++];
     // Create node.
-    var node = new CodeCallTreeNode(code, count, children);
+    var node = new CodeCallTreeNode(code, count);
+    node.children.length = children;
     return node;
   }
 

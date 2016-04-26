@@ -93,7 +93,7 @@ class ClassHeapStatsTestHelper {
 
 static RawClass* GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(name))));
+      lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
   return cls.raw();
 }
@@ -236,8 +236,7 @@ TEST_CASE(ArrayHeapStats) {
 
 class FindOnly : public FindObjectVisitor {
  public:
-  FindOnly(Isolate* isolate, RawObject* target)
-      : FindObjectVisitor(isolate), target_(target) {
+  explicit FindOnly(RawObject* target) : target_(target) {
 #if defined(DEBUG)
     EXPECT_GT(Thread::Current()->no_safepoint_scope_depth(), 0);
 #endif
@@ -254,7 +253,7 @@ class FindOnly : public FindObjectVisitor {
 
 class FindNothing : public FindObjectVisitor {
  public:
-  FindNothing() : FindObjectVisitor(Isolate::Current()) { }
+  FindNothing() { }
   virtual ~FindNothing() { }
   virtual bool FindObject(RawObject* obj) const { return false; }
 };
@@ -268,7 +267,7 @@ TEST_CASE(FindObject) {
     const String& obj = String::Handle(String::New("x", spaces[space]));
     {
       NoSafepointScope no_safepoint;
-      FindOnly find_only(isolate, obj.raw());
+      FindOnly find_only(obj.raw());
       EXPECT(obj.raw() == heap->FindObject(&find_only));
     }
   }
@@ -284,9 +283,9 @@ TEST_CASE(IterateReadOnly) {
   const String& obj = String::Handle(String::New("x", Heap::kOld));
   Heap* heap = Thread::Current()->isolate()->heap();
   EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
-  heap->WriteProtect(true, true /* include_code_pages */);
+  heap->WriteProtect(true);
   EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
-  heap->WriteProtect(false, true /* include_code_pages */);
+  heap->WriteProtect(false);
   EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
 }
 

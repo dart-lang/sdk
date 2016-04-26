@@ -90,7 +90,7 @@ class WebSocketServerChannel implements ServerCommunicationChannel {
 
   @override
   void listen(void onRequest(Request request),
-      {void onError(), void onDone()}) {
+      {Function onError, void onDone()}) {
     socket.listen((data) => readRequest(data, onRequest),
         onError: onError, onDone: onDone);
   }

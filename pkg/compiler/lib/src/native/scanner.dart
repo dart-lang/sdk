@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of native;
+import '../common.dart';
+import '../parser/listener.dart' show Listener;
+import '../parser/element_listener.dart' show ElementListener;
+import '../tokens/token.dart' show BeginGroupToken, Token;
+import '../tokens/token_constants.dart' as Tokens show EOF_TOKEN, STRING_TOKEN;
 
 void checkAllowedLibrary(ElementListener listener, Token token) {
   if (listener.scannerOptions.canUseNative) return;

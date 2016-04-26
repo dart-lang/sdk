@@ -36,7 +36,7 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     // informative error message.
     __ movq(RBX, Address(THR, Thread::OffsetFromThread(this)));
     __ movq(R10, Immediate(argument_count));
-    __ Call(*StubCode::CallToRuntime_entry());
+    __ CallToRuntime();
   }
 }
 

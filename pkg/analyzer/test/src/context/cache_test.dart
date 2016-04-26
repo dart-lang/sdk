@@ -1127,7 +1127,7 @@ class _KeepContinueDelta implements Delta {
 
   @override
   DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
-      ResultDescriptor descriptor) {
+      ResultDescriptor descriptor, Object value) {
     if (descriptor == keepDescriptor) {
       return DeltaResult.KEEP_CONTINUE;
     }

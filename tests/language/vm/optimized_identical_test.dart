@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test various optimizations and deoptimizations of optimizing compiler..
-// VMOptions=--optimization-counter-threshold=10 --no-constant-propagation
+// VMOptions=--optimization-counter-threshold=10 --no-constant-propagation --no-background-compilation
 
 import "package:expect/expect.dart";
 
@@ -13,7 +13,7 @@ import "package:expect/expect.dart";
 test(a) {
   var dbl = a + 1.0;
   if (!identical(dbl, true)) {
-    return "ok"; 
+    return "ok";
   }
   throw "fail";
 }

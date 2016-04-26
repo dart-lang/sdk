@@ -4,17 +4,11 @@
 
 library dart2js.scanner.string;
 
-import '../io/source_file.dart' show
-    SourceFile;
-import '../tokens/precedence.dart' show
-    PrecedenceInfo;
-import '../tokens/token.dart' show
-    StringToken,
-    Token;
+import '../io/source_file.dart' show SourceFile;
+import '../tokens/precedence.dart' show PrecedenceInfo;
+import '../tokens/token.dart' show StringToken, Token;
 
-import 'array_based_scanner.dart' show
-    ArrayBasedScanner;
-
+import 'array_based_scanner.dart' show ArrayBasedScanner;
 
 /**
  * Scanner that reads from a String and creates tokens that points to
@@ -52,15 +46,16 @@ class StringScanner extends ArrayBasedScanner {
 
   int currentAsUnicode(int next) => next;
 
-  void handleUnicode(int startScanOffset) { }
+  void handleUnicode(int startScanOffset) {}
 
   Token firstToken() => tokens.next;
   Token previousToken() => tail;
 
-  void appendSubstringToken(PrecedenceInfo info, int start,
-                            bool asciiOnly, [int extraOffset = 0]) {
-    tail.next = new StringToken.fromSubstring(info, string, start,
-        scanOffset + extraOffset, tokenStart, canonicalize: true);
+  void appendSubstringToken(PrecedenceInfo info, int start, bool asciiOnly,
+      [int extraOffset = 0]) {
+    tail.next = new StringToken.fromSubstring(
+        info, string, start, scanOffset + extraOffset, tokenStart,
+        canonicalize: true);
     tail = tail.next;
   }
 

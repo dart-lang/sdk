@@ -9,7 +9,6 @@
 #include "platform/globals.h"
 
 #include "vm/compiler.h"
-#include "vm/coverage.h"
 #include "vm/cpu.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
@@ -35,6 +34,7 @@
 #include "vm/source_report.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
+#include "vm/timeline.h"
 #include "vm/unicode.h"
 #include "vm/version.h"
 
@@ -122,6 +122,7 @@ StreamInfo Service::echo_stream("_Echo");
 StreamInfo Service::graph_stream("_Graph");
 StreamInfo Service::logging_stream("_Logging");
 StreamInfo Service::extension_stream("Extension");
+StreamInfo Service::timeline_stream("Timeline");
 
 static StreamInfo* streams_[] = {
   &Service::vm_stream,
@@ -132,6 +133,7 @@ static StreamInfo* streams_[] = {
   &Service::graph_stream,
   &Service::logging_stream,
   &Service::extension_stream,
+  &Service::timeline_stream,
 };
 
 
@@ -1030,11 +1032,12 @@ void Service::HandleEvent(ServiceEvent* event) {
     params.AddProperty("streamId", stream_id);
     params.AddProperty("event", event);
   }
-  PostEvent(stream_id, event->KindAsCString(), &js);
+  PostEvent(event->isolate(), stream_id, event->KindAsCString(), &js);
 }
 
 
-void Service::PostEvent(const char* stream_id,
+void Service::PostEvent(Isolate* isolate,
+                        const char* stream_id,
                         const char* kind,
                         JSONStream* event) {
   ASSERT(stream_id != NULL);
@@ -1063,7 +1066,6 @@ void Service::PostEvent(const char* stream_id,
   list_values[1] = &json_cobj;
 
   if (FLAG_trace_service) {
-    Isolate* isolate = Isolate::Current();
     const char* isolate_name = "<no current isolate>";
     if (isolate != NULL) {
       isolate_name = isolate->name();
@@ -1291,8 +1293,7 @@ static bool GetStack(Thread* thread, JSONStream* js) {
   }
 
   {
-    MessageHandler::AcquiredQueues aq;
-    isolate->message_handler()->AcquireQueues(&aq);
+    MessageHandler::AcquiredQueues aq(isolate->message_handler());
     jsobj.AddProperty("messages", aq.queue());
   }
 
@@ -1679,8 +1680,7 @@ static RawObject* LookupHeapObjectMessage(Thread* thread,
   if (!GetUnsignedIntegerId(parts[1], &message_id, 16)) {
     return Object::sentinel().raw();
   }
-  MessageHandler::AcquiredQueues aq;
-  thread->isolate()->message_handler()->AcquireQueues(&aq);
+  MessageHandler::AcquiredQueues aq(thread->isolate()->message_handler());
   Message* message = aq.queue()->FindMessageById(message_id);
   if (message == NULL) {
     // The user may try to load an expired message.
@@ -2149,8 +2149,10 @@ static bool Evaluate(Thread* thread, JSONStream* js) {
     // We don't use Instance::Cast here because it doesn't allow null.
     Instance& instance = Instance::Handle(zone);
     instance ^= obj.raw();
+    const Class& receiver_cls = Class::Handle(zone, instance.clazz());
     const Object& result =
-        Object::Handle(zone, instance.Evaluate(expr_str,
+        Object::Handle(zone, instance.Evaluate(receiver_cls,
+                                               expr_str,
                                                Array::empty_array(),
                                                Array::empty_array()));
     result.PrintJSON(js, true);
@@ -2158,8 +2160,7 @@ static bool Evaluate(Thread* thread, JSONStream* js) {
   }
   js->PrintError(kInvalidParams,
                  "%s: invalid 'targetId' parameter: "
-                 "id '%s' does not correspond to a "
-                 "library, class, or instance", js->method(), target_id);
+                 "Cannot evaluate against a VM-internal object", js->method());
   return true;
 }
 
@@ -2285,130 +2286,11 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
 }
 
 
-class LibraryCoverageFilter : public CoverageFilter {
- public:
-  explicit LibraryCoverageFilter(const Library& lib) : lib_(lib) {}
-  bool ShouldOutputCoverageFor(const Library& lib,
-                               const Script& script,
-                               const Class& cls,
-                               const Function& func) const {
-    return lib.raw() == lib_.raw();
-  }
- private:
-  const Library& lib_;
-};
-
-
-class ScriptCoverageFilter : public CoverageFilter {
- public:
-  explicit ScriptCoverageFilter(const Script& script)
-      : script_(script) {}
-  bool ShouldOutputCoverageFor(const Library& lib,
-                               const Script& script,
-                               const Class& cls,
-                               const Function& func) const {
-    return script.raw() == script_.raw();
-  }
- private:
-  const Script& script_;
-};
-
-
-class ClassCoverageFilter : public CoverageFilter {
- public:
-  explicit ClassCoverageFilter(const Class& cls) : cls_(cls) {}
-  bool ShouldOutputCoverageFor(const Library& lib,
-                               const Script& script,
-                               const Class& cls,
-                               const Function& func) const {
-    return cls.raw() == cls_.raw();
-  }
- private:
-  const Class& cls_;
-};
-
-
-class FunctionCoverageFilter : public CoverageFilter {
- public:
-  explicit FunctionCoverageFilter(const Function& func) : func_(func) {}
-  bool ShouldOutputCoverageFor(const Library& lib,
-                               const Script& script,
-                               const Class& cls,
-                               const Function& func) const {
-    return func.raw() == func_.raw();
-  }
- private:
-  const Function& func_;
-};
-
-
-static bool GetHitsOrSites(Thread* thread, JSONStream* js, bool as_sites) {
-  if (!thread->isolate()->compilation_allowed()) {
-    js->PrintError(kFeatureDisabled,
-        "Cannot get coverage data when running a precompiled program.");
-    return true;
-  }
-  if (!js->HasParam("targetId")) {
-    CodeCoverage::PrintJSON(thread, js, NULL, as_sites);
-    return true;
-  }
-  const char* target_id = js->LookupParam("targetId");
-  Object& obj = Object::Handle(LookupHeapObject(thread, target_id, NULL));
-  if (obj.raw() == Object::sentinel().raw()) {
-    PrintInvalidParamError(js, "targetId");
-    return true;
-  }
-  if (obj.IsScript()) {
-    ScriptCoverageFilter sf(Script::Cast(obj));
-    CodeCoverage::PrintJSON(thread, js, &sf, as_sites);
-    return true;
-  }
-  if (obj.IsLibrary()) {
-    LibraryCoverageFilter lf(Library::Cast(obj));
-    CodeCoverage::PrintJSON(thread, js, &lf, as_sites);
-    return true;
-  }
-  if (obj.IsClass()) {
-    ClassCoverageFilter cf(Class::Cast(obj));
-    CodeCoverage::PrintJSON(thread, js, &cf, as_sites);
-    return true;
-  }
-  if (obj.IsFunction()) {
-    FunctionCoverageFilter ff(Function::Cast(obj));
-    CodeCoverage::PrintJSON(thread, js, &ff, as_sites);
-    return true;
-  }
-  js->PrintError(kInvalidParams,
-                 "%s: invalid 'targetId' parameter: "
-                 "id '%s' does not correspond to a "
-                 "script, library, class, or function",
-                 js->method(), target_id);
-  return true;
-}
-
-
-static const MethodParameter* get_coverage_params[] = {
-  RUNNABLE_ISOLATE_PARAMETER,
-  new IdParameter("targetId", false),
-  NULL,
-};
-
-
-static bool GetCoverage(Thread* thread, JSONStream* js) {
-  // TODO(rmacnak): Remove this response; it is subsumed by GetCallSiteData.
-  return GetHitsOrSites(thread, js, false);
-}
-
-
-static const char* kCallSitesStr = "_CallSites";
-static const char* kCoverageStr = "Coverage";
-static const char* kPossibleBreakpointsStr = "PossibleBreakpoints";
-
-
 static const char* const report_enum_names[] = {
-  kCallSitesStr,
-  kCoverageStr,
-  kPossibleBreakpointsStr,
+  SourceReport::kCallSitesStr,
+  SourceReport::kCoverageStr,
+  SourceReport::kPossibleBreakpointsStr,
+  SourceReport::kProfileStr,
   NULL,
 };
 
@@ -2436,12 +2318,14 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
   const char** reports = reports_parameter->Parse(thread->zone(), reports_str);
   intptr_t report_set = 0;
   while (*reports != NULL) {
-    if (strcmp(*reports, kCallSitesStr) == 0) {
+    if (strcmp(*reports, SourceReport::kCallSitesStr) == 0) {
       report_set |= SourceReport::kCallSites;
-    } else if (strcmp(*reports, kCoverageStr) == 0) {
+    } else if (strcmp(*reports, SourceReport::kCoverageStr) == 0) {
       report_set |= SourceReport::kCoverage;
-    } else if (strcmp(*reports, kPossibleBreakpointsStr) == 0) {
+    } else if (strcmp(*reports, SourceReport::kPossibleBreakpointsStr) == 0) {
       report_set |= SourceReport::kPossibleBreakpoints;
+    } else if (strcmp(*reports, SourceReport::kProfileStr) == 0) {
+      report_set |= SourceReport::kProfile;
     }
     reports++;
   }
@@ -2487,18 +2371,6 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
                    TokenPosition(start_pos),
                    TokenPosition(end_pos));
   return true;
-}
-
-
-static const MethodParameter* get_call_site_data_params[] = {
-  RUNNABLE_ISOLATE_PARAMETER,
-  new IdParameter("targetId", false),
-  NULL,
-};
-
-
-static bool GetCallSiteData(Thread* thread, JSONStream* js) {
-  return GetHitsOrSites(thread, js, true);
 }
 
 
@@ -2872,9 +2744,8 @@ static const char* const timeline_streams_enum_names[] = {
   "all",
 #define DEFINE_NAME(name, unused)                                              \
   #name,
-ISOLATE_TIMELINE_STREAM_LIST(DEFINE_NAME)
+TIMELINE_STREAM_LIST(DEFINE_NAME)
 #undef DEFINE_NAME
-  "VM",
   NULL
 };
 
@@ -2917,9 +2788,8 @@ static bool SetVMTimelineFlags(Thread* thread, JSONStream* js) {
 
 #define SET_ENABLE_STREAM(name, unused)                                        \
   Timeline::SetStream##name##Enabled(HasStream(recorded_streams, #name));
-ISOLATE_TIMELINE_STREAM_LIST(SET_ENABLE_STREAM);
+TIMELINE_STREAM_LIST(SET_ENABLE_STREAM);
 #undef SET_ENABLE_STREAM
-  Timeline::SetVMStreamEnabled(HasStream(recorded_streams, "VM"));
 
   PrintSuccess(js);
 
@@ -3007,6 +2877,16 @@ static bool Resume(Thread* thread, JSONStream* js) {
     if ((step_param != NULL) && (strcmp(step_param, "Into") == 0)) {
       isolate->debugger()->EnterSingleStepMode();
     }
+    isolate->message_handler()->set_should_pause_on_start(false);
+    isolate->SetResumeRequest();
+    if (Service::debug_stream.enabled()) {
+      ServiceEvent event(isolate, ServiceEvent::kResume);
+      Service::HandleEvent(&event);
+    }
+    PrintSuccess(js);
+    return true;
+  }
+  if (isolate->message_handler()->should_pause_on_start()) {
     isolate->message_handler()->set_should_pause_on_start(false);
     isolate->SetResumeRequest();
     if (Service::debug_stream.enabled()) {
@@ -3262,13 +3142,16 @@ static bool GetHeapMap(Thread* thread, JSONStream* js) {
 
 static const MethodParameter* request_heap_snapshot_params[] = {
   RUNNABLE_ISOLATE_PARAMETER,
+  new BoolParameter("collectGarbage", false /* not required */),
   NULL,
 };
 
 
 static bool RequestHeapSnapshot(Thread* thread, JSONStream* js) {
+  const bool collect_garbage =
+      BoolParameter::Parse(js->LookupParam("collectGarbage"), true);
   if (Service::graph_stream.enabled()) {
-    Service::SendGraphEvent(thread);
+    Service::SendGraphEvent(thread, collect_garbage);
   }
   // TODO(koda): Provide some id that ties this request to async response(s).
   JSONObject jsobj(js);
@@ -3277,11 +3160,11 @@ static bool RequestHeapSnapshot(Thread* thread, JSONStream* js) {
 }
 
 
-void Service::SendGraphEvent(Thread* thread) {
+void Service::SendGraphEvent(Thread* thread, bool collect_garbage) {
   uint8_t* buffer = NULL;
   WriteStream stream(&buffer, &allocator, 1 * MB);
   ObjectGraph graph(thread);
-  intptr_t node_count = graph.Serialize(&stream);
+  intptr_t node_count = graph.Serialize(&stream, collect_garbage);
 
   // Chrome crashes receiving a single tens-of-megabytes blob, so send the
   // snapshot in megabyte-sized chunks instead.
@@ -3394,8 +3277,7 @@ void Service::SendExtensionEvent(Isolate* isolate,
 
 class ContainsAddressVisitor : public FindObjectVisitor {
  public:
-  ContainsAddressVisitor(Isolate* isolate, uword addr)
-      : FindObjectVisitor(isolate), addr_(addr) { }
+  explicit ContainsAddressVisitor(uword addr) : addr_(addr) { }
   virtual ~ContainsAddressVisitor() { }
 
   virtual uword filter_addr() const { return addr_; }
@@ -3426,7 +3308,7 @@ static RawObject* GetObjectHelper(Thread* thread, uword addr) {
   {
     NoSafepointScope no_safepoint;
     Isolate* isolate = thread->isolate();
-    ContainsAddressVisitor visitor(isolate, addr);
+    ContainsAddressVisitor visitor(addr);
     object = isolate->heap()->FindObject(&visitor);
   }
 
@@ -3436,7 +3318,7 @@ static RawObject* GetObjectHelper(Thread* thread, uword addr) {
 
   {
     NoSafepointScope no_safepoint;
-    ContainsAddressVisitor visitor(Dart::vm_isolate(), addr);
+    ContainsAddressVisitor visitor(addr);
     object = Dart::vm_isolate()->heap()->FindObject(&visitor);
   }
 
@@ -3715,7 +3597,7 @@ static bool GetVersion(Thread* thread, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Version");
   jsobj.AddProperty("major", static_cast<intptr_t>(3));
-  jsobj.AddProperty("minor", static_cast<intptr_t>(3));
+  jsobj.AddProperty("minor", static_cast<intptr_t>(4));
   jsobj.AddProperty("_privateMajor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMinor", static_cast<intptr_t>(0));
   return true;
@@ -4005,12 +3887,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_allocation_profile_params },
   { "_getAllocationSamples", GetAllocationSamples,
       get_allocation_samples_params },
-  { "_getCallSiteData", GetCallSiteData,
-    get_call_site_data_params },
   { "getClassList", GetClassList,
     get_class_list_params },
-  { "_getCoverage", GetCoverage,
-    get_coverage_params },
   { "_getCpuProfile", GetCpuProfile,
     get_cpu_profile_params },
   { "_getCpuProfileTimeline", GetCpuProfileTimeline,
@@ -4043,7 +3921,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_retained_size_params },
   { "_getRetainingPath", GetRetainingPath,
     get_retaining_path_params },
-  { "_getSourceReport", GetSourceReport,
+  { "getSourceReport", GetSourceReport,
     get_source_report_params },
   { "getStack", GetStack,
     get_stack_params },

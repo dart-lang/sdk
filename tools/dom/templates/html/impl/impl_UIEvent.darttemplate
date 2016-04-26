@@ -24,12 +24,4 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return e;
   }
 $!MEMBERS
-
-  @DomName('UIEvent.layerX')
-  @DomName('UIEvent.layerY')
-  Point get layer => new Point(_layerX, _layerY);
-
-  @DomName('UIEvent.pageX')
-  @DomName('UIEvent.pageY')
-  Point get page => new Point(_pageX, _pageY);
 }

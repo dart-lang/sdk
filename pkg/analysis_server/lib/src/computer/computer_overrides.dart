@@ -6,9 +6,9 @@ library computer.overrides;
 
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol_server.dart' as proto;
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 
 /**
  * Return the elements that the given [element] overrides.
@@ -138,6 +138,14 @@ class _OverriddenElementsFinder {
   _OverriddenElementsFinder(Element seed) {
     _seed = seed;
     _class = seed.enclosingElement;
+    if (_class == null) {
+      // TODO(brianwilkerson) Remove this code when the issue has been fixed
+      // (https://github.com/dart-lang/sdk/issues/25884)
+      Type type = seed.runtimeType;
+      String name = seed.name;
+      throw new ArgumentError(
+          'The $type named $name does not have an enclosing element');
+    }
     _library = _class.library;
     _name = seed.displayName;
     if (seed is MethodElement) {

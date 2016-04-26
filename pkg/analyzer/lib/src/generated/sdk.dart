@@ -14,9 +14,10 @@ import 'package:analyzer/src/generated/source.dart'
     show ContentCache, Source, UriKind;
 
 /**
- * A function used to create a new DartSdk
+ * A function used to create a new DartSdk with the given [options]. If the
+ * passed [options] are `null`, then default options are used.
  */
-typedef DartSdk SdkCreator();
+typedef DartSdk SdkCreator(AnalysisOptions options);
 
 /**
  * A Dart SDK installed in a specified location.
@@ -126,9 +127,8 @@ class DartSdkManager {
     int encoding = options.encodeCrossContextOptions();
     DartSdk sdk = sdkMap[encoding];
     if (sdk == null) {
-      sdk = sdkCreator();
+      sdk = sdkCreator(options);
       sdkMap[encoding] = sdk;
-      sdk.context.analysisOptions.setCrossContextOptionsFrom(options);
     }
     return sdk;
   }

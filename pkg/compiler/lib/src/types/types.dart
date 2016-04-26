@@ -5,31 +5,23 @@
 library types;
 
 import '../common.dart';
-import '../common/backend_api.dart' show
-    Backend;
-import '../common/tasks.dart' show
-    CompilerTask;
-import '../compiler.dart' show
-    Compiler;
-import '../constants/values.dart' show
-    PrimitiveConstantValue;
+import '../common/backend_api.dart' show Backend;
+import '../common/tasks.dart' show CompilerTask;
+import '../compiler.dart' show Compiler;
+import '../constants/values.dart' show PrimitiveConstantValue;
 import '../elements/elements.dart';
-import '../inferrer/type_graph_inferrer.dart' show
-    TypeGraphInferrer;
+import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../tree/tree.dart';
 import '../util/util.dart';
-import '../universe/selector.dart' show
-    Selector;
-import '../universe/universe.dart' show
-    ReceiverConstraint,
-    UniverseSelectorConstraints,
-    SelectorConstraintsStrategy;
-import '../world.dart' show
-    ClassWorld,
-    World;
+import '../universe/selector.dart' show Selector;
+import '../universe/universe.dart'
+    show
+        ReceiverConstraint,
+        UniverseSelectorConstraints,
+        SelectorConstraintsStrategy;
+import '../world.dart' show ClassWorld, World;
 
-import 'abstract_value_domain.dart' show
-    AbstractValue;
+import 'abstract_value_domain.dart' show AbstractValue;
 
 part 'container_type_mask.dart';
 part 'dictionary_type_mask.dart';
@@ -58,9 +50,6 @@ abstract class TypesInferrer {
  * The types task infers guaranteed types globally.
  */
 class TypesTask extends CompilerTask {
-  static final bool DUMP_BAD_CPA_RESULTS = false;
-  static final bool DUMP_GOOD_CPA_RESULTS = false;
-
   final String name = 'Type inference';
   final ClassWorld classWorld;
   TypesInferrer typesInferrer;
@@ -280,12 +269,6 @@ class TypesTask extends CompilerTask {
   /** Computes the intersection of [type1] and [type2] */
   TypeMask intersection(TypeMask type1, TypeMask type2, element) {
     TypeMask result = _intersection(type1, type2);
-    if (DUMP_BAD_CPA_RESULTS && better(type1, type2)) {
-      print("CPA is worse for $element: $type1 /\\ $type2 = $result");
-    }
-    if (DUMP_GOOD_CPA_RESULTS && better(type2, type1)) {
-      print("CPA is better for $element: $type1 /\\ $type2 = $result");
-    }
     return result;
   }
 
@@ -293,12 +276,11 @@ class TypesTask extends CompilerTask {
   bool better(TypeMask type1, TypeMask type2) {
     if (type1 == null) return false;
     if (type2 == null) {
-      return (type1 != null) &&
-             (type1 != dynamicType);
+      return (type1 != null) && (type1 != dynamicType);
     }
     return (type1 != type2) &&
-           type2.containsMask(type1, classWorld) &&
-           !type1.containsMask(type2, classWorld);
+        type2.containsMask(type1, classWorld) &&
+        !type1.containsMask(type2, classWorld);
   }
 
   /**
@@ -307,35 +289,30 @@ class TypesTask extends CompilerTask {
   void onResolutionComplete(Element mainElement) {
     measure(() {
       typesInferrer.analyzeMain(mainElement);
+      typesInferrer.clear();
     });
-    typesInferrer.clear();
   }
 
   /**
    * Return the (inferred) guaranteed type of [element] or null.
    */
   TypeMask getGuaranteedTypeOfElement(Element element) {
-    return measure(() {
-      // TODO(24489): trust some JsInterop types.
-      if (compiler.backend.isJsInterop(element)) {
-        return dynamicType;
-      }
-      TypeMask guaranteedType = typesInferrer.getTypeOfElement(element);
-      return guaranteedType;
-    });
+    // TODO(24489): trust some JsInterop types.
+    if (compiler.backend.isJsInterop(element)) {
+      return dynamicType;
+    }
+    TypeMask guaranteedType = typesInferrer.getTypeOfElement(element);
+    return guaranteedType;
   }
 
   TypeMask getGuaranteedReturnTypeOfElement(Element element) {
-    return measure(() {
-      // TODO(24489): trust some JsInterop types.
-      if (compiler.backend.isJsInterop(element)) {
-        return dynamicType;
-      }
+    // TODO(24489): trust some JsInterop types.
+    if (compiler.backend.isJsInterop(element)) {
+      return dynamicType;
+    }
 
-      TypeMask guaranteedType =
-          typesInferrer.getReturnTypeOfElement(element);
-      return guaranteedType;
-    });
+    TypeMask guaranteedType = typesInferrer.getReturnTypeOfElement(element);
+    return guaranteedType;
   }
 
   /**
@@ -343,20 +320,15 @@ class TypesTask extends CompilerTask {
    * [node] must be an AST node of [owner].
    */
   TypeMask getGuaranteedTypeOfNode(owner, node) {
-    return measure(() {
-      TypeMask guaranteedType = typesInferrer.getTypeOfNode(owner, node);
-      return guaranteedType;
-    });
+    TypeMask guaranteedType = typesInferrer.getTypeOfNode(owner, node);
+    return guaranteedType;
   }
 
   /**
    * Return the (inferred) guaranteed type of [selector] or null.
    */
   TypeMask getGuaranteedTypeOfSelector(Selector selector, TypeMask mask) {
-    return measure(() {
-      TypeMask guaranteedType =
-          typesInferrer.getTypeOfSelector(selector, mask);
-      return guaranteedType;
-    });
+    TypeMask guaranteedType = typesInferrer.getTypeOfSelector(selector, mask);
+    return guaranteedType;
   }
 }

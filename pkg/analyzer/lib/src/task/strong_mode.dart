@@ -11,11 +11,11 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, InheritanceManager;
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 
 /**
  * Sets the type of the field. This is stored in the field itself, and the
@@ -29,7 +29,10 @@ void setFieldType(VariableElement field, DartType newType) {
   if (field is PropertyInducingElementImpl) {
     (field.getter as ExecutableElementImpl).returnType = newType;
     if (!field.isFinal && !field.isConst) {
-      (field.setter.parameters[0] as ParameterElementImpl).type = newType;
+      List<ParameterElement> setterParameters = field.setter.parameters;
+      if (setterParameters.isNotEmpty) {
+        (setterParameters[0] as ParameterElementImpl).type = newType;
+      }
     }
   }
 }
@@ -72,7 +75,7 @@ class InstanceMemberInferrer {
   /**
    * The inheritance manager used to find overridden method.
    */
-  InheritanceManager inheritanceManager;
+  final InheritanceManager inheritanceManager;
 
   /**
    * The classes that have been visited while attempting to infer the types of
@@ -84,7 +87,8 @@ class InstanceMemberInferrer {
   /**
    * Initialize a newly create inferrer.
    */
-  InstanceMemberInferrer(this.typeProvider, {TypeSystem typeSystem})
+  InstanceMemberInferrer(this.typeProvider, this.inheritanceManager,
+      {TypeSystem typeSystem})
       : typeSystem = (typeSystem != null) ? typeSystem : new TypeSystemImpl();
 
   /**
@@ -92,7 +96,6 @@ class InstanceMemberInferrer {
    * compilation [unit].
    */
   void inferCompilationUnit(CompilationUnitElement unit) {
-    inheritanceManager = new InheritanceManager(unit.library);
     unit.types.forEach((ClassElement classElement) {
       try {
         _inferClass(classElement);
@@ -284,11 +287,13 @@ class InstanceMemberInferrer {
     List<FunctionType> overriddenTypes = new List<FunctionType>();
     for (ExecutableElement overriddenMethod in overriddenMethods) {
       FunctionType overriddenType = overriddenMethod.type;
-      if (overriddenType.typeFormals.isNotEmpty &&
-          overriddenType.typeFormals.length != typeFormals.length) {
-        return;
+      if (overriddenType.typeFormals.isNotEmpty) {
+        if (overriddenType.typeFormals.length != typeFormals.length) {
+          return;
+        }
+        overriddenType = overriddenType.instantiate(typeFormals);
       }
-      overriddenTypes.add(overriddenType.instantiate(typeFormals));
+      overriddenTypes.add(overriddenType);
     }
 
     //

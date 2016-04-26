@@ -5,35 +5,23 @@ library dart2js.cps_ir.type_propagation;
 
 import 'optimizers.dart';
 
-import '../closure.dart' show
-    ClosureClassElement;
+import '../closure.dart' show ClosureClassElement;
 import '../common.dart';
-import '../common/names.dart' show
-    Identifiers,
-    Selectors;
-import '../compiler.dart' as dart2js show
-    Compiler;
+import '../common/names.dart' show Identifiers, Selectors;
+import '../compiler.dart' as dart2js show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../dart_types.dart' as types;
 import '../elements/elements.dart';
-import '../io/source_information.dart' show
-    SourceInformation;
-import '../js_backend/backend_helpers.dart' show
-    BackendHelpers;
-import '../js_backend/js_backend.dart' show
-    JavaScriptBackend;
-import '../js_backend/codegen/task.dart' show
-    CpsFunctionCompiler;
-import '../resolution/access_semantics.dart';
+import '../io/source_information.dart' show SourceInformation;
+import '../js_backend/backend_helpers.dart' show BackendHelpers;
+import '../js_backend/js_backend.dart' show JavaScriptBackend;
+import '../js_backend/codegen/task.dart' show CpsFunctionCompiler;
 import '../resolution/operators.dart';
-import '../resolution/send_structure.dart';
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
-import '../types/abstract_value_domain.dart' show
-    AbstractBool;
-import '../universe/selector.dart' show
-    Selector;
+import '../types/abstract_value_domain.dart' show AbstractBool;
+import '../universe/selector.dart' show Selector;
 import '../world.dart' show World;
 import 'cps_fragment.dart';
 import 'cps_ir_nodes.dart';
@@ -51,17 +39,17 @@ class ConstantPropagationLattice {
   final AbstractConstantValue falseValue;
 
   ConstantPropagationLattice(CpsFunctionCompiler functionCompiler)
-    : typeSystem = functionCompiler.typeSystem,
-      constantSystem = functionCompiler.compiler.backend.constantSystem,
-      dartTypes = functionCompiler.compiler.types,
-      anything = new AbstractConstantValue.nonConstant(
-          functionCompiler.typeSystem.dynamicType),
-      nullValue = new AbstractConstantValue.constantValue(
-          new NullConstantValue(), new TypeMask.empty()),
-      trueValue = new AbstractConstantValue.constantValue(
-          new TrueConstantValue(), functionCompiler.typeSystem.boolType),
-      falseValue = new AbstractConstantValue.constantValue(
-          new FalseConstantValue(), functionCompiler.typeSystem.boolType);
+      : typeSystem = functionCompiler.typeSystem,
+        constantSystem = functionCompiler.compiler.backend.constantSystem,
+        dartTypes = functionCompiler.compiler.types,
+        anything = new AbstractConstantValue.nonConstant(
+            functionCompiler.typeSystem.dynamicType),
+        nullValue = new AbstractConstantValue.constantValue(
+            new NullConstantValue(), new TypeMask.empty()),
+        trueValue = new AbstractConstantValue.constantValue(
+            new TrueConstantValue(), functionCompiler.typeSystem.boolType),
+        falseValue = new AbstractConstantValue.constantValue(
+            new FalseConstantValue(), functionCompiler.typeSystem.boolType);
 
   AbstractConstantValue constant(ConstantValue value, [TypeMask type]) {
     if (type == null) type = typeSystem.getTypeOf(value);
@@ -93,33 +81,33 @@ class ConstantPropagationLattice {
   /// True if all members of this value are booleans.
   bool isDefinitelyBool(AbstractConstantValue value, {bool allowNull: false}) {
     return value.isNothing ||
-      typeSystem.isDefinitelyBool(value.type, allowNull: allowNull);
+        typeSystem.isDefinitelyBool(value.type, allowNull: allowNull);
   }
 
   /// True if all members of this value are numbers.
   bool isDefinitelyNum(AbstractConstantValue value, {bool allowNull: false}) {
     return value.isNothing ||
-      typeSystem.isDefinitelyNum(value.type, allowNull: allowNull);
+        typeSystem.isDefinitelyNum(value.type, allowNull: allowNull);
   }
 
   /// True if all members of this value are strings.
   bool isDefinitelyString(AbstractConstantValue value,
-                          {bool allowNull: false}) {
+      {bool allowNull: false}) {
     return value.isNothing ||
-      typeSystem.isDefinitelyString(value.type, allowNull: allowNull);
+        typeSystem.isDefinitelyString(value.type, allowNull: allowNull);
   }
 
   /// True if all members of this value are numbers, strings, or booleans.
   bool isDefinitelyNumStringBool(AbstractConstantValue value,
-                                 {bool allowNull: false}) {
+      {bool allowNull: false}) {
     return value.isNothing ||
-      typeSystem.isDefinitelyNumStringBool(value.type, allowNull: allowNull);
+        typeSystem.isDefinitelyNumStringBool(value.type, allowNull: allowNull);
   }
 
   /// True if this value cannot be a string, number, or boolean.
   bool isDefinitelyNotNumStringBool(AbstractConstantValue value) {
     return value.isNothing ||
-      typeSystem.isDefinitelyNotNumStringBool(value.type);
+        typeSystem.isDefinitelyNotNumStringBool(value.type);
   }
 
   /// True if this value cannot be a non-integer double.
@@ -128,63 +116,58 @@ class ConstantPropagationLattice {
   /// it is a whole number and is not NaN, Infinity, or minus Infinity.
   bool isDefinitelyNotNonIntegerDouble(AbstractConstantValue value) {
     return value.isNothing ||
-      value.isConstant && !value.constant.isDouble ||
-      typeSystem.isDefinitelyNotNonIntegerDouble(value.type);
+        value.isConstant && !value.constant.isDouble ||
+        typeSystem.isDefinitelyNotNonIntegerDouble(value.type);
   }
 
-  bool isDefinitelyInt(AbstractConstantValue value,
-                       {bool allowNull: false}) {
+  bool isDefinitelyInt(AbstractConstantValue value, {bool allowNull: false}) {
     return value.isNothing ||
         typeSystem.isDefinitelyInt(value.type, allowNull: allowNull);
   }
 
   bool isDefinitelyUint31(AbstractConstantValue value,
-                          {bool allowNull: false}) {
+      {bool allowNull: false}) {
     return value.isNothing ||
         typeSystem.isDefinitelyUint31(value.type, allowNull: allowNull);
   }
 
   bool isDefinitelyUint32(AbstractConstantValue value,
-                          {bool allowNull: false}) {
+      {bool allowNull: false}) {
     return value.isNothing ||
         typeSystem.isDefinitelyUint32(value.type, allowNull: allowNull);
   }
 
-  bool isDefinitelyUint(AbstractConstantValue value,
-                       {bool allowNull: false}) {
+  bool isDefinitelyUint(AbstractConstantValue value, {bool allowNull: false}) {
     return value.isNothing ||
         typeSystem.isDefinitelyUint(value.type, allowNull: allowNull);
   }
 
-  bool isDefinitelyArray(AbstractConstantValue value,
-                              {bool allowNull: false}) {
+  bool isDefinitelyArray(AbstractConstantValue value, {bool allowNull: false}) {
     return value.isNothing ||
         typeSystem.isDefinitelyArray(value.type, allowNull: allowNull);
   }
 
   bool isDefinitelyMutableArray(AbstractConstantValue value,
-                                     {bool allowNull: false}) {
+      {bool allowNull: false}) {
     return value.isNothing ||
-         typeSystem.isDefinitelyMutableArray(value.type,
-                                                  allowNull: allowNull);
+        typeSystem.isDefinitelyMutableArray(value.type, allowNull: allowNull);
   }
 
   bool isDefinitelyFixedArray(AbstractConstantValue value,
-                              {bool allowNull: false}) {
+      {bool allowNull: false}) {
     return value.isNothing ||
-        typeSystem.isDefinitelyFixedArray(value.type,
-                                          allowNull: allowNull);
+        typeSystem.isDefinitelyFixedArray(value.type, allowNull: allowNull);
   }
 
   bool isDefinitelyExtendableArray(AbstractConstantValue value,
-                                   {bool allowNull: false}) {
+      {bool allowNull: false}) {
     return value.isNothing ||
         typeSystem.isDefinitelyExtendableArray(value.type,
-                                               allowNull: allowNull);
+            allowNull: allowNull);
   }
 
   bool isDefinitelyIndexable(AbstractConstantValue value,
-                             {bool allowNull: false}) {
+      {bool allowNull: false}) {
     return value.isNothing ||
         typeSystem.isDefinitelyIndexable(value.type, allowNull: allowNull);
   }
@@ -212,9 +195,8 @@ class ConstantPropagationLattice {
   /// If [allowNull] is true, `null` is considered an instance of anything,
   /// otherwise it is only considered an instance of [Object], [dynamic], and
   /// [Null].
-  AbstractBool isSubtypeOf(AbstractConstantValue value,
-                           types.DartType type,
-                           {bool allowNull}) {
+  AbstractBool isSubtypeOf(AbstractConstantValue value, types.DartType type,
+      {bool allowNull}) {
     assert(allowNull != null);
     if (value.isNothing) {
       return AbstractBool.Nothing;
@@ -234,8 +216,8 @@ class ConstantPropagationLattice {
       }
       if (type == dartTypes.coreTypes.intType) {
         return constantSystem.isInt(value.constant)
-          ? AbstractBool.True
-          : AbstractBool.False;
+            ? AbstractBool.True
+            : AbstractBool.False;
       }
       types.DartType valueType = value.constant.getType(dartTypes.coreTypes);
       if (constantSystem.isSubtype(dartTypes, valueType, type)) {
@@ -258,8 +240,8 @@ class ConstantPropagationLattice {
   ///
   /// This method returns `null` if a good result could not be found. In that
   /// case, it is best to fall back on interprocedural type information.
-  AbstractConstantValue unaryOp(UnaryOperator operator,
-                                AbstractConstantValue value) {
+  AbstractConstantValue unaryOp(
+      UnaryOperator operator, AbstractConstantValue value) {
     switch (operator.kind) {
       case UnaryOperatorKind.COMPLEMENT:
         return bitNotSpecial(value);
@@ -291,8 +273,7 @@ class ConstantPropagationLattice {
   /// This method returns `null` if a good result could not be found. In that
   /// case, it is best to fall back on interprocedural type information.
   AbstractConstantValue binaryOp(BinaryOperator operator,
-                         AbstractConstantValue left,
-                         AbstractConstantValue right) {
+      AbstractConstantValue left, AbstractConstantValue right) {
     switch (operator.kind) {
       case BinaryOperatorKind.ADD:
         return addSpecial(left, right);
@@ -357,8 +338,8 @@ class ConstantPropagationLattice {
     return null; // The caller will use return type from type inference.
   }
 
-  AbstractConstantValue foldUnary(UnaryOperation operation,
-                                  AbstractConstantValue value) {
+  AbstractConstantValue foldUnary(
+      UnaryOperation operation, AbstractConstantValue value) {
     if (value.isNothing) return nothing;
     if (value.isConstant) {
       ConstantValue result = operation.fold(value.constant);
@@ -380,7 +361,6 @@ class ConstantPropagationLattice {
     return null;
   }
 
-
   AbstractConstantValue foldBinary(BinaryOperation operation,
       AbstractConstantValue left, AbstractConstantValue right) {
     if (left.isNothing || right.isNothing) return nothing;
@@ -391,8 +371,8 @@ class ConstantPropagationLattice {
     return null;
   }
 
-  AbstractConstantValue closedOnInt(AbstractConstantValue left,
-                                    AbstractConstantValue right) {
+  AbstractConstantValue closedOnInt(
+      AbstractConstantValue left, AbstractConstantValue right) {
     if (isDefinitelyInt(left, allowNull: true) &&
         isDefinitelyInt(right, allowNull: true)) {
       return nonConstant(typeSystem.intType);
@@ -400,8 +380,8 @@ class ConstantPropagationLattice {
     return null;
   }
 
-  AbstractConstantValue closedOnUint(AbstractConstantValue left,
-                                     AbstractConstantValue right) {
+  AbstractConstantValue closedOnUint(
+      AbstractConstantValue left, AbstractConstantValue right) {
     if (isDefinitelyUint(left, allowNull: true) &&
         isDefinitelyUint(right, allowNull: true)) {
       return nonConstant(typeSystem.uintType);
@@ -409,8 +389,8 @@ class ConstantPropagationLattice {
     return null;
   }
 
-  AbstractConstantValue closedOnUint31(AbstractConstantValue left,
-                                       AbstractConstantValue right) {
+  AbstractConstantValue closedOnUint31(
+      AbstractConstantValue left, AbstractConstantValue right) {
     if (isDefinitelyUint31(left, allowNull: true) &&
         isDefinitelyUint31(right, allowNull: true)) {
       return nonConstant(typeSystem.uint31Type);
@@ -418,8 +398,8 @@ class ConstantPropagationLattice {
     return null;
   }
 
-  AbstractConstantValue addSpecial(AbstractConstantValue left,
-                                   AbstractConstantValue right) {
+  AbstractConstantValue addSpecial(
+      AbstractConstantValue left, AbstractConstantValue right) {
     AbstractConstantValue folded = foldBinary(constantSystem.add, left, right);
     if (folded != null) return folded;
     if (isDefinitelyNum(left, allowNull: true)) {
@@ -432,22 +412,22 @@ class ConstantPropagationLattice {
     return null;
   }
 
-  AbstractConstantValue subtractSpecial(AbstractConstantValue left,
-                                        AbstractConstantValue right) {
+  AbstractConstantValue subtractSpecial(
+      AbstractConstantValue left, AbstractConstantValue right) {
     AbstractConstantValue folded =
         foldBinary(constantSystem.subtract, left, right);
     return folded ?? closedOnInt(left, right);
   }
 
-  AbstractConstantValue multiplySpecial(AbstractConstantValue left,
-                                        AbstractConstantValue right) {
+  AbstractConstantValue multiplySpecial(
+      AbstractConstantValue left, AbstractConstantValue right) {
     AbstractConstantValue folded =
         foldBinary(constantSystem.multiply, left, right);
     return folded ?? closedOnUint(left, right) ?? closedOnInt(left, right);
   }
 
-  AbstractConstantValue divideSpecial(AbstractConstantValue left,
-                                      AbstractConstantValue right) {
+  AbstractConstantValue divideSpecial(
+      AbstractConstantValue left, AbstractConstantValue right) {
     return foldBinary(constantSystem.divide, left, right);
   }
 
@@ -478,42 +458,41 @@ class ConstantPropagationLattice {
     return null;
   }
 
-  AbstractConstantValue moduloSpecial(AbstractConstantValue left,
-                                      AbstractConstantValue right) {
+  AbstractConstantValue moduloSpecial(
+      AbstractConstantValue left, AbstractConstantValue right) {
     AbstractConstantValue folded =
         foldBinary(constantSystem.modulo, left, right);
     return folded ?? closedOnUint(left, right) ?? closedOnInt(left, right);
   }
 
-  AbstractConstantValue remainderSpecial(AbstractConstantValue left,
-                                         AbstractConstantValue right) {
+  AbstractConstantValue remainderSpecial(
+      AbstractConstantValue left, AbstractConstantValue right) {
     if (left.isNothing || right.isNothing) return nothing;
-    AbstractConstantValue folded = null;  // Remainder not in constant system.
+    AbstractConstantValue folded = null; // Remainder not in constant system.
     return folded ?? closedOnUint(left, right) ?? closedOnInt(left, right);
   }
 
-  AbstractConstantValue codeUnitAtSpecial(AbstractConstantValue left,
-                                          AbstractConstantValue right) {
+  AbstractConstantValue codeUnitAtSpecial(
+      AbstractConstantValue left, AbstractConstantValue right) {
     return foldBinary(constantSystem.codeUnitAt, left, right);
   }
 
-  AbstractConstantValue equalSpecial(AbstractConstantValue left,
-                                     AbstractConstantValue right) {
+  AbstractConstantValue equalSpecial(
+      AbstractConstantValue left, AbstractConstantValue right) {
     AbstractConstantValue folded =
         foldBinary(constantSystem.equal, left, right);
     if (folded != null) return folded;
     bool behavesLikeIdentity =
         isDefinitelyNumStringBool(left, allowNull: true) ||
-        right.isNullConstant;
-    if (behavesLikeIdentity &&
-        typeSystem.areDisjoint(left.type, right.type)) {
+            right.isNullConstant;
+    if (behavesLikeIdentity && typeSystem.areDisjoint(left.type, right.type)) {
       return constant(new FalseConstantValue());
     }
     return null;
   }
 
-  AbstractConstantValue andSpecial(AbstractConstantValue left,
-                                   AbstractConstantValue right) {
+  AbstractConstantValue andSpecial(
+      AbstractConstantValue left, AbstractConstantValue right) {
     AbstractConstantValue folded =
         foldBinary(constantSystem.bitAnd, left, right);
     if (folded != null) return folded;
@@ -527,27 +506,27 @@ class ConstantPropagationLattice {
     return null;
   }
 
-  AbstractConstantValue orSpecial(AbstractConstantValue left,
-                                  AbstractConstantValue right) {
+  AbstractConstantValue orSpecial(
+      AbstractConstantValue left, AbstractConstantValue right) {
     AbstractConstantValue folded =
         foldBinary(constantSystem.bitOr, left, right);
     return folded ?? closedOnUint31(left, right);
   }
 
-  AbstractConstantValue xorSpecial(AbstractConstantValue left,
-                                   AbstractConstantValue right) {
+  AbstractConstantValue xorSpecial(
+      AbstractConstantValue left, AbstractConstantValue right) {
     AbstractConstantValue folded =
         foldBinary(constantSystem.bitXor, left, right);
     return folded ?? closedOnUint31(left, right);
   }
 
-  AbstractConstantValue shiftLeftSpecial(AbstractConstantValue left,
-                                         AbstractConstantValue right) {
+  AbstractConstantValue shiftLeftSpecial(
+      AbstractConstantValue left, AbstractConstantValue right) {
     return foldBinary(constantSystem.shiftLeft, left, right);
   }
 
-  AbstractConstantValue shiftRightSpecial(AbstractConstantValue left,
-                                          AbstractConstantValue right) {
+  AbstractConstantValue shiftRightSpecial(
+      AbstractConstantValue left, AbstractConstantValue right) {
     AbstractConstantValue folded =
         foldBinary(constantSystem.shiftRight, left, right);
     if (folded != null) return folded;
@@ -563,8 +542,8 @@ class ConstantPropagationLattice {
     return null;
   }
 
-  AbstractConstantValue lessSpecial(AbstractConstantValue left,
-                                    AbstractConstantValue right) {
+  AbstractConstantValue lessSpecial(
+      AbstractConstantValue left, AbstractConstantValue right) {
     if (isDefinitelyUint(left) && right.isZeroOrNegativeConstant) {
       return falseValue; // "uint < 0" is false.
     } else if (left.isNegativeConstant && isDefinitelyUint(right)) {
@@ -573,8 +552,8 @@ class ConstantPropagationLattice {
     return foldBinary(constantSystem.less, left, right);
   }
 
-  AbstractConstantValue lessEqualSpecial(AbstractConstantValue left,
-                                         AbstractConstantValue right) {
+  AbstractConstantValue lessEqualSpecial(
+      AbstractConstantValue left, AbstractConstantValue right) {
     if (isDefinitelyUint(left) && right.isNegativeConstant) {
       return falseValue; // "uint <= -1" is false.
     } else if (left.isZeroOrNegativeConstant && isDefinitelyUint(right)) {
@@ -583,8 +562,8 @@ class ConstantPropagationLattice {
     return foldBinary(constantSystem.lessEqual, left, right);
   }
 
-  AbstractConstantValue greaterSpecial(AbstractConstantValue left,
-                                       AbstractConstantValue right) {
+  AbstractConstantValue greaterSpecial(
+      AbstractConstantValue left, AbstractConstantValue right) {
     if (left.isZeroOrNegativeConstant && isDefinitelyUint(right)) {
       return falseValue; // "0 > uint" is false
     } else if (isDefinitelyUint(left) && right.isNegativeConstant) {
@@ -593,8 +572,8 @@ class ConstantPropagationLattice {
     return foldBinary(constantSystem.greater, left, right);
   }
 
-  AbstractConstantValue greaterEqualSpecial(AbstractConstantValue left,
-                                            AbstractConstantValue right) {
+  AbstractConstantValue greaterEqualSpecial(
+      AbstractConstantValue left, AbstractConstantValue right) {
     if (left.isNegativeConstant && isDefinitelyUint(right)) {
       return falseValue; // "-1 >= uint" is false
     } else if (isDefinitelyUint(left) && right.isZeroOrNegativeConstant) {
@@ -620,15 +599,15 @@ class ConstantPropagationLattice {
     if (length != null) {
       return intConstant(length);
     }
-    return null;  // The caller will use return type from type inference.
+    return null; // The caller will use return type from type inference.
   }
 
   AbstractConstantValue stringConstant(String value) {
     return constant(new StringConstantValue(new ast.DartString.literal(value)));
   }
 
-  AbstractConstantValue indexSpecial(AbstractConstantValue left,
-                                     AbstractConstantValue right) {
+  AbstractConstantValue indexSpecial(
+      AbstractConstantValue left, AbstractConstantValue right) {
     if (left.isNothing || right.isNothing) return nothing;
     if (right.isConstant) {
       ConstantValue index = right.constant;
@@ -641,7 +620,7 @@ class ConstantPropagationLattice {
             if (0 <= indexValue && indexValue < stringValue.length) {
               return stringConstant(stringValue[indexValue]);
             } else {
-              return nothing;  // Will throw.
+              return nothing; // Will throw.
             }
           }
         } else if (receiver is ListConstantValue) {
@@ -650,7 +629,7 @@ class ConstantPropagationLattice {
             if (0 <= indexValue && indexValue < receiver.length) {
               return constant(receiver.entries[indexValue]);
             } else {
-              return nothing;  // Will throw.
+              return nothing; // Will throw.
             }
           }
         } else if (receiver is MapConstantValue) {
@@ -666,7 +645,7 @@ class ConstantPropagationLattice {
     }
     // TODO(asgerf): Handle case where 'left' is a List or Map constant but
     //               the index is unknown.
-    return null;  // The caller will use return type from type inference.
+    return null; // The caller will use return type from type inference.
   }
 
   AbstractConstantValue stringify(AbstractConstantValue value) {
@@ -728,8 +707,8 @@ class ConstantPropagationLattice {
     return nonConstant(value.type.nonNullable());
   }
 
-  AbstractConstantValue intersectWithType(AbstractConstantValue value,
-        TypeMask type) {
+  AbstractConstantValue intersectWithType(
+      AbstractConstantValue value, TypeMask type) {
     if (value.isNothing || typeSystem.areDisjoint(value.type, type)) {
       return nothing;
     } else if (value.isConstant) {
@@ -763,7 +742,7 @@ class TypePropagator extends Pass {
   String get passName => 'Type propagation';
 
   final CpsFunctionCompiler _functionCompiler;
-  final Map<Variable, ConstantValue> _values= <Variable, ConstantValue>{};
+  final Map<Variable, ConstantValue> _values = <Variable, ConstantValue>{};
   final ConstantPropagationLattice _lattice;
   final bool recomputeAll;
 
@@ -779,10 +758,8 @@ class TypePropagator extends Pass {
   void rewrite(FunctionDefinition root) {
     // Analyze. In this phase, the entire term is analyzed for reachability
     // and the abstract value of each expression.
-    TypePropagationVisitor analyzer = new TypePropagationVisitor(
-        _lattice,
-        _values,
-        _internalError);
+    TypePropagationVisitor analyzer =
+        new TypePropagationVisitor(_lattice, _values, _internalError);
 
     analyzer.analyze(root, recomputeAll);
 
@@ -790,28 +767,24 @@ class TypePropagator extends Pass {
     // replace branches with fixed targets and side-effect-free expressions
     // with constant results or existing values that are in scope.
     TransformingVisitor transformer = new TransformingVisitor(
-        _compiler,
-        _functionCompiler,
-        _lattice,
-        analyzer,
-        _internalError);
+        _compiler, _functionCompiler, _lattice, analyzer, _internalError);
     transformer.transform(root);
   }
 }
 
 final Map<String, BuiltinOperator> NumBinaryBuiltins =
-  const <String, BuiltinOperator>{
-    '+':  BuiltinOperator.NumAdd,
-    '-':  BuiltinOperator.NumSubtract,
-    '*':  BuiltinOperator.NumMultiply,
-    '/':  BuiltinOperator.NumDivide,
-    '&':  BuiltinOperator.NumAnd,
-    '|':  BuiltinOperator.NumOr,
-    '^':  BuiltinOperator.NumXor,
-    '<':  BuiltinOperator.NumLt,
-    '<=': BuiltinOperator.NumLe,
-    '>':  BuiltinOperator.NumGt,
-    '>=': BuiltinOperator.NumGe
+    const <String, BuiltinOperator>{
+  '+': BuiltinOperator.NumAdd,
+  '-': BuiltinOperator.NumSubtract,
+  '*': BuiltinOperator.NumMultiply,
+  '/': BuiltinOperator.NumDivide,
+  '&': BuiltinOperator.NumAnd,
+  '|': BuiltinOperator.NumOr,
+  '^': BuiltinOperator.NumXor,
+  '<': BuiltinOperator.NumLt,
+  '<=': BuiltinOperator.NumLe,
+  '>': BuiltinOperator.NumGt,
+  '>=': BuiltinOperator.NumGe
 };
 
 /**
@@ -837,14 +810,10 @@ class TransformingVisitor extends DeepRecursiveVisitor {
 
   TypeCheckOperator checkIsNumber;
 
-  TransformingVisitor(this.compiler,
-                      this.functionCompiler,
-                      this.lattice,
-                      this.analyzer,
-                      this.internalError) {
+  TransformingVisitor(this.compiler, this.functionCompiler, this.lattice,
+      this.analyzer, this.internalError) {
     checkIsNumber = new ClassTypeCheckOperator(
-        helpers.jsNumberClass,
-        BuiltinOperator.IsNotNumber);
+        helpers.jsNumberClass, BuiltinOperator.IsNotNumber);
   }
 
   void transform(FunctionDefinition root) {
@@ -856,8 +825,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       if (getValue(param).isNothing) {
         // Replace with `throw "Unreachable";`
         CpsFragment cps = new CpsFragment(null);
-        Primitive message = cps.makeConstant(
-            new StringConstantValue.fromString("Unreachable"));
+        Primitive message =
+            cps.makeConstant(new StringConstantValue.fromString("Unreachable"));
         cps.put(new Throw(message));
         replaceSubtree(root.body, cps.result);
         return;
@@ -968,7 +937,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     }
     // If a primitive has a value, but can't return anything, it must throw
     // or diverge.
-    return prim.hasValue && prim.type.isEmpty && !prim.type.isNullable;
+    return prim.hasValue && prim.type.isEmpty;
   }
 
   void visitContinuation(Continuation node) {
@@ -1160,17 +1129,17 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   /// Returns `true` if the node was replaced.
   specializeOperatorCall(InvokeMethod node) {
     if (!backend.isInterceptedSelector(node.selector)) return null;
-    if (node.dartArgumentsLength > 1) return null;
+    if (node.argumentRefs.length > 1) return null;
     if (node.callingConvention == CallingConvention.OneShotIntercepted) {
       return null;
     }
 
-    bool trustPrimitives = compiler.trustPrimitives;
+    bool trustPrimitives = compiler.options.trustPrimitives;
 
     /// Check that the receiver and argument satisfy the given type checks, and
     /// throw a [NoSuchMethodError] or [ArgumentError] if the check fails.
     CpsFragment makeGuard(TypeCheckOperator receiverGuard,
-                          [TypeCheckOperator argumentGuard]) {
+        [TypeCheckOperator argumentGuard]) {
       CpsFragment cps = new CpsFragment(node.sourceInformation);
 
       // Make no guards if trusting primitives.
@@ -1178,11 +1147,10 @@ class TransformingVisitor extends DeepRecursiveVisitor {
 
       // Determine which guards are needed.
       ChecksNeeded receiverChecks =
-          receiverGuard.getChecksNeeded(node.dartReceiver, classWorld);
+          receiverGuard.getChecksNeeded(node.receiver, classWorld);
       bool needReceiverGuard = receiverChecks != ChecksNeeded.None;
-      bool needArgumentGuard =
-          argumentGuard != null &&
-          argumentGuard.needsCheck(node.dartArgument(0), classWorld);
+      bool needArgumentGuard = argumentGuard != null &&
+          argumentGuard.needsCheck(node.argument(0), classWorld);
 
       if (!needReceiverGuard && !needArgumentGuard) return cps;
 
@@ -1193,15 +1161,12 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       //   if (typeof receiver !== "number") return receiver.$lt();
       //
       if (!needArgumentGuard) {
-        Primitive condition = receiverGuard.makeCheck(cps, node.dartReceiver);
+        Primitive condition = receiverGuard.makeCheck(cps, node.receiver);
         cps.letPrim(new ReceiverCheck(
-            node.dartReceiver,
-            node.selector,
-            node.sourceInformation,
+            node.receiver, node.selector, node.sourceInformation,
             condition: condition,
             useSelector: true,
-            isNullCheck: receiverChecks == ChecksNeeded.Null
-        ));
+            isNullCheck: receiverChecks == ChecksNeeded.Null));
         return cps;
       }
 
@@ -1214,9 +1179,10 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       //   if (typeof argument !== "number") return H.iae(argument);
       //
       if (!needReceiverGuard) {
-        cps.ifTruthy(argumentGuard.makeCheck(cps, node.dartArgument(0)))
-           .invokeStaticThrower(helpers.throwIllegalArgumentException,
-              [node.dartArgument(0)]);
+        cps
+            .ifTruthy(argumentGuard.makeCheck(cps, node.argument(0)))
+            .invokeStaticThrower(
+                helpers.throwIllegalArgumentException, [node.argument(0)]);
         return cps;
       }
 
@@ -1228,15 +1194,18 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       //       return J.$lt(receiver, argument);
       //
       Continuation fail = cps.letCont();
-      cps.ifTruthy(receiverGuard.makeCheck(cps, node.dartReceiver))
-         .invokeContinuation(fail);
-      cps.ifTruthy(argumentGuard.makeCheck(cps, node.dartArgument(0)))
-         .invokeContinuation(fail);
+      cps
+          .ifTruthy(receiverGuard.makeCheck(cps, node.receiver))
+          .invokeContinuation(fail);
+      cps
+          .ifTruthy(argumentGuard.makeCheck(cps, node.argument(0)))
+          .invokeContinuation(fail);
 
       cps.insideContinuation(fail)
-         ..invokeMethod(node.dartReceiver, node.selector, node.mask,
-             [node.dartArgument(0)], CallingConvention.OneShotIntercepted)
-         ..put(new Unreachable());
+        ..invokeMethod(
+            node.receiver, node.selector, node.mask, [node.argument(0)],
+            callingConvention: CallingConvention.OneShotIntercepted)
+        ..put(new Unreachable());
 
       return cps;
     }
@@ -1247,11 +1216,10 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     /// If [guard] is given, the receiver and argument are both checked using
     /// that operator.
     CpsFragment makeBinary(BuiltinOperator operator,
-                           {TypeCheckOperator guard: TypeCheckOperator.none}) {
+        {TypeCheckOperator guard: TypeCheckOperator.none}) {
       CpsFragment cps = makeGuard(guard, guard);
-      Primitive left = guard.makeRefinement(cps, node.dartReceiver, classWorld);
-      Primitive right =
-          guard.makeRefinement(cps, node.dartArgument(0), classWorld);
+      Primitive left = guard.makeRefinement(cps, node.receiver, classWorld);
+      Primitive right = guard.makeRefinement(cps, node.argument(0), classWorld);
       Primitive result = cps.applyBuiltin(operator, [left, right]);
       result.hint = node.hint;
       node.replaceUsesWith(result);
@@ -1261,10 +1229,9 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     /// Like [makeBinary] but for unary operators with the receiver as the
     /// argument.
     CpsFragment makeUnary(BuiltinOperator operator,
-                          {TypeCheckOperator guard: TypeCheckOperator.none}) {
+        {TypeCheckOperator guard: TypeCheckOperator.none}) {
       CpsFragment cps = makeGuard(guard);
-      Primitive argument =
-          guard.makeRefinement(cps, node.dartReceiver, classWorld);
+      Primitive argument = guard.makeRefinement(cps, node.receiver, classWorld);
       Primitive result = cps.applyBuiltin(operator, [argument]);
       result.hint = node.hint;
       node.replaceUsesWith(result);
@@ -1279,20 +1246,19 @@ class TransformingVisitor extends DeepRecursiveVisitor {
 
     /// Replaces the call with a call to [name] with the same inputs.
     InvokeMethod makeRenamedInvoke(String name) {
-      return new InvokeMethod(node.receiver,
-          renameToOptimizedSelector(name),
-          node.mask,
-          node.arguments.toList(),
+      return new InvokeMethod(node.receiver, renameToOptimizedSelector(name),
+          node.mask, node.arguments.toList(),
           sourceInformation: node.sourceInformation,
-          callingConvention: node.callingConvention);
+          callingConvention: node.callingConvention,
+          interceptor: node.interceptor);
     }
 
     TypeMask successType =
-        typeSystem.receiverTypeFor(node.selector, node.dartReceiver.type);
+        typeSystem.receiverTypeFor(node.selector, node.receiver.type);
 
-    if (node.selector.isOperator && node.dartArgumentsLength == 1) {
-      Primitive leftArg = node.dartReceiver;
-      Primitive rightArg = node.dartArgument(0);
+    if (node.selector.isOperator && node.argumentRefs.length == 1) {
+      Primitive leftArg = node.receiver;
+      Primitive rightArg = node.argument(0);
       AbstractConstantValue left = getValue(leftArg);
       AbstractConstantValue right = getValue(rightArg);
 
@@ -1348,13 +1314,13 @@ class TransformingVisitor extends DeepRecursiveVisitor {
                 lattice.isDefinitelyIntInRange(right, min: 0, max: 31)) {
               return makeBinary(BuiltinOperator.NumShr, guard: checkIsNumber);
             } else if (lattice.isDefinitelyUint(left) &&
-                       lattice.isDefinitelyUint(right)) {
+                lattice.isDefinitelyUint(right)) {
               return makeRenamedInvoke('_shrBothPositive');
             } else if (lattice.isDefinitelyUint(left) &&
-                       lattice.isDefinitelyNum(right)) {
+                lattice.isDefinitelyNum(right)) {
               return makeRenamedInvoke('_shrReceiverPositive');
             } else if (lattice.isDefinitelyNum(left) &&
-                       lattice.isDefinitelyUint(right)) {
+                lattice.isDefinitelyUint(right)) {
               return makeRenamedInvoke('_shrOtherPositive');
             }
           }
@@ -1383,7 +1349,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         }
       }
     }
-    if (node.selector.isOperator && node.dartArgumentsLength == 0) {
+    if (node.selector.isOperator && node.argumentRefs.length == 0) {
       if (typeSystem.isDefinitelyNum(successType)) {
         String opname = node.selector.name;
         if (opname == '~') {
@@ -1396,11 +1362,11 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     }
     if (node.selector.isCall) {
       String name = node.selector.name;
-      Primitive receiver = node.dartReceiver;
+      Primitive receiver = node.receiver;
       AbstractConstantValue receiverValue = getValue(receiver);
       if (name == 'remainder') {
-        if (node.dartArgumentsLength == 1) {
-          Primitive arg = node.dartArgument(0);
+        if (node.argumentRefs.length == 1) {
+          Primitive arg = node.argument(0);
           AbstractConstantValue argValue = getValue(arg);
           if (lattice.isDefinitelyInt(receiverValue, allowNull: true) &&
               lattice.isDefinitelyInt(argValue) &&
@@ -1410,15 +1376,14 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           }
         }
       } else if (name == 'codeUnitAt') {
-        if (node.dartArgumentsLength == 1) {
-          Primitive index = node.dartArgument(0);
+        if (node.argumentRefs.length == 1) {
+          Primitive index = node.argument(0);
           if (lattice.isDefinitelyString(receiverValue) &&
               lattice.isDefinitelyInt(getValue(index))) {
             CpsFragment cps = new CpsFragment(node.sourceInformation);
             receiver = makeBoundsCheck(cps, receiver, index);
-            ApplyBuiltinOperator get =
-                cps.applyBuiltin(BuiltinOperator.CharCodeAt,
-                                 <Primitive>[receiver, index]);
+            ApplyBuiltinOperator get = cps.applyBuiltin(
+                BuiltinOperator.CharCodeAt, <Primitive>[receiver, index]);
             node.replaceUsesWith(get);
             get.hint = node.hint;
             return cps;
@@ -1443,9 +1408,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   /// invocation with a direct access to a field.
   ///
   /// Returns `true` if the node was replaced.
-  Primitive specializeFieldAccess(InvokeMethod node) {
-    if (!node.selector.isGetter && !node.selector.isSetter) return null;
-    AbstractConstantValue receiver = getValue(node.dartReceiver);
+  specializeFieldAccess(InvokeMethod node) {
+    AbstractConstantValue receiver = getValue(node.receiver);
     Element target =
         typeSystem.locateSingleElement(receiver.type, node.selector);
     if (target is! FieldElement) return null;
@@ -1455,13 +1419,23 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       return null;
     }
     if (node.selector.isGetter) {
-      return new GetField(node.dartReceiver, target);
-    } else {
+      return new GetField(node.receiver, target);
+    } else if (node.selector.isSetter) {
       if (target.isFinal) return null;
       assert(node.hasNoUses);
-      return new SetField(node.dartReceiver,
-                          target,
-                          node.dartArgument(0));
+      return new SetField(node.receiver, target, node.argument(0));
+    } else if (node.selector.isCall) {
+      CpsFragment cps = new CpsFragment(node.sourceInformation);
+      Primitive fieldValue = cps.letPrim(new GetField(node.receiver, target));
+      Primitive result = cps.invokeMethod(
+          fieldValue,
+          new Selector.callClosureFrom(node.selector),
+          typeSystem.getFieldType(target),
+          node.arguments.toList());
+      node.replaceUsesWith(result);
+      return cps;
+    } else {
+      return null;
     }
   }
 
@@ -1471,17 +1445,15 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   ///
   /// Returns a CPS fragment whose context is the branch where no error
   /// was thrown.
-  Primitive makeBoundsCheck(CpsFragment cps,
-        Primitive list,
-        Primitive index,
-        [int checkKind = BoundsCheck.BOTH_BOUNDS | BoundsCheck.INTEGER]) {
-    if (compiler.trustPrimitives) {
+  Primitive makeBoundsCheck(CpsFragment cps, Primitive list, Primitive index,
+      [int checkKind = BoundsCheck.BOTH_BOUNDS | BoundsCheck.INTEGER]) {
+    if (compiler.options.trustPrimitives) {
       return cps.letPrim(new BoundsCheck.noCheck(list, cps.sourceInformation));
     } else {
       GetLength length = cps.letPrim(new GetLength(list));
       list = cps.refine(list, typeSystem.nonNullType);
-      BoundsCheck check = cps.letPrim(new BoundsCheck(list, index, length,
-          checkKind, cps.sourceInformation));
+      BoundsCheck check = cps.letPrim(new BoundsCheck(
+          list, index, length, checkKind, cps.sourceInformation));
       if (check.hasIntegerCheck) {
         if (typeSystem.isDefinitelyInt(index.type)) {
           check.checks &= ~BoundsCheck.INTEGER;
@@ -1498,16 +1470,13 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   ///
   /// Returns a CPS fragment whose context is the branch where no error
   /// was thrown.
-  CpsFragment makeConcurrentModificationCheck(Primitive list,
-                                              Primitive originalLength,
-                                              SourceInformation sourceInfo) {
+  CpsFragment makeConcurrentModificationCheck(
+      Primitive list, Primitive originalLength, SourceInformation sourceInfo) {
     CpsFragment cps = new CpsFragment(sourceInfo);
-    Primitive lengthChanged = cps.applyBuiltin(
-        BuiltinOperator.StrictNeq,
+    Primitive lengthChanged = cps.applyBuiltin(BuiltinOperator.StrictNeq,
         <Primitive>[originalLength, cps.letPrim(new GetLength(list))]);
     cps.ifTruthy(lengthChanged).invokeStaticThrower(
-        helpers.throwConcurrentModificationError,
-        <Primitive>[list]);
+        helpers.throwConcurrentModificationError, <Primitive>[list]);
     return cps;
   }
 
@@ -1515,10 +1484,10 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   ///
   /// Returns `true` if the node was replaced.
   specializeIndexableAccess(InvokeMethod node) {
-    Primitive receiver = node.dartReceiver;
+    Primitive receiver = node.receiver;
     AbstractConstantValue receiverValue = getValue(receiver);
     if (!typeSystem.isDefinitelyIndexable(receiverValue.type,
-            allowNull: true)) {
+        allowNull: true)) {
       return null;
     }
     switch (node.selector.name) {
@@ -1528,26 +1497,23 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         }
         if (node.selector.isSetter) {
           if (!typeSystem.isDefinitelyExtendableArray(receiver.type,
-                allowNull: true)) {
+              allowNull: true)) {
             return null;
           }
           CpsFragment cps = new CpsFragment(node.sourceInformation);
-          Primitive newLength = node.dartArgument(0);
+          Primitive newLength = node.argument(0);
           if (!typeSystem.isDefinitelyUint(newLength.type)) {
             // TODO(asgerf): We could let the SetLength instruction throw for
             // negative right-hand sides (see length setter in js_array.dart).
-            if (compiler.trustPrimitives) {
+            if (compiler.options.trustPrimitives) {
               newLength = cps.refine(newLength, typeSystem.uint32Type);
               newLength.type = typeSystem.uint32Type;
             } else {
               return null;
             }
           }
-          cps.letPrim(new ApplyBuiltinMethod(
-              BuiltinMethod.SetLength,
-              receiver,
-              [newLength],
-              node.sourceInformation));
+          cps.letPrim(new ApplyBuiltinMethod(BuiltinMethod.SetLength, receiver,
+              [newLength], node.sourceInformation));
           if (!typeSystem.isDefinitelyUint32(newLength.type)) {
             // If the setter succeeded, the length must have been a uint32.
             cps.refine(newLength, typeSystem.uint32Type);
@@ -1557,7 +1523,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         return null;
 
       case '[]':
-        Primitive index = node.dartArgument(0);
+        Primitive index = node.argument(0);
         CpsFragment cps = new CpsFragment(node.sourceInformation);
         receiver = makeBoundsCheck(cps, receiver, index);
         GetIndex get = cps.letPrim(new GetIndex(receiver, index));
@@ -1568,11 +1534,11 @@ class TransformingVisitor extends DeepRecursiveVisitor {
 
       case '[]=':
         if (!typeSystem.isDefinitelyMutableIndexable(receiverValue.type,
-                allowNull: true)) {
+            allowNull: true)) {
           return null;
         }
-        Primitive index = node.dartArgument(0);
-        Primitive value = node.dartArgument(1);
+        Primitive index = node.argument(0);
+        Primitive value = node.argument(1);
         CpsFragment cps = new CpsFragment(node.sourceInformation);
         receiver = makeBoundsCheck(cps, receiver, index);
         cps.letPrim(new SetIndex(receiver, index, value));
@@ -1584,8 +1550,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         CpsFragment cps = new CpsFragment(node.sourceInformation);
         Primitive length = cps.letPrim(new GetLength(receiver));
         Constant zero = cps.makeZero();
-        ApplyBuiltinOperator op = cps.applyBuiltin(BuiltinOperator.StrictEq,
-                                                   [length, zero]);
+        ApplyBuiltinOperator op =
+            cps.applyBuiltin(BuiltinOperator.StrictEq, [length, zero]);
         node.replaceUsesWith(op);
         op.hint = node.hint;
         return cps;
@@ -1595,8 +1561,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         CpsFragment cps = new CpsFragment(node.sourceInformation);
         Primitive length = cps.letPrim(new GetLength(receiver));
         Constant zero = cps.makeZero();
-        ApplyBuiltinOperator op = cps.applyBuiltin(BuiltinOperator.StrictNeq,
-                                                   [length, zero]);
+        ApplyBuiltinOperator op =
+            cps.applyBuiltin(BuiltinOperator.StrictNeq, [length, zero]);
         node.replaceUsesWith(op);
         op.hint = node.hint;
         return cps;
@@ -1610,7 +1576,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   ///
   /// Returns `true` if the node was replaced.
   CpsFragment specializeArrayAccess(InvokeMethod node) {
-    Primitive list = node.dartReceiver;
+    Primitive list = node.receiver;
     AbstractConstantValue listValue = getValue(list);
     // Ensure that the object is a native list or null.
     if (!lattice.isDefinitelyArray(listValue, allowNull: true)) {
@@ -1629,39 +1595,34 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           return null;
         }
         if (!isExtendable) return null;
-        Primitive addedItem = node.dartArgument(0);
+        Primitive addedItem = node.argument(0);
         CpsFragment cps = new CpsFragment(sourceInfo);
-        cps.invokeBuiltin(BuiltinMethod.Push,
-            list,
-            <Primitive>[addedItem]);
+        cps.invokeBuiltin(BuiltinMethod.Push, list, <Primitive>[addedItem]);
         if (node.hasAtLeastOneUse) {
           node.replaceUsesWith(cps.makeNull());
         }
         return cps;
 
       case 'removeLast':
-        if (!node.selector.isCall ||
-            node.selector.argumentCount != 0) {
+        if (!node.selector.isCall || node.selector.argumentCount != 0) {
           return null;
         }
         if (!isExtendable) return null;
         CpsFragment cps = new CpsFragment(sourceInfo);
-        list = makeBoundsCheck(cps, list, cps.makeMinusOne(),
-            BoundsCheck.EMPTINESS);
-        Primitive removedItem = cps.invokeBuiltin(BuiltinMethod.Pop,
-            list,
-            <Primitive>[]);
+        list = makeBoundsCheck(
+            cps, list, cps.makeMinusOne(), BoundsCheck.EMPTINESS);
+        Primitive removedItem =
+            cps.invokeBuiltin(BuiltinMethod.Pop, list, <Primitive>[]);
         removedItem.hint = node.hint;
         node.replaceUsesWith(removedItem);
         return cps;
 
       case 'addAll':
-        if (!node.selector.isCall ||
-            node.selector.argumentCount != 1) {
+        if (!node.selector.isCall || node.selector.argumentCount != 1) {
           return null;
         }
         if (!isExtendable) return null;
-        Primitive addedList = node.dartArgument(0);
+        Primitive addedList = node.argument(0);
         // Rewrite addAll([x1, ..., xN]) to push(x1), ..., push(xN).
         // Ensure that the list is not mutated between creation and use.
         // We aim for the common case where this is the only use of the list,
@@ -1672,9 +1633,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         LiteralList addedLiteral = addedList;
         CpsFragment cps = new CpsFragment(sourceInfo);
         for (Reference value in addedLiteral.valueRefs) {
-          cps.invokeBuiltin(BuiltinMethod.Push,
-              list,
-              <Primitive>[value.definition]);
+          cps.invokeBuiltin(
+              BuiltinMethod.Push, list, <Primitive>[value.definition]);
         }
         if (node.hasAtLeastOneUse) {
           node.replaceUsesWith(cps.makeNull());
@@ -1688,7 +1648,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           return null;
         }
         if (listValue.isNullable) return null;
-        Primitive index = node.dartArgument(0);
+        Primitive index = node.argument(0);
         if (!lattice.isDefinitelyInt(getValue(index))) return null;
         CpsFragment cps = new CpsFragment(node.sourceInformation);
         list = makeBoundsCheck(cps, list, index);
@@ -1700,18 +1660,16 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       case 'forEach':
         Element element =
             compiler.world.locateSingleElement(node.selector, listValue.type);
-        if (element == null ||
-            !element.isFunction ||
-            !node.selector.isCall) return null;
+        if (element == null || !element.isFunction || !node.selector.isCall)
+          return null;
         assert(node.selector.positionalArgumentCount == 1);
         assert(node.selector.namedArgumentCount == 0);
         FunctionDefinition target = functionCompiler.compileToCpsIr(element);
 
         CpsFragment cps = new CpsFragment(node.sourceInformation);
-        Primitive result = cps.inlineFunction(target,
-            node.receiver,
-            node.arguments.toList(),
-            hint: node.hint);
+        Primitive result = cps.inlineFunction(
+            target, node.receiver, node.arguments.toList(),
+            interceptor: node.interceptor, hint: node.hint);
         node.replaceUsesWith(result);
         return cps;
 
@@ -1753,7 +1711,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
             }
             use.replaceWith(new GetMutable(current));
           } else {
-            assert (use.selector == Selectors.moveNext);
+            assert(use.selector == Selectors.moveNext);
             // Rewrite iterator.moveNext() to:
             //
             //   if (index < list.length) {
@@ -1806,8 +1764,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
                 // TODO(asgerf): Do this in a continuation so multiple
                 //               continues can share the same code.
                 for (Reference ref = parent.firstRef;
-                     ref != null;
-                     ref = ref.next) {
+                    ref != null;
+                    ref = ref.next) {
                   Expression invocationCaller = ref.parent;
                   if (getEffectiveParent(invocationCaller) == iteratorBinding) {
                     // No need to check for concurrent modification immediately
@@ -1825,8 +1783,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
             }
 
             // Check if there are more elements.
-            Primitive hasMore = cps.applyBuiltin(
-                BuiltinOperator.NumLt,
+            Primitive hasMore = cps.applyBuiltin(BuiltinOperator.NumLt,
                 [cps.getMutable(index), cps.letPrim(new GetLength(list))]);
 
             // Return false if there are no more.
@@ -1839,9 +1796,10 @@ class TransformingVisitor extends DeepRecursiveVisitor {
             current.type = typeSystem.elementTypeOfIndexable(listValue.type);
             cps.setMutable(current,
                 cps.letPrim(new GetIndex(list, cps.getMutable(index))));
-            cps.setMutable(index, cps.applyBuiltin(
-                BuiltinOperator.NumAdd,
-                [cps.getMutable(index), cps.makeOne()]));
+            cps.setMutable(
+                index,
+                cps.applyBuiltin(BuiltinOperator.NumAdd,
+                    [cps.getMutable(index), cps.makeOne()]));
             cps.invokeContinuation(moveNextCont, [cps.makeTrue()]);
 
             reanalyzeFragment(cps);
@@ -1851,7 +1809,9 @@ class TransformingVisitor extends DeepRecursiveVisitor {
             cps.context = moveNextCont;
             cps.insertBelow(let);
             let.remove();
-            use..replaceUsesWith(result)..destroy();
+            use
+              ..replaceUsesWith(result)
+              ..destroy();
           }
         }
 
@@ -1898,7 +1858,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     assert(!isInterceptedSelector(call));
     assert(call.argumentCount == node.argumentRefs.length);
 
-    Primitive tearOff = node.dartReceiver.effectiveDefinition;
+    Primitive tearOff = node.receiver.effectiveDefinition;
     // Note: We don't know if [tearOff] is actually a tear-off.
     // We name variables based on the pattern we are trying to match.
 
@@ -1915,10 +1875,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
 
       // Replace with InvokeStatic.
       // The tear-off will be cleaned up by shrinking reductions.
-      return new InvokeStatic(target,
-          new Selector.fromElement(target),
-          node.arguments.toList(),
-          node.sourceInformation);
+      return new InvokeStatic(target, new Selector.fromElement(target),
+          node.arguments.toList(), node.sourceInformation);
     }
     if (tearOff is InvokeMethod && tearOff.selector.isGetter) {
       Selector getter = tearOff.selector;
@@ -1960,12 +1918,13 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       }
 
       InvokeMethod invoke = new InvokeMethod(
-        object,
-        new Selector.call(getter.memberName, call.callStructure),
-        type,
-        node.arguments.toList(),
-        sourceInformation: node.sourceInformation);
-      node.receiverRef.changeTo(new Parameter(null)); // Remove the tear off use.
+          object,
+          new Selector.call(getter.memberName, call.callStructure),
+          type,
+          node.arguments.toList(),
+          sourceInformation: node.sourceInformation);
+      node.receiverRef
+          .changeTo(new Parameter(null)); // Remove the tear off use.
 
       if (tearOff.hasNoRefinedUses) {
         // Eliminate the getter call if it has no more uses.
@@ -1996,13 +1955,13 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     assert(call.argumentCount == node.argumentRefs.length);
 
     Primitive receiver = node.receiver;
-    if (receiver is !CreateInstance) return null;
+    if (receiver is! CreateInstance) return null;
     CreateInstance createInstance = receiver;
     if (!createInstance.hasExactlyOneUse) return null;
 
     // Inline only closures. This avoids inlining the 'call' method of a class
     // that has many allocation sites.
-    if (createInstance.classElement is !ClosureClassElement) return null;
+    if (createInstance.classElement is! ClosureClassElement) return null;
 
     ClosureClassElement closureClassElement = createInstance.classElement;
     Element element = closureClassElement.localLookup(Identifiers.call);
@@ -2028,9 +1987,9 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     // Accesses to closed-over values are field access primitives.  We we don't
     // inline if there are other uses of 'this' since that could be an escape or
     // a recursive call.
-    for (Reference ref = target.thisParameter.firstRef;
-         ref != null;
-         ref = ref.next) {
+    for (Reference ref = target.receiverParameter.firstRef;
+        ref != null;
+        ref = ref.next) {
       Node use = ref.parent;
       if (use is GetField) continue;
       // Closures do not currently have writable fields, but closure conversion
@@ -2040,9 +1999,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     }
 
     CpsFragment cps = new CpsFragment(node.sourceInformation);
-    Primitive returnValue = cps.inlineFunction(target,
-        node.receiver,
-        node.arguments.toList(),
+    Primitive returnValue = cps.inlineFunction(
+        target, node.receiver, node.arguments.toList(),
         hint: node.hint);
     node.replaceUsesWith(returnValue);
     return cps;
@@ -2072,21 +2030,19 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       ConstructorBodyElement constructorBody = target;
       target = constructorBody.constructor;
     }
-    node.effects =
-        Effects.from(compiler.world.getSideEffectsOfElement(target));
-    TypeMask receiverType = node.dartReceiver.type;
+    node.effects = Effects.from(compiler.world.getSideEffectsOfElement(target));
+    TypeMask receiverType = node.receiver.type;
     if (node.callingConvention == CallingConvention.Intercepted &&
         typeSystem.areDisjoint(receiverType, typeSystem.interceptorType)) {
       // Some direct calls take an interceptor because the target class is
       // mixed into a native class.  If it is known at the call site that the
       // receiver is non-intercepted, get rid of the interceptor.
-      node.receiverRef.changeTo(node.dartReceiver);
+      node.interceptorRef.changeTo(node.receiver);
     }
   }
 
   visitInvokeMethod(InvokeMethod node) {
-    var specialized =
-        specializeOperatorCall(node) ??
+    var specialized = specializeOperatorCall(node) ??
         specializeFieldAccess(node) ??
         specializeIndexableAccess(node) ??
         specializeArrayAccess(node) ??
@@ -2094,31 +2050,27 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         specializeClosureCall(node);
     if (specialized != null) return specialized;
 
-    TypeMask receiverType = node.dartReceiver.type;
+    TypeMask receiverType = node.receiver.type;
     node.mask = typeSystem.intersection(node.mask, receiverType);
 
     node.effects = Effects.from(
         compiler.world.getSideEffectsOfSelector(node.selector, node.mask));
 
     bool canBeNonThrowingCallOnNull =
-        selectorsOnNull.contains(node.selector) &&
-        receiverType.isNullable;
+        selectorsOnNull.contains(node.selector) && receiverType.isNullable;
 
     if (node.callingConvention == CallingConvention.Intercepted &&
         !canBeNonThrowingCallOnNull &&
         typeSystem.areDisjoint(receiverType, typeSystem.interceptorType)) {
       // Use the Dart receiver as the JS receiver. This changes the wording of
       // the error message when the receiver is null, but we accept this.
-      node.receiverRef.changeTo(node.dartReceiver);
+      node.interceptorRef.changeTo(node.receiver);
 
       // Replace the extra receiver argument with a dummy value if the
       // target definitely does not use it.
-      if (typeSystem.targetIgnoresReceiverArgument(receiverType,
-            node.selector)) {
-        Constant dummy = makeConstantPrimitive(new IntConstantValue(0));
-        new LetPrim(dummy).insertAbove(node.parent);
-        node.argumentRefs[0].changeTo(dummy);
-        node.callingConvention = CallingConvention.DummyIntercepted;
+      if (typeSystem.targetIgnoresReceiverArgument(
+          receiverType, node.selector)) {
+        node.makeDummyIntercepted();
       }
     }
   }
@@ -2151,15 +2103,13 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         node.replaceUsesWith(argument);
         return new CpsFragment();
       } else if (typeSystem.isDefinitelySelfInterceptor(value.type)) {
-        TypeMask toStringReturn = typeSystem.getInvokeReturnType(
-            Selectors.toString_, value.type);
+        TypeMask toStringReturn =
+            typeSystem.getInvokeReturnType(Selectors.toString_, value.type);
         if (typeSystem.isDefinitelyString(toStringReturn)) {
           CpsFragment cps = new CpsFragment(node.sourceInformation);
-          Primitive invoke = cps.invokeMethod(argument,
-              Selectors.toString_,
-              value.type,
-              [cps.makeZero()],
-              CallingConvention.DummyIntercepted);
+          Primitive invoke = cps.invokeMethod(
+              argument, Selectors.toString_, value.type, [],
+              callingConvention: CallingConvention.DummyIntercepted);
           node.replaceUsesWith(invoke);
           return cps;
         }
@@ -2167,16 +2117,15 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     } else if (node.target == compiler.identicalFunction) {
       if (node.argumentRefs.length == 2) {
         return new ApplyBuiltinOperator(BuiltinOperator.Identical,
-            [node.argument(0), node.argument(1)],
-            node.sourceInformation);
+            [node.argument(0), node.argument(1)], node.sourceInformation);
       }
     }
     return null;
   }
 
   visitInvokeStatic(InvokeStatic node) {
-    node.effects = Effects.from(
-        compiler.world.getSideEffectsOfElement(node.target));
+    node.effects =
+        Effects.from(compiler.world.getSideEffectsOfElement(node.target));
     return specializeInternalMethodCall(node);
   }
 
@@ -2188,7 +2137,6 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     }
     return new AbstractConstantValue.nonConstant(node.type);
   }
-
 
   /*************************** PRIMITIVES **************************/
   //
@@ -2220,9 +2168,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           AbstractConstantValue secondValue = getValue(node.argument(i++));
           if (!secondValue.isConstant) continue;
 
-          ast.DartString string =
-              new ast.ConsDartString(getString(firstValue),
-                                     getString(secondValue));
+          ast.DartString string = new ast.ConsDartString(
+              getString(firstValue), getString(secondValue));
 
           // We found a sequence of at least two constants.
           // Look for the end of the sequence.
@@ -2270,22 +2217,21 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           // This is not safe when we might compare JS null and JS undefined.
           newOperator = BuiltinOperator.StrictEq;
         } else if (lattice.isDefinitelyNum(left, allowNull: true) &&
-                   lattice.isDefinitelyNum(right, allowNull: true)) {
+            lattice.isDefinitelyNum(right, allowNull: true)) {
           // If both operands can be null, but otherwise are of the same type,
           // we can use `==` for comparison.
           // This is not safe e.g. for comparing strings against numbers.
           newOperator = BuiltinOperator.LooseEq;
         } else if (lattice.isDefinitelyString(left, allowNull: true) &&
-                   lattice.isDefinitelyString(right, allowNull: true)) {
+            lattice.isDefinitelyString(right, allowNull: true)) {
           newOperator = BuiltinOperator.LooseEq;
         } else if (lattice.isDefinitelyBool(left, allowNull: true) &&
-                   lattice.isDefinitelyBool(right, allowNull: true)) {
+            lattice.isDefinitelyBool(right, allowNull: true)) {
           newOperator = BuiltinOperator.LooseEq;
         }
         if (newOperator != null) {
-          return new ApplyBuiltinOperator(newOperator,
-              node.arguments.toList(),
-              node.sourceInformation);
+          return new ApplyBuiltinOperator(
+              newOperator, node.arguments.toList(), node.sourceInformation);
         }
         break;
 
@@ -2293,8 +2239,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       case BuiltinOperator.LooseEq:
       case BuiltinOperator.StrictNeq:
       case BuiltinOperator.LooseNeq:
-        bool negated =
-            node.operator == BuiltinOperator.StrictNeq ||
+        bool negated = node.operator == BuiltinOperator.StrictNeq ||
             node.operator == BuiltinOperator.LooseNeq;
         for (int firstIndex in [0, 1]) {
           int secondIndex = 1 - firstIndex;
@@ -2314,9 +2259,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
             // (x === false) ==> !x
             // (x !== true) ==> !x
             return new ApplyBuiltinOperator(
-                BuiltinOperator.IsFalsy,
-                [firstArg],
-                node.sourceInformation);
+                BuiltinOperator.IsFalsy, [firstArg], node.sourceInformation);
           }
         }
         break;
@@ -2326,8 +2269,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     return null;
   }
 
-  void visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
-  }
+  void visitApplyBuiltinMethod(ApplyBuiltinMethod node) {}
 
   visitTypeTest(TypeTest node) {
     Primitive prim = node.value;
@@ -2349,27 +2291,21 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       // Compile as typeof x === 'number' && Math.floor(x) === x
       if (lattice.isDefinitelyNum(value, allowNull: true)) {
         // If value is null or a number, we can skip the typeof test.
-        return new ApplyBuiltinOperator(
-            BuiltinOperator.IsFloor,
-            <Primitive>[prim, prim],
-            node.sourceInformation);
+        return new ApplyBuiltinOperator(BuiltinOperator.IsFloor,
+            <Primitive>[prim, prim], node.sourceInformation);
       }
       if (lattice.isDefinitelyNotNonIntegerDouble(value)) {
         // If the value cannot be a non-integer double, but might not be a
         // number at all, we can skip the Math.floor test.
         return unaryBuiltinOperator(BuiltinOperator.IsNumber);
       }
-      return new ApplyBuiltinOperator(
-          BuiltinOperator.IsInteger,
-          <Primitive>[prim, prim, prim],
-          node.sourceInformation);
+      return new ApplyBuiltinOperator(BuiltinOperator.IsInteger,
+          <Primitive>[prim, prim, prim], node.sourceInformation);
     }
     if (node.dartType == dartTypes.coreTypes.numType ||
         node.dartType == dartTypes.coreTypes.doubleType) {
       return new ApplyBuiltinOperator(
-          BuiltinOperator.IsNumber,
-          <Primitive>[prim],
-          node.sourceInformation);
+          BuiltinOperator.IsNumber, <Primitive>[prim], node.sourceInformation);
     }
 
     AbstractBool isNullableSubtype =
@@ -2384,10 +2320,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       // 'typeof' expressions might give the VM some more useful information.
       Primitive nullConst = makeConstantPrimitive(new NullConstantValue());
       new LetPrim(nullConst).insertAbove(node.parent);
-      return new ApplyBuiltinOperator(
-          BuiltinOperator.LooseNeq,
-          <Primitive>[prim, nullConst],
-          node.sourceInformation);
+      return new ApplyBuiltinOperator(BuiltinOperator.LooseNeq,
+          <Primitive>[prim, nullConst], node.sourceInformation);
     }
 
     if (dartType.element == functionCompiler.glue.jsFixedArrayClass) {
@@ -2438,9 +2372,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     if (node.hasNoChecks) return;
     Primitive indexPrim = node.index;
     int index = lattice.intValue(getValue(indexPrim));
-    int length = node.lengthRef == null
-        ? null
-        : lattice.intValue(getValue(node.length));
+    int length =
+        node.lengthRef == null ? null : lattice.intValue(getValue(node.length));
     if (index != null && length != null && index < length) {
       node.checks &= ~BoundsCheck.UPPER_BOUND;
     }
@@ -2454,7 +2387,9 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       node.checks &= ~BoundsCheck.INTEGER;
     }
     if (!node.lengthUsedInCheck && node.lengthRef != null) {
-      node..lengthRef.unlink()..lengthRef = null;
+      node
+        ..lengthRef.unlink()
+        ..lengthRef = null;
     }
     if (node.checks == BoundsCheck.NONE) {
       // We can't remove the bounds check node because it may still be used to
@@ -2465,7 +2400,9 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       //     restrict code motion.  However, if we want to run this pass after
       //     [BoundsChecker] that would not be safe any more, so for now we
       //     keep the node for forward compatibilty.
-      node..indexRef.unlink()..indexRef = null;
+      node
+        ..indexRef.unlink()
+        ..indexRef = null;
     }
   }
 
@@ -2473,7 +2410,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     Primitive input = node.value;
     if (!input.type.isNullable &&
         (node.isNullCheck ||
-         !input.type.needsNoSuchMethodHandling(node.selector, classWorld))) {
+            !input.type.needsNoSuchMethodHandling(node.selector, classWorld))) {
       node.replaceUsesWith(input);
       return new CpsFragment();
     }
@@ -2481,8 +2418,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   }
 
   visitGetLength(GetLength node) {
-    node.isFinal = typeSystem.isDefinitelyFixedLengthIndexable(
-        node.object.type, allowNull: true);
+    node.isFinal = typeSystem.isDefinitelyFixedLengthIndexable(node.object.type,
+        allowNull: true);
   }
 
   visitReadTypeVariable(ReadTypeVariable node) {
@@ -2506,12 +2443,12 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         TypeExpression typeExpression = instance.typeInformation;
         assert(typeExpression.kind == TypeExpressionKind.INSTANCE);
         ClassElement context = node.variable.element.enclosingClass;
+        ClassElement createdClass = instance.classElement;
         // In the general case, a substitution could generate a large type
         // term. Avoid this by restricting to direct indexing.
         // TODO(sra): Also include cases that require substitution but the end
         // result is the same as some indexing or a simple constant type.
-        if (!functionCompiler.glue.needsSubstitutionForTypeVariableAccess(
-                context)) {
+        if (backend.rti.isTrivialSubstitution(createdClass, context)) {
           int index = functionCompiler.glue.getTypeVariableIndex(node.variable);
           if (0 <= index && index < typeExpression.argumentRefs.length) {
             node.replaceUsesWith(typeExpression.argument(index));
@@ -2521,6 +2458,18 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       }
     }
     return null;
+  }
+
+  bool isNullConstant(Primitive prim) => prim is Constant && prim.value.isNull;
+
+  visitCreateInstance(CreateInstance node) {
+    Primitive typeInformation = node.typeInformation;
+    if (typeInformation is TypeExpression &&
+        typeInformation.arguments.every(isNullConstant)) {
+      node
+        ..typeInformationRef.unlink()
+        ..typeInformationRef = null;
+    }
   }
 }
 
@@ -2571,9 +2520,7 @@ class TypePropagationVisitor implements Visitor {
   // Access through [getValue] and [setValue].
   final Map<Variable, ConstantValue> values;
 
-  TypePropagationVisitor(this.lattice,
-                         this.values,
-                         this.internalError);
+  TypePropagationVisitor(this.lattice, this.values, this.internalError);
 
   void analyze(FunctionDefinition root, bool recomputeAll) {
     reachableContinuations.clear();
@@ -2610,7 +2557,7 @@ class TypePropagationVisitor implements Visitor {
           visit(ref.parent);
         }
       } else {
-        break;  // Both worklists empty.
+        break; // Both worklists empty.
       }
     }
   }
@@ -2664,9 +2611,8 @@ class TypePropagationVisitor implements Visitor {
   ///
   /// If [updateValue] is a constant and [canReplace] is true, the primitive
   /// is also marked as safe for elimination, so it can be constant-folded.
-  void setResult(UnsafePrimitive prim,
-                 AbstractConstantValue updateValue,
-                 {bool canReplace: false}) {
+  void setResult(UnsafePrimitive prim, AbstractConstantValue updateValue,
+      {bool canReplace: false}) {
     // TODO(asgerf): Separate constant folding from side effect analysis.
     setValue(prim, updateValue);
     prim.isSafeForElimination = canReplace && updateValue.isConstant;
@@ -2677,44 +2623,34 @@ class TypePropagationVisitor implements Visitor {
   }
 
   // -------------------------- Visitor overrides ------------------------------
-  void visit(Node node) { node.accept(this); }
+  void visit(Node node) {
+    node.accept(this);
+  }
 
   void visitFunctionDefinition(FunctionDefinition node) {
-    bool isIntercepted = backend.isInterceptedMethod(node.element);
-
+    if (node.interceptorParameter != null) {
+      setValue(node.interceptorParameter, nonConstant(typeSystem.nonNullType));
+    }
     // If the abstract value of the function parameters is Nothing, use the
     // inferred parameter type.  Otherwise (e.g., when inlining) do not
     // change the abstract value.
-    if (node.thisParameter != null && getValue(node.thisParameter).isNothing) {
-      if (isIntercepted &&
-          !typeSystem.methodIgnoresReceiverArgument(node.element)) {
-        setValue(node.thisParameter, nonConstant(typeSystem.nonNullType));
-      } else {
-        setValue(node.thisParameter,
-            nonConstant(typeSystem.getReceiverType(node.element)));
-      }
-    }
-    if (isIntercepted && getValue(node.parameters[0]).isNothing) {
-      if (typeSystem.methodIgnoresReceiverArgument(node.element)) {
-        setValue(node.parameters[0], nonConstant());
-      } else {
-        setValue(node.parameters[0],
-            nonConstant(typeSystem.getReceiverType(node.element)));
-      }
+    if (node.receiverParameter != null &&
+        getValue(node.receiverParameter).isNothing) {
+      setValue(node.receiverParameter,
+          nonConstant(typeSystem.getReceiverType(node.element)));
     }
     bool hasParameterWithoutValue = false;
-    for (Parameter param in node.parameters.skip(isIntercepted ? 1 : 0)) {
+    for (Parameter param in node.parameters) {
       if (getValue(param).isNothing) {
         TypeMask type = param.hint is ParameterElement
             ? typeSystem.getParameterType(param.hint)
             : typeSystem.dynamicType;
         setValue(param, lattice.fromMask(type));
-        if (type.isEmpty && !type.isNullable) {
-          hasParameterWithoutValue = true;
-        }
+        if (type.isEmpty) hasParameterWithoutValue = true;
       }
     }
-    if (!hasParameterWithoutValue) { // Don't analyze unreachable code.
+    if (!hasParameterWithoutValue) {
+      // Don't analyze unreachable code.
       push(node.body);
     }
   }
@@ -2775,7 +2711,7 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitInvokeMethod(InvokeMethod node) {
-    AbstractConstantValue receiver = getValue(node.dartReceiver);
+    AbstractConstantValue receiver = getValue(node.receiver);
     if (receiver.isNothing) {
       return setResult(node, lattice.nothing);
     }
@@ -2801,7 +2737,7 @@ class TypePropagationVisitor implements Visitor {
 
     if (node.selector.isCall) {
       if (node.selector == Selectors.codeUnitAt) {
-        AbstractConstantValue right = getValue(node.dartArgument(0));
+        AbstractConstantValue right = getValue(node.argument(0));
         AbstractConstantValue result =
             lattice.codeUnitAtSpecial(receiver, right);
         return finish(result, canReplace: !receiver.isNullable);
@@ -2810,7 +2746,7 @@ class TypePropagationVisitor implements Visitor {
     }
 
     if (node.selector == Selectors.index) {
-      AbstractConstantValue right = getValue(node.dartArgument(0));
+      AbstractConstantValue right = getValue(node.argument(0));
       AbstractConstantValue result = lattice.indexSpecial(receiver, right);
       return finish(result, canReplace: !receiver.isNullable);
     }
@@ -2821,7 +2757,7 @@ class TypePropagationVisitor implements Visitor {
 
     // Calculate the resulting constant if possible.
     String opname = node.selector.name;
-    if (node.dartArgumentsLength == 0) {
+    if (node.argumentRefs.length == 0) {
       // Unary operator.
       if (opname == "unary-") {
         opname = "-";
@@ -2829,9 +2765,9 @@ class TypePropagationVisitor implements Visitor {
       UnaryOperator operator = UnaryOperator.parse(opname);
       AbstractConstantValue result = lattice.unaryOp(operator, receiver);
       return finish(result, canReplace: !receiver.isNullable);
-    } else if (node.dartArgumentsLength == 1) {
+    } else if (node.argumentRefs.length == 1) {
       // Binary operator.
-      AbstractConstantValue right = getValue(node.dartArgument(0));
+      AbstractConstantValue right = getValue(node.argument(0));
       BinaryOperator operator = BinaryOperator.parse(opname);
       AbstractConstantValue result =
           lattice.binaryOp(operator, receiver, right);
@@ -2841,7 +2777,6 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
-
     void unaryOp(
         AbstractConstantValue operation(AbstractConstantValue argument),
         TypeMask defaultType) {
@@ -2850,8 +2785,8 @@ class TypePropagationVisitor implements Visitor {
     }
 
     void binaryOp(
-        AbstractConstantValue operation(AbstractConstantValue left,
-                                        AbstractConstantValue right),
+        AbstractConstantValue operation(
+            AbstractConstantValue left, AbstractConstantValue right),
         TypeMask defaultType) {
       AbstractConstantValue left = getValue(node.argument(0));
       AbstractConstantValue right = getValue(node.argument(1));
@@ -2859,20 +2794,20 @@ class TypePropagationVisitor implements Visitor {
     }
 
     void binaryNumOp(
-        AbstractConstantValue operation(AbstractConstantValue left,
-                                        AbstractConstantValue right)) {
+        AbstractConstantValue operation(
+            AbstractConstantValue left, AbstractConstantValue right)) {
       binaryOp(operation, typeSystem.numType);
     }
 
     void binaryUint32Op(
-        AbstractConstantValue operation(AbstractConstantValue left,
-                                        AbstractConstantValue right)) {
+        AbstractConstantValue operation(
+            AbstractConstantValue left, AbstractConstantValue right)) {
       binaryOp(operation, typeSystem.uint32Type);
     }
 
     void binaryBoolOp(
-        AbstractConstantValue operation(AbstractConstantValue left,
-                                        AbstractConstantValue right)) {
+        AbstractConstantValue operation(
+            AbstractConstantValue left, AbstractConstantValue right)) {
       binaryOp(operation, typeSystem.boolType);
     }
 
@@ -2885,8 +2820,8 @@ class TypePropagationVisitor implements Visitor {
             setValue(node, lattice.nothing);
             return; // And come back later
           } else if (value.isConstant &&
-                     value.constant.isString &&
-                     stringValue != null) {
+              value.constant.isString &&
+              stringValue != null) {
             StringConstantValue constant = value.constant;
             stringValue =
                 new ast.ConsDartString(stringValue, constant.primitiveValue);
@@ -2911,8 +2846,7 @@ class TypePropagationVisitor implements Visitor {
       case BuiltinOperator.StrictNeq:
       case BuiltinOperator.LooseEq:
       case BuiltinOperator.LooseNeq:
-        bool negated =
-            node.operator == BuiltinOperator.StrictNeq ||
+        bool negated = node.operator == BuiltinOperator.StrictNeq ||
             node.operator == BuiltinOperator.LooseNeq;
         AbstractConstantValue left = getValue(node.argument(0));
         AbstractConstantValue right = getValue(node.argument(1));
@@ -2921,8 +2855,8 @@ class TypePropagationVisitor implements Visitor {
           return;
         }
         if (left.isConstant && right.isConstant) {
-          ConstantValue equal = lattice.constantSystem.identity.fold(
-              left.constant, right.constant);
+          ConstantValue equal = lattice.constantSystem.identity
+              .fold(left.constant, right.constant);
           if (equal != null && equal.isBool) {
             ConstantValue result =
                 new BoolConstantValue(equal.isTrue == !negated);
@@ -3031,8 +2965,8 @@ class TypePropagationVisitor implements Visitor {
   void visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
     AbstractConstantValue receiver = getValue(node.receiver);
     if (node.method == BuiltinMethod.Pop) {
-      setValue(node, nonConstant(
-          typeSystem.elementTypeOfIndexable(receiver.type)));
+      setValue(
+          node, nonConstant(typeSystem.elementTypeOfIndexable(receiver.type)));
     } else {
       setValue(node, nonConstant());
     }
@@ -3056,14 +2990,11 @@ class TypePropagationVisitor implements Visitor {
     }
   }
 
-  void visitThrow(Throw node) {
-  }
+  void visitThrow(Throw node) {}
 
-  void visitRethrow(Rethrow node) {
-  }
+  void visitRethrow(Rethrow node) {}
 
-  void visitUnreachable(Unreachable node) {
-  }
+  void visitUnreachable(Unreachable node) {}
 
   void visitBranch(Branch node) {
     AbstractConstantValue conditionCell = getValue(node.condition);
@@ -3101,7 +3032,7 @@ class TypePropagationVisitor implements Visitor {
   void handleTypeTest(
       Primitive node, AbstractConstantValue input, types.DartType dartType) {
     TypeMask boolType = typeSystem.boolType;
-    switch(lattice.isSubtypeOf(input, dartType, allowNull: false)) {
+    switch (lattice.isSubtypeOf(input, dartType, allowNull: false)) {
       case AbstractBool.Nothing:
         break; // And come back later.
 
@@ -3137,8 +3068,7 @@ class TypePropagationVisitor implements Visitor {
       case AbstractBool.Maybe:
         // Narrow type of output to those that survive the cast.
         TypeMask type = input.type.intersection(
-            typeSystem.subtypesOf(node.dartType).nullable(),
-            classWorld);
+            typeSystem.subtypesOf(node.dartType).nullable(), classWorld);
         setValue(node, nonConstant(type));
         break;
     }
@@ -3170,11 +3100,9 @@ class TypePropagationVisitor implements Visitor {
     setValue(node, getValue(node.variable));
   }
 
-  void visitMutableVariable(MutableVariable node) {
-  }
+  void visitMutableVariable(MutableVariable node) {}
 
-  void visitParameter(Parameter node) {
-  }
+  void visitParameter(Parameter node) {}
 
   void visitContinuation(Continuation node) {
     node.parameters.forEach(visit);
@@ -3270,7 +3198,8 @@ class TypePropagationVisitor implements Visitor {
   void visitForeignCode(ForeignCode node) {
     bool firstArgumentIsNullable = false;
     if (node.argumentRefs.length > 0) {
-      AbstractConstantValue first = getValue(node.argumentRefs.first.definition);
+      AbstractConstantValue first =
+          getValue(node.argumentRefs.first.definition);
       if (first.isNothing) {
         setValue(node, nothing);
         return;
@@ -3280,9 +3209,9 @@ class TypePropagationVisitor implements Visitor {
     setValue(node, nonConstant(node.storedType));
     node.isSafeForElimination =
         !node.nativeBehavior.sideEffects.hasSideEffects() &&
-        (!node.nativeBehavior.throwBehavior.canThrow ||
-         (!firstArgumentIsNullable &&
-          node.nativeBehavior.throwBehavior.isOnlyNullNSMGuard));
+            (!node.nativeBehavior.throwBehavior.canThrow ||
+                (!firstArgumentIsNullable &&
+                    node.nativeBehavior.throwBehavior.isOnlyNullNSMGuard));
   }
 
   @override
@@ -3306,7 +3235,8 @@ class TypePropagationVisitor implements Visitor {
       setValue(node, nothing);
     } else {
       node.objectIsNotNull = object.isDefinitelyNotNull;
-      setValue(node, nonConstant(typeSystem.elementTypeOfIndexable(object.type)));
+      setValue(
+          node, nonConstant(typeSystem.elementTypeOfIndexable(object.type)));
     }
   }
 
@@ -3325,9 +3255,10 @@ class TypePropagationVisitor implements Visitor {
 
   @override
   void visitRefinement(Refinement node) {
-    setValue(node, lattice.intersectWithType(
-        getValue(node.value.definition),
-        node.refineType));
+    setValue(
+        node,
+        lattice.intersectWithType(
+            getValue(node.value.definition), node.refineType));
   }
 
   @override
@@ -3362,7 +3293,7 @@ class TypePropagationVisitor implements Visitor {
 ///             and the type of the constant is in the [type] field.
 ///   NONCONST: not a constant, but [type] may hold some information.
 class AbstractConstantValue {
-  static const int NOTHING  = 0;
+  static const int NOTHING = 0;
   static const int CONSTANT = 1;
   static const int NONCONST = 2;
 
@@ -3383,17 +3314,16 @@ class AbstractConstantValue {
 
   factory AbstractConstantValue.nonConstant(TypeMask type) {
     if (type.isEmpty) {
-      if (type.isNullable)
-        return new AbstractConstantValue.constantValue(
-            new NullConstantValue(), type);
-      else
-        return new AbstractConstantValue.nothing();
+      return new AbstractConstantValue.nothing();
+    } else if (type.isNull) {
+      return new AbstractConstantValue.constantValue(
+          new NullConstantValue(), type);
     } else {
       return new AbstractConstantValue._internal(NONCONST, null, type);
     }
   }
 
-  bool get isNothing  => (kind == NOTHING);
+  bool get isNothing => (kind == NOTHING);
   bool get isConstant => (kind == CONSTANT);
   bool get isNonConst => (kind == NONCONST);
   bool get isNullConstant => kind == CONSTANT && constant.isNull;
@@ -3405,6 +3335,7 @@ class AbstractConstantValue {
     PrimitiveConstantValue value = constant;
     return value.primitiveValue <= 0;
   }
+
   bool get isNegativeConstant {
     if (kind != CONSTANT || !constant.isNum) return false;
     PrimitiveConstantValue value = constant;
@@ -3421,16 +3352,20 @@ class AbstractConstantValue {
 
   bool operator ==(AbstractConstantValue that) {
     return that.kind == this.kind &&
-           that.constant == this.constant &&
-           that.type == this.type;
+        that.constant == this.constant &&
+        that.type == this.type;
   }
 
   String toString() {
     switch (kind) {
-      case NOTHING: return "Nothing";
-      case CONSTANT: return "Constant: ${constant.unparse()}: $type";
-      case NONCONST: return "Non-constant: $type";
-      default: assert(false);
+      case NOTHING:
+        return "Nothing";
+      case CONSTANT:
+        return "Constant: ${constant.unparse()}: $type";
+      case NONCONST:
+        return "Non-constant: $type";
+      default:
+        assert(false);
     }
     return null;
   }

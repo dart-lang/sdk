@@ -2,7 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of ssa;
+import '../compiler.dart' show Compiler;
+import '../constants/values.dart';
+import '../elements/elements.dart';
+import '../js_backend/js_backend.dart';
+import '../types/types.dart';
+import '../universe/selector.dart' show Selector;
+
+import 'nodes.dart';
 
 /**
  * Replaces some instructions with specialized versions to make codegen easier.
@@ -60,8 +67,8 @@ class SsaInstructionSelection extends HBaseVisitor {
     if (node.kind == HIs.RAW_CHECK) {
       HInstruction interceptor = node.interceptor;
       if (interceptor != null) {
-        return new HIsViaInterceptor(node.typeExpression, interceptor,
-                                     backend.boolType);
+        return new HIsViaInterceptor(
+            node.typeExpression, interceptor, backend.boolType);
       }
     }
     return node;
@@ -80,8 +87,7 @@ class SsaInstructionSelection extends HBaseVisitor {
     if (leftType.isNullable && rightType.isNullable) {
       if (left.isConstantNull() ||
           right.isConstantNull() ||
-          (left.isPrimitive(compiler) &&
-           leftType == rightType)) {
+          (left.isPrimitive(compiler) && leftType == rightType)) {
         return '==';
       }
       return null;
@@ -186,14 +192,12 @@ class SsaInstructionSelection extends HBaseVisitor {
             return replaceOp(rmw, left);
           } else {
             HInstruction rmw = new HReadModifyWrite.assignOp(
-                setter.element,
-                assignOp,
-                receiver, right, op.instructionType);
+                setter.element, assignOp, receiver, right, op.instructionType);
             return replaceOp(rmw, left);
           }
         } else if (op.usedBy.length == 1 &&
-                   right is HConstant &&
-                   right.constant.isOne) {
+            right is HConstant &&
+            right.constant.isOne) {
           HInstruction rmw = new HReadModifyWrite.postOp(
               setter.element, incrementOp, receiver, op.instructionType);
           block.addAfter(left, rmw);
@@ -207,14 +211,12 @@ class SsaInstructionSelection extends HBaseVisitor {
       return noMatchingRead();
     }
 
-    HInstruction simple(String assignOp,
-                        HInstruction left, HInstruction right) {
+    HInstruction simple(
+        String assignOp, HInstruction left, HInstruction right) {
       if (isMatchingRead(left)) {
         if (left.usedBy.length == 1) {
           HInstruction rmw = new HReadModifyWrite.assignOp(
-              setter.element,
-              assignOp,
-              receiver, right, op.instructionType);
+              setter.element, assignOp, receiver, right, op.instructionType);
           return replaceOp(rmw, left);
         }
       }
@@ -254,7 +256,6 @@ class SsaInstructionSelection extends HBaseVisitor {
  * analysis easier.
  */
 class SsaTypeKnownRemover extends HBaseVisitor {
-
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
   }
@@ -279,12 +280,11 @@ class SsaTypeKnownRemover extends HBaseVisitor {
  * mode.
  */
 class SsaTrustedCheckRemover extends HBaseVisitor {
-
   Compiler compiler;
   SsaTrustedCheckRemover(this.compiler);
 
   void visitGraph(HGraph graph) {
-    if (!compiler.trustPrimitives) return;
+    if (!compiler.options.trustPrimitives) return;
     visitDominatorTree(graph);
   }
 
@@ -347,12 +347,12 @@ class SsaInstructionMerger extends HBaseVisitor {
     List<HInstruction> inputs = user.inputs;
     for (int i = start; i < inputs.length; i++) {
       HInstruction input = inputs[i];
-      if (!generateAtUseSite.contains(input)
-          && !input.isCodeMotionInvariant()
-          && input.usedBy.length == 1
-          && input is !HPhi
-          && input is !HLocalValue
-          && !input.isJsStatement()) {
+      if (!generateAtUseSite.contains(input) &&
+          !input.isCodeMotionInvariant() &&
+          input.usedBy.length == 1 &&
+          input is! HPhi &&
+          input is! HLocalValue &&
+          !input.isJsStatement()) {
         if (input.isPure()) {
           // Only consider a pure input if it is in the same loop.
           // Otherwise, we might move GVN'ed instruction back into the
@@ -434,8 +434,7 @@ class SsaInstructionMerger extends HBaseVisitor {
   }
 
   void visitTypeConversion(HTypeConversion instruction) {
-    if (!instruction.isArgumentTypeCheck
-        && !instruction.isReceiverTypeCheck) {
+    if (!instruction.isArgumentTypeCheck && !instruction.isReceiverTypeCheck) {
       assert(instruction.isCheckedModeCheck || instruction.isCastTypeCheck);
       // Checked mode checks and cast checks compile to code that
       // only use their input once, so we can safely visit them
@@ -455,8 +454,8 @@ class SsaInstructionMerger extends HBaseVisitor {
   }
 
   bool isBlockSinglePredecessor(HBasicBlock block) {
-    return block.successors.length == 1
-        && block.successors[0].predecessors.length == 1;
+    return block.successors.length == 1 &&
+        block.successors[0].predecessors.length == 1;
   }
 
   void visitBasicBlock(HBasicBlock block) {
@@ -496,8 +495,8 @@ class SsaInstructionMerger extends HBaseVisitor {
 
     block.last.accept(this);
     for (HInstruction instruction = block.last.previous;
-         instruction != null;
-         instruction = instruction.previous) {
+        instruction != null;
+        instruction = instruction.previous) {
       if (generateAtUseSite.contains(instruction)) {
         continue;
       }
@@ -578,8 +577,8 @@ class SsaInstructionMerger extends HBaseVisitor {
       }
     }
 
-    if (block.predecessors.length == 1
-        && isBlockSinglePredecessor(block.predecessors[0])) {
+    if (block.predecessors.length == 1 &&
+        isBlockSinglePredecessor(block.predecessors[0])) {
       assert(block.phis.isEmpty);
       tryMergingExpressions(block.predecessors[0]);
     } else {
@@ -623,8 +622,8 @@ class SsaConditionMerger extends HGraphVisitor {
     // If [instruction] is not the last instruction of the block
     // before the control flow instruction, or the last instruction,
     // then we will have to emit a statement for that last instruction.
-    if (instruction != block.last
-        && !identical(instruction, block.last.previous)) return true;
+    if (instruction != block.last &&
+        !identical(instruction, block.last.previous)) return true;
 
     // If one of the instructions in the block until [instruction] is
     // not generated at use site, then we will have to emit a
@@ -632,8 +631,8 @@ class SsaConditionMerger extends HGraphVisitor {
     // TODO(ngeoffray): we could generate a comma separated
     // list of expressions.
     for (HInstruction temp = block.first;
-         !identical(temp, instruction);
-         temp = temp.next) {
+        !identical(temp, instruction);
+        temp = temp.next) {
       if (!generateAtUseSite.contains(temp)) return true;
     }
 
@@ -657,7 +656,7 @@ class SsaConditionMerger extends HGraphVisitor {
   }
 
   void visitBasicBlock(HBasicBlock block) {
-    if (block.last is !HIf) return;
+    if (block.last is! HIf) return;
     HIf startIf = block.last;
     HBasicBlock end = startIf.joinBlock;
 
@@ -747,9 +746,9 @@ class SsaConditionMerger extends HGraphVisitor {
     // If the operation is only used by the first instruction
     // of its block and is safe to be generated at use site, mark it
     // so.
-    if (phi.usedBy.length == 1
-        && phi.usedBy[0] == nextInstruction
-        && isSafeToGenerateAtUseSite(phi.usedBy[0], phi)) {
+    if (phi.usedBy.length == 1 &&
+        phi.usedBy[0] == nextInstruction &&
+        isSafeToGenerateAtUseSite(phi.usedBy[0], phi)) {
       markAsGenerateAtUseSite(phi);
     }
 

@@ -7,7 +7,6 @@
 
 #include "include/dart_api.h"
 
-
 namespace dart {
 namespace bin {
 
@@ -23,23 +22,20 @@ void FUNCTION_NAME(Crypto_GetRandomBytes)(Dart_NativeArguments args) {
     Dart_ThrowException(error);
   }
   intptr_t count = static_cast<intptr_t>(count64);
-  uint8_t* buffer = new uint8_t[count];
+  uint8_t* buffer = Dart_ScopeAllocate(count);
   ASSERT(buffer != NULL);
   if (!Crypto::GetRandomBytes(count, buffer)) {
-    delete[] buffer;
     Dart_ThrowException(DartUtils::NewDartOSError());
     UNREACHABLE();
   }
   Dart_Handle result = Dart_NewTypedData(Dart_TypedData_kUint8, count);
   if (Dart_IsError(result)) {
-    delete[] buffer;
     Dart_Handle error = DartUtils::NewString("Failed to allocate storage.");
     Dart_ThrowException(error);
     UNREACHABLE();
   }
   Dart_ListSetAsBytes(result, 0, buffer, count);
   Dart_SetReturnValue(args, result);
-  delete[] buffer;
 }
 
 }  // namespace bin

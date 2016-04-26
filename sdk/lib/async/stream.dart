@@ -259,13 +259,13 @@ abstract class Stream<T> {
    *         _outputSink.add(data);
    *       }
    *
-   *       void addError(e, [st]) => _outputSink(e, st);
+   *       void addError(e, [st]) => _outputSink.addError(e, st);
    *       void close() => _outputSink.close();
    *     }
    *
    *     class DuplicationTransformer implements StreamTransformer<String, String> {
    *       // Some generic types ommitted for brevety.
-   *       Stream bind(Stream stream) => new Stream<String>.eventTransform(
+   *       Stream bind(Stream stream) => new Stream<String>.eventTransformed(
    *           stream,
    *           (EventSink sink) => new DuplicationSink(sink));
    *     }
@@ -532,7 +532,7 @@ abstract class Stream<T> {
    * If a broadcast stream is listened to more than once, each subscription
    * will individually call `convert` and expand the events.
    */
-  Stream/*<S>*/ expand(Iterable/*<S>*/ convert(T value)) {
+  Stream/*<S>*/ expand/*<S>*/(Iterable/*<S>*/ convert(T value)) {
     return new _ExpandStream<T, dynamic/*=S*/>(this, convert);
   }
 
@@ -566,7 +566,8 @@ abstract class Stream<T> {
    * The `streamTransformer` can decide whether it wants to return a
    * broadcast stream or not.
    */
-  Stream transform(StreamTransformer<T, dynamic> streamTransformer) {
+  Stream/*<S>*/ transform/*<S>*/(
+      StreamTransformer<T, dynamic/*=S*/ > streamTransformer) {
     return streamTransformer.bind(this);
   }
 
@@ -1696,7 +1697,7 @@ abstract class StreamTransformer<S, T> {
    */
   const factory StreamTransformer(
       StreamSubscription<T> transformer(Stream<S> stream, bool cancelOnError))
-      = _StreamSubscriptionTransformer;
+      = _StreamSubscriptionTransformer<S, T>;
 
   /**
    * Creates a [StreamTransformer] that delegates events to the given functions.
@@ -1713,7 +1714,7 @@ abstract class StreamTransformer<S, T> {
       void handleData(S data, EventSink<T> sink),
       void handleError(Object error, StackTrace stackTrace, EventSink<T> sink),
       void handleDone(EventSink<T> sink)})
-          = _StreamHandlerTransformer;
+          = _StreamHandlerTransformer<S, T>;
 
   /**
    * Transform the incoming [stream]'s events.

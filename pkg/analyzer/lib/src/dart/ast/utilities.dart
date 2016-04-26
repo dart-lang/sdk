@@ -60,22 +60,23 @@ class AstCloner implements AstVisitor<AstNode> {
   /**
    * Return a clone of the given [node].
    */
-  AstNode cloneNode(AstNode node) {
+  AstNode/*=E*/ cloneNode/*<E extends AstNode>*/(AstNode/*=E*/ node) {
     if (node == null) {
       return null;
     }
-    return node.accept(this) as AstNode;
+    return node.accept(this) as AstNode/*=E*/;
   }
 
   /**
    * Return a list containing cloned versions of the nodes in the given list of
    * [nodes].
    */
-  List<AstNode> cloneNodeList(NodeList nodes) {
+  List<AstNode/*=E*/ > cloneNodeList/*<E extends AstNode>*/(
+      NodeList/*<E>*/ nodes) {
     int count = nodes.length;
-    List clonedNodes = new List();
+    List/*<E>*/ clonedNodes = new List/*<E>*/();
     for (int i = 0; i < count; i++) {
-      clonedNodes.add((nodes[i]).accept(this) as AstNode);
+      clonedNodes.add((nodes[i]).accept(this) as AstNode/*=E*/);
     }
     return clonedNodes;
   }
@@ -777,7 +778,8 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) =>
-      new SimpleIdentifier(cloneToken(node.token));
+      new SimpleIdentifier(cloneToken(node.token),
+          isDeclaration: node.inDeclarationContext());
 
   @override
   SimpleStringLiteral visitSimpleStringLiteral(SimpleStringLiteral node) =>
@@ -2588,6 +2590,7 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
  * mapping the old token stream to a new token stream, and preserving resolution
  * results.
  */
+@deprecated
 class IncrementalAstCloner implements AstVisitor<AstNode> {
   /**
    * The node to be replaced during the cloning process.
@@ -3101,18 +3104,21 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
           _mapToken(node.implementsKeyword), _cloneNodeList(node.interfaces));
 
   @override
-  ImportDirective visitImportDirective(ImportDirective node) =>
-      new ImportDirective(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.keyword),
-          _cloneNode(node.uri),
-          _cloneNodeList(node.configurations),
-          _mapToken(node.deferredKeyword),
-          _mapToken(node.asKeyword),
-          _cloneNode(node.prefix),
-          _cloneNodeList(node.combinators),
-          _mapToken(node.semicolon));
+  ImportDirective visitImportDirective(ImportDirective node) {
+    ImportDirective copy = new ImportDirective(
+        _cloneNode(node.documentationComment),
+        _cloneNodeList(node.metadata),
+        _mapToken(node.keyword),
+        _cloneNode(node.uri),
+        _cloneNodeList(node.configurations),
+        _mapToken(node.deferredKeyword),
+        _mapToken(node.asKeyword),
+        _cloneNode(node.prefix),
+        _cloneNodeList(node.combinators),
+        _mapToken(node.semicolon));
+    copy.element = node.element;
+    return copy;
+  }
 
   @override
   IndexExpression visitIndexExpression(IndexExpression node) {
@@ -3190,13 +3196,16 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
           _cloneNodeList(node.labels), _cloneNode(node.statement));
 
   @override
-  LibraryDirective visitLibraryDirective(LibraryDirective node) =>
-      new LibraryDirective(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.libraryKeyword),
-          _cloneNode(node.name),
-          _mapToken(node.semicolon));
+  LibraryDirective visitLibraryDirective(LibraryDirective node) {
+    LibraryDirective copy = new LibraryDirective(
+        _cloneNode(node.documentationComment),
+        _cloneNodeList(node.metadata),
+        _mapToken(node.libraryKeyword),
+        _cloneNode(node.name),
+        _mapToken(node.semicolon));
+    copy.element = node.element;
+    return copy;
+  }
 
   @override
   LibraryIdentifier visitLibraryIdentifier(LibraryIdentifier node) {
@@ -3425,7 +3434,8 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
       // documentation comments for the parser.
       mappedToken = node.token;
     }
-    SimpleIdentifier copy = new SimpleIdentifier(mappedToken);
+    SimpleIdentifier copy = new SimpleIdentifier(mappedToken,
+        isDeclaration: node.inDeclarationContext());
     copy.auxiliaryElements = node.auxiliaryElements;
     copy.propagatedElement = node.propagatedElement;
     copy.propagatedType = node.propagatedType;
@@ -3607,19 +3617,19 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
       _cloneNode(node.expression),
       _mapToken(node.semicolon));
 
-  AstNode _cloneNode(AstNode node) {
+  AstNode/*=E*/ _cloneNode/*<E extends AstNode>*/(AstNode/*=E*/ node) {
     if (node == null) {
       return null;
     }
     if (identical(node, _oldNode)) {
-      return _newNode;
+      return _newNode as AstNode/*=E*/;
     }
-    return node.accept(this) as AstNode;
+    return node.accept(this) as AstNode/*=E*/;
   }
 
-  List _cloneNodeList(NodeList nodes) {
-    List clonedNodes = new List();
-    for (AstNode node in nodes) {
+  List/*<E>*/ _cloneNodeList/*<E extends AstNode>*/(NodeList/*<E>*/ nodes) {
+    List/*<E>*/ clonedNodes = new List/*<E>*/();
+    for (AstNode/*=E*/ node in nodes) {
       clonedNodes.add(_cloneNode(node));
     }
     return clonedNodes;
@@ -3690,8 +3700,6 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
     }
     try {
       node.accept(this);
-    } on NodeLocator_NodeFoundException {
-      // A node with the right source position was found.
     } catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logInformation(
           "Unable to locate element at offset ($_startOffset - $_endOffset)",
@@ -3703,6 +3711,11 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
 
   @override
   Object visitNode(AstNode node) {
+    // Don't visit a new tree if the result has been already found.
+    if (_foundNode != null) {
+      return null;
+    }
+    // Check whether the current node covers the selection.
     Token beginToken = node.beginToken;
     Token endToken = node.endToken;
     // Don't include synthetic tokens.
@@ -3720,10 +3733,9 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
     if (start > _endOffset) {
       return null;
     }
+    // Check children.
     try {
       node.visitChildren(this);
-    } on NodeLocator_NodeFoundException {
-      rethrow;
     } catch (exception, stackTrace) {
       // Ignore the exception and proceed in order to visit the rest of the
       // structure.
@@ -3731,9 +3743,13 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
           "Exception caught while traversing an AST structure.",
           new CaughtException(exception, stackTrace));
     }
+    // Found a child.
+    if (_foundNode != null) {
+      return null;
+    }
+    // Check this node.
     if (start <= _startOffset && _endOffset <= end) {
       _foundNode = node;
-      throw new NodeLocator_NodeFoundException();
     }
     return null;
   }
@@ -3781,7 +3797,7 @@ class NodeLocator2 extends UnifyingAstVisitor<Object> {
     }
     try {
       node.accept(this);
-    } on NodeLocator_NodeFoundException {} catch (exception, stackTrace) {
+    } catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logInformation(
           "Unable to locate element at offset ($_startOffset - $_endOffset)",
           new CaughtException(exception, stackTrace));
@@ -3792,6 +3808,11 @@ class NodeLocator2 extends UnifyingAstVisitor<Object> {
 
   @override
   Object visitNode(AstNode node) {
+    // Don't visit a new tree if the result has been already found.
+    if (_foundNode != null) {
+      return null;
+    }
+    // Check whether the current node covers the selection.
     Token beginToken = node.beginToken;
     Token endToken = node.endToken;
     // Don't include synthetic tokens.
@@ -3809,10 +3830,9 @@ class NodeLocator2 extends UnifyingAstVisitor<Object> {
     if (start > _endOffset) {
       return null;
     }
+    // Check children.
     try {
       node.visitChildren(this);
-    } on NodeLocator_NodeFoundException {
-      rethrow;
     } catch (exception, stackTrace) {
       // Ignore the exception and proceed in order to visit the rest of the
       // structure.
@@ -3820,19 +3840,17 @@ class NodeLocator2 extends UnifyingAstVisitor<Object> {
           "Exception caught while traversing an AST structure.",
           new CaughtException(exception, stackTrace));
     }
+    // Found a child.
+    if (_foundNode != null) {
+      return null;
+    }
+    // Check this node.
     if (start <= _startOffset && _endOffset < end) {
       _foundNode = node;
-      throw new NodeLocator_NodeFoundException();
     }
     return null;
   }
 }
-
-/**
- * An exception used by [NodeLocator] to cancel visiting after a node has been
- * found.
- */
-class NodeLocator_NodeFoundException extends RuntimeException {}
 
 /**
  * An object that will replace one child node in an AST node with another node.
@@ -5024,6 +5042,1426 @@ class NodeReplacer implements AstVisitor<bool> {
     }
     NodeReplacer replacer = new NodeReplacer(oldNode, newNode);
     return parent.accept(replacer);
+  }
+}
+
+/**
+ * An object that copies resolution information from one AST structure to
+ * another as long as the structures of the corresponding children of a pair of
+ * nodes are the same.
+ */
+class ResolutionCopier implements AstVisitor<bool> {
+  /**
+   * The AST node with which the node being visited is to be compared. This is
+   * only valid at the beginning of each visit method (until [isEqualNodes] is
+   * invoked).
+   */
+  AstNode _toNode;
+
+  @override
+  bool visitAdjacentStrings(AdjacentStrings node) {
+    AdjacentStrings toNode = this._toNode as AdjacentStrings;
+    if (_isEqualNodeLists(node.strings, toNode.strings)) {
+      toNode.staticType = node.staticType;
+      toNode.propagatedType = node.propagatedType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitAnnotation(Annotation node) {
+    Annotation toNode = this._toNode as Annotation;
+    if (_and(
+        _isEqualTokens(node.atSign, toNode.atSign),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualTokens(node.period, toNode.period),
+        _isEqualNodes(node.constructorName, toNode.constructorName),
+        _isEqualNodes(node.arguments, toNode.arguments))) {
+      toNode.element = node.element;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitArgumentList(ArgumentList node) {
+    ArgumentList toNode = this._toNode as ArgumentList;
+    return _and(
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodeLists(node.arguments, toNode.arguments),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis));
+  }
+
+  @override
+  bool visitAsExpression(AsExpression node) {
+    AsExpression toNode = this._toNode as AsExpression;
+    if (_and(
+        _isEqualNodes(node.expression, toNode.expression),
+        _isEqualTokens(node.asOperator, toNode.asOperator),
+        _isEqualNodes(node.type, toNode.type))) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitAssertStatement(AssertStatement node) {
+    AssertStatement toNode = this._toNode as AssertStatement;
+    return _and(
+        _isEqualTokens(node.assertKeyword, toNode.assertKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.condition, toNode.condition),
+        _isEqualTokens(node.comma, toNode.comma),
+        _isEqualNodes(node.message, toNode.message),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
+  }
+
+  @override
+  bool visitAssignmentExpression(AssignmentExpression node) {
+    AssignmentExpression toNode = this._toNode as AssignmentExpression;
+    if (_and(
+        _isEqualNodes(node.leftHandSide, toNode.leftHandSide),
+        _isEqualTokens(node.operator, toNode.operator),
+        _isEqualNodes(node.rightHandSide, toNode.rightHandSide))) {
+      toNode.propagatedElement = node.propagatedElement;
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticElement = node.staticElement;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitAwaitExpression(AwaitExpression node) {
+    AwaitExpression toNode = this._toNode as AwaitExpression;
+    if (_and(_isEqualTokens(node.awaitKeyword, toNode.awaitKeyword),
+        _isEqualNodes(node.expression, toNode.expression))) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitBinaryExpression(BinaryExpression node) {
+    BinaryExpression toNode = this._toNode as BinaryExpression;
+    if (_and(
+        _isEqualNodes(node.leftOperand, toNode.leftOperand),
+        _isEqualTokens(node.operator, toNode.operator),
+        _isEqualNodes(node.rightOperand, toNode.rightOperand))) {
+      toNode.propagatedElement = node.propagatedElement;
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticElement = node.staticElement;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitBlock(Block node) {
+    Block toNode = this._toNode as Block;
+    return _and(
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.statements, toNode.statements),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket));
+  }
+
+  @override
+  bool visitBlockFunctionBody(BlockFunctionBody node) {
+    BlockFunctionBody toNode = this._toNode as BlockFunctionBody;
+    return _isEqualNodes(node.block, toNode.block);
+  }
+
+  @override
+  bool visitBooleanLiteral(BooleanLiteral node) {
+    BooleanLiteral toNode = this._toNode as BooleanLiteral;
+    if (_and(_isEqualTokens(node.literal, toNode.literal),
+        node.value == toNode.value)) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitBreakStatement(BreakStatement node) {
+    BreakStatement toNode = this._toNode as BreakStatement;
+    if (_and(
+        _isEqualTokens(node.breakKeyword, toNode.breakKeyword),
+        _isEqualNodes(node.label, toNode.label),
+        _isEqualTokens(node.semicolon, toNode.semicolon))) {
+      // TODO(paulberry): map node.target to toNode.target.
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitCascadeExpression(CascadeExpression node) {
+    CascadeExpression toNode = this._toNode as CascadeExpression;
+    if (_and(_isEqualNodes(node.target, toNode.target),
+        _isEqualNodeLists(node.cascadeSections, toNode.cascadeSections))) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitCatchClause(CatchClause node) {
+    CatchClause toNode = this._toNode as CatchClause;
+    return _and(
+        _isEqualTokens(node.onKeyword, toNode.onKeyword),
+        _isEqualNodes(node.exceptionType, toNode.exceptionType),
+        _isEqualTokens(node.catchKeyword, toNode.catchKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.exceptionParameter, toNode.exceptionParameter),
+        _isEqualTokens(node.comma, toNode.comma),
+        _isEqualNodes(node.stackTraceParameter, toNode.stackTraceParameter),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualNodes(node.body, toNode.body));
+  }
+
+  @override
+  bool visitClassDeclaration(ClassDeclaration node) {
+    ClassDeclaration toNode = this._toNode as ClassDeclaration;
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.abstractKeyword, toNode.abstractKeyword),
+        _isEqualTokens(node.classKeyword, toNode.classKeyword),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualNodes(node.typeParameters, toNode.typeParameters),
+        _isEqualNodes(node.extendsClause, toNode.extendsClause),
+        _isEqualNodes(node.withClause, toNode.withClause),
+        _isEqualNodes(node.implementsClause, toNode.implementsClause),
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.members, toNode.members),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket));
+  }
+
+  @override
+  bool visitClassTypeAlias(ClassTypeAlias node) {
+    ClassTypeAlias toNode = this._toNode as ClassTypeAlias;
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.typedefKeyword, toNode.typedefKeyword),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualNodes(node.typeParameters, toNode.typeParameters),
+        _isEqualTokens(node.equals, toNode.equals),
+        _isEqualTokens(node.abstractKeyword, toNode.abstractKeyword),
+        _isEqualNodes(node.superclass, toNode.superclass),
+        _isEqualNodes(node.withClause, toNode.withClause),
+        _isEqualNodes(node.implementsClause, toNode.implementsClause),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
+  }
+
+  @override
+  bool visitComment(Comment node) {
+    Comment toNode = this._toNode as Comment;
+    return _isEqualNodeLists(node.references, toNode.references);
+  }
+
+  @override
+  bool visitCommentReference(CommentReference node) {
+    CommentReference toNode = this._toNode as CommentReference;
+    return _and(_isEqualTokens(node.newKeyword, toNode.newKeyword),
+        _isEqualNodes(node.identifier, toNode.identifier));
+  }
+
+  @override
+  bool visitCompilationUnit(CompilationUnit node) {
+    CompilationUnit toNode = this._toNode as CompilationUnit;
+    if (_and(
+        _isEqualTokens(node.beginToken, toNode.beginToken),
+        _isEqualNodes(node.scriptTag, toNode.scriptTag),
+        _isEqualNodeLists(node.directives, toNode.directives),
+        _isEqualNodeLists(node.declarations, toNode.declarations),
+        _isEqualTokens(node.endToken, toNode.endToken))) {
+      toNode.element = node.element;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitConditionalExpression(ConditionalExpression node) {
+    ConditionalExpression toNode = this._toNode as ConditionalExpression;
+    if (_and(
+        _isEqualNodes(node.condition, toNode.condition),
+        _isEqualTokens(node.question, toNode.question),
+        _isEqualNodes(node.thenExpression, toNode.thenExpression),
+        _isEqualTokens(node.colon, toNode.colon),
+        _isEqualNodes(node.elseExpression, toNode.elseExpression))) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitConfiguration(Configuration node) {
+    Configuration toNode = this._toNode as Configuration;
+    if (_and(
+        _isEqualTokens(node.ifKeyword, toNode.ifKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualTokens(node.equalToken, toNode.equalToken),
+        _isEqualNodes(node.value, toNode.value),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualNodes(node.libraryUri, toNode.libraryUri))) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitConstructorDeclaration(ConstructorDeclaration node) {
+    ConstructorDeclaration toNode = this._toNode as ConstructorDeclaration;
+    if (_and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.externalKeyword, toNode.externalKeyword),
+        _isEqualTokens(node.constKeyword, toNode.constKeyword),
+        _isEqualTokens(node.factoryKeyword, toNode.factoryKeyword),
+        _isEqualNodes(node.returnType, toNode.returnType),
+        _isEqualTokens(node.period, toNode.period),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualNodes(node.parameters, toNode.parameters),
+        _isEqualTokens(node.separator, toNode.separator),
+        _isEqualNodeLists(node.initializers, toNode.initializers),
+        _isEqualNodes(node.redirectedConstructor, toNode.redirectedConstructor),
+        _isEqualNodes(node.body, toNode.body))) {
+      toNode.element = node.element;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    ConstructorFieldInitializer toNode =
+        this._toNode as ConstructorFieldInitializer;
+    return _and(
+        _isEqualTokens(node.thisKeyword, toNode.thisKeyword),
+        _isEqualTokens(node.period, toNode.period),
+        _isEqualNodes(node.fieldName, toNode.fieldName),
+        _isEqualTokens(node.equals, toNode.equals),
+        _isEqualNodes(node.expression, toNode.expression));
+  }
+
+  @override
+  bool visitConstructorName(ConstructorName node) {
+    ConstructorName toNode = this._toNode as ConstructorName;
+    if (_and(
+        _isEqualNodes(node.type, toNode.type),
+        _isEqualTokens(node.period, toNode.period),
+        _isEqualNodes(node.name, toNode.name))) {
+      toNode.staticElement = node.staticElement;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitContinueStatement(ContinueStatement node) {
+    ContinueStatement toNode = this._toNode as ContinueStatement;
+    if (_and(
+        _isEqualTokens(node.continueKeyword, toNode.continueKeyword),
+        _isEqualNodes(node.label, toNode.label),
+        _isEqualTokens(node.semicolon, toNode.semicolon))) {
+      // TODO(paulberry): map node.target to toNode.target.
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitDeclaredIdentifier(DeclaredIdentifier node) {
+    DeclaredIdentifier toNode = this._toNode as DeclaredIdentifier;
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.type, toNode.type),
+        _isEqualNodes(node.identifier, toNode.identifier));
+  }
+
+  @override
+  bool visitDefaultFormalParameter(DefaultFormalParameter node) {
+    DefaultFormalParameter toNode = this._toNode as DefaultFormalParameter;
+    return _and(
+        _isEqualNodes(node.parameter, toNode.parameter),
+        node.kind == toNode.kind,
+        _isEqualTokens(node.separator, toNode.separator),
+        _isEqualNodes(node.defaultValue, toNode.defaultValue));
+  }
+
+  @override
+  bool visitDoStatement(DoStatement node) {
+    DoStatement toNode = this._toNode as DoStatement;
+    return _and(
+        _isEqualTokens(node.doKeyword, toNode.doKeyword),
+        _isEqualNodes(node.body, toNode.body),
+        _isEqualTokens(node.whileKeyword, toNode.whileKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.condition, toNode.condition),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
+  }
+
+  @override
+  bool visitDottedName(DottedName node) {
+    DottedName toNode = this._toNode as DottedName;
+    return _isEqualNodeLists(node.components, toNode.components);
+  }
+
+  @override
+  bool visitDoubleLiteral(DoubleLiteral node) {
+    DoubleLiteral toNode = this._toNode as DoubleLiteral;
+    if (_and(_isEqualTokens(node.literal, toNode.literal),
+        node.value == toNode.value)) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitEmptyFunctionBody(EmptyFunctionBody node) {
+    EmptyFunctionBody toNode = this._toNode as EmptyFunctionBody;
+    return _isEqualTokens(node.semicolon, toNode.semicolon);
+  }
+
+  @override
+  bool visitEmptyStatement(EmptyStatement node) {
+    EmptyStatement toNode = this._toNode as EmptyStatement;
+    return _isEqualTokens(node.semicolon, toNode.semicolon);
+  }
+
+  @override
+  bool visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    EnumConstantDeclaration toNode = this._toNode as EnumConstantDeclaration;
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualNodes(node.name, toNode.name));
+  }
+
+  @override
+  bool visitEnumDeclaration(EnumDeclaration node) {
+    EnumDeclaration toNode = this._toNode as EnumDeclaration;
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.enumKeyword, toNode.enumKeyword),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.constants, toNode.constants),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket));
+  }
+
+  @override
+  bool visitExportDirective(ExportDirective node) {
+    ExportDirective toNode = this._toNode as ExportDirective;
+    if (_and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.uri, toNode.uri),
+        _isEqualNodeLists(node.combinators, toNode.combinators),
+        _isEqualTokens(node.semicolon, toNode.semicolon))) {
+      toNode.element = node.element;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    ExpressionFunctionBody toNode = this._toNode as ExpressionFunctionBody;
+    return _and(
+        _isEqualTokens(node.functionDefinition, toNode.functionDefinition),
+        _isEqualNodes(node.expression, toNode.expression),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
+  }
+
+  @override
+  bool visitExpressionStatement(ExpressionStatement node) {
+    ExpressionStatement toNode = this._toNode as ExpressionStatement;
+    return _and(_isEqualNodes(node.expression, toNode.expression),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
+  }
+
+  @override
+  bool visitExtendsClause(ExtendsClause node) {
+    ExtendsClause toNode = this._toNode as ExtendsClause;
+    return _and(_isEqualTokens(node.extendsKeyword, toNode.extendsKeyword),
+        _isEqualNodes(node.superclass, toNode.superclass));
+  }
+
+  @override
+  bool visitFieldDeclaration(FieldDeclaration node) {
+    FieldDeclaration toNode = this._toNode as FieldDeclaration;
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.staticKeyword, toNode.staticKeyword),
+        _isEqualNodes(node.fields, toNode.fields),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
+  }
+
+  @override
+  bool visitFieldFormalParameter(FieldFormalParameter node) {
+    FieldFormalParameter toNode = this._toNode as FieldFormalParameter;
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.type, toNode.type),
+        _isEqualTokens(node.thisKeyword, toNode.thisKeyword),
+        _isEqualTokens(node.period, toNode.period),
+        _isEqualNodes(node.identifier, toNode.identifier));
+  }
+
+  @override
+  bool visitForEachStatement(ForEachStatement node) {
+    ForEachStatement toNode = this._toNode as ForEachStatement;
+    return _and(
+        _isEqualTokens(node.forKeyword, toNode.forKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.loopVariable, toNode.loopVariable),
+        _isEqualTokens(node.inKeyword, toNode.inKeyword),
+        _isEqualNodes(node.iterable, toNode.iterable),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualNodes(node.body, toNode.body));
+  }
+
+  @override
+  bool visitFormalParameterList(FormalParameterList node) {
+    FormalParameterList toNode = this._toNode as FormalParameterList;
+    return _and(
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodeLists(node.parameters, toNode.parameters),
+        _isEqualTokens(node.leftDelimiter, toNode.leftDelimiter),
+        _isEqualTokens(node.rightDelimiter, toNode.rightDelimiter),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis));
+  }
+
+  @override
+  bool visitForStatement(ForStatement node) {
+    ForStatement toNode = this._toNode as ForStatement;
+    return _and(
+        _isEqualTokens(node.forKeyword, toNode.forKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.variables, toNode.variables),
+        _isEqualNodes(node.initialization, toNode.initialization),
+        _isEqualTokens(node.leftSeparator, toNode.leftSeparator),
+        _isEqualNodes(node.condition, toNode.condition),
+        _isEqualTokens(node.rightSeparator, toNode.rightSeparator),
+        _isEqualNodeLists(node.updaters, toNode.updaters),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualNodes(node.body, toNode.body));
+  }
+
+  @override
+  bool visitFunctionDeclaration(FunctionDeclaration node) {
+    FunctionDeclaration toNode = this._toNode as FunctionDeclaration;
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.externalKeyword, toNode.externalKeyword),
+        _isEqualNodes(node.returnType, toNode.returnType),
+        _isEqualTokens(node.propertyKeyword, toNode.propertyKeyword),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualNodes(node.functionExpression, toNode.functionExpression));
+  }
+
+  @override
+  bool visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    FunctionDeclarationStatement toNode =
+        this._toNode as FunctionDeclarationStatement;
+    return _isEqualNodes(node.functionDeclaration, toNode.functionDeclaration);
+  }
+
+  @override
+  bool visitFunctionExpression(FunctionExpression node) {
+    FunctionExpression toNode = this._toNode as FunctionExpression;
+    if (_and(_isEqualNodes(node.parameters, toNode.parameters),
+        _isEqualNodes(node.body, toNode.body))) {
+      toNode.element = node.element;
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    FunctionExpressionInvocation toNode =
+        this._toNode as FunctionExpressionInvocation;
+    if (_and(_isEqualNodes(node.function, toNode.function),
+        _isEqualNodes(node.argumentList, toNode.argumentList))) {
+      toNode.propagatedElement = node.propagatedElement;
+      toNode.propagatedInvokeType = node.propagatedInvokeType;
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticInvokeType = node.staticInvokeType;
+      toNode.staticElement = node.staticElement;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitFunctionTypeAlias(FunctionTypeAlias node) {
+    FunctionTypeAlias toNode = this._toNode as FunctionTypeAlias;
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.typedefKeyword, toNode.typedefKeyword),
+        _isEqualNodes(node.returnType, toNode.returnType),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualNodes(node.typeParameters, toNode.typeParameters),
+        _isEqualNodes(node.parameters, toNode.parameters),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
+  }
+
+  @override
+  bool visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    FunctionTypedFormalParameter toNode =
+        this._toNode as FunctionTypedFormalParameter;
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualNodes(node.returnType, toNode.returnType),
+        _isEqualNodes(node.identifier, toNode.identifier),
+        _isEqualNodes(node.parameters, toNode.parameters));
+  }
+
+  @override
+  bool visitHideCombinator(HideCombinator node) {
+    HideCombinator toNode = this._toNode as HideCombinator;
+    return _and(_isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodeLists(node.hiddenNames, toNode.hiddenNames));
+  }
+
+  @override
+  bool visitIfStatement(IfStatement node) {
+    IfStatement toNode = this._toNode as IfStatement;
+    return _and(
+        _isEqualTokens(node.ifKeyword, toNode.ifKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.condition, toNode.condition),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualNodes(node.thenStatement, toNode.thenStatement),
+        _isEqualTokens(node.elseKeyword, toNode.elseKeyword),
+        _isEqualNodes(node.elseStatement, toNode.elseStatement));
+  }
+
+  @override
+  bool visitImplementsClause(ImplementsClause node) {
+    ImplementsClause toNode = this._toNode as ImplementsClause;
+    return _and(
+        _isEqualTokens(node.implementsKeyword, toNode.implementsKeyword),
+        _isEqualNodeLists(node.interfaces, toNode.interfaces));
+  }
+
+  @override
+  bool visitImportDirective(ImportDirective node) {
+    ImportDirective toNode = this._toNode as ImportDirective;
+    if (_and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.uri, toNode.uri),
+        _isEqualTokens(node.asKeyword, toNode.asKeyword),
+        _isEqualNodes(node.prefix, toNode.prefix),
+        _isEqualNodeLists(node.combinators, toNode.combinators),
+        _isEqualTokens(node.semicolon, toNode.semicolon))) {
+      toNode.element = node.element;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitIndexExpression(IndexExpression node) {
+    IndexExpression toNode = this._toNode as IndexExpression;
+    if (_and(
+        _isEqualNodes(node.target, toNode.target),
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodes(node.index, toNode.index),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
+      toNode.auxiliaryElements = node.auxiliaryElements;
+      toNode.propagatedElement = node.propagatedElement;
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticElement = node.staticElement;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitInstanceCreationExpression(InstanceCreationExpression node) {
+    InstanceCreationExpression toNode =
+        this._toNode as InstanceCreationExpression;
+    if (_and(
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.constructorName, toNode.constructorName),
+        _isEqualNodes(node.argumentList, toNode.argumentList))) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticElement = node.staticElement;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitIntegerLiteral(IntegerLiteral node) {
+    IntegerLiteral toNode = this._toNode as IntegerLiteral;
+    if (_and(_isEqualTokens(node.literal, toNode.literal),
+        node.value == toNode.value)) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitInterpolationExpression(InterpolationExpression node) {
+    InterpolationExpression toNode = this._toNode as InterpolationExpression;
+    return _and(
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodes(node.expression, toNode.expression),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket));
+  }
+
+  @override
+  bool visitInterpolationString(InterpolationString node) {
+    InterpolationString toNode = this._toNode as InterpolationString;
+    return _and(_isEqualTokens(node.contents, toNode.contents),
+        node.value == toNode.value);
+  }
+
+  @override
+  bool visitIsExpression(IsExpression node) {
+    IsExpression toNode = this._toNode as IsExpression;
+    if (_and(
+        _isEqualNodes(node.expression, toNode.expression),
+        _isEqualTokens(node.isOperator, toNode.isOperator),
+        _isEqualTokens(node.notOperator, toNode.notOperator),
+        _isEqualNodes(node.type, toNode.type))) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitLabel(Label node) {
+    Label toNode = this._toNode as Label;
+    return _and(_isEqualNodes(node.label, toNode.label),
+        _isEqualTokens(node.colon, toNode.colon));
+  }
+
+  @override
+  bool visitLabeledStatement(LabeledStatement node) {
+    LabeledStatement toNode = this._toNode as LabeledStatement;
+    return _and(_isEqualNodeLists(node.labels, toNode.labels),
+        _isEqualNodes(node.statement, toNode.statement));
+  }
+
+  @override
+  bool visitLibraryDirective(LibraryDirective node) {
+    LibraryDirective toNode = this._toNode as LibraryDirective;
+    if (_and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.libraryKeyword, toNode.libraryKeyword),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualTokens(node.semicolon, toNode.semicolon))) {
+      toNode.element = node.element;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitLibraryIdentifier(LibraryIdentifier node) {
+    LibraryIdentifier toNode = this._toNode as LibraryIdentifier;
+    if (_isEqualNodeLists(node.components, toNode.components)) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitListLiteral(ListLiteral node) {
+    ListLiteral toNode = this._toNode as ListLiteral;
+    if (_and(
+        _isEqualTokens(node.constKeyword, toNode.constKeyword),
+        _isEqualNodes(node.typeArguments, toNode.typeArguments),
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.elements, toNode.elements),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitMapLiteral(MapLiteral node) {
+    MapLiteral toNode = this._toNode as MapLiteral;
+    if (_and(
+        _isEqualTokens(node.constKeyword, toNode.constKeyword),
+        _isEqualNodes(node.typeArguments, toNode.typeArguments),
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.entries, toNode.entries),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitMapLiteralEntry(MapLiteralEntry node) {
+    MapLiteralEntry toNode = this._toNode as MapLiteralEntry;
+    return _and(
+        _isEqualNodes(node.key, toNode.key),
+        _isEqualTokens(node.separator, toNode.separator),
+        _isEqualNodes(node.value, toNode.value));
+  }
+
+  @override
+  bool visitMethodDeclaration(MethodDeclaration node) {
+    MethodDeclaration toNode = this._toNode as MethodDeclaration;
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.externalKeyword, toNode.externalKeyword),
+        _isEqualTokens(node.modifierKeyword, toNode.modifierKeyword),
+        _isEqualNodes(node.returnType, toNode.returnType),
+        _isEqualTokens(node.propertyKeyword, toNode.propertyKeyword),
+        _isEqualTokens(node.propertyKeyword, toNode.propertyKeyword),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualNodes(node.parameters, toNode.parameters),
+        _isEqualNodes(node.body, toNode.body));
+  }
+
+  @override
+  bool visitMethodInvocation(MethodInvocation node) {
+    MethodInvocation toNode = this._toNode as MethodInvocation;
+    if (_and(
+        _isEqualNodes(node.target, toNode.target),
+        _isEqualTokens(node.operator, toNode.operator),
+        _isEqualNodes(node.methodName, toNode.methodName),
+        _isEqualNodes(node.argumentList, toNode.argumentList))) {
+      toNode.propagatedInvokeType = node.propagatedInvokeType;
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticInvokeType = node.staticInvokeType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitNamedExpression(NamedExpression node) {
+    NamedExpression toNode = this._toNode as NamedExpression;
+    if (_and(_isEqualNodes(node.name, toNode.name),
+        _isEqualNodes(node.expression, toNode.expression))) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitNativeClause(NativeClause node) {
+    NativeClause toNode = this._toNode as NativeClause;
+    return _and(_isEqualTokens(node.nativeKeyword, toNode.nativeKeyword),
+        _isEqualNodes(node.name, toNode.name));
+  }
+
+  @override
+  bool visitNativeFunctionBody(NativeFunctionBody node) {
+    NativeFunctionBody toNode = this._toNode as NativeFunctionBody;
+    return _and(
+        _isEqualTokens(node.nativeKeyword, toNode.nativeKeyword),
+        _isEqualNodes(node.stringLiteral, toNode.stringLiteral),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
+  }
+
+  @override
+  bool visitNullLiteral(NullLiteral node) {
+    NullLiteral toNode = this._toNode as NullLiteral;
+    if (_isEqualTokens(node.literal, toNode.literal)) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitParenthesizedExpression(ParenthesizedExpression node) {
+    ParenthesizedExpression toNode = this._toNode as ParenthesizedExpression;
+    if (_and(
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.expression, toNode.expression),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis))) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitPartDirective(PartDirective node) {
+    PartDirective toNode = this._toNode as PartDirective;
+    if (_and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.partKeyword, toNode.partKeyword),
+        _isEqualNodes(node.uri, toNode.uri),
+        _isEqualTokens(node.semicolon, toNode.semicolon))) {
+      toNode.element = node.element;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitPartOfDirective(PartOfDirective node) {
+    PartOfDirective toNode = this._toNode as PartOfDirective;
+    if (_and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.partKeyword, toNode.partKeyword),
+        _isEqualTokens(node.ofKeyword, toNode.ofKeyword),
+        _isEqualNodes(node.libraryName, toNode.libraryName),
+        _isEqualTokens(node.semicolon, toNode.semicolon))) {
+      toNode.element = node.element;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitPostfixExpression(PostfixExpression node) {
+    PostfixExpression toNode = this._toNode as PostfixExpression;
+    if (_and(_isEqualNodes(node.operand, toNode.operand),
+        _isEqualTokens(node.operator, toNode.operator))) {
+      toNode.propagatedElement = node.propagatedElement;
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticElement = node.staticElement;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitPrefixedIdentifier(PrefixedIdentifier node) {
+    PrefixedIdentifier toNode = this._toNode as PrefixedIdentifier;
+    if (_and(
+        _isEqualNodes(node.prefix, toNode.prefix),
+        _isEqualTokens(node.period, toNode.period),
+        _isEqualNodes(node.identifier, toNode.identifier))) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitPrefixExpression(PrefixExpression node) {
+    PrefixExpression toNode = this._toNode as PrefixExpression;
+    if (_and(_isEqualTokens(node.operator, toNode.operator),
+        _isEqualNodes(node.operand, toNode.operand))) {
+      toNode.propagatedElement = node.propagatedElement;
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticElement = node.staticElement;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitPropertyAccess(PropertyAccess node) {
+    PropertyAccess toNode = this._toNode as PropertyAccess;
+    if (_and(
+        _isEqualNodes(node.target, toNode.target),
+        _isEqualTokens(node.operator, toNode.operator),
+        _isEqualNodes(node.propertyName, toNode.propertyName))) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation toNode =
+        this._toNode as RedirectingConstructorInvocation;
+    if (_and(
+        _isEqualTokens(node.thisKeyword, toNode.thisKeyword),
+        _isEqualTokens(node.period, toNode.period),
+        _isEqualNodes(node.constructorName, toNode.constructorName),
+        _isEqualNodes(node.argumentList, toNode.argumentList))) {
+      toNode.staticElement = node.staticElement;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitRethrowExpression(RethrowExpression node) {
+    RethrowExpression toNode = this._toNode as RethrowExpression;
+    if (_isEqualTokens(node.rethrowKeyword, toNode.rethrowKeyword)) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitReturnStatement(ReturnStatement node) {
+    ReturnStatement toNode = this._toNode as ReturnStatement;
+    return _and(
+        _isEqualTokens(node.returnKeyword, toNode.returnKeyword),
+        _isEqualNodes(node.expression, toNode.expression),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
+  }
+
+  @override
+  bool visitScriptTag(ScriptTag node) {
+    ScriptTag toNode = this._toNode as ScriptTag;
+    return _isEqualTokens(node.scriptTag, toNode.scriptTag);
+  }
+
+  @override
+  bool visitShowCombinator(ShowCombinator node) {
+    ShowCombinator toNode = this._toNode as ShowCombinator;
+    return _and(_isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodeLists(node.shownNames, toNode.shownNames));
+  }
+
+  @override
+  bool visitSimpleFormalParameter(SimpleFormalParameter node) {
+    SimpleFormalParameter toNode = this._toNode as SimpleFormalParameter;
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.type, toNode.type),
+        _isEqualNodes(node.identifier, toNode.identifier));
+  }
+
+  @override
+  bool visitSimpleIdentifier(SimpleIdentifier node) {
+    SimpleIdentifier toNode = this._toNode as SimpleIdentifier;
+    if (_isEqualTokens(node.token, toNode.token)) {
+      toNode.staticElement = node.staticElement;
+      toNode.staticType = node.staticType;
+      toNode.propagatedElement = node.propagatedElement;
+      toNode.propagatedType = node.propagatedType;
+      toNode.auxiliaryElements = node.auxiliaryElements;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitSimpleStringLiteral(SimpleStringLiteral node) {
+    SimpleStringLiteral toNode = this._toNode as SimpleStringLiteral;
+    if (_and(_isEqualTokens(node.literal, toNode.literal),
+        node.value == toNode.value)) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitStringInterpolation(StringInterpolation node) {
+    StringInterpolation toNode = this._toNode as StringInterpolation;
+    if (_isEqualNodeLists(node.elements, toNode.elements)) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    SuperConstructorInvocation toNode =
+        this._toNode as SuperConstructorInvocation;
+    if (_and(
+        _isEqualTokens(node.superKeyword, toNode.superKeyword),
+        _isEqualTokens(node.period, toNode.period),
+        _isEqualNodes(node.constructorName, toNode.constructorName),
+        _isEqualNodes(node.argumentList, toNode.argumentList))) {
+      toNode.staticElement = node.staticElement;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitSuperExpression(SuperExpression node) {
+    SuperExpression toNode = this._toNode as SuperExpression;
+    if (_isEqualTokens(node.superKeyword, toNode.superKeyword)) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitSwitchCase(SwitchCase node) {
+    SwitchCase toNode = this._toNode as SwitchCase;
+    return _and(
+        _isEqualNodeLists(node.labels, toNode.labels),
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.expression, toNode.expression),
+        _isEqualTokens(node.colon, toNode.colon),
+        _isEqualNodeLists(node.statements, toNode.statements));
+  }
+
+  @override
+  bool visitSwitchDefault(SwitchDefault node) {
+    SwitchDefault toNode = this._toNode as SwitchDefault;
+    return _and(
+        _isEqualNodeLists(node.labels, toNode.labels),
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualTokens(node.colon, toNode.colon),
+        _isEqualNodeLists(node.statements, toNode.statements));
+  }
+
+  @override
+  bool visitSwitchStatement(SwitchStatement node) {
+    SwitchStatement toNode = this._toNode as SwitchStatement;
+    return _and(
+        _isEqualTokens(node.switchKeyword, toNode.switchKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.expression, toNode.expression),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.members, toNode.members),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket));
+  }
+
+  @override
+  bool visitSymbolLiteral(SymbolLiteral node) {
+    SymbolLiteral toNode = this._toNode as SymbolLiteral;
+    if (_and(_isEqualTokens(node.poundSign, toNode.poundSign),
+        _isEqualTokenLists(node.components, toNode.components))) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitThisExpression(ThisExpression node) {
+    ThisExpression toNode = this._toNode as ThisExpression;
+    if (_isEqualTokens(node.thisKeyword, toNode.thisKeyword)) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitThrowExpression(ThrowExpression node) {
+    ThrowExpression toNode = this._toNode as ThrowExpression;
+    if (_and(_isEqualTokens(node.throwKeyword, toNode.throwKeyword),
+        _isEqualNodes(node.expression, toNode.expression))) {
+      toNode.propagatedType = node.propagatedType;
+      toNode.staticType = node.staticType;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    TopLevelVariableDeclaration toNode =
+        this._toNode as TopLevelVariableDeclaration;
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualNodes(node.variables, toNode.variables),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
+  }
+
+  @override
+  bool visitTryStatement(TryStatement node) {
+    TryStatement toNode = this._toNode as TryStatement;
+    return _and(
+        _isEqualTokens(node.tryKeyword, toNode.tryKeyword),
+        _isEqualNodes(node.body, toNode.body),
+        _isEqualNodeLists(node.catchClauses, toNode.catchClauses),
+        _isEqualTokens(node.finallyKeyword, toNode.finallyKeyword),
+        _isEqualNodes(node.finallyBlock, toNode.finallyBlock));
+  }
+
+  @override
+  bool visitTypeArgumentList(TypeArgumentList node) {
+    TypeArgumentList toNode = this._toNode as TypeArgumentList;
+    return _and(
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.arguments, toNode.arguments),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket));
+  }
+
+  @override
+  bool visitTypeName(TypeName node) {
+    TypeName toNode = this._toNode as TypeName;
+    if (_and(_isEqualNodes(node.name, toNode.name),
+        _isEqualNodes(node.typeArguments, toNode.typeArguments))) {
+      toNode.type = node.type;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitTypeParameter(TypeParameter node) {
+    TypeParameter toNode = this._toNode as TypeParameter;
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualTokens(node.extendsKeyword, toNode.extendsKeyword),
+        _isEqualNodes(node.bound, toNode.bound));
+  }
+
+  @override
+  bool visitTypeParameterList(TypeParameterList node) {
+    TypeParameterList toNode = this._toNode as TypeParameterList;
+    return _and(
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.typeParameters, toNode.typeParameters),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket));
+  }
+
+  @override
+  bool visitVariableDeclaration(VariableDeclaration node) {
+    VariableDeclaration toNode = this._toNode as VariableDeclaration;
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualTokens(node.equals, toNode.equals),
+        _isEqualNodes(node.initializer, toNode.initializer));
+  }
+
+  @override
+  bool visitVariableDeclarationList(VariableDeclarationList node) {
+    VariableDeclarationList toNode = this._toNode as VariableDeclarationList;
+    return _and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.keyword, toNode.keyword),
+        _isEqualNodes(node.type, toNode.type),
+        _isEqualNodeLists(node.variables, toNode.variables));
+  }
+
+  @override
+  bool visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    VariableDeclarationStatement toNode =
+        this._toNode as VariableDeclarationStatement;
+    return _and(_isEqualNodes(node.variables, toNode.variables),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
+  }
+
+  @override
+  bool visitWhileStatement(WhileStatement node) {
+    WhileStatement toNode = this._toNode as WhileStatement;
+    return _and(
+        _isEqualTokens(node.whileKeyword, toNode.whileKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.condition, toNode.condition),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualNodes(node.body, toNode.body));
+  }
+
+  @override
+  bool visitWithClause(WithClause node) {
+    WithClause toNode = this._toNode as WithClause;
+    return _and(_isEqualTokens(node.withKeyword, toNode.withKeyword),
+        _isEqualNodeLists(node.mixinTypes, toNode.mixinTypes));
+  }
+
+  @override
+  bool visitYieldStatement(YieldStatement node) {
+    YieldStatement toNode = this._toNode as YieldStatement;
+    return _and(
+        _isEqualTokens(node.yieldKeyword, toNode.yieldKeyword),
+        _isEqualNodes(node.expression, toNode.expression),
+        _isEqualTokens(node.semicolon, toNode.semicolon));
+  }
+
+  /**
+   * Return `true` if all of the parameters are `true`.
+   */
+  bool _and(bool b1, bool b2,
+      [bool b3 = true,
+      bool b4 = true,
+      bool b5 = true,
+      bool b6 = true,
+      bool b7 = true,
+      bool b8 = true,
+      bool b9 = true,
+      bool b10 = true,
+      bool b11 = true,
+      bool b12 = true,
+      bool b13 = true]) {
+    // TODO(brianwilkerson) Inline this method.
+    return b1 &&
+        b2 &&
+        b3 &&
+        b4 &&
+        b5 &&
+        b6 &&
+        b7 &&
+        b8 &&
+        b9 &&
+        b10 &&
+        b11 &&
+        b12 &&
+        b13;
+  }
+
+  /**
+   * Return `true` if the [first] and [second] lists of AST nodes have the same
+   * size and corresponding elements are equal.
+   */
+  bool _isEqualNodeLists(NodeList first, NodeList second) {
+    if (first == null) {
+      return second == null;
+    } else if (second == null) {
+      return false;
+    }
+    int size = first.length;
+    if (second.length != size) {
+      return false;
+    }
+    bool equal = true;
+    for (int i = 0; i < size; i++) {
+      if (!_isEqualNodes(first[i], second[i])) {
+        equal = false;
+      }
+    }
+    return equal;
+  }
+
+  /**
+   * Return `true` if the [fromNode] and [toNode] have the same structure. As a
+   * side-effect, if the nodes do have the same structure, any resolution data
+   * from the first node will be copied to the second node.
+   */
+  bool _isEqualNodes(AstNode fromNode, AstNode toNode) {
+    if (fromNode == null) {
+      return toNode == null;
+    } else if (toNode == null) {
+      return false;
+    } else if (fromNode.runtimeType == toNode.runtimeType) {
+      this._toNode = toNode;
+      return fromNode.accept(this);
+    }
+    //
+    // Check for a simple transformation caused by entering a period.
+    //
+    if (toNode is PrefixedIdentifier) {
+      SimpleIdentifier prefix = toNode.prefix;
+      if (fromNode.runtimeType == prefix.runtimeType) {
+        this._toNode = prefix;
+        return fromNode.accept(this);
+      }
+    } else if (toNode is PropertyAccess) {
+      Expression target = toNode.target;
+      if (fromNode.runtimeType == target.runtimeType) {
+        this._toNode = target;
+        return fromNode.accept(this);
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Return `true` if the [first] and [second] arrays of tokens have the same
+   * length and corresponding elements are equal.
+   */
+  bool _isEqualTokenLists(List<Token> first, List<Token> second) {
+    int length = first.length;
+    if (second.length != length) {
+      return false;
+    }
+    for (int i = 0; i < length; i++) {
+      if (!_isEqualTokens(first[i], second[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Return `true` if the [first] and [second] tokens have the same structure.
+   */
+  bool _isEqualTokens(Token first, Token second) {
+    if (first == null) {
+      return second == null;
+    } else if (second == null) {
+      return false;
+    }
+    return first.lexeme == second.lexeme;
+  }
+
+  /**
+   * Copy resolution data from the [fromNode] to the [toNode].
+   */
+  static void copyResolutionData(AstNode fromNode, AstNode toNode) {
+    ResolutionCopier copier = new ResolutionCopier();
+    copier._isEqualNodes(fromNode, toNode);
   }
 }
 

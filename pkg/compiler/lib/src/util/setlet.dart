@@ -86,7 +86,7 @@ class Setlet<E> extends IterableBase<E> implements Set<E> {
         list[0] = _contents;
         list[1] = element;
         _contents = list;
-        _extra = 2;  // Two elements.
+        _extra = 2; // Two elements.
         return true;
       }
     } else if (_MARKER == _extra) {
@@ -130,7 +130,9 @@ class Setlet<E> extends IterableBase<E> implements Set<E> {
         // make sure we don't keep extra stuff alive.
         while (copyTo < CAPACITY) _contents[copyTo++] = null;
       } else {
-        _contents = new Set<E>()..addAll(_contents)..add(element);
+        _contents = new Set<E>()
+          ..addAll(_contents)
+          ..add(element);
         _extra = _MARKER;
       }
       return true;
@@ -233,7 +235,8 @@ class Setlet<E> extends IterableBase<E> implements Set<E> {
   bool containsAll(Iterable<E> other) {
     for (E e in other) {
       if (!this.contains(e)) return false;
-    };
+    }
+    ;
     return true;
   }
 

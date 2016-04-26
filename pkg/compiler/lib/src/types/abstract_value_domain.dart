@@ -7,16 +7,9 @@ library dart2js.abstract_value_domain;
 import '../constants/values.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
-import '../native/native.dart' show
-    NativeBehavior;
-import '../universe/selector.dart' show
-    Selector;
-import '../universe/universe.dart' show
-    ReceiverConstraint;
+import '../universe/selector.dart' show Selector;
 
-enum AbstractBool {
-  True, False, Maybe, Nothing
-}
+enum AbstractBool { True, False, Maybe, Nothing }
 
 /// A value in an abstraction of runtime values.
 abstract class AbstractValue {}
@@ -132,7 +125,7 @@ abstract class AbstractValueDomain {
   bool isDefinitelyMutableIndexable(AbstractValue t, {bool allowNull: false});
 
   bool isDefinitelyFixedLengthIndexable(AbstractValue t,
-                                        {bool allowNull: false});
+      {bool allowNull: false});
 
   bool isDefinitelyIntercepted(AbstractValue t, {bool allowNull});
 
@@ -146,9 +139,8 @@ abstract class AbstractValueDomain {
 
   bool isMorePreciseOrEqual(AbstractValue t1, AbstractValue t2);
 
-  AbstractBool isSubtypeOf(AbstractValue value,
-                           DartType type,
-                           {bool allowNull});
+  AbstractBool isSubtypeOf(AbstractValue value, DartType type,
+      {bool allowNull});
 
   /// Returns whether [value] is one of the falsy values: false, 0, -0, NaN,
   /// the empty string, or null.
@@ -172,6 +164,6 @@ abstract class AbstractValueDomain {
 
   /// Returns the type of the entry of [container] at a given index.
   /// Returns `null` if unknown.
-  AbstractValue indexWithConstant(AbstractValue container,
-                                  ConstantValue indexValue);
+  AbstractValue indexWithConstant(
+      AbstractValue container, ConstantValue indexValue);
 }

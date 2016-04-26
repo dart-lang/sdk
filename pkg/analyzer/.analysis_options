@@ -1,5 +1,6 @@
 linter:
   rules:
-    - annotate_overrides
+    # TODO(pq): re-enable once we have a bulk edit tool
+    # - annotate_overrides
     - empty_constructor_bodies
     - unnecessary_brace_in_string_interp

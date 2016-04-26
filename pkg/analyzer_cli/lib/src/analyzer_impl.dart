@@ -40,6 +40,9 @@ class AnalyzerImpl {
 
   final AnalysisContext context;
 
+  /// Accumulated analysis statistics.
+  final AnalysisStats stats;
+
   final Source librarySource;
 
   /// All [Source]s references by the analyzed library.
@@ -59,7 +62,8 @@ class AnalyzerImpl {
   /// specified the "--package-warnings" option.
   String _selfPackageName;
 
-  AnalyzerImpl(this.context, this.librarySource, this.options, this.startTime);
+  AnalyzerImpl(this.context, this.librarySource, this.options, this.stats,
+      this.startTime);
 
   /// Returns the maximal [ErrorSeverity] of the recorded errors.
   ErrorSeverity get maxErrorSeverity {
@@ -76,8 +80,8 @@ class AnalyzerImpl {
     return status;
   }
 
-  void addCompilationUnitSource(CompilationUnitElement unit,
-      Set<LibraryElement> libraries, Set<CompilationUnitElement> units) {
+  void addCompilationUnitSource(
+      CompilationUnitElement unit, Set<CompilationUnitElement> units) {
     if (unit == null || units.contains(unit)) {
       return;
     }
@@ -91,21 +95,13 @@ class AnalyzerImpl {
       return;
     }
     // Maybe skip library.
-    {
-      UriKind uriKind = library.source.uriKind;
-      // Optionally skip package: libraries.
-      if (!options.showPackageWarnings && _isOtherPackage(library.source.uri)) {
-        return;
-      }
-      // Optionally skip SDK libraries.
-      if (!options.showSdkWarnings && uriKind == UriKind.DART_URI) {
-        return;
-      }
+    if (!_isAnalyzedLibrary(library)) {
+      return;
     }
     // Add compilation units.
-    addCompilationUnitSource(library.definingCompilationUnit, libraries, units);
+    addCompilationUnitSource(library.definingCompilationUnit, units);
     for (CompilationUnitElement child in library.parts) {
-      addCompilationUnitSource(child, libraries, units);
+      addCompilationUnitSource(child, units);
     }
     // Add referenced libraries.
     for (LibraryElement child in library.importedLibraries) {
@@ -181,18 +177,34 @@ class AnalyzerImpl {
     return status;
   }
 
-  /// Determine whether the given URI refers to a package other than the package
-  /// being analyzed.
-  bool _isOtherPackage(Uri uri) {
-    if (uri.scheme != 'package') {
+  /// Returns true if we want to report diagnostics for this library.
+  bool _isAnalyzedLibrary(LibraryElement library) {
+    switch (library.source.uriKind) {
+      case UriKind.DART_URI:
+        return options.showSdkWarnings;
+      case UriKind.PACKAGE_URI:
+        return _isAnalyzedPackage(library.source.uri);
+      default:
+        return true;
+    }
+  }
+
+  /// Determine whether the given URI refers to a package being analyzed.
+  bool _isAnalyzedPackage(Uri uri) {
+    if (uri.scheme != 'package' || uri.pathSegments.isEmpty) {
       return false;
     }
-    if (_selfPackageName != null &&
-        uri.pathSegments.length > 0 &&
-        uri.pathSegments[0] == _selfPackageName) {
+
+    String packageName = uri.pathSegments.first;
+    if (packageName == _selfPackageName) {
+      return true;
+    } else if (!options.showPackageWarnings) {
       return false;
+    } else if (options.showPackageWarningsPrefix == null) {
+      return true;
+    } else {
+      return packageName.startsWith(options.showPackageWarningsPrefix);
     }
-    return true;
   }
 
   _printColdPerf() {
@@ -220,7 +232,8 @@ class AnalyzerImpl {
     StringSink sink = options.machineFormat ? errorSink : outSink;
 
     // Print errors.
-    ErrorFormatter formatter = new ErrorFormatter(sink, options, _processError);
+    ErrorFormatter formatter =
+        new ErrorFormatter(sink, options, stats, _processError);
     formatter.formatErrors(errorInfos);
   }
 
@@ -237,26 +250,32 @@ class AnalyzerImpl {
   ///   * if [options.enableTypeChecks] is false, then de-escalate checked-mode
   ///   compile time errors to a severity of [ErrorSeverity.INFO].
   ///   * if [options.hintsAreFatal] is true, escalate hints to errors.
+  ///   * if [options.lintsAreFatal] is true, escalate lints to errors.
   static ErrorSeverity computeSeverity(
       AnalysisError error, CommandLineOptions options,
       [AnalysisContext context]) {
+    bool isStrongMode = false;
     if (context != null) {
       ErrorProcessor processor = ErrorProcessor.getProcessor(context, error);
       // If there is a processor for this error, defer to it.
       if (processor != null) {
         return processor.severity;
       }
+      isStrongMode = context.analysisOptions.strongMode;
     }
 
     if (!options.enableTypeChecks &&
         error.errorCode.type == ErrorType.CHECKED_MODE_COMPILE_TIME_ERROR) {
       return ErrorSeverity.INFO;
-    }
-
-    if (options.hintsAreFatal && error.errorCode is HintCode) {
+    } else if (options.hintsAreFatal && error.errorCode is HintCode) {
+      return ErrorSeverity.ERROR;
+    } else if (options.lintsAreFatal && error.errorCode is LintCode) {
+      return ErrorSeverity.ERROR;
+    } else if (isStrongMode &&
+        error is StaticWarningCode &&
+        (error as StaticWarningCode).isStrongModeError) {
       return ErrorSeverity.ERROR;
     }
-
     return error.errorCode.errorSeverity;
   }
 
@@ -284,6 +303,13 @@ class AnalyzerImpl {
     ErrorSeverity severity = computeSeverity(error, options, context);
     bool isOverridden = false;
 
+    // Skip TODOs categorically (unless escalated to ERROR or HINT.)
+    // https://github.com/dart-lang/sdk/issues/26215
+    if (error.errorCode.type == ErrorType.TODO &&
+        severity == ErrorSeverity.INFO) {
+      return null;
+    }
+
     // First check for a filter.
     if (severity == null) {
       // Null severity means the error has been explicitly ignored.
@@ -296,11 +322,6 @@ class AnalyzerImpl {
     if (!isOverridden) {
       // Check for global hint filtering.
       if (severity == ErrorSeverity.INFO && options.disableHints) {
-        return null;
-      }
-
-      // Skip TODOs.
-      if (severity == ErrorType.TODO) {
         return null;
       }
     }

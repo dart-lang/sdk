@@ -36,6 +36,7 @@ DEFINE_FLAG(bool, two_args_smi_icd, true,
 DEFINE_FLAG(bool, unbox_numeric_fields, true,
     "Support unboxed double and float32x4 fields.");
 DECLARE_FLAG(bool, eliminate_type_checks);
+DECLARE_FLAG(bool, support_externalizable_strings);
 
 
 #if defined(DEBUG)
@@ -89,7 +90,17 @@ const ICData* Instruction::GetICData(
   // computations added in the optimizing compiler.
   ASSERT(deopt_id_ != Thread::kNoDeoptId);
   if (deopt_id_ < ic_data_array.length()) {
-    return ic_data_array[deopt_id_];
+    const ICData* result = ic_data_array[deopt_id_];
+#if defined(TAG_IC_DATA)
+    if (result != NULL) {
+      if (result->tag() == -1) {
+        result->set_tag(tag());
+      } else if (result->tag() != tag()) {
+        FATAL("ICData tag mismatch");
+      }
+    }
+#endif
+    return result;
   }
   return NULL;
 }
@@ -133,6 +144,7 @@ CheckClassInstr::CheckClassInstr(Value* value,
       unary_checks_(unary_checks),
       cids_(unary_checks.NumberOfChecks()),
       licm_hoisted_(false),
+      is_dense_switch_(IsDenseCidRange(unary_checks)),
       token_pos_(token_pos) {
   ASSERT(unary_checks.IsZoneHandle());
   // Expected useful check data.
@@ -168,22 +180,11 @@ bool CheckClassInstr::AttributesEqual(Instruction* other) const {
 }
 
 
-bool CheckClassInstr::IsImmutableClassId(intptr_t cid) {
-  switch (cid) {
-    case kOneByteStringCid:
-    case kTwoByteStringCid:
-      return false;
-    default:
-      return true;
-  }
-}
-
-
 static bool AreAllChecksImmutable(const ICData& checks) {
   const intptr_t len = checks.NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     if (checks.IsUsedAt(i)) {
-      if (!CheckClassInstr::IsImmutableClassId(
+      if (Field::IsExternalizableCid(
               checks.GetReceiverClassIdAt(i))) {
         return false;
       }
@@ -202,7 +203,7 @@ EffectSet CheckClassInstr::Dependencies() const {
 
 EffectSet CheckClassIdInstr::Dependencies() const {
   // Externalization of strings via the API can change the class-id.
-  return !CheckClassInstr::IsImmutableClassId(cid_) ?
+  return Field::IsExternalizableCid(cid_) ?
       EffectSet::Externalization() : EffectSet::None();
 }
 
@@ -231,14 +232,24 @@ bool CheckClassInstr::DeoptIfNotNull() const {
 }
 
 
+bool CheckClassInstr::IsDenseCidRange(const ICData& unary_checks) {
+  ASSERT(unary_checks.NumArgsTested() == 1);
+  // TODO(fschneider): Support smis in dense cid checks.
+  if (unary_checks.GetReceiverClassIdAt(0) == kSmiCid) return false;
+  if (unary_checks.NumberOfChecks() <= 2) return false;
+  intptr_t max = 0;
+  intptr_t min = kIntptrMax;
+  for (intptr_t i = 0; i < unary_checks.NumberOfChecks(); ++i) {
+    intptr_t cid = unary_checks.GetCidAt(i);
+    if (cid < min) min = cid;
+    if (cid > max) max = cid;
+  }
+  return (max - min) < kBitsPerWord;
+}
+
 
 bool CheckClassInstr::IsDenseSwitch() const {
-  if (unary_checks().GetReceiverClassIdAt(0) == kSmiCid) return false;
-  if (cids_.length() > 2 &&
-      cids_[cids_.length() - 1] - cids_[0] < kBitsPerWord) {
-    return true;
-  }
-  return false;
+  return is_dense_switch_;
 }
 
 
@@ -3041,8 +3052,8 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(call_ic_data->NumArgsTested() == 2);
       const String& name = String::Handle(zone, call_ic_data->target_name());
       const Class& smi_class = Class::Handle(zone, Smi::Class());
-      const Function& smi_op_target =
-          Function::Handle(Resolver::ResolveDynamicAnyArgs(smi_class, name));
+      const Function& smi_op_target = Function::Handle(zone,
+          Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
       if (call_ic_data->NumberOfChecks() == 0) {
         GrowableArray<intptr_t> class_ids(2);
         class_ids.Add(kSmiCid);
@@ -3127,7 +3138,8 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                         instance_call()->argument_names(),
                                         deopt_id(),
                                         instance_call()->token_pos(),
-                                        locs());
+                                        locs(),
+                                        complete());
 }
 
 
@@ -3469,7 +3481,8 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
     return this;
   }
   const intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   GrowableHandlePtrArray<const String> pieces(zone, length);
   for (intptr_t i = 0; i < length; i++) {
     pieces.Add(Object::null_string());
@@ -3497,7 +3510,8 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
         pieces.SetAt(store_index, String::Cast(obj));
       } else if (obj.IsSmi()) {
         const char* cstr = obj.ToCString();
-        pieces.SetAt(store_index, String::Handle(zone, Symbols::New(cstr)));
+        pieces.SetAt(store_index,
+            String::Handle(zone, String::New(cstr, Heap::kOld)));
       } else if (obj.IsBool()) {
         pieces.SetAt(store_index,
             Bool::Cast(obj).value() ? Symbols::True() : Symbols::False());
@@ -3511,9 +3525,8 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
     }
   }
 
-  ASSERT(pieces.length() == length);
   const String& concatenated = String::ZoneHandle(zone,
-      Symbols::FromConcatAll(pieces));
+      Symbols::FromConcatAll(thread, pieces));
   return flow_graph->GetConstant(concatenated);
 }
 
@@ -3550,6 +3563,8 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
     case MethodRecognizer::kMathTan:
     case MethodRecognizer::kMathAcos:
     case MethodRecognizer::kMathAsin:
+    case MethodRecognizer::kMathSin:
+    case MethodRecognizer::kMathCos:
       return 1;
     case MethodRecognizer::kDoubleMod:
     case MethodRecognizer::kMathDoublePow:
@@ -3636,6 +3651,10 @@ const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
       return kLibcTanRuntimeEntry;
     case MethodRecognizer::kMathAsin:
       return kLibcAsinRuntimeEntry;
+    case MethodRecognizer::kMathSin:
+      return kLibcSinRuntimeEntry;
+    case MethodRecognizer::kMathCos:
+      return kLibcCosRuntimeEntry;
     case MethodRecognizer::kMathAcos:
       return kLibcAcosRuntimeEntry;
     case MethodRecognizer::kMathAtan:
@@ -3714,9 +3733,9 @@ intptr_t MergedMathInstr::OutputIndexOf(Token::Kind token) {
 
 
 void NativeCallInstr::SetupNative() {
-  Zone* Z = Thread::Current()->zone();
-  const Class& cls = Class::Handle(Z, function().Owner());
-  const Library& library = Library::Handle(Z, cls.library());
+  Zone* zone = Thread::Current()->zone();
+  const Class& cls = Class::Handle(zone, function().Owner());
+  const Library& library = Library::Handle(zone, cls.library());
   const int num_params =
       NativeArguments::ParameterCountForResolution(function());
   bool auto_setup_scope = true;

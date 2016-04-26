@@ -186,7 +186,7 @@ const Register LRREG = RA;  // Link register.
 const Register ICREG = S5;  // IC data register.
 const Register ARGS_DESC_REG = S4;
 const Register THR = S3;  // Caches current thread in generated code.
-
+const Register CALLEE_SAVED_TEMP = S5;
 
 // The code that generates a comparison can be far away from the code that
 // generates the branch that uses the result of that comparison. In this case,
@@ -440,9 +440,9 @@ enum Cop1Function {
   COP1_SQRT = 0x04,
   COP1_MOV = 0x06,
   COP1_NEG = 0x07,
+  COP1_TRUNC_W = 0x0d,
   COP1_CVT_S = 0x20,
   COP1_CVT_D = 0x21,
-  COP1_CVT_W = 0x24,
   COP1_C_F = 0x30,
   COP1_C_UN = 0x31,
   COP1_C_EQ = 0x32,

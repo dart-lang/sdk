@@ -15,8 +15,6 @@
     'isolate_snapshot_bin_file': '<(gen_source_dir)/isolate_snapshot_gen.bin',
     'gen_snapshot_stamp_file': '<(gen_source_dir)/gen_snapshot.stamp',
     'resources_cc_file': '<(gen_source_dir)/resources_gen.cc',
-    'bootstrap_resources_cc_file':
-        '<(gen_source_dir)/bootstrap_resources_gen.cc',
     'snapshot_cc_file': '<(gen_source_dir)/snapshot_gen.cc',
     'observatory_assets_cc_file': '<(gen_source_dir)/observatory_assets.cc',
     'observatory_assets_tar_file': '<(gen_source_dir)/observatory_assets.tar',
@@ -147,6 +145,73 @@
         ['exclude', '_test\\.(cc|h)$'],
       ],
       'conditions': [
+        ['dart_io_support==0', {
+          'defines': [
+            'DART_IO_DISABLED',
+          ],
+        }],
+        ['OS=="win"', {
+          'sources/' : [
+            ['exclude', 'fdutils.h'],
+          ],
+          # TODO(antonm): fix the implementation.
+          # Current implementation accepts char* strings
+          # and therefore fails to compile once _UNICODE is
+          # enabled.  That should be addressed using -A
+          # versions of functions and adding necessary conversions.
+          'configurations': {
+            'Common_Base': {
+              'msvs_configuration_attributes': {
+                'CharacterSet': '0',
+              },
+            },
+          },
+        }],
+        ['OS=="linux"', {
+          'link_settings': {
+            'libraries': [
+              '-ldl',
+            ],
+          },
+        }],
+        ['OS=="android"', {
+          'link_settings': {
+            'libraries': [
+              '-ldl',
+            ],
+          },
+        }],
+      ],
+    },
+    # This is the same as libdart_builtin, but the io support libraries are
+    # never disabled, even when dart_io_support==0. This is so that it can
+    # still be usefully linked into gen_snapshot.
+    {
+      'target_name': 'libdart_builtin_no_disable',
+      'type': 'static_library',
+      'toolsets':['host'],
+      'dependencies': [
+        'generate_builtin_cc_file#host',
+        'generate_io_cc_file#host',
+        'generate_io_patch_cc_file#host',
+      ],
+      'include_dirs': [
+        '..',
+      ],
+      'sources': [
+        'log_android.cc',
+        'log_linux.cc',
+        'log_macos.cc',
+        'log_win.cc',
+      ],
+      'includes': [
+        'builtin_impl_sources.gypi',
+        '../platform/platform_sources.gypi',
+      ],
+      'sources/': [
+        ['exclude', '_test\\.(cc|h)$'],
+      ],
+      'conditions': [
         ['OS=="win"', {
           'sources/' : [
             ['exclude', 'fdutils.h'],
@@ -227,12 +292,12 @@
         ['exclude', '_test\\.(cc|h)$'],
       ],
       'conditions': [
-        ['dart_io_support==1 and dart_io_secure_socket==1', {
+        ['OS != "mac" and dart_io_support==1 and dart_io_secure_socket==1', {
           'dependencies': [
-          '../third_party/boringssl/boringssl_dart.gyp:boringssl',
+            '../third_party/boringssl/boringssl_dart.gyp:boringssl',
           ],
         }],
-        ['dart_io_secure_socket==0', {
+        ['dart_io_secure_socket==0 or dart_io_support==0', {
           'defines': [
             'DART_IO_SECURE_SOCKET_DISABLED'
           ],
@@ -262,6 +327,7 @@
             'libraries': [
               '$(SDKROOT)/System/Library/Frameworks/CoreFoundation.framework',
               '$(SDKROOT)/System/Library/Frameworks/CoreServices.framework',
+              '$(SDKROOT)/System/Library/Frameworks/Security.framework',
             ],
           },
         }],
@@ -301,15 +367,20 @@
           'dependencies': [
             'bin/zlib.gyp:zlib_dart',
           ],
-        }],
-        ['dart_io_support==1 and dart_io_secure_socket==1', {
-          'dependencies': [
-            '../third_party/boringssl/boringssl_dart.gyp:boringssl',
+        }, {  # dart_io_support == 0
+          'defines': [
+            'DART_IO_DISABLED',
+            'DART_IO_SECURE_SOCKET_DISABLED',
           ],
         }],
         ['dart_io_secure_socket==0', {
           'defines': [
             'DART_IO_SECURE_SOCKET_DISABLED'
+          ],
+        }],
+        ['OS != "mac" and dart_io_support==1 and dart_io_secure_socket==1', {
+          'dependencies': [
+            '../third_party/boringssl/boringssl_dart.gyp:boringssl',
           ],
         }],
         ['OS=="win"', {
@@ -334,6 +405,67 @@
             'libraries': [
               '$(SDKROOT)/System/Library/Frameworks/CoreFoundation.framework',
               '$(SDKROOT)/System/Library/Frameworks/CoreServices.framework',
+              '$(SDKROOT)/System/Library/Frameworks/Security.framework',
+            ],
+          },
+        }],
+      ],
+    },
+    # This is the same as libdart_io, but the io support libraries are
+    # never disabled, even when dart_io_support==0. This is so that it can
+    # still be usefully linked into gen_snapshot.
+    {
+      'target_name': 'libdart_io_no_disable',
+      'type': 'static_library',
+      'toolsets': ['host'],
+      'include_dirs': [
+        '..',
+        '../../third_party',
+      ],
+      'includes': [
+        'io_impl_sources.gypi',
+      ],
+      'sources': [
+        'io_natives.h',
+        'io_natives.cc',
+      ],
+      'dependencies': [
+        'bin/zlib.gyp:zlib_dart',
+      ],
+      'conditions': [
+        ['dart_io_support==0 or dart_io_secure_socket==0', {
+          'defines': [
+            'DART_IO_SECURE_SOCKET_DISABLED',
+          ],
+        }],
+        ['OS != "mac" and dart_io_support==1 and dart_io_secure_socket==1', {
+          'dependencies': [
+            '../third_party/boringssl/boringssl_dart.gyp:boringssl',
+          ],
+        }],
+        ['OS=="win"', {
+          'link_settings': {
+            'libraries': [ '-liphlpapi.lib' ],
+          },
+          # TODO(antonm): fix the implementation.
+          # Current implementation accepts char* strings
+          # and therefore fails to compile once _UNICODE is
+          # enabled.  That should be addressed using -A
+          # versions of functions and adding necessary conversions.
+          'configurations': {
+            'Common_Base': {
+              'msvs_configuration_attributes': {
+                'CharacterSet': '0',
+              },
+            },
+          },
+        }],
+        ['OS=="mac"', {
+          'link_settings': {
+            'libraries': [
+              '$(SDKROOT)/System/Library/Frameworks/CoreFoundation.framework',
+              '$(SDKROOT)/System/Library/Frameworks/CoreServices.framework',
+              '$(SDKROOT)/System/Library/Frameworks/Security.framework',
             ],
           },
         }],
@@ -377,9 +509,11 @@
       'dependencies': [
         'generate_resources_cc_file#host',
         'generate_observatory_assets_cc_file#host',
-        'libdart_nosnapshot',
-        'libdart_builtin',
-        'libdart_io',
+        'libdart_nosnapshot#host',
+        # If io is disabled for the VM, we still need it for gen snapshot, so
+        # use libdart_builtin and libdart_io that still have io enabled.
+        'libdart_builtin_no_disable#host',
+        'libdart_io_no_disable#host',
       ],
       'include_dirs': [
         '..',
@@ -543,45 +677,11 @@
       ]
     },
     {
-      'target_name': 'generate_bootstrap_resources_cc_file',
-      'type': 'none',
-      'dependencies': [
-        'bin/zlib.gyp:zlib_dart',
-      ],
-      'toolsets':['host'],
-      'includes': [
-        'vmservice/vmservice_sources.gypi',
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_resources_cc',
-          'inputs': [
-            '../tools/create_resources.py',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(bootstrap_resources_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/create_resources.py',
-            '--output', '<(bootstrap_resources_cc_file)',
-            '--outer_namespace', 'dart',
-            '--inner_namespace', 'bin',
-            '--table_name', 'service_bin',
-            '--root_prefix', 'bin/',
-            '<@(_sources)'
-          ],
-          'message':
-              'Generating ''<(bootstrap_resources_cc_file)'' file.'
-        },
-      ]
-    },
-    {
       # dart_product binary.
       'target_name': 'dart_product',
       'type': 'executable',
       'dependencies': [
+        'bin/zlib.gyp:zlib_dart',
         'libdart',
         'libdart_builtin',
         'libdart_io',
@@ -595,13 +695,13 @@
       ],
       'sources': [
         'main.cc',
+        'builtin.h',
         'builtin_common.cc',
         'builtin_natives.cc',
         'builtin_nolib.cc',
-        'builtin.h',
         'io_natives.h',
-        'snapshot_empty.cc',
         'observatory_assets_empty.cc',
+        'snapshot_empty.cc',
       ],
       'conditions': [
         ['OS=="win"', {
@@ -616,13 +716,14 @@
       'target_name': 'dart',
       'type': 'executable',
       'dependencies': [
+        'bin/zlib.gyp:zlib_dart',
+        'build_observatory#host',
+        'generate_observatory_assets_cc_file#host',
+        'generate_resources_cc_file#host',
+        'generate_snapshot_file#host',
         'libdart',
         'libdart_builtin',
         'libdart_io',
-        'build_observatory#host',
-        'generate_snapshot_file#host',
-        'generate_resources_cc_file#host',
-        'generate_observatory_assets_cc_file#host',
       ],
       'include_dirs': [
         '..',
@@ -630,16 +731,16 @@
       ],
       'sources': [
         'main.cc',
+        'builtin.h',
         'builtin_common.cc',
         'builtin_natives.cc',
         'builtin_nolib.cc',
-        'builtin.h',
         'io_natives.h',
         'vmservice_impl.cc',
         'vmservice_impl.h',
-        '<(snapshot_cc_file)',
-        '<(resources_cc_file)',
         '<(observatory_assets_cc_file)',
+        '<(resources_cc_file)',
+        '<(snapshot_cc_file)',
       ],
       'conditions': [
         ['OS=="win"', {
@@ -671,30 +772,29 @@
       'target_name': 'dart_noopt',
       'type': 'executable',
       'dependencies': [
-        'libdart_noopt',
+        'build_observatory#host',
+        'generate_observatory_assets_cc_file#host',
+        'generate_resources_cc_file#host',
+        'generate_snapshot_file#host',
         'libdart_builtin',
         'libdart_io',
-        'build_observatory#host',
-        'generate_snapshot_file#host',
-        'generate_resources_cc_file#host',
-        'generate_observatory_assets_cc_file#host',
+        'libdart_noopt',
       ],
       'include_dirs': [
         '..',
-        '../../third_party/', # Zlib
       ],
       'sources': [
         'main.cc',
+        'builtin.h',
         'builtin_common.cc',
         'builtin_natives.cc',
         'builtin_nolib.cc',
-        'builtin.h',
         'io_natives.h',
         'vmservice_impl.cc',
         'vmservice_impl.h',
-        '<(snapshot_cc_file)',
-        '<(resources_cc_file)',
         '<(observatory_assets_cc_file)',
+        '<(resources_cc_file)',
+        '<(snapshot_cc_file)',
       ],
       'defines': [
         'DART_PRECOMPILER',
@@ -728,12 +828,13 @@
       'target_name': 'dart_precompiled_runtime',
       'type': 'executable',
       'dependencies': [
-        'libdart_precompiled_runtime',
+        'bin/zlib.gyp:zlib_dart',
+        'build_observatory#host',
+        'generate_observatory_assets_cc_file#host',
+        'generate_resources_cc_file#host',
         'libdart_builtin',
         'libdart_io',
-        'build_observatory#host',
-        'generate_resources_cc_file#host',
-        'generate_observatory_assets_cc_file#host',
+        'libdart_precompiled_runtime',
       ],
       'include_dirs': [
         '..',
@@ -741,16 +842,16 @@
       ],
       'sources': [
         'main.cc',
+        'builtin.h',
         'builtin_common.cc',
         'builtin_natives.cc',
         'builtin_nolib.cc',
-        'builtin.h',
         'io_natives.h',
+        'snapshot_empty.cc',
         'vmservice_impl.cc',
         'vmservice_impl.h',
-        'snapshot_empty.cc',
-        '<(resources_cc_file)',
         '<(observatory_assets_cc_file)',
+        '<(resources_cc_file)',
       ],
       'defines': [
         'DART_PRECOMPILED_RUNTIME',
@@ -777,78 +878,23 @@
       'type': 'executable',
       'toolsets':['host'],
       'dependencies': [
-        'libdart_nosnapshot',
+        'generate_resources_cc_file#host',
         'libdart_builtin',
         'libdart_io',
-        'generate_bootstrap_resources_cc_file#host',
+        'libdart_nosnapshot',
       ],
       'include_dirs': [
         '..',
-        '../../third_party/', # Zlib
       ],
       'sources': [
         'main.cc',
-        'builtin_common.cc',
-        'builtin_natives.cc',
         'builtin.cc',
         'builtin.h',
+        'builtin_common.cc',
+        'builtin_natives.cc',
         'io_natives.h',
-        'vmservice_impl.cc',
-        'vmservice_impl.h',
-        # Include generated source files.
-        '<(builtin_cc_file)',
-        '<(io_cc_file)',
-        '<(io_patch_cc_file)',
-        '<(bootstrap_resources_cc_file)',
         'observatory_assets_empty.cc',
         'snapshot_empty.cc',
-      ],
-      'conditions': [
-        ['OS=="win"', {
-          'link_settings': {
-            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib', '-lwinmm.lib' ],
-          },
-          # Generate an import library on Windows, by exporting a function.
-          # Extensions use this import library to link to the API in dart.exe.
-          'msvs_settings': {
-            'VCLinkerTool': {
-              'AdditionalOptions': [ '/EXPORT:Dart_True' ],
-            },
-          },
-        }],
-      ],
-      'configurations': {
-        'Dart_Linux_Base': {
-          # Have the linker add all symbols to the dynamic symbol table
-          # so that extensions can look them up dynamically in the binary.
-          'ldflags': [
-            '-rdynamic',
-          ],
-        },
-      },
-    },
-    {
-      # dart binary without any snapshot built in.
-      'target_name': 'dart_no_snapshot',
-      'type': 'executable',
-      'dependencies': [
-        'libdart_nosnapshot',
-        'libdart_builtin',
-        'libdart_io',
-        'generate_resources_cc_file#host',
-        'generate_observatory_assets_cc_file#host',
-      ],
-      'include_dirs': [
-        '..',
-        '../../third_party/', # Zlib
-      ],
-      'sources': [
-        'main.cc',
-        'builtin_common.cc',
-        'builtin_natives.cc',
-        'builtin.cc',
-        'builtin.h',
-        'io_natives.h',
         'vmservice_impl.cc',
         'vmservice_impl.h',
         # Include generated source files.
@@ -856,8 +902,6 @@
         '<(io_cc_file)',
         '<(io_patch_cc_file)',
         '<(resources_cc_file)',
-        '<(observatory_assets_cc_file)',
-        'snapshot_empty.cc',
       ],
       'defines': [
         'DART_NO_SNAPSHOT',

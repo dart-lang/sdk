@@ -7,10 +7,6 @@ import 'cps_ir_nodes.dart';
 import 'optimizers.dart';
 import 'cps_fragment.dart';
 import '../js_backend/js_backend.dart';
-import '../constants/values.dart';
-import '../elements/elements.dart';
-import '../universe/selector.dart';
-import '../types/types.dart';
 import 'type_mask_system.dart';
 
 /// Optimizations based on intraprocedural forward dataflow analysis, taking
@@ -63,8 +59,7 @@ import 'type_mask_system.dart';
 // TODO(asgerf): Could be more precise if GVN shared expressions that are not
 // in direct scope of one another, e.g. by using phis pass the shared value.
 //
-class PathBasedOptimizer extends TrampolineRecursiveVisitor
-                         implements Pass {
+class PathBasedOptimizer extends TrampolineRecursiveVisitor implements Pass {
   String get passName => 'Path-based optimizations';
 
   // Classification of all values.
@@ -157,27 +152,23 @@ class PathBasedOptimizer extends TrampolineRecursiveVisitor
   }
 
   void visitInvokeMethod(InvokeMethod node) {
-    int receiverValue = valueOf[node.dartReceiver] ?? ANY;
+    int receiverValue = valueOf[node.receiver] ?? ANY;
     if (!backend.isInterceptedSelector(node.selector)) {
       // Only self-interceptors can respond to a non-intercepted selector.
-      valueOf[node.dartReceiver] = receiverValue & SELF_INTERCEPTOR;
+      valueOf[node.receiver] = receiverValue & SELF_INTERCEPTOR;
     } else if (receiverValue & ~SELF_INTERCEPTOR == 0 &&
-               node.callingConvention == CallingConvention.Intercepted) {
+        node.callingConvention == CallingConvention.Intercepted) {
       // This is an intercepted call whose receiver is definitely a
       // self-interceptor.
       // TODO(25646): If TypeMasks could represent "any self-interceptor" this
       //   optimization should be subsumed by type propagation.
-      node.receiverRef.changeTo(node.dartReceiver);
+      node.interceptorRef.changeTo(node.receiver);
 
       // Replace the extra receiver argument with a dummy value if the
       // target definitely does not use it.
-      if (typeSystem.targetIgnoresReceiverArgument(node.dartReceiver.type,
-            node.selector)) {
-        Constant dummy = new Constant(new IntConstantValue(0))
-            ..type = typeSystem.intType;
-        new LetPrim(dummy).insertAbove(node.parent);
-        node.argumentRefs[0].changeTo(dummy);
-        node.callingConvention = CallingConvention.DummyIntercepted;
+      if (typeSystem.targetIgnoresReceiverArgument(
+          node.receiver.type, node.selector)) {
+        node.makeDummyIntercepted();
       }
     }
   }

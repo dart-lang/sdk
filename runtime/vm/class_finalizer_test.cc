@@ -11,7 +11,8 @@ namespace dart {
 
 
 static RawClass* CreateTestClass(const char* name) {
-  const String& class_name = String::Handle(Symbols::New(name));
+  const String& class_name = String::Handle(Symbols::New(Thread::Current(),
+                                                         name));
   const Script& script = Script::Handle();
   const Class& cls = Class::Handle(
       Class::New(class_name, script, TokenPosition::kNoSource));
@@ -74,7 +75,7 @@ TEST_CASE(ClassFinalize_Cycles) {
 
 
 static RawLibrary* NewLib(const char* url_chars) {
-  String& url = String::ZoneHandle(Symbols::New(url_chars));
+  String& url = String::ZoneHandle(Symbols::New(Thread::Current(), url_chars));
   return Library::New(url);
 }
 

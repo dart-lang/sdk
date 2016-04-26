@@ -7,11 +7,8 @@ library analyzer.test.generated.parser_test;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -20,7 +17,6 @@ import 'package:analyzer/src/generated/incremental_scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
-import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:unittest/unittest.dart' hide Configuration;
@@ -36,7 +32,6 @@ main() {
   runReflectiveTests(IncrementalParserTest);
   runReflectiveTests(NonErrorParserTest);
   runReflectiveTests(RecoveryParserTest);
-  runReflectiveTests(ResolutionCopierTest);
   runReflectiveTests(SimpleParserTest);
 }
 
@@ -2038,6 +2033,24 @@ class Foo {
         "static var x;", [ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION]);
   }
 
+  void test_string_unterminated_interpolation_block() {
+    ParserTestCase.parseCompilationUnit(
+        r'''
+m() {
+ {
+ '${${
+''',
+        [
+          ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN,
+        ]);
+  }
+
   void test_switchHasCaseAfterDefaultCase() {
     parse4(
         "parseSwitchStatement",
@@ -3505,7 +3518,7 @@ class B = Object with A {}''',
 
   void test_expressionList_multiple_end() {
     List<Expression> result = parse4("parseExpressionList", ", 2, 3, 4",
-        [ParserErrorCode.MISSING_IDENTIFIER]);
+        [ParserErrorCode.MISSING_IDENTIFIER]) as List<Expression>;
     expect(result, hasLength(4));
     Expression syntheticExpression = result[0];
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier,
@@ -3515,7 +3528,7 @@ class B = Object with A {}''',
 
   void test_expressionList_multiple_middle() {
     List<Expression> result = parse4("parseExpressionList", "1, 2, , 4",
-        [ParserErrorCode.MISSING_IDENTIFIER]);
+        [ParserErrorCode.MISSING_IDENTIFIER]) as List<Expression>;
     expect(result, hasLength(4));
     Expression syntheticExpression = result[2];
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier,
@@ -3525,7 +3538,7 @@ class B = Object with A {}''',
 
   void test_expressionList_multiple_start() {
     List<Expression> result = parse4("parseExpressionList", "1, 2, 3,",
-        [ParserErrorCode.MISSING_IDENTIFIER]);
+        [ParserErrorCode.MISSING_IDENTIFIER]) as List<Expression>;
     expect(result, hasLength(4));
     Expression syntheticExpression = result[3];
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier,
@@ -4244,663 +4257,6 @@ class C {
 
   void test_unaryPlus() {
     parseExpression("+2", [ParserErrorCode.MISSING_IDENTIFIER]);
-  }
-}
-
-@reflectiveTest
-class ResolutionCopierTest extends EngineTestCase {
-  void test_visitAdjacentStrings() {
-    AdjacentStrings createNode() => new AdjacentStrings([
-          new SimpleStringLiteral(null, 'hello'),
-          new SimpleStringLiteral(null, 'world')
-        ]);
-
-    AdjacentStrings fromNode = createNode();
-    DartType propagatedType = ElementFactory.classElement2("A").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("B").type;
-    fromNode.staticType = staticType;
-
-    AdjacentStrings toNode = createNode();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitAnnotation() {
-    String annotationName = "proxy";
-    Annotation fromNode =
-        AstFactory.annotation(AstFactory.identifier3(annotationName));
-    Element element = ElementFactory.topLevelVariableElement2(annotationName);
-    fromNode.element = element;
-    Annotation toNode =
-        AstFactory.annotation(AstFactory.identifier3(annotationName));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.element, same(element));
-  }
-
-  void test_visitAsExpression() {
-    AsExpression fromNode = AstFactory.asExpression(
-        AstFactory.identifier3("x"), AstFactory.typeName4("A"));
-    DartType propagatedType = ElementFactory.classElement2("A").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("B").type;
-    fromNode.staticType = staticType;
-    AsExpression toNode = AstFactory.asExpression(
-        AstFactory.identifier3("x"), AstFactory.typeName4("A"));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitAssignmentExpression() {
-    AssignmentExpression fromNode = AstFactory.assignmentExpression(
-        AstFactory.identifier3("a"),
-        TokenType.PLUS_EQ,
-        AstFactory.identifier3("b"));
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    MethodElement propagatedElement =
-        ElementFactory.methodElement("+", propagatedType);
-    fromNode.propagatedElement = propagatedElement;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    MethodElement staticElement = ElementFactory.methodElement("+", staticType);
-    fromNode.staticElement = staticElement;
-    fromNode.staticType = staticType;
-    AssignmentExpression toNode = AstFactory.assignmentExpression(
-        AstFactory.identifier3("a"),
-        TokenType.PLUS_EQ,
-        AstFactory.identifier3("b"));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedElement, same(propagatedElement));
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticElement, same(staticElement));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitBinaryExpression() {
-    BinaryExpression fromNode = AstFactory.binaryExpression(
-        AstFactory.identifier3("a"),
-        TokenType.PLUS,
-        AstFactory.identifier3("b"));
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    MethodElement propagatedElement =
-        ElementFactory.methodElement("+", propagatedType);
-    fromNode.propagatedElement = propagatedElement;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    MethodElement staticElement = ElementFactory.methodElement("+", staticType);
-    fromNode.staticElement = staticElement;
-    fromNode.staticType = staticType;
-    BinaryExpression toNode = AstFactory.binaryExpression(
-        AstFactory.identifier3("a"),
-        TokenType.PLUS,
-        AstFactory.identifier3("b"));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedElement, same(propagatedElement));
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticElement, same(staticElement));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitBooleanLiteral() {
-    BooleanLiteral fromNode = AstFactory.booleanLiteral(true);
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    BooleanLiteral toNode = AstFactory.booleanLiteral(true);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitCascadeExpression() {
-    CascadeExpression fromNode = AstFactory.cascadeExpression(
-        AstFactory.identifier3("a"), [AstFactory.identifier3("b")]);
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    CascadeExpression toNode = AstFactory.cascadeExpression(
-        AstFactory.identifier3("a"), [AstFactory.identifier3("b")]);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitCompilationUnit() {
-    CompilationUnit fromNode = AstFactory.compilationUnit();
-    CompilationUnitElement element =
-        new CompilationUnitElementImpl("test.dart");
-    fromNode.element = element;
-    CompilationUnit toNode = AstFactory.compilationUnit();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.element, same(element));
-  }
-
-  void test_visitConditionalExpression() {
-    ConditionalExpression fromNode = AstFactory.conditionalExpression(
-        AstFactory.identifier3("c"),
-        AstFactory.identifier3("a"),
-        AstFactory.identifier3("b"));
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    ConditionalExpression toNode = AstFactory.conditionalExpression(
-        AstFactory.identifier3("c"),
-        AstFactory.identifier3("a"),
-        AstFactory.identifier3("b"));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitConstructorDeclaration() {
-    String className = "A";
-    String constructorName = "c";
-    ConstructorDeclaration fromNode = AstFactory.constructorDeclaration(
-        AstFactory.identifier3(className),
-        constructorName,
-        AstFactory.formalParameterList(),
-        null);
-    ConstructorElement element = ElementFactory.constructorElement2(
-        ElementFactory.classElement2(className), constructorName);
-    fromNode.element = element;
-    ConstructorDeclaration toNode = AstFactory.constructorDeclaration(
-        AstFactory.identifier3(className),
-        constructorName,
-        AstFactory.formalParameterList(),
-        null);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.element, same(element));
-  }
-
-  void test_visitConstructorName() {
-    ConstructorName fromNode =
-        AstFactory.constructorName(AstFactory.typeName4("A"), "c");
-    ConstructorElement staticElement = ElementFactory.constructorElement2(
-        ElementFactory.classElement2("A"), "c");
-    fromNode.staticElement = staticElement;
-    ConstructorName toNode =
-        AstFactory.constructorName(AstFactory.typeName4("A"), "c");
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.staticElement, same(staticElement));
-  }
-
-  void test_visitDoubleLiteral() {
-    DoubleLiteral fromNode = AstFactory.doubleLiteral(1.0);
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    DoubleLiteral toNode = AstFactory.doubleLiteral(1.0);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitExportDirective() {
-    ExportDirective fromNode = AstFactory.exportDirective2("dart:uri");
-    ExportElement element = new ExportElementImpl(-1);
-    fromNode.element = element;
-    ExportDirective toNode = AstFactory.exportDirective2("dart:uri");
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.element, same(element));
-  }
-
-  void test_visitFunctionExpression() {
-    FunctionExpression fromNode = AstFactory.functionExpression2(
-        AstFactory.formalParameterList(), AstFactory.emptyFunctionBody());
-    MethodElement element = ElementFactory.methodElement(
-        "m", ElementFactory.classElement2("C").type);
-    fromNode.element = element;
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    FunctionExpression toNode = AstFactory.functionExpression2(
-        AstFactory.formalParameterList(), AstFactory.emptyFunctionBody());
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.element, same(element));
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitFunctionExpressionInvocation() {
-    FunctionExpressionInvocation fromNode =
-        AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"));
-    MethodElement propagatedElement = ElementFactory.methodElement(
-        "m", ElementFactory.classElement2("C").type);
-    fromNode.propagatedElement = propagatedElement;
-    MethodElement staticElement = ElementFactory.methodElement(
-        "m", ElementFactory.classElement2("C").type);
-    fromNode.staticElement = staticElement;
-    FunctionExpressionInvocation toNode =
-        AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"));
-
-    _copyAndVerifyInvocation(fromNode, toNode);
-
-    expect(toNode.propagatedElement, same(propagatedElement));
-    expect(toNode.staticElement, same(staticElement));
-  }
-
-  void test_visitImportDirective() {
-    ImportDirective fromNode = AstFactory.importDirective3("dart:uri", null);
-    ImportElement element = new ImportElementImpl(0);
-    fromNode.element = element;
-    ImportDirective toNode = AstFactory.importDirective3("dart:uri", null);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.element, same(element));
-  }
-
-  void test_visitIndexExpression() {
-    IndexExpression fromNode = AstFactory.indexExpression(
-        AstFactory.identifier3("a"), AstFactory.integer(0));
-    MethodElement propagatedElement = ElementFactory.methodElement(
-        "m", ElementFactory.classElement2("C").type);
-    MethodElement staticElement = ElementFactory.methodElement(
-        "m", ElementFactory.classElement2("C").type);
-    AuxiliaryElements auxiliaryElements =
-        new AuxiliaryElements(staticElement, propagatedElement);
-    fromNode.auxiliaryElements = auxiliaryElements;
-    fromNode.propagatedElement = propagatedElement;
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    IndexExpression toNode = AstFactory.indexExpression(
-        AstFactory.identifier3("a"), AstFactory.integer(0));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.auxiliaryElements, same(auxiliaryElements));
-    expect(toNode.propagatedElement, same(propagatedElement));
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticElement, same(staticElement));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitInstanceCreationExpression() {
-    InstanceCreationExpression fromNode = AstFactory
-        .instanceCreationExpression2(Keyword.NEW, AstFactory.typeName4("C"));
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    ConstructorElement staticElement = ElementFactory.constructorElement2(
-        ElementFactory.classElement2("C"), null);
-    fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    InstanceCreationExpression toNode = AstFactory.instanceCreationExpression2(
-        Keyword.NEW, AstFactory.typeName4("C"));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticElement, same(staticElement));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitIntegerLiteral() {
-    IntegerLiteral fromNode = AstFactory.integer(2);
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    IntegerLiteral toNode = AstFactory.integer(2);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitIsExpression() {
-    IsExpression fromNode = AstFactory.isExpression(
-        AstFactory.identifier3("x"), false, AstFactory.typeName4("A"));
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    IsExpression toNode = AstFactory.isExpression(
-        AstFactory.identifier3("x"), false, AstFactory.typeName4("A"));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitLibraryIdentifier() {
-    LibraryIdentifier fromNode =
-        AstFactory.libraryIdentifier([AstFactory.identifier3("lib")]);
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    LibraryIdentifier toNode =
-        AstFactory.libraryIdentifier([AstFactory.identifier3("lib")]);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitListLiteral() {
-    ListLiteral fromNode = AstFactory.listLiteral();
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    ListLiteral toNode = AstFactory.listLiteral();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitMapLiteral() {
-    MapLiteral fromNode = AstFactory.mapLiteral2();
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    MapLiteral toNode = AstFactory.mapLiteral2();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitMethodInvocation() {
-    MethodInvocation fromNode = AstFactory.methodInvocation2("m");
-    MethodInvocation toNode = AstFactory.methodInvocation2("m");
-    _copyAndVerifyInvocation(fromNode, toNode);
-  }
-
-  void test_visitNamedExpression() {
-    NamedExpression fromNode =
-        AstFactory.namedExpression2("n", AstFactory.integer(0));
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    NamedExpression toNode =
-        AstFactory.namedExpression2("n", AstFactory.integer(0));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitNullLiteral() {
-    NullLiteral fromNode = AstFactory.nullLiteral();
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    NullLiteral toNode = AstFactory.nullLiteral();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitParenthesizedExpression() {
-    ParenthesizedExpression fromNode =
-        AstFactory.parenthesizedExpression(AstFactory.integer(0));
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    ParenthesizedExpression toNode =
-        AstFactory.parenthesizedExpression(AstFactory.integer(0));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitPartDirective() {
-    PartDirective fromNode = AstFactory.partDirective2("part.dart");
-    LibraryElement element = new LibraryElementImpl.forNode(
-        null, AstFactory.libraryIdentifier2(["lib"]));
-    fromNode.element = element;
-    PartDirective toNode = AstFactory.partDirective2("part.dart");
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.element, same(element));
-  }
-
-  void test_visitPartOfDirective() {
-    PartOfDirective fromNode =
-        AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["lib"]));
-    LibraryElement element = new LibraryElementImpl.forNode(
-        null, AstFactory.libraryIdentifier2(["lib"]));
-    fromNode.element = element;
-    PartOfDirective toNode =
-        AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["lib"]));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.element, same(element));
-  }
-
-  void test_visitPostfixExpression() {
-    String variableName = "x";
-    PostfixExpression fromNode = AstFactory.postfixExpression(
-        AstFactory.identifier3(variableName), TokenType.PLUS_PLUS);
-    MethodElement propagatedElement = ElementFactory.methodElement(
-        "+", ElementFactory.classElement2("C").type);
-    fromNode.propagatedElement = propagatedElement;
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    MethodElement staticElement = ElementFactory.methodElement(
-        "+", ElementFactory.classElement2("C").type);
-    fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    PostfixExpression toNode = AstFactory.postfixExpression(
-        AstFactory.identifier3(variableName), TokenType.PLUS_PLUS);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedElement, same(propagatedElement));
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticElement, same(staticElement));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitPrefixedIdentifier() {
-    PrefixedIdentifier fromNode = AstFactory.identifier5("p", "f");
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    PrefixedIdentifier toNode = AstFactory.identifier5("p", "f");
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitPrefixExpression() {
-    PrefixExpression fromNode = AstFactory.prefixExpression(
-        TokenType.PLUS_PLUS, AstFactory.identifier3("x"));
-    MethodElement propagatedElement = ElementFactory.methodElement(
-        "+", ElementFactory.classElement2("C").type);
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedElement = propagatedElement;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    MethodElement staticElement = ElementFactory.methodElement(
-        "+", ElementFactory.classElement2("C").type);
-    fromNode.staticElement = staticElement;
-    fromNode.staticType = staticType;
-    PrefixExpression toNode = AstFactory.prefixExpression(
-        TokenType.PLUS_PLUS, AstFactory.identifier3("x"));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedElement, same(propagatedElement));
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticElement, same(staticElement));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitPropertyAccess() {
-    PropertyAccess fromNode =
-        AstFactory.propertyAccess2(AstFactory.identifier3("x"), "y");
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    PropertyAccess toNode =
-        AstFactory.propertyAccess2(AstFactory.identifier3("x"), "y");
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitRedirectingConstructorInvocation() {
-    RedirectingConstructorInvocation fromNode =
-        AstFactory.redirectingConstructorInvocation();
-    ConstructorElement staticElement = ElementFactory.constructorElement2(
-        ElementFactory.classElement2("C"), null);
-    fromNode.staticElement = staticElement;
-    RedirectingConstructorInvocation toNode =
-        AstFactory.redirectingConstructorInvocation();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.staticElement, same(staticElement));
-  }
-
-  void test_visitRethrowExpression() {
-    RethrowExpression fromNode = AstFactory.rethrowExpression();
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    RethrowExpression toNode = AstFactory.rethrowExpression();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitSimpleIdentifier() {
-    SimpleIdentifier fromNode = AstFactory.identifier3("x");
-    MethodElement propagatedElement = ElementFactory.methodElement(
-        "m", ElementFactory.classElement2("C").type);
-    MethodElement staticElement = ElementFactory.methodElement(
-        "m", ElementFactory.classElement2("C").type);
-    AuxiliaryElements auxiliaryElements =
-        new AuxiliaryElements(staticElement, propagatedElement);
-    fromNode.auxiliaryElements = auxiliaryElements;
-    fromNode.propagatedElement = propagatedElement;
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    SimpleIdentifier toNode = AstFactory.identifier3("x");
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.auxiliaryElements, same(auxiliaryElements));
-    expect(toNode.propagatedElement, same(propagatedElement));
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticElement, same(staticElement));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitSimpleStringLiteral() {
-    SimpleStringLiteral fromNode = AstFactory.string2("abc");
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    SimpleStringLiteral toNode = AstFactory.string2("abc");
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitStringInterpolation() {
-    StringInterpolation fromNode =
-        AstFactory.string([AstFactory.interpolationString("a", "'a'")]);
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    StringInterpolation toNode =
-        AstFactory.string([AstFactory.interpolationString("a", "'a'")]);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitSuperConstructorInvocation() {
-    SuperConstructorInvocation fromNode =
-        AstFactory.superConstructorInvocation();
-    ConstructorElement staticElement = ElementFactory.constructorElement2(
-        ElementFactory.classElement2("C"), null);
-    fromNode.staticElement = staticElement;
-    SuperConstructorInvocation toNode = AstFactory.superConstructorInvocation();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.staticElement, same(staticElement));
-  }
-
-  void test_visitSuperExpression() {
-    SuperExpression fromNode = AstFactory.superExpression();
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    SuperExpression toNode = AstFactory.superExpression();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitSymbolLiteral() {
-    SymbolLiteral fromNode = AstFactory.symbolLiteral(["s"]);
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    SymbolLiteral toNode = AstFactory.symbolLiteral(["s"]);
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitThisExpression() {
-    ThisExpression fromNode = AstFactory.thisExpression();
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    ThisExpression toNode = AstFactory.thisExpression();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitThrowExpression() {
-    ThrowExpression fromNode = AstFactory.throwExpression();
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-    ThrowExpression toNode = AstFactory.throwExpression();
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-  }
-
-  void test_visitTypeName() {
-    TypeName fromNode = AstFactory.typeName4("C");
-    DartType type = ElementFactory.classElement2("C").type;
-    fromNode.type = type;
-    TypeName toNode = AstFactory.typeName4("C");
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.type, same(type));
-  }
-
-  void _copyAndVerifyInvocation(
-      InvocationExpression fromNode, InvocationExpression toNode) {
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
-
-    DartType propagatedInvokeType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedInvokeType = propagatedInvokeType;
-    DartType staticInvokeType = ElementFactory.classElement2("C").type;
-    fromNode.staticInvokeType = staticInvokeType;
-
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
-    expect(toNode.propagatedInvokeType, same(propagatedInvokeType));
-    expect(toNode.staticInvokeType, same(staticInvokeType));
   }
 }
 
@@ -6729,7 +6085,8 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCombinators_h() {
-    List<Combinator> combinators = parse4("parseCombinators", "hide a;");
+    List<Combinator> combinators =
+        parse4("parseCombinators", "hide a;") as List<Combinator>;
     expect(combinators, hasLength(1));
     HideCombinator combinator = combinators[0] as HideCombinator;
     expect(combinator, isNotNull);
@@ -6738,7 +6095,8 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCombinators_hs() {
-    List<Combinator> combinators = parse4("parseCombinators", "hide a show b;");
+    List<Combinator> combinators =
+        parse4("parseCombinators", "hide a show b;") as List<Combinator>;
     expect(combinators, hasLength(2));
     HideCombinator hideCombinator = combinators[0] as HideCombinator;
     expect(hideCombinator, isNotNull);
@@ -6752,12 +6110,14 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseCombinators_hshs() {
     List<Combinator> combinators =
-        parse4("parseCombinators", "hide a show b hide c show d;");
+        parse4("parseCombinators", "hide a show b hide c show d;")
+        as List<Combinator>;
     expect(combinators, hasLength(4));
   }
 
   void test_parseCombinators_s() {
-    List<Combinator> combinators = parse4("parseCombinators", "show a;");
+    List<Combinator> combinators =
+        parse4("parseCombinators", "show a;") as List<Combinator>;
     expect(combinators, hasLength(1));
     ShowCombinator combinator = combinators[0] as ShowCombinator;
     expect(combinator, isNotNull);
@@ -6918,7 +6278,8 @@ void''');
         TokenType.MULTI_LINE_COMMENT, "/** xxx [a] yyy [bb] zzz */", 3);
     List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[token];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     List<Token> tokenReferences = token.references;
     expect(references, hasLength(2));
     expect(tokenReferences, hasLength(2));
@@ -6950,7 +6311,8 @@ void''');
           TokenType.MULTI_LINE_COMMENT, "/** [ some text", 5)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -6965,7 +6327,8 @@ void''');
           TokenType.MULTI_LINE_COMMENT, "/** [namePrefix some text", 5)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -6982,7 +6345,8 @@ void''');
           TokenType.SINGLE_LINE_COMMENT, "/// x [c]", 28)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(3));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -7004,7 +6368,8 @@ void''');
           "/**\n *     a[i]\n * non-code line\n */", 3)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, isEmpty);
   }
 
@@ -7016,7 +6381,8 @@ void''');
           TokenType.SINGLE_LINE_COMMENT, "///     a[i] == b[i]", 0)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, isEmpty);
   }
 
@@ -7026,7 +6392,8 @@ void''');
           TokenType.MULTI_LINE_COMMENT, "/** [:xxx [a] yyy:] [b] zzz */", 3)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -7040,7 +6407,8 @@ void''');
           TokenType.MULTI_LINE_COMMENT, "/** `a[i]` and [b] */", 0)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -7054,7 +6422,8 @@ void''');
           TokenType.MULTI_LINE_COMMENT, "/** `a[i] and [b] */", 0)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(2));
   }
 
@@ -7064,7 +6433,8 @@ void''');
           "/**\n *     a[i]\n * xxx [i] zzz\n */", 3)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -7078,7 +6448,8 @@ void''');
           "/** [a]: http://www.google.com (Google) [b] zzz */", 3)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -7092,7 +6463,8 @@ void''');
           "/** [a](http://www.google.com) [b] zzz */", 3)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -7106,7 +6478,8 @@ void''');
           TokenType.MULTI_LINE_COMMENT, "/** [a][c] [b] zzz */", 3)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -8067,12 +7440,14 @@ void''');
   }
 
   void test_parseExpressionList_multiple() {
-    List<Expression> result = parse4("parseExpressionList", "1, 2, 3");
+    List<Expression> result =
+        parse4("parseExpressionList", "1, 2, 3") as List<Expression>;
     expect(result, hasLength(3));
   }
 
   void test_parseExpressionList_single() {
-    List<Expression> result = parse4("parseExpressionList", "1");
+    List<Expression> result =
+        parse4("parseExpressionList", "1") as List<Expression>;
     expect(result, hasLength(1));
   }
 
@@ -9027,12 +8402,14 @@ void''');
   }
 
   void test_parseIdentifierList_multiple() {
-    List<SimpleIdentifier> list = parse4("parseIdentifierList", "a, b, c");
+    List<SimpleIdentifier> list =
+        parse4("parseIdentifierList", "a, b, c") as List<SimpleIdentifier>;
     expect(list, hasLength(3));
   }
 
   void test_parseIdentifierList_single() {
-    List<SimpleIdentifier> list = parse4("parseIdentifierList", "a");
+    List<SimpleIdentifier> list =
+        parse4("parseIdentifierList", "a") as List<SimpleIdentifier>;
     expect(list, hasLength(1));
   }
 
@@ -9266,7 +8643,9 @@ void''');
     expect(expression.keyword, token);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    expect(name.type, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments, isNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
     expect(expression.argumentList, isNotNull);
@@ -9279,9 +8658,76 @@ void''');
     expect(expression.keyword, token);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    expect(name.type, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments, isNull);
     expect(name.period, isNotNull);
     expect(name.name, isNotNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void
+      test_parseInstanceCreationExpression_qualifiedType_named_typeParameterComment() {
+    enableGenericMethodComments = true;
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression = parse(
+        "parseInstanceCreationExpression", <Object>[token], "A.B/*<E>*/.c()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNotNull);
+    expect(name.name, isNotNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void
+      test_parseInstanceCreationExpression_qualifiedType_named_typeParameters() {
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression =
+        parse("parseInstanceCreationExpression", <Object>[token], "A.B<E>.c()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNotNull);
+    expect(name.name, isNotNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void
+      test_parseInstanceCreationExpression_qualifiedType_typeParameterComment() {
+    enableGenericMethodComments = true;
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression = parse(
+        "parseInstanceCreationExpression", <Object>[token], "A.B/*<E>*/()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNull);
+    expect(name.name, isNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void test_parseInstanceCreationExpression_qualifiedType_typeParameters() {
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression =
+        parse("parseInstanceCreationExpression", <Object>[token], "A.B<E>()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNull);
+    expect(name.name, isNull);
     expect(expression.argumentList, isNotNull);
   }
 
@@ -9292,22 +8738,89 @@ void''');
     expect(expression.keyword, token);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    expect(name.type, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments, isNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
     expect(expression.argumentList, isNotNull);
   }
 
   void test_parseInstanceCreationExpression_type_named() {
+    enableGenericMethodComments = true;
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression =
+        parse("parseInstanceCreationExpression", <Object>[token], "A.c()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments, isNull);
+    expect(name.period, isNull);
+    expect(name.name, isNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void test_parseInstanceCreationExpression_type_named_typeParameterComment() {
+    enableGenericMethodComments = true;
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression = parse(
+        "parseInstanceCreationExpression", <Object>[token], "A/*<B>*/.c()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNotNull);
+    expect(name.name, isNotNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void test_parseInstanceCreationExpression_type_named_typeParameters() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression =
         parse("parseInstanceCreationExpression", <Object>[token], "A<B>.c()");
     expect(expression.keyword, token);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    expect(name.type, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
     expect(name.period, isNotNull);
     expect(name.name, isNotNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void test_parseInstanceCreationExpression_type_typeParameterComment() {
+    enableGenericMethodComments = true;
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression =
+        parse("parseInstanceCreationExpression", <Object>[token], "A/*<B>*/()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNull);
+    expect(name.name, isNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void test_parseInstanceCreationExpression_type_typeParameters() {
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression =
+        parse("parseInstanceCreationExpression", <Object>[token], "A<B>()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNull);
+    expect(name.name, isNull);
     expect(expression.argumentList, isNotNull);
   }
 
@@ -10405,6 +9918,7 @@ void''');
   void test_parseStatement_singleLabel() {
     LabeledStatement statement = parse4("parseStatement", "l: return x;");
     expect(statement.labels, hasLength(1));
+    expect(statement.labels[0].label.inDeclarationContext(), isTrue);
     expect(statement.statement, isNotNull);
   }
 
@@ -10675,7 +10189,32 @@ void''');
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.leftBracket, isNotNull);
     expect(statement.members, hasLength(1));
-    expect(statement.members[0].labels, hasLength(3));
+    {
+      List<Label> labels = statement.members[0].labels;
+      expect(labels, hasLength(3));
+      expect(labels[0].label.inDeclarationContext(), isTrue);
+      expect(labels[1].label.inDeclarationContext(), isTrue);
+      expect(labels[2].label.inDeclarationContext(), isTrue);
+    }
+    expect(statement.rightBracket, isNotNull);
+  }
+
+  void test_parseSwitchStatement_labeledDefault() {
+    SwitchStatement statement =
+        parse4("parseSwitchStatement", "switch (a) {l1: l2: l3: default:}");
+    expect(statement.switchKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.expression, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.leftBracket, isNotNull);
+    expect(statement.members, hasLength(1));
+    {
+      List<Label> labels = statement.members[0].labels;
+      expect(labels, hasLength(3));
+      expect(labels[0].label.inDeclarationContext(), isTrue);
+      expect(labels[1].label.inDeclarationContext(), isTrue);
+      expect(labels[2].label.inDeclarationContext(), isTrue);
+    }
     expect(statement.rightBracket, isNotNull);
   }
 

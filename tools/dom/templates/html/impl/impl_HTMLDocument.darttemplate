@@ -362,6 +362,10 @@ $if DART2JS
     _registerCustomElement(JS('', 'window'), this, tag, customElementClass,
         extendsTag);
 $else
+    // Hack to setup an interceptor for HTMLElement so it isn't changed when a custom element is created.
+    var jsHTMLElementPrototype = js.JsNative.getProperty(js.JsNative.getProperty(js.context, 'HTMLElement'),'prototype');
+    _blink.Blink_Utils.defineInterceptor(jsHTMLElementPrototype, HtmlElement.instanceRuntimeType);
+
     // Figure out which DOM class is being extended from the user's Dart class.
     var classMirror = reflectClass(customElementClass);
 
@@ -413,9 +417,6 @@ $else
       }
       var elemProto = js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'Object'), "create", [js.JsNative.getProperty(baseElement, 'prototype')]);
 
-      // Remember for any upgrading done in wrap_jso.
-      addCustomElementType(tag, customElementClass, extendsTag);
-
       // TODO(terry): Hack to stop recursion re-creating custom element when the
       //              created() constructor of the custom element does e.g.,
       //
@@ -427,77 +428,46 @@ $else
       //              until stack overflow.
       //
       //              See https://github.com/dart-lang/sdk/issues/23666
-      int creating = 0;
+      int creating = 0; // TODO(jacobr): I think I broke thise case. Will fix monday.
 
       // If any JS code is hooked we want to call it too.
-      var oldCreatedCallback = elemProto['createdCallback'];
-      var oldAttributeChangedCallback = elemProto['attributeChangedCallback'];
-      var oldAttachedCallback = elemProto['attachedCallback'];
-      var oldDetachedCallback = elemProto['detachedCallback'];
+      var oldCreatedCallback = js.JsNative.getProperty(elemProto, 'createdCallback');
+      var oldAttributeChangedCallback = js.JsNative.getProperty(elemProto, 'attributeChangedCallback');
+      var oldAttachedCallback = js.JsNative.getProperty(elemProto, 'attachedCallback');
+      var oldDetachedCallback = js.JsNative.getProperty(elemProto, 'detachedCallback');
 
-      // TODO(jacobr): warning:
-      elemProto['createdCallback'] = js.JsNative.withThis(($this) {
-        if (_getJSClassName(reflectClass(customElementClass).superclass) != null && creating < 2) {
-          creating++;
+      js.JsNative.setProperty(elemProto, 'createdCallback', js.allowInteropCaptureThis(($this) {
+        // The created callback has already been called by the very act of passing a JS
+        // custom element from JS to Dart.
 
-          var dartClass;
-          try {
-            if (extendsTag != null) {
-              // If we're extending a native element then create that element.
-              // Then upgrade that element to the customElementClass through
-              // normal flow.
-              dartClass = document.createElement(extendsTag);
-              js.setDartHtmlWrapperFor($this, dartClass);
-              dartClass.blink_jsObject = $this;
-            }
-
-            // Upgrade to the CustomElement Dart class.
-            dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
-          } catch (e) {
-            // Got a problem make it an HtmlElement and rethrow the error.
-            dartClass = HtmlElement.internalCreateHtmlElement();
-            // We need to remember the JS object (because constructElement failed
-            // it normally sets up the blink_jsObject.
-            dartClass.blink_jsObject = $this;
-
-            // Mark to only try this once don't try upgrading from HtmlElement
-            // to the user's Dart class - we had a problem.
-            dartClass._badUpgrade();
-            throw e;
-          } finally {
-            // Need to remember the Dart class that was created for this custom so
-            // return it and setup the blink_jsObject to the $this that we'll be working
-            // with as we talk to blink.
-            js.setDartHtmlWrapperFor($this, dartClass);
-
-            creating--;
-          }
-        }
+        //  Make element's interceptor a CustomElementClass.
+        _blink.Blink_Utils.setInstanceInterceptorCustomUpgrade($this);
 
         if (oldCreatedCallback != null)
-          oldCreatedCallback.apply([], thisArg: unwrap_jso($this));
-      });
-      elemProto['attributeChangedCallback'] = new js.JsFunction.withThis(($this, attrName, oldVal, newVal) {
+          oldCreatedCallback.apply([], thisArg: $this);
+      }));
+      js.JsNative.setProperty(elemProto, 'attributeChangedCallback', js.allowInteropCaptureThis(($this, attrName, oldVal, newVal) {
         $this.attributeChanged(attrName, oldVal, newVal);
 
         if (oldAttributeChangedCallback != null)
-          oldAttributeChangedCallback.apply([], thisArg: unwrap_jso($this));
-      });
-      elemProto['attachedCallback'] = new js.JsFunction.withThis(($this) {
+          oldAttributeChangedCallback.apply([], thisArg: $this);
+      }));
+      js.JsNative.setProperty(elemProto, 'attachedCallback', js.allowInteropCaptureThis(($this) {
         $this.attached();
 
         if (oldAttachedCallback != null)
-          oldAttachedCallback.apply([], thisArg: unwrap_jso($this));
-      });
-      elemProto['detachedCallback'] = new js.JsFunction.withThis(($this) {
+          oldAttachedCallback.apply([], thisArg: $this);
+      }));
+      js.JsNative.setProperty(elemProto, 'detachedCallback', js.allowInteropCaptureThis(($this) {
         $this.detached();
 
         if (oldDetachedCallback != null)
-          oldDetachedCallback.apply([], thisArg: unwrap_jso($this));
-      });
+          oldDetachedCallback.apply([], thisArg: $this);
+      }));
       // document.registerElement('x-foo', {prototype: elemProto, extends: extendsTag});
       var jsMap = new js.JsObject.jsify({'prototype': elemProto, 'extends': extendsTag});
-      js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'document'), 'registerElement', [tag, jsMap]);
+      _blink.Blink_Utils.defineInterceptorCustomElement(elemProto, customElementClass);
+      js.JsNative.callMethod(document, 'registerElement', [tag, jsMap]);
     }
 $endif
   }

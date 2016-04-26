@@ -93,6 +93,19 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
       if (target.library == null || !target.library.isInSystemLibrary) {
         return false;
       }
+      if (result == CREATED_RESOLVED_UNIT1 ||
+          result == CREATED_RESOLVED_UNIT2 ||
+          result == CREATED_RESOLVED_UNIT3 ||
+          result == CREATED_RESOLVED_UNIT4 ||
+          result == CREATED_RESOLVED_UNIT5 ||
+          result == CREATED_RESOLVED_UNIT6 ||
+          result == CREATED_RESOLVED_UNIT7 ||
+          result == CREATED_RESOLVED_UNIT8 ||
+          result == CREATED_RESOLVED_UNIT9 ||
+          result == CREATED_RESOLVED_UNIT10) {
+        entry.setValue(result, true, TargetedResult.EMPTY_LIST);
+        return true;
+      }
       if (result == COMPILATION_UNIT_ELEMENT) {
         String libraryUri = target.library.uri.toString();
         String unitUri = target.unit.uri.toString();
@@ -371,9 +384,9 @@ class SummaryTypeProvider implements TypeProvider {
     _isAsyncInitialized = true;
     _futureType = _getType(library, "Future");
     _streamType = _getType(library, "Stream");
-    _futureDynamicType = _futureType.substitute4(<DartType>[dynamicType]);
-    _futureNullType = _futureType.substitute4(<DartType>[_nullType]);
-    _streamDynamicType = _streamType.substitute4(<DartType>[dynamicType]);
+    _futureDynamicType = _futureType.instantiate(<DartType>[dynamicType]);
+    _futureNullType = _futureType.instantiate(<DartType>[_nullType]);
+    _streamDynamicType = _streamType.instantiate(<DartType>[dynamicType]);
   }
 
   /**
@@ -398,7 +411,7 @@ class SummaryTypeProvider implements TypeProvider {
     _stringType = _getType(library, "String");
     _symbolType = _getType(library, "Symbol");
     _typeType = _getType(library, "Type");
-    _iterableDynamicType = _iterableType.substitute4(<DartType>[dynamicType]);
+    _iterableDynamicType = _iterableType.instantiate(<DartType>[dynamicType]);
   }
 
   /**

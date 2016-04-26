@@ -42,6 +42,7 @@ ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
       embedder_stream_id_(NULL),
       breakpoint_(NULL),
       top_frame_(NULL),
+      timeline_event_block_(NULL),
       extension_rpc_(NULL),
       exception_(NULL),
       at_async_jump_(false),
@@ -50,8 +51,13 @@ ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
       bytes_(NULL),
       bytes_length_(0),
       timestamp_(OS::GetCurrentTimeMillis()) {
-  if ((event_kind == ServiceEvent::kPauseStart) ||
-      (event_kind == ServiceEvent::kPauseExit)) {
+  if ((event_kind == ServiceEvent::kPauseStart) &&
+      !isolate->message_handler()->is_paused_on_start()) {
+    // We will pause on start but the message handler lacks a valid
+    // paused timestamp because we haven't paused yet. Use the current time.
+    timestamp_ = OS::GetCurrentTimeMillis();
+  } else if ((event_kind == ServiceEvent::kPauseStart) ||
+             (event_kind == ServiceEvent::kPauseExit)) {
     timestamp_ = isolate->message_handler()->paused_timestamp();
   } else if (event_kind == ServiceEvent::kResume) {
     timestamp_ = isolate->last_resume_timestamp();
@@ -64,6 +70,7 @@ ServiceEvent::ServiceEvent(const DebuggerEvent* debugger_event)
       kind_(TranslateEventKind(debugger_event->type())),
       breakpoint_(NULL),
       top_frame_(NULL),
+      timeline_event_block_(NULL),
       extension_rpc_(NULL),
       exception_(NULL),
       at_async_jump_(false),
@@ -115,6 +122,8 @@ const char* ServiceEvent::KindAsCString() const {
       return "PauseInterrupted";
     case kPauseException:
       return "PauseException";
+    case kNone:
+      return "None";
     case kResume:
       return "Resume";
     case kBreakpointAdded:
@@ -137,6 +146,8 @@ const char* ServiceEvent::KindAsCString() const {
       return "Illegal";
     case kExtension:
       return "Extension";
+    case kTimelineEvents:
+      return "TimelineEvents";
     default:
       UNREACHABLE();
       return "Unknown";
@@ -161,6 +172,7 @@ const char* ServiceEvent::stream_id() const {
     case kPauseBreakpoint:
     case kPauseInterrupted:
     case kPauseException:
+    case kNone:
     case kResume:
     case kBreakpointAdded:
     case kBreakpointResolved:
@@ -180,6 +192,9 @@ const char* ServiceEvent::stream_id() const {
 
     case kExtension:
       return Service::extension_stream.id();
+
+    case kTimelineEvents:
+      return Service::timeline_stream.id();
 
     default:
       UNREACHABLE();
@@ -206,6 +221,9 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     if (breakpoint() != NULL) {
       jsobj.AddProperty("breakpoint", breakpoint());
     }
+  }
+  if (kind() == kTimelineEvents) {
+    jsobj.AddProperty("timelineEvents", timeline_event_block_);
   }
   if (kind() == kDebuggerSettingsUpdate) {
     JSONObject jssettings(&jsobj, "_debuggerSettings");
@@ -261,7 +279,7 @@ void ServiceEvent::PrintJSONHeader(JSONObject* jsobj) const {
     jsobj->AddProperty("extensionKind",
                        extension_event_.event_kind->ToCString());
   }
-  if (kind() == kVMUpdate) {
+  if (isolate() == NULL) {
     jsobj->AddPropertyVM("vm");
   } else {
     jsobj->AddProperty("isolate", isolate());

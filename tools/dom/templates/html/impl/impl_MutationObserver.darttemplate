@@ -20,13 +20,7 @@ $endif
   }
 $if DARTIUM
   @DocsEditable()
-  $if JSINTEROP
-  static MutationObserver _create(callback) => wrap_jso(_blink.BlinkMutationObserver.instance.constructorCallback_1_((mutations, observer) {
-    callback(wrap_jso(mutations), wrap_jso(observer));
-  }));
-  $else
   static MutationObserver _create(callback) => _blink.BlinkMutationObserver.instance.constructorCallback_1_(callback);
-  $endif
 $endif
 
   /**

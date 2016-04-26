@@ -34,11 +34,13 @@ class OptionsPlugin implements Plugin {
 
   /// All contributed options processors.
   List<OptionsProcessor> get optionsProcessors =>
-      optionsProcessorExtensionPoint?.extensions ?? const [];
+      optionsProcessorExtensionPoint?.extensions as List<OptionsProcessor> ??
+      const <OptionsProcessor>[];
 
   /// All contributed options validators.
   List<OptionsValidator> get optionsValidators =>
-      optionsValidatorExtensionPoint?.extensions ?? const [];
+      optionsValidatorExtensionPoint?.extensions as List<OptionsValidator> ??
+      const <OptionsValidator>[];
 
   @override
   String get uniqueIdentifier => UNIQUE_IDENTIFIER;

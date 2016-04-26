@@ -63,6 +63,9 @@ class AbstractAnalysisTest {
 
   AbstractAnalysisTest();
 
+  AnalysisDomainHandler get analysisHandler => server.handlers
+      .singleWhere((handler) => handler is AnalysisDomainHandler);
+
   void addAnalysisSubscription(AnalysisService service, String file) {
     // add file to subscription
     var files = analysisSubscriptions[service];
@@ -126,7 +129,7 @@ class AbstractAnalysisTest {
         index,
         serverPlugin,
         new AnalysisServerOptions(),
-        () => new MockSdk(),
+        (_) => new MockSdk(),
         InstrumentationService.NULL_SERVICE);
   }
 
@@ -141,7 +144,7 @@ class AbstractAnalysisTest {
     resourceProvider.newFolder(projectPath);
     Request request =
         new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
-    handleSuccessfulRequest(request);
+    handleSuccessfulRequest(request, handler: analysisHandler);
   }
 
   /**
@@ -169,7 +172,8 @@ class AbstractAnalysisTest {
   /**
    * Validates that the given [request] is handled successfully.
    */
-  Response handleSuccessfulRequest(Request request) {
+  Response handleSuccessfulRequest(Request request, {RequestHandler handler}) {
+    handler ??= this.handler;
     Response response = handler.handleRequest(request);
     expect(response, isResponseSuccess(request.id));
     return response;
@@ -201,8 +205,7 @@ class AbstractAnalysisTest {
     packageMapProvider = new MockPackageMapProvider();
     Index index = createIndex();
     server = createAnalysisServer(index);
-    handler = server.handlers
-        .singleWhere((handler) => handler is AnalysisDomainHandler);
+    handler = analysisHandler;
     // listen for notifications
     Stream<Notification> notificationStream =
         serverChannel.notificationController.stream;

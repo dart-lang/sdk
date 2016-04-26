@@ -2,20 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "bin/platform.h"
+#if !defined(DART_IO_DISABLED)
 
-#include "include/dart_api.h"
+#include "bin/platform.h"
 
 #include "bin/file.h"
 #include "bin/utils.h"
+#include "include/dart_api.h"
 
 namespace dart {
 namespace bin {
-
-const char* Platform::executable_name_ = NULL;
-const char* Platform::resolved_executable_name_ = NULL;
-int Platform::script_index_ = 1;
-char** Platform::argv_ = NULL;
 
 void FUNCTION_NAME(Platform_NumberOfProcessors)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewInteger(Platform::NumberOfProcessors()));
@@ -102,22 +98,18 @@ void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
   } else {
     Dart_Handle result = Dart_NewList(count);
     if (Dart_IsError(result)) {
-      Platform::FreeEnvironment(env, count);
       Dart_PropagateError(result);
     }
     for (intptr_t i = 0; i < count; i++) {
       Dart_Handle str = DartUtils::NewString(env[i]);
       if (Dart_IsError(str)) {
-        Platform::FreeEnvironment(env, count);
         Dart_PropagateError(str);
       }
       Dart_Handle error = Dart_ListSetAt(result, i, str);
       if (Dart_IsError(error)) {
-        Platform::FreeEnvironment(env, count);
         Dart_PropagateError(error);
       }
     }
-    Platform::FreeEnvironment(env, count);
     Dart_SetReturnValue(args, result);
   }
 }
@@ -129,3 +121,5 @@ void FUNCTION_NAME(Platform_GetVersion)(Dart_NativeArguments args) {
 
 }  // namespace bin
 }  // namespace dart
+
+#endif  // !defined(DART_IO_DISABLED)

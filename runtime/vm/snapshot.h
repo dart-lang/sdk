@@ -52,13 +52,12 @@ class RawField;
 class RawFloat32x4;
 class RawFloat64x2;
 class RawFunction;
-class RawFunctionType;
 class RawGrowableObjectArray;
 class RawICData;
 class RawImmutableArray;
 class RawInstructions;
 class RawInt32x4;
-class RawJSRegExp;
+class RawRegExp;
 class RawLanguageError;
 class RawLibrary;
 class RawLibraryPrefix;
@@ -371,7 +370,7 @@ class InstructionsReader : public ZoneAllocated {
                             OS::PreferredCodeAlignment()));
   }
 
-  RawInstructions* GetInstructionsAt(int32_t offset, uword expected_tags);
+  uword GetInstructionsAt(int32_t offset);
   RawObject* GetObjectAt(int32_t offset);
 
  private:
@@ -445,7 +444,6 @@ class SnapshotReader : public BaseReader {
   RawDouble* NewDouble(double value);
   RawUnresolvedClass* NewUnresolvedClass();
   RawType* NewType();
-  RawFunctionType* NewFunctionType();
   RawTypeRef* NewTypeRef();
   RawTypeParameter* NewTypeParameter();
   RawBoundedType* NewBoundedType();
@@ -483,10 +481,10 @@ class SnapshotReader : public BaseReader {
   RawObject* NewInteger(int64_t value);
   RawStacktrace* NewStacktrace();
   RawWeakProperty* NewWeakProperty();
-  RawJSRegExp* NewJSRegExp();
+  RawRegExp* NewRegExp();
 
-  RawInstructions* GetInstructionsAt(int32_t offset, uword expected_tags) {
-    return instructions_reader_->GetInstructionsAt(offset, expected_tags);
+  uword GetInstructionsAt(int32_t offset) {
+    return instructions_reader_->GetInstructionsAt(offset);
   }
 
   RawObject* GetObjectAt(int32_t offset) {
@@ -612,7 +610,7 @@ class SnapshotReader : public BaseReader {
   friend class ICData;
   friend class ImmutableArray;
   friend class Instructions;
-  friend class JSRegExp;
+  friend class RegExp;
   friend class LanguageError;
   friend class Library;
   friend class LibraryPrefix;
@@ -631,7 +629,6 @@ class SnapshotReader : public BaseReader {
   friend class SubtypeTestCache;
   friend class TokenStream;
   friend class Type;
-  friend class FunctionType;
   friend class TypeArguments;
   friend class TypeParameter;
   friend class TypeRef;
@@ -865,26 +862,18 @@ class InstructionsWriter : public ZoneAllocated {
 
   intptr_t binary_size() { return binary_size_; }
 
-  int32_t GetOffsetFor(RawInstructions* instructions);
+  int32_t GetOffsetFor(RawInstructions* instructions, RawCode* code);
 
   int32_t GetObjectOffsetFor(RawObject* raw_object);
-
-  void SetInstructionsCode(RawInstructions* insns, RawCode* code) {
-    for (intptr_t i = 0; i < instructions_.length(); i++) {
-      if (instructions_[i].raw_insns_ == insns) {
-        instructions_[i].raw_code_ = code;
-        return;
-      }
-    }
-    UNREACHABLE();
-  }
 
   void WriteAssembly();
 
  private:
   struct InstructionsData {
-    explicit InstructionsData(RawInstructions* insns)
-        : raw_insns_(insns), raw_code_(NULL) { }
+    explicit InstructionsData(RawInstructions* insns,
+                              RawCode* code,
+                              intptr_t offset)
+        : raw_insns_(insns), raw_code_(code), offset_(offset) { }
 
     union {
       RawInstructions* raw_insns_;
@@ -894,6 +883,7 @@ class InstructionsWriter : public ZoneAllocated {
       RawCode* raw_code_;
       const Code* code_;
     };
+    intptr_t offset_;
   };
 
   struct ObjectData {
@@ -973,16 +963,12 @@ class SnapshotWriter : public BaseWriter {
 
   static intptr_t FirstObjectId();
 
-  int32_t GetInstructionsId(RawInstructions* instructions) {
-    return instructions_writer_->GetOffsetFor(instructions);
+  int32_t GetInstructionsId(RawInstructions* instructions, RawCode* code) {
+    return instructions_writer_->GetOffsetFor(instructions, code);
   }
 
   int32_t GetObjectId(RawObject* raw) {
     return instructions_writer_->GetObjectOffsetFor(raw);
-  }
-
-  void SetInstructionsCode(RawInstructions* instructions, RawCode* code) {
-    return instructions_writer_->SetInstructionsCode(instructions, code);
   }
 
   void WriteFunctionId(RawFunction* func, bool owner_is_class);
@@ -1051,6 +1037,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawArray;
   friend class RawClass;
   friend class RawClosureData;
+  friend class RawCode;
   friend class RawContextScope;
   friend class RawExceptionHandlers;
   friend class RawField;
@@ -1058,7 +1045,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawGrowableObjectArray;
   friend class RawImmutableArray;
   friend class RawInstructions;
-  friend class RawJSRegExp;
+  friend class RawRegExp;
   friend class RawLibrary;
   friend class RawLinkedHashMap;
   friend class RawLiteralToken;

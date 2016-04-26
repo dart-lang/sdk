@@ -343,7 +343,7 @@ class Driver implements ServerStarter {
     // TODO (danrubel) Remove this workaround
     // once the underlying VM and dart:io issue has been fixed.
     if (results[INTERNAL_DELAY_FREQUENCY] != null) {
-      AnalysisServer.performOperationDelayFreqency =
+      AnalysisServer.performOperationDelayFrequency =
           int.parse(results[INTERNAL_DELAY_FREQUENCY], onError: (_) => 0);
     }
 
@@ -375,6 +375,22 @@ class Driver implements ServerStarter {
 
     _initIncrementalLogger(results[INCREMENTAL_RESOLUTION_LOG]);
 
+    //
+    // Process all of the plugins so that extensions are registered.
+    //
+    ServerPlugin serverPlugin = new ServerPlugin();
+    List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(AnalysisEngine.instance.commandLinePlugin);
+    plugins.add(AnalysisEngine.instance.optionsPlugin);
+    plugins.add(serverPlugin);
+    plugins.add(linterPlugin);
+    plugins.add(linterServerPlugin);
+    plugins.add(dartCompletionPlugin);
+    plugins.addAll(_userDefinedPlugins);
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(plugins);
+
     JavaFile defaultSdkDirectory;
     if (results[SDK_OPTION] != null) {
       defaultSdkDirectory = new JavaFile(results[SDK_OPTION]);
@@ -383,12 +399,16 @@ class Driver implements ServerStarter {
       // Use DirectoryBasedDartSdk.defaultSdkDirectory, which will make a guess.
       defaultSdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
     }
-    SdkCreator defaultSdkCreator =
-        () => new DirectoryBasedDartSdk(defaultSdkDirectory);
+    SdkCreator defaultSdkCreator = (AnalysisOptions options) {
+      DirectoryBasedDartSdk sdk =
+          new DirectoryBasedDartSdk(defaultSdkDirectory);
+      sdk.analysisOptions = options;
+      return sdk;
+    };
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
     // cannot be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.
-    DirectoryBasedDartSdk defaultSdk = defaultSdkCreator();
+    DirectoryBasedDartSdk defaultSdk = defaultSdkCreator(null);
     //
     // Initialize the instrumentation service.
     //
@@ -407,22 +427,6 @@ class Driver implements ServerStarter {
     service.logVersion(_readUuid(service), results[CLIENT_ID],
         results[CLIENT_VERSION], AnalysisServer.VERSION, defaultSdk.sdkVersion);
     AnalysisEngine.instance.instrumentationService = service;
-    //
-    // Process all of the plugins so that extensions are registered.
-    //
-    ServerPlugin serverPlugin = new ServerPlugin();
-    List<Plugin> plugins = <Plugin>[];
-    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(AnalysisEngine.instance.commandLinePlugin);
-    plugins.add(AnalysisEngine.instance.optionsPlugin);
-    plugins.add(serverPlugin);
-    plugins.add(linterPlugin);
-    plugins.add(linterServerPlugin);
-    plugins.add(dartCompletionPlugin);
-    plugins.addAll(_userDefinedPlugins);
-
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(plugins);
     //
     // Create the sockets and start listening for requests.
     //
@@ -463,7 +467,7 @@ class Driver implements ServerStarter {
    */
   dynamic _captureExceptions(InstrumentationService service, dynamic callback(),
       {void print(String line)}) {
-    Function errorFunction = (Zone self, ZoneDelegate parent, Zone zone,
+    var errorFunction = (Zone self, ZoneDelegate parent, Zone zone,
         dynamic exception, StackTrace stackTrace) {
       service.logPriorityException(exception, stackTrace);
       AnalysisServer analysisServer = socketServer.analysisServer;
@@ -471,11 +475,11 @@ class Driver implements ServerStarter {
           'Captured exception', exception, stackTrace);
       throw exception;
     };
-    Function printFunction = print == null
+    var printFunction = print == null
         ? null
         : (Zone self, ZoneDelegate parent, Zone zone, String line) {
-            // Note: we don't pass the line on to stdout, because that is reserved
-            // for communication to the client.
+            // Note: we don't pass the line on to stdout, because that is
+            // reserved for communication to the client.
             print(line);
           };
     ZoneSpecification zoneSpecification = new ZoneSpecification(

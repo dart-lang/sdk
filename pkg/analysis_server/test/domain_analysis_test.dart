@@ -47,7 +47,7 @@ main() {
         null,
         serverPlugin,
         new AnalysisServerOptions(),
-        () => new MockSdk(),
+        (_) => new MockSdk(),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
   });
@@ -70,7 +70,7 @@ main() {
             new AnalysisGetReachableSourcesParams(fileA).toRequest('0');
         var response = handler.handleRequest(request);
 
-        var json = response.toJson()[Response.RESULT];
+        Map json = response.toJson()[Response.RESULT];
 
         // Sanity checks.
         expect(json['sources'], hasLength(6));
@@ -474,7 +474,7 @@ class AnalysisTestHelper {
         null,
         serverPlugin,
         new AnalysisServerOptions(),
-        () => new MockSdk(),
+        (_) => new MockSdk(),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
     // listen for notifications

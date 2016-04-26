@@ -14,6 +14,19 @@
   </template>
 </polymer-element>
 
+<polymer-element name="icon-whatshot" noscript>
+  <template>
+    <style>
+      svg {
+        fill: currentColor
+      }
+    </style>
+    <svg width="24" height="24">
+      <path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"></path>
+    </svg>
+  </template>
+</polymer-element>
+
 <polymer-element name="script-inset" extends="observatory-element">
   <template>
     <style>
@@ -116,6 +129,30 @@
         color: white;
         background-color: #e66;
       }
+      .notSourceProfile, .noProfile, .coldProfile, .mediumProfile, .hotProfile {
+        display: table-cell;
+        vertical-align: top;
+        font: 400 14px consolas, courier, monospace;
+        width: 4em;
+        text-align: right;
+        cursor: pointer;
+        margin-left: 5px;
+        margin-right: 5px;
+      }
+      .notSourceProfile {
+      }
+      .noProfile {
+        background-color: #e0e0e0;
+      }
+      .coldProfile {
+        background-color: #aea;
+      }
+      .mediumProfile {
+        background-color: #fe9;
+      }
+      .hotProfile {
+        background-color: #faa;
+      }
     </style>
   </template>
 </polymer-element>
@@ -142,6 +179,25 @@
       <template if="{{ !busy }}">
         <a on-click="{{ buttonClick }}">
           <icon-refresh id="refreshIcon" class="refreshButton"></icon-refresh>
+        </a>
+      </template>
+    </template>
+  </template>
+</polymer-element>
+
+<polymer-element name="toggle-button">
+  <template>
+    <style>
+    </style>
+    <template if="{{ callback != null }}">
+      <template if="{{ enabled }}">
+        <a on-click="{{ buttonClick }}">
+          <content></content>
+        </a>
+      </template>
+      <template if="{{ !enabled }}">
+        <a on-click="{{ buttonClick }}">
+          <content></content>
         </a>
       </template>
     </template>

@@ -9,9 +9,12 @@ import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/optype.dart';
 
 const ASYNC = 'async';
 const ASYNC_STAR = 'async*';
@@ -49,6 +52,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitArgumentList(ArgumentList node) {
+    if (request is DartCompletionRequestImpl) {
+      //TODO(danrubel) consider adding opType to the API then remove this cast
+      OpType opType = (request as DartCompletionRequestImpl).opType;
+      if (opType.includeOnlyNamedArgumentSuggestions) {
+        return;
+      }
+    }
     if (entity == node.rightParenthesis) {
       _addExpressionKeywords(node);
       Token previous = (entity as Token).previous;
@@ -80,7 +90,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
         if (next.isSynthetic) {
           next = next.next;
         }
-        if (previous.lexeme == ')' && next.lexeme == '{') {
+        if (previous.type == TokenType.CLOSE_PAREN &&
+            next.type == TokenType.OPEN_CURLY_BRACKET) {
           _addSuggestion2(ASYNC);
           _addSuggestion2(ASYNC_STAR);
           _addSuggestion2(SYNC_STAR);
@@ -147,8 +158,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
           !node.directives.any((d) => d is LibraryDirective)) {
         _addSuggestions([Keyword.LIBRARY], DART_RELEVANCE_HIGH);
       }
-      _addSuggestions(
-          [Keyword.IMPORT, Keyword.EXPORT, Keyword.PART], DART_RELEVANCE_HIGH);
+      _addSuggestion2('${Keyword.IMPORT.syntax} \'\';',
+          offset: 8, relevance: DART_RELEVANCE_HIGH);
+      _addSuggestion2('${Keyword.EXPORT.syntax} \'\';',
+          offset: 8, relevance: DART_RELEVANCE_HIGH);
+      _addSuggestion2('${Keyword.PART.syntax} \'\';',
+          offset: 6, relevance: DART_RELEVANCE_HIGH);
     }
     if (entity == null || entity is Declaration) {
       if (previousMember is FunctionDeclaration &&

@@ -148,6 +148,7 @@ void VmServiceServer::DecompressAssets(const uint8_t* input,
   inflateEnd(&strm);
 }
 
+
 /* DISALLOW_ALLOCATION */
 void VmServiceServer::operator delete(void* pointer)  {
   fprintf(stderr, "unreachable code\n");

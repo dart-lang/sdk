@@ -25,12 +25,9 @@ import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
-import 'package:analysis_server/src/provisional/index/index.dart';
-import 'package:analysis_server/src/provisional/index/index_core.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analysis_server/src/services/index/index_contributor.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:plugin/plugin.dart';
 
@@ -138,11 +135,6 @@ class ServerPlugin implements Plugin {
   ExtensionPoint fixContributorExtensionPoint;
 
   /**
-   * The extension point that allows plugins to register index contributors.
-   */
-  ExtensionPoint indexContributorExtensionPoint;
-
-  /**
    * The extension point that allows plugins to register navigation
    * contributors.
    */
@@ -200,13 +192,6 @@ class ServerPlugin implements Plugin {
       fixContributorExtensionPoint.extensions;
 
   /**
-   * Return a list containing all of the index contributors that were
-   * contributed.
-   */
-  List<IndexContributor> get indexContributors =>
-      indexContributorExtensionPoint.extensions;
-
-  /**
    * Return a list containing all of the navigation contributors that were
    * contributed.
    */
@@ -261,8 +246,6 @@ class ServerPlugin implements Plugin {
         DOMAIN_EXTENSION_POINT, _validateDomainExtension);
     fixContributorExtensionPoint = registerExtensionPoint(
         FIX_CONTRIBUTOR_EXTENSION_POINT, _validateFixContributorExtension);
-    indexContributorExtensionPoint = registerExtensionPoint(
-        INDEX_CONTRIBUTOR_EXTENSION_POINT, _validateIndexContributorExtension);
     navigationContributorExtensionPoint = registerExtensionPoint(
         NAVIGATION_CONTRIBUTOR_EXTENSION_POINT,
         _validateNavigationContributorExtension);
@@ -323,11 +306,6 @@ class ServerPlugin implements Plugin {
     //
     registerExtension(
         FIX_CONTRIBUTOR_EXTENSION_POINT_ID, new DefaultFixContributor());
-    //
-    // Register index contributors.
-    //
-    registerExtension(
-        INDEX_CONTRIBUTOR_EXTENSION_POINT_ID, new DartIndexContributor());
   }
 
   /**
@@ -398,17 +376,6 @@ class ServerPlugin implements Plugin {
     if (extension is! FixContributor) {
       String id = fixContributorExtensionPoint.uniqueIdentifier;
       throw new ExtensionError('Extensions to $id must be a FixContributor');
-    }
-  }
-
-  /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not a
-   * valid index contributor.
-   */
-  void _validateIndexContributorExtension(Object extension) {
-    if (extension is! IndexContributor) {
-      String id = indexContributorExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError('Extensions to $id must be an IndexContributor');
     }
   }
 

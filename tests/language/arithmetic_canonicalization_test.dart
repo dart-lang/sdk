@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test canonicalization of simple arithmetic equivalences.
-// VMOptions=--optimization-counter-threshold=20 --no-use-osr
+// VMOptions=--optimization-counter-threshold=20 --no-use-osr --no-background-compilation
 
 import "package:expect/expect.dart";
 

@@ -7,13 +7,12 @@
 patch class Null {
 
   factory Null._uninstantiable() {
-    throw new UnsupportedError(
-        "class Null cannot be instantiated");
+    throw new UnsupportedError("class Null cannot be instantiated");
   }
 
-  int get _identityHashCode {
-    return 2011;  // The year Dart was announced and a prime.
-  }
+  static const _HASH_CODE = 2011; // The year Dart was announced and a prime.
+  int get _identityHashCode => _HASH_CODE;
+  int get hashCode => _HASH_CODE;
 
   String toString() {
     return 'null';

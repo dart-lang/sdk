@@ -17,6 +17,10 @@ evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
 # Tests with known analyzer issues
 [ $compiler == dart2analyzer ]
 developer_extension_test: SkipByDesign
+*: StaticWarning # https://github.com/dart-lang/observe/issues/85
+address_mapper_test: Pass # https://github.com/dart-lang/observe/issues/85
+command_test: Pass # https://github.com/dart-lang/observe/issues/85
+read_stream_test: Pass # https://github.com/dart-lang/observe/issues/85
 
 [ $arch == arm ]
 process_service_test: Pass, Fail # Issue 24344
@@ -34,3 +38,6 @@ coverage_test: Pass, Slow
 # Service protocol is not supported when running a full application snapshot.
 [ ($runtime == dart_product) ]
 *: SkipByDesign
+
+[ $compiler == dart2analyzer ]
+evaluate_activation_in_method_class_test: CompileTimeError # Issue 24478

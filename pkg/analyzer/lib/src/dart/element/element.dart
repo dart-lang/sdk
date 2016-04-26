@@ -9,14 +9,14 @@ import 'dart:math' show min;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/constant.dart'
-    show DartObject, EvaluationResultImpl;
-import 'package:analyzer/src/generated/element_handle.dart';
+import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
@@ -568,7 +568,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   @override
   MethodElement lookUpConcreteMethod(
           String methodName, LibraryElement library) =>
-      _internalLookUpConcreteMethod(methodName, library, true);
+      _internalLookUpConcreteMethod(
+          methodName, library, true, new HashSet<ClassElement>());
 
   @override
   PropertyAccessorElement lookUpGetter(
@@ -583,7 +584,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   @override
   MethodElement lookUpInheritedConcreteMethod(
           String methodName, LibraryElement library) =>
-      _internalLookUpConcreteMethod(methodName, library, false);
+      _internalLookUpConcreteMethod(
+          methodName, library, false, new HashSet<ClassElement>());
 
   @override
   PropertyAccessorElement lookUpInheritedConcreteSetter(
@@ -593,11 +595,13 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   @override
   MethodElement lookUpInheritedMethod(
           String methodName, LibraryElement library) =>
-      _internalLookUpMethod(methodName, library, false);
+      _internalLookUpMethod(
+          methodName, library, false, new HashSet<ClassElement>());
 
   @override
   MethodElement lookUpMethod(String methodName, LibraryElement library) =>
-      _internalLookUpMethod(methodName, library, true);
+      _internalLookUpMethod(
+          methodName, library, true, new HashSet<ClassElement>());
 
   @override
   PropertyAccessorElement lookUpSetter(
@@ -679,9 +683,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
         visitedClasses.add(this);
       }
       try {
-        ClassElementImpl superclass = supertype.element;
-        constructorsToForward =
-            superclass._computeMixinAppConstructors(visitedClasses);
+        constructorsToForward = getImpl(supertype.element)
+            ._computeMixinAppConstructors(visitedClasses);
       } finally {
         visitedClasses.removeLast();
       }
@@ -742,25 +745,29 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
         _internalLookUpGetter(getterName, library, includeThisClass);
     while (getter != null && getter.isAbstract) {
       Element definingClass = getter.enclosingElement;
-      if (definingClass is! ClassElementImpl) {
+      if (definingClass is! ClassElement) {
         return null;
       }
-      getter = (definingClass as ClassElementImpl)
+      getter = getImpl(definingClass)
           ._internalLookUpGetter(getterName, library, false);
     }
     return getter;
   }
 
   MethodElement _internalLookUpConcreteMethod(
-      String methodName, LibraryElement library, bool includeThisClass) {
-    MethodElement method =
-        _internalLookUpMethod(methodName, library, includeThisClass);
+      String methodName,
+      LibraryElement library,
+      bool includeThisClass,
+      HashSet<ClassElement> visitedClasses) {
+    MethodElement method = _internalLookUpMethod(
+        methodName, library, includeThisClass, visitedClasses);
     while (method != null && method.isAbstract) {
       ClassElement definingClass = method.enclosingElement;
       if (definingClass == null) {
         return null;
       }
-      method = definingClass.lookUpInheritedMethod(methodName, library);
+      method = getImpl(definingClass)
+          ._internalLookUpMethod(methodName, library, false, visitedClasses);
     }
     return method;
   }
@@ -813,9 +820,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return null;
   }
 
-  MethodElement _internalLookUpMethod(
-      String methodName, LibraryElement library, bool includeThisClass) {
-    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+  MethodElement _internalLookUpMethod(String methodName, LibraryElement library,
+      bool includeThisClass, HashSet<ClassElement> visitedClasses) {
     ClassElement currentElement = this;
     if (includeThisClass) {
       MethodElement element = currentElement.getMethod(methodName);
@@ -905,6 +911,18 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     }
     return false;
   }
+
+  /**
+   * Return the [ClassElementImpl] of the given [classElement].  May throw an
+   * exception if the [ClassElementImpl] cannot be provided (should not happen
+   * though).
+   */
+  static ClassElementImpl getImpl(ClassElement classElement) {
+    if (classElement is ClassElementHandle) {
+      return getImpl(classElement.actualElement);
+    }
+    return classElement as ClassElementImpl;
+  }
 }
 
 /**
@@ -926,6 +944,13 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
    * computed.
    */
   Source librarySource;
+
+  /**
+   * A table mapping the offset of a directive to the annotations associated
+   * with that directive, or `null` if none of the annotations in the
+   * compilation unit have annotations.
+   */
+  Map<int, List<ElementAnnotation>> annotationMap = null;
 
   /**
    * A list containing all of the top-level accessors (getters and setters)
@@ -1072,7 +1097,13 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
    */
   void set types(List<ClassElement> types) {
     for (ClassElement type in types) {
-      (type as ClassElementImpl).enclosingElement = this;
+      // Another implementation of ClassElement is _DeferredClassElement,
+      // which is used to resynthesize classes lazily. We cannot cast it
+      // to ClassElementImpl, and it already can provide correct values of the
+      // 'enclosingElement' property.
+      if (type is ClassElementImpl) {
+        type.enclosingElement = this;
+      }
     }
     this._types = types;
   }
@@ -1102,6 +1133,18 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   CompilationUnit computeNode() => unit;
+
+  /**
+   * Return the annotations associated with the directive at the given [offset],
+   * or an empty list if the directive has no annotations or if there is no
+   * directive at the given offset.
+   */
+  List<ElementAnnotation> getAnnotations(int offset) {
+    if (annotationMap == null) {
+      return ElementAnnotation.EMPTY_LIST;
+    }
+    return annotationMap[offset] ?? ElementAnnotation.EMPTY_LIST;
+  }
 
   @override
   ElementImpl getChild(String identifier) {
@@ -1179,6 +1222,15 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       TopLevelVariableElement from, TopLevelVariableElement to) {
     int index = _variables.indexOf(from);
     _variables[index] = to;
+  }
+
+  /**
+   * Set the annotations associated with the directive at the given [offset] to
+   * the given list of [annotations].
+   */
+  void setAnnotations(int offset, List<ElementAnnotation> annotations) {
+    annotationMap ??= new HashMap<int, List<ElementAnnotation>>();
+    annotationMap[offset] = annotations;
   }
 
   @override
@@ -1568,9 +1620,25 @@ class ElementAnnotationImpl implements ElementAnnotation {
   static String _DEPRECATED_VARIABLE_NAME = "deprecated";
 
   /**
+   * The name of the class used to JS annotate an element.
+   */
+  static String _JS_CLASS_NAME = "JS";
+
+  /**
+   * The name of `js` library, used to define JS annotations.
+   */
+  static String _JS_LIB_NAME = "js";
+
+  /**
    * The name of `meta` library, used to define analysis annotations.
    */
   static String _META_LIB_NAME = "meta";
+
+  /**
+   * The name of the top-level variable used to mark a method as requiring
+   * overriders to call super.
+   */
+  static String _MUST_CALL_SUPER_VARIABLE_NAME = "mustCallSuper";
 
   /**
    * The name of the top-level variable used to mark a method as being expected
@@ -1589,6 +1657,17 @@ class ElementAnnotationImpl implements ElementAnnotation {
    * proxy object.
    */
   static String PROXY_VARIABLE_NAME = "proxy";
+
+  /**
+   * The name of the class used to mark a parameter as being required.
+   */
+  static String _REQUIRED_CLASS_NAME = "Required";
+
+  /**
+   * The name of the top-level variable used to mark a parameter as being
+   * required.
+   */
+  static String _REQUIRED_VARIABLE_NAME = "required";
 
   /**
    * The element representing the field, variable, or constructor being used as
@@ -1639,6 +1718,17 @@ class ElementAnnotationImpl implements ElementAnnotation {
   }
 
   @override
+  bool get isJS => element is ConstructorElement &&
+        element.enclosingElement.name == _JS_CLASS_NAME &&
+        element.library?.name == _JS_LIB_NAME;
+
+  @override
+  bool get isMustCallSuper =>
+      element is PropertyAccessorElement &&
+      element.name == _MUST_CALL_SUPER_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
+
+  @override
   bool get isOverride =>
       element is PropertyAccessorElement &&
       element.name == _OVERRIDE_VARIABLE_NAME &&
@@ -1655,6 +1745,15 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element is PropertyAccessorElement &&
       element.name == PROXY_VARIABLE_NAME &&
       element.library?.isDartCore == true;
+
+  @override
+  bool get isRequired =>
+      element is ConstructorElement &&
+          element.enclosingElement.name == _REQUIRED_CLASS_NAME &&
+          element.library?.name == _META_LIB_NAME ||
+      element is PropertyAccessorElement &&
+          element.name == _REQUIRED_VARIABLE_NAME &&
+          element.library?.name == _META_LIB_NAME;
 
   /**
    * Get the library containing this annotation.
@@ -1839,6 +1938,16 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  bool get isJS {
+    for (ElementAnnotation annotation in metadata) {
+      if (annotation.isJS) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   bool get isOverride {
     for (ElementAnnotation annotation in metadata) {
       if (annotation.isOverride) {
@@ -1869,6 +1978,16 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get isPublic => !isPrivate;
+
+  @override
+  bool get isRequired {
+    for (ElementAnnotation annotation in metadata) {
+      if (annotation.isRequired) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   @override
   bool get isSynthetic => hasModifier(Modifier.SYNTHETIC);
@@ -1944,6 +2063,27 @@ abstract class ElementImpl implements Element {
     return object is Element &&
         object.kind == kind &&
         object.location == location;
+  }
+
+  /**
+   * Append to the given [buffer] a comma-separated list of the names of the
+   * types of this element and every enclosing element.
+   */
+  void appendPathTo(StringBuffer buffer) {
+    Element element = this;
+    while (element != null) {
+      if (element != this) {
+        buffer.write(', ');
+      }
+      buffer.write(element.runtimeType);
+      String name = element.name;
+      if (name != null) {
+        buffer.write(' (');
+        buffer.write(name);
+        buffer.write(')');
+      }
+      element = element.enclosingElement;
+    }
   }
 
   /**
@@ -2027,15 +2167,6 @@ abstract class ElementImpl implements Element {
       return library == this.library;
     }
     return true;
-  }
-
-  /**
-   * If the given [child] is not `null`, use the given [visitor] to visit it.
-   */
-  void safelyVisitChild(Element child, ElementVisitor visitor) {
-    if (child != null) {
-      child.accept(visitor);
-    }
   }
 
   /**
@@ -2189,10 +2320,10 @@ class ElementLocationImpl implements ElementLocation {
 
   @override
   int get hashCode {
-    int result = 1;
+    int result = 0;
     for (int i = 0; i < _components.length; i++) {
       String component = _components[i];
-      result = 31 * result + component.hashCode;
+      result = JenkinsSmiHash.combine(result, component.hashCode);
     }
     return result;
   }
@@ -2687,6 +2818,20 @@ class FunctionElementImpl extends ExecutableElementImpl
    */
   FunctionElementImpl.forOffset(int nameOffset) : super("", nameOffset);
 
+  /**
+   * Synthesize an unnamed function element that takes [parameters] and returns
+   * [returnType].
+   */
+  FunctionElementImpl.synthetic(
+      List<ParameterElement> parameters, DartType returnType)
+      : super("", -1) {
+    synthetic = true;
+    this.returnType = returnType;
+    this.parameters = parameters;
+
+    type = new FunctionTypeImpl(this);
+  }
+
   @override
   String get identifier {
     String identifier = super.identifier;
@@ -2987,7 +3132,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    safelyVisitChild(prefix, visitor);
+    prefix?.accept(visitor);
   }
 }
 
@@ -3133,8 +3278,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * the given [name].
    */
   LibraryElementImpl.forNode(this.context, LibraryIdentifier name)
-      : super.forNode(name),
-        nameLength = name != null ? name.length : 0;
+      : nameLength = name != null ? name.length : 0,
+        super.forNode(name);
 
   @override
   int get codeLength {
@@ -3539,14 +3684,19 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     // are in the case where library cycles have simply never been computed from
     // a newly reachable node.
     Set<LibraryElementImpl> active = new HashSet();
-    void invalidate(LibraryElementImpl library) {
-      if (!active.add(library)) return;
-      if (library._libraryCycle != null) {
-        library._libraryCycle.forEach(invalidate);
-        library._libraryCycle = null;
+    void invalidate(LibraryElement library) {
+      if (library is LibraryElementHandle) {
+        library = (library as LibraryElementHandle).actualElement;
       }
-      library.exportedLibraries.forEach(invalidate);
-      library.importedLibraries.forEach(invalidate);
+      LibraryElementImpl libraryImpl = library;
+      if (active.add(libraryImpl)) {
+        if (libraryImpl._libraryCycle != null) {
+          libraryImpl._libraryCycle.forEach(invalidate);
+          libraryImpl._libraryCycle = null;
+        }
+        library.exportedLibraries.forEach(invalidate);
+        library.importedLibraries.forEach(invalidate);
+      }
     }
     invalidate(this);
   }
@@ -3560,7 +3710,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    safelyVisitChild(_definingCompilationUnit, visitor);
+    _definingCompilationUnit?.accept(visitor);
     safelyVisitChildren(_exports, visitor);
     safelyVisitChildren(_imports, visitor);
     safelyVisitChildren(_parts, visitor);
@@ -3698,8 +3848,8 @@ class LocalVariableElementImpl extends VariableElementImpl
   }
 
   @override
-  VariableDeclaration computeNode() =>
-      getNodeMatching((node) => node is VariableDeclaration);
+  Declaration computeNode() => getNodeMatching(
+      (node) => node is DeclaredIdentifier || node is VariableDeclaration);
 
   /**
    * Set the visible range for this element to the range starting at the given
@@ -3980,6 +4130,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   bool get isDeprecated => false;
 
   @override
+  bool get isJS => false;
+
+  @override
   bool get isOverride => false;
 
   @override
@@ -3996,6 +4149,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get isPublic => !isPrivate;
+
+  @override
+  bool get isRequired => false;
 
   @override
   bool get isSynthetic => true;
@@ -4856,7 +5012,7 @@ abstract class VariableElementImpl extends ElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    safelyVisitChild(_initializer, visitor);
+    _initializer?.accept(visitor);
   }
 }
 

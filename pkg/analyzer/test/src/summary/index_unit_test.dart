@@ -41,7 +41,8 @@ class PackageIndexAssemblerTest extends AbstractSingleUnitTest {
   UnitIndex unitIndex;
 
   _ElementIndexAssert assertThat(Element element) {
-    return new _ElementIndexAssert(this, element);
+    List<_Relation> relations = _getElementRelations(element);
+    return new _ElementIndexAssert(this, element, relations);
   }
 
   _NameIndexAssert assertThatName(String name) {
@@ -98,6 +99,11 @@ class A {
     _assertDefinedName('A', IndexNameKind.topLevel, 'A {}');
   }
 
+  void test_definedName_topLevel_class2() {
+    _indexTestUnit('class A {}', declOnly: true);
+    _assertDefinedName('A', IndexNameKind.topLevel, 'A {}');
+  }
+
   void test_definedName_topLevel_classAlias() {
     _indexTestUnit('''
 class M {}
@@ -139,6 +145,43 @@ int set s (_) {}
     _assertDefinedName('V', IndexNameKind.topLevel, 'V = 42;');
   }
 
+  void test_hasAncestor_ClassDeclaration() {
+    _indexTestUnit('''
+class A {}
+class B1 extends A {}
+class B2 implements A {}
+class C1 extends B1 {}
+class C2 extends B2 {}
+class C3 implements B1 {}
+class C4 implements B2 {}
+class M extends Object with A {}
+''');
+    ClassElement classElementA = findElement("A");
+    assertThat(classElementA)
+      ..isAncestorOf('B1 extends A')
+      ..isAncestorOf('B2 implements A')
+      ..isAncestorOf('C1 extends B1')
+      ..isAncestorOf('C2 extends B2')
+      ..isAncestorOf('C3 implements B1')
+      ..isAncestorOf('C4 implements B2')
+      ..isAncestorOf('M extends Object with A');
+  }
+
+  void test_hasAncestor_ClassTypeAlias() {
+    _indexTestUnit('''
+class A {}
+class B extends A {}
+class C1 = Object with A;
+class C2 = Object with B;
+''');
+    ClassElement classElementA = findElement('A');
+    ClassElement classElementB = findElement('B');
+    assertThat(classElementA)
+      ..isAncestorOf('C1 = Object with A')
+      ..isAncestorOf('C2 = Object with B');
+    assertThat(classElementB)..isAncestorOf('C2 = Object with B');
+  }
+
   void test_isExtendedBy_ClassDeclaration() {
     _indexTestUnit('''
 class A {} // 1
@@ -146,8 +189,8 @@ class B extends A {} // 2
 ''');
     ClassElement elementA = findElement('A');
     assertThat(elementA)
-      ..isExtendedAt('A {} // 2', true)
-      ..isReferencedAt('A {} // 2', true);
+      ..isExtendedAt('A {} // 2', false)
+      ..isReferencedAt('A {} // 2', false);
   }
 
   void test_isExtendedBy_ClassDeclaration_isQualified() {
@@ -181,6 +224,23 @@ class C = A with B;
 ''');
     ClassElement elementA = findElement('A');
     assertThat(elementA)
+      ..isExtendedAt('A with', false)
+      ..isReferencedAt('A with', false);
+  }
+
+  void test_isExtendedBy_ClassTypeAlias_isQualified() {
+    addSource(
+        '/lib.dart',
+        '''
+class A {}
+''');
+    _indexTestUnit('''
+import 'lib.dart' as p;
+class B {}
+class C = p.A with B;
+''');
+    ClassElement elementA = importedUnit().getType('A');
+    assertThat(elementA)
       ..isExtendedAt('A with', true)
       ..isReferencedAt('A with', true);
   }
@@ -192,8 +252,8 @@ class B implements A {} // 2
 ''');
     ClassElement elementA = findElement('A');
     assertThat(elementA)
-      ..isImplementedAt('A {} // 2', true)
-      ..isReferencedAt('A {} // 2', true);
+      ..isImplementedAt('A {} // 2', false)
+      ..isReferencedAt('A {} // 2', false);
   }
 
   void test_isImplementedBy_ClassDeclaration_isQualified() {
@@ -220,8 +280,8 @@ class C = Object with A implements B; // 3
 ''');
     ClassElement elementB = findElement('B');
     assertThat(elementB)
-      ..isImplementedAt('B; // 3', true)
-      ..isReferencedAt('B; // 3', true);
+      ..isImplementedAt('B; // 3', false)
+      ..isReferencedAt('B; // 3', false);
   }
 
   void test_isInvokedBy_FieldElement() {
@@ -257,6 +317,21 @@ main() {
     assertThat(element)
       ..isInvokedAt('foo(); // q', true)
       ..isInvokedAt('foo(); // nq', false);
+  }
+
+  void test_isInvokedBy_FunctionElement_synthetic_loadLibrary() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+import 'dart:math' deferred as math;
+main() {
+  math.loadLibrary(); // 1
+  math.loadLibrary(); // 2
+}
+''');
+    LibraryElement mathLib = testLibraryElement.imports[0].importedLibrary;
+    FunctionElement element = mathLib.loadLibraryFunction;
+    assertThat(element).isInvokedAt('loadLibrary(); // 1', true);
+    assertThat(element).isInvokedAt('loadLibrary(); // 2', true);
   }
 
   void test_isInvokedBy_MethodElement() {
@@ -338,6 +413,21 @@ main(A a) {
     assertThat(element).isInvokedAt('~a', true, length: 1);
   }
 
+  void test_isInvokedBy_PropertyAccessorElement_getter() {
+    _indexTestUnit('''
+class A {
+  get ggg => null;
+  main() {
+    this.ggg(); // q
+    ggg(); // nq
+  }
+}''');
+    PropertyAccessorElement element = findElement('ggg', ElementKind.GETTER);
+    assertThat(element)
+      ..isInvokedAt('ggg(); // q', true)
+      ..isInvokedAt('ggg(); // nq', false);
+  }
+
   void test_isMixedInBy_ClassDeclaration() {
     _indexTestUnit('''
 class A {} // 1
@@ -345,8 +435,8 @@ class B extends Object with A {} // 2
 ''');
     ClassElement elementA = findElement('A');
     assertThat(elementA)
-      ..isMixedInAt('A {} // 2', true)
-      ..isReferencedAt('A {} // 2', true);
+      ..isMixedInAt('A {} // 2', false)
+      ..isReferencedAt('A {} // 2', false);
   }
 
   void test_isMixedInBy_ClassDeclaration_isQualified() {
@@ -369,7 +459,7 @@ class A {} // 1
 class B = Object with A; // 2
 ''');
     ClassElement elementA = findElement('A');
-    assertThat(elementA).isMixedInAt('A; // 2', true);
+    assertThat(elementA).isMixedInAt('A; // 2', false);
   }
 
   void test_isReferencedBy_ClassElement() {
@@ -491,10 +581,12 @@ main() {
     ConstructorElement constA_foo = classA.constructors[1];
     // A()
     assertThat(constA)
+      ..hasRelationCount(2)
       ..isReferencedAt('(); // 1', true, length: 0)
       ..isReferencedAt('(); // 4', true, length: 0);
     // A.foo()
     assertThat(constA_foo)
+      ..hasRelationCount(3)
       ..isReferencedAt('.foo(); // 2', true, length: 4)
       ..isReferencedAt('.foo; // 3', true, length: 4)
       ..isReferencedAt('.foo(); // 5', true, length: 4);
@@ -540,6 +632,22 @@ main() {
     // No additional validation, but it should not fail with stack overflow.
   }
 
+  void test_isReferencedBy_ConstructorElement_namedOnlyWithDot() {
+    _indexTestUnit('''
+class A {
+  A.named() {}
+}
+main() {
+  new A.named();
+}
+''');
+    // has ".named()", but does not have "named()"
+    int offsetWithoutDot = findOffset('named();');
+    int offsetWithDot = findOffset('.named();');
+    expect(unitIndex.usedElementOffsets, isNot(contains(offsetWithoutDot)));
+    expect(unitIndex.usedElementOffsets, contains(offsetWithDot));
+  }
+
   void test_isReferencedBy_ConstructorElement_redirection() {
     _indexTestUnit('''
 class A {
@@ -555,15 +663,24 @@ class A {
     assertThat(constA_bar).isReferencedAt('.bar(); // 1', true, length: 4);
   }
 
-  void test_isReferencedBy_ConstructorFieldInitializer() {
+  void test_isReferencedBy_ConstructorElement_synthetic() {
     _indexTestUnit('''
-class A {
-  int field;
-  A() : field = 5;
+class A {}
+main() {
+  new A(); // 1
 }
 ''');
-    FieldElement element = findElement('field');
-    assertThat(element).isReferencedAt('field = 5', true);
+    ClassElement classA = findElement('A');
+    ConstructorElement constA = classA.constructors[0];
+    // A()
+    assertThat(constA)..isReferencedAt('(); // 1', true, length: 0);
+  }
+
+  void test_isReferencedBy_DynamicElement() {
+    _indexTestUnit('''
+dynamic f() {
+}''');
+    expect(unitIndex.usedElementOffsets, isEmpty);
   }
 
   void test_isReferencedBy_FieldElement() {
@@ -572,28 +689,120 @@ class A {
   var field;
   A({this.field});
   m() {
-    field = 1; // nq
+    field = 2; // nq
     print(field); // nq
   }
 }
 main(A a) {
-  a.field = 2; // q
+  a.field = 3; // q
   print(a.field); // q
-  new A(field: 3);
+  new A(field: 4);
 }
 ''');
     FieldElement field = findElement('field');
     PropertyAccessorElement getter = field.getter;
     PropertyAccessorElement setter = field.setter;
     // A()
-    assertThat(field)..isReferencedAt('field});', true);
+    assertThat(field)..isWrittenAt('field});', true);
     // m()
-    assertThat(setter)..isReferencedAt('field = 1; // nq', false);
+    assertThat(setter)..isReferencedAt('field = 2; // nq', false);
     assertThat(getter)..isReferencedAt('field); // nq', false);
     // main()
-    assertThat(setter)..isReferencedAt('field = 2; // q', true);
+    assertThat(setter)..isReferencedAt('field = 3; // q', true);
     assertThat(getter)..isReferencedAt('field); // q', true);
-    assertThat(field)..isReferencedAt('field: 3', true);
+    assertThat(field)..isReferencedAt('field: 4', true);
+  }
+
+  void test_isReferencedBy_FieldElement_multiple() {
+    _indexTestUnit('''
+class A {
+  var aaa;
+  var bbb;
+  A(this.aaa, this.bbb) {}
+  m() {
+    print(aaa);
+    aaa = 1;
+    print(bbb);
+    bbb = 2;
+  }
+}
+''');
+    // aaa
+    {
+      FieldElement field = findElement('aaa');
+      PropertyAccessorElement getter = field.getter;
+      PropertyAccessorElement setter = field.setter;
+      assertThat(field)..isWrittenAt('aaa, ', true);
+      assertThat(getter)..isReferencedAt('aaa);', false);
+      assertThat(setter)..isReferencedAt('aaa = 1;', false);
+    }
+    // bbb
+    {
+      FieldElement field = findElement('bbb');
+      PropertyAccessorElement getter = field.getter;
+      PropertyAccessorElement setter = field.setter;
+      assertThat(field)..isWrittenAt('bbb) {}', true);
+      assertThat(getter)..isReferencedAt('bbb);', false);
+      assertThat(setter)..isReferencedAt('bbb = 2;', false);
+    }
+  }
+
+  void test_isReferencedBy_FieldElement_ofEnum() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+enum MyEnum {
+  A, B, C
+}
+main() {
+  print(MyEnum.values);
+  print(MyEnum.A.index);
+  print(MyEnum.A);
+  print(MyEnum.B);
+}
+''');
+    ClassElement enumElement = findElement('MyEnum');
+    assertThat(enumElement.getGetter('values'))
+      ..isReferencedAt('values);', true);
+    assertThat(enumElement.getGetter('index'))..isReferencedAt('index);', true);
+    assertThat(enumElement.getGetter('A'))..isReferencedAt('A);', true);
+    assertThat(enumElement.getGetter('B'))..isReferencedAt('B);', true);
+  }
+
+  void test_isReferencedBy_FieldElement_synthetic_hasGetter() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class A {
+  A() : f = 42;
+  int get f => 0;
+}
+''');
+    ClassElement element2 = findElement('A');
+    assertThat(element2.getField('f')).isWrittenAt('f = 42', true);
+  }
+
+  void test_isReferencedBy_FieldElement_synthetic_hasGetterSetter() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class A {
+  A() : f = 42;
+  int get f => 0;
+  set f(_) {}
+}
+''');
+    ClassElement element2 = findElement('A');
+    assertThat(element2.getField('f')).isWrittenAt('f = 42', true);
+  }
+
+  void test_isReferencedBy_FieldElement_synthetic_hasSetter() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class A {
+  A() : f = 42;
+  set f(_) {}
+}
+''');
+    ClassElement element2 = findElement('A');
+    assertThat(element2.getField('f')).isWrittenAt('f = 42', true);
   }
 
   void test_isReferencedBy_FunctionElement() {
@@ -689,6 +898,35 @@ main() {
       ..isReferencedAt('V = 5; // nq', false);
   }
 
+  void test_isReferencedBy_TopLevelVariableElement_synthetic_hasGetterSetter() {
+    verifyNoTestUnitErrors = false;
+    addSource(
+        '/lib.dart',
+        '''
+int get V => 0;
+void set V(_) {}
+''');
+    _indexTestUnit('''
+import 'lib.dart' show V;
+''');
+    TopLevelVariableElement element = importedUnit().topLevelVariables[0];
+    assertThat(element).isReferencedAt('V;', true);
+  }
+
+  void test_isReferencedBy_TopLevelVariableElement_synthetic_hasSetter() {
+    verifyNoTestUnitErrors = false;
+    addSource(
+        '/lib.dart',
+        '''
+void set V(_) {}
+''');
+    _indexTestUnit('''
+import 'lib.dart' show V;
+''');
+    TopLevelVariableElement element = importedUnit().topLevelVariables[0];
+    assertThat(element).isReferencedAt('V;', true);
+  }
+
   void test_isReferencedBy_typeInVariableList() {
     _indexTestUnit('''
 class A {}
@@ -698,46 +936,108 @@ A myVariable = null;
     assertThat(element).isReferencedAt('A myVariable', false);
   }
 
-  void test_usedName_isInvokedBy() {
-    verifyNoTestUnitErrors = false;
+  void test_isWrittenBy_FieldElement() {
     _indexTestUnit('''
-class C {
-  x() {}
-}
-main(C c) {
-  x(); // nq
-  c.x(); // q
-  y(); // nq
-  c.y(); // q
+class A {
+  int field;
+  A.foo({this.field});
+  A.bar() : field = 5;
 }
 ''');
-    assertThatName('x')
-      ..isNotInvokedAt('x(); // nq')
-      ..isNotInvokedAt('x(); // q');
-    assertThatName('y')
-      ..isNotInvokedAt('y(); // nq')
-      ..isInvokedAt('y(); // q');
+    FieldElement element = findElement('field');
+    assertThat(element)
+      ..isWrittenAt('field})', true)
+      ..isWrittenAt('field = 5', true);
   }
 
-  void test_usedName_isReferencedBy() {
+  void test_usedName_inLibraryIdentifier() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+library aaa.bbb.ccc;
+class C {
+  var bbb;
+}
+main(p) {
+  p.bbb = 1;
+}
+''');
+    assertThatName('bbb')
+      ..isNotUsed('bbb.ccc', IndexRelationKind.IS_READ_BY)
+      ..isUsedQ('bbb = 1;', IndexRelationKind.IS_WRITTEN_BY);
+  }
+
+  void test_usedName_qualified_resolved() {
     verifyNoTestUnitErrors = false;
     _indexTestUnit('''
 class C {
-  int x;
+  var x;
 }
 main(C c) {
-  x; // nq
-  c.x; // q
-  y; // nq
-  c.y; // q
+  c.x;
+  c.x = 1;
+  c.x += 2;
+  c.x();
 }
 ''');
     assertThatName('x')
-      ..isNotReferencedAt('x; // nq')
-      ..isNotReferencedAt('x; // q');
-    assertThatName('y')
-      ..isNotReferencedAt('y; // nq')
-      ..isReferencedAt('y; // q');
+      ..isNotUsedQ('x;', IndexRelationKind.IS_READ_BY)
+      ..isNotUsedQ('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
+      ..isNotUsedQ('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
+      ..isNotUsedQ('x();', IndexRelationKind.IS_INVOKED_BY);
+  }
+
+  void test_usedName_qualified_unresolved() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+main(p) {
+  p.x;
+  p.x = 1;
+  p.x += 2;
+  p.x();
+}
+''');
+    assertThatName('x')
+      ..isUsedQ('x;', IndexRelationKind.IS_READ_BY)
+      ..isUsedQ('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
+      ..isUsedQ('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
+      ..isUsedQ('x();', IndexRelationKind.IS_INVOKED_BY);
+  }
+
+  void test_usedName_unqualified_resolved() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class C {
+  var x;
+  m() {
+    x;
+    x = 1;
+    x += 2;
+    x();
+  }
+}
+''');
+    assertThatName('x')
+      ..isNotUsedQ('x;', IndexRelationKind.IS_READ_BY)
+      ..isNotUsedQ('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
+      ..isNotUsedQ('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
+      ..isNotUsedQ('x();', IndexRelationKind.IS_INVOKED_BY);
+  }
+
+  void test_usedName_unqualified_unresolved() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+main() {
+  x;
+  x = 1;
+  x += 2;
+  x();
+}
+''');
+    assertThatName('x')
+      ..isUsed('x;', IndexRelationKind.IS_READ_BY)
+      ..isUsed('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
+      ..isUsed('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
+      ..isUsed('x();', IndexRelationKind.IS_INVOKED_BY);
   }
 
   void _assertDefinedName(String name, IndexNameKind kind, String search) {
@@ -758,16 +1058,14 @@ main(C c) {
    */
   void _assertHasRelation(
       Element element,
+      List<_Relation> relations,
       IndexRelationKind expectedRelationKind,
       ExpectedLocation expectedLocation) {
-    int elementId = _findElementId(element);
-    for (int i = 0; i < unitIndex.usedElementOffsets.length; i++) {
-      if (unitIndex.usedElements[i] == elementId &&
-          unitIndex.usedElementKinds[i] == expectedRelationKind &&
-          unitIndex.usedElementOffsets[i] == expectedLocation.offset &&
-          unitIndex.usedElementLengths[i] == expectedLocation.length &&
-          unitIndex.usedElementIsQualifiedFlags[i] ==
-              expectedLocation.isQualified) {
+    for (_Relation relation in relations) {
+      if (relation.kind == expectedRelationKind &&
+          relation.offset == expectedLocation.offset &&
+          relation.length == expectedLocation.length &&
+          relation.isQualified == expectedLocation.isQualified) {
         return;
       }
     }
@@ -781,7 +1079,9 @@ main(C c) {
     for (int i = 0; i < unitIndex.usedNames.length; i++) {
       if (unitIndex.usedNames[i] == nameId &&
           unitIndex.usedNameKinds[i] == kind &&
-          unitIndex.usedNameOffsets[i] == expectedLocation.offset) {
+          unitIndex.usedNameOffsets[i] == expectedLocation.offset &&
+          unitIndex.usedNameIsQualifiedFlags[i] ==
+              expectedLocation.isQualified) {
         if (isNot) {
           _failWithIndexDump('Unexpected $name $kind at $expectedLocation');
         }
@@ -814,23 +1114,36 @@ main(C c) {
    */
   int _findElementId(Element element) {
     int unitId = _getUnitId(element);
-    int offset = element.nameOffset;
-    if (element is LibraryElement || element is CompilationUnitElement) {
-      offset = 0;
-    }
-    IndexSyntheticElementKind kind =
-        PackageIndexAssembler.getIndexElementKind(element);
+    ElementInfo info = PackageIndexAssembler.newElementInfo(unitId, element);
     for (int elementId = 0;
         elementId < packageIndex.elementUnits.length;
         elementId++) {
       if (packageIndex.elementUnits[elementId] == unitId &&
-          packageIndex.elementOffsets[elementId] == offset &&
-          packageIndex.elementKinds[elementId] == kind) {
+          packageIndex.elementOffsets[elementId] == info.offset &&
+          packageIndex.elementKinds[elementId] == info.kind) {
         return elementId;
       }
     }
     _failWithIndexDump('Element $element is not referenced');
     return 0;
+  }
+
+  /**
+   * Return all relations with [element] in [unitIndex].
+   */
+  List<_Relation> _getElementRelations(Element element) {
+    int elementId = _findElementId(element);
+    List<_Relation> relations = <_Relation>[];
+    for (int i = 0; i < unitIndex.usedElementOffsets.length; i++) {
+      if (unitIndex.usedElements[i] == elementId) {
+        relations.add(new _Relation(
+            unitIndex.usedElementKinds[i],
+            unitIndex.usedElementOffsets[i],
+            unitIndex.usedElementLengths[i],
+            unitIndex.usedElementIsQualifiedFlags[i]));
+      }
+    }
+    return relations;
   }
 
   int _getStringId(String str) {
@@ -861,10 +1174,14 @@ main(C c) {
     return _getStringId(str);
   }
 
-  void _indexTestUnit(String code) {
+  void _indexTestUnit(String code, {bool declOnly: false}) {
     resolveTestUnit(code);
     PackageIndexAssembler assembler = new PackageIndexAssembler();
-    assembler.index(testUnit);
+    if (declOnly) {
+      assembler.indexDeclarations(testUnit);
+    } else {
+      assembler.indexUnit(testUnit);
+    }
     // assemble, write and read
     PackageIndexBuilder indexBuilder = assembler.assemble();
     List<int> indexBytes = indexBuilder.toBuffer();
@@ -879,31 +1196,61 @@ main(C c) {
 class _ElementIndexAssert {
   final PackageIndexAssemblerTest test;
   final Element element;
+  final List<_Relation> relations;
 
-  _ElementIndexAssert(this.test, this.element);
+  _ElementIndexAssert(this.test, this.element, this.relations);
+
+  void hasRelationCount(int expectedCount) {
+    expect(relations, hasLength(expectedCount));
+  }
+
+  void isAncestorOf(String search, {int length}) {
+    test._assertHasRelation(
+        element,
+        relations,
+        IndexRelationKind.IS_ANCESTOR_OF,
+        test._expectedLocation(search, false, length: length));
+  }
 
   void isExtendedAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(element, IndexRelationKind.IS_EXTENDED_BY,
+    test._assertHasRelation(
+        element,
+        relations,
+        IndexRelationKind.IS_EXTENDED_BY,
         test._expectedLocation(search, isQualified, length: length));
   }
 
   void isImplementedAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(element, IndexRelationKind.IS_IMPLEMENTED_BY,
+    test._assertHasRelation(
+        element,
+        relations,
+        IndexRelationKind.IS_IMPLEMENTED_BY,
         test._expectedLocation(search, isQualified, length: length));
   }
 
   void isInvokedAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(element, IndexRelationKind.IS_INVOKED_BY,
+    test._assertHasRelation(element, relations, IndexRelationKind.IS_INVOKED_BY,
         test._expectedLocation(search, isQualified, length: length));
   }
 
   void isMixedInAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(element, IndexRelationKind.IS_MIXED_IN_BY,
+    test._assertHasRelation(
+        element,
+        relations,
+        IndexRelationKind.IS_MIXED_IN_BY,
         test._expectedLocation(search, isQualified, length: length));
   }
 
   void isReferencedAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(element, IndexRelationKind.IS_REFERENCED_BY,
+    test._assertHasRelation(
+        element,
+        relations,
+        IndexRelationKind.IS_REFERENCED_BY,
+        test._expectedLocation(search, isQualified, length: length));
+  }
+
+  void isWrittenAt(String search, bool isQualified, {int length}) {
+    test._assertHasRelation(element, relations, IndexRelationKind.IS_WRITTEN_BY,
         test._expectedLocation(search, isQualified, length: length));
   }
 }
@@ -914,23 +1261,38 @@ class _NameIndexAssert {
 
   _NameIndexAssert(this.test, this.name);
 
-  void isInvokedAt(String search, {int length}) {
-    test._assertUsedName(name, IndexRelationKind.IS_INVOKED_BY,
-        test._expectedLocation(search, true, length: length), false);
+  void isNotUsed(String search, IndexRelationKind kind) {
+    test._assertUsedName(
+        name, kind, test._expectedLocation(search, false), true);
   }
 
-  void isNotInvokedAt(String search, {int length}) {
-    test._assertUsedName(name, IndexRelationKind.IS_INVOKED_BY,
-        test._expectedLocation(search, true, length: length), true);
+  void isNotUsedQ(String search, IndexRelationKind kind) {
+    test._assertUsedName(
+        name, kind, test._expectedLocation(search, true), true);
   }
 
-  void isNotReferencedAt(String search, {int length}) {
-    test._assertUsedName(name, IndexRelationKind.IS_REFERENCED_BY,
-        test._expectedLocation(search, true, length: length), true);
+  void isUsed(String search, IndexRelationKind kind) {
+    test._assertUsedName(
+        name, kind, test._expectedLocation(search, false), false);
   }
 
-  void isReferencedAt(String search, {int length}) {
-    test._assertUsedName(name, IndexRelationKind.IS_REFERENCED_BY,
-        test._expectedLocation(search, true, length: length), false);
+  void isUsedQ(String search, IndexRelationKind kind) {
+    test._assertUsedName(
+        name, kind, test._expectedLocation(search, true), false);
+  }
+}
+
+class _Relation {
+  final IndexRelationKind kind;
+  final int offset;
+  final int length;
+  final bool isQualified;
+
+  _Relation(this.kind, this.offset, this.length, this.isQualified);
+
+  @override
+  String toString() {
+    return '_Relation{kind: $kind, offset: $offset, length: $length, '
+        'isQualified: $isQualified}';
   }
 }

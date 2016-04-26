@@ -26,6 +26,8 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
+export 'package:analyzer/src/dart/ast/utilities.dart' show ResolutionCopier;
+
 Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline>{
   'parseCompilationUnit_1': new MethodTrampoline(
       1, (Parser target, arg0) => target.parseCompilationUnit(arg0)),
@@ -126,7 +128,9 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline>{
   'expectKeyword_1': new MethodTrampoline(
       1, (Parser target, arg0) => target._expectKeyword(arg0)),
   'findRange_2': new MethodTrampoline(
-      2, (Parser target, arg0, arg1) => target._findRange(arg0, arg1)),
+      2,
+      (Parser target, List<List<int>> arg0, int arg1) =>
+          target._findRange(arg0, arg1)),
   'getCodeBlockRanges_1': new MethodTrampoline(
       1, (Parser target, arg0) => target._getCodeBlockRanges(arg0)),
   'getEndToken_1': new MethodTrampoline(
@@ -200,7 +204,9 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline>{
   'parseCommentReference_2': new MethodTrampoline(2,
       (Parser target, arg0, arg1) => target._parseCommentReference(arg0, arg1)),
   'parseCommentReferences_1': new MethodTrampoline(
-      1, (Parser target, arg0) => target._parseCommentReferences(arg0)),
+      1,
+      (Parser target, List<DocumentationCommentToken> arg0) =>
+          target._parseCommentReferences(arg0)),
   'parseCompilationUnitMember_1': new MethodTrampoline(
       1, (Parser target, arg0) => target._parseCompilationUnitMember(arg0)),
   'parseConfiguration_0':
@@ -525,6 +531,7 @@ class FinalConstVarOrType {
  * the methods will throw an [IncrementalParseException] if the node could not
  * be parsed for some reason.
  */
+@deprecated
 class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   /**
    * The parser used to parse the replacement for the node.
@@ -671,9 +678,9 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     if (identical(_oldNode, node.exceptionType)) {
       return _parser.parseTypeName();
     } else if (identical(_oldNode, node.exceptionParameter)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.stackTraceParameter)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.body)) {
       return _parser.parseBlock();
     }
@@ -715,7 +722,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (node.metadata.contains(_oldNode)) {
       return _parser.parseAnnotation();
     } else if (identical(_oldNode, node.name)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.typeParameters)) {
       return _parser.parseTypeParameterList();
     } else if (identical(_oldNode, node.superclass)) {
@@ -878,7 +885,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (node.metadata.contains(_oldNode)) {
       return _parser.parseAnnotation();
     } else if (identical(_oldNode, node.name)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     }
     return _notAChild(node);
   }
@@ -890,7 +897,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (node.metadata.contains(_oldNode)) {
       return _parser.parseAnnotation();
     } else if (identical(_oldNode, node.name)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (node.constants.contains(_oldNode)) {
       throw new InsufficientContextException();
     }
@@ -970,7 +977,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
       throw new InsufficientContextException();
       //return parser.parseDeclaredIdentifier();
     } else if (identical(_oldNode, node.identifier)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.body)) {
       return _parser.parseStatement2();
     }
@@ -1008,7 +1015,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (identical(_oldNode, node.returnType)) {
       return _parser.parseReturnType();
     } else if (identical(_oldNode, node.name)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.functionExpression)) {
       throw new InsufficientContextException();
     }
@@ -1052,7 +1059,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (identical(_oldNode, node.returnType)) {
       return _parser.parseReturnType();
     } else if (identical(_oldNode, node.name)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.typeParameters)) {
       return _parser.parseTypeParameterList();
     } else if (identical(_oldNode, node.parameters)) {
@@ -1070,7 +1077,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (identical(_oldNode, node.returnType)) {
       return _parser.parseReturnType();
     } else if (identical(_oldNode, node.identifier)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.parameters)) {
       return _parser.parseFormalParameterList();
     }
@@ -1114,7 +1121,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (identical(_oldNode, node.uri)) {
       return _parser.parseStringLiteral();
     } else if (identical(_oldNode, node.prefix)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (node.combinators.contains(_oldNode)) {
       return _parser.parseCombinator();
     }
@@ -1174,7 +1181,8 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   @override
   AstNode visitLabel(Label node) {
     if (identical(_oldNode, node.label)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(
+          isDeclaration: node.parent is LabeledStatement);
     }
     return _notAChild(node);
   }
@@ -1182,7 +1190,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   @override
   AstNode visitLabeledStatement(LabeledStatement node) {
     if (node.labels.contains(_oldNode)) {
-      return _parser.parseLabel();
+      return _parser.parseLabel(isDeclaration: true);
     } else if (identical(_oldNode, node.statement)) {
       return _parser.parseStatement2();
     }
@@ -1253,7 +1261,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
       if (node.operatorKeyword != null) {
         throw new InsufficientContextException();
       }
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.body)) {
       //return parser.parseFunctionBody();
       throw new InsufficientContextException();
@@ -1548,7 +1556,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (node.metadata.contains(_oldNode)) {
       return _parser.parseAnnotation();
     } else if (identical(_oldNode, node.name)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.bound)) {
       return _parser.parseTypeName();
     }
@@ -1662,6 +1670,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
  * An exception that occurred while attempting to parse a replacement for a
  * specified node in an existing AST structure.
  */
+@deprecated
 class IncrementalParseException extends RuntimeException {
   /**
    * Initialize a newly created exception to have no message and to be its own
@@ -1686,6 +1695,7 @@ class IncrementalParseException extends RuntimeException {
  * An object used to re-parse a single AST structure within a larger AST
  * structure.
  */
+@deprecated
 class IncrementalParser {
   /**
    * The source being parsed.
@@ -1857,6 +1867,7 @@ class IncrementalParser {
  * given parent.  Once it has visited all of these relationships, the parser
  * will be in the correct state for reparsing the node to be replaced.
  */
+@deprecated
 class IncrementalParseStateBuilder extends SimpleAstVisitor {
   // TODO(paulberry): add support for other pieces of parser state (_inAsync,
   // _inGenerator, _inLoop, and _inSwitch).  Note that _inLoop and _inSwitch
@@ -1948,6 +1959,7 @@ class IncrementalParseStateBuilder extends SimpleAstVisitor {
  * not enough context to know how to re-parse the node. Clients can attempt to
  * re-parse the parent of the node.
  */
+@deprecated
 class InsufficientContextException extends IncrementalParseException {
   /**
    * Initialize a newly created exception to have no message and to be its own
@@ -2528,10 +2540,10 @@ class Parser {
             null,
             null,
             null,
-            _createSyntheticIdentifier(),
+            _createSyntheticIdentifier(isDeclaration: true),
             null,
             new FormalParameterList(
-                null, new List<FormalParameter>(), null, null, null),
+                null, <FormalParameter>[], null, null, null),
             new EmptyFunctionBody(_createSyntheticToken(TokenType.SEMICOLON)));
       }
       return null;
@@ -2545,11 +2557,11 @@ class Parser {
           modifiers.factoryKeyword,
           parseSimpleIdentifier(),
           getAndAdvance(),
-          parseSimpleIdentifier(),
+          parseSimpleIdentifier(isDeclaration: true),
           parseFormalParameterList());
     } else if (_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
       TypeName returnType = _parseOptionalTypeNameComment();
-      SimpleIdentifier methodName = parseSimpleIdentifier();
+      SimpleIdentifier methodName = parseSimpleIdentifier(isDeclaration: true);
       TypeParameterList typeParameters = _parseGenericCommentTypeParameters();
       FormalParameterList parameters = parseFormalParameterList();
       if (_matches(TokenType.COLON) ||
@@ -2560,7 +2572,7 @@ class Parser {
             modifiers.externalKeyword,
             _validateModifiersForConstructor(modifiers),
             modifiers.factoryKeyword,
-            methodName,
+            new SimpleIdentifier(methodName.token, isDeclaration: false),
             null,
             null,
             parameters);
@@ -2652,7 +2664,7 @@ class Parser {
         _unlockErrorListener();
       }
     } else if (_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
-      SimpleIdentifier methodName = parseSimpleIdentifier();
+      SimpleIdentifier methodName = parseSimpleIdentifier(isDeclaration: true);
       TypeParameterList typeParameters = _parseGenericCommentTypeParameters();
       FormalParameterList parameters = parseFormalParameterList();
       if (methodName.name == className) {
@@ -2662,7 +2674,7 @@ class Parser {
             modifiers.externalKeyword,
             _validateModifiersForConstructor(modifiers),
             modifiers.factoryKeyword,
-            methodName,
+            new SimpleIdentifier(methodName.token, isDeclaration: true),
             null,
             null,
             parameters);
@@ -3218,8 +3230,9 @@ class Parser {
    *     label ::=
    *         identifier ':'
    */
-  Label parseLabel() {
-    SimpleIdentifier label = parseSimpleIdentifier();
+  Label parseLabel({bool isDeclaration: false}) {
+    SimpleIdentifier label =
+        parseSimpleIdentifier(isDeclaration: isDeclaration);
     Token colon = _expect(TokenType.COLON);
     return new Label(label, colon);
   }
@@ -3311,7 +3324,7 @@ class Parser {
             commentAndMetadata.comment,
             commentAndMetadata.metadata,
             holder.type,
-            identifier,
+            new SimpleIdentifier(identifier.token, isDeclaration: true),
             typeParameters,
             parameters);
       } else {
@@ -3356,8 +3369,12 @@ class Parser {
           null,
           null);
     }
-    return new SimpleFormalParameter(commentAndMetadata.comment,
-        commentAndMetadata.metadata, holder.keyword, holder.type, identifier);
+    return new SimpleFormalParameter(
+        commentAndMetadata.comment,
+        commentAndMetadata.metadata,
+        holder.keyword,
+        holder.type,
+        new SimpleIdentifier(identifier.token, isDeclaration: true));
   }
 
   /**
@@ -3369,7 +3386,7 @@ class Parser {
    */
   Identifier parsePrefixedIdentifier() {
     SimpleIdentifier qualifier = parseSimpleIdentifier();
-    if (!_matches(TokenType.PERIOD)) {
+    if (!_matches(TokenType.PERIOD) || _injectGenericCommentTypeList()) {
       return qualifier;
     }
     Token period = getAndAdvance();
@@ -3398,7 +3415,7 @@ class Parser {
    *     identifier ::=
    *         IDENTIFIER
    */
-  SimpleIdentifier parseSimpleIdentifier() {
+  SimpleIdentifier parseSimpleIdentifier({bool isDeclaration: false}) {
     if (_matchesIdentifier()) {
       String lexeme = _currentToken.lexeme;
       if ((_inAsync || _inGenerator) &&
@@ -3406,10 +3423,11 @@ class Parser {
         _reportErrorForCurrentToken(
             ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER);
       }
-      return new SimpleIdentifier(getAndAdvance());
+      return new SimpleIdentifier(getAndAdvance(),
+          isDeclaration: isDeclaration);
     }
     _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
-    return _createSyntheticIdentifier();
+    return _createSyntheticIdentifier(isDeclaration: isDeclaration);
   }
 
   /**
@@ -3431,7 +3449,7 @@ class Parser {
   Statement parseStatement2() {
     List<Label> labels = new List<Label>();
     while (_matchesIdentifier() && _tokenMatches(_peek(), TokenType.COLON)) {
-      labels.add(parseLabel());
+      labels.add(parseLabel(isDeclaration: true));
     }
     Statement statement = _parseNonLabeledStatement();
     if (labels.isEmpty) {
@@ -3524,7 +3542,7 @@ class Parser {
    */
   TypeParameter parseTypeParameter() {
     CommentAndMetadata commentAndMetadata = _parseCommentAndMetadata();
-    SimpleIdentifier name = parseSimpleIdentifier();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     if (_matchesKeyword(Keyword.EXTENDS)) {
       Token keyword = getAndAdvance();
       TypeName bound = parseTypeName();
@@ -3694,7 +3712,7 @@ class Parser {
   /**
    * Return a synthetic identifier.
    */
-  SimpleIdentifier _createSyntheticIdentifier() {
+  SimpleIdentifier _createSyntheticIdentifier({bool isDeclaration: false}) {
     Token syntheticToken;
     if (_currentToken.type == TokenType.KEYWORD) {
       // Consider current keyword token as an identifier.
@@ -3707,7 +3725,7 @@ class Parser {
     } else {
       syntheticToken = _createSyntheticToken(TokenType.IDENTIFIER);
     }
-    return new SimpleIdentifier(syntheticToken);
+    return new SimpleIdentifier(syntheticToken, isDeclaration: isDeclaration);
   }
 
   /**
@@ -3798,7 +3816,7 @@ class Parser {
       return _createSyntheticToken(TokenType.SEMICOLON);
     }
     _reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TOKEN, [type.lexeme]);
-    return _currentToken;
+    return _createSyntheticToken(type);
   }
 
   /**
@@ -4735,7 +4753,7 @@ class Parser {
             commentAndMetadata, abstractKeyword, keyword);
       }
     }
-    SimpleIdentifier name = parseSimpleIdentifier();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     String className = name.name;
     TypeParameterList typeParameters = null;
     if (_matches(TokenType.LT)) {
@@ -4888,7 +4906,7 @@ class Parser {
    */
   ClassTypeAlias _parseClassTypeAlias(CommentAndMetadata commentAndMetadata,
       Token abstractKeyword, Token classKeyword) {
-    SimpleIdentifier className = parseSimpleIdentifier();
+    SimpleIdentifier className = parseSimpleIdentifier(isDeclaration: true);
     TypeParameterList typeParameters = null;
     if (_matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
@@ -5697,7 +5715,7 @@ class Parser {
     CommentAndMetadata commentAndMetadata = _parseCommentAndMetadata();
     SimpleIdentifier name;
     if (_matchesIdentifier()) {
-      name = parseSimpleIdentifier();
+      name = parseSimpleIdentifier(isDeclaration: true);
     } else {
       name = _createSyntheticIdentifier();
     }
@@ -5718,7 +5736,7 @@ class Parser {
    */
   EnumDeclaration _parseEnumDeclaration(CommentAndMetadata commentAndMetadata) {
     Token keyword = _expectKeyword(Keyword.ENUM);
-    SimpleIdentifier name = parseSimpleIdentifier();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     Token leftBracket = null;
     List<EnumConstantDeclaration> constants =
         new List<EnumConstantDeclaration>();
@@ -5981,8 +5999,13 @@ class Parser {
             Token keyword = variableList.keyword;
             TypeName type = variableList.type;
             if (keyword != null || type != null) {
-              loopVariable = new DeclaredIdentifier(commentAndMetadata.comment,
-                  commentAndMetadata.metadata, keyword, type, variable.name);
+              loopVariable = new DeclaredIdentifier(
+                  commentAndMetadata.comment,
+                  commentAndMetadata.metadata,
+                  keyword,
+                  type,
+                  new SimpleIdentifier(variable.name.token,
+                      isDeclaration: true));
             } else {
               if (!commentAndMetadata.metadata.isEmpty) {
                 // TODO(jwren) metadata isn't allowed before the identifier in
@@ -6193,7 +6216,7 @@ class Parser {
         !_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
       keyword = getAndAdvance();
     }
-    SimpleIdentifier name = parseSimpleIdentifier();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     TypeParameterList typeParameters = _parseGenericMethodTypeParameters();
     FormalParameterList parameters = null;
     if (!isGetter) {
@@ -6293,7 +6316,7 @@ class Parser {
     if (hasReturnTypeInTypeAlias) {
       returnType = parseReturnType();
     }
-    SimpleIdentifier name = parseSimpleIdentifier();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     TypeParameterList typeParameters = null;
     if (_matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
@@ -6395,7 +6418,7 @@ class Parser {
   MethodDeclaration _parseGetter(CommentAndMetadata commentAndMetadata,
       Token externalKeyword, Token staticKeyword, TypeName returnType) {
     Token propertyKeyword = _expectKeyword(Keyword.GET);
-    SimpleIdentifier name = parseSimpleIdentifier();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     if (_matches(TokenType.OPEN_PAREN) &&
         _tokenMatches(_peek(), TokenType.CLOSE_PAREN)) {
       _reportErrorForCurrentToken(ParserErrorCode.GETTER_WITH_PARAMETERS);
@@ -6481,7 +6504,7 @@ class Parser {
     }
     if (_matchesKeyword(Keyword.AS)) {
       asToken = getAndAdvance();
-      prefix = parseSimpleIdentifier();
+      prefix = parseSimpleIdentifier(isDeclaration: true);
     } else if (deferredToken != null) {
       _reportErrorForCurrentToken(
           ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT);
@@ -6497,7 +6520,7 @@ class Parser {
         _advance();
         if (_matchesKeyword(Keyword.AS)) {
           asToken = getAndAdvance();
-          prefix = parseSimpleIdentifier();
+          prefix = parseSimpleIdentifier(isDeclaration: true);
         }
       }
     }
@@ -6805,7 +6828,7 @@ class Parser {
       Token externalKeyword,
       Token staticKeyword,
       TypeName returnType) {
-    SimpleIdentifier methodName = parseSimpleIdentifier();
+    SimpleIdentifier methodName = parseSimpleIdentifier(isDeclaration: true);
     TypeParameterList typeParameters = _parseGenericMethodTypeParameters();
     FormalParameterList parameters;
     if (!_matches(TokenType.OPEN_PAREN) &&
@@ -7168,7 +7191,8 @@ class Parser {
       _reportErrorForCurrentToken(
           ParserErrorCode.NON_USER_DEFINABLE_OPERATOR, [_currentToken.lexeme]);
     }
-    SimpleIdentifier name = new SimpleIdentifier(getAndAdvance());
+    SimpleIdentifier name =
+        new SimpleIdentifier(getAndAdvance(), isDeclaration: true);
     if (_matches(TokenType.EQ)) {
       Token previous = _currentToken.previous;
       if ((_tokenMatches(previous, TokenType.EQ_EQ) ||
@@ -7553,7 +7577,7 @@ class Parser {
   MethodDeclaration _parseSetter(CommentAndMetadata commentAndMetadata,
       Token externalKeyword, Token staticKeyword, TypeName returnType) {
     Token propertyKeyword = _expectKeyword(Keyword.SET);
-    SimpleIdentifier name = parseSimpleIdentifier();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     FormalParameterList parameters = parseFormalParameterList();
     _validateFormalParameterList(parameters);
     FunctionBody body = _parseFunctionBody(
@@ -7719,7 +7743,8 @@ class Parser {
         List<Label> labels = new List<Label>();
         while (
             _matchesIdentifier() && _tokenMatches(_peek(), TokenType.COLON)) {
-          SimpleIdentifier identifier = parseSimpleIdentifier();
+          SimpleIdentifier identifier =
+              parseSimpleIdentifier(isDeclaration: true);
           String label = identifier.token.lexeme;
           if (definedLabels.contains(label)) {
             _reportErrorForToken(
@@ -7875,10 +7900,10 @@ class Parser {
       if (_matchesKeyword(Keyword.CATCH)) {
         catchKeyword = getAndAdvance();
         leftParenthesis = _expect(TokenType.OPEN_PAREN);
-        exceptionParameter = parseSimpleIdentifier();
+        exceptionParameter = parseSimpleIdentifier(isDeclaration: true);
         if (_matches(TokenType.COMMA)) {
           comma = getAndAdvance();
-          stackTraceParameter = parseSimpleIdentifier();
+          stackTraceParameter = parseSimpleIdentifier(isDeclaration: true);
         }
         rightParenthesis = _expect(TokenType.CLOSE_PAREN);
       }
@@ -8111,7 +8136,7 @@ class Parser {
     // of a construct like "class C { int @deprecated foo() {} }" (i.e. the
     // user is in the middle of inserting "int bar;" prior to
     // "@deprecated foo() {}").
-    SimpleIdentifier name = parseSimpleIdentifier();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     Token equals = null;
     Expression initializer = null;
     if (_matches(TokenType.EQ)) {
@@ -8609,8 +8634,10 @@ class Parser {
             return null;
           } else if (type == TokenType.OPEN_CURLY_BRACKET) {
             bracketNestingLevel++;
+            token = token.next;
           } else if (type == TokenType.CLOSE_CURLY_BRACKET) {
             bracketNestingLevel--;
+            token = token.next;
           } else if (type == TokenType.STRING) {
             token = _skipStringLiteral(token);
             if (token == null) {
@@ -9938,1424 +9965,4 @@ class ParserErrorCode extends ErrorCode {
 
   @override
   ErrorType get type => ErrorType.SYNTACTIC_ERROR;
-}
-
-/**
- * An object that copies resolution information from one AST structure to
- * another as long as the structures of the corresponding children of a pair of
- * nodes are the same.
- */
-class ResolutionCopier implements AstVisitor<bool> {
-  /**
-   * The AST node with which the node being visited is to be compared. This is
-   * only valid at the beginning of each visit method (until [isEqualNodes] is
-   * invoked).
-   */
-  AstNode _toNode;
-
-  @override
-  bool visitAdjacentStrings(AdjacentStrings node) {
-    AdjacentStrings toNode = this._toNode as AdjacentStrings;
-    if (_isEqualNodeLists(node.strings, toNode.strings)) {
-      toNode.staticType = node.staticType;
-      toNode.propagatedType = node.propagatedType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitAnnotation(Annotation node) {
-    Annotation toNode = this._toNode as Annotation;
-    if (_and(
-        _isEqualTokens(node.atSign, toNode.atSign),
-        _isEqualNodes(node.name, toNode.name),
-        _isEqualTokens(node.period, toNode.period),
-        _isEqualNodes(node.constructorName, toNode.constructorName),
-        _isEqualNodes(node.arguments, toNode.arguments))) {
-      toNode.element = node.element;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitArgumentList(ArgumentList node) {
-    ArgumentList toNode = this._toNode as ArgumentList;
-    return _and(
-        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
-        _isEqualNodeLists(node.arguments, toNode.arguments),
-        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis));
-  }
-
-  @override
-  bool visitAsExpression(AsExpression node) {
-    AsExpression toNode = this._toNode as AsExpression;
-    if (_and(
-        _isEqualNodes(node.expression, toNode.expression),
-        _isEqualTokens(node.asOperator, toNode.asOperator),
-        _isEqualNodes(node.type, toNode.type))) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitAssertStatement(AssertStatement node) {
-    AssertStatement toNode = this._toNode as AssertStatement;
-    return _and(
-        _isEqualTokens(node.assertKeyword, toNode.assertKeyword),
-        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
-        _isEqualNodes(node.condition, toNode.condition),
-        _isEqualTokens(node.comma, toNode.comma),
-        _isEqualNodes(node.message, toNode.message),
-        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
-        _isEqualTokens(node.semicolon, toNode.semicolon));
-  }
-
-  @override
-  bool visitAssignmentExpression(AssignmentExpression node) {
-    AssignmentExpression toNode = this._toNode as AssignmentExpression;
-    if (_and(
-        _isEqualNodes(node.leftHandSide, toNode.leftHandSide),
-        _isEqualTokens(node.operator, toNode.operator),
-        _isEqualNodes(node.rightHandSide, toNode.rightHandSide))) {
-      toNode.propagatedElement = node.propagatedElement;
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticElement = node.staticElement;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitAwaitExpression(AwaitExpression node) {
-    AwaitExpression toNode = this._toNode as AwaitExpression;
-    if (_and(_isEqualTokens(node.awaitKeyword, toNode.awaitKeyword),
-        _isEqualNodes(node.expression, toNode.expression))) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitBinaryExpression(BinaryExpression node) {
-    BinaryExpression toNode = this._toNode as BinaryExpression;
-    if (_and(
-        _isEqualNodes(node.leftOperand, toNode.leftOperand),
-        _isEqualTokens(node.operator, toNode.operator),
-        _isEqualNodes(node.rightOperand, toNode.rightOperand))) {
-      toNode.propagatedElement = node.propagatedElement;
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticElement = node.staticElement;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitBlock(Block node) {
-    Block toNode = this._toNode as Block;
-    return _and(
-        _isEqualTokens(node.leftBracket, toNode.leftBracket),
-        _isEqualNodeLists(node.statements, toNode.statements),
-        _isEqualTokens(node.rightBracket, toNode.rightBracket));
-  }
-
-  @override
-  bool visitBlockFunctionBody(BlockFunctionBody node) {
-    BlockFunctionBody toNode = this._toNode as BlockFunctionBody;
-    return _isEqualNodes(node.block, toNode.block);
-  }
-
-  @override
-  bool visitBooleanLiteral(BooleanLiteral node) {
-    BooleanLiteral toNode = this._toNode as BooleanLiteral;
-    if (_and(_isEqualTokens(node.literal, toNode.literal),
-        node.value == toNode.value)) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitBreakStatement(BreakStatement node) {
-    BreakStatement toNode = this._toNode as BreakStatement;
-    if (_and(
-        _isEqualTokens(node.breakKeyword, toNode.breakKeyword),
-        _isEqualNodes(node.label, toNode.label),
-        _isEqualTokens(node.semicolon, toNode.semicolon))) {
-      // TODO(paulberry): map node.target to toNode.target.
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitCascadeExpression(CascadeExpression node) {
-    CascadeExpression toNode = this._toNode as CascadeExpression;
-    if (_and(_isEqualNodes(node.target, toNode.target),
-        _isEqualNodeLists(node.cascadeSections, toNode.cascadeSections))) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitCatchClause(CatchClause node) {
-    CatchClause toNode = this._toNode as CatchClause;
-    return _and(
-        _isEqualTokens(node.onKeyword, toNode.onKeyword),
-        _isEqualNodes(node.exceptionType, toNode.exceptionType),
-        _isEqualTokens(node.catchKeyword, toNode.catchKeyword),
-        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
-        _isEqualNodes(node.exceptionParameter, toNode.exceptionParameter),
-        _isEqualTokens(node.comma, toNode.comma),
-        _isEqualNodes(node.stackTraceParameter, toNode.stackTraceParameter),
-        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
-        _isEqualNodes(node.body, toNode.body));
-  }
-
-  @override
-  bool visitClassDeclaration(ClassDeclaration node) {
-    ClassDeclaration toNode = this._toNode as ClassDeclaration;
-    return _and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualTokens(node.abstractKeyword, toNode.abstractKeyword),
-        _isEqualTokens(node.classKeyword, toNode.classKeyword),
-        _isEqualNodes(node.name, toNode.name),
-        _isEqualNodes(node.typeParameters, toNode.typeParameters),
-        _isEqualNodes(node.extendsClause, toNode.extendsClause),
-        _isEqualNodes(node.withClause, toNode.withClause),
-        _isEqualNodes(node.implementsClause, toNode.implementsClause),
-        _isEqualTokens(node.leftBracket, toNode.leftBracket),
-        _isEqualNodeLists(node.members, toNode.members),
-        _isEqualTokens(node.rightBracket, toNode.rightBracket));
-  }
-
-  @override
-  bool visitClassTypeAlias(ClassTypeAlias node) {
-    ClassTypeAlias toNode = this._toNode as ClassTypeAlias;
-    return _and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualTokens(node.typedefKeyword, toNode.typedefKeyword),
-        _isEqualNodes(node.name, toNode.name),
-        _isEqualNodes(node.typeParameters, toNode.typeParameters),
-        _isEqualTokens(node.equals, toNode.equals),
-        _isEqualTokens(node.abstractKeyword, toNode.abstractKeyword),
-        _isEqualNodes(node.superclass, toNode.superclass),
-        _isEqualNodes(node.withClause, toNode.withClause),
-        _isEqualNodes(node.implementsClause, toNode.implementsClause),
-        _isEqualTokens(node.semicolon, toNode.semicolon));
-  }
-
-  @override
-  bool visitComment(Comment node) {
-    Comment toNode = this._toNode as Comment;
-    return _isEqualNodeLists(node.references, toNode.references);
-  }
-
-  @override
-  bool visitCommentReference(CommentReference node) {
-    CommentReference toNode = this._toNode as CommentReference;
-    return _and(_isEqualTokens(node.newKeyword, toNode.newKeyword),
-        _isEqualNodes(node.identifier, toNode.identifier));
-  }
-
-  @override
-  bool visitCompilationUnit(CompilationUnit node) {
-    CompilationUnit toNode = this._toNode as CompilationUnit;
-    if (_and(
-        _isEqualTokens(node.beginToken, toNode.beginToken),
-        _isEqualNodes(node.scriptTag, toNode.scriptTag),
-        _isEqualNodeLists(node.directives, toNode.directives),
-        _isEqualNodeLists(node.declarations, toNode.declarations),
-        _isEqualTokens(node.endToken, toNode.endToken))) {
-      toNode.element = node.element;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitConditionalExpression(ConditionalExpression node) {
-    ConditionalExpression toNode = this._toNode as ConditionalExpression;
-    if (_and(
-        _isEqualNodes(node.condition, toNode.condition),
-        _isEqualTokens(node.question, toNode.question),
-        _isEqualNodes(node.thenExpression, toNode.thenExpression),
-        _isEqualTokens(node.colon, toNode.colon),
-        _isEqualNodes(node.elseExpression, toNode.elseExpression))) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitConfiguration(Configuration node) {
-    Configuration toNode = this._toNode as Configuration;
-    if (_and(
-        _isEqualTokens(node.ifKeyword, toNode.ifKeyword),
-        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
-        _isEqualNodes(node.name, toNode.name),
-        _isEqualTokens(node.equalToken, toNode.equalToken),
-        _isEqualNodes(node.value, toNode.value),
-        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
-        _isEqualNodes(node.libraryUri, toNode.libraryUri))) {
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitConstructorDeclaration(ConstructorDeclaration node) {
-    ConstructorDeclaration toNode = this._toNode as ConstructorDeclaration;
-    if (_and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualTokens(node.externalKeyword, toNode.externalKeyword),
-        _isEqualTokens(node.constKeyword, toNode.constKeyword),
-        _isEqualTokens(node.factoryKeyword, toNode.factoryKeyword),
-        _isEqualNodes(node.returnType, toNode.returnType),
-        _isEqualTokens(node.period, toNode.period),
-        _isEqualNodes(node.name, toNode.name),
-        _isEqualNodes(node.parameters, toNode.parameters),
-        _isEqualTokens(node.separator, toNode.separator),
-        _isEqualNodeLists(node.initializers, toNode.initializers),
-        _isEqualNodes(node.redirectedConstructor, toNode.redirectedConstructor),
-        _isEqualNodes(node.body, toNode.body))) {
-      toNode.element = node.element;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    ConstructorFieldInitializer toNode =
-        this._toNode as ConstructorFieldInitializer;
-    return _and(
-        _isEqualTokens(node.thisKeyword, toNode.thisKeyword),
-        _isEqualTokens(node.period, toNode.period),
-        _isEqualNodes(node.fieldName, toNode.fieldName),
-        _isEqualTokens(node.equals, toNode.equals),
-        _isEqualNodes(node.expression, toNode.expression));
-  }
-
-  @override
-  bool visitConstructorName(ConstructorName node) {
-    ConstructorName toNode = this._toNode as ConstructorName;
-    if (_and(
-        _isEqualNodes(node.type, toNode.type),
-        _isEqualTokens(node.period, toNode.period),
-        _isEqualNodes(node.name, toNode.name))) {
-      toNode.staticElement = node.staticElement;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitContinueStatement(ContinueStatement node) {
-    ContinueStatement toNode = this._toNode as ContinueStatement;
-    if (_and(
-        _isEqualTokens(node.continueKeyword, toNode.continueKeyword),
-        _isEqualNodes(node.label, toNode.label),
-        _isEqualTokens(node.semicolon, toNode.semicolon))) {
-      // TODO(paulberry): map node.target to toNode.target.
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitDeclaredIdentifier(DeclaredIdentifier node) {
-    DeclaredIdentifier toNode = this._toNode as DeclaredIdentifier;
-    return _and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualTokens(node.keyword, toNode.keyword),
-        _isEqualNodes(node.type, toNode.type),
-        _isEqualNodes(node.identifier, toNode.identifier));
-  }
-
-  @override
-  bool visitDefaultFormalParameter(DefaultFormalParameter node) {
-    DefaultFormalParameter toNode = this._toNode as DefaultFormalParameter;
-    return _and(
-        _isEqualNodes(node.parameter, toNode.parameter),
-        node.kind == toNode.kind,
-        _isEqualTokens(node.separator, toNode.separator),
-        _isEqualNodes(node.defaultValue, toNode.defaultValue));
-  }
-
-  @override
-  bool visitDoStatement(DoStatement node) {
-    DoStatement toNode = this._toNode as DoStatement;
-    return _and(
-        _isEqualTokens(node.doKeyword, toNode.doKeyword),
-        _isEqualNodes(node.body, toNode.body),
-        _isEqualTokens(node.whileKeyword, toNode.whileKeyword),
-        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
-        _isEqualNodes(node.condition, toNode.condition),
-        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
-        _isEqualTokens(node.semicolon, toNode.semicolon));
-  }
-
-  @override
-  bool visitDottedName(DottedName node) {
-    DottedName toNode = this._toNode as DottedName;
-    return _isEqualNodeLists(node.components, toNode.components);
-  }
-
-  @override
-  bool visitDoubleLiteral(DoubleLiteral node) {
-    DoubleLiteral toNode = this._toNode as DoubleLiteral;
-    if (_and(_isEqualTokens(node.literal, toNode.literal),
-        node.value == toNode.value)) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitEmptyFunctionBody(EmptyFunctionBody node) {
-    EmptyFunctionBody toNode = this._toNode as EmptyFunctionBody;
-    return _isEqualTokens(node.semicolon, toNode.semicolon);
-  }
-
-  @override
-  bool visitEmptyStatement(EmptyStatement node) {
-    EmptyStatement toNode = this._toNode as EmptyStatement;
-    return _isEqualTokens(node.semicolon, toNode.semicolon);
-  }
-
-  @override
-  bool visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    EnumConstantDeclaration toNode = this._toNode as EnumConstantDeclaration;
-    return _and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualNodes(node.name, toNode.name));
-  }
-
-  @override
-  bool visitEnumDeclaration(EnumDeclaration node) {
-    EnumDeclaration toNode = this._toNode as EnumDeclaration;
-    return _and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualTokens(node.enumKeyword, toNode.enumKeyword),
-        _isEqualNodes(node.name, toNode.name),
-        _isEqualTokens(node.leftBracket, toNode.leftBracket),
-        _isEqualNodeLists(node.constants, toNode.constants),
-        _isEqualTokens(node.rightBracket, toNode.rightBracket));
-  }
-
-  @override
-  bool visitExportDirective(ExportDirective node) {
-    ExportDirective toNode = this._toNode as ExportDirective;
-    if (_and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualTokens(node.keyword, toNode.keyword),
-        _isEqualNodes(node.uri, toNode.uri),
-        _isEqualNodeLists(node.combinators, toNode.combinators),
-        _isEqualTokens(node.semicolon, toNode.semicolon))) {
-      toNode.element = node.element;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    ExpressionFunctionBody toNode = this._toNode as ExpressionFunctionBody;
-    return _and(
-        _isEqualTokens(node.functionDefinition, toNode.functionDefinition),
-        _isEqualNodes(node.expression, toNode.expression),
-        _isEqualTokens(node.semicolon, toNode.semicolon));
-  }
-
-  @override
-  bool visitExpressionStatement(ExpressionStatement node) {
-    ExpressionStatement toNode = this._toNode as ExpressionStatement;
-    return _and(_isEqualNodes(node.expression, toNode.expression),
-        _isEqualTokens(node.semicolon, toNode.semicolon));
-  }
-
-  @override
-  bool visitExtendsClause(ExtendsClause node) {
-    ExtendsClause toNode = this._toNode as ExtendsClause;
-    return _and(_isEqualTokens(node.extendsKeyword, toNode.extendsKeyword),
-        _isEqualNodes(node.superclass, toNode.superclass));
-  }
-
-  @override
-  bool visitFieldDeclaration(FieldDeclaration node) {
-    FieldDeclaration toNode = this._toNode as FieldDeclaration;
-    return _and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualTokens(node.staticKeyword, toNode.staticKeyword),
-        _isEqualNodes(node.fields, toNode.fields),
-        _isEqualTokens(node.semicolon, toNode.semicolon));
-  }
-
-  @override
-  bool visitFieldFormalParameter(FieldFormalParameter node) {
-    FieldFormalParameter toNode = this._toNode as FieldFormalParameter;
-    return _and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualTokens(node.keyword, toNode.keyword),
-        _isEqualNodes(node.type, toNode.type),
-        _isEqualTokens(node.thisKeyword, toNode.thisKeyword),
-        _isEqualTokens(node.period, toNode.period),
-        _isEqualNodes(node.identifier, toNode.identifier));
-  }
-
-  @override
-  bool visitForEachStatement(ForEachStatement node) {
-    ForEachStatement toNode = this._toNode as ForEachStatement;
-    return _and(
-        _isEqualTokens(node.forKeyword, toNode.forKeyword),
-        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
-        _isEqualNodes(node.loopVariable, toNode.loopVariable),
-        _isEqualTokens(node.inKeyword, toNode.inKeyword),
-        _isEqualNodes(node.iterable, toNode.iterable),
-        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
-        _isEqualNodes(node.body, toNode.body));
-  }
-
-  @override
-  bool visitFormalParameterList(FormalParameterList node) {
-    FormalParameterList toNode = this._toNode as FormalParameterList;
-    return _and(
-        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
-        _isEqualNodeLists(node.parameters, toNode.parameters),
-        _isEqualTokens(node.leftDelimiter, toNode.leftDelimiter),
-        _isEqualTokens(node.rightDelimiter, toNode.rightDelimiter),
-        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis));
-  }
-
-  @override
-  bool visitForStatement(ForStatement node) {
-    ForStatement toNode = this._toNode as ForStatement;
-    return _and(
-        _isEqualTokens(node.forKeyword, toNode.forKeyword),
-        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
-        _isEqualNodes(node.variables, toNode.variables),
-        _isEqualNodes(node.initialization, toNode.initialization),
-        _isEqualTokens(node.leftSeparator, toNode.leftSeparator),
-        _isEqualNodes(node.condition, toNode.condition),
-        _isEqualTokens(node.rightSeparator, toNode.rightSeparator),
-        _isEqualNodeLists(node.updaters, toNode.updaters),
-        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
-        _isEqualNodes(node.body, toNode.body));
-  }
-
-  @override
-  bool visitFunctionDeclaration(FunctionDeclaration node) {
-    FunctionDeclaration toNode = this._toNode as FunctionDeclaration;
-    return _and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualTokens(node.externalKeyword, toNode.externalKeyword),
-        _isEqualNodes(node.returnType, toNode.returnType),
-        _isEqualTokens(node.propertyKeyword, toNode.propertyKeyword),
-        _isEqualNodes(node.name, toNode.name),
-        _isEqualNodes(node.functionExpression, toNode.functionExpression));
-  }
-
-  @override
-  bool visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    FunctionDeclarationStatement toNode =
-        this._toNode as FunctionDeclarationStatement;
-    return _isEqualNodes(node.functionDeclaration, toNode.functionDeclaration);
-  }
-
-  @override
-  bool visitFunctionExpression(FunctionExpression node) {
-    FunctionExpression toNode = this._toNode as FunctionExpression;
-    if (_and(_isEqualNodes(node.parameters, toNode.parameters),
-        _isEqualNodes(node.body, toNode.body))) {
-      toNode.element = node.element;
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    FunctionExpressionInvocation toNode =
-        this._toNode as FunctionExpressionInvocation;
-    if (_and(_isEqualNodes(node.function, toNode.function),
-        _isEqualNodes(node.argumentList, toNode.argumentList))) {
-      toNode.propagatedElement = node.propagatedElement;
-      toNode.propagatedInvokeType = node.propagatedInvokeType;
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticInvokeType = node.staticInvokeType;
-      toNode.staticElement = node.staticElement;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitFunctionTypeAlias(FunctionTypeAlias node) {
-    FunctionTypeAlias toNode = this._toNode as FunctionTypeAlias;
-    return _and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualTokens(node.typedefKeyword, toNode.typedefKeyword),
-        _isEqualNodes(node.returnType, toNode.returnType),
-        _isEqualNodes(node.name, toNode.name),
-        _isEqualNodes(node.typeParameters, toNode.typeParameters),
-        _isEqualNodes(node.parameters, toNode.parameters),
-        _isEqualTokens(node.semicolon, toNode.semicolon));
-  }
-
-  @override
-  bool visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    FunctionTypedFormalParameter toNode =
-        this._toNode as FunctionTypedFormalParameter;
-    return _and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualNodes(node.returnType, toNode.returnType),
-        _isEqualNodes(node.identifier, toNode.identifier),
-        _isEqualNodes(node.parameters, toNode.parameters));
-  }
-
-  @override
-  bool visitHideCombinator(HideCombinator node) {
-    HideCombinator toNode = this._toNode as HideCombinator;
-    return _and(_isEqualTokens(node.keyword, toNode.keyword),
-        _isEqualNodeLists(node.hiddenNames, toNode.hiddenNames));
-  }
-
-  @override
-  bool visitIfStatement(IfStatement node) {
-    IfStatement toNode = this._toNode as IfStatement;
-    return _and(
-        _isEqualTokens(node.ifKeyword, toNode.ifKeyword),
-        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
-        _isEqualNodes(node.condition, toNode.condition),
-        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
-        _isEqualNodes(node.thenStatement, toNode.thenStatement),
-        _isEqualTokens(node.elseKeyword, toNode.elseKeyword),
-        _isEqualNodes(node.elseStatement, toNode.elseStatement));
-  }
-
-  @override
-  bool visitImplementsClause(ImplementsClause node) {
-    ImplementsClause toNode = this._toNode as ImplementsClause;
-    return _and(
-        _isEqualTokens(node.implementsKeyword, toNode.implementsKeyword),
-        _isEqualNodeLists(node.interfaces, toNode.interfaces));
-  }
-
-  @override
-  bool visitImportDirective(ImportDirective node) {
-    ImportDirective toNode = this._toNode as ImportDirective;
-    if (_and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualTokens(node.keyword, toNode.keyword),
-        _isEqualNodes(node.uri, toNode.uri),
-        _isEqualTokens(node.asKeyword, toNode.asKeyword),
-        _isEqualNodes(node.prefix, toNode.prefix),
-        _isEqualNodeLists(node.combinators, toNode.combinators),
-        _isEqualTokens(node.semicolon, toNode.semicolon))) {
-      toNode.element = node.element;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitIndexExpression(IndexExpression node) {
-    IndexExpression toNode = this._toNode as IndexExpression;
-    if (_and(
-        _isEqualNodes(node.target, toNode.target),
-        _isEqualTokens(node.leftBracket, toNode.leftBracket),
-        _isEqualNodes(node.index, toNode.index),
-        _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
-      toNode.auxiliaryElements = node.auxiliaryElements;
-      toNode.propagatedElement = node.propagatedElement;
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticElement = node.staticElement;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitInstanceCreationExpression(InstanceCreationExpression node) {
-    InstanceCreationExpression toNode =
-        this._toNode as InstanceCreationExpression;
-    if (_and(
-        _isEqualTokens(node.keyword, toNode.keyword),
-        _isEqualNodes(node.constructorName, toNode.constructorName),
-        _isEqualNodes(node.argumentList, toNode.argumentList))) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticElement = node.staticElement;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitIntegerLiteral(IntegerLiteral node) {
-    IntegerLiteral toNode = this._toNode as IntegerLiteral;
-    if (_and(_isEqualTokens(node.literal, toNode.literal),
-        node.value == toNode.value)) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitInterpolationExpression(InterpolationExpression node) {
-    InterpolationExpression toNode = this._toNode as InterpolationExpression;
-    return _and(
-        _isEqualTokens(node.leftBracket, toNode.leftBracket),
-        _isEqualNodes(node.expression, toNode.expression),
-        _isEqualTokens(node.rightBracket, toNode.rightBracket));
-  }
-
-  @override
-  bool visitInterpolationString(InterpolationString node) {
-    InterpolationString toNode = this._toNode as InterpolationString;
-    return _and(_isEqualTokens(node.contents, toNode.contents),
-        node.value == toNode.value);
-  }
-
-  @override
-  bool visitIsExpression(IsExpression node) {
-    IsExpression toNode = this._toNode as IsExpression;
-    if (_and(
-        _isEqualNodes(node.expression, toNode.expression),
-        _isEqualTokens(node.isOperator, toNode.isOperator),
-        _isEqualTokens(node.notOperator, toNode.notOperator),
-        _isEqualNodes(node.type, toNode.type))) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitLabel(Label node) {
-    Label toNode = this._toNode as Label;
-    return _and(_isEqualNodes(node.label, toNode.label),
-        _isEqualTokens(node.colon, toNode.colon));
-  }
-
-  @override
-  bool visitLabeledStatement(LabeledStatement node) {
-    LabeledStatement toNode = this._toNode as LabeledStatement;
-    return _and(_isEqualNodeLists(node.labels, toNode.labels),
-        _isEqualNodes(node.statement, toNode.statement));
-  }
-
-  @override
-  bool visitLibraryDirective(LibraryDirective node) {
-    LibraryDirective toNode = this._toNode as LibraryDirective;
-    if (_and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualTokens(node.libraryKeyword, toNode.libraryKeyword),
-        _isEqualNodes(node.name, toNode.name),
-        _isEqualTokens(node.semicolon, toNode.semicolon))) {
-      toNode.element = node.element;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitLibraryIdentifier(LibraryIdentifier node) {
-    LibraryIdentifier toNode = this._toNode as LibraryIdentifier;
-    if (_isEqualNodeLists(node.components, toNode.components)) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitListLiteral(ListLiteral node) {
-    ListLiteral toNode = this._toNode as ListLiteral;
-    if (_and(
-        _isEqualTokens(node.constKeyword, toNode.constKeyword),
-        _isEqualNodes(node.typeArguments, toNode.typeArguments),
-        _isEqualTokens(node.leftBracket, toNode.leftBracket),
-        _isEqualNodeLists(node.elements, toNode.elements),
-        _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitMapLiteral(MapLiteral node) {
-    MapLiteral toNode = this._toNode as MapLiteral;
-    if (_and(
-        _isEqualTokens(node.constKeyword, toNode.constKeyword),
-        _isEqualNodes(node.typeArguments, toNode.typeArguments),
-        _isEqualTokens(node.leftBracket, toNode.leftBracket),
-        _isEqualNodeLists(node.entries, toNode.entries),
-        _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitMapLiteralEntry(MapLiteralEntry node) {
-    MapLiteralEntry toNode = this._toNode as MapLiteralEntry;
-    return _and(
-        _isEqualNodes(node.key, toNode.key),
-        _isEqualTokens(node.separator, toNode.separator),
-        _isEqualNodes(node.value, toNode.value));
-  }
-
-  @override
-  bool visitMethodDeclaration(MethodDeclaration node) {
-    MethodDeclaration toNode = this._toNode as MethodDeclaration;
-    return _and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualTokens(node.externalKeyword, toNode.externalKeyword),
-        _isEqualTokens(node.modifierKeyword, toNode.modifierKeyword),
-        _isEqualNodes(node.returnType, toNode.returnType),
-        _isEqualTokens(node.propertyKeyword, toNode.propertyKeyword),
-        _isEqualTokens(node.propertyKeyword, toNode.propertyKeyword),
-        _isEqualNodes(node.name, toNode.name),
-        _isEqualNodes(node.parameters, toNode.parameters),
-        _isEqualNodes(node.body, toNode.body));
-  }
-
-  @override
-  bool visitMethodInvocation(MethodInvocation node) {
-    MethodInvocation toNode = this._toNode as MethodInvocation;
-    if (_and(
-        _isEqualNodes(node.target, toNode.target),
-        _isEqualTokens(node.operator, toNode.operator),
-        _isEqualNodes(node.methodName, toNode.methodName),
-        _isEqualNodes(node.argumentList, toNode.argumentList))) {
-      toNode.propagatedInvokeType = node.propagatedInvokeType;
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticInvokeType = node.staticInvokeType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitNamedExpression(NamedExpression node) {
-    NamedExpression toNode = this._toNode as NamedExpression;
-    if (_and(_isEqualNodes(node.name, toNode.name),
-        _isEqualNodes(node.expression, toNode.expression))) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitNativeClause(NativeClause node) {
-    NativeClause toNode = this._toNode as NativeClause;
-    return _and(_isEqualTokens(node.nativeKeyword, toNode.nativeKeyword),
-        _isEqualNodes(node.name, toNode.name));
-  }
-
-  @override
-  bool visitNativeFunctionBody(NativeFunctionBody node) {
-    NativeFunctionBody toNode = this._toNode as NativeFunctionBody;
-    return _and(
-        _isEqualTokens(node.nativeKeyword, toNode.nativeKeyword),
-        _isEqualNodes(node.stringLiteral, toNode.stringLiteral),
-        _isEqualTokens(node.semicolon, toNode.semicolon));
-  }
-
-  @override
-  bool visitNullLiteral(NullLiteral node) {
-    NullLiteral toNode = this._toNode as NullLiteral;
-    if (_isEqualTokens(node.literal, toNode.literal)) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitParenthesizedExpression(ParenthesizedExpression node) {
-    ParenthesizedExpression toNode = this._toNode as ParenthesizedExpression;
-    if (_and(
-        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
-        _isEqualNodes(node.expression, toNode.expression),
-        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis))) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitPartDirective(PartDirective node) {
-    PartDirective toNode = this._toNode as PartDirective;
-    if (_and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualTokens(node.partKeyword, toNode.partKeyword),
-        _isEqualNodes(node.uri, toNode.uri),
-        _isEqualTokens(node.semicolon, toNode.semicolon))) {
-      toNode.element = node.element;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitPartOfDirective(PartOfDirective node) {
-    PartOfDirective toNode = this._toNode as PartOfDirective;
-    if (_and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualTokens(node.partKeyword, toNode.partKeyword),
-        _isEqualTokens(node.ofKeyword, toNode.ofKeyword),
-        _isEqualNodes(node.libraryName, toNode.libraryName),
-        _isEqualTokens(node.semicolon, toNode.semicolon))) {
-      toNode.element = node.element;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitPostfixExpression(PostfixExpression node) {
-    PostfixExpression toNode = this._toNode as PostfixExpression;
-    if (_and(_isEqualNodes(node.operand, toNode.operand),
-        _isEqualTokens(node.operator, toNode.operator))) {
-      toNode.propagatedElement = node.propagatedElement;
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticElement = node.staticElement;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitPrefixedIdentifier(PrefixedIdentifier node) {
-    PrefixedIdentifier toNode = this._toNode as PrefixedIdentifier;
-    if (_and(
-        _isEqualNodes(node.prefix, toNode.prefix),
-        _isEqualTokens(node.period, toNode.period),
-        _isEqualNodes(node.identifier, toNode.identifier))) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitPrefixExpression(PrefixExpression node) {
-    PrefixExpression toNode = this._toNode as PrefixExpression;
-    if (_and(_isEqualTokens(node.operator, toNode.operator),
-        _isEqualNodes(node.operand, toNode.operand))) {
-      toNode.propagatedElement = node.propagatedElement;
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticElement = node.staticElement;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitPropertyAccess(PropertyAccess node) {
-    PropertyAccess toNode = this._toNode as PropertyAccess;
-    if (_and(
-        _isEqualNodes(node.target, toNode.target),
-        _isEqualTokens(node.operator, toNode.operator),
-        _isEqualNodes(node.propertyName, toNode.propertyName))) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
-    RedirectingConstructorInvocation toNode =
-        this._toNode as RedirectingConstructorInvocation;
-    if (_and(
-        _isEqualTokens(node.thisKeyword, toNode.thisKeyword),
-        _isEqualTokens(node.period, toNode.period),
-        _isEqualNodes(node.constructorName, toNode.constructorName),
-        _isEqualNodes(node.argumentList, toNode.argumentList))) {
-      toNode.staticElement = node.staticElement;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitRethrowExpression(RethrowExpression node) {
-    RethrowExpression toNode = this._toNode as RethrowExpression;
-    if (_isEqualTokens(node.rethrowKeyword, toNode.rethrowKeyword)) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitReturnStatement(ReturnStatement node) {
-    ReturnStatement toNode = this._toNode as ReturnStatement;
-    return _and(
-        _isEqualTokens(node.returnKeyword, toNode.returnKeyword),
-        _isEqualNodes(node.expression, toNode.expression),
-        _isEqualTokens(node.semicolon, toNode.semicolon));
-  }
-
-  @override
-  bool visitScriptTag(ScriptTag node) {
-    ScriptTag toNode = this._toNode as ScriptTag;
-    return _isEqualTokens(node.scriptTag, toNode.scriptTag);
-  }
-
-  @override
-  bool visitShowCombinator(ShowCombinator node) {
-    ShowCombinator toNode = this._toNode as ShowCombinator;
-    return _and(_isEqualTokens(node.keyword, toNode.keyword),
-        _isEqualNodeLists(node.shownNames, toNode.shownNames));
-  }
-
-  @override
-  bool visitSimpleFormalParameter(SimpleFormalParameter node) {
-    SimpleFormalParameter toNode = this._toNode as SimpleFormalParameter;
-    return _and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualTokens(node.keyword, toNode.keyword),
-        _isEqualNodes(node.type, toNode.type),
-        _isEqualNodes(node.identifier, toNode.identifier));
-  }
-
-  @override
-  bool visitSimpleIdentifier(SimpleIdentifier node) {
-    SimpleIdentifier toNode = this._toNode as SimpleIdentifier;
-    if (_isEqualTokens(node.token, toNode.token)) {
-      toNode.staticElement = node.staticElement;
-      toNode.staticType = node.staticType;
-      toNode.propagatedElement = node.propagatedElement;
-      toNode.propagatedType = node.propagatedType;
-      toNode.auxiliaryElements = node.auxiliaryElements;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitSimpleStringLiteral(SimpleStringLiteral node) {
-    SimpleStringLiteral toNode = this._toNode as SimpleStringLiteral;
-    if (_and(_isEqualTokens(node.literal, toNode.literal),
-        node.value == toNode.value)) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitStringInterpolation(StringInterpolation node) {
-    StringInterpolation toNode = this._toNode as StringInterpolation;
-    if (_isEqualNodeLists(node.elements, toNode.elements)) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    SuperConstructorInvocation toNode =
-        this._toNode as SuperConstructorInvocation;
-    if (_and(
-        _isEqualTokens(node.superKeyword, toNode.superKeyword),
-        _isEqualTokens(node.period, toNode.period),
-        _isEqualNodes(node.constructorName, toNode.constructorName),
-        _isEqualNodes(node.argumentList, toNode.argumentList))) {
-      toNode.staticElement = node.staticElement;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitSuperExpression(SuperExpression node) {
-    SuperExpression toNode = this._toNode as SuperExpression;
-    if (_isEqualTokens(node.superKeyword, toNode.superKeyword)) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitSwitchCase(SwitchCase node) {
-    SwitchCase toNode = this._toNode as SwitchCase;
-    return _and(
-        _isEqualNodeLists(node.labels, toNode.labels),
-        _isEqualTokens(node.keyword, toNode.keyword),
-        _isEqualNodes(node.expression, toNode.expression),
-        _isEqualTokens(node.colon, toNode.colon),
-        _isEqualNodeLists(node.statements, toNode.statements));
-  }
-
-  @override
-  bool visitSwitchDefault(SwitchDefault node) {
-    SwitchDefault toNode = this._toNode as SwitchDefault;
-    return _and(
-        _isEqualNodeLists(node.labels, toNode.labels),
-        _isEqualTokens(node.keyword, toNode.keyword),
-        _isEqualTokens(node.colon, toNode.colon),
-        _isEqualNodeLists(node.statements, toNode.statements));
-  }
-
-  @override
-  bool visitSwitchStatement(SwitchStatement node) {
-    SwitchStatement toNode = this._toNode as SwitchStatement;
-    return _and(
-        _isEqualTokens(node.switchKeyword, toNode.switchKeyword),
-        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
-        _isEqualNodes(node.expression, toNode.expression),
-        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
-        _isEqualTokens(node.leftBracket, toNode.leftBracket),
-        _isEqualNodeLists(node.members, toNode.members),
-        _isEqualTokens(node.rightBracket, toNode.rightBracket));
-  }
-
-  @override
-  bool visitSymbolLiteral(SymbolLiteral node) {
-    SymbolLiteral toNode = this._toNode as SymbolLiteral;
-    if (_and(_isEqualTokens(node.poundSign, toNode.poundSign),
-        _isEqualTokenLists(node.components, toNode.components))) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitThisExpression(ThisExpression node) {
-    ThisExpression toNode = this._toNode as ThisExpression;
-    if (_isEqualTokens(node.thisKeyword, toNode.thisKeyword)) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitThrowExpression(ThrowExpression node) {
-    ThrowExpression toNode = this._toNode as ThrowExpression;
-    if (_and(_isEqualTokens(node.throwKeyword, toNode.throwKeyword),
-        _isEqualNodes(node.expression, toNode.expression))) {
-      toNode.propagatedType = node.propagatedType;
-      toNode.staticType = node.staticType;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    TopLevelVariableDeclaration toNode =
-        this._toNode as TopLevelVariableDeclaration;
-    return _and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualNodes(node.variables, toNode.variables),
-        _isEqualTokens(node.semicolon, toNode.semicolon));
-  }
-
-  @override
-  bool visitTryStatement(TryStatement node) {
-    TryStatement toNode = this._toNode as TryStatement;
-    return _and(
-        _isEqualTokens(node.tryKeyword, toNode.tryKeyword),
-        _isEqualNodes(node.body, toNode.body),
-        _isEqualNodeLists(node.catchClauses, toNode.catchClauses),
-        _isEqualTokens(node.finallyKeyword, toNode.finallyKeyword),
-        _isEqualNodes(node.finallyBlock, toNode.finallyBlock));
-  }
-
-  @override
-  bool visitTypeArgumentList(TypeArgumentList node) {
-    TypeArgumentList toNode = this._toNode as TypeArgumentList;
-    return _and(
-        _isEqualTokens(node.leftBracket, toNode.leftBracket),
-        _isEqualNodeLists(node.arguments, toNode.arguments),
-        _isEqualTokens(node.rightBracket, toNode.rightBracket));
-  }
-
-  @override
-  bool visitTypeName(TypeName node) {
-    TypeName toNode = this._toNode as TypeName;
-    if (_and(_isEqualNodes(node.name, toNode.name),
-        _isEqualNodes(node.typeArguments, toNode.typeArguments))) {
-      toNode.type = node.type;
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitTypeParameter(TypeParameter node) {
-    TypeParameter toNode = this._toNode as TypeParameter;
-    return _and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualNodes(node.name, toNode.name),
-        _isEqualTokens(node.extendsKeyword, toNode.extendsKeyword),
-        _isEqualNodes(node.bound, toNode.bound));
-  }
-
-  @override
-  bool visitTypeParameterList(TypeParameterList node) {
-    TypeParameterList toNode = this._toNode as TypeParameterList;
-    return _and(
-        _isEqualTokens(node.leftBracket, toNode.leftBracket),
-        _isEqualNodeLists(node.typeParameters, toNode.typeParameters),
-        _isEqualTokens(node.rightBracket, toNode.rightBracket));
-  }
-
-  @override
-  bool visitVariableDeclaration(VariableDeclaration node) {
-    VariableDeclaration toNode = this._toNode as VariableDeclaration;
-    return _and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualNodes(node.name, toNode.name),
-        _isEqualTokens(node.equals, toNode.equals),
-        _isEqualNodes(node.initializer, toNode.initializer));
-  }
-
-  @override
-  bool visitVariableDeclarationList(VariableDeclarationList node) {
-    VariableDeclarationList toNode = this._toNode as VariableDeclarationList;
-    return _and(
-        _isEqualNodes(node.documentationComment, toNode.documentationComment),
-        _isEqualNodeLists(node.metadata, toNode.metadata),
-        _isEqualTokens(node.keyword, toNode.keyword),
-        _isEqualNodes(node.type, toNode.type),
-        _isEqualNodeLists(node.variables, toNode.variables));
-  }
-
-  @override
-  bool visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    VariableDeclarationStatement toNode =
-        this._toNode as VariableDeclarationStatement;
-    return _and(_isEqualNodes(node.variables, toNode.variables),
-        _isEqualTokens(node.semicolon, toNode.semicolon));
-  }
-
-  @override
-  bool visitWhileStatement(WhileStatement node) {
-    WhileStatement toNode = this._toNode as WhileStatement;
-    return _and(
-        _isEqualTokens(node.whileKeyword, toNode.whileKeyword),
-        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
-        _isEqualNodes(node.condition, toNode.condition),
-        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
-        _isEqualNodes(node.body, toNode.body));
-  }
-
-  @override
-  bool visitWithClause(WithClause node) {
-    WithClause toNode = this._toNode as WithClause;
-    return _and(_isEqualTokens(node.withKeyword, toNode.withKeyword),
-        _isEqualNodeLists(node.mixinTypes, toNode.mixinTypes));
-  }
-
-  @override
-  bool visitYieldStatement(YieldStatement node) {
-    YieldStatement toNode = this._toNode as YieldStatement;
-    return _and(
-        _isEqualTokens(node.yieldKeyword, toNode.yieldKeyword),
-        _isEqualNodes(node.expression, toNode.expression),
-        _isEqualTokens(node.semicolon, toNode.semicolon));
-  }
-
-  /**
-   * Return `true` if all of the parameters are `true`.
-   */
-  bool _and(bool b1, bool b2,
-      [bool b3 = true,
-      bool b4 = true,
-      bool b5 = true,
-      bool b6 = true,
-      bool b7 = true,
-      bool b8 = true,
-      bool b9 = true,
-      bool b10 = true,
-      bool b11 = true,
-      bool b12 = true,
-      bool b13 = true]) {
-    // TODO(brianwilkerson) Inline this method.
-    return b1 &&
-        b2 &&
-        b3 &&
-        b4 &&
-        b5 &&
-        b6 &&
-        b7 &&
-        b8 &&
-        b9 &&
-        b10 &&
-        b11 &&
-        b12 &&
-        b13;
-  }
-
-  /**
-   * Return `true` if the [first] and [second] lists of AST nodes have the same
-   * size and corresponding elements are equal.
-   */
-  bool _isEqualNodeLists(NodeList first, NodeList second) {
-    if (first == null) {
-      return second == null;
-    } else if (second == null) {
-      return false;
-    }
-    int size = first.length;
-    if (second.length != size) {
-      return false;
-    }
-    bool equal = true;
-    for (int i = 0; i < size; i++) {
-      if (!_isEqualNodes(first[i], second[i])) {
-        equal = false;
-      }
-    }
-    return equal;
-  }
-
-  /**
-   * Return `true` if the [fromNode] and [toNode] have the same structure. As a
-   * side-effect, if the nodes do have the same structure, any resolution data
-   * from the first node will be copied to the second node.
-   */
-  bool _isEqualNodes(AstNode fromNode, AstNode toNode) {
-    if (fromNode == null) {
-      return toNode == null;
-    } else if (toNode == null) {
-      return false;
-    } else if (fromNode.runtimeType == toNode.runtimeType) {
-      this._toNode = toNode;
-      return fromNode.accept(this);
-    }
-    //
-    // Check for a simple transformation caused by entering a period.
-    //
-    if (toNode is PrefixedIdentifier) {
-      SimpleIdentifier prefix = toNode.prefix;
-      if (fromNode.runtimeType == prefix.runtimeType) {
-        this._toNode = prefix;
-        return fromNode.accept(this);
-      }
-    } else if (toNode is PropertyAccess) {
-      Expression target = toNode.target;
-      if (fromNode.runtimeType == target.runtimeType) {
-        this._toNode = target;
-        return fromNode.accept(this);
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Return `true` if the [first] and [second] arrays of tokens have the same
-   * length and corresponding elements are equal.
-   */
-  bool _isEqualTokenLists(List<Token> first, List<Token> second) {
-    int length = first.length;
-    if (second.length != length) {
-      return false;
-    }
-    for (int i = 0; i < length; i++) {
-      if (!_isEqualTokens(first[i], second[i])) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Return `true` if the [first] and [second] tokens have the same structure.
-   */
-  bool _isEqualTokens(Token first, Token second) {
-    if (first == null) {
-      return second == null;
-    } else if (second == null) {
-      return false;
-    }
-    return first.lexeme == second.lexeme;
-  }
-
-  /**
-   * Copy resolution data from the [fromNode] to the [toNode].
-   */
-  static void copyResolutionData(AstNode fromNode, AstNode toNode) {
-    ResolutionCopier copier = new ResolutionCopier();
-    copier._isEqualNodes(fromNode, toNode);
-  }
 }

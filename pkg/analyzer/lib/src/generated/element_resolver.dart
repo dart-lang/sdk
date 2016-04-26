@@ -631,7 +631,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       // does not apply to conditional method invocation (i.e. 'C?.m(...)').
       //
       bool isConditional = node.operator.type == TokenType.QUESTION_PERIOD;
-      ClassElementImpl typeReference = getTypeReference(target);
+      ClassElement typeReference = getTypeReference(target);
       if (typeReference != null) {
         if (node.isCascaded) {
           typeReference = _typeType.element;
@@ -783,7 +783,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           return null;
         }
         if (!node.isCascaded) {
-          ClassElementImpl typeReference = getTypeReference(target);
+          ClassElement typeReference = getTypeReference(target);
           if (typeReference != null) {
             ConstructorElement constructor =
                 typeReference.getNamedConstructor(methodName.name);
@@ -1118,7 +1118,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    ClassElementImpl enclosingClass = _resolver.enclosingClass;
+    ClassElementImpl enclosingClass =
+        ClassElementImpl.getImpl(_resolver.enclosingClass);
     if (enclosingClass == null) {
       // TODO(brianwilkerson) Report this error.
       return null;
@@ -2252,7 +2253,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     // hierarchy, instead we just look for the member in the type only.  This
     // does not apply to conditional property accesses (i.e. 'C?.m').
     //
-    ClassElementImpl typeReference = getTypeReference(target);
+    ClassElement typeReference = getTypeReference(target);
     if (typeReference != null) {
       if (isCascaded) {
         typeReference = _typeType.element;
@@ -2441,10 +2442,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * then the element representing the class is returned, otherwise `null` is
    * returned.
    */
-  static ClassElementImpl getTypeReference(Expression expression) {
+  static ClassElement getTypeReference(Expression expression) {
     if (expression is Identifier) {
       Element staticElement = expression.staticElement;
-      if (staticElement is ClassElementImpl) {
+      if (staticElement is ClassElement) {
         return staticElement;
       }
     }
@@ -2586,7 +2587,7 @@ class SyntheticIdentifier extends IdentifierImpl {
   Element get staticElement => null;
 
   @override
-  accept(AstVisitor visitor) => null;
+  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) => null;
 
   @override
   void visitChildren(AstVisitor visitor) {}

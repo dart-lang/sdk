@@ -28,12 +28,13 @@ static const char* names[] = {
 PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_LITERAL)
 #undef DEFINE_SYMBOL_LITERAL
 
-  "",  // matches kKwTableStart.
+  "",  // matches kTokenTableStart.
 
-#define DEFINE_KEYWORD_SYMBOL_INDEX(t, s, p, a)                                \
+#define DEFINE_TOKEN_SYMBOL_INDEX(t, s, p, a)                                  \
   s,
-  DART_KEYWORD_LIST(DEFINE_KEYWORD_SYMBOL_INDEX)
-#undef DEFINE_KEYWORD_SYMBOL_INDEX
+  DART_TOKEN_LIST(DEFINE_TOKEN_SYMBOL_INDEX)
+  DART_KEYWORD_LIST(DEFINE_TOKEN_SYMBOL_INDEX)
+#undef DEFINE_TOKEN_SYMBOL_INDEX
 };
 
 RawString* StringFrom(const uint8_t* data, intptr_t len, Heap::Space space) {
@@ -61,6 +62,10 @@ class CharArray {
     return result.raw();
   }
   bool Equals(const String& other) const {
+    ASSERT(other.HasHash());
+    if (other.Hash() != hash_) {
+      return false;
+    }
     return other.Equals(data_, len_);
   }
   intptr_t Hash() const { return hash_; }
@@ -82,6 +87,10 @@ class StringSlice {
   }
   RawString* ToSymbol() const;
   bool Equals(const String& other) const {
+    ASSERT(other.HasHash());
+    if (other.Hash() != hash_) {
+      return false;
+    }
     return other.Equals(str_, begin_index_, len_);
   }
   intptr_t Hash() const { return hash_; }
@@ -114,6 +123,10 @@ class ConcatString {
       : str1_(str1), str2_(str2), hash_(String::HashConcat(str1, str2)) {}
   RawString* ToSymbol() const;
   bool Equals(const String& other) const {
+    ASSERT(other.HasHash());
+    if (other.Hash() != hash_) {
+      return false;
+    }
     return other.EqualsConcat(str1_, str2_);
   }
   intptr_t Hash() const { return hash_; }
@@ -134,8 +147,22 @@ RawString* ConcatString::ToSymbol() const {
 
 class SymbolTraits {
  public:
+  static const char* Name() { return "SymbolTraits"; }
+
   static bool IsMatch(const Object& a, const Object& b) {
-    return String::Cast(a).Equals(String::Cast(b));
+    const String& a_str = String::Cast(a);
+    const String& b_str = String::Cast(b);
+    ASSERT(a_str.HasHash());
+    ASSERT(b_str.HasHash());
+    if (a_str.Hash() != b_str.Hash()) {
+      return false;
+    }
+    intptr_t a_len = a_str.Length();
+    if (a_len != b_str.Length()) {
+      return false;
+    }
+    // Use a comparison which does not consider the state of the canonical bit.
+    return a_str.Equals(b_str, 0, a_len);
   }
   template<typename CharType>
   static bool IsMatch(const CharArray<CharType>& array, const Object& obj) {
@@ -180,13 +207,13 @@ const char* Symbols::Name(SymbolId symbol) {
 }
 
 
-const String& Symbols::Keyword(Token::Kind keyword) {
-  const int kw_index = keyword - Token::kFirstKeyword;
-  ASSERT((0 <= kw_index) && (kw_index < Token::kNumKeywords));
-  // First keyword symbol is in symbol_handles_[kKwTableStart + 1].
-  const intptr_t keyword_id = Symbols::kKwTableStart + 1 + kw_index;
-  ASSERT(symbol_handles_[keyword_id] != NULL);
-  return *symbol_handles_[keyword_id];
+const String& Symbols::Token(Token::Kind token) {
+  const int tok_index = token;
+  ASSERT((0 <= tok_index) && (tok_index < Token::kNumTokens));
+  // First keyword symbol is in symbol_handles_[kTokenTableStart + 1].
+  const intptr_t token_id = Symbols::kTokenTableStart + 1 + tok_index;
+  ASSERT(symbol_handles_[token_id] != NULL);
+  return *symbol_handles_[token_id];
 }
 
 
@@ -212,9 +239,8 @@ void Symbols::InitOnce(Isolate* vm_isolate) {
     String* str = String::ReadOnlyHandle();
     *str = OneByteString::New(names[i], Heap::kOld);
     str->Hash();
-    str->SetCanonical();
-    bool present = table.Insert(*str);
-    ASSERT(!present);
+    *str ^= table.InsertOrGet(*str);
+    str->SetCanonical();  // Make canonical once entered.
     symbol_handles_[i] = str;
   }
 
@@ -227,9 +253,9 @@ void Symbols::InitOnce(Isolate* vm_isolate) {
     String* str = String::ReadOnlyHandle();
     *str = OneByteString::New(&ch, 1, Heap::kOld);
     str->Hash();
-    str->SetCanonical();
-    bool present = table.Insert(*str);
-    ASSERT(!present);
+    *str ^= table.InsertOrGet(*str);
+    ASSERT(predefined_[c] == NULL);
+    str->SetCanonical();  // Make canonical once entered.
     predefined_[c] = str->raw();
     symbol_handles_[idx] = str;
   }
@@ -294,9 +320,8 @@ void Symbols::AddPredefinedSymbolsToIsolate() {
   for (intptr_t i = 1; i < Symbols::kNullCharId; i++) {
     str = OneByteString::New(names[i], Heap::kOld);
     str.Hash();
-    str.SetCanonical();
-    bool present = table.Insert(str);
-    ASSERT(!present);
+    str ^= table.InsertOrGet(str);
+    str.SetCanonical();  // Make canonical once entered.
   }
 
   // Add Latin1 characters as Symbols, so that Symbols::FromCharCode is fast.
@@ -307,9 +332,8 @@ void Symbols::AddPredefinedSymbolsToIsolate() {
     uint8_t ch = static_cast<uint8_t>(c);
     str = OneByteString::New(&ch, 1, Heap::kOld);
     str.Hash();
-    str.SetCanonical();
-    bool present = table.Insert(str);
-    ASSERT(!present);
+    str ^= table.InsertOrGet(str);
+    str.SetCanonical();  // Make canonical once entered.
   }
 
   isolate->object_store()->set_symbol_table(table.Release());
@@ -375,8 +399,7 @@ intptr_t Symbols::Compact(Isolate* isolate) {
    public:
     SymbolCollector(Thread* thread,
                     GrowableArray<String*>* symbols)
-        : ObjectVisitor(thread->isolate()),
-          symbols_(symbols),
+        : symbols_(symbols),
           zone_(thread->zone()) {}
 
     void VisitObject(RawObject* obj) {
@@ -422,63 +445,88 @@ void Symbols::GetStats(Isolate* isolate, intptr_t* size, intptr_t* capacity) {
 }
 
 
-RawString* Symbols::New(const char* cstr, intptr_t len) {
+RawString* Symbols::New(Thread* thread, const char* cstr, intptr_t len) {
   ASSERT((cstr != NULL) && (len >= 0));
   const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(cstr);
-  return Symbols::FromUTF8(utf8_array, len);
+  return Symbols::FromUTF8(thread, utf8_array, len);
 }
 
 
-RawString* Symbols::FromUTF8(const uint8_t* utf8_array, intptr_t array_len) {
+RawString* Symbols::FromUTF8(Thread* thread,
+                             const uint8_t* utf8_array,
+                             intptr_t array_len) {
   if (array_len == 0 || utf8_array == NULL) {
-    return FromLatin1(reinterpret_cast<uint8_t*>(NULL), 0);
+    return FromLatin1(thread, reinterpret_cast<uint8_t*>(NULL), 0);
   }
   Utf8::Type type;
   intptr_t len = Utf8::CodeUnitCount(utf8_array, array_len, &type);
   ASSERT(len != 0);
-  Zone* zone = Thread::Current()->zone();
+  Zone* zone = thread->zone();
   if (type == Utf8::kLatin1) {
     uint8_t* characters = zone->Alloc<uint8_t>(len);
     Utf8::DecodeToLatin1(utf8_array, array_len, characters, len);
-    return FromLatin1(characters, len);
+    return FromLatin1(thread, characters, len);
   }
   ASSERT((type == Utf8::kBMP) || (type == Utf8::kSupplementary));
   uint16_t* characters = zone->Alloc<uint16_t>(len);
   Utf8::DecodeToUTF16(utf8_array, array_len, characters, len);
-  return FromUTF16(characters, len);
+  return FromUTF16(thread, characters, len);
 }
 
 
-RawString* Symbols::FromLatin1(const uint8_t* latin1_array, intptr_t len) {
-  return NewSymbol(Latin1Array(latin1_array, len));
+RawString* Symbols::FromLatin1(Thread* thread,
+                               const uint8_t* latin1_array,
+                               intptr_t len) {
+  return NewSymbol(thread, Latin1Array(latin1_array, len));
 }
 
 
-RawString* Symbols::FromUTF16(const uint16_t* utf16_array, intptr_t len) {
-  return NewSymbol(UTF16Array(utf16_array, len));
+RawString* Symbols::FromUTF16(Thread* thread,
+                              const uint16_t* utf16_array,
+                              intptr_t len) {
+  return NewSymbol(thread, UTF16Array(utf16_array, len));
 }
 
 
-RawString* Symbols::FromUTF32(const int32_t* utf32_array, intptr_t len) {
-  return NewSymbol(UTF32Array(utf32_array, len));
+RawString* Symbols::FromUTF32(Thread* thread,
+                              const int32_t* utf32_array,
+                              intptr_t len) {
+  return NewSymbol(thread, UTF32Array(utf32_array, len));
 }
 
 
-RawString* Symbols::FromConcat(const String& str1, const String& str2) {
+RawString* Symbols::FromConcat(Thread* thread,
+                               const String& str1,
+                               const String& str2) {
   if (str1.Length() == 0) {
-    return New(str2);
+    return New(thread, str2);
   } else if (str2.Length() == 0) {
-    return New(str1);
+    return New(thread, str1);
   } else {
-    return NewSymbol(ConcatString(str1, str2));
+    return NewSymbol(thread, ConcatString(str1, str2));
   }
+}
+
+
+RawString* Symbols::FromGet(Thread* thread, const String& str) {
+  return FromConcat(thread, GetterPrefix(), str);
+}
+
+
+RawString* Symbols::FromSet(Thread* thread, const String& str) {
+  return FromConcat(thread, SetterPrefix(), str);
+}
+
+
+RawString* Symbols::FromDot(Thread* thread, const String& str) {
+  return FromConcat(thread, str, Dot());
 }
 
 
 // TODO(srdjan): If this becomes performance critical code, consider looking
 // up symbol from hash of pieces instead of concatenating them first into
 // a string.
-RawString* Symbols::FromConcatAll(
+RawString* Symbols::FromConcatAll(Thread* thread,
     const GrowableHandlePtrArray<const String>& strs) {
   const intptr_t strs_length = strs.length();
   GrowableArray<intptr_t> lengths(strs_length);
@@ -500,7 +548,7 @@ RawString* Symbols::FromConcatAll(
   }
   const bool is_one_byte_string = char_size == kOneByteChar;
 
-  Zone* zone = Thread::Current()->zone();
+  Zone* zone = thread->zone();
   if (is_one_byte_string) {
     uint8_t* buffer = zone->Alloc<uint8_t>(len_sum);
     const uint8_t* const orig_buffer = buffer;
@@ -518,7 +566,7 @@ RawString* Symbols::FromConcatAll(
       }
     }
     ASSERT(len_sum == buffer - orig_buffer);
-    return Symbols::FromLatin1(orig_buffer, len_sum);
+    return Symbols::FromLatin1(thread, orig_buffer, len_sum);
   } else {
     uint16_t* buffer = zone->Alloc<uint16_t>(len_sum);
     const uint16_t* const orig_buffer = buffer;
@@ -545,16 +593,14 @@ RawString* Symbols::FromConcatAll(
       }
     }
     ASSERT(len_sum == buffer - orig_buffer);
-    return Symbols::FromUTF16(orig_buffer, len_sum);
+    return Symbols::FromUTF16(thread, orig_buffer, len_sum);
   }
 }
 
 
 // StringType can be StringSlice, ConcatString, or {Latin1,UTF16,UTF32}Array.
 template<typename StringType>
-RawString* Symbols::NewSymbol(const StringType& str) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+RawString* Symbols::NewSymbol(Thread* thread, const StringType& str) {
   Zone* zone = thread->zone();
   String& symbol = String::Handle(zone);
   {
@@ -564,6 +610,7 @@ RawString* Symbols::NewSymbol(const StringType& str) {
     table.Release();
   }
   if (symbol.IsNull()) {
+    Isolate* isolate = thread->isolate();
     SafepointMutexLocker ml(isolate->symbols_mutex());
     SymbolTable table(zone, isolate->object_store()->symbol_table());
     symbol ^= table.InsertNewOrGet(str);
@@ -576,8 +623,7 @@ RawString* Symbols::NewSymbol(const StringType& str) {
 
 
 template<typename StringType>
-RawString* Symbols::Lookup(const StringType& str) {
-  Thread* thread = Thread::Current();
+RawString* Symbols::Lookup(Thread* thread, const StringType& str) {
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
   String& symbol = String::Handle(zone);
@@ -600,42 +646,63 @@ RawString* Symbols::Lookup(const StringType& str) {
 }
 
 
-RawString* Symbols::LookupFromConcat(const String& str1, const String& str2) {
+RawString* Symbols::LookupFromConcat(
+    Thread* thread, const String& str1, const String& str2) {
   if (str1.Length() == 0) {
-    return Lookup(str2);
+    return Lookup(thread, str2);
   } else if (str2.Length() == 0) {
-    return Lookup(str1);
+    return Lookup(thread, str1);
   } else {
-    return Lookup(ConcatString(str1, str2));
+    return Lookup(thread, ConcatString(str1, str2));
   }
 }
 
 
-RawString* Symbols::New(const String& str) {
+RawString* Symbols::LookupFromGet(Thread* thread, const String& str) {
+  return LookupFromConcat(thread, GetterPrefix(), str);
+}
+
+
+RawString* Symbols::LookupFromSet(Thread* thread, const String& str) {
+  return LookupFromConcat(thread, SetterPrefix(), str);
+}
+
+
+RawString* Symbols::LookupFromDot(Thread* thread, const String& str) {
+  return LookupFromConcat(thread, str, Dot());
+}
+
+
+RawString* Symbols::New(Thread* thread, const String& str) {
   if (str.IsSymbol()) {
     return str.raw();
   }
-  return New(str, 0, str.Length());
+  return New(thread, str, 0, str.Length());
 }
 
 
-RawString* Symbols::New(const String& str, intptr_t begin_index, intptr_t len) {
-  return NewSymbol(StringSlice(str, begin_index, len));
+RawString* Symbols::New(Thread* thread,
+                        const String& str,
+                        intptr_t begin_index,
+                        intptr_t len) {
+  return NewSymbol(thread, StringSlice(str, begin_index, len));
 }
 
 
 
-RawString* Symbols::NewFormatted(const char* format, ...) {
+RawString* Symbols::NewFormatted(Thread* thread, const char* format, ...) {
   va_list args;
   va_start(args, format);
-  RawString* result = NewFormattedV(format, args);
+  RawString* result = NewFormattedV(thread, format, args);
   NoSafepointScope no_safepoint;
   va_end(args);
   return result;
 }
 
 
-RawString* Symbols::NewFormattedV(const char* format, va_list args) {
+RawString* Symbols::NewFormattedV(Thread* thread,
+                                  const char* format,
+                                  va_list args) {
   va_list args_copy;
   va_copy(args_copy, args);
   intptr_t len = OS::VSNPrint(NULL, 0, format, args_copy);
@@ -645,13 +712,13 @@ RawString* Symbols::NewFormattedV(const char* format, va_list args) {
   char* buffer = zone->Alloc<char>(len + 1);
   OS::VSNPrint(buffer, (len + 1), format, args);
 
-  return Symbols::New(buffer);
+  return Symbols::New(thread, buffer);
 }
 
 
-RawString* Symbols::FromCharCode(int32_t char_code) {
+RawString* Symbols::FromCharCode(Thread* thread, int32_t char_code) {
   if (char_code > kMaxOneCharCodeSymbol) {
-    return FromUTF32(&char_code, 1);
+    return FromUTF32(thread, &char_code, 1);
   }
   return predefined_[char_code];
 }

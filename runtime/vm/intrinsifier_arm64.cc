@@ -31,6 +31,20 @@ namespace dart {
 intptr_t Intrinsifier::ParameterSlotFromSp() { return -1; }
 
 
+void Intrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
+  assembler->Comment("IntrinsicCallPrologue");
+  assembler->mov(CALLEE_SAVED_TEMP, LR);
+  assembler->mov(CALLEE_SAVED_TEMP2, R4);
+}
+
+
+void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
+  assembler->Comment("IntrinsicCallEpilogue");
+  assembler->mov(LR, CALLEE_SAVED_TEMP);
+  assembler->mov(R4, CALLEE_SAVED_TEMP2);
+}
+
+
 // Intrinsify only for Smi value and index. Non-smi values need a store buffer
 // update. Array length is always a Smi.
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
@@ -238,12 +252,6 @@ static int GetScaleFactor(intptr_t size) {
 
 
 #define TYPED_DATA_ALLOCATOR(clazz)                                            \
-void Intrinsifier::TypedData_##clazz##_new(Assembler* assembler) {             \
-  intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);       \
-  intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);           \
-  int shift = GetScaleFactor(size);                                            \
-  TYPED_ARRAY_ALLOCATION(TypedData, kTypedData##clazz##Cid, max_len, shift);   \
-}                                                                              \
 void Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler) {         \
   intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);       \
   intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);           \
@@ -1390,11 +1398,12 @@ void Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
 // Expects left argument to be double (receiver). Right argument is unknown.
 // Both arguments are on stack.
 static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
-  Label fall_through;
+  Label fall_through, is_smi, double_op;
 
-  TestLastArgumentIsDouble(assembler, &fall_through, &fall_through);
+  TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
   // Both arguments are double, right operand is in R0.
   __ LoadDFieldFromOffset(V1, R0, Double::value_offset());
+  __ Bind(&double_op);
   __ ldr(R0, Address(SP, 1 * kWordSize));  // Left argument.
   __ LoadDFieldFromOffset(V0, R0, Double::value_offset());
   switch (kind) {
@@ -1409,6 +1418,12 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   __ TryAllocate(double_class, &fall_through, R0, R1);
   __ StoreDFieldToOffset(V0, R0, Double::value_offset());
   __ ret();
+
+  __ Bind(&is_smi);  // Convert R0 to a double.
+  __ SmiUntag(R0);
+  __ scvtfdx(V1, R0);
+  __ b(&double_op);
+
   __ Bind(&fall_through);
 }
 
@@ -1567,10 +1582,10 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
       math_lib.LookupClassAllowPrivate(Symbols::_Random()));
   ASSERT(!random_class.IsNull());
   const Field& state_field = Field::ZoneHandle(
-      random_class.LookupInstanceField(Symbols::_state()));
+      random_class.LookupInstanceFieldAllowPrivate(Symbols::_state()));
   ASSERT(!state_field.IsNull());
   const Field& random_A_field = Field::ZoneHandle(
-      random_class.LookupStaticField(Symbols::_A()));
+      random_class.LookupStaticFieldAllowPrivate(Symbols::_A()));
   ASSERT(!random_A_field.IsNull());
   ASSERT(random_A_field.is_const());
   const Instance& a_value = Instance::Handle(random_A_field.StaticValue());
@@ -2136,7 +2151,7 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
 }
 
 
-void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
+void Intrinsifier::RegExp_ExecuteMatch(Assembler* assembler) {
   if (FLAG_interpret_irregexp) return;
 
   static const intptr_t kRegExpParamOffset = 2 * kWordSize;
@@ -2155,7 +2170,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   __ LoadClassId(R1, R1);
   __ AddImmediate(R1, R1, -kOneByteStringCid);
   __ add(R1, R2, Operand(R1, LSL, kWordSizeLog2));
-  __ ldr(R0, FieldAddress(R1, JSRegExp::function_offset(kOneByteStringCid)));
+  __ ldr(R0, FieldAddress(R1, RegExp::function_offset(kOneByteStringCid)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in R0, the argument descriptor in R4, and IC-Data in R5.

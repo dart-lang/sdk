@@ -6,15 +6,14 @@ part of dart.html;
 
 /**
  * Helper class to implement custom events which wrap DOM events.
+ * TODO(jacobr): consider using dart JsNative.$setInstanceInterceptor
+ * instead of using wrappers as that would allow passing these wrappers
+ * back through dispatchEvent unlike the current implementation.
+ * See https://github.com/dart-lang/sdk/issues/16869
  */
 class _WrappedEvent implements Event {
   /** Needed because KeyboardEvent is implements.
-   *  TODO(terry): Consider making blink_jsObject private (add underscore) for
-   *               all blink_jsObject.  Then needed private wrap/unwrap_jso
-   *               functions that delegate to a public wrap/unwrap_jso.
    */
-  js.JsObject blink_jsObject;
-
   final Event wrapped;
 
   /** The CSS selector involved with event delegation. */
@@ -25,8 +24,6 @@ class _WrappedEvent implements Event {
   bool get bubbles => wrapped.bubbles;
 
   bool get cancelable => wrapped.cancelable;
-
-  DataTransfer get clipboardData => wrapped.clipboardData;
 
   EventTarget get currentTarget => wrapped.currentTarget;
 

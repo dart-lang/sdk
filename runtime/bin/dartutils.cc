@@ -4,21 +4,20 @@
 
 #include "bin/dartutils.h"
 
-#include "include/dart_api.h"
-#include "include/dart_tools_api.h"
-#include "include/dart_native_api.h"
-
-#include "platform/assert.h"
-#include "platform/globals.h"
-
 #include "bin/crypto.h"
 #include "bin/directory.h"
 #include "bin/extensions.h"
 #include "bin/file.h"
 #include "bin/io_buffer.h"
 #include "bin/platform.h"
-#include "bin/socket.h"
 #include "bin/utils.h"
+
+#include "include/dart_api.h"
+#include "include/dart_native_api.h"
+#include "include/dart_tools_api.h"
+
+#include "platform/assert.h"
+#include "platform/globals.h"
 
 // Return the error from the containing function if handle is in error handle.
 #define RETURN_IF_ERROR(handle)                                                \
@@ -499,10 +498,12 @@ void DartUtils::WriteMagicNumber(File* file) {
 
 
 Dart_Handle DartUtils::LoadScript(const char* script_uri) {
+  Dart_TimelineEvent("LoadScript",
+                     Dart_TimelineGetMicros(),
+                     Dart_GetMainPortId(),
+                     Dart_Timeline_Event_Async_Begin,
+                     0, NULL, NULL);
   Dart_Handle uri = Dart_NewStringFromCString(script_uri);
-  IsolateData* isolate_data =
-      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
-  Dart_TimelineAsyncBegin("LoadScript", &(isolate_data->load_async_id));
   return LoadDataAsync_Invoke(Dart_Null(), uri, Dart_Null());
 }
 
@@ -630,10 +631,9 @@ void FUNCTION_NAME(Builtin_NativeLibraryExtension)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(Builtin_GetCurrentDirectory)(Dart_NativeArguments args) {
-  char* current = Directory::Current();
+  const char* current = Directory::Current();
   if (current != NULL) {
     Dart_SetReturnValue(args, DartUtils::NewString(current));
-    free(current);
   } else {
     Dart_Handle err = DartUtils::NewError("Failed to get current directory.");
     Dart_PropagateError(err);
@@ -952,7 +952,7 @@ Dart_Handle DartUtils::NewInternalError(const char* message) {
 
 
 bool DartUtils::SetOriginalWorkingDirectory() {
-  original_working_directory = Directory::Current();
+  original_working_directory = Directory::CurrentNoScope();
   return original_working_directory != NULL;
 }
 

@@ -194,6 +194,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   ResultProvider resultProvider;
 
   /**
+   * The map of [ResultChangedEvent] controllers.
+   */
+  final Map<ResultDescriptor, StreamController<ResultChangedEvent>>
+      _resultChangedControllers =
+      <ResultDescriptor, StreamController<ResultChangedEvent>>{};
+
+  /**
    * The most recently incrementally resolved source, or `null` when it was
    * already validated, or the most recent change was not incrementally resolved.
    */
@@ -281,6 +288,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.enableConditionalDirectives =
         options.enableConditionalDirectives;
     this._options.enableSuperMixins = options.enableSuperMixins;
+    this._options.enableTiming = options.enableTiming;
     this._options.hint = options.hint;
     this._options.incremental = options.incremental;
     this._options.incrementalApi = options.incrementalApi;
@@ -682,10 +690,19 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (sdk == null) {
       return new AnalysisCache(<CachePartition>[_privatePartition]);
     }
-    return new AnalysisCache(<CachePartition>[
+    AnalysisCache cache = new AnalysisCache(<CachePartition>[
       AnalysisEngine.instance.partitionManager.forSdk(sdk),
       _privatePartition
     ]);
+    cache.onResultInvalidated.listen((InvalidatedResult event) {
+      StreamController<ResultChangedEvent> controller =
+          _resultChangedControllers[event.descriptor];
+      if (controller != null) {
+        controller.add(new ResultChangedEvent(
+            this, event.entry.target, event.descriptor, event.value, false));
+      }
+    });
+    return cache;
   }
 
   /**
@@ -816,8 +833,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  Object getConfigurationData(ResultDescriptor key) =>
-      _configurationData[key] ?? key?.defaultValue;
+  Object/*=V*/ getConfigurationData/*<V>*/(ResultDescriptor/*<V>*/ key) =>
+      (_configurationData[key] ?? key?.defaultValue) as Object/*=V*/;
 
   @override
   TimestampedData<String> getContents(Source source) {
@@ -1003,8 +1020,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  Object getResult(AnalysisTarget target, ResultDescriptor result) {
-    return _cache.getValue(target, result);
+  Object/*=V*/ getResult/*<V>*/(
+      AnalysisTarget target, ResultDescriptor/*<V>*/ result) {
+    return _cache.getValue(target, result) as Object/*=V*/;
   }
 
   @override
@@ -1048,7 +1066,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // If not the same content (e.g. the file is being closed without save),
       // then force analysis.
       if (changed) {
-        if (!analysisOptions.incremental ||
+        if (newContents == null ||
+            !analysisOptions.incremental ||
             !_tryPoorMansIncrementalResolution(source, newContents)) {
           _sourceChanged(source);
         }
@@ -1099,8 +1118,24 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  Stream<ResultChangedEvent> onResultChanged(ResultDescriptor descriptor) {
+    driver.onResultComputed(descriptor).listen((ResultChangedEvent event) {
+      _resultChangedControllers[descriptor]?.add(event);
+    });
+    return _resultChangedControllers.putIfAbsent(descriptor, () {
+      return new StreamController<ResultChangedEvent>.broadcast(sync: true);
+    }).stream;
+  }
+
+  @override
+  @deprecated
   Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
-    return driver.onResultComputed(descriptor);
+    return onResultChanged(descriptor)
+        .where((event) => event.wasComputed)
+        .map((event) {
+      return new ComputedResult(
+          event.context, event.descriptor, event.target, event.value);
+    });
   }
 
   @override
@@ -1203,6 +1238,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       entry.setState(RESOLVED_UNIT9, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT11, CacheState.FLUSHED);
+      entry.setState(RESOLVED_UNIT12, CacheState.FLUSHED);
       // USED_IMPORTED_ELEMENTS
       // USED_LOCAL_ELEMENTS
       setValue(STRONG_MODE_ERRORS, AnalysisError.NO_ERRORS);
@@ -1281,6 +1317,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     entry.setState(RESOLVED_UNIT9, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT11, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT12, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
   }
 
@@ -1516,12 +1553,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         new LibrarySpecificUnit(librarySource, unitSource);
     for (ResultDescriptor result in [
       RESOLVED_UNIT,
+      RESOLVED_UNIT12,
       RESOLVED_UNIT11,
       RESOLVED_UNIT10,
       RESOLVED_UNIT9,
       RESOLVED_UNIT8,
-      RESOLVED_UNIT7,
-      RESOLVED_UNIT6
+      RESOLVED_UNIT7
     ]) {
       CompilationUnit unit = getResult(target, result);
       if (unit != null) {
@@ -1977,7 +2014,7 @@ class AnalysisFutureHelper<T> {
       return new CancelableFuture.error(new AnalysisNotScheduledError());
     }
     CacheEntry entry = _context.getCacheEntry(_target);
-    PendingFuture pendingFuture =
+    PendingFuture<T> pendingFuture =
         new PendingFuture<T>(_context, _target, (CacheEntry entry) {
       CacheState state = entry.getState(_descriptor);
       if (state == CacheState.ERROR) {
@@ -2139,6 +2176,22 @@ abstract class ResultProvider {
  * An [AnalysisContext] that only contains sources for a Dart SDK.
  */
 class SdkAnalysisContext extends AnalysisContextImpl {
+  /**
+   * Initialize a newly created SDK analysis context with the given [options].
+   * Analysis options cannot be changed afterwards.  If the given [options] are
+   * `null`, then default options are used.
+   */
+  SdkAnalysisContext(AnalysisOptions options) {
+    if (options != null) {
+      super.analysisOptions = options;
+    }
+  }
+
+  @override
+  void set analysisOptions(AnalysisOptions options) {
+    throw new StateError('AnalysisOptions of SDK context cannot be changed.');
+  }
+
   @override
   AnalysisCache createCacheFromSourceFactory(SourceFactory factory) {
     if (factory == null) {

@@ -493,9 +493,9 @@ void Assembler::RestoreCodePointer() {
 
 void Assembler::Branch(const StubEntry& stub_entry, Register pp) {
   ASSERT(!in_delay_slot_);
-  const Code& target_code = Code::Handle(stub_entry.code());
+  const Code& target_code = Code::ZoneHandle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindObject(target_code, kPatchable));
+      object_pool_wrapper_.AddObject(target_code, kPatchable));
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, pp);
   lw(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
   jr(TMP);
@@ -524,18 +524,25 @@ void Assembler::BranchLink(const Code& target, Patchability patchable) {
 
 void Assembler::BranchLink(const StubEntry& stub_entry,
                            Patchability patchable) {
-  BranchLink(Code::Handle(stub_entry.code()), patchable);
+  BranchLink(Code::ZoneHandle(stub_entry.code()), patchable);
 }
 
 
 void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
-  BranchLink(Code::Handle(stub_entry.code()), kPatchable);
+  BranchLink(Code::ZoneHandle(stub_entry.code()), kPatchable);
+}
+
+
+void Assembler::BranchLinkToRuntime() {
+  lw(T9, Address(THR, Thread::call_to_runtime_entry_point_offset()));
+  lw(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
+  jalr(T9);
 }
 
 
 void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
                                           const Object& equivalence) {
-  const Code& target = Code::Handle(stub_entry.code());
+  const Code& target = Code::ZoneHandle(stub_entry.code());
   ASSERT(!in_delay_slot_);
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindObject(target, equivalence));

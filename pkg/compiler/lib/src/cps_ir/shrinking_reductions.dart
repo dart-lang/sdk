@@ -39,9 +39,8 @@ class ShrinkingReducer extends Pass {
   void _debugWorklist(FunctionDefinition root) {
     while (_worklist.isNotEmpty) {
       _ReductionTask task = _worklist.removeLast();
-      String irBefore = root.debugString({
-        task.node: '${task.kind} applied here'
-      });
+      String irBefore =
+          root.debugString({task.node: '${task.kind} applied here'});
       _processTask(task);
       Set seenRedexes = _worklist.where(isValidTask).toSet();
       Set actualRedexes = (new _RedexVisitor([])..visit(root)).worklist.toSet();
@@ -51,9 +50,7 @@ class ShrinkingReducer extends Pass {
         print('\nBEFORE $task:\n');
         print(irBefore);
         print('\nAFTER $task:\n');
-        root.debugPrint({
-          missedTask.node: 'MISSED ${missedTask.kind}'
-        });
+        root.debugPrint({missedTask.node: 'MISSED ${missedTask.kind}'});
         throw 'Missed $missedTask after processing $task';
       }
     }
@@ -79,7 +76,7 @@ class ShrinkingReducer extends Pass {
   /// Removes the given node from the CPS graph, replacing it with its body
   /// and marking it as deleted. The node's parent must be a [[InteriorNode]].
   void _removeNode(InteriorNode node) {
-    Node body           = node.body;
+    Node body = node.body;
     InteriorNode parent = node.parent;
     assert(parent.body == node);
 
@@ -291,8 +288,7 @@ class ShrinkingReducer extends Pass {
       return;
     }
 
-    InvokeContinuation invoke = new InvokeContinuation(
-        target, <Primitive>[]
+    InvokeContinuation invoke = new InvokeContinuation(target, <Primitive>[]
         // TODO(sra): Add sourceInformation.
         /*, sourceInformation: branch.sourceInformation*/);
     branch.parent.body = invoke;
@@ -356,8 +352,8 @@ class ShrinkingReducer extends Pass {
 
   void _checkUselessBranchTarget(Continuation continuation) {
     if (_isBranchTargetOfUselessIf(continuation)) {
-      _worklist.add(new _ReductionTask(_ReductionKind.BRANCH,
-          continuation.firstRef.parent));
+      _worklist.add(new _ReductionTask(
+          _ReductionKind.BRANCH, continuation.firstRef.parent));
     }
   }
 
@@ -375,8 +371,8 @@ class ShrinkingReducer extends Pass {
     primitive = primitive.unrefined;
     if (primitive is Parameter) {
       if (_isDeadParameter(primitive)) {
-        _worklist.add(new _ReductionTask(_ReductionKind.DEAD_PARAMETER,
-                                         primitive));
+        _worklist
+            .add(new _ReductionTask(_ReductionKind.DEAD_PARAMETER, primitive));
       }
     } else if (primitive.parent is LetPrim) {
       LetPrim letPrim = primitive.parent;
@@ -400,15 +396,15 @@ bool _isParameterRemoved(Parameter parameter) {
 /// preventing it from being eliminated.
 bool _isDeadVal(LetPrim node) {
   return !_isRemoved(node) &&
-         node.primitive.hasNoRefinedUses &&
-         node.primitive.isSafeForElimination;
+      node.primitive.hasNoRefinedUses &&
+      node.primitive.isSafeForElimination;
 }
 
 /// Returns true iff the continuation is unused.
 bool _isDeadCont(Continuation cont) {
   return !_isRemoved(cont) &&
-         !cont.isReturnContinuation &&
-         !cont.hasAtLeastOneUse;
+      !cont.isReturnContinuation &&
+      !cont.hasAtLeastOneUse;
 }
 
 /// Returns true iff the continuation has a body (i.e., it is not the return
@@ -541,8 +537,7 @@ bool _isUselessIf(Branch branch) {
   if (falseBody is! InvokeContinuation) return false;
   InvokeContinuation trueInvoke = trueBody;
   InvokeContinuation falseInvoke = falseBody;
-  if (trueInvoke.continuation !=
-      falseInvoke.continuation) {
+  if (trueInvoke.continuation != falseInvoke.continuation) {
     return false;
   }
   // Matching zero arguments should be adequate, since isomorphic true and false
@@ -607,7 +602,7 @@ class _RedexVisitor extends TrampolineRecursiveVisitor {
     // detect it.
     if (_isDeadCont(node)) {
       worklist.add(new _ReductionTask(_ReductionKind.DEAD_CONT, node));
-    } else if (_isBetaContLin(node)){
+    } else if (_isBetaContLin(node)) {
       worklist.add(new _ReductionTask(_ReductionKind.BETA_CONT_LIN, node));
     } else if (_isEtaCont(node)) {
       worklist.add(new _ReductionTask(_ReductionKind.ETA_CONT, node));
@@ -655,8 +650,8 @@ class _RemovalVisitor extends TrampolineRecursiveVisitor {
       if (parent is LetPrim && _isDeadVal(parent)) {
         worklist.add(new _ReductionTask(_ReductionKind.DEAD_VAL, parent));
       } else if (primitive is Parameter && _isDeadParameter(primitive)) {
-        worklist.add(new _ReductionTask(_ReductionKind.DEAD_PARAMETER,
-            primitive));
+        worklist
+            .add(new _ReductionTask(_ReductionKind.DEAD_PARAMETER, primitive));
       }
     } else if (reference.definition is Continuation) {
       Continuation cont = reference.definition;
@@ -703,11 +698,13 @@ class _ReductionTask {
   }
 
   _ReductionTask(this.kind, this.node) {
-    assert(node is Continuation || node is LetPrim || node is Parameter ||
-           node is Branch);
+    assert(node is Continuation ||
+        node is LetPrim ||
+        node is Parameter ||
+        node is Branch);
   }
 
-  bool operator==(_ReductionTask that) {
+  bool operator ==(_ReductionTask that) {
     return (that.kind == this.kind && that.node == this.node);
   }
 

@@ -5,10 +5,8 @@
 #ifndef BIN_IO_BUFFER_H_
 #define BIN_IO_BUFFER_H_
 
-#include "platform/globals.h"
-
 #include "include/dart_api.h"
-
+#include "platform/globals.h"
 
 namespace dart {
 namespace bin {

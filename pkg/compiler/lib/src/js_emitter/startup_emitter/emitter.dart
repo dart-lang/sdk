@@ -4,31 +4,19 @@
 
 library dart2js.js_emitter.startup_emitter;
 
-import 'package:js_runtime/shared/embedded_names.dart' show
-    JsBuiltin,
-    METADATA,
-    STATIC_FUNCTION_NAME_TO_CLOSURE,
-    TYPES;
+import 'package:js_runtime/shared/embedded_names.dart'
+    show JsBuiltin, METADATA, STATIC_FUNCTION_NAME_TO_CLOSURE, TYPES;
 
 import '../../common.dart';
-import '../../compiler.dart' show
-    Compiler;
-import '../../constants/values.dart' show
-    ConstantValue;
-import '../../elements/elements.dart' show
-    ClassElement,
-    Element,
-    FieldElement,
-    FunctionElement;
+import '../../compiler.dart' show Compiler;
+import '../../constants/values.dart' show ConstantValue;
+import '../../elements/elements.dart'
+    show ClassElement, Element, FieldElement, FunctionElement;
 import '../../js/js.dart' as js;
-import '../../js_backend/js_backend.dart' show
-    JavaScriptBackend,
-    Namer;
+import '../../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
 
-import '../js_emitter.dart' show
-    NativeEmitter;
-import '../js_emitter.dart' as emitterTask show
-    Emitter;
+import '../js_emitter.dart' show NativeEmitter;
+import '../js_emitter.dart' as emitterTask show Emitter;
 import '../program_builder/program_builder.dart' show ProgramBuilder;
 import '../model.dart';
 
@@ -97,8 +85,8 @@ class Emitter implements emitterTask.Emitter {
 
   @override
   js.Expression isolateLazyInitializerAccess(FieldElement element) {
-    return js.js('#.#', [namer.globalObjectFor(element),
-    namer.lazyInitializerName(element)]);
+    return js.js('#.#',
+        [namer.globalObjectFor(element), namer.lazyInitializerName(element)]);
   }
 
   @override
@@ -122,8 +110,8 @@ class Emitter implements emitterTask.Emitter {
   }
 
   @override
-  js.PropertyAccess prototypeAccess(ClassElement element,
-                                    bool hasBeenInstantiated) {
+  js.PropertyAccess prototypeAccess(
+      ClassElement element, bool hasBeenInstantiated) {
     js.Expression constructor =
         hasBeenInstantiated ? constructorAccess(element) : typeAccess(element);
     return js.js('#.prototype', constructor);
@@ -165,8 +153,8 @@ class Emitter implements emitterTask.Emitter {
         return _backend.rtiEncoder.templateForCreateFunctionType;
 
       case JsBuiltin.isSubtype:
-      // TODO(floitsch): move this closer to where is-check properties are
-      // built.
+        // TODO(floitsch): move this closer to where is-check properties are
+        // built.
         String isPrefix = namer.operatorIsPrefix;
         return js.js.expressionTemplateFor("('$isPrefix' + #) in #.prototype");
 
@@ -179,8 +167,7 @@ class Emitter implements emitterTask.Emitter {
         return js.js.expressionTemplateFor("$metadataAccess[#]");
 
       case JsBuiltin.getType:
-        String typesAccess =
-            _emitter.generateEmbeddedGlobalAccessString(TYPES);
+        String typesAccess = _emitter.generateEmbeddedGlobalAccessString(TYPES);
         return js.js.expressionTemplateFor("$typesAccess[#]");
 
       case JsBuiltin.createDartClosureFromNameOfStaticFunction:
@@ -189,13 +176,12 @@ class Emitter implements emitterTask.Emitter {
         return js.js.expressionTemplateFor("$functionAccess(#)");
 
       default:
-        reporter.internalError(NO_LOCATION_SPANNABLE,
-            "Unhandled Builtin: $builtin");
+        reporter.internalError(
+            NO_LOCATION_SPANNABLE, "Unhandled Builtin: $builtin");
         return null;
     }
   }
 
   @override
-  void invalidateCaches() {
-  }
+  void invalidateCaches() {}
 }

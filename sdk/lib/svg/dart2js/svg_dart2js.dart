@@ -75,49 +75,6 @@ class AElement extends GraphicsElement implements UriReference {
 
 
 @DocsEditable()
-@DomName('SVGAltGlyphElement')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.FIREFOX)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable()
-@Native("SVGAltGlyphElement")
-class AltGlyphElement extends TextPositioningElement implements UriReference {
-  // To suppress missing implicit constructor warnings.
-  factory AltGlyphElement._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SVGAltGlyphElement.SVGAltGlyphElement')
-  @DocsEditable()
-  factory AltGlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("altGlyph");
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  AltGlyphElement.created() : super.created();
-
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => SvgElement.isTagSupported('altGlyph') && (new SvgElement.tag('altGlyph') is AltGlyphElement);
-
-  @DomName('SVGAltGlyphElement.format')
-  @DocsEditable()
-  String format;
-
-  @DomName('SVGAltGlyphElement.glyphRef')
-  @DocsEditable()
-  String glyphRef;
-
-  // From SVGURIReference
-
-  @DomName('SVGAltGlyphElement.href')
-  @DocsEditable()
-  final AnimatedString href;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
 @DomName('SVGAngle')
 @Unstable()
 @Native("SVGAngle")
@@ -1991,6 +1948,16 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
   @DocsEditable()
   final AnimatedString in1;
 
+  @DomName('SVGFESpecularLightingElement.kernelUnitLengthX')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final AnimatedNumber kernelUnitLengthX;
+
+  @DomName('SVGFESpecularLightingElement.kernelUnitLengthY')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final AnimatedNumber kernelUnitLengthY;
+
   @DomName('SVGFESpecularLightingElement.specularConstant')
   @DocsEditable()
   final AnimatedNumber specularConstant;
@@ -2273,14 +2240,6 @@ class FilterElement extends SvgElement implements UriReference {
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('filter') && (new SvgElement.tag('filter') is FilterElement);
 
-  @DomName('SVGFilterElement.filterResX')
-  @DocsEditable()
-  final AnimatedInteger filterResX;
-
-  @DomName('SVGFilterElement.filterResY')
-  @DocsEditable()
-  final AnimatedInteger filterResY;
-
   @DomName('SVGFilterElement.filterUnits')
   @DocsEditable()
   final AnimatedEnumeration filterUnits;
@@ -2304,10 +2263,6 @@ class FilterElement extends SvgElement implements UriReference {
   @DomName('SVGFilterElement.y')
   @DocsEditable()
   final AnimatedLength y;
-
-  @DomName('SVGFilterElement.setFilterRes')
-  @DocsEditable()
-  void setFilterRes(int filterResX, int filterResY) native;
 
   // From SVGURIReference
 
@@ -2727,11 +2682,11 @@ class LengthList extends Interceptor with ListMixin<Length>, ImmutableListMixin<
   @DomName('SVGLengthList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, Length value) native;
+  void __setter__(int index, Length newItem) native;
 
   @DomName('SVGLengthList.appendItem')
   @DocsEditable()
-  Length appendItem(Length item) native;
+  Length appendItem(Length newItem) native;
 
   @DomName('SVGLengthList.clear')
   @DocsEditable()
@@ -2743,11 +2698,11 @@ class LengthList extends Interceptor with ListMixin<Length>, ImmutableListMixin<
 
   @DomName('SVGLengthList.initialize')
   @DocsEditable()
-  Length initialize(Length item) native;
+  Length initialize(Length newItem) native;
 
   @DomName('SVGLengthList.insertItemBefore')
   @DocsEditable()
-  Length insertItemBefore(Length item, int index) native;
+  Length insertItemBefore(Length newItem, int index) native;
 
   @DomName('SVGLengthList.removeItem')
   @DocsEditable()
@@ -2755,7 +2710,7 @@ class LengthList extends Interceptor with ListMixin<Length>, ImmutableListMixin<
 
   @DomName('SVGLengthList.replaceItem')
   @DocsEditable()
-  Length replaceItem(Length item, int index) native;
+  Length replaceItem(Length newItem, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3179,11 +3134,11 @@ class NumberList extends Interceptor with ListMixin<Number>, ImmutableListMixin<
   @DomName('SVGNumberList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, Number value) native;
+  void __setter__(int index, Number newItem) native;
 
   @DomName('SVGNumberList.appendItem')
   @DocsEditable()
-  Number appendItem(Number item) native;
+  Number appendItem(Number newItem) native;
 
   @DomName('SVGNumberList.clear')
   @DocsEditable()
@@ -3195,11 +3150,11 @@ class NumberList extends Interceptor with ListMixin<Number>, ImmutableListMixin<
 
   @DomName('SVGNumberList.initialize')
   @DocsEditable()
-  Number initialize(Number item) native;
+  Number initialize(Number newItem) native;
 
   @DomName('SVGNumberList.insertItemBefore')
   @DocsEditable()
-  Number insertItemBefore(Number item, int index) native;
+  Number insertItemBefore(Number newItem, int index) native;
 
   @DomName('SVGNumberList.removeItem')
   @DocsEditable()
@@ -3207,7 +3162,7 @@ class NumberList extends Interceptor with ListMixin<Number>, ImmutableListMixin<
 
   @DomName('SVGNumberList.replaceItem')
   @DocsEditable()
-  Number replaceItem(Number item, int index) native;
+  Number replaceItem(Number newItem, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3966,7 +3921,7 @@ class PathSegList extends Interceptor with ListMixin<PathSeg>, ImmutableListMixi
   @DomName('SVGPathSegList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, PathSeg value) native;
+  void __setter__(int index, PathSeg newItem) native;
 
   @DomName('SVGPathSegList.appendItem')
   @DocsEditable()
@@ -4173,11 +4128,11 @@ class PointList extends Interceptor {
   @DomName('SVGPointList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, Point value) native;
+  void __setter__(int index, Point newItem) native;
 
   @DomName('SVGPointList.appendItem')
   @DocsEditable()
-  Point appendItem(Point item) native;
+  Point appendItem(Point newItem) native;
 
   @DomName('SVGPointList.clear')
   @DocsEditable()
@@ -4189,11 +4144,11 @@ class PointList extends Interceptor {
 
   @DomName('SVGPointList.initialize')
   @DocsEditable()
-  Point initialize(Point item) native;
+  Point initialize(Point newItem) native;
 
   @DomName('SVGPointList.insertItemBefore')
   @DocsEditable()
-  Point insertItemBefore(Point item, int index) native;
+  Point insertItemBefore(Point newItem, int index) native;
 
   @DomName('SVGPointList.removeItem')
   @DocsEditable()
@@ -4201,7 +4156,7 @@ class PointList extends Interceptor {
 
   @DomName('SVGPointList.replaceItem')
   @DocsEditable()
-  Point replaceItem(Point item, int index) native;
+  Point replaceItem(Point newItem, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4471,43 +4426,6 @@ class RectElement extends GeometryElement {
 
 
 @DocsEditable()
-@DomName('SVGRenderingIntent')
-@Unstable()
-@Native("SVGRenderingIntent")
-class RenderingIntent extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory RenderingIntent._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SVGRenderingIntent.RENDERING_INTENT_ABSOLUTE_COLORIMETRIC')
-  @DocsEditable()
-  static const int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
-
-  @DomName('SVGRenderingIntent.RENDERING_INTENT_AUTO')
-  @DocsEditable()
-  static const int RENDERING_INTENT_AUTO = 1;
-
-  @DomName('SVGRenderingIntent.RENDERING_INTENT_PERCEPTUAL')
-  @DocsEditable()
-  static const int RENDERING_INTENT_PERCEPTUAL = 2;
-
-  @DomName('SVGRenderingIntent.RENDERING_INTENT_RELATIVE_COLORIMETRIC')
-  @DocsEditable()
-  static const int RENDERING_INTENT_RELATIVE_COLORIMETRIC = 3;
-
-  @DomName('SVGRenderingIntent.RENDERING_INTENT_SATURATION')
-  @DocsEditable()
-  static const int RENDERING_INTENT_SATURATION = 4;
-
-  @DomName('SVGRenderingIntent.RENDERING_INTENT_UNKNOWN')
-  @DocsEditable()
-  static const int RENDERING_INTENT_UNKNOWN = 0;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
 @DomName('SVGScriptElement')
 @Unstable()
 @Native("SVGScriptElement")
@@ -4661,11 +4579,11 @@ class StringList extends Interceptor with ListMixin<String>, ImmutableListMixin<
   @DomName('SVGStringList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, String value) native;
+  void __setter__(int index, String newItem) native;
 
   @DomName('SVGStringList.appendItem')
   @DocsEditable()
-  String appendItem(String item) native;
+  String appendItem(String newItem) native;
 
   @DomName('SVGStringList.clear')
   @DocsEditable()
@@ -4677,7 +4595,7 @@ class StringList extends Interceptor with ListMixin<String>, ImmutableListMixin<
 
   @DomName('SVGStringList.initialize')
   @DocsEditable()
-  String initialize(String item) native;
+  String initialize(String newItem) native;
 
   @DomName('SVGStringList.insertItemBefore')
   @DocsEditable()
@@ -4689,7 +4607,7 @@ class StringList extends Interceptor with ListMixin<String>, ImmutableListMixin<
 
   @DomName('SVGStringList.replaceItem')
   @DocsEditable()
-  String replaceItem(String item, int index) native;
+  String replaceItem(String newItem, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5178,19 +5096,15 @@ class SvgElement extends Element implements GlobalEventHandlers {
   @DocsEditable()
   final SvgElement viewportElement;
 
-  @DomName('SVGElement.xmlbase')
-  @DocsEditable()
-  String xmlbase;
-
-  @DomName('SVGElement.xmllang')
+  @DomName('SVGElement.blur')
   @DocsEditable()
   @Experimental() // untriaged
-  String xmllang;
+  void blur() native;
 
-  @DomName('SVGElement.xmlspace')
+  @DomName('SVGElement.focus')
   @DocsEditable()
   @Experimental() // untriaged
-  String xmlspace;
+  void focus() native;
 
   @DomName('SVGElement.onabort')
   @DocsEditable()
@@ -5799,11 +5713,11 @@ class TextContentElement extends GraphicsElement {
 
   @DomName('SVGTextContentElement.getEndPositionOfChar')
   @DocsEditable()
-  Point getEndPositionOfChar(int offset) native;
+  Point getEndPositionOfChar(int charnum) native;
 
   @DomName('SVGTextContentElement.getExtentOfChar')
   @DocsEditable()
-  Rect getExtentOfChar(int offset) native;
+  Rect getExtentOfChar(int charnum) native;
 
   @DomName('SVGTextContentElement.getNumberOfChars')
   @DocsEditable()
@@ -5811,19 +5725,19 @@ class TextContentElement extends GraphicsElement {
 
   @DomName('SVGTextContentElement.getRotationOfChar')
   @DocsEditable()
-  double getRotationOfChar(int offset) native;
+  double getRotationOfChar(int charnum) native;
 
   @DomName('SVGTextContentElement.getStartPositionOfChar')
   @DocsEditable()
-  Point getStartPositionOfChar(int offset) native;
+  Point getStartPositionOfChar(int charnum) native;
 
   @DomName('SVGTextContentElement.getSubStringLength')
   @DocsEditable()
-  double getSubStringLength(int offset, int length) native;
+  double getSubStringLength(int charnum, int nchars) native;
 
   @DomName('SVGTextContentElement.selectSubString')
   @DocsEditable()
-  void selectSubString(int offset, int length) native;
+  void selectSubString(int charnum, int nchars) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6117,11 +6031,11 @@ class TransformList extends Interceptor with ListMixin<Transform>, ImmutableList
   @DomName('SVGTransformList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, Transform value) native;
+  void __setter__(int index, Transform newItem) native;
 
   @DomName('SVGTransformList.appendItem')
   @DocsEditable()
-  Transform appendItem(Transform item) native;
+  Transform appendItem(Transform newItem) native;
 
   @DomName('SVGTransformList.clear')
   @DocsEditable()
@@ -6142,11 +6056,11 @@ class TransformList extends Interceptor with ListMixin<Transform>, ImmutableList
 
   @DomName('SVGTransformList.initialize')
   @DocsEditable()
-  Transform initialize(Transform item) native;
+  Transform initialize(Transform newItem) native;
 
   @DomName('SVGTransformList.insertItemBefore')
   @DocsEditable()
-  Transform insertItemBefore(Transform item, int index) native;
+  Transform insertItemBefore(Transform newItem, int index) native;
 
   @DomName('SVGTransformList.removeItem')
   @DocsEditable()
@@ -6154,7 +6068,7 @@ class TransformList extends Interceptor with ListMixin<Transform>, ImmutableList
 
   @DomName('SVGTransformList.replaceItem')
   @DocsEditable()
-  Transform replaceItem(Transform item, int index) native;
+  Transform replaceItem(Transform newItem, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6457,44 +6371,6 @@ class _GradientElement extends SvgElement implements UriReference {
 
 
 @DocsEditable()
-@DomName('SVGAltGlyphDefElement')
-@Unstable()
-@Native("SVGAltGlyphDefElement")
-abstract class _SVGAltGlyphDefElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGAltGlyphDefElement._() { throw new UnsupportedError("Not supported"); }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGAltGlyphDefElement.created() : super.created();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('SVGAltGlyphItemElement')
-@Unstable()
-@Native("SVGAltGlyphItemElement")
-abstract class _SVGAltGlyphItemElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGAltGlyphItemElement._() { throw new UnsupportedError("Not supported"); }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGAltGlyphItemElement.created() : super.created();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
 @DomName('SVGComponentTransferFunctionElement')
 @Unstable()
 @Native("SVGComponentTransferFunctionElement")
@@ -6569,189 +6445,6 @@ abstract class _SVGFEDropShadowElement extends SvgElement implements FilterPrimi
 
 
 @DocsEditable()
-@DomName('SVGFontElement')
-@Unstable()
-@Native("SVGFontElement")
-abstract class _SVGFontElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGFontElement._() { throw new UnsupportedError("Not supported"); }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGFontElement.created() : super.created();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('SVGFontFaceElement')
-@Unstable()
-@Native("SVGFontFaceElement")
-abstract class _SVGFontFaceElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGFontFaceElement._() { throw new UnsupportedError("Not supported"); }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGFontFaceElement.created() : super.created();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('SVGFontFaceFormatElement')
-@Unstable()
-@Native("SVGFontFaceFormatElement")
-abstract class _SVGFontFaceFormatElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGFontFaceFormatElement._() { throw new UnsupportedError("Not supported"); }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGFontFaceFormatElement.created() : super.created();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('SVGFontFaceNameElement')
-@Unstable()
-@Native("SVGFontFaceNameElement")
-abstract class _SVGFontFaceNameElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGFontFaceNameElement._() { throw new UnsupportedError("Not supported"); }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGFontFaceNameElement.created() : super.created();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('SVGFontFaceSrcElement')
-@Unstable()
-@Native("SVGFontFaceSrcElement")
-abstract class _SVGFontFaceSrcElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGFontFaceSrcElement._() { throw new UnsupportedError("Not supported"); }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGFontFaceSrcElement.created() : super.created();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('SVGFontFaceUriElement')
-@Unstable()
-@Native("SVGFontFaceUriElement")
-abstract class _SVGFontFaceUriElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGFontFaceUriElement._() { throw new UnsupportedError("Not supported"); }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGFontFaceUriElement.created() : super.created();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('SVGGlyphElement')
-@Unstable()
-@Native("SVGGlyphElement")
-abstract class _SVGGlyphElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGGlyphElement._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SVGGlyphElement.SVGGlyphElement')
-  @DocsEditable()
-  factory _SVGGlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("glyph");
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGGlyphElement.created() : super.created();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('SVGGlyphRefElement')
-@Unstable()
-@Native("SVGGlyphRefElement")
-abstract class _SVGGlyphRefElement extends SvgElement implements UriReference {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGGlyphRefElement._() { throw new UnsupportedError("Not supported"); }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGGlyphRefElement.created() : super.created();
-
-  // From SVGURIReference
-
-}
-
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('SVGHKernElement')
-@Unstable()
-@Native("SVGHKernElement")
-abstract class _SVGHKernElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGHKernElement._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SVGHKernElement.SVGHKernElement')
-  @DocsEditable()
-  factory _SVGHKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("hkern");
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGHKernElement.created() : super.created();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
 @DomName('SVGMPathElement')
 @Native("SVGMPathElement")
 abstract class _SVGMPathElement extends SvgElement implements UriReference {
@@ -6772,45 +6465,3 @@ abstract class _SVGMPathElement extends SvgElement implements UriReference {
 
 }
 
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('SVGMissingGlyphElement')
-@Unstable()
-@Native("SVGMissingGlyphElement")
-abstract class _SVGMissingGlyphElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGMissingGlyphElement._() { throw new UnsupportedError("Not supported"); }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGMissingGlyphElement.created() : super.created();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('SVGVKernElement')
-@Unstable()
-@Native("SVGVKernElement")
-abstract class _SVGVKernElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGVKernElement._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SVGVKernElement.SVGVKernElement')
-  @DocsEditable()
-  factory _SVGVKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("vkern");
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGVKernElement.created() : super.created();
-}

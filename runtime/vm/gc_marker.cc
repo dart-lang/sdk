@@ -19,6 +19,7 @@
 #include "vm/thread_barrier.h"
 #include "vm/thread_pool.h"
 #include "vm/thread_registry.h"
+#include "vm/timeline.h"
 #include "vm/visitor.h"
 #include "vm/object_id_ring.h"
 
@@ -599,10 +600,13 @@ class MarkTask : public ThreadPool::Task {
   }
 
   virtual void Run() {
-    bool result = Thread::EnterIsolateAsHelper(isolate_, true);
+    bool result =
+        Thread::EnterIsolateAsHelper(isolate_, Thread::kMarkerTask, true);
     ASSERT(result);
     {
-      StackZone stack_zone(Thread::Current());
+      Thread* thread = Thread::Current();
+      TIMELINE_FUNCTION_GC_DURATION(thread, "MarkTask");
+      StackZone stack_zone(thread);
       Zone* zone = stack_zone.GetZone();
       SkippedCodeFunctions* skipped_code_functions =
           collect_code_ ? new(zone) SkippedCodeFunctions() : NULL;

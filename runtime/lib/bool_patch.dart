@@ -13,4 +13,5 @@ patch class bool {
   int get _identityHashCode {
     return this ? 1231 : 1237;
   }
+  int get hashCode => _identityHashCode;
 }

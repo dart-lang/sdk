@@ -224,7 +224,7 @@ HeapIterationScope::HeapIterationScope()
   ASSERT(old_space_->iterating_thread_ != thread());
 #endif
   while (old_space_->tasks() > 0) {
-    ml.Wait();
+    ml.WaitWithSafepointCheck(thread());
   }
 #if defined(DEBUG)
   ASSERT(old_space_->iterating_thread_ == NULL);
@@ -257,6 +257,12 @@ void Heap::IterateObjects(ObjectVisitor* visitor) const {
 void Heap::IterateOldObjects(ObjectVisitor* visitor) const {
   HeapIterationScope heap_iteration_scope;
   old_space_.VisitObjects(visitor);
+}
+
+
+void Heap::IterateOldObjectsNoEmbedderPages(ObjectVisitor* visitor) const {
+  HeapIterationScope heap_iteration_scope;
+  old_space_.VisitObjectsNoEmbedderPages(visitor);
 }
 
 
@@ -367,11 +373,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
     bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
     RecordBeforeGC(kNew, reason);
     VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
-#ifndef PRODUCT
-    TimelineDurationScope tds(thread,
-                              isolate()->GetGCStream(),
-                              "CollectNewGeneration");
-#endif  // !PRODUCT
+    TIMELINE_FUNCTION_GC_DURATION(thread, "CollectNewGeneration");
     UpdateClassHeapStatsBeforeGC(kNew);
     new_space_.Scavenge(invoke_api_callbacks);
     isolate()->class_table()->UpdatePromoted();
@@ -394,11 +396,7 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
     RecordBeforeGC(kOld, reason);
     VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
-#ifndef PRODUCT
-    TimelineDurationScope tds(thread,
-                              isolate()->GetGCStream(),
-                              "CollectOldGeneration");
-#endif  // !PRODUCT
+    TIMELINE_FUNCTION_GC_DURATION(thread, "CollectOldGeneration");
     UpdateClassHeapStatsBeforeGC(kOld);
     old_space_.MarkSweep(invoke_api_callbacks);
     RecordAfterGC(kOld);
@@ -446,6 +444,19 @@ void Heap::CollectAllGarbage() {
 }
 
 
+#if defined(DEBUG)
+void Heap::WaitForSweeperTasks() {
+  Thread* thread = Thread::Current();
+  {
+    MonitorLocker ml(old_space_.tasks_lock());
+    while (old_space_.tasks() > 0) {
+      ml.WaitWithSafepointCheck(thread);
+    }
+  }
+}
+#endif
+
+
 bool Heap::ShouldPretenure(intptr_t class_id) const {
   if (class_id == kOneByteStringCid) {
     return pretenure_policy_ > 0;
@@ -491,6 +502,11 @@ void Heap::UpdateGlobalMaxUsed() {
 }
 
 
+void Heap::InitGrowthControl() {
+  old_space_.InitGrowthControl();
+}
+
+
 void Heap::SetGrowthControlState(bool state) {
   old_space_.SetGrowthControlState(state);
 }
@@ -501,10 +517,10 @@ bool Heap::GrowthControlState() {
 }
 
 
-void Heap::WriteProtect(bool read_only, bool include_code_pages) {
+void Heap::WriteProtect(bool read_only) {
   read_only_ = read_only;
   new_space_.WriteProtect(read_only);
-  old_space_.WriteProtect(read_only, include_code_pages);
+  old_space_.WriteProtect(read_only);
 }
 
 
@@ -830,16 +846,15 @@ NoHeapGrowthControlScope::~NoHeapGrowthControlScope() {
 }
 
 
-WritableVMIsolateScope::WritableVMIsolateScope(Thread* thread,
-                                               bool include_code_pages)
-    : StackResource(thread), include_code_pages_(include_code_pages) {
-  Dart::vm_isolate()->heap()->WriteProtect(false, include_code_pages_);
+WritableVMIsolateScope::WritableVMIsolateScope(Thread* thread)
+    : StackResource(thread) {
+  Dart::vm_isolate()->heap()->WriteProtect(false);
 }
 
 
 WritableVMIsolateScope::~WritableVMIsolateScope() {
   ASSERT(Dart::vm_isolate()->heap()->UsedInWords(Heap::kNew) == 0);
-  Dart::vm_isolate()->heap()->WriteProtect(true, include_code_pages_);
+  Dart::vm_isolate()->heap()->WriteProtect(true);
 }
 
 }  // namespace dart

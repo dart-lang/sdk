@@ -68,23 +68,9 @@ $if DART2JS
         ? _createElement_2(tagName)
         : _createElement(tagName, typeExtension);
 $else
-    var newElement = (typeExtension == null) ?
-      _blink.BlinkDocument.instance.createElement_Callback_1_(unwrap_jso(this), tagName) :
-      _blink.BlinkDocument.instance.createElement_Callback_2_(unwrap_jso(this), tagName, typeExtension);
-
-    var wrapped = js.getDartHtmlWrapperFor(newElement);  // Here's our Dart class.
-    if (wrapped != null) {
-      wrapped.blink_jsObject = newElement;
-    } else {
-      wrapped = wrap_jso(newElement);
-      if (wrapped == null) {
-        wrapped = wrap_jso_custom_element(newElement);
-      } else {
-        js.setDartHtmlWrapperFor(wrapped.blink_jsObject, wrapped);
-      }
-    }
-
-    return wrapped;
+    return (typeExtension == null) ?
+      _blink.BlinkDocument.instance.createElement_Callback_1_(this, tagName) :
+      _blink.BlinkDocument.instance.createElement_Callback_2_(this, tagName, typeExtension);
 $endif
   }
 
@@ -110,25 +96,9 @@ $if DART2JS
         ? _createElementNS_2(namespaceURI, qualifiedName)
         : _createElementNS(namespaceURI, qualifiedName, typeExtension);
 $else
-    var newElement = (typeExtension == null) ?
-      _blink.BlinkDocument.instance.createElementNS_Callback_2_(unwrap_jso(this), namespaceURI, qualifiedName) :
-      _blink.BlinkDocument.instance.createElementNS_Callback_3_(unwrap_jso(this), namespaceURI, qualifiedName, typeExtension);
-
-    var wrapped;
-
-    wrapped = js.getDartHtmlWrapperFor(newElement);  // Here's our Dart class.
-    if (wrapped != null) {
-      wrapped.blink_jsObject = newElement;
-    } else {
-      wrapped = wrap_jso(newElement);
-      if (wrapped == null) {
-        wrapped = wrap_jso_custom_element(newElement);
-      } else {
-        js.setDartHtmlWrapperFor(wrapped.blink_jsObject, wrapped);  // Here's our Dart class.
-      }
-    }
-
-    return wrapped;
+    return (typeExtension == null) ?
+      _blink.BlinkDocument.instance.createElementNS_Callback_2_(this, namespaceURI, qualifiedName) :
+      _blink.BlinkDocument.instance.createElementNS_Callback_3_(this, namespaceURI, qualifiedName, typeExtension);    
 $endif
   }
 

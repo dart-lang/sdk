@@ -42,19 +42,19 @@ TEST_CASE(ClassHierarchyAnalysis) {
   EXPECT(!lib.IsNull());
 
   const Class& class_a = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("A"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   EXPECT(!class_a.IsNull());
 
   const Class& class_b = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("B"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "B"))));
   EXPECT(!class_b.IsNull());
 
   const Class& class_c = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("C"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "C"))));
   EXPECT(!class_c.IsNull());
 
   const Class& class_d = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("D"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "D"))));
   EXPECT(!class_d.IsNull());
 
   const String& function_foo_name = String::Handle(String::New("foo"));

@@ -15,8 +15,8 @@ class MainCallStubGenerator {
 
   /// Returns the code equivalent to:
   ///   `function(args) { $.startRootIsolate(X.main$closure(), args); }`
-  jsAst.Expression _buildIsolateSetupClosure(Element appMain,
-                                             Element isolateMain) {
+  jsAst.Expression _buildIsolateSetupClosure(
+      Element appMain, Element isolateMain) {
     jsAst.Expression mainAccess =
         emitterTask.isolateStaticClosureAccess(appMain);
     // Since we pass the closurized version of the main method to
@@ -30,12 +30,11 @@ class MainCallStubGenerator {
     jsAst.Expression mainCallClosure = null;
     if (compiler.hasIsolateSupport) {
       Element isolateMain =
-        helpers.isolateHelperLibrary.find(BackendHelpers.START_ROOT_ISOLATE);
+          helpers.isolateHelperLibrary.find(BackendHelpers.START_ROOT_ISOLATE);
       mainCallClosure = _buildIsolateSetupClosure(main, isolateMain);
-    } else if (compiler.hasIncrementalSupport) {
+    } else if (compiler.options.hasIncrementalSupport) {
       mainCallClosure = js(
-          'function() { return #(); }',
-          emitterTask.staticFunctionAccess(main));
+          'function() { return #(); }', emitterTask.staticFunctionAccess(main));
     } else {
       mainCallClosure = emitterTask.staticFunctionAccess(main);
     }
@@ -47,7 +46,8 @@ class MainCallStubGenerator {
     // onload event of all script tags and getting the first script which
     // finishes. Since onload is called immediately after execution this should
     // not substantially change execution order.
-    return js.statement('''
+    return js.statement(
+        '''
       (function (callback) {
         if (typeof document === "undefined") {
           callback(null);
@@ -79,7 +79,9 @@ class MainCallStubGenerator {
           #mainCallClosure([]);
         }
       })''',
-      {'currentScript': currentScriptAccess,
-       'mainCallClosure': mainCallClosure});
+        {
+          'currentScript': currentScriptAccess,
+          'mainCallClosure': mainCallClosure
+        });
   }
 }

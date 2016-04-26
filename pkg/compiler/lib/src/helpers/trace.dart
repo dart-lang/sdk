@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.helpers;
+import '../common.dart';
+import '../util/util.dart';
 
 /// Function signature for [trace].
 typedef void Trace(String message,
-                   {bool condition(String stackTrace),
-                    int limit,
-                    bool throwOnPrint});
+    {bool condition(String stackTrace), int limit, bool throwOnPrint});
 
 /**
  * Helper method for printing stack traces for debugging.
@@ -32,15 +31,15 @@ Trace get trace {
   return _trace;
 }
 
-void _trace(String message, {bool condition(String stackTrace), int limit,
-                             bool throwOnPrint: false}) {
+void _trace(String message,
+    {bool condition(String stackTrace), int limit, bool throwOnPrint: false}) {
   try {
     throw '';
   } catch (e, s) {
     String stackTrace;
     try {
-      stackTrace = prettifyStackTrace(
-          s, rangeStart: 1, rangeEnd: limit, filePrefix: stackTraceFilePrefix);
+      stackTrace = prettifyStackTrace(s,
+          rangeStart: 1, rangeEnd: limit, filePrefix: stackTraceFilePrefix);
     } catch (e) {
       print(e);
       stackTrace = '$s';
@@ -60,12 +59,9 @@ traceExceptions(List<String> exceptions) {
 }
 
 /// Function signature of [traceAndReport].
-typedef void TraceAndReport(DiagnosticReporter reporter,
-                            Spannable node,
-                            String message,
-                            {bool condition(String stackTrace),
-                             int limit,
-                             bool throwOnPrint});
+typedef void TraceAndReport(
+    DiagnosticReporter reporter, Spannable node, String message,
+    {bool condition(String stackTrace), int limit, bool throwOnPrint});
 
 /// Calls [reportHere] and [trace] with the same message.
 TraceAndReport get traceAndReport {
@@ -77,14 +73,11 @@ TraceAndReport get traceAndReport {
 TraceAndReport get reportAndTrace => traceAndReport;
 
 /// Implementation of [traceAndReport].
-void _traceAndReport(DiagnosticReporter reporter,
-                     Spannable node,
-                     String message,
-                     {bool condition(String stackTrace), int limit,
-                      bool throwOnPrint: false}) {
-
+void _traceAndReport(
+    DiagnosticReporter reporter, Spannable node, String message,
+    {bool condition(String stackTrace), int limit, bool throwOnPrint: false}) {
   trace(message, limit: limit, throwOnPrint: throwOnPrint,
-        condition: (String stackTrace) {
+      condition: (String stackTrace) {
     bool result = condition != null ? condition(stackTrace) : true;
     if (result) {
       reportHere(reporter, node, message);
@@ -98,15 +91,15 @@ void _traceAndReport(DiagnosticReporter reporter,
 /// Use [offset] to discard the first [offset] calls of the call stack. Defaults
 /// to `1`, that is, discard the call to [stackTrace] itself. Use [limit] to
 /// limit the length of the stack trace lines.
-StackTraceLines stackTrace({int offset: 1,
-                            int limit: null}) {
+StackTraceLines stackTrace({int offset: 1, int limit: null}) {
   int rangeStart = offset;
   int rangeEnd = limit == null ? null : rangeStart + limit;
   try {
     throw '';
   } catch (_, stackTrace) {
     return new StackTraceLines.fromTrace(stackTrace,
-        rangeStart: offset, rangeEnd: rangeEnd,
+        rangeStart: offset,
+        rangeEnd: rangeEnd,
         filePrefix: stackTraceFilePrefix);
   }
   return null;
@@ -120,10 +113,7 @@ class StackTraceLines {
   final int maxColumnNoLength;
 
   factory StackTraceLines.fromTrace(StackTrace s,
-                                    {int rangeStart,
-                                     int rangeEnd,
-                                     String filePrefix,
-                                     String lambda: r'?'}) {
+      {int rangeStart, int rangeEnd, String filePrefix, String lambda: r'?'}) {
     final RegExp indexPattern = new RegExp(r'#\d+\s*');
     int index = -1;
     int maxFileLength = 0;
@@ -152,13 +142,13 @@ class StackTraceLines {
         int leftParenPos = line.indexOf('(');
         int rightParenPos = line.indexOf(')', leftParenPos);
         int lastColon = line.lastIndexOf(':', rightParenPos);
-        int nextToLastColon = line.lastIndexOf(':', lastColon-1);
+        int nextToLastColon = line.lastIndexOf(':', lastColon - 1);
 
         String lineNo;
         String columnNo;
         if (nextToLastColon != -1) {
-          lineNo = line.substring(nextToLastColon+1, lastColon);
-          columnNo = line.substring(lastColon+1, rightParenPos);
+          lineNo = line.substring(nextToLastColon + 1, lastColon);
+          columnNo = line.substring(lastColon + 1, rightParenPos);
           try {
             int.parse(columnNo);
             try {
@@ -176,7 +166,7 @@ class StackTraceLines {
             nextToLastColon = rightParenPos;
           }
         } else {
-          lineNo = line.substring(lastColon+1, rightParenPos);
+          lineNo = line.substring(lastColon + 1, rightParenPos);
           columnNo = '';
           try {
             int.parse(lineNo);
@@ -196,14 +186,14 @@ class StackTraceLines {
           maxColumnNoLength = columnNo.length;
         }
 
-        String file = line.substring(leftParenPos+1, nextToLastColon);
+        String file = line.substring(leftParenPos + 1, nextToLastColon);
         if (filePrefix != null && file.startsWith(filePrefix)) {
           file = file.substring(filePrefix.length);
         }
         if (file.length > maxFileLength) {
           maxFileLength = file.length;
         }
-        String method = line.substring(0, leftParenPos-1);
+        String method = line.substring(0, leftParenPos - 1);
         if (lambda != null) {
           method = method.replaceAll('<anonymous closure>', lambda);
         }
@@ -216,31 +206,25 @@ class StackTraceLines {
         lines, maxFileLength, maxLineNoLength, maxColumnNoLength);
   }
 
-  StackTraceLines.fromLines(this.lines,
-                            this.maxFileLength,
-                            this.maxLineNoLength,
-                            this.maxColumnNoLength);
+  StackTraceLines.fromLines(this.lines, this.maxFileLength,
+      this.maxLineNoLength, this.maxColumnNoLength);
 
   StackTraceLines subtrace(int offset) {
-    return new StackTraceLines.fromLines(
-        lines.sublist(offset),
-        maxFileLength,
-        maxLineNoLength,
-        maxColumnNoLength);
+    return new StackTraceLines.fromLines(lines.sublist(offset), maxFileLength,
+        maxLineNoLength, maxColumnNoLength);
   }
 
-  String prettify({bool showColumnNo: false,
-                   bool showDots: true}) {
+  String prettify({bool showColumnNo: false, bool showDots: true}) {
     StringBuffer sb = new StringBuffer();
     bool dots = true;
     for (StackTraceLine line in lines) {
       sb.write('  ');
       line.printOn(sb,
-        fileLength: maxFileLength,
-        padding: showDots && dots ? ' .' : ' ',
-        lineNoLength: maxLineNoLength,
-        showColumnNo: showColumnNo,
-        columnNoLength: maxColumnNoLength);
+          fileLength: maxFileLength,
+          padding: showDots && dots ? ' .' : ' ',
+          lineNoLength: maxLineNoLength,
+          showColumnNo: showColumnNo,
+          columnNoLength: maxColumnNoLength);
 
       dots = !dots;
     }
@@ -260,15 +244,15 @@ class StackTraceLine {
   final String columnNo;
   final String method;
 
-  StackTraceLine(this.index, this.file, this.lineNo,
-                  this.columnNo, this.method);
+  StackTraceLine(
+      this.index, this.file, this.lineNo, this.columnNo, this.method);
 
   void printOn(StringBuffer sb,
-               {String padding: ' ',
-                int fileLength,
-                int lineNoLength,
-                int columnNoLength,
-                bool showColumnNo: false}) {
+      {String padding: ' ',
+      int fileLength,
+      int lineNoLength,
+      int columnNoLength,
+      bool showColumnNo: false}) {
     String fileText = '${file} ';
     if (fileLength != null) {
       fileText = pad(fileText, fileLength, dots: padding);
@@ -277,29 +261,29 @@ class StackTraceLine {
     if (lineNoLength != null) {
       lineNoText = pad(lineNoText, lineNoLength, padLeft: true);
     }
-    String columnNoText = showColumnNo ? '': columnNo;
+    String columnNoText = showColumnNo ? '' : columnNo;
     if (columnNoLength != null) {
-        columnNoText = ':${pad(columnNoText, columnNoLength)}';
+      columnNoText = ':${pad(columnNoText, columnNoLength)}';
     }
     sb.write('$fileText $lineNoText$columnNoText $method\n');
   }
 
   int get hashCode {
     return 13 * index +
-           17 * file.hashCode +
-           19 * lineNo.hashCode +
-           23 * columnNo.hashCode +
-           29 * method.hashCode;
+        17 * file.hashCode +
+        19 * lineNo.hashCode +
+        23 * columnNo.hashCode +
+        29 * method.hashCode;
   }
 
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! StackTraceLine) return false;
     return index == other.index &&
-           file == other.file &&
-           lineNo == other.lineNo &&
-           columnNo == other.columnNo &&
-           method == other.method;
+        file == other.file &&
+        lineNo == other.lineNo &&
+        columnNo == other.columnNo &&
+        method == other.method;
   }
 
   String toString() => "$method @ $file [$lineNo:$columnNo]";
@@ -323,16 +307,18 @@ class StackTraceLine {
  * If [lambda] is non-null, anonymous closures are printed as [lambda].
  */
 String prettifyStackTrace(StackTrace stackTrace,
-                          {int rangeStart,
-                           int rangeEnd,
-                           bool showColumnNo: false,
-                           bool showDots: true,
-                           String filePrefix,
-                           String lambda: r'?'}) {
+    {int rangeStart,
+    int rangeEnd,
+    bool showColumnNo: false,
+    bool showDots: true,
+    String filePrefix,
+    String lambda: r'?'}) {
   return new StackTraceLines.fromTrace(stackTrace,
-      rangeStart: rangeStart, rangeEnd: rangeEnd,
-      filePrefix: filePrefix, lambda: lambda)
-    .prettify(showColumnNo: showColumnNo, showDots: showDots);
+          rangeStart: rangeStart,
+          rangeEnd: rangeEnd,
+          filePrefix: filePrefix,
+          lambda: lambda)
+      .prettify(showColumnNo: showColumnNo, showDots: showDots);
 }
 
 /**
@@ -342,7 +328,7 @@ String prettifyStackTrace(StackTrace stackTrace,
  * A repetition of the [dots] text is used for padding.
  */
 String pad(String text, int intendedLength,
-           {bool padLeft: false, String dots: ' '}) {
+    {bool padLeft: false, String dots: ' '}) {
   if (text.length == intendedLength) return text;
   if (text.length > intendedLength) return text.substring(0, intendedLength);
   if (dots == null || dots.isEmpty) dots = ' ';
@@ -351,7 +337,7 @@ String pad(String text, int intendedLength,
   if (!padLeft) {
     sb.write(text);
   }
-  for (int index = text.length ; index < intendedLength ; index ++) {
+  for (int index = text.length; index < intendedLength; index++) {
     int dotsIndex = index % dotsLength;
     sb.write(dots.substring(dotsIndex, dotsIndex + 1));
   }

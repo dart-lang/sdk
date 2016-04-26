@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing the instanceof operation.
 // Regression test for issue 5216.
-// VMOptions=--optimization-counter-threshold=10 --no-use-osr
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
 import "package:expect/expect.dart";
 

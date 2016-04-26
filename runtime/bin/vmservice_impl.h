@@ -55,7 +55,6 @@ class VmService {
   DISALLOW_IMPLICIT_CONSTRUCTORS(VmService);
 };
 
-
 }  // namespace bin
 }  // namespace dart
 

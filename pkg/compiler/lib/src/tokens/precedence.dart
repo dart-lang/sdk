@@ -4,8 +4,7 @@
 
 library dart2js.tokens.precedence;
 
-import '../util/util.dart' show
-    computeHashCode;
+import '../util/util.dart' show computeHashCode;
 
 class PrecedenceInfo {
   final String value;

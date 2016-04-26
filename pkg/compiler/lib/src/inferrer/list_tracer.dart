@@ -16,122 +16,119 @@ import 'type_graph_nodes.dart';
  * change the element type of the list, or let the list escape to code
  * that might change the element type.
  */
-Set<String> okListSelectorsSet = new Set<String>.from(
-  const <String>[
-    // From Object.
-    '==',
-    'hashCode',
-    'toString',
-    'noSuchMethod',
-    'runtimeType',
+Set<String> okListSelectorsSet = new Set<String>.from(const <String>[
+  // From Object.
+  '==',
+  'hashCode',
+  'toString',
+  'noSuchMethod',
+  'runtimeType',
 
-    // From Iterable.
-    'iterator',
-    'map',
-    'where',
-    'expand',
-    'contains',
-    'forEach',
-    'reduce',
-    'fold',
-    'every',
-    'join',
-    'any',
-    'toList',
-    'toSet',
-    'length',
-    'isEmpty',
-    'isNotEmpty',
-    'take',
-    'takeWhile',
-    'skip',
-    'skipWhile',
-    'first',
-    'last',
-    'single',
-    'firstWhere',
-    'lastWhere',
-    'singleWhere',
-    'elementAt',
+  // From Iterable.
+  'iterator',
+  'map',
+  'where',
+  'expand',
+  'contains',
+  'forEach',
+  'reduce',
+  'fold',
+  'every',
+  'join',
+  'any',
+  'toList',
+  'toSet',
+  'length',
+  'isEmpty',
+  'isNotEmpty',
+  'take',
+  'takeWhile',
+  'skip',
+  'skipWhile',
+  'first',
+  'last',
+  'single',
+  'firstWhere',
+  'lastWhere',
+  'singleWhere',
+  'elementAt',
 
-    // From List.
-    '[]',
-    'length',
-    'reversed',
-    'sort',
-    'indexOf',
-    'lastIndexOf',
-    'clear',
-    'remove',
-    'removeAt',
-    'removeLast',
-    'removeWhere',
-    'retainWhere',
-    'sublist',
-    'getRange',
-    'removeRange',
-    'asMap',
+  // From List.
+  '[]',
+  'length',
+  'reversed',
+  'sort',
+  'indexOf',
+  'lastIndexOf',
+  'clear',
+  'remove',
+  'removeAt',
+  'removeLast',
+  'removeWhere',
+  'retainWhere',
+  'sublist',
+  'getRange',
+  'removeRange',
+  'asMap',
 
-    // From JSArray.
-    'checkMutable',
-    'checkGrowable',
-  ]);
+  // From JSArray.
+  'checkMutable',
+  'checkGrowable',
+]);
 
-Set<String> doNotChangeLengthSelectorsSet = new Set<String>.from(
-  const <String>[
-    // From Object.
-    '==',
-    'hashCode',
-    'toString',
-    'noSuchMethod',
-    'runtimeType',
+Set<String> doNotChangeLengthSelectorsSet = new Set<String>.from(const <String>[
+  // From Object.
+  '==',
+  'hashCode',
+  'toString',
+  'noSuchMethod',
+  'runtimeType',
 
-    // From Iterable.
-    'iterator',
-    'map',
-    'where',
-    'expand',
-    'contains',
-    'forEach',
-    'reduce',
-    'fold',
-    'every',
-    'join',
-    'any',
-    'toList',
-    'toSet',
-    'length',
-    'isEmpty',
-    'isNotEmpty',
-    'take',
-    'takeWhile',
-    'skip',
-    'skipWhile',
-    'first',
-    'last',
-    'single',
-    'firstWhere',
-    'lastWhere',
-    'singleWhere',
-    'elementAt',
+  // From Iterable.
+  'iterator',
+  'map',
+  'where',
+  'expand',
+  'contains',
+  'forEach',
+  'reduce',
+  'fold',
+  'every',
+  'join',
+  'any',
+  'toList',
+  'toSet',
+  'length',
+  'isEmpty',
+  'isNotEmpty',
+  'take',
+  'takeWhile',
+  'skip',
+  'skipWhile',
+  'first',
+  'last',
+  'single',
+  'firstWhere',
+  'lastWhere',
+  'singleWhere',
+  'elementAt',
 
-    // From List.
-    '[]',
-    '[]=',
-    'length',
-    'reversed',
-    'sort',
-    'indexOf',
-    'lastIndexOf',
-    'sublist',
-    'getRange',
-    'asMap',
+  // From List.
+  '[]',
+  '[]=',
+  'length',
+  'reversed',
+  'sort',
+  'indexOf',
+  'lastIndexOf',
+  'sublist',
+  'getRange',
+  'asMap',
 
-    // From JSArray.
-    'checkMutable',
-    'checkGrowable',
-  ]);
-
+  // From JSArray.
+  'checkMutable',
+  'checkGrowable',
+]);
 
 class ListTracerVisitor extends TracerVisitor<ListTypeInformation> {
   // The [Set] of found assignments to the list.
@@ -208,7 +205,7 @@ class ListTracerVisitor extends TracerVisitor<ListTypeInformation> {
         assignments.add(inferrer.types.nullType);
       }
     } else if (selector.isCall &&
-               !info.targets.every((element) => element.isFunction)) {
+        !info.targets.every((element) => element.isFunction)) {
       bailout('Passed to a closure');
       return;
     }

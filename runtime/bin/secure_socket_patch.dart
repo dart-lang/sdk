@@ -123,6 +123,10 @@ patch class SecurityContext {
   /* patch */ static SecurityContext get defaultContext {
     return _SecurityContext.defaultContext;
   }
+
+  /* patch */ static bool get alpnSupported {
+    return _SecurityContext.alpnSupported;
+  }
 }
 
 class _SecurityContext
@@ -165,6 +169,8 @@ class _SecurityContext
   void setClientAuthoritiesBytes(List<int> authCertBytes, {String password})
       native "SecurityContext_SetClientAuthoritiesBytes";
 
+  static bool get alpnSupported => _alpnSupported();
+  static bool _alpnSupported() native "SecurityContext_AlpnSupported";
   void setAlpnProtocols(List<String> protocols, bool isServer) {
     Uint8List encodedProtocols =
         SecurityContext._protocolsToLengthEncoding(protocols);

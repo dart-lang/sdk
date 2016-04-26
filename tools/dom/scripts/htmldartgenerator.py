@@ -37,7 +37,7 @@ _custom_factories = [
 ]
 
 class HtmlDartGenerator(object):
-  def __init__(self, interface, options, dart_use_blink):
+  def __init__(self, interface, options, dart_use_blink, logger):
     self._dart_use_blink = dart_use_blink
     self._database = options.database
     self._interface = interface
@@ -46,6 +46,7 @@ class HtmlDartGenerator(object):
     self._renamer = options.renamer
     self._metadata = options.metadata
     self._library_name = self._renamer.GetLibraryName(self._interface)
+    _logger.setLevel(logger.level)
 
   def EmitSupportCheck(self):
     if self.HasSupportCheck():
@@ -252,7 +253,7 @@ class HtmlDartGenerator(object):
         operation.id != '__getter__' and
         operation.id != '__setter__' and
         operation.id != '__delete__'):
-      _logger.error('Multiple type signatures for %s.%s. Please file a bug with'
+      _logger.warn('Multiple type signatures for %s.%s. Please file a bug with'
           ' the dart:html team to determine if one of these functions should be'
           ' renamed.' % (
           interface.id, operation.id))
@@ -419,7 +420,7 @@ class HtmlDartGenerator(object):
           else:
             checks.append('(%s is %s)' % (
                 parameter_name, test_type))
-        elif i >= number_of_required_in_dart:
+        elif i >= number_of_required_in_dart and not argument.type.nullable:
           checks.append('%s != null' % parameter_name)
 
       # There can be multiple presence checks.  We need them all since a later
@@ -625,7 +626,7 @@ class HtmlDartGenerator(object):
             (factory_params, converted_arguments) = self._ConvertArgumentTypes(
                 stmts_emitter, arguments, argument_count, constructor_info)
             args = ', '.join(converted_arguments)
-            call_template = 'wrap_jso($FACTORY_NAME($FACTORY_PARAMS))'
+            call_template = '$FACTORY_NAME($FACTORY_PARAMS)'
         else:
             qualified_name = emitter.Format(
                 '$FACTORY.$NAME',

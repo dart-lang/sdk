@@ -25,16 +25,18 @@ import 'package:compiler/src/null_compiler_output.dart' show NullCompilerOutput;
 
 import 'package:compiler/src/old_to_new_api.dart'
     show LegacyCompilerDiagnostics, LegacyCompilerInput;
+import 'package:compiler/src/options.dart' show CompilerOptions;
 
 Uri sdkRoot = Uri.base.resolve("sdk/");
 Uri mock1LibraryUri = sdkRoot.resolve("lib/mock1.dart");
 Uri mock2LibraryUri = sdkRoot.resolve("lib/mock2.dart");
 
 class CustomCompiler extends CompilerImpl {
-  CustomCompiler(provider, handler, libraryRoot,
-      packageRoot, options, environment)
-      : super(provider, const NullCompilerOutput(), handler, libraryRoot,
-            packageRoot, options, environment);
+  CustomCompiler(provider, handler, libraryRoot, packageRoot)
+      : super(provider, const NullCompilerOutput(), handler,
+            new CompilerOptions(
+                libraryRoot: libraryRoot,
+                packageRoot: packageRoot));
 
   Uri lookupLibraryUri(String libraryName) {
     if (libraryName == "m_o_c_k_1") return mock1LibraryUri;
@@ -81,9 +83,7 @@ main() async {
       new LegacyCompilerInput(wrappedProvider),
       new LegacyCompilerDiagnostics(wrappedHandler),
       sdkRoot,
-      packageRoot,
-      [],
-      {});
+      packageRoot);
 
   asyncStart();
   await compiler.setupSdk();

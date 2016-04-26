@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test correct handling of phis with only environment uses that were inserted
 // by store to load forwarding.
-// VMOptions=--optimization_counter_threshold=100
+// VMOptions=--optimization_counter_threshold=100 --no-background_compilation
 
 library store_to_load_forwarding_phis_vm_test;
 

@@ -69,6 +69,57 @@
               </div>
             </div>
           </template>
+          <template if="{{ instance.typeArguments.length > 0 }}">
+            <div class="memberItem">
+              <div class="memberName">type arguments</div>
+              <div class="memberValue">
+                &lt;
+                <template repeat="{{ index in instance.typeArguments['types'].asMap().keys }}">
+                  <instance-ref ref="{{ instance.typeArguments['types'][index] }}">
+                  </instance-ref>
+                  <template if="{{ index < instance.typeArguments['types'].length - 1 }}">
+                    ,
+                  </template>
+                </template>
+                &gt;
+              </div>
+            </div>
+          </template>
+          <template if="{{ instance.parameterizedClass != null }}">
+            <div class="memberItem">
+              <div class="memberName">parameterized class</div>
+              <div class="memberValue">
+                <class-ref ref="{{ instance.parameterizedClass }}">
+                </class-ref>
+              </div>
+            </div>
+          </template>
+          <template if="{{ instance.parameterIndex != null }}">
+            <div class="memberItem">
+              <div class="memberName">parameter index</div>
+              <div class="memberValue">
+                {{ instance.parameterIndex }}
+              </div>
+            </div>
+          </template>
+          <template if="{{ instance.targetType != null }}">
+            <div class="memberItem">
+              <div class="memberName">target type</div>
+              <div class="memberValue">
+                <instance-ref ref="{{ instance.targetType }}">
+                </instance-ref>
+              </div>
+            </div>
+          </template>
+          <template if="{{ instance.bound != null }}">
+            <div class="memberItem">
+              <div class="memberName">bound</div>
+              <div class="memberValue">
+                <instance-ref ref="{{ instance.bound }}">
+                </instance-ref>
+              </div>
+            </div>
+          </template>
 
           <template if="{{ instance.isClosure }}">
             <div class="memberItem">
@@ -107,6 +158,12 @@
             <div class="memberName">toString()</div>
             <div class="memberValue">
               <eval-link callback="{{ evaluate }}" expr="toString()"></eval-link>
+            </div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">runtimeType</div>
+            <div class="memberValue">
+              <eval-link callback="{{ evaluate }}" expr="runtimeType"></eval-link>
             </div>
           </div>
         </div>
@@ -266,6 +323,18 @@
                 <any-service-ref ref="{{ instance.externalTwoByteFunction }}"></any-service-ref>
               </div>
             </div>
+            <div class="memberItem">
+              <div class="memberName">oneByteBytecode</div>
+              <div class="memberValue">
+                <any-service-ref ref="{{ instance.oneByteBytecode }}"></any-service-ref>
+              </div>
+            </div>
+            <div class="memberItem">
+              <div class="memberName">twoByteBytecode</div>
+              <div class="memberValue">
+                <any-service-ref ref="{{ instance.twoByteBytecode }}"></any-service-ref>
+              </div>
+            </div>
           </div>
         </template>
 
@@ -299,6 +368,9 @@
       <div class="content-centered-big">
         <template if="{{ instance.isClosure }}">
           <source-inset location="{{ instance.function.location }}"></source-inset>
+        </template>
+        <template if="{{ instance.typeClass != null }}">
+          <source-inset location="{{ instance.typeClass.location }}"></source-inset>
         </template>
       </div>
 

@@ -24,15 +24,16 @@ import 'package:analysis_server/src/services/correction/source_range.dart'
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -428,7 +429,11 @@ class FixProcessor {
             .takeWhile((p) => p.parameterKind == ParameterKind.REQUIRED);
         Iterable<ParameterElement> optionalParameters = parameters
             .skipWhile((p) => p.parameterKind == ParameterKind.REQUIRED);
+        // prepare the argument to add a new parameter for
         int numRequired = requiredParameters.length;
+        if (numRequired >= arguments.length) {
+          return;
+        }
         Expression argument = arguments[numRequired];
         // prepare target
         int targetOffset;
@@ -700,10 +705,14 @@ class FixProcessor {
       return;
     }
     ClassElement targetElement = constructorElement.enclosingElement;
-    String targetFile = targetElement.source.fullName;
-    ClassDeclaration targetClass = getParsedClassElementNode(targetElement);
+    // prepare location for a new constructor
+    AstNode targetTypeNode = getParsedClassElementNode(targetElement);
+    if (targetTypeNode is! ClassDeclaration) {
+      return;
+    }
     _ConstructorLocation targetLocation =
-        _prepareNewConstructorLocation(targetClass);
+        _prepareNewConstructorLocation(targetTypeNode);
+    String targetFile = targetElement.source.fullName;
     // build method source
     SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
     {
@@ -753,11 +762,15 @@ class FixProcessor {
     if (targetType is! InterfaceType) {
       return;
     }
+    // prepare location for a new constructor
     ClassElement targetElement = targetType.element as ClassElement;
-    String targetFile = targetElement.source.fullName;
-    ClassDeclaration targetClass = getParsedClassElementNode(targetElement);
+    AstNode targetTypeNode = getParsedClassElementNode(targetElement);
+    if (targetTypeNode is! ClassDeclaration) {
+      return;
+    }
     _ConstructorLocation targetLocation =
-        _prepareNewConstructorLocation(targetClass);
+        _prepareNewConstructorLocation(targetTypeNode);
+    String targetFile = targetElement.source.fullName;
     // build method source
     SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
     {
@@ -958,7 +971,7 @@ class FixProcessor {
       // maybe static
       if (target is Identifier) {
         Identifier targetIdentifier = target;
-        Element targetElement = targetIdentifier.staticElement;
+        Element targetElement = targetIdentifier.bestElement;
         if (targetElement == null) {
           return;
         }
@@ -1094,7 +1107,7 @@ class FixProcessor {
       // maybe static
       if (target is Identifier) {
         Identifier targetIdentifier = target;
-        Element targetElement = targetIdentifier.staticElement;
+        Element targetElement = targetIdentifier.bestElement;
         staticModifier = targetElement.kind == ElementKind.CLASS;
       }
     } else {
@@ -1481,6 +1494,10 @@ class FixProcessor {
         String libraryUri = sdkLibrary.shortName;
         Source librarySource =
             sdkSourceFactory.resolveUri(unitSource, libraryUri);
+        // maybe already imported
+        if (alreadyImportedWithPrefix.contains(librarySource)) {
+          continue;
+        }
         // prepare LibraryElement
         LibraryElement libraryElement =
             context.getResult(librarySource, LIBRARY_ELEMENT1);
@@ -1510,13 +1527,13 @@ class FixProcessor {
         if (librarySource.isInSystemLibrary) {
           continue;
         }
-        // maybe already imported with a prefix
+        // maybe already imported
         if (alreadyImportedWithPrefix.contains(librarySource)) {
           continue;
         }
         // prepare LibraryElement
         LibraryElement libraryElement =
-            context.getResult(librarySource, LIBRARY_ELEMENT8);
+            context.getResult(librarySource, LIBRARY_ELEMENT4);
         if (libraryElement == null) {
           continue;
         }
@@ -1990,13 +2007,17 @@ class FixProcessor {
         }
         ClassElement targetClassElement = targetType.element as ClassElement;
         targetElement = targetClassElement;
-        // may be static
+        // prepare target ClassDeclaration
+        AstNode targetTypeNode = getParsedClassElementNode(targetClassElement);
+        if (targetTypeNode is! ClassDeclaration) {
+          return;
+        }
+        ClassDeclaration targetClassNode = targetTypeNode;
+        // maybe static
         if (target is Identifier) {
           staticModifier = target.bestElement.kind == ElementKind.CLASS;
         }
         // prepare insert offset
-        ClassDeclaration targetClassNode =
-            getParsedClassElementNode(targetClassElement);
         prefix = '  ';
         insertOffset = targetClassNode.end - 1;
         if (targetClassNode.members.isEmpty) {

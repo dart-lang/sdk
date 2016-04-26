@@ -4,23 +4,16 @@
 
 library dart2js.tokens;
 
-import 'dart:convert' show
-    UTF8;
-import 'dart:collection' show
-    HashSet;
+import 'dart:convert' show UTF8;
+import 'dart:collection' show HashSet;
 
 import '../common.dart';
-import '../util/util.dart' show
-    computeHashCode;
+import '../util/util.dart' show computeHashCode;
 
-import 'keyword.dart' show
-    Keyword;
-import 'precedence.dart' show
-    PrecedenceInfo;
-import 'precedence_constants.dart' as Precedence show
-    BAD_INPUT_INFO;
-import 'token_constants.dart' as Tokens show
-    IDENTIFIER_TOKEN;
+import 'keyword.dart' show Keyword;
+import 'precedence.dart' show PrecedenceInfo;
+import 'precedence_constants.dart' as Precedence show BAD_INPUT_INFO;
+import 'token_constants.dart' as Tokens show IDENTIFIER_TOKEN;
 
 /**
  * A token that doubles as a linked list.
@@ -132,7 +125,6 @@ class TokenPair implements Spannable {
  * Also used for end of file with EOF_INFO.
  */
 class SymbolToken extends Token {
-
   final PrecedenceInfo info;
 
   SymbolToken(this.info, int charOffset) : super(charOffset);
@@ -179,8 +171,7 @@ class KeywordToken extends Token {
 }
 
 abstract class ErrorToken extends Token {
-  ErrorToken(int charOffset)
-      : super(charOffset);
+  ErrorToken(int charOffset) : super(charOffset);
 
   PrecedenceInfo get info => Precedence.BAD_INPUT_INFO;
 
@@ -198,8 +189,7 @@ abstract class ErrorToken extends Token {
 class BadInputToken extends ErrorToken {
   final int character;
 
-  BadInputToken(this.character, int charOffset)
-      : super(charOffset);
+  BadInputToken(this.character, int charOffset) : super(charOffset);
 
   String toString() => "BadInputToken($character)";
 
@@ -259,7 +249,7 @@ class StringToken extends Token {
    * is canonicalized before the token is created.
    */
   StringToken.fromString(this.info, String value, int charOffset,
-                         {bool canonicalize : false})
+      {bool canonicalize: false})
       : valueOrLazySubstring = canonicalizedString(value, canonicalize),
         super(charOffset);
 
@@ -267,13 +257,14 @@ class StringToken extends Token {
    * Creates a lazy string token. If [canonicalize] is true, the string
    * is canonicalized before the token is created.
    */
-  StringToken.fromSubstring(this.info, String data, int start, int end,
-                            int charOffset, {bool canonicalize : false})
+  StringToken.fromSubstring(
+      this.info, String data, int start, int end, int charOffset,
+      {bool canonicalize: false})
       : super(charOffset) {
     int length = end - start;
     if (length <= LAZY_THRESHOLD) {
-      valueOrLazySubstring = canonicalizedString(data.substring(start, end),
-                                                 canonicalize);
+      valueOrLazySubstring =
+          canonicalizedString(data.substring(start, end), canonicalize);
     } else {
       valueOrLazySubstring =
           new LazySubstring(data, start, length, canonicalize);
@@ -285,7 +276,7 @@ class StringToken extends Token {
    * is passed through a UTF-8 decoder.
    */
   StringToken.fromUtf8Bytes(this.info, List<int> data, int start, int end,
-                            bool asciiOnly, int charOffset)
+      bool asciiOnly, int charOffset)
       : super(charOffset) {
     int length = end - start;
     if (length <= LAZY_THRESHOLD) {
@@ -307,8 +298,8 @@ class StringToken extends Token {
         valueOrLazySubstring = canonicalizedString(
             data.substring(start, end), valueOrLazySubstring.boolValue);
       } else {
-        valueOrLazySubstring = decodeUtf8(
-            data, start, end, valueOrLazySubstring.boolValue);
+        valueOrLazySubstring =
+            decodeUtf8(data, start, end, valueOrLazySubstring.boolValue);
       }
       return valueOrLazySubstring;
     }
@@ -321,8 +312,7 @@ class StringToken extends Token {
 
   String toString() => "StringToken($value)";
 
-  static final HashSet<String> canonicalizedSubstrings =
-      new HashSet<String>();
+  static final HashSet<String> canonicalizedSubstrings = new HashSet<String>();
 
   static String canonicalizedString(String s, bool canonicalize) {
     if (!canonicalize) return s;
@@ -409,35 +399,33 @@ class FullLazySubstring extends LazySubstring {
 }
 
 bool isUserDefinableOperator(String value) {
-  return
-      isBinaryOperator(value) ||
+  return isBinaryOperator(value) ||
       isMinusOperator(value) ||
       isTernaryOperator(value) ||
       isUnaryOperator(value);
 }
 
-bool isUnaryOperator(String value) => identical(value, '~');
+bool isUnaryOperator(String value) => value == '~';
 
 bool isBinaryOperator(String value) {
-  return
-      (identical(value, '==')) ||
-      (identical(value, '[]')) ||
-      (identical(value, '*')) ||
-      (identical(value, '/')) ||
-      (identical(value, '%')) ||
-      (identical(value, '~/')) ||
-      (identical(value, '+')) ||
-      (identical(value, '<<')) ||
-      (identical(value, '>>')) ||
-      (identical(value, '>=')) ||
-      (identical(value, '>')) ||
-      (identical(value, '<=')) ||
-      (identical(value, '<')) ||
-      (identical(value, '&')) ||
-      (identical(value, '^')) ||
-      (identical(value, '|'));
+  return value == '==' ||
+      value == '[]' ||
+      value == '*' ||
+      value == '/' ||
+      value == '%' ||
+      value == '~/' ||
+      value == '+' ||
+      value == '<<' ||
+      value == '>>' ||
+      value == '>=' ||
+      value == '>' ||
+      value == '<=' ||
+      value == '<' ||
+      value == '&' ||
+      value == '^' ||
+      value == '|';
 }
 
-bool isTernaryOperator(String value) => identical(value, '[]=');
+bool isTernaryOperator(String value) => value == '[]=';
 
-bool isMinusOperator(String value) => identical(value, '-');
+bool isMinusOperator(String value) => value == '-';

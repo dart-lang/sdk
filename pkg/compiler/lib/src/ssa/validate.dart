@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of ssa;
+import 'nodes.dart';
 
 class HValidator extends HInstructionVisitor {
   bool isValid = true;
@@ -22,22 +22,22 @@ class HValidator extends HInstructionVisitor {
   // not required to be valid yet.
   void visitBasicBlock(HBasicBlock block) {
     currentBlock = block;
-    if (!isValid) return;  // Don't need to continue if we are already invalid.
+    if (!isValid) return; // Don't need to continue if we are already invalid.
 
     // Test that the last instruction is a branching instruction and that the
     // basic block contains the branch-target.
     if (block.first == null || block.last == null) {
       markInvalid("empty block");
     }
-    if (block.last is !HControlFlow) {
+    if (block.last is! HControlFlow) {
       markInvalid("block ends with non-tail node.");
     }
     if (block.last is HIf && block.successors.length != 2) {
       markInvalid("If node without two successors");
     }
     if (block.last is HConditionalBranch && block.successors.length != 2) {
-        markInvalid("Conditional node without two successors");
-      }
+      markInvalid("Conditional node without two successors");
+    }
     if (block.last is HLoopBranch) {
       // Assert that the block we inserted to avoid critical edges satisfies
       // our assumptions. That is, it must not contain any instructions
@@ -56,7 +56,7 @@ class HValidator extends HInstructionVisitor {
     if ((block.last is HReturn || block.last is HThrow) &&
         (block.successors.length != 1 || !block.successors[0].isExitBlock())) {
       markInvalid("Return or throw node with > 1 successor "
-                  "or not going to exit-block");
+          "or not going to exit-block");
     }
     if (block.last is HExit && !block.successors.isEmpty) {
       markInvalid("Exit block with successor");
@@ -77,8 +77,10 @@ class HValidator extends HInstructionVisitor {
       }
     }
     // Make sure we don't have a critical edge.
-    if (isValid && block.successors.length > 1 &&
-        block.last is! HTry && block.last is! HExitTry &&
+    if (isValid &&
+        block.successors.length > 1 &&
+        block.last is! HTry &&
+        block.last is! HExitTry &&
         block.last is! HSwitch) {
       for (HBasicBlock successor in block.successors) {
         if (!isValid) break;
@@ -131,8 +133,8 @@ class HValidator extends HInstructionVisitor {
   }
 
   /** Returns how often [instruction] is contained in [instructions]. */
-  static int countInstruction(List<HInstruction> instructions,
-                              HInstruction instruction) {
+  static int countInstruction(
+      List<HInstruction> instructions, HInstruction instruction) {
     int result = 0;
     for (int i = 0; i < instructions.length; i++) {
       if (identical(instructions[i], instruction)) result++;
@@ -170,8 +172,8 @@ class HValidator extends HInstructionVisitor {
       bool inBasicBlock = instruction.isInBasicBlock();
       return everyInstruction(instruction.inputs, (input, count) {
         if (inBasicBlock) {
-          return input.isInBasicBlock()
-              && countInstruction(input.usedBy, instruction) == count;
+          return input.isInBasicBlock() &&
+              countInstruction(input.usedBy, instruction) == count;
         } else {
           return countInstruction(input.usedBy, instruction) == 0;
         }
@@ -182,8 +184,8 @@ class HValidator extends HInstructionVisitor {
     bool hasCorrectUses() {
       if (!instruction.isInBasicBlock()) return true;
       return everyInstruction(instruction.usedBy, (use, count) {
-        return use.isInBasicBlock()
-            && countInstruction(use.inputs, instruction) == count;
+        return use.isInBasicBlock() &&
+            countInstruction(use.inputs, instruction) == count;
       });
     }
 

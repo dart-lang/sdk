@@ -14,8 +14,8 @@ import '../world.dart' show World;
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../js_backend/codegen/task.dart' show CpsFunctionCompiler;
-import '../types/types.dart' show
-    FlatTypeMask, ForwardingTypeMask, TypeMask, UnionTypeMask;
+import '../types/types.dart'
+    show FlatTypeMask, ForwardingTypeMask, TypeMask, UnionTypeMask;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import 'package:js_ast/js_ast.dart' as js;
@@ -62,7 +62,7 @@ class CacheEntry {
     if (callStructure == null) {
       if (otherCallStructure != null) return false;
     } else if (otherCallStructure == null ||
-               !callStructure.match(otherCallStructure)) {
+        !callStructure.match(otherCallStructure)) {
       return false;
     }
 
@@ -97,20 +97,23 @@ class InliningCache {
   // copied because the compiler passes will mutate them.
   final CopyingVisitor copier = new CopyingVisitor();
 
-  void _putInternal(ExecutableElement element, CallStructure callStructure,
+  void _putInternal(
+      ExecutableElement element,
+      CallStructure callStructure,
       TypeMask receiver,
       List<TypeMask> arguments,
       bool decision,
       FunctionDefinition function) {
-    map.putIfAbsent(element, () => <CacheEntry>[])
-        .add(new CacheEntry(callStructure, receiver, arguments, decision,
-            function));
+    map.putIfAbsent(element, () => <CacheEntry>[]).add(
+        new CacheEntry(callStructure, receiver, arguments, decision, function));
   }
 
   /// Put a positive inlining decision in the cache.
   ///
   /// A positive inlining decision maps to an IR function definition.
-  void putPositive(ExecutableElement element, CallStructure callStructure,
+  void putPositive(
+      ExecutableElement element,
+      CallStructure callStructure,
       TypeMask receiver,
       List<TypeMask> arguments,
       FunctionDefinition function) {
@@ -119,10 +122,8 @@ class InliningCache {
   }
 
   /// Put a negative inlining decision in the cache.
-  void putNegative(ExecutableElement element,
-      CallStructure callStructure,
-      TypeMask receiver,
-      List<TypeMask> arguments) {
+  void putNegative(ExecutableElement element, CallStructure callStructure,
+      TypeMask receiver, List<TypeMask> arguments) {
     _putInternal(element, callStructure, receiver, arguments, false, null);
   }
 
@@ -185,8 +186,14 @@ class Inliner implements Pass {
   Inliner(this.functionCompiler);
 
   bool isCalledOnce(Element element) {
-    return functionCompiler.compiler.typesTask.typesInferrer.isCalledOnce(
-        element);
+    if (element is ConstructorBodyElement) {
+      ClassElement class_ = element.enclosingClass;
+      return !functionCompiler.compiler.world.hasAnyStrictSubclass(class_) &&
+              class_.constructors.tail?.isEmpty ??
+          false;
+    }
+    return functionCompiler.compiler.typesTask.typesInferrer
+        .isCalledOnce(element);
   }
 
   void rewrite(FunctionDefinition node, [CallStructure callStructure]) {
@@ -222,14 +229,12 @@ class Inliner implements Pass {
 class SizeVisitor extends TrampolineRecursiveVisitor {
   int size = 0;
 
-  void countArgument(Reference<Primitive> argument, Parameter parameter) {
+  void countArgument(Primitive argument, Parameter parameter) {
     // If a parameter is unused and the corresponding argument has only the
     // one use at the invocation, then inlining the call might enable
     // elimination of the argument.  This 'pays for itself' by decreasing the
     // cost of inlining at the call site.
-    if (argument != null &&
-        argument.definition.hasExactlyOneUse &&
-        parameter.hasNoUses) {
+    if (argument != null && argument.hasExactlyOneUse && parameter.hasNoUses) {
       --size;
     }
   }
@@ -237,9 +242,15 @@ class SizeVisitor extends TrampolineRecursiveVisitor {
   static int sizeOf(InvocationPrimitive invoke, FunctionDefinition function) {
     SizeVisitor visitor = new SizeVisitor();
     visitor.visit(function);
-    visitor.countArgument(invoke.receiverRef, function.thisParameter);
+    if (invoke.callingConvention == CallingConvention.Intercepted) {
+      // Note that if the invocation is a dummy-intercepted call, then the
+      // target has an unused interceptor parameter, but the caller provides
+      // no interceptor argument.
+      visitor.countArgument(invoke.interceptor, function.interceptorParameter);
+    }
+    visitor.countArgument(invoke.receiver, function.receiverParameter);
     for (int i = 0; i < invoke.argumentRefs.length; ++i) {
-      visitor.countArgument(invoke.argumentRefs[i], function.parameters[i]);
+      visitor.countArgument(invoke.argument(i), function.parameters[i]);
     }
     return visitor.size;
   }
@@ -285,7 +296,6 @@ class JsSizeVisitor extends js.BaseVisitor {
   }
 }
 
-
 class InliningVisitor extends TrampolineRecursiveVisitor {
   final Inliner _inliner;
 
@@ -328,34 +338,29 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
     return next;
   }
 
-  TypeMask abstractType(Reference<Primitive> ref) {
-    return ref.definition.type ?? typeSystem.dynamicType;
+  TypeMask abstractType(Primitive def) {
+    return def.type ?? typeSystem.dynamicType;
   }
 
   /// Build the IR term for the function that adapts a call site targeting a
   /// function that takes optional arguments not passed at the call site.
   FunctionDefinition buildAdapter(InvokeMethod node, FunctionElement target) {
     Parameter thisParameter = new Parameter(new ThisParameterLocal(target))
-        ..type = node.receiver.type;
-    List<Parameter> parameters = new List<Parameter>.generate(
-        node.argumentRefs.length,
-        (int index) {
-          // TODO(kmillikin): Use a hint for the parameter names.
-          return new Parameter(null)
-              ..type = node.argument(index).type;
-        });
+      ..type = node.receiver.type;
+    Parameter interceptorParameter =
+        node.interceptorRef != null ? new Parameter(null) : null;
+    List<Parameter> parameters =
+        new List<Parameter>.generate(node.argumentRefs.length, (int index) {
+      // TODO(kmillikin): Use a hint for the parameter names.
+      return new Parameter(null)..type = node.argument(index).type;
+    });
     Continuation returnContinuation = new Continuation.retrn();
     CpsFragment cps = new CpsFragment();
 
     FunctionSignature signature = target.functionSignature;
     int requiredParameterCount = signature.requiredParameterCount;
-    if (node.callingConvention == CallingConvention.Intercepted ||
-        node.callingConvention == CallingConvention.DummyIntercepted) {
-      ++requiredParameterCount;
-    }
     List<Primitive> arguments = new List<Primitive>.generate(
-        requiredParameterCount,
-        (int index) => parameters[index]);
+        requiredParameterCount, (int index) => parameters[index]);
 
     int parameterIndex = requiredParameterCount;
     CallStructure newCallStructure;
@@ -393,17 +398,18 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
       newCallStructure = new CallStructure(signature.parameterCount);
     }
 
-    Selector newSelector =
-        new Selector(node.selector.kind, node.selector.memberName,
-            newCallStructure);
-    Primitive result = cps.invokeMethod(thisParameter, newSelector, node.mask,
-        arguments, node.callingConvention);
+    Selector newSelector = new Selector(
+        node.selector.kind, node.selector.memberName, newCallStructure);
+    Primitive result = cps.invokeMethod(
+        thisParameter, newSelector, node.mask, arguments,
+        interceptor: interceptorParameter,
+        callingConvention: node.callingConvention);
     result.type = typeSystem.getInvokeReturnType(node.selector, node.mask);
     returnContinuation.parameters.single.type = result.type;
     cps.invokeContinuation(returnContinuation, <Primitive>[result]);
-    return new FunctionDefinition(target, thisParameter, parameters,
-        returnContinuation,
-        cps.root);
+    return new FunctionDefinition(
+        target, thisParameter, parameters, returnContinuation, cps.root,
+        interceptorParameter: interceptorParameter);
   }
 
   // Given an invocation and a known target, possibly perform inlining.
@@ -415,7 +421,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
   // if the call was inlined, and the inlined function body is available in
   // [_fragment].  If the call was not inlined, null is returned.
   Primitive tryInlining(InvocationPrimitive invoke, FunctionElement target,
-                        CallStructure callStructure) {
+      CallStructure callStructure) {
     // Quick checks: do not inline or even cache calls to targets without an
     // AST node, targets that are asynchronous or generator functions, or
     // targets containing a try statement.
@@ -431,7 +437,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
 
     // Don't inline methods that never return. They are usually helper functions
     // that throw an exception.
-    if (invoke.type.isEmpty && !invoke.type.isNullable) {
+    if (invoke.type.isEmpty) {
       // TODO(sra): It would be ok to inline if doing so was shrinking.
       return null;
     }
@@ -444,21 +450,20 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
       return null;
     }
 
-    Reference<Primitive> dartReceiver = invoke.dartReceiverRef;
+    Primitive receiver = invoke.receiver;
     TypeMask abstractReceiver =
-        dartReceiver == null ? null : abstractType(dartReceiver);
+        receiver == null ? null : abstractType(receiver);
     // The receiver is non-null in a method body, unless the receiver is known
     // to be `null` (isEmpty covers `null` and unreachable).
     TypeMask abstractReceiverInMethod = abstractReceiver == null
         ? null
-        : abstractReceiver.isEmpty
+        : abstractReceiver.isEmptyOrNull
             ? abstractReceiver
             : abstractReceiver.nonNullable();
     List<TypeMask> abstractArguments =
-        invoke.argumentRefs.map(abstractType).toList();
-    var cachedResult = _inliner.cache.get(target, callStructure,
-        abstractReceiverInMethod,
-        abstractArguments);
+        invoke.arguments.map(abstractType).toList();
+    var cachedResult = _inliner.cache.get(
+        target, callStructure, abstractReceiverInMethod, abstractArguments);
 
     // Negative inlining result in the cache.
     if (cachedResult == InliningCache.NO_INLINE) return null;
@@ -469,17 +474,12 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
       List<Primitive> arguments = invoke.arguments.toList();
       // Add a null check to the inlined function body if necessary.  The
       // cached function body does not contain the null check.
-      if (dartReceiver != null && abstractReceiver.isNullable) {
-        Primitive check = nullReceiverGuard(
-            invoke, _fragment, dartReceiver.definition, abstractReceiver);
-        if (invoke.callingConvention == CallingConvention.Intercepted) {
-          arguments[0] = check;
-        } else {
-          receiver = check;
-        }
+      if (receiver != null && abstractReceiver.isNullable) {
+        receiver =
+            nullReceiverGuard(invoke, _fragment, receiver, abstractReceiver);
       }
       return _fragment.inlineFunction(function, receiver, arguments,
-          hint: invoke.hint);
+          interceptor: invoke.interceptor, hint: invoke.hint);
     }
 
     // Positive inlining result in the cache.
@@ -513,22 +513,11 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
       }
     } else {
       function = compileToCpsIr(target);
-      void setValue(Variable variable, Reference<Primitive> value) {
-        variable.type = value.definition.type;
+      if (function.receiverParameter != null) {
+        function.receiverParameter.type = abstractReceiverInMethod;
       }
-      if (invoke.callingConvention == CallingConvention.Intercepted) {
-        setValue(function.thisParameter, invoke.receiverRef);
-        function.parameters[0].type = abstractReceiverInMethod;
-        for (int i = 1; i < invoke.argumentRefs.length; ++i) {
-          setValue(function.parameters[i], invoke.argumentRefs[i]);
-        }
-      } else {
-        if (invoke.receiverRef != null) {
-          function.thisParameter.type = abstractReceiverInMethod;
-        }
-        for (int i = 0; i < invoke.argumentRefs.length; ++i) {
-          setValue(function.parameters[i], invoke.argumentRefs[i]);
-        }
+      for (int i = 0; i < invoke.argumentRefs.length; ++i) {
+        function.parameters[i].type = invoke.argument(i).type;
       }
       optimizeBeforeInlining(function);
     }
@@ -546,34 +535,29 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
     return finish(function);
   }
 
-  Primitive nullReceiverGuard(InvocationPrimitive invoke,
-                              CpsFragment fragment,
-                              Primitive dartReceiver,
-                              TypeMask abstractReceiver) {
+  Primitive nullReceiverGuard(InvocationPrimitive invoke, CpsFragment fragment,
+      Primitive dartReceiver, TypeMask abstractReceiver) {
     if (invoke is! InvokeMethod) return dartReceiver;
     InvokeMethod invokeMethod = invoke;
     Selector selector = invokeMethod.selector;
     if (typeSystem.isDefinitelyNum(abstractReceiver, allowNull: true)) {
-      Primitive condition = _fragment.letPrim(
-          new ApplyBuiltinOperator(BuiltinOperator.IsNotNumber,
-                                   <Primitive>[dartReceiver],
-                                   invoke.sourceInformation));
+      Primitive condition = _fragment.letPrim(new ApplyBuiltinOperator(
+          BuiltinOperator.IsNotNumber,
+          <Primitive>[dartReceiver],
+          invoke.sourceInformation));
       condition.type = typeSystem.boolType;
-      Primitive check = _fragment.letPrim(
-          new ReceiverCheck.nullCheck(dartReceiver, selector,
-              invoke.sourceInformation,
-              condition: condition));
+      Primitive check = _fragment.letPrim(new ReceiverCheck.nullCheck(
+          dartReceiver, selector, invoke.sourceInformation,
+          condition: condition));
       check.type = abstractReceiver.nonNullable();
       return check;
     }
 
-    Primitive check = _fragment.letPrim(
-        new ReceiverCheck.nullCheck(dartReceiver, selector,
-            invoke.sourceInformation));
+    Primitive check = _fragment.letPrim(new ReceiverCheck.nullCheck(
+        dartReceiver, selector, invoke.sourceInformation));
     check.type = abstractReceiver.nonNullable();
     return check;
   }
-
 
   @override
   Primitive visitInvokeStatic(InvokeStatic node) {
@@ -582,15 +566,15 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
 
   @override
   Primitive visitInvokeMethod(InvokeMethod node) {
-    Primitive receiver = node.dartReceiver;
+    Primitive receiver = node.receiver;
     Element element = world.locateSingleElement(node.selector, receiver.type);
     if (element == null || element is! FunctionElement) return null;
     if (node.selector.isGetter != element.isGetter) return null;
     if (node.selector.isSetter != element.isSetter) return null;
     if (node.selector.name != element.name) return null;
 
-    return tryInlining(node, element.asFunctionElement(),
-        node.selector.callStructure);
+    return tryInlining(
+        node, element.asFunctionElement(), node.selector.callStructure);
   }
 
   @override
@@ -617,8 +601,8 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
     ClassElement enclosingClass = target.enclosingClass;
     if (target.isOperator &&
         (enclosingClass == backend.helpers.jsNumberClass ||
-         enclosingClass == backend.helpers.jsDoubleClass ||
-         enclosingClass == backend.helpers.jsIntClass)) {
+            enclosingClass == backend.helpers.jsDoubleClass ||
+            enclosingClass == backend.helpers.jsIntClass)) {
       // These should be handled by operator specialization.
       return true;
     }

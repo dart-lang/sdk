@@ -5,7 +5,7 @@
 // Dart Mint representations and type propagation issue.
 // Testing Int32List and Uint32List loads.
 //
-// VMOptions=--optimization-counter-threshold=5 --no-use-osr
+// VMOptions=--optimization-counter-threshold=5 --no-use-osr --no-background-compilation
 
 import 'dart:typed_data';
 import "package:expect/expect.dart";

@@ -211,15 +211,15 @@ external void printToConsole(String line);
   InternalAnalysisContext _analysisContext;
 
   MockSdk() {
-    LIBRARIES.forEach((_MockSdkLibrary library) {
-      provider.newFile(library.path, library.content);
+    LIBRARIES.forEach((SdkLibrary library) {
+      provider.newFile(library.path, (library as _MockSdkLibrary).content);
     });
   }
 
   @override
   AnalysisContext get context {
     if (_analysisContext == null) {
-      _analysisContext = new SdkAnalysisContext();
+      _analysisContext = new SdkAnalysisContext(null);
       SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
     }

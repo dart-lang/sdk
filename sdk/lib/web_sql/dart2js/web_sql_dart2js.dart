@@ -15,7 +15,6 @@ import 'dart:collection';
 import 'dart:_internal';
 import 'dart:html';
 import 'dart:html_common';
-import 'dart:_js_helper' show convertDartClosureToJS, Creates, JSName, Native;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show Interceptor;
 // DO NOT EDIT - unless you are editing documentation as per:
@@ -23,6 +22,8 @@ import 'dart:_interceptors' show Interceptor;
 // Auto-generated dart:audio library.
 
 
+import 'dart:_js_helper' show convertDartClosureToJS, Creates, JSName, Native,
+    JavaScriptIndexingBehavior;
 
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -263,14 +264,12 @@ class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableList
 
   @DomName('SQLResultSetRowList.item')
   @DocsEditable()
-  @Creates('=Object')
   Map item(int index) {
     return convertNativeToDart_Dictionary(_item_1(index));
   }
   @JSName('item')
   @DomName('SQLResultSetRowList.item')
   @DocsEditable()
-  @Creates('=Object')
   _item_1(index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -292,5 +291,5 @@ class SqlTransaction extends Interceptor {
 
   @DomName('SQLTransaction.executeSql')
   @DocsEditable()
-  void executeSql(String sqlStatement, List<Object> arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) native;
+  void executeSql(String sqlStatement, [List arguments, SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) native;
 }

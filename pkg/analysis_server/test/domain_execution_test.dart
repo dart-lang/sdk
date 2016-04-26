@@ -48,7 +48,7 @@ main() {
           null,
           serverPlugin,
           new AnalysisServerOptions(),
-          () => new MockSdk(),
+          (_) => new MockSdk(),
           InstrumentationService.NULL_SERVICE);
       handler = new ExecutionDomainHandler(server);
     });

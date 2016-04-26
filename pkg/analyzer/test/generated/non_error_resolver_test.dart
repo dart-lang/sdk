@@ -14,7 +14,7 @@ import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
 import '../utils.dart';
-import 'resolver_test.dart';
+import 'resolver_test_case.dart';
 import 'test_support.dart';
 
 main() {
@@ -167,7 +167,7 @@ library lib2;
 class N {}
 class N2 {}''');
     computeLibrarySourceErrors(source);
-    assertNoErrors(source);
+    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
   }
 
   void test_annotated_partOfDeclaration() {
@@ -1472,6 +1472,26 @@ class A {
 main() {
   const int x = 0;
 }''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_constRedirectSkipsSupertype() {
+    // Since C redirects to C.named, it doesn't implicitly refer to B's
+    // unnamed constructor.  Therefore there is no cycle.
+    Source source = addSource('''
+class B {
+  final x;
+  const B() : x = y;
+  const B.named() : x = null;
+}
+class C extends B {
+  const C() : this.named();
+  const C.named() : super.named();
+}
+const y = const C();
+''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);

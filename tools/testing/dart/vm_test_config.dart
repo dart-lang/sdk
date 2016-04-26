@@ -8,9 +8,7 @@ import 'test_suite.dart';
 
 class VMTestSuite extends CCTestSuite {
   VMTestSuite(Map configuration)
-      : super(configuration,
-              "vm",
-              "run_vm_tests",
-              ["runtime/tests/vm/vm.status"],
-              testPrefix: 'cc/');
+      : super(
+            configuration, "vm", "run_vm_tests", ["runtime/tests/vm/vm.status"],
+            testPrefix: 'cc/');
 }

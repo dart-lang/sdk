@@ -7,6 +7,7 @@ library dart2js.serialization_test;
 import 'dart:io';
 import 'memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/constants/constructors.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/dart_types.dart';
@@ -15,9 +16,11 @@ import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/visitor.dart';
 import 'package:compiler/src/ordered_typeset.dart';
-import 'package:compiler/src/serialization/serialization.dart';
+import 'package:compiler/src/serialization/element_serialization.dart';
+import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/serialization/json_serializer.dart';
-import 'package:compiler/src/tree/tree.dart';
+import 'package:compiler/src/serialization/serialization.dart';
+import 'serialization_test_helper.dart';
 
 main(List<String> arguments) {
   // Ensure that we can print out constant expressions.
@@ -47,7 +50,7 @@ main(List<String> arguments) {
   }
   asyncTest(() async {
     CompilationResult result = await runCompiler(
-        entryPoint: entryPoint, options: ['--analyze-all']);
+        entryPoint: entryPoint, options: [Flags.analyzeAll]);
     Compiler compiler = result.compiler;
     testSerialization(compiler.libraryLoader.libraries,
                       outPath: outPath,
@@ -58,11 +61,11 @@ main(List<String> arguments) {
 void testSerialization(Iterable<LibraryElement> libraries1,
                        {String outPath,
                         bool prettyPrint}) {
-  Serializer serializer = new Serializer(const JsonSerializationEncoder());
+  Serializer serializer = new Serializer();
   for (LibraryElement library1 in libraries1) {
     serializer.serialize(library1);
   }
-  String text = serializer.toText();
+  String text = serializer.toText(const JsonSerializationEncoder());
   String outText = text;
   if (prettyPrint) {
     outText = serializer.prettyPrint();
@@ -74,6 +77,7 @@ void testSerialization(Iterable<LibraryElement> libraries1,
   }
 
   Deserializer deserializer = new Deserializer.fromText(
+      new DeserializationContext(),
       text, const JsonSerializationDecoder());
   List<LibraryElement> libraries2 = <LibraryElement>[];
   for (LibraryElement library1 in libraries1) {
@@ -86,13 +90,14 @@ void testSerialization(Iterable<LibraryElement> libraries1,
     libraries2.add(library2);
   }
 
-  Serializer serializer2 = new Serializer(const JsonSerializationEncoder());
+  Serializer serializer2 = new Serializer();
   for (LibraryElement library2 in libraries2) {
     serializer2.serialize(library2);
   }
-  String text2 = serializer2.toText();
+  String text2 = serializer2.toText(const JsonSerializationEncoder());
 
   Deserializer deserializer3 = new Deserializer.fromText(
+      new DeserializationContext(),
       text2, const JsonSerializationDecoder());
   for (LibraryElement library1 in libraries1) {
     LibraryElement library2 =
@@ -126,117 +131,6 @@ checkElementProperties(
     Object object1, object2, String property,
     Element element1, Element element2) {
   const ElementPropertyEquivalence().visit(element1, element2);
-}
-
-/// Check the equivalence of the two lists of elements, [list1] and [list2].
-///
-/// Uses [object1], [object2] and [property] to provide context for failures.
-checkElementLists(Object object1, Object object2, String property,
-                  Iterable<Element> list1, Iterable<Element> list2) {
-  checkListEquivalence(object1, object2, property,
-                  list1, list2, checkElementProperties);
-}
-
-/// Check equivalence of the two lists, [list1] and [list2], using
-/// [checkEquivalence] to check the pair-wise equivalence.
-///
-/// Uses [object1], [object2] and [property] to provide context for failures.
-void checkListEquivalence(
-    Object object1, Object object2, String property,
-    Iterable list1, Iterable list2,
-    void checkEquivalence(o1, o2, property, a, b)) {
-  for (int i = 0; i < list1.length && i < list2.length; i++) {
-    checkEquivalence(
-        object1, object2, property,
-        list1.elementAt(i), list2.elementAt(i));
-  }
-  for (int i = list1.length; i < list2.length; i++) {
-    throw
-        'Missing equivalent for element '
-        '#$i ${list2.elementAt(i)} in `${property}` on $object2.\n'
-        '`${property}` on $object1:\n ${list1.join('\n ')}\n'
-        '`${property}` on $object2:\n ${list2.join('\n ')}';
-  }
-  for (int i = list2.length; i < list1.length; i++) {
-    throw
-        'Missing equivalent for element '
-        '#$i ${list1.elementAt(i)} in `${property}` on $object1.\n'
-        '`${property}` on $object1:\n ${list1.join('\n ')}\n'
-        '`${property}` on $object2:\n ${list2.join('\n ')}';
-  }
-}
-
-/// Checks the equivalence of the identity (but not properties) of [element1]
-/// and [element2].
-///
-/// Uses [object1], [object2] and [property] to provide context for failures.
-void checkElementIdentities(
-    Object object1, Object object2, String property,
-    Element element1, Element element2) {
-  if (identical(element1, element2)) return;
-  if (element1 == null || element2 == null) {
-    check(object1, object2, property, element1, element2);
-  }
-  const ElementIdentityEquivalence().visit(element1, element2);
-}
-
-/// Checks the pair-wise equivalence of the identity (but not properties) of the
-/// elements in [list] and [list2].
-///
-/// Uses [object1], [object2] and [property] to provide context for failures.
-void checkElementListIdentities(
-    Object object1, Object object2, String property,
-    Iterable<Element> list1, Iterable<Element> list2) {
-  checkListEquivalence(
-      object1, object2, property,
-      list1, list2, checkElementIdentities);
-}
-
-/// Checks the equivalence of [type1] and [type2].
-///
-/// Uses [object1], [object2] and [property] to provide context for failures.
-void checkTypes(
-    Object object1, Object object2, String property,
-    DartType type1, DartType type2) {
-  if (identical(type1, type2)) return;
-  if (type1 == null || type2 == null) {
-    check(object1, object2, property, type1, type2);
-  }
-  const TypeEquivalence().visit(type1, type2);
-}
-
-/// Checks the pair-wise equivalence of the types in [list1] and [list2].
-///
-/// Uses [object1], [object2] and [property] to provide context for failures.
-void checkTypeLists(
-    Object object1, Object object2, String property,
-    List<DartType> list1, List<DartType> list2) {
-  checkListEquivalence(object1, object2, property, list1, list2, checkTypes);
-}
-
-/// Checks the equivalence of [exp1] and [exp2].
-///
-/// Uses [object1], [object2] and [property] to provide context for failures.
-void checkConstants(
-    Object object1, Object object2, String property,
-    ConstantExpression exp1, ConstantExpression exp2) {
-  if (identical(exp1, exp2)) return;
-  if (exp1 == null || exp2 == null) {
-    check(object1, object2, property, exp1, exp2);
-  }
-  const ConstantEquivalence().visit(exp1, exp2);
-}
-
-/// Checks the pair-wise equivalence of the contants in [list1] and [list2].
-///
-/// Uses [object1], [object2] and [property] to provide context for failures.
-void checkConstantLists(
-    Object object1, Object object2, String property,
-    List<ConstantExpression> list1,
-    List<ConstantExpression> list2) {
-  checkListEquivalence(
-      object1, object2, property,
-      list1, list2, checkConstants);
 }
 
 /// Checks the equivalence of [constructor1] and [constructor2].
@@ -328,125 +222,13 @@ class ConstantConstructorEquivalence
   }
 }
 
-/// Check that the values [property] of [object1] and [object2], [value1] and
-/// [value2] respectively, are equal and throw otherwise.
-void check(var object1, var object2, String property, var value1, value2) {
-  if (value1 != value2) {
-    throw "$object1.$property = '${value1}' <> "
-          "$object2.$property = '${value2}'";
-  }
-}
-
-/// Visitor that checks for equivalence of [Element] identities.
-class ElementIdentityEquivalence extends BaseElementVisitor<dynamic, Element> {
-  const ElementIdentityEquivalence();
-
-  void visit(Element element1, Element element2) {
-    check(element1, element2, 'kind', element1.kind, element2.kind);
-    element1.accept(this, element2);
-  }
-
-  @override
-  void visitElement(Element e, Element arg) {
-    throw new UnsupportedError("Unsupported element $e");
-  }
-
-  @override
-  void visitLibraryElement(LibraryElement element1, LibraryElement element2) {
-    check(element1, element2,
-          'canonicalUri',
-          element1.canonicalUri, element2.canonicalUri);
-  }
-
-  @override
-  void visitCompilationUnitElement(CompilationUnitElement element1,
-                                   CompilationUnitElement element2) {
-    check(element1, element2,
-          'name',
-          element1.name, element2.name);
-    visit(element1.library, element2.library);
-  }
-
-  @override
-  void visitClassElement(ClassElement element1, ClassElement element2) {
-    check(element1, element2,
-          'name',
-          element1.name, element2.name);
-    visit(element1.library, element2.library);
-  }
-
-  void checkMembers(Element element1, Element element2) {
-    check(element1, element2,
-          'name',
-          element1.name, element2.name);
-    if (element1.enclosingClass != null || element2.enclosingClass != null) {
-      visit(element1.enclosingClass, element2.enclosingClass);
-    } else {
-      visit(element1.library, element2.library);
-    }
-  }
-
-  @override
-  void visitFieldElement(FieldElement element1, FieldElement element2) {
-    checkMembers(element1, element2);
-  }
-
-  @override
-  void visitFunctionElement(FunctionElement element1,
-                            FunctionElement element2) {
-    checkMembers(element1, element2);
-  }
-
-  void visitAbstractFieldElement(AbstractFieldElement element1,
-                                 AbstractFieldElement element2) {
-    checkMembers(element1, element2);
-  }
-
-  @override
-  void visitTypeVariableElement(TypeVariableElement element1,
-                                TypeVariableElement element2) {
-    check(element1, element2,
-          'name',
-          element1.name, element2.name);
-    visit(element1.typeDeclaration, element2.typeDeclaration);
-  }
-
-  @override
-  void visitTypedefElement(TypedefElement element1, TypedefElement element2) {
-    check(element1, element2,
-          'name',
-          element1.name, element2.name);
-    visit(element1.library, element2.library);
-  }
-
-  @override
-  void visitParameterElement(ParameterElement element1,
-                             ParameterElement element2) {
-    check(element1, element2,
-          'name',
-          element1.name, element2.name);
-    visit(element1.functionDeclaration, element2.functionDeclaration);
-  }
-
-  @override
-  void visitImportElement(ImportElement element1, ImportElement element2) {
-    visit(element1.importedLibrary, element2.importedLibrary);
-    visit(element1.library, element2.library);
-  }
-
-  @override
-  void visitExportElement(ExportElement element1, ExportElement element2) {
-    visit(element1.exportedLibrary, element2.exportedLibrary);
-    visit(element1.library, element2.library);
-  }
-
-  @override
-  void visitPrefixElement(PrefixElement element1, PrefixElement element2) {
-    check(element1, element2,
-          'name',
-          element1.name, element2.name);
-    visit(element1.library, element2.library);
-  }
+/// Check the equivalence of the two lists of elements, [list1] and [list2].
+///
+/// Uses [object1], [object2] and [property] to provide context for failures.
+checkElementLists(Object object1, Object object2, String property,
+                  Iterable<Element> list1, Iterable<Element> list2) {
+  checkListEquivalence(object1, object2, property,
+                  list1, list2, checkElementProperties);
 }
 
 /// Visitor that checks for equivalence of [Element] properties.
@@ -454,6 +236,9 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
   const ElementPropertyEquivalence();
 
   void visit(Element element1, Element element2) {
+    if (element1 == null && element2 == null) return;
+    element1 = element1.declaration;
+    element2 = element2.declaration;
     if (element1 == element2) return;
     check(element1, element2, 'kind', element1.kind, element2.kind);
     element1.accept(this, element2);
@@ -472,41 +257,28 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
           element1.libraryName, element2.libraryName);
     visitMembers(element1, element2);
     visit(element1.entryCompilationUnit, element2.entryCompilationUnit);
+
     checkElementLists(
         element1, element2, 'compilationUnits',
-        element1.compilationUnits.toList(),
-        element2.compilationUnits.toList());
+        LibrarySerializer.getCompilationUnits(element1),
+        LibrarySerializer.getCompilationUnits(element2));
 
     checkElementListIdentities(
-        element1, element2, 'imports', element1.imports, element2.imports);
+        element1, element2, 'imports',
+        LibrarySerializer.getImports(element1),
+        LibrarySerializer.getImports(element2));
     checkElementListIdentities(
         element1, element2, 'exports', element1.exports, element2.exports);
 
-    List<Element> imports1 = <Element>[];
-    List<Element> imports2 = <Element>[];
-    element1.forEachImport((Element import) {
-      if (import.isAmbiguous) return;
-      imports1.add(import);
-    });
-    element2.forEachImport((Element import) {
-      if (import.isAmbiguous) return;
-      imports2.add(import);
-    });
     checkElementListIdentities(
-        element1, element2, 'importScope', imports1, imports2);
+        element1, element2, 'importScope',
+        LibrarySerializer.getImportedElements(element1),
+        LibrarySerializer.getImportedElements(element2));
 
-    List<Element> exports1 = <Element>[];
-    List<Element> exports2 = <Element>[];
-    element1.forEachExport((Element export) {
-      if (export.isAmbiguous) return;
-      exports1.add(export);
-    });
-    element2.forEachExport((Element export) {
-      if (export.isAmbiguous) return;
-      exports2.add(export);
-    });
     checkElementListIdentities(
-        element1, element2, 'exportScope', exports1, exports2);
+        element1, element2, 'exportScope',
+        LibrarySerializer.getExportedElements(element1),
+        LibrarySerializer.getExportedElements(element2));
   }
 
   @override
@@ -536,23 +308,46 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
   void visitMembers(ScopeContainerElement element1,
                     ScopeContainerElement element2) {
     Set<String> names = new Set<String>();
-    element1.forEachLocalMember((Element member) {
+    Iterable<Element> members1 = element1.isLibrary
+        ? LibrarySerializer.getMembers(element1)
+        : ClassSerializer.getMembers(element1);
+    Iterable<Element> members2 = element2.isLibrary
+        ? LibrarySerializer.getMembers(element2)
+        : ClassSerializer.getMembers(element2);
+    for (Element member in members1) {
       names.add(member.name);
-    });
-    element2.forEachLocalMember((Element member) {
+    }
+    for (Element member in members2) {
       names.add(member.name);
-    });
+    }
+    element1 = element1.implementation;
+    element2 = element2.implementation;
     for (String name in names) {
       Element member1 = element1.localLookup(name);
       Element member2 = element2.localLookup(name);
       if (member1 == null) {
-        print('Missing member for $member2');
-        continue;
+        String message =
+            'Missing member for $member2 in\n ${members1.join('\n ')}';
+        if (member2.isAbstractField) {
+          // TODO(johnniwinther): Ensure abstract fields are handled correctly.
+          //print(message);
+          continue;
+        } else {
+          throw message;
+        }
       }
       if (member2 == null) {
-        print('Missing member for $member1');
-        continue;
+        String message =
+            'Missing member for $member1 in\n ${members2.join('\n ')}';
+        if (member1.isAbstractField) {
+          // TODO(johnniwinther): Ensure abstract fields are handled correctly.
+          //print(message);
+          continue;
+        } else {
+          throw message;
+        }
       }
+      //print('Checking member ${member1} against ${member2}');
       visit(member1, member2);
     }
   }
@@ -576,6 +371,16 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1.typeVariables, element2.typeVariables);
     check(element1, element2, 'isAbstract',
         element1.isAbstract, element2.isAbstract);
+    check(element1, element2, 'isUnnamedMixinApplication',
+        element1.isUnnamedMixinApplication, element2.isUnnamedMixinApplication);
+    check(element1, element2, 'isEnumClass',
+        element1.isEnumClass, element2.isEnumClass);
+    if (element1.isEnumClass) {
+      EnumClassElement enum1 = element1;
+      EnumClassElement enum2 = element2;
+      checkElementLists(enum1, enum2, 'enumValues',
+                        enum1.enumValues, enum2.enumValues);
+    }
     if (!element1.isObject) {
       checkTypes(element1, element2, 'supertype',
           element1.supertype, element2.supertype);
@@ -608,6 +413,15 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1, element2, 'interfaces',
         element1.interfaces.toList(),
         element2.interfaces.toList());
+
+    List<ConstructorElement> getConstructors(ClassElement cls) {
+      return cls.implementation.constructors.map((c) => c.declaration).toList();
+    }
+
+    checkElementLists(
+        element1, element2, 'constructors',
+        getConstructors(element1),
+        getConstructors(element2));
 
     visitMembers(element1, element2);
   }
@@ -823,275 +637,5 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1, element2, 'importedLibrary',
         element1.deferredImport, element2.deferredImport);
     // TODO(johnniwinther): Check members.
-  }
-}
-
-/// Visitor that checks for equivalence of [DartType]s.
-class TypeEquivalence implements DartTypeVisitor<dynamic, DartType> {
-  const TypeEquivalence();
-
-  void visit(DartType type1, DartType type2) {
-    check(type1, type2, 'kind', type1.kind, type2.kind);
-    type1.accept(this, type2);
-  }
-
-  @override
-  void visitDynamicType(DynamicType type, DynamicType other) {
-  }
-
-  @override
-  void visitFunctionType(FunctionType type, FunctionType other) {
-    checkTypeLists(
-        type, other, 'parameterTypes',
-        type.parameterTypes, other.parameterTypes);
-    checkTypeLists(
-        type, other, 'optionalParameterTypes',
-        type.optionalParameterTypes, other.optionalParameterTypes);
-    checkTypeLists(
-        type, other, 'namedParameterTypes',
-        type.namedParameterTypes, other.namedParameterTypes);
-    for (int i = 0; i < type.namedParameters.length; i++) {
-      if (type.namedParameters[i] != other.namedParameters[i]) {
-        throw "Named parameter '$type.namedParameters[i]' <> "
-              "'${other.namedParameters[i]}'";
-      }
-    }
-  }
-
-  void visitGenericType(GenericType type, GenericType other) {
-    checkElementIdentities(
-        type, other, 'element',
-        type.element, other.element);
-    checkTypeLists(
-        type, other, 'typeArguments',
-        type.typeArguments, other.typeArguments);
-  }
-
-  @override
-  void visitMalformedType(MalformedType type, MalformedType other) {
-  }
-
-  @override
-  void  visitStatementType(StatementType type, StatementType other) {
-    throw new UnsupportedError("Unsupported type: $type");
-  }
-
-  @override
-  void visitTypeVariableType(TypeVariableType type, TypeVariableType other) {
-    checkElementIdentities(
-        type, other, 'element',
-        type.element, other.element);
-  }
-
-  @override
-  void visitVoidType(VoidType type, VoidType argument) {
-  }
-
-  @override
-  void visitInterfaceType(InterfaceType type, InterfaceType other) {
-    visitGenericType(type, other);
-  }
-
-  @override
-  void visitTypedefType(TypedefType type, TypedefType other) {
-    visitGenericType(type, other);
-  }
-}
-
-/// Visitor that checks for structural equivalence of [ConstantExpression]s.
-class ConstantEquivalence
-    implements ConstantExpressionVisitor<dynamic, ConstantExpression> {
-  const ConstantEquivalence();
-
-  @override
-  visit(ConstantExpression exp1, ConstantExpression exp2) {
-    if (identical(exp1, exp2)) return;
-    check(exp1, exp2, 'kind', exp1.kind, exp2.kind);
-    exp1.accept(this, exp2);
-  }
-
-  @override
-  visitBinary(BinaryConstantExpression exp1, BinaryConstantExpression exp2) {
-    check(exp1, exp2, 'operator', exp1.operator, exp2.operator);
-    checkConstants(exp1, exp2, 'left', exp1.left, exp2.left);
-    checkConstants(exp1, exp2, 'right', exp1.right, exp2.right);
-  }
-
-  @override
-  visitConcatenate(ConcatenateConstantExpression exp1,
-                   ConcatenateConstantExpression exp2) {
-    checkConstantLists(
-        exp1, exp2, 'expressions',
-        exp1.expressions, exp2.expressions);
-  }
-
-  @override
-  visitConditional(ConditionalConstantExpression exp1,
-                   ConditionalConstantExpression exp2) {
-    checkConstants(
-        exp1, exp2, 'condition', exp1.condition, exp2.condition);
-    checkConstants(exp1, exp2, 'trueExp', exp1.trueExp, exp2.trueExp);
-    checkConstants(exp1, exp2, 'falseExp', exp1.falseExp, exp2.falseExp);
-  }
-
-  @override
-  visitConstructed(ConstructedConstantExpression exp1,
-                   ConstructedConstantExpression exp2) {
-    checkTypes(
-        exp1, exp2, 'type',
-        exp1.type, exp2.type);
-    checkElementIdentities(
-        exp1, exp2, 'target',
-        exp1.target, exp2.target);
-    checkConstantLists(
-        exp1, exp2, 'arguments',
-        exp1.arguments, exp2.arguments);
-    check(exp1, exp2, 'callStructure', exp1.callStructure, exp2.callStructure);
-  }
-
-  @override
-  visitFunction(FunctionConstantExpression exp1,
-                FunctionConstantExpression exp2) {
-    checkElementIdentities(
-        exp1, exp2, 'element',
-        exp1.element, exp2.element);
-  }
-
-  @override
-  visitIdentical(IdenticalConstantExpression exp1,
-                 IdenticalConstantExpression exp2) {
-    checkConstants(exp1, exp2, 'left', exp1.left, exp2.left);
-    checkConstants(exp1, exp2, 'right', exp1.right, exp2.right);
-  }
-
-  @override
-  visitList(ListConstantExpression exp1, ListConstantExpression exp2) {
-    checkTypes(
-        exp1, exp2, 'type',
-        exp1.type, exp2.type);
-    checkConstantLists(
-        exp1, exp2, 'values',
-        exp1.values, exp2.values);
-  }
-
-  @override
-  visitMap(MapConstantExpression exp1, MapConstantExpression exp2) {
-    checkTypes(
-        exp1, exp2, 'type',
-        exp1.type, exp2.type);
-    checkConstantLists(
-        exp1, exp2, 'keys',
-        exp1.keys, exp2.keys);
-    checkConstantLists(
-        exp1, exp2, 'values',
-        exp1.values, exp2.values);
-  }
-
-  @override
-  visitNamed(NamedArgumentReference exp1, NamedArgumentReference exp2) {
-    check(exp1, exp2, 'name', exp1.name, exp2.name);
-  }
-
-  @override
-  visitPositional(PositionalArgumentReference exp1,
-                  PositionalArgumentReference exp2) {
-    check(exp1, exp2, 'index', exp1.index, exp2.index);
-  }
-
-  @override
-  visitSymbol(SymbolConstantExpression exp1, SymbolConstantExpression exp2) {
-    // TODO: implement visitSymbol
-  }
-
-  @override
-  visitType(TypeConstantExpression exp1, TypeConstantExpression exp2) {
-    checkTypes(
-        exp1, exp2, 'type',
-        exp1.type, exp2.type);
-  }
-
-  @override
-  visitUnary(UnaryConstantExpression exp1, UnaryConstantExpression exp2) {
-    check(exp1, exp2, 'operator', exp1.operator, exp2.operator);
-    checkConstants(
-        exp1, exp2, 'expression', exp1.expression, exp2.expression);
-  }
-
-  @override
-  visitVariable(VariableConstantExpression exp1,
-                VariableConstantExpression exp2) {
-    checkElementIdentities(
-        exp1, exp2, 'element',
-        exp1.element, exp2.element);
-  }
-
-  @override
-  visitBool(BoolConstantExpression exp1, BoolConstantExpression exp2) {
-    check(exp1, exp2, 'primitiveValue',
-          exp1.primitiveValue, exp2.primitiveValue);
-  }
-
-  @override
-  visitDouble(DoubleConstantExpression exp1, DoubleConstantExpression exp2) {
-    check(exp1, exp2, 'primitiveValue',
-          exp1.primitiveValue, exp2.primitiveValue);
-  }
-
-  @override
-  visitInt(IntConstantExpression exp1, IntConstantExpression exp2) {
-    check(exp1, exp2, 'primitiveValue',
-          exp1.primitiveValue, exp2.primitiveValue);
-  }
-
-  @override
-  visitNull(NullConstantExpression exp1, NullConstantExpression exp2) {
-    // Do nothing.
-  }
-
-  @override
-  visitString(StringConstantExpression exp1, StringConstantExpression exp2) {
-    check(exp1, exp2, 'primitiveValue',
-          exp1.primitiveValue, exp2.primitiveValue);
-  }
-
-  @override
-  visitBoolFromEnvironment(BoolFromEnvironmentConstantExpression exp1,
-                           BoolFromEnvironmentConstantExpression exp2) {
-    checkConstants(exp1, exp2, 'name', exp1.name, exp2.name);
-    checkConstants(
-        exp1, exp2, 'defaultValue',
-        exp1.defaultValue, exp2.defaultValue);
-  }
-
-  @override
-  visitIntFromEnvironment(IntFromEnvironmentConstantExpression exp1,
-                          IntFromEnvironmentConstantExpression exp2) {
-    checkConstants(exp1, exp2, 'name', exp1.name, exp2.name);
-    checkConstants(
-        exp1, exp2, 'defaultValue',
-        exp1.defaultValue, exp2.defaultValue);
-  }
-
-  @override
-  visitStringFromEnvironment(StringFromEnvironmentConstantExpression exp1,
-                             StringFromEnvironmentConstantExpression exp2) {
-    checkConstants(exp1, exp2, 'name', exp1.name, exp2.name);
-    checkConstants(
-        exp1, exp2, 'defaultValue',
-        exp1.defaultValue, exp2.defaultValue);
-  }
-
-  @override
-  visitStringLength(StringLengthConstantExpression exp1,
-                    StringLengthConstantExpression exp2) {
-    checkConstants(
-        exp1, exp2, 'expression',
-        exp1.expression, exp2.expression);
-  }
-
-  @override
-  visitDeferred(DeferredConstantExpression exp1,
-                DeferredConstantExpression exp2) {
-    // TODO: implement visitDeferred
   }
 }

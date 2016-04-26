@@ -45,9 +45,12 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
 typedef void _ElementVisitorFunction(Element element);
 
 class AbstractContextTest {
+  static final MockSdk SHARED_MOCK_SDK = new MockSdk();
+  static final MockSdk SHARED_STRONG_MOCK_SDK = new MockSdk();
+
   MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
 
-  DartSdk sdk = new MockSdk();
+  DartSdk sdk;
   SourceFactory sourceFactory;
   AnalysisContextImpl context;
   AnalysisCache analysisCache;
@@ -120,6 +123,8 @@ class AbstractContextTest {
     return new AnalysisContextImpl();
   }
 
+  DartSdk createDartSdk() => new MockSdk();
+
   Source newSource(String path, [String content = '']) {
     File file = resourceProvider.newFile(path, content);
     return file.createSource();
@@ -135,6 +140,7 @@ class AbstractContextTest {
   }
 
   void prepareAnalysisContext([AnalysisOptions options]) {
+    sdk = createDartSdk();
     sdkResolver = new DartUriResolver(sdk);
     resourceResolver = new ResourceUriResolver(resourceProvider);
     sourceFactory =

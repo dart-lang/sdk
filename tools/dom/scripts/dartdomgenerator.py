@@ -29,6 +29,14 @@ if not os.path.exists(ply_dir):
   # location is dartium-git/src/third_party 
   third_party_dir = os.path.join(dart_dir, '..', 'third_party')
   assert(os.path.exists(third_party_dir))
+else:
+  # It's Dart we need to make sure that tools in injected in our search path
+  # because this is where idl_parser is located for a Dart enlistment.  Dartium
+  # can figure out the tools directory because of the location of where the
+  # scripts blink scripts are located.
+  tools_dir = os.path.join(dart_dir, 'tools')
+  sys.path.insert(1, tools_dir)
+
 sys.path.insert(1, third_party_dir)
 
 sys.path.insert(1, os.path.join(dart_dir, 'tools/dom/scripts'))
@@ -177,7 +185,7 @@ def GenerateFromDatabase(common_database,
     cpp_library_emitter = CPPLibraryEmitter(emitters, cpp_output_dir)
     dart_output_dir = os.path.join(dartium_output_dir, 'dart')
     backend_factory = lambda interface:\
-        DartiumBackend(interface, cpp_library_emitter, backend_options)
+        DartiumBackend(interface, cpp_library_emitter, backend_options, _logger)
     dart_libraries = DartLibraries(
         HTML_LIBRARY_NAMES, template_loader, 'dartium', dartium_output_dir, dart_js_interop)
 
@@ -225,6 +233,25 @@ def UpdateCssProperties():
   properties."""
   _logger.info('Updating Css Properties.')
   css_code_generator.GenerateCssTemplateFile()
+
+CACHED_PATCHES = """
+// START_OF_CACHED_PATCHES
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// DO NOT EDIT GENERATED FILE.
+
+library cached_patches;
+
+var cached_patches = {
+    /********************************************************
+     *****                                              *****
+     *****  MUST RUN tools/dartium/generate_patches.sh  *****
+     *****                                              *****
+     ********************************************************/
+};
+"""
 
 def main():
   parser = optparse.OptionParser()
@@ -318,6 +345,14 @@ def main():
       GenerateSingleFile(
           os.path.join(dartium_output_dir, '%s_dartium.dart' % library_name),
           os.path.join('..', '..', '..', 'sdk', 'lib', library_name, 'dartium'))
+
+    # Blow away the cached_patches.dart needs to be re-generated for Dartium
+    # see tools/dartium/generate_patches.sh
+    cached_patches_filename = os.path.join('..', '..', '..', 'sdk', 'lib', 'js', 'dartium',
+                                           'cached_patches.dart')
+    cached_patches = open(cached_patches_filename, 'w')
+    cached_patches.write(CACHED_PATCHES);
+    cached_patches.close()
 
   if '_blink' in systems:
     _logger.info('Generating dartium _blink file.')

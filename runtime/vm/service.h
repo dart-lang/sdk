@@ -105,7 +105,7 @@ class Service : public AllStatic {
       Dart_GetVMServiceAssetsArchive get_service_assets);
 
   static void SendEchoEvent(Isolate* isolate, const char* text);
-  static void SendGraphEvent(Thread* thread);
+  static void SendGraphEvent(Thread* thread, bool collect_garbage);
   static void SendInspectEvent(Isolate* isolate, const Object& inspectee);
 
   static void SendEmbedderEvent(Isolate* isolate,
@@ -144,6 +144,7 @@ class Service : public AllStatic {
   static StreamInfo graph_stream;
   static StreamInfo logging_stream;
   static StreamInfo extension_stream;
+  static StreamInfo timeline_stream;
 
   static bool ListenStream(const char* stream_id);
   static void CancelStream(const char* stream_id);
@@ -184,7 +185,8 @@ class Service : public AllStatic {
                                 const uint8_t* data,
                                 intptr_t size);
 
-  static void PostEvent(const char* stream_id,
+  static void PostEvent(Isolate* isolate,
+                        const char* stream_id,
                         const char* kind,
                         JSONStream* event);
 

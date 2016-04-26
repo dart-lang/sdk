@@ -26,6 +26,7 @@ class AtomicOperations : public AllStatic {
   // NOTE: Not to be used for any atomic operations involving memory locations
   // that are accessed by generated code.
   static void IncrementBy(intptr_t* p, intptr_t value);
+  static void IncrementInt64By(int64_t* p, int64_t value);
 
   // Atomically fetch the value at p and decrement the value at p.
   // Returns the original value at p.
@@ -52,6 +53,12 @@ class AtomicOperations : public AllStatic {
   // memory order (i.e., no load barriers/fences).
   static uword LoadRelaxed(uword* ptr) {
     return *static_cast<volatile uword*>(ptr);
+  }
+
+  // Performs a load of a word from 'ptr', but without any guarantees about
+  // memory order (i.e., no load barriers/fences).
+  static intptr_t LoadRelaxedIntPtr(intptr_t* ptr) {
+    return *static_cast<volatile intptr_t*>(ptr);
   }
 };
 

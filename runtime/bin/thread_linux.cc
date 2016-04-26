@@ -6,6 +6,7 @@
 #if defined(TARGET_OS_LINUX)
 
 #include "bin/thread.h"
+#include "bin/thread_linux.h"
 
 #include <errno.h>  // NOLINT
 #include <sys/resource.h>  // NOLINT
@@ -38,7 +39,9 @@ namespace bin {
   }
 #else
 #define RETURN_ON_PTHREAD_FAILURE(result) \
-  if (result != 0) return result;
+  if (result != 0) { \
+    return result; \
+  }
 #endif
 
 
@@ -165,7 +168,7 @@ intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
 
 
 bool Thread::Compare(ThreadId a, ThreadId b) {
-  return pthread_equal(a, b) != 0;
+  return (pthread_equal(a, b) != 0);
 }
 
 

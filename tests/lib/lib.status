@@ -78,6 +78,7 @@ mirrors/mixin_application_test: RuntimeError # Issue 12464
 mirrors/other_declarations_location_test: CompileTimeError # Issue 10905
 mirrors/parameter_test/none: RuntimeError # Issue 6490
 mirrors/parameter_of_mixin_app_constructor_test: RuntimeError # Issue 6490
+mirrors/private_class_field_test: CompileTimeError
 mirrors/private_symbol_test: CompileTimeError # Issue 13597
 mirrors/private_types_test: RuntimeError # Issue 6490
 mirrors/redirecting_factory_test/none: RuntimeError # Issue 6490
@@ -105,7 +106,6 @@ mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
 [ $runtime == safari || $runtime == safarimobilesim ]
 typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
 typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
-mirrors/null_test: Fail # Issue 16831
 convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920
 
 [ ($runtime == safari && $builder_tag == mac10_7)|| $runtime == safarimobilesim ]
@@ -262,6 +262,7 @@ async/slow_consumer_test: Fail, Pass # Dartium JsInterop failure, dartbug.com/24
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 20806.
+mirrors/null_test: Fail # Issue 16831
 
 [ $compiler == dart2js && $runtime == jsshell ]
 async/schedule_microtask_test: Fail  # Preamble file does not correctly implement scheduleImmediate.
@@ -321,9 +322,6 @@ convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification OOM.
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $mode == debug && $arch == x64 && $system == windows ]
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $mode == release && $arch == ia32 && $system == windows ]
-convert/json_test: RuntimeError # Issue 24908
-
 [ $mode == debug && $arch != ia32 && $arch != x64 && $arch != simarm && $arch != simarmv6 && $arch != simarmv5te ]
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification not yet implemented.
 
@@ -336,11 +334,20 @@ async/async_await_zones_test: Crash # (await for(var x in bar().take(100)){sum+=
 async/stream_iterator_test: Crash # (Stream createCancel...  cannot handle sync*/async* functions
 mirrors/parameter_annotation_mirror_test: Pass, Fail # Issue 25501.  Depends on inlining.
 
-[ $compiler == dart2js && $cps_ir && $host_checked ]
-mirrors/circular_factory_redirection_test/02: Crash # Assertion failure: Constant constructor already computed for generative_constructor(A#circular2)
-mirrors/mirrors_used_typedef_declaration_test/01: Crash # Assertion failure: typedef(Foo) has not been checked for cycles.
-mirrors/mirrors_used_typedef_declaration_test/none: Crash # Assertion failure: typedef(Foo) has not been checked for cycles.
-mirrors/typedef_library_test: Crash # Assertion failure: typedef(G) has not been checked for cycles.
+[ $compiler == dart2js && $cps_ir && $checked ]
+*: Skip # Issue 25761
+
+[ $compiler == dart2js && $host_checked ]
+mirrors/circular_factory_redirection_test/02: Crash # Assertion failure: Constant constructor already computed for generative_constructor(A#circular2).  Issue 25911
+mirrors/metadata_allowed_values_test/28: Crash # Issue 25911
+mirrors/metadata_allowed_values_test/29: Crash # Issue 25911
+mirrors/metadata_allowed_values_test/30: Crash # Issue 25911
+mirrors/metadata_allowed_values_test/31: Crash # Issue 25911
+
+[ $compiler == dart2js && $host_checked && $unchecked ]
+mirrors/mirrors_used_typedef_declaration_test/01: Crash # Assertion failure: typedef(Foo) has not been checked for cycles. Issue 25911
+mirrors/mirrors_used_typedef_declaration_test/none: Crash # Assertion failure: typedef(Foo) has not been checked for cycles. Issue 25911
+mirrors/typedef_library_test: Crash # Assertion failure: typedef(G) has not been checked for cycles. Issue 25911
 
 [ $compiler != dart2js ]
 async/dart2js_uncaught_error_test: Skip  # JS-integration only test
@@ -348,11 +355,9 @@ async/dart2js_uncaught_error_test: Skip  # JS-integration only test
 [ $noopt && $arch == simarm64 ]
 async/slow_consumer2_test: Pass, RuntimeError # Issue 25726
 
-[ $noopt || $compiler == precompiler ]
+[ $noopt || $compiler == precompiler || $mode == product ]
 mirrors/*: SkipByDesign
+
+[ $noopt || $compiler == precompiler ]
 convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
-
-[ $runtime == vm && $mode == product ]
-mirrors/mirrors_reader_test: Fail,OK  # Expects exact type name.
-

@@ -68,8 +68,8 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   final ToHtmlVisitor toHtmlVisitor;
 
   CodegenJavaVisitor(Api api)
-      : super(api),
-        toHtmlVisitor = new ToHtmlVisitor(api);
+      : toHtmlVisitor = new ToHtmlVisitor(api),
+        super(api);
 
   /**
    * Create a constructor, using [callback] to create its contents.
@@ -262,7 +262,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   }
 
   @override
-  TypeReference resolveTypeReferenceChain(TypeReference type) {
+  TypeDecl resolveTypeReferenceChain(TypeDecl type) {
     TypeDecl typeDecl = super.resolveTypeReferenceChain(type);
     if (typeDecl is TypeEnum) {
       return new TypeReference('String', null);

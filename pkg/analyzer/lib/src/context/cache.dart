@@ -173,12 +173,13 @@ class AnalysisCache {
    * It does not update the cache, if the corresponding [CacheEntry] does not
    * exist, then the default value is returned.
    */
-  Object getValue(AnalysisTarget target, ResultDescriptor result) {
+  Object/*=V*/ getValue/*<V>*/(
+      AnalysisTarget target, ResultDescriptor/*<V>*/ result) {
     CacheEntry entry = get(target);
     if (entry == null) {
       return result.defaultValue;
     }
-    return entry.getValue(result);
+    return entry.getValue(result) as Object/*=V*/;
   }
 
   /**
@@ -405,7 +406,7 @@ class CacheEntry {
     if (_partition != null) {
       _partition.resultAccessed(target, descriptor);
     }
-    return data.value;
+    return data.value as Object/*=V*/;
   }
 
   /**
@@ -565,7 +566,8 @@ class CacheEntry {
     // Ask the delta to validate.
     DeltaResult deltaResult = null;
     if (delta != null) {
-      deltaResult = delta.validate(_partition.context, target, descriptor);
+      deltaResult = delta.validate(
+          _partition.context, target, descriptor, thisData.value);
       if (deltaResult == DeltaResult.STOP) {
         return;
       }
@@ -1056,10 +1058,10 @@ class Delta {
 
   /**
    * Check whether this delta affects the result described by the given
-   * [descriptor] and [target].
+   * [descriptor] and [target]. The current [value] of the result is provided.
    */
   DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
-      ResultDescriptor descriptor) {
+      ResultDescriptor descriptor, Object value) {
     return DeltaResult.INVALIDATE;
   }
 }
@@ -1095,7 +1097,7 @@ enum DeltaResult {
 /**
  * [InvalidatedResult] describes an invalidated result.
  */
-class InvalidatedResult {
+class InvalidatedResult<V> {
   /**
    * The target in which the result was invalidated.
    */
@@ -1104,12 +1106,13 @@ class InvalidatedResult {
   /**
    * The descriptor of the result which was invalidated.
    */
-  final ResultDescriptor descriptor;
+  final ResultDescriptor<V> descriptor;
 
   /**
-   * The value of the result which was invalidated.
+   * The value of the result before it was invalidated, may be the default
+   * value if the result was flushed.
    */
-  final Object value;
+  final V value;
 
   InvalidatedResult(this.entry, this.descriptor, this.value);
 

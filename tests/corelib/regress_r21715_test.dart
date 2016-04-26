@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--optimization_counter_threshold=5
+// VMOptions=--optimization_counter_threshold=5 --no-background_compilation
 
 import "package:expect/expect.dart";
 

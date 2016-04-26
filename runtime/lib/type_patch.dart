@@ -13,10 +13,6 @@ abstract class _AbstractType implements Type {
 class _Type extends _AbstractType {
 }
 
-// Equivalent of RawFunctionType.
-class _FunctionType extends _AbstractType {
-}
-
 // Equivalent of RawTypeRef.
 class _TypeRef extends _AbstractType {
 }

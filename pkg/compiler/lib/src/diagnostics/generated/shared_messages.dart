@@ -12,10 +12,10 @@ of the json, dart2js and analyzer representations.
 import '../messages.dart' show MessageKind, MessageTemplate;
 
 const Map<MessageKind, MessageTemplate> TEMPLATES = const <MessageKind, MessageTemplate>{ 
-  MessageKind.CONST_CONSTRUCTOR_OR_FACTORY_WITH_BODY: const MessageTemplate(
-    MessageKind.CONST_CONSTRUCTOR_OR_FACTORY_WITH_BODY,
-    "Const constructor or factory can't have a body.",
-    howToFix: "Remove the 'const' keyword or the body.",
+  MessageKind.CONST_CONSTRUCTOR_WITH_BODY: const MessageTemplate(
+    MessageKind.CONST_CONSTRUCTOR_WITH_BODY,
+    "Const constructor can't have a body.",
+    howToFix: "Try removing the 'const' keyword or the body.",
     examples: const [
       r"""
          class C {
@@ -23,6 +23,13 @@ const Map<MessageKind, MessageTemplate> TEMPLATES = const <MessageKind, MessageT
          }
 
          main() => new C();""",
+    ]
+  ),  // Generated. Don't edit.
+  MessageKind.CONST_FACTORY: const MessageTemplate(
+    MessageKind.CONST_FACTORY,
+    "Only redirecting factory constructors can be declared to be 'const'.",
+    howToFix: "Try removing the 'const' keyword or replacing the body with '=' followed by a valid target.",
+    examples: const [
       r"""
          class C {
            const factory C() {}
@@ -67,7 +74,7 @@ const Map<MessageKind, MessageTemplate> TEMPLATES = const <MessageKind, MessageT
   ),  // Generated. Don't edit.
   MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE: const MessageTemplate(
     MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE,
-    "Constructors can't have a return type",
+    "Constructors can't have a return type.",
     howToFix: "Try removing the return type.",
     examples: const [
       "class A { int A() {} } main() { new A(); }",
@@ -84,7 +91,7 @@ const Map<MessageKind, MessageTemplate> TEMPLATES = const <MessageKind, MessageT
   ),  // Generated. Don't edit.
   MessageKind.RETHROW_OUTSIDE_CATCH: const MessageTemplate(
     MessageKind.RETHROW_OUTSIDE_CATCH,
-    "Rethrow must be inside of catch clause",
+    "Rethrow must be inside of catch clause.",
     howToFix: "Try moving the expression into a catch clause, or using a 'throw' expression.",
     examples: const [
       "main() { rethrow; }",
@@ -108,7 +115,7 @@ const Map<MessageKind, MessageTemplate> TEMPLATES = const <MessageKind, MessageT
   MessageKind.RETURN_IN_GENERATOR: const MessageTemplate(
     MessageKind.RETURN_IN_GENERATOR,
     "Can't return a value from a generator function (using the '#{modifier}' modifier).",
-    howToFix: "Try removing the value, replacing 'return' with 'yield' or changing the method body modifier",
+    howToFix: "Try removing the value, replacing 'return' with 'yield' or changing the method body modifier.",
     examples: const [
       r"""
         foo() async* { return 0; }
@@ -118,6 +125,115 @@ const Map<MessageKind, MessageTemplate> TEMPLATES = const <MessageKind, MessageT
         foo() sync* { return 0; }
         main() => foo();
         """,
+    ]
+  ),  // Generated. Don't edit.
+  MessageKind.NOT_ASSIGNABLE: const MessageTemplate(
+    MessageKind.NOT_ASSIGNABLE,
+    "'#{fromType}' is not assignable to '#{toType}'."  ),  // Generated. Don't edit.
+  MessageKind.FORIN_NOT_ASSIGNABLE: const MessageTemplate(
+    MessageKind.FORIN_NOT_ASSIGNABLE,
+    "The element type '#{currentType}' of '#{expressionType}' is not assignable to '#{elementType}'.",
+    examples: const [
+      r"""
+        main() {
+          List<int> list = <int>[1, 2];
+          for (String x in list) x;
+        }
+        """,
+    ]
+  ),  // Generated. Don't edit.
+  MessageKind.CANNOT_RESOLVE: const MessageTemplate(
+    MessageKind.CANNOT_RESOLVE,
+    "Can't resolve '#{name}'."  ),  // Generated. Don't edit.
+  MessageKind.UNDEFINED_METHOD: const MessageTemplate(
+    MessageKind.UNDEFINED_METHOD,
+    "The method '#{memberName}' is not defined for the class '#{className}'.",
+    examples: const [
+      r"""
+        class A {
+          foo() { bar(); }
+        }
+        main() { new A().foo(); }
+        """,
+    ]
+  ),  // Generated. Don't edit.
+  MessageKind.UNDEFINED_GETTER: const MessageTemplate(
+    MessageKind.UNDEFINED_GETTER,
+    "The getter '#{memberName}' is not defined for the class '#{className}'.",
+    examples: const [
+      "class A {} main() { new A().x; }",
+      "class A {} main() { A.x; }",
+    ]
+  ),  // Generated. Don't edit.
+  MessageKind.UNDEFINED_INSTANCE_GETTER_BUT_SETTER: const MessageTemplate(
+    MessageKind.UNDEFINED_INSTANCE_GETTER_BUT_SETTER,
+    "The setter '#{memberName}' in class '#{className}' can not be used as a getter.",
+    examples: const [
+      "class A { set x(y) {} } main() { new A().x; }",
+    ]
+  ),  // Generated. Don't edit.
+  MessageKind.UNDEFINED_OPERATOR: const MessageTemplate(
+    MessageKind.UNDEFINED_OPERATOR,
+    "The operator '#{memberName}' is not defined for the class '#{className}'.",
+    examples: const [
+      "class A {} main() { new A() + 3; }",
+    ]
+  ),  // Generated. Don't edit.
+  MessageKind.UNDEFINED_SETTER: const MessageTemplate(
+    MessageKind.UNDEFINED_SETTER,
+    "The setter '#{memberName}' is not defined for the class '#{className}'.",
+    examples: const [
+      "class A {} main() { new A().x = 499; }",
+    ]
+  ),  // Generated. Don't edit.
+  MessageKind.NO_SUCH_SUPER_MEMBER: const MessageTemplate(
+    MessageKind.NO_SUCH_SUPER_MEMBER,
+    "Can't resolve '#{memberName}' in a superclass of '#{className}'."  ),  // Generated. Don't edit.
+  MessageKind.UNDEFINED_SUPER_SETTER: const MessageTemplate(
+    MessageKind.UNDEFINED_SUPER_SETTER,
+    "The setter '#{memberName}' is not defined in a superclass of '#{className}'.",
+    examples: const [
+      r"""
+        class A {}
+        class B extends A {
+          foo() { super.x = 499; }
+        }
+        main() { new B().foo(); }
+        """,
+    ]
+  ),  // Generated. Don't edit.
+  MessageKind.UNDEFINED_STATIC_GETTER_BUT_SETTER: const MessageTemplate(
+    MessageKind.UNDEFINED_STATIC_GETTER_BUT_SETTER,
+    "Cannot resolve getter '#{name}'.",
+    examples: const [
+      "set foo(x) {}  main() { foo; }",
+    ]
+  ),  // Generated. Don't edit.
+  MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER: const MessageTemplate(
+    MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER,
+    "Cannot resolve setter '#{name}'.",
+    examples: const [
+      r"""
+        main() {
+          final x = 1;
+          x = 2;
+        }""",
+      r"""
+        main() {
+          const x = 1;
+          x = 2;
+        }
+        """,
+      r"""
+        final x = 1;
+        main() { x = 3; }
+        """,
+      r"""
+        const x = 1;
+        main() { x = 3; }
+        """,
+      "get foo => null  main() { foo = 5; }",
+      "const foo = 0  main() { foo = 5; }",
     ]
   ),  // Generated. Don't edit.
 };

@@ -9,17 +9,16 @@
 
 #include <errno.h>  // NOLINT
 #include <fcntl.h>  // NOLINT
+#include <libgen.h>  // NOLINT
+#include <sys/sendfile.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT
 #include <sys/types.h>  // NOLINT
-#include <sys/sendfile.h>  // NOLINT
 #include <unistd.h>  // NOLINT
-#include <libgen.h>  // NOLINT
 
 #include "bin/builtin.h"
 #include "bin/log.h"
 #include "platform/signal_blocker.h"
 #include "platform/utils.h"
-
 
 namespace dart {
 namespace bin {
@@ -112,7 +111,7 @@ bool File::Flush() {
 
 bool File::Lock(File::LockType lock, int64_t start, int64_t end) {
   ASSERT(handle_->fd() >= 0);
-  ASSERT(end == -1 || end > start);
+  ASSERT((end == -1) || (end > start));
   struct flock fl;
   switch (lock) {
     case File::kLockUnlock:
@@ -146,7 +145,13 @@ int64_t File::Length() {
 }
 
 
-File* File::Open(const char* name, FileOpenMode mode) {
+File* File::FileOpenW(const wchar_t* system_name, FileOpenMode mode) {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+File* File::ScopedOpen(const char* name, FileOpenMode mode) {
   // Report errors for non-regular files.
   struct stat64 st;
   if (TEMP_FAILURE_RETRY(stat64(name, &st)) == 0) {
@@ -184,8 +189,16 @@ File* File::Open(const char* name, FileOpenMode mode) {
 }
 
 
+File* File::Open(const char* path, FileOpenMode mode) {
+  // ScopedOpen doesn't actually need a scope.
+  return ScopedOpen(path, mode);
+}
+
+
 File* File::OpenStdio(int fd) {
-  if (fd < 0 || 2 < fd) return NULL;
+  if ((fd < 0) || (2 < fd)) {
+    return NULL;
+  }
   return new File(new FileHandle(fd));
 }
 
@@ -291,7 +304,7 @@ bool File::Copy(const char* old_path, const char* new_path) {
     // From sendfile man pages:
     //   Applications may wish to fall back to read(2)/write(2) in the case
     //   where sendfile() fails with EINVAL or ENOSYS.
-    if (result < 0 && (errno == EINVAL || errno == ENOSYS)) {
+    if ((result < 0) && ((errno == EINVAL) || (errno == ENOSYS))) {
       const intptr_t kBufferSize = 8 * KB;
       uint8_t buffer[kBufferSize];
       while ((result = TEMP_FAILURE_RETRY(
@@ -368,9 +381,11 @@ time_t File::LastModified(const char* name) {
 }
 
 
-char* File::LinkTarget(const char* pathname) {
+const char* File::LinkTarget(const char* pathname) {
   struct stat64 link_stats;
-  if (TEMP_FAILURE_RETRY(lstat64(pathname, &link_stats)) != 0) return NULL;
+  if (TEMP_FAILURE_RETRY(lstat64(pathname, &link_stats)) != 0) {
+    return NULL;
+  }
   if (!S_ISLNK(link_stats.st_mode)) {
     errno = ENOENT;
     return NULL;
@@ -385,10 +400,8 @@ char* File::LinkTarget(const char* pathname) {
   if (target_size <= 0) {
     return NULL;
   }
-  char* target_name = reinterpret_cast<char*>(malloc(target_size + 1));
-  if (target_name == NULL) {
-    return NULL;
-  }
+  char* target_name = DartUtils::ScopedCString(target_size + 1);
+  ASSERT(target_name != NULL);
   memmove(target_name, target, target_size);
   target_name[target_size] = '\0';
   return target_name;
@@ -400,13 +413,16 @@ bool File::IsAbsolutePath(const char* pathname) {
 }
 
 
-char* File::GetCanonicalPath(const char* pathname) {
+const char* File::GetCanonicalPath(const char* pathname) {
   char* abs_path = NULL;
   if (pathname != NULL) {
+    char* resolved_path = DartUtils::ScopedCString(PATH_MAX + 1);
+    ASSERT(resolved_path != NULL);
     do {
-      abs_path = realpath(pathname, NULL);
+      abs_path = realpath(pathname, resolved_path);
     } while (abs_path == NULL && errno == EINTR);
     ASSERT(abs_path == NULL || IsAbsolutePath(abs_path));
+    ASSERT(abs_path == NULL || (abs_path == resolved_path));
   }
   return abs_path;
 }
@@ -423,7 +439,7 @@ const char* File::StringEscapedPathSeparator() {
 
 
 File::StdioHandleType File::GetStdioHandleType(int fd) {
-  ASSERT(0 <= fd && fd <= 2);
+  ASSERT((0 <= fd) && (fd <= 2));
   struct stat64 buf;
   int result = TEMP_FAILURE_RETRY(fstat64(fd, &buf));
   if (result == -1) {
@@ -432,10 +448,18 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
     FATAL2("Failed stat on file descriptor %d: %s", fd,
            Utils::StrError(errno, error_buf, kBufferSize));
   }
-  if (S_ISCHR(buf.st_mode)) return kTerminal;
-  if (S_ISFIFO(buf.st_mode)) return kPipe;
-  if (S_ISSOCK(buf.st_mode)) return kSocket;
-  if (S_ISREG(buf.st_mode)) return kFile;
+  if (S_ISCHR(buf.st_mode)) {
+    return kTerminal;
+  }
+  if (S_ISFIFO(buf.st_mode)) {
+    return kPipe;
+  }
+  if (S_ISSOCK(buf.st_mode)) {
+    return kSocket;
+  }
+  if (S_ISREG(buf.st_mode)) {
+    return kFile;
+  }
   return kOther;
 }
 
@@ -448,10 +472,18 @@ File::Type File::GetType(const char* pathname, bool follow_links) {
   } else {
     stat_success = TEMP_FAILURE_RETRY(lstat64(pathname, &entry_info));
   }
-  if (stat_success == -1) return File::kDoesNotExist;
-  if (S_ISDIR(entry_info.st_mode)) return File::kIsDirectory;
-  if (S_ISREG(entry_info.st_mode)) return File::kIsFile;
-  if (S_ISLNK(entry_info.st_mode)) return File::kIsLink;
+  if (stat_success == -1) {
+    return File::kDoesNotExist;
+  }
+  if (S_ISDIR(entry_info.st_mode)) {
+    return File::kIsDirectory;
+  }
+  if (S_ISREG(entry_info.st_mode)) {
+    return File::kIsFile;
+  }
+  if (S_ISLNK(entry_info.st_mode)) {
+    return File::kIsLink;
+  }
   return File::kDoesNotExist;
 }
 
@@ -459,12 +491,12 @@ File::Type File::GetType(const char* pathname, bool follow_links) {
 File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
   struct stat64 file_1_info;
   struct stat64 file_2_info;
-  if (TEMP_FAILURE_RETRY(lstat64(file_1, &file_1_info)) == -1 ||
-      TEMP_FAILURE_RETRY(lstat64(file_2, &file_2_info)) == -1) {
+  if ((TEMP_FAILURE_RETRY(lstat64(file_1, &file_1_info)) == -1) ||
+      (TEMP_FAILURE_RETRY(lstat64(file_2, &file_2_info)) == -1)) {
     return File::kError;
   }
-  return (file_1_info.st_ino == file_2_info.st_ino &&
-          file_1_info.st_dev == file_2_info.st_dev) ?
+  return ((file_1_info.st_ino == file_2_info.st_ino) &&
+          (file_1_info.st_dev == file_2_info.st_dev)) ?
       File::kIdentical :
       File::kDifferent;
 }

@@ -323,7 +323,7 @@ void ConstantPropagator::VisitRedefinition(RedefinitionInstr* instr) {
   // class ids. Otherwise LICM might potentially hoist incorrect code.
   const Object& value = instr->value()->definition()->constant_value();
   if (IsConstant(value) &&
-      CheckClassInstr::IsImmutableClassId(value.GetClassId())) {
+      !Field::IsExternalizableCid(value.GetClassId())) {
     SetValue(instr, value);
   } else {
     SetValue(instr, non_constant_);
@@ -805,7 +805,7 @@ void ConstantPropagator::VisitLoadClassId(LoadClassIdInstr* instr) {
   const Object& object = instr->object()->definition()->constant_value();
   if (IsConstant(object)) {
     cid = object.GetClassId();
-    if (CheckClassInstr::IsImmutableClassId(cid)) {
+    if (!Field::IsExternalizableCid(cid)) {
       SetValue(instr, Smi::ZoneHandle(Z, Smi::New(cid)));
       return;
     }
@@ -934,6 +934,11 @@ void ConstantPropagator::VisitBinaryIntegerOp(BinaryIntegerOpInstr* binary_op) {
   }
 
   SetValue(binary_op, non_constant_);
+}
+
+
+void ConstantPropagator::VisitCheckedSmiOp(CheckedSmiOpInstr* instr) {
+  SetValue(instr, non_constant_);
 }
 
 

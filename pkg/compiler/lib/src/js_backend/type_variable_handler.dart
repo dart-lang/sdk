@@ -38,8 +38,8 @@ class TypeVariableHandler {
   JavaScriptBackend get _backend => _compiler.backend;
   DiagnosticReporter get reporter => _compiler.reporter;
 
-  void registerClassWithTypeVariables(ClassElement cls, Enqueuer enqueuer,
-                                      Registry registry) {
+  void registerClassWithTypeVariables(
+      ClassElement cls, Enqueuer enqueuer, Registry registry) {
     if (enqueuer.isResolutionQueue) {
       // On first encounter, we have to ensure that the support classes get
       // resolved.
@@ -55,10 +55,9 @@ class TypeVariableHandler {
         _backend.enqueueInResolution(_typeVariableConstructor, registry);
         _backend.registerInstantiatedType(
             _typeVariableClass.rawType, enqueuer, registry);
-        enqueuer.registerStaticUse(
-            new StaticUse.staticInvoke(
-                _backend.registerBackendUse(_backend.helpers.createRuntimeType),
-                CallStructure.ONE_ARG));
+        enqueuer.registerStaticUse(new StaticUse.staticInvoke(
+            _backend.registerBackendUse(_backend.helpers.createRuntimeType),
+            CallStructure.ONE_ARG));
         _seenClassesWithTypeVariables = true;
       }
     } else {
@@ -82,21 +81,16 @@ class TypeVariableHandler {
           typeVariableElement,
           typeVariableElement.node,
           new StringConstantExpression(currentTypeVariable.name),
-          _backend.constantSystem.createString(
-              new DartString.literal(currentTypeVariable.name)));
+          _backend.constantSystem
+              .createString(new DartString.literal(currentTypeVariable.name)));
       jsAst.Expression boundIndex =
           _metadataCollector.reifyType(typeVariableElement.bound);
-      ConstantValue boundValue =
-          new SyntheticConstantValue(
-              SyntheticConstantKind.TYPEVARIABLE_REFERENCE,
-              boundIndex);
+      ConstantValue boundValue = new SyntheticConstantValue(
+          SyntheticConstantKind.TYPEVARIABLE_REFERENCE, boundIndex);
       ConstantExpression boundExpression =
           new SyntheticConstantExpression(boundValue);
-      AstConstant bound = new AstConstant(
-          typeVariableElement,
-          typeVariableElement.node,
-          boundExpression,
-          boundValue);
+      AstConstant bound = new AstConstant(typeVariableElement,
+          typeVariableElement.node, boundExpression, boundValue);
       AstConstant type = new AstConstant(
           typeVariableElement,
           typeVariableElement.node,
@@ -123,8 +117,8 @@ class TypeVariableHandler {
       _backend.registerCompileTimeConstant(value, _compiler.globalDependencies);
       _backend.addCompileTimeConstantForEmission(value);
       _backend.constants.addCompileTimeConstantForEmission(value);
-      constants.add(
-          _reifyTypeVariableConstant(value, currentTypeVariable.element));
+      constants
+          .add(_reifyTypeVariableConstant(value, currentTypeVariable.element));
     }
     _typeVariables[cls] = constants;
   }
@@ -137,8 +131,8 @@ class TypeVariableHandler {
    * entry in the list has already been reserved and the constant is added
    * there, otherwise a new entry for [c] is created.
    */
-  jsAst.Expression _reifyTypeVariableConstant(ConstantValue c,
-                                              TypeVariableElement variable) {
+  jsAst.Expression _reifyTypeVariableConstant(
+      ConstantValue c, TypeVariableElement variable) {
     jsAst.Expression name = _task.constantReference(c);
     jsAst.Expression result = _metadataCollector.reifyExpression(name);
     if (_typeVariableConstants.containsKey(variable)) {

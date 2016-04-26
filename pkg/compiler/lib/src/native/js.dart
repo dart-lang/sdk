@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of native;
+import '../js/js.dart' as js;
+import '../universe/side_effects.dart' show SideEffects;
 
+import 'behavior.dart';
 
 class HasCapturedPlaceholders extends js.BaseVisitor {
-
   HasCapturedPlaceholders._();
 
   static bool check(js.Node node) {
@@ -111,7 +112,6 @@ class SideEffectsVisitor extends js.BaseVisitor {
   }
 }
 
-
 /// ThrowBehaviorVisitor generates a NativeThrowBehavior describing the
 /// exception behavior of a JavaScript expression.
 ///
@@ -126,7 +126,6 @@ class SideEffectsVisitor extends js.BaseVisitor {
 /// in the calling context.
 ///
 class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
-
   ThrowBehaviorVisitor();
 
   NativeThrowBehavior analyze(js.Node node) {
@@ -136,8 +135,8 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
   // TODO(sra): Add [sequence] functionality to NativeThrowBehavior.
   /// Returns the combined behavior of sequential execution of code having
   /// behavior [first] followed by code having behavior [second].
-  static NativeThrowBehavior sequence(NativeThrowBehavior first,
-      NativeThrowBehavior second) {
+  static NativeThrowBehavior sequence(
+      NativeThrowBehavior first, NativeThrowBehavior second) {
     if (first == NativeThrowBehavior.MUST) return first;
     if (second == NativeThrowBehavior.MUST) return second;
     if (second == NativeThrowBehavior.NEVER) return first;
@@ -149,9 +148,9 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
   // TODO(sra): Add [choice] functionality to NativeThrowBehavior.
   /// Returns the combined behavior of a choice between two paths with behaviors
   /// [first] and [second].
-  static NativeThrowBehavior choice(NativeThrowBehavior first,
-      NativeThrowBehavior second) {
-    if (first == second) return first;  // Both paths have same behaviour.
+  static NativeThrowBehavior choice(
+      NativeThrowBehavior first, NativeThrowBehavior second) {
+    if (first == second) return first; // Both paths have same behaviour.
     return NativeThrowBehavior.MAY;
   }
 

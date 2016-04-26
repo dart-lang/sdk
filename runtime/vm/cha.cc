@@ -48,6 +48,31 @@ bool CHA::HasSubclasses(intptr_t cid) const {
 }
 
 
+bool CHA::ConcreteSubclasses(const Class& cls,
+                             GrowableArray<intptr_t> *class_ids) {
+  if (cls.InVMHeap()) return false;
+  if (cls.IsObjectClass()) return false;
+
+  if (!cls.is_abstract()) {
+    class_ids->Add(cls.id());
+  }
+
+  const GrowableObjectArray& direct_subclasses =
+      GrowableObjectArray::Handle(cls.direct_subclasses());
+  if (direct_subclasses.IsNull()) {
+    return true;
+  }
+  Class& subclass = Class::Handle();
+  for (intptr_t i = 0; i < direct_subclasses.Length(); i++) {
+    subclass ^= direct_subclasses.At(i);
+    if (!ConcreteSubclasses(subclass, class_ids)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 bool CHA::IsImplemented(const Class& cls) {
   // Function type aliases have different type checking rules.
   ASSERT(!cls.IsTypedefClass());

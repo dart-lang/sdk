@@ -59,10 +59,10 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
 
   bool hasNoFalsyValues(ClassElement class_) {
     return class_ != helpers.jsInterceptorClass &&
-       class_ != helpers.jsNullClass &&
-       class_ != helpers.jsBoolClass &&
-       class_ != helpers.jsStringClass &&
-       !class_.isSubclassOf(helpers.jsNumberClass);
+        class_ != helpers.jsNullClass &&
+        class_ != helpers.jsBoolClass &&
+        class_ != helpers.jsStringClass &&
+        !class_.isSubclassOf(helpers.jsNumberClass);
   }
 
   Continuation getCurrentOuterLoop({Continuation scope}) {
@@ -79,10 +79,10 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
   /// The constant will be hoisted out of loops, and shared with other requests
   /// for the same constant as long as it is in scope.
   Primitive makeConstantFor(ConstantValue constant,
-                            {Expression useSite,
-                             TypeMask type,
-                             SourceInformation sourceInformation,
-                             Entity hint}) {
+      {Expression useSite,
+      TypeMask type,
+      SourceInformation sourceInformation,
+      Entity hint}) {
     Constant prim =
         new Constant(constant, sourceInformation: sourceInformation);
     prim.hint = hint;
@@ -104,11 +104,11 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
     for (Reference ref = interceptor.firstRef; ref != null; ref = ref.next) {
       Node use = ref.parent;
       if (use is InvokeMethod) {
-        TypeMask type = use.dartReceiver.type;
+        TypeMask type = use.receiver.type;
         bool canOccurAsReceiver(ClassElement elem) {
           return classWorld.isInstantiated(elem) &&
-              !typeSystem.areDisjoint(type,
-                  typeSystem.getInterceptorSubtypes(elem));
+              !typeSystem.areDisjoint(
+                  type, typeSystem.getInterceptorSubtypes(elem));
         }
         Iterable<ClassElement> classes =
             backend.getInterceptedClassesOn(use.selector.name);
@@ -137,7 +137,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
     for (Reference ref = node.firstRef; ref != null; ref = ref.next) {
       if (ref.parent is InvokeMethod) {
         InvokeMethod invoke = ref.parent;
-        if (invoke.receiverRef != ref) return false;
+        if (invoke.interceptorRef != ref) return false;
         var interceptedClasses =
             backend.getInterceptedClassesOn(invoke.selector.name);
         if (interceptedClasses.contains(helpers.jsDoubleClass)) return false;
@@ -157,7 +157,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
       Node use = ref.parent;
       if (use is InvokeMethod) {
         if (selectorsOnNull.contains(use.selector) &&
-            use.dartReceiver.type.isNullable) {
+            use.receiver.type.isNullable) {
           return true;
         }
       } else {
@@ -210,7 +210,9 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
           type: interceptor.type,
           sourceInformation: interceptor.sourceInformation);
       constantPrim.useElementAsHint(interceptor.hint);
-      interceptor..replaceUsesWith(constantPrim)..destroy();
+      interceptor
+        ..replaceUsesWith(constantPrim)
+        ..destroy();
       let.remove();
     } else {
       Primitive constantPrim = makeConstantFor(constant,
@@ -226,15 +228,16 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
         cps.ifFalsy(input).invokeContinuation(cont, [input]);
       } else {
         // If there are other falsy values compile as "x == null ? x : CONST".
-        Primitive condition = cps.applyBuiltin(
-            BuiltinOperator.LooseEq,
-            [input, cps.makeNull()]);
+        Primitive condition =
+            cps.applyBuiltin(BuiltinOperator.LooseEq, [input, cps.makeNull()]);
         cps.ifTruthy(condition).invokeContinuation(cont, [input]);
       }
       cps.invokeContinuation(cont, [constantPrim]);
       cps.context = cont;
       cps.insertAbove(let);
-      interceptor..replaceUsesWith(param)..destroy();
+      interceptor
+        ..replaceUsesWith(param)
+        ..destroy();
       let.remove();
     }
     return true;
@@ -261,7 +264,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
   @override
   void visitInvokeMethod(InvokeMethod node) {
     if (node.callingConvention != CallingConvention.Intercepted) return;
-    Primitive interceptor = node.receiver;
+    Primitive interceptor = node.interceptor;
     if (interceptor is! Interceptor ||
         interceptor.hasMultipleUses ||
         loopHeaderFor[interceptor] != currentLoopHeader) {
@@ -269,8 +272,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
     }
     // TODO(asgerf): Consider heuristics for when to use one-shot interceptors.
     //   E.g. using only one-shot interceptors with a fast path.
-    node.callingConvention = CallingConvention.OneShotIntercepted;
-    node..receiverRef.unlink()..receiverRef = node.argumentRefs.removeAt(0);
+    node.makeOneShotIntercepted();
   }
 
   @override
@@ -304,7 +306,9 @@ class ShareConstants extends TrampolineRecursiveVisitor {
       Constant existing = sharedConstantFor[prim.value];
       if (existing != null) {
         existing.useElementAsHint(prim.hint);
-        prim..replaceUsesWith(existing)..destroy();
+        prim
+          ..replaceUsesWith(existing)
+          ..destroy();
         node.remove();
         return next;
       }

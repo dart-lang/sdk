@@ -5,23 +5,20 @@
 library dart2js.selector;
 
 import '../common.dart';
-import '../common/names.dart' show
-    Names;
-import '../elements/elements.dart' show
-    Element,
-    Elements,
-    FunctionElement,
-    FunctionSignature,
-    Name,
-    LibraryElement,
-    PublicName;
-import '../util/util.dart' show
-    Hashing;
-import '../world.dart' show
-    World;
+import '../common/names.dart' show Names;
+import '../elements/elements.dart'
+    show
+        Element,
+        Elements,
+        FunctionElement,
+        FunctionSignature,
+        Name,
+        LibraryElement,
+        PublicName;
+import '../util/util.dart' show Hashing;
+import '../world.dart' show World;
 
-import 'call_structure.dart' show
-    CallStructure;
+import 'call_structure.dart' show CallStructure;
 
 class SelectorKind {
   final String name;
@@ -34,7 +31,17 @@ class SelectorKind {
   static const SelectorKind OPERATOR = const SelectorKind('operator', 3);
   static const SelectorKind INDEX = const SelectorKind('index', 4);
 
+  int get index => hashCode;
+
   String toString() => name;
+
+  static List<SelectorKind> values = const <SelectorKind>[
+    GETTER,
+    SETTER,
+    CALL,
+    OPERATOR,
+    INDEX
+  ];
 }
 
 class Selector {
@@ -53,35 +60,43 @@ class Selector {
 
   LibraryElement get library => memberName.library;
 
-  Selector.internal(this.kind,
-                    this.memberName,
-                    this.callStructure,
-                    this.hashCode) {
-    assert(kind == SelectorKind.INDEX ||
-           (memberName != Names.INDEX_NAME &&
-            memberName != Names.INDEX_SET_NAME));
-    assert(kind == SelectorKind.OPERATOR ||
-           kind == SelectorKind.INDEX ||
-           !Elements.isOperatorName(memberName.text) ||
-           identical(memberName.text, '??'));
-    assert(kind == SelectorKind.CALL ||
-           kind == SelectorKind.GETTER ||
-           kind == SelectorKind.SETTER ||
-           Elements.isOperatorName(memberName.text) ||
-           identical(memberName.text, '??'));
+  Selector.internal(
+      this.kind, this.memberName, this.callStructure, this.hashCode) {
+    assert(invariant(
+        NO_LOCATION_SPANNABLE,
+        kind == SelectorKind.INDEX ||
+            (memberName != Names.INDEX_NAME &&
+                memberName != Names.INDEX_SET_NAME),
+        message: "kind=$kind,memberName=$memberName,"
+            "callStructure:$callStructure"));
+    assert(invariant(
+        NO_LOCATION_SPANNABLE,
+        kind == SelectorKind.OPERATOR ||
+            kind == SelectorKind.INDEX ||
+            !Elements.isOperatorName(memberName.text) ||
+            memberName.text == '??',
+        message: "kind=$kind,memberName=$memberName,"
+            "callStructure:$callStructure"));
+    assert(invariant(
+        NO_LOCATION_SPANNABLE,
+        kind == SelectorKind.CALL ||
+            kind == SelectorKind.GETTER ||
+            kind == SelectorKind.SETTER ||
+            Elements.isOperatorName(memberName.text) ||
+            memberName.text == '??',
+        message: "kind=$kind,memberName=$memberName,"
+            "callStructure:$callStructure"));
   }
 
   // TODO(johnniwinther): Extract caching.
   static Map<int, List<Selector>> canonicalizedValues =
       new Map<int, List<Selector>>();
 
-  factory Selector(SelectorKind kind,
-                   Name name,
-                   CallStructure callStructure) {
+  factory Selector(SelectorKind kind, Name name, CallStructure callStructure) {
     // TODO(johnniwinther): Maybe use equality instead of implicit hashing.
     int hashCode = computeHashCode(kind, name, callStructure);
-    List<Selector> list = canonicalizedValues.putIfAbsent(hashCode,
-        () => <Selector>[]);
+    List<Selector> list =
+        canonicalizedValues.putIfAbsent(hashCode, () => <Selector>[]);
     for (int i = 0; i < list.length; i++) {
       Selector existing = list[i];
       if (existing.match(kind, name, callStructure)) {
@@ -89,8 +104,8 @@ class Selector {
         return existing;
       }
     }
-    Selector result = new Selector.internal(
-        kind, name, callStructure, hashCode);
+    Selector result =
+        new Selector.internal(kind, name, callStructure, hashCode);
     list.add(result);
     return result;
   }
@@ -114,9 +129,7 @@ class Selector {
       if (element.isOperator) {
         // Operators cannot have named arguments, however, that doesn't prevent
         // a user from declaring such an operator.
-        return new Selector(
-            SelectorKind.OPERATOR,
-            name,
+        return new Selector(SelectorKind.OPERATOR, name,
             new CallStructure(arity, namedArguments));
       } else {
         return new Selector.call(
@@ -136,15 +149,11 @@ class Selector {
     }
   }
 
-  factory Selector.getter(Name name)
-      => new Selector(SelectorKind.GETTER,
-                      name.getter,
-                      CallStructure.NO_ARGS);
+  factory Selector.getter(Name name) =>
+      new Selector(SelectorKind.GETTER, name.getter, CallStructure.NO_ARGS);
 
-  factory Selector.setter(Name name)
-      => new Selector(SelectorKind.SETTER,
-                      name.setter,
-                      CallStructure.ONE_ARG);
+  factory Selector.setter(Name name) =>
+      new Selector(SelectorKind.SETTER, name.setter, CallStructure.ONE_ARG);
 
   factory Selector.unaryOperator(String name) => new Selector(
       SelectorKind.OPERATOR,
@@ -156,35 +165,29 @@ class Selector {
       new PublicName(Elements.constructOperatorName(name, false)),
       CallStructure.ONE_ARG);
 
-  factory Selector.index()
-      => new Selector(SelectorKind.INDEX, Names.INDEX_NAME,
-                      CallStructure.ONE_ARG);
+  factory Selector.index() =>
+      new Selector(SelectorKind.INDEX, Names.INDEX_NAME, CallStructure.ONE_ARG);
 
-  factory Selector.indexSet()
-      => new Selector(SelectorKind.INDEX, Names.INDEX_SET_NAME,
-                      CallStructure.TWO_ARGS);
+  factory Selector.indexSet() => new Selector(
+      SelectorKind.INDEX, Names.INDEX_SET_NAME, CallStructure.TWO_ARGS);
 
-  factory Selector.call(Name name, CallStructure callStructure)
-      => new Selector(SelectorKind.CALL, name, callStructure);
+  factory Selector.call(Name name, CallStructure callStructure) =>
+      new Selector(SelectorKind.CALL, name, callStructure);
 
-  factory Selector.callClosure(int arity, [List<String> namedArguments])
-      => new Selector(SelectorKind.CALL, Names.call,
-                      new CallStructure(arity, namedArguments));
+  factory Selector.callClosure(int arity, [List<String> namedArguments]) =>
+      new Selector(SelectorKind.CALL, Names.call,
+          new CallStructure(arity, namedArguments));
 
-  factory Selector.callClosureFrom(Selector selector)
-      => new Selector(SelectorKind.CALL, Names.call, selector.callStructure);
+  factory Selector.callClosureFrom(Selector selector) =>
+      new Selector(SelectorKind.CALL, Names.call, selector.callStructure);
 
   factory Selector.callConstructor(Name name,
-                                   [int arity = 0,
-                                    List<String> namedArguments])
-      => new Selector(SelectorKind.CALL, name,
-                      new CallStructure(arity, namedArguments));
+          [int arity = 0, List<String> namedArguments]) =>
+      new Selector(
+          SelectorKind.CALL, name, new CallStructure(arity, namedArguments));
 
-  factory Selector.callDefaultConstructor()
-      => new Selector(
-          SelectorKind.CALL,
-          const PublicName(''),
-          CallStructure.NO_ARGS);
+  factory Selector.callDefaultConstructor() => new Selector(
+      SelectorKind.CALL, const PublicName(''), CallStructure.NO_ARGS);
 
   bool get isGetter => kind == SelectorKind.GETTER;
   bool get isSetter => kind == SelectorKind.SETTER;
@@ -200,8 +203,7 @@ class Selector {
   /**
    * The member name for invocation mirrors created from this selector.
    */
-  String get invocationMirrorMemberName =>
-      isSetter ? '$name=' : name;
+  String get invocationMirrorMemberName => isSetter ? '$name=' : name;
 
   int get invocationMirrorKind {
     const int METHOD = 0;
@@ -257,17 +259,14 @@ class Selector {
     return appliesUnnamed(element, world);
   }
 
-  bool match(SelectorKind kind,
-             Name memberName,
-             CallStructure callStructure) {
-    return this.kind == kind
-        && this.memberName == memberName
-        && this.callStructure.match(callStructure);
+  bool match(SelectorKind kind, Name memberName, CallStructure callStructure) {
+    return this.kind == kind &&
+        this.memberName == memberName &&
+        this.callStructure.match(callStructure);
   }
 
-  static int computeHashCode(SelectorKind kind,
-                             Name name,
-                             CallStructure callStructure) {
+  static int computeHashCode(
+      SelectorKind kind, Name name, CallStructure callStructure) {
     // Add bits from name and kind.
     int hash = Hashing.mixHashCodeBits(name.hashCode, kind.hashCode);
     // Add bits from the call structure.

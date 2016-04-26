@@ -26,10 +26,11 @@ import 'package:compiler/src/script.dart';
 import 'package:compiler/src/util/util.dart';
 
 import 'mock_compiler.dart';
+import 'options_helper.dart';
 import 'parser_helper.dart';
 
 final MessageKind NOT_ASSIGNABLE = MessageKind.NOT_ASSIGNABLE;
-final MessageKind MEMBER_NOT_FOUND = MessageKind.MEMBER_NOT_FOUND;
+final MessageKind UNDEFINED_GETTER = MessageKind.UNDEFINED_GETTER;
 
 main() {
   List tests = [testSimpleTypes,
@@ -126,7 +127,7 @@ testFor(MockCompiler compiler) {
 //        "for (String s in strings) {} }");
 //  check("{ List<int> ints = [1,2,3]; for (String s in ints) {} }",
 //        NOT_ASSIGNABLE);
-//  check("for (String s in true) {}", MessageKind.METHOD_NOT_FOUND);
+//  check("for (String s in true) {}", MessageKind.UNDEFINED_METHOD);
 }
 
 
@@ -214,13 +215,13 @@ class Class {
 
   analyzeIn(compiler, method, """{ 
       for (var e in new HasNoIterator()) {} 
-  }""", warnings: MessageKind.MEMBER_NOT_FOUND);
+  }""", warnings: MessageKind.UNDEFINED_GETTER);
   analyzeIn(compiler, method, """{ 
       for (String e in new HasNoIterator()) {} 
-  }""", warnings: MessageKind.MEMBER_NOT_FOUND);
+  }""", warnings: MessageKind.UNDEFINED_GETTER);
   analyzeIn(compiler, method, """{ 
       for (int e in new HasNoIterator()) {} 
-  }""", warnings: MessageKind.MEMBER_NOT_FOUND);
+  }""", warnings: MessageKind.UNDEFINED_GETTER);
 
   analyzeIn(compiler, method, """{ 
       for (var e in new HasCustomIntIterator()) {} 
@@ -234,13 +235,13 @@ class Class {
 
   analyzeIn(compiler, method, """{ 
       for (var e in new HasCustomNoCurrentIterator()) {} 
-  }""", hints: MessageKind.MEMBER_NOT_FOUND);
+  }""", hints: MessageKind.UNDEFINED_GETTER);
   analyzeIn(compiler, method, """{ 
       for (String e in new HasCustomNoCurrentIterator()) {} 
-  }""", hints: MessageKind.MEMBER_NOT_FOUND);
+  }""", hints: MessageKind.UNDEFINED_GETTER);
   analyzeIn(compiler, method, """{ 
       for (int e in new HasCustomNoCurrentIterator()) {} 
-  }""", hints: MessageKind.MEMBER_NOT_FOUND);
+  }""", hints: MessageKind.UNDEFINED_GETTER);
 
   analyzeIn(compiler, method, """{ 
       var localDyn; 
@@ -573,22 +574,22 @@ testOperators(MockCompiler compiler) {
     check("{ var i = 1 ${op} 2; }");
     check("{ var i = 1; i ${op}= 2; }");
     check("{ int i; var j = (i = true) ${op} 2; }",
-          warnings: [NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
+          warnings: [NOT_ASSIGNABLE, MessageKind.UNDEFINED_OPERATOR]);
     check("{ int i; var j = 1 ${op} (i = true); }",
           warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
   }
   for (final op in ['-', '~']) {
     check("{ var i = ${op}1; }");
     check("{ int i; var j = ${op}(i = true); }",
-          warnings: [NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
+          warnings: [NOT_ASSIGNABLE, MessageKind.UNDEFINED_OPERATOR]);
   }
   for (final op in ['++', '--']) {
     check("{ int i = 1; int j = i${op}; }");
     check("{ int i = 1; bool j = i${op}; }", warnings: NOT_ASSIGNABLE);
     check("{ bool b = true; bool j = b${op}; }",
-          warnings: MessageKind.OPERATOR_NOT_FOUND);
+          warnings: MessageKind.UNDEFINED_OPERATOR);
     check("{ bool b = true; int j = ${op}b; }",
-          warnings: MessageKind.OPERATOR_NOT_FOUND);
+          warnings: MessageKind.UNDEFINED_OPERATOR);
   }
   for (final op in ['||', '&&']) {
     check("{ bool b = (true ${op} false); }");
@@ -600,7 +601,7 @@ testOperators(MockCompiler compiler) {
     check("{ bool b = 1 ${op} 2; }");
     check("{ int i = 1 ${op} 2; }", warnings: NOT_ASSIGNABLE);
     check("{ int i; bool b = (i = true) ${op} 2; }",
-          warnings: [NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
+          warnings: [NOT_ASSIGNABLE, MessageKind.UNDEFINED_OPERATOR]);
     check("{ int i; bool b = 1 ${op} (i = true); }",
           warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
   }
@@ -1005,9 +1006,9 @@ Future testMethodInvocationsInClass(MockCompiler compiler) {
     check(c, "(e)();");
     check(c, "(e)(1);");
     check(c, "(e)('string');");
-    check(c, "(foo)();", MEMBER_NOT_FOUND);
-    check(c, "(foo)(1);", MEMBER_NOT_FOUND);
-    check(c, "(foo)('string');", MEMBER_NOT_FOUND);
+    check(c, "(foo)();", UNDEFINED_GETTER);
+    check(c, "(foo)(1);", UNDEFINED_GETTER);
+    check(c, "(foo)('string');", UNDEFINED_GETTER);
 
     // Invocations on function expressions.
     check(c, "(foo){}();", MessageKind.MISSING_ARGUMENT);
@@ -1028,11 +1029,11 @@ Future testMethodInvocationsInClass(MockCompiler compiler) {
     check(c, "int k = staticMethod('string');");
     check(c, "String k = staticMethod('string');",
           NOT_ASSIGNABLE);
-    check(d, "staticMethod();", MessageKind.METHOD_NOT_FOUND);
-    check(d, "staticMethod(1);", MessageKind.METHOD_NOT_FOUND);
-    check(d, "staticMethod('string');", MessageKind.METHOD_NOT_FOUND);
-    check(d, "int k = staticMethod('string');", MessageKind.METHOD_NOT_FOUND);
-    check(d, "String k = staticMethod('string');", MessageKind.METHOD_NOT_FOUND);
+    check(d, "staticMethod();", MessageKind.UNDEFINED_METHOD);
+    check(d, "staticMethod(1);", MessageKind.UNDEFINED_METHOD);
+    check(d, "staticMethod('string');", MessageKind.UNDEFINED_METHOD);
+    check(d, "int k = staticMethod('string');", MessageKind.UNDEFINED_METHOD);
+    check(d, "String k = staticMethod('string');", MessageKind.UNDEFINED_METHOD);
 
     // Invocation on dynamic variable.
     check(c, "e.foo();");
@@ -1040,12 +1041,12 @@ Future testMethodInvocationsInClass(MockCompiler compiler) {
     check(c, "e.foo('string');");
 
     // Invocation on unresolved variable.
-    check(c, "foo();", MessageKind.METHOD_NOT_FOUND);
-    check(c, "foo(1);", MessageKind.METHOD_NOT_FOUND);
-    check(c, "foo('string');", MessageKind.METHOD_NOT_FOUND);
-    check(c, "foo(a: 'string');", MessageKind.METHOD_NOT_FOUND);
+    check(c, "foo();", MessageKind.UNDEFINED_METHOD);
+    check(c, "foo(1);", MessageKind.UNDEFINED_METHOD);
+    check(c, "foo('string');", MessageKind.UNDEFINED_METHOD);
+    check(c, "foo(a: 'string');", MessageKind.UNDEFINED_METHOD);
     check(c, "foo(a: localMethod(1));",
-          [MessageKind.METHOD_NOT_FOUND, NOT_ASSIGNABLE]);
+          [MessageKind.UNDEFINED_METHOD, NOT_ASSIGNABLE]);
   });
 }
 
@@ -1526,13 +1527,13 @@ void testTypeVariableExpressions(MockCompiler compiler) {
   analyzeIn(compiler, method, "{ int type = T; }", warnings: NOT_ASSIGNABLE);
 
   analyzeIn(compiler, method, "{ String typeName = T.toString(); }");
-  analyzeIn(compiler, method, "{ T.foo; }", warnings: MEMBER_NOT_FOUND);
+  analyzeIn(compiler, method, "{ T.foo; }", warnings: UNDEFINED_GETTER);
   analyzeIn(compiler, method, "{ T.foo = 0; }",
-      warnings: MessageKind.SETTER_NOT_FOUND);
+      warnings: MessageKind.UNDEFINED_SETTER);
   analyzeIn(compiler, method, "{ T.foo(); }",
-      warnings: MessageKind.METHOD_NOT_FOUND);
+      warnings: MessageKind.UNDEFINED_METHOD);
   analyzeIn(compiler, method, "{ T + 1; }",
-      warnings: MessageKind.OPERATOR_NOT_FOUND);
+      warnings: MessageKind.UNDEFINED_OPERATOR);
 }
 
 void testTypeVariableLookup1(MockCompiler compiler) {
@@ -1566,10 +1567,10 @@ class Test<S extends Foo, T> {
   test('s.getter');
 
   test('t.toString');
-  test('t.field', MEMBER_NOT_FOUND);
-  test('t.method(1)', MessageKind.METHOD_NOT_FOUND);
-  test('t + t', MessageKind.OPERATOR_NOT_FOUND);
-  test('t.getter', MEMBER_NOT_FOUND);
+  test('t.field', UNDEFINED_GETTER);
+  test('t.method(1)', MessageKind.UNDEFINED_METHOD);
+  test('t + t', MessageKind.UNDEFINED_OPERATOR);
+  test('t.getter', UNDEFINED_GETTER);
 
   test('s.field = "hest"', NOT_ASSIGNABLE);
   test('s.method("hest")', NOT_ASSIGNABLE);
@@ -1623,10 +1624,10 @@ class Test<S extends T, T extends S> {
   }
 
   test('s.toString');
-  test('s.field', MEMBER_NOT_FOUND);
-  test('s.method(1)', MessageKind.METHOD_NOT_FOUND);
-  test('s + s', MessageKind.OPERATOR_NOT_FOUND);
-  test('s.getter', MEMBER_NOT_FOUND);
+  test('s.field', UNDEFINED_GETTER);
+  test('s.method(1)', MessageKind.UNDEFINED_METHOD);
+  test('s + s', MessageKind.UNDEFINED_OPERATOR);
+  test('s.getter', UNDEFINED_GETTER);
 }
 
 void testFunctionTypeLookup(MockCompiler compiler) {
@@ -1636,8 +1637,8 @@ void testFunctionTypeLookup(MockCompiler compiler) {
 
   check('(int f(int)) => f.toString;');
   check('(int f(int)) => f.toString();');
-  check('(int f(int)) => f.foo;', warnings: MEMBER_NOT_FOUND);
-  check('(int f(int)) => f.foo();', warnings: MessageKind.METHOD_NOT_FOUND);
+  check('(int f(int)) => f.foo;', warnings: UNDEFINED_GETTER);
+  check('(int f(int)) => f.foo();', warnings: MessageKind.UNDEFINED_METHOD);
 }
 
 void testTypedefLookup(MockCompiler compiler) {
@@ -1648,8 +1649,8 @@ void testTypedefLookup(MockCompiler compiler) {
   compiler.parseScript("typedef int F(int);");
   check('(F f) => f.toString;');
   check('(F f) => f.toString();');
-  check('(F f) => f.foo;', warnings: MEMBER_NOT_FOUND);
-  check('(F f) => f.foo();', warnings: MessageKind.METHOD_NOT_FOUND);
+  check('(F f) => f.foo;', warnings: UNDEFINED_GETTER);
+  check('(F f) => f.foo();', warnings: MessageKind.UNDEFINED_METHOD);
 }
 
 void testTypeLiteral(MockCompiler compiler) {
@@ -1683,11 +1684,11 @@ void testTypeLiteral(MockCompiler compiler) {
 
   // Check static property access.
   check('m() => Class.field;');
-  check('m() => (Class).field;', warnings: MEMBER_NOT_FOUND);
+  check('m() => (Class).field;', warnings: UNDEFINED_GETTER);
 
   // Check static method access.
   check('m() => Class.method();');
-  check('m() => (Class).method();', warnings: MessageKind.METHOD_NOT_FOUND);
+  check('m() => (Class).method();', warnings: MessageKind.UNDEFINED_METHOD);
 
   // Check access in invocation.
   check('m() => Class();', warnings: MessageKind.NOT_CALLABLE);
@@ -1956,8 +1957,9 @@ void testGetterSetterInvocation(MockCompiler compiler) {
   check("int v = c.overriddenField;");
   check("c.overriddenField = 0;");
   check("int v = c.getterField;");
-  check("c.getterField = 0;", MessageKind.SETTER_NOT_FOUND);
-  check("int v = c.setterField;", MessageKind.GETTER_NOT_FOUND);
+  check("c.getterField = 0;", MessageKind.UNDEFINED_SETTER);
+  check("int v = c.setterField;",
+      MessageKind.UNDEFINED_INSTANCE_GETTER_BUT_SETTER);
   check("c.setterField = 0;");
 
   check("int v = gc.overriddenField;");
@@ -1965,13 +1967,14 @@ void testGetterSetterInvocation(MockCompiler compiler) {
   check("int v = gc.setterField;");
   check("gc.setterField = 0;");
   check("int v = gc.getterField;");
-  check("gc.getterField = 0;", MessageKind.SETTER_NOT_FOUND);
+  check("gc.getterField = 0;", MessageKind.UNDEFINED_SETTER);
 
   check("int v = sc.overriddenField;");
   check("sc.overriddenField = 0;");
   check("int v = sc.getterField;");
   check("sc.getterField = 0;");
-  check("int v = sc.setterField;", MessageKind.GETTER_NOT_FOUND);
+  check("int v = sc.setterField;",
+      MessageKind.UNDEFINED_INSTANCE_GETTER_BUT_SETTER);
   check("sc.setterField = 0;");
 }
 
@@ -2012,7 +2015,7 @@ testTypePromotionHints(MockCompiler compiler) {
             if (a is C) {
               var x = a.c;
             }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND],
+        warnings: [MessageKind.UNDEFINED_GETTER],
         hints: [MessageKind.NOT_MORE_SPECIFIC_SUBTYPE],
         infos: []);
 
@@ -2021,8 +2024,8 @@ testTypePromotionHints(MockCompiler compiler) {
             if (a is C) {
               var x = '${a.c}${a.c}';
             }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND,
-                   MessageKind.MEMBER_NOT_FOUND],
+        warnings: [MessageKind.UNDEFINED_GETTER,
+                   MessageKind.UNDEFINED_GETTER],
         hints: [MessageKind.NOT_MORE_SPECIFIC_SUBTYPE],
         infos: []);
 
@@ -2031,8 +2034,8 @@ testTypePromotionHints(MockCompiler compiler) {
             if (a is C) {
               var x = '${a.d}${a.d}'; // Type promotion wouldn't help.
             }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND,
-                   MessageKind.MEMBER_NOT_FOUND],
+        warnings: [MessageKind.UNDEFINED_GETTER,
+                   MessageKind.UNDEFINED_GETTER],
         hints: [],
         infos: []);
 
@@ -2041,7 +2044,7 @@ testTypePromotionHints(MockCompiler compiler) {
            if (d is E) { // Suggest E<int>.
              var x = d.e;
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND],
+        warnings: [MessageKind.UNDEFINED_GETTER],
         hints: [checkMessage(MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
                              {'shownTypeSuggestion': 'E<int>'})],
         infos: []);
@@ -2051,7 +2054,7 @@ testTypePromotionHints(MockCompiler compiler) {
            if (d is F) { // Suggest F<int, dynamic>.
              var x = d.f;
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND],
+        warnings: [MessageKind.UNDEFINED_GETTER],
         hints: [checkMessage(MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
                              {'shownTypeSuggestion': 'F<int, dynamic>'})],
         infos: []);
@@ -2061,7 +2064,7 @@ testTypePromotionHints(MockCompiler compiler) {
            if (d is G) { // Suggest G<int>.
              var x = d.f;
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND],
+        warnings: [MessageKind.UNDEFINED_GETTER],
         hints: [checkMessage(MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
                              {'shownTypeSuggestion': 'G<int>'})],
         infos: []);
@@ -2071,7 +2074,7 @@ testTypePromotionHints(MockCompiler compiler) {
            if (f is G) { // Cannot suggest a more specific type.
              var x = f.g;
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND],
+        warnings: [MessageKind.UNDEFINED_GETTER],
         hints: [MessageKind.NOT_MORE_SPECIFIC],
         infos: []);
 
@@ -2080,7 +2083,7 @@ testTypePromotionHints(MockCompiler compiler) {
            if (d is E) {
              var x = d.f; // Type promotion wouldn't help.
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND],
+        warnings: [MessageKind.UNDEFINED_GETTER],
         hints: [],
         infos: []);
 
@@ -2090,7 +2093,7 @@ testTypePromotionHints(MockCompiler compiler) {
              a = null;
              var x = a.b;
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND],
+        warnings: [MessageKind.UNDEFINED_GETTER],
         hints: [MessageKind.POTENTIAL_MUTATION],
         infos: [MessageKind.POTENTIAL_MUTATION_HERE]);
 
@@ -2100,7 +2103,7 @@ testTypePromotionHints(MockCompiler compiler) {
              a = null;
              var x = a.c; // Type promotion wouldn't help.
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND],
+        warnings: [MessageKind.UNDEFINED_GETTER],
         hints: [],
         infos: []);
 
@@ -2110,7 +2113,7 @@ testTypePromotionHints(MockCompiler compiler) {
            if (a is B) {
              var x = a.b;
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND],
+        warnings: [MessageKind.UNDEFINED_GETTER],
         hints: [MessageKind.POTENTIAL_MUTATION_IN_CLOSURE],
         infos: [MessageKind.POTENTIAL_MUTATION_IN_CLOSURE_HERE]);
 
@@ -2120,7 +2123,7 @@ testTypePromotionHints(MockCompiler compiler) {
            if (a is B) {
              var x = a.c; // Type promotion wouldn't help.
            }''',
-        warnings: [MessageKind.MEMBER_NOT_FOUND],
+        warnings: [MessageKind.UNDEFINED_GETTER],
         hints: [],
         infos: []);
 
@@ -2131,7 +2134,7 @@ testTypePromotionHints(MockCompiler compiler) {
              var y = a.b;
            }
            a = new A();''',
-      warnings: [MessageKind.MEMBER_NOT_FOUND],
+      warnings: [MessageKind.UNDEFINED_GETTER],
       hints: [MessageKind.ACCESSED_IN_CLOSURE],
       infos: [MessageKind.ACCESSED_IN_CLOSURE_HERE,
               MessageKind.POTENTIAL_MUTATION_HERE]);
@@ -2143,7 +2146,7 @@ testTypePromotionHints(MockCompiler compiler) {
              var y = a.c; // Type promotion wouldn't help.
            }
            a = new A();''',
-      warnings: [MessageKind.MEMBER_NOT_FOUND],
+      warnings: [MessageKind.UNDEFINED_GETTER],
       hints: [],
       infos: []);
 }
@@ -2197,7 +2200,7 @@ void testCascade(MockCompiler compiler) {
   check('new A().b..b;');
 
   check('new A().b..a;',
-        warnings: MEMBER_NOT_FOUND);
+        warnings: UNDEFINED_GETTER);
 
   check('B b = new A().b..c;');
 
@@ -2553,7 +2556,7 @@ analyze(MockCompiler compiler,
   Token tokens = scan(text);
   NodeListener listener = new NodeListener(
       const ScannerOptions(), compiler.reporter, null);
-  Parser parser = new Parser(listener);
+  Parser parser = new Parser(listener, new MockParserOptions());
   parser.parseStatement(tokens);
   Node node = listener.popNode();
   Element compilationUnit =
@@ -2599,7 +2602,7 @@ analyzeIn(MockCompiler compiler,
   Token tokens = scan(text);
   NodeListener listener = new NodeListener(
       const ScannerOptions(), compiler.reporter, null);
-  Parser parser = new Parser(listener,
+  Parser parser = new Parser(listener, new MockParserOptions(),
       asyncAwaitKeywordsEnabled: element.asyncMarker != AsyncMarker.SYNC);
   parser.parseStatement(tokens);
   Node node = listener.popNode();

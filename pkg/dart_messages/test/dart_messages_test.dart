@@ -33,7 +33,24 @@ void testIdsAreUnique() {
   }
 }
 
+void testSpecializationsAreOfSameId() {
+  for (var entry in MESSAGES.values) {
+    var specializationOf = entry.specializationOf;
+    if (specializationOf == null) continue;
+    var generic = MESSAGES[specializationOf];
+    if (generic == null) {
+      throw "More generic message doesn't exist: $specializationOf";
+    }
+    if (generic.id != entry.id) {
+      var id = "${entry.id}-${entry.subId}";
+      var genericId = "${generic.id}-${generic.subId}";
+      throw "Specialization doesn't have same id: $id - $genericId";
+    }
+  }
+}
+
 void main() {
   testJsonIsUpdated();
   testIdsAreUnique();
+  testSpecializationsAreOfSameId();
 }

@@ -5,7 +5,7 @@
 // Regression test for VM's IfConverted pass not keeping graph structure and
 // use lists in sync.
 
-// VMOptions=--optimization-counter-threshold=10
+// VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
 class A {
   int x;

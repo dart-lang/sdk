@@ -30,35 +30,29 @@ part of html;
 @Experimental()
 class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** Needed because KeyboardEvent is implements.
-   *  TODO(terry): Consider making blink_jsObject private (add underscore) for
-   *               all blink_jsObject.  Then needed private wrap/unwrap_jso
-   *               functions that delegate to a public wrap/unwrap_jso.
    */
-  @Deprecated("Internal Use Only")
-  js.JsObject blink_jsObject;
-
   /** The parent KeyboardEvent that this KeyEvent is wrapping and "fixing". */
   KeyboardEvent _parent;
 
   /** The "fixed" value of whether the alt key is being pressed. */
   bool _shadowAltKey;
 
-  /** Caculated value of what the estimated charCode is for this event. */
+  /** Calculated value of what the estimated charCode is for this event. */
   int _shadowCharCode;
 
-  /** Caculated value of what the estimated keyCode is for this event. */
+  /** Calculated value of what the estimated keyCode is for this event. */
   int _shadowKeyCode;
 
-  /** Caculated value of what the estimated keyCode is for this event. */
+  /** Calculated value of what the estimated keyCode is for this event. */
   int get keyCode => _shadowKeyCode;
 
-  /** Caculated value of what the estimated charCode is for this event. */
+  /** Calculated value of what the estimated charCode is for this event. */
   int get charCode => this.type == 'keypress' ? _shadowCharCode : 0;
 
-  /** Caculated value of whether the alt key is pressed is for this event. */
+  /** Calculated value of whether the alt key is pressed is for this event. */
   bool get altKey => _shadowAltKey;
 
-  /** Caculated value of what the estimated keyCode is for this event. */
+  /** Calculated value of what the estimated keyCode is for this event. */
   int get which => keyCode;
 
   /** Accessor to the underlying keyCode value is the parent event. */
@@ -113,8 +107,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** The currently registered target for this event. */
   EventTarget get currentTarget => _currentTarget;
 
-  /** Accessor to the clipboardData available for this event. */
-  DataTransfer get clipboardData => _parent.clipboardData;
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;
   int get detail => _parent.detail;
@@ -124,10 +116,8 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
    * KeyLocation.NUMPAD, KeyLocation.MOBILE, KeyLocation.JOYSTICK).
    */
   int get keyLocation => _parent.keyLocation;
-  Point get layer => _parent.layer;
   /** True if the Meta (or Mac command) key is pressed during this event. */
   bool get metaKey => _parent.metaKey;
-  Point get page => _parent.page;
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
   Window get view => _parent.view;
@@ -139,6 +129,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
   int get _charCode => charCode;
   int get _keyCode => keyCode;
+  int get _which => which;
   String get _keyIdentifier {
     throw new UnsupportedError("keyIdentifier is unsupported.");
   }
@@ -148,10 +139,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     throw new UnsupportedError(
         "Cannot initialize a KeyboardEvent from a KeyEvent.");
   }
-  int get _layerX => throw new UnsupportedError('Not applicable to KeyEvent');
-  int get _layerY => throw new UnsupportedError('Not applicable to KeyEvent');
-  int get _pageX => throw new UnsupportedError('Not applicable to KeyEvent');
-  int get _pageY => throw new UnsupportedError('Not applicable to KeyEvent');
   @Experimental() // untriaged
   bool getModifierState(String keyArgument) => throw new UnimplementedError();
   @Experimental() // untriaged

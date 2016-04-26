@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Replace with shared test once interface issues clarified.
 // Test various String intrinsics
-// VMOptions=--optimization-counter-threshold=10
+// VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
 import "package:expect/expect.dart";
 

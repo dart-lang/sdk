@@ -10,6 +10,7 @@
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/flags.h"
+#include "vm/log.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/stack_frame.h"
@@ -21,9 +22,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, print_stacktrace_at_throw, false,
             "Prints a stack trace everytime a throw occurs.");
-
-
-const char* Exceptions::kCastErrorDstName = "type cast";
 
 
 class StacktraceBuilder : public ValueObject {
@@ -240,7 +238,7 @@ static void JumpToExceptionHandler(Thread* thread,
       StubCode::JumpToExceptionHandler_entry()->EntryPoint());
 
   // Unpoison the stack before we tear it down in the generated stub code.
-  uword current_sp = Isolate::GetCurrentStackPointer() - 1024;
+  uword current_sp = Thread::GetCurrentStackPointer() - 1024;
   ASAN_UNPOISON(reinterpret_cast<void*>(current_sp),
                 stack_pointer - current_sp);
 
@@ -272,7 +270,8 @@ static RawField* LookupStacktraceField(const Instance& instance) {
   AbstractType& type = AbstractType::Handle(zone, AbstractType::null());
   while (true) {
     if (test_class.raw() == error_class.raw()) {
-      return error_class.LookupInstanceField(Symbols::_stackTrace());
+      return error_class.LookupInstanceFieldAllowPrivate(
+          Symbols::_stackTrace());
     }
     type = test_class.super_type();
     if (type.IsNull()) return Field::null();
@@ -371,8 +370,8 @@ static void ThrowExceptionHelper(Thread* thread,
   ASSERT(handler_pc != 0);
 
   if (FLAG_print_stacktrace_at_throw) {
-    OS::Print("Exception '%s' thrown:\n", exception.ToCString());
-    OS::Print("%s\n", stacktrace.ToCString());
+    THR_Print("Exception '%s' thrown:\n", exception.ToCString());
+    THR_Print("%s\n", stacktrace.ToCString());
   }
   if (handler_exists) {
     // Found a dart handler for the exception, jump to it.
@@ -421,7 +420,10 @@ RawScript* Exceptions::GetCallerScript(DartFrameIterator* iterator) {
 // TODO(hausner): Rename this NewCoreInstance to call out the fact that
 // the class name is resolved in the core library implicitly?
 RawInstance* Exceptions::NewInstance(const char* class_name) {
-  const String& cls_name = String::Handle(Symbols::New(class_name));
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const String& cls_name = String::Handle(zone,
+                                          Symbols::New(thread, class_name));
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   // No ambiguity error expected: passing NULL.
   Class& cls = Class::Handle(core_lib.LookupClass(cls_name));
@@ -434,18 +436,20 @@ RawInstance* Exceptions::NewInstance(const char* class_name) {
 // Allocate, initialize, and throw a TypeError or CastError.
 // If error_msg is not null, throw a TypeError, even for a type cast.
 void Exceptions::CreateAndThrowTypeError(TokenPosition location,
-                                         const String& src_type_name,
-                                         const String& dst_type_name,
+                                         const AbstractType& src_type,
+                                         const AbstractType& dst_type,
                                          const String& dst_name,
-                                         const String& error_msg) {
-  const Array& args = Array::Handle(Array::New(7));
+                                         const String& bound_error_msg) {
+  ASSERT(!dst_name.IsNull());  // Pass Symbols::Empty() instead.
+  Zone* zone = Thread::Current()->zone();
+  const Array& args = Array::Handle(zone, Array::New(4));
 
   ExceptionType exception_type =
-      (error_msg.IsNull() && dst_name.Equals(kCastErrorDstName)) ?
-          kCast : kType;
+      (bound_error_msg.IsNull() &&
+       (dst_name.raw() == Symbols::InTypeCast().raw())) ? kCast : kType;
 
   DartFrameIterator iterator;
-  const Script& script = Script::Handle(GetCallerScript(&iterator));
+  const Script& script = Script::Handle(zone, GetCallerScript(&iterator));
   intptr_t line;
   intptr_t column = -1;
   if (script.HasSource()) {
@@ -454,32 +458,77 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
     script.GetTokenLocation(location, &line, NULL);
   }
   // Initialize '_url', '_line', and '_column' arguments.
-  args.SetAt(0, String::Handle(script.url()));
-  args.SetAt(1, Smi::Handle(Smi::New(line)));
-  args.SetAt(2, Smi::Handle(Smi::New(column)));
+  args.SetAt(0, String::Handle(zone, script.url()));
+  args.SetAt(1, Smi::Handle(zone, Smi::New(line)));
+  args.SetAt(2, Smi::Handle(zone, Smi::New(column)));
 
-  // Initialize '_srcType', '_dstType', '_dstName', and '_errorMsg'.
-  args.SetAt(3, src_type_name);
-  args.SetAt(4, dst_type_name);
-  args.SetAt(5, dst_name);
-  args.SetAt(6, error_msg);
+  // Construct '_errorMsg'.
+  const GrowableObjectArray& pieces = GrowableObjectArray::Handle(zone,
+      GrowableObjectArray::New(20));
+
+  // Print bound error first, if any.
+  if (!bound_error_msg.IsNull() && (bound_error_msg.Length() > 0)) {
+    pieces.Add(bound_error_msg);
+    pieces.Add(Symbols::NewLine());
+  }
+
+  // If dst_type is malformed or malbounded, only print the embedded error.
+  if (!dst_type.IsNull()) {
+    const LanguageError& error = LanguageError::Handle(zone, dst_type.error());
+    if (!error.IsNull()) {
+      // Print the embedded error only.
+      pieces.Add(String::Handle(zone, String::New(error.ToErrorCString())));
+      pieces.Add(Symbols::NewLine());
+    } else {
+      // Describe the type error.
+      if (!src_type.IsNull()) {
+        pieces.Add(Symbols::TypeQuote());
+        pieces.Add(String::Handle(zone, src_type.UserVisibleName()));
+        pieces.Add(Symbols::QuoteIsNotASubtypeOf());
+      }
+      pieces.Add(Symbols::TypeQuote());
+      pieces.Add(String::Handle(zone, dst_type.UserVisibleName()));
+      pieces.Add(Symbols::SingleQuote());
+      if (exception_type == kCast) {
+        pieces.Add(dst_name);
+      } else if (dst_name.Length() > 0) {
+        pieces.Add(Symbols::SpaceOfSpace());
+        pieces.Add(Symbols::SingleQuote());
+        pieces.Add(dst_name);
+        pieces.Add(Symbols::SingleQuote());
+      }
+      // Print URIs of src and dst types.
+      // Do not print "where" when no URIs get printed.
+      bool printed_where = false;
+      if (!src_type.IsNull()) {
+        const String& uris = String::Handle(zone, src_type.EnumerateURIs());
+        if (uris.Length() > Symbols::SpaceIsFromSpace().Length()) {
+          printed_where = true;
+          pieces.Add(Symbols::SpaceWhereNewLine());
+          pieces.Add(uris);
+        }
+      }
+      if (!dst_type.IsDynamicType() && !dst_type.IsVoidType()) {
+        const String& uris = String::Handle(zone, dst_type.EnumerateURIs());
+        if (uris.Length() > Symbols::SpaceIsFromSpace().Length()) {
+          if (!printed_where) {
+            pieces.Add(Symbols::SpaceWhereNewLine());
+          }
+          pieces.Add(uris);
+        }
+      }
+    }
+  }
+  const Array& arr = Array::Handle(zone, Array::MakeArray(pieces));
+  const String& error_msg = String::Handle(zone, String::ConcatAll(arr));
+  args.SetAt(3, error_msg);
 
   // Type errors in the core library may be difficult to diagnose.
   // Print type error information before throwing the error when debugging.
   if (FLAG_print_stacktrace_at_throw) {
-    if (!error_msg.IsNull()) {
-      OS::Print("%s\n", error_msg.ToCString());
-    }
-    OS::Print("'%s': Failed type check: line %" Pd " pos %" Pd ": ",
-              String::Handle(script.url()).ToCString(), line, column);
-    if (!dst_name.IsNull() && (dst_name.Length() > 0)) {
-      OS::Print("type '%s' is not a subtype of type '%s' of '%s'.\n",
-                src_type_name.ToCString(),
-                dst_type_name.ToCString(),
-                dst_name.ToCString());
-    } else {
-      OS::Print("type error.\n");
-    }
+    THR_Print("'%s': Failed type check: line %" Pd " pos %" Pd ": ",
+              String::Handle(zone, script.url()).ToCString(), line, column);
+    THR_Print("%s\n", error_msg.ToCString());
   }
 
   // Throw TypeError or CastError instance.

@@ -25,8 +25,7 @@ class Expectation {
   static Expectation MISSING_COMPILETIME_ERROR =
       byName('MissingCompileTimeError');
   static Expectation STATIC_WARNING = byName('StaticWarning');
-  static Expectation MISSING_STATIC_WARNING =
-      byName('MissingStaticWarning');
+  static Expectation MISSING_STATIC_WARNING = byName('MissingStaticWarning');
   static Expectation PUB_GET_ERROR = byName('PubGetError');
 
   // "meta expectations"
@@ -46,7 +45,7 @@ class Expectation {
   }
 
   // Keep a map of all possible Expectation objects, initialized lazily.
-  static Map<String, Expectation>  _AllExpectations;
+  static Map<String, Expectation> _AllExpectations;
   static void _initialize() {
     if (_AllExpectations == null) {
       _AllExpectations = new Map<String, Expectation>();
@@ -89,9 +88,9 @@ class Expectation {
   final bool isMetaExpectation;
 
   Expectation._(prettyName,
-                {Expectation this.group: null,
-                 bool this.isMetaExpectation: false})
-      : prettyName = prettyName, name = prettyName.toLowerCase();
+      {Expectation this.group: null, bool this.isMetaExpectation: false})
+      : prettyName = prettyName,
+        name = prettyName.toLowerCase();
 
   bool canBeOutcomeOf(Expectation expectation) {
     Expectation outcome = this;
@@ -106,7 +105,6 @@ class Expectation {
 
   String toString() => prettyName;
 }
-
 
 final RegExp SplitComment = new RegExp("^([^#]*)(#.*)?\$");
 final RegExp HeaderPattern = new RegExp(r"^\[([^\]]+)\]");
@@ -129,7 +127,8 @@ class Section {
   final int lineNumber;
 
   Section.always(this.statusFile, this.lineNumber)
-      : condition = null, testRules = new List<TestRule>();
+      : condition = null,
+        testRules = new List<TestRule>();
   Section(this.statusFile, this.condition, this.lineNumber)
       : testRules = new List<TestRule>();
 
@@ -141,18 +140,16 @@ class Section {
   }
 }
 
-Future<TestExpectations> ReadTestExpectations(List<String> statusFilePaths,
-                                              Map environment) {
+Future<TestExpectations> ReadTestExpectations(
+    List<String> statusFilePaths, Map environment) {
   var testExpectations = new TestExpectations();
   return Future.wait(statusFilePaths.map((String statusFile) {
-    return ReadTestExpectationsInto(
-        testExpectations, statusFile, environment);
+    return ReadTestExpectationsInto(testExpectations, statusFile, environment);
   })).then((_) => testExpectations);
 }
 
-Future ReadTestExpectationsInto(TestExpectations expectations,
-                                String statusFilePath,
-                                environment) {
+Future ReadTestExpectationsInto(
+    TestExpectations expectations, String statusFilePath, environment) {
   var completer = new Completer();
   List<Section> sections = new List<Section>();
 
@@ -179,13 +176,10 @@ void ReadConfigurationInto(Path path, sections, onDone) {
   }
   int lineNumber = 0;
   Stream<String> lines =
-      file.openRead()
-          .transform(UTF8.decoder)
-          .transform(new LineSplitter());
+      file.openRead().transform(UTF8.decoder).transform(new LineSplitter());
 
   Section currentSection = new Section.always(statusFile, -1);
   sections.add(currentSection);
-
 
   lines.listen((String line) {
     lineNumber++;
@@ -225,16 +219,14 @@ void ReadConfigurationInto(Path path, sections, onDone) {
         if (issueString == null) issueString = match[2];
       }
       int issue = issueString != null ? int.parse(issueString) : null;
-      currentSection.testRules.add(
-          new TestRule(name, expression, issue, lineNumber));
+      currentSection.testRules
+          .add(new TestRule(name, expression, issue, lineNumber));
       return;
     }
 
     print("unmatched line: $line");
-  },
-  onDone: onDone);
+  }, onDone: onDone);
 }
-
 
 class TestRule {
   String name;
@@ -242,16 +234,12 @@ class TestRule {
   int issue;
   int lineNumber;
 
-  TestRule(this.name,
-           this.expression,
-           this.issue,
-           this.lineNumber);
+  TestRule(this.name, this.expression, this.issue, this.lineNumber);
 
   bool get hasIssue => issue != null;
 
   String toString() => 'TestRule($name, $expression, $issue)';
 }
-
 
 class TestExpectations {
   // Only create one copy of each Set<Expectation>.

@@ -29,6 +29,7 @@ class Script;
 class ServiceEvent;
 class String;
 class TimelineEvent;
+class TimelineEventBlock;
 class Zone;
 
 
@@ -54,6 +55,12 @@ enum JSONRpcErrorCode {
   kIsolateMustBeRunnable   = 105,
 };
 
+// Expected that user_data is a JSONStream*.
+void AppendJSONStreamConsumer(Dart_StreamConsumer_State state,
+                              const char* stream_name,
+                              const uint8_t* buffer,
+                              intptr_t buffer_length,
+                              void* user_data);
 
 class JSONStream : ValueObject {
  public:
@@ -128,6 +135,12 @@ class JSONStream : ValueObject {
   // Append |serialized_object| to the stream.
   void AppendSerializedObject(const char* serialized_object);
 
+  void PrintCommaIfNeeded();
+
+  // Append |buffer| to the stream.
+  void AppendSerializedObject(const uint8_t* buffer,
+                              intptr_t buffer_length);
+
   // Append |serialized_object| to the stream with |property_name|.
   void AppendSerializedObject(const char* property_name,
                               const char* serialized_object);
@@ -162,7 +175,8 @@ class JSONStream : ValueObject {
   void PrintValue(MessageQueue* queue);
   void PrintValue(Isolate* isolate, bool ref = true);
   bool PrintValueStr(const String& s, intptr_t offset, intptr_t count);
-  void PrintValue(TimelineEvent* timeline_event);
+  void PrintValue(const TimelineEvent* timeline_event);
+  void PrintValue(const TimelineEventBlock* timeline_event_block);
   void PrintValueVM(bool ref = true);
 
   void PrintServiceId(const Object& o);
@@ -189,10 +203,11 @@ class JSONStream : ValueObject {
   void PrintProperty(const char* name, Metric* metric);
   void PrintProperty(const char* name, MessageQueue* queue);
   void PrintProperty(const char* name, Isolate* isolate);
-  void PrintProperty(const char* name, TimelineEvent* timeline_event);
+  void PrintProperty(const char* name, const TimelineEvent* timeline_event);
+  void PrintProperty(const char* name,
+                     const TimelineEventBlock* timeline_event_block);
   void PrintPropertyVM(const char* name, bool ref = true);
   void PrintPropertyName(const char* name);
-  void PrintCommaIfNeeded();
   bool NeedComma();
 
   bool AddDartString(const String& s, intptr_t offset, intptr_t count);
@@ -309,8 +324,13 @@ class JSONObject : public ValueObject {
   void AddProperty(const char* name, Isolate* isolate) const {
     stream_->PrintProperty(name, isolate);
   }
-  void AddProperty(const char* name, TimelineEvent* timeline_event) const {
+  void AddProperty(const char* name,
+                   const TimelineEvent* timeline_event) const {
     stream_->PrintProperty(name, timeline_event);
+  }
+  void AddProperty(const char* name,
+                   const TimelineEventBlock* timeline_event_block) const {
+    stream_->PrintProperty(name, timeline_event_block);
   }
   void AddPropertyVM(const char* name, bool ref = true) const {
     stream_->PrintPropertyVM(name, ref);
@@ -376,8 +396,11 @@ class JSONArray : public ValueObject {
   void AddValue(MessageQueue* queue) const {
     stream_->PrintValue(queue);
   }
-  void AddValue(TimelineEvent* timeline_event) const {
+  void AddValue(const TimelineEvent* timeline_event) const {
     stream_->PrintValue(timeline_event);
+  }
+  void AddValue(const TimelineEventBlock* timeline_event_block) const {
+    stream_->PrintValue(timeline_event_block);
   }
   void AddValueVM(bool ref = true) const {
     stream_->PrintValueVM(ref);

@@ -2278,7 +2278,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 //  T1: target entry point
 //  CODE_REG: target Code object
 //  S4: arguments descriptor
-void StubCode::GenerateICLookupStub(Assembler* assembler) {
+void StubCode::GenerateICLookupThroughFunctionStub(Assembler* assembler) {
   Label loop, found, miss;
   __ lw(T6, FieldAddress(S5, ICData::ic_data_offset()));
   __ lw(S4, FieldAddress(S5, ICData::arguments_descriptor_offset()));
@@ -2309,6 +2309,45 @@ void StubCode::GenerateICLookupStub(Assembler* assembler) {
   __ lw(CODE_REG, Address(T2, Isolate::ic_miss_code_offset()));
   __ lw(T1, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ Ret();
+}
+
+
+void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
+  Label loop, found, miss;
+  __ lw(T6, FieldAddress(S5, ICData::ic_data_offset()));
+  __ lw(S4, FieldAddress(S5, ICData::arguments_descriptor_offset()));
+  __ AddImmediate(T6, T6, Array::data_offset() - kHeapObjectTag);
+  // T6: first IC entry.
+  __ LoadTaggedClassIdMayBeSmi(T1, T0);
+  // T1: receiver cid as Smi
+
+  __ Bind(&loop);
+  __ lw(T2, Address(T6, 0));
+  __ beq(T1, T2, &found);
+  ASSERT(Smi::RawValue(kIllegalCid) == 0);
+  __ beq(T2, ZR, &miss);
+
+  const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
+  __ AddImmediate(T6, entry_length);  // Next entry.
+  __ b(&loop);
+
+  __ Bind(&found);
+  const intptr_t code_offset = ICData::CodeIndexFor(1) * kWordSize;
+  const intptr_t entry_offset = ICData::EntryPointIndexFor(1) * kWordSize;
+  __ lw(T1, Address(T6, entry_offset));
+  __ lw(CODE_REG, Address(T6, code_offset));
+  __ Ret();
+
+  __ Bind(&miss);
+  __ LoadIsolate(T2);
+  __ lw(CODE_REG, Address(T2, Isolate::ic_miss_code_offset()));
+  __ lw(T1, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  __ Ret();
+}
+
+
+void StubCode::GenerateFrameAwaitingMaterializationStub(Assembler* assembler) {
+  __ break_(0);
 }
 
 }  // namespace dart

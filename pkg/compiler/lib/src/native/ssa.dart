@@ -2,7 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of native;
+import '../common.dart';
+import '../compiler.dart' show Compiler;
+import '../constants/values.dart';
+import '../dart_types.dart';
+import '../elements/elements.dart';
+import '../js/js.dart' as js;
+import '../js_backend/js_backend.dart';
+import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
+import '../ssa/builder.dart' show SsaBuilder;
+import '../ssa/nodes.dart' show HInstruction, HForeignCode, HReturn;
+import '../tree/tree.dart';
+import '../universe/side_effects.dart' show SideEffects;
 
 final RegExp nativeRedirectionRegExp = new RegExp(r'^[a-zA-Z][a-zA-Z_$0-9]*$');
 
@@ -13,8 +24,8 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   JavaScriptBackend backend = builder.backend;
   DiagnosticReporter reporter = compiler.reporter;
 
-  HInstruction convertDartClosure(ParameterElement  parameter,
-                                  FunctionType type) {
+  HInstruction convertDartClosure(
+      ParameterElement parameter, FunctionType type) {
     HInstruction local = builder.localsHandler.readLocal(parameter);
     ConstantValue arityConstant =
         builder.constantSystem.createInt(type.computeArity());
@@ -36,7 +47,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   //      hasBody = true
   bool hasBody = false;
   assert(backend.isNative(element));
-  String nativeMethodName = backend.getFixedBackendName(element);
+  String nativeMethodName = backend.nativeData.getFixedBackendName(element);
   if (nativeBody != null) {
     LiteralString jsCode = nativeBody.asLiteralString();
     String str = jsCode.dartString.slowToString();
@@ -81,25 +92,26 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
     } else if (element.kind == ElementKind.SETTER) {
       nativeMethodCall = '$receiver$nativeMethodName = $foreignParameters';
     } else {
-      builder.reporter.internalError(element,
-                                     'Unexpected kind: "${element.kind}".');
+      builder.reporter
+          .internalError(element, 'Unexpected kind: "${element.kind}".');
     }
 
-    builder.push(
-        new HForeignCode(
-            // TODO(sra): This could be cached.  The number of templates should
-            // be proportional to the number of native methods, which is bounded
-            // by the dart: libraries.
-            js.js.uncachedExpressionTemplate(nativeMethodCall),
-            backend.dynamicType,
-            inputs, effects: new SideEffects()));
+    builder.push(new HForeignCode(
+        // TODO(sra): This could be cached.  The number of templates should
+        // be proportional to the number of native methods, which is bounded
+        // by the dart: libraries.
+        js.js.uncachedExpressionTemplate(nativeMethodCall),
+        backend.dynamicType,
+        inputs,
+        effects: new SideEffects()));
     // TODO(johnniwinther): Provide source information.
     builder
         .close(new HReturn(builder.pop(), null))
         .addSuccessor(builder.graph.exit);
   } else {
     if (parameters.parameterCount != 0) {
-      reporter.internalError(nativeBody,
+      reporter.internalError(
+          nativeBody,
           'native "..." syntax is restricted to '
           'functions with zero parameters.');
     }

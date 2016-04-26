@@ -35,13 +35,13 @@ List<Element> getClassMembers(ClassElement clazz, [String name]) {
   List<Element> members = <Element>[];
   visitChildren(clazz, (Element element) {
     if (element.isSynthetic) {
-      return;
+      return false;
     }
     if (element is ConstructorElement) {
-      return;
+      return false;
     }
     if (name != null && element.displayName != name) {
-      return;
+      return false;
     }
     if (element is ExecutableElement) {
       members.add(element);
@@ -49,6 +49,7 @@ List<Element> getClassMembers(ClassElement clazz, [String name]) {
     if (element is FieldElement) {
       members.add(element);
     }
+    return false;
   });
   return members;
 }

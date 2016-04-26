@@ -56,8 +56,6 @@ void main() {
     Int32 n2 = new Int32(9876);
     Int32 n3 = new Int32(-1234);
     Int32 n4 = new Int32(-9876);
-    Int32 n5 = new Int32(0x12345678);
-    Int32 n6 = new Int32(0x22222222);
 
     test("+", () {
       expect(n1 + n2, new Int32(11110));

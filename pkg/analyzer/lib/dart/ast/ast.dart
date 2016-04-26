@@ -536,7 +536,7 @@ abstract class AstNode {
    * (either AST nodes or tokens) that make up the contents of this node,
    * including doc comments but excluding other comments.
    */
-  Iterable/*<AstNode | Token>*/ get childEntities;
+  Iterable /* AstNode | Token */ get childEntities;
 
   /**
    * Return the offset of the character immediately following the last character
@@ -591,7 +591,7 @@ abstract class AstNode {
    * Use the given [visitor] to visit this node. Return the value returned by
    * the visitor as a result of visiting this node.
    */
-  dynamic /* =E */ accept/*<E>*/(AstVisitor/*<E>*/ visitor);
+  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor);
 
   /**
    * Return the most immediate ancestor of this node for which the [predicate]
@@ -5899,7 +5899,8 @@ abstract class NodeList<E extends AstNode> implements List<E> {
    * are added to the list will have their parent set to the given [owner]. The
    * list will initially be populated with the given [elements].
    */
-  factory NodeList(AstNode owner, [List<E> elements]) = NodeListImpl;
+  factory NodeList(AstNode owner, [List<E> elements]) =>
+      new NodeListImpl<E>(owner as AstNodeImpl, elements);
 
   /**
    * Return the first token included in this node list's source range, or `null`
@@ -6703,7 +6704,12 @@ abstract class SimpleIdentifier extends Identifier {
   /**
    * Initialize a newly created identifier.
    */
-  factory SimpleIdentifier(Token token) = SimpleIdentifierImpl;
+  factory SimpleIdentifier(Token token, {bool isDeclaration: false}) {
+    if (isDeclaration) {
+      return new DeclaredSimpleIdentifier(token);
+    }
+    return new SimpleIdentifierImpl(token);
+  }
 
   /**
    * Return the auxiliary elements associated with this identifier, or `null` if

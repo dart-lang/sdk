@@ -29,6 +29,11 @@ _logger = logging.getLogger('dartmetadata')
 
 _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
 
+    'AnimationEffectTiming.duration': [
+      "@Creates('Null')",
+      "@Returns('num|String')",
+     ],
+
     'ArrayBufferView': [
       "@Creates('TypedData')",
       "@Returns('TypedData|Null')",
@@ -54,6 +59,10 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     'CanvasRenderingContext2D.strokeStyle': [
       "@Creates('String|CanvasGradient|CanvasPattern')",
       "@Returns('String|CanvasGradient|CanvasPattern')",
+    ],
+
+    'CryptoKey.algorithm': [
+      "@Creates('Null')",
     ],
 
     'CustomEvent._detail': [
@@ -276,6 +285,11 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('EventTarget|=Object')",
     ],
 
+    'Notification.data': [
+      "@annotation_Creates_SerializedScriptValue",
+      "@annotation_Returns_SerializedScriptValue",
+    ],
+
     'PopStateEvent.state': [
       "@annotation_Creates_SerializedScriptValue",
       "@annotation_Returns_SerializedScriptValue",
@@ -289,6 +303,16 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@annotation_Creates_SerializedScriptValue",
       "@annotation_Returns_SerializedScriptValue",
     ],
+
+    'ServiceWorkerMessageEvent.data': [
+      "@annotation_Creates_SerializedScriptValue",
+      "@annotation_Returns_SerializedScriptValue",
+    ],
+
+    'ServiceWorkerMessageEvent.source': [
+      "@Creates('Null')",
+      "@Returns('_ServiceWorker|MessagePort')",
+     ],
 
     'ShadowRoot.getElementsByClassName': [
       "@Creates('NodeList|HtmlCollection')",
@@ -305,8 +329,6 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('NodeList|HtmlCollection')",
     ],
 
-    'SQLResultSetRowList.item': ["@Creates('=Object')"],
-
     # Touch targets are Elements in a Document, or the Document.
     'Touch.target': [
       "@Creates('Element|Document')",
@@ -315,6 +337,16 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
 
     'TrackEvent.track': [
       "@Creates('Null')",
+    ],
+
+    'VTTCue.line': [
+       "@Creates('Null')",
+       "@Returns('num|String')",
+    ],
+
+    'VTTCue.position': [
+       "@Creates('Null')",
+       "@Returns('num|String')",
     ],
 
     'WebGLRenderingContext.getBufferParameter': [

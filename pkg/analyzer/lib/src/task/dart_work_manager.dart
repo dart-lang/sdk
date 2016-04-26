@@ -30,7 +30,8 @@ class DartWorkManager implements WorkManager {
   /**
    * The list of errors that are reported for raw Dart [Source]s.
    */
-  static final List<ResultDescriptor> _SOURCE_ERRORS = <ResultDescriptor>[
+  static final List<ResultDescriptor<List<AnalysisError>>> _SOURCE_ERRORS =
+      <ResultDescriptor<List<AnalysisError>>>[
     BUILD_DIRECTIVES_ERRORS,
     BUILD_LIBRARY_ERRORS,
     PARSE_ERRORS,
@@ -40,7 +41,8 @@ class DartWorkManager implements WorkManager {
   /**
    * The list of errors that are reported for raw Dart [LibrarySpecificUnit]s.
    */
-  static final List<ResultDescriptor> _UNIT_ERRORS = <ResultDescriptor>[
+  static final List<ResultDescriptor<List<AnalysisError>>> _UNIT_ERRORS =
+      <ResultDescriptor<List<AnalysisError>>>[
     HINTS,
     LINTS,
     LIBRARY_UNIT_ERRORS,
@@ -178,12 +180,12 @@ class DartWorkManager implements WorkManager {
     }
     // If analysis is in progress, combine all known partial results.
     List<AnalysisError> errors = <AnalysisError>[];
-    for (ResultDescriptor descriptor in _SOURCE_ERRORS) {
+    for (ResultDescriptor<List<AnalysisError>> descriptor in _SOURCE_ERRORS) {
       errors.addAll(analysisCache.getValue(source, descriptor));
     }
     for (Source library in context.getLibrariesContaining(source)) {
       LibrarySpecificUnit unit = new LibrarySpecificUnit(library, source);
-      for (ResultDescriptor descriptor in _UNIT_ERRORS) {
+      for (ResultDescriptor<List<AnalysisError>> descriptor in _UNIT_ERRORS) {
         errors.addAll(analysisCache.getValue(unit, descriptor));
       }
     }
@@ -202,7 +204,7 @@ class DartWorkManager implements WorkManager {
       }
     }
     List<Source> libraries = partLibrariesMap[part];
-    return libraries != null ? libraries : Source.EMPTY_LIST;
+    return libraries?.toList() ?? Source.EMPTY_LIST;
   }
 
   @override
@@ -304,7 +306,7 @@ class DartWorkManager implements WorkManager {
     // Update parts in libraries.
     if (isDartLibrarySource) {
       Source library = target;
-      List<Source> includedParts = outputs[INCLUDED_PARTS];
+      List<Source> includedParts = outputs[INCLUDED_PARTS] as List<Source>;
       if (includedParts != null) {
         libraryPartsMap[library] = includedParts;
         for (Source part in includedParts) {

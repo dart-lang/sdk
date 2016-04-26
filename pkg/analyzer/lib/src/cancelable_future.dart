@@ -252,11 +252,11 @@ class _CancelableCompleterFuture<T> implements CancelableFuture<T> {
       _completer._outerCompleter.future.catchError(onError, test: test);
 
   @override
-  Future then(onValue(T value), {Function onError}) =>
+  Future/*<S>*/ then/*<S>*/(/*=S*/ onValue(T value), {Function onError}) =>
       _completer._outerCompleter.future.then(onValue, onError: onError);
 
   @override
-  Future timeout(Duration timeLimit, {onTimeout()}) {
+  Future<T> timeout(Duration timeLimit, {onTimeout()}) {
     // TODO(paulberry): Implement this in such a way that a timeout cancels
     // the future.
     return _completer._outerCompleter.future
@@ -288,11 +288,11 @@ class _WrappedFuture<T> implements CancelableFuture<T> {
       _future.catchError(onError, test: test);
 
   @override
-  Future then(onValue(value), {Function onError}) =>
+  Future/*<S>*/ then/*<S>*/(/*=S*/ onValue(T value), {Function onError}) =>
       _future.then(onValue, onError: onError);
 
   @override
-  Future timeout(Duration timeLimit, {onTimeout()}) =>
+  Future<T> timeout(Duration timeLimit, {onTimeout()}) =>
       _future.timeout(timeLimit, onTimeout: onTimeout);
 
   @override

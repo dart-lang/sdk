@@ -28,27 +28,24 @@ Future<String> compile(source) {
     // TODO(ahe): Use new Future.error.
     throw new Exception('Error: Cannot read: $uri');
   }
-  void handler(Uri uri, int begin, int end,
-               String message, compiler.Diagnostic kind) {
+  void handler(
+      Uri uri, int begin, int end, String message, compiler.Diagnostic kind) {
     // TODO(ahe): Remove dart:io import from
     // ../../lib/src/source_file_provider.dart and use
     // FormattingDiagnosticHandler instead.
-    print({ 'uri': '$uri',
-            'begin': begin,
-            'end': end,
-            'message': message,
-            'kind': kind.name });
+    print({
+      'uri': '$uri',
+      'begin': begin,
+      'end': end,
+      'message': message,
+      'kind': kind.name
+    });
     if (kind == compiler.Diagnostic.ERROR) {
       throw new Exception('Unexpected error occurred.');
     }
   }
-  return compiler.compile(
-      Uri.parse('memory:/main.dart'),
-      Uri.parse('sdk:/sdk/'),
-      null,
-      inputProvider,
-      handler,
-      []);
+  return compiler.compile(Uri.parse('memory:/main.dart'),
+      Uri.parse('sdk:/sdk/'), null, inputProvider, handler, []);
 }
 
 int iterations = 10;

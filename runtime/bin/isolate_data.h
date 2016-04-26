@@ -9,7 +9,6 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
-
 namespace dart {
 namespace bin {
 
@@ -28,7 +27,6 @@ class IsolateData {
         package_root(NULL),
         packages_file(NULL),
         udp_receive_buffer(NULL),
-        load_async_id(-1),
         builtin_lib_(NULL) {
     if (package_root != NULL) {
       ASSERT(packages_file == NULL);
@@ -68,7 +66,6 @@ class IsolateData {
   char* package_root;
   char* packages_file;
   uint8_t* udp_receive_buffer;
-  int64_t load_async_id;
 
  private:
   Dart_Handle builtin_lib_;

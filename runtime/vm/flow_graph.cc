@@ -5,6 +5,7 @@
 #include "vm/flow_graph.h"
 
 #include "vm/bit_vector.h"
+#include "vm/cha.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_range_analysis.h"
@@ -19,7 +20,6 @@ namespace dart {
 DEFINE_FLAG(bool, trace_smi_widening, false, "Trace Smi->Int32 widening pass.");
 #endif
 DEFINE_FLAG(bool, prune_dead_locals, true, "optimize dead locals away");
-DECLARE_FLAG(bool, reorder_basic_blocks);
 DECLARE_FLAG(bool, verify_compiler);
 
 
@@ -105,8 +105,9 @@ void FlowGraph::AddToDeferredPrefixes(
 
 bool FlowGraph::ShouldReorderBlocks(const Function& function,
                                     bool is_optimized) {
-  return is_optimized && FLAG_reorder_basic_blocks &&
-      FLAG_emit_edge_counters && !function.is_intrinsic();
+  return is_optimized
+      && FLAG_reorder_basic_blocks
+      && !function.is_intrinsic();
 }
 
 
@@ -370,6 +371,92 @@ static void VerifyUseListsInInstruction(Instruction* instr) {
     }
   }
 }
+
+void FlowGraph::ComputeIsReceiverRecursive(
+    PhiInstr* phi, GrowableArray<PhiInstr*>* unmark) const {
+  if (phi->is_receiver() != PhiInstr::kUnknownReceiver) return;
+  phi->set_is_receiver(PhiInstr::kReceiver);
+  for (intptr_t i = 0; i < phi->InputCount(); ++i) {
+    Definition* def = phi->InputAt(i)->definition();
+    if (def->IsParameter() && (def->AsParameter()->index() == 0)) continue;
+    if (!def->IsPhi()) {
+      phi->set_is_receiver(PhiInstr::kNotReceiver);
+      break;
+    }
+    ComputeIsReceiverRecursive(def->AsPhi(), unmark);
+    if (def->AsPhi()->is_receiver() == PhiInstr::kNotReceiver) {
+      phi->set_is_receiver(PhiInstr::kNotReceiver);
+      break;
+    }
+  }
+
+  if (phi->is_receiver() == PhiInstr::kNotReceiver) {
+    unmark->Add(phi);
+  }
+}
+
+
+void FlowGraph::ComputeIsReceiver(PhiInstr* phi) const {
+  GrowableArray<PhiInstr*> unmark;
+  ComputeIsReceiverRecursive(phi, &unmark);
+
+  // Now drain unmark.
+  while (!unmark.is_empty()) {
+    PhiInstr* phi = unmark.RemoveLast();
+    for (Value::Iterator it(phi->input_use_list()); !it.Done(); it.Advance()) {
+      PhiInstr* use = it.Current()->instruction()->AsPhi();
+      if ((use != NULL) && (use->is_receiver() == PhiInstr::kReceiver)) {
+        use->set_is_receiver(PhiInstr::kNotReceiver);
+        unmark.Add(use);
+      }
+    }
+  }
+}
+
+
+bool FlowGraph::IsReceiver(Definition* def) const {
+  if (def->IsParameter()) return (def->AsParameter()->index() == 0);
+  if (!def->IsPhi() || graph_entry()->catch_entries().is_empty()) return false;
+  PhiInstr* phi = def->AsPhi();
+  if (phi->is_receiver() != PhiInstr::kUnknownReceiver) {
+    return (phi->is_receiver() == PhiInstr::kReceiver);
+  }
+  // Not known if this phi is the receiver yet. Compute it now.
+  ComputeIsReceiver(phi);
+  return (phi->is_receiver() == PhiInstr::kReceiver);
+}
+
+
+// Use CHA to determine if the call needs a class check: if the callee's
+// receiver is the same as the caller's receiver and there are no overriden
+// callee functions, then no class check is needed.
+bool FlowGraph::InstanceCallNeedsClassCheck(InstanceCallInstr* call,
+                                            RawFunction::Kind kind) const {
+  if (!FLAG_use_cha_deopt && !isolate()->all_classes_finalized()) {
+    // Even if class or function are private, lazy class finalization
+    // may later add overriding methods.
+    return true;
+  }
+  Definition* callee_receiver = call->ArgumentAt(0);
+  ASSERT(callee_receiver != NULL);
+  if (function().IsDynamicFunction() && IsReceiver(callee_receiver)) {
+    const String& name = (kind == RawFunction::kMethodExtractor)
+        ? String::Handle(zone(), Field::NameFromGetter(call->function_name()))
+        : call->function_name();
+    const Class& cls = Class::Handle(zone(), function().Owner());
+    if (!thread()->cha()->HasOverride(cls, name)) {
+      if (FLAG_trace_cha) {
+        THR_Print("  **(CHA) Instance call needs no check, "
+            "no overrides of '%s' '%s'\n",
+            name.ToCString(), cls.ToCString());
+      }
+      thread()->cha()->AddToLeafClasses(cls);
+      return false;
+    }
+  }
+  return true;
+}
+
 
 
 bool FlowGraph::VerifyUseLists() {

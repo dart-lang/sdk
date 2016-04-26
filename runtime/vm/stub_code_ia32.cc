@@ -2084,7 +2084,18 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 // Result:
 //  EBX: target entry point
 //  EDX: arguments descriptor
-void StubCode::GenerateICLookupStub(Assembler* assembler) {
+void StubCode::GenerateICLookupThroughFunctionStub(Assembler* assembler) {
+  __ int3();
+}
+
+
+void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
+  __ int3();
+}
+
+
+
+void StubCode::GenerateFrameAwaitingMaterializationStub(Assembler* assembler) {
   __ int3();
 }
 

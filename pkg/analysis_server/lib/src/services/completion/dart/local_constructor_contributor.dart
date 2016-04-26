@@ -15,10 +15,10 @@ import 'package:analysis_server/src/services/completion/dart/local_declaration_v
     show LocalDeclarationVisitor;
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 import '../../../protocol_server.dart'
@@ -181,8 +181,8 @@ class _Visitor extends LocalDeclarationVisitor {
   final List<CompletionSuggestion> suggestions;
 
   _Visitor(DartCompletionRequest request, this.suggestions)
-      : super(request.offset),
-        request = request;
+      : request = request,
+        super(request.offset);
 
   @override
   void declaredClass(ClassDeclaration declaration) {

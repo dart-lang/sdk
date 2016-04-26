@@ -24,8 +24,7 @@ class IncreasingTypeMaskSet extends UniverseSelectorConstraints {
   @override
   bool needsNoSuchMethodHandling(Selector selector, ClassWorld world) {
     if (isAll) {
-      TypeMask mask =
-          new TypeMask.subclass(world.objectClass, world);
+      TypeMask mask = new TypeMask.subclass(world.objectClass, world);
       return mask.needsNoSuchMethodHandling(selector, world);
     }
     for (TypeMask mask in _masks) {
@@ -76,10 +75,8 @@ class TypeMaskStrategy implements SelectorConstraintsStrategy {
  * yield conservative answers that contain too many classes.
  */
 abstract class TypeMask implements ReceiverConstraint, AbstractValue {
-  factory TypeMask(ClassElement base,
-                   int kind,
-                   bool isNullable,
-                   ClassWorld classWorld) {
+  factory TypeMask(
+      ClassElement base, int kind, bool isNullable, ClassWorld classWorld) {
     return new FlatTypeMask.normalized(
         base, (kind << 1) | (isNullable ? 1 : 0), classWorld);
   }
@@ -89,7 +86,7 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
   factory TypeMask.exact(ClassElement base, ClassWorld classWorld) {
     assert(invariant(base, classWorld.isInstantiated(base),
         message: () => "Cannot create exact type mask for uninstantiated "
-                       "class $base.\n${classWorld.dump(base)}"));
+            "class $base.\n${classWorld.dump(base)}"));
     return new FlatTypeMask.exact(base);
   }
 
@@ -101,7 +98,7 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
   factory TypeMask.subclass(ClassElement base, ClassWorld classWorld) {
     assert(invariant(base, classWorld.isInstantiated(base),
         message: () => "Cannot create subclass type mask for uninstantiated "
-                       "class $base.\n${classWorld.dump(base)}"));
+            "class $base.\n${classWorld.dump(base)}"));
     ClassElement topmost = classWorld.getLubOfInstantiatedSubclasses(base);
     if (topmost == null) {
       return new TypeMask.empty();
@@ -132,12 +129,12 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
   factory TypeMask.nonNullExact(ClassElement base, ClassWorld classWorld) {
     assert(invariant(base, classWorld.isInstantiated(base),
         message: () => "Cannot create exact type mask for uninstantiated "
-                       "class $base.\n${classWorld.dump(base)}"));
+            "class $base.\n${classWorld.dump(base)}"));
     return new FlatTypeMask.nonNullExact(base);
   }
 
-  factory TypeMask.nonNullExactOrEmpty(ClassElement base,
-      ClassWorld classWorld) {
+  factory TypeMask.nonNullExactOrEmpty(
+      ClassElement base, ClassWorld classWorld) {
     if (classWorld.isInstantiated(base)) {
       return new FlatTypeMask.nonNullExact(base);
     }
@@ -147,7 +144,7 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
   factory TypeMask.nonNullSubclass(ClassElement base, ClassWorld classWorld) {
     assert(invariant(base, classWorld.isInstantiated(base),
         message: () => "Cannot create subclass type mask for uninstantiated "
-                       "class $base.\n${classWorld.dump(base)}"));
+            "class $base.\n${classWorld.dump(base)}"));
     ClassElement topmost = classWorld.getLubOfInstantiatedSubclasses(base);
     if (topmost == null) {
       return new TypeMask.nonNullEmpty();
@@ -204,7 +201,7 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
   static String getNotNormalizedReason(TypeMask mask, ClassWorld classWorld) {
     mask = nonForwardingMask(mask);
     if (mask is FlatTypeMask) {
-      if (mask.isEmpty) return null;
+      if (mask.isEmptyOrNull) return null;
       if (mask.isExact) {
         if (!classWorld.isInstantiated(mask.base)) {
           return 'Exact ${mask.base} is not instantiated.';
@@ -247,8 +244,20 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
    */
   TypeMask nonNullable();
 
+  /// Whether nothing matches this mask, not even null.
   bool get isEmpty;
+
+  /// Whether null is a valid value of this mask.
   bool get isNullable;
+
+  /// Whether the only possible value in this mask is Null.
+  bool get isNull;
+
+  /// Whether [isEmpty] or [isNull] is true.
+  bool get isEmptyOrNull;
+
+  /// Whether this mask only includes instances of an exact class, and none of
+  /// it's subclasses or subtypes.
   bool get isExact;
 
   /// Returns true if this mask is a union type.
@@ -285,7 +294,7 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
    * Note: This may differ from semantic equality in the set containment sense.
    *   Use [containsMask] and [isInMask] for that, instead.
    */
-  bool operator==(other);
+  bool operator ==(other);
 
   /**
    * If this returns `true`, [other] is guaranteed to be a supertype of this
@@ -329,7 +338,6 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
    */
   TypeMask union(TypeMask other, ClassWorld classWorld);
 
-
   /// Returns whether the intersection of this and [other] is empty.
   bool isDisjoint(TypeMask other, ClassWorld classWorld);
 
@@ -351,7 +359,5 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
    */
   // TODO(johnniwinther): Move this method to [World].
   Element locateSingleElement(
-      Selector selector,
-      TypeMask mask,
-      Compiler compiler);
+      Selector selector, TypeMask mask, Compiler compiler);
 }

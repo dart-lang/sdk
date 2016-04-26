@@ -44,11 +44,11 @@ class AnalysisDriver {
   final InternalAnalysisContext context;
 
   /**
-   * The map of [ComputedResult] controllers.
+   * The map of [ResultChangedEvent] controllers.
    */
-  final Map<ResultDescriptor, StreamController<ComputedResult>>
+  final Map<ResultDescriptor, StreamController<ResultChangedEvent>>
       resultComputedControllers =
-      <ResultDescriptor, StreamController<ComputedResult>>{};
+      <ResultDescriptor, StreamController<ResultChangedEvent>>{};
 
   /**
    * The work order that was previously computed but that has not yet been
@@ -165,6 +165,9 @@ class AnalysisDriver {
         state == CacheState.IN_PROCESS) {
       return null;
     }
+    if (context.aboutToComputeResult(entry, result)) {
+      return null;
+    }
     TaskDescriptor taskDescriptor = taskManager.findTask(target, result);
     if (taskDescriptor == null) {
       return null;
@@ -208,11 +211,10 @@ class AnalysisDriver {
    * Return the stream that is notified when a new value for the given
    * [descriptor] is computed.
    */
-  Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
-    return resultComputedControllers
-        .putIfAbsent(descriptor,
-            () => new StreamController<ComputedResult>.broadcast(sync: true))
-        .stream;
+  Stream<ResultChangedEvent> onResultComputed(ResultDescriptor descriptor) {
+    return resultComputedControllers.putIfAbsent(descriptor, () {
+      return new StreamController<ResultChangedEvent>.broadcast(sync: true);
+    }).stream;
   }
 
   /**
@@ -284,11 +286,11 @@ class AnalysisDriver {
           entry.setValue(result, outputs[result], dependedOn);
         }
         outputs.forEach((ResultDescriptor descriptor, value) {
-          StreamController<ComputedResult> controller =
+          StreamController<ResultChangedEvent> controller =
               resultComputedControllers[descriptor];
           if (controller != null) {
-            ComputedResult event =
-                new ComputedResult(context, descriptor, target, value);
+            ResultChangedEvent event = new ResultChangedEvent(
+                context, target, descriptor, value, true);
             controller.add(event);
           }
         });
@@ -397,6 +399,8 @@ abstract class CycleAwareDependencyWalker<Node> {
     while (_currentIndices.isNotEmpty) {
       Node nextUnevaluatedInput = getNextInput(_path[_currentIndices.last],
           _provisionalDependencies[_currentIndices.last]);
+      // If the assertion below fails, it indicates that [getNextInput] did not
+      // skip an input that we asked it to skip.
       assert(!_provisionalDependencies[_currentIndices.last]
           .contains(nextUnevaluatedInput));
       if (nextUnevaluatedInput != null) {
@@ -500,10 +504,36 @@ class InfiniteTaskLoopException extends AnalysisException {
    * Initialize a newly created exception to represent a failed attempt to
    * perform the given [task] due to the given [dependencyCycle].
    */
-  InfiniteTaskLoopException(AnalysisTask task, this.dependencyCycle,
-      [this.cyclicPath])
-      : super(
-            'Infinite loop while performing task ${task.descriptor.name} for ${task.target}');
+  InfiniteTaskLoopException(AnalysisTask task, List<WorkItem> dependencyCycle,
+      [List<TargetedResult> cyclicPath])
+      : this.dependencyCycle = dependencyCycle,
+        this.cyclicPath = cyclicPath,
+        super(_composeMessage(task, dependencyCycle, cyclicPath));
+
+  /**
+   * Compose an error message based on the data we have available.
+   */
+  static String _composeMessage(AnalysisTask task,
+      List<WorkItem> dependencyCycle, List<TargetedResult> cyclicPath) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write('Infinite loop while performing task ');
+    buffer.write(task.descriptor.name);
+    buffer.write(' for ');
+    buffer.writeln(task.target);
+    buffer.writeln('  Dependency Cycle:');
+    for (WorkItem item in dependencyCycle) {
+      buffer.write('    ');
+      buffer.writeln(item);
+    }
+    if (cyclicPath != null) {
+      buffer.writeln('  Cyclic Path:');
+      for (TargetedResult result in cyclicPath) {
+        buffer.write('    ');
+        buffer.writeln(result);
+      }
+    }
+    return buffer.toString();
+  }
 }
 
 /**
@@ -567,7 +597,7 @@ class WorkItem {
    * or `null` if all of the inputs have been collected and the task can be
    * created.
    */
-  TaskInputBuilder builder;
+  TopLevelTaskInputBuilder builder;
 
   /**
    * The [TargetedResult]s outputs of this task depends on.
@@ -683,12 +713,7 @@ class WorkItem {
       inputTargetedResults.add(new TargetedResult(inputTarget, inputResult));
       CacheEntry inputEntry = context.getCacheEntry(inputTarget);
       CacheState inputState = inputEntry.getState(inputResult);
-      if (skipInputs.any((WorkItem item) =>
-          item.target == inputTarget && item.spawningResult == inputResult)) {
-        // This input is being skipped due to a circular dependency.  Tell the
-        // builder that it's not available so we can move on to other inputs.
-        builder.currentValueNotAvailable();
-      } else if (inputState == CacheState.ERROR) {
+      if (inputState == CacheState.ERROR) {
         exception = inputEntry.exception;
         return null;
       } else if (inputState == CacheState.IN_PROCESS) {
@@ -716,8 +741,16 @@ class WorkItem {
               throw new AnalysisException(
                   'Cannot find task to build $inputResult for $inputTarget');
             }
-            return new WorkItem(context, inputTarget, descriptor, inputResult,
-                level + 1, workOrder);
+            if (skipInputs.any((WorkItem item) =>
+                item.target == inputTarget && item.descriptor == descriptor)) {
+              // This input is being skipped due to a circular dependency.  Tell
+              // the builder that it's not available so we can move on to other
+              // inputs.
+              builder.currentValueNotAvailable();
+            } else {
+              return new WorkItem(context, inputTarget, descriptor, inputResult,
+                  level + 1, workOrder);
+            }
           } on AnalysisException catch (exception, stackTrace) {
             this.exception = new CaughtException(exception, stackTrace);
             return null;

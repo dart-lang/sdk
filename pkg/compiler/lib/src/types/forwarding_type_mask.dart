@@ -9,13 +9,14 @@ part of types;
  * implementation methods to it.
  */
 abstract class ForwardingTypeMask implements TypeMask {
-
   TypeMask get forwardTo;
 
   ForwardingTypeMask();
 
+  bool get isEmptyOrNull => forwardTo.isEmptyOrNull;
   bool get isEmpty => forwardTo.isEmpty;
   bool get isNullable => forwardTo.isNullable;
+  bool get isNull => forwardTo.isNull;
   bool get isExact => forwardTo.isExact;
 
   bool get isUnion => false;
@@ -78,7 +79,7 @@ abstract class ForwardingTypeMask implements TypeMask {
       return this;
     } else if (equalsDisregardNull(other)) {
       return other.isNullable ? other : this;
-    } else if (other.isEmpty) {
+    } else if (other.isEmptyOrNull) {
       return other.isNullable ? this.nullable() : this;
     }
     return forwardTo.union(other, classWorld);
@@ -100,9 +101,8 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.canHit(element, selector, classWorld);
   }
 
-  Element locateSingleElement(Selector selector,
-                              TypeMask mask,
-                              Compiler compiler) {
+  Element locateSingleElement(
+      Selector selector, TypeMask mask, Compiler compiler) {
     return forwardTo.locateSingleElement(selector, mask, compiler);
   }
 
@@ -115,7 +115,7 @@ abstract class ForwardingTypeMask implements TypeMask {
     }
   }
 
-  bool operator==(other) {
+  bool operator ==(other) {
     return equalsDisregardNull(other) && isNullable == other.isNullable;
   }
 

@@ -296,13 +296,9 @@ linter:
     expect(testContext.analysisOptions.strongMode, enabled);
 
     if (enabled) {
-      // Should produce a warning and an error.
-      expect(
-          errors.map((error) => error.type),
-          unorderedEquals([
-            AnalysisErrorType.STATIC_TYPE_WARNING,
-            AnalysisErrorType.COMPILE_TIME_ERROR
-          ]));
+      // Should produce a type warning.
+      expect(errors.map((error) => error.type),
+          unorderedEquals([AnalysisErrorType.STATIC_TYPE_WARNING]));
     } else {
       // Should only produce a hint.
       expect(errors.map((error) => error.type),

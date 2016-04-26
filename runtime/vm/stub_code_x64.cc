@@ -2092,6 +2092,7 @@ void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
           FieldAddress(RBX, MegamorphicCache::arguments_descriptor_offset()));
   __ movq(RDI, FieldAddress(RBX, MegamorphicCache::buckets_offset()));
   __ movq(R9, FieldAddress(RBX, MegamorphicCache::mask_offset()));
+  // R10: arguments descriptor (result).
   // RDI: cache buckets array.
   // RBX: mask.
   __ movq(RCX, RAX);
@@ -2144,7 +2145,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 //  RCX: target entry point
 //  CODE_REG: target Code object
 //  R10: arguments descriptor
-void StubCode::GenerateICLookupStub(Assembler* assembler) {
+void StubCode::GenerateICLookupThroughFunctionStub(Assembler* assembler) {
   Label loop, found, miss;
 
   __ movq(R13, FieldAddress(RBX, ICData::ic_data_offset()));
@@ -2179,6 +2180,49 @@ void StubCode::GenerateICLookupStub(Assembler* assembler) {
   __ movq(CODE_REG, Address(RAX, Isolate::ic_miss_code_offset()));
   __ movq(RCX, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ ret();
+}
+
+
+void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
+  Label loop, found, miss;
+
+  __ movq(R13, FieldAddress(RBX, ICData::ic_data_offset()));
+  __ movq(R10, FieldAddress(RBX, ICData::arguments_descriptor_offset()));
+  __ leaq(R13, FieldAddress(R13, Array::data_offset()));
+  // R13: first IC entry
+  __ LoadTaggedClassIdMayBeSmi(RAX, RDI);
+  // RAX: receiver cid as Smi
+
+  __ Bind(&loop);
+  __ movq(R9, Address(R13, 0));
+  __ cmpq(RAX, R9);
+  __ j(EQUAL, &found, Assembler::kNearJump);
+
+  ASSERT(Smi::RawValue(kIllegalCid) == 0);
+  __ testq(R9, R9);
+  __ j(ZERO, &miss, Assembler::kNearJump);
+
+  const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
+  __ addq(R13, Immediate(entry_length));  // Next entry.
+  __ jmp(&loop);
+
+  __ Bind(&found);
+  const intptr_t code_offset = ICData::CodeIndexFor(1) * kWordSize;
+  const intptr_t entry_offset = ICData::EntryPointIndexFor(1) * kWordSize;
+  __ movq(RCX, Address(R13, entry_offset));
+  __ movq(CODE_REG, Address(R13, code_offset));
+  __ ret();
+
+  __ Bind(&miss);
+  __ LoadIsolate(RAX);
+  __ movq(CODE_REG, Address(RAX, Isolate::ic_miss_code_offset()));
+  __ movq(RCX, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  __ ret();
+}
+
+
+void StubCode::GenerateFrameAwaitingMaterializationStub(Assembler* assembler) {
+  __ int3();
 }
 
 }  // namespace dart

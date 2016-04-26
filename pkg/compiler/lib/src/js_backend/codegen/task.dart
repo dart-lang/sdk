@@ -12,13 +12,9 @@ import 'unsugar.dart';
 import '../js_backend.dart';
 
 import '../../common.dart';
-import '../../common/codegen.dart' show
-    CodegenWorkItem;
-import '../../common/tasks.dart' show
-    CompilerTask,
-    GenericTask;
-import '../../compiler.dart' show
-    Compiler;
+import '../../common/codegen.dart' show CodegenWorkItem;
+import '../../common/tasks.dart' show CompilerTask, GenericTask;
+import '../../compiler.dart' show Compiler;
 import '../../constants/constant_system.dart';
 import '../../cps_ir/cps_ir_builder_task.dart';
 import '../../cps_ir/cps_ir_nodes.dart' as cps;
@@ -28,13 +24,11 @@ import '../../cps_ir/optimizers.dart';
 import '../../cps_ir/optimizers.dart' as cps_opt;
 import '../../cps_ir/type_mask_system.dart';
 import '../../cps_ir/finalize.dart' show Finalize;
-import '../../diagnostics/invariant.dart' show
-    DEBUG_MODE;
+import '../../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../../elements/elements.dart';
 import '../../js/js.dart' as js;
 import '../../js_backend/codegen/codegen.dart';
-import '../../io/source_information.dart' show
-    SourceInformationStrategy;
+import '../../io/source_information.dart' show SourceInformationStrategy;
 import '../../tree_ir/tree_ir_builder.dart' as tree_builder;
 import '../../tracer.dart';
 import '../../ssa/ssa.dart' as ssa;
@@ -42,11 +36,8 @@ import '../../tree_ir/optimization/optimization.dart';
 import '../../tree_ir/optimization/optimization.dart' as tree_opt;
 import '../../tree_ir/tree_ir_integrity.dart';
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
-import '../../types/types.dart' show
-    FlatTypeMask,
-    ForwardingTypeMask,
-    TypeMask,
-    UnionTypeMask;
+import '../../types/types.dart'
+    show FlatTypeMask, ForwardingTypeMask, TypeMask, UnionTypeMask;
 
 class CpsFunctionCompiler implements FunctionCompiler {
   final ConstantSystem constantSystem;
@@ -69,7 +60,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
   Inliner inliner;
 
   CpsFunctionCompiler(Compiler compiler, JavaScriptBackend backend,
-                      SourceInformationStrategy sourceInformationFactory)
+      SourceInformationStrategy sourceInformationFactory)
       : fallbackCompiler =
             new ssa.SsaFunctionCompiler(backend, sourceInformationFactory),
         cpsBuilderTask = new IrBuilderTask(compiler, sourceInformationFactory),
@@ -79,7 +70,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
         glue = new Glue(compiler),
         cpsOptimizationTask = new GenericTask('CPS optimization', compiler),
         treeBuilderTask = new GenericTask('Tree builder', compiler),
-      treeOptimizationTask = new GenericTask('Tree optimization', compiler) {
+        treeOptimizationTask = new GenericTask('Tree optimization', compiler) {
     inliner = new Inliner(this);
   }
 
@@ -144,9 +135,8 @@ class CpsFunctionCompiler implements FunctionCompiler {
   ///
   /// If [targetName] is given, functions whose name contains that substring
   /// will be dumped out if the idempotency test fails.
-  void debugCpsPass(cps_opt.Pass makePass(),
-                    cps.FunctionDefinition cpsFunction,
-                    [String targetName]) {
+  void debugCpsPass(cps_opt.Pass makePass(), cps.FunctionDefinition cpsFunction,
+      [String targetName]) {
     String original = stringify(cpsFunction);
     cps_opt.Pass pass = makePass();
     pass.rewrite(cpsFunction);
@@ -165,9 +155,15 @@ class CpsFunctionCompiler implements FunctionCompiler {
         print(before);
         print('\n-->\n');
         print(after);
-        compiler.outputProvider('original', 'dump')..add(original)..close();
-        compiler.outputProvider('before', 'dump')..add(before)..close();
-        compiler.outputProvider('after', 'dump')..add(after)..close();
+        compiler.outputProvider('original', 'dump')
+          ..add(original)
+          ..close();
+        compiler.outputProvider('before', 'dump')
+          ..add(before)
+          ..close();
+        compiler.outputProvider('after', 'dump')
+          ..add(after)
+          ..close();
       }
     }
     traceGraph(pass.passName, cpsFunction);
@@ -216,9 +212,8 @@ class CpsFunctionCompiler implements FunctionCompiler {
     if (type is UnionTypeMask) {
       return '[${type.disjointMasks.map(formatTypeMask).join(', ')}]';
     } else if (type is FlatTypeMask) {
-      if (type.isEmpty) {
-        return "null";
-      }
+      if (type.isEmpty) return "empty";
+      if (type.isNull) return "null";
       String suffix = (type.isExact ? "" : "+") + (type.isNullable ? "?" : "!");
       return '${type.base.name}$suffix';
     } else if (type is ForwardingTypeMask) {
@@ -231,9 +226,8 @@ class CpsFunctionCompiler implements FunctionCompiler {
     if (PRINT_TYPED_IR_FILTER != null &&
         PRINT_TYPED_IR_FILTER.matchAsPrefix(cpsFunction.element.name) != null) {
       String printType(nodeOrRef, String s) {
-        cps.Node node = nodeOrRef is cps.Reference
-            ? nodeOrRef.definition
-            : nodeOrRef;
+        cps.Node node =
+            nodeOrRef is cps.Reference ? nodeOrRef.definition : nodeOrRef;
         return node is cps.Variable && node.type != null
             ? '$s:${formatTypeMask(node.type)}'
             : s;
@@ -295,8 +289,8 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   tree_ir.FunctionDefinition compileToTreeIr(cps.FunctionDefinition cpsNode) {
     applyCpsPass(new Finalize(backend), cpsNode);
-    tree_builder.Builder builder = new tree_builder.Builder(
-        reporter.internalError);
+    tree_builder.Builder builder =
+        new tree_builder.Builder(reporter.internalError, glue);
     tree_ir.FunctionDefinition treeNode =
         treeBuilderTask.measure(() => builder.buildFunction(cpsNode));
     assert(treeNode != null);
@@ -323,7 +317,8 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
     treeOptimizationTask.measure(() {
       applyTreePass(new StatementRewriter());
-      applyTreePass(new VariableMerger(minifying: compiler.enableMinification));
+      applyTreePass(
+          new VariableMerger(minifying: compiler.options.enableMinification));
       applyTreePass(new LoopRewriter());
       applyTreePass(new LogicalRewriter());
       applyTreePass(new PullIntoInitializers());
@@ -332,8 +327,8 @@ class CpsFunctionCompiler implements FunctionCompiler {
     return node;
   }
 
-  js.Fun compileToJavaScript(CodegenWorkItem work,
-                             tree_ir.FunctionDefinition definition) {
+  js.Fun compileToJavaScript(
+      CodegenWorkItem work, tree_ir.FunctionDefinition definition) {
     CodeGenerator codeGen = new CodeGenerator(glue, work.registry);
     Element element = work.element;
     js.Fun code = codeGen.buildFunction(definition);
@@ -346,16 +341,16 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   Iterable<CompilerTask> get tasks {
     return <CompilerTask>[
-        cpsBuilderTask,
-        cpsOptimizationTask,
-        treeBuilderTask,
-        treeOptimizationTask]
-      ..addAll(fallbackCompiler.tasks);
+      cpsBuilderTask,
+      cpsOptimizationTask,
+      treeBuilderTask,
+      treeOptimizationTask
+    ]..addAll(fallbackCompiler.tasks);
   }
 
   js.Node attachPosition(js.Node node, AstElement element) {
-    return node.withSourceInformation(
-        sourceInformationFactory.createBuilderForContext(element)
-            .buildDeclaration(element));
+    return node.withSourceInformation(sourceInformationFactory
+        .createBuilderForContext(element)
+        .buildDeclaration(element));
   }
 }

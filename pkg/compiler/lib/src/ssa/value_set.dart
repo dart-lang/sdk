@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of ssa;
+import '../universe/side_effects.dart' show SideEffects;
+
+import 'nodes.dart';
 
 class ValueSet {
   int size = 0;

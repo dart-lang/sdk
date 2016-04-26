@@ -12,7 +12,7 @@
 namespace dart {
 
 static intptr_t GetEdgeCount(const Array& edge_counters, intptr_t edge_id) {
-  if (!FLAG_emit_edge_counters) {
+  if (!FLAG_reorder_basic_blocks) {
     // Assume everything was visited once.
     return 1;
   }
@@ -53,7 +53,7 @@ static void SetEdgeWeight(BlockEntryInstr* block,
 
 
 void BlockScheduler::AssignEdgeWeights() const {
-  if (!FLAG_emit_edge_counters) {
+  if (!FLAG_reorder_basic_blocks) {
     return;
   }
 
@@ -61,7 +61,8 @@ void BlockScheduler::AssignEdgeWeights() const {
       flow_graph()->parsed_function().function().ic_data_array());
   if (Compiler::IsBackgroundCompilation() && ic_data_array.IsNull()) {
     // Deferred loading cleared ic_data_array.
-    Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+    Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
+        "BlockScheduler: ICData array cleared");
   }
   ASSERT(!ic_data_array.IsNull());
   Array& edge_counters = Array::Handle();

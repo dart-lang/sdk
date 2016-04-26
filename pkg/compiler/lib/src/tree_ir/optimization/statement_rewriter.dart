@@ -368,22 +368,22 @@ class StatementRewriter extends Transformer implements Pass {
     // expressions recursively. Determine if that is a valuable optimization
     // and/or if it is better handled at the CPS level.
     return exp is Constant ||
-           exp is This ||
-           exp is CreateInvocationMirror ||
-           exp is CreateInstance ||
-           exp is CreateBox ||
-           exp is TypeExpression ||
-           exp is GetStatic && exp.element.isFunction ||
-           exp is Interceptor ||
-           exp is ApplyBuiltinOperator ||
-           exp is VariableUse && constantEnvironment.containsKey(exp.variable);
+        exp is This ||
+        exp is CreateInvocationMirror ||
+        exp is CreateInstance ||
+        exp is CreateBox ||
+        exp is TypeExpression ||
+        exp is GetStatic && exp.element.isFunction ||
+        exp is Interceptor ||
+        exp is ApplyBuiltinOperator ||
+        exp is VariableUse && constantEnvironment.containsKey(exp.variable);
   }
 
   /// True if [node] is an assignment that can be propagated as a constant.
   bool isEffectivelyConstantAssignment(Expression node) {
     return node is Assign &&
-           node.variable.writeCount == 1 &&
-           isEffectivelyConstant(node.value);
+        node.variable.writeCount == 1 &&
+        isEffectivelyConstant(node.value);
   }
 
   Statement visitExpressionStatement(ExpressionStatement inputNode) {
@@ -680,9 +680,7 @@ class StatementRewriter extends Transformer implements Pass {
     });
 
     Statement reduced = combineStatementsInBranches(
-        node.thenStatement,
-        node.elseStatement,
-        node.condition);
+        node.thenStatement, node.elseStatement, node.condition);
     if (reduced != null) {
       return reduced;
     }
@@ -746,8 +744,8 @@ class StatementRewriter extends Transformer implements Pass {
 
   bool isCompoundableBuiltin(Expression e) {
     return e is ApplyBuiltinOperator &&
-           e.arguments.length >= 2 &&
-           isCompoundableOperator(e.operator);
+        e.arguments.length >= 2 &&
+        isCompoundableOperator(e.operator);
   }
 
   /// Converts a compoundable operator application into the right-hand side for
@@ -758,7 +756,8 @@ class StatementRewriter extends Transformer implements Pass {
     assert(isCompoundableBuiltin(e));
     if (e.arguments.length > 2) {
       assert(e.operator == BuiltinOperator.StringConcatenate);
-      return new ApplyBuiltinOperator(e.operator, e.arguments.skip(1).toList());
+      return new ApplyBuiltinOperator(
+          e.operator, e.arguments.skip(1).toList(), e.sourceInformation);
     } else {
       return e.arguments[1];
     }
@@ -911,12 +910,17 @@ class StatementRewriter extends Transformer implements Pass {
       // Symmetric operators are their own commutes.
       return operator;
     }
-    switch(operator) {
-      case BuiltinOperator.NumLt: return BuiltinOperator.NumGt;
-      case BuiltinOperator.NumLe: return BuiltinOperator.NumGe;
-      case BuiltinOperator.NumGt: return BuiltinOperator.NumLt;
-      case BuiltinOperator.NumGe: return BuiltinOperator.NumLe;
-      default: return null;
+    switch (operator) {
+      case BuiltinOperator.NumLt:
+        return BuiltinOperator.NumGt;
+      case BuiltinOperator.NumLe:
+        return BuiltinOperator.NumGe;
+      case BuiltinOperator.NumGt:
+        return BuiltinOperator.NumLt;
+      case BuiltinOperator.NumGe:
+        return BuiltinOperator.NumLe;
+      default:
+        return null;
     }
   }
 
@@ -945,8 +949,8 @@ class StatementRewriter extends Transformer implements Pass {
           Expression right = node.arguments[1];
           if (right is This ||
               (right is VariableUse &&
-               propagatableVariable != right.variable &&
-               !constantEnvironment.containsKey(right.variable))) {
+                  propagatableVariable != right.variable &&
+                  !constantEnvironment.containsKey(right.variable))) {
             // An assignment can be propagated if we commute the operator.
             node.operator = commuted;
             node.arguments[0] = right;
@@ -979,9 +983,7 @@ class StatementRewriter extends Transformer implements Pass {
   /// If non-null is returned, the caller MUST discard [s] and [t] and use
   /// the returned statement instead.
   Statement combineStatementsInBranches(
-      Statement s,
-      Statement t,
-      Expression condition) {
+      Statement s, Statement t, Expression condition) {
     if (s is Return && t is Return) {
       return new Return(new Conditional(condition, s.value, t.value));
     }
@@ -1046,9 +1048,7 @@ class StatementRewriter extends Transformer implements Pass {
   ///
   /// The latter form is more compact and can also be inlined.
   CombinedExpressions combineAsConditional(
-      Expression s,
-      Expression t,
-      Expression condition) {
+      Expression s, Expression t, Expression condition) {
     if (s is Assign && t is Assign && s.variable == t.variable) {
       Expression values = new Conditional(condition, s.value, t.value);
       return new CombinedAssigns(s, t, new CombinedExpressions(values));
@@ -1080,7 +1080,8 @@ class StatementRewriter extends Transformer implements Pass {
       if (values != null) {
         // TODO(johnniwinther): Handle multiple source informations.
         SourceInformation sourceInformation = s.sourceInformation != null
-            ? s.sourceInformation : t.sourceInformation;
+            ? s.sourceInformation
+            : t.sourceInformation;
         return new Return(values.combined,
             sourceInformation: sourceInformation);
       }
@@ -1224,7 +1225,7 @@ class StatementRewriter extends Transformer implements Pass {
     bool isNullable(int position) => node.nullableArguments[position];
 
     int safeArguments =
-      PlaceholderSafetyAnalysis.analyze(node.codeTemplate.ast, isNullable);
+        PlaceholderSafetyAnalysis.analyze(node.codeTemplate.ast, isNullable);
     inEmptyEnvironment(() {
       for (int i = node.arguments.length - 1; i >= safeArguments; --i) {
         node.arguments[i] = visitExpression(node.arguments[i]);

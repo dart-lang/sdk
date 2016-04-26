@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/apiimpl.dart' as api;
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/null_compiler_output.dart' show NullSink;
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/helpers/helpers.dart';
@@ -271,9 +272,6 @@ class FindVisitor extends js.BaseVisitor {
   }
 }
 
-const String USE_NEW_SOURCE_INFO =  '--use-new-source-info';
-const String DISABLE_INLINING = '--disable-inlining';
-
 /// Processor that computes [SourceMapInfo] for the JavaScript compiled for a
 /// given Dart file.
 class SourceMapProcessor {
@@ -312,19 +310,17 @@ class SourceMapProcessor {
     OutputProvider outputProvider = outputToFile
         ? new CloningOutputProvider(targetUri, sourceMapFileUri)
         : new OutputProvider();
-    if (options.contains(USE_NEW_SOURCE_INFO)) {
+    if (options.contains(Flags.useNewSourceInfo)) {
       if (verbose) print('Using the new source information system.');
-      useNewSourceInfo = true;
+    }
+    if (options.contains(Flags.disableInlining)) {
+      if (verbose) print('Inlining disabled');
     }
     api.CompilerImpl compiler = await compilerFor(
         outputProvider: outputProvider,
         // TODO(johnniwinther): Use [verbose] to avoid showing diagnostics.
         options: ['--out=$targetUri', '--source-map=$sourceMapFileUri']
             ..addAll(options));
-    if (options.contains(DISABLE_INLINING)) {
-      if (verbose) print('Inlining disabled');
-      compiler.disableInlining = true;
-    }
 
     JavaScriptBackend backend = compiler.backend;
     var handler = compiler.handler;
@@ -388,17 +384,22 @@ class SourceMapProcessor {
     }
 
     return new SourceMaps(
-        sourceFileManager, mainSourceMapInfo, elementSourceMapInfos);
+        compiler,
+        sourceFileManager,
+        mainSourceMapInfo,
+        elementSourceMapInfos);
   }
 }
 
 class SourceMaps {
+  final api.CompilerImpl compiler;
   final SourceFileManager sourceFileManager;
   // TODO(johnniwinther): Supported multiple output units.
   final SourceMapInfo mainSourceMapInfo;
   final Map<Element, SourceMapInfo> elementSourceMapInfos;
 
   SourceMaps(
+      this.compiler,
       this.sourceFileManager,
       this.mainSourceMapInfo,
           this.elementSourceMapInfos);
@@ -506,10 +507,10 @@ class CodePointComputer extends TraceListener {
   /// Called when [node] defines a step of the given [kind] at the given
   /// [offset] when the generated JavaScript code.
   void onStep(js.Node node, Offset offset, StepKind kind) {
-    register('$kind', node);
+    register(kind, node);
   }
 
-  void register(String kind, js.Node node, {bool expectInfo: true}) {
+  void register(StepKind kind, js.Node node, {bool expectInfo: true}) {
 
     String dartCodeFromSourceLocation(SourceLocation sourceLocation) {
       SourceFile sourceFile =
@@ -556,7 +557,7 @@ class CodePointComputer extends TraceListener {
 
 /// A JavaScript code point and its mapped dart source location.
 class CodePoint {
-  final String kind;
+  final StepKind kind;
   final String jsCode;
   final SourceLocation sourceLocation;
   final String dartCode;

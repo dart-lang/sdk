@@ -27,6 +27,7 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/null_compiler_output.dart';
 import 'package:compiler/src/old_to_new_api.dart';
+import 'package:compiler/src/options.dart' show CompilerOptions;
 import 'package:compiler/src/resolution/resolution.dart';
 import 'package:compiler/src/scanner/scanner_task.dart';
 import 'package:compiler/src/universe/world_impact.dart';
@@ -50,12 +51,24 @@ class TestCompiler extends apiimpl.CompilerImpl {
                String this.testMarker,
                String this.testType,
                Function this.onTest)
-      : super(inputProvider, outputProvider, handler, libraryRoot,
-              packageRoot, options, environment, packageConfig, findPackages) {
-    scanner = new TestScanner(this);
-    resolver = new TestResolver(this, backend.constantCompilerTask);
+      : super(inputProvider, outputProvider, handler,
+            new CompilerOptions.parse(
+                libraryRoot: libraryRoot,
+                packageRoot: packageRoot,
+                options: options,
+                environment: environment,
+                packageConfig: packageConfig,
+                packagesDiscoveryProvider: findPackages)) {
     reporter = new TestDiagnosticReporter(this, super.reporter);
     test('Compiler');
+  }
+
+  @override
+  ScannerTask createScannerTask() => new TestScanner(this);
+
+  @override
+  ResolverTask createResolverTask() {
+    return new TestResolver(this, backend.constantCompilerTask);
   }
 
   Future<bool> run(Uri uri) {
@@ -138,7 +151,8 @@ class TestDiagnosticReporter extends DiagnosticReporterWrapper {
 }
 
 class TestScanner extends ScannerTask {
-  TestScanner(TestCompiler compiler) : super(compiler);
+  TestScanner(TestCompiler compiler)
+      : super(compiler, compiler.dietParser);
 
   TestCompiler get compiler => super.compiler;
 

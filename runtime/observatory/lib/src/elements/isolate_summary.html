@@ -55,6 +55,10 @@
         at isolate exit
       </template>
 
+      <template if="{{ isolate.pauseEvent.kind == 'None' }}">
+        not yet runnable
+      </template>
+
       <template if="{{ isolate.pauseEvent.kind == 'PauseInterrupted' ||
                        isolate.pauseEvent.kind == 'PauseBreakpoint' ||
                        isolate.pauseEvent.kind == 'PauseException' }}">

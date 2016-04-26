@@ -139,8 +139,7 @@ DeoptContext::~DeoptContext() {
   deferred_objects_ = NULL;
   deferred_objects_count_ = 0;
   if (FLAG_support_timeline && (deopt_start_micros_ != 0)) {
-    Isolate* isolate = Isolate::Current();
-    TimelineStream* compiler_stream = isolate->GetCompilerStream();
+    TimelineStream* compiler_stream = Timeline::GetCompilerStream();
     ASSERT(compiler_stream != NULL);
     if (compiler_stream->Enabled()) {
       // Allocate all Dart objects needed before calling StartEvent,
@@ -667,9 +666,14 @@ class DeoptPcMarkerInstr : public DeoptInstr {
       return;
     }
 
-    *dest_addr = reinterpret_cast<intptr_t>(Object::null());
-    deopt_context->DeferPcMarkerMaterialization(
-        object_table_index_, dest_addr);
+    // We don't always have the Code object for the frame's corresponding
+    // unoptimized code as it may have been collected. Use a stub as the pc
+    // marker until we can recreate that Code object during deferred
+    // materialization to maintain the invariant that Dart frames always have
+    // a pc marker.
+    *reinterpret_cast<RawObject**>(dest_addr) =
+        StubCode::FrameAwaitingMaterialization_entry()->code();
+    deopt_context->DeferPcMarkerMaterialization(object_table_index_, dest_addr);
   }
 
  private:
@@ -1179,11 +1183,11 @@ intptr_t DeoptInfoBuilder::EmitMaterializationArguments(intptr_t dest_index) {
     MaterializeObjectInstr* mat = materializations_[i];
     // Class of the instance to allocate.
     AddConstant(mat->cls(), dest_index++);
-    AddConstant(Smi::Handle(Smi::New(mat->num_variables())), dest_index++);
+    AddConstant(Smi::ZoneHandle(Smi::New(mat->num_variables())), dest_index++);
     for (intptr_t i = 0; i < mat->InputCount(); i++) {
       if (!mat->InputAt(i)->BindsToConstantNull()) {
         // Emit offset-value pair.
-        AddConstant(Smi::Handle(Smi::New(mat->FieldOffsetAt(i))),
+        AddConstant(Smi::ZoneHandle(Smi::New(mat->FieldOffsetAt(i))),
                     dest_index++);
         AddCopy(mat->InputAt(i), mat->LocationAt(i), dest_index++);
       }

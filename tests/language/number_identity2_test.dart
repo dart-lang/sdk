@@ -5,7 +5,7 @@
 //
 // Contains test that is failing on dart2js. Merge this test with
 // 'number_identity_test.dart' once fixed.
-// VMOptions=--optimization-counter-threshold=10
+// VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
 import "package:expect/expect.dart";
 import 'dart:typed_data';

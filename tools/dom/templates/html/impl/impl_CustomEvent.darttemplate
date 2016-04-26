@@ -23,9 +23,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     // first-chance exceptions. Can expand this list in the future as needed.
     if (detail is List || detail is Map || detail is String || detail is num) {
       try {
-$if DART2JS
         detail = convertDartToNative_SerializedScriptValue(detail);
-$endif
         e._initCustomEvent(type, canBubble, cancelable, detail);
       } catch(_) {
         e._initCustomEvent(type, canBubble, cancelable, null);
@@ -34,11 +32,6 @@ $endif
       e._initCustomEvent(type, canBubble, cancelable, null);
     }
 
-$if DARTIUM
-    // Need for identity.
-    js.setDartHtmlWrapperFor(e.blink_jsObject, e);
-
-$endif
     return e;
   }
 

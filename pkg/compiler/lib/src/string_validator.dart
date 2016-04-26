@@ -19,18 +19,15 @@ class StringValidator {
   StringValidator(this.reporter);
 
   DartString validateInterpolationPart(Token token, StringQuoting quoting,
-                                       {bool isFirst: false,
-                                        bool isLast: false}) {
+      {bool isFirst: false, bool isLast: false}) {
     String source = token.value;
     int leftQuote = 0;
     int rightQuote = 0;
     if (isFirst) leftQuote = quoting.leftQuoteLength;
     if (isLast) rightQuote = quoting.rightQuoteLength;
     String content = copyWithoutQuotes(source, leftQuote, rightQuote);
-    return validateString(token,
-                          token.charOffset + leftQuote,
-                          content,
-                          quoting);
+    return validateString(
+        token, token.charOffset + leftQuote, content, quoting);
   }
 
   static StringQuoting quotingFromString(String sourceString) {
@@ -50,7 +47,7 @@ class StringValidator {
     // and end after the second quote.
     if (source.moveNext() && source.current == quoteChar && source.moveNext()) {
       int code = source.current;
-      assert(code == quoteChar);  // If not, there is a bug in the parser.
+      assert(code == quoteChar); // If not, there is a bug in the parser.
       leftQuoteLength = 3;
 
       // Check if a multiline string starts with optional whitespace followed by
@@ -109,10 +106,8 @@ class StringValidator {
    * Validates the escape sequences and special characters of a string literal.
    * Returns a DartString if valid, and null if not.
    */
-  DartString validateString(Token token,
-                            int startOffset,
-                            String string,
-                            StringQuoting quoting) {
+  DartString validateString(
+      Token token, int startOffset, String string, StringQuoting quoting) {
     // We need to check for invalid x and u escapes, for line
     // terminators in non-multiline strings, and for invalid Unicode
     // scalar values (either directly or as u-escape values).  We also check
@@ -123,7 +118,7 @@ class StringValidator {
     bool previousWasLeadSurrogate = false;
     bool invalidUtf16 = false;
     var stringIter = string.codeUnits.iterator;
-    for(HasNextIterator<int> iter = new HasNextIterator(stringIter);
+    for (HasNextIterator<int> iter = new HasNextIterator(stringIter);
         iter.hasNext;
         length++) {
       index++;
@@ -132,7 +127,7 @@ class StringValidator {
         if (quoting.raw) continue;
         containsEscape = true;
         if (!iter.hasNext) {
-          stringParseError("Incomplete escape sequence",token, index);
+          stringParseError("Incomplete escape sequence", token, index);
           return null;
         }
         index++;
@@ -146,8 +141,8 @@ class StringValidator {
             index++;
             code = iter.next();
             if (!isHexDigit(code)) {
-              stringParseError("Invalid character in escape sequence",
-                               token, index);
+              stringParseError(
+                  "Invalid character in escape sequence", token, index);
               return null;
             }
           }
@@ -167,8 +162,8 @@ class StringValidator {
                 break;
               }
               if (!isHexDigit(code)) {
-                stringParseError("Invalid character in escape sequence",
-                                 token, index);
+                stringParseError(
+                    "Invalid character in escape sequence", token, index);
                 return null;
               }
               count++;
@@ -177,8 +172,8 @@ class StringValidator {
             if (code != $CLOSE_CURLY_BRACKET || count == 0 || count > 6) {
               int errorPosition = index - count;
               if (count > 6) errorPosition += 6;
-              stringParseError("Invalid character in escape sequence",
-                               token, errorPosition);
+              stringParseError(
+                  "Invalid character in escape sequence", token, errorPosition);
               return null;
             }
           } else {
@@ -193,8 +188,8 @@ class StringValidator {
                 }
               }
               if (!isHexDigit(code)) {
-                stringParseError("Invalid character in escape sequence",
-                                 token, index);
+                stringParseError(
+                    "Invalid character in escape sequence", token, index);
                 return null;
               }
               value = value * 16 + hexDigitValue(code);

@@ -5,18 +5,17 @@
 part of dart2js.js_emitter.full_emitter;
 
 class InterceptorEmitter extends CodeEmitterHelper {
-  final Set<jsAst.Name> interceptorInvocationNames =
-      new Set<jsAst.Name>();
+  final Set<jsAst.Name> interceptorInvocationNames = new Set<jsAst.Name>();
 
-  void recordMangledNameOfMemberMethod(FunctionElement member,
-                                       jsAst.Name name) {
+  void recordMangledNameOfMemberMethod(
+      FunctionElement member, jsAst.Name name) {
     if (backend.isInterceptedMethod(member)) {
       interceptorInvocationNames.add(name);
     }
   }
 
-  jsAst.Expression buildGetInterceptorMethod(jsAst.Name key,
-                                             Set<ClassElement> classes) {
+  jsAst.Expression buildGetInterceptorMethod(
+      jsAst.Name key, Set<ClassElement> classes) {
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(compiler, namer, backend);
     jsAst.Expression function =
@@ -35,15 +34,14 @@ class InterceptorEmitter extends CodeEmitterHelper {
 
     Map<jsAst.Name, Set<ClassElement>> specializedGetInterceptors =
         backend.specializedGetInterceptors;
-    List<jsAst.Name> names = specializedGetInterceptors.keys.toList()
-        ..sort();
+    List<jsAst.Name> names = specializedGetInterceptors.keys.toList()..sort();
     for (jsAst.Name name in names) {
       Set<ClassElement> classes = specializedGetInterceptors[name];
-      parts.add(
-          js.statement('#.# = #',
-              [namer.globalObjectFor(backend.helpers.interceptorsLibrary),
-               name,
-               buildGetInterceptorMethod(name, classes)]));
+      parts.add(js.statement('#.# = #', [
+        namer.globalObjectFor(backend.helpers.interceptorsLibrary),
+        name,
+        buildGetInterceptorMethod(name, classes)
+      ]));
     }
 
     return new jsAst.Block(parts);
@@ -52,7 +50,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
   jsAst.Statement buildOneShotInterceptors() {
     List<jsAst.Statement> parts = <jsAst.Statement>[];
     Iterable<jsAst.Name> names = backend.oneShotInterceptors.keys.toList()
-        ..sort();
+      ..sort();
 
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(compiler, namer, backend);
@@ -81,7 +79,8 @@ class InterceptorEmitter extends CodeEmitterHelper {
     if (!compiler.enabledInvokeOn) return null;
 
     Iterable<jsAst.Name> invocationNames = interceptorInvocationNames.toList()
-        ..sort();;
+      ..sort();
+    ;
     List<jsAst.Property> properties = invocationNames.map((jsAst.Name name) {
       return new jsAst.Property(js.quoteName(name), js.number(1));
     }).toList();

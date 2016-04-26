@@ -52,7 +52,7 @@ class TypeTestRegistry {
   Set<ClassElement> computeClassesModifiedByEmitRuntimeTypeSupport() {
     TypeChecks typeChecks = backend.rti.requiredChecks;
     Set<ClassElement> result = new Set<ClassElement>();
-    for (ClassElement cls in typeChecks) {
+    for (ClassElement cls in typeChecks.classes) {
       if (typeChecks[cls].isNotEmpty) result.add(cls);
     }
     return result;
@@ -79,8 +79,7 @@ class TypeTestRegistry {
     // TODO(karlklose): merge this case with 2 when unifying argument and
     // object checks.
     RuntimeTypes rti = backend.rti;
-    rti.getRequiredArgumentClasses(backend)
-       .forEach(addClassWithSuperclasses);
+    rti.getRequiredArgumentClasses(backend).forEach(addClassWithSuperclasses);
 
     // 2.  Add classes that are referenced by substitutions in object checks and
     //     their superclasses.
@@ -106,8 +105,8 @@ class TypeTestRegistry {
         return false;
       } else if (function.isInstanceMember) {
         if (!function.enclosingClass.isClosure) {
-          return compiler.codegenWorld.hasInvokedGetter(
-              function, compiler.world);
+          return compiler.codegenWorld
+              .hasInvokedGetter(function, compiler.world);
         }
       }
       return false;
@@ -144,8 +143,8 @@ class TypeTestRegistry {
   void computeRequiredTypeChecks() {
     assert(checkedClasses == null && checkedFunctionTypes == null);
 
-    backend.rti.addImplicitChecks(compiler.codegenWorld,
-                                  classesUsingTypeVariableTests);
+    backend.rti.addImplicitChecks(
+        compiler.codegenWorld, classesUsingTypeVariableTests);
 
     checkedClasses = new Set<ClassElement>();
     checkedFunctionTypes = new Set<FunctionType>();

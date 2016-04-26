@@ -9,11 +9,11 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 $!MEMBERS
 $if DARTIUM
   // Override these methods for Dartium _SVGCursorElement can't be abstract.
-  StringList get requiredExtensions => wrap_jso(_blink.BlinkSVGCursorElement.instance.requiredExtensions_Getter_(unwrap_jso(this)));
-  StringList get requiredFeatures => wrap_jso(_blink.BlinkSVGCursorElement.instance.requiredFeatures_Getter_(unwrap_jso(this)));
-  StringList get systemLanguage => wrap_jso(_blink.BlinkSVGCursorElement.instance.systemLanguage_Getter_(unwrap_jso(this)));
-  AnimatedString get href => wrap_jso(_blink.BlinkSVGCursorElement.instance.href_Getter_(unwrap_jso(this)));
-  bool hasExtension(String extension) => _blink.BlinkSVGCursorElement.instance.hasExtension_Callback_1_(unwrap_jso(this), extension);
+  StringList get requiredExtensions => _blink.BlinkSVGCursorElement.instance.requiredExtensions_Getter_(this);
+  StringList get requiredFeatures => _blink.BlinkSVGCursorElement.instance.requiredFeatures_Getter_(this);
+  StringList get systemLanguage => _blink.BlinkSVGCursorElement.instance.systemLanguage_Getter_(this);
+  AnimatedString get href => _blink.BlinkSVGCursorElement.instance.href_Getter_(this);
+  bool hasExtension(String extension) => _blink.BlinkSVGCursorElement.instance.hasExtension_Callback_1_(this, extension);
 $endif
 }
 

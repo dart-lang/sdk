@@ -1,13 +1,9 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 /// Check that 'dart:' libraries have their corresponding dart.library.X
 /// environment variable set.
-
-import "dart:io";
-
-import "dart:async";
 
 import "memory_source_file_helper.dart";
 
@@ -16,18 +12,15 @@ import "package:async_helper/async_helper.dart";
 import 'package:expect/expect.dart' show
     Expect;
 
-import 'package:compiler/src/elements/elements.dart' show
-    LibraryElement;
-
 import 'package:compiler/src/null_compiler_output.dart' show
     NullCompilerOutput;
+
+import 'package:compiler/src/options.dart' show
+    CompilerOptions;
 
 import 'package:compiler/compiler_new.dart' show
     CompilerInput,
     CompilerDiagnostics;
-
-import 'package:sdk_library_metadata/libraries.dart' show
-    LibraryInfo;
 
 const clientPlatform = r'''
 [dart-spec]
@@ -80,23 +73,19 @@ class DummyCompilerDiagnostics implements CompilerDiagnostics {
 }
 
 class CustomCompiler extends CompilerImpl {
-  CustomCompiler(
-      options,
-      environment)
+  CustomCompiler(options, environment)
       : super(
           const DummyCompilerInput(),
           const NullCompilerOutput(),
           const DummyCompilerDiagnostics(),
-          Uri.base.resolve("sdk/"),
-          null,
-          options,
-          environment);
+          new CompilerOptions.parse(
+              libraryRoot: Uri.base.resolve("sdk/"),
+              options: options,
+              environment: environment));
 }
 
 runTest() async {
-  var compiler = new CustomCompiler(
-      [],
-      {});
+  var compiler = new CustomCompiler([], {});
 
   await compiler.setupSdk();
 
@@ -113,9 +102,7 @@ runTest() async {
   Expect.equals(null, compiler.fromEnvironment("dart.library.mock.server"));
   Expect.equals(null, compiler.fromEnvironment("dart.library.io"));
 
-  compiler = new CustomCompiler(
-      ['--categories=Server'],
-      {});
+  compiler = new CustomCompiler(['--categories=Server'], {});
 
   await compiler.setupSdk();
 
@@ -133,8 +120,7 @@ runTest() async {
   Expect.equals("true", compiler.fromEnvironment("dart.library.io"));
 
   // Check that user-defined env-variables win.
-  compiler = new CustomCompiler(
-      [],
+  compiler = new CustomCompiler([],
       {'dart.library.collection': "false",
        'dart.library.mock.client': "foo"});
 

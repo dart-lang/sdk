@@ -116,64 +116,48 @@ library dart2js.patchparser;
 
 import 'dart:async';
 
-import 'constants/values.dart' show
-    ConstantValue;
+import 'constants/values.dart' show ConstantValue;
 import 'common.dart';
-import 'compiler.dart' show
-    Compiler;
-import 'common/tasks.dart' show
-    CompilerTask;
-import 'dart_types.dart' show
-    DartType;
+import 'compiler.dart' show Compiler;
+import 'common/tasks.dart' show CompilerTask;
+import 'dart_types.dart' show DartType;
 import 'elements/elements.dart';
-import 'elements/modelx.dart' show
-    BaseFunctionElementX,
-    ClassElementX,
-    GetterElementX,
-    LibraryElementX,
-    MetadataAnnotationX,
-    SetterElementX;
-import 'js_backend/js_backend.dart' show
-    JavaScriptBackend;
-import 'library_loader.dart' show
-    LibraryLoader;
-import 'parser/listener.dart' show
-    Listener,
-    ParserError;
-import 'parser/element_listener.dart' show
-    ElementListener;
-import 'parser/member_listener.dart' show
-    MemberListener;
-import 'parser/partial_elements.dart' show
-  PartialClassElement;
-import 'parser/partial_parser.dart' show
-    PartialParser;
-import 'parser/parser.dart' show
-    Parser;
-import 'scanner/scanner.dart' show
-    Scanner;
+import 'elements/modelx.dart'
+    show
+        BaseFunctionElementX,
+        ClassElementX,
+        GetterElementX,
+        LibraryElementX,
+        MetadataAnnotationX,
+        SetterElementX;
+import 'id_generator.dart';
+import 'js_backend/js_backend.dart' show JavaScriptBackend;
+import 'library_loader.dart' show LibraryLoader;
+import 'options.dart' show ParserOptions;
+import 'parser/listener.dart' show Listener, ParserError;
+import 'parser/element_listener.dart' show ElementListener;
+import 'parser/member_listener.dart' show MemberListener;
+import 'parser/partial_elements.dart' show PartialClassElement;
+import 'parser/partial_parser.dart' show PartialParser;
+import 'parser/parser.dart' show Parser;
+import 'scanner/scanner.dart' show Scanner;
 import 'script.dart';
-import 'tokens/token.dart' show
-    StringToken,
-    Token;
+import 'tokens/token.dart' show StringToken, Token;
 
 class PatchParserTask extends CompilerTask {
   final String name = "Patching Parser";
-  final bool _enableConditionalDirectives;
+  final ParserOptions parserOptions;
 
-  PatchParserTask(Compiler compiler, {bool enableConditionalDirectives})
-      : this._enableConditionalDirectives = enableConditionalDirectives,
-        super(compiler);
+  PatchParserTask(Compiler compiler, this.parserOptions) : super(compiler);
 
   /**
    * Scans a library patch file, applies the method patches and
    * injections to the library, and returns a list of class
    * patches.
    */
-  Future patchLibrary(LibraryLoader loader,
-                      Uri patchUri, LibraryElement originLibrary) {
-    return compiler.readScript(originLibrary, patchUri)
-        .then((Script script) {
+  Future patchLibrary(
+      LibraryLoader loader, Uri patchUri, LibraryElement originLibrary) {
+    return compiler.readScript(patchUri, originLibrary).then((Script script) {
       var patchLibrary = new LibraryElementX(script, null, originLibrary);
       return reporter.withCurrentElement(patchLibrary, () {
         loader.registerNewLibrary(patchLibrary);
@@ -193,14 +177,10 @@ class PatchParserTask extends CompilerTask {
       // TODO(johnniwinther): Test that parts and exports are handled correctly.
       Script script = compilationUnit.script;
       Token tokens = new Scanner(script.file).tokenize();
-      Function idGenerator = compiler.getNextFreeClassId;
-      Listener patchListener = new PatchElementListener(compiler,
-                                                        compilationUnit,
-                                                        idGenerator);
+      Listener patchListener =
+          new PatchElementListener(compiler, compilationUnit, compiler);
       try {
-        new PartialParser(patchListener,
-            enableConditionalDirectives: _enableConditionalDirectives)
-            .parseUnit(tokens);
+        new PartialParser(patchListener, parserOptions).parseUnit(tokens);
       } on ParserError catch (e) {
         // No need to recover from a parser error in platform libraries, user
         // will never see this if the libraries are tested correctly.
@@ -216,21 +196,19 @@ class PatchParserTask extends CompilerTask {
     if (cls.cachedNode != null) return;
 
     measure(() => reporter.withCurrentElement(cls, () {
-      MemberListener listener = new PatchMemberListener(compiler, cls);
-      Parser parser = new PatchClassElementParser(
-          listener, enableConditionalDirectives: _enableConditionalDirectives);
-      try {
-        Token token = parser.parseTopLevelDeclaration(cls.beginToken);
-        assert(identical(token, cls.endToken.next));
-      } on ParserError catch (e) {
-        // No need to recover from a parser error in platform libraries, user
-        // will never see this if the libraries are tested correctly.
-        reporter.internalError(
-            cls, "Parser error in patch file: $e");
-      }
-      cls.cachedNode = listener.popNode();
-      assert(listener.nodes.isEmpty);
-    }));
+          MemberListener listener = new PatchMemberListener(compiler, cls);
+          Parser parser = new PatchClassElementParser(listener, parserOptions);
+          try {
+            Token token = parser.parseTopLevelDeclaration(cls.beginToken);
+            assert(identical(token, cls.endToken.next));
+          } on ParserError catch (e) {
+            // No need to recover from a parser error in platform libraries, user
+            // will never see this if the libraries are tested correctly.
+            reporter.internalError(cls, "Parser error in patch file: $e");
+          }
+          cls.cachedNode = listener.popNode();
+          assert(listener.nodes.isEmpty);
+        }));
   }
 }
 
@@ -240,8 +218,7 @@ class PatchMemberListener extends MemberListener {
   PatchMemberListener(Compiler compiler, ClassElement enclosingClass)
       : this.compiler = compiler,
         super(compiler.parsing.getScannerOptionsFor(enclosingClass),
-              compiler.reporter,
-              enclosingClass);
+            compiler.reporter, enclosingClass);
 
   @override
   void addMember(Element patch) {
@@ -270,9 +247,8 @@ class PatchMemberListener extends MemberListener {
  * declarations.
  */
 class PatchClassElementParser extends PartialParser {
-  PatchClassElementParser(Listener listener, {bool enableConditionalDirectives})
-      : super(listener,
-          enableConditionalDirectives: enableConditionalDirectives);
+  PatchClassElementParser(Listener listener, ParserOptions options)
+      : super(listener, options);
 
   Token parseClassBody(Token token) => fullParseClassBody(token);
 }
@@ -283,11 +259,10 @@ class PatchClassElementParser extends PartialParser {
 class PatchElementListener extends ElementListener implements Listener {
   final Compiler compiler;
 
-  PatchElementListener(Compiler compiler,
-                       CompilationUnitElement patchElement,
-                       int idGenerator())
-    : this.compiler = compiler,
-      super(compiler.parsing.getScannerOptionsFor(patchElement),
+  PatchElementListener(Compiler compiler, CompilationUnitElement patchElement,
+      IdGenerator idGenerator)
+      : this.compiler = compiler,
+        super(compiler.parsing.getScannerOptionsFor(patchElement),
             compiler.reporter, patchElement, idGenerator);
 
   @override
@@ -314,10 +289,8 @@ class PatchElementListener extends ElementListener implements Listener {
   }
 }
 
-void patchElement(Compiler compiler,
-                  DiagnosticReporter reporter,
-                  Element origin,
-                  Element patch) {
+void patchElement(Compiler compiler, DiagnosticReporter reporter,
+    Element origin, Element patch) {
   if (origin == null) {
     reporter.reportErrorMessage(
         patch, MessageKind.PATCH_NON_EXISTING, {'name': patch.name});
@@ -325,9 +298,9 @@ void patchElement(Compiler compiler,
   }
 
   if (!(origin.isClass ||
-        origin.isConstructor ||
-        origin.isFunction ||
-        origin.isAbstractField)) {
+      origin.isConstructor ||
+      origin.isFunction ||
+      origin.isAbstractField)) {
     // TODO(ahe): Remove this error when the parser rejects all bad modifiers.
     reporter.reportErrorMessage(origin, MessageKind.PATCH_NONPATCHABLE);
     return;
@@ -340,7 +313,7 @@ void patchElement(Compiler compiler,
     tryPatchSetter(reporter, origin, patch);
   } else if (patch.isConstructor) {
     tryPatchConstructor(reporter, origin, patch);
-  } else if(patch.isFunction) {
+  } else if (patch.isFunction) {
     tryPatchFunction(reporter, origin, patch);
   } else {
     // TODO(ahe): Remove this error when the parser rejects all bad modifiers.
@@ -348,34 +321,25 @@ void patchElement(Compiler compiler,
   }
 }
 
-void tryPatchClass(Compiler compiler,
-                   DiagnosticReporter reporter,
-                   Element origin,
-                   ClassElement patch) {
+void tryPatchClass(Compiler compiler, DiagnosticReporter reporter,
+    Element origin, ClassElement patch) {
   if (!origin.isClass) {
     reporter.reportError(
         reporter.createMessage(
-            origin,
-            MessageKind.PATCH_NON_CLASS,
-            {'className': patch.name}),
+            origin, MessageKind.PATCH_NON_CLASS, {'className': patch.name}),
         <DiagnosticMessage>[
-            reporter.createMessage(
-                patch,
-                MessageKind.PATCH_POINT_TO_CLASS,
-                {'className': patch.name}),
+          reporter.createMessage(patch, MessageKind.PATCH_POINT_TO_CLASS,
+              {'className': patch.name}),
         ]);
     return;
   }
   patchClass(compiler, reporter, origin, patch);
 }
 
-void patchClass(Compiler compiler,
-                DiagnosticReporter reporter,
-                ClassElementX origin,
-                ClassElementX patch) {
+void patchClass(Compiler compiler, DiagnosticReporter reporter,
+    ClassElementX origin, ClassElementX patch) {
   if (origin.isPatched) {
-    reporter.internalError(origin,
-        "Patching the same class more than once.");
+    reporter.internalError(origin, "Patching the same class more than once.");
   }
   origin.applyPatch(patch);
   checkNativeAnnotation(compiler, patch);
@@ -384,15 +348,14 @@ void patchClass(Compiler compiler,
 /// Check whether [cls] has a `@Native(...)` annotation, and if so, set its
 /// native name from the annotation.
 checkNativeAnnotation(Compiler compiler, ClassElement cls) {
-  EagerAnnotationHandler.checkAnnotation(compiler, cls,
-      const NativeAnnotationHandler());
+  EagerAnnotationHandler.checkAnnotation(
+      compiler, cls, const NativeAnnotationHandler());
 }
 
 checkJsInteropAnnotation(Compiler compiler, element) {
-  EagerAnnotationHandler.checkAnnotation(compiler, element,
-      const JsInteropAnnotationHandler());
+  EagerAnnotationHandler.checkAnnotation(
+      compiler, element, const JsInteropAnnotationHandler());
 }
-
 
 /// Abstract interface for pre-resolution detection of metadata.
 ///
@@ -405,22 +368,16 @@ abstract class EagerAnnotationHandler<T> {
   /// Checks that [annotation] looks like a matching annotation and optionally
   /// applies actions on [element]. Returns a non-null annotation marker if the
   /// annotation matched and should be validated.
-  T apply(Compiler compiler,
-          Element element,
-          MetadataAnnotation annotation);
+  T apply(Compiler compiler, Element element, MetadataAnnotation annotation);
 
   /// Checks that the annotation value is valid.
-  void validate(Compiler compiler,
-                Element element,
-                MetadataAnnotation annotation,
-                ConstantValue constant);
-
+  void validate(Compiler compiler, Element element,
+      MetadataAnnotation annotation, ConstantValue constant);
 
   /// Checks [element] for metadata matching the [handler]. Return a non-null
   /// annotation marker matching metadata was found.
-  static checkAnnotation(Compiler compiler,
-                         Element element,
-                         EagerAnnotationHandler handler) {
+  static checkAnnotation(
+      Compiler compiler, Element element, EagerAnnotationHandler handler) {
     for (MetadataAnnotation annotation in element.implementation.metadata) {
       var result = handler.apply(compiler, element, annotation);
       if (result != null) {
@@ -428,8 +385,7 @@ abstract class EagerAnnotationHandler<T> {
         // [Compiler.onLibrariesLoaded].
         compiler.enqueuer.resolution.addDeferredAction(element, () {
           annotation.ensureResolved(compiler.resolution);
-          handler.validate(
-              compiler, element, annotation,
+          handler.validate(compiler, element, annotation,
               compiler.constants.getConstantValue(annotation.constant));
         });
         return result;
@@ -456,24 +412,21 @@ class NativeAnnotationHandler implements EagerAnnotationHandler<String> {
     return null;
   }
 
-  String apply(Compiler compiler,
-             Element element,
-             MetadataAnnotation annotation) {
+  String apply(
+      Compiler compiler, Element element, MetadataAnnotation annotation) {
     if (element.isClass) {
       String native = getNativeAnnotation(annotation);
       if (native != null) {
         JavaScriptBackend backend = compiler.backend;
-        backend.setNativeClassTagInfo(element, native);
+        backend.nativeData.setNativeClassTagInfo(element, native);
         return native;
       }
     }
     return null;
   }
 
-  void validate(Compiler compiler,
-                Element element,
-                MetadataAnnotation annotation,
-                ConstantValue constant) {
+  void validate(Compiler compiler, Element element,
+      MetadataAnnotation annotation, ConstantValue constant) {
     DartType annotationType = constant.getType(compiler.coreTypes);
     if (annotationType.element != compiler.nativeAnnotationClass) {
       DiagnosticReporter reporter = compiler.reporter;
@@ -490,13 +443,12 @@ class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
   bool hasJsNameAnnotation(MetadataAnnotation annotation) =>
       annotation.beginToken != null && annotation.beginToken.next.value == 'JS';
 
-  bool apply(Compiler compiler,
-             Element element,
-             MetadataAnnotation annotation) {
+  bool apply(
+      Compiler compiler, Element element, MetadataAnnotation annotation) {
     bool hasJsInterop = hasJsNameAnnotation(annotation);
     if (hasJsInterop) {
       JavaScriptBackend backend = compiler.backend;
-      backend.markAsJsInterop(element);
+      backend.nativeData.markAsJsInterop(element);
     }
     // Due to semantics of apply in the baseclass we have to return null to
     // indicate that no match was found.
@@ -504,14 +456,13 @@ class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
   }
 
   @override
-  void validate(Compiler compiler,
-                Element element,
-                MetadataAnnotation annotation,
-                ConstantValue constant) {
+  void validate(Compiler compiler, Element element,
+      MetadataAnnotation annotation, ConstantValue constant) {
     JavaScriptBackend backend = compiler.backend;
     if (constant.getType(compiler.coreTypes).element !=
         backend.helpers.jsAnnotationClass) {
-      compiler.reporter.internalError(annotation, 'Invalid @JS(...) annotation.');
+      compiler.reporter
+          .internalError(annotation, 'Invalid @JS(...) annotation.');
     }
   }
 }
@@ -536,17 +487,14 @@ class PatchAnnotationHandler implements EagerAnnotationHandler<PatchVersion> {
   }
 
   @override
-  PatchVersion apply(Compiler compiler,
-                     Element element,
-                     MetadataAnnotation annotation) {
+  PatchVersion apply(
+      Compiler compiler, Element element, MetadataAnnotation annotation) {
     return getPatchVersion(annotation);
   }
 
   @override
-  void validate(Compiler compiler,
-                Element element,
-                MetadataAnnotation annotation,
-                ConstantValue constant) {
+  void validate(Compiler compiler, Element element,
+      MetadataAnnotation annotation, ConstantValue constant) {
     DartType annotationType = constant.getType(compiler.coreTypes);
     if (annotationType.element != compiler.patchAnnotationClass) {
       DiagnosticReporter reporter = compiler.reporter;
@@ -555,21 +503,15 @@ class PatchAnnotationHandler implements EagerAnnotationHandler<PatchVersion> {
   }
 }
 
-
-void tryPatchGetter(DiagnosticReporter reporter,
-                    Element origin,
-                    FunctionElement patch) {
+void tryPatchGetter(
+    DiagnosticReporter reporter, Element origin, FunctionElement patch) {
   if (!origin.isAbstractField) {
     reporter.reportError(
         reporter.createMessage(
-            origin,
-            MessageKind.PATCH_NON_GETTER,
-            {'name': origin.name}),
+            origin, MessageKind.PATCH_NON_GETTER, {'name': origin.name}),
         <DiagnosticMessage>[
-            reporter.createMessage(
-                patch,
-                MessageKind.PATCH_POINT_TO_GETTER,
-                {'getterName': patch.name}),
+          reporter.createMessage(patch, MessageKind.PATCH_POINT_TO_GETTER,
+              {'getterName': patch.name}),
         ]);
     return;
   }
@@ -577,14 +519,10 @@ void tryPatchGetter(DiagnosticReporter reporter,
   if (originField.getter == null) {
     reporter.reportError(
         reporter.createMessage(
-            origin,
-            MessageKind.PATCH_NO_GETTER,
-            {'getterName': patch.name}),
+            origin, MessageKind.PATCH_NO_GETTER, {'getterName': patch.name}),
         <DiagnosticMessage>[
-            reporter.createMessage(
-                patch,
-                MessageKind.PATCH_POINT_TO_GETTER,
-                {'getterName': patch.name}),
+          reporter.createMessage(patch, MessageKind.PATCH_POINT_TO_GETTER,
+              {'getterName': patch.name}),
         ]);
     return;
   }
@@ -592,20 +530,15 @@ void tryPatchGetter(DiagnosticReporter reporter,
   patchFunction(reporter, getter, patch);
 }
 
-void tryPatchSetter(DiagnosticReporter reporter,
-                    Element origin,
-                    FunctionElement patch) {
+void tryPatchSetter(
+    DiagnosticReporter reporter, Element origin, FunctionElement patch) {
   if (!origin.isAbstractField) {
     reporter.reportError(
         reporter.createMessage(
-            origin,
-            MessageKind.PATCH_NON_SETTER,
-            {'name': origin.name}),
+            origin, MessageKind.PATCH_NON_SETTER, {'name': origin.name}),
         <DiagnosticMessage>[
-            reporter.createMessage(
-                patch,
-                MessageKind.PATCH_POINT_TO_SETTER,
-                {'setterName': patch.name}),
+          reporter.createMessage(patch, MessageKind.PATCH_POINT_TO_SETTER,
+              {'setterName': patch.name}),
         ]);
     return;
   }
@@ -613,14 +546,10 @@ void tryPatchSetter(DiagnosticReporter reporter,
   if (originField.setter == null) {
     reporter.reportError(
         reporter.createMessage(
-            origin,
-            MessageKind.PATCH_NO_SETTER,
-            {'setterName': patch.name}),
+            origin, MessageKind.PATCH_NO_SETTER, {'setterName': patch.name}),
         <DiagnosticMessage>[
-              reporter.createMessage(
-                  patch,
-                  MessageKind.PATCH_POINT_TO_SETTER,
-                  {'setterName': patch.name}),
+          reporter.createMessage(patch, MessageKind.PATCH_POINT_TO_SETTER,
+              {'setterName': patch.name}),
         ]);
     return;
   }
@@ -628,70 +557,57 @@ void tryPatchSetter(DiagnosticReporter reporter,
   patchFunction(reporter, setter, patch);
 }
 
-void tryPatchConstructor(DiagnosticReporter reporter,
-                         Element origin,
-                         FunctionElement patch) {
+void tryPatchConstructor(
+    DiagnosticReporter reporter, Element origin, FunctionElement patch) {
   if (!origin.isConstructor) {
     reporter.reportError(
-        reporter.createMessage(
-            origin,
-            MessageKind.PATCH_NON_CONSTRUCTOR,
+        reporter.createMessage(origin, MessageKind.PATCH_NON_CONSTRUCTOR,
             {'constructorName': patch.name}),
         <DiagnosticMessage>[
-            reporter.createMessage(
-                patch,
-                MessageKind.PATCH_POINT_TO_CONSTRUCTOR,
-                {'constructorName': patch.name}),
+          reporter.createMessage(patch, MessageKind.PATCH_POINT_TO_CONSTRUCTOR,
+              {'constructorName': patch.name}),
         ]);
     return;
   }
   patchFunction(reporter, origin, patch);
 }
 
-void tryPatchFunction(DiagnosticReporter reporter,
-                      Element origin,
-                      FunctionElement patch) {
+void tryPatchFunction(
+    DiagnosticReporter reporter, Element origin, FunctionElement patch) {
   if (!origin.isFunction) {
     reporter.reportError(
-        reporter.createMessage(
-            origin,
-            MessageKind.PATCH_NON_FUNCTION,
+        reporter.createMessage(origin, MessageKind.PATCH_NON_FUNCTION,
             {'functionName': patch.name}),
         <DiagnosticMessage>[
-            reporter.createMessage(
-                patch,
-                MessageKind.PATCH_POINT_TO_FUNCTION,
-                {'functionName': patch.name}),
+          reporter.createMessage(patch, MessageKind.PATCH_POINT_TO_FUNCTION,
+              {'functionName': patch.name}),
         ]);
     return;
   }
   patchFunction(reporter, origin, patch);
 }
 
-void patchFunction(DiagnosticReporter reporter,
-                   BaseFunctionElementX origin,
-                   BaseFunctionElementX patch) {
+void patchFunction(DiagnosticReporter reporter, BaseFunctionElementX origin,
+    BaseFunctionElementX patch) {
   if (!origin.modifiers.isExternal) {
     reporter.reportError(
         reporter.createMessage(origin, MessageKind.PATCH_NON_EXTERNAL),
         <DiagnosticMessage>[
-              reporter.createMessage(
-                  patch,
-                  MessageKind.PATCH_POINT_TO_FUNCTION,
-                  {'functionName': patch.name}),
+          reporter.createMessage(patch, MessageKind.PATCH_POINT_TO_FUNCTION,
+              {'functionName': patch.name}),
         ]);
     return;
   }
   if (origin.isPatched) {
-    reporter.internalError(origin,
-        "Trying to patch a function more than once.");
+    reporter.internalError(
+        origin, "Trying to patch a function more than once.");
   }
   origin.applyPatch(patch);
 }
 
 PatchVersion getPatchVersion(Compiler compiler, Element element) {
-  return EagerAnnotationHandler.checkAnnotation(compiler, element,
-      const PatchAnnotationHandler());
+  return EagerAnnotationHandler.checkAnnotation(
+      compiler, element, const PatchAnnotationHandler());
 }
 
 class PatchVersion {

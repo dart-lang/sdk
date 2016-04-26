@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Constants for use in metadata annotations such as `@protected`.
+/// Constants for use in metadata annotations.
 ///
 /// See also `@deprecated` and `@override` in the `dart:core` library.
 ///
@@ -56,6 +56,12 @@ const _Literal literal = const _Literal();
 ///   without invoking the overridden method.
 const _MustCallSuper mustCallSuper = const _MustCallSuper();
 
+/// Used to annotate a class declaration `C`. Indicates that any type arguments
+/// declared on `C` are to be treated as optional.  Tools such as the analyzer
+/// and linter can use this information to suppress warnings that would
+/// otherwise require type arguments to be provided for instances of `C`.
+const _OptionalTypeArgs optionalTypeArgs = const _OptionalTypeArgs();
+
 /// Used to annotate an instance member (method, getter, setter, operator, or
 /// field) `m` in a class `C`. If the annotation is on a field it applies to the
 /// getter, and setter if appropriate, that are induced by the field. Indicates
@@ -84,7 +90,26 @@ const _Protected protected = const _Protected();
 ///   name that does not have this annotation, or
 /// * an invocation of a method or function does not include an argument
 ///   corresponding to a named parameter that has this annotation.
-const _Required required = const _Required();
+const Required required = const Required();
+
+/// Used to annotate a named parameter `p` in a method or function `f`.
+///
+/// See [required] for more details.
+class Required {
+  /// A human-readable explanation of the reason why the annotated parameter is
+  /// required. For example, the annotation might look like:
+  ///
+  ///     ButtonWidget({
+  ///         Function onHover,
+  ///         @Required('Buttons must do something when pressed')
+  ///         Function onPressed,
+  ///         ...
+  ///     }) ...
+  final String reason;
+
+  /// Initialize a newly created instance to have the given [reason].
+  const Required([this.reason]);
+}
 
 class _Factory {
   const _Factory();
@@ -98,10 +123,10 @@ class _MustCallSuper {
   const _MustCallSuper();
 }
 
-class _Protected {
-  const _Protected();
+class _OptionalTypeArgs {
+  const _OptionalTypeArgs();
 }
 
-class _Required {
-  const _Required();
+class _Protected {
+  const _Protected();
 }

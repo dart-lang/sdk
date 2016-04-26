@@ -29,16 +29,14 @@
 #include "vm/symbols.h"
 #include "vm/thread_interrupter.h"
 #include "vm/thread_pool.h"
+#include "vm/timeline.h"
 #include "vm/virtual_memory.h"
 #include "vm/zone.h"
 
 namespace dart {
 
 DECLARE_FLAG(bool, print_class_table);
-DECLARE_FLAG(bool, trace_isolates);
 DECLARE_FLAG(bool, trace_time_all);
-DECLARE_FLAG(bool, pause_isolates_on_start);
-DECLARE_FLAG(bool, pause_isolates_on_exit);
 DEFINE_FLAG(bool, keep_code, false,
             "Keep deoptimized code for profiling.");
 DEFINE_FLAG(bool, shutdown, true, "Do a clean shutdown of the VM");
@@ -51,6 +49,12 @@ DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 ReadOnlyHandles* Dart::predefined_handles_ = NULL;
 const uint8_t* Dart::instructions_snapshot_buffer_ = NULL;
 const uint8_t* Dart::data_snapshot_buffer_ = NULL;
+Dart_ThreadExitCallback Dart::thread_exit_callback_ = NULL;
+Dart_FileOpenCallback Dart::file_open_callback_ = NULL;
+Dart_FileReadCallback Dart::file_read_callback_ = NULL;
+Dart_FileWriteCallback Dart::file_write_callback_ = NULL;
+Dart_FileCloseCallback Dart::file_close_callback_ = NULL;
+Dart_EntropySource Dart::entropy_source_callback_ = NULL;
 
 // Structure for managing read-only global handles allocation used for
 // creating global read-only handles that are pre created and initialized
@@ -81,6 +85,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                            const uint8_t* data_snapshot,
                            Dart_IsolateCreateCallback create,
                            Dart_IsolateShutdownCallback shutdown,
+                           Dart_ThreadExitCallback thread_exit,
                            Dart_FileOpenCallback file_open,
                            Dart_FileReadCallback file_read,
                            Dart_FileWriteCallback file_write,
@@ -91,8 +96,9 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
     return "VM already initialized or flags not initialized.";
   }
-  Isolate::SetFileCallbacks(file_open, file_read, file_write, file_close);
-  Isolate::SetEntropySourceCallback(entropy_source);
+  set_thread_exit_callback(thread_exit);
+  SetFileCallbacks(file_open, file_read, file_write, file_close);
+  set_entropy_source_callback(entropy_source);
   OS::InitOnce();
   VirtualMemory::InitOnce();
   OSThread::InitOnce();
@@ -155,9 +161,9 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       StubCode::InitOnce();
     }
     if (vm_isolate_snapshot != NULL) {
-      if (instructions_snapshot != NULL) {
-        vm_isolate_->SetupInstructionsSnapshotPage(instructions_snapshot);
-        ASSERT(data_snapshot != NULL);
+      NOT_IN_PRODUCT(TimelineDurationScope tds(Timeline::GetVMStream(),
+                                               "VMIsolateSnapshot"));
+      if (data_snapshot != NULL) {
         vm_isolate_->SetupDataSnapshotPage(data_snapshot);
       }
       const Snapshot* snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
@@ -174,6 +180,13 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       if (!error.IsNull()) {
         return error.ToCString();
       }
+      NOT_IN_PRODUCT(if (tds.enabled()) {
+        tds.SetNumArguments(2);
+        tds.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
+        tds.FormatArgument(1, "heapSize", "%" Pd64,
+                           vm_isolate_->heap()->UsedInWords(Heap::kOld) *
+                           kWordSize);
+      });
       if (FLAG_trace_isolates) {
         OS::Print("Size of vm isolate snapshot = %" Pd "\n",
                   snapshot->length());
@@ -198,7 +211,11 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       return "SSE2 is required.";
     }
 #endif
-    Object::FinalizeVMIsolate(vm_isolate_);
+    {
+      NOT_IN_PRODUCT(TimelineDurationScope tds(Timeline::GetVMStream(),
+                                               "FinalizeVMIsolate"));
+      Object::FinalizeVMIsolate(vm_isolate_);
+    }
 #if defined(DEBUG)
     vm_isolate_->heap()->Verify(kRequireMarked);
 #endif
@@ -391,7 +408,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
   NOT_IN_PRODUCT(
-    TimelineDurationScope tds(T, I->GetIsolateStream(), "InitializeIsolate");
+    TimelineDurationScope tds(T,
+                              Timeline::GetIsolateStream(),
+                              "InitializeIsolate");
     tds.SetNumArguments(1);
     tds.CopyArgument(0, "isolateName", I->name());
   )
@@ -400,7 +419,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   HandleScope handle_scope(T);
   {
     NOT_IN_PRODUCT(TimelineDurationScope tds(T,
-        I->GetIsolateStream(), "ObjectStore::Init"));
+        Timeline::GetIsolateStream(), "ObjectStore::Init"));
     ObjectStore::Init(I);
   }
 
@@ -411,7 +430,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   if (snapshot_buffer != NULL) {
     // Read the snapshot and setup the initial state.
     NOT_IN_PRODUCT(TimelineDurationScope tds(T,
-        I->GetIsolateStream(), "IsolateSnapshotReader"));
+        Timeline::GetIsolateStream(), "IsolateSnapshotReader"));
     // TODO(turnidge): Remove once length is not part of the snapshot.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
     if (snapshot == NULL) {
@@ -432,6 +451,12 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     if (!error.IsNull()) {
       return error.raw();
     }
+    NOT_IN_PRODUCT(if (tds.enabled()) {
+      tds.SetNumArguments(2);
+      tds.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
+      tds.FormatArgument(1, "heapSize", "%" Pd64,
+                         I->heap()->UsedInWords(Heap::kOld) * kWordSize);
+    });
     if (FLAG_trace_isolates) {
       I->heap()->PrintSizes();
       MegamorphicCacheTable::PrintSizes(I);
@@ -449,7 +474,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
 
   {
     NOT_IN_PRODUCT(TimelineDurationScope tds(T,
-        I->GetIsolateStream(), "StubCode::Init"));
+        Timeline::GetIsolateStream(), "StubCode::Init"));
     StubCode::Init(I);
   }
 
@@ -472,7 +497,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     }
   }
 
-  I->heap()->EnableGrowthControl();
+  I->heap()->InitGrowthControl();
   I->set_init_callback_data(data);
   Api::SetupAcquiredError(I);
   if (FLAG_print_class_table) {

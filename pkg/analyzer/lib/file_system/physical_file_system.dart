@@ -19,8 +19,8 @@ import 'package:watcher/watcher.dart';
  * A `dart:io` based implementation of [ResourceProvider].
  */
 class PhysicalResourceProvider implements ResourceProvider {
-  static final NORMALIZE_EOL_ALWAYS = (String string) =>
-      string.replaceAll(new RegExp('\r\n?'), '\n');
+  static final NORMALIZE_EOL_ALWAYS =
+      (String string) => string.replaceAll(new RegExp('\r\n?'), '\n');
 
   static final PhysicalResourceProvider INSTANCE =
       new PhysicalResourceProvider(null);
@@ -112,10 +112,41 @@ class _PhysicalFile extends _PhysicalResource implements File {
   }
 
   @override
+  List<int> readAsBytesSync() {
+    try {
+      io.File file = _entry as io.File;
+      return file.readAsBytesSync();
+    } on io.FileSystemException catch (exception) {
+      throw new FileSystemException(exception.path, exception.message);
+    }
+  }
+
+  @override
   String readAsStringSync() {
     try {
       io.File file = _entry as io.File;
       return FileBasedSource.fileReadMode(file.readAsStringSync());
+    } on io.FileSystemException catch (exception) {
+      throw new FileSystemException(exception.path, exception.message);
+    }
+  }
+
+  @override
+  File renameSync(String newPath) {
+    try {
+      io.File file = _entry as io.File;
+      io.File newFile = file.renameSync(newPath);
+      return new _PhysicalFile(newFile);
+    } on io.FileSystemException catch (exception) {
+      throw new FileSystemException(exception.path, exception.message);
+    }
+  }
+
+  @override
+  void writeAsBytesSync(List<int> bytes) {
+    try {
+      io.File file = _entry as io.File;
+      file.writeAsBytesSync(bytes);
     } on io.FileSystemException catch (exception) {
       throw new FileSystemException(exception.path, exception.message);
     }

@@ -165,6 +165,9 @@ a, a:hover {
 h3 {
   cursor: pointer;
 }
+.line {
+  margin: 0px;
+}
 .lineNumber {
   font-size: smaller;
   color: #888;

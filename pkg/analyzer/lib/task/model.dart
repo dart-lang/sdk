@@ -381,7 +381,7 @@ abstract class ListTaskInput<E> implements TaskInput<List<E>> {
    * Return a task input that can be used to compute a list whose elements are
    * the result of passing the elements of this input to the [mapper] function.
    */
-  ListTaskInput/*<V>*/ toList/*<V>*/(UnaryFunction<E, dynamic/*<=V>*/ > mapper);
+  ListTaskInput/*<V>*/ toList/*<V>*/(UnaryFunction<E, dynamic/*=V*/ > mapper);
 
   /**
    * Return a task input that can be used to compute a list whose elements are
@@ -465,7 +465,7 @@ abstract class ResultDescriptor<V> {
    * never evicted from the cache, and removed only when they are invalidated.
    */
   factory ResultDescriptor(String name, V defaultValue,
-      {ResultCachingPolicy<V> cachingPolicy}) = ResultDescriptorImpl;
+      {ResultCachingPolicy<V> cachingPolicy}) = ResultDescriptorImpl<V>;
 
   /**
    * Return the caching policy for results described by this descriptor.

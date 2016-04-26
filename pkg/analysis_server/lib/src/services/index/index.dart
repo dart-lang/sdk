@@ -1,255 +1,178 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.index;
-
 import 'dart:async';
 
-import 'package:analysis_server/src/provisional/index/index_core.dart';
-import 'package:analysis_server/src/services/index/indexable_element.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/index_unit.dart';
+import 'package:collection/collection.dart';
 
 /**
- * A filter for [Element] names.
+ * Return a new [Index] instance that keeps information in memory.
  */
-typedef bool ElementNameFilter(String name);
-
-/**
- * The interface [Index] defines the behavior of objects that maintain an index
- * storing relations between indexable objects.
- *
- * Any modification operations are executed before any read operation.
- * There is no guarantee about the order in which the [Future]s for read
- * operations will complete.
- */
-abstract class Index implements IndexStore {
-  /**
-   * Set the index contributors used by this index to the given list of
-   * [contributors].
-   */
-  void set contributors(List<IndexContributor> contributors);
-
-  /**
-   * Answers index statistics.
-   */
-  String get statistics;
-
-  /**
-   * Returns top-level [Element]s whose names satisfy to [nameFilter].
-   */
-  List<Element> getTopLevelDeclarations(ElementNameFilter nameFilter);
-
-  /**
-   * Processes the given [object] in order to record the relationships.
-   *
-   * [context] - the [AnalysisContext] in which the [object] being indexed.
-   * [object] - the object being indexed.
-   */
-  void index(AnalysisContext context, Object object);
-
-  /**
-   * Starts the index.
-   * Should be called before any other method.
-   */
-  void run();
-
-  /**
-   * Stops the index.
-   * After calling this method operations may not be executed.
-   */
-  void stop();
+Index createMemoryIndex() {
+  return new Index._();
 }
 
 /**
- * An [Element] which is used to index references to the name without specifying
- * a concrete kind of this name - field, method or something else.
+ * Return the index of the first occurrence of the [value] in the [sortedList],
+ * or `-1` if the [value] is not in the list.
  */
-class IndexableName implements IndexableObject {
-  /**
-   * The name to be indexed.
-   */
-  final String name;
-
-  /**
-   * Initialize a newly created indexable name to represent the given [name].
-   */
-  IndexableName(this.name);
-
-  @override
-  String get filePath => null;
-
-  @override
-  IndexableNameKind get kind => IndexableNameKind.INSTANCE;
-
-  @override
-  int get offset {
+int _findFirstOccurrence(List<int> sortedList, int value) {
+  // Find an occurrence.
+  int i = binarySearch(sortedList, value);
+  if (i == -1) {
     return -1;
   }
-
-  @override
-  bool operator ==(Object object) =>
-      object is IndexableName && object.name == name;
-
-  @override
-  String toString() => name;
+  // Find the first occurrence.
+  while (i > 0 && sortedList[i - 1] == value) {
+    i--;
+  }
+  return i;
 }
 
 /**
- * The kind of an indexable name.
+ * Interface for storing and requesting relations.
  */
-class IndexableNameKind implements IndexableObjectKind<IndexableName> {
-  /**
-   * The unique instance of this class.
-   */
-  static final IndexableNameKind INSTANCE =
-      new IndexableNameKind._(IndexableObjectKind.nextIndex);
+class Index {
+  final Map<AnalysisContext, _ContextIndex> _contextIndexMap =
+      <AnalysisContext, _ContextIndex>{};
+
+  Index._();
 
   /**
-   * The index uniquely identifying this kind.
+   * Complete with a list of locations where elements of the given [kind] with
+   * names satisfying the given [regExp] are defined.
    */
-  final int index;
-
-  /**
-   * Initialize a newly created kind to have the given [index].
-   */
-  IndexableNameKind._(this.index) {
-    IndexableObjectKind.register(this);
+  Future<List<Location>> getDefinedNames(RegExp regExp, IndexNameKind kind) {
+    return _mergeLocations((_ContextIndex index) {
+      return index.getDefinedNames(regExp, kind);
+    });
   }
 
-  @override
-  IndexableName decode(AnalysisContext context, String filePath, int offset) {
-    throw new UnsupportedError(
-        'Indexable names cannot be decoded through their kind');
+  /**
+   * Complete with a list of locations where the given [element] has relation
+   * of the given [kind].
+   */
+  Future<List<Location>> getRelations(Element element, IndexRelationKind kind) {
+    return _mergeLocations((_ContextIndex index) {
+      return index.getRelations(element, kind);
+    });
   }
 
-  @override
-  int encodeHash(StringToInt stringToInt, IndexableName indexable) {
-    String name = indexable.name;
-    return stringToInt(name);
+  /**
+   * Complete with a list of locations where a class members with the given
+   * [name] is referenced with a qualifier, but is not resolved.
+   */
+  Future<List<Location>> getUnresolvedMemberReferences(String name) {
+    return _mergeLocations((_ContextIndex index) {
+      return index.getUnresolvedMemberReferences(name);
+    });
+  }
+
+  /**
+   * Index declarations in the given partially resolved [unit].
+   */
+  void indexDeclarations(CompilationUnit unit) {
+    if (unit?.element?.library == null) {
+      return;
+    }
+    AnalysisContext context = unit.element.context;
+    _getContextIndex(context).indexDeclarations(unit);
+  }
+
+  /**
+   * Index the given fully resolved [unit].
+   */
+  void indexUnit(CompilationUnit unit) {
+    if (unit?.element?.library == null) {
+      return;
+    }
+    AnalysisContext context = unit.element.context;
+    _getContextIndex(context).indexUnit(unit);
+  }
+
+  /**
+   * Remove all index information for the given [context].
+   */
+  void removeContext(AnalysisContext context) {
+    _contextIndexMap.remove(context);
+  }
+
+  /**
+   * Remove index information about the unit in the given [context].
+   */
+  void removeUnit(
+      AnalysisContext context, Source librarySource, Source unitSource) {
+    _contextIndexMap[context]?.removeUnit(librarySource, unitSource);
+  }
+
+  /**
+   * Notify the index that the client is going to stop using it.
+   */
+  void stop() {}
+
+  /**
+   * Return the [_ContextIndex] instance for the given [context].
+   */
+  _ContextIndex _getContextIndex(AnalysisContext context) {
+    return _contextIndexMap.putIfAbsent(context, () {
+      return new _ContextIndex(context);
+    });
+  }
+
+  /**
+   * Complete with a list of all results returned by the [callback] for every
+   * context specific index.
+   */
+  Future<List<Location>> _mergeLocations(
+      Future<List<Location>> callback(_ContextIndex index)) async {
+    List<Location> locations = <Location>[];
+    for (_ContextIndex index in _contextIndexMap.values) {
+      List<Location> contextLocations = await callback(index);
+      locations.addAll(contextLocations);
+    }
+    return locations;
   }
 }
 
 /**
- * Constants used when populating and accessing the index.
- */
-class IndexConstants {
-  /**
-   * Left: the Universe or a Library.
-   *   Defines an Element.
-   * Right: an Element declaration.
-   */
-  static final RelationshipImpl DEFINES =
-      RelationshipImpl.getRelationship("defines");
-
-  /**
-   * Left: class.
-   *   Has ancestor (extended or implemented, directly or indirectly).
-   * Right: other class declaration.
-   */
-  static final RelationshipImpl HAS_ANCESTOR =
-      RelationshipImpl.getRelationship("has-ancestor");
-
-  /**
-   * Left: class.
-   *   Is extended by.
-   * Right: other class declaration.
-   */
-  static final RelationshipImpl IS_EXTENDED_BY =
-      RelationshipImpl.getRelationship("is-extended-by");
-
-  /**
-   * Left: class.
-   *   Is implemented by.
-   * Right: other class declaration.
-   */
-  static final RelationshipImpl IS_IMPLEMENTED_BY =
-      RelationshipImpl.getRelationship("is-implemented-by");
-
-  /**
-   * Left: class.
-   *   Is mixed into.
-   * Right: other class declaration.
-   */
-  static final RelationshipImpl IS_MIXED_IN_BY =
-      RelationshipImpl.getRelationship("is-mixed-in-by");
-
-  /**
-   * Left: local variable, parameter.
-   *   Is read at.
-   * Right: location.
-   */
-  static final RelationshipImpl IS_READ_BY =
-      RelationshipImpl.getRelationship("is-read-by");
-
-  /**
-   * Left: local variable, parameter.
-   *   Is both read and written at.
-   * Right: location.
-   */
-  static final RelationshipImpl IS_READ_WRITTEN_BY =
-      RelationshipImpl.getRelationship("is-read-written-by");
-
-  /**
-   * Left: local variable, parameter.
-   *   Is written at.
-   * Right: location.
-   */
-  static final RelationshipImpl IS_WRITTEN_BY =
-      RelationshipImpl.getRelationship("is-written-by");
-
-  /**
-   * Left: function, method, variable, getter.
-   *   Is invoked at.
-   * Right: location.
-   */
-  static final RelationshipImpl IS_INVOKED_BY =
-      RelationshipImpl.getRelationship("is-invoked-by");
-
-  /**
-   * Left: function, function type, class, field, method.
-   *   Is referenced (and not invoked, read/written) at.
-   * Right: location.
-   */
-  static final RelationshipImpl IS_REFERENCED_BY =
-      RelationshipImpl.getRelationship("is-referenced-by");
-
-  /**
-   * Left: name element.
-   *   Is defined by.
-   * Right: concrete element declaration.
-   */
-  static final RelationshipImpl NAME_IS_DEFINED_BY =
-      RelationshipImpl.getRelationship("name-is-defined-by");
-
-  IndexConstants._();
-}
-
-/**
- * Instances of the class [LocationImpl] represent a location related to an
- * element.
+ * Information about location of a single relation in the index.
  *
- * The location is expressed as an offset and length, but the offset is relative
- * to the resource containing the element rather than the start of the element
- * within that resource.
+ * The location is expressed as a library specific unit containing the index
+ * relation, offset within this [Source] and  length.
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
-class LocationImpl implements Location {
-  static const int _FLAG_QUALIFIED = 1 << 0;
-  static const int _FLAG_RESOLVED = 1 << 1;
-
+class Location {
   /**
-   * An empty array of locations.
+   * The [AnalysisContext] containing this location.
    */
-  static const List<LocationImpl> EMPTY_LIST = const <LocationImpl>[];
+  final AnalysisContext context;
 
   /**
-   * The indexable object containing this location.
+   * The URI of the source of the library containing this location.
    */
-  final IndexableObject indexable;
+  final String libraryUri;
 
   /**
-   * The offset of this location within the resource containing the element.
+   * The URI of the source of the unit containing this location.
+   */
+  final String unitUri;
+
+  /**
+   * The kind of usage at this location.
+   */
+  final IndexRelationKind kind;
+
+  /**
+   * The offset of this location within the [unitUri].
    */
   final int offset;
 
@@ -259,113 +182,402 @@ class LocationImpl implements Location {
   final int length;
 
   /**
-   * The flags of this location.
+   * Is `true` if this location is qualified.
    */
-  int _flags;
+  final bool isQualified;
 
   /**
-   * Initializes a newly created location to be relative to the given
-   * [indexable] object at the given [offset] with the given [length].
+   * Is `true` if this location is resolved.
    */
-  LocationImpl(this.indexable, this.offset, this.length,
-      {bool isQualified: false, bool isResolved: true}) {
-    if (indexable == null) {
-      throw new ArgumentError("indexable object cannot be null");
-    }
-    _flags = 0;
-    if (isQualified) {
-      _flags |= _FLAG_QUALIFIED;
-    }
-    if (isResolved) {
-      _flags |= _FLAG_RESOLVED;
-    }
+  final bool isResolved;
+
+  Location(this.context, this.libraryUri, this.unitUri, this.kind, this.offset,
+      this.length, this.isQualified, this.isResolved);
+
+  @override
+  String toString() => 'Location{librarySourceUri: $libraryUri, '
+      'unitSourceUri: $unitUri, offset: $offset, length: $length, '
+      'isQualified: $isQualified}, isResolved: $isResolved}';
+}
+
+/**
+ * Opaque identifier of a [PackageIndex].
+ */
+abstract class PackageIndexId {}
+
+/**
+ * Storage of [PackageIndex] objects.
+ */
+abstract class PackageIndexStore {
+  /**
+   * Complete with identifiers of all [PackageIndex] objects.
+   */
+  Future<Iterable<PackageIndexId>> getIds();
+
+  /**
+   * Complete with the [PackageIndex] with the given [id].
+   */
+  Future<PackageIndex> getIndex(PackageIndexId id);
+
+  /**
+   * Put the given [indexBuilder] into the store.
+   */
+  void putIndex(String unitLibraryUri, String unitUnitUri,
+      PackageIndexBuilder indexBuilder);
+}
+
+/**
+ * The [AnalysisContext] specific index.
+ */
+class _ContextIndex {
+  final AnalysisContext context;
+  final Map<String, PackageIndex> indexMap = <String, PackageIndex>{};
+
+  _ContextIndex(this.context);
+
+  /**
+   * Complete with a list of locations where elements of the given [kind] with
+   * names satisfying the given [regExp] are defined.
+   */
+  Future<List<Location>> getDefinedNames(
+      RegExp regExp, IndexNameKind kind) async {
+    return _mergeLocations((_PackageIndexRequester requester) {
+      return requester.getDefinedNames(context, regExp, kind);
+    });
   }
 
   /**
-   * The element containing this location.
+   * Complete with a list of locations where the given [element] has relation
+   * of the given [kind].
    */
-  @deprecated
-  Element get element {
-    if (indexable is IndexableElement) {
-      return (indexable as IndexableElement).element;
-    }
-    return null;
+  Future<List<Location>> getRelations(Element element, IndexRelationKind kind) {
+    return _mergeLocations((_PackageIndexRequester requester) {
+      return requester.getRelations(context, element, kind);
+    });
   }
 
-  @override
-  bool get isQualified => (_flags & _FLAG_QUALIFIED) != 0;
+  /**
+   * Complete with a list of locations where a class members with the given
+   * [name] is referenced with a qualifier, but is not resolved.
+   */
+  Future<List<Location>> getUnresolvedMemberReferences(String name) async {
+    return _mergeLocations((_PackageIndexRequester requester) {
+      return requester.getUnresolvedMemberReferences(context, name);
+    });
+  }
 
-  @override
-  bool get isResolved => (_flags & _FLAG_RESOLVED) != 0;
+  /**
+   * Index declarations in the given partially resolved [unit].
+   */
+  void indexDeclarations(CompilationUnit unit) {
+    PackageIndexAssembler assembler = new PackageIndexAssembler();
+    assembler.indexDeclarations(unit);
+    _putUnitIndexBuilder(unit, assembler);
+  }
 
-  @override
-  String toString() {
-    String flagsStr = '';
-    if (isQualified) {
-      flagsStr += ' qualified';
+  /**
+   * Index the given fully resolved [unit].
+   */
+  void indexUnit(CompilationUnit unit) {
+    PackageIndexAssembler assembler = new PackageIndexAssembler();
+    assembler.indexUnit(unit);
+    _putUnitIndexBuilder(unit, assembler);
+  }
+
+  /**
+   * Remove index information about the unit.
+   */
+  void removeUnit(Source librarySource, Source unitSource) {
+    String key = _getUnitKeyForSource(librarySource, unitSource);
+    indexMap.remove(key);
+  }
+
+  String _getUnitKeyForElement(CompilationUnitElement unitElement) {
+    Source librarySource = unitElement.library.source;
+    Source unitSource = unitElement.source;
+    return _getUnitKeyForSource(librarySource, unitSource);
+  }
+
+  String _getUnitKeyForSource(Source librarySource, Source unitSource) {
+    String unitLibraryUri = librarySource.uri.toString();
+    String unitUnitUri = unitSource.uri.toString();
+    return '$unitLibraryUri;$unitUnitUri';
+  }
+
+  Future<List<Location>> _mergeLocations(
+      List<Location> callback(_PackageIndexRequester requester)) async {
+    List<Location> locations = <Location>[];
+    for (PackageIndex index in indexMap.values) {
+      _PackageIndexRequester requester = new _PackageIndexRequester(index);
+      List<Location> indexLocations = callback(requester);
+      locations.addAll(indexLocations);
     }
-    if (isResolved) {
-      flagsStr += ' resolved';
-    }
-    return '[$offset - ${offset + length}) $flagsStr in $indexable';
+    return locations;
+  }
+
+  void _putUnitIndexBuilder(
+      CompilationUnit unit, PackageIndexAssembler assembler) {
+    PackageIndexBuilder indexBuilder = assembler.assemble();
+    // Put the index into the map.
+    List<int> indexBytes = indexBuilder.toBuffer();
+    PackageIndex index = new PackageIndex.fromBuffer(indexBytes);
+    String key = _getUnitKeyForElement(unit.element);
+    indexMap[key] = index;
   }
 }
 
 /**
- * A [LocationImpl] with attached data.
+ * Helper for requesting information from a single [PackageIndex].
  */
-class LocationWithData<D> extends LocationImpl {
-  final D data;
+class _PackageIndexRequester {
+  final PackageIndex index;
 
-  LocationWithData(LocationImpl location, this.data)
-      : super(location.indexable, location.offset, location.length);
+  _PackageIndexRequester(this.index);
+
+  /**
+   * Return the [element]'s identifier in the [index] or `-1` if the
+   * [element] is not referenced in the [index].
+   */
+  int findElementId(Element element) {
+    // Find the id of the element's unit.
+    int unitId = getUnitId(element);
+    if (unitId == -1) {
+      return -1;
+    }
+    // Prepare information about the element.
+    ElementInfo info = PackageIndexAssembler.newElementInfo(unitId, element);
+    // Find the first occurrence of an element with the same offset.
+    int elementId = _findFirstOccurrence(index.elementOffsets, info.offset);
+    if (elementId == -1) {
+      return -1;
+    }
+    // Try to find the element id using offset, unit and kind.
+    for (;
+        elementId < index.elementOffsets.length &&
+            index.elementOffsets[elementId] == info.offset;
+        elementId++) {
+      if (index.elementUnits[elementId] == unitId &&
+          index.elementKinds[elementId] == info.kind) {
+        return elementId;
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Complete with a list of locations where elements of the given [kind] with
+   * names satisfying the given [regExp] are defined.
+   */
+  List<Location> getDefinedNames(
+      AnalysisContext context, RegExp regExp, IndexNameKind kind) {
+    List<Location> locations = <Location>[];
+    for (UnitIndex unitIndex in index.units) {
+      _UnitIndexRequester requester = new _UnitIndexRequester(this, unitIndex);
+      List<Location> unitLocations =
+          requester.getDefinedNames(context, regExp, kind);
+      locations.addAll(unitLocations);
+    }
+    return locations;
+  }
+
+  /**
+   * Complete with a list of locations where the given [element] has relation
+   * of the given [kind].
+   */
+  List<Location> getRelations(
+      AnalysisContext context, Element element, IndexRelationKind kind) {
+    int elementId = findElementId(element);
+    if (elementId == -1) {
+      return const <Location>[];
+    }
+    List<Location> locations = <Location>[];
+    for (UnitIndex unitIndex in index.units) {
+      _UnitIndexRequester requester = new _UnitIndexRequester(this, unitIndex);
+      List<Location> unitLocations =
+          requester.getRelations(context, elementId, kind);
+      locations.addAll(unitLocations);
+    }
+    return locations;
+  }
+
+  /**
+   * Return the identifier of [str] in the [index] or `-1` if [str] is not used
+   * in the [index].
+   */
+  int getStringId(String str) {
+    return binarySearch(index.strings, str);
+  }
+
+  /**
+   * Return the identifier of the [CompilationUnitElement] containing the
+   * [element] in the [index] or `-1` if not found.
+   */
+  int getUnitId(Element element) {
+    CompilationUnitElement unitElement =
+        PackageIndexAssembler.getUnitElement(element);
+    int libraryUriId = getUriId(unitElement.library.source.uri);
+    if (libraryUriId == -1) {
+      return -1;
+    }
+    int unitUriId = getUriId(unitElement.source.uri);
+    if (unitUriId == -1) {
+      return -1;
+    }
+    for (int i = 0; i < index.unitLibraryUris.length; i++) {
+      if (index.unitLibraryUris[i] == libraryUriId &&
+          index.unitUnitUris[i] == unitUriId) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Return the URI of the library source of the library specific [unit].
+   */
+  String getUnitLibraryUri(int unit) {
+    int id = index.unitLibraryUris[unit];
+    return index.strings[id];
+  }
+
+  /**
+   * Return the URI of the unit source of the library specific [unit].
+   */
+  String getUnitUnitUri(int unit) {
+    int id = index.unitUnitUris[unit];
+    return index.strings[id];
+  }
+
+  /**
+   * Complete with a list of locations where a class members with the given
+   * [name] is referenced with a qualifier, but is not resolved.
+   */
+  List<Location> getUnresolvedMemberReferences(
+      AnalysisContext context, String name) {
+    List<Location> locations = <Location>[];
+    for (UnitIndex unitIndex in index.units) {
+      _UnitIndexRequester requester = new _UnitIndexRequester(this, unitIndex);
+      List<Location> unitLocations =
+          requester.getUnresolvedMemberReferences(context, name);
+      locations.addAll(unitLocations);
+    }
+    return locations;
+  }
+
+  /**
+   * Return the identifier of the [uri] in the [index] or `-1` if the [uri] is
+   * not used in the [index].
+   */
+  int getUriId(Uri uri) {
+    String str = uri.toString();
+    return getStringId(str);
+  }
 }
 
 /**
- * Relationship between an element and a location. Relationships are identified
- * by a globally unique identifier.
+ * Helper for requesting information from a single [UnitIndex].
  */
-class RelationshipImpl implements Relationship {
-  /**
-   * A table mapping relationship identifiers to relationships.
-   */
-  static Map<String, RelationshipImpl> _RELATIONSHIP_MAP = {};
+class _UnitIndexRequester {
+  final _PackageIndexRequester packageRequester;
+  final UnitIndex unitIndex;
+
+  _UnitIndexRequester(this.packageRequester, this.unitIndex);
 
   /**
-   * The next artificial hash code.
+   * Complete with a list of locations where elements of the given [kind] with
+   * names satisfying the given [regExp] are defined.
    */
-  static int _NEXT_HASH_CODE = 0;
-
-  /**
-   * The artificial hash code for this object.
-   */
-  final int _hashCode = _NEXT_HASH_CODE++;
-
-  /**
-   * The unique identifier for this relationship.
-   */
-  final String identifier;
-
-  /**
-   * Initialize a newly created relationship with the given unique identifier.
-   */
-  RelationshipImpl(this.identifier);
-
-  @override
-  int get hashCode => _hashCode;
-
-  @override
-  String toString() => identifier;
-
-  /**
-   * Returns the relationship with the given unique [identifier].
-   */
-  static RelationshipImpl getRelationship(String identifier) {
-    RelationshipImpl relationship = _RELATIONSHIP_MAP[identifier];
-    if (relationship == null) {
-      relationship = new RelationshipImpl(identifier);
-      _RELATIONSHIP_MAP[identifier] = relationship;
+  List<Location> getDefinedNames(
+      AnalysisContext context, RegExp regExp, IndexNameKind kind) {
+    List<Location> locations = <Location>[];
+    String unitLibraryUri = null;
+    String unitUnitUri = null;
+    for (int i = 0; i < unitIndex.definedNames.length; i++) {
+      if (unitIndex.definedNameKinds[i] == kind) {
+        int nameIndex = unitIndex.definedNames[i];
+        String name = packageRequester.index.strings[nameIndex];
+        if (regExp.matchAsPrefix(name) != null) {
+          unitLibraryUri ??= packageRequester.getUnitLibraryUri(unitIndex.unit);
+          unitUnitUri ??= packageRequester.getUnitUnitUri(unitIndex.unit);
+          locations.add(new Location(context, unitLibraryUri, unitUnitUri, null,
+              unitIndex.definedNameOffsets[i], name.length, false, true));
+        }
+      }
     }
-    return relationship;
+    return locations;
+  }
+
+  /**
+   * Return a list of locations where an element with the given [elementId] has
+   * relation of the given [kind].
+   */
+  List<Location> getRelations(
+      AnalysisContext context, int elementId, IndexRelationKind kind) {
+    // Find the first usage of the element.
+    int i = _findFirstOccurrence(unitIndex.usedElements, elementId);
+    if (i == -1) {
+      return const <Location>[];
+    }
+    // Create locations for every usage of the element.
+    List<Location> locations = <Location>[];
+    String unitLibraryUri = null;
+    String unitUnitUri = null;
+    for (;
+        i < unitIndex.usedElements.length &&
+            unitIndex.usedElements[i] == elementId;
+        i++) {
+      if (unitIndex.usedElementKinds[i] == kind) {
+        unitLibraryUri ??= packageRequester.getUnitLibraryUri(unitIndex.unit);
+        unitUnitUri ??= packageRequester.getUnitUnitUri(unitIndex.unit);
+        locations.add(new Location(
+            context,
+            unitLibraryUri,
+            unitUnitUri,
+            kind,
+            unitIndex.usedElementOffsets[i],
+            unitIndex.usedElementLengths[i],
+            unitIndex.usedElementIsQualifiedFlags[i],
+            true));
+      }
+    }
+    return locations;
+  }
+
+  /**
+   * Complete with a list of locations where a class members with the given
+   * [name] is referenced with a qualifier, but is not resolved.
+   */
+  List<Location> getUnresolvedMemberReferences(
+      AnalysisContext context, String name) {
+    // Find the name ID in the package index.
+    int nameId = packageRequester.getStringId(name);
+    if (nameId == -1) {
+      return const <Location>[];
+    }
+    // Find the first usage of the name.
+    int i = _findFirstOccurrence(unitIndex.usedNames, nameId);
+    if (i == -1) {
+      return const <Location>[];
+    }
+    // Create locations for every usage of the name.
+    List<Location> locations = <Location>[];
+    String unitLibraryUri = null;
+    String unitUnitUri = null;
+    for (;
+        i < unitIndex.usedNames.length && unitIndex.usedNames[i] == nameId;
+        i++) {
+      unitLibraryUri ??= packageRequester.getUnitLibraryUri(unitIndex.unit);
+      unitUnitUri ??= packageRequester.getUnitUnitUri(unitIndex.unit);
+      locations.add(new Location(
+          context,
+          unitLibraryUri,
+          unitUnitUri,
+          unitIndex.usedNameKinds[i],
+          unitIndex.usedNameOffsets[i],
+          name.length,
+          unitIndex.usedNameIsQualifiedFlags[i],
+          false));
+    }
+    return locations;
   }
 }

@@ -5,7 +5,6 @@
 library dart2js.cps_ir.gvn;
 
 import 'cps_ir_nodes.dart';
-import '../universe/side_effects.dart';
 import '../elements/elements.dart';
 import 'optimizers.dart' show Pass;
 import 'loop_hierarchy.dart';
@@ -13,7 +12,6 @@ import 'loop_effects.dart';
 import '../world.dart';
 import '../compiler.dart' show Compiler;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
-import '../constants/values.dart';
 import 'type_mask_system.dart';
 import 'effects.dart';
 
@@ -97,10 +95,10 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
     // GetLazyStatic cannot have side effects because the field has already
     // been initialized.
     return prim.isSafeForElimination ||
-           prim is GetField ||
-           prim is GetLength ||
-           prim is GetIndex ||
-           prim is GetLazyStatic;
+        prim is GetField ||
+        prim is GetLength ||
+        prim is GetIndex ||
+        prim is GetLazyStatic;
   }
 
   @override
@@ -152,7 +150,9 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
         Interceptor interceptor = existing;
         interceptor.interceptedClasses.addAll(prim.interceptedClasses);
       }
-      prim..replaceUsesWith(existing)..destroy();
+      prim
+        ..replaceUsesWith(existing)
+        ..destroy();
       node.remove();
       return next;
     }
@@ -249,7 +249,7 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
     Continuation enclosingLoop = currentLoopHeader;
     Continuation hoistTarget = null;
     while (loopHierarchy.getDepth(enclosingLoop) > hoistDepth &&
-           canHoistHeapDependencyOutOfLoop(prim, enclosingLoop)) {
+        canHoistHeapDependencyOutOfLoop(prim, enclosingLoop)) {
       hoistTarget = enclosingLoop;
       enclosingLoop = loopHierarchy.getEnclosingLoop(enclosingLoop);
     }
@@ -296,17 +296,14 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
 
     // Put the primitive in the environment while processing the loop.
     environment[gvn] = prim;
-    loopHoistedBindings
-        .putIfAbsent(hoistTarget, () => <int>[])
-        .add(gvn);
+    loopHoistedBindings.putIfAbsent(hoistTarget, () => <int>[]).add(gvn);
     return true;
   }
 
   /// If the given primitive is a trivial primitive that should be hoisted
   /// on-demand, hoist it and its dependent values above [loopBinding].
-  void hoistTrivialPrimitive(Primitive prim,
-                             LetCont loopBinding,
-                             Continuation enclosingLoop) {
+  void hoistTrivialPrimitive(
+      Primitive prim, LetCont loopBinding, Continuation enclosingLoop) {
     assert(isFastConstant(prim));
 
     // The primitive might already be bound in an outer scope.  Do not relocate
@@ -441,9 +438,11 @@ class GvnEntry {
   final List vector;
   final int hashCode;
 
-  GvnEntry(List vector) : vector = vector, hashCode = computeHashCode(vector);
+  GvnEntry(List vector)
+      : vector = vector,
+        hashCode = computeHashCode(vector);
 
-  bool operator==(other) {
+  bool operator ==(other) {
     if (other is! GvnEntry) return false;
     GvnEntry entry = other;
     List otherVector = entry.vector;
@@ -463,7 +462,7 @@ class GvnEntry {
       hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
       hash = hash ^ (hash >> 6);
     }
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) <<  3));
+    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
     hash = hash ^ (hash >> 11);
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
@@ -578,7 +577,7 @@ class GvnVectorBuilder extends DeepRecursiveVisitor {
   }
 
   processTypeExpression(TypeExpression node) {
-    vector = [GvnCode.TYPE_EXPRESSION, node.dartType];
+    vector = [GvnCode.TYPE_EXPRESSION, node.kind.index, node.dartType];
   }
 
   processInterceptor(Interceptor node) {
@@ -602,6 +601,7 @@ class GvnCode {
 }
 
 typedef ReferenceCallback(Reference ref);
+
 class InputVisitor extends DeepRecursiveVisitor {
   ReferenceCallback callback;
 

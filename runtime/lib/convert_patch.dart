@@ -39,13 +39,14 @@ patch class Utf8Decoder {
   }
 }
 
-class _JsonUtf8Decoder extends Converter<List<int>, Object> {
+class _JsonUtf8Decoder extends
+    ChunkedConverter<List<int>, Object, List<int>, Object> {
   final _Reviver _reviver;
   final bool _allowMalformed;
 
   _JsonUtf8Decoder(this._reviver, this._allowMalformed);
 
-  dynamic convert(List<int> input) {
+  Object convert(List<int> input) {
     var parser = _JsonUtf8DecoderSink._createParser(_reviver, _allowMalformed);
     parser.chunk = input;
     parser.chunkEnd = input.length;

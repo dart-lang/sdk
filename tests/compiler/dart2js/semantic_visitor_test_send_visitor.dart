@@ -3551,4 +3551,87 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
     super.visitUnresolvedTopLevelSetterSetIfNull(
         node, getter, element, rhs, arg);
   }
+
+  @override
+  visitIndexSetIfNull(
+      SendSet node,
+      Node receiver,
+      Node index,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_INDEX_SET_IF_NULL,
+        receiver: receiver, index: index, rhs: rhs));
+    super.visitIndexSetIfNull(node, receiver, index, rhs, arg);
+  }
+
+  @override
+  visitSuperIndexSetIfNull(
+      SendSet node,
+      MethodElement getter,
+      MethodElement setter,
+      Node index,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_SUPER_INDEX_SET_IF_NULL,
+        getter: getter, setter: setter, index: index, rhs: rhs));
+    super.visitSuperIndexSetIfNull(node, getter, setter, index, rhs, arg);
+  }
+
+  @override
+  visitUnresolvedSuperGetterIndexSetIfNull(
+      Send node,
+      Element element,
+      MethodElement setter,
+      Node index,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_UNRESOLVED_SUPER_GETTER_INDEX_SET_IF_NULL,
+        setter: setter, index: index, rhs: rhs));
+    super.visitUnresolvedSuperGetterIndexSetIfNull(
+        node, element, setter, index, rhs, arg);
+  }
+
+  @override
+  visitUnresolvedSuperSetterIndexSetIfNull(
+      Send node,
+      MethodElement getter,
+      Element element,
+      Node index,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_INDEX_SET_IF_NULL,
+        getter: getter, index: index, rhs: rhs));
+    super.visitUnresolvedSuperSetterIndexSetIfNull(
+        node, getter, element, index, rhs, arg);
+  }
+
+  @override
+  visitUnresolvedSuperIndexSetIfNull(
+      Send node,
+      Element element,
+      Node index,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_UNRESOLVED_SUPER_INDEX_SET_IF_NULL,
+        index: index, rhs: rhs));
+    super.visitUnresolvedSuperIndexSetIfNull(node, element, index, rhs, arg);
+  }
+
+  @override
+  errorInvalidIndexSetIfNull(
+      SendSet node,
+      ErroneousElement error,
+      Node index,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.ERROR_INVALID_SET_IF_NULL,
+        index: index, rhs: rhs));
+    super.visitUnresolvedSuperIndexSetIfNull(node, error, index, rhs, arg);
+  }
 }

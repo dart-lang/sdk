@@ -31,8 +31,8 @@ class LegacyCompilerDiagnostics implements CompilerDiagnostics {
   LegacyCompilerDiagnostics(this._handler);
 
   @override
-  void report(var code, Uri uri, int begin, int end,
-              String message, Diagnostic kind) {
+  void report(
+      var code, Uri uri, int begin, int end, String message, Diagnostic kind) {
     _handler(uri, begin, end, message, kind);
   }
 }

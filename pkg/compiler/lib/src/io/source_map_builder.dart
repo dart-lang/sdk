@@ -10,18 +10,17 @@ import 'line_column_provider.dart';
 import 'source_information.dart' show SourceLocation;
 
 class SourceMapBuilder {
-
   /// The URI of the source map file.
   final Uri sourceMapUri;
+
   /// The URI of the target language file.
   final Uri targetFileUri;
 
   final LineColumnProvider lineColumnProvider;
   final List<SourceMapEntry> entries = new List<SourceMapEntry>();
 
-  SourceMapBuilder(this.sourceMapUri,
-                   this.targetFileUri,
-                   this.lineColumnProvider);
+  SourceMapBuilder(
+      this.sourceMapUri, this.targetFileUri, this.lineColumnProvider);
 
   void addMapping(int targetOffset, SourceLocation sourceLocation) {
     entries.add(new SourceMapEntry(sourceLocation, targetOffset));
@@ -41,7 +40,6 @@ class SourceMapBuilder {
   }
 
   String build() {
-
     LineColumnMap<SourceMapEntry> lineColumnMap =
         new LineColumnMap<SourceMapEntry>();
     Map<Uri, LineColumnMap<SourceMapEntry>> sourceLocationMap =
@@ -55,8 +53,8 @@ class SourceMapBuilder {
       SourceLocation location = sourceMapEntry.sourceLocation;
       if (location != null) {
         LineColumnMap<SourceMapEntry> sourceLineColumnMap =
-            sourceLocationMap.putIfAbsent(location.sourceUri,
-                () => new LineColumnMap<SourceMapEntry>());
+            sourceLocationMap.putIfAbsent(
+                location.sourceUri, () => new LineColumnMap<SourceMapEntry>());
         sourceLineColumnMap.add(location.line, location.column, sourceMapEntry);
       }
     });
@@ -92,8 +90,8 @@ class SourceMapBuilder {
     buffer.write('  "sources": ');
     Iterable<String> relativeSourceUriList = const <String>[];
     if (sourceMapUri != null) {
-      relativeSourceUriList = uriMap.elements
-          .map((u) => relativize(sourceMapUri, u, false));
+      relativeSourceUriList =
+          uriMap.elements.map((u) => relativize(sourceMapUri, u, false));
     }
     printStringListOn(relativeSourceUriList, buffer);
     buffer.write(',\n');
@@ -106,10 +104,8 @@ class SourceMapBuilder {
     return buffer.toString();
   }
 
-  void writeEntries(LineColumnMap<SourceMapEntry> entries,
-                    IndexMap<Uri> uriMap,
-                    IndexMap<String> nameMap,
-                    StringBuffer output) {
+  void writeEntries(LineColumnMap<SourceMapEntry> entries, IndexMap<Uri> uriMap,
+      IndexMap<String> nameMap, StringBuffer output) {
     SourceLocation previousSourceLocation;
     int previousTargetLine = 0;
     DeltaEncoder targetColumnEncoder = new DeltaEncoder();
@@ -119,9 +115,7 @@ class SourceMapBuilder {
     DeltaEncoder sourceColumnEncoder = new DeltaEncoder();
     DeltaEncoder sourceNameIndexEncoder = new DeltaEncoder();
 
-    entries.forEach((int targetLine,
-                     int targetColumn,
-                     SourceMapEntry entry) {
+    entries.forEach((int targetLine, int targetColumn, SourceMapEntry entry) {
       SourceLocation sourceLocation = entry.sourceLocation;
       if (sourceLocation == previousSourceLocation) {
         return;
@@ -184,7 +178,7 @@ class DeltaEncoder {
   static const int VLQ_CONTINUATION_BIT = 1 << 5;
   static const int VLQ_CONTINUATION_MASK = 1 << 5;
   static const String BASE64_DIGITS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn'
-                                      'opqrstuvwxyz0123456789+/';
+      'opqrstuvwxyz0123456789+/';
 
   /// Writes the VLQ of delta between [value] and [offset] into [output] and
   /// return [value].

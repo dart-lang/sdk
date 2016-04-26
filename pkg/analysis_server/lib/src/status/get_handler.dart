@@ -4,7 +4,6 @@
 
 library analysis_server.src.status.get_handler;
 
-import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
@@ -19,14 +18,12 @@ import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
-import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/local_index.dart';
-import 'package:analysis_server/src/services/index/store/split_store.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
 import 'package:analysis_server/src/status/validator.dart';
 import 'package:analysis_server/src/utilities/average.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -34,7 +31,6 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/context/source.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -258,11 +254,6 @@ class GetHandler {
   static const String ELEMENT_PATH = '/element';
 
   /**
-   * The path used to request information about elements with the given name.
-   */
-  static const String INDEX_ELEMENT_BY_NAME = '/index/element-by-name';
-
-  /**
    * The path used to request an overlay contents.
    */
   static const String OVERLAY_PATH = '/overlay';
@@ -395,8 +386,6 @@ class GetHandler {
       _returnDiagnosticInfo(request);
     } else if (path == ELEMENT_PATH) {
       _returnElement(request);
-    } else if (path == INDEX_ELEMENT_BY_NAME) {
-      _returnIndexElementByName(request);
     } else if (path == OVERLAY_PATH) {
       _returnOverlayContents(request);
     } else if (path == OVERLAYS_PATH) {
@@ -465,6 +454,10 @@ class GetHandler {
       return unit;
     }
     unit = entry.getValue(RESOLVED_UNIT11);
+    if (unit != null) {
+      return unit;
+    }
+    unit = entry.getValue(RESOLVED_UNIT12);
     if (unit != null) {
       return unit;
     }
@@ -537,6 +530,7 @@ class GetHandler {
       results.add(RESOLVED_UNIT9);
       results.add(RESOLVED_UNIT10);
       results.add(RESOLVED_UNIT11);
+      results.add(RESOLVED_UNIT12);
       results.add(RESOLVED_UNIT);
       results.add(STRONG_MODE_ERRORS);
       results.add(USED_IMPORTED_ELEMENTS);
@@ -897,12 +891,11 @@ class GetHandler {
     Map<Folder, List<CacheEntry>> entryMap =
         new HashMap<Folder, List<CacheEntry>>();
     StringBuffer invalidKeysBuffer = new StringBuffer();
-    analysisServer.folderMap
-        .forEach((Folder folder, InternalAnalysisContext context) {
+    analysisServer.folderMap.forEach((Folder folder, AnalysisContext context) {
       Source source = context.sourceFactory.forUri(sourceUri);
       if (source != null) {
         MapIterator<AnalysisTarget, CacheEntry> iterator =
-            context.analysisCache.iterator();
+            (context as InternalAnalysisContext).analysisCache.iterator();
         while (iterator.moveNext()) {
           if (source == iterator.key.source) {
             if (!allContexts.contains(folder)) {
@@ -1234,15 +1227,15 @@ class GetHandler {
       return _returnFailure(request, 'Invalid context: $contextFilter');
     }
 
-    List<String> priorityNames;
+    List<String> priorityNames = <String>[];
     List<String> explicitNames = <String>[];
     List<String> implicitNames = <String>[];
     Map<String, String> links = new HashMap<String, String>();
     List<CaughtException> exceptions = <CaughtException>[];
     InternalAnalysisContext context = analysisServer.folderMap[folder];
-    priorityNames = context.prioritySources
-        .map((Source source) => source.fullName)
-        .toList();
+    context.prioritySources.forEach((Source source) {
+      priorityNames.add(source.fullName);
+    });
     MapIterator<AnalysisTarget, CacheEntry> iterator =
         context.analysisCache.iterator(context: context);
     while (iterator.moveNext()) {
@@ -1300,6 +1293,36 @@ class GetHandler {
         buffer.write('</table></p>');
       }
     }
+    void writeOptions(StringBuffer buffer, AnalysisOptionsImpl options) {
+      if (options == null) {
+        buffer.write('<p>No option information available.</p>');
+        return;
+      }
+      buffer.write('<p>');
+      _writeOption(
+          buffer, 'Analyze functon bodies', options.analyzeFunctionBodies);
+      _writeOption(buffer, 'Cache size', options.cacheSize);
+      _writeOption(buffer, 'Enable async support', options.enableAsync);
+      _writeOption(
+          buffer, 'Enable generic methods', options.enableGenericMethods);
+      _writeOption(
+          buffer, 'Enable strict call checks', options.enableStrictCallChecks);
+      _writeOption(buffer, 'Enable super mixins', options.enableSuperMixins);
+      _writeOption(buffer, 'Generate dart2js hints', options.dart2jsHint);
+      _writeOption(buffer, 'Generate errors in implicit files',
+          options.generateImplicitErrors);
+      _writeOption(
+          buffer, 'Generate errors in SDK files', options.generateSdkErrors);
+      _writeOption(buffer, 'Generate hints', options.hint);
+      _writeOption(buffer, 'Incremental resolution', options.incremental);
+      _writeOption(buffer, 'Incremental resolution with API changes',
+          options.incrementalApi);
+      _writeOption(buffer, 'Preserve comments', options.preserveComments);
+      _writeOption(buffer, 'Strong mode', options.strongMode);
+      _writeOption(buffer, 'Strong mode hints', options.strongModeHints,
+          last: true);
+      buffer.write('</p>');
+    }
 
     _writeResponse(request, (StringBuffer buffer) {
       _writePage(
@@ -1307,53 +1330,37 @@ class GetHandler {
           (StringBuffer buffer) {
         buffer.write('<h3>Configuration</h3>');
 
-        _writeTwoColumns(buffer, (StringBuffer buffer) {
-          AnalysisOptionsImpl options = context.analysisOptions;
-          buffer.write('<p><b>Options</b></p>');
-          buffer.write('<p>');
-          _writeOption(
-              buffer, 'Analyze functon bodies', options.analyzeFunctionBodies);
-          _writeOption(buffer, 'Cache size', options.cacheSize);
-          _writeOption(buffer, 'Enable async support', options.enableAsync);
-          _writeOption(
-              buffer, 'Enable generic methods', options.enableGenericMethods);
-          _writeOption(buffer, 'Enable strict call checks',
-              options.enableStrictCallChecks);
-          _writeOption(
-              buffer, 'Enable super mixins', options.enableSuperMixins);
-          _writeOption(buffer, 'Generate dart2js hints', options.dart2jsHint);
-          _writeOption(buffer, 'Generate errors in implicit files',
-              options.generateImplicitErrors);
-          _writeOption(buffer, 'Generate errors in SDK files',
-              options.generateSdkErrors);
-          _writeOption(buffer, 'Generate hints', options.hint);
-          _writeOption(buffer, 'Incremental resolution', options.incremental);
-          _writeOption(buffer, 'Incremental resolution with API changes',
-              options.incrementalApi);
-          _writeOption(buffer, 'Preserve comments', options.preserveComments);
-          _writeOption(buffer, 'Strong mode', options.strongMode);
-          _writeOption(buffer, 'Strong mode hints', options.strongModeHints,
-              last: true);
-          buffer.write('</p>');
-        }, (StringBuffer buffer) {
-          List<Linter> lints =
-              context.getConfigurationData(CONFIGURED_LINTS_KEY);
-          buffer.write('<p><b>Lints</b></p>');
-          if (lints.isEmpty) {
-            buffer.write('<p>none</p>');
-          } else {
-            for (Linter lint in lints) {
-              buffer.write('<p>');
-              buffer.write(lint.runtimeType);
-              buffer.write('</p>');
+        _writeColumns(buffer, <HtmlGenerator>[
+          (StringBuffer buffer) {
+            buffer.write('<p><b>Context Options</b></p>');
+            writeOptions(buffer, context.analysisOptions);
+          },
+          (StringBuffer buffer) {
+            buffer.write('<p><b>SDK Context Options</b></p>');
+            writeOptions(buffer,
+                context?.sourceFactory?.dartSdk?.context?.analysisOptions);
+          },
+          (StringBuffer buffer) {
+            List<Linter> lints =
+                context.getConfigurationData(CONFIGURED_LINTS_KEY);
+            buffer.write('<p><b>Lints</b></p>');
+            if (lints.isEmpty) {
+              buffer.write('<p>none</p>');
+            } else {
+              for (Linter lint in lints) {
+                buffer.write('<p>');
+                buffer.write(lint.runtimeType);
+                buffer.write('</p>');
+              }
             }
-          }
 
-          List<ErrorProcessor> errorProcessors =
-              context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
-          int processorCount = errorProcessors?.length ?? 0;
-          buffer.write('<p><b>Error Processor count</b>: $processorCount</p>');
-        });
+            List<ErrorProcessor> errorProcessors =
+                context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+            int processorCount = errorProcessors?.length ?? 0;
+            buffer
+                .write('<p><b>Error Processor count</b>: $processorCount</p>');
+          }
+        ]);
 
         SourceFactory sourceFactory = context.sourceFactory;
         if (sourceFactory is SourceFactoryImpl) {
@@ -1504,51 +1511,6 @@ class GetHandler {
         buffer.write(HTML_ESCAPE.convert(message));
       });
     });
-  }
-
-  /**
-   * Return a response containing information about elements with the given
-   * name.
-   */
-  Future _returnIndexElementByName(HttpRequest request) async {
-    AnalysisServer analysisServer = _server.analysisServer;
-    if (analysisServer == null) {
-      return _returnFailure(request, 'Analysis server not running');
-    }
-    Index index = analysisServer.index;
-    if (index == null) {
-      return _returnFailure(request, 'Indexing is disabled');
-    }
-    String name = request.uri.queryParameters[INDEX_ELEMENT_NAME];
-    if (name == null) {
-      return _returnFailure(
-          request, 'Query parameter $INDEX_ELEMENT_NAME required');
-    }
-    if (index is LocalIndex) {
-      Map<List<String>, List<InspectLocation>> relations =
-          await index.findElementsByName(name);
-      _writeResponse(request, (StringBuffer buffer) {
-        _writePage(buffer, 'Analysis Server - Index Elements', ['Name: $name'],
-            (StringBuffer buffer) {
-          buffer.write('<table border="1">');
-          _writeRow(buffer, ['Element', 'Relationship', 'Location'],
-              header: true);
-          relations.forEach(
-              (List<String> elementPath, List<InspectLocation> relations) {
-            String elementLocation = elementPath.join(' ');
-            relations.forEach((InspectLocation location) {
-              var relString = location.relationship.identifier;
-              var locString = '${location.path} offset=${location.offset} '
-                  'length=${location.length} flags=${location.flags}';
-              _writeRow(buffer, [elementLocation, relString, locString]);
-            });
-          });
-          buffer.write('</table>');
-        });
-      });
-    } else {
-      return _returnFailure(request, 'LocalIndex expected, but $index found.');
-    }
   }
 
   void _returnOverlayContents(HttpRequest request) {
@@ -1707,7 +1669,7 @@ class GetHandler {
       // TODO(brianwilkerson) Add items for the SDK contexts (currently only one).
       buffer.write('</p>');
 
-      int freq = AnalysisServer.performOperationDelayFreqency;
+      int freq = AnalysisServer.performOperationDelayFrequency;
       String delay = freq > 0 ? '1 ms every $freq ms' : 'off';
 
       buffer.write('<p><b>Performance Data</b></p>');
@@ -1719,6 +1681,23 @@ class GetHandler {
       _writeSubscriptionMap(
           buffer, AnalysisService.VALUES, analysisServer.analysisServices);
     });
+  }
+
+  /**
+   * Write multiple columns of information to the given [buffer], where the list
+   * of [columns] functions are used to generate the content of those columns.
+   */
+  void _writeColumns(StringBuffer buffer, List<HtmlGenerator> columns) {
+    buffer
+        .write('<table class="column"><tr class="column"><td class="column">');
+    int count = columns.length;
+    for (int i = 0; i < count; i++) {
+      if (i > 0) {
+        buffer.write('</td><td class="column">');
+      }
+      columns[i](buffer);
+    }
+    buffer.write('</td></tr></table>');
   }
 
   /**
@@ -1910,7 +1889,7 @@ class GetHandler {
     buffer.write(_diagnosticCallAverage.value);
     buffer.write(' (ms)</p>&nbsp;');
 
-    var json = response.toJson()[Response.RESULT];
+    Map json = response.toJson()[Response.RESULT];
     List contexts = json['contexts'];
     contexts.sort((first, second) => first['name'].compareTo(second['name']));
 
@@ -2257,7 +2236,7 @@ class GetHandler {
     _writeTwoColumns(buffer, (StringBuffer buffer) {
       if (analysisServer == null) {
         buffer.write('Status: <span style="color:red">Not running</span>');
-        return false;
+        return;
       }
       buffer.write('<p>');
       buffer.write('Status: Running<br>');
@@ -2286,7 +2265,7 @@ class GetHandler {
     }, (StringBuffer buffer) {
       _writeSubscriptionList(buffer, ServerService.VALUES, services);
     });
-    return true;
+    return analysisServer != null;
   }
 
   /**

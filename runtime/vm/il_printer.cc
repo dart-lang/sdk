@@ -448,7 +448,10 @@ void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
   PrintICDataHelper(f, ic_data());
   if (with_checks()) {
-    f->Print(" WITH CHECKS");
+    f->Print(" WITH-CHECKS");
+  }
+  if (complete()) {
+    f->Print(" COMPLETE");
   }
 }
 
@@ -662,6 +665,15 @@ void ExtractNthOutputInstr::PrintOperandsTo(BufferFormatter* f) const {
 void UnaryIntegerOpInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   value()->PrintTo(f);
+}
+
+
+void CheckedSmiOpInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s", Token::Str(op_kind()));
+  f->Print(", ");
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
 }
 
 

@@ -7,6 +7,7 @@ library app;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
+import 'dart:math' as math;
 
 import 'package:logging/logging.dart';
 import 'package:observatory/service_html.dart';

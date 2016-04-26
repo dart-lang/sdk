@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.helpers;
+import 'dart:collection';
 
 /**
  * The expensive set is a data structure useful for tracking down
@@ -10,7 +10,6 @@ part of dart2js.helpers;
  * hash set, but it uses 10 times more memory (by default).
  */
 class ExpensiveSet<E> extends IterableBase<E> implements Set<E> {
-
   final List _sets;
 
   ExpensiveSet([int copies = 10]) : _sets = new List(copies) {

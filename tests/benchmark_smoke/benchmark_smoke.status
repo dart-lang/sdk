@@ -8,3 +8,5 @@
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
+[ $compiler == dart2js && $cps_ir && $checked ]
+*: Skip # Issue 25761

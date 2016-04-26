@@ -4,14 +4,11 @@
 
 library dart2js.common.tasks;
 
-import 'dart:developer' show
-    UserTag;
+import 'dart:developer' show UserTag;
 
 import '../common.dart';
-import '../compiler.dart' show
-    Compiler;
-import '../elements/elements.dart' show
-    Element;
+import '../compiler.dart' show Compiler;
+import '../elements/elements.dart' show Element;
 
 typedef void DeferredAction();
 
@@ -30,7 +27,7 @@ class CompilerTask {
 
   CompilerTask(Compiler compiler)
       : this.compiler = compiler,
-        watch = (compiler.verbose) ? new Stopwatch() : null;
+        watch = (compiler.options.verbose) ? new Stopwatch() : null;
 
   DiagnosticReporter get reporter => compiler.reporter;
 
@@ -80,8 +77,8 @@ class CompilerTask {
     // Use a nested CompilerTask for the measurement to ensure nested [measure]
     // calls work correctly. The subtasks will never themselves have nested
     // subtasks because they are not accessible outside.
-    GenericTask subtask = _subtasks.putIfAbsent(name,
-        () => new GenericTask(name, compiler));
+    GenericTask subtask =
+        _subtasks.putIfAbsent(name, () => new GenericTask(name, compiler));
     return subtask.measure(action);
   }
 
@@ -93,6 +90,5 @@ class CompilerTask {
 class GenericTask extends CompilerTask {
   final String name;
 
-  GenericTask(this.name, Compiler compiler)
-      : super(compiler);
+  GenericTask(this.name, Compiler compiler) : super(compiler);
 }

@@ -49,7 +49,7 @@ class PrelinkerTest extends SummarizeElementsTest {
 
   String resolveToAbsoluteUri(LibraryElement library, String relativeUri) {
     Source resolvedSource =
-        analysisContext.sourceFactory.resolveUri(library.source, relativeUri);
+        context.sourceFactory.resolveUri(library.source, relativeUri);
     if (resolvedSource == null) {
       fail('Failed to resolve relative uri "$relativeUri"');
     }
@@ -75,7 +75,8 @@ class PrelinkerTest extends SummarizeElementsTest {
     }
     UnlinkedPublicNamespace getImport(String relativeUri) {
       String absoluteUri = resolveToAbsoluteUri(library, relativeUri);
-      UnlinkedPublicNamespace namespace = sdkPublicNamespace[absoluteUri];
+      UnlinkedPublicNamespace namespace = SerializedMockSdk
+          .instance.uriToUnlinkedUnit[absoluteUri]?.publicNamespace;
       if (namespace == null) {
         namespace = uriToPublicNamespace[absoluteUri];
       }

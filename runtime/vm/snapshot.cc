@@ -627,6 +627,27 @@ RawApiError* SnapshotReader::ReadFullSnapshot() {
       }
     }
 
+    if (snapshot_code()) {
+      ICData& ic = ICData::Handle(thread->zone());
+      Object& funcOrCode = Object::Handle(thread->zone());
+      Code& code = Code::Handle(thread->zone());
+      Smi& entry_point = Smi::Handle(thread->zone());
+      for (intptr_t i = 0; i < backward_references_->length(); i++) {
+        if ((*backward_references_)[i].reference()->IsICData()) {
+          ic ^= (*backward_references_)[i].reference()->raw();
+          for (intptr_t j = 0; j < ic.NumberOfChecks(); j++) {
+            funcOrCode = ic.GetTargetOrCodeAt(j);
+            if (funcOrCode.IsCode()) {
+              code ^= funcOrCode.raw();
+              entry_point = Smi::FromAlignedAddress(code.EntryPoint());
+              ic.SetEntryPointAt(j, entry_point);
+            }
+          }
+        }
+      }
+    }
+
+
     // Validate the class table.
 #if defined(DEBUG)
     isolate->ValidateClassTable();
@@ -939,11 +960,6 @@ RawType* SnapshotReader::NewType() {
 }
 
 
-RawFunctionType* SnapshotReader::NewFunctionType() {
-  ALLOC_NEW_OBJECT(FunctionType);
-}
-
-
 RawTypeRef* SnapshotReader::NewTypeRef() {
   ALLOC_NEW_OBJECT(TypeRef);
 }
@@ -1049,8 +1065,8 @@ RawWeakProperty* SnapshotReader::NewWeakProperty() {
 }
 
 
-RawJSRegExp* SnapshotReader::NewJSRegExp() {
-  ALLOC_NEW_OBJECT(JSRegExp);
+RawRegExp* SnapshotReader::NewRegExp() {
+  ALLOC_NEW_OBJECT(RegExp);
 }
 
 
@@ -1126,11 +1142,27 @@ RawStacktrace* SnapshotReader::NewStacktrace() {
 }
 
 
-int32_t InstructionsWriter::GetOffsetFor(RawInstructions* instructions) {
-  intptr_t heap_size = instructions->Size();
+int32_t InstructionsWriter::GetOffsetFor(RawInstructions* instructions,
+                                         RawCode* code) {
+#if defined(PRODUCT)
+  // Instructions are only dedup in product mode because it obfuscates profiler
+  // results.
+  for (intptr_t i = 0; i < instructions_.length(); i++) {
+    if (instructions_[i].raw_insns_ == instructions) {
+      return instructions_[i].offset_;
+    }
+  }
+#endif
+
+  intptr_t payload_size = instructions->ptr()->size_;
+  payload_size = Utils::RoundUp(payload_size, OS::PreferredCodeAlignment());
+
   intptr_t offset = next_offset_;
-  next_offset_ += heap_size;
-  instructions_.Add(InstructionsData(instructions));
+  ASSERT(Utils::IsAligned(next_offset_, OS::PreferredCodeAlignment()));
+  next_offset_ += payload_size;
+  ASSERT(Utils::IsAligned(next_offset_, OS::PreferredCodeAlignment()));
+  instructions_.Add(InstructionsData(instructions, code, offset));
+
   return offset;
 }
 
@@ -1157,19 +1189,19 @@ static void EnsureIdentifier(char* label) {
 
 
 void InstructionsWriter::WriteAssembly() {
-  Zone* Z = Thread::Current()->zone();
+  Zone* zone = Thread::Current()->zone();
 
   // Handlify collected raw pointers as building the names below
   // will allocate on the Dart heap.
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     InstructionsData& data = instructions_[i];
-    data.insns_ = &Instructions::Handle(Z, data.raw_insns_);
+    data.insns_ = &Instructions::Handle(zone, data.raw_insns_);
     ASSERT(data.raw_code_ != NULL);
-    data.code_ = &Code::Handle(Z, data.raw_code_);
+    data.code_ = &Code::Handle(zone, data.raw_code_);
   }
   for (intptr_t i = 0; i < objects_.length(); i++) {
     ObjectData& data = objects_[i];
-    data.obj_ = &Object::Handle(Z, data.raw_obj_);
+    data.obj_ = &Object::Handle(zone, data.raw_obj_);
   }
 
   stream_.Print(".text\n");
@@ -1188,8 +1220,8 @@ void InstructionsWriter::WriteAssembly() {
     WriteWordLiteral(0);
   }
 
-  Object& owner = Object::Handle(Z);
-  String& str = String::Handle(Z);
+  Object& owner = Object::Handle(zone);
+  String& str = String::Handle(zone);
 
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     const Instructions& insns = *instructions_[i].insns_;
@@ -1197,32 +1229,7 @@ void InstructionsWriter::WriteAssembly() {
 
     ASSERT(insns.raw()->Size() % sizeof(uint64_t) == 0);
 
-    {
-      // 1. Write from the header to the entry point.
-      NoSafepointScope no_safepoint;
-
-      uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
-      uword entry = beginning + Instructions::HeaderSize();
-
-      ASSERT(Utils::IsAligned(beginning, sizeof(uint64_t)));
-      ASSERT(Utils::IsAligned(entry, sizeof(uint64_t)));
-
-      // Write Instructions with the mark and VM heap bits set.
-      uword marked_tags = insns.raw_ptr()->tags_;
-      marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
-      marked_tags = RawObject::MarkBit::update(true, marked_tags);
-
-      WriteWordLiteral(marked_tags);
-      beginning += sizeof(uword);
-
-      for (uword* cursor = reinterpret_cast<uword*>(beginning);
-           cursor < reinterpret_cast<uword*>(entry);
-           cursor++) {
-        WriteWordLiteral(*cursor);
-      }
-    }
-
-    // 2. Write a label at the entry point.
+    // 1. Write a label at the entry point.
     owner = code.owner();
     if (owner.IsNull()) {
       const char* name = StubCode::NameOfStub(insns.EntryPoint());
@@ -1241,11 +1248,13 @@ void InstructionsWriter::WriteAssembly() {
     }
 
     {
-      // 3. Write from the entry point to the end.
+      // 2. Write from the entry point to the end.
       NoSafepointScope no_safepoint;
       uword beginning = reinterpret_cast<uword>(insns.raw()) - kHeapObjectTag;
       uword entry = beginning + Instructions::HeaderSize();
-      uword end = beginning + insns.raw()->Size();
+      uword payload_size = insns.size();
+      payload_size = Utils::RoundUp(payload_size, OS::PreferredCodeAlignment());
+      uword end = entry + payload_size;
 
       ASSERT(Utils::IsAligned(beginning, sizeof(uint64_t)));
       ASSERT(Utils::IsAligned(entry, sizeof(uint64_t)));
@@ -1297,27 +1306,9 @@ void InstructionsWriter::WriteAssembly() {
 }
 
 
-RawInstructions* InstructionsReader::GetInstructionsAt(int32_t offset,
-                                                       uword expected_tags) {
+uword InstructionsReader::GetInstructionsAt(int32_t offset) {
   ASSERT(Utils::IsAligned(offset, OS::PreferredCodeAlignment()));
-
-  RawInstructions* result =
-      reinterpret_cast<RawInstructions*>(
-          reinterpret_cast<uword>(instructions_buffer_) +
-          offset + kHeapObjectTag);
-
-#ifdef DEBUG
-  uword actual_tags = result->ptr()->tags_;
-  if (actual_tags != expected_tags) {
-    FATAL2("Instructions tag mismatch: expected %" Pd ", saw %" Pd,
-           expected_tags,
-           actual_tags);
-  }
-#endif
-
-  ASSERT(result->IsMarked());
-
-  return result;
+  return reinterpret_cast<uword>(instructions_buffer_) + offset;
 }
 
 
@@ -1483,20 +1474,16 @@ void SnapshotReader::AddPatchRecord(intptr_t object_id,
 
 void SnapshotReader::ProcessDeferredCanonicalizations() {
   Type& typeobj = Type::Handle();
-  FunctionType& funtypeobj = FunctionType::Handle();
   TypeArguments& typeargs = TypeArguments::Handle();
   Object& newobj = Object::Handle();
   for (intptr_t i = 0; i < backward_references_->length(); i++) {
     BackRefNode& backref = (*backward_references_)[i];
     if (backref.defer_canonicalization()) {
       Object* objref = backref.reference();
-      // Object should either be a type, a function type, or a type argument.
+      // Object should either be a type or a type argument.
       if (objref->IsType()) {
         typeobj ^= objref->raw();
         newobj = typeobj.Canonicalize();
-      } else if (objref->IsFunctionType()) {
-        funtypeobj ^= objref->raw();
-        newobj = funtypeobj.Canonicalize();
       } else {
         ASSERT(objref->IsTypeArguments());
         typeargs ^= objref->raw();
@@ -1858,13 +1845,11 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
 class ScriptVisitor : public ObjectVisitor {
  public:
   explicit ScriptVisitor(Thread* thread) :
-      ObjectVisitor(thread->isolate()),
       objHandle_(Object::Handle(thread->zone())),
       count_(0),
       scripts_(NULL) {}
 
   ScriptVisitor(Thread* thread, const Array* scripts) :
-      ObjectVisitor(thread->isolate()),
       objHandle_(Object::Handle(thread->zone())),
       count_(0),
       scripts_(scripts) {}
@@ -1932,11 +1917,13 @@ FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
   ScriptVisitor script_visitor(thread(), &scripts_);
   heap()->IterateOldObjects(&script_visitor);
 
-  // Stash the symbol table away for writing and reading into the vm isolate,
-  // and reset the symbol table for the regular isolate so that we do not
-  // write these symbols into the snapshot of a regular dart isolate.
-  symbol_table_ = object_store->symbol_table();
-  Symbols::SetupSymbolTable(isolate());
+  if (vm_isolate_snapshot_buffer != NULL) {
+    // Stash the symbol table away for writing and reading into the vm isolate,
+    // and reset the symbol table for the regular isolate so that we do not
+    // write these symbols into the snapshot of a regular dart isolate.
+    symbol_table_ = object_store->symbol_table();
+    Symbols::SetupSymbolTable(isolate());
+  }
 
   forward_list_ = new ForwardList(thread(), SnapshotWriter::FirstObjectId());
   ASSERT(forward_list_ != NULL);
@@ -1951,7 +1938,11 @@ FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
 
 FullSnapshotWriter::~FullSnapshotWriter() {
   delete forward_list_;
-  symbol_table_ = Array::null();
+  // We may run Dart code afterwards, restore the symbol table if needed.
+  if (!symbol_table_.IsNull()) {
+    isolate()->object_store()->set_symbol_table(symbol_table_);
+    symbol_table_ = Array::null();
+  }
   scripts_ = Array::null();
 }
 
@@ -2284,7 +2275,7 @@ void SnapshotWriter::WriteMarkedObjectImpl(RawObject* raw,
 class WriteInlinedObjectVisitor : public ObjectVisitor {
  public:
   explicit WriteInlinedObjectVisitor(SnapshotWriter* writer)
-      : ObjectVisitor(Isolate::Current()), writer_(writer) {}
+      : writer_(writer) {}
 
   virtual void VisitObject(RawObject* obj) {
     intptr_t object_id = writer_->forward_list_->FindObject(obj);

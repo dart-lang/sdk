@@ -543,29 +543,28 @@ class OperationInfo(object):
         type_id = p.type_id
         # Unwrap the type to get the JsObject if Type is:
         #
-        #    - known IDL type
         #    - type_id is None then it's probably a union type or overloaded
         #      it's a dynamic/any type
         #    - type is Object
         #
-        # JsObject maybe stored in the Dart class.
         if (wrap_unwrap_type_blink(type_id, type_registry)):
           type_is_callback = self.isCallback(type_registry, type_id)
           if (dart_js_interop and type_id == 'EventListener' and
               self.name in ['addEventListener', 'removeEventListener']):
-              # Events fired need use a JsFunction not a anonymous closure to
+              # Events fired need use a JSFunction not a anonymous closure to
               # insure the event can really be removed.
-              parameters.append('unwrap_jso(js.allowInterop(%s))' % p.name)
-          elif dart_js_interop and type_id == 'FontFaceSetForEachCallback':
+              parameters.append('js.allowInterop(%s)' % p.name)
+# These commented out cases don't actually generate any code.              
+#          elif dart_js_interop and type_id == 'FontFaceSetForEachCallback':
               # forEach is supported in the DOM for FontFaceSet as it iterates
               # over the Javascript Object the callback parameters are also
               # Javascript objects and must be wrapped.
-              parameters.append('unwrap_jso((fontFace, fontFaceAgain, set) => %s(wrap_jso(fontFace), wrap_jso(fontFaceAgain), wrap_jso(set)))' % p.name)
-          elif dart_js_interop and type_id == 'HeadersForEachCallback':
+ #             parameters.append('(fontFace, fontFaceAgain, set) => %s(fontFace, fontFaceAgain, wrap_jso(set))' % p.name)
+#          elif dart_js_interop and type_id == 'HeadersForEachCallback':
               # forEach is supported in the DOM for Headers as it iterates
               # over the Javascript Object the callback parameters are also
               # Javascript objects and must be wrapped.
-              parameters.append('unwrap_jso((String value, String key, map) => %s(value, key, wrap_jso(map)))' % p.name)
+#              parameters.append('(String value, String key, map) => %s(value, key, wrap_jso(map))' % p.name)
           elif dart_js_interop and type_is_callback and not(isRemoveOperation):
             # Any remove operation that has a a callback doesn't need wrapping.
             # TODO(terry): Kind of hacky but handles all the cases we care about
@@ -579,15 +578,15 @@ class OperationInfo(object):
                 dart_type = type_registry.DartType(callback_arg.type.id) + ' '
               callback_args_decl.append('%s%s' % (dart_type, callback_arg.id))
               if wrap_unwrap_type_blink(callback_arg.type.id, type_registry):
-                callback_args_call.append('wrap_jso(%s)' % callback_arg.id)
+                callback_args_call.append(callback_arg.id)
               else:
                 callback_args_call.append(callback_arg.id)
-            parameters.append('unwrap_jso((%s) => %s(%s))' %
+            parameters.append('(%s) => %s(%s)' %
                               (", ".join(callback_args_decl),
-                               p.name,
-                               ", ".join(callback_args_call)))
+                              p.name,
+                              ", ".join(callback_args_call)))
           else:
-            parameters.append('unwrap_jso(%s)' % p.name)
+            parameters.append(p.name)
         else:
           if dart_js_interop:
             conversion = backend._InputConversion(p.type_id, self.declared_name)
@@ -720,6 +719,9 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
     'any set IDBObjectStore.add': _serialize_SSV,
     'any set IDBObjectStore.put': _serialize_SSV,
     'any set IDBCursor.update': _serialize_SSV,
+
+    'any get SQLResultSetRowList.item' :
+      Conversion('convertNativeToDart_Dictionary', 'dynamic', 'Map'),
 
     # postMessage
     'SerializedScriptValue set': _serialize_SSV,
@@ -1492,6 +1494,8 @@ def get_list_type(return_type):
   # Get the list type NNNN inside of List<NNNN>
   return return_type[5:-1] if isList(return_type) else return_type
 
+# TODO(jacobr): remove these obsolete methods as we don't actually
+# perform any wrapping.
 def wrap_unwrap_list_blink(return_type, type_registry):
   """Return True if the type is the list type is a blink know
      type e.g., List<Node>, List<FontFace>, etc."""
@@ -1505,14 +1509,9 @@ def wrap_unwrap_type_blink(return_type, type_registry):
     unwrap_jso"""
     if return_type and return_type.startswith('Html'):
         return_type = return_type.replace('Html', 'HTML', 1)
-    return (type_registry.HasInterface(return_type) or not(return_type) or
+    return (not(return_type) or
             return_type == 'Object' or
-            return_type == 'dynamic' or
-            return_type == 'Future' or
-            return_type == 'SqlDatabase' or # renamed to Database
-            return_type == 'HTMLElement' or
-            return_type == 'MutationObserver' or
-            (return_type.endswith('[]') and return_type != 'DOMString[]'))
+            return_type == 'dynamic')
 
 def wrap_type_blink(return_type, type_registry):
     """Returns True if the type is a blink type that requires wrap_jso but

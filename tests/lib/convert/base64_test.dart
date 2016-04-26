@@ -31,16 +31,23 @@ void testRoundtrip(list, name) {
   // Direct.
   String encodedNormal = BASE64.encode(list);
   String encodedPercent = encodedNormal.replaceAll("=", "%3D");
-  String uriEncoded = encodedNormal.replaceAll("+", "-").replaceAll("/", "_");
+  String uriEncoded = BASE64URL.encode(list);
+  String expectedUriEncoded =
+      encodedNormal.replaceAll("+", "-").replaceAll("/", "_");
+  Expect.equals(expectedUriEncoded, uriEncoded);
+
   List result = BASE64.decode(encodedNormal);
   Expect.listEquals(list, result, name);
   result = BASE64.decode(encodedPercent);
+  Expect.listEquals(list, result, name);
+  result = BASE64.decode(uriEncoded);
   Expect.listEquals(list, result, name);
 
   int increment = list.length ~/ 7 + 1;
   // Chunked.
   for (int i = 0; i < list.length; i += increment) {
     for (int j = i; j < list.length; j += increment) {
+      // Normal
       {
         // Using add/close
         var results;
@@ -63,6 +70,30 @@ void testRoundtrip(list, name) {
         encoder.addSlice(list, j, list.length, true);
         var name = "0-$i-$j-${list.length}: $list";
         Expect.equals(encodedNormal, results.join(""), name);
+      }
+      // URI
+      {
+        // Using add/close
+        var results;
+        var sink = new ChunkedConversionSink.withCallback((v) { results = v; });
+        var encoder = BASE64URL.encoder.startChunkedConversion(sink);
+        encoder.add(list.sublist(0, i));
+        encoder.add(list.sublist(i, j));
+        encoder.add(list.sublist(j, list.length));
+        encoder.close();
+        var name = "0-$i-$j-${list.length}: list";
+        Expect.equals(uriEncoded, results.join(""), name);
+      }
+      {
+        // Using addSlice
+        var results;
+        var sink = new ChunkedConversionSink.withCallback((v) { results = v; });
+        var encoder = BASE64URL.encoder.startChunkedConversion(sink);
+        encoder.addSlice(list, 0, i, false);
+        encoder.addSlice(list, i, j, false);
+        encoder.addSlice(list, j, list.length, true);
+        var name = "0-$i-$j-${list.length}: $list";
+        Expect.equals(uriEncoded, results.join(""), name);
       }
     }
   }
@@ -119,6 +150,7 @@ void testErrors() {
   }
   void badDecode(String string) {
     Expect.throws(() => BASE64.decode(string), isFormatException, string);
+    Expect.throws(() => BASE64URL.decode(string), isFormatException, string);
     badChunkDecode([string]);
     badChunkDecode(["", string]);
     badChunkDecode([string, ""]);

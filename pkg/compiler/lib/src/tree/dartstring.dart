@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of tree;
+import 'dart:collection';
+import '../util/characters.dart';
 
 /**
  * The [DartString] type represents a Dart string value as a sequence of Unicode
@@ -42,7 +43,7 @@ abstract class DartString extends IterableBase<int> {
   String slowToString();
 
   bool operator ==(var other) {
-    if (other is !DartString) return false;
+    if (other is! DartString) return false;
     DartString otherString = other;
     if (length != otherString.length) return false;
     Iterator it1 = iterator;
@@ -62,7 +63,6 @@ abstract class DartString extends IterableBase<int> {
    */
   String toString() => "DartString#${length}:${slowToString()}";
 }
-
 
 /**
  * A [DartString] where the content is represented by an actual [String].
@@ -111,6 +111,7 @@ class EscapedSourceDartString extends SourceBasedDartString {
     if (toStringCache != null) return toStringCache.codeUnits.iterator;
     return new StringEscapeIterator(source);
   }
+
   String slowToString() {
     if (toStringCache != null) return toStringCache;
     StringBuffer buffer = new StringBuffer();
@@ -143,6 +144,7 @@ class ConsDartString extends DartString {
     toStringCache = left.slowToString() + right.slowToString();
     return toStringCache;
   }
+
   String get source => slowToString();
 }
 
@@ -175,6 +177,7 @@ class ConsDartStringIterator implements Iterator<int> {
     }
     return true;
   }
+
   void nextPart() {
     if (right != null) {
       currentIterator = new HasNextIterator<int>(right.iterator);
@@ -187,7 +190,7 @@ class ConsDartStringIterator implements Iterator<int> {
 /**
  *Iterator that returns the actual string contents of a string with escapes.
  */
-class StringEscapeIterator implements Iterator<int>{
+class StringEscapeIterator implements Iterator<int> {
   final Iterator<int> source;
   int _current = null;
 
@@ -208,12 +211,24 @@ class StringEscapeIterator implements Iterator<int>{
     source.moveNext();
     code = source.current;
     switch (code) {
-      case $n: _current = $LF; break;
-      case $r: _current = $CR; break;
-      case $t: _current = $TAB; break;
-      case $b: _current = $BS; break;
-      case $f: _current = $FF; break;
-      case $v: _current = $VTAB; break;
+      case $n:
+        _current = $LF;
+        break;
+      case $r:
+        _current = $CR;
+        break;
+      case $t:
+        _current = $TAB;
+        break;
+      case $b:
+        _current = $BS;
+        break;
+      case $f:
+        _current = $FF;
+        break;
+      case $v:
+        _current = $VTAB;
+        break;
       case $x:
         source.moveNext();
         int value = hexDigitValue(source.current);
@@ -248,4 +263,3 @@ class StringEscapeIterator implements Iterator<int>{
     return true;
   }
 }
-

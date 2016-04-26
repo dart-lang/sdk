@@ -423,7 +423,8 @@ TypeDefinition typeDefinitionFromHtml(dom.Element html) {
   checkName(html, 'type');
   String name = html.attributes['name'];
   String context = name != null ? name : 'type';
-  checkAttributes(html, ['name'], context, optionalAttributes: ['experimental']);
+  checkAttributes(html, ['name'], context,
+      optionalAttributes: ['experimental']);
   TypeDecl type = processContentsAsType(html, context);
   bool experimental = html.attributes['experimental'] == 'true';
   return new TypeDefinition(name, type, html, experimental: experimental);
@@ -517,7 +518,7 @@ TypeObjectField typeObjectFieldFromHtml(dom.Element html, String context) {
  * Create a [TypeObject] from an HTML description.
  */
 TypeObject typeObjectFromHtml(dom.Element html, String context) {
-  checkAttributes(html, [], context,  optionalAttributes: ['experimental']);
+  checkAttributes(html, [], context, optionalAttributes: ['experimental']);
   List<TypeObjectField> fields = <TypeObjectField>[];
   recurse(html, context, {
     'field': (dom.Element child) {

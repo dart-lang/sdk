@@ -53,15 +53,14 @@ class TypeHierarchyComputer {
   /**
    * Returns the computed type hierarchy, maybe `null`.
    */
-  Future<List<TypeHierarchyItem>> compute() {
+  Future<List<TypeHierarchyItem>> compute() async {
     if (_pivotClass != null) {
       InterfaceType type = _pivotClass.type;
       _createSuperItem(type);
-      return _createSubclasses(_items[0], 0, type).then((_) {
-        return new Future.value(_items);
-      });
+      await _createSubclasses(_items[0], 0, type);
+      return _items;
     }
-    return new Future.value(null);
+    return null;
   }
 
   /**

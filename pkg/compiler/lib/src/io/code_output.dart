@@ -23,8 +23,8 @@ abstract class SourceLocations {
   void addSourceLocation(int targetOffset, SourceLocation sourcePosition);
 
   /// Applies [f] to every target offset and associated source location.
-  void forEachSourceLocation(void f(int targetOffset,
-                                    SourceLocation sourceLocation));
+  void forEachSourceLocation(
+      void f(int targetOffset, SourceLocation sourceLocation));
 }
 
 abstract class CodeOutput implements SourceLocations {
@@ -66,9 +66,10 @@ abstract class AbstractCodeOutput extends CodeOutput {
   @override
   void addBuffer(CodeBuffer other) {
     if (other.markers.length > 0) {
-      other.markers.forEach(
-          (int targetOffset, List<SourceLocation> sourceLocations) {
-        markers.putIfAbsent(length + targetOffset, () => <SourceLocation>[])
+      other.markers
+          .forEach((int targetOffset, List<SourceLocation> sourceLocations) {
+        markers
+            .putIfAbsent(length + targetOffset, () => <SourceLocation>[])
             .addAll(sourceLocations);
       });
     }
@@ -78,8 +79,7 @@ abstract class AbstractCodeOutput extends CodeOutput {
     _addInternal(other.getText());
   }
 
-  void addSourceLocation(int targetOffset,
-                         SourceLocation sourceLocation) {
+  void addSourceLocation(int targetOffset, SourceLocation sourceLocation) {
     assert(targetOffset <= length);
     List<SourceLocation> sourceLocations =
         markers.putIfAbsent(targetOffset, () => <SourceLocation>[]);

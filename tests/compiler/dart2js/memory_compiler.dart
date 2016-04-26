@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22,6 +22,8 @@ import 'package:compiler/src/null_compiler_output.dart' show
     NullCompilerOutput;
 import 'package:compiler/src/library_loader.dart' show
     LoadedLibraries;
+import 'package:compiler/src/options.dart' show
+    CompilerOptions;
 
 import 'memory_source_file_helper.dart';
 
@@ -84,6 +86,7 @@ Future<CompilationResult> runCompiler(
     entryPoint = Uri.parse('memory:main.dart');
   }
   CompilerImpl compiler = compilerFor(
+      entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
       diagnosticHandler: diagnosticHandler,
       outputProvider: outputProvider,
@@ -102,7 +105,8 @@ Future<CompilationResult> runCompiler(
 }
 
 CompilerImpl compilerFor(
-    {Map<String, String> memorySourceFiles: const <String, String>{},
+    {Uri entryPoint,
+     Map<String, String> memorySourceFiles: const <String, String>{},
      CompilerDiagnostics diagnosticHandler,
      CompilerOutput outputProvider,
      List<String> options: const <String>[],
@@ -143,12 +147,14 @@ CompilerImpl compilerFor(
       provider,
       outputProvider,
       diagnosticHandler,
-      libraryRoot,
-      packageRoot,
-      options,
-      {},
-      packageConfig,
-      packagesDiscoveryProvider);
+      new CompilerOptions.parse(
+          entryPoint: entryPoint,
+          libraryRoot: libraryRoot,
+          packageRoot: packageRoot,
+          options: options,
+          environment: {},
+          packageConfig: packageConfig,
+          packagesDiscoveryProvider: packagesDiscoveryProvider));
 
   if (cachedCompiler != null) {
     compiler.coreLibrary =
@@ -213,7 +219,6 @@ CompilerImpl compilerFor(
     cachedCompiler.deferredLoadTask = null;
     cachedCompiler.mirrorUsageAnalyzerTask = null;
     cachedCompiler.dumpInfoTask = null;
-    cachedCompiler.buildId = null;
   }
   return compiler;
 }

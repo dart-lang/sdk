@@ -9,16 +9,12 @@ import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../diagnostics/source_span.dart';
 import '../elements/elements.dart';
-import '../types/types.dart' show
-    TypeMask;
+import '../types/types.dart' show TypeMask;
 import '../tree/tree.dart';
 import '../util/util.dart';
-import '../universe/selector.dart' show
-    Selector;
+import '../universe/selector.dart' show Selector;
 
-import 'secret_tree_element.dart' show
-    getTreeElement,
-    setTreeElement;
+import 'secret_tree_element.dart' show getTreeElement, setTreeElement;
 import 'send_structure.dart';
 
 abstract class TreeElements {
@@ -27,7 +23,7 @@ abstract class TreeElements {
 
   void forEachConstantNode(f(Node n, ConstantExpression c));
 
-  Element operator[](Node node);
+  Element operator [](Node node);
   Map<Node, DartType> get typesCache;
 
   /// Returns the [SendStructure] that describes the semantics of [node].
@@ -111,7 +107,10 @@ class TreeElementMapping extends TreeElements {
   Map<Spannable, Selector> _selectors;
   Map<Spannable, TypeMask> _typeMasks;
   Map<Node, DartType> _types;
-  Map<Node, DartType> typesCache = <Node, DartType>{};
+
+  Map<Node, DartType> _typesCache;
+  Map<Node, DartType> get typesCache => _typesCache ??= <Node, DartType>{};
+
   Setlet<SourceSpan> _superUses;
   Map<Node, ConstantExpression> _constants;
   Map<VariableElement, List<Node>> _potentiallyMutated;
@@ -284,15 +283,15 @@ class TreeElementMapping extends TreeElements {
     return mutations;
   }
 
-  void registerPotentialMutationIn(Node contextNode, VariableElement element,
-                                    Node mutationNode) {
+  void registerPotentialMutationIn(
+      Node contextNode, VariableElement element, Node mutationNode) {
     if (_potentiallyMutatedIn == null) {
       _potentiallyMutatedIn =
           new Maplet<Node, Map<VariableElement, List<Node>>>();
     }
     Map<VariableElement, List<Node>> mutationMap =
-        _potentiallyMutatedIn.putIfAbsent(contextNode,
-          () => new Maplet<VariableElement, List<Node>>());
+        _potentiallyMutatedIn.putIfAbsent(
+            contextNode, () => new Maplet<VariableElement, List<Node>>());
     mutationMap.putIfAbsent(element, () => <Node>[]).add(mutationNode);
   }
 
@@ -303,13 +302,14 @@ class TreeElementMapping extends TreeElements {
     return mutations;
   }
 
-  void registerPotentialMutationInClosure(VariableElement element,
-                                          Node mutationNode) {
+  void registerPotentialMutationInClosure(
+      VariableElement element, Node mutationNode) {
     if (_potentiallyMutatedInClosure == null) {
       _potentiallyMutatedInClosure = new Maplet<VariableElement, List<Node>>();
     }
-    _potentiallyMutatedInClosure.putIfAbsent(
-        element, () => <Node>[]).add(mutationNode);
+    _potentiallyMutatedInClosure
+        .putIfAbsent(element, () => <Node>[])
+        .add(mutationNode);
   }
 
   List<Node> getAccessesByClosureIn(Node node, VariableElement element) {
@@ -321,14 +321,14 @@ class TreeElementMapping extends TreeElements {
     return accesses;
   }
 
-  void setAccessedByClosureIn(Node contextNode, VariableElement element,
-                              Node accessNode) {
+  void setAccessedByClosureIn(
+      Node contextNode, VariableElement element, Node accessNode) {
     if (_accessedByClosureIn == null) {
       _accessedByClosureIn = new Map<Node, Map<VariableElement, List<Node>>>();
     }
     Map<VariableElement, List<Node>> accessMap =
-        _accessedByClosureIn.putIfAbsent(contextNode,
-          () => new Maplet<VariableElement, List<Node>>());
+        _accessedByClosureIn.putIfAbsent(
+            contextNode, () => new Maplet<VariableElement, List<Node>>());
     accessMap.putIfAbsent(element, () => <Node>[]).add(accessNode);
   }
 

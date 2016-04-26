@@ -2,19 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_IO_DISABLED)
+
 #include "platform/globals.h"
 #if defined(TARGET_OS_WINDOWS)
+
+#include "bin/socket.h"
+#include "bin/socket_win.h"
 
 #include "bin/builtin.h"
 #include "bin/eventhandler.h"
 #include "bin/file.h"
 #include "bin/lockers.h"
 #include "bin/log.h"
-#include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
-
 
 namespace dart {
 namespace bin {
@@ -53,7 +56,9 @@ static bool socket_initialized = false;
 
 bool Socket::Initialize() {
   MutexLocker lock(init_mutex);
-  if (socket_initialized) return true;
+  if (socket_initialized) {
+    return true;
+  }
   int err;
   WSADATA winsock_data;
   WORD version_requested = MAKEWORD(2, 2);
@@ -63,7 +68,7 @@ bool Socket::Initialize() {
   } else {
     Log::PrintErr("Unable to initialize Winsock: %d\n", WSAGetLastError());
   }
-  return err == 0;
+  return (err == 0);
 }
 
 intptr_t Socket::Available(intptr_t fd) {
@@ -106,9 +111,7 @@ intptr_t Socket::GetPort(intptr_t fd) {
   SocketHandle* socket_handle = reinterpret_cast<SocketHandle*>(fd);
   RawAddr raw;
   socklen_t size = sizeof(raw);
-  if (getsockname(socket_handle->socket(),
-                  &raw.addr,
-                  &size) == SOCKET_ERROR) {
+  if (getsockname(socket_handle->socket(),  &raw.addr, &size) == SOCKET_ERROR) {
     return 0;
   }
   return SocketAddress::GetAddrPort(raw);
@@ -120,9 +123,7 @@ SocketAddress* Socket::GetRemotePeer(intptr_t fd, intptr_t* port) {
   SocketHandle* socket_handle = reinterpret_cast<SocketHandle*>(fd);
   RawAddr raw;
   socklen_t size = sizeof(raw);
-  if (getpeername(socket_handle->socket(),
-                  &raw.addr,
-                  &size)) {
+  if (getpeername(socket_handle->socket(), &raw.addr, &size)) {
     return NULL;
   }
   *port = SocketAddress::GetAddrPort(raw);
@@ -267,7 +268,9 @@ int Socket::GetType(intptr_t fd) {
 
 
 intptr_t Socket::GetStdioHandle(intptr_t num) {
-  if (num != 0) return -1;
+  if (num != 0) {
+    return -1;
+  }
   HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
   if (handle == INVALID_HANDLE_VALUE) {
     return -1;
@@ -319,12 +322,14 @@ AddressList<SocketAddress>* Socket::LookupAddress(const char* host,
   }
   intptr_t count = 0;
   for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
-    if (c->ai_family == AF_INET || c->ai_family == AF_INET6) count++;
+    if ((c->ai_family == AF_INET) || (c->ai_family == AF_INET6)) {
+      count++;
+    }
   }
   AddressList<SocketAddress>* addresses = new AddressList<SocketAddress>(count);
   intptr_t i = 0;
   for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
-    if (c->ai_family == AF_INET || c->ai_family == AF_INET6) {
+    if ((c->ai_family == AF_INET) || (c->ai_family == AF_INET6)) {
       addresses->SetAt(i, new SocketAddress(c->ai_addr));
       i++;
     }
@@ -366,7 +371,6 @@ bool Socket::ParseAddress(int type, const char* address, RawAddr* addr) {
     ASSERT(type == SocketAddress::TYPE_IPV6);
     result = InetPton(AF_INET6, system_address, &addr->in6.sin6_addr);
   }
-  free(const_cast<wchar_t*>(system_address));
   return result == 1;
 }
 
@@ -393,9 +397,7 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
     }
   }
 
-  status = bind(s,
-                &addr.addr,
-                SocketAddress::GetAddrLength(addr));
+  status = bind(s, &addr.addr,  SocketAddress::GetAddrLength(addr));
   if (status == SOCKET_ERROR) {
     DWORD rc = WSAGetLastError();
     closesocket(s);
@@ -496,9 +498,7 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
                sizeof(optval));
   }
 
-  status = bind(s,
-                &addr.addr,
-                SocketAddress::GetAddrLength(addr));
+  status = bind(s, &addr.addr, SocketAddress::GetAddrLength(addr));
   if (status == SOCKET_ERROR) {
     DWORD rc = WSAGetLastError();
     closesocket(s);
@@ -509,8 +509,8 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
   ListenSocket* listen_socket = new ListenSocket(s);
 
   // Test for invalid socket port 65535 (some browsers disallow it).
-  if (SocketAddress::GetAddrPort(addr) == 0 &&
-      Socket::GetPort(reinterpret_cast<intptr_t>(listen_socket)) == 65535) {
+  if ((SocketAddress::GetAddrPort(addr) == 0) &&
+      (Socket::GetPort(reinterpret_cast<intptr_t>(listen_socket)) == 65535)) {
     // Don't close fd until we have created new. By doing that we ensure another
     // port.
     intptr_t new_s = CreateBindListen(addr, backlog, v6_only);
@@ -571,9 +571,9 @@ bool Socket::GetNoDelay(intptr_t fd, bool* enabled) {
                        reinterpret_cast<char *>(&on),
                        &len);
   if (err == 0) {
-    *enabled = on == 1;
+    *enabled = (on == 1);
   }
-  return err == 0;
+  return (err == 0);
 }
 
 
@@ -618,7 +618,6 @@ bool Socket::SetMulticastLoop(intptr_t fd, intptr_t protocol, bool enabled) {
                     optname,
                     reinterpret_cast<char *>(&on),
                     sizeof(on)) == 0;
-  return false;
 }
 
 
@@ -665,9 +664,9 @@ bool Socket::GetBroadcast(intptr_t fd, bool* enabled) {
                        reinterpret_cast<char *>(&on),
                        &len);
   if (err == 0) {
-    *enabled = on == 1;
+    *enabled = (on == 1);
   }
-  return err == 0;
+  return (err == 0);
 }
 
 
@@ -715,3 +714,5 @@ bool Socket::LeaveMulticast(
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_WINDOWS)
+
+#endif  // !defined(DART_IO_DISABLED)

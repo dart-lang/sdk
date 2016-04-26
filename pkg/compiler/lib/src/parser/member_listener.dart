@@ -5,41 +5,31 @@
 library dart2js.parser.member_listener;
 
 import '../common.dart';
-import '../elements/elements.dart' show
-    Element,
-    ElementKind,
-    Elements,
-    MetadataAnnotation;
-import '../elements/modelx.dart' show
-    ClassElementX,
-    ElementX,
-    FieldElementX,
-    VariableList;
-import '../tokens/token.dart' show
-    Token;
+import '../elements/elements.dart'
+    show Element, ElementKind, Elements, MetadataAnnotation;
+import '../elements/modelx.dart'
+    show ClassElementX, ElementX, FieldElementX, VariableList;
+import '../tokens/token.dart' show Token;
 import '../tree/tree.dart';
 
-import 'element_listener.dart' show
-    ScannerOptions;
-import 'node_listener.dart' show
-    NodeListener;
-import 'partial_elements.dart' show
-    PartialConstructorElement,
-    PartialFunctionElement,
-    PartialMetadataAnnotation;
+import 'element_listener.dart' show ScannerOptions;
+import 'node_listener.dart' show NodeListener;
+import 'partial_elements.dart'
+    show
+        PartialConstructorElement,
+        PartialFunctionElement,
+        PartialMetadataAnnotation;
 
 class MemberListener extends NodeListener {
   final ClassElementX enclosingClass;
 
-  MemberListener(ScannerOptions scannerOptions,
-                 DiagnosticReporter listener,
-                 ClassElementX enclosingElement)
+  MemberListener(ScannerOptions scannerOptions, DiagnosticReporter listener,
+      ClassElementX enclosingElement)
       : this.enclosingClass = enclosingElement,
         super(scannerOptions, listener, enclosingElement.compilationUnit);
 
   bool isConstructorName(Node nameNode) {
-    if (enclosingClass == null ||
-        enclosingClass.kind != ElementKind.CLASS) {
+    if (enclosingClass == null || enclosingClass.kind != ElementKind.CLASS) {
       return false;
     }
     String name;
@@ -90,15 +80,12 @@ class MemberListener extends NodeListener {
       if (getOrSet != null) {
         recoverableError(getOrSet, 'illegal modifier');
       }
-      memberElement = new PartialConstructorElement(
-          name, beginToken, endToken,
-          ElementKind.GENERATIVE_CONSTRUCTOR,
-          method.modifiers,
-          enclosingClass);
+      memberElement = new PartialConstructorElement(name, beginToken, endToken,
+          ElementKind.GENERATIVE_CONSTRUCTOR, method.modifiers, enclosingClass);
     } else {
-      memberElement = new PartialFunctionElement(
-          name, beginToken, getOrSet, endToken,
-          method.modifiers, enclosingClass, hasBody: method.hasBody());
+      memberElement = new PartialFunctionElement(name, beginToken, getOrSet,
+          endToken, method.modifiers, enclosingClass,
+          hasBody: method.hasBody);
     }
     addMember(memberElement);
   }
@@ -118,7 +105,9 @@ class MemberListener extends NodeListener {
       }
     }
     Element memberElement = new PartialConstructorElement(
-        name, beginToken, endToken,
+        name,
+        beginToken,
+        endToken,
         ElementKind.FACTORY_CONSTRUCTOR,
         method.modifiers,
         enclosingClass);
@@ -132,19 +121,16 @@ class MemberListener extends NodeListener {
     Modifiers modifiers = variableDefinitions.modifiers;
     pushNode(null);
     void buildFieldElement(Identifier name, VariableList fields) {
-      Element element =
-          new FieldElementX(name, enclosingClass, fields);
+      Element element = new FieldElementX(name, enclosingClass, fields);
       addMember(element);
     }
     buildFieldElements(modifiers, variableDefinitions.definitions,
-                       enclosingClass,
-                       buildFieldElement, beginToken, endToken,
-                       hasParseError);
+        enclosingClass, buildFieldElement, beginToken, endToken, hasParseError);
   }
 
   void endInitializer(Token assignmentOperator) {
     pushNode(null); // Super expects an expression, but
-                    // ClassElementParser just skips expressions.
+    // ClassElementParser just skips expressions.
     super.endInitializer(assignmentOperator);
   }
 

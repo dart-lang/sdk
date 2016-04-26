@@ -374,8 +374,8 @@ abstract class num implements Comparable<num> {
    *     1234567.toStringAsPrecision(9); // 1234567.00
    *     12345678901234567890.toStringAsPrecision(20); // 12345678901234567168
    *     12345678901234567890.toStringAsPrecision(14); // 1.2345678901235e+19
-   *     0.00000012345.toPrecision(15); // 1.23450000000000e-7
-   *     0.0000012345.toPrecision(15);  // 0.00000123450000000000
+   *     0.00000012345.toStringAsPrecision(15); // 1.23450000000000e-7
+   *     0.0000012345.toStringAsPrecision(15);  // 0.00000123450000000000
    */
   String toStringAsPrecision(int precision);
 

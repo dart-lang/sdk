@@ -5,16 +5,11 @@
 library ordered_typeset;
 
 import 'common.dart';
-import 'compiler.dart' show
-    Compiler;
 import 'dart_types.dart';
-import 'elements/elements.dart' show
-    ClassElement;
-import 'util/util.dart' show
-    Link,
-    LinkBuilder;
-import 'util/util_implementation.dart' show
-    LinkEntry;
+import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
+import 'elements/elements.dart' show ClassElement;
+import 'util/util.dart' show Link, LinkBuilder;
+import 'util/util_implementation.dart' show LinkEntry;
 
 /**
  * An ordered set of the supertypes of a class. The supertypes of a class are
@@ -39,8 +34,7 @@ class OrderedTypeSet {
   final Link<DartType> _supertypes;
 
   OrderedTypeSet.internal(List<Link<DartType>> this._levels,
-                           Link<DartType> this.types,
-                           Link<DartType> this._supertypes);
+      Link<DartType> this.types, Link<DartType> this._supertypes);
 
   factory OrderedTypeSet.singleton(DartType type) {
     Link<DartType> types =
@@ -56,9 +50,8 @@ class OrderedTypeSet {
   OrderedTypeSet extendClass(InterfaceType type) {
     assert(invariant(type.element, types.head.treatAsRaw,
         message: 'Cannot extend generic class ${types.head} using '
-                 'OrderedTypeSet.extendClass'));
-    Link<DartType> extendedTypes =
-        new LinkEntry<DartType>(type, types);
+            'OrderedTypeSet.extendClass'));
+    Link<DartType> extendedTypes = new LinkEntry<DartType>(type, types);
     List<Link<DartType>> list = new List<Link<DartType>>(levels + 1);
     for (int i = 0; i < levels; i++) {
       list[i] = _levels[i];
@@ -151,39 +144,89 @@ class OrderedTypeSetBuilder {
   LinkBuilder<DartType> allSupertypes = new LinkBuilder<DartType>();
   int maxDepth = -1;
 
+  final DiagnosticReporter reporter;
   final ClassElement cls;
+  InterfaceType _objectType;
 
-  OrderedTypeSetBuilder(this.cls);
+  // TODO(johnniwinther): Provide access to `Object` in deserialization and
+  // make [objectType] mandatory.
+  OrderedTypeSetBuilder(this.cls, {this.reporter, InterfaceType objectType})
+      : this._objectType = objectType;
 
-  void add(Compiler compiler, InterfaceType type) {
-    if (type.element == cls) {
-      if (type.element != compiler.coreClasses.objectClass) {
-        allSupertypes.addLast(compiler.coreTypes.objectType);
+  OrderedTypeSet createOrderedTypeSet(
+      InterfaceType supertype, Link<DartType> interfaces) {
+    if (_objectType == null) {
+      // Find `Object` through in hierarchy. This is used for serialization
+      // where it is assumed that the hierarchy is valid.
+      _objectType = supertype;
+      while (!_objectType.isObject) {
+        _objectType = _objectType.element.supertype;
       }
-      DiagnosticReporter reporter = compiler.reporter;
-      _addAtDepth(reporter, type, maxDepth + 1);
-    } else {
-      if (type.element != compiler.coreClasses.objectClass) {
-        allSupertypes.addLast(type);
-      }
-      DiagnosticReporter reporter = compiler.reporter;
-      _addAtDepth(reporter, type, type.element.hierarchyDepth);
+    }
+
+    // TODO(15296): Collapse these iterations to one when the order is not
+    // needed.
+    add(supertype);
+    for (Link<DartType> link = interfaces; !link.isEmpty; link = link.tail) {
+      add(link.head);
+    }
+
+    addAllSupertypes(supertype);
+    for (Link<DartType> link = interfaces; !link.isEmpty; link = link.tail) {
+      addAllSupertypes(link.head);
+    }
+    add(cls.thisType);
+    return toTypeSet();
+  }
+
+  /**
+   * Adds [type] and all supertypes of [type] to [allSupertypes] while
+   * substituting type variables.
+   */
+  void addAllSupertypes(InterfaceType type) {
+    ClassElement classElement = type.element;
+    Link<DartType> supertypes = classElement.allSupertypes;
+    assert(invariant(cls, supertypes != null,
+        message: "Supertypes not computed on $classElement "
+            "during resolution of $cls"));
+    while (!supertypes.isEmpty) {
+      DartType supertype = supertypes.head;
+      add(supertype.substByContext(type));
+      supertypes = supertypes.tail;
     }
   }
 
-  void _addAtDepth(DiagnosticReporter reporter, InterfaceType type, int depth) {
+  void add(InterfaceType type) {
+    if (type.element == cls) {
+      if (type != _objectType) {
+        allSupertypes.addLast(_objectType);
+      }
+      _addAtDepth(type, maxDepth + 1);
+    } else {
+      if (type != _objectType) {
+        allSupertypes.addLast(type);
+      }
+      _addAtDepth(type, type.element.hierarchyDepth);
+    }
+  }
+
+  void _addAtDepth(InterfaceType type, int depth) {
     LinkEntry<DartType> prev = null;
     LinkEntry<DartType> link = map[depth];
     while (link != null) {
       DartType existingType = link.head;
       if (existingType == type) return;
       if (existingType.element == type.element) {
-        reporter.reportErrorMessage(
-            cls,
-            MessageKind.MULTI_INHERITANCE,
-            {'thisType': cls.thisType,
-             'firstType': existingType,
-             'secondType': type});
+        if (reporter != null) {
+          reporter.reportErrorMessage(cls, MessageKind.MULTI_INHERITANCE, {
+            'thisType': cls.thisType,
+            'firstType': existingType,
+            'secondType': type
+          });
+        } else {
+          assert(invariant(cls, false,
+              message: 'Invalid ordered typeset for $cls'));
+        }
         return;
       }
       prev = link;

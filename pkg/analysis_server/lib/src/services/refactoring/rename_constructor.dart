@@ -86,7 +86,13 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     } else {
       sourceRange = rangeStartLength(element.nameEnd, 0);
     }
-    String file = element.source.fullName;
-    return new SourceReference(file, sourceRange, element, true, true);
+    return new SourceReference(new SearchMatch(
+        element.context,
+        element.library.source.uri.toString(),
+        element.source.uri.toString(),
+        MatchKind.DECLARATION,
+        sourceRange,
+        true,
+        true));
   }
 }

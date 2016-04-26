@@ -149,33 +149,41 @@ enum AccessKind {
 enum CompoundAccessKind {
   /// Read from a static getter and write to a static setter.
   STATIC_GETTER_SETTER,
+
   /// Read from a static method (closurize) and write to a static setter.
   STATIC_METHOD_SETTER,
 
   /// Read from an unresolved static getter and write to a static setter.
   UNRESOLVED_STATIC_GETTER,
+
   /// Read from a static getter and write to an unresolved static setter.
   UNRESOLVED_STATIC_SETTER,
 
   /// Read from a top level getter and write to a top level setter.
   TOPLEVEL_GETTER_SETTER,
+
   /// Read from a top level method (closurize) and write to top level setter.
   TOPLEVEL_METHOD_SETTER,
 
   /// Read from an unresolved top level getter and write to a top level setter.
   UNRESOLVED_TOPLEVEL_GETTER,
+
   /// Read from a top level getter and write to an unresolved top level setter.
   UNRESOLVED_TOPLEVEL_SETTER,
 
   /// Read from one superclass field and write to another.
   SUPER_FIELD_FIELD,
+
   /// Read from a superclass field and write to a superclass setter.
   SUPER_FIELD_SETTER,
+
   /// Read from a superclass getter and write to a superclass setter.
   SUPER_GETTER_SETTER,
+
   /// Read from a superclass method (closurize) and write to a superclass
   /// setter.
   SUPER_METHOD_SETTER,
+
   /// Read from a superclass getter and write to a superclass field.
   SUPER_GETTER_FIELD,
 
@@ -183,6 +191,7 @@ enum CompoundAccessKind {
   // TODO(johnniwinther): Use [AccessKind.SUPER_GETTER] when the erroneous
   // element is no longer needed.
   UNRESOLVED_SUPER_GETTER,
+
   /// Read from a superclass getter and write to an unresolved setter.
   // TODO(johnniwinther): Use [AccessKind.SUPER_SETTER] when the erroneous
   // element is no longer needed.
@@ -243,7 +252,6 @@ abstract class AccessSemantics {
   }
 }
 
-
 class DynamicAccess extends AccessSemantics {
   final Name name;
 
@@ -268,8 +276,7 @@ class DynamicAccess extends AccessSemantics {
 class ConstantAccess extends AccessSemantics {
   final ConstantExpression constant;
 
-  ConstantAccess(AccessKind kind, this.constant)
-      : super._(kind);
+  ConstantAccess(AccessKind kind, this.constant) : super._(kind);
 
   ConstantAccess.classTypeLiteral(this.constant)
       : super._(AccessKind.CLASS_TYPE_LITERAL);
@@ -284,8 +291,7 @@ class ConstantAccess extends AccessSemantics {
 class StaticAccess extends AccessSemantics {
   final Element element;
 
-  StaticAccess._(AccessKind kind, this.element)
-      : super._(kind);
+  StaticAccess.internal(AccessKind kind, this.element) : super._(kind);
 
   StaticAccess.superSetter(MethodElement this.element)
       : super._(AccessKind.SUPER_SETTER);
@@ -350,14 +356,12 @@ class StaticAccess extends AccessSemantics {
   StaticAccess.topLevelSetter(MethodElement this.element)
       : super._(AccessKind.TOPLEVEL_SETTER);
 
-  StaticAccess.unresolved(this.element)
-      : super._(AccessKind.UNRESOLVED);
+  StaticAccess.unresolved(this.element) : super._(AccessKind.UNRESOLVED);
 
   StaticAccess.unresolvedSuper(this.element)
       : super._(AccessKind.UNRESOLVED_SUPER);
 
-  StaticAccess.invalid(this.element)
-      : super._(AccessKind.INVALID);
+  StaticAccess.invalid(this.element) : super._(AccessKind.INVALID);
 }
 
 class CompoundAccessSemantics extends AccessSemantics {
@@ -365,9 +369,7 @@ class CompoundAccessSemantics extends AccessSemantics {
   final Element getter;
   final Element setter;
 
-  CompoundAccessSemantics(this.compoundAccessKind,
-                          this.getter,
-                          this.setter)
+  CompoundAccessSemantics(this.compoundAccessKind, this.getter, this.setter)
       : super._(AccessKind.COMPOUND);
 
   Element get element => setter;

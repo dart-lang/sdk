@@ -6,11 +6,15 @@ library analyzer.test.src.dart.ast.utilities_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart' show Predicate;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
+import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:unittest/unittest.dart';
 
@@ -24,6 +28,7 @@ main() {
   runReflectiveTests(ConstantEvaluatorTest);
   runReflectiveTests(NodeLocatorTest);
   runReflectiveTests(NodeLocator2Test);
+  runReflectiveTests(ResolutionCopierTest);
   runReflectiveTests(ToSourceVisitorTest);
 }
 
@@ -415,7 +420,7 @@ class B {}''');
   }
 
   void _assertLocate(CompilationUnit unit, int start, int end,
-      Predicate<AstNode> predicate, Type expectedClass) {
+      Predicate<Object> predicate, Type expectedClass) {
     NodeLocator locator = new NodeLocator(start, end);
     AstNode node = locator.searchWithin(unit);
     expect(node, isNotNull);
@@ -424,6 +429,663 @@ class B {}''');
     expect(node.offset + node.length > end, isTrue,
         reason: "Node ends before range");
     EngineTestCase.assertInstanceOf(predicate, expectedClass, node);
+  }
+}
+
+@reflectiveTest
+class ResolutionCopierTest extends EngineTestCase {
+  void test_visitAdjacentStrings() {
+    AdjacentStrings createNode() => new AdjacentStrings([
+          new SimpleStringLiteral(null, 'hello'),
+          new SimpleStringLiteral(null, 'world')
+        ]);
+
+    AdjacentStrings fromNode = createNode();
+    DartType propagatedType = ElementFactory.classElement2("A").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("B").type;
+    fromNode.staticType = staticType;
+
+    AdjacentStrings toNode = createNode();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitAnnotation() {
+    String annotationName = "proxy";
+    Annotation fromNode =
+        AstFactory.annotation(AstFactory.identifier3(annotationName));
+    Element element = ElementFactory.topLevelVariableElement2(annotationName);
+    fromNode.element = element;
+    Annotation toNode =
+        AstFactory.annotation(AstFactory.identifier3(annotationName));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.element, same(element));
+  }
+
+  void test_visitAsExpression() {
+    AsExpression fromNode = AstFactory.asExpression(
+        AstFactory.identifier3("x"), AstFactory.typeName4("A"));
+    DartType propagatedType = ElementFactory.classElement2("A").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("B").type;
+    fromNode.staticType = staticType;
+    AsExpression toNode = AstFactory.asExpression(
+        AstFactory.identifier3("x"), AstFactory.typeName4("A"));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitAssignmentExpression() {
+    AssignmentExpression fromNode = AstFactory.assignmentExpression(
+        AstFactory.identifier3("a"),
+        TokenType.PLUS_EQ,
+        AstFactory.identifier3("b"));
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    MethodElement propagatedElement =
+        ElementFactory.methodElement("+", propagatedType);
+    fromNode.propagatedElement = propagatedElement;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    MethodElement staticElement = ElementFactory.methodElement("+", staticType);
+    fromNode.staticElement = staticElement;
+    fromNode.staticType = staticType;
+    AssignmentExpression toNode = AstFactory.assignmentExpression(
+        AstFactory.identifier3("a"),
+        TokenType.PLUS_EQ,
+        AstFactory.identifier3("b"));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedElement, same(propagatedElement));
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticElement, same(staticElement));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitBinaryExpression() {
+    BinaryExpression fromNode = AstFactory.binaryExpression(
+        AstFactory.identifier3("a"),
+        TokenType.PLUS,
+        AstFactory.identifier3("b"));
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    MethodElement propagatedElement =
+        ElementFactory.methodElement("+", propagatedType);
+    fromNode.propagatedElement = propagatedElement;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    MethodElement staticElement = ElementFactory.methodElement("+", staticType);
+    fromNode.staticElement = staticElement;
+    fromNode.staticType = staticType;
+    BinaryExpression toNode = AstFactory.binaryExpression(
+        AstFactory.identifier3("a"),
+        TokenType.PLUS,
+        AstFactory.identifier3("b"));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedElement, same(propagatedElement));
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticElement, same(staticElement));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitBooleanLiteral() {
+    BooleanLiteral fromNode = AstFactory.booleanLiteral(true);
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    BooleanLiteral toNode = AstFactory.booleanLiteral(true);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitCascadeExpression() {
+    CascadeExpression fromNode = AstFactory.cascadeExpression(
+        AstFactory.identifier3("a"), [AstFactory.identifier3("b")]);
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    CascadeExpression toNode = AstFactory.cascadeExpression(
+        AstFactory.identifier3("a"), [AstFactory.identifier3("b")]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitCompilationUnit() {
+    CompilationUnit fromNode = AstFactory.compilationUnit();
+    CompilationUnitElement element =
+        new CompilationUnitElementImpl("test.dart");
+    fromNode.element = element;
+    CompilationUnit toNode = AstFactory.compilationUnit();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.element, same(element));
+  }
+
+  void test_visitConditionalExpression() {
+    ConditionalExpression fromNode = AstFactory.conditionalExpression(
+        AstFactory.identifier3("c"),
+        AstFactory.identifier3("a"),
+        AstFactory.identifier3("b"));
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    ConditionalExpression toNode = AstFactory.conditionalExpression(
+        AstFactory.identifier3("c"),
+        AstFactory.identifier3("a"),
+        AstFactory.identifier3("b"));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitConstructorDeclaration() {
+    String className = "A";
+    String constructorName = "c";
+    ConstructorDeclaration fromNode = AstFactory.constructorDeclaration(
+        AstFactory.identifier3(className),
+        constructorName,
+        AstFactory.formalParameterList(),
+        null);
+    ConstructorElement element = ElementFactory.constructorElement2(
+        ElementFactory.classElement2(className), constructorName);
+    fromNode.element = element;
+    ConstructorDeclaration toNode = AstFactory.constructorDeclaration(
+        AstFactory.identifier3(className),
+        constructorName,
+        AstFactory.formalParameterList(),
+        null);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.element, same(element));
+  }
+
+  void test_visitConstructorName() {
+    ConstructorName fromNode =
+        AstFactory.constructorName(AstFactory.typeName4("A"), "c");
+    ConstructorElement staticElement = ElementFactory.constructorElement2(
+        ElementFactory.classElement2("A"), "c");
+    fromNode.staticElement = staticElement;
+    ConstructorName toNode =
+        AstFactory.constructorName(AstFactory.typeName4("A"), "c");
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.staticElement, same(staticElement));
+  }
+
+  void test_visitDoubleLiteral() {
+    DoubleLiteral fromNode = AstFactory.doubleLiteral(1.0);
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    DoubleLiteral toNode = AstFactory.doubleLiteral(1.0);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitExportDirective() {
+    ExportDirective fromNode = AstFactory.exportDirective2("dart:uri");
+    ExportElement element = new ExportElementImpl(-1);
+    fromNode.element = element;
+    ExportDirective toNode = AstFactory.exportDirective2("dart:uri");
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.element, same(element));
+  }
+
+  void test_visitFunctionExpression() {
+    FunctionExpression fromNode = AstFactory.functionExpression2(
+        AstFactory.formalParameterList(), AstFactory.emptyFunctionBody());
+    MethodElement element = ElementFactory.methodElement(
+        "m", ElementFactory.classElement2("C").type);
+    fromNode.element = element;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    FunctionExpression toNode = AstFactory.functionExpression2(
+        AstFactory.formalParameterList(), AstFactory.emptyFunctionBody());
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.element, same(element));
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitFunctionExpressionInvocation() {
+    FunctionExpressionInvocation fromNode =
+        AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"));
+    MethodElement propagatedElement = ElementFactory.methodElement(
+        "m", ElementFactory.classElement2("C").type);
+    fromNode.propagatedElement = propagatedElement;
+    MethodElement staticElement = ElementFactory.methodElement(
+        "m", ElementFactory.classElement2("C").type);
+    fromNode.staticElement = staticElement;
+    FunctionExpressionInvocation toNode =
+        AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"));
+
+    _copyAndVerifyInvocation(fromNode, toNode);
+
+    expect(toNode.propagatedElement, same(propagatedElement));
+    expect(toNode.staticElement, same(staticElement));
+  }
+
+  void test_visitImportDirective() {
+    ImportDirective fromNode = AstFactory.importDirective3("dart:uri", null);
+    ImportElement element = new ImportElementImpl(0);
+    fromNode.element = element;
+    ImportDirective toNode = AstFactory.importDirective3("dart:uri", null);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.element, same(element));
+  }
+
+  void test_visitIndexExpression() {
+    IndexExpression fromNode = AstFactory.indexExpression(
+        AstFactory.identifier3("a"), AstFactory.integer(0));
+    MethodElement propagatedElement = ElementFactory.methodElement(
+        "m", ElementFactory.classElement2("C").type);
+    MethodElement staticElement = ElementFactory.methodElement(
+        "m", ElementFactory.classElement2("C").type);
+    AuxiliaryElements auxiliaryElements =
+        new AuxiliaryElements(staticElement, propagatedElement);
+    fromNode.auxiliaryElements = auxiliaryElements;
+    fromNode.propagatedElement = propagatedElement;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    fromNode.staticElement = staticElement;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    IndexExpression toNode = AstFactory.indexExpression(
+        AstFactory.identifier3("a"), AstFactory.integer(0));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.auxiliaryElements, same(auxiliaryElements));
+    expect(toNode.propagatedElement, same(propagatedElement));
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticElement, same(staticElement));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitInstanceCreationExpression() {
+    InstanceCreationExpression fromNode = AstFactory
+        .instanceCreationExpression2(Keyword.NEW, AstFactory.typeName4("C"));
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    ConstructorElement staticElement = ElementFactory.constructorElement2(
+        ElementFactory.classElement2("C"), null);
+    fromNode.staticElement = staticElement;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    InstanceCreationExpression toNode = AstFactory.instanceCreationExpression2(
+        Keyword.NEW, AstFactory.typeName4("C"));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticElement, same(staticElement));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitIntegerLiteral() {
+    IntegerLiteral fromNode = AstFactory.integer(2);
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    IntegerLiteral toNode = AstFactory.integer(2);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitIsExpression() {
+    IsExpression fromNode = AstFactory.isExpression(
+        AstFactory.identifier3("x"), false, AstFactory.typeName4("A"));
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    IsExpression toNode = AstFactory.isExpression(
+        AstFactory.identifier3("x"), false, AstFactory.typeName4("A"));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitLibraryIdentifier() {
+    LibraryIdentifier fromNode =
+        AstFactory.libraryIdentifier([AstFactory.identifier3("lib")]);
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    LibraryIdentifier toNode =
+        AstFactory.libraryIdentifier([AstFactory.identifier3("lib")]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitListLiteral() {
+    ListLiteral fromNode = AstFactory.listLiteral();
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    ListLiteral toNode = AstFactory.listLiteral();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitMapLiteral() {
+    MapLiteral fromNode = AstFactory.mapLiteral2();
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    MapLiteral toNode = AstFactory.mapLiteral2();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitMethodInvocation() {
+    MethodInvocation fromNode = AstFactory.methodInvocation2("m");
+    MethodInvocation toNode = AstFactory.methodInvocation2("m");
+    _copyAndVerifyInvocation(fromNode, toNode);
+  }
+
+  void test_visitNamedExpression() {
+    NamedExpression fromNode =
+        AstFactory.namedExpression2("n", AstFactory.integer(0));
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    NamedExpression toNode =
+        AstFactory.namedExpression2("n", AstFactory.integer(0));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitNullLiteral() {
+    NullLiteral fromNode = AstFactory.nullLiteral();
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    NullLiteral toNode = AstFactory.nullLiteral();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitParenthesizedExpression() {
+    ParenthesizedExpression fromNode =
+        AstFactory.parenthesizedExpression(AstFactory.integer(0));
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    ParenthesizedExpression toNode =
+        AstFactory.parenthesizedExpression(AstFactory.integer(0));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitPartDirective() {
+    PartDirective fromNode = AstFactory.partDirective2("part.dart");
+    LibraryElement element = new LibraryElementImpl.forNode(
+        null, AstFactory.libraryIdentifier2(["lib"]));
+    fromNode.element = element;
+    PartDirective toNode = AstFactory.partDirective2("part.dart");
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.element, same(element));
+  }
+
+  void test_visitPartOfDirective() {
+    PartOfDirective fromNode =
+        AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["lib"]));
+    LibraryElement element = new LibraryElementImpl.forNode(
+        null, AstFactory.libraryIdentifier2(["lib"]));
+    fromNode.element = element;
+    PartOfDirective toNode =
+        AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["lib"]));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.element, same(element));
+  }
+
+  void test_visitPostfixExpression() {
+    String variableName = "x";
+    PostfixExpression fromNode = AstFactory.postfixExpression(
+        AstFactory.identifier3(variableName), TokenType.PLUS_PLUS);
+    MethodElement propagatedElement = ElementFactory.methodElement(
+        "+", ElementFactory.classElement2("C").type);
+    fromNode.propagatedElement = propagatedElement;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    MethodElement staticElement = ElementFactory.methodElement(
+        "+", ElementFactory.classElement2("C").type);
+    fromNode.staticElement = staticElement;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    PostfixExpression toNode = AstFactory.postfixExpression(
+        AstFactory.identifier3(variableName), TokenType.PLUS_PLUS);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedElement, same(propagatedElement));
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticElement, same(staticElement));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitPrefixedIdentifier() {
+    PrefixedIdentifier fromNode = AstFactory.identifier5("p", "f");
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    PrefixedIdentifier toNode = AstFactory.identifier5("p", "f");
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitPrefixExpression() {
+    PrefixExpression fromNode = AstFactory.prefixExpression(
+        TokenType.PLUS_PLUS, AstFactory.identifier3("x"));
+    MethodElement propagatedElement = ElementFactory.methodElement(
+        "+", ElementFactory.classElement2("C").type);
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedElement = propagatedElement;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    MethodElement staticElement = ElementFactory.methodElement(
+        "+", ElementFactory.classElement2("C").type);
+    fromNode.staticElement = staticElement;
+    fromNode.staticType = staticType;
+    PrefixExpression toNode = AstFactory.prefixExpression(
+        TokenType.PLUS_PLUS, AstFactory.identifier3("x"));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedElement, same(propagatedElement));
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticElement, same(staticElement));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitPropertyAccess() {
+    PropertyAccess fromNode =
+        AstFactory.propertyAccess2(AstFactory.identifier3("x"), "y");
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    PropertyAccess toNode =
+        AstFactory.propertyAccess2(AstFactory.identifier3("x"), "y");
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitRedirectingConstructorInvocation() {
+    RedirectingConstructorInvocation fromNode =
+        AstFactory.redirectingConstructorInvocation();
+    ConstructorElement staticElement = ElementFactory.constructorElement2(
+        ElementFactory.classElement2("C"), null);
+    fromNode.staticElement = staticElement;
+    RedirectingConstructorInvocation toNode =
+        AstFactory.redirectingConstructorInvocation();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.staticElement, same(staticElement));
+  }
+
+  void test_visitRethrowExpression() {
+    RethrowExpression fromNode = AstFactory.rethrowExpression();
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    RethrowExpression toNode = AstFactory.rethrowExpression();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitSimpleIdentifier() {
+    SimpleIdentifier fromNode = AstFactory.identifier3("x");
+    MethodElement propagatedElement = ElementFactory.methodElement(
+        "m", ElementFactory.classElement2("C").type);
+    MethodElement staticElement = ElementFactory.methodElement(
+        "m", ElementFactory.classElement2("C").type);
+    AuxiliaryElements auxiliaryElements =
+        new AuxiliaryElements(staticElement, propagatedElement);
+    fromNode.auxiliaryElements = auxiliaryElements;
+    fromNode.propagatedElement = propagatedElement;
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    fromNode.staticElement = staticElement;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    SimpleIdentifier toNode = AstFactory.identifier3("x");
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.auxiliaryElements, same(auxiliaryElements));
+    expect(toNode.propagatedElement, same(propagatedElement));
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticElement, same(staticElement));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitSimpleStringLiteral() {
+    SimpleStringLiteral fromNode = AstFactory.string2("abc");
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    SimpleStringLiteral toNode = AstFactory.string2("abc");
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitStringInterpolation() {
+    StringInterpolation fromNode =
+        AstFactory.string([AstFactory.interpolationString("a", "'a'")]);
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    StringInterpolation toNode =
+        AstFactory.string([AstFactory.interpolationString("a", "'a'")]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitSuperConstructorInvocation() {
+    SuperConstructorInvocation fromNode =
+        AstFactory.superConstructorInvocation();
+    ConstructorElement staticElement = ElementFactory.constructorElement2(
+        ElementFactory.classElement2("C"), null);
+    fromNode.staticElement = staticElement;
+    SuperConstructorInvocation toNode = AstFactory.superConstructorInvocation();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.staticElement, same(staticElement));
+  }
+
+  void test_visitSuperExpression() {
+    SuperExpression fromNode = AstFactory.superExpression();
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    SuperExpression toNode = AstFactory.superExpression();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitSymbolLiteral() {
+    SymbolLiteral fromNode = AstFactory.symbolLiteral(["s"]);
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    SymbolLiteral toNode = AstFactory.symbolLiteral(["s"]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitThisExpression() {
+    ThisExpression fromNode = AstFactory.thisExpression();
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    ThisExpression toNode = AstFactory.thisExpression();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitThrowExpression() {
+    ThrowExpression fromNode = AstFactory.throwExpression();
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+    ThrowExpression toNode = AstFactory.throwExpression();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
+  void test_visitTypeName() {
+    TypeName fromNode = AstFactory.typeName4("C");
+    DartType type = ElementFactory.classElement2("C").type;
+    fromNode.type = type;
+    TypeName toNode = AstFactory.typeName4("C");
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.type, same(type));
+  }
+
+  void _copyAndVerifyInvocation(
+      InvocationExpression fromNode, InvocationExpression toNode) {
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+
+    DartType propagatedInvokeType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedInvokeType = propagatedInvokeType;
+    DartType staticInvokeType = ElementFactory.classElement2("C").type;
+    fromNode.staticInvokeType = staticInvokeType;
+
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+    expect(toNode.propagatedInvokeType, same(propagatedInvokeType));
+    expect(toNode.staticInvokeType, same(staticInvokeType));
   }
 }
 

@@ -17,7 +17,6 @@
 #include "vm/tags.h"
 #include "vm/thread.h"
 #include "vm/os_thread.h"
-#include "vm/timeline.h"
 #include "vm/timer.h"
 #include "vm/token_position.h"
 
@@ -229,78 +228,10 @@ class Isolate : public BaseIsolate {
     library_tag_handler_ = value;
   }
 
-  void SetStackLimit(uword value);
-  void SetStackLimitFromStackBase(uword stack_base);
-  void ClearStackLimit();
-
-  // Returns the current C++ stack pointer. Equivalent taking the address of a
-  // stack allocated local, but plays well with AddressSanitizer.
-  // TODO(koda): Move to Thread.
-  static uword GetCurrentStackPointer();
-
-  void SetupInstructionsSnapshotPage(
-      const uint8_t* instructions_snapshot_buffer);
   void SetupDataSnapshotPage(
       const uint8_t* instructions_snapshot_buffer);
 
-  // Returns true if any of the interrupts specified by 'interrupt_bits' are
-  // currently scheduled for this isolate, but leaves them unchanged.
-  //
-  // NOTE: The read uses relaxed memory ordering, i.e., it is atomic and
-  // an interrupt is guaranteed to be observed eventually, but any further
-  // order guarantees must be ensured by other synchronization. See the
-  // tests in isolate_test.cc for example usage.
-  bool HasInterruptsScheduled(uword interrupt_bits) {
-    ASSERT(interrupt_bits == (interrupt_bits & kInterruptsMask));
-    uword limit = AtomicOperations::LoadRelaxed(&stack_limit_);
-    return (limit != saved_stack_limit_) &&
-        (((limit & kInterruptsMask) & interrupt_bits) != 0);
-  }
-
-  // Access to the current stack limit for generated code.  This may be
-  // overwritten with a special value to trigger interrupts.
-  uword stack_limit_address() const {
-    return reinterpret_cast<uword>(&stack_limit_);
-  }
-  static intptr_t stack_limit_offset() {
-    return OFFSET_OF(Isolate, stack_limit_);
-  }
-
-  // The true stack limit for this isolate.
-  uword saved_stack_limit() const { return saved_stack_limit_; }
-
-  // Stack overflow flags
-  enum {
-    kOsrRequest = 0x1,  // Current stack overflow caused by OSR request.
-  };
-
-  uword stack_overflow_flags_address() const {
-    return reinterpret_cast<uword>(&stack_overflow_flags_);
-  }
-  static intptr_t stack_overflow_flags_offset() {
-    return OFFSET_OF(Isolate, stack_overflow_flags_);
-  }
-
-  int32_t IncrementAndGetStackOverflowCount() {
-    return ++stack_overflow_count_;
-  }
-
-  // Retrieves and clears the stack overflow flags.  These are set by
-  // the generated code before the slow path runtime routine for a
-  // stack overflow is called.
-  uword GetAndClearStackOverflowFlags();
-
-  // Interrupt bits.
-  enum {
-    kVMInterrupt = 0x1,  // Internal VM checks: safepoints, store buffers, etc.
-    kMessageInterrupt = 0x2,  // An interrupt to process an out of band message.
-
-    kInterruptsMask = (kVMInterrupt | kMessageInterrupt),
-  };
-
-  void ScheduleInterrupts(uword interrupt_bits);
-  RawError* HandleInterrupts();
-  uword GetAndClearInterrupts();
+  void ScheduleMessageInterrupts();
 
   // Marks all libraries as loaded.
   void DoneLoading();
@@ -312,7 +243,12 @@ class Isolate : public BaseIsolate {
   void set_message_handler(MessageHandler* value) { message_handler_ = value; }
 
   bool is_runnable() const { return is_runnable_; }
-  void set_is_runnable(bool value) { is_runnable_ = value; }
+  void set_is_runnable(bool value) {
+    is_runnable_ = value;
+    if (is_runnable_) {
+      set_last_resume_timestamp();
+    }
+  }
 
   IsolateSpawnState* spawn_state() const { return spawn_state_; }
   void set_spawn_state(IsolateSpawnState* value) { spawn_state_ = value; }
@@ -321,6 +257,9 @@ class Isolate : public BaseIsolate {
   Mutex* symbols_mutex() const { return symbols_mutex_; }
   Mutex* type_canonicalization_mutex() const {
     return type_canonicalization_mutex_;
+  }
+  Mutex* constant_canonicalization_mutex() const {
+    return constant_canonicalization_mutex_;
   }
 
   Debugger* debugger() const {
@@ -424,36 +363,6 @@ class Isolate : public BaseIsolate {
     return shutdown_callback_;
   }
 
-  static void SetFileCallbacks(Dart_FileOpenCallback file_open,
-                               Dart_FileReadCallback file_read,
-                               Dart_FileWriteCallback file_write,
-                               Dart_FileCloseCallback file_close) {
-    file_open_callback_ = file_open;
-    file_read_callback_ = file_read;
-    file_write_callback_ = file_write;
-    file_close_callback_ = file_close;
-  }
-
-  static Dart_FileOpenCallback file_open_callback() {
-    return file_open_callback_;
-  }
-  static Dart_FileReadCallback file_read_callback() {
-    return file_read_callback_;
-  }
-  static Dart_FileWriteCallback file_write_callback() {
-    return file_write_callback_;
-  }
-  static Dart_FileCloseCallback file_close_callback() {
-    return file_close_callback_;
-  }
-
-  static void SetEntropySourceCallback(Dart_EntropySource entropy_source) {
-    entropy_source_callback_ = entropy_source;
-  }
-  static Dart_EntropySource entropy_source_callback() {
-    return entropy_source_callback_;
-  }
-
   void set_object_id_ring(ObjectIdRing* ring) {
     object_id_ring_ = ring;
   }
@@ -461,6 +370,7 @@ class Isolate : public BaseIsolate {
     return object_id_ring_;
   }
 
+  bool IsDeoptimizing() const { return deopt_context_ != NULL; }
   DeoptContext* deopt_context() const { return deopt_context_; }
   void set_deopt_context(DeoptContext* value) {
     ASSERT(value == NULL || deopt_context_ == NULL);
@@ -508,8 +418,10 @@ class Isolate : public BaseIsolate {
 
   void PrintJSON(JSONStream* stream, bool ref = true);
 
-  CompilerStats* compiler_stats() {
-    return compiler_stats_;
+  // Mutator thread is used to aggregate compiler stats.
+  CompilerStats* aggregate_compiler_stats() {
+    ASSERT(HasMutatorThread());
+    return mutator_thread_->compiler_stats();
   }
 
   VMTagCounters* vm_tag_counters() {
@@ -533,18 +445,6 @@ class Isolate : public BaseIsolate {
   type* Get##variable##Metric() { return &metric_##variable##_; }
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_ACCESSOR);
 #undef ISOLATE_METRIC_ACCESSOR
-
-#ifndef PRODUCT
-#define ISOLATE_TIMELINE_STREAM_ACCESSOR(name, not_used)                       \
-  TimelineStream* Get##name##Stream() { return &stream_##name##_; }
-  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_ACCESSOR)
-#undef ISOLATE_TIMELINE_STREAM_ACCESSOR
-#else
-#define ISOLATE_TIMELINE_STREAM_ACCESSOR(name, not_used)                       \
-  TimelineStream* Get##name##Stream() { return NULL; }
-  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_ACCESSOR)
-#undef ISOLATE_TIMELINE_STREAM_ACCESSOR
-#endif  // !PRODUCT
 
   static intptr_t IsolateListLength();
 
@@ -573,6 +473,9 @@ class Isolate : public BaseIsolate {
   void set_deoptimized_code_array(const GrowableObjectArray& value);
   void TrackDeoptimizedCode(const Code& code);
 
+  RawError* sticky_error() const { return sticky_error_; }
+  void clear_sticky_error();
+
   bool compilation_allowed() const { return compilation_allowed_; }
   void set_compilation_allowed(bool allowed) {
     compilation_allowed_ = allowed;
@@ -584,30 +487,48 @@ class Isolate : public BaseIsolate {
     all_classes_finalized_ = value;
   }
 
-  static const uint32_t kInvalidGen = 0;
-
-  void IncrCHAInvalidationGen() {
-    cha_invalidation_gen_++;
-    if (cha_invalidation_gen_ == kInvalidGen) cha_invalidation_gen_++;
+  // True during top level parsing.
+  bool IsTopLevelParsing() {
+    const intptr_t value =
+        AtomicOperations::LoadRelaxedIntPtr(&top_level_parsing_count_);
+    ASSERT(value >= 0);
+    return value > 0;
   }
-  void ResetCHAInvalidationGen() { cha_invalidation_gen_ = kInvalidGen; }
-  uint32_t cha_invalidation_gen() const { return cha_invalidation_gen_; }
 
+  void IncrTopLevelParsingCount() {
+    AtomicOperations::IncrementBy(&top_level_parsing_count_, 1);
+  }
+  void DecrTopLevelParsingCount() {
+    AtomicOperations::DecrementBy(&top_level_parsing_count_, 1);
+  }
+
+  static const intptr_t kInvalidGen = 0;
 
   void IncrFieldInvalidationGen() {
-    field_invalidation_gen_++;
-    if (field_invalidation_gen_ == kInvalidGen) field_invalidation_gen_++;
+    AtomicOperations::IncrementBy(&field_invalidation_gen_, 1);
+    if (field_invalidation_gen_ == kInvalidGen) {
+      AtomicOperations::IncrementBy(&field_invalidation_gen_, 1);
+    }
+  }
+  intptr_t field_invalidation_gen() const { return field_invalidation_gen_; }
+
+  void IncrLoadingInvalidationGen() {
+    AtomicOperations::IncrementBy(&loading_invalidation_gen_, 1);
+    if (loading_invalidation_gen_ == kInvalidGen) {
+      AtomicOperations::IncrementBy(&loading_invalidation_gen_, 1);
+    }
+  }
+  intptr_t loading_invalidation_gen() {
+    return AtomicOperations::LoadRelaxedIntPtr(&loading_invalidation_gen_);
   }
 
-  void ResetFieldInvalidationGen() { field_invalidation_gen_ = kInvalidGen; }
-  uint32_t field_invalidation_gen() const { return field_invalidation_gen_; }
-
-  void IncrPrefixInvalidationGen() {
-    prefix_invalidation_gen_++;
-    if (prefix_invalidation_gen_ == kInvalidGen) prefix_invalidation_gen_++;
-  }
-  void ResetPrefixInvalidationGen() { prefix_invalidation_gen_ = kInvalidGen; }
-  uint32_t prefix_invalidation_gen() const { return prefix_invalidation_gen_; }
+  // Used by mutator thread to notify background compiler which fields
+  // triggered code invalidation.
+  void AddDisablingField(const Field& field);
+  // Returns Field::null() if none available in the list. Can be called
+  // only from background compiler and while mutator thread is at safepoint.
+  RawField* GetDisablingField();
+  void ClearDisablingFieldList();
 
   // Used by background compiler which field became boxed and must trigger
   // deoptimization in the mutator thread.
@@ -662,10 +583,11 @@ class Isolate : public BaseIsolate {
   static void DisableIsolateCreation();
   static void EnableIsolateCreation();
 
+  void StopBackgroundCompiler();
+
  private:
   friend class Dart;  // Init, InitOnce, Shutdown.
   friend class IsolateKillerVisitor;  // Kill().
-  friend class NoOOBMessageScope;
 
   explicit Isolate(const Dart_IsolateFlags& api_flags);
 
@@ -692,9 +614,6 @@ class Isolate : public BaseIsolate {
     user_tag_ = tag;
   }
 
-  void DeferOOBMessageInterrupts();
-  void RestoreOOBMessageInterrupts();
-
   RawGrowableObjectArray* GetAndClearPendingServiceExtensionCalls();
   RawGrowableObjectArray* pending_service_extension_calls() const {
     return pending_service_extension_calls_;
@@ -719,9 +638,6 @@ class Isolate : public BaseIsolate {
   }
 
   // Accessed from generated code:
-  // TODO(asiva): Need to consider moving the stack_limit_ from isolate to
-  // being thread specific.
-  uword stack_limit_;
   StoreBuffer* store_buffer_;
   Heap* heap_;
   uword user_tag_;
@@ -755,14 +671,10 @@ class Isolate : public BaseIsolate {
   bool has_compiled_code_;  // Can check that no compilation occured.
   Random random_;
   Simulator* simulator_;
-  Mutex* mutex_;  // Protects stack_limit_, saved_stack_limit_, compiler stats.
+  Mutex* mutex_;  // Protects compiler stats.
   Mutex* symbols_mutex_;  // Protects concurrent access to the symbol table.
   Mutex* type_canonicalization_mutex_;  // Protects type canonicalization.
-  uword saved_stack_limit_;
-  uword deferred_interrupts_mask_;
-  uword deferred_interrupts_;
-  uword stack_overflow_flags_;
-  int32_t stack_overflow_count_;
+  Mutex* constant_canonicalization_mutex_;  // Protects const canonicalization.
   MessageHandler* message_handler_;
   IsolateSpawnState* spawn_state_;
   bool is_runnable_;
@@ -770,8 +682,6 @@ class Isolate : public BaseIsolate {
   Dart_GcEpilogueCallback gc_epilogue_callback_;
   intptr_t defer_finalization_count_;
   DeoptContext* deopt_context_;
-
-  CompilerStats* compiler_stats_;
 
   bool is_service_isolate_;
 
@@ -798,6 +708,8 @@ class Isolate : public BaseIsolate {
   RawGrowableObjectArray* tag_table_;
 
   RawGrowableObjectArray* deoptimized_code_array_;
+
+  RawError* sticky_error_;
 
   // Background compilation.
   BackgroundCompiler* background_compiler_;
@@ -836,14 +748,17 @@ class Isolate : public BaseIsolate {
   // Invalidation generations; used to track events occuring in parallel
   // to background compilation. The counters may overflow, which is OK
   // since we check for equality to detect if an event occured.
-  uint32_t cha_invalidation_gen_;
-  uint32_t field_invalidation_gen_;
-  uint32_t prefix_invalidation_gen_;
+  intptr_t field_invalidation_gen_;
+  intptr_t loading_invalidation_gen_;
+  intptr_t top_level_parsing_count_;
 
-  // Protect access to boxed_field_list_.
-  Mutex* boxed_field_list_mutex_;
+  // Protect access to boxed_field_list_ and disabling_field_list_.
+  Mutex* field_list_mutex_;
   // List of fields that became boxed and that trigger deoptimization.
   RawGrowableObjectArray* boxed_field_list_;
+  // List of fields that were disabling code while background compiler
+  // was running.
+  RawGrowableObjectArray* disabling_field_list_;
 
   // This guards spawn_count_. An isolate cannot complete shutdown and be
   // destroyed while there are child isolates in the midst of a spawn.
@@ -855,20 +770,9 @@ class Isolate : public BaseIsolate {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
 
-#ifndef PRODUCT
-#define ISOLATE_TIMELINE_STREAM_VARIABLE(name, not_used)                       \
-  TimelineStream stream_##name##_;
-  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_VARIABLE)
-#undef ISOLATE_TIMELINE_STREAM_VARIABLE
-#endif  // !PRODUCT
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
-  static Dart_FileOpenCallback file_open_callback_;
-  static Dart_FileReadCallback file_read_callback_;
-  static Dart_FileWriteCallback file_write_callback_;
-  static Dart_FileCloseCallback file_close_callback_;
-  static Dart_EntropySource entropy_source_callback_;
   static Dart_IsolateInterruptCallback vmstats_callback_;
 
   static void WakePauseEventHandler(Dart_Isolate isolate);
@@ -893,7 +797,6 @@ REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
   friend class ServiceIsolate;
   friend class Thread;
   friend class Timeline;
-  friend class IsolateTestHelper;
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };
@@ -913,9 +816,9 @@ class StartIsolateScope {
     }
     if (saved_isolate_ != new_isolate_) {
       ASSERT(Isolate::Current() == NULL);
-      // Ensure this is not a nested 'isolate enter' with prior state.
-      ASSERT(new_isolate_->saved_stack_limit() == 0);
       Thread::EnterIsolate(new_isolate_);
+      // Ensure this is not a nested 'isolate enter' with prior state.
+      ASSERT(Thread::Current()->saved_stack_limit() == 0);
     }
   }
 
@@ -928,7 +831,7 @@ class StartIsolateScope {
     if (saved_isolate_ != new_isolate_) {
       ASSERT(saved_isolate_ == NULL);
       // ASSERT that we have bottomed out of all Dart invocations.
-      ASSERT(new_isolate_->saved_stack_limit() == 0);
+      ASSERT(Thread::Current()->saved_stack_limit() == 0);
       Thread::ExitIsolate();
     }
   }

@@ -8,8 +8,6 @@ class _FilterImpl extends NativeFieldWrapperClass1 implements _Filter {
 
   List<int> processed({bool flush: true, bool end: false})
       native "Filter_Processed";
-
-  void end() native "Filter_End";
 }
 
 class _ZLibInflateFilter extends _FilterImpl {

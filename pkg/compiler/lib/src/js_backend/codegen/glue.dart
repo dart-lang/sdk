@@ -4,32 +4,21 @@
 
 library code_generator_dependencies;
 
-import '../backend_helpers.dart' show
-    BackendHelpers;
+import '../backend_helpers.dart' show BackendHelpers;
 import '../js_backend.dart';
 
 import '../../common.dart';
-import '../../common/registry.dart' show
-    Registry;
-import '../../common/codegen.dart' show
-    CodegenRegistry;
-import '../../compiler.dart' show
-    Compiler;
+import '../../common/codegen.dart' show CodegenRegistry;
+import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart';
-import '../../dart_types.dart' show
-    DartType,
-    TypeVariableType,
-    InterfaceType;
-import '../../enqueue.dart' show
-    CodegenEnqueuer;
+import '../../dart_types.dart' show DartType, TypeVariableType, InterfaceType;
+import '../../enqueue.dart' show CodegenEnqueuer;
 import '../../elements/elements.dart';
 import '../../js_emitter/js_emitter.dart';
 import '../../js/js.dart' as js;
 import '../../native/native.dart' show NativeBehavior;
-import '../../universe/selector.dart' show
-    Selector;
-import '../../world.dart' show
-    ClassWorld;
+import '../../universe/selector.dart' show Selector;
+import '../../world.dart' show ClassWorld;
 import '../../types/types.dart';
 
 /// Encapsulates the dependencies of the function-compiler to the compiler,
@@ -150,7 +139,7 @@ class Glue {
   }
 
   js.Expression prototypeAccess(ClassElement e,
-                                {bool hasBeenInstantiated: false}) {
+      {bool hasBeenInstantiated: false}) {
     return _emitter.prototypeAccess(e,
         hasBeenInstantiated: hasBeenInstantiated);
   }
@@ -234,12 +223,10 @@ class Glue {
   }
 
   js.Expression generateTypeRepresentation(DartType dartType,
-                                           List<js.Expression> arguments,
-                                           CodegenRegistry registry) {
+      List<js.Expression> arguments, CodegenRegistry registry) {
     int variableIndex = 0;
-    js.Expression representation = _backend.rtiEncoder.getTypeRepresentation(
-        dartType,
-        (_) => arguments[variableIndex++]);
+    js.Expression representation = _backend.rtiEncoder
+        .getTypeRepresentation(dartType, (_) => arguments[variableIndex++]);
     assert(variableIndex == arguments.length);
     // Representation contains JavaScript Arrays.
     registry.registerInstantiatedClass(_helpers.jsArrayClass);
@@ -298,5 +285,11 @@ class Glue {
 
   bool mayGenerateInstanceofCheck(DartType type) {
     return _backend.mayGenerateInstanceofCheck(type);
+  }
+
+  bool methodUsesReceiverArgument(FunctionElement function) {
+    assert(isInterceptedMethod(function));
+    ClassElement class_ = function.enclosingClass.declaration;
+    return isInterceptorClass(class_) || isUsedAsMixin(class_);
   }
 }

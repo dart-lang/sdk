@@ -43,12 +43,11 @@ least_upper_bound_expansive_test/*: Fail, OK
 
 async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runtime-errs.
 async_star_cancel_while_paused_test: RuntimeError
-async_star_await_pauses_test: Skip # Times out. Issue 23996
 
-accessor_conflict_export2_test: RuntimeError # Issue 25625
-accessor_conflict_import2_test: RuntimeError # Issue 25625
-accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25625
-accessor_conflict_import_prefixed_test: RuntimeError # Issue 25625
+# Experimental feature: Syntactic support for generic methods.
+generic_methods_test: CompiletimeError # Issue 25869
+generic_functions_test: CompiletimeError # Issue 25869
+generic_sends_test: CompiletimeError # Issue 25869
 
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) ]
 
@@ -89,19 +88,21 @@ main_test/21: Fail # Issue 20028
 main_test/42: Fail # Issue 20028
 mirror_in_static_init_test: Fail # Issue 22071
 vm/debug_break_enabled_vm_test/*: Skip # Issue 14651.
+# Experimental feature: Syntactic support for generic methods.
+generic_methods_test: RuntimeError # Issue 25869
+generic_functions_test: RuntimeError # Issue 25869
+generic_sends_test: RuntimeError # Issue 25869
 
 [ $compiler == none && $runtime == dartium && $system == linux && $arch != x64 ]
-issue_22780_test/01 : Pass, Timeout # Issue 24473
+issue_22780_test/01: Pass, Timeout # Issue 24473
+
+[ $compiler == none && $runtime == dartium && $system == linux && $arch == x64 ]
+async_await_test: Skip # Issue 26198
 
 [ $compiler == none && $runtime == drt ]
 disassemble_test: Pass, Fail # Issue 18122
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $arch == mips && $checked ]
-generic_instanceof3_test: Pass, Crash # Issue 17440.
-
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $arch == mips && $mode == debug ]
-stack_overflow_test: Skip # Crashes. Issue 17440.
-stack_overflow_stacktrace_test: Skip # Crashes. Issue 17440.
 large_class_declaration_test: SkipSlow # Times out. Issue 20352
 
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $arch == arm64 ]
@@ -129,7 +130,7 @@ stacktrace_rethrow_error_test: Pass, RuntimeError
 stacktrace_rethrow_nonerror_test: Pass, RuntimeError
 stacktrace_test: Pass, RuntimeError
 
-[ $noopt || $compiler == precompiler || $runtime == dart_product ]
+[ $noopt || $compiler == precompiler || $mode == product ]
 # Imports dart:mirrors
 const_evaluation_test: SkipByDesign
 deferred_constraints_constants_test: SkipByDesign
@@ -154,23 +155,32 @@ vm/reflect_core_vm_test: SkipByDesign
 
 [ ($noopt || $compiler == precompiler || $compiler == dart2app) ]
 # Deferred loading happens eagerly
-regress_23408_test: RuntimeError
+regress_23408_test: Skip
 deferred_inheritance_constraints_test: Skip
-deferred_load_constants_test: Skip # multitest gets confused
-tearoff_basic_test: RuntimeError, Crash # Conflicting flag.
-deferred_global_test: RuntimeError # Issue 25845
+deferred_global_test: Skip
+deferred_load_constants_test: Skip
+tearoff_basic_test: Skip
 
 vm/type_vm_test: RuntimeError # Expects line and column numbers
 vm/type_cast_vm_test: RuntimeError # Line number mismatch.
 
+issue13474_test: SkipByDesign # Requires checked mode.
+assertion_test: SkipByDesign # Requires checked mode.
+named_parameters_type_test/01: SkipByDesign # Requires checked mode.
+named_parameters_type_test/02: SkipByDesign # Requires checked mode.
+named_parameters_type_test/03: SkipByDesign # Requires checked mode.
+type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
+positional_parameters_type_test/01: SkipByDesign # Requires checked mode.
+positional_parameters_type_test/02: SkipByDesign # Requires checked mode.
+list_literal4_test: SkipByDesign # Requires checked mode.
+generic_test: SkipByDesign # Requires checked mode.
+map_literal4_test: SkipByDesign # Requires checked mode.
+
 [ $runtime == dart_precompiled ]
-deferred_global_test: RuntimeError # Tries to produce a stack trace.
-ct_const2_test: Pass, Crash # Incompatible flag --compile_all
-hello_dart_test: Pass, Crash # Incompatible flag --compile_all
-
-implicit_closure_test: Pass, Crash # --use_slow_path
-
-deopt_inlined_function_lazy_test: Pass, Crash # Incompatible flag: --deoptimize-alot
+ct_const2_test: Skip # Incompatible flag: --compile_all
+hello_dart_test: Skip # Incompatible flag: --compile_all
+implicit_closure_test: Skip # Incompatible flag: --use_slow_path
+deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
 
 [ $runtime == dart_product ]
 # Deferred loading happens eagerly (not sure why this works on precompiled code).

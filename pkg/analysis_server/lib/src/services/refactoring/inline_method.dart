@@ -16,8 +16,10 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -278,12 +280,12 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     // prepare method information
     result.addStatus(_prepareMethod());
     if (result.hasFatalError) {
-      return new Future.value(result);
+      return new Future<RefactoringStatus>.value(result);
     }
     // maybe operator
     if (_methodElement.isOperator) {
       result = new RefactoringStatus.fatal('Cannot inline operator.');
-      return new Future.value(result);
+      return new Future<RefactoringStatus>.value(result);
     }
     // analyze method body
     result.addStatus(_prepareMethodParts());

@@ -5,18 +5,10 @@
 library dart2js.source_information;
 
 import '../common.dart';
-import '../elements/elements.dart' show
-    AstElement,
-    LocalElement;
-import '../tree/tree.dart' show
-    Node,
-    Send;
-import '../js/js.dart' show
-    JavaScriptNodeSourceInformation;
+import '../elements/elements.dart' show AstElement, LocalElement;
+import '../tree/tree.dart' show Node, Send;
+import '../js/js.dart' show JavaScriptNodeSourceInformation;
 import 'source_file.dart';
-
-bool useNewSourceInfo =
-    const bool.fromEnvironment('USE_NEW_SOURCE_INFO', defaultValue: false);
 
 /// Interface for passing source information, for instance for use in source
 /// maps, through the backend.
@@ -108,6 +100,48 @@ class SourceInformationBuilder {
   /// Generate [SourceInformation] for the variable declaration inserted as
   /// first statement of a function.
   SourceInformation buildVariableDeclaration() => null;
+
+  /// Generate [SourceInformation] for an invocation of a foreign method.
+  SourceInformation buildForeignCode(Node node) => null;
+
+  /// Generate [SourceInformation] for a string interpolation of [node].
+  SourceInformation buildStringInterpolation(Node node) => null;
+
+  /// Generate [SourceInformation] for the for-in `iterator` access in [node].
+  SourceInformation buildForInIterator(Node node) => null;
+
+  /// Generate [SourceInformation] for the for-in `moveNext` call in [node].
+  SourceInformation buildForInMoveNext(Node node) => null;
+
+  /// Generate [SourceInformation] for the for-in `current` access in [node].
+  SourceInformation buildForInCurrent(Node node) => null;
+
+  /// Generate [SourceInformation] for the for-in variable assignment in [node].
+  SourceInformation buildForInSet(Node node) => null;
+
+  /// Generate [SourceInformation] for the operator `[]` access in [node].
+  SourceInformation buildIndex(Node node) => null;
+
+  /// Generate [SourceInformation] for the operator `[]=` assignment in [node].
+  SourceInformation buildIndexSet(Node node) => null;
+
+  /// Generate [SourceInformation] for the binary operation in [node].
+  SourceInformation buildBinary(Node node) => null;
+
+  /// Generate [SourceInformation] for the unary operator in [node].
+  SourceInformation buildCatch(Node node) => null;
+
+  /// Generate [SourceInformation] for the is-test in [node].
+  SourceInformation buildIs(Node node) => null;
+
+  /// Generate [SourceInformation] for the as-cast in [node].
+  SourceInformation buildAs(Node node) => null;
+
+  /// Generate [SourceInformation] for the switch statement [node].
+  SourceInformation buildSwitch(Node node) => null;
+
+  /// Generate [SourceInformation] for the switch case in [node].
+  SourceInformation buildSwitchCase(Node node) => null;
 }
 
 /// A location in a source file.
@@ -142,16 +176,16 @@ abstract class SourceLocation {
 
   int get hashCode {
     return sourceUri.hashCode * 17 +
-           offset.hashCode * 17 +
-           sourceName.hashCode * 23;
+        offset.hashCode * 17 +
+        sourceName.hashCode * 23;
   }
 
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! SourceLocation) return false;
     return sourceUri == other.sourceUri &&
-           offset == other.offset &&
-           sourceName == other.sourceName;
+        offset == other.offset &&
+        sourceName == other.sourceName;
   }
 
   String get shortText {

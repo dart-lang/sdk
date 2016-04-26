@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_IO_DISABLED)
+
 #include "platform/globals.h"
 #if defined(TARGET_OS_MACOS)
 
@@ -19,9 +21,7 @@
 #include "bin/file.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
-
 #include "platform/signal_blocker.h"
-
 
 #ifndef MAC_OS_X_VERSION_10_7
 enum {
@@ -42,7 +42,6 @@ enum {
 };
 #endif
 
-
 namespace dart {
 namespace bin {
 
@@ -54,6 +53,7 @@ union FSEvent {
   } data;
   uint8_t bytes[PATH_MAX + 8];
 };
+
 
 class FSEventsWatcher {
  public:
@@ -180,6 +180,8 @@ class FSEventsWatcher {
     int write_fd_;
     bool recursive_;
     FSEventStreamRef ref_;
+
+    DISALLOW_COPY_AND_ASSIGN(Node);
   };
 
 
@@ -287,15 +289,21 @@ class FSEventsWatcher {
                            Thread::GetCurrentThreadId()));
     // `ready` is set on same thread as this callback is invoked, so we don't
     // need to lock here.
-    if (!node->ready()) return;
+    if (!node->ready()) {
+      return;
+    }
     for (size_t i = 0; i < num_events; i++) {
       char *path = reinterpret_cast<char**>(event_paths)[i];
       FSEvent event;
       event.data.exists = File::GetType(path, false) != File::kDoesNotExist;
       path += node->base_path_length();
       // If path is longer the base, skip next character ('/').
-      if (path[0] != '\0') path += 1;
-      if (!node->recursive() && strstr(path, "/") != NULL) continue;
+      if (path[0] != '\0') {
+        path += 1;
+      }
+      if (!node->recursive() && (strstr(path, "/") != NULL)) {
+        continue;
+      }
       event.data.flags = event_flags[i];
       memmove(event.data.path, path, strlen(path) + 1);
       write(node->write_fd(), event.bytes, sizeof(event));
@@ -305,6 +313,8 @@ class FSEventsWatcher {
   Monitor monitor_;
   CFRunLoopRef run_loop_;
   ThreadId threadId_;
+
+  DISALLOW_COPY_AND_ASSIGN(FSEventsWatcher);
 };
 
 
@@ -348,7 +358,9 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
   intptr_t fd = GetSocketId(id, path_id);
   intptr_t avail = FDUtils::AvailableBytes(fd);
   int count = avail / sizeof(FSEvent);
-  if (count <= 0) return Dart_NewList(0);
+  if (count <= 0) {
+    return Dart_NewList(0);
+  }
   Dart_Handle events = Dart_NewList(count);
   FSEvent e;
   for (int i = 0; i < count; i++) {
@@ -360,7 +372,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
     Dart_Handle event = Dart_NewList(5);
     int flags = e.data.flags;
     int mask = 0;
-    if (flags & kFSEventStreamEventFlagItemRenamed) {
+    if ((flags & kFSEventStreamEventFlagItemRenamed) != 0) {
       if (path_len == 0) {
         // The moved path is the path being watched.
         mask |= kDeleteSelf;
@@ -368,11 +380,19 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
         mask |= e.data.exists ? kCreate : kDelete;
       }
     }
-    if (flags & kFSEventStreamEventFlagItemModified) mask |= kModifyContent;
-    if (flags & kFSEventStreamEventFlagItemXattrMod) mask |= kModefyAttribute;
-    if (flags & kFSEventStreamEventFlagItemCreated) mask |= kCreate;
-    if (flags & kFSEventStreamEventFlagItemIsDir) mask |= kIsDir;
-    if (flags & kFSEventStreamEventFlagItemRemoved) {
+    if ((flags & kFSEventStreamEventFlagItemModified) != 0) {
+      mask |= kModifyContent;
+    }
+    if ((flags & kFSEventStreamEventFlagItemXattrMod) != 0) {
+      mask |= kModefyAttribute;
+    }
+    if ((flags & kFSEventStreamEventFlagItemCreated) != 0) {
+      mask |= kCreate;
+    }
+    if ((flags & kFSEventStreamEventFlagItemIsDir) != 0) {
+      mask |= kIsDir;
+    }
+    if ((flags & kFSEventStreamEventFlagItemRemoved) != 0) {
       if (path_len == 0) {
         // The removed path is the path being watched.
         mask |= kDeleteSelf;
@@ -404,23 +424,29 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
   return DartUtils::NewDartOSError();
 }
 
+
 intptr_t FileSystemWatcher::GetSocketId(intptr_t id, intptr_t path_id) {
   return -1;
 }
+
 
 bool FileSystemWatcher::IsSupported() {
   return false;
 }
 
+
 void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
 }
+
 
 intptr_t FileSystemWatcher::Init() {
   return -1;
 }
 
+
 void FileSystemWatcher::Close(intptr_t id) {
 }
+
 
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,
                                       const char* path,
@@ -433,5 +459,6 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
 }  // namespace dart
 
 #endif  // !TARGET_OS_IOS
-
 #endif  // defined(TARGET_OS_MACOS)
+
+#endif  // !defined(DART_IO_DISABLED)

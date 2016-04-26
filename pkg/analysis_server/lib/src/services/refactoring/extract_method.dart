@@ -20,10 +20,12 @@ import 'package:analysis_server/src/services/refactoring/rename_class_member.dar
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart' show ExitDetector;
@@ -53,9 +55,9 @@ String _getNormalizedSource(String src) {
 /**
  * Returns the [Map] which maps [map] values to their keys.
  */
-Map<String, String> _inverseMap(Map map) {
-  Map result = {};
-  map.forEach((key, value) {
+Map<String, String> _inverseMap(Map<String, String> map) {
+  Map<String, String> result = <String, String>{};
+  map.forEach((String key, String value) {
     result[value] = key;
   });
   return result;
@@ -418,7 +420,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       return validateCreateMethod(searchEngine, classElement, name);
     }
     // OK
-    return new Future.value(result);
+    return new Future<RefactoringStatus>.value(result);
   }
 
   /**
@@ -667,7 +669,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       variableType = _getTypeCode(_returnType);
       if (_hasAwait) {
         if (_returnType.element != futureType.element) {
-          returnType = _getTypeCode(futureType.substitute4([_returnType]));
+          returnType = _getTypeCode(futureType.instantiate([_returnType]));
         }
       } else {
         returnType = variableType;

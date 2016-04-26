@@ -53,6 +53,8 @@ class Profiler : public AllStatic {
                            const InterruptedThreadState& state);
 
  private:
+  // Does not walk the thread's stack.
+  static void SampleThreadSingleFrame(Thread* thread, uintptr_t pc);
   static bool initialized_;
 
   static SampleBuffer* sample_buffer_;
@@ -91,11 +93,14 @@ class SampleVisitor : public ValueObject {
 class SampleFilter : public ValueObject {
  public:
   SampleFilter(Isolate* isolate,
+               intptr_t thread_task_mask,
                int64_t time_origin_micros,
                int64_t time_extent_micros)
       : isolate_(isolate),
+        thread_task_mask_(thread_task_mask),
         time_origin_micros_(time_origin_micros),
         time_extent_micros_(time_extent_micros) {
+    ASSERT(thread_task_mask != 0);
     ASSERT(time_origin_micros_ >= -1);
     ASSERT(time_extent_micros_ >= -1);
   }
@@ -114,9 +119,12 @@ class SampleFilter : public ValueObject {
   // Returns |true| if |sample| passes the time filter.
   bool TimeFilterSample(Sample* sample);
 
+  // Returns |true| if |sample| passes the thread task filter.
+  bool TaskFilterSample(Sample* sample);
+
  private:
   Isolate* isolate_;
-
+  intptr_t thread_task_mask_;
   int64_t time_origin_micros_;
   int64_t time_extent_micros_;
 };
@@ -274,6 +282,14 @@ class Sample {
     state_ = ClassAllocationSampleBit::update(allocation_sample, state_);
   }
 
+  Thread::TaskKind thread_task() const {
+    return ThreadTaskBit::decode(state_);
+  }
+
+  void set_thread_task(Thread::TaskKind task) {
+    state_ = ThreadTaskBit::update(task, state_);
+  }
+
   bool is_continuation_sample() const {
     return ContinuationSampleBit::decode(state_);
   }
@@ -338,6 +354,8 @@ class Sample {
     kTruncatedTraceBit = 5,
     kClassAllocationSampleBit = 6,
     kContinuationSampleBit = 7,
+    kThreadTaskBit = 8,  // 4 bits.
+    kNextFreeBit = 12,
   };
   class HeadSampleBit : public BitField<uword, bool, kHeadSampleBit, 1> {};
   class LeafFrameIsDart :
@@ -352,6 +370,8 @@ class Sample {
       : public BitField<uword, bool, kClassAllocationSampleBit, 1> {};
   class ContinuationSampleBit
       : public BitField<uword, bool, kContinuationSampleBit, 1> {};
+  class ThreadTaskBit
+      : public BitField<uword, Thread::TaskKind, kThreadTaskBit, 4> {};
 
   int64_t timestamp_;
   ThreadId tid_;

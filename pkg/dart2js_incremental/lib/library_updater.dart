@@ -330,10 +330,10 @@ class LibraryUpdater extends JsFeatures {
       Token token = new Scanner(_entrySourceFiles[library]).tokenize();
       _entryUnitTokens[library] = token;
       // Using two parsers to only create the nodes we want ([LibraryTag]).
-      Parser parser = new Parser(new Listener());
+      Parser parser = new Parser(new Listener(), compiler.options);
       NodeListener listener = new NodeListener(
           compiler, library.entryCompilationUnit);
-      Parser nodeParser = new Parser(listener);
+      Parser nodeParser = new Parser(listener, compiler.options);
       Iterator<LibraryTag> tags = library.tags.iterator;
       while (token.kind != EOF_TOKEN) {
         token = parser.parseMetadataStar(token);
@@ -796,7 +796,7 @@ class LibraryUpdater extends JsFeatures {
     compiler.phase = Compiler.PHASE_DONE_RESOLVING;
 
     // TODO(ahe): Clean this up. Don't call this method in analyze-only mode.
-    if (compiler.analyzeOnly) return "/* analyze only */";
+    if (compiler.options.analyzeOnly) return "/* analyze only */";
 
     Set<ClassElementX> changedClasses =
         new Set<ClassElementX>.from(_classesWithSchemaChanges);

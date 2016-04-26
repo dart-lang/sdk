@@ -102,6 +102,9 @@
 // the value defined in TargetConditionals.h
 #define TARGET_OS_MACOS 1
 #if TARGET_OS_IPHONE
+// Test for this #define by saying '#if TARGET_OS_IOS' rather than the usual
+// '#if defined(TARGET_OS_IOS)'. TARGET_OS_IOS is defined to be 0 in
+// XCode >= 7.0. See Issue #24453.
 #define TARGET_OS_IOS 1
 #endif
 
@@ -645,6 +648,14 @@ static inline T ReadUnaligned(const T* ptr) {
 #define STDIN_FILENO 0
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
+#endif
+
+// For checking deterministic graph generation, we can store instruction
+// tag in the ICData and check it when recreating the flow graph in
+// optimizing compiler. Enable it for other modes (product, release) if needed
+// for debugging.
+#if defined(DEBUG)
+#define TAG_IC_DATA
 #endif
 
 }  // namespace dart

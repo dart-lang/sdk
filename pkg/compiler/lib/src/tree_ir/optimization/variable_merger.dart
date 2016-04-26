@@ -24,7 +24,8 @@ class VariableMerger implements Pass {
     _computeLiveness(builder.blocks);
     PriorityPairs priority = new PriorityPairs()..build(node);
     Map<Variable, Variable> subst = _computeRegisterAllocation(
-        builder.blocks, node.parameters, priority, minifying: minifying);
+        builder.blocks, node.parameters, priority,
+        minifying: minifying);
     new SubstituteVariables(subst).apply(node);
   }
 }
@@ -276,8 +277,8 @@ class PriorityPairs extends RecursiveVisitor {
     if (value is VariableUse) {
       _prioritize(node.variable, value.variable);
     } else if (value is ApplyBuiltinOperator &&
-               isCompoundableOperator(value.operator) &&
-               value.arguments[0] is VariableUse) {
+        isCompoundableOperator(value.operator) &&
+        value.arguments[0] is VariableUse) {
       VariableUse use = value.arguments[0];
       _prioritize(node.variable, use.variable);
     }
@@ -385,10 +386,9 @@ void _computeLiveness(List<Block> blocks) {
 ///
 /// We then compute a graph coloring, where the color of a node denotes which
 /// variable it will be substituted by.
-Map<Variable, Variable> _computeRegisterAllocation(List<Block> blocks,
-                                                   List<Variable> parameters,
-                                                   PriorityPairs priority,
-                                                   {bool minifying}) {
+Map<Variable, Variable> _computeRegisterAllocation(
+    List<Block> blocks, List<Variable> parameters, PriorityPairs priority,
+    {bool minifying}) {
   Map<Variable, Set<Variable>> interference = <Variable, Set<Variable>>{};
 
   bool allowUnmotivatedMerge(Variable x, Variable y) {
@@ -407,8 +407,8 @@ Map<Variable, Variable> _computeRegisterAllocation(List<Block> blocks,
     // The presence of the phi implies that the two variables can contain the
     // same value, so it is not that confusing that they get the same name.
     return x.element == null ||
-           y.element == null ||
-           x.element.name == y.element.name;
+        y.element == null ||
+        x.element.name == y.element.name;
   }
 
   Set<Variable> empty = new Set<Variable>();
@@ -423,9 +423,8 @@ Map<Variable, Variable> _computeRegisterAllocation(List<Block> blocks,
       interference.putIfAbsent(variable, () => new Set<Variable>());
     }
     // Get variables that are live at the catch block.
-    Set<Variable> liveCatch = block.catchBlock != null
-        ? block.catchBlock.liveIn
-        : empty;
+    Set<Variable> liveCatch =
+        block.catchBlock != null ? block.catchBlock.liveIn : empty;
     // Add edges for each variable being assigned here.
     for (VariableAccess access in block.accesses.reversed) {
       Variable variable = access.variable;
@@ -509,8 +508,7 @@ Map<Variable, Variable> _computeRegisterAllocation(List<Block> blocks,
     searchPriorityPairs(parameter, parameter);
   }
 
-  v1loop:
-  for (Variable v1 in variables) {
+  v1loop: for (Variable v1 in variables) {
     // Ignore if the variable has already been assigned a register.
     if (subst.containsKey(v1)) continue;
 
@@ -532,7 +530,7 @@ Map<Variable, Variable> _computeRegisterAllocation(List<Block> blocks,
 
     // Find an unused color.
     Set<Variable> potential = new Set<Variable>.from(
-          registers.where((v2) => allowUnmotivatedMerge(v1, v2)));
+        registers.where((v2) => allowUnmotivatedMerge(v1, v2)));
     for (Variable v2 in interferenceSet) {
       Variable v2subst = subst[v2];
       if (v2subst != null) {
@@ -554,7 +552,6 @@ Map<Variable, Variable> _computeRegisterAllocation(List<Block> blocks,
 
 /// Performs variable substitution and removes redundant assignments.
 class SubstituteVariables extends RecursiveTransformer {
-
   Map<Variable, Variable> mapping;
 
   SubstituteVariables(this.mapping);

@@ -19,6 +19,7 @@
 #include "vm/service.h"
 #include "vm/symbols.h"
 #include "vm/thread_pool.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -338,11 +339,17 @@ class RunServiceTask : public ThreadPool::Task {
       return;
     }
 
+    bool got_unwind;
     {
       ASSERT(Isolate::Current() == NULL);
       StartIsolateScope start_scope(isolate);
       ServiceIsolate::ConstructExitMessageAndCache(isolate);
-      RunMain(isolate);
+      got_unwind = RunMain(isolate);
+    }
+
+    if (got_unwind) {
+      ShutdownIsolate(reinterpret_cast<uword>(isolate));
+      return;
     }
 
     ServiceIsolate::FinishedInitializing();
@@ -384,7 +391,7 @@ class RunServiceTask : public ThreadPool::Task {
     ServiceIsolate::FinishedExiting();
   }
 
-  void RunMain(Isolate* I) {
+  bool RunMain(Isolate* I) {
     Thread* T = Thread::Current();
     ASSERT(I == T->isolate());
     StackZone zone(T);
@@ -397,7 +404,7 @@ class RunServiceTask : public ThreadPool::Task {
         OS::Print("vm-service: Embedder did not install a script.");
       }
       // Service isolate is not supported by embedder.
-      return;
+      return false;
     }
     ASSERT(!root_library.IsNull());
     const String& entry_name = String::Handle(Z, String::New("main"));
@@ -409,7 +416,7 @@ class RunServiceTask : public ThreadPool::Task {
       if (FLAG_trace_service) {
         OS::Print("vm-service: Embedder did not provide a main function.");
       }
-      return;
+      return false;
     }
     ASSERT(!entry.IsNull());
     const Object& result = Object::Handle(Z,
@@ -422,11 +429,15 @@ class RunServiceTask : public ThreadPool::Task {
         OS::Print("vm-service: Calling main resulted in an error: %s",
                   error.ToErrorCString());
       }
-      return;
+      if (result.IsUnwindError()) {
+        return true;
+      }
+      return false;
     }
     ASSERT(result.IsReceivePort());
     const ReceivePort& rp = ReceivePort::Cast(result);
     ServiceIsolate::SetLoadPort(rp.Id());
+    return false;
   }
 };
 
@@ -461,25 +472,25 @@ void ServiceIsolate::KillServiceIsolate() {
 
 
 void ServiceIsolate::Shutdown() {
-  if (!IsRunning()) {
+  if (IsRunning()) {
+    {
+      MonitorLocker ml(monitor_);
+      shutting_down_ = true;
+    }
+    SendServiceExitMessage();
+    {
+      MonitorLocker ml(monitor_);
+      while (shutting_down_ && (port_ != ILLEGAL_PORT)) {
+        ml.Wait();
+      }
+    }
+  } else {
     if (isolate_ != NULL) {
       // TODO(johnmccutchan,turnidge) When it is possible to properly create
       // the VMService object and set up its shutdown handler in the service
       // isolate's main() function, this case will no longer be possible and
       // can be removed.
       KillServiceIsolate();
-    }
-    return;
-  }
-  {
-    MonitorLocker ml(monitor_);
-    shutting_down_ = true;
-  }
-  SendServiceExitMessage();
-  {
-    MonitorLocker ml(monitor_);
-    while (shutting_down_ && (port_ != ILLEGAL_PORT)) {
-      ml.Wait();
     }
   }
   if (server_address_ != NULL) {

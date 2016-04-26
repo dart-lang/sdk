@@ -240,34 +240,31 @@ main() {
       expect(identical(c1, c2), isTrue);
     });
 
-  /*
-    TODO(jacobr): enable this test when dartium supports maintaining proxy
-    equality.
-
     test('identical JS objects should have identical proxies', () {
       var o1 = new JsObject(context['Foo'], [1]);
       context['f1'] = o1;
       var o2 = context['f1'];
-      expect(equals(o1, o2), isTrue);
+      expect(identical(o1, o2), isTrue);
     });
 
+/*
+ TODO(jacobr): enable this test when dartium supports maintaining proxy
+    equality.
     test('identical Dart objects should have identical proxies', () {
       var o1 = new TestDartObject();
       expect(context.callMethod('identical', [o1, o1]), isTrue);
     });
-
-    test('identical Dart functions should have identical proxies', () {
-      var f1 = () => print("I'm a Function!");
-      expect(context.callMethod('identical', [f1, f1]), isTrue);
-    });
     */
 
-    // TODO(jacobr): switch from equals to indentical when dartium supports
-    // maintaining proxy equality.
-    test('identical JS functions should have equal proxies', () {
+    test('identical Dart functions should have identical proxies', () {
+      var f1 = allowInterop(() => print("I'm a Function!"));
+      expect(context.callMethod('identical', [f1, f1]), isTrue);
+    });
+
+    test('identical JS functions should have identical proxies', () {
       var f1 = context['Object'];
       var f2 = context['Object'];
-      expect(f1, equals(f2));
+      expect(identical(f1, f2), isTrue);
     });
 
     // TODO(justinfagnani): old tests duplicate checks above, remove
@@ -454,7 +451,7 @@ main() {
       expect(context['razzle'].apply([]), equals(42));
     });
 
-    test('JsFunction.apply on a function that uses "this"', () {
+    test('JsFunction.apply on a function that uses this', () {
       var object = new Object();
       expect(context['returnThis'].apply([], thisArg: object), same(object));
     });
@@ -517,7 +514,7 @@ main() {
     test('pass Array to JS', () {
       context['a'] = [1, 2, 3];
       expect(context.callMethod('isPropertyInstanceOf',
-          ['a', context['Array']]), isFalse);
+          ['a', context['Array']]), isTrue);
       var a = context['a'];
       expect(a, new isInstanceOf<List>());
       expect(a, isNot(new isInstanceOf<JsArray>()));

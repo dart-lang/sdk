@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test optimization of modulo operator on Smi.
-// VMOptions=--optimization-counter-threshold=10 --no-use-osr
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
 import "package:expect/expect.dart";
 
@@ -15,7 +15,7 @@ main() {
     Expect.equals(i % 256, foo(i));
     Expect.equals(i % -256, boo(i));
     Expect.throws(() => hoo(i), (e) => e is IntegerDivisionByZeroException);
-    
+
     Expect.equals(i ~/ 254 + i % 254, fooTwo(i));
     Expect.equals(i ~/ -254 + i % -254, booTwo(i));
     Expect.throws(() => hooTwo(i), (e) => e is IntegerDivisionByZeroException);
@@ -26,7 +26,7 @@ main() {
     }
     Expect.equals((i ~/ 10) + (i % 10) + (i % 10), threeOp(i));
     Expect.equals((i ~/ 10) + (i ~/ 12) + (i % 10) + (i % 12), fourOp(i));
-    
+
     // Zero test is done outside the loop.
     if (i < 0) {
       Expect.equals(i % -i, foo2(i));
@@ -69,13 +69,13 @@ threeOp(a) {
 fourOp(a) {
   var x0 = a ~/ 10;
   var x1 = a ~/ 12;
-  var y0 = a % 10; 
+  var y0 = a % 10;
   var y1 = a % 12;
   return x0 + x1 + y0 + y1;
 }
 
 foo2(i) {
-  // Make sure x has a range computed. 
+  // Make sure x has a range computed.
   var x = 0;
   if (i < 0) {
     x = -i;
@@ -87,7 +87,7 @@ foo2(i) {
 
 
 fooTwo2(i) {
-  // Make sure x has a range computed. 
+  // Make sure x has a range computed.
   var x = 0;
   if (i < 0) {
     x = -i;

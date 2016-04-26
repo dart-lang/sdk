@@ -404,9 +404,9 @@ $endif
 $if JSINTEROP
   void open(String method, String url, {bool async, String user, String password}) {
     if (async == null && user == null && password == null) {
-      _blink.BlinkXMLHttpRequest.instance.open_Callback_2_(unwrap_jso(this), method, url);
+      _blink.BlinkXMLHttpRequest.instance.open_Callback_2_(this, method, url);
     } else {
-      _blink.BlinkXMLHttpRequest.instance.open_Callback_5_(unwrap_jso(this), method, url, async, user, password);
+      _blink.BlinkXMLHttpRequest.instance.open_Callback_5_(this, method, url, async, user, password);
     }
   }
 $else

@@ -12,7 +12,7 @@ import os
 import re
 import shutil
 from generator import *
-from idlnode import IDLType
+from idlnode import IDLType, resolveTypedef
 
 _logger = logging.getLogger('dartgenerator')
 
@@ -98,6 +98,15 @@ class DartGenerator(object):
               type_name.endswith('Constructor')):
             _logger.warn('removing %s in %s which has unidentified type %s' %
                        (node_name, interface.id, type_name))
+
+          # One last check is the type a typedef in an IDL file (the typedefs
+          # are treated as global).
+          resolvedType = resolveTypedef(idl_type)
+          if (resolvedType != idl_type):
+            idl_type.id = resolvedType.id
+            idl_type.nullable = resolvedType.nullable
+            continue
+
           return False
         return True
 

@@ -52,7 +52,7 @@ class TestCaseRecorder {
   var _cwd;
 
   TestCaseRecorder(this._outputPath) {
-    _cwd  = Directory.current.path;
+    _cwd = Directory.current.path;
   }
 
   void nextCommand(ProcessCommand command, int timeout) {
@@ -63,11 +63,11 @@ class TestCaseRecorder {
     var arguments = makePathsRelativeToDart(_cwd, command.arguments);
 
     var commandExecution = {
-      'name' : command.displayName,
-      'command' : {
-        'timeout_limit' : timeout,
-        'executable' : command.executable,
-        'arguments' : arguments,
+      'name': command.displayName,
+      'command': {
+        'timeout_limit': timeout,
+        'executable': command.executable,
+        'arguments': arguments,
       },
     };
     _recordedCommandInvocations.add(commandExecution);
@@ -86,7 +86,7 @@ class TestCaseOutputArchive {
   var _cwd;
 
   TestCaseOutputArchive() {
-    _cwd  = Directory.current.path;
+    _cwd = Directory.current.path;
   }
 
   void loadFromPath(Path recordingPath) {
@@ -95,7 +95,7 @@ class TestCaseOutputArchive {
     _commandOutputRecordings = {};
     for (var commandRecording in commandRecordings) {
       var key = _indexKey(commandRecording['command']['executable'],
-                          commandRecording['command']['arguments'].join(' '));
+          commandRecording['command']['arguments'].join(' '));
       _commandOutputRecordings[key] = commandRecording['command_output'];
     }
   }
@@ -111,13 +111,13 @@ class TestCaseOutputArchive {
     var command_output = _commandOutputRecordings[key];
     if (command_output == null) {
       print("Sorry, but there is no command output for ${command.displayName}"
-            " ($command)");
+          " ($command)");
       exit(42);
     }
 
     double seconds = command_output['duration'];
-    var duration = new Duration(seconds: seconds.round(),
-                                milliseconds: (seconds/1000).round());
+    var duration = new Duration(
+        seconds: seconds.round(), milliseconds: (seconds / 1000).round());
     var commandOutput = createCommandOutput(
         command,
         command_output['exit_code'],
@@ -133,4 +133,3 @@ class TestCaseOutputArchive {
     return "${executable}__$arguments";
   }
 }
-

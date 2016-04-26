@@ -101,9 +101,18 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_implemented", is_implemented());
   jsobj.AddProperty("_patch", is_patch());
   jsobj.AddProperty("_traceAllocations", TraceAllocation(isolate));
+
   const Class& superClass = Class::Handle(SuperClass());
   if (!superClass.IsNull()) {
     jsobj.AddProperty("super", superClass);
+  }
+  const AbstractType& superType = AbstractType::Handle(super_type());
+  if (!superType.IsNull()) {
+    jsobj.AddProperty("superType", superType);
+  }
+  const Type& mix = Type::Handle(mixin());
+  if (!mix.IsNull()) {
+    jsobj.AddProperty("mixin", mix);
   }
   jsobj.AddProperty("library", Object::Handle(library()));
   const Script& script = Script::Handle(this->script());
@@ -1135,33 +1144,6 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-void FunctionType::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
-  PrintSharedInstanceJSON(&jsobj, ref);
-  jsobj.AddProperty("kind", "FunctionType");
-  if (IsCanonical()) {
-    const Class& scope_cls = Class::Handle(scope_class());
-    intptr_t id = scope_cls.FindCanonicalTypeIndex(*this);
-    ASSERT(id >= 0);
-    intptr_t cid = scope_cls.id();
-    jsobj.AddFixedServiceId("classes/%" Pd "/types/%" Pd "", cid, id);
-    jsobj.AddProperty("scopeClass", scope_cls);
-  } else {
-    jsobj.AddServiceId(*this);
-  }
-  const String& user_name = String::Handle(UserVisibleName());
-  const String& vm_name = String::Handle(Name());
-  AddNameProperties(&jsobj, user_name, vm_name);
-  if (ref) {
-    return;
-  }
-  const TypeArguments& typeArgs = TypeArguments::Handle(arguments());
-  if (!typeArgs.IsNull()) {
-    jsobj.AddProperty("typeArguments", typeArgs);
-  }
-}
-
-
 void TypeRef::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
@@ -1536,7 +1518,7 @@ void Stacktrace::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-void JSRegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
+void RegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "RegExp");
@@ -1560,6 +1542,12 @@ void JSRegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_externalOneByteFunction", func);
   func = function(kExternalTwoByteStringCid);
   jsobj.AddProperty("_externalTwoByteFunction", func);
+
+  TypedData& bc = TypedData::Handle();
+  bc = bytecode(true);
+  jsobj.AddProperty("_oneByteBytecode", bc);
+  bc = bytecode(false);
+  jsobj.AddProperty("_twoByteBytecode", bc);
 }
 
 

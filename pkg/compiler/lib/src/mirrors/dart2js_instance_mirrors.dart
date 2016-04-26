@@ -13,9 +13,8 @@ abstract class ObjectMirrorMixin implements ObjectMirror {
     throw new UnsupportedError('ObjectMirror.setField unsupported.');
   }
 
-  InstanceMirror invoke(Symbol memberName,
-                        List positionalArguments,
-                        [Map<Symbol, dynamic> namedArguments]) {
+  InstanceMirror invoke(Symbol memberName, List positionalArguments,
+      [Map<Symbol, dynamic> namedArguments]) {
     throw new UnsupportedError('ObjectMirror.invoke unsupported.');
   }
 
@@ -36,7 +35,6 @@ InstanceMirror _convertConstantToInstanceMirror(
     Dart2JsMirrorSystem mirrorSystem,
     ConstantExpression constant,
     ConstantValue value) {
-
   if (value.isBool) {
     return new Dart2JsBoolConstantMirror(mirrorSystem, constant, value);
   } else if (value.isNum) {
@@ -56,11 +54,10 @@ InstanceMirror _convertConstantToInstanceMirror(
   } else if (value.isConstructedObject) {
     return new Dart2JsConstructedConstantMirror(mirrorSystem, constant, value);
   }
-  mirrorSystem.compiler.reporter.internalError(NO_LOCATION_SPANNABLE,
-      "Unexpected constant value $value");
+  mirrorSystem.compiler.reporter
+      .internalError(NO_LOCATION_SPANNABLE, "Unexpected constant value $value");
   return null;
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Mirrors on constant values used for metadata.
@@ -97,8 +94,7 @@ class Dart2JsConstantMirror extends Object
 
 class Dart2JsNullConstantMirror extends Dart2JsConstantMirror {
   Dart2JsNullConstantMirror(Dart2JsMirrorSystem mirrorSystem,
-                            ConstantExpression constant,
-                            NullConstantValue value)
+      ConstantExpression constant, NullConstantValue value)
       : super(mirrorSystem, constant, value);
 
   NullConstantValue get _value => super._value;
@@ -110,14 +106,13 @@ class Dart2JsNullConstantMirror extends Dart2JsConstantMirror {
 
 class Dart2JsBoolConstantMirror extends Dart2JsConstantMirror {
   Dart2JsBoolConstantMirror(Dart2JsMirrorSystem mirrorSystem,
-                            ConstantExpression constant,
-                            BoolConstantValue value)
+      ConstantExpression constant, BoolConstantValue value)
       : super(mirrorSystem, constant, value);
 
-  Dart2JsBoolConstantMirror.fromBool(Dart2JsMirrorSystem mirrorSystem,
-                                     bool value)
+  Dart2JsBoolConstantMirror.fromBool(
+      Dart2JsMirrorSystem mirrorSystem, bool value)
       : super(mirrorSystem, null,
-              value ? new TrueConstantValue() : new FalseConstantValue());
+            value ? new TrueConstantValue() : new FalseConstantValue());
 
   BoolConstantValue get _value => super._value;
 
@@ -128,14 +123,13 @@ class Dart2JsBoolConstantMirror extends Dart2JsConstantMirror {
 
 class Dart2JsStringConstantMirror extends Dart2JsConstantMirror {
   Dart2JsStringConstantMirror(Dart2JsMirrorSystem mirrorSystem,
-                              ConstantExpression constant,
-                              StringConstantValue value)
+      ConstantExpression constant, StringConstantValue value)
       : super(mirrorSystem, constant, value);
 
-  Dart2JsStringConstantMirror.fromString(Dart2JsMirrorSystem mirrorSystem,
-                                         String text)
+  Dart2JsStringConstantMirror.fromString(
+      Dart2JsMirrorSystem mirrorSystem, String text)
       : super(mirrorSystem, null,
-              new StringConstantValue(new DartString.literal(text)));
+            new StringConstantValue(new DartString.literal(text)));
 
   StringConstantValue get _value => super._value;
 
@@ -146,8 +140,7 @@ class Dart2JsStringConstantMirror extends Dart2JsConstantMirror {
 
 class Dart2JsNumConstantMirror extends Dart2JsConstantMirror {
   Dart2JsNumConstantMirror(Dart2JsMirrorSystem mirrorSystem,
-                           ConstantExpression constant,
-                           NumConstantValue value)
+      ConstantExpression constant, NumConstantValue value)
       : super(mirrorSystem, constant, value);
 
   NumConstantValue get _value => super._value;
@@ -160,8 +153,7 @@ class Dart2JsNumConstantMirror extends Dart2JsConstantMirror {
 class Dart2JsListConstantMirror extends Dart2JsConstantMirror
     implements ListInstanceMirror {
   Dart2JsListConstantMirror(Dart2JsMirrorSystem mirrorSystem,
-                            ConstantExpression constant,
-                            ListConstantValue value)
+      ConstantExpression constant, ListConstantValue value)
       : super(mirrorSystem, constant, value);
 
   ListConstantValue get _value => super._value;
@@ -181,8 +173,7 @@ class Dart2JsMapConstantMirror extends Dart2JsConstantMirror
   List<String> _listCache;
 
   Dart2JsMapConstantMirror(Dart2JsMirrorSystem mirrorSystem,
-                           ConstantExpression constant,
-                           MapConstantValue value)
+      ConstantExpression constant, MapConstantValue value)
       : super(mirrorSystem, constant, value);
 
   MapConstantValue get _value => super._value;
@@ -216,10 +207,8 @@ class Dart2JsMapConstantMirror extends Dart2JsConstantMirror
 
 class Dart2JsTypeConstantMirror extends Dart2JsConstantMirror
     implements TypeInstanceMirror {
-
   Dart2JsTypeConstantMirror(Dart2JsMirrorSystem mirrorSystem,
-                            ConstantExpression constant,
-                            TypeConstantValue value)
+      ConstantExpression constant, TypeConstantValue value)
       : super(mirrorSystem, constant, value);
 
   TypeConstantValue get _value => super._value;
@@ -232,8 +221,7 @@ class Dart2JsConstructedConstantMirror extends Dart2JsConstantMirror {
   Map<String, ConstantValue> _fieldMapCache;
 
   Dart2JsConstructedConstantMirror(Dart2JsMirrorSystem mirrorSystem,
-                                   ConstantExpression constant,
-                                   ConstructedConstantValue value)
+      ConstantExpression constant, ConstructedConstantValue value)
       : super(mirrorSystem, constant, value);
 
   ConstructedConstantValue get _value => super._value;
@@ -262,8 +250,8 @@ class Dart2JsConstructedConstantMirror extends Dart2JsConstantMirror {
 }
 
 class Dart2JsCommentInstanceMirror extends Object
-  with ObjectMirrorMixin, InstanceMirrorMixin
-  implements CommentInstanceMirror {
+    with ObjectMirrorMixin, InstanceMirrorMixin
+    implements CommentInstanceMirror {
   final Dart2JsMirrorSystem mirrorSystem;
   final String text;
   String _trimmedText;
@@ -271,8 +259,8 @@ class Dart2JsCommentInstanceMirror extends Object
   Dart2JsCommentInstanceMirror(this.mirrorSystem, this.text);
 
   ClassMirror get type {
-    return mirrorSystem._getTypeDeclarationMirror(
-        mirrorSystem.compiler.documentClass);
+    return mirrorSystem
+        ._getTypeDeclarationMirror(mirrorSystem.compiler.documentClass);
   }
 
   bool get isDocComment => text.startsWith('/**') || text.startsWith('///');
@@ -290,8 +278,8 @@ class Dart2JsCommentInstanceMirror extends Object
     } else if (fieldName == #text) {
       return new Dart2JsStringConstantMirror.fromString(mirrorSystem, text);
     } else if (fieldName == #trimmedText) {
-      return new Dart2JsStringConstantMirror.fromString(mirrorSystem,
-                                                        trimmedText);
+      return new Dart2JsStringConstantMirror.fromString(
+          mirrorSystem, trimmedText);
     }
     return super.getField(fieldName);
   }

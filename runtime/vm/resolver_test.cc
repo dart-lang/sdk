@@ -158,7 +158,7 @@ TEST_CASE(DartDynamicResolve) {
   const Library& lib = Library::Handle(Library::LookupLibrary(lib_name));
   ASSERT(!lib.IsNull());
   const Class& cls = Class::Handle(lib.LookupClass(
-      String::Handle(Symbols::New(test_class_name))));
+      String::Handle(Symbols::New(thread, test_class_name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
 
   Instance& receiver = Instance::Handle(Instance::New(cls));

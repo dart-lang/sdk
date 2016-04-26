@@ -66,6 +66,10 @@ main() {
         expect(processor.options['test_plugin'], isNotNull);
         expect(processor.exception, isNull);
       });
+      test('todos', () {
+        drive('data/file_with_todo.dart');
+        expect(outSink.toString().contains('[info]'), isFalse);
+      });
     });
 
     group('exit codes', () {
@@ -252,8 +256,7 @@ linter:
               outSink.toString(),
               contains(
                   "[error] This function declares a return type of 'int'"));
-          expect(outSink.toString(),
-              contains("1 error and 1 warning found."));
+          expect(outSink.toString(), contains("1 error and 1 warning found."));
         });
 
         test('language', () {
@@ -280,9 +283,51 @@ linter:
           // Should not be made fatal by `--fatal-warnings`.
           expect(outSink.toString(),
               contains("[warning] The function 'baz' is not defined"));
-          expect(outSink.toString(),
-              contains("1 error and 1 warning found."));
+          expect(outSink.toString(), contains("1 error and 1 warning found."));
         });
+      });
+    });
+
+    group('build-mode', () {
+      // Shared driver command.
+      void doDrive(String filePath, {List<String> additionalArgs: const []}) {
+        drive('file:///test_file.dart|$filePath',
+            args: [
+              '--dart-sdk',
+              findSdkDirForSummaries(),
+              '--build-mode',
+              '--machine'
+            ]..addAll(additionalArgs),
+            options: 'data/options_tests_project/.analysis_options');
+      }
+
+      test('no stats', () {
+        doDrive('data/test_file.dart');
+        // Should not print stat summary.
+        expect(outSink.toString(), isEmpty);
+        expect(errorSink.toString(), isEmpty);
+        expect(exitCode, 0);
+      });
+
+      test(
+          'Fails if file not found, even when --build-suppress-exit-code is given',
+          () {
+        doDrive('data/non_existent_file.dart',
+            additionalArgs: ['--build-suppress-exit-code']);
+        expect(exitCode, isNot(0));
+      });
+
+      test('Fails if there are errors', () {
+        doDrive('data/file_with_error.dart');
+        expect(exitCode, isNot(0));
+      });
+
+      test(
+          'Succeeds if there are errors, when --build-suppress-exit-code is given',
+          () {
+        doDrive('data/file_with_error.dart',
+            additionalArgs: ['--build-suppress-exit-code']);
+        expect(exitCode, 0);
       });
     });
 
@@ -348,8 +393,6 @@ linter:
 //      });
 //    });
   });
-
-
 }
 
 const emptyOptionsFile = 'data/empty_options.yaml';
@@ -360,8 +403,14 @@ Driver driver;
 List<ErrorProcessor> get processors =>
     driver.context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
 
-ErrorProcessor processorFor(AnalysisError error) =>
-    processors.firstWhere((p) => p.appliesTo(error));
+/// Convert a file specification from a relative path to an absolute path.
+/// Handles the case where the file specification is of the form "$uri|$path".
+String adjustFileSpec(String fileSpec) {
+  int uriPrefixLength = fileSpec.indexOf('|') + 1;
+  String uriPrefix = fileSpec.substring(0, uriPrefixLength);
+  String relativePath = fileSpec.substring(uriPrefixLength);
+  return '$uriPrefix${path.join(testDirectory, relativePath)}';
+}
 
 /// Start a driver for the given [source], optionally providing additional
 /// [args] and an [options] file path.  The value of [options] defaults to
@@ -373,13 +422,59 @@ void drive(String source,
   var cmd = [
     '--options',
     path.join(testDirectory, options),
-    path.join(testDirectory, source)
+    adjustFileSpec(source)
   ]..addAll(args);
   driver.start(cmd);
 }
 
+/// Try to find a appropriate directory to pass to "--dart-sdk" that will
+/// allow summaries to be found.
+String findSdkDirForSummaries() {
+  Set<String> triedDirectories = new Set<String>();
+  bool isSuitable(String sdkDir) {
+    triedDirectories.add(sdkDir);
+    return new File(path.join(sdkDir, 'lib', '_internal', 'spec.sum'))
+        .existsSync();
+  }
+  // Usually the sdk directory is the parent of the parent of the "dart"
+  // executable.
+  Directory executableParent = new File(Platform.executable).parent;
+  Directory executableGrandparent = executableParent.parent;
+  if (isSuitable(executableGrandparent.path)) {
+    return executableGrandparent.path;
+  }
+  // During buildbot execution, the sdk directory is simply the parent of the
+  // "dart" executable.
+  if (isSuitable(executableParent.path)) {
+    return executableParent.path;
+  }
+  // If neither of those are suitable, assume we are running locally within the
+  // SDK project (e.g. within an IDE).  Find the build output directory and
+  // search all built configurations.
+  Directory sdkRootDir =
+      new File(Platform.script.toFilePath()).parent.parent.parent.parent;
+  for (String outDirName in ['out', 'xcodebuild']) {
+    Directory outDir = new Directory(path.join(sdkRootDir.path, outDirName));
+    if (outDir.existsSync()) {
+      for (FileSystemEntity subdir in outDir.listSync()) {
+        if (subdir is Directory) {
+          String candidateSdkDir = path.join(subdir.path, 'dart-sdk');
+          if (isSuitable(candidateSdkDir)) {
+            return candidateSdkDir;
+          }
+        }
+      }
+    }
+  }
+  throw new Exception('Could not find an SDK directory containing summaries.'
+      '  Tried: ${triedDirectories.toList()}');
+}
+
 Map<String, YamlNode> parseOptions(String src) =>
     new AnalysisOptionsProvider().getOptionsFromString(src);
+
+ErrorProcessor processorFor(AnalysisError error) =>
+    processors.firstWhere((p) => p.appliesTo(error));
 
 class TestPlugin extends Plugin {
   TestProcessor processor;

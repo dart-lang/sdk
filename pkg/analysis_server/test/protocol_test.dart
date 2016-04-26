@@ -266,7 +266,8 @@ class ResponseTest {
     Response original = new Response('myId', result: {'foo': 'bar'});
     Response response = new Response.fromJson(original.toJson());
     expect(response.id, equals('myId'));
-    Map<String, Object> result = response.toJson()['result'];
+    Map<String, Object> result =
+        response.toJson()['result'] as Map<String, Object>;
     expect(result.length, equals(1));
     expect(result['foo'], equals('bar'));
   }

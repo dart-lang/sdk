@@ -380,7 +380,15 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    *     }
    *     document.registerElement('x-custom', CustomElement);
    */
+$if DART2JS
   Element.created() : super._created();
+$else
+  Element.created() : super._created() {
+    // Validate that this is a custom element & possibly perform additional
+    // initialization.
+    _blink.Blink_Utils.initializeCustomElement(this);
+  }
+$endif
 
   /**
    * Creates the HTML element specified by the tag name.
@@ -1483,24 +1491,20 @@ $else
   static var _htmlCollection = js.context["HTMLCollection"];
   static var _nodeList = js.context["NodeList"];
 
+  static const _evilAttributeNames =
+      const ['attributes', 'lastChild', 'children', 'childNodes'];
+
   static bool _hasCorruptedAttributes(Element element) {
-    var attributes = unwrap_jso(element)["attributes"];
-    if (!attributes.instanceof(_namedNodeMap)) {
-      return true;
-    }
-    var childNodes = unwrap_jso(element.childNodes);
-    var length = childNodes["length"];
-    var lastChild = unwrap_jso(element.lastChild);
-    if (null != lastChild &&
-        lastChild != childNodes[length - 1]) {
-      return true;
-    }
-    var children = unwrap_jso(element._children);
-    if (null != children) { // On Safari, children can apparently be null.
-      if (!children.instanceof(_htmlCollection) ||
-          children.instanceof(_nodeList)) {
-	return true;
-      }
+    // We have trusted access to children and to attributes of objects,
+    // so we can inspect directly for attempts at DOM clobbering.
+    var child = element.firstChild;
+    while( child != null)  {
+      if (child is Element) {
+      for (var attributeName in ["id", "name"]) {
+        var childAttribute = child.getAttribute(attributeName);
+        if (_evilAttributeNames.contains(childAttribute)) return true;
+      }}
+      child = child.nextNode;
     }
     return false;
   }
@@ -1509,6 +1513,7 @@ $else
   static bool _hasCorruptedAttributesAdditionalCheck(Element element) => false;
 $endif
 
+$if DART2JS
   static String _safeTagName(element) {
     String result = 'element tag unavailable';
     try {
@@ -1518,6 +1523,15 @@ $endif
     } catch (e) {}
     return result;
   }
+$else
+  static String _safeTagName(element) {
+    try {
+      // Safe as we plumb directly to a C++ native method.
+      return element.tagName;
+    } catch (e) {}
+    return 'element tag unavailable';
+  }
+$endif  
 
 $if DART2JS
   @DomName('Element.offsetParent')
@@ -1570,52 +1584,52 @@ $if DART2JS
 
 $else
   // Need to explicitly delegate because Element is no longer abstract for Dartium.
-  bool get isContentEditable => _blink.BlinkHTMLElement.instance.isContentEditable_Getter_(unwrap_jso(this));
-  void click() => _blink.BlinkHTMLElement.instance.click_Callback_0_(unwrap_jso(this));
+  bool get isContentEditable => _blink.BlinkHTMLElement.instance.isContentEditable_Getter_(this);
+  void click() => _blink.BlinkHTMLElement.instance.click_Callback_0_(this);
 
   @DomName('Element.offsetParent')
   @DocsEditable()
-  Element get offsetParent => wrap_jso(_blink.BlinkElement.instance.offsetParent_Getter_(unwrap_jso(this)));
+  Element get offsetParent => _blink.BlinkElement.instance.offsetParent_Getter_(this);
 
   @DomName('Element.offsetHeight')
   @DocsEditable()
-  int get offsetHeight => _blink.BlinkElement.instance.offsetHeight_Getter_(unwrap_jso(this));
+  int get offsetHeight => _blink.BlinkElement.instance.offsetHeight_Getter_(this);
 
   @DomName('Element.offsetLeft')
   @DocsEditable()
-  int get offsetLeft => _blink.BlinkElement.instance.offsetLeft_Getter_(unwrap_jso(this));
+  int get offsetLeft => _blink.BlinkElement.instance.offsetLeft_Getter_(this);
 
   @DomName('Element.offsetTop')
   @DocsEditable()
-  int get offsetTop => _blink.BlinkElement.instance.offsetTop_Getter_(unwrap_jso(this));
+  int get offsetTop => _blink.BlinkElement.instance.offsetTop_Getter_(this);
 
   @DomName('Element.offsetWidth')
   @DocsEditable()
-  int get offsetWidth => _blink.BlinkElement.instance.offsetWidth_Getter_(unwrap_jso(this));
+  int get offsetWidth => _blink.BlinkElement.instance.offsetWidth_Getter_(this);
 
   @DomName('Element.scrollHeight')
   @DocsEditable()
-  int get scrollHeight => _blink.BlinkElement.instance.scrollHeight_Getter_(unwrap_jso(this)).round();
+  int get scrollHeight => _blink.BlinkElement.instance.scrollHeight_Getter_(this).round();
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  int get scrollLeft => _blink.BlinkElement.instance.scrollLeft_Getter_(unwrap_jso(this)).round();
+  int get scrollLeft => _blink.BlinkElement.instance.scrollLeft_Getter_(this).round();
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  set scrollLeft(int value) => _blink.BlinkElement.instance.scrollLeft_Setter_(unwrap_jso(this), value.round());
+  set scrollLeft(int value) => _blink.BlinkElement.instance.scrollLeft_Setter_(this, value.round());
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  int get scrollTop => _blink.BlinkElement.instance.scrollTop_Getter_(unwrap_jso(this)).round();
+  int get scrollTop => _blink.BlinkElement.instance.scrollTop_Getter_(this).round();
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  set scrollTop(int value) => _blink.BlinkElement.instance.scrollTop_Setter_(unwrap_jso(this), value.round());
+  set scrollTop(int value) => _blink.BlinkElement.instance.scrollTop_Setter_(this, value.round());
 
   @DomName('Element.scrollWidth')
   @DocsEditable()
-  int get scrollWidth => _blink.BlinkElement.instance.scrollWidth_Getter_(unwrap_jso(this)).round();
+  int get scrollWidth => _blink.BlinkElement.instance.scrollWidth_Getter_(this).round();
 $endif
 
 $!MEMBERS

@@ -6,8 +6,7 @@ library services.src.refactoring.sort_members;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/strings.dart';
-import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 
 /**
  * Sorter for unit/class members.
@@ -63,16 +62,9 @@ class MemberSorter {
     // prepare edits
     List<SourceEdit> edits = <SourceEdit>[];
     if (code != initialCode) {
-      int prefixLength = findCommonPrefix(initialCode, code);
-      int suffixLength = findCommonSuffix(initialCode, code);
-      String prefix = code.substring(0, prefixLength);
-      String suffix = code.substring(code.length - suffixLength, code.length);
-      int commonLength = findCommonOverlap(prefix, suffix);
-      suffixLength -= commonLength;
-      SourceEdit edit = new SourceEdit(
-          prefixLength,
-          initialCode.length - suffixLength - prefixLength,
-          code.substring(prefixLength, code.length - suffixLength));
+      SimpleDiff diff = computeSimpleDiff(initialCode, code);
+      SourceEdit edit =
+          new SourceEdit(diff.offset, diff.length, diff.replacement);
       edits.add(edit);
     }
     return edits;
@@ -161,8 +153,12 @@ class MemberSorter {
    * Sorts all [Directive]s.
    */
   void _sortUnitDirectives() {
+    bool hasLibraryDirective = false;
     List<_DirectiveInfo> directives = [];
     for (Directive directive in unit.directives) {
+      if (directive is LibraryDirective) {
+        hasLibraryDirective = true;
+      }
       if (directive is! UriBasedDirective) {
         continue;
       }
@@ -195,10 +191,17 @@ class MemberSorter {
         kind = _DirectivePriority.PART;
       }
       if (kind != null) {
-        int offset = directive.offset;
-        int length = directive.length;
+        String documentationText;
+        if (directive.documentationComment != null) {
+          documentationText = code.substring(
+              directive.documentationComment.offset,
+              directive.documentationComment.end);
+        }
+        int offset = directive.firstTokenAfterCommentAndMetadata.offset;
+        int length = directive.end - offset;
         String text = code.substring(offset, offset + length);
-        directives.add(new _DirectiveInfo(directive, kind, uriContent, text));
+        directives.add(new _DirectiveInfo(
+            directive, kind, uriContent, documentationText, text));
       }
     }
     // nothing to do
@@ -207,6 +210,12 @@ class MemberSorter {
     }
     int firstDirectiveOffset = directives[0].directive.offset;
     int lastDirectiveEnd = directives[directives.length - 1].directive.end;
+    // Without a library directive, the library comment is the comment of the
+    // first directive.
+    _DirectiveInfo libraryDocumentationDirective;
+    if (!hasLibraryDirective && directives.isNotEmpty) {
+      libraryDocumentationDirective = directives.first;
+    }
     // do sort
     directives.sort();
     // append directives with grouping
@@ -215,6 +224,7 @@ class MemberSorter {
       StringBuffer sb = new StringBuffer();
       String endOfLine = this.endOfLine;
       _DirectivePriority currentPriority = null;
+      bool firstOutputDirective = true;
       for (_DirectiveInfo directive in directives) {
         if (currentPriority != directive.priority) {
           if (sb.length != 0) {
@@ -222,34 +232,24 @@ class MemberSorter {
           }
           currentPriority = directive.priority;
         }
+        if (directive != libraryDocumentationDirective &&
+            directive.documentationText != null) {
+          sb.write(directive.documentationText);
+          sb.write(endOfLine);
+        }
+        if (firstOutputDirective) {
+          firstOutputDirective = false;
+          if (libraryDocumentationDirective != null &&
+              libraryDocumentationDirective.documentationText != null) {
+            sb.write(libraryDocumentationDirective.documentationText);
+            sb.write(endOfLine);
+          }
+        }
         sb.write(directive.text);
         sb.write(endOfLine);
       }
       directivesCode = sb.toString();
       directivesCode = directivesCode.trimRight();
-    }
-    // append comment tokens which otherwise would be removed completely
-    {
-      bool firstCommentToken = true;
-      Token token = unit.beginToken;
-      while (token != null &&
-          token.type != TokenType.EOF &&
-          token.end < lastDirectiveEnd) {
-        Token commentToken = token.precedingComments;
-        while (commentToken != null) {
-          int offset = commentToken.offset;
-          int end = commentToken.end;
-          if (offset > firstDirectiveOffset && offset < lastDirectiveEnd) {
-            if (firstCommentToken) {
-              directivesCode += endOfLine;
-              firstCommentToken = false;
-            }
-            directivesCode += code.substring(offset, end) + endOfLine;
-          }
-          commentToken = commentToken.next;
-        }
-        token = token.next;
-      }
     }
     // prepare code
     String beforeDirectives = code.substring(0, firstDirectiveOffset);
@@ -368,9 +368,11 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   final Directive directive;
   final _DirectivePriority priority;
   final String uri;
+  final String documentationText;
   final String text;
 
-  _DirectiveInfo(this.directive, this.priority, this.uri, this.text);
+  _DirectiveInfo(this.directive, this.priority, this.uri,
+      this.documentationText, this.text);
 
   @override
   int compareTo(_DirectiveInfo other) {

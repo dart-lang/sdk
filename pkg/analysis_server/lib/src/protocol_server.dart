@@ -9,10 +9,12 @@ import 'package:analysis_server/plugin/protocol/protocol_dart.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart'
     as engine;
+import 'package:analyzer/dart/ast/ast.dart' as engine;
+import 'package:analyzer/dart/ast/visitor.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/type.dart' as engine;
 import 'package:analyzer/source/error_processor.dart';
-import 'package:analyzer/src/generated/ast.dart' as engine;
+import 'package:analyzer/src/dart/ast/utilities.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
@@ -41,7 +43,14 @@ List<AnalysisError> doAnalysisError_listFromEngine(
             .add(newAnalysisError_fromEngine(lineInfo, error, severity));
       }
     } else {
-      serverErrors.add(newAnalysisError_fromEngine(lineInfo, error));
+      AnalysisError error2 = newAnalysisError_fromEngine(lineInfo, error);
+      bool isStrongMode = context.analysisOptions.strongMode;
+      if (isStrongMode &&
+          error is engine.StaticWarningCode &&
+          (error as engine.StaticWarningCode).isStrongModeError) {
+        error2.severity = AnalysisErrorSeverity.ERROR;
+      }
+      serverErrors.add(error2);
     }
   }
   return serverErrors;
@@ -111,16 +120,17 @@ AnalysisError newAnalysisError_fromEngine(
     location = new Location(file, offset, length, startLine, startColumn);
   }
 
-  // Deafult to the error's severity if none is specified.
+  // Default to the error's severity if none is specified.
   errorSeverity ??= errorCode.errorSeverity;
 
   // done
   var severity = new AnalysisErrorSeverity(errorSeverity.name);
   var type = new AnalysisErrorType(errorCode.type.name);
   String message = error.message;
+  String code = errorCode.name.toLowerCase();
   String correction = error.correction;
   bool fix = hasFix(error.errorCode);
-  return new AnalysisError(severity, type, location, message,
+  return new AnalysisError(severity, type, location, message, code,
       correction: correction, hasFix: fix);
 }
 

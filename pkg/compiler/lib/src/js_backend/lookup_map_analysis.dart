@@ -8,23 +8,25 @@ library compiler.src.js_backend.lookup_map_analysis;
 import '../common.dart';
 import '../common/registry.dart' show Registry;
 import '../compiler.dart' show Compiler;
-import '../constants/values.dart' show
-    ConstantValue,
-    ConstructedConstantValue,
-    ListConstantValue,
-    NullConstantValue,
-    StringConstantValue,
-    TypeConstantValue;
+import '../constants/values.dart'
+    show
+        ConstantValue,
+        ConstructedConstantValue,
+        ListConstantValue,
+        NullConstantValue,
+        StringConstantValue,
+        TypeConstantValue;
 import '../dart_types.dart' show DartType;
-import '../elements/elements.dart' show
-    ClassElement,
-    Element,
-    Elements,
-    FieldElement,
-    FunctionElement,
-    FunctionSignature,
-    LibraryElement,
-    VariableElement;
+import '../elements/elements.dart'
+    show
+        ClassElement,
+        Element,
+        Elements,
+        FieldElement,
+        FunctionElement,
+        FunctionSignature,
+        LibraryElement,
+        VariableElement;
 import 'js_backend.dart' show JavaScriptBackend;
 import '../dart_types.dart' show DynamicType, InterfaceType;
 import 'package:pub_semver/pub_semver.dart';
@@ -143,11 +145,11 @@ class LookupMapAnalysis {
     // the lookup_map package. We otherwise produce a warning.
     lookupMapVersionVariable = library.implementation.findLocal('_version');
     if (lookupMapVersionVariable == null) {
-      reporter.reportInfo(library,
-          MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
+      reporter.reportInfo(
+          library, MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
     } else {
-      backend.compiler.enqueuer.resolution.addToWorkList(
-          lookupMapVersionVariable);
+      backend.compiler.enqueuer.resolution
+          .addToWorkList(lookupMapVersionVariable);
     }
   }
 
@@ -199,16 +201,16 @@ class LookupMapAnalysis {
   void registerLookupMapReference(ConstantValue lookupMap) {
     if (!_isEnabled || !_inCodegen) return;
     assert(isLookupMap(lookupMap));
-    _lookupMaps.putIfAbsent(lookupMap,
-        () => new _LookupMapInfo(lookupMap, this).._updateUsed());
+    _lookupMaps.putIfAbsent(
+        lookupMap, () => new _LookupMapInfo(lookupMap, this).._updateUsed());
   }
 
   /// Whether [key] is a constant value whose type overrides equals.
   bool _overridesEquals(ConstantValue key) {
     if (key is ConstructedConstantValue) {
       ClassElement element = key.type.element;
-      return _typesWithEquals.putIfAbsent(element, () =>
-          !element.lookupMember('==').enclosingClass.isObject);
+      return _typesWithEquals.putIfAbsent(
+          element, () => !element.lookupMember('==').enclosingClass.isObject);
     }
     return false;
   }
@@ -299,7 +301,7 @@ class LookupMapAnalysis {
     if (!_isEnabled || !_inCodegen) return;
 
     _lookupMaps.values.forEach((info) {
-      assert (!info.emitted);
+      assert(!info.emitted);
       info.emitted = true;
       info._prepareForEmission();
     });
@@ -307,7 +309,7 @@ class LookupMapAnalysis {
     // When --verbose is passed, we show the total number and set of keys that
     // were tree-shaken from lookup maps.
     Compiler compiler = backend.compiler;
-    if (compiler.verbose) {
+    if (compiler.options.verbose) {
       var sb = new StringBuffer();
       int count = 0;
       for (var info in _lookupMaps.values) {
@@ -356,11 +358,11 @@ class _LookupMapInfo {
   /// Entries in the lookup map whose keys have not been seen in the rest of the
   /// program.
   Map<ConstantValue, ConstantValue> unusedEntries =
-      <ConstantValue, ConstantValue> {};
+      <ConstantValue, ConstantValue>{};
 
   /// Entries that have been used, and thus will be part of the generated code.
   Map<ConstantValue, ConstantValue> usedEntries =
-      <ConstantValue, ConstantValue> {};
+      <ConstantValue, ConstantValue>{};
 
   /// Creates and initializes the information containing all keys of the
   /// original map marked as unused.
@@ -412,8 +414,8 @@ class _LookupMapInfo {
     assert(!usedEntries.containsKey(key));
     ConstantValue constant = unusedEntries.remove(key);
     usedEntries[key] = constant;
-    analysis.backend.registerCompileTimeConstant(constant,
-        analysis.backend.compiler.globalDependencies);
+    analysis.backend.registerCompileTimeConstant(
+        constant, analysis.backend.compiler.globalDependencies);
   }
 
   /// Restores [original] to contain all of the entries marked as possibly used.
@@ -428,7 +430,7 @@ class _LookupMapInfo {
 
     // Note: we are restoring the entries here, see comment in [original].
     if (singlePair) {
-      assert (keyValuePairs.length == 0 || keyValuePairs.length == 2);
+      assert(keyValuePairs.length == 0 || keyValuePairs.length == 2);
       if (keyValuePairs.length == 2) {
         original.fields[analysis.keyField] = keyValuePairs[0];
         original.fields[analysis.valueField] = keyValuePairs[1];
@@ -440,5 +442,4 @@ class _LookupMapInfo {
   }
 }
 
-final _validLookupMapVersionConstraint =
-    new VersionConstraint.parse('^0.0.1');
+final _validLookupMapVersionConstraint = new VersionConstraint.parse('^0.0.1');

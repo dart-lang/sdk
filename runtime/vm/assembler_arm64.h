@@ -1228,6 +1228,7 @@ class Assembler : public ValueObject {
                   Patchability patchable = kNotPatchable);
 
   void BranchLinkPatchable(const StubEntry& stub_entry);
+  void BranchLinkToRuntime();
 
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.

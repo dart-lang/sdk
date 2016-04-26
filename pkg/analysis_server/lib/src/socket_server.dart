@@ -9,7 +9,6 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/local_file_index.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/embedded_resolver_provider.dart';
@@ -87,9 +86,7 @@ class SocketServer {
 
     Index index = null;
     if (!analysisServerOptions.noIndex) {
-      index = createLocalFileIndex();
-      index.contributors = serverPlugin.indexContributors;
-      index.run();
+      index = createMemoryIndex();
     }
 
     analysisServer = new AnalysisServer(

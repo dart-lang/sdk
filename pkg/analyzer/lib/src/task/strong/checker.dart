@@ -145,7 +145,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (expr is ParenthesizedExpression) {
       checkAssignment(expr.expression, type);
     } else {
-      _recordMessage(_checkAssignment(expr, type));
+      _checkDowncast(expr, type);
     }
   }
 
@@ -327,19 +327,44 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitForEachStatement(ForEachStatement node) {
-    // Check that the expression is an Iterable.
-    var expr = node.iterable;
-    var iterableType = node.awaitKeyword != null
-        ? typeProvider.streamType
-        : typeProvider.iterableType;
     var loopVariable = node.identifier != null
         ? node.identifier
         : node.loopVariable?.identifier;
+
+    // Safely handle malformed statements.
     if (loopVariable != null) {
-      var iteratorType = loopVariable.staticType;
-      var checkedType = iterableType.substitute4([iteratorType]);
-      checkAssignment(expr, checkedType);
+      // Find the element type of the sequence.
+      var sequenceInterface = node.awaitKeyword != null
+          ? typeProvider.streamType
+          : typeProvider.iterableType;
+      var iterableType = _getStaticType(node.iterable);
+      var elementType =
+          rules.mostSpecificTypeArgument(iterableType, sequenceInterface);
+
+      // If the sequence is not an Iterable (or Stream for await for) but is a
+      // supertype of it, do an implicit downcast to Iterable<dynamic>. Then
+      // we'll do a separate cast of the dynamic element to the variable's type.
+      if (elementType == null) {
+        var sequenceType =
+            sequenceInterface.instantiate([DynamicTypeImpl.instance]);
+
+        if (rules.isSubtypeOf(sequenceType, iterableType)) {
+          _recordMessage(DownCast.create(
+              rules, node.iterable, iterableType, sequenceType));
+          elementType = DynamicTypeImpl.instance;
+        }
+      }
+
+      // If the sequence doesn't implement the interface at all, [ErrorVerifier]
+      // will report the error, so ignore it here.
+      if (elementType != null) {
+        // Insert a cast from the sequence's element type to the loop variable's
+        // if needed.
+        _checkDowncast(loopVariable, _getStaticType(loopVariable),
+            from: elementType);
+      }
     }
+
     node.visitChildren(this);
   }
 
@@ -565,25 +590,15 @@ class CodeChecker extends RecursiveAstVisitor {
     node.visitChildren(this);
   }
 
-  StaticInfo _checkAssignment(Expression expr, DartType toT) {
-    final fromT = _getStaticType(expr);
-    final Coercion c = _coerceTo(fromT, toT);
-    if (c is Identity) return null;
-    if (c is CoercionError) return new StaticTypeError(rules, expr, toT);
-    if (c is Cast) return DownCast.create(rules, expr, c);
-    assert(false);
-    return null;
-  }
-
   void _checkCompoundAssignment(AssignmentExpression expr) {
     var op = expr.operator.type;
     assert(op.isAssignmentOperator && op != TokenType.EQ);
     var methodElement = expr.staticElement;
     if (methodElement == null) {
-      // Dynamic invocation
+      // Dynamic invocation.
       _recordDynamicInvoke(expr, expr.leftHandSide);
     } else {
-      // Sanity check the operator
+      // Sanity check the operator.
       assert(methodElement.isOperator);
       var functionType = methodElement.type;
       var paramTypes = functionType.normalParameterTypes;
@@ -591,7 +606,7 @@ class CodeChecker extends RecursiveAstVisitor {
       assert(functionType.namedParameterTypes.isEmpty);
       assert(functionType.optionalParameterTypes.isEmpty);
 
-      // Check the lhs type
+      // Check the LHS type.
       var staticInfo;
       var rhsType = _getStaticType(expr.rightHandSide);
       var lhsType = _getStaticType(expr.leftHandSide);
@@ -605,11 +620,10 @@ class CodeChecker extends RecursiveAstVisitor {
             rules.isSubtypeOf(lhsType, rhsType)) {
           // This is also slightly different from spec, but allows us to keep
           // compound operators in the int += num and num += dynamic cases.
-          staticInfo = DownCast.create(
-              rules, expr.rightHandSide, Coercion.cast(rhsType, lhsType));
+          staticInfo =
+              DownCast.create(rules, expr.rightHandSide, rhsType, lhsType);
           rhsType = lhsType;
         } else {
-          // Static type error
           staticInfo = new StaticTypeError(rules, expr, lhsType);
         }
         _recordMessage(staticInfo);
@@ -618,9 +632,57 @@ class CodeChecker extends RecursiveAstVisitor {
       // Check the rhs type
       if (staticInfo is! CoercionInfo) {
         var paramType = paramTypes.first;
-        staticInfo = _checkAssignment(expr.rightHandSide, paramType);
-        _recordMessage(staticInfo);
+        _checkDowncast(expr.rightHandSide, paramType);
       }
+    }
+  }
+
+  /// Records a [DownCast] of [expr] from [from] to [to], if there is one.
+  ///
+  /// If [from] is omitted, uses the static type of [expr].
+  ///
+  /// If [expr] does not require a downcast because it is not related to [to]
+  /// or is already a subtype of it, does nothing.
+  void _checkDowncast(Expression expr, DartType to, {DartType from}) {
+    if (from == null) {
+      from = _getStaticType(expr);
+    }
+
+    // We can use anything as void.
+    if (to.isVoid) return;
+
+    // fromT <: toT, no coercion needed.
+    if (rules.isSubtypeOf(from, to)) return;
+
+    // TODO(vsm): We can get rid of the second clause if we disallow
+    // all sideways casts - see TODO below.
+    // -------
+    // Note: a function type is never assignable to a class per the Dart
+    // spec - even if it has a compatible call method.  We disallow as
+    // well for consistency.
+    if ((from is FunctionType && rules.getCallMethodType(to) != null) ||
+        (to is FunctionType && rules.getCallMethodType(from) != null)) {
+      return;
+    }
+
+    // Downcast if toT <: fromT
+    if (rules.isSubtypeOf(to, from)) {
+      _recordMessage(DownCast.create(rules, expr, from, to));
+      return;
+    }
+
+    // TODO(vsm): Once we have generic methods, we should delete this
+    // workaround.  These sideways casts are always ones we warn about
+    // - i.e., we think they are likely to fail at runtime.
+    // -------
+    // Downcast if toT <===> fromT
+    // The intention here is to allow casts that are sideways in the restricted
+    // type system, but allowed in the regular dart type system, since these
+    // are likely to succeed.  The canonical example is List<dynamic> and
+    // Iterable<T> for some concrete T (e.g. Object).  These are unrelated
+    // in the restricted system, but List<dynamic> <: Iterable<T> in dart.
+    if (from.isAssignableTo(to)) {
+      _recordMessage(DownCast.create(rules, expr, from, to));
     }
   }
 
@@ -634,7 +696,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
   void _checkReturnOrYield(Expression expression, AstNode node,
       {bool yieldStar: false}) {
-    var body = node.getAncestor((n) => n is FunctionBody);
+    FunctionBody body = node.getAncestor((n) => n is FunctionBody);
     var type = _getExpectedReturnType(body, yieldStar: yieldStar);
     if (type == null) {
       // We have a type mismatch: the async/async*/sync* modifier does
@@ -648,7 +710,7 @@ class CodeChecker extends RecursiveAstVisitor {
         !body.isGenerator &&
         actualType is InterfaceType &&
         actualType.element == futureType.element) {
-      type = futureType.substitute4([type]);
+      type = futureType.instantiate([type]);
     }
     // TODO(vsm): Enforce void or dynamic (to void?) when expression is null.
     if (expression != null) checkAssignment(expression, type);
@@ -675,44 +737,6 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  Coercion _coerceTo(DartType fromT, DartType toT) {
-    // We can use anything as void
-    if (toT.isVoid) return Coercion.identity(toT);
-
-    // fromT <: toT, no coercion needed
-    if (rules.isSubtypeOf(fromT, toT)) return Coercion.identity(toT);
-
-    // TODO(vsm): We can get rid of the second clause if we disallow
-    // all sideways casts - see TODO below.
-    // -------
-    // Note: a function type is never assignable to a class per the Dart
-    // spec - even if it has a compatible call method.  We disallow as
-    // well for consistency.
-    if ((fromT is FunctionType && rules.getCallMethodType(toT) != null) ||
-        (toT is FunctionType && rules.getCallMethodType(fromT) != null)) {
-      return Coercion.error();
-    }
-
-    // Downcast if toT <: fromT
-    if (rules.isSubtypeOf(toT, fromT)) return Coercion.cast(fromT, toT);
-
-    // TODO(vsm): Once we have generic methods, we should delete this
-    // workaround.  These sideways casts are always ones we warn about
-    // - i.e., we think they are likely to fail at runtime.
-    // -------
-    // Downcast if toT <===> fromT
-    // The intention here is to allow casts that are sideways in the restricted
-    // type system, but allowed in the regular dart type system, since these
-    // are likely to succeed.  The canonical example is List<dynamic> and
-    // Iterable<T> for some concrete T (e.g. Object).  These are unrelated
-    // in the restricted system, but List<dynamic> <: Iterable<T> in dart.
-    if (fromT.isAssignableTo(toT)) {
-      return Coercion.cast(fromT, toT);
-    }
-
-    return Coercion.error();
-  }
-
   // Produce a coercion which coerces something of type fromT
   // to something of type toT.
   // Returns the error coercion if the types cannot be coerced
@@ -726,7 +750,8 @@ class CodeChecker extends RecursiveAstVisitor {
       functionType = _elementType(parent.element);
     } else {
       assert(parent is FunctionExpression);
-      functionType = parent.staticType ?? DynamicTypeImpl.instance;
+      functionType =
+          (parent as FunctionExpression).staticType ?? DynamicTypeImpl.instance;
     }
 
     var type = functionType.returnType;
@@ -753,7 +778,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (yieldStar) {
       if (type.isDynamic) {
         // Ensure it's at least a Stream / Iterable.
-        return expectedType.substitute4([typeProvider.dynamicType]);
+        return expectedType.instantiate([typeProvider.dynamicType]);
       } else {
         // Analyzer will provide a separate error if expected type
         // is not compatible with type.
@@ -779,55 +804,6 @@ class CodeChecker extends RecursiveAstVisitor {
     }
 
     return t;
-  }
-
-  /// Remove "fuzzy arrow" in this function type.
-  ///
-  /// Normally we treat dynamically typed parameters as bottom for function
-  /// types. This allows type tests such as `if (f is SingleArgFunction)`.
-  /// It also requires a dynamic check on the parameter type to call these
-  /// functions.
-  ///
-  /// When we convert to a strict arrow, dynamically typed parameters become
-  /// top. This is safe to do for known functions, like top-level or local
-  /// functions and static methods. Those functions must already be essentially
-  /// treating dynamic as top.
-  ///
-  /// Only the outer-most arrow can be strict. Any others must be fuzzy, because
-  /// we don't know what function value will be passed there.
-  // TODO(jmesserly): should we use a real "fuzzyArrow" bit on the function
-  // type? That would allow us to implement this in the subtype relation.
-  // TODO(jmesserly): we'll need to factor this differently if we want to
-  // move CodeChecker's functionality into existing analyzer. Likely we can
-  // let the Expression have a strict arrow, then in places were we do
-  // inference, convert back to a fuzzy arrow.
-  FunctionType _removeFuzz(FunctionType t) {
-    bool foundFuzz = false;
-    List<ParameterElement> parameters = <ParameterElement>[];
-    for (ParameterElement p in t.parameters) {
-      ParameterElement newP = _removeParameterFuzz(p);
-      parameters.add(newP);
-      if (p != newP) foundFuzz = true;
-    }
-    if (!foundFuzz) {
-      return t;
-    }
-
-    FunctionElementImpl function = new FunctionElementImpl("", -1);
-    function.synthetic = true;
-    function.returnType = t.returnType;
-    function.shareTypeParameters(t.typeFormals);
-    function.shareParameters(parameters);
-    return function.type = new FunctionTypeImpl(function);
-  }
-
-  /// Removes fuzzy arrow, see [_removeFuzz].
-  ParameterElement _removeParameterFuzz(ParameterElement p) {
-    if (p.type.isDynamic) {
-      return new ParameterElementImpl.synthetic(
-          p.name, typeProvider.objectType, p.parameterKind);
-    }
-    return p;
   }
 
   /// Given an expression, return its type assuming it is
@@ -930,6 +906,55 @@ class CodeChecker extends RecursiveAstVisitor {
       // assert(CoercionInfo.get(info.node) == null);
       CoercionInfo.set(info.node, info);
     }
+  }
+
+  /// Remove "fuzzy arrow" in this function type.
+  ///
+  /// Normally we treat dynamically typed parameters as bottom for function
+  /// types. This allows type tests such as `if (f is SingleArgFunction)`.
+  /// It also requires a dynamic check on the parameter type to call these
+  /// functions.
+  ///
+  /// When we convert to a strict arrow, dynamically typed parameters become
+  /// top. This is safe to do for known functions, like top-level or local
+  /// functions and static methods. Those functions must already be essentially
+  /// treating dynamic as top.
+  ///
+  /// Only the outer-most arrow can be strict. Any others must be fuzzy, because
+  /// we don't know what function value will be passed there.
+  // TODO(jmesserly): should we use a real "fuzzyArrow" bit on the function
+  // type? That would allow us to implement this in the subtype relation.
+  // TODO(jmesserly): we'll need to factor this differently if we want to
+  // move CodeChecker's functionality into existing analyzer. Likely we can
+  // let the Expression have a strict arrow, then in places were we do
+  // inference, convert back to a fuzzy arrow.
+  FunctionType _removeFuzz(FunctionType t) {
+    bool foundFuzz = false;
+    List<ParameterElement> parameters = <ParameterElement>[];
+    for (ParameterElement p in t.parameters) {
+      ParameterElement newP = _removeParameterFuzz(p);
+      parameters.add(newP);
+      if (p != newP) foundFuzz = true;
+    }
+    if (!foundFuzz) {
+      return t;
+    }
+
+    FunctionElementImpl function = new FunctionElementImpl("", -1);
+    function.synthetic = true;
+    function.returnType = t.returnType;
+    function.shareTypeParameters(t.typeFormals);
+    function.shareParameters(parameters);
+    return function.type = new FunctionTypeImpl(function);
+  }
+
+  /// Removes fuzzy arrow, see [_removeFuzz].
+  ParameterElement _removeParameterFuzz(ParameterElement p) {
+    if (p.type.isDynamic) {
+      return new ParameterElementImpl.synthetic(
+          p.name, typeProvider.objectType, p.parameterKind);
+    }
+    return p;
   }
 
   DartType _specializedBinaryReturnType(
@@ -1035,7 +1060,6 @@ class _OverrideChecker {
   _checkIndividualOverridesFromClass(ClassDeclaration node,
       InterfaceType baseType, Set<String> seen, bool isSubclass) {
     for (var member in node.members) {
-      if (member is ConstructorDeclaration) continue;
       if (member is FieldDeclaration) {
         if (member.isStatic) continue;
         for (var variable in member.fields.variables) {
@@ -1045,23 +1069,25 @@ class _OverrideChecker {
           var getter = element.getter;
           var setter = element.setter;
           bool found = _checkSingleOverride(
-              getter, baseType, variable, member, isSubclass);
+              getter, baseType, variable.name, member, isSubclass);
           if (!variable.isFinal &&
               !variable.isConst &&
               _checkSingleOverride(
-                  setter, baseType, variable, member, isSubclass)) {
+                  setter, baseType, variable.name, member, isSubclass)) {
             found = true;
           }
           if (found) seen.add(name);
         }
-      } else {
-        if ((member as MethodDeclaration).isStatic) continue;
-        var method = (member as MethodDeclaration).element;
+      } else if (member is MethodDeclaration) {
+        if (member.isStatic) continue;
+        var method = member.element;
         if (seen.contains(method.name)) continue;
         if (_checkSingleOverride(
-            method, baseType, member, member, isSubclass)) {
+            method, baseType, member.name, member, isSubclass)) {
           seen.add(method.name);
         }
+      } else {
+        assert(member is ConstructorDeclaration);
       }
     }
   }

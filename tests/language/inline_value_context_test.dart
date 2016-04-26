@@ -4,7 +4,7 @@
 // Test inlining of simple function with control flow in a value context.
 // Optimize function foo with instance of A and inlined function bar. Call later
 // with instance of B and cause deoptimization.
-// VMOptions=--optimization-counter-threshold=10 --no-use-osr
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
 import "package:expect/expect.dart";
 

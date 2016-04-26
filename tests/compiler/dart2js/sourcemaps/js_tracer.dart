@@ -35,7 +35,10 @@ class StepTraceListener extends TraceListener
     SourcePositionKind sourcePositionKind = SourcePositionKind.START;
     List text = [node];
     switch (kind) {
-      case StepKind.FUN:
+      case StepKind.FUN_ENTRY:
+        text = ['<entry>'];
+        break;
+      case StepKind.FUN_EXIT:
         sourcePositionKind = SourcePositionKind.INNER;
         text = ['<exit>'];
         break;

@@ -547,26 +547,167 @@ class SampleBufferControlElement extends ObservatoryElement {
 class StackTraceTreeConfigElement extends ObservatoryElement {
   StackTraceTreeConfigElement.created() : super.created();
 
+  attached() {
+    super.attached();
+    var filterElement = shadowRoot.querySelector('#filterInput');
+    keyDownSubscription = filterElement.onKeyDown.listen(_onKeyDown);
+    blurSubscription = filterElement.onBlur.listen(_onBlur);
+  }
+
+  detached() {
+    super.detached();
+    keyDownSubscription?.cancel();
+    blurSubscription?.cancel();
+  }
+
+  void _onKeyDown(KeyboardEvent keyEvent) {
+    if (keyEvent.keyCode == 13) {
+      // On enter, update the filter string.
+      filterString =
+          (shadowRoot.querySelector('#filterInput') as InputElement).value;
+      if (onTreeConfigChange == null) {
+        return;
+      }
+      onTreeConfigChange(modeSelector, directionSelector, filterString);
+    }
+  }
+
+  void _onBlur(Event event) {
+    // Input box has lost focus, update the display to match the active
+    // filter string.
+    (shadowRoot.querySelector('#filterInput') as InputElement).value =
+        filterString;
+  }
+
   void modeSelectorChanged(oldValue) {
     if (onTreeConfigChange == null) {
       return;
     }
-    onTreeConfigChange(modeSelector, directionSelector);
+    onTreeConfigChange(modeSelector, directionSelector, filterString);
   }
 
   void directionSelectorChanged(oldValue) {
     if (onTreeConfigChange == null) {
       return;
     }
-    onTreeConfigChange(modeSelector, directionSelector);
+    onTreeConfigChange(modeSelector, directionSelector, filterString);
   }
 
   Function onTreeConfigChange;
+  StreamSubscription keyDownSubscription;
+  StreamSubscription blurSubscription;
   @observable bool show = true;
   @observable bool showModeSelector = true;
   @observable bool showDirectionSelector = true;
+  @observable bool showFilter = true;
   @observable String modeSelector = 'Function';
   @observable String directionSelector = 'Up';
+  @observable String filterString;
+}
+
+class FunctionCallTreeNodeRow extends VirtualTreeRow {
+  final CpuProfile profile;
+  final FunctionCallTreeNode node;
+  final String selfPercent;
+  final String totalPercent;
+  final String percent;
+
+  FunctionCallTreeNodeRow(VirtualTree tree,
+                          int depth,
+                          this.profile,
+                          FunctionCallTreeNode node)
+      : node = node,
+        selfPercent = Utils.formatPercentNormalized(node.profileFunction.normalizedExclusiveTicks),
+        totalPercent = Utils.formatPercentNormalized(node.profileFunction.normalizedInclusiveTicks),
+        percent = Utils.formatPercentNormalized(node.percentage),
+        super(tree, depth) {
+  }
+
+  void onRender(DivElement rowDiv) {
+    rowDiv.children.add(makeGap(ems:0.1));
+    rowDiv.children.add(
+        makeText(totalPercent, toolTip: 'global % on stack'));
+    rowDiv.children.add(makeGap());
+    rowDiv.children.add(
+        makeText(selfPercent, toolTip: 'global % executing'));
+    rowDiv.children.add(makeGap());
+    rowDiv.children.add(makeIndenter(colored: false));
+    rowDiv.children.add(makeColorBar());
+    rowDiv.children.add(makeGap(ems: 1.0));
+    rowDiv.children.add(makeExpander());
+    rowDiv.children.add(
+        makeText(percent, toolTip: 'tree node %', flexBasis: null));
+    rowDiv.children.add(makeGap(ems: 0.5));
+    functionRef.ref = node.profileFunction.function;
+    rowDiv.children.add(functionRef);
+  }
+
+  var functionRef = new Element.tag('function-ref');
+
+  int get childCount => node.children.length;
+
+  void onShow() {
+    if (children.length > 0) {
+      return;
+    }
+    for (var childNode in node.children) {
+      var row = new FunctionCallTreeNodeRow(tree, depth + 1, profile, childNode);
+      children.add(row);
+    }
+  }
+}
+
+
+class CodeCallTreeNodeRow extends VirtualTreeRow {
+  final CpuProfile profile;
+  final CodeCallTreeNode node;
+  final String selfPercent;
+  final String totalPercent;
+  final String percent;
+
+  CodeCallTreeNodeRow(VirtualTree tree,
+                      int depth,
+                      this.profile,
+                      CodeCallTreeNode node)
+      : node = node,
+        selfPercent = Utils.formatPercentNormalized(node.profileCode.normalizedExclusiveTicks),
+        totalPercent = Utils.formatPercentNormalized(node.profileCode.normalizedInclusiveTicks),
+        percent = Utils.formatPercentNormalized(node.percentage),
+        super(tree, depth) {
+  }
+
+  void onRender(DivElement rowDiv) {
+    rowDiv.children.add(makeGap(ems:0.1));
+    rowDiv.children.add(
+        makeText(totalPercent, toolTip: 'global % on stack'));
+    rowDiv.children.add(makeGap());
+    rowDiv.children.add(
+        makeText(selfPercent, toolTip: 'global % executing'));
+    rowDiv.children.add(makeGap());
+    rowDiv.children.add(makeIndenter(colored: false));
+    rowDiv.children.add(makeColorBar());
+    rowDiv.children.add(makeGap(ems: 1.0));
+    rowDiv.children.add(makeExpander());
+    rowDiv.children.add(
+        makeText(percent, toolTip: 'tree node %', flexBasis: null));
+    rowDiv.children.add(makeGap(ems: 0.5));
+    codeRef.ref = node.profileCode.code;
+    rowDiv.children.add(codeRef);
+  }
+
+  var codeRef = new Element.tag('code-ref');
+
+  int get childCount => node.children.length;
+
+  void onShow() {
+    if (children.length > 0) {
+      return;
+    }
+    for (var childNode in node.children) {
+      var row = new CodeCallTreeNodeRow(tree, depth + 1, profile, childNode);
+      children.add(row);
+    }
+  }
 }
 
 /// Displays a CpuProfile
@@ -587,10 +728,31 @@ class CpuProfileElement extends ObservatoryElement {
         shadowRoot.querySelector('#stackTraceTreeConfig');
     assert(stackTraceTreeConfigElement != null);
     stackTraceTreeConfigElement.onTreeConfigChange = onTreeConfigChange;
-    cpuProfileTreeElement = shadowRoot.querySelector('#cpuProfileTree');
-    assert(cpuProfileTreeElement != null);
-    cpuProfileTreeElement.profile = sampleBufferControlElement.profile;
+    cpuProfileVirtualTreeElement = shadowRoot.querySelector('#cpuProfileVirtualTree');
+    assert(cpuProfileVirtualTreeElement != null);
+    cpuProfileVirtualTreeElement.profile = sampleBufferControlElement.profile;
+    _resizeSubscription = window.onResize.listen((_) => _updateSize());
     _updateTask.queue();
+    _updateSize();
+  }
+
+  detached() {
+    super.detached();
+    if (_resizeSubscription != null) {
+      _resizeSubscription.cancel();
+    }
+  }
+
+  _updateSize() {
+    var applySize = (e) {
+      Rectangle rect = e.getBoundingClientRect();
+      final totalHeight = window.innerHeight;
+      final bottomMargin = 200;
+      final mainHeight = totalHeight - bottomMargin;
+      e.style.setProperty('height', '${mainHeight}px');
+    };
+    HtmlElement e2 = $['cpuProfileVirtualTree'];
+    applySize(e2);
   }
 
   isolateChanged(oldValue) {
@@ -607,7 +769,9 @@ class CpuProfileElement extends ObservatoryElement {
     _renderTask.queue();
   }
 
-  onTreeConfigChange(String modeSelector, String directionSelector) {
+  onTreeConfigChange(String modeSelector,
+                     String directionSelector,
+                     String filterString) {
     ProfileTreeDirection direction = ProfileTreeDirection.Exclusive;
     if (directionSelector != 'Up') {
       direction = ProfileTreeDirection.Inclusive;
@@ -616,8 +780,18 @@ class CpuProfileElement extends ObservatoryElement {
     if (modeSelector == 'Code') {
       mode = ProfileTreeMode.Code;
     }
-    cpuProfileTreeElement.direction = direction;
-    cpuProfileTreeElement.mode = mode;
+    // Clear the filter.
+    cpuProfileVirtualTreeElement.filter = null;
+    if (filterString != null) {
+      filterString = filterString.trim();
+      if (filterString.isNotEmpty) {
+        cpuProfileVirtualTreeElement.filter = (CallTreeNode node) {
+          return node.name.contains(filterString);
+        };
+      }
+    }
+    cpuProfileVirtualTreeElement.direction = direction;
+    cpuProfileVirtualTreeElement.mode = mode;
     _renderTask.queue();
   }
 
@@ -633,16 +807,17 @@ class CpuProfileElement extends ObservatoryElement {
   }
 
   render() {
-    cpuProfileTreeElement.render();
+    cpuProfileVirtualTreeElement.render();
   }
 
   @published Isolate isolate;
 
+  StreamSubscription _resizeSubscription;
   Task _updateTask;
   Task _renderTask;
   SampleBufferControlElement sampleBufferControlElement;
   StackTraceTreeConfigElement stackTraceTreeConfigElement;
-  CpuProfileTreeElement cpuProfileTreeElement;
+  CpuProfileVirtualTreeElement cpuProfileVirtualTreeElement;
 }
 
 class NameSortedTable extends SortedTable {
@@ -841,7 +1016,9 @@ class CpuProfileTableElement extends ObservatoryElement {
     _renderTask.queue();
   }
 
-  onTreeConfigChange(String modeSelector, String directionSelector) {
+  onTreeConfigChange(String modeSelector,
+                     String directionSelector,
+                     String filterString) {
     ProfileTreeDirection direction = ProfileTreeDirection.Exclusive;
     if (directionSelector != 'Up') {
       direction = ProfileTreeDirection.Inclusive;
@@ -1140,6 +1317,107 @@ enum ProfileTreeMode {
   Function,
 }
 
+@CustomTag('cpu-profile-virtual-tree')
+class CpuProfileVirtualTreeElement extends ObservatoryElement {
+  ProfileTreeDirection direction = ProfileTreeDirection.Exclusive;
+  ProfileTreeMode mode = ProfileTreeMode.Function;
+  CpuProfile profile;
+  VirtualTree virtualTree;
+  CallTreeNodeFilter filter;
+  StreamSubscription _resizeSubscription;
+  @observable bool show = true;
+
+  CpuProfileVirtualTreeElement.created() : super.created();
+
+  attached() {
+    super.attached();
+    _resizeSubscription = window.onResize.listen((_) => _updateSize());
+  }
+
+  detached() {
+    super.detached();
+    _resizeSubscription?.cancel();
+  }
+
+  void render() {
+    _updateView();
+  }
+
+  showChanged(oldValue) {
+    var treeTable = shadowRoot.querySelector('#treeTable');
+    assert(treeTable != null);
+    treeTable.style.display = show ? 'table' : 'none';
+  }
+
+  void _updateView() {
+    _updateSize();
+    virtualTree?.clear();
+    virtualTree?.uninstall();
+    virtualTree = null;
+    bool exclusive = direction == ProfileTreeDirection.Exclusive;
+    if (mode == ProfileTreeMode.Code) {
+      _buildCodeTree(exclusive);
+    } else {
+      assert(mode == ProfileTreeMode.Function);
+      _buildFunctionTree(exclusive);
+    }
+    virtualTree?.refresh();
+  }
+
+  void _updateSize() {
+    var treeBody = shadowRoot.querySelector('#tree');
+    assert(treeBody != null);
+    int windowHeight = window.innerHeight - 32;
+    treeBody.style.height = '${windowHeight}px';
+  }
+
+  void _buildFunctionTree(bool exclusive) {
+    var treeBody = shadowRoot.querySelector('#tree');
+    assert(treeBody != null);
+    virtualTree = new VirtualTree(32, treeBody);
+    if (profile == null) {
+      return;
+    }
+    var tree = profile.loadFunctionTree(exclusive ? 'exclusive' : 'inclusive');
+    if (tree == null) {
+      return;
+    }
+    if (filter != null) {
+      tree = tree.filtered(filter);
+    }
+    for (var child in tree.root.children) {
+      virtualTree.rows.add(
+          new FunctionCallTreeNodeRow(virtualTree, 0, profile, child));
+    }
+    if (virtualTree.rows.length == 1) {
+      virtualTree.rows[0].expanded = true;
+    }
+  }
+
+  void _buildCodeTree(bool exclusive) {
+    var treeBody = shadowRoot.querySelector('#tree');
+    assert(treeBody != null);
+    virtualTree = new VirtualTree(32, treeBody);
+    if (profile == null) {
+      return;
+    }
+    var tree = profile.loadCodeTree(exclusive ? 'exclusive' : 'inclusive');
+    if (tree == null) {
+      return;
+    }
+    if (filter != null) {
+      tree = tree.filtered(filter);
+    }
+    for (var child in tree.root.children) {
+      virtualTree.rows.add(
+          new CodeCallTreeNodeRow(virtualTree, 0, profile, child));
+    }
+    if (virtualTree.rows.length == 1) {
+      virtualTree.rows[0].expanded = true;
+    }
+  }
+}
+
 @CustomTag('cpu-profile-tree')
 class CpuProfileTreeElement extends ObservatoryElement {
   ProfileTreeDirection direction = ProfileTreeDirection.Exclusive;
@@ -1147,7 +1425,7 @@ class CpuProfileTreeElement extends ObservatoryElement {
   CpuProfile profile;
   TableTree codeTree;
   TableTree functionTree;
-  FunctionCallTreeNodeFilter functionFilter;
+  CallTreeNodeFilter functionFilter;
   @observable bool show = true;
 
   CpuProfileTreeElement.created() : super.created();

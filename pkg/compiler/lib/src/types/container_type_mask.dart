@@ -22,29 +22,20 @@ class ContainerTypeMask extends ForwardingTypeMask {
   // The length of the container.
   final int length;
 
-  ContainerTypeMask(this.forwardTo,
-                    this.allocationNode,
-                    this.allocationElement,
-                    this.elementType,
-                    this.length);
+  ContainerTypeMask(this.forwardTo, this.allocationNode, this.allocationElement,
+      this.elementType, this.length);
 
   TypeMask nullable() {
     return isNullable
         ? this
-        : new ContainerTypeMask(forwardTo.nullable(),
-                                allocationNode,
-                                allocationElement,
-                                elementType,
-                                length);
+        : new ContainerTypeMask(forwardTo.nullable(), allocationNode,
+            allocationElement, elementType, length);
   }
 
   TypeMask nonNullable() {
     return isNullable
-        ? new ContainerTypeMask(forwardTo.nonNullable(),
-                                allocationNode,
-                                allocationElement,
-                                elementType,
-                                length)
+        ? new ContainerTypeMask(forwardTo.nonNullable(), allocationNode,
+            allocationElement, elementType, length)
         : this;
   }
 
@@ -61,10 +52,8 @@ class ContainerTypeMask extends ForwardingTypeMask {
 
   TypeMask intersection(TypeMask other, ClassWorld classWorld) {
     TypeMask forwardIntersection = forwardTo.intersection(other, classWorld);
-    if (forwardIntersection.isEmpty) return forwardIntersection;
-    return forwardIntersection.isNullable
-        ? nullable()
-        : nonNullable();
+    if (forwardIntersection.isEmptyOrNull) return forwardIntersection;
+    return forwardIntersection.isNullable ? nullable() : nonNullable();
   }
 
   TypeMask union(other, ClassWorld classWorld) {
@@ -72,11 +61,11 @@ class ContainerTypeMask extends ForwardingTypeMask {
       return this;
     } else if (equalsDisregardNull(other)) {
       return other.isNullable ? other : this;
-    } else if (other.isEmpty) {
+    } else if (other.isEmptyOrNull) {
       return other.isNullable ? this.nullable() : this;
-    } else if (other.isContainer
-               && elementType != null
-               && other.elementType != null) {
+    } else if (other.isContainer &&
+        elementType != null &&
+        other.elementType != null) {
       TypeMask newElementType =
           elementType.union(other.elementType, classWorld);
       int newLength = (length == other.length) ? length : null;
@@ -84,15 +73,17 @@ class ContainerTypeMask extends ForwardingTypeMask {
       return new ContainerTypeMask(
           newForwardTo,
           allocationNode == other.allocationNode ? allocationNode : null,
-          allocationElement == other.allocationElement ? allocationElement
-                                                       : null,
-          newElementType, newLength);
+          allocationElement == other.allocationElement
+              ? allocationElement
+              : null,
+          newElementType,
+          newLength);
     } else {
       return forwardTo.union(other, classWorld);
     }
   }
 
-  bool operator==(other) => super == other;
+  bool operator ==(other) => super == other;
 
   int get hashCode {
     return computeHashCode(

@@ -14,8 +14,8 @@ class JsonSerializationEncoder implements SerializationEncoder {
   const JsonSerializationEncoder();
 
   String encode(ObjectValue objectValue) {
-    return new JsonEncoder.withIndent(' ').convert(
-        const JsonValueEncoder().convert(objectValue));
+    return new JsonEncoder.withIndent(' ')
+        .convert(const JsonValueEncoder().convert(objectValue));
   }
 }
 
@@ -120,6 +120,7 @@ class PrettyPrintEncoder implements ValueVisitor {
   void visitDouble(DoubleValue value, String indentation) {
     buffer.write(value.value);
   }
+
   @override
   void visitElement(ElementValue value, String indentation) {
     buffer.write('Element(${value.id}):${value.element}');

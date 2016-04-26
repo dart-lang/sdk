@@ -18,8 +18,10 @@ web/end_to_end_test: Fail, OK # Issue 17935
 web/incremental_compilation_update_test: SkipByDesign # Test uses eval, not supported in CSP mode.
 
 [ $runtime == safari || $runtime == safarimobilesim ]
-web/cursor_position_test: Fail # Issue 19836
 web/incremental_compilation_update_test: Skip # Safari may crash on this test.
+
+[ $runtime == safarimobilesim ]
+web/cursor_position_test: Fail # Issue 19836
 
 [ $runtime == safari && $checked ]
 # The following tests flake with this error:

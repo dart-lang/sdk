@@ -27,10 +27,11 @@ String truncate(String input, int length) {
   return input;
 }
 
+const int HUE_COUNT = 24;
+
 /// Returns the [index]th color for visualization.
 HSV toColor(int index) {
-  int hueCount = 24;
-  double h = 360.0 * (index % hueCount) / hueCount;
+  double h = 360.0 * (index % HUE_COUNT) / HUE_COUNT;
   double v = 1.0;
   double s = 0.5;
   return new HSV(h, s, v);
@@ -52,13 +53,19 @@ String toPattern(int index) {
 
 /// Return the html for the [index] line number. If [width] is provided, shorter
 /// line numbers will be prefixed with spaces to match the width.
-String lineNumber(int index, {int width, bool useNbsp: false}) {
+String lineNumber(int index,
+                  {int width,
+                   bool useNbsp: false,
+                   String className}) {
+  if (className == null) {
+    className = 'lineNumber';
+  }
   String text = '${index + 1}';
   String padding = useNbsp ? '&nbsp;' : ' ';
   if (width != null && text.length < width) {
     text = (padding * (width - text.length)) + text;
   }
-  return '<span class="lineNumber">$text$padding</span>';
+  return '<span class="$className">$text$padding</span>';
 }
 
 /// Return the html escaped [text].
@@ -221,14 +228,6 @@ class CodeProcessor {
   }
 }
 
-class Annotation {
-  final id;
-  final int codeOffset;
-  final String title;
-
-  Annotation(this.id, this.codeOffset, this.title);
-}
-
 class ElementScheme {
   const ElementScheme();
 
@@ -280,14 +279,16 @@ String convertAnnotatedCodeToHtml(
   StringBuffer htmlBuffer = new StringBuffer();
   List<CodeLine> lines = convertAnnotatedCodeToCodeLines(
       code, annotations,
-      colorScheme: colorScheme,
-      elementScheme: elementScheme,
       windowSize: windowSize);
   int lineNoWidth;
   if (lines.isNotEmpty) {
     lineNoWidth = '${lines.last.lineNo + 1}'.length;
   }
-  HtmlPrintContext context = new HtmlPrintContext(lineNoWidth: lineNoWidth);
+  HtmlPrintContext context = new HtmlPrintContext(
+      lineNoWidth: lineNoWidth,
+      getAnnotationData: createAnnotationDataFunction(
+          colorScheme: colorScheme,
+          elementScheme: elementScheme));
   for (CodeLine line in lines) {
     line.printHtmlOn(htmlBuffer, context);
   }
@@ -297,34 +298,42 @@ String convertAnnotatedCodeToHtml(
 List<CodeLine> convertAnnotatedCodeToCodeLines(
     String code,
     Iterable<Annotation> annotations,
-    {CssColorScheme colorScheme: const SingleColorScheme(),
-     ElementScheme elementScheme: const ElementScheme(),
-     int windowSize}) {
+    {int startLine,
+     int endLine,
+     int windowSize,
+     Uri uri}) {
 
   List<CodeLine> lines = <CodeLine>[];
   CodeLine currentLine;
+  final List<Annotation> currentAnnotations = <Annotation>[];
   int offset = 0;
   int lineIndex = 0;
   int firstLine;
   int lastLine;
-  bool pendingSourceLocationsEnd = false;
 
-  void write(String code, HtmlPart html) {
+  void addCode(String code) {
     if (currentLine != null) {
       currentLine.codeBuffer.write(code);
-      currentLine.htmlParts.add(html);
+      currentLine.codeParts.add(
+          new CodePart(currentAnnotations.toList(), code));
+      currentAnnotations.clear();
     }
   }
 
-  void startLine(int currentOffset) {
-    lines.add(currentLine = new CodeLine(lines.length, currentOffset));
+  void addAnnotations(List<Annotation> annotations) {
+    currentAnnotations.addAll(annotations);
+    currentLine.annotations.addAll(annotations);
+  }
+
+  void beginLine(int currentOffset) {
+    lines.add(currentLine =
+        new CodeLine(lines.length, currentOffset, uri: uri));
   }
 
   void endCurrentLocation() {
-    if (pendingSourceLocationsEnd) {
-      write('', const ConstHtmlPart('</a>'));
+    if (currentAnnotations.isNotEmpty) {
+      addCode('');
     }
-    pendingSourceLocationsEnd = false;
   }
 
   void addSubstring(int until, {bool isFirst: false, bool isLast: false}) {
@@ -339,26 +348,15 @@ List<CodeLine> convertAnnotatedCodeToCodeLines(
     }
     int localOffset = 0;
     if (isFirst) {
-      startLine(offset + localOffset);
+      beginLine(offset + localOffset);
     }
     for (String line in substring.split('\n')) {
       if (!first) {
         endCurrentLocation();
-        write('', const NewLine());
         lineIndex++;
-        startLine(offset + localOffset);
+        beginLine(offset + localOffset);
       }
-      if (pendingSourceLocationsEnd && !colorScheme.showLocationAsSpan) {
-        if (line.isNotEmpty) {
-          String before = line.substring(0, 1);
-          write(before, new HtmlText(before));
-          endCurrentLocation();
-          String after = line.substring(1);
-          write(after, new HtmlText(after));
-        }
-      } else {
-        write(line, new HtmlText(line));
-      }
+      addCode(line);
       first = false;
       localOffset += line.length + 1;
     }
@@ -370,44 +368,7 @@ List<CodeLine> convertAnnotatedCodeToCodeLines(
 
   void insertAnnotations(List<Annotation> annotations) {
     endCurrentLocation();
-
-    String color;
-    var id;
-    String title;
-    if (annotations.length == 1) {
-      Annotation annotation = annotations.single;
-      if (annotation != null) {
-        id = annotation.id;
-        color = colorScheme.singleLocationToCssColor(id);
-        title = annotation.title;
-      }
-    } else {
-      id = annotations.first.id;
-      List ids = [];
-      for (Annotation annotation in annotations) {
-        ids.add(annotation.id);
-      }
-      color = colorScheme.multiLocationToCssColor(ids);
-      title = annotations.map((l) => l.title).join(',');
-    }
-    if (id != null) {
-      Set ids = annotations.map((l) => l.id).toSet();
-      String name = elementScheme.getName(id, ids);
-      String href = elementScheme.getHref(id, ids);
-      String onclick = elementScheme.onClick(id, ids);
-      String onmouseover = elementScheme.onMouseOver(id, ids);
-      String onmouseout = elementScheme.onMouseOut(id, ids);
-      write('', new AnchorHtmlPart(
-          color: color,
-          name: name,
-          href: href,
-          title: title,
-          onclick: onclick,
-          onmouseover: onmouseover,
-          onmouseout: onmouseout));
-      pendingSourceLocationsEnd = true;
-    }
-    currentLine.annotations.addAll(annotations);
+    addAnnotations(annotations);
     if (annotations.last == null) {
       endCurrentLocation();
     }
@@ -430,8 +391,8 @@ List<CodeLine> convertAnnotatedCodeToCodeLines(
   addSubstring(code.length, isFirst: first, isLast: true);
   endCurrentLocation();
 
-  int start = 0;
-  int end = lines.length - 1;
+  int start = startLine ?? 0;
+  int end = endLine ?? lines.length - 1;
   if (windowSize != null) {
     start = Math.max(firstLine - windowSize, start);
     end = Math.min(lastLine + windowSize, end);

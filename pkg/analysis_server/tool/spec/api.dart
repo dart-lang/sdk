@@ -52,7 +52,7 @@ abstract class ApiVisitor<T> {
   /**
    * Dispatch the given [type] to the visitor.
    */
-  T visitTypeDecl(TypeDecl type) => type.accept(this);
+  T visitTypeDecl(TypeDecl type) => type.accept(this) as T;
   T visitTypeEnum(TypeEnum typeEnum);
   T visitTypeList(TypeList typeList);
   T visitTypeMap(TypeMap typeMap);

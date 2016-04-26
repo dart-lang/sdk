@@ -88,10 +88,6 @@ class DartScript implements Source {
 
   @override
   bool exists() => source.exists();
-
-  @override
-  Uri resolveRelativeUri(Uri relativeUri) =>
-      throw new StateError('resolveRelativeUri not supported for scripts');
 }
 
 /**
@@ -170,7 +166,7 @@ class DartScriptsTask extends SourceBasedAnalysisTask {
    * input descriptors describing those inputs for a task with the
    * given [target].
    */
-  static Map<String, TaskInput> buildInputs(Source target) {
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     return <String, TaskInput>{DOCUMENT_INPUT: HTML_DOCUMENT.of(target)};
   }
 
@@ -241,7 +237,7 @@ class HtmlErrorsTask extends SourceBasedAnalysisTask {
    * input descriptors describing those inputs for a task with the
    * given [target].
    */
-  static Map<String, TaskInput> buildInputs(Source target) {
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     EnginePlugin enginePlugin = AnalysisEngine.instance.enginePlugin;
     Map<String, TaskInput> inputs = <String, TaskInput>{
       DART_ERRORS_INPUT: DART_SCRIPTS.of(target).toListOf(DART_ERRORS)
@@ -346,7 +342,7 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
    * input descriptors describing those inputs for a task with the given
    * [source].
    */
-  static Map<String, TaskInput> buildInputs(Source source) {
+  static Map<String, TaskInput> buildInputs(AnalysisTarget source) {
     return <String, TaskInput>{CONTENT_INPUT_NAME: CONTENT.of(source)};
   }
 

@@ -12,7 +12,6 @@ import 'cps_fragment.dart';
 import 'type_mask_system.dart';
 import '../types/types.dart';
 import '../world.dart';
-import '../elements/elements.dart';
 import 'loop_effects.dart';
 import 'effects.dart';
 
@@ -125,13 +124,13 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
     return lengthOf
         .putIfAbsent(indexableObject, () => <int, SignedVariable>{})
         .putIfAbsent(effectNumber, () {
-            int length = types.getContainerLength(type);
-            if (length != null) {
-              return octagon.makeVariable(length, length);
-            } else {
-              return octagon.makeVariable(0, MAX_UINT32);
-            }
-        });
+      int length = types.getContainerLength(type);
+      if (length != null) {
+        return octagon.makeVariable(length, length);
+      } else {
+        return octagon.makeVariable(0, MAX_UINT32);
+      }
+    });
   }
 
   // ------------- CONSTRAINT HELPERS -----------------
@@ -494,9 +493,8 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
   void visitBoundsCheck(BoundsCheck node) {
     if (node.checks == BoundsCheck.NONE) return;
     assert(node.indexRef != null); // Because there is at least one check.
-    SignedVariable length = node.lengthRef == null
-        ? null
-        : getValue(node.length);
+    SignedVariable length =
+        node.lengthRef == null ? null : getValue(node.length);
     SignedVariable index = getValue(node.index);
     if (node.hasUpperBoundCheck) {
       if (isDefinitelyLessThan(index, length)) {
@@ -520,12 +518,16 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
       }
     }
     if (!node.lengthUsedInCheck && node.lengthRef != null) {
-      node..lengthRef.unlink()..lengthRef = null;
+      node
+        ..lengthRef.unlink()
+        ..lengthRef = null;
     }
     if (node.checks == BoundsCheck.NONE) {
       // We can't remove the bounds check node because it may still be used to
       // restrict code motion.  But the index is no longer needed.
-      node..indexRef.unlink()..indexRef = null;
+      node
+        ..indexRef.unlink()
+        ..indexRef = null;
     }
   }
 
@@ -632,9 +634,9 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
       // was not rewritten to GetLength.  But if we can prove that the call only
       // succeeds for indexables, we can trust that it returns the length.
       TypeMask successType =
-          types.receiverTypeFor(node.selector, node.dartReceiver.type);
+          types.receiverTypeFor(node.selector, node.receiver.type);
       if (types.isDefinitelyIndexable(successType)) {
-        valueOf[node] = getLength(node.dartReceiver, currentEffectNumber);
+        valueOf[node] = getLength(node.receiver, currentEffectNumber);
       }
     }
   }

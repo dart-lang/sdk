@@ -1953,13 +1953,17 @@ class TypeErrorDecoder {
     // Replace the patterns with a regular expression wildcard.
     // Note: in a perfect world, one would use "(.*)", but not in
     // JavaScript, "." does not match newlines.
-    String pattern = JS('String',
-                        r"#.replace('\\$arguments\\$', '((?:x|[^x])*)')"
-                        r".replace('\\$argumentsExpr\\$',  '((?:x|[^x])*)')"
-                        r".replace('\\$expr\\$',  '((?:x|[^x])*)')"
-                        r".replace('\\$method\\$',  '((?:x|[^x])*)')"
-                        r".replace('\\$receiver\\$',  '((?:x|[^x])*)')",
-                        message);
+    String pattern = JS(
+        'String',
+        r"#.replace(new RegExp('\\\\\\$arguments\\\\\\$', 'g'), "
+            r"'((?:x|[^x])*)')"
+        r".replace(new RegExp('\\\\\\$argumentsExpr\\\\\\$', 'g'),  "
+            r"'((?:x|[^x])*)')"
+        r".replace(new RegExp('\\\\\\$expr\\\\\\$', 'g'),  '((?:x|[^x])*)')"
+        r".replace(new RegExp('\\\\\\$method\\\\\\$', 'g'),  '((?:x|[^x])*)')"
+        r".replace(new RegExp('\\\\\\$receiver\\\\\\$', 'g'),  "
+            r"'((?:x|[^x])*)')",
+        message);
 
     return new TypeErrorDecoder(arguments,
                                 argumentsExpr,

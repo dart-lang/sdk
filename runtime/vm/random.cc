@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/random.h"
+#include "vm/dart.h"
 #include "vm/flags.h"
-#include "vm/isolate.h"
+#include "vm/os.h"
 
 namespace dart {
 
@@ -13,7 +14,7 @@ DEFINE_FLAG(int, random_seed, 0, "Override the random seed for debugging.");
 Random::Random() {
   uint64_t seed = FLAG_random_seed;
   if (seed == 0) {
-    Dart_EntropySource callback = Isolate::entropy_source_callback();
+    Dart_EntropySource callback = Dart::entropy_source_callback();
     if (callback != NULL) {
       if (!callback(reinterpret_cast<uint8_t*>(&seed), sizeof(seed))) {
         // Callback failed. Reset the seed to 0.

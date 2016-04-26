@@ -21,7 +21,7 @@ main() {
 
 @reflectiveTest
 class LinterRuleOptionsValidatorTest {
-  final LinterRuleOptionsValidator validator= new LinterRuleOptionsValidator();
+  final LinterRuleOptionsValidator validator = new LinterRuleOptionsValidator();
   final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
 
   RecordingErrorListener recorder;
@@ -53,6 +53,17 @@ linter:
         []);
   }
 
+  test_linter_null_rule() {
+    validate(
+        '''
+linter:
+  rules:
+    -
+
+    ''',
+        []);
+  }
+
   test_linter_undefined_rule() {
     validate(
         '''
@@ -63,7 +74,7 @@ linter:
         [UNDEFINED_LINT_WARNING]);
   }
 
-  validate(String source, List<AnalysisOptionsErrorCode> expected) {
+  validate(String source, List<ErrorCode> expected) {
     var options = optionsProvider.getOptionsFromString(source);
     validator.validate(reporter, options);
     expect(errors.map((AnalysisError e) => e.errorCode),

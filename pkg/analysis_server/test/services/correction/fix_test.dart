@@ -1404,6 +1404,31 @@ class B {
 ''');
   }
 
+  test_createField_getter_qualified_propagatedType() async {
+    resolveTestUnit('''
+class A {
+  A get self => this;
+}
+main() {
+  var a = new A();
+  int v = a.self.test;
+}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_FIELD,
+        '''
+class A {
+  int test;
+
+  A get self => this;
+}
+main() {
+  var a = new A();
+  int v = a.self.test;
+}
+''');
+  }
+
   test_createField_getter_unqualified_instance_asInvocationArgument() async {
     resolveTestUnit('''
 class A {
@@ -1979,6 +2004,31 @@ class A {
 }
 class B {
   get test => null;
+}
+''');
+  }
+
+  test_createGetter_qualified_propagatedType() async {
+    resolveTestUnit('''
+class A {
+  A get self => this;
+}
+main() {
+  var a = new A();
+  int v = a.self.test;
+}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_GETTER,
+        '''
+class A {
+  A get self => this;
+
+  int get test => null;
+}
+main() {
+  var a = new A();
+  int v = a.self.test;
 }
 ''');
   }
@@ -3410,7 +3460,35 @@ main() {
 ''');
   }
 
-  test_importLibraryShow() async {
+  test_importLibraryShow_project() async {
+    testFile = '/project/bin/test.dart';
+    addSource(
+        '/project/bin/lib.dart',
+        '''
+class A {}
+class B {}
+''');
+    resolveTestUnit('''
+import 'lib.dart' show A;
+main() {
+  A a;
+  B b;
+}
+''');
+    performAllAnalysisTasks();
+    await assertNoFix(DartFixKind.IMPORT_LIBRARY_PROJECT);
+    await assertHasFix(
+        DartFixKind.IMPORT_LIBRARY_SHOW,
+        '''
+import 'lib.dart' show A, B;
+main() {
+  A a;
+  B b;
+}
+''');
+  }
+
+  test_importLibraryShow_sdk() async {
     resolveTestUnit('''
 import 'dart:async' show Stream;
 main() {
@@ -3418,6 +3496,7 @@ main() {
   Future f = null;
 }
 ''');
+    await assertNoFix(DartFixKind.IMPORT_LIBRARY_SDK);
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_SHOW,
         '''
@@ -4336,6 +4415,16 @@ class A {
     resolveTestUnit('''
 main() {
   List.foo();
+}
+''');
+    await assertNoFix(DartFixKind.CREATE_METHOD);
+  }
+
+  test_undefinedMethod_create_BAD_targetIsEnum() async {
+    resolveTestUnit('''
+enum MyEnum {A, B}
+main() {
+  MyEnum.foo();
 }
 ''');
     await assertNoFix(DartFixKind.CREATE_METHOD);

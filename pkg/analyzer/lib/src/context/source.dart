@@ -286,7 +286,8 @@ class SourceFactoryImpl implements SourceFactory {
             "Cannot resolve a relative URI without a containing source: "
             "$containedUri");
       }
-      containedUri = containingSource.resolveRelativeUri(containedUri);
+      containedUri =
+          utils.resolveRelativeUri(containingSource.uri, containedUri);
     }
 
     Uri actualUri = containedUri;

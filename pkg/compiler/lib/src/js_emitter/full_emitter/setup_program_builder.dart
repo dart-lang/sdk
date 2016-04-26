@@ -16,21 +16,18 @@ const bool VALIDATE_DATA = false;
 
 const RANGE1_SIZE = RANGE1_LAST - RANGE1_FIRST + 1;
 const RANGE2_SIZE = RANGE2_LAST - RANGE2_FIRST + 1;
-const RANGE1_ADJUST = - (FIRST_FIELD_CODE - RANGE1_FIRST);
-const RANGE2_ADJUST = - (FIRST_FIELD_CODE + RANGE1_SIZE - RANGE2_FIRST);
+const RANGE1_ADJUST = -(FIRST_FIELD_CODE - RANGE1_FIRST);
+const RANGE2_ADJUST = -(FIRST_FIELD_CODE + RANGE1_SIZE - RANGE2_FIRST);
 const RANGE3_ADJUST =
-    - (FIRST_FIELD_CODE + RANGE1_SIZE + RANGE2_SIZE - RANGE3_FIRST);
+    -(FIRST_FIELD_CODE + RANGE1_SIZE + RANGE2_SIZE - RANGE3_FIRST);
 
-const String setupProgramName ='setupProgram';
+const String setupProgramName = 'setupProgram';
 // TODO(floitsch): make sure this property can't clash with anything. It's
 //   unlikely since it lives on types, but still.
 const String typeNameProperty = r'builtin$cls';
 
 jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
-                                JavaScriptBackend backend,
-                                Namer namer,
-                                Emitter emitter) {
-
+    JavaScriptBackend backend, Namer namer, Emitter emitter) {
   jsAst.Expression typeInformationAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.TYPE_INFORMATION);
   jsAst.Expression globalFunctionsAccess =
@@ -61,15 +58,12 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
       emitter.generateEmbeddedGlobalAccess(embeddedNames.INTERCEPTORS_BY_TAG);
   jsAst.Expression leafTagsAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.LEAF_TAGS);
-  jsAst.Expression initializeEmptyInstanceAccess =
-      emitter.generateEmbeddedGlobalAccess(
-            embeddedNames.INITIALIZE_EMPTY_INSTANCE);
-  jsAst.Expression classFieldsExtractorAccess =
-      emitter.generateEmbeddedGlobalAccess(
-          embeddedNames.CLASS_FIELDS_EXTRACTOR);
-  jsAst.Expression instanceFromClassIdAccess =
-      emitter.generateEmbeddedGlobalAccess(
-          embeddedNames.INSTANCE_FROM_CLASS_ID);
+  jsAst.Expression initializeEmptyInstanceAccess = emitter
+      .generateEmbeddedGlobalAccess(embeddedNames.INITIALIZE_EMPTY_INSTANCE);
+  jsAst.Expression classFieldsExtractorAccess = emitter
+      .generateEmbeddedGlobalAccess(embeddedNames.CLASS_FIELDS_EXTRACTOR);
+  jsAst.Expression instanceFromClassIdAccess = emitter
+      .generateEmbeddedGlobalAccess(embeddedNames.INSTANCE_FROM_CLASS_ID);
 
   String reflectableField = namer.reflectableField;
   String reflectionInfoField = namer.reflectionInfoField;
@@ -81,72 +75,76 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
   String unmangledNameIndex = backend.mustRetainMetadata
       ? ' 3 * optionalParameterCount + 2 * requiredParameterCount + 3'
       : ' 2 * optionalParameterCount + requiredParameterCount + 3';
-  String receiverParamName = compiler.enableMinification ? "r" : "receiver";
-  String valueParamName = compiler.enableMinification ? "v" : "value";
-  String space = compiler.enableMinification ? "" : " ";
+  String receiverParamName =
+      compiler.options.enableMinification ? "r" : "receiver";
+  String valueParamName = compiler.options.enableMinification ? "v" : "value";
+  String space = compiler.options.enableMinification ? "" : " ";
   String _ = space;
 
-  String specProperty = '"${namer.nativeSpecProperty}"';  // "%"
+  String specProperty = '"${namer.nativeSpecProperty}"'; // "%"
   jsAst.Expression nativeInfoAccess = js('prototype[$specProperty]', []);
   jsAst.Expression constructorAccess = js('constructor', []);
   Function subclassReadGenerator =
       (jsAst.Expression subclass) => js('allClasses[#]', subclass);
-  jsAst.Statement nativeInfoHandler = emitter.
-      buildNativeInfoHandler(nativeInfoAccess, constructorAccess,
-                             subclassReadGenerator, interceptorsByTagAccess,
-                             leafTagsAccess);
+  jsAst.Statement nativeInfoHandler = emitter.buildNativeInfoHandler(
+      nativeInfoAccess,
+      constructorAccess,
+      subclassReadGenerator,
+      interceptorsByTagAccess,
+      leafTagsAccess);
 
-  Map<String, dynamic> holes =
-    {'needsClassSupport': emitter.needsClassSupport,
-     'libraries': librariesAccess,
-     'mangledNames': mangledNamesAccess,
-     'mangledGlobalNames': mangledGlobalNamesAccess,
-     'statics': staticsAccess,
-     'staticsPropertyName': namer.staticsPropertyName,
-     'staticsPropertyNameString': js.quoteName(namer.staticsPropertyName),
-     'typeInformation': typeInformationAccess,
-     'globalFunctions': globalFunctionsAccess,
-     'enabledInvokeOn': compiler.enabledInvokeOn,
-     'interceptedNames': interceptedNamesAccess,
-     'interceptedNamesSet': emitter.generateInterceptedNamesSet(),
-     'notInCspMode': !compiler.useContentSecurityPolicy,
-     'inCspMode': compiler.useContentSecurityPolicy,
-     'deferredAction': namer.deferredAction,
-     'hasIsolateSupport': program.hasIsolateSupport,
-     'fieldNamesProperty': js.string(Emitter.FIELD_NAMES_PROPERTY_NAME),
-     'hasIncrementalSupport': compiler.hasIncrementalSupport,
-     'incrementalHelper': namer.accessIncrementalHelper,
-     'createNewIsolateFunction': createNewIsolateFunctionAccess,
-     'isolateName': namer.isolateName,
-     'classIdExtractor': classIdExtractorAccess,
-     'classFieldsExtractor': classFieldsExtractorAccess,
-     'instanceFromClassId': instanceFromClassIdAccess,
-     'initializeEmptyInstance': initializeEmptyInstanceAccess,
-     'allClasses': allClassesAccess,
-     'debugFastObjects': DEBUG_FAST_OBJECTS,
-     'isTreeShakingDisabled': backend.isTreeShakingDisabled,
-     'precompiled': precompiledAccess,
-     'finishedClassesAccess': finishedClassesAccess,
-     'needsMixinSupport': emitter.needsMixinSupport,
-     'needsNativeSupport': program.needsNativeSupport,
-     'enabledJsInterop': backend.jsInteropAnalysis.enabledJsInterop,
-     'jsInteropBoostrap':backend.jsInteropAnalysis.buildJsInteropBootstrap(),
-     'isInterceptorClass': namer.operatorIs(backend.helpers.jsInterceptorClass),
-     'isObject' : namer.operatorIs(compiler.coreClasses.objectClass),
-     'specProperty': js.string(namer.nativeSpecProperty),
-     'trivialNsmHandlers': emitter.buildTrivialNsmHandlers(),
-     'hasRetainedMetadata': backend.hasRetainedMetadata,
-     'types': typesAccess,
-     'objectClassName': js.quoteName(
-         namer.runtimeTypeName(compiler.coreClasses.objectClass)),
-     'needsStructuredMemberInfo': emitter.needsStructuredMemberInfo,
-     'usesMangledNames':
-          compiler.mirrorsLibrary != null || compiler.enabledFunctionApply,
-     'tearOffCode': buildTearOffCode(backend),
-     'nativeInfoHandler': nativeInfoHandler,
-     'operatorIsPrefix' : js.string(namer.operatorIsPrefix),
-     'deferredActionString': js.string(namer.deferredAction)};
-   String skeleton = '''
+  Map<String, dynamic> holes = {
+    'needsClassSupport': emitter.needsClassSupport,
+    'libraries': librariesAccess,
+    'mangledNames': mangledNamesAccess,
+    'mangledGlobalNames': mangledGlobalNamesAccess,
+    'statics': staticsAccess,
+    'staticsPropertyName': namer.staticsPropertyName,
+    'staticsPropertyNameString': js.quoteName(namer.staticsPropertyName),
+    'typeInformation': typeInformationAccess,
+    'globalFunctions': globalFunctionsAccess,
+    'enabledInvokeOn': compiler.enabledInvokeOn,
+    'interceptedNames': interceptedNamesAccess,
+    'interceptedNamesSet': emitter.generateInterceptedNamesSet(),
+    'notInCspMode': !compiler.options.useContentSecurityPolicy,
+    'inCspMode': compiler.options.useContentSecurityPolicy,
+    'deferredAction': namer.deferredAction,
+    'hasIsolateSupport': program.hasIsolateSupport,
+    'fieldNamesProperty': js.string(Emitter.FIELD_NAMES_PROPERTY_NAME),
+    'hasIncrementalSupport': compiler.options.hasIncrementalSupport,
+    'incrementalHelper': namer.accessIncrementalHelper,
+    'createNewIsolateFunction': createNewIsolateFunctionAccess,
+    'isolateName': namer.isolateName,
+    'classIdExtractor': classIdExtractorAccess,
+    'classFieldsExtractor': classFieldsExtractorAccess,
+    'instanceFromClassId': instanceFromClassIdAccess,
+    'initializeEmptyInstance': initializeEmptyInstanceAccess,
+    'allClasses': allClassesAccess,
+    'debugFastObjects': DEBUG_FAST_OBJECTS,
+    'isTreeShakingDisabled': backend.isTreeShakingDisabled,
+    'precompiled': precompiledAccess,
+    'finishedClassesAccess': finishedClassesAccess,
+    'needsMixinSupport': emitter.needsMixinSupport,
+    'needsNativeSupport': program.needsNativeSupport,
+    'enabledJsInterop': backend.jsInteropAnalysis.enabledJsInterop,
+    'jsInteropBoostrap': backend.jsInteropAnalysis.buildJsInteropBootstrap(),
+    'isInterceptorClass': namer.operatorIs(backend.helpers.jsInterceptorClass),
+    'isObject': namer.operatorIs(compiler.coreClasses.objectClass),
+    'specProperty': js.string(namer.nativeSpecProperty),
+    'trivialNsmHandlers': emitter.buildTrivialNsmHandlers(),
+    'hasRetainedMetadata': backend.hasRetainedMetadata,
+    'types': typesAccess,
+    'objectClassName':
+        js.quoteName(namer.runtimeTypeName(compiler.coreClasses.objectClass)),
+    'needsStructuredMemberInfo': emitter.needsStructuredMemberInfo,
+    'usesMangledNames':
+        compiler.mirrorsLibrary != null || compiler.enabledFunctionApply,
+    'tearOffCode': buildTearOffCode(backend),
+    'nativeInfoHandler': nativeInfoHandler,
+    'operatorIsPrefix': js.string(namer.operatorIsPrefix),
+    'deferredActionString': js.string(namer.deferredAction)
+  };
+  String skeleton = '''
 function $setupProgramName(programData, typesOffset) {
   "use strict";
   if (#needsClassSupport) {
@@ -834,14 +832,16 @@ String readString(String array, String index) {
 
 String readInt(String array, String index) {
   return readChecked(
-      array, index,
+      array,
+      index,
       'result != null && (typeof result != "number" || (result|0) !== result)',
       'int');
 }
 
 String readFunctionType(String array, String index) {
   return readChecked(
-      array, index,
+      array,
+      index,
       'result != null && '
       '(typeof result != "number" || (result|0) !== result) && '
       'typeof result != "function"',

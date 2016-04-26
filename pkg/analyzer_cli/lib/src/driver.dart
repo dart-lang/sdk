@@ -33,8 +33,9 @@ import 'package:analyzer/src/generated/utilities_general.dart'
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
+import 'package:analyzer_cli/src/build_mode.dart';
+import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart';
-import 'package:analyzer_cli/src/package_analyzer.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
@@ -79,6 +80,9 @@ class Driver implements CommandLineStarter {
   /// `null` if [_analyzeAll] hasn't been called yet.
   AnalysisContext _context;
 
+  /// The total number of source files loaded by an AnalysisContext.
+  int _analyzedFileCount = 0;
+
   /// If [_context] is not `null`, the [CommandLineOptions] that guided its
   /// creation.
   CommandLineOptions _previousOptions;
@@ -89,6 +93,9 @@ class Driver implements CommandLineStarter {
   @override
   ResolverProvider packageResolverProvider;
 
+  /// Collected analysis statistics.
+  final AnalysisStats stats = new AnalysisStats();
+
   /// This Driver's current analysis context.
   ///
   /// *Visible for testing.*
@@ -96,11 +103,14 @@ class Driver implements CommandLineStarter {
 
   @override
   void set userDefinedPlugins(List<Plugin> plugins) {
-    _userDefinedPlugins = plugins == null ? <Plugin>[] : plugins;
+    _userDefinedPlugins = plugins ?? <Plugin>[];
   }
 
   @override
   void start(List<String> args) {
+    if (_context != null) {
+      throw new StateError("start() can only be called once");
+    }
     int startTime = new DateTime.now().millisecondsSinceEpoch;
 
     StringUtilities.INTERNER = new MappedInterner();
@@ -114,8 +124,8 @@ class Driver implements CommandLineStarter {
     _setupEnv(options);
 
     // Do analysis.
-    if (options.packageMode) {
-      ErrorSeverity severity = _analyzePackage(options);
+    if (options.buildMode) {
+      ErrorSeverity severity = _buildModeAnalyze(options);
       // In case of error propagate exit code.
       if (severity == ErrorSeverity.ERROR) {
         exitCode = severity.ordinal;
@@ -133,8 +143,13 @@ class Driver implements CommandLineStarter {
       }
     }
 
+    if (_context != null) {
+      _analyzedFileCount += _context.sources.length;
+    }
+
     if (options.perfReport != null) {
-      String json = makePerfReport(startTime, currentTimeMillis(), options);
+      String json = makePerfReport(
+          startTime, currentTimeMillis(), options, _analyzedFileCount, stats);
       new File(options.perfReport).writeAsStringSync(json);
     }
   }
@@ -162,32 +177,32 @@ class Driver implements CommandLineStarter {
     // Add all the files to be analyzed en masse to the context.  Skip any
     // files that were added earlier (whether explicitly or implicitly) to
     // avoid causing those files to be unnecessarily re-read.
-    Set<Source> knownSources = _context.sources.toSet();
+    Set<Source> knownSources = context.sources.toSet();
     List<Source> sourcesToAnalyze = <Source>[];
     ChangeSet changeSet = new ChangeSet();
     for (String sourcePath in options.sourceFiles) {
       sourcePath = sourcePath.trim();
-      // Check that file exists.
-      if (!new File(sourcePath).existsSync()) {
-        errorSink.writeln('File not found: $sourcePath');
+
+      // Collect files for analysis.
+      // Note that these files will all be analyzed in the same context.
+      // This should be updated when the ContextManager re-work is complete
+      // (See: https://github.com/dart-lang/sdk/issues/24133)
+      Iterable<File> files = _collectFiles(sourcePath);
+      if (files.isEmpty) {
+        errorSink.writeln('No dart files found at: $sourcePath');
         exitCode = ErrorSeverity.ERROR.ordinal;
-        //Fail fast; don't analyze more files
         return ErrorSeverity.ERROR;
       }
-      // Check that file is Dart file.
-      if (!AnalysisEngine.isDartFileName(sourcePath)) {
-        errorSink.writeln('$sourcePath is not a Dart file');
-        exitCode = ErrorSeverity.ERROR.ordinal;
-        // Fail fast; don't analyze more files.
-        return ErrorSeverity.ERROR;
+
+      for (File file in files) {
+        Source source = _computeLibrarySource(file.absolute.path);
+        if (!knownSources.contains(source)) {
+          changeSet.addedSource(source);
+        }
+        sourcesToAnalyze.add(source);
       }
-      Source source = _computeLibrarySource(sourcePath);
-      if (!knownSources.contains(source)) {
-        changeSet.addedSource(source);
-      }
-      sourcesToAnalyze.add(source);
     }
-    _context.applyChanges(changeSet);
+    context.applyChanges(changeSet);
 
     // Analyze the libraries.
     ErrorSeverity allResult = ErrorSeverity.NONE;
@@ -219,13 +234,21 @@ class Driver implements CommandLineStarter {
       }
     }
 
+    if (!options.machineFormat) {
+      stats.print(outSink);
+    }
+
     return allResult;
   }
 
-  /// Perform package analysis according to the given [options].
-  ErrorSeverity _analyzePackage(CommandLineOptions options) {
+  /// Perform analysis in build mode according to the given [options].
+  ErrorSeverity _buildModeAnalyze(CommandLineOptions options) {
     return _analyzeAllTag.makeCurrentWhile(() {
-      return new PackageAnalyzer(options).analyze();
+      if (options.buildModePersistentWorker) {
+        new WorkerLoop.std(dartSdkPath: options.dartSdkPath).run();
+      } else {
+        return new BuildMode(options, stats).analyze();
+      }
     });
   }
 
@@ -259,6 +282,10 @@ class Driver implements CommandLineStarter {
     if (options.showPackageWarnings != _previousOptions.showPackageWarnings) {
       return false;
     }
+    if (options.showPackageWarningsPrefix !=
+        _previousOptions.showPackageWarningsPrefix) {
+      return false;
+    }
     if (options.showSdkWarnings != _previousOptions.showSdkWarnings) {
       return false;
     }
@@ -269,6 +296,10 @@ class Driver implements CommandLineStarter {
       return false;
     }
     if (options.enableSuperMixins != _previousOptions.enableSuperMixins) {
+      return false;
+    }
+    if (options.enableConditionalDirectives !=
+        _previousOptions.enableConditionalDirectives) {
       return false;
     }
     return true;
@@ -288,38 +319,14 @@ class Driver implements CommandLineStarter {
       return (Source source) => true;
     }
 
-    // Determine the set of packages requiring a full parse.  Use null to
-    // represent the case where all packages require a full parse.
-    Set<String> packagesRequiringFullParse;
-    if (options.showPackageWarnings) {
-      // We are showing warnings from all packages so all packages require a
-      // full parse.
-      packagesRequiringFullParse = null;
-    } else {
-      // We aren't showing warnings for dependent packages, but we may still
-      // need to show warnings for "self" packages, so we need to do a full
-      // parse in any package containing files mentioned on the command line.
-      // TODO(paulberry): implement this.  As a temporary workaround, we're
-      // fully parsing all packages.
-      packagesRequiringFullParse = null;
-    }
     return (Source source) {
       if (options.sourceFiles.contains(source.fullName)) {
         return true;
       } else if (source.uri.scheme == 'dart') {
         return options.showSdkWarnings;
-      } else if (source.uri.scheme == 'package') {
-        if (packagesRequiringFullParse == null) {
-          return true;
-        } else if (source.uri.pathSegments.length == 0) {
-          // We should never see a URI like this, but fully parse it to be
-          // safe.
-          return true;
-        } else {
-          return packagesRequiringFullParse
-              .contains(source.uri.pathSegments[0]);
-        }
       } else {
+        // TODO(paulberry): diet parse 'package:' imports when we don't want
+        // diagnostics. (Full parse is still needed for "self" packages.)
         return true;
       }
     };
@@ -447,6 +454,29 @@ class Driver implements CommandLineStarter {
     return new SourceFactory(resolvers, packages);
   }
 
+  /// Collect all analyzable files at [filePath], recursively if it's a
+  /// directory, ignoring links.
+  Iterable<File> _collectFiles(String filePath) {
+    List<File> files = <File>[];
+    File file = new File(filePath);
+    if (file.existsSync()) {
+      files.add(file);
+    } else {
+      Directory directory = new Directory(filePath);
+      if (directory.existsSync()) {
+        for (FileSystemEntity entry
+            in directory.listSync(recursive: true, followLinks: false)) {
+          String relative = path.relative(entry.path, from: directory.path);
+          if (AnalysisEngine.isDartFileName(entry.path) &&
+              !_isInHiddenDir(relative)) {
+            files.add(entry);
+          }
+        }
+      }
+    }
+    return files;
+  }
+
   /// Convert the given [sourcePath] (which may be relative to the current
   /// working directory) to a [Source] object that can be fed to the analysis
   /// context.
@@ -473,18 +503,22 @@ class Driver implements CommandLineStarter {
     }
     _previousOptions = options;
 
+    // Save stats from previous context before clobbering it.
+    if (_context != null) {
+      _analyzedFileCount += _context.sources.length;
+    }
+
     // Create a context.
-    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
-    _context = context;
+    _context = AnalysisEngine.instance.createAnalysisContext();
 
     // Choose a package resolution policy and a diet parsing policy based on
     // the command-line options.
     SourceFactory sourceFactory = _chooseUriResolutionPolicy(
-        options, (context as InternalAnalysisContext).embedderYamlLocator);
+        options, (_context as InternalAnalysisContext).embedderYamlLocator);
     AnalyzeFunctionBodiesPredicate dietParsingPolicy =
         _chooseDietParsingPolicy(options);
 
-    context.sourceFactory = sourceFactory;
+    _context.sourceFactory = sourceFactory;
 
     setAnalysisContextOptions(_context, options,
         (AnalysisOptionsImpl contextOptions) {
@@ -521,6 +555,10 @@ class Driver implements CommandLineStarter {
     return folderMap;
   }
 
+  /// Returns `true` if this relative path is a hidden directory.
+  bool _isInHiddenDir(String relative) =>
+      path.split(relative).any((part) => part.startsWith("."));
+
   void _processPlugins() {
     List<Plugin> plugins = <Plugin>[];
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
@@ -537,7 +575,7 @@ class Driver implements CommandLineStarter {
   ErrorSeverity _runAnalyzer(Source source, CommandLineOptions options) {
     int startTime = currentTimeMillis();
     AnalyzerImpl analyzer =
-        new AnalyzerImpl(_context, source, options, startTime);
+        new AnalyzerImpl(_context, source, options, stats, startTime);
     var errorSeverity = analyzer.analyzeSync();
     if (errorSeverity == ErrorSeverity.ERROR) {
       exitCode = errorSeverity.ordinal;
@@ -554,8 +592,24 @@ class Driver implements CommandLineStarter {
     // to activate batch mode.
     if (sdk == null) {
       sdk = new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
+      sdk.analysisOptions = createAnalysisOptionsForCommandLineOptions(options);
     }
     _isBatch = options.shouldBatch;
+  }
+
+  static AnalysisOptionsImpl createAnalysisOptionsForCommandLineOptions(
+      CommandLineOptions options) {
+    AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
+    contextOptions.hint = !options.disableHints;
+    contextOptions.enableStrictCallChecks = options.enableStrictCallChecks;
+    contextOptions.enableSuperMixins = options.enableSuperMixins;
+    contextOptions.enableConditionalDirectives =
+        options.enableConditionalDirectives;
+    contextOptions.generateImplicitErrors = options.showPackageWarnings;
+    contextOptions.generateSdkErrors = options.showSdkWarnings;
+    contextOptions.lint = options.lints;
+    contextOptions.strongMode = options.strongMode;
+    return contextOptions;
   }
 
   static void setAnalysisContextOptions(
@@ -575,19 +629,12 @@ class Driver implements CommandLineStarter {
     }
 
     // Prepare context options.
-    AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
-    contextOptions.hint = !options.disableHints;
-    contextOptions.enableStrictCallChecks = options.enableStrictCallChecks;
-    contextOptions.enableSuperMixins = options.enableSuperMixins;
-    contextOptions.generateImplicitErrors = options.showPackageWarnings;
-    contextOptions.generateSdkErrors = options.showSdkWarnings;
-    contextOptions.lint = options.lints;
-    contextOptions.strongMode = options.strongMode;
+    AnalysisOptionsImpl contextOptions =
+        createAnalysisOptionsForCommandLineOptions(options);
     configureContextOptions(contextOptions);
 
     // Set context options.
     context.analysisOptions = contextOptions;
-    context.sourceFactory.dartSdk.context.analysisOptions = contextOptions;
 
     // Process analysis options file (and notify all interested parties).
     _processAnalysisOptions(context, options);
@@ -679,7 +726,7 @@ class _BatchRunner {
             '>>> BATCH END (${totalTests - testsFailed}/$totalTests) ${time}ms');
         exitCode = batchResult.ordinal;
       }
-      // Prepare aruments.
+      // Prepare arguments.
       var args;
       {
         var lineArgs = line.split(new RegExp('\\s+'));

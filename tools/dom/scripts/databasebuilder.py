@@ -617,6 +617,9 @@ class DatabaseBuilder(object):
 
     end_time = time.time()
 
+    for warning in report_unions_to_any():
+      _logger.warning(warning)
+
     print 'Total %s files %sprocessed in databasebuilder in %s seconds' % \
     (len(file_paths), '', round((end_time - start_time), 2))
 

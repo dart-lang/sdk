@@ -1,3 +1,134 @@
+## 1.16.0 - 2016-04-26
+
+### Core library changes
+
+* `dart:convert`
+  * Added `BASE64URL` codec and corresponding `Base64Codec.urlSafe` constructor.
+
+  * Introduce `ChunkedConverter` and deprecate chunked methods on `Converter`.
+
+* `dart:html`
+
+  There have been a number of **BREAKING** changes to align APIs with recent
+  changes in Chrome. These include:
+
+  * Chrome's `ShadowRoot` interface no longer has the methods `getElementById`,
+    `getElementsByClassName`, and `getElementsByTagName`, e.g.,
+
+    ```dart
+    elem.shadowRoot.getElementsByClassName('clazz')
+    ```
+
+    should become:
+
+    ```dart
+    elem.shadowRoot.querySelectorAll('.clazz')
+    ```
+
+  * The `clipboardData` property has been removed from `KeyEvent`
+    and `Event`. It has been moved to the new `ClipboardEvent` class, which is
+    now used by `copy`, `cut`, and `paste` events.
+
+  * The `layer` property has been removed from `KeyEvent` and
+    `UIEvent`. It has been moved to `MouseEvent`.
+
+  * The `Point get page` property has been removed from `UIEvent`.
+    It still exists on `MouseEvent` and `Touch`.
+
+  There have also been a number of other additions and removals to `dart:html`,
+  `dart:indexed_db`, `dart:svg`, `dart:web_audio`, and `dart:web_gl` that
+  correspond to changes to Chrome APIs between v39 and v45. Many of the breaking
+  changes represent APIs that would have caused runtime exceptions when compiled
+  to Javascript and run on recent Chrome releases.
+
+* `dart:io`
+  * Added `SecurityContext.alpnSupported`, which is true if a platform
+    supports ALPN, and false otherwise.
+
+### JavaScript interop
+
+For performance reasons, a potentially **BREAKING** change was added for
+libraries that use JS interop.
+Any Dart file that uses `@JS` annotations on declarations (top-level functions,
+classes or class members) to interop with JavaScript code will require that the
+file have the annotation `@JS()` on a library directive.
+
+```dart
+@JS()
+library my_library;
+```
+
+The analyzer will enforce this by generating the error:
+
+The `@JS()` annotation can only be used if it is also declared on the library
+directive.
+
+If part file uses the `@JS()` annotation, the library that uses the part should
+have the `@JS()` annotation e.g.,
+
+```dart
+// library_1.dart
+@JS()
+library library_1;
+
+import 'package:js/js.dart';
+
+part 'part_1.dart';
+```
+
+```dart
+// part_1.dart
+part of library_1;
+
+@JS("frameworkStabilizers")
+external List<FrameworkStabilizer> get frameworkStabilizers;
+```
+
+If your library already has a JS module e.g.,
+
+```dart
+@JS('array.utils')
+library my_library;
+```
+
+Then your library will work without any additional changes.
+
+### Analyzer
+
+*   Static checking of `for in` statements. These will now produce static
+    warnings:
+
+    ```dart
+    // Not Iterable.
+    for (var i in 1234) { ... }
+
+    // String cannot be assigned to int.
+    for (int n in <String>["a", "b"]) { ... }
+    ```
+
+### Tool Changes
+
+* Pub
+  * `pub serve` now provides caching headers that should improve the performance
+    of requesting large files multiple times.
+
+  * Both `pub get` and `pub upgrade` now have a `--no-precompile` flag that
+    disables precompilation of executables and transformed dependencies.
+
+  * `pub publish` now resolves symlinks when publishing from a Git repository.
+    This matches the behavior it always had when publishing a package that
+    wasn't in a Git repository.
+
+* Dart Dev Compiler
+  * The **experimental** `dartdevc` executable has been added to the SDK.
+
+  * It will help early adopters validate the implementation and provide
+    feedback. `dartdevc` **is not** yet ready for production usage.
+
+  * Read more about the Dart Dev Compiler [here][dartdevc].
+
+[dartdevc]: https://github.com/dart-lang/dev_compiler
+
 ## 1.15.0 - 2016-03-09
 
 ### Core library changes
@@ -23,16 +154,27 @@
     `SecurityContext.usePrivateKeyBytes`, for use as the password for PKCS12
     data.
 
-### Dartium
+### Tool changes
 
+* Dartium and content shell
   * The Chrome-based tools that ship as part of the Dart SDK – Dartium and
     content shell – are now based on Chrome version 45 (instead of Chrome 39).
-  * Dart browser libraries (`dart:html`, `dart:svg`, etc) have not been updated.
+  * Dart browser libraries (`dart:html`, `dart:svg`, etc) *have not* been
+    updated.
     * These are still based on Chrome 39.
     * These APIs will be updated in a future release.
   * Note that there are experimental APIs which have changed in the underlying
     browser, and will not work with the older libraries.
     For example, `Element.animate`.
+
+* `dartfmt` - upgraded to v0.2.4
+  * Better handling for long collections with comments.
+  * Always put member metadata annotations on their own line.
+  * Indent functions in named argument lists with non-functions.
+  * Force the parameter list to split if a split occurs inside a function-typed
+    parameter.
+  * Don't force a split for before a single named argument if the argument
+    itself splits.
 
 ### Service protocol changes
 
@@ -58,13 +200,13 @@
 
 Patch release, resolves three issues:
 
-* VM: Fixes a code generation bug on x64.
+* VM: Fixed a code generation bug on x64.
   (SDK commit [834b3f02](https://github.com/dart-lang/sdk/commit/834b3f02b6ab740a213fd808e6c6f3269bed80e5))
 
-* `dart:io`: Fix EOF detection when reading some special device files.
+* `dart:io`: Fixed EOF detection when reading some special device files.
   (SDK issue [25596](https://github.com/dart-lang/sdk/issues/25596))
 
-* Pub: Fix an error using hosted dependencies in SDK version 1.14.
+* Pub: Fixed an error using hosted dependencies in SDK version 1.14.
   (Pub issue [1386](https://github.com/dart-lang/pub/issues/1386))
 
 ## 1.14.1 - 2016-02-04

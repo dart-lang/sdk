@@ -5,14 +5,13 @@
 #ifndef BIN_FILE_H_
 #define BIN_FILE_H_
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include <sys/types.h>
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
-
 
 namespace dart {
 namespace bin {
@@ -129,7 +128,10 @@ class File {
   // reading. If mode contains kWrite the file is opened for both
   // reading and writing. If mode contains kWrite and the file does
   // not exist the file is created. The file is truncated to length 0 if
-  // mode contains kTruncate.
+  // mode contains kTruncate. Assumes we are in an API scope.
+  static File* ScopedOpen(const char* path, FileOpenMode mode);
+
+  // Like ScopedOpen(), but no API scope is needed.
   static File* Open(const char* path, FileOpenMode mode);
 
   // Create a file object for the specified stdio file descriptor
@@ -147,9 +149,9 @@ class File {
   static int64_t LengthFromPath(const char* path);
   static void Stat(const char* path, int64_t* data);
   static time_t LastModified(const char* path);
-  static char* LinkTarget(const char* pathname);
+  static const char* LinkTarget(const char* pathname);
   static bool IsAbsolutePath(const char* path);
-  static char* GetCanonicalPath(const char* path);
+  static const char* GetCanonicalPath(const char* path);
   static const char* PathSeparator();
   static const char* StringEscapedPathSeparator();
   static Type GetType(const char* path, bool follow_links);
@@ -190,6 +192,8 @@ class File {
  private:
   explicit File(FileHandle* handle) : handle_(handle) { }
   void Close();
+
+  static File* FileOpenW(const wchar_t* system_name, FileOpenMode mode);
 
   static const int kClosedFd = -1;
 

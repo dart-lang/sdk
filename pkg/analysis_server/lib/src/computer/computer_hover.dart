@@ -8,9 +8,10 @@ import 'package:analysis_server/plugin/protocol/protocol.dart'
     show HoverInformation;
 import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/utilities/documentation.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 
 /**
  * A computer for the hover at the specified offset of a Dart [CompilationUnit].
@@ -76,10 +77,26 @@ class DartUnitHoverComputer {
       // parameter
       hover.parameter = _safeToString(expression.bestParameterElement);
       // types
-      if (element == null || element is VariableElement) {
-        hover.staticType = _safeToString(expression.staticType);
+      {
+        AstNode parent = expression.parent;
+        DartType staticType = null;
+        DartType propagatedType = expression.propagatedType;
+        if (element == null || element is VariableElement) {
+          staticType = expression.staticType;
+        }
+        if (parent is MethodInvocation && parent.methodName == expression) {
+          staticType = parent.staticInvokeType;
+          propagatedType = parent.propagatedInvokeType;
+          if (staticType != null && staticType.isDynamic) {
+            staticType = null;
+          }
+          if (propagatedType != null && propagatedType.isDynamic) {
+            propagatedType = null;
+          }
+        }
+        hover.staticType = _safeToString(staticType);
+        hover.propagatedType = _safeToString(propagatedType);
       }
-      hover.propagatedType = _safeToString(expression.propagatedType);
       // done
       return hover;
     }

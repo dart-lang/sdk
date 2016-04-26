@@ -5,6 +5,8 @@
 #include "vm/profiler_service.h"
 
 #include "vm/growable_array.h"
+#include "vm/hash_map.h"
+#include "vm/log.h"
 #include "vm/native_symbol.h"
 #include "vm/object.h"
 #include "vm/os.h"
@@ -16,8 +18,7 @@ namespace dart {
 
 DECLARE_FLAG(int, max_profile_depth);
 DECLARE_FLAG(int, profile_period);
-
-DEFINE_FLAG(bool, trace_profiler, false, "Trace profiler.");
+DECLARE_FLAG(bool, show_invisible_frames);
 
 #ifndef PRODUCT
 
@@ -89,6 +90,23 @@ class DeoptimizedCodeSet : public ZoneAllocated {
 };
 
 
+ProfileFunctionSourcePosition::ProfileFunctionSourcePosition(
+    TokenPosition token_pos)
+    : token_pos_(token_pos),
+      exclusive_ticks_(0),
+      inclusive_ticks_(0) {
+}
+
+
+void ProfileFunctionSourcePosition::Tick(bool exclusive) {
+  if (exclusive) {
+    exclusive_ticks_++;
+  } else {
+    inclusive_ticks_++;
+  }
+}
+
+
 ProfileFunction::ProfileFunction(Kind kind,
                   const char* name,
                   const Function& function,
@@ -98,6 +116,7 @@ ProfileFunction::ProfileFunction(Kind kind,
       function_(Function::ZoneHandle(function.raw())),
       table_index_(table_index),
       profile_codes_(0),
+      source_position_ticks_(0),
       exclusive_ticks_(0),
       inclusive_ticks_(0),
       inclusive_serial_(-1) {
@@ -117,9 +136,22 @@ const char* ProfileFunction::Name() const {
   return func_name.ToCString();
 }
 
-void ProfileFunction::Tick(bool exclusive, intptr_t inclusive_serial) {
+
+bool ProfileFunction::is_visible() const {
+  if (function_.IsNull()) {
+    // Some synthetic function.
+    return true;
+  }
+  return FLAG_show_invisible_frames || function_.is_visible();
+}
+
+
+void ProfileFunction::Tick(bool exclusive,
+                           intptr_t inclusive_serial,
+                           TokenPosition token_position) {
   if (exclusive) {
     exclusive_ticks_++;
+    TickSourcePosition(token_position, exclusive);
   }
   // Fall through and tick inclusive count too.
   if (inclusive_serial_ == inclusive_serial) {
@@ -128,6 +160,44 @@ void ProfileFunction::Tick(bool exclusive, intptr_t inclusive_serial) {
   }
   inclusive_serial_ = inclusive_serial;
   inclusive_ticks_++;
+  TickSourcePosition(token_position, false);
+}
+
+
+void ProfileFunction::TickSourcePosition(TokenPosition token_position,
+                                         bool exclusive) {
+  intptr_t i = 0;
+  for (; i < source_position_ticks_.length(); i++) {
+    ProfileFunctionSourcePosition& position = source_position_ticks_[i];
+    if (position.token_pos().value() == token_position.value()) {
+      if (FLAG_trace_profiler_verbose) {
+        OS::Print("Ticking source position %s %s\n",
+                  exclusive ? "exclusive" : "inclusive",
+                  token_position.ToCString());
+      }
+      // Found existing position, tick it.
+      position.Tick(exclusive);
+      return;
+    }
+    if (position.token_pos().value() > token_position.value()) {
+      break;
+    }
+  }
+
+  // Add new one, sorted by token position value.
+  ProfileFunctionSourcePosition pfsp(token_position);
+  if (FLAG_trace_profiler_verbose) {
+    OS::Print("Ticking source position %s %s\n",
+              exclusive ? "exclusive" : "inclusive",
+              token_position.ToCString());
+  }
+  pfsp.Tick(exclusive);
+
+  if (i < source_position_ticks_.length()) {
+    source_position_ticks_.InsertAt(i, pfsp);
+  } else {
+    source_position_ticks_.Add(pfsp);
+  }
 }
 
 
@@ -186,6 +256,18 @@ void ProfileFunction::AddProfileCode(intptr_t code_table_index) {
     }
   }
   profile_codes_.Add(code_table_index);
+}
+
+
+bool ProfileFunction::GetSinglePosition(ProfileFunctionSourcePosition* pfsp) {
+  if (pfsp == NULL) {
+    return false;
+  }
+  if (source_position_ticks_.length() != 1) {
+    return false;
+  }
+  *pfsp = source_position_ticks_[0];
+  return true;
 }
 
 
@@ -442,8 +524,8 @@ class ProfileFunctionTable : public ZoneAllocated {
  public:
   ProfileFunctionTable()
       : null_function_(Function::ZoneHandle()),
-        table_(8),
-        unknown_function_(NULL) {
+        unknown_function_(NULL),
+        table_(8) {
     unknown_function_ = Add(ProfileFunction::kUnknownFunction,
                             "<unknown Dart function>");
   }
@@ -457,15 +539,9 @@ class ProfileFunctionTable : public ZoneAllocated {
     return Add(function);
   }
 
-  intptr_t LookupIndex(const Function& function) {
+  ProfileFunction* Lookup(const Function& function) {
     ASSERT(!function.IsNull());
-    for (intptr_t i = 0; i < table_.length(); i++) {
-      ProfileFunction* profile_function = table_[i];
-      if (profile_function->function() == function.raw()) {
-        return i;
-      }
-    }
-    return -1;
+    return function_hash_.Lookup(&function);
   }
 
   ProfileFunction* GetUnknown() {
@@ -522,21 +598,37 @@ class ProfileFunctionTable : public ZoneAllocated {
                             function,
                             table_.length());
     table_.Add(profile_function);
+    function_hash_.Insert(profile_function);
     return profile_function;
   }
 
-  ProfileFunction* Lookup(const Function& function) {
-    ASSERT(!function.IsNull());
-    intptr_t index = LookupIndex(function);
-    if (index == -1) {
-      return NULL;
+  // Needed for DirectChainedHashMap.
+  struct ProfileFunctionTableTrait {
+    typedef ProfileFunction* Value;
+    typedef const Function* Key;
+    typedef ProfileFunction* Pair;
+
+    static Key KeyOf(Pair kv) {
+      return kv->function();
     }
-    return table_[index];
-  }
+
+    static Value ValueOf(Pair kv) {
+      return kv;
+    }
+
+    static inline intptr_t Hashcode(Key key) {
+      return key->Hash();
+    }
+
+    static inline bool IsKeyEqual(Pair kv, Key key) {
+      return kv->function()->raw() == key->raw();
+    }
+  };
 
   const Function& null_function_;
-  ZoneGrowableArray<ProfileFunction*> table_;
   ProfileFunction* unknown_function_;
+  ZoneGrowableArray<ProfileFunction*> table_;
+  DirectChainedHashMap<ProfileFunctionTableTrait> function_hash_;
 };
 
 
@@ -973,6 +1065,160 @@ class ProfileFunctionTrieNode : public ProfileTrieNode {
 };
 
 
+class ProfileCodeInlinedFunctionsCache : public ValueObject {
+ public:
+  ProfileCodeInlinedFunctionsCache()
+      : cache_cursor_(0),
+        last_hit_(0) {
+    for (intptr_t i = 0; i < kCacheSize; i++) {
+      cache_[i].Reset();
+    }
+    cache_hit_ = 0;
+    cache_miss_ = 0;
+  }
+
+  ~ProfileCodeInlinedFunctionsCache() {
+    if (FLAG_trace_profiler) {
+      intptr_t total = cache_hit_ + cache_miss_;
+      OS::Print("LOOKUPS: %" Pd " HITS: %" Pd " MISSES: %" Pd "\n",
+                total,
+                cache_hit_,
+                cache_miss_);
+    }
+  }
+
+  void Get(uword pc,
+           const Code& code,
+           ProcessedSample* sample,
+           intptr_t frame_index,
+           // Outputs:
+           GrowableArray<Function*>** inlined_functions,
+           GrowableArray<TokenPosition>** inlined_token_positions,
+           TokenPosition* token_position) {
+    const intptr_t offset = OffsetForPC(pc, code, sample, frame_index);
+    if (FindInCache(pc,
+                    offset,
+                    inlined_functions,
+                    inlined_token_positions,
+                    token_position)) {
+      // Found in cache.
+      return;
+    }
+    Add(pc, code, sample, frame_index,
+        inlined_functions, inlined_token_positions, token_position);
+  }
+
+ private:
+  bool FindInCache(uword pc,
+                   intptr_t offset,
+                   GrowableArray<Function*>** inlined_functions,
+                   GrowableArray<TokenPosition>** inlined_token_positions,
+                   TokenPosition* token_position) {
+    // Simple linear scan.
+    for (intptr_t i = 0; i < kCacheSize; i++) {
+      intptr_t index = (last_hit_ + i) % kCacheSize;
+      if ((cache_[index].pc == pc) && (cache_[index].offset == offset)) {
+        // Hit.
+        if (cache_[index].inlined_functions.length() == 0) {
+          *inlined_functions = NULL;
+          *inlined_token_positions = NULL;
+        } else {
+          *inlined_functions = &cache_[index].inlined_functions;
+          *inlined_token_positions = &cache_[index].inlined_token_positions;
+        }
+        *token_position = cache_[index].token_position;
+        cache_hit_++;
+        last_hit_ = index;
+        return true;
+      }
+    }
+    cache_miss_++;
+    return false;
+  }
+
+  // Add to cache and fill in outputs.
+  void Add(uword pc,
+           const Code& code,
+           ProcessedSample* sample,
+           intptr_t frame_index,
+           // Outputs:
+           GrowableArray<Function*>** inlined_functions,
+           GrowableArray<TokenPosition>** inlined_token_positions,
+           TokenPosition* token_position) {
+    const intptr_t offset = OffsetForPC(pc, code, sample, frame_index);
+    CacheEntry* cache_entry = &cache_[NextFreeIndex()];
+    cache_entry->pc = pc;
+    cache_entry->offset = offset;
+    code.GetInlinedFunctionsAt(offset,
+                               &(cache_entry->inlined_functions),
+                               &(cache_entry->inlined_token_positions));
+    cache_entry->token_position = code.GetTokenPositionAt(offset);
+    *token_position = (cache_entry->token_position);
+    if (cache_entry->inlined_functions.length() == 0) {
+      *inlined_functions = NULL;
+      *inlined_token_positions = NULL;
+      return;
+    }
+    // The inlined token position table does not include the token position
+    // of the final call. Insert it at the beginning because the table.
+    // is reversed.
+    cache_entry->inlined_token_positions.InsertAt(
+        0,
+        cache_entry->token_position);
+
+    // Write outputs.
+    *inlined_functions = &(cache_entry->inlined_functions);
+    *inlined_token_positions = &(cache_entry->inlined_token_positions);
+  }
+
+  intptr_t NextFreeIndex() {
+    cache_cursor_ = (cache_cursor_ + 1) % kCacheSize;
+    return cache_cursor_;
+  }
+
+  intptr_t OffsetForPC(uword pc,
+                       const Code& code,
+                       ProcessedSample* sample,
+                       intptr_t frame_index) {
+    intptr_t offset = pc - code.EntryPoint();
+    if (frame_index != 0) {
+      // The PC of frames below the top frame is a call's return address,
+      // which can belong to a different inlining interval than the call.
+      offset--;
+    } else if (sample->IsAllocationSample()) {
+      // Allocation samples skip the top frame, so the top frame's pc is
+      // also a call's return address.
+      offset--;
+    } else if (!sample->first_frame_executing()) {
+      // If the first frame wasn't executing code (i.e. we started to collect
+      // the stack trace at an exit frame), the top frame's pc is also a
+      // call's return address.
+      offset--;
+    }
+    return offset;
+  }
+
+  struct CacheEntry {
+    void Reset() {
+      pc = 0;
+      offset = 0;
+    }
+    uword pc;
+    intptr_t offset;
+    GrowableArray<Function*> inlined_functions;
+    GrowableArray<TokenPosition> inlined_token_positions;
+    TokenPosition token_position;
+  };
+
+  static const intptr_t kCacheSize = 128;
+  intptr_t cache_cursor_;
+  intptr_t last_hit_;
+  CacheEntry cache_[kCacheSize];
+  intptr_t cache_miss_;
+  intptr_t cache_hit_;
+};
+
+
 class ProfileBuilder : public ValueObject {
  public:
   enum ProfileInfoKind {
@@ -1387,17 +1633,28 @@ class ProfileBuilder : public ValueObject {
     const intptr_t code_index = profile_code->code_table_index();
     ASSERT(profile_code != NULL);
     const Code& code = Code::ZoneHandle(profile_code->code());
-    GrowableArray<Function*> inlined_functions;
+    GrowableArray<Function*>* inlined_functions = NULL;
+    GrowableArray<TokenPosition>* inlined_token_positions = NULL;
+    TokenPosition token_position = TokenPosition::kNoSource;
     if (!code.IsNull()) {
-      intptr_t offset = pc - code.EntryPoint();
-      if (frame_index != 0) {
-        // The PC of frames below the top frame is a call's return address,
-        // which can belong to a different inlining interval than the call.
-        offset--;
+      inlined_functions_cache_.Get(pc, code, sample, frame_index,
+                                   &inlined_functions,
+                                   &inlined_token_positions,
+                                   &token_position);
+      if (FLAG_trace_profiler_verbose) {
+        for (intptr_t i = 0; i < inlined_functions->length(); i++) {
+          const String& name =
+              String::Handle((*inlined_functions)[i]->QualifiedScrubbedName());
+          THR_Print("InlinedFunction[%" Pd "] = {%s, %s}\n",
+                    i,
+                    name.ToCString(),
+                    (*inlined_token_positions)[i].ToCString());
+        }
       }
-      code.GetInlinedFunctionsAt(offset, &inlined_functions);
     }
-    if (code.IsNull() || (inlined_functions.length() == 0)) {
+    if (code.IsNull() ||
+        (inlined_functions == NULL) ||
+        (inlined_functions->length() == 0)) {
       // No inlined functions.
       if (inclusive_tree_) {
         current = AppendKind(code, current);
@@ -1407,6 +1664,7 @@ class ProfileBuilder : public ValueObject {
                                 sample,
                                 frame_index,
                                 function,
+                                token_position,
                                 code_index);
       if (!inclusive_tree_) {
         current = AppendKind(code, current);
@@ -1417,11 +1675,12 @@ class ProfileBuilder : public ValueObject {
     ASSERT(code.is_optimized());
 
     if (inclusive_tree_) {
-      for (intptr_t i = inlined_functions.length() - 1; i >= 0; i--) {
-        Function* inlined_function = inlined_functions[i];
+      for (intptr_t i = inlined_functions->length() - 1; i >= 0; i--) {
+        Function* inlined_function = (*inlined_functions)[i];
         ASSERT(inlined_function != NULL);
         ASSERT(!inlined_function->IsNull());
-        const bool inliner = i == (inlined_functions.length() - 1);
+        TokenPosition inlined_token_position = (*inlined_token_positions)[i];
+        const bool inliner = i == (inlined_functions->length() - 1);
         if (inliner) {
           current = AppendKind(code, current);
         }
@@ -1430,6 +1689,7 @@ class ProfileBuilder : public ValueObject {
                                          sample,
                                          frame_index,
                                          inlined_function,
+                                         inlined_token_position,
                                          code_index);
         if (inliner) {
           current = AppendKind(kInlineStart, current);
@@ -1439,11 +1699,12 @@ class ProfileBuilder : public ValueObject {
     } else {
       // Append the inlined children.
       current = AppendKind(kInlineFinish, current);
-      for (intptr_t i = 0; i < inlined_functions.length(); i++) {
-        Function* inlined_function = inlined_functions[i];
+      for (intptr_t i = 0; i < inlined_functions->length(); i++) {
+        Function* inlined_function = (*inlined_functions)[i];
         ASSERT(inlined_function != NULL);
         ASSERT(!inlined_function->IsNull());
-        const bool inliner = i == (inlined_functions.length() - 1);
+        TokenPosition inlined_token_position = (*inlined_token_positions)[i];
+        const bool inliner = i == (inlined_functions->length() - 1);
         if (inliner) {
           current = AppendKind(kInlineStart, current);
         }
@@ -1452,6 +1713,7 @@ class ProfileBuilder : public ValueObject {
                                          sample,
                                          frame_index + i,
                                          inlined_function,
+                                         inlined_token_position,
                                          code_index);
         if (inliner) {
           current = AppendKind(code, current);
@@ -1468,6 +1730,7 @@ class ProfileBuilder : public ValueObject {
       ProcessedSample* sample,
       intptr_t frame_index,
       Function* inlined_function,
+      TokenPosition inlined_token_position,
       intptr_t code_index) {
     ProfileFunctionTable* function_table = profile_->functions_;
     ProfileFunction* function = function_table->LookupOrAdd(*inlined_function);
@@ -1477,6 +1740,7 @@ class ProfileBuilder : public ValueObject {
                            sample,
                            frame_index,
                            function,
+                           inlined_token_position,
                            code_index);
   }
 
@@ -1494,9 +1758,23 @@ class ProfileBuilder : public ValueObject {
                                            ProcessedSample* sample,
                                            intptr_t frame_index,
                                            ProfileFunction* function,
+                                           TokenPosition token_position,
                                            intptr_t code_index) {
+    if (!function->is_visible()) {
+      return current;
+    }
     if (tick_functions_) {
-      function->Tick(IsExecutingFrame(sample, frame_index), sample_index);
+      if (FLAG_trace_profiler_verbose) {
+        THR_Print("S[%" Pd "]F[%" Pd "] %s %s 0x%" Px "\n",
+                  sample_index,
+                  frame_index,
+                  function->Name(),
+                  token_position.ToCString(),
+                  sample->At(frame_index));
+      }
+      function->Tick(IsExecutingFrame(sample, frame_index),
+                     sample_index,
+                     token_position);
     }
     function->AddProfileCode(code_index);
     current = current->GetChild(function->table_index());
@@ -1974,7 +2252,7 @@ class ProfileBuilder : public ValueObject {
   const Function& null_function_;
   bool tick_functions_;
   bool inclusive_tree_;
-
+  ProfileCodeInlinedFunctionsCache inlined_functions_cache_;
   ProcessedSampleBuffer* samples_;
   ProfileInfoKind info_kind_;
 };  // ProfileBuilder.
@@ -2007,6 +2285,10 @@ void Profile::Build(Thread* thread,
   builder.Build();
 }
 
+
+intptr_t Profile::NumFunctions() const {
+  return functions_->length();
+}
 
 ProfileFunction* Profile::GetFunction(intptr_t index) {
   ASSERT(functions_ != NULL);
@@ -2121,6 +2403,11 @@ void Profile::PrintTimelineJSON(JSONStream* stream) {
                          isolate_id, trie->frame_id());
     }
   }
+}
+
+
+ProfileFunction* Profile::FindFunction(const Function& function) {
+  return functions_->Lookup(function);
 }
 
 
@@ -2244,6 +2531,50 @@ intptr_t ProfileTrieWalker::CurrentExclusiveTicks() {
 }
 
 
+const char* ProfileTrieWalker::CurrentToken() {
+  if (current_ == NULL) {
+    return NULL;
+  }
+  if (code_trie_) {
+    return NULL;
+  }
+  ProfileFunction* func = profile_->GetFunction(current_->table_index());
+  const Function& function = *(func->function());
+  if (function.IsNull()) {
+    // No function.
+    return NULL;
+  }
+  const Script& script = Script::Handle(function.script());
+  if (script.IsNull()) {
+    // No script.
+    return NULL;
+  }
+  const TokenStream& token_stream = TokenStream::Handle(script.tokens());
+  if (token_stream.IsNull()) {
+    // No token position.
+    return NULL;
+  }
+  ProfileFunctionSourcePosition pfsp(TokenPosition::kNoSource);
+  if (!func->GetSinglePosition(&pfsp)) {
+    // Not exactly one source position.
+    return NULL;
+  }
+  TokenPosition token_pos = pfsp.token_pos();
+  if (!token_pos.IsReal() && !token_pos.IsSynthetic()) {
+    // Not a location in a script.
+    return NULL;
+  }
+  if (token_pos.IsSynthetic()) {
+    token_pos = token_pos.FromSynthetic();
+  }
+  TokenStream::Iterator iterator(token_stream, token_pos);
+  const String& str = String::Handle(iterator.CurrentLiteral());
+  if (str.IsNull()) {
+    return NULL;
+  }
+  return str.ToCString();
+}
+
 bool ProfileTrieWalker::Down() {
   if ((current_ == NULL) || (current_->NumChildren() == 0)) {
     return false;
@@ -2310,9 +2641,11 @@ void ProfilerService::PrintJSONImpl(Thread* thread,
 class NoAllocationSampleFilter : public SampleFilter {
  public:
   NoAllocationSampleFilter(Isolate* isolate,
+                           intptr_t thread_task_mask,
                            int64_t time_origin_micros,
                            int64_t time_extent_micros)
       : SampleFilter(isolate,
+                     thread_task_mask,
                      time_origin_micros,
                      time_extent_micros) {
   }
@@ -2331,6 +2664,7 @@ void ProfilerService::PrintJSON(JSONStream* stream,
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   NoAllocationSampleFilter filter(isolate,
+                                  Thread::kMutatorTask,
                                   time_origin_micros,
                                   time_extent_micros);
   const bool as_timeline = false;
@@ -2342,9 +2676,11 @@ class ClassAllocationSampleFilter : public SampleFilter {
  public:
   ClassAllocationSampleFilter(Isolate* isolate,
                               const Class& cls,
+                              intptr_t thread_task_mask,
                               int64_t time_origin_micros,
                               int64_t time_extent_micros)
       : SampleFilter(isolate,
+                     thread_task_mask,
                      time_origin_micros,
                      time_extent_micros),
         cls_(Class::Handle(cls.raw())) {
@@ -2370,6 +2706,7 @@ void ProfilerService::PrintAllocationJSON(JSONStream* stream,
   Isolate* isolate = thread->isolate();
   ClassAllocationSampleFilter filter(isolate,
                                      cls,
+                                     Thread::kMutatorTask,
                                      time_origin_micros,
                                      time_extent_micros);
   const bool as_timeline = false;
@@ -2383,7 +2720,12 @@ void ProfilerService::PrintTimelineJSON(JSONStream* stream,
                                         int64_t time_extent_micros) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
+  const intptr_t thread_task_mask = Thread::kMutatorTask |
+                                    Thread::kCompilerTask |
+                                    Thread::kSweeperTask |
+                                    Thread::kMarkerTask;
   NoAllocationSampleFilter filter(isolate,
+                                  thread_task_mask,
                                   time_origin_micros,
                                   time_extent_micros);
   const bool as_timeline = true;

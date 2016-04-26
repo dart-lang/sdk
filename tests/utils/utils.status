@@ -2,10 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dart2js && $host_checked ]
-dummy_compiler_test: Crash # Issue 22809
-
-[ $compiler == dart2js && $host_checked == false ]
+[ $compiler == dart2js ]
 dummy_compiler_test: Slow, Pass
 
 [ $compiler == dart2js ]
@@ -18,9 +15,13 @@ source_mirrors_test: Slow, Pass
 [ ($compiler == none || $compiler == precompiler) && $runtime != vm ]
 dart2js_test: SkipByDesign # Uses dart:io.
 
-
 [ $compiler == dart2js && $mode == debug ]
 dummy_compiler_test: Slow, Pass
 
-[ $noopt || $compiler == precompiler || $compiler == dart2app ]
+[ $noopt || $compiler == precompiler || $mode == product ]
 source_mirrors_test: SkipByDesign # Imports dart:mirrors
+
+[ $compiler == dart2js && $cps_ir && $host_checked ]
+dummy_compiler_test: Crash # Issue 24485
+recursive_import_test: Crash # Issue 24485
+source_mirrors_test: Crash # Issue 24485

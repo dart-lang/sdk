@@ -5,12 +5,11 @@
 library analyzer.src.dart.element.member;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/constant.dart'
-    show DartObject, EvaluationResultImpl;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
@@ -462,6 +461,9 @@ abstract class Member implements Element {
   bool get isDeprecated => _baseElement.isDeprecated;
 
   @override
+  bool get isJS => _baseElement.isJS;
+
+  @override
   bool get isOverride => _baseElement.isOverride;
 
   @override
@@ -472,6 +474,9 @@ abstract class Member implements Element {
 
   @override
   bool get isPublic => _baseElement.isPublic;
+
+  @override
+  bool get isRequired => _baseElement.isRequired;
 
   @override
   bool get isSynthetic => _baseElement.isSynthetic;
@@ -524,6 +529,7 @@ abstract class Member implements Element {
   /**
    * If the given [child] is not `null`, use the given [visitor] to visit it.
    */
+  @deprecated
   void safelyVisitChild(Element child, ElementVisitor visitor) {
     // TODO(brianwilkerson) Make this private
     if (child != null) {
@@ -1017,10 +1023,12 @@ abstract class VariableMember extends Member implements VariableElement {
   bool get isFinal => baseElement.isFinal;
 
   @override
+  @deprecated
   bool get isPotentiallyMutatedInClosure =>
       baseElement.isPotentiallyMutatedInClosure;
 
   @override
+  @deprecated
   bool get isPotentiallyMutatedInScope =>
       baseElement.isPotentiallyMutatedInScope;
 
@@ -1032,6 +1040,6 @@ abstract class VariableMember extends Member implements VariableElement {
     // TODO(brianwilkerson) We need to finish implementing the accessors used
     // below so that we can safely invoke them.
     super.visitChildren(visitor);
-    safelyVisitChild(baseElement.initializer, visitor);
+    baseElement.initializer?.accept(visitor);
   }
 }

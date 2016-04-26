@@ -5,13 +5,11 @@
 // Generate a snapshot file after loading all the scripts specified on the
 // command line.
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #include <cstdarg>
-
-#include "include/dart_api.h"
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
@@ -22,8 +20,9 @@
 #include "bin/utils.h"
 #include "bin/vmservice_impl.h"
 
-#include "platform/globals.h"
+#include "include/dart_api.h"
 
+#include "platform/globals.h"
 
 namespace dart {
 namespace bin {
@@ -181,16 +180,16 @@ static int ParseArguments(int argc,
     return -1;
   }
 
-  if (instructions_snapshot_filename != NULL &&
-      embedder_entry_points_manifest == NULL) {
+  if ((instructions_snapshot_filename != NULL) &&
+      (embedder_entry_points_manifest == NULL)) {
     Log::PrintErr(
         "Specifying an instructions snapshot filename indicates precompilation"
         ". But no embedder entry points manifest was specified.\n\n");
     return -1;
   }
 
-  if (embedder_entry_points_manifest != NULL &&
-      instructions_snapshot_filename == NULL) {
+  if ((embedder_entry_points_manifest != NULL) &&
+      (instructions_snapshot_filename == NULL)) {
     Log::PrintErr(
         "Specifying the embedder entry points manifest indicates "
         "precompilation. But no instuctions snapshot was specified.\n\n");
@@ -828,7 +827,7 @@ static Dart_QualifiedFunctionName* ParseEntryPointsManifestFile(
 static Dart_QualifiedFunctionName* ParseEntryPointsManifestIfPresent() {
   Dart_QualifiedFunctionName* entries =
       ParseEntryPointsManifestFile(embedder_entry_points_manifest);
-  if (entries == NULL && IsSnapshottingForPrecompilation()) {
+  if ((entries == NULL) && IsSnapshottingForPrecompilation()) {
     Log::PrintErr(
         "Could not find native embedder entry points during precompilation\n");
     exit(255);
@@ -1031,12 +1030,15 @@ int main(int argc, char** argv) {
 
   // Initialize the Dart VM.
   // Note: We don't expect isolates to be created from dart code during
-  // snapshot generation.
+  // core library snapshot generation. However for the case when a full
+  // snasphot is generated from a script (app_script_name != NULL) we will
+  // need the service isolate to resolve URI and load code.
   char* error = Dart_Initialize(
       NULL,
       NULL,
       NULL,
-      CreateServiceIsolate,
+      (app_script_name != NULL) ? CreateServiceIsolate : NULL,
+      NULL,
       NULL,
       NULL,
       NULL,
@@ -1141,6 +1143,11 @@ int main(int argc, char** argv) {
   } else {
     SetupForGenericSnapshotCreation();
     CreateAndWriteSnapshot();
+  }
+  error = Dart_Cleanup();
+  if (error != NULL) {
+    Log::PrintErr("VM cleanup failed: %s\n", error);
+    free(error);
   }
   EventHandler::Stop();
   return 0;

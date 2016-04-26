@@ -20,6 +20,8 @@ namespace dart {
 // easy to engineer collisions.
 class TestTraits {
  public:
+  static const char* Name() { return "TestTraits"; }
+
   static bool IsMatch(const char* key, const Object& obj) {
     return String::Cast(obj).Equals(key);
   }

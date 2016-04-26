@@ -24,29 +24,20 @@ class MapTypeMask extends ForwardingTypeMask {
   // The key type of this map.
   final TypeMask keyType;
 
-  MapTypeMask(this.forwardTo,
-              this.allocationNode,
-              this.allocationElement,
-              this.keyType,
-              this.valueType);
+  MapTypeMask(this.forwardTo, this.allocationNode, this.allocationElement,
+      this.keyType, this.valueType);
 
   TypeMask nullable() {
     return isNullable
         ? this
-        : new MapTypeMask(forwardTo.nullable(),
-                          allocationNode,
-                          allocationElement,
-                          keyType,
-                          valueType);
+        : new MapTypeMask(forwardTo.nullable(), allocationNode,
+            allocationElement, keyType, valueType);
   }
 
   TypeMask nonNullable() {
     return isNullable
-        ? new MapTypeMask(forwardTo.nonNullable(),
-                          allocationNode,
-                          allocationElement,
-                          keyType,
-                          valueType)
+        ? new MapTypeMask(forwardTo.nonNullable(), allocationNode,
+            allocationElement, keyType, valueType)
         : this;
   }
 
@@ -64,10 +55,8 @@ class MapTypeMask extends ForwardingTypeMask {
 
   TypeMask intersection(TypeMask other, ClassWorld classWorld) {
     TypeMask forwardIntersection = forwardTo.intersection(other, classWorld);
-    if (forwardIntersection.isEmpty) return forwardIntersection;
-    return forwardIntersection.isNullable
-        ? nullable()
-        : nonNullable();
+    if (forwardIntersection.isEmptyOrNull) return forwardIntersection;
+    return forwardIntersection.isNullable ? nullable() : nonNullable();
   }
 
   TypeMask union(other, ClassWorld classWorld) {
@@ -75,17 +64,15 @@ class MapTypeMask extends ForwardingTypeMask {
       return this;
     } else if (equalsDisregardNull(other)) {
       return other.isNullable ? other : this;
-    } else if (other.isEmpty) {
+    } else if (other.isEmptyOrNull) {
       return other.isNullable ? this.nullable() : this;
     } else if (other.isMap &&
-               keyType != null &&
-               other.keyType != null &&
-               valueType != null &&
-               other.valueType != null) {
-      TypeMask newKeyType =
-          keyType.union(other.keyType, classWorld);
-      TypeMask newValueType =
-          valueType.union(other.valueType, classWorld);
+        keyType != null &&
+        other.keyType != null &&
+        valueType != null &&
+        other.valueType != null) {
+      TypeMask newKeyType = keyType.union(other.keyType, classWorld);
+      TypeMask newValueType = valueType.union(other.valueType, classWorld);
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, classWorld);
       return new MapTypeMask(
           newForwardTo, null, null, newKeyType, newValueType);
@@ -93,21 +80,23 @@ class MapTypeMask extends ForwardingTypeMask {
       assert(other.keyType == classWorld.compiler.typesTask.stringType);
       TypeMask newKeyType = keyType.union(other.keyType, classWorld);
       TypeMask newValueType =
-          other.typeMap.values.fold(keyType, (p,n) => p.union(n, classWorld));
+          other.typeMap.values.fold(keyType, (p, n) => p.union(n, classWorld));
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, classWorld);
       MapTypeMask newMapTypeMask = new MapTypeMask(
           newForwardTo,
           allocationNode == other.allocationNode ? allocationNode : null,
-          allocationElement == other.allocationElement ? allocationElement
-                                                       : null,
-          newKeyType, newValueType);
+          allocationElement == other.allocationElement
+              ? allocationElement
+              : null,
+          newKeyType,
+          newValueType);
       return newMapTypeMask;
     } else {
       return forwardTo.union(other, classWorld);
     }
   }
 
-  bool operator==(other) => super == other;
+  bool operator ==(other) => super == other;
 
   int get hashCode {
     return computeHashCode(

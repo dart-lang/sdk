@@ -120,6 +120,7 @@ static void Shutdown(Dart_NativeArguments args) {
   // NO-OP.
 }
 
+
 struct VmServiceIONativeEntry {
   const char* name;
   int num_arguments;
@@ -271,7 +272,7 @@ bool VmService::Setup(const char* server_ip,
 
 
 const char* VmService::GetErrorMessage() {
-  return error_msg_ == NULL ? "No error." : error_msg_;
+  return (error_msg_ == NULL) ? "No error." : error_msg_;
 }
 
 

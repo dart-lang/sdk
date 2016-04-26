@@ -878,7 +878,7 @@ class IncrementalBodyDelta extends Delta {
 
   @override
   DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
-      ResultDescriptor descriptor) {
+      ResultDescriptor descriptor, Object value) {
     // A body change delta should never leak outside its source.
     // It can cause invalidation of results (e.g. hints) in other sources,
     // but only when a result in the updated source is INVALIDATE_NO_DELTA.
@@ -928,6 +928,7 @@ class IncrementalBodyDelta extends Delta {
         isByTask(PropagateVariableTypeTask.DESCRIPTOR) ||
         isByTask(ScanDartTask.DESCRIPTOR) ||
         isByTask(ResolveConstantExpressionTask.DESCRIPTOR) ||
+        isByTask(ResolveDirectiveElementsTask.DESCRIPTOR) ||
         isByTask(ResolveInstanceFieldsInUnitTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryReferencesTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryTask.DESCRIPTOR) ||
@@ -1676,6 +1677,23 @@ class PoorMansIncrementalResolver {
     _updateEntry();
     // resolve references in the comment
     incrementalResolver._resolveReferences(newComment);
+    // update 'documentationComment' of the parent element(s)
+    {
+      AstNode parent = newComment.parent;
+      if (parent is AnnotatedNode) {
+        Element parentElement = ElementLocator.locate(newComment.parent);
+        if (parentElement is ElementImpl) {
+          setElementDocumentationComment(parentElement, parent);
+        } else if (parentElement == null && parent is FieldDeclaration) {
+          for (VariableDeclaration field in parent.fields.variables) {
+            if (field.element is ElementImpl) {
+              setElementDocumentationComment(
+                  field.element as ElementImpl, parent);
+            }
+          }
+        }
+      }
+    }
     // OK
     return true;
   }
@@ -2084,6 +2102,22 @@ class _ElementOffsetUpdater extends GeneralizingElementVisitor {
         Expression initializer = constVariable.constantInitializer;
         if (initializer != null) {
           _shiftTokens(initializer.beginToken);
+        }
+      }
+    }
+    // code range
+    if (element is ElementImpl) {
+      int oldOffset = element.codeOffset;
+      int oldLength = element.codeLength;
+      if (oldOffset != null) {
+        int newOffset = oldOffset;
+        int newLength = oldLength;
+        newOffset += oldOffset > updateOffset ? updateDelta : 0;
+        if (oldOffset <= updateOffset && updateOffset < oldOffset + oldLength) {
+          newLength += updateDelta;
+        }
+        if (newOffset != oldOffset || newLength != oldLength) {
+          element.setCodeRange(newOffset, newLength);
         }
       }
     }

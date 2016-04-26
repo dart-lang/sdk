@@ -212,7 +212,7 @@ enum BuiltinMethod {
 
 /// True for the built-in operators that may be used in a compound assignment.
 bool isCompoundableOperator(BuiltinOperator operator) {
-  switch(operator) {
+  switch (operator) {
     case BuiltinOperator.NumAdd:
     case BuiltinOperator.NumSubtract:
     case BuiltinOperator.NumMultiply:
@@ -228,12 +228,11 @@ bool isCompoundableOperator(BuiltinOperator operator) {
 int getEffectsOfBuiltinMethod(BuiltinMethod method) {
   switch (method) {
     case BuiltinMethod.Push:
-      return Effects.changesIndexableContent |
-             Effects.changesIndexableLength;
+      return Effects.changesIndexableContent | Effects.changesIndexableLength;
     case BuiltinMethod.Pop:
       return Effects.dependsOnIndexableContent |
-             Effects.dependsOnIndexableLength |
-             Effects.changesIndexableLength;
+          Effects.dependsOnIndexableLength |
+          Effects.changesIndexableLength;
     case BuiltinMethod.SetLength:
       return Effects.changesIndexableLength;
   }

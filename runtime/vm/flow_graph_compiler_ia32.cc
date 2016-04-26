@@ -120,7 +120,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 
   Zone* zone = compiler->zone();
 
-  builder->AddPcMarker(Function::Handle(zone), slot_ix++);
+  builder->AddPcMarker(Function::ZoneHandle(zone), slot_ix++);
   builder->AddCallerFp(slot_ix++);
   builder->AddReturnAddress(current->function(), deopt_id(), slot_ix++);
 
@@ -520,7 +520,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ Bind(&fall_through);
     return type_test_cache.raw();
   }
-  if (type.IsType() || type.IsFunctionType()) {
+  if (type.IsType()) {
     const Register kInstanceReg = EAX;
     const Register kTypeArgumentsReg = EDX;
     __ testl(kInstanceReg, Immediate(kSmiTagMask));  // Is instance Smi?
@@ -1290,7 +1290,8 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     intptr_t deopt_id,
     TokenPosition token_pos,
     LocationSummary* locs,
-    intptr_t try_index) {
+    intptr_t try_index,
+    intptr_t slow_path_argument_count) {
   const String& name = String::Handle(zone(), ic_data.target_name());
   const Array& arguments_descriptor =
       Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
@@ -1310,7 +1311,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
 
   AddCurrentDescriptor(RawPcDescriptors::kOther,
       Thread::kNoDeoptId, token_pos);
-  RecordSafepoint(locs);
+  RecordSafepoint(locs, slow_path_argument_count);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   // Precompilation not implemented on ia32 platform.
   ASSERT(!FLAG_precompiled_mode);
@@ -1504,8 +1505,10 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         Label* match_found,
                                         intptr_t deopt_id,
                                         TokenPosition token_index,
-                                        LocationSummary* locs) {
+                                        LocationSummary* locs,
+                                        bool complete) {
   ASSERT(is_optimizing());
+  ASSERT(!complete);
   __ Comment("EmitTestAndCall");
   const Array& arguments_descriptor =
       Array::ZoneHandle(zone(), ArgumentsDescriptor::New(argument_count,

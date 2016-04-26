@@ -1397,6 +1397,22 @@ main() {}''');
     expect(analysisResult.changeNotices, isNotNull);
   }
 
+  void test_handleContentsChanged_incremental_newContentsNull() {
+    context.analysisOptions = new AnalysisOptionsImpl()..incremental = true;
+    ContentCache contentCache = new ContentCache();
+    context.contentCache = contentCache;
+    // old contents
+    String oldContents = 'foo() {}';
+    Source source = resourceProvider.getFile('/test.dart').createSource();
+    contentCache.setContents(source, oldContents);
+    expect(context.computeLibraryElement(source), isNotNull);
+    // new contents
+    String newContents = null;
+    contentCache.setContents(source, newContents);
+    context.handleContentsChanged(source, oldContents, newContents, true);
+    expect(context.getLibraryElement(source), isNull);
+  }
+
   Future test_implicitAnalysisEvents_added() async {
     AnalyzedSourcesListener listener = new AnalyzedSourcesListener();
     context.implicitAnalysisEvents.listen(listener.onData);
@@ -1461,6 +1477,46 @@ main() {}''');
   void test_isServerLibrary_unknown() {
     Source source = newSource("/test.dart");
     expect(context.isServerLibrary(source), isFalse);
+  }
+
+  void test_onResultInvalidated_removeSource() {
+    Source source = addSource('/test.dart', 'main() {}');
+    _analyzeAll_assertFinished();
+    // listen for changes
+    bool listenerInvoked = false;
+    context.onResultChanged(RESOLVED_UNIT).listen((ResultChangedEvent event) {
+      Source eventSource = event.target.source;
+      expect(event.wasComputed, isFalse);
+      expect(event.wasInvalidated, isTrue);
+      expect(event.descriptor, RESOLVED_UNIT);
+      expect(eventSource, source);
+      listenerInvoked = true;
+    });
+    // apply changes
+    expect(listenerInvoked, false);
+    context.applyChanges(new ChangeSet()..removedSource(source));
+    // verify
+    expect(listenerInvoked, isTrue);
+  }
+
+  void test_onResultInvalidated_setContents() {
+    Source source = addSource('/test.dart', 'main() {}');
+    _analyzeAll_assertFinished();
+    // listen for changes
+    bool listenerInvoked = false;
+    context.onResultChanged(RESOLVED_UNIT).listen((ResultChangedEvent event) {
+      Source eventSource = event.target.source;
+      expect(event.wasComputed, isFalse);
+      expect(event.wasInvalidated, isTrue);
+      expect(event.descriptor, RESOLVED_UNIT);
+      expect(eventSource, source);
+      listenerInvoked = true;
+    });
+    // apply changes
+    expect(listenerInvoked, false);
+    context.setContents(source, 'class B {}');
+    // verify
+    expect(listenerInvoked, isTrue);
   }
 
   void test_parseCompilationUnit_errors() {
@@ -1875,14 +1931,14 @@ library expectedToFindSemicolon
     LibrarySpecificUnit unitA = new LibrarySpecificUnit(sourceA, sourceA);
     for (int i = 0; i < 10000; i++) {
       context.performAnalysisTask();
-      if (context.getResult(unitA, RESOLVED_UNIT2) != null) {
+      if (context.getResult(unitA, RESOLVED_UNIT3) != null) {
         break;
       }
     }
     // Update the source.
     // This should invalidate all the results and also reset the driver.
     context.setContents(sourceA, "library semicolonWasAdded;");
-    expect(context.getResult(unitA, RESOLVED_UNIT2), isNull);
+    expect(context.getResult(unitA, RESOLVED_UNIT3), isNull);
     expect(analysisDriver.currentWorkOrder, isNull);
     // Continue analysis.
     _analyzeAll_assertFinished();
@@ -1930,20 +1986,26 @@ library expectedToFindSemicolon
 //    JUnitTestCase.assertNotNullMsg("performAnalysisTask failed to compute an element model", _context.getLibraryElement(source));
   }
 
-  void test_performAnalysisTask_onResultComputed() {
+  void test_performAnalysisTask_onResultChanged() {
     Set<String> libraryElementUris = new Set<String>();
     Set<String> parsedUnitUris = new Set<String>();
     Set<String> resolvedUnitUris = new Set<String>();
     // listen
-    context.onResultComputed(LIBRARY_ELEMENT).listen((event) {
+    context.onResultChanged(LIBRARY_ELEMENT).listen((event) {
+      expect(event.wasComputed, isTrue);
+      expect(event.wasInvalidated, isFalse);
       Source librarySource = event.target;
       libraryElementUris.add(librarySource.uri.toString());
     });
-    context.onResultComputed(PARSED_UNIT).listen((event) {
+    context.onResultChanged(PARSED_UNIT).listen((event) {
+      expect(event.wasComputed, isTrue);
+      expect(event.wasInvalidated, isFalse);
       Source source = event.target;
       parsedUnitUris.add(source.uri.toString());
     });
-    context.onResultComputed(RESOLVED_UNIT).listen((event) {
+    context.onResultChanged(RESOLVED_UNIT).listen((event) {
+      expect(event.wasComputed, isTrue);
+      expect(event.wasInvalidated, isFalse);
       LibrarySpecificUnit target = event.target;
       Source librarySource = target.library;
       resolvedUnitUris.add(librarySource.uri.toString());
@@ -2068,6 +2130,7 @@ class ClassTwo {
     entry.setState(RESOLVED_UNIT9, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT11, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT12, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
 
     context.resolveCompilationUnit2(source, source);

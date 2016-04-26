@@ -5,7 +5,7 @@
 /// Values used only for debugging type inference.
 library compiler.src.inferrer.debug;
 
-bool VERBOSE = false;
-bool PRINT_SUMMARY = false;
-final ANOMALY_WARN = false;
-
+const bool VERBOSE = false;
+const bool PRINT_SUMMARY = false;
+const bool ANOMALY_WARN = false;
+const bool PRINT_GRAPH = false;

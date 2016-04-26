@@ -2,8 +2,6 @@ library dart2js.cps_ir.backward_null_check_remover;
 
 import 'cps_ir_nodes.dart';
 import 'optimizers.dart';
-import '../common/names.dart';
-import '../universe/selector.dart';
 import 'type_mask_system.dart';
 import 'cps_fragment.dart';
 
@@ -59,7 +57,7 @@ class BackwardNullCheckRemover extends BlockVisitor implements Pass {
     if (prim is SetField) return prim.object;
     if (prim is SetIndex) return prim.object;
     if (prim is InvokeMethod && !selectorsOnNull.contains(prim.selector)) {
-      return prim.dartReceiver;
+      return prim.receiver;
     }
     if (prim is ForeignCode) {
       return prim.isNullGuardOnNullFirstArgument() ? prim.argument(0) : null;
@@ -73,7 +71,9 @@ class BackwardNullCheckRemover extends BlockVisitor implements Pass {
     if (prim is ReceiverCheck && prim.isNullCheck) {
       Primitive value = prim.value;
       LetPrim let = prim.parent;
-      prim..replaceUsesWith(value)..destroy();
+      prim
+        ..replaceUsesWith(value)
+        ..destroy();
       let.remove();
     } else if (prim is GetLength || prim is GetField || prim is GetIndex) {
       if (prim.hasNoRefinedUses) {

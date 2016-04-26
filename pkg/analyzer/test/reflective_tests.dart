@@ -4,11 +4,23 @@
 
 library analyzer.test.reflective_tests;
 
+import 'dart:async';
 @MirrorsUsed(metaTargets: 'ReflectiveTest')
 import 'dart:mirrors';
-import 'dart:async';
 
 import 'package:unittest/unittest.dart';
+
+/**
+ * A marker annotation used to annotate overridden test methods (so we cannot
+ * rename them to `fail_`) which are expected to fail.
+ */
+const _FailingTest failingTest = const _FailingTest();
+
+/**
+ * A marker annotation used to instruct dart2js to keep reflection information
+ * for the annotated classes.
+ */
+const ReflectiveTest reflectiveTest = const ReflectiveTest();
 
 /**
  * Runs test methods existing in the given [type].
@@ -23,7 +35,7 @@ import 'package:unittest/unittest.dart';
  * method invocation.
  *
  * If [type] declares method `tearDown`, it will be invoked after any test
- * method invocation. If method returns [Future] to test some asyncronous
+ * method invocation. If method returns [Future] to test some asynchronous
  * behavior, then `tearDown` will be invoked in `Future.complete`.
  */
 void runReflectiveTests(Type type) {
@@ -36,7 +48,8 @@ void runReflectiveTests(Type type) {
   }
   String className = MirrorSystem.getName(classMirror.simpleName);
   group(className, () {
-    classMirror.instanceMembers.forEach((symbol, memberMirror) {
+    classMirror.instanceMembers
+        .forEach((Symbol symbol, MethodMirror memberMirror) {
       // we need only methods
       if (memberMirror is! MethodMirror || !memberMirror.isRegularMethod) {
         return;
@@ -45,7 +58,11 @@ void runReflectiveTests(Type type) {
       // test_
       if (memberName.startsWith('test_')) {
         test(memberName, () {
-          return _runTest(classMirror, symbol);
+          if (_hasFailingTestAnnotation(memberMirror)) {
+            return _runFailingTest(classMirror, symbol);
+          } else {
+            return _runTest(classMirror, symbol);
+          }
         });
         return;
       }
@@ -69,6 +86,11 @@ void runReflectiveTests(Type type) {
       }
     });
   });
+}
+
+bool _hasFailingTestAnnotation(MethodMirror method) {
+  return method.metadata.any((InstanceMirror annotation) =>
+      annotation.type.reflectedType == _FailingTest);
 }
 
 Future _invokeSymbolIfExists(InstanceMirror instanceMirror, Symbol symbol) {
@@ -116,7 +138,9 @@ class ReflectiveTest {
 }
 
 /**
- * A marker annotation used to instruct dart2js to keep reflection information
- * for the annotated classes.
+ * A marker annotation used to annotate overridden test methods (so we cannot
+ * rename them to `fail_`) which are expected to fail.
  */
-const ReflectiveTest reflectiveTest = const ReflectiveTest();
+class _FailingTest {
+  const _FailingTest();
+}

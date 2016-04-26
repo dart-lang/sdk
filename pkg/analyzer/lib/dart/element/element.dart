@@ -37,8 +37,8 @@
 library analyzer.dart.element.element;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/constant.dart' show DartObject;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -624,6 +624,11 @@ abstract class Element implements AnalysisTarget {
   bool get isDeprecated;
 
   /**
+   * Return `true` if this element has an annotation of the form '@JS(..)'.
+   */
+  bool get isJS;
+
+  /**
    * Return `true` if this element has an annotation of the form '@override'.
    */
   bool get isOverride;
@@ -644,6 +649,11 @@ abstract class Element implements AnalysisTarget {
    * any library that imports the library in which they are declared.
    */
   bool get isPublic;
+
+  /**
+   * Return `true` if this element has an annotation of the form '@required'.
+   */
+  bool get isRequired;
 
   /**
    * Return `true` if this element is synthetic. A synthetic element is an
@@ -808,11 +818,22 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   bool get isDeprecated;
 
   /**
+   * Return `true` if this annotation marks the associated element with the `JS`
+   * annotation.
+   */
+  bool get isJS;
+
+  /**
+   * Return `true` if this annotation marks the associated member as requiring
+   * overriding methods to call super.
+   */
+  bool get isMustCallSuper;
+
+  /**
    * Return `true` if this annotation marks the associated method as being
    * expected to override an inherited method.
    */
   bool get isOverride;
-
 
   /**
    * Return `true` if this annotation marks the associated member as being
@@ -825,6 +846,12 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
    * a proxy object.
    */
   bool get isProxy;
+
+  /**
+   * Return `true` if this annotation marks the associated member as being
+   * required.
+   */
+  bool get isRequired;
 }
 
 /**
@@ -1325,12 +1352,6 @@ abstract class LibraryElement implements Element {
   static const List<LibraryElement> EMPTY_LIST = const <LibraryElement>[];
 
   /**
-   * Return a list containing the strongly connected component in the
-   * import/export graph in which the current library resides.
-   */
-  List<LibraryElement> get libraryCycle;
-
-  /**
    * Return the compilation unit that defines this library.
    */
   CompilationUnitElement get definingCompilationUnit;
@@ -1410,6 +1431,12 @@ abstract class LibraryElement implements Element {
    * Return `true` if this library is part of the SDK.
    */
   bool get isInSdk;
+
+  /**
+   * Return a list containing the strongly connected component in the
+   * import/export graph in which the current library resides.
+   */
+  List<LibraryElement> get libraryCycle;
 
   /**
    * Return the element representing the synthetic function `loadLibrary` that

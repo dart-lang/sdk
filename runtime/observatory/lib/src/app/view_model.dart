@@ -4,6 +4,384 @@
 
 part of app;
 
+abstract class VirtualTreeRow {
+  // Number of ems each subtree is indented.
+  static const subtreeIndent = 1.05;
+
+  static const redColor = '#F44336';
+  static const blueColor = '#3F51B5';
+  static const purpleColor = '#673AB7';
+  static const greenColor = '#4CAF50';
+  static const orangeColor = '#FF9800';
+  static const lightGrayColor = '#FAFAFA';
+
+  List backgroundColors = const [
+    purpleColor,
+    redColor,
+    greenColor,
+    blueColor,
+    orangeColor,
+  ];
+
+  final VirtualTree tree;
+  final List<VirtualTreeRow> children = [];
+  final List<StreamSubscription> _listeners = [];
+  final int depth;
+  bool _expanded = false;
+
+  VirtualTreeRow(this.tree, this.depth);
+
+  bool get expanded => _expanded;
+
+  set expanded(bool expanded) {
+    var changed = _expanded != expanded;
+    _expanded = expanded;
+    if (!changed) {
+      return;
+    }
+    if (_expanded) {
+      _expand();
+    } else {
+      _collapse();
+    }
+  }
+
+  Element makeColorBar() {
+    var element = new SpanElement();
+    element.style.paddingLeft = '2px';
+    element.style.paddingRight = '2px';
+    element.style.flexBasis = '2px';
+    element.style.height = '${tree.rowHeight}px';
+    element.style.minHeight = '${tree.rowHeight}px';
+    if (depth > 0) {
+      var colorIndex = (depth - 1) % backgroundColors.length;
+      element.style.backgroundColor = backgroundColors[colorIndex];
+    }
+    return element;
+  }
+
+  Element makeExpander() {
+    SpanElement element = new SpanElement();
+    element.style.flexBasis = '2em';
+    if (!hasChildren()) {
+      element.style.visibility = 'hidden';
+    } else {
+      element.style.visibility = 'visible';
+      element.children.add(expanded ?
+          new Element.tag('icon-expand-more') :
+          new Element.tag('icon-chevron-right'));
+    }
+    _listeners.add(element.onClick.listen((e) {
+      e.stopPropagation();
+      toggle();
+    }));
+    return element;
+  }
+
+  Element makeIndenter({colored: true}) {
+    SpanElement element = new SpanElement();
+    element.style.paddingLeft = '${subtreeIndent * depth}em';
+    element.style.flexBasis = '${subtreeIndent * depth}em';
+    element.style.height = '${tree.rowHeight}px';
+    element.style.minHeight = '${tree.rowHeight}px';
+    if (colored) {
+      if (depth > 0) {
+        var colorIndex = (depth - 1) % backgroundColors.length;
+        element.style.backgroundColor = backgroundColors[colorIndex];
+      }
+    }
+    return element;
+  }
+
+  Element makeText(String text, {String toolTip, String flexBasis: '7em'}) {
+    SpanElement element = new SpanElement();
+    element.text = text;
+    if (toolTip != null) {
+      element.title = toolTip;
+    }
+    if (flexBasis != null) {
+      element.style.flexBasis = flexBasis;
+    }
+    return element;
+  }
+
+  Element makeGap({double ems: 0.5}) {
+    SpanElement element = new SpanElement();
+    var flexBasis = '${ems}em';
+    element.style.flexBasis = flexBasis;
+    return element;
+  }
+
+  void _cleanupListeners() {
+    for (var listener in _listeners) {
+      listener.cancel();
+    }
+    _listeners.clear();
+  }
+
+  void _expand() {
+    onShow();
+    tree._onExpand(this);
+    if (children.length == 1) {
+      children[0]._expand();
+    }
+    _expanded = true;
+  }
+
+  void _collapse() {
+    _expanded = false;
+    for (var i = 0; i < children.length; i++) {
+      if (children[i].expanded) {
+        children[i]._collapse();
+      }
+    }
+    tree._onCollapse(this);
+  }
+
+  void toggle() {
+    expanded = !expanded;
+  }
+
+  void _render(DivElement rowDiv) {
+    rowDiv.style.display = 'flex';
+    rowDiv.style.alignItems = 'center';
+    _cleanupListeners();
+    onShow();
+    onRender(rowDiv);
+  }
+
+  /// Called when you should render into [rowDiv].
+  void onRender(DivElement rowDiv);
+
+  // Called when this row is visible.
+  void onShow();
+
+  // Return the number of children this node has.
+  int get childCount => 0;
+
+  // Return true if this node can be expanded.
+  bool hasChildren() => childCount > 0;
+
+  // Called when this row is not visible.
+  void onHide() {
+    _cleanupListeners();
+  }
+}
+
+class VirtualTree {
+  final int rowHeight;
+  final List<VirtualTreeRow> rows = [];
+  final DivElement root;
+  final Stopwatch _clock = new Stopwatch();
+
+  DivElement _treeHeightElement;
+  DivElement _tree;
+
+  StreamSubscription _scrollSubscription;
+  StreamSubscription _resizeSubscription;
+
+  // Height of [root] in pixels.
+  int viewHeight;
+
+  // Number of pixels view can be scrolled before a redraw occurs.
+  int redrawThresholdPixels;
+
+  // Number of rows visible at any given time.
+  int numVisibleRows;
+  // Number of rows above the current view that are in the dom.
+  int extraRowsAbove;
+  // Number of rows below the current view that are in the dom.
+  int extraRowsBelow;
+
+  // The scroll top of the last scroll event.
+  int lastPaintScrollTop;
+
+  // The starting row of the last paint.
+  int lastPaintStartingRow = 0;
+
+  bool paintScheduled = false;
+
+  bool scrolled = false;
+
+  static const scrollStopThresholdMilliseconds = 100;
+
+  VirtualTree(this.rowHeight, this.root) {
+    _clock.start();
+    _install();
+    _resize();
+    _schedulePaint(0);
+  }
+
+  void uninstall() => _uninstall();
+
+  void refresh() {
+    _resize();
+    _schedulePaint(lastPaintStartingRow);
+  }
+
+  // Clear the tree.
+  void clear() {
+    rows.clear();
+    _resize();
+  }
+
+  void _onExpand(VirtualTreeRow parent) {
+    int index = rows.indexOf(parent);
+    if (index == -1) {
+      return;
+    }
+    rows.insertAll(index + 1, parent.children);
+    refresh();
+  }
+
+  void _onCollapse(VirtualTreeRow parent) {
+    int index = rows.indexOf(parent);
+    if (index == -1) {
+      return;
+    }
+    int start = index + 1;
+    int end = start + parent.children.length;
+    rows.removeRange(start, end);
+    refresh();
+  }
+
+  void _resize() {
+    if (viewHeight != root.offsetHeight) {
+      viewHeight = root.offsetHeight;
+      numVisibleRows = (viewHeight ~/ rowHeight) + 1;
+      extraRowsAbove = numVisibleRows ~/ 2;
+      extraRowsBelow = numVisibleRows - extraRowsAbove;
+      redrawThresholdPixels =
+          math.min(extraRowsAbove, extraRowsBelow) * rowHeight;
+    }
+    _treeHeightElement.style.height = '${_treeHeight()}px';
+  }
+
+  int _treeHeight() {
+    return rows.length * rowHeight;
+  }
+
+  int _pixelsFromLastScroll(int currentScrollTop) {
+    if (lastPaintScrollTop == null) {
+      return currentScrollTop;
+    }
+
+    return (currentScrollTop - lastPaintScrollTop).abs();
+  }
+
+  int _pixelToRow(int pixelY) {
+    int result = pixelY ~/ rowHeight;
+    return result;
+  }
+
+  void _install() {
+    // This element controls the height of the tree's scrollable region.
+    // It is one pixel wide and the height is set to rowHeight * numRows.
+    _treeHeightElement = new DivElement();
+    _treeHeightElement.style.position = 'absolute';
+    _treeHeightElement.style.top = '0';
+    _treeHeightElement.style.left = '0';
+    _treeHeightElement.style.width = '1px';
+
+    // This element holds the visible tree rows and the height controlling
+    // element. It takes the full width and height of its parent element.
+    _tree = new DivElement();
+    _tree.children.add(_treeHeightElement);
+    _tree.style.width = '100%';
+    _tree.style.height = '100%';
+    _tree.style.position = 'relative';
+    _tree.style.overflow = 'auto';
+
+    // Listen for scroll events on the tree.
+    _scrollSubscription = _tree.onScroll.listen(_onScroll);
+
+    root.children.add(_tree);
+
+    // Listen for resize events.
+    _resizeSubscription = window.onResize.listen((_) {
+      _resize();
+      _schedulePaint(lastPaintStartingRow);
+    });
+  }
+
+  void _uninstall() {
+    root.children.clear();
+    _scrollSubscription?.cancel();
+    _scrollSubscription = null;
+    _resizeSubscription?.cancel();
+    _resizeSubscription = null;
+  }
+
+  void _onScroll(Event scrollEvent) {
+    Element target = scrollEvent.target;
+    int scrollTop = target.scrollTop;
+    if (_pixelsFromLastScroll(scrollTop) > redrawThresholdPixels) {
+      _schedulePaint(lastPaintStartingRow);
+      scrolled = true;
+    }
+    scrollEvent.preventDefault();
+  }
+
+  void _schedulePaint(int startingRow) {
+    if (paintScheduled) {
+      return;
+    }
+    paintScheduled = true;
+    window.requestAnimationFrame(
+        (timestamp) => _onRenderFrame(timestamp, startingRow));
+  }
+
+  void _onRenderFrame(int timestamp, int startingRow) {
+    paintScheduled = false;
+    _paint(startingRow);
+  }
+
+  void _paint(int startingRow) {
+    if (scrolled) {
+      startingRow = math.max(_pixelToRow(_tree.scrollTop), 0);
+      scrolled = false;
+    }
+    lastPaintScrollTop = _tree.scrollTop;
+    lastPaintStartingRow = startingRow;
+
+    int endingRow =
+        math.min(rows.length, startingRow + numVisibleRows + extraRowsBelow);
+
+    startingRow =
+        math.max(0, startingRow - extraRowsAbove);
+
+    print('PAINT $startingRow $endingRow');
+
+    for (int i = startingRow; i < endingRow; i++) {
+      // We add 1 because _tree.children[0] contains the height control element.
+      int cacheIndex = (i - startingRow) + 1;
+      DivElement row;
+      if (cacheIndex < _tree.children.length) {
+        // re-use existing row.
+        row = _tree.children[cacheIndex];
+        row.children.clear();
+      } else {
+        // Allocate a new row.
+        row = new DivElement();
+        row.style.position = 'absolute';
+        row.style.height = '${rowHeight}px';
+        row.style.maxHeight = '${rowHeight}px';
+        row.style.margin = '0';
+        row.style.width = '100%';
+        row.style.left = '0';
+        _tree.children.add(row);
+      }
+      row.style.top = '${(i * rowHeight)}px';
+      // Render the row.
+      rows[i]._render(row);
+    }
+    int necessaryChildren = (endingRow - startingRow) + 1;
+    while (_tree.children.length > necessaryChildren) {
+      _tree.children.removeLast();
+    }
+  }
+}
+
 abstract class TableTreeRow extends Observable {
   static const arrowRight = '\u2192';
   static const arrowDownRight = '\u21b3';
@@ -68,7 +446,8 @@ abstract class TableTreeRow extends Observable {
 
   HtmlElement _makeExpander() {
     var expander = new SpanElement();
-    expander.style.minWidth = '2em';
+    expander.style.minWidth = '24px';
+    expander.style.minHeight = '24px';
     listeners.add(expander.onClick.listen(onClick));
     return expander;
   }

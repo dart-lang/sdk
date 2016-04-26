@@ -76,19 +76,18 @@ class Collector {
     // Go over specialized interceptors and then constants to know which
     // interceptors are needed.
     Set<ClassElement> needed = new Set<ClassElement>();
-    backend.specializedGetInterceptors.forEach(
-        (_, Iterable<ClassElement> elements) {
-          needed.addAll(elements);
-        }
-    );
+    backend.specializedGetInterceptors
+        .forEach((_, Iterable<ClassElement> elements) {
+      needed.addAll(elements);
+    });
 
     // Add interceptors referenced by constants.
     needed.addAll(computeInterceptorsReferencedFromConstants());
 
     // Add unneeded interceptors to the [unneededClasses] set.
     for (ClassElement interceptor in backend.interceptedClasses) {
-      if (!needed.contains(interceptor)
-          && interceptor != coreClasses.objectClass) {
+      if (!needed.contains(interceptor) &&
+          interceptor != coreClasses.objectClass) {
         unneededClasses.add(interceptor);
       }
     }
@@ -117,11 +116,12 @@ class Collector {
         if (backend.isAccessibleByReflection(element)) {
           bool shouldRetainMetadata = backend.retainMetadataOf(element);
           if (shouldRetainMetadata &&
-              (element.isFunction || element.isConstructor ||
-               element.isSetter)) {
+              (element.isFunction ||
+                  element.isConstructor ||
+                  element.isSetter)) {
             FunctionElement function = element;
-            function.functionSignature.forEachParameter(
-                backend.retainMetadataOf);
+            function.functionSignature
+                .forEachParameter(backend.retainMetadataOf);
           }
         }
       }
@@ -130,12 +130,8 @@ class Collector {
         if (!onlyForRti) {
           backend.retainMetadataOf(cls);
           new FieldVisitor(compiler, namer).visitFields(cls, false,
-              (Element member,
-               js.Name name,
-               js.Name accessorName,
-               bool needsGetter,
-               bool needsSetter,
-               bool needsCheckedSetter) {
+              (Element member, js.Name name, js.Name accessorName,
+                  bool needsGetter, bool needsSetter, bool needsCheckedSetter) {
             bool needsAccessor = needsGetter || needsSetter;
             if (needsAccessor && backend.isAccessibleByReflection(member)) {
               backend.retainMetadataOf(member);
@@ -147,8 +143,8 @@ class Collector {
     }
 
     JavaScriptConstantCompiler handler = backend.constants;
-    List<ConstantValue> constants = handler.getConstantsForEmission(
-        compiler.hasIncrementalSupport ? null : emitter.compareConstants);
+    List<ConstantValue> constants = handler.getConstantsForEmission(compiler
+        .options.hasIncrementalSupport ? null : emitter.compareConstants);
     for (ConstantValue constant in constants) {
       if (emitter.isConstantInlinedOrAlreadyEmitted(constant)) continue;
 
@@ -162,23 +158,25 @@ class Collector {
         // TODO(sigurdm): We should track those constants.
         constantUnit = compiler.deferredLoadTask.mainOutputUnit;
       }
-      outputConstantLists.putIfAbsent(
-          constantUnit, () => new List<ConstantValue>()).add(constant);
+      outputConstantLists
+          .putIfAbsent(constantUnit, () => new List<ConstantValue>())
+          .add(constant);
     }
   }
 
   /// Compute all the classes and typedefs that must be emitted.
   void computeNeededDeclarations() {
     // Compute needed typedefs.
-    typedefsNeededForReflection = Elements.sortedByPosition(
-        compiler.world.allTypedefs
-            .where(backend.isAccessibleByReflection)
-            .toList());
+    typedefsNeededForReflection = Elements.sortedByPosition(compiler
+        .world.allTypedefs
+        .where(backend.isAccessibleByReflection)
+        .toList());
 
     // Compute needed classes.
-    Set<ClassElement> instantiatedClasses =
-        compiler.codegenWorld.directlyInstantiatedClasses
-            .where(computeClassFilter()).toSet();
+    Set<ClassElement> instantiatedClasses = compiler
+        .codegenWorld.directlyInstantiatedClasses
+        .where(computeClassFilter())
+        .toSet();
 
     void addClassWithSuperclasses(ClassElement cls) {
       neededClasses.add(cls);
@@ -244,14 +242,17 @@ class Collector {
           !classesOnlyNeededForRti.contains(element)) {
         // For now, native classes and related classes cannot be deferred.
         nativeClassesAndSubclasses.add(element);
-        assert(invariant(element,
-                         !compiler.deferredLoadTask.isDeferred(element)));
-        outputClassLists.putIfAbsent(compiler.deferredLoadTask.mainOutputUnit,
-            () => new List<ClassElement>()).add(element);
+        assert(
+            invariant(element, !compiler.deferredLoadTask.isDeferred(element)));
+        outputClassLists
+            .putIfAbsent(compiler.deferredLoadTask.mainOutputUnit,
+                () => new List<ClassElement>())
+            .add(element);
       } else {
-        outputClassLists.putIfAbsent(
-            compiler.deferredLoadTask.outputUnitForElement(element),
-            () => new List<ClassElement>())
+        outputClassLists
+            .putIfAbsent(
+                compiler.deferredLoadTask.outputUnitForElement(element),
+                () => new List<ClassElement>())
             .add(element);
       }
     }
@@ -277,7 +278,7 @@ class Collector {
     addToOutputUnit(Element element) {
       List<VariableElement> list = outputStaticNonFinalFieldLists.putIfAbsent(
           compiler.deferredLoadTask.outputUnitForElement(element),
-              () => new List<VariableElement>());
+          () => new List<VariableElement>());
       list.add(element);
     }
 
@@ -299,7 +300,8 @@ class Collector {
     void addSurroundingLibraryToSet(Element element) {
       OutputUnit unit = compiler.deferredLoadTask.outputUnitForElement(element);
       LibraryElement library = element.library;
-      outputLibraryLists.putIfAbsent(unit, () => new Set<LibraryElement>())
+      outputLibraryLists
+          .putIfAbsent(unit, () => new Set<LibraryElement>())
           .add(library);
     }
 

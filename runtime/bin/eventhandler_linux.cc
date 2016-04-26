@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_IO_DISABLED)
+
 #include "platform/globals.h"
 #if defined(TARGET_OS_LINUX)
 
@@ -9,6 +11,7 @@
 #include "bin/eventhandler_linux.h"
 
 #include <errno.h>  // NOLINT
+#include <fcntl.h>  // NOLINT
 #include <pthread.h>  // NOLINT
 #include <stdio.h>  // NOLINT
 #include <string.h>  // NOLINT
@@ -16,7 +19,6 @@
 #include <sys/stat.h>  // NOLINT
 #include <sys/timerfd.h>  // NOLINT
 #include <unistd.h>  // NOLINT
-#include <fcntl.h>  // NOLINT
 
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
@@ -26,10 +28,8 @@
 #include "bin/thread.h"
 #include "platform/utils.h"
 
-
 namespace dart {
 namespace bin {
-
 
 intptr_t DescriptorInfo::GetPollEvents() {
   // Do not ask for EPOLLERR and EPOLLHUP explicitly as they are
@@ -138,11 +138,11 @@ EventHandlerImplementation::~EventHandlerImplementation() {
 void EventHandlerImplementation::UpdateEpollInstance(intptr_t old_mask,
                                                      DescriptorInfo *di) {
   intptr_t new_mask = di->Mask();
-  if (old_mask != 0 && new_mask == 0) {
+  if ((old_mask != 0) && (new_mask == 0)) {
     RemoveFromEpollInstance(epoll_fd_, di);
-  } else if (old_mask == 0 && new_mask != 0) {
+  } else if ((old_mask == 0) && (new_mask != 0)) {
     AddToEpollInstance(epoll_fd_, di);
-  } else if (old_mask != 0 && new_mask != 0 && old_mask != new_mask) {
+  } else if ((old_mask != 0) && (new_mask != 0) && (old_mask != new_mask)) {
     ASSERT(!di->IsListeningSocket());
     RemoveFromEpollInstance(epoll_fd_, di);
     AddToEpollInstance(epoll_fd_, di);
@@ -156,8 +156,7 @@ DescriptorInfo* EventHandlerImplementation::GetDescriptorInfo(
   HashMap::Entry* entry = socket_map_.Lookup(
       GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd), true);
   ASSERT(entry != NULL);
-  DescriptorInfo* di =
-      reinterpret_cast<DescriptorInfo*>(entry->value);
+  DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(entry->value);
   if (di == NULL) {
     // If there is no data in the hash map for this file descriptor a
     // new DescriptorInfo for the file descriptor is inserted.
@@ -282,15 +281,28 @@ void EventHandlerImplementation::HandleInterruptFd() {
   }
 }
 
+
 #ifdef DEBUG_POLL
 static void PrintEventMask(intptr_t fd, intptr_t events) {
   Log::Print("%d ", fd);
-  if ((events & EPOLLIN) != 0) Log::Print("EPOLLIN ");
-  if ((events & EPOLLPRI) != 0) Log::Print("EPOLLPRI ");
-  if ((events & EPOLLOUT) != 0) Log::Print("EPOLLOUT ");
-  if ((events & EPOLLERR) != 0) Log::Print("EPOLLERR ");
-  if ((events & EPOLLHUP) != 0) Log::Print("EPOLLHUP ");
-  if ((events & EPOLLRDHUP) != 0) Log::Print("EPOLLRDHUP ");
+  if ((events & EPOLLIN) != 0) {
+    Log::Print("EPOLLIN ");
+  }
+  if ((events & EPOLLPRI) != 0) {
+    Log::Print("EPOLLPRI ");
+  }
+  if ((events & EPOLLOUT) != 0) {
+    Log::Print("EPOLLOUT ");
+  }
+  if ((events & EPOLLERR) != 0) {
+    Log::Print("EPOLLERR ");
+  }
+  if ((events & EPOLLHUP) != 0) {
+    Log::Print("EPOLLHUP ");
+  }
+  if ((events & EPOLLRDHUP) != 0) {
+    Log::Print("EPOLLRDHUP ");
+  }
   int all_events = EPOLLIN | EPOLLPRI | EPOLLOUT |
       EPOLLERR | EPOLLHUP | EPOLLRDHUP;
   if ((events & ~all_events) != 0) {
@@ -302,19 +314,26 @@ static void PrintEventMask(intptr_t fd, intptr_t events) {
 }
 #endif
 
+
 intptr_t EventHandlerImplementation::GetPollEvents(intptr_t events,
                                                    DescriptorInfo* di) {
 #ifdef DEBUG_POLL
   PrintEventMask(di->fd(), events);
 #endif
-  if (events & EPOLLERR) {
+  if ((events & EPOLLERR) != 0) {
     // Return error only if EPOLLIN is present.
-    return (events & EPOLLIN) ? (1 << kErrorEvent) : 0;
+    return ((events & EPOLLIN) != 0) ? (1 << kErrorEvent) : 0;
   }
   intptr_t event_mask = 0;
-  if (events & EPOLLIN) event_mask |= (1 << kInEvent);
-  if (events & EPOLLOUT) event_mask |= (1 << kOutEvent);
-  if (events & (EPOLLHUP | EPOLLRDHUP)) event_mask |= (1 << kCloseEvent);
+  if ((events & EPOLLIN) != 0) {
+    event_mask |= (1 << kInEvent);
+  }
+  if ((events & EPOLLOUT) != 0) {
+    event_mask |= (1 << kOutEvent);
+  }
+  if ((events & (EPOLLHUP | EPOLLRDHUP)) != 0) {
+    event_mask |= (1 << kCloseEvent);
+  }
   return event_mask;
 }
 
@@ -420,3 +439,5 @@ uint32_t EventHandlerImplementation::GetHashmapHashFromFd(intptr_t fd) {
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_LINUX)
+
+#endif  // !defined(DART_IO_DISABLED)

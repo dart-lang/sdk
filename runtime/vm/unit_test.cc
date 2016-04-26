@@ -208,7 +208,8 @@ char* TestCase::BigintToHexValue(Dart_CObject* bigint) {
 
 
 void AssemblerTest::Assemble() {
-  const String& function_name = String::ZoneHandle(Symbols::New(name_));
+  const String& function_name = String::ZoneHandle(
+      Symbols::New(Thread::Current(), name_));
   const Class& cls = Class::ZoneHandle(
       Class::New(function_name,
                  Script::Handle(),
@@ -237,7 +238,8 @@ CodeGenTest::CodeGenTest(const char* name)
                                     new LocalScope(NULL, 0, 0))),
     default_parameter_values_(new ZoneGrowableArray<const Instance*> ()) {
   ASSERT(name != NULL);
-  const String& function_name = String::ZoneHandle(Symbols::New(name));
+  const String& function_name = String::ZoneHandle(
+      Symbols::New(Thread::Current(), name));
   // Add function to a class and that class to the class dictionary so that
   // frame walking can be used.
   const Class& cls = Class::ZoneHandle(

@@ -8,8 +8,8 @@ import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -30,7 +30,7 @@ compilationUnitMatcher(String file) {
 
 @reflectiveTest
 class UpdateContentTest extends AbstractAnalysisTest {
-  Map<String, List<AnalysisError>> filesErrors = {};
+  Map<String, List<String>> filesErrors = {};
   int serverErrorCount = 0;
   int navigationCount = 0;
 
@@ -42,7 +42,9 @@ class UpdateContentTest extends AbstractAnalysisTest {
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_ERRORS) {
       var decoded = new AnalysisErrorsParams.fromNotification(notification);
-      filesErrors[decoded.file] = decoded.errors;
+      String _format(AnalysisError e) =>
+          "${e.location.startLine}: ${e.message}";
+      filesErrors[decoded.file] = decoded.errors.map(_format).toList();
     }
     if (notification.event == ANALYSIS_NAVIGATION) {
       navigationCount++;
@@ -95,7 +97,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
     createProject();
     addTestFile('main() { print(1); }');
     await server.onAnalysisComplete;
-    verify(server.index.index(anyObject, testUnitMatcher)).times(1);
+    verify(server.index.indexUnit(testUnitMatcher)).times(1);
     // add an overlay
     server.updateContent(
         '1', {testFile: new AddContentOverlay('main() { print(2); }')});
@@ -107,7 +109,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
     server.updateContent('2', {testFile: new RemoveContentOverlay()});
     // Validate that at the end the unit was indexed.
     await server.onAnalysisComplete;
-    verify(server.index.index(anyObject, testUnitMatcher)).times(3);
+    verify(server.index.indexUnit(testUnitMatcher)).times(3);
   }
 
   test_multiple_contexts() async {
@@ -157,6 +159,29 @@ f() {}
       expect(filesErrors[fooPath], isEmpty);
       expect(filesErrors[barPath], isEmpty);
     }
+  }
+
+  test_overlay_addPreviouslyImported() async {
+    Folder project = resourceProvider.newFolder('/project');
+    handleSuccessfulRequest(
+        new AnalysisSetAnalysisRootsParams([project.path], []).toRequest('0'));
+
+    server.updateContent('1',
+        {'/project/main.dart': new AddContentOverlay('import "target.dart";')});
+    await server.onAnalysisComplete;
+    expect(filesErrors, {
+      '/project/main.dart': ["1: Target of URI does not exist: 'target.dart'"],
+      '/project/target.dart': []
+    });
+
+    server.updateContent('1',
+        {'/project/target.dart': new AddContentOverlay('import "none.dart";')});
+    await server.onAnalysisComplete;
+    expect(filesErrors, {
+      '/project/main.dart': ["1: Unused import"],
+      '/project/target.dart': ["1: Target of URI does not exist: 'none.dart'"],
+      '/project/none.dart': []
+    });
   }
 
   test_overlayOnly() async {

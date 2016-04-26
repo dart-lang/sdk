@@ -89,7 +89,7 @@ class CheckTreeIntegrity extends RecursiveVisitor {
 
     if (labelUses[label] != label.useCount) {
       error('Label $label has ${labelUses[label]} uses '
-            'but its reference count is ${label.useCount}');
+          'but its reference count is ${label.useCount}');
     }
   }
 
@@ -152,11 +152,10 @@ class CheckTreeIntegrity extends RecursiveVisitor {
       int writes = varWrites.putIfAbsent(variable, () => 0);
       if (reads != variable.readCount || writes != variable.writeCount) {
         error('Invalid reference count for $variable:\n'
-              '- Variable has $reads reads and $writes writes\n'
-              '- Reference count is ${variable.readCount} reads and '
-              '${variable.writeCount} writes');
+            '- Variable has $reads reads and $writes writes\n'
+            '- Reference count is ${variable.readCount} reads and '
+            '${variable.writeCount} writes');
       }
     }
   }
-
 }

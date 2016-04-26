@@ -4,37 +4,27 @@
 
 library universe.function_set;
 
-import '../common/names.dart' show
-    Identifiers,
-    Selectors;
-import '../compiler.dart' show
-    Compiler;
+import '../common/names.dart' show Identifiers, Selectors;
+import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
 import '../types/types.dart';
-import '../util/util.dart' show
-    Hashing,
-    Setlet;
-import '../world.dart' show
-    ClassWorld;
+import '../util/util.dart' show Hashing, Setlet;
+import '../world.dart' show ClassWorld;
 
-import 'selector.dart' show
-    Selector;
-import 'universe.dart' show
-    ReceiverConstraint;
+import 'selector.dart' show Selector;
+import 'universe.dart' show ReceiverConstraint;
 
 // TODO(kasperl): This actually holds getters and setters just fine
 // too and stricly they aren't functions. Maybe this needs a better
 // name -- something like ElementSet seems a bit too generic.
 class FunctionSet {
   final Compiler compiler;
-  final Map<String, FunctionSetNode> nodes =
-      new Map<String, FunctionSetNode>();
+  final Map<String, FunctionSetNode> nodes = new Map<String, FunctionSetNode>();
   FunctionSet(this.compiler);
 
   ClassWorld get classWorld => compiler.world;
 
-  FunctionSetNode newNode(String name)
-      => new FunctionSetNode(name);
+  FunctionSetNode newNode(String name) => new FunctionSetNode(name);
 
   void add(Element element) {
     assert(element.isInstanceMember);
@@ -59,9 +49,7 @@ class FunctionSet {
     assert(!element.isAbstract);
     String name = element.name;
     FunctionSetNode node = nodes[name];
-    return (node != null)
-        ? node.contains(element)
-        : false;
+    return (node != null) ? node.contains(element) : false;
   }
 
   /// Returns an object that allows iterating over all the functions
@@ -216,10 +204,8 @@ class FunctionSetNode {
 
   /// Returns the set of functions that can be the target of [selectorMask]
   /// including no such method handling where applicable.
-  FunctionSetQuery query(SelectorMask selectorMask,
-                         ClassWorld classWorld,
-                         [FunctionSetNode noSuchMethods,
-                          SelectorMask noSuchMethodMask]) {
+  FunctionSetQuery query(SelectorMask selectorMask, ClassWorld classWorld,
+      [FunctionSetNode noSuchMethods, SelectorMask noSuchMethodMask]) {
     assert(selectorMask.name == name);
     FunctionSetQuery result = cache[selectorMask];
     if (result != null) return result;
@@ -293,12 +279,11 @@ class FullFunctionSetQuery implements FunctionSetQuery {
   TypeMask computeMask(ClassWorld classWorld) {
     assert(classWorld.hasAnyStrictSubclass(classWorld.objectClass));
     if (_mask != null) return _mask;
-    return _mask = new TypeMask.unionOf(functions
-        .expand((element) {
+    return _mask = new TypeMask.unionOf(
+        functions.expand((element) {
           ClassElement cls = element.enclosingClass;
           return [cls]..addAll(classWorld.mixinUsesOf(cls));
-        })
-        .map((cls) {
+        }).map((cls) {
           if (classWorld.backend.isNullImplementation(cls)) {
             return const TypeMask.empty();
           } else if (classWorld.isInstantiated(cls.declaration)) {

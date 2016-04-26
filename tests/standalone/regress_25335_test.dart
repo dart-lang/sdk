@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // Test that canonicalization inserts constants with correct representation.
-// VMOptions=--optimization-counter-threshold=10 --optimization-filter=bar
+// VMOptions=--optimization-counter-threshold=10 --optimization-filter=bar --no-background-compilation
 
 import 'dart:typed_data';
 

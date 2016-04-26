@@ -44,15 +44,19 @@ part of js_backend;
 class NoSuchMethodRegistry {
   /// The implementations that fall into category A, described above.
   final Set<FunctionElement> defaultImpls = new Set<FunctionElement>();
+
   /// The implementations that fall into category B, described above.
   final Set<FunctionElement> throwingImpls = new Set<FunctionElement>();
+
   /// The implementations that fall into category C, described above.
   final Set<FunctionElement> notApplicableImpls = new Set<FunctionElement>();
+
   /// The implementations that fall into category D, described above.
   final Set<FunctionElement> otherImpls = new Set<FunctionElement>();
 
   /// The implementations that fall into category D1
   final Set<FunctionElement> complexNoReturnImpls = new Set<FunctionElement>();
+
   /// The implementations that fall into category D2
   final Set<FunctionElement> complexReturningImpls = new Set<FunctionElement>();
 
@@ -90,23 +94,20 @@ class NoSuchMethodRegistry {
   /// Emits a diagnostic
   void emitDiagnostic() {
     throwingImpls.forEach((e) {
-        if (!_hasForwardingSyntax(e)) {
-          reporter.reportHintMessage(
-              e, MessageKind.DIRECTLY_THROWING_NSM);
-        }
-      });
+      if (!_hasForwardingSyntax(e)) {
+        reporter.reportHintMessage(e, MessageKind.DIRECTLY_THROWING_NSM);
+      }
+    });
     complexNoReturnImpls.forEach((e) {
-        if (!_hasForwardingSyntax(e)) {
-          reporter.reportHintMessage(
-              e, MessageKind.COMPLEX_THROWING_NSM);
-        }
-      });
+      if (!_hasForwardingSyntax(e)) {
+        reporter.reportHintMessage(e, MessageKind.COMPLEX_THROWING_NSM);
+      }
+    });
     complexReturningImpls.forEach((e) {
-        if (!_hasForwardingSyntax(e)) {
-          reporter.reportHintMessage(
-              e, MessageKind.COMPLEX_RETURNING_NSM);
-        }
-      });
+      if (!_hasForwardingSyntax(e)) {
+        reporter.reportHintMessage(e, MessageKind.COMPLEX_RETURNING_NSM);
+      }
+    });
   }
 
   /// Returns [true] if the given element is a complex [noSuchMethod]
@@ -154,7 +155,7 @@ class NoSuchMethodRegistry {
       Element superCall =
           element.enclosingClass.lookupSuperByName(Names.noSuchMethod_);
       NsmCategory category = _categorizeImpl(superCall);
-      switch(category) {
+      switch (category) {
         case NsmCategory.DEFAULT:
           defaultImpls.add(element);
           break;
@@ -183,9 +184,9 @@ class NoSuchMethodRegistry {
 
   bool _isDefaultNoSuchMethodImplementation(FunctionElement element) {
     ClassElement classElement = element.enclosingClass;
-    return classElement == _compiler.coreClasses.objectClass
-        || classElement == _backend.helpers.jsInterceptorClass
-        || classElement == _backend.helpers.jsNullClass;
+    return classElement == _compiler.coreClasses.objectClass ||
+        classElement == _backend.helpers.jsInterceptorClass ||
+        classElement == _backend.helpers.jsNullClass;
   }
 
   bool _hasForwardingSyntax(FunctionElement element) {
@@ -240,9 +241,4 @@ class NoSuchMethodRegistry {
   }
 }
 
-enum NsmCategory {
-  DEFAULT,
-  THROWING,
-  NOT_APPLICABLE,
-  OTHER,
-}
+enum NsmCategory { DEFAULT, THROWING, NOT_APPLICABLE, OTHER, }

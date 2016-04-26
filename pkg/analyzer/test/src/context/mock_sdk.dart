@@ -32,6 +32,15 @@ class Future<T> {
       Iterable<Future/*<T>*/> futures) => null;
   Future/*<R>*/ then/*<R>*/(/*=R*/ onValue(T value)) => null;
 }
+
+abstract class Completer<T> {
+  factory Completer() => new _AsyncCompleter<T>();
+  factory Completer.sync() => new _SyncCompleter<T>();
+  Future<T> get future;
+  void complete([value]);
+  void completeError(Object error, [StackTrace stackTrace]);
+  bool get isCompleted;
+}
 ''',
     const <String, String>{
       '/lib/async/stream.dart': r'''
@@ -113,6 +122,14 @@ abstract class num implements Comparable<num> {
   num operator -(num other);
   num operator *(num other);
   num operator /(num other);
+  int operator ^(int other);
+  int operator &(int other);
+  int operator |(int other);
+  int operator <<(int other);
+  int operator >>(int other);
+  int operator ~/(num other);
+  num operator %(num other);
+  int operator ~();
   int toInt();
   double toDouble();
   num abs();
@@ -151,18 +168,28 @@ abstract class Iterable<E> {
       /*=R*/ combine(/*=R*/ previousValue, E element));
 }
 
-abstract class List<E> implements Iterable<E> {
-  void add(E value);
-  E operator [](int index);
-  void operator []=(int index, E value);
+class List<E> implements Iterable<E> {
+  List();
+  void add(E value) {}
+  E operator [](int index) => null;
+  void operator []=(int index, E value) {}
   Iterator<E> get iterator => null;
-  void clear();
+  void clear() {}
+
+  bool get isEmpty => false;
+  E get first => null;
+
+  Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e)) => null;
+
+  /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
+      /*=R*/ combine(/*=R*/ previousValue, E element)) => null;
+
 }
 
-abstract class Map<K, V> extends Object {
-  Iterable<K> get keys;
-  V operator [](K key);
-  void operator []=(K key, V value);
+class Map<K, V> extends Object {
+  Iterable<K> get keys => null;
+  V operator [](K key) => null;
+  void operator []=(K key, V value) {}
 }
 
 external bool identical(Object a, Object b);

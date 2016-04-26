@@ -4,8 +4,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
@@ -15,32 +17,15 @@ import 'package:analyzer/task/model.dart';
 import 'package:path/path.dart' as pathos;
 
 /**
- * If [uri] has the `package` scheme in form of `package:pkg/file.dart`,
- * return the `pkg` name.  Otherwise return `null`.
- */
-String _getPackageName(Uri uri) {
-  if (uri.scheme != 'package') {
-    return null;
-  }
-  String path = uri.path;
-  int index = path.indexOf('/');
-  if (index == -1) {
-    return null;
-  }
-  return path.substring(0, index);
-}
-
-/**
  * The [ResultProvider] that provides results from input package summaries.
  */
 class InputPackagesResultProvider extends ResultProvider {
   final InternalAnalysisContext _context;
-  final Map<String, String> _packageSummaryInputs;
 
   _FileBasedSummaryResynthesizer _resynthesizer;
   SummaryResultProvider _sdkProvider;
 
-  InputPackagesResultProvider(this._context, this._packageSummaryInputs) {
+  InputPackagesResultProvider(this._context, SummaryDataStore dataStore) {
     InternalAnalysisContext sdkContext = _context.sourceFactory.dartSdk.context;
     _sdkProvider = sdkContext.resultProvider;
     // Set the type provider to prevent the context from computing it.
@@ -52,7 +37,7 @@ class InputPackagesResultProvider extends ResultProvider {
         _context.typeProvider,
         _context.sourceFactory,
         _context.analysisOptions.strongMode,
-        _packageSummaryInputs.values.toList());
+        dataStore);
   }
 
   @override
@@ -65,12 +50,11 @@ class InputPackagesResultProvider extends ResultProvider {
     if (target is Source) {
       Uri uri = target.uri;
       // We know how to server results to input packages.
-      String sourcePackageName = _getPackageName(uri);
-      if (!_packageSummaryInputs.containsKey(sourcePackageName)) {
+      String uriString = uri.toString();
+      if (!_resynthesizer.hasLibrarySummary(uriString)) {
         return false;
       }
       // Provide known results.
-      String uriString = uri.toString();
       if (result == LIBRARY_ELEMENT1 ||
           result == LIBRARY_ELEMENT2 ||
           result == LIBRARY_ELEMENT3 ||
@@ -91,15 +75,24 @@ class InputPackagesResultProvider extends ResultProvider {
         entry.setValue(result, true, TargetedResult.EMPTY_LIST);
         return true;
       } else if (result == SOURCE_KIND) {
-        if (_resynthesizer.linkedMap.containsKey(uriString)) {
+        if (_resynthesizer._dataStore.linkedMap.containsKey(uriString)) {
           entry.setValue(result, SourceKind.LIBRARY, TargetedResult.EMPTY_LIST);
           return true;
         }
-        if (_resynthesizer.unlinkedMap.containsKey(uriString)) {
+        if (_resynthesizer._dataStore.unlinkedMap.containsKey(uriString)) {
           entry.setValue(result, SourceKind.PART, TargetedResult.EMPTY_LIST);
           return true;
         }
         return false;
+      }
+    } else if (target is VariableElement) {
+      if (!_resynthesizer
+          .hasLibrarySummary(target.library.source.uri.toString())) {
+        return false;
+      }
+      if (result == PROPAGATED_VARIABLE || result == INFERRED_STATIC_VARIABLE) {
+        entry.setValue(result, target, TargetedResult.EMPTY_LIST);
+        return true;
       }
     }
     return false;
@@ -107,68 +100,28 @@ class InputPackagesResultProvider extends ResultProvider {
 }
 
 /**
- * The [UriResolver] that knows about sources that are parts of packages which
- * are served from their summaries.
+ * The [UriResolver] that knows about sources that are served from their
+ * summaries.
  */
 class InSummaryPackageUriResolver extends UriResolver {
-  final Map<String, String> _packageSummaryInputs;
+  final SummaryDataStore _dataStore;
 
-  InSummaryPackageUriResolver(this._packageSummaryInputs);
+  InSummaryPackageUriResolver(this._dataStore);
 
   @override
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     actualUri ??= uri;
-    String packageName = _getPackageName(actualUri);
-    if (_packageSummaryInputs.containsKey(packageName)) {
-      return new _InSummarySource(actualUri);
+    UnlinkedUnit unit = _dataStore.unlinkedMap[uri.toString()];
+    if (unit != null) {
+      String summaryPath = _dataStore.uriToSummaryPath[uri.toString()];
+      if (unit.fallbackModePath.isNotEmpty) {
+        return new _InSummaryFallbackSource(
+            new JavaFile(unit.fallbackModePath), actualUri, summaryPath);
+      } else {
+        return new InSummarySource(actualUri, summaryPath);
+      }
     }
     return null;
-  }
-}
-
-/**
- * A concrete resynthesizer that serves summaries from given file paths.
- */
-class _FileBasedSummaryResynthesizer extends SummaryResynthesizer {
-  final Map<String, UnlinkedUnit> unlinkedMap = <String, UnlinkedUnit>{};
-  final Map<String, LinkedLibrary> linkedMap = <String, LinkedLibrary>{};
-
-  _FileBasedSummaryResynthesizer(
-      SummaryResynthesizer parent,
-      AnalysisContext context,
-      TypeProvider typeProvider,
-      SourceFactory sourceFactory,
-      bool strongMode,
-      List<String> summaryPaths)
-      : super(parent, context, typeProvider, sourceFactory, strongMode) {
-    summaryPaths.forEach(_fillMaps);
-  }
-
-  @override
-  LinkedLibrary getLinkedSummary(String uri) {
-    return linkedMap[uri];
-  }
-
-  @override
-  UnlinkedUnit getUnlinkedSummary(String uri) {
-    return unlinkedMap[uri];
-  }
-
-  @override
-  bool hasLibrarySummary(String uri) {
-    return linkedMap.containsKey(uri);
-  }
-
-  void _fillMaps(String path) {
-    io.File file = new io.File(path);
-    List<int> buffer = file.readAsBytesSync();
-    PackageBundle bundle = new PackageBundle.fromBuffer(buffer);
-    for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
-      unlinkedMap[bundle.unlinkedUnitUris[i]] = bundle.unlinkedUnits[i];
-    }
-    for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
-      linkedMap[bundle.linkedLibraryUris[i]] = bundle.linkedLibraries[i];
-    }
   }
 }
 
@@ -177,10 +130,15 @@ class _FileBasedSummaryResynthesizer extends SummaryResynthesizer {
  * are served from its summary.  This source uses its URI as [fullName] and has
  * empty contents.
  */
-class _InSummarySource extends Source {
+class InSummarySource extends Source {
   final Uri uri;
 
-  _InSummarySource(this.uri);
+  /**
+   * The summary file where this source was defined.
+   */
+  final String summaryPath;
+
+  InSummarySource(this.uri, this.summaryPath);
 
   @override
   TimestampedData<String> get contents => new TimestampedData<String>(0, '');
@@ -208,17 +166,106 @@ class _InSummarySource extends Source {
 
   @override
   bool operator ==(Object object) =>
-      object is _InSummarySource && object.uri == uri;
+      object is InSummarySource && object.uri == uri;
 
   @override
   bool exists() => true;
 
   @override
-  Uri resolveRelativeUri(Uri relativeUri) {
-    Uri baseUri = uri;
-    return baseUri.resolveUri(relativeUri);
+  String toString() => uri.toString();
+}
+
+/**
+ * A [SummaryDataStore] is a container for the data extracted from a set of
+ * summary package bundles.  It contains maps which can be used to find linked
+ * and unlinked summaries by URI.
+ */
+class SummaryDataStore {
+  /**
+   * Map from the URI of a compilation unit to the unlinked summary of that
+   * compilation unit.
+   */
+  final Map<String, UnlinkedUnit> unlinkedMap = <String, UnlinkedUnit>{};
+
+  /**
+   * Map from the URI of a library to the linked summary of that library.
+   */
+  final Map<String, LinkedLibrary> linkedMap = <String, LinkedLibrary>{};
+
+  /**
+   * Map from the URI of a library to the summary path that contained it.
+   */
+  final Map<String, String> uriToSummaryPath = <String, String>{};
+
+  SummaryDataStore(Iterable<String> summaryPaths) {
+    summaryPaths.forEach(_fillMaps);
+  }
+
+  /**
+   * Add the given [bundle] loaded from the file with the given [path].
+   */
+  void addBundle(String path, PackageBundle bundle) {
+    for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
+      String uri = bundle.unlinkedUnitUris[i];
+      uriToSummaryPath[uri] = path;
+      unlinkedMap[uri] = bundle.unlinkedUnits[i];
+    }
+    for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
+      String uri = bundle.linkedLibraryUris[i];
+      linkedMap[uri] = bundle.linkedLibraries[i];
+    }
+  }
+
+  void _fillMaps(String path) {
+    io.File file = new io.File(path);
+    List<int> buffer = file.readAsBytesSync();
+    PackageBundle bundle = new PackageBundle.fromBuffer(buffer);
+    addBundle(path, bundle);
+  }
+}
+
+/**
+ * A concrete resynthesizer that serves summaries from given file paths.
+ */
+class _FileBasedSummaryResynthesizer extends SummaryResynthesizer {
+  final SummaryDataStore _dataStore;
+
+  _FileBasedSummaryResynthesizer(
+      SummaryResynthesizer parent,
+      AnalysisContext context,
+      TypeProvider typeProvider,
+      SourceFactory sourceFactory,
+      bool strongMode,
+      this._dataStore)
+      : super(parent, context, typeProvider, sourceFactory, strongMode);
+
+  @override
+  LinkedLibrary getLinkedSummary(String uri) {
+    return _dataStore.linkedMap[uri];
   }
 
   @override
-  String toString() => uri.toString();
+  UnlinkedUnit getUnlinkedSummary(String uri) {
+    return _dataStore.unlinkedMap[uri];
+  }
+
+  @override
+  bool hasLibrarySummary(String uri) {
+    LinkedLibrary linkedLibrary = _dataStore.linkedMap[uri];
+    return linkedLibrary != null && !linkedLibrary.fallbackMode;
+  }
+}
+
+/**
+ * A source that is part of a package whose summary was generated in fallback
+ * mode.  This source behaves identically to a [FileBasedSource] except that it
+ * also provides [summaryPath].
+ */
+class _InSummaryFallbackSource extends FileBasedSource
+    implements InSummarySource {
+  @override
+  final String summaryPath;
+
+  _InSummaryFallbackSource(JavaFile file, Uri uri, this.summaryPath)
+      : super(file, uri);
 }

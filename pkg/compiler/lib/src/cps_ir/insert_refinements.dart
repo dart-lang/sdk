@@ -73,10 +73,6 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
     let.insertAbove(use);
   }
 
-  Primitive unfoldInterceptor(Primitive prim) {
-    return prim is Interceptor ? prim.input : prim;
-  }
-
   /// Sets [refined] to be the current refinement for its value, and pushes an
   /// action that will restore the original scope again.
   ///
@@ -115,22 +111,21 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
 
     // Note: node.dartArgumentsLength is shorter when the call doesn't include
     // some optional arguments.
-    int length = min(argumentSuccessTypes.length, node.dartArgumentsLength);
+    int length = min(argumentSuccessTypes.length, node.argumentRefs.length);
     for (int i = 0; i < length; i++) {
       TypeMask argSuccessType = argumentSuccessTypes[i];
 
       // Skip arguments that provide no refinement.
       if (argSuccessType == types.dynamicType) continue;
 
-      applyRefinement(node.parent,
-          new Refinement(node.dartArgument(i), argSuccessType));
+      applyRefinement(
+          node.parent, new Refinement(node.argument(i), argSuccessType));
     }
   }
 
   void visitInvokeStatic(InvokeStatic node) {
     node.argumentRefs.forEach(processReference);
-    _refineArguments(node,
-        _getSuccessTypesForStaticMethod(types, node.target));
+    _refineArguments(node, _getSuccessTypesForStaticMethod(types, node.target));
   }
 
   void visitInvokeMethod(InvokeMethod node) {
@@ -140,7 +135,7 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
 
     // If the call is intercepted, we want to refine the actual receiver,
     // not the interceptor.
-    Primitive receiver = unfoldInterceptor(node.receiver);
+    Primitive receiver = node.receiver;
 
     // Do not try to refine the receiver of closure calls; the class world
     // does not know about closure classes.
@@ -154,8 +149,8 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
 
       // Refine arguments of methods on numbers which we know will throw on
       // invalid argument values.
-      _refineArguments(node,
-          _getSuccessTypesForInstanceMethod(types, type, selector));
+      _refineArguments(
+          node, _getSuccessTypesForInstanceMethod(types, type, selector));
     }
   }
 
@@ -216,10 +211,8 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
     // This can happen either for calls to `==` or `identical` calls, such
     // as the ones inserted by the unsugaring pass.
 
-    void refineEquality(Primitive first,
-                        Primitive second,
-                        Continuation trueCont,
-                        Continuation falseCont) {
+    void refineEquality(Primitive first, Primitive second,
+        Continuation trueCont, Continuation falseCont) {
       if (second is Constant && second.value.isNull) {
         Refinement refinedTrue = new Refinement(first, types.nullType);
         Refinement refinedFalse = new Refinement(first, types.nonNullType);
@@ -237,19 +230,15 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
     }
 
     if (condition is InvokeMethod && condition.selector == Selectors.equals) {
-      refineEquality(condition.dartReceiver,
-                     condition.dartArgument(0),
-                     trueCont,
-                     falseCont);
+      refineEquality(
+          condition.receiver, condition.argument(0), trueCont, falseCont);
       return;
     }
 
     if (condition is ApplyBuiltinOperator &&
         condition.operator == BuiltinOperator.Identical) {
-      refineEquality(condition.argument(0),
-                     condition.argument(1),
-                     trueCont,
-                     falseCont);
+      refineEquality(
+          condition.argument(0), condition.argument(1), trueCont, falseCont);
       return;
     }
 
@@ -296,7 +285,7 @@ List<TypeMask> _getSuccessTypesForInstanceMethod(
         return [types.intType];
 
       case 'modPow':
-       return [types.intType, types.intType];
+        return [types.intType, types.intType];
     }
     // Note: num methods on int values are handled below.
   }
@@ -304,13 +293,13 @@ List<TypeMask> _getSuccessTypesForInstanceMethod(
   if (types.isDefinitelyNum(receiver)) {
     switch (selector.name) {
       case 'clamp':
-          return [types.numType, types.numType];
+        return [types.numType, types.numType];
       case 'toStringAsFixed':
       case 'toStringAsPrecision':
       case 'toRadixString':
-          return [types.intType];
+        return [types.intType];
       case 'toStringAsExponential':
-          return [types.intType.nullable()];
+        return [types.intType.nullable()];
       case 'compareTo':
       case 'remainder':
       case '+':
@@ -328,7 +317,7 @@ List<TypeMask> _getSuccessTypesForInstanceMethod(
       case '>':
       case '<=':
       case '>=':
-          return [types.numType];
+        return [types.numType];
       default:
         return null;
     }
@@ -389,7 +378,7 @@ List<TypeMask> _getSuccessTypesForInstanceMethod(
       case 'sublist':
         return [types.uintType, types.uintType.nullable()];
       case 'length':
-         return selector.isSetter ? [types.uintType] : null;
+        return selector.isSetter ? [types.uintType] : null;
       case '[]':
       case '[]=':
         return [types.uintType];
@@ -414,7 +403,7 @@ List<TypeMask> _getSuccessTypesForStaticMethod(
   }
 
   if (lib.isPlatformLibrary && '${lib.canonicalUri}' == 'dart:math') {
-    switch(target.name) {
+    switch (target.name) {
       case 'sqrt':
       case 'sin':
       case 'cos':

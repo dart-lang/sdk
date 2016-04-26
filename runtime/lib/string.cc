@@ -22,7 +22,7 @@ DEFINE_NATIVE_ENTRY(String_fromEnvironment, 3) {
   const String& env_value =
       String::Handle(Api::GetEnvironmentValue(thread, name));
   if (!env_value.IsNull()) {
-    return Symbols::New(env_value);
+    return Symbols::New(thread, env_value);
   }
   return default_value.raw();
 }
@@ -524,7 +524,7 @@ DEFINE_NATIVE_ENTRY(String_charAt, 2) {
   const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
   uint16_t value = StringValueAt(receiver, index);
-  return Symbols::FromCharCode(static_cast<int32_t>(value));
+  return Symbols::FromCharCode(thread, static_cast<int32_t>(value));
 }
 
 

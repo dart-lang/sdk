@@ -12,7 +12,6 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 
-
 namespace dart {
 namespace bin {
 
@@ -72,7 +71,6 @@ namespace bin {
   V(FileSystemWatcher_WatchPath, 4)                                            \
   V(Filter_CreateZLibDeflate, 8)                                               \
   V(Filter_CreateZLibInflate, 4)                                               \
-  V(Filter_End, 1)                                                             \
   V(Filter_Process, 4)                                                         \
   V(Filter_Processed, 3)                                                       \
   V(InternetAddress_Parse, 1)                                                  \
@@ -108,6 +106,7 @@ namespace bin {
   V(SecureSocket_Renegotiate, 4)                                               \
   V(SecurityContext_Allocate, 1)                                               \
   V(SecurityContext_UsePrivateKeyBytes, 3)                                     \
+  V(SecurityContext_AlpnSupported, 0)                                          \
   V(SecurityContext_SetAlpnProtocols, 3)                                       \
   V(SecurityContext_SetClientAuthoritiesBytes, 3)                              \
   V(SecurityContext_SetTrustedCertificatesBytes, 3)                            \
@@ -170,7 +169,7 @@ Dart_NativeFunction IONativeLookup(Dart_Handle name,
   int num_entries = sizeof(IOEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
     struct NativeEntries* entry = &(IOEntries[i]);
-    if (!strcmp(function_name, entry->name_) &&
+    if ((strcmp(function_name, entry->name_) == 0) &&
         (entry->argument_count_ == argument_count)) {
       return reinterpret_cast<Dart_NativeFunction>(entry->function_);
     }

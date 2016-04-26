@@ -18,7 +18,7 @@ class ParameterStubGenerator {
   DiagnosticReporter get reporter => compiler.reporter;
 
   bool needsSuperGetter(FunctionElement element) =>
-    compiler.codegenWorld.methodsNeedingSuperGetter.contains(element);
+      compiler.codegenWorld.methodsNeedingSuperGetter.contains(element);
 
   /**
    * Generates stubs to handle invocation of methods with optional
@@ -36,9 +36,8 @@ class ParameterStubGenerator {
    * name [ParameterStubMethod.name] and [ParameterStubMethod.callName] set if
    * the input selector is non-null (and the member needs a stub).
    */
-  ParameterStubMethod generateParameterStub(FunctionElement member,
-                                            Selector selector,
-                                            Selector callSelector) {
+  ParameterStubMethod generateParameterStub(
+      FunctionElement member, Selector selector, Selector callSelector) {
     CallStructure callStructure = selector.callStructure;
     FunctionSignature parameters = member.functionSignature;
     int positionalArgumentCount = callStructure.positionalArgumentCount;
@@ -69,9 +68,8 @@ class ParameterStubGenerator {
     List<jsAst.Parameter> parametersBuffer =
         new List<jsAst.Parameter>(selector.argumentCount + extraArgumentCount);
     // The arguments that will be passed to the real method.
-    List<jsAst.Expression> argumentsBuffer =
-        new List<jsAst.Expression>(
-            parameters.parameterCount + extraArgumentCount);
+    List<jsAst.Expression> argumentsBuffer = new List<jsAst.Expression>(
+        parameters.parameterCount + extraArgumentCount);
 
     int count = 0;
     if (isInterceptedMethod) {
@@ -117,11 +115,14 @@ class ParameterStubGenerator {
       count++;
     });
 
-    var body;  // List or jsAst.Statement.
-    if (backend.hasFixedBackendName(member)) {
+    var body; // List or jsAst.Statement.
+    if (backend.nativeData.hasFixedBackendName(member)) {
       body = emitterTask.nativeEmitter.generateParameterStubStatements(
-          member, isInterceptedMethod, namer.invocationName(selector),
-          parametersBuffer, argumentsBuffer,
+          member,
+          isInterceptedMethod,
+          namer.invocationName(selector),
+          parametersBuffer,
+          argumentsBuffer,
           indexOfLastOptionalArgumentInParameters);
     } else if (member.isInstanceMember) {
       if (needsSuperGetter(member)) {
@@ -131,15 +132,14 @@ class ParameterStubGenerator {
         // We thus can't just invoke `this.foo$1.call(filledInArguments)`.
         // Instead we need to call the statically resolved target.
         //   `<class>.prototype.bar$1.call(this, argument0, ...)`.
-        body = js.statement(
-            'return #.#.call(this, #);',
-            [backend.emitter.prototypeAccess(superClass,
-                                             hasBeenInstantiated: true),
-             methodName,
-             argumentsBuffer]);
+        body = js.statement('return #.#.call(this, #);', [
+          backend.emitter
+              .prototypeAccess(superClass, hasBeenInstantiated: true),
+          methodName,
+          argumentsBuffer
+        ]);
       } else {
-        body = js.statement(
-            'return this.#(#);',
+        body = js.statement('return this.#(#);',
             [namer.instanceMethodName(member), argumentsBuffer]);
       }
     } else {
@@ -187,7 +187,7 @@ class ParameterStubGenerator {
   // (2) foo$3$c(a, b, c) => MyClass.foo$4$c$d(this, a, b, c, null);
   // (3) foo$3$d(a, b, d) => MyClass.foo$4$c$d(this, a, b, null, d);
   List<ParameterStubMethod> generateParameterStubs(MethodElement member,
-                                                   {bool canTearOff: true}) {
+      {bool canTearOff: true}) {
     if (member.enclosingElement.isClosure) {
       ClosureClassElement cls = member.enclosingElement;
       if (cls.supertype.element == backend.helpers.boundClosureClass) {
@@ -212,7 +212,7 @@ class ParameterStubGenerator {
 
     // Only instance members (not static methods) need stubs.
     if (member.isInstanceMember) {
-        selectors = compiler.codegenWorld.invocationsByName(member.name);
+      selectors = compiler.codegenWorld.invocationsByName(member.name);
     }
 
     if (canTearOff) {
@@ -222,8 +222,8 @@ class ParameterStubGenerator {
 
     assert(emptySelectorSet.isEmpty);
     if (selectors == null) selectors = const <Selector, SelectorConstraints>{};
-    if (callSelectors == null) callSelectors =
-        const <Selector, SelectorConstraints>{};
+    if (callSelectors == null)
+      callSelectors = const <Selector, SelectorConstraints>{};
 
     List<ParameterStubMethod> stubs = <ParameterStubMethod>[];
 
@@ -244,9 +244,8 @@ class ParameterStubGenerator {
     // Start with the callSelectors since they imply the generation of the
     // non-call version.
     for (Selector selector in callSelectors.keys) {
-      Selector renamedSelector = new Selector.call(
-          member.memberName,
-          selector.callStructure);
+      Selector renamedSelector =
+          new Selector.call(member.memberName, selector.callStructure);
       renamedCallSelectors.add(renamedSelector);
 
       if (!renamedSelector.appliesUnnamed(member, compiler.world)) continue;

@@ -12,6 +12,7 @@ class Flags {
   static const String analyzeMain = '--analyze-main';
   static const String analyzeOnly = '--analyze-only';
   static const String analyzeSignaturesOnly = '--analyze-signatures-only';
+  static const String disableInlining = '--disable-inlining';
   static const String disableDiagnosticColors = '--disable-diagnostic-colors';
   static const String disableNativeLiveTypeAnalysis =
       '--disable-native-live-type-analysis';
@@ -44,11 +45,14 @@ class Flags {
       '--experimental-trust-js-interop-type-annotations';
   static const String useContentSecurityPolicy = '--csp';
   static const String useCpsIr = '--use-cps-ir';
+  static const String useNewSourceInfo = '--use-new-source-info';
   static const String verbose = '--verbose';
   static const String version = '--version';
 
-  // Experimental flags.
   static const String conditionalDirectives = '--conditional-directives';
+
+  // Experimental flags.
+  static const String genericMethodSyntax = '--generic-method-syntax';
 }
 
 class Option {

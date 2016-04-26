@@ -23,6 +23,8 @@ class TextBuffer : ValueObject {
   void EscapeAndAddCodeUnit(uint32_t cu);
   void AddString(const char* s);
   void AddEscapedString(const char* s);
+  void AddRaw(const uint8_t* buffer,
+              intptr_t buffer_length);
 
   void Clear();
 

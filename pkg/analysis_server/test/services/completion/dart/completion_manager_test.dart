@@ -12,14 +12,13 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/task/dart.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../../utils.dart';
 import 'completion_contributor_util.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 main() {
   initializeTestEnvironment();

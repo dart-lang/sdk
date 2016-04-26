@@ -30,7 +30,10 @@ main(List<String> arguments) {
   }
   source = args[SOURCE_OPTION];
   priorityFile = args[PRIORITY_FILE_OPTION];
-  metricNames.addAll(args[METRIC_NAME_OPTION]);
+  List names = args[METRIC_NAME_OPTION] as List;
+  for (var name in names) {
+    metricNames.add(name as String);
+  }
   unittestConfiguration.timeout = new Duration(minutes: 20);
 
   var test;

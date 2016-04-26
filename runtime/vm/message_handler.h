@@ -6,14 +6,12 @@
 #define VM_MESSAGE_HANDLER_H_
 
 #include "vm/isolate.h"
+#include "vm/lockers.h"
 #include "vm/message.h"
 #include "vm/os_thread.h"
 #include "vm/thread_pool.h"
 
 namespace dart {
-
-// Forward declarations.
-class MonitorLocker;
 
 // A MessageHandler is an entity capable of accepting messages.
 class MessageHandler {
@@ -122,9 +120,12 @@ class MessageHandler {
   void PausedOnStart(bool paused);
   void PausedOnExit(bool paused);
 
+  // Gives temporary ownership of |queue| and |oob_queue|. Using this object
+  // has the side effect that no OOB messages will be handled if a stack
+  // overflow interrupt is delivered.
   class AcquiredQueues : public ValueObject {
    public:
-    AcquiredQueues();
+    explicit AcquiredQueues(MessageHandler* handler);
 
     ~AcquiredQueues();
 
@@ -143,17 +144,11 @@ class MessageHandler {
     }
 
    private:
-    void Reset(MessageHandler* handler);
-
     MessageHandler* handler_;
+    SafepointMonitorLocker ml_;
 
     friend class MessageHandler;
   };
-
-  // Gives temporary ownership of |queue| and |oob_queue|. Calling this
-  // has the side effect that no OOB messages will be handled if a stack
-  // overflow interrupt is delivered.
-  void AcquireQueues(AcquiredQueues* acquired_queue);
 
 #if defined(DEBUG)
   // Check that it is safe to access this message handler.
@@ -218,8 +213,8 @@ class MessageHandler {
 
   // NOTE: These two functions release and reacquire the monitor, you may
   // need to call HandleMessages to ensure all pending messages are handled.
-  void PausedOnStartLocked(bool paused);
-  void PausedOnExitLocked(bool paused);
+  void PausedOnStartLocked(MonitorLocker* ml, bool paused);
+  void PausedOnExitLocked(MonitorLocker* ml, bool paused);
 
   // Dequeue the next message.  Prefer messages from the oob_queue_ to
   // messages from the queue_.

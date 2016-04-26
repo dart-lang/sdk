@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 export 'package:analyzer/src/generated/source.dart';
 
@@ -78,6 +79,44 @@ class DirectoryBasedSourceContainer implements SourceContainer {
       return path;
     }
     return "$path${JavaFile.separator}";
+  }
+}
+
+/**
+ * Instances of the class [ExplicitSourceResolver] map URIs to files on disk
+ * using a fixed mapping provided at construction time.
+ */
+class ExplicitSourceResolver extends UriResolver {
+  final Map<Uri, JavaFile> uriToFileMap;
+  final Map<String, Uri> pathToUriMap;
+
+  /**
+   * Construct an [ExplicitSourceResolver] based on the given [uriToFileMap].
+   */
+  ExplicitSourceResolver(Map<Uri, JavaFile> uriToFileMap)
+      : uriToFileMap = uriToFileMap,
+        pathToUriMap = _computePathToUriMap(uriToFileMap);
+
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    return new FileBasedSource(uriToFileMap[uri], actualUri ?? uri);
+  }
+
+  @override
+  Uri restoreAbsolute(Source source) {
+    return pathToUriMap[source.fullName];
+  }
+
+  /**
+   * Build the inverse mapping of [uriToSourceMap].
+   */
+  static Map<String, Uri> _computePathToUriMap(
+      Map<Uri, JavaFile> uriToSourceMap) {
+    Map<String, Uri> pathToUriMap = <String, Uri>{};
+    uriToSourceMap.forEach((Uri uri, JavaFile file) {
+      pathToUriMap[file.getAbsolutePath()] = uri;
+    });
+    return pathToUriMap;
   }
 }
 
@@ -207,32 +246,6 @@ class FileBasedSource extends Source {
 
   @override
   bool exists() => file.isFile();
-
-  @override
-  Uri resolveRelativeUri(Uri containedUri) {
-    try {
-      Uri baseUri = uri;
-      bool isOpaque = uri.isAbsolute && !uri.path.startsWith('/');
-      if (isOpaque) {
-        String scheme = uri.scheme;
-        String part = uri.path;
-        if (scheme == DartUriResolver.DART_SCHEME && part.indexOf('/') < 0) {
-          part = "$part/$part.dart";
-        }
-        baseUri = parseUriWithException("$scheme:/$part");
-      }
-      Uri result = baseUri.resolveUri(containedUri);
-      if (isOpaque) {
-        result = parseUriWithException(
-            "${result.scheme}:${result.path.substring(1)}");
-      }
-      return result;
-    } catch (exception, stackTrace) {
-      throw new AnalysisException(
-          "Could not resolve URI ($containedUri) relative to source ($uri)",
-          new CaughtException(exception, stackTrace));
-    }
-  }
 
   @override
   String toString() {
@@ -433,11 +446,13 @@ class PackageUriResolver extends UriResolver {
       if (resolvedFile.exists()) {
         JavaFile canonicalFile =
             getCanonicalFile(packagesDirectory, pkgName, relPath);
+        if (actualUri != null) {
+          return new FileBasedSource(canonicalFile, actualUri);
+        }
         if (_isSelfReference(packagesDirectory, canonicalFile)) {
           uri = canonicalFile.toURI();
         }
-        return new FileBasedSource(
-            canonicalFile, actualUri != null ? actualUri : uri);
+        return new FileBasedSource(canonicalFile, uri);
       }
     }
     return new FileBasedSource(

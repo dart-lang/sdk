@@ -404,7 +404,7 @@ class Server {
    * the [Completer] objects which should be completed when acknowledgement is
    * received.
    */
-  final HashMap<String, Completer> _pendingCommands = <String, Completer>{};
+  final Map<String, Completer> _pendingCommands = <String, Completer>{};
 
   /**
    * Number which should be used to compute the 'id' to send in the next command
@@ -844,7 +844,8 @@ abstract class _RecursiveMatcher extends Matcher {
   @override
   Description describeMismatch(
       item, Description mismatchDescription, Map matchState, bool verbose) {
-    List<MismatchDescriber> mismatches = matchState['mismatches'];
+    List<MismatchDescriber> mismatches =
+        matchState['mismatches'] as List<MismatchDescriber>;
     if (mismatches != null) {
       for (int i = 0; i < mismatches.length; i++) {
         MismatchDescriber mismatch = mismatches[i];

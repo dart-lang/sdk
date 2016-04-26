@@ -54,7 +54,8 @@ class BoolAdapterSink extends MyChunkedBoolSink {
   specialB(o) => add(o);
 }
 
-class IntBoolConverter1 extends Converter<List<int>, List<bool>> {
+class IntBoolConverter1 extends
+    ChunkedConverter<List<int>, List<bool>, int, bool> {
   List<bool> convert(List<int> input) => input.map((x) => x > 0).toList();
 
   startChunkedConversion(sink) {
@@ -63,7 +64,8 @@ class IntBoolConverter1 extends Converter<List<int>, List<bool>> {
   }
 }
 
-class BoolIntConverter1 extends Converter<List<bool>, List<int>> {
+class BoolIntConverter1 extends
+    ChunkedConverter<List<bool>, List<int>, bool, int> {
   List<int> convert(List<bool> input) => input.map((x) => x ? 1 : 0).toList();
 
   startChunkedConversion(sink) {
@@ -104,7 +106,7 @@ class BoolIntConverter1Sink extends MyChunkedBoolSink {
   close() => outSink.close();
 }
 
-class IdentityConverter extends Converter {
+class IdentityConverter extends ChunkedConverter {
   convert(x) => x;
 
   startChunkedConversion(sink) {

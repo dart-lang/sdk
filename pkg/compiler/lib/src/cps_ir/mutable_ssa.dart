@@ -110,8 +110,7 @@ class MutableVariableEliminator implements Pass {
   }
 
   bool isJoinContinuation(Continuation cont) {
-    return !cont.hasExactlyOneUse ||
-           cont.firstRef.parent is InvokeContinuation;
+    return !cont.hasExactlyOneUse || cont.firstRef.parent is InvokeContinuation;
   }
 
   /// If some useful source information is attached to exactly one of the
@@ -131,8 +130,8 @@ class MutableVariableEliminator implements Pass {
   /// will be mutated during the processing.
   ///
   /// Continuations to be processed are put on the stack for later processing.
-  void processBlock(Expression node,
-                    Map<MutableVariable, Primitive> environment) {
+  void processBlock(
+      Expression node, Map<MutableVariable, Primitive> environment) {
     Expression next = node.next;
     for (; node is! TailExpression; node = next, next = node.next) {
       if (node is LetMutable && shouldRewrite(node.variable)) {
@@ -221,12 +220,9 @@ class MutableVariableEliminator implements Pass {
       // Enqueue both branches with the current environment.
       // Clone the environments once so the processing of one branch does not
       // mutate the environment needed to process the other branch.
-      stack.add(new ContinuationItem(
-          node.trueContinuation,
+      stack.add(new ContinuationItem(node.trueContinuation,
           new Map<MutableVariable, Primitive>.from(environment)));
-      stack.add(new ContinuationItem(
-          node.falseContinuation,
-          environment));
+      stack.add(new ContinuationItem(node.falseContinuation, environment));
     } else {
       assert(node is Throw || node is Unreachable);
     }

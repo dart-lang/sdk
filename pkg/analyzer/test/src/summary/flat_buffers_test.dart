@@ -345,7 +345,7 @@ class BuilderTest {
     }
     // read and verify
     BufferPointer root = new BufferPointer.fromBytes(byteList);
-    List<int> items = const ListReader<int>(const Uint32Reader()).read(root);
+    List<int> items = const Uint32ListReader().read(root);
     expect(items, hasLength(3));
     expect(items, orderedEquals(<int>[1, 2, 0x9ABCDEF0]));
   }
@@ -354,14 +354,14 @@ class BuilderTest {
     List<int> byteList;
     {
       Builder builder = new Builder(initialSize: 0);
-      Offset offset = builder.writeListUint8(<int>[1, 2, 0x9A]);
+      Offset offset = builder.writeListUint8(<int>[1, 2, 3, 4, 0x9A]);
       byteList = builder.finish(offset);
     }
     // read and verify
     BufferPointer root = new BufferPointer.fromBytes(byteList);
-    List<int> items = const ListReader<int>(const Uint8Reader()).read(root);
-    expect(items, hasLength(3));
-    expect(items, orderedEquals(<int>[1, 2, 0x9A]));
+    List<int> items = const Uint8ListReader().read(root);
+    expect(items, hasLength(5));
+    expect(items, orderedEquals(<int>[1, 2, 3, 4, 0x9A]));
   }
 }
 

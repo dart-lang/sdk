@@ -1,10 +1,10 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--optimization-counter-threshold=1000 --max-polymorphic-checks=1
+// VMOptions=--optimization-counter-threshold=1000 --max-polymorphic-checks=1 --no-background-compilation
 
 // Test correct loop invariant code motion and type propagation from is-checks
-// and null-comparisons. 
+// and null-comparisons.
 
 class B {
   var b;

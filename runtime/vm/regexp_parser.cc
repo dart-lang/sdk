@@ -220,14 +220,14 @@ bool RegExpParser::ParseFunction(ParsedFunction *parsed_function) {
   VMTagScope tagScope(parsed_function->thread(),
                       VMTag::kCompileParseRegExpTagId);
   Zone* zone = parsed_function->zone();
-  JSRegExp& regexp = JSRegExp::Handle(parsed_function->function().regexp());
+  RegExp& regexp = RegExp::Handle(parsed_function->function().regexp());
 
   const String& pattern = String::Handle(regexp.pattern());
   const bool multiline = regexp.is_multi_line();
 
   RegExpCompileData* compile_data = new(zone) RegExpCompileData();
   if (!RegExpParser::ParseRegExp(pattern, multiline, compile_data)) {
-    // Parsing failures are handled in the JSRegExp factory constructor.
+    // Parsing failures are handled in the RegExp factory constructor.
     UNREACHABLE();
   }
 

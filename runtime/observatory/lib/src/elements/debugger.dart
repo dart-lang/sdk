@@ -1524,7 +1524,9 @@ class ObservatoryDebugger extends Debugger {
   }
 
   void _reportPause(ServiceEvent event) {
-    if (event.kind == ServiceEvent.kPauseStart) {
+    if (event.kind == ServiceEvent.kNone) {
+      console.print("Paused until embedder makes the isolate runnable.");
+    } else if (event.kind == ServiceEvent.kPauseStart) {
       console.print(
           "Paused at isolate start "
           "(type 'continue' [F7] or 'step' [F10] to start the isolate')");

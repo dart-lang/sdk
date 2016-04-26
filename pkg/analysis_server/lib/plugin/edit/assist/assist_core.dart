@@ -26,9 +26,9 @@ class Assist {
    * A comparator that can be used to sort assists by their relevance. The most
    * relevant assists will be sorted before assists with a lower relevance.
    */
-  static final Comparator<Assist> SORT_BY_RELEVANCE = (Assist firstAssist,
-          Assist secondAssist) =>
-      firstAssist.kind.relevance - secondAssist.kind.relevance;
+  static final Comparator<Assist> SORT_BY_RELEVANCE =
+      (Assist firstAssist, Assist secondAssist) =>
+          firstAssist.kind.relevance - secondAssist.kind.relevance;
 
   /**
    * A description of the assist being proposed.

@@ -147,7 +147,7 @@ class ZLibCodec extends Codec<List<int>, List<int>> {
   /**
    * Get a [ZLibEncoder] for encoding to `ZLib` compressed data.
    */
-  Converter<List<int>, List<int>> get encoder =>
+  ZLibEncoder get encoder =>
       new ZLibEncoder(gzip: false, level: level, windowBits: windowBits,
                       memLevel: memLevel, strategy: strategy,
                       dictionary: dictionary, raw: raw);
@@ -155,7 +155,7 @@ class ZLibCodec extends Codec<List<int>, List<int>> {
   /**
    * Get a [ZLibDecoder] for decoding `ZLib` compressed data.
    */
-  Converter<List<int>, List<int>> get decoder =>
+  ZLibDecoder get decoder =>
       new ZLibDecoder(windowBits: windowBits, dictionary: dictionary, raw: raw);
 }
 
@@ -259,7 +259,7 @@ class GZipCodec extends Codec<List<int>, List<int>> {
   /**
    * Get a [ZLibEncoder] for encoding to `GZip` compressed data.
    */
-  Converter<List<int>, List<int>> get encoder =>
+  ZLibEncoder get encoder =>
       new ZLibEncoder(gzip: true, level: level, windowBits: windowBits,
                       memLevel: memLevel, strategy: strategy,
                       dictionary: dictionary, raw: raw);
@@ -267,7 +267,7 @@ class GZipCodec extends Codec<List<int>, List<int>> {
   /**
    * Get a [ZLibDecoder] for decoding `GZip` compressed data.
    */
-  Converter<List<int>, List<int>> get decoder =>
+  ZLibDecoder get decoder =>
       new ZLibDecoder(windowBits: windowBits, dictionary: dictionary, raw: raw);
 }
 
@@ -275,7 +275,8 @@ class GZipCodec extends Codec<List<int>, List<int>> {
  * The [ZLibEncoder] encoder is used by [ZLibCodec] and [GZipCodec] to compress
  * data.
  */
-class ZLibEncoder extends Converter<List<int>, List<int>> {
+class ZLibEncoder extends
+    ChunkedConverter<List<int>, List<int>, List<int>, List<int>> {
   /**
    * When true, `GZip` frames will be added to the compressed data.
    */
@@ -378,7 +379,8 @@ class ZLibEncoder extends Converter<List<int>, List<int>> {
 /**
  * The [ZLibDecoder] is used by [ZLibCodec] and [GZipCodec] to decompress data.
  */
-class ZLibDecoder extends Converter<List<int>, List<int>> {
+class ZLibDecoder extends
+    ChunkedConverter<List<int>, List<int>, List<int>, List<int>> {
   /**
    * Base two logarithm of the window size (the size of the history buffer). It
    * should be in the range `8..15`. Larger values result in better compression
@@ -518,7 +520,6 @@ class _FilterSink extends ByteConversionSink {
       _closed = true;
       throw e;
     }
-    if (!_closed) _filter.end();
     _closed = true;
     _sink.close();
   }
@@ -544,13 +545,6 @@ abstract class _Filter {
    * make sure an 'end' packet is written on the stream.
    */
   List<int> processed({bool flush: true, bool end: false});
-
-  /**
-   * Mark the filter as closed. Always call this method for any filter created
-   * to avoid leaking resources. [end] can be called at any time, but any
-   * successive calls to [process] or [processed] will fail.
-   */
-  void end();
 
   external static _Filter _newZLibDeflateFilter(bool gzip, int level,
                                                 int windowBits, int memLevel,

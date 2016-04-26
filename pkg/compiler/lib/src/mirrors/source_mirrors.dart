@@ -118,8 +118,8 @@ abstract class LibrarySourceMirror
 }
 
 /// A mirror on an import or export declaration.
-abstract class LibraryDependencySourceMirror
-    extends Mirror implements LibraryDependencyMirror {
+abstract class LibraryDependencySourceMirror extends Mirror
+    implements LibraryDependencyMirror {
   /// Is `true` if this dependency is an import.
   bool get isImport;
 
@@ -149,8 +149,8 @@ abstract class LibraryDependencySourceMirror
 }
 
 /// A mirror on a show/hide combinator declared on a library dependency.
-abstract class CombinatorSourceMirror
-    extends Mirror implements CombinatorMirror {
+abstract class CombinatorSourceMirror extends Mirror
+    implements CombinatorMirror {
   /// The list of identifiers on the combinator.
   List/*<String>*/ get identifiers;
 

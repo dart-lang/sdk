@@ -14,12 +14,13 @@ namespace dart {
 // Add function to a class and that class to the class dictionary so that
 // frame walking can be used.
 const Function& RegisterFakeFunction(const char* name, const Code& code) {
-  const String& class_name = String::Handle(Symbols::New("ownerClass"));
+  Thread* thread = Thread::Current();
+  const String& class_name = String::Handle(Symbols::New(thread, "ownerClass"));
   const Script& script = Script::Handle();
   const Class& owner_class =
       Class::Handle(Class::New(class_name, script,
                                TokenPosition::kNoSource));
-  const String& function_name = String::ZoneHandle(Symbols::New(name));
+  const String& function_name = String::ZoneHandle(Symbols::New(thread, name));
   const Function& function = Function::ZoneHandle(
       Function::New(function_name,
                     RawFunction::kRegularFunction,

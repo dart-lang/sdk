@@ -14,8 +14,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, trace_isolates);
-
 Mutex* PortMap::mutex_ = NULL;
 PortMap::Entry* PortMap::map_ = NULL;
 MessageHandler* PortMap::deleted_entry_ = reinterpret_cast<MessageHandler*>(1);

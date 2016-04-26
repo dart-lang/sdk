@@ -35,7 +35,7 @@ class ClassViewElement extends ObservatoryElement {
   }
 
   Future<ServiceObject> retainedToplist(var limit) {
-    return cls.isolate.fetchHeapSnapshot().last
+    return cls.isolate.fetchHeapSnapshot(true).last
       .then((HeapSnapshot snapshot) =>
           Future.wait(snapshot.getMostRetained(classId: cls.vmCid,
                                                limit: 10)))

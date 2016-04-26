@@ -73,8 +73,7 @@ import '../tree_ir_nodes.dart';
 /// readability and stack trace usability versus the modest code size
 /// reduction one might get by aggressively moving expressions into the
 /// updates.
-class LoopRewriter extends RecursiveTransformer
-                   implements Pass {
+class LoopRewriter extends RecursiveTransformer implements Pass {
   String get passName => 'Loop rewriter';
 
   Set<Label> usedContinueLabels = new Set<Label>();

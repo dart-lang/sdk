@@ -5,10 +5,18 @@
 #include "vm/source_report.h"
 
 #include "vm/compiler.h"
+#include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/profiler.h"
+#include "vm/profiler_service.h"
 
 namespace dart {
+
+const char* SourceReport::kCallSitesStr = "_CallSites";
+const char* SourceReport::kCoverageStr = "Coverage";
+const char* SourceReport::kPossibleBreakpointsStr = "PossibleBreakpoints";
+const char* SourceReport::kProfileStr = "_Profile";
 
 SourceReport::SourceReport(intptr_t report_set, CompileMode compile_mode)
     : report_set_(report_set),
@@ -17,6 +25,7 @@ SourceReport::SourceReport(intptr_t report_set, CompileMode compile_mode)
       script_(NULL),
       start_pos_(TokenPosition::kNoSource),
       end_pos_(TokenPosition::kNoSource),
+      profile_(Isolate::Current()),
       next_script_index_(0) {
 }
 
@@ -32,6 +41,13 @@ void SourceReport::Init(Thread* thread,
   script_table_entries_.Clear();
   script_table_.Clear();
   next_script_index_ = 0;
+  if (IsReportRequested(kProfile)) {
+    // Build the profile.
+    SampleFilter samplesForIsolate(thread_->isolate(),
+                                   Thread::kMutatorTask,
+                                   -1, -1);
+    profile_.Build(thread, &samplesForIsolate, Profile::kNoTags);
+  }
 }
 
 
@@ -250,6 +266,58 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
 }
 
 
+void SourceReport::PrintProfileData(JSONObject* jsobj,
+                                    ProfileFunction* profile_function) {
+  ASSERT(profile_function != NULL);
+  ASSERT(profile_function->NumSourcePositions() > 0);
+
+  {
+    JSONObject profile(jsobj, "profile");
+
+    {
+      JSONObject profileData(&profile, "metadata");
+      profileData.AddProperty("sampleCount", profile_.sample_count());
+    }
+
+    // Positions.
+    {
+      JSONArray positions(&profile, "positions");
+      for (intptr_t i = 0; i < profile_function->NumSourcePositions(); i++) {
+        const ProfileFunctionSourcePosition& position =
+            profile_function->GetSourcePosition(i);
+        if (position.token_pos().IsSourcePosition() &&
+            !position.token_pos().IsNoSource()) {
+          // Add as an integer.
+          positions.AddValue(position.token_pos().Pos());
+        } else {
+          // Add as a string.
+          positions.AddValue(position.token_pos().ToCString());
+        }
+      }
+    }
+
+    // Exclusive ticks.
+    {
+      JSONArray exclusiveTicks(&profile, "exclusiveTicks");
+      for (intptr_t i = 0; i < profile_function->NumSourcePositions(); i++) {
+        const ProfileFunctionSourcePosition& position =
+            profile_function->GetSourcePosition(i);
+        exclusiveTicks.AddValue(position.exclusive_ticks());
+      }
+    }
+    // Inclusive ticks.
+    {
+      JSONArray inclusiveTicks(&profile, "inclusiveTicks");
+      for (intptr_t i = 0; i < profile_function->NumSourcePositions(); i++) {
+        const ProfileFunctionSourcePosition& position =
+            profile_function->GetSourcePosition(i);
+        inclusiveTicks.AddValue(position.inclusive_ticks());
+      }
+    }
+  }
+}
+
+
 void SourceReport::PrintScriptTable(JSONArray* scripts) {
   for (int i = 0; i < script_table_entries_.length(); i++) {
     const Script* script = script_table_entries_[i].script;
@@ -310,6 +378,13 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   }
   if (IsReportRequested(kPossibleBreakpoints)) {
     PrintPossibleBreakpointsData(&range, func, code);
+  }
+  if (IsReportRequested(kProfile)) {
+    ProfileFunction* profile_function = profile_.FindFunction(func);
+    if ((profile_function != NULL) &&
+        (profile_function->NumSourcePositions() > 0)) {
+      PrintProfileData(&range, profile_function);
+    }
   }
 }
 

@@ -60,6 +60,11 @@ interface TimeoutHandler {
   void handleEvent();
 };
 
+[Callback]
+interface RequestAnimationFrameCallback{
+    void handleEvent(double highResTime);
+};
+
 // FIXME(leafp): This is a temporary hack to get things running while
 // we are still generating _blink from the dart side idl files.
 // Once we are up and running generating dart:_blink in dartium
@@ -418,3 +423,10 @@ interface MIDIOutput : MIDIPort {
 };
 
 Element implements GlobalEventHandlers;
+
+
+// This only exists in Safari, and is deprecated there. But include it anyway
+// because otherwise iterating CSSRules in Safari can yield unknown JS objects.
+interface CSSCharsetRule : CSSRule {
+    [MeasureAs=CSSCharsetRuleEncoding] attribute DOMString encoding;
+};

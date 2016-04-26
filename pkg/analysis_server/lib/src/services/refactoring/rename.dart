@@ -98,7 +98,7 @@ bool isReferenceInLocalRange(LocalElement localElement, SearchMatch reference) {
     return false;
   }
   Source localSource = localElement.source;
-  Source referenceSource = reference.element.source;
+  Source referenceSource = reference.unitSource;
   SourceRange localRange = localElement.visibleRange;
   SourceRange referenceRange = reference.sourceRange;
   return referenceSource == localSource &&
@@ -128,10 +128,11 @@ bool isVisibleInLibrary(
 abstract class RenameRefactoringImpl extends RefactoringImpl
     implements RenameRefactoring {
   final SearchEngine searchEngine;
-  final Element element;
+  final Element _element;
   final AnalysisContext context;
   final String elementKindName;
   final String oldName;
+  Element get element => _element;
 
   SourceChange change;
 
@@ -139,7 +140,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
 
   RenameRefactoringImpl(SearchEngine searchEngine, Element element)
       : searchEngine = searchEngine,
-        element = element,
+        _element = element,
         context = element.context,
         elementKindName = element.kind.displayName,
         oldName = _getDisplayName(element);

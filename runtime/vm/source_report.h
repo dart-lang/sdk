@@ -9,6 +9,7 @@
 #include "vm/flags.h"
 #include "vm/hash_map.h"
 #include "vm/object.h"
+#include "vm/profiler_service.h"
 #include "vm/token_position.h"
 
 namespace dart {
@@ -22,7 +23,13 @@ class SourceReport {
     kCallSites           = 0x1,
     kCoverage            = 0x2,
     kPossibleBreakpoints = 0x4,
+    kProfile             = 0x8,
   };
+
+  static const char* kCallSitesStr;
+  static const char* kCoverageStr;
+  static const char* kPossibleBreakpointsStr;
+  static const char* kProfileStr;
 
   enum CompileMode {
     kNoCompile,
@@ -48,6 +55,7 @@ class SourceReport {
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread_->zone(); }
+  Isolate* isolate() const { return thread_->isolate(); }
 
   bool IsReportRequested(ReportKind report_kind);
   bool ShouldSkipFunction(const Function& func);
@@ -60,6 +68,7 @@ class SourceReport {
                          const Function& func, const Code& code);
   void PrintPossibleBreakpointsData(JSONObject* jsobj,
                                     const Function& func, const Code& code);
+  void PrintProfileData(JSONObject* jsobj, ProfileFunction* profile_function);
   void PrintScriptTable(JSONArray* jsarr);
 
   void VisitFunction(JSONArray* jsarr, const Function& func);
@@ -104,6 +113,7 @@ class SourceReport {
   const Script* script_;
   TokenPosition start_pos_;
   TokenPosition end_pos_;
+  Profile profile_;
   GrowableArray<ScriptTableEntry> script_table_entries_;
   DirectChainedHashMap<ScriptTableTrait> script_table_;
   intptr_t next_script_index_;

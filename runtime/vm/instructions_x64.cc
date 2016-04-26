@@ -48,7 +48,11 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc,
     int32_t offset = *reinterpret_cast<int32_t*>(pc + 3);
     return Thread::ObjectAtOffset(offset, obj);
   }
-  if (((bytes[0] == 0x4d) && (bytes[1] == 0x8b) && (bytes[2] == 0x5e)) ||
+  if (((bytes[0] == 0x41) && (bytes[1] == 0xff) && (bytes[2] == 0x76)) ||
+      ((bytes[0] == 0x49) && (bytes[1] == 0x3b) && (bytes[2] == 0x66)) ||
+      ((bytes[0] == 0x49) && (bytes[1] == 0x8b) && (bytes[2] == 0x46)) ||
+      ((bytes[0] == 0x4d) && (bytes[1] == 0x8b) && (bytes[2] == 0x5e)) ||
+      ((bytes[0] == 0x4d) && (bytes[1] == 0x8b) && (bytes[2] == 0x66)) ||
       ((bytes[0] == 0x4d) && (bytes[1] == 0x8b) && (bytes[2] == 0x6e))) {
     uint8_t offset = *reinterpret_cast<uint8_t*>(pc + 3);
     return Thread::ObjectAtOffset(offset, obj);

@@ -7,7 +7,8 @@ library analysis_server.src.status.ast_writer;
 import 'dart:collection';
 
 import 'package:analysis_server/src/status/tree_writer.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 
 /**
  * A visitor that will produce an HTML representation of an AST structure.
