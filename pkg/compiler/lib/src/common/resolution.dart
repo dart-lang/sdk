@@ -253,6 +253,8 @@ abstract class Resolution implements Frontend {
   /// Later calls to [getWorldImpact] or [computeWorldImpact] returns an empty
   /// impact.
   void emptyCache();
+
+  void forgetElement(Element element);
 }
 
 /// A container of commonly used dependencies for tasks that involve parsing.

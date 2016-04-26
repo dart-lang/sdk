@@ -701,6 +701,8 @@ abstract class Enqueuer {
   void forgetElement(Element element) {
     universe.forgetElement(element, compiler);
     _processedClasses.remove(element);
+    instanceMembersByName[element.name]?.remove(element);
+    instanceFunctionsByName[element.name]?.remove(element);
   }
 }
 
