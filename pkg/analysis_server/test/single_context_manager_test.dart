@@ -384,6 +384,26 @@ class SingleContextManagerTest {
     callbacks.assertContextFiles(project, [file]);
   }
 
+  test_watch_addFile_afterChangingRoots() async {
+    String contextPath = '/context';
+    String root1 = '$contextPath/root1';
+    String root2 = '$contextPath/root2';
+    String file1 = '$root1/file1.dart';
+    String file2 = '$root2/file2.dart';
+    manager.setRoots(<String>[root1], <String>[], <String, String>{});
+    manager.setRoots(<String>[root2], <String>[], <String, String>{});
+    manager.setRoots(<String>[root1, root2], <String>[], <String, String>{});
+    manager.setRoots(<String>[root2], <String>[], <String, String>{});
+    // empty folder initially
+    callbacks.assertContextFiles(root2, []);
+    // add files
+    resourceProvider.newFile(file1, '');
+    resourceProvider.newFile(file2, '');
+    // the file was added
+    await pumpEventQueue();
+    callbacks.assertContextFiles(root2, [file2]);
+  }
+
   test_watch_addFile_excluded() async {
     String project = '/project';
     String folderA = '$project/aaa';

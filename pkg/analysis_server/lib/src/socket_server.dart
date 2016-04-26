@@ -102,6 +102,7 @@ class SocketServer {
         instrumentationService,
         embeddedResolverProvider: embeddedResolverProvider,
         packageResolverProvider: packageResolverProvider,
+        useSingleContextManager: useSingleContextManager,
         rethrowExceptions: false);
     analysisServer.userDefinedPlugins = userDefinedPlugins;
   }

@@ -95,9 +95,10 @@ class SingleContextManager implements ContextManager {
   Folder contextFolder;
 
   /**
-   * The current [contextFolder] watch subscription.
+   * The current watch subscriptions.
    */
-  StreamSubscription<WatchEvent> watchSubscription;
+  Map<String, StreamSubscription<WatchEvent>> watchSubscriptions =
+      new Map<String, StreamSubscription<WatchEvent>>();
 
   /**
    * The [packageResolverProvider] must not be `null`.
@@ -150,10 +151,7 @@ class SingleContextManager implements ContextManager {
       context.dispose();
       context = null;
       contextFolder = null;
-      if (watchSubscription != null) {
-        watchSubscription.cancel();
-        watchSubscription = null;
-      }
+      _cancelCurrentWatchSubscriptions();
       setRoots(includedPaths, excludedPaths, packageRoots);
     }
   }
@@ -174,13 +172,29 @@ class SingleContextManager implements ContextManager {
           callbacks.moveContext(this.contextFolder, contextFolder);
         }
         this.contextFolder = contextFolder;
-        // Start new watcher and cancel the old one.
-        StreamSubscription<WatchEvent> watchSubscription =
-            this.contextFolder.changes.listen(_handleWatchEvent);
-        this.watchSubscription?.cancel();
-        this.watchSubscription = watchSubscription;
       }
     }
+    // Start new watchers and cancel old ones.
+    {
+      Map<String, StreamSubscription<WatchEvent>> newSubscriptions =
+          new Map<String, StreamSubscription<WatchEvent>>();
+      for (String includedPath in includedPaths) {
+        Resource resource = resourceProvider.getResource(includedPath);
+        if (resource is Folder) {
+          // Extract the existing subscription or create a new one.
+          StreamSubscription<WatchEvent> subscription =
+              watchSubscriptions.remove(includedPath);
+          if (subscription == null) {
+            subscription = resource.changes.listen(_handleWatchEvent);
+          }
+          // Remember the subscription.
+          newSubscriptions[includedPath] = subscription;
+        }
+        _cancelCurrentWatchSubscriptions();
+        this.watchSubscriptions = newSubscriptions;
+      }
+    }
+    // Create or update the analysis context.
     if (context == null) {
       UriResolver packageResolver = packageResolverProvider();
       context = callbacks.addContext(contextFolder, new AnalysisOptionsImpl(),
@@ -240,6 +254,14 @@ class SingleContextManager implements ContextManager {
       }
     }
     return changeSet;
+  }
+
+  void _cancelCurrentWatchSubscriptions() {
+    for (StreamSubscription<WatchEvent> subscription
+        in watchSubscriptions.values) {
+      subscription.cancel();
+    }
+    watchSubscriptions.clear();
   }
 
   String _commonPrefix(List<String> paths) {
