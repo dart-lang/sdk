@@ -16,10 +16,14 @@ namespace dart {
 VM_TEST_CASE(FindCodeObject) {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
   const int kLoopCount = 50000;
+  const int kScriptSize = 512 * KB;
+#elif defined(TARGET_ARCH_DBC)
+  const int kLoopCount = 60000;
+  const int kScriptSize = 1 * MB;
 #else
   const int kLoopCount = 25000;
-#endif
   const int kScriptSize = 512 * KB;
+#endif
   const int kNumFunctions = 1024;
   char scriptChars[kScriptSize];
 

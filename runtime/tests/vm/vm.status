@@ -170,10 +170,6 @@ cc/Debug_StepInto: Skip
 cc/Parser_AllocateVariables_CapturedVar: Skip
 cc/Parser_AllocateVariables_MiddleChain: Skip
 
-# TODO(vegorov) Test needs to generate a large enough function to go on to the
-# large page. However large enough function overflows bytecode encoding.
-cc/FindCodeObject: Skip
-
 # This test is meaningless for DBC as allocation stubs are not used.
 cc/RegenerateAllocStubs: Skip
 
