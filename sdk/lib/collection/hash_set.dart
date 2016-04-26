@@ -101,7 +101,7 @@ abstract class HashSet<E> implements Set<E> {
    * Effectively a shorthand for:
    *
    *     new HashSet<E>(equals: identical,
-   *                    hashCode: identityHashCodeOf)
+   *                    hashCode: identityHashCode)
    */
   external factory HashSet.identity();
 
