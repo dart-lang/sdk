@@ -38,7 +38,9 @@ class FileHandle {
 
 
 File::~File() {
-  Close();
+  if (!IsClosed()) {
+    Close();
+  }
   delete handle_;
 }
 
@@ -68,6 +70,12 @@ intptr_t File::GetFD() {
 
 bool File::IsClosed() {
   return handle_->fd() == kClosedFd;
+}
+
+
+void* File::MapExecutable(intptr_t* len) {
+  UNIMPLEMENTED();
+  return NULL;
 }
 
 

@@ -6,13 +6,13 @@ library dart2js.enqueue;
 
 import 'dart:collection' show Queue;
 
-import 'common.dart';
+import 'common/codegen.dart' show CodegenWorkItem;
 import 'common/names.dart' show Identifiers;
 import 'common/resolution.dart' show Resolution;
-import 'common/work.dart' show ItemCompilationContext, WorkItem;
-import 'common/tasks.dart' show CompilerTask, DeferredAction, DeferredTask;
-import 'common/codegen.dart' show CodegenWorkItem;
 import 'common/resolution.dart' show ResolutionWorkItem;
+import 'common/tasks.dart' show CompilerTask, DeferredAction, DeferredTask;
+import 'common/work.dart' show ItemCompilationContext, WorkItem;
+import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'dart_types.dart' show DartType, InterfaceType;
 import 'elements/elements.dart'
@@ -25,10 +25,8 @@ import 'elements/elements.dart'
         Elements,
         FunctionElement,
         LibraryElement,
-        LocalFunctionElement,
         Member,
         MemberElement,
-        MethodElement,
         Name,
         TypedElement,
         TypedefElement;
@@ -41,7 +39,7 @@ import 'universe/use.dart'
     show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitor;
-import 'util/util.dart' show Link, Setlet;
+import 'util/util.dart' show Setlet;
 
 typedef ItemCompilationContext ItemCompilationContextCreator();
 
@@ -703,6 +701,8 @@ abstract class Enqueuer {
   void forgetElement(Element element) {
     universe.forgetElement(element, compiler);
     _processedClasses.remove(element);
+    instanceMembersByName[element.name]?.remove(element);
+    instanceFunctionsByName[element.name]?.remove(element);
   }
 }
 

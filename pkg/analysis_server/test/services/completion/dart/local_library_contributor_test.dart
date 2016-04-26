@@ -103,6 +103,114 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('m');
   }
 
+  test_partFile_InstanceCreationExpression_variable_declaration_filter() async {
+    // ConstructorName  InstanceCreationExpression  VariableDeclarationList
+    addSource(
+        '/testB.dart',
+        '''
+        lib B;
+        int T1;
+        F1() { }
+        class X {X.c(); X._d(); z() {}}''');
+    addSource(
+        '/testA.dart',
+        '''
+        part of libA;
+        class A {} class B extends A {} class C implements A {} class D {}
+        ''');
+    addTestSource('''
+        library libA;
+        import "/testB.dart";
+        part "/testA.dart";
+        class Local { }
+        main() {
+          A a = new ^
+        }
+        var m;''');
+    await computeLibrariesContaining();
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    // A is suggested with a higher relevance
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+    assertSuggestConstructor('B',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertSuggestConstructor('C',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    // D is sorted out
+    assertNotSuggested('D');
+
+    // Suggested by ConstructorContributor
+    assertNotSuggested('Local');
+
+    // Suggested by ImportedReferenceContributor
+    assertNotSuggested('Object');
+    assertNotSuggested('X.c');
+    assertNotSuggested('X._d');
+    assertNotSuggested('F1');
+    assertNotSuggested('T1');
+    assertNotSuggested('_d');
+    assertNotSuggested('z');
+    assertNotSuggested('m');
+  }
+
+  test_partFile_InstanceCreationExpression_assignment_filter() async {
+    // ConstructorName  InstanceCreationExpression  VariableDeclarationList
+    addSource(
+        '/testB.dart',
+        '''
+        lib B;
+        int T1;
+        F1() { }
+        class X {X.c(); X._d(); z() {}}''');
+    addSource(
+        '/testA.dart',
+        '''
+        part of libA;
+        class A {} class B extends A {} class C implements A {} class D {}
+        ''');
+    addTestSource('''
+        library libA;
+        import "/testB.dart";
+        part "/testA.dart";
+        class Local { }
+        main() {
+          A a;
+          // FAIL:
+          a = new ^
+        }
+        var m;''');
+    await computeLibrariesContaining();
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    // A is suggested with a higher relevance
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+    assertSuggestConstructor('B',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertSuggestConstructor('C',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    // D is sorted out
+    assertNotSuggested('D');
+
+    // Suggested by ConstructorContributor
+    assertNotSuggested('Local');
+
+    // Suggested by ImportedReferenceContributor
+    assertNotSuggested('Object');
+    assertNotSuggested('X.c');
+    assertNotSuggested('X._d');
+    assertNotSuggested('F1');
+    assertNotSuggested('T1');
+    assertNotSuggested('_d');
+    assertNotSuggested('z');
+    assertNotSuggested('m');
+  }
+
   test_partFile_TypeName() async {
     addSource(
         '/testB.dart',

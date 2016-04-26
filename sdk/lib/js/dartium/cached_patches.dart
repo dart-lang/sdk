@@ -3922,15 +3922,6 @@ class _HTMLMarqueeElementImpl extends _HTMLMarqueeElement implements js_library.
   get runtimeType => _HTMLMarqueeElement;
   toString() => super.toString();
 }
-patch class _MutationEvent {
-  static Type get instanceRuntimeType => _MutationEventImpl;
-
-}
-class _MutationEventImpl extends _MutationEvent implements js_library.JSObjectInterfacesDom {
-  _MutationEventImpl.internal_() : super.internal_();
-  get runtimeType => _MutationEvent;
-  toString() => super.toString();
-}
 patch class _NamedNodeMap {
   static Type get instanceRuntimeType => _NamedNodeMapImpl;
 

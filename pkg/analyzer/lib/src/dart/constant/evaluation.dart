@@ -115,17 +115,18 @@ class ConstantEvaluationEngine {
       return false;
     }
     if (argumentCount == 2) {
-      if (arguments[1] is! NamedExpression) {
-        return false;
-      }
-      if (!((arguments[1] as NamedExpression).name.label.name ==
-          _DEFAULT_VALUE_PARAM)) {
-        return false;
-      }
-      ParameterizedType defaultValueType =
-          namedArgumentValues[_DEFAULT_VALUE_PARAM].type;
-      if (!(identical(defaultValueType, expectedDefaultValueType) ||
-          identical(defaultValueType, typeProvider.nullType))) {
+      Expression secondArgument = arguments[1];
+      if (secondArgument is NamedExpression) {
+        if (!(secondArgument.name.label.name == _DEFAULT_VALUE_PARAM)) {
+          return false;
+        }
+        ParameterizedType defaultValueType =
+            namedArgumentValues[_DEFAULT_VALUE_PARAM].type;
+        if (!(identical(defaultValueType, expectedDefaultValueType) ||
+            identical(defaultValueType, typeProvider.nullType))) {
+          return false;
+        }
+      } else {
         return false;
       }
     }
@@ -620,13 +621,11 @@ class ConstantEvaluationEngine {
     NodeList<Expression> superArguments = null;
     for (ConstructorInitializer initializer in initializers) {
       if (initializer is ConstructorFieldInitializer) {
-        ConstructorFieldInitializer constructorFieldInitializer = initializer;
-        Expression initializerExpression =
-            constructorFieldInitializer.expression;
+        Expression initializerExpression = initializer.expression;
         DartObjectImpl evaluationResult =
             initializerExpression.accept(initializerVisitor);
         if (evaluationResult != null) {
-          String fieldName = constructorFieldInitializer.fieldName.name;
+          String fieldName = initializer.fieldName.name;
           if (fieldMap.containsKey(fieldName)) {
             errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
@@ -645,12 +644,11 @@ class ConstantEvaluationEngine {
           }
         }
       } else if (initializer is SuperConstructorInvocation) {
-        SuperConstructorInvocation superConstructorInvocation = initializer;
-        SimpleIdentifier name = superConstructorInvocation.constructorName;
+        SimpleIdentifier name = initializer.constructorName;
         if (name != null) {
           superName = name.name;
         }
-        superArguments = superConstructorInvocation.argumentList.arguments;
+        superArguments = initializer.argumentList.arguments;
       } else if (initializer is RedirectingConstructorInvocation) {
         // This is a redirecting constructor, so just evaluate the constructor
         // it redirects to.
@@ -1333,11 +1331,10 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   DartObjectImpl visitMethodInvocation(MethodInvocation node) {
     Element element = node.methodName.staticElement;
     if (element is FunctionElement) {
-      FunctionElement function = element;
-      if (function.name == "identical") {
+      if (element.name == "identical") {
         NodeList<Expression> arguments = node.argumentList.arguments;
         if (arguments.length == 2) {
-          Element enclosingElement = function.enclosingElement;
+          Element enclosingElement = element.enclosingElement;
           if (enclosingElement is CompilationUnitElement) {
             LibraryElement library = enclosingElement.library;
             if (library.isDartCore) {
@@ -1488,17 +1485,15 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    * reported.
    */
   DartObjectImpl _getConstantValue(AstNode node, Element element) {
-    if (element is PropertyAccessorElement) {
-      element = (element as PropertyAccessorElement).variable;
-    }
-    if (element is VariableElementImpl) {
-      VariableElementImpl variableElementImpl = element;
-      evaluationEngine.validator.beforeGetEvaluationResult(element);
-      EvaluationResultImpl value = variableElementImpl.evaluationResult;
-      if (variableElementImpl.isConst && value != null) {
+    Element variableElement =
+        element is PropertyAccessorElement ? element.variable : element;
+    if (variableElement is VariableElementImpl) {
+      evaluationEngine.validator.beforeGetEvaluationResult(variableElement);
+      EvaluationResultImpl value = variableElement.evaluationResult;
+      if (variableElement.isConst && value != null) {
         return value.value;
       }
-    } else if (element is ExecutableElement) {
+    } else if (variableElement is ExecutableElement) {
       ExecutableElement function = element;
       if (function.isStatic) {
         ParameterizedType functionType = function.type;
@@ -1507,9 +1502,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         }
         return new DartObjectImpl(functionType, new FunctionState(function));
       }
-    } else if (element is ClassElement ||
-        element is FunctionTypeAliasElement ||
-        element is DynamicElementImpl) {
+    } else if (variableElement is ClassElement ||
+        variableElement is FunctionTypeAliasElement ||
+        variableElement is DynamicElementImpl) {
       return new DartObjectImpl(_typeProvider.typeType, new TypeState(element));
     }
     // TODO(brianwilkerson) Figure out which error to report.

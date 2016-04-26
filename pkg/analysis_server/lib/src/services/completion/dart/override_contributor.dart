@@ -7,7 +7,7 @@ library services.completion.dart.override;
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestion, CompletionSuggestionKind, SourceChange;
+    show CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/protocol_server.dart' as protocol
     hide CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
@@ -15,7 +15,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -39,13 +39,14 @@ class OverrideContributor implements DartCompletionContributor {
     // Generate a collection of inherited members
     ClassElement classElem = classDecl.element;
     InheritanceManager manager = new InheritanceManager(classElem.library);
-    MemberMap map = manager.getMapOfMembersInheritedFromInterfaces(classElem);
+    Map<String, ExecutableElement> map =
+        manager.getMembersInheritedFromInterfaces(classElem);
     List<String> memberNames = _computeMemberNames(map, classElem);
 
     // Build suggestions
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
     for (String memberName in memberNames) {
-      ExecutableElement element = map.get(memberName);
+      ExecutableElement element = map[memberName];
       // Gracefully degrade if the overridden element has not been resolved.
       if (element.returnType != null) {
         CompletionSuggestion suggestion =
@@ -106,11 +107,10 @@ class OverrideContributor implements DartCompletionContributor {
    * implemented members of the class represented by the given [element].
    * The [map] is used to find all of the members that are inherited.
    */
-  List<String> _computeMemberNames(MemberMap map, ClassElement element) {
+  List<String> _computeMemberNames(
+      Map<String, ExecutableElement> map, ClassElement element) {
     List<String> memberNames = <String>[];
-    int count = map.size;
-    for (int i = 0; i < count; i++) {
-      String memberName = map.getKey(i);
+    for (String memberName in map.keys) {
       if (!_hasMember(element, memberName)) {
         memberNames.add(memberName);
       }

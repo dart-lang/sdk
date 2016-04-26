@@ -45,6 +45,11 @@ const char* Platform::OperatingSystem() {
 }
 
 
+const char* Platform::LibraryPrefix() {
+  return "";
+}
+
+
 const char* Platform::LibraryExtension() {
   return "dll";
 }

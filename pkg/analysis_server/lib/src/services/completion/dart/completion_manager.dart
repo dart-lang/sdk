@@ -23,10 +23,9 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/context.dart'
-    show AnalysisFutureHelper, AnalysisContextImpl;
+import 'package:analyzer/src/context/context.dart' show AnalysisFutureHelper;
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -226,11 +225,24 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   }
 
   @override
-  Future resolveExpression(Expression expression) async {
+  Future resolveContainingExpression(AstNode node) async {
+    // TODO When an Expression can be resolved instead of just an entire unit,
+    // this will be revisited with code searching up the parent until an
+    // Expression is found.
+
+    return resolveContainingStatement(node);
+  }
+
+  @override
+  Future resolveContainingStatement(AstNode node) async {
+    // TODO When a Statement can be resolved instead of just an entire unit,
+    // this will be revisited with code searching up the parent until a
+    // Statement is found.
+
     checkAborted();
 
     // Return immediately if the expression has already been resolved
-    if (expression.propagatedType != null) {
+    if (node is Expression && node.propagatedType != null) {
       return;
     }
 
@@ -241,7 +253,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
     // Resolve declarations in the target unit
     // TODO(danrubel) resolve the expression or containing method
-    // rather than the entire complilation unit
+    // rather than the entire compilation unit
     CompilationUnit resolvedUnit = await _computeAsync(
         this,
         new LibrarySpecificUnit(librarySource, source),
@@ -400,7 +412,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       if (node is Expression) {
         const FUNCTIONAL_ARG_TAG = 'resolve expression for isFunctionalArg';
         performance.logStartTime(FUNCTIONAL_ARG_TAG);
-        await dartRequest.resolveExpression(node);
+        await dartRequest.resolveContainingExpression(node);
         performance.logElapseTime(FUNCTIONAL_ARG_TAG);
         dartRequest.checkAborted();
       }
@@ -472,18 +484,15 @@ class ReplacementRange {
       }
       if (token is StringToken) {
         SimpleStringLiteral uri = new SimpleStringLiteral(token, token.lexeme);
-        Token previous = token.previous;
-        if (previous is KeywordToken) {
-          Keyword keyword = previous.keyword;
-          if (keyword == Keyword.IMPORT ||
-              keyword == Keyword.EXPORT ||
-              keyword == Keyword.PART) {
-            int start = uri.contentsOffset;
-            var end = uri.contentsEnd;
-            if (start <= requestOffset && requestOffset <= end) {
-              // Replacement range for import URI
-              return new ReplacementRange(start, end - start);
-            }
+        Keyword keyword = token.previous?.keyword;
+        if (keyword == Keyword.IMPORT ||
+            keyword == Keyword.EXPORT ||
+            keyword == Keyword.PART) {
+          int start = uri.contentsOffset;
+          var end = uri.contentsEnd;
+          if (start <= requestOffset && requestOffset <= end) {
+            // Replacement range for import URI
+            return new ReplacementRange(start, end - start);
           }
         }
       }

@@ -12,8 +12,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 
-import '../../../protocol_server.dart'
-    show CompletionSuggestion, CompletionSuggestionKind;
+import '../../../protocol_server.dart' show CompletionSuggestion;
 
 /**
  * A contributor for calculating static member invocation / access suggestions
@@ -30,7 +29,7 @@ class StaticMemberContributor extends DartCompletionContributor {
     }
 
     // Resolve the expression and the containing library
-    await request.resolveExpression(request.dotTarget);
+    await request.resolveContainingExpression(request.dotTarget);
 
     // Recompute the target since resolution may have changed it
     Expression targetId = request.dotTarget;

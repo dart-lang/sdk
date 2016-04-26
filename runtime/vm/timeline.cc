@@ -33,6 +33,9 @@ DEFINE_FLAG(charp, timeline_streams, NULL,
             "Comma separated list of timeline streams to record. "
             "Valid values: all, API, Compiler, Dart, Debugger, Embedder, "
             "GC, Isolate, and VM.");
+DEFINE_FLAG(charp, timeline_recorder, "ring",
+            "Select the timeline recorder used. "
+            "Valid values: ring, endless, and startup.")
 
 // Implementation notes:
 //
@@ -75,6 +78,42 @@ DEFINE_FLAG(charp, timeline_streams, NULL,
 //     |Thread::timeline_block_lock_|
 //       |TimelineEventRecorder::lock_|
 //
+
+
+static TimelineEventRecorder* CreateTimelineRecorder() {
+  // Some flags require that we use the endless recorder.
+  const bool use_endless_recorder =
+      (FLAG_timeline_dir != NULL) || FLAG_timing || FLAG_complete_timeline;
+
+  const bool use_startup_recorder = FLAG_startup_timeline;
+
+  const char* flag = FLAG_timeline_recorder;
+
+  if (use_endless_recorder || (flag != NULL)) {
+    if (use_endless_recorder || (strcmp("endless", flag) == 0)) {
+      if (FLAG_trace_timeline) {
+        THR_Print("Using the endless timeline recorder.\n");
+      }
+      return new TimelineEventEndlessRecorder();
+    }
+  }
+
+  if (use_startup_recorder || (flag != NULL)) {
+    if (use_startup_recorder || (strcmp("startup", flag) == 0)) {
+      if (FLAG_trace_timeline) {
+        THR_Print("Using the startup recorder.\n");
+      }
+      return new TimelineEventStartupRecorder();
+    }
+  }
+
+  if (FLAG_trace_timeline) {
+    THR_Print("Using the ring timeline recorder.\n");
+  }
+
+  // Always fall back to the ring recorder.
+  return new TimelineEventRingRecorder();
+}
 
 
 // Returns a caller freed array of stream names in FLAG_timeline_streams.
@@ -129,18 +168,8 @@ static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
 
 void Timeline::InitOnce() {
   ASSERT(recorder_ == NULL);
-  // Default to ring recorder being enabled.
-  const bool use_ring_recorder = true;
-  // Some flags require that we use the endless recorder.
-  const bool use_endless_recorder =
-      (FLAG_timeline_dir != NULL) || FLAG_timing || FLAG_complete_timeline;
-  if (use_endless_recorder) {
-    recorder_ = new TimelineEventEndlessRecorder();
-  } else if (FLAG_startup_timeline) {
-    recorder_ = new TimelineEventStartupRecorder();
-  } else if (use_ring_recorder) {
-    recorder_ = new TimelineEventRingRecorder();
-  }
+  recorder_ = CreateTimelineRecorder();
+  ASSERT(recorder_ != NULL);
   enabled_streams_ = GetEnabledByDefaultTimelineStreams();
   // Global overrides.
 #define TIMELINE_STREAM_FLAG_DEFAULT(name, not_used)                           \
@@ -295,6 +324,9 @@ TimelineEvent::~TimelineEvent() {
 
 
 void TimelineEvent::Reset() {
+  if (owns_label() && label_ != NULL) {
+    free(const_cast<char*>(label_));
+  }
   state_ = 0;
   thread_ = OSThread::kInvalidThreadId;
   isolate_id_ = ILLEGAL_PORT;
@@ -303,6 +335,7 @@ void TimelineEvent::Reset() {
   FreeArguments();
   set_pre_serialized_json(false);
   set_event_type(kNone);
+  set_owns_label(false);
 }
 
 
@@ -502,6 +535,7 @@ void TimelineEvent::Init(EventType event_type,
   FreeArguments();
   set_pre_serialized_json(false);
   set_event_type(event_type);
+  set_owns_label(false);
 }
 
 
@@ -1035,8 +1069,6 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
   if ((file_open == NULL) || (file_write == NULL) || (file_close == NULL)) {
     return;
   }
-  Thread* T = Thread::Current();
-  StackZone zone(T);
 
   Timeline::ReclaimCachedBlocksFromThreads();
 

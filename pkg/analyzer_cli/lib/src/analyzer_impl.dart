@@ -20,6 +20,7 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart';
+import 'package:path/path.dart' as pathos;
 
 /// The maximum number of sources for which AST structures should be kept in the cache.
 const int _maxCacheSize = 512;
@@ -179,11 +180,15 @@ class AnalyzerImpl {
 
   /// Returns true if we want to report diagnostics for this library.
   bool _isAnalyzedLibrary(LibraryElement library) {
-    switch (library.source.uriKind) {
+    Source source = library.source;
+    switch (source.uriKind) {
       case UriKind.DART_URI:
         return options.showSdkWarnings;
       case UriKind.PACKAGE_URI:
-        return _isAnalyzedPackage(library.source.uri);
+        if (_isPathInPubCache(source.fullName)) {
+          return false;
+        }
+        return _isAnalyzedPackage(source.uri);
       default:
         return true;
     }
@@ -194,7 +199,6 @@ class AnalyzerImpl {
     if (uri.scheme != 'package' || uri.pathSegments.isEmpty) {
       return false;
     }
-
     String packageName = uri.pathSegments.first;
     if (packageName == _selfPackageName) {
       return true;
@@ -327,6 +331,20 @@ class AnalyzerImpl {
     }
 
     return new ProcessedSeverity(severity, isOverridden);
+  }
+
+  /// Return `true` if the given [path] is in the Pub cache.
+  static bool _isPathInPubCache(String path) {
+    List<String> parts = pathos.split(path);
+    if (parts.contains('.pub-cache')) {
+      return true;
+    }
+    for (int i = 0; i < parts.length - 2; i++) {
+      if (parts[i] == 'Pub' && parts[i + 1] == 'Cache') {
+        return true;
+      }
+    }
+    return false;
   }
 }
 

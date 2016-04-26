@@ -4,7 +4,6 @@
 
 library analyzer_cli.test.utils;
 
-import 'dart:collection';
 import 'dart:io';
 import 'dart:mirrors';
 
@@ -12,7 +11,6 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:path/path.dart' as path;
-import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 /// Gets the test directory in a way that works with
@@ -65,37 +63,3 @@ dynamic withTempDir(fn(String path)) {
 }
 
 class _TestUtils {}
-
-/**
- * A [Stdin] mock.
- */
-class TestStdinStream extends TypedMock implements Stdin {
-  final pendingBytes = new Queue<int>();
-
-  // Adds all the input bytes to this stream.
-  void addInputBytes(List<int> bytes) {
-    pendingBytes.addAll(bytes);
-  }
-
-  @override
-  int readByteSync() {
-    if (pendingBytes.isEmpty) {
-      return -1;
-    } else {
-      return pendingBytes.removeFirst();
-    }
-  }
-}
-
-/**
- * A [Stdout] mock.
- */
-class TestStdoutStream extends TypedMock implements Stdout {
-  final writes = <List<int>>[];
-
-  @override
-  void add(List<int> bytes) {
-    super.add(bytes);
-    writes.add(bytes);
-  }
-}

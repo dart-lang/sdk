@@ -18,16 +18,15 @@ import '../script.dart';
 import '../tokens/token.dart';
 import '../tokens/token_constants.dart' as Tokens;
 import '../tree/tree.dart';
-import '../util/util.dart' show Link, LinkBuilder;
 import '../util/characters.dart' show $CR, $LF;
-
-import 'source_mirrors.dart';
+import '../util/util.dart' show Link;
 import 'mirrors_util.dart';
+import 'source_mirrors.dart';
 
-part 'dart2js_library_mirror.dart';
-part 'dart2js_type_mirrors.dart';
-part 'dart2js_member_mirrors.dart';
 part 'dart2js_instance_mirrors.dart';
+part 'dart2js_library_mirror.dart';
+part 'dart2js_member_mirrors.dart';
+part 'dart2js_type_mirrors.dart';
 
 //------------------------------------------------------------------------------
 // Utility types and functions for the dart2js mirror system

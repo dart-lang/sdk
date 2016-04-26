@@ -193,7 +193,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
     AstElement currentElement = element.analyzableElement;
     return reporter.withCurrentElement(currentElement, () {
       // TODO(johnniwinther): Avoid this eager analysis.
-      _analyzeElementEagerly(compiler, currentElement);
+      compiler.resolution.ensureResolved(currentElement.declaration);
 
       ConstantExpression constant = compileVariableWithDefinitions(
           element, currentElement.resolvedAst.elements,
@@ -847,7 +847,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     // TODO(ahe): This is nasty: we must eagerly analyze the
     // constructor to ensure the redirectionTarget has been computed
     // correctly.  Find a way to avoid this.
-    _analyzeElementEagerly(compiler, constructor);
+    resolution.ensureResolved(constructor.declaration);
 
     // The redirection chain of this element may not have been resolved through
     // a post-process action, so we have to make sure it is done here.
@@ -1092,6 +1092,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
   final ConstructorElement constructor;
   final Map<Element, AstConstant> definitions;
   final Map<Element, AstConstant> fieldValues;
+  final ResolvedAst resolvedAst;
 
   /**
    * Documentation wanted -- johnniwinther
@@ -1103,10 +1104,14 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       : this.constructor = constructor,
         this.definitions = new Map<Element, AstConstant>(),
         this.fieldValues = new Map<Element, AstConstant>(),
-        super(handler, _analyzeElementEagerly(compiler, constructor), compiler,
-            isConst: true) {
+        this.resolvedAst =
+            compiler.resolution.computeResolvedAst(constructor.declaration),
+        super(handler, null, compiler, isConst: true) {
     assert(invariant(constructor, constructor.isImplementation));
   }
+
+  @override
+  TreeElements get elements => resolvedAst.elements;
 
   AstConstant visitSend(Send send) {
     Element element = elements[send];
@@ -1330,12 +1335,6 @@ class ErroneousAstConstant extends AstConstant {
             // TODO(johnniwinther): Return a [NonConstantValue] instead.
             new ErroneousConstantExpression(),
             new NullConstantValue());
-}
-
-// TODO(johnniwinther): Clean this up.
-TreeElements _analyzeElementEagerly(Compiler compiler, AstElement element) {
-  compiler.resolution.computeWorldImpact(element.declaration);
-  return element.resolvedAst.elements;
 }
 
 class _CompilerEnvironment implements Environment {

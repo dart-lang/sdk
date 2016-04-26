@@ -67,16 +67,6 @@ analyzer:
     expect(analysisOptions.enableAsync, false);
   }
 
-  test_configure_enableConditionalDirectives() {
-    expect(analysisOptions.enableConditionalDirectives, true);
-    configureContext('''
-analyzer:
-  language:
-    enableConditionalDirectives: true
-''');
-    expect(analysisOptions.enableConditionalDirectives, true);
-  }
-
   test_configure_enableGenericMethods() {
     expect(analysisOptions.enableGenericMethods, false);
     configureContext('''

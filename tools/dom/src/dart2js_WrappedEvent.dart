@@ -59,8 +59,8 @@ class _WrappedEvent implements Event {
       throw new UnsupportedError('Cannot call matchingTarget if this Event did'
           ' not arise as a result of event delegation.');
     }
-    var currentTarget = this.currentTarget;
-    var target = this.target;
+    Element currentTarget = this.currentTarget;
+    Element target = this.target;
     var matchedTarget;
     do {
       if (target.matches(_selector)) return target;

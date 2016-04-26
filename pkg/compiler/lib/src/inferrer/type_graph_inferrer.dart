@@ -7,34 +7,31 @@ library type_graph_inferrer;
 import 'dart:collection' show Queue;
 
 import '../common.dart';
-import '../common/names.dart' show Identifiers, Names;
+import '../common/names.dart' show Identifiers;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../dart_types.dart'
-    show DartType, FunctionType, InterfaceType, TypeKind;
+import '../dart_types.dart' show DartType;
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' show Annotations, JavaScriptBackend;
 import '../resolution/tree_elements.dart' show TreeElementMapping;
 import '../tree/tree.dart' as ast
-    show DartString, Node, LiteralBool, Send, SendSet, TryStatement;
+    show DartString, Node, LiteralBool, TryStatement;
+import '../types/constants.dart' show computeTypeMask;
 import '../types/types.dart'
     show ContainerTypeMask, MapTypeMask, TypeMask, TypesInferrer;
-import '../types/constants.dart' show computeTypeMask;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
-import '../util/util.dart' show ImmutableEmptySet, Setlet;
+import '../util/util.dart' show Setlet;
 import '../world.dart' show ClassWorld;
-
-import 'inferrer_visitor.dart' show ArgumentsTypes, TypeSystem;
-import 'simple_types_inferrer.dart';
-
 import 'closure_tracer.dart';
+import 'debug.dart' as debug;
+import 'inferrer_visitor.dart' show ArgumentsTypes, TypeSystem;
 import 'list_tracer.dart';
 import 'map_tracer.dart';
-import 'type_graph_nodes.dart';
+import 'simple_types_inferrer.dart';
 import 'type_graph_dump.dart';
-import 'debug.dart' as debug;
+import 'type_graph_nodes.dart';
 
 class TypeInformationSystem extends TypeSystem<TypeInformation> {
   final Compiler compiler;
@@ -830,13 +827,13 @@ class TypeGraphInferrerEngine
     processLoopInformation();
   }
 
-  void analyze(Element element, ArgumentsTypes arguments) {
+  void analyze(AstElement element, ArgumentsTypes arguments) {
     element = element.implementation;
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
 
-    SimpleTypeInferrerVisitor visitor =
-        new SimpleTypeInferrerVisitor(element, compiler, this);
+    SimpleTypeInferrerVisitor visitor = new SimpleTypeInferrerVisitor(
+        element, element.resolvedAst, compiler, this);
     TypeInformation type;
     reporter.withCurrentElement(element, () {
       type = visitor.run();
@@ -1003,7 +1000,7 @@ class TypeGraphInferrerEngine
       bool visitingRequiredParameter = true;
       signature.forEachParameter((Element parameter) {
         if (signature.hasOptionalParameters &&
-            parameter == signature.firstOptionalParameter) {
+            parameter == signature.optionalParameters.first) {
           visitingRequiredParameter = false;
         }
         TypeInformation type = visitingRequiredParameter
@@ -1239,7 +1236,7 @@ class TypeGraphInferrerEngine
       // TODO(ngeoffray): Not sure why the resolver would put a null
       // mapping.
       if (!compiler.enqueuer.resolution.hasBeenProcessed(element)) return;
-      TreeElementMapping mapping = element.resolvedAst.elements;
+      ResolvedAst resolvedAst = element.resolvedAst;
       element = element.implementation;
       if (element.impliesType) return;
       assert(invariant(
@@ -1253,7 +1250,11 @@ class TypeGraphInferrerEngine
       if (element.isAbstract) return;
       // Put the other operators in buckets by length, later to be added in
       // length order.
-      int length = mapping.getSelectorCount();
+      int length = 0;
+      if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+        TreeElementMapping mapping = resolvedAst.elements;
+        length = mapping.getSelectorCount();
+      }
       max = length > max ? length : max;
       Setlet<Element> set =
           methodSizes.putIfAbsent(length, () => new Setlet<Element>());

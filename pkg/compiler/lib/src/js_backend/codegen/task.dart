@@ -351,6 +351,6 @@ class CpsFunctionCompiler implements FunctionCompiler {
   js.Node attachPosition(js.Node node, AstElement element) {
     return node.withSourceInformation(sourceInformationFactory
         .createBuilderForContext(element)
-        .buildDeclaration(element));
+        .buildDeclaration(backend.frontend.getResolvedAst(element)));
   }
 }

@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -422,8 +423,9 @@ class DeclarationMatcher extends RecursiveAstVisitor {
         (node.parent as VariableDeclarationList).type, element.type);
     // matches, restore the existing element
     node.name.staticElement = element;
-    if (element is VariableElementImpl) {
-      (element as VariableElementImpl).initializer = newElement.initializer;
+    Element variable = element;
+    if (variable is VariableElementImpl) {
+      variable.initializer = newElement.initializer;
     }
   }
 
@@ -1622,7 +1624,6 @@ class PoorMansIncrementalResolver {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Parser parser = new Parser(_unitSource, errorListener);
       AnalysisOptions options = _unitElement.context.analysisOptions;
-      parser.parseConditionalDirectives = options.enableConditionalDirectives;
       parser.parseGenericMethods = options.enableGenericMethods;
       CompilationUnit unit = parser.parseCompilationUnit(token);
       _newParseErrors = errorListener.errors;
@@ -1686,9 +1687,9 @@ class PoorMansIncrementalResolver {
           setElementDocumentationComment(parentElement, parent);
         } else if (parentElement == null && parent is FieldDeclaration) {
           for (VariableDeclaration field in parent.fields.variables) {
-            if (field.element is ElementImpl) {
-              setElementDocumentationComment(
-                  field.element as ElementImpl, parent);
+            Element fieldElement = field.element;
+            if (fieldElement is ElementImpl) {
+              setElementDocumentationComment(fieldElement, parent);
             }
           }
         }
@@ -1866,7 +1867,7 @@ class PoorMansIncrementalResolver {
   static Token _getBeginTokenNotComment(AstNode node) {
     Token oldBeginToken = node.beginToken;
     if (oldBeginToken is CommentToken) {
-      oldBeginToken = (oldBeginToken as CommentToken).parent;
+      return oldBeginToken.parent;
     }
     return oldBeginToken;
   }

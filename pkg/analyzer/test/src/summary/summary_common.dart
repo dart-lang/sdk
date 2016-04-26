@@ -7272,6 +7272,27 @@ p.B b;
         expectedPrefix: 'p');
   }
 
+  test_import_self() {
+    if (!checkAstDerivedData) {
+      // TODO(paulberry): this test fails when building the summary from the
+      // element model because the element model can't tell the difference
+      // between self references via a local name and self references via a
+      // self-import.
+      return;
+    }
+    serializeLibraryText('''
+import 'test.dart' as p;
+class C {}
+class D extends p.C {} // Prevent "unused import" warning
+''');
+    expect(unlinkedUnits[0].imports[0].uri, 'test.dart');
+    checkDependency(
+        linked.importDependencies[0], absUri('/test.dart'), 'test.dart');
+    checkTypeRef(unlinkedUnits[0].classes[1].supertype, absUri('/test.dart'),
+        'test.dart', 'C',
+        expectedPrefix: 'p');
+  }
+
   test_import_show_order() {
     String libraryText =
         'import "dart:async" show Future, Stream; Future x; Stream y;';
@@ -7296,6 +7317,21 @@ p.B b;
     // Second import is the implicit import of dart:core
     expect(unlinkedUnits[0].imports, hasLength(2));
     expect(unlinkedUnits[0].imports[0].uri, 'dart:async');
+  }
+
+  test_inferred_type_keeps_leading_dynamic() {
+    if (!strongMode || skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedClass cls =
+        serializeClassText('class C { final x = <dynamic, int>{}; }');
+    EntityRef type = getTypeRefForSlot(cls.fields[0].inferredTypeSlot);
+    // Check that x has inferred type `Map<dynamic, int>`.
+    checkLinkedTypeRef(type, 'dart:core', 'dart:core', 'Map',
+        allowTypeArguments: true, numTypeParameters: 2);
+    expect(type.typeArguments, hasLength(2));
+    checkLinkedTypeRef(type.typeArguments[0], null, null, 'dynamic');
+    checkLinkedTypeRef(type.typeArguments[1], 'dart:core', 'dart:core', 'int');
   }
 
   test_inferred_type_refers_to_bound_type_param() {
@@ -7433,6 +7469,32 @@ p.B b;
     expect(linkedReference.containingReference, isNot(0));
     expect(linkedReference.containingReference, lessThan(type.reference));
     checkReferenceIndex(linkedReference.containingReference, null, null, 'D');
+  }
+
+  test_inferred_type_skips_trailing_dynamic() {
+    if (!strongMode || skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedClass cls =
+        serializeClassText('class C { final x = <int, dynamic>{}; }');
+    EntityRef type = getTypeRefForSlot(cls.fields[0].inferredTypeSlot);
+    // Check that x has inferred type `Map<int>`.  The trailing type argument
+    // `dynamic` is omitted.
+    checkLinkedTypeRef(type, 'dart:core', 'dart:core', 'Map',
+        allowTypeArguments: true, numTypeParameters: 2);
+    expect(type.typeArguments, hasLength(1));
+    checkLinkedTypeRef(type.typeArguments[0], 'dart:core', 'dart:core', 'int');
+  }
+
+  test_inferred_type_skips_unnecessary_dynamic() {
+    if (!strongMode || skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedClass cls = serializeClassText('class C { final x = []; }');
+    EntityRef type = getTypeRefForSlot(cls.fields[0].inferredTypeSlot);
+    // Check that x has inferred type `List`, not `List<dynamic>`.
+    checkLinkedTypeRef(type, 'dart:core', 'dart:core', 'List',
+        numTypeParameters: 1);
   }
 
   test_initializer_executable_with_bottom_return_type() {
@@ -7744,6 +7806,89 @@ D d;''');
     ]);
   }
 
+  test_metadata_constructor_call_named_prefixed_unresolved_class() {
+    addNamedSource('/foo.dart', '');
+    UnlinkedClass cls = serializeClassText(
+        'import "foo.dart" as foo; @foo.A.named() class C {}',
+        allowErrors: true);
+    expect(cls.annotations, hasLength(1));
+    _assertUnlinkedConst(cls.annotations[0], operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'named',
+          expectedKind: ReferenceKind.unresolved,
+          prefixExpectations: [
+            new _PrefixExpectation(ReferenceKind.unresolved, 'A'),
+            new _PrefixExpectation(ReferenceKind.prefix, 'foo')
+          ],
+          checkAstDerivedDataOverride: true)
+    ]);
+  }
+
+  test_metadata_constructor_call_named_prefixed_unresolved_constructor() {
+    addNamedSource('/foo.dart', 'class A {}');
+    UnlinkedClass cls = serializeClassText(
+        'import "foo.dart" as foo; @foo.A.named() class C {}',
+        allowErrors: true);
+    expect(cls.annotations, hasLength(1));
+    _assertUnlinkedConst(cls.annotations[0], operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'named',
+          expectedKind: ReferenceKind.unresolved,
+          prefixExpectations: [
+            new _PrefixExpectation(ReferenceKind.classOrEnum, 'A',
+                absoluteUri: absUri('/foo.dart'), relativeUri: 'foo.dart'),
+            new _PrefixExpectation(ReferenceKind.prefix, 'foo')
+          ],
+          checkAstDerivedDataOverride: true)
+    ]);
+  }
+
+  test_metadata_constructor_call_named_unresolved_class() {
+    UnlinkedClass cls =
+        serializeClassText('@A.named() class C {}', allowErrors: true);
+    expect(cls.annotations, hasLength(1));
+    _assertUnlinkedConst(cls.annotations[0], operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'named',
+          expectedKind: ReferenceKind.unresolved,
+          prefixExpectations: [
+            new _PrefixExpectation(ReferenceKind.unresolved, 'A')
+          ],
+          checkAstDerivedDataOverride: true)
+    ]);
+  }
+
+  test_metadata_constructor_call_named_unresolved_constructor() {
+    UnlinkedClass cls = serializeClassText('class A {} @A.named() class C {}',
+        allowErrors: true);
+    expect(cls.annotations, hasLength(1));
+    _assertUnlinkedConst(cls.annotations[0], operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'named',
+          expectedKind: ReferenceKind.unresolved,
+          prefixExpectations: [
+            new _PrefixExpectation(ReferenceKind.classOrEnum, 'A')
+          ],
+          checkAstDerivedDataOverride: true)
+    ]);
+  }
+
   test_metadata_constructor_call_unnamed() {
     UnlinkedClass cls =
         serializeClassText('class A { const A(); } @A() class C {}');
@@ -7772,6 +7917,41 @@ D d;''');
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, absUri('/foo.dart'), 'foo.dart', 'A',
           expectedKind: ReferenceKind.classOrEnum, expectedPrefix: 'foo')
+    ]);
+  }
+
+  test_metadata_constructor_call_unnamed_prefixed_unresolved() {
+    addNamedSource('/foo.dart', '');
+    UnlinkedClass cls = serializeClassText(
+        'import "foo.dart" as foo; @foo.A() class C {}',
+        allowErrors: true);
+    expect(cls.annotations, hasLength(1));
+    _assertUnlinkedConst(cls.annotations[0], operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'A',
+          expectedKind: ReferenceKind.unresolved,
+          expectedPrefix: 'foo',
+          checkAstDerivedDataOverride: true)
+    ]);
+  }
+
+  test_metadata_constructor_call_unnamed_unresolved() {
+    UnlinkedClass cls =
+        serializeClassText('@A() class C {}', allowErrors: true);
+    expect(cls.annotations, hasLength(1));
+    _assertUnlinkedConst(cls.annotations[0], operators: [
+      UnlinkedConstOperation.invokeConstructor,
+    ], ints: [
+      0,
+      0
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'A',
+          expectedKind: ReferenceKind.unresolved,
+          checkAstDerivedDataOverride: true)
     ]);
   }
 
@@ -7943,6 +8123,22 @@ D d;''');
     ]);
   }
 
+  test_metadata_prefixed_variable_unresolved() {
+    addNamedSource('/a.dart', '');
+    UnlinkedClass cls = serializeClassText(
+        'import "a.dart" as a; @a.b class C {}',
+        allowErrors: true);
+    expect(cls.annotations, hasLength(1));
+    _assertUnlinkedConst(cls.annotations[0], operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'b',
+          expectedKind: ReferenceKind.unresolved,
+          expectedPrefix: 'a',
+          checkAstDerivedDataOverride: true)
+    ]);
+  }
+
   test_metadata_simpleFormalParameter() {
     checkAnnotationA(serializeExecutableText('const a = null; f(@a x) {}')
         .parameters[0]
@@ -7985,6 +8181,18 @@ D d;''');
     checkAnnotationA(serializeTypedefText('const a = null; typedef F<@a T>();')
         .typeParameters[0]
         .annotations);
+  }
+
+  test_metadata_variable_unresolved() {
+    UnlinkedClass cls = serializeClassText('@a class C {}', allowErrors: true);
+    expect(cls.annotations, hasLength(1));
+    _assertUnlinkedConst(cls.annotations[0], operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'a',
+          expectedKind: ReferenceKind.unresolved,
+          checkAstDerivedDataOverride: true)
+    ]);
   }
 
   test_method_documented() {
@@ -8195,6 +8403,23 @@ f(x) => 42;
     expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
     expect(unlinkedUnits[1].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[1].publicNamespace.names[0].name, 'C');
+  }
+
+  test_reference_zero() {
+    // Element zero of the references table should be populated in a standard
+    // way.
+    serializeLibraryText('');
+    UnlinkedReference unlinkedReference0 = unlinkedUnits[0].references[0];
+    expect(unlinkedReference0.name, '');
+    expect(unlinkedReference0.prefixReference, 0);
+    LinkedReference linkedReference0 = linked.units[0].references[0];
+    expect(linkedReference0.containingReference, 0);
+    expect(linkedReference0.dependency, 0);
+    expect(linkedReference0.kind, ReferenceKind.unresolved);
+    expect(linkedReference0.localIndex, 0);
+    expect(linkedReference0.name, '');
+    expect(linkedReference0.numTypeParameters, 0);
+    expect(linkedReference0.unit, 0);
   }
 
   test_setter_documented() {

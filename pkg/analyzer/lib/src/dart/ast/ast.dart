@@ -766,17 +766,14 @@ class AssignmentExpressionImpl extends ExpressionImpl
     if (propagatedElement != null) {
       executableElement = propagatedElement;
     } else {
-      if (_leftHandSide is Identifier) {
-        Identifier identifier = _leftHandSide as Identifier;
-        Element leftElement = identifier.propagatedElement;
+      Expression left = _leftHandSide;
+      if (left is Identifier) {
+        Element leftElement = left.propagatedElement;
         if (leftElement is ExecutableElement) {
           executableElement = leftElement;
         }
-      }
-      if (_leftHandSide is PropertyAccess) {
-        SimpleIdentifier identifier =
-            (_leftHandSide as PropertyAccess).propertyName;
-        Element leftElement = identifier.propagatedElement;
+      } else if (left is PropertyAccess) {
+        Element leftElement = left.propertyName.propagatedElement;
         if (leftElement is ExecutableElement) {
           executableElement = leftElement;
         }
@@ -803,15 +800,14 @@ class AssignmentExpressionImpl extends ExpressionImpl
     if (staticElement != null) {
       executableElement = staticElement;
     } else {
-      if (_leftHandSide is Identifier) {
-        Element leftElement = (_leftHandSide as Identifier).staticElement;
+      Expression left = _leftHandSide;
+      if (left is Identifier) {
+        Element leftElement = left.staticElement;
         if (leftElement is ExecutableElement) {
           executableElement = leftElement;
         }
-      }
-      if (_leftHandSide is PropertyAccess) {
-        Element leftElement =
-            (_leftHandSide as PropertyAccess).propertyName.staticElement;
+      } else if (left is PropertyAccess) {
+        Element leftElement = left.propertyName.staticElement;
         if (leftElement is ExecutableElement) {
           executableElement = leftElement;
         }
@@ -3228,14 +3224,10 @@ class DeclaredIdentifierImpl extends DeclarationImpl
   }
 
   @override
-  bool get isConst =>
-      (keyword is KeywordToken) &&
-      (keyword as KeywordToken).keyword == Keyword.CONST;
+  bool get isConst => keyword?.keyword == Keyword.CONST;
 
   @override
-  bool get isFinal =>
-      (keyword is KeywordToken) &&
-      (keyword as KeywordToken).keyword == Keyword.FINAL;
+  bool get isFinal => keyword?.keyword == Keyword.FINAL;
 
   @override
   TypeName get type => _type;
@@ -3391,8 +3383,7 @@ abstract class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
    * The element associated with this directive, or `null` if the AST structure
    * has not been resolved or if this directive could not be resolved.
    */
-  @override
-  Element element;
+  Element _element;
 
   /**
    * Initialize a newly create directive. Either or both of the [comment] and
@@ -3401,6 +3392,16 @@ abstract class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
    */
   DirectiveImpl(Comment comment, List<Annotation> metadata)
       : super(comment, metadata);
+
+  @override
+  Element get element => _element;
+
+  /**
+   * Set the element associated with this directive to be the given [element].
+   */
+  void set element(Element element) {
+    _element = element;
+  }
 }
 
 /**
@@ -4356,14 +4357,10 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   }
 
   @override
-  bool get isConst =>
-      (keyword is KeywordToken) &&
-      (keyword as KeywordToken).keyword == Keyword.CONST;
+  bool get isConst => keyword?.keyword == Keyword.CONST;
 
   @override
-  bool get isFinal =>
-      (keyword is KeywordToken) &&
-      (keyword as KeywordToken).keyword == Keyword.FINAL;
+  bool get isFinal => keyword?.keyword == Keyword.FINAL;
 
   @override
   FormalParameterList get parameters => _parameters;
@@ -5028,14 +5025,10 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   }
 
   @override
-  bool get isGetter =>
-      propertyKeyword != null &&
-      (propertyKeyword as KeywordToken).keyword == Keyword.GET;
+  bool get isGetter => propertyKeyword?.keyword == Keyword.GET;
 
   @override
-  bool get isSetter =>
-      propertyKeyword != null &&
-      (propertyKeyword as KeywordToken).keyword == Keyword.SET;
+  bool get isSetter => propertyKeyword?.keyword == Keyword.SET;
 
   @override
   TypeName get returnType => _returnType;
@@ -6117,9 +6110,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   Token get endToken => _argumentList.endToken;
 
   @override
-  bool get isConst =>
-      keyword is KeywordToken &&
-      (keyword as KeywordToken).keyword == Keyword.CONST;
+  bool get isConst => keyword?.keyword == Keyword.CONST;
 
   @override
   int get precedence => 16;
@@ -7116,22 +7107,16 @@ class MethodDeclarationImpl extends ClassMemberImpl
   }
 
   @override
-  bool get isGetter =>
-      propertyKeyword != null &&
-      (propertyKeyword as KeywordToken).keyword == Keyword.GET;
+  bool get isGetter => propertyKeyword?.keyword == Keyword.GET;
 
   @override
   bool get isOperator => operatorKeyword != null;
 
   @override
-  bool get isSetter =>
-      propertyKeyword != null &&
-      (propertyKeyword as KeywordToken).keyword == Keyword.SET;
+  bool get isSetter => propertyKeyword?.keyword == Keyword.SET;
 
   @override
-  bool get isStatic =>
-      modifierKeyword != null &&
-      (modifierKeyword as KeywordToken).keyword == Keyword.STATIC;
+  bool get isStatic => modifierKeyword?.keyword == Keyword.STATIC;
 
   @override
   SimpleIdentifier get name => _name;
@@ -8248,16 +8233,15 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   @override
   bool get isDeferred {
     Element element = _prefix.staticElement;
-    if (element is! PrefixElement) {
-      return false;
+    if (element is PrefixElement) {
+      List<ImportElement> imports =
+          element.enclosingElement.getImportsWithPrefix(element);
+      if (imports.length != 1) {
+        return false;
+      }
+      return imports[0].isDeferred;
     }
-    PrefixElement prefixElement = element as PrefixElement;
-    List<ImportElement> imports =
-        prefixElement.enclosingElement.getImportsWithPrefix(prefixElement);
-    if (imports.length != 1) {
-      return false;
-    }
-    return imports[0].isDeferred;
+    return false;
   }
 
   @override
@@ -8835,14 +8819,10 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   Token get endToken => identifier.endToken;
 
   @override
-  bool get isConst =>
-      (keyword is KeywordToken) &&
-      (keyword as KeywordToken).keyword == Keyword.CONST;
+  bool get isConst => keyword?.keyword == Keyword.CONST;
 
   @override
-  bool get isFinal =>
-      (keyword is KeywordToken) &&
-      (keyword as KeywordToken).keyword == Keyword.FINAL;
+  bool get isFinal => keyword?.keyword == Keyword.FINAL;
 
   @override
   TypeName get type => _type;
@@ -8929,11 +8909,9 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
     AstNode parent = this.parent;
     if (parent is PrefixedIdentifier) {
       return identical(parent.identifier, this);
-    }
-    if (parent is PropertyAccess) {
+    } else if (parent is PropertyAccess) {
       return identical(parent.propertyName, this);
-    }
-    if (parent is MethodInvocation) {
+    } else if (parent is MethodInvocation) {
       MethodInvocation invocation = parent;
       return identical(invocation.methodName, this) &&
           invocation.realTarget != null;
@@ -8976,23 +8954,22 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   @override
   bool inGetterContext() {
     // TODO(brianwilkerson) Convert this to a getter.
-    AstNode parent = this.parent;
+    AstNode initialParent = this.parent;
+    AstNode parent = initialParent;
     AstNode target = this;
     // skip prefix
-    if (parent is PrefixedIdentifier) {
-      PrefixedIdentifier prefixed = parent as PrefixedIdentifier;
-      if (identical(prefixed.prefix, this)) {
+    if (initialParent is PrefixedIdentifier) {
+      if (identical(initialParent.prefix, this)) {
         return true;
       }
-      parent = prefixed.parent;
-      target = prefixed;
-    } else if (parent is PropertyAccess) {
-      PropertyAccess access = parent as PropertyAccess;
-      if (identical(access.target, this)) {
+      parent = initialParent.parent;
+      target = initialParent;
+    } else if (initialParent is PropertyAccess) {
+      if (identical(initialParent.target, this)) {
         return true;
       }
-      parent = access.parent;
-      target = access;
+      parent = initialParent.parent;
+      target = initialParent;
     }
     // skip label
     if (parent is Label) {
@@ -9016,24 +8993,23 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   @override
   bool inSetterContext() {
     // TODO(brianwilkerson) Convert this to a getter.
-    AstNode parent = this.parent;
+    AstNode initialParent = this.parent;
+    AstNode parent = initialParent;
     AstNode target = this;
     // skip prefix
-    if (parent is PrefixedIdentifier) {
-      PrefixedIdentifier prefixed = parent as PrefixedIdentifier;
+    if (initialParent is PrefixedIdentifier) {
       // if this is the prefix, then return false
-      if (identical(prefixed.prefix, this)) {
+      if (identical(initialParent.prefix, this)) {
         return false;
       }
-      parent = prefixed.parent;
-      target = prefixed;
-    } else if (parent is PropertyAccess) {
-      PropertyAccess access = parent as PropertyAccess;
-      if (identical(access.target, this)) {
+      parent = initialParent.parent;
+      target = initialParent;
+    } else if (initialParent is PropertyAccess) {
+      if (identical(initialParent.target, this)) {
         return false;
       }
-      parent = access.parent;
-      target = access;
+      parent = initialParent.parent;
+      target = initialParent;
     }
     // analyze usage
     if (parent is PrefixExpression) {
@@ -10578,7 +10554,7 @@ class VariableDeclarationImpl extends DeclarationImpl
       super._childEntities..add(_name)..add(equals)..add(_initializer);
 
   /**
-   * This overridden implementation of getDocumentationComment() looks in the
+   * This overridden implementation of [documentationComment] looks in the
    * grandparent node for Dartdoc comments if no documentation is specifically
    * available on the node.
    */
@@ -10586,11 +10562,9 @@ class VariableDeclarationImpl extends DeclarationImpl
   Comment get documentationComment {
     Comment comment = super.documentationComment;
     if (comment == null) {
-      if (parent != null && parent.parent != null) {
-        AstNode node = parent.parent;
-        if (node is AnnotatedNode) {
-          return node.documentationComment;
-        }
+      AstNode node = parent?.parent;
+      if (node is AnnotatedNode) {
+        return node.documentationComment;
       }
     }
     return comment;
@@ -10715,14 +10689,10 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
   }
 
   @override
-  bool get isConst =>
-      keyword is KeywordToken &&
-      (keyword as KeywordToken).keyword == Keyword.CONST;
+  bool get isConst => keyword?.keyword == Keyword.CONST;
 
   @override
-  bool get isFinal =>
-      keyword is KeywordToken &&
-      (keyword as KeywordToken).keyword == Keyword.FINAL;
+  bool get isFinal => keyword?.keyword == Keyword.FINAL;
 
   @override
   TypeName get type => _type;

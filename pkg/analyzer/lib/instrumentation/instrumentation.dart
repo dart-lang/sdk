@@ -106,10 +106,8 @@ class InstrumentationService {
    */
   void logAnalysisTask(String context, AnalysisTask task) {
     if (_instrumentationServer != null) {
-      String description =
-          (task is AnalysisTask) ? task.description : task.toString();
       _instrumentationServer
-          .log(_join([TAG_ANALYSIS_TASK, context, description]));
+          .log(_join([TAG_ANALYSIS_TASK, context, task.description]));
     }
   }
 

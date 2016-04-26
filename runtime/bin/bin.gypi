@@ -677,41 +677,6 @@
       ]
     },
     {
-      # dart_product binary.
-      'target_name': 'dart_product',
-      'type': 'executable',
-      'dependencies': [
-        'bin/zlib.gyp:zlib_dart',
-        'libdart',
-        'libdart_builtin',
-        'libdart_io',
-      ],
-      'include_dirs': [
-        '..',
-        '../../third_party/', # Zlib
-      ],
-      'defines': [
-        'DART_PRODUCT_BINARY',
-      ],
-      'sources': [
-        'main.cc',
-        'builtin.h',
-        'builtin_common.cc',
-        'builtin_natives.cc',
-        'builtin_nolib.cc',
-        'io_natives.h',
-        'observatory_assets_empty.cc',
-        'snapshot_empty.cc',
-      ],
-      'conditions': [
-        ['OS=="win"', {
-          'link_settings': {
-            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib', '-lwinmm.lib' ],
-          },
-        }],
-      ],
-    },
-    {
       # dart binary with a snapshot of corelibs built in.
       'target_name': 'dart',
       'type': 'executable',

@@ -1106,7 +1106,7 @@ class TreePrinter {
           bound =
               makeType(TypeGenerator.createType(typeVariable.element.bound));
         }
-        tree.TypeVariable node = new tree.TypeVariable(id, bound);
+        tree.TypeVariable node = new tree.TypeVariable(id, extendsToken, bound);
         treeElements.setType(node, typeVariable);
         typeVariableList.add(node);
       }

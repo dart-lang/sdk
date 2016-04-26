@@ -8,13 +8,7 @@ import 'dart:collection';
 
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show
-        AnalysisEngine,
-        AnalysisErrorInfo,
-        AnalysisErrorInfoImpl,
-        AnalysisOptions,
-        CacheState,
-        InternalAnalysisContext;
+    show AnalysisEngine, AnalysisErrorInfo, CacheState, InternalAnalysisContext;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';

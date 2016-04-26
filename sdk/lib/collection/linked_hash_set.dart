@@ -84,7 +84,7 @@ abstract class LinkedHashSet<E> implements HashSet<E> {
    * Effectively a shorthand for:
    *
    *     new LinkedHashSet(equals: identical,
-   *                       hashCode: identityHashCodeOf)
+   *                       hashCode: identityHashCode)
    */
   external factory LinkedHashSet.identity();
 

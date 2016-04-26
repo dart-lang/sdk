@@ -7,12 +7,10 @@ library dart2js.parser.node_listener;
 import '../common.dart';
 import '../elements/elements.dart' show CompilationUnitElement;
 import '../native/native.dart' as native;
-import '../tokens/precedence_constants.dart' as Precedence
-    show BAD_INPUT_INFO, EOF_INFO, INDEX_INFO;
+import '../tokens/precedence_constants.dart' as Precedence show INDEX_INFO;
 import '../tokens/token.dart' show ErrorToken, StringToken, Token;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link;
-
 import 'element_listener.dart' show ElementListener, ScannerOptions;
 import 'partial_elements.dart' show PartialFunctionElement;
 
@@ -566,6 +564,7 @@ class NodeListener extends ElementListener {
 
   void handleFunctionTypedFormalParameter(Token endToken) {
     NodeList formals = popNode();
+    popNode(); // typeVariables
     Identifier name = popNode();
     TypeAnnotation returnType = popNode();
     pushNode(null); // Signal "no type" to endFormalParameter.
@@ -755,6 +754,7 @@ class NodeListener extends ElementListener {
     Statement body = popNode();
     AsyncModifier asyncModifier = popNode();
     NodeList formals = popNode();
+    popNode(); // typeVariables
     pushNode(new FunctionExpression(
         null, formals, body, null, Modifiers.EMPTY, null, null, asyncModifier));
   }

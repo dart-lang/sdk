@@ -57,6 +57,7 @@ DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
 DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
+DEFINE_FLAG(bool, use_exp_cache, true, "Use library exported name cache");
 DEFINE_FLAG(bool, ignore_patch_signature_mismatch, false,
             "Ignore patch file member signature mismatch.");
 
@@ -705,6 +706,7 @@ void Object::InitOnce(Isolate* isolate) {
         empty_array_,
         reinterpret_cast<RawArray*>(address + kHeapObjectTag));
     empty_array_->StoreSmi(&empty_array_->raw_ptr()->length_, Smi::New(0));
+    empty_array_->SetCanonical();
   }
 
   Smi& smi = Smi::Handle();
@@ -718,6 +720,7 @@ void Object::InitOnce(Isolate* isolate) {
     zero_array_->StoreSmi(&zero_array_->raw_ptr()->length_, Smi::New(1));
     smi = Smi::New(0);
     zero_array_->SetAt(0, smi);
+    zero_array_->SetCanonical();
   }
 
   // Allocate and initialize the canonical empty context scope object.
@@ -734,6 +737,7 @@ void Object::InitOnce(Isolate* isolate) {
         &empty_context_scope_->raw_ptr()->num_variables_, 0);
     empty_context_scope_->StoreNonPointer(
         &empty_context_scope_->raw_ptr()->is_implicit_, true);
+    empty_context_scope_->SetCanonical();
   }
 
   // Allocate and initialize the canonical empty object pool object.
@@ -749,6 +753,7 @@ void Object::InitOnce(Isolate* isolate) {
         reinterpret_cast<RawObjectPool*>(address + kHeapObjectTag));
     empty_object_pool_->StoreNonPointer(
         &empty_object_pool_->raw_ptr()->length_, 0);
+    empty_object_pool_->SetCanonical();
   }
 
   // Allocate and initialize the empty_descriptors instance.
@@ -762,6 +767,7 @@ void Object::InitOnce(Isolate* isolate) {
         reinterpret_cast<RawPcDescriptors*>(address + kHeapObjectTag));
     empty_descriptors_->StoreNonPointer(&empty_descriptors_->raw_ptr()->length_,
                                         0);
+    empty_descriptors_->SetCanonical();
   }
 
   // Allocate and initialize the canonical empty variable descriptor object.
@@ -777,6 +783,7 @@ void Object::InitOnce(Isolate* isolate) {
         reinterpret_cast<RawLocalVarDescriptors*>(address + kHeapObjectTag));
     empty_var_descriptors_->StoreNonPointer(
         &empty_var_descriptors_->raw_ptr()->num_entries_, 0);
+    empty_var_descriptors_->SetCanonical();
   }
 
   // Allocate and initialize the canonical empty exception handler info object.
@@ -794,6 +801,7 @@ void Object::InitOnce(Isolate* isolate) {
         reinterpret_cast<RawExceptionHandlers*>(address + kHeapObjectTag));
     empty_exception_handlers_->StoreNonPointer(
         &empty_exception_handlers_->raw_ptr()->num_entries_, 0);
+    empty_exception_handlers_->SetCanonical();
   }
 
   // The VM isolate snapshot object table is initialized to an empty array
@@ -2089,6 +2097,7 @@ class FunctionName {
 class ClassFunctionsTraits {
  public:
   static const char* Name() { return "ClassFunctionsTraits"; }
+  static bool ReportStats() { return false; }
 
   // Called when growing the table.
   static bool IsMatch(const Object& a, const Object& b) {
@@ -3040,6 +3049,7 @@ static RawFunction* EvaluateHelper(const Class& cls,
 RawObject* Class::Evaluate(const String& expr,
                            const Array& param_names,
                            const Array& param_values) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   const Function& eval_func =
       Function::Handle(EvaluateHelper(*this, expr, param_names, true));
   const Object& result =
@@ -3055,7 +3065,8 @@ RawError* Class::EnsureIsFinalized(Thread* thread) const {
     return Error::null();
   }
   if (Compiler::IsBackgroundCompilation()) {
-    Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+    Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
+        "Class finalization while compiling");
   }
   ASSERT(thread->IsMutatorThread());
   ASSERT(thread != NULL);
@@ -4420,44 +4431,88 @@ RawBigint* Class::LookupCanonicalBigint(Zone* zone,
 }
 
 
-RawInstance* Class::LookupCanonicalInstance(Zone* zone,
-                                            const Instance& value,
-                                            intptr_t* index) const {
-  ASSERT(this->raw() == value.clazz());
-  const Array& constants = Array::Handle(zone, this->constants());
-  const intptr_t constants_len = constants.Length();
-  // Linear search to see whether this value is already present in the
-  // list of canonicalized constants.
-  Instance& canonical_value = Instance::Handle(zone);
-  while (*index < constants_len) {
-    canonical_value ^= constants.At(*index);
-    if (canonical_value.IsNull()) {
-      break;
-    }
-    if (value.CanonicalizeEquals(canonical_value)) {
-      ASSERT(canonical_value.IsCanonical());
-      return canonical_value.raw();
-    }
-    *index = *index + 1;
+class CanonicalInstanceKey {
+ public:
+  explicit CanonicalInstanceKey(const Instance& key) : key_(key) {
+    ASSERT(!(key.IsString() || key.IsInteger() || key.IsAbstractType()));
   }
-  return Instance::null();
+  bool Matches(const Instance& obj) const {
+    ASSERT(!(obj.IsString() || obj.IsInteger() || obj.IsAbstractType()));
+    if (key_.CanonicalizeEquals(obj)) {
+      ASSERT(obj.IsCanonical());
+      return true;
+    }
+    return false;
+  }
+  uword Hash() const {
+    return key_.ComputeCanonicalTableHash();
+  }
+  const Instance& key_;
+
+ private:
+  DISALLOW_ALLOCATION();
+};
+
+
+// Traits for looking up Canonical Instances based on a hash of the fields.
+class CanonicalInstanceTraits {
+ public:
+  static const char* Name() { return "CanonicalInstanceTraits"; }
+  static bool ReportStats() { return false; }
+
+  // Called when growing the table.
+  static bool IsMatch(const Object& a, const Object& b) {
+    ASSERT(!(a.IsString() || a.IsInteger() || a.IsAbstractType()));
+    ASSERT(!(b.IsString() || b.IsInteger() || b.IsAbstractType()));
+    return a.raw() == b.raw();
+  }
+  static bool IsMatch(const CanonicalInstanceKey& a, const Object& b) {
+    return a.Matches(Instance::Cast(b));
+  }
+  static uword Hash(const Object& key) {
+    ASSERT(!(key.IsString() || key.IsNumber() || key.IsAbstractType()));
+    ASSERT(key.IsInstance());
+    return Instance::Cast(key).ComputeCanonicalTableHash();
+  }
+  static uword Hash(const CanonicalInstanceKey& key) {
+    return key.Hash();
+  }
+  static RawObject* NewKey(const CanonicalInstanceKey& obj) {
+    return obj.key_.raw();
+  }
+};
+typedef UnorderedHashSet <CanonicalInstanceTraits> CanonicalInstancesSet;
+
+
+RawInstance* Class::LookupCanonicalInstance(Zone* zone,
+                                            const Instance& value) const {
+  ASSERT(this->raw() == value.clazz());
+  Instance& canonical_value = Instance::Handle(zone);
+  if (this->constants() != Object::empty_array().raw()) {
+    CanonicalInstancesSet constants(zone, this->constants());
+    canonical_value ^= constants.GetOrNull(CanonicalInstanceKey(value));
+    this->set_constants(constants.Release());
+  }
+  return canonical_value.raw();
 }
 
 
-void Class::InsertCanonicalConstant(intptr_t index,
-                                    const Instance& constant) const {
-  // The constant needs to be added to the list. Grow the list if it is full.
-  Array& canonical_list = Array::Handle(constants());
-  const intptr_t list_len = canonical_list.Length();
-  if (index >= list_len) {
-    const intptr_t new_length = (list_len == 0) ? 4 : list_len + 4;
-    const Array& new_canonical_list =
-        Array::Handle(Array::Grow(canonical_list, new_length, Heap::kOld));
-    set_constants(new_canonical_list);
-    new_canonical_list.SetAt(index, constant);
+RawInstance* Class::InsertCanonicalConstant(Zone* zone,
+                                            const Instance& constant) const {
+  ASSERT(this->raw() == constant.clazz());
+  Instance& canonical_value = Instance::Handle(zone);
+  if (this->constants() == Object::empty_array().raw()) {
+    CanonicalInstancesSet constants(
+        HashTables::New<CanonicalInstancesSet>(128, Heap::kOld));
+    canonical_value ^= constants.InsertNewOrGet(CanonicalInstanceKey(constant));
+    this->set_constants(constants.Release());
   } else {
-    canonical_list.SetAt(index, constant);
+    CanonicalInstancesSet constants(Thread::Current()->zone(),
+                                    this->constants());
+    canonical_value ^= constants.InsertNewOrGet(CanonicalInstanceKey(constant));
+    this->set_constants(constants.Release());
   }
+  return canonical_value.raw();
 }
 
 
@@ -4473,6 +4528,29 @@ void Class::InsertCanonicalNumber(Zone* zone,
     set_constants(canonical_list);
   }
   canonical_list.SetAt(index, constant);
+}
+
+
+void Class::RehashConstants(Zone* zone) const {
+  intptr_t cid = id();
+  if ((cid == kMintCid) || (cid == kBigintCid) || (cid == kDoubleCid)) {
+    // Constants stored as a plain list, no rehashing needed.
+    return;
+  }
+
+  const Array& old_constants = Array::Handle(zone, constants());
+  if (old_constants.Length() == 0) return;
+
+  set_constants(Object::empty_array());
+  CanonicalInstancesSet set(zone, old_constants.raw());
+  Instance& constant = Instance::Handle(zone);
+  CanonicalInstancesSet::Iterator it(&set);
+  while (it.MoveNext()) {
+    constant ^= set.GetKey(it.Current());
+    ASSERT(!constant.IsNull());
+    InsertCanonicalConstant(zone, constant);
+  }
+  set.Release();
 }
 
 
@@ -8333,6 +8411,7 @@ RawTokenStream* TokenStream::New(intptr_t len) {
 class CompressedTokenTraits {
  public:
   static const char* Name() { return "CompressedTokenTraits"; }
+  static bool ReportStats() { return false; }
 
   static bool IsMatch(const Scanner::TokenDescriptor& descriptor,
                       const Object& key) {
@@ -9263,6 +9342,7 @@ void Library::SetLoadError(const Instance& error) const {
 class LibraryUrlTraits {
  public:
   static const char* Name() { return "LibraryUrlTraits"; }
+  static bool ReportStats() { return false; }
 
   // Called when growing the table.
   static bool IsMatch(const Object& a, const Object& b) {
@@ -9312,6 +9392,7 @@ RawInstance* Library::TransitiveLoadError() const {
 
 
 void Library::AddPatchClass(const Class& cls) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(cls.is_patch());
   ASSERT(GetPatchClass(String::Handle(cls.Name())) == Class::null());
   const GrowableObjectArray& patch_classes =
@@ -9321,6 +9402,7 @@ void Library::AddPatchClass(const Class& cls) const {
 
 
 RawClass* Library::GetPatchClass(const String& name) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   const GrowableObjectArray& patch_classes =
       GrowableObjectArray::Handle(this->patch_classes());
   Object& obj = Object::Handle();
@@ -9336,6 +9418,7 @@ RawClass* Library::GetPatchClass(const String& name) const {
 
 
 void Library::RemovePatchClass(const Class& cls) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(cls.is_patch());
   const GrowableObjectArray& patch_classes =
       GrowableObjectArray::Handle(this->patch_classes());
@@ -9403,6 +9486,7 @@ void Library::AddMetadata(const Object& owner,
                           const String& name,
                           TokenPosition token_pos) const {
   Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
   Zone* zone = thread->zone();
   const String& metaname = String::Handle(zone, Symbols::New(thread, name));
   const Field& field = Field::Handle(zone,
@@ -9490,6 +9574,7 @@ RawString* Library::MakeMetadataName(const Object& obj) const {
 
 
 RawField* Library::GetMetadataField(const String& metaname) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   const GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(this->metadata());
   Field& entry = Field::Handle();
@@ -9574,6 +9659,7 @@ RawObject* Library::ResolveName(const String& name) const {
 class StringEqualsTraits {
  public:
   static const char* Name() { return "StringEqualsTraits"; }
+  static bool ReportStats() { return false; }
 
   static bool IsMatch(const Object& a, const Object& b) {
     return String::Cast(a).Equals(String::Cast(b));
@@ -9595,8 +9681,15 @@ bool Library::LookupResolvedNamesCache(const String& name,
   *obj = cache.GetOrNull(name, &present);
   // Mutator compiler thread may add entries and therefore
   // change 'resolved_names()' while running a background compilation;
-  // do not ASSERT that 'resolved_names()' has not changed.
-  cache.Release();
+  // ASSERT that 'resolved_names()' has not changed only in mutator.
+#if defined(DEBUG)
+  if (Thread::Current()->IsMutatorThread()) {
+    ASSERT(cache.Release().raw() == resolved_names());
+  } else {
+    // Release must be called in debug mode.
+    cache.Release();
+  }
+#endif
   return present;
 }
 
@@ -9606,8 +9699,7 @@ bool Library::LookupResolvedNamesCache(const String& name,
 // the name does not resolve to anything in this library scope.
 void Library::AddToResolvedNamesCache(const String& name,
                                       const Object& obj) const {
-  ASSERT(!Compiler::IsBackgroundCompilation());
-  if (!FLAG_use_lib_cache) {
+  if (!FLAG_use_lib_cache || Compiler::IsBackgroundCompilation()) {
     return;
   }
   ResolvedNamesMap cache(resolved_names());
@@ -9616,11 +9708,63 @@ void Library::AddToResolvedNamesCache(const String& name,
 }
 
 
+bool Library::LookupExportedNamesCache(const String& name,
+                                       Object* obj) const {
+  ASSERT(FLAG_use_exp_cache);
+  if (exported_names() == Array::null()) {
+    return false;
+  }
+  ResolvedNamesMap cache(exported_names());
+  bool present = false;
+  *obj = cache.GetOrNull(name, &present);
+  // Mutator compiler thread may add entries and therefore
+  // change 'exported_names()' while running a background compilation;
+  // do not ASSERT that 'exported_names()' has not changed.
+#if defined(DEBUG)
+  if (Thread::Current()->IsMutatorThread()) {
+    ASSERT(cache.Release().raw() == exported_names());
+  } else {
+    // Release must be called in debug mode.
+    cache.Release();
+  }
+#endif
+  return present;
+}
+
+void Library::AddToExportedNamesCache(const String& name,
+                                      const Object& obj) const {
+  if (!FLAG_use_exp_cache || Compiler::IsBackgroundCompilation()) {
+    return;
+  }
+  if (exported_names() == Array::null()) {
+    AllocateExportedNamesCache();
+  }
+  ResolvedNamesMap cache(exported_names());
+  cache.UpdateOrInsert(name, obj);
+  StorePointer(&raw_ptr()->exported_names_, cache.Release().raw());
+}
+
+
 void Library::InvalidateResolvedName(const String& name) const {
-  Object& entry = Object::Handle();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Object& entry = Object::Handle(zone);
   if (LookupResolvedNamesCache(name, &entry)) {
     // TODO(koda): Support deleted sentinel in snapshots and remove only 'name'.
     InvalidateResolvedNamesCache();
+  }
+  // When a new name is added to a library, we need to invalidate all
+  // caches that contain an entry for this name. If the name was previously
+  // looked up but could not be resolved, the cache contains a null entry.
+  GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      zone, thread->isolate()->object_store()->libraries());
+  Library& lib = Library::Handle(zone);
+  intptr_t num_libs = libs.Length();
+  for (intptr_t i = 0; i < num_libs; i++) {
+    lib ^= libs.At(i);
+    if (lib.LookupExportedNamesCache(name, &entry)) {
+      lib.InitExportedNamesCache();
+    }
   }
 }
 
@@ -9628,6 +9772,19 @@ void Library::InvalidateResolvedName(const String& name) const {
 void Library::InvalidateResolvedNamesCache() const {
   const intptr_t kInvalidatedCacheSize = 16;
   InitResolvedNamesCache(kInvalidatedCacheSize);
+}
+
+
+// Invalidate all exported names caches in the isolate.
+void Library::InvalidateExportedNamesCaches() {
+  GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      Isolate::Current()->object_store()->libraries());
+  Library& lib = Library::Handle();
+  intptr_t num_libs = libs.Length();
+  for (intptr_t i = 0; i < num_libs; i++) {
+    lib ^= libs.At(i);
+    lib.InitExportedNamesCache();
+  }
 }
 
 
@@ -9665,7 +9822,7 @@ void Library::GrowDictionary(const Array& dict, intptr_t dict_size) const {
 
 
 void Library::AddObject(const Object& obj, const String& name) const {
-  ASSERT(!Compiler::IsBackgroundCompilation());
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(obj.IsClass() ||
          obj.IsFunction() ||
          obj.IsField() ||
@@ -9706,42 +9863,45 @@ void Library::AddObject(const Object& obj, const String& name) const {
 // Lookup a name in the library's re-export namespace.
 // This lookup can occur from two different threads: background compiler and
 // mutator thread.
-RawObject* Library::LookupReExport(const String& name) const {
-  if (HasExports()) {
-    const bool is_background_compiler = Compiler::IsBackgroundCompilation();
-    Array& exports = Array::Handle();
-    if (is_background_compiler) {
-      exports = this->exports2();
-      // Break potential export cycle while looking up name.
-      StorePointer(&raw_ptr()->exports2_, Object::empty_array().raw());
-    } else {
-      exports = this->exports();
-      // Break potential export cycle while looking up name.
-      StorePointer(&raw_ptr()->exports_, Object::empty_array().raw());
-    }
-    Namespace& ns = Namespace::Handle();
-    Object& obj = Object::Handle();
-    for (int i = 0; i < exports.Length(); i++) {
-      ns ^= exports.At(i);
-      obj = ns.Lookup(name);
-      if (!obj.IsNull()) {
-        // The Lookup call above may return a setter x= when we are looking
-        // for the name x. Make sure we only return when a matching name
-        // is found.
-        String& obj_name = String::Handle(obj.DictionaryName());
-        if (Field::IsSetterName(obj_name) == Field::IsSetterName(name)) {
-          break;
-        }
-      }
-    }
-    if (is_background_compiler) {
-      StorePointer(&raw_ptr()->exports2_, exports.raw());
-    } else {
-      StorePointer(&raw_ptr()->exports_, exports.raw());
-    }
+RawObject* Library::LookupReExport(const String& name,
+                                   ZoneGrowableArray<intptr_t>* trail) const {
+  if (!HasExports()) {
+    return Object::null();
+  }
+
+  if (trail == NULL) {
+    trail = new ZoneGrowableArray<intptr_t>();
+  }
+  Object& obj = Object::Handle();
+  if (FLAG_use_exp_cache && LookupExportedNamesCache(name, &obj)) {
     return obj.raw();
   }
-  return Object::null();
+
+  const intptr_t lib_id = this->index();
+  ASSERT(lib_id >= 0);  // We use -1 to indicate that a cycle was found.
+  trail->Add(lib_id);
+  const Array& exports = Array::Handle(this->exports());
+  Namespace& ns = Namespace::Handle();
+  for (int i = 0; i < exports.Length(); i++) {
+    ns ^= exports.At(i);
+    obj = ns.Lookup(name, trail);
+    if (!obj.IsNull()) {
+      // The Lookup call above may return a setter x= when we are looking
+      // for the name x. Make sure we only return when a matching name
+      // is found.
+      String& obj_name = String::Handle(obj.DictionaryName());
+      if (Field::IsSetterName(obj_name) == Field::IsSetterName(name)) {
+        break;
+      }
+    }
+  }
+  bool in_cycle = (trail->RemoveLast() < 0);
+  if (FLAG_use_exp_cache &&
+      !in_cycle &&
+      !Compiler::IsBackgroundCompilation()) {
+    AddToExportedNamesCache(name, obj);
+  }
+  return obj.raw();
 }
 
 
@@ -9785,8 +9945,10 @@ void Library::ReplaceObject(const Object& obj, const String& name) const {
 
 
 bool Library::RemoveObject(const Object& obj, const String& name) const {
-  ASSERT(!Compiler::IsBackgroundCompilation());
-  Object& entry = Object::Handle();
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  Zone* zone = thread->zone();
+  Object& entry = Object::Handle(zone);
 
   intptr_t index;
   entry = LookupEntry(name, &index);
@@ -9794,12 +9956,12 @@ bool Library::RemoveObject(const Object& obj, const String& name) const {
     return false;
   }
 
-  const Array& dict = Array::Handle(dictionary());
+  const Array& dict = Array::Handle(zone, dictionary());
   dict.SetAt(index, Object::null_object());
   intptr_t dict_size = dict.Length() - 1;
 
   // Fix any downstream collisions.
-  String& key = String::Handle();
+  String& key = String::Handle(zone);
   for (;;) {
     index = (index + 1) % dict_size;
     entry = dict.At(index);
@@ -9822,9 +9984,10 @@ bool Library::RemoveObject(const Object& obj, const String& name) const {
 
   // Update used count.
   intptr_t used_elements = Smi::Value(Smi::RawCast(dict.At(dict_size))) - 1;
-  dict.SetAt(dict_size, Smi::Handle(Smi::New(used_elements)));
+  dict.SetAt(dict_size, Smi::Handle(zone, Smi::New(used_elements)));
 
   InvalidateResolvedNamesCache();
+  InvalidateExportedNamesCaches();
 
   return true;
 }
@@ -9860,6 +10023,7 @@ static void AddScriptIfUnique(const GrowableObjectArray& scripts,
 
 
 RawArray* Library::LoadedScripts() const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   // We compute the list of loaded scripts lazily. The result is
   // cached in loaded_scripts_.
   if (loaded_scripts() == Array::null()) {
@@ -10190,7 +10354,6 @@ bool Library::ImportsCorelib() const {
 void Library::DropDependencies() const {
   StorePointer(&raw_ptr()->imports_, Array::null());
   StorePointer(&raw_ptr()->exports_, Array::null());
-  StorePointer(&raw_ptr()->exports2_, Array::null());
 }
 
 
@@ -10223,7 +10386,6 @@ void Library::AddExport(const Namespace& ns) const {
   intptr_t num_exports = exports.Length();
   exports = Array::Grow(exports, num_exports + 1);
   StorePointer(&raw_ptr()->exports_, exports.raw());
-  StorePointer(&raw_ptr()->exports2_, exports.raw());
   exports.SetAt(num_exports, ns);
 }
 
@@ -10238,6 +10400,7 @@ static RawArray* NewDictionary(intptr_t initial_size) {
 
 void Library::InitResolvedNamesCache(intptr_t size,
                                      SnapshotReader* reader) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   if (reader == NULL) {
     StorePointer(&raw_ptr()->resolved_names_,
                  HashTables::New<ResolvedNamesMap>(size));
@@ -10246,6 +10409,20 @@ void Library::InitResolvedNamesCache(intptr_t size,
     *reader->ArrayHandle() ^= reader->NewArray(len);
     StorePointer(&raw_ptr()->resolved_names_,
                  HashTables::New<ResolvedNamesMap>(*reader->ArrayHandle()));
+  }
+}
+
+
+void Library::AllocateExportedNamesCache() const {
+  StorePointer(&raw_ptr()->exported_names_,
+               HashTables::New<ResolvedNamesMap>(16));
+}
+
+
+void Library::InitExportedNamesCache() const {
+  if (exported_names() != Array::null()) {
+    StorePointer(&raw_ptr()->exported_names_,
+                 HashTables::New<ResolvedNamesMap>(16));
   }
 }
 
@@ -10276,11 +10453,16 @@ RawLibrary* Library::New() {
 
 RawLibrary* Library::NewLibraryHelper(const String& url,
                                       bool import_core_lib) {
-  const Library& result = Library::Handle(Library::New());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  ASSERT(thread->IsMutatorThread());
+  const Library& result = Library::Handle(zone, Library::New());
   result.StorePointer(&result.raw_ptr()->name_, Symbols::Empty().raw());
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
   result.StorePointer(&result.raw_ptr()->resolved_names_,
                       Object::empty_array().raw());
+  result.StorePointer(&result.raw_ptr()->exported_names_,
+                      Array::null());
   result.StorePointer(&result.raw_ptr()->dictionary_,
                       Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->metadata_,
@@ -10291,8 +10473,6 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
                                                Heap::kOld));
   result.StorePointer(&result.raw_ptr()->imports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->exports_, Object::empty_array().raw());
-  result.StorePointer(&result.raw_ptr()->exports2_,
-      Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->loaded_scripts_, Array::null());
   result.StorePointer(&result.raw_ptr()->load_error_, Instance::null());
   result.set_native_entry_resolver(NULL);
@@ -10310,9 +10490,9 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.InitImportList();
   result.AllocatePrivateKey();
   if (import_core_lib) {
-    const Library& core_lib = Library::Handle(Library::CoreLibrary());
+    const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
     ASSERT(!core_lib.IsNull());
-    const Namespace& ns = Namespace::Handle(
+    const Namespace& ns = Namespace::Handle(zone,
         Namespace::New(core_lib, Object::null_array(), Object::null_array()));
     result.AddImport(ns);
   }
@@ -10930,10 +11110,10 @@ void Namespace::set_metadata_field(const Field& value) const {
 void Namespace::AddMetadata(const Object& owner, TokenPosition token_pos) {
   ASSERT(Field::Handle(metadata_field()).IsNull());
   Field& field = Field::Handle(Field::NewTopLevel(Symbols::TopLevel(),
-                                          false,  // is_final
-                                          false,  // is_const
-                                          owner,
-                                          token_pos));
+                                                  false,  // is_final
+                                                  false,  // is_const
+                                                  owner,
+                                                  token_pos));
   field.set_is_reflectable(false);
   field.SetFieldType(Object::dynamic_type());
   field.SetStaticValue(Array::empty_array(), true);
@@ -11014,11 +11194,24 @@ bool Namespace::HidesName(const String& name) const {
 
 // Look up object with given name in library and filter out hidden
 // names. Also look up getters and setters.
-RawObject* Namespace::Lookup(const String& name) const {
+RawObject* Namespace::Lookup(const String& name,
+                             ZoneGrowableArray<intptr_t>* trail) const {
   Zone* zone = Thread::Current()->zone();
   const Library& lib = Library::Handle(zone, library());
-  intptr_t ignore = 0;
 
+  if (trail != NULL) {
+    // Look for cycle in reexport graph.
+    for (int i = 0; i < trail->length(); i++) {
+      if (trail->At(i) == lib.index()) {
+        for (int j = i+1; j < trail->length(); j++) {
+          (*trail)[j] = -1;
+        }
+        return Object::null();
+      }
+    }
+  }
+
+  intptr_t ignore = 0;
   // Lookup the name in the library's symbols.
   Object& obj = Object::Handle(zone, lib.LookupEntry(name, &ignore));
   if (!Field::IsGetterName(name) &&
@@ -11040,14 +11233,14 @@ RawObject* Namespace::Lookup(const String& name) const {
   // Library prefixes are not exported.
   if (obj.IsNull() || obj.IsLibraryPrefix()) {
     // Lookup in the re-exported symbols.
-    obj = lib.LookupReExport(name);
+    obj = lib.LookupReExport(name, trail);
     if (obj.IsNull() && !Field::IsSetterName(name)) {
       // LookupReExport() only returns objects that match the given name.
       // If there is no field/func/getter, try finding a setter.
       const String& setter_name =
           String::Handle(zone, Field::LookupSetterSymbol(name));
       if (!setter_name.IsNull()) {
-        obj = lib.LookupReExport(setter_name);
+        obj = lib.LookupReExport(setter_name, trail);
       }
     }
   }
@@ -13743,8 +13936,9 @@ RawString* Code::Name() const {
     Zone* zone = thread->zone();
     const char* name = StubCode::NameOfStub(EntryPoint());
     ASSERT(name != NULL);
-    const String& stub_name = String::Handle(zone, String::New(name));
-    return Symbols::FromConcat(thread, Symbols::StubPrefix(), stub_name);
+    char* stub_name = OS::SCreate(zone,
+        "%s%s", Symbols::StubPrefix().ToCString(), name);
+    return Symbols::New(thread, stub_name, strlen(stub_name));
   } else if (obj.IsClass()) {
     // Allocation stub.
     Thread* thread = Thread::Current();
@@ -13800,6 +13994,7 @@ void Code::DisableDartCode() const {
 
 
 void Code::DisableStubCode() const {
+#if !defined(TARGET_ARCH_DBC)
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsAllocationStubCode());
   ASSERT(!IsDisabled());
@@ -13807,6 +14002,10 @@ void Code::DisableStubCode() const {
       Code::Handle(StubCode::FixAllocationStubTarget_entry()->code());
   ASSERT(new_code.instructions()->IsVMHeapObject());
   SetActiveInstructions(new_code.instructions());
+#else
+  // DBC does not use allocation stubs.
+  UNIMPLEMENTED();
+#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 
@@ -14749,8 +14948,13 @@ bool Instance::CanonicalizeEquals(const Instance& other) const {
   {
     NoSafepointScope no_safepoint;
     // Raw bits compare.
-    const intptr_t instance_size = Class::Handle(this->clazz()).instance_size();
+    const intptr_t instance_size = SizeFromClass();
     ASSERT(instance_size != 0);
+    const intptr_t other_instance_size = other.SizeFromClass();
+    ASSERT(other_instance_size != 0);
+    if (instance_size != other_instance_size) {
+      return false;
+    }
     uword this_addr = reinterpret_cast<uword>(this->raw_ptr());
     uword other_addr = reinterpret_cast<uword>(other.raw_ptr());
     for (intptr_t offset = Instance::NextFieldOffset();
@@ -14763,6 +14967,24 @@ bool Instance::CanonicalizeEquals(const Instance& other) const {
     }
   }
   return true;
+}
+
+
+uword Instance::ComputeCanonicalTableHash() const {
+  ASSERT(!IsNull());
+  NoSafepointScope no_safepoint;
+  const intptr_t instance_size = SizeFromClass();
+  ASSERT(instance_size != 0);
+  uword hash = instance_size;
+  uword this_addr = reinterpret_cast<uword>(this->raw_ptr());
+  for (intptr_t offset = Instance::NextFieldOffset();
+       offset < instance_size;
+       offset += kWordSize) {
+    uword value = reinterpret_cast<uword>(
+        *reinterpret_cast<RawObject**>(this_addr + offset));
+    hash = CombineHashes(hash, value);
+  }
+  return FinalizeHash(hash);
 }
 
 
@@ -14788,21 +15010,21 @@ class CheckForPointers : public ObjectPointerVisitor {
 #endif  // DEBUG
 
 
-bool Instance::CheckAndCanonicalizeFields(Zone* zone,
+bool Instance::CheckAndCanonicalizeFields(Thread* thread,
                                           const char** error_str) const {
-  const Class& cls = Class::Handle(zone, this->clazz());
-  if (cls.id() >= kNumPredefinedCids) {
+  if (GetClassId() >= kNumPredefinedCids) {
     // Iterate over all fields, canonicalize numbers and strings, expect all
     // other instances to be canonical otherwise report error (return false).
+    Zone* zone = thread->zone();
     Object& obj = Object::Handle(zone);
-    intptr_t end_field_offset = cls.instance_size() - kWordSize;
+    intptr_t end_field_offset = SizeFromClass() - kWordSize;
     for (intptr_t field_offset = 0;
          field_offset <= end_field_offset;
          field_offset += kWordSize) {
       obj = *this->FieldAddrAtOffset(field_offset);
       if (obj.IsInstance() && !obj.IsSmi() && !obj.IsCanonical()) {
         if (obj.IsNumber() || obj.IsString()) {
-          obj = Instance::Cast(obj).CheckAndCanonicalize(NULL);
+          obj = Instance::Cast(obj).CheckAndCanonicalize(thread, NULL);
           ASSERT(!obj.IsNull());
           this->SetFieldAtOffset(field_offset, obj);
         } else {
@@ -14825,46 +15047,35 @@ bool Instance::CheckAndCanonicalizeFields(Zone* zone,
 }
 
 
-RawInstance* Instance::CheckAndCanonicalize(const char** error_str) const {
+RawInstance* Instance::CheckAndCanonicalize(Thread* thread,
+                                            const char** error_str) const {
   ASSERT(!IsNull());
   if (this->IsCanonical()) {
     return this->raw();
   }
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  if (!CheckAndCanonicalizeFields(zone, error_str)) {
+  if (!CheckAndCanonicalizeFields(thread, error_str)) {
     return Instance::null();
   }
+  Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   Instance& result = Instance::Handle(zone);
   const Class& cls = Class::Handle(zone, this->clazz());
-  intptr_t index = 0;
-  result ^= cls.LookupCanonicalInstance(zone, *this, &index);
-  if (!result.IsNull()) {
-    return result.raw();
-  }
   {
     SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
-    // Retry lookup.
-    {
-      result ^= cls.LookupCanonicalInstance(zone, *this, &index);
+    if (IsNew()) {
+      result ^= cls.LookupCanonicalInstance(zone, *this);
       if (!result.IsNull()) {
         return result.raw();
       }
-    }
-
-    // The value needs to be added to the list. Grow the list if
-    // it is full.
-    result ^= this->raw();
-    ASSERT((isolate == Dart::vm_isolate()) || !result.InVMHeap());
-    if (result.IsNew()) {
+      ASSERT((isolate == Dart::vm_isolate()) || !InVMHeap());
       // Create a canonical object in old space.
-      result ^= Object::Clone(result, Heap::kOld);
+      result ^= Object::Clone(*this, Heap::kOld);
+    } else {
+      result ^= this->raw();
     }
     ASSERT(result.IsOld());
     result.SetCanonical();
-    cls.InsertCanonicalConstant(index, result);
-    return result.raw();
+    return cls.InsertCanonicalConstant(zone, result);
   }
 }
 
@@ -14945,7 +15156,9 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   Zone* zone = Thread::Current()->zone();
   const Class& cls = Class::Handle(zone, clazz());
   if (cls.IsClosureClass()) {
-    if (other.IsObjectType() || other.IsDartFunctionType()) {
+    if (other.IsObjectType() ||
+        other.IsDartFunctionType() ||
+        other.IsDartClosureType()) {
       return true;
     }
     Function& other_signature = Function::Handle(zone);
@@ -15302,6 +15515,13 @@ TokenPosition AbstractType::token_pos() const {
 
 bool AbstractType::IsInstantiated(TrailPtr trail) const {
   // AbstractType is an abstract class.
+  // TODO(srdjan) : Remove temporary code.
+NOT_IN_PRODUCT(
+  Profiler::DumpStackTrace(true);  // Only native stack trace.
+)
+  if (Compiler::IsBackgroundCompilation()) {
+    UNREACHABLE();
+  }
   UNREACHABLE();
   return false;
 }
@@ -15729,6 +15949,13 @@ bool AbstractType::IsDartFunctionType() const {
   return !IsFunctionType() &&
       HasResolvedTypeClass() &&
       (type_class() == Type::Handle(Type::DartFunctionType()).type_class());
+}
+
+
+bool AbstractType::IsDartClosureType() const {
+  return !IsFunctionType() &&
+      HasResolvedTypeClass() &&
+      (type_class() == Isolate::Current()->object_store()->closure_class());
 }
 
 
@@ -16509,8 +16736,8 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     return Object::dynamic_type().raw();
   }
   // Fast canonical lookup/registry for simple types.
-  if (!cls.IsGeneric() && !cls.IsClosureClass()) {
-    ASSERT(!IsFunctionType() || cls.IsTypedefClass());
+  if (!cls.IsGeneric() && !cls.IsClosureClass() && !cls.IsTypedefClass()) {
+    ASSERT(!IsFunctionType());
     type = cls.CanonicalType();
     if (type.IsNull()) {
       ASSERT(!cls.raw()->IsVMHeapObject() || (isolate == Dart::vm_isolate()));
@@ -17236,7 +17463,9 @@ bool BoundedType::IsRecursive() const {
 
 
 void BoundedType::set_type(const AbstractType& value) const {
-  ASSERT(value.IsFinalized() || value.IsBeingFinalized());
+  ASSERT(value.IsFinalized() ||
+         value.IsBeingFinalized() ||
+         value.IsTypeParameter());
   ASSERT(!value.IsMalformed());
   StorePointer(&raw_ptr()->type_, value.raw());
 }
@@ -17305,8 +17534,8 @@ RawAbstractType* BoundedType::InstantiateFrom(
         return bounded_type.raw();
       }
       const TypeParameter& type_param = TypeParameter::Handle(type_parameter());
-      if (instantiated_bounded_type.IsBeingFinalized() ||
-          instantiated_upper_bound.IsBeingFinalized() ||
+      if (!instantiated_bounded_type.IsFinalized() ||
+          !instantiated_upper_bound.IsFinalized() ||
           (!type_param.CheckBound(instantiated_bounded_type,
                                   instantiated_upper_bound,
                                   bound_error,
@@ -17315,7 +17544,8 @@ RawAbstractType* BoundedType::InstantiateFrom(
            bound_error->IsNull())) {
         // We cannot determine yet whether the bounded_type is below the
         // upper_bound, because one or both of them is still being finalized or
-        // uninstantiated.
+        // uninstantiated. For example, instantiated_bounded_type may be the
+        // still unfinalized cloned type parameter of a mixin application class.
         ASSERT(instantiated_bounded_type.IsBeingFinalized() ||
                instantiated_upper_bound.IsBeingFinalized() ||
                !instantiated_bounded_type.IsInstantiated() ||
@@ -17483,7 +17713,8 @@ RawMixinAppType* MixinAppType::New(const AbstractType& super_type,
 }
 
 
-RawInstance* Number::CheckAndCanonicalize(const char** error_str) const {
+RawInstance* Number::CheckAndCanonicalize(Thread* thread,
+                                          const char** error_str) const {
   intptr_t cid = GetClassId();
   switch (cid) {
     case kSmiCid:
@@ -17493,10 +17724,9 @@ RawInstance* Number::CheckAndCanonicalize(const char** error_str) const {
     case kDoubleCid:
       return Double::NewCanonical(Double::Cast(*this).value());
     case kBigintCid: {
-      Thread* thread = Thread::Current();
       Zone* zone = thread->zone();
       Isolate* isolate = thread->isolate();
-      if (!CheckAndCanonicalizeFields(zone, error_str)) {
+      if (!CheckAndCanonicalizeFields(thread, error_str)) {
         return Instance::null();
       }
       Bigint& result = Bigint::Handle(zone);
@@ -18249,15 +18479,16 @@ bool Bigint::Equals(const Instance& other) const {
 }
 
 
-bool Bigint::CheckAndCanonicalizeFields(Zone* zone,
+bool Bigint::CheckAndCanonicalizeFields(Thread* thread,
                                         const char** error_str) const {
+  Zone* zone = thread->zone();
   // Bool field neg should always be canonical.
   ASSERT(Bool::Handle(zone, neg()).IsCanonical());
   // Smi field used is canonical by definition.
   if (Used() > 0) {
     // Canonicalize TypedData field digits.
     TypedData& digits_ = TypedData::Handle(zone, digits());
-    digits_ ^= digits_.CheckAndCanonicalize(NULL);
+    digits_ ^= digits_.CheckAndCanonicalize(thread, NULL);
     ASSERT(!digits_.IsNull());
     set_digits(digits_);
   } else {
@@ -19229,7 +19460,8 @@ bool String::StartsWith(const String& other) const {
 }
 
 
-RawInstance* String::CheckAndCanonicalize(const char** error_str) const {
+RawInstance* String::CheckAndCanonicalize(Thread* thread,
+                                          const char** error_str) const {
   if (IsCanonical()) {
     return this->raw();
   }
@@ -20686,6 +20918,9 @@ bool Array::CanonicalizeEquals(const Instance& other) const {
   }
 
   // Now check if both arrays have the same type arguments.
+  if (GetTypeArguments() == other.GetTypeArguments()) {
+    return true;
+  }
   const TypeArguments& type_args = TypeArguments::Handle(GetTypeArguments());
   const TypeArguments& other_type_args = TypeArguments::Handle(
       other.GetTypeArguments());
@@ -20693,6 +20928,20 @@ bool Array::CanonicalizeEquals(const Instance& other) const {
     return false;
   }
   return true;
+}
+
+
+uword Array::ComputeCanonicalTableHash() const {
+  ASSERT(!IsNull());
+  intptr_t len = Length();
+  uword hash = len;
+  uword value = reinterpret_cast<uword>(GetTypeArguments());
+  hash = CombineHashes(hash, value);
+  for (intptr_t i = 0; i < len; i++) {
+    value = reinterpret_cast<uword>(At(i));
+    hash = CombineHashes(hash, value);
+  }
+  return FinalizeHash(hash);
 }
 
 
@@ -20837,24 +21086,28 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
 }
 
 
-bool Array::CheckAndCanonicalizeFields(Zone* zone,
+bool Array::CheckAndCanonicalizeFields(Thread* thread,
                                        const char** error_str) const {
-  Object& obj = Object::Handle(zone);
-  // Iterate over all elements, canonicalize numbers and strings, expect all
-  // other instances to be canonical otherwise report error (return false).
-  for (intptr_t i = 0; i < Length(); i++) {
-    obj = At(i);
-    if (obj.IsInstance() && !obj.IsSmi() && !obj.IsCanonical()) {
-      if (obj.IsNumber() || obj.IsString()) {
-        obj = Instance::Cast(obj).CheckAndCanonicalize(NULL);
-        ASSERT(!obj.IsNull());
-        this->SetAt(i, obj);
-      } else {
-        ASSERT(error_str != NULL);
-        char* chars = OS::SCreate(Thread::Current()->zone(),
-            "element at index %" Pd ": %s\n", i, obj.ToCString());
-        *error_str = chars;
-        return false;
+  intptr_t len = Length();
+  if (len > 0) {
+    Zone* zone = thread->zone();
+    Object& obj = Object::Handle(zone);
+    // Iterate over all elements, canonicalize numbers and strings, expect all
+    // other instances to be canonical otherwise report error (return false).
+    for (intptr_t i = 0; i < len; i++) {
+      obj = At(i);
+      if (obj.IsInstance() && !obj.IsSmi() && !obj.IsCanonical()) {
+        if (obj.IsNumber() || obj.IsString()) {
+          obj = Instance::Cast(obj).CheckAndCanonicalize(thread, NULL);
+          ASSERT(!obj.IsNull());
+          this->SetAt(i, obj);
+        } else {
+          ASSERT(error_str != NULL);
+          char* chars = OS::SCreate(
+              zone, "element at index %" Pd ": %s\n", i, obj.ToCString());
+          *error_str = chars;
+          return false;
+        }
       }
     }
   }
@@ -20946,6 +21199,9 @@ const char* GrowableObjectArray::ToCString() const {
 // Equivalent to Dart's operator "==" and hashCode.
 class DefaultHashTraits {
  public:
+  static const char* Name() { return "DefaultHashTraits"; }
+  static bool ReportStats() { return false; }
+
   static bool IsMatch(const Object& a, const Object& b) {
     if (a.IsNull() || b.IsNull()) {
       return (a.IsNull() && b.IsNull());
@@ -21332,6 +21588,17 @@ bool TypedData::CanonicalizeEquals(const Instance& other) const {
   NoSafepointScope no_safepoint;
   return (len == 0) ||
       (memcmp(DataAddr(0), other_typed_data.DataAddr(0), len) == 0);
+}
+
+
+uword TypedData::ComputeCanonicalTableHash() const {
+  const intptr_t len = this->LengthInBytes();
+  ASSERT(len != 0);
+  uword hash = len;
+  for (intptr_t i = 0; i < len; i++) {
+    hash = CombineHashes(len, GetUint8(i));
+  }
+  return FinalizeHash(hash);
 }
 
 

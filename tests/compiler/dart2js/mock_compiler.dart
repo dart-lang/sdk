@@ -27,6 +27,7 @@ import 'package:compiler/src/resolution/members.dart';
 import 'package:compiler/src/resolution/registry.dart';
 import 'package:compiler/src/resolution/scope.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
+import 'package:compiler/src/resolved_uri_translator.dart';
 import 'package:compiler/src/script.dart';
 import 'package:compiler/src/tree/tree.dart';
 import 'package:compiler/src/old_to_new_api.dart';
@@ -65,6 +66,8 @@ class MockCompiler extends Compiler {
   final String testedPatchVersion;
   final LibrarySourceProvider librariesOverride;
   final DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
+  final ResolvedUriTranslator resolvedUriTranslator =
+      new MockResolvedUriTranslator();
 
   MockCompiler.internal(
       {Map<String, String> coreSource,
@@ -257,9 +260,6 @@ class MockCompiler extends Compiler {
     return new Future.value();
   }
 
-  Uri translateResolvedUri(LibraryElement importingLibrary,
-                           Uri resolvedUri, Spannable spannable) => resolvedUri;
-
   // The mock library doesn't need any patches.
   Uri resolvePatchUri(String dartLibraryName) {
     if (dartLibraryName == 'core') {
@@ -286,6 +286,17 @@ class MockCompiler extends Compiler {
     MockCompiler compiler = new MockCompiler.internal();
     return compiler.init().then((_) => f(compiler));
   }
+}
+
+class MockResolvedUriTranslator implements ResolvedUriTranslator {
+  static final _emptySet = new Set();
+
+  Uri translate(LibraryElement importingLibrary, Uri resolvedUri,
+          [Spannable spannable]) =>
+      resolvedUri;
+  Set<Uri> get disallowedLibraryUris => _emptySet;
+  bool get mockableLibraryUsed => false;
+  Map<String, Uri> get sdkLibraries => const <String, Uri>{};
 }
 
 class CollectingTreeElements extends TreeElementMapping {

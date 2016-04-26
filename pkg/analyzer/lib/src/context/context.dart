@@ -269,8 +269,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             options.enableStrictCallChecks ||
         this._options.enableGenericMethods != options.enableGenericMethods ||
         this._options.enableAsync != options.enableAsync ||
-        this._options.enableConditionalDirectives !=
-            options.enableConditionalDirectives ||
         this._options.enableSuperMixins != options.enableSuperMixins;
     int cacheSize = options.cacheSize;
     if (this._options.cacheSize != cacheSize) {
@@ -285,8 +283,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.enableAssertMessage = options.enableAssertMessage;
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
     this._options.enableAsync = options.enableAsync;
-    this._options.enableConditionalDirectives =
-        options.enableConditionalDirectives;
     this._options.enableSuperMixins = options.enableSuperMixins;
     this._options.enableTiming = options.enableTiming;
     this._options.hint = options.hint;
@@ -378,8 +374,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     List<Source> sources = <Source>[];
     for (Source source in _cache.sources) {
       CacheEntry entry = _cache.get(source);
-      if (source is Source &&
-          entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY &&
+      if (entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY &&
           !source.isInSystemLibrary &&
           isServerLibrary(source)) {
         sources.add(source);
@@ -813,13 +808,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     CacheEntry entry = _cache.get(target);
     if (entry == null) {
       entry = new CacheEntry(target);
+      ImplicitAnalysisEvent event = null;
       if (target is Source) {
         entry.modificationTime = getModificationStamp(target);
+        event = new ImplicitAnalysisEvent(target, true);
       }
       _cache.put(entry);
-      if (target is Source) {
-        _implicitAnalysisEventsController
-            .add(new ImplicitAnalysisEvent(target, true));
+      if (event != null) {
+        _implicitAnalysisEventsController.add(event);
       }
     }
     return entry;

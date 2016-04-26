@@ -23,31 +23,28 @@ import '../elements/modelx.dart'
         JumpTargetX,
         LocalFunctionElementX,
         LocalParameterElementX,
-        LocalVariableElementX,
         MethodElementX,
         ParameterElementX,
         VariableElementX,
         VariableList;
 import '../tokens/token.dart' show isUserDefinableOperator;
 import '../tree/tree.dart';
-import '../util/util.dart' show Link;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
-
+import '../util/util.dart' show Link;
 import 'access_semantics.dart';
 import 'class_members.dart' show MembersCreator;
-import 'operators.dart';
-import 'send_structure.dart';
-
 import 'constructors.dart'
     show ConstructorResolver, ConstructorResult, ConstructorResultKind;
 import 'label_scope.dart' show StatementScope;
+import 'operators.dart';
 import 'registry.dart' show ResolutionRegistry;
 import 'resolution.dart' show ResolverTask;
 import 'resolution_common.dart' show MappingVisitor;
 import 'resolution_result.dart';
 import 'scope.dart' show BlockScope, MethodScope, Scope;
+import 'send_structure.dart';
 import 'signatures.dart' show SignatureResolver;
 import 'variables.dart' show VariableDefinitionsVisitor;
 
@@ -391,7 +388,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   FunctionElement resolveConstructorRedirection(FunctionElementX constructor) {
-    FunctionExpression node = constructor.parseNode(resolution.parsing);
+    FunctionExpression node = constructor.parseNode(resolution.parsingContext);
 
     // A synthetic constructor does not have a node.
     if (node == null) return null;
@@ -3343,7 +3340,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   /// `a++` or `a += b` where [semantics] describe `a`.
   ResolutionResult handleUpdate(
       SendSet node, Name name, AccessSemantics semantics) {
-    SendStructure sendStructure;
     String operatorText = node.assignmentOperator.source;
     Selector getterSelector = new Selector.getter(name);
     Selector setterSelector = new Selector.setter(name);
@@ -3568,7 +3564,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     ConstructorElement redirectionTarget = result.element;
     constructor.immediateRedirectionTarget = redirectionTarget;
 
-    Node constructorReference = node.constructorReference;
     if (result.isDeferred) {
       constructor.redirectionDeferredPrefix = result.prefix;
     }
@@ -3772,7 +3767,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     DartType type = result.type;
     ConstructorAccessKind kind;
-    NewStructure newStructure;
     bool isInvalid = false;
     switch (result.kind) {
       case ConstructorResultKind.GENERATIVE:

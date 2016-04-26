@@ -52,7 +52,10 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
 
     int watchId;
-    var controller;
+    // TODO(jacobr): it seems like a bug that we have to specifiy the static
+    // type here for controller.stream to have the right type.
+    // dartbug.com/26278
+    StreamController<Geoposition> controller;
     controller = new StreamController<Geoposition>(sync: true,
       onListen: () {
         assert(watchId == null);

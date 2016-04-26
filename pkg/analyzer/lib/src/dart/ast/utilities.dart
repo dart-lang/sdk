@@ -933,9 +933,10 @@ class AstCloner implements AstVisitor<AstNode> {
     if (token == null) {
       return;
     }
-    if (token is CommentToken) {
-      token = (token as CommentToken).parent;
+    Token nonComment(Token token) {
+      return token is CommentToken ? token.parent : token;
     }
+    token = nonComment(token);
     if (_lastCloned == null) {
       _lastCloned = new Token(TokenType.EOF, -1);
       _lastCloned.setNext(_lastCloned);
@@ -2268,7 +2269,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
         if (leftOperand is num && rightOperand is num) {
           return leftOperand ~/ rightOperand;
         }
-      } else {}
+      }
       break;
     }
     // TODO(brianwilkerson) This doesn't handle numeric conversions.
@@ -2315,10 +2316,11 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
     for (MapLiteralEntry entry in node.entries) {
       Object key = entry.key.accept(this);
       Object value = entry.value.accept(this);
-      if (key is! String || identical(value, NOT_A_CONSTANT)) {
+      if (key is String && !identical(value, NOT_A_CONSTANT)) {
+        map[(key as String)] = value;
+      } else {
         return NOT_A_CONSTANT;
       }
-      map[(key as String)] = value;
     }
     return map;
   }
@@ -2411,17 +2413,17 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
    */
   Object _getConstantValue(Element element) {
     // TODO(brianwilkerson) Implement this
-    if (element is FieldElement) {
-      FieldElement field = element;
-      if (field.isStatic && field.isConst) {
-        //field.getConstantValue();
-      }
-      //    } else if (element instanceof VariableElement) {
-      //      VariableElement variable = (VariableElement) element;
-      //      if (variable.isStatic() && variable.isConst()) {
-      //        //variable.getConstantValue();
-      //      }
-    }
+//    if (element is FieldElement) {
+//      FieldElement field = element;
+//      if (field.isStatic && field.isConst) {
+//        //field.getConstantValue();
+//      }
+//      //    } else if (element instanceof VariableElement) {
+//      //      VariableElement variable = (VariableElement) element;
+//      //      if (variable.isStatic() && variable.isConst()) {
+//      //        //variable.getConstantValue();
+//      //      }
+//    }
     return NOT_A_CONSTANT;
   }
 }
@@ -2504,17 +2506,14 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
   @override
   Element visitIdentifier(Identifier node) {
     AstNode parent = node.parent;
-    // Type name in Annotation
     if (parent is Annotation) {
-      Annotation annotation = parent;
-      if (identical(annotation.name, node) &&
-          annotation.constructorName == null) {
-        return annotation.element;
+      // Type name in Annotation
+      if (identical(parent.name, node) && parent.constructorName == null) {
+        return parent.element;
       }
-    }
-    // Extra work to map Constructor Declarations to their associated
-    // Constructor Elements
-    if (parent is ConstructorDeclaration) {
+    } else if (parent is ConstructorDeclaration) {
+      // Extra work to map Constructor Declarations to their associated
+      // Constructor Elements
       Identifier returnType = parent.returnType;
       if (identical(returnType, node)) {
         SimpleIdentifier name = parent.name;
@@ -2526,8 +2525,7 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
           return element.unnamedConstructor;
         }
       }
-    }
-    if (parent is LibraryIdentifier) {
+    } else if (parent is LibraryIdentifier) {
       AstNode grandParent = parent.parent;
       if (grandParent is PartOfDirective) {
         Element element = grandParent.element;

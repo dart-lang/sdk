@@ -41,8 +41,6 @@ namespace dart {
   V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 2075229300)              \
   V(_StringBase, _interpolate, StringBaseInterpolate, 1597087225)              \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 150718448)              \
-  V(_IntegerImplementation, _leftShiftWithMask32,                              \
-      IntegerLeftShiftWithMask32, 1634465017)                                  \
   V(_Double, _add, DoubleAdd, 1190606283)                                      \
   V(_Double, _sub, DoubleSub, 1086286468)                                      \
   V(_Double, _mul, DoubleMul, 166332351)                                       \
@@ -256,7 +254,7 @@ namespace dart {
   V(Int32x4List, ., TypedData_Int32x4Array_factory, 504220232)                 \
   V(Float64x2List, ., TypedData_Float64x2Array_factory, 416019673)             \
 
-#define GRAPH_TYPED_DATA_INTRINSICS_LIST(V) \
+#define GRAPH_TYPED_DATA_INTRINSICS_LIST(V)                                    \
   V(Uint8List, [], Uint8ArrayGetIndexed, 513704632)                            \
   V(Uint8List, []=, Uint8ArraySetIndexed, 2123520783)                          \
   V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 513704632)          \
@@ -309,7 +307,6 @@ namespace dart {
   DEVELOPER_LIB_INTRINSIC_LIST(V)                                              \
   MATH_LIB_INTRINSIC_LIST(V)                                                   \
   TYPED_DATA_LIB_INTRINSIC_LIST(V)                                             \
-
 
 #define ALL_INTRINSICS_LIST(V)                                                 \
   ALL_INTRINSICS_NO_INTEGER_LIB_LIST(V)                                        \

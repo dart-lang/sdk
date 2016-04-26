@@ -63,8 +63,8 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    */
   void appendKeywordToken(Keyword keyword) {
     String syntax = keyword.syntax;
-    // Type parameters and arguments cannot contain 'this' or 'super'.
-    if (identical(syntax, 'this') || identical(syntax, 'super')) {
+    // Type parameters and arguments cannot contain 'this'.
+    if (identical(syntax, 'this')) {
       discardOpenLt();
     }
     tail.next = new KeywordToken(keyword, tokenStart);

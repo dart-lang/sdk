@@ -341,7 +341,12 @@ enum IndexSyntheticElementKind {
   /**
    * The synthetic `values` getter of an enum.
    */
-  enumValues
+  enumValues,
+
+  /**
+   * The containing unit itself.
+   */
+  unit
 }
 
 /**
@@ -622,6 +627,7 @@ abstract class PackageBundle extends base.SummaryClass {
    * is encoded as a hexadecimal string using lower case letters.
    */
   @Id(4)
+  @informative
   List<String> get unlinkedUnitHashes;
 
   /**

@@ -102,6 +102,7 @@ mirrors/type_variable_owner_test/01: RuntimeError # Issue 12785
 mirrors/variable_is_const_test/none: RuntimeError # Issue 14671
 mirrors/raw_type_test/01: RuntimeError # Issue 6490
 mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
+mirrors/regress_26187_test: RuntimeError # Issue 6490
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
@@ -361,3 +362,8 @@ mirrors/*: SkipByDesign
 [ $noopt || $compiler == precompiler ]
 convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
+
+[ $arch == simdbc || $arch == simdbc64 ]
+# TODO(vegorov) LoadField bytecode supports only up to 256 fields. Need a long
+# version.
+mirrors/accessor_cache_overflow_test: Skip

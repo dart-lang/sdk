@@ -120,11 +120,11 @@ class _ElementCssClassSet extends CssClassSetImpl {
     _addAll(_element, iterable);
   }
 
-  void removeAll(Iterable<String> iterable) {
+  void removeAll(Iterable<Object> iterable) {
     _removeAll(_element, iterable);
   }
 
-  void retainAll(Iterable<String> iterable) {
+  void retainAll(Iterable<Object> iterable) {
     _removeWhere(_element, iterable.toSet().contains, false);
   }
 

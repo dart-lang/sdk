@@ -227,5 +227,5 @@ class _HtmlEscapeSink extends StringConversionSinkBase {
     }
   }
 
-  void close() => _sink.close();
+  void close() { _sink.close(); }
 }

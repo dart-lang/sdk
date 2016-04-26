@@ -497,14 +497,14 @@ class IdbFactory extends DartHtmlDomObject {
 
   @DomName('IDBFactory.deleteDatabase')
   Future<IdbFactory> deleteDatabase(String name,
-      {void onBlocked(Event)}) {
+      {void onBlocked(Event e)}) {
     try {
       var request = _deleteDatabase(name);
 
       if (onBlocked != null) {
         request.onBlocked.listen(onBlocked);
       }
-      var completer = new Completer.sync();
+      var completer = new Completer<IdbFactory>.sync();
       request.onSuccess.listen((e) {
         completer.complete(this);
       });
@@ -574,12 +574,13 @@ class IdbFactory extends DartHtmlDomObject {
  * Ties a request to a completer, so the completer is completed when it succeeds
  * and errors out when the request errors.
  */
-Future _completeRequest(Request request) {
-  var completer = new Completer.sync();
+Future/*<T>*/ _completeRequest/*<T>*/(Request request) {
+  var completer = new Completer/*<T>*/.sync();
   // TODO: make sure that completer.complete is synchronous as transactions
   // may be committed if the result is not processed immediately.
   request.onSuccess.listen((e) {
-    completer.complete(request.result);
+    var result = _cast/*<T>*/(request.result);
+    completer.complete(result);
   });
   request.onError.listen(completer.completeError);
   return completer.future;
@@ -1075,18 +1076,18 @@ class ObjectStore extends DartHtmlDomObject {
   /**
    * Helper for iterating over cursors in a request.
    */
-  static Stream<Cursor> _cursorStreamFromResult(Request request,
+  static Stream/*<T>*/ _cursorStreamFromResult/*<T extends Cursor>*/(Request request,
       bool autoAdvance) {
     // TODO: need to guarantee that the controller provides the values
     // immediately as waiting until the next tick will cause the transaction to
     // close.
-    var controller = new StreamController(sync: true);
+    var controller = new StreamController/*<T>*/(sync: true);
 
     //TODO: Report stacktrace once issue 4061 is resolved.
     request.onError.listen(controller.addError);
 
     request.onSuccess.listen((e) {
-      Cursor cursor = request.result;
+      var cursor = _cast/*<T>*/(request.result);
       if (cursor == null) {
         controller.close();
       } else {
@@ -1099,6 +1100,9 @@ class ObjectStore extends DartHtmlDomObject {
     return controller.stream;
   }
 }
+
+// ignore: STRONG_MODE_DOWN_CAST_COMPOSITE
+/*=To*/ _cast/*<To>*/(dynamic x) => x;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

@@ -80,6 +80,40 @@ class ReadOnlyHandles {
 };
 
 
+static void CheckOffsets() {
+#define CHECK_OFFSET(expr, offset)                                             \
+  if ((expr) != (offset)) {                                                    \
+    FATAL2("%s == %" Pd, #expr, (expr));                                       \
+  }                                                                            \
+
+#if defined(TARGET_ARCH_ARM)
+  // These offsets are embedded in precompiled instructions. We need simarm
+  // (compiler) and arm (runtime) to agree.
+  CHECK_OFFSET(Heap::TopOffset(Heap::kNew), 8);
+  CHECK_OFFSET(Isolate::heap_offset(), 8);
+  CHECK_OFFSET(Thread::stack_limit_offset(), 4);
+  CHECK_OFFSET(Thread::object_null_offset(), 36);
+#endif
+#if defined(TARGET_ARCH_MIPS)
+  // These offsets are embedded in precompiled instructions. We need simmips
+  // (compiler) and mips (runtime) to agree.
+  CHECK_OFFSET(Heap::TopOffset(Heap::kNew), 8);
+  CHECK_OFFSET(Isolate::heap_offset(), 8);
+  CHECK_OFFSET(Thread::stack_limit_offset(), 4);
+  CHECK_OFFSET(Thread::object_null_offset(), 36);
+#endif
+#if defined(TARGET_ARCH_ARM64)
+  // These offsets are embedded in precompiled instructions. We need simarm64
+  // (compiler) and arm64 (runtime) to agree.
+  CHECK_OFFSET(Heap::TopOffset(Heap::kNew), 8);
+  CHECK_OFFSET(Isolate::heap_offset(), 16);
+  CHECK_OFFSET(Thread::stack_limit_offset(), 8);
+  CHECK_OFFSET(Thread::object_null_offset(), 72);
+#endif
+#undef CHECK_OFFSET
+}
+
+
 const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                            const uint8_t* instructions_snapshot,
                            const uint8_t* data_snapshot,
@@ -92,10 +126,20 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                            Dart_FileCloseCallback file_close,
                            Dart_EntropySource entropy_source,
                            Dart_GetVMServiceAssetsArchive get_service_assets) {
+  CheckOffsets();
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
     return "VM already initialized or flags not initialized.";
   }
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (instructions_snapshot == NULL) {
+    return "Precompiled runtime requires a precompiled snapshot";
+  }
+#else
+  if (instructions_snapshot != NULL) {
+    return "JIT runtime cannot run a precompiled snapshot";
+  }
+#endif
   set_thread_exit_callback(thread_exit);
   SetFileCallbacks(file_open, file_read, file_write, file_close);
   set_entropy_source_callback(entropy_source);

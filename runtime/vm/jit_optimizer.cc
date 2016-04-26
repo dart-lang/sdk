@@ -1881,71 +1881,6 @@ bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     return TryInlineFloat64x2Method(call, recognized_kind);
   }
 
-  if (recognized_kind == MethodRecognizer::kIntegerLeftShiftWithMask32) {
-    ASSERT(call->ArgumentCount() == 3);
-    ASSERT(ic_data.NumArgsTested() == 2);
-    Definition* value = call->ArgumentAt(0);
-    Definition* count = call->ArgumentAt(1);
-    Definition* int32_mask = call->ArgumentAt(2);
-    if (HasOnlyTwoOf(ic_data, kSmiCid)) {
-      if (ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) {
-        return false;
-      }
-      // We cannot overflow. The input value must be a Smi
-      AddCheckSmi(value, call->deopt_id(), call->env(), call);
-      AddCheckSmi(count, call->deopt_id(), call->env(), call);
-      ASSERT(int32_mask->IsConstant());
-      const Integer& mask_literal = Integer::Cast(
-          int32_mask->AsConstant()->value());
-      const int64_t mask_value = mask_literal.AsInt64Value();
-      ASSERT(mask_value >= 0);
-      if (mask_value > Smi::kMaxValue) {
-        // The result will not be Smi.
-        return false;
-      }
-      BinarySmiOpInstr* left_shift =
-          new(Z) BinarySmiOpInstr(Token::kSHL,
-                                  new(Z) Value(value),
-                                  new(Z) Value(count),
-                                  call->deopt_id());
-      left_shift->mark_truncating();
-      if ((kBitsPerWord == 32) && (mask_value == 0xffffffffLL)) {
-        // No BIT_AND operation needed.
-        ReplaceCall(call, left_shift);
-      } else {
-        InsertBefore(call, left_shift, call->env(), FlowGraph::kValue);
-        BinarySmiOpInstr* bit_and =
-            new(Z) BinarySmiOpInstr(Token::kBIT_AND,
-                                    new(Z) Value(left_shift),
-                                    new(Z) Value(int32_mask),
-                                    call->deopt_id());
-        ReplaceCall(call, bit_and);
-      }
-      return true;
-    }
-
-    if (HasTwoMintOrSmi(ic_data) &&
-        HasOnlyOneSmi(ICData::Handle(Z,
-                                     ic_data.AsUnaryClassChecksForArgNr(1)))) {
-      if (!FlowGraphCompiler::SupportsUnboxedMints() ||
-          ic_data.HasDeoptReason(ICData::kDeoptBinaryMintOp)) {
-        return false;
-      }
-      ShiftMintOpInstr* left_shift =
-          new(Z) ShiftMintOpInstr(Token::kSHL,
-                                  new(Z) Value(value),
-                                  new(Z) Value(count),
-                                  call->deopt_id());
-      InsertBefore(call, left_shift, call->env(), FlowGraph::kValue);
-      BinaryMintOpInstr* bit_and =
-          new(Z) BinaryMintOpInstr(Token::kBIT_AND,
-                                   new(Z) Value(left_shift),
-                                   new(Z) Value(int32_mask),
-                                   call->deopt_id());
-      ReplaceCall(call, bit_and);
-      return true;
-    }
-  }
   return false;
 }
 
@@ -2991,7 +2926,8 @@ void JitOptimizer::VisitStoreInstanceField(
       // - deoptimize dependent code.
       if (Compiler::IsBackgroundCompilation()) {
         isolate()->AddDeoptimizingBoxedField(field);
-        Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+        Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
+            "Unboxing instance field while compiling");
         UNREACHABLE();
       }
       if (FLAG_trace_optimization || FLAG_trace_field_guards) {

@@ -8,10 +8,9 @@ import '../constants/values.dart';
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart';
 import '../types/types.dart';
-import '../universe/selector.dart';
 import '../universe/call_structure.dart';
-import '../world.dart' show ClassWorld, World;
-
+import '../universe/selector.dart';
+import '../world.dart' show World;
 import 'nodes.dart';
 import 'types.dart';
 

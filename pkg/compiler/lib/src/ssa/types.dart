@@ -10,7 +10,7 @@ import '../native/native.dart' as native;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
-import '../world.dart' show ClassWorld, World;
+import '../world.dart' show ClassWorld;
 
 class TypeMaskFactory {
   static TypeMask fromInferredType(TypeMask mask, Compiler compiler) {

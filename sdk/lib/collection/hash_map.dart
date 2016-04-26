@@ -93,7 +93,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
    * Effectively a shorthand for:
    *
    *     new HashMap(equals: identical,
-   *                 hashCode: identityHashCodeOf)
+   *                 hashCode: identityHashCode)
    */
   external factory HashMap.identity();
 

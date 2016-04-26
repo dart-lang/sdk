@@ -4,35 +4,28 @@
 
 library analyzer_cli.test.built_mode;
 
-import 'dart:collection';
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:analyzer_cli/src/build_mode.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
-import 'package:analyzer_cli/src/worker_protocol.pb.dart';
+import 'package:bazel_worker/bazel_worker.dart';
+import 'package:bazel_worker/testing.dart';
 import 'package:protobuf/protobuf.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
-
-import 'utils.dart';
 
 main() {
   defineReflectiveTests(WorkerLoopTest);
 }
 
-typedef void _TestWorkerLoopAnalyze(CommandLineOptions options);
-
 @reflectiveTest
 class WorkerLoopTest {
-  final TestStdinStream stdinStream = new TestStdinStream();
+  final TestStdinSync stdinStream = new TestStdinSync();
   final TestStdoutStream stdoutStream = new TestStdoutStream();
-  _TestWorkerConnection connection;
+  TestSyncWorkerConnection connection;
 
   WorkerLoopTest() {
-    connection = new _TestWorkerConnection(this.stdinStream, this.stdoutStream);
+    connection =
+        new TestSyncWorkerConnection(this.stdinStream, this.stdoutStream);
   }
 
   void setUp() {}
@@ -56,8 +49,9 @@ class WorkerLoopTest {
       'package:foo/bar.dart|/inputs/foo/lib/bar.dart',
     ]);
     stdinStream.addInputBytes(_serializeProto(request));
+    stdinStream.close();
 
-    new _TestWorkerLoop(connection, (CommandLineOptions options) {
+    new TestAnalyzerWorkerLoop(connection, (CommandLineOptions options) {
       expect(options.buildSummaryInputs,
           unorderedEquals(['/tmp/1.sum', '/tmp/2.sum']));
       expect(
@@ -71,10 +65,10 @@ class WorkerLoopTest {
       outSink.writeln('outSink b');
       errorSink.writeln('errorSink b');
     }).run();
-    expect(connection.outputList, hasLength(1));
+    expect(connection.responses, hasLength(1));
 
-    var response = connection.outputList[0];
-    expect(response.exitCode, WorkerLoop.EXIT_CODE_OK);
+    var response = connection.responses[0];
+    expect(response.exitCode, EXIT_CODE_OK, reason: response.output);
     expect(
         response.output,
         allOf(contains('errorSink a'), contains('errorSink a'),
@@ -89,64 +83,53 @@ class WorkerLoopTest {
     var request = new WorkRequest();
     request.arguments.addAll(['--unknown-option', '/foo.dart', '/bar.dart']);
     stdinStream.addInputBytes(_serializeProto(request));
-    new _TestWorkerLoop(connection).run();
-    expect(connection.outputList, hasLength(1));
+    stdinStream.close();
+    new TestAnalyzerWorkerLoop(connection).run();
+    expect(connection.responses, hasLength(1));
 
-    var response = connection.outputList[0];
-    expect(response.exitCode, WorkerLoop.EXIT_CODE_ERROR);
+    var response = connection.responses[0];
+    expect(response.exitCode, EXIT_CODE_ERROR);
     expect(response.output, anything);
   }
 
   test_run_invalidRequest_noArgumentsInputs() {
     stdinStream.addInputBytes(_serializeProto(new WorkRequest()));
+    stdinStream.close();
 
-    new _TestWorkerLoop(connection).run();
-    expect(connection.outputList, hasLength(1));
+    new TestAnalyzerWorkerLoop(connection).run();
+    expect(connection.responses, hasLength(1));
 
-    var response = connection.outputList[0];
-    expect(response.exitCode, WorkerLoop.EXIT_CODE_ERROR);
+    var response = connection.responses[0];
+    expect(response.exitCode, EXIT_CODE_ERROR);
     expect(response.output, anything);
   }
 
   test_run_invalidRequest_randomBytes() {
     stdinStream.addInputBytes([1, 2, 3]);
-    new _TestWorkerLoop(connection).run();
-    expect(connection.outputList, hasLength(1));
+    stdinStream.close();
+    new TestAnalyzerWorkerLoop(connection).run();
+    expect(connection.responses, hasLength(1));
 
-    var response = connection.outputList[0];
-    expect(response.exitCode, WorkerLoop.EXIT_CODE_ERROR);
+    var response = connection.responses[0];
+    expect(response.exitCode, EXIT_CODE_ERROR);
     expect(response.output, anything);
   }
 
   test_run_stopAtEOF() {
-    stdinStream.addInputBytes([-1]);
-    new _TestWorkerLoop(connection).run();
+    stdinStream.close();
+    new TestAnalyzerWorkerLoop(connection).run();
   }
 }
 
-/**
- * A [StdWorkerConnection] which records its responses.
- */
-class _TestWorkerConnection extends StdWorkerConnection {
-  final outputList = <WorkResponse>[];
-
-  _TestWorkerConnection(Stdin stdinStream, Stdout stdoutStream)
-      : super(stdinStream, stdoutStream);
-
-  @override
-  void writeResponse(WorkResponse response) {
-    super.writeResponse(response);
-    outputList.add(response);
-  }
-}
+typedef void _TestWorkerLoopAnalyze(CommandLineOptions options);
 
 /**
- * [WorkerLoop] for testing.
+ * [AnalyzerWorkerLoop] for testing.
  */
-class _TestWorkerLoop extends WorkerLoop {
+class TestAnalyzerWorkerLoop extends AnalyzerWorkerLoop {
   final _TestWorkerLoopAnalyze _analyze;
 
-  _TestWorkerLoop(WorkerConnection connection, [this._analyze])
+  TestAnalyzerWorkerLoop(SyncWorkerConnection connection, [this._analyze])
       : super(connection);
 
   @override

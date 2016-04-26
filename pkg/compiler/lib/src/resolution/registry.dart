@@ -20,7 +20,7 @@ import '../util/util.dart' show Setlet;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
-import '../universe/world_impact.dart' show WorldImpactBuilder;
+import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilder;
 import '../util/enumset.dart' show EnumSet;
 import '../world.dart' show World;
 
@@ -104,7 +104,39 @@ class _ResolutionWorldImpact extends ResolutionImpact with WorldImpactBuilder {
         : const <ConstantExpression>[];
   }
 
-  String toString() => '_ResolutionWorldImpact($name)';
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('_ResolutionWorldImpact($name)');
+    WorldImpact.printOn(sb, this);
+    if (_features != null) {
+      sb.write('\n features:');
+      for (Feature feature in _features.iterable(Feature.values)) {
+        sb.write('\n  $feature');
+      }
+    }
+    if (_mapLiterals != null) {
+      sb.write('\n map-literals:');
+      for (MapLiteralUse use in _mapLiterals) {
+        sb.write('\n  $use');
+      }
+    }
+    if (_listLiterals != null) {
+      sb.write('\n list-literals:');
+      for (ListLiteralUse use in _listLiterals) {
+        sb.write('\n  $use');
+      }
+    }
+    if (_constantLiterals != null) {
+      sb.write('\n const-literals:');
+      for (ConstantExpression constant in _constantLiterals) {
+        sb.write('\n  ${constant.getText()}');
+      }
+    }
+    if (_constSymbolNames != null) {
+      sb.write('\n const-symbol-names: $_constSymbolNames');
+    }
+    return sb.toString();
+  }
 }
 
 /// [ResolutionRegistry] collects all resolution information. It stores node
@@ -324,8 +356,11 @@ class ResolutionRegistry extends Registry {
 
   void registerForeignCall(Node node, Element element,
       CallStructure callStructure, ResolverVisitor visitor) {
-    backend.registerForeignCall(node, element, callStructure,
+    var nativeData = backend.resolveForeignCall(node, element, callStructure,
         new ForeignResolutionResolver(visitor, this));
+    if (nativeData != null) {
+      mapping.registerNativeData(node, nativeData);
+    }
   }
 
   void registerDynamicUse(DynamicUse dynamicUse) {

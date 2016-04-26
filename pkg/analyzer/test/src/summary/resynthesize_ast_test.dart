@@ -245,10 +245,87 @@ var d = foo.bar;
   ''');
   }
 
+  void test_infer_extractProperty_getter_sequence() {
+    var unit = checkFile(r'''
+class A {
+  B b = new B();
+}
+class B {
+  C c = new C();
+}
+class C {
+  int d;
+}
+var a = new A();
+var v = a.b.c.d;
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'int');
+  }
+
+  void test_infer_extractProperty_getter_sequence_generic() {
+    var unit = checkFile(r'''
+class A<T> {
+  B<T> b = new B<T>();
+}
+class B<K> {
+  C<List<K>, int> c = new C<List<K>, int>();
+}
+class C<K, V> {
+  Map<K, V> d;
+}
+var a = new A<double>();
+var v = a.b.c.d;
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'Map<List<double>, int>');
+  }
+
+  void test_infer_extractProperty_getter_sequence_withUnresolved() {
+    var unit = checkFile(r'''
+class A {
+  B b = new B();
+}
+class B {
+  int c;
+}
+var a = new A();
+var v = a.b.foo.c;
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'dynamic');
+  }
+
   void test_infer_extractProperty_method() {
-    checkFile(r'''
+    var unit = checkFile(r'''
+class A {
+  int m(double p1, String p2) => 42;
+}
+var a = new A();
+var v = a.m;
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), '(double, String) → int');
+  }
+
+  void test_infer_extractProperty_method2() {
+    var unit = checkFile(r'''
 var a = 1.round;
   ''');
+    expect(unit.topLevelVariables[0].type.toString(), '() → int');
+  }
+
+  void test_infer_extractProperty_method_sequence() {
+    var unit = checkFile(r'''
+class A {
+  B b = new B();
+}
+class B {
+  C c = new C();
+}
+class C {
+  int m(double p1, String p2) => 42;
+}
+var a = new A();
+var v = a.b.c.m;
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), '(double, String) → int');
   }
 
   void test_infer_invokeConstructor_factoryRedirected() {
@@ -319,6 +396,160 @@ var b2 = new B<int>();
   ''');
   }
 
+  void test_infer_invokeMethodRef_function() {
+    var unit = checkFile(r'''
+int m() => 0;
+var a = m();
+  ''');
+    expect(unit.topLevelVariables[0].type.toString(), 'int');
+  }
+
+  void test_infer_invokeMethodRef_function_generic() {
+    var unit = checkFile(r'''
+/*=Map<int, V>*/ m/*<V>*/(/*=V*/ a) => null;
+var a = m(2.3);
+  ''');
+    expect(unit.topLevelVariables[0].type.toString(), 'Map<int, double>');
+  }
+
+  void test_infer_invokeMethodRef_function_importedWithPrefix() {
+    addFile(
+        r'''
+int m() => 0;
+''',
+        name: '/a.dart');
+    var unit = checkFile(r'''
+import 'a.dart' as p;
+var a = p.m();
+  ''');
+    expect(unit.topLevelVariables[0].type.toString(), 'int');
+  }
+
+  void test_infer_invokeMethodRef_method() {
+    var unit = checkFile(r'''
+class A {
+  int m() => 0;
+}
+var a = new A();
+var b = a.m();
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'int');
+  }
+
+  void test_infer_invokeMethodRef_method_g() {
+    var unit = checkFile(r'''
+class A {
+  /*=T*/ m/*<T>*/(/*=T*/ a) => null;
+}
+var a = new A();
+var b = a.m(1.0);
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'double');
+  }
+
+  void test_infer_invokeMethodRef_method_genericSequence() {
+    var unit = checkFile(r'''
+class A<T> {
+  B<T> b = new B<T>();
+}
+class B<K> {
+  C<List<K>, int> c = new C<List<K>, int>();
+}
+class C<K, V> {
+  Map<K, V> m() => null;
+}
+var a = new A<double>();
+var v = a.b.c.m();
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'Map<List<double>, int>');
+  }
+
+  void test_infer_invokeMethodRef_method_gg() {
+    var unit = checkFile(r'''
+class A<K> {
+  /*=Map<K, V>*/ m/*<V>*/(/*=V*/ a) => null;
+}
+var a = new A<int>();
+var b = a.m(1.0);
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'Map<int, double>');
+  }
+
+  void test_infer_invokeMethodRef_method_importedWithPrefix() {
+    addFile(
+        r'''
+class A {
+  int m() => 0;
+}
+var a = new A();
+''',
+        name: '/a.dart');
+    var unit = checkFile(r'''
+import 'a.dart' as p;
+var b = p.a.m();
+  ''');
+    expect(unit.topLevelVariables[0].type.toString(), 'int');
+  }
+
+  void test_infer_invokeMethodRef_method_importedWithPrefix2() {
+    addFile(
+        r'''
+class A {
+  B b = new B();
+}
+class B {
+  int m() => 0;
+}
+var a = new A();
+''',
+        name: '/a.dart');
+    var unit = checkFile(r'''
+import 'a.dart' as p;
+var b = p.a.b.m();
+  ''');
+    expect(unit.topLevelVariables[0].type.toString(), 'int');
+  }
+
+  void test_infer_invokeMethodRef_method_withInferredTypeInLibraryCycle() {
+    var unit = checkFile('''
+class Base {
+  int m() => 0;
+}
+class A extends Base {
+  m() => 0; // Inferred return type: int
+}
+var a = new A();
+var b = a.m();
+    ''');
+    // Type inference operates on static and top level variables prior to
+    // instance members.  So at the time `b` is inferred, `A.m` still has return
+    // type `dynamic`.
+    expect(unit.topLevelVariables[1].type.toString(), 'dynamic');
+  }
+
+  void test_infer_invokeMethodRef_method_withInferredTypeOutsideLibraryCycle() {
+    addFile(
+        '''
+class Base {
+  int m() => 0;
+}
+class A extends Base {
+  m() => 0; // Inferred return type: int
+}
+''',
+        name: '/a.dart');
+    var unit = checkFile('''
+import 'a.dart';
+var a = new A();
+var b = a.m();
+''');
+    // Since a.dart is in a separate library file from the compilation unit
+    // containing `a` and `b`, its types are inferred first; then `a` and `b`'s
+    // types are inferred.  So the inferred return type of `int` should be
+    // propagated to `b`.
+    expect(unit.topLevelVariables[1].type.toString(), 'int');
+  }
+
   @override
   @failingTest
   void test_inferCorrectlyOnMultipleVariablesDeclaredTogether() {
@@ -329,30 +560,6 @@ var b2 = new B<int>();
   @failingTest
   void test_inferenceInCyclesIsDeterministic() {
     super.test_inferenceInCyclesIsDeterministic();
-  }
-
-  @override
-  @failingTest
-  void test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields() {
-    super.test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypesOnGenericInstantiations_4() {
-    super.test_inferTypesOnGenericInstantiations_4();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypesOnGenericInstantiations_5() {
-    super.test_inferTypesOnGenericInstantiations_5();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypesOnGenericInstantiationsInLibraryCycle() {
-    super.test_inferTypesOnGenericInstantiationsInLibraryCycle();
   }
 
   void test_invokeMethod_notGeneric_genericClass() {
@@ -410,12 +617,13 @@ class ResynthesizeAstTest extends ResynthesizeTest
   bool get checkPropagatedTypes => false;
 
   @override
-  void checkLibrary(String text,
+  LibraryElementImpl checkLibrary(String text,
       {bool allowErrors: false, bool dumpSummaries: false}) {
     Source source = addTestSource(text);
     LibraryElementImpl resynthesized = _encodeDecodeLibraryElement(source);
     LibraryElementImpl original = context.computeLibraryElement(source);
     checkLibraryElements(original, resynthesized);
+    return resynthesized;
   }
 
   @override

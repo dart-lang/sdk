@@ -11,6 +11,8 @@
 
 namespace dart {
 
+// TODO(vegorov) assembler part of this test is not implemented.
+#if !defined(TARGET_ARCH_DBC)
 ASSEMBLER_TEST_EXTERN(StoreIntoObject);
 
 ASSEMBLER_TEST_RUN(StoreIntoObject, test) {
@@ -60,5 +62,6 @@ ASSEMBLER_TEST_RUN(StoreIntoObject, test) {
   EXPECT(old_array.raw() == grow_new_array.data());
   EXPECT(!thread->StoreBufferContains(grow_new_array.raw()));
 }
+#endif
 
 }  // namespace dart

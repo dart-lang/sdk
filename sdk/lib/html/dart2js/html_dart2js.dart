@@ -143,12 +143,12 @@ abstract class AbstractWorker extends Interceptor implements EventTarget {
    */
   @DomName('AbstractWorker.errorEvent')
   @DocsEditable()
-  static const EventStreamProvider<ErrorEvent> errorEvent = const EventStreamProvider<ErrorEvent>('error');
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   /// Stream of `error` events handled by this [AbstractWorker].
   @DomName('AbstractWorker.onerror')
   @DocsEditable()
-  Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
+  Stream<Event> get onError => errorEvent.forTarget(this);
 }
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -165,7 +165,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   @DomName('HTMLAnchorElement.HTMLAnchorElement')
   @DocsEditable()
   factory AnchorElement({String href}) {
-    var e = document.createElement("a");
+    AnchorElement e = document.createElement("a");
     if (href != null) e.href = href;
     return e;
   }
@@ -1868,7 +1868,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLCanvasElement.HTMLCanvasElement')
   @DocsEditable()
   factory CanvasElement({int width, int height}) {
-    var e = document.createElement("canvas");
+    CanvasElement e = document.createElement("canvas");
     if (width != null) e.width = width;
     if (height != null) e.height = height;
     return e;
@@ -3099,7 +3099,7 @@ class CompositionEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    var e = document._createEvent("CompositionEvent");
+    CompositionEvent e = document._createEvent("CompositionEvent");
 
     if (Device.isFirefox) {
       // Firefox requires the locale parameter that isn't supported elsewhere.
@@ -9429,7 +9429,7 @@ class DeviceOrientationEvent extends Event {
   factory DeviceOrientationEvent(String type,
       {bool canBubble: true, bool cancelable: true, num alpha: 0, num beta: 0,
       num gamma: 0, bool absolute: false}) {
-    var e = document._createEvent("DeviceOrientationEvent");
+    DeviceOrientationEvent e = document._createEvent("DeviceOrientationEvent");
     e._initDeviceOrientationEvent(type, canBubble, cancelable, alpha, beta,
         gamma, absolute);
     return e;
@@ -9969,10 +9969,11 @@ class Document extends Node
   @DocsEditable()
   String _title;
 
+  @JSName('visibilityState')
   @DomName('Document.visibilityState')
   @DocsEditable()
   @Experimental() // untriaged
-  final String visibilityState;
+  final String _visibilityState;
 
   @JSName('webkitFullscreenElement')
   @DomName('Document.webkitFullscreenElement')
@@ -10605,9 +10606,8 @@ class Document extends Node
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  ElementList<Element> querySelectorAll(String selectors) {
-    return new _FrozenElementList._wrap(_querySelectorAll(selectors));
-  }
+  ElementList<Element /*=T*/> querySelectorAll/*<T extends Element>*/(String selectors) =>
+    new _FrozenElementList/*<T>*/._wrap(_querySelectorAll(selectors));
 
   /**
    * Alias for [querySelector]. Note this function is deprecated because its
@@ -10625,7 +10625,7 @@ class Document extends Node
   @deprecated
   @Experimental()
   @DomName('Document.querySelectorAll')
-  ElementList<Element> queryAll(String relativeSelectors) =>
+  ElementList<Element /*=T*/> queryAll/*<T extends Element>*/(String relativeSelectors) =>
       querySelectorAll(relativeSelectors);
 
   /// Checks if [registerElement] is supported on the current platform.
@@ -10675,6 +10675,15 @@ class Document extends Node
       [int whatToShow, NodeFilter filter])
       => JS('TreeWalker', '#.createTreeWalker(#, #, #, false)',
           this, root, whatToShow, filter);
+
+  @DomName('Document.visibilityState')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @Experimental()
+  String get visibilityState => JS('String',
+    '(#.visibilityState || #.mozVisibilityState || #.msVisibilityState ||'
+      '#.webkitVisibilityState)', this, this, this, this);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10717,7 +10726,7 @@ class DocumentFragment extends Node implements NonElementParentNode, ParentNode 
 
   set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
-    List copy = new List.from(value);
+    var copy = value.toList();
     var children = this.children;
     children.clear();
     children.addAll(copy);
@@ -10734,8 +10743,9 @@ class DocumentFragment extends Node implements NonElementParentNode, ParentNode 
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  ElementList<Element> querySelectorAll(String selectors) =>
-    new _FrozenElementList._wrap(_querySelectorAll(selectors));
+  ElementList<Element /*=T*/> querySelectorAll/*<T extends Element>*/(String selectors) =>
+    new _FrozenElementList/*<T>*/._wrap(_querySelectorAll(selectors));
+
 
   String get innerHtml {
     final e = new Element.tag("div");
@@ -10792,9 +10802,8 @@ class DocumentFragment extends Node implements NonElementParentNode, ParentNode 
   @deprecated
   @Experimental()
   @DomName('DocumentFragment.querySelectorAll')
-  ElementList<Element> queryAll(String relativeSelectors) {
-    return querySelectorAll(relativeSelectors);
-  }
+  ElementList<Element /*=T*/> queryAll/*<T extends Element>*/(String relativeSelectors) =>
+    querySelectorAll(relativeSelectors);
   // To suppress missing implicit constructor warnings.
   factory DocumentFragment._() { throw new UnsupportedError("Not supported"); }
 
@@ -11202,125 +11211,53 @@ class DomMatrixReadOnly extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DomMatrixReadOnly._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('DOMMatrixReadOnly.a')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double a;
+  num get a => JS("num", "#.a", this);
 
-  @DomName('DOMMatrixReadOnly.b')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double b;
+  num get b => JS("num", "#.b", this);
 
-  @DomName('DOMMatrixReadOnly.c')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double c;
+  num get c => JS("num", "#.c", this);
 
-  @DomName('DOMMatrixReadOnly.d')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double d;
+  num get d => JS("num", "#.d", this);
 
-  @DomName('DOMMatrixReadOnly.e')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double e;
+  num get e => JS("num", "#.e", this);
 
-  @DomName('DOMMatrixReadOnly.f')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double f;
+  num get f => JS("num", "#.f", this);
 
-  @DomName('DOMMatrixReadOnly.is2D')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final bool is2D;
+  bool get is2D => JS("bool", "#.is2D", this);
 
-  @DomName('DOMMatrixReadOnly.isIdentity')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final bool isIdentity;
+  bool get isIdentity => JS("bool", "#.isIdentity", this);
 
-  @DomName('DOMMatrixReadOnly.m11')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m11;
+  num get m11 => JS("num", "#.m11", this);
 
-  @DomName('DOMMatrixReadOnly.m12')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m12;
+  num get m12 => JS("num", "#.m12", this);
 
-  @DomName('DOMMatrixReadOnly.m13')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m13;
+  num get m13 => JS("num", "#.m13", this);
 
-  @DomName('DOMMatrixReadOnly.m14')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m14;
+  num get m14 => JS("num", "#.m14", this);
 
-  @DomName('DOMMatrixReadOnly.m21')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m21;
+  num get m21 => JS("num", "#.m21", this);
 
-  @DomName('DOMMatrixReadOnly.m22')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m22;
+  num get m22 => JS("num", "#.m22", this);
 
-  @DomName('DOMMatrixReadOnly.m23')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m23;
+  num get m23 => JS("num", "#.m23", this);
 
-  @DomName('DOMMatrixReadOnly.m24')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m24;
+  num get m24 => JS("num", "#.m24", this);
 
-  @DomName('DOMMatrixReadOnly.m31')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m31;
+  num get m31 => JS("num", "#.m31", this);
 
-  @DomName('DOMMatrixReadOnly.m32')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m32;
+  num get m32 => JS("num", "#.m32", this);
 
-  @DomName('DOMMatrixReadOnly.m33')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m33;
+  num get m33 => JS("num", "#.m33", this);
 
-  @DomName('DOMMatrixReadOnly.m34')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m34;
+  num get m34 => JS("num", "#.m34", this);
 
-  @DomName('DOMMatrixReadOnly.m41')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m41;
+  num get m41 => JS("num", "#.m41", this);
 
-  @DomName('DOMMatrixReadOnly.m42')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m42;
+  num get m42 => JS("num", "#.m42", this);
 
-  @DomName('DOMMatrixReadOnly.m43')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m43;
+  num get m43 => JS("num", "#.m43", this);
 
-  @DomName('DOMMatrixReadOnly.m44')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m44;
+  num get m44 => JS("num", "#.m44", this);
 
   @DomName('DOMMatrixReadOnly.multiply')
   @DocsEditable()
@@ -11475,25 +11412,13 @@ class DomPointReadOnly extends Interceptor {
   }
   static DomPointReadOnly _create_1(x, y, z, w) => JS('DomPointReadOnly', 'new DOMPointReadOnly(#,#,#,#)', x, y, z, w);
 
-  @DomName('DOMPointReadOnly.w')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double w;
+  num get w => JS("num", "#.w", this);
 
-  @DomName('DOMPointReadOnly.x')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double x;
+  num get x => JS("num", "#.x", this);
 
-  @DomName('DOMPointReadOnly.y')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double y;
+  num get y => JS("num", "#.y", this);
 
-  @DomName('DOMPointReadOnly.z')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double z;
+  num get z => JS("num", "#.z", this);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11605,45 +11530,21 @@ class DomRectReadOnly extends Interceptor implements Rectangle {
   }
   static DomRectReadOnly _create_1(x, y, width, height) => JS('DomRectReadOnly', 'new DOMRectReadOnly(#,#,#,#)', x, y, width, height);
 
-  @DomName('DOMRectReadOnly.bottom')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double bottom;
+  num get bottom => JS("num", "#.bottom", this);
 
-  @DomName('DOMRectReadOnly.height')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double height;
+  num get height => JS("num", "#.height", this);
 
-  @DomName('DOMRectReadOnly.left')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double left;
+  num get left => JS("num", "#.left", this);
 
-  @DomName('DOMRectReadOnly.right')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double right;
+  num get right => JS("num", "#.right", this);
 
-  @DomName('DOMRectReadOnly.top')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double top;
+  num get top => JS("num", "#.top", this);
 
-  @DomName('DOMRectReadOnly.width')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double width;
+  num get width => JS("num", "#.width", this);
 
-  @DomName('DOMRectReadOnly.x')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double x;
+  num get x => JS("num", "#.x", this);
 
-  @DomName('DOMRectReadOnly.y')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double y;
+  num get y => JS("num", "#.y", this);
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11726,10 +11627,6 @@ class DomStringList extends Interceptor with ListMixin<String>, ImmutableListMix
   @DocsEditable()
   @Experimental() // untriaged
   String __getter__(int index) native;
-
-  @DomName('DOMStringList.contains')
-  @DocsEditable()
-  bool contains(String string) native;
 
   @DomName('DOMStringList.item')
   @DocsEditable()
@@ -11877,7 +11774,7 @@ class _ChildrenElementList extends ListBase<Element>
     _filter(test, true);
   }
 
-  void _filter(bool test(var element), bool retainMatching) {
+  void _filter(bool test(Element element), bool retainMatching) {
     var removed;
     if (retainMatching) {
       removed = _element.children.where((e) => !test(e));
@@ -12531,17 +12428,17 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
 // declared to return `ElementList`.  This provides all the static analysis
 // benefit so there is no need for this class have a constrained type parameter.
 //
-class _FrozenElementList extends ListBase
-    implements ElementList, NodeListWrapper {
+class _FrozenElementList<E extends Element> extends ListBase<E>
+    implements ElementList<E>, NodeListWrapper {
   final List<Node> _nodeList;
 
   _FrozenElementList._wrap(this._nodeList);
 
   int get length => _nodeList.length;
 
-  Element operator [](int index) => _nodeList[index];
+  E operator [](int index) => _downcast/*<Node, E>*/(_nodeList[index]);
 
-  void operator []=(int index, Element value) {
+  void operator []=(int index, E value) {
     throw new UnsupportedError('Cannot modify list');
   }
 
@@ -12549,7 +12446,7 @@ class _FrozenElementList extends ListBase
     throw new UnsupportedError('Cannot modify list');
   }
 
-  void sort([Comparator<Element> compare]) {
+  void sort([Comparator<E> compare]) {
     throw new UnsupportedError('Cannot sort list');
   }
 
@@ -12557,11 +12454,11 @@ class _FrozenElementList extends ListBase
     throw new UnsupportedError('Cannot shuffle list');
   }
 
-  Element get first => _nodeList.first;
+  E get first => _downcast/*<Node, E>*/(_nodeList.first);
 
-  Element get last => _nodeList.last;
+  E get last => _downcast/*<Node, E>*/(_nodeList.last);
 
-  Element get single => _nodeList.single;
+  E get single => _downcast/*<Node, E>*/(_nodeList.single);
 
   CssClassSet get classes => new _MultiElementCssClassSet(this);
 
@@ -12575,7 +12472,7 @@ class _FrozenElementList extends ListBase
     //
     // as the code below converts the Iterable[value] to a string multiple
     // times.  Maybe compute the string and set className here.
-    _nodeList.forEach((e) => e.classes = value);
+    forEach((e) => e.classes = value);
   }
 
   CssRect get contentEdge => new _ContentCssListRect(this);
@@ -13315,7 +13212,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
 
   set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
-    List copy = new List.from(value);
+    var copy = value.toList();
     var children = this.children;
     children.clear();
     children.addAll(copy);
@@ -13333,8 +13230,8 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   @DomName('Element.querySelectorAll')
-  ElementList<Element> querySelectorAll(String selectors) =>
-    new _FrozenElementList._wrap(_querySelectorAll(selectors));
+  ElementList<Element /*=T*/> querySelectorAll/*<T extends Element>*/(String selectors) =>
+    new _FrozenElementList/*<T>*/._wrap(_querySelectorAll(selectors));
 
   /**
    * Alias for [querySelector]. Note this function is deprecated because its
@@ -13352,7 +13249,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   @deprecated
   @DomName('Element.querySelectorAll')
   @Experimental()
-  ElementList<Element> queryAll(String relativeSelectors) =>
+  ElementList<Element /*=T*/> queryAll/*<T extends Element>*/(String relativeSelectors) =>
       querySelectorAll(relativeSelectors);
 
   /**
@@ -13550,14 +13447,13 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
       throw new ArgumentError("The frames parameter should be a List of Maps "
           "with frame information");
     }
-    var convertedFrames = frames;
-    if (convertedFrames is Iterable) {
+    var convertedFrames;
+    if (frames is Iterable) {
       convertedFrames = frames.map(convertDartToNative_Dictionary).toList();
+    } else {
+      convertedFrames = frames;
     }
-    var convertedTiming = timing;
-    if (convertedTiming is Map) {
-      convertedTiming = convertDartToNative_Dictionary(convertedTiming);
-    }
+    var convertedTiming = timing is Map ? convertDartToNative_Dictionary(timing) : timing;
     return convertedTiming == null
       ? _animate(convertedFrames)
       : _animate(convertedFrames, convertedTiming);
@@ -14025,7 +13921,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
 
       // Workaround for Safari bug. Was also previously Chrome bug 229142
       // - URIs are not resolved in new doc.
-      var base = _parseDocument.createElement('base');
+      BaseElement base = _parseDocument.createElement('base');
       base.href = document.baseUri;
       _parseDocument.head.append(base);
     }
@@ -14940,9 +14836,8 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   @DocsEditable()
   bool hidden;
 
-  @DomName('Element.isContentEditable')
-  @DocsEditable()
-  final bool isContentEditable;
+  // Using property as subclass shadows.
+  bool get isContentEditable => JS("bool", "#.isContentEditable", this);
 
   @DomName('Element.lang')
   @DocsEditable()
@@ -15067,10 +14962,8 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   // Use implementation from Node.
   // final String _namespaceUri;
 
-  @JSName('outerHTML')
-  @DomName('Element.outerHTML')
-  @DocsEditable()
-  final String outerHtml;
+  // Using property as subclass shadows.
+  String get outerHtml => JS("String", "#.outerHTML", this);
 
   @JSName('scrollHeight')
   @DomName('Element.scrollHeight')
@@ -16215,7 +16108,7 @@ class Event extends Interceptor {
     e._initEvent(name, canBubble, cancelable);
     return e;
   }
-  
+
   /** The CSS selector involved with event delegation. */
   String _selector;
 
@@ -16229,8 +16122,8 @@ class Event extends Interceptor {
       throw new UnsupportedError('Cannot call matchingTarget if this Event did'
           ' not arise as a result of event delegation.');
     }
-    var currentTarget = this.currentTarget;
-    var target = this.target;
+    Element currentTarget = this.currentTarget;
+    Element target = this.target;
     var matchedTarget;
     do {
       if (target.matches(_selector)) return target;
@@ -16523,26 +16416,24 @@ class Events {
 }
 
 class ElementEvents extends Events {
-  /* Raw event target. */
-  final Element _ptr;
   static final webkitEvents = {
-    'animationend' : 'webkitAnimationEnd', 
-    'animationiteration' : 'webkitAnimationIteration', 
-    'animationstart' : 'webkitAnimationStart', 
-    'fullscreenchange' : 'webkitfullscreenchange', 
+    'animationend' : 'webkitAnimationEnd',
+    'animationiteration' : 'webkitAnimationIteration',
+    'animationstart' : 'webkitAnimationStart',
+    'fullscreenchange' : 'webkitfullscreenchange',
     'fullscreenerror' : 'webkitfullscreenerror',
-    'keyadded' : 'webkitkeyadded', 
-    'keyerror' : 'webkitkeyerror', 
-    'keymessage' : 'webkitkeymessage', 
-    'needkey' : 'webkitneedkey', 
-    'pointerlockchange' : 'webkitpointerlockchange', 
-    'pointerlockerror' : 'webkitpointerlockerror', 
-    'resourcetimingbufferfull' : 'webkitresourcetimingbufferfull', 
+    'keyadded' : 'webkitkeyadded',
+    'keyerror' : 'webkitkeyerror',
+    'keymessage' : 'webkitkeymessage',
+    'needkey' : 'webkitneedkey',
+    'pointerlockchange' : 'webkitpointerlockchange',
+    'pointerlockerror' : 'webkitpointerlockerror',
+    'resourcetimingbufferfull' : 'webkitresourcetimingbufferfull',
     'transitionend': 'webkitTransitionEnd',
     'speechchange' : 'webkitSpeechChange'
   };
 
-  ElementEvents(Element ptr) : this._ptr = ptr, super(ptr);
+  ElementEvents(Element ptr) : super(ptr);
 
   Stream operator [](String type) {
     if (webkitEvents.keys.contains(type.toLowerCase())) {
@@ -17980,7 +17871,10 @@ class Geolocation extends Interceptor {
     }
 
     int watchId;
-    var controller;
+    // TODO(jacobr): it seems like a bug that we have to specifiy the static
+    // type here for controller.stream to have the right type.
+    // dartbug.com/26278
+    StreamController<Geoposition> controller;
     controller = new StreamController<Geoposition>(sync: true,
       onListen: () {
         assert(watchId == null);
@@ -19047,11 +18941,11 @@ class HtmlCollection extends Interceptor with ListMixin<Node>, ImmutableListMixi
 
   @DomName('HTMLCollection.item')
   @DocsEditable()
-  Element item(int index) native;
+  Node item(int index) native;
 
   @DomName('HTMLCollection.namedItem')
   @DocsEditable()
-  Element namedItem(String name) native;
+  Object namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19171,61 +19065,6 @@ class HtmlDocument extends Document {
     _webkitExitFullscreen();
   }
 
-  /**
-   * Returns the element, if any, that is currently displayed in fullscreen.
-   *
-   * Returns null if there is currently no fullscreen element. You can use
-   * this to determine if the page is in fullscreen mode.
-   *
-   *     myVideo = new VideoElement();
-   *     if (document.fullscreenElement == null) {
-   *       myVideo.requestFullscreen();
-   *       print(document.fullscreenElement == myVideo); // true
-   *     }
-   *
-   * ## Other resources
-   *
-   * * [Using the fullscreen
-   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
-   *   from WebPlatform.org.
-   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
-   */
-  @DomName('Document.webkitFullscreenElement')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  Element get fullscreenElement => _webkitFullscreenElement;
-
-  /**
-   * Returns true if this document can display elements in fullscreen mode.
-   *
-   * ## Other resources
-   *
-   * * [Using the fullscreen
-   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
-   *   from WebPlatform.org.
-   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
-   */
-  @DomName('Document.webkitFullscreenEnabled')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  bool get fullscreenEnabled => _webkitFullscreenEnabled;
-
-  @DomName('Document.webkitHidden')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  bool get hidden => _webkitHidden;
-
-  @DomName('Document.visibilityState')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.IE, '10')
-  @Experimental()
-  String get visibilityState => JS('String',
-    '(#.visibilityState || #.mozVisibilityState || #.msVisibilityState ||'
-      '#.webkitVisibilityState)', this, this, this, this);
 
   @Experimental()
   /**
@@ -20394,7 +20233,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLImageElement.HTMLImageElement')
   @DocsEditable()
   factory ImageElement({String src, int width, int height}) {
-    var e = document.createElement("img");
+    ImageElement e = document.createElement("img");
     if (src != null) e.src = src;
     if (width != null) e.width = width;
     if (height != null) e.height = height;
@@ -20542,7 +20381,7 @@ class InputElement extends HtmlElement implements
     ButtonInputElement {
 
   factory InputElement({String type}) {
-    var e = document.createElement("input");
+    InputElement e = document.createElement("input");
     if (type != null) {
       try {
         // IE throws an exception for unknown types.
@@ -21402,15 +21241,15 @@ abstract class ButtonInputElement implements InputElementBase {
 @Native("KeyboardEvent")
 class KeyboardEvent extends UIEvent {
 
-  /** 
-   * Programmatically create a KeyboardEvent. 
+  /**
+   * Programmatically create a KeyboardEvent.
    *
    * Due to browser differences, keyCode, charCode, or keyIdentifier values
    * cannot be specified in this base level constructor. This constructor
    * enables the user to programmatically create and dispatch a [KeyboardEvent],
    * but it will not contain any particular key content. For programmatically
    * creating keyboard events with specific key value contents, see the custom
-   * Event [KeyEvent]. 
+   * Event [KeyEvent].
    */
   factory KeyboardEvent(String type,
       {Window view, bool canBubble: true, bool cancelable: true,
@@ -21419,7 +21258,7 @@ class KeyboardEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    final e = document._createEvent("KeyboardEvent");
+    KeyboardEvent e = document._createEvent("KeyboardEvent");
     e._initKeyboardEvent(type, canBubble, cancelable, view, "",
         keyLocation, ctrlKey, altKey, shiftKey, metaKey);
     return e;
@@ -23438,7 +23277,7 @@ class MessageEvent extends Event {
   factory MessageEvent(String type,
       {bool canBubble: false, bool cancelable: false, Object data,
       String origin, String lastEventId,
-      Window source, List messagePorts}) {
+      Window source, List<MessagePort> messagePorts}) {
     if (source == null) {
       source = window;
     }
@@ -23448,7 +23287,7 @@ class MessageEvent extends Event {
           type, canBubble, cancelable, data, origin, lastEventId, source,
           messagePorts);
     }
-    var event = document._createEvent("MessageEvent");
+    MessageEvent event = document._createEvent("MessageEvent");
     event._initMessageEvent(type, canBubble, cancelable, data, origin,
         lastEventId, source, messagePorts);
     return event;
@@ -24066,7 +23905,7 @@ class MouseEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    var event = document._createEvent('MouseEvent');
+    MouseEvent event = document._createEvent('MouseEvent');
     event._initMouseEvent(type, canBubble, cancelable, view, detail,
         screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
         button, relatedTarget);
@@ -24210,22 +24049,6 @@ class MouseEvent extends UIEvent {
   @deprecated
   final Node toElement;
 
-  @JSName('webkitMovementX')
-  @DomName('MouseEvent.webkitMovementX')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  final int _webkitMovementX;
-
-  @JSName('webkitMovementY')
-  @DomName('MouseEvent.webkitMovementY')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  final int _webkitMovementY;
-
   // Use implementation from UIEvent.
   // final int _which;
 
@@ -24249,9 +24072,9 @@ class MouseEvent extends UIEvent {
   @DomName('MouseEvent.movementX')
   @DomName('MouseEvent.movementY')
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
   @Experimental()
-  Point get movement => new Point(_webkitMovementX, _webkitMovementY);
+  Point get movement => new Point(_movementX, _movementY);
 
   /**
    * The coordinates of the mouse pointer in target node coordinates.
@@ -25110,7 +24933,7 @@ class Node extends EventTarget {
   set nodes(Iterable<Node> value) {
     // Copy list first since we don't want liveness during iteration.
     // TODO(jacobr): there is a better way to do this.
-    List copy = new List.from(value);
+    var copy = value.toList();
     text = '';
     for (Node node in copy) {
       append(node);
@@ -29444,8 +29267,7 @@ class SelectElement extends HtmlElement {
   // Override default options, since IE returns SelectElement itself and it
   // does not operate as a List.
   List<OptionElement> get options {
-    var options = this.querySelectorAll('option').where(
-        (e) => e is OptionElement).toList();
+    var options = new List<OptionElement>.from(this.querySelectorAll('option'));
     return new UnmodifiableListView(options);
   }
 
@@ -31333,11 +31155,11 @@ class Storage extends Interceptor
   }
 
   // TODO(nweiz): update this when maps support lazy iteration
-  bool containsValue(String value) => values.any((e) => e == value);
+  bool containsValue(Object value) => values.any((e) => e == value);
 
-  bool containsKey(String key) => _getItem(key) != null;
+  bool containsKey(Object key) => _getItem(key) != null;
 
-  String operator [](String key) => _getItem(key);
+  String operator [](Object key) => _getItem(key);
 
   void operator []=(String key, String value) { _setItem(key, value); }
 
@@ -31346,7 +31168,7 @@ class Storage extends Interceptor
     return this[key];
   }
 
-  String remove(String key) {
+  String remove(Object key) {
     final value = this[key];
     _removeItem(key);
     return value;
@@ -31364,13 +31186,13 @@ class Storage extends Interceptor
   }
 
   Iterable<String> get keys {
-    final keys = [];
+    final keys = <String>[];
     forEach((k, v) => keys.add(k));
     return keys;
   }
 
   Iterable<String> get values {
-    final values = [];
+    final values = <String>[];
     forEach((k, v) => values.add(v));
     return values;
   }
@@ -31452,7 +31274,7 @@ class StorageEvent extends Event {
     {bool canBubble: false, bool cancelable: false, String key, String oldValue,
     String newValue, String url, Storage storageArea}) {
 
-    var e = document._createEvent("StorageEvent");
+    StorageEvent e = document._createEvent("StorageEvent");
     e._initStorageEvent(type, canBubble, cancelable, key, oldValue,
         newValue, url, storageArea);
     return e;
@@ -32386,7 +32208,7 @@ class TextEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    var e = document._createEvent("TextEvent");
+    TextEvent e = document._createEvent("TextEvent");
     e._initTextEvent(type, canBubble, cancelable, view, data);
     return e;
   }
@@ -32980,7 +32802,7 @@ class TouchEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    var e = document._createEvent("TouchEvent");
+    TouchEvent e = document._createEvent("TouchEvent");
     e._initTouchEvent(touches, targetTouches, changedTouches, type, view,
         screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
     return e;
@@ -33414,7 +33236,7 @@ class UIEvent extends Event {
     if (view == null) {
       view = window;
     }
-    final e = document._createEvent("UIEvent");
+    UIEvent e = document._createEvent("UIEvent");
     e._initUIEvent(type, canBubble, cancelable, view, detail);
     return e;
   }
@@ -34817,7 +34639,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DomName('Window.requestAnimationFrame')
   int requestAnimationFrame(FrameRequestCallback callback) {
     _ensureRequestAnimationFrame();
-    return _requestAnimationFrame(_wrapZone(callback));
+    return _requestAnimationFrame(_wrapZone/*<num, dynamic>*/(callback));
   }
 
   /**
@@ -36732,12 +36554,11 @@ class _BeforeUnloadEventStreamProvider implements
 
   Stream<BeforeUnloadEvent> forTarget(EventTarget e, {bool useCapture: false}) {
     var stream = new _EventStream(e, _eventType, useCapture);
-    var controller = new StreamController(sync: true);
+    var controller = new StreamController<BeforeUnloadEvent>(sync: true);
 
     stream.listen((event) {
       var wrapped = new _BeforeUnloadEvent(event);
       controller.add(wrapped);
-      return wrapped.returnValue;
     });
 
     return controller.stream;
@@ -37552,13 +37373,6 @@ class _Attr extends Node {
   // Use implementation from Node.
   // final String nodeValue;
 
-  // Shadowing definition.
-  String get text => JS("String", "#.textContent", this);
-
-  set text(String value) {
-    JS("void", "#.textContent = #", this, value);
-  }
-
   @DomName('Attr.value')
   @DocsEditable()
   String value;
@@ -38284,29 +38098,6 @@ abstract class _HTMLMarqueeElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DomName('MutationEvent')
-// http://www.w3.org/TR/DOM-Level-3-Events/#events-mutationevents
-@deprecated
-@Native("MutationEvent")
-abstract class _MutationEvent extends Event {
-  factory _MutationEvent(String type,
-      {bool canBubble: false, bool cancelable: false, Node relatedNode,
-      String prevValue, String newValue, String attrName, int attrChange: 0}) {
-
-    var event = document._createEvent('MutationEvent');
-    event._initMutationEvent(type, canBubble, cancelable, relatedNode,
-        prevValue, newValue, attrName, attrChange);
-    return event;
-  }
-  // To suppress missing implicit constructor warnings.
-  factory _MutationEvent._() { throw new UnsupportedError("Not supported"); }
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 @DocsEditable()
 @DomName('NamedNodeMap')
 // http://dom.spec.whatwg.org/#namednodemap
@@ -38784,7 +38575,7 @@ abstract class _AttributeMap implements Map<String, String> {
     other.forEach((k, v) { this[k] = v; });
   }
 
-  bool containsValue(String value) {
+  bool containsValue(Object value) {
     for (var v in this.values) {
       if (value == v) {
         return true;
@@ -38816,10 +38607,11 @@ abstract class _AttributeMap implements Map<String, String> {
   Iterable<String> get keys {
     // TODO: generate a lazy collection instead.
     var attributes = _element._attributes;
-    var keys = new List<String>();
+    var keys = <String>[];
     for (int i = 0, len = attributes.length; i < len; i++) {
-      if (_matches(attributes[i])) {
-        keys.add(attributes[i].name);
+      _Attr attr = attributes[i];
+      if (_matches(attr)) {
+        keys.add(attr.name);
       }
     }
     return keys;
@@ -38828,10 +38620,11 @@ abstract class _AttributeMap implements Map<String, String> {
   Iterable<String> get values {
     // TODO: generate a lazy collection instead.
     var attributes = _element._attributes;
-    var values = new List<String>();
+    var values = <String>[];
     for (int i = 0, len = attributes.length; i < len; i++) {
-      if (_matches(attributes[i])) {
-        values.add(attributes[i].value);
+      _Attr attr = attributes[i];
+      if (_matches(attr)) {
+        values.add(attr.value);
       }
     }
     return values;
@@ -38862,11 +38655,11 @@ class _ElementAttributeMap extends _AttributeMap {
 
   _ElementAttributeMap(Element element): super(element);
 
-  bool containsKey(String key) {
+  bool containsKey(Object key) {
     return _element._hasAttribute(key);
   }
 
-  String operator [](String key) {
+  String operator [](Object key) {
     return _element.getAttribute(key);
   }
 
@@ -38874,7 +38667,7 @@ class _ElementAttributeMap extends _AttributeMap {
     _element.setAttribute(key, value);
   }
 
-  String remove(String key) {
+  String remove(Object key) {
     String value = _element.getAttribute(key);
     _element._removeAttribute(key);
     return value;
@@ -38899,11 +38692,11 @@ class _NamespacedAttributeMap extends _AttributeMap {
 
   _NamespacedAttributeMap(Element element, this._namespace): super(element);
 
-  bool containsKey(String key) {
+  bool containsKey(Object key) {
     return _element._hasAttributeNS(_namespace, key);
   }
 
-  String operator [](String key) {
+  String operator [](Object key) {
     return _element.getAttributeNS(_namespace, key);
   }
 
@@ -38911,7 +38704,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
     _element.setAttributeNS(_namespace, key, value);
   }
 
-  String remove(String key) {
+  String remove(Object key) {
     String value = this[key];
     _element._removeAttributeNS(_namespace, key);
     return value;
@@ -38945,11 +38738,11 @@ class _DataAttributeMap implements Map<String, String> {
   }
 
   // TODO: Use lazy iterator when it is available on Map.
-  bool containsValue(String value) => values.any((v) => v == value);
+  bool containsValue(Object value) => values.any((v) => v == value);
 
-  bool containsKey(String key) => _attributes.containsKey(_attr(key));
+  bool containsKey(Object key) => _attributes.containsKey(_attr(key));
 
-  String operator [](String key) => _attributes[_attr(key)];
+  String operator [](Object key) => _attributes[_attr(key)];
 
   void operator []=(String key, String value) {
     _attributes[_attr(key)] = value;
@@ -38958,7 +38751,7 @@ class _DataAttributeMap implements Map<String, String> {
   String putIfAbsent(String key, String ifAbsent()) =>
     _attributes.putIfAbsent(_attr(key), ifAbsent);
 
-  String remove(String key) => _attributes.remove(_attr(key));
+  String remove(Object key) => _attributes.remove(_attr(key));
 
   void clear() {
     // Needs to operate on a snapshot since we are mutating the collection.
@@ -38976,7 +38769,7 @@ class _DataAttributeMap implements Map<String, String> {
   }
 
   Iterable<String> get keys {
-    final keys = new List<String>();
+    final keys = <String>[];
     _attributes.forEach((String key, String value) {
       if (_matches(key)) {
         keys.add(_strip(key));
@@ -38986,7 +38779,7 @@ class _DataAttributeMap implements Map<String, String> {
   }
 
   Iterable<String> get values {
-    final values = new List<String>();
+    final values = <String>[];
     _attributes.forEach((String key, String value) {
       if (_matches(key)) {
         values.add(value);
@@ -39217,7 +39010,7 @@ abstract class WindowBase implements EventTarget {
    * * [Cross-document messaging](https://html.spec.whatwg.org/multipage/comms.html#web-messaging)
    *   from WHATWG.
    */
-  void postMessage(var message, String targetOrigin, [List messagePorts]);
+  void postMessage(var message, String targetOrigin, [List<MessagePort> messagePorts]);
 }
 
 abstract class LocationBase {
@@ -39271,7 +39064,7 @@ abstract class CssClassSet implements Set<String> {
    * [value] must be a valid 'token' representing a single class, i.e. a
    * non-empty string containing no whitespace.
    */
-  bool contains(String value);
+  bool contains(Object value);
 
   /**
    * Add the class [value] to element.
@@ -39323,7 +39116,7 @@ abstract class CssClassSet implements Set<String> {
    * Each element of [iterable] must be a valid 'token' representing a single
    * class, i.e. a non-empty string containing no whitespace.
    */
-  void removeAll(Iterable<String> iterable);
+  void removeAll(Iterable<Object> iterable);
 
   /**
    * Toggles all classes specified in [iterable] on element.
@@ -39351,7 +39144,7 @@ abstract class CssClassSet implements Set<String> {
  */
 class _ContentCssRect extends CssRect {
 
-  _ContentCssRect(element) : super(element);
+  _ContentCssRect(Element element) : super(element);
 
   num get height => _element.offsetHeight +
       _addOrSubtractToBoxModel(_HEIGHT, _CONTENT);
@@ -39372,9 +39165,11 @@ class _ContentCssRect extends CssRect {
     if (newHeight is Dimension) {
       if (newHeight.value < 0) newHeight = new Dimension.px(0);
       _element.style.height = newHeight.toString();
-    } else {
+    } else if (newHeight is num) {
       if (newHeight < 0) newHeight = 0;
       _element.style.height = '${newHeight}px';
+    } else {
+      throw new ArgumentError("newHeight is not a Dimension or num");
     }
   }
 
@@ -39390,9 +39185,11 @@ class _ContentCssRect extends CssRect {
     if (newWidth is Dimension) {
       if (newWidth.value < 0) newWidth = new Dimension.px(0);
       _element.style.width = newWidth.toString();
-    } else {
+    } else if (newWidth is num) {
       if (newWidth < 0) newWidth = 0;
       _element.style.width = '${newWidth}px';
+    } else {
+      throw new ArgumentError("newWidth is not a Dimension or num");
     }
   }
 
@@ -39409,7 +39206,7 @@ class _ContentCssRect extends CssRect {
 class _ContentCssListRect extends _ContentCssRect {
   List<Element> _elementList;
 
-  _ContentCssListRect(elementList) : super(elementList.first) {
+  _ContentCssListRect(List<Element> elementList) : super(elementList.first) {
     _elementList = elementList;
   }
 
@@ -39498,10 +39295,10 @@ class _MarginCssRect extends CssRect {
  * animation frame is discouraged. See also:
  * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
  */
-abstract class CssRect extends MutableRectangle<num> {
+abstract class CssRect implements Rectangle<num> {
   Element _element;
 
-  CssRect(this._element) : super(0, 0, 0, 0);
+  CssRect(this._element);
 
   num get left;
 
@@ -39594,6 +39391,102 @@ abstract class CssRect extends MutableRectangle<num> {
     }
     return val;
   }
+
+  // TODO(jacobr): these methods are duplicated from _RectangleBase in dart:math
+  // Ideally we would provide a RectangleMixin class that provides this implementation.
+  // In an ideal world we would exp
+  /** The x-coordinate of the right edge. */
+  num get right => left + width;
+  /** The y-coordinate of the bottom edge. */
+  num get bottom => top + height;
+
+  String toString() {
+    return 'Rectangle ($left, $top) $width x $height';
+  }
+
+  bool operator ==(other) {
+    if (other is !Rectangle) return false;
+    return left == other.left && top == other.top && right == other.right &&
+        bottom == other.bottom;
+  }
+
+  int get hashCode => _JenkinsSmiHash.hash4(left.hashCode, top.hashCode,
+      right.hashCode, bottom.hashCode);
+
+  /**
+   * Computes the intersection of `this` and [other].
+   *
+   * The intersection of two axis-aligned rectangles, if any, is always another
+   * axis-aligned rectangle.
+   *
+   * Returns the intersection of this and `other`, or `null` if they don't
+   * intersect.
+   */
+  Rectangle<num> intersection(Rectangle<num> other) {
+    var x0 = max(left, other.left);
+    var x1 = min(left + width, other.left + other.width);
+
+    if (x0 <= x1) {
+      var y0 = max(top, other.top);
+      var y1 = min(top + height, other.top + other.height);
+
+      if (y0 <= y1) {
+        return new Rectangle<num>(x0, y0, x1 - x0, y1 - y0);
+      }
+    }
+    return null;
+  }
+
+
+  /**
+   * Returns true if `this` intersects [other].
+   */
+  bool intersects(Rectangle<num> other) {
+    return (left <= other.left + other.width &&
+        other.left <= left + width &&
+        top <= other.top + other.height &&
+        other.top <= top + height);
+  }
+
+  /**
+   * Returns a new rectangle which completely contains `this` and [other].
+   */
+  Rectangle<num> boundingBox(Rectangle<num> other) {
+    var right = max(this.left + this.width, other.left + other.width);
+    var bottom = max(this.top + this.height, other.top + other.height);
+
+    var left = min(this.left, other.left);
+    var top = min(this.top, other.top);
+
+    return new Rectangle<num>(left, top, right - left, bottom - top);
+  }
+
+  /**
+   * Tests whether `this` entirely contains [another].
+   */
+  bool containsRectangle(Rectangle<num> another) {
+    return left <= another.left &&
+           left + width >= another.left + another.width &&
+           top <= another.top &&
+           top + height >= another.top + another.height;
+  }
+
+  /**
+   * Tests whether [another] is inside or along the edges of `this`.
+   */
+  bool containsPoint(Point<num> another) {
+    return another.x >= left &&
+           another.x <= left + width &&
+           another.y >= top &&
+           another.y <= top + height;
+  }
+
+  Point<num> get topLeft => new Point<num>(this.left, this.top);
+  Point<num> get topRight => new Point<num>(this.left + this.width, this.top);
+  Point<num> get bottomRight => new Point<num>(this.left + this.width,
+      this.top + this.height);
+  Point<num> get bottomLeft => new Point<num>(this.left,
+      this.top + this.height);
 }
 
 final _HEIGHT = ['top', 'bottom'];
@@ -39722,11 +39615,11 @@ class _ElementCssClassSet extends CssClassSetImpl {
     _addAll(_element, iterable);
   }
 
-  void removeAll(Iterable<String> iterable) {
+  void removeAll(Iterable<Object> iterable) {
     _removeAll(_element, iterable);
   }
 
-  void retainAll(Iterable<String> iterable) {
+  void retainAll(Iterable<Object> iterable) {
     _removeWhere(_element, iterable.toSet().contains, false);
   }
 
@@ -39981,7 +39874,7 @@ class EventStreamProvider<T extends Event> {
    * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
    */
   Stream<T> forTarget(EventTarget e, {bool useCapture: false}) =>
-    new _EventStream(e, _eventType, useCapture);
+    new _EventStream<T>(e, _eventType, useCapture);
 
   /**
    * Gets an [ElementEventStream] for this event type, on the specified element.
@@ -40005,7 +39898,7 @@ class EventStreamProvider<T extends Event> {
    * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
    */
   ElementStream<T> forElement(Element e, {bool useCapture: false}) {
-    return new _ElementEventStreamImpl(e, _eventType, useCapture);
+    return new _ElementEventStreamImpl<T>(e, _eventType, useCapture);
   }
 
   /**
@@ -40076,8 +39969,8 @@ class _EventStream<T extends Event> extends Stream<T> {
   _EventStream(this._target, this._eventType, this._useCapture);
 
   // DOM events are inherently multi-subscribers.
-  Stream<T> asBroadcastStream({void onListen(StreamSubscription subscription),
-                               void onCancel(StreamSubscription subscription)})
+  Stream<T> asBroadcastStream({void onListen(StreamSubscription<T> subscription),
+                               void onCancel(StreamSubscription<T> subscription)})
       => this;
   bool get isBroadcast => true;
 
@@ -40091,6 +39984,11 @@ class _EventStream<T extends Event> extends Stream<T> {
   }
 }
 
+bool _matchesWithAncestors(Event event, String selector) {
+  var target = event.target;
+  return target is Element ? target.matchesWithAncestors(selector) : false;
+}
+
 /**
  * Adapter for exposing DOM Element events as streams, while also allowing
  * event delegation.
@@ -40101,7 +39999,7 @@ class _ElementEventStreamImpl<T extends Event> extends _EventStream<T>
       super(target, eventType, useCapture);
 
   Stream<T> matches(String selector) => this.where(
-      (event) => event.target.matchesWithAncestors(selector)).map((e) {
+      (event) => _matchesWithAncestors(event, selector)).map((e) {
         e._selector = selector;
         return e;
       });
@@ -40125,7 +40023,7 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
       this._targetList, this._eventType, this._useCapture);
 
   Stream<T> matches(String selector) => this.where(
-      (event) => event.target.matchesWithAncestors(selector)).map((e) {
+      (event) => _matchesWithAncestors(event, selector)).map((e) {
         e._selector = selector;
         return e;
       });
@@ -40135,37 +40033,46 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
       { Function onError,
         void onDone(),
         bool cancelOnError}) {
-    var pool = new _StreamPool.broadcast();
+    var pool = new _StreamPool<T>.broadcast();
     for (var target in _targetList) {
-      pool.add(new _EventStream(target, _eventType, _useCapture));
+      pool.add(new _EventStream<T>(target, _eventType, _useCapture));
     }
     return pool.stream.listen(onData, onError: onError, onDone: onDone,
           cancelOnError: cancelOnError);
   }
 
   StreamSubscription<T> capture(void onData(T event)) {
-    var pool = new _StreamPool.broadcast();
+    var pool = new _StreamPool<T>.broadcast();
     for (var target in _targetList) {
-      pool.add(new _EventStream(target, _eventType, true));
+      pool.add(new _EventStream<T>(target, _eventType, true));
     }
     return pool.stream.listen(onData);
   }
 
-  Stream<T> asBroadcastStream({void onListen(StreamSubscription subscription),
-                               void onCancel(StreamSubscription subscription)})
+  Stream<T> asBroadcastStream({void onListen(StreamSubscription<T> subscription),
+                               void onCancel(StreamSubscription<T> subscription)})
       => this;
   bool get isBroadcast => true;
 }
+
+// We would like this to just be EventListener<T> but that typdef cannot
+// use generics until dartbug/26276 is fixed.
+typedef _EventListener<T extends Event>(T event);
 
 class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   int _pauseCount = 0;
   EventTarget _target;
   final String _eventType;
-  var _onData;
+  EventListener _onData;
   final bool _useCapture;
 
-  _EventStreamSubscription(this._target, this._eventType, onData,
-      this._useCapture) : _onData = _wrapZone(onData) {
+  // TODO(jacobr): for full strong mode correctness we should write
+  // _onData = onData == null ? null : _wrapZone/*<Event, dynamic>*/((e) => onData(e as T))
+  // but that breaks 114 co19 tests as well as multiple html tests as it is reasonable
+  // to pass the wrong type of event object to an event listener as part of a
+  // test.
+  _EventStreamSubscription(this._target, this._eventType, void onData(T event),
+      this._useCapture) : _onData = _wrapZone/*<Event, dynamic>*/(onData) {
     _tryResume();
   }
 
@@ -40187,8 +40094,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     }
     // Remove current event listener.
     _unlisten();
-
-    _onData = _wrapZone(handleData);
+    _onData = _wrapZone/*<Event, dynamic>*/(handleData);
     _tryResume();
   }
 
@@ -40267,8 +40173,8 @@ class _CustomEventStreamImpl<T extends Event> extends Stream<T>
         onDone: onDone, cancelOnError: cancelOnError);
   }
 
-  Stream<T> asBroadcastStream({void onListen(StreamSubscription subscription),
-                               void onCancel(StreamSubscription subscription)})
+  Stream<T> asBroadcastStream({void onListen(StreamSubscription<T> subscription),
+                               void onCancel(StreamSubscription<T> subscription)})
       => _streamController.stream;
 
   bool get isBroadcast => true;
@@ -40359,16 +40265,16 @@ class _CustomEventStreamProvider<T extends Event>
   const _CustomEventStreamProvider(this._eventTypeGetter);
 
   Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
-    return new _EventStream(e, _eventTypeGetter(e), useCapture);
+    return new _EventStream<T>(e, _eventTypeGetter(e), useCapture);
   }
 
   ElementStream<T> forElement(Element e, {bool useCapture: false}) {
-    return new _ElementEventStreamImpl(e, _eventTypeGetter(e), useCapture);
+    return new _ElementEventStreamImpl<T>(e, _eventTypeGetter(e), useCapture);
   }
 
   ElementStream<T> _forElementList(ElementList e,
       {bool useCapture: false}) {
-    return new _ElementListEventStreamImpl(e, _eventTypeGetter(e), useCapture);
+    return new _ElementListEventStreamImpl<T>(e, _eventTypeGetter(e), useCapture);
   }
 
   String getEventType(EventTarget target) {
@@ -41747,7 +41653,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
    * The set of keys that have been pressed down without seeing their
    * corresponding keyup event.
    */
-  final List<KeyboardEvent> _keyDownList = <KeyboardEvent>[];
+  final List<KeyEvent> _keyDownList = <KeyEvent>[];
 
   /** The type of KeyEvent we are tracking (keyup, keydown, keypress). */
   final String _type;
@@ -41806,8 +41712,9 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
    * General constructor, performs basic initialization for our improved
    * KeyboardEvent controller.
    */
-  _KeyboardEventHandler(this._type): super(_EVENT_TYPE),
-      _stream = new _CustomKeyEventStreamImpl('event'), _target = null;
+  _KeyboardEventHandler(this._type):
+      _stream = new _CustomKeyEventStreamImpl('event'), _target = null,
+      super(_EVENT_TYPE);
 
   /**
    * Hook up all event listeners under the covers so we can estimate keycodes
@@ -42115,7 +42022,6 @@ class KeyboardEventStream {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 /**
  * Class which helps construct standard node validation policies.
  *
@@ -42133,11 +42039,9 @@ class KeyboardEventStream {
  * appropriate.
  */
 class NodeValidatorBuilder implements NodeValidator {
-
   final List<NodeValidator> _validators = <NodeValidator>[];
 
-  NodeValidatorBuilder() {
-  }
+  NodeValidatorBuilder() {}
 
   /**
    * Creates a new NodeValidatorBuilder which accepts common constructs.
@@ -42266,29 +42170,17 @@ class NodeValidatorBuilder implements NodeValidator {
       {UriPolicy uriPolicy,
       Iterable<String> attributes,
       Iterable<String> uriAttributes}) {
-
     var tagNameUpper = tagName.toUpperCase();
-    var attrs;
-    if (attributes != null) {
-      attrs =
-          attributes.map((name) => '$tagNameUpper::${name.toLowerCase()}');
-    }
-    var uriAttrs;
-    if (uriAttributes != null) {
-      uriAttrs =
-          uriAttributes.map((name) => '$tagNameUpper::${name.toLowerCase()}');
-    }
+    var attrs = attributes
+        ?.map /*<String>*/ ((name) => '$tagNameUpper::${name.toLowerCase()}');
+    var uriAttrs = uriAttributes
+        ?.map /*<String>*/ ((name) => '$tagNameUpper::${name.toLowerCase()}');
     if (uriPolicy == null) {
       uriPolicy = new UriPolicy();
     }
 
     add(new _CustomElementNodeValidator(
-        uriPolicy,
-        [tagNameUpper],
-        attrs,
-        uriAttrs,
-        false,
-        true));
+        uriPolicy, [tagNameUpper], attrs, uriAttrs, false, true));
   }
 
   /**
@@ -42303,37 +42195,26 @@ class NodeValidatorBuilder implements NodeValidator {
       {UriPolicy uriPolicy,
       Iterable<String> attributes,
       Iterable<String> uriAttributes}) {
-
     var baseNameUpper = baseName.toUpperCase();
     var tagNameUpper = tagName.toUpperCase();
-    var attrs;
-    if (attributes != null) {
-      attrs =
-          attributes.map((name) => '$baseNameUpper::${name.toLowerCase()}');
-    }
-    var uriAttrs;
-    if (uriAttributes != null) {
-      uriAttrs =
-          uriAttributes.map((name) => '$baseNameUpper::${name.toLowerCase()}');
-    }
+    var attrs = attributes
+        ?.map /*<String>*/ ((name) => '$baseNameUpper::${name.toLowerCase()}');
+    var uriAttrs = uriAttributes
+        ?.map /*<String>*/ ((name) => '$baseNameUpper::${name.toLowerCase()}');
     if (uriPolicy == null) {
       uriPolicy = new UriPolicy();
     }
 
-    add(new _CustomElementNodeValidator(
-        uriPolicy,
-        [tagNameUpper, baseNameUpper],
-        attrs,
-        uriAttrs,
-        true,
-        false));
+    add(new _CustomElementNodeValidator(uriPolicy,
+        [tagNameUpper, baseNameUpper], attrs, uriAttrs, true, false));
   }
 
-  void allowElement(String tagName, {UriPolicy uriPolicy,
-    Iterable<String> attributes,
-    Iterable<String> uriAttributes}) {
-
-    allowCustomElement(tagName, uriPolicy: uriPolicy,
+  void allowElement(String tagName,
+      {UriPolicy uriPolicy,
+      Iterable<String> attributes,
+      Iterable<String> uriAttributes}) {
+    allowCustomElement(tagName,
+        uriPolicy: uriPolicy,
         attributes: attributes,
         uriAttributes: uriAttributes);
   }
@@ -42364,8 +42245,8 @@ class NodeValidatorBuilder implements NodeValidator {
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
-    return _validators.any(
-        (v) => v.allowsAttribute(element, attributeName, value));
+    return _validators
+        .any((v) => v.allowsAttribute(element, attributeName, value));
   }
 }
 
@@ -42376,76 +42257,70 @@ class _SimpleNodeValidator implements NodeValidator {
   final UriPolicy uriPolicy;
 
   factory _SimpleNodeValidator.allowNavigation(UriPolicy uriPolicy) {
-    return new _SimpleNodeValidator(uriPolicy,
-      allowedElements: const [
-        'A',
-        'FORM'],
-      allowedAttributes: const [
-        'A::accesskey',
-        'A::coords',
-        'A::hreflang',
-        'A::name',
-        'A::shape',
-        'A::tabindex',
-        'A::target',
-        'A::type',
-        'FORM::accept',
-        'FORM::autocomplete',
-        'FORM::enctype',
-        'FORM::method',
-        'FORM::name',
-        'FORM::novalidate',
-        'FORM::target',
-      ],
-      allowedUriAttributes: const [
-        'A::href',
-        'FORM::action',
-      ]);
+    return new _SimpleNodeValidator(uriPolicy, allowedElements: const [
+      'A',
+      'FORM'
+    ], allowedAttributes: const [
+      'A::accesskey',
+      'A::coords',
+      'A::hreflang',
+      'A::name',
+      'A::shape',
+      'A::tabindex',
+      'A::target',
+      'A::type',
+      'FORM::accept',
+      'FORM::autocomplete',
+      'FORM::enctype',
+      'FORM::method',
+      'FORM::name',
+      'FORM::novalidate',
+      'FORM::target',
+    ], allowedUriAttributes: const [
+      'A::href',
+      'FORM::action',
+    ]);
   }
 
   factory _SimpleNodeValidator.allowImages(UriPolicy uriPolicy) {
-    return new _SimpleNodeValidator(uriPolicy,
-      allowedElements: const [
-        'IMG'
-      ],
-      allowedAttributes: const [
-        'IMG::align',
-        'IMG::alt',
-        'IMG::border',
-        'IMG::height',
-        'IMG::hspace',
-        'IMG::ismap',
-        'IMG::name',
-        'IMG::usemap',
-        'IMG::vspace',
-        'IMG::width',
-      ],
-      allowedUriAttributes: const [
-        'IMG::src',
-      ]);
+    return new _SimpleNodeValidator(uriPolicy, allowedElements: const [
+      'IMG'
+    ], allowedAttributes: const [
+      'IMG::align',
+      'IMG::alt',
+      'IMG::border',
+      'IMG::height',
+      'IMG::hspace',
+      'IMG::ismap',
+      'IMG::name',
+      'IMG::usemap',
+      'IMG::vspace',
+      'IMG::width',
+    ], allowedUriAttributes: const [
+      'IMG::src',
+    ]);
   }
 
   factory _SimpleNodeValidator.allowTextElements() {
-    return new _SimpleNodeValidator(null,
-      allowedElements: const [
-        'B',
-        'BLOCKQUOTE',
-        'BR',
-        'EM',
-        'H1',
-        'H2',
-        'H3',
-        'H4',
-        'H5',
-        'H6',
-        'HR',
-        'I',
-        'LI',
-        'OL',
-        'P',
-        'SPAN',
-        'UL',
-      ]);
+    return new _SimpleNodeValidator(null, allowedElements: const [
+      'B',
+      'BLOCKQUOTE',
+      'BR',
+      'EM',
+      'H1',
+      'H2',
+      'H3',
+      'H4',
+      'H5',
+      'H6',
+      'HR',
+      'I',
+      'LI',
+      'OL',
+      'P',
+      'SPAN',
+      'UL',
+    ]);
   }
 
   /**
@@ -42454,15 +42329,16 @@ class _SimpleNodeValidator implements NodeValidator {
    * lowercase attribute name. For example `'IMG:src'`.
    */
   _SimpleNodeValidator(this.uriPolicy,
-      {Iterable<String> allowedElements, Iterable<String> allowedAttributes,
-        Iterable<String> allowedUriAttributes}) {
+      {Iterable<String> allowedElements,
+      Iterable<String> allowedAttributes,
+      Iterable<String> allowedUriAttributes}) {
     this.allowedElements.addAll(allowedElements ?? const []);
     allowedAttributes = allowedAttributes ?? const [];
     allowedUriAttributes = allowedUriAttributes ?? const [];
-    var legalAttributes = allowedAttributes.where(
-        (x) => !_Html5NodeValidator._uriAttributes.contains(x));
-    var extraUriAttributes = allowedAttributes.where(
-        (x) => _Html5NodeValidator._uriAttributes.contains(x));
+    var legalAttributes = allowedAttributes
+        .where((x) => !_Html5NodeValidator._uriAttributes.contains(x));
+    var extraUriAttributes = allowedAttributes
+        .where((x) => _Html5NodeValidator._uriAttributes.contains(x));
     this.allowedAttributes.addAll(legalAttributes);
     this.allowedUriAttributes.addAll(allowedUriAttributes);
     this.allowedUriAttributes.addAll(extraUriAttributes);
@@ -42495,19 +42371,19 @@ class _CustomElementNodeValidator extends _SimpleNodeValidator {
   final bool allowTypeExtension;
   final bool allowCustomTag;
 
-  _CustomElementNodeValidator(UriPolicy uriPolicy,
+  _CustomElementNodeValidator(
+      UriPolicy uriPolicy,
       Iterable<String> allowedElements,
       Iterable<String> allowedAttributes,
       Iterable<String> allowedUriAttributes,
       bool allowTypeExtension,
-      bool allowCustomTag):
-
-      super(uriPolicy,
-          allowedElements: allowedElements,
-          allowedAttributes: allowedAttributes,
-          allowedUriAttributes: allowedUriAttributes),
-      this.allowTypeExtension = allowTypeExtension == true,
-      this.allowCustomTag = allowCustomTag == true;
+      bool allowCustomTag)
+      : this.allowTypeExtension = allowTypeExtension == true,
+        this.allowCustomTag = allowCustomTag == true,
+        super(uriPolicy,
+            allowedElements: allowedElements,
+            allowedAttributes: allowedAttributes,
+            allowedUriAttributes: allowedUriAttributes);
 
   bool allowsElement(Element element) {
     if (allowTypeExtension) {
@@ -42517,12 +42393,14 @@ class _CustomElementNodeValidator extends _SimpleNodeValidator {
             allowedElements.contains(Element._safeTagName(element));
       }
     }
-    return allowCustomTag && allowedElements.contains(Element._safeTagName(element));
+    return allowCustomTag &&
+        allowedElements.contains(Element._safeTagName(element));
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
-   if (allowsElement(element)) {
-      if (allowTypeExtension && attributeName == 'is' &&
+    if (allowsElement(element)) {
+      if (allowTypeExtension &&
+          attributeName == 'is' &&
           allowedElements.contains(value.toUpperCase())) {
         return true;
       }
@@ -42533,19 +42411,22 @@ class _CustomElementNodeValidator extends _SimpleNodeValidator {
 }
 
 class _TemplatingNodeValidator extends _SimpleNodeValidator {
-  static const _TEMPLATE_ATTRS =
-      const <String>['bind', 'if', 'ref', 'repeat', 'syntax'];
+  static const _TEMPLATE_ATTRS = const <String>[
+    'bind',
+    'if',
+    'ref',
+    'repeat',
+    'syntax'
+  ];
 
   final Set<String> _templateAttrs;
 
-  _TemplatingNodeValidator():
-      super(null,
-          allowedElements: [
-            'TEMPLATE'
-          ],
-          allowedAttributes: _TEMPLATE_ATTRS.map((attr) => 'TEMPLATE::$attr')),
-      _templateAttrs = new Set<String>.from(_TEMPLATE_ATTRS) {
-  }
+  _TemplatingNodeValidator()
+      : _templateAttrs = new Set<String>.from(_TEMPLATE_ATTRS),
+        super(null,
+            allowedElements: ['TEMPLATE'],
+            allowedAttributes:
+                _TEMPLATE_ATTRS.map((attr) => 'TEMPLATE::$attr')) {}
 
   bool allowsAttribute(Element element, String attributeName, String value) {
     if (super.allowsAttribute(element, attributeName, value)) {
@@ -42556,13 +42437,12 @@ class _TemplatingNodeValidator extends _SimpleNodeValidator {
       return true;
     }
 
-    if (element.attributes['template'] == "" ) {
+    if (element.attributes['template'] == "") {
       return _templateAttrs.contains(attributeName);
     }
     return false;
   }
 }
-
 
 class _SvgNodeValidator implements NodeValidator {
   bool allowsElement(Element element) {
@@ -42573,7 +42453,8 @@ class _SvgNodeValidator implements NodeValidator {
     // foreignobject tag as SvgElement. We don't want foreignobject contents
     // anyway, so just remove the whole tree outright. And we can't rely
     // on IE recognizing the SvgForeignObject type, so go by tagName. Bug 23144
-    if (element is svg.SvgElement && Element._safeTagName(element) == 'foreignObject') {
+    if (element is svg.SvgElement &&
+        Element._safeTagName(element) == 'foreignObject') {
       return false;
     }
     if (element is svg.SvgElement) {
@@ -42625,7 +42506,7 @@ abstract class ReadyState {
  */
 class _WrappedList<E extends Node> extends ListBase<E>
     implements NodeListWrapper {
-  final List _list;
+  final List<Node> _list;
 
   _WrappedList(this._list);
 
@@ -42645,13 +42526,13 @@ class _WrappedList<E extends Node> extends ListBase<E>
 
   // List APIs
 
-  E operator [](int index) => _list[index];
+  E operator [](int index) => _downcast/*<Node, E>*/(_list[index]);
 
   void operator []=(int index, E value) { _list[index] = value; }
 
   set length(int newLength) { _list.length = newLength; }
 
-  void sort([int compare(E a, E b)]) { _list.sort(compare); }
+  void sort([int compare(E a, E b)]) { _list.sort((Node a, Node b) => compare(_downcast/*<Node, E>*/(a), _downcast/*<Node, E>*/(b))); }
 
   int indexOf(Object element, [int start = 0]) => _list.indexOf(element, start);
 
@@ -42659,7 +42540,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
 
   void insert(int index, E element) => _list.insert(index, element);
 
-  E removeAt(int index) => _list.removeAt(index);
+  E removeAt(int index) => _downcast/*<Node, E>*/(_list.removeAt(index));
 
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
     _list.setRange(start, end, iterable, skipCount);
@@ -42681,8 +42562,8 @@ class _WrappedList<E extends Node> extends ListBase<E>
 /**
  * Iterator wrapper for _WrappedList.
  */
-class _WrappedIterator<E> implements Iterator<E> {
-  Iterator _iterator;
+class _WrappedIterator<E extends Node> implements Iterator<E> {
+  Iterator<Node> _iterator;
 
   _WrappedIterator(this._iterator);
 
@@ -42690,8 +42571,11 @@ class _WrappedIterator<E> implements Iterator<E> {
     return _iterator.moveNext();
   }
 
-  E get current => _iterator.current;
+  E get current => _downcast/*<Node, E>*/(_iterator.current);
 }
+
+// ignore: STRONG_MODE_DOWN_CAST_COMPOSITE
+/*=To*/ _downcast/*<From, To extends From>*/(dynamic /*=From*/ x) => x;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -43069,7 +42953,7 @@ class _DOMWindowCrossFrame implements WindowBase {
   Events get on => throw new UnsupportedError(
     'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void _addEventListener([String type, EventListener listener, bool useCapture])
+  void _addEventListener(String type, EventListener listener, [bool useCapture])
       => throw new UnsupportedError(
     'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
@@ -43080,8 +42964,8 @@ class _DOMWindowCrossFrame implements WindowBase {
   bool dispatchEvent(Event event) => throw new UnsupportedError(
     'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void _removeEventListener([String type, EventListener listener,
-      bool useCapture]) => throw new UnsupportedError(
+  void _removeEventListener(String type, EventListener listener,
+      [bool useCapture]) => throw new UnsupportedError(
     'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
   void removeEventListener(String type, EventListener listener,
@@ -43448,8 +43332,8 @@ class _WrappedEvent implements Event {
       throw new UnsupportedError('Cannot call matchingTarget if this Event did'
           ' not arise as a result of event delegation.');
     }
-    var currentTarget = this.currentTarget;
-    var target = this.target;
+    Element currentTarget = this.currentTarget;
+    Element target = this.target;
     var matchedTarget;
     do {
       if (target.matches(_selector)) return target;
@@ -43480,17 +43364,25 @@ class _WrappedEvent implements Event {
 // BSD-style license that can be found in the LICENSE file.
 
 
-_wrapZone(callback(arg)) {
+// TODO(jacobr): remove these typedefs when dart:async supports generic types.
+typedef R _wrapZoneCallback<A, R>(A a);
+typedef R _wrapZoneBinaryCallback<A, B, R>(A a, B b);
+
+_wrapZoneCallback/*<A, R>*/ _wrapZone/*<A, R>*/(_wrapZoneCallback/*<A, R>*/ callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.ROOT) return callback;
   if (callback == null) return null;
-  return Zone.current.bindUnaryCallback(callback, runGuarded: true);
+  // TODO(jacobr): we cast to _wrapZoneCallback/*<A, R>*/ to hack around missing
+  // generic method support in zones.
+  return Zone.current.bindUnaryCallback(callback, runGuarded: true) as _wrapZoneCallback/*<A, R>*/;
 }
 
-_wrapBinaryZone(callback(arg1, arg2)) {
+_wrapZoneBinaryCallback/*<A, B, R>*/ _wrapBinaryZone/*<A, B, R>*/(_wrapZoneBinaryCallback/*<A, B, R>*/ callback) {
   if (Zone.current == Zone.ROOT) return callback;
   if (callback == null) return null;
-  return Zone.current.bindBinaryCallback(callback, runGuarded: true);
+  // We cast to _wrapZoneBinaryCallback/*<A, B, R>*/ to hack around missing
+  // generic method support in zones.
+  return Zone.current.bindBinaryCallback(callback, runGuarded: true) as _wrapZoneBinaryCallback/*<A, B, R>*/;
 }
 
 /**

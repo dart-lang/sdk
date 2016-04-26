@@ -681,6 +681,41 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_inferredFieldDeclaration_propagation() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/25546
+    String code = r'''
+      abstract class A {
+        Map<int, List<int>> get map;
+      }
+      class B extends A {
+        var map = { 42: [] };
+      }
+      class C extends A {
+        get map => { 43: [] };
+      }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+
+    Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
+    Asserter<InterfaceType> assertMapOfIntToListOfInt =
+        _isMapOf(_isInt, assertListOfInt);
+
+    VariableDeclaration mapB = AstFinder.getFieldInClass(unit, "B", "map");
+    MethodDeclaration mapC = AstFinder.getMethodInClass(unit, "C", "map");
+    assertMapOfIntToListOfInt(mapB.element.type);
+    assertMapOfIntToListOfInt(mapC.element.returnType);
+
+    MapLiteral mapLiteralB = mapB.initializer;
+    MapLiteral mapLiteralC = (mapC.body as ExpressionFunctionBody).expression;
+    assertMapOfIntToListOfInt(mapLiteralB.staticType);
+    assertMapOfIntToListOfInt(mapLiteralC.staticType);
+
+    ListLiteral listLiteralB = mapLiteralB.entries[0].value;
+    ListLiteral listLiteralC = mapLiteralC.entries[0].value;
+    assertListOfInt(listLiteralB.staticType);
+    assertListOfInt(listLiteralC.staticType);
+  }
+
   void test_instanceCreation() {
     String code = r'''
       class A<S, T> {

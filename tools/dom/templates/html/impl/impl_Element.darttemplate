@@ -71,7 +71,7 @@ class _ChildrenElementList extends ListBase<Element>
     _filter(test, true);
   }
 
-  void _filter(bool test(var element), bool retainMatching) {
+  void _filter(bool test(Element element), bool retainMatching) {
     var removed;
     if (retainMatching) {
       removed = _element.children.where((e) => !test(e));
@@ -264,8 +264,8 @@ $!STREAM_GETTER_SIGNATURES
 // declared to return `ElementList`.  This provides all the static analysis
 // benefit so there is no need for this class have a constrained type parameter.
 //
-class _FrozenElementList extends ListBase
-    implements ElementList, NodeListWrapper {
+class _FrozenElementList<E extends Element> extends ListBase<E>
+    implements ElementList<E>, NodeListWrapper {
   final List<Node> _nodeList;
 
 $if JSINTEROP
@@ -280,9 +280,9 @@ $endif
 
   int get length => _nodeList.length;
 
-  Element operator [](int index) => _nodeList[index];
+  E operator [](int index) => _downcast/*<Node, E>*/(_nodeList[index]);
 
-  void operator []=(int index, Element value) {
+  void operator []=(int index, E value) {
     throw new UnsupportedError('Cannot modify list');
   }
 
@@ -290,7 +290,7 @@ $endif
     throw new UnsupportedError('Cannot modify list');
   }
 
-  void sort([Comparator<Element> compare]) {
+  void sort([Comparator<E> compare]) {
     throw new UnsupportedError('Cannot sort list');
   }
 
@@ -298,11 +298,11 @@ $endif
     throw new UnsupportedError('Cannot shuffle list');
   }
 
-  Element get first => _nodeList.first;
+  E get first => _downcast/*<Node, E>*/(_nodeList.first);
 
-  Element get last => _nodeList.last;
+  E get last => _downcast/*<Node, E>*/(_nodeList.last);
 
-  Element get single => _nodeList.single;
+  E get single => _downcast/*<Node, E>*/(_nodeList.single);
 
   CssClassSet get classes => new _MultiElementCssClassSet(this);
 
@@ -316,7 +316,7 @@ $endif
     //
     // as the code below converts the Iterable[value] to a string multiple
     // times.  Maybe compute the string and set className here.
-    _nodeList.forEach((e) => e.classes = value);
+    forEach((e) => e.classes = value);
   }
 
   CssRect get contentEdge => new _ContentCssListRect(this);
@@ -593,7 +593,7 @@ $endif
 
   set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
-    List copy = new List.from(value);
+    var copy = value.toList();
     var children = this.children;
     children.clear();
     children.addAll(copy);
@@ -611,8 +611,8 @@ $endif
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   @DomName('Element.querySelectorAll')
-  ElementList<Element> querySelectorAll(String selectors) =>
-    new _FrozenElementList._wrap(_querySelectorAll(selectors));
+  ElementList<Element /*=T*/> querySelectorAll/*<T extends Element>*/(String selectors) =>
+    new _FrozenElementList/*<T>*/._wrap(_querySelectorAll(selectors));
 
   /**
    * Alias for [querySelector]. Note this function is deprecated because its
@@ -630,7 +630,7 @@ $endif
   @deprecated
   @DomName('Element.querySelectorAll')
   @Experimental()
-  ElementList<Element> queryAll(String relativeSelectors) =>
+  ElementList<Element /*=T*/> queryAll/*<T extends Element>*/(String relativeSelectors) =>
       querySelectorAll(relativeSelectors);
 
   /**
@@ -828,19 +828,18 @@ $endif
       throw new ArgumentError("The frames parameter should be a List of Maps "
           "with frame information");
     }
-    var convertedFrames = frames;
-    if (convertedFrames is Iterable) {
+    var convertedFrames;
+    if (frames is Iterable) {
 $if DART2JS
       convertedFrames = frames.map(convertDartToNative_Dictionary).toList();
 $else
       convertedFrames = convertDartToNative_List(
           frames.map(convertDartToNative_Dictionary).toList());
 $endif
+    } else {
+      convertedFrames = frames;
     }
-    var convertedTiming = timing;
-    if (convertedTiming is Map) {
-      convertedTiming = convertDartToNative_Dictionary(convertedTiming);
-    }
+    var convertedTiming = timing is Map ? convertDartToNative_Dictionary(timing) : timing;
     return convertedTiming == null
       ? _animate(convertedFrames)
       : _animate(convertedFrames, convertedTiming);
@@ -1333,7 +1332,7 @@ $endif
 
       // Workaround for Safari bug. Was also previously Chrome bug 229142
       // - URIs are not resolved in new doc.
-      var base = _parseDocument.createElement('base');
+      BaseElement base = _parseDocument.createElement('base');
       base.href = document.baseUri;
       _parseDocument.head.append(base);
     }

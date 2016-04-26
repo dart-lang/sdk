@@ -1034,27 +1034,34 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
     return;
   }
 
-  // Walk the superclass chain, adding all instance fields.
+  // Add all fields in layout order, from superclass to subclass.
+  GrowableArray<Class*> classes;
   Class& cls = Class::Handle(this->clazz());
+  do {
+    cls.Print();
+    classes.Add(&Class::Handle(cls.raw()));
+    cls = cls.SuperClass();
+  } while (!cls.IsNull());
+
+  Array& field_array = Array::Handle();
+  Field& field = Field::Handle();
+  Instance& field_value = Instance::Handle();
   {
-    Instance& fieldValue = Instance::Handle();
     JSONArray jsarr(jsobj, "fields");
-    while (!cls.IsNull()) {
-      const Array& field_array = Array::Handle(cls.fields());
-      Field& field = Field::Handle();
+    for (intptr_t i = classes.length() - 1; i >= 0; i--) {
+      field_array = classes[i]->fields();
       if (!field_array.IsNull()) {
-        for (intptr_t i = 0; i < field_array.Length(); i++) {
-          field ^= field_array.At(i);
+        for (intptr_t j = 0; j < field_array.Length(); j++) {
+          field ^= field_array.At(j);
           if (!field.is_static()) {
-            fieldValue ^= GetField(field);
+            field_value ^= GetField(field);
             JSONObject jsfield(&jsarr);
             jsfield.AddProperty("type", "BoundField");
             jsfield.AddProperty("decl", field);
-            jsfield.AddProperty("value", fieldValue);
+            jsfield.AddProperty("value", field_value);
           }
         }
       }
-      cls = cls.SuperClass();
     }
   }
 

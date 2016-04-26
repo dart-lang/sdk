@@ -4,28 +4,20 @@
 
 library dart2js.cmdline;
 
-import 'dart:async' show Future, EventSink;
+import 'dart:async' show Future;
 import 'dart:convert' show UTF8, LineSplitter;
-import 'dart:io'
-    show
-        exit,
-        File,
-        FileMode,
-        Platform,
-        RandomAccessFile,
-        FileSystemException,
-        stdin,
-        stderr;
+import 'dart:io' show exit, File, FileMode, Platform, stdin, stderr;
+
+import 'package:package_config/discovery.dart' show findPackages;
 
 import '../compiler.dart' as api;
 import 'commandline_options.dart';
+import 'filenames.dart';
 import 'io/source_file.dart';
 import 'source_file_provider.dart';
-import 'filenames.dart';
+import 'util/command_line.dart';
 import 'util/uri_extras.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
-import 'util/command_line.dart';
-import 'package:package_config/discovery.dart' show findPackages;
 
 const String LIBRARY_ROOT = '../../../../../sdk';
 const String OUTPUT_LANGUAGE_DART = 'Dart';

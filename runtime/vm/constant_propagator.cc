@@ -533,6 +533,7 @@ void ConstantPropagator::VisitTestSmi(TestSmiInstr* instr) {
 
 
 void ConstantPropagator::VisitTestCids(TestCidsInstr* instr) {
+  // TODO(sra): Constant fold test.
   SetValue(instr, non_constant_);
 }
 

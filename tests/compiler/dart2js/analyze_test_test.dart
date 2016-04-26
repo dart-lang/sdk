@@ -49,6 +49,8 @@ const List<String> SKIP_LIST = const <String>[
   "backend_dart/",
   // Broken tests:
   "http_test.dart",
+  // Package directory
+  "packages/",
 ];
 
 const List<MessageKind> MESSAGE_SKIP_LIST = const <MessageKind>[

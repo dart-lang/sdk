@@ -20,6 +20,7 @@ export 'package:analysis_server/src/provisional/completion/completion_core.dart'
 const int DART_RELEVANCE_COMMON_USAGE = 1200;
 const int DART_RELEVANCE_DEFAULT = 1000;
 const int DART_RELEVANCE_HIGH = 2000;
+const int DART_RELEVANCE_INCREMENT = 20;
 const int DART_RELEVANCE_INHERITED_ACCESSOR = 1057;
 const int DART_RELEVANCE_INHERITED_FIELD = 1058;
 const int DART_RELEVANCE_INHERITED_METHOD = 1057;
@@ -114,7 +115,17 @@ abstract class DartCompletionRequest extends CompletionRequest {
    * Any information obtained from [target] prior to calling this method
    * should be discarded as it may have changed.
    */
-  Future resolveExpression(Expression expression);
+  Future resolveContainingExpression(AstNode node);
+
+  /**
+   * Return a [Future] that completes when the element associated with
+   * the given [statement] in the target compilation unit is available.
+   * It may also complete if the statement cannot be resolved
+   * (e.g. unknown identifier, completion aborted, etc).
+   * Any information obtained from [target] prior to calling this method
+   * should be discarded as it may have changed.
+   */
+  Future resolveContainingStatement(AstNode node);
 
   /**
      * Return a [Future] that completes with a list of [ImportElement]s

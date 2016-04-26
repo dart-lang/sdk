@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
+/// Dart test verifying that the parser can handle type parameterization of
+/// function declarations and function invocations. Variant of code from
+/// DEP #22, adjusted to use generic top level functions.
 
-// Dart test verifying that the parser can handle type parameterization of
-// function declarations and function invocations. Variant of code from
-// DEP #22, adjusted to use generic top level functions.
+library generic_functions_test;
+
+import "package:expect/expect.dart";
 
 class BinaryTreeNode<K extends Comparable<K>, V> {
   final K _key;

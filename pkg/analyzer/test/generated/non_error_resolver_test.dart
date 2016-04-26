@@ -5581,26 +5581,6 @@ class B extends A<List> {
     verify([source]);
   }
 
-  void test_undefinedIdentifier_hide() {
-    Source source = addSource(r'''
-library L;
-export 'lib1.dart' hide a;''');
-    addNamedSource("/lib1.dart", "library lib1;");
-    computeLibrarySourceErrors(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  void test_undefinedIdentifier_show() {
-    Source source = addSource(r'''
-library L;
-export 'lib1.dart' show a;''');
-    addNamedSource("/lib1.dart", "library lib1;");
-    computeLibrarySourceErrors(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   void test_undefinedIdentifier_synthetic_whenExpression() {
     Source source = addSource(r'''
 print(x) {}

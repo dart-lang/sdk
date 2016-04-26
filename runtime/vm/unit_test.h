@@ -374,7 +374,7 @@ class AssemblerTest {
   // using the ABI calling convention.
   // ResultType is the return type of the assembler test function.
   // ArgNType is the type of the Nth argument.
-#if defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
 
 #if defined(ARCH_IS_64_BIT)
   // TODO(fschneider): Make InvokeWithCodeAndThread<> more general and work on
@@ -454,7 +454,7 @@ class AssemblerTest {
     typedef ResultType (*FunctionType) (Arg1Type, Arg2Type, Arg3Type);
     return reinterpret_cast<FunctionType>(entry())(arg1, arg2, arg3);
   }
-#endif  // USING_SIMULATOR
+#endif  // defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
 
   // Assemble test and set code_.
   void Assemble();

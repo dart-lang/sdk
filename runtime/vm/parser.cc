@@ -5062,17 +5062,21 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
       &Symbols::ClosureParameter(),
       &Object::dynamic_type());
 
-  const bool no_explicit_default_values = false;
-  ParseFormalParameterList(no_explicit_default_values, false, &func_params);
-  ExpectSemicolon();
+  // Mark the current class as a typedef class (by setting its signature
+  // function field to a non-null function) before parsing its formal parameters
+  // so that parsed function types are aware that their owner class is a
+  // typedef class.
   Function& signature_function =
       Function::Handle(Z, Function::NewSignatureFunction(function_type_alias,
                                                          alias_name_pos));
-  signature_function.set_result_type(result_type);
-  AddFormalParamsToFunction(&func_params, signature_function);
-
   // Set the signature function in the function type alias class.
   function_type_alias.set_signature_function(signature_function);
+
+  const bool no_explicit_default_values = false;
+  ParseFormalParameterList(no_explicit_default_values, false, &func_params);
+  ExpectSemicolon();
+  signature_function.set_result_type(result_type);
+  AddFormalParamsToFunction(&func_params, signature_function);
 
   if (FLAG_trace_parser) {
     OS::Print("TopLevel parsing function type alias '%s'\n",
@@ -10520,7 +10524,6 @@ LocalVariable* Parser::CreateTempConstVariable(TokenPosition token_pos,
 }
 
 
-// TODO(srdjan): Implement other optimizations.
 AstNode* Parser::OptimizeBinaryOpNode(TokenPosition op_pos,
                                       Token::Kind binary_op,
                                       AstNode* lhs,
@@ -10546,20 +10549,6 @@ AstNode* Parser::OptimizeBinaryOpNode(TokenPosition op_pos,
       LiteralNode* temp = rhs_literal;
       rhs_literal = lhs_literal;
       lhs_literal = temp;
-    }
-    if ((rhs_literal != NULL) &&
-        (rhs_literal->literal().IsSmi() || rhs_literal->literal().IsMint())) {
-      const int64_t val = Integer::Cast(rhs_literal->literal()).AsInt64Value();
-      if ((0 <= val) && (Utils::IsUint(32, val))) {
-        if (lhs->IsBinaryOpNode() &&
-            (lhs->AsBinaryOpNode()->kind() == Token::kSHL)) {
-          // Merge SHL and BIT_AND into one "SHL with mask" node.
-          BinaryOpNode* old = lhs->AsBinaryOpNode();
-          BinaryOpWithMask32Node* binop = new(Z) BinaryOpWithMask32Node(
-              old->token_pos(), old->kind(), old->left(), old->right(), val);
-          return binop;
-        }
-      }
     }
   }
   if (binary_op == Token::kIFNULL) {
@@ -11980,6 +11969,7 @@ struct ConstantPosKey : ValueObject {
 class ConstMapKeyEqualsTraits {
  public:
   static const char* Name() { return "ConstMapKeyEqualsTraits"; }
+  static bool ReportStats() { return false; }
 
   static bool IsMatch(const Object& a, const Object& b) {
     const Array& key1 = Array::Cast(a);
@@ -12063,7 +12053,7 @@ RawInstance* Parser::TryCanonicalize(const Instance& instance,
   }
   const char* error_str = NULL;
   Instance& result =
-      Instance::Handle(Z, instance.CheckAndCanonicalize(&error_str));
+      Instance::Handle(Z, instance.CheckAndCanonicalize(thread(), &error_str));
   if (result.IsNull()) {
     ReportError(token_pos, "Invalid const object %s", error_str);
   }
@@ -12748,6 +12738,9 @@ AstNode* Parser::ParseListLiteral(TokenPosition type_pos,
 
   if (is_const) {
     // Allocate and initialize the const list at compile time.
+    if ((element_list.length() == 0) && list_type_arguments.IsNull()) {
+      return new(Z) LiteralNode(literal_pos, Object::empty_array());
+    }
     Array& const_list = Array::ZoneHandle(Z,
         Array::New(element_list.length(), Heap::kOld));
     const_list.SetTypeArguments(

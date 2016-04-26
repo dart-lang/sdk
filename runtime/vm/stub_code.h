@@ -18,9 +18,9 @@ class RawCode;
 class SnapshotReader;
 class SnapshotWriter;
 
-
 // List of stubs created in the VM isolate, these stubs are shared by different
 // isolates running in this dart process.
+#if !defined(TARGET_ARCH_DBC)
 #define VM_STUB_CODE_LIST(V)                                                   \
   V(GetStackPointer)                                                           \
   V(JumpToExceptionHandler)                                                    \
@@ -64,6 +64,13 @@ class SnapshotWriter;
   V(Subtype3TestCache)                                                         \
   V(CallClosureNoSuchMethod)                                                   \
   V(FrameAwaitingMaterialization)                                              \
+
+#else
+#define VM_STUB_CODE_LIST(V)                                                   \
+  V(LazyCompile)                                                               \
+  V(FixCallersTarget)                                                          \
+
+#endif  // !defined(TARGET_ARCH_DBC)
 
 // Is it permitted for the stubs above to refer to Object::null(), which is
 // allocated in the VM isolate and shared across all isolates.

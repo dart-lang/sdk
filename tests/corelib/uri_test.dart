@@ -407,7 +407,8 @@ void testReplace() {
       var fragment = uri1.hasFragment ? uri1.fragment : null;
 
       var tmp1 = uri1;
-      test() {
+
+      void test() {
         var tmp2 = new Uri(scheme: scheme, userInfo: userInfo, host: host,
                            port: port, path: path,
                            query: query == "" ? null : query,
@@ -452,6 +453,14 @@ void testReplace() {
   var uri = Uri.parse("/no-authorty/");
   uri = uri.replace(fragment: "fragment");
   Expect.isFalse(uri.hasAuthority);
+
+  uri = new Uri(scheme: "foo", path: "bar");
+  uri = uri.replace(
+      queryParameters: {"x": ["42", "37"], "y": ["43", "38"]});
+  var params = uri.queryParametersAll;
+  Expect.equals(2, params.length);
+  Expect.listEquals(["42", "37"], params["x"]);
+  Expect.listEquals(["43", "38"], params["y"]);
 }
 
 main() {

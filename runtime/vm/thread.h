@@ -70,11 +70,10 @@ class Zone;
   V(TypeParameter)                                                             \
 
 
-// List of VM-global objects/addresses cached in each Thread object.
-#define CACHED_VM_OBJECTS_LIST(V)                                              \
-  V(RawObject*, object_null_, Object::null(), NULL)                            \
-  V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
-  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)                   \
+#if defined(TARGET_ARCH_DBC)
+#define CACHED_VM_STUBS_LIST(V)
+#else
+#define CACHED_VM_STUBS_LIST(V)                                                \
   V(RawCode*, update_store_buffer_code_,                                       \
     StubCode::UpdateStoreBuffer_entry()->code(), NULL)                         \
   V(RawCode*, fix_callers_target_code_,                                        \
@@ -86,11 +85,28 @@ class Zone;
   V(RawCode*, call_to_runtime_stub_,                                           \
     StubCode::CallToRuntime_entry()->code(), NULL)                             \
 
-#define CACHED_ADDRESSES_LIST(V)                                               \
+#endif
+
+// List of VM-global objects/addresses cached in each Thread object.
+#define CACHED_VM_OBJECTS_LIST(V)                                              \
+  V(RawObject*, object_null_, Object::null(), NULL)                            \
+  V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
+  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)                   \
+  CACHED_VM_STUBS_LIST(V)                                                      \
+
+#if defined(TARGET_ARCH_DBC)
+#define CACHED_VM_STUBS_ADDRESSES_LIST(V)
+#else
+#define CACHED_VM_STUBS_ADDRESSES_LIST(V)                                      \
   V(uword, update_store_buffer_entry_point_,                                   \
     StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)                      \
   V(uword, call_to_runtime_entry_point_,                                       \
     StubCode::CallToRuntime_entry()->EntryPoint(), 0)                          \
+
+#endif
+
+#define CACHED_ADDRESSES_LIST(V)                                               \
+  CACHED_VM_STUBS_ADDRESSES_LIST(V)                                            \
   V(uword, native_call_wrapper_entry_point_,                                   \
     NativeEntry::NativeCallWrapperEntry(), 0)                                  \
   V(RawString**, predefined_symbols_address_,                                  \
@@ -174,6 +190,13 @@ class Thread : public BaseThread {
 
   // The true stack limit for this isolate.
   uword saved_stack_limit() const { return saved_stack_limit_; }
+
+#if defined(TARGET_ARCH_DBC)
+  // Access to the current stack limit for DBC interpreter.
+  uword stack_limit() const {
+    return stack_limit_;
+  }
+#endif
 
   // Stack overflow flags
   enum {

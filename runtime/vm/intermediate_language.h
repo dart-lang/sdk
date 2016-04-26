@@ -140,6 +140,9 @@ class CompileType : public ValueObject {
   // Create non-nullable Int type.
   static CompileType Int();
 
+  // Create non-nullable Smi type.
+  static CompileType Smi();
+
   // Create non-nullable String type.
   static CompileType String();
 
@@ -3046,6 +3049,8 @@ class TestCidsInstr : public ComparisonInstr {
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
 
   virtual CompileType ComputeType() const;
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool CanDeoptimize() const {
     return GetDeoptId() != Thread::kNoDeoptId;

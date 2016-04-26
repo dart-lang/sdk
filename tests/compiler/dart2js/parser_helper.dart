@@ -124,7 +124,7 @@ Node parseFunction(String text, Compiler compiler) {
   ElementX element = parseUnit(text, compiler, compiler.mainApp).head;
   Expect.isNotNull(element);
   Expect.equals(ElementKind.FUNCTION, element.kind);
-  return element.parseNode(compiler.parsing);
+  return element.parseNode(compiler.parsingContext);
 }
 
 Node parseMember(String text, {DiagnosticReporter reporter}) {
@@ -153,7 +153,7 @@ Link<Element> parseUnit(String text, Compiler compiler,
   var unit = new CompilationUnitElementX(script, library);
   DiagnosticReporter reporter = compiler.reporter;
   ElementListener listener = new ElementListener(
-      compiler.parsing.getScannerOptionsFor(library),
+      compiler.parsingContext.getScannerOptionsFor(library),
       reporter, unit, new IdGenerator());
   PartialParser parser = new PartialParser(listener, new MockParserOptions());
   reporter.withCurrentElement(unit, () => parser.parseUnit(tokens));

@@ -254,13 +254,14 @@ class _StdSink implements IOSink {
   void set encoding(Encoding encoding) {
     _sink.encoding = encoding;
   }
-  void write(object) => _sink.write(object);
-  void writeln([object = "" ]) => _sink.writeln(object);
-  void writeAll(objects, [sep = ""]) => _sink.writeAll(objects, sep);
-  void add(List<int> data) => _sink.add(data);
-  void addError(error, [StackTrace stackTrace]) =>
-      _sink.addError(error, stackTrace);
-  void writeCharCode(int charCode) => _sink.writeCharCode(charCode);
+  void write(object) { _sink.write(object); }
+  void writeln([object = "" ]) { _sink.writeln(object); }
+  void writeAll(objects, [sep = ""]) { _sink.writeAll(objects, sep); }
+  void add(List<int> data) { _sink.add(data); }
+  void addError(error, [StackTrace stackTrace]) {
+    _sink.addError(error, stackTrace);
+  }
+  void writeCharCode(int charCode) { _sink.writeCharCode(charCode); }
   Future addStream(Stream<List<int>> stream) => _sink.addStream(stream);
   Future flush() => _sink.flush();
   Future close() => _sink.close();

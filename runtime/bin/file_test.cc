@@ -32,7 +32,7 @@ TEST_CASE(Read) {
   buffer[13] = '\0';
   EXPECT_STREQ("// Copyright ", buffer);
   EXPECT(!file->WriteByte(1));  // Cannot write to a read-only file.
-  delete file;
+  file->Release();
 }
 
 
@@ -42,7 +42,7 @@ TEST_CASE(FileLength) {
   File* file = File::Open(kFilename, File::kRead);
   EXPECT(file != NULL);
   EXPECT_EQ(42, file->Length());
-  delete file;
+  file->Release();
 }
 
 
@@ -56,7 +56,7 @@ TEST_CASE(FilePosition) {
   EXPECT_EQ(12, file->Position());
   EXPECT(file->ReadFully(buf, 6));
   EXPECT_EQ(18, file->Position());
-  delete file;
+  file->Release();
 }
 
 }  // namespace bin

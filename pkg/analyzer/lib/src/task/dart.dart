@@ -16,6 +16,7 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -616,6 +617,17 @@ final ResultDescriptor<ReferencedNames> REFERENCED_NAMES =
     new ResultDescriptor<ReferencedNames>('REFERENCED_NAMES', null);
 
 /**
+ * The sources of the Dart files that a library references.
+ *
+ * The list is the union of [IMPORTED_LIBRARIES], [EXPORTED_LIBRARIES] and
+ * [UNITS] of the defining unit and [INCLUDED_PARTS]. Never empty or `null`.
+ *
+ * The result is only available for [Source]s representing a library.
+ */
+final ListResultDescriptor<Source> REFERENCED_SOURCES =
+    new ListResultDescriptor<Source>('REFERENCED_SOURCES', Source.EMPTY_LIST);
+
+/**
  * The errors produced while resolving type names.
  *
  * The list will be empty if there were no errors, but will not be `null`.
@@ -995,6 +1007,12 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
   static const String UNIT_INPUT_NAME = 'UNIT_INPUT_NAME';
 
   /**
+   * The input with a map from referenced sources to their modification times.
+   */
+  static const String SOURCES_MODIFICATION_TIME_INPUT_NAME =
+      'SOURCES_MODIFICATION_TIME_INPUT_NAME';
+
+  /**
    * The input with a list of [LIBRARY_ELEMENT3]s of imported libraries.
    */
   static const String IMPORTS_LIBRARY_ELEMENT_INPUT_NAME =
@@ -1041,6 +1059,8 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
     //
     LibraryElementImpl libraryElement = getRequiredInput(LIBRARY_INPUT);
     CompilationUnit libraryUnit = getRequiredInput(UNIT_INPUT_NAME);
+    Map<Source, int> sourceModificationTimeMap =
+        getRequiredInput(SOURCES_MODIFICATION_TIME_INPUT_NAME);
     Map<Source, LibraryElement> importLibraryMap =
         getRequiredInput(IMPORTS_LIBRARY_ELEMENT_INPUT_NAME);
     Map<Source, LibraryElement> exportLibraryMap =
@@ -1072,6 +1092,7 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
       DirectiveElementBuilder builder = new DirectiveElementBuilder(
           context,
           libraryElement,
+          sourceModificationTimeMap,
           importLibraryMap,
           importSourceKindMap,
           exportLibraryMap,
@@ -1103,6 +1124,8 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
       LIBRARY_INPUT: LIBRARY_ELEMENT1.of(source),
       UNIT_INPUT_NAME:
           RESOLVED_UNIT1.of(new LibrarySpecificUnit(source, source)),
+      SOURCES_MODIFICATION_TIME_INPUT_NAME:
+          REFERENCED_SOURCES.of(source).toMapOf(MODIFICATION_TIME),
       IMPORTS_LIBRARY_ELEMENT_INPUT_NAME:
           IMPORTED_LIBRARIES.of(source).toMapOf(LIBRARY_ELEMENT1),
       EXPORTS_LIBRARY_ELEMENT_INPUT_NAME:
@@ -1359,16 +1382,15 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         libraryNameNode = directive.name;
         directivesToResolve.add(directive);
       } else if (directive is PartDirective) {
-        PartDirective partDirective = directive;
-        StringLiteral partUri = partDirective.uri;
-        Source partSource = partDirective.source;
+        StringLiteral partUri = directive.uri;
+        Source partSource = directive.source;
         hasPartDirective = true;
         CompilationUnit partUnit = partUnitMap[partSource];
         if (partUnit != null) {
           CompilationUnitElementImpl partElement = partUnit.element;
           partElement.uriOffset = partUri.offset;
           partElement.uriEnd = partUri.end;
-          partElement.uri = partDirective.uriContent;
+          partElement.uri = directive.uriContent;
           //
           // Validate that the part contains a part-of directive with the same
           // name as the library.
@@ -2342,6 +2364,8 @@ class DartDelta extends Delta {
  * of errors.
  */
 class DartErrorsTask extends SourceBasedAnalysisTask {
+  static final RegExp spacesRegExp = new RegExp(r'\s+');
+
   /**
    * The task descriptor describing this kind of task.
    */
@@ -2398,12 +2422,18 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
     outputs[DART_ERRORS] = errors;
   }
 
+  Token _advanceToLine(Token token, LineInfo lineInfo, int line) {
+    int offset = lineInfo.getOffsetOfLine(line - 1); // 0-based
+    while (token.offset < offset) {
+      token = token.next;
+    }
+    return token;
+  }
+
   List<AnalysisError> _filterIgnores(List<AnalysisError> errors) {
     if (errors.isEmpty) {
       return errors;
     }
-
-    List<AnalysisError> filtered = <AnalysisError>[];
 
     // Sort errors.
     errors.sort((AnalysisError e1, AnalysisError e2) => e1.offset - e2.offset);
@@ -2412,58 +2442,50 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
     Token token = cu.beginToken;
     LineInfo lineInfo = getRequiredInput(LINE_INFO_INPUT);
 
-    int errorIndex = 0;
+    bool isIgnored(AnalysisError error) {
+      int errorLine = lineInfo.getLocation(error.offset).lineNumber;
+      token = _advanceToLine(token, lineInfo, errorLine);
 
-    // Step through tokens looking for comments.
-    while (errorIndex < errors.length && token.type != TokenType.EOF) {
-      // Find leading comment.
+      //Check for leading comment.
       Token comments = token.precedingComments;
       while (comments?.next != null) {
         comments = comments.next;
       }
+      if (_isIgnoredBy(error, comments)) {
+        return true;
+      }
 
-      // Normalize content.
-      String comment =
-          comments?.lexeme?.toLowerCase()?.replaceAll(new RegExp(r'\s+'), '');
-
-      // Check for ignores.
-      if (comment != null && comment.startsWith(_normalizedIgnorePrefix)) {
-        int affectedLine = lineInfo.getLocation(token.offset).lineNumber;
-
-        // Process all affected errors.
-        while (errorIndex < errors.length) {
-          AnalysisError currentError = errors[errorIndex++];
-          int errorLine = lineInfo.getLocation(currentError.offset).lineNumber;
-          if (errorLine < affectedLine) {
-            filtered.add(currentError);
-          } else if (errorLine == affectedLine) {
-            // Check for an ignore.
-            if (!_isIgnoredBy(currentError, comment)) {
-              filtered.add(currentError);
-            }
-          } else {
-            // Back up index and break.
-            --errorIndex;
-            break;
+      //Check for trailing comment.
+      int lineNumber = errorLine + 1;
+      if (lineNumber <= lineInfo.lineCount) {
+        Token nextLine = _advanceToLine(token, lineInfo, lineNumber);
+        comments = nextLine.precedingComments;
+        if (comments != null && nextLine.previous.type != TokenType.EOF) {
+          int commentLine = lineInfo.getLocation(comments.offset).lineNumber;
+          if (commentLine == errorLine) {
+            return _isIgnoredBy(error, comments);
           }
         }
       }
 
-      token = token.next;
+      return false;
     }
 
-    // Add remaining errors.
-    if (errorIndex < errors.length) {
-      filtered.addAll(errors.sublist(errorIndex));
-    }
-
-    return filtered;
+    return errors.where((AnalysisError e) => !isIgnored(e)).toList();
   }
 
-  bool _isIgnoredBy(AnalysisError error, String comment) => comment
-      .substring(_normalizedIgnorePrefix.length)
-      .split(',')
-      .contains(error.errorCode.name.toLowerCase());
+  bool _isIgnoredBy(AnalysisError error, Token comment) {
+    //Normalize first.
+    String contents =
+        comment?.lexeme?.toLowerCase()?.replaceAll(spacesRegExp, '');
+    if (contents == null || !contents.startsWith(_normalizedIgnorePrefix)) {
+      return false;
+    }
+    return contents
+        .substring(_normalizedIgnorePrefix.length)
+        .split(',')
+        .contains(error.errorCode.name.toLowerCase());
+  }
 
   /**
    * Return a map from the names of the inputs of this kind of task to the task
@@ -3474,7 +3496,8 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     PARSE_ERRORS,
     PARSED_UNIT,
     SOURCE_KIND,
-    UNITS
+    UNITS,
+    REFERENCED_SOURCES
   ]);
 
   /**
@@ -3500,7 +3523,6 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     parser.parseAsync = options.enableAsync;
     parser.parseFunctionBodies = options.analyzeFunctionBodiesPredicate(source);
     parser.parseGenericMethods = options.enableGenericMethods;
-    parser.parseConditionalDirectives = options.enableConditionalDirectives;
     parser.parseGenericMethodComments = options.strongMode;
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
     unit.lineInfo = lineInfo;
@@ -3569,6 +3591,11 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     List<Source> includedSources = includedSourceSet.toList();
     List<AnalysisError> parseErrors = getUniqueErrors(errorListener.errors);
     List<Source> unitSources = <Source>[source]..addAll(includedSourceSet);
+    List<Source> referencedSources = (new Set<Source>()
+          ..addAll(importedSources)
+          ..addAll(exportedSources)
+          ..addAll(unitSources))
+        .toList();
     List<LibrarySpecificUnit> librarySpecificUnits =
         unitSources.map((s) => new LibrarySpecificUnit(source, s)).toList();
     outputs[EXPLICITLY_IMPORTED_LIBRARIES] = explicitlyImportedSources;
@@ -3580,6 +3607,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     outputs[PARSED_UNIT] = unit;
     outputs[SOURCE_KIND] = sourceKind;
     outputs[UNITS] = unitSources;
+    outputs[REFERENCED_SOURCES] = referencedSources;
   }
 
   /**
@@ -4489,20 +4517,12 @@ class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
       //
       // Resolve references.
       //
-      // TODO(leafp): This code only needs to re-resolve the right hand sides of
-      // instance fields.  We could do incremental resolution on each field
-      // only using the incremental resolver.  However, this caused a massive
-      // performance degredation on the large_class_declaration_test.dart test.
-      // I would hypothesize that incremental resolution of field is linear in
-      // the size of the enclosing class, and hence incrementally resolving each
-      // field was quadratic.  We may wish to revisit this if we can resolve
-      // this performance issue.
-      PartialResolverVisitor visitor = new PartialResolverVisitor(
+      InstanceFieldResolverVisitor visitor = new InstanceFieldResolverVisitor(
           libraryElement,
           unitElement.source,
           typeProvider,
           AnalysisErrorListener.NULL_LISTENER);
-      unit.accept(visitor);
+      visitor.resolveCompilationUnit(unit);
     }
     //
     // Record outputs.
@@ -5062,6 +5082,11 @@ class ScanDartTask extends SourceBasedAnalysisTask {
   static const String CONTENT_INPUT_NAME = 'CONTENT_INPUT_NAME';
 
   /**
+   * The name of the input whose value is the modification time of the file.
+   */
+  static const String MODIFICATION_TIME_INPUT = 'MODIFICATION_TIME_INPUT';
+
+  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
@@ -5084,9 +5109,10 @@ class ScanDartTask extends SourceBasedAnalysisTask {
   @override
   void internalPerform() {
     Source source = getRequiredSource();
-
     RecordingErrorListener errorListener = new RecordingErrorListener();
-    if (context.getModificationStamp(target.source) < 0) {
+
+    int modificationTime = getRequiredInput(MODIFICATION_TIME_INPUT);
+    if (modificationTime < 0) {
       String message = 'Content could not be read';
       if (context is InternalAnalysisContext) {
         CacheEntry entry =
@@ -5143,16 +5169,23 @@ class ScanDartTask extends SourceBasedAnalysisTask {
   /**
    * Return a map from the names of the inputs of this kind of task to the task
    * input descriptors describing those inputs for a task with the given
-   * [source].
+   * [target].
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     if (target is Source) {
-      return <String, TaskInput>{CONTENT_INPUT_NAME: CONTENT.of(target)};
+      return <String, TaskInput>{
+        CONTENT_INPUT_NAME: CONTENT.of(target),
+        MODIFICATION_TIME_INPUT: MODIFICATION_TIME.of(target)
+      };
     } else if (target is DartScript) {
       // This task does not use the following input; it is included only to add
       // a dependency between this value and the containing source so that when
       // the containing source is modified these results will be invalidated.
-      return <String, TaskInput>{'-': DART_SCRIPTS.of(target.source)};
+      Source source = target.source;
+      return <String, TaskInput>{
+        '-': DART_SCRIPTS.of(source),
+        MODIFICATION_TIME_INPUT: MODIFICATION_TIME.of(source)
+      };
     }
     throw new AnalysisException(
         'Cannot build inputs for a ${target.runtimeType}');
@@ -5269,6 +5302,13 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
   /**
+   * The name of the input of a mapping from [REFERENCED_SOURCES] to their
+   * [MODIFICATION_TIME]s.
+   */
+  static const String REFERENCED_SOURCE_MODIFICATION_TIME_MAP_INPUT =
+      'REFERENCED_SOURCE_MODIFICATION_TIME_MAP_INPUT';
+
+  /**
    * The name of the [TYPE_PROVIDER] input.
    */
   static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
@@ -5283,6 +5323,12 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
    * The [ErrorReporter] to report errors to.
    */
   ErrorReporter errorReporter;
+
+  /**
+   * The mapping from the current library referenced sources to their
+   * modification times.
+   */
+  Map<Source, int> sourceTimeMap;
 
   VerifyUnitTask(InternalAnalysisContext context, AnalysisTarget target)
       : super(context, target);
@@ -5300,6 +5346,8 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     //
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    sourceTimeMap =
+        getRequiredInput(REFERENCED_SOURCE_MODIFICATION_TIME_MAP_INPUT);
     CompilationUnitElement unitElement = unit.element;
     LibraryElement libraryElement = unitElement.library;
     if (libraryElement == null) {
@@ -5354,7 +5402,8 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
   void validateReferencedSource(UriBasedDirective directive) {
     Source source = directive.source;
     if (source != null) {
-      if (context.exists(source)) {
+      int modificationTime = sourceTimeMap[source] ?? -1;
+      if (modificationTime >= 0) {
         return;
       }
     } else {
@@ -5378,6 +5427,8 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     return <String, TaskInput>{
       'thisLibraryClosureIsReady': READY_RESOLVED_UNIT.of(unit.library),
       UNIT_INPUT: RESOLVED_UNIT.of(unit),
+      REFERENCED_SOURCE_MODIFICATION_TIME_MAP_INPUT:
+          REFERENCED_SOURCES.of(unit.library).toMapOf(MODIFICATION_TIME),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
   }

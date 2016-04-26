@@ -19,6 +19,8 @@
 #include "vm/stack_frame_arm64.h"
 #elif defined(TARGET_ARCH_MIPS)
 #include "vm/stack_frame_mips.h"
+#elif defined(TARGET_ARCH_DBC)
+#include "vm/stack_frame_dbc.h"
 #else
 #error Unknown architecture.
 #endif
@@ -101,10 +103,12 @@ class StackFrame : public ValueObject {
   uword GetCallerSp() const {
     return fp() + (kCallerSpSlotFromFp * kWordSize);
   }
+
   uword GetCallerFp() const {
     return *(reinterpret_cast<uword*>(
-        fp() + (kSavedCallerFpSlotFromFp * kWordSize)));
+      fp() + (kSavedCallerFpSlotFromFp * kWordSize)));
   }
+
   uword GetCallerPc() const {
     return *(reinterpret_cast<uword*>(
         fp() + (kSavedCallerPcSlotFromFp * kWordSize)));
@@ -188,10 +192,12 @@ class StackFrameIterator : public ValueObject {
   StackFrameIterator(uword last_fp, bool validate,
                      Thread* thread = Thread::Current());
 
+#if !defined(TARGET_ARCH_DBC)
   // Iterator for iterating over all frames from the current frame (given by its
   // fp, sp, and pc) to the first EntryFrame.
   StackFrameIterator(uword fp, uword sp, uword pc, bool validate,
                      Thread* thread = Thread::Current());
+#endif
 
   // Checks if a next frame exists.
   bool HasNextFrame() const { return frames_.fp_ != 0; }
@@ -272,6 +278,8 @@ class DartFrameIterator : public ValueObject {
   DartFrameIterator(uword last_fp,
                     Thread* thread = Thread::Current())
       : frames_(last_fp, StackFrameIterator::kDontValidateFrames, thread) { }
+
+#if !defined(TARGET_ARCH_DBC)
   DartFrameIterator(uword fp,
                     uword sp,
                     uword pc,
@@ -279,6 +287,8 @@ class DartFrameIterator : public ValueObject {
       : frames_(fp, sp, pc,
                 StackFrameIterator::kDontValidateFrames, thread) {
   }
+#endif
+
   // Get next dart frame.
   StackFrame* NextFrame() {
     StackFrame* frame = frames_.NextFrame();
@@ -335,6 +345,27 @@ class InlinedFunctionsIterator : public ValueObject {
 
   DISALLOW_COPY_AND_ASSIGN(InlinedFunctionsIterator);
 };
+
+#if !defined(TARGET_ARCH_DBC)
+DART_FORCE_INLINE static uword LocalVarAddress(uword fp, intptr_t index) {
+  return fp + (index * kWordSize);
+}
+
+
+DART_FORCE_INLINE static uword ParamAddress(uword fp, intptr_t reverse_index) {
+  return fp + (kParamEndSlotFromFp * kWordSize) + (reverse_index * kWordSize);
+}
+
+
+DART_FORCE_INLINE static bool IsCalleeFrameOf(uword fp, uword other_fp) {
+  return other_fp < fp;
+}
+
+// Value for stack limit that is used to cause an interrupt.
+// Note that on DBC stack is growing upwards so interrupt limit is 0 unlike
+// on all other architectures.
+static const uword kInterruptStackLimit = ~static_cast<uword>(0);
+#endif
 
 }  // namespace dart
 

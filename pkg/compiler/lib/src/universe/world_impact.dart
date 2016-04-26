@@ -4,10 +4,8 @@
 
 library dart2js.universe.world_impact;
 
-import '../elements/elements.dart'
-    show Element, LocalFunctionElement, MethodElement;
+import '../elements/elements.dart' show Element;
 import '../util/util.dart' show Setlet;
-
 import 'use.dart' show DynamicUse, StaticUse, TypeUse;
 
 class WorldImpact {

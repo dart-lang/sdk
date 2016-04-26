@@ -564,19 +564,37 @@ class _File extends FileSystemEntity implements File {
   }
 }
 
+abstract class _RandomAccessFileOps {
+  external factory _RandomAccessFileOps(int pointer);
 
-class _RandomAccessFile
-    implements RandomAccessFile {
+  int getPointer();
+  int close();
+  readByte();
+  read(int bytes);
+  readInto(List<int> buffer, int start, int end);
+  writeByte(int value);
+  writeFrom(List<int> buffer, int start, int end);
+  position();
+  setPosition(int position);
+  truncate(int length);
+  length();
+  flush();
+  lock(int lock, int start, int end);
+}
+
+class _RandomAccessFile implements RandomAccessFile {
   static bool _connectedResourceHandler = false;
 
   final String path;
-  int _id;
+
   bool _asyncDispatched = false;
   SendPort _fileService;
 
   _FileResourceInfo _resourceInfo;
+  _RandomAccessFileOps _ops;
 
-  _RandomAccessFile(this._id, this.path) {
+  _RandomAccessFile(int pointer, this.path) {
+    _ops = new _RandomAccessFileOps(pointer);
     _resourceInfo = new _FileResourceInfo(this);
     _maybeConnectHandler();
   }
@@ -587,12 +605,10 @@ class _RandomAccessFile
     }
   }
 
-  external static int _getFD(int id);
-
   _maybeConnectHandler() {
     if (!_connectedResourceHandler) {
-      // TODO(ricow): we probably need set these in some initialization code.
-      // We need to make sure that these are always awailable from the
+      // TODO(ricow): We probably need to set these in some initialization code.
+      // We need to make sure that these are always available from the
       // observatory even if no files (or sockets for the socket ones) are
       // open.
       registerExtension('ext.dart.io.getOpenFiles',
@@ -604,9 +620,9 @@ class _RandomAccessFile
   }
 
   Future<RandomAccessFile> close() {
-    return _dispatch(_FILE_CLOSE, [_id], markClosed: true).then((result) {
+    return _dispatch(_FILE_CLOSE, [null], markClosed: true).then((result) {
       if (result != -1) {
-        _id = result;
+        closed = closed || (result == 0);
         _maybePerformCleanup();
         return this;
       } else {
@@ -615,20 +631,18 @@ class _RandomAccessFile
     });
   }
 
-  external static int _close(int id);
-
   void closeSync() {
     _checkAvailable();
-    var id = _close(_id);
+    var id = _ops.close();
     if (id == -1) {
       throw new FileSystemException("Cannot close file", path);
     }
-    _id = id;
+    closed = closed || (id == 0);
     _maybePerformCleanup();
   }
 
   Future<int> readByte() {
-    return _dispatch(_FILE_READ_BYTE, [_id]).then((response) {
+    return _dispatch(_FILE_READ_BYTE, [null]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "readByte failed", path);
       }
@@ -637,11 +651,9 @@ class _RandomAccessFile
     });
   }
 
-  external static _readByte(int id);
-
   int readByteSync() {
     _checkAvailable();
-    var result = _readByte(_id);
+    var result = _ops.readByte();
     if (result is OSError) {
       throw new FileSystemException("readByte failed", path, result);
     }
@@ -653,7 +665,7 @@ class _RandomAccessFile
     if (bytes is !int) {
       throw new ArgumentError(bytes);
     }
-    return _dispatch(_FILE_READ, [_id, bytes]).then((response) {
+    return _dispatch(_FILE_READ, [null, bytes]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "read failed", path);
       }
@@ -662,14 +674,12 @@ class _RandomAccessFile
     });
   }
 
-  external static _read(int id, int bytes);
-
   List<int> readSync(int bytes) {
     _checkAvailable();
     if (bytes is !int) {
       throw new ArgumentError(bytes);
     }
-    var result = _read(_id, bytes);
+    var result = _ops.read(bytes);
     if (result is OSError) {
       throw new FileSystemException("readSync failed", path, result);
     }
@@ -678,15 +688,17 @@ class _RandomAccessFile
   }
 
   Future<int> readInto(List<int> buffer, [int start = 0, int end]) {
-    if (buffer is !List ||
-        (start != null && start is !int) ||
-        (end != null && end is !int)) {
+    if ((buffer is !List) ||
+        ((start != null) && (start is !int)) ||
+        ((end != null) && (end is !int))) {
       throw new ArgumentError();
     }
     end = RangeError.checkValidRange(start, end, buffer.length);
-    if (end == start) return new Future.value(0);
+    if (end == start) {
+      return new Future.value(0);
+    }
     int length = end - start;
-    return _dispatch(_FILE_READ_INTO, [_id, length]).then((response) {
+    return _dispatch(_FILE_READ_INTO, [null, length]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "readInto failed", path);
       }
@@ -698,18 +710,18 @@ class _RandomAccessFile
     });
   }
 
-  external static _readInto(int id, List<int> buffer, int start, int end);
-
   int readIntoSync(List<int> buffer, [int start = 0, int end]) {
     _checkAvailable();
-    if (buffer is !List ||
-        (start != null && start is !int) ||
-        (end != null && end is !int)) {
+    if ((buffer is !List) ||
+        ((start != null) && (start is !int)) ||
+        ((end != null) && (end is !int))) {
       throw new ArgumentError();
     }
     end = RangeError.checkValidRange(start, end, buffer.length);
-    if (end == start) return 0;
-    var result = _readInto(_id, buffer, start, end);
+    if (end == start) {
+      return 0;
+    }
+    var result = _ops.readInto(buffer, start, end);
     if (result is OSError) {
       throw new FileSystemException("readInto failed", path, result);
     }
@@ -721,7 +733,7 @@ class _RandomAccessFile
     if (value is !int) {
       throw new ArgumentError(value);
     }
-    return _dispatch(_FILE_WRITE_BYTE, [_id, value]).then((response) {
+    return _dispatch(_FILE_WRITE_BYTE, [null, value]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "writeByte failed", path);
       }
@@ -730,14 +742,12 @@ class _RandomAccessFile
     });
   }
 
-  external static _writeByte(int id, int value);
-
   int writeByteSync(int value) {
     _checkAvailable();
     if (value is !int) {
       throw new ArgumentError(value);
     }
-    var result = _writeByte(_id, value);
+    var result = _ops.writeByte(value);
     if (result is OSError) {
       throw new FileSystemException("writeByte failed", path, result);
     }
@@ -748,12 +758,14 @@ class _RandomAccessFile
   Future<RandomAccessFile> writeFrom(
       List<int> buffer, [int start = 0, int end]) {
     if ((buffer is !List) ||
-        (start != null && start is !int) ||
-        (end != null && end is !int)) {
+        ((start != null) && (start is !int)) ||
+        ((end != null) && (end is !int))) {
       throw new ArgumentError("Invalid arguments to writeFrom");
     }
     end = RangeError.checkValidRange(start, end, buffer.length);
-    if (end == start) return new Future.value(this);
+    if (end == start) {
+      return new Future.value(this);
+    }
     _BufferAndStart result;
     try {
       result = _ensureFastAndSerializableByteData(buffer, start, end);
@@ -762,7 +774,7 @@ class _RandomAccessFile
     }
 
     List request = new List(4);
-    request[0] = _id;
+    request[0] = null;
     request[1] = result.buffer;
     request[2] = result.start;
     request[3] = end - (start - result.start);
@@ -775,23 +787,22 @@ class _RandomAccessFile
     });
   }
 
-  external static _writeFrom(int id, List<int> buffer, int start, int end);
-
   void writeFromSync(List<int> buffer, [int start = 0, int end]) {
     _checkAvailable();
-    if (buffer is !List ||
-        (start != null && start is !int) ||
-        (end != null && end is !int)) {
+    if ((buffer is !List) ||
+        ((start != null) && (start is !int)) ||
+        ((end != null) && (end is !int))) {
       throw new ArgumentError("Invalid arguments to writeFromSync");
     }
     end = RangeError.checkValidRange(start, end, buffer.length);
-    if (end == start) return;
+    if (end == start) {
+      return;
+    }
     _BufferAndStart bufferAndStart =
         _ensureFastAndSerializableByteData(buffer, start, end);
-    var result = _writeFrom(_id,
-                            bufferAndStart.buffer,
-                            bufferAndStart.start,
-                            end - (start - bufferAndStart.start));
+    var result = _ops.writeFrom(bufferAndStart.buffer,
+                                bufferAndStart.start,
+                                end - (start - bufferAndStart.start));
     if (result is OSError) {
       throw new FileSystemException("writeFrom failed", path, result);
     }
@@ -816,7 +827,7 @@ class _RandomAccessFile
   }
 
   Future<int> position() {
-    return _dispatch(_FILE_POSITION, [_id]).then((response) {
+    return _dispatch(_FILE_POSITION, [null]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "position failed", path);
       }
@@ -824,11 +835,9 @@ class _RandomAccessFile
     });
   }
 
-  external static _position(int id);
-
   int positionSync() {
     _checkAvailable();
-    var result = _position(_id);
+    var result = _ops.position();
     if (result is OSError) {
       throw new FileSystemException("position failed", path, result);
     }
@@ -836,7 +845,7 @@ class _RandomAccessFile
   }
 
   Future<RandomAccessFile> setPosition(int position) {
-    return _dispatch(_FILE_SET_POSITION, [_id, position])
+    return _dispatch(_FILE_SET_POSITION, [null, position])
         .then((response) {
           if (_isErrorResponse(response)) {
             throw _exceptionFromResponse(response, "setPosition failed", path);
@@ -845,18 +854,16 @@ class _RandomAccessFile
         });
   }
 
-  external static _setPosition(int id, int position);
-
   void setPositionSync(int position) {
     _checkAvailable();
-    var result = _setPosition(_id, position);
+    var result = _ops.setPosition(position);
     if (result is OSError) {
       throw new FileSystemException("setPosition failed", path, result);
     }
   }
 
   Future<RandomAccessFile> truncate(int length) {
-    return _dispatch(_FILE_TRUNCATE, [_id, length]).then((response) {
+    return _dispatch(_FILE_TRUNCATE, [null, length]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "truncate failed", path);
       }
@@ -864,18 +871,16 @@ class _RandomAccessFile
     });
   }
 
-  external static _truncate(int id, int length);
-
   void truncateSync(int length) {
     _checkAvailable();
-    var result = _truncate(_id, length);
+    var result = _ops.truncate(length);
     if (result is OSError) {
       throw new FileSystemException("truncate failed", path, result);
     }
   }
 
   Future<int> length() {
-    return _dispatch(_FILE_LENGTH, [_id]).then((response) {
+    return _dispatch(_FILE_LENGTH, [null]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "length failed", path);
       }
@@ -883,11 +888,9 @@ class _RandomAccessFile
     });
   }
 
-  external static _length(int id);
-
   int lengthSync() {
     _checkAvailable();
-    var result = _length(_id);
+    var result = _ops.length();
     if (result is OSError) {
       throw new FileSystemException("length failed", path, result);
     }
@@ -895,7 +898,7 @@ class _RandomAccessFile
   }
 
   Future<RandomAccessFile> flush() {
-    return _dispatch(_FILE_FLUSH, [_id]).then((response) {
+    return _dispatch(_FILE_FLUSH, [null]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
                                      "flush failed",
@@ -905,11 +908,9 @@ class _RandomAccessFile
     });
   }
 
-  external static _flush(int id);
-
   void flushSync() {
     _checkAvailable();
-    var result = _flush(_id);
+    var result = _ops.flush();
     if (result is OSError) {
       throw new FileSystemException("flush failed", path, result);
     }
@@ -920,19 +921,15 @@ class _RandomAccessFile
   static final int LOCK_EXCLUSIVE = 2;
 
   Future<RandomAccessFile> lock(
-      [FileLock mode = FileLock.EXCLUSIVE, int start = 0, int end]) {
-    if ((start != null && start is !int) ||
-        (end != null && end is !int) ||
-         mode is !FileLock) {
+      [FileLock mode = FileLock.EXCLUSIVE, int start = 0, int end = -1]) {
+    if ((mode is !FileLock) || (start is !int) || (end is !int)) {
       throw new ArgumentError();
     }
-    if (start == null) start = 0;
-    if (end == null) end = -1;
-    if (start < 0 || end < -1 || (end != -1 && start >= end)) {
+    if ((start < 0) || (end < -1) || ((end != -1) && (start >= end))) {
       throw new ArgumentError();
     }
-    int lock = mode == FileLock.EXCLUSIVE ? LOCK_EXCLUSIVE : LOCK_SHARED;
-    return _dispatch(_FILE_LOCK, [_id, lock, start, end])
+    int lock = (mode == FileLock.EXCLUSIVE) ? LOCK_EXCLUSIVE : LOCK_SHARED;
+    return _dispatch(_FILE_LOCK, [null, lock, start, end])
         .then((response) {
           if (_isErrorResponse(response)) {
             throw _exceptionFromResponse(response, 'lock failed', path);
@@ -941,15 +938,14 @@ class _RandomAccessFile
         });
   }
 
-  Future<RandomAccessFile> unlock([int start = 0, int end]) {
-    if ((start != null && start is !int) ||
-        (end != null && end is !int)) {
+  Future<RandomAccessFile> unlock([int start = 0, int end = -1]) {
+    if ((start is !int) || (end is !int)) {
       throw new ArgumentError();
     }
-    if (start == null) start = 0;
-    if (end == null) end = -1;
-    if (start == end) throw new ArgumentError();
-    return _dispatch(_FILE_LOCK, [_id, LOCK_UNLOCK, start, end])
+    if (start == end) {
+      throw new ArgumentError();
+    }
+    return _dispatch(_FILE_LOCK, [null, LOCK_UNLOCK, start, end])
         .then((response) {
           if (_isErrorResponse(response)) {
             throw _exceptionFromResponse(response, 'unlock failed', path);
@@ -958,43 +954,43 @@ class _RandomAccessFile
         });
   }
 
-  external static _lock(int id, int lock, int start, int end);
-
-  void lockSync([FileLock mode = FileLock.EXCLUSIVE, int start = 0, int end]) {
+  void lockSync(
+      [FileLock mode = FileLock.EXCLUSIVE, int start = 0, int end = -1]) {
     _checkAvailable();
-    if ((start != null && start is !int) ||
-        (end != null && end is !int) ||
-         mode is !FileLock) {
+    if ((mode is !FileLock) || (start is !int) || (end is !int)) {
       throw new ArgumentError();
     }
-    if (start == null) start = 0;
-    if (end == null) end = -1;
-    if (start < 0 || end < -1 || (end != -1 && start >= end)) {
+    if ((start < 0) || (end < -1) || ((end != -1) && (start >= end))) {
       throw new ArgumentError();
     }
-    int lock = mode == FileLock.EXCLUSIVE ? LOCK_EXCLUSIVE : LOCK_SHARED;
-    var result = _lock(_id, lock, start, end);
+    int lock = (mode == FileLock.EXCLUSIVE) ? LOCK_EXCLUSIVE : LOCK_SHARED;
+    var result = _ops.lock(lock, start, end);
     if (result is OSError) {
       throw new FileSystemException('lock failed', path, result);
     }
   }
 
-  void unlockSync([int start = 0, int end]) {
+  void unlockSync([int start = 0, int end = -1]) {
     _checkAvailable();
-    if ((start != null && start is !int) ||
-        (end != null && end is !int)) {
+    if ((start is !int) || (end is !int)) {
       throw new ArgumentError();
     }
-    if (start == null) start = 0;
-    if (end == null) end = -1;
-    if (start == end) throw new ArgumentError();
-    var result = _lock(_id, LOCK_UNLOCK, start, end);
+    if (start == end) {
+      throw new ArgumentError();
+    }
+    var result = _ops.lock(LOCK_UNLOCK, start, end);
     if (result is OSError) {
       throw new FileSystemException('unlock failed', path, result);
     }
   }
 
-  bool get closed => _id == 0;
+  bool closed = false;
+
+  // Calling this function will increase the reference count on the native
+  // object that implements the file operations. It should only be called to
+  // pass the pointer to the IO Service, which will decrement the reference
+  // count when it is finished with it.
+  int _pointer() => _ops.getPointer();
 
   Future _dispatch(int request, List data, { bool markClosed: false }) {
     if (closed) {
@@ -1005,11 +1001,12 @@ class _RandomAccessFile
       return new Future.error(new FileSystemException(msg, path));
     }
     if (markClosed) {
-      // Set the id_ to 0 (NULL) to ensure the no more async requests
-      // can be issued for this file.
-      _id = 0;
+      // Set closed to true to ensure that no more async requests can be issued
+      // for this file.
+      closed = true;
     }
     _asyncDispatched = true;
+    data[0] = _pointer();
     return _IOService._dispatch(request, data)
         .whenComplete(() {
           _asyncDispatched = false;

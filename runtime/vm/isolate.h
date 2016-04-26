@@ -381,6 +381,8 @@ class Isolate : public BaseIsolate {
     return background_compiler_;
   }
   void set_background_compiler(BackgroundCompiler* value) {
+    // Do not overwrite a background compiler (memory leak).
+    ASSERT((value == NULL) || (background_compiler_ == NULL));
     background_compiler_ = value;
   }
 

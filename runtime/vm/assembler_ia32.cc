@@ -2704,32 +2704,16 @@ void Assembler::Bind(Label* label) {
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Register temp_reg,
                                      Label* trace,
-                                     bool near_jump,
-                                     bool inline_isolate) {
+                                     bool near_jump) {
   ASSERT(cid > 0);
   Address state_address(kNoRegister, 0);
   intptr_t state_offset = ClassTable::StateOffsetFor(cid);
-  if (inline_isolate) {
-    ClassTable* class_table = Isolate::Current()->class_table();
-    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
-    if (cid < kNumPredefinedCids) {
-      state_address = Address::Absolute(
-          reinterpret_cast<uword>(*table_ptr) + state_offset);
-    } else {
-      ASSERT(temp_reg != kNoRegister);
-      // temp_reg gets address of class table pointer.
-      movl(temp_reg,
-           Address::Absolute(reinterpret_cast<uword>(table_ptr)));
-      state_address = Address(temp_reg, state_offset);
-    }
-  } else {
-    ASSERT(temp_reg != kNoRegister);
-    LoadIsolate(temp_reg);
-    intptr_t table_offset =
-        Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
-    movl(temp_reg, Address(temp_reg, table_offset));
-    state_address = Address(temp_reg, state_offset);
-  }
+  ASSERT(temp_reg != kNoRegister);
+  LoadIsolate(temp_reg);
+  intptr_t table_offset =
+      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  movl(temp_reg, Address(temp_reg, table_offset));
+  state_address = Address(temp_reg, state_offset);
   testb(state_address, Immediate(ClassHeapStats::TraceAllocationMask()));
   // We are tracing for this class, jump to the trace label which will use
   // the allocation stub.
@@ -2739,71 +2723,40 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
 
 void Assembler::UpdateAllocationStats(intptr_t cid,
                                       Register temp_reg,
-                                      Heap::Space space,
-                                      bool inline_isolate) {
+                                      Heap::Space space) {
   ASSERT(cid > 0);
   intptr_t counter_offset =
       ClassTable::CounterOffsetFor(cid, space == Heap::kNew);
-  if (inline_isolate) {
-    ClassTable* class_table = Isolate::Current()->class_table();
-    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
-    if (cid < kNumPredefinedCids) {
-      incl(Address::Absolute(
-          reinterpret_cast<uword>(*table_ptr) + counter_offset));
-    } else {
-      ASSERT(temp_reg != kNoRegister);
-      movl(temp_reg,
-           Address::Absolute(reinterpret_cast<uword>(table_ptr)));
-      incl(Address(temp_reg, counter_offset));
-    }
-  } else {
-    ASSERT(temp_reg != kNoRegister);
-    LoadIsolate(temp_reg);
-    intptr_t table_offset =
-        Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
-    movl(temp_reg, Address(temp_reg, table_offset));
-    incl(Address(temp_reg, counter_offset));
-  }
+  ASSERT(temp_reg != kNoRegister);
+  LoadIsolate(temp_reg);
+  intptr_t table_offset =
+      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  movl(temp_reg, Address(temp_reg, table_offset));
+  incl(Address(temp_reg, counter_offset));
 }
 
 
 void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
                                               Register size_reg,
                                               Register temp_reg,
-                                              Heap::Space space,
-                                              bool inline_isolate) {
+                                              Heap::Space space) {
   ASSERT(cid > 0);
   ASSERT(cid < kNumPredefinedCids);
-  UpdateAllocationStats(cid, temp_reg, space, inline_isolate);
+  UpdateAllocationStats(cid, temp_reg, space);
   intptr_t size_offset = ClassTable::SizeOffsetFor(cid, space == Heap::kNew);
-  if (inline_isolate) {
-    ClassTable* class_table = Isolate::Current()->class_table();
-    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
-    addl(Address::Absolute(
-        reinterpret_cast<uword>(*table_ptr) + size_offset), size_reg);
-  } else {
-    addl(Address(temp_reg, size_offset), size_reg);
-  }
+  addl(Address(temp_reg, size_offset), size_reg);
 }
 
 
 void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
                                               intptr_t size_in_bytes,
                                               Register temp_reg,
-                                              Heap::Space space,
-                                              bool inline_isolate) {
+                                              Heap::Space space) {
   ASSERT(cid > 0);
   ASSERT(cid < kNumPredefinedCids);
-  UpdateAllocationStats(cid, temp_reg, space, inline_isolate);
+  UpdateAllocationStats(cid, temp_reg, space);
   intptr_t size_offset = ClassTable::SizeOffsetFor(cid, space == Heap::kNew);
-  if (inline_isolate) {
-    ClassTable* class_table = Isolate::Current()->class_table();
-    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
-    addl(Address::Absolute(reinterpret_cast<uword>(*table_ptr) + size_offset),
-         Immediate(size_in_bytes));
-  } else {
-    addl(Address(temp_reg, size_offset), Immediate(size_in_bytes));
-  }
+  addl(Address(temp_reg, size_offset), Immediate(size_in_bytes));
 }
 
 
@@ -2818,8 +2771,7 @@ void Assembler::TryAllocate(const Class& cls,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cls.id(), temp_reg, failure, near_jump,
-                         /* inline_isolate = */ false);
+    MaybeTraceAllocation(cls.id(), temp_reg, failure, near_jump);
     const intptr_t instance_size = cls.instance_size();
     Heap::Space space = Heap::SpaceForAllocation(cls.id());
     movl(temp_reg, Address(THR, Thread::heap_offset()));
@@ -2831,8 +2783,7 @@ void Assembler::TryAllocate(const Class& cls,
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     movl(Address(temp_reg, Heap::TopOffset(space)), instance_reg);
-    UpdateAllocationStats(cls.id(), temp_reg, space,
-                          /* inline_isolate = */ false);
+    UpdateAllocationStats(cls.id(), temp_reg, space);
     ASSERT(instance_size >= kHeapObjectTag);
     subl(instance_reg, Immediate(instance_size - kHeapObjectTag));
     uword tags = 0;
@@ -2859,8 +2810,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cid, temp_reg, failure, near_jump,
-                         /* inline_isolate = */ false);
+    MaybeTraceAllocation(cid, temp_reg, failure, near_jump);
     Heap::Space space = Heap::SpaceForAllocation(cid);
     movl(temp_reg, Address(THR, Thread::heap_offset()));
     movl(instance, Address(temp_reg, Heap::TopOffset(space)));
@@ -2879,8 +2829,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // next object start and initialize the object.
     movl(Address(temp_reg, Heap::TopOffset(space)), end_address);
     addl(instance, Immediate(kHeapObjectTag));
-    UpdateAllocationStatsWithSize(cid, instance_size, temp_reg, space,
-                                  /* inline_isolate = */ false);
+    UpdateAllocationStatsWithSize(cid, instance_size, temp_reg, space);
 
     // Initialize the tags.
     uword tags = 0;

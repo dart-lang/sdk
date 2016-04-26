@@ -369,6 +369,23 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
+  CompletionSuggestion assertSuggestName(
+      String name,
+      {int relevance: DART_RELEVANCE_DEFAULT,
+      String importUri,
+      CompletionSuggestionKind kind: CompletionSuggestionKind.IDENTIFIER,
+      bool isDeprecated: false}) {
+    CompletionSuggestion cs = assertSuggest(name,
+        csKind: kind,
+        relevance: relevance,
+        importUri: importUri,
+        isDeprecated: isDeprecated);
+    expect(cs.completion, equals(name));
+    expect(cs.element, isNull);
+    assertHasNoParameterInfo(cs);
+    return cs;
+  }
+
   CompletionSuggestion assertSuggestSetter(String name,
       {int relevance: DART_RELEVANCE_DEFAULT,
       String importUri,

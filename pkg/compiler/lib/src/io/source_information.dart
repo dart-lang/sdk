@@ -5,9 +5,9 @@
 library dart2js.source_information;
 
 import '../common.dart';
-import '../elements/elements.dart' show AstElement, LocalElement;
-import '../tree/tree.dart' show Node, Send;
+import '../elements/elements.dart' show AstElement, LocalElement, ResolvedAst;
 import '../js/js.dart' show JavaScriptNodeSourceInformation;
+import '../tree/tree.dart' show Node;
 import 'source_file.dart';
 
 /// Interface for passing source information, for instance for use in source
@@ -56,8 +56,9 @@ class SourceInformationBuilder {
   /// Create a [SourceInformationBuilder] for [element].
   SourceInformationBuilder forContext(AstElement element) => this;
 
-  /// Generate [SourceInformation] the declaration of [element].
-  SourceInformation buildDeclaration(AstElement element) => null;
+  /// Generate [SourceInformation] the declaration of the element in
+  /// [resolvedAst].
+  SourceInformation buildDeclaration(ResolvedAst resolvedAst) => null;
 
   /// Generate [SourceInformation] for the generic [node].
   @deprecated

@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
+/// Dart test verifying that the parser can handle type parameterization of
+/// method declarations and method invocations. Slightly adjusted version of
+/// code from DEP #22.
 
-// Dart test verifying that the parser can handle type parameterization of
-// method declarations and method invocations. Slightly adjusted version of
-// code from DEP #22.
+library generic_methods_test;
+
+import "package:expect/expect.dart";
 
 class BinaryTreeNode<K extends Comparable<K>, V> {
   final K _key;

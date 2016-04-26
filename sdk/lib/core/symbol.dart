@@ -49,5 +49,5 @@ abstract class Symbol {
    * Qualified member names, like `#foo.bar` are equal only if they have the
    * same identifiers before the same final member name.
    */
-  bool operator ==(Object other);
+  bool operator ==(other);
 }

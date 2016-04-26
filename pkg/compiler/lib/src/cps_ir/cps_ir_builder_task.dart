@@ -4,44 +4,39 @@
 
 library dart2js.ir_builder_task;
 
+import 'package:js_runtime/shared/embedded_names.dart'
+    show JsBuiltin, JsGetName;
+
 import '../closure.dart' as closure;
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Names, Selectors;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart';
+import '../constants/values.dart' show ConstantValue;
+import '../constants/values.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
-import '../elements/modelx.dart'
-    show
-        SynthesizedConstructorElementX,
-        ConstructorBodyElementX,
-        FunctionSignatureX;
+import '../elements/modelx.dart' show ConstructorBodyElementX;
 import '../io/source_information.dart';
+import '../js/js.dart' as js show js, Template, Expression, Name;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart'
     show JavaScriptBackend, SyntheticConstantKind;
-import '../resolution/tree_elements.dart' show TreeElements;
-import '../resolution/semantic_visitor.dart';
+import '../native/native.dart' show NativeBehavior, HasCapturedPlaceholders;
 import '../resolution/operators.dart' as op;
+import '../resolution/semantic_visitor.dart';
+import '../resolution/tree_elements.dart' show TreeElements;
+import '../ssa/types.dart' show TypeMaskFactory;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart' show TypeMask;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
-import '../constants/values.dart' show ConstantValue;
-import 'cps_ir_nodes.dart' as ir;
-import 'cps_ir_builder.dart';
-import '../native/native.dart' show NativeBehavior, HasCapturedPlaceholders;
-
-// TODO(karlklose): remove.
-import '../js/js.dart' as js show js, Template, Expression, Name;
-import '../ssa/types.dart' show TypeMaskFactory;
 import '../util/util.dart';
-
-import 'package:js_runtime/shared/embedded_names.dart'
-    show JsBuiltin, JsGetName;
-import '../constants/values.dart';
+import 'cps_ir_builder.dart';
+import 'cps_ir_nodes.dart' as ir;
 import 'type_mask_system.dart' show TypeMaskSystem;
+// TODO(karlklose): remove.
 
 typedef void IrBuilderCallback(Element element, ir.FunctionDefinition irNode);
 
@@ -79,14 +74,14 @@ class IrBuilderTask extends CompilerTask {
     return measure(() {
       bailoutMessage = null;
 
-      TreeElements elementsMapping = element.resolvedAst.elements;
+      ResolvedAst resolvedAst = element.resolvedAst;
       element = element.implementation;
       return reporter.withCurrentElement(element, () {
         SourceInformationBuilder sourceInformationBuilder =
             sourceInformationStrategy.createBuilderForContext(element);
 
-        IrBuilderVisitor builder = new IrBuilderVisitor(elementsMapping,
-            compiler, sourceInformationBuilder, typeMaskSystem);
+        IrBuilderVisitor builder = new IrBuilderVisitor(
+            resolvedAst, compiler, sourceInformationBuilder, typeMaskSystem);
         ir.FunctionDefinition irNode = builder.buildExecutable(element);
         if (irNode == null) {
           bailoutMessage = builder.bailoutMessage;
@@ -123,7 +118,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         BaseImplementationOfIndexCompoundsMixin<ir.Primitive, dynamic>,
         BaseImplementationOfSuperIndexSetIfNullMixin<ir.Primitive, dynamic>
     implements SemanticSendVisitor<ir.Primitive, dynamic> {
-  final TreeElements elements;
+  final ResolvedAst resolvedAst;
   final Compiler compiler;
   final SourceInformationBuilder sourceInformationBuilder;
   final TypeMaskSystem typeMaskSystem;
@@ -155,8 +150,10 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   // arguments, and what the arguments are.
 
   /// Construct a top-level visitor.
-  IrBuilderVisitor(this.elements, this.compiler, this.sourceInformationBuilder,
-      this.typeMaskSystem);
+  IrBuilderVisitor(this.resolvedAst, this.compiler,
+      this.sourceInformationBuilder, this.typeMaskSystem);
+
+  TreeElements get elements => resolvedAst.elements;
 
   JavaScriptBackend get backend => compiler.backend;
   BackendHelpers get helpers => backend.helpers;
@@ -193,7 +190,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   /// one currently being built.
   ClosureScope getClosureScopeForFunction(FunctionElement function) {
     closure.ClosureClassMap map = compiler.closureToClassMapper
-        .computeClosureToClassMapping(function, function.node, elements);
+        .computeClosureToClassMapping(function.resolvedAst);
     return new ClosureScope(map.capturingScopes[function.node]);
   }
 
@@ -505,7 +502,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   /// Every visitor can only be applied to nodes in one context, because
   /// the [elements] field is specific to that context.
   IrBuilderVisitor makeVisitorForContext(AstElement context) {
-    return new IrBuilderVisitor(context.resolvedAst.elements, compiler,
+    return new IrBuilderVisitor(context.resolvedAst, compiler,
         sourceInformationBuilder.forContext(context), typeMaskSystem);
   }
 
@@ -545,7 +542,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   void loadArguments(ConstructorElement target, CallStructure call,
       List<ir.Primitive> arguments) {
     assert(target.isImplementation);
-    assert(target == elements.analyzedElement);
+    assert(target.declaration == resolvedAst.element);
     FunctionSignature signature = target.functionSignature;
 
     // Establish a scope in case parameters are captured.
@@ -620,7 +617,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       List<ConstructorElement> supers,
       Map<FieldElement, ir.Primitive> fieldValues) {
     assert(constructor.isImplementation);
-    assert(constructor == elements.analyzedElement);
+    assert(constructor.declaration == resolvedAst.element);
     ClassElement enclosingClass = constructor.enclosingClass.implementation;
     // Evaluate declaration-site field initializers, unless this constructor
     // redirects to another using a `this()` initializer. In that case, these
@@ -714,7 +711,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     ConstructorElement constructor = body.constructor;
     ast.FunctionExpression node = constructor.node;
     closureClassMap = compiler.closureToClassMapper
-        .computeClosureToClassMapping(constructor, node, elements);
+        .computeClosureToClassMapping(constructor.resolvedAst);
 
     // We compute variables boxed in mutable variables on entry to each try
     // block, not including variables captured by a closure (which are boxed
@@ -745,7 +742,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     assert(elements[node] != null);
 
     closureClassMap = compiler.closureToClassMapper
-        .computeClosureToClassMapping(element, node, elements);
+        .computeClosureToClassMapping(element.resolvedAst);
     TryBoxedVariables variables = _analyzeTryBoxedVariables(node);
     tryStatements = variables.tryStatements;
     IrBuilder builder = getBuilderFor(element);
@@ -758,7 +755,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       return null; // Nothing to do.
     }
     closureClassMap = compiler.closureToClassMapper
-        .computeClosureToClassMapping(element, element.node, elements);
+        .computeClosureToClassMapping(element.resolvedAst);
     IrBuilder builder = getBuilderFor(element);
     return withBuilder(builder, () {
       irBuilder.buildFunctionHeader(<Local>[]);
@@ -908,7 +905,6 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       //
       assert(parameters.length == 1 || parameters.length == 2);
       ir.Primitive allocation = irBuilder.buildLocalGet(parameters[0]);
-      ClassElement classElement = element.enclosingElement;
 
       // Only call setRuntimeTypeInfo if JSArray requires the type parameter.
       if (requiresRuntimeTypes) {
@@ -1130,7 +1126,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         <ir.Primitive>[stream, dummyTypeArgument],
         sourceInformationBuilder.buildGeneric(node)));
 
-    ir.Node buildTryBody(IrBuilder builder) {
+    buildTryBody(IrBuilder builder) {
       ir.Node buildLoopCondition(IrBuilder builder) {
         ir.Primitive moveNext = builder.buildDynamicInvocation(
             iterator,
@@ -2271,7 +2267,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       // libraries contain a dummy const constructor implementation that
       // doesn't perform validation and the compiler compiles a call to
       // (non-const) Symbol.validated when it sees new Symbol(...).
-      target = compiler.symbolValidatedConstructor;
+      target = helpers.symbolValidatedConstructor;
     } else {
       target = constructor.implementation;
     }
@@ -3201,8 +3197,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     }
 
     Link<ast.Node> argumentNodes = argumentList.nodes;
-    NativeBehavior behavior =
-        compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
+    NativeBehavior behavior = elements.getNativeData(node);
     switch (function.name) {
       case 'JS':
         validateArgumentCount(minimum: 2);

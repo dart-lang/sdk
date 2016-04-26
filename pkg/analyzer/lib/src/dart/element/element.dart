@@ -463,29 +463,33 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     // expected types.
     //
     for (PropertyAccessorElement accessor in _accessors) {
-      if ((accessor as PropertyAccessorElementImpl).identifier == identifier) {
-        return accessor as PropertyAccessorElementImpl;
+      PropertyAccessorElementImpl accessorImpl = accessor;
+      if (accessorImpl.identifier == identifier) {
+        return accessorImpl;
       }
     }
     for (ConstructorElement constructor in _constructors) {
-      if ((constructor as ConstructorElementImpl).identifier == identifier) {
-        return constructor as ConstructorElementImpl;
+      ConstructorElementImpl constructorImpl = constructor;
+      if (constructorImpl.identifier == identifier) {
+        return constructorImpl;
       }
     }
     for (FieldElement field in _fields) {
-      if ((field as FieldElementImpl).identifier == identifier) {
-        return field as FieldElementImpl;
+      FieldElementImpl fieldImpl = field;
+      if (fieldImpl.identifier == identifier) {
+        return fieldImpl;
       }
     }
     for (MethodElement method in _methods) {
-      if ((method as MethodElementImpl).identifier == identifier) {
-        return method as MethodElementImpl;
+      MethodElementImpl methodImpl = method;
+      if (methodImpl.identifier == identifier) {
+        return methodImpl;
       }
     }
     for (TypeParameterElement typeParameter in _typeParameters) {
-      if ((typeParameter as TypeParameterElementImpl).identifier ==
-          identifier) {
-        return typeParameter as TypeParameterElementImpl;
+      TypeParameterElementImpl typeParameterImpl = typeParameter;
+      if (typeParameterImpl.identifier == identifier) {
+        return typeParameterImpl;
       }
     }
     return null;
@@ -778,11 +782,12 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
         _internalLookUpSetter(setterName, library, includeThisClass);
     while (setter != null && setter.isAbstract) {
       Element definingClass = setter.enclosingElement;
-      if (definingClass is! ClassElementImpl) {
+      if (definingClass is ClassElementImpl) {
+        setter =
+            definingClass._internalLookUpSetter(setterName, library, false);
+      } else {
         return null;
       }
-      setter = (definingClass as ClassElementImpl)
-          ._internalLookUpSetter(setterName, library, false);
     }
     return setter;
   }
@@ -1154,34 +1159,39 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     // expected types.
     //
     for (PropertyAccessorElement accessor in _accessors) {
-      if ((accessor as PropertyAccessorElementImpl).identifier == identifier) {
-        return accessor as PropertyAccessorElementImpl;
+      PropertyAccessorElementImpl accessorImpl = accessor;
+      if (accessorImpl.identifier == identifier) {
+        return accessorImpl;
       }
     }
-    for (VariableElement variable in _variables) {
-      if ((variable as VariableElementImpl).identifier == identifier) {
-        return variable as VariableElementImpl;
+    for (TopLevelVariableElement variable in _variables) {
+      TopLevelVariableElementImpl variableImpl = variable;
+      if (variableImpl.identifier == identifier) {
+        return variableImpl;
       }
     }
-    for (ExecutableElement function in _functions) {
-      if ((function as ExecutableElementImpl).identifier == identifier) {
-        return function as ExecutableElementImpl;
+    for (FunctionElement function in _functions) {
+      FunctionElementImpl functionImpl = function;
+      if (functionImpl.identifier == identifier) {
+        return functionImpl;
       }
     }
     for (FunctionTypeAliasElement typeAlias in _typeAliases) {
-      if ((typeAlias as FunctionTypeAliasElementImpl).identifier ==
-          identifier) {
-        return typeAlias as FunctionTypeAliasElementImpl;
+      FunctionTypeAliasElementImpl typeAliasImpl = typeAlias;
+      if (typeAliasImpl.identifier == identifier) {
+        return typeAliasImpl;
       }
     }
     for (ClassElement type in _types) {
-      if ((type as ClassElementImpl).identifier == identifier) {
-        return type as ClassElementImpl;
+      ClassElementImpl typeImpl = type;
+      if (typeImpl.identifier == identifier) {
+        return typeImpl;
       }
     }
     for (ClassElement type in _enums) {
-      if ((type as ClassElementImpl).identifier == identifier) {
-        return type as ClassElementImpl;
+      ClassElementImpl typeImpl = type;
+      if (typeImpl.identifier == identifier) {
+        return typeImpl;
       }
     }
     return null;
@@ -1718,9 +1728,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   }
 
   @override
-  bool get isJS => element is ConstructorElement &&
-        element.enclosingElement.name == _JS_CLASS_NAME &&
-        element.library?.name == _JS_LIB_NAME;
+  bool get isJS =>
+      element is ConstructorElement &&
+      element.enclosingElement.name == _JS_CLASS_NAME &&
+      element.library?.name == _JS_LIB_NAME;
 
   @override
   bool get isMustCallSuper =>
@@ -2333,21 +2344,20 @@ class ElementLocationImpl implements ElementLocation {
     if (identical(this, object)) {
       return true;
     }
-    if (object is! ElementLocationImpl) {
-      return false;
-    }
-    ElementLocationImpl location = object as ElementLocationImpl;
-    List<String> otherComponents = location._components;
-    int length = _components.length;
-    if (otherComponents.length != length) {
-      return false;
-    }
-    for (int i = 0; i < length; i++) {
-      if (_components[i] != otherComponents[i]) {
+    if (object is ElementLocationImpl) {
+      List<String> otherComponents = object._components;
+      int length = _components.length;
+      if (otherComponents.length != length) {
         return false;
       }
+      for (int i = 0; i < length; i++) {
+        if (_components[i] != otherComponents[i]) {
+          return false;
+        }
+      }
+      return true;
     }
-    return true;
+    return false;
   }
 
   @override
@@ -2593,7 +2603,7 @@ abstract class ExecutableElementImpl extends ElementImpl
         if (i > 0) {
           buffer.write(", ");
         }
-        ParameterElementImpl parameter = _parameters[i] as ParameterElementImpl;
+        ParameterElement parameter = _parameters[i];
         ParameterKind parameterKind = parameter.parameterKind;
         if (parameterKind != kind) {
           if (closing != null) {
@@ -2625,24 +2635,28 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   ElementImpl getChild(String identifier) {
-    for (ExecutableElement function in _functions) {
-      if ((function as ExecutableElementImpl).identifier == identifier) {
-        return function as ExecutableElementImpl;
+    for (FunctionElement function in _functions) {
+      FunctionElementImpl functionImpl = function;
+      if (functionImpl.identifier == identifier) {
+        return functionImpl;
       }
     }
     for (LabelElement label in _labels) {
-      if ((label as LabelElementImpl).identifier == identifier) {
-        return label as LabelElementImpl;
+      LabelElementImpl labelImpl = label;
+      if (labelImpl.identifier == identifier) {
+        return labelImpl;
       }
     }
-    for (VariableElement variable in _localVariables) {
-      if ((variable as VariableElementImpl).identifier == identifier) {
-        return variable as VariableElementImpl;
+    for (LocalVariableElement variable in _localVariables) {
+      LocalVariableElementImpl variableImpl = variable;
+      if (variableImpl.identifier == identifier) {
+        return variableImpl;
       }
     }
     for (ParameterElement parameter in _parameters) {
-      if ((parameter as ParameterElementImpl).identifier == identifier) {
-        return parameter as ParameterElementImpl;
+      ParameterElementImpl parameterImpl = parameter;
+      if (parameterImpl.identifier == identifier) {
+        return parameterImpl;
       }
     }
     return null;
@@ -3023,15 +3037,16 @@ class FunctionTypeAliasElementImpl extends ElementImpl
 
   @override
   ElementImpl getChild(String identifier) {
-    for (VariableElement parameter in _parameters) {
-      if ((parameter as VariableElementImpl).identifier == identifier) {
-        return parameter as VariableElementImpl;
+    for (ParameterElement parameter in _parameters) {
+      ParameterElementImpl parameterImpl = parameter;
+      if (parameterImpl.identifier == identifier) {
+        return parameterImpl;
       }
     }
     for (TypeParameterElement typeParameter in _typeParameters) {
-      if ((typeParameter as TypeParameterElementImpl).identifier ==
-          identifier) {
-        return typeParameter as TypeParameterElementImpl;
+      TypeParameterElementImpl typeParameterImpl = typeParameter;
+      if (typeParameterImpl.identifier == identifier) {
+        return typeParameterImpl;
       }
     }
     return null;
@@ -3283,18 +3298,18 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   int get codeLength {
-    if (_definingCompilationUnit is CompilationUnitElementImpl) {
-      return (_definingCompilationUnit as CompilationUnitElementImpl)
-          .codeLength;
+    CompilationUnitElement unit = _definingCompilationUnit;
+    if (unit is CompilationUnitElementImpl) {
+      return unit.codeLength;
     }
     return null;
   }
 
   @override
   int get codeOffset {
-    if (_definingCompilationUnit is CompilationUnitElementImpl) {
-      return (_definingCompilationUnit as CompilationUnitElementImpl)
-          .codeOffset;
+    CompilationUnitElement unit = _definingCompilationUnit;
+    if (unit is CompilationUnitElementImpl) {
+      return unit.codeOffset;
     }
     return null;
   }
@@ -3596,23 +3611,26 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   ElementImpl getChild(String identifier) {
-    if ((_definingCompilationUnit as CompilationUnitElementImpl).identifier ==
-        identifier) {
-      return _definingCompilationUnit as CompilationUnitElementImpl;
+    CompilationUnitElementImpl unitImpl = _definingCompilationUnit;
+    if (unitImpl.identifier == identifier) {
+      return unitImpl;
     }
     for (CompilationUnitElement part in _parts) {
-      if ((part as CompilationUnitElementImpl).identifier == identifier) {
-        return part as CompilationUnitElementImpl;
+      CompilationUnitElementImpl partImpl = part;
+      if (partImpl.identifier == identifier) {
+        return partImpl;
       }
     }
     for (ImportElement importElement in _imports) {
-      if ((importElement as ImportElementImpl).identifier == identifier) {
-        return importElement as ImportElementImpl;
+      ImportElementImpl importElementImpl = importElement;
+      if (importElementImpl.identifier == identifier) {
+        return importElementImpl;
       }
     }
     for (ExportElement exportElement in _exports) {
-      if ((exportElement as ExportElementImpl).identifier == identifier) {
-        return exportElement as ExportElementImpl;
+      ExportElementImpl exportElementImpl = exportElement;
+      if (exportElementImpl.identifier == identifier) {
+        return exportElementImpl;
       }
     }
     return null;
@@ -3684,15 +3702,13 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     // are in the case where library cycles have simply never been computed from
     // a newly reachable node.
     Set<LibraryElementImpl> active = new HashSet();
-    void invalidate(LibraryElement library) {
-      if (library is LibraryElementHandle) {
-        library = (library as LibraryElementHandle).actualElement;
-      }
-      LibraryElementImpl libraryImpl = library;
-      if (active.add(libraryImpl)) {
-        if (libraryImpl._libraryCycle != null) {
-          libraryImpl._libraryCycle.forEach(invalidate);
-          libraryImpl._libraryCycle = null;
+    void invalidate(LibraryElement element) {
+      LibraryElementImpl library =
+          element is LibraryElementHandle ? element.actualElement : element;
+      if (active.add(library)) {
+        if (library._libraryCycle != null) {
+          library._libraryCycle.forEach(invalidate);
+          library._libraryCycle = null;
         }
         library.exportedLibraries.forEach(invalidate);
         library.importedLibraries.forEach(invalidate);
@@ -3917,10 +3933,8 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   @override
   String get name {
     String name = super.name;
-    if (isOperator && name == "-") {
-      if (parameters.length == 0) {
-        return "unary-";
-      }
+    if (name == '-' && parameters.isEmpty) {
+      return 'unary-';
     }
     return super.name;
   }
@@ -4485,8 +4499,9 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   ElementImpl getChild(String identifier) {
     for (ParameterElement parameter in _parameters) {
-      if ((parameter as ParameterElementImpl).identifier == identifier) {
-        return parameter as ParameterElementImpl;
+      ParameterElementImpl parameterImpl = parameter;
+      if (parameterImpl.identifier == identifier) {
+        return parameterImpl;
       }
     }
     return null;
@@ -4702,8 +4717,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     }
     if (enclosingElement is ClassElement) {
       return getNodeMatching((node) => node is MethodDeclaration);
-    }
-    if (enclosingElement is CompilationUnitElement) {
+    } else if (enclosingElement is CompilationUnitElement) {
       return getNodeMatching((node) => node is FunctionDeclaration);
     }
     return null;

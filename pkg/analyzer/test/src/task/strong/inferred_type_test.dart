@@ -265,7 +265,7 @@ test1() {
 main() {
   var f = /*info:INFERRED_TYPE_CLOSURE*/() sync* {
     yield 1;
-    yield* [3, 4.0];
+    yield* /*info:INFERRED_TYPE_LITERAL*/[3, 4.0];
   };
   Iterable<num> g = f();
   Iterable<int> h = /*info:ASSIGNMENT_CAST*/f();
@@ -695,14 +695,16 @@ void main() {
                       /*info:INFERRED_TYPE_LITERAL*/[3]]);
 
   new F3(/*info:INFERRED_TYPE_LITERAL*/[]);
-  new F3(/*info:INFERRED_TYPE_LITERAL*/[[3]]);
-  new F3(/*info:INFERRED_TYPE_LITERAL*/[["hello"]]);
-  new F3(/*info:INFERRED_TYPE_LITERAL*/[["hello"], [3]]);
+  new F3(/*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[3]]);
+  new F3(/*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/["hello"]]);
+  new F3(/*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/["hello"],
+                                        /*info:INFERRED_TYPE_LITERAL*/[3]]);
 
   new F4(a: /*info:INFERRED_TYPE_LITERAL*/[]);
-  new F4(a: /*info:INFERRED_TYPE_LITERAL*/[[3]]);
-  new F4(a: /*info:INFERRED_TYPE_LITERAL*/[["hello"]]);
-  new F4(a: /*info:INFERRED_TYPE_LITERAL*/[["hello"], [3]]);
+  new F4(a: /*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/[3]]);
+  new F4(a: /*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/["hello"]]);
+  new F4(a: /*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/["hello"],
+                                           /*info:INFERRED_TYPE_LITERAL*/[3]]);
 }
 ''');
   }
@@ -884,9 +886,9 @@ void main() {
   }
   {
     List<dynamic> l0 = [];
-    List<dynamic> l1 = [3];
-    List<dynamic> l2 = ["hello"];
-    List<dynamic> l3 = ["hello", 3];
+    List<dynamic> l1 = /*info:INFERRED_TYPE_LITERAL*/[3];
+    List<dynamic> l2 = /*info:INFERRED_TYPE_LITERAL*/["hello"];
+    List<dynamic> l3 = /*info:INFERRED_TYPE_LITERAL*/["hello", 3];
   }
   {
     List<int> l0 = /*severe:STATIC_TYPE_ERROR*/<num>[];
@@ -997,10 +999,10 @@ void main() {
   }
   {
     Map<dynamic, dynamic> l0 = {};
-    Map<dynamic, dynamic> l1 = {3: "hello"};
-    Map<dynamic, dynamic> l2 = {"hello": "hello"};
-    Map<dynamic, dynamic> l3 = {3: 3};
-    Map<dynamic, dynamic> l4 = {3:"hello", "hello": 3};
+    Map<dynamic, dynamic> l1 = /*info:INFERRED_TYPE_LITERAL*/{3: "hello"};
+    Map<dynamic, dynamic> l2 = /*info:INFERRED_TYPE_LITERAL*/{"hello": "hello"};
+    Map<dynamic, dynamic> l3 = /*info:INFERRED_TYPE_LITERAL*/{3: 3};
+    Map<dynamic, dynamic> l4 = /*info:INFERRED_TYPE_LITERAL*/{3:"hello", "hello": 3};
   }
   {
     Map<dynamic, String> l0 = /*info:INFERRED_TYPE_LITERAL*/{};
@@ -2372,17 +2374,80 @@ test() {
 ''');
   }
 
+  void test_instanceField_basedOnInstanceField_betweenCycles() {
+    // Verify that all instance fields in one library cycle are inferred before
+    // an instance fields in a dependent library cycle.
+    addFile(
+        '''
+import 'b.dart';
+class A {
+  var x = new B().y;
+  var y = 0;
+}
+''',
+        name: '/a.dart');
+    addFile(
+        '''
+class B {
+  var x = new B().y;
+  var y = 0;
+}
+''',
+        name: '/b.dart');
+    checkFile('''
+import 'a.dart';
+import 'b.dart';
+main() {
+  new A().x = /*warning:INVALID_ASSIGNMENT*/'foo';
+  new B().x = 'foo';
+}
+''');
+  }
+
+  void test_instanceField_basedOnInstanceField_withinCycle() {
+    // Verify that all instance field inferences that occur within the same
+    // library cycle happen as though they occurred "all at once", so no
+    // instance field in the library cycle can inherit its type from another
+    // instance field in the same library cycle.
+    addFile(
+        '''
+import 'b.dart';
+class A {
+  var x = new B().y;
+  var y = 0;
+}
+''',
+        name: '/a.dart');
+    addFile(
+        '''
+import 'a.dart';
+class B {
+  var x = new A().y;
+  var y = 0;
+}
+''',
+        name: '/b.dart');
+    checkFile('''
+import 'a.dart';
+import 'b.dart';
+main() {
+  new A().x = 'foo';
+  new B().x = 'foo';
+}
+''');
+  }
+
   void test_listLiterals() {
     checkFile(r'''
 test1() {
-  var x = [1, 2, 3];
+  var x = /*info:INFERRED_TYPE_LITERAL*/[1, 2, 3];
   x.add(/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi');
   x.add(/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/4.0);
   x.add(4);
   List<num> y = x;
 }
 test2() {
-  var x = [1, 2.0, 3];
+  var x = /*info:INFERRED_TYPE_LITERAL*/[1, 2.0, 3];
   x.add(/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi');
   x.add(4.0);
   List<int> y = /*info:ASSIGNMENT_CAST*/x;
@@ -2392,14 +2457,14 @@ test2() {
 
   void test_listLiterals_topLevel() {
     checkFile(r'''
-var x1 = [1, 2, 3];
+var x1 = /*info:INFERRED_TYPE_LITERAL*/[1, 2, 3];
 test1() {
   x1.add(/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi');
   x1.add(/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/4.0);
   x1.add(4);
   List<num> y = x1;
 }
-var x2 = [1, 2.0, 3];
+var x2 = /*info:INFERRED_TYPE_LITERAL*/[1, 2.0, 3];
 test2() {
   x2.add(/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi');
   x2.add(4.0);
@@ -2422,7 +2487,7 @@ test1() {
   void test_mapLiterals() {
     checkFile(r'''
 test1() {
-  var x = { 1: 'x', 2: 'y' };
+  var x = /*info:INFERRED_TYPE_LITERAL*/{ 1: 'x', 2: 'y' };
   x[3] = 'z';
   x[/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'] = 'w';
   x[/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/4.0] = 'u';
@@ -2431,7 +2496,7 @@ test1() {
 }
 
 test2() {
-  var x = { 1: 'x', 2: 'y', 3.0: new RegExp('.') };
+  var x = /*info:INFERRED_TYPE_LITERAL*/{ 1: 'x', 2: 'y', 3.0: new RegExp('.') };
   x[3] = 'z';
   x[/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'] = 'w';
   x[4.0] = 'u';
@@ -2445,7 +2510,7 @@ test2() {
 
   void test_mapLiterals_topLevel() {
     checkFile(r'''
-var x1 = { 1: 'x', 2: 'y' };
+var x1 = /*info:INFERRED_TYPE_LITERAL*/{ 1: 'x', 2: 'y' };
 test1() {
   x1[3] = 'z';
   x1[/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'] = 'w';
@@ -2454,7 +2519,7 @@ test1() {
   Map<num, String> y = x1;
 }
 
-var x2 = { 1: 'x', 2: 'y', 3.0: new RegExp('.') };
+var x2 = /*info:INFERRED_TYPE_LITERAL*/{ 1: 'x', 2: 'y', 3.0: new RegExp('.') };
 test2() {
   x2[3] = 'z';
   x2[/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'] = 'w';

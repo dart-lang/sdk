@@ -5,21 +5,21 @@
 library dump_info;
 
 import 'dart:convert'
-    show ChunkedConversionSink, HtmlEscape, JsonEncoder, StringConversionSink;
+    show ChunkedConversionSink, JsonEncoder, StringConversionSink;
 
 import 'package:dart2js_info/info.dart';
 
-import 'common.dart';
 import 'common/tasks.dart' show CompilerTask;
-import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
+import 'common.dart';
 import 'compiler.dart' show Compiler;
+import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
 import 'deferred_load.dart' show OutputUnit;
 import 'elements/elements.dart';
 import 'elements/visitor.dart';
 import 'info/send_info.dart' show collectSendMeasurements;
+import 'js/js.dart' as jsAst;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'js_emitter/full_emitter/emitter.dart' as full show Emitter;
-import 'js/js.dart' as jsAst;
 import 'types/types.dart' show TypeMask;
 import 'universe/universe.dart' show ReceiverConstraint;
 import 'universe/world_impact.dart'
@@ -579,7 +579,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         dart2jsVersion:
             compiler.options.hasBuildId ? compiler.options.buildId : null,
         compilationMoment: new DateTime.now(),
-        compilationDuration: compiler.totalCompileTime.elapsed,
+        compilationDuration: compiler.measurer.wallClock.elapsed,
         toJsonDuration: stopwatch.elapsedMilliseconds,
         dumpInfoDuration: this.timing,
         noSuchMethodEnabled: compiler.backend.enabledNoSuchMethod,

@@ -2449,6 +2449,80 @@ class C {foo(){var f; {var x;} new ^}}''');
     assertNotSuggested('Foo');
   }
 
+  test_InstanceCreationExpression_variable_declaration_filter() async {
+    addTestSource('''
+class A {} class B extends A {} class C implements A {} class D {}
+main() {
+  A a = new ^
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+    assertSuggestConstructor('B',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertSuggestConstructor('C',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertNotSuggested('D');
+  }
+
+  test_InstanceCreationExpression_variable_declaration_filter2() async {
+    addTestSource('''
+class A {} class B extends A {} class C implements A {} class D {}
+main() {
+  A a = new ^;
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+    assertSuggestConstructor('B',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertSuggestConstructor('C',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertNotSuggested('D');
+  }
+
+  test_InstanceCreationExpression_assignment_expression_filter() async {
+    addTestSource('''
+class A {} class B extends A {} class C implements A {} class D {}
+main() {
+  A a;
+  a = new ^
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+    assertSuggestConstructor('B',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertSuggestConstructor('C',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertNotSuggested('D');
+  }
+
+  test_InstanceCreationExpression_assignment_expression_filter2() async {
+    addTestSource('''
+class A {} class B extends A {} class C implements A {} class D {}
+main() {
+  A a;
+  a = new ^;
+}''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('A',
+        elemOffset: -1,
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+    assertSuggestConstructor('B',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertSuggestConstructor('C',
+        elemOffset: -1, relevance: DART_RELEVANCE_DEFAULT);
+    assertNotSuggested('D');
+  }
+
   test_InterpolationExpression() async {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
     addSource(

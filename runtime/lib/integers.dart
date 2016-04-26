@@ -263,8 +263,6 @@ abstract class _IntegerImplementation {
     return string;
   }
 
-  _leftShiftWithMask32(count, mask)  native "Integer_leftShiftWithMask32";
-
   // Returns pow(this, e) % m.
   int modPow(int e, int m) {
     if (e is! int) {

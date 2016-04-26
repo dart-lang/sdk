@@ -74,6 +74,11 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
   final LibraryElementImpl libraryElement;
 
   /**
+   * Map from sources referenced by this library to their modification times.
+   */
+  final Map<Source, int> sourceModificationTimeMap;
+
+  /**
    * Map from sources imported by this library to their corresponding library
    * elements.
    */
@@ -126,6 +131,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
   DirectiveElementBuilder(
       this.context,
       this.libraryElement,
+      this.sourceModificationTimeMap,
       this.importLibraryMap,
       this.importSourceKindMap,
       this.exportLibraryMap,
@@ -163,7 +169,8 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
     // Remove previous element. (It will remain null if the target is missing.)
     node.element = null;
     Source exportedSource = node.source;
-    if (exportedSource != null && context.exists(exportedSource)) {
+    int exportedTime = sourceModificationTimeMap[exportedSource] ?? -1;
+    if (exportedTime != -1) {
       // The exported source will be null if the URI in the export
       // directive was invalid.
       LibraryElement exportedLibrary = exportLibraryMap[exportedSource];
@@ -205,7 +212,8 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
     // Remove previous element. (It will remain null if the target is missing.)
     node.element = null;
     Source importedSource = node.source;
-    if (importedSource != null && context.exists(importedSource)) {
+    int importedTime = sourceModificationTimeMap[importedSource] ?? -1;
+    if (importedTime != -1) {
       // The imported source will be null if the URI in the import
       // directive was invalid.
       LibraryElement importedLibrary = importLibraryMap[importedSource];

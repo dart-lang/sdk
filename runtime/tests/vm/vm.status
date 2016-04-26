@@ -33,7 +33,7 @@ cc/Service_Profile: Skip
 cc/Dart2JSCompilerStats: Skip
 cc/CorelibCompilerStats: Skip
 
-[ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simarm64 || $arch == simmips ]
+[ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simarm64 || $arch == simmips || $arch == simdbc  || $arch == simdbc64 ]
 cc/Service_Profile: Skip
 
 [ $compiler == dart2js ]
@@ -97,3 +97,83 @@ dart/optimized_stacktrace_test: SkipByDesign # Requires line numbers
 cc/IsolateSetCheckedMode: Fail,OK  # Expects exact type name.
 cc/LibraryGetClassNames: Fail,OK  # Expects exact type name.
 cc/StackTraceFormat: Fail,OK  # Expects exact type name.
+
+[ $arch == simdbc || $arch == simdbc64 ]
+# TODO(vegorov) Profiler is completely disabled in SIMDBC builds.
+cc/Profiler_AllocationSampleTest: Skip
+cc/Profiler_ArrayAllocation: Skip
+cc/Profiler_BasicSourcePosition: Skip
+cc/Profiler_BasicSourcePositionOptimized: Skip
+cc/Profiler_BinaryOperatorSourcePosition: Skip
+cc/Profiler_BinaryOperatorSourcePositionOptimized: Skip
+cc/Profiler_ChainedSamples: Skip
+cc/Profiler_ClosureAllocation: Skip
+cc/Profiler_CodeTicks: Skip
+cc/Profiler_ContextAllocation: Skip
+cc/Profiler_FunctionInline: Skip
+cc/Profiler_FunctionTicks: Skip
+cc/Profiler_InliningIntervalBoundry: Skip
+cc/Profiler_IntrinsicAllocation: Skip
+cc/Profiler_SampleBufferIterateTest: Skip
+cc/Profiler_SampleBufferWrapTest: Skip
+cc/Profiler_SourcePosition: Skip
+cc/Profiler_SourcePositionOptimized: Skip
+cc/Profiler_StringAllocation: Skip
+cc/Profiler_StringInterpolation: Skip
+cc/Profiler_ToggleRecordAllocation: Skip
+cc/Profiler_TrivialRecordAllocation: Skip
+cc/Profiler_TypedArrayAllocation: Skip
+cc/Profiler_GetSourceReport: Skip
+
+# TODO(vegorov) These tests are crashing because ICData objects can't be found
+cc/SourceReport_CallSites_PolymorphicCall: Skip
+cc/SourceReport_CallSites_SimpleCall: Skip
+cc/SourceReport_Coverage_AllFunctions: Skip
+cc/SourceReport_Coverage_ForceCompile: Skip
+cc/SourceReport_Coverage_NestedFunctions: Skip
+cc/SourceReport_Coverage_SimpleCall: Skip
+cc/SourceReport_MultipleReports: Skip
+cc/Coverage_Empty: Skip
+cc/Coverage_FilterFunction: Skip
+cc/Coverage_MainWithClass: Skip
+
+# TODO(vegorov) DisassembleToJSONStream requires
+# DecodeLoadObjectFromPoolOrThread which is unimplemented.
+cc/Service_Code: Skip
+cc/PrintJSON: Skip
+
+# TODO(vegorov) These tests don't seem to work if FLAG_interpret_irregexp
+# is switched on by default because they attempt to call regexp functions
+# directly instead of going through JSSyntaxRegExp_ExecuteMatch.
+cc/RegExp_ExternalOneByteString: Skip
+cc/RegExp_ExternalTwoByteString: Skip
+cc/RegExp_OneByteString: Skip
+cc/RegExp_TwoByteString: Skip
+
+# TODO(vegorov) Optimizing compiler is disabled for the SIMDBC
+cc/CompileFunctionOnHelperThread: Skip
+
+# TODO(vegorov) Field guards are disabled for SIMDBC
+cc/GuardFieldConstructor2Test: Skip
+cc/GuardFieldConstructorTest: Skip
+cc/GuardFieldFinalListTest: Skip
+cc/GuardFieldFinalVariableLengthListTest: Skip
+cc/GuardFieldSimpleTest: Skip
+
+# TODO(vegorov) Not all bytecodes have appropriate debug breaks.
+cc/Debug_BreakpointStubPatching: Skip
+cc/Debug_ExprClosureBreakpoint: Skip
+cc/Debug_StackTraceDump1: Skip
+cc/Debug_StepInto: Skip
+
+# TODO(vegorov) These parser tests rely on debugger.
+cc/Parser_AllocateVariables_CapturedVar: Skip
+cc/Parser_AllocateVariables_MiddleChain: Skip
+
+# This test is meaningless for DBC as allocation stubs are not used.
+cc/RegenerateAllocStubs: Skip
+
+# TODO(vegorov) Enable when DBC supports optimizing compiler.
+cc/Debug_InspectStack_Optimized: Skip
+cc/Debug_InspectStackWithClosure_Optimized: Skip
+

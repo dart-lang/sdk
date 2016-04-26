@@ -4,8 +4,7 @@
 
 library dart2js.js_emitter.lazy_emitter;
 
-import 'package:js_runtime/shared/embedded_names.dart'
-    show JsBuiltin, METADATA, TYPES;
+import 'package:js_runtime/shared/embedded_names.dart' show JsBuiltin;
 
 import '../../common.dart';
 import '../../compiler.dart' show Compiler;
@@ -14,12 +13,10 @@ import '../../elements/elements.dart'
     show ClassElement, Element, FieldElement, FunctionElement;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
-
 import '../js_emitter.dart' show NativeEmitter;
 import '../js_emitter.dart' as emitterTask show Emitter;
 import '../model.dart';
 import '../program_builder/program_builder.dart' show ProgramBuilder;
-
 import 'model_emitter.dart';
 
 class Emitter implements emitterTask.Emitter {

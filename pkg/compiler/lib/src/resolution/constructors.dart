@@ -77,7 +77,7 @@ class InitializerResolver {
     if (initialized.containsKey(field)) {
       reportDuplicateInitializerError(field, init, initialized[field]);
     } else if (field.isFinal) {
-      field.parseNode(visitor.resolution.parsing);
+      field.parseNode(visitor.resolution.parsingContext);
       Expression initializer = field.initializer;
       if (initializer != null) {
         reportDuplicateInitializerError(
@@ -171,7 +171,6 @@ class InitializerResolver {
     ConstructorElement foundConstructor =
         findConstructor(constructor.library, lookupTarget, constructorName);
 
-    final bool isImplicitSuperCall = false;
     final String className = lookupTarget.name;
     CallStructure callStructure = argumentsResult.callStructure;
     ConstructorElement calledConstructor = verifyThatConstructorMatchesCall(

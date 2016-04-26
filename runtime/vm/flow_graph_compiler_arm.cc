@@ -1319,7 +1319,30 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
       MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
 
   __ Comment("MegamorphicCall");
+  // Load receiver into R0.
   __ LoadFromOffset(kWord, R0, SP, (argument_count - 1) * kWordSize);
+  Label done;
+  if (name.raw() == Symbols::hashCode().raw()) {
+    Label megamorphic_call;
+    __ Comment("Inlined get:hashCode for Smi and OneByteString");
+    __ tst(R0, Operand(kSmiTagMask));
+    __ b(&done, EQ);  // Is Smi (result is receiver).
+
+    // Use R9 (cache for megamorphic call) as scratch.
+    __ CompareClassId(R0, kOneByteStringCid, R9);
+    __ b(&megamorphic_call, NE);
+
+    __ mov(R9, Operand(R0));  // Preserve receiver in R9.
+    __ ldr(R0, FieldAddress(R0, String::hash_offset()));
+    ASSERT(Smi::New(0) == 0);
+    __ cmp(R0, Operand(0));
+
+    __ b(&done, NE);  // Return if already computed.
+    __ mov(R0, Operand(R9));  // Restore receiver in R0.
+
+    __ Bind(&megamorphic_call);
+    __ Comment("Slow case: megamorphic call");
+  }
   __ LoadObject(R9, cache);
   if (FLAG_use_megamorphic_stub) {
     __ BranchLink(*StubCode::MegamorphicLookup_entry());
@@ -1328,6 +1351,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   }
   __ blx(R1);
 
+  __ Bind(&done);
   RecordSafepoint(locs, slow_path_argument_count);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (FLAG_precompiled_mode) {
@@ -1365,21 +1389,9 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(
     LocationSummary* locs) {
   __ Comment("SwitchableCall");
   __ LoadFromOffset(kWord, R0, SP, (argument_count - 1) * kWordSize);
-  if (ic_data.NumArgsTested() == 1) {
-    __ LoadUniqueObject(R9, ic_data);
-    __ BranchLinkPatchable(*StubCode::ICLookupThroughFunction_entry());
-  } else {
-    const String& name = String::Handle(zone(), ic_data.target_name());
-    const Array& arguments_descriptor =
-        Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
-    ASSERT(!arguments_descriptor.IsNull() &&
-           (arguments_descriptor.Length() > 0));
-    const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
-        MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
-
-    __ LoadUniqueObject(R9, cache);
-    __ BranchLinkPatchable(*StubCode::MegamorphicLookup_entry());
-  }
+  ASSERT(ic_data.NumArgsTested() == 1);
+  __ LoadUniqueObject(R9, ic_data);
+  __ BranchLinkPatchable(*StubCode::ICLookupThroughFunction_entry());
   __ blx(R1);
 
   AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId, token_pos);
@@ -1516,7 +1528,7 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
       if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
         DRegister d1 = EvenDRegisterOf(fpu_reg);
         DRegister d2 = OddDRegisterOf(fpu_reg);
-        // TOOD(regis): merge stores using vstmd instruction.
+        // TODO(regis): merge stores using vstmd instruction.
         __ vstrd(d1, Address(SP, offset));
         __ vstrd(d2, Address(SP, offset + 2 * kWordSize));
         offset += kFpuRegisterSize;
@@ -1562,7 +1574,7 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
       if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
         DRegister d1 = EvenDRegisterOf(fpu_reg);
         DRegister d2 = OddDRegisterOf(fpu_reg);
-        // TOOD(regis): merge loads using vldmd instruction.
+        // TODO(regis): merge loads using vldmd instruction.
         __ vldrd(d1, Address(SP, offset));
         __ vldrd(d2, Address(SP, offset + 2 * kWordSize));
         offset += kFpuRegisterSize;

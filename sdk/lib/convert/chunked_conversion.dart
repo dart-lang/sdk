@@ -130,11 +130,11 @@ class _ConverterStreamEventSink<S, T> implements EventSink<S> {
       : this._eventSink = sink,
         _chunkedSink = converter.startChunkedConversion(sink);
 
-  void add(S o) => _chunkedSink.add(o);
+  void add(S o) { _chunkedSink.add(o); }
   void addError(Object error, [StackTrace stackTrace]) {
     _eventSink.addError(error, stackTrace);
   }
-  void close() => _chunkedSink.close();
+  void close() { _chunkedSink.close(); }
 }
 
 /**

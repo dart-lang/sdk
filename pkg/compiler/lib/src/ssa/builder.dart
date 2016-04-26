@@ -18,9 +18,9 @@ import '../constants/values.dart';
 import '../core_types.dart' show CoreClasses;
 import '../dart_types.dart';
 import '../diagnostics/messages.dart' show Message, MessageTemplate;
+import '../dump_info.dart' show InfoReporter;
 import '../elements/elements.dart';
-import '../elements/modelx.dart'
-    show ConstructorBodyElementX, ElementX, VariableElementX;
+import '../elements/modelx.dart' show ConstructorBodyElementX;
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
@@ -37,11 +37,9 @@ import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld, World;
-import '../dump_info.dart' show InfoReporter;
-
-import 'nodes.dart';
+import '../world.dart' show ClassWorld;
 import 'codegen.dart';
+import 'nodes.dart';
 import 'optimize.dart';
 import 'types.dart';
 
@@ -109,7 +107,7 @@ class SsaBuilderTask extends CompilerTask {
       return reporter.withCurrentElement(element, () {
         SsaBuilder builder = new SsaBuilder(
             work.element.implementation,
-            work.resolutionTree,
+            work.resolvedAst,
             work.compilationContext,
             work.registry,
             backend,
@@ -326,11 +324,11 @@ class LocalsHandler {
    *
    * Invariant: [function] must be an implementation element.
    */
-  void startFunction(Element element, ast.Node node) {
+  void startFunction(AstElement element, ast.Node node) {
     assert(invariant(element, element.isImplementation));
     Compiler compiler = builder.compiler;
-    closureData = compiler.closureToClassMapper
-        .computeClosureToClassMapping(element, node, builder.elements);
+    closureData = compiler.closureToClassMapper.computeClosureToClassMapping(
+        compiler.backend.frontend.getResolvedAst(element.declaration));
 
     if (element is FunctionElement) {
       FunctionElement functionElement = element;
@@ -459,7 +457,8 @@ class LocalsHandler {
           builder.reporter.internalError(builder.compiler.currentElement,
               "Runtime type information not available for $local.");
         } else {
-          builder.reporter.internalError(local, "Cannot find value $local.");
+          builder.reporter.internalError(
+              local, "Cannot find value $local in ${directLocals.keys}.");
         }
       }
       HInstruction value = directLocals[local];
@@ -1005,8 +1004,7 @@ class SsaBuilder extends ast.Visitor
   /// The element for which this SSA builder is being used.
   final Element target;
 
-  /// Reference to resolved elements in [target]'s AST.
-  TreeElements elements;
+  ResolvedAst resolvedAst;
 
   /// Used to report information about inlining (which occurs while building the
   /// SSA graph), when dump-info is enabled.
@@ -1120,7 +1118,7 @@ class SsaBuilder extends ast.Visitor
   // TODO(sigmund): make most args optional
   SsaBuilder(
       this.target,
-      this.elements,
+      this.resolvedAst,
       this.context,
       this.registry,
       JavaScriptBackend backend,
@@ -1148,6 +1146,9 @@ class SsaBuilder extends ast.Visitor
   DiagnosticReporter get reporter => compiler.reporter;
 
   CoreClasses get coreClasses => compiler.coreClasses;
+
+  /// Reference to resolved elements in [target]'s AST.
+  TreeElements get elements => resolvedAst.elements;
 
   @override
   SemanticSendVisitor get sendVisitor => this;
@@ -1377,6 +1378,7 @@ class SsaBuilder extends ast.Visitor
     if (compiler.elementHasCompileTimeError(element)) return false;
 
     FunctionElement function = element;
+    ResolvedAst functionResolvedAst = backend.frontend.getResolvedAst(function);
     bool insideLoop = loopNesting > 0 || graph.calledInLoop;
 
     // Bail out early if the inlining decision is in the cache and we can't
@@ -1436,7 +1438,7 @@ class SsaBuilder extends ast.Visitor
 
     bool doesNotContainCode() {
       // A function with size 1 does not contain any code.
-      return InlineWeeder.canBeInlined(function, 1, true,
+      return InlineWeeder.canBeInlined(functionResolvedAst, 1, true,
           enableUserAssertions: compiler.options.enableUserAssertions);
     }
 
@@ -1444,7 +1446,7 @@ class SsaBuilder extends ast.Visitor
       // The call is on a path which is executed rarely, so inline only if it
       // does not make the program larger.
       if (isCalledOnce(element)) {
-        return InlineWeeder.canBeInlined(function, -1, false,
+        return InlineWeeder.canBeInlined(functionResolvedAst, -1, false,
             enableUserAssertions: compiler.options.enableUserAssertions);
       }
       // TODO(sra): Measure if inlining would 'reduce' the size.  One desirable
@@ -1482,7 +1484,7 @@ class SsaBuilder extends ast.Visitor
       if (cachedCanBeInlined == true) {
         // We may have forced the inlining of some methods. Therefore check
         // if we can inline this method regardless of size.
-        assert(InlineWeeder.canBeInlined(function, -1, false,
+        assert(InlineWeeder.canBeInlined(functionResolvedAst, -1, false,
             allowLoops: true,
             enableUserAssertions: compiler.options.enableUserAssertions));
         return true;
@@ -1507,7 +1509,7 @@ class SsaBuilder extends ast.Visitor
       }
       bool canInline;
       canInline = InlineWeeder.canBeInlined(
-          function, maxInliningNodes, useMaxInliningNodes,
+          functionResolvedAst, maxInliningNodes, useMaxInliningNodes,
           enableUserAssertions: compiler.options.enableUserAssertions);
       if (canInline) {
         backend.inlineCache.markAsInlinable(element, insideLoop: insideLoop);
@@ -1531,7 +1533,7 @@ class SsaBuilder extends ast.Visitor
       }
       List<HInstruction> compiledArguments = completeSendArgumentsList(
           function, selector, providedArguments, currentNode);
-      enterInlinedMethod(function, currentNode, compiledArguments,
+      enterInlinedMethod(function, functionResolvedAst, compiledArguments,
           instanceType: instanceType);
       inlinedFrom(function, () {
         if (!isReachable) {
@@ -1678,7 +1680,7 @@ class SsaBuilder extends ast.Visitor
   HGraph buildMethod(FunctionElement functionElement) {
     assert(invariant(functionElement, functionElement.isImplementation));
     graph.calledInLoop = compiler.world.isCalledInLoop(functionElement);
-    ast.FunctionExpression function = functionElement.node;
+    ast.FunctionExpression function = resolvedAst.node;
     assert(function != null);
     assert(elements.getFunctionDefinition(function) != null);
     openFunction(functionElement, function);
@@ -1832,9 +1834,12 @@ class SsaBuilder extends ast.Visitor
   void setupStateForInlining(
       FunctionElement function, List<HInstruction> compiledArguments,
       {InterfaceType instanceType}) {
+    ResolvedAst resolvedAst =
+        compiler.backend.frontend.getResolvedAst(function.declaration);
+    assert(resolvedAst != null);
     localsHandler = new LocalsHandler(this, function, instanceType);
-    localsHandler.closureData = compiler.closureToClassMapper
-        .computeClosureToClassMapping(function, function.node, elements);
+    localsHandler.closureData =
+        compiler.closureToClassMapper.computeClosureToClassMapping(resolvedAst);
     returnLocal = new SyntheticLocal("result", function);
     localsHandler.updateLocal(returnLocal, graph.addConstantNull(compiler));
 
@@ -1863,8 +1868,6 @@ class SsaBuilder extends ast.Visitor
     }
     assert(argumentIndex == compiledArguments.length);
 
-    elements = function.resolvedAst.elements;
-    assert(elements != null);
     returnType = signature.type.returnType;
     stack = <HInstruction>[];
 
@@ -1876,7 +1879,7 @@ class SsaBuilder extends ast.Visitor
     localsHandler = state.oldLocalsHandler;
     returnLocal = state.oldReturnLocal;
     inTryStatement = state.inTryStatement;
-    elements = state.oldElements;
+    resolvedAst = state.oldResolvedAst;
     returnType = state.oldReturnType;
     assert(stack.isEmpty);
     stack = state.oldStack;
@@ -2007,19 +2010,67 @@ class SsaBuilder extends ast.Visitor
       });
 
       // Build the initializers in the context of the new constructor.
-      TreeElements oldElements = elements;
-      ResolvedAst resolvedAst = callee.resolvedAst;
-      elements = resolvedAst.elements;
+      ResolvedAst oldResolvedAst = resolvedAst;
+      resolvedAst = backend.frontend.getResolvedAst(callee);
       ClosureClassMap oldClosureData = localsHandler.closureData;
-      ast.Node node = resolvedAst.node;
       ClosureClassMap newClosureData = compiler.closureToClassMapper
-          .computeClosureToClassMapping(callee, node, elements);
+          .computeClosureToClassMapping(resolvedAst);
       localsHandler.closureData = newClosureData;
-      localsHandler.enterScope(node, callee);
+      if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+        localsHandler.enterScope(resolvedAst.node, callee);
+      }
       buildInitializers(callee, constructors, fieldValues);
       localsHandler.closureData = oldClosureData;
-      elements = oldElements;
+      resolvedAst = oldResolvedAst;
     });
+  }
+
+  void buildInitializers(
+      ConstructorElement constructor,
+      List<FunctionElement> constructors,
+      Map<Element, HInstruction> fieldValues) {
+    assert(invariant(
+        constructor, resolvedAst.element == constructor.declaration,
+        message: "Expected ResolvedAst for $constructor, found $resolvedAst"));
+    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+      buildParsedInitializers(constructor, constructors, fieldValues);
+    } else {
+      buildSynthesizedConstructorInitializers(
+          constructor, constructors, fieldValues);
+    }
+  }
+
+  void buildSynthesizedConstructorInitializers(
+      ConstructorElement constructor,
+      List<FunctionElement> constructors,
+      Map<Element, HInstruction> fieldValues) {
+    assert(invariant(constructor, constructor.isSynthesized));
+    List<HInstruction> arguments = <HInstruction>[];
+    HInstruction compileArgument(ParameterElement parameter) {
+      return localsHandler.readLocal(parameter);
+    }
+
+    Element target = constructor.definingConstructor.implementation;
+    bool match = !target.isMalformed &&
+        CallStructure.addForwardingElementArgumentsToList(
+            constructor,
+            arguments,
+            target,
+            compileArgument,
+            handleConstantForOptionalParameter);
+    if (!match) {
+      if (compiler.elementHasCompileTimeError(constructor)) {
+        return;
+      }
+      // If this fails, the selector we constructed for the call to a
+      // forwarding constructor in a mixin application did not match the
+      // constructor (which, for example, may happen when the libraries are
+      // not compatible for private names, see issue 20394).
+      reporter.internalError(
+          constructor, 'forwarding constructor call does not match');
+    }
+    inlineSuperOrRedirect(
+        target, arguments, constructors, fieldValues, constructor);
   }
 
   /**
@@ -2032,40 +2083,13 @@ class SsaBuilder extends ast.Visitor
    * Invariant: The [constructor] and elements in [constructors] must all be
    * implementation elements.
    */
-  void buildInitializers(
+  void buildParsedInitializers(
       ConstructorElement constructor,
       List<FunctionElement> constructors,
       Map<Element, HInstruction> fieldValues) {
     assert(invariant(constructor, constructor.isImplementation));
-    if (constructor.isSynthesized) {
-      List<HInstruction> arguments = <HInstruction>[];
-      HInstruction compileArgument(ParameterElement parameter) {
-        return localsHandler.readLocal(parameter);
-      }
-
-      Element target = constructor.definingConstructor.implementation;
-      bool match = !target.isMalformed &&
-          CallStructure.addForwardingElementArgumentsToList(
-              constructor,
-              arguments,
-              target,
-              compileArgument,
-              handleConstantForOptionalParameter);
-      if (!match) {
-        if (compiler.elementHasCompileTimeError(constructor)) {
-          return;
-        }
-        // If this fails, the selector we constructed for the call to a
-        // forwarding constructor in a mixin application did not match the
-        // constructor (which, for example, may happen when the libraries are
-        // not compatible for private names, see issue 20394).
-        reporter.internalError(
-            constructor, 'forwarding constructor call does not match');
-      }
-      inlineSuperOrRedirect(
-          target, arguments, constructors, fieldValues, constructor);
-      return;
-    }
+    assert(invariant(constructor, !constructor.isSynthesized,
+        message: "Unexpected synthesized constructor: $constructor"));
     ast.FunctionExpression functionNode = constructor.node;
 
     bool foundSuperOrRedirect = false;
@@ -2143,7 +2167,6 @@ class SsaBuilder extends ast.Visitor
         (ClassElement enclosingClass, VariableElement member) {
       if (compiler.elementHasCompileTimeError(member)) return;
       reporter.withCurrentElement(member, () {
-        TreeElements definitions = member.treeElements;
         ast.Node node = member.node;
         ast.Expression initializer = member.initializer;
         if (initializer == null) {
@@ -2154,14 +2177,14 @@ class SsaBuilder extends ast.Visitor
           }
         } else {
           ast.Node right = initializer;
-          TreeElements savedElements = elements;
-          elements = definitions;
+          ResolvedAst savedResolvedAst = resolvedAst;
+          resolvedAst = backend.frontend.getResolvedAst(member);
           // In case the field initializer uses closures, run the
           // closure to class mapper.
           compiler.closureToClassMapper
-              .computeClosureToClassMapping(member, node, elements);
+              .computeClosureToClassMapping(resolvedAst);
           inlinedFrom(member, () => right.accept(this));
-          elements = savedElements;
+          resolvedAst = savedResolvedAst;
           fieldValues[member] = pop();
         }
       });
@@ -2362,7 +2385,7 @@ class SsaBuilder extends ast.Visitor
         bodyCallInputs.add(interceptor);
       }
       bodyCallInputs.add(newObject);
-      ResolvedAst resolvedAst = constructor.resolvedAst;
+      ResolvedAst resolvedAst = backend.frontend.getResolvedAst(constructor);
       ast.Node node = resolvedAst.node;
       ClosureClassMap parameterClosureData =
           compiler.closureToClassMapper.getMappingForNestedFunction(node);
@@ -3436,8 +3459,6 @@ class SsaBuilder extends ast.Visitor
   /// Generate read access of an unresolved static or top level entity.
   void generateStaticUnresolvedGet(ast.Send node, Element element) {
     if (element is ErroneousElement) {
-      SourceInformation sourceInformation =
-          sourceInformationBuilder.buildGet(node);
       // An erroneous element indicates an unresolved static getter.
       handleInvalidStaticGet(node, element);
     } else {
@@ -4015,8 +4036,9 @@ class SsaBuilder extends ast.Visitor
       reporter.internalError(
           node.argumentsNode, 'At least two arguments expected.');
     }
-    native.NativeBehavior nativeBehavior =
-        compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
+    native.NativeBehavior nativeBehavior = elements.getNativeData(node);
+    assert(invariant(node, nativeBehavior != null,
+        message: "No NativeBehavior for $node"));
 
     List<HInstruction> inputs = <HInstruction>[];
     addGenericSendArgumentsToList(link.tail.tail, inputs);
@@ -4183,8 +4205,9 @@ class SsaBuilder extends ast.Visitor
       compiledArguments.add(pop());
     }
 
-    native.NativeBehavior nativeBehavior =
-        compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
+    native.NativeBehavior nativeBehavior = elements.getNativeData(node);
+    assert(invariant(node, nativeBehavior != null,
+        message: "No NativeBehavior for $node"));
 
     TypeMask ssaType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
@@ -4228,8 +4251,9 @@ class SsaBuilder extends ast.Visitor
     String globalName = constant.primitiveValue.slowToString();
     js.Template expr = js.js.expressionTemplateYielding(
         backend.emitter.generateEmbeddedGlobalAccess(globalName));
-    native.NativeBehavior nativeBehavior =
-        compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
+    native.NativeBehavior nativeBehavior = elements.getNativeData(node);
+    assert(invariant(node, nativeBehavior != null,
+        message: "No NativeBehavior for $node"));
     TypeMask ssaType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
     push(new HForeignCode(expr, ssaType, const [],
@@ -4866,10 +4890,10 @@ class SsaBuilder extends ast.Visitor
         constructorDeclaration == helpers.jsArrayTypedConstructor;
 
     if (isSymbolConstructor) {
-      constructor = compiler.symbolValidatedConstructor;
+      constructor = helpers.symbolValidatedConstructor;
       assert(invariant(send, constructor != null,
           message: 'Constructor Symbol.validated is missing'));
-      callStructure = compiler.symbolValidatedConstructorSelector.callStructure;
+      callStructure = helpers.symbolValidatedConstructorSelector.callStructure;
       assert(invariant(send, callStructure != null,
           message: 'Constructor Symbol.validated is missing'));
     }
@@ -5524,17 +5548,10 @@ class SsaBuilder extends ast.Visitor
     }
   }
 
-  bool _hasNamedParameters(FunctionElement function) {
-    FunctionSignature params = function.functionSignature;
-    return params.optionalParameterCount > 0 &&
-        params.optionalParametersAreNamed;
-  }
-
   HForeignCode invokeJsInteropFunction(FunctionElement element,
       List<HInstruction> arguments, SourceInformation sourceInformation) {
     assert(backend.isJsInterop(element));
     nativeEmitter.nativeMethods.add(element);
-    String templateString;
 
     if (element.isFactoryConstructor &&
         backend.jsInteropAnalysis
@@ -6583,7 +6600,7 @@ class SsaBuilder extends ast.Visitor
 
     int position = 0;
 
-    for (ParameterElement targetParameter in targetRequireds) {
+    for (ParameterElement _ in targetRequireds) {
       loadPosition(position++, null);
     }
 
@@ -6905,7 +6922,6 @@ class SsaBuilder extends ast.Visitor
     // method is inlined.  We would require full scalar replacement in that
     // case.
 
-    Selector selector = Selectors.iterator;
     TypeMask mask = elements.getIteratorTypeMask(node);
 
     ClassWorld classWorld = compiler.world;
@@ -7869,18 +7885,19 @@ class SsaBuilder extends ast.Visitor
    * This method is invoked before inlining the body of [function] into this
    * [SsaBuilder].
    */
-  void enterInlinedMethod(FunctionElement function, ast.Node _,
-      List<HInstruction> compiledArguments,
+  void enterInlinedMethod(FunctionElement function,
+      ResolvedAst functionResolvedAst, List<HInstruction> compiledArguments,
       {InterfaceType instanceType}) {
     AstInliningState state = new AstInliningState(
         function,
         returnLocal,
         returnType,
-        elements,
+        resolvedAst,
         stack,
         localsHandler,
         inTryStatement,
         allInlinedFunctionsCalledOnce && isFunctionCalledOnce(function));
+    resolvedAst = functionResolvedAst;
     inliningStack.add(state);
 
     // Setting up the state of the (AST) builder is performed even when the
@@ -8077,14 +8094,14 @@ class InlineWeeder extends ast.Visitor {
       this.enableUserAssertions);
 
   static bool canBeInlined(
-      FunctionElement function, int maxInliningNodes, bool useMaxInliningNodes,
+      ResolvedAst resolvedAst, int maxInliningNodes, bool useMaxInliningNodes,
       {bool allowLoops: false, bool enableUserAssertions: null}) {
     assert(enableUserAssertions is bool); // Ensure we passed it.
-    if (function.resolvedAst.elements.containsTryStatement) return false;
+    if (resolvedAst.elements.containsTryStatement) return false;
 
     InlineWeeder weeder = new InlineWeeder(maxInliningNodes,
         useMaxInliningNodes, allowLoops, enableUserAssertions);
-    ast.FunctionExpression functionExpression = function.node;
+    ast.FunctionExpression functionExpression = resolvedAst.node;
     weeder.visit(functionExpression.initializers);
     weeder.visit(functionExpression.body);
     weeder.visit(functionExpression.asyncModifier);
@@ -8196,7 +8213,7 @@ abstract class InliningState {
 class AstInliningState extends InliningState {
   final Local oldReturnLocal;
   final DartType oldReturnType;
-  final TreeElements oldElements;
+  final ResolvedAst oldResolvedAst;
   final List<HInstruction> oldStack;
   final LocalsHandler oldLocalsHandler;
   final bool inTryStatement;
@@ -8206,7 +8223,7 @@ class AstInliningState extends InliningState {
       FunctionElement function,
       this.oldReturnLocal,
       this.oldReturnType,
-      this.oldElements,
+      this.oldResolvedAst,
       this.oldStack,
       this.oldLocalsHandler,
       this.inTryStatement,

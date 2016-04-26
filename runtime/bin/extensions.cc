@@ -8,6 +8,7 @@
 
 #include "bin/dartutils.h"
 #include "bin/file.h"
+#include "bin/platform.h"
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
@@ -16,18 +17,42 @@ namespace dart {
 namespace bin {
 
 Dart_Handle Extensions::LoadExtension(const char* extension_directory,
-                                      const char* extension_file,
                                       const char* extension_name,
                                       Dart_Handle parent_library) {
   if (strncmp(extension_directory, "http://", 7) == 0 ||
       strncmp(extension_directory, "https://", 8) == 0) {
     return Dart_NewApiError("Cannot load native extensions over http:");
   }
-  const char* library_strings[] = { extension_directory, extension_file, NULL };
+
+  // For example on Linux: directory/libfoo-arm.so
+  const char* library_strings[] = {
+    extension_directory,  // directory/
+    Platform::LibraryPrefix(),  // lib
+    extension_name,  // foo
+    "-",
+    Platform::HostArchitecture(),  // arm
+    ".",
+    Platform::LibraryExtension(),  // so
+    NULL,
+  };
   const char* library_file = Concatenate(library_strings);
   void* library_handle = LoadExtensionLibrary(library_file);
   if (library_handle == NULL) {
-    return GetError();
+    // Fallback on a library file name that does not specify the host
+    // architecture. For example on Linux: directory/libfoo.so
+    const char* fallback_library_strings[] = {
+      extension_directory,  // directory/
+      Platform::LibraryPrefix(),  // lib
+      extension_name,  // foo
+      ".",
+      Platform::LibraryExtension(),  // so
+      NULL,
+    };
+    const char* fallback_library_file = Concatenate(fallback_library_strings);
+    library_handle = LoadExtensionLibrary(fallback_library_file);
+    if (library_handle == NULL) {
+      return GetError();
+    }
   }
 
   const char* strings[] = { extension_name, "_Init", NULL };

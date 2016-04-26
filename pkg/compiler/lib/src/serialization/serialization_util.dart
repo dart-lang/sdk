@@ -4,19 +4,15 @@
 
 library dart2js.serialization.util;
 
-import '../dart_types.dart';
-import '../common/resolution.dart';
+import '../common.dart';
 import '../constants/expressions.dart';
+import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../resolution/access_semantics.dart';
 import '../resolution/operators.dart';
 import '../resolution/send_structure.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
-import '../universe/world_impact.dart';
-import '../universe/use.dart';
-import '../util/enumset.dart';
-
 import 'keys.dart';
 import 'serialization.dart';
 
@@ -478,4 +474,46 @@ AccessSemantics deserializeAccessSemantics(ObjectDecoder decoder) {
     case AccessKind.CONSTANT:
       throw new UnsupportedError('Unsupported access kind: $kind');
   }
+}
+
+/// Serialize a reference from [context] to an [element] which might be a member
+/// of an unnamed mixin application. If it is, [element] is by serialized
+/// indirectly by name in the [nameKey] of [encoder], otherwise [element] is
+/// serialized directly in [elementKey] in [encoder].
+void serializeElementReference(Element context, Key elementKey, Key nameKey,
+    ObjectEncoder encoder, Element element) {
+  if (element.isGenerativeConstructor &&
+      element.enclosingClass.isUnnamedMixinApplication) {
+    assert(invariant(element, element.isConstructor,
+        message: "Unexpected reference of forwarding constructor "
+            "${element} from $context."));
+    encoder.setString(nameKey, element.name);
+  } else {
+    encoder.setElement(elementKey, element);
+  }
+}
+
+/// Deserialize a reference from [context] to an [Element] which might be a
+/// member of an unnamed mixin application. If it is, the [Element] is by
+/// deserialized indirectly by name from [nameKey] in [decoder], otherwise
+/// the [Element] is deserialized directly from [elementKey] in [encoder].
+Element deserializeElementReference(
+    Element context, Key elementKey, Key nameKey, ObjectDecoder decoder,
+    {bool isOptional: false}) {
+  Element element = decoder.getElement(elementKey, isOptional: true);
+  if (element == null) {
+    String elementName = decoder.getString(nameKey, isOptional: isOptional);
+    if (elementName == null) {
+      return null;
+    }
+    assert(invariant(NO_LOCATION_SPANNABLE, context.isConstructor,
+        message: "Unexpected reference of forwarding constructor "
+            "'${elementName}' from $context."));
+    ClassElement superclass = context.enclosingClass.superclass;
+    element = superclass.lookupConstructor(elementName);
+    assert(invariant(NO_LOCATION_SPANNABLE, element != null,
+        message: "Unresolved reference of forwarding constructor "
+            "'${elementName}' from $context."));
+  }
+  return element;
 }

@@ -228,14 +228,6 @@ void AstPrinter::VisitBinaryOpNode(BinaryOpNode* node) {
 }
 
 
-void AstPrinter::VisitBinaryOpWithMask32Node(BinaryOpWithMask32Node* node) {
-  THR_Print("(%s %s ", node->Name(), node->TokenName());
-  node->VisitChildren(this);
-  THR_Print(" & \"0x%" Px64 "", node->mask32());
-  THR_Print("\")");
-}
-
-
 void AstPrinter::VisitUnaryOpNode(UnaryOpNode* node) {
   THR_Print("(%s %s ", node->Name(), node->TokenName());
   node->VisitChildren(this);

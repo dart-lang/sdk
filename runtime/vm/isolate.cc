@@ -993,6 +993,7 @@ void Isolate::DoneLoading() {
     if (lib.LoadInProgress()) {
       lib.SetLoaded();
     }
+    lib.InitExportedNamesCache();
   }
   TokenStream::CloseSharedTokenList(this);
 }

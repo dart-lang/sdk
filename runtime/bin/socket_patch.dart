@@ -49,6 +49,10 @@ patch class InternetAddress {
 }
 
 patch class NetworkInterface {
+  /* patch */ static bool get listSupported {
+    return _listSupported();
+  }
+
   /* patch */ static Future<List<NetworkInterface>> list({
       bool includeLoopback: false,
       bool includeLinkLocal: false,
@@ -57,6 +61,8 @@ patch class NetworkInterface {
                                         includeLinkLocal: includeLinkLocal,
                                         type: type);
   }
+
+  static bool _listSupported() native "NetworkInterface_ListSupported";
 }
 
 class _InternetAddress implements InternetAddress {

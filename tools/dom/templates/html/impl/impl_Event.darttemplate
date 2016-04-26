@@ -33,7 +33,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     e._initEvent(name, canBubble, cancelable);
     return e;
   }
-  
+
   /** The CSS selector involved with event delegation. */
   String _selector;
 
@@ -47,8 +47,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
       throw new UnsupportedError('Cannot call matchingTarget if this Event did'
           ' not arise as a result of event delegation.');
     }
-    var currentTarget = this.currentTarget;
-    var target = this.target;
+    Element currentTarget = this.currentTarget;
+    Element target = this.target;
     var matchedTarget;
     do {
       if (target.matches(_selector)) return target;

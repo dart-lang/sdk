@@ -1186,8 +1186,8 @@ UNIT_TEST_CASE(FullSnapshot) {
     {
       FullSnapshotWriter writer(NULL,
                                 &isolate_snapshot_buffer,
-                                NULL, /* instructions_snapshot_buffer */
                                 &malloc_allocator,
+                                NULL, /* instructions_writer */
                                 false, /* snapshot_code */
                                 true);
       writer.WriteFullSnapshot();
@@ -1247,8 +1247,8 @@ UNIT_TEST_CASE(FullSnapshot1) {
     {
       FullSnapshotWriter writer(NULL,
                                 &isolate_snapshot_buffer,
-                                NULL, /* instructions_snapshot_buffer */
                                 &malloc_allocator,
+                                NULL, /* instructions_writer */
                                 false, /* snapshot_code */
                                 true /* vm_isolate_is_symbolic */);
       writer.WriteFullSnapshot();

@@ -656,8 +656,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ BranchUnsignedGreater(T3, Immediate(max_len), &slow_case);
 
   const intptr_t cid = kArrayCid;
-  __ MaybeTraceAllocation(kArrayCid, T4, &slow_case,
-                          /* inline_isolate = */ false);
+  __ MaybeTraceAllocation(kArrayCid, T4, &slow_case);
 
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ LoadImmediate(T2, fixed_size);
@@ -691,8 +690,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // T3: heap.
   __ sw(T1, Address(T3, Heap::TopOffset(space)));
   __ addiu(T0, T0, Immediate(kHeapObjectTag));
-  __ UpdateAllocationStatsWithSize(cid, T2, T4, space,
-                                   /* inline_isolate = */ false);
+  __ UpdateAllocationStatsWithSize(cid, T2, T4, space);
 
   // Initialize the tags.
   // T0: new object start as a tagged pointer.
@@ -937,8 +935,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ LoadImmediate(T0, ~((kObjectAlignment) - 1));
     __ and_(T2, T2, T0);
 
-    __ MaybeTraceAllocation(kContextCid, T4, &slow_case,
-                            /* inline_isolate = */ false);
+    __ MaybeTraceAllocation(kContextCid, T4, &slow_case);
     // Now allocate the object.
     // T1: number of context variables.
     // T2: object size.
@@ -971,8 +968,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // T5: heap.
     __ sw(T3, Address(T5, Heap::TopOffset(space)));
     __ addiu(V0, V0, Immediate(kHeapObjectTag));
-    __ UpdateAllocationStatsWithSize(cid, T2, T5, space,
-                                     /* inline_isolate = */ false);
+    __ UpdateAllocationStatsWithSize(cid, T2, T5, space);
 
     // Calculate the size tag.
     // V0: new object.
@@ -1157,7 +1153,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
     __ sw(T3, Address(T5, Heap::TopOffset(space)));
-    __ UpdateAllocationStats(cls.id(), T5, space, /* inline_isolate = */ false);
+    __ UpdateAllocationStats(cls.id(), T5, space);
 
     // T2: new object start.
     // T3: next object start.

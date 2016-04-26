@@ -104,9 +104,9 @@ class CheckStrategy implements TestStrategy {
 bool check(var object1, var object2, String property, var value1, var value2,
            [bool equivalence(a, b) = equality]) {
   if (!equivalence(value1, value2)) {
-    throw "property='$property' "
-          "object1=$object1 (${object1.runtimeType}), value='${value1}' <> "
-          "object2=$object2 (${object2.runtimeType}), value='${value2}'";
+    throw "property='$property'\n "
+          "object1=$object1 (${object1.runtimeType})\n value='${value1}' <>\n "
+          "object2=$object2 (${object2.runtimeType})\n value='${value2}'";
   }
   return true;
 }
@@ -212,12 +212,8 @@ bool checkElementIdentities(
     Object object1, Object object2, String property,
     Element element1, Element element2) {
   if (identical(element1, element2)) return true;
-  if (element1 == null || element2 == null) {
-    return check(object1, object2, property, element1, element2);
-  } else {
-    return const ElementIdentityEquivalence(const CheckStrategy())
-        .visit(element1, element2);
-  }
+  return check(object1, object2,
+      property, element1, element2, areElementsEquivalent);
 }
 
 /// Checks the pair-wise equivalence of the identity (but not properties) of the
@@ -298,9 +294,20 @@ void checkLoadedLibraryMembers(
     if (member1.isClass && member2.isClass) {
       ClassElement class1 = member1;
       ClassElement class2 = member2;
+      if (!class1.isResolved) return;
+
       class1.forEachLocalMember((m1) {
-        checkMembers(m1, class2.lookupLocalMember(m1.name));
+        checkMembers(m1, class2.localLookup(m1.name));
       });
+      ClassElement superclass1 = class1.superclass;
+      ClassElement superclass2 = class2.superclass;
+      while (superclass1 != null && superclass1.isUnnamedMixinApplication) {
+        for (ConstructorElement c1 in superclass1.constructors) {
+          checkMembers(c1, superclass2.lookupConstructor(c1.name));
+        }
+        superclass1 = superclass1.superclass;
+        superclass2 = superclass2.superclass;
+      }
       return;
     }
 
@@ -309,7 +316,7 @@ void checkLoadedLibraryMembers(
     }
 
     if (member2 == null) {
-      return;
+      throw 'Missing member for ${member1}';
     }
 
     if (areElementsEquivalent(member1, member2)) {
@@ -344,7 +351,7 @@ void checkAllImpacts(
         return compiler1.resolution.hasResolutionImpact(member1);
       },
       checkImpacts,
-      verbose: true);
+      verbose: verbose);
 }
 
 /// Check equivalence of resolution impact for [member1] and [member2].
@@ -352,13 +359,19 @@ void checkImpacts(Compiler compiler1, Element member1,
                   Compiler compiler2, Element member2,
                   {bool verbose: false}) {
   ResolutionImpact impact1 = compiler1.resolution.getResolutionImpact(member1);
-  ResolutionImpact impact2 =
-      compiler2.serialization.deserializer.getResolutionImpact(member2);
+  ResolutionImpact impact2 = compiler2.resolution.getResolutionImpact(member2);
 
-  if (impact1 == null || impact2 == null) return;
+  if (impact1 == null && impact2 == null) return;
 
   if (verbose) {
     print('Checking impacts for $member1 vs $member2');
+  }
+
+  if (impact1 == null) {
+    throw 'Missing impact for $member1. $member2 has $impact2';
+  }
+  if (impact2 == null) {
+    throw 'Missing impact for $member2. $member1 has $impact1';
   }
 
   testResolutionImpactEquivalence(impact1, impact2, const CheckStrategy());

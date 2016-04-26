@@ -64,6 +64,11 @@ const char* Platform::OperatingSystem() {
 }
 
 
+const char* Platform::LibraryPrefix() {
+  return "lib";
+}
+
+
 const char* Platform::LibraryExtension() {
   return "dylib";
 }

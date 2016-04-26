@@ -5,11 +5,10 @@
 library dart2js.call_structure;
 
 import '../common.dart';
-import '../common/names.dart' show Identifiers, Names, Selectors;
+import '../common/names.dart' show Names;
 import '../elements/elements.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
-
 import 'selector.dart' show Selector;
 
 /// The structure of the arguments at a call-site.

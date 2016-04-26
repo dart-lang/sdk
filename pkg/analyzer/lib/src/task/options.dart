@@ -48,6 +48,8 @@ class AnalyzerOptions {
   static const String enableGenericMethods = 'enableGenericMethods';
   static const String enableStrictCallChecks = 'enableStrictCallChecks';
   static const String enableSuperMixins = 'enableSuperMixins';
+
+  /// This option is deprecated.
   static const String enableConditionalDirectives =
       "enableConditionalDirectives";
   static const String errors = 'errors';
@@ -493,14 +495,6 @@ class _OptionsProcessor {
         AnalysisOptionsImpl options =
             new AnalysisOptionsImpl.from(context.analysisOptions);
         options.enableGenericMethods = true;
-        context.analysisOptions = options;
-      }
-    }
-    if (feature == AnalyzerOptions.enableConditionalDirectives) {
-      if (isTrue(value)) {
-        AnalysisOptionsImpl options =
-            new AnalysisOptionsImpl.from(context.analysisOptions);
-        options.enableConditionalDirectives = true;
         context.analysisOptions = options;
       }
     }

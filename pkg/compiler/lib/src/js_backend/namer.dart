@@ -346,7 +346,6 @@ class Namer {
   /// The non-minifying namer's [callPrefix] with a dollar after it.
   static const String _callPrefixDollar = r'call$';
 
-  static final jsAst.Name _literalSuper = new StringBackedName("super");
   static final jsAst.Name _literalDollar = new StringBackedName(r'$');
   static final jsAst.Name _literalUnderscore = new StringBackedName('_');
   static final jsAst.Name literalPlus = new StringBackedName('+');

@@ -737,7 +737,47 @@ void main() {
     test('dynamic functions - closures are not fuzzy', () {
       // Regression test for
       // https://github.com/dart-lang/sdk/issues/26118
+      // https://github.com/dart-lang/sdk/issues/26156
       checkFile('''
+        void takesF(void f(int x)) {}
+
+        typedef void TakesInt(int x);
+
+        void update(_) {}
+        void updateOpt([_]) {}
+        void updateOptNum([num x]) {}
+
+        class A {
+          TakesInt f;
+          A(TakesInt g) {
+            f = update;
+            f = updateOpt;
+            f = updateOptNum;
+          }
+          TakesInt g(bool a, bool b) {
+            if (a) {
+              return update;
+            } else if (b) {
+              return updateOpt;
+            } else {
+              return updateOptNum;
+            }
+          }
+        }
+
+        void test0() {
+          takesF(update);
+          takesF(updateOpt);
+          takesF(updateOptNum);
+          TakesInt f;
+          f = update;
+          f = updateOpt;
+          f = updateOptNum;
+          new A(update);
+          new A(updateOpt);
+          new A(updateOptNum);
+        }
+
         void test1() {
           void takesF(f(int x)) => null;
           takesF((dynamic y) => 3);
@@ -1646,10 +1686,10 @@ void main() {
                l = <int>[i, /*info:DOWN_CAST_IMPLICIT*/n, /*warning:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/s];
             }
             {
-               List l = [i];
-               l = [s];
-               l = [n];
-               l = [i, n, s];
+               List l = /*info:INFERRED_TYPE_LITERAL*/[i];
+               l = /*info:INFERRED_TYPE_LITERAL*/[s];
+               l = /*info:INFERRED_TYPE_LITERAL*/[n];
+               l = /*info:INFERRED_TYPE_LITERAL*/[i, n, s];
             }
             {
                Map<String, int> m = <String, int>{s: i};
@@ -1662,13 +1702,15 @@ void main() {
            // TODO(leafp): We can't currently test for key errors since the
            // error marker binds to the entire entry.
             {
-               Map m = {s: i};
-               m = {s: s};
-               m = {s: n};
-               m = {s: i,
+               Map m = /*info:INFERRED_TYPE_LITERAL*/{s: i};
+               m = /*info:INFERRED_TYPE_LITERAL*/{s: s};
+               m = /*info:INFERRED_TYPE_LITERAL*/{s: n};
+               m = /*info:INFERRED_TYPE_LITERAL*/
+                   {s: i,
                     s: n,
                     s: s};
-               m = {i: s,
+               m = /*info:INFERRED_TYPE_LITERAL*/
+                   {i: s,
                     n: s,
                     s: s};
             }

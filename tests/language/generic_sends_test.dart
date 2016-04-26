@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Dart test verifying that the parser can handle certain cases where
-// grammar ambiguity is resolved in favor of generic sends, not
-// relational expressions.
+/// Dart test verifying that the parser can handle certain cases where
+/// grammar ambiguity is resolved in favor of generic sends, not
+/// relational expressions.
+
+library generic_sends_test;
 
 f(arg1, [arg2]) => null;
 g<X, Y>(arg) => null;

@@ -113,7 +113,7 @@ class _CopyingBytesBuilder implements BytesBuilder {
     _length = required;
   }
 
-  void addByte(int byte) => add([byte]);
+  void addByte(int byte) { add([byte]); }
 
   List<int> takeBytes() {
     if (_buffer == null) return new Uint8List(0);
@@ -163,7 +163,7 @@ class _BytesBuilder implements BytesBuilder {
     _length += bytes.length;
   }
 
-  void addByte(int byte) => add([byte]);
+  void addByte(int byte) { add([byte]); }
 
   List<int> takeBytes() {
     if (_chunks.length == 0) return new Uint8List(0);

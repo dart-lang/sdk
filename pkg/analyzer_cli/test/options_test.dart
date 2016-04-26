@@ -32,7 +32,6 @@ main() {
         expect(options.displayVersion, isFalse);
         expect(options.enableStrictCallChecks, isFalse);
         expect(options.enableSuperMixins, isFalse);
-        expect(options.enableConditionalDirectives, isFalse);
         expect(options.enableTypeChecks, isFalse);
         expect(options.hintsAreFatal, isFalse);
         expect(options.ignoreUnrecognizedFlags, isFalse);

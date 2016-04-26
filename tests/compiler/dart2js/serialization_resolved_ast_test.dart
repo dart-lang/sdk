@@ -20,11 +20,13 @@ import 'serialization_test_data.dart';
 import 'serialization_test_helper.dart';
 
 
-main(List<String> arguments) {
+main(List<String> args) {
+  Arguments arguments = new Arguments.from(args);
   asyncTest(() async {
-    String serializedData = await serializeDartCore(serializeResolvedAst: true);
-    if (arguments.isNotEmpty) {
-      Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.last));
+    String serializedData = await serializeDartCore(
+        arguments: arguments, serializeResolvedAst: true);
+    if (arguments.filename != null) {
+      Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
       await check(serializedData, entryPoint);
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
@@ -43,13 +45,13 @@ Future check(
 
   Compiler compilerNormal = compilerFor(
       memorySourceFiles: sourceFiles,
-      options: [Flags.analyzeOnly]);
+      options: [Flags.analyzeAll]);
   compilerNormal.resolution.retainCachesForTesting = true;
   await compilerNormal.run(entryPoint);
 
   Compiler compilerDeserialized = compilerFor(
       memorySourceFiles: sourceFiles,
-      options: [Flags.analyzeOnly]);
+      options: [Flags.analyzeAll]);
   compilerDeserialized.resolution.retainCachesForTesting = true;
   deserialize(
       compilerDeserialized, serializedData, deserializeResolvedAst: true);
@@ -69,7 +71,7 @@ void checkAllResolvedAsts(
         return compiler1.resolution.hasResolvedAst(member1);
       },
       checkResolvedAsts,
-      verbose: true);
+      verbose: verbose);
 }
 
 

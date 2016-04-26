@@ -8,21 +8,20 @@ library compiler.src.info.send_info;
 import 'package:dart2js_info/src/measurements.dart';
 import 'package:dart2js_info/src/util.dart' show recursiveDiagnosticString;
 
+import '../closure.dart';
 import '../common.dart';
 import '../compiler.dart' show Compiler;
+import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../closure.dart';
 import '../elements/elements.dart';
 import '../elements/visitor.dart' show ElementVisitor;
+import '../parser/partial_elements.dart' show PartialElement;
 import '../resolution/operators.dart';
 import '../resolution/semantic_visitor.dart';
 import '../resolution/tree_elements.dart';
-import '../constants/expressions.dart';
-import '../parser/partial_elements.dart' show PartialElement;
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
-
 import 'analysis_result.dart';
 import 'naive_analysis_result.dart';
 import 'trusted_types_analysis_result.dart';
@@ -34,7 +33,6 @@ Measurements collectSendMeasurements(FunctionElement f, Compiler compiler) {
   return reporter.withCurrentElement(f, () {
     // TODO(sigmund): enable for platform too.
     if (f.library.isPlatformLibrary) return null;
-    var name = _qualifiedName(f);
     if (!f.hasNode) {
       if (f is PartialElement) return const Measurements.unreachableFunction();
       assert(f is ConstructorElement && f.isSynthesized);
@@ -62,11 +60,6 @@ Measurements collectSendMeasurements(FunctionElement f, Compiler compiler) {
     resolvedAst.node.accept(visitor);
     return visitor.measurements;
   });
-}
-
-_qualifiedName(FunctionElement f) {
-  var cls = f.enclosingClass;
-  return (cls != null) ? '${cls.name}.${f.name}' : f.name;
 }
 
 /// Visitor that categorizes data about an individual send.
@@ -2363,7 +2356,6 @@ abstract class RecursiveElementVisitor<R, A> extends ElementVisitor<R, A> {
     return null;
   }
 
-  @override
   R visitVariableElement(VariableElement e, A arg) => null;
 
   @override
@@ -2381,7 +2373,6 @@ abstract class RecursiveElementVisitor<R, A> extends ElementVisitor<R, A> {
   @override
   R visitAbstractFieldElement(AbstractFieldElement e, A arg) => null;
 
-  @override
   R visitFunctionElement(FunctionElement e, A arg) => null;
 
   @override

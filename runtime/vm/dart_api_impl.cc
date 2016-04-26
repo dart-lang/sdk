@@ -1495,8 +1495,8 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
 
   FullSnapshotWriter writer(vm_isolate_snapshot_buffer,
                             isolate_snapshot_buffer,
-                            NULL, /* instructions_snapshot_buffer */
                             ApiReallocate,
+                            NULL, /* instructions_writer */
                             false, /* snapshot_code */
                             true /* vm_isolate_is_symbolic */);
   writer.WriteFullSnapshot();
@@ -2152,7 +2152,6 @@ DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
-  API_TIMELINE_DURATION;
   if (Api::IsSmi(integer)) {
     *value = Api::SmiValue(integer);
     return Api::Success();
@@ -2181,7 +2180,6 @@ DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
 
 DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
                                              uint64_t* value) {
-  API_TIMELINE_DURATION;
   // Fast path for Smis.
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
@@ -2241,7 +2239,6 @@ DART_EXPORT Dart_Handle Dart_IntegerToHexCString(Dart_Handle integer,
 
 
 DART_EXPORT Dart_Handle Dart_NewDouble(double value) {
-  API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   CHECK_CALLBACK_STATE(T);
   return Api::NewHandle(T, Double::New(value));
@@ -2250,7 +2247,6 @@ DART_EXPORT Dart_Handle Dart_NewDouble(double value) {
 
 DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj,
                                          double* value) {
-  API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   const Double& obj = Api::UnwrapDoubleHandle(Z, double_obj);
   if (obj.IsNull()) {
@@ -4823,7 +4819,6 @@ DART_EXPORT Dart_Handle Dart_GetNativeArguments(
 
 DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
                                                int index) {
-  API_TIMELINE_DURATION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   if ((index < 0) || (index >= arguments->NativeArgCount())) {
     return Api::NewError(
@@ -4836,7 +4831,6 @@ DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
 
 
 DART_EXPORT int Dart_GetNativeArgumentCount(Dart_NativeArguments args) {
-  API_TIMELINE_DURATION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   return arguments->NativeArgCount();
 }
@@ -4895,7 +4889,6 @@ DART_EXPORT Dart_Handle Dart_GetNativeStringArgument(Dart_NativeArguments args,
 DART_EXPORT Dart_Handle Dart_GetNativeIntegerArgument(Dart_NativeArguments args,
                                                       int index,
                                                       int64_t* value) {
-  API_TIMELINE_DURATION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   if ((index < 0) || (index >= arguments->NativeArgCount())) {
     return Api::NewError(
@@ -4913,7 +4906,6 @@ DART_EXPORT Dart_Handle Dart_GetNativeIntegerArgument(Dart_NativeArguments args,
 DART_EXPORT Dart_Handle Dart_GetNativeBooleanArgument(Dart_NativeArguments args,
                                                       int index,
                                                       bool* value) {
-  API_TIMELINE_DURATION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   if ((index < 0) || (index >= arguments->NativeArgCount())) {
     return Api::NewError(
@@ -4931,7 +4923,6 @@ DART_EXPORT Dart_Handle Dart_GetNativeBooleanArgument(Dart_NativeArguments args,
 DART_EXPORT Dart_Handle Dart_GetNativeDoubleArgument(Dart_NativeArguments args,
                                                      int index,
                                                      double* value) {
-  API_TIMELINE_DURATION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   if ((index < 0) || (index >= arguments->NativeArgCount())) {
     return Api::NewError(
@@ -5056,7 +5047,6 @@ DART_EXPORT Dart_Handle Dart_SetEnvironmentCallback(
 // --- Scripts and Libraries ---
 DART_EXPORT void Dart_SetBooleanReturnValue(Dart_NativeArguments args,
                                             bool retval) {
-  API_TIMELINE_DURATION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   arguments->SetReturn(Bool::Get(retval));
 }
@@ -5204,11 +5194,20 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
   CHECK_COMPILATION_ALLOWED(I);
 
   ASSERT(snapshot->kind() == Snapshot::kScript);
+  NOT_IN_PRODUCT(TimelineDurationScope tds2(T,
+      Timeline::GetIsolateStream(), "ScriptSnapshotReader"));
+
   ScriptSnapshotReader reader(snapshot->content(), snapshot->length(), T);
   const Object& tmp = Object::Handle(Z, reader.ReadScriptSnapshot());
   if (tmp.IsError()) {
     return Api::NewHandle(T, tmp.raw());
   }
+  NOT_IN_PRODUCT(if (tds2.enabled()) {
+    tds2.SetNumArguments(2);
+    tds2.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
+    tds2.FormatArgument(1, "heapSize", "%" Pd64,
+                        I->heap()->UsedInWords(Heap::kOld) * kWordSize);
+  });
   library ^= tmp.raw();
   library.set_debuggable(true);
   I->object_store()->set_root_library(library);
@@ -5976,6 +5975,7 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
   if (event == NULL) {
     return;
   }
+  label = strdup(label);
   switch (type) {
     case Dart_Timeline_Event_Begin:
       event->Begin(label, timestamp0);
@@ -6004,6 +6004,7 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
     default:
       FATAL("Unknown Dart_Timeline_Event_Type");
   }
+  event->set_owns_label(true);
   event->SetNumArguments(argument_count);
   for (intptr_t i = 0; i < argument_count; i++) {
     event->CopyArgument(i, argument_names[i], argument_values[i]);
@@ -6034,13 +6035,27 @@ DART_EXPORT Dart_Handle Dart_Precompile(
 }
 
 
-DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
+DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
     uint8_t** vm_isolate_snapshot_buffer,
     intptr_t* vm_isolate_snapshot_size,
     uint8_t** isolate_snapshot_buffer,
     intptr_t* isolate_snapshot_size,
-    uint8_t** instructions_snapshot_buffer,
-    intptr_t* instructions_snapshot_size) {
+    uint8_t** assembly_buffer,
+    intptr_t* assembly_size) {
+  UNREACHABLE();
+  return 0;
+}
+
+
+DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
+    uint8_t** vm_isolate_snapshot_buffer,
+    intptr_t* vm_isolate_snapshot_size,
+    uint8_t** isolate_snapshot_buffer,
+    intptr_t* isolate_snapshot_size,
+    uint8_t** instructions_blob_buffer,
+    intptr_t* instructions_blob_size,
+    uint8_t** rodata_blob_buffer,
+    intptr_t* rodata_blob_size) {
   UNREACHABLE();
   return 0;
 }
@@ -6069,13 +6084,13 @@ DART_EXPORT Dart_Handle Dart_Precompile(
 }
 
 
-DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
+DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
     uint8_t** vm_isolate_snapshot_buffer,
     intptr_t* vm_isolate_snapshot_size,
     uint8_t** isolate_snapshot_buffer,
     intptr_t* isolate_snapshot_size,
-    uint8_t** instructions_snapshot_buffer,
-    intptr_t* instructions_snapshot_size) {
+    uint8_t** assembly_buffer,
+    intptr_t* assembly_size) {
   ASSERT(FLAG_load_deferred_eagerly);
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
@@ -6096,26 +6111,84 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
   if (isolate_snapshot_size == NULL) {
     RETURN_NULL_ERROR(isolate_snapshot_size);
   }
-  if (instructions_snapshot_buffer == NULL) {
-    RETURN_NULL_ERROR(instructions_snapshot_buffer);
+  if (assembly_buffer == NULL) {
+    RETURN_NULL_ERROR(assembly_buffer);
   }
-  if (instructions_snapshot_size == NULL) {
-    RETURN_NULL_ERROR(instructions_snapshot_size);
-  }
-  // Finalize all classes if needed.
-  Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
-  if (::Dart_IsError(state)) {
-    return state;
+  if (assembly_size == NULL) {
+    RETURN_NULL_ERROR(assembly_size);
   }
   I->heap()->CollectAllGarbage();
+  AssemblyInstructionsWriter instructions_writer(assembly_buffer,
+                                                 ApiReallocate,
+                                                 2 * MB /* initial_size */);
   PrecompiledSnapshotWriter writer(vm_isolate_snapshot_buffer,
                                    isolate_snapshot_buffer,
-                                   instructions_snapshot_buffer,
-                                   ApiReallocate);
+                                   ApiReallocate,
+                                   &instructions_writer);
   writer.WriteFullSnapshot();
   *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
   *isolate_snapshot_size = writer.IsolateSnapshotSize();
-  *instructions_snapshot_size = writer.InstructionsSnapshotSize();
+  *assembly_size = instructions_writer.AssemblySize();
+
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
+    uint8_t** vm_isolate_snapshot_buffer,
+    intptr_t* vm_isolate_snapshot_size,
+    uint8_t** isolate_snapshot_buffer,
+    intptr_t* isolate_snapshot_size,
+    uint8_t** instructions_blob_buffer,
+    intptr_t* instructions_blob_size,
+    uint8_t** rodata_blob_buffer,
+    intptr_t* rodata_blob_size) {
+  ASSERT(FLAG_load_deferred_eagerly);
+  API_TIMELINE_DURATION;
+  DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
+  if (I->compilation_allowed()) {
+    return Dart_NewApiError("Isolate is not precompiled. "
+                            "Did you forget to call Dart_Precompile?");
+  }
+  if (vm_isolate_snapshot_buffer == NULL) {
+    RETURN_NULL_ERROR(vm_isolate_snapshot_buffer);
+  }
+  if (vm_isolate_snapshot_size == NULL) {
+    RETURN_NULL_ERROR(vm_isolate_snapshot_size);
+  }
+  if (isolate_snapshot_buffer == NULL) {
+    RETURN_NULL_ERROR(isolate_snapshot_buffer);
+  }
+  if (isolate_snapshot_size == NULL) {
+    RETURN_NULL_ERROR(isolate_snapshot_size);
+  }
+  if (instructions_blob_buffer == NULL) {
+    RETURN_NULL_ERROR(instructions_blob_buffer);
+  }
+  if (instructions_blob_size == NULL) {
+    RETURN_NULL_ERROR(instructions_blob_size);
+  }
+  if (rodata_blob_buffer == NULL) {
+    RETURN_NULL_ERROR(instructions_blob_buffer);
+  }
+  if (rodata_blob_size == NULL) {
+    RETURN_NULL_ERROR(instructions_blob_size);
+  }
+  I->heap()->CollectAllGarbage();
+  BlobInstructionsWriter instructions_writer(instructions_blob_buffer,
+                                             rodata_blob_buffer,
+                                             ApiReallocate,
+                                             2 * MB /* initial_size */);
+  PrecompiledSnapshotWriter writer(vm_isolate_snapshot_buffer,
+                                   isolate_snapshot_buffer,
+                                   ApiReallocate,
+                                   &instructions_writer);
+  writer.WriteFullSnapshot();
+  *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
+  *isolate_snapshot_size = writer.IsolateSnapshotSize();
+  *instructions_blob_size = instructions_writer.InstructionsBlobSize();
+  *rodata_blob_size = instructions_writer.RodataBlobSize();
 
   return Api::Success();
 }

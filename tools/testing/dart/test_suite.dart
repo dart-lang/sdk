@@ -234,21 +234,6 @@ abstract class TestSuite {
     return dartExecutable;
   }
 
-  String get dartVmProductBinaryFileName {
-    // Controlled by user with the option "--dart".
-    String dartExecutable = configuration['dart'];
-
-    if (dartExecutable == '') {
-      String suffix = executableBinarySuffix;
-      dartExecutable = useSdk
-          ? '$buildDir/dart-sdk/bin/dart_product$suffix'
-          : '$buildDir/dart_product$suffix';
-    }
-
-    TestUtils.ensureExists(dartExecutable, configuration);
-    return dartExecutable;
-  }
-
   String get d8FileName {
     var suffix = getExecutableSuffix('d8');
     var d8Dir = TestUtils.dartDir.append('third_party/d8');

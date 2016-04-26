@@ -37,6 +37,7 @@ class SocketServer {
   final ServerPlugin serverPlugin;
   final EmbeddedResolverProvider embeddedResolverProvider;
   final ResolverProvider packageResolverProvider;
+  final bool useSingleContextManager;
 
   /**
    * The analysis server that was created when a client established a
@@ -55,8 +56,9 @@ class SocketServer {
       this.defaultSdk,
       this.instrumentationService,
       this.serverPlugin,
+      this.embeddedResolverProvider,
       this.packageResolverProvider,
-      this.embeddedResolverProvider);
+      this.useSingleContextManager);
 
   /**
    * Create an analysis server which will communicate with the client using the
@@ -98,8 +100,9 @@ class SocketServer {
         analysisServerOptions,
         defaultSdkCreator,
         instrumentationService,
-        packageResolverProvider: packageResolverProvider,
         embeddedResolverProvider: embeddedResolverProvider,
+        packageResolverProvider: packageResolverProvider,
+        useSingleContextManager: useSingleContextManager,
         rethrowExceptions: false);
     analysisServer.userDefinedPlugins = userDefinedPlugins;
   }

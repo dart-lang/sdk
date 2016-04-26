@@ -1781,8 +1781,9 @@ class _HttpClient implements HttpClient {
     _authenticate = f;
   }
 
-  void addCredentials(Uri url, String realm, HttpClientCredentials cr) =>
-      _credentials.add(new _SiteCredentials(url, realm, cr));
+  void addCredentials(Uri url, String realm, HttpClientCredentials cr) {
+    _credentials.add(new _SiteCredentials(url, realm, cr));
+  }
 
   set authenticateProxy(
       Future<bool> f(String host, int port, String scheme, String realm)) {
@@ -1792,8 +1793,9 @@ class _HttpClient implements HttpClient {
   void addProxyCredentials(String host,
                            int port,
                            String realm,
-                           HttpClientCredentials cr) =>
-      _proxyCredentials.add(new _ProxyCredentials(host, port, realm, cr));
+                           HttpClientCredentials cr) {
+    _proxyCredentials.add(new _ProxyCredentials(host, port, realm, cr));
+  }
 
   set findProxy(String f(Uri uri)) => _findProxy = f;
 
@@ -2580,17 +2582,17 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
     _socket.encoding = value;
   }
 
-  void write(Object obj) => _socket.write(obj);
+  void write(Object obj) { _socket.write(obj); }
 
-  void writeln([Object obj = ""]) => _socket.writeln(obj);
+  void writeln([Object obj = ""]) { _socket.writeln(obj); }
 
-  void writeCharCode(int charCode) => _socket.writeCharCode(charCode);
+  void writeCharCode(int charCode) { _socket.writeCharCode(charCode); }
 
   void writeAll(Iterable objects, [String separator = ""]) {
     _socket.writeAll(objects, separator);
   }
 
-  void add(List<int> bytes) => _socket.add(bytes);
+  void add(List<int> bytes) { _socket.add(bytes); }
 
   void addError(error, [StackTrace stackTrace]) =>
       _socket.addError(error, stackTrace);
@@ -2599,7 +2601,7 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
     return _socket.addStream(stream);
   }
 
-  void destroy() => _socket.destroy();
+  void destroy() { _socket.destroy(); }
 
   Future flush() => _socket.flush();
 
@@ -2768,11 +2770,13 @@ class _HttpClientBasicCredentials
     return "Basic $auth";
   }
 
-  void authorize(_Credentials _, HttpClientRequest request) =>
-      request.headers.set(HttpHeaders.AUTHORIZATION, authorization());
+  void authorize(_Credentials _, HttpClientRequest request) {
+    request.headers.set(HttpHeaders.AUTHORIZATION, authorization());
+  }
 
-  void authorizeProxy(_ProxyCredentials _, HttpClientRequest request) =>
-      request.headers.set(HttpHeaders.PROXY_AUTHORIZATION, authorization());
+  void authorizeProxy(_ProxyCredentials _, HttpClientRequest request) {
+    request.headers.set(HttpHeaders.PROXY_AUTHORIZATION, authorization());
+  }
 }
 
 

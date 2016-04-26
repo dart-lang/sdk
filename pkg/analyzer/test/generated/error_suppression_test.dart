@@ -42,12 +42,41 @@ const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
         [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
   }
 
+  void test_ignore_first_trailing() {
+    Source source = addSource('''
+int x = ''; // ignore: invalid_assignment
+// ... but no ignore here ...
+const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+  }
+
+  void test_ignore_only_trailing() {
+    Source source = addSource('''
+int x = ''; // ignore: invalid_assignment
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+  }
+
   void test_ignore_second() {
     Source source = addSource('''
 //INVALID_ASSIGNMENT
 int x = '';
 // ignore: const_initialized_with_non_constant_value
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+  }
+
+  void test_ignore_second_trailing() {
+    Source source = addSource('''
+//INVALID_ASSIGNMENT
+int x = '';
+const y = x; // ignore: const_initialized_with_non_constant_value
 ''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
@@ -103,6 +132,15 @@ const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 int x = 3;
 // ignore: invalid_assignment, const_initialized_with_non_constant_value
 const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+  }
+
+  void test_multiple_ignores_traling() {
+    Source source = addSource('''
+int x = 3;
+const String y = x; // ignore: invalid_assignment, const_initialized_with_non_constant_value
 ''');
     computeLibrarySourceErrors(source);
     assertErrors(source, []);

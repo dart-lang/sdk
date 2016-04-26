@@ -1601,11 +1601,7 @@ void Assembler::LoadObjectHelper(Register rd,
                  : object_pool_wrapper_.FindObject(object));
     LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, pp, cond);
   } else {
-    ASSERT(FLAG_allow_absolute_addresses);
-    ASSERT(object.IsOld());
-    // Make sure that class CallPattern is able to decode this load immediate.
-    const int32_t object_raw = reinterpret_cast<int32_t>(object.raw());
-    LoadImmediate(rd, object_raw, cond);
+    UNREACHABLE();
   }
 }
 
@@ -3408,38 +3404,23 @@ void Assembler::LeaveStubFrame() {
 
 
 void Assembler::LoadAllocationStatsAddress(Register dest,
-                                           intptr_t cid,
-                                           bool inline_isolate) {
+                                           intptr_t cid) {
   ASSERT(dest != kNoRegister);
   ASSERT(dest != TMP);
   ASSERT(cid > 0);
   const intptr_t class_offset = ClassTable::ClassOffsetFor(cid);
-  if (inline_isolate) {
-    ASSERT(FLAG_allow_absolute_addresses);
-    ClassTable* class_table = Isolate::Current()->class_table();
-    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
-    if (cid < kNumPredefinedCids) {
-      LoadImmediate(dest, reinterpret_cast<uword>(*table_ptr) + class_offset);
-    } else {
-      LoadImmediate(dest, reinterpret_cast<uword>(table_ptr));
-      ldr(dest, Address(dest, 0));
-      AddImmediate(dest, class_offset);
-    }
-  } else {
-    LoadIsolate(dest);
-    intptr_t table_offset =
-        Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
-    ldr(dest, Address(dest, table_offset));
-    AddImmediate(dest, class_offset);
-  }
+  LoadIsolate(dest);
+  intptr_t table_offset =
+      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  ldr(dest, Address(dest, table_offset));
+  AddImmediate(dest, class_offset);
 }
 
 
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Register temp_reg,
-                                     Label* trace,
-                                     bool inline_isolate) {
-  LoadAllocationStatsAddress(temp_reg, cid, inline_isolate);
+                                     Label* trace) {
+  LoadAllocationStatsAddress(temp_reg, cid);
   const uword state_offset = ClassHeapStats::state_offset();
   ldr(temp_reg, Address(temp_reg, state_offset));
   tst(temp_reg, Operand(ClassHeapStats::TraceAllocationMask()));
@@ -3498,8 +3479,7 @@ void Assembler::TryAllocate(const Class& cls,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cls.id(), temp_reg, failure,
-                         /* inline_isolate = */ false);
+    MaybeTraceAllocation(cls.id(), temp_reg, failure);
     Heap::Space space = Heap::SpaceForAllocation(cls.id());
     ldr(temp_reg, Address(THR, Thread::heap_offset()));
     ldr(instance_reg, Address(temp_reg, Heap::TopOffset(space)));
@@ -3516,8 +3496,7 @@ void Assembler::TryAllocate(const Class& cls,
     // next object start and store the class in the class field of object.
     str(instance_reg, Address(temp_reg, Heap::TopOffset(space)));
 
-    LoadAllocationStatsAddress(temp_reg, cls.id(),
-                               /* inline_isolate = */ false);
+    LoadAllocationStatsAddress(temp_reg, cls.id());
 
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
@@ -3547,7 +3526,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cid, temp1, failure, /* inline_isolate = */ false);
+    MaybeTraceAllocation(cid, temp1, failure);
     Heap::Space space = Heap::SpaceForAllocation(cid);
     ldr(temp1, Address(THR, Thread::heap_offset()));
     // Potential new object start.
@@ -3562,7 +3541,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     cmp(end_address, Operand(temp2));
     b(failure, CS);
 
-    LoadAllocationStatsAddress(temp2, cid, /* inline_isolate = */ false);
+    LoadAllocationStatsAddress(temp2, cid);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.

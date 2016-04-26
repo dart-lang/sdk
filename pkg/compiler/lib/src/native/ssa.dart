@@ -9,7 +9,7 @@ import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
-import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
+import '../js_emitter/js_emitter.dart' show NativeEmitter;
 import '../ssa/builder.dart' show SsaBuilder;
 import '../ssa/nodes.dart' show HInstruction, HForeignCode, HReturn;
 import '../tree/tree.dart';

@@ -301,7 +301,7 @@ class Listener {
 
   void beginTypeVariable(Token token) {}
 
-  void endTypeVariable(Token token) {}
+  void endTypeVariable(Token token, Token extendsOrSuper) {}
 
   void beginTypeVariables(Token token) {}
 

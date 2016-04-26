@@ -756,12 +756,20 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
       String typeParams: '[]',
       String typeArgs: '[]',
       String typeFormals: '[]'}) {
+    typeParameters(Element element) {
+      if (element is ExecutableElement) {
+        return element.typeParameters;
+      } else if (element is ParameterElement) {
+        return element.typeParameters;
+      }
+      fail('Wrong element type: ${element.runtimeType}');
+    }
     SimpleIdentifier identifier = findIdentifier(name);
     // Element is either ExecutableElement or ParameterElement.
-    var element = identifier.staticElement;
+    Element element = identifier.staticElement;
     FunctionTypeImpl functionType = identifier.staticType;
     expect(functionType.toString(), type);
-    expect(element.typeParameters.toString(), elementTypeParams);
+    expect(typeParameters(element).toString(), elementTypeParams);
     expect(functionType.typeParameters.toString(), typeParams);
     expect(functionType.typeArguments.toString(), typeArgs);
     expect(functionType.typeFormals.toString(), typeFormals);

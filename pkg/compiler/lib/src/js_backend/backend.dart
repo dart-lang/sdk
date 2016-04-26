@@ -511,6 +511,8 @@ class JavaScriptBackend extends Backend {
   final BackendHelpers helpers;
   final BackendImpacts impacts;
 
+  final JSFrontendAccess frontend;
+
   JavaScriptBackend(Compiler compiler,
       {bool generateSourceMap: true,
       bool useStartupEmitter: false,
@@ -529,6 +531,7 @@ class JavaScriptBackend extends Backend {
             : const JavaScriptSourceInformationStrategy(),
         helpers = new BackendHelpers(compiler),
         impacts = new BackendImpacts(compiler),
+        frontend = new JSFrontendAccess(compiler),
         super(compiler) {
     emitter = new CodeEmitterTask(
         compiler, namer, generateSourceMap, useStartupEmitter);
@@ -619,7 +622,7 @@ class JavaScriptBackend extends Backend {
     assert(invariant(element, element.isDeclaration, message: ""));
     if (element == helpers.streamIteratorConstructor ||
         element == helpers.compiler.symbolConstructor ||
-        element == helpers.compiler.symbolValidatedConstructor ||
+        helpers.isSymbolValidatedConstructor(element) ||
         element == helpers.syncCompleterConstructor ||
         element == coreClasses.symbolClass ||
         element == helpers.objectNoSuchMethod) {
@@ -1291,16 +1294,16 @@ class JavaScriptBackend extends Backend {
   }
 
   /// Called when resolving a call to a foreign function.
-  void registerForeignCall(Send node, Element element,
+  native.NativeBehavior resolveForeignCall(Send node, Element element,
       CallStructure callStructure, ForeignResolver resolver) {
     native.NativeResolutionEnqueuer nativeEnqueuer =
         compiler.enqueuer.resolution.nativeEnqueuer;
     if (element.name == 'JS') {
-      nativeEnqueuer.registerJsCall(node, resolver);
+      return nativeEnqueuer.resolveJsCall(node, resolver);
     } else if (element.name == 'JS_EMBEDDED_GLOBAL') {
-      nativeEnqueuer.registerJsEmbeddedGlobalCall(node, resolver);
+      return nativeEnqueuer.resolveJsEmbeddedGlobalCall(node, resolver);
     } else if (element.name == 'JS_BUILTIN') {
-      nativeEnqueuer.registerJsBuiltinCall(node, resolver);
+      return nativeEnqueuer.resolveJsBuiltinCall(node, resolver);
     } else if (element.name == 'JS_INTERCEPTOR_CONSTANT') {
       // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
       // a class that will be instantiated outside the program by attaching a
@@ -1312,13 +1315,16 @@ class JavaScriptBackend extends Backend {
           TypeConstantExpression typeConstant = constant;
           if (typeConstant.type is InterfaceType) {
             resolver.registerInstantiatedType(typeConstant.type);
-            return;
+            // No native behavior for this call.
+            return null;
           }
         }
       }
       reporter.reportErrorMessage(
           node, MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
     }
+    // No native behavior for this call.
+    return null;
   }
 
   void enableNoSuchMethod(Enqueuer world) {
@@ -1443,8 +1449,16 @@ class JavaScriptBackend extends Backend {
   WorldImpact codegen(CodegenWorkItem work) {
     Element element = work.element;
     if (compiler.elementHasCompileTimeError(element)) {
-      generatedCode[element] = jsAst.js(
-          "function () { throw new Error('Compile time error in $element') }");
+      DiagnosticMessage message =
+          // If there's more than one error, the first is probably most
+          // informative, as the following errors may be side-effects of the
+          // first error.
+          compiler.elementsWithCompileTimeErrors[element].first;
+      String messageText = message.message.computeMessage();
+      jsAst.LiteralString messageLiteral =
+          js.escapedString("Compile time error in $element: $messageText");
+      generatedCode[element] = js(
+          "function () { throw new Error(#); }", [messageLiteral]);
       return const CodegenImpact();
     }
     var kind = element.kind;
@@ -2252,7 +2266,8 @@ class JavaScriptBackend extends Backend {
     lookupMapAnalysis.onCodegenStart();
   }
 
-  void onElementResolved(Element element, TreeElements elements) {
+  @override
+  void onElementResolved(Element element) {
     if (element.isMalformed) {
       // Elements that are marker as malformed during parsing or resolution
       // might be registered here. These should just be ignored.
@@ -2471,6 +2486,32 @@ class JavaScriptBackend extends Backend {
         supportDeferredLoad: supportDeferredLoad,
         supportDumpInfo: supportDumpInfo,
         supportSerialization: supportSerialization);
+  }
+}
+
+class JSFrontendAccess implements Frontend {
+  final Compiler compiler;
+
+  JSFrontendAccess(this.compiler);
+
+  Resolution get resolution => compiler.resolution;
+
+  @override
+  ResolutionImpact getResolutionImpact(Element element) {
+    return resolution.getResolutionImpact(element);
+  }
+
+  @override
+  ResolvedAst getResolvedAst(Element element) {
+    if (element is SynthesizedCallMethodElementX) {
+      return element.resolvedAst;
+    } else if (element is ConstructorBodyElementX) {
+      return element.resolvedAst;
+    } else {
+      assert(invariant(element, resolution.hasResolvedAst(element.declaration),
+          message: 'No ResolvedAst for $element'));
+      return resolution.getResolvedAst(element.declaration);
+    }
   }
 }
 

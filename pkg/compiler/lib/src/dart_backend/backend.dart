@@ -236,7 +236,7 @@ class DartBackend extends Backend {
     if (useMirrorHelperLibrary &&
         loadedLibraries.containsLibrary(Uris.dart_mirrors)) {
       return compiler.libraryLoader
-          .loadLibrary(compiler.translateResolvedUri(
+          .loadLibrary(compiler.resolvedUriTranslator.translate(
               loadedLibraries.getLibrary(Uris.dart_mirrors),
               MirrorRenamerImpl.DART_MIRROR_HELPER,
               null))
@@ -317,7 +317,6 @@ class DartBackend extends Backend {
             superclass.forEachLocalMember((MemberElement element) {
               if (element.isConstructor || element.isStatic) return;
 
-              FunctionElement function = element.asFunctionElement();
               element.computeType(resolution);
               Selector selector = new Selector.fromElement(element);
               registerUse(new DynamicUse(selector, null));

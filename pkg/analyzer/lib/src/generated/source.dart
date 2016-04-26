@@ -217,6 +217,11 @@ class LineInfo {
   }
 
   /**
+   * The number of lines.
+   */
+  int get lineCount => _lineStarts.length;
+
+  /**
    * Return the location information for the character at the given [offset].
    */
   LineInfo_Location getLocation(int offset) {
@@ -258,7 +263,7 @@ class LineInfo {
    * [lineNumber].
    */
   int getOffsetOfLine(int lineNumber) {
-    if (lineNumber < 0 || lineNumber >= _lineStarts.length) {
+    if (lineNumber < 0 || lineNumber >= lineCount) {
       throw new ArgumentError('Invalid line number: $lineNumber');
     }
     return _lineStarts[lineNumber];
@@ -750,12 +755,10 @@ class SourceRange {
   int get hashCode => 31 * offset + length;
 
   @override
-  bool operator ==(Object obj) {
-    if (obj is! SourceRange) {
-      return false;
-    }
-    SourceRange sourceRange = obj as SourceRange;
-    return sourceRange.offset == offset && sourceRange.length == length;
+  bool operator ==(Object other) {
+    return other is SourceRange &&
+        other.offset == offset &&
+        other.length == length;
   }
 
   /**

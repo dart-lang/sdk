@@ -1327,7 +1327,28 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
       MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
 
   __ Comment("MegamorphicCall");
+  // Load receiver into T0,
   __ lw(T0, Address(SP, (argument_count - 1) * kWordSize));
+  Label done;
+  if (name.raw() == Symbols::hashCode().raw()) {
+    Label try_onebytestring, megamorphic_call;
+    __ Comment("Inlined get:hashCode for Smi and OneByteString");
+    __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
+    __ bne(CMPRES1, ZR, &try_onebytestring);  // Not Smi.
+    __ mov(V0, T0);
+    __ b(&done);
+
+    __ Bind(&try_onebytestring);
+    __ LoadClassId(CMPRES1, T0);  // Class ID check.
+    __ BranchNotEqual(
+        CMPRES1, Immediate(kOneByteStringCid), &megamorphic_call);
+
+    __ lw(V0, FieldAddress(T0, String::hash_offset()));
+    __ bne(V0, ZR, &done);
+
+    __ Bind(&megamorphic_call);
+    __ Comment("Slow case: megamorphic call");
+  }
   __ LoadObject(S5, cache);
   if (FLAG_use_megamorphic_stub) {
     __ BranchLink(*StubCode::MegamorphicLookup_entry());
@@ -1336,6 +1357,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   }
   __ jalr(T1);
 
+  __ Bind(&done);
   RecordSafepoint(locs, slow_path_argument_count);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (FLAG_precompiled_mode) {
@@ -1372,21 +1394,9 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(
     LocationSummary* locs) {
   __ Comment("SwitchableCall");
   __ lw(T0, Address(SP, (argument_count - 1) * kWordSize));
-  if (ic_data.NumArgsTested() == 1) {
-    __ LoadUniqueObject(S5, ic_data);
-    __ BranchLinkPatchable(*StubCode::ICLookupThroughFunction_entry());
-  } else {
-    const String& name = String::Handle(zone(), ic_data.target_name());
-    const Array& arguments_descriptor =
-        Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
-    ASSERT(!arguments_descriptor.IsNull() &&
-           (arguments_descriptor.Length() > 0));
-    const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
-        MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
-
-    __ LoadUniqueObject(S5, cache);
-    __ BranchLinkPatchable(*StubCode::MegamorphicLookup_entry());
-  }
+  ASSERT(ic_data.NumArgsTested() == 1);
+  __ LoadUniqueObject(S5, ic_data);
+  __ BranchLinkPatchable(*StubCode::ICLookupThroughFunction_entry());
   __ jalr(T1);
 
   AddCurrentDescriptor(RawPcDescriptors::kOther,

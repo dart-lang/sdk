@@ -290,10 +290,10 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.staticElement;
-    if (element is PropertyAccessorElement) {
-      element = (element as PropertyAccessorElement).variable;
-    }
+    Element staticElement = node.staticElement;
+    Element element = staticElement is PropertyAccessorElement
+        ? staticElement.variable
+        : staticElement;
     if (element is VariableElement && element.isConst) {
       _callback(element);
     }

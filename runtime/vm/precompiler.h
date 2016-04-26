@@ -309,6 +309,7 @@ class Precompiler : public ValueObject {
   void CheckForNewDynamicFunctions();
   void TraceConstFunctions();
 
+  void TraceForRetainedFunctions();
   void DropFunctions();
   void DropFields();
   void TraceTypesFromRetainedClasses();
@@ -362,6 +363,7 @@ class Precompiler : public ValueObject {
   SymbolSet sent_selectors_;
   FunctionSet enqueued_functions_;
   FieldSet fields_to_retain_;
+  FunctionSet functions_to_retain_;
   ClassSet classes_to_retain_;
   TypeArgumentsSet typeargs_to_retain_;
   AbstractTypeSet types_to_retain_;
@@ -373,6 +375,7 @@ class Precompiler : public ValueObject {
 class FunctionsTraits {
  public:
   static const char* Name() { return "FunctionsTraits"; }
+  static bool ReportStats() { return false; }
 
   static bool IsMatch(const Object& a, const Object& b) {
     Zone* zone = Thread::Current()->zone();

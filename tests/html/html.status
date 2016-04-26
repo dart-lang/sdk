@@ -60,9 +60,7 @@ keyboard_event_test: Fail # Issue 13902
 fileapi_test/getFile: Pass, Fail # Issue 20488
 async_test: RuntimeError, OK  # Uses Isolate.spawn.
 isolates_test: RuntimeError, OK  # Uses Isolate.spawn.
-
-[ $compiler == none && ($runtime == drt || $runtime == dartium ) && $checked]
-cross_domain_iframe_test: RuntimeError # Issue 26134
+custom/created_callback_test: Fail # Support for created constructor. Issue 14835
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium ) && $mode == debug ]
 websocket_test/websocket: Skip # Issue 17666

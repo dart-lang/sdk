@@ -259,8 +259,8 @@ abstract class Stream<T> {
    *         _outputSink.add(data);
    *       }
    *
-   *       void addError(e, [st]) => _outputSink.addError(e, st);
-   *       void close() => _outputSink.close();
+   *       void addError(e, [st]) { _outputSink.addError(e, st); }
+   *       void close() { _outputSink.close(); }
    *     }
    *
    *     class DuplicationTransformer implements StreamTransformer<String, String> {

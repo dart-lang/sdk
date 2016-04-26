@@ -2766,12 +2766,6 @@ class ParserTestCase extends EngineTestCase {
   bool parseAsync = true;
 
   /**
-   * A flag indicating whether conditional directives support should be enabled
-   * for a specific test.
-   */
-  bool enableConditionalDirectives = false;
-
-  /**
    * A flag indicating whether generic method support should be enabled for a
    * specific test.
    */
@@ -2833,7 +2827,6 @@ class ParserTestCase extends EngineTestCase {
     //
     Parser parser = createParser(listener);
     parser.parseAsync = parseAsync;
-    parser.parseConditionalDirectives = enableConditionalDirectives;
     parser.parseGenericMethods = enableGenericMethods;
     parser.parseGenericMethodComments = enableGenericMethodComments;
     parser.parseFunctionBodies = parseFunctionBodies;
@@ -2964,7 +2957,6 @@ class ParserTestCase extends EngineTestCase {
     Parser parser = createParser(listener);
     parser.parseAsync = parseAsync;
     parser.parseFunctionBodies = parseFunctionBodies;
-    parser.parseConditionalDirectives = enableConditionalDirectives;
     parser.parseGenericMethods = enableGenericMethods;
     parser.parseGenericMethodComments = enableGenericMethodComments;
     CompilationUnit unit = parser.parseCompilationUnit(token);
@@ -3707,7 +3699,7 @@ class C {
         (obj) => obj is FieldDeclaration, FieldDeclaration, classMember);
     VariableDeclarationList fieldList =
         (classMember as FieldDeclaration).fields;
-    expect((fieldList.keyword as KeywordToken).keyword, Keyword.CONST);
+    expect(fieldList.keyword.keyword, Keyword.CONST);
     NodeList<VariableDeclaration> fields = fieldList.variables;
     expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
@@ -3733,7 +3725,7 @@ class C {
         (obj) => obj is FieldDeclaration, FieldDeclaration, classMember);
     VariableDeclarationList fieldList =
         (classMember as FieldDeclaration).fields;
-    expect((fieldList.keyword as KeywordToken).keyword, Keyword.FINAL);
+    expect(fieldList.keyword.keyword, Keyword.FINAL);
     NodeList<VariableDeclaration> fields = fieldList.variables;
     expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
@@ -3759,7 +3751,7 @@ class C {
         (obj) => obj is FieldDeclaration, FieldDeclaration, classMember);
     VariableDeclarationList fieldList =
         (classMember as FieldDeclaration).fields;
-    expect((fieldList.keyword as KeywordToken).keyword, Keyword.VAR);
+    expect(fieldList.keyword.keyword, Keyword.VAR);
     NodeList<VariableDeclaration> fields = fieldList.variables;
     expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
@@ -7262,7 +7254,6 @@ void''');
   }
 
   void test_parseExportDirective_configuration_multiple() {
-    enableConditionalDirectives = true;
     ExportDirective directive = parse(
         "parseExportDirective",
         <Object>[emptyCommentAndMetadata()],
@@ -7277,7 +7268,6 @@ void''');
   }
 
   void test_parseExportDirective_configuration_single() {
-    enableConditionalDirectives = true;
     ExportDirective directive = parse(
         "parseExportDirective",
         <Object>[emptyCommentAndMetadata()],
@@ -7515,7 +7505,7 @@ void''');
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
     expect(keyword.type, TokenType.KEYWORD);
-    expect((keyword as KeywordToken).keyword, Keyword.CONST);
+    expect(keyword.keyword, Keyword.CONST);
     expect(result.type, isNull);
   }
 
@@ -7525,7 +7515,7 @@ void''');
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
     expect(keyword.type, TokenType.KEYWORD);
-    expect((keyword as KeywordToken).keyword, Keyword.CONST);
+    expect(keyword.keyword, Keyword.CONST);
     expect(result.type, isNotNull);
   }
 
@@ -7535,7 +7525,7 @@ void''');
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
     expect(keyword.type, TokenType.KEYWORD);
-    expect((keyword as KeywordToken).keyword, Keyword.FINAL);
+    expect(keyword.keyword, Keyword.FINAL);
     expect(result.type, isNull);
   }
 
@@ -7545,7 +7535,7 @@ void''');
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
     expect(keyword.type, TokenType.KEYWORD);
-    expect((keyword as KeywordToken).keyword, Keyword.FINAL);
+    expect(keyword.keyword, Keyword.FINAL);
     expect(result.type, isNotNull);
   }
 
@@ -7555,7 +7545,7 @@ void''');
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
     expect(keyword.type, TokenType.KEYWORD);
-    expect((keyword as KeywordToken).keyword, Keyword.FINAL);
+    expect(keyword.keyword, Keyword.FINAL);
     expect(result.type, isNotNull);
   }
 
@@ -7600,7 +7590,7 @@ void''');
     Token keyword = result.keyword;
     expect(keyword, isNotNull);
     expect(keyword.type, TokenType.KEYWORD);
-    expect((keyword as KeywordToken).keyword, Keyword.VAR);
+    expect(keyword.keyword, Keyword.VAR);
     expect(result.type, isNull);
   }
 
@@ -8472,7 +8462,6 @@ void''');
   }
 
   void test_parseImportDirective_configuration_multiple() {
-    enableConditionalDirectives = true;
     ImportDirective directive = parse(
         "parseImportDirective",
         <Object>[emptyCommentAndMetadata()],
@@ -8490,7 +8479,6 @@ void''');
   }
 
   void test_parseImportDirective_configuration_single() {
-    enableConditionalDirectives = true;
     ImportDirective directive = parse(
         "parseImportDirective",
         <Object>[emptyCommentAndMetadata()],

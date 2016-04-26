@@ -219,14 +219,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   Object visitCommentReference(CommentReference node) {
     Identifier identifier = node.identifier;
     if (identifier is SimpleIdentifier) {
-      SimpleIdentifier simpleIdentifier = identifier;
-      Element element = _resolveSimpleIdentifier(simpleIdentifier);
+      Element element = _resolveSimpleIdentifier(identifier);
       if (element == null) {
         //
         // This might be a reference to an imported name that is missing the
         // prefix.
         //
-        element = _findImportWithoutPrefix(simpleIdentifier);
+        element = _findImportWithoutPrefix(identifier);
         if (element is MultiplyDefinedElement) {
           // TODO(brianwilkerson) Report this error?
           element = null;
@@ -242,14 +241,14 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         if (element.library == null || element.library != _definingLibrary) {
           // TODO(brianwilkerson) Report this error?
         }
-        simpleIdentifier.staticElement = element;
+        identifier.staticElement = element;
         if (node.newKeyword != null) {
           if (element is ClassElement) {
             ConstructorElement constructor = element.unnamedConstructor;
             if (constructor == null) {
               // TODO(brianwilkerson) Report this error.
             } else {
-              simpleIdentifier.staticElement = constructor;
+              identifier.staticElement = constructor;
             }
           } else {
             // TODO(brianwilkerson) Report this error.
@@ -257,9 +256,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         }
       }
     } else if (identifier is PrefixedIdentifier) {
-      PrefixedIdentifier prefixedIdentifier = identifier;
-      SimpleIdentifier prefix = prefixedIdentifier.prefix;
-      SimpleIdentifier name = prefixedIdentifier.identifier;
+      SimpleIdentifier prefix = identifier.prefix;
+      SimpleIdentifier name = identifier.identifier;
       Element element = _resolveSimpleIdentifier(prefix);
       if (element == null) {
 //        resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, prefix, prefix.getName());
@@ -291,7 +289,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
               }
             }
             if (memberElement == null) {
-//              reportGetterOrSetterNotFound(prefixedIdentifier, name, element.getDisplayName());
+//              reportGetterOrSetterNotFound(identifier, name, element.getDisplayName());
             } else {
               name.staticElement = memberElement;
             }
@@ -321,18 +319,17 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     super.visitConstructorDeclaration(node);
     ConstructorElement element = node.element;
     if (element is ConstructorElementImpl) {
-      ConstructorElementImpl constructorElement = element;
       ConstructorName redirectedNode = node.redirectedConstructor;
       if (redirectedNode != null) {
         // set redirected factory constructor
         ConstructorElement redirectedElement = redirectedNode.staticElement;
-        constructorElement.redirectedConstructor = redirectedElement;
+        element.redirectedConstructor = redirectedElement;
       } else {
         // set redirected generative constructor
         for (ConstructorInitializer initializer in node.initializers) {
           if (initializer is RedirectingConstructorInvocation) {
             ConstructorElement redirectedElement = initializer.staticElement;
-            constructorElement.redirectedConstructor = redirectedElement;
+            element.redirectedConstructor = redirectedElement;
           }
         }
       }
@@ -354,8 +351,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   Object visitConstructorName(ConstructorName node) {
     DartType type = node.type.type;
     if (type != null && type.isDynamic) {
-      return null;
-    } else if (type is! InterfaceType) {
+      // Nothing to do.
+    } else if (type is InterfaceType) {
+      // look up ConstructorElement
+      ConstructorElement constructor;
+      SimpleIdentifier name = node.name;
+      if (name == null) {
+        constructor = type.lookUpConstructor(null, _definingLibrary);
+      } else {
+        constructor = type.lookUpConstructor(name.name, _definingLibrary);
+        name.staticElement = constructor;
+      }
+      node.staticElement = constructor;
+    } else {
 // TODO(brianwilkerson) Report these errors.
 //      ASTNode parent = node.getParent();
 //      if (parent instanceof InstanceCreationExpression) {
@@ -367,20 +375,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 //      } else {
 //        // This is part of a redirecting factory constructor; not sure which error code to use
 //      }
-      return null;
     }
-    // look up ConstructorElement
-    ConstructorElement constructor;
-    SimpleIdentifier name = node.name;
-    InterfaceType interfaceType = type as InterfaceType;
-    if (name == null) {
-      constructor = interfaceType.lookUpConstructor(null, _definingLibrary);
-    } else {
-      constructor =
-          interfaceType.lookUpConstructor(name.name, _definingLibrary);
-      name.staticElement = constructor;
-    }
-    node.staticElement = constructor;
     return null;
   }
 
@@ -722,8 +717,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         } else {
           DartType type = _getBestType(target);
           if (type != null) {
-            if (type.element is ClassElement) {
-              classElementContext = type.element as ClassElement;
+            Element element = type.element;
+            if (element is ClassElement) {
+              classElementContext = element;
             }
           }
         }
@@ -808,11 +804,14 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         errorCode, StaticTypeWarningCode.UNDEFINED_SUPER_METHOD)) {
       // Generate the type name.
       // The error code will never be generated via type propagation
-      DartType targetType = _getStaticType(target);
-      if (targetType is InterfaceType && !targetType.isObject) {
-        targetType = (targetType as InterfaceType).superclass;
+      DartType getSuperType(DartType type) {
+        if (type is InterfaceType && !type.isObject) {
+          return type.superclass;
+        }
+        return type;
       }
-      String targetTypeName = targetType == null ? null : targetType.name;
+      DartType targetType = getSuperType(_getStaticType(target));
+      String targetTypeName = targetType?.name;
       _resolver.reportErrorForNode(StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
           methodName, [methodName.name, targetTypeName]);
     }
@@ -887,20 +886,21 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         if (identifier.inSetterContext()) {
           _resolver.reportErrorForNode(StaticWarningCode.UNDEFINED_SETTER,
               identifier, [identifier.name, prefixElement.name]);
-        } else if (node.parent is Annotation) {
-          Annotation annotation = node.parent as Annotation;
-          _resolver.reportErrorForNode(
-              CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
           return null;
+        }
+        AstNode parent = node.parent;
+        if (parent is Annotation) {
+          _resolver.reportErrorForNode(
+              CompileTimeErrorCode.INVALID_ANNOTATION, parent);
         } else {
           _resolver.reportErrorForNode(StaticWarningCode.UNDEFINED_GETTER,
               identifier, [identifier.name, prefixElement.name]);
         }
         return null;
       }
-      if (element is PropertyAccessorElement && identifier.inSetterContext()) {
-        PropertyInducingElement variable =
-            (element as PropertyAccessorElement).variable;
+      Element accessor = element;
+      if (accessor is PropertyAccessorElement && identifier.inSetterContext()) {
+        PropertyInducingElement variable = accessor.variable;
         if (variable != null) {
           PropertyAccessorElement setter = variable.setter;
           if (setter != null) {
@@ -912,17 +912,16 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       // the import that defines the prefix, not the prefix's element.
       identifier.staticElement = element;
       // Validate annotation element.
-      if (node.parent is Annotation) {
-        Annotation annotation = node.parent as Annotation;
-        _resolveAnnotationElement(annotation);
-        return null;
+      AstNode parent = node.parent;
+      if (parent is Annotation) {
+        _resolveAnnotationElement(parent);
       }
       return null;
     }
     // May be annotation, resolve invocation of "const" constructor.
-    if (node.parent is Annotation) {
-      Annotation annotation = node.parent as Annotation;
-      _resolveAnnotationElement(annotation);
+    AstNode parent = node.parent;
+    if (parent is Annotation) {
+      _resolveAnnotationElement(parent);
     }
     //
     // Otherwise, the prefix is really an expression that happens to be a simple
@@ -1083,18 +1082,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       if (_isConstructorReturnType(node)) {
         _resolver.reportErrorForNode(
             CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
-      } else if (node.parent is Annotation) {
-        Annotation annotation = node.parent as Annotation;
-        _resolver.reportErrorForNode(
-            CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
-      } else if (element is PrefixElement) {
-        _resolver.reportErrorForNode(
-            CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-            node,
-            [element.name]);
       } else {
-        _recordUndefinedNode(_resolver.enclosingClass,
-            StaticWarningCode.UNDEFINED_IDENTIFIER, node, [node.name]);
+        if (parent is Annotation) {
+          _resolver.reportErrorForNode(
+              CompileTimeErrorCode.INVALID_ANNOTATION, parent);
+        } else if (element != null) {
+          _resolver.reportErrorForNode(
+              CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+              node,
+              [element.name]);
+        } else {
+          _recordUndefinedNode(_resolver.enclosingClass,
+              StaticWarningCode.UNDEFINED_IDENTIFIER, node, [node.name]);
+        }
       }
     }
     node.staticElement = element;
@@ -1109,9 +1109,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     //
     // Validate annotation element.
     //
-    if (node.parent is Annotation) {
-      Annotation annotation = node.parent as Annotation;
-      _resolveAnnotationElement(annotation);
+    if (parent is Annotation) {
+      _resolveAnnotationElement(parent);
     }
     return null;
   }
@@ -1200,8 +1199,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     // Prefix is not declared, instead "prefix.id" are declared.
     if (element is PrefixElement) {
       return CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT;
-    }
-    if (element is PropertyAccessorElement) {
+    } else if (element is PropertyAccessorElement) {
       //
       // This is really a function expression invocation.
       //
@@ -1415,12 +1413,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Assuming that the given [expression] is a prefix for a deferred import,
+   * Assuming that the given [identifier] is a prefix for a deferred import,
    * return the library that is being imported.
    */
-  LibraryElement _getImportedLibrary(Expression expression) {
-    PrefixElement prefixElement =
-        (expression as SimpleIdentifier).staticElement as PrefixElement;
+  LibraryElement _getImportedLibrary(SimpleIdentifier identifier) {
+    PrefixElement prefixElement = identifier.staticElement as PrefixElement;
     List<ImportElement> imports =
         prefixElement.enclosingElement.getImportsWithPrefix(prefixElement);
     return imports[0].importedLibrary;
@@ -1515,24 +1512,23 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       DartType invokeType, TypeArgumentList typeArguments, AstNode node) {
     // TODO(jmesserly): support generic "call" methods on InterfaceType.
     if (invokeType is FunctionType) {
-      FunctionType type = invokeType;
-      List<TypeParameterElement> parameters = type.typeFormals;
+      List<TypeParameterElement> parameters = invokeType.typeFormals;
 
       NodeList<TypeName> arguments = typeArguments?.arguments;
       if (arguments != null && arguments.length != parameters.length) {
         _resolver.reportErrorForNode(
             StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
             node,
-            [type, parameters.length, arguments?.length ?? 0]);
+            [invokeType, parameters.length, arguments?.length ?? 0]);
 
         // Wrong number of type arguments. Ignore them.
         arguments = null;
       }
       if (parameters.isNotEmpty) {
         if (arguments == null) {
-          invokeType = _resolver.typeSystem.instantiateToBounds(type);
+          return _resolver.typeSystem.instantiateToBounds(invokeType);
         } else {
-          invokeType = type.instantiate(arguments.map((n) => n.type).toList());
+          return invokeType.instantiate(arguments.map((n) => n.type).toList());
         }
       }
     }
@@ -1543,20 +1539,18 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * Return `true` if the given [expression] is a prefix for a deferred import.
    */
   bool _isDeferredPrefix(Expression expression) {
-    if (expression is! SimpleIdentifier) {
-      return false;
+    if (expression is SimpleIdentifier) {
+      Element element = expression.staticElement;
+      if (element is PrefixElement) {
+        List<ImportElement> imports =
+            element.enclosingElement.getImportsWithPrefix(element);
+        if (imports.length != 1) {
+          return false;
+        }
+        return imports[0].isDeferred;
+      }
     }
-    Element element = (expression as SimpleIdentifier).staticElement;
-    if (element is! PrefixElement) {
-      return false;
-    }
-    PrefixElement prefixElement = element as PrefixElement;
-    List<ImportElement> imports =
-        prefixElement.enclosingElement.getImportsWithPrefix(prefixElement);
-    if (imports.length != 1) {
-      return false;
-    }
-    return imports[0].isDeferred;
+    return false;
   }
 
   /**
@@ -1869,9 +1863,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     {
       Identifier annName = annotation.name;
       if (annName is PrefixedIdentifier) {
-        PrefixedIdentifier prefixed = annName;
-        nameNode1 = prefixed.prefix;
-        nameNode2 = prefixed.identifier;
+        nameNode1 = annName.prefix;
+        nameNode2 = annName.identifier;
       } else {
         nameNode1 = annName as SimpleIdentifier;
         nameNode2 = null;
@@ -1891,8 +1884,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
       // Class(args)
       if (element1 is ClassElement) {
-        ClassElement classElement = element1;
-        constructor = new InterfaceTypeImpl(classElement)
+        constructor = new InterfaceTypeImpl(element1)
             .lookUpConstructor(null, _definingLibrary);
       }
     }
@@ -1904,8 +1896,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       Element element2 = nameNode2.staticElement;
       // Class.CONST - not resolved yet
       if (element1 is ClassElement) {
-        ClassElement classElement = element1;
-        element2 = classElement.lookUpGetter(nameNode2.name, _definingLibrary);
+        element2 = element1.lookUpGetter(nameNode2.name, _definingLibrary);
       }
       // prefix.CONST or Class.CONST
       if (element2 is PropertyAccessorElement) {
@@ -1920,8 +1911,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
       // Class.constructor(args)
       if (element1 is ClassElement) {
-        ClassElement classElement = element1;
-        constructor = new InterfaceTypeImpl(classElement)
+        constructor = new InterfaceTypeImpl(element1)
             .lookUpConstructor(nameNode2.name, _definingLibrary);
         nameNode2.staticElement = constructor;
       }
@@ -1933,11 +1923,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       Element element2 = nameNode2.staticElement;
       // element2 should be ClassElement
       if (element2 is ClassElement) {
-        ClassElement classElement = element2;
         String name3 = nameNode3.name;
         // prefix.Class.CONST
         PropertyAccessorElement getter =
-            classElement.lookUpGetter(name3, _definingLibrary);
+            element2.lookUpGetter(name3, _definingLibrary);
         if (getter != null) {
           nameNode3.staticElement = getter;
           annotation.element = element2;
@@ -1945,7 +1934,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           return;
         }
         // prefix.Class.constructor(args)
-        constructor = new InterfaceTypeImpl(classElement)
+        constructor = new InterfaceTypeImpl(element2)
             .lookUpConstructor(name3, _definingLibrary);
         nameNode3.staticElement = constructor;
       }
@@ -2084,17 +2073,15 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
       for (SimpleIdentifier name in names) {
         String nameStr = name.name;
-        Element element = namespace.get(nameStr);
-        if (element == null) {
-          element = namespace.get("$nameStr=");
-        }
+        Element element = namespace.get(nameStr) ?? namespace.get("$nameStr=");
         if (element != null) {
           // Ensure that the name always resolves to a top-level variable
           // rather than a getter or setter
           if (element is PropertyAccessorElement) {
-            element = (element as PropertyAccessorElement).variable;
+            name.staticElement = element.variable;
+          } else {
+            name.staticElement = element;
           }
-          name.staticElement = element;
         }
       }
     }
@@ -2298,8 +2285,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       if (propertyName.inGetterContext()) {
         if (!isStaticProperty &&
             staticOrPropagatedEnclosingElt is ClassElement) {
-          ClassElement classElement = staticOrPropagatedEnclosingElt;
-          InterfaceType targetType = classElement.type;
+          InterfaceType targetType = staticOrPropagatedEnclosingElt.type;
           if (!_enableStrictCallChecks &&
               targetType != null &&
               targetType.isDartCoreFunction &&
@@ -2308,7 +2294,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             // invoked?
 //            resolveArgumentsToParameters(node.getArgumentList(), invokedFunction);
             return;
-          } else if (classElement.isEnum && propertyName.name == "_name") {
+          } else if (staticOrPropagatedEnclosingElt.isEnum &&
+              propertyName.name == "_name") {
             _resolver.reportErrorForNode(
                 CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD,
                 propertyName,
@@ -2458,16 +2445,16 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    */
   static void resolveMetadata(AnnotatedNode node) {
     _resolveAnnotations(node.metadata);
-    if (node is VariableDeclaration && node.parent is VariableDeclarationList) {
-      VariableDeclarationList list = node.parent as VariableDeclarationList;
-      _resolveAnnotations(list.metadata);
-      if (list.parent is FieldDeclaration) {
-        FieldDeclaration fieldDeclaration = list.parent as FieldDeclaration;
-        _resolveAnnotations(fieldDeclaration.metadata);
-      } else if (list.parent is TopLevelVariableDeclaration) {
-        TopLevelVariableDeclaration variableDeclaration =
-            list.parent as TopLevelVariableDeclaration;
-        _resolveAnnotations(variableDeclaration.metadata);
+    if (node is VariableDeclaration) {
+      AstNode parent = node.parent;
+      if (parent is VariableDeclarationList) {
+        _resolveAnnotations(parent.metadata);
+        AstNode grandParent = parent.parent;
+        if (grandParent is FieldDeclaration) {
+          _resolveAnnotations(grandParent.metadata);
+        } else if (grandParent is TopLevelVariableDeclaration) {
+          _resolveAnnotations(grandParent.metadata);
+        }
       }
     }
   }
@@ -2491,9 +2478,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   static bool _isFactoryConstructorReturnType(SimpleIdentifier identifier) {
     AstNode parent = identifier.parent;
     if (parent is ConstructorDeclaration) {
-      ConstructorDeclaration constructor = parent;
-      return identical(constructor.returnType, identifier) &&
-          constructor.factoryKeyword != null;
+      return identical(parent.returnType, identifier) &&
+          parent.factoryKeyword != null;
     }
     return false;
   }
@@ -2505,14 +2491,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     for (AstNode node = expression; node != null; node = node.parent) {
       if (node is CompilationUnit) {
         return false;
-      }
-      if (node is ConstructorDeclaration) {
+      } else if (node is ConstructorDeclaration) {
         return node.factoryKeyword == null;
-      }
-      if (node is ConstructorFieldInitializer) {
+      } else if (node is ConstructorFieldInitializer) {
         return false;
-      }
-      if (node is MethodDeclaration) {
+      } else if (node is MethodDeclaration) {
         return !node.isStatic;
       }
     }

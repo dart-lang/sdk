@@ -58,6 +58,10 @@ class Simulator {
   int64_t get_dregister_bits(DRegister freg) const;
   double get_dregister(DRegister freg) const;
 
+  int32_t get_sp() const {
+    return get_register(SPREG);
+  }
+
   // Accessor for the pc.
   void set_pc(int32_t value) { pc_ = value; }
   int32_t get_pc() const { return pc_; }

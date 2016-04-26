@@ -22,24 +22,34 @@ patch class _File {
 }
 
 
-patch class _RandomAccessFile {
-  /* patch */ static int _close(int id) native "File_Close";
-  /* patch */ static int _getFD(int id) native "File_GetFD";
-  /* patch */ static _readByte(int id) native "File_ReadByte";
-  /* patch */ static _read(int id, int bytes) native "File_Read";
-  /* patch */ static _readInto(int id, List<int> buffer, int start, int end)
-      native "File_ReadInto";
-  /* patch */ static _writeByte(int id, int value) native "File_WriteByte";
-  /* patch */ static _writeFrom(int id, List<int> buffer, int start, int end)
-      native "File_WriteFrom";
-  /* patch */ static _position(int id) native "File_Position";
-  /* patch */ static _setPosition(int id, int position)
-      native "File_SetPosition";
-  /* patch */ static _truncate(int id, int length) native "File_Truncate";
-  /* patch */ static _length(int id) native "File_Length";
-  /* patch */ static _flush(int id) native "File_Flush";
-  /* patch */ static _lock(int id, int lock, int start, int end)
-      native "File_Lock";
+patch class _RandomAccessFileOps {
+  /* patch */ factory _RandomAccessFileOps(int pointer)
+      => new _RandomAccessFileOpsImpl(pointer);
+}
+
+
+class _RandomAccessFileOpsImpl extends NativeFieldWrapperClass1
+                               implements _RandomAccessFileOps {
+  _RandomAccessFileOpsImpl._();
+
+  factory _RandomAccessFileOpsImpl(int pointer)
+      => new _RandomAccessFileOpsImpl._().._setPointer(pointer);
+
+  void _setPointer(int pointer) native "File_SetPointer";
+
+  int getPointer() native "File_GetPointer";
+  int close() native "File_Close";
+  readByte() native "File_ReadByte";
+  read(int bytes) native "File_Read";
+  readInto(List<int> buffer, int start, int end) native "File_ReadInto";
+  writeByte(int value) native "File_WriteByte";
+  writeFrom(List<int> buffer, int start, int end) native "File_WriteFrom";
+  position() native "File_Position";
+  setPosition(int position) native "File_SetPosition";
+  truncate(int length) native "File_Truncate";
+  length() native "File_Length";
+  flush() native "File_Flush";
+  lock(int lock, int start, int end) native "File_Lock";
 }
 
 

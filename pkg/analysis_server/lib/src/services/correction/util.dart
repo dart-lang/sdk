@@ -17,7 +17,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -1413,16 +1412,13 @@ class CorrectionUtils_InsertDesc {
  */
 class TokenUtils {
   /**
-   * @return the first [KeywordToken] with given [Keyword], may be <code>null</code> if
-   *         not found.
+   * Return the first token in the list of [tokens] representing the given
+   * [keyword], or `null` if there is no such token.
    */
-  static KeywordToken findKeywordToken(List<Token> tokens, Keyword keyword) {
+  static Token findKeywordToken(List<Token> tokens, Keyword keyword) {
     for (Token token in tokens) {
-      if (token is KeywordToken) {
-        KeywordToken keywordToken = token;
-        if (keywordToken.keyword == keyword) {
-          return keywordToken;
-        }
+      if (token.keyword == keyword) {
+        return token;
       }
     }
     return null;

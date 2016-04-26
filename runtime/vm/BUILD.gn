@@ -18,7 +18,7 @@ config("libdart_vm_config") {
 
 
 static_library("libdart_platform") {
-  configs += ["..:dart_config"]
+  configs += ["..:dart_config", "..:dart_product_config"]
   public_configs = [":libdart_vm_config"]
 
   platform_headers_gypi =
@@ -43,28 +43,12 @@ static_library("libdart_platform") {
   ]
 }
 
-
 static_library("libdart_vm") {
-  configs += ["..:dart_config"]
+  configs += ["..:dart_config",
+              "..:dart_product_config",
+              "..:dart_precompiled_runtime_config"]
   public_configs = [":libdart_vm_config"]
 
-  vm_sources_list = exec_script("../../tools/gypi_to_gn.py",
-                                [rebase_path("vm_sources.gypi")],
-                                "scope",
-                                ["vm_sources.gypi"])
-
-  set_sources_assignment_filter(["*_test.cc", "*_test.h"])
-  sources = vm_sources_list.sources
-  include_dirs = [
-    "..",
-  ]
-}
-
-
-static_library("libdart_vm_precompiled_runtime") {
-  configs += ["..:dart_config_no_precompiler"]
-  public_configs = [":libdart_vm_config"]
-  defines = ["DART_PRECOMPILED_RUNTIME"]
   vm_sources_list = exec_script("../../tools/gypi_to_gn.py",
                                 [rebase_path("vm_sources.gypi")],
                                 "scope",
@@ -79,7 +63,28 @@ static_library("libdart_vm_precompiled_runtime") {
 
 
 static_library("libdart_vm_nosnapshot") {
-  configs += ["..:dart_config"]
+  configs += ["..:dart_config",
+              "..:dart_product_config",
+              "..:dart_precompiled_runtime_config"]
+  public_configs = [":libdart_vm_config"]
+  defines = [ "DART_NO_SNAPSHOT" ]
+  vm_sources_list = exec_script("../../tools/gypi_to_gn.py",
+                                [rebase_path("vm_sources.gypi")],
+                                "scope",
+                                ["vm_sources.gypi"])
+
+  set_sources_assignment_filter(["*_test.cc", "*_test.h"])
+  sources = vm_sources_list.sources
+  include_dirs = [
+    "..",
+  ]
+}
+
+
+static_library("libdart_vm_nosnapshot_with_precompiler") {
+  configs += ["..:dart_config",
+              "..:dart_product_config",
+              "..:dart_precompiler_config"]
   public_configs = [":libdart_vm_config"]
   defines = [ "DART_NO_SNAPSHOT" ]
   vm_sources_list = exec_script("../../tools/gypi_to_gn.py",
@@ -185,24 +190,30 @@ template("generate_core_libraries") {
   }
 
   static_library("libdart_lib_nosnapshot") {
-    configs += ["..:dart_config"]
+    configs += ["..:dart_config",
+                "..:dart_product_config",
+                "..:dart_precompiled_runtime_config"]
     deps = libdeps
     sources = libsources + ["bootstrap.cc"] + liboutputs
     include_dirs = [
       "..",
     ]
   }
-  static_library("libdart_lib") {
-    configs += ["..:dart_config"]
-    sources = libsources + [ "bootstrap_nocore.cc", ]
+  static_library("libdart_lib_nosnapshot_with_precompiler") {
+    configs += ["..:dart_config",
+                "..:dart_product_config",
+                "..:dart_precompiler_config" ]
+    deps = libdeps
+    sources = libsources + [ "bootstrap.cc"] + liboutputs
     include_dirs = [
       "..",
     ]
   }
-  static_library("libdart_lib_precompiled_runtime") {
-    configs += ["..:dart_config_no_precompiler"]
-    defines = ["DART_PRECOMPILED_RUNTIME"]
-    sources = libsources + [ "bootstrap_nocore.cc", ]
+  static_library("libdart_lib") {
+    configs += ["..:dart_config",
+                "..:dart_product_config",
+                "..:dart_precompiled_runtime_config"]
+    sources = libsources + [ "bootstrap_nocore.cc"]
     include_dirs = [
       "..",
     ]

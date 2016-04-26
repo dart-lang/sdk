@@ -5,15 +5,15 @@
 library js;
 
 import 'package:js_ast/js_ast.dart';
-export 'package:js_ast/js_ast.dart';
 
 import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../dump_info.dart' show DumpInfoTask;
-import '../io/code_output.dart' show CodeBuffer, CodeOutput;
+import '../io/code_output.dart' show CodeBuffer;
 import '../js_emitter/js_emitter.dart' show USE_LAZY_EMITTER;
-
 import 'js_source_mapping.dart';
+
+export 'package:js_ast/js_ast.dart';
 
 String prettyPrint(Node node, Compiler compiler,
     {bool allowVariableMinification: true,

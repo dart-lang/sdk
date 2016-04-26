@@ -6,9 +6,9 @@ library dart2js.library_loader;
 
 import 'dart:async';
 
-import 'common.dart';
 import 'common/names.dart' show Uris;
 import 'common/tasks.dart' show CompilerTask;
+import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'elements/elements.dart'
     show
@@ -16,8 +16,7 @@ import 'elements/elements.dart'
         Element,
         ImportElement,
         ExportElement,
-        LibraryElement,
-        PrefixElement;
+        LibraryElement;
 import 'elements/modelx.dart'
     show
         CompilationUnitElementX,
@@ -30,10 +29,14 @@ import 'elements/modelx.dart'
         PrefixElementX,
         SyntheticImportElement;
 import 'environment.dart';
+import 'resolved_uri_translator.dart';
 import 'script.dart';
 import 'serialization/serialization.dart' show LibraryDeserializer;
 import 'tree/tree.dart';
 import 'util/util.dart' show Link, LinkBuilder;
+
+typedef Future<Iterable<LibraryElement>> ReuseLibrariesFunction(
+    Iterable<LibraryElement> libraries);
 
 /**
  * [CompilerTask] for loading libraries and setting up the import/export scopes.
@@ -167,6 +170,10 @@ abstract class LibraryLoaderTask implements CompilerTask {
 
   /// Asynchronous version of [reset].
   Future resetAsync(Future<bool> reuseLibrary(LibraryElement library));
+
+  /// Similar to [resetAsync] but [reuseLibrary] maps all libraries to a list
+  /// of libraries that can be reused.
+  Future<Null> resetLibraries(ReuseLibrariesFunction reuseLibraries);
 }
 
 /// Handle for creating synthesized/patch libraries during library loading.
@@ -345,7 +352,17 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     return measure(() {
       assert(currentHandler == null);
 
-      wrapper(lib) => reuseLibrary(lib).then((reuse) => reuse ? lib : null);
+      Future<LibraryElement> wrapper(LibraryElement library) {
+        try {
+          return reuseLibrary(library)
+              .then((bool reuse) => reuse ? library : null);
+        } catch (exception, trace) {
+          reporter.onCrashInUserCode(
+              'Uncaught exception in reuseLibrary', exception, trace);
+          rethrow;
+        }
+      }
+
       List<Future<LibraryElement>> reusedLibrariesFuture =
           // TODO(sigmund): make measurements separate from compiler
           compiler.reuseLibraryTask.measure(
@@ -353,8 +370,28 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
 
       return Future
           .wait(reusedLibrariesFuture)
-          .then((List<LibraryElement> reusedLibraries) {
+          .then((Iterable<LibraryElement> reusedLibraries) {
         resetImplementation(reusedLibraries.where((e) => e != null));
+      });
+    });
+  }
+
+  Future<Null> resetLibraries(
+      Future<Iterable<LibraryElement>> reuseLibraries(
+          Iterable<LibraryElement> libraries)) {
+    assert(currentHandler == null);
+    return compiler.reuseLibraryTask.measure(() {
+      return new Future<Iterable<LibraryElement>>(() {
+        // Wrap in Future to shield against errors in user code.
+        return reuseLibraries(libraryCanonicalUriMap.values);
+      }).catchError((exception, StackTrace trace) {
+        compiler.reportCrashInUserCode(
+            'Uncaught exception in reuseLibraries', exception, trace);
+        throw exception; // Async rethrow.
+      }).then((Iterable<LibraryElement> reusedLibraries) {
+        measure(() {
+          resetImplementation(reusedLibraries);
+        });
       });
     });
   }
@@ -1403,17 +1440,6 @@ class _LoadedLibraries implements LoadedLibraries {
   }
 
   String toString() => 'root=$rootLibrary,libraries=${loadedLibraries.keys}';
-}
-
-/// API used by the library loader to translate internal SDK URIs into file
-/// system readable URIs.
-abstract class ResolvedUriTranslator {
-  // TODO(sigmund): move here the comments from library loader.
-  /// Translate the resolved [uri] in the context of [importingLibrary].
-  ///
-  /// Use [spannable] for error reporting.
-  Uri translate(LibraryElement importingLibrary, Uri uri,
-      [Spannable spannable]);
 }
 
 // TODO(sigmund): remove ScriptLoader & ElementScanner. Such abstraction seems

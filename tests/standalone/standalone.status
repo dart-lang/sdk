@@ -14,7 +14,7 @@ package/scenarios/empty_packages_file/empty_packages_file_option_test: Fail, OK 
 package/scenarios/invalid/invalid_package_name_test: RuntimeError, CompileTimeError # Errors intentionally
 package/scenarios/invalid/same_package_twice_test.dart: RuntimeError, CompileTimeError # Errors intentionally
 full_coverage_test: Pass, Slow, Timeout
-
+verified_mem_test: Pass, Slow, Timeout # Does verify before and after GC.
 
 issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
 
@@ -255,6 +255,7 @@ io/file_lock_test: Skip # Platform.executable
 io/code_collection_test: Skip # Platform.executable
 io/raw_socket_cross_process_test: Skip # Platform.executable
 io/test_extension_test: Skip # Platform.executable
+io/named_pipe_script_test: Skip # Platform.executable
 io/regress_7679_test: Skip # Platform.executable
 io/process_*: Skip # Most use Platform.executable
 assert_test: SkipByDesign # Requires checked mode.
@@ -284,3 +285,13 @@ package/scenarios/invalid/non_existent_packages_file_test: Skip
 package/scenarios/empty_packages_file/empty_packages_file_noimports_test: Skip
 package/scenarios/packages_option_only/packages_option_only_noimports_test: Skip
 package/scenarios/packages_option_only/packages_option_only_test: Skip
+
+[ $arch == simdbc || $arch == simdbc64 ]
+# TODO(vegorov) SIMDBC interpreter doesn't support coverage yet.
+full_coverage_test: Skip
+
+# SIMDBC interpreter doesn't support lazy linking of natives.
+link_natives_lazily_test: SkipByDesign
+
+# SIMDBC interpreter doesn't support --no_lazy_dispatchers
+no_lazy_dispatchers_test: SkipByDesign

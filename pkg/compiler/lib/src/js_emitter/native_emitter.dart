@@ -35,11 +35,6 @@ class NativeEmitter {
 
   BackendHelpers get helpers => backend.helpers;
 
-  jsAst.Expression get defPropFunction {
-    Element element = helpers.defineProperty;
-    return emitterTask.staticFunctionAccess(element);
-  }
-
   /**
    * Prepares native classes for emission. Returns the unneeded classes.
    *

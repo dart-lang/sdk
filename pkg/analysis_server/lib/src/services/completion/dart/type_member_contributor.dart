@@ -14,8 +14,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
-import '../../../protocol_server.dart'
-    show CompletionSuggestion, CompletionSuggestionKind;
+import '../../../protocol_server.dart' show CompletionSuggestion;
 
 /**
  * A contributor for calculating instance invocation / access suggestions
@@ -33,7 +32,7 @@ class TypeMemberContributor extends DartCompletionContributor {
     }
 
     // Resolve the expression and the containing library
-    await request.resolveExpression(parsedExpression);
+    await request.resolveContainingExpression(parsedExpression);
     LibraryElement containingLibrary = request.libraryElement;
     // Gracefully degrade if the library element could not be resolved
     // e.g. detached part file or source change

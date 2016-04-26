@@ -13,7 +13,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/generated/shared_messages.dart'
     as shared_messages;
 import 'package:analyzer/src/generated/java_core.dart';
@@ -144,34 +143,33 @@ class AnalysisError {
   String get message => _message;
 
   @override
-  bool operator ==(Object obj) {
-    if (identical(obj, this)) {
+  bool operator ==(Object other) {
+    if (identical(other, this)) {
       return true;
     }
     // prepare other AnalysisError
-    if (obj is! AnalysisError) {
-      return false;
+    if (other is AnalysisError) {
+      // Quick checks.
+      if (!identical(errorCode, other.errorCode)) {
+        return false;
+      }
+      if (offset != other.offset || length != other.length) {
+        return false;
+      }
+      if (isStaticOnly != other.isStaticOnly) {
+        return false;
+      }
+      // Deep checks.
+      if (_message != other._message) {
+        return false;
+      }
+      if (source != other.source) {
+        return false;
+      }
+      // OK
+      return true;
     }
-    AnalysisError other = obj as AnalysisError;
-    // Quick checks.
-    if (!identical(errorCode, other.errorCode)) {
-      return false;
-    }
-    if (offset != other.offset || length != other.length) {
-      return false;
-    }
-    if (isStaticOnly != other.isStaticOnly) {
-      return false;
-    }
-    // Deep checks.
-    if (_message != other._message) {
-      return false;
-    }
-    if (source != other.source) {
-      return false;
-    }
-    // OK
-    return true;
+    return false;
   }
 
   /**
@@ -2686,6 +2684,7 @@ abstract class ErrorCode {
     HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
     HintCode.MISSING_JS_LIB_ANNOTATION,
     HintCode.MISSING_REQUIRED_PARAM,
+    HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
     HintCode.MISSING_RETURN,
     HintCode.NULL_AWARE_IN_CONDITION,
     HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
@@ -2695,9 +2694,11 @@ abstract class ErrorCode {
     HintCode.TYPE_CHECK_IS_NOT_NULL,
     HintCode.TYPE_CHECK_IS_NULL,
     HintCode.UNDEFINED_GETTER,
+    HintCode.UNDEFINED_HIDDEN_NAME,
     HintCode.UNDEFINED_METHOD,
     HintCode.UNDEFINED_OPERATOR,
     HintCode.UNDEFINED_SETTER,
+    HintCode.UNDEFINED_SHOWN_NAME,
     HintCode.UNNECESSARY_CAST,
     HintCode.UNNECESSARY_NO_SUCH_METHOD,
     HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
@@ -3265,12 +3266,12 @@ class ErrorReporter {
       for (int i = 0; i < count; i++) {
         Object argument = arguments[i];
         if (argument is DartType) {
-          DartType type = argument;
-          Element element = type.element;
+          Element element = argument.element;
           if (element == null) {
-            arguments[i] = displayName(type);
+            arguments[i] = displayName(argument);
           } else {
-            arguments[i] = element.getExtendedDisplayName(displayName(type));
+            arguments[i] =
+                element.getExtendedDisplayName(displayName(argument));
           }
         }
       }
@@ -3293,8 +3294,8 @@ class ErrorReporter {
     int count = arguments.length;
     HashSet<String> typeNames = new HashSet<String>();
     for (int i = 0; i < count; i++) {
-      if (arguments[i] is DartType &&
-          !typeNames.add((arguments[i] as DartType).displayName)) {
+      Object argument = arguments[i];
+      if (argument is DartType && !typeNames.add(argument.displayName)) {
         return true;
       }
     }
@@ -3581,12 +3582,22 @@ class HintCode extends ErrorCode {
    *
    * Parameters:
    * 0: the name of the parameter
-   * 1: an optional reason
    */
   static const HintCode MISSING_REQUIRED_PARAM = const HintCode(
+      'MISSING_REQUIRED_PARAM', "The parameter '{0}' is required.");
+
+  /**
+   * Generate a hint for a constructor, function or method invocation where a
+   * required parameter is missing.
+   *
+   * Parameters:
+   * 0: the name of the parameter
+   * 1: message details
+   */
+  static const HintCode MISSING_REQUIRED_PARAM_WITH_DETAILS = const HintCode(
       'MISSING_REQUIRED_PARAM', "The parameter '{0}' is required. {1}");
 
-   /**
+  /**
    * Generate a hint for an element that is annotated with `@JS(...)` whose
    * library declaration is not similarly annotated.
    */
@@ -3687,6 +3698,13 @@ class HintCode extends ErrorCode {
       shared_messages.UNDEFINED_GETTER_HINT;
 
   /**
+   * An undefined name hidden in an import or export directive.
+   */
+  static const HintCode UNDEFINED_HIDDEN_NAME = const HintCode(
+      'UNDEFINED_HIDDEN_NAME',
+      "The library '{0}' doesn't export a member with the hidden name '{1}'");
+
+  /**
    * This hint is generated anywhere where the
    * [StaticTypeWarningCode.UNDEFINED_METHOD] would have been generated, if we
    * used propagated information for the warnings.
@@ -3722,6 +3740,13 @@ class HintCode extends ErrorCode {
    */
   static const HintCode UNDEFINED_SETTER =
       shared_messages.UNDEFINED_SETTER_HINT;
+
+  /**
+   * An undefined name shown in an import or export directive.
+   */
+  static const HintCode UNDEFINED_SHOWN_NAME = const HintCode(
+      'UNDEFINED_SHOWN_NAME',
+      "The library '{0}' doesn't export a member with the shown name '{1}'");
 
   /**
    * Unnecessary cast.
@@ -3791,8 +3816,8 @@ class HintCode extends ErrorCode {
   /**
    * Unused shown names are names shown on imports which are never used.
    */
-  static const HintCode UNUSED_SHOWN_NAME =
-      const HintCode('UNUSED_SHOWN_NAME', "The name {0} is shown, but not used.");
+  static const HintCode UNUSED_SHOWN_NAME = const HintCode(
+      'UNUSED_SHOWN_NAME', "The name {0} is shown, but not used.");
 
   /**
    * Hint for cases where the source expects a method or function to return a

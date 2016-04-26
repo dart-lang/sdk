@@ -51,7 +51,7 @@ main() {
     element.dispatchEvent(event);
     expect(invocationCounter, isZero);
 
-    var provider = new EventStreamProvider<CustomEvent>('test');
+    var provider = new EventStreamProvider<Event>('test');
 
     var sub = provider.forTarget(element).listen(handler);
     invocationCounter = 0;

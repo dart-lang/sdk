@@ -103,15 +103,22 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
     }
   }
   // Now Call the invoke stub which will invoke the dart function.
+#if !defined(TARGET_ARCH_DBC)
   invokestub entrypoint = reinterpret_cast<invokestub>(
       StubCode::InvokeDartCode_entry()->EntryPoint());
+#endif
   const Code& code = Code::Handle(zone, function.CurrentCode());
   ASSERT(!code.IsNull());
   ASSERT(thread->no_callback_scope_depth() == 0);
   ScopedIsolateStackLimits stack_limit(thread);
   SuspendLongJumpScope suspend_long_jump_scope(thread);
   TransitionToGenerated transition(thread);
-#if defined(USING_SIMULATOR)
+#if defined(TARGET_ARCH_DBC)
+  return Simulator::Current()->Call(code,
+                                    arguments_descriptor,
+                                    arguments,
+                                    thread);
+#elif defined(USING_SIMULATOR)
   return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
       reinterpret_cast<intptr_t>(entrypoint),
       reinterpret_cast<intptr_t>(&code),
@@ -322,23 +329,26 @@ RawArray* ArgumentsDescriptor::New(intptr_t num_arguments,
   // argument count; the positional argument count; a sequence of (name,
   // position) pairs, sorted by name, for each named optional argument; and
   // a terminating null to simplify iterating in generated code.
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   const intptr_t descriptor_len = LengthFor(num_named_args);
-  Array& descriptor = Array::Handle(Array::New(descriptor_len, Heap::kOld));
+  Array& descriptor = Array::Handle(
+      zone, Array::New(descriptor_len, Heap::kOld));
 
   // Set total number of passed arguments.
   descriptor.SetAt(kCountIndex, Smi::Handle(Smi::New(num_arguments)));
   // Set number of positional arguments.
   descriptor.SetAt(kPositionalCountIndex, Smi::Handle(Smi::New(num_pos_args)));
   // Set alphabetically sorted entries for named arguments.
-  String& name = String::Handle();
-  Smi& pos = Smi::Handle();
+  String& name = String::Handle(zone);
+  Smi& pos = Smi::Handle(zone);
+  String& previous_name = String::Handle(zone);
+  Smi& previous_pos = Smi::Handle(zone);
   for (intptr_t i = 0; i < num_named_args; i++) {
     name ^= optional_arguments_names.At(i);
     pos = Smi::New(num_pos_args + i);
     intptr_t insert_index = kFirstNamedEntryIndex + (kNamedEntrySize * i);
     // Shift already inserted pairs with "larger" names.
-    String& previous_name = String::Handle();
-    Smi& previous_pos = Smi::Handle();
     while (insert_index > kFirstNamedEntryIndex) {
       intptr_t previous_index = insert_index - kNamedEntrySize;
       previous_name ^= descriptor.At(previous_index + kNameOffset);
@@ -359,7 +369,7 @@ RawArray* ArgumentsDescriptor::New(intptr_t num_arguments,
 
   // Share the immutable descriptor when possible by canonicalizing it.
   descriptor.MakeImmutable();
-  descriptor ^= descriptor.CheckAndCanonicalize(NULL);
+  descriptor ^= descriptor.CheckAndCanonicalize(thread, NULL);
   ASSERT(!descriptor.IsNull());
   return descriptor.raw();
 }
@@ -379,9 +389,12 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t num_arguments,
   // Build the arguments descriptor array, which consists of the total
   // argument count; the positional argument count; and
   // a terminating null to simplify iterating in generated code.
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   const intptr_t descriptor_len = LengthFor(0);
-  Array& descriptor = Array::Handle(Array::New(descriptor_len, Heap::kOld));
-  const Smi& arg_count = Smi::Handle(Smi::New(num_arguments));
+  Array& descriptor = Array::Handle(
+      zone, Array::New(descriptor_len, Heap::kOld));
+  const Smi& arg_count = Smi::Handle(zone, Smi::New(num_arguments));
 
   // Set total number of passed arguments.
   descriptor.SetAt(kCountIndex, arg_count);
@@ -395,7 +408,7 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t num_arguments,
   // Share the immutable descriptor when possible by canonicalizing it.
   descriptor.MakeImmutable();
   if (canonicalize) {
-    descriptor ^= descriptor.CheckAndCanonicalize(NULL);
+    descriptor ^= descriptor.CheckAndCanonicalize(thread, NULL);
   }
   ASSERT(!descriptor.IsNull());
   return descriptor.raw();

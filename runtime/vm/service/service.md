@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.3
+# Dart VM Service Protocol 3.4
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.3_ of the Dart VM Service Protocol. This
+This document describes of _version 3.4_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -512,7 +512,7 @@ reference will be returned.
 FlagList getFlagList()
 ```
 
-The _getFlagList RPC returns a list of all command line flags in the
+The _getFlagList_ RPC returns a list of all command line flags in the
 VM along with their current values.
 
 See [FlagList](#flaglist).

@@ -85,30 +85,47 @@ void StubCode::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 bool StubCode::HasBeenInitialized() {
+#if !defined(TARGET_ARCH_DBC)
   // Use JumpToExceptionHandler and InvokeDart as canaries.
   const StubEntry* entry_1 = StubCode::JumpToExceptionHandler_entry();
   const StubEntry* entry_2 = StubCode::InvokeDartCode_entry();
   return (entry_1 != NULL) && (entry_2 != NULL);
+#else
+  return true;
+#endif
 }
 
 
 bool StubCode::InInvocationStub(uword pc) {
+#if !defined(TARGET_ARCH_DBC)
   ASSERT(HasBeenInitialized());
   uword entry = StubCode::InvokeDartCode_entry()->EntryPoint();
   uword size = StubCode::InvokeDartCodeSize();
   return (pc >= entry) && (pc < (entry + size));
+#else
+  // On DBC we use a special marker PC to signify entry frame because there is
+  // no such thing as invocation stub.
+  return (pc & 2) != 0;
+#endif
 }
 
 
 bool StubCode::InJumpToExceptionHandlerStub(uword pc) {
+#if !defined(TARGET_ARCH_DBC)
   ASSERT(HasBeenInitialized());
   uword entry = StubCode::JumpToExceptionHandler_entry()->EntryPoint();
   uword size = StubCode::JumpToExceptionHandlerSize();
   return (pc >= entry) && (pc < (entry + size));
+#else
+  // This stub does not exist on DBC.
+  return false;
+#endif
 }
 
 
 RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
+  // These stubs are not used by DBC.
+#if !defined(TARGET_ARCH_DBC)
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
@@ -169,11 +186,16 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     }
   }
   return stub.raw();
+#endif
+  UNIMPLEMENTED();
+  return Code::null();
 }
 
 
 const StubEntry* StubCode::UnoptimizedStaticCallEntry(
     intptr_t num_args_tested) {
+  // These stubs are not used by DBC.
+#if !defined(TARGET_ARCH_DBC)
   switch (num_args_tested) {
     case 0:
       return ZeroArgsUnoptimizedStaticCall_entry();
@@ -185,6 +207,9 @@ const StubEntry* StubCode::UnoptimizedStaticCallEntry(
       UNIMPLEMENTED();
       return NULL;
   }
+#else
+  return NULL;
+#endif
 }
 
 

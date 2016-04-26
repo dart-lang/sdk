@@ -165,8 +165,16 @@ class LocalConstructorContributor extends DartCompletionContributor {
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
     if (!optype.isPrefixed) {
       if (optype.includeConstructorSuggestions) {
-        _Visitor visitor = new _Visitor(request, suggestions);
-        visitor.visit(request.target.containingNode);
+        AstNode node = request.target.containingNode;
+
+        await request.resolveContainingStatement(node);
+
+        // Discard any cached target information
+        // because it may have changed as a result of the resolution
+        node = request.target.containingNode;
+
+        _Visitor visitor = new _Visitor(request, suggestions, optype);
+        visitor.visit(node);
       }
     }
     return suggestions;
@@ -178,9 +186,10 @@ class LocalConstructorContributor extends DartCompletionContributor {
  */
 class _Visitor extends LocalDeclarationVisitor {
   final DartCompletionRequest request;
+  final OpType optype;
   final List<CompletionSuggestion> suggestions;
 
-  _Visitor(DartCompletionRequest request, this.suggestions)
+  _Visitor(DartCompletionRequest request, this.suggestions, this.optype)
       : request = request,
         super(request.offset);
 
@@ -237,6 +246,12 @@ class _Visitor extends LocalDeclarationVisitor {
     String completion = classDecl.name.name;
     SimpleIdentifier elemId;
 
+    int relevance = optype.constructorSuggestionsFilter(
+        classDecl.element?.type, DART_RELEVANCE_DEFAULT);
+    if (relevance == null) {
+      return;
+    }
+
     // Build a suggestion for explicitly declared constructor
     if (constructorDecl != null) {
       elemId = constructorDecl.name;
@@ -248,8 +263,8 @@ class _Visitor extends LocalDeclarationVisitor {
         }
       }
       if (elem != null) {
-        CompletionSuggestion suggestion =
-            createSuggestion(elem, completion: completion);
+        CompletionSuggestion suggestion = createSuggestion(elem,
+            completion: completion, relevance: relevance);
         if (suggestion != null) {
           suggestions.add(suggestion);
         }
@@ -264,7 +279,7 @@ class _Visitor extends LocalDeclarationVisitor {
       element.returnType = classDecl.name.name;
       CompletionSuggestion suggestion = new CompletionSuggestion(
           CompletionSuggestionKind.INVOCATION,
-          DART_RELEVANCE_DEFAULT,
+          relevance,
           completion,
           completion.length,
           0,

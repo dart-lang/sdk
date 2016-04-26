@@ -1647,7 +1647,6 @@ class FixProcessor {
           VariableDeclarationList declarationList = variable.parent;
           Token keywordToken = declarationList.keyword;
           if (declarationList.variables.length == 1 &&
-              keywordToken is KeywordToken &&
               keywordToken.keyword == Keyword.FINAL) {
             if (declarationList.type != null) {
               SourceRange range =

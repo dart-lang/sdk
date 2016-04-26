@@ -4,9 +4,9 @@
 
 library deferred_load;
 
-import 'common.dart';
 import 'common/backend_api.dart' show Backend;
 import 'common/tasks.dart' show CompilerTask;
+import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart'
     show
@@ -21,31 +21,21 @@ import 'elements/elements.dart'
         AstElement,
         ClassElement,
         Element,
-        ElementKind,
         Elements,
         ExportElement,
         FunctionElement,
         ImportElement,
         LibraryElement,
-        LocalFunctionElement,
         MetadataAnnotation,
         PrefixElement,
-        ScopeContainerElement,
+        ResolvedAstKind,
         TypedefElement;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'resolution/resolution.dart' show AnalyzableElementX;
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'tree/tree.dart' as ast;
-import 'tree/tree.dart'
-    show
-        Import,
-        LibraryTag,
-        LibraryDependency,
-        LiteralDartString,
-        LiteralString,
-        NewExpression,
-        Node;
-import 'universe/use.dart' show DynamicUse, StaticUse, TypeUse, TypeUseKind;
+import 'tree/tree.dart' show Import, Node;
+import 'universe/use.dart' show StaticUse, TypeUse, TypeUseKind;
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
 import 'util/setlet.dart' show Setlet;
@@ -336,6 +326,10 @@ class DeferredLoadTask extends CompilerTask {
               }
             }),
             IMPACT_USE);
+
+        if (analyzableElement.resolvedAst.kind != ResolvedAstKind.PARSED) {
+          return;
+        }
 
         TreeElements treeElements = analyzableElement.resolvedAst.elements;
         assert(treeElements != null);

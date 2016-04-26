@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
@@ -69,13 +70,13 @@ class InheritanceManagerTest {
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    MemberMap mapB =
-        _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject + 1);
-    expect(mapB.get(getterName), same(getterG));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromClasses(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromClasses(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject + 1);
+    expect(mapB[getterName], same(getterG));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -90,13 +91,13 @@ class InheritanceManagerTest {
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType>[classA.type];
-    MemberMap mapB =
-        _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject);
-    expect(mapB.get(getterName), isNull);
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromClasses(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromClasses(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject);
+    expect(mapB[getterName], isNull);
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -111,13 +112,13 @@ class InheritanceManagerTest {
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType>[classA.type];
-    MemberMap mapB =
-        _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject + 1);
-    expect(mapB.get(getterName), same(getterG));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromClasses(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromClasses(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject + 1);
+    expect(mapB[getterName], same(getterG));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -125,9 +126,9 @@ class InheritanceManagerTest {
   void test_getMapOfMembersInheritedFromClasses_implicitExtends() {
     // class A {}
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
-    expect(mapA.size, _numOfMembersInObject);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromClasses(classA);
+    expect(mapA.length, _numOfMembersInObject);
     _assertNoErrors(classA);
   }
 
@@ -141,13 +142,13 @@ class InheritanceManagerTest {
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.supertype = classA.type;
-    MemberMap mapB =
-        _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject + 1);
-    expect(mapB.get(methodName), same(methodM));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromClasses(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromClasses(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject + 1);
+    expect(mapB[methodName], same(methodM));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -162,13 +163,13 @@ class InheritanceManagerTest {
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType>[classA.type];
-    MemberMap mapB =
-        _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject);
-    expect(mapB.get(methodName), isNull);
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromClasses(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromClasses(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject);
+    expect(mapB[methodName], isNull);
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -183,13 +184,13 @@ class InheritanceManagerTest {
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType>[classA.type];
-    MemberMap mapB =
-        _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject + 1);
-    expect(mapB.get(methodName), same(methodM));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromClasses(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromClasses(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject + 1);
+    expect(mapB[methodName], same(methodM));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -209,9 +210,9 @@ class InheritanceManagerTest {
     classA2.methods = <MethodElement>[methodA2M];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType>[classA1.type, classA2.type];
-    MemberMap mapB =
-        _inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    expect(mapB.get(methodName), same(methodA2M));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromClasses(classB);
+    expect(mapB[methodName], same(methodA2M));
     _assertNoErrors(classA1);
     _assertNoErrors(classA2);
     _assertNoErrors(classB);
@@ -226,13 +227,13 @@ class InheritanceManagerTest {
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    MemberMap mapB =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject + 1);
-    expect(mapB.get(getterName), same(getterG));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject + 1);
+    expect(mapB[getterName], same(getterG));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -247,13 +248,13 @@ class InheritanceManagerTest {
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType>[classA.type];
-    MemberMap mapB =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject + 1);
-    expect(mapB.get(getterName), same(getterG));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject + 1);
+    expect(mapB[getterName], same(getterG));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -268,13 +269,13 @@ class InheritanceManagerTest {
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType>[classA.type];
-    MemberMap mapB =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject + 1);
-    expect(mapB.get(getterName), same(getterG));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject + 1);
+    expect(mapB[getterName], same(getterG));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -282,9 +283,9 @@ class InheritanceManagerTest {
   void test_getMapOfMembersInheritedFromInterfaces_implicitExtends() {
     // class A {}
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
     _assertNoErrors(classA);
   }
 
@@ -304,10 +305,10 @@ class InheritanceManagerTest {
     classI2.accessors = <PropertyAccessorElement>[getter];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI2.type, classI1.type];
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapA.get(methodName), isNull);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapA[methodName], isNull);
     _assertErrors(classA,
         [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
   }
@@ -328,10 +329,10 @@ class InheritanceManagerTest {
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapA.get(methodName), isNull);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapA[methodName], isNull);
     _assertErrors(
         classA, [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
@@ -352,10 +353,10 @@ class InheritanceManagerTest {
     classI2.accessors = <PropertyAccessorElement>[getter];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapA.get(methodName), isNull);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapA[methodName], isNull);
     _assertErrors(classA,
         [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
   }
@@ -402,10 +403,10 @@ class InheritanceManagerTest {
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapA.get(methodName), isNull);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapA[methodName], isNull);
     _assertErrors(
         classA, [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
@@ -426,10 +427,10 @@ class InheritanceManagerTest {
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI2.type, classI1.type];
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapA.get(methodName), isNull);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapA[methodName], isNull);
     _assertErrors(
         classA, [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
@@ -443,13 +444,13 @@ class InheritanceManagerTest {
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    MemberMap mapB =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject + 1);
-    expect(mapB.get(methodName), same(methodM));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject + 1);
+    expect(mapB[methodName], same(methodM));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -464,13 +465,13 @@ class InheritanceManagerTest {
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType>[classA.type];
-    MemberMap mapB =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject + 1);
-    expect(mapB.get(methodName), same(methodM));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject + 1);
+    expect(mapB[methodName], same(methodM));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -485,13 +486,13 @@ class InheritanceManagerTest {
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType>[classA.type];
-    MemberMap mapB =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject);
-    expect(mapB.size, _numOfMembersInObject + 1);
-    expect(mapB.get(methodName), same(methodM));
+    Map<String, ExecutableElement> mapB =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classB);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject);
+    expect(mapB.length, _numOfMembersInObject + 1);
+    expect(mapB[methodName], same(methodM));
     _assertNoErrors(classA);
     _assertNoErrors(classB);
   }
@@ -512,11 +513,11 @@ class InheritanceManagerTest {
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject + 2);
-    expect(mapA.get(methodName1), same(methodM1));
-    expect(mapA.get(methodName2), same(methodM2));
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject + 2);
+    expect(mapA[methodName1], same(methodM1));
+    expect(mapA[methodName2], same(methodM2));
     _assertNoErrors(classA);
   }
 
@@ -536,12 +537,12 @@ class InheritanceManagerTest {
     classI2.accessors = <PropertyAccessorElement>[getter2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject + 1);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject + 1);
     PropertyAccessorElement syntheticAccessor = ElementFactory.getterElement(
         accessorName, false, _typeProvider.dynamicType);
-    expect(mapA.get(accessorName).type, syntheticAccessor.type);
+    expect(mapA[accessorName].type, syntheticAccessor.type);
     _assertNoErrors(classA);
   }
 
@@ -571,12 +572,12 @@ class InheritanceManagerTest {
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject + 1);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject + 1);
     MethodElement syntheticMethod = ElementFactory.methodElement(
         methodName, _typeProvider.dynamicType, [_typeProvider.dynamicType]);
-    expect(mapA.get(methodName).type, syntheticMethod.type);
+    expect(mapA[methodName].type, syntheticMethod.type);
     _assertNoErrors(classA);
   }
 
@@ -596,13 +597,13 @@ class InheritanceManagerTest {
     classI2.accessors = <PropertyAccessorElement>[setter2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject + 1);
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject + 1);
     PropertyAccessorElementImpl syntheticAccessor = ElementFactory
         .setterElement(accessorName, false, _typeProvider.dynamicType);
     syntheticAccessor.returnType = _typeProvider.dynamicType;
-    expect(mapA.get("$accessorName=").type, syntheticAccessor.type);
+    expect(mapA["$accessorName="].type, syntheticAccessor.type);
     _assertNoErrors(classA);
   }
 
@@ -637,12 +638,12 @@ class InheritanceManagerTest {
       classI2.type,
       classI3.type
     ];
-    MemberMap mapD =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classD);
-    expect(mapD.size, _numOfMembersInObject + 1);
+    Map<String, ExecutableElement> mapD =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classD);
+    expect(mapD.length, _numOfMembersInObject + 1);
     PropertyAccessorElement syntheticAccessor = ElementFactory.getterElement(
         accessorName, false, _typeProvider.dynamicType);
-    expect(mapD.get(accessorName).type, syntheticAccessor.type);
+    expect(mapD[accessorName].type, syntheticAccessor.type);
     _assertNoErrors(classD);
   }
 
@@ -692,12 +693,12 @@ class InheritanceManagerTest {
       classI2.type,
       classI3.type
     ];
-    MemberMap mapD =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classD);
-    expect(mapD.size, _numOfMembersInObject + 1);
+    Map<String, ExecutableElement> mapD =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classD);
+    expect(mapD.length, _numOfMembersInObject + 1);
     MethodElement syntheticMethod = ElementFactory.methodElement(
         methodName, _typeProvider.dynamicType, [_typeProvider.dynamicType]);
-    expect(mapD.get(methodName).type, syntheticMethod.type);
+    expect(mapD[methodName].type, syntheticMethod.type);
     _assertNoErrors(classD);
   }
 
@@ -732,13 +733,13 @@ class InheritanceManagerTest {
       classI2.type,
       classI3.type
     ];
-    MemberMap mapD =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classD);
-    expect(mapD.size, _numOfMembersInObject + 1);
+    Map<String, ExecutableElement> mapD =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classD);
+    expect(mapD.length, _numOfMembersInObject + 1);
     PropertyAccessorElementImpl syntheticAccessor = ElementFactory
         .setterElement(accessorName, false, _typeProvider.dynamicType);
     syntheticAccessor.returnType = _typeProvider.dynamicType;
-    expect(mapD.get("$accessorName=").type, syntheticAccessor.type);
+    expect(mapD["$accessorName="].type, syntheticAccessor.type);
     _assertNoErrors(classD);
   }
 
@@ -763,10 +764,10 @@ class InheritanceManagerTest {
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject + 1);
-    expect(mapA.get(methodName), same(methodM2));
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject + 1);
+    expect(mapA[methodName], same(methodM2));
     _assertNoErrors(classA);
   }
 
@@ -809,10 +810,10 @@ class InheritanceManagerTest {
       classI2.type,
       classI3.type
     ];
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject + 1);
-    expect(mapA.get(methodName), same(methodM3));
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject + 1);
+    expect(mapA[methodName], same(methodM3));
     _assertNoErrors(classA);
   }
 
@@ -861,10 +862,10 @@ class InheritanceManagerTest {
       classI3.type,
       classI4.type
     ];
-    MemberMap mapA =
-        _inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
-    expect(mapA.size, _numOfMembersInObject + 1);
-    expect(mapA.get(methodName), same(methodM4));
+    Map<String, ExecutableElement> mapA =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classA);
+    expect(mapA.length, _numOfMembersInObject + 1);
+    expect(mapA[methodName], same(methodM4));
     _assertNoErrors(classA);
   }
 

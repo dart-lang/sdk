@@ -819,6 +819,26 @@ main() {
       ..isInvokedAt('foo());', false);
   }
 
+  void test_isReferencedBy_FunctionElement_with_LibraryElement() {
+    addSource(
+        '/foo.dart',
+        r'''
+bar() {}
+''');
+    _indexTestUnit('''
+import "foo.dart";
+main() {
+  bar();
+}
+''');
+    LibraryElement fooLibrary = testLibraryElement.imports[0].importedLibrary;
+    assertThat(fooLibrary)..isReferencedAt('"foo.dart";', true, length: 10);
+    {
+      FunctionElement bar = fooLibrary.definingCompilationUnit.functions[0];
+      assertThat(bar)..isInvokedAt('bar();', false);
+    }
+  }
+
   void test_isReferencedBy_FunctionTypeAliasElement() {
     _indexTestUnit('''
 typedef A();

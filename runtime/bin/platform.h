@@ -6,6 +6,7 @@
 #define BIN_PLATFORM_H_
 
 #include "bin/builtin.h"
+#include "platform/globals.h"
 
 namespace dart {
 namespace bin {
@@ -19,9 +20,29 @@ class Platform {
   static int NumberOfProcessors();
 
   // Returns a string representing the operating system ("linux",
-  // "macos" or "windows"). The returned string should not be
+  // "macos", "windows", or "android"). The returned string should not be
   // deallocated by the caller.
   static const char* OperatingSystem();
+
+  // Returns the architecture name of the processor the VM is running on
+  // (ia32, x64, arm, arm64, or mips).
+  static const char* HostArchitecture() {
+#if defined(HOST_ARCH_ARM)
+    return "arm";
+#elif defined(HOST_ARCH_ARM64)
+    return "arm64";
+#elif defined(HOST_ARCH_IA32)
+    return "ia32";
+#elif defined(HOST_ARCH_MIPS)
+    return "mips";
+#elif defined(HOST_ARCH_X64)
+    return "x64";
+#else
+#error Architecture detection failed.
+#endif
+  }
+
+  static const char* LibraryPrefix();
 
   // Returns a string representing the operating system's shared library
   // extension (e.g. 'so', 'dll', ...). The returned string should not be

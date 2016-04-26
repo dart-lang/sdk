@@ -6,7 +6,7 @@ library closureToClassMapper;
 
 import 'common.dart';
 import 'common/names.dart' show Identifiers;
-import 'common/resolution.dart' show Parsing, Resolution;
+import 'common/resolution.dart' show ParsingContext, Resolution;
 import 'common/tasks.dart' show CompilerTask;
 import 'compiler.dart' show Compiler;
 import 'constants/expressions.dart';
@@ -30,9 +30,15 @@ class ClosureTask extends CompilerTask {
 
   String get name => "Closure Simplifier";
 
-  ClosureClassMap computeClosureToClassMapping(
-      Element element, Node node, TreeElements elements) {
+  ClosureClassMap computeClosureToClassMapping(ResolvedAst resolvedAst) {
     return measure(() {
+      Element element = resolvedAst.element;
+      if (resolvedAst.kind != ResolvedAstKind.PARSED) {
+        return new ClosureClassMap(null, null, null, new ThisLocal(element));
+      }
+      Node node = resolvedAst.node;
+      TreeElements elements = resolvedAst.elements;
+
       ClosureClassMap cached = closureMappingCache[node];
       if (cached != null) return cached;
 
@@ -44,6 +50,8 @@ class ClosureTask extends CompilerTask {
       if (node is FunctionExpression) {
         translator.translateFunction(element, node);
       } else if (element.isSynthesized) {
+        reporter.internalError(
+            element, "Unexpected synthesized element: $element");
         return new ClosureClassMap(null, null, null, new ThisLocal(element));
       } else {
         assert(element.isField);
@@ -123,7 +131,7 @@ class ClosureFieldElement extends ElementX
   bool get hasResolvedAst => hasTreeElements;
 
   ResolvedAst get resolvedAst {
-    return new ResolvedAst(this, null, treeElements);
+    return new ParsedResolvedAst(this, null, null, treeElements);
   }
 
   Expression get initializer {
@@ -185,7 +193,7 @@ class ClosureClassElement extends ClassElementX {
             // By assigning a fresh class-id we make sure that the hashcode
             // is unique, but also emit closure classes after all other
             // classes (since the emitter sorts classes by their id).
-            compiler.getNextFreeId(),
+            compiler.idGenerator.getNextFreeId(),
             STATE_DONE) {
     JavaScriptBackend backend = compiler.backend;
     ClassElement superclass = methodElement.isInstanceMember
@@ -213,7 +221,7 @@ class ClosureClassElement extends ClassElementX {
 
   Token get position => node.getBeginToken();
 
-  Node parseNode(Parsing parsing) => node;
+  Node parseNode(ParsingContext parsing) => node;
 
   // A [ClosureClassElement] is nested inside a function or initializer in terms
   // of [enclosingElement], but still has to be treated as a top-level
@@ -335,10 +343,10 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
 
   FunctionExpression get node => expression.node;
 
-  FunctionExpression parseNode(Parsing parsing) => node;
+  FunctionExpression parseNode(ParsingContext parsing) => node;
 
   ResolvedAst get resolvedAst {
-    return new ResolvedAst(this, node, treeElements);
+    return new ParsedResolvedAst(this, node, node.body, treeElements);
   }
 
   Element get analyzableElement => closureClass.methodElement.analyzableElement;
@@ -370,6 +378,27 @@ class ClosureScope {
   void forEachCapturedVariable(
       f(LocalVariableElement variable, BoxFieldElement boxField)) {
     capturedVariables.forEach(f);
+  }
+
+  String toString() {
+    String separator = '';
+    StringBuffer sb = new StringBuffer();
+    sb.write('ClosureScope(');
+    if (boxElement != null) {
+      sb.write('box=$boxElement');
+      separator = ',';
+    }
+    if (boxedLoopVariables.isNotEmpty) {
+      sb.write(separator);
+      sb.write('boxedLoopVariables=${boxedLoopVariables}');
+      separator = ',';
+    }
+    if (capturedVariables.isNotEmpty) {
+      sb.write(separator);
+      sb.write('capturedVariables=$capturedVariables');
+    }
+    sb.write(')');
+    return sb.toString();
   }
 }
 

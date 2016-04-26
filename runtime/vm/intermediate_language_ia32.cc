@@ -953,19 +953,25 @@ LocationSummary* LoadClassIdInstr::MakeLocationSummary(Zone* zone,
 void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register object = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  Label done;
-
-  // We don't use Assembler::LoadTaggedClassIdMayBeSmi() here---which uses
-  // a conditional move instead, and requires an additional register---because
-  // it is slower, probably due to branch prediction usually working just fine
-  // in this case.
-  ASSERT(result != object);
-  __ movl(result, Immediate(kSmiCid << 1));
-  __ testl(object, Immediate(kSmiTagMask));
-  __ j(EQUAL, &done, Assembler::kNearJump);
-  __ LoadClassId(result, object);
-  __ SmiTag(result);
-  __ Bind(&done);
+  const AbstractType& value_type = *this->object()->Type()->ToAbstractType();
+  if (CompileType::Smi().IsAssignableTo(value_type) ||
+      value_type.IsTypeParameter()) {
+    // We don't use Assembler::LoadTaggedClassIdMayBeSmi() here---which uses
+    // a conditional move instead, and requires an additional register---because
+    // it is slower, probably due to branch prediction usually working just fine
+    // in this case.
+    ASSERT(result != object);
+    Label done;
+    __ movl(result, Immediate(kSmiCid << 1));
+    __ testl(object, Immediate(kSmiTagMask));
+    __ j(EQUAL, &done, Assembler::kNearJump);
+    __ LoadClassId(result, object);
+    __ SmiTag(result);
+    __ Bind(&done);
+  } else {
+    __ LoadClassId(result, object);
+    __ SmiTag(result);
+  }
 }
 
 
@@ -2669,6 +2675,12 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     const intptr_t value = Smi::Cast(constant).Value();
     ASSERT((0 < value) && (value < kCountLimit));
     if (shift_left->can_overflow()) {
+      if (value == 1) {
+        // Use overflow flag.
+        __ shll(left, Immediate(1));
+        __ j(OVERFLOW, deopt);
+        return;
+      }
       // Check for overflow.
       Register temp = locs.temp(0).reg();
       __ movl(temp, left);
@@ -2772,6 +2784,12 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
+
+static bool IsSmiValue(const Object& constant, intptr_t value) {
+  return constant.IsSmi() && (Smi::Cast(constant).Value() == value);
+}
+
+
 LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -2815,12 +2833,16 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
     summary->set_out(0, Location::SameAsFirstInput());
     return summary;
   } else if (op_kind() == Token::kSHL) {
-    const intptr_t kNumTemps = can_overflow() ? 1 : 0;
+    ConstantInstr* right_constant = right()->definition()->AsConstant();
+    // Shift-by-1 overflow checking can use flags, otherwise we need a temp.
+    const bool shiftBy1 =
+        (right_constant != NULL) && IsSmiValue(right_constant->value(), 1);
+    const intptr_t kNumTemps = (can_overflow() && !shiftBy1) ? 1 : 0;
     LocationSummary* summary = new(zone) LocationSummary(
         zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), ECX));
-    if (can_overflow()) {
+    if (kNumTemps == 1) {
       summary->set_temp(0, Location::RequiresRegister());
     }
     summary->set_out(0, Location::SameAsFirstInput());

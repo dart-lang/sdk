@@ -11,6 +11,9 @@ import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/visitor.dart';
+import '../js_backend/backend_serialization.dart'
+    show JavaScriptBackendSerializer;
+import '../native/native.dart' show NativeBehavior;
 import '../resolution/access_semantics.dart';
 import '../resolution/send_structure.dart';
 import '../resolution/tree_elements.dart';
@@ -359,6 +362,8 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
       CompilationUnitElement element1, CompilationUnitElement element2) {
     return strategy.test(
             element1, element2, 'name', element1.name, element2.name) &&
+        strategy.test(element1, element2, 'script.resourceUri',
+            element1.script.resourceUri, element2.script.resourceUri) &&
         visit(element1.library, element2.library);
   }
 
@@ -751,10 +756,20 @@ bool testResolutionImpactEquivalence(
 bool testResolvedAstEquivalence(
     ResolvedAst resolvedAst1, ResolvedAst resolvedAst2,
     [TestStrategy strategy = const TestStrategy()]) {
+  if (!strategy.test(resolvedAst1, resolvedAst1, 'kind', resolvedAst1.kind,
+      resolvedAst2.kind)) {
+    return false;
+  }
+  if (resolvedAst1.kind != ResolvedAstKind.PARSED) {
+    // Nothing more to check.
+    return true;
+  }
   return strategy.testElements(resolvedAst1, resolvedAst2, 'element',
           resolvedAst1.element, resolvedAst2.element) &&
       new NodeEquivalenceVisitor(strategy).testNodes(resolvedAst1, resolvedAst2,
           'node', resolvedAst1.node, resolvedAst2.node) &&
+      new NodeEquivalenceVisitor(strategy).testNodes(resolvedAst1, resolvedAst2,
+          'body', resolvedAst1.body, resolvedAst2.body) &&
       testTreeElementsEquivalence(resolvedAst1, resolvedAst2, strategy);
 }
 
@@ -790,6 +805,83 @@ class TreeElementsEquivalenceVisitor extends Visitor {
       this.indices1, this.indices2, this.elements1, this.elements2,
       [this.strategy = const TestStrategy()]);
 
+  bool testJumpTargets(
+      Node node1, Node node2, String property, JumpTarget a, JumpTarget b) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null) return false;
+    return strategy.testElements(a, b, 'executableContext', a.executableContext,
+            b.executableContext) &&
+        strategy.test(a, b, 'nestingLevel', a.nestingLevel, b.nestingLevel) &&
+        strategy.test(a, b, 'statement', indices1.nodeIndices[a.statement],
+            indices2.nodeIndices[b.statement]) &&
+        strategy.test(
+            a, b, 'isBreakTarget', a.isBreakTarget, b.isBreakTarget) &&
+        strategy.test(
+            a, b, 'isContinueTarget', a.isContinueTarget, b.isContinueTarget) &&
+        strategy.testLists(a, b, 'labels', a.labels.toList(), b.labels.toList(),
+            (a, b) {
+          return indices1.nodeIndices[a.label] == indices2.nodeIndices[b.label];
+        });
+  }
+
+  bool testLabelDefinitions(Node node1, Node node2, String property,
+      LabelDefinition a, LabelDefinition b) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null) return false;
+    return strategy.test(a, b, 'label', indices1.nodeIndices[a.label],
+            indices2.nodeIndices[b.label]) &&
+        strategy.test(a, b, 'labelName', a.labelName, b.labelName) &&
+        strategy.test(a, b, 'target', indices1.nodeIndices[a.target.statement],
+            indices2.nodeIndices[b.target.statement]) &&
+        strategy.test(
+            a, b, 'isBreakTarget', a.isBreakTarget, b.isBreakTarget) &&
+        strategy.test(
+            a, b, 'isContinueTarget', a.isContinueTarget, b.isContinueTarget);
+  }
+
+  bool testNativeData(Node node1, Node node2, String property, a, b) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null) return false;
+    if (a is NativeBehavior && b is NativeBehavior) {
+      return strategy.test(a, b, 'codeTemplateText', a.codeTemplateText,
+              b.codeTemplateText) &&
+          strategy.test(a, b, 'isAllocation', a.isAllocation, b.isAllocation) &&
+          strategy.test(a, b, 'sideEffects', a.sideEffects, b.sideEffects) &&
+          strategy.test(
+              a, b, 'throwBehavior', a.throwBehavior, b.throwBehavior) &&
+          strategy.testTypeLists(
+              a,
+              b,
+              'dartTypesReturned',
+              JavaScriptBackendSerializer.filterDartTypes(a.typesReturned),
+              JavaScriptBackendSerializer.filterDartTypes(b.typesReturned)) &&
+          strategy.testLists(
+              a,
+              b,
+              'specialTypesReturned',
+              JavaScriptBackendSerializer.filterSpecialTypes(a.typesReturned),
+              JavaScriptBackendSerializer
+                  .filterSpecialTypes(b.typesReturned)) &&
+          strategy.testTypeLists(
+              a,
+              b,
+              'dartTypesInstantiated',
+              JavaScriptBackendSerializer.filterDartTypes(a.typesInstantiated),
+              JavaScriptBackendSerializer
+                  .filterDartTypes(b.typesInstantiated)) &&
+          strategy.testLists(
+              a,
+              b,
+              'specialTypesInstantiated',
+              JavaScriptBackendSerializer
+                  .filterSpecialTypes(a.typesInstantiated),
+              JavaScriptBackendSerializer
+                  .filterSpecialTypes(b.typesInstantiated)) &&
+          strategy.test(a, b, 'useGvn', a.useGvn, b.useGvn);
+    }
+    return true;
+  }
+
   visitNode(Node node1) {
     if (!success) return;
     int index = indices1.nodeIndices[node1];
@@ -808,7 +900,15 @@ class TreeElementsEquivalenceVisitor extends Visitor {
         strategy.testConstants(node1, node2, 'getConstant($index)',
             elements1.getConstant(node1), elements2.getConstant(node2)) &&
         strategy.testTypes(node1, node2, 'typesCache[$index]',
-            elements1.typesCache[node1], elements2.typesCache[node2]);
+            elements1.typesCache[node1], elements2.typesCache[node2]) &&
+        testJumpTargets(
+            node1,
+            node2,
+            'getTargetDefinition($index)',
+            elements1.getTargetDefinition(node1),
+            elements2.getTargetDefinition(node2)) &&
+        testNativeData(node1, node2, 'getNativeData($index)',
+            elements1.getNativeData(node1), elements2.getNativeData(node2));
 
     node1.visitChildren(this);
   }
@@ -914,6 +1014,36 @@ class TreeElementsEquivalenceVisitor extends Visitor {
         'getRedirectingTargetConstructor($index)',
         elements1.getRedirectingTargetConstructor(node1),
         elements2.getRedirectingTargetConstructor(node2));
+  }
+
+  @override
+  visitGotoStatement(GotoStatement node1) {
+    visitStatement(node1);
+    if (!success) return;
+    int index = indices1.nodeIndices[node1];
+    GotoStatement node2 = indices2.nodeList[index];
+    success = testJumpTargets(node1, node2, 'getTargetOf($index)',
+        elements1.getTargetOf(node1), elements2.getTargetOf(node2));
+    if (!success) return;
+    if (node1.target == null && node2.target == null) {
+      return;
+    }
+    success = testLabelDefinitions(node1, node2, 'getTarget($index)',
+        elements1.getTargetLabel(node1), elements2.getTargetLabel(node2));
+  }
+
+  @override
+  visitLabel(Label node1) {
+    visitNode(node1);
+    if (!success) return;
+    int index = indices1.nodeIndices[node1];
+    Label node2 = indices2.nodeList[index];
+    success = testLabelDefinitions(
+        node1,
+        node2,
+        'getLabelDefinition($index)',
+        elements1.getLabelDefinition(node1),
+        elements2.getLabelDefinition(node2));
   }
 }
 
@@ -1151,7 +1281,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
             node1, node2, 'condition', node1.condition, node2.condition) &&
         testNodes(
             node1, node2, 'expression', node1.expression, node2.expression) &&
-        testNodes(node1, node2, 'body', node1.expression, node2.body) &&
+        testNodes(node1, node2, 'body', node1.body, node2.body) &&
         testNodes(node1, node2, 'declaredIdentifier', node1.declaredIdentifier,
             node2.declaredIdentifier);
   }

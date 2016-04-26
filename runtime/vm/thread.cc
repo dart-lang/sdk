@@ -318,6 +318,7 @@ void Thread::PrepareForGC() {
 
 void Thread::SetStackLimitFromStackBase(uword stack_base) {
   // Set stack limit.
+#if !defined(TARGET_ARCH_DBC)
 #if defined(USING_SIMULATOR)
   // Ignore passed-in native stack top and use Simulator stack top.
   Simulator* sim = Simulator::Current();  // May allocate a simulator.
@@ -326,6 +327,9 @@ void Thread::SetStackLimitFromStackBase(uword stack_base) {
   // The overflow area is accounted for by the simulator.
 #endif
   SetStackLimit(stack_base - OSThread::GetSpecifiedStackSize());
+#else
+  SetStackLimit(Simulator::Current()->StackTop());
+#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 
@@ -348,11 +352,15 @@ void Thread::ClearStackLimit() {
 
 /* static */
 uword Thread::GetCurrentStackPointer() {
+#if !defined(TARGET_ARCH_DBC)
   // Since AddressSanitizer's detect_stack_use_after_return instruments the
   // C++ code to give out fake stack addresses, we call a stub in that case.
   ASSERT(StubCode::GetStackPointer_entry() != NULL);
   uword (*func)() = reinterpret_cast<uword (*)()>(
       StubCode::GetStackPointer_entry()->EntryPoint());
+#else
+  uword (*func)() = NULL;
+#endif
   // But for performance (and to support simulators), we normally use a local.
 #if defined(__has_feature)
 #if __has_feature(address_sanitizer)
@@ -390,7 +398,7 @@ void Thread::ScheduleInterruptsLocked(uword interrupt_bits) {
   }
 
   if (stack_limit_ == saved_stack_limit_) {
-    stack_limit_ = (~static_cast<uword>(0)) & ~kInterruptsMask;
+    stack_limit_ = kInterruptStackLimit & ~kInterruptsMask;
   }
   stack_limit_ |= interrupt_bits;
 }
@@ -437,7 +445,7 @@ void Thread::RestoreOOBMessageInterrupts() {
   deferred_interrupts_mask_ = 0;
   if (deferred_interrupts_ != 0) {
     if (stack_limit_ == saved_stack_limit_) {
-      stack_limit_ = (~static_cast<uword>(0)) & ~kInterruptsMask;
+      stack_limit_ = kInterruptStackLimit & ~kInterruptsMask;
     }
     stack_limit_ |= deferred_interrupts_;
     deferred_interrupts_ = 0;

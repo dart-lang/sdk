@@ -14,8 +14,10 @@ import 'package:package_config/src/packages_impl.dart'
 import 'package:package_config/src/util.dart' show checkValidPackageUri;
 
 import '../compiler_new.dart' as api;
+import 'common/tasks.dart' show GenericTask, Measurer;
 import 'common.dart';
-import 'common/tasks.dart' show GenericTask;
+import 'common/backend_api.dart' show
+    Backend;
 import 'compiler.dart';
 import 'diagnostics/messages.dart' show Message;
 import 'elements/elements.dart' as elements;
@@ -23,6 +25,7 @@ import 'environment.dart';
 import 'io/source_file.dart';
 import 'options.dart' show CompilerOptions;
 import 'platform_configuration.dart' as platform_configuration;
+import 'resolved_uri_translator.dart';
 import 'script.dart';
 
 /// Implements the [Compiler] using a [api.CompilerInput] for supplying the
@@ -31,12 +34,12 @@ class CompilerImpl extends Compiler {
   api.CompilerInput provider;
   api.CompilerDiagnostics handler;
   Packages packages;
-  bool mockableLibraryUsed = false;
 
-  /// A mapping of the dart: library-names to their location.
-  ///
-  /// Initialized in [setupSdk].
-  Map<String, Uri> sdkLibraries;
+  bool get mockableLibraryUsed => resolvedUriTranslator.isSet
+      ? resolvedUriTranslator.mockableLibraryUsed
+      : false;
+
+  ForwardingResolvedUriTranslator resolvedUriTranslator;
 
   GenericTask userHandlerTask;
   GenericTask userProviderTask;
@@ -45,11 +48,14 @@ class CompilerImpl extends Compiler {
   Uri get libraryRoot => options.platformConfigUri.resolve(".");
 
   CompilerImpl(this.provider, api.CompilerOutput outputProvider, this.handler,
-      CompilerOptions options)
-      : super(
+      CompilerOptions options,
+      {MakeBackendFuncion makeBackend, MakeReporterFunction makeReporter})
+      : resolvedUriTranslator = new ForwardingResolvedUriTranslator(),
+        super(
             options: options,
             outputProvider: outputProvider,
-            environment: new _Environment(options.environment)) {
+            environment: new _Environment(options.environment),
+            makeBackend: makeBackend, makeReporter: makeReporter) {
     _Environment env = environment;
     env.compiler = this;
     tasks.addAll([
@@ -62,15 +68,6 @@ class CompilerImpl extends Compiler {
   void log(message) {
     callUserHandler(
         null, null, null, null, message, api.Diagnostic.VERBOSE_INFO);
-  }
-
-  /// See [Compiler.translateResolvedUri].
-  Uri translateResolvedUri(elements.LibraryElement importingLibrary,
-      Uri resolvedUri, Spannable spannable) {
-    if (resolvedUri.scheme == 'dart') {
-      return translateDartUri(importingLibrary, resolvedUri, spannable);
-    }
-    return resolvedUri;
   }
 
   /**
@@ -149,63 +146,6 @@ class CompilerImpl extends Compiler {
   Uri translateUri(Spannable node, Uri uri) =>
       uri.scheme == 'package' ? translatePackageUri(node, uri) : uri;
 
-  /// Translates "resolvedUri" with scheme "dart" to a [uri] resolved relative
-  /// to `options.platformConfigUri` according to the information in the file at
-  /// `options.platformConfigUri`.
-  ///
-  /// Returns null and emits an error if the library could not be found or
-  /// imported into [importingLibrary].
-  ///
-  /// Internal libraries (whose name starts with '_') can be only resolved if
-  /// [importingLibrary] is a platform or patch library.
-  Uri translateDartUri(elements.LibraryElement importingLibrary,
-      Uri resolvedUri, Spannable spannable) {
-    Uri location = lookupLibraryUri(resolvedUri.path);
-
-    if (location == null) {
-      reporter.reportErrorMessage(spannable, MessageKind.LIBRARY_NOT_FOUND,
-          {'resolvedUri': resolvedUri});
-      return null;
-    }
-
-    if (resolvedUri.path.startsWith('_')) {
-      bool allowInternalLibraryAccess = importingLibrary != null &&
-          (importingLibrary.isPlatformLibrary ||
-              importingLibrary.isPatch ||
-              importingLibrary.canonicalUri.path
-                  .contains('sdk/tests/compiler/dart2js_native'));
-
-      if (!allowInternalLibraryAccess) {
-        if (importingLibrary != null) {
-          reporter.reportErrorMessage(
-              spannable, MessageKind.INTERNAL_LIBRARY_FROM, {
-            'resolvedUri': resolvedUri,
-            'importingUri': importingLibrary.canonicalUri
-          });
-        } else {
-          reporter.reportErrorMessage(spannable, MessageKind.INTERNAL_LIBRARY,
-              {'resolvedUri': resolvedUri});
-          registerDisallowedLibraryUse(resolvedUri);
-        }
-        return null;
-      }
-    }
-
-    if (location.scheme == "unsupported") {
-      reporter.reportErrorMessage(spannable, MessageKind.LIBRARY_NOT_SUPPORTED,
-          {'resolvedUri': resolvedUri});
-      registerDisallowedLibraryUse(resolvedUri);
-      return null;
-    }
-
-    if (resolvedUri.path == 'html' || resolvedUri.path == 'io') {
-      // TODO(ahe): Get rid of mockableLibraryUsed when test.dart
-      // supports this use case better.
-      mockableLibraryUsed = true;
-    }
-    return location;
-  }
-
   Uri translatePackageUri(Spannable node, Uri uri) {
     try {
       checkValidPackageUri(uri);
@@ -223,14 +163,14 @@ class CompilerImpl extends Compiler {
 
   Future<elements.LibraryElement> analyzeUri(Uri uri,
       {bool skipLibraryWithPartOfTag: true}) {
-    List<Future> setupFutures = new List<Future>();
-    if (sdkLibraries == null) {
-      setupFutures.add(setupSdk());
+    Future setupFuture = new Future.value();
+    if (resolvedUriTranslator.isNotSet) {
+      setupFuture = setupFuture.then((_) => setupSdk());
     }
     if (packages == null) {
-      setupFutures.add(setupPackages(uri));
+      setupFuture = setupFuture.then((_) => setupPackages(uri));
     }
-    return Future.wait(setupFutures).then((_) {
+    return setupFuture.then((_) {
       return super
           .analyzeUri(uri, skipLibraryWithPartOfTag: skipLibraryWithPartOfTag);
     });
@@ -273,11 +213,12 @@ class CompilerImpl extends Compiler {
   }
 
   Future<Null> setupSdk() {
-    if (sdkLibraries == null) {
+    if (resolvedUriTranslator.isNotSet) {
       return platform_configuration
           .load(options.platformConfigUri, provider)
           .then((Map<String, Uri> mapping) {
-        sdkLibraries = mapping;
+        resolvedUriTranslator.resolvedUriTranslator =
+            new ResolvedUriTranslator(mapping, reporter);
       });
     } else {
       // The incremental compiler sets up the sdk before run.
@@ -287,31 +228,57 @@ class CompilerImpl extends Compiler {
   }
 
   Future<bool> run(Uri uri) {
-    log('Using platform configuration at ${options.platformConfigUri}');
+    Duration setupDuration = measurer.wallClock.elapsed;
+    return selfTask.measureSubtask("CompilerImpl.run", () {
+      log('Using platform configuration at ${options.platformConfigUri}');
 
-    return Future.wait([setupSdk(), setupPackages(uri)]).then((_) {
-      assert(sdkLibraries != null);
-      assert(packages != null);
+      return setupSdk().then((_) => setupPackages(uri)).then((_) {
+        assert(resolvedUriTranslator.isSet);
+        assert(packages != null);
 
-      return super.run(uri).then((bool success) {
-        int cumulated = 0;
-        for (final task in tasks) {
-          int elapsed = task.timing;
-          if (elapsed != 0) {
-            cumulated += elapsed;
-            log('${task.name} took ${elapsed}msec');
-            for (String subtask in task.subtasks) {
-              int subtime = task.getSubtaskTime(subtask);
-              log('${task.name} > $subtask took ${subtime}msec');
-            }
-          }
+        return super.run(uri);
+      }).then((bool success) {
+        if (options.verbose) {
+          StringBuffer timings = new StringBuffer();
+          computeTimings(setupDuration, timings);
+          log("$timings");
         }
-        int total = totalCompileTime.elapsedMilliseconds;
-        log('Total compile-time ${total}msec;'
-            ' unaccounted ${total - cumulated}msec');
         return success;
       });
     });
+  }
+
+  void computeTimings(Duration setupDuration, StringBuffer timings) {
+    timings.writeln("Timings:");
+    Duration totalDuration = measurer.wallClock.elapsed;
+    Duration asyncDuration = measurer.asyncWallClock.elapsed;
+    Duration cumulatedDuration = Duration.ZERO;
+    for (final task in tasks) {
+      String running = task.isRunning ? "*" : "";
+      Duration duration = task.duration;
+      if (duration != Duration.ZERO) {
+        cumulatedDuration += duration;
+        timings.writeln(
+            '    $running${task.name} took'
+            ' ${duration.inMilliseconds}msec');
+        for (String subtask in task.subtasks) {
+          int subtime = task.getSubtaskTime(subtask);
+          String running = task.getSubtaskIsRunning(subtask) ? "*" : "";
+          timings.writeln(
+              '    $running${task.name} > $subtask took ${subtime}msec');
+        }
+      }
+    }
+    Duration unaccountedDuration =
+        totalDuration - cumulatedDuration - setupDuration - asyncDuration;
+    double percent = unaccountedDuration.inMilliseconds * 100
+        / totalDuration.inMilliseconds;
+    timings.write(
+        '    Total compile-time ${totalDuration.inMilliseconds}msec;'
+        ' setup ${setupDuration.inMilliseconds}msec;'
+        ' async ${asyncDuration.inMilliseconds}msec;'
+        ' unaccounted ${unaccountedDuration.inMilliseconds}msec'
+        ' (${percent.toStringAsFixed(2)}%)');
   }
 
   void reportDiagnostic(DiagnosticMessage message,
@@ -341,24 +308,33 @@ class CompilerImpl extends Compiler {
 
   void callUserHandler(Message message, Uri uri, int begin, int end,
       String text, api.Diagnostic kind) {
-    userHandlerTask.measure(() {
-      handler.report(message, uri, begin, end, text, kind);
-    });
+    try {
+      userHandlerTask.measure(() {
+        handler.report(message, uri, begin, end, text, kind);
+      });
+    } catch (ex, s) {
+      reportCrashInUserCode('Uncaught exception in diagnostic handler', ex, s);
+      rethrow;
+    }
   }
 
   Future callUserProvider(Uri uri) {
-    return userProviderTask.measure(() => provider.readFromUri(uri));
+    try {
+      return userProviderTask.measureIo(() => provider.readFromUri(uri));
+    } catch (ex, s) {
+      reportCrashInUserCode('Uncaught exception in input provider', ex, s);
+      rethrow;
+    }
   }
 
   Future<Packages> callUserPackagesDiscovery(Uri uri) {
-    return userPackagesDiscoveryTask
-        .measure(() => options.packagesDiscoveryProvider(uri));
-  }
-
-  Uri lookupLibraryUri(String libraryName) {
-    assert(invariant(NO_LOCATION_SPANNABLE, sdkLibraries != null,
-        message: "setupSdk() has not been run"));
-    return sdkLibraries[libraryName];
+    try {
+      return userPackagesDiscoveryTask
+          .measureIo(() => options.packagesDiscoveryProvider(uri));
+    } catch (ex, s) {
+      reportCrashInUserCode('Uncaught exception in package discovery', ex, s);
+      rethrow;
+    }
   }
 
   Uri resolvePatchUri(String libraryName) {
@@ -370,14 +346,15 @@ class _Environment implements Environment {
   final Map<String, String> definitions;
 
   // TODO(sigmund): break the circularity here: Compiler needs an environment to
-  // intialize the library loader, but the environment here needs to know about
+  // initialize the library loader, but the environment here needs to know about
   // how the sdk is set up and about whether the backend supports mirrors.
   CompilerImpl compiler;
 
   _Environment(this.definitions);
 
   String valueOf(String name) {
-    assert(invariant(NO_LOCATION_SPANNABLE, compiler.sdkLibraries != null,
+    assert(invariant(
+        NO_LOCATION_SPANNABLE, compiler.resolvedUriTranslator != null,
         message: "setupSdk() has not been run"));
 
     var result = definitions[name];
@@ -389,7 +366,7 @@ class _Environment implements Environment {
     // Private libraries are not exposed to the users.
     if (libraryName.startsWith("_")) return null;
 
-    if (compiler.sdkLibraries.containsKey(libraryName)) {
+    if (compiler.resolvedUriTranslator.sdkLibraries.containsKey(libraryName)) {
       // Dart2js always "supports" importing 'dart:mirrors' but will abort
       // the compilation at a later point if the backend doesn't support
       // mirrors. In this case 'mirrors' should not be in the environment.

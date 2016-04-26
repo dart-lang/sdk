@@ -181,15 +181,10 @@ CompilerImpl compilerFor(
 
     compiler.backend.constantCompilerTask.copyConstantValues(
         cachedCompiler.backend.constantCompilerTask);
-    compiler.symbolConstructor = cachedCompiler.symbolConstructor;
     compiler.mirrorSystemClass = cachedCompiler.mirrorSystemClass;
     compiler.mirrorsUsedClass = cachedCompiler.mirrorsUsedClass;
     compiler.mirrorSystemGetNameFunction =
         cachedCompiler.mirrorSystemGetNameFunction;
-    compiler.symbolImplementationClass =
-        cachedCompiler.symbolImplementationClass;
-    compiler.symbolValidatedConstructor =
-        cachedCompiler.symbolValidatedConstructor;
     compiler.mirrorsUsedConstructor = cachedCompiler.mirrorsUsedConstructor;
     compiler.deferredLibraryClass = cachedCompiler.deferredLibraryClass;
 

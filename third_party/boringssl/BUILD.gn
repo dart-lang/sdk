@@ -1,0 +1,95 @@
+# Copyright 2014 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/config/android/config.gni")
+import("//build/config/sanitizers/sanitizers.gni")
+
+# Config for us and everybody else depending on BoringSSL.
+config("external_config") {
+  include_dirs = [ "src/include" ]
+  if (is_component_build) {
+    defines = [ "BORINGSSL_SHARED_LIBRARY" ]
+  }
+}
+
+
+# Config internal to this build file, shared by boringssl and boringssl_fuzzer.
+config("internal_config") {
+  visibility = [ ":*" ]  # Only targets in this file can depend on this.
+  defines = [
+    "BORINGSSL_IMPLEMENTATION",
+    "BORINGSSL_NO_STATIC_INITIALIZER",
+    "OPENSSL_SMALL_FOOTPRINT",
+  ]
+}
+
+
+config("no_asm_config") {
+  visibility = [ ":*" ]  # Only targets in this file can depend on this.
+  defines = [ "OPENSSL_NO_ASM" ]
+}
+
+
+# The list of BoringSSL files is kept in boringssl.gypi.
+gypi_values =
+    exec_script("../../tools/gypi_to_gn.py",
+                [ rebase_path("boringssl.gypi") ],
+                "scope",
+                [ "boringssl.gypi" ])
+boringssl_sources =
+    gypi_values.boringssl_crypto_sources + gypi_values.boringssl_ssl_sources
+
+
+source_set("boringssl_asm") {
+  visibility = [ ":*" ]  # Only targets in this file can depend on this.
+  sources = []
+  #asmflags = []
+  include_dirs = [
+    "src/include",
+    # This is for arm_arch.h, which is needed by some asm files. Since the
+    # asm files are generated and kept in a different directory, they
+    # cannot use relative paths to find this file.
+    "src/crypto",
+  ]
+
+  if (current_cpu == "x64") {
+    if (is_ios) {
+      defines += [ "OPENSSL_NO_ASM" ]
+    } else if (is_mac) {
+      sources += gypi_values.boringssl_mac_x86_64_sources
+    } else if (is_linux || is_android) {
+      sources += gypi_values.boringssl_linux_x86_64_sources
+    } else {
+      public_configs = [ ":no_asm_config" ]
+    }
+  } else if (current_cpu == "x86") {
+    if (is_ios) {
+      defines += [ "OPENSSL_NO_ASM" ]
+    } else if (is_mac) {
+      sources += gypi_values.boringssl_mac_x86_sources
+    } else if (is_linux || is_android) {
+      sources += gypi_values.boringssl_linux_x86_sources
+    } else {
+      public_configs = [ ":no_asm_config" ]
+    }
+  } else if (current_cpu == "arm" && (is_linux || is_android)) {
+    sources += gypi_values.boringssl_linux_arm_sources
+  } else if (current_cpu == "arm64" && (is_linux || is_android)) {
+    sources += gypi_values.boringssl_linux_aarch64_sources
+  } else {
+    public_configs = [ ":no_asm_config" ]
+  }
+}
+
+
+component("boringssl") {
+  sources = boringssl_sources
+  deps = [
+    ":boringssl_asm",
+  ]
+  public_configs = [ ":external_config" ]
+  configs += [ ":internal_config" ]
+  configs -= [ "//build/config/compiler:chromium_code" ]
+  configs += [ "//build/config/compiler:no_chromium_code" ]
+}

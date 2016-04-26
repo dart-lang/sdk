@@ -30,52 +30,23 @@ import 'serialization_helper.dart';
 import 'serialization_test_data.dart';
 import 'serialization_test_helper.dart';
 
-main(List<String> arguments) {
-  String filename;
-  for (String arg in arguments) {
-    if (!arg.startsWith('-')) {
-      filename = arg;
-    }
-  }
-  bool verbose = arguments.contains('-v');
-
+main(List<String> args) {
   asyncTest(() async {
-    print('------------------------------------------------------------------');
-    print('serialize dart:core');
-    print('------------------------------------------------------------------');
-    String serializedData;
-    File file = new File('out.data');
-    if (arguments.contains('-l')) {
-      if (file.existsSync()) {
-        print('Loading data from $file');
-        serializedData = file.readAsStringSync();
-      }
-    }
-    if (serializedData == null) {
-      serializedData = await serializeDartCore();
-      if (arguments.contains('-s')) {
-        print('Saving data to $file');
-        file.writeAsStringSync(serializedData);
-      }
-    }
-    if (filename != null) {
-      Uri entryPoint = Uri.base.resolve(nativeToUriPath(filename));
+    Arguments arguments = new Arguments.from(args);
+    String serializedData = await serializeDartCore(arguments: arguments);
+    if (arguments.filename != null) {
+      Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
       await check(serializedData, entryPoint);
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
       for (Test test in TESTS) {
-        if (test.sourceFiles['main.dart']
-                .contains('main(List<String> arguments)')) {
-          // TODO(johnniwinther): Check this test.
-          continue;
-        }
         print('==============================================================');
         print(test.sourceFiles);
         await check(
           serializedData,
           entryPoint,
           sourceFiles: test.sourceFiles,
-          verbose: verbose);
+          verbose: arguments.verbose);
       }
     }
   });

@@ -4,7 +4,8 @@
 
 library dart2js.type_mask_system;
 
-import '../common/names.dart' show Selectors, Identifiers;
+import '../closure.dart' show ClosureFieldElement, BoxLocal, TypeVariableLocal;
+import '../common/names.dart' show Identifiers;
 import '../compiler.dart' as dart2js show Compiler;
 import '../constants/values.dart';
 import '../dart_types.dart' as types;
@@ -12,11 +13,10 @@ import '../elements/elements.dart';
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../types/abstract_value_domain.dart';
-import '../types/types.dart';
 import '../types/constants.dart' show computeTypeMask;
+import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show World;
-import '../closure.dart' show ClosureFieldElement, BoxLocal, TypeVariableLocal;
 
 class TypeMaskSystem implements AbstractValueDomain {
   final TypesTask inferrer;

@@ -347,7 +347,6 @@ dynamic resolver(String s) {
   if (s == "MimeTypeArray") return BlinkMimeTypeArray.instance;
   if (s == "MouseEvent") return BlinkMouseEvent.instance;
   if (s == "MutationCallback") return BlinkMutationCallback.instance;
-  if (s == "MutationEvent") return BlinkMutationEvent.instance;
   if (s == "MutationObserver") return BlinkMutationObserver.instance;
   if (s == "MutationRecord") return BlinkMutationRecord.instance;
   if (s == "NamedNodeMap") return BlinkNamedNodeMap.instance;
@@ -10943,27 +10942,6 @@ class BlinkMutationCallback {
   handleEvent_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis /* MutationCallback */, "handleEvent", [__arg_0]);
 
   handleEvent_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis /* MutationCallback */, "handleEvent", [__arg_0, __arg_1]);
-
-}
-
-class BlinkMutationEvent extends BlinkEvent {
-  static final instance = new BlinkMutationEvent();
-
-  attrChange_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis /* MutationEvent */, "attrChange");
-
-  attrName_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis /* MutationEvent */, "attrName");
-
-  newValue_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis /* MutationEvent */, "newValue");
-
-  prevValue_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis /* MutationEvent */, "prevValue");
-
-  relatedNode_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis /* MutationEvent */, "relatedNode");
-
-  initMutationEvent_Callback_6_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) => Blink_JsNative_DomException.callMethod(mthis /* MutationEvent */, "initMutationEvent", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5]);
-
-  initMutationEvent_Callback_7_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6) => Blink_JsNative_DomException.callMethod(mthis /* MutationEvent */, "initMutationEvent", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6]);
-
-  initMutationEvent_Callback_8_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7) => Blink_JsNative_DomException.callMethod(mthis /* MutationEvent */, "initMutationEvent", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7]);
 
 }
 

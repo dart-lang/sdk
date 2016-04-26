@@ -4,7 +4,7 @@
 
 import '../common.dart';
 import '../common/backend_api.dart' show ForeignResolver;
-import '../common/resolution.dart' show Parsing, Resolution;
+import '../common/resolution.dart' show ParsingContext, Resolution;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../core_types.dart' show CoreTypes;
@@ -28,6 +28,14 @@ class SpecialType {
   static const JsObject = const SpecialType._('=Object');
 
   int get hashCode => name.hashCode;
+
+  static SpecialType fromName(String name) {
+    if (name == '=Object') {
+      return JsObject;
+    } else {
+      throw new UnsupportedError("Unknown SpecialType '$name'.");
+    }
+  }
 }
 
 /// Description of the exception behaviour of native code.
@@ -70,6 +78,21 @@ class NativeThrowBehavior {
     if (this == MUST) return 'must';
     return 'NativeThrowBehavior($_bits)';
   }
+
+  /// Canonical list of marker values.
+  ///
+  /// Added to make [NativeThrowBehavior] enum-like.
+  static const List<NativeThrowBehavior> values = const <NativeThrowBehavior>[
+    NEVER,
+    MAY_THROW_ONLY_ON_FIRST_ARGUMENT_ACCESS,
+    MAY,
+    MUST,
+  ];
+
+  /// Index to this marker within [values].
+  ///
+  /// Added to make [NativeThrowBehavior] enum-like.
+  int get index => values.indexOf(this);
 }
 
 /**
@@ -109,11 +132,12 @@ class NativeBehavior {
   /// [DartType]s or [SpecialType]s instantiated by the native element.
   final List typesInstantiated = [];
 
+  String codeTemplateText;
   // If this behavior is for a JS expression, [codeTemplate] contains the
   // parsed tree.
   js.Template codeTemplate;
 
-  final SideEffects sideEffects = new SideEffects.empty();
+  final SideEffects sideEffects;
 
   NativeThrowBehavior throwBehavior = NativeThrowBehavior.MAY;
 
@@ -127,6 +151,10 @@ class NativeBehavior {
       NativeBehavior._makePure(isAllocation: true);
   static NativeBehavior get CHANGES_OTHER => NativeBehavior._makeChangesOther();
   static NativeBehavior get DEPENDS_OTHER => NativeBehavior._makeDependsOther();
+
+  NativeBehavior() : sideEffects = new SideEffects.empty();
+
+  NativeBehavior.internal(this.sideEffects);
 
   String toString() {
     return 'NativeBehavior('
@@ -460,7 +488,7 @@ class NativeBehavior {
   }
 
   static NativeBehavior ofJsCall(Send jsCall, DiagnosticReporter reporter,
-      Parsing parsing, CoreTypes coreTypes, ForeignResolver resolver) {
+      ParsingContext parsing, CoreTypes coreTypes, ForeignResolver resolver) {
     // The first argument of a JS-call is a string encoding various attributes
     // of the code.
     //
@@ -490,8 +518,8 @@ class NativeBehavior {
       return behavior;
     }
 
-    behavior.codeTemplate =
-        js.js.parseForeignJS(codeArgument.dartString.slowToString());
+    behavior.codeTemplateText = codeArgument.dartString.slowToString();
+    behavior.codeTemplate = js.js.parseForeignJS(behavior.codeTemplateText);
 
     String specString = specArgument.dartString.slowToString();
 
@@ -551,7 +579,7 @@ class NativeBehavior {
       NativeBehavior behavior,
       Send jsBuiltinOrEmbeddedGlobalCall,
       DiagnosticReporter reporter,
-      Parsing parsing,
+      ParsingContext parsing,
       CoreTypes coreTypes,
       ForeignResolver resolver,
       {bool isBuiltin,
@@ -619,7 +647,7 @@ class NativeBehavior {
   static NativeBehavior ofJsBuiltinCall(
       Send jsBuiltinCall,
       DiagnosticReporter reporter,
-      Parsing parsing,
+      ParsingContext parsing,
       CoreTypes coreTypes,
       ForeignResolver resolver) {
     NativeBehavior behavior = new NativeBehavior();
@@ -635,7 +663,7 @@ class NativeBehavior {
   static NativeBehavior ofJsEmbeddedGlobalCall(
       Send jsEmbeddedGlobalCall,
       DiagnosticReporter reporter,
-      Parsing parsing,
+      ParsingContext parsing,
       CoreTypes coreTypes,
       ForeignResolver resolver) {
     NativeBehavior behavior = new NativeBehavior();
@@ -773,7 +801,8 @@ class NativeBehavior {
       StringConstantValue specStringConstant = fields.single;
       String specString = specStringConstant.toDartString().slowToString();
       for (final typeString in specString.split('|')) {
-        var type = _parseType(typeString, compiler.parsing, lookup, annotation);
+        var type =
+            _parseType(typeString, compiler.parsingContext, lookup, annotation);
         if (types == null) types = [];
         types.add(type);
       }
@@ -815,7 +844,6 @@ class NativeBehavior {
         _escape(parameter, resolution);
       }
     } else {
-      DartType instantiated = null;
       JavaScriptBackend backend = compiler?.backend;
       if (!isInterop) {
         typesInstantiated.add(type);
@@ -848,8 +876,8 @@ class NativeBehavior {
     }
   }
 
-  static dynamic _parseType(
-      String typeString, Parsing parsing, lookup(name), locationNodeOrElement) {
+  static dynamic _parseType(String typeString, ParsingContext parsing,
+      lookup(name), locationNodeOrElement) {
     DiagnosticReporter reporter = parsing.reporter;
     if (typeString == '=Object') return SpecialType.JsObject;
     if (typeString == 'dynamic') {
@@ -874,7 +902,7 @@ class NativeBehavior {
     return const DynamicType();
   }
 
-  static _errorNode(locationNodeOrElement, Parsing parsing) {
+  static _errorNode(locationNodeOrElement, ParsingContext parsing) {
     if (locationNodeOrElement is Node) return locationNodeOrElement;
     return locationNodeOrElement.parseNode(parsing);
   }

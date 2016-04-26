@@ -213,7 +213,7 @@ $endif
   set nodes(Iterable<Node> value) {
     // Copy list first since we don't want liveness during iteration.
     // TODO(jacobr): there is a better way to do this.
-    List copy = new List.from(value);
+    var copy = value.toList();
     text = '';
     for (Node node in copy) {
       append(node);

@@ -60,6 +60,10 @@ abstract class DiagnosticReporter {
 
   DiagnosticMessage createMessage(Spannable spannable, MessageKind messageKind,
       [Map arguments = const {}]);
+
+  /// Called when an [exception] is thrown from user-provided code, like from
+  /// the input provider or diagnostics handler.
+  void onCrashInUserCode(String message, exception, stackTrace) {}
 }
 
 class DiagnosticMessage {

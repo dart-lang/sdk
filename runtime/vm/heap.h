@@ -340,15 +340,16 @@ class Heap {
   void GetMergedAddressRange(uword* start, uword* end) const;
 
   Isolate* isolate_;
-  Monitor* barrier_;
-  Monitor* barrier_done_;
 
   // The different spaces used for allocation.
-  Scavenger new_space_;
+  ALIGN8 Scavenger new_space_;
   PageSpace old_space_;
 
   WeakTable* new_weak_tables_[kNumWeakSelectors];
   WeakTable* old_weak_tables_[kNumWeakSelectors];
+
+  Monitor* barrier_;
+  Monitor* barrier_done_;
 
   // GC stats collection.
   GCStats stats_;

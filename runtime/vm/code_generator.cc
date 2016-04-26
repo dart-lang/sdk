@@ -31,16 +31,11 @@ DEFINE_FLAG(int, max_subtype_cache_entries, 100,
     "Maximum number of subtype cache entries (number of checks cached).");
 DEFINE_FLAG(int, regexp_optimization_counter_threshold, 1000,
     "RegExp's usage-counter value before it is optimized, -1 means never");
-DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
 DEFINE_FLAG(int, reoptimization_counter_threshold, 4000,
     "Counter threshold before a function gets reoptimized.");
-DEFINE_FLAG(bool, stop_on_excessive_deoptimization, false,
-    "Debugging: stops program if deoptimizing same function too often");
 DEFINE_FLAG(bool, trace_deoptimization, false, "Trace deoptimization");
 DEFINE_FLAG(bool, trace_deoptimization_verbose, false,
     "Trace deoptimization verbose");
-DEFINE_FLAG(bool, trace_failed_optimization_attempts, false,
-    "Traces all failed optimization attempts");
 DEFINE_FLAG(bool, trace_ic, false, "Trace IC handling");
 DEFINE_FLAG(bool, trace_ic_miss_in_optimized, false,
     "Trace IC miss in optimized code");
@@ -659,6 +654,7 @@ static void CheckResultError(const Object& result) {
 }
 
 
+#if !defined(TARGET_ARCH_DBC)
 // Gets called from debug stub when code reaches a breakpoint
 // set on a runtime stub call.
 DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
@@ -679,6 +675,20 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   }
   arguments.SetReturn(orig_stub);
 }
+#else
+// Gets called from the simulator when the breakpoint is reached.
+DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
+  if (!FLAG_support_debugger) {
+    UNREACHABLE();
+    return;
+  }
+  const Error& error = Error::Handle(isolate->debugger()->SignalBpReached());
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+    UNREACHABLE();
+  }
+}
+#endif  // !defined(TARGET_ARCH_DBC)
 
 
 DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
@@ -961,6 +971,8 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
 //   Arg2: Arguments descriptor array.
 //   Returns: target function to call.
 DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
+// DBC does not use megamorphic calls right now.
+#if !defined(TARGET_ARCH_DBC)
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Object& ic_data_or_cache = Object::Handle(zone, arguments.ArgAt(1));
   const Array& descriptor = Array::CheckedHandle(zone, arguments.ArgAt(2));
@@ -1018,6 +1030,9 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
     cache.Insert(class_id, target_function);
   }
   arguments.SetReturn(target_function);
+#else
+  UNREACHABLE();
+#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 
@@ -1195,72 +1210,9 @@ DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
 }
 
 
-static bool CanOptimizeFunction(const Function& function, Thread* thread) {
-  if (FLAG_support_debugger) {
-    Isolate* isolate = thread->isolate();
-    if (isolate->debugger()->IsStepping() ||
-        isolate->debugger()->HasBreakpoint(function, thread->zone())) {
-      // We cannot set breakpoints and single step in optimized code,
-      // so do not optimize the function.
-      function.set_usage_counter(0);
-      return false;
-    }
-  }
-  if (function.deoptimization_counter() >=
-      FLAG_max_deoptimization_counter_threshold) {
-    if (FLAG_trace_failed_optimization_attempts ||
-        FLAG_stop_on_excessive_deoptimization) {
-      THR_Print("Too many deoptimizations: %s\n",
-          function.ToFullyQualifiedCString());
-      if (FLAG_stop_on_excessive_deoptimization) {
-        FATAL("Stop on excessive deoptimization");
-      }
-    }
-    // The function will not be optimized any longer. This situation can occur
-    // mostly with small optimization counter thresholds.
-    function.SetIsOptimizable(false);
-    function.set_usage_counter(INT_MIN);
-    return false;
-  }
-  if (FLAG_optimization_filter != NULL) {
-    // FLAG_optimization_filter is a comma-separated list of strings that are
-    // matched against the fully-qualified function name.
-    char* save_ptr;  // Needed for strtok_r.
-    const char* function_name = function.ToFullyQualifiedCString();
-    intptr_t len = strlen(FLAG_optimization_filter) + 1;  // Length with \0.
-    char* filter = new char[len];
-    strncpy(filter, FLAG_optimization_filter, len);  // strtok modifies arg 1.
-    char* token = strtok_r(filter, ",", &save_ptr);
-    bool found = false;
-    while (token != NULL) {
-      if (strstr(function_name, token) != NULL) {
-        found = true;
-        break;
-      }
-      token = strtok_r(NULL, ",", &save_ptr);
-    }
-    delete[] filter;
-    if (!found) {
-      function.set_usage_counter(INT_MIN);
-      return false;
-    }
-  }
-  if (!function.IsOptimizable()) {
-    // Huge methods (code size above --huge_method_cutoff_in_code_size) become
-    // non-optimizable only after the code has been generated.
-    if (FLAG_trace_failed_optimization_attempts) {
-      THR_Print("Not optimizable: %s\n", function.ToFullyQualifiedCString());
-    }
-    function.set_usage_counter(INT_MIN);
-    return false;
-  }
-  return true;
-}
-
-
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 #if defined(USING_SIMULATOR)
-  uword stack_pos = Simulator::Current()->get_register(SPREG);
+  uword stack_pos = Simulator::Current()->get_sp();
 #else
   uword stack_pos = Thread::GetCurrentStackPointer();
 #endif
@@ -1272,7 +1224,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   // If an interrupt happens at the same time as a stack overflow, we
   // process the stack overflow now and leave the interrupt for next
   // time.
-  if (stack_pos < thread->saved_stack_limit()) {
+  if (IsCalleeFrameOf(thread->saved_stack_limit(), stack_pos)) {
     // Use the preallocated stack overflow exception to avoid calling
     // into dart code.
     const Instance& exception =
@@ -1364,7 +1316,8 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     ASSERT(function.HasCode());
     // Don't do OSR on intrinsified functions: The intrinsic code expects to be
     // called like a regular function and can't be entered via OSR.
-    if (!CanOptimizeFunction(function, thread) || function.is_intrinsic()) {
+    if (!Compiler::CanOptimizeFunction(thread, function) ||
+        function.is_intrinsic()) {
       return;
     }
 
@@ -1434,7 +1387,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(!function.IsNull());
   ASSERT(function.HasCode());
 
-  if (CanOptimizeFunction(function, thread)) {
+  if (Compiler::CanOptimizeFunction(thread, function)) {
     if (FLAG_background_compilation) {
       Field& field = Field::Handle(zone, isolate->GetDeoptimizingBoxedField());
       while (!field.IsNull()) {
@@ -1451,6 +1404,9 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     if (FLAG_background_compilation) {
       if (FLAG_enable_inlining_annotations) {
         FATAL("Cannot enable inlining annotations and background compilation");
+      }
+      if (FLAG_background_compilation_stop_alot) {
+        BackgroundCompiler::Stop(isolate);
       }
       // Reduce the chance of triggering optimization while the function is
       // being optimized in the background. INT_MIN should ensure that it takes

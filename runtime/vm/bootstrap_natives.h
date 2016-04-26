@@ -45,7 +45,6 @@ namespace dart {
   V(Integer_equalToInteger, 2)                                                 \
   V(Integer_fromEnvironment, 3)                                                \
   V(Integer_parse, 1)                                                          \
-  V(Integer_leftShiftWithMask32, 3)                                            \
   V(Bool_fromEnvironment, 3)                                                   \
   V(CapabilityImpl_factory, 1)                                                 \
   V(CapabilityImpl_equals, 2)                                                  \

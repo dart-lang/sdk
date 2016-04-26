@@ -51,9 +51,6 @@ class ScannerOptions {
   final bool canUseNative;
 
   const ScannerOptions({this.canUseNative: false});
-
-  ScannerOptions.from(Compiler compiler, LibraryElement libraryElement)
-      : canUseNative = compiler.backend.canLibraryUseNative(libraryElement);
 }
 
 /**
@@ -368,10 +365,10 @@ class ElementListener extends Listener {
     pushNode(null);
   }
 
-  void endTypeVariable(Token token) {
+  void endTypeVariable(Token token, Token extendsOrSuper) {
     TypeAnnotation bound = popNode();
     Identifier name = popNode();
-    pushNode(new TypeVariable(name, bound));
+    pushNode(new TypeVariable(name, extendsOrSuper, bound));
     rejectBuiltInIdentifier(name);
   }
 

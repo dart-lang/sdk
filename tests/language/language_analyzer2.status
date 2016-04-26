@@ -520,5 +520,6 @@ for_in_side_effects_test: StaticWarning, OK # Test uses custom class that does n
 
 # Experimental feature: Syntactic support for generic methods.
 generic_functions_test: CompileTimeError # Issue 25868
+generic_local_functions_test: CompileTimeError # Issue 25868
 generic_methods_test: CompileTimeError # Issue 25868
 generic_sends_test: CompileTimeError # Issue 25868

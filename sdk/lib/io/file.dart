@@ -751,7 +751,7 @@ abstract class RandomAccessFile {
    * already unlocked".
    */
   Future<RandomAccessFile> lock(
-      [FileLock mode = FileLock.EXCLUSIVE, int start = 0, int end]);
+      [FileLock mode = FileLock.EXCLUSIVE, int start = 0, int end = -1]);
 
   /**
    * Synchronously locks the file or part of the file.
@@ -784,7 +784,8 @@ abstract class RandomAccessFile {
    * already unlocked".
    *
    */
-  void lockSync([FileLock mode = FileLock.EXCLUSIVE, int start = 0, int end]);
+  void lockSync(
+      [FileLock mode = FileLock.EXCLUSIVE, int start = 0, int end = -1]);
 
   /**
    * Unlocks the file or part of the file.
@@ -800,7 +801,7 @@ abstract class RandomAccessFile {
    *
    * See [lock] for more details.
    */
-  Future<RandomAccessFile> unlock([int start = 0, int end]);
+  Future<RandomAccessFile> unlock([int start = 0, int end = -1]);
 
   /**
    * Synchronously unlocks the file or part of the file.
@@ -816,7 +817,7 @@ abstract class RandomAccessFile {
    *
    * See [lockSync] for more details.
    */
-  void unlockSync([int start = 0, int end]);
+  void unlockSync([int start = 0, int end = -1]);
 
   /**
    * Returns a human-readable string for this RandomAccessFile instance.

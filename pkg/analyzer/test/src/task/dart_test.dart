@@ -3202,7 +3202,7 @@ class ParseDartTaskTest extends _AbstractDartTaskTest {
     _performParseTask(r'''
 part of lib;
 class B {}''');
-    expect(outputs, hasLength(9));
+    expect(outputs, hasLength(10));
     expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
@@ -3212,6 +3212,7 @@ class B {}''');
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[SOURCE_KIND], SourceKind.PART);
     expect(outputs[UNITS], hasLength(1));
+    expect(outputs[REFERENCED_SOURCES], hasLength(2));
   }
 
   test_perform_computeSourceKind_noDirectives_hasContainingLibrary() {
@@ -3236,7 +3237,7 @@ part 'test.dart';
 
   test_perform_doesNotExist() {
     _performParseTask(null);
-    expect(outputs, hasLength(9));
+    expect(outputs, hasLength(10));
     expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
@@ -3246,6 +3247,7 @@ part 'test.dart';
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
     expect(outputs[UNITS], hasLength(1));
+    expect(outputs[REFERENCED_SOURCES], hasLength(2));
   }
 
   test_perform_enableAsync_false() {
@@ -3255,7 +3257,7 @@ part 'test.dart';
     _performParseTask(r'''
 import 'dart:async';
 class B {void foo() async {}}''');
-    expect(outputs, hasLength(9));
+    expect(outputs, hasLength(10));
     expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
@@ -3265,13 +3267,14 @@ class B {void foo() async {}}''');
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
     expect(outputs[UNITS], hasLength(1));
+    expect(outputs[REFERENCED_SOURCES], hasLength(3));
   }
 
   test_perform_enableAsync_true() {
     _performParseTask(r'''
 import 'dart:async';
 class B {void foo() async {}}''');
-    expect(outputs, hasLength(9));
+    expect(outputs, hasLength(10));
     expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
@@ -3281,6 +3284,7 @@ class B {void foo() async {}}''');
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
     expect(outputs[UNITS], hasLength(1));
+    expect(outputs[REFERENCED_SOURCES], hasLength(3));
   }
 
   test_perform_flushTokenStream() {
@@ -3298,7 +3302,7 @@ import '://invaliduri.dart';
 export '${a}lib3.dart';
 part 'part.dart';
 class A {}''');
-    expect(outputs, hasLength(9));
+    expect(outputs, hasLength(10));
     expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
@@ -3308,6 +3312,7 @@ class A {}''');
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
     expect(outputs[UNITS], hasLength(2));
+    expect(outputs[REFERENCED_SOURCES], hasLength(4));
   }
 
   test_perform_library() {
@@ -3317,7 +3322,7 @@ import 'lib2.dart';
 export 'lib3.dart';
 part 'part.dart';
 class A {''');
-    expect(outputs, hasLength(9));
+    expect(outputs, hasLength(10));
     expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(1));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
@@ -3327,6 +3332,7 @@ class A {''');
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
     expect(outputs[UNITS], hasLength(2));
+    expect(outputs[REFERENCED_SOURCES], hasLength(5));
   }
 
   test_perform_library_selfReferenceAsPart() {
@@ -3341,7 +3347,7 @@ part 'test.dart';
     _performParseTask(r'''
 part of lib;
 class B {}''');
-    expect(outputs, hasLength(9));
+    expect(outputs, hasLength(10));
     expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
     expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
     _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
@@ -3351,6 +3357,7 @@ class B {}''');
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[SOURCE_KIND], SourceKind.PART);
     expect(outputs[UNITS], hasLength(1));
+    expect(outputs[REFERENCED_SOURCES], hasLength(2));
   }
 
   void _performParseTask(String content) {

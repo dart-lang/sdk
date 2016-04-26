@@ -14,20 +14,19 @@ import '../elements/elements.dart'
         AstElement,
         ClassElement,
         Element,
-        ErroneousElement,
         FunctionElement,
         FunctionSignature,
-        LocalFunctionElement,
         MetadataAnnotation,
-        MethodElement,
         ResolvedAst,
-        TypedefElement,
-        TypeVariableElement;
+        TypedefElement;
 import '../enqueue.dart' show ResolutionEnqueuer;
 import '../options.dart' show ParserOptions;
 import '../parser/element_listener.dart' show ScannerOptions;
-import '../tree/tree.dart' show AsyncForIn, Send, TypeAnnotation;
+import '../parser/parser_task.dart';
+import '../patch_parser.dart';
+import '../tree/tree.dart' show TypeAnnotation;
 import '../universe/world_impact.dart' show WorldImpact;
+import 'backend_api.dart';
 import 'work.dart' show ItemCompilationContext, WorkItem;
 
 /// [WorkItem] used exclusively by the [ResolutionEnqueuer].
@@ -186,9 +185,19 @@ class ListLiteralUse {
   }
 }
 
+/// Interface for the accessing the front-end analysis.
+// TODO(johnniwinther): Find a better name for this.
+abstract class Frontend {
+  /// Returns the `ResolvedAst` for the [element].
+  ResolvedAst getResolvedAst(Element element);
+
+  /// Returns the [ResolutionImpact] for [element].
+  ResolutionImpact getResolutionImpact(Element element);
+}
+
 // TODO(johnniwinther): Rename to `Resolver` or `ResolverContext`.
-abstract class Resolution {
-  Parsing get parsing;
+abstract class Resolution implements Frontend {
+  ParsingContext get parsingContext;
   DiagnosticReporter get reporter;
   CoreTypes get coreTypes;
 
@@ -203,7 +212,14 @@ abstract class Resolution {
   FunctionSignature resolveSignature(FunctionElement function);
   DartType resolveTypeAnnotation(Element element, TypeAnnotation node);
 
+  /// Returns `true` if [element] has been resolved.
+  // TODO(johnniwinther): Normalize semantics between normal and deserialized
+  // elements; deserialized elements are always resolved but the method will
+  // return `false`.
   bool hasBeenResolved(Element element);
+
+  /// Resolve [element] if it has not already been resolved.
+  void ensureResolved(Element element);
 
   ResolutionWorkItem createWorkItem(
       Element element, ItemCompilationContext compilationContext);
@@ -220,6 +236,9 @@ abstract class Resolution {
   /// Returns the precomputed [ResolutionImpact] for [element].
   ResolutionImpact getResolutionImpact(Element element);
 
+  /// Returns the [ResolvedAst] for [element], computing it if necessary.
+  ResolvedAst computeResolvedAst(Element element);
+
   /// Returns the precomputed [WorldImpact] for [element].
   WorldImpact getWorldImpact(Element element);
 
@@ -234,13 +253,59 @@ abstract class Resolution {
   /// Later calls to [getWorldImpact] or [computeWorldImpact] returns an empty
   /// impact.
   void emptyCache();
+
+  void forgetElement(Element element);
 }
 
-// TODO(johnniwinther): Rename to `Parser` or `ParsingContext`.
-abstract class Parsing {
+/// A container of commonly used dependencies for tasks that involve parsing.
+abstract class ParsingContext {
+  factory ParsingContext(
+      DiagnosticReporter reporter,
+      ParserOptions parserOptions,
+      ParserTask parser,
+      PatchParserTask patchParser,
+      Backend backend) = _ParsingContext;
+
   DiagnosticReporter get reporter;
-  void parsePatchClass(ClassElement cls);
-  measure(f());
-  ScannerOptions getScannerOptionsFor(Element element);
   ParserOptions get parserOptions;
+  ParserTask get parser;
+  PatchParserTask get patchParser;
+
+  /// Use [patchParser] directly instead.
+  @deprecated
+  void parsePatchClass(ClassElement cls);
+
+  /// Use [parser] and measure directly instead.
+  @deprecated
+  measure(f());
+
+  /// Get the [ScannerOptions] to scan the given [element].
+  ScannerOptions getScannerOptionsFor(Element element);
+}
+
+class _ParsingContext implements ParsingContext {
+  final DiagnosticReporter reporter;
+  final ParserOptions parserOptions;
+  final ParserTask parser;
+  final PatchParserTask patchParser;
+  final Backend backend;
+
+  _ParsingContext(this.reporter, this.parserOptions, this.parser,
+      this.patchParser, this.backend);
+
+  @override
+  measure(f()) => parser.measure(f);
+
+  @override
+  void parsePatchClass(ClassElement cls) {
+    patchParser.measure(() {
+      if (cls.isPatch) {
+        patchParser.parsePatchClassNode(cls);
+      }
+    });
+  }
+
+  @override
+  ScannerOptions getScannerOptionsFor(Element element) => new ScannerOptions(
+      canUseNative: backend.canLibraryUseNative(element.library));
 }

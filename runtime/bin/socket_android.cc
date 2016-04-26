@@ -331,11 +331,21 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
 }
 
 
+bool Socket::ListInterfacesSupported() {
+  return false;
+}
+
+
 AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
     int type,
     OSError** os_error) {
   // The ifaddrs.h header is not provided on Android.  An Android
   // implementation would have to use IOCTL or netlink.
+  ASSERT(*os_error == NULL);
+  *os_error = new OSError(-1,
+                          "Listing interfaces is not supported "
+                          "on this platform",
+                          OSError::kSystem);
   return NULL;
 }
 

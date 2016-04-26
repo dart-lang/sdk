@@ -148,7 +148,9 @@ class TestOptionsParser {
             'simarmv6',
             'simarmv5te',
             'simarm64',
-            'simmips'
+            'simmips',
+            'simdbc',
+            'simdbc64',
           ],
           'x64'),
       new _TestOptionSpecification(
@@ -182,6 +184,9 @@ class TestOptionsParser {
           type: 'bool'),
       new _TestOptionSpecification(
           'noopt', 'Run an in-place precompilation', ['--noopt'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'use_blobs', 'Use mmap instead of shared libraries for precompilation', ['--use-blobs'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
           'timeout', 'Timeout in seconds', ['-t', '--timeout'], [], -1,

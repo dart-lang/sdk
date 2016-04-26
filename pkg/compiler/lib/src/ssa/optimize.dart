@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
+import '../common/codegen.dart' show CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
@@ -20,13 +20,12 @@ import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
 import '../world.dart' show ClassWorld, World;
-
+import 'interceptor_simplifier.dart';
 import 'nodes.dart';
-import 'types_propagation.dart';
 import 'types.dart';
+import 'types_propagation.dart';
 import 'value_range_analyzer.dart';
 import 'value_set.dart';
-import 'interceptor_simplifier.dart';
 
 abstract class OptimizationPhase {
   String get name;

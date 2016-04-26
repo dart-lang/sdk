@@ -81,6 +81,8 @@ class Compiler : public AllStatic {
   static const intptr_t kNoOSRDeoptId = Thread::kNoDeoptId;
 
   static bool IsBackgroundCompilation();
+  // The result for a function may change if debugging gets turned on/off.
+  static bool CanOptimizeFunction(Thread* thread, const Function& function);
 
   // Extracts top level entities from the script and populates
   // the class dictionary of the library.
@@ -146,8 +148,7 @@ class Compiler : public AllStatic {
   // because the mutator thread changed the state (e.g., deoptimization,
   // deferred loading). The background compilation may retry to compile
   // the same function later.
-  static void AbortBackgroundCompilation(intptr_t deopt_id,
-                                         const char* msg = "");
+  static void AbortBackgroundCompilation(intptr_t deopt_id, const char* msg);
 };
 
 

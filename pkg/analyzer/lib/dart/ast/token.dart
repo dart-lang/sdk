@@ -250,6 +250,11 @@ abstract class Token {
   bool get isUserDefinableOperator;
 
   /**
+   * Return the keyword, if a keyword token, or `null` otherwise.
+   */
+  Keyword get keyword;
+
+  /**
    * Return the number of characters in the node's source range.
    */
   int get length;

@@ -231,6 +231,8 @@ CLASS_LIST_TYPED_DATA(V)
   friend class object;                                                         \
   friend class RawObject;                                                      \
   friend class Heap;                                                           \
+  friend class Simulator;                                                      \
+  friend class SimulatorHelpers;                                               \
   DISALLOW_ALLOCATION();                                                       \
   DISALLOW_IMPLICIT_CONSTRUCTORS(Raw##object)
 
@@ -654,7 +656,8 @@ class RawObject {
   friend class RetainingPathVisitor;  // GetClassId
   friend class SkippedCodeFunctions;  // StorePointer
   friend class InstructionsReader;  // tags_ check
-  friend class InstructionsWriter;
+  friend class AssemblyInstructionsWriter;
+  friend class BlobInstructionsWriter;
   friend class SnapshotReader;
   friend class SnapshotWriter;
   friend class String;
@@ -665,6 +668,8 @@ class RawObject {
   friend class StackFrame;  // GetCodeObject assertion.
   friend class CodeLookupTableBuilder;  // profiler
   friend class NativeEntry;  // GetClassId
+  friend class Simulator;
+  friend class SimulatorHelpers;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -1025,14 +1030,12 @@ class RawLibrary : public RawObject {
   RawGrowableObjectArray* patch_classes_;
   RawArray* imports_;            // List of Namespaces imported without prefix.
   RawArray* exports_;            // List of re-exported Namespaces.
-  RawArray* exports2_;           // Copy of exports_, used by background
-                                 // compiler to detect cycles without colliding
-                                 // with mutator thread lookups.
   RawInstance* load_error_;      // Error iff load_state_ == kLoadError.
   RawObject** to_snapshot() {
     return reinterpret_cast<RawObject**>(&ptr()->load_error_);
   }
   RawArray* resolved_names_;     // Cache of resolved names in library scope.
+  RawArray* exported_names_;     // Cache of exported names by library.
   RawArray* loaded_scripts_;     // Array of scripts loaded in this library.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->loaded_scripts_);

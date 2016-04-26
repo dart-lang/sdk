@@ -97,7 +97,6 @@ _removed_html_interfaces = [
   'HTMLFrameSetElement',
   'HTMLMarqueeElement',
   'IDBAny',
-  'MutationEvent',
   'Notation',
   'PagePopupController',
   'RGBColor',
@@ -242,11 +241,14 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Document.title',
   'Document.webkitCancelFullScreen',
   'Document.webkitExitFullscreen',
+   # Not prefixed.
   'Document.webkitFullscreenElement',
   'Document.webkitFullscreenEnabled',
   'Document.webkitHidden',
   'Document.webkitIsFullScreen',
   'Document.webkitVisibilityState',
+   # Not prefixed but requires custom implementation for cross-browser compatibility.
+  'Document.visibilityState',
 
   'Element.animate',
   'Element.children',
@@ -318,13 +320,10 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'MouseEvent.clientY',
   'MouseEvent.movementX',
   'MouseEvent.movementY',
-  'MouseEvent.webkitMovementX',
-  'MouseEvent.webkitMovementY',
   'MouseEvent.offsetX',
   'MouseEvent.offsetY',
   'MouseEvent.screenX',
   'MouseEvent.screenY',
-  'MutationEvent.initMutationEvent',
   'MutationObserver.observe',
   'Node.attributes',
   'Node.localName',
@@ -511,6 +510,7 @@ for member in convert_to_future_members:
 # subclasses.
 # TODO(jacobr): cleanup and augment this list.
 removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
+    'Attr.textContent', # Not needed as it is the same as Node.textContent.
     'AudioBufferSourceNode.looping', # TODO(vsm): Use deprecated IDL annotation
     'CSSStyleDeclaration.getPropertyCSSValue',
     'CanvasRenderingContext2D.clearShadow',
@@ -768,6 +768,8 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'MessageEvent.data',
     'MessageEvent.ports',
     'MessageEvent.webkitInitMessageEvent',
+    'MouseEvent.webkitMovementX',
+    'MouseEvent.webkitMovementY',
     'MouseEvent.x',
     'MouseEvent.y',
     'Navigator.registerServiceWorker',
