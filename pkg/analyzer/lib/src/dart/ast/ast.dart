@@ -8204,6 +8204,13 @@ class PrefixedIdentifierImpl extends IdentifierImpl
     _identifier = _becomeParentOf(identifier);
   }
 
+  /**
+   * Initialize a newly created prefixed identifier that does not take ownership
+   * of the components. The resulting node is only for temporary use, such as by
+   * resolution.
+   */
+  PrefixedIdentifierImpl.temp(this._prefix, this._identifier) : period = null;
+
   @override
   Token get beginToken => _prefix.beginToken;
 

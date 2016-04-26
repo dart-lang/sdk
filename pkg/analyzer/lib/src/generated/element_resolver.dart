@@ -12,7 +12,12 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
-    show ChildEntities, IdentifierImpl;
+    show
+        ChildEntities,
+        IdentifierImpl,
+        PrefixedIdentifierImpl,
+        SimpleIdentifierImpl;
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -879,8 +884,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (prefixElement is PrefixElement) {
       Element element = _resolver.nameScope.lookup(node, _definingLibrary);
       if (element == null && identifier.inSetterContext()) {
-        element = _resolver.nameScope.lookup(
-            new SyntheticIdentifier("${node.name}=", node), _definingLibrary);
+        Identifier setterName = new PrefixedIdentifierImpl.temp(
+            node.prefix,
+            new SimpleIdentifierImpl(new StringToken(TokenType.STRING,
+                "${node.identifier.name}=", node.identifier.offset - 1)));
+        element = _resolver.nameScope.lookup(setterName, _definingLibrary);
       }
       if (element == null) {
         if (identifier.inSetterContext()) {
@@ -1379,8 +1387,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     for (ImportElement importElement in _definingLibrary.imports) {
       PrefixElement prefixElement = importElement.prefix;
       if (prefixElement != null) {
-        Identifier prefixedIdentifier = new SyntheticIdentifier(
-            "${prefixElement.name}.${identifier.name}", identifier);
+        Identifier prefixedIdentifier = new PrefixedIdentifierImpl.temp(
+            new SimpleIdentifierImpl(new StringToken(TokenType.STRING,
+                prefixElement.name, prefixElement.nameOffset)),
+            identifier);
         Element importedElement =
             nameScope.lookup(prefixedIdentifier, _definingLibrary);
         if (importedElement != null) {
@@ -2183,8 +2193,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         // prefixed identifier for an imported top-level function or top-level
         // getter that returns a function.
         //
-        String name = "${target.name}.$methodName";
-        Identifier functionName = new SyntheticIdentifier(name, methodName);
+        Identifier functionName =
+            new PrefixedIdentifierImpl.temp(target, methodName);
         Element element =
             _resolver.nameScope.lookup(functionName, _definingLibrary);
         if (element != null) {

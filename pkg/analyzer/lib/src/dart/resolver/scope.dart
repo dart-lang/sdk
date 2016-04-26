@@ -128,6 +128,13 @@ class EnclosedScope extends Scope {
     // Check enclosing scope.
     return enclosingScope.internalLookup(identifier, name, referencingLibrary);
   }
+
+  @override
+  Element _internalLookupPrefixed(Identifier identifier, String prefix,
+      String name, LibraryElement referencingLibrary) {
+    return enclosingScope._internalLookupPrefixed(
+        identifier, prefix, name, referencingLibrary);
+  }
 }
 
 /**
@@ -347,6 +354,12 @@ class LibraryImportScope extends Scope {
   List<Namespace> _importedNamespaces;
 
   /**
+   * A table mapping prefixes that have been referenced to a map from the names
+   * that have been referenced to the element associated with the prefixed name.
+   */
+  Map<String, Map<String, Element>> _definedPrefixedNames;
+
+  /**
    * Initialize a newly created scope representing the names imported into the
    * [_definingLibrary]. The [errorListener] is the listener that is to be
    * informed when an error is encountered.
@@ -436,6 +449,18 @@ class LibraryImportScope extends Scope {
   }
 
   /**
+   * Add the given [element] to this scope without checking for duplication or
+   * hiding.
+   */
+  void _definePrefixedNameWithoutChecking(
+      String prefix, String name, Element element) {
+    _definedPrefixedNames ??= new HashMap<String, Map<String, Element>>();
+    Map<String, Element> unprefixedNames = _definedPrefixedNames.putIfAbsent(
+        prefix, () => new HashMap<String, Element>());
+    unprefixedNames[name] = element;
+  }
+
+  /**
    * Return the name of the library that defines given [element].
    */
   String _getLibraryName(Element element) {
@@ -480,6 +505,68 @@ class LibraryImportScope extends Scope {
       buffer.write(")");
     }
     return buffer.toString();
+  }
+
+  @override
+  Element _internalLookupPrefixed(Identifier identifier, String prefix,
+      String name, LibraryElement referencingLibrary) {
+    Element foundElement = _localPrefixedLookup(prefix, name);
+    if (foundElement != null) {
+      return foundElement;
+    }
+    for (int i = 0; i < _importedNamespaces.length; i++) {
+      Namespace nameSpace = _importedNamespaces[i];
+      Element element = nameSpace.getPrefixed(prefix, name);
+      if (element != null) {
+        if (foundElement == null) {
+          foundElement = element;
+        } else if (!identical(foundElement, element)) {
+          foundElement = MultiplyDefinedElementImpl.fromElements(
+              _definingLibrary.context, foundElement, element);
+        }
+      }
+    }
+    Element element = foundElement;
+    if (element is MultiplyDefinedElementImpl) {
+      foundElement = _removeSdkElements(identifier, name, element);
+    }
+    if (foundElement is MultiplyDefinedElementImpl) {
+      String foundEltName = foundElement.displayName;
+      List<Element> conflictingMembers = foundElement.conflictingElements;
+      int count = conflictingMembers.length;
+      List<String> libraryNames = new List<String>(count);
+      for (int i = 0; i < count; i++) {
+        libraryNames[i] = _getLibraryName(conflictingMembers[i]);
+      }
+      libraryNames.sort();
+      errorListener.onError(new AnalysisError(
+          getSource(identifier),
+          identifier.offset,
+          identifier.length,
+          StaticWarningCode.AMBIGUOUS_IMPORT, [
+        foundEltName,
+        StringUtilities.printListOfQuotedNames(libraryNames)
+      ]));
+      return foundElement;
+    }
+    if (foundElement != null) {
+      _definePrefixedNameWithoutChecking(prefix, name, foundElement);
+    }
+    return foundElement;
+  }
+
+  /**
+   * Return the element with which the given [prefix] and [name] are associated,
+   * or `null` if the name is not defined within this scope.
+   */
+  Element _localPrefixedLookup(String prefix, String name) {
+    if (_definedPrefixedNames != null) {
+      Map<String, Element> unprefixedNames = _definedPrefixedNames[prefix];
+      if (unprefixedNames != null) {
+        return unprefixedNames[name];
+      }
+    }
+    return null;
   }
 
   /**
@@ -630,9 +717,16 @@ class Namespace {
 
   /**
    * Return the element in this namespace that is available to the containing
-   * scope using the given name.
+   * scope using the given name, or `null` if there is no such element.
    */
   Element get(String name) => _definedNames[name];
+
+  /**
+   * Return the element in this namespace whose name is the result of combining
+   * the [prefix] and the [name], separated by a period, or `null` if there is
+   * no such element.
+   */
+  Element getPrefixed(String prefix, String name) => null;
 }
 
 /**
@@ -679,7 +773,10 @@ class NamespaceBuilder {
     }
     HashMap<String, Element> exportedNames = _getExportMapping(importedLibrary);
     exportedNames = _applyCombinators(exportedNames, element.combinators);
-    exportedNames = _applyPrefix(exportedNames, element.prefix);
+    PrefixElement prefix = element.prefix;
+    if (prefix != null) {
+      return new PrefixedNamespace(prefix.name, exportedNames);
+    }
     return new Namespace(exportedNames);
   }
 
@@ -765,24 +862,6 @@ class NamespaceBuilder {
   }
 
   /**
-   * Apply the prefix defined by the [prefixElement] to all of the names in the
-   * table of [definedNames].
-   */
-  HashMap<String, Element> _applyPrefix(
-      HashMap<String, Element> definedNames, PrefixElement prefixElement) {
-    if (prefixElement != null) {
-      String prefix = prefixElement.name;
-      HashMap<String, Element> newNames = new HashMap<String, Element>();
-      definedNames.forEach((String name, Element element) {
-        newNames["$prefix.$name"] = element;
-      });
-      return newNames;
-    } else {
-      return definedNames;
-    }
-  }
-
-  /**
    * Create a mapping table representing the export namespace of the given
    * [library]. The set of [visitedElements] contains the libraries that do not
    * need to be visited when processing the export directives of the given
@@ -865,6 +944,64 @@ class NamespaceBuilder {
       }
     }
     return newNames;
+  }
+}
+
+/**
+ * A mapping of identifiers to the elements represented by those identifiers.
+ * Namespaces are the building blocks for scopes.
+ */
+class PrefixedNamespace implements Namespace {
+  /**
+   * The prefix that is prepended to each of the defined names.
+   */
+  final String _prefix;
+
+  /**
+   * The length of the prefix.
+   */
+  final int _length;
+
+  /**
+   * A table mapping names that are defined in this namespace to the element
+   * representing the thing declared with that name.
+   */
+  final HashMap<String, Element> _definedNames;
+
+  /**
+   * Initialize a newly created namespace to have the names resulting from
+   * prefixing each of the [_definedNames] with the given [_prefix] (and a
+   * period).
+   */
+  PrefixedNamespace(String prefix, this._definedNames)
+      : _prefix = prefix,
+        _length = prefix.length;
+
+  @override
+  Map<String, Element> get definedNames {
+    Map<String, Element> definedNames = <String, Element>{};
+    _definedNames.forEach((String name, Element element) {
+      definedNames["$_prefix.$name"] = element;
+    });
+    return definedNames;
+  }
+
+  @override
+  Element get(String name) {
+    if (name.startsWith(_prefix)) {
+      if (name.codeUnitAt(_length) == '.'.codeUnitAt(0)) {
+        return _definedNames[name.substring(_length + 1)];
+      }
+    }
+    return null;
+  }
+
+  @override
+  Element getPrefixed(String prefix, String name) {
+    if (prefix == _prefix) {
+      return _definedNames[name];
+    }
+    return null;
   }
 }
 
@@ -1009,8 +1146,13 @@ abstract class Scope {
    * [referencingLibrary] is the library that contains the reference to the
    * name, used to implement library-level privacy.
    */
-  Element lookup(Identifier identifier, LibraryElement referencingLibrary) =>
-      internalLookup(identifier, identifier.name, referencingLibrary);
+  Element lookup(Identifier identifier, LibraryElement referencingLibrary) {
+    if (identifier is PrefixedIdentifier) {
+      return _internalLookupPrefixed(identifier, identifier.prefix.name,
+          identifier.identifier.name, referencingLibrary);
+    }
+    return internalLookup(identifier, identifier.name, referencingLibrary);
+  }
 
   /**
    * Return the name that will be used to look up the given [element].
@@ -1024,6 +1166,17 @@ abstract class Scope {
     }
     return element.name;
   }
+
+  /**
+   * Return the element with which the given [prefix] and [name] are associated,
+   * or `null` if the name is not defined within this scope. The [identifier] is
+   * the identifier node to lookup element for, used to report correct kind of a
+   * problem and associate problem with. The [referencingLibrary] is the library
+   * that contains the reference to the name, used to implement library-level
+   * privacy.
+   */
+  Element _internalLookupPrefixed(Identifier identifier, String prefix,
+      String name, LibraryElement referencingLibrary);
 
   /**
    * Return `true` if the given [name] is a library-private name.
