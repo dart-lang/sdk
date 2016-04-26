@@ -146,7 +146,6 @@ class SingleContextManager implements ContextManager {
   @override
   void refresh(List<Resource> roots) {
     if (context != null) {
-      // TODO(brianwilkerson) Not sure whether this is right.
       callbacks.removeContext(contextFolder, null);
       context.dispose();
       context = null;
