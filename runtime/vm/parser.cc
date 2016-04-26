@@ -11832,7 +11832,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
           }
           // A type parameter cannot be parameterized, so make the type
           // malformed if type arguments have previously been parsed.
-          if (!TypeArguments::Handle(Z, type->arguments()).IsNull()) {
+          if (type->arguments() != TypeArguments::null()) {
             *type = ClassFinalizer::NewFinalizedMalformedType(
                 Error::Handle(Z),  // No previous error.
                 script_,
@@ -11873,12 +11873,13 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
     }
   }
   // Resolve type arguments, if any.
-  const TypeArguments& arguments = TypeArguments::Handle(Z, type->arguments());
-  if (!arguments.IsNull()) {
+  if (type->arguments() != TypeArguments::null()) {
+    const TypeArguments& arguments =
+        TypeArguments::Handle(Z, type->arguments());
     const intptr_t num_arguments = arguments.Length();
+    AbstractType& type_argument = AbstractType::Handle(Z);
     for (intptr_t i = 0; i < num_arguments; i++) {
-      AbstractType& type_argument = AbstractType::Handle(Z,
-                                                         arguments.TypeAt(i));
+      type_argument ^= arguments.TypeAt(i);
       ResolveTypeFromClass(scope_class, finalization, &type_argument);
       arguments.SetTypeAt(i, type_argument);
     }

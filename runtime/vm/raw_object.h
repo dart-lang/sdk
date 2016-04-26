@@ -661,6 +661,7 @@ class RawObject {
   friend class SnapshotReader;
   friend class SnapshotWriter;
   friend class String;
+  friend class Type;  // GetClassId
   friend class TypedData;
   friend class TypedDataView;
   friend class WeakProperty;  // StorePointer

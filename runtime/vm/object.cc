@@ -16340,14 +16340,13 @@ void Type::SetIsResolved() const {
 
 
 bool Type::HasResolvedTypeClass() const {
-  const Object& type_class = Object::Handle(raw_ptr()->type_class_);
-  return !type_class.IsNull() && type_class.IsClass();
+  return (raw_ptr()->type_class_->GetClassId() == kClassCid);
 }
 
 
 RawClass* Type::type_class() const {
-  ASSERT(HasResolvedTypeClass());
 #ifdef DEBUG
+  ASSERT(HasResolvedTypeClass());
   Class& type_class = Class::Handle();
   type_class ^= raw_ptr()->type_class_;
   return type_class.raw();
@@ -16358,8 +16357,8 @@ RawClass* Type::type_class() const {
 
 
 RawUnresolvedClass* Type::unresolved_class() const {
-  ASSERT(!HasResolvedTypeClass());
 #ifdef DEBUG
+  ASSERT(!HasResolvedTypeClass());
   UnresolvedClass& unresolved_class = UnresolvedClass::Handle();
   unresolved_class ^= raw_ptr()->type_class_;
   ASSERT(!unresolved_class.IsNull());
@@ -16496,7 +16495,7 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   if (arguments() != other_type.arguments()) {
-  const Class& cls = Class::Handle(zone, type_class());
+    const Class& cls = Class::Handle(zone, type_class());
     const intptr_t num_type_params = cls.NumTypeParameters(thread);
     // Shortcut unnecessary handle allocation below if non-generic.
     if (num_type_params > 0) {
