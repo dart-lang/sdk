@@ -246,16 +246,22 @@ class InferredTypeCollector {
       }
       Uri libraryUri = Uri.parse(libraryUriString);
       UnlinkedUnit definingUnlinkedUnit = unlinkedUnits[libraryUriString];
-      visitUnit(definingUnlinkedUnit, linkedLibrary.units[0], libraryUriString);
-      for (int i = 0;
-          i < definingUnlinkedUnit.publicNamespace.parts.length;
-          i++) {
-        Uri relativePartUri =
-            Uri.parse(definingUnlinkedUnit.publicNamespace.parts[i]);
-        String unitUriString =
-            resolveRelativeUri(libraryUri, relativePartUri).toString();
-        visitUnit(unlinkedUnits[unitUriString], linkedLibrary.units[i + 1],
-            libraryUriString);
+      if (definingUnlinkedUnit != null) {
+        visitUnit(
+            definingUnlinkedUnit, linkedLibrary.units[0], libraryUriString);
+        for (int i = 0;
+            i < definingUnlinkedUnit.publicNamespace.parts.length;
+            i++) {
+          Uri relativePartUri =
+              Uri.parse(definingUnlinkedUnit.publicNamespace.parts[i]);
+          String unitUriString =
+              resolveRelativeUri(libraryUri, relativePartUri).toString();
+          UnlinkedUnit unlinkedUnit = unlinkedUnits[unitUriString];
+          if (unlinkedUnit != null) {
+            visitUnit(
+                unlinkedUnit, linkedLibrary.units[i + 1], libraryUriString);
+          }
+        }
       }
     });
   }
