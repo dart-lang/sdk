@@ -1386,6 +1386,7 @@ void Isolate::Run() {
 
 
 void Isolate::AddClosureFunction(const Function& function) const {
+  ASSERT(!Compiler::IsBackgroundCompilation());
   GrowableObjectArray& closures =
       GrowableObjectArray::Handle(object_store()->closure_functions());
   ASSERT(!closures.IsNull());
