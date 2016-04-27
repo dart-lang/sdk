@@ -151,9 +151,16 @@ enum SerializeState {
 class Snapshot {
  public:
   enum Kind {
-    kFull = 0,  // Full snapshot of the current dart heap.
-    kScript,    // A partial snapshot of only the application script.
-    kMessage,   // A partial snapshot used only for isolate messaging.
+    kCore = 0,    // Full snapshot of core libraries. No root library, no code.
+    kAppWithJIT,  // Full snapshot of core libraries and application. Has some
+                  // code, but may compile in the future because we haven't
+                  // necessarily included code for every function or to
+                  // (de)optimize.
+    kAppNoJIT,    // Full snapshot of core libraries and application. Has
+                  // complete code for the application that never deopts. Will
+                  // not compile in the future.
+    kScript,      // A partial snapshot of only the application script.
+    kMessage,     // A partial snapshot used only for isolate messaging.
   };
 
   static const int kHeaderSize = 2 * sizeof(int64_t);
@@ -171,9 +178,18 @@ class Snapshot {
     return static_cast<Kind>(ReadUnaligned(&unaligned_kind_));
   }
 
+  static bool IsFull(Kind kind) {
+    return (kind == kCore) || (kind == kAppWithJIT) || (kind == kAppNoJIT);
+  }
+  static bool IncludesCode(Kind kind) {
+    return (kind == kAppWithJIT) || (kind == kAppNoJIT);
+  }
+
   bool IsMessageSnapshot() const { return kind() == kMessage; }
   bool IsScriptSnapshot() const { return kind() == kScript; }
-  bool IsFullSnapshot() const { return kind() == kFull; }
+  bool IsCoreSnapshot() const { return kind() == kCore; }
+  bool IsAppSnapshotWithJIT() const { return kind() == kAppWithJIT; }
+  bool IsAppSnapshotNoJIT() const { return kind() == kAppNoJIT; }
   uint8_t* Addr() { return reinterpret_cast<uint8_t*>(this); }
 
   static intptr_t length_offset() {
@@ -403,7 +419,6 @@ class SnapshotReader : public BaseReader {
   Function* FunctionHandle() { return &function_; }
   MegamorphicCache* MegamorphicCacheHandle() { return &megamorphic_cache_; }
   Snapshot::Kind kind() const { return kind_; }
-  bool snapshot_code() const { return snapshot_code_; }
 
   // Reads an object.
   RawObject* ReadObject();
@@ -567,7 +582,6 @@ class SnapshotReader : public BaseReader {
   bool is_vm_isolate() const;
 
   Snapshot::Kind kind_;  // Indicates type of snapshot(full, script, message).
-  bool snapshot_code_;
   Thread* thread_;  // Current thread.
   Zone* zone_;  // Zone for allocations while reading snapshot.
   Heap* heap_;  // Heap of the current isolate.
@@ -641,7 +655,8 @@ class SnapshotReader : public BaseReader {
 
 class VmIsolateSnapshotReader : public SnapshotReader {
  public:
-  VmIsolateSnapshotReader(const uint8_t* buffer,
+  VmIsolateSnapshotReader(Snapshot::Kind kind,
+                          const uint8_t* buffer,
                           intptr_t size,
                           const uint8_t* instructions_buffer,
                           const uint8_t* data_buffer,
@@ -657,7 +672,8 @@ class VmIsolateSnapshotReader : public SnapshotReader {
 
 class IsolateSnapshotReader : public SnapshotReader {
  public:
-  IsolateSnapshotReader(const uint8_t* buffer,
+  IsolateSnapshotReader(Snapshot::Kind kind,
+                        const uint8_t* buffer,
                         intptr_t size,
                         const uint8_t* instructions_buffer,
                         const uint8_t* data_buffer,
@@ -962,15 +978,14 @@ class BlobInstructionsWriter : public InstructionsWriter {
 
 class SnapshotWriter : public BaseWriter {
  protected:
-  SnapshotWriter(Snapshot::Kind kind,
-                 Thread* thread,
+  SnapshotWriter(Thread* thread,
+                 Snapshot::Kind kind,
                  uint8_t** buffer,
                  ReAlloc alloc,
                  intptr_t initial_size,
                  ForwardList* forward_list,
                  InstructionsWriter* instructions_writer,
                  bool can_send_any_object,
-                 bool snapshot_code,
                  bool vm_isolate_is_symbolic);
 
  public:
@@ -997,7 +1012,6 @@ class SnapshotWriter : public BaseWriter {
     exception_msg_ = msg;
   }
   bool can_send_any_object() const { return can_send_any_object_; }
-  bool snapshot_code() const { return snapshot_code_; }
   bool vm_isolate_is_symbolic() const { return vm_isolate_is_symbolic_; }
   void ThrowException(Exceptions::ExceptionType type, const char* msg);
 
@@ -1063,8 +1077,8 @@ class SnapshotWriter : public BaseWriter {
   ObjectStore* object_store() const { return object_store_; }
 
  private:
-  Snapshot::Kind kind_;
   Thread* thread_;
+  Snapshot::Kind kind_;
   ObjectStore* object_store_;  // Object store for common classes.
   ClassTable* class_table_;  // Class table for the class index to class lookup.
   ForwardList* forward_list_;
@@ -1073,7 +1087,6 @@ class SnapshotWriter : public BaseWriter {
   const char* exception_msg_;  // Message associated with exception.
   bool unmarked_objects_;  // True if marked objects have been unmarked.
   bool can_send_any_object_;  // True if any Dart instance can be sent.
-  bool snapshot_code_;
   bool vm_isolate_is_symbolic_;
 
   friend class FullSnapshotWriter;
@@ -1111,11 +1124,11 @@ class SnapshotWriter : public BaseWriter {
 class FullSnapshotWriter {
  public:
   static const intptr_t kInitialSize = 64 * KB;
-  FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
+  FullSnapshotWriter(Snapshot::Kind kind,
+                     uint8_t** vm_isolate_snapshot_buffer,
                      uint8_t** isolate_snapshot_buffer,
                      ReAlloc alloc,
                      InstructionsWriter* instructions_writer,
-                     bool snapshot_code,
                      bool vm_isolate_is_symbolic);
   ~FullSnapshotWriter();
 
@@ -1150,6 +1163,7 @@ class FullSnapshotWriter {
   void WriteIsolateFullSnapshot();
 
   Thread* thread_;
+  Snapshot::Kind kind_;
   uint8_t** vm_isolate_snapshot_buffer_;
   uint8_t** isolate_snapshot_buffer_;
   ReAlloc alloc_;
@@ -1159,7 +1173,6 @@ class FullSnapshotWriter {
   InstructionsWriter* instructions_writer_;
   Array& scripts_;
   Array& symbol_table_;
-  bool snapshot_code_;
   bool vm_isolate_is_symbolic_;
 
   DISALLOW_COPY_AND_ASSIGN(FullSnapshotWriter);

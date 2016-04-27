@@ -1493,11 +1493,11 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
   I->heap()->IterateObjects(&check_canonical);
 #endif  // #if defined(DEBUG).
 
-  FullSnapshotWriter writer(vm_isolate_snapshot_buffer,
+  FullSnapshotWriter writer(Snapshot::kCore,
+                            vm_isolate_snapshot_buffer,
                             isolate_snapshot_buffer,
                             ApiReallocate,
                             NULL, /* instructions_writer */
-                            false, /* snapshot_code */
                             true /* vm_isolate_is_symbolic */);
   writer.WriteFullSnapshot();
   *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
