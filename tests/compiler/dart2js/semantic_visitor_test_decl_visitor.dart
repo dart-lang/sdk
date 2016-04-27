@@ -236,7 +236,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_OPTIONAL_PARAMETER_DECL,
         element: parameter,
-        constant: defaultValue != null ? defaultValue.getText() : null,
+        constant: defaultValue != null ? defaultValue.toDartText() : null,
         index: index));
   }
 
@@ -284,7 +284,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       ConstantExpression constant,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_LOCAL_CONSTANT_DECL,
-        element: variable, constant: constant.getText()));
+        element: variable, constant: constant.toDartText()));
   }
 
   @override
@@ -296,7 +296,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_NAMED_INITIALIZING_FORMAL_DECL,
         element: initializingFormal,
-        constant: defaultValue != null ? defaultValue.getText() : null));
+        constant: defaultValue != null ? defaultValue.toDartText() : null));
   }
 
   @override
@@ -308,7 +308,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_NAMED_PARAMETER_DECL,
         element: parameter,
-        constant: defaultValue != null ? defaultValue.getText() : null));
+        constant: defaultValue != null ? defaultValue.toDartText() : null));
   }
 
   @override
@@ -321,7 +321,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_OPTIONAL_INITIALIZING_FORMAL_DECL,
         element: initializingFormal,
-        constant: defaultValue != null ? defaultValue.getText() : null,
+        constant: defaultValue != null ? defaultValue.toDartText() : null,
         index: index));
   }
 
@@ -347,7 +347,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       ConstantExpression constant,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_STATIC_CONSTANT_DECL,
-        element: field, constant: constant.getText()));
+        element: field, constant: constant.toDartText()));
   }
 
   @override
@@ -372,7 +372,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       ConstantExpression constant,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_CONSTANT_DECL,
-        element: field, constant: constant.getText()));
+        element: field, constant: constant.toDartText()));
   }
 
   @override

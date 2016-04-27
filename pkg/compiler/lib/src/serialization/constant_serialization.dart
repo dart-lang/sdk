@@ -170,7 +170,7 @@ class ConstantSerializer
   @override
   void visitDeferred(DeferredConstantExpression exp, ObjectEncoder encoder) {
     throw new UnsupportedError(
-        "ConstantSerializer.visitDeferred: ${exp.getText()}");
+        "ConstantSerializer.visitDeferred: ${exp.toDartText()}");
   }
 }
 

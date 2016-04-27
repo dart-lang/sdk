@@ -73,9 +73,9 @@ class Dart2JsConstantMirror extends Object
 
   String toString() {
     if (_constant != null) {
-      return _constant.getText();
+      return _constant.toDartText();
     } else {
-      return _value.unparse();
+      return _value.toDartText();
     }
   }
 

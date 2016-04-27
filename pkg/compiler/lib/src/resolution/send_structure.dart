@@ -2263,7 +2263,7 @@ class LateConstInvokeStructure<R, A> extends NewStructure<R, A> {
           break;
         default:
           throw new SpannableAssertionFailure(
-              node, "Unexpected constant kind $kind: ${constant.getText()}");
+              node, "Unexpected constant kind $kind: ${constant.toDartText()}");
       }
       return new ConstInvokeStructure(kind, constant);
     }
@@ -2297,7 +2297,7 @@ class LateConstInvokeStructure<R, A> extends NewStructure<R, A> {
               node, constant, arg);
         default:
           throw new SpannableAssertionFailure(
-              node, "Unexpected constant kind $kind: ${constant.getText()}");
+              node, "Unexpected constant kind $kind: ${constant.toDartText()}");
       }
     }
   }

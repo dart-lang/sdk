@@ -1299,8 +1299,9 @@ class SimpleTypeInferrerVisitor<T>
         element.isField &&
         Elements.isStaticOrTopLevelField(element) &&
         compiler.world.fieldNeverChanges(element)) {
+      FieldElement fieldElement = element;
       ConstantValue value =
-          compiler.backend.constants.getConstantValueForVariable(element);
+          compiler.backend.constants.getConstantValue(fieldElement.constant);
       if (value != null && value.isInt) {
         IntConstantValue intValue = value;
         return intValue.primitiveValue;

@@ -129,7 +129,7 @@ class _ResolutionWorldImpact extends ResolutionImpact with WorldImpactBuilder {
     if (_constantLiterals != null) {
       sb.write('\n const-literals:');
       for (ConstantExpression constant in _constantLiterals) {
-        sb.write('\n  ${constant.getText()}');
+        sb.write('\n  ${constant.toDartText()}');
       }
     }
     if (_constSymbolNames != null) {

@@ -1069,12 +1069,12 @@ Future testConstantExpressions() {
       Expect.equals(0, collector.errors.length);
       List<ConstantExpression> constants = elements.constants;
       String constantsText =
-          '[${constants.map((c) => c.getText()).join(', ')}]';
+          '[${constants.map((c) => c.toDartText()).join(', ')}]';
       Expect.equals(expectedConstants.length, constants.length,
           "Expected ${expectedConstants.length} constants for `${constant}` "
           "found $constantsText.");
       for (int index = 0; index < expectedConstants.length; index++) {
-        Expect.equals(expectedConstants[index], constants[index].getText(),
+        Expect.equals(expectedConstants[index], constants[index].toDartText(),
             "Expected ${expectedConstants} for `$constant`, "
             "found $constantsText.");
       }

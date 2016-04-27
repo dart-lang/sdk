@@ -143,51 +143,56 @@ class ResolverTask extends CompilerTask {
     FunctionExpression functionExpression = element.node;
     AsyncModifier asyncModifier = functionExpression.asyncModifier;
     if (asyncModifier != null) {
-      if (asyncModifier.isAsynchronous) {
-        element.asyncMarker = asyncModifier.isYielding
-            ? AsyncMarker.ASYNC_STAR
-            : AsyncMarker.ASYNC;
+      if (!compiler.backend.supportsAsyncAwait) {
+        reporter.reportErrorMessage(functionExpression.asyncModifier,
+            MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
       } else {
-        element.asyncMarker = AsyncMarker.SYNC_STAR;
-      }
-      if (element.isAbstract) {
-        reporter.reportErrorMessage(
-            asyncModifier,
-            MessageKind.ASYNC_MODIFIER_ON_ABSTRACT_METHOD,
-            {'modifier': element.asyncMarker});
-      } else if (element.isConstructor) {
-        reporter.reportErrorMessage(
-            asyncModifier,
-            MessageKind.ASYNC_MODIFIER_ON_CONSTRUCTOR,
-            {'modifier': element.asyncMarker});
-      } else {
-        if (element.isSetter) {
+        if (asyncModifier.isAsynchronous) {
+          element.asyncMarker = asyncModifier.isYielding
+              ? AsyncMarker.ASYNC_STAR
+              : AsyncMarker.ASYNC;
+        } else {
+          element.asyncMarker = AsyncMarker.SYNC_STAR;
+        }
+        if (element.isAbstract) {
           reporter.reportErrorMessage(
               asyncModifier,
-              MessageKind.ASYNC_MODIFIER_ON_SETTER,
+              MessageKind.ASYNC_MODIFIER_ON_ABSTRACT_METHOD,
               {'modifier': element.asyncMarker});
-        }
-        if (functionExpression.body.asReturn() != null &&
-            element.asyncMarker.isYielding) {
+        } else if (element.isConstructor) {
           reporter.reportErrorMessage(
               asyncModifier,
-              MessageKind.YIELDING_MODIFIER_ON_ARROW_BODY,
+              MessageKind.ASYNC_MODIFIER_ON_CONSTRUCTOR,
               {'modifier': element.asyncMarker});
+        } else {
+          if (element.isSetter) {
+            reporter.reportErrorMessage(
+                asyncModifier,
+                MessageKind.ASYNC_MODIFIER_ON_SETTER,
+                {'modifier': element.asyncMarker});
+          }
+          if (functionExpression.body.asReturn() != null &&
+              element.asyncMarker.isYielding) {
+            reporter.reportErrorMessage(
+                asyncModifier,
+                MessageKind.YIELDING_MODIFIER_ON_ARROW_BODY,
+                {'modifier': element.asyncMarker});
+          }
         }
-      }
-      switch (element.asyncMarker) {
-        case AsyncMarker.ASYNC:
-          registry.registerFeature(Feature.ASYNC);
-          coreClasses.futureClass.ensureResolved(resolution);
-          break;
-        case AsyncMarker.ASYNC_STAR:
-          registry.registerFeature(Feature.ASYNC_STAR);
-          coreClasses.streamClass.ensureResolved(resolution);
-          break;
-        case AsyncMarker.SYNC_STAR:
-          registry.registerFeature(Feature.SYNC_STAR);
-          coreClasses.iterableClass.ensureResolved(resolution);
-          break;
+        switch (element.asyncMarker) {
+          case AsyncMarker.ASYNC:
+            registry.registerFeature(Feature.ASYNC);
+            coreClasses.futureClass.ensureResolved(resolution);
+            break;
+          case AsyncMarker.ASYNC_STAR:
+            registry.registerFeature(Feature.ASYNC_STAR);
+            coreClasses.streamClass.ensureResolved(resolution);
+            break;
+          case AsyncMarker.SYNC_STAR:
+            registry.registerFeature(Feature.SYNC_STAR);
+            coreClasses.iterableClass.ensureResolved(resolution);
+            break;
+        }
       }
     }
   }
@@ -376,7 +381,7 @@ class ResolverTask extends CompilerTask {
         if (element.modifiers.isConst) {
           element.constant = constantCompiler.compileConstant(element);
         } else {
-          constantCompiler.compileVariable(element);
+          element.constant = constantCompiler.compileVariable(element);
         }
       });
       if (initializer != null) {

@@ -7,6 +7,10 @@
  * independent workers that are similar to threads
  * but don't share memory,
  * communicating only via messages.
+ * 
+ * To use this library in your code:
+ * 
+ *     import 'dart:isolate';
  */
 library dart.isolate;
 

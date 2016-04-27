@@ -29,4 +29,4 @@ sample_extension/test/sample_extension_test: Skip # Issue 14705
 *: Skip
 
 [ $noopt || $runtime == dart_precompiled || $runtime == dart_product ]
-sample_extension: RuntimeError # Platform.executable
+sample_extension: Skip # Platform.executable

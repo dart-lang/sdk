@@ -20,6 +20,8 @@ class DartBackend extends Backend {
 
   bool get supportsReflection => true;
 
+  bool get supportsAsyncAwait => true;
+
   // TODO(zarah) Maybe change this to a command-line option.
   // Right now, it is set by the tests.
   bool useMirrorHelperLibrary = false;
@@ -473,11 +475,6 @@ class DartConstantTask extends ConstantCompilerTask
   }
 
   @override
-  ConstantExpression getConstantForVariable(VariableElement element) {
-    return constantCompiler.getConstantForVariable(element);
-  }
-
-  @override
   ConstantExpression getConstantForNode(Node node, TreeElements elements) {
     return constantCompiler.getConstantForNode(node, elements);
   }
@@ -507,9 +504,10 @@ class DartConstantTask extends ConstantCompilerTask
     });
   }
 
-  void compileVariable(VariableElement element) {
-    measure(() {
-      constantCompiler.compileVariable(element);
+  @override
+  ConstantExpression compileVariable(VariableElement element) {
+    return measure(() {
+      return constantCompiler.compileVariable(element);
     });
   }
 

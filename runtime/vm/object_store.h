@@ -564,9 +564,6 @@ class ObjectStore {
   RawFunction* handle_message_function_;
   RawArray* library_load_error_table_;
   RawArray* compile_time_constants_;
-  RawObject** to_snapshot() {
-    return reinterpret_cast<RawObject**>(&compile_time_constants_);
-  }
   RawArray* unique_dynamic_targets_;
   RawGrowableObjectArray* token_objects_;
   RawArray* token_objects_map_;
@@ -575,6 +572,20 @@ class ObjectStore {
   RawFunction* megamorphic_miss_function_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&megamorphic_miss_function_);
+  }
+  RawObject** to_snapshot(Snapshot::Kind kind) {
+    switch (kind) {
+      case Snapshot::kCore:
+        return reinterpret_cast<RawObject**>(&compile_time_constants_);
+      case Snapshot::kAppWithJIT:
+      case Snapshot::kAppNoJIT:
+        return to();
+      case Snapshot::kScript:
+      case Snapshot::kMessage:
+        break;
+    }
+    UNREACHABLE();
+    return NULL;
   }
 
   friend class FullSnapshotWriter;

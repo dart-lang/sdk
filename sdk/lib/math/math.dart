@@ -4,6 +4,10 @@
 
 /**
  * Mathematical constants and functions, plus a random number generator.
+ * 
+ * To use this library in your code:
+ * 
+ *     import 'dart:math';
  */
 library dart.math;
 

@@ -828,15 +828,14 @@ class TestSnapshotWriter : public SnapshotWriter {
  public:
   static const intptr_t kInitialSize = 64 * KB;
   TestSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
-      : SnapshotWriter(Snapshot::kScript,
-                       Thread::Current(),
+      : SnapshotWriter(Thread::Current(),
+                       Snapshot::kScript,
                        buffer,
                        alloc,
                        kInitialSize,
                        &forward_list_,
                        NULL, /* test_writer */
                        true, /* can_send_any_object */
-                       false, /* snapshot_code */
                        true /* vm_isolate_is_symbolic */),
         forward_list_(thread(), kMaxPredefinedObjectIds) {
     ASSERT(buffer != NULL);
@@ -1184,11 +1183,11 @@ UNIT_TEST_CASE(FullSnapshot) {
 
     // Write snapshot with object content.
     {
-      FullSnapshotWriter writer(NULL,
+      FullSnapshotWriter writer(Snapshot::kCore,
+                                NULL,
                                 &isolate_snapshot_buffer,
                                 &malloc_allocator,
                                 NULL, /* instructions_writer */
-                                false, /* snapshot_code */
                                 true);
       writer.WriteFullSnapshot();
     }
@@ -1245,11 +1244,11 @@ UNIT_TEST_CASE(FullSnapshot1) {
 
     // Write snapshot with object content.
     {
-      FullSnapshotWriter writer(NULL,
+      FullSnapshotWriter writer(Snapshot::kCore,
+                                NULL,
                                 &isolate_snapshot_buffer,
                                 &malloc_allocator,
                                 NULL, /* instructions_writer */
-                                false, /* snapshot_code */
                                 true /* vm_isolate_is_symbolic */);
       writer.WriteFullSnapshot();
     }

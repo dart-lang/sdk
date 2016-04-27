@@ -690,14 +690,14 @@ class ProgramBuilder {
       optionalParameterDefaultValues = new Map<String, ConstantValue>();
       signature.forEachOptionalParameter((ParameterElement parameter) {
         ConstantValue def =
-            backend.constants.getConstantValueForVariable(parameter);
+            backend.constants.getConstantValue(parameter.constant);
         optionalParameterDefaultValues[parameter.name] = def;
       });
     } else {
       optionalParameterDefaultValues = <ConstantValue>[];
       signature.forEachOptionalParameter((ParameterElement parameter) {
         ConstantValue def =
-            backend.constants.getConstantValueForVariable(parameter);
+            backend.constants.getConstantValue(parameter.constant);
         optionalParameterDefaultValues.add(def);
       });
     }

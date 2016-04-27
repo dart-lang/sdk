@@ -6418,6 +6418,23 @@ bool Function::TestParameterType(
     Heap::Space space) const {
   AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
+
+  // TODO(regis): Remove this debugging code.
+  if (other_param_type.IsNull()) {
+    const Class& owner = Class::Handle(Owner());
+    const Class& other_owner = Class::Handle(other.Owner());
+    THR_Print("*** null other_param_type ***\n");
+    THR_Print("parameter_position: %" Pd "\n", parameter_position);
+    THR_Print("other_parameter_position: %" Pd "\n", other_parameter_position);
+    THR_Print("function: %s\n", ToCString());
+    THR_Print("function owner: %s\n", owner.ToCString());
+    THR_Print("other function: %s\n", other.ToCString());
+    THR_Print("other function owner: %s\n", other_owner.ToCString());
+    AbstractType& param_type =
+        AbstractType::Handle(ParameterTypeAt(parameter_position));
+    THR_Print("param_type: %s\n", param_type.ToCString());
+  }
+
   if (!other_param_type.IsInstantiated()) {
     other_param_type =
         other_param_type.InstantiateFrom(other_type_arguments,
@@ -6432,6 +6449,21 @@ bool Function::TestParameterType(
   }
   AbstractType& param_type =
       AbstractType::Handle(ParameterTypeAt(parameter_position));
+
+  // TODO(regis): Remove this debugging code.
+  if (param_type.IsNull()) {
+    const Class& owner = Class::Handle(Owner());
+    const Class& other_owner = Class::Handle(other.Owner());
+    THR_Print("*** null param_type ***\n");
+    THR_Print("parameter_position: %" Pd "\n", parameter_position);
+    THR_Print("other_parameter_position: %" Pd "\n", other_parameter_position);
+    THR_Print("function: %s\n", ToCString());
+    THR_Print("function owner: %s\n", owner.ToCString());
+    THR_Print("other function: %s\n", other.ToCString());
+    THR_Print("other function owner: %s\n", other_owner.ToCString());
+    THR_Print("other_param_type: %s\n", other_param_type.ToCString());
+  }
+
   if (!param_type.IsInstantiated()) {
     param_type = param_type.InstantiateFrom(type_arguments,
                                             bound_error,
@@ -15515,6 +15547,7 @@ TokenPosition AbstractType::token_pos() const {
 
 bool AbstractType::IsInstantiated(TrailPtr trail) const {
   // AbstractType is an abstract class.
+#if !defined(PRODUCT)
   // TODO(srdjan) : Remove temporary code.
 NOT_IN_PRODUCT(
   Profiler::DumpStackTrace(true);  // Only native stack trace.
@@ -15522,6 +15555,7 @@ NOT_IN_PRODUCT(
   if (Compiler::IsBackgroundCompilation()) {
     UNREACHABLE();
   }
+#endif
   UNREACHABLE();
   return false;
 }
@@ -16338,14 +16372,13 @@ void Type::SetIsResolved() const {
 
 
 bool Type::HasResolvedTypeClass() const {
-  const Object& type_class = Object::Handle(raw_ptr()->type_class_);
-  return !type_class.IsNull() && type_class.IsClass();
+  return (raw_ptr()->type_class_->GetClassId() == kClassCid);
 }
 
 
 RawClass* Type::type_class() const {
-  ASSERT(HasResolvedTypeClass());
 #ifdef DEBUG
+  ASSERT(HasResolvedTypeClass());
   Class& type_class = Class::Handle();
   type_class ^= raw_ptr()->type_class_;
   return type_class.raw();
@@ -16356,8 +16389,8 @@ RawClass* Type::type_class() const {
 
 
 RawUnresolvedClass* Type::unresolved_class() const {
-  ASSERT(!HasResolvedTypeClass());
 #ifdef DEBUG
+  ASSERT(!HasResolvedTypeClass());
   UnresolvedClass& unresolved_class = UnresolvedClass::Handle();
   unresolved_class ^= raw_ptr()->type_class_;
   ASSERT(!unresolved_class.IsNull());
@@ -16494,7 +16527,7 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   if (arguments() != other_type.arguments()) {
-  const Class& cls = Class::Handle(zone, type_class());
+    const Class& cls = Class::Handle(zone, type_class());
     const intptr_t num_type_params = cls.NumTypeParameters(thread);
     // Shortcut unnecessary handle allocation below if non-generic.
     if (num_type_params > 0) {

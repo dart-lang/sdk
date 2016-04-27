@@ -1715,7 +1715,11 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   DartType visitAwait(Await node) {
     DartType expressionType = analyze(node.expression);
-    return types.flatten(expressionType);
+    if (compiler.backend.supportsAsyncAwait) {
+      return types.flatten(expressionType);
+    } else {
+      return const DynamicType();
+    }
   }
 
   DartType visitYield(Yield node) {
@@ -1838,29 +1842,31 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   visitAsyncForIn(AsyncForIn node) {
     DartType elementType = computeForInElementType(node);
     DartType expressionType = analyze(node.expression);
-    DartType streamOfDynamic = coreTypes.streamType();
-    if (!types.isAssignable(expressionType, streamOfDynamic)) {
-      reportMessage(node.expression, MessageKind.NOT_ASSIGNABLE,
-          {'fromType': expressionType, 'toType': streamOfDynamic},
-          isHint: true);
-    } else {
-      InterfaceType interfaceType =
-          Types.computeInterfaceType(resolution, expressionType);
-      if (interfaceType != null) {
-        InterfaceType streamType =
-            interfaceType.asInstanceOf(streamOfDynamic.element);
-        if (streamType != null) {
-          DartType streamElementType = streamType.typeArguments.first;
-          if (!types.isAssignable(streamElementType, elementType)) {
-            reportMessage(
-                node.expression,
-                MessageKind.FORIN_NOT_ASSIGNABLE,
-                {
-                  'currentType': streamElementType,
-                  'expressionType': expressionType,
-                  'elementType': elementType
-                },
-                isHint: true);
+    if (compiler.backend.supportsAsyncAwait) {
+      DartType streamOfDynamic = coreTypes.streamType();
+      if (!types.isAssignable(expressionType, streamOfDynamic)) {
+        reportMessage(node.expression, MessageKind.NOT_ASSIGNABLE,
+            {'fromType': expressionType, 'toType': streamOfDynamic},
+            isHint: true);
+      } else {
+        InterfaceType interfaceType =
+            Types.computeInterfaceType(resolution, expressionType);
+        if (interfaceType != null) {
+          InterfaceType streamType =
+              interfaceType.asInstanceOf(streamOfDynamic.element);
+          if (streamType != null) {
+            DartType streamElementType = streamType.typeArguments.first;
+            if (!types.isAssignable(streamElementType, elementType)) {
+              reportMessage(
+                  node.expression,
+                  MessageKind.FORIN_NOT_ASSIGNABLE,
+                  {
+                    'currentType': streamElementType,
+                    'expressionType': expressionType,
+                    'elementType': elementType
+                  },
+                  isHint: true);
+            }
           }
         }
       }
@@ -1953,8 +1959,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         List<FieldElement> unreferencedFields = <FieldElement>[];
         EnumClassElement enumClass = expressionType.element;
         enumClass.enumValues.forEach((EnumConstantElement field) {
-          ConstantValue constantValue =
-              compiler.constants.getConstantValueForVariable(field);
+          // TODO(johnniwinther): Ensure that the enum constant is computed at
+          // this point.
+          ConstantValue constantValue = compiler.resolver.constantCompiler
+              .getConstantValueForVariable(field);
           if (constantValue == null) {
             // The field might not have been resolved.
             unreferencedFields.add(field);

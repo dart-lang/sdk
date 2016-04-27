@@ -183,7 +183,7 @@ class _Builder {
     // Prepare SDK.
     //
     DirectoryBasedDartSdk sdk =
-        new DirectoryBasedDartSdk(new JavaFile(sdkPath));
+        new DirectoryBasedDartSdk(new JavaFile(sdkPath), strongMode);
     sdk.useSummary = false;
     sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = strongMode;
     context = sdk.context;
@@ -192,7 +192,9 @@ class _Builder {
     //
     Set<String> uriSet =
         sdk.sdkLibraries.map((SdkLibrary library) => library.shortName).toSet();
-    uriSet.add('dart:html/nativewrappers.dart');
+    if (!strongMode) {
+      uriSet.add('dart:html/nativewrappers.dart');
+    }
     uriSet.add('dart:html_common/html_common_dart2js.dart');
     //
     // Serialize each SDK library.

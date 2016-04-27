@@ -82,11 +82,22 @@ abstract class ConstantExpression {
   /// environment values.
   DartType getKnownType(CoreTypes coreTypes) => null;
 
-  String getText() {
+  /// Returns a text string resembling the Dart code creating this constant.
+  String toDartText() {
     ConstExpPrinter printer = new ConstExpPrinter();
     accept(printer);
     return printer.toString();
   }
+
+  /// Returns a text string showing the structure of this constant.
+  String toStructuredText() {
+    StringBuffer sb = new StringBuffer();
+    _createStructuredText(sb);
+    return sb.toString();
+  }
+
+  /// Writes the structure of the constant into [sb].
+  void _createStructuredText(StringBuffer sb);
 
   int _computeHashCode();
 
@@ -108,9 +119,10 @@ abstract class ConstantExpression {
   }
 
   String toString() {
-    assertDebugMode('Use ConstantExpression.getText() instead of '
+    assertDebugMode('Use ConstantExpression.toDartText() or '
+        'ConstantExpression.toStructuredText() instead of '
         'ConstantExpression.toString()');
-    return getText();
+    return toDartText();
   }
 }
 
@@ -130,6 +142,11 @@ class ErroneousConstantExpression extends ConstantExpression {
   }
 
   @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Erroneous()');
+  }
+
+  @override
   int _computeHashCode() => 13;
 
   @override
@@ -146,6 +163,11 @@ class SyntheticConstantExpression extends ConstantExpression {
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
     return value;
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Synthetic(value=${value.toStructuredText()})');
   }
 
   @override
@@ -182,6 +204,11 @@ class BoolConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Bool(value=${primitiveValue})');
+  }
+
+  @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
     return constantSystem.createBool(primitiveValue);
@@ -209,6 +236,11 @@ class IntConstantExpression extends PrimitiveConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitInt(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Int(value=${primitiveValue})');
   }
 
   @override
@@ -242,6 +274,11 @@ class DoubleConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Double(value=${primitiveValue})');
+  }
+
+  @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
     return constantSystem.createDouble(primitiveValue);
@@ -269,6 +306,11 @@ class StringConstantExpression extends PrimitiveConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitString(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('String(value=${primitiveValue})');
   }
 
   @override
@@ -300,6 +342,11 @@ class NullConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Null()');
+  }
+
+  @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
     return constantSystem.createNull();
@@ -328,6 +375,18 @@ class ListConstantExpression extends ConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitList(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('List(type=$type,values=[');
+    String delimiter = '';
+    for (ConstantExpression value in values) {
+      sb.write(delimiter);
+      value._createStructuredText(sb);
+      delimiter = ',';
+    }
+    sb.write('])');
   }
 
   @override
@@ -377,6 +436,20 @@ class MapConstantExpression extends ConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitMap(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Map(type=$type,entries=[');
+    for (int index = 0; index < keys.length; index++) {
+      if (index > 0) {
+        sb.write(',');
+      }
+      keys[index]._createStructuredText(sb);
+      sb.write('->');
+      values[index]._createStructuredText(sb);
+    }
+    sb.write('])');
   }
 
   @override
@@ -439,6 +512,19 @@ class ConstructedConstantExpression extends ConstantExpression {
     return visitor.visitConstructed(this, context);
   }
 
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Constructored(type=$type,constructor=$target,'
+        'callStructure=$callStructure,arguments=[');
+    String delimiter = '';
+    for (ConstantExpression value in arguments) {
+      sb.write(delimiter);
+      value._createStructuredText(sb);
+      delimiter = ',';
+    }
+    sb.write('])');
+  }
+
   Map<FieldElement, ConstantExpression> computeInstanceFields() {
     return target.constantConstructor
         .computeInstanceFields(arguments, callStructure);
@@ -497,6 +583,18 @@ class ConcatenateConstantExpression extends ConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitConcatenate(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Concatenate(expressions=[');
+    String delimiter = '';
+    for (ConstantExpression value in expressions) {
+      sb.write(delimiter);
+      value._createStructuredText(sb);
+      delimiter = ',';
+    }
+    sb.write('])');
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
@@ -567,6 +665,11 @@ class SymbolConstantExpression extends ConstantExpression {
   }
 
   @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Symbol(name=$name)');
+  }
+
+  @override
   int _computeHashCode() => 13 * name.hashCode;
 
   @override
@@ -601,6 +704,11 @@ class TypeConstantExpression extends ConstantExpression {
   }
 
   @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Type(type=$type)');
+  }
+
+  @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
     return constantSystem.createType(environment.compiler, type);
@@ -631,6 +739,11 @@ class VariableConstantExpression extends ConstantExpression {
   }
 
   @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Variable(element=$element)');
+  }
+
+  @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
     return element.constant.evaluate(environment, constantSystem);
@@ -655,6 +768,11 @@ class FunctionConstantExpression extends ConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitFunction(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Function(element=$element)');
   }
 
   @override
@@ -689,6 +807,15 @@ class BinaryConstantExpression extends ConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitBinary(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Binary(left=');
+    left._createStructuredText(sb);
+    sb.write(',op=$operator,right=');
+    right._createStructuredText(sb);
+    sb.write(')');
   }
 
   @override
@@ -807,6 +934,15 @@ class IdenticalConstantExpression extends ConstantExpression {
   }
 
   @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Identical(left=');
+    left._createStructuredText(sb);
+    sb.write(',right=');
+    right._createStructuredText(sb);
+    sb.write(')');
+  }
+
+  @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
     return constantSystem.identity.fold(
@@ -848,6 +984,13 @@ class UnaryConstantExpression extends ConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitUnary(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Unary(op=$operator,expression=');
+    expression._createStructuredText(sb);
+    sb.write(')');
   }
 
   @override
@@ -899,6 +1042,13 @@ class StringLengthConstantExpression extends ConstantExpression {
   }
 
   @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('StringLength(expression=');
+    expression._createStructuredText(sb);
+    sb.write(')');
+  }
+
+  @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
     ConstantValue value = expression.evaluate(environment, constantSystem);
@@ -941,6 +1091,17 @@ class ConditionalConstantExpression extends ConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitConditional(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Conditional(condition=');
+    condition._createStructuredText(sb);
+    sb.write(',true=');
+    trueExp._createStructuredText(sb);
+    sb.write(',false=');
+    falseExp._createStructuredText(sb);
+    sb.write(')');
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
@@ -1005,6 +1166,11 @@ class PositionalArgumentReference extends ConstantExpression {
     return visitor.visitPositional(this, context);
   }
 
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Positional(index=$index)');
+  }
+
   ConstantExpression apply(NormalizedArguments arguments) {
     return arguments.getPositionalArgument(index);
   }
@@ -1034,6 +1200,11 @@ class NamedArgumentReference extends ConstantExpression {
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitNamed(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Named(name=$name)');
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
@@ -1086,6 +1257,15 @@ class BoolFromEnvironmentConstantExpression
   }
 
   @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('bool.fromEnvironment(name=');
+    name._createStructuredText(sb);
+    sb.write(',defaultValue=');
+    defaultValue._createStructuredText(sb);
+    sb.write(')');
+  }
+
+  @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
     ConstantValue nameConstantValue =
@@ -1133,6 +1313,15 @@ class IntFromEnvironmentConstantExpression
 
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitIntFromEnvironment(this, context);
+  }
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('int.fromEnvironment(name=');
+    name._createStructuredText(sb);
+    sb.write(',defaultValue=');
+    defaultValue._createStructuredText(sb);
+    sb.write(')');
   }
 
   @override
@@ -1188,6 +1377,15 @@ class StringFromEnvironmentConstantExpression
   }
 
   @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('String.fromEnvironment(name=');
+    name._createStructuredText(sb);
+    sb.write(',defaultValue=');
+    defaultValue._createStructuredText(sb);
+    sb.write(')');
+  }
+
+  @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
     ConstantValue nameConstantValue =
@@ -1229,6 +1427,13 @@ class DeferredConstantExpression extends ConstantExpression {
   DeferredConstantExpression(this.expression, this.prefix);
 
   ConstantExpressionKind get kind => ConstantExpressionKind.DEFERRED;
+
+  @override
+  void _createStructuredText(StringBuffer sb) {
+    sb.write('Deferred(prefix=$prefix,expression=');
+    expression._createStructuredText(sb);
+    sb.write(')');
+  }
 
   @override
   ConstantValue evaluate(

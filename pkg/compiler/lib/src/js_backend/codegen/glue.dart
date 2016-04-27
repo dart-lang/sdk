@@ -269,7 +269,7 @@ class Glue {
   }
 
   ConstantValue getDefaultParameterValue(ParameterElement elem) {
-    return _backend.constants.getConstantValueForVariable(elem);
+    return _backend.constants.getConstantValue(elem.constant);
   }
 
   TypeMask extendMaskIfReachesAll(Selector selector, TypeMask mask) {

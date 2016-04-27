@@ -661,6 +661,7 @@ class RawObject {
   friend class SnapshotReader;
   friend class SnapshotWriter;
   friend class String;
+  friend class Type;  // GetClassId
   friend class TypedData;
   friend class TypedDataView;
   friend class WeakProperty;  // StorePointer
@@ -921,13 +922,24 @@ class RawField : public RawObject {
     // restore the value back to the original initial value.
     RawInstance* saved_value_;  // Saved initial value - static fields.
   } initializer_;
-  RawObject** to_precompiled_snapshot() {
-    return reinterpret_cast<RawObject**>(&ptr()->initializer_);
-  }
   RawArray* dependent_code_;
   RawSmi* guarded_list_length_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->guarded_list_length_);
+  }
+  RawObject** to_snapshot(Snapshot::Kind kind) {
+    switch (kind) {
+      case Snapshot::kCore:
+      case Snapshot::kScript:
+        return to();
+      case Snapshot::kAppWithJIT:
+      case Snapshot::kAppNoJIT:
+        return reinterpret_cast<RawObject**>(&ptr()->initializer_);
+      case Snapshot::kMessage:
+        break;
+    }
+    UNREACHABLE();
+    return NULL;
   }
 
   TokenPosition token_pos_;
@@ -992,15 +1004,23 @@ class RawScript : public RawObject {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->url_); }
   RawString* url_;
-  RawObject** to_precompiled_snapshot() {
-    return reinterpret_cast<RawObject**>(&ptr()->url_);
-  }
   RawTokenStream* tokens_;
-  RawObject** to_snapshot() {
-    return reinterpret_cast<RawObject**>(&ptr()->tokens_);
-  }
   RawString* source_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->source_); }
+  RawObject** to_snapshot(Snapshot::Kind kind) {
+    switch (kind) {
+      case Snapshot::kAppNoJIT:
+        return reinterpret_cast<RawObject**>(&ptr()->url_);
+      case Snapshot::kCore:
+      case Snapshot::kAppWithJIT:
+      case Snapshot::kScript:
+        return reinterpret_cast<RawObject**>(&ptr()->tokens_);
+      case Snapshot::kMessage:
+        break;
+    }
+    UNREACHABLE();
+    return NULL;
+  }
 
   int32_t line_offset_;
   int32_t col_offset_;
@@ -1471,12 +1491,23 @@ class RawICData : public RawObject {
   RawArray* ic_data_;  // Contains class-ids, target and count.
   RawString* target_name_;  // Name of target function.
   RawArray* args_descriptor_;  // Arguments descriptor.
-  RawObject** to_precompiled_snapshot() {
-    return reinterpret_cast<RawObject**>(&ptr()->args_descriptor_);
-  }
   RawObject* owner_;  // Parent/calling function or original IC of cloned IC.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->owner_);
+  }
+  RawObject** to_snapshot(Snapshot::Kind kind) {
+    switch (kind) {
+      case Snapshot::kAppNoJIT:
+        return reinterpret_cast<RawObject**>(&ptr()->args_descriptor_);
+      case Snapshot::kCore:
+      case Snapshot::kScript:
+      case Snapshot::kAppWithJIT:
+        return to();
+      case Snapshot::kMessage:
+        break;
+    }
+    UNREACHABLE();
+    return NULL;
   }
   int32_t deopt_id_;     // Deoptimization id corresponding to this IC.
   uint32_t state_bits_;  // Number of arguments tested in IC, deopt reasons,
@@ -1589,14 +1620,25 @@ class RawLibraryPrefix : public RawInstance {
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;               // Library prefix name.
   RawLibrary* importer_;          // Library which declares this prefix.
-  RawObject** to_precompiled_snapshot() {
-    return reinterpret_cast<RawObject**>(&ptr()->importer_);
-  }
   RawArray* imports_;             // Libraries imported with this prefix.
   RawArray* dependent_code_;      // Code that refers to deferred, unloaded
                                   // library prefix.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
+  }
+  RawObject** to_snapshot(Snapshot::Kind kind) {
+    switch (kind) {
+      case Snapshot::kCore:
+      case Snapshot::kScript:
+        return to();
+      case Snapshot::kAppWithJIT:
+      case Snapshot::kAppNoJIT:
+        return reinterpret_cast<RawObject**>(&ptr()->importer_);
+      case Snapshot::kMessage:
+        break;
+    }
+    UNREACHABLE();
+    return NULL;
   }
   uint16_t num_imports_;          // Number of library entries in libraries_.
   bool is_deferred_load_;

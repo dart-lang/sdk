@@ -295,7 +295,7 @@ class Constant extends Expression {
   accept(ExpressionVisitor visitor) => visitor.visitConstant(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitConstant(this, arg);
 
-  String toString() => 'Constant(value=${value.toStructuredString()})';
+  String toString() => 'Constant(value=${value.toStructuredText()})';
 }
 
 class This extends Expression {

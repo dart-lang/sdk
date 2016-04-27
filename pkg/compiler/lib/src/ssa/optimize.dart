@@ -247,14 +247,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitParameterValue(HParameterValue node) {
-    // It is possible for the parameter value to be assigned to in the function
-    // body. If that happens then we should not forward the constant value to
-    // its uses since since the uses reachable from the assignment may have
-    // values in addition to the constant passed to the function.
-    if (node.usedBy
-        .any((user) => user is HLocalSet && identical(user.local, node))) {
-      return node;
-    }
+    // If the parameter is used as a mutable variable we cannot replace the
+    // variable with a value.
+    if (node.usedAsVariable()) return node;
     propagateConstantValueToUses(node);
     return node;
   }

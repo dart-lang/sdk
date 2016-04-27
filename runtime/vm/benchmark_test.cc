@@ -524,15 +524,15 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
   Api::CheckAndFinalizePendingClasses(thread);
 
   // Write snapshot with object content.
-  FullSnapshotWriter writer(&vm_isolate_snapshot_buffer,
+  FullSnapshotWriter writer(Snapshot::kCore,
+                            &vm_isolate_snapshot_buffer,
                             &isolate_snapshot_buffer,
                             &malloc_allocator,
                             NULL, /* instructions_writer */
-                            false, /* snapshot_code */
                             true /* vm_isolate_is_symbolic */);
   writer.WriteFullSnapshot();
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(isolate_snapshot_buffer);
-  ASSERT(snapshot->kind() == Snapshot::kFull);
+  ASSERT(snapshot->kind() == Snapshot::kCore);
   benchmark->set_score(snapshot->length());
 }
 
@@ -561,15 +561,15 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
   Api::CheckAndFinalizePendingClasses(thread);
 
   // Write snapshot with object content.
-  FullSnapshotWriter writer(&vm_isolate_snapshot_buffer,
+  FullSnapshotWriter writer(Snapshot::kCore,
+                            &vm_isolate_snapshot_buffer,
                             &isolate_snapshot_buffer,
                             &malloc_allocator,
                             NULL, /* instructions_writer */
-                            false, /* snapshot_code */
                             true /* vm_isolate_is_symbolic */);
   writer.WriteFullSnapshot();
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(isolate_snapshot_buffer);
-  ASSERT(snapshot->kind() == Snapshot::kFull);
+  ASSERT(snapshot->kind() == Snapshot::kCore);
   benchmark->set_score(snapshot->length());
 }
 

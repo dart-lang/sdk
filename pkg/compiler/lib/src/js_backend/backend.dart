@@ -227,6 +227,8 @@ class JavaScriptBackend extends Backend {
 
   bool get supportsReflection => emitter.emitter.supportsReflection;
 
+  bool get supportsAsyncAwait => true;
+
   final Annotations annotations;
 
   /// Set of classes that need to be considered for reflection although not
@@ -1457,8 +1459,8 @@ class JavaScriptBackend extends Backend {
       String messageText = message.message.computeMessage();
       jsAst.LiteralString messageLiteral =
           js.escapedString("Compile time error in $element: $messageText");
-      generatedCode[element] = js(
-          "function () { throw new Error(#); }", [messageLiteral]);
+      generatedCode[element] =
+          js("function () { throw new Error(#); }", [messageLiteral]);
       return const CodegenImpact();
     }
     var kind = element.kind;
@@ -1471,8 +1473,9 @@ class JavaScriptBackend extends Backend {
       return const CodegenImpact();
     }
     if (kind.category == ElementCategory.VARIABLE) {
+      VariableElement variableElement = element;
       ConstantValue initialValue =
-          constants.getConstantValueForVariable(element);
+          constants.getConstantValue(variableElement.constant);
       if (initialValue != null) {
         registerCompileTimeConstant(initialValue, work.registry);
         addCompileTimeConstantForEmission(initialValue);

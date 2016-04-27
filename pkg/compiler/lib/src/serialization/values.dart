@@ -67,7 +67,7 @@ class ConstantValue implements Value {
 
   accept(ValueVisitor visitor, arg) => visitor.visitConstant(this, arg);
 
-  String toString() => constant.getText();
+  String toString() => constant.toDartText();
 }
 
 abstract class PrimitiveValue implements Value {

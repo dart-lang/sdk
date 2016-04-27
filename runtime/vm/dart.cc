@@ -214,8 +214,9 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       if (snapshot == NULL) {
         return "Invalid vm isolate snapshot seen.";
       }
-      ASSERT(snapshot->kind() == Snapshot::kFull);
-      VmIsolateSnapshotReader reader(snapshot->content(),
+      ASSERT(Snapshot::IsFull(snapshot->kind()));
+      VmIsolateSnapshotReader reader(snapshot->kind(),
+                                     snapshot->content(),
                                      snapshot->length(),
                                      instructions_snapshot,
                                      data_snapshot,
@@ -482,11 +483,12 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
           String::New("Invalid snapshot."));
       return ApiError::New(message);
     }
-    ASSERT(snapshot->kind() == Snapshot::kFull);
+    ASSERT(Snapshot::IsFull(snapshot->kind()));
     if (FLAG_trace_isolates) {
       OS::Print("Size of isolate snapshot = %" Pd "\n", snapshot->length());
     }
-    IsolateSnapshotReader reader(snapshot->content(),
+    IsolateSnapshotReader reader(snapshot->kind(),
+                                 snapshot->content(),
                                  snapshot->length(),
                                  Dart::instructions_snapshot_buffer(),
                                  Dart::data_snapshot_buffer(),

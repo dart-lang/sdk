@@ -16,8 +16,7 @@ import 'package:package_config/src/util.dart' show checkValidPackageUri;
 import '../compiler_new.dart' as api;
 import 'common/tasks.dart' show GenericTask, Measurer;
 import 'common.dart';
-import 'common/backend_api.dart' show
-    Backend;
+import 'common/backend_api.dart' show Backend;
 import 'compiler.dart';
 import 'diagnostics/messages.dart' show Message;
 import 'elements/elements.dart' as elements;
@@ -55,7 +54,8 @@ class CompilerImpl extends Compiler {
             options: options,
             outputProvider: outputProvider,
             environment: new _Environment(options.environment),
-            makeBackend: makeBackend, makeReporter: makeReporter) {
+            makeBackend: makeBackend,
+            makeReporter: makeReporter) {
     _Environment env = environment;
     env.compiler = this;
     tasks.addAll([

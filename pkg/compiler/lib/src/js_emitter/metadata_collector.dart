@@ -213,7 +213,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
           (targetParameterMap == null) ? element : targetParameterMap[element];
       ConstantValue constant = (parameter == null)
           ? null
-          : _backend.constants.getConstantValueForVariable(parameter);
+          : _backend.constants.getConstantValue(parameter.constant);
       jsAst.Expression expression = (constant == null)
           ? new jsAst.LiteralNull()
           : _emitter.constantReference(constant);

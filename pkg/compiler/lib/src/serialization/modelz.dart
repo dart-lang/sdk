@@ -497,8 +497,10 @@ class ScriptZ implements Script {
     _file = value;
   }
 
+  // TODO(johnniwinther): Decide if it is meaningful to serialize erroneous
+  // elements.
   @override
-  bool get isSynthesized => throw new UnsupportedError('ScriptZ.isSynthesized');
+  bool get isSynthesized => false;
 
   @override
   String get name {
@@ -1291,6 +1293,7 @@ abstract class FieldElementZ extends DeserializedElementZ
         TypedElementMixin,
         MemberElementMixin
     implements FieldElement {
+  bool _isConst;
   ConstantExpression _constant;
 
   FieldElementZ(ObjectDecoder decoder) : super(decoder);
@@ -1306,14 +1309,22 @@ abstract class FieldElementZ extends DeserializedElementZ
   @override
   bool get isFinal => _decoder.getBool(Key.IS_FINAL);
 
+  void _ensureConstant() {
+    if (_isConst == null) {
+      _isConst = _decoder.getBool(Key.IS_CONST);
+      _constant = _decoder.getConstant(Key.CONSTANT, isOptional: true);
+    }
+  }
+
   @override
-  bool get isConst => _decoder.getBool(Key.IS_CONST);
+  bool get isConst {
+    _ensureConstant();
+    return _isConst;
+  }
 
   @override
   ConstantExpression get constant {
-    if (isConst && _constant == null) {
-      _constant = _decoder.getConstant(Key.CONSTANT);
-    }
+    _ensureConstant();
     return _constant;
   }
 

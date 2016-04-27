@@ -24,7 +24,8 @@ import '../elements/elements.dart'
         LibraryElement,
         MetadataAnnotation,
         MethodElement;
-import '../enqueue.dart' show Enqueuer, EnqueueTask, CodegenEnqueuer, ResolutionEnqueuer;
+import '../enqueue.dart'
+    show Enqueuer, EnqueueTask, CodegenEnqueuer, ResolutionEnqueuer;
 import '../io/code_output.dart' show CodeBuffer;
 import '../io/source_information.dart' show SourceInformationStrategy;
 import '../js_backend/backend_helpers.dart' as js_backend show BackendHelpers;
@@ -38,14 +39,10 @@ import '../serialization/serialization.dart'
 import '../tree/tree.dart' show Node, Send;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/world_impact.dart' show ImpactStrategy, WorldImpact;
-import 'codegen.dart' show
-    CodegenWorkItem;
-import 'registry.dart' show
-    Registry;
-import 'tasks.dart' show
-    CompilerTask;
-import 'work.dart' show
-    ItemCompilationContext;
+import 'codegen.dart' show CodegenWorkItem;
+import 'registry.dart' show Registry;
+import 'tasks.dart' show CompilerTask;
+import 'work.dart' show ItemCompilationContext;
 
 abstract class Backend {
   final Compiler compiler;
@@ -54,6 +51,9 @@ abstract class Backend {
 
   /// Returns true if the backend supports reflection.
   bool get supportsReflection;
+
+  /// Returns true if the backend supports reflection.
+  bool get supportsAsyncAwait;
 
   /// The [ConstantSystem] used to interpret compile-time constants for this
   /// backend.

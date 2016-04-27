@@ -463,7 +463,7 @@ class BackDoor {
 
   static ConstantExpression initializerSyntaxOf(Dart2JsFieldMirror variable) {
     Compiler compiler = variable.mirrorSystem.compiler;
-    return compiler.constants.getConstantForVariable(variable._variable);
+    return variable._variable.constant;
   }
 
   static ConstantExpression defaultValueSyntaxOf(
@@ -471,7 +471,7 @@ class BackDoor {
     if (!parameter.hasDefaultValue) return null;
     ParameterElement parameterElement = parameter._element;
     Compiler compiler = parameter.mirrorSystem.compiler;
-    return compiler.constants.getConstantForVariable(parameterElement);
+    return parameterElement.constant;
   }
 
   static Mirror getMirrorFromElement(Dart2JsMirror mirror, Element element) {

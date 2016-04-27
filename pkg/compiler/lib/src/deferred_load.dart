@@ -887,7 +887,7 @@ class DeferredLoadTask extends CompilerTask {
     _constantToOutputUnit.forEach((ConstantValue value, OutputUnit output) {
       constantMap
           .putIfAbsent(output, () => <String>[])
-          .add(value.toStructuredString());
+          .add(value.toStructuredText());
     });
 
     StringBuffer sb = new StringBuffer();

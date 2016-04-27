@@ -417,7 +417,7 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
   }
 
   String visitConstant(Constant node) {
-    return "${node.value.toStructuredString()}";
+    return "${node.value.toStructuredText()}";
   }
 
   String visitThis(This node) {

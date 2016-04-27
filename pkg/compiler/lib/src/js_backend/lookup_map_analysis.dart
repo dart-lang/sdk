@@ -155,7 +155,7 @@ class LookupMapAnalysis {
     // At this point, the lookupMapVersionVariable should be resolved and it's
     // constant value should be available.
     StringConstantValue value =
-        backend.constants.getConstantValueForVariable(lookupMapVersionVariable);
+        backend.constants.getConstantValue(lookupMapVersionVariable.constant);
     if (value == null) {
       reporter.reportInfo(lookupMapVersionVariable,
           MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP);
@@ -308,7 +308,7 @@ class LookupMapAnalysis {
       for (var info in _lookupMaps.values) {
         for (var key in info.unusedEntries.keys) {
           if (count != 0) sb.write(',');
-          sb.write(key.unparse());
+          sb.write(key.toDartText());
           count++;
         }
       }

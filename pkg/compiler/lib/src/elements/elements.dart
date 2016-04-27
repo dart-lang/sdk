@@ -996,8 +996,11 @@ abstract class VariableElement extends ExecutableElement {
 
   Expression get initializer;
 
-  /// The constant expression defining the value of the variable if `const`,
-  /// `null` otherwise.
+  /// The constant expression defining the (initial) value of the variable.
+  ///
+  /// If the variable is `const` the value is always non-null, possibly an
+  /// [ErroneousConstantExpression], otherwise, the value is null when the
+  /// initializer isn't a constant expression.
   ConstantExpression get constant;
 }
 

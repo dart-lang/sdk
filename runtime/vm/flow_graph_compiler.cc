@@ -79,6 +79,7 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_inlining_constant_arguments_max_size_threshold = 100;
     FLAG_inlining_constant_arguments_min_size_threshold = 30;
 
+    FLAG_background_compilation = false;
     FLAG_always_megamorphic_calls = true;
     FLAG_collect_dynamic_function_names = true;
     FLAG_fields_may_be_reset = true;
@@ -95,7 +96,6 @@ static void PrecompilationModeHandler(bool value) {
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     // Set flags affecting runtime accordingly for dart_noopt.
-    FLAG_background_compilation = false;
     FLAG_collect_code = false;
     FLAG_support_debugger = false;
     FLAG_deoptimize_alot = false;  // Used in some tests.
@@ -114,7 +114,6 @@ DEFINE_FLAG_HANDLER(PrecompilationModeHandler,
 
 #ifdef DART_PRECOMPILED_RUNTIME
 
-COMPILE_ASSERT(!FLAG_background_compilation);
 COMPILE_ASSERT(!FLAG_collect_code);
 COMPILE_ASSERT(!FLAG_deoptimize_alot);  // Used in some tests.
 COMPILE_ASSERT(!FLAG_enable_mirrors);

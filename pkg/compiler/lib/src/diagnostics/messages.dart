@@ -89,6 +89,7 @@ enum MessageKind {
   ASSIGNING_METHOD,
   ASSIGNING_METHOD_IN_SUPER,
   ASSIGNING_TYPE,
+  ASYNC_AWAIT_NOT_SUPPORTED,
   ASYNC_KEYWORD_AS_IDENTIFIER,
   ASYNC_MODIFIER_ON_ABSTRACT_METHOD,
   ASYNC_MODIFIER_ON_CONSTRUCTOR,
@@ -3238,6 +3239,11 @@ main() async* {
 }
 """
           ]),
+
+      MessageKind.ASYNC_AWAIT_NOT_SUPPORTED:
+        const MessageTemplate(MessageKind.ASYNC_AWAIT_NOT_SUPPORTED,
+            "The async/sync* syntax is not supported on the current platform."),
+
 
       MessageKind.ASYNC_MODIFIER_ON_ABSTRACT_METHOD: const MessageTemplate(
           MessageKind.ASYNC_MODIFIER_ON_ABSTRACT_METHOD,

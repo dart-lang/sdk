@@ -464,11 +464,11 @@ class ConstantStringifier extends ConstantValueVisitor<String, Null> {
   // tests/compiler/dart2js/backend_dart/sexpr_unstringifier.dart).
 
   String _failWith(ConstantValue constant) {
-    throw 'Stringification not supported for ${constant.toStructuredString()}';
+    throw 'Stringification not supported for ${constant.toStructuredText()}';
   }
 
   String visitFunction(FunctionConstantValue constant, _) {
-    return '(Function "${constant.unparse()}")';
+    return '(Function "${constant.toDartText()}")';
   }
 
   String visitNull(NullConstantValue constant, _) {
@@ -476,19 +476,19 @@ class ConstantStringifier extends ConstantValueVisitor<String, Null> {
   }
 
   String visitInt(IntConstantValue constant, _) {
-    return '(Int ${constant.unparse()})';
+    return '(Int ${constant.toDartText()})';
   }
 
   String visitDouble(DoubleConstantValue constant, _) {
-    return '(Double ${constant.unparse()})';
+    return '(Double ${constant.toDartText()})';
   }
 
   String visitBool(BoolConstantValue constant, _) {
-    return '(Bool ${constant.unparse()})';
+    return '(Bool ${constant.toDartText()})';
   }
 
   String visitString(StringConstantValue constant, _) {
-    return '(String ${constant.unparse()})';
+    return '(String ${constant.toDartText()})';
   }
 
   String visitList(ListConstantValue constant, _) {
@@ -508,7 +508,7 @@ class ConstantStringifier extends ConstantValueVisitor<String, Null> {
   }
 
   String visitConstructed(ConstructedConstantValue constant, _) {
-    return '(Constructed "${constant.unparse()}")';
+    return '(Constructed "${constant.toDartText()}")';
   }
 
   String visitType(TypeConstantValue constant, _) {
@@ -516,11 +516,11 @@ class ConstantStringifier extends ConstantValueVisitor<String, Null> {
   }
 
   String visitInterceptor(InterceptorConstantValue constant, _) {
-    return '(Interceptor "${constant.unparse()}")';
+    return '(Interceptor "${constant.toDartText()}")';
   }
 
   String visitSynthetic(SyntheticConstantValue constant, _) {
-    return '(Synthetic "${constant.unparse()}")';
+    return '(Synthetic "${constant.toDartText()}")';
   }
 
   String visitDeferred(DeferredConstantValue constant, _) {

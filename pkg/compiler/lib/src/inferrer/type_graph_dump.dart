@@ -434,7 +434,7 @@ String formatType(TypeMask type) {
   }
   if (type is ValueTypeMask) {
     String baseType = formatType(type.forwardTo);
-    String value = type.value.toStructuredString();
+    String value = type.value.toStructuredText();
     return '$baseType=$value';
   }
   return '$type'; // Fall back on toString if not supported here.
