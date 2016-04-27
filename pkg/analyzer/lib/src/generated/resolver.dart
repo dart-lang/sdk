@@ -77,11 +77,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   TypeSystem _typeSystem;
 
   /**
+   * The current library
+   */
+  LibraryElement _currentLibrary;
+
+  /**
    * Create a new instance of the [BestPracticesVerifier].
    *
    * @param errorReporter the error reporter
    */
-  BestPracticesVerifier(this._errorReporter, TypeProvider typeProvider,
+  BestPracticesVerifier(
+      this._errorReporter, TypeProvider typeProvider, this._currentLibrary,
       {TypeSystem typeSystem})
       : _futureNullType = typeProvider.futureNullType,
         _typeSystem = (typeSystem != null) ? typeSystem : new TypeSystemImpl();
@@ -253,6 +259,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   Object visitMethodInvocation(MethodInvocation node) {
     _checkForCanBeNullAfterNullAware(node.realTarget, node.operator);
     _checkForInvalidProtectedMethodCalls(node);
+    DartType staticInvokeType = node.staticInvokeType;
+    if (staticInvokeType is InterfaceType) {
+      MethodElement methodElement = staticInvokeType.lookUpMethod(
+              FunctionElement.CALL_METHOD_NAME, _currentLibrary);
+      _checkForDeprecatedMemberUse(methodElement, node);
+    }
     return super.visitMethodInvocation(node);
   }
 
@@ -554,6 +566,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         if (!element.displayName.isEmpty) {
           displayName = "$displayName.${element.displayName}";
         }
+      } else if (displayName == FunctionElement.CALL_METHOD_NAME &&
+          node is MethodInvocation &&
+          node.staticInvokeType is InterfaceType) {
+        displayName = "${node.staticInvokeType.displayName}.${element.displayName}";
       }
       _errorReporter.reportErrorForNode(
           HintCode.DEPRECATED_MEMBER_USE, node, [displayName]);
@@ -4236,7 +4252,8 @@ class HintGenerator {
       unit.accept(new Dart2JSVerifier(errorReporter));
     }
     // Dart best practices
-    unit.accept(new BestPracticesVerifier(errorReporter, _context.typeProvider,
+    unit.accept(new BestPracticesVerifier(
+        errorReporter, _context.typeProvider, _library,
         typeSystem: _context.typeSystem));
     unit.accept(new OverrideVerifier(errorReporter, _manager));
     // Find to-do comments

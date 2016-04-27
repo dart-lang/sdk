@@ -2805,8 +2805,8 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
         new InheritanceManager(libraryElement);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
 
-    unit.accept(new BestPracticesVerifier(errorReporter, typeProvider,
-        typeSystem: typeSystem));
+    unit.accept(new BestPracticesVerifier(
+        errorReporter, typeProvider, libraryElement, typeSystem: typeSystem));
     unit.accept(new OverrideVerifier(errorReporter, inheritanceManager));
     // Find to-do comments.
     new ToDoFinder(errorReporter).findIn(unit);

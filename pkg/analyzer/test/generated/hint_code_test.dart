@@ -813,6 +813,21 @@ class B extends A {
     verify([source]);
   }
 
+  void test_deprecatedAnnotationUse_call() {
+    Source source = addSource(r'''
+class A {
+  @deprecated
+  call() {}
+  m() {
+    A a = new A();
+    a();
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    verify([source]);
+  }
+
   void test_divisionOptimization_double() {
     Source source = addSource(r'''
 f(double x, double y) {
