@@ -98,7 +98,14 @@ class ExplicitSourceResolver extends UriResolver {
 
   @override
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    return new FileBasedSource(uriToFileMap[uri], actualUri ?? uri);
+    JavaFile file = uriToFileMap[uri];
+    actualUri ??= uri;
+    if (file == null) {
+      return new NonExistingSource(
+          uri.toString(), actualUri, UriKind.fromScheme(actualUri.scheme));
+    } else {
+      return new FileBasedSource(file, actualUri);
+    }
   }
 
   @override
@@ -229,14 +236,7 @@ class FileBasedSource extends Source {
   @override
   UriKind get uriKind {
     String scheme = uri.scheme;
-    if (scheme == PackageUriResolver.PACKAGE_SCHEME) {
-      return UriKind.PACKAGE_URI;
-    } else if (scheme == DartUriResolver.DART_SCHEME) {
-      return UriKind.DART_URI;
-    } else if (scheme == FileUriResolver.FILE_SCHEME) {
-      return UriKind.FILE_URI;
-    }
-    return UriKind.FILE_URI;
+    return UriKind.fromScheme(scheme);
   }
 
   @override
