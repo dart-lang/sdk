@@ -6,4 +6,4 @@ dependencies:
   args: ^0.13.4
   logging: ^0.11.2
 dev_dependencies:
-  test: 0.12.13
+  test: ^0.12.13

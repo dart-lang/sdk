@@ -594,7 +594,7 @@ class Procedure extends Member {
   /// For operators, this is the token for the operator, e.g. `+` or `==`,
   /// except for the unary minus operator, whose name is `unary-`.
   Name name;
-  FunctionNode function; // Null if and only if abstract or external.
+  FunctionNode function; // Body is null if and only if abstract or external.
 
   Procedure(this.name, this.kind, this.function,
       {bool isAbstract: false, bool isStatic: false, bool isExternal: false}) {
