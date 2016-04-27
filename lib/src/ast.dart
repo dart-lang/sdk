@@ -99,6 +99,10 @@ bool isMethod(ClassMember m) => m is MethodDeclaration;
 bool isPrivate(SimpleIdentifier identifier) =>
     identifier != null ? Identifier.isPrivateName(identifier.name) : false;
 
+/// Returns `true` if the given [declaration] is annotated `@protected`.
+bool isProtected(Declaration declaration) =>
+    declaration.metadata.any((Annotation a) => a.name.name == 'protected');
+
 /// Returns `true` if the given [ClassMember] is a public method.
 bool isPublicMethod(ClassMember m) => isMethod(m) && m.element.isPublic;
 

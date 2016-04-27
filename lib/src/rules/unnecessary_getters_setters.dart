@@ -51,10 +51,10 @@ class Box {
 class UnnecessaryGettersSetters extends LintRule {
   UnnecessaryGettersSetters()
       : super(
-          name: 'unnecessary_getters_setters',
-          description: desc,
-          details: details,
-          group: Group.style);
+            name: 'unnecessary_getters_setters',
+            description: desc,
+            details: details,
+            group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);
@@ -85,7 +85,10 @@ class Visitor extends SimpleAstVisitor {
   }
 
   _visitGetterSetter(MethodDeclaration getter, MethodDeclaration setter) {
-    if (isSimpleSetter(setter) && isSimpleGetter(getter)) {
+    if (isSimpleSetter(setter) &&
+        isSimpleGetter(getter) &&
+        !isProtected(getter) &&
+        !isProtected(setter)) {
       rule.reportLint(getter.name);
       rule.reportLint(setter.name);
     }

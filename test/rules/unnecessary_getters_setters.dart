@@ -2,6 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Hack to work around issues importing `meta.dart` in tests.
+// Ideally, remove:
+library meta;
+
+class _Protected {
+  const _Protected();
+}
+
+const _Protected protected = const _Protected();
+
+
 class Box {
   var _contents;
   get contents => _contents; //LINT [7:8]
@@ -38,6 +49,16 @@ class Box4 {
     return _contents;
   }
   set contents(int value) // OK -- notice the type
+  {
+    _contents = value;
+  }
+}
+
+class Box5 {
+  var _contents;
+  @protected
+  get contents => _contents; //OK (protected)
+  set contents(value)
   {
     _contents = value;
   }
