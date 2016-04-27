@@ -59,9 +59,9 @@ rules:
     unnecessary_getters: false''');
         expect(config.ruleConfigs, hasLength(1));
         var ruleConfig = config.ruleConfigs[0];
-        expect(ruleConfig.group, equals('style_guide'));
-        expect(ruleConfig.name, equals('unnecessary_getters'));
-        expect(ruleConfig.args, equals({'enabled': false}));
+        expect(ruleConfig.group, 'style_guide');
+        expect(ruleConfig.name, 'unnecessary_getters');
+        expect(ruleConfig.args, {'enabled': false});
         expect(ruleConfig.disables('unnecessary_getters'), isTrue);
       });
     });
@@ -102,7 +102,7 @@ linter:
     - camel_case_types
 ''';
           var config = processAnalysisOptionsFile(src);
-          expect(config.ruleConfigs.length, equals(1));
+          expect(config.ruleConfigs.length, 1);
           // Verify that defaults are enabled.
           expect(config.ruleConfigs[0].args['enabled'], isTrue);
         });
@@ -123,9 +123,9 @@ linter:
           ruleConfigs.sort(
               (RuleConfig rc1, RuleConfig rc2) => rc1.name.compareTo(rc2.name));
           expect(ruleConfigs, hasLength(2));
-          expect(ruleConfigs[0].name, equals('camel_case_types'));
+          expect(ruleConfigs[0].name, 'camel_case_types');
           expect(config.ruleConfigs[0].args['enabled'], isFalse);
-          expect(ruleConfigs[1].name, equals('unnecessary_getters'));
+          expect(ruleConfigs[1].name, 'unnecessary_getters');
           expect(config.ruleConfigs[1].args['enabled'], isTrue);
         });
       });

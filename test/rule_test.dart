@@ -246,17 +246,17 @@ defineSanityTests() {
         expect(extractAnnotation('int x; // OK'), isNull);
         expect(extractAnnotation('int x;'), isNull);
         expect(extractAnnotation('dynamic x; // LINT dynamic is bad').message,
-            equals('dynamic is bad'));
+            'dynamic is bad');
         expect(
             extractAnnotation('dynamic x; // LINT [1:3] dynamic is bad')
                 .message,
-            equals('dynamic is bad'));
+            'dynamic is bad');
         expect(
             extractAnnotation('dynamic x; // LINT [1:3] dynamic is bad').column,
-            equals(1));
+            1);
         expect(
             extractAnnotation('dynamic x; // LINT [1:3] dynamic is bad').length,
-            equals(3));
+            3);
         expect(extractAnnotation('dynamic x; //LINT').message, isNull);
         expect(extractAnnotation('dynamic x; //LINT ').message, isNull);
         // Commented out lines shouldn't get linted.

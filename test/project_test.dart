@@ -23,43 +23,42 @@ defineTests() {
       group('cwd', () {
         var project = new DartProject(null, null);
         test('name', () {
-          expect(project.name, equals('linter'));
+          expect(project.name, 'linter');
         });
         test('spec', () {
           expect(project.pubspec, isNotNull);
         });
         test('root', () {
-          expect(project.root.path, equals(Directory.current.path));
+          expect(project.root.path, Directory.current.path);
         });
       });
       group('p1', () {
         var project =
             new DartProject(null, null, dir: new Directory('test/_data/p1'));
         test('name', () {
-          expect(project.name, equals('p1'));
+          expect(project.name, 'p1');
         });
         test('spec', () {
           expect(project.pubspec, isNotNull);
-          expect(project.pubspec.name.value.text, equals('p1'));
+          expect(project.pubspec.name.value.text, 'p1');
         });
         test('root', () {
-          expect(project.root.path, equals('test/_data/p1'));
+          expect(project.root.path, 'test/_data/p1');
         });
       });
       group('no pubspec', () {
         var project = new DartProject(null, null,
             dir: new Directory('test/_data/p1/src'));
         test('name', () {
-          expect(project.name, equals('src'));
+          expect(project.name, 'src');
         });
         test('spec', () {
           expect(project.pubspec, isNull);
         });
         test('root', () {
-          expect(project.root.path, equals('test/_data/p1/src'));
+          expect(project.root.path, 'test/_data/p1/src');
         });
       });
     });
   });
-
 }
