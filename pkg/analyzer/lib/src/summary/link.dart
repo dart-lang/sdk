@@ -2782,6 +2782,9 @@ abstract class LibraryElementForLink<
   @override
   bool get isDartAsync => _absoluteUri == 'dart:async';
 
+  @override
+  bool get isDartCore => _absoluteUri == 'dart:core';
+
   /**
    * If this library is part of the build unit being linked, return the library
    * cycle it is part of.  Otherwise return `null`.

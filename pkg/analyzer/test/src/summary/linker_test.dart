@@ -454,6 +454,20 @@ class D extends C {
         'int');
   }
 
+  void test_leastUpperBound_functionAndClass() {
+    createLinker('''
+class C {}
+void f() {}
+var x = {
+  'C': C,
+  'f': f
+};
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+    // No assertions--just make sure it doesn't crash.
+  }
+
   void test_libraryCycle_ignoresDependenciesOutsideBuildUnit() {
     createLinker('import "dart:async";');
     LibraryCycleForLink libraryCycle = testLibrary.libraryCycleForLink;
