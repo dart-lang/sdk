@@ -3361,7 +3361,7 @@ class AbstractConstantValue {
       case NOTHING:
         return "Nothing";
       case CONSTANT:
-        return "Constant: ${constant.unparse()}: $type";
+        return "Constant: ${constant.toDartText()}: $type";
       case NONCONST:
         return "Non-constant: $type";
       default:

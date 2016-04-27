@@ -90,7 +90,7 @@ class ConstantResult extends ResolutionResult {
 
   ResultKind get kind => ResultKind.CONSTANT;
 
-  String toString() => 'ConstantResult(${constant.getText()})';
+  String toString() => 'ConstantResult(${constant.toDartText()})';
 }
 
 class NoneResult extends ResolutionResult {

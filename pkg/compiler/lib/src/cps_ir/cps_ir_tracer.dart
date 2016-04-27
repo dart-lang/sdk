@@ -246,7 +246,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   }
 
   visitConstant(cps_ir.Constant node) {
-    return "Constant ${node.value.toStructuredString()}";
+    return "Constant ${node.value.toStructuredText()}";
   }
 
   visitParameter(cps_ir.Parameter node) {

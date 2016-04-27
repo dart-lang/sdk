@@ -227,10 +227,10 @@ Future testData(TestData data) async {
       Environment environment = new MemoryEnvironment(compiler, env);
       ConstantValue value =
           constant.evaluate(environment, DART_CONSTANT_SYSTEM);
-      String valueText = value.toStructuredString();
+      String valueText = value.toStructuredText();
       Expect.equals(expectedText, valueText,
           "Unexpected value '${valueText}' for contant "
-          "`${constant.getText()}`, expected '${expectedText}'.");
+          "`${constant.toDartText()}`, expected '${expectedText}'.");
     });
   });
 }

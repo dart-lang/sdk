@@ -2209,7 +2209,7 @@ class HConstant extends HInstruction {
   HConstant.internal(this.constant, TypeMask constantType)
       : super(<HInstruction>[], constantType);
 
-  toString() => 'literal: ${constant.toStructuredString()}';
+  toString() => 'literal: ${constant.toStructuredText()}';
   accept(HVisitor visitor) => visitor.visitConstant(this);
 
   bool isConstant() => true;

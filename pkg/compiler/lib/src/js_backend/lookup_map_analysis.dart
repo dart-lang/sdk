@@ -308,7 +308,7 @@ class LookupMapAnalysis {
       for (var info in _lookupMaps.values) {
         for (var key in info.unusedEntries.keys) {
           if (count != 0) sb.write(',');
-          sb.write(key.unparse());
+          sb.write(key.toDartText());
           count++;
         }
       }

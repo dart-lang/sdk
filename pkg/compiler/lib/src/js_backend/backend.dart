@@ -1459,8 +1459,8 @@ class JavaScriptBackend extends Backend {
       String messageText = message.message.computeMessage();
       jsAst.LiteralString messageLiteral =
           js.escapedString("Compile time error in $element: $messageText");
-      generatedCode[element] = js(
-          "function () { throw new Error(#); }", [messageLiteral]);
+      generatedCode[element] =
+          js("function () { throw new Error(#); }", [messageLiteral]);
       return const CodegenImpact();
     }
     var kind = element.kind;

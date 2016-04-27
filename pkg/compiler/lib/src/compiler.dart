@@ -1268,8 +1268,9 @@ abstract class Compiler implements LibraryLoaderListener {
         // errors instead of using a map.
         element = mainFunction;
       }
-      elementsWithCompileTimeErrors.
-          putIfAbsent(element, () => <DiagnosticMessage>[]).add(message);
+      elementsWithCompileTimeErrors
+          .putIfAbsent(element, () => <DiagnosticMessage>[])
+          .add(message);
     }
   }
 

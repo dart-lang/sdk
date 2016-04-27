@@ -212,9 +212,9 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
           new SynthesizedConstructorElementX.forDefault(superMember, element);
       if (superMember.isMalformed) {
         ErroneousElement erroneousElement = superMember;
-        compiler.registerCompiletimeError(constructor,
-            reporter.createMessage(node,
-                erroneousElement.messageKind,
+        compiler.registerCompiletimeError(
+            constructor,
+            reporter.createMessage(node, erroneousElement.messageKind,
                 erroneousElement.messageArguments));
       }
       element.setDefaultConstructor(constructor, reporter);

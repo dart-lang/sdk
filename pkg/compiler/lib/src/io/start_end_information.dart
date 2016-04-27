@@ -9,7 +9,8 @@ library dart2js.source_information.start_end;
 
 import '../common.dart';
 import '../diagnostics/messages.dart' show MessageTemplate;
-import '../elements/elements.dart' show AstElement, ResolvedAst, ResolvedAstKind;
+import '../elements/elements.dart'
+    show AstElement, ResolvedAst, ResolvedAstKind;
 import '../js/js.dart' as js;
 import '../js/js_source_mapping.dart';
 import '../tokens/token.dart' show Token;
@@ -80,8 +81,7 @@ class StartEndSourceInformation extends SourceInformation {
     // checks below.
     SourceLocation sourcePosition, endSourcePosition;
     if (begin < sourceFile.length) {
-      sourcePosition =
-          new OffsetSourceLocation(sourceFile, begin, name);
+      sourcePosition = new OffsetSourceLocation(sourceFile, begin, name);
     }
     if (end < sourceFile.length) {
       endSourcePosition = new OffsetSourceLocation(sourceFile, end, name);
