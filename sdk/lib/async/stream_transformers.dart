@@ -28,13 +28,13 @@ class _EventSinkWrapper<T> implements EventSink<T> {
 class _SinkTransformerStreamSubscription<S, T>
     extends _BufferingStreamSubscription<T> {
   /// The transformer's input sink.
-  EventSink _transformerSink;
+  EventSink<S> _transformerSink;
 
   /// The subscription to the input stream.
   StreamSubscription<S> _subscription;
 
   _SinkTransformerStreamSubscription(Stream<S> source,
-                                     _SinkMapper mapper,
+                                     _SinkMapper<S, T> mapper,
                                      void onData(T data),
                                      Function onError,
                                      void onDone(),
@@ -183,8 +183,9 @@ class _BoundSinkStream<S, T> extends Stream<T> {
                                  void onDone(),
                                  bool cancelOnError }) {
     cancelOnError = identical(true, cancelOnError);
-    StreamSubscription<T> subscription = new _SinkTransformerStreamSubscription(
-        _stream, _sinkMapper, onData, onError, onDone, cancelOnError);
+    StreamSubscription<T> subscription =
+        new _SinkTransformerStreamSubscription<S, T>(
+            _stream, _sinkMapper, onData, onError, onDone, cancelOnError);
     return subscription;
   }
 }
