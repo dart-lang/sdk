@@ -12012,11 +12012,6 @@ typedef UnorderedHashMap<ConstMapKeyEqualsTraits> ConstantsMap;
 
 void Parser::CacheConstantValue(TokenPosition token_pos,
                                 const Instance& value) {
-  if (current_function().kind() == RawFunction::kImplicitStaticFinalGetter) {
-    // Don't cache constants in initializer expressions. They get
-    // evaluated only once.
-    return;
-  }
   ConstantPosKey key(String::Handle(Z, script_.url()), token_pos);
   if (isolate()->object_store()->compile_time_constants() == Array::null()) {
     const intptr_t kInitialConstMapSize = 16;
