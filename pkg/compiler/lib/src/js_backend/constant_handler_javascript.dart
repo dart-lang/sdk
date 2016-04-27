@@ -244,6 +244,21 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
       element.node.accept(new ForgetConstantNodeVisitor(this));
     }
   }
+
+  ConstantValue getConstantValue(ConstantExpression expression) {
+    ConstantValue value = super.getConstantValue(expression);
+    if (value == null &&
+        expression != null &&
+        expression.kind == ConstantExpressionKind.ERRONEOUS) {
+      // TODO(johnniwinther): When the Dart constant system sees a constant
+      // expression as erroneous but the JavaScript constant system finds it ok
+      // we have store a constant value for the erroneous constant expression.
+      // Ensure the computed constant expressions are always the same; that only
+      // the constant values may be different.
+      value = new NullConstantValue();
+    }
+    return value;
+  }
 }
 
 class ForgetConstantElementVisitor
