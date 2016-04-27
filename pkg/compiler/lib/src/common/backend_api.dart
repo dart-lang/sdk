@@ -55,6 +55,9 @@ abstract class Backend {
   /// Returns true if the backend supports reflection.
   bool get supportsReflection;
 
+  /// Returns true if the backend supports reflection.
+  bool get supportsAsyncAwait;
+
   /// The [ConstantSystem] used to interpret compile-time constants for this
   /// backend.
   ConstantSystem get constantSystem;

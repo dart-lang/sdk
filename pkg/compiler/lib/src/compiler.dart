@@ -444,22 +444,31 @@ abstract class Compiler implements LibraryLoaderListener {
   /// for [library].
   Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
     Uri uri = library.canonicalUri;
-    if (uri == Uris.dart_core) {
-      initializeCoreClasses();
-      identicalFunction = coreLibrary.find('identical');
-    } else if (uri == Uris.dart_mirrors) {
-      mirrorSystemClass = findRequiredElement(library, 'MirrorSystem');
-      mirrorsUsedClass = findRequiredElement(library, 'MirrorsUsed');
-    } else if (uri == Uris.dart_async) {
-      asyncLibrary = library;
-      deferredLibraryClass = findRequiredElement(library, 'DeferredLibrary');
-      _coreTypes.futureClass = findRequiredElement(library, 'Future');
-      _coreTypes.streamClass = findRequiredElement(library, 'Stream');
-    } else if (uri == Uris.dart__native_typed_data) {
-      typedDataClass = findRequiredElement(library, 'NativeTypedData');
-    } else if (uri == js_backend.BackendHelpers.DART_JS_HELPER) {
-      patchAnnotationClass = findRequiredElement(library, '_Patch');
-      nativeAnnotationClass = findRequiredElement(library, 'Native');
+    // If the script of the library is synthesized, the library does not exist
+    // and we do not try to load the helpers.
+    //
+    // This could for example happen if dart:async is disabled, then loading it
+    // should not try to find the given element.
+    // TODO(johnniwinther): This should just be library.isSynthesized, but that
+    // does not work yet for deserialized elements.
+    if (!library.compilationUnit.script.isSynthesized) {
+      if (uri == Uris.dart_core) {
+        initializeCoreClasses();
+        identicalFunction = coreLibrary.find('identical');
+      } else if (uri == Uris.dart_mirrors) {
+        mirrorSystemClass = findRequiredElement(library, 'MirrorSystem');
+        mirrorsUsedClass = findRequiredElement(library, 'MirrorsUsed');
+      } else if (uri == Uris.dart_async) {
+        asyncLibrary = library;
+        deferredLibraryClass = findRequiredElement(library, 'DeferredLibrary');
+        _coreTypes.futureClass = findRequiredElement(library, 'Future');
+        _coreTypes.streamClass = findRequiredElement(library, 'Stream');
+      } else if (uri == Uris.dart__native_typed_data) {
+        typedDataClass = findRequiredElement(library, 'NativeTypedData');
+      } else if (uri == js_backend.BackendHelpers.DART_JS_HELPER) {
+        patchAnnotationClass = findRequiredElement(library, '_Patch');
+        nativeAnnotationClass = findRequiredElement(library, 'Native');
+      }
     }
     return backend.onLibraryScanned(library, loader);
   }

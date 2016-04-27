@@ -497,8 +497,10 @@ class ScriptZ implements Script {
     _file = value;
   }
 
+  // TODO(johnniwinther): Decide if it is meaningful to serialize erroneous
+  // elements.
   @override
-  bool get isSynthesized => throw new UnsupportedError('ScriptZ.isSynthesized');
+  bool get isSynthesized => false;
 
   @override
   String get name {

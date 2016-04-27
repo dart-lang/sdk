@@ -227,6 +227,8 @@ class JavaScriptBackend extends Backend {
 
   bool get supportsReflection => emitter.emitter.supportsReflection;
 
+  bool get supportsAsyncAwait => true;
+
   final Annotations annotations;
 
   /// Set of classes that need to be considered for reflection although not
