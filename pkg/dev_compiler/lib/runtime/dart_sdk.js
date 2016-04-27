@@ -114,9 +114,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart._methodSig = Symbol("sig");
   dart._staticSig = Symbol("sigStatic");
   dart.getMethodType = function(obj, name) {
-    if (obj === void 0) return void 0;
-    if (obj == null) return void 0;
-    return dart.getMethodTypeFromType(obj.__proto__.constructor, name);
+    let type = obj == null ? core.Object : obj.__proto__.constructor;
+    return dart.getMethodTypeFromType(type, name);
   };
   dart.getMethodTypeFromType = function(type, name) {
     let sigObj = type[dart._methodSig];

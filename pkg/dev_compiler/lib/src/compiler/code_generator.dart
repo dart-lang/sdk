@@ -2284,7 +2284,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       //     class Foo { Function bar; }
       //     new Foo().bar(); // dynamic call
       code = 'dart.dcall(#.#, #)';
-    } else if (_requiresStaticDispatch(target, name)) {
+    } else if (_isObjectMemberCall(target, name)) {
       // Object methods require a helper for null checks.
       return js.call('dart.#(#, #)',
           [memberName, _visit(target), _visit(node.argumentList)]);
@@ -3129,15 +3129,21 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
   }
 
-  bool _requiresStaticDispatch(Expression target, String memberName) {
-    var type = getStaticType(target);
+  /// Everything in Dart is an Object and supports the 4 members on Object,
+  /// so we have to use a runtime helper to handle values such as `null` and
+  /// native types.
+  ///
+  /// For example `null.toString()` is legal in Dart, so we need to generate
+  /// that as `dart.toString(obj)`.
+  bool _isObjectMemberCall(Expression target, String memberName) {
+    // Is this a member on `Object`?
     if (!isObjectProperty(memberName)) {
       return false;
     }
 
-    // If the target could be `null`, we need static dispatch.
-    // If the target may be an extension type, we also use static dispatch
-    // as we don't symbolize object properties like hashCode.
+    // Check if the target could be `null`, is dynamic, or may be an extension
+    // native type. In all of those cases we need defensive code generation.
+    var type = getStaticType(target);
     return isNullable(target) ||
         type.isDynamic ||
         (_extensionTypes.contains(type.element) && target is! SuperExpression);
@@ -3169,13 +3175,11 @@ class CodeGenerator extends GeneralizingAstVisitor
       // Tear-off methods: explicitly bind it.
       if (target is SuperExpression) {
         return js.call('dart.bind(this, #, #.#)', [name, _visit(target), name]);
-      } else if (_requiresStaticDispatch(target, memberId.name)) {
-        var type = member.type;
-        var clos = js.call('dart.#.bind(#)', [name, _visit(target)]);
-        return js.call('dart.fn(#, #)', [clos, _emitFunctionTypeParts(type)]);
+      } else if (_isObjectMemberCall(target, memberId.name)) {
+        return js.call('dart.bind(#, #, dart.#)', [_visit(target), name, name]);
       }
       code = 'dart.bind(#, #)';
-    } else if (_requiresStaticDispatch(target, memberId.name)) {
+    } else if (_isObjectMemberCall(target, memberId.name)) {
       return js.call('dart.#(#)', [name, _visit(target)]);
     } else {
       code = '#.#';

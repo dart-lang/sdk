@@ -124,9 +124,8 @@ final _staticSig = JS('', 'Symbol("sigStatic")');
 
 /// Get the type of a method from an object using the stored signature
 getMethodType(obj, name) => JS('', '''(() => {
-  if ($obj === void 0) return void 0;
-  if ($obj == null) return void 0;
-  return $getMethodTypeFromType($obj.__proto__.constructor, $name);
+  let type = $obj == null ? $Object : $obj.__proto__.constructor;
+  return $getMethodTypeFromType(type, $name);
 })()''');
 
 /// Get the type of a method from a type using the stored signature
