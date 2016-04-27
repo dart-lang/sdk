@@ -167,6 +167,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.element.isFactory) {
+      if (node.body is BlockFunctionBody) {
+        // Check the block for a return statement, if not, create the hint.
+        if (!ExitDetector.exits(node.body)) {
+          _errorReporter.reportErrorForNode(
+              HintCode.MISSING_RETURN, node, [node.returnType.name]);
+        }
+      }
+    }
+    return super.visitConstructorDeclaration(node);
+  }
+
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     bool wasInDeprecatedMember = inDeprecatedMember;
     ExecutableElement element = node.element;

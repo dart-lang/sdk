@@ -1323,6 +1323,17 @@ Future<int> f() async {}
     verify([source]);
   }
 
+  void test_missingReturn_factory() {
+    Source source = addSource(r'''
+class A {
+  factory A() {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
   void test_missingReturn_method() {
     Source source = addSource(r'''
 class A {
