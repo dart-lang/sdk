@@ -1303,7 +1303,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // Load receiver into R0.
   __ LoadFromOffset(R0, SP, (argument_count - 1) * kWordSize);
   Label done;
-  if (name.raw() == Symbols::hashCode().raw()) {
+  if (ShouldInlineSmiStringHashCode(ic_data)) {
     Label megamorphic_call;
     __ Comment("Inlined get:hashCode for Smi and OneByteString");
     __ tsti(R0, Immediate(kSmiTagMask));

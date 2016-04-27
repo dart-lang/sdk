@@ -32,6 +32,10 @@ namespace dart {
 
 DEFINE_FLAG(bool, enable_simd_inline, true,
     "Enable inlining of SIMD related method calls.");
+DEFINE_FLAG(bool, inline_smi_string_hashcode, true,
+    "Inline hashcode for Smi and one-byte strings in case of megamorphic call");
+DEFINE_FLAG(int, inline_smi_string_hashcode_ratio, 50,
+    "Minimal hotness (0..100) of one-byte-string before inlining its hashcode");
 DEFINE_FLAG(int, min_optimization_counter_threshold, 5000,
     "The minimum invocation count for a function.");
 DEFINE_FLAG(int, optimization_counter_scale, 2000,
@@ -153,6 +157,31 @@ void CompilerDeoptInfo::EmitMaterializations(Environment* env,
       builder->AddMaterialization(mat);
     }
   }
+}
+
+
+// Returns true if OnebyteString is a frequent receiver class. We inline
+// Smi check as well, since a Smi check must be done anyway.
+// TODO(srdjan): Add check and code if Smi class is hot.
+bool FlowGraphCompiler::ShouldInlineSmiStringHashCode(const ICData& ic_data) {
+  if (!FLAG_inline_smi_string_hashcode ||
+     (ic_data.target_name() != Symbols::hashCode().raw())) {
+    return false;
+  }
+  // Precompiled code has no ICData, optimistically inline it.
+  if (ic_data.IsNull() || (ic_data.NumberOfChecks() == 0)) {
+    return true;
+  }
+  // Check if OneByteString is hot enough.
+  const ICData& ic_data_sorted =
+      ICData::Handle(ic_data.AsUnaryClassChecksSortedByCount());
+  ASSERT(ic_data_sorted.NumberOfChecks() > 0);
+  if (ic_data_sorted.GetReceiverClassIdAt(0) == kOneByteStringCid) {
+    const intptr_t total_count = ic_data_sorted.AggregateCount();
+    const intptr_t ratio = (ic_data_sorted.GetCountAt(0) * 100) / total_count;
+    return ratio > FLAG_inline_smi_string_hashcode_ratio;
+  }
+  return false;
 }
 
 

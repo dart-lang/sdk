@@ -1332,15 +1332,13 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // Load receiver into RDI.
   __ movq(RDI, Address(RSP, (argument_count - 1) * kWordSize));
   Label done;
-  if (name.raw() == Symbols::hashCode().raw()) {
-    Label try_onebytestring, megamorphic_call;
+  if (ShouldInlineSmiStringHashCode(ic_data)) {
+    Label megamorphic_call;
     __ Comment("Inlined get:hashCode for Smi and OneByteString");
+    __ movq(RAX, RDI);  // Move Smi hashcode to RAX.
     __ testq(RDI, Immediate(kSmiTagMask));
-    __ j(NOT_ZERO, &try_onebytestring, Assembler::kNearJump);  // Non-smi value.
-    __ movq(RAX, RDI);
-    __ jmp(&done, Assembler::kNearJump);
+    __ j(ZERO, &done, Assembler::kNearJump);  // It is Smi, we are done.
 
-    __ Bind(&try_onebytestring);
     __ CompareClassId(RDI, kOneByteStringCid);
     __ j(NOT_EQUAL, &megamorphic_call, Assembler::kNearJump);
     __ movq(RAX, FieldAddress(RDI, String::hash_offset()));

@@ -13024,6 +13024,81 @@ RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
 }
 
 
+// (cid, count) tuple used to sort ICData by count.
+struct CidCount {
+  CidCount(intptr_t cid_, intptr_t count_, Function* f_)
+      : cid(cid_), count(count_), function(f_) {}
+
+  static int HighestCountFirst(const CidCount* a, const CidCount* b);
+
+  intptr_t cid;
+  intptr_t count;
+  Function* function;
+};
+
+
+int CidCount::HighestCountFirst(const CidCount* a, const CidCount* b) {
+  if (a->count > b->count) {
+    return -1;
+  }
+  return (a->count < b->count) ? 1 : 0;
+}
+
+
+RawICData* ICData::AsUnaryClassChecksSortedByCount() const {
+  ASSERT(!IsNull());
+  const intptr_t kNumArgsTested = 1;
+  const intptr_t len = NumberOfChecks();
+  if (len <= 1) {
+    // No sorting needed.
+    return AsUnaryClassChecks();
+  }
+  GrowableArray<CidCount> aggregate;
+  for (intptr_t i = 0; i < len; i++) {
+    const intptr_t class_id = GetClassIdAt(i, 0);
+    const intptr_t count = GetCountAt(i);
+    if (count == 0) {
+      continue;
+    }
+    bool found = false;
+    for (intptr_t r = 0; r < aggregate.length(); r++) {
+      if (aggregate[r].cid == class_id) {
+        aggregate[r].count += count;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      aggregate.Add(CidCount(class_id, count,
+                             &Function::ZoneHandle(GetTargetAt(i))));
+    }
+  }
+  aggregate.Sort(CidCount::HighestCountFirst);
+
+  ICData& result = ICData::Handle(ICData::NewFrom(*this, kNumArgsTested));
+  ASSERT(result.NumberOfChecks() == 0);
+  // Room for all entries and the sentinel.
+  const intptr_t data_len =
+      result.TestEntryLength() * (aggregate.length() + 1);
+  const Array& data = Array::Handle(Array::New(data_len, Heap::kOld));
+  result.set_ic_data_array(data);
+  ASSERT(result.NumberOfChecks() == aggregate.length());
+
+  intptr_t pos = 0;
+  for (intptr_t i = 0; i < aggregate.length(); i++) {
+    data.SetAt(pos + 0, Smi::Handle(Smi::New(aggregate[i].cid)));
+    data.SetAt(pos + TargetIndexFor(1), *aggregate[i].function);
+    data.SetAt(pos + CountIndexFor(1),
+        Smi::Handle(Smi::New(aggregate[i].count)));
+
+    pos += result.TestEntryLength();
+  }
+  WriteSentinel(data, result.TestEntryLength());
+  result.set_ic_data_array(data);
+  return result.raw();
+}
+
+
 bool ICData::AllTargetsHaveSameOwner(intptr_t owner_cid) const {
   if (NumberOfChecks() == 0) return false;
   Class& cls = Class::Handle();

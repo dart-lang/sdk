@@ -616,6 +616,8 @@ class FlowGraphCompiler : public ValueObject {
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
 
+  static bool ShouldInlineSmiStringHashCode(const ICData& ic_data);
+
   void EmitFrameEntry();
 
   void AddStaticCallTarget(const Function& function);

@@ -1960,6 +1960,12 @@ class ICData : public Object {
   RawICData* AsUnaryClassChecksForCid(
       intptr_t cid, const Function& target) const;
 
+  // Returns ICData with aggregated receiver count, sorted by highest count.
+  // Smi not first!! (the convention for ICData used in code generation is that
+  // Smi check is first)
+  // Used for printing and optimizations.
+  RawICData* AsUnaryClassChecksSortedByCount() const;
+
   // Consider only used entries.
   bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
   bool AllReceiversAreNumbers() const;
