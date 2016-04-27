@@ -4,15 +4,17 @@
 
 import 'package:analyzer/analyzer.dart' as analyzer;
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type.dart' show DartType;
 import 'package:analyzer/src/dart/ast/ast.dart' show FunctionBodyImpl;
 import 'package:analyzer/src/dart/ast/utilities.dart' show NodeReplacer;
 import 'package:analyzer/src/dart/element/type.dart' show DynamicTypeImpl;
 import 'package:analyzer/src/generated/parser.dart' show ResolutionCopier;
-import 'package:analyzer/src/task/strong/info.dart';
+import 'package:analyzer/src/task/strong/info.dart'
+    show CoercionInfo, DownCast, DynamicInvoke;
 import 'package:logging/logging.dart' as logger;
 
-import 'ast_builder.dart';
+import 'ast_builder.dart' show AstBuilder, RawAstBuilder;
+import 'element_helpers.dart' show isInlineJS;
 
 final _log = new logger.Logger('dev_compiler.reify_coercions');
 
@@ -89,6 +91,10 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
     if (e is NamedExpression) {
       Expression inner = coerceExpression(e.expression, node);
       return new NamedExpression(e.name, inner);
+    }
+    if (e is MethodInvocation && isInlineJS(e.methodName.staticElement)) {
+      // Inline JS code should not need casts.
+      return e;
     }
     return _castExpression(e, node.convertedType);
   }

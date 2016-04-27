@@ -195,6 +195,7 @@
       'int_test',
       'integer_division_by_zero_test',
       'interceptor_test',
+      'interceptor9_test',
       'is_nan_test',
       'issue10747_test',
       'issue13179_test',
@@ -268,6 +269,7 @@
       'stack_overflow_stacktrace_test',
       'stack_overflow_test',
       'stack_trace_test',
+      'stacktrace_rethrow_nonerror_test', // mismatch from Karma's file hash
       'stacktrace_rethrow_error_test_none_multi',
       'stacktrace_rethrow_error_test_withtraceparameter_multi',
       'stacktrace_test',

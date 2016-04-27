@@ -2091,7 +2091,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.removeLast]() {
         this[dartx.checkGrowable]('removeLast');
         if (this[dartx.length] == 0) dart.throw(new core.RangeError.value(-1));
-        return dart.as(this.pop(), E);
+        return this.pop();
       }
       [dartx.remove](element) {
         this[dartx.checkGrowable]('remove');
@@ -2135,7 +2135,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.as(f, dart.functionType(dart.void, [E]));
         let length = this[dartx.length];
         for (let i = 0; i < dart.notNull(length); i++) {
-          f(dart.as(this[i], E));
+          f(this[i]);
           if (length != this[dartx.length]) {
             dart.throw(new core.ConcurrentModificationError(this));
           }
@@ -2324,7 +2324,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.get](index) {
         if (!(typeof index == 'number')) dart.throw(new core.ArgumentError(index));
         if (dart.notNull(index) >= dart.notNull(this[dartx.length]) || dart.notNull(index) < 0) dart.throw(new core.RangeError.value(index));
-        return dart.as(this[index], E);
+        return this[index];
       }
       [dartx.set](index, value) {
         dart.as(value, E);
@@ -2939,10 +2939,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.split](pattern) {
       _js_helper.checkNull(pattern);
       if (typeof pattern == 'string') {
-        return dart.as(this.split(pattern), core.List$(core.String));
+        return this.split(pattern);
       } else if (dart.is(pattern, _js_helper.JSSyntaxRegExp) && _js_helper.regExpCaptureCount(pattern) == 0) {
         let re = _js_helper.regExpGetNative(pattern);
-        return dart.as(this.split(re), core.List$(core.String));
+        return this.split(re);
       } else {
         return this[_defaultSplit](pattern);
       }
@@ -6670,7 +6670,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.fn(_isolate_helper.startRootIsolate, dart.void, [dart.dynamic, dart.dynamic]);
   dart.copyProperties(_isolate_helper, {
     get _globalState() {
-      return dart.as(dart.globalState, _isolate_helper._Manager);
+      return dart.globalState;
     },
     set _globalState(val) {
       dart.globalState = val;
@@ -7162,7 +7162,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return null;
     }
     static computeThisScriptJsshell() {
-      return dart.as(thisFilename(), core.String);
+      return thisFilename();
     }
     static computeThisScriptD8() {
       return _isolate_helper.IsolateNatives.computeThisScriptFromTrace();
@@ -7283,7 +7283,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return globalFunctionsContainer[functionName]();
     }
     static _getJSFunctionName(f) {
-      return dart.as(f.$name, core.String);
+      return f.$name;
     }
     static _allocate(ctor) {
       return new ctor();
@@ -7398,7 +7398,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static workerOnError(event, uri, onError) {
       event.preventDefault();
-      let message = dart.as(event.message, core.String);
+      let message = event.message;
       if (message == null) {
         message = `Error spawning worker for ${uri}`;
       } else {
@@ -8532,7 +8532,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (!!x.constructor && x.constructor !== Object) {
         this.unsupported(x, "Only plain JS Objects are supported:");
       }
-      let keys = dart.as(Object.keys(x), core.List);
+      let keys = Object.keys(x);
       let values = [];
       values[dartx.length] = keys[dartx.length];
       for (let i = 0; i < dart.notNull(keys[dartx.length]); i++) {
@@ -8567,7 +8567,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let classExtractor = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.CLASS_ID_EXTRACTOR);
       let fieldsExtractor = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.CLASS_FIELDS_EXTRACTOR);
       let classId = classExtractor(x);
-      let fields = dart.as(fieldsExtractor(x), core.List);
+      let fields = fieldsExtractor(x);
       return ['dart', classId, this.serializeArrayInPlace(dart.as(fields, _interceptors.JSArray))];
     }
   };
@@ -8849,7 +8849,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _js_helper.Primitives.mirrorInvokeCacheName = dart.notNull(_js_helper.Primitives.mirrorInvokeCacheName) + `_${id}`;
     }
     static objectHashCode(object) {
-      let hash = dart.as(object.$identityHash, core.int);
+      let hash = object.$identityHash;
       if (hash == null) {
         hash = Math.random() * 0x3fffffff | 0;
         object.$identityHash = hash;
@@ -9018,11 +9018,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static getTimeZoneName(receiver) {
       let d = _js_helper.Primitives.lazyAsJsDate(receiver);
-      let match = dart.as(/\((.*)\)/.exec(d.toString()), core.List);
+      let match = /\((.*)\)/.exec(d.toString());
       if (match != null) return dart.as(match[dartx.get](1), core.String);
-      match = dart.as(/^[A-Z,a-z]{3}\s[A-Z,a-z]{3}\s\d+\s\d{2}:\d{2}:\d{2}\s([A-Z]{3,5})\s\d{4}$/.exec(d.toString()), core.List);
+      match = /^[A-Z,a-z]{3}\s[A-Z,a-z]{3}\s\d+\s\d{2}:\d{2}:\d{2}\s([A-Z]{3,5})\s\d{4}$/.exec(d.toString());
       if (match != null) return dart.as(match[dartx.get](1), core.String);
-      match = dart.as(/(?:GMT|UTC)[+-]\d{4}/.exec(d.toString()), core.List);
+      match = /(?:GMT|UTC)[+-]\d{4}/.exec(d.toString());
       if (match != null) return dart.as(match[dartx.get](0), core.String);
       return "";
     }
@@ -9301,7 +9301,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (this[_trace] != null) return this[_trace];
       let trace = null;
       if (typeof this[_exception] === "object") {
-        trace = dart.as(this[_exception].stack, core.String);
+        trace = this[_exception].stack;
       }
       return this[_trace] = trace == null ? '' : trace;
     }
@@ -9454,7 +9454,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       moveNext() {
         let ret = this[_jsIterator].next();
-        this[_current$] = dart.as(ret.value, E);
+        this[_current$] = ret.value;
         return !ret.done;
       }
     }
@@ -9614,7 +9614,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.FormatException(`Illegal RegExp pattern: ${source}, ${errorMessage}`));
     }
     firstMatch(string) {
-      let m = dart.as(this[_nativeRegExp].exec(_js_helper.checkString(string)), core.List$(core.String));
+      let m = this[_nativeRegExp].exec(_js_helper.checkString(string));
       if (m == null) return null;
       return new _js_helper._MatchImplementation(this, m);
     }
@@ -9638,14 +9638,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [_execGlobal](string, start) {
       let regexp = this[_nativeGlobalVersion];
       regexp.lastIndex = start;
-      let match = dart.as(regexp.exec(string), core.List);
+      let match = regexp.exec(string);
       if (match == null) return null;
       return new _js_helper._MatchImplementation(this, dart.as(match, core.List$(core.String)));
     }
     [_execAnchored](string, start) {
       let regexp = this[_nativeAnchoredVersion];
       regexp.lastIndex = start;
-      let match = dart.as(regexp.exec(string), core.List);
+      let match = regexp.exec(string);
       if (match == null) return null;
       if (match[dartx.get](dart.notNull(match[dartx.length]) - 1) != null) return null;
       match[dartx.length] = dart.notNull(match[dartx.length]) - 1;
@@ -9992,7 +9992,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.fn(_js_helper.stringJoinUnchecked);
   _js_helper.getRuntimeType = function(object) {
-    return dart.as(dart.realRuntimeType(object), core.Type);
+    return dart.realRuntimeType(object);
   };
   dart.fn(_js_helper.getRuntimeType, () => dart.definiteFunctionType(core.Type, [dart.dynamic]));
   _js_helper.getIndex = function(array, index) {
@@ -11788,13 +11788,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.setUint8(byteOffset, value);
     }
     static _create1(arg) {
-      return dart.as(new DataView(new ArrayBuffer(arg)), _native_typed_data.NativeByteData);
+      return new DataView(new ArrayBuffer(arg));
     }
     static _create2(arg1, arg2) {
-      return dart.as(new DataView(arg1, arg2), _native_typed_data.NativeByteData);
+      return new DataView(arg1, arg2);
     }
     static _create3(arg1, arg2, arg3) {
-      return dart.as(new DataView(arg1, arg2, arg3), _native_typed_data.NativeByteData);
+      return new DataView(arg1, arg2, arg3);
     }
   };
   _native_typed_data.NativeByteData[dart.implements] = () => [typed_data.ByteData];
@@ -11860,7 +11860,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(new core.StateError('Not enough elements'));
       }
       if (skipCount != 0 || sourceLength != count) {
-        source = dart.as(source.subarray(skipCount, dart.notNull(skipCount) + count), _native_typed_data.NativeTypedArray);
+        source = source.subarray(skipCount, dart.notNull(skipCount) + count);
       }
       this.set(source, start);
     }
@@ -11959,13 +11959,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return _native_typed_data.NativeFloat32List._create1(source);
     }
     static _create1(arg) {
-      return dart.as(new Float32Array(arg), _native_typed_data.NativeFloat32List);
+      return new Float32Array(arg);
     }
     static _create2(arg1, arg2) {
-      return dart.as(new Float32Array(arg1, arg2), _native_typed_data.NativeFloat32List);
+      return new Float32Array(arg1, arg2);
     }
     static _create3(arg1, arg2, arg3) {
-      return dart.as(new Float32Array(arg1, arg2, arg3), _native_typed_data.NativeFloat32List);
+      return new Float32Array(arg1, arg2, arg3);
     }
   };
   _native_typed_data.NativeFloat32List[dart.implements] = () => [typed_data.Float32List];
@@ -12010,13 +12010,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return _native_typed_data.NativeFloat64List._create1(source);
     }
     static _create1(arg) {
-      return dart.as(new Float64Array(arg), _native_typed_data.NativeFloat64List);
+      return new Float64Array(arg);
     }
     static _create2(arg1, arg2) {
-      return dart.as(new Float64Array(arg1, arg2), _native_typed_data.NativeFloat64List);
+      return new Float64Array(arg1, arg2);
     }
     static _create3(arg1, arg2, arg3) {
-      return dart.as(new Float64Array(arg1, arg2, arg3), _native_typed_data.NativeFloat64List);
+      return new Float64Array(arg1, arg2, arg3);
     }
   };
   _native_typed_data.NativeFloat64List[dart.implements] = () => [typed_data.Float64List];
@@ -12066,13 +12066,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return _native_typed_data.NativeInt16List._create1(source);
     }
     static _create1(arg) {
-      return dart.as(new Int16Array(arg), _native_typed_data.NativeInt16List);
+      return new Int16Array(arg);
     }
     static _create2(arg1, arg2) {
-      return dart.as(new Int16Array(arg1, arg2), _native_typed_data.NativeInt16List);
+      return new Int16Array(arg1, arg2);
     }
     static _create3(arg1, arg2, arg3) {
-      return dart.as(new Int16Array(arg1, arg2, arg3), _native_typed_data.NativeInt16List);
+      return new Int16Array(arg1, arg2, arg3);
     }
   };
   _native_typed_data.NativeInt16List[dart.implements] = () => [typed_data.Int16List];
@@ -12125,13 +12125,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return _native_typed_data.NativeInt32List._create1(source);
     }
     static _create1(arg) {
-      return dart.as(new Int32Array(arg), _native_typed_data.NativeInt32List);
+      return new Int32Array(arg);
     }
     static _create2(arg1, arg2) {
-      return dart.as(new Int32Array(arg1, arg2), _native_typed_data.NativeInt32List);
+      return new Int32Array(arg1, arg2);
     }
     static _create3(arg1, arg2, arg3) {
-      return dart.as(new Int32Array(arg1, arg2, arg3), _native_typed_data.NativeInt32List);
+      return new Int32Array(arg1, arg2, arg3);
     }
   };
   _native_typed_data.NativeInt32List[dart.implements] = () => [typed_data.Int32List];
@@ -12184,13 +12184,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return _native_typed_data.NativeInt8List._create1(source);
     }
     static _create1(arg) {
-      return dart.as(new Int8Array(arg), _native_typed_data.NativeInt8List);
+      return new Int8Array(arg);
     }
     static _create2(arg1, arg2) {
-      return dart.as(new Int8Array(arg1, arg2), _native_typed_data.NativeInt8List);
+      return new Int8Array(arg1, arg2);
     }
     static _create3(arg1, arg2, arg3) {
-      return dart.as(new Int8Array(arg1, arg2, arg3), typed_data.Int8List);
+      return new Int8Array(arg1, arg2, arg3);
     }
   };
   _native_typed_data.NativeInt8List[dart.implements] = () => [typed_data.Int8List];
@@ -12243,13 +12243,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return _native_typed_data.NativeUint16List._create1(source);
     }
     static _create1(arg) {
-      return dart.as(new Uint16Array(arg), _native_typed_data.NativeUint16List);
+      return new Uint16Array(arg);
     }
     static _create2(arg1, arg2) {
-      return dart.as(new Uint16Array(arg1, arg2), _native_typed_data.NativeUint16List);
+      return new Uint16Array(arg1, arg2);
     }
     static _create3(arg1, arg2, arg3) {
-      return dart.as(new Uint16Array(arg1, arg2, arg3), _native_typed_data.NativeUint16List);
+      return new Uint16Array(arg1, arg2, arg3);
     }
   };
   _native_typed_data.NativeUint16List[dart.implements] = () => [typed_data.Uint16List];
@@ -12302,13 +12302,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return _native_typed_data.NativeUint32List._create1(source);
     }
     static _create1(arg) {
-      return dart.as(new Uint32Array(arg), _native_typed_data.NativeUint32List);
+      return new Uint32Array(arg);
     }
     static _create2(arg1, arg2) {
-      return dart.as(new Uint32Array(arg1, arg2), _native_typed_data.NativeUint32List);
+      return new Uint32Array(arg1, arg2);
     }
     static _create3(arg1, arg2, arg3) {
-      return dart.as(new Uint32Array(arg1, arg2, arg3), _native_typed_data.NativeUint32List);
+      return new Uint32Array(arg1, arg2, arg3);
     }
   };
   _native_typed_data.NativeUint32List[dart.implements] = () => [typed_data.Uint32List];
@@ -12365,13 +12365,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return _native_typed_data.NativeUint8ClampedList._create1(source);
     }
     static _create1(arg) {
-      return dart.as(new Uint8ClampedArray(arg), _native_typed_data.NativeUint8ClampedList);
+      return new Uint8ClampedArray(arg);
     }
     static _create2(arg1, arg2) {
-      return dart.as(new Uint8ClampedArray(arg1, arg2), _native_typed_data.NativeUint8ClampedList);
+      return new Uint8ClampedArray(arg1, arg2);
     }
     static _create3(arg1, arg2, arg3) {
-      return dart.as(new Uint8ClampedArray(arg1, arg2, arg3), _native_typed_data.NativeUint8ClampedList);
+      return new Uint8ClampedArray(arg1, arg2, arg3);
     }
   };
   _native_typed_data.NativeUint8ClampedList[dart.implements] = () => [typed_data.Uint8ClampedList];
@@ -12428,13 +12428,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return _native_typed_data.NativeUint8List._create1(source);
     }
     static _create1(arg) {
-      return dart.as(new Uint8Array(arg), _native_typed_data.NativeUint8List);
+      return new Uint8Array(arg);
     }
     static _create2(arg1, arg2) {
-      return dart.as(new Uint8Array(arg1, arg2), _native_typed_data.NativeUint8List);
+      return new Uint8Array(arg1, arg2);
     }
     static _create3(arg1, arg2, arg3) {
-      return dart.as(new Uint8Array(arg1, arg2, arg3), _native_typed_data.NativeUint8List);
+      return new Uint8Array(arg1, arg2, arg3);
     }
   };
   _native_typed_data.NativeUint8List[dart.implements] = () => [typed_data.Uint8List];
@@ -18258,7 +18258,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (dart.notNull(index) < 0) return null;
         this[_length$] = dart.notNull(this[_length$]) - 1;
         this[_keys] = null;
-        return dart.as(bucket.splice(index, 2)[1], V);
+        return bucket.splice(index, 2)[1];
       }
       clear() {
         if (dart.notNull(this[_length$]) > 0) {
@@ -18368,7 +18368,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [_getBucket](table, key) {
         let hash = this[_computeHashCode](key);
-        return dart.as(table[hash], core.List);
+        return table[hash];
       }
       [_findBucketIndex](bucket, key) {
         if (bucket == null) return -1;
@@ -18496,7 +18496,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (bucket == null) return -1;
         let length = bucket.length;
         for (let i = 0; i < length; i = i + 2) {
-          if (dart.notNull(this[_equals$](dart.as(bucket[i], K), dart.as(key, K)))) return i;
+          if (dart.notNull(this[_equals$](bucket[i], dart.as(key, K)))) return i;
         }
         return -1;
       }
@@ -18539,7 +18539,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.as(f, dart.functionType(dart.void, [E]));
         let keys = dart.as(dart.dsend(this[_map$], _computeKeys), core.List);
         for (let i = 0, length = keys.length; i < length; i++) {
-          f(dart.as(keys[i], E));
+          f(keys[i]);
           if (keys !== dart.dload(this[_map$], _keys)) {
             dart.throw(new core.ConcurrentModificationError(this[_map$]));
           }
@@ -18583,7 +18583,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           this[_current$1] = null;
           return false;
         } else {
-          this[_current$1] = dart.as(keys[offset], E);
+          this[_current$1] = keys[offset];
           this[_offset] = dart.notNull(offset) + 1;
           return true;
         }
@@ -18692,7 +18692,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let bucket = this[_getBucket](rest, key);
         let index = this[_findBucketIndex](bucket, key);
         if (dart.notNull(index) < 0) return null;
-        let cell = dart.as(bucket[index], collection.LinkedHashMapCell);
+        let cell = bucket[index];
         return dart.as(cell[_value$], V);
       }
       set(key, value) {
@@ -18724,7 +18724,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         } else {
           let index = this[_findBucketIndex](bucket, key);
           if (dart.notNull(index) >= 0) {
-            let cell = dart.as(bucket[index], collection.LinkedHashMapCell);
+            let cell = bucket[index];
             cell[_value$] = value;
           } else {
             let cell = this[_newLinkedCell](key, value);
@@ -18755,7 +18755,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let bucket = this[_getBucket](rest, key);
         let index = this[_findBucketIndex](bucket, key);
         if (dart.notNull(index) < 0) return null;
-        let cell = dart.as(bucket.splice(index, 1)[0], collection.LinkedHashMapCell);
+        let cell = bucket.splice(index, 1)[0];
         this[_unlinkCell](cell);
         return dart.as(cell[_value$], V);
       }
@@ -18853,13 +18853,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [_getBucket](table, key) {
         let hash = this[_computeHashCode](key);
-        return dart.as(table[hash], core.List);
+        return table[hash];
       }
       [_findBucketIndex](bucket, key) {
         if (bucket == null) return -1;
         let length = bucket.length;
         for (let i = 0; i < length; i++) {
-          let cell = dart.as(bucket[i], collection.LinkedHashMapCell);
+          let cell = bucket[i];
           if (dart.equals(cell[_key], key)) return i;
         }
         return -1;
@@ -18942,7 +18942,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (bucket == null) return -1;
         let length = bucket.length;
         for (let i = 0; i < length; i++) {
-          let cell = dart.as(bucket[i], collection.LinkedHashMapCell);
+          let cell = bucket[i];
           if (core.identical(cell[_key], key)) return i;
         }
         return -1;
@@ -18984,7 +18984,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (bucket == null) return -1;
         let length = bucket.length;
         for (let i = 0; i < length; i++) {
-          let cell = dart.as(bucket[i], collection.LinkedHashMapCell);
+          let cell = bucket[i];
           if (dart.notNull(this[_equals$](dart.as(cell[_key], K), dart.as(key, K)))) return i;
         }
         return -1;
@@ -19654,7 +19654,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [_getBucket](table, element) {
         let hash = this[_computeHashCode](element);
-        return dart.as(table[hash], core.List);
+        return table[hash];
       }
       [_findBucketIndex](bucket, element) {
         if (bucket == null) return -1;
@@ -19756,7 +19756,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (bucket == null) return -1;
         let length = bucket.length;
         for (let i = 0; i < length; i++) {
-          if (dart.notNull(this[_equality](dart.as(bucket[i], E), dart.as(element, E)))) return i;
+          if (dart.notNull(this[_equality](bucket[i], dart.as(element, E)))) return i;
         }
         return -1;
       }
@@ -19812,7 +19812,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           this[_current$1] = null;
           return false;
         } else {
-          this[_current$1] = dart.as(elements[offset], E);
+          this[_current$1] = elements[offset];
           this[_offset] = dart.notNull(offset) + 1;
           return true;
         }
@@ -19960,7 +19960,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let bucket = this[_getBucket](rest, object);
         let index = this[_findBucketIndex](bucket, object);
         if (dart.notNull(index) < 0) return false;
-        let cell = dart.as(bucket.splice(index, 1)[0], collection.LinkedHashSetCell);
+        let cell = bucket.splice(index, 1)[0];
         this[_unlinkCell](cell);
         return true;
       }
@@ -20065,13 +20065,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [_getBucket](table, element) {
         let hash = this[_computeHashCode](element);
-        return dart.as(table[hash], core.List);
+        return table[hash];
       }
       [_findBucketIndex](bucket, element) {
         if (bucket == null) return -1;
         let length = bucket.length;
         for (let i = 0; i < length; i++) {
-          let cell = dart.as(bucket[i], collection.LinkedHashSetCell);
+          let cell = bucket[i];
           if (dart.equals(cell[_element], element)) return i;
         }
         return -1;
@@ -20149,7 +20149,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (bucket == null) return -1;
         let length = bucket.length;
         for (let i = 0; i < length; i++) {
-          let cell = dart.as(bucket[i], collection.LinkedHashSetCell);
+          let cell = bucket[i];
           if (core.identical(cell[_element], element)) return i;
         }
         return -1;
@@ -20176,7 +20176,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (bucket == null) return -1;
         let length = bucket.length;
         for (let i = 0; i < length; i++) {
-          let cell = dart.as(bucket[i], collection.LinkedHashSetCell);
+          let cell = bucket[i];
           if (dart.notNull(this[_equality](dart.as(cell[_element], E), dart.as(element, E)))) return i;
         }
         return -1;
@@ -23124,7 +23124,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [_upgradedMap]() {
       dart.assert(this[_isUpgraded]);
-      return dart.as(this[_data], core.Map);
+      return this[_data];
     }
     [_computeKeys$]() {
       dart.assert(!dart.notNull(this[_isUpgraded]));
@@ -23132,7 +23132,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (keys == null) {
         keys = this[_data] = convert._JsonMap._getPropertyNames(this[_original]);
       }
-      return dart.as(keys, core.List$(core.String));
+      return keys;
     }
     [_upgrade]() {
       if (dart.notNull(this[_isUpgraded])) return this[_upgradedMap];
@@ -23167,7 +23167,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return object[key] = value;
     }
     static _getPropertyNames(object) {
-      return dart.as(Object.keys(object), core.List);
+      return Object.keys(object);
     }
     static _isUnprocessed(object) {
       return typeof object == "undefined";
@@ -23425,7 +23425,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           if (!(typeof length == 'number') || dart.notNull(length) < 0) {
             dart.throw(new core.ArgumentError(`Length must be a non-negative integer: ${length}`));
           }
-          list = _interceptors.JSArray.markFixedList(dart.as(new Array(length), core.List));
+          list = _interceptors.JSArray.markFixedList(new Array(length));
         }
         return _interceptors.JSArray$(E).typed(list);
       }
@@ -29403,13 +29403,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
   js.allowInteropCaptureThis = function(f) {
     let ret = js._interopCaptureThisExpando.get(f);
     if (ret == null) {
-      ret = dart.as(function() {
+      ret = function() {
         let args = [this];
         for (let arg of arguments) {
           args.push(arg);
         }
         return f(...args);
-      }, core.Function);
+      };
       js._interopCaptureThisExpando.set(f, ret);
     }
     return ret;
@@ -30403,16 +30403,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return idbkey;
     }
     static _only(cls, value) {
-      return dart.as(cls.only(value), indexed_db.KeyRange);
+      return cls.only(value);
     }
     static _lowerBound(cls, bound, open) {
-      return dart.as(cls.lowerBound(bound, open), indexed_db.KeyRange);
+      return cls.lowerBound(bound, open);
     }
     static _upperBound(cls, bound, open) {
-      return dart.as(cls.upperBound(bound, open), indexed_db.KeyRange);
+      return cls.upperBound(bound, open);
     }
     static _bound(cls, lower, upper, lowerOpen, upperOpen) {
-      return dart.as(cls.bound(lower, upper, lowerOpen, upperOpen), indexed_db.KeyRange);
+      return cls.bound(lower, upper, lowerOpen, upperOpen);
     }
   };
   dart.setSignature(indexed_db._KeyRangeFactoryProvider, {
@@ -31593,10 +31593,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.Event._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new Event(type, eventInitDict), html$.Event);
+      return new Event(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new Event(type), html$.Event);
+      return new Event(type);
     }
     get [dartx.bubbles]() {
       return this.bubbles;
@@ -31686,10 +31686,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return indexed_db.VersionChangeEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new IDBVersionChangeEvent(type, eventInitDict), indexed_db.VersionChangeEvent);
+      return new IDBVersionChangeEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new IDBVersionChangeEvent(type), indexed_db.VersionChangeEvent);
+      return new IDBVersionChangeEvent(type);
     }
     get [dartx.dataLoss]() {
       return this.dataLoss;
@@ -31719,12 +31719,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.registerExtension(dart.global.IDBVersionChangeEvent, indexed_db.VersionChangeEvent);
   dart.copyProperties(html$, {
     get window() {
-      return dart.as(window, html$.Window);
+      return window;
     }
   });
   dart.copyProperties(html$, {
     get document() {
-      return dart.as(document, html$.HtmlDocument);
+      return document;
     }
   });
   const _xtag = Symbol('_xtag');
@@ -32518,10 +32518,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return false;
     }
     [dartx.createShadowRoot]() {
-      return dart.as((this.createShadowRoot || this.webkitCreateShadowRoot).call(this), html$.ShadowRoot);
+      return (this.createShadowRoot || this.webkitCreateShadowRoot).call(this);
     }
     get [dartx.shadowRoot]() {
-      return dart.as(this.shadowRoot || this.webkitShadowRoot, html$.ShadowRoot);
+      return this.shadowRoot || this.webkitShadowRoot;
     }
     get [dartx.contentEdge]() {
       return new html$._ContentCssRect(this);
@@ -33899,10 +33899,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.AnimationEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new AnimationEvent(type, eventInitDict), html$.AnimationEvent);
+      return new AnimationEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new AnimationEvent(type), html$.AnimationEvent);
+      return new AnimationEvent(type);
     }
     get [dartx.animationName]() {
       return this.animationName;
@@ -33941,10 +33941,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.AnimationPlayerEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new AnimationPlayerEvent(type, eventInitDict), html$.AnimationPlayerEvent);
+      return new AnimationPlayerEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new AnimationPlayerEvent(type), html$.AnimationPlayerEvent);
+      return new AnimationPlayerEvent(type);
     }
     get [dartx.currentTime]() {
       return this.currentTime;
@@ -34132,10 +34132,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.ApplicationCacheErrorEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new ApplicationCacheErrorEvent(type, eventInitDict), html$.ApplicationCacheErrorEvent);
+      return new ApplicationCacheErrorEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new ApplicationCacheErrorEvent(type), html$.ApplicationCacheErrorEvent);
+      return new ApplicationCacheErrorEvent(type);
     }
     get [dartx.message]() {
       return this.message;
@@ -34637,10 +34637,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.AudioElement._create_2();
     }
     static _create_1(src) {
-      return dart.as(new Audio(src), html$.AudioElement);
+      return new Audio(src);
     }
     static _create_2() {
-      return dart.as(new Audio(), html$.AudioElement);
+      return new Audio();
     }
     created() {
       super.created();
@@ -34753,10 +34753,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.AutocompleteErrorEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new AutocompleteErrorEvent(type, eventInitDict), html$.AutocompleteErrorEvent);
+      return new AutocompleteErrorEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new AutocompleteErrorEvent(type), html$.AutocompleteErrorEvent);
+      return new AutocompleteErrorEvent(type);
     }
     get [dartx.reason]() {
       return this.reason;
@@ -34892,13 +34892,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.BeforeInstallPromptEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new BeforeInstallPromptEvent(type, eventInitDict), html$.BeforeInstallPromptEvent);
+      return new BeforeInstallPromptEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new BeforeInstallPromptEvent(type), html$.BeforeInstallPromptEvent);
+      return new BeforeInstallPromptEvent(type);
     }
     get platforms() {
-      return dart.as(this.platforms, core.List$(core.String));
+      return this.platforms;
     }
     prompt() {
       return this.prompt();
@@ -35631,7 +35631,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.CanvasElement.webGlContextRestoredEvent.forElement(this);
     }
     get [dartx.context2D]() {
-      return dart.as(this.getContext('2d'), html$.CanvasRenderingContext2D);
+      return this.getContext('2d');
     }
     [dartx.getContext3d](opts) {
       let alpha = opts && 'alpha' in opts ? opts.alpha : true;
@@ -36102,7 +36102,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.rect(x, y, width, height);
     }
     [dartx.createImageDataFromImageData](imagedata) {
-      return dart.as(this.createImageData(imagedata), html$.ImageData);
+      return this.createImageData(imagedata);
     }
     [dartx.setFillColorRgb](r, g, b, a) {
       if (a === void 0) a = 1;
@@ -36125,7 +36125,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.arc(x, y, radius, startAngle, endAngle, anticlockwise);
     }
     [dartx.createPatternFromImage](image, repetitionType) {
-      return dart.as(this.createPattern(image, repetitionType), html$.CanvasPattern);
+      return this.createPattern(image, repetitionType);
     }
     [dartx.drawImageToRect](source, destRect, opts) {
       let sourceRect = opts && 'sourceRect' in opts ? opts.sourceRect : null;
@@ -36152,9 +36152,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.getLineDash]() {
       if (!!this.getLineDash) {
-        return dart.as(this.getLineDash(), core.List$(core.num));
+        return this.getLineDash();
       } else if (!!this.webkitLineDash) {
-        return dart.as(this.webkitLineDash, core.List$(core.num));
+        return this.webkitLineDash;
       }
     }
     [dartx.setLineDash](dash) {
@@ -36300,7 +36300,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.CircularGeofencingRegion._create_1(init_1);
     }
     static _create_1(init) {
-      return dart.as(new CircularGeofencingRegion(init), html$.CircularGeofencingRegion);
+      return new CircularGeofencingRegion(init);
     }
     get [dartx.latitude]() {
       return this.latitude;
@@ -36422,10 +36422,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.CloseEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new CloseEvent(type, eventInitDict), html$.CloseEvent);
+      return new CloseEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new CloseEvent(type), html$.CloseEvent);
+      return new CloseEvent(type);
     }
     get [dartx.code]() {
       return this.code;
@@ -36454,9 +36454,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static new(data) {
       if (data === void 0) data = null;
       if (data != null) {
-        return dart.as(html$.document.createComment(data), html$.Comment);
+        return html$.document.createComment(data);
       }
-      return dart.as(html$.document.createComment(""), html$.Comment);
+      return html$.document.createComment("");
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -36503,10 +36503,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.UIEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new UIEvent(type, eventInitDict), html$.UIEvent);
+      return new UIEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new UIEvent(type), html$.UIEvent);
+      return new UIEvent(type);
     }
     get [_charCode]() {
       return this.charCode;
@@ -36577,10 +36577,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.CompositionEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new CompositionEvent(type, eventInitDict), html$.CompositionEvent);
+      return new CompositionEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new CompositionEvent(type), html$.CompositionEvent);
+      return new CompositionEvent(type);
     }
     get [dartx.data]() {
       return this.data;
@@ -36611,7 +36611,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.CompositorProxy._create_1(element, attributeArray);
     }
     static _create_1(element, attributeArray) {
-      return dart.as(new CompositorProxy(element, attributeArray), html$.CompositorProxy);
+      return new CompositorProxy(element, attributeArray);
     }
     disconnect() {
       return this.disconnect();
@@ -36641,7 +36641,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.CompositorWorker._create_1(scriptUrl);
     }
     static _create_1(scriptUrl) {
-      return dart.as(new CompositorWorker(scriptUrl), html$.CompositorWorker);
+      return new CompositorWorker(scriptUrl);
     }
     postMessage(message, transfer) {
       if (transfer === void 0) transfer = null;
@@ -40618,7 +40618,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return name;
     }
     static _readCache(key) {
-      return dart.as(html$.CssStyleDeclaration._propertyCache[key], core.String);
+      return html$.CssStyleDeclaration._propertyCache[key];
     }
     static _writeCache(key, value) {
       html$.CssStyleDeclaration._propertyCache[key] = value;
@@ -42381,10 +42381,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.CustomEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new CustomEvent(type, eventInitDict), html$.CustomEvent);
+      return new CustomEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new CustomEvent(type), html$.CustomEvent);
+      return new CustomEvent(type);
     }
     get [_detail]() {
       return html_common.convertNativeToDart_SerializedScriptValue(this[_get__detail]);
@@ -42604,7 +42604,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.remove(index);
     }
     [dartx.get](index) {
-      return dart.as(this[index], html$.DataTransferItem);
+      return this[index];
     }
   };
   dart.setSignature(html$.DataTransferItemList, {
@@ -42679,10 +42679,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.DefaultSessionStartEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new DefaultSessionStartEvent(type, eventInitDict), html$.DefaultSessionStartEvent);
+      return new DefaultSessionStartEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new DefaultSessionStartEvent(type), html$.DefaultSessionStartEvent);
+      return new DefaultSessionStartEvent(type);
     }
   };
   dart.setSignature(html$.DefaultSessionStartEvent, {
@@ -42821,10 +42821,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.DeviceLightEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new DeviceLightEvent(type, eventInitDict), html$.DeviceLightEvent);
+      return new DeviceLightEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new DeviceLightEvent(type), html$.DeviceLightEvent);
+      return new DeviceLightEvent(type);
     }
     get [dartx.value]() {
       return this.value;
@@ -43948,12 +43948,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [_createNodeIterator](root, whatToShow, filter) {
       if (whatToShow === void 0) whatToShow = null;
       if (filter === void 0) filter = null;
-      return dart.as(this.createNodeIterator(root, whatToShow, filter, false), html$.NodeIterator);
+      return this.createNodeIterator(root, whatToShow, filter, false);
     }
     [_createTreeWalker](root, whatToShow, filter) {
       if (whatToShow === void 0) whatToShow = null;
       if (filter === void 0) filter = null;
-      return dart.as(this.createTreeWalker(root, whatToShow, filter, false), html$.TreeWalker);
+      return this.createTreeWalker(root, whatToShow, filter, false);
     }
     get [dartx.visibilityState]() {
       return this.visibilityState || this.mozVisibilityState || this.msVisibilityState || this.webkitVisibilityState;
@@ -44165,10 +44165,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.DomError._create_2(name);
     }
     static _create_1(name, message) {
-      return dart.as(new DOMError(name, message), html$.DomError);
+      return new DOMError(name, message);
     }
     static _create_2(name) {
-      return dart.as(new DOMError(name), html$.DomError);
+      return new DOMError(name);
     }
     get [dartx.message]() {
       return this.message;
@@ -44501,10 +44501,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
     static _create_1() {
-      return dart.as(new DOMMatrix(), html$.DomMatrix);
+      return new DOMMatrix();
     }
     static _create_2(other) {
-      return dart.as(new DOMMatrix(other), html$.DomMatrix);
+      return new DOMMatrix(other);
     }
     get [dartx.a]() {
       return this.a;
@@ -44689,7 +44689,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.DomParser._create_1();
     }
     static _create_1() {
-      return dart.as(new DOMParser(), html$.DomParser);
+      return new DOMParser();
     }
     [dartx.parseFromString](str, type) {
       return this.parseFromString(str, type);
@@ -44720,7 +44720,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.DomPointReadOnly._create_1(x, y, z, w);
     }
     static _create_1(x, y, z, w) {
-      return dart.as(new DOMPointReadOnly(x, y, z, w), html$.DomPointReadOnly);
+      return new DOMPointReadOnly(x, y, z, w);
     }
     get [dartx.w]() {
       return this.w;
@@ -44786,22 +44786,22 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
     static _create_1(point_OR_x) {
-      return dart.as(new DOMPoint(point_OR_x), html$.DomPoint);
+      return new DOMPoint(point_OR_x);
     }
     static _create_2() {
-      return dart.as(new DOMPoint(), html$.DomPoint);
+      return new DOMPoint();
     }
     static _create_3(point_OR_x) {
-      return dart.as(new DOMPoint(point_OR_x), html$.DomPoint);
+      return new DOMPoint(point_OR_x);
     }
     static _create_4(point_OR_x, y) {
-      return dart.as(new DOMPoint(point_OR_x, y), html$.DomPoint);
+      return new DOMPoint(point_OR_x, y);
     }
     static _create_5(point_OR_x, y, z) {
-      return dart.as(new DOMPoint(point_OR_x, y, z), html$.DomPoint);
+      return new DOMPoint(point_OR_x, y, z);
     }
     static _create_6(point_OR_x, y, z, w) {
-      return dart.as(new DOMPoint(point_OR_x, y, z, w), html$.DomPoint);
+      return new DOMPoint(point_OR_x, y, z, w);
     }
     static get supported() {
       return !!window.DOMPoint || !!window.WebKitPoint;
@@ -44928,7 +44928,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.DomRectReadOnly._create_1(x, y, width, height);
     }
     static _create_1(x, y, width, height) {
-      return dart.as(new DOMRectReadOnly(x, y, width, height), html$.DomRectReadOnly);
+      return new DOMRectReadOnly(x, y, width, height);
     }
     get [dartx.bottom]() {
       return this.bottom;
@@ -45864,10 +45864,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.ErrorEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new ErrorEvent(type, eventInitDict), html$.ErrorEvent);
+      return new ErrorEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new ErrorEvent(type), html$.ErrorEvent);
+      return new ErrorEvent(type);
     }
     get [dartx.colno]() {
       return this.colno;
@@ -45925,10 +45925,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.EventSource._create_2(url);
     }
     static _create_1(url, eventSourceInitDict) {
-      return dart.as(new EventSource(url, eventSourceInitDict), html$.EventSource);
+      return new EventSource(url, eventSourceInitDict);
     }
     static _create_2(url) {
-      return dart.as(new EventSource(url), html$.EventSource);
+      return new EventSource(url);
     }
     get [dartx.readyState]() {
       return this.readyState;
@@ -46031,10 +46031,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.ExtendableEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new ExtendableEvent(type, eventInitDict), html$.ExtendableEvent);
+      return new ExtendableEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new ExtendableEvent(type), html$.ExtendableEvent);
+      return new ExtendableEvent(type);
     }
     [dartx.waitUntil](value) {
       return this.waitUntil(value);
@@ -46067,7 +46067,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.FederatedCredential._create_1(data_1);
     }
     static _create_1(data) {
-      return dart.as(new FederatedCredential(data), html$.FederatedCredential);
+      return new FederatedCredential(data);
     }
     get [dartx.protocol]() {
       return this.protocol;
@@ -46104,10 +46104,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.FetchEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new FetchEvent(type, eventInitDict), html$.FetchEvent);
+      return new FetchEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new FetchEvent(type), html$.FetchEvent);
+      return new FetchEvent(type);
     }
     get [dartx.isReload]() {
       return this.isReload;
@@ -46239,10 +46239,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.File._create_2(fileBits, fileName);
     }
     static _create_1(fileBits, fileName, options) {
-      return dart.as(new File(fileBits, fileName, options), html$.File);
+      return new File(fileBits, fileName, options);
     }
     static _create_2(fileBits, fileName) {
-      return dart.as(new File(fileBits, fileName), html$.File);
+      return new File(fileBits, fileName);
     }
     get [dartx.lastModified]() {
       return this.lastModified;
@@ -46368,7 +46368,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.get](index) {
       if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
-      return dart.as(this[index], html$.File);
+      return this[index];
     }
     [dartx.set](index, value) {
       dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
@@ -46379,21 +46379,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], html$.File);
+        return this[0];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], html$.File);
+        return this[dart.notNull(len) - 1];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], html$.File);
+        return this[0];
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -46447,7 +46447,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.FileReader._create_1();
     }
     static _create_1() {
-      return dart.as(new FileReader(), html$.FileReader);
+      return new FileReader();
     }
     get [dartx.error]() {
       return this.error;
@@ -46680,10 +46680,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.FocusEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new FocusEvent(type, eventInitDict), html$.FocusEvent);
+      return new FocusEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new FocusEvent(type), html$.FocusEvent);
+      return new FocusEvent(type);
     }
     get [dartx.relatedTarget]() {
       return html$._convertNativeToDart_EventTarget(this[_get_relatedTarget]);
@@ -46730,10 +46730,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.FontFace._create_2(family, source);
     }
     static _create_1(family, source, descriptors) {
-      return dart.as(new FontFace(family, source, descriptors), html$.FontFace);
+      return new FontFace(family, source, descriptors);
     }
     static _create_2(family, source) {
-      return dart.as(new FontFace(family, source), html$.FontFace);
+      return new FontFace(family, source);
     }
     get [dartx.family]() {
       return this.family;
@@ -46891,10 +46891,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.FormData._create_2();
     }
     static _create_1(form) {
-      return dart.as(new FormData(form), html$.FormData);
+      return new FormData(form);
     }
     static _create_2() {
-      return dart.as(new FormData(), html$.FormData);
+      return new FormData();
     }
     static get supported() {
       return !!window.FormData;
@@ -47163,10 +47163,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.GamepadEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new GamepadEvent(type, eventInitDict), html$.GamepadEvent);
+      return new GamepadEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new GamepadEvent(type), html$.GamepadEvent);
+      return new GamepadEvent(type);
     }
     get [dartx.gamepad]() {
       return this.gamepad;
@@ -47381,7 +47381,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_ptr] = ptr;
     }
     get coords() {
-      return dart.as(this[_ptr].coords, html$.Coordinates);
+      return this[_ptr].coords;
     }
     get timestamp() {
       return this[_ptr].timestamp;
@@ -47833,7 +47833,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let oldUrl = opts && 'oldUrl' in opts ? opts.oldUrl : null;
       let newUrl = opts && 'newUrl' in opts ? opts.newUrl : null;
       let options = dart.map({canBubble: canBubble, cancelable: cancelable, oldURL: oldUrl, newURL: newUrl});
-      return dart.as(new HashChangeEvent(type, html_common.convertDartToNative_Dictionary(options)), html$.HashChangeEvent);
+      return new HashChangeEvent(type, html_common.convertDartToNative_Dictionary(options));
     }
     static _(type, eventInitDict) {
       if (eventInitDict === void 0) eventInitDict = null;
@@ -47844,10 +47844,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.HashChangeEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new HashChangeEvent(type, eventInitDict), html$.HashChangeEvent);
+      return new HashChangeEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new HashChangeEvent(type), html$.HashChangeEvent);
+      return new HashChangeEvent(type);
     }
     static get supported() {
       return html_common.Device.isEventTypeSupported('HashChangeEvent');
@@ -47919,16 +47919,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
     static _create_1() {
-      return dart.as(new Headers(), html$.Headers);
+      return new Headers();
     }
     static _create_2(input) {
-      return dart.as(new Headers(input), html$.Headers);
+      return new Headers(input);
     }
     static _create_3(input) {
-      return dart.as(new Headers(input), html$.Headers);
+      return new Headers(input);
     }
     static _create_4(input) {
-      return dart.as(new Headers(input), html$.Headers);
+      return new Headers(input);
     }
   };
   dart.setSignature(html$.Headers, {
@@ -48137,7 +48137,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.get](index) {
       if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
-      return dart.as(this[index], html$.Node);
+      return this[index];
     }
     [dartx.set](index, value) {
       dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
@@ -48148,21 +48148,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], html$.Node);
+        return this[0];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], html$.Node);
+        return this[dart.notNull(len) - 1];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], html$.Node);
+        return this[0];
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -48604,7 +48604,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.HttpRequest._create_1();
     }
     static _create_1() {
-      return dart.as(new XMLHttpRequest(), html$.HttpRequest);
+      return new XMLHttpRequest();
     }
     get [dartx.readyState]() {
       return this.readyState;
@@ -48846,13 +48846,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
     static _create_1(data_OR_sw, sh_OR_sw) {
-      return dart.as(new ImageData(data_OR_sw, sh_OR_sw), html$.ImageData);
+      return new ImageData(data_OR_sw, sh_OR_sw);
     }
     static _create_2(data_OR_sw, sh_OR_sw) {
-      return dart.as(new ImageData(data_OR_sw, sh_OR_sw), html$.ImageData);
+      return new ImageData(data_OR_sw, sh_OR_sw);
     }
     static _create_3(data_OR_sw, sh_OR_sw, sh) {
-      return dart.as(new ImageData(data_OR_sw, sh_OR_sw, sh), html$.ImageData);
+      return new ImageData(data_OR_sw, sh_OR_sw, sh);
     }
     get [dartx.data]() {
       return this.data;
@@ -49031,10 +49031,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.InputDevice._create_2();
     }
     static _create_1(deviceInitDict) {
-      return dart.as(new InputDevice(deviceInitDict), html$.InputDevice);
+      return new InputDevice(deviceInitDict);
     }
     static _create_2() {
-      return dart.as(new InputDevice(), html$.InputDevice);
+      return new InputDevice();
     }
   };
   dart.setSignature(html$.InputDevice, {
@@ -50363,10 +50363,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.KeyboardEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new KeyboardEvent(type, eventInitDict), html$.KeyboardEvent);
+      return new KeyboardEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new KeyboardEvent(type), html$.KeyboardEvent);
+      return new KeyboardEvent(type);
     }
     get [dartx.altKey]() {
       return this.altKey;
@@ -50442,13 +50442,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
     static _create_1(target, keyframes) {
-      return dart.as(new KeyframeEffect(target, keyframes), html$.KeyframeEffect);
+      return new KeyframeEffect(target, keyframes);
     }
     static _create_2(target, keyframes, timing) {
-      return dart.as(new KeyframeEffect(target, keyframes, timing), html$.KeyframeEffect);
+      return new KeyframeEffect(target, keyframes, timing);
     }
     static _create_3(target, keyframes, timing) {
-      return dart.as(new KeyframeEffect(target, keyframes, timing), html$.KeyframeEffect);
+      return new KeyframeEffect(target, keyframes, timing);
     }
   };
   dart.setSignature(html$.KeyframeEffect, {
@@ -50944,7 +50944,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.MediaController._create_1();
     }
     static _create_1() {
-      return dart.as(new MediaController(), html$.MediaController);
+      return new MediaController();
     }
     get [dartx.buffered]() {
       return this.buffered;
@@ -51085,10 +51085,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.MediaEncryptedEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new MediaEncryptedEvent(type, eventInitDict), html$.MediaEncryptedEvent);
+      return new MediaEncryptedEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new MediaEncryptedEvent(type), html$.MediaEncryptedEvent);
+      return new MediaEncryptedEvent(type);
     }
   };
   dart.setSignature(html$.MediaEncryptedEvent, {
@@ -51171,10 +51171,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.MediaKeyEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new MediaKeyEvent(type, eventInitDict), html$.MediaKeyEvent);
+      return new MediaKeyEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new MediaKeyEvent(type), html$.MediaKeyEvent);
+      return new MediaKeyEvent(type);
     }
     get [dartx.defaultUrl]() {
       return this.defaultURL;
@@ -51228,10 +51228,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.MediaKeyMessageEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new MediaKeyMessageEvent(type, eventInitDict), html$.MediaKeyMessageEvent);
+      return new MediaKeyMessageEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new MediaKeyMessageEvent(type), html$.MediaKeyMessageEvent);
+      return new MediaKeyMessageEvent(type);
     }
     get [dartx.message]() {
       return this.message;
@@ -51463,10 +51463,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.MediaQueryListEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new MediaQueryListEvent(type, eventInitDict), html$.MediaQueryListEvent);
+      return new MediaQueryListEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new MediaQueryListEvent(type), html$.MediaQueryListEvent);
+      return new MediaQueryListEvent(type);
     }
     get [dartx.matches]() {
       return this.matches;
@@ -51496,7 +51496,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.MediaSession._create_1();
     }
     static _create_1() {
-      return dart.as(new MediaSession(), html$.MediaSession);
+      return new MediaSession();
     }
     activate() {
       return this.activate();
@@ -51535,7 +51535,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.MediaSource._create_1();
     }
     static _create_1() {
-      return dart.as(new MediaSource(), html$.MediaSource);
+      return new MediaSource();
     }
     static get supported() {
       return !!window.MediaSource;
@@ -51618,13 +51618,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
     static _create_1() {
-      return dart.as(new MediaStream(), html$.MediaStream);
+      return new MediaStream();
     }
     static _create_2(stream_OR_tracks) {
-      return dart.as(new MediaStream(stream_OR_tracks), html$.MediaStream);
+      return new MediaStream(stream_OR_tracks);
     }
     static _create_3(stream_OR_tracks) {
-      return dart.as(new MediaStream(stream_OR_tracks), html$.MediaStream);
+      return new MediaStream(stream_OR_tracks);
     }
     get [dartx.active]() {
       return this.active;
@@ -51726,10 +51726,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.MediaStreamEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new MediaStreamEvent(type, eventInitDict), html$.MediaStreamEvent);
+      return new MediaStreamEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new MediaStreamEvent(type), html$.MediaStreamEvent);
+      return new MediaStreamEvent(type);
     }
     static get supported() {
       return html_common.Device.isEventTypeSupported('MediaStreamEvent');
@@ -52037,7 +52037,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         source = html$.window;
       }
       if (!dart.notNull(html_common.Device.isIE)) {
-        return dart.as(new MessageEvent(type, {bubbles: canBubble, cancelable: cancelable, data: data, origin: origin, lastEventId: lastEventId, source: source, ports: messagePorts}), html$.MessageEvent);
+        return new MessageEvent(type, {bubbles: canBubble, cancelable: cancelable, data: data, origin: origin, lastEventId: lastEventId, source: source, ports: messagePorts});
       }
       let event = dart.as(html$.document[_createEvent]("MessageEvent"), html$.MessageEvent);
       event[_initMessageEvent](type, canBubble, cancelable, data, origin, lastEventId, source, messagePorts);
@@ -52058,10 +52058,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.MessageEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new MessageEvent(type, eventInitDict), html$.MessageEvent);
+      return new MessageEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new MessageEvent(type), html$.MessageEvent);
+      return new MessageEvent(type);
     }
     get [dartx.lastEventId]() {
       return this.lastEventId;
@@ -52338,10 +52338,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.MidiConnectionEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new MIDIConnectionEvent(type, eventInitDict), html$.MidiConnectionEvent);
+      return new MIDIConnectionEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new MIDIConnectionEvent(type), html$.MidiConnectionEvent);
+      return new MIDIConnectionEvent(type);
     }
     get [dartx.port]() {
       return this.port;
@@ -52466,10 +52466,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.MidiMessageEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new MIDIMessageEvent(type, eventInitDict), html$.MidiMessageEvent);
+      return new MIDIMessageEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new MIDIMessageEvent(type), html$.MidiMessageEvent);
+      return new MIDIMessageEvent(type);
     }
     get [dartx.data]() {
       return this.data;
@@ -52573,7 +52573,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.get](index) {
       if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
-      return dart.as(this[index], html$.MimeType);
+      return this[index];
     }
     [dartx.set](index, value) {
       dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
@@ -52584,21 +52584,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], html$.MimeType);
+        return this[0];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], html$.MimeType);
+        return this[dart.notNull(len) - 1];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], html$.MimeType);
+        return this[0];
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -52726,10 +52726,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.MouseEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new MouseEvent(type, eventInitDict), html$.MouseEvent);
+      return new MouseEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new MouseEvent(type), html$.MouseEvent);
+      return new MouseEvent(type);
     }
     get [dartx.altKey]() {
       return this.altKey;
@@ -52923,7 +52923,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static new(callback) {
       0;
-      return dart.as(new (window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver)(_js_helper.convertDartClosureToJS(html$._wrapBinaryZone(callback), 2)), html$.MutationObserver);
+      return new (window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver)(_js_helper.convertDartClosureToJS(html$._wrapBinaryZone(callback), 2));
     }
   };
   dart.setSignature(html$.MutationObserver, {
@@ -53359,12 +53359,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_this] = this$;
     }
     get first() {
-      let result = dart.as(this[_this].firstChild, html$.Node);
+      let result = this[_this].firstChild;
       if (result == null) dart.throw(new core.StateError("No elements"));
       return result;
     }
     get last() {
-      let result = dart.as(this[_this].lastChild, html$.Node);
+      let result = this[_this].lastChild;
       if (result == null) dart.throw(new core.StateError("No elements"));
       return result;
     }
@@ -53372,7 +53372,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let l = this.length;
       if (l == 0) dart.throw(new core.StateError("No elements"));
       if (dart.notNull(l) > 1) dart.throw(new core.StateError("More than one element"));
-      return dart.as(this[_this].firstChild, html$.Node);
+      return this[_this].firstChild;
     }
     add(value) {
       this[_this][dartx.append](value);
@@ -53625,7 +53625,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.get](index) {
       if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
-      return dart.as(this[index], html$.Node);
+      return this[index];
     }
     [dartx.set](index, value) {
       dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
@@ -53636,21 +53636,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], html$.Node);
+        return this[0];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], html$.Node);
+        return this[dart.notNull(len) - 1];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], html$.Node);
+        return this[0];
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -53740,10 +53740,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.Notification._create_2(title);
     }
     static _create_1(title, options) {
-      return dart.as(new Notification(title, options), html$.Notification);
+      return new Notification(title, options);
     }
     static _create_2(title) {
-      return dart.as(new Notification(title), html$.Notification);
+      return new Notification(title);
     }
     static get supported() {
       return !!window.Notification;
@@ -53845,10 +53845,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.NotificationEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new NotificationEvent(type, eventInitDict), html$.NotificationEvent);
+      return new NotificationEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new NotificationEvent(type), html$.NotificationEvent);
+      return new NotificationEvent(type);
     }
   };
   dart.setSignature(html$.NotificationEvent, {
@@ -54105,19 +54105,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.OptionElement._create_5();
     }
     static _create_1(data, value, defaultSelected, selected) {
-      return dart.as(new Option(data, value, defaultSelected, selected), html$.OptionElement);
+      return new Option(data, value, defaultSelected, selected);
     }
     static _create_2(data, value, defaultSelected) {
-      return dart.as(new Option(data, value, defaultSelected), html$.OptionElement);
+      return new Option(data, value, defaultSelected);
     }
     static _create_3(data, value) {
-      return dart.as(new Option(data, value), html$.OptionElement);
+      return new Option(data, value);
     }
     static _create_4(data) {
-      return dart.as(new Option(data), html$.OptionElement);
+      return new Option(data);
     }
     static _create_5() {
-      return dart.as(new Option(), html$.OptionElement);
+      return new Option();
     }
     created() {
       this[dartx.defaultSelected] = null;
@@ -54302,10 +54302,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.PageTransitionEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new PageTransitionEvent(type, eventInitDict), html$.PageTransitionEvent);
+      return new PageTransitionEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new PageTransitionEvent(type), html$.PageTransitionEvent);
+      return new PageTransitionEvent(type);
     }
     get [dartx.persisted]() {
       return this.persisted;
@@ -54421,13 +54421,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.PasswordCredential._create_3(id, password);
     }
     static _create_1(id, password, name, iconURL) {
-      return dart.as(new PasswordCredential(id, password, name, iconURL), html$.PasswordCredential);
+      return new PasswordCredential(id, password, name, iconURL);
     }
     static _create_2(id, password, name) {
-      return dart.as(new PasswordCredential(id, password, name), html$.PasswordCredential);
+      return new PasswordCredential(id, password, name);
     }
     static _create_3(id, password) {
-      return dart.as(new PasswordCredential(id, password), html$.PasswordCredential);
+      return new PasswordCredential(id, password);
     }
   };
   dart.setSignature(html$.PasswordCredential, {
@@ -54473,13 +54473,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
     static _create_1() {
-      return dart.as(new Path2D(), html$.Path2D);
+      return new Path2D();
     }
     static _create_2(path_OR_text) {
-      return dart.as(new Path2D(path_OR_text), html$.Path2D);
+      return new Path2D(path_OR_text);
     }
     static _create_3(path_OR_text) {
-      return dart.as(new Path2D(path_OR_text), html$.Path2D);
+      return new Path2D(path_OR_text);
     }
     [dartx.addPath](path, transform) {
       return this.addPath(path, transform);
@@ -54896,7 +54896,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.PeriodicSyncEvent._create_1(type, init_1);
     }
     static _create_1(type, init) {
-      return dart.as(new PeriodicSyncEvent(type, init), html$.PeriodicSyncEvent);
+      return new PeriodicSyncEvent(type, init);
     }
   };
   dart.setSignature(html$.PeriodicSyncEvent, {
@@ -55072,7 +55072,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.get](index) {
       if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
-      return dart.as(this[index], html$.Plugin);
+      return this[index];
     }
     [dartx.set](index, value) {
       dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
@@ -55083,21 +55083,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], html$.Plugin);
+        return this[0];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], html$.Plugin);
+        return this[dart.notNull(len) - 1];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], html$.Plugin);
+        return this[0];
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -55182,10 +55182,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.PointerEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new PointerEvent(type, eventInitDict), html$.PointerEvent);
+      return new PointerEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new PointerEvent(type), html$.PointerEvent);
+      return new PointerEvent(type);
     }
   };
   dart.setSignature(html$.PointerEvent, {
@@ -55216,10 +55216,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.PopStateEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new PopStateEvent(type, eventInitDict), html$.PopStateEvent);
+      return new PopStateEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new PopStateEvent(type), html$.PopStateEvent);
+      return new PopStateEvent(type);
     }
     get [dartx.state]() {
       return html_common.convertNativeToDart_SerializedScriptValue(this[_get_state]);
@@ -55477,10 +55477,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.ProgressEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new ProgressEvent(type, eventInitDict), html$.ProgressEvent);
+      return new ProgressEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new ProgressEvent(type), html$.ProgressEvent);
+      return new ProgressEvent(type);
     }
     get [dartx.lengthComputable]() {
       return this.lengthComputable;
@@ -55518,10 +55518,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.PromiseRejectionEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new PromiseRejectionEvent(type, eventInitDict), html$.PromiseRejectionEvent);
+      return new PromiseRejectionEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new PromiseRejectionEvent(type), html$.PromiseRejectionEvent);
+      return new PromiseRejectionEvent(type);
     }
   };
   dart.setSignature(html$.PromiseRejectionEvent, {
@@ -55552,10 +55552,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.PushEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new PushEvent(type, eventInitDict), html$.PushEvent);
+      return new PushEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new PushEvent(type), html$.PushEvent);
+      return new PushEvent(type);
     }
     get [dartx.data]() {
       return this.data;
@@ -55641,7 +55641,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.PushMessageData._create_1(message);
     }
     static _create_1(message) {
-      return dart.as(new PushMessageData(message), html$.PushMessageData);
+      return new PushMessageData(message);
     }
     arrayBuffer() {
       return this.arrayBuffer();
@@ -55993,10 +55993,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.RelatedEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new RelatedEvent(type, eventInitDict), html$.RelatedEvent);
+      return new RelatedEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new RelatedEvent(type), html$.RelatedEvent);
+      return new RelatedEvent(type);
     }
     get [dartx.relatedTarget]() {
       return html$._convertNativeToDart_EventTarget(this[_get_relatedTarget]);
@@ -56230,7 +56230,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.RtcDtmfToneChangeEvent._create_1(type, eventInitDict_1);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new RTCDTMFToneChangeEvent(type, eventInitDict), html$.RtcDtmfToneChangeEvent);
+      return new RTCDTMFToneChangeEvent(type, eventInitDict);
     }
     get [dartx.tone]() {
       return this.tone;
@@ -56254,7 +56254,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.RtcIceCandidate = class RtcIceCandidate extends _interceptors.Interceptor {
     static new(dictionary) {
       let constructorName = window[dart.notNull(html_common.Device.isFirefox) ? `${html_common.Device.propertyPrefix}RTCIceCandidate` : 'RTCIceCandidate'];
-      return dart.as(new constructorName(html_common.convertDartToNative_SerializedScriptValue(dictionary)), html$.RtcIceCandidate);
+      return new constructorName(html_common.convertDartToNative_SerializedScriptValue(dictionary));
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -56352,9 +56352,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (mediaConstraints === void 0) mediaConstraints = null;
       let constructorName = window[`${html_common.Device.propertyPrefix}RTCPeerConnection`];
       if (mediaConstraints != null) {
-        return dart.as(new constructorName(html_common.convertDartToNative_SerializedScriptValue(rtcIceServers), html_common.convertDartToNative_SerializedScriptValue(mediaConstraints)), html$.RtcPeerConnection);
+        return new constructorName(html_common.convertDartToNative_SerializedScriptValue(rtcIceServers), html_common.convertDartToNative_SerializedScriptValue(mediaConstraints));
       } else {
-        return dart.as(new constructorName(html_common.convertDartToNative_SerializedScriptValue(rtcIceServers)), html$.RtcPeerConnection);
+        return new constructorName(html_common.convertDartToNative_SerializedScriptValue(rtcIceServers));
       }
     }
     static get supported() {
@@ -56643,7 +56643,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.RtcSessionDescription = class RtcSessionDescription extends _interceptors.Interceptor {
     static new(dictionary) {
       let constructorName = window[dart.notNull(html_common.Device.isFirefox) ? `${html_common.Device.propertyPrefix}RTCSessionDescription` : 'RTCSessionDescription'];
-      return dart.as(new constructorName(html_common.convertDartToNative_SerializedScriptValue(dictionary)), html$.RtcSessionDescription);
+      return new constructorName(html_common.convertDartToNative_SerializedScriptValue(dictionary));
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -56953,31 +56953,31 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.ScrollState._create_9();
     }
     static _create_1(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning, isEnding) {
-      return dart.as(new ScrollState(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning, isEnding), html$.ScrollState);
+      return new ScrollState(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning, isEnding);
     }
     static _create_2(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning) {
-      return dart.as(new ScrollState(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning), html$.ScrollState);
+      return new ScrollState(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning);
     }
     static _create_3(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase) {
-      return dart.as(new ScrollState(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase), html$.ScrollState);
+      return new ScrollState(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase);
     }
     static _create_4(deltaX, deltaY, deltaGranularity, velocityX, velocityY) {
-      return dart.as(new ScrollState(deltaX, deltaY, deltaGranularity, velocityX, velocityY), html$.ScrollState);
+      return new ScrollState(deltaX, deltaY, deltaGranularity, velocityX, velocityY);
     }
     static _create_5(deltaX, deltaY, deltaGranularity, velocityX) {
-      return dart.as(new ScrollState(deltaX, deltaY, deltaGranularity, velocityX), html$.ScrollState);
+      return new ScrollState(deltaX, deltaY, deltaGranularity, velocityX);
     }
     static _create_6(deltaX, deltaY, deltaGranularity) {
-      return dart.as(new ScrollState(deltaX, deltaY, deltaGranularity), html$.ScrollState);
+      return new ScrollState(deltaX, deltaY, deltaGranularity);
     }
     static _create_7(deltaX, deltaY) {
-      return dart.as(new ScrollState(deltaX, deltaY), html$.ScrollState);
+      return new ScrollState(deltaX, deltaY);
     }
     static _create_8(deltaX) {
-      return dart.as(new ScrollState(deltaX), html$.ScrollState);
+      return new ScrollState(deltaX);
     }
     static _create_9() {
-      return dart.as(new ScrollState(), html$.ScrollState);
+      return new ScrollState();
     }
     consumeDelta(x, y) {
       return this.consumeDelta(x, y);
@@ -57028,10 +57028,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.SecurityPolicyViolationEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new SecurityPolicyViolationEvent(type, eventInitDict), html$.SecurityPolicyViolationEvent);
+      return new SecurityPolicyViolationEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new SecurityPolicyViolationEvent(type), html$.SecurityPolicyViolationEvent);
+      return new SecurityPolicyViolationEvent(type);
     }
     get [dartx.blockedUri]() {
       return this.blockedURI;
@@ -57492,10 +57492,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.ServicePortConnectEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new ServicePortConnectEvent(type, eventInitDict), html$.ServicePortConnectEvent);
+      return new ServicePortConnectEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new ServicePortConnectEvent(type), html$.ServicePortConnectEvent);
+      return new ServicePortConnectEvent(type);
     }
     respondWith(response) {
       return this.respondWith(response);
@@ -57627,10 +57627,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.ServiceWorkerMessageEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new ServiceWorkerMessageEvent(type, eventInitDict), html$.ServiceWorkerMessageEvent);
+      return new ServiceWorkerMessageEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new ServiceWorkerMessageEvent(type), html$.ServiceWorkerMessageEvent);
+      return new ServiceWorkerMessageEvent(type);
     }
   };
   dart.setSignature(html$.ServiceWorkerMessageEvent, {
@@ -57888,10 +57888,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.SharedWorker._create_2(scriptURL);
     }
     static _create_1(scriptURL, name) {
-      return dart.as(new SharedWorker(scriptURL, name), html$.SharedWorker);
+      return new SharedWorker(scriptURL, name);
     }
     static _create_2(scriptURL) {
-      return dart.as(new SharedWorker(scriptURL), html$.SharedWorker);
+      return new SharedWorker(scriptURL);
     }
     get [dartx.port]() {
       return this.port;
@@ -58049,7 +58049,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.get](index) {
       if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
-      return dart.as(this[index], html$.SourceBuffer);
+      return this[index];
     }
     [dartx.set](index, value) {
       dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
@@ -58060,21 +58060,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], html$.SourceBuffer);
+        return this[0];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], html$.SourceBuffer);
+        return this[dart.notNull(len) - 1];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], html$.SourceBuffer);
+        return this[0];
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -58222,7 +58222,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.SpeechGrammar._create_1();
     }
     static _create_1() {
-      return dart.as(new SpeechGrammar(), html$.SpeechGrammar);
+      return new SpeechGrammar();
     }
     get [dartx.src]() {
       return this.src;
@@ -58268,14 +58268,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.SpeechGrammarList._create_1();
     }
     static _create_1() {
-      return dart.as(new SpeechGrammarList(), html$.SpeechGrammarList);
+      return new SpeechGrammarList();
     }
     get [dartx.length]() {
       return this.length;
     }
     [dartx.get](index) {
       if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
-      return dart.as(this[index], html$.SpeechGrammar);
+      return this[index];
     }
     [dartx.set](index, value) {
       dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
@@ -58286,21 +58286,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], html$.SpeechGrammar);
+        return this[0];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], html$.SpeechGrammar);
+        return this[dart.notNull(len) - 1];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], html$.SpeechGrammar);
+        return this[0];
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -58452,7 +58452,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.SpeechRecognition.startEvent.forTarget(this);
     }
     static new() {
-      return dart.as(new (window.SpeechRecognition || window.webkitSpeechRecognition)(), html$.SpeechRecognition);
+      return new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     }
   };
   dart.setSignature(html$.SpeechRecognition, {
@@ -58540,10 +58540,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.SpeechRecognitionError._create_2(type);
     }
     static _create_1(type, initDict) {
-      return dart.as(new SpeechRecognitionError(type, initDict), html$.SpeechRecognitionError);
+      return new SpeechRecognitionError(type, initDict);
     }
     static _create_2(type) {
-      return dart.as(new SpeechRecognitionError(type), html$.SpeechRecognitionError);
+      return new SpeechRecognitionError(type);
     }
     get [dartx.error]() {
       return this.error;
@@ -58584,10 +58584,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.SpeechRecognitionEvent._create_2(type);
     }
     static _create_1(type, initDict) {
-      return dart.as(new SpeechRecognitionEvent(type, initDict), html$.SpeechRecognitionEvent);
+      return new SpeechRecognitionEvent(type, initDict);
     }
     static _create_2(type) {
-      return dart.as(new SpeechRecognitionEvent(type), html$.SpeechRecognitionEvent);
+      return new SpeechRecognitionEvent(type);
     }
     get [dartx.emma]() {
       return this.emma;
@@ -58746,10 +58746,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.SpeechSynthesisUtterance._create_2();
     }
     static _create_1(text) {
-      return dart.as(new SpeechSynthesisUtterance(text), html$.SpeechSynthesisUtterance);
+      return new SpeechSynthesisUtterance(text);
     }
     static _create_2() {
-      return dart.as(new SpeechSynthesisUtterance(), html$.SpeechSynthesisUtterance);
+      return new SpeechSynthesisUtterance();
     }
     get [dartx.lang]() {
       return this.lang;
@@ -59073,10 +59073,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.StorageEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new StorageEvent(type, eventInitDict), html$.StorageEvent);
+      return new StorageEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new StorageEvent(type), html$.StorageEvent);
+      return new StorageEvent(type);
     }
     get [dartx.key]() {
       return this.key;
@@ -59244,7 +59244,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.SyncEvent._create_1(type, init_1);
     }
     static _create_1(type, init) {
-      return dart.as(new SyncEvent(type, init), html$.SyncEvent);
+      return new SyncEvent(type, init);
     }
   };
   dart.setSignature(html$.SyncEvent, {
@@ -60251,7 +60251,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.get](index) {
       if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
-      return dart.as(this[index], html$.TextTrackCue);
+      return this[index];
     }
     [dartx.set](index, value) {
       dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
@@ -60262,21 +60262,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], html$.TextTrackCue);
+        return this[0];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], html$.TextTrackCue);
+        return this[dart.notNull(len) - 1];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], html$.TextTrackCue);
+        return this[0];
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -60327,7 +60327,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.get](index) {
       if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
-      return dart.as(this[index], html$.TextTrack);
+      return this[index];
     }
     [dartx.set](index, value) {
       dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
@@ -60338,21 +60338,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], html$.TextTrack);
+        return this[0];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], html$.TextTrack);
+        return this[dart.notNull(len) - 1];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], html$.TextTrack);
+        return this[0];
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -60647,7 +60647,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.get](index) {
       if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
-      return dart.as(this[index], html$.Touch);
+      return this[index];
     }
     [dartx.set](index, value) {
       dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
@@ -60658,21 +60658,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], html$.Touch);
+        return this[0];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], html$.Touch);
+        return this[dart.notNull(len) - 1];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], html$.Touch);
+        return this[0];
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -60713,10 +60713,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.TrackDefault._create_2(type, language, label, kinds_1);
     }
     static _create_1(type, language, label, kinds, byteStreamTrackID) {
-      return dart.as(new TrackDefault(type, language, label, kinds, byteStreamTrackID), html$.TrackDefault);
+      return new TrackDefault(type, language, label, kinds, byteStreamTrackID);
     }
     static _create_2(type, language, label, kinds) {
-      return dart.as(new TrackDefault(type, language, label, kinds), html$.TrackDefault);
+      return new TrackDefault(type, language, label, kinds);
     }
   };
   dart.setSignature(html$.TrackDefault, {
@@ -60743,10 +60743,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.TrackDefaultList._create_2();
     }
     static _create_1(trackDefaults) {
-      return dart.as(new TrackDefaultList(trackDefaults), html$.TrackDefaultList);
+      return new TrackDefaultList(trackDefaults);
     }
     static _create_2() {
-      return dart.as(new TrackDefaultList(), html$.TrackDefaultList);
+      return new TrackDefaultList();
     }
     item(index) {
       return this.item(index);
@@ -60861,10 +60861,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.TrackEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new TrackEvent(type, eventInitDict), html$.TrackEvent);
+      return new TrackEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new TrackEvent(type), html$.TrackEvent);
+      return new TrackEvent(type);
     }
     get [dartx.track]() {
       return this.track;
@@ -60901,10 +60901,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.TransitionEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new TransitionEvent(type, eventInitDict), html$.TransitionEvent);
+      return new TransitionEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new TransitionEvent(type), html$.TransitionEvent);
+      return new TransitionEvent(type);
     }
     get [dartx.elapsedTime]() {
       return this.elapsedTime;
@@ -61309,10 +61309,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.VRFieldOfView._create_2();
     }
     static _create_1(fov) {
-      return dart.as(new VRFieldOfView(fov), html$.VRFieldOfView);
+      return new VRFieldOfView(fov);
     }
     static _create_2() {
-      return dart.as(new VRFieldOfView(), html$.VRFieldOfView);
+      return new VRFieldOfView();
     }
   };
   dart.setSignature(html$.VRFieldOfView, {
@@ -61600,7 +61600,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.VttCue._create_1(startTime, endTime, text);
     }
     static _create_1(startTime, endTime, text) {
-      return dart.as(new VTTCue(startTime, endTime, text), html$.VttCue);
+      return new VTTCue(startTime, endTime, text);
     }
     get [dartx.align]() {
       return this.align;
@@ -61684,7 +61684,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.VttRegion._create_1();
     }
     static _create_1() {
-      return dart.as(new VTTRegion(), html$.VttRegion);
+      return new VTTRegion();
     }
     get [dartx.height]() {
       return this.height;
@@ -61806,10 +61806,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.WebSocket._create_2(url);
     }
     static _create_1(url, protocols) {
-      return dart.as(new WebSocket(url, protocols), html$.WebSocket);
+      return new WebSocket(url, protocols);
     }
     static _create_2(url) {
-      return dart.as(new WebSocket(url), html$.WebSocket);
+      return new WebSocket(url);
     }
     static get supported() {
       return typeof window.WebSocket != "undefined";
@@ -61943,7 +61943,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (view == null) {
         view = html$.window;
       }
-      return dart.as(new WheelEvent(type, html_common.convertDartToNative_Dictionary(options)), html$.WheelEvent);
+      return new WheelEvent(type, html_common.convertDartToNative_Dictionary(options));
     }
     static _(type, eventInitDict) {
       if (eventInitDict === void 0) eventInitDict = null;
@@ -61954,10 +61954,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.WheelEvent._create_2(type);
     }
     static _create_1(type, eventInitDict) {
-      return dart.as(new WheelEvent(type, eventInitDict), html$.WheelEvent);
+      return new WheelEvent(type, eventInitDict);
     }
     static _create_2(type) {
-      return dart.as(new WheelEvent(type), html$.WheelEvent);
+      return new WheelEvent(type);
     }
     get [_deltaX]() {
       return this.deltaX;
@@ -62212,13 +62212,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return completer.future;
     }
     get [dartx.document]() {
-      return dart.as(this.document, html$.Document);
+      return this.document;
     }
     [_open2](url, name) {
-      return dart.as(this.open(url, name), html$.WindowBase);
+      return this.open(url, name);
     }
     [_open3](url, name, options) {
-      return dart.as(this.open(url, name, options), html$.WindowBase);
+      return this.open(url, name, options);
     }
     [dartx.open](url, name, options) {
       if (options === void 0) options = null;
@@ -62274,7 +62274,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       })(this);
     }
     get [dartx.indexedDB]() {
-      return dart.as(this.indexedDB || this.webkitIndexedDB || this.mozIndexedDB, indexed_db.IdbFactory);
+      return this.indexedDB || this.webkitIndexedDB || this.mozIndexedDB;
     }
     get [dartx.console]() {
       return html$.Console._safeConsole;
@@ -63328,7 +63328,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.Worker._create_1(scriptUrl);
     }
     static _create_1(scriptUrl) {
-      return dart.as(new Worker(scriptUrl), html$.Worker);
+      return new Worker(scriptUrl);
     }
     static get supported() {
       return typeof window.Worker != "undefined";
@@ -63476,7 +63476,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.XPathEvaluator._create_1();
     }
     static _create_1() {
-      return dart.as(new XPathEvaluator(), html$.XPathEvaluator);
+      return new XPathEvaluator();
     }
     [dartx.createExpression](expression, resolver) {
       return this.createExpression(expression, resolver);
@@ -63620,7 +63620,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.XmlSerializer._create_1();
     }
     static _create_1() {
-      return dart.as(new XMLSerializer(), html$.XmlSerializer);
+      return new XMLSerializer();
     }
     [dartx.serializeToString](root) {
       return this.serializeToString(root);
@@ -63655,7 +63655,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$.XsltProcessor._create_1();
     }
     static _create_1() {
-      return dart.as(new XSLTProcessor(), html$.XsltProcessor);
+      return new XSLTProcessor();
     }
     static get supported() {
       return !!window.XSLTProcessor;
@@ -63911,21 +63911,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], math.Rectangle$(core.num));
+        return this[0];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], math.Rectangle$(core.num));
+        return this[dart.notNull(len) - 1];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], math.Rectangle$(core.num));
+        return this[0];
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -63973,7 +63973,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.get](index) {
       if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
-      return dart.as(this[index], html$.CssRule);
+      return this[index];
     }
     [dartx.set](index, value) {
       dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
@@ -63984,21 +63984,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], html$.CssRule);
+        return this[0];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], html$.CssRule);
+        return this[dart.notNull(len) - 1];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], html$.CssRule);
+        return this[0];
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -64107,19 +64107,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$._DomRect._create_5();
     }
     static _create_1(x, y, width, height) {
-      return dart.as(new DOMRect(x, y, width, height), html$._DomRect);
+      return new DOMRect(x, y, width, height);
     }
     static _create_2(x, y, width) {
-      return dart.as(new DOMRect(x, y, width), html$._DomRect);
+      return new DOMRect(x, y, width);
     }
     static _create_3(x, y) {
-      return dart.as(new DOMRect(x, y), html$._DomRect);
+      return new DOMRect(x, y);
     }
     static _create_4(x) {
-      return dart.as(new DOMRect(x), html$._DomRect);
+      return new DOMRect(x);
     }
     static _create_5() {
-      return dart.as(new DOMRect(), html$._DomRect);
+      return new DOMRect();
     }
     get [dartx.height]() {
       return this.height;
@@ -64180,7 +64180,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$._FileReaderSync._create_1();
     }
     static _create_1() {
-      return dart.as(new FileReaderSync(), html$._FileReaderSync);
+      return new FileReaderSync();
     }
   };
   dart.setSignature(html$._FileReaderSync, {
@@ -64223,7 +64223,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.get](index) {
       if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
-      return dart.as(this[index], html$.Gamepad);
+      return this[index];
     }
     [dartx.set](index, value) {
       dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
@@ -64234,21 +64234,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], html$.Gamepad);
+        return this[0];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], html$.Gamepad);
+        return this[dart.notNull(len) - 1];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], html$.Gamepad);
+        return this[0];
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -64415,7 +64415,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.get](index) {
       if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
-      return dart.as(this[index], html$.Node);
+      return this[index];
     }
     [dartx.set](index, value) {
       dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
@@ -64426,21 +64426,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], html$.Node);
+        return this[0];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], html$.Node);
+        return this[dart.notNull(len) - 1];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], html$.Node);
+        return this[0];
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -64520,10 +64520,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$._Request._create_2(input);
     }
     static _create_1(input, requestInitDict) {
-      return dart.as(new Request(input, requestInitDict), html$._Request);
+      return new Request(input, requestInitDict);
     }
     static _create_2(input) {
-      return dart.as(new Request(input), html$._Request);
+      return new Request(input);
     }
     get [dartx.context]() {
       return this.context;
@@ -64578,13 +64578,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$._Response._create_3();
     }
     static _create_1(body, responseInitDict) {
-      return dart.as(new Response(body, responseInitDict), html$._Response);
+      return new Response(body, responseInitDict);
     }
     static _create_2(body) {
-      return dart.as(new Response(body), html$._Response);
+      return new Response(body);
     }
     static _create_3() {
-      return dart.as(new Response(), html$._Response);
+      return new Response();
     }
   };
   dart.setSignature(html$._Response, {
@@ -64632,7 +64632,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.get](index) {
       if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
-      return dart.as(this[index], html$.SpeechRecognitionResult);
+      return this[index];
     }
     [dartx.set](index, value) {
       dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
@@ -64643,21 +64643,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], html$.SpeechRecognitionResult);
+        return this[0];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], html$.SpeechRecognitionResult);
+        return this[dart.notNull(len) - 1];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], html$.SpeechRecognitionResult);
+        return this[0];
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -64701,7 +64701,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.get](index) {
       if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
-      return dart.as(this[index], html$.StyleSheet);
+      return this[index];
     }
     [dartx.set](index, value) {
       dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
@@ -64712,21 +64712,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], html$.StyleSheet);
+        return this[0];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], html$.StyleSheet);
+        return this[dart.notNull(len) - 1];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], html$.StyleSheet);
+        return this[0];
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -64776,10 +64776,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$._WebKitCSSMatrix._create_2();
     }
     static _create_1(cssValue) {
-      return dart.as(new WebKitCSSMatrix(cssValue), html$._WebKitCSSMatrix);
+      return new WebKitCSSMatrix(cssValue);
     }
     static _create_2() {
-      return dart.as(new WebKitCSSMatrix(), html$._WebKitCSSMatrix);
+      return new WebKitCSSMatrix();
     }
   };
   dart.setSignature(html$._WebKitCSSMatrix, {
@@ -65833,16 +65833,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     static _classListOf(e) {
-      return dart.as(e.classList, html$.DomTokenList);
+      return e.classList;
     }
     static _classListLength(list) {
-      return dart.as(list.length, core.int);
+      return list.length;
     }
     static _classListContains(list, value) {
-      return dart.as(list.contains(value), core.bool);
+      return list.contains(value);
     }
     static _classListContainsBeforeAddOrRemove(list, value) {
-      return dart.as(list.contains(value), core.bool);
+      return list.contains(value);
     }
     static _classListAdd(list, value) {
       list.add(value);
@@ -68683,7 +68683,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({ContextAttributes: [html_common.ContextAttributes, [core.bool, core.bool, core.bool, core.bool, core.bool, core.bool, core.bool]]})
   });
   html_common.convertNativeToDart_ContextAttributes = function(nativeContextAttributes) {
-    return new html_common.ContextAttributes(dart.as(nativeContextAttributes.alpha, core.bool), dart.as(nativeContextAttributes.antialias, core.bool), dart.as(nativeContextAttributes.depth, core.bool), dart.as(nativeContextAttributes.failIfMajorPerformanceCaveat, core.bool), dart.as(nativeContextAttributes.premultipliedAlpha, core.bool), dart.as(nativeContextAttributes.preserveDrawingBuffer, core.bool), dart.as(nativeContextAttributes.stencil, core.bool));
+    return new html_common.ContextAttributes(nativeContextAttributes.alpha, nativeContextAttributes.antialias, nativeContextAttributes.depth, nativeContextAttributes.failIfMajorPerformanceCaveat, nativeContextAttributes.premultipliedAlpha, nativeContextAttributes.preserveDrawingBuffer, nativeContextAttributes.stencil);
   };
   dart.fn(html_common.convertNativeToDart_ContextAttributes);
   html_common._TypedImageData = class _TypedImageData extends core.Object {
@@ -68710,7 +68710,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       return nativeImageData;
     }
-    return new html_common._TypedImageData(dart.as(nativeImageData.data, typed_data.Uint8ClampedList), dart.as(nativeImageData.height, core.int), dart.as(nativeImageData.width, core.int));
+    return new html_common._TypedImageData(nativeImageData.data, nativeImageData.height, nativeImageData.width);
   };
   dart.fn(html_common.convertNativeToDart_ImageData, html$.ImageData, [dart.dynamic]);
   html_common.convertDartToNative_ImageData = function(imageData) {
@@ -68807,7 +68807,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return core.identical(a, b);
     }
     forEachJsField(object, action) {
-      for (let key of dart.as(Object.keys(object), core.Iterable)) {
+      for (let key of Object.keys(object)) {
         dart.dcall(action, key, object[key]);
       }
     }
@@ -69318,7 +69318,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.created();
     }
     get [_svgClassName]() {
-      return dart.as(this.className, svg$.AnimatedString);
+      return this.className;
     }
     get [dartx.ownerSvgElement]() {
       return this.ownerSVGElement;
@@ -72069,21 +72069,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], svg$.Length);
+        return this[0];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], svg$.Length);
+        return this[dart.notNull(len) - 1];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], svg$.Length);
+        return this[0];
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -72613,21 +72613,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], svg$.Number);
+        return this[0];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], svg$.Number);
+        return this[dart.notNull(len) - 1];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], svg$.Number);
+        return this[0];
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -73499,21 +73499,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], svg$.PathSeg);
+        return this[0];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], svg$.PathSeg);
+        return this[dart.notNull(len) - 1];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], svg$.PathSeg);
+        return this[0];
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -74976,21 +74976,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], svg$.Transform);
+        return this[0];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], svg$.Transform);
+        return this[dart.notNull(len) - 1];
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], svg$.Transform);
+        return this[0];
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -75711,13 +75711,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return web_audio.AudioContext.completeEvent.forTarget(this);
     }
     static new() {
-      return dart.as(new (window.AudioContext || window.webkitAudioContext)(), web_audio.AudioContext);
+      return new (window.AudioContext || window.webkitAudioContext)();
     }
     [dartx.createGain]() {
       if (this.createGain !== undefined) {
-        return dart.as(this.createGain(), web_audio.GainNode);
+        return this.createGain();
       } else {
-        return dart.as(this.createGainNode(), web_audio.GainNode);
+        return this.createGainNode();
       }
     }
     [dartx.createScriptProcessor](bufferSize, numberOfInputChannels, numberOfOutputChannels) {
@@ -75725,11 +75725,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (numberOfOutputChannels === void 0) numberOfOutputChannels = null;
       let func = this.createScriptProcessor || this.createJavaScriptNode;
       if (numberOfOutputChannels != null) {
-        return dart.as(func.call(this, bufferSize, numberOfInputChannels, numberOfOutputChannels), web_audio.ScriptProcessorNode);
+        return func.call(this, bufferSize, numberOfInputChannels, numberOfOutputChannels);
       } else if (numberOfInputChannels != null) {
-        return dart.as(func.call(this, bufferSize, numberOfInputChannels), web_audio.ScriptProcessorNode);
+        return func.call(this, bufferSize, numberOfInputChannels);
       } else {
-        return dart.as(func.call(this, bufferSize), web_audio.ScriptProcessorNode);
+        return func.call(this, bufferSize);
       }
     }
     [dartx.decodeAudioData](audioData) {
@@ -76142,7 +76142,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return web_audio.OfflineAudioContext._create_1(numberOfChannels, numberOfFrames, sampleRate);
     }
     static _create_1(numberOfChannels, numberOfFrames, sampleRate) {
-      return dart.as(new OfflineAudioContext(numberOfChannels, numberOfFrames, sampleRate), web_audio.OfflineAudioContext);
+      return new OfflineAudioContext(numberOfChannels, numberOfFrames, sampleRate);
     }
   };
   dart.setSignature(web_audio.OfflineAudioContext, {
