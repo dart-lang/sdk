@@ -10,18 +10,13 @@ import 'dart:math' as math;
 
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart';
-
-/**
- * A function that will return a [UriResolver] that can be used to resolve
- * `package:` URIs in [SingleContextManager].
- */
-typedef UriResolver PackageResolverProvider();
 
 /**
  * Implementation of [ContextManager] that supports only one [AnalysisContext].
@@ -51,12 +46,17 @@ class SingleContextManager implements ContextManager {
    * A function that will return a [UriResolver] that can be used to resolve
    * `package:` URIs.
    */
-  final PackageResolverProvider packageResolverProvider;
+  final ResolverProvider packageResolverProvider;
 
   /**
    * A list of the globs used to determine which files should be analyzed.
    */
   final List<Glob> analyzedFilesGlobs;
+
+  /**
+   * The default options used to create new analysis contexts.
+   */
+  final AnalysisOptionsImpl defaultContextOptions;
 
   /**
    * The list of included paths (folders and files) most recently passed to
@@ -103,8 +103,12 @@ class SingleContextManager implements ContextManager {
   /**
    * The [packageResolverProvider] must not be `null`.
    */
-  SingleContextManager(this.resourceProvider, this.sdkManager,
-      this.packageResolverProvider, this.analyzedFilesGlobs) {
+  SingleContextManager(
+      this.resourceProvider,
+      this.sdkManager,
+      this.packageResolverProvider,
+      this.analyzedFilesGlobs,
+      this.defaultContextOptions) {
     pathContext = resourceProvider.pathContext;
   }
 
@@ -196,8 +200,8 @@ class SingleContextManager implements ContextManager {
     }
     // Create or update the analysis context.
     if (context == null) {
-      UriResolver packageResolver = packageResolverProvider();
-      context = callbacks.addContext(contextFolder, new AnalysisOptionsImpl(),
+      UriResolver packageResolver = packageResolverProvider(contextFolder);
+      context = callbacks.addContext(contextFolder, defaultContextOptions,
           new CustomPackageResolverDisposition(packageResolver));
       ChangeSet changeSet =
           _buildChangeSet(added: _includedFiles(includedPaths, excludedPaths));

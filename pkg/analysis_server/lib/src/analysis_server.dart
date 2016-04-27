@@ -330,7 +330,7 @@ class AnalysisServer {
     sdkManager = new DartSdkManager(defaultSdkCreator);
     if (useSingleContextManager) {
       contextManager = new SingleContextManager(resourceProvider, sdkManager,
-          () => packageResolverProvider(null), analyzedFilesGlobs);
+          packageResolverProvider, analyzedFilesGlobs, defaultContextOptions);
     } else {
       contextManager = new ContextManagerImpl(
           resourceProvider,

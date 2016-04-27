@@ -69,7 +69,7 @@ class SingleContextManagerTest {
       return new MockSdk();
     });
     manager = new SingleContextManager(resourceProvider, sdkManager,
-        () => packageResolver, analysisFilesGlobs);
+        (_) => packageResolver, analysisFilesGlobs, new AnalysisOptionsImpl());
     callbacks = new TestContextManagerCallbacks(resourceProvider);
     manager.callbacks = callbacks;
   }
