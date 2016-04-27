@@ -24,24 +24,24 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     return new VariableNameContributor();
   }
 
-  test_ExpressionStatement_short() async {
+  test_ExpressionStatement_dont_suggest_type() async {
     addTestSource('''
-    f() { A ^ }
+    f() { a ^ }
     ''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestName('a');
+    assertNotSuggested('a');
   }
 
-  test_ExpressionStatement_short_semicolon() async {
+  test_ExpressionStatement_dont_suggest_type_semicolon() async {
     addTestSource('''
-    f() { A ^; }
+    f() { a ^; }
     ''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestName('a');
+    assertNotSuggested('a');
   }
 
   test_ExpressionStatement_long() async {
@@ -100,9 +100,9 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertSuggestName('name');
   }
 
-  test_ExpressionStatement_top_level_short() async {
+  test_ExpressionStatement_short() async {
     addTestSource('''
-    A ^
+    f() { A ^ }
     ''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -110,9 +110,9 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertSuggestName('a');
   }
 
-  test_ExpressionStatement_top_level_short_semicolon() async {
+  test_ExpressionStatement_short_semicolon() async {
     addTestSource('''
-    A ^;
+    f() { A ^; }
     ''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -120,7 +120,27 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertSuggestName('a');
   }
 
-  test_ExpressionStatement_top_level_long() async {
+  test_TopLevelVariableDeclaration_dont_suggest_type() async {
+    addTestSource('''
+    a ^
+    ''');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertNotSuggested('a');
+  }
+
+  test_TopLevelVariableDeclaration_dont_suggest_type_semicolon() async {
+    addTestSource('''
+    a ^;
+    ''');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertNotSuggested('a');
+  }
+
+  test_TopLevelVariableDeclaration_long() async {
     addTestSource('''
     AbstractCrazyNonsenseClassName ^
     ''');
@@ -134,7 +154,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertSuggestName('name');
   }
 
-  test_ExpressionStatement_top_level_long_semicolon() async {
+  test_TopLevelVariableDeclaration_long_semicolon() async {
     addTestSource('''
     AbstractCrazyNonsenseClassName ^;
     ''');
@@ -148,7 +168,35 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertSuggestName('name');
   }
 
-  test_ExpressionStatement_top_level_prefixed() async {
+  test_TopLevelVariableDeclaration_partial() async {
+    addTestSource('''
+    AbstractCrazyNonsenseClassName abs^
+    ''');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 3);
+    expect(replacementLength, 3);
+    assertSuggestName('abstractCrazyNonsenseClassName');
+    assertSuggestName('crazyNonsenseClassName');
+    assertSuggestName('nonsenseClassName');
+    assertSuggestName('className');
+    assertSuggestName('name');
+  }
+
+  test_TopLevelVariableDeclaration_partial_semicolon() async {
+    addTestSource('''
+    AbstractCrazyNonsenseClassName abs^
+    ''');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 3);
+    expect(replacementLength, 3);
+    assertSuggestName('abstractCrazyNonsenseClassName');
+    assertSuggestName('crazyNonsenseClassName');
+    assertSuggestName('nonsenseClassName');
+    assertSuggestName('className');
+    assertSuggestName('name');
+  }
+
+  test_TopLevelVariableDeclaration_prefixed() async {
     addTestSource('''
     prefix.AbstractCrazyNonsenseClassName ^
     ''');
@@ -162,7 +210,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertSuggestName('name');
   }
 
-  test_ExpressionStatement_top_level_prefixed_semicolon() async {
+  test_TopLevelVariableDeclaration_prefixed_semicolon() async {
     addTestSource('''
     prefix.AbstractCrazyNonsenseClassName ^;
     ''');
@@ -176,24 +224,23 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertSuggestName('name');
   }
 
-  test_VariableDeclaration_short() async {
+  test_TopLevelVariableDeclaration_short() async {
     addTestSource('''
-    AAA a^
+    A ^
     ''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset-1);
-    expect(replacementLength, 1);
-    assertSuggestName('aaa');
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestName('a');
   }
 
-  test_VariableDeclaration_short_semicolon() async {
+  test_TopLevelVariableDeclaration_short_semicolon() async {
     addTestSource('''
-    AAA a^;
+    A ^;
     ''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset-1);
-    expect(replacementLength, 1);
-    assertSuggestName('aaa');
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestName('a');
   }
-
 }

@@ -80,6 +80,7 @@ class VariableNameContributor extends DartCompletionContributor {
       }
 
       List<String> variableNameSuggestions = getCamelWordCombinations(strName);
+      variableNameSuggestions.remove(strName);
       List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
       for (String varName in variableNameSuggestions) {
         CompletionSuggestion suggestion = _createNameSuggestion(varName);
