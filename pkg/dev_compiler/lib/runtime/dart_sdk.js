@@ -735,13 +735,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     return result;
   };
-  dart.LazyTagged = function(infoFn) {
-    return class _Tagged {
-      get [dart._runtimeType]() {
-        return infoFn();
-      }
-    };
-  };
   dart.read = function(value) {
     return value[dart._runtimeType];
   };
@@ -764,10 +757,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart._mixins = Symbol("mixins");
   dart.implements = Symbol("implements");
   dart.metadata = Symbol("metadata");
-  dart._TypeRepBase = dart.LazyTagged(() => core.Type);
-  dart.TypeRep = class TypeRep extends dart._TypeRepBase {
+  dart.TypeRep = class TypeRep {
     get name() {
       return this.toString();
+    }
+    get [dart._runtimeType]() {
+      return core.Type;
     }
   };
   dart.Dynamic = class Dynamic extends dart.TypeRep {

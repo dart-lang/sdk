@@ -145,9 +145,6 @@ _nonPrimitiveRuntimeType(obj) => JS('', '''(() => {
   return result;
 })()''');
 
-LazyTagged(infoFn) =>
-    JS('', 'class _Tagged { get [#]() {return #();} }', _runtimeType, infoFn);
-
 read(value) => JS('', '#[#]', value, _runtimeType);
 
 /// Tag the runtime type of [value] to be type [t].
