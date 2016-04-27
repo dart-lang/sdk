@@ -5,13 +5,18 @@
 part of dart.async;
 
 class _BroadcastStream<T> extends _ControllerStream<T> {
-  _BroadcastStream(_StreamControllerLifecycle<T> controller)
-      : super(controller);
+  _BroadcastStream(_StreamControllerLifecycle controller) : super(controller);
 
   bool get isBroadcast => true;
 }
 
-class _BroadcastSubscription<T> extends _ControllerSubscription<T> {
+abstract class _BroadcastSubscriptionLink {
+  _BroadcastSubscriptionLink _next;
+  _BroadcastSubscriptionLink _previous;
+}
+
+class _BroadcastSubscription<T> extends _ControllerSubscription<T>
+                                implements _BroadcastSubscriptionLink {
   static const int _STATE_EVENT_ID = 1;
   static const int _STATE_FIRING = 2;
   static const int _STATE_REMOVE_AFTER_FIRING = 4;
@@ -20,10 +25,10 @@ class _BroadcastSubscription<T> extends _ControllerSubscription<T> {
   // does not assume that it's use of the state integer is the only use.
   int _eventState = 0;  // Initialized to help dart2js type inference.
 
-  _BroadcastSubscription<T> _next;
-  _BroadcastSubscription<T> _previous;
+  _BroadcastSubscriptionLink _next;
+  _BroadcastSubscriptionLink _previous;
 
-  _BroadcastSubscription(_StreamControllerLifecycle<T> controller,
+  _BroadcastSubscription(_StreamControllerLifecycle controller,
                          void onData(T data),
                          Function onError,
                          void onDone(),
@@ -31,6 +36,8 @@ class _BroadcastSubscription<T> extends _ControllerSubscription<T> {
       : super(controller, onData, onError, onDone, cancelOnError) {
     _next = _previous = this;
   }
+
+  _BroadcastStreamController get _controller => super._controller;
 
   bool _expectsEvent(int eventId) =>
       (_eventState & _STATE_EVENT_ID) == eventId;
@@ -63,6 +70,7 @@ class _BroadcastSubscription<T> extends _ControllerSubscription<T> {
 abstract class _BroadcastStreamController<T>
     implements StreamController<T>,
                _StreamControllerLifecycle<T>,
+               _BroadcastSubscriptionLink,
                _EventSink<T>,
                _EventDispatch<T> {
   static const int _STATE_INITIAL = 0;
@@ -78,8 +86,8 @@ abstract class _BroadcastStreamController<T>
   int _state;
 
   // Double-linked list of active listeners.
-  _BroadcastSubscription<T> _firstSubscription;
-  _BroadcastSubscription<T> _lastSubscription;
+  _BroadcastSubscriptionLink _next;
+  _BroadcastSubscriptionLink _previous;
 
   // Extra state used during an [addStream] call.
   _AddStreamState<T> _addStreamState;
@@ -100,7 +108,9 @@ abstract class _BroadcastStreamController<T>
   _Future _doneFuture;
 
   _BroadcastStreamController(this.onListen, this.onCancel)
-      : _state = _STATE_INITIAL;
+      : _state = _STATE_INITIAL {
+    _next = _previous = this;
+  }
 
   ControllerCallback get onPause {
     throw new UnsupportedError(
@@ -148,7 +158,7 @@ abstract class _BroadcastStreamController<T>
    */
   bool get _hasOneListener {
     assert(!_isEmpty);
-    return identical(_firstSubscription, _lastSubscription);
+    return identical(_next._next, this);
   }
 
   /** Whether an event is being fired (sent to some, but not all, listeners). */
@@ -165,42 +175,26 @@ abstract class _BroadcastStreamController<T>
 
   // Linked list helpers
 
-  bool get _isEmpty => _firstSubscription == null;
+  bool get _isEmpty => identical(_next, this);
 
   /** Adds subscription to linked list of active listeners. */
   void _addListener(_BroadcastSubscription<T> subscription) {
     assert(identical(subscription._next, subscription));
+    // Insert in linked list just before `this`.
+    subscription._previous = _previous;
+    subscription._next = this;
+    this._previous._next = subscription;
+    this._previous = subscription;
     subscription._eventState = (_state & _STATE_EVENT_ID);
-    // Insert in linked list as last subscription.
-    _BroadcastSubscription<T> oldLast = _lastSubscription;
-    _lastSubscription = subscription;
-    subscription._next = null;
-    subscription._previous = oldLast;
-    if (oldLast == null) {
-      _firstSubscription = subscription;
-    } else {
-      oldLast._next = subscription;
-    }
   }
 
   void _removeListener(_BroadcastSubscription<T> subscription) {
     assert(identical(subscription._controller, this));
     assert(!identical(subscription._next, subscription));
-    _BroadcastSubscription<T> previous = subscription._previous;
-    _BroadcastSubscription<T> next = subscription._next;
-    if (previous == null) {
-      // This was the first subscription.
-      _firstSubscription = next;
-    } else {
-      previous._next = next;
-    }
-    if (next == null) {
-      // This was the last subscription.
-      _lastSubscription = previous;
-    } else {
-      next._previous = previous;
-    }
-
+    _BroadcastSubscriptionLink previous = subscription._previous;
+    _BroadcastSubscriptionLink next = subscription._next;
+    previous._next = next;
+    next._previous = previous;
     subscription._next = subscription._previous = subscription;
   }
 
@@ -215,24 +209,25 @@ abstract class _BroadcastStreamController<T>
       if (onDone == null) onDone = _nullDoneHandler;
       return new _DoneStreamSubscription<T>(onDone);
     }
-    StreamSubscription<T> subscription =
+    StreamSubscription subscription =
         new _BroadcastSubscription<T>(this, onData, onError, onDone,
                                       cancelOnError);
     _addListener(subscription);
-    if (identical(_firstSubscription, _lastSubscription)) {
+    if (identical(_next, _previous)) {
       // Only one listener, so it must be the first listener.
       _runGuarded(onListen);
     }
     return subscription;
   }
 
-  Future _recordCancel(StreamSubscription<T> sub) {
-    _BroadcastSubscription<T> subscription = sub;
+  Future _recordCancel(_BroadcastSubscription<T> subscription) {
     // If already removed by the stream, don't remove it again.
     if (identical(subscription._next, subscription)) return null;
+    assert(!identical(subscription._next, subscription));
     if (subscription._isFiring) {
       subscription._setRemoveAfterFiring();
     } else {
+      assert(!identical(subscription._next, subscription));
       _removeListener(subscription);
       // If we are currently firing an event, the empty-check is performed at
       // the end of the listener loop instead of here.
@@ -328,20 +323,20 @@ abstract class _BroadcastStreamController<T>
     // Any listeners added while firing this event will expect the next event,
     // not this one, and won't get notified.
     _state ^= _STATE_EVENT_ID | _STATE_FIRING;
-    _BroadcastSubscription<T> subscription = _firstSubscription;
-    while (subscription != null) {
+    _BroadcastSubscriptionLink link = _next;
+    while (!identical(link, this)) {
+      _BroadcastSubscription<T> subscription = link;
       if (subscription._expectsEvent(id)) {
         subscription._eventState |= _BroadcastSubscription._STATE_FIRING;
         action(subscription);
         subscription._toggleEventId();
-        _BroadcastSubscription<T> next = subscription._next;
+        link = subscription._next;
         if (subscription._removeAfterFiring) {
           _removeListener(subscription);
         }
         subscription._eventState &= ~_BroadcastSubscription._STATE_FIRING;
-        subscription = next;
       } else {
-        subscription = subscription._next;
+        link = subscription._next;
       }
     }
     _state &= ~_STATE_FIRING;
@@ -382,7 +377,7 @@ class _SyncBroadcastStreamController<T> extends _BroadcastStreamController<T>
     if (_isEmpty) return;
     if (_hasOneListener) {
       _state |= _BroadcastStreamController._STATE_FIRING;
-      _BroadcastSubscription<T> subscription = _firstSubscription;
+      _BroadcastSubscription subscription = _next;
       subscription._add(data);
       _state &= ~_BroadcastStreamController._STATE_FIRING;
       if (_isEmpty) {
@@ -404,7 +399,7 @@ class _SyncBroadcastStreamController<T> extends _BroadcastStreamController<T>
 
   void _sendDone() {
     if (!_isEmpty) {
-      _forEachListener((_BufferingStreamSubscription<T> subscription) {
+      _forEachListener((_BroadcastSubscription<T> subscription) {
         subscription._close();
       });
     } else {
@@ -422,26 +417,29 @@ class _AsyncBroadcastStreamController<T> extends _BroadcastStreamController<T> {
   // EventDispatch interface.
 
   void _sendData(T data) {
-    for (_BroadcastSubscription<T> subscription = _firstSubscription;
-         subscription != null;
-         subscription = subscription._next) {
-      subscription._addPending(new _DelayedData<T>(data));
+    for (_BroadcastSubscriptionLink link = _next;
+         !identical(link, this);
+         link = link._next) {
+      _BroadcastSubscription<T> subscription = link;
+      subscription._addPending(new _DelayedData(data));
     }
   }
 
   void _sendError(Object error, StackTrace stackTrace) {
-    for (_BroadcastSubscription<T> subscription = _firstSubscription;
-         subscription != null;
-         subscription = subscription._next) {
+    for (_BroadcastSubscriptionLink link = _next;
+         !identical(link, this);
+         link = link._next) {
+      _BroadcastSubscription<T> subscription = link;
       subscription._addPending(new _DelayedError(error, stackTrace));
     }
   }
 
   void _sendDone() {
     if (!_isEmpty) {
-      for (_BroadcastSubscription<T> subscription = _firstSubscription;
-           subscription != null;
-           subscription = subscription._next) {
+      for (_BroadcastSubscriptionLink link = _next;
+           !identical(link, this);
+           link = link._next) {
+        _BroadcastSubscription<T> subscription = link;
         subscription._addPending(const _DelayedDone());
       }
     } else {
@@ -466,7 +464,7 @@ class _AsyncBroadcastStreamController<T> extends _BroadcastStreamController<T> {
 class _AsBroadcastStreamController<T>
     extends _SyncBroadcastStreamController<T>
     implements _EventDispatch<T> {
-  _StreamImplEvents<T> _pending;
+  _StreamImplEvents _pending;
 
   _AsBroadcastStreamController(void onListen(), void onCancel())
       : super(onListen, onCancel);
@@ -475,7 +473,7 @@ class _AsBroadcastStreamController<T>
 
   void _addPendingEvent(_DelayedEvent event) {
     if (_pending == null) {
-      _pending = new _StreamImplEvents<T>();
+      _pending = new _StreamImplEvents();
     }
     _pending.add(event);
   }
@@ -540,5 +538,5 @@ class _DoneSubscription<T> implements StreamSubscription<T> {
   }
   Future cancel() { return new _Future.immediate(null); }
   bool get isPaused => _pauseCount > 0;
-  Future/*<E>*/ asFuture/*<E>*/([Object/*=E*/ value]) => new _Future/*<E>*/();
+  Future asFuture([Object value]) => new _Future();
 }

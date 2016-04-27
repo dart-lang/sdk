@@ -47,15 +47,10 @@ void _cancelAndErrorWithReplacement(StreamSubscription subscription,
   _cancelAndError(subscription, future, error, stackTrace);
 }
 
-typedef void _ErrorCallback(error, StackTrace stackTrace);
-
 /** Helper function to make an onError argument to [_runUserCode]. */
-_ErrorCallback _cancelAndErrorClosure(
-    StreamSubscription subscription, _Future future) {
-  return (error, StackTrace stackTrace) {
-    _cancelAndError(subscription, future, error, stackTrace);
-  };
-}
+_cancelAndErrorClosure(StreamSubscription subscription, _Future future) =>
+  ((error, StackTrace stackTrace) => _cancelAndError(
+      subscription, future, error, stackTrace));
 
 /** Helper function to cancel a subscription and wait for the potential future,
   before completing with a value. */
@@ -105,7 +100,8 @@ abstract class _ForwardingStream<S, T> extends Stream<T> {
   // Override the following methods in subclasses to change the behavior.
 
   void _handleData(S data, _EventSink<T> sink) {
-    sink._add(data as T);
+    var outputData = data;
+    sink._add(outputData);
   }
 
   void _handleError(error, StackTrace stackTrace, _EventSink<T> sink) {
@@ -228,7 +224,7 @@ typedef T _Transformation<S, T>(S value);
  * A stream pipe that converts data events before passing them on.
  */
 class _MapStream<S, T> extends _ForwardingStream<S, T> {
-  final _Transformation<S, T> _transform;
+  final _Transformation _transform;
 
   _MapStream(Stream<S> source, T transform(S event))
       : this._transform = transform, super(source);
@@ -331,7 +327,7 @@ class _TakeStream<T> extends _ForwardingStream<T, T> {
   }
 
   void _handleData(T inputEvent, _EventSink<T> sink) {
-    _StateStreamSubscription<T> subscription = sink;
+    _StateStreamSubscription subscription = sink;
     int count = subscription._count;
     if (count > 0) {
       sink._add(inputEvent);
@@ -355,7 +351,7 @@ class _StateStreamSubscription<T> extends _ForwardingStreamSubscription<T, T> {
   // Raw state field. Typed access provided by getters and setters below.
   var _sharedState;
 
-  _StateStreamSubscription(_ForwardingStream<T, T> stream, void onData(T data),
+  _StateStreamSubscription(_ForwardingStream stream, void onData(T data),
                            Function onError, void onDone(),
                            bool cancelOnError, this._sharedState)
       : super(stream, onData, onError, onDone, cancelOnError);
@@ -411,7 +407,7 @@ class _SkipStream<T> extends _ForwardingStream<T, T> {
   }
 
   void _handleData(T inputEvent, _EventSink<T> sink) {
-    _StateStreamSubscription<T> subscription = sink;
+    _StateStreamSubscription subscription = sink;
     int count = subscription._count;
     if (count > 0) {
       subscription._count = count - 1;
@@ -437,7 +433,7 @@ class _SkipWhileStream<T> extends _ForwardingStream<T, T> {
   }
 
   void _handleData(T inputEvent, _EventSink<T> sink) {
-    _StateStreamSubscription<T> subscription = sink;
+    _StateStreamSubscription subscription = sink;
     bool hasFailed = subscription._flag;
     if (hasFailed) {
       sink._add(inputEvent);
@@ -480,7 +476,7 @@ class _DistinctStream<T> extends _ForwardingStream<T, T> {
         if (_equals == null) {
           isEqual = (_previous == inputEvent);
         } else {
-          isEqual = _equals(_previous as T, inputEvent);
+          isEqual = _equals(_previous, inputEvent);
         }
       } catch (e, s) {
         _addErrorWithReplacement(sink, e, s);

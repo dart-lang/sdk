@@ -76,11 +76,8 @@ abstract class Timer {
       // be invoked in the root zone.
       return Zone.current.createPeriodicTimer(duration, callback);
     }
-    // TODO(floitsch): the return type should be 'void', and the type
-    // should be inferred.
-    var boundCallback = Zone.current.bindUnaryCallback/*<dynamic, Timer>*/(
-        callback, runGuarded: true);
-    return Zone.current.createPeriodicTimer(duration, boundCallback);
+    return Zone.current.createPeriodicTimer(
+        duration, Zone.current.bindUnaryCallback(callback, runGuarded: true));
   }
 
   /**

@@ -84,7 +84,7 @@ void _scheduleAsyncCallback(_AsyncCallback callback) {
  *
  * Is always run in the root zone.
  */
-void _schedulePriorityAsyncCallback(_AsyncCallback callback) {
+void _schedulePriorityAsyncCallback(callback) {
   if (_nextCallback == null) {
     _scheduleAsyncCallback(callback);
     _lastPriorityCallback = _lastCallback;
