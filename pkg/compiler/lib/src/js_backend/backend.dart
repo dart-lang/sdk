@@ -1473,8 +1473,9 @@ class JavaScriptBackend extends Backend {
       return const CodegenImpact();
     }
     if (kind.category == ElementCategory.VARIABLE) {
+      VariableElement variableElement = element;
       ConstantValue initialValue =
-          constants.getConstantValueForVariable(element);
+          constants.getConstantValue(variableElement.constant);
       if (initialValue != null) {
         registerCompileTimeConstant(initialValue, work.registry);
         addCompileTimeConstantForEmission(initialValue);

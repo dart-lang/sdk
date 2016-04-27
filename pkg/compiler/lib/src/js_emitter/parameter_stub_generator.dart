@@ -98,7 +98,7 @@ class ParameterStubGenerator {
           parametersBuffer[optionalParameterStart + index] =
               new jsAst.Parameter(jsName);
         } else {
-          ConstantValue value = handler.getConstantValueForVariable(element);
+          ConstantValue value = handler.getConstantValue(element.constant);
           if (value == null) {
             argumentsBuffer[count] =
                 emitter.constantReference(new NullConstantValue());

@@ -36,11 +36,6 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
   }
 
   @override
-  ConstantExpression getConstantForVariable(VariableElement element) {
-    return dartConstantCompiler.getConstantForVariable(element);
-  }
-
-  @override
   ConstantExpression compileConstant(VariableElement element) {
     return measure(() {
       // TODO(het): Only report errors from one of the constant compilers
@@ -58,9 +53,10 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
     });
   }
 
-  void compileVariable(VariableElement element) {
-    measure(() {
-      jsConstantCompiler.compileVariable(element);
+  @override
+  ConstantExpression compileVariable(VariableElement element) {
+    return measure(() {
+      return jsConstantCompiler.compileVariable(element);
     });
   }
 

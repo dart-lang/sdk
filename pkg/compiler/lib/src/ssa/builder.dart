@@ -123,7 +123,7 @@ class SsaBuilderTask extends CompilerTask {
           signature.forEachOptionalParameter((ParameterElement parameter) {
             // This ensures the default value will be computed.
             ConstantValue constant =
-                backend.constants.getConstantValueForVariable(parameter);
+                backend.constants.getConstantValue(parameter.constant);
             work.registry.registerCompileTimeConstant(constant);
           });
         }
@@ -1595,9 +1595,9 @@ class SsaBuilder extends ast.Visitor
   HInstruction handleConstantForOptionalParameterJsInterop(Element parameter) =>
       null;
 
-  HInstruction handleConstantForOptionalParameter(Element parameter) {
+  HInstruction handleConstantForOptionalParameter(ParameterElement parameter) {
     ConstantValue constantValue =
-        backend.constants.getConstantValueForVariable(parameter);
+        backend.constants.getConstantValue(parameter.constant);
     assert(invariant(parameter, constantValue != null,
         message: 'No constant computed for $parameter'));
     return graph.addConstant(constantValue, compiler);
@@ -3505,8 +3505,7 @@ class SsaBuilder extends ast.Visitor
 
   /// Read a static or top level [field].
   void generateStaticFieldGet(ast.Send node, FieldElement field) {
-    ConstantExpression constant =
-        backend.constants.getConstantForVariable(field);
+    ConstantExpression constant = field.constant;
     SourceInformation sourceInformation =
         sourceInformationBuilder.buildGet(node);
     if (constant != null) {

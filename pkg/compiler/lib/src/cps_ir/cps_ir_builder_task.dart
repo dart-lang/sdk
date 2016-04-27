@@ -1681,7 +1681,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   ConstantValue getConstantForVariable(VariableElement element) {
-    return irBuilder.state.constants.getConstantValueForVariable(element);
+    return irBuilder.state.constants.getConstantValue(element.constant);
   }
 
   ir.Primitive buildConstantExpression(

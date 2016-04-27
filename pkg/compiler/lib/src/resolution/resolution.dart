@@ -381,7 +381,7 @@ class ResolverTask extends CompilerTask {
         if (element.modifiers.isConst) {
           element.constant = constantCompiler.compileConstant(element);
         } else {
-          constantCompiler.compileVariable(element);
+          element.constant = constantCompiler.compileVariable(element);
         }
       });
       if (initializer != null) {

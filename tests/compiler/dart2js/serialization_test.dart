@@ -440,11 +440,9 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
           element1.isConst, element2.isConst);
     check(element1, element2, 'isFinal',
           element1.isFinal, element2.isFinal);
-    if (element1.isConst) {
-      checkConstants(
-          element1, element2, 'constant',
-          element1.constant, element2.constant);
-    }
+    checkConstants(
+        element1, element2, 'constant',
+        element1.constant, element2.constant);
     check(element1, element2, 'isTopLevel',
           element1.isTopLevel, element2.isTopLevel);
     check(element1, element2, 'isStatic',

@@ -139,7 +139,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     _elementToInfo[element] = info;
     if (element.isConst) {
       var value = compiler.backend.constantCompilerTask
-          .getConstantValueForVariable(element);
+          .getConstantValue(element.constant);
       if (value != null) {
         info.initializer = _constantToInfo[value];
       }

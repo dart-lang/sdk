@@ -1959,8 +1959,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         List<FieldElement> unreferencedFields = <FieldElement>[];
         EnumClassElement enumClass = expressionType.element;
         enumClass.enumValues.forEach((EnumConstantElement field) {
-          ConstantValue constantValue =
-              compiler.constants.getConstantValueForVariable(field);
+          // TODO(johnniwinther): Ensure that the enum constant is computed at
+          // this point.
+          ConstantValue constantValue = compiler.resolver.constantCompiler
+              .getConstantValueForVariable(field);
           if (constantValue == null) {
             // The field might not have been resolved.
             unreferencedFields.add(field);

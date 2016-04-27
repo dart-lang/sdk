@@ -1397,7 +1397,7 @@ abstract class ConstantVariableMixin implements VariableElement {
       ConstantVariableMixin originVariable = origin;
       return originVariable.constant;
     }
-    assert(invariant(this, constantCache != null,
+    assert(invariant(this, !isConst || constantCache != null,
         message: "Constant has not been computed for $this."));
     return constantCache;
   }

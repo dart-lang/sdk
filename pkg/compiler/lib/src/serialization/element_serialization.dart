@@ -398,8 +398,8 @@ class FieldSerializer implements ElementSerializer {
     encoder.setType(Key.TYPE, element.type);
     encoder.setBool(Key.IS_FINAL, element.isFinal);
     encoder.setBool(Key.IS_CONST, element.isConst);
-    if (element.isConst) {
-      ConstantExpression constant = element.constant;
+    ConstantExpression constant = element.constant;
+    if (constant != null) {
       encoder.setConstant(Key.CONSTANT, constant);
     }
     SerializerUtil.serializeParentRelation(element, encoder);

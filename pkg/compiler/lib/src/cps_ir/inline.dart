@@ -377,7 +377,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
           ++nameIndex;
         } else {
           Constant defaultValue = cps.makeConstant(
-              backend.constants.getConstantValueForVariable(formal));
+              backend.constants.getConstantValue(formal.constant));
           defaultValue.type = typeSystem.getParameterType(formal);
           arguments.add(defaultValue);
         }
@@ -391,7 +391,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
           arguments.add(parameters[parameterIndex++]);
         } else {
           Constant defaultValue = cps.makeConstant(
-              backend.constants.getConstantValueForVariable(formal));
+              backend.constants.getConstantValue(formal.constant));
           defaultValue.type = typeSystem.getParameterType(formal);
           arguments.add(defaultValue);
         }
