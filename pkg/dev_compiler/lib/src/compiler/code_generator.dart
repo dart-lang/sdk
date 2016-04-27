@@ -3139,6 +3139,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     // If the target may be an extension type, we also use static dispatch
     // as we don't symbolize object properties like hashCode.
     return isNullable(target) ||
+        type.isDynamic ||
         (_extensionTypes.contains(type.element) && target is! SuperExpression);
   }
 
