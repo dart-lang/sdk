@@ -1366,6 +1366,8 @@ LayoutTests/fast/dom/HTMLTemplateElement/cycles_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/computed-style-set-property_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/custom/document-register-type-extensions_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/custom/document-register-namespace_t01: RuntimeError # Issue 26134
+LayoutTests/fast/dom/custom/element-type_t01: RuntimeError # Issue 26134
+LayoutTests/fast/dom/custom/element-upgrade_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/DOMException/prototype-object_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/shadow/shadow-hierarchy-exception_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/Node/contains-method_t01: RuntimeError # Issue 26134
