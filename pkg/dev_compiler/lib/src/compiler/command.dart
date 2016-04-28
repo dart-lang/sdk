@@ -24,6 +24,10 @@ class CompileCommand extends Command {
   CompileCommand({MessageHandler messageHandler})
       : this.messageHandler = messageHandler ?? print {
     argParser.addOption('out', abbr: 'o', help: 'Output file (required)');
+    argParser.addOption('build-root',
+        help: '''
+Root of source files.  Generated library names are relative to this root.
+''');
     CompilerOptions.addArguments(argParser);
     AnalyzerOptions.addArguments(argParser);
   }
@@ -39,7 +43,14 @@ class CompileCommand extends Command {
       usageException('Please include the output file location. For example:\n'
           '    -o PATH/TO/OUTPUT_FILE.js');
     }
-    var unit = new BuildUnit(path.basenameWithoutExtension(outPath),
+
+    var buildRoot = argResults['build-root'] as String;
+    if (buildRoot != null) {
+      buildRoot = path.absolute(buildRoot);
+    } else {
+      buildRoot = Directory.current.path;
+    }
+    var unit = new BuildUnit(path.basenameWithoutExtension(outPath), buildRoot,
         argResults.rest, _moduleForLibrary);
 
     JSModuleFile module = compiler.compile(unit, compilerOptions);

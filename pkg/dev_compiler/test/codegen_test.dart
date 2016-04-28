@@ -71,7 +71,8 @@ main(arguments) {
       var outDir = new Directory(path.join(expectDir, dir));
       if (!outDir.existsSync()) outDir.createSync(recursive: true);
 
-      var testFiles = _findTests(path.join(inputDir, dir), filePattern);
+      var baseDir = path.join(inputDir, dir);
+      var testFiles = _findTests(baseDir, filePattern);
       for (var filePath in testFiles) {
         if (multitests.contains(filePath)) continue;
 
@@ -94,7 +95,8 @@ main(arguments) {
           var files = new Set<String>();
           _collectTransitiveImports(contents, files, from: filePath);
 
-          var unit = new BuildUnit(filename, files.toList(), _moduleForLibrary);
+          var unit = new BuildUnit(
+              filename, baseDir, files.toList(), _moduleForLibrary);
           var module = compiler.compile(unit, options);
           _writeModule(path.join(outDir.path, filename), module);
         });
@@ -128,10 +130,11 @@ void _writeModule(String outPath, JSModuleFile result) {
 }
 
 void _buildSunflower(ModuleCompiler compiler, String expectDir) {
+  var baseDir = path.join(inputDir, 'sunflower');
   var files = ['sunflower', 'circle', 'painter']
-      .map((f) => path.join(inputDir, 'sunflower', '$f.dart'))
+      .map((f) => path.join(baseDir, '$f.dart'))
       .toList();
-  var input = new BuildUnit('sunflower', files, _moduleForLibrary);
+  var input = new BuildUnit('sunflower', baseDir, files, _moduleForLibrary);
   var options = new CompilerOptions(summarizeApi: false);
 
   var built = compiler.compile(input, options);
@@ -149,7 +152,7 @@ void _buildPackages(ModuleCompiler compiler, String expectDir) {
     var uriPath = uri.substring('package:'.length);
     var name = path.basenameWithoutExtension(uriPath);
     test(name, () {
-      var input = new BuildUnit(name, [uri], _moduleForLibrary);
+      var input = new BuildUnit(name, inputDir, [uri], _moduleForLibrary);
       var built = compiler.compile(input, options);
 
       var outPath = path.join(expectDir, path.withoutExtension(uriPath));
@@ -161,14 +164,17 @@ void _buildPackages(ModuleCompiler compiler, String expectDir) {
 void _buildMatcher(ModuleCompiler compiler, String expectDir) {
   var options = new CompilerOptions(sourceMap: false, summarizeApi: false);
 
-  var filePath = path.join(inputDir, 'packages', 'matcher', 'matcher.dart');
+  var packageRoot = path.join(inputDir, 'packages');
+  var filePath = path.join(packageRoot, 'matcher', 'matcher.dart');
   var contents = new File(filePath).readAsStringSync();
 
   // Collect any other files we've imported.
   var files = new Set<String>();
-  _collectTransitiveImports(contents, files, from: filePath);
+  _collectTransitiveImports(contents, files,
+      packageRoot: packageRoot, from: filePath);
 
-  var unit = new BuildUnit('matcher', files.toList(), _moduleForLibrary);
+  var unit =
+      new BuildUnit('matcher', inputDir, files.toList(), _moduleForLibrary);
   var module = compiler.compile(unit, options);
 
   var outPath = path.join(expectDir, 'matcher', 'matcher');
@@ -247,8 +253,12 @@ Iterable<String> _findTests(String dir, RegExp filePattern) {
 ///
 /// This will not include dart:* libraries, as those are implicitly available.
 void _collectTransitiveImports(String contents, Set<String> libraries,
-    {String from}) {
-  if (!libraries.add(from)) return;
+    {String packageRoot, String from}) {
+  var uri = from;
+  if (packageRoot != null && path.isWithin(packageRoot, from)) {
+    uri = 'package:${path.relative(from, from: packageRoot)}';
+  }
+  if (!libraries.add(uri)) return;
 
   var unit = parseDirectives(contents, name: from, suppressErrors: true);
   for (var d in unit.directives) {
@@ -263,7 +273,7 @@ void _collectTransitiveImports(String contents, Set<String> libraries,
       var f = new File(path.join(path.dirname(from), uri));
       if (f.existsSync()) {
         _collectTransitiveImports(f.readAsStringSync(), libraries,
-            from: f.path);
+            packageRoot: packageRoot, from: f.path);
       }
     }
   }
