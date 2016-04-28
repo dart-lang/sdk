@@ -770,6 +770,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _errorReporter.reportErrorForNode(
           StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
           functionExpression);
+    } else if (expressionType is FunctionType) {
+      _checkTypeArguments(expressionType.element, node.typeArguments);
     }
     return super.visitFunctionExpressionInvocation(node);
   }
@@ -943,6 +945,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     _checkForMissingRequiredParam(
         node.staticInvokeType, node.argumentList, methodName);
+    _checkTypeArguments(
+        node.methodName.staticElement, node.typeArguments, target?.staticType);
     return super.visitMethodInvocation(node);
   }
 
@@ -5242,13 +5246,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       int loopThroughIndex =
           math.min(typeNameArgList.length, boundingElts.length);
 
+      bool shouldSubstitute = typeArguments.length != 0 &&
+          typeArguments.length == typeParameters.length;
       for (int i = 0; i < loopThroughIndex; i++) {
         TypeName argTypeName = typeNameArgList[i];
         DartType argType = argTypeName.type;
         DartType boundType = boundingElts[i].bound;
         if (argType != null && boundType != null) {
-          if (typeArguments.length != 0 &&
-              typeArguments.length == typeParameters.length) {
+          if (shouldSubstitute) {
             boundType = boundType.substitute2(typeArguments, typeParameters);
           }
           if (!_typeSystem.isSubtypeOf(argType, boundType)) {
@@ -5667,6 +5672,82 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS,
             interfaceNode,
             [superType.displayName]);
+      }
+    }
+  }
+
+  /**
+   * Verify that the given [typeArguments] are all within their bounds, as
+   * defined by the given [element].
+   *
+   * See [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
+   */
+  void _checkTypeArguments(Element element, TypeArgumentList typeArguments,
+      [DartType targetType]) {
+    if (element == null || typeArguments == null) {
+      return;
+    }
+    void reportError(
+        TypeName argument, DartType argumentType, DartType parameterType) {
+      _errorReporter.reportTypeErrorForNode(
+          StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          argument,
+          [argumentType, parameterType]);
+    }
+    if (element is FunctionTypedElement) {
+      _checkTypeArgumentsAgainstBounds(
+          element.typeParameters, typeArguments, targetType, reportError);
+    } else if (element is ClassElement) {
+      _checkTypeArgumentsAgainstBounds(
+          element.typeParameters, typeArguments, targetType, reportError);
+    } else if (element is ParameterElement || element is LocalVariableElement) {
+      // TODO(brianwilkerson) Implement this case
+    } else {
+      print('Unhandled element type: ${element.runtimeType}');
+    }
+  }
+
+  void _checkTypeArgumentsAgainstBounds(
+      List<TypeParameterElement> typeParameters,
+      TypeArgumentList typeArgumentList,
+      DartType targetType,
+      void reportError(
+          TypeName argument, DartType argumentType, DartType parameterType)) {
+    NodeList<TypeName> typeArguments = typeArgumentList.arguments;
+    int argumentsLength = typeArguments.length;
+    int maxIndex = math.min(typeParameters.length, argumentsLength);
+
+    bool shouldSubstitute =
+        argumentsLength != 0 && argumentsLength == typeParameters.length;
+    List<DartType> argumentTypes = shouldSubstitute
+        ? typeArguments.map((TypeName typeName) => typeName.type).toList()
+        : null;
+    List<DartType> parameterTypes = shouldSubstitute
+        ? typeParameters
+            .map((TypeParameterElement element) => element.type)
+            .toList()
+        : null;
+    List<DartType> targetTypeParameterTypes = null;
+    for (int i = 0; i < maxIndex; i++) {
+      TypeName argTypeName = typeArguments[i];
+      DartType argType = argTypeName.type;
+      DartType boundType = typeParameters[i].bound;
+      if (argType != null && boundType != null) {
+        if (targetType is ParameterizedType) {
+          if (targetTypeParameterTypes == null) {
+            targetTypeParameterTypes = targetType.typeParameters
+                .map((TypeParameterElement element) => element.type)
+                .toList();
+          }
+          boundType = boundType.substitute2(
+              targetType.typeArguments, targetTypeParameterTypes);
+        }
+        if (shouldSubstitute) {
+          boundType = boundType.substitute2(argumentTypes, parameterTypes);
+        }
+        if (!_typeSystem.isSubtypeOf(argType, boundType)) {
+          reportError(argTypeName, argType, boundType);
+        }
       }
     }
   }

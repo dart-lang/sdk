@@ -2083,6 +2083,132 @@ class FunctionTypeImplTest extends EngineTestCase {
     expect(f.type.toString(), '() \u2192 C<...>');
   }
 
+  void test_typeParameters_genericLocalFunction_genericMethod_genericClass() {
+    //
+    // class C<S> {
+    //   Object m<T>() {
+    //     U f<U>() => null;
+    //   }
+    // }
+    //
+    ClassElementImpl classElement =
+        ElementFactory.classElement('C', null, ['S']);
+    MethodElementImpl method = new MethodElementImpl('m', 0);
+    method.enclosingElement = classElement;
+    method.returnType = ElementFactory.objectType;
+    method.typeParameters = ElementFactory.typeParameters(['T']);
+    method.type = new FunctionTypeImpl(method);
+    FunctionElementImpl function = ElementFactory.functionElement('f');
+    function.enclosingElement = method;
+    function.typeParameters = ElementFactory.typeParameters(['U']);
+    function.returnType = function.typeParameters[0].type;
+    function.type = new FunctionTypeImpl(function);
+
+    List<TypeParameterElement> inheritedParameters = <TypeParameterElement>[];
+    inheritedParameters.addAll(method.typeParameters);
+    inheritedParameters.addAll(classElement.typeParameters);
+    expect(function.type.typeArguments,
+        unorderedEquals(_toTypes(inheritedParameters)));
+    expect(function.type.typeFormals, unorderedEquals(function.typeParameters));
+    expect(function.type.typeParameters, unorderedEquals(inheritedParameters));
+  }
+
+  void test_typeParameters_genericMethod_genericClass() {
+    //
+    // class C<S> {
+    //   Object m<T>() => null;
+    // }
+    //
+    ClassElementImpl classElement =
+        ElementFactory.classElement('C', null, ['S']);
+    MethodElementImpl method = new MethodElementImpl('m', 0);
+    method.enclosingElement = classElement;
+    method.returnType = ElementFactory.objectType;
+    method.typeParameters = ElementFactory.typeParameters(['T']);
+    method.type = new FunctionTypeImpl(method);
+
+    expect(method.type.typeArguments,
+        unorderedEquals(_toTypes(classElement.typeParameters)));
+    expect(method.type.typeFormals, unorderedEquals(method.typeParameters));
+    expect(method.type.typeParameters,
+        unorderedEquals(classElement.typeParameters));
+  }
+
+  void test_typeParameters_genericMethod_simpleClass() {
+    //
+    // class C<S> {
+    //   Object m<T>() => null;
+    // }
+    //
+    ClassElementImpl classElement = ElementFactory.classElement2('C');
+    MethodElementImpl method = new MethodElementImpl('m', 0);
+    method.enclosingElement = classElement;
+    method.returnType = ElementFactory.objectType;
+    method.typeParameters = ElementFactory.typeParameters(['T']);
+    method.type = new FunctionTypeImpl(method);
+
+    expect(method.type.typeArguments,
+        unorderedEquals(_toTypes(classElement.typeParameters)));
+    expect(method.type.typeFormals, unorderedEquals(method.typeParameters));
+    expect(method.type.typeParameters,
+        unorderedEquals(classElement.typeParameters));
+  }
+
+  void test_typeParameters_genericTopLevelFunction() {
+    //
+    // Object f<T>() => null;
+    //
+    FunctionElementImpl function = ElementFactory.functionElement('f');
+    function.returnType = ElementFactory.objectType;
+    function.typeParameters = ElementFactory.typeParameters(['T']);
+    function.type = new FunctionTypeImpl(function);
+
+    expect(function.type.typeArguments, isEmpty);
+    expect(function.type.typeFormals, unorderedEquals(function.typeParameters));
+    expect(function.type.typeParameters, isEmpty);
+  }
+
+  void test_typeParameters_simpleMethod_genericClass() {
+    //
+    // class C<S> {
+    //   Object m<T>() => null;
+    // }
+    //
+    ClassElementImpl classElement =
+        ElementFactory.classElement('C', null, ['S']);
+    MethodElementImpl method = new MethodElementImpl('m', 0);
+    method.enclosingElement = classElement;
+    method.typeParameters = ElementFactory.typeParameters(['T']);
+    method.returnType = ElementFactory.objectType;
+    method.type = new FunctionTypeImpl(method);
+
+    expect(method.type.typeArguments,
+        unorderedEquals(_toTypes(classElement.typeParameters)));
+    expect(method.type.typeFormals, unorderedEquals(method.typeParameters));
+    expect(method.type.typeParameters,
+        unorderedEquals(classElement.typeParameters));
+  }
+
+  void test_typeParameters_simpleMethod_simpleClass() {
+    //
+    // class C<S> {
+    //   Object m<T>() => null;
+    // }
+    //
+    ClassElementImpl classElement = ElementFactory.classElement2('C');
+    MethodElementImpl method = new MethodElementImpl('m', 0);
+    method.enclosingElement = classElement;
+    method.typeParameters = ElementFactory.typeParameters(['T']);
+    method.returnType = ElementFactory.objectType;
+    method.type = new FunctionTypeImpl(method);
+
+    expect(method.type.typeArguments,
+        unorderedEquals(_toTypes(classElement.typeParameters)));
+    expect(method.type.typeFormals, unorderedEquals(method.typeParameters));
+    expect(method.type.typeParameters,
+        unorderedEquals(classElement.typeParameters));
+  }
+
   void test_withTypeArguments() {
     ClassElementImpl enclosingClass = ElementFactory.classElement2("C", ["E"]);
     MethodElementImpl methodElement =
@@ -2093,6 +2219,10 @@ class FunctionTypeImplTest extends EngineTestCase {
     List<DartType> arguments = type.typeArguments;
     expect(arguments, hasLength(1));
     expect(arguments[0], expectedType);
+  }
+
+  Iterable<DartType> _toTypes(List<TypeParameterElement> typeParameters) {
+    return typeParameters.map((TypeParameterElement element) => element.type);
   }
 }
 

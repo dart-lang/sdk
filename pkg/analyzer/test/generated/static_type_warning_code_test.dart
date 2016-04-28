@@ -1288,6 +1288,64 @@ var b = 1 is G<B>;
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
+  void test_typeArgumentNotMatchingBounds_methodInvocation_localFunction() {
+    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    assertErrorsInCode(
+        r'''
+class Point<T extends num> {
+  Point(T x, T y);
+}
+
+main() {
+  Point/*<T>*/ f/*<T extends num>*/(num/*=T*/ x, num/*=T*/ y) {
+    return new Point/*<T>*/(x, y);
+  }
+  print(f/*<String>*/('hello', 'world'));
+}
+''',
+        [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+  }
+
+  void test_typeArgumentNotMatchingBounds_methodInvocation_method() {
+    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    assertErrorsInCode(
+        r'''
+class Point<T extends num> {
+  Point(T x, T y);
+}
+
+class PointFactory {
+  Point/*<T>*/ point/*<T extends num>*/(num/*=T*/ x, num/*=T*/ y) {
+    return new Point/*<T>*/(x, y);
+  }
+}
+
+f(PointFactory factory) {
+  print(factory.point/*<String>*/('hello', 'world'));
+}
+''',
+        [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+  }
+
+  void test_typeArgumentNotMatchingBounds_methodInvocation_topLevelFunction() {
+    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    assertErrorsInCode(
+        r'''
+class Point<T extends num> {
+  Point(T x, T y);
+}
+
+Point/*<T>*/ f/*<T extends num>*/(num/*=T*/ x, num/*=T*/ y) {
+  return new Point/*<T>*/(x, y);
+}
+
+main() {
+  print(f/*<String>*/('hello', 'world'));
+}
+''',
+        [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+  }
+
   void test_typeArgumentNotMatchingBounds_methodReturnType() {
     assertErrorsInCode(
         r'''
