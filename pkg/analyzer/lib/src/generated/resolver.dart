@@ -155,6 +155,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.element.isFactory) {
+      if (node.body is BlockFunctionBody) {
+        // Check the block for a return statement, if not, create the hint.
+        if (!ExitDetector.exits(node.body)) {
+          _errorReporter.reportErrorForNode(
+              HintCode.MISSING_RETURN, node, [node.returnType.name]);
+        }
+      }
+    }
+    return super.visitConstructorDeclaration(node);
+  }
+
+  @override
   Object visitDoStatement(DoStatement node) {
     _checkForPossibleNullCondition(node.condition);
     return super.visitDoStatement(node);
@@ -170,20 +184,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   Object visitForStatement(ForStatement node) {
     _checkForPossibleNullCondition(node.condition);
     return super.visitForStatement(node);
-  }
-
-  @override
-  Object visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (node.element.isFactory) {
-      if (node.body is BlockFunctionBody) {
-        // Check the block for a return statement, if not, create the hint.
-        if (!ExitDetector.exits(node.body)) {
-          _errorReporter.reportErrorForNode(
-              HintCode.MISSING_RETURN, node, [node.returnType.name]);
-        }
-      }
-    }
-    return super.visitConstructorDeclaration(node);
   }
 
   @override
@@ -262,7 +262,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     DartType staticInvokeType = node.staticInvokeType;
     if (staticInvokeType is InterfaceType) {
       MethodElement methodElement = staticInvokeType.lookUpMethod(
-              FunctionElement.CALL_METHOD_NAME, _currentLibrary);
+          FunctionElement.CALL_METHOD_NAME, _currentLibrary);
       _checkForDeprecatedMemberUse(methodElement, node);
     }
     return super.visitMethodInvocation(node);
@@ -569,7 +569,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       } else if (displayName == FunctionElement.CALL_METHOD_NAME &&
           node is MethodInvocation &&
           node.staticInvokeType is InterfaceType) {
-        displayName = "${node.staticInvokeType.displayName}.${element.displayName}";
+        displayName =
+            "${node.staticInvokeType.displayName}.${element.displayName}";
       }
       _errorReporter.reportErrorForNode(
           HintCode.DEPRECATED_MEMBER_USE, node, [displayName]);
@@ -8403,6 +8404,498 @@ class ToDoFinder {
 }
 
 /**
+ * Helper for resolving [TypeName]s.
+ *
+ * The client must set [nameScope] before calling [resolveTypeName].
+ */
+class TypeNameResolver {
+  final TypeSystem typeSystem;
+  final DartType dynamicType;
+  final DartType undefinedType;
+  final LibraryElement definingLibrary;
+  final Source source;
+  final AnalysisErrorListener errorListener;
+
+  Scope nameScope;
+
+  TypeNameResolver(this.typeSystem, TypeProvider typeProvider,
+      this.definingLibrary, this.source, this.errorListener)
+      : dynamicType = typeProvider.dynamicType,
+        undefinedType = typeProvider.undefinedType;
+
+  /**
+   * Report an error with the given error code and arguments.
+   *
+   * @param errorCode the error code of the error to be reported
+   * @param node the node specifying the location of the error
+   * @param arguments the arguments to the error, used to compose the error message
+   */
+  void reportErrorForNode(ErrorCode errorCode, AstNode node,
+      [List<Object> arguments]) {
+    errorListener.onError(new AnalysisError(
+        source, node.offset, node.length, errorCode, arguments));
+  }
+
+  /**
+   * Resolve the given [TypeName] - set its element and static type. Only the
+   * given [node] is resolved, all its children must be already resolved.
+   *
+   * The client must set [nameScope] before calling [resolveTypeName].
+   */
+  void resolveTypeName(TypeName node) {
+    Identifier typeName = node.name;
+    _setElement(typeName, null); // Clear old Elements from previous run.
+    TypeArgumentList argumentList = node.typeArguments;
+    Element element = nameScope.lookup(typeName, definingLibrary);
+    if (element == null) {
+      //
+      // Check to see whether the type name is either 'dynamic' or 'void',
+      // neither of which are in the name scope and hence will not be found by
+      // normal means.
+      //
+      if (typeName.name == dynamicType.name) {
+        _setElement(typeName, dynamicType.element);
+        if (argumentList != null) {
+          // TODO(brianwilkerson) Report this error
+//          reporter.reportError(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, node, dynamicType.getName(), 0, argumentList.getArguments().size());
+        }
+        typeName.staticType = dynamicType;
+        node.type = dynamicType;
+        return;
+      }
+      VoidTypeImpl voidType = VoidTypeImpl.instance;
+      if (typeName.name == voidType.name) {
+        // There is no element for 'void'.
+        if (argumentList != null) {
+          // TODO(brianwilkerson) Report this error
+//          reporter.reportError(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, node, voidType.getName(), 0, argumentList.getArguments().size());
+        }
+        typeName.staticType = voidType;
+        node.type = voidType;
+        return;
+      }
+      //
+      // If not, the look to see whether we might have created the wrong AST
+      // structure for a constructor name. If so, fix the AST structure and then
+      // proceed.
+      //
+      AstNode parent = node.parent;
+      if (typeName is PrefixedIdentifier &&
+          parent is ConstructorName &&
+          argumentList == null) {
+        ConstructorName name = parent;
+        if (name.name == null) {
+          PrefixedIdentifier prefixedIdentifier =
+              typeName as PrefixedIdentifier;
+          SimpleIdentifier prefix = prefixedIdentifier.prefix;
+          element = nameScope.lookup(prefix, definingLibrary);
+          if (element is PrefixElement) {
+            AstNode grandParent = parent.parent;
+            if (grandParent is InstanceCreationExpression &&
+                grandParent.isConst) {
+              // If, if this is a const expression, then generate a
+              // CompileTimeErrorCode.CONST_WITH_NON_TYPE error.
+              reportErrorForNode(
+                  CompileTimeErrorCode.CONST_WITH_NON_TYPE,
+                  prefixedIdentifier.identifier,
+                  [prefixedIdentifier.identifier.name]);
+            } else {
+              // Else, if this expression is a new expression, report a
+              // NEW_WITH_NON_TYPE warning.
+              reportErrorForNode(
+                  StaticWarningCode.NEW_WITH_NON_TYPE,
+                  prefixedIdentifier.identifier,
+                  [prefixedIdentifier.identifier.name]);
+            }
+            _setElement(prefix, element);
+            return;
+          } else if (element != null) {
+            //
+            // Rewrite the constructor name. The parser, when it sees a
+            // constructor named "a.b", cannot tell whether "a" is a prefix and
+            // "b" is a class name, or whether "a" is a class name and "b" is a
+            // constructor name. It arbitrarily chooses the former, but in this
+            // case was wrong.
+            //
+            name.name = prefixedIdentifier.identifier;
+            name.period = prefixedIdentifier.period;
+            node.name = prefix;
+            typeName = prefix;
+          }
+        }
+      }
+    }
+    // check element
+    bool elementValid = element is! MultiplyDefinedElement;
+    if (elementValid &&
+        element is! ClassElement &&
+        _isTypeNameInInstanceCreationExpression(node)) {
+      SimpleIdentifier typeNameSimple = _getTypeSimpleIdentifier(typeName);
+      InstanceCreationExpression creation =
+          node.parent.parent as InstanceCreationExpression;
+      if (creation.isConst) {
+        if (element == null) {
+          reportErrorForNode(
+              CompileTimeErrorCode.UNDEFINED_CLASS, typeNameSimple, [typeName]);
+        } else {
+          reportErrorForNode(CompileTimeErrorCode.CONST_WITH_NON_TYPE,
+              typeNameSimple, [typeName]);
+        }
+        elementValid = false;
+      } else {
+        if (element != null) {
+          reportErrorForNode(
+              StaticWarningCode.NEW_WITH_NON_TYPE, typeNameSimple, [typeName]);
+          elementValid = false;
+        }
+      }
+    }
+    if (elementValid && element == null) {
+      // We couldn't resolve the type name.
+      // TODO(jwren) Consider moving the check for
+      // CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE from the
+      // ErrorVerifier, so that we don't have two errors on a built in
+      // identifier being used as a class name.
+      // See CompileTimeErrorCodeTest.test_builtInIdentifierAsType().
+      SimpleIdentifier typeNameSimple = _getTypeSimpleIdentifier(typeName);
+      RedirectingConstructorKind redirectingConstructorKind;
+      if (_isBuiltInIdentifier(node) && _isTypeAnnotation(node)) {
+        reportErrorForNode(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
+            typeName, [typeName.name]);
+      } else if (typeNameSimple.name == "boolean") {
+        reportErrorForNode(
+            StaticWarningCode.UNDEFINED_CLASS_BOOLEAN, typeNameSimple, []);
+      } else if (_isTypeNameInCatchClause(node)) {
+        reportErrorForNode(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName,
+            [typeName.name]);
+      } else if (_isTypeNameInAsExpression(node)) {
+        reportErrorForNode(
+            StaticWarningCode.CAST_TO_NON_TYPE, typeName, [typeName.name]);
+      } else if (_isTypeNameInIsExpression(node)) {
+        reportErrorForNode(StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME,
+            typeName, [typeName.name]);
+      } else if ((redirectingConstructorKind =
+              _getRedirectingConstructorKind(node)) !=
+          null) {
+        ErrorCode errorCode =
+            (redirectingConstructorKind == RedirectingConstructorKind.CONST
+                ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS
+                : StaticWarningCode.REDIRECT_TO_NON_CLASS);
+        reportErrorForNode(errorCode, typeName, [typeName.name]);
+      } else if (_isTypeNameInTypeArgumentList(node)) {
+        reportErrorForNode(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
+            typeName, [typeName.name]);
+      } else {
+        reportErrorForNode(
+            StaticWarningCode.UNDEFINED_CLASS, typeName, [typeName.name]);
+      }
+      elementValid = false;
+    }
+    if (!elementValid) {
+      if (element is MultiplyDefinedElement) {
+        _setElement(typeName, element);
+      }
+      typeName.staticType = undefinedType;
+      node.type = undefinedType;
+      return;
+    }
+    DartType type = null;
+    if (element is ClassElement) {
+      _setElement(typeName, element);
+      type = element.type;
+    } else if (element is FunctionTypeAliasElement) {
+      _setElement(typeName, element);
+      type = element.type;
+    } else if (element is TypeParameterElement) {
+      _setElement(typeName, element);
+      type = element.type;
+      if (argumentList != null) {
+        // Type parameters cannot have type arguments.
+        // TODO(brianwilkerson) Report this error.
+        //      resolver.reportError(ResolverErrorCode.?, keyType);
+      }
+    } else if (element is MultiplyDefinedElement) {
+      List<Element> elements = element.conflictingElements;
+      type = _getTypeWhenMultiplyDefined(elements);
+      if (type != null) {
+        node.type = type;
+      }
+    } else {
+      // The name does not represent a type.
+      RedirectingConstructorKind redirectingConstructorKind;
+      if (_isTypeNameInCatchClause(node)) {
+        reportErrorForNode(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName,
+            [typeName.name]);
+      } else if (_isTypeNameInAsExpression(node)) {
+        reportErrorForNode(
+            StaticWarningCode.CAST_TO_NON_TYPE, typeName, [typeName.name]);
+      } else if (_isTypeNameInIsExpression(node)) {
+        reportErrorForNode(StaticWarningCode.TYPE_TEST_WITH_NON_TYPE, typeName,
+            [typeName.name]);
+      } else if ((redirectingConstructorKind =
+              _getRedirectingConstructorKind(node)) !=
+          null) {
+        ErrorCode errorCode =
+            (redirectingConstructorKind == RedirectingConstructorKind.CONST
+                ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS
+                : StaticWarningCode.REDIRECT_TO_NON_CLASS);
+        reportErrorForNode(errorCode, typeName, [typeName.name]);
+      } else if (_isTypeNameInTypeArgumentList(node)) {
+        reportErrorForNode(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
+            typeName, [typeName.name]);
+      } else {
+        AstNode parent = typeName.parent;
+        while (parent is TypeName) {
+          parent = parent.parent;
+        }
+        if (parent is ExtendsClause ||
+            parent is ImplementsClause ||
+            parent is WithClause ||
+            parent is ClassTypeAlias) {
+          // Ignored. The error will be reported elsewhere.
+        } else {
+          reportErrorForNode(
+              StaticWarningCode.NOT_A_TYPE, typeName, [typeName.name]);
+        }
+      }
+      typeName.staticType = dynamicType;
+      node.type = dynamicType;
+      return;
+    }
+    if (argumentList != null) {
+      NodeList<TypeName> arguments = argumentList.arguments;
+      int argumentCount = arguments.length;
+      List<DartType> parameters = typeSystem.typeFormalsAsTypes(type);
+      int parameterCount = parameters.length;
+      List<DartType> typeArguments = new List<DartType>(parameterCount);
+      if (argumentCount == parameterCount) {
+        for (int i = 0; i < parameterCount; i++) {
+          TypeName argumentTypeName = arguments[i];
+          DartType argumentType = _getType(argumentTypeName);
+          if (argumentType == null) {
+            argumentType = dynamicType;
+          }
+          typeArguments[i] = argumentType;
+        }
+      } else {
+        reportErrorForNode(_getInvalidTypeParametersErrorCode(node), node,
+            [typeName.name, parameterCount, argumentCount]);
+        for (int i = 0; i < parameterCount; i++) {
+          typeArguments[i] = dynamicType;
+        }
+      }
+      type = typeSystem.instantiateType(type, typeArguments);
+    } else {
+      type = typeSystem.instantiateToBounds(type);
+    }
+    typeName.staticType = type;
+    node.type = type;
+  }
+
+  /**
+   * The number of type arguments in the given type name does not match the number of parameters in
+   * the corresponding class element. Return the error code that should be used to report this
+   * error.
+   *
+   * @param node the type name with the wrong number of type arguments
+   * @return the error code that should be used to report that the wrong number of type arguments
+   *         were provided
+   */
+  ErrorCode _getInvalidTypeParametersErrorCode(TypeName node) {
+    AstNode parent = node.parent;
+    if (parent is ConstructorName) {
+      parent = parent.parent;
+      if (parent is InstanceCreationExpression) {
+        if (parent.isConst) {
+          return CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS;
+        } else {
+          return StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS;
+        }
+      }
+    }
+    return StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
+  }
+
+  /**
+   * Checks if the given type name is the target in a redirected constructor.
+   *
+   * @param typeName the type name to analyze
+   * @return some [RedirectingConstructorKind] if the given type name is used as the type in a
+   *         redirected constructor, or `null` otherwise
+   */
+  RedirectingConstructorKind _getRedirectingConstructorKind(TypeName typeName) {
+    AstNode parent = typeName.parent;
+    if (parent is ConstructorName) {
+      AstNode grandParent = parent.parent;
+      if (grandParent is ConstructorDeclaration) {
+        if (identical(grandParent.redirectedConstructor, parent)) {
+          if (grandParent.constKeyword != null) {
+            return RedirectingConstructorKind.CONST;
+          }
+          return RedirectingConstructorKind.NORMAL;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Return the type represented by the given type name.
+   *
+   * @param typeName the type name representing the type to be returned
+   * @return the type represented by the type name
+   */
+  DartType _getType(TypeName typeName) {
+    DartType type = typeName.type;
+    if (type == null) {
+      return undefinedType;
+    }
+    return type;
+  }
+
+  /**
+   * Returns the simple identifier of the given (may be qualified) type name.
+   *
+   * @param typeName the (may be qualified) qualified type name
+   * @return the simple identifier of the given (may be qualified) type name.
+   */
+  SimpleIdentifier _getTypeSimpleIdentifier(Identifier typeName) {
+    if (typeName is SimpleIdentifier) {
+      return typeName;
+    } else {
+      return (typeName as PrefixedIdentifier).identifier;
+    }
+  }
+
+  /**
+   * Given the multiple elements to which a single name could potentially be resolved, return the
+   * single interface type that should be used, or `null` if there is no clear choice.
+   *
+   * @param elements the elements to which a single name could potentially be resolved
+   * @return the single interface type that should be used for the type name
+   */
+  InterfaceType _getTypeWhenMultiplyDefined(List<Element> elements) {
+    InterfaceType type = null;
+    for (Element element in elements) {
+      if (element is ClassElement) {
+        if (type != null) {
+          return null;
+        }
+        type = element.type;
+      }
+    }
+    return type;
+  }
+
+  /**
+   * Checks if the given type name is used as the type in an as expression.
+   *
+   * @param typeName the type name to analyzer
+   * @return `true` if the given type name is used as the type in an as expression
+   */
+  bool _isTypeNameInAsExpression(TypeName typeName) {
+    AstNode parent = typeName.parent;
+    if (parent is AsExpression) {
+      return identical(parent.type, typeName);
+    }
+    return false;
+  }
+
+  /**
+   * Checks if the given type name is used as the exception type in a catch clause.
+   *
+   * @param typeName the type name to analyzer
+   * @return `true` if the given type name is used as the exception type in a catch clause
+   */
+  bool _isTypeNameInCatchClause(TypeName typeName) {
+    AstNode parent = typeName.parent;
+    if (parent is CatchClause) {
+      return identical(parent.exceptionType, typeName);
+    }
+    return false;
+  }
+
+  /**
+   * Checks if the given type name is used as the type in an instance creation expression.
+   *
+   * @param typeName the type name to analyzer
+   * @return `true` if the given type name is used as the type in an instance creation
+   *         expression
+   */
+  bool _isTypeNameInInstanceCreationExpression(TypeName typeName) {
+    AstNode parent = typeName.parent;
+    if (parent is ConstructorName &&
+        parent.parent is InstanceCreationExpression) {
+      return parent != null && identical(parent.type, typeName);
+    }
+    return false;
+  }
+
+  /**
+   * Checks if the given type name is used as the type in an is expression.
+   *
+   * @param typeName the type name to analyzer
+   * @return `true` if the given type name is used as the type in an is expression
+   */
+  bool _isTypeNameInIsExpression(TypeName typeName) {
+    AstNode parent = typeName.parent;
+    if (parent is IsExpression) {
+      return identical(parent.type, typeName);
+    }
+    return false;
+  }
+
+  /**
+   * Checks if the given type name used in a type argument list.
+   *
+   * @param typeName the type name to analyzer
+   * @return `true` if the given type name is in a type argument list
+   */
+  bool _isTypeNameInTypeArgumentList(TypeName typeName) =>
+      typeName.parent is TypeArgumentList;
+
+  /**
+   * Records the new Element for a TypeName's Identifier.
+   *
+   * A null may be passed in to indicate that the element can't be resolved.
+   * (During a re-run of a task, it's important to clear any previous value
+   * of the element.)
+   */
+  void _setElement(Identifier typeName, Element element) {
+    if (typeName is SimpleIdentifier) {
+      typeName.staticElement = element;
+    } else if (typeName is PrefixedIdentifier) {
+      typeName.identifier.staticElement = element;
+      SimpleIdentifier prefix = typeName.prefix;
+      prefix.staticElement = nameScope.lookup(prefix, definingLibrary);
+    }
+  }
+
+  /**
+   * @return `true` if the name of the given [TypeName] is an built-in identifier.
+   */
+  static bool _isBuiltInIdentifier(TypeName node) {
+    Token token = node.name.beginToken;
+    return token.type == TokenType.KEYWORD;
+  }
+
+  /**
+   * @return `true` if given [TypeName] is used as a type annotation.
+   */
+  static bool _isTypeAnnotation(TypeName node) {
+    AstNode parent = node.parent;
+    if (parent is VariableDeclarationList) {
+      return identical(parent.type, node);
+    } else if (parent is FieldFormalParameter) {
+      return identical(parent.type, node);
+    } else if (parent is SimpleFormalParameter) {
+      return identical(parent.type, node);
+    }
+    return false;
+  }
+}
+
+/**
  * Instances of the class `TypeOverrideManager` manage the ability to override the type of an
  * element within a given context.
  */
@@ -9226,6 +9719,11 @@ class TypeResolverVisitor extends ScopedVisitor {
   TypeSystem _typeSystem;
 
   /**
+   * The helper to resolve [TypeName]s.
+   */
+  TypeNameResolver _typeNameResolver;
+
+  /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
    * [definingLibrary] is the element for the library containing the node being
@@ -9249,6 +9747,8 @@ class TypeResolverVisitor extends ScopedVisitor {
     _undefinedType = typeProvider.undefinedType;
     _strongMode = definingLibrary.context.analysisOptions.strongMode;
     _typeSystem = TypeSystem.create(definingLibrary.context);
+    _typeNameResolver = new TypeNameResolver(
+        _typeSystem, typeProvider, definingLibrary, source, errorListener);
   }
 
   @override
@@ -9293,7 +9793,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       if (exceptionTypeName == null) {
         exceptionType = typeProvider.dynamicType;
       } else {
-        exceptionType = _getType(exceptionTypeName);
+        exceptionType = _typeNameResolver._getType(exceptionTypeName);
       }
       _recordType(exception, exceptionType);
       Element element = exception.staticElement;
@@ -9433,7 +9933,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (typeName == null) {
       declaredType = _dynamicType;
     } else {
-      declaredType = _getType(typeName);
+      declaredType = _typeNameResolver._getType(typeName);
     }
     LocalVariableElementImpl element = node.element as LocalVariableElementImpl;
     element.type = declaredType;
@@ -9460,7 +9960,7 @@ class TypeResolverVisitor extends ScopedVisitor {
             }
           }
         } else {
-          type = _getType(typeName);
+          type = _typeNameResolver._getType(typeName);
         }
         element.type = type;
       } else {
@@ -9562,7 +10062,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (typeName == null) {
       declaredType = _dynamicType;
     } else {
-      declaredType = _getType(typeName);
+      declaredType = _typeNameResolver._getType(typeName);
     }
     Element element = node.identifier.staticElement;
     if (element is ParameterElementImpl) {
@@ -9582,253 +10082,8 @@ class TypeResolverVisitor extends ScopedVisitor {
   @override
   Object visitTypeName(TypeName node) {
     super.visitTypeName(node);
-    Identifier typeName = node.name;
-    _setElement(typeName, null); // Clear old Elements from previous run.
-    TypeArgumentList argumentList = node.typeArguments;
-    Element element = nameScope.lookup(typeName, definingLibrary);
-    if (element == null) {
-      //
-      // Check to see whether the type name is either 'dynamic' or 'void',
-      // neither of which are in the name scope and hence will not be found by
-      // normal means.
-      //
-      if (typeName.name == _dynamicType.name) {
-        _setElement(typeName, _dynamicType.element);
-        if (argumentList != null) {
-          // TODO(brianwilkerson) Report this error
-//          reporter.reportError(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, node, dynamicType.getName(), 0, argumentList.getArguments().size());
-        }
-        typeName.staticType = _dynamicType;
-        node.type = _dynamicType;
-        return null;
-      }
-      VoidTypeImpl voidType = VoidTypeImpl.instance;
-      if (typeName.name == voidType.name) {
-        // There is no element for 'void'.
-        if (argumentList != null) {
-          // TODO(brianwilkerson) Report this error
-//          reporter.reportError(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, node, voidType.getName(), 0, argumentList.getArguments().size());
-        }
-        typeName.staticType = voidType;
-        node.type = voidType;
-        return null;
-      }
-      //
-      // If not, the look to see whether we might have created the wrong AST
-      // structure for a constructor name. If so, fix the AST structure and then
-      // proceed.
-      //
-      AstNode parent = node.parent;
-      if (typeName is PrefixedIdentifier &&
-          parent is ConstructorName &&
-          argumentList == null) {
-        ConstructorName name = parent;
-        if (name.name == null) {
-          PrefixedIdentifier prefixedIdentifier =
-              typeName as PrefixedIdentifier;
-          SimpleIdentifier prefix = prefixedIdentifier.prefix;
-          element = nameScope.lookup(prefix, definingLibrary);
-          if (element is PrefixElement) {
-            AstNode grandParent = parent.parent;
-            if (grandParent is InstanceCreationExpression &&
-                grandParent.isConst) {
-              // If, if this is a const expression, then generate a
-              // CompileTimeErrorCode.CONST_WITH_NON_TYPE error.
-              reportErrorForNode(
-                  CompileTimeErrorCode.CONST_WITH_NON_TYPE,
-                  prefixedIdentifier.identifier,
-                  [prefixedIdentifier.identifier.name]);
-            } else {
-              // Else, if this expression is a new expression, report a
-              // NEW_WITH_NON_TYPE warning.
-              reportErrorForNode(
-                  StaticWarningCode.NEW_WITH_NON_TYPE,
-                  prefixedIdentifier.identifier,
-                  [prefixedIdentifier.identifier.name]);
-            }
-            _setElement(prefix, element);
-            return null;
-          } else if (element != null) {
-            //
-            // Rewrite the constructor name. The parser, when it sees a
-            // constructor named "a.b", cannot tell whether "a" is a prefix and
-            // "b" is a class name, or whether "a" is a class name and "b" is a
-            // constructor name. It arbitrarily chooses the former, but in this
-            // case was wrong.
-            //
-            name.name = prefixedIdentifier.identifier;
-            name.period = prefixedIdentifier.period;
-            node.name = prefix;
-            typeName = prefix;
-          }
-        }
-      }
-    }
-    // check element
-    bool elementValid = element is! MultiplyDefinedElement;
-    if (elementValid &&
-        element is! ClassElement &&
-        _isTypeNameInInstanceCreationExpression(node)) {
-      SimpleIdentifier typeNameSimple = _getTypeSimpleIdentifier(typeName);
-      InstanceCreationExpression creation =
-          node.parent.parent as InstanceCreationExpression;
-      if (creation.isConst) {
-        if (element == null) {
-          reportErrorForNode(
-              CompileTimeErrorCode.UNDEFINED_CLASS, typeNameSimple, [typeName]);
-        } else {
-          reportErrorForNode(CompileTimeErrorCode.CONST_WITH_NON_TYPE,
-              typeNameSimple, [typeName]);
-        }
-        elementValid = false;
-      } else {
-        if (element != null) {
-          reportErrorForNode(
-              StaticWarningCode.NEW_WITH_NON_TYPE, typeNameSimple, [typeName]);
-          elementValid = false;
-        }
-      }
-    }
-    if (elementValid && element == null) {
-      // We couldn't resolve the type name.
-      // TODO(jwren) Consider moving the check for
-      // CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE from the
-      // ErrorVerifier, so that we don't have two errors on a built in
-      // identifier being used as a class name.
-      // See CompileTimeErrorCodeTest.test_builtInIdentifierAsType().
-      SimpleIdentifier typeNameSimple = _getTypeSimpleIdentifier(typeName);
-      RedirectingConstructorKind redirectingConstructorKind;
-      if (_isBuiltInIdentifier(node) && _isTypeAnnotation(node)) {
-        reportErrorForNode(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
-            typeName, [typeName.name]);
-      } else if (typeNameSimple.name == "boolean") {
-        reportErrorForNode(
-            StaticWarningCode.UNDEFINED_CLASS_BOOLEAN, typeNameSimple, []);
-      } else if (_isTypeNameInCatchClause(node)) {
-        reportErrorForNode(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName,
-            [typeName.name]);
-      } else if (_isTypeNameInAsExpression(node)) {
-        reportErrorForNode(
-            StaticWarningCode.CAST_TO_NON_TYPE, typeName, [typeName.name]);
-      } else if (_isTypeNameInIsExpression(node)) {
-        reportErrorForNode(StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME,
-            typeName, [typeName.name]);
-      } else if ((redirectingConstructorKind =
-              _getRedirectingConstructorKind(node)) !=
-          null) {
-        ErrorCode errorCode =
-            (redirectingConstructorKind == RedirectingConstructorKind.CONST
-                ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS
-                : StaticWarningCode.REDIRECT_TO_NON_CLASS);
-        reportErrorForNode(errorCode, typeName, [typeName.name]);
-      } else if (_isTypeNameInTypeArgumentList(node)) {
-        reportErrorForNode(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
-            typeName, [typeName.name]);
-      } else {
-        reportErrorForNode(
-            StaticWarningCode.UNDEFINED_CLASS, typeName, [typeName.name]);
-      }
-      elementValid = false;
-    }
-    if (!elementValid) {
-      if (element is MultiplyDefinedElement) {
-        _setElement(typeName, element);
-      }
-      typeName.staticType = _undefinedType;
-      node.type = _undefinedType;
-      return null;
-    }
-    DartType type = null;
-    if (element is ClassElement) {
-      _setElement(typeName, element);
-      type = element.type;
-    } else if (element is FunctionTypeAliasElement) {
-      _setElement(typeName, element);
-      type = element.type;
-    } else if (element is TypeParameterElement) {
-      _setElement(typeName, element);
-      type = element.type;
-      if (argumentList != null) {
-        // Type parameters cannot have type arguments.
-        // TODO(brianwilkerson) Report this error.
-        //      resolver.reportError(ResolverErrorCode.?, keyType);
-      }
-    } else if (element is MultiplyDefinedElement) {
-      List<Element> elements = element.conflictingElements;
-      type = _getTypeWhenMultiplyDefined(elements);
-      if (type != null) {
-        node.type = type;
-      }
-    } else {
-      // The name does not represent a type.
-      RedirectingConstructorKind redirectingConstructorKind;
-      if (_isTypeNameInCatchClause(node)) {
-        reportErrorForNode(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName,
-            [typeName.name]);
-      } else if (_isTypeNameInAsExpression(node)) {
-        reportErrorForNode(
-            StaticWarningCode.CAST_TO_NON_TYPE, typeName, [typeName.name]);
-      } else if (_isTypeNameInIsExpression(node)) {
-        reportErrorForNode(StaticWarningCode.TYPE_TEST_WITH_NON_TYPE, typeName,
-            [typeName.name]);
-      } else if ((redirectingConstructorKind =
-              _getRedirectingConstructorKind(node)) !=
-          null) {
-        ErrorCode errorCode =
-            (redirectingConstructorKind == RedirectingConstructorKind.CONST
-                ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS
-                : StaticWarningCode.REDIRECT_TO_NON_CLASS);
-        reportErrorForNode(errorCode, typeName, [typeName.name]);
-      } else if (_isTypeNameInTypeArgumentList(node)) {
-        reportErrorForNode(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
-            typeName, [typeName.name]);
-      } else {
-        AstNode parent = typeName.parent;
-        while (parent is TypeName) {
-          parent = parent.parent;
-        }
-        if (parent is ExtendsClause ||
-            parent is ImplementsClause ||
-            parent is WithClause ||
-            parent is ClassTypeAlias) {
-          // Ignored. The error will be reported elsewhere.
-        } else {
-          reportErrorForNode(
-              StaticWarningCode.NOT_A_TYPE, typeName, [typeName.name]);
-        }
-      }
-      typeName.staticType = _dynamicType;
-      node.type = _dynamicType;
-      return null;
-    }
-    if (argumentList != null) {
-      NodeList<TypeName> arguments = argumentList.arguments;
-      int argumentCount = arguments.length;
-      List<DartType> parameters = _typeSystem.typeFormalsAsTypes(type);
-      int parameterCount = parameters.length;
-      List<DartType> typeArguments = new List<DartType>(parameterCount);
-      if (argumentCount == parameterCount) {
-        for (int i = 0; i < parameterCount; i++) {
-          TypeName argumentTypeName = arguments[i];
-          DartType argumentType = _getType(argumentTypeName);
-          if (argumentType == null) {
-            argumentType = _dynamicType;
-          }
-          typeArguments[i] = argumentType;
-        }
-      } else {
-        reportErrorForNode(_getInvalidTypeParametersErrorCode(node), node,
-            [typeName.name, parameterCount, argumentCount]);
-        for (int i = 0; i < parameterCount; i++) {
-          typeArguments[i] = _dynamicType;
-        }
-      }
-      type = _typeSystem.instantiateType(type, typeArguments);
-    } else {
-      type = _typeSystem.instantiateToBounds(type);
-    }
-    typeName.staticType = type;
-    node.type = type;
+    _typeNameResolver.nameScope = this.nameScope;
+    _typeNameResolver.resolveTypeName(node);
     return null;
   }
 
@@ -9854,7 +10109,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (typeName == null) {
       declaredType = _dynamicType;
     } else {
-      declaredType = _getType(typeName);
+      declaredType = _typeNameResolver._getType(typeName);
     }
     Element element = node.name.staticElement;
     if (element is VariableElement) {
@@ -9941,101 +10196,6 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * The number of type arguments in the given type name does not match the number of parameters in
-   * the corresponding class element. Return the error code that should be used to report this
-   * error.
-   *
-   * @param node the type name with the wrong number of type arguments
-   * @return the error code that should be used to report that the wrong number of type arguments
-   *         were provided
-   */
-  ErrorCode _getInvalidTypeParametersErrorCode(TypeName node) {
-    AstNode parent = node.parent;
-    if (parent is ConstructorName) {
-      parent = parent.parent;
-      if (parent is InstanceCreationExpression) {
-        if (parent.isConst) {
-          return CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS;
-        } else {
-          return StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS;
-        }
-      }
-    }
-    return StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
-  }
-
-  /**
-   * Checks if the given type name is the target in a redirected constructor.
-   *
-   * @param typeName the type name to analyze
-   * @return some [RedirectingConstructorKind] if the given type name is used as the type in a
-   *         redirected constructor, or `null` otherwise
-   */
-  RedirectingConstructorKind _getRedirectingConstructorKind(TypeName typeName) {
-    AstNode parent = typeName.parent;
-    if (parent is ConstructorName) {
-      AstNode grandParent = parent.parent;
-      if (grandParent is ConstructorDeclaration) {
-        if (identical(grandParent.redirectedConstructor, parent)) {
-          if (grandParent.constKeyword != null) {
-            return RedirectingConstructorKind.CONST;
-          }
-          return RedirectingConstructorKind.NORMAL;
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Return the type represented by the given type name.
-   *
-   * @param typeName the type name representing the type to be returned
-   * @return the type represented by the type name
-   */
-  DartType _getType(TypeName typeName) {
-    DartType type = typeName.type;
-    if (type == null) {
-      return _undefinedType;
-    }
-    return type;
-  }
-
-  /**
-   * Returns the simple identifier of the given (may be qualified) type name.
-   *
-   * @param typeName the (may be qualified) qualified type name
-   * @return the simple identifier of the given (may be qualified) type name.
-   */
-  SimpleIdentifier _getTypeSimpleIdentifier(Identifier typeName) {
-    if (typeName is SimpleIdentifier) {
-      return typeName;
-    } else {
-      return (typeName as PrefixedIdentifier).identifier;
-    }
-  }
-
-  /**
-   * Given the multiple elements to which a single name could potentially be resolved, return the
-   * single interface type that should be used, or `null` if there is no clear choice.
-   *
-   * @param elements the elements to which a single name could potentially be resolved
-   * @return the single interface type that should be used for the type name
-   */
-  InterfaceType _getTypeWhenMultiplyDefined(List<Element> elements) {
-    InterfaceType type = null;
-    for (Element element in elements) {
-      if (element is ClassElement) {
-        if (type != null) {
-          return null;
-        }
-        type = element.type;
-      }
-    }
-    return type;
-  }
-
-  /**
    * In strong mode we infer "void" as the setter return type (as void is the
    * only legal return type for a setter). This allows us to give better
    * errors later if an invalid type is returned.
@@ -10048,73 +10208,6 @@ class TypeResolverVisitor extends ScopedVisitor {
       element.returnType = VoidTypeImpl.instance;
     }
   }
-
-  /**
-   * Checks if the given type name is used as the type in an as expression.
-   *
-   * @param typeName the type name to analyzer
-   * @return `true` if the given type name is used as the type in an as expression
-   */
-  bool _isTypeNameInAsExpression(TypeName typeName) {
-    AstNode parent = typeName.parent;
-    if (parent is AsExpression) {
-      return identical(parent.type, typeName);
-    }
-    return false;
-  }
-
-  /**
-   * Checks if the given type name is used as the exception type in a catch clause.
-   *
-   * @param typeName the type name to analyzer
-   * @return `true` if the given type name is used as the exception type in a catch clause
-   */
-  bool _isTypeNameInCatchClause(TypeName typeName) {
-    AstNode parent = typeName.parent;
-    if (parent is CatchClause) {
-      return identical(parent.exceptionType, typeName);
-    }
-    return false;
-  }
-
-  /**
-   * Checks if the given type name is used as the type in an instance creation expression.
-   *
-   * @param typeName the type name to analyzer
-   * @return `true` if the given type name is used as the type in an instance creation
-   *         expression
-   */
-  bool _isTypeNameInInstanceCreationExpression(TypeName typeName) {
-    AstNode parent = typeName.parent;
-    if (parent is ConstructorName &&
-        parent.parent is InstanceCreationExpression) {
-      return parent != null && identical(parent.type, typeName);
-    }
-    return false;
-  }
-
-  /**
-   * Checks if the given type name is used as the type in an is expression.
-   *
-   * @param typeName the type name to analyzer
-   * @return `true` if the given type name is used as the type in an is expression
-   */
-  bool _isTypeNameInIsExpression(TypeName typeName) {
-    AstNode parent = typeName.parent;
-    if (parent is IsExpression) {
-      return identical(parent.type, typeName);
-    }
-    return false;
-  }
-
-  /**
-   * Checks if the given type name used in a type argument list.
-   *
-   * @param typeName the type name to analyzer
-   * @return `true` if the given type name is in a type argument list
-   */
-  bool _isTypeNameInTypeArgumentList(TypeName typeName) =>
-      typeName.parent is TypeArgumentList;
 
   /**
    * Record that the static type of the given node is the given type.
@@ -10247,23 +10340,6 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Records the new Element for a TypeName's Identifier.
-   *
-   * A null may be passed in to indicate that the element can't be resolved.
-   * (During a re-run of a task, it's important to clear any previous value
-   * of the element.)
-   */
-  void _setElement(Identifier typeName, Element element) {
-    if (typeName is SimpleIdentifier) {
-      typeName.staticElement = element;
-    } else if (typeName is PrefixedIdentifier) {
-      typeName.identifier.staticElement = element;
-      SimpleIdentifier prefix = typeName.prefix;
-      prefix.staticElement = nameScope.lookup(prefix, definingLibrary);
-    }
-  }
-
-  /**
    * Given a parameter element, create a function type based on the given return type and parameter
    * list and associate the created type with the element.
    *
@@ -10282,29 +10358,6 @@ class TypeResolverVisitor extends ScopedVisitor {
     functionElement.shareTypeParameters(element.typeParameters);
     element.type = new FunctionTypeImpl(functionElement);
     functionElement.type = element.type;
-  }
-
-  /**
-   * @return `true` if the name of the given [TypeName] is an built-in identifier.
-   */
-  static bool _isBuiltInIdentifier(TypeName node) {
-    Token token = node.name.beginToken;
-    return token.type == TokenType.KEYWORD;
-  }
-
-  /**
-   * @return `true` if given [TypeName] is used as a type annotation.
-   */
-  static bool _isTypeAnnotation(TypeName node) {
-    AstNode parent = node.parent;
-    if (parent is VariableDeclarationList) {
-      return identical(parent.type, node);
-    } else if (parent is FieldFormalParameter) {
-      return identical(parent.type, node);
-    } else if (parent is SimpleFormalParameter) {
-      return identical(parent.type, node);
-    }
-    return false;
   }
 }
 
