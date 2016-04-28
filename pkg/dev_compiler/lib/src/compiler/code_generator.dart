@@ -546,13 +546,14 @@ class CodeGenerator extends GeneralizingAstVisitor
       className = _emitTopLevelName(classElem);
     }
 
+    var allFields = new List.from(fields)..addAll(staticFields);
     var superclasses = getSuperclasses(classElem);
     var virtualFields = <FieldElement, JS.TemporaryId>{};
     var virtualFieldSymbols = <JS.Statement>[];
-    _registerVirtualFields(classElem, className, superclasses, fields,
-        virtualFields, virtualFieldSymbols);
+    var staticFieldOverrides = new HashSet<FieldElement>();
+    _registerPropertyOverrides(classElem, className, superclasses, allFields,
+        virtualFields, virtualFieldSymbols, staticFieldOverrides);
 
-    var allFields = new List.from(fields)..addAll(staticFields);
     var classExpr = _emitClassExpression(classElem,
         _emitClassMethods(node, ctors, fields, superclasses, virtualFields),
         fields: allFields);
@@ -579,30 +580,35 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
 
     body = <JS.Statement>[classDef];
-    _emitStaticFields(staticFields, classElem, body);
+    _emitStaticFields(staticFields, staticFieldOverrides, classElem, body);
     _registerExtensionType(classElem, body);
     return _statement(body);
   }
 
-  void _registerVirtualFields(
+  void _registerPropertyOverrides(
       ClassElement classElem,
       JS.Expression className,
       List<ClassElement> superclasses,
       List<FieldDeclaration> fields,
       Map<FieldElement, JS.TemporaryId> virtualFields,
-      List<JS.Statement> virtualFieldSymbols) {
+      List<JS.Statement> virtualFieldSymbols,
+      Set<FieldElement> staticFieldOverrides) {
     for (var field in fields) {
       for (VariableDeclaration field in field.fields.variables) {
         var overrideInfo = checkForPropertyOverride(
             field.element, superclasses, _extensionTypes);
         if (overrideInfo.foundGetter || overrideInfo.foundSetter) {
-          var fieldName =
-              _emitMemberName(field.element.name, type: classElem.type);
-          var virtualField = new JS.TemporaryId(field.element.name);
-          virtualFields[field.element] = virtualField;
-          virtualFieldSymbols.add(js.statement(
-              'const # = Symbol(#.name + "." + #.toString());',
-              [virtualField, className, fieldName]));
+          if (field.element.isStatic) {
+            staticFieldOverrides.add(field.element);
+          } else {
+            var fieldName =
+                _emitMemberName(field.element.name, type: classElem.type);
+            var virtualField = new JS.TemporaryId(field.element.name);
+            virtualFields[field.element] = virtualField;
+            virtualFieldSymbols.add(js.statement(
+                'const # = Symbol(#.name + "." + #.toString());',
+                [virtualField, className, fieldName]));
+          }
         }
       }
     }
@@ -1012,12 +1018,16 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   /// Emits static fields for a class, and initialize them eagerly if possible,
   /// otherwise define them as lazy properties.
-  void _emitStaticFields(List<FieldDeclaration> staticFields,
-      ClassElement classElem, List<JS.Statement> body) {
+  void _emitStaticFields(
+      List<FieldDeclaration> staticFields,
+      Set<FieldElement> staticFieldOverrides,
+      ClassElement classElem,
+      List<JS.Statement> body) {
     var lazyStatics = <VariableDeclaration>[];
     for (FieldDeclaration member in staticFields) {
       for (VariableDeclaration field in member.fields.variables) {
-        JS.Statement eagerField = _emitConstantStaticField(classElem, field);
+        JS.Statement eagerField =
+            _emitConstantStaticField(classElem, field, staticFieldOverrides);
         if (eagerField != null) {
           body.add(eagerField);
         } else {
@@ -2573,8 +2583,8 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// Otherwise, we'll need to generate a lazy-static field. That ensures
   /// correct visible behavior, as well as avoiding referencing something that
   /// isn't defined yet (because it is defined later in the module).
-  JS.Statement _emitConstantStaticField(
-      ClassElement classElem, VariableDeclaration field) {
+  JS.Statement _emitConstantStaticField(ClassElement classElem,
+      VariableDeclaration field, Set<FieldElement> staticFieldOverrides) {
     PropertyInducingElement element = field.element;
     assert(element.isStatic);
 
@@ -2586,7 +2596,9 @@ class CodeGenerator extends GeneralizingAstVisitor
         isLoaded && (field.isConst || _constField.isFieldInitConstant(field));
 
     var fieldName = field.name.name;
-    if (eagerInit && !JS.invalidStaticFieldName(fieldName)) {
+    if (eagerInit &&
+        !JS.invalidStaticFieldName(fieldName) &&
+        !staticFieldOverrides.contains(element)) {
       return annotate(
           js.statement('#.# = #;', [
             _emitTopLevelName(classElem),

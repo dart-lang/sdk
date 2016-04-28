@@ -28,6 +28,10 @@ PropertyOverrideResult checkForPropertyOverride(FieldElement field,
     var superprop = getProperty(superclass, field.library, field.name);
     if (superprop == null) continue;
 
+    // Static fields can override superclass static fields. However, we need to
+    // handle the case where they override a getter or setter.
+    if (field.isStatic && !superprop.isSynthetic) continue;
+
     var getter = superprop.getter;
     bool hasGetter = getter != null && !getter.isAbstract;
     if (hasGetter) foundGetter = true;
