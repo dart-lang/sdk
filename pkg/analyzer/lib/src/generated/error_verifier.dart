@@ -1404,7 +1404,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // an error message once it's ready to "return false".
     if (!overridingFT.typeFormals.isEmpty) {
       if (overriddenFT.typeFormals.isEmpty) {
-        overriddenFT = _typeSystem.instantiateToBounds(overriddenFT);
+        overridingFT = _typeSystem.instantiateToBounds(overridingFT);
       } else {
         List<TypeParameterElement> params1 = overridingFT.typeFormals;
         List<TypeParameterElement> params2 = overriddenFT.typeFormals;
@@ -4571,6 +4571,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           FunctionType requiredMemberFT = _inheritanceManager
               .substituteTypeArgumentsInMemberFromInheritance(
                   requiredMemberType, memberName, enclosingType);
+          foundConcreteFT =
+              _typeSystem.typeToConcreteType(_typeProvider, foundConcreteFT);
+          requiredMemberFT =
+              _typeSystem.typeToConcreteType(_typeProvider, requiredMemberFT);
           if (_typeSystem.isSubtypeOf(foundConcreteFT, requiredMemberFT)) {
             continue;
           }

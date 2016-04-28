@@ -104,13 +104,14 @@ class CodeChecker extends RecursiveAstVisitor {
   final bool _hints;
 
   bool _failure = false;
-  CodeChecker(this.typeProvider, StrongTypeSystemImpl rules,
+  CodeChecker(TypeProvider typeProvider, StrongTypeSystemImpl rules,
       AnalysisErrorListener reporter,
       {bool hints: false})
-      : rules = rules,
+      : typeProvider = typeProvider,
+        rules = rules,
         reporter = reporter,
         _hints = hints,
-        _overrideChecker = new _OverrideChecker(rules, reporter);
+        _overrideChecker = new _OverrideChecker(typeProvider, rules, reporter);
 
   bool get failure => _failure || _overrideChecker._failure;
 
@@ -956,9 +957,10 @@ class CodeChecker extends RecursiveAstVisitor {
 class _OverrideChecker {
   bool _failure = false;
   final StrongTypeSystemImpl rules;
+  final TypeProvider _typeProvider;
   final AnalysisErrorListener _reporter;
 
-  _OverrideChecker(this.rules, this._reporter);
+  _OverrideChecker(this._typeProvider, this.rules, this._reporter);
 
   void check(ClassDeclaration node) {
     if (node.element.type.isObject) return;
@@ -1225,7 +1227,20 @@ class _OverrideChecker {
             errorLocation, element, type, subType, baseType));
       }
     }
-    if (!rules.isSubtypeOf(subType, baseType)) {
+    FunctionType concreteSubType = subType;
+    FunctionType concreteBaseType = baseType;
+    if (element is MethodElement) {
+      if (concreteSubType.typeFormals.isNotEmpty) {
+        if (concreteBaseType.typeFormals.isEmpty) {
+          concreteSubType = rules.instantiateToBounds(concreteSubType);
+        }
+      }
+      concreteSubType =
+          rules.typeToConcreteType(_typeProvider, concreteSubType);
+      concreteBaseType =
+          rules.typeToConcreteType(_typeProvider, concreteBaseType);
+    }
+    if (!rules.isSubtypeOf(concreteSubType, concreteBaseType)) {
       // See whether non-subtype cases fit one of our common patterns:
       //
       // Common pattern 1: Inferable return type (on getters and methods)
