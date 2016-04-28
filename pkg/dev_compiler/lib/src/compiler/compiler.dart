@@ -2,9 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection' show HashSet;
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:analyzer/analyzer.dart'
-    show AnalysisError, CompilationUnit, ErrorSeverity;
+    show
+        AnalysisError,
+        CompilationUnit,
+        CompileTimeErrorCode,
+        ErrorSeverity,
+        StaticWarningCode;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/java_engine.dart' show AnalysisException;
 import 'package:analyzer/src/generated/source_io.dart' show Source, SourceKind;
@@ -52,6 +58,10 @@ class ModuleCompiler {
     var trees = <CompilationUnit>[];
     var errors = <AnalysisError>[];
 
+    // Validate that all parts were explicitly passed in.
+    // If not, it's an error.
+    var explicitParts = new HashSet<Source>();
+    var usedParts = new HashSet<Source>();
     for (var sourcePath in unit.sources) {
       var sourceUri = Uri.parse(sourcePath);
       if (sourceUri.scheme == '') {
@@ -64,7 +74,8 @@ class ModuleCompiler {
       }
 
       // Ignore parts. They need to be handled in the context of their library.
-      if (context.getKindOf(source) == SourceKind.PART) {
+      if (context.computeKindOf(source) == SourceKind.PART) {
+        explicitParts.add(source);
         continue;
       }
 
@@ -74,10 +85,20 @@ class ModuleCompiler {
 
       var library = resolvedTree.element.library;
       for (var part in library.parts) {
+        if (!library.isInSdk) usedParts.add(part.source);
         trees.add(context.resolveCompilationUnit(part.source, library));
         errors.addAll(context.computeErrors(part.source));
       }
     }
+
+    // Check if all parts were explicitly passed in.
+    // Also verify all explicitly parts were used.
+    var missingParts = usedParts.difference(explicitParts);
+    var unusedParts = explicitParts.difference(usedParts);
+    errors.addAll(missingParts
+        .map((s) => new AnalysisError(s, 0, 0, missingPartErrorCode)));
+    errors.addAll(unusedParts
+        .map((s) => new AnalysisError(s, 0, 0, unusedPartWarningCode)));
 
     sortErrors(context, errors);
     var messages = <String>[];
@@ -269,3 +290,11 @@ class JSModuleFile {
     return map;
   }
 }
+
+/// (Public for tests) the error code used when a part is missing.
+final missingPartErrorCode = const CompileTimeErrorCode(
+    'MISSING_PART', 'The part was not supplied as an input to the compiler.');
+
+/// (Public for tests) the error code used when a part is unused.
+final unusedPartWarningCode = const StaticWarningCode(
+    'UNUSED_PART', 'The part was not used by any libraries being compiled.');

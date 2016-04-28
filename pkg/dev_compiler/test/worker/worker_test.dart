@@ -12,6 +12,9 @@ import 'package:bazel_worker/src/async_message_grouper.dart';
 import 'package:bazel_worker/testing.dart';
 import 'package:test/test.dart';
 
+import 'package:dev_compiler/src/compiler/compiler.dart'
+    show missingPartErrorCode, unusedPartWarningCode;
+
 main() {
   group('Hello World', () {
     final argsFile = new File('test/worker/hello_world.args').absolute;
@@ -176,6 +179,82 @@ main() {
       ]);
       expect(result.exitCode, 1);
       expect(result.stdout, contains("[error] Expected to find ';'"));
+    });
+  });
+
+  group('Parts', () {
+    final partFile = new File('test/worker/greeting.dart').absolute;
+    final libraryFile = new File('test/worker/hello.dart').absolute;
+
+    final outJS = new File('test/worker/output.js').absolute;
+
+    setUp(() {
+      partFile.writeAsStringSync('part of hello;\n'
+          'String greeting = "hello";');
+      libraryFile.writeAsStringSync('library hello;\n'
+          'part "greeting.dart";\n'
+          'main() => print(greeting);\n');
+    });
+
+    tearDown(() {
+      if (partFile.existsSync()) partFile.deleteSync();
+      if (libraryFile.existsSync()) libraryFile.deleteSync();
+      if (outJS.existsSync()) outJS.deleteSync();
+    });
+
+    test('works if part and library supplied', () {
+      var result = Process.runSync('dart', [
+        'bin/dartdevc.dart',
+        'compile',
+        '--no-summarize',
+        '--no-source-map',
+        '-o',
+        outJS.path,
+        partFile.path,
+        libraryFile.path,
+      ]);
+      expect(result.stdout, isEmpty);
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
+      expect(outJS.existsSync(), isTrue);
+    });
+
+    test('error if part is not supplied', () {
+      var result = Process.runSync('dart', [
+        'bin/dartdevc.dart',
+        'compile',
+        '--no-summarize',
+        '--no-source-map',
+        '-o',
+        outJS.path,
+        libraryFile.path,
+      ]);
+      expect(
+          result.stdout,
+          startsWith('[error] ${missingPartErrorCode.message} '
+              '(test/worker/greeting.dart, line 1, col 1)'));
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 1);
+      expect(outJS.existsSync(), isFalse);
+    });
+
+    test('warning if part without library is supplied', () {
+      var result = Process.runSync('dart', [
+        'bin/dartdevc.dart',
+        'compile',
+        '--no-summarize',
+        '--no-source-map',
+        '-o',
+        outJS.path,
+        partFile.path,
+      ]);
+      expect(
+          result.stdout,
+          startsWith('[warning] ${unusedPartWarningCode.message} '
+              '(test/worker/greeting.dart, line 1, col 1)'));
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
+      expect(outJS.existsSync(), isTrue);
     });
   });
 }
