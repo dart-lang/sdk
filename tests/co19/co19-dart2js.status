@@ -7829,7 +7829,6 @@ LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-uniform-binding-bugs_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-webgl_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-sub-image-2d-bad-args_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-sub-image-2d_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-sub-image-cube-maps_t01: RuntimeError # Please triage this failure
@@ -7844,7 +7843,6 @@ LayoutTests/fast/canvas/webgl/texture-transparent-pixels-initialized_t01: Skip #
 LayoutTests/fast/canvas/webgl/triangle_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/uniform-location-length-limits_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/uniform-location_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/uninitialized-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/viewport-unchanged-upon-resize_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/webgl-composite-modes-repaint_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/webgl-composite-modes_t01: Pass, RuntimeError # Please triage this failure
