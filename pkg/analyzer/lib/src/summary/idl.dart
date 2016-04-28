@@ -1713,7 +1713,6 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   /**
    * The list of local functions.
    */
-  @informative
   @Id(18)
   List<UnlinkedExecutable> get localFunctions;
 
@@ -2624,7 +2623,6 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    * The synthetic initializer function of the variable.  Absent if the variable
    * does not have an initializer.
    */
-  @informative
   @Id(13)
   UnlinkedExecutable get initializer;
 

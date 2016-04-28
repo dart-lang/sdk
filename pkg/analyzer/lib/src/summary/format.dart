@@ -4603,7 +4603,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     _codeRange = null;
     _constantInitializers?.forEach((b) => b.flushInformative());
     _documentationComment = null;
-    _localFunctions = null;
+    _localFunctions?.forEach((b) => b.flushInformative());
     _localLabels = null;
     _localVariables = null;
     _nameEnd = null;
@@ -8114,7 +8114,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     _codeRange = null;
     _constExpr?.flushInformative();
     _documentationComment = null;
-    _initializer = null;
+    _initializer?.flushInformative();
     _nameOffset = null;
     _type?.flushInformative();
   }
