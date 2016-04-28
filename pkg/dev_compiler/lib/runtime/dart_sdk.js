@@ -27164,16 +27164,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
   core.Sink = core.Sink$();
   core.StackTrace = class StackTrace extends core.Object {
     static get current() {
-      let error = new Error();
-      let stack = error.stack;
-      if (typeof stack == 'string') return new core.StackTrace.fromString(stack);
       if (Error.captureStackTrace != null) {
+        let error = new Error();
         Error.captureStackTrace(error);
-        let stack = error.stack;
-        if (typeof stack == 'string') return new core.StackTrace.fromString(stack);
+        return _js_helper.getTraceFromException(error);
       }
       try {
-        dart.throw(0);
+        dart.throw('');
       } catch (_) {
         let stackTrace = dart.stackTrace(_);
         return stackTrace;
