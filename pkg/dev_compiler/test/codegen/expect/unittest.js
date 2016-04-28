@@ -4,12 +4,12 @@ dart_library.library('unittest', null, /* Imports */[
 ], function(exports, dart_sdk, matcher) {
   'use strict';
   const core = dart_sdk.core;
-  const js = dart_sdk.js;
   const async = dart_sdk.async;
+  const js = dart_sdk.js;
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
-  const src__interfaces = matcher.src__interfaces;
   const src__util = matcher.src__util;
+  const src__interfaces = matcher.src__interfaces;
   const src__description = matcher.src__description;
   const src__numeric_matchers = matcher.src__numeric_matchers;
   const src__error_matchers = matcher.src__error_matchers;
@@ -19,6 +19,91 @@ dart_library.library('unittest', null, /* Imports */[
   const src__operator_matchers = matcher.src__operator_matchers;
   const src__map_matchers = matcher.src__map_matchers;
   const unittest = Object.create(null);
+  dart.defineLazy(unittest, {
+    get _wrapAsync() {
+      return dart.fn((f, id) => {
+        if (id === void 0) id = null;
+        return f;
+      }, core.Function, [core.Function], [dart.dynamic]);
+    },
+    set _wrapAsync(_) {}
+  });
+  const _matcher = Symbol('_matcher');
+  unittest.Throws = class Throws extends src__interfaces.Matcher {
+    Throws(matcher) {
+      if (matcher === void 0) matcher = null;
+      this[_matcher] = matcher;
+      super.Matcher();
+    }
+    matches(item, matchState) {
+      if (!dart.is(item, core.Function) && !dart.is(item, async.Future)) return false;
+      if (dart.is(item, async.Future)) {
+        let done = dart.dcall(unittest._wrapAsync, dart.fn(fn => dart.dcall(fn)));
+        item.then(dart.fn(value => {
+          dart.dcall(done, dart.fn(() => {
+            unittest.fail(`Expected future to fail, but succeeded with '${value}'.`);
+          }));
+        }), {onError: dart.fn((error, trace) => {
+            dart.dcall(done, dart.fn(() => {
+              if (this[_matcher] == null) return;
+              let reason = null;
+              if (trace != null) {
+                let stackTrace = dart.toString(trace);
+                stackTrace = `  ${stackTrace[dartx.replaceAll]("\n", "\n  ")}`;
+                reason = `Actual exception trace:\n${stackTrace}`;
+              }
+              unittest.expect(error, this[_matcher], {reason: dart.as(reason, core.String)});
+            }));
+          })});
+        return true;
+      }
+      try {
+        dart.dcall(item);
+        return false;
+      } catch (e) {
+        let s = dart.stackTrace(e);
+        if (this[_matcher] == null || dart.notNull(this[_matcher].matches(e, matchState))) {
+          return true;
+        } else {
+          src__util.addStateInfo(matchState, dart.map({exception: e, stack: s}));
+          return false;
+        }
+      }
+
+    }
+    describe(description) {
+      if (this[_matcher] == null) {
+        return description.add("throws");
+      } else {
+        return description.add('throws ').addDescriptionOf(this[_matcher]);
+      }
+    }
+    describeMismatch(item, mismatchDescription, matchState, verbose) {
+      if (!dart.is(item, core.Function) && !dart.is(item, async.Future)) {
+        return mismatchDescription.add('is not a Function or Future');
+      } else if (this[_matcher] == null || matchState[dartx.get]('exception') == null) {
+        return mismatchDescription.add('did not throw');
+      } else {
+        mismatchDescription.add('threw ').addDescriptionOf(matchState[dartx.get]('exception'));
+        if (dart.notNull(verbose)) {
+          mismatchDescription.add(' at ').add(dart.toString(matchState[dartx.get]('stack')));
+        }
+        return mismatchDescription;
+      }
+    }
+  };
+  dart.setSignature(unittest.Throws, {
+    constructors: () => ({Throws: [unittest.Throws, [], [src__interfaces.Matcher]]}),
+    methods: () => ({
+      matches: [core.bool, [dart.dynamic, core.Map]],
+      describe: [src__interfaces.Description, [src__interfaces.Description]]
+    })
+  });
+  unittest.throws = dart.const(new unittest.Throws());
+  unittest.throwsA = function(matcher) {
+    return new unittest.Throws(src__util.wrapMatcher(matcher));
+  };
+  dart.fn(unittest.throwsA, src__interfaces.Matcher, [dart.dynamic]);
   unittest.group = function(name, body) {
     return js.context.callMethod('suite', dart.list([name, body], core.Object));
   };
@@ -54,6 +139,11 @@ dart_library.library('unittest', null, /* Imports */[
   dart.setSignature(unittest.TestFailure, {
     constructors: () => ({TestFailure: [unittest.TestFailure, [core.String]]})
   });
+  unittest.TestCase = class TestCase extends core.Object {
+    get isComplete() {
+      return !dart.notNull(this.enabled) || this.result != null;
+    }
+  };
   unittest.ErrorFormatter = dart.typedef('ErrorFormatter', () => dart.functionType(core.String, [dart.dynamic, src__interfaces.Matcher, core.String, core.Map, core.bool]));
   unittest.expect = function(actual, matcher, opts) {
     let reason = opts && 'reason' in opts ? opts.reason : null;
@@ -91,6 +181,10 @@ dart_library.library('unittest', null, /* Imports */[
     return description.toString();
   };
   dart.fn(unittest._defaultFailFormatter, core.String, [dart.dynamic, src__interfaces.Matcher, core.String, core.Map, core.bool]);
+  unittest.useHtmlConfiguration = function(isLayoutTest) {
+    if (isLayoutTest === void 0) isLayoutTest = false;
+  };
+  dart.fn(unittest.useHtmlConfiguration, dart.void, [], [core.bool]);
   unittest.isPositive = src__numeric_matchers.isPositive;
   unittest.isRangeError = src__error_matchers.isRangeError;
   unittest.isStateError = src__error_matchers.isStateError;

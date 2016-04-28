@@ -11,6 +11,113 @@ import 'dart:js';
 import 'package:matcher/matcher.dart';
 export 'package:matcher/matcher.dart';
 
+// from matcher/throws_matcher.dart
+
+Function _wrapAsync = (Function f, [id]) => f;
+
+/// This can be used to match two kinds of objects:
+///
+///   * A [Function] that throws an exception when called. The function cannot
+///     take any arguments. If you want to test that a function expecting
+///     arguments throws, wrap it in another zero-argument function that calls
+///     the one you want to test.
+///
+///   * A [Future] that completes with an exception. Note that this creates an
+///     asynchronous expectation. The call to `expect()` that includes this will
+///     return immediately and execution will continue. Later, when the future
+///     completes, the actual expectation will run.
+const Matcher throws = const Throws();
+
+/// This can be used to match two kinds of objects:
+///
+///   * A [Function] that throws an exception when called. The function cannot
+///     take any arguments. If you want to test that a function expecting
+///     arguments throws, wrap it in another zero-argument function that calls
+///     the one you want to test.
+///
+///   * A [Future] that completes with an exception. Note that this creates an
+///     asynchronous expectation. The call to `expect()` that includes this will
+///     return immediately and execution will continue. Later, when the future
+///     completes, the actual expectation will run.
+///
+/// In both cases, when an exception is thrown, this will test that the exception
+/// object matches [matcher]. If [matcher] is not an instance of [Matcher], it
+/// will implicitly be treated as `equals(matcher)`.
+Matcher throwsA(matcher) => new Throws(wrapMatcher(matcher));
+
+class Throws extends Matcher {
+  final Matcher _matcher;
+
+  const Throws([Matcher matcher]) : this._matcher = matcher;
+
+  bool matches(item, Map matchState) {
+    if (item is! Function && item is! Future) return false;
+    if (item is Future) {
+      var done = _wrapAsync((fn) => fn());
+
+      // Queue up an asynchronous expectation that validates when the future
+      // completes.
+      item.then((value) {
+        done(() {
+          fail("Expected future to fail, but succeeded with '$value'.");
+        });
+      }, onError: (error, trace) {
+        done(() {
+          if (_matcher == null) return;
+          var reason;
+          if (trace != null) {
+            var stackTrace = trace.toString();
+            stackTrace = "  ${stackTrace.replaceAll("\n", "\n  ")}";
+            reason = "Actual exception trace:\n$stackTrace";
+          }
+          expect(error, _matcher, reason: reason);
+        });
+      });
+      // It hasn't failed yet.
+      return true;
+    }
+
+    try {
+      item();
+      return false;
+    } catch (e, s) {
+      if (_matcher == null || _matcher.matches(e, matchState)) {
+        return true;
+      } else {
+        addStateInfo(matchState, {'exception': e, 'stack': s});
+        return false;
+      }
+    }
+  }
+
+  Description describe(Description description) {
+    if (_matcher == null) {
+      return description.add("throws");
+    } else {
+      return description.add('throws ').addDescriptionOf(_matcher);
+    }
+  }
+
+  Description describeMismatch(
+      item, Description mismatchDescription, Map matchState, bool verbose) {
+    if (item is! Function && item is! Future) {
+      return mismatchDescription.add('is not a Function or Future');
+    } else if (_matcher == null || matchState['exception'] == null) {
+      return mismatchDescription.add('did not throw');
+    } else {
+      mismatchDescription
+          .add('threw ')
+          .addDescriptionOf(matchState['exception']);
+      if (verbose) {
+        mismatchDescription.add(' at ').add(matchState['stack'].toString());
+      }
+      return mismatchDescription;
+    }
+  }
+}
+
+// End of matcher/throws_matcher.dart
+
 void group(String name, void body()) => context.callMethod('suite', [name, body]);
 
 void test(String name, body(), {String skip}) {
@@ -31,7 +138,6 @@ void test(String name, body(), {String skip}) {
   result['async'] = 1;
 }
 
-
 // TODO(jmesserly): everything below this was stolen from
 // package:test/src/frontend/expect.dart
 
@@ -42,6 +148,54 @@ class TestFailure {
   TestFailure(this.message);
 
   String toString() => message;
+}
+
+/// An individual unit test.
+abstract class TestCase {
+  /// A unique numeric identifier for this test case.
+  int get id;
+
+  /// A description of what the test is specifying.
+  String get description;
+
+  /// The error or failure message for the tests.
+  ///
+  /// Initially an empty string.
+  String get message;
+
+  /// The result of the test case.
+  ///
+  /// If the test case has is completed, this will be one of [PASS], [FAIL], or
+  /// [ERROR]. Otherwise, it will be `null`.
+  String get result;
+
+  /// Returns whether this test case passed.
+  bool get passed;
+
+  /// The stack trace for the error that caused this test case to fail, or
+  /// `null` if it succeeded.
+  StackTrace get stackTrace;
+
+  /// The name of the group within which this test is running.
+  String get currentGroup;
+
+  /// The time the test case started running.
+  ///
+  /// `null` if the test hasn't yet begun running.
+  DateTime get startTime;
+
+  /// The amount of time the test case took.
+  ///
+  /// `null` if the test hasn't finished running.
+  Duration get runningTime;
+
+  /// Whether this test is enabled.
+  ///
+  /// Disabled tests won't be run.
+  bool get enabled;
+
+  /// Whether this test case has finished running.
+  bool get isComplete => !enabled || result != null;
 }
 
 /// The type used for functions that can be used to build up error reports
@@ -99,3 +253,6 @@ String _defaultFailFormatter(
   if (reason != null) description.add(reason).add('\n');
   return description.toString();
 }
+
+// from html_configuration
+void useHtmlConfiguration([bool isLayoutTest = false]) { }

@@ -38,7 +38,11 @@ main(arguments) {
   var filePattern = new RegExp(args.rest.length > 0 ? args.rest[0] : '.');
 
   var expectDir = path.join(inputDir, 'expect');
-  var testDirs = ['language', path.join('lib', 'typed_data')];
+  var testDirs = [
+    'language',
+    path.join('lib', 'typed_data'),
+    path.join('lib', 'html')
+  ];
 
   var multitests = expandMultiTests(testDirs, filePattern);
 
@@ -228,6 +232,7 @@ final packageUrlMappings = {
   'package:async_helper/async_helper.dart':
       path.join(inputDir, 'async_helper.dart'),
   'package:unittest/unittest.dart': path.join(inputDir, 'unittest.dart'),
+  'package:unittest/html_config.dart': path.join(inputDir, 'html_config.dart'),
   'package:js/js.dart': path.join(inputDir, 'packages', 'js', 'js.dart')
 };
 
