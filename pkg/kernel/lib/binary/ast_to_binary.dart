@@ -406,7 +406,7 @@ class BinaryPrinter extends Visitor {
   }
 
   visitStaticInvocation(StaticInvocation node) {
-    writeByte(Tag.StaticInvocation);
+    writeByte(node.isConst ? Tag.ConstStaticInvocation : Tag.StaticInvocation);
     writeMemberReference(node.target);
     writeNode(node.arguments);
   }

@@ -1168,10 +1168,9 @@ class ExpressionBuilder
           return new ast.InvalidExpression();
         }
         if (element.isExternal && element.isConst && element.isFactory) {
-          // TODO: Keep track of the fact that the call site was a 'const' call.
           ast.Member target = scope.resolveMethod(element);
           return target is ast.Procedure
-              ? new ast.StaticInvocation(target, arguments)
+              ? new ast.StaticInvocation(target, arguments, isConst: true)
               : new ast.InvalidExpression();
         } else if (element.isConst && !element.enclosingElement.isAbstract) {
           ast.Constructor target = scope.resolveConstructor(element);

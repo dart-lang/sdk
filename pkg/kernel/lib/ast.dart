@@ -1180,16 +1180,20 @@ class SuperMethodInvocation extends InvocationExpression {
   }
 }
 
-/// Expression of form `foo(x)`.
+/// Expression of form `foo(x)`, or `const foo(x)` if the target is an
+/// external constant factory.
 ///
 /// The provided arguments might not match the parameters of the target.
 class StaticInvocation extends InvocationExpression {
   Procedure target;
   Arguments arguments;
 
+  /// True if this is a constant call to an external constant factory.
+  bool isConst;
+
   Name get name => target?.name;
 
-  StaticInvocation(this.target, this.arguments) {
+  StaticInvocation(this.target, this.arguments, {this.isConst: false}) {
     arguments?.parent = this;
   }
 

@@ -393,6 +393,13 @@ type StaticInvocation extends Expression {
   Arguments arguments;
 }
 
+// Constant call to an external constant factory.
+type ConstStaticInvocation extends Expression {
+  Byte tag = 18; // Note: tag is out of order.
+  MemberReference target;
+  Arguments arguments;
+}
+
 type ConstructorInvocation extends Expression {
   Byte tag = 31;
   ConstructorReference target;

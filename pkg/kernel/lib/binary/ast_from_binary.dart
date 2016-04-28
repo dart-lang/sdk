@@ -478,7 +478,11 @@ class BinaryBuilder {
         return new SuperMethodInvocation(
             readMemberReference(), readArguments());
       case Tag.StaticInvocation:
-        return new StaticInvocation(readMemberReference(), readArguments());
+        return new StaticInvocation(readMemberReference(), readArguments(),
+            isConst: false);
+      case Tag.ConstStaticInvocation:
+        return new StaticInvocation(readMemberReference(), readArguments(),
+            isConst: true);
       case Tag.ConstructorInvocation:
         return new ConstructorInvocation(readMemberReference(), readArguments(),
             isConst: false);

@@ -609,6 +609,7 @@ class Printer extends Visitor<Null> {
   }
 
   visitStaticInvocation(StaticInvocation node) {
+    writeModifier(node.isConst, 'const');
     writeMemberReference(node.target);
     writeNode(node.arguments);
   }
