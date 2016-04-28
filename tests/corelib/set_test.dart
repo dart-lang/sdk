@@ -445,6 +445,17 @@ void testCESetFrom(setFrom) {
   Expect.isTrue(set4.isEmpty);
 }
 
+class A {}
+class B {}
+class C implements A, B {}
+
+void testASetFrom(setFrom) {
+  List<B> bList= <B>[new C()];
+  // Set.from allows to cast elements.
+  Set<A> aSet = setFrom(bList);
+  Expect.isTrue(aSet.length == 1);
+}
+
 main() {
   testMain(() => new HashSet());
   testMain(() => new LinkedHashSet());
@@ -508,4 +519,9 @@ main() {
   testCESetFrom((x) => new SplayTreeSet<CE>.from(x,
                                                  customCompare(20), validKey));
   testCESetFrom((x) => new SplayTreeSet<CE>.from(x, identityCompare));
+
+  testASetFrom((x) => new Set<A>.from(x));
+  testASetFrom((x) => new HashSet<A>.from(x));
+  testASetFrom((x) => new LinkedHashSet<A>.from(x));
+  testASetFrom((x) => new SplayTreeSet<A>.from(x));
 }
