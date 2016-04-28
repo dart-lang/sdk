@@ -78,6 +78,11 @@ class AbstractContextManagerTest {
 
   String projPath = '/my/proj';
 
+  AnalysisError missing_required_param = new AnalysisError(
+      new TestSource(), 0, 1, HintCode.MISSING_REQUIRED_PARAM, [
+    ['x']
+  ]);
+
   AnalysisError missing_return =
       new AnalysisError(new TestSource(), 0, 1, HintCode.MISSING_RETURN, [
     ['x']
@@ -284,6 +289,98 @@ linter:
     // No error means success.
   }
 
+  test_configed_options() async {
+    // Create files.
+    String libPath = newFolder([projPath, LIB_NAME]);
+    newFile([projPath, 'test', 'test.dart']);
+    newFile(
+        [projPath, 'pubspec.yaml'],
+        r'''
+dependencies:
+  test_pack: any
+analyzer:
+  configuration: test_pack/config
+''');
+
+    // Setup .packages file
+    newFile(
+        [projPath, '.packages'],
+        r'''
+test_pack:lib/''');
+
+    // Setup config.yaml.
+    newFile(
+        [libPath, 'config', 'config.yaml'],
+        r'''
+analyzer:
+  strong-mode: true
+  language:
+    enableSuperMixins: true
+  errors:
+    missing_return: false
+linter:
+  rules:
+    - avoid_as
+''');
+
+    // Setup .analysis_options
+    newFile(
+        [projPath, AnalysisEngine.ANALYSIS_OPTIONS_FILE],
+        r'''
+analyzer:
+  exclude:
+    - 'test/**'
+  language:
+    enableGenericMethods: true
+    enableAsync: false
+  errors:
+    unused_local_variable: false
+linter:
+  rules:
+    - camel_case_types
+''');
+
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    await pumpEventQueue();
+
+    // Confirm that one context was created.
+    var contexts =
+        manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
+    expect(contexts, isNotNull);
+    expect(contexts, hasLength(1));
+
+    var context = contexts.first;
+
+    // Verify options.
+    // * from `config.yaml`:
+    expect(context.analysisOptions.strongMode, isTrue);
+    expect(context.analysisOptions.enableSuperMixins, isTrue);
+    expect(context.analysisOptions.enableAsync, isFalse);
+    // * from `.analysis_options`:
+    expect(context.analysisOptions.enableGenericMethods, isTrue);
+
+    // * verify tests are excluded
+    expect(callbacks.currentContextFilePaths[projPath].keys,
+        unorderedEquals(['/my/proj/.analysis_options']));
+
+    // Verify filter setup.
+    expect(errorProcessors, hasLength(2));
+
+    // * (config.)
+    expect(getProcessor(missing_return).severity, isNull);
+
+    // * (options.)
+    expect(getProcessor(unused_local_variable).severity, isNull);
+
+    // Verify lints.
+    var lintNames = lints.map((lint) => lint.name);
+    expect(
+        lintNames,
+        unorderedEquals(
+            ['avoid_as' /* config */, 'camel_case_types' /* options */]));
+  }
+
   void test_contextsInAnalysisRoot_nestedContext() {
     String subProjPath = posix.join(projPath, 'subproj');
     Folder subProjFolder = resourceProvider.newFolder(subProjPath);
@@ -360,6 +457,130 @@ test_pack:lib/''');
 
     // Embedded lib should be defined now.
     expect(contexts.first.sourceFactory.forUri('dart:typed_data'), isNotNull);
+  }
+
+  test_embedder_and_configed_options() async {
+    // Create files.
+    String libPath = newFolder([projPath, LIB_NAME]);
+    String sdkExtPath = newFolder([projPath, 'sdk_ext']);
+    newFile([projPath, 'test', 'test.dart']);
+    newFile([sdkExtPath, 'entry.dart']);
+
+    // Setup pubspec with configuration.
+    newFile(
+        [projPath, 'pubspec.yaml'],
+        r'''
+dependencies:
+  test_pack: any
+analyzer:
+  configuration: test_pack/config
+''');
+
+    // Setup _embedder.yaml.
+    newFile(
+        [libPath, '_embedder.yaml'],
+        r'''
+embedded_libs:
+  "dart:foobar": "../sdk_ext/entry.dart"
+analyzer:
+  strong-mode: true
+  language:
+    enableSuperMixins: true
+  errors:
+    missing_return: false
+linter:
+  rules:
+    - avoid_as
+''');
+
+    // Setup .packages file
+    newFile(
+        [projPath, '.packages'],
+        r'''
+test_pack:lib/''');
+
+    // Setup .analysis_options
+    newFile(
+        [projPath, AnalysisEngine.ANALYSIS_OPTIONS_FILE],
+        r'''
+analyzer:
+  exclude:
+    - 'test/**'
+  language:
+    enableGenericMethods: true
+    enableAsync: false
+  errors:
+    unused_local_variable: false
+linter:
+  rules:
+    - camel_case_types
+''');
+
+    // Setup config.yaml.
+    newFile(
+        [libPath, 'config', 'config.yaml'],
+        r'''
+analyzer:
+  errors:
+    missing_required_param: error
+linter:
+  rules:
+    - always_specify_types
+''');
+
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    await pumpEventQueue();
+
+    // Confirm that one context was created.
+    var contexts =
+        manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
+    expect(contexts, isNotNull);
+    expect(contexts, hasLength(1));
+    var context = contexts[0];
+
+    // Verify options.
+    // * from `_embedder.yaml`:
+    expect(context.analysisOptions.strongMode, isTrue);
+    expect(context.analysisOptions.enableSuperMixins, isTrue);
+    expect(context.analysisOptions.enableAsync, isFalse);
+    // * from `.analysis_options`:
+    expect(context.analysisOptions.enableGenericMethods, isTrue);
+
+    // * verify tests are excluded
+    expect(
+        callbacks.currentContextFilePaths[projPath].keys,
+        unorderedEquals(
+            ['/my/proj/sdk_ext/entry.dart', '/my/proj/.analysis_options']));
+
+    // Verify filter setup.
+    expect(errorProcessors, hasLength(3));
+
+    // * (embedder.)
+    expect(getProcessor(missing_return).severity, isNull);
+
+    // * (config.)
+    expect(getProcessor(missing_required_param).severity, ErrorSeverity.ERROR);
+
+    // * (options.)
+    expect(getProcessor(unused_local_variable).severity, isNull);
+
+    // Verify lints.
+    var lintNames = lints.map((lint) => lint.name);
+
+    expect(
+        lintNames,
+        unorderedEquals([
+          'avoid_as' /* embedder */,
+          'always_specify_types' /* config*/,
+          'camel_case_types' /* options */
+        ]));
+
+    // Sanity check embedder libs.
+    var source = context.sourceFactory.forUri('dart:foobar');
+    expect(source, isNotNull);
+    expect(source.fullName,
+        '/my/proj/sdk_ext/entry.dart'.replaceAll('/', JavaFile.separator));
   }
 
   test_embedder_options() async {

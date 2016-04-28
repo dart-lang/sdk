@@ -16,6 +16,7 @@ import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
+import 'package:analyzer/source/config.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -597,7 +598,7 @@ class ContextManagerImpl implements ContextManager {
       }
     } else {
       // Check for embedded options.
-      YamlMap embeddedOptions = _getEmbeddedOptions(info.context);
+      Map embeddedOptions = _getEmbeddedOptions(info.context);
       if (embeddedOptions != null) {
         options = _toStringMap(new Merger().merge(embeddedOptions, options));
       }
@@ -1072,6 +1073,27 @@ class ContextManagerImpl implements ContextManager {
     folderMap[folder] = info.context;
     info.context.name = folder.path;
 
+    // Look for pubspec-specified analysis configuration.
+    File pubspec;
+    if (packagespecFile?.exists == true) {
+      if (packagespecFile.shortName == PUBSPEC_NAME) {
+        pubspec = packagespecFile;
+      }
+    }
+    if (pubspec == null) {
+      Resource child = folder.getChild(PUBSPEC_NAME);
+      if (child.exists && child is File) {
+        pubspec = child;
+      }
+    }
+    if (pubspec != null) {
+      File pubSource = resourceProvider.getFile(pubspec.path);
+      setConfiguration(
+          info.context,
+          new AnalysisConfiguration.fromPubspec(
+              pubSource, resourceProvider, disposition.packages));
+    }
+
     processOptionsForContext(info, optionMap);
 
     return info;
@@ -1235,18 +1257,36 @@ class ContextManagerImpl implements ContextManager {
     return packageSpec;
   }
 
-  /// Get analysis options associated with an `_embedder.yaml`. If there is
-  /// more than one `_embedder.yaml` associated with the given context, `null`
-  /// is returned.
-  YamlMap _getEmbeddedOptions(AnalysisContext context) {
+  /// Get analysis options inherited from an `_embedder.yaml` (deprecated)
+  /// and/or a package specified configuration.  If more than one
+  /// `_embedder.yaml` is associated with the given context, the embedder is
+  /// skipped.
+  ///
+  /// Returns null if there are no embedded/configured options.
+  Map _getEmbeddedOptions(AnalysisContext context) {
+    Map embeddedOptions;
+
     if (context is InternalAnalysisContext) {
       EmbedderYamlLocator locator = context.embedderYamlLocator;
       Iterable<YamlMap> maps = locator.embedderYamls.values;
       if (maps.length == 1) {
-        return maps.first;
+        embeddedOptions = maps.first;
+      }
+
+      AnalysisConfiguration configuration = getConfiguration(context);
+      if (configuration != null) {
+        Map configMap = configuration.options;
+        if (configMap != null) {
+          if (embeddedOptions != null) {
+            embeddedOptions = new Merger().merge(embeddedOptions, configMap);
+          } else {
+            embeddedOptions = configMap;
+          }
+        }
       }
     }
-    return null;
+
+    return embeddedOptions;
   }
 
   /**
