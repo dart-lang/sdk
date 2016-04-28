@@ -25,6 +25,7 @@
       'bit_shift_test',
       'bool_test',
       'bound_closure_equality_test',
+      'branch_canonicalization_test',  // JS bit operations truncate to 32 bits.
       'call_closurization_test',
       'call_function_apply_test',
       'call_operator_test',

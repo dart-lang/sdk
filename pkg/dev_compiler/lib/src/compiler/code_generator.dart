@@ -2810,19 +2810,59 @@ class CodeGenerator extends GeneralizingAstVisitor
       // these values are assumed to be non-null (determined by the checker)
       // TODO(jmesserly): it would be nice to just inline the method from core,
       // instead of special cases here.
-      if (op.type == TokenType.TILDE_SLASH) {
-        // `a ~/ b` is equivalent to `(a / b).truncate()`
-        var div = AstBuilder.binaryExpression(left, '/', right)
-          ..staticType = node.staticType;
-        return _emitSend(div, 'truncate', []);
-      } else {
-        // TODO(vsm): When do Dart ops not map to JS?
-        code = '# $op #';
+      JS.Expression binary(String code) {
+        return js.call(code, [notNull(left), notNull(right)]);
       }
-      return js.call(code, [notNull(left), notNull(right)]);
+
+      JS.Expression bitwise(String code) {
+        return _coerceBitOperationResultToUnsigned(node, binary(code));
+      }
+
+      switch (op.type) {
+        case TokenType.TILDE_SLASH:
+          // `a ~/ b` is equivalent to `(a / b).truncate()`
+          var div = AstBuilder.binaryExpression(left, '/', right)
+            ..staticType = node.staticType;
+          return _emitSend(div, 'truncate', []);
+
+        case TokenType.PERCENT:
+          // TODO(sra): We can generate `a % b + 0` if both are non-negative
+          // (the `+ 0` is to coerce -0.0 to 0).
+          return _emitSend(left, op.lexeme, [right]);
+
+        case TokenType.AMPERSAND:
+          return bitwise('# & #');
+
+        case TokenType.BAR:
+          return bitwise('# | #');
+
+        case TokenType.CARET:
+          return bitwise('# ^ #');
+
+        case TokenType.GT_GT:
+          // TODO(sra): Detect when JS shift does the right thing.
+          return _emitSend(left, op.lexeme, [right]);
+
+        case TokenType.LT_LT:
+          // TODO(sra): Detect when JS shift does the right thing.
+          return _emitSend(left, op.lexeme, [right]);
+
+        default:
+          // TODO(vsm): When do Dart ops not map to JS?
+          return binary('# $op #');
+      }
     }
 
     return _emitSend(left, op.lexeme, [right]);
+  }
+
+  /// Bit operations are coerced to values on [0, 2^32). The coercion changes
+  /// the interpretation of the 32-bit value from signed to unsigned.  Most
+  /// JavaScript operations interpret their operands as signed and generate
+  /// signed results.
+  JS.Expression _coerceBitOperationResultToUnsigned(
+      Expression node, JS.Expression operation) {
+    return js.call('# >>> 0', operation);
   }
 
   /// If the type [t] is [int] or [double], or a type parameter
@@ -3001,9 +3041,17 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     var dispatchType = getStaticType(expr);
     if (unaryOperationIsPrimitive(dispatchType)) {
+      if (op.lexeme == '~') {
+        if (_isNumberInJS(dispatchType)) {
+          JS.Expression jsExpr = js.call('~#', notNull(expr));
+          return _coerceBitOperationResultToUnsigned(node, jsExpr);
+        }
+        return _emitSend(expr, op.lexeme[0], []);
+      }
       if (!isNullable(expr)) {
         return js.call('$op#', _visit(expr));
-      } else if (op.lexeme == '++' || op.lexeme == '--') {
+      }
+      if (op.lexeme == '++' || op.lexeme == '--') {
         // We need a null check, so the increment must be expanded out.
         var vars = <JS.MetaLetVariable, JS.Expression>{};
         var x = _bindLeftHandSide(vars, expr, context: expr);
@@ -3014,9 +3062,8 @@ class CodeGenerator extends GeneralizingAstVisitor
           ..staticType = getStaticType(expr);
 
         return new JS.MetaLet(vars, [_emitSet(x, increment)]);
-      } else {
-        return js.call('$op#', notNull(expr));
       }
+      return js.call('$op#', notNull(expr));
     }
 
     if (op.lexeme == '++' || op.lexeme == '--') {

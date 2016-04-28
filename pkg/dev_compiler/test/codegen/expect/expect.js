@@ -26,7 +26,7 @@ dart_library.library('expect', null, /* Imports */[
         if (dart.notNull(code) < 32) {
           buf.write("\\x");
           buf.write("0123456789abcdef"[dartx.get]((dart.notNull(code) / 16)[dartx.truncate]()));
-          buf.write("0123456789abcdef"[dartx.get](dart.notNull(code) % 16));
+          buf.write("0123456789abcdef"[dartx.get](code[dartx['%']](16)));
         } else {
           buf.writeCharCode(string[dartx.codeUnitAt](i));
         }
