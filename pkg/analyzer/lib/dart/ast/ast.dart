@@ -3038,6 +3038,13 @@ abstract class Expression extends AstNode {
    * Set the static type of this expression to the given [type].
    */
   void set staticType(DartType type);
+
+  /**
+   * If this expression is a parenthesized expression, return the result of
+   * unwrapping the expression inside the parentheses. Otherwise, return this
+   * expression.
+   */
+  Expression get unParenthesized;
 }
 
 /**

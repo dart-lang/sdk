@@ -2145,10 +2145,7 @@ class FixProcessor {
       if (n is MethodInvocation &&
           n.offset == errorOffset &&
           n.length == errorLength) {
-        Expression target = n.target;
-        while (target is ParenthesizedExpression) {
-          target = (target as ParenthesizedExpression).expression;
-        }
+        Expression target = n.target.unParenthesized;
         // replace "/" with "~/"
         BinaryExpression binary = target as BinaryExpression;
         _addReplaceEdit(rf.rangeToken(binary.operator), '~/');

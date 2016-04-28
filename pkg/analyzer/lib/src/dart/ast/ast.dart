@@ -4063,6 +4063,9 @@ abstract class ExpressionImpl extends AstNodeImpl implements Expression {
     }
     return null;
   }
+
+  @override
+  Expression get unParenthesized => this;
 }
 
 /**
@@ -7913,6 +7916,17 @@ class ParenthesizedExpressionImpl extends ExpressionImpl
 
   @override
   int get precedence => 15;
+
+  @override
+  Expression get unParenthesized {
+    // This is somewhat inefficient, but it avoids a stack overflow in the
+    // degenerate case.
+    Expression expression = _expression;
+    while (expression is ParenthesizedExpressionImpl) {
+      expression = (expression as ParenthesizedExpressionImpl)._expression;
+    }
+    return expression;
+  }
 
   @override
   dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor) =>

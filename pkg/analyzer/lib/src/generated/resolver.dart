@@ -517,9 +517,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     if (operator?.type == TokenType.QUESTION_PERIOD) {
       return;
     }
-    while (target is ParenthesizedExpression) {
-      target = (target as ParenthesizedExpression).expression;
-    }
+    target = target?.unParenthesized;
     if (target is MethodInvocation) {
       if (target.operator?.type == TokenType.QUESTION_PERIOD) {
         _errorReporter.reportErrorForNode(
@@ -818,9 +816,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * Produce a hint if the given [condition] could have a value of `null`.
    */
   void _checkForPossibleNullCondition(Expression condition) {
-    while (condition is ParenthesizedExpression) {
-      condition = (condition as ParenthesizedExpression).expression;
-    }
+    condition = condition?.unParenthesized;
     if (condition is BinaryExpression) {
       _checkForPossibleNullConditionInBinaryExpression(condition);
     } else if (condition is PrefixExpression) {
@@ -5630,16 +5626,12 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Return the static element associated with the given expression whose type can be promoted, or
-   * `null` if there is no element whose type can be promoted.
-   *
-   * @param expression the expression with which the element is associated
-   * @return the element associated with the given expression
+   * Return the static element associated with the given expression whose type
+   * can be promoted, or `null` if there is no element whose type can be
+   * promoted.
    */
   VariableElement getPromotionStaticElement(Expression expression) {
-    while (expression is ParenthesizedExpression) {
-      expression = (expression as ParenthesizedExpression).expression;
-    }
+    expression = expression?.unParenthesized;
     if (expression is SimpleIdentifier) {
       Element element = expression.staticElement;
       if (element is VariableElement) {
@@ -7177,9 +7169,7 @@ class ResolverVisitor extends ScopedVisitor {
     // would eventually turn this into a method on Expression that returns a
     // termination indication (normal, abrupt with no exception, abrupt with an
     // exception).
-    while (expression is ParenthesizedExpression) {
-      expression = (expression as ParenthesizedExpression).expression;
-    }
+    expression = expression?.unParenthesized;
     return expression is ThrowExpression || expression is RethrowExpression;
   }
 
