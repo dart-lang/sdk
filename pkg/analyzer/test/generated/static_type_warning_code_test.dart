@@ -2361,4 +2361,51 @@ main() {
     }
     verify([source]);
   }
+
+  void test_legalAsyncGeneratorReturnType_function_supertypeOfStream() {
+    assertErrorsInCode(
+        '''
+import 'dart:async';
+f() async* { yield 42; }
+dynamic f2() async* { yield 42; }
+Object f3() async* { yield 42; }
+Stream f4() async* { yield 42; }
+Stream<dynamic> f5() async* { yield 42; }
+Stream<Object> f6() async* { yield 42; }
+Stream<num> f7() async* { yield 42; }
+Stream<int> f8() async* { yield 42; }
+''',
+        []);
+  }
+
+  void test_legalAsyncReturnType_function_supertypeOfFuture() {
+    assertErrorsInCode(
+        '''
+import 'dart:async';
+f() async { return 42; }
+dynamic f2() async { return 42; }
+Object f3() async { return 42; }
+Future f4() async { return 42; }
+Future<dynamic> f5() async { return 42; }
+Future<Object> f6() async { return 42; }
+Future<num> f7() async { return 42; }
+Future<int> f8() async { return 42; }
+''',
+        []);
+  }
+
+  void test_legalSyncGeneratorReturnType_function_supertypeOfIterable() {
+    assertErrorsInCode(
+        '''
+f() sync* { yield 42; }
+dynamic f2() sync* { yield 42; }
+Object f3() sync* { yield 42; }
+Iterable f4() sync* { yield 42; }
+Iterable<dynamic> f5() sync* { yield 42; }
+Iterable<Object> f6() sync* { yield 42; }
+Iterable<num> f7() sync* { yield 42; }
+Iterable<int> f8() sync* { yield 42; }
+''',
+        []);
+  }
 }

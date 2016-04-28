@@ -3440,39 +3440,60 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     if (_enclosingFunction.isAsynchronous) {
       if (_enclosingFunction.isGenerator) {
-        if (_options.strongMode) {
-          if (_enclosingFunction.returnType.element !=
-              _typeProvider.streamType.element) {
-            _errorReporter.reportErrorForNode(
-                StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
-                returnType);
-          }
-        } else if (!_typeSystem.isAssignableTo(
-            _enclosingFunction.returnType, _typeProvider.streamDynamicType)) {
-          _errorReporter.reportErrorForNode(
-              StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
-              returnType);
-        }
+        _checkForIllegalReturnTypeCode(
+            returnType,
+            _typeProvider.streamDynamicType,
+            StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE);
       } else {
-        if (_options.strongMode) {
-          if (_enclosingFunction.returnType.element !=
-              _typeProvider.futureType.element) {
-            _errorReporter.reportErrorForNode(
-                StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, returnType);
-          }
-        } else if (!_typeSystem.isAssignableTo(
-            _enclosingFunction.returnType, _typeProvider.futureDynamicType)) {
-          _errorReporter.reportErrorForNode(
-              StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, returnType);
-        }
+        _checkForIllegalReturnTypeCode(
+            returnType,
+            _typeProvider.futureDynamicType,
+            StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE);
       }
     } else if (_enclosingFunction.isGenerator) {
-      if (!_typeSystem.isAssignableTo(
-          _enclosingFunction.returnType, _typeProvider.iterableDynamicType)) {
-        _errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE,
-            returnType);
+      _checkForIllegalReturnTypeCode(
+          returnType,
+          _typeProvider.iterableDynamicType,
+          StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE);
+    }
+  }
+
+  /**
+   * If the current function is async, async*, or sync*, verify that its
+   * declared return type is assignable to Future, Stream, or Iterable,
+   * respectively. This is called by [_checkForIllegalReturnType] to check if
+   * the declared [returnTypeName] is assignable to the required [expectedType]
+   * and if not report [errorCode].
+   */
+  void _checkForIllegalReturnTypeCode(TypeName returnTypeName,
+      DartType expectedType, StaticTypeWarningCode errorCode) {
+    DartType returnType = _enclosingFunction.returnType;
+    if (_options.strongMode) {
+      //
+      // When checking an async/sync*/async* method, we know the exact type
+      // that will be returned (e.g. Future, Iterable, or Stream).
+      //
+      // For example an `async` function body will return a `Future<T>` for
+      // some `T` (possibly `dynamic`).
+      //
+      // We allow the declared return type to be a supertype of that
+      // (e.g. `dynamic`, `Object`), or Future<S> for some S.
+      // (We assume the T <: S relation is checked elsewhere.)
+      //
+      // We do not allow user-defined subtypes of Future, because an `async`
+      // method will never return those.
+      //
+      // To check for this, we ensure that `Future<bottom> <: returnType`.
+      //
+      // Similar logic applies for sync* and async*.
+      //
+      InterfaceType genericType = (expectedType.element as ClassElement).type;
+      DartType lowerBound = genericType.instantiate([BottomTypeImpl.instance]);
+      if (!_typeSystem.isSubtypeOf(lowerBound, returnType)) {
+        _errorReporter.reportErrorForNode(errorCode, returnTypeName);
       }
+    } else if (!_typeSystem.isAssignableTo(returnType, expectedType)) {
+      _errorReporter.reportErrorForNode(errorCode, returnTypeName);
     }
   }
 
