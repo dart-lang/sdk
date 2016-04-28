@@ -1123,6 +1123,29 @@ class ExpressionBuilder
     }
   }
 
+  ast.Constructor resolveEffectiveTarget(ConstructorElement element) {
+    ConstructorElement anchor = null;
+    int anchorLifetime = 1;
+    while (true) {
+      ConstructorDeclaration node = element.computeNode();
+      // TODO: Preserve enough information to throw the right exception.
+      if (node == null) {
+        log.severe('Could not find AST node for $element');
+        return null;
+      }
+      if (node.redirectedConstructor == null) {
+        return scope.resolveConstructor(node.element);
+      }
+      element = node.redirectedConstructor.staticElement;
+      if (element == null) return null; // Unresolved.
+      if (anchor == element) return null; // Cyclic redirection.
+      if (anchorLifetime & ++anchorLifetime == 0) {
+        // Move the anchor every 2^Nth step.
+        anchor = element;
+      }
+    }
+  }
+
   ast.Expression visitInstanceCreationExpression(
       InstanceCreationExpression node) {
     TypeName type = node.constructorName.type;
@@ -1132,31 +1155,38 @@ class ExpressionBuilder
           ? inferredType.typeArguments
           : null;
     }
+    var arguments = buildArguments(node.argumentList,
+        explicitTypeArguments: type.typeArguments,
+        inferTypeArguments: inferTypeArguments);
     var target = node.staticElement;
     if (target is ConstructorElement && target.isFactory) {
-      var procedure = scope.resolveMethod(target);
-      assert(procedure != null);
-      return new ast.StaticInvocation(
-          procedure,
-          buildArguments(node.argumentList,
-              explicitTypeArguments: type.typeArguments,
-              inferTypeArguments: inferTypeArguments));
+      if (node.isConst) {
+        ast.Constructor constructor = resolveEffectiveTarget(target);
+        if (constructor == null ||
+            !constructor.isConst ||
+            target.enclosingElement.isAbstract) {
+          // TODO: Preserve enough information to throw the right exception.
+          return new ast.InvalidExpression();
+        }
+        return new ast.ConstructorInvocation(constructor, arguments,
+            isConst: true);
+      } else {
+        var procedure = scope.resolveMethod(target);
+        if (procedure == null) {
+          // TODO: Preserve enough information to throw the right exception.
+          return new ast.InvalidExpression();
+        }
+        return new ast.StaticInvocation(procedure, arguments);
+      }
     } else {
       var constructor = scope.resolveConstructor(node.staticElement);
-      if (constructor == null) {
+      if (constructor == null ||
+          (node.isConst && !constructor.isConst) ||
+          target.enclosingElement.isAbstract) {
         // TODO: Preserve enough information to throw the right exception.
         return new ast.InvalidExpression();
       }
-      ClassElement classNode = target.enclosingElement;
-      if (classNode.isAbstract) {
-        // TODO: Preserve enough information to throw the right exception.
-        return new ast.InvalidExpression();
-      }
-      return new ast.ConstructorInvocation(
-          constructor,
-          buildArguments(node.argumentList,
-              explicitTypeArguments: type.typeArguments,
-              inferTypeArguments: inferTypeArguments),
+      return new ast.ConstructorInvocation(constructor, arguments,
           isConst: node.isConst);
     }
   }
