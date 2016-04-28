@@ -7498,19 +7498,20 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   final Source source;
 
   /**
-   * The error listener that will be informed of any errors that are found during resolution.
+   * The object used to access the types from the core library.
    */
-  final AnalysisErrorListener errorListener;
+  final TypeProvider typeProvider;
+
+  /**
+   * The error reporter that will be informed of any errors that are found
+   * during resolution.
+   */
+  final ErrorReporter errorReporter;
 
   /**
    * The scope used to resolve identifiers.
    */
   Scope nameScope;
-
-  /**
-   * The object used to access the types from the core library.
-   */
-  final TypeProvider typeProvider;
 
   /**
    * The scope used to resolve unlabeled `break` and `continue` statements.
@@ -7544,9 +7545,11 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * first be visited.  If `null` or unspecified, a new [LibraryScope] will be
    * created based on [definingLibrary] and [typeProvider].
    */
-  ScopedVisitor(
-      this.definingLibrary, this.source, this.typeProvider, this.errorListener,
-      {Scope nameScope}) {
+  ScopedVisitor(this.definingLibrary, Source source, this.typeProvider,
+      AnalysisErrorListener errorListener,
+      {Scope nameScope})
+      : source = source,
+        errorReporter = new ErrorReporter(errorListener, source) {
     if (nameScope == null) {
       this.nameScope = new LibraryScope(definingLibrary, errorListener);
     } else {
@@ -7579,46 +7582,6 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     Scope newScope = new EnclosedScope(nameScope);
     nameScope = newScope;
     return nameScope;
-  }
-
-  /**
-   * Report an error with the given error code and arguments.
-   *
-   * @param errorCode the error code of the error to be reported
-   * @param node the node specifying the location of the error
-   * @param arguments the arguments to the error, used to compose the error message
-   */
-  void reportErrorForNode(ErrorCode errorCode, AstNode node,
-      [List<Object> arguments]) {
-    errorListener.onError(new AnalysisError(
-        source, node.offset, node.length, errorCode, arguments));
-  }
-
-  /**
-   * Report an error with the given error code and arguments.
-   *
-   * @param errorCode the error code of the error to be reported
-   * @param offset the offset of the location of the error
-   * @param length the length of the location of the error
-   * @param arguments the arguments to the error, used to compose the error message
-   */
-  void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
-      [List<Object> arguments]) {
-    errorListener.onError(
-        new AnalysisError(source, offset, length, errorCode, arguments));
-  }
-
-  /**
-   * Report an error with the given error code and arguments.
-   *
-   * @param errorCode the error code of the error to be reported
-   * @param token the token specifying the location of the error
-   * @param arguments the arguments to the error, used to compose the error message
-   */
-  void reportErrorForToken(ErrorCode errorCode, Token token,
-      [List<Object> arguments]) {
-    errorListener.onError(new AnalysisError(
-        source, token.offset, token.length, errorCode, arguments));
   }
 
   @override
@@ -8403,28 +8366,14 @@ class TypeNameResolver {
   final DartType dynamicType;
   final DartType undefinedType;
   final LibraryElement definingLibrary;
-  final Source source;
-  final AnalysisErrorListener errorListener;
+  final ErrorReporter errorReporter;
 
   Scope nameScope;
 
   TypeNameResolver(this.typeSystem, TypeProvider typeProvider,
-      this.definingLibrary, this.source, this.errorListener)
+      this.definingLibrary, this.errorReporter)
       : dynamicType = typeProvider.dynamicType,
         undefinedType = typeProvider.undefinedType;
-
-  /**
-   * Report an error with the given error code and arguments.
-   *
-   * @param errorCode the error code of the error to be reported
-   * @param node the node specifying the location of the error
-   * @param arguments the arguments to the error, used to compose the error message
-   */
-  void reportErrorForNode(ErrorCode errorCode, AstNode node,
-      [List<Object> arguments]) {
-    errorListener.onError(new AnalysisError(
-        source, node.offset, node.length, errorCode, arguments));
-  }
 
   /**
    * Resolve the given [TypeName] - set its element and static type. Only the
@@ -8485,14 +8434,14 @@ class TypeNameResolver {
                 grandParent.isConst) {
               // If, if this is a const expression, then generate a
               // CompileTimeErrorCode.CONST_WITH_NON_TYPE error.
-              reportErrorForNode(
+              errorReporter.reportErrorForNode(
                   CompileTimeErrorCode.CONST_WITH_NON_TYPE,
                   prefixedIdentifier.identifier,
                   [prefixedIdentifier.identifier.name]);
             } else {
               // Else, if this expression is a new expression, report a
               // NEW_WITH_NON_TYPE warning.
-              reportErrorForNode(
+              errorReporter.reportErrorForNode(
                   StaticWarningCode.NEW_WITH_NON_TYPE,
                   prefixedIdentifier.identifier,
                   [prefixedIdentifier.identifier.name]);
@@ -8525,16 +8474,18 @@ class TypeNameResolver {
           node.parent.parent as InstanceCreationExpression;
       if (creation.isConst) {
         if (element == null) {
-          reportErrorForNode(
+          errorReporter.reportErrorForNode(
               CompileTimeErrorCode.UNDEFINED_CLASS, typeNameSimple, [typeName]);
         } else {
-          reportErrorForNode(CompileTimeErrorCode.CONST_WITH_NON_TYPE,
-              typeNameSimple, [typeName]);
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.CONST_WITH_NON_TYPE,
+              typeNameSimple,
+              [typeName]);
         }
         elementValid = false;
       } else {
         if (element != null) {
-          reportErrorForNode(
+          errorReporter.reportErrorForNode(
               StaticWarningCode.NEW_WITH_NON_TYPE, typeNameSimple, [typeName]);
           elementValid = false;
         }
@@ -8550,20 +8501,26 @@ class TypeNameResolver {
       SimpleIdentifier typeNameSimple = _getTypeSimpleIdentifier(typeName);
       RedirectingConstructorKind redirectingConstructorKind;
       if (_isBuiltInIdentifier(node) && _isTypeAnnotation(node)) {
-        reportErrorForNode(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
-            typeName, [typeName.name]);
+        errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
+            typeName,
+            [typeName.name]);
       } else if (typeNameSimple.name == "boolean") {
-        reportErrorForNode(
+        errorReporter.reportErrorForNode(
             StaticWarningCode.UNDEFINED_CLASS_BOOLEAN, typeNameSimple, []);
       } else if (_isTypeNameInCatchClause(node)) {
-        reportErrorForNode(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName,
+        errorReporter.reportErrorForNode(
+            StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE,
+            typeName,
             [typeName.name]);
       } else if (_isTypeNameInAsExpression(node)) {
-        reportErrorForNode(
+        errorReporter.reportErrorForNode(
             StaticWarningCode.CAST_TO_NON_TYPE, typeName, [typeName.name]);
       } else if (_isTypeNameInIsExpression(node)) {
-        reportErrorForNode(StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME,
-            typeName, [typeName.name]);
+        errorReporter.reportErrorForNode(
+            StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME,
+            typeName,
+            [typeName.name]);
       } else if ((redirectingConstructorKind =
               _getRedirectingConstructorKind(node)) !=
           null) {
@@ -8571,12 +8528,14 @@ class TypeNameResolver {
             (redirectingConstructorKind == RedirectingConstructorKind.CONST
                 ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS
                 : StaticWarningCode.REDIRECT_TO_NON_CLASS);
-        reportErrorForNode(errorCode, typeName, [typeName.name]);
+        errorReporter.reportErrorForNode(errorCode, typeName, [typeName.name]);
       } else if (_isTypeNameInTypeArgumentList(node)) {
-        reportErrorForNode(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
-            typeName, [typeName.name]);
+        errorReporter.reportErrorForNode(
+            StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
+            typeName,
+            [typeName.name]);
       } else {
-        reportErrorForNode(
+        errorReporter.reportErrorForNode(
             StaticWarningCode.UNDEFINED_CLASS, typeName, [typeName.name]);
       }
       elementValid = false;
@@ -8614,13 +8573,17 @@ class TypeNameResolver {
       // The name does not represent a type.
       RedirectingConstructorKind redirectingConstructorKind;
       if (_isTypeNameInCatchClause(node)) {
-        reportErrorForNode(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName,
+        errorReporter.reportErrorForNode(
+            StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE,
+            typeName,
             [typeName.name]);
       } else if (_isTypeNameInAsExpression(node)) {
-        reportErrorForNode(
+        errorReporter.reportErrorForNode(
             StaticWarningCode.CAST_TO_NON_TYPE, typeName, [typeName.name]);
       } else if (_isTypeNameInIsExpression(node)) {
-        reportErrorForNode(StaticWarningCode.TYPE_TEST_WITH_NON_TYPE, typeName,
+        errorReporter.reportErrorForNode(
+            StaticWarningCode.TYPE_TEST_WITH_NON_TYPE,
+            typeName,
             [typeName.name]);
       } else if ((redirectingConstructorKind =
               _getRedirectingConstructorKind(node)) !=
@@ -8629,10 +8592,12 @@ class TypeNameResolver {
             (redirectingConstructorKind == RedirectingConstructorKind.CONST
                 ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS
                 : StaticWarningCode.REDIRECT_TO_NON_CLASS);
-        reportErrorForNode(errorCode, typeName, [typeName.name]);
+        errorReporter.reportErrorForNode(errorCode, typeName, [typeName.name]);
       } else if (_isTypeNameInTypeArgumentList(node)) {
-        reportErrorForNode(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
-            typeName, [typeName.name]);
+        errorReporter.reportErrorForNode(
+            StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
+            typeName,
+            [typeName.name]);
       } else {
         AstNode parent = typeName.parent;
         while (parent is TypeName) {
@@ -8644,7 +8609,7 @@ class TypeNameResolver {
             parent is ClassTypeAlias) {
           // Ignored. The error will be reported elsewhere.
         } else {
-          reportErrorForNode(
+          errorReporter.reportErrorForNode(
               StaticWarningCode.NOT_A_TYPE, typeName, [typeName.name]);
         }
       }
@@ -8668,7 +8633,9 @@ class TypeNameResolver {
           typeArguments[i] = argumentType;
         }
       } else {
-        reportErrorForNode(_getInvalidTypeParametersErrorCode(node), node,
+        errorReporter.reportErrorForNode(
+            _getInvalidTypeParametersErrorCode(node),
+            node,
             [typeName.name, parameterCount, argumentCount]);
         for (int i = 0; i < parameterCount; i++) {
           typeArguments[i] = dynamicType;
@@ -9738,7 +9705,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     _strongMode = definingLibrary.context.analysisOptions.strongMode;
     _typeSystem = TypeSystem.create(definingLibrary.context);
     _typeNameResolver = new TypeNameResolver(
-        _typeSystem, typeProvider, definingLibrary, source, errorListener);
+        _typeSystem, typeProvider, definingLibrary, errorReporter);
   }
 
   @override
@@ -10262,7 +10229,7 @@ class TypeResolverVisitor extends ScopedVisitor {
             Element element2 = identifier2.staticElement;
             if (element != null && element == element2) {
               detectedRepeatOnIndex[j] = true;
-              reportErrorForNode(
+              errorReporter.reportErrorForNode(
                   CompileTimeErrorCode.IMPLEMENTS_REPEATED, typeName2, [name2]);
             }
           }
@@ -10287,7 +10254,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (type is InterfaceType) {
       ClassElement element = type.element;
       if (element != null && element.isEnum) {
-        reportErrorForNode(enumTypeError, typeName);
+        errorReporter.reportErrorForNode(enumTypeError, typeName);
         return null;
       }
       return type;
@@ -10296,9 +10263,9 @@ class TypeResolverVisitor extends ScopedVisitor {
     // to be a DynamicTypeImpl
     Identifier name = typeName.name;
     if (name.name == Keyword.DYNAMIC.syntax) {
-      reportErrorForNode(dynamicTypeError, name, [name.name]);
+      errorReporter.reportErrorForNode(dynamicTypeError, name, [name.name]);
     } else {
-      reportErrorForNode(nonTypeError, name, [name.name]);
+      errorReporter.reportErrorForNode(nonTypeError, name, [name.name]);
     }
     return null;
   }

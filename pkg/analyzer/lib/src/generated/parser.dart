@@ -2120,7 +2120,7 @@ class Parser {
   final AnalysisErrorListener _errorListener;
 
   /**
-   * An [errorListener] lock, if more than `0`, then errors are not reported.
+   * An [_errorListener] lock, if more than `0`, then errors are not reported.
    */
   int _errorListenerLock = 0;
 
