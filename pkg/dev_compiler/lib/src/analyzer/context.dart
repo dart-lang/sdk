@@ -22,6 +22,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart'
         InputPackagesResultProvider,
         SummaryDataStore;
 import 'package:cli_util/cli_util.dart' show getSdkDir;
+import 'package:path/path.dart' as path;
 
 import 'dart_sdk.dart' show MockDartSdk, mockSdkSources;
 import 'multi_package_resolver.dart' show MultiPackageResolver;
@@ -90,7 +91,7 @@ class AnalyzerOptions {
     for (var mapping in argument) {
       var splitMapping = mapping.split(',');
       if (splitMapping.length >= 2) {
-        mappings[splitMapping[0]] = splitMapping[1];
+        mappings[splitMapping[0]] = path.absolute(splitMapping[1]);
       }
     }
     return mappings;
