@@ -122,7 +122,7 @@ class ReferenceScope {
   }
 
   bool supportsConstructorCall(Element element) {
-    return element is ConstructorElement;
+    return element is ConstructorElement && !element.isFactory;
   }
 
   Element desynthesizeGetter(Element element) {
@@ -1123,7 +1123,7 @@ class ExpressionBuilder
     }
   }
 
-  ast.Constructor resolveEffectiveTarget(ConstructorElement element) {
+  ConstructorElement resolveEffectiveTarget(ConstructorElement element) {
     ConstructorElement anchor = null;
     int anchorLifetime = 1;
     while (true) {
@@ -1134,7 +1134,7 @@ class ExpressionBuilder
         return null;
       }
       if (node.redirectedConstructor == null) {
-        return scope.resolveConstructor(node.element);
+        return node.element;
       }
       element = node.redirectedConstructor.staticElement;
       if (element == null) return null; // Unresolved.
@@ -1158,20 +1158,32 @@ class ExpressionBuilder
     var arguments = buildArguments(node.argumentList,
         explicitTypeArguments: type.typeArguments,
         inferTypeArguments: inferTypeArguments);
-    var target = node.staticElement;
-    if (target is ConstructorElement && target.isFactory) {
+    var element = node.staticElement;
+    if (element is ConstructorElement && element.isFactory) {
       if (node.isConst) {
-        ast.Constructor constructor = resolveEffectiveTarget(target);
-        if (constructor == null ||
-            !constructor.isConst ||
-            target.enclosingElement.isAbstract) {
-          // TODO: Preserve enough information to throw the right exception.
+        // Constant factory calls are resolved to their effective targets.
+        element = resolveEffectiveTarget(element);
+        // TODO: Preserve enough information to throw the right exception.
+        if (element == null) {
           return new ast.InvalidExpression();
         }
-        return new ast.ConstructorInvocation(constructor, arguments,
-            isConst: true);
+        if (element.isExternal && element.isConst && element.isFactory) {
+          // TODO: Keep track of the fact that the call site was a 'const' call.
+          ast.Member target = scope.resolveMethod(element);
+          return target is ast.Procedure
+              ? new ast.StaticInvocation(target, arguments)
+              : new ast.InvalidExpression();
+        } else if (element.isConst && !element.enclosingElement.isAbstract) {
+          ast.Constructor target = scope.resolveConstructor(element);
+          return target != null
+              ? new ast.ConstructorInvocation(target, arguments, isConst: true)
+              : new ast.InvalidExpression();
+        } else {
+          return new ast.InvalidExpression();
+        }
       } else {
-        var procedure = scope.resolveMethod(target);
+        // Non-constant call to factory procedure.
+        var procedure = scope.resolveMethod(element);
         if (procedure == null) {
           // TODO: Preserve enough information to throw the right exception.
           return new ast.InvalidExpression();
@@ -1179,10 +1191,11 @@ class ExpressionBuilder
         return new ast.StaticInvocation(procedure, arguments);
       }
     } else {
+      // Ordinary constructor call.
       var constructor = scope.resolveConstructor(node.staticElement);
       if (constructor == null ||
           (node.isConst && !constructor.isConst) ||
-          target.enclosingElement.isAbstract) {
+          element.enclosingElement.isAbstract) {
         // TODO: Preserve enough information to throw the right exception.
         return new ast.InvalidExpression();
       }
@@ -1707,9 +1720,9 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
     // separate mixin classes.
     bool isRootClass = node.element.supertype == null;
     if (!isRootClass) {
-      ast.DartType superClass = scope
-              .buildOptionalTypeAnnotation(node.extendsClause?.superclass) ??
-          new ast.InterfaceType(scope.getRootClassReference());
+      ast.DartType superClass =
+          scope.buildOptionalTypeAnnotation(node.extendsClause?.superclass) ??
+              new ast.InterfaceType(scope.getRootClassReference());
       if (superClass is! ast.InterfaceType) {
         // TODO: Handle the error case where the super class is InvalidType.
         log.warning('Unresolved type super type '
@@ -1800,7 +1813,8 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
     addTypeParameterBounds(node.typeParameters);
     var baseType = scope.buildTypeAnnotation(node.superclass);
     var mixins = node.withClause.mixinTypes.map(scope.buildTypeAnnotation);
-    classNode.superType = buildMixinType(baseType, mixins.take(mixins.length - 1));
+    classNode.superType =
+        buildMixinType(baseType, mixins.take(mixins.length - 1));
     classNode.mixedInType = mixins.last;
     addImplementedClasses(node.implementsClause);
     ClassElement element = node.element;

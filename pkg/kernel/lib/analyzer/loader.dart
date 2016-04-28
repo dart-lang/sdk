@@ -164,7 +164,8 @@ class AnalyzerLoader implements ReferenceLevelLoader {
               _nameOfMember(constructor), ast.ProcedureKind.Factory, null,
               isAbstract: false,
               isStatic: true,
-              isExternal: constructor.isExternal);
+              isExternal: constructor.isExternal,
+              isConst: constructor.isConst);
         }
         return new ast.Constructor(null,
             name: _nameOfMember(element),

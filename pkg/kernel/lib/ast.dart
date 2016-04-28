@@ -517,7 +517,9 @@ class Field extends Member {
 class Constructor extends Member {
   int flags = 0;
 
-  /// Cosmetic name of the constructor.
+  /// Name of the constructor.
+  ///
+  /// For non-external constructors, the name is cosmetic.
   ///
   /// For unnamed constructors, this is the empty string (in a [Name]).
   Name name;
@@ -597,23 +599,29 @@ class Procedure extends Member {
   FunctionNode function; // Body is null if and only if abstract or external.
 
   Procedure(this.name, this.kind, this.function,
-      {bool isAbstract: false, bool isStatic: false, bool isExternal: false}) {
+      {bool isAbstract: false,
+      bool isStatic: false,
+      bool isExternal: false,
+      bool isConst: false}) {
     function?.parent = this;
     this.isAbstract = isAbstract;
     this.isStatic = isStatic;
     this.isExternal = isExternal;
+    this.isConst = isConst;
   }
-  Procedure.abstract_(this.name, this.kind)
-      : function = null,
-        flags = FlagAbstract;
 
   static const int FlagStatic = 1 << 0; // Must match serialized bit positions.
   static const int FlagAbstract = 1 << 1;
   static const int FlagExternal = 1 << 2;
+  static const int FlagConst = 1 << 3; // Only for external const factories.
 
   bool get isStatic => flags & FlagStatic != 0;
   bool get isAbstract => flags & FlagAbstract != 0;
   bool get isExternal => flags & FlagExternal != 0;
+
+  /// True if this has the `const` modifier.  This is only possible for external
+  /// constant factories, such as `String.fromEnvironment`.
+  bool get isConst => flags & FlagConst != 0;
 
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
@@ -625,6 +633,10 @@ class Procedure extends Member {
 
   void set isExternal(bool value) {
     flags = value ? (flags | FlagExternal) : (flags & ~FlagExternal);
+  }
+
+  void set isConst(bool value) {
+    flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
   }
 
   accept(MemberVisitor v) => v.visitProcedure(this);
@@ -1103,7 +1115,7 @@ abstract class InvocationExpression extends Expression {
 
   /// Name of the invoked method.
   ///
-  /// May be `null` if the target is synthetic static member without a name.
+  /// May be `null` if the target is a synthetic static member without a name.
   Name get name;
 }
 
@@ -1172,7 +1184,7 @@ class SuperMethodInvocation extends InvocationExpression {
 ///
 /// The provided arguments might not match the parameters of the target.
 class StaticInvocation extends InvocationExpression {
-  Procedure target; // Static method.
+  Procedure target;
   Arguments arguments;
 
   Name get name => target?.name;

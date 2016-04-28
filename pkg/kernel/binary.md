@@ -225,7 +225,7 @@ enum ProcedureKind {
 type Procedure extends Member {
   Byte tag = 6;
   Byte kind; // Index into the ProcedureKind enum above.
-  Byte flags (isStatic, isAbstract, isExternal);
+  Byte flags (isStatic, isAbstract, isExternal, isConst);
   Name name;
   // Can only be absent if abstract, but tag is there anyway.
   Option<FunctionNode> function;
