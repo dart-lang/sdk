@@ -262,8 +262,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       expect(cs.returnType, returnType);
     } else if (isNullExpectedReturnTypeConsideredDynamic) {
       expect(cs.returnType, 'dynamic');
-    } else {
-      expect(cs.returnType, isNull);
     }
     protocol.Element element = cs.element;
     expect(element, isNotNull);
@@ -278,8 +276,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       expect(element.returnType, returnType);
     } else if (isNullExpectedReturnTypeConsideredDynamic) {
       expect(element.returnType, 'dynamic');
-    } else {
-      expect(element.returnType, isNull);
     }
     assertHasParameterInfo(cs);
     return cs;
@@ -419,8 +415,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       expect(cs.returnType, returnType);
     } else if (isNullExpectedReturnTypeConsideredDynamic) {
       expect(cs.returnType, 'dynamic');
-    } else {
-      expect(cs.returnType, isNull);
     }
     protocol.Element element = cs.element;
     expect(element, isNotNull);
@@ -431,8 +425,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       expect(element.returnType, returnType);
     } else if (isNullExpectedReturnTypeConsideredDynamic) {
       expect(element.returnType, 'dynamic');
-    } else {
-      expect(element.returnType, isNull);
     }
     assertHasNoParameterInfo(cs);
     return cs;
