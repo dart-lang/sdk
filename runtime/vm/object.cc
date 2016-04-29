@@ -20050,7 +20050,8 @@ RawString* String::SubString(const String& str,
 }
 
 
-RawString* String::SubString(const String& str,
+RawString* String::SubString(Thread* thread,
+                             const String& str,
                              intptr_t begin_index,
                              intptr_t length,
                              Heap::Space space) {
@@ -20063,7 +20064,6 @@ RawString* String::SubString(const String& str,
   if (begin_index > str.Length()) {
     return String::null();
   }
-  String& result = String::Handle();
   bool is_one_byte_string = true;
   intptr_t char_size = str.CharSize();
   if (char_size == kTwoByteChar) {
@@ -20074,6 +20074,8 @@ RawString* String::SubString(const String& str,
       }
     }
   }
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  String& result = thread->StringHandle();
   if (is_one_byte_string) {
     result = OneByteString::New(length, space);
   } else {

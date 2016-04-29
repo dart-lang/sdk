@@ -6578,6 +6578,13 @@ class String : public Instance {
   static RawString* SubString(const String& str,
                               intptr_t begin_index,
                               intptr_t length,
+                              Heap::Space space = Heap::kNew) {
+    return SubString(Thread::Current(), str, begin_index, length, space);
+  }
+  static RawString* SubString(Thread* thread,
+                              const String& str,
+                              intptr_t begin_index,
+                              intptr_t length,
                               Heap::Space space = Heap::kNew);
 
   static RawString* Transform(int32_t (*mapping)(int32_t ch),
