@@ -1,5 +1,5 @@
 #if defined(__arm__)
-#include <openssl/arm_arch.h>
+#include "arm_arch.h"
 
 #if __ARM_MAX_ARCH__>=7
 .text
@@ -13,7 +13,6 @@
 .long	0x1b,0x1b,0x1b,0x1b
 
 .globl	aes_v8_set_encrypt_key
-.hidden	aes_v8_set_encrypt_key
 .type	aes_v8_set_encrypt_key,%function
 .align	5
 aes_v8_set_encrypt_key:
@@ -184,7 +183,6 @@ aes_v8_set_encrypt_key:
 .size	aes_v8_set_encrypt_key,.-aes_v8_set_encrypt_key
 
 .globl	aes_v8_set_decrypt_key
-.hidden	aes_v8_set_decrypt_key
 .type	aes_v8_set_decrypt_key,%function
 .align	5
 aes_v8_set_decrypt_key:
@@ -222,7 +220,6 @@ aes_v8_set_decrypt_key:
 	ldmia	sp!,{r4,pc}
 .size	aes_v8_set_decrypt_key,.-aes_v8_set_decrypt_key
 .globl	aes_v8_encrypt
-.hidden	aes_v8_encrypt
 .type	aes_v8_encrypt,%function
 .align	5
 aes_v8_encrypt:
@@ -252,7 +249,6 @@ aes_v8_encrypt:
 	bx	lr
 .size	aes_v8_encrypt,.-aes_v8_encrypt
 .globl	aes_v8_decrypt
-.hidden	aes_v8_decrypt
 .type	aes_v8_decrypt,%function
 .align	5
 aes_v8_decrypt:
@@ -282,7 +278,6 @@ aes_v8_decrypt:
 	bx	lr
 .size	aes_v8_decrypt,.-aes_v8_decrypt
 .globl	aes_v8_cbc_encrypt
-.hidden	aes_v8_cbc_encrypt
 .type	aes_v8_cbc_encrypt,%function
 .align	5
 aes_v8_cbc_encrypt:
@@ -575,7 +570,6 @@ aes_v8_cbc_encrypt:
 	ldmia	sp!,{r4,r5,r6,r7,r8,pc}
 .size	aes_v8_cbc_encrypt,.-aes_v8_cbc_encrypt
 .globl	aes_v8_ctr32_encrypt_blocks
-.hidden	aes_v8_ctr32_encrypt_blocks
 .type	aes_v8_ctr32_encrypt_blocks,%function
 .align	5
 aes_v8_ctr32_encrypt_blocks:

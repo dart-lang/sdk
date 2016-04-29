@@ -20,7 +20,7 @@ config("internal_config") {
   defines = [
     "BORINGSSL_IMPLEMENTATION",
     "BORINGSSL_NO_STATIC_INITIALIZER",
-    "OPENSSL_SMALL",
+    "OPENSSL_SMALL_FOOTPRINT",
   ]
 }
 
@@ -44,8 +44,13 @@ boringssl_sources =
 source_set("boringssl_asm") {
   visibility = [ ":*" ]  # Only targets in this file can depend on this.
   sources = []
+  #asmflags = []
   include_dirs = [
     "src/include",
+    # This is for arm_arch.h, which is needed by some asm files. Since the
+    # asm files are generated and kept in a different directory, they
+    # cannot use relative paths to find this file.
+    "src/crypto",
   ]
 
   if (current_cpu == "x64") {

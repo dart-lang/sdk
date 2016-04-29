@@ -47,8 +47,9 @@
 @
 @					<ard.biesheuvel@linaro.org>
 
+#if defined(__arm__)
 #ifndef __KERNEL__
-# include <openssl/arm_arch.h>
+# include "arm_arch.h"
 
 # define VFP_ABI_PUSH	vstmdb	sp!,{d8-d15}
 # define VFP_ABI_POP	vldmia	sp!,{d8-d15}
@@ -2573,5 +2574,6 @@ bsaes_xts_decrypt:
 	ldmia	sp!, {r4,r5,r6,r7,r8,r9,r10, pc}	@ return
 
 .size	bsaes_xts_decrypt,.-bsaes_xts_decrypt
+#endif
 #endif
 #endif
