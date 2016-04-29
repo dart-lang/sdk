@@ -5,7 +5,7 @@
 !.gitignore
 !pkg
 !pkg_tested
-!boringssl
+!/boringssl
 !drt_resources
 !d8
 !7zip.tar.gz.sha1
