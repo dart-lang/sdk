@@ -64,15 +64,10 @@ abstract class ElementZ extends Element with ElementCommon {
   FunctionElement asFunctionElement() => null;
 
   @override
-  Scope buildScope() => _unsupported('analyzableElement');
+  Scope buildScope() => _unsupported('buildScope');
 
   @override
   ClassElement get enclosingClass => null;
-
-  @override
-  Element get enclosingClassOrCompilationUnit {
-    return _unsupported('enclosingClassOrCompilationUnit');
-  }
 
   @override
   LibraryElement get implementationLibrary => library;
@@ -110,9 +105,8 @@ abstract class ElementZ extends Element with ElementCommon {
   @override
   bool get isStatic => false;
 
-  // TODO(johnniwinther): Find a more precise semantics for this.
   @override
-  bool get isSynthesized => true;
+  bool get isSynthesized => false;
 
   @override
   bool get isTopLevel => false;
@@ -133,10 +127,14 @@ abstract class DeserializedElementZ extends ElementZ {
   @override
   String get name => _decoder.getString(Key.NAME);
 
+  // TODO(johnniwinther): Should this be cached?
+  @override
+  int get sourceOffset => _decoder.getInt(Key.OFFSET, isOptional: true);
+
   @override
   SourceSpan get sourcePosition {
     // TODO(johnniwinther): Should this be cached?
-    int offset = _decoder.getInt(Key.OFFSET, isOptional: true);
+    int offset = sourceOffset;
     if (offset == null) return null;
     Uri uri = _decoder.getUri(Key.URI, isOptional: true);
     if (uri == null) {
@@ -326,6 +324,9 @@ class AbstractFieldElementZ extends ElementZ implements AbstractFieldElement {
 
   @override
   Element get enclosingElement => _canonicalElement.enclosingElement;
+
+  @override
+  int get sourceOffset => _canonicalElement.sourceOffset;
 
   @override
   SourceSpan get sourcePosition => _canonicalElement.sourcePosition;
@@ -768,21 +769,7 @@ abstract class ClassElementMixin implements ElementZ, ClassElement {
   ElementKind get kind => ElementKind.CLASS;
 
   @override
-  void addBackendMember(Element element) => _unsupported('addBackendMember');
-
-  @override
-  void forEachBackendMember(void f(Element member)) {
-    _unsupported('forEachBackendMember');
-  }
-
-  @override
-  bool get hasBackendMembers => _unsupported('hasBackendMembers');
-
-  @override
   bool get hasConstructor => _unsupported('hasConstructor');
-
-  @override
-  bool hasFieldShadowedBy(Element fieldMember) => _unsupported('');
 
   @override
   bool get hasIncompleteHierarchy => _unsupported('hasIncompleteHierarchy');
@@ -794,11 +781,6 @@ abstract class ClassElementMixin implements ElementZ, ClassElement {
   bool get isEnumClass => false;
 
   @override
-  Element lookupBackendMember(String memberName) {
-    return _unsupported('lookupBackendMember');
-  }
-
-  @override
   ConstructorElement lookupDefaultConstructor() {
     ConstructorElement constructor = lookupConstructor("");
     if (constructor != null && constructor.parameters.isEmpty) {
@@ -806,9 +788,6 @@ abstract class ClassElementMixin implements ElementZ, ClassElement {
     }
     return null;
   }
-
-  @override
-  void reverseBackendMembers() => _unsupported('reverseBackendMembers');
 
   @override
   ClassElement get superclass => supertype != null ? supertype.element : null;
@@ -1035,6 +1014,9 @@ class UnnamedMixinApplicationElementZ extends ElementZ
   InterfaceType get mixinType => interfaces.head;
 
   @override
+  int get sourceOffset => _subclass.sourceOffset;
+
+  @override
   SourceSpan get sourcePosition => _subclass.sourcePosition;
 }
 
@@ -1064,7 +1046,10 @@ abstract class ConstructorElementZ extends DeserializedElementZ
         ParametersMixin,
         TypedElementMixin,
         MemberElementMixin
-    implements ConstructorElement {
+    implements
+        ConstructorElement,
+        // TODO(johnniwinther): Sort out whether a constructor is a method.
+        MethodElement {
   ConstantConstructor _constantConstructor;
   ConstructorElement _effectiveTarget;
 
@@ -1129,13 +1114,13 @@ abstract class ConstructorElementZ extends DeserializedElementZ
   @override
   ConstructorElement get immediateRedirectionTarget => null;
 
+  // TODO(johnniwinther): Should serialization support erroneous element
+  // relations?
   @override
-  bool get isEffectiveTargetMalformed {
-    return _unsupported('isEffectiveTargetMalformed');
-  }
+  bool get isEffectiveTargetMalformed => false;
 
   @override
-  bool get isCyclicRedirection => _unsupported('isCyclicRedirection');
+  bool get isCyclicRedirection => false;
 
   @override
   bool get isRedirectingFactory => false;
@@ -1158,6 +1143,9 @@ class GenerativeConstructorElementZ extends ConstructorElementZ {
 
   @override
   bool get isRedirectingGenerative => _decoder.getBool(Key.IS_REDIRECTING);
+
+  @override
+  bool get isSynthesized => definingConstructor != null;
 }
 
 class FactoryConstructorElementZ extends ConstructorElementZ {
@@ -1298,6 +1286,9 @@ class ForwardingConstructorElementZ extends ElementZ
   bool get isRedirectingGenerative => false;
 
   @override
+  bool get isSynthesized => true;
+
+  @override
   ElementKind get kind => ElementKind.GENERATIVE_CONSTRUCTOR;
 
   @override
@@ -1325,6 +1316,9 @@ class ForwardingConstructorElementZ extends ElementZ
   // TODO: implement redirectionDeferredPrefix
   @override
   PrefixElement get redirectionDeferredPrefix => null;
+
+  @override
+  int get sourceOffset => enclosingClass.sourceOffset;
 
   @override
   SourceSpan get sourcePosition => enclosingClass.sourcePosition;
@@ -1804,6 +1798,9 @@ class SyntheticTypeVariableElementZ extends ElementZ
 
   @override
   LibraryElement get library => typeDeclaration.library;
+
+  @override
+  int get sourceOffset => typeDeclaration.sourceOffset;
 
   @override
   SourceSpan get sourcePosition => typeDeclaration.sourcePosition;

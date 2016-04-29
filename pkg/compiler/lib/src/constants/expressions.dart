@@ -680,8 +680,7 @@ class SymbolConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
-    // TODO(johnniwinther): Implement this.
-    throw new UnsupportedError('SymbolConstantExpression.evaluate');
+    return constantSystem.createSymbol(environment.compiler, name);
   }
 
   @override
@@ -1450,7 +1449,9 @@ class DeferredConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
-    return expression.evaluate(environment, constantSystem);
+    return new DeferredConstantValue(
+        expression.evaluate(environment, constantSystem),
+        prefix);
   }
 
   @override

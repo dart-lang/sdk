@@ -109,13 +109,15 @@ abstract class ElementX extends Element with ElementCommon {
     return enclosingElement != null && enclosingElement.isCompilationUnit;
   }
 
+  @override
+  int get sourceOffset => position?.charOffset;
+
   Token get position => null;
 
   SourceSpan get sourcePosition {
     if (position == null) return null;
     Uri uri = compilationUnit.script.resourceUri;
-    return new SourceSpan(
-        uri, position.charOffset, position.charOffset + position.charCount);
+    return new SourceSpan(uri, position.charOffset, position.charEnd);
   }
 
   Token findMyName(Token token) {
@@ -160,13 +162,6 @@ abstract class ElementX extends Element with ElementCommon {
   ClassElement get enclosingClass {
     for (Element e = this; e != null; e = e.enclosingElement) {
       if (e.isClass) return e;
-    }
-    return null;
-  }
-
-  Element get enclosingClassOrCompilationUnit {
-    for (Element e = this; e != null; e = e.enclosingElement) {
-      if (e.isClass || e.isCompilationUnit) return e;
     }
     return null;
   }
@@ -2493,10 +2488,6 @@ abstract class BaseClassElementX extends ElementX
   bool isProxy = false;
   bool hasIncompleteHierarchy = false;
 
-  // backendMembers are members that have been added by the backend to simplify
-  // compilation. They don't have any user-side counter-part.
-  Link<Element> backendMembers = const Link<Element>();
-
   OrderedTypeSet allSupertypesAndSelf;
 
   BaseClassElementX(String name, Element enclosing, this.id, int initialState)
@@ -2505,8 +2496,6 @@ abstract class BaseClassElementX extends ElementX
         super(name, ElementKind.CLASS, enclosing);
 
   int get hashCode => id;
-
-  bool get hasBackendMembers => !backendMembers.isEmpty;
 
   bool get isUnnamedMixinApplication => false;
 
@@ -2560,26 +2549,6 @@ abstract class BaseClassElementX extends ElementX
   void setDefaultConstructor(
       FunctionElement constructor, DiagnosticReporter reporter);
 
-  void addBackendMember(Element member) {
-    // TODO(ngeoffray): Deprecate this method.
-    assert(member.isGenerativeConstructorBody);
-    backendMembers = backendMembers.prepend(member);
-  }
-
-  void reverseBackendMembers() {
-    backendMembers = backendMembers.reverse();
-  }
-
-  /// Lookup a synthetic element created by the backend.
-  Element lookupBackendMember(String memberName) {
-    for (Element element in backendMembers) {
-      if (element.name == memberName) {
-        return element;
-      }
-    }
-    return null;
-  }
-
   ConstructorElement lookupDefaultConstructor() {
     ConstructorElement constructor = lookupConstructor("");
     // This method might be called on constructors that have not been
@@ -2602,10 +2571,6 @@ abstract class BaseClassElementX extends ElementX
     assert(invariant(this, supertypeLoadState == STATE_DONE,
         message: "Superclass has not been computed for $this."));
     return supertype == null ? null : supertype.element;
-  }
-
-  void forEachBackendMember(void f(Element member)) {
-    backendMembers.forEach(f);
   }
 
   // TODO(johnniwinther): Remove these when issue 18630 is fixed.

@@ -3537,8 +3537,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   ResolutionResult visitYield(Yield node) {
     if (!compiler.backend.supportsAsyncAwait) {
-      reporter.reportErrorMessage(node.yieldToken,
-          MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
+      reporter.reportErrorMessage(
+          node.yieldToken, MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
     } else {
       if (!currentAsyncMarker.isYielding) {
         reporter.reportErrorMessage(node, MessageKind.INVALID_YIELD);
@@ -3678,8 +3678,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   ResolutionResult visitAwait(Await node) {
     if (!compiler.backend.supportsAsyncAwait) {
-      reporter.reportErrorMessage(node.awaitToken,
-          MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
+      reporter.reportErrorMessage(
+          node.awaitToken, MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
     } else {
       if (!currentAsyncMarker.isAsync) {
         reporter.reportErrorMessage(node, MessageKind.INVALID_AWAIT);
@@ -4205,18 +4205,16 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   ResolutionResult visitAsyncForIn(AsyncForIn node) {
     if (!compiler.backend.supportsAsyncAwait) {
-      reporter.reportErrorMessage(node.awaitToken,
-          MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
+      reporter.reportErrorMessage(
+          node.awaitToken, MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
     } else {
       if (!currentAsyncMarker.isAsync) {
         reporter.reportErrorMessage(
             node.awaitToken, MessageKind.INVALID_AWAIT_FOR_IN);
       }
       registry.registerFeature(Feature.ASYNC_FOR_IN);
-      registry.registerDynamicUse(
-          new DynamicUse(Selectors.current, null));
-      registry.registerDynamicUse(
-          new DynamicUse(Selectors.moveNext, null));
+      registry.registerDynamicUse(new DynamicUse(Selectors.current, null));
+      registry.registerDynamicUse(new DynamicUse(Selectors.moveNext, null));
     }
     visit(node.expression);
 

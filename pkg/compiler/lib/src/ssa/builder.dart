@@ -1182,7 +1182,7 @@ class SsaBuilder extends ast.Visitor
     // that it can never be null (see result in buildFactory for instance).
     var result;
     if (target.isGenerativeConstructor) {
-      result = buildFactory(target);
+      result = buildFactory(resolvedAst);
     } else if (target.isGenerativeConstructorBody ||
         target.isFactoryConstructor ||
         target.isFunction ||
@@ -1539,7 +1539,7 @@ class SsaBuilder extends ast.Visitor
         if (!isReachable) {
           emitReturn(graph.addConstantNull(compiler), null);
         } else {
-          doInline(function);
+          doInline(functionResolvedAst);
         }
       });
       leaveInlinedMethod();
@@ -1773,11 +1773,14 @@ class SsaBuilder extends ast.Visitor
    *
    * Returns [:null:] if the constructor does not have a body.
    */
-  ConstructorBodyElement getConstructorBody(FunctionElement constructor) {
+  ConstructorBodyElement getConstructorBody(
+      ResolvedAst constructorResolvedAst) {
+    ConstructorElement constructor =
+        constructorResolvedAst.element.implementation;
     assert(constructor.isGenerativeConstructor);
-    assert(invariant(constructor, constructor.isImplementation));
-    if (constructor.isSynthesized) return null;
-    ast.FunctionExpression node = constructor.node;
+    if (constructorResolvedAst.kind != ResolvedAstKind.PARSED) return null;
+
+    ast.FunctionExpression node = constructorResolvedAst.node;
     // If we know the body doesn't have any code, we don't generate it.
     if (!node.hasBody) return null;
     if (node.hasEmptyBody) return null;
@@ -1888,13 +1891,13 @@ class SsaBuilder extends ast.Visitor
   /**
    * Run this builder on the body of the [function] to be inlined.
    */
-  void visitInlinedFunction(FunctionElement function) {
-    potentiallyCheckInlinedParameterTypes(function);
+  void visitInlinedFunction(ResolvedAst resolvedAst) {
+    potentiallyCheckInlinedParameterTypes(resolvedAst.element.implementation);
 
-    if (function.isGenerativeConstructor) {
-      buildFactory(function);
+    if (resolvedAst.element.isGenerativeConstructor) {
+      buildFactory(resolvedAst);
     } else {
-      ast.FunctionExpression functionNode = function.node;
+      ast.FunctionExpression functionNode = resolvedAst.node;
       functionNode.body.accept(this);
     }
   }
@@ -1941,14 +1944,14 @@ class SsaBuilder extends ast.Visitor
    * Invariant: [constructors] must contain only implementation elements.
    */
   void inlineSuperOrRedirect(
-      ConstructorElement callee,
+      ResolvedAst constructorRecolvedAst,
       List<HInstruction> compiledArguments,
-      List<FunctionElement> constructors,
+      List<ResolvedAst> constructorResolvedAsts,
       Map<Element, HInstruction> fieldValues,
       FunctionElement caller) {
-    callee = callee.implementation;
+    ConstructorElement callee = constructorRecolvedAst.element.implementation;
     reporter.withCurrentElement(callee, () {
-      constructors.add(callee);
+      constructorResolvedAsts.add(constructorRecolvedAst);
       ClassElement enclosingClass = callee.enclosingClass;
       if (backend.classNeedsRti(enclosingClass)) {
         // If [enclosingClass] needs RTI, we have to give a value to its
@@ -2019,7 +2022,7 @@ class SsaBuilder extends ast.Visitor
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
         localsHandler.enterScope(resolvedAst.node, callee);
       }
-      buildInitializers(callee, constructors, fieldValues);
+      buildInitializers(callee, constructorResolvedAsts, fieldValues);
       localsHandler.closureData = oldClosureData;
       resolvedAst = oldResolvedAst;
     });
@@ -2027,24 +2030,26 @@ class SsaBuilder extends ast.Visitor
 
   void buildInitializers(
       ConstructorElement constructor,
-      List<FunctionElement> constructors,
+      List<ResolvedAst> constructorResolvedAsts,
       Map<Element, HInstruction> fieldValues) {
     assert(invariant(
         constructor, resolvedAst.element == constructor.declaration,
         message: "Expected ResolvedAst for $constructor, found $resolvedAst"));
     if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-      buildParsedInitializers(constructor, constructors, fieldValues);
+      buildParsedInitializers(
+          constructor, constructorResolvedAsts, fieldValues);
     } else {
       buildSynthesizedConstructorInitializers(
-          constructor, constructors, fieldValues);
+          constructor, constructorResolvedAsts, fieldValues);
     }
   }
 
   void buildSynthesizedConstructorInitializers(
       ConstructorElement constructor,
-      List<FunctionElement> constructors,
+      List<ResolvedAst> constructorResolvedAsts,
       Map<Element, HInstruction> fieldValues) {
-    assert(invariant(constructor, constructor.isSynthesized));
+    assert(invariant(constructor, constructor.isSynthesized,
+        message: "Unexpected unsynthesized constructor: $constructor"));
     List<HInstruction> arguments = <HInstruction>[];
     HInstruction compileArgument(ParameterElement parameter) {
       return localsHandler.readLocal(parameter);
@@ -2069,8 +2074,8 @@ class SsaBuilder extends ast.Visitor
       reporter.internalError(
           constructor, 'forwarding constructor call does not match');
     }
-    inlineSuperOrRedirect(
-        target, arguments, constructors, fieldValues, constructor);
+    inlineSuperOrRedirect(backend.frontend.getResolvedAst(target), arguments,
+        constructorResolvedAsts, fieldValues, constructor);
   }
 
   /**
@@ -2085,12 +2090,14 @@ class SsaBuilder extends ast.Visitor
    */
   void buildParsedInitializers(
       ConstructorElement constructor,
-      List<FunctionElement> constructors,
+      List<ResolvedAst> constructorResolvedAsts,
       Map<Element, HInstruction> fieldValues) {
+    assert(
+        invariant(constructor, resolvedAst.element == constructor.declaration));
     assert(invariant(constructor, constructor.isImplementation));
     assert(invariant(constructor, !constructor.isSynthesized,
         message: "Unexpected synthesized constructor: $constructor"));
-    ast.FunctionExpression functionNode = constructor.node;
+    ast.FunctionExpression functionNode = resolvedAst.node;
 
     bool foundSuperOrRedirect = false;
     if (functionNode.initializers != null) {
@@ -2114,8 +2121,12 @@ class SsaBuilder extends ast.Visitor
             compiledArguments =
                 makeStaticArgumentList(callStructure, arguments, target);
           });
-          inlineSuperOrRedirect(target, compiledArguments, constructors,
-              fieldValues, constructor);
+          inlineSuperOrRedirect(
+              backend.frontend.getResolvedAst(target.declaration),
+              compiledArguments,
+              constructorResolvedAsts,
+              fieldValues,
+              constructor);
         } else {
           // A field initializer.
           ast.SendSet init = link.head;
@@ -2149,7 +2160,11 @@ class SsaBuilder extends ast.Visitor
             null,
             handleConstantForOptionalParameter);
         inlineSuperOrRedirect(
-            target, arguments, constructors, fieldValues, constructor);
+            backend.frontend.getResolvedAst(target.declaration),
+            arguments,
+            constructorResolvedAsts,
+            fieldValues,
+            constructor);
       }
     }
   }
@@ -2164,11 +2179,12 @@ class SsaBuilder extends ast.Visitor
       ClassElement classElement, Map<Element, HInstruction> fieldValues) {
     assert(invariant(classElement, classElement.isImplementation));
     classElement.forEachInstanceField(
-        (ClassElement enclosingClass, VariableElement member) {
+        (ClassElement enclosingClass, FieldElement member) {
       if (compiler.elementHasCompileTimeError(member)) return;
       reporter.withCurrentElement(member, () {
-        ast.Node node = member.node;
-        ast.Expression initializer = member.initializer;
+        ResolvedAst fieldResolvedAst = backend.frontend.getResolvedAst(member);
+        ast.Node node = fieldResolvedAst.node;
+        ast.Expression initializer = fieldResolvedAst.body;
         if (initializer == null) {
           // Unassigned fields of native classes are not initialized to
           // prevent overwriting pre-initialized native properties.
@@ -2178,7 +2194,7 @@ class SsaBuilder extends ast.Visitor
         } else {
           ast.Node right = initializer;
           ResolvedAst savedResolvedAst = resolvedAst;
-          resolvedAst = backend.frontend.getResolvedAst(member);
+          resolvedAst = fieldResolvedAst;
           // In case the field initializer uses closures, run the
           // closure to class mapper.
           compiler.closureToClassMapper
@@ -2200,13 +2216,18 @@ class SsaBuilder extends ast.Visitor
    *  - Call the constructor bodies, starting from the constructor(s) in the
    *    super class(es).
    */
-  HGraph buildFactory(ConstructorElement functionElement) {
+  HGraph buildFactory(ResolvedAst resolvedAst) {
+    ConstructorElement functionElement = resolvedAst.element;
     functionElement = functionElement.implementation;
     ClassElement classElement = functionElement.enclosingClass.implementation;
     bool isNativeUpgradeFactory =
         backend.isNativeOrExtendsNative(classElement) &&
             !backend.isJsInterop(classElement);
-    ast.FunctionExpression function = functionElement.node;
+    ast.FunctionExpression function;
+    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+      function = resolvedAst.node;
+    }
+
     // Note that constructors (like any other static function) do not need
     // to deal with optional arguments. It is the callers job to provide all
     // arguments as if they were positional.
@@ -2239,8 +2260,8 @@ class SsaBuilder extends ast.Visitor
 
     // Analyze the constructor and all referenced constructors and collect
     // initializers and constructor bodies.
-    List<FunctionElement> constructors = <FunctionElement>[functionElement];
-    buildInitializers(functionElement, constructors, fieldValues);
+    List<ResolvedAst> constructorResolvedAsts = <ResolvedAst>[resolvedAst];
+    buildInitializers(functionElement, constructorResolvedAsts, fieldValues);
 
     // Call the JavaScript constructor with the fields as argument.
     List<HInstruction> constructorArguments = <HInstruction>[];
@@ -2369,10 +2390,9 @@ class SsaBuilder extends ast.Visitor
 
     // Generate calls to the constructor bodies.
     HInstruction interceptor = null;
-    for (int index = constructors.length - 1; index >= 0; index--) {
-      FunctionElement constructor = constructors[index];
-      assert(invariant(functionElement, constructor.isImplementation));
-      ConstructorBodyElement body = getConstructorBody(constructor);
+    for (int index = constructorResolvedAsts.length - 1; index >= 0; index--) {
+      ResolvedAst constructorResolvedAst = constructorResolvedAsts[index];
+      ConstructorBodyElement body = getConstructorBody(constructorResolvedAst);
       if (body == null) continue;
 
       List bodyCallInputs = <HInstruction>[];
@@ -2385,8 +2405,7 @@ class SsaBuilder extends ast.Visitor
         bodyCallInputs.add(interceptor);
       }
       bodyCallInputs.add(newObject);
-      ResolvedAst resolvedAst = backend.frontend.getResolvedAst(constructor);
-      ast.Node node = resolvedAst.node;
+      ast.Node node = constructorResolvedAst.node;
       ClosureClassMap parameterClosureData =
           compiler.closureToClassMapper.getMappingForNestedFunction(node);
 
@@ -2409,6 +2428,8 @@ class SsaBuilder extends ast.Visitor
       }
 
       // Type variables arguments must come after the box (if there is one).
+      ConstructorElement constructor =
+          constructorResolvedAst.element.implementation;
       ClassElement currentClass = constructor.enclosingClass;
       if (backend.classNeedsRti(currentClass)) {
         // If [currentClass] needs RTI, we add the type variables as
@@ -7913,8 +7934,8 @@ class SsaBuilder extends ast.Visitor
     stack.add(result);
   }
 
-  void doInline(FunctionElement function) {
-    visitInlinedFunction(function);
+  void doInline(ResolvedAst resolvedAst) {
+    visitInlinedFunction(resolvedAst);
   }
 
   void emitReturn(HInstruction value, ast.Node node) {

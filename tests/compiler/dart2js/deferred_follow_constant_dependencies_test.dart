@@ -5,6 +5,7 @@
 // Test that constants depended on by other constants are correctly deferred.
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/common.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:expect/expect.dart';
@@ -34,8 +35,11 @@ void main() {
         return constant.isString
             && constant.primitiveValue.slowToString() == stringValue;
       });
-      Expect.notEquals(null, outputUnitForConstant(constant));
-      Expect.notEquals(mainOutputUnit, outputUnitForConstant(constant));
+      Expect.notEquals(null, outputUnitForConstant(constant),
+          "Constant value ${constant.toStructuredText()} has no output unit.");
+      Expect.notEquals(mainOutputUnit, outputUnitForConstant(constant),
+          "Constant value ${constant.toStructuredText()} "
+              "is in the main output unit.");
     }
   });
 }

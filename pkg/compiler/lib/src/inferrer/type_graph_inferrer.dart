@@ -9,6 +9,7 @@ import 'dart:collection' show Queue;
 import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../compiler.dart' show Compiler;
+import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart';
 import '../dart_types.dart' show DartType;
 import '../elements/elements.dart';
@@ -850,9 +851,10 @@ class TypeGraphInferrerEngine
           if (type is! ListTypeInformation && type is! MapTypeInformation) {
             // For non-container types, the constant handler does
             // constant folding that could give more precise results.
-            ConstantValue value = compiler.backend.constants
-                .getConstantValue(fieldElement.constant);
-            if (value != null) {
+            ConstantExpression constant = fieldElement.constant;
+            if (constant != null) {
+              ConstantValue value =
+                  compiler.backend.constants.getConstantValue(constant);
               if (value.isFunction) {
                 FunctionConstantValue functionConstant = value;
                 type = types.allocateClosure(node, functionConstant.element);

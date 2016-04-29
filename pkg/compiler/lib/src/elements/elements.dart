@@ -329,6 +329,12 @@ abstract class Element implements Entity {
 
   bool get impliesType;
 
+  /// The character offset of the declaration of this element within its
+  /// compilation unit, if available.
+  ///
+  /// This is used to sort the elements.
+  int get sourceOffset;
+
   // TODO(johnniwinther): Remove this.
   Token get position;
 
@@ -683,10 +689,8 @@ class Elements {
     if (r != 0) return r;
     r = a.compilationUnit.compareTo(b.compilationUnit);
     if (r != 0) return r;
-    Token positionA = a.position;
-    Token positionB = b.position;
-    int offsetA = positionA == null ? -1 : positionA.charOffset;
-    int offsetB = positionB == null ? -1 : positionB.charOffset;
+    int offsetA = a.sourceOffset ?? -1;
+    int offsetB = b.sourceOffset ?? -1;
     r = offsetA.compareTo(offsetB);
     if (r != 0) return r;
     r = a.name.compareTo(b.name);
@@ -1228,7 +1232,7 @@ abstract class ConstructorElement extends FunctionElement
   /// The effective target of this constructor, that is the non-redirecting
   /// constructor that is called on invocation of this constructor.
   ///
-  /// Consider for instance this hierachy:
+  /// Consider for instance this hierarchy:
   ///
   ///     class C { factory C.c() = D.d; }
   ///     class D { factory D.d() = E.e2; }
@@ -1241,7 +1245,7 @@ abstract class ConstructorElement extends FunctionElement
 
   /// The immediate redirection target of a redirecting factory constructor.
   ///
-  /// Consider for instance this hierachy:
+  /// Consider for instance this hierarchy:
   ///
   ///     class C { factory C() = D; }
   ///     class D { factory D() = E; }

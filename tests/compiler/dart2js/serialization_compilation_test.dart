@@ -29,7 +29,7 @@ main(List<String> args) {
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
       // TODO(johnniwinther): Handle the remaining tests.
-      for (Test test in TESTS.sublist(0, 1)) {
+      for (Test test in TESTS.sublist(0, 2)) {
         await compile(serializedData, entryPoint, test,
                       verbose: arguments.verbose);
       }
@@ -49,7 +49,10 @@ Future compile(String serializedData, Uri entryPoint, Test test,
       entryPoint: entryPoint,
       memorySourceFiles: test != null ? test.sourceFiles : const {},
       options: [Flags.disableTypeInference,
-                Flags.disableInlining],
+                Flags.disableInlining,
+                // TODO(johnniwinther): Reenable this: We have some invalid
+                // locations
+                Flags.noSourceMaps],
       outputProvider: outputCollector,
       beforeRun: (Compiler compiler) {
         deserialize(compiler, serializedData, deserializeResolvedAst: true);

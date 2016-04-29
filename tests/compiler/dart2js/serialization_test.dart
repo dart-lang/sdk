@@ -243,6 +243,8 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
     if (element1 == element2) return;
     check(element1, element2, 'kind', element1.kind, element2.kind);
     element1.accept(this, element2);
+    check(element1, element2, 'isSynthesized',
+        element1.isSynthesized, element2.isSynthesized);
   }
 
   @override
