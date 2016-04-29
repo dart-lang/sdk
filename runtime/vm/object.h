@@ -1386,8 +1386,11 @@ class Class : public Object {
 
   void DisableCHAOptimizedCode(const Class& subclass);
 
-  RawArray* cha_codes() const { return raw_ptr()->cha_codes_; }
-  void set_cha_codes(const Array& value) const;
+  // Return the list of code objects that were compiled using CHA of this class.
+  // These code objects will be invalidated if new subclasses of this class
+  // are finalized.
+  RawArray* dependent_code() const { return raw_ptr()->dependent_code_; }
+  void set_dependent_code(const Array& array) const;
 
   bool TraceAllocation(Isolate* isolate) const;
   void SetTraceAllocation(bool trace_allocation) const;

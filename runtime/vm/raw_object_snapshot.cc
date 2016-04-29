@@ -78,7 +78,11 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     cls.set_state_bits(reader->Read<uint16_t>());
 
     // Set all the object fields.
-    READ_OBJECT_FIELDS(cls, cls.raw()->from(), cls.raw()->to(), kAsReference);
+    READ_OBJECT_FIELDS(cls,
+                       cls.raw()->from(),
+                       cls.raw()->to_snapshot(kind),
+                       kAsReference);
+    cls.StorePointer(&cls.raw_ptr()->dependent_code_, Array::null());
     ASSERT(!cls.IsInFullSnapshot() || (Snapshot::IsFull(kind)));
   } else {
     cls ^= reader->ReadClassId(object_id);
@@ -130,7 +134,7 @@ void RawClass::WriteTo(SnapshotWriter* writer,
 
     // Write out all the object pointer fields.
     SnapshotWriterVisitor visitor(writer, kAsReference);
-    visitor.VisitPointers(from(), to());
+    visitor.VisitPointers(from(), to_snapshot(kind));
   } else {
     if (writer->can_send_any_object() ||
         writer->AllowObjectsInDartLibrary(ptr()->library_)) {
@@ -853,7 +857,7 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &field, kIsDeserialized);
 
   // Set all non object fields.
-  if (Snapshot::IncludesCode(kind)) {
+  if (kind == Snapshot::kAppNoJIT) {
     field.set_token_pos(TokenPosition::kNoSource);
     ASSERT(!FLAG_use_field_guards);
   } else {
@@ -869,6 +873,7 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
                      field.raw()->from(),
                      field.raw()->to_snapshot(kind),
                      kAsReference);
+  field.StorePointer(&field.raw_ptr()->dependent_code_, Array::null());
 
   if (!FLAG_use_field_guards) {
     field.set_guarded_cid(kDynamicCid);
@@ -898,7 +903,7 @@ void RawField::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the non object fields.
-  if (!Snapshot::IncludesCode(kind)) {
+  if (kind != Snapshot::kAppNoJIT) {
     writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
     writer->Write<int32_t>(ptr()->guarded_cid_);
     writer->Write<int32_t>(ptr()->is_nullable_);
@@ -913,7 +918,7 @@ void RawField::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectImpl(ptr()->type_, kAsReference);
   // Write out the initial static value or field offset.
   if (Field::StaticBit::decode(ptr()->kind_bits_)) {
-    if (Snapshot::IncludesCode(kind)) {
+    if (kind == Snapshot::kAppNoJIT) {
       // For precompiled static fields, the value was already reset and
       // initializer_ now contains a Function.
       writer->WriteObjectImpl(ptr()->value_.static_value_, kAsReference);
@@ -925,14 +930,12 @@ void RawField::WriteTo(SnapshotWriter* writer,
     writer->WriteObjectImpl(ptr()->value_.offset_, kAsReference);
   }
   // Write out the initializer function or saved initial value.
-  if (Snapshot::IncludesCode(kind)) {
+  if (kind == Snapshot::kAppNoJIT) {
     writer->WriteObjectImpl(ptr()->initializer_.precompiled_, kAsReference);
   } else {
     writer->WriteObjectImpl(ptr()->initializer_.saved_value_, kAsReference);
   }
-  if (!Snapshot::IncludesCode(kind)) {
-    // Write out the dependent code.
-    writer->WriteObjectImpl(ptr()->dependent_code_, kAsReference);
+  if (kind != Snapshot::kAppNoJIT) {
     // Write out the guarded list length.
     writer->WriteObjectImpl(ptr()->guarded_list_length_, kAsReference);
   }
@@ -1253,12 +1256,12 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
                      prefix.raw()->from(),
                      prefix.raw()->to_snapshot(kind),
                      kAsReference);
-  if (Snapshot::IncludesCode(kind)) {
+  if (kind == Snapshot::kAppNoJIT) {
     prefix.StorePointer(&prefix.raw_ptr()->imports_,
                         Array::null());
-    prefix.StorePointer(&prefix.raw_ptr()->dependent_code_,
-                        Array::null());
   }
+  prefix.StorePointer(&prefix.raw_ptr()->dependent_code_,
+                      Array::null());
 
   return prefix.raw();
 }

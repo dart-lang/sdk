@@ -709,9 +709,22 @@ class RawClass : public RawObject {
   RawArray* invocation_dispatcher_cache_;  // Cache for dispatcher functions.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
   RawGrowableObjectArray* direct_subclasses_;  // Array of Class.
-  RawArray* cha_codes_;  // CHA optimized codes.
+  RawArray* dependent_code_;  // CHA optimized codes.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->cha_codes_);
+    return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
+  }
+  RawObject** to_snapshot(Snapshot::Kind kind) {
+    switch (kind) {
+      case Snapshot::kCore:
+      case Snapshot::kScript:
+      case Snapshot::kAppWithJIT:
+      case Snapshot::kAppNoJIT:
+        return reinterpret_cast<RawObject**>(&ptr()->direct_subclasses_);
+      case Snapshot::kMessage:
+        break;
+    }
+    UNREACHABLE();
+    return NULL;
   }
 
   cpp_vtable handle_vtable_;
@@ -922,17 +935,17 @@ class RawField : public RawObject {
     // restore the value back to the original initial value.
     RawInstance* saved_value_;  // Saved initial value - static fields.
   } initializer_;
-  RawArray* dependent_code_;
   RawSmi* guarded_list_length_;
+  RawArray* dependent_code_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->guarded_list_length_);
+    return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
   }
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kCore:
       case Snapshot::kScript:
-        return to();
       case Snapshot::kAppWithJIT:
+        return reinterpret_cast<RawObject**>(&ptr()->guarded_list_length_);
       case Snapshot::kAppNoJIT:
         return reinterpret_cast<RawObject**>(&ptr()->initializer_);
       case Snapshot::kMessage:
@@ -1630,8 +1643,8 @@ class RawLibraryPrefix : public RawInstance {
     switch (kind) {
       case Snapshot::kCore:
       case Snapshot::kScript:
-        return to();
       case Snapshot::kAppWithJIT:
+        return reinterpret_cast<RawObject**>(&ptr()->imports_);
       case Snapshot::kAppNoJIT:
         return reinterpret_cast<RawObject**>(&ptr()->importer_);
       case Snapshot::kMessage:

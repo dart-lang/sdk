@@ -2714,12 +2714,12 @@ void Class::Finalize() const {
 class CHACodeArray : public WeakCodeReferences {
  public:
   explicit CHACodeArray(const Class& cls)
-      : WeakCodeReferences(Array::Handle(cls.cha_codes())), cls_(cls) {
+      : WeakCodeReferences(Array::Handle(cls.dependent_code())), cls_(cls) {
   }
 
   virtual void UpdateArrayTo(const Array& value) {
     // TODO(fschneider): Fails for classes in the VM isolate.
-    cls_.set_cha_codes(value);
+    cls_.set_dependent_code(value);
   }
 
   virtual void ReportDeoptimization(const Code& code) {
@@ -2871,8 +2871,8 @@ bool Class::ValidatePostFinalizePatch(const Class& orig_class,
 }
 
 
-void Class::set_cha_codes(const Array& cache) const {
-  StorePointer(&raw_ptr()->cha_codes_, cache.raw());
+void Class::set_dependent_code(const Array& array) const {
+  StorePointer(&raw_ptr()->dependent_code_, array.raw());
 }
 
 
