@@ -9,9 +9,7 @@ import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'constants/expressions.dart'
-    show
-        ConstantExpression,
-        ConstantExpressionKind;
+    show ConstantExpression, ConstantExpressionKind;
 import 'constants/values.dart'
     show
         ConstantValue,
@@ -338,12 +336,13 @@ class DeferredLoadTask extends CompilerTask {
         TreeElements treeElements = analyzableElement.resolvedAst.elements;
         assert(treeElements != null);
 
-        treeElements.forEachConstantNode(
-            (Node node, ConstantExpression expression) {
+        treeElements
+            .forEachConstantNode((Node node, ConstantExpression expression) {
           // Explicitly depend on the backend constants.
           ConstantValue value = backend.constants.getConstantValue(expression);
           assert(invariant(node, value != null,
-              message: "No constant value for ${expression.toStructuredText()}."));
+              message:
+                  "No constant value for ${expression.toStructuredText()}."));
           constants.add(value);
         });
       }

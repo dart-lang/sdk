@@ -198,6 +198,10 @@ class HGraph {
     HConstant result = constants[constant];
     // TODO(johnniwinther): Support source information per constant reference.
     if (result == null) {
+      if (!constant.isConstant) {
+        // We use `null` as the value for invalid constant expressions.
+        constant = const NullConstantValue();
+      }
       TypeMask type = computeTypeMask(compiler, constant);
       result = new HConstant.internal(constant, type)
         ..sourceInformation = sourceInformation;

@@ -1450,8 +1450,7 @@ class DeferredConstantExpression extends ConstantExpression {
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
     return new DeferredConstantValue(
-        expression.evaluate(environment, constantSystem),
-        prefix);
+        expression.evaluate(environment, constantSystem), prefix);
   }
 
   @override
