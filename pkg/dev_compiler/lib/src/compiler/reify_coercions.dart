@@ -45,6 +45,12 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
   }
 
   @override
+  visitParenthesizedExpression(ParenthesizedExpression node) {
+    super.visitParenthesizedExpression(node);
+    node.staticType = node.expression.staticType;
+  }
+
+  @override
   visitForEachStatement(ForEachStatement node) {
     // Visit other children.
     node.iterable.accept(this);

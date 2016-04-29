@@ -9083,8 +9083,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (dart.notNull(dart.as(dart.dsend(i, '<=', 65535), core.bool))) {
           a[dartx.add](dart.as(i, core.int));
         } else if (dart.notNull(dart.as(dart.dsend(i, '<=', 1114111), core.bool))) {
-          a[dartx.add](dart.asInt((55296)[dartx['+']](dart.as(dart.dsend(dart.dsend(dart.dsend(i, '-', 65536), '>>', 10), '&', 1023), core.num))));
-          a[dartx.add](dart.asInt((56320)[dartx['+']](dart.as(dart.dsend(i, '&', 1023), core.num))));
+          a[dartx.add](dart.asInt(55296 + dart.notNull(dart.as(dart.dsend(dart.dsend(dart.dsend(i, '-', 65536), '>>', 10), '&', 1023), core.num))));
+          a[dartx.add](dart.asInt(56320 + dart.notNull(dart.as(dart.dsend(i, '&', 1023), core.num))));
         } else {
           dart.throw(new core.ArgumentError(i));
         }
@@ -9106,8 +9106,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
         if (dart.notNull(dart.as(dart.dsend(charCode, '<=', 1114111), core.bool))) {
           let bits = dart.dsend(charCode, '-', 65536);
-          let low = (56320)[dartx['|']](dart.as(dart.dsend(bits, '&', 1023), core.int));
-          let high = (55296)[dartx['|']](dart.as(dart.dsend(bits, '>>', 10), core.int));
+          let low = (56320 | dart.notNull(dart.as(dart.dsend(bits, '&', 1023), core.int))) >>> 0;
+          let high = (55296 | dart.notNull(dart.as(dart.dsend(bits, '>>', 10), core.int))) >>> 0;
           return String.fromCharCode(high, low);
         }
       }
