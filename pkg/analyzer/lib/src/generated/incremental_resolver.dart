@@ -935,6 +935,8 @@ class IncrementalBodyDelta extends Delta {
         isByTask(ResolveLibraryReferencesTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryTypeNamesTask.DESCRIPTOR) ||
+        isByTask(ResolveTopLevelLibraryTypeBoundsTask.DESCRIPTOR) ||
+        isByTask(ResolveTopLevelUnitTypeBoundsTask.DESCRIPTOR) ||
         isByTask(ResolveUnitTask.DESCRIPTOR) ||
         isByTask(ResolveUnitTypeNamesTask.DESCRIPTOR) ||
         isByTask(ResolveVariableReferencesTask.DESCRIPTOR) ||
@@ -1254,6 +1256,7 @@ class IncrementalResolver {
     _shiftErrors_NEW(LINTS);
     _shiftErrors_NEW(LIBRARY_UNIT_ERRORS);
     _shiftErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS);
+    _shiftErrors_NEW(RESOLVE_TYPE_BOUNDS_ERRORS);
     _shiftErrors_NEW(RESOLVE_UNIT_ERRORS);
     _shiftErrors_NEW(STRONG_MODE_ERRORS);
     _shiftErrors_NEW(VARIABLE_REFERENCE_ERRORS);
@@ -1302,6 +1305,7 @@ class IncrementalResolver {
 
   void _updateEntry() {
     _updateErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS, []);
+    _updateErrors_NEW(RESOLVE_TYPE_BOUNDS_ERRORS, []);
     _updateErrors_NEW(RESOLVE_UNIT_ERRORS, _resolveErrors);
     _updateErrors_NEW(VARIABLE_REFERENCE_ERRORS, []);
     _updateErrors_NEW(VERIFY_ERRORS, _verifyErrors);

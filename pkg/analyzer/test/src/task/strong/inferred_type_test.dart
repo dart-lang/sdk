@@ -1086,7 +1086,7 @@ main() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25740.
     checkFile(r'''
 class Foo<T extends Pattern> {
-void method/*<U extends T>*/(dynamic/*=U*/ u) {}
+  void method/*<U extends T>*/(dynamic/*=U*/ u) {}
 }
 main() {
   new Foo().method/*<String>*/("str");
@@ -2437,6 +2437,58 @@ main() {
   new B().x = 'foo';
 }
 ''');
+  }
+
+  void test_instantiateToBounds_generic2_hasBound_definedAfter() {
+    var unit = checkFile(r'''
+class B<T extends A> {}
+class A<T extends int> {}
+B v = null;
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'B<A<dynamic>>');
+  }
+
+  void test_instantiateToBounds_generic2_hasBound_definedBefore() {
+    var unit = checkFile(r'''
+class A<T extends int> {}
+class B<T extends A> {}
+B v = null;
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'B<A<dynamic>>');
+  }
+
+  void test_instantiateToBounds_generic2_noBound() {
+    var unit = checkFile(r'''
+class A<T> {}
+class B<T extends A> {}
+B v = null;
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'B<A<dynamic>>');
+  }
+
+  void test_instantiateToBounds_generic_hasBound_definedAfter() {
+    var unit = checkFile(r'''
+A v = null;
+class A<T extends int> {}
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'A<int>');
+  }
+
+  void test_instantiateToBounds_generic_hasBound_definedBefore() {
+    var unit = checkFile(r'''
+class A<T extends int> {}
+A v = null;
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'A<int>');
+  }
+
+  void test_instantiateToBounds_notGeneric() {
+    var unit = checkFile(r'''
+class A {}
+class B<T extends A> {}
+B v = null;
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'B<A>');
   }
 
   void test_listLiterals() {

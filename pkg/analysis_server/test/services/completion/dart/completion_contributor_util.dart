@@ -143,10 +143,10 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     if (elemOffset != null) {
       expect(cs.element.location.offset, elemOffset);
     }
-    if(paramName != null) {
+    if (paramName != null) {
       expect(cs.parameterName, paramName);
     }
-    if(paramType != null) {
+    if (paramType != null) {
       expect(cs.parameterType, paramType);
     }
     return cs;
@@ -365,8 +365,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
-  CompletionSuggestion assertSuggestName(
-      String name,
+  CompletionSuggestion assertSuggestName(String name,
       {int relevance: DART_RELEVANCE_DEFAULT,
       String importUri,
       CompletionSuggestionKind kind: CompletionSuggestionKind.IDENTIFIER,

@@ -7486,6 +7486,10 @@ class ResolverVisitor extends ScopedVisitor {
  * The abstract class `ScopedVisitor` maintains name and label scopes as an AST structure is
  * being visited.
  */
+/**
+ * The abstract class `ScopedVisitor` maintains name and label scopes as an AST structure is
+ * being visited.
+ */
 abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   /**
    * The element for the library containing the compilation unit being visited.
@@ -8366,14 +8370,28 @@ class TypeNameResolver {
   final DartType dynamicType;
   final DartType undefinedType;
   final LibraryElement definingLibrary;
-  final ErrorReporter errorReporter;
+  final Source source;
+  final AnalysisErrorListener errorListener;
 
   Scope nameScope;
 
   TypeNameResolver(this.typeSystem, TypeProvider typeProvider,
-      this.definingLibrary, this.errorReporter)
+      this.definingLibrary, this.source, this.errorListener)
       : dynamicType = typeProvider.dynamicType,
         undefinedType = typeProvider.undefinedType;
+
+  /**
+   * Report an error with the given error code and arguments.
+   *
+   * @param errorCode the error code of the error to be reported
+   * @param node the node specifying the location of the error
+   * @param arguments the arguments to the error, used to compose the error message
+   */
+  void reportErrorForNode(ErrorCode errorCode, AstNode node,
+      [List<Object> arguments]) {
+    errorListener.onError(new AnalysisError(
+        source, node.offset, node.length, errorCode, arguments));
+  }
 
   /**
    * Resolve the given [TypeName] - set its element and static type. Only the
@@ -8434,14 +8452,14 @@ class TypeNameResolver {
                 grandParent.isConst) {
               // If, if this is a const expression, then generate a
               // CompileTimeErrorCode.CONST_WITH_NON_TYPE error.
-              errorReporter.reportErrorForNode(
+              reportErrorForNode(
                   CompileTimeErrorCode.CONST_WITH_NON_TYPE,
                   prefixedIdentifier.identifier,
                   [prefixedIdentifier.identifier.name]);
             } else {
               // Else, if this expression is a new expression, report a
               // NEW_WITH_NON_TYPE warning.
-              errorReporter.reportErrorForNode(
+              reportErrorForNode(
                   StaticWarningCode.NEW_WITH_NON_TYPE,
                   prefixedIdentifier.identifier,
                   [prefixedIdentifier.identifier.name]);
@@ -8474,18 +8492,16 @@ class TypeNameResolver {
           node.parent.parent as InstanceCreationExpression;
       if (creation.isConst) {
         if (element == null) {
-          errorReporter.reportErrorForNode(
+          reportErrorForNode(
               CompileTimeErrorCode.UNDEFINED_CLASS, typeNameSimple, [typeName]);
         } else {
-          errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.CONST_WITH_NON_TYPE,
-              typeNameSimple,
-              [typeName]);
+          reportErrorForNode(CompileTimeErrorCode.CONST_WITH_NON_TYPE,
+              typeNameSimple, [typeName]);
         }
         elementValid = false;
       } else {
         if (element != null) {
-          errorReporter.reportErrorForNode(
+          reportErrorForNode(
               StaticWarningCode.NEW_WITH_NON_TYPE, typeNameSimple, [typeName]);
           elementValid = false;
         }
@@ -8501,26 +8517,20 @@ class TypeNameResolver {
       SimpleIdentifier typeNameSimple = _getTypeSimpleIdentifier(typeName);
       RedirectingConstructorKind redirectingConstructorKind;
       if (_isBuiltInIdentifier(node) && _isTypeAnnotation(node)) {
-        errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
-            typeName,
-            [typeName.name]);
+        reportErrorForNode(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
+            typeName, [typeName.name]);
       } else if (typeNameSimple.name == "boolean") {
-        errorReporter.reportErrorForNode(
+        reportErrorForNode(
             StaticWarningCode.UNDEFINED_CLASS_BOOLEAN, typeNameSimple, []);
       } else if (_isTypeNameInCatchClause(node)) {
-        errorReporter.reportErrorForNode(
-            StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE,
-            typeName,
+        reportErrorForNode(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName,
             [typeName.name]);
       } else if (_isTypeNameInAsExpression(node)) {
-        errorReporter.reportErrorForNode(
+        reportErrorForNode(
             StaticWarningCode.CAST_TO_NON_TYPE, typeName, [typeName.name]);
       } else if (_isTypeNameInIsExpression(node)) {
-        errorReporter.reportErrorForNode(
-            StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME,
-            typeName,
-            [typeName.name]);
+        reportErrorForNode(StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME,
+            typeName, [typeName.name]);
       } else if ((redirectingConstructorKind =
               _getRedirectingConstructorKind(node)) !=
           null) {
@@ -8528,14 +8538,12 @@ class TypeNameResolver {
             (redirectingConstructorKind == RedirectingConstructorKind.CONST
                 ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS
                 : StaticWarningCode.REDIRECT_TO_NON_CLASS);
-        errorReporter.reportErrorForNode(errorCode, typeName, [typeName.name]);
+        reportErrorForNode(errorCode, typeName, [typeName.name]);
       } else if (_isTypeNameInTypeArgumentList(node)) {
-        errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
-            typeName,
-            [typeName.name]);
+        reportErrorForNode(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
+            typeName, [typeName.name]);
       } else {
-        errorReporter.reportErrorForNode(
+        reportErrorForNode(
             StaticWarningCode.UNDEFINED_CLASS, typeName, [typeName.name]);
       }
       elementValid = false;
@@ -8573,17 +8581,13 @@ class TypeNameResolver {
       // The name does not represent a type.
       RedirectingConstructorKind redirectingConstructorKind;
       if (_isTypeNameInCatchClause(node)) {
-        errorReporter.reportErrorForNode(
-            StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE,
-            typeName,
+        reportErrorForNode(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName,
             [typeName.name]);
       } else if (_isTypeNameInAsExpression(node)) {
-        errorReporter.reportErrorForNode(
+        reportErrorForNode(
             StaticWarningCode.CAST_TO_NON_TYPE, typeName, [typeName.name]);
       } else if (_isTypeNameInIsExpression(node)) {
-        errorReporter.reportErrorForNode(
-            StaticWarningCode.TYPE_TEST_WITH_NON_TYPE,
-            typeName,
+        reportErrorForNode(StaticWarningCode.TYPE_TEST_WITH_NON_TYPE, typeName,
             [typeName.name]);
       } else if ((redirectingConstructorKind =
               _getRedirectingConstructorKind(node)) !=
@@ -8592,12 +8596,10 @@ class TypeNameResolver {
             (redirectingConstructorKind == RedirectingConstructorKind.CONST
                 ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS
                 : StaticWarningCode.REDIRECT_TO_NON_CLASS);
-        errorReporter.reportErrorForNode(errorCode, typeName, [typeName.name]);
+        reportErrorForNode(errorCode, typeName, [typeName.name]);
       } else if (_isTypeNameInTypeArgumentList(node)) {
-        errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
-            typeName,
-            [typeName.name]);
+        reportErrorForNode(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
+            typeName, [typeName.name]);
       } else {
         AstNode parent = typeName.parent;
         while (parent is TypeName) {
@@ -8609,7 +8611,7 @@ class TypeNameResolver {
             parent is ClassTypeAlias) {
           // Ignored. The error will be reported elsewhere.
         } else {
-          errorReporter.reportErrorForNode(
+          reportErrorForNode(
               StaticWarningCode.NOT_A_TYPE, typeName, [typeName.name]);
         }
       }
@@ -8633,9 +8635,7 @@ class TypeNameResolver {
           typeArguments[i] = argumentType;
         }
       } else {
-        errorReporter.reportErrorForNode(
-            _getInvalidTypeParametersErrorCode(node),
-            node,
+        reportErrorForNode(_getInvalidTypeParametersErrorCode(node), node,
             [typeName.name, parameterCount, argumentCount]);
         for (int i = 0; i < parameterCount; i++) {
           typeArguments[i] = dynamicType;
@@ -9081,6 +9081,70 @@ class TypeOverrideManager_TypeOverrideScope {
    */
   void setType(VariableElement element, DartType type) {
     _overridenTypes[element] = type;
+  }
+}
+
+/**
+ * This class resolves bounds of type parameters of classes, class and function
+ * type aliases.
+ */
+class TypeParameterBoundsResolver {
+  final TypeProvider typeProvider;
+  final LibraryElement library;
+  final Source source;
+  final AnalysisErrorListener errorListener;
+
+  Scope libraryScope = null;
+  TypeNameResolver typeNameResolver = null;
+
+  TypeParameterBoundsResolver(
+      this.typeProvider, this.library, this.source, this.errorListener);
+
+  /**
+   * Resolve bounds of type parameters of classes, class and function type
+   * aliases.
+   */
+  void resolveTypeBounds(CompilationUnit unit) {
+    for (CompilationUnitMember unitMember in unit.declarations) {
+      if (unitMember is ClassDeclaration) {
+        _resolveTypeParameters(unitMember.typeParameters,
+            () => new TypeParameterScope(libraryScope, unitMember.element));
+      } else if (unitMember is ClassTypeAlias) {
+        _resolveTypeParameters(unitMember.typeParameters,
+            () => new TypeParameterScope(libraryScope, unitMember.element));
+      } else if (unitMember is FunctionTypeAlias) {
+        _resolveTypeParameters(unitMember.typeParameters,
+            () => new FunctionTypeScope(libraryScope, unitMember.element));
+      }
+    }
+  }
+
+  void _resolveTypeName(TypeName typeName) {
+    typeName.typeArguments?.arguments?.forEach(_resolveTypeName);
+    typeNameResolver.resolveTypeName(typeName);
+    // TODO(scheglov) report error when don't apply type bounds for type bounds
+  }
+
+  void _resolveTypeParameters(
+      TypeParameterList typeParameters, Scope createTypeParametersScope()) {
+    if (typeParameters != null) {
+      Scope typeParametersScope = null;
+      for (TypeParameter typeParameter in typeParameters.typeParameters) {
+        TypeName bound = typeParameter.bound;
+        if (bound != null) {
+          libraryScope ??= new LibraryScope(library, errorListener);
+          typeParametersScope ??= createTypeParametersScope();
+          typeNameResolver ??= new TypeNameResolver(new TypeSystemImpl(),
+              typeProvider, library, source, errorListener);
+          typeNameResolver.nameScope = typeParametersScope;
+          _resolveTypeName(bound);
+          Element typeParameterElement = typeParameter.name.staticElement;
+          if (typeParameterElement is TypeParameterElementImpl) {
+            typeParameterElement.bound = bound.type;
+          }
+        }
+      }
+    }
   }
 }
 
@@ -9705,7 +9769,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     _strongMode = definingLibrary.context.analysisOptions.strongMode;
     _typeSystem = TypeSystem.create(definingLibrary.context);
     _typeNameResolver = new TypeNameResolver(
-        _typeSystem, typeProvider, definingLibrary, errorReporter);
+        _typeSystem, typeProvider, definingLibrary, source, errorListener);
   }
 
   @override
@@ -10047,12 +10111,20 @@ class TypeResolverVisitor extends ScopedVisitor {
   @override
   Object visitTypeParameter(TypeParameter node) {
     super.visitTypeParameter(node);
-    TypeName bound = node.bound;
-    if (bound != null) {
-      TypeParameterElementImpl typeParameter =
-          node.name.staticElement as TypeParameterElementImpl;
-      if (typeParameter != null) {
-        typeParameter.bound = bound.type;
+    AstNode parent2 = node.parent?.parent;
+    if (parent2 is ClassDeclaration ||
+        parent2 is ClassTypeAlias ||
+        parent2 is FunctionTypeAlias) {
+      // Bounds of parameters of classes and function type aliases are
+      // already resolved.
+    } else {
+      TypeName bound = node.bound;
+      if (bound != null) {
+        TypeParameterElementImpl typeParameter =
+            node.name.staticElement as TypeParameterElementImpl;
+        if (typeParameter != null) {
+          typeParameter.bound = bound.type;
+        }
       }
     }
     return null;

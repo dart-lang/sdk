@@ -1958,10 +1958,10 @@ void test() {
     resolveTestUnit(code);
     expectIdentifierType('ai', "A<dynamic>");
     expectIdentifierType('bi', "B<num>");
-    expectIdentifierType('ci', "C<int, B<int>, B<num>>");
+    expectIdentifierType('ci', "C<int, B<int>, B<dynamic>>");
     expectIdentifierType('aa', "A<dynamic>");
     expectIdentifierType('bb', "B<num>");
-    expectIdentifierType('cc', "C<int, B<int>, B<num>>");
+    expectIdentifierType('cc', "C<int, B<int>, B<dynamic>>");
   }
 
   void test_setterWithDynamicTypeIsError() {

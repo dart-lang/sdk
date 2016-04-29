@@ -63,6 +63,7 @@ class InputPackagesResultProvider extends ResultProvider {
           result == LIBRARY_ELEMENT6 ||
           result == LIBRARY_ELEMENT7 ||
           result == LIBRARY_ELEMENT8 ||
+          result == LIBRARY_ELEMENT9 ||
           result == LIBRARY_ELEMENT ||
           false) {
         LibraryElement libraryElement =
@@ -70,8 +71,8 @@ class InputPackagesResultProvider extends ResultProvider {
         entry.setValue(result, libraryElement, TargetedResult.EMPTY_LIST);
         return true;
       } else if (result == READY_LIBRARY_ELEMENT2 ||
-          result == READY_LIBRARY_ELEMENT5 ||
-          result == READY_LIBRARY_ELEMENT6) {
+          result == READY_LIBRARY_ELEMENT6 ||
+          result == READY_LIBRARY_ELEMENT7) {
         entry.setValue(result, true, TargetedResult.EMPTY_LIST);
         return true;
       } else if (result == SOURCE_KIND) {
