@@ -3532,6 +3532,7 @@ LayoutTests/fast/dom/navigatorcontentutils/register-protocol-handler_t01: Skip #
 LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: Skip # API not supported.
 LayoutTests/fast/dom/object-plugin-hides-properties_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/option-properties_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/partial-layout-non-overlay-scrollbars_t01: Pass, RuntimeError # Issue 53
 LayoutTests/fast/dom/set-innerHTML_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/shadow/access-document-of-detached-stylesheetlist-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/shadow/base-in-shadow-tree_t01: RuntimeError # Please triage this failure
@@ -3975,6 +3976,7 @@ LibTest/html/Element/dataset_A02_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/enteredView_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/getAttributeNS_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/getAttributeNS_A02_t01: RuntimeError # Please triage this failure
+LibTest/html/Element/getBoundingClientRect_A01_t02: Pass, RuntimeError # Issue 53
 LibTest/html/Element/getClientRects_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/Element/getNamespacedAttributes_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/isTagSupported_A01_t01: RuntimeError # Please triage this failure
