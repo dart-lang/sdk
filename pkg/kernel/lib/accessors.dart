@@ -13,36 +13,51 @@ abstract class Accessor {
     return _finish(_makeSimpleRead());
   }
 
-  Expression buildAssignment(Expression value) {
-    return _finish(_makeSimpleWrite(value));
+  /// Returns an assignment to the accessor.
+  ///
+  /// The returned expression evaluates to the assigned value, unless
+  /// [voidContext] is true, in which case it may evaluate to anything.
+  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+    return _finish(_makeSimpleWrite(value, voidContext));
   }
 
-  Expression buildNullAwareAssignment(Expression value) {
-    return _finish(new ConditionalExpression(
-        buildIsNull(_makeRead()), new NullLiteral(), _makeWrite(value)));
+  Expression buildNullAwareAssignment(Expression value,
+      {bool voidContext: false}) {
+    return _finish(new ConditionalExpression(buildIsNull(_makeRead()),
+        new NullLiteral(), _makeWrite(value, voidContext)));
   }
 
-  Expression buildCompoundAssignment(Name binaryOperator, Expression value) {
-    return _finish(_makeWrite(makeBinary(_makeRead(), binaryOperator, value)));
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {bool voidContext: false}) {
+    return _finish(_makeWrite(
+        makeBinary(_makeRead(), binaryOperator, value), voidContext));
   }
 
-  Expression buildPrefixIncrement(Name binaryOperator) {
-    return buildCompoundAssignment(binaryOperator, new IntLiteral(1));
+  Expression buildPrefixIncrement(Name binaryOperator,
+      {bool voidContext: false}) {
+    return buildCompoundAssignment(binaryOperator, new IntLiteral(1),
+        voidContext: voidContext);
   }
 
-  Expression buildPostfixIncrement(Name binaryOperator) {
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {bool voidContext: false}) {
+    if (voidContext) {
+      return buildPrefixIncrement(binaryOperator, voidContext: true);
+    }
     var value = new VariableDeclaration.forValue(_makeRead());
     valueAccess() => new VariableGet(value);
     var dummy = new VariableDeclaration.forValue(_makeWrite(
-        makeBinary(valueAccess(), binaryOperator, new IntLiteral(1))));
+        makeBinary(valueAccess(), binaryOperator, new IntLiteral(1)), true));
     return _finish(makeLet(value, makeLet(dummy, valueAccess())));
   }
 
   Expression _makeSimpleRead() => _makeRead();
-  Expression _makeSimpleWrite(Expression value) => _makeWrite(value);
+  Expression _makeSimpleWrite(Expression value, bool voidContext) {
+    return _makeWrite(value, voidContext);
+  }
 
   Expression _makeRead();
-  Expression _makeWrite(Expression value);
+  Expression _makeWrite(Expression value, bool voidContext);
 
   Expression _finish(Expression body) => body;
 }
@@ -54,9 +69,11 @@ class VariableAccessor extends Accessor {
 
   _makeRead() => new VariableGet(variable);
 
-  _makeWrite(Expression value) => variable.isFinal || variable.isConst
-      ? wrapInvalid(value)
-      : new VariableSet(variable, value);
+  _makeWrite(Expression value, bool voidContext) {
+    return variable.isFinal || variable.isConst
+        ? wrapInvalid(value)
+        : new VariableSet(variable, value);
+  }
 }
 
 class PropertyAccessor extends Accessor {
@@ -75,7 +92,9 @@ class PropertyAccessor extends Accessor {
   PropertyAccessor._internal(this.receiver, this.name);
 
   _makeSimpleRead() => new PropertyGet(receiver, name);
-  _makeSimpleWrite(Expression value) => new PropertySet(receiver, name, value);
+  _makeSimpleWrite(Expression value, bool voidContext) {
+    return new PropertySet(receiver, name, value);
+  }
 
   receiverAccess() {
     _receiverVariable ??= new VariableDeclaration.forValue(receiver);
@@ -84,7 +103,7 @@ class PropertyAccessor extends Accessor {
 
   _makeRead() => new PropertyGet(receiverAccess(), name);
 
-  _makeWrite(Expression value) {
+  _makeWrite(Expression value, bool voidContext) {
     return new PropertySet(receiverAccess(), name, value);
   }
 
@@ -100,7 +119,7 @@ class ThisPropertyAccessor extends Accessor {
 
   _makeRead() => new PropertyGet(new ThisExpression(), name);
 
-  _makeWrite(Expression value) {
+  _makeWrite(Expression value, bool voidContext) {
     return new PropertySet(new ThisExpression(), name, value);
   }
 }
@@ -116,7 +135,7 @@ class NullAwarePropertyAccessor extends Accessor {
 
   _makeRead() => new PropertyGet(receiverAccess(), name);
 
-  _makeWrite(Expression value) {
+  _makeWrite(Expression value, bool voidContext) {
     return new PropertySet(receiverAccess(), name, value);
   }
 
@@ -136,9 +155,11 @@ class SuperPropertyAccessor extends Accessor {
       ? new InvalidExpression()
       : new SuperPropertyGet(readTarget);
 
-  _makeWrite(Expression value) => writeTarget == null
-      ? wrapInvalid(value)
-      : new SuperPropertySet(writeTarget, value);
+  _makeWrite(Expression value, bool voidContext) {
+    return writeTarget == null
+        ? wrapInvalid(value)
+        : new SuperPropertySet(writeTarget, value);
+  }
 }
 
 final Name _indexGet = new Name('[]');
@@ -163,8 +184,11 @@ class IndexAccessor extends Accessor {
   _makeSimpleRead() => new MethodInvocation(
       receiver, _indexGet, new Arguments(<Expression>[index]));
 
-  _makeSimpleWrite(Expression value) => new MethodInvocation(
-      receiver, _indexSet, new Arguments(<Expression>[index, value]));
+  _makeSimpleWrite(Expression value, bool voidContext) {
+    if (!voidContext) return _makeWriteAndReturn(value);
+    return new MethodInvocation(
+        receiver, _indexSet, new Arguments(<Expression>[index, value]));
+  }
 
   receiverAccess() {
     // We cannot reuse the receiver if it is a variable since it might be
@@ -174,7 +198,7 @@ class IndexAccessor extends Accessor {
   }
 
   indexAccess() {
-    indexVariable ??= makeOrReuseVariable(index);
+    indexVariable ??= new VariableDeclaration.forValue(receiver);
     return new VariableGet(indexVariable);
   }
 
@@ -183,9 +207,23 @@ class IndexAccessor extends Accessor {
         new Arguments(<Expression>[indexAccess()]));
   }
 
-  _makeWrite(Expression value) {
+  _makeWrite(Expression value, bool voidContext) {
+    if (!voidContext) return _makeWriteAndReturn(value);
     return new MethodInvocation(receiverAccess(), _indexSet,
         new Arguments(<Expression>[indexAccess(), value]));
+  }
+
+  _makeWriteAndReturn(Expression value) {
+    // The call to []= does not return the value like direct-style assignments
+    // do.  We need to bind the value in a let.
+    var valueVariable = new VariableDeclaration.forValue(value);
+    var dummy = new VariableDeclaration.forValue(new MethodInvocation(
+        receiverAccess(),
+        _indexSet,
+        new Arguments(
+            <Expression>[indexAccess(), new VariableGet(valueVariable)])));
+    return makeLet(
+        valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
   }
 
   Expression _finish(Expression body) {
@@ -206,22 +244,35 @@ class ThisIndexAccessor extends Accessor {
         new ThisExpression(), _indexGet, new Arguments(<Expression>[index]));
   }
 
-  _makeSimpleWrite(Expression value) {
+  _makeSimpleWrite(Expression value, bool voidContext) {
+    if (!voidContext) return _makeWriteAndReturn(value);
     return new MethodInvocation(new ThisExpression(), _indexSet,
         new Arguments(<Expression>[index, value]));
   }
 
   indexAccess() {
-    indexVariable ??= makeOrReuseVariable(index);
+    indexVariable ??= new VariableDeclaration.forValue(index);
     return new VariableGet(indexVariable);
   }
 
   _makeRead() => new MethodInvocation(new ThisExpression(), _indexGet,
       new Arguments(<Expression>[indexAccess()]));
 
-  _makeWrite(Expression value) {
+  _makeWrite(Expression value, bool voidContext) {
+    if (!voidContext) return _makeWriteAndReturn(value);
     return new MethodInvocation(new ThisExpression(), _indexSet,
         new Arguments(<Expression>[indexAccess(), value]));
+  }
+
+  _makeWriteAndReturn(Expression value) {
+    var valueVariable = new VariableDeclaration.forValue(value);
+    var dummy = new VariableDeclaration.forValue(new MethodInvocation(
+        new ThisExpression(),
+        _indexSet,
+        new Arguments(
+            <Expression>[indexAccess(), new VariableGet(valueVariable)])));
+    return makeLet(
+        valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
   }
 
   Expression _finish(Expression body) => makeLet(indexVariable, body);
@@ -245,10 +296,12 @@ class SuperIndexAccessor extends Accessor {
       : new SuperMethodInvocation(
           readTarget, new Arguments(<Expression>[index]));
 
-  _makeSimpleWrite(Expression value) => writeTarget == null
-      ? wrapInvalid(value)
-      : new SuperMethodInvocation(
-          writeTarget, new Arguments(<Expression>[index, value]));
+  _makeSimpleWrite(Expression value, bool voidContext) {
+    return writeTarget == null
+        ? wrapInvalid(value)
+        : new SuperMethodInvocation(
+            writeTarget, new Arguments(<Expression>[index, value]));
+  }
 
   _makeRead() {
     return readTarget == null
@@ -257,7 +310,7 @@ class SuperIndexAccessor extends Accessor {
             readTarget, new Arguments(<Expression>[indexAccess()]));
   }
 
-  _makeWrite(Expression value) {
+  _makeWrite(Expression value, bool voidContext) {
     return writeTarget == null
         ? wrapInvalid(value)
         : new SuperMethodInvocation(
@@ -278,9 +331,11 @@ class StaticAccessor extends Accessor {
   _makeRead() =>
       readTarget == null ? new InvalidExpression() : new StaticGet(readTarget);
 
-  _makeWrite(Expression value) => writeTarget == null
-      ? wrapInvalid(value)
-      : new StaticSet(writeTarget, value);
+  _makeWrite(Expression value, bool voidContext) {
+    return writeTarget == null
+        ? wrapInvalid(value)
+        : new StaticSet(writeTarget, value);
+  }
 }
 
 class ReadOnlyAccessor extends Accessor {
@@ -296,11 +351,10 @@ class ReadOnlyAccessor extends Accessor {
     return new VariableGet(value);
   }
 
-  _makeWrite(Expression value) => new InvalidExpression();
+  _makeWrite(Expression value, bool voidContext) => new InvalidExpression();
 
   finish(Expression body) => makeLet(value, body);
 }
-
 
 Expression makeLet(VariableDeclaration variable, Expression body) {
   if (variable == null) return body;

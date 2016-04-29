@@ -736,8 +736,8 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
       //       BODY
       //     }
       body = new ast.Block(<ast.Statement>[
-        new ast.ExpressionStatement(
-            leftHand.buildAssignment(new ast.VariableGet(variable))),
+        new ast.ExpressionStatement(leftHand
+            .buildAssignment(new ast.VariableGet(variable), voidContext: true)),
         body
       ]);
     }
@@ -846,17 +846,20 @@ class ExpressionBuilder
   }
 
   ast.Expression visitAssignmentExpression(AssignmentExpression node) {
+    bool voidContext = isInVoidContext(node);
     String operator = node.operator.value();
     var leftHand = buildLeftHandValue(node.leftHandSide);
     var rightHand = build(node.rightHandSide);
     if (operator == '=') {
-      return leftHand.buildAssignment(rightHand);
+      return leftHand.buildAssignment(rightHand, voidContext: voidContext);
     } else if (operator == '??=') {
-      return leftHand.buildNullAwareAssignment(rightHand);
+      return leftHand.buildNullAwareAssignment(rightHand,
+          voidContext: voidContext);
     } else {
       // Cut off the trailing '='.
       var name = new ast.Name(operator.substring(0, operator.length - 1));
-      return leftHand.buildCompoundAssignment(name, rightHand);
+      return leftHand.buildCompoundAssignment(name, rightHand,
+          voidContext: voidContext);
     }
   }
 
@@ -1289,11 +1292,8 @@ class ExpressionBuilder
       case '--':
         var leftHand = buildLeftHandValue(node.operand);
         var binaryOperator = new ast.Name(operator[0]);
-        // The IR for prefix increment is more compact, so prefer that when
-        // the result of the expression is not used.
-        return isInVoidContext(node)
-            ? leftHand.buildPrefixIncrement(binaryOperator)
-            : leftHand.buildPostfixIncrement(binaryOperator);
+        return leftHand.buildPostfixIncrement(binaryOperator,
+            voidContext: isInVoidContext(node));
 
       default:
         return new ast.InvalidExpression();
