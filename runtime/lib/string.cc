@@ -91,7 +91,8 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 3) {
 
 
 DEFINE_NATIVE_ENTRY(StringBase_substringUnchecked, 3) {
-  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
+  const String& receiver = String::CheckedHandle(zone,
+                                                 arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
 
@@ -163,7 +164,8 @@ static bool CheckSlicesOneByte(const String& base,
 
 
 DEFINE_NATIVE_ENTRY(StringBase_joinReplaceAllResult, 4) {
-  const String& base = String::CheckedHandle(arguments->NativeArgAt(0));
+  const String& base = String::CheckedHandle(zone,
+                                             arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(GrowableObjectArray,
                                matches_growable, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length_obj, arguments->NativeArgAt(2));
@@ -251,7 +253,8 @@ DEFINE_NATIVE_ENTRY(StringBase_joinReplaceAllResult, 4) {
 }
 
 DEFINE_NATIVE_ENTRY(OneByteString_substringUnchecked, 3) {
-  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
+  const String& receiver = String::CheckedHandle(zone,
+                                                 arguments->NativeArgAt(0));
   ASSERT(receiver.IsOneByteString());
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
@@ -303,7 +306,8 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocate, 1) {
 
 
 DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 3) {
-  Instance& list = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  Instance& list = Instance::CheckedHandle(zone,
+                                           arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
 
@@ -406,7 +410,8 @@ DEFINE_NATIVE_ENTRY(ExternalOneByteString_getCid, 0) {
 
 
 DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 3) {
-  Instance& list = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  Instance& list = Instance::CheckedHandle(zone,
+                                           arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
 
@@ -492,7 +497,8 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 3) {
 
 
 DEFINE_NATIVE_ENTRY(String_getHashCode, 1) {
-  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
+  const String& receiver = String::CheckedHandle(zone,
+                                                 arguments->NativeArgAt(0));
   intptr_t hash_val = receiver.Hash();
   ASSERT(hash_val > 0);
   ASSERT(Smi::IsValid(hash_val));
@@ -501,7 +507,8 @@ DEFINE_NATIVE_ENTRY(String_getHashCode, 1) {
 
 
 DEFINE_NATIVE_ENTRY(String_getLength, 1) {
-  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
+  const String& receiver = String::CheckedHandle(zone,
+                                                 arguments->NativeArgAt(0));
   return Smi::New(receiver.Length());
 }
 
@@ -521,7 +528,8 @@ static uint16_t StringValueAt(const String& str, const Integer& index) {
 
 
 DEFINE_NATIVE_ENTRY(String_charAt, 2) {
-  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
+  const String& receiver = String::CheckedHandle(zone,
+                                                 arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
   uint16_t value = StringValueAt(receiver, index);
   return Symbols::FromCharCode(thread, static_cast<int32_t>(value));
@@ -530,7 +538,8 @@ DEFINE_NATIVE_ENTRY(String_charAt, 2) {
 
 // Returns the 16-bit UTF-16 code unit at the given index.
 DEFINE_NATIVE_ENTRY(String_codeUnitAt, 2) {
-  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
+  const String& receiver = String::CheckedHandle(zone,
+                                                 arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
   uint16_t value = StringValueAt(receiver, index);
   return Smi::New(static_cast<intptr_t>(value));
@@ -538,21 +547,24 @@ DEFINE_NATIVE_ENTRY(String_codeUnitAt, 2) {
 
 
 DEFINE_NATIVE_ENTRY(String_concat, 2) {
-  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
+  const String& receiver = String::CheckedHandle(zone,
+                                                 arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, b, arguments->NativeArgAt(1));
   return String::Concat(receiver, b);
 }
 
 
 DEFINE_NATIVE_ENTRY(String_toLowerCase, 1) {
-  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
+  const String& receiver = String::CheckedHandle(zone,
+                                                 arguments->NativeArgAt(0));
   ASSERT(!receiver.IsNull());
   return String::ToLowerCase(receiver);
 }
 
 
 DEFINE_NATIVE_ENTRY(String_toUpperCase, 1) {
-  const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
+  const String& receiver = String::CheckedHandle(zone,
+                                                 arguments->NativeArgAt(0));
   ASSERT(!receiver.IsNull());
   return String::ToUpperCase(receiver);
 }
