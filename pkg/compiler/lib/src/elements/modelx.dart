@@ -1408,11 +1408,17 @@ abstract class ConstantVariableMixin implements VariableElement {
       originVariable.constant = value;
       return;
     }
+    if (constantCache != null &&
+        constantCache.kind == ConstantExpressionKind.ERRONEOUS) {
+      // TODO(johnniwinther): Find out why we sometimes compute a non-erroneous
+      // constant for a variable already known to be erroneous.
+      return;
+    }
     assert(invariant(this, constantCache == null || constantCache == value,
         message: "Constant has already been computed for $this. "
             "Existing constant: "
-            "${constantCache != null ? constantCache.toDartText() : ''}, "
-            "New constant: ${value != null ? value.toDartText() : ''}."));
+            "${constantCache != null ? constantCache.toStructuredText() : ''}, "
+            "New constant: ${value != null ? value.toStructuredText() : ''}."));
     constantCache = value;
   }
 }

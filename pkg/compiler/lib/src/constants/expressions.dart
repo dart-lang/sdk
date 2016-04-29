@@ -1261,7 +1261,11 @@ class BoolFromEnvironmentConstantExpression
     sb.write('bool.fromEnvironment(name=');
     name._createStructuredText(sb);
     sb.write(',defaultValue=');
-    defaultValue._createStructuredText(sb);
+    if (defaultValue != null) {
+      defaultValue._createStructuredText(sb);
+    } else {
+      sb.write('null');
+    }
     sb.write(')');
   }
 
@@ -1320,7 +1324,11 @@ class IntFromEnvironmentConstantExpression
     sb.write('int.fromEnvironment(name=');
     name._createStructuredText(sb);
     sb.write(',defaultValue=');
-    defaultValue._createStructuredText(sb);
+    if (defaultValue != null) {
+      defaultValue._createStructuredText(sb);
+    } else {
+      sb.write('null');
+    }
     sb.write(')');
   }
 
@@ -1381,7 +1389,11 @@ class StringFromEnvironmentConstantExpression
     sb.write('String.fromEnvironment(name=');
     name._createStructuredText(sb);
     sb.write(',defaultValue=');
-    defaultValue._createStructuredText(sb);
+    if (defaultValue != null) {
+      defaultValue._createStructuredText(sb);
+    } else {
+      sb.write('null');
+    }
     sb.write(')');
   }
 
