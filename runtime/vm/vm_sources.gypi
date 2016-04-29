@@ -21,6 +21,7 @@
     'assembler_arm64_test.cc',
     'assembler_dbc.cc',
     'assembler_dbc.h',
+    'assembler_dbc_test.cc',
     'assembler_ia32.cc',
     'assembler_ia32.h',
     'assembler_ia32_test.cc',

@@ -201,7 +201,7 @@
       bit_cast<int32_t, uword>(entry),                                         \
       bit_cast<int32_t, intptr_t>(pointer_arg),                                \
       0, 0, 0))
-#endif
+#endif  // defined(ARCH_IS_64_BIT)
 #define EXECUTE_TEST_CODE_INT64_LL(name, entry, long_arg0, long_arg1)          \
   static_cast<int64_t>(Simulator::Current()->Call(                             \
       bit_cast<int32_t, uword>(entry),                                         \
@@ -224,7 +224,21 @@
       Utils::High32Bits(bit_cast<int64_t, double>(double_arg)),                \
       0, 0, false, true))
 #endif  // defined(HOST_ARCH_ARM) || defined(HOST_ARCH_MIPS)
-#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+#else
+// For DBC Assembler tests.
+#define EXECUTE_TEST_CODE_INTPTR(code)                                         \
+    Smi::Value(Smi::RawCast(Simulator::Current()->Call(                        \
+      code,                                                                    \
+      Array::Handle(ArgumentsDescriptor::New(0)),                              \
+      Array::Handle(Array::New(0)),                                            \
+      Thread::Current())))
+#define EXECUTE_TEST_CODE_BOOL(code)                                           \
+    (Bool::RawCast(Simulator::Current()->Call(                                 \
+       code,                                                                   \
+       Array::Handle(ArgumentsDescriptor::New(0)),                             \
+       Array::Handle(Array::New(0)),                                           \
+       Thread::Current())) == Bool::True().raw())
+#endif  // defined(TARGET_ARCH_{ARM, ARM64, MIPS})
 
 
 inline Dart_Handle NewString(const char* str) {
