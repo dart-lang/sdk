@@ -8,32 +8,6 @@ library kernel.accessors;
 
 import 'ast.dart';
 
-Expression makeLet(VariableDeclaration variable, Expression body) {
-  if (variable == null) return body;
-  return new Let(variable, body);
-}
-
-Expression makeBinary(Expression left, Name operator, Expression right) {
-  return new MethodInvocation(
-      left, operator, new Arguments(<Expression>[right]));
-}
-
-final Name _equalOperator = new Name('==');
-
-Expression buildIsNull(Expression value) {
-  return makeBinary(value, _equalOperator, new NullLiteral());
-}
-
-VariableDeclaration makeOrReuseVariable(Expression value) {
-  // TODO: Devise a way to remember if a variable declaration was reused
-  // or is fresh (hence needs a let binding).
-  return new VariableDeclaration.forValue(value);
-}
-
-Expression wrapInvalid(Expression e) {
-  return new Let(new VariableDeclaration.forValue(e), new InvalidExpression());
-}
-
 abstract class Accessor {
   Expression buildSimpleRead() {
     return _finish(_makeSimpleRead());
@@ -79,6 +53,7 @@ class VariableAccessor extends Accessor {
   VariableAccessor(this.variable);
 
   _makeRead() => new VariableGet(variable);
+
   _makeWrite(Expression value) => variable.isFinal || variable.isConst
       ? wrapInvalid(value)
       : new VariableSet(variable, value);
@@ -89,7 +64,15 @@ class PropertyAccessor extends Accessor {
   Expression receiver;
   Name name;
 
-  PropertyAccessor(this.receiver, this.name);
+  static Accessor make(Expression receiver, Name name) {
+    if (receiver is ThisExpression) {
+      return new ThisPropertyAccessor(name);
+    } else {
+      return new PropertyAccessor._internal(receiver, name);
+    }
+  }
+
+  PropertyAccessor._internal(this.receiver, this.name);
 
   _makeSimpleRead() => new PropertyGet(receiver, name);
   _makeSimpleWrite(Expression value) => new PropertySet(receiver, name, value);
@@ -106,6 +89,20 @@ class PropertyAccessor extends Accessor {
   }
 
   _finish(Expression body) => makeLet(_receiverVariable, body);
+}
+
+/// Special case of [PropertyAccessor] to avoid creating an indirect access to
+/// 'this'.
+class ThisPropertyAccessor extends Accessor {
+  Name name;
+
+  ThisPropertyAccessor(this.name);
+
+  _makeRead() => new PropertyGet(new ThisExpression(), name);
+
+  _makeWrite(Expression value) {
+    return new PropertySet(new ThisExpression(), name, value);
+  }
 }
 
 class NullAwarePropertyAccessor extends Accessor {
@@ -153,7 +150,15 @@ class IndexAccessor extends Accessor {
   VariableDeclaration receiverVariable;
   VariableDeclaration indexVariable;
 
-  IndexAccessor(this.receiver, this.index);
+  static Accessor make(Expression receiver, Expression index) {
+    if (receiver is ThisExpression) {
+      return new ThisIndexAccessor(index);
+    } else {
+      return new IndexAccessor._internal(receiver, index);
+    }
+  }
+
+  IndexAccessor._internal(this.receiver, this.index);
 
   _makeSimpleRead() => new MethodInvocation(
       receiver, _indexGet, new Arguments(<Expression>[index]));
@@ -186,6 +191,40 @@ class IndexAccessor extends Accessor {
   Expression _finish(Expression body) {
     return makeLet(receiverVariable, makeLet(indexVariable, body));
   }
+}
+
+/// Special case of [IndexAccessor] to avoid creating an indirect access to
+/// 'this'.
+class ThisIndexAccessor extends Accessor {
+  Expression index;
+  VariableDeclaration indexVariable;
+
+  ThisIndexAccessor(this.index);
+
+  _makeSimpleRead() {
+    return new MethodInvocation(
+        new ThisExpression(), _indexGet, new Arguments(<Expression>[index]));
+  }
+
+  _makeSimpleWrite(Expression value) {
+    return new MethodInvocation(new ThisExpression(), _indexSet,
+        new Arguments(<Expression>[index, value]));
+  }
+
+  indexAccess() {
+    indexVariable ??= makeOrReuseVariable(index);
+    return new VariableGet(indexVariable);
+  }
+
+  _makeRead() => new MethodInvocation(new ThisExpression(), _indexGet,
+      new Arguments(<Expression>[indexAccess()]));
+
+  _makeWrite(Expression value) {
+    return new MethodInvocation(new ThisExpression(), _indexSet,
+        new Arguments(<Expression>[indexAccess(), value]));
+  }
+
+  Expression _finish(Expression body) => makeLet(indexVariable, body);
 }
 
 class SuperIndexAccessor extends Accessor {
@@ -260,4 +299,31 @@ class ReadOnlyAccessor extends Accessor {
   _makeWrite(Expression value) => new InvalidExpression();
 
   finish(Expression body) => makeLet(value, body);
+}
+
+
+Expression makeLet(VariableDeclaration variable, Expression body) {
+  if (variable == null) return body;
+  return new Let(variable, body);
+}
+
+Expression makeBinary(Expression left, Name operator, Expression right) {
+  return new MethodInvocation(
+      left, operator, new Arguments(<Expression>[right]));
+}
+
+final Name _equalOperator = new Name('==');
+
+Expression buildIsNull(Expression value) {
+  return makeBinary(value, _equalOperator, new NullLiteral());
+}
+
+VariableDeclaration makeOrReuseVariable(Expression value) {
+  // TODO: Devise a way to remember if a variable declaration was reused
+  // or is fresh (hence needs a let binding).
+  return new VariableDeclaration.forValue(value);
+}
+
+Expression wrapInvalid(Expression e) {
+  return new Let(new VariableDeclaration.forValue(e), new InvalidExpression());
 }

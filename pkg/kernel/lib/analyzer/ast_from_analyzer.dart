@@ -1029,7 +1029,7 @@ class ExpressionBuilder
       case ElementKind.SETTER:
       case ElementKind.LOCAL_VARIABLE:
       case ElementKind.PARAMETER:
-        return new PropertyAccessor(
+        return PropertyAccessor.make(
             build(node.prefix), scope.buildName(node.identifier));
 
       case ElementKind.UNIVERSE:
@@ -1071,7 +1071,7 @@ class ExpressionBuilder
         return new ast.InvalidExpression();
 
       case ElementKind.ERROR: // This covers the case where nothing was found.
-        return new PropertyAccessor(scope.buildThis(), scope.buildName(node));
+        return PropertyAccessor.make(scope.buildThis(), scope.buildName(node));
 
       case ElementKind.FIELD:
       case ElementKind.TOP_LEVEL_VARIABLE:
@@ -1085,7 +1085,7 @@ class ExpressionBuilder
           return new StaticAccessor(scope.resolveGet(element, auxiliary),
               scope.resolveSet(element, auxiliary));
         }
-        return new PropertyAccessor(scope.buildThis(), scope.buildName(node));
+        return PropertyAccessor.make(scope.buildThis(), scope.buildName(node));
 
       case ElementKind.FUNCTION:
         FunctionElement function = element;
@@ -1108,7 +1108,7 @@ class ExpressionBuilder
 
   visitIndexExpression(IndexExpression node) {
     if (node.isCascaded) {
-      return new IndexAccessor(makeCascadeReceiver(), build(node.index));
+      return IndexAccessor.make(makeCascadeReceiver(), build(node.index));
     } else if (node.target is SuperExpression) {
       Element element = node.staticElement;
       Element auxiliary = node.auxiliaryElements?.staticElement;
@@ -1119,7 +1119,7 @@ class ExpressionBuilder
           scope.resolveIndexGet(element, auxiliary),
           scope.resolveIndexSet(element, auxiliary));
     } else {
-      return new IndexAccessor(build(node.target), build(node.index));
+      return IndexAccessor.make(build(node.target), build(node.index));
     }
   }
 
@@ -1334,7 +1334,7 @@ class ExpressionBuilder
 
   visitPropertyAccess(PropertyAccess node) {
     if (node.isCascaded) {
-      return new PropertyAccessor(
+      return PropertyAccessor.make(
           makeCascadeReceiver(), scope.buildName(node.propertyName));
     } else if (node.target is SuperExpression) {
       Element element = node.propertyName.staticElement;
@@ -1347,7 +1347,7 @@ class ExpressionBuilder
       return new NullAwarePropertyAccessor(
           build(node.target), scope.buildName(node.propertyName));
     } else {
-      return new PropertyAccessor(
+      return PropertyAccessor.make(
           build(node.target), scope.buildName(node.propertyName));
     }
   }
