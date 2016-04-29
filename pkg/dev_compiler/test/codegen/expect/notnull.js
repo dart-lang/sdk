@@ -8,11 +8,11 @@ dart_library.library('notnull', null, /* Imports */[
   const notnull = Object.create(null);
   notnull.intAssignments = function() {
     let i = 0;
-    i = (i & 1) >>> 0;
+    i = i & 1;
     i = (i | 1) >>> 0;
     i = (i ^ 1) >>> 0;
     i = i[dartx['>>']](1);
-    i = i[dartx['<<']](1);
+    i = i << 1 >>> 0;
     i = i - 1;
     i = i[dartx['%']](1);
     i = i + 1;

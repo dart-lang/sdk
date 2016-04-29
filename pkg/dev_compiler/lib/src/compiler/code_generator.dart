@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection' show HashMap, HashSet;
+import 'dart:math' show min, max;
 
 import 'package:analyzer/analyzer.dart' hide ConstantEvaluator;
 import 'package:analyzer/dart/ast/ast.dart';
@@ -2960,11 +2961,27 @@ class CodeGenerator extends GeneralizingAstVisitor
           return bitwise('# ^ #');
 
         case TokenType.GT_GT:
-          // TODO(sra): Detect when JS shift does the right thing.
+          int shiftCount = _asIntInRange(right, 0, 31);
+          if (_is31BitUnsigned(left) && shiftCount != null) {
+            return binary('# >> #');
+          }
+          if (_isDefinitelyNonNegative(left) && shiftCount != null) {
+            return binary('# >>> #');
+          }
+          // TODO(sra): If the context selects out only bits that can't be
+          // affected by the sign position we can use any JavaScript shift.
+          // E.g. `(x >> 6) & 3`.
           return _emitSend(left, op.lexeme, [right]);
 
         case TokenType.LT_LT:
-          // TODO(sra): Detect when JS shift does the right thing.
+          if (_is31BitUnsigned(node)) {
+            // Result is 31 bit unsigned which implies the shift count was small
+            // enough not to pollute the sign bit.
+            return binary('# << #');
+          }
+          if (_asIntInRange(right, 0, 31) != null) {
+            return _coerceBitOperationResultToUnsigned(node, binary('# << #'));
+          }
           return _emitSend(left, op.lexeme, [right]);
 
         default:
@@ -2982,7 +2999,117 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// signed results.
   JS.Expression _coerceBitOperationResultToUnsigned(
       Expression node, JS.Expression operation) {
+    // Don't coerce if the parent will coerce.
+    AstNode parent = _parentOperation(node);
+    if (_nodeIsBitwiseOperation(parent)) return operation;
+
+    // Don't do a no-op coerce if the most significant bit is zero.
+    if (_is31BitUnsigned(node)) return operation;
+
+    // TODO(sra): If the consumer of the expression is '==' or '!=' to a
+    // constant that fits in 31 bits, adding a coercion does not change the
+    // result of the comparision, e.g.  `a & ~b == 0`.
     return js.call('# >>> 0', operation);
+  }
+
+  AstNode _parentOperation(AstNode node) {
+    node = node.parent;
+    while (node is ParenthesizedExpression) node = node.parent;
+    return node;
+  }
+
+  bool _nodeIsBitwiseOperation(AstNode node) {
+    if (node is BinaryExpression) {
+      switch (node.operator.type) {
+        case TokenType.AMPERSAND:
+        case TokenType.BAR:
+        case TokenType.CARET:
+          return true;
+      }
+      return false;
+    }
+    if (node is PrefixExpression) {
+      return node.operator.type == TokenType.TILDE;
+    }
+    return false;
+  }
+
+  Expression _skipParentheses(Expression expr) {
+    while (expr is ParenthesizedExpression) {
+      ParenthesizedExpression parenExpr = expr;
+      expr = parenExpr.expression;
+    }
+    return expr;
+  }
+
+  int _asIntInRange(Expression expr, int low, int high) {
+    expr = _skipParentheses(expr);
+    if (expr is IntegerLiteral) {
+      if (expr.value >= low && expr.value <= high) return expr.value;
+    }
+    return null;
+  }
+
+  bool _isDefinitelyNonNegative(Expression expr) {
+    expr = _skipParentheses(expr);
+    if (expr is IntegerLiteral) {
+      return expr.value >= 0;
+    }
+    if (_nodeIsBitwiseOperation(expr)) return true;
+    // TODO(sra): Lengths of known list types etc.
+    return false;
+  }
+
+  /// Determines if the result of evaluating [expr] will be an non-negative
+  /// value that fits in 31 bits.
+  bool _is31BitUnsigned(Expression expr) {
+    const int MAX = 32; // Includes larger and negative values.
+    /// Determines how many bits are required to hold result of evaluation
+    /// [expr].  [depth] is used to bound exploration of huge expressions.
+    int bitWidth(Expression expr, int depth) {
+      if (expr is IntegerLiteral) {
+        return expr.value >= 0 ? expr.value.bitLength : MAX;
+      }
+      if (++depth > 5) return MAX;
+      if (expr is BinaryExpression) {
+        var left = _skipParentheses(expr.leftOperand);
+        var right = _skipParentheses(expr.rightOperand);
+        switch (expr.operator.type) {
+          case TokenType.AMPERSAND:
+            return min(bitWidth(left, depth), bitWidth(right, depth));
+
+          case TokenType.BAR:
+          case TokenType.CARET:
+            return max(bitWidth(left, depth), bitWidth(right, depth));
+
+          case TokenType.GT_GT:
+            int shiftValue = _asIntInRange(right, 0, 31);
+            if (shiftValue != null) {
+              int leftWidth = bitWidth(left, depth);
+              return leftWidth == MAX ? MAX : max(0, leftWidth - shiftValue);
+            }
+            return MAX;
+
+          case TokenType.LT_LT:
+            int leftWidth = bitWidth(left, depth);
+            int shiftValue = _asIntInRange(right, 0, 31);
+            if (shiftValue != null) {
+              return min(MAX, leftWidth + shiftValue);
+            }
+            int rightWidth = bitWidth(right, depth);
+            if (rightWidth <= 5) {
+              // e.g.  `1 << (x & 7)` has a rightWidth of 3, so shifts by up to
+              // (1 << 3) - 1 == 7 bits.
+              return min(MAX, leftWidth + ((1 << rightWidth) - 1));
+            }
+            return MAX;
+          default:
+            return MAX;
+        }
+      }
+      return MAX;
+    }
+    return bitWidth(expr, 0) < 32;
   }
 
   /// If the type [t] is [int] or [double], or a type parameter
