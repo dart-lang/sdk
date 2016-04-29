@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `dart test/util/solo_test.dart no_throw_in_finally_block`
+// test w/ `dart test/util/solo_test.dart throw_in_finally`
 
 class Ok {
   double compliantMethod() {

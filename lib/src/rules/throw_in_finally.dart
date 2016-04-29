@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.no_throw_in_finally_block;
+library linter.src.rules.throw_in_finally;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/linter.dart';
-import 'package:linter/src/rules/no_control_flow_in_finally_block.dart';
+import 'package:linter/src/rules/control_flow_in_finally.dart';
 
 const desc = r'Avoid `throw` in finally block.';
 
@@ -46,12 +46,12 @@ class BadThrow {
 ```
 ''';
 
-class NoThrowInFinallyBlock extends LintRule {
+class ThrowInFinally extends LintRule {
   _Visitor _visitor;
 
-  NoThrowInFinallyBlock()
+  ThrowInFinally()
       : super(
-            name: 'no_throw_in_finally_block',
+            name: 'throw_in_finally',
             description: desc,
             details: details,
             group: Group.errors) {

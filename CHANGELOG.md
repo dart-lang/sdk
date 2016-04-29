@@ -1,3 +1,20 @@
+# 0.1.15
+
+* Fix to allow simple getter/setters when a decl is ``@protected` (#215).
+* Fix to not require type params in `is` checks (#227).
+* Fix to not flag field formal identifiers in parameters (#224).
+* Fix to respect filters when calculating error codes (#198).
+* Fix to allow `const` and `final` vars to be initialized to null (#210).
+* Fix to respect commented blocks in `empty_constructor_bodies` (#209).
+* Fix to check types on list/map literals (#199).
+* Fix to skip `main` when checking for API docs (#207).
+* Fix to allow leading `$` in type names (#220).
+* Fix to ignore private typedefs when checking for types (#216).
+* New `test_types_in_equals` lint.
+* New `await_only_futures` lint.
+* New `throw_in_finally` lint.
+* New `control_flow_in_finally` lint.
+
 # 0.1.14
 
 * Fix to respect `@optionalTypeArgs` (#196).

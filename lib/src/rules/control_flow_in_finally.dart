@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.no_control_flow_in_finally_block;
+library linter.src.rules.control_flow_in_finally;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/linter.dart';
 
-const desc = r'Avoid control flow in `finally block.';
+const desc = r'Avoid control flow in `finally` block.';
 
 const details = r'''
 **AVOID** control flow leaving finally blocks. This will cause unexpected
@@ -81,12 +81,12 @@ class BadBreak {
 ```
 ''';
 
-class NoControlFlowInFinallyBlock extends LintRule {
+class ControlFlowInFinally extends LintRule {
   _Visitor _visitor;
 
-  NoControlFlowInFinallyBlock()
+  ControlFlowInFinally()
       : super(
-            name: 'no_control_flow_in_finally_block',
+            name: 'control_flow_in_finally',
             description: desc,
             details: details,
             group: Group.errors) {

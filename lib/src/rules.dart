@@ -15,20 +15,18 @@ import 'package:linter/src/rules/avoid_as.dart';
 import 'package:linter/src/rules/avoid_empty_else.dart';
 import 'package:linter/src/rules/avoid_init_to_null.dart';
 import 'package:linter/src/rules/avoid_return_types_on_setters.dart';
-import 'package:linter/src/rules/await_only_future.dart';
+import 'package:linter/src/rules/await_only_futures.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/rules/constant_identifier_names.dart';
+import 'package:linter/src/rules/control_flow_in_finally.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
-import 'package:linter/src/rules/equals_test_argument_type.dart';
-import 'package:linter/src/rules/overriden_field.dart';
 import 'package:linter/src/rules/hash_and_equals.dart';
 import 'package:linter/src/rules/implementation_imports.dart';
 import 'package:linter/src/rules/library_names.dart';
 import 'package:linter/src/rules/library_prefixes.dart';
 import 'package:linter/src/rules/non_constant_identifier_names.dart';
-import 'package:linter/src/rules/no_control_flow_in_finally_block.dart';
-import 'package:linter/src/rules/no_throw_in_finally_block.dart';
 import 'package:linter/src/rules/one_member_abstracts.dart';
+import 'package:linter/src/rules/overriden_field.dart';
 import 'package:linter/src/rules/package_api_docs.dart';
 import 'package:linter/src/rules/package_prefixed_library_names.dart';
 import 'package:linter/src/rules/prefer_is_not_empty.dart';
@@ -38,6 +36,8 @@ import 'package:linter/src/rules/slash_for_doc_comments.dart';
 import 'package:linter/src/rules/sort_constructors_first.dart';
 import 'package:linter/src/rules/sort_unnamed_constructors_first.dart';
 import 'package:linter/src/rules/super_goes_last.dart';
+import 'package:linter/src/rules/test_types_in_equals.dart';
+import 'package:linter/src/rules/throw_in_finally.dart';
 import 'package:linter/src/rules/type_annotate_public_apis.dart';
 import 'package:linter/src/rules/type_init_formals.dart';
 import 'package:linter/src/rules/unnecessary_brace_in_string_interp.dart';
@@ -51,19 +51,19 @@ final Registry ruleRegistry = new Registry()
   ..register(new AvoidEmptyElse())
   ..register(new AvoidReturnTypesOnSetters())
   ..register(new AvoidInitToNull())
-  ..register(new AwaitOnlyFuture())
+  ..register(new AwaitOnlyFutures())
   ..register(new CamelCaseTypes())
   ..register(new ConstantIdentifierNames())
   ..register(new EmptyConstructorBodies())
-  ..register(new EqualsTestArgumentType())
+  ..register(new TestTypesInEquals())
   ..register(new OverridenField())
   ..register(new HashAndEquals())
   ..register(new ImplementationImports())
   ..register(new LibraryNames())
   ..register(new LibraryPrefixes())
   ..register(new NonConstantIdentifierNames())
-  ..register(new NoControlFlowInFinallyBlock())
-  ..register(new NoThrowInFinallyBlock())
+  ..register(new ControlFlowInFinally())
+  ..register(new ThrowInFinally())
   ..register(new PreferIsNotEmpty())
   ..register(new OneMemberAbstracts())
   ..register(new PackageApiDocs())

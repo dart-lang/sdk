@@ -3,7 +3,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `dart test/util/solo_test.dart equals_test_argument_type`
+// test w/ `dart test/util/solo_test.dart test_types_in_equals`
 
 class Field {}
 
