@@ -357,7 +357,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     if (index is num && index == index.toInt()) {
       _checkIndex(index);
     }
-    return super[index];
+    return super[index] as E;
   }
 
   void operator []=(Object index, E value) {
@@ -403,12 +403,12 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 
   E removeAt(int index) {
     _checkIndex(index);
-    return callMethod('splice', [index, 1])[0];
+    return callMethod('splice', [index, 1])[0] as E;
   }
 
   E removeLast() {
     if (length == 0) throw new RangeError(-1);
-    return callMethod('pop');
+    return callMethod('pop') as E;
   }
 
   void removeRange(int start, int end) {
