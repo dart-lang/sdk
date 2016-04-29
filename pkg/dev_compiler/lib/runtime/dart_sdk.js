@@ -29299,8 +29299,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _checkInsertIndex = Symbol('_checkInsertIndex');
   js.JsArray$ = dart.generic(E => {
     class JsArray extends dart.mixin(js.JsObject, collection.ListMixin$(E)) {
-      JsArray() {
-        super._fromJs([]);
+      static new() {
+        return new (js.JsArray$(E))._fromJs([]);
       }
       from(other) {
         super._fromJs((() => {
@@ -29401,7 +29401,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     dart.defineNamedConstructor(JsArray, '_fromJs');
     dart.setSignature(JsArray, {
       constructors: () => ({
-        JsArray: [js.JsArray$(E), []],
+        new: [js.JsArray$(E), []],
         from: [js.JsArray$(E), [core.Iterable$(E)]],
         _fromJs: [js.JsArray$(E), [dart.dynamic]]
       }),

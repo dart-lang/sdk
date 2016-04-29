@@ -317,7 +317,8 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   /**
    * Creates a new JavaScript array.
    */
-  JsArray() : super._fromJs([]);
+  // TODO(vsm): Making this a factory to workaround #537.
+  factory JsArray() { return new JsArray._fromJs([]); }
 
   /**
    * Creates a new JavaScript array and initializes it to the contents of
