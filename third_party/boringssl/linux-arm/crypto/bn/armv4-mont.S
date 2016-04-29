@@ -1,5 +1,5 @@
 #if defined(__arm__)
-#include "arm_arch.h"
+#include <openssl/arm_arch.h>
 
 .text
 .code	32

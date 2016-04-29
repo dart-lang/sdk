@@ -38,7 +38,7 @@
 @ Add ARMv8 code path performing at 2.0 cpb on Apple A7.
 
 #ifndef __KERNEL__
-# include "arm_arch.h"
+# include <openssl/arm_arch.h>
 #else
 # define __ARM_ARCH__ __LINUX_ARM_ARCH__
 # define __ARM_MAX_ARCH__ 7
@@ -85,6 +85,7 @@ K256:
 .align	5
 
 .globl	sha256_block_data_order
+.hidden	sha256_block_data_order
 .type	sha256_block_data_order,%function
 sha256_block_data_order:
 .Lsha256_block_data_order:
@@ -1875,6 +1876,7 @@ sha256_block_data_order:
 .fpu	neon
 
 .globl	sha256_block_data_order_neon
+.hidden	sha256_block_data_order_neon
 .type	sha256_block_data_order_neon,%function
 .align	4
 sha256_block_data_order_neon:
