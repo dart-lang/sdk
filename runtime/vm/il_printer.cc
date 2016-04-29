@@ -1304,7 +1304,8 @@ void FlowGraphPrinter::PrintGraph(const char* phase, FlowGraph* flow_graph) {
 }
 
 
-void FlowGraphPrinter::PrintICData(const ICData& ic_data) {
+void FlowGraphPrinter::PrintICData(const ICData& ic_data,
+                                   intptr_t num_checks_to_print) {
   UNREACHABLE();
 }
 

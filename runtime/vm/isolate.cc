@@ -1388,7 +1388,7 @@ void Isolate::Run() {
 void Isolate::AddClosureFunction(const Function& function) const {
   // TODO(regis): remove once debugging complete.
   if (Compiler::IsBackgroundCompilation()) {
-    Profiler::DumpStackTrace(true /*native*/);
+    NOT_IN_PRODUCT(Profiler::DumpStackTrace(true /*native*/));
     UNREACHABLE();
   }
   ASSERT(!Compiler::IsBackgroundCompilation());
