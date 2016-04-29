@@ -608,8 +608,7 @@ suite('instanceOf', () => {
     // Set the type lazily
     function ss2s(x, y) {return x};
     var coreString;
-    dart.fn(ss2s, () => dart.functionType(coreString,
-                                          [coreString, coreString]));
+    dart.lazyFn(ss2s, () => [coreString, [coreString, coreString]]);
     coreString = core.String;
     checkType(ss2s, dart.functionType(core.String,
                                       [core.String, core.String]));

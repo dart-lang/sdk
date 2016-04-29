@@ -39,7 +39,7 @@ dart_library.library('unittest', null, /* Imports */[
       if (!dart.is(item, core.Function) && !dart.is(item, async.Future)) return false;
       if (dart.is(item, async.Future)) {
         let done = dart.dcall(unittest._wrapAsync, dart.fn(fn => dart.dcall(fn)));
-        item.then(dart.fn(value => {
+        item.then(dart.dynamic)(dart.fn(value => {
           dart.dcall(done, dart.fn(() => {
             unittest.fail(`Expected future to fail, but succeeded with '${value}'.`);
           }));
@@ -117,7 +117,7 @@ dart_library.library('unittest', null, /* Imports */[
     let result = dart.as(js.context.callMethod('test', dart.list([name, dart.fn(done => {
         function _finishTest(f) {
           if (dart.is(f, async.Future)) {
-            f.then(_finishTest);
+            f.then(dart.dynamic)(_finishTest);
           } else {
             done.apply([]);
           }

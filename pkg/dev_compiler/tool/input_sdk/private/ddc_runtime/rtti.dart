@@ -37,38 +37,41 @@ part of dart._runtime;
 ///     rather than attaching this property everywhere.
 ///
 ///
-
+/// Tag a closure with a type, using one of two forms:
 ///
-///Tag a closure with a type, using one of three forms:
-/// dart.fn(cls) marks cls has having no optional or named
-///  parameters, with all argument and return types as dynamic
-/// dart.fn(cls, func) marks cls with the lazily computed
-///  runtime type as computed by func()
-/// dart.fn(cls, rType, argsT, extras) marks cls as having the
-/// runtime type dart.functionType(rType, argsT, extras)
+/// `dart.fn(cls)` marks cls has having no optional or named
+/// parameters, with all argument and return types as dynamic.
+///
+/// `dart.fn(cls, rType, argsT, extras)` marks cls as having the
+/// runtime type dart.functionType(rType, argsT, extras).
 ///
 /// Note that since we are producing a type for a concrete function,
 /// it is sound to use the definite arrow type.
 ///
-fn(closure, @rest args) => JS('', '''(() => {
-  // Closure and a lazy type constructor
-  if ($args.length == 1) {
-    $defineLazyProperty($closure, $_runtimeType, {get : $args[0]});
-    return $closure;
-  }
-  let t;
-  if ($args.length == 0) {
+fn(closure, rType, argsT, extras) {
+  var t;
+  if (rType == null) {
     // No type arguments, it's all dynamic
-    t = $definiteFunctionType(
-      $dynamicR, Array($closure.length).fill($dynamicR));
+    t = definiteFunctionType(
+        dynamicR,
+        JS('', 'Array(#.length).fill(#)', closure, dynamicR),
+        JS('', 'void 0'));
   } else {
     // We're passed the piecewise components of the function type,
     // construct it.
-    t = $definiteFunctionType.apply(null, $args);
+    t = definiteFunctionType(rType, argsT, extras);
   }
-  $tag($closure, t);
-  return $closure;
-})()''');
+  tag(closure, t);
+  return closure;
+}
+
+lazyFn(closure, computeTypeParts) {
+  tagLazy(closure, JS('', '''() => {
+    let parts = #();
+    return #(parts[0], parts[1], parts[2]);
+  }''', computeTypeParts, definiteFunctionType));
+  return closure;
+}
 
 // TODO(vsm): How should we encode the runtime type?
 final _runtimeType = JS('', 'Symbol("_runtimeType")');
@@ -152,17 +155,11 @@ void tag(value, t) {
   JS('', '#[#] = #', value, _runtimeType, t);
 }
 
-tagComputed(value, compute) {
+void tagComputed(value, compute) {
   JS('', '#(#, #, { get: # })', defineProperty, value, _runtimeType, compute);
 }
 
-tagMemoized(value, compute) => JS('', '''(() => {
-  let cache = null;
-  function getter() {
-    if ($compute == null) return cache;
-    cache = $compute();
-    $compute = null;
-    return cache;
-  }
-  $tagComputed($value, getter);
-})()''');
+void tagLazy(value, compute) {
+  JS('', '#(#, #, { get: # })',
+      defineLazyProperty, value, _runtimeType, compute);
+}

@@ -1,10 +1,12 @@
 export const closure = Object.create(null);
 import { core, js, dart, dartx } from 'dart_sdk';
-closure.generic_function = function<T>(items: core.List<T>, seed: T): core.List<T> {
-  let strings = items[dartx.map](dart.fn((i: T): string => `${i}`, core.String, [dart.dynamic]))[dartx.toList]();
-  return items;
+closure.generic_function = function(T) {
+  return (items: core.List<T>, seed: T): core.List<T> => {
+    let strings = items[dartx.map](core.String)(dart.fn((i: T): string => `${i}`, core.String, [T]))[dartx.toList]();
+    return items;
+  };
 };
-dart.fn(closure.generic_function, core.List, [core.List, dart.dynamic]);
+dart.fn(closure.generic_function, T => [core.List$(T), [core.List$(T), T]]);
 closure.Callback = dart.typedef('Callback', () => dart.functionType(dart.void, [], {i: core.int}));
 closure.Foo$ = dart.generic(T => {
   class Foo<T> extends core.Object {

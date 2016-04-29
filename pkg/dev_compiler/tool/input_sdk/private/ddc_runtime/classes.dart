@@ -192,7 +192,7 @@ _setStaticTypes(f, names) => JS('', '''(() => {
   for (let name of $names) {
     // TODO(vsm): Need to generate static methods.
     if (!$f[name]) continue;
-    $tagMemoized($f[name], function() {
+    $tagLazy($f[name], function() {
       let parts = $f[$_staticSig][name];
       return $definiteFunctionType.apply(null, parts);
     })
@@ -223,7 +223,7 @@ setSignature(f, signature) => JS('', '''(() => {
   $_setMethodSignature($f, methods);
   $_setStaticSignature($f, statics);
   $_setStaticTypes($f, names);
-  $tagMemoized($f, () => $Type);
+  $tagLazy($f, () => $Type);
 })()''');
 
 hasMethod(obj, name) => JS('', '$getMethodType($obj, $name) !== void 0');

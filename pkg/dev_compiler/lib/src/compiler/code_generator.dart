@@ -1116,7 +1116,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     for (ConstructorDeclaration node in ctors) {
       var memberName = _constructorName(node.element);
       var element = node.element;
-      var parts = _emitFunctionTypeParts(element.type, node.parameters);
+      var parts = _emitFunctionTypeParts(element.type,
+          parameters: node.parameters.parameters);
       var property =
           new JS.Property(memberName, new JS.ArrayInitializer(parts));
       tCtors.add(property);
@@ -1630,6 +1631,8 @@ class CodeGenerator extends GeneralizingAstVisitor
         // call sites, but it's cleaner to instead transform the operator method.
         fn = _alwaysReturnLastParameter(fn);
       }
+
+      fn = _makeGenericFunction(fn);
     }
 
     return annotate(
@@ -1780,15 +1783,21 @@ class CodeGenerator extends GeneralizingAstVisitor
     var lazy = topLevel && !_typeIsLoaded(type);
 
     if (type is FunctionType && (name == '' || name == null)) {
-      if (type.returnType.isDynamic &&
+      if (type.typeFormals.isEmpty &&
+          type.returnType.isDynamic &&
           type.optionalParameterTypes.isEmpty &&
           type.namedParameterTypes.isEmpty &&
           type.normalParameterTypes.every((t) => t.isDynamic)) {
         return js.call('dart.fn(#)', [fn]);
       }
 
-      String code = lazy ? '() => dart.definiteFunctionType(#)' : '#';
-      return js.call('dart.fn(#, $code)', [fn, _emitFunctionTypeParts(type)]);
+      var parts = _emitFunctionTypeParts(type);
+      if (lazy) {
+        return js.call(
+            'dart.lazyFn(#, () => #)', [fn, new JS.ArrayInitializer(parts)]);
+      } else {
+        return js.call('dart.fn(#, #)', [fn, parts]);
+      }
     }
     throw 'Function has non function type: $type';
   }
@@ -1823,10 +1832,29 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     // Convert `function(...) { ... }` to `(...) => ...`
     // This is for readability, but it also ensures correct `this` binding.
-    return annotate(
-        new JS.ArrowFun(f.params, body,
-            typeParams: f.typeParams, returnType: f.returnType),
-        node);
+    var fn = new JS.ArrowFun(f.params, body,
+        typeParams: f.typeParams, returnType: f.returnType);
+
+    return annotate(_makeGenericFunction(fn), node);
+  }
+
+  JS.FunctionExpression/*=T*/ _makeGenericFunction
+  /*<T extends JS.FunctionExpression>*/(JS.FunctionExpression/*=T*/ fn) {
+    if (fn.typeParams == null || fn.typeParams.isEmpty) return fn;
+
+    // TODO(jmesserly): we could make these default to `dynamic`.
+    var typeParams = fn.typeParams;
+    if (fn is JS.ArrowFun) {
+      return new JS.ArrowFun(typeParams, fn);
+    }
+    var f = fn as JS.Fun;
+    return new JS.Fun(
+        typeParams,
+        new JS.Block([
+          // Convert the function to an => function, to ensure `this` binding.
+          new JS.Return(new JS.ArrowFun(f.params, f.body,
+              typeParams: f.typeParams, returnType: f.returnType))
+        ]));
   }
 
   /// Emits a non-arrow FunctionExpression node.
@@ -1838,25 +1866,27 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// Contrast with [visitFunctionExpression].
   JS.Fun _emitFunction(FunctionExpression node) {
     var fn = _emitFunctionBody(node.element, node.parameters, node.body);
-    return annotate(fn, node);
+    return annotate(_makeGenericFunction(fn), node);
   }
 
   JS.Fun _emitFunctionBody(ExecutableElement element,
       FormalParameterList parameters, FunctionBody body) {
-    var returnType = emitTypeRef(element.returnType);
+    FunctionType type = element.type;
 
     // sync*, async, async*
     if (element.isAsynchronous || element.isGenerator) {
       return new JS.Fun(
           visitFormalParameterList(parameters, destructure: false),
-          js.statement('{ return #; }',
-              [_emitGeneratorFunctionBody(element, parameters, body)]),
-          returnType: returnType);
+          new JS.Block([
+            _emitGeneratorFunctionBody(element, parameters, body).toReturn()
+          ]),
+          returnType: emitTypeRef(type.returnType));
     }
+
     // normal function (sync)
     return new JS.Fun(visitFormalParameterList(parameters), _visit(body),
-        typeParams: _emitTypeFormals(element.typeParameters),
-        returnType: returnType);
+        typeParams: _emitTypeFormals(type.typeFormals),
+        returnType: emitTypeRef(type.returnType));
   }
 
   JS.Expression _emitGeneratorFunctionBody(ExecutableElement element,
@@ -2061,27 +2091,37 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// Emit the pieces of a function type, as an array of return type,
   /// regular args, and optional/named args.
   List<JS.Expression> _emitFunctionTypeParts(FunctionType type,
-      [FormalParameterList parameterList]) {
-    var parameters = parameterList?.parameters;
-    var returnType = type.returnType;
+      {List<FormalParameter> parameters, bool lowerTypedef: false}) {
     var parameterTypes = type.normalParameterTypes;
     var optionalTypes = type.optionalParameterTypes;
     var namedTypes = type.namedParameterTypes;
-    var rt = _emitTypeName(returnType);
+    var rt = _emitTypeName(type.returnType);
     var ra = _emitTypeNames(parameterTypes, parameters);
-    if (!namedTypes.isEmpty) {
+
+    List<JS.Expression> typeParts;
+    if (namedTypes.isNotEmpty) {
       assert(optionalTypes.isEmpty);
       // TODO(vsm): Pass in annotations here as well.
       var na = _emitTypeProperties(namedTypes);
-      return [rt, ra, na];
-    }
-    if (!optionalTypes.isEmpty) {
+      typeParts = [rt, ra, na];
+    } else if (optionalTypes.isNotEmpty) {
       assert(namedTypes.isEmpty);
       var oa = _emitTypeNames(
           optionalTypes, parameters?.sublist(parameterTypes.length));
-      return [rt, ra, oa];
+      typeParts = [rt, ra, oa];
+    } else {
+      typeParts = [rt, ra];
     }
-    return [rt, ra];
+
+    var typeFormals = type.typeFormals;
+    if (typeFormals.isNotEmpty && !lowerTypedef) {
+      // TODO(jmesserly): this is a suboptimal representation for universal
+      // function types (as callable functions). See discussion at:
+      // https://github.com/dart-lang/dev_compiler/issues/526
+      var tf = _emitTypeFormals(typeFormals);
+      typeParts = [new JS.ArrowFun(tf, new JS.ArrayInitializer(typeParts))];
+    }
+    return typeParts;
   }
 
   /// Emits a Dart [type] into code.
@@ -2109,16 +2149,12 @@ class CodeGenerator extends GeneralizingAstVisitor
     var name = type.name;
     var element = type.element;
     if (name == '' || name == null || lowerTypedef) {
-      var parts = _emitFunctionTypeParts(type as FunctionType);
+      // TODO(jmesserly): should we change how typedefs work? They currently
+      // go through use similar logic as generic classes. This makes them
+      // different from universal function types.
+      var ft = type as FunctionType;
+      var parts = _emitFunctionTypeParts(ft, lowerTypedef: lowerTypedef);
       return js.call('dart.functionType(#)', [parts]);
-    }
-    // For now, reify generic method parameters as dynamic
-    bool _isGenericTypeParameter(DartType type) =>
-        type is TypeParameterType &&
-        type.element.enclosingElement is! TypeDefiningElement;
-
-    if (_isGenericTypeParameter(type)) {
-      return js.call('dart.dynamic');
     }
 
     if (type is TypeParameterType) {
@@ -2128,7 +2164,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (type is ParameterizedType) {
       var args = type.typeArguments;
       Iterable jsArgs = null;
-      if (args.any((a) => !a.isDynamic && !_isGenericTypeParameter(a))) {
+      if (args.any((a) => !a.isDynamic)) {
         jsArgs = args.map(_emitTypeName);
       } else if (lowerGeneric) {
         jsArgs = [];
@@ -2268,51 +2304,130 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   @override
   visitMethodInvocation(MethodInvocation node) {
-    if (node.operator != null && node.operator.lexeme == '?.') {
+    if (node.operator?.lexeme == '?.') {
       return _emitNullSafe(node);
     }
 
-    var target = _getTarget(node);
     var result = _emitForeignJS(node);
     if (result != null) return result;
 
-    String code;
+    var target = _getTarget(node);
     if (target == null || isLibraryPrefix(target)) {
-      if (DynamicInvoke.get(node.methodName)) {
-        code = 'dart.dcall(#, #)';
-      } else {
-        code = '#(#)';
-      }
-      return js
-          .call(code, [_visit(node.methodName), _visit(node.argumentList)]);
+      return _emitFunctionCall(node);
     }
 
+    return _emitMethodCall(target, node);
+  }
+
+  /// Emits a (possibly generic) instance method call.
+  JS.Expression _emitMethodCall(Expression target, MethodInvocation node) {
     var type = getStaticType(target);
     var name = node.methodName.name;
     var element = node.methodName.staticElement;
     bool isStatic = element is ExecutableElement && element.isStatic;
     var memberName = _emitMemberName(name, type: type, isStatic: isStatic);
 
+    JS.Expression jsTarget = _visit(target);
+    var typeArgs = _emitInvokeTypeArguments(node);
+    List<JS.Expression> args = _visit(node.argumentList);
     if (DynamicInvoke.get(target)) {
-      code = 'dart.dsend(#, #, #)';
-    } else if (DynamicInvoke.get(node.methodName)) {
+      if (typeArgs != null) {
+        return js.call('dart.dgsend(#, [#], #, #)',
+            [jsTarget, typeArgs, memberName, args]);
+      } else {
+        return js.call('dart.dsend(#, #, #)', [jsTarget, memberName, args]);
+      }
+    }
+    if (_isObjectMemberCall(target, name)) {
+      // Object methods require a helper for null checks & native types.
+      assert(typeArgs == null); // Object methods don't take type args.
+      return js.call('dart.#(#, #)', [memberName, jsTarget, args]);
+    }
+
+    jsTarget = new JS.PropertyAccess(jsTarget, memberName);
+    if (typeArgs != null) jsTarget = new JS.Call(jsTarget, typeArgs);
+
+    if (DynamicInvoke.get(node.methodName)) {
       // This is a dynamic call to a statically known target. For example:
       //     class Foo { Function bar; }
       //     new Foo().bar(); // dynamic call
-      code = 'dart.dcall(#.#, #)';
-    } else if (_isObjectMemberCall(target, name)) {
-      // Object methods require a helper for null checks.
-      return js.call('dart.#(#, #)',
-          [memberName, _visit(target), _visit(node.argumentList)]);
-    } else {
-      code = '#.#(#)';
+      return js.call('dart.dcall(#, #)', [jsTarget, args]);
     }
 
-    return js
-        .call(code, [_visit(target), memberName, _visit(node.argumentList)]);
+    return new JS.Call(jsTarget, args);
   }
 
-  /// Emits code for the `JS(...)` builtin.
+  /// Emits a function call, to a top-level function, local function, or
+  /// an expression.
+  JS.Expression _emitFunctionCall(InvocationExpression node) {
+    var fn = _visit(node.function);
+    var args = _visit(node.argumentList);
+    if (DynamicInvoke.get(node.function)) {
+      var typeArgs = _emitInvokeTypeArguments(node);
+      if (typeArgs != null) {
+        return js.call('dart.dgcall(#, [#], #)', [fn, typeArgs, args]);
+      } else {
+        return js.call('dart.dcall(#, #)', [fn, args]);
+      }
+    } else {
+      return new JS.Call(_applyInvokeTypeArguments(fn, node), args);
+    }
+  }
+
+  JS.Expression _applyInvokeTypeArguments(
+      JS.Expression target, InvocationExpression node) {
+    var typeArgs = _emitInvokeTypeArguments(node);
+    if (typeArgs == null) return target;
+    return new JS.Call(target, typeArgs);
+  }
+
+  List<JS.Expression> _emitInvokeTypeArguments(InvocationExpression node) {
+    return _emitFunctionTypeArguments(
+        node.function.staticType, node.staticInvokeType);
+  }
+
+  /// If `g` is a generic function type, and `f` is an instantiation of it,
+  /// then this will return the type arguments to apply, otherwise null.
+  List<JS.Expression> _emitFunctionTypeArguments(DartType g, DartType f) {
+    if (g is FunctionType &&
+        g.typeFormals.isNotEmpty &&
+        f is FunctionType &&
+        f.typeFormals.isEmpty) {
+      return _recoverTypeArguments(g, f)
+          .map(_emitTypeName)
+          .toList(growable: false);
+    }
+    return null;
+  }
+
+  /// Given a generic function type [g] and an instantiated function type [f],
+  /// find a list of type arguments TArgs such that `g<TArgs> == f`,
+  /// and return TArgs.
+  ///
+  /// This function must be called with type [f] that was instantiated from [g].
+  Iterable<DartType> _recoverTypeArguments(FunctionType g, FunctionType f) {
+    // TODO(jmesserly): this design is a bit unfortunate. It would be nice if
+    // resolution could simply create a synthetic type argument list.
+    assert(identical(g.element, f.element));
+    assert(g.typeFormals.isNotEmpty && f.typeFormals.isEmpty);
+    assert(g.typeFormals.length + g.typeArguments.length ==
+        f.typeArguments.length);
+
+    // Instantiation in Analyzer works like this:
+    // Given:
+    //     {U/T} <S> T -> S
+    // Where {U/T} represents the typeArguments (U) and typeParameters (T) list,
+    // and <S> represents the typeFormals.
+    //
+    // Now instantiate([V]), and the result should be:
+    //     {U/T, V/S} T -> S.
+    //
+    // Therefore, we can recover the typeArguments from our instantiated
+    // function.
+    return f.typeArguments.skip(g.typeArguments.length);
+  }
+
+  /// Emits code for the `JS(...)` macro.
   _emitForeignJS(MethodInvocation node) {
     var e = node.methodName.staticElement;
     if (isInlineJS(e)) {
@@ -2351,15 +2466,8 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   @override
   JS.Expression visitFunctionExpressionInvocation(
-      FunctionExpressionInvocation node) {
-    var code;
-    if (DynamicInvoke.get(node.function)) {
-      code = 'dart.dcall(#, #)';
-    } else {
-      code = '#(#)';
-    }
-    return js.call(code, [_visit(node.function), _visit(node.argumentList)]);
-  }
+          FunctionExpressionInvocation node) =>
+      _emitFunctionCall(node);
 
   @override
   List<JS.Expression> visitArgumentList(ArgumentList node) {
@@ -3689,9 +3797,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     return result;
   }
 
-  // TODO(jmesserly): this will need to be a generic method, if we ever want to
-  // self-host strong mode.
-  List/*<T>*/ _visitList/*<T>*/(Iterable<AstNode> nodes) {
+  List/*<T>*/ _visitList/*<T extends AstNode>*/(Iterable/*<T>*/ nodes) {
     if (nodes == null) return null;
     var result = /*<T>*/ [];
     for (var node in nodes) result.add(_visit(node));
@@ -3829,7 +3935,9 @@ class CodeGenerator extends GeneralizingAstVisitor
             () => new JS.TemporaryId(jsLibraryName(_buildRoot, library)));
   }
 
-  JS.Node annotate(JS.Node node, AstNode original, [Element element]) {
+  JS.Node/*=T*/ annotate/*<T extends JS.Node>*/(
+      JS.Node/*=T*/ node, AstNode original,
+      [Element element]) {
     if (options.closure && element != null) {
       node = node.withClosureAnnotation(closureAnnotationFor(
           node, original, element, namedArgumentTemp.name));

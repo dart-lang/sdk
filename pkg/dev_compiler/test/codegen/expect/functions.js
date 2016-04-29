@@ -9,7 +9,7 @@ dart_library.library('functions', null, /* Imports */[
   functions.bootstrap = function() {
     return dart.list([new functions.Foo()], functions.Foo);
   };
-  dart.fn(functions.bootstrap, () => dart.definiteFunctionType(core.List$(functions.Foo), []));
+  dart.lazyFn(functions.bootstrap, () => [core.List$(functions.Foo), []]);
   functions.A2B$ = dart.generic((A, B) => {
     const A2B = dart.typedef('A2B', () => dart.functionType(B, [A]));
     return A2B;
@@ -18,7 +18,7 @@ dart_library.library('functions', null, /* Imports */[
   functions.id = function(f) {
     return f;
   };
-  dart.fn(functions.id, () => dart.definiteFunctionType(functions.A2B$(functions.Foo, functions.Foo), [functions.A2B$(functions.Foo, functions.Foo)]));
+  dart.lazyFn(functions.id, () => [functions.A2B$(functions.Foo, functions.Foo), [functions.A2B$(functions.Foo, functions.Foo)]]);
   functions.Foo = class Foo extends core.Object {};
   functions.main = function() {
     core.print(functions.bootstrap()[dartx.get](0));

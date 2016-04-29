@@ -67,7 +67,7 @@ class ModuleCompiler {
       if (sourceUri.scheme == '') {
         sourceUri = path.toUri(path.absolute(sourcePath));
       }
-      Source source = context.sourceFactory.forUri(sourceUri.toString());
+      Source source = context.sourceFactory.forUri2(sourceUri);
       if (source == null) {
         throw new AnalysisException('could not create a source for $sourcePath.'
             ' The file name is in the wrong format or was not found.');

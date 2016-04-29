@@ -45,7 +45,7 @@ async_(gen, T, @rest args) => JS('', '''(() => {
       future = $Future.value(future);
     }
     // Chain the Future so `await` receives the Future's value.
-    return future.then(onValue, {onError: onError});
+    return future.then($dynamicR)(onValue, {onError: onError});
   }
   return ${getGenericClass(Future)}(T).new(function() {
     iter = $gen(...$args)[Symbol.iterator]();
@@ -164,7 +164,7 @@ final _AsyncStarStreamController = JS('', '''
       if (!$instanceOf(future, ${getGenericClass(Future)})) {
         future = $Future.value(future);
       }
-      return future.then((x) => this.runBody(x),
+      return future.then($dynamicR)((x) => this.runBody(x),
           { onError: (e, s) => this.throwError(e, s) });
     }
 
@@ -189,7 +189,8 @@ final _AsyncStarStreamController = JS('', '''
       if (!this.controller.hasListener) return true;
 
       this.isAdding = true;
-      this.controller.addStream(stream, {cancelOnError: false}).then(() => {
+      this.controller.addStream(stream, {cancelOnError: false}).then($dynamicR)(
+          () => {
         this.isAdding = false;
         this.scheduleGenerator();
       }, { onError: (e, s) => this.throwError(e, s) });

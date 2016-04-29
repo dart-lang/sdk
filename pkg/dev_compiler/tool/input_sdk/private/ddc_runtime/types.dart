@@ -241,7 +241,26 @@ final Typedef = JS('', '''
   }
 ''');
 
+final _typeFormalCount = JS('', 'Symbol("_typeFormalCount")');
+
 _functionType(definite, returnType, args, extra) => JS('', '''(() => {
+  // TODO(jmesserly): this is a bit of a retrofit, to easily fit
+  // generic functions into all of the existing ways we generate function
+  // signatures. Given `(T) => [T, [T]]` we'll return a function that does
+  // `(T) => _functionType(definite, T, [T])` ... we could do this in the
+  // compiler instead, at a slight cost to code size.
+  if ($args === void 0 && $extra === void 0) {
+    const fnTypeParts = $returnType;
+    // A closure that computes the remaining arguments.
+    // Return a function that makes the type.
+    function makeGenericFnType(...types) {
+      let parts = fnTypeParts(...types);
+      return $_functionType($definite, parts[0], parts[1], parts[2]);
+    }
+    makeGenericFnType[$_typeFormalCount] = fnTypeParts.length;
+    return makeGenericFnType;
+  }
+
   // TODO(vsm): Cache / memomize?
   let optionals;
   let named;
@@ -274,9 +293,7 @@ definiteFunctionType(returnType, args, extra) =>
 
 typedef(name, closure) => JS('', 'new #(#, #)', Typedef, name, closure);
 
-bool isDartType(type) {
-  return JS('bool', '#(#) === #', read, type, Type);
-}
+bool isDartType(type) => JS('bool', '#(#) === #', read, type, Type);
 
 typeName(type) => JS('', '''(() => {
   // Non-instance types

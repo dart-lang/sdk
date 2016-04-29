@@ -11,7 +11,7 @@ class A {
   @DontInline()
   A(param) {
     // Currently defeat inlining by using a closure.
-    var bar = () => 42;     
+    var bar = () => 42;
     field = param + 42;
   }
   A.redirect() : this('foo');
@@ -19,6 +19,9 @@ class A {
 
 main() {
   Expect.equals(42 + 42, new A(42).field);
+  // TODO(jmesserly): DDC throws an nSM if the argument types mismatch,
+  // instead of a TypeError.
+  // https://github.com/dart-lang/dev_compiler/issues/534
   Expect.throws(() => new A.redirect(),
-                (e) => e is ArgumentError || e is TypeError);
+      (e) => e is ArgumentError || e is TypeError || e is NoSuchMethodError);
 }

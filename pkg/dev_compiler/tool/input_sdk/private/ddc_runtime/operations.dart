@@ -39,7 +39,7 @@ dput(obj, field, value) => JS('', '''(() => {
 
 /// Check that a function of a given type can be applied to
 /// actuals.
-checkApply(type, actuals) => JS('', '''(() => {
+_checkApply(type, actuals) => JS('', '''(() => {
   if ($actuals.length < $type.args.length) return false;
   let index = 0;
   for(let i = 0; i < $type.args.length; ++i) {
@@ -87,7 +87,7 @@ throwNoSuchMethodFunc(obj, name, pArgs, opt_func) => JS('', '''(() => {
   $throwNoSuchMethod($obj, $name, $pArgs);
 })()''');
 
-checkAndCall(f, ftype, obj, args, name) => JS('', '''(() => {
+_checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
   let originalFunction = $f;
   if (!($f instanceof Function)) {
     // We're not a function (and hence not a method either)
@@ -109,44 +109,72 @@ checkAndCall(f, ftype, obj, args, name) => JS('', '''(() => {
 
   if (!$ftype) {
     // TODO(leafp): Allow JS objects to go through?
-    // This includes the DOM.
+    if ($typeArgs != null) {
+      // TODO(jmesserly): is there a sensible way to handle these?
+      $throwStrongModeError('call to JS object `' + $obj +
+          '` with type arguments <' + $typeArgs + '> is not supported.');
+    }
     return $f.apply($obj, $args);
   }
 
-  if ($checkApply($ftype, $args)) {
+  // Apply type arguments
+  let formalCount = $ftype[$_typeFormalCount];
+  if (formalCount != null) {
+    if ($typeArgs == null) {
+      $typeArgs = Array(formalCount).fill($dynamicR);
+    } else if ($typeArgs.length != formalCount) {
+      // TODO(jmesserly): is this the right error?
+      $throwStrongModeError(
+          'incorrect number of arguments to generic function ' +
+          $typeName($ftype) + ', got <' + $typeArgs + '> expected ' +
+          formalCount + '.');
+    }
+    // Instantiate the function.
+    $ftype = $ftype(...$typeArgs);
+  } else if ($typeArgs != null) {
+    $throwStrongModeError(
+        'got type arguments to non-generic function ' + $typeName($ftype) +
+        ', got <' + $typeArgs + '> expected none.');
+  }
+
+  if ($_checkApply($ftype, $args)) {
+    if ($typeArgs != null) {
+      return $f.apply($obj, $typeArgs).apply($obj, $args);
+    }
     return $f.apply($obj, $args);
   }
 
   // TODO(leafp): throw a type error (rather than NSM)
   // if the arity matches but the types are wrong.
+  // TODO(jmesserly): nSM should include type args?
   $throwNoSuchMethodFunc($obj, $name, $args, originalFunction);
 })()''');
 
-dcall(f, @rest args) => JS('', '''(() => {
-  let ftype = $read($f);
-  return $checkAndCall($f, ftype, void 0, $args, 'call');
-})()''');
+dcall(f, @rest args) =>
+    _checkAndCall(f, read(f), JS('', 'void 0'), null, args, 'call');
 
-/// Shared code for dsend, dindex, and dsetindex. */
-callMethod(obj, name, args, displayName) => JS('', '''(() => {
-  let symbol = $_canonicalFieldName($obj, $name, $args, $displayName);
-  let f = $obj != null ? $obj[symbol] : null;
-  let ftype = $getMethodType($obj, $name);
-  return $checkAndCall(f, ftype, $obj, $args, $displayName);
-})()''');
 
-dsend(obj, method, @rest args) => JS('', '''(() => {
-  return $callMethod($obj, $method, $args, $method);
-})()''');
+dgcall(f, typeArgs, @rest args) =>
+    _checkAndCall(f, read(f), JS('', 'void 0'), typeArgs, args, 'call');
 
-dindex(obj, index) => JS('', '''(() => {
-  return $callMethod($obj, 'get', [$index], '[]');
-})()''');
 
-dsetindex(obj, index, value) => JS('', '''(() => {
-  $callMethod($obj, 'set', [$index, $value], '[]=');
-  return $value;
-})()''');
+/// Shared code for dsend, dindex, and dsetindex.
+_callMethod(obj, name, typeArgs, args, displayName) {
+  var symbol = _canonicalFieldName(obj, name, args, displayName);
+  var f = obj != null ? JS('', '#[#]', obj, symbol) : null;
+  var ftype = getMethodType(obj, symbol);
+  return _checkAndCall(f, ftype, obj, typeArgs, args, displayName);
+}
+
+dsend(obj, method, @rest args) => _callMethod(obj, method, null, args, method);
+
+dgsend(obj, typeArgs, method, @rest args) =>
+    _callMethod(obj, method, typeArgs, args, method);
+
+dindex(obj, index) => _callMethod(obj, 'get', null, JS('', '[#]', index), '[]');
+
+dsetindex(obj, index, value) =>
+    _callMethod(obj, 'set', null, JS('', '[#, #]', index, value), '[]=');
 
 _ignoreTypeFailure(actual, type) => JS('', '''(() => {
   // TODO(vsm): Remove this hack ...

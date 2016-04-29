@@ -158,7 +158,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart._setStaticTypes = function(f, names) {
     for (let name of names) {
       if (!f[name]) continue;
-      dart.tagMemoized(f[name], function() {
+      dart.tagLazy(f[name], function() {
         let parts = f[dart._staticSig][name];
         return dart.definiteFunctionType.apply(null, parts);
       });
@@ -173,7 +173,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     dart._setMethodSignature(f, methods);
     dart._setStaticSignature(f, statics);
     dart._setStaticTypes(f, names);
-    dart.tagMemoized(f, () => core.Type);
+    dart.tagLazy(f, () => core.Type);
   };
   dart.hasMethod = function(obj, name) {
     return dart.getMethodType(obj, name) !== void 0;
@@ -280,7 +280,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (!dart.is(future, dart.getGenericClass(async.Future))) {
         future = async.Future.value(future);
       }
-      return future.then(onValue, {onError: onError});
+      return future.then(dart.dynamic)(onValue, {onError: onError});
     }
     return dart.getGenericClass(async.Future)(T).new(function() {
       iter = gen(...args)[Symbol.iterator]();
@@ -352,7 +352,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (!dart.is(future, dart.getGenericClass(async.Future))) {
         future = async.Future.value(future);
       }
-      return future.then(x => this.runBody(x), {
+      return future.then(dart.dynamic)(x => this.runBody(x), {
         onError: (e, s) => this.throwError(e, s)
       });
     }
@@ -366,7 +366,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     addStream(stream) {
       if (!this.controller.hasListener) return true;
       this.isAdding = true;
-      this.controller.addStream(stream, {cancelOnError: false}).then(() => {
+      this.controller.addStream(stream, {cancelOnError: false}).then(dart.dynamic)(() => {
         this.isAdding = false;
         this.scheduleGenerator();
       }, {
@@ -411,7 +411,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     obj[field] = value;
     return value;
   };
-  dart.checkApply = function(type, actuals) {
+  dart._checkApply = function(type, actuals) {
     if (actuals.length < type.args.length) return false;
     let index = 0;
     for (let i = 0; i < type.args.length; ++i) {
@@ -450,7 +450,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     if (obj === void 0) obj = opt_func;
     dart.throwNoSuchMethod(obj, name, pArgs);
   };
-  dart.checkAndCall = function(f, ftype, obj, args, name) {
+  dart._checkAndCall = function(f, ftype, obj, typeArgs, args, name) {
     let originalFunction = f;
     if (!(f instanceof Function)) {
       if (f != null) {
@@ -465,32 +465,53 @@ dart_library.library('dart_sdk', null, /* Imports */[
       ftype = dart.read(f);
     }
     if (!ftype) {
+      if (typeArgs != null) {
+        dart.throwStrongModeError('call to JS object `' + obj + '` with type arguments <' + typeArgs + '> is not supported.');
+      }
       return f.apply(obj, args);
     }
-    if (dart.checkApply(ftype, args)) {
+    let formalCount = ftype[dart._typeFormalCount];
+    if (formalCount != null) {
+      if (typeArgs == null) {
+        typeArgs = Array(formalCount).fill(dart.dynamic);
+      } else if (typeArgs.length != formalCount) {
+        dart.throwStrongModeError('incorrect number of arguments to generic function ' + dart.typeName(ftype) + ', got <' + typeArgs + '> expected ' + formalCount + '.');
+      }
+      ftype = ftype(...typeArgs);
+    } else if (typeArgs != null) {
+      dart.throwStrongModeError('got type arguments to non-generic function ' + dart.typeName(ftype) + ', got <' + typeArgs + '> expected none.');
+    }
+    if (dart._checkApply(ftype, args)) {
+      if (typeArgs != null) {
+        return f.apply(obj, typeArgs).apply(obj, args);
+      }
       return f.apply(obj, args);
     }
     dart.throwNoSuchMethodFunc(obj, name, args, originalFunction);
   };
   dart.dcall = function(f, ...args) {
-    let ftype = dart.read(f);
-    return dart.checkAndCall(f, ftype, void 0, args, 'call');
+    return dart._checkAndCall(f, dart.read(f), void 0, null, args, 'call');
   };
-  dart.callMethod = function(obj, name, args, displayName) {
+  dart.dgcall = function(f, typeArgs, ...args) {
+    return dart._checkAndCall(f, dart.read(f), void 0, typeArgs, args, 'call');
+  };
+  dart._callMethod = function(obj, name, typeArgs, args, displayName) {
     let symbol = dart._canonicalFieldName(obj, name, args, displayName);
     let f = obj != null ? obj[symbol] : null;
-    let ftype = dart.getMethodType(obj, name);
-    return dart.checkAndCall(f, ftype, obj, args, displayName);
+    let ftype = dart.getMethodType(obj, symbol);
+    return dart._checkAndCall(f, ftype, obj, typeArgs, args, displayName);
   };
   dart.dsend = function(obj, method, ...args) {
-    return dart.callMethod(obj, method, args, method);
+    return dart._callMethod(obj, method, null, args, method);
+  };
+  dart.dgsend = function(obj, typeArgs, method, ...args) {
+    return dart._callMethod(obj, method, typeArgs, args, method);
   };
   dart.dindex = function(obj, index) {
-    return dart.callMethod(obj, 'get', [index], '[]');
+    return dart._callMethod(obj, 'get', null, [index], '[]');
   };
   dart.dsetindex = function(obj, index, value) {
-    dart.callMethod(obj, 'set', [index, value], '[]=');
-    return value;
+    return dart._callMethod(obj, 'set', null, [index, value], '[]=');
   };
   dart._ignoreTypeFailure = function(actual, type) {
     if (dart.isSubtype(type, core.Iterable) && dart.isSubtype(actual, core.Iterable) || dart.isSubtype(type, async.Future) && dart.isSubtype(actual, async.Future) || dart.isSubtype(type, core.Map) && dart.isSubtype(actual, core.Map) || dart.isSubtype(type, core.Function) && dart.isSubtype(actual, core.Function) || dart.isSubtype(type, async.Stream) && dart.isSubtype(actual, async.Stream) || dart.isSubtype(type, async.StreamSubscription) && dart.isSubtype(actual, async.StreamSubscription)) {
@@ -666,18 +687,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return {done: done, value: done ? void 0 : i.current};
     }
   };
-  dart.fn = function(closure, ...args) {
-    if (args.length == 1) {
-      dart.defineLazyProperty(closure, dart._runtimeType, {get: args[0]});
-      return closure;
-    }
-    let t;
-    if (args.length == 0) {
-      t = dart.definiteFunctionType(dart.dynamic, Array(closure.length).fill(dart.dynamic));
+  dart.fn = function(closure, rType, argsT, extras) {
+    let t = null;
+    if (rType == null) {
+      t = dart.definiteFunctionType(dart.dynamic, Array(closure.length).fill(dart.dynamic), void 0);
     } else {
-      t = dart.definiteFunctionType.apply(null, args);
+      t = dart.definiteFunctionType(rType, argsT, extras);
     }
     dart.tag(closure, t);
+    return closure;
+  };
+  dart.lazyFn = function(closure, computeTypeParts) {
+    dart.tagLazy(closure, () => {
+      let parts = computeTypeParts();
+      return dart.definiteFunctionType(parts[0], parts[1], parts[2]);
+    });
     return closure;
   };
   dart._runtimeType = Symbol("_runtimeType");
@@ -743,15 +767,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.tagComputed = function(value, compute) {
     dart.defineProperty(value, dart._runtimeType, {get: compute});
   };
-  dart.tagMemoized = function(value, compute) {
-    let cache = null;
-    function getter() {
-      if (compute == null) return cache;
-      cache = compute();
-      compute = null;
-      return cache;
-    }
-    dart.tagComputed(value, getter);
+  dart.tagLazy = function(value, compute) {
+    dart.defineLazyProperty(value, dart._runtimeType, {get: compute});
   };
   dart._mixins = Symbol("mixins");
   dart.implements = Symbol("implements");
@@ -912,7 +929,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.functionType.metadata;
     }
   };
+  dart._typeFormalCount = Symbol("_typeFormalCount");
   dart._functionType = function(definite, returnType, args, extra) {
+    if (args === void 0 && extra === void 0) {
+      const fnTypeParts = returnType;
+      function makeGenericFnType(...types) {
+        let parts = fnTypeParts(...types);
+        return dart._functionType(definite, parts[0], parts[1], parts[2]);
+      }
+      makeGenericFnType[dart._typeFormalCount] = fnTypeParts.length;
+      return makeGenericFnType;
+    }
     let optionals;
     let named;
     if (extra === void 0) {
@@ -1249,19 +1276,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _debugger._typeof = function(object) {
     return typeof object;
   };
-  dart.fn(_debugger._typeof, () => dart.definiteFunctionType(core.String, [dart.dynamic]));
+  dart.lazyFn(_debugger._typeof, () => [core.String, [dart.dynamic]]);
   _debugger._instanceof = function(object, clazz) {
     return object instanceof clazz;
   };
-  dart.fn(_debugger._instanceof, () => dart.definiteFunctionType(core.bool, [dart.dynamic, dart.dynamic]));
+  dart.lazyFn(_debugger._instanceof, () => [core.bool, [dart.dynamic, dart.dynamic]]);
   _debugger.getOwnPropertyNames = function(object) {
     return dart.as(dart.list(Object.getOwnPropertyNames(object), core.String), core.List$(core.String));
   };
-  dart.fn(_debugger.getOwnPropertyNames, () => dart.definiteFunctionType(core.List$(core.String), [dart.dynamic]));
+  dart.lazyFn(_debugger.getOwnPropertyNames, () => [core.List$(core.String), [dart.dynamic]]);
   _debugger.getOwnPropertySymbols = function(object) {
     return Object.getOwnPropertySymbols(object);
   };
-  dart.fn(_debugger.getOwnPropertySymbols, () => dart.definiteFunctionType(core.List, [dart.dynamic]));
+  dart.lazyFn(_debugger.getOwnPropertySymbols, () => [core.List, [dart.dynamic]]);
   _debugger.JSNative = class JSNative extends core.Object {
     static getProperty(object, name) {
       return object[name];
@@ -1281,7 +1308,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     if (_debugger._typeof(object) == 'function') return false;
     return _debugger._instanceof(object, core.Object);
   };
-  dart.fn(_debugger.isRegularDartObject, () => dart.definiteFunctionType(core.bool, [dart.dynamic]));
+  dart.lazyFn(_debugger.isRegularDartObject, () => [core.bool, [dart.dynamic]]);
   _debugger.getObjectTypeName = function(object) {
     let realRuntimeType = dart.realRuntimeType(object);
     if (realRuntimeType == null) {
@@ -1292,13 +1319,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     return _debugger.getTypeName(dart.as(realRuntimeType, core.Type));
   };
-  dart.fn(_debugger.getObjectTypeName, () => dart.definiteFunctionType(core.String, [dart.dynamic]));
+  dart.lazyFn(_debugger.getObjectTypeName, () => [core.String, [dart.dynamic]]);
   _debugger.getTypeName = function(type) {
     let name = dart.typeName(type);
     if (dart.equals(name, 'JSArray<dynamic>') || dart.equals(name, 'JSObject<Array>')) return 'List<dynamic>';
     return dart.as(name, core.String);
   };
-  dart.fn(_debugger.getTypeName, () => dart.definiteFunctionType(core.String, [core.Type]));
+  dart.lazyFn(_debugger.getTypeName, () => [core.String, [core.Type]]);
   const _simpleFormatter = Symbol('_simpleFormatter');
   _debugger.safePreview = function(object) {
     try {
@@ -1310,13 +1337,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
 
   };
-  dart.fn(_debugger.safePreview, () => dart.definiteFunctionType(core.String, [dart.dynamic]));
+  dart.lazyFn(_debugger.safePreview, () => [core.String, [dart.dynamic]]);
   _debugger.symbolName = function(symbol) {
     let name = dart.toString(symbol);
     dart.assert(name[dartx.startsWith]('Symbol('));
     return name[dartx.substring]('Symbol('[dartx.length], dart.notNull(name[dartx.length]) - 1);
   };
-  dart.fn(_debugger.symbolName, () => dart.definiteFunctionType(core.String, [dart.dynamic]));
+  dart.lazyFn(_debugger.symbolName, () => [core.String, [dart.dynamic]]);
   _debugger.hasMethod = function(object, name) {
     try {
       return dart.as(dart.hasMethod(object, name), core.bool);
@@ -1325,7 +1352,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
 
   };
-  dart.fn(_debugger.hasMethod, () => dart.definiteFunctionType(core.bool, [dart.dynamic, core.String]));
+  dart.lazyFn(_debugger.hasMethod, () => [core.bool, [dart.dynamic, core.String]]);
   _debugger.NameValuePair = class NameValuePair extends core.Object {
     NameValuePair(opts) {
       let name = opts && 'name' in opts ? opts.name : null;
@@ -1739,7 +1766,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     preview(object) {
       let clause = dart.as(object, _debugger.HeritageClause);
-      let typeNames = clause.types[dartx.map](dart.fn(type => _debugger.getTypeName(dart.as(type, core.Type)), core.String, [dart.dynamic]));
+      let typeNames = clause.types[dartx.map](core.String)(dart.fn(type => _debugger.getTypeName(dart.as(type, core.Type)), core.String, [dart.dynamic]));
       return `${clause.name} ${typeNames[dartx.join](", ")}`;
     }
     hasChildren(object) {
@@ -1782,7 +1809,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     if (arg10 === void 0) arg10 = null;
     if (arg11 === void 0) arg11 = null;
   };
-  dart.fn(_foreign_helper.JS, () => dart.definiteFunctionType(dart.dynamic, [core.String, core.String], [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]));
+  dart.lazyFn(_foreign_helper.JS, () => [dart.dynamic, [core.String, core.String], [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]]);
   _foreign_helper.JSExportName = class JSExportName extends core.Object {
     JSExportName(name) {
       this.name = name;
@@ -1793,11 +1820,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   _foreign_helper.JS_CURRENT_ISOLATE_CONTEXT = function() {
   };
-  dart.fn(_foreign_helper.JS_CURRENT_ISOLATE_CONTEXT, () => dart.definiteFunctionType(_foreign_helper.IsolateContext, []));
+  dart.lazyFn(_foreign_helper.JS_CURRENT_ISOLATE_CONTEXT, () => [_foreign_helper.IsolateContext, []]);
   _foreign_helper.IsolateContext = class IsolateContext extends core.Object {};
   _foreign_helper.JS_CALL_IN_ISOLATE = function(isolate, func) {
   };
-  dart.fn(_foreign_helper.JS_CALL_IN_ISOLATE, () => dart.definiteFunctionType(dart.dynamic, [dart.dynamic, core.Function]));
+  dart.lazyFn(_foreign_helper.JS_CALL_IN_ISOLATE, () => [dart.dynamic, [dart.dynamic, core.Function]]);
   _foreign_helper.JS_SET_CURRENT_ISOLATE = function(isolate) {
   };
   dart.fn(_foreign_helper.JS_SET_CURRENT_ISOLATE, dart.void, [dart.dynamic]);
@@ -1809,65 +1836,65 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.fn(_foreign_helper.JS_DART_OBJECT_CONSTRUCTOR);
   _foreign_helper.JS_INTERCEPTOR_CONSTANT = function(type) {
   };
-  dart.fn(_foreign_helper.JS_INTERCEPTOR_CONSTANT, () => dart.definiteFunctionType(dart.dynamic, [core.Type]));
+  dart.lazyFn(_foreign_helper.JS_INTERCEPTOR_CONSTANT, () => [dart.dynamic, [core.Type]]);
   _foreign_helper.JS_OPERATOR_IS_PREFIX = function() {
   };
-  dart.fn(_foreign_helper.JS_OPERATOR_IS_PREFIX, () => dart.definiteFunctionType(core.String, []));
+  dart.lazyFn(_foreign_helper.JS_OPERATOR_IS_PREFIX, () => [core.String, []]);
   _foreign_helper.JS_OPERATOR_AS_PREFIX = function() {
   };
-  dart.fn(_foreign_helper.JS_OPERATOR_AS_PREFIX, () => dart.definiteFunctionType(core.String, []));
+  dart.lazyFn(_foreign_helper.JS_OPERATOR_AS_PREFIX, () => [core.String, []]);
   _foreign_helper.JS_OBJECT_CLASS_NAME = function() {
   };
-  dart.fn(_foreign_helper.JS_OBJECT_CLASS_NAME, () => dart.definiteFunctionType(core.String, []));
+  dart.lazyFn(_foreign_helper.JS_OBJECT_CLASS_NAME, () => [core.String, []]);
   _foreign_helper.JS_NULL_CLASS_NAME = function() {
   };
-  dart.fn(_foreign_helper.JS_NULL_CLASS_NAME, () => dart.definiteFunctionType(core.String, []));
+  dart.lazyFn(_foreign_helper.JS_NULL_CLASS_NAME, () => [core.String, []]);
   _foreign_helper.JS_FUNCTION_CLASS_NAME = function() {
   };
-  dart.fn(_foreign_helper.JS_FUNCTION_CLASS_NAME, () => dart.definiteFunctionType(core.String, []));
+  dart.lazyFn(_foreign_helper.JS_FUNCTION_CLASS_NAME, () => [core.String, []]);
   _foreign_helper.JS_IS_INDEXABLE_FIELD_NAME = function() {
   };
-  dart.fn(_foreign_helper.JS_IS_INDEXABLE_FIELD_NAME, () => dart.definiteFunctionType(core.String, []));
+  dart.lazyFn(_foreign_helper.JS_IS_INDEXABLE_FIELD_NAME, () => [core.String, []]);
   _foreign_helper.JS_CURRENT_ISOLATE = function() {
   };
   dart.fn(_foreign_helper.JS_CURRENT_ISOLATE);
   _foreign_helper.JS_SIGNATURE_NAME = function() {
   };
-  dart.fn(_foreign_helper.JS_SIGNATURE_NAME, () => dart.definiteFunctionType(core.String, []));
+  dart.lazyFn(_foreign_helper.JS_SIGNATURE_NAME, () => [core.String, []]);
   _foreign_helper.JS_TYPEDEF_TAG = function() {
   };
-  dart.fn(_foreign_helper.JS_TYPEDEF_TAG, () => dart.definiteFunctionType(core.String, []));
+  dart.lazyFn(_foreign_helper.JS_TYPEDEF_TAG, () => [core.String, []]);
   _foreign_helper.JS_FUNCTION_TYPE_TAG = function() {
   };
-  dart.fn(_foreign_helper.JS_FUNCTION_TYPE_TAG, () => dart.definiteFunctionType(core.String, []));
+  dart.lazyFn(_foreign_helper.JS_FUNCTION_TYPE_TAG, () => [core.String, []]);
   _foreign_helper.JS_FUNCTION_TYPE_VOID_RETURN_TAG = function() {
   };
-  dart.fn(_foreign_helper.JS_FUNCTION_TYPE_VOID_RETURN_TAG, () => dart.definiteFunctionType(core.String, []));
+  dart.lazyFn(_foreign_helper.JS_FUNCTION_TYPE_VOID_RETURN_TAG, () => [core.String, []]);
   _foreign_helper.JS_FUNCTION_TYPE_RETURN_TYPE_TAG = function() {
   };
-  dart.fn(_foreign_helper.JS_FUNCTION_TYPE_RETURN_TYPE_TAG, () => dart.definiteFunctionType(core.String, []));
+  dart.lazyFn(_foreign_helper.JS_FUNCTION_TYPE_RETURN_TYPE_TAG, () => [core.String, []]);
   _foreign_helper.JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG = function() {
   };
-  dart.fn(_foreign_helper.JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG, () => dart.definiteFunctionType(core.String, []));
+  dart.lazyFn(_foreign_helper.JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG, () => [core.String, []]);
   _foreign_helper.JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG = function() {
   };
-  dart.fn(_foreign_helper.JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG, () => dart.definiteFunctionType(core.String, []));
+  dart.lazyFn(_foreign_helper.JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG, () => [core.String, []]);
   _foreign_helper.JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG = function() {
   };
-  dart.fn(_foreign_helper.JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG, () => dart.definiteFunctionType(core.String, []));
+  dart.lazyFn(_foreign_helper.JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG, () => [core.String, []]);
   _foreign_helper.JS_GET_NAME = function(name) {
   };
-  dart.fn(_foreign_helper.JS_GET_NAME, () => dart.definiteFunctionType(core.String, [core.String]));
+  dart.lazyFn(_foreign_helper.JS_GET_NAME, () => [core.String, [core.String]]);
   _foreign_helper.JS_EMBEDDED_GLOBAL = function(typeDescription, name) {
   };
-  dart.fn(_foreign_helper.JS_EMBEDDED_GLOBAL, () => dart.definiteFunctionType(dart.dynamic, [core.String, core.String]));
+  dart.lazyFn(_foreign_helper.JS_EMBEDDED_GLOBAL, () => [dart.dynamic, [core.String, core.String]]);
   _foreign_helper.JS_GET_FLAG = function(name) {
   };
-  dart.fn(_foreign_helper.JS_GET_FLAG, () => dart.definiteFunctionType(core.bool, [core.String]));
+  dart.lazyFn(_foreign_helper.JS_GET_FLAG, () => [core.bool, [core.String]]);
   _foreign_helper.JS_EFFECT = function(code) {
     dart.dcall(code, null);
   };
-  dart.fn(_foreign_helper.JS_EFFECT, () => dart.definiteFunctionType(dart.void, [core.Function]));
+  dart.lazyFn(_foreign_helper.JS_EFFECT, () => [dart.void, [core.Function]]);
   _foreign_helper.JS_CONST = class JS_CONST extends core.Object {
     JS_CONST(code) {
       this.code = code;
@@ -1879,7 +1906,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _foreign_helper.JS_STRING_CONCAT = function(a, b) {
     return a + b;
   };
-  dart.fn(_foreign_helper.JS_STRING_CONCAT, () => dart.definiteFunctionType(core.String, [core.String, core.String]));
+  dart.lazyFn(_foreign_helper.JS_STRING_CONCAT, () => [core.String, [core.String, core.String]]);
   _foreign_helper._Rest = class _Rest extends core.Object {
     _Rest() {
     }
@@ -1967,10 +1994,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   _interceptors.findInterceptorConstructorForType = function(type) {
   };
-  dart.fn(_interceptors.findInterceptorConstructorForType, () => dart.definiteFunctionType(dart.dynamic, [core.Type]));
+  dart.lazyFn(_interceptors.findInterceptorConstructorForType, () => [dart.dynamic, [core.Type]]);
   _interceptors.findConstructorForNativeSubclassType = function(type, name) {
   };
-  dart.fn(_interceptors.findConstructorForNativeSubclassType, () => dart.definiteFunctionType(dart.dynamic, [core.Type, core.String]));
+  dart.lazyFn(_interceptors.findConstructorForNativeSubclassType, () => [dart.dynamic, [core.Type, core.String]]);
   _interceptors.getNativeInterceptor = function(object) {
   };
   dart.fn(_interceptors.getNativeInterceptor);
@@ -2105,11 +2132,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [dartx.removeWhere](test) {
         dart.as(test, dart.functionType(core.bool, [E]));
-        _internal.IterableMixinWorkaround.removeWhereList(this, test);
+        _internal.IterableMixinWorkaround.removeWhereList(E)(this, test);
       }
       [dartx.retainWhere](test) {
         dart.as(test, dart.functionType(core.bool, [E]));
-        _internal.IterableMixinWorkaround.removeWhereList(this, dart.fn(element => {
+        _internal.IterableMixinWorkaround.removeWhereList(E)(this, dart.fn(element => {
           dart.as(element, E);
           return !dart.notNull(test(element));
         }, core.bool, [E]));
@@ -2118,9 +2145,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.as(f, dart.functionType(core.bool, [E]));
         return new (_internal.IterableMixinWorkaround$(E))().where(this, f);
       }
-      [dartx.expand](f) {
-        dart.as(f, dart.functionType(core.Iterable, [E]));
-        return _internal.IterableMixinWorkaround.expand(this, f);
+      [dartx.expand](T) {
+        return f => {
+          dart.as(f, dart.functionType(core.Iterable$(T), [E]));
+          return _internal.IterableMixinWorkaround.expand(E, T)(this, f);
+        };
       }
       [dartx.addAll](collection) {
         dart.as(collection, core.Iterable$(E));
@@ -2141,9 +2170,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
           }
         }
       }
-      [dartx.map](f) {
-        dart.as(f, dart.functionType(dart.dynamic, [E]));
-        return _internal.IterableMixinWorkaround.mapList(this, f);
+      [dartx.map](T) {
+        return f => {
+          dart.as(f, dart.functionType(T, [E]));
+          return _internal.IterableMixinWorkaround.mapList(E, T)(this, f);
+        };
       }
       [dartx.join](separator) {
         if (separator === void 0) separator = "";
@@ -2169,27 +2200,29 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [dartx.reduce](combine) {
         dart.as(combine, dart.functionType(E, [E, E]));
-        return _internal.IterableMixinWorkaround.reduce(this, combine);
+        return _internal.IterableMixinWorkaround.reduce(E)(this, combine);
       }
-      [dartx.fold](initialValue, combine) {
-        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
-        return _internal.IterableMixinWorkaround.fold(this, initialValue, combine);
+      [dartx.fold](T) {
+        return (initialValue, combine) => {
+          dart.as(combine, dart.functionType(T, [T, E]));
+          return _internal.IterableMixinWorkaround.fold(E, T)(this, initialValue, combine);
+        };
       }
       [dartx.firstWhere](test, opts) {
         dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
-        return _internal.IterableMixinWorkaround.firstWhere(this, test, orElse);
+        return _internal.IterableMixinWorkaround.firstWhere(E)(this, test, orElse);
       }
       [dartx.lastWhere](test, opts) {
         dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
-        return _internal.IterableMixinWorkaround.lastWhereList(this, test, orElse);
+        return _internal.IterableMixinWorkaround.lastWhereList(E)(this, test, orElse);
       }
       [dartx.singleWhere](test) {
         dart.as(test, dart.functionType(core.bool, [E]));
-        return _internal.IterableMixinWorkaround.singleWhere(this, test);
+        return _internal.IterableMixinWorkaround.singleWhere(E)(this, test);
       }
       [dartx.elementAt](index) {
         return this[dartx.get](index);
@@ -2256,11 +2289,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [dartx.any](f) {
         dart.as(f, dart.functionType(core.bool, [E]));
-        return _internal.IterableMixinWorkaround.any(this, f);
+        return _internal.IterableMixinWorkaround.any(E)(this, f);
       }
       [dartx.every](f) {
         dart.as(f, dart.functionType(core.bool, [E]));
-        return _internal.IterableMixinWorkaround.every(this, f);
+        return _internal.IterableMixinWorkaround.every(E)(this, f);
       }
       get [dartx.reversed]() {
         return new (_internal.IterableMixinWorkaround$(E))().reversedList(this);
@@ -2358,18 +2391,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
         [dartx.removeWhere]: [dart.void, [dart.functionType(core.bool, [E])]],
         [dartx.retainWhere]: [dart.void, [dart.functionType(core.bool, [E])]],
         [dartx.where]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        [dartx.expand]: [core.Iterable, [dart.functionType(core.Iterable, [E])]],
+        [dartx.expand]: [T => [core.Iterable$(T), [dart.functionType(core.Iterable$(T), [E])]]],
         [dartx.addAll]: [dart.void, [core.Iterable$(E)]],
         [dartx.clear]: [dart.void, []],
         [dartx.forEach]: [dart.void, [dart.functionType(dart.void, [E])]],
-        [dartx.map]: [core.Iterable, [dart.functionType(dart.dynamic, [E])]],
+        [dartx.map]: [T => [core.Iterable$(T), [dart.functionType(T, [E])]]],
         [dartx.join]: [core.String, [], [core.String]],
         [dartx.take]: [core.Iterable$(E), [core.int]],
         [dartx.takeWhile]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
         [dartx.skip]: [core.Iterable$(E), [core.int]],
         [dartx.skipWhile]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
         [dartx.reduce]: [E, [dart.functionType(E, [E, E])]],
-        [dartx.fold]: [dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, E])]],
+        [dartx.fold]: [T => [T, [T, dart.functionType(T, [T, E])]]],
         [dartx.firstWhere]: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
         [dartx.lastWhere]: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
         [dartx.singleWhere]: [E, [dart.functionType(core.bool, [E])]],
@@ -3475,13 +3508,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.as(test, dart.functionType(core.bool, [E]));
         return new (_internal.WhereIterable$(E))(this, test);
       }
-      [dartx.map](f) {
-        dart.as(f, dart.functionType(dart.dynamic, [E]));
-        return new (_internal.MappedListIterable$(E, dart.dynamic))(this, f);
+      [dartx.map](T) {
+        return f => {
+          dart.as(f, dart.functionType(T, [E]));
+          return new (_internal.MappedListIterable$(E, T))(this, f);
+        };
       }
-      [dartx.expand](f) {
-        dart.as(f, dart.functionType(core.Iterable, [E]));
-        return new (_internal.ExpandIterable$(E, dart.dynamic))(this, f);
+      [dartx.expand](T) {
+        return f => {
+          dart.as(f, dart.functionType(core.Iterable$(T), [E]));
+          return new (_internal.ExpandIterable$(E, T))(this, f);
+        };
       }
       [dartx.reduce](combine) {
         dart.as(combine, dart.functionType(E, [E, E]));
@@ -3496,17 +3533,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
         return value;
       }
-      [dartx.fold](initialValue, combine) {
-        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
-        let value = initialValue;
-        let length = this[dartx.length];
-        for (let i = 0; i < dart.notNull(length); i++) {
-          value = combine(value, this[dartx.get](i));
-          if (length != this[dartx.length]) {
-            dart.throw(new core.ConcurrentModificationError(this));
+      [dartx.fold](T) {
+        return (initialValue, combine) => {
+          dart.as(combine, dart.functionType(T, [T, E]));
+          let value = initialValue;
+          let length = this[dartx.length];
+          for (let i = 0; i < dart.notNull(length); i++) {
+            value = combine(value, this[dartx.get](i));
+            if (length != this[dartx.length]) {
+              dart.throw(new core.ConcurrentModificationError(this));
+            }
           }
-        }
-        return value;
+          return value;
+        };
       }
       [dartx.skip](count) {
         return new (_internal.SubListIterable$(E))(this, count, null);
@@ -3810,10 +3849,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
         [dartx.singleWhere]: [E, [dart.functionType(core.bool, [E])]],
         [dartx.join]: [core.String, [], [core.String]],
         [dartx.where]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        [dartx.map]: [core.Iterable, [dart.functionType(dart.dynamic, [E])]],
-        [dartx.expand]: [core.Iterable, [dart.functionType(core.Iterable, [E])]],
+        [dartx.map]: [T => [core.Iterable$(T), [dart.functionType(T, [E])]]],
+        [dartx.expand]: [T => [core.Iterable$(T), [dart.functionType(core.Iterable$(T), [E])]]],
         [dartx.reduce]: [E, [dart.functionType(E, [E, E])]],
-        [dartx.fold]: [dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, E])]],
+        [dartx.fold]: [T => [T, [T, dart.functionType(T, [T, E])]]],
         [dartx.skip]: [core.Iterable$(E), [core.int]],
         [dartx.skipWhile]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
         [dartx.take]: [core.Iterable$(E), [core.int]],
@@ -4087,17 +4126,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     class IterableBase extends core.Object {
       IterableBase() {
       }
-      map(f) {
-        dart.as(f, dart.functionType(dart.dynamic, [E]));
-        return _internal.MappedIterable$(E, dart.dynamic).new(this, f);
+      map(T) {
+        return f => {
+          dart.as(f, dart.functionType(T, [E]));
+          return _internal.MappedIterable$(E, T).new(this, f);
+        };
       }
       where(f) {
         dart.as(f, dart.functionType(core.bool, [E]));
         return new (_internal.WhereIterable$(E))(this, f);
       }
-      expand(f) {
-        dart.as(f, dart.functionType(core.Iterable, [E]));
-        return new (_internal.ExpandIterable$(E, dart.dynamic))(this, f);
+      expand(T) {
+        return f => {
+          dart.as(f, dart.functionType(core.Iterable$(T), [E]));
+          return new (_internal.ExpandIterable$(E, T))(this, f);
+        };
       }
       contains(element) {
         for (let e of this) {
@@ -4122,12 +4165,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
         return value;
       }
-      fold(initialValue, combine) {
-        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
-        let value = initialValue;
-        for (let element of this)
-          value = combine(value, element);
-        return value;
+      fold(T) {
+        return (initialValue, combine) => {
+          dart.as(combine, dart.functionType(T, [T, E]));
+          let value = initialValue;
+          for (let element of this)
+            value = combine(value, element);
+          return value;
+        };
       }
       every(f) {
         dart.as(f, dart.functionType(core.bool, [E]));
@@ -4408,13 +4453,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     dart.setSignature(IterableBase, {
       constructors: () => ({IterableBase: [collection.IterableBase$(E), []]}),
       methods: () => ({
-        map: [core.Iterable, [dart.functionType(dart.dynamic, [E])]],
+        map: [T => [core.Iterable$(T), [dart.functionType(T, [E])]]],
         where: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        expand: [core.Iterable, [dart.functionType(core.Iterable, [E])]],
+        expand: [T => [core.Iterable$(T), [dart.functionType(core.Iterable$(T), [E])]]],
         contains: [core.bool, [core.Object]],
         forEach: [dart.void, [dart.functionType(dart.void, [E])]],
         reduce: [E, [dart.functionType(E, [E, E])]],
-        fold: [dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, E])]],
+        fold: [T => [T, [T, dart.functionType(T, [T, E])]]],
         every: [core.bool, [dart.functionType(core.bool, [E])]],
         join: [core.String, [], [core.String]],
         any: [core.bool, [dart.functionType(core.bool, [E])]],
@@ -4623,9 +4668,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.as(test, dart.functionType(core.bool, [E]));
         return super.where(test);
       }
-      map(f) {
-        dart.as(f, dart.functionType(dart.dynamic, [E]));
-        return new (_internal.MappedListIterable$(E, dart.dynamic))(this, f);
+      map(T) {
+        return f => {
+          dart.as(f, dart.functionType(T, [E]));
+          return new (_internal.MappedListIterable$(E, T))(this, f);
+        };
       }
       reduce(combine) {
         dart.as(combine, dart.functionType(E, [dart.dynamic, E]));
@@ -4640,17 +4687,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
         return value;
       }
-      fold(initialValue, combine) {
-        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
-        let value = initialValue;
-        let length = this.length;
-        for (let i = 0; i < dart.notNull(length); i++) {
-          value = combine(value, this.elementAt(i));
-          if (length != this.length) {
-            dart.throw(new core.ConcurrentModificationError(this));
+      fold(T) {
+        return (initialValue, combine) => {
+          dart.as(combine, dart.functionType(T, [T, E]));
+          let value = initialValue;
+          let length = this.length;
+          for (let i = 0; i < dart.notNull(length); i++) {
+            value = combine(value, this.elementAt(i));
+            if (length != this.length) {
+              dart.throw(new core.ConcurrentModificationError(this));
+            }
           }
-        }
-        return value;
+          return value;
+        };
       }
       skip(count) {
         return new (_internal.SubListIterable$(E))(this, count, null);
@@ -4699,9 +4748,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
         lastWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
         singleWhere: [E, [dart.functionType(core.bool, [E])]],
         where: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        map: [core.Iterable, [dart.functionType(dart.dynamic, [E])]],
+        map: [T => [core.Iterable$(T), [dart.functionType(T, [E])]]],
         reduce: [E, [dart.functionType(E, [dart.dynamic, E])]],
-        fold: [dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, E])]],
+        fold: [T => [T, [T, dart.functionType(T, [T, E])]]],
         skip: [core.Iterable$(E), [core.int]],
         skipWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
         take: [core.Iterable$(E), [core.int]],
@@ -5440,17 +5489,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.as(test, dart.functionType(core.bool, [E]));
         return this;
       }
-      map(f) {
-        dart.as(f, dart.functionType(dart.dynamic, [E]));
-        return dart.const(new _internal.EmptyIterable());
+      map(T) {
+        return f => {
+          dart.as(f, dart.functionType(T, [E]));
+          return dart.const(new (_internal.EmptyIterable$(T))());
+        };
       }
       reduce(combine) {
         dart.as(combine, dart.functionType(E, [E, E]));
         dart.throw(_internal.IterableElementError.noElement());
       }
-      fold(initialValue, combine) {
-        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
-        return initialValue;
+      fold(T) {
+        return (initialValue, combine) => {
+          dart.as(combine, dart.functionType(T, [T, E]));
+          return initialValue;
+        };
       }
       skip(count) {
         core.RangeError.checkNotNegative(count, "count");
@@ -5488,9 +5541,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
         lastWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
         singleWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
         where: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        map: [core.Iterable, [dart.functionType(dart.dynamic, [E])]],
+        map: [T => [core.Iterable$(T), [dart.functionType(T, [E])]]],
         reduce: [E, [dart.functionType(E, [E, E])]],
-        fold: [dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, E])]],
+        fold: [T => [T, [T, dart.functionType(T, [T, E])]]],
         skip: [core.Iterable$(E), [core.int]],
         skipWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
         take: [core.Iterable$(E), [core.int]],
@@ -5556,180 +5609,222 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal.BidirectionalIterator = _internal.BidirectionalIterator$();
   _internal.IterableMixinWorkaround$ = dart.generic(T => {
     class IterableMixinWorkaround extends core.Object {
-      static contains(iterable, element) {
-        for (let e of iterable) {
-          if (dart.equals(e, element)) return true;
-        }
-        return false;
-      }
-      static forEach(iterable, f) {
-        for (let e of iterable) {
-          f(e);
-        }
-      }
-      static any(iterable, f) {
-        for (let e of iterable) {
-          if (dart.notNull(f(e))) return true;
-        }
-        return false;
-      }
-      static every(iterable, f) {
-        for (let e of iterable) {
-          if (!dart.notNull(f(e))) return false;
-        }
-        return true;
-      }
-      static reduce(iterable, combine) {
-        let iterator = iterable[dartx.iterator];
-        if (!dart.notNull(iterator.moveNext())) dart.throw(_internal.IterableElementError.noElement());
-        let value = iterator.current;
-        while (dart.notNull(iterator.moveNext())) {
-          value = combine(value, iterator.current);
-        }
-        return value;
-      }
-      static fold(iterable, initialValue, combine) {
-        for (let element of iterable) {
-          initialValue = combine(initialValue, element);
-        }
-        return initialValue;
-      }
-      static removeWhereList(list, test) {
-        let retained = dart.list([], dart.dynamic);
-        let length = list[dartx.length];
-        for (let i = 0; i < dart.notNull(length); i++) {
-          let element = list[dartx.get](i);
-          if (!dart.notNull(test(element))) {
-            retained[dartx.add](element);
+      static contains(E) {
+        return (iterable, element) => {
+          for (let e of iterable) {
+            if (dart.equals(e, element)) return true;
           }
-          if (length != list[dartx.length]) {
-            dart.throw(new core.ConcurrentModificationError(list));
+          return false;
+        };
+      }
+      static forEach(E) {
+        return (iterable, f) => {
+          for (let e of iterable) {
+            f(e);
           }
-        }
-        if (retained[dartx.length] == length) return;
-        list[dartx.length] = retained[dartx.length];
-        for (let i = 0; i < dart.notNull(retained[dartx.length]); i++) {
-          list[dartx.set](i, retained[dartx.get](i));
-        }
+        };
       }
-      static isEmpty(iterable) {
-        return !dart.notNull(iterable[dartx.iterator].moveNext());
-      }
-      static first(iterable) {
-        let it = iterable[dartx.iterator];
-        if (!dart.notNull(it.moveNext())) {
-          dart.throw(_internal.IterableElementError.noElement());
-        }
-        return it.current;
-      }
-      static last(iterable) {
-        let it = iterable[dartx.iterator];
-        if (!dart.notNull(it.moveNext())) {
-          dart.throw(_internal.IterableElementError.noElement());
-        }
-        let result = null;
-        do {
-          result = it.current;
-        } while (dart.notNull(it.moveNext()));
-        return result;
-      }
-      static single(iterable) {
-        let it = iterable[dartx.iterator];
-        if (!dart.notNull(it.moveNext())) dart.throw(_internal.IterableElementError.noElement());
-        let result = it.current;
-        if (dart.notNull(it.moveNext())) dart.throw(_internal.IterableElementError.tooMany());
-        return result;
-      }
-      static firstWhere(iterable, test, orElse) {
-        for (let element of iterable) {
-          if (dart.notNull(test(element))) return element;
-        }
-        if (orElse != null) return orElse();
-        dart.throw(_internal.IterableElementError.noElement());
-      }
-      static lastWhere(iterable, test, orElse) {
-        let result = null;
-        let foundMatching = false;
-        for (let element of iterable) {
-          if (dart.notNull(test(element))) {
-            result = element;
-            foundMatching = true;
+      static any(E) {
+        return (iterable, f) => {
+          for (let e of iterable) {
+            if (dart.notNull(f(e))) return true;
           }
-        }
-        if (foundMatching) return result;
-        if (orElse != null) return orElse();
-        dart.throw(_internal.IterableElementError.noElement());
+          return false;
+        };
       }
-      static lastWhereList(list, test, orElse) {
-        for (let i = dart.notNull(list[dartx.length]) - 1; i >= 0; i--) {
-          let element = list[dartx.get](i);
-          if (dart.notNull(test(element))) return element;
-        }
-        if (orElse != null) return orElse();
-        dart.throw(_internal.IterableElementError.noElement());
+      static every(E) {
+        return (iterable, f) => {
+          for (let e of iterable) {
+            if (!dart.notNull(f(e))) return false;
+          }
+          return true;
+        };
       }
-      static singleWhere(iterable, test) {
-        let result = null;
-        let foundMatching = false;
-        for (let element of iterable) {
-          if (dart.notNull(test(element))) {
-            if (foundMatching) {
-              dart.throw(_internal.IterableElementError.tooMany());
+      static reduce(E) {
+        return (iterable, combine) => {
+          let iterator = iterable[dartx.iterator];
+          if (!dart.notNull(iterator.moveNext())) dart.throw(_internal.IterableElementError.noElement());
+          let value = iterator.current;
+          while (dart.notNull(iterator.moveNext())) {
+            value = combine(value, iterator.current);
+          }
+          return value;
+        };
+      }
+      static fold(E, V) {
+        return (iterable, initialValue, combine) => {
+          for (let element of iterable) {
+            initialValue = combine(initialValue, element);
+          }
+          return initialValue;
+        };
+      }
+      static removeWhereList(E) {
+        return (list, test) => {
+          let retained = dart.list([], E);
+          let length = list[dartx.length];
+          for (let i = 0; i < dart.notNull(length); i++) {
+            let element = list[dartx.get](i);
+            if (!dart.notNull(test(element))) {
+              retained[dartx.add](element);
             }
-            result = element;
-            foundMatching = true;
+            if (length != list[dartx.length]) {
+              dart.throw(new core.ConcurrentModificationError(list));
+            }
           }
-        }
-        if (foundMatching) return result;
-        dart.throw(_internal.IterableElementError.noElement());
-      }
-      static elementAt(iterable, index) {
-        if (!(typeof index == 'number')) dart.throw(new core.ArgumentError.notNull("index"));
-        core.RangeError.checkNotNegative(index, "index");
-        let elementIndex = 0;
-        for (let element of iterable) {
-          if (index == elementIndex) return element;
-          elementIndex++;
-        }
-        dart.throw(core.RangeError.index(index, iterable, "index", null, elementIndex));
-      }
-      static join(iterable, separator) {
-        if (separator === void 0) separator = null;
-        let buffer = new core.StringBuffer();
-        buffer.writeAll(iterable, separator);
-        return buffer.toString();
-      }
-      static joinList(list, separator) {
-        if (separator === void 0) separator = null;
-        if (dart.notNull(list[dartx.isEmpty])) return "";
-        if (list[dartx.length] == 1) return `${list[dartx.get](0)}`;
-        let buffer = new core.StringBuffer();
-        if (dart.notNull(separator[dartx.isEmpty])) {
-          for (let i = 0; i < dart.notNull(list[dartx.length]); i++) {
-            buffer.write(list[dartx.get](i));
+          if (retained[dartx.length] == length) return;
+          list[dartx.length] = retained[dartx.length];
+          for (let i = 0; i < dart.notNull(retained[dartx.length]); i++) {
+            list[dartx.set](i, retained[dartx.get](i));
           }
-        } else {
-          buffer.write(list[dartx.get](0));
-          for (let i = 1; i < dart.notNull(list[dartx.length]); i++) {
-            buffer.write(separator);
-            buffer.write(list[dartx.get](i));
+        };
+      }
+      static isEmpty(E) {
+        return iterable => {
+          return !dart.notNull(iterable[dartx.iterator].moveNext());
+        };
+      }
+      static first(E) {
+        return iterable => {
+          let it = iterable[dartx.iterator];
+          if (!dart.notNull(it.moveNext())) {
+            dart.throw(_internal.IterableElementError.noElement());
           }
-        }
-        return buffer.toString();
+          return it.current;
+        };
+      }
+      static last(E) {
+        return iterable => {
+          let it = iterable[dartx.iterator];
+          if (!dart.notNull(it.moveNext())) {
+            dart.throw(_internal.IterableElementError.noElement());
+          }
+          let result = null;
+          do {
+            result = it.current;
+          } while (dart.notNull(it.moveNext()));
+          return result;
+        };
+      }
+      static single(E) {
+        return iterable => {
+          let it = iterable[dartx.iterator];
+          if (!dart.notNull(it.moveNext())) dart.throw(_internal.IterableElementError.noElement());
+          let result = it.current;
+          if (dart.notNull(it.moveNext())) dart.throw(_internal.IterableElementError.tooMany());
+          return result;
+        };
+      }
+      static firstWhere(E) {
+        return (iterable, test, orElse) => {
+          for (let element of iterable) {
+            if (dart.notNull(test(element))) return element;
+          }
+          if (orElse != null) return orElse();
+          dart.throw(_internal.IterableElementError.noElement());
+        };
+      }
+      static lastWhere(E) {
+        return (iterable, test, orElse) => {
+          let result = null;
+          let foundMatching = false;
+          for (let element of iterable) {
+            if (dart.notNull(test(element))) {
+              result = element;
+              foundMatching = true;
+            }
+          }
+          if (foundMatching) return result;
+          if (orElse != null) return orElse();
+          dart.throw(_internal.IterableElementError.noElement());
+        };
+      }
+      static lastWhereList(E) {
+        return (list, test, orElse) => {
+          for (let i = dart.notNull(list[dartx.length]) - 1; i >= 0; i--) {
+            let element = list[dartx.get](i);
+            if (dart.notNull(test(element))) return element;
+          }
+          if (orElse != null) return orElse();
+          dart.throw(_internal.IterableElementError.noElement());
+        };
+      }
+      static singleWhere(E) {
+        return (iterable, test) => {
+          let result = null;
+          let foundMatching = false;
+          for (let element of iterable) {
+            if (dart.notNull(test(element))) {
+              if (foundMatching) {
+                dart.throw(_internal.IterableElementError.tooMany());
+              }
+              result = element;
+              foundMatching = true;
+            }
+          }
+          if (foundMatching) return result;
+          dart.throw(_internal.IterableElementError.noElement());
+        };
+      }
+      static elementAt(E) {
+        return (iterable, index) => {
+          if (!(typeof index == 'number')) dart.throw(new core.ArgumentError.notNull("index"));
+          core.RangeError.checkNotNegative(index, "index");
+          let elementIndex = 0;
+          for (let element of iterable) {
+            if (index == elementIndex) return element;
+            elementIndex++;
+          }
+          dart.throw(core.RangeError.index(index, iterable, "index", null, elementIndex));
+        };
+      }
+      static join(E) {
+        return (iterable, separator) => {
+          if (separator === void 0) separator = null;
+          let buffer = new core.StringBuffer();
+          buffer.writeAll(iterable, separator);
+          return buffer.toString();
+        };
+      }
+      static joinList(E) {
+        return (list, separator) => {
+          if (separator === void 0) separator = null;
+          if (dart.notNull(list[dartx.isEmpty])) return "";
+          if (list[dartx.length] == 1) return `${list[dartx.get](0)}`;
+          let buffer = new core.StringBuffer();
+          if (dart.notNull(separator[dartx.isEmpty])) {
+            for (let i = 0; i < dart.notNull(list[dartx.length]); i++) {
+              buffer.write(list[dartx.get](i));
+            }
+          } else {
+            buffer.write(list[dartx.get](0));
+            for (let i = 1; i < dart.notNull(list[dartx.length]); i++) {
+              buffer.write(separator);
+              buffer.write(list[dartx.get](i));
+            }
+          }
+          return buffer.toString();
+        };
       }
       where(iterable, f) {
         dart.as(iterable, core.Iterable$(T));
         dart.as(f, dart.functionType(core.bool, [T]));
         return new (_internal.WhereIterable$(T))(iterable, f);
       }
-      static map(iterable, f) {
-        return _internal.MappedIterable.new(iterable, f);
+      static map(E, V) {
+        return (iterable, f) => {
+          return _internal.MappedIterable$(E, V).new(iterable, f);
+        };
       }
-      static mapList(list, f) {
-        return new _internal.MappedListIterable(list, f);
+      static mapList(E, V) {
+        return (list, f) => {
+          return new (_internal.MappedListIterable$(E, V))(list, f);
+        };
       }
-      static expand(iterable, f) {
-        return new _internal.ExpandIterable(iterable, f);
+      static expand(E, V) {
+        return (iterable, f) => {
+          return new (_internal.ExpandIterable$(E, V))(iterable, f);
+        };
       }
       takeList(list, n) {
         return new (_internal.SubListIterable$(T))(dart.as(list, core.Iterable$(T)), 0, n);
@@ -5905,27 +6000,27 @@ dart_library.library('dart_sdk', null, /* Imports */[
         asMapList: [core.Map$(core.int, T), [core.List]]
       }),
       statics: () => ({
-        contains: [core.bool, [core.Iterable, dart.dynamic]],
-        forEach: [dart.void, [core.Iterable, dart.functionType(dart.void, [dart.dynamic])]],
-        any: [core.bool, [core.Iterable, dart.functionType(core.bool, [dart.dynamic])]],
-        every: [core.bool, [core.Iterable, dart.functionType(core.bool, [dart.dynamic])]],
-        reduce: [dart.dynamic, [core.Iterable, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]],
-        fold: [dart.dynamic, [core.Iterable, dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]],
-        removeWhereList: [dart.void, [core.List, dart.functionType(core.bool, [dart.dynamic])]],
-        isEmpty: [core.bool, [core.Iterable]],
-        first: [dart.dynamic, [core.Iterable]],
-        last: [dart.dynamic, [core.Iterable]],
-        single: [dart.dynamic, [core.Iterable]],
-        firstWhere: [dart.dynamic, [core.Iterable, dart.functionType(core.bool, [dart.dynamic]), dart.functionType(dart.dynamic, [])]],
-        lastWhere: [dart.dynamic, [core.Iterable, dart.functionType(core.bool, [dart.dynamic]), dart.functionType(dart.dynamic, [])]],
-        lastWhereList: [dart.dynamic, [core.List, dart.functionType(core.bool, [dart.dynamic]), dart.functionType(dart.dynamic, [])]],
-        singleWhere: [dart.dynamic, [core.Iterable, dart.functionType(core.bool, [dart.dynamic])]],
-        elementAt: [dart.dynamic, [core.Iterable, core.int]],
-        join: [core.String, [core.Iterable], [core.String]],
-        joinList: [core.String, [core.List], [core.String]],
-        map: [core.Iterable, [core.Iterable, dart.functionType(dart.dynamic, [dart.dynamic])]],
-        mapList: [core.Iterable, [core.List, dart.functionType(dart.dynamic, [dart.dynamic])]],
-        expand: [core.Iterable, [core.Iterable, dart.functionType(core.Iterable, [dart.dynamic])]],
+        contains: [E => [core.bool, [core.Iterable$(E), dart.dynamic]]],
+        forEach: [E => [dart.void, [core.Iterable$(E), dart.functionType(dart.void, [E])]]],
+        any: [E => [core.bool, [core.Iterable$(E), dart.functionType(core.bool, [E])]]],
+        every: [E => [core.bool, [core.Iterable$(E), dart.functionType(core.bool, [E])]]],
+        reduce: [E => [E, [core.Iterable$(E), dart.functionType(E, [E, E])]]],
+        fold: [(E, V) => [V, [core.Iterable$(E), V, dart.functionType(V, [V, E])]]],
+        removeWhereList: [E => [dart.void, [core.List$(E), dart.functionType(core.bool, [E])]]],
+        isEmpty: [E => [core.bool, [core.Iterable$(E)]]],
+        first: [E => [E, [core.Iterable$(E)]]],
+        last: [E => [E, [core.Iterable$(E)]]],
+        single: [E => [E, [core.Iterable$(E)]]],
+        firstWhere: [E => [E, [core.Iterable$(E), dart.functionType(core.bool, [E]), dart.functionType(E, [])]]],
+        lastWhere: [E => [E, [core.Iterable$(E), dart.functionType(core.bool, [E]), dart.functionType(E, [])]]],
+        lastWhereList: [E => [E, [core.List$(E), dart.functionType(core.bool, [E]), dart.functionType(E, [])]]],
+        singleWhere: [E => [E, [core.Iterable$(E), dart.functionType(core.bool, [E])]]],
+        elementAt: [E => [E, [core.Iterable$(E), core.int]]],
+        join: [E => [core.String, [core.Iterable$(E)], [core.String]]],
+        joinList: [E => [core.String, [core.List$(E)], [core.String]]],
+        map: [(E, V) => [core.Iterable$(V), [core.Iterable$(E), dart.functionType(V, [E])]]],
+        mapList: [(E, V) => [core.Iterable$(V), [core.List$(E), dart.functionType(V, [E])]]],
+        expand: [(E, V) => [core.Iterable$(V), [core.Iterable$(E), dart.functionType(core.Iterable$(V), [E])]]],
         sortList: [dart.void, [core.List, dart.functionType(core.int, [dart.dynamic, dart.dynamic])]],
         shuffleList: [dart.void, [core.List, math.Random]],
         indexOfList: [core.int, [core.List, dart.dynamic, core.int]],
@@ -6240,7 +6335,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     _interceptors.JSArray.markFixedList(growableList);
     return growableList;
   };
-  dart.fn(_internal.makeListFixedLength, () => dart.definiteFunctionType(core.List, [core.List]));
+  dart.lazyFn(_internal.makeListFixedLength, () => [core.List, [core.List]]);
   _internal.Lists = class Lists extends core.Object {
     static copy(src, srcStart, dst, dstStart, count) {
       if (dart.notNull(srcStart) < dart.notNull(dstStart)) {
@@ -6318,7 +6413,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal.printToConsole = function(line) {
     _js_primitives.printString(`${line}`);
   };
-  dart.fn(_internal.printToConsole, () => dart.definiteFunctionType(dart.void, [core.String]));
+  dart.lazyFn(_internal.printToConsole, () => [dart.void, [core.String]]);
   _internal.Sort = class Sort extends core.Object {
     static sort(a, compare) {
       _internal.Sort._doSort(a, 0, dart.notNull(a[dartx.length]) - 1, compare);
@@ -6622,7 +6717,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     _isolate_helper._globalState.topEventLoop.run();
     return result;
   };
-  dart.fn(_isolate_helper._callInIsolate, () => dart.definiteFunctionType(dart.dynamic, [_isolate_helper._IsolateContext, core.Function]));
+  dart.lazyFn(_isolate_helper._callInIsolate, () => [dart.dynamic, [_isolate_helper._IsolateContext, core.Function]]);
   const _activeJsAsyncCount = Symbol('_activeJsAsyncCount');
   _isolate_helper.enterJsAsync = function() {
     let o = _isolate_helper._globalState.topEventLoop;
@@ -6638,11 +6733,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _isolate_helper.isWorker = function() {
     return _isolate_helper._globalState.isWorker;
   };
-  dart.fn(_isolate_helper.isWorker, () => dart.definiteFunctionType(core.bool, []));
+  dart.lazyFn(_isolate_helper.isWorker, () => [core.bool, []]);
   _isolate_helper._currentIsolate = function() {
     return _isolate_helper._globalState.currentContext;
   };
-  dart.fn(_isolate_helper._currentIsolate, () => dart.definiteFunctionType(_isolate_helper._IsolateContext, []));
+  dart.lazyFn(_isolate_helper._currentIsolate, () => [_isolate_helper._IsolateContext, []]);
   _isolate_helper.startRootIsolate = function(entry, args) {
     args = args;
     if (args == null) args = [];
@@ -7256,7 +7351,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static handleSpawnWorkerRequest(msg) {
       let replyPort = dart.dindex(msg, 'replyPort');
-      _isolate_helper.IsolateNatives.spawn(dart.as(dart.dindex(msg, 'functionName'), core.String), dart.as(dart.dindex(msg, 'uri'), core.String), dart.as(dart.dindex(msg, 'args'), core.List$(core.String)), dart.dindex(msg, 'msg'), false, dart.as(dart.dindex(msg, 'isSpawnUri'), core.bool), dart.as(dart.dindex(msg, 'startPaused'), core.bool)).then(dart.fn(msg => {
+      _isolate_helper.IsolateNatives.spawn(dart.as(dart.dindex(msg, 'functionName'), core.String), dart.as(dart.dindex(msg, 'uri'), core.String), dart.as(dart.dindex(msg, 'args'), core.List$(core.String)), dart.dindex(msg, 'msg'), false, dart.as(dart.dindex(msg, 'isSpawnUri'), core.bool), dart.as(dart.dindex(msg, 'startPaused'), core.bool)).then(dart.dynamic)(dart.fn(msg => {
         dart.dsend(replyPort, 'send', msg);
       }, dart.dynamic, [core.List]), {onError: dart.fn(errorMessage => {
           dart.dsend(replyPort, 'send', dart.list([_isolate_helper._SPAWN_FAILED_SIGNAL, errorMessage], core.String));
@@ -7310,7 +7405,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       let port = isolate.ReceivePort.new();
       let completer = async.Completer$(core.List).new();
-      port.first.then(dart.fn(msg => {
+      port.first.then(dart.dynamic)(dart.fn(msg => {
         if (dart.equals(dart.dindex(msg, 0), _isolate_helper._SPAWNED_SIGNAL)) {
           completer.complete(msg);
         } else {
@@ -7604,7 +7699,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       static fromFuture(future) {
         let controller = dart.as(async.StreamController$(T).new({sync: true}), async._StreamController$(T));
-        future.then(dart.fn(value => {
+        future.then(dart.dynamic)(dart.fn(value => {
           dart.as(value, T);
           controller[_add$](value);
           controller[_closeUnchecked]();
@@ -7676,9 +7771,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.as(test, dart.functionType(core.bool, [T]));
         return new (async._WhereStream$(T))(this, test);
       }
-      map(convert) {
-        dart.as(convert, dart.functionType(dart.dynamic, [T]));
-        return new (async._MapStream$(T, dart.dynamic))(this, convert);
+      map(S) {
+        return convert => {
+          dart.as(convert, dart.functionType(S, [T]));
+          return new (async._MapStream$(T, S))(this, convert);
+        };
       }
       asyncMap(convert) {
         dart.as(convert, dart.functionType(dart.dynamic, [T]));
@@ -7702,7 +7799,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
 
             if (dart.is(newValue, async.Future)) {
               subscription.pause();
-              newValue.then(add, {onError: addError}).whenComplete(dart.bind(subscription, 'resume'));
+              newValue.then(dart.dynamic)(add, {onError: addError}).whenComplete(dart.bind(subscription, 'resume'));
             } else {
               controller.add(newValue);
             }
@@ -7769,17 +7866,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
         return new (async._HandleErrorStream$(T))(this, onError, test);
       }
-      expand(convert) {
-        dart.as(convert, dart.functionType(core.Iterable, [T]));
-        return new (async._ExpandStream$(T, dart.dynamic))(this, convert);
+      expand(S) {
+        return convert => {
+          dart.as(convert, dart.functionType(core.Iterable$(S), [T]));
+          return new (async._ExpandStream$(T, S))(this, convert);
+        };
       }
       pipe(streamConsumer) {
         dart.as(streamConsumer, async.StreamConsumer$(T));
-        return streamConsumer.addStream(this).then(dart.fn(_ => streamConsumer.close(), async.Future, [dart.dynamic]));
+        return streamConsumer.addStream(this).then(async.Future)(dart.fn(_ => streamConsumer.close(), async.Future, [dart.dynamic]));
       }
-      transform(streamTransformer) {
-        dart.as(streamTransformer, async.StreamTransformer$(T, dart.dynamic));
-        return streamTransformer.bind(this);
+      transform(S) {
+        return streamTransformer => {
+          dart.as(streamTransformer, async.StreamTransformer$(T, S));
+          return streamTransformer.bind(this);
+        };
       }
       reduce(combine) {
         dart.as(combine, dart.functionType(T, [T, T]));
@@ -7813,22 +7914,24 @@ dart_library.library('dart_sdk', null, /* Imports */[
           }, dart.void, []), cancelOnError: true});
         return result;
       }
-      fold(initialValue, combine) {
-        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, T]));
-        let result = new async._Future();
-        let value = initialValue;
-        let subscription = null;
-        subscription = this.listen(dart.fn(element => {
-          dart.as(element, T);
-          async._runUserCode(dart.fn(() => combine(value, element), dart.dynamic, []), dart.fn(newValue => {
-            value = dart.as(newValue, dart.dynamic);
-          }), dart.as(async._cancelAndErrorClosure(subscription, result), dart.functionType(dart.dynamic, [dart.dynamic, core.StackTrace])));
-        }, dart.void, [T]), {onError: dart.fn((e, st) => {
-            result[_completeError](e, dart.as(st, core.StackTrace));
-          }), onDone: dart.fn(() => {
-            result[_complete](value);
-          }, dart.void, []), cancelOnError: true});
-        return result;
+      fold(S) {
+        return (initialValue, combine) => {
+          dart.as(combine, dart.functionType(S, [S, T]));
+          let result = new (async._Future$(S))();
+          let value = initialValue;
+          let subscription = null;
+          subscription = this.listen(dart.fn(element => {
+            dart.as(element, T);
+            async._runUserCode(dart.fn(() => combine(value, element), S, []), dart.fn(newValue => {
+              value = dart.as(newValue, S);
+            }), dart.as(async._cancelAndErrorClosure(subscription, result), dart.functionType(dart.dynamic, [dart.dynamic, core.StackTrace])));
+          }, dart.void, [T]), {onError: dart.fn((e, st) => {
+              result[_completeError](e, dart.as(st, core.StackTrace));
+            }), onDone: dart.fn(() => {
+              result[_complete](value);
+            }, dart.void, []), cancelOnError: true});
+          return result;
+        };
       }
       join(separator) {
         if (separator === void 0) separator = "";
@@ -8252,15 +8355,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
       methods: () => ({
         asBroadcastStream: [async.Stream$(T), [], {onListen: dart.functionType(dart.void, [async.StreamSubscription$(T)]), onCancel: dart.functionType(dart.void, [async.StreamSubscription$(T)])}],
         where: [async.Stream$(T), [dart.functionType(core.bool, [T])]],
-        map: [async.Stream, [dart.functionType(dart.dynamic, [T])]],
+        map: [S => [async.Stream$(S), [dart.functionType(S, [T])]]],
         asyncMap: [async.Stream, [dart.functionType(dart.dynamic, [T])]],
         asyncExpand: [async.Stream, [dart.functionType(async.Stream, [T])]],
         handleError: [async.Stream$(T), [core.Function], {test: dart.functionType(core.bool, [dart.dynamic])}],
-        expand: [async.Stream, [dart.functionType(core.Iterable, [T])]],
+        expand: [S => [async.Stream$(S), [dart.functionType(core.Iterable$(S), [T])]]],
         pipe: [async.Future, [async.StreamConsumer$(T)]],
-        transform: [async.Stream, [async.StreamTransformer$(T, dart.dynamic)]],
+        transform: [S => [async.Stream$(S), [async.StreamTransformer$(T, S)]]],
         reduce: [async.Future$(T), [dart.functionType(T, [T, T])]],
-        fold: [async.Future, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, T])]],
+        fold: [S => [async.Future$(S), [S, dart.functionType(S, [S, T])]]],
         join: [async.Future$(core.String), [], [core.String]],
         contains: [async.Future$(core.bool), [core.Object]],
         forEach: [async.Future, [dart.functionType(dart.void, [T])]],
@@ -8403,7 +8506,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _isolate_helper.hasTimer = function() {
     return self.setTimeout != null;
   };
-  dart.fn(_isolate_helper.hasTimer, () => dart.definiteFunctionType(core.bool, []));
+  dart.lazyFn(_isolate_helper.hasTimer, () => [core.bool, []]);
   _isolate_helper.CapabilityImpl = class CapabilityImpl extends core.Object {
     CapabilityImpl() {
       this._internal(_js_helper.random64());
@@ -8526,7 +8629,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     serializeMap(x) {
       let serializeTearOff = dart.bind(this, 'serialize');
-      return dart.list(['map', x[dartx.keys][dartx.map](dart.as(serializeTearOff, dart.functionType(dart.dynamic, [dart.dynamic])))[dartx.toList](), x[dartx.values][dartx.map](dart.as(serializeTearOff, dart.functionType(dart.dynamic, [dart.dynamic])))[dartx.toList]()], core.Object);
+      return dart.list(['map', x[dartx.keys][dartx.map](dart.dynamic)(dart.as(serializeTearOff, dart.functionType(dart.dynamic, [dart.dynamic])))[dartx.toList](), x[dartx.values][dartx.map](dart.dynamic)(dart.as(serializeTearOff, dart.functionType(dart.dynamic, [dart.dynamic])))[dartx.toList]()], core.Object);
     }
     serializeJSObject(x) {
       if (!!x.constructor && x.constructor !== Object) {
@@ -8721,7 +8824,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let values = dart.as(dart.dindex(x, 2), core.List);
       let result = dart.map();
       this.deserializedObjects[dartx.add](result);
-      keys = keys[dartx.map](dart.bind(this, 'deserialize'))[dartx.toList]();
+      keys = keys[dartx.map](dart.dynamic)(dart.bind(this, 'deserialize'))[dartx.toList]();
       for (let i = 0; i < dart.notNull(keys[dartx.length]); i++) {
         result[dartx.set](keys[dartx.get](i), this.deserialize(values[dartx.get](i)));
       }
@@ -9289,7 +9392,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _js_helper.getTraceFromException = function(exception) {
     return new _js_helper._StackTrace(exception);
   };
-  dart.fn(_js_helper.getTraceFromException, () => dart.definiteFunctionType(core.StackTrace, [dart.dynamic]));
+  dart.lazyFn(_js_helper.getTraceFromException, () => [core.StackTrace, [dart.dynamic]]);
   const _exception = Symbol('_exception');
   const _trace = Symbol('_trace');
   _js_helper._StackTrace = class _StackTrace extends core.Object {
@@ -9328,15 +9431,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     return result;
   };
-  dart.fn(_js_helper.fillLiteralMap, () => dart.definiteFunctionType(dart.dynamic, [dart.dynamic, core.Map]));
+  dart.lazyFn(_js_helper.fillLiteralMap, () => [dart.dynamic, [dart.dynamic, core.Map]]);
   _js_helper.jsHasOwnProperty = function(jsObject, property) {
     return jsObject.hasOwnProperty(property);
   };
-  dart.fn(_js_helper.jsHasOwnProperty, () => dart.definiteFunctionType(core.bool, [dart.dynamic, core.String]));
+  dart.lazyFn(_js_helper.jsHasOwnProperty, () => [core.bool, [dart.dynamic, core.String]]);
   _js_helper.jsPropertyAccess = function(jsObject, property) {
     return jsObject[property];
   };
-  dart.fn(_js_helper.jsPropertyAccess, () => dart.definiteFunctionType(dart.dynamic, [dart.dynamic, core.String]));
+  dart.lazyFn(_js_helper.jsPropertyAccess, () => [dart.dynamic, [dart.dynamic, core.String]]);
   _js_helper.getFallThroughError = function() {
     return new _js_helper.FallThroughErrorImplementation();
   };
@@ -9440,7 +9543,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _js_helper.jsonEncodeNative = function(string) {
     return JSON.stringify(string);
   };
-  dart.fn(_js_helper.jsonEncodeNative, () => dart.definiteFunctionType(core.String, [core.String]));
+  dart.lazyFn(_js_helper.jsonEncodeNative, () => [core.String, [core.String]]);
   const _jsIterator = Symbol('_jsIterator');
   const _current$ = Symbol('_current');
   _js_helper.SyncIterator$ = dart.generic(E => {
@@ -9531,11 +9634,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _js_helper.defineProperty = function(obj, property, value) {
     Object.defineProperty(obj, property, {value: value, enumerable: false, writable: true, configurable: true});
   };
-  dart.fn(_js_helper.defineProperty, () => dart.definiteFunctionType(dart.void, [dart.dynamic, core.String, dart.dynamic]));
-  _js_helper.convertDartClosureToJS = function(closure, arity) {
-    return closure;
+  dart.lazyFn(_js_helper.defineProperty, () => [dart.void, [dart.dynamic, core.String, dart.dynamic]]);
+  _js_helper.convertDartClosureToJS = function(F) {
+    return (closure, arity) => {
+      return closure;
+    };
   };
-  dart.fn(_js_helper.convertDartClosureToJS, dart.dynamic, [dart.dynamic, core.int]);
+  dart.fn(_js_helper.convertDartClosureToJS, F => [F, [F, core.int]]);
   _js_helper.setNativeSubclassDispatchRecord = function(proto, interceptor) {
   };
   dart.fn(_js_helper.setNativeSubclassDispatchRecord);
@@ -9549,21 +9654,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _js_helper.regExpGetNative = function(regexp) {
     return regexp[_nativeRegExp];
   };
-  dart.fn(_js_helper.regExpGetNative, () => dart.definiteFunctionType(dart.dynamic, [_js_helper.JSSyntaxRegExp]));
+  dart.lazyFn(_js_helper.regExpGetNative, () => [dart.dynamic, [_js_helper.JSSyntaxRegExp]]);
   const _nativeGlobalVersion = Symbol('_nativeGlobalVersion');
   _js_helper.regExpGetGlobalNative = function(regexp) {
     let nativeRegexp = regexp[_nativeGlobalVersion];
     nativeRegexp.lastIndex = 0;
     return nativeRegexp;
   };
-  dart.fn(_js_helper.regExpGetGlobalNative, () => dart.definiteFunctionType(dart.dynamic, [_js_helper.JSSyntaxRegExp]));
+  dart.lazyFn(_js_helper.regExpGetGlobalNative, () => [dart.dynamic, [_js_helper.JSSyntaxRegExp]]);
   const _nativeAnchoredVersion = Symbol('_nativeAnchoredVersion');
   _js_helper.regExpCaptureCount = function(regexp) {
     let nativeAnchoredRegExp = regexp[_nativeAnchoredVersion];
     let match = nativeAnchoredRegExp.exec('');
     return dart.as(dart.dsend(dart.dload(match, 'length'), '-', 2), core.int);
   };
-  dart.fn(_js_helper.regExpCaptureCount, () => dart.definiteFunctionType(core.int, [_js_helper.JSSyntaxRegExp]));
+  dart.lazyFn(_js_helper.regExpCaptureCount, () => [core.int, [_js_helper.JSSyntaxRegExp]]);
   const _nativeGlobalRegExp = Symbol('_nativeGlobalRegExp');
   const _nativeAnchoredRegExp = Symbol('_nativeAnchoredRegExp');
   const _isMultiLine = Symbol('_isMultiLine');
@@ -9782,7 +9887,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _js_helper.firstMatchAfter = function(regExp, string, start) {
     return regExp[_execGlobal](string, start);
   };
-  dart.fn(_js_helper.firstMatchAfter, () => dart.definiteFunctionType(core.Match, [_js_helper.JSSyntaxRegExp, core.String, core.int]));
+  dart.lazyFn(_js_helper.firstMatchAfter, () => [core.Match, [_js_helper.JSSyntaxRegExp, core.String, core.int]]);
   _js_helper.StringMatch = class StringMatch extends core.Object {
     StringMatch(start, input, pattern) {
       this.start = start;
@@ -9842,7 +9947,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     return result;
   };
-  dart.fn(_js_helper.allMatchesInStringUnchecked, () => dart.definiteFunctionType(core.List$(core.Match), [core.String, core.String, core.int]));
+  dart.lazyFn(_js_helper.allMatchesInStringUnchecked, () => [core.List$(core.Match), [core.String, core.String, core.int]]);
   _js_helper.stringContainsUnchecked = function(receiver, other, startIndex) {
     if (typeof other == 'string') {
       return !dart.equals(dart.dsend(receiver, 'indexOf', other, startIndex), -1);
@@ -9902,11 +10007,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _js_helper._matchString = function(match) {
     return match.get(0);
   };
-  dart.fn(_js_helper._matchString, () => dart.definiteFunctionType(core.String, [core.Match]));
+  dart.lazyFn(_js_helper._matchString, () => [core.String, [core.Match]]);
   _js_helper._stringIdentity = function(string) {
     return string;
   };
-  dart.fn(_js_helper._stringIdentity, () => dart.definiteFunctionType(core.String, [core.String]));
+  dart.lazyFn(_js_helper._stringIdentity, () => [core.String, [core.String]]);
   _js_helper.stringReplaceAllFuncUnchecked = function(receiver, pattern, onMatch, onNonMatch) {
     if (!dart.is(pattern, core.Pattern)) {
       dart.throw(new core.ArgumentError(`${pattern} is not a Pattern`));
@@ -9994,7 +10099,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _js_helper.getRuntimeType = function(object) {
     return dart.realRuntimeType(object);
   };
-  dart.fn(_js_helper.getRuntimeType, () => dart.definiteFunctionType(core.Type, [dart.dynamic]));
+  dart.lazyFn(_js_helper.getRuntimeType, () => [core.Type, [dart.dynamic]]);
   _js_helper.getIndex = function(array, index) {
     dart.assert(_js_helper.isJsArray(array));
     return array[index];
@@ -10008,15 +10113,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _js_helper.isJsArray = function(value) {
     return dart.is(value, _interceptors.JSArray);
   };
-  dart.fn(_js_helper.isJsArray, () => dart.definiteFunctionType(core.bool, [dart.dynamic]));
+  dart.lazyFn(_js_helper.isJsArray, () => [core.bool, [dart.dynamic]]);
   _js_mirrors.getName = function(symbol) {
     return _internal.Symbol.getName(dart.as(symbol, _internal.Symbol));
   };
-  dart.fn(_js_mirrors.getName, () => dart.definiteFunctionType(core.String, [core.Symbol]));
+  dart.lazyFn(_js_mirrors.getName, () => [core.String, [core.Symbol]]);
   _js_mirrors.getSymbol = function(name, library) {
     return dart.throw(new core.UnimplementedError("MirrorSystem.getSymbol unimplemented"));
   };
-  dart.fn(_js_mirrors.getSymbol, () => dart.definiteFunctionType(core.Symbol, [dart.dynamic, dart.dynamic]));
+  dart.lazyFn(_js_mirrors.getSymbol, () => [core.Symbol, [dart.dynamic, dart.dynamic]]);
   dart.defineLazy(_js_mirrors, {
     get currentJsMirrorSystem() {
       return dart.throw(new core.UnimplementedError("MirrorSystem.currentJsMirrorSystem unimplemented"));
@@ -10025,24 +10130,24 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _js_mirrors.reflect = function(reflectee) {
     return new _js_mirrors.JsInstanceMirror._(reflectee);
   };
-  dart.fn(_js_mirrors.reflect, () => dart.definiteFunctionType(mirrors.InstanceMirror, [dart.dynamic]));
+  dart.lazyFn(_js_mirrors.reflect, () => [mirrors.InstanceMirror, [dart.dynamic]]);
   _js_mirrors.reflectType = function(key) {
     return new _js_mirrors.JsClassMirror._(key);
   };
-  dart.fn(_js_mirrors.reflectType, () => dart.definiteFunctionType(mirrors.TypeMirror, [core.Type]));
+  dart.lazyFn(_js_mirrors.reflectType, () => [mirrors.TypeMirror, [core.Type]]);
   _js_mirrors._dart = dart;
   _js_mirrors._dload = function(obj, name) {
     return _js_mirrors._dart.dload(obj, name);
   };
-  dart.fn(_js_mirrors._dload, () => dart.definiteFunctionType(dart.dynamic, [dart.dynamic, core.String]));
+  dart.lazyFn(_js_mirrors._dload, () => [dart.dynamic, [dart.dynamic, core.String]]);
   _js_mirrors._dput = function(obj, name, val) {
     _js_mirrors._dart.dput(obj, name, val);
   };
-  dart.fn(_js_mirrors._dput, () => dart.definiteFunctionType(dart.void, [dart.dynamic, core.String, dart.dynamic]));
+  dart.lazyFn(_js_mirrors._dput, () => [dart.void, [dart.dynamic, core.String, dart.dynamic]]);
   _js_mirrors._dsend = function(obj, name, args) {
     return _js_mirrors._dart.dsend(obj, name, ...args);
   };
-  dart.fn(_js_mirrors._dsend, () => dart.definiteFunctionType(dart.dynamic, [dart.dynamic, core.String, core.List]));
+  dart.lazyFn(_js_mirrors._dsend, () => [dart.dynamic, [dart.dynamic, core.String, core.List]]);
   const _toJsMap = Symbol('_toJsMap');
   _js_mirrors.JsInstanceMirror = class JsInstanceMirror extends core.Object {
     _(reflectee) {
@@ -10130,7 +10235,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return dart.list([], mirrors.ClassMirror);
       } else {
         let interfaces = dart.as(dart.dcall(interfaceThunk), core.List$(core.Type));
-        return interfaces[dartx.map](dart.fn(t => new _js_mirrors.JsClassMirror._(t), _js_mirrors.JsClassMirror, [core.Type]))[dartx.toList]();
+        return interfaces[dartx.map](_js_mirrors.JsClassMirror)(dart.fn(t => new _js_mirrors.JsClassMirror._(t), _js_mirrors.JsClassMirror, [core.Type]))[dartx.toList]();
       }
     }
     getField(fieldName) {
@@ -10281,7 +10386,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     _(name, t, annotations) {
       this[_name$] = name;
       this.type = new _js_mirrors.JsTypeMirror._(t);
-      this.metadata = core.List$(mirrors.InstanceMirror).from(annotations[dartx.map](dart.fn(a => new _js_mirrors.JsInstanceMirror._(a), _js_mirrors.JsInstanceMirror, [dart.dynamic])));
+      this.metadata = core.List$(mirrors.InstanceMirror).from(annotations[dartx.map](_js_mirrors.JsInstanceMirror)(dart.fn(a => new _js_mirrors.JsInstanceMirror._(a), _js_mirrors.JsInstanceMirror, [dart.dynamic])));
     }
     get defaultValue() {
       return dart.throw(new core.UnimplementedError("ParameterMirror.defaultValues unimplemented"));
@@ -10454,7 +10559,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     throw "Unable to print message: " + String(string);
   };
-  dart.fn(_js_primitives.printString, () => dart.definiteFunctionType(dart.void, [core.String]));
+  dart.lazyFn(_js_primitives.printString, () => [dart.void, [core.String]]);
   _metadata.SupportedBrowser = class SupportedBrowser extends core.Object {
     SupportedBrowser(browserName, minimumVersion) {
       if (minimumVersion === void 0) minimumVersion = null;
@@ -11624,7 +11729,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     return result;
   };
-  dart.fn(_native_typed_data._ensureNativeList, () => dart.definiteFunctionType(core.List, [core.List]));
+  dart.lazyFn(_native_typed_data._ensureNativeList, () => [core.List, [core.List]]);
   const _getFloat32 = Symbol('_getFloat32');
   const _getFloat64 = Symbol('_getFloat64');
   const _getInt16 = Symbol('_getInt16');
@@ -13101,7 +13206,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.dcall(errorHandler, error);
     }
   };
-  dart.fn(async._invokeErrorHandler, () => dart.definiteFunctionType(dart.dynamic, [core.Function, core.Object, core.StackTrace]));
+  dart.lazyFn(async._invokeErrorHandler, () => [dart.dynamic, [core.Function, core.Object, core.StackTrace]]);
   async._registerErrorHandler = function(errorHandler, zone) {
     if (dart.is(errorHandler, async.ZoneBinaryCallback)) {
       return zone.registerBinaryCallback(errorHandler);
@@ -13109,7 +13214,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return zone.registerUnaryCallback(dart.as(errorHandler, dart.functionType(dart.dynamic, [dart.dynamic])));
     }
   };
-  dart.fn(async._registerErrorHandler, () => dart.definiteFunctionType(core.Function, [core.Function, async.Zone]));
+  dart.lazyFn(async._registerErrorHandler, () => [core.Function, [core.Function, async.Zone]]);
   async.AsyncError = class AsyncError extends core.Object {
     AsyncError(error, stackTrace) {
       this.error = error;
@@ -14087,7 +14192,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       pause(resumeSignal) {
         if (resumeSignal === void 0) resumeSignal = null;
-        if (resumeSignal != null) resumeSignal.then(dart.bind(this, _resume));
+        if (resumeSignal != null) resumeSignal.then(dart.dynamic)(dart.bind(this, _resume));
         this[_pauseCount] = dart.notNull(this[_pauseCount]) + 1;
       }
       resume() {
@@ -14222,70 +14327,72 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }, dart.void, []));
         return dart.as(result, async.Future$(T));
       }
-      static wait(futures, opts) {
-        let eagerError = opts && 'eagerError' in opts ? opts.eagerError : false;
-        let cleanUp = opts && 'cleanUp' in opts ? opts.cleanUp : null;
-        let result = new (async._Future$(core.List))();
-        let values = null;
-        let remaining = 0;
-        let error = null;
-        let stackTrace = null;
-        function handleError(theError, theStackTrace) {
-          remaining--;
-          if (values != null) {
-            if (cleanUp != null) {
-              for (let value2 of values) {
-                if (value2 != null) {
-                  async.Future.sync(dart.fn(() => {
-                    cleanUp(value2);
-                  }));
-                }
-              }
-            }
-            values = null;
-            if (remaining == 0 || dart.notNull(eagerError)) {
-              result[_completeError](theError, dart.as(theStackTrace, core.StackTrace));
-            } else {
-              error = theError;
-              stackTrace = dart.as(theStackTrace, core.StackTrace);
-            }
-          } else if (remaining == 0 && !dart.notNull(eagerError)) {
-            result[_completeError](error, stackTrace);
-          }
-        }
-        dart.fn(handleError, dart.void, [dart.dynamic, dart.dynamic]);
-        for (let future of futures) {
-          let pos = remaining++;
-          future.then(dart.fn(value => {
+      static wait(T) {
+        return (futures, opts) => {
+          let eagerError = opts && 'eagerError' in opts ? opts.eagerError : false;
+          let cleanUp = opts && 'cleanUp' in opts ? opts.cleanUp : null;
+          let result = new (async._Future$(core.List$(T)))();
+          let values = null;
+          let remaining = 0;
+          let error = null;
+          let stackTrace = null;
+          function handleError(theError, theStackTrace) {
             remaining--;
             if (values != null) {
-              values[dartx.set](pos, dart.as(value, dart.dynamic));
-              if (remaining == 0) {
-                result[_completeWithValue](values);
+              if (cleanUp != null) {
+                for (let value2 of values) {
+                  if (value2 != null) {
+                    async.Future.sync(dart.fn(() => {
+                      cleanUp(value2);
+                    }));
+                  }
+                }
               }
-            } else {
-              if (cleanUp != null && value != null) {
-                async.Future.sync(dart.fn(() => {
-                  cleanUp(dart.as(value, dart.dynamic));
-                }));
+              values = null;
+              if (remaining == 0 || dart.notNull(eagerError)) {
+                result[_completeError](theError, dart.as(theStackTrace, core.StackTrace));
+              } else {
+                error = theError;
+                stackTrace = dart.as(theStackTrace, core.StackTrace);
               }
-              if (remaining == 0 && !dart.notNull(eagerError)) {
-                result[_completeError](error, stackTrace);
-              }
+            } else if (remaining == 0 && !dart.notNull(eagerError)) {
+              result[_completeError](error, stackTrace);
             }
-          }, dart.dynamic, [core.Object]), {onError: handleError});
-        }
-        if (remaining == 0) {
-          return async.Future$(core.List).value(dart.const([]));
-        }
-        values = core.List.new(remaining);
-        return result;
+          }
+          dart.fn(handleError, dart.void, [dart.dynamic, dart.dynamic]);
+          for (let future of futures) {
+            let pos = remaining++;
+            future.then(dart.dynamic)(dart.fn(value => {
+              remaining--;
+              if (values != null) {
+                values[dartx.set](pos, dart.as(value, T));
+                if (remaining == 0) {
+                  result[_completeWithValue](values);
+                }
+              } else {
+                if (cleanUp != null && value != null) {
+                  async.Future.sync(dart.fn(() => {
+                    cleanUp(dart.as(value, T));
+                  }));
+                }
+                if (remaining == 0 && !dart.notNull(eagerError)) {
+                  result[_completeError](error, stackTrace);
+                }
+              }
+            }, dart.dynamic, [core.Object]), {onError: handleError});
+          }
+          if (remaining == 0) {
+            return async.Future$(core.List$(T)).value(dart.const([]));
+          }
+          values = core.List$(T).new(remaining);
+          return result;
+        };
       }
       static forEach(input, f) {
         let iterator = input[dartx.iterator];
         return async.Future.doWhile(dart.fn(() => {
           if (!dart.notNull(iterator.moveNext())) return false;
-          return async.Future.sync(dart.fn(() => dart.dcall(f, iterator.current))).then(dart.fn(_ => true, core.bool, [dart.dynamic]));
+          return async.Future.sync(dart.fn(() => dart.dcall(f, iterator.current))).then(core.bool)(dart.fn(_ => true, core.bool, [dart.dynamic]));
         }, core.Object, []));
       }
       static doWhile(f) {
@@ -14293,7 +14400,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let nextIteration = null;
         nextIteration = async.Zone.current.bindUnaryCallback(dart.fn(keepGoing => {
           if (dart.notNull(keepGoing)) {
-            async.Future.sync(f).then(dart.as(nextIteration, dart.functionType(dart.dynamic, [dart.dynamic])), {onError: dart.bind(doneSignal, _completeError)});
+            async.Future.sync(f).then(dart.dynamic)(dart.as(nextIteration, dart.functionType(dart.dynamic, [dart.dynamic])), {onError: dart.bind(doneSignal, _completeError)});
           } else {
             doneSignal[_complete](null);
           }
@@ -14312,7 +14419,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         delayed: [async.Future$(T), [core.Duration], [dart.functionType(T, [])]]
       }),
       statics: () => ({
-        wait: [async.Future$(core.List), [core.Iterable$(async.Future)], {eagerError: core.bool, cleanUp: dart.functionType(dart.void, [dart.dynamic])}],
+        wait: [T => [async.Future$(core.List$(T)), [core.Iterable$(async.Future$(T))], {eagerError: core.bool, cleanUp: dart.functionType(dart.void, [T])}]],
         forEach: [async.Future, [core.Iterable, dart.functionType(dart.dynamic, [dart.dynamic])]],
         doWhile: [async.Future, [dart.functionType(dart.dynamic, [])]]
       }),
@@ -14369,7 +14476,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     result[_completeError](error, dart.as(stackTrace, core.StackTrace));
   };
-  dart.fn(async._completeWithErrorCallback, () => dart.definiteFunctionType(dart.void, [async._Future, dart.dynamic, dart.dynamic]));
+  dart.lazyFn(async._completeWithErrorCallback, () => [dart.void, [async._Future, dart.dynamic, dart.dynamic]]);
   async._nonNullError = function(error) {
     return error != null ? error : new core.NullThrownError();
   };
@@ -14609,18 +14716,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
           this[_state] = async._Future._INCOMPLETE;
         }
       }
-      then(f, opts) {
-        dart.as(f, dart.functionType(dart.dynamic, [T]));
-        let onError = opts && 'onError' in opts ? opts.onError : null;
-        let result = new async._Future();
-        if (!core.identical(result[_zone], async._ROOT_ZONE)) {
-          f = dart.as(result[_zone].registerUnaryCallback(f), dart.functionType(dart.dynamic, [T]));
-          if (onError != null) {
-            onError = async._registerErrorHandler(onError, result[_zone]);
+      then(S) {
+        return (f, opts) => {
+          dart.as(f, dart.functionType(S, [T]));
+          let onError = opts && 'onError' in opts ? opts.onError : null;
+          let result = new (async._Future$(S))();
+          if (!core.identical(result[_zone], async._ROOT_ZONE)) {
+            f = dart.as(result[_zone].registerUnaryCallback(f), dart.functionType(S, [T]));
+            if (onError != null) {
+              onError = async._registerErrorHandler(onError, result[_zone]);
+            }
           }
-        }
-        this[_addListener](new async._FutureListener.then(result, f, onError));
-        return result;
+          this[_addListener](new async._FutureListener.then(result, f, onError));
+          return result;
+        };
       }
       catchError(onError, opts) {
         let test = opts && 'test' in opts ? opts.test : null;
@@ -14699,7 +14808,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.assert(!dart.notNull(target[_isComplete]));
         dart.assert(!dart.is(source, async._Future));
         target[_isChained] = true;
-        source.then(dart.fn(value => {
+        source.then(dart.dynamic)(dart.fn(value => {
           dart.assert(target[_isChained]);
           target[_completeWithValue](value);
         }), {onError: dart.fn((error, stackTrace) => {
@@ -14959,7 +15068,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
 
           }, dart.void, []));
         }
-        this.then(dart.fn(v => {
+        this.then(dart.dynamic)(dart.fn(v => {
           dart.as(v, T);
           if (dart.notNull(timer.isActive)) {
             timer.cancel();
@@ -14984,7 +15093,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         immediateError: [async._Future$(T), [dart.dynamic], [core.StackTrace]]
       }),
       methods: () => ({
-        then: [async.Future, [dart.functionType(dart.dynamic, [T])], {onError: core.Function}],
+        then: [S => [async.Future$(S), [dart.functionType(S, [T])], {onError: core.Function}]],
         catchError: [async.Future, [core.Function], {test: dart.functionType(core.bool, [dart.dynamic])}],
         whenComplete: [async.Future$(T), [dart.functionType(dart.dynamic, [])]],
         asStream: [async.Stream$(T), []],
@@ -15944,7 +16053,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     if (stackTrace === void 0) stackTrace = null;
     async.Zone.current.handleUncaughtError(error, stackTrace);
   };
-  dart.fn(async._nullErrorHandler, () => dart.definiteFunctionType(dart.void, [dart.dynamic], [core.StackTrace]));
+  dart.lazyFn(async._nullErrorHandler, () => [dart.void, [dart.dynamic], [core.StackTrace]]);
   async._nullDoneHandler = function() {
   };
   dart.fn(async._nullDoneHandler, dart.void, []);
@@ -16442,7 +16551,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
 
   };
-  dart.fn(async._runUserCode, () => dart.definiteFunctionType(dart.dynamic, [dart.functionType(dart.dynamic, []), dart.functionType(dart.dynamic, [dart.dynamic]), dart.functionType(dart.dynamic, [dart.dynamic, core.StackTrace])]));
+  dart.lazyFn(async._runUserCode, () => [dart.dynamic, [dart.functionType(dart.dynamic, []), dart.functionType(dart.dynamic, [dart.dynamic]), dart.functionType(dart.dynamic, [dart.dynamic, core.StackTrace])]]);
   async._cancelAndError = function(subscription, future, error, stackTrace) {
     let cancelFuture = subscription.cancel();
     if (dart.is(cancelFuture, async.Future)) {
@@ -16451,7 +16560,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       future[_completeError](error, stackTrace);
     }
   };
-  dart.fn(async._cancelAndError, () => dart.definiteFunctionType(dart.void, [async.StreamSubscription, async._Future, dart.dynamic, core.StackTrace]));
+  dart.lazyFn(async._cancelAndError, () => [dart.void, [async.StreamSubscription, async._Future, dart.dynamic, core.StackTrace]]);
   async._cancelAndErrorWithReplacement = function(subscription, future, error, stackTrace) {
     let replacement = async.Zone.current.errorCallback(error, stackTrace);
     if (replacement != null) {
@@ -16460,7 +16569,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     async._cancelAndError(subscription, future, error, stackTrace);
   };
-  dart.fn(async._cancelAndErrorWithReplacement, () => dart.definiteFunctionType(dart.void, [async.StreamSubscription, async._Future, dart.dynamic, core.StackTrace]));
+  dart.lazyFn(async._cancelAndErrorWithReplacement, () => [dart.void, [async.StreamSubscription, async._Future, dart.dynamic, core.StackTrace]]);
   async._cancelAndErrorClosure = function(subscription, future) {
     return dart.fn((error, stackTrace) => async._cancelAndError(subscription, future, error, stackTrace), dart.void, [dart.dynamic, core.StackTrace]);
   };
@@ -17395,7 +17504,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     if (zone.parent == null) return null;
     return zone.parent[_delegate];
   };
-  dart.fn(async._parentDelegate, () => dart.definiteFunctionType(async.ZoneDelegate, [async._Zone]));
+  dart.lazyFn(async._parentDelegate, () => [async.ZoneDelegate, [async._Zone]]);
   const _delegationTarget = Symbol('_delegationTarget');
   const _handleUncaughtError = Symbol('_handleUncaughtError');
   const _run = Symbol('_run');
@@ -17735,7 +17844,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new async._UncaughtAsyncError(error, stackTrace));
     }));
   };
-  dart.fn(async._rootHandleUncaughtError, () => dart.definiteFunctionType(dart.void, [async.Zone, async.ZoneDelegate, async.Zone, dart.dynamic, core.StackTrace]));
+  dart.lazyFn(async._rootHandleUncaughtError, () => [dart.void, [async.Zone, async.ZoneDelegate, async.Zone, dart.dynamic, core.StackTrace]]);
   async._rootRun = function(self, parent, zone, f) {
     if (dart.equals(async.Zone._current, zone)) return f();
     let old = async.Zone._enter(zone);
@@ -17781,7 +17890,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._rootErrorCallback = function(self, parent, zone, error, stackTrace) {
     return null;
   };
-  dart.fn(async._rootErrorCallback, () => dart.definiteFunctionType(async.AsyncError, [async.Zone, async.ZoneDelegate, async.Zone, core.Object, core.StackTrace]));
+  dart.lazyFn(async._rootErrorCallback, () => [async.AsyncError, [async.Zone, async.ZoneDelegate, async.Zone, core.Object, core.StackTrace]]);
   async._rootScheduleMicrotask = function(self, parent, zone, f) {
     if (!core.identical(async._ROOT_ZONE, zone)) {
       let hasErrorHandler = !dart.notNull(async._ROOT_ZONE.inSameErrorZone(zone));
@@ -17796,22 +17905,22 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     return async.Timer._createTimer(duration, callback);
   };
-  dart.fn(async._rootCreateTimer, () => dart.definiteFunctionType(async.Timer, [async.Zone, async.ZoneDelegate, async.Zone, core.Duration, dart.functionType(dart.void, [])]));
+  dart.lazyFn(async._rootCreateTimer, () => [async.Timer, [async.Zone, async.ZoneDelegate, async.Zone, core.Duration, dart.functionType(dart.void, [])]]);
   async._rootCreatePeriodicTimer = function(self, parent, zone, duration, callback) {
     if (!core.identical(async._ROOT_ZONE, zone)) {
       callback = dart.as(zone.bindUnaryCallback(callback), dart.functionType(dart.void, [async.Timer]));
     }
     return async.Timer._createPeriodicTimer(duration, callback);
   };
-  dart.fn(async._rootCreatePeriodicTimer, () => dart.definiteFunctionType(async.Timer, [async.Zone, async.ZoneDelegate, async.Zone, core.Duration, dart.functionType(dart.void, [async.Timer])]));
+  dart.lazyFn(async._rootCreatePeriodicTimer, () => [async.Timer, [async.Zone, async.ZoneDelegate, async.Zone, core.Duration, dart.functionType(dart.void, [async.Timer])]]);
   async._rootPrint = function(self, parent, zone, line) {
     _internal.printToConsole(line);
   };
-  dart.fn(async._rootPrint, () => dart.definiteFunctionType(dart.void, [async.Zone, async.ZoneDelegate, async.Zone, core.String]));
+  dart.lazyFn(async._rootPrint, () => [dart.void, [async.Zone, async.ZoneDelegate, async.Zone, core.String]]);
   async._printToZone = function(line) {
     async.Zone.current.print(line);
   };
-  dart.fn(async._printToZone, () => dart.definiteFunctionType(dart.void, [core.String]));
+  dart.lazyFn(async._printToZone, () => [dart.void, [core.String]]);
   async._rootFork = function(self, parent, zone, specification, zoneValues) {
     _internal.printToZone = async._printToZone;
     if (specification == null) {
@@ -17831,7 +17940,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     return new async._CustomZone(dart.as(zone, async._Zone), specification, valueMap);
   };
-  dart.fn(async._rootFork, () => dart.definiteFunctionType(async.Zone, [async.Zone, async.ZoneDelegate, async.Zone, async.ZoneSpecification, core.Map]));
+  dart.lazyFn(async._rootFork, () => [async.Zone, [async.Zone, async.ZoneDelegate, async.Zone, async.ZoneSpecification, core.Map]]);
   async._RootZoneSpecification = class _RootZoneSpecification extends core.Object {
     get handleUncaughtError() {
       return async._rootHandleUncaughtError;
@@ -18106,7 +18215,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return zone.run(body);
     }
   };
-  dart.fn(async.runZoned, () => dart.definiteFunctionType(dart.dynamic, [dart.functionType(dart.dynamic, [])], {zoneValues: core.Map, zoneSpecification: async.ZoneSpecification, onError: core.Function}));
+  dart.lazyFn(async.runZoned, () => [dart.dynamic, [dart.functionType(dart.dynamic, [])], {zoneValues: core.Map, zoneSpecification: async.ZoneSpecification, onError: core.Function}]);
   const _length$ = Symbol('_length');
   const _strings = Symbol('_strings');
   const _nums = Symbol('_nums');
@@ -19183,9 +19292,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
           result[dartx.set](i++, element);
         return result;
       }
-      map(f) {
-        dart.as(f, dart.functionType(dart.dynamic, [E]));
-        return new (_internal.EfficientLengthMappedIterable$(E, dart.dynamic))(this, f);
+      map(T) {
+        return f => {
+          dart.as(f, dart.functionType(T, [E]));
+          return new (_internal.EfficientLengthMappedIterable$(E, T))(this, f);
+        };
       }
       get single() {
         if (dart.notNull(this.length) > 1) dart.throw(_internal.IterableElementError.tooMany());
@@ -19201,9 +19312,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.as(f, dart.functionType(core.bool, [E]));
         return new (_internal.WhereIterable$(E))(this, f);
       }
-      expand(f) {
-        dart.as(f, dart.functionType(core.Iterable, [E]));
-        return new (_internal.ExpandIterable$(E, dart.dynamic))(this, f);
+      expand(T) {
+        return f => {
+          dart.as(f, dart.functionType(core.Iterable$(T), [E]));
+          return new (_internal.ExpandIterable$(E, T))(this, f);
+        };
       }
       forEach(f) {
         dart.as(f, dart.functionType(dart.void, [E]));
@@ -19222,12 +19335,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
         return value;
       }
-      fold(initialValue, combine) {
-        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
-        let value = initialValue;
-        for (let element of this)
-          value = combine(value, element);
-        return value;
+      fold(T) {
+        return (initialValue, combine) => {
+          dart.as(combine, dart.functionType(T, [T, E]));
+          let value = initialValue;
+          for (let element of this)
+            value = combine(value, element);
+          return value;
+        };
       }
       every(f) {
         dart.as(f, dart.functionType(core.bool, [E]));
@@ -19360,12 +19475,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
         intersection: [core.Set$(E), [core.Set$(core.Object)]],
         difference: [core.Set$(E), [core.Set$(core.Object)]],
         toList: [core.List$(E), [], {growable: core.bool}],
-        map: [core.Iterable, [dart.functionType(dart.dynamic, [E])]],
+        map: [T => [core.Iterable$(T), [dart.functionType(T, [E])]]],
         where: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        expand: [core.Iterable, [dart.functionType(core.Iterable, [E])]],
+        expand: [T => [core.Iterable$(T), [dart.functionType(core.Iterable$(T), [E])]]],
         forEach: [dart.void, [dart.functionType(dart.void, [E])]],
         reduce: [E, [dart.functionType(E, [E, E])]],
-        fold: [dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, E])]],
+        fold: [T => [T, [T, dart.functionType(T, [T, E])]]],
         every: [core.bool, [dart.functionType(core.bool, [E])]],
         join: [core.String, [], [core.String]],
         any: [core.bool, [dart.functionType(core.bool, [E])]],
@@ -20296,7 +20411,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._defaultEquals = function(a, b) {
     return dart.equals(a, b);
   };
-  dart.fn(collection._defaultEquals, () => dart.definiteFunctionType(core.bool, [core.Object, core.Object]));
+  dart.lazyFn(collection._defaultEquals, () => [core.bool, [core.Object, core.Object]]);
   collection._defaultHashCode = function(a) {
     return dart.hashCode(a);
   };
@@ -20435,17 +20550,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection.HashSet = collection.HashSet$();
   collection.IterableMixin$ = dart.generic(E => {
     class IterableMixin extends core.Object {
-      map(f) {
-        dart.as(f, dart.functionType(dart.dynamic, [E]));
-        return _internal.MappedIterable$(E, dart.dynamic).new(this, f);
+      map(T) {
+        return f => {
+          dart.as(f, dart.functionType(T, [E]));
+          return _internal.MappedIterable$(E, T).new(this, f);
+        };
       }
       where(f) {
         dart.as(f, dart.functionType(core.bool, [E]));
         return new (_internal.WhereIterable$(E))(this, f);
       }
-      expand(f) {
-        dart.as(f, dart.functionType(core.Iterable, [E]));
-        return new (_internal.ExpandIterable$(E, dart.dynamic))(this, f);
+      expand(T) {
+        return f => {
+          dart.as(f, dart.functionType(core.Iterable$(T), [E]));
+          return new (_internal.ExpandIterable$(E, T))(this, f);
+        };
       }
       contains(element) {
         for (let e of this) {
@@ -20470,12 +20589,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
         return value;
       }
-      fold(initialValue, combine) {
-        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
-        let value = initialValue;
-        for (let element of this)
-          value = combine(value, element);
-        return value;
+      fold(T) {
+        return (initialValue, combine) => {
+          dart.as(combine, dart.functionType(T, [T, E]));
+          let value = initialValue;
+          for (let element of this)
+            value = combine(value, element);
+          return value;
+        };
       }
       every(f) {
         dart.as(f, dart.functionType(core.bool, [E]));
@@ -20632,13 +20753,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     IterableMixin[dart.implements] = () => [core.Iterable$(E)];
     dart.setSignature(IterableMixin, {
       methods: () => ({
-        map: [core.Iterable, [dart.functionType(dart.dynamic, [E])]],
+        map: [T => [core.Iterable$(T), [dart.functionType(T, [E])]]],
         where: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        expand: [core.Iterable, [dart.functionType(core.Iterable, [E])]],
+        expand: [T => [core.Iterable$(T), [dart.functionType(core.Iterable$(T), [E])]]],
         contains: [core.bool, [core.Object]],
         forEach: [dart.void, [dart.functionType(dart.void, [E])]],
         reduce: [E, [dart.functionType(E, [E, E])]],
-        fold: [dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, E])]],
+        fold: [T => [T, [T, dart.functionType(T, [T, E])]]],
         every: [core.bool, [dart.functionType(core.bool, [E])]],
         join: [core.String, [], [core.String]],
         any: [core.bool, [dart.functionType(core.bool, [E])]],
@@ -21410,7 +21531,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     static getValues(map) {
-      return map[dartx.keys][dartx.map](dart.fn(key => map[dartx.get](key)));
+      return map[dartx.keys][dartx.map](dart.dynamic)(dart.fn(key => map[dartx.get](key)));
     }
     static length(map) {
       return map[dartx.keys][dartx.length];
@@ -23482,10 +23603,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.Codec();
     }
     decodeStream(byteStream) {
-      return byteStream.transform(this.decoder).fold(new core.StringBuffer(), dart.fn((buffer, string) => ((() => {
+      return byteStream.transform(core.String)(this.decoder).fold(dart.dynamic)(new core.StringBuffer(), dart.fn((buffer, string) => ((() => {
         dart.dsend(buffer, 'write', string);
         return buffer;
-      })()), dart.dynamic, [dart.dynamic, core.String])).then(dart.fn(buffer => dart.toString(buffer), core.String, [dart.dynamic]));
+      })()), dart.dynamic, [dart.dynamic, core.String])).then(core.String)(dart.fn(buffer => dart.toString(buffer), core.String, [dart.dynamic]));
     }
     static getByName(name) {
       if (name == null) return null;
@@ -25702,15 +25823,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
   convert._isSurrogate = function(codeUnit) {
     return (dart.notNull(codeUnit) & dart.notNull(convert._SURROGATE_MASK)) >>> 0 == convert._LEAD_SURROGATE_MIN;
   };
-  dart.fn(convert._isSurrogate, () => dart.definiteFunctionType(core.bool, [core.int]));
+  dart.lazyFn(convert._isSurrogate, () => [core.bool, [core.int]]);
   convert._isLeadSurrogate = function(codeUnit) {
     return (dart.notNull(codeUnit) & dart.notNull(convert._SURROGATE_TAG_MASK)) >>> 0 == convert._LEAD_SURROGATE_MIN;
   };
-  dart.fn(convert._isLeadSurrogate, () => dart.definiteFunctionType(core.bool, [core.int]));
+  dart.lazyFn(convert._isLeadSurrogate, () => [core.bool, [core.int]]);
   convert._isTailSurrogate = function(codeUnit) {
     return (dart.notNull(codeUnit) & dart.notNull(convert._SURROGATE_TAG_MASK)) >>> 0 == convert._TAIL_SURROGATE_MIN;
   };
-  dart.fn(convert._isTailSurrogate, () => dart.definiteFunctionType(core.bool, [core.int]));
+  dart.lazyFn(convert._isTailSurrogate, () => [core.bool, [core.int]]);
   convert._combineSurrogatePair = function(lead, tail) {
     return (65536 + ((dart.notNull(lead) & dart.notNull(convert._SURROGATE_VALUE_MASK)) >>> 0)[dartx['<<']](10) | (dart.notNull(tail) & dart.notNull(convert._SURROGATE_VALUE_MASK)) >>> 0) >>> 0;
   };
@@ -25875,7 +25996,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   core._symbolToString = function(symbol) {
     return _internal.Symbol.getName(dart.as(symbol, _internal.Symbol));
   };
-  dart.fn(core._symbolToString, () => dart.definiteFunctionType(core.String, [core.Symbol]));
+  dart.lazyFn(core._symbolToString, () => [core.String, [core.Symbol]]);
   core.Deprecated = class Deprecated extends core.Object {
     Deprecated(expires) {
       this.expires = expires;
@@ -27925,7 +28046,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get pathSegments() {
       if (this[_pathSegments] == null) {
         let pathToSplit = !dart.notNull(this.path[dartx.isEmpty]) && this.path[dartx.codeUnitAt](0) == core.Uri._SLASH ? this.path[dartx.substring](1) : this.path;
-        this[_pathSegments] = new (collection.UnmodifiableListView$(core.String))(pathToSplit == "" ? dart.const(dart.list([], core.String)) : core.List$(core.String).from(pathToSplit[dartx.split]("/")[dartx.map](core.Uri.decodeComponent), {growable: false}));
+        this[_pathSegments] = new (collection.UnmodifiableListView$(core.String))(pathToSplit == "" ? dart.const(dart.list([], core.String)) : core.List$(core.String).from(pathToSplit[dartx.split]("/")[dartx.map](core.String)(core.Uri.decodeComponent), {growable: false}));
       }
       return this[_pathSegments];
     }
@@ -28061,7 +28182,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (path != null) {
         result = core.Uri._normalize(path, start, end, core.Uri._pathCharOrSlashTable);
       } else {
-        result = pathSegments[dartx.map](dart.fn(s => core.Uri._uriEncode(core.Uri._pathCharTable, s), core.String, [core.String]))[dartx.join]("/");
+        result = pathSegments[dartx.map](core.String)(dart.fn(s => core.Uri._uriEncode(core.Uri._pathCharTable, s), core.String, [core.String]))[dartx.join]("/");
       }
       if (dart.notNull(dart.as(dart.dload(result, 'isEmpty'), core.bool))) {
         if (dart.notNull(isFile)) return "/";
@@ -28468,7 +28589,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static splitQueryString(query, opts) {
       let encoding = opts && 'encoding' in opts ? opts.encoding : convert.UTF8;
-      return query[dartx.split]("&")[dartx.fold](dart.map(), dart.fn((map, element) => {
+      return query[dartx.split]("&")[dartx.fold](core.Map$(core.String, core.String))(dart.map(), dart.fn((map, element) => {
         let index = element[dartx.indexOf]("=");
         if (index == -1) {
           if (element != "") {
@@ -28491,7 +28612,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (bytes[dartx.length] != 4) {
         error('IPv4 address should contain exactly 4 parts');
       }
-      return bytes[dartx.map](dart.fn(byteString => {
+      return bytes[dartx.map](core.int)(dart.fn(byteString => {
         let byte = core.int.parse(byteString);
         if (dart.notNull(byte) < 0 || dart.notNull(byte) > 255) {
           error('each part must be in the range of `0..255`');
@@ -28802,7 +28923,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static spawn(entryPoint, message, opts) {
       let paused = opts && 'paused' in opts ? opts.paused : false;
       try {
-        return _isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(dart.fn(msg => new isolate.Isolate(dart.as(msg[dartx.get](1), isolate.SendPort), {pauseCapability: dart.as(msg[dartx.get](2), isolate.Capability), terminateCapability: dart.as(msg[dartx.get](3), isolate.Capability)}), isolate.Isolate, [core.List]));
+        return _isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(isolate.Isolate)(dart.fn(msg => new isolate.Isolate(dart.as(msg[dartx.get](1), isolate.SendPort), {pauseCapability: dart.as(msg[dartx.get](2), isolate.Capability), terminateCapability: dart.as(msg[dartx.get](3), isolate.Capability)}), isolate.Isolate, [core.List]));
       } catch (e) {
         let st = dart.stackTrace(e);
         return async.Future$(isolate.Isolate).error(e, st);
@@ -28823,7 +28944,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         } else if (args != null) {
           dart.throw(new core.ArgumentError(`Args must be a list of Strings ${args}`));
         }
-        return _isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(dart.fn(msg => new isolate.Isolate(dart.as(msg[dartx.get](1), isolate.SendPort), {pauseCapability: dart.as(msg[dartx.get](2), isolate.Capability), terminateCapability: dart.as(msg[dartx.get](3), isolate.Capability)}), isolate.Isolate, [core.List]));
+        return _isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(isolate.Isolate)(dart.fn(msg => new isolate.Isolate(dart.as(msg[dartx.get](1), isolate.SendPort), {pauseCapability: dart.as(msg[dartx.get](2), isolate.Capability), terminateCapability: dart.as(msg[dartx.get](3), isolate.Capability)}), isolate.Isolate, [core.List]));
       } catch (e) {
         let st = dart.stackTrace(e);
         return async.Future$(isolate.Isolate).error(e, st);
@@ -29034,7 +29155,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (arguments$ == null) {
         return js._wrapToDart(new ctor());
       }
-      let unwrapped = core.List.from(arguments$[dartx.map](js._convertToJS));
+      let unwrapped = core.List.from(arguments$[dartx.map](dart.dynamic)(js._convertToJS));
       return js._wrapToDart(new ctor(...unwrapped));
     }
     static fromBrowserObject(object) {
@@ -29065,7 +29186,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         } else if (dart.is(o, core.Iterable)) {
           let convertedList = [];
           _convertedObjects.set(o, convertedList);
-          convertedList[dartx.addAll](o[dartx.map](_convert));
+          convertedList[dartx.addAll](o[dartx.map](dart.dynamic)(_convert));
           return convertedList;
         } else {
           return js._convertToJS(o);
@@ -29121,7 +29242,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (!(typeof method == 'string') && !(typeof method == 'number')) {
         dart.throw(new core.ArgumentError("method is not a String or num"));
       }
-      if (args != null) args = core.List.from(args[dartx.map](js._convertToJS));
+      if (args != null) args = core.List.from(args[dartx.map](dart.dynamic)(js._convertToJS));
       let fn = this[_jsObject][method];
       if (!(fn instanceof Function)) {
         dart.throw(new core.NoSuchMethodError(this[_jsObject], core.Symbol.new(dart.as(method, core.String)), args, dart.map()));
@@ -29163,7 +29284,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     apply(args, opts) {
       let thisArg = opts && 'thisArg' in opts ? opts.thisArg : null;
-      return js._convertToDart(this[_jsObject].apply(js._convertToJS(thisArg), args == null ? null : core.List.from(args[dartx.map](js._convertToJS))));
+      return js._convertToDart(this[_jsObject].apply(js._convertToJS(thisArg), args == null ? null : core.List.from(args[dartx.map](dart.dynamic)(js._convertToJS))));
     }
   };
   dart.defineNamedConstructor(js.JsFunction, '_fromJs');
@@ -29184,7 +29305,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       from(other) {
         super._fromJs((() => {
           let _ = [];
-          _[dartx.addAll](other[dartx.map](js._convertToJS));
+          _[dartx.addAll](other[dartx.map](dart.dynamic)(js._convertToJS));
           return _;
         })());
       }
@@ -29420,41 +29541,45 @@ dart_library.library('dart_sdk', null, /* Imports */[
   math.PI = 3.141592653589793;
   math.SQRT1_2 = 0.7071067811865476;
   math.SQRT2 = 1.4142135623730951;
-  math.min = function(a, b) {
-    if (!(typeof a == 'number')) dart.throw(new core.ArgumentError(a));
-    if (!(typeof b == 'number')) dart.throw(new core.ArgumentError(b));
-    if (dart.notNull(a) > dart.notNull(b)) return b;
-    if (dart.notNull(a) < dart.notNull(b)) return a;
-    if (typeof b == 'number') {
-      if (typeof a == 'number') {
-        if (a == 0.0) {
-          return (dart.notNull(a) + dart.notNull(b)) * dart.notNull(a) * dart.notNull(b);
+  math.min = function(T) {
+    return (a, b) => {
+      if (!(typeof a == 'number')) dart.throw(new core.ArgumentError(a));
+      if (!(typeof b == 'number')) dart.throw(new core.ArgumentError(b));
+      if (dart.notNull(a) > dart.notNull(b)) return b;
+      if (dart.notNull(a) < dart.notNull(b)) return a;
+      if (typeof b == 'number') {
+        if (typeof a == 'number') {
+          if (a == 0.0) {
+            return (dart.notNull(a) + dart.notNull(b)) * dart.notNull(a) * dart.notNull(b);
+          }
         }
+        if (a == 0 && dart.notNull(b[dartx.isNegative]) || dart.notNull(b[dartx.isNaN])) return b;
+        return a;
       }
-      if (a == 0 && dart.notNull(b[dartx.isNegative]) || dart.notNull(b[dartx.isNaN])) return b;
       return a;
-    }
-    return a;
+    };
   };
-  dart.fn(math.min, dart.dynamic, [dart.dynamic, dart.dynamic]);
-  math.max = function(a, b) {
-    if (!(typeof a == 'number')) dart.throw(new core.ArgumentError(a));
-    if (!(typeof b == 'number')) dart.throw(new core.ArgumentError(b));
-    if (dart.notNull(a) > dart.notNull(b)) return a;
-    if (dart.notNull(a) < dart.notNull(b)) return b;
-    if (typeof b == 'number') {
-      if (typeof a == 'number') {
-        if (a == 0.0) {
-          return dart.notNull(a) + dart.notNull(b);
+  dart.fn(math.min, T => [T, [T, T]]);
+  math.max = function(T) {
+    return (a, b) => {
+      if (!(typeof a == 'number')) dart.throw(new core.ArgumentError(a));
+      if (!(typeof b == 'number')) dart.throw(new core.ArgumentError(b));
+      if (dart.notNull(a) > dart.notNull(b)) return a;
+      if (dart.notNull(a) < dart.notNull(b)) return b;
+      if (typeof b == 'number') {
+        if (typeof a == 'number') {
+          if (a == 0.0) {
+            return dart.notNull(a) + dart.notNull(b);
+          }
         }
+        if (dart.notNull(b[dartx.isNaN])) return b;
+        return a;
       }
-      if (dart.notNull(b[dartx.isNaN])) return b;
+      if (b == 0 && dart.notNull(a[dartx.isNegative])) return b;
       return a;
-    }
-    if (b == 0 && dart.notNull(a[dartx.isNegative])) return b;
-    return a;
+    };
   };
-  dart.fn(math.max, dart.dynamic, [dart.dynamic, dart.dynamic]);
+  dart.fn(math.max, T => [T, [T, T]]);
   math.atan2 = function(a, b) {
     return Math.atan2(_js_helper.checkNum(a), _js_helper.checkNum(b));
   };
@@ -29771,11 +29896,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [dartx.intersection](other) {
         dart.as(other, math.Rectangle$(T));
-        let x0 = math.max(this[dartx.left], other[dartx.left]);
-        let x1 = math.min(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
+        let x0 = math.max(T)(this[dartx.left], other[dartx.left]);
+        let x1 = math.min(core.num)(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
         if (dart.notNull(x0) <= dart.notNull(x1)) {
-          let y0 = math.max(this[dartx.top], other[dartx.top]);
-          let y1 = math.min(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
+          let y0 = math.max(T)(this[dartx.top], other[dartx.top]);
+          let y1 = math.min(core.num)(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
           if (dart.notNull(y0) <= dart.notNull(y1)) {
             return new (math.Rectangle$(T))(x0, y0, dart.notNull(x1) - dart.notNull(x0), dart.notNull(y1) - dart.notNull(y0));
           }
@@ -29787,10 +29912,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [dartx.boundingBox](other) {
         dart.as(other, math.Rectangle$(T));
-        let right = math.max(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
-        let bottom = math.max(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
-        let left = math.min(this[dartx.left], other[dartx.left]);
-        let top = math.min(this[dartx.top], other[dartx.top]);
+        let right = math.max(core.num)(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
+        let bottom = math.max(core.num)(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
+        let left = math.min(T)(this[dartx.left], other[dartx.left]);
+        let top = math.min(T)(this[dartx.top], other[dartx.top]);
         return new (math.Rectangle$(T))(left, top, dart.notNull(right) - dart.notNull(left), dart.notNull(bottom) - dart.notNull(top));
       }
       [dartx.containsRectangle](another) {
@@ -29853,10 +29978,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
         super._RectangleBase();
       }
       static fromPoints(a, b) {
-        let left = math.min(a.x, b.x);
-        let width = dart.notNull(math.max(a.x, b.x)) - dart.notNull(left);
-        let top = math.min(a.y, b.y);
-        let height = dart.notNull(math.max(a.y, b.y)) - dart.notNull(top);
+        let left = math.min(T)(a.x, b.x);
+        let width = dart.notNull(math.max(T)(a.x, b.x)) - dart.notNull(left);
+        let top = math.min(T)(a.y, b.y);
+        let height = dart.notNull(math.max(T)(a.y, b.y)) - dart.notNull(top);
         return new (math.Rectangle$(T))(left, top, width, height);
       }
     }
@@ -29881,10 +30006,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
         super._RectangleBase();
       }
       static fromPoints(a, b) {
-        let left = math.min(a.x, b.x);
-        let width = dart.notNull(math.max(a.x, b.x)) - dart.notNull(left);
-        let top = math.min(a.y, b.y);
-        let height = dart.notNull(math.max(a.y, b.y)) - dart.notNull(top);
+        let left = math.min(T)(a.x, b.x);
+        let width = dart.notNull(math.max(T)(a.x, b.x)) - dart.notNull(left);
+        let top = math.min(T)(a.y, b.y);
+        let height = dart.notNull(math.max(T)(a.y, b.y)) - dart.notNull(top);
         return new (math.MutableRectangle$(T))(left, top, width, height);
       }
       get width() {
@@ -29947,7 +30072,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   mirrors.reflect = function(reflectee) {
     return _js_mirrors.reflect(reflectee);
   };
-  dart.fn(mirrors.reflect, () => dart.definiteFunctionType(mirrors.InstanceMirror, [core.Object]));
+  dart.lazyFn(mirrors.reflect, () => [mirrors.InstanceMirror, [core.Object]]);
   mirrors.reflectClass = function(key) {
     if (!dart.is(key, core.Type) || dart.equals(key, dart.dynamic)) {
       dart.throw(new core.ArgumentError(`${key} does not denote a class`));
@@ -29958,14 +30083,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     return dart.as(dart.as(tm, mirrors.ClassMirror).originalDeclaration, mirrors.ClassMirror);
   };
-  dart.fn(mirrors.reflectClass, () => dart.definiteFunctionType(mirrors.ClassMirror, [core.Type]));
+  dart.lazyFn(mirrors.reflectClass, () => [mirrors.ClassMirror, [core.Type]]);
   mirrors.reflectType = function(key) {
     if (dart.equals(key, dart.dynamic)) {
       return mirrors.currentMirrorSystem().dynamicType;
     }
     return _js_mirrors.reflectType(key);
   };
-  dart.fn(mirrors.reflectType, () => dart.definiteFunctionType(mirrors.TypeMirror, [core.Type]));
+  dart.lazyFn(mirrors.reflectType, () => [mirrors.TypeMirror, [core.Type]]);
   mirrors.Mirror = class Mirror extends core.Object {};
   mirrors.IsolateMirror = class IsolateMirror extends core.Object {};
   mirrors.IsolateMirror[dart.implements] = () => [mirrors.Mirror];
@@ -30474,7 +30599,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   indexed_db.Cursor = class Cursor extends _interceptors.Interceptor {
     [dartx.delete]() {
       try {
-        return indexed_db._completeRequest(this[_delete]());
+        return indexed_db._completeRequest(dart.dynamic)(this[_delete]());
       } catch (e) {
         let stacktrace = dart.stackTrace(e);
         return async.Future.error(e, stacktrace);
@@ -30483,7 +30608,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.update](value) {
       try {
-        return indexed_db._completeRequest(this[_update](value));
+        return indexed_db._completeRequest(dart.dynamic)(this[_update](value));
       } catch (e) {
         let stacktrace = dart.stackTrace(e);
         return async.Future.error(e, stacktrace);
@@ -30793,7 +30918,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (onBlocked != null) {
           dart.dsend(dart.dload(request, 'onBlocked'), 'listen', onBlocked);
         }
-        return indexed_db._completeRequest(dart.as(request, indexed_db.Request));
+        return indexed_db._completeRequest(indexed_db.Database)(dart.as(request, indexed_db.Request));
       } catch (e) {
         let stacktrace = dart.stackTrace(e);
         return async.Future$(indexed_db.Database).error(e, stacktrace);
@@ -30822,7 +30947,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.getDatabaseNames]() {
       try {
         let request = this[_webkitGetDatabaseNames]();
-        return indexed_db._completeRequest(request);
+        return indexed_db._completeRequest(core.List$(core.String))(request);
       } catch (e) {
         let stacktrace = dart.stackTrace(e);
         return async.Future$(core.List$(core.String)).error(e, stacktrace);
@@ -30862,16 +30987,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   indexed_db.IdbFactory[dart.metadata] = () => [dart.const(new _metadata.DomName('IDBFactory')), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.CHROME)), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.FIREFOX, '15')), dart.const(new _metadata.SupportedBrowser(_metadata.SupportedBrowser.IE, '10')), dart.const(new _metadata.Experimental()), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("IDBFactory"))];
   dart.registerExtension(dart.global.IDBFactory, indexed_db.IdbFactory);
-  indexed_db._completeRequest = function(request) {
-    let completer = async.Completer.sync();
-    request[dartx.onSuccess].listen(dart.fn(e => {
-      let result = indexed_db._cast(request[dartx.result]);
-      completer.complete(result);
-    }, dart.void, [html$.Event]));
-    request[dartx.onError].listen(dart.bind(completer, 'completeError'));
-    return completer.future;
+  indexed_db._completeRequest = function(T) {
+    return request => {
+      let completer = async.Completer$(T).sync();
+      request[dartx.onSuccess].listen(dart.fn(e => {
+        let result = indexed_db._cast(T)(request[dartx.result]);
+        completer.complete(result);
+      }, dart.void, [html$.Event]));
+      request[dartx.onError].listen(dart.bind(completer, 'completeError'));
+      return completer.future;
+    };
   };
-  dart.fn(indexed_db._completeRequest, () => dart.definiteFunctionType(async.Future, [indexed_db.Request]));
+  dart.lazyFn(indexed_db._completeRequest, () => [T => [async.Future$(T), [indexed_db.Request]]]);
   const _count$ = Symbol('_count');
   const _get$ = Symbol('_get');
   const _getKey$ = Symbol('_getKey');
@@ -30896,7 +31023,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (key_OR_range === void 0) key_OR_range = null;
       try {
         let request = this[_count$](key_OR_range);
-        return indexed_db._completeRequest(request);
+        return indexed_db._completeRequest(core.int)(request);
       } catch (e) {
         let stacktrace = dart.stackTrace(e);
         return async.Future$(core.int).error(e, stacktrace);
@@ -30906,7 +31033,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.get](key) {
       try {
         let request = this[_get$](key);
-        return indexed_db._completeRequest(request);
+        return indexed_db._completeRequest(dart.dynamic)(request);
       } catch (e) {
         let stacktrace = dart.stackTrace(e);
         return async.Future.error(e, stacktrace);
@@ -30916,7 +31043,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.getKey](key) {
       try {
         let request = this[_getKey$](key);
-        return indexed_db._completeRequest(request);
+        return indexed_db._completeRequest(dart.dynamic)(request);
       } catch (e) {
         let stacktrace = dart.stackTrace(e);
         return async.Future.error(e, stacktrace);
@@ -30943,7 +31070,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       } else {
         request = this[_openCursor](key_OR_range, direction);
       }
-      return indexed_db.ObjectStore._cursorStreamFromResult(dart.as(request, indexed_db.Request), autoAdvance);
+      return indexed_db.ObjectStore._cursorStreamFromResult(indexed_db.CursorWithValue)(dart.as(request, indexed_db.Request), autoAdvance);
     }
     [dartx.openKeyCursor](opts) {
       let key = opts && 'key' in opts ? opts.key : null;
@@ -30965,7 +31092,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       } else {
         request = this[_openKeyCursor](key_OR_range, direction);
       }
-      return indexed_db.ObjectStore._cursorStreamFromResult(dart.as(request, indexed_db.Request), autoAdvance);
+      return indexed_db.ObjectStore._cursorStreamFromResult(indexed_db.Cursor)(dart.as(request, indexed_db.Request), autoAdvance);
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -31123,7 +31250,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         } else {
           request = this[_add$1](value);
         }
-        return indexed_db._completeRequest(dart.as(request, indexed_db.Request));
+        return indexed_db._completeRequest(dart.dynamic)(dart.as(request, indexed_db.Request));
       } catch (e) {
         let stacktrace = dart.stackTrace(e);
         return async.Future.error(e, stacktrace);
@@ -31132,7 +31259,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.clear]() {
       try {
-        return indexed_db._completeRequest(this[_clear$0]());
+        return indexed_db._completeRequest(dart.dynamic)(this[_clear$0]());
       } catch (e) {
         let stacktrace = dart.stackTrace(e);
         return async.Future.error(e, stacktrace);
@@ -31141,7 +31268,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.delete](key_OR_keyRange) {
       try {
-        return indexed_db._completeRequest(this[_delete](key_OR_keyRange));
+        return indexed_db._completeRequest(dart.dynamic)(this[_delete](key_OR_keyRange));
       } catch (e) {
         let stacktrace = dart.stackTrace(e);
         return async.Future.error(e, stacktrace);
@@ -31152,7 +31279,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (key_OR_range === void 0) key_OR_range = null;
       try {
         let request = this[_count$](key_OR_range);
-        return indexed_db._completeRequest(request);
+        return indexed_db._completeRequest(core.int)(request);
       } catch (e) {
         let stacktrace = dart.stackTrace(e);
         return async.Future$(core.int).error(e, stacktrace);
@@ -31168,7 +31295,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         } else {
           request = this[_put](value);
         }
-        return indexed_db._completeRequest(dart.as(request, indexed_db.Request));
+        return indexed_db._completeRequest(dart.dynamic)(dart.as(request, indexed_db.Request));
       } catch (e) {
         let stacktrace = dart.stackTrace(e);
         return async.Future.error(e, stacktrace);
@@ -31178,7 +31305,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.getObject](key) {
       try {
         let request = this[_get$](key);
-        return indexed_db._completeRequest(request);
+        return indexed_db._completeRequest(dart.dynamic)(request);
       } catch (e) {
         let stacktrace = dart.stackTrace(e);
         return async.Future.error(e, stacktrace);
@@ -31205,7 +31332,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       } else {
         request = this[_openCursor](key_OR_range, direction);
       }
-      return indexed_db.ObjectStore._cursorStreamFromResult(dart.as(request, indexed_db.Request), autoAdvance);
+      return indexed_db.ObjectStore._cursorStreamFromResult(indexed_db.CursorWithValue)(dart.as(request, indexed_db.Request), autoAdvance);
     }
     [dartx.createIndex](name, keyPath, opts) {
       let unique = opts && 'unique' in opts ? opts.unique : null;
@@ -31313,21 +31440,23 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [_put_2](value) {
       return this.put(value);
     }
-    static _cursorStreamFromResult(request, autoAdvance) {
-      let controller = async.StreamController.new({sync: true});
-      request[dartx.onError].listen(dart.bind(controller, 'addError'));
-      request[dartx.onSuccess].listen(dart.fn(e => {
-        let cursor = indexed_db._cast(request[dartx.result]);
-        if (cursor == null) {
-          controller.close();
-        } else {
-          controller.add(cursor);
-          if (autoAdvance == true && dart.notNull(controller.hasListener)) {
-            cursor[dartx.next]();
+    static _cursorStreamFromResult(T) {
+      return (request, autoAdvance) => {
+        let controller = async.StreamController$(T).new({sync: true});
+        request[dartx.onError].listen(dart.bind(controller, 'addError'));
+        request[dartx.onSuccess].listen(dart.fn(e => {
+          let cursor = indexed_db._cast(T)(request[dartx.result]);
+          if (cursor == null) {
+            controller.close();
+          } else {
+            controller.add(cursor);
+            if (autoAdvance == true && dart.notNull(controller.hasListener)) {
+              cursor[dartx.next]();
+            }
           }
-        }
-      }, dart.void, [html$.Event]));
-      return controller.stream;
+        }, dart.void, [html$.Event]));
+        return controller.stream;
+      };
     }
   };
   dart.setSignature(indexed_db.ObjectStore, {
@@ -31361,15 +31490,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [_put_1]: [indexed_db.Request, [dart.dynamic, dart.dynamic]],
       [_put_2]: [indexed_db.Request, [dart.dynamic]]
     }),
-    statics: () => ({_cursorStreamFromResult: [async.Stream, [indexed_db.Request, core.bool]]}),
+    statics: () => ({_cursorStreamFromResult: [T => [async.Stream$(T), [indexed_db.Request, core.bool]]]}),
     names: ['_cursorStreamFromResult']
   });
   indexed_db.ObjectStore[dart.metadata] = () => [dart.const(new _metadata.DomName('IDBObjectStore')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("IDBObjectStore"))];
   dart.registerExtension(dart.global.IDBObjectStore, indexed_db.ObjectStore);
-  indexed_db._cast = function(x) {
-    return dart.as(x, dart.dynamic);
+  indexed_db._cast = function(To) {
+    return x => {
+      return dart.as(x, To);
+    };
   };
-  dart.fn(indexed_db._cast, dart.dynamic, [dart.dynamic]);
+  dart.fn(indexed_db._cast, To => [To, [dart.dynamic]]);
   const _get_result = Symbol('_get_result');
   dart.defineExtensionNames([
     'result',
@@ -31465,13 +31596,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
   indexed_db.Transaction = class Transaction extends html$.EventTarget {
     get [dartx.completed]() {
       let completer = async.Completer$(indexed_db.Database).new();
-      this[dartx.onComplete].first.then(dart.fn(_ => {
+      this[dartx.onComplete].first.then(dart.dynamic)(dart.fn(_ => {
         completer.complete(this[dartx.db]);
       }, dart.dynamic, [html$.Event]));
-      this[dartx.onError].first.then(dart.fn(e => {
+      this[dartx.onError].first.then(dart.dynamic)(dart.fn(e => {
         completer.completeError(e);
       }, dart.dynamic, [html$.Event]));
-      this[dartx.onAbort].first.then(dart.fn(e => {
+      this[dartx.onAbort].first.then(dart.dynamic)(dart.fn(e => {
         if (!dart.notNull(completer.isCompleted)) {
           completer.completeError(e);
         }
@@ -32298,14 +32429,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
       children[dartx.clear]();
       children[dartx.addAll](copy);
     }
-    [dartx.querySelectorAll](selectors) {
-      return new html$._FrozenElementList._wrap(this[_querySelectorAll](selectors));
+    [dartx.querySelectorAll](T) {
+      return selectors => {
+        return new (html$._FrozenElementList$(T))._wrap(this[_querySelectorAll](selectors));
+      };
     }
     [dartx.query](relativeSelectors) {
       return this[dartx.querySelector](relativeSelectors);
     }
-    [dartx.queryAll](relativeSelectors) {
-      return this[dartx.querySelectorAll](relativeSelectors);
+    [dartx.queryAll](T) {
+      return relativeSelectors => {
+        return this[dartx.querySelectorAll](T)(relativeSelectors);
+      };
     }
     get [dartx.classes]() {
       return new html$._ElementCssClassSet(this);
@@ -32368,7 +32503,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       let convertedFrames = null;
       if (dart.is(frames, core.Iterable)) {
-        convertedFrames = frames[dartx.map](html_common.convertDartToNative_Dictionary)[dartx.toList]();
+        convertedFrames = frames[dartx.map](dart.dynamic)(html_common.convertDartToNative_Dictionary)[dartx.toList]();
       } else {
         convertedFrames = frames;
       }
@@ -33261,9 +33396,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _: [html$.Element, []]
     }),
     methods: () => ({
-      [dartx.querySelectorAll]: [html$.ElementList, [core.String]],
+      [dartx.querySelectorAll]: [T => [html$.ElementList$(T), [core.String]]],
       [dartx.query]: [html$.Element, [core.String]],
-      [dartx.queryAll]: [html$.ElementList, [core.String]],
+      [dartx.queryAll]: [T => [html$.ElementList$(T), [core.String]]],
       [dartx.getNamespacedAttributes]: [core.Map$(core.String, core.String), [core.String]],
       [dartx.getComputedStyle]: [html$.CssStyleDeclaration, [], [core.String]],
       [dartx.appendText]: [dart.void, [core.String]],
@@ -41782,7 +41917,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     _CssStyleDeclarationSet(elementIterable) {
       this[_elementIterable] = elementIterable;
       this[_elementCssStyleDeclarationSetIterable] = null;
-      this[_elementCssStyleDeclarationSetIterable] = core.List.from(this[_elementIterable])[dartx.map](dart.fn(e => dart.as(dart.dload(e, 'style'), html$.CssStyleDeclaration), html$.CssStyleDeclaration, [dart.dynamic]));
+      this[_elementCssStyleDeclarationSetIterable] = core.List.from(this[_elementIterable])[dartx.map](html$.CssStyleDeclaration)(dart.fn(e => dart.as(dart.dload(e, 'style'), html$.CssStyleDeclaration), html$.CssStyleDeclaration, [dart.dynamic]));
     }
     getPropertyValue(propertyName) {
       return this[_elementCssStyleDeclarationSetIterable][dartx.first][dartx.getPropertyValue](propertyName);
@@ -43913,14 +44048,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.onFullscreenError]() {
       return html$.Element.fullscreenErrorEvent.forTarget(this);
     }
-    [dartx.querySelectorAll](selectors) {
-      return new html$._FrozenElementList._wrap(this[_querySelectorAll](selectors));
+    [dartx.querySelectorAll](T) {
+      return selectors => {
+        return new (html$._FrozenElementList$(T))._wrap(this[_querySelectorAll](selectors));
+      };
     }
     [dartx.query](relativeSelectors) {
       return this[dartx.querySelector](relativeSelectors);
     }
-    [dartx.queryAll](relativeSelectors) {
-      return this[dartx.querySelectorAll](relativeSelectors);
+    [dartx.queryAll](T) {
+      return relativeSelectors => {
+        return this[dartx.querySelectorAll](T)(relativeSelectors);
+      };
     }
     get [dartx.supportsRegisterElement]() {
       return "registerElement" in this;
@@ -43990,9 +44129,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.getElementById]: [html$.Element, [core.String]],
       [dartx.querySelector]: [html$.Element, [core.String]],
       [_querySelectorAll]: [core.List$(html$.Node), [core.String]],
-      [dartx.querySelectorAll]: [html$.ElementList, [core.String]],
+      [dartx.querySelectorAll]: [T => [html$.ElementList$(T), [core.String]]],
       [dartx.query]: [html$.Element, [core.String]],
-      [dartx.queryAll]: [html$.ElementList, [core.String]],
+      [dartx.queryAll]: [T => [html$.ElementList$(T), [core.String]]],
       [dartx.createElement]: [html$.Element, [core.String], [core.String]],
       [_createElement_2]: [dart.dynamic, [core.String]],
       [_createElementNS_2]: [dart.dynamic, [core.String, core.String]],
@@ -44070,8 +44209,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       children[dartx.clear]();
       children[dartx.addAll](copy);
     }
-    [dartx.querySelectorAll](selectors) {
-      return new html$._FrozenElementList._wrap(this[_querySelectorAll](selectors));
+    [dartx.querySelectorAll](T) {
+      return selectors => {
+        return new (html$._FrozenElementList$(T))._wrap(this[_querySelectorAll](selectors));
+      };
     }
     get [dartx.innerHtml]() {
       let e = html$.Element.tag("div");
@@ -44099,8 +44240,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.query](relativeSelectors) {
       return this[dartx.querySelector](relativeSelectors);
     }
-    [dartx.queryAll](relativeSelectors) {
-      return this[dartx.querySelectorAll](relativeSelectors);
+    [dartx.queryAll](T) {
+      return relativeSelectors => {
+        return this[dartx.querySelectorAll](T)(relativeSelectors);
+      };
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -44133,12 +44276,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _: [html$.DocumentFragment, []]
     }),
     methods: () => ({
-      [dartx.querySelectorAll]: [html$.ElementList, [core.String]],
+      [dartx.querySelectorAll]: [T => [html$.ElementList$(T), [core.String]]],
       [dartx.setInnerHtml]: [dart.void, [core.String], {validator: html$.NodeValidator, treeSanitizer: html$.NodeTreeSanitizer}],
       [dartx.appendText]: [dart.void, [core.String]],
       [dartx.appendHtml]: [dart.void, [core.String], {validator: html$.NodeValidator, NodeTreeSanitizer: dart.dynamic, treeSanitizer: dart.dynamic}],
       [dartx.query]: [html$.Element, [core.String]],
-      [dartx.queryAll]: [html$.ElementList, [core.String]],
+      [dartx.queryAll]: [T => [html$.ElementList$(T), [core.String]]],
       [dartx.getElementById]: [html$.Element, [core.String]],
       [dartx.querySelector]: [html$.Element, [core.String]],
       [_querySelectorAll]: [core.List$(html$.Node), [core.String]]
@@ -44879,11 +45022,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$._JenkinsSmiHash.hash4(dart.hashCode(this[dartx.left]), dart.hashCode(this[dartx.top]), dart.hashCode(this[dartx.width]), dart.hashCode(this[dartx.height]));
     }
     [dartx.intersection](other) {
-      let x0 = math.max(this[dartx.left], other[dartx.left]);
-      let x1 = math.min(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
+      let x0 = math.max(core.num)(this[dartx.left], other[dartx.left]);
+      let x1 = math.min(core.num)(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
       if (dart.notNull(x0) <= dart.notNull(x1)) {
-        let y0 = math.max(this[dartx.top], other[dartx.top]);
-        let y1 = math.min(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
+        let y0 = math.max(core.num)(this[dartx.top], other[dartx.top]);
+        let y1 = math.min(core.num)(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
         if (dart.notNull(y0) <= dart.notNull(y1)) {
           return new (math.Rectangle$(core.num))(x0, y0, dart.notNull(x1) - dart.notNull(x0), dart.notNull(y1) - dart.notNull(y0));
         }
@@ -44894,10 +45037,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.notNull(this[dartx.left]) <= dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]) && dart.notNull(other[dartx.left]) <= dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]) && dart.notNull(this[dartx.top]) <= dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]) && dart.notNull(other[dartx.top]) <= dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]);
     }
     [dartx.boundingBox](other) {
-      let right = math.max(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
-      let bottom = math.max(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
-      let left = math.min(this[dartx.left], other[dartx.left]);
-      let top = math.min(this[dartx.top], other[dartx.top]);
+      let right = math.max(core.num)(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
+      let bottom = math.max(core.num)(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
+      let left = math.min(core.num)(this[dartx.left], other[dartx.left]);
+      let top = math.min(core.num)(this[dartx.top], other[dartx.top]);
       return new (math.Rectangle$(core.num))(left, top, dart.notNull(right) - dart.notNull(left), dart.notNull(bottom) - dart.notNull(top));
     }
     [dartx.containsRectangle](another) {
@@ -45438,7 +45581,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_nodeList][dartx.length];
       }
       get(index) {
-        return html$._downcast(this[_nodeList][dartx.get](index));
+        return html$._downcast(html$.Node, E)(this[_nodeList][dartx.get](index));
       }
       set(index, value) {
         dart.as(value, E);
@@ -45458,13 +45601,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(new core.UnsupportedError('Cannot shuffle list'));
       }
       get first() {
-        return html$._downcast(this[_nodeList][dartx.first]);
+        return html$._downcast(html$.Node, E)(this[_nodeList][dartx.first]);
       }
       get last() {
-        return html$._downcast(this[_nodeList][dartx.last]);
+        return html$._downcast(html$.Node, E)(this[_nodeList][dartx.last]);
       }
       get single() {
-        return html$._downcast(this[_nodeList][dartx.single]);
+        return html$._downcast(html$.Node, E)(this[_nodeList][dartx.single]);
       }
       get classes() {
         return html$._MultiElementCssClassSet.new(this);
@@ -48453,7 +48596,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static getString(url, opts) {
       let withCredentials = opts && 'withCredentials' in opts ? opts.withCredentials : null;
       let onProgress = opts && 'onProgress' in opts ? opts.onProgress : null;
-      return html$.HttpRequest.request(url, {withCredentials: withCredentials, onProgress: onProgress}).then(dart.fn(xhr => xhr[dartx.responseText], core.String, [html$.HttpRequest]));
+      return html$.HttpRequest.request(url, {withCredentials: withCredentials, onProgress: onProgress}).then(core.String)(dart.fn(xhr => xhr[dartx.responseText], core.String, [html$.HttpRequest]));
     }
     static postFormData(url, data, opts) {
       let withCredentials = opts && 'withCredentials' in opts ? opts.withCredentials : null;
@@ -48541,7 +48684,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let method = opts && 'method' in opts ? opts.method : null;
       let sendData = opts && 'sendData' in opts ? opts.sendData : null;
       if (dart.notNull(html$.HttpRequest.supportsCrossOrigin)) {
-        return html$.HttpRequest.request(url, {method: method, sendData: sendData}).then(dart.fn(xhr => xhr[dartx.responseText], core.String, [html$.HttpRequest]));
+        return html$.HttpRequest.request(url, {method: method, sendData: sendData}).then(core.String)(dart.fn(xhr => xhr[dartx.responseText], core.String, [html$.HttpRequest]));
       }
       let completer = async.Completer$(core.String).new();
       if (method == null) {
@@ -48549,11 +48692,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       let xhr = new XDomainRequest();
       xhr.open(method, url);
-      xhr.onload = _js_helper.convertDartClosureToJS(dart.fn(e => {
+      xhr.onload = _js_helper.convertDartClosureToJS(dart.functionType(dart.dynamic, [dart.dynamic]))(dart.fn(e => {
         let response = xhr.responseText;
         completer.complete(response);
       }), 1);
-      xhr.onerror = _js_helper.convertDartClosureToJS(dart.fn(e => {
+      xhr.onerror = _js_helper.convertDartClosureToJS(dart.functionType(dart.dynamic, [dart.dynamic]))(dart.fn(e => {
         completer.completeError(e);
       }), 1);
       xhr.onprogress = {};
@@ -52920,7 +53063,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static new(callback) {
       0;
-      return new (window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver)(_js_helper.convertDartClosureToJS(html$._wrapBinaryZone(callback), 2));
+      return new (window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver)(_js_helper.convertDartClosureToJS(html$._wrapZoneBinaryCallback)(html$._wrapBinaryZone(dart.dynamic, dart.dynamic, dart.dynamic)(callback), 2));
     }
   };
   dart.setSignature(html$.MutationObserver, {
@@ -57218,7 +57361,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.setCustomValidity(error);
     }
     get [dartx.options]() {
-      let options = core.List$(html$.OptionElement).from(this[dartx.querySelectorAll]('option'));
+      let options = core.List$(html$.OptionElement).from(this[dartx.querySelectorAll](html$.Element)('option'));
       return new (collection.UnmodifiableListView$(html$.OptionElement))(options);
     }
     get [dartx.selectedOptions]() {
@@ -62239,7 +62382,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.requestAnimationFrame](callback) {
       this[_ensureRequestAnimationFrame]();
-      return this[_requestAnimationFrame](html$._wrapZone(callback));
+      return this[_requestAnimationFrame](html$._wrapZone(core.num, dart.dynamic)(callback));
     }
     [dartx.cancelAnimationFrame](id) {
       this[_ensureRequestAnimationFrame]();
@@ -63776,11 +63919,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$._JenkinsSmiHash.hash4(dart.hashCode(this[dartx.left]), dart.hashCode(this[dartx.top]), dart.hashCode(this[dartx.width]), dart.hashCode(this[dartx.height]));
     }
     [dartx.intersection](other) {
-      let x0 = math.max(this[dartx.left], other[dartx.left]);
-      let x1 = math.min(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
+      let x0 = math.max(core.num)(this[dartx.left], other[dartx.left]);
+      let x1 = math.min(core.num)(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
       if (dart.notNull(x0) <= dart.notNull(x1)) {
-        let y0 = math.max(this[dartx.top], other[dartx.top]);
-        let y1 = math.min(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
+        let y0 = math.max(core.num)(this[dartx.top], other[dartx.top]);
+        let y1 = math.min(core.num)(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
         if (dart.notNull(y0) <= dart.notNull(y1)) {
           return new (math.Rectangle$(core.num))(x0, y0, dart.notNull(x1) - dart.notNull(x0), dart.notNull(y1) - dart.notNull(y0));
         }
@@ -63791,10 +63934,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.notNull(this[dartx.left]) <= dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]) && dart.notNull(other[dartx.left]) <= dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]) && dart.notNull(this[dartx.top]) <= dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]) && dart.notNull(other[dartx.top]) <= dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]);
     }
     [dartx.boundingBox](other) {
-      let right = math.max(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
-      let bottom = math.max(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
-      let left = math.min(this[dartx.left], other[dartx.left]);
-      let top = math.min(this[dartx.top], other[dartx.top]);
+      let right = math.max(core.num)(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
+      let bottom = math.max(core.num)(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
+      let left = math.min(core.num)(this[dartx.left], other[dartx.left]);
+      let top = math.min(core.num)(this[dartx.top], other[dartx.top]);
       return new (math.Rectangle$(core.num))(left, top, dart.notNull(right) - dart.notNull(left), dart.notNull(bottom) - dart.notNull(top));
     }
     [dartx.containsRectangle](another) {
@@ -65196,11 +65339,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return html$._JenkinsSmiHash.hash4(dart.hashCode(this.left), dart.hashCode(this.top), dart.hashCode(this.right), dart.hashCode(this.bottom));
     }
     intersection(other) {
-      let x0 = math.max(this.left, other[dartx.left]);
-      let x1 = math.min(dart.notNull(this.left) + dart.notNull(this.width), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
+      let x0 = math.max(core.num)(this.left, other[dartx.left]);
+      let x1 = math.min(core.num)(dart.notNull(this.left) + dart.notNull(this.width), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
       if (dart.notNull(x0) <= dart.notNull(x1)) {
-        let y0 = math.max(this.top, other[dartx.top]);
-        let y1 = math.min(dart.notNull(this.top) + dart.notNull(this.height), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
+        let y0 = math.max(core.num)(this.top, other[dartx.top]);
+        let y1 = math.min(core.num)(dart.notNull(this.top) + dart.notNull(this.height), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
         if (dart.notNull(y0) <= dart.notNull(y1)) {
           return new (math.Rectangle$(core.num))(x0, y0, dart.notNull(x1) - dart.notNull(x0), dart.notNull(y1) - dart.notNull(y0));
         }
@@ -65211,10 +65354,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.notNull(this.left) <= dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]) && dart.notNull(other[dartx.left]) <= dart.notNull(this.left) + dart.notNull(this.width) && dart.notNull(this.top) <= dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]) && dart.notNull(other[dartx.top]) <= dart.notNull(this.top) + dart.notNull(this.height);
     }
     boundingBox(other) {
-      let right = math.max(dart.notNull(this.left) + dart.notNull(this.width), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
-      let bottom = math.max(dart.notNull(this.top) + dart.notNull(this.height), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
-      let left = math.min(this.left, other[dartx.left]);
-      let top = math.min(this.top, other[dartx.top]);
+      let right = math.max(core.num)(dart.notNull(this.left) + dart.notNull(this.width), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
+      let bottom = math.max(core.num)(dart.notNull(this.top) + dart.notNull(this.height), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
+      let left = math.min(core.num)(this.left, other[dartx.left]);
+      let top = math.min(core.num)(this.top, other[dartx.top]);
       return new (math.Rectangle$(core.num))(left, top, dart.notNull(right) - dart.notNull(left), dart.notNull(bottom) - dart.notNull(top));
     }
     containsRectangle(another) {
@@ -65465,14 +65608,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (separator === void 0) separator = "";
       return this.readClasses().join(separator);
     }
-    map(f) {
-      return this.readClasses().map(f);
+    map(T) {
+      return f => {
+        return this.readClasses().map(T)(f);
+      };
     }
     where(f) {
       return this.readClasses().where(f);
     }
-    expand(f) {
-      return this.readClasses().expand(f);
+    expand(T) {
+      return f => {
+        return this.readClasses().expand(T)(f);
+      };
     }
     every(f) {
       return this.readClasses().every(f);
@@ -65492,8 +65639,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     reduce(combine) {
       return this.readClasses().reduce(combine);
     }
-    fold(initialValue, combine) {
-      return this.readClasses().fold(initialValue, combine);
+    fold(T) {
+      return (initialValue, combine) => {
+        return this.readClasses().fold(T)(initialValue, combine);
+      };
     }
     contains(value) {
       if (!(typeof value == 'string')) return false;
@@ -65516,7 +65665,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return result;
     }
     addAll(iterable) {
-      this.modify(dart.fn(s => s.addAll(iterable[dartx.map](dart.bind(this, _validateToken))), dart.void, [core.Set$(core.String)]));
+      this.modify(dart.fn(s => s.addAll(iterable[dartx.map](core.String)(dart.bind(this, _validateToken))), dart.void, [core.Set$(core.String)]));
     }
     removeAll(iterable) {
       this.modify(dart.fn(s => s.removeAll(iterable), dart.void, [core.Set$(core.String)]));
@@ -65605,13 +65754,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       toggle: [core.bool, [core.String], [core.bool]],
       forEach: [dart.void, [dart.functionType(dart.void, [core.String])]],
       join: [core.String, [], [core.String]],
-      map: [core.Iterable, [dart.functionType(dart.dynamic, [core.String])]],
+      map: [T => [core.Iterable$(T), [dart.functionType(T, [core.String])]]],
       where: [core.Iterable$(core.String), [dart.functionType(core.bool, [core.String])]],
-      expand: [core.Iterable, [dart.functionType(core.Iterable, [core.String])]],
+      expand: [T => [core.Iterable$(T), [dart.functionType(core.Iterable$(T), [core.String])]]],
       every: [core.bool, [dart.functionType(core.bool, [core.String])]],
       any: [core.bool, [dart.functionType(core.bool, [core.String])]],
       reduce: [core.String, [dart.functionType(core.String, [core.String, core.String])]],
-      fold: [dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, core.String])]],
+      fold: [T => [T, [T, dart.functionType(T, [T, core.String])]]],
       contains: [core.bool, [core.Object]],
       lookup: [core.String, [core.Object]],
       add: [core.bool, [core.String]],
@@ -65676,7 +65825,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$._MultiElementCssClassSet = class _MultiElementCssClassSet extends html_common.CssClassSetImpl {
     static new(elements) {
-      return new html$._MultiElementCssClassSet._(elements, dart.as(elements[dartx.map](dart.fn(e => e[dartx.classes], html$.CssClassSet, [html$.Element]))[dartx.toList](), core.List$(html_common.CssClassSetImpl)));
+      return new html$._MultiElementCssClassSet._(elements, dart.as(elements[dartx.map](html$.CssClassSet)(dart.fn(e => e[dartx.classes], html$.CssClassSet, [html$.Element]))[dartx.toList](), core.List$(html_common.CssClassSetImpl)));
     }
     _(elementIterable, sets) {
       this[_elementIterable] = elementIterable;
@@ -65698,10 +65847,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     toggle(value, shouldAdd) {
       if (shouldAdd === void 0) shouldAdd = null;
-      return this[_sets][dartx.fold](false, dart.fn((changed, e) => dart.notNull(e.toggle(value, shouldAdd)) || dart.notNull(changed), core.bool, [core.bool, html_common.CssClassSetImpl]));
+      return this[_sets][dartx.fold](core.bool)(false, dart.fn((changed, e) => dart.notNull(e.toggle(value, shouldAdd)) || dart.notNull(changed), core.bool, [core.bool, html_common.CssClassSetImpl]));
     }
     remove(value) {
-      return this[_sets][dartx.fold](false, dart.fn((changed, e) => dart.notNull(e.remove(value)) || dart.notNull(changed), core.bool, [core.bool, html_common.CssClassSetImpl]));
+      return this[_sets][dartx.fold](core.bool)(false, dart.fn((changed, e) => dart.notNull(e.remove(value)) || dart.notNull(changed), core.bool, [core.bool, html_common.CssClassSetImpl]));
     }
   };
   dart.defineNamedConstructor(html$._MultiElementCssClassSet, '_');
@@ -66060,7 +66209,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this.where(dart.fn(event => {
           dart.as(event, T);
           return html$._matchesWithAncestors(event, selector);
-        }, core.bool, [T])).map(dart.fn(e => {
+        }, core.bool, [T])).map(T)(dart.fn(e => {
           dart.as(e, T);
           e[_selector] = selector;
           return e;
@@ -66095,7 +66244,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this.where(dart.fn(event => {
           dart.as(event, T);
           return html$._matchesWithAncestors(event, selector);
-        }, core.bool, [T])).map(dart.fn(e => {
+        }, core.bool, [T])).map(T)(dart.fn(e => {
           dart.as(e, T);
           e[_selector] = selector;
           return e;
@@ -66161,7 +66310,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_target$] = target;
         this[_eventType] = eventType;
         this[_useCapture] = useCapture;
-        this[_onData$] = html$._wrapZone(dart.as(onData, html$._wrapZoneCallback$(html$.Event, dart.dynamic)));
+        this[_onData$] = html$._wrapZone(html$.Event, dart.dynamic)(dart.as(onData, html$._wrapZoneCallback$(html$.Event, dart.dynamic)));
         this[_pauseCount$] = 0;
         this[_tryResume]();
       }
@@ -66181,7 +66330,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           dart.throw(new core.StateError("Subscription has been canceled."));
         }
         this[_unlisten]();
-        this[_onData$] = html$._wrapZone(dart.as(handleData, html$._wrapZoneCallback$(html$.Event, dart.dynamic)));
+        this[_onData$] = html$._wrapZone(html$.Event, dart.dynamic)(dart.as(handleData, html$._wrapZoneCallback$(html$.Event, dart.dynamic)));
         this[_tryResume]();
       }
       onError(handleError) {}
@@ -67650,7 +67799,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$._TemplatingNodeValidator = class _TemplatingNodeValidator extends html$._SimpleNodeValidator {
     _TemplatingNodeValidator() {
       this[_templateAttrs] = core.Set$(core.String).from(html$._TemplatingNodeValidator._TEMPLATE_ATTRS);
-      super._SimpleNodeValidator(null, {allowedElements: dart.list(['TEMPLATE'], core.String), allowedAttributes: html$._TemplatingNodeValidator._TEMPLATE_ATTRS[dartx.map](dart.fn(attr => `TEMPLATE::${attr}`, core.String, [core.String]))});
+      super._SimpleNodeValidator(null, {allowedElements: dart.list(['TEMPLATE'], core.String), allowedAttributes: html$._TemplatingNodeValidator._TEMPLATE_ATTRS[dartx.map](core.String)(dart.fn(attr => `TEMPLATE::${attr}`, core.String, [core.String]))});
     }
     allowsAttribute(element, attributeName, value) {
       if (dart.notNull(super.allowsAttribute(element, attributeName, value))) {
@@ -67723,7 +67872,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_list$][dartx.clear]();
       }
       get(index) {
-        return html$._downcast(this[_list$][dartx.get](index));
+        return html$._downcast(html$.Node, E)(this[_list$][dartx.get](index));
       }
       set(index, value) {
         dart.as(value, E);
@@ -67736,7 +67885,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       sort(compare) {
         if (compare === void 0) compare = null;
         dart.as(compare, dart.functionType(core.int, [E, E]));
-        this[_list$][dartx.sort](dart.fn((a, b) => compare(html$._downcast(a), html$._downcast(b)), core.int, [html$.Node, html$.Node]));
+        this[_list$][dartx.sort](dart.fn((a, b) => compare(html$._downcast(html$.Node, E)(a), html$._downcast(html$.Node, E)(b)), core.int, [html$.Node, html$.Node]));
       }
       indexOf(element, start) {
         if (start === void 0) start = 0;
@@ -67751,7 +67900,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_list$][dartx.insert](index, element);
       }
       removeAt(index) {
-        return html$._downcast(this[_list$][dartx.removeAt](index));
+        return html$._downcast(html$.Node, E)(this[_list$][dartx.removeAt](index));
       }
       setRange(start, end, iterable, skipCount) {
         dart.as(iterable, core.Iterable$(E));
@@ -67821,7 +67970,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_iterator$1].moveNext();
       }
       get current() {
-        return html$._downcast(this[_iterator$1].current);
+        return html$._downcast(html$.Node, E)(this[_iterator$1].current);
       }
     }
     _WrappedIterator[dart.implements] = () => [core.Iterator$(E)];
@@ -67832,10 +67981,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return _WrappedIterator;
   });
   html$._WrappedIterator = html$._WrappedIterator$();
-  html$._downcast = function(x) {
-    return dart.as(x, dart.dynamic);
+  html$._downcast = function(From, To) {
+    return x => {
+      return dart.as(x, To);
+    };
   };
-  dart.fn(html$._downcast, dart.dynamic, [dart.dynamic]);
+  dart.fn(html$._downcast, (From, To) => [To, [From]]);
   html$._HttpRequestUtils = class _HttpRequestUtils extends core.Object {
     static get(url, onComplete, withCredentials) {
       let request = html$.HttpRequest.new();
@@ -67977,7 +68128,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return function() {
         return invokeCallback(this);
       };
-    })(_js_helper.convertDartClosureToJS(callback, 1));
+    })(_js_helper.convertDartClosureToJS(dart.dynamic)(callback, 1));
   };
   dart.fn(html$._makeCallbackMethod);
   html$._makeCallbackMethod3 = function(callback) {
@@ -67985,7 +68136,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return function(arg1, arg2, arg3) {
         return invokeCallback(this, arg1, arg2, arg3);
       };
-    })(_js_helper.convertDartClosureToJS(callback, 4));
+    })(_js_helper.convertDartClosureToJS(dart.dynamic)(callback, 4));
   };
   dart.fn(html$._makeCallbackMethod3);
   html$._registerCustomElement = function(context, document, tag, type, extendsTagName) {
@@ -68253,24 +68404,28 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return _wrapZoneBinaryCallback;
   });
   html$._wrapZoneBinaryCallback = html$._wrapZoneBinaryCallback$();
-  html$._wrapZone = function(callback) {
-    if (dart.equals(async.Zone.current, async.Zone.ROOT)) return callback;
-    if (callback == null) return null;
-    return dart.as(async.Zone.current.bindUnaryCallback(callback, {runGuarded: true}), html$._wrapZoneCallback);
+  html$._wrapZone = function(A, R) {
+    return callback => {
+      if (dart.equals(async.Zone.current, async.Zone.ROOT)) return callback;
+      if (callback == null) return null;
+      return dart.as(async.Zone.current.bindUnaryCallback(callback, {runGuarded: true}), html$._wrapZoneCallback$(A, R));
+    };
   };
-  dart.fn(html$._wrapZone, html$._wrapZoneCallback, [html$._wrapZoneCallback]);
-  html$._wrapBinaryZone = function(callback) {
-    if (dart.equals(async.Zone.current, async.Zone.ROOT)) return callback;
-    if (callback == null) return null;
-    return dart.as(async.Zone.current.bindBinaryCallback(callback, {runGuarded: true}), html$._wrapZoneBinaryCallback);
+  dart.fn(html$._wrapZone, (A, R) => [html$._wrapZoneCallback$(A, R), [html$._wrapZoneCallback$(A, R)]]);
+  html$._wrapBinaryZone = function(A, B, R) {
+    return callback => {
+      if (dart.equals(async.Zone.current, async.Zone.ROOT)) return callback;
+      if (callback == null) return null;
+      return dart.as(async.Zone.current.bindBinaryCallback(callback, {runGuarded: true}), html$._wrapZoneBinaryCallback$(A, B, R));
+    };
   };
-  dart.fn(html$._wrapBinaryZone, html$._wrapZoneBinaryCallback, [html$._wrapZoneBinaryCallback]);
+  dart.fn(html$._wrapBinaryZone, (A, B, R) => [html$._wrapZoneBinaryCallback$(A, B, R), [html$._wrapZoneBinaryCallback$(A, B, R)]]);
   html$.query = function(relativeSelectors) {
     return html$.document[dartx.query](relativeSelectors);
   };
   dart.fn(html$.query, html$.Element, [core.String]);
   html$.queryAll = function(relativeSelectors) {
-    return html$.document[dartx.queryAll](relativeSelectors);
+    return html$.document[dartx.queryAll](html$.Element)(relativeSelectors);
   };
   dart.fn(html$.queryAll, html$.ElementList$(html$.Element), [core.String]);
   html$.querySelector = function(selectors) {
@@ -68278,7 +68433,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.fn(html$.querySelector, html$.Element, [core.String]);
   html$.querySelectorAll = function(selectors) {
-    return html$.document[dartx.querySelectorAll](selectors);
+    return html$.document[dartx.querySelectorAll](html$.Element)(selectors);
   };
   dart.fn(html$.querySelectorAll, html$.ElementList$(html$.Element), [core.String]);
   html$.ElementUpgrader = class ElementUpgrader extends core.Object {};
@@ -68844,8 +68999,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.fn(html_common.isJavaScriptPromise, core.bool, [dart.dynamic]);
   html_common.convertNativePromiseToDartFuture = function(promise) {
     let completer = async.Completer.new();
-    let then = _js_helper.convertDartClosureToJS(dart.fn(result => completer.complete(result), dart.void, [dart.dynamic]), 1);
-    let error = _js_helper.convertDartClosureToJS(dart.fn(result => completer.completeError(result), dart.void, [dart.dynamic]), 1);
+    let then = _js_helper.convertDartClosureToJS(dart.functionType(dart.void, [dart.dynamic]))(dart.fn(result => completer.complete(result), dart.void, [dart.dynamic]), 1);
+    let error = _js_helper.convertDartClosureToJS(dart.functionType(dart.void, [dart.dynamic]))(dart.fn(result => completer.completeError(result), dart.void, [dart.dynamic]), 1);
     let newPromise = promise.then(then).catch(error);
     return completer.future;
   };
@@ -68936,7 +69091,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_node] = node;
     }
     get [_iterable$]() {
-      return this[_childNodes][dartx.where](dart.fn(n => dart.is(n, html$.Element), core.bool, [html$.Node]))[dartx.map](dart.fn(n => dart.as(n, html$.Element), html$.Element, [html$.Node]));
+      return this[_childNodes][dartx.where](dart.fn(n => dart.is(n, html$.Element), core.bool, [html$.Node]))[dartx.map](html$.Element)(dart.fn(n => dart.as(n, html$.Element), html$.Element, [html$.Node]));
     }
     get [_filtered]() {
       return core.List$(html$.Element).from(this[_iterable$], {growable: false});
