@@ -799,7 +799,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             }
           }
         }
-        targetTypeName = targetType == null ? null : targetType.displayName;
+        targetTypeName = targetType?.displayName;
         ErrorCode proxyErrorCode = (generatedWithTypePropagation
             ? HintCode.UNDEFINED_METHOD
             : StaticTypeWarningCode.UNDEFINED_METHOD);
@@ -1144,7 +1144,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       return null;
     }
     SimpleIdentifier name = node.constructorName;
-    String superName = name != null ? name.name : null;
+    String superName = name?.name;
     ConstructorElement element =
         superType.lookUpConstructor(superName, _definingLibrary);
     if (element == null ||
@@ -2298,9 +2298,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           shouldReportMissingMember_static ? staticType : propagatedType;
       Element staticOrPropagatedEnclosingElt = staticOrPropagatedType.element;
       bool isStaticProperty = _isStatic(staticOrPropagatedEnclosingElt);
-      DartType displayType = staticOrPropagatedType != null
-          ? staticOrPropagatedType
-          : propagatedType != null ? propagatedType : staticType;
+      DartType displayType =
+          staticOrPropagatedType ?? propagatedType ?? staticType;
       // Special getter cases.
       if (propertyName.inGetterContext()) {
         if (!isStaticProperty &&

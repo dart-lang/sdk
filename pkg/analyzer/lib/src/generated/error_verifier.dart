@@ -648,8 +648,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     try {
       _inAsync = node.isAsynchronous;
       _inGenerator = node.isGenerator;
-      FunctionType functionType =
-          _enclosingFunction == null ? null : _enclosingFunction.type;
+      FunctionType functionType = _enclosingFunction?.type;
       DartType expectedReturnType = functionType == null
           ? DynamicTypeImpl.instance
           : functionType.returnType;
@@ -1796,8 +1795,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return;
     }
     FormalParameterList formalParameterList = method.parameters;
-    NodeList<FormalParameter> parameterList =
-        formalParameterList != null ? formalParameterList.parameters : null;
+    NodeList<FormalParameter> parameterList = formalParameterList?.parameters;
     List<AstNode> parameters =
         parameterList != null ? new List.from(parameterList) : null;
     _checkForAllInvalidOverrideErrorCodesForExecutable(executableElement,
@@ -1920,8 +1918,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE].
    */
   void _checkForAllReturnStatementErrorCodes(ReturnStatement statement) {
-    FunctionType functionType =
-        _enclosingFunction == null ? null : _enclosingFunction.type;
+    FunctionType functionType = _enclosingFunction?.type;
     DartType expectedReturnType = functionType == null
         ? DynamicTypeImpl.instance
         : functionType.returnType;
@@ -2038,8 +2035,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return;
     }
     ParameterElement staticParameterElement = argument.staticParameterElement;
-    DartType staticParameterType =
-        staticParameterElement == null ? null : staticParameterElement.type;
+    DartType staticParameterType = staticParameterElement?.type;
     _checkForArgumentTypeNotAssignableWithExpectedTypes(argument,
         staticParameterType, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
   }
@@ -3703,9 +3699,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
 
     // The type of the loop variable.
-    SimpleIdentifier variable = node.identifier != null
-        ? node.identifier
-        : node.loopVariable.identifier;
+    SimpleIdentifier variable = node.identifier ?? node.loopVariable.identifier;
     DartType variableType = getStaticType(variable);
 
     DartType loopType = node.awaitKeyword != null
@@ -3792,8 +3786,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         !executableElement.isOperator) {
       HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
       InterfaceType superclassType = _enclosingClass.supertype;
-      ClassElement superclassElement =
-          superclassType == null ? null : superclassType.element;
+      ClassElement superclassElement = superclassType?.element;
       bool executableElementPrivate =
           Identifier.isPrivateName(executableElementName);
       while (superclassElement != null &&
@@ -3845,8 +3838,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           }
         }
         superclassType = superclassElement.supertype;
-        superclassElement =
-            superclassType == null ? null : superclassType.element;
+        superclassElement = superclassType?.element;
       }
     }
     return false;
@@ -3864,8 +3856,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return;
     }
     ParameterElement staticParameterElement = argument.staticParameterElement;
-    DartType staticParameterType =
-        staticParameterElement == null ? null : staticParameterElement.type;
+    DartType staticParameterType = staticParameterElement?.type;
     _checkForArgumentTypeNotAssignable(argument, staticParameterType, _intType,
         StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
   }

@@ -166,11 +166,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   List<ConstructorElement> get constructors {
     if (!isMixinApplication) {
       assert(_constructors != null);
-      return _constructors == null
-          ? ConstructorElement.EMPTY_LIST
-          : _constructors;
+      return _constructors ?? ConstructorElement.EMPTY_LIST;
     }
-
     return _computeMixinAppConstructors();
   }
 

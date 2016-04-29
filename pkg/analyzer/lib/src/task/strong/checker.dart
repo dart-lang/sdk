@@ -325,9 +325,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitForEachStatement(ForEachStatement node) {
-    var loopVariable = node.identifier != null
-        ? node.identifier
-        : node.loopVariable?.identifier;
+    var loopVariable = node.identifier ?? node.loopVariable?.identifier;
 
     // Safely handle malformed statements.
     if (loopVariable != null) {
@@ -1134,8 +1132,7 @@ class _OverrideChecker {
 
     // Check overrides from its mixins
     for (int i = 0; i < type.mixins.length; i++) {
-      var loc =
-          errorLocation != null ? errorLocation : node.withClause.mixinTypes[i];
+      var loc = errorLocation ?? node.withClause.mixinTypes[i];
       for (var interfaceType in interfaces) {
         // We copy [seen] so we can report separately if more than one mixin or
         // the base class have an invalid override.
@@ -1147,8 +1144,10 @@ class _OverrideChecker {
     // Check overrides from its superclasses
     if (includeParents) {
       var parent = type.superclass;
-      if (parent.isObject) return;
-      var loc = errorLocation != null ? errorLocation : node.extendsClause;
+      if (parent.isObject) {
+        return;
+      }
+      var loc = errorLocation ?? node.extendsClause;
       // No need to copy [seen] here because we made copies above when reporting
       // errors on mixins.
       _checkInterfacesOverrides(parent, interfaces, seen,

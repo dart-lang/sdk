@@ -514,7 +514,7 @@ class CacheEntry {
     ResultData data = getResultData(descriptor);
     _setDependedOnResults(data, thisResult, dependedOn);
     data.state = CacheState.VALID;
-    data.value = value == null ? descriptor.defaultValue : value;
+    data.value = value ?? descriptor.defaultValue;
   }
 
   /**
@@ -922,7 +922,7 @@ abstract class CachePartition {
    */
   List<Source> getSourcesWithFullName(String path) {
     List<Source> sources = pathToSource[path];
-    return sources != null ? sources : Source.EMPTY_LIST;
+    return sources ?? Source.EMPTY_LIST;
   }
 
   /**

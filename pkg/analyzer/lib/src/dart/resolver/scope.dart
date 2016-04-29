@@ -324,11 +324,8 @@ class LabelScope {
   LabelScope lookup(String targetLabel) {
     if (_label == targetLabel) {
       return this;
-    } else if (_outerScope != null) {
-      return _outerScope.lookup(targetLabel);
-    } else {
-      return null;
     }
+    return _outerScope?.lookup(targetLabel);
   }
 }
 

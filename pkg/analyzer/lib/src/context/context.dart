@@ -843,10 +843,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  InternalAnalysisContext getContextFor(Source source) {
-    InternalAnalysisContext context = _cache.getContextFor(source);
-    return context == null ? this : context;
-  }
+  InternalAnalysisContext getContextFor(Source source) =>
+      _cache.getContextFor(source) ?? this;
 
   @override
   Element getElement(ElementLocation location) {

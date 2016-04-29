@@ -188,7 +188,7 @@ class MemoryResourceProvider implements ResourceProvider {
     _MemoryFile file = new _MemoryFile(this, path);
     _pathToResource[path] = file;
     _pathToContent[path] = content;
-    _pathToTimestamp[path] = stamp != null ? stamp : nextStamp++;
+    _pathToTimestamp[path] = stamp ?? nextStamp++;
     _notifyWatchers(path, ChangeType.MODIFY);
     return file;
   }

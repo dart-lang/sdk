@@ -90,7 +90,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       this._errorReporter, TypeProvider typeProvider, this._currentLibrary,
       {TypeSystem typeSystem})
       : _futureNullType = typeProvider.futureNullType,
-        _typeSystem = (typeSystem != null) ? typeSystem : new TypeSystemImpl();
+        _typeSystem = typeSystem ?? new TypeSystemImpl();
 
   @override
   Object visitArgumentList(ArgumentList node) {
@@ -211,10 +211,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   Object visitImportDirective(ImportDirective node) {
     _checkForDeprecatedMemberUse(node.uriElement, node);
     ImportElement importElement = node.element;
-    if (importElement != null) {
-      if (importElement.isDeferred) {
-        _checkForLoadLibraryFunction(node, importElement);
-      }
+    if (importElement != null && importElement.isDeferred) {
+      _checkForLoadLibraryFunction(node, importElement);
     }
     return super.visitImportDirective(node);
   }
@@ -352,8 +350,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       return true;
     }
     Element rhsElement = rhsType.element;
-    LibraryElement libraryElement =
-        rhsElement != null ? rhsElement.library : null;
+    LibraryElement libraryElement = rhsElement?.library;
     if (libraryElement != null && libraryElement.isDartCore) {
       // if x is Object or null is Null
       if (rhsType.isObject ||
@@ -421,11 +418,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     // Hint case: test propagated type information
     //
     // Compute the best types to use.
-    DartType expectedBestType = expectedPropagatedType != null
-        ? expectedPropagatedType
-        : expectedStaticType;
-    DartType actualBestType =
-        actualPropagatedType != null ? actualPropagatedType : actualStaticType;
+    DartType expectedBestType = expectedPropagatedType ?? expectedStaticType;
+    DartType actualBestType = actualPropagatedType ?? actualStaticType;
     if (actualBestType != null && expectedBestType != null) {
       if (!_typeSystem.isAssignableTo(actualBestType, expectedBestType)) {
         _errorReporter.reportTypeErrorForNode(
@@ -450,13 +444,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     ParameterElement staticParameterElement = argument.staticParameterElement;
-    DartType staticParameterType =
-        staticParameterElement == null ? null : staticParameterElement.type;
+    DartType staticParameterType = staticParameterElement?.type;
     ParameterElement propagatedParameterElement =
         argument.propagatedParameterElement;
-    DartType propagatedParameterType = propagatedParameterElement == null
-        ? null
-        : propagatedParameterElement.type;
+    DartType propagatedParameterType = propagatedParameterElement?.type;
     return _checkForArgumentTypeNotAssignableWithExpectedTypes(
         argument,
         staticParameterType,
@@ -832,10 +823,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    */
   void _checkForPossibleNullConditionInBinaryExpression(
       BinaryExpression condition) {
-    Token operator = condition.operator;
-    if (operator != null &&
-        (operator.type == TokenType.AMPERSAND_AMPERSAND ||
-            operator.type == TokenType.BAR_BAR)) {
+    TokenType type = condition.operator?.type;
+    if (type == TokenType.AMPERSAND_AMPERSAND || type == TokenType.BAR_BAR) {
       _checkForPossibleNullCondition(condition.leftOperand);
       _checkForPossibleNullCondition(condition.rightOperand);
     }
@@ -857,14 +846,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    */
   void _checkForPossibleNullConditionInSimpleExpression(Expression condition) {
     if (condition is MethodInvocation) {
-      Token operator = condition.operator;
-      if (operator != null && operator.type == TokenType.QUESTION_PERIOD) {
+      if (condition.operator?.type == TokenType.QUESTION_PERIOD) {
         _errorReporter.reportErrorForNode(
             HintCode.NULL_AWARE_IN_CONDITION, condition);
       }
     } else if (condition is PropertyAccess) {
-      Token operator = condition.operator;
-      if (operator != null && operator.type == TokenType.QUESTION_PERIOD) {
+      if (condition.operator?.type == TokenType.QUESTION_PERIOD) {
         _errorReporter.reportErrorForNode(
             HintCode.NULL_AWARE_IN_CONDITION, condition);
       }
@@ -1744,8 +1731,8 @@ class Dart2JSVerifier extends RecursiveAstVisitor<Object> {
   bool _checkForIsDoubleHints(IsExpression node) {
     TypeName typeName = node.type;
     DartType type = typeName.type;
-    if (type != null && type.element != null) {
-      Element element = type.element;
+    Element element = type?.element;
+    if (element != null) {
       String typeNameStr = element.name;
       LibraryElement libraryElement = element.library;
       //      if (typeNameStr.equals(INT_TYPE_NAME) && libraryElement != null
@@ -1793,8 +1780,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
    * @param errorReporter the error reporter
    */
   DeadCodeVerifier(this._errorReporter, {TypeSystem typeSystem})
-      : this._typeSystem =
-            (typeSystem != null) ? typeSystem : new TypeSystemImpl();
+      : this._typeSystem = typeSystem ?? new TypeSystemImpl();
 
   @override
   Object visitBinaryExpression(BinaryExpression node) {
@@ -1806,14 +1792,15 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
       if (!_isDebugConstant(lhsCondition)) {
         EvaluationResultImpl lhsResult = _getConstantBooleanValue(lhsCondition);
         if (lhsResult != null) {
-          if (lhsResult.value.toBoolValue() == true && isBarBar) {
+          bool value = lhsResult.value.toBoolValue();
+          if (value == true && isBarBar) {
             // report error on else block: true || !e!
             _errorReporter.reportErrorForNode(
                 HintCode.DEAD_CODE, node.rightOperand);
             // only visit the LHS:
             lhsCondition?.accept(this);
             return null;
-          } else if (lhsResult.value.toBoolValue() == false && isAmpAmp) {
+          } else if (value == false && isAmpAmp) {
             // report error on if block: false && !e!
             _errorReporter.reportErrorForNode(
                 HintCode.DEAD_CODE, node.rightOperand);
@@ -1968,9 +1955,8 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
       if (catchClause.onKeyword != null) {
         // on-catch clause found, verify that the exception type is not a
         // subtype of a previous on-catch exception type
-        TypeName typeName = catchClause.exceptionType;
-        if (typeName != null && typeName.type != null) {
-          DartType currentType = typeName.type;
+        DartType currentType = catchClause.exceptionType?.type;
+        if (currentType != null) {
           if (currentType.isObject) {
             // Found catch clause clause that has Object as an exception type,
             // this is equivalent to having a catch clause that doesn't have an
@@ -3785,7 +3771,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       }
       // All of the members exit, determine whether there are possible cases
       // that are not caught by the members.
-      DartType type = node.expression == null ? null : node.expression.bestType;
+      DartType type = node.expression?.bestType;
       if (type is InterfaceType) {
         ClassElement element = type.element;
         if (element != null && element.isEnum) {
@@ -4514,7 +4500,7 @@ class ImportsVerifier {
       String name = element.displayName;
       for (ImportDirective importDirective in importsLibrary) {
         Namespace namespace = _computeNamespace(importDirective);
-        if (namespace != null && namespace.get(name) != null) {
+        if (namespace?.get(name) != null) {
           _unusedImports.remove(importDirective);
           _removeFromUnusedShownNamesMap(element, importDirective);
         }
@@ -5788,7 +5774,7 @@ class ResolverVisitor extends ScopedVisitor {
   void prepareToResolveMembersInClass(ClassDeclaration node) {
     _enclosingClassDeclaration = node;
     enclosingClass = node.element;
-    typeAnalyzer.thisType = enclosingClass == null ? null : enclosingClass.type;
+    typeAnalyzer.thisType = enclosingClass?.type;
   }
 
   /**
@@ -6041,9 +6027,7 @@ class ResolverVisitor extends ScopedVisitor {
     //
     // Resolve the metadata in the library scope.
     //
-    if (node.metadata != null) {
-      node.metadata.accept(this);
-    }
+    node.metadata?.accept(this);
     _enclosingClassDeclaration = node;
     //
     // Continue the class resolution.
@@ -6051,13 +6035,12 @@ class ResolverVisitor extends ScopedVisitor {
     ClassElement outerType = enclosingClass;
     try {
       enclosingClass = node.element;
-      typeAnalyzer.thisType =
-          enclosingClass == null ? null : enclosingClass.type;
+      typeAnalyzer.thisType = enclosingClass?.type;
       super.visitClassDeclaration(node);
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     } finally {
-      typeAnalyzer.thisType = outerType == null ? null : outerType.type;
+      typeAnalyzer.thisType = outerType?.type;
       enclosingClass = outerType;
       _enclosingClassDeclaration = null;
     }
@@ -6072,15 +6055,13 @@ class ResolverVisitor extends ScopedVisitor {
     //
     // Resolve the metadata in the library scope.
     //
-    if (node.metadata != null) {
-      node.metadata.accept(this);
-    }
+    node.metadata?.accept(this);
     _enclosingClassDeclaration = node;
     //
     // Continue the class resolution.
     //
     enclosingClass = node.element;
-    typeAnalyzer.thisType = enclosingClass == null ? null : enclosingClass.type;
+    typeAnalyzer.thisType = enclosingClass?.type;
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
   }
@@ -6298,13 +6279,12 @@ class ResolverVisitor extends ScopedVisitor {
     ClassElement outerType = enclosingClass;
     try {
       enclosingClass = node.element;
-      typeAnalyzer.thisType =
-          enclosingClass == null ? null : enclosingClass.type;
+      typeAnalyzer.thisType = enclosingClass?.type;
       super.visitEnumDeclaration(node);
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     } finally {
-      typeAnalyzer.thisType = outerType == null ? null : outerType.type;
+      typeAnalyzer.thisType = outerType?.type;
       enclosingClass = outerType;
       _enclosingClassDeclaration = null;
     }
@@ -7117,8 +7097,7 @@ class ResolverVisitor extends ScopedVisitor {
     FunctionType expectedClosureType = mayByFunctionType as FunctionType;
     // If the expectedClosureType is not more specific than the static type,
     // return.
-    DartType staticClosureType =
-        closure.element != null ? closure.element.type : null;
+    DartType staticClosureType = closure.element?.type;
     if (staticClosureType != null &&
         !expectedClosureType.isMoreSpecificThan(staticClosureType)) {
       return;
@@ -8412,10 +8391,10 @@ class TypeNameResolver {
       //
       if (typeName.name == dynamicType.name) {
         _setElement(typeName, dynamicType.element);
-        if (argumentList != null) {
-          // TODO(brianwilkerson) Report this error
+//        if (argumentList != null) {
+//          // TODO(brianwilkerson) Report this error
 //          reporter.reportError(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, node, dynamicType.getName(), 0, argumentList.getArguments().size());
-        }
+//        }
         typeName.staticType = dynamicType;
         node.type = dynamicType;
         return;
@@ -8423,10 +8402,10 @@ class TypeNameResolver {
       VoidTypeImpl voidType = VoidTypeImpl.instance;
       if (typeName.name == voidType.name) {
         // There is no element for 'void'.
-        if (argumentList != null) {
-          // TODO(brianwilkerson) Report this error
+//        if (argumentList != null) {
+//          // TODO(brianwilkerson) Report this error
 //          reporter.reportError(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, node, voidType.getName(), 0, argumentList.getArguments().size());
-        }
+//        }
         typeName.staticType = voidType;
         node.type = voidType;
         return;
@@ -8566,11 +8545,11 @@ class TypeNameResolver {
     } else if (element is TypeParameterElement) {
       _setElement(typeName, element);
       type = element.type;
-      if (argumentList != null) {
-        // Type parameters cannot have type arguments.
-        // TODO(brianwilkerson) Report this error.
-        //      resolver.reportError(ResolverErrorCode.?, keyType);
-      }
+//      if (argumentList != null) {
+//        // Type parameters cannot have type arguments.
+//        // TODO(brianwilkerson) Report this error.
+//        //      resolver.reportError(ResolverErrorCode.?, keyType);
+//      }
     } else if (element is MultiplyDefinedElement) {
       List<Element> elements = element.conflictingElements;
       type = _getTypeWhenMultiplyDefined(elements);
@@ -8930,7 +8909,7 @@ class TypeOverrideManager {
    */
   DartType getBestType(VariableElement element) {
     DartType bestType = getType(element);
-    return bestType == null ? element.type : bestType;
+    return bestType ?? element.type;
   }
 
   /**
@@ -9058,12 +9037,7 @@ class TypeOverrideManager_TypeOverrideScope {
     if (_overridenTypes.containsKey(nonAccessor)) {
       return type;
     }
-    if (type != null) {
-      return type;
-    } else if (_outerScope != null) {
-      return _outerScope.getType(nonAccessor);
-    }
-    return null;
+    return type ?? _outerScope?.getType(element);
   }
 
   /**
@@ -9181,31 +9155,16 @@ class TypePromotionManager {
   }
 
   /**
-   * Returns static type of the given variable - declared or promoted.
-   *
-   * @return the static type of the given variable - declared or promoted
+   * Return the static type of the given [variable] - declared or promoted.
    */
-  DartType getStaticType(VariableElement variable) {
-    DartType staticType = getType(variable);
-    if (staticType == null) {
-      staticType = variable.type;
-    }
-    return staticType;
-  }
+  DartType getStaticType(VariableElement variable) =>
+      getType(variable) ?? variable.type;
 
   /**
-   * Return the promoted type of the given element, or `null` if the type of the element has
-   * not been promoted.
-   *
-   * @param element the element whose type might have been promoted
-   * @return the promoted type of the given element
+   * Return the promoted type of the given [element], or `null` if the type of
+   * the element has not been promoted.
    */
-  DartType getType(Element element) {
-    if (currentScope == null) {
-      return null;
-    }
-    return currentScope.getType(element);
-  }
+  DartType getType(Element element) => currentScope?.getType(element);
 
   /**
    * Set the promoted type of the given element to the given type.
@@ -10827,7 +10786,7 @@ class _ConstantVerifier_validateInitializerExpression extends ConstantVisitor {
       this.parameterElements,
       DeclaredVariables declaredVariables,
       {TypeSystem typeSystem})
-      : _typeSystem = (typeSystem != null) ? typeSystem : new TypeSystemImpl(),
+      : _typeSystem = typeSystem ?? new TypeSystemImpl(),
         super(
             new ConstantEvaluationEngine(typeProvider, declaredVariables,
                 typeSystem: typeSystem),

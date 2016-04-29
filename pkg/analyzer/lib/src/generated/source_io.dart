@@ -176,11 +176,10 @@ class FileBasedSource extends Source {
    * derived, otherwise a `file:` URI will be created based on the [file].
    */
   FileBasedSource(JavaFile file, [Uri uri])
-      : this.uri = (uri == null ? file.toURI() : uri),
+      : this.uri = uri ?? file.toURI(),
         this.file = file,
         id = _idTable.putIfAbsent(
-            '${uri == null ? file.toURI() : uri}@${file.getPath()}',
-            () => _idTable.length);
+            '${uri ?? file.toURI()}@${file.getPath()}', () => _idTable.length);
 
   @override
   TimestampedData<String> get contents {
@@ -269,8 +268,7 @@ class FileUriResolver extends UriResolver {
     if (!isFileUri(uri)) {
       return null;
     }
-    return new FileBasedSource(
-        new JavaFile.fromUri(uri), actualUri != null ? actualUri : uri);
+    return new FileBasedSource(new JavaFile.fromUri(uri), actualUri ?? uri);
   }
 
   @override
@@ -456,7 +454,7 @@ class PackageUriResolver extends UriResolver {
     }
     return new FileBasedSource(
         getCanonicalFile(_packagesDirectories[0], pkgName, relPath),
-        actualUri != null ? actualUri : uri);
+        actualUri ?? uri);
   }
 
   @override
@@ -545,7 +543,7 @@ class RelativeFileUriResolver extends UriResolver {
       for (JavaFile dir in _relativeDirectories) {
         JavaFile file = new JavaFile.relative(dir, filePath);
         if (file.exists()) {
-          return new FileBasedSource(file, actualUri != null ? actualUri : uri);
+          return new FileBasedSource(file, actualUri ?? uri);
         }
       }
     }

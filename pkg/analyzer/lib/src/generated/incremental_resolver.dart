@@ -1726,7 +1726,7 @@ class PoorMansIncrementalResolver {
     } else if (token is TokenWithComment) {
       token.precedingComments = comment;
     } else {
-      Type parentType = token != null ? token.runtimeType : null;
+      Type parentType = token?.runtimeType;
       throw new AnalysisException('Uknown parent token type: $parentType');
     }
   }

@@ -1770,8 +1770,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     ..add(rightBracket);
 
   @override
-  ClassElement get element =>
-      _name != null ? (_name.staticElement as ClassElement) : null;
+  ClassElement get element => _name?.staticElement as ClassElement;
 
   @override
   Token get endToken => rightBracket;
@@ -1994,8 +1993,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     ..add(semicolon);
 
   @override
-  ClassElement get element =>
-      _name != null ? (_name.staticElement as ClassElement) : null;
+  ClassElement get element => _name?.staticElement as ClassElement;
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -3699,8 +3697,7 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
   Iterable get childEntities => super._childEntities..add(_name);
 
   @override
-  FieldElement get element =>
-      _name == null ? null : (_name.staticElement as FieldElement);
+  FieldElement get element => _name?.staticElement as FieldElement;
 
   @override
   Token get endToken => _name.endToken;
@@ -3789,8 +3786,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   NodeList<EnumConstantDeclaration> get constants => _constants;
 
   @override
-  ClassElement get element =>
-      _name != null ? (_name.staticElement as ClassElement) : null;
+  ClassElement get element => _name?.staticElement as ClassElement;
 
   @override
   Token get endToken => rightBracket;
@@ -4999,8 +4995,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     ..add(_functionExpression);
 
   @override
-  ExecutableElement get element =>
-      _name != null ? (_name.staticElement as ExecutableElement) : null;
+  ExecutableElement get element => _name?.staticElement as ExecutableElement;
 
   @override
   Token get endToken => _functionExpression.endToken;
@@ -5351,7 +5346,7 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
 
   @override
   FunctionTypeAliasElement get element =>
-      _name != null ? (_name.staticElement as FunctionTypeAliasElement) : null;
+      _name?.staticElement as FunctionTypeAliasElement;
 
   @override
   FormalParameterList get parameters => _parameters;
@@ -7080,8 +7075,7 @@ class MethodDeclarationImpl extends ClassMemberImpl
    * getter or a setter.
    */
   @override
-  ExecutableElement get element =>
-      _name != null ? (_name.staticElement as ExecutableElement) : null;
+  ExecutableElement get element => _name?.staticElement as ExecutableElement;
 
   @override
   Token get endToken => _body.endToken;
@@ -10335,7 +10329,7 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
 
   @override
   TypeParameterElement get element =>
-      _name != null ? (_name.staticElement as TypeParameterElement) : null;
+      _name?.staticElement as TypeParameterElement;
 
   @override
   Token get endToken {
@@ -10592,8 +10586,7 @@ class VariableDeclarationImpl extends DeclarationImpl
   }
 
   @override
-  VariableElement get element =>
-      _name != null ? (_name.staticElement as VariableElement) : null;
+  VariableElement get element => _name?.staticElement as VariableElement;
 
   @override
   Token get endToken {

@@ -112,7 +112,7 @@ class CustomUriResolver extends UriResolver {
     if (!fileUri.isAbsolute) return null;
 
     JavaFile javaFile = new JavaFile.fromUri(fileUri);
-    return new FileBasedSource(javaFile, actualUri != null ? actualUri : uri);
+    return new FileBasedSource(javaFile, actualUri ?? uri);
   }
 }
 

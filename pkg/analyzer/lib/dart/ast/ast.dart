@@ -4467,8 +4467,8 @@ abstract class ImportDirective extends NamespaceDirective {
     //
     SimpleIdentifier prefix1 = import1.prefix;
     SimpleIdentifier prefix2 = import2.prefix;
-    String prefixStr1 = prefix1 != null ? prefix1.name : null;
-    String prefixStr2 = prefix2 != null ? prefix2.name : null;
+    String prefixStr1 = prefix1?.name;
+    String prefixStr2 = prefix2?.name;
     if (prefixStr1 != null || prefixStr2 != null) {
       if (prefixStr1 == null) {
         return -1;

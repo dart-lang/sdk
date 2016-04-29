@@ -73,7 +73,7 @@ class AnalysisOptionsProvider {
           throw new OptionsFormatException(
               'Bad options file format (expected String scope key, '
               'got ${k.runtimeType})',
-              k != null ? k.span : doc.span);
+              (k ?? doc).span);
         }
         if (v != null && v is! YamlNode) {
           throw new OptionsFormatException(
