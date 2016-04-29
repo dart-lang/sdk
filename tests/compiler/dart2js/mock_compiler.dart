@@ -11,7 +11,6 @@ import 'package:compiler/compiler.dart' as api;
 import 'package:compiler/src/common/names.dart' show
     Uris;
 import 'package:compiler/src/constants/expressions.dart';
-import 'package:compiler/src/dart_types.dart' show DartType;
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
@@ -225,15 +224,10 @@ class MockCompiler extends Compiler {
   TreeElementMapping resolveNodeStatement(Node tree,
                                           ExecutableElement element) {
     ResolverVisitor visitor =
-        new ResolverVisitor(
-            this,
-            element,
+        new ResolverVisitor(this, element,
             new ResolutionRegistry(this,
-                new CollectingTreeElements(element)),
-            scope: new MockTypeVariablesScope(
-                element.enclosingElement.buildScope()));
-    if (visitor.scope is LibraryScope ||
-        visitor.scope is MockTypeVariablesScope) {
+                new CollectingTreeElements(element)));
+    if (visitor.scope is LibraryScope) {
       visitor.scope = new MethodScope(visitor.scope, element);
     }
     visitor.visit(tree);
@@ -244,12 +238,9 @@ class MockCompiler extends Compiler {
   resolverVisitor() {
     Element mockElement = new MockElement(mainApp.entryCompilationUnit);
     ResolverVisitor visitor =
-        new ResolverVisitor(
-            this,
-            mockElement,
-            new ResolutionRegistry(
-                this, new CollectingTreeElements(mockElement)),
-            scope: mockElement.enclosingElement.buildScope());
+        new ResolverVisitor(this, mockElement,
+          new ResolutionRegistry(this,
+              new CollectingTreeElements(mockElement)));
     visitor.scope = new MethodScope(visitor.scope, mockElement);
     return visitor;
   }
@@ -328,13 +319,6 @@ class CollectingTreeElements extends TreeElementMapping {
     forEachConstantNode((_, c) => list.add(c));
     return list;
   }
-}
-
-class MockTypeVariablesScope extends TypeVariablesScope {
-  @override
-  List<DartType> get typeVariables => <DartType>[];
-  MockTypeVariablesScope(Scope parent) : super(parent);
-  String toString() => 'MockTypeVariablesScope($parent)';
 }
 
 // The mock compiler does not split the program in output units.

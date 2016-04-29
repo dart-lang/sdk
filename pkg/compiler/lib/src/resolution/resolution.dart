@@ -979,8 +979,6 @@ class ResolverTask extends CompilerTask {
       FunctionExpression node = element.parseNode(parsingContext);
       return measure(() => SignatureResolver.analyze(
           compiler,
-          element.enclosingElement.buildScope(),
-          node.typeVariables,
           node.parameters,
           node.returnType,
           element,
