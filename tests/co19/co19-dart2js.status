@@ -1473,6 +1473,7 @@ WebPlatformTest/shadow-dom/events/event-retargeting/test-002_t01: RuntimeError #
 WebPlatformTest/shadow-dom/events/event-retargeting/test-004_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-004_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-005_t01: RuntimeError # Please triage this failure
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-006_t01: RuntimeError # Issue 52
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-007_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t02: Skip # Times out. Please triage this failure
