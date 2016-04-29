@@ -25,7 +25,10 @@ class Key {
   static const Key DATA = const Key('data');
   static const Key DEFAULT = const Key('default');
   static const Key DEFAULTS = const Key('defaults');
+  static const Key DEFINING_CONSTRUCTOR = const Key('definingConstructor');
   static const Key DYNAMIC_USES = const Key('dynamic-uses');
+  static const Key EFFECTIVE_TARGET = const Key('effectiveTarget');
+  static const Key EFFECTIVE_TARGET_TYPE = const Key('effectiveTargetType');
   static const Key ELEMENT = const Key('element');
   static const Key ELEMENTS = const Key('elements');
   static const Key EXECUTABLE_CONTEXT = const Key('executable-context');
@@ -40,6 +43,8 @@ class Key {
   static const Key GET_OR_SET = const Key('getOrSet');
   static const Key GETTER = const Key('getter');
   static const Key ID = const Key('id');
+  static const Key IMMEDIATE_REDIRECTION_TARGET =
+      const Key('immediateRedirectionTarget');
   static const Key IMPACTS = const Key('impacts');
   static const Key IMPORT = const Key('import');
   static const Key IMPORTS = const Key('imports');
@@ -58,6 +63,7 @@ class Key {
   static const Key IS_OPERATOR = const Key('isOperator');
   static const Key IS_OPTIONAL = const Key('isOptional');
   static const Key IS_PROXY = const Key('isProxy');
+  static const Key IS_REDIRECTING = const Key('isRedirecting');
   static const Key IS_SETTER = const Key('isSetter');
   static const Key IS_UNNAMED_MIXIN_APPLICATION =
       const Key('isUnnamedMixinApplication');

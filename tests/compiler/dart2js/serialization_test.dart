@@ -560,6 +560,24 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
           element1.constantConstructor,
           element2.constantConstructor);
     }
+    check(element1, element2, 'isRedirectingGenerative',
+        element1.isRedirectingGenerative, element2.isRedirectingGenerative);
+    check(element1, element2, 'isRedirectingFactory',
+        element1.isRedirectingFactory, element2.isRedirectingFactory);
+    checkElementIdentities(element1, element2, 'effectiveTarget',
+        element1.effectiveTarget, element2.effectiveTarget);
+    checkElementIdentities(element1, element2, 'definingConstructor',
+        element1.definingConstructor, element2.definingConstructor);
+    check(
+        element1, element2, 'effectiveTargetType',
+        element1.computeEffectiveTargetType(element1.enclosingClass.thisType),
+        element2.computeEffectiveTargetType(element2.enclosingClass.thisType),
+        areTypesEquivalent);
+    checkElementIdentities(element1, element2, 'immediateRedirectionTarget',
+        element1.immediateRedirectionTarget,
+        element2.immediateRedirectionTarget);
+    checkElementIdentities(element1, element2, 'redirectionDeferredPrefix',
+        element1.redirectionDeferredPrefix, element2.redirectionDeferredPrefix);
   }
 
   @override

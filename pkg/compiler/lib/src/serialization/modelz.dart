@@ -30,6 +30,7 @@ import '../tree/tree.dart';
 import '../util/util.dart' show Link, LinkBuilder;
 import 'keys.dart';
 import 'serialization.dart';
+import 'serialization_util.dart';
 
 /// Compute a [Link] from an [Iterable].
 Link toLink(Iterable iterable) {
@@ -1065,6 +1066,7 @@ abstract class ConstructorElementZ extends DeserializedElementZ
         MemberElementMixin
     implements ConstructorElement {
   ConstantConstructor _constantConstructor;
+  ConstructorElement _effectiveTarget;
 
   ConstructorElementZ(ObjectDecoder decoder) : super(decoder);
 
@@ -1103,24 +1105,29 @@ abstract class ConstructorElementZ extends DeserializedElementZ
   AsyncMarker get asyncMarker => AsyncMarker.SYNC;
 
   @override
-  InterfaceType computeEffectiveTargetType(InterfaceType newType) {
-    return _unsupported('computeEffectiveTargetType');
-  }
-
-  @override
   ConstructorElement get definingConstructor {
-    return _unsupported('definingConstructor');
+    String name =
+        _decoder.getString(Key.DEFINING_CONSTRUCTOR, isOptional: true);
+    if (name != null) {
+      return enclosingClass.superclass.lookupConstructor(name);
+    }
+    return null;
   }
 
   @override
   ConstructorElement get effectiveTarget {
-    return _unsupported('effectiveTarget');
+    if (_effectiveTarget == null) {
+      _effectiveTarget =
+          _decoder.getElement(Key.EFFECTIVE_TARGET, isOptional: true);
+      if (_effectiveTarget == null) {
+        _effectiveTarget = this;
+      }
+    }
+    return _effectiveTarget;
   }
 
   @override
-  ConstructorElement get immediateRedirectionTarget {
-    return _unsupported('immediateRedirectionTarget');
-  }
+  ConstructorElement get immediateRedirectionTarget => null;
 
   @override
   bool get isEffectiveTargetMalformed {
@@ -1128,18 +1135,19 @@ abstract class ConstructorElementZ extends DeserializedElementZ
   }
 
   @override
-  bool get isRedirectingFactory => _unsupported('isRedirectingFactory');
-
-  @override
-  bool get isRedirectingGenerative => _unsupported('isRedirectingGenerative');
-
-  @override
   bool get isCyclicRedirection => _unsupported('isCyclicRedirection');
 
   @override
-  PrefixElement get redirectionDeferredPrefix {
-    return _unsupported('redirectionDeferredPrefix');
-  }
+  bool get isRedirectingFactory => false;
+
+  @override
+  bool get isRedirectingGenerative => false;
+
+  @override
+  PrefixElement get redirectionDeferredPrefix => null;
+
+  @override
+  InterfaceType computeEffectiveTargetType(InterfaceType newType) => newType;
 }
 
 class GenerativeConstructorElementZ extends ConstructorElementZ {
@@ -1149,8 +1157,7 @@ class GenerativeConstructorElementZ extends ConstructorElementZ {
   ElementKind get kind => ElementKind.GENERATIVE_CONSTRUCTOR;
 
   @override
-  bool get isEffectiveTargetMalformed =>
-      _unsupported('isEffectiveTargetMalformed');
+  bool get isRedirectingGenerative => _decoder.getBool(Key.IS_REDIRECTING);
 }
 
 class FactoryConstructorElementZ extends ConstructorElementZ {
@@ -1158,10 +1165,66 @@ class FactoryConstructorElementZ extends ConstructorElementZ {
 
   @override
   ElementKind get kind => ElementKind.FACTORY_CONSTRUCTOR;
+}
+
+class RedirectingFactoryConstructorElementZ extends ConstructorElementZ {
+  InterfaceType _effectiveTargetType;
+  ConstructorElement _immediateRedirectionTarget;
+  PrefixElement _redirectionDeferredPrefix;
+
+  RedirectingFactoryConstructorElementZ(ObjectDecoder decoder) : super(decoder);
 
   @override
-  bool get isEffectiveTargetMalformed =>
-      _unsupported('isEffectiveTargetMalformed');
+  ElementKind get kind => ElementKind.FACTORY_CONSTRUCTOR;
+
+  @override
+  bool get isRedirectingFactory => true;
+
+  void _ensureEffectiveTarget() {
+    if (_effectiveTarget == null) {
+      _effectiveTarget =
+          _decoder.getElement(Key.EFFECTIVE_TARGET, isOptional: true);
+      if (_effectiveTarget == null) {
+        _effectiveTarget = this;
+        _effectiveTargetType = enclosingClass.thisType;
+      } else {
+        _effectiveTargetType = _decoder.getType(Key.EFFECTIVE_TARGET_TYPE);
+      }
+    }
+  }
+
+  @override
+  ConstructorElement get effectiveTarget {
+    _ensureEffectiveTarget();
+    return _effectiveTarget;
+  }
+
+  @override
+  InterfaceType computeEffectiveTargetType(InterfaceType newType) {
+    _ensureEffectiveTarget();
+    return _effectiveTargetType.substByContext(newType);
+  }
+
+  void _ensureRedirection() {
+    if (_immediateRedirectionTarget == null) {
+      _immediateRedirectionTarget =
+          _decoder.getElement(Key.IMMEDIATE_REDIRECTION_TARGET);
+      _redirectionDeferredPrefix =
+          _decoder.getElement(Key.PREFIX, isOptional: true);
+    }
+  }
+
+  @override
+  ConstructorElement get immediateRedirectionTarget {
+    _ensureRedirection();
+    return _immediateRedirectionTarget;
+  }
+
+  @override
+  PrefixElement get redirectionDeferredPrefix {
+    _ensureRedirection();
+    return _redirectionDeferredPrefix;
+  }
 }
 
 class ForwardingConstructorElementZ extends ElementZ
