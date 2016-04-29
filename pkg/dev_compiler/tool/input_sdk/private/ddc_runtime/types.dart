@@ -293,13 +293,13 @@ definiteFunctionType(returnType, args, extra) =>
 
 typedef(name, closure) => JS('', 'new #(#, #)', Typedef, name, closure);
 
-bool isDartType(type) => JS('bool', '#(#) === #', read, type, Type);
+bool isDartType(type) => JS('bool', '#(#) === #', _getRuntimeType, type, Type);
 
 typeName(type) => JS('', '''(() => {
   // Non-instance types
   if ($type instanceof $TypeRep) return $type.toString();
   // Instance types
-  let tag = $read($type);
+  let tag = $_getRuntimeType($type);
   if (tag === $Type) {
     let name = $type.name;
     let args = $getGenericArgs($type);

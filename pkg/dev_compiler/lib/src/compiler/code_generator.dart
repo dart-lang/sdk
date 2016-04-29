@@ -475,7 +475,11 @@ class CodeGenerator extends GeneralizingAstVisitor
   }
 
   @override
-  JS.Expression visitTypeName(TypeName node) => _emitTypeName(node.type);
+  JS.Expression visitTypeName(TypeName node) {
+    // TODO(jmesserly): should only happen for erroneous code.
+    if (node.type == null) return js.call('dart.dynamic');
+    return _emitTypeName(node.type);
+  }
 
   @override
   JS.Statement visitClassTypeAlias(ClassTypeAlias node) {
@@ -1479,7 +1483,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       for (var p in ctor.parameters.parameters) {
         var element = p.element;
         if (element is FieldFormalParameterElement) {
-          fields[element.field] = visitSimpleIdentifier(p.identifier);
+          fields[element.field] = _emitSimpleIdentifier(p.identifier);
         }
       }
 
@@ -1542,7 +1546,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     var body = <JS.Statement>[];
     for (var param in parameters.parameters) {
-      var jsParam = visitSimpleIdentifier(param.identifier);
+      var jsParam = _emitSimpleIdentifier(param.identifier);
 
       if (!options.destructureNamedParams) {
         if (param.kind == ParameterKind.NAMED) {
@@ -1978,10 +1982,18 @@ class CodeGenerator extends GeneralizingAstVisitor
     ]);
   }
 
-  /// Writes a simple identifier. This can handle implicit `this` as well as
-  /// going through the qualified library name if necessary.
+  /// Emits a simple identifier, including handling an inferred generic
+  /// function instantiation.
   @override
   JS.Expression visitSimpleIdentifier(SimpleIdentifier node) {
+    return _applyFunctionTypeArguments(
+        _emitSimpleIdentifier(node), node.staticElement, node.staticType);
+  }
+
+  /// Emits a simple identifier, handling implicit `this` as well as
+  /// going through the qualified library name if necessary, but *not* handling
+  /// inferred generic function instantiation.
+  JS.Expression _emitSimpleIdentifier(SimpleIdentifier node) {
     var accessor = node.staticElement;
     if (accessor == null) {
       return js.commentExpression(
@@ -2334,8 +2346,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     List<JS.Expression> args = _visit(node.argumentList);
     if (DynamicInvoke.get(target)) {
       if (typeArgs != null) {
-        return js.call('dart.dgsend(#, [#], #, #)',
-            [jsTarget, typeArgs, memberName, args]);
+        return js.call('dart.dgsend(#, #, #, #)',
+            [jsTarget, new JS.ArrayInitializer(typeArgs), memberName, args]);
       } else {
         return js.call('dart.dsend(#, #, #)', [jsTarget, memberName, args]);
       }
@@ -2367,7 +2379,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (DynamicInvoke.get(node.function)) {
       var typeArgs = _emitInvokeTypeArguments(node);
       if (typeArgs != null) {
-        return js.call('dart.dgcall(#, [#], #)', [fn, typeArgs, args]);
+        return js.call('dart.dgcall(#, #, #)',
+            [fn, new JS.ArrayInitializer(typeArgs), args]);
       } else {
         return js.call('dart.dcall(#, #)', [fn, args]);
       }
@@ -2385,12 +2398,13 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   List<JS.Expression> _emitInvokeTypeArguments(InvocationExpression node) {
     return _emitFunctionTypeArguments(
-        node.function.staticType, node.staticInvokeType);
+        node.function.staticType, node.staticInvokeType, node.typeArguments);
   }
 
   /// If `g` is a generic function type, and `f` is an instantiation of it,
   /// then this will return the type arguments to apply, otherwise null.
-  List<JS.Expression> _emitFunctionTypeArguments(DartType g, DartType f) {
+  List<JS.Expression> _emitFunctionTypeArguments(DartType g, DartType f,
+      [TypeArgumentList typeArgs]) {
     if (g is FunctionType &&
         g.typeFormals.isNotEmpty &&
         f is FunctionType &&
@@ -2398,6 +2412,12 @@ class CodeGenerator extends GeneralizingAstVisitor
       return _recoverTypeArguments(g, f)
           .map(_emitTypeName)
           .toList(growable: false);
+    } else if (typeArgs != null) {
+      // Dynamic calls may have type arguments, even though the function types
+      // are not known.
+      // TODO(jmesserly): seems to be mostly broken in Analyzer at the moment:
+      // https://github.com/dart-lang/sdk/issues/26368
+      return typeArgs.arguments.map(visitTypeName).toList(growable: false);
     }
     return null;
   }
@@ -3365,7 +3385,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (isLibraryPrefix(node.prefix)) {
       return _visit(node.identifier);
     } else {
-      return _emitAccess(node.prefix, node.identifier);
+      return _emitAccess(node.prefix, node.identifier, node.staticType);
     }
   }
 
@@ -3374,7 +3394,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (node.operator.lexeme == '?.') {
       return _emitNullSafe(node);
     }
-    return _emitAccess(_getTarget(node), node.propertyName);
+    return _emitAccess(_getTarget(node), node.propertyName, node.staticType);
   }
 
   JS.Expression _emitNullSafe(Expression node) {
@@ -3451,8 +3471,9 @@ class CodeGenerator extends GeneralizingAstVisitor
   }
 
   /// Shared code for [PrefixedIdentifier] and [PropertyAccess].
-  JS.Expression _emitAccess(Expression target, SimpleIdentifier memberId) {
-    var member = memberId.staticElement;
+  JS.Expression _emitAccess(
+      Expression target, SimpleIdentifier memberId, DartType resultType) {
+    Element member = memberId.staticElement;
     if (member is PropertyAccessorElement) {
       member = (member as PropertyAccessorElement).variable;
     }
@@ -3463,30 +3484,49 @@ class CodeGenerator extends GeneralizingAstVisitor
       return js.call('dart.dload(#, #)', [_visit(target), name]);
     }
 
-    if (target is SuperExpression &&
-        member is FieldElement &&
-        !member.isSynthetic) {
+    var jsTarget = _visit(target);
+    bool isSuper = jsTarget is JS.Super;
+
+    if (isSuper && member is FieldElement && !member.isSynthetic) {
       // If super.x is actually a field, then x is an instance property since
       // subclasses cannot override x.
-      return js.call('this.#', [name]);
+      jsTarget = new JS.This();
     }
 
-    String code;
+    JS.Expression result;
     if (member != null && member is MethodElement && !isStatic) {
       // Tear-off methods: explicitly bind it.
-      if (target is SuperExpression) {
-        return js.call('dart.bind(this, #, #.#)', [name, _visit(target), name]);
+      if (isSuper) {
+        result = js.call('dart.bind(this, #, #.#)', [name, jsTarget, name]);
       } else if (_isObjectMemberCall(target, memberId.name)) {
-        return js.call('dart.bind(#, #, dart.#)', [_visit(target), name, name]);
+        result = js.call('dart.bind(#, #, dart.#)', [jsTarget, name, name]);
+      } else {
+        result = js.call('dart.bind(#, #)', [jsTarget, name]);
       }
-      code = 'dart.bind(#, #)';
     } else if (_isObjectMemberCall(target, memberId.name)) {
-      return js.call('dart.#(#)', [name, _visit(target)]);
+      result = js.call('dart.#(#)', [name, jsTarget]);
     } else {
-      code = '#.#';
+      result = js.call('#.#', [jsTarget, name]);
+    }
+    return _applyFunctionTypeArguments(result, member, resultType);
+  }
+
+  /// If this is an inferred instantiation of a generic function/method, this
+  /// will add the inferred type arguments.
+  JS.Expression _applyFunctionTypeArguments(
+      JS.Expression result, Element member, DartType instantiated) {
+    DartType type;
+    if (member is ExecutableElement) {
+      type = member.type;
+    } else if (member is VariableElement) {
+      type = member.type;
     }
 
-    return js.call(code, [_visit(target), name]);
+    // TODO(jmesserly): handle explicitly passed type args.
+    if (type == null) return result;
+    var typeArgs = _emitFunctionTypeArguments(type, instantiated);
+    if (typeArgs == null) return result;
+    return js.call('dart.gbind(#, #)', [result, typeArgs]);
   }
 
   /// Emits a generic send, like an operator method.

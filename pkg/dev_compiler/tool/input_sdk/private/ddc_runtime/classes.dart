@@ -170,6 +170,17 @@ bind(obj, name, f) => JS('', '''(() => {
   return $f;
 })()''');
 
+/// Instantiate a generic method.
+///
+/// We need to apply the type arguments both to the function, as well as its
+/// associated function type.
+gbind(f, @rest typeArgs) {
+  var result = JS('', '#(...#)', f, typeArgs);
+  var sig = JS('', '#(...#)', _getRuntimeType(f), typeArgs);
+  tag(result, sig);
+  return result;
+}
+
 // Set up the method signature field on the constructor
 _setMethodSignature(f, sigF) => JS('', '''(() => {
   $defineMemoizedGetter($f, $_methodSig, () => {

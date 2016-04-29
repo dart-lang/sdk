@@ -104,7 +104,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
   // then it should have been a function valued field, so
   // get the type from the function.
   if ($ftype === void 0) {
-    $ftype = $read($f);
+    $ftype = $_getRuntimeType($f);
   }
 
   if (!$ftype) {
@@ -150,12 +150,12 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
   $throwNoSuchMethodFunc($obj, $name, $args, originalFunction);
 })()''');
 
-dcall(f, @rest args) =>
-    _checkAndCall(f, read(f), JS('', 'void 0'), null, args, 'call');
+dcall(f, @rest args) => _checkAndCall(
+    f, _getRuntimeType(f), JS('', 'void 0'), null, args, 'call');
 
 
-dgcall(f, typeArgs, @rest args) =>
-    _checkAndCall(f, read(f), JS('', 'void 0'), typeArgs, args, 'call');
+dgcall(f, typeArgs, @rest args) => _checkAndCall(
+    f, _getRuntimeType(f), JS('', 'void 0'), typeArgs, args, 'call');
 
 
 /// Shared code for dsend, dindex, and dsetindex.

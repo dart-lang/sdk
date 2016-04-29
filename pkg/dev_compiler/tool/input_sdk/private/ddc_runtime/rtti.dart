@@ -148,7 +148,7 @@ _nonPrimitiveRuntimeType(obj) => JS('', '''(() => {
   return result;
 })()''');
 
-read(value) => JS('', '#[#]', value, _runtimeType);
+_getRuntimeType(value) => JS('', '#[#]', value, _runtimeType);
 
 /// Tag the runtime type of [value] to be type [t].
 void tag(value, t) {

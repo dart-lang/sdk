@@ -142,6 +142,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     dart.tag(f, sig);
     return f;
   };
+  dart.gbind = function(f, ...typeArgs) {
+    let result = f(...typeArgs);
+    let sig = dart._getRuntimeType(f)(...typeArgs);
+    dart.tag(result, sig);
+    return result;
+  };
   dart._setMethodSignature = function(f, sigF) {
     dart.defineMemoizedGetter(f, dart._methodSig, () => {
       let sigObj = sigF();
@@ -462,7 +468,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     if (ftype === void 0) {
-      ftype = dart.read(f);
+      ftype = dart._getRuntimeType(f);
     }
     if (!ftype) {
       if (typeArgs != null) {
@@ -490,10 +496,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     dart.throwNoSuchMethodFunc(obj, name, args, originalFunction);
   };
   dart.dcall = function(f, ...args) {
-    return dart._checkAndCall(f, dart.read(f), void 0, null, args, 'call');
+    return dart._checkAndCall(f, dart._getRuntimeType(f), void 0, null, args, 'call');
   };
   dart.dgcall = function(f, typeArgs, ...args) {
-    return dart._checkAndCall(f, dart.read(f), void 0, typeArgs, args, 'call');
+    return dart._checkAndCall(f, dart._getRuntimeType(f), void 0, typeArgs, args, 'call');
   };
   dart._callMethod = function(obj, name, typeArgs, args, displayName) {
     let symbol = dart._canonicalFieldName(obj, name, args, displayName);
@@ -758,7 +764,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     return result;
   };
-  dart.read = function(value) {
+  dart._getRuntimeType = function(value) {
     return value[dart._runtimeType];
   };
   dart.tag = function(value, t) {
@@ -964,11 +970,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return new dart.Typedef(name, closure);
   };
   dart.isDartType = function(type) {
-    return dart.read(type) === core.Type;
+    return dart._getRuntimeType(type) === core.Type;
   };
   dart.typeName = function(type) {
     if (type instanceof dart.TypeRep) return type.toString();
-    let tag = dart.read(type);
+    let tag = dart._getRuntimeType(type);
     if (tag === core.Type) {
       let name = type.name;
       let args = dart.getGenericArgs(type);

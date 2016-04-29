@@ -83,7 +83,7 @@ module.exports = function(config) {
       },
     },
 
-    browsers: ['ChromeCanary', 'Electron'],
+    browsers: ['Chrome'],
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
