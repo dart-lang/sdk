@@ -1881,6 +1881,7 @@ class CodeGenerator extends GeneralizingAstVisitor
           new JS.Block([
             _emitGeneratorFunctionBody(element, parameters, body).toReturn()
           ]),
+          typeParams: _emitTypeFormals(type.typeFormals),
           returnType: emitTypeRef(type.returnType));
     }
 
