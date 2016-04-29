@@ -425,6 +425,7 @@ class ResolvedAstDeserializer {
           FunctionExpression toStringNode = builder.functionExpression(
               Modifiers.EMPTY,
               'toString',
+              null,
               builder.argumentList([]),
               builder.returnStatement(builder.indexGet(
                   builder.mapLiteral(mapEntries, isConst: true),
@@ -437,6 +438,7 @@ class ResolvedAstDeserializer {
           FunctionExpression constructorNode = builder.functionExpression(
               builder.modifiers(isConst: true),
               element.enclosingClass.name,
+              null,
               builder.argumentList([indexDefinition]),
               builder.emptyStatement());
           return constructorNode;

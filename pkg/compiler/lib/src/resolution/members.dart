@@ -17,6 +17,7 @@ import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
     show
+        BaseFunctionElementX,
         ConstructorElementX,
         ErroneousElementX,
         FunctionElementX,
@@ -143,7 +144,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   ResolverVisitor(
       Compiler compiler, Element element, ResolutionRegistry registry,
-      {bool useEnclosingScope: false})
+      {Scope scope, bool useEnclosingScope: false})
       : this.enclosingElement = element,
         // When the element is a field, we are actually resolving its
         // initial value, which should not have access to instance
@@ -153,9 +154,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         this.currentClass =
             element.isClassMember ? element.enclosingClass : null,
         this.statementScope = new StatementScope(),
-        scope = useEnclosingScope
+        this.scope = scope ?? (useEnclosingScope
             ? Scope.buildEnclosingScope(element)
-            : element.buildScope(),
+            : element.buildScope()),
         // The type annotations on a typedef do not imply type checks.
         // TODO(karlklose): clean this up (dartbug.com/8870).
         inCheckContext = compiler.options.enableTypeAssertions &&
@@ -408,16 +409,21 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (node.modifiers.isStatic && enclosingElement.kind != ElementKind.CLASS) {
       reporter.reportErrorMessage(node, MessageKind.ILLEGAL_STATIC);
     }
+    FunctionSignature functionSignature = function.functionSignature;
 
+    // Create the scope where the type variables are introduced, if any.
     scope = new MethodScope(scope, function);
-    // Put the parameters in scope.
-    FunctionSignature functionParameters = function.functionSignature;
+    functionSignature.typeVariables.forEach(
+        (DartType type) => addToScope(type.element));
+
+    // Create the scope for the function body, and put the parameters in scope.
+    scope = new BlockScope(scope);
     Link<Node> parameterNodes =
         (node.parameters == null) ? const Link<Node>() : node.parameters.nodes;
-    functionParameters.forEachParameter((ParameterElementX element) {
+    functionSignature.forEachParameter((ParameterElementX element) {
       // TODO(karlklose): should be a list of [FormalElement]s, but the actual
       // implementation uses [Element].
-      List<Element> optionals = functionParameters.optionalParameters;
+      List<Element> optionals = functionSignature.optionalParameters;
       if (!optionals.isEmpty && element == optionals.first) {
         NodeList nodes = parameterNodes.head;
         parameterNodes = nodes.nodes;
@@ -446,14 +452,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       parameterNodes = parameterNodes.tail;
     });
     addDeferredAction(enclosingElement, () {
-      functionParameters
+      functionSignature
           .forEachOptionalParameter((ParameterElementX parameter) {
         parameter.constant =
             compiler.resolver.constantCompiler.compileConstant(parameter);
       });
     });
     if (inCheckContext) {
-      functionParameters.forEachParameter((ParameterElement element) {
+      functionSignature.forEachParameter((ParameterElement element) {
         registry.registerTypeUse(new TypeUse.checkedModeCheck(element.type));
       });
     }
@@ -570,7 +576,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         name, node, ElementKind.FUNCTION, Modifiers.EMPTY, enclosingElement);
     ResolverTask.processAsyncMarker(compiler, function, registry);
     function.functionSignature = SignatureResolver.analyze(
-        compiler, node.parameters, node.returnType, function, registry,
+        compiler,
+        scope,
+        node.typeVariables,
+        node.parameters,
+        node.returnType,
+        function,
+        registry,
         createRealParameters: true,
         isFunctionExpression: !inFunctionDeclaration);
     checkLocalDefinitionName(node, function);
@@ -1864,7 +1876,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult handleTypeVariableTypeLiteralAccess(
       Send node, Name name, TypeVariableElement element) {
     AccessSemantics semantics;
-    if (!Elements.hasAccessToTypeVariables(enclosingElement)) {
+    if (!Elements.hasAccessToTypeVariable(enclosingElement, element)) {
       // TODO(johnniwinther): Add another access semantics for this.
       ErroneousElement error = reportAndCreateErroneousElement(
           node,
@@ -1905,7 +1917,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult handleTypeVariableTypeLiteralUpdate(
       SendSet node, Name name, TypeVariableElement element) {
     AccessSemantics semantics;
-    if (!Elements.hasAccessToTypeVariables(enclosingElement)) {
+    if (!Elements.hasAccessToTypeVariable(enclosingElement, element)) {
       // TODO(johnniwinther): Add another access semantics for this.
       ErroneousElement error = reportAndCreateErroneousElement(
           node,

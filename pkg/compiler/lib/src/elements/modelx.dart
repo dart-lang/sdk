@@ -15,7 +15,11 @@ import '../diagnostics/messages.dart' show MessageTemplate;
 import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../resolution/class_members.dart' show ClassMemberMixin;
 import '../resolution/scope.dart'
-    show ClassScope, LibraryScope, Scope, TypeDeclarationScope;
+    show
+        ClassScope,
+        LibraryScope,
+        Scope,
+        TypeDeclarationScope;
 import '../resolution/resolution.dart' show AnalyzableElementX;
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../resolution/typedefs.dart' show TypedefCyclicVisitor;
@@ -283,6 +287,9 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   @override
   bool get isFromEnvironmentConstructor => false;
+
+  @override
+  List<DartType> get typeVariables => unsupported();
 }
 
 /// A constructor that was synthesized to recover from a compile-time error.
@@ -1664,6 +1671,9 @@ class FormalElementX extends ElementX
   final Identifier identifier;
   DartType typeCache;
 
+  @override
+  List<DartType> get typeVariables => functionSignature.typeVariables;
+
   /**
    * Function signature for a variable with a function type. The signature is
    * kept to provide full information about parameter names through the mirror
@@ -1893,6 +1903,7 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
 // TODO(karlklose): all these lists should have element type [FormalElement].
 class FunctionSignatureX extends FunctionSignatureCommon
     implements FunctionSignature {
+  final List<DartType> typeVariables;
   final List<Element> requiredParameters;
   final List<Element> optionalParameters;
   final int requiredParameterCount;
@@ -1903,7 +1914,8 @@ class FunctionSignatureX extends FunctionSignatureCommon
   final bool hasOptionalParameters;
 
   FunctionSignatureX(
-      {this.requiredParameters: const <Element>[],
+      {this.typeVariables: const <DartType>[],
+      this.requiredParameters: const <Element>[],
       this.requiredParameterCount: 0,
       List<Element> optionalParameters: const <Element>[],
       this.optionalParameterCount: 0,
@@ -1984,6 +1996,9 @@ abstract class BaseFunctionElementX extends ElementX
 
   FunctionElement asFunctionElement() => this;
 
+  @override
+  Scope buildScope() => new TypeDeclarationScope(super.buildScope(), this);
+
   String toString() {
     if (isPatch) {
       return 'patch ${super.toString()}';
@@ -1998,6 +2013,9 @@ abstract class BaseFunctionElementX extends ElementX
 
   // A function is defined by the implementation element.
   AstElement get definingElement => implementation;
+
+  @override
+  List<DartType> get typeVariables => functionSignature.typeVariables;
 }
 
 abstract class FunctionElementX extends BaseFunctionElementX
@@ -2155,6 +2173,10 @@ abstract class ConstantConstructorMixin implements ConstructorElement {
             enclosingClass.name == 'int' ||
             enclosingClass.name == 'String');
   }
+
+  /// Returns the empty list of type variables by default.
+  @override
+  List<DartType> get typeVariables => functionSignature.typeVariables;
 }
 
 abstract class ConstructorElementX extends FunctionElementX
@@ -3085,10 +3107,10 @@ class TypeVariableElementX extends ElementX
   DartType boundCache;
 
   TypeVariableElementX(
-      String name, TypeDeclarationElement enclosing, this.index, this.node)
+      String name, GenericElement enclosing, this.index, this.node)
       : super(name, ElementKind.TYPE_VARIABLE, enclosing);
 
-  TypeDeclarationElement get typeDeclaration => enclosingElement;
+  GenericElement get typeDeclaration => enclosingElement;
 
   TypeVariableType computeType(Resolution resolution) => type;
 

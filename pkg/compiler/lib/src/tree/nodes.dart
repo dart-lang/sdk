@@ -1076,6 +1076,7 @@ class AsyncModifier extends Node {
 
 class FunctionExpression extends Expression with StoredTreeElementMixin {
   final Node name;
+  final NodeList typeVariables;
 
   /**
    * List of VariableDefinitions or NodeList.
@@ -1092,8 +1093,16 @@ class FunctionExpression extends Expression with StoredTreeElementMixin {
   final Token getOrSet;
   final AsyncModifier asyncModifier;
 
-  FunctionExpression(this.name, this.parameters, this.body, this.returnType,
-      this.modifiers, this.initializers, this.getOrSet, this.asyncModifier) {
+  FunctionExpression(
+      this.name,
+      this.typeVariables,
+      this.parameters,
+      this.body,
+      this.returnType,
+      this.modifiers,
+      this.initializers,
+      this.getOrSet,
+      this.asyncModifier) {
     assert(modifiers != null);
   }
 
@@ -1111,6 +1120,7 @@ class FunctionExpression extends Expression with StoredTreeElementMixin {
     if (modifiers != null) modifiers.accept(visitor);
     if (returnType != null) returnType.accept(visitor);
     if (name != null) name.accept(visitor);
+    if (typeVariables != null) typeVariables.accept(visitor);
     if (parameters != null) parameters.accept(visitor);
     if (initializers != null) initializers.accept(visitor);
     if (asyncModifier != null) asyncModifier.accept(visitor);
@@ -1121,6 +1131,7 @@ class FunctionExpression extends Expression with StoredTreeElementMixin {
     if (modifiers != null) modifiers.accept1(visitor, arg);
     if (returnType != null) returnType.accept1(visitor, arg);
     if (name != null) name.accept1(visitor, arg);
+    if (typeVariables != null) typeVariables.accept1(visitor, arg);
     if (parameters != null) parameters.accept1(visitor, arg);
     if (initializers != null) initializers.accept1(visitor, arg);
     if (asyncModifier != null) asyncModifier.accept1(visitor, arg);
@@ -3102,6 +3113,7 @@ class ErrorNode extends Node
 
   // FunctionExpression.
   get asyncModifier => null;
+  get typeVariables => null;
   get parameters => null;
   get body => null;
   get returnType => null;
