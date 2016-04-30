@@ -672,12 +672,6 @@ class ResynthesizeAstTest extends ResynthesizeTest
 
   @override
   @failingTest
-  void test_constructor_initializers_field_notConst() {
-    super.test_constructor_initializers_field_notConst();
-  }
-
-  @override
-  @failingTest
   void test_inferred_function_type_in_generic_class_constructor() {
     super.test_inferred_function_type_in_generic_class_constructor();
   }

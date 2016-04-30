@@ -1290,6 +1290,7 @@ abstract class ConstNode extends Node<ConstNode> {
     for (UnlinkedConstOperation operation in unlinkedConst.operations) {
       switch (operation) {
         case UnlinkedConstOperation.pushReference:
+        case UnlinkedConstOperation.invokeMethodRef:
           EntityRef ref = unlinkedConst.references[refPtr++];
           ConstVariableNode variable =
               compilationUnit._resolveRef(ref.reference).asConstVariable;
