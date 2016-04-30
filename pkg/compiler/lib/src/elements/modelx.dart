@@ -151,7 +151,7 @@ abstract class ElementX extends Element with ElementCommon {
 
   Name get memberName => new Name(name, library);
 
-  LibraryElementX get implementationLibrary {
+  LibraryElement get implementationLibrary {
     Element element = this;
     while (!identical(element.kind, ElementKind.LIBRARY)) {
       element = element.enclosingElement;
@@ -716,7 +716,8 @@ class CompilationUnitElementX extends ElementX
     localMembers = localMembers.prepend(element);
     // Provide the member to the library to build scope.
     if (enclosingElement.isPatch) {
-      implementationLibrary.addMember(element, reporter);
+      LibraryElementX library = implementationLibrary;
+      library.addMember(element, reporter);
     } else {
       library.addMember(element, reporter);
     }

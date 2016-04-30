@@ -29,7 +29,7 @@ main(List<String> args) {
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
       // TODO(johnniwinther): Handle the remaining tests.
-      for (Test test in TESTS.sublist(0, 2)) {
+      for (Test test in TESTS.sublist(0, 5)) {
         await compile(serializedData, entryPoint, test,
                       verbose: arguments.verbose);
       }

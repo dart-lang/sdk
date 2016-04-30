@@ -110,9 +110,6 @@ class ResolvedAstSerializer extends Visitor {
         Key.URI,
         elements.analyzedElement.compilationUnit.script.resourceUri,
         elements.analyzedElement.compilationUnit.script.resourceUri);
-    if (resolvedAst.body != null) {
-      objectEncoder.setInt(Key.BODY, nodeIndices[resolvedAst.body]);
-    }
     AstKind kind;
     if (element.enclosingClass is EnumClassElement) {
       if (element.name == 'index') {
@@ -148,6 +145,13 @@ class ResolvedAstSerializer extends Visitor {
     }
     objectEncoder.setEnum(Key.SUB_KIND, kind);
     root.accept(indexComputer);
+    if (resolvedAst.body != null) {
+      int index = nodeIndices[resolvedAst.body];
+      assert(invariant(element, index != null,
+          message:
+              "No index for body of $element: ${resolvedAst.body} ($nodeIndices)."));
+      objectEncoder.setInt(Key.BODY, index);
+    }
     root.accept(this);
     if (jumpTargetMap.isNotEmpty) {
       ListEncoder list = objectEncoder.createList(Key.JUMP_TARGETS);
@@ -489,12 +493,15 @@ class ResolvedAstDeserializer {
     AstIndexComputer indexComputer = new AstIndexComputer();
     Map<Node, int> nodeIndices = indexComputer.nodeIndices;
     List<Node> nodeList = indexComputer.nodeList;
+    root.accept(indexComputer);
     Node body;
     int bodyNodeIndex = objectDecoder.getInt(Key.BODY, isOptional: true);
     if (bodyNodeIndex != null) {
+      assert(invariant(element, bodyNodeIndex < nodeList.length,
+          message: "Body node index ${bodyNodeIndex} out of range. "
+              "Node count: ${nodeList.length}"));
       body = nodeList[bodyNodeIndex];
     }
-    root.accept(indexComputer);
 
     List<JumpTarget> jumpTargets = <JumpTarget>[];
     Map<JumpTarget, List<int>> jumpTargetLabels = <JumpTarget, List<int>>{};

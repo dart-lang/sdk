@@ -1753,12 +1753,15 @@ class SsaBuilder extends ast.Visitor
   }
 
   HGraph buildLazyInitializer(VariableElement variable) {
+    assert(invariant(variable, resolvedAst.element == variable,
+        message: "Unexpected variable $variable for $resolvedAst."));
     inLazyInitializerExpression = true;
-    assert(invariant(variable, variable.initializer != null,
+    ast.VariableDefinitions node = resolvedAst.node;
+    ast.Node initializer = resolvedAst.body;
+    assert(invariant(variable, initializer != null,
         message: "Non-constant variable $variable has no initializer."));
-    ast.VariableDefinitions node = variable.node;
     openFunction(variable, node);
-    visit(variable.initializer);
+    visit(initializer);
     HInstruction value = pop();
     value = potentiallyCheckOrTrustType(value, variable.type);
     ast.SendSet sendSet = node.definitions.nodes.head;

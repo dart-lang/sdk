@@ -748,9 +748,6 @@ abstract class ParametersMixin
 abstract class FunctionTypedElementMixin
     implements FunctionElement, DeserializedElementZ {
   @override
-  AsyncMarker get asyncMarker => _unsupported('asyncMarker');
-
-  @override
   FunctionElement asFunctionElement() => this;
 
   @override
@@ -1345,7 +1342,7 @@ abstract class MemberElementMixin
   Name get memberName => new Name(name, library);
 
   @override
-  List<FunctionElement> get nestedClosures => const <FunctionElement>[];
+  List<FunctionElement> get nestedClosures => <FunctionElement>[];
 }
 
 abstract class FieldElementZ extends DeserializedElementZ
@@ -1511,6 +1508,11 @@ class LocalFunctionElementZ extends DeserializedElementZ
 
   @override
   ElementKind get kind => ElementKind.FUNCTION;
+
+  @override
+  AsyncMarker get asyncMarker {
+    return _decoder.getEnum(Key.ASYNC_MARKER, AsyncMarker.values);
+  }
 }
 
 abstract class GetterElementZ extends DeserializedElementZ

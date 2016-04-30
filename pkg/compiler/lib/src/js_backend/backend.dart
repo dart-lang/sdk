@@ -2507,6 +2507,19 @@ class JSFrontendAccess implements Frontend {
   }
 
   @override
+  bool hasResolvedAst(Element element) {
+    if (element is SynthesizedCallMethodElementX) {
+      return true;
+    } else if (element is ConstructorBodyElementX) {
+      return true;
+    } else if (element is FieldElementX) {
+      return true;
+    } else {
+      return resolution.hasResolvedAst(element);
+    }
+  }
+
+  @override
   ResolvedAst getResolvedAst(Element element) {
     if (element is SynthesizedCallMethodElementX) {
       return element.resolvedAst;

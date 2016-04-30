@@ -247,15 +247,15 @@ class EnumCreator {
     enumClass.addMember(constructor, reporter);
 
     List<EnumConstantElement> enumValues = <EnumConstantElement>[];
-    VariableList variableList =
-        new VariableList(builder.modifiers(isStatic: true, isConst: true));
-    variableList.type = enumType;
     int index = 0;
     List<Node> valueReferences = <Node>[];
     List<LiteralMapEntry> mapEntries = <LiteralMapEntry>[];
     for (Link<Node> link = node.names.nodes; !link.isEmpty; link = link.tail) {
       Identifier name = link.head;
       AstBuilder valueBuilder = new AstBuilder(name.token.charOffset);
+      VariableList variableList = new VariableList(
+          valueBuilder.modifiers(isStatic: true, isConst: true));
+      variableList.type = enumType;
 
       // Add reference for the `values` field.
       valueReferences.add(valueBuilder.reference(name));
