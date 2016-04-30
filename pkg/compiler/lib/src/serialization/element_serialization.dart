@@ -23,6 +23,7 @@ enum SerializedElementKind {
   ENUM,
   NAMED_MIXIN_APPLICATION,
   GENERATIVE_CONSTRUCTOR,
+  DEFAULT_CONSTRUCTOR,
   FACTORY_CONSTRUCTOR,
   REDIRECTING_FACTORY_CONSTRUCTOR,
   FORWARDING_CONSTRUCTOR,
@@ -342,8 +343,11 @@ class ConstructorSerializer implements ElementSerializer {
 
   SerializedElementKind getSerializedKind(Element element) {
     if (element.isGenerativeConstructor) {
-      if (element.enclosingClass.isNamedMixinApplication) {
+      ConstructorElement constructor = element;
+      if (constructor.enclosingClass.isNamedMixinApplication) {
         return SerializedElementKind.FORWARDING_CONSTRUCTOR;
+      } else if (constructor.definingConstructor != null) {
+        return SerializedElementKind.DEFAULT_CONSTRUCTOR;
       } else {
         return SerializedElementKind.GENERATIVE_CONSTRUCTOR;
       }
@@ -375,16 +379,6 @@ class ConstructorSerializer implements ElementSerializer {
         ObjectEncoder constantEncoder = encoder.createObject(Key.CONSTRUCTOR);
         const ConstantConstructorSerializer()
             .visit(constantConstructor, constantEncoder);
-      }
-      if (element.definingConstructor != null) {
-        assert(invariant(
-            element,
-            element.definingConstructor.enclosingClass ==
-                element.enclosingClass.superclass,
-            message: "Unexpected defining constructor: "
-                "${element.definingConstructor}"));
-        encoder.setString(
-            Key.DEFINING_CONSTRUCTOR, element.definingConstructor.name);
       }
       if (kind == SerializedElementKind.GENERATIVE_CONSTRUCTOR) {
         encoder.setBool(Key.IS_REDIRECTING, element.isRedirectingGenerative);
@@ -689,6 +683,8 @@ class ElementDeserializer {
         return new InstanceFieldElementZ(decoder);
       case SerializedElementKind.GENERATIVE_CONSTRUCTOR:
         return new GenerativeConstructorElementZ(decoder);
+      case SerializedElementKind.DEFAULT_CONSTRUCTOR:
+        return new DefaultConstructorElementZ(decoder);
       case SerializedElementKind.FACTORY_CONSTRUCTOR:
         return new FactoryConstructorElementZ(decoder);
       case SerializedElementKind.REDIRECTING_FACTORY_CONSTRUCTOR:

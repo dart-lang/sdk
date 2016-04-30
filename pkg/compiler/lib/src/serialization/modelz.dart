@@ -1090,14 +1090,7 @@ abstract class ConstructorElementZ extends DeserializedElementZ
   AsyncMarker get asyncMarker => AsyncMarker.SYNC;
 
   @override
-  ConstructorElement get definingConstructor {
-    String name =
-        _decoder.getString(Key.DEFINING_CONSTRUCTOR, isOptional: true);
-    if (name != null) {
-      return enclosingClass.superclass.lookupConstructor(name);
-    }
-    return null;
-  }
+  ConstructorElement get definingConstructor => null;
 
   @override
   ConstructorElement get effectiveTarget {
@@ -1143,9 +1136,21 @@ class GenerativeConstructorElementZ extends ConstructorElementZ {
 
   @override
   bool get isRedirectingGenerative => _decoder.getBool(Key.IS_REDIRECTING);
+}
+
+class DefaultConstructorElementZ extends ConstructorElementZ {
+  DefaultConstructorElementZ(ObjectDecoder decoder) : super(decoder);
 
   @override
-  bool get isSynthesized => definingConstructor != null;
+  ElementKind get kind => ElementKind.GENERATIVE_CONSTRUCTOR;
+
+  @override
+  bool get isSynthesized => true;
+
+  @override
+  ConstructorElement get definingConstructor {
+    return enclosingClass.superclass.lookupConstructor('');
+  }
 }
 
 class FactoryConstructorElementZ extends ConstructorElementZ {

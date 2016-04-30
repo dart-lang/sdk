@@ -25,7 +25,6 @@ class Key {
   static const Key DATA = const Key('data');
   static const Key DEFAULT = const Key('default');
   static const Key DEFAULTS = const Key('defaults');
-  static const Key DEFINING_CONSTRUCTOR = const Key('definingConstructor');
   static const Key DYNAMIC_USES = const Key('dynamic-uses');
   static const Key EFFECTIVE_TARGET = const Key('effectiveTarget');
   static const Key EFFECTIVE_TARGET_TYPE = const Key('effectiveTargetType');
