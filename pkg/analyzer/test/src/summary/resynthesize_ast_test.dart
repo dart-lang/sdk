@@ -44,6 +44,9 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   }
 
   @override
+  bool get mayCheckTypesOfLocals => false;
+
+  @override
   bool get skipBrokenAstInference => true;
 
   @override
@@ -79,26 +82,26 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_async_allReturnsAreValues() {
-    super.test_blockBodiedLambdas_async_allReturnsAreValues();
+  void test_blockBodiedLambdas_async_allReturnsAreFutures_topLevel() {
+    super.test_blockBodiedLambdas_async_allReturnsAreFutures_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_async_alReturnsAreFutures() {
-    super.test_blockBodiedLambdas_async_alReturnsAreFutures();
+  void test_blockBodiedLambdas_async_allReturnsAreValues_topLevel() {
+    super.test_blockBodiedLambdas_async_allReturnsAreValues_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_async_mixOfValuesAndFutures() {
-    super.test_blockBodiedLambdas_async_mixOfValuesAndFutures();
+  void test_blockBodiedLambdas_async_mixOfValuesAndFutures_topLevel() {
+    super.test_blockBodiedLambdas_async_mixOfValuesAndFutures_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_asyncStar() {
-    super.test_blockBodiedLambdas_asyncStar();
+  void test_blockBodiedLambdas_asyncStar_topLevel() {
+    super.test_blockBodiedLambdas_asyncStar_topLevel();
   }
 
   @override
@@ -109,32 +112,26 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_doesNotInferBottom_async() {
-    super.test_blockBodiedLambdas_doesNotInferBottom_async();
+  void test_blockBodiedLambdas_doesNotInferBottom_async_topLevel() {
+    super.test_blockBodiedLambdas_doesNotInferBottom_async_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_doesNotInferBottom_asyncStar() {
-    super.test_blockBodiedLambdas_doesNotInferBottom_asyncStar();
+  void test_blockBodiedLambdas_doesNotInferBottom_asyncStar_topLevel() {
+    super.test_blockBodiedLambdas_doesNotInferBottom_asyncStar_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_doesNotInferBottom_sync() {
-    super.test_blockBodiedLambdas_doesNotInferBottom_sync();
+  void test_blockBodiedLambdas_doesNotInferBottom_sync_topLevel() {
+    super.test_blockBodiedLambdas_doesNotInferBottom_sync_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_doesNotInferBottom_syncStar() {
-    super.test_blockBodiedLambdas_doesNotInferBottom_syncStar();
-  }
-
-  @override
-  @failingTest
-  void test_blockBodiedLambdas_downwardsIncompatibleWithUpwardsInference() {
-    super.test_blockBodiedLambdas_downwardsIncompatibleWithUpwardsInference();
+  void test_blockBodiedLambdas_doesNotInferBottom_syncStar_topLevel() {
+    super.test_blockBodiedLambdas_doesNotInferBottom_syncStar_topLevel();
   }
 
   @override
@@ -145,20 +142,14 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_nestedLambdas() {
-    super.test_blockBodiedLambdas_nestedLambdas();
+  void test_blockBodiedLambdas_nestedLambdas_topLevel() {
+    super.test_blockBodiedLambdas_nestedLambdas_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_noReturn() {
-    super.test_blockBodiedLambdas_noReturn();
-  }
-
-  @override
-  @failingTest
-  void test_blockBodiedLambdas_syncStar() {
-    super.test_blockBodiedLambdas_syncStar();
+  void test_blockBodiedLambdas_syncStar_topLevel() {
+    super.test_blockBodiedLambdas_syncStar_topLevel();
   }
 
   @override
@@ -616,18 +607,6 @@ class C {
 var v = new C().m(1, b: 'bbb', c: 2.0);
   ''');
     expect(unit.topLevelVariables[0].type.toString(), 'int');
-  }
-
-  @override
-  @failingTest
-  void test_listLiteralsShouldNotInferBottom() {
-    super.test_listLiteralsShouldNotInferBottom();
-  }
-
-  @override
-  @failingTest
-  void test_mapLiteralsShouldNotInferBottom() {
-    super.test_mapLiteralsShouldNotInferBottom();
   }
 
   @override
