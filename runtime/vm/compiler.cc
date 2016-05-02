@@ -1444,9 +1444,14 @@ RawError* Compiler::CompileOptimizedFunction(Thread* thread,
                                              intptr_t osr_id) {
 NOT_IN_PRODUCT(
   VMTagScope tagScope(thread, VMTag::kCompileOptimizedTagId);
-  const char* event_name = IsBackgroundCompilation()
-      ? "BackgroundCompileOptimizedFunction"
-      : "CompileOptimizedFunction";
+  const char* event_name;
+  if (osr_id != kNoOSRDeoptId) {
+    event_name = "CompileFunctionOptimizedOSR";
+  } else if (IsBackgroundCompilation()) {
+    event_name = "CompileFunctionOptimizedBackground";
+  } else {
+    event_name = "CompileFunctionOptimized";
+  }
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, event_name, function);
 )  // !PRODUCT
 
