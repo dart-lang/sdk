@@ -94,6 +94,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitArgumentList(ArgumentList node) {
+    for (Expression argument in node.arguments) {
+      ParameterElement parameter = argument.bestParameterElement;
+      if (parameter?.parameterKind == ParameterKind.POSITIONAL) {
+        _checkForDeprecatedMemberUse(parameter, argument);
+      }
+    }
     _checkForArgumentTypesNotAssignableInList(node);
     return super.visitArgumentList(node);
   }

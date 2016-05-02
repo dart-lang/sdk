@@ -658,6 +658,28 @@ class A {
     verify([source]);
   }
 
+  void test_deprecatedAnnotationUse_positional() {
+    Source source = addSource(r'''
+class A {
+  m([@deprecated int x]) {}
+  n() {m(1);}
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    verify([source]);
+  }
+
+  void test_deprecatedAnnotationUse_named() {
+    Source source = addSource(r'''
+class A {
+  m({@deprecated int x}) {}
+  n() {m(x: 1);}
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    verify([source]);
+  }
+
   void test_deprecatedAnnotationUse_export() {
     Source source = addSource("export 'deprecated_library.dart';");
     addNamedSource(
