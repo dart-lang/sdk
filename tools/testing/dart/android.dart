@@ -18,15 +18,18 @@ class AdbCommandResult {
   final String stdout;
   final String stderr;
   final int exitCode;
+  final bool timedOut;
 
-  AdbCommandResult(this.command, this.stdout, this.stderr, this.exitCode);
+  AdbCommandResult(this.command, this.stdout, this.stderr, this.exitCode,
+                   this.timedOut);
 
   void throwIfFailed() {
     if (exitCode != 0) {
       var error = "Running: $command failed:"
-                  "stdout: \n $stdout"
-                  "stderr: \n $stderr"
-                  "exitCode: \n $exitCode";
+                  "stdout:\n  ${stdout.trim()}\n"
+                  "stderr:\n  ${stderr.trim()}\n"
+                  "exitCode: $exitCode\n"
+                  "timedOut: $timedOut";
       throw new Exception(error);
     }
   }
@@ -40,7 +43,8 @@ class AdbCommandResult {
  * If starting the process failed, it will complete with an error as well.
  */
 Future<AdbCommandResult> _executeCommand(
-    String executable, List<String> args, [String stdin = ""]) {
+    String executable, List<String> args,
+    {String stdin, Duration timeout}) {
   Future<String> getOutput(Stream<List<int>> stream) {
     return stream
         .transform(UTF8.decoder)
@@ -54,13 +58,26 @@ Future<AdbCommandResult> _executeCommand(
     }
     process.stdin.close();
 
+    Timer timer;
+    bool timedOut = false;
+    if (timeout != null) {
+      timer = new Timer(timeout, () {
+        timedOut = true;
+        process.kill(ProcessSignal.SIGTERM);
+        timer = null;
+      });
+    }
+
     var results = await Future.wait([
         getOutput(process.stdout),
         getOutput(process.stderr),
         process.exitCode
     ]);
+    if (timer != null) timer.cancel();
+
     String command = "$executable ${args.join(' ')}";
-    return new AdbCommandResult(command, results[0], results[1], results[2]);
+    return new AdbCommandResult(
+        command, results[0], results[1], results[2], timedOut);
   });
 }
 
@@ -164,7 +181,7 @@ class AndroidHelper {
       'armeabi-v7a'
     ];
     // We're adding newlines to stdin to simulate <enter>.
-    var result = await _executeCommand("android", args, "\n\n\n\n");
+    var result = await _executeCommand("android", args, stdin: "\n\n\n\n");
     result.throwIfFailed();
   }
 }
@@ -288,11 +305,14 @@ class AdbDevice {
     return _adbCommand(arguments);
   }
 
-  Future<AdbCommandResult> runAdbCommand(List<String> adbArgs) {
-    return _executeCommand("adb", _deviceSpecificArgs(adbArgs));
+  Future<AdbCommandResult> runAdbCommand(List<String> adbArgs,
+                                         {Duration timeout}) {
+    return _executeCommand(
+        "adb", _deviceSpecificArgs(adbArgs), timeout: timeout);
   }
 
-  Future<AdbCommandResult> runAdbShellCommand(List<String> shellArgs) async {
+  Future<AdbCommandResult> runAdbShellCommand(List<String> shellArgs,
+                                              {Duration timeout}) async {
     const MARKER = 'AdbShellExitCode: ';
 
     // The exitcode of 'adb shell ...' can be 0 even though the command failed
@@ -302,7 +322,7 @@ class AdbDevice {
     var args = ['shell',
                 "${shellArgs.join(' ')} ; echo $MARKER \$?"];
     AdbCommandResult result = await _executeCommand(
-        "adb", _deviceSpecificArgs(args));
+        "adb", _deviceSpecificArgs(args), timeout: timeout);
     int exitCode = result.exitCode;
     var lines = result
         .stdout.split('\n')
@@ -310,11 +330,17 @@ class AdbDevice {
         .toList();
     if (lines.length > 0) {
       int index = lines.last.indexOf(MARKER);
-      assert(index >= 0);
-      exitCode = int.parse(lines.last.substring(index + MARKER.length).trim());
+      if (index >= 0) {
+        exitCode = int.parse(
+            lines.last.substring(index + MARKER.length).trim());
+      } else {
+        // In case of timeouts, for example, we won't get the exitcode marker.
+        assert(result.exitCode != 0);
+      }
     }
     return new AdbCommandResult(
-        result.command, result.stdout, result.stderr, exitCode);
+        result.command, result.stdout, result.stderr, exitCode,
+        result.timedOut);
   }
 
   Future<AdbCommandResult> _adbCommand(List<String> adbArgs) async {

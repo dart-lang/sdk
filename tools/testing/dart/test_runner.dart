@@ -2504,7 +2504,8 @@ class CommandExecutorImpl implements CommandExecutor {
     } else if (command is AdbPrecompilationCommand) {
       assert(adbDevicePool != null);
       return adbDevicePool.acquireDevice().then((AdbDevice device) {
-        return _runAdbPrecompilationCommand(device, command).whenComplete(() {
+        return _runAdbPrecompilationCommand(
+            device, command, timeout).whenComplete(() {
           adbDevicePool.releaseDevice(device);
         });
       });
@@ -2514,7 +2515,7 @@ class CommandExecutorImpl implements CommandExecutor {
   }
 
   Future<CommandOutput> _runAdbPrecompilationCommand(
-      AdbDevice device, AdbPrecompilationCommand command) async {
+      AdbDevice device, AdbPrecompilationCommand command, int timeout) async {
     var runner = command.precompiledRunnerFilename;
     var testdir = command.precompiledTestDirectory;
     var devicedir = '/data/local/tmp/precompilation-testing';
@@ -2528,6 +2529,8 @@ class CommandExecutorImpl implements CommandExecutor {
         .map((file) => file.path)
         .map((path) => path.substring(path.lastIndexOf('/') + 1))
         .toList();
+
+    var timeoutDuration = new Duration(seconds: timeout);
 
     // All closures are of type "Future<AdbCommandResult> run()"
     List<Function> steps = [];
@@ -2552,11 +2555,11 @@ class CommandExecutorImpl implements CommandExecutor {
     if (command.useBlobs) {
       steps.add(() => device.runAdbShellCommand(
             ['$devicedir/runner', '--run-precompiled-snapshot=$deviceTestDir',
-             '--use_blobs', 'ignored.dart']));
+             '--use_blobs', 'ignored.dart'], timeout: timeoutDuration));
     } else {
       steps.add(() => device.runAdbShellCommand(
             ['$devicedir/runner', '--run-precompiled-snapshot=$deviceTestDir',
-             'ignored.dart']));
+             'ignored.dart'], timeout: timeoutDuration));
     }
 
     var stopwatch = new Stopwatch()..start();
@@ -2587,7 +2590,7 @@ class CommandExecutorImpl implements CommandExecutor {
       if (result.exitCode != 0) break;
     }
     return createCommandOutput(
-        command, result.exitCode, false, UTF8.encode('$writer'),
+        command, result.exitCode, result.timedOut, UTF8.encode('$writer'),
         [], stopwatch.elapsed, false);
   }
 
