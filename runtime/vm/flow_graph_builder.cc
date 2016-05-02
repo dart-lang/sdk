@@ -3451,8 +3451,6 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         load->set_is_immutable(kind != MethodRecognizer::kGrowableArrayLength);
         return ReturnDefinition(load);
       }
-#if !defined(TARGET_ARCH_DBC)
-      // TODO(vegorov) add bytecode to support this method.
       case MethodRecognizer::kClassIDgetID: {
         LocalVariable* value_var =
             node->scope()->LookupVariable(Symbols::Value(), true);
@@ -3460,7 +3458,6 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         LoadClassIdInstr* load = new(Z) LoadClassIdInstr(value);
         return ReturnDefinition(load);
       }
-#endif
       case MethodRecognizer::kGrowableArrayCapacity: {
         Value* receiver = Bind(BuildLoadThisVar(node->scope(), token_pos));
         LoadFieldInstr* data_load = new(Z) LoadFieldInstr(

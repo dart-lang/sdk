@@ -1790,6 +1790,21 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(LoadClassId, A_D);
+    const uint16_t object_reg = rD;
+    RawObject* obj = static_cast<RawObject*>(FP[object_reg]);
+    FP[rA] = SimulatorHelpers::GetClassIdAsSmi(obj);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadClassIdTOS, 0);
+    RawObject* obj = static_cast<RawObject*>(SP[0]);
+    SP[0] = SimulatorHelpers::GetClassIdAsSmi(obj);
+    DISPATCH();
+  }
+
+  {
     BYTECODE(StoreIndexedTOS, 0);
     SP -= 3;
     RawArray* array = static_cast<RawArray*>(SP[1]);

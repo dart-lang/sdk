@@ -340,6 +340,8 @@ namespace dart {
   V(Move,                          A_X, reg, xeg, ___) \
   V(Push,                            X, xeg, ___, ___) \
   V(LoadConstant,                  A_D, reg, lit, ___) \
+  V(LoadClassId,                   A_D, reg, reg, ___) \
+  V(LoadClassIdTOS,                  0, ___, ___, ___) \
   V(PushConstant,                    D, lit, ___, ___) \
   V(StoreLocal,                      X, xeg, ___, ___) \
   V(PopLocal,                        X, xeg, ___, ___) \
