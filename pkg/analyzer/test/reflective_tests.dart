@@ -5,6 +5,7 @@
 library analyzer.test.reflective_tests;
 
 import 'dart:async';
+@MirrorsUsed(metaTargets: 'ReflectiveTest')
 import 'dart:mirrors';
 
 import 'package:unittest/unittest.dart';
