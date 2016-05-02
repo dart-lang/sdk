@@ -105,7 +105,7 @@ abstract class _ForwardingStream<S, T> extends Stream<T> {
   // Override the following methods in subclasses to change the behavior.
 
   void _handleData(S data, _EventSink<T> sink) {
-    sink._add(data as T);
+    sink._add(data as Object /*=T*/);
   }
 
   void _handleError(error, StackTrace stackTrace, _EventSink<T> sink) {
@@ -480,7 +480,7 @@ class _DistinctStream<T> extends _ForwardingStream<T, T> {
         if (_equals == null) {
           isEqual = (_previous == inputEvent);
         } else {
-          isEqual = _equals(_previous as T, inputEvent);
+          isEqual = _equals(_previous as Object /*=T*/, inputEvent);
         }
       } catch (e, s) {
         _addErrorWithReplacement(sink, e, s);

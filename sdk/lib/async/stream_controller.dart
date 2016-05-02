@@ -497,11 +497,11 @@ abstract class _StreamController<T> implements StreamController<T>,
   _PendingEvents<T> get _pendingEvents {
     assert(_isInitialState);
     if (!_isAddingStream) {
-      return _varData as _PendingEvents<T>;
+      return _varData as Object /*=_PendingEvents<T>*/;
     }
     _StreamControllerAddStreamState<T> state =
-        _varData as _StreamControllerAddStreamState<T>;
-    return state.varData as _PendingEvents<T>;
+      _varData as Object /*=_StreamControllerAddStreamState<T>*/;
+    return state.varData as Object /*=_PendingEvents<T>*/;
   }
 
   // Returns the pending events, and creates the object if necessary.
@@ -509,12 +509,12 @@ abstract class _StreamController<T> implements StreamController<T>,
     assert(_isInitialState);
     if (!_isAddingStream) {
       if (_varData == null) _varData = new _StreamImplEvents<T>();
-      return _varData as _StreamImplEvents<T>;
+      return _varData as Object /*=_StreamImplEvents<T>*/;
     }
     _StreamControllerAddStreamState<T> state =
-        _varData as _StreamControllerAddStreamState<T>;
+        _varData as Object /*=_StreamControllerAddStreamState<T>*/;
     if (state.varData == null) state.varData = new _StreamImplEvents<T>();
-    return state.varData as _StreamImplEvents<T>;
+    return state.varData as Object /*=_StreamImplEvents<T>*/;
   }
 
   // Get the current subscription.
@@ -524,10 +524,10 @@ abstract class _StreamController<T> implements StreamController<T>,
     assert(hasListener);
     if (_isAddingStream) {
       _StreamControllerAddStreamState<T> addState =
-          _varData as _StreamControllerAddStreamState<T>;
-      return addState.varData as _ControllerSubscription<T>;
+          _varData as Object /*=_StreamControllerAddStreamState<T>*/;
+      return addState.varData as Object /*=_ControllerSubscription<T>*/;
     }
-    return _varData as _ControllerSubscription<T>;
+    return _varData as Object /*=_ControllerSubscription<T>*/;
   }
 
   /**
@@ -650,7 +650,7 @@ abstract class _StreamController<T> implements StreamController<T>,
     // End of addStream stream.
     assert(_isAddingStream);
     _StreamControllerAddStreamState<T> addState =
-        _varData as _StreamControllerAddStreamState<T>;
+        _varData as Object /*=_StreamControllerAddStreamState<T>*/;
     _varData = addState.varData;
     _state &= ~_STATE_ADDSTREAM;
     addState.complete();
@@ -674,7 +674,7 @@ abstract class _StreamController<T> implements StreamController<T>,
     _state |= _STATE_SUBSCRIBED;
     if (_isAddingStream) {
       _StreamControllerAddStreamState<T> addState =
-          _varData as _StreamControllerAddStreamState<T>;
+          _varData as Object /*=_StreamControllerAddStreamState<T>*/;
       addState.varData = subscription;
       addState.resume();
     } else {
@@ -700,7 +700,7 @@ abstract class _StreamController<T> implements StreamController<T>,
     Future result;
     if (_isAddingStream) {
       _StreamControllerAddStreamState<T> addState =
-          _varData as _StreamControllerAddStreamState<T>;
+          _varData as Object /*=_StreamControllerAddStreamState<T>*/;
       result = addState.cancel();
     }
     _varData = null;
@@ -743,7 +743,7 @@ abstract class _StreamController<T> implements StreamController<T>,
   void _recordPause(StreamSubscription<T> subscription) {
     if (_isAddingStream) {
       _StreamControllerAddStreamState<T> addState =
-          _varData as _StreamControllerAddStreamState<T>;
+          _varData as Object /*=_StreamControllerAddStreamState<T>*/;
       addState.pause();
     }
     _runGuarded(onPause);
@@ -752,7 +752,7 @@ abstract class _StreamController<T> implements StreamController<T>,
   void _recordResume(StreamSubscription<T> subscription) {
     if (_isAddingStream) {
       _StreamControllerAddStreamState<T> addState =
-          _varData as _StreamControllerAddStreamState<T>;
+          _varData as Object /*=_StreamControllerAddStreamState<T>*/;
       addState.resume();
     }
     _runGuarded(onResume);
@@ -780,7 +780,7 @@ abstract class _SyncStreamControllerDispatch<T>
 abstract class _AsyncStreamControllerDispatch<T>
     implements _StreamController<T> {
   void _sendData(T data) {
-    _subscription._addPending(new _DelayedData<T>(data));
+    _subscription._addPending(new _DelayedData<dynamic /*=T*/>(data));
   }
 
   void _sendError(Object error, StackTrace stackTrace) {

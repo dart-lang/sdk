@@ -258,7 +258,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
     if (_canFire) {
       _sendData(data);
     } else {
-      _addPending(new _DelayedData<T>(data));
+      _addPending(new _DelayedData<dynamic /*=T*/>(data));
     }
   }
 
@@ -309,7 +309,9 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
    */
   void _addPending(_DelayedEvent event) {
     _StreamImplEvents<T> pending = _pending;
-    if (_pending == null) pending = _pending = new _StreamImplEvents<T>();
+    if (_pending == null) {
+      pending = _pending = new _StreamImplEvents<dynamic /*=T*/>();
+    }
     pending.add(event);
     if (!_hasPending) {
       _state |= _STATE_HAS_PENDING;
@@ -344,12 +346,12 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
       if (_isCanceled && !_waitsForCancel) return;
       _state |= _STATE_IN_CALLBACK;
       if (_onError is ZoneBinaryCallback<dynamic, Object, StackTrace>) {
-        ZoneBinaryCallback<dynamic, Object, StackTrace> errorCallback =
-            _onError as ZoneBinaryCallback<dynamic, Object, StackTrace>;
+        ZoneBinaryCallback<dynamic, Object, StackTrace> errorCallback = _onError
+            as Object /*=ZoneBinaryCallback<dynamic, Object, StackTrace>*/;
         _zone.runBinaryGuarded(errorCallback, error, stackTrace);
       } else {
         _zone.runUnaryGuarded/*<dynamic, dynamic>*/(
-            _onError as ZoneUnaryCallback<dynamic, dynamic>, error);
+            _onError as Object /*=ZoneUnaryCallback<dynamic, dynamic>*/, error);
       }
       _state &= ~_STATE_IN_CALLBACK;
     }
@@ -1002,7 +1004,7 @@ class _StreamIteratorImpl<T> implements StreamIterator<T> {
       switch (_state) {
         case _STATE_EXTRA_DATA:
           _state = _STATE_FOUND;
-          _current = _futureOrPrefetch as T;
+          _current = _futureOrPrefetch as Object /*=T*/;
           _futureOrPrefetch = null;
           _subscription.resume();
           return new _Future<bool>.immediate(true);
@@ -1030,7 +1032,7 @@ class _StreamIteratorImpl<T> implements StreamIterator<T> {
     StreamSubscription subscription = _subscription;
     if (subscription == null) return null;
     if (_state == _STATE_MOVING) {
-      _Future<bool> hasNext = _futureOrPrefetch as _Future<bool>;
+      _Future<bool> hasNext = _futureOrPrefetch as Object /*=_Future<bool>*/;
       _clear();
       hasNext._complete(false);
     } else {
@@ -1042,7 +1044,7 @@ class _StreamIteratorImpl<T> implements StreamIterator<T> {
   void _onData(T data) {
     if (_state == _STATE_MOVING) {
       _current = data;
-      _Future<bool> hasNext = _futureOrPrefetch as _Future<bool>;
+      _Future<bool> hasNext = _futureOrPrefetch as Object /*=_Future<bool>*/;
       _futureOrPrefetch = null;
       _state = _STATE_FOUND;
       hasNext._complete(true);
@@ -1056,7 +1058,7 @@ class _StreamIteratorImpl<T> implements StreamIterator<T> {
 
   void _onError(Object error, [StackTrace stackTrace]) {
     if (_state == _STATE_MOVING) {
-      _Future<bool> hasNext = _futureOrPrefetch as _Future<bool>;
+      _Future<bool> hasNext = _futureOrPrefetch as Object /*=_Future<bool>*/;
       // We have cancelOnError: true, so the subscription is canceled.
       _clear();
       hasNext._completeError(error, stackTrace);
@@ -1070,7 +1072,7 @@ class _StreamIteratorImpl<T> implements StreamIterator<T> {
 
   void _onDone() {
      if (_state == _STATE_MOVING) {
-      _Future<bool> hasNext = _futureOrPrefetch as _Future<bool>;
+      _Future<bool> hasNext = _futureOrPrefetch as Object /*=_Future<bool>*/;
       _clear();
       hasNext._complete(false);
       return;

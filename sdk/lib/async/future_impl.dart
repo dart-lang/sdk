@@ -107,16 +107,16 @@ class _FutureListener<S, T> {
 
   _FutureOnValue<S, T> get _onValue {
     assert(handlesValue);
-    return callback as _FutureOnValue<S, T>;
+    return callback as Object /*=_FutureOnValue<S, T>*/;
   }
   Function get _onError => errorCallback;
   _FutureErrorTest get _errorTest {
     assert(hasErrorTest);
-    return callback as _FutureErrorTest;
+    return callback as Object /*=_FutureErrorTest*/;
   }
   _FutureAction get _whenCompleteAction {
     assert(handlesComplete);
-    return callback as _FutureAction;
+    return callback as Object /*=_FutureAction*/;
   }
 
   /// Whether this listener has an error callback.
@@ -141,8 +141,8 @@ class _FutureListener<S, T> {
   dynamic/*T|Future<T>*/ handleError(AsyncError asyncError) {
     assert(handlesError && hasErrorCallback);
     if (errorCallback is ZoneBinaryCallback) {
-      var typedErrorCallback = errorCallback as
-      ZoneBinaryCallback/*<Object/*T|Future<T>*/, Object, StackTrace>*/;
+      var typedErrorCallback = errorCallback as Object
+          /*=ZoneBinaryCallback<Object/*T|Future<T>*/, Object, StackTrace>*/;
       return _zone.runBinary(typedErrorCallback,
           asyncError.error,
           asyncError.stackTrace);
@@ -454,7 +454,7 @@ class _Future<T> implements Future<T> {
       }
     } else {
       _FutureListener listeners = _removeListeners();
-      _setValue(value as T);
+      _setValue(value as Object /*=T*/);
       _propagateToListeners(this, listeners);
     }
   }
@@ -491,7 +491,7 @@ class _Future<T> implements Future<T> {
 
     if (value is Future) {
       // Assign to typed variables so we get earlier checks in checked mode.
-      Future<T> typedFuture = value as Future<T>;
+      Future<T> typedFuture = value as Object /*=Future<T>*/;
       if (typedFuture is _Future) {
         _Future<T> coreFuture = typedFuture;
         if (coreFuture._hasError) {
@@ -512,7 +512,7 @@ class _Future<T> implements Future<T> {
       }
       return;
     }
-    T typedValue = value as T;
+    T typedValue = value as Object /*=T*/;
 
     _setPendingComplete();
     _zone.scheduleMicrotask(() {
@@ -585,6 +585,8 @@ class _Future<T> implements Future<T> {
           oldZone = Zone._enter(zone);
         }
 
+        // These callbacks are abstracted to isolate the try/catch blocks
+        // from the rest of the code to work around a V8 glass jaw.
         void handleWhenCompleteCallback() {
           // The whenComplete-handler is not combined with normal value/error
           // handling. This means at most one handleX method is called per
@@ -621,26 +623,11 @@ class _Future<T> implements Future<T> {
           }
         }
 
-        if (listener.handlesComplete) {
-          handleWhenCompleteCallback();
-        } else {
+        void handleValueCallback() {
           try {
-            if (!hasError) {
-              if (listener.handlesValue) {
-                listenerValueOrError = listener.handleValue(sourceResult);
-              }
-            } else {
-              if (listener.handlesError) {
-                AsyncError asyncError = source._error;
-                if (listener.matchesErrorTest(asyncError) &&
-                    listener.hasErrorCallback) {
-                  listenerValueOrError = listener.handleError(asyncError);
-                  listenerHasError = false;
-                }
-              }
-            }
+            listenerValueOrError = listener.handleValue(sourceResult);
           } catch (e, s) {
-            if (hasError && identical(source._error.error, e)) {
+            if (identical(source._error.error, e)) {
               listenerValueOrError = source._error;
             } else {
               listenerValueOrError = new AsyncError(e, s);
@@ -649,6 +636,37 @@ class _Future<T> implements Future<T> {
           }
         }
 
+        void handleError() {
+          try {
+            AsyncError asyncError = source._error;
+            if (listener.matchesErrorTest(asyncError) &&
+                listener.hasErrorCallback) {
+              listenerValueOrError = listener.handleError(asyncError);
+              listenerHasError = false;
+            }
+          } catch (e, s) {
+            if (identical(source._error.error, e)) {
+              listenerValueOrError = source._error;
+            } else {
+              listenerValueOrError = new AsyncError(e, s);
+            }
+            listenerHasError = true;
+          }
+        }
+
+ 
+        if (listener.handlesComplete) {
+          handleWhenCompleteCallback();
+        } else if (!hasError) {
+          if (listener.handlesValue) {
+            handleValueCallback();
+          }
+        } else {
+          if (listener.handlesError) {
+            handleError();
+          }
+        }
+        
         // If we changed zone, oldZone will not be null.
         if (oldZone != null) Zone._leave(oldZone);
 

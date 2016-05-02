@@ -394,7 +394,8 @@ abstract class Stream<T> {
       final add = controller.add;
       assert(controller is _StreamController ||
              controller is _BroadcastStreamController);
-      final _EventSink/*<E>*/ eventSink = controller as _EventSink/*<E>*/;
+      final _EventSink/*<E>*/ eventSink =
+          controller as Object /*=_EventSink<E>*/;
       final addError = eventSink._addError;
       subscription = this.listen(
           (T event) {
@@ -455,7 +456,8 @@ abstract class Stream<T> {
     void onListen() {
       assert(controller is _StreamController ||
              controller is _BroadcastStreamController);
-      final _EventSink/*<E>*/ eventSink = controller as _EventSink/*<E>*/;
+      final _EventSink/*<E>*/ eventSink =
+          controller as Object /*=_EventSink<E>*/;
       subscription = this.listen(
           (T event) {
             Stream/*<E>*/ newStream;
