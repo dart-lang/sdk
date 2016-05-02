@@ -154,12 +154,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_downwardsInferenceAnnotations() {
-    super.test_downwardsInferenceAnnotations();
-  }
-
-  @override
-  @failingTest
   void test_downwardsInferenceAsyncAwait() {
     super.test_downwardsInferenceAsyncAwait();
   }
@@ -647,30 +641,6 @@ class ResynthesizeAstTest extends ResynthesizeTest
   @failingTest
   void test_inferred_function_type_in_generic_class_constructor() {
     super.test_inferred_function_type_in_generic_class_constructor();
-  }
-
-  @override
-  @failingTest
-  void test_metadata_constructor_call_named() {
-    super.test_metadata_constructor_call_named();
-  }
-
-  @override
-  @failingTest
-  void test_metadata_constructor_call_named_prefixed() {
-    super.test_metadata_constructor_call_named_prefixed();
-  }
-
-  @override
-  @failingTest
-  void test_metadata_constructor_call_unnamed() {
-    super.test_metadata_constructor_call_unnamed();
-  }
-
-  @override
-  @failingTest
-  void test_metadata_constructor_call_with_args() {
-    super.test_metadata_constructor_call_with_args();
   }
 
   @override

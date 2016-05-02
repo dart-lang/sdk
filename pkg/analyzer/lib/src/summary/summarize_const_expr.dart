@@ -6,6 +6,7 @@ library serialization.summarize_const_expr;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/type.dart' show DartType;
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
@@ -103,10 +104,12 @@ abstract class AbstractConstExprSerializer {
 
   /**
    * Return [EntityRefBuilder] that corresponds to the constructor having name
-   * [name] in the class identified by [type].
+   * [name] in the class identified by [typeName].  It is expected that [type]
+   * corresponds to the given [typeName] and [typeArguments].  The parameter
+   * [type] might be `null` if the type is not resolved.
    */
-  EntityRefBuilder serializeConstructorName(
-      TypeName type, SimpleIdentifier name);
+  EntityRefBuilder serializeConstructorRef(DartType type, Identifier typeName,
+      TypeArgumentList typeArguments, SimpleIdentifier name);
 
   /**
    * Return [EntityRefBuilder] that corresponds to the given [identifier].
@@ -127,9 +130,20 @@ abstract class AbstractConstExprSerializer {
   }
 
   /**
+   * Return [EntityRefBuilder] that corresponds to the [type] with the given
+   * [name] and [arguments].  It is expected that [type] corresponds to the
+   * given [name] and [arguments].  The parameter [type] might be `null` if the
+   * type is not resolved.
+   */
+  EntityRefBuilder serializeType(
+      DartType type, Identifier name, TypeArgumentList arguments);
+
+  /**
    * Return [EntityRefBuilder] that corresponds to the given [type].
    */
-  EntityRefBuilder serializeType(TypeName type);
+  EntityRefBuilder serializeTypeName(TypeName type) {
+    return serializeType(type?.type, type?.name, type?.typeArguments);
+  }
 
   /**
    * Return the [UnlinkedConstBuilder] that corresponds to the state of this
@@ -226,9 +240,10 @@ abstract class AbstractConstExprSerializer {
       if (!expr.isConst) {
         isValidConst = false;
       }
+      TypeName typeName = expr.constructorName.type;
       serializeInstanceCreation(
-          serializeConstructorName(
-              expr.constructorName.type, expr.constructorName.name),
+          serializeConstructorRef(typeName.type, typeName.name,
+              typeName.typeArguments, expr.constructorName.name),
           expr.argumentList);
     } else if (expr is ListLiteral) {
       _serializeListLiteral(expr);
@@ -271,12 +286,12 @@ abstract class AbstractConstExprSerializer {
     } else if (expr is AsExpression) {
       isValidConst = false;
       _serialize(expr.expression);
-      references.add(serializeType(expr.type));
+      references.add(serializeTypeName(expr.type));
       operations.add(UnlinkedConstOperation.typeCast);
     } else if (expr is IsExpression) {
       isValidConst = false;
       _serialize(expr.expression);
-      references.add(serializeType(expr.type));
+      references.add(serializeTypeName(expr.type));
       operations.add(UnlinkedConstOperation.typeCheck);
     } else if (expr is ThrowExpression) {
       isValidConst = false;
@@ -408,7 +423,7 @@ abstract class AbstractConstExprSerializer {
     ints.add(elements.length);
     if (expr.typeArguments != null &&
         expr.typeArguments.arguments.length == 1) {
-      references.add(serializeType(expr.typeArguments.arguments[0]));
+      references.add(serializeTypeName(expr.typeArguments.arguments[0]));
       operations.add(UnlinkedConstOperation.makeTypedList);
     } else {
       operations.add(UnlinkedConstOperation.makeUntypedList);
@@ -423,8 +438,8 @@ abstract class AbstractConstExprSerializer {
     ints.add(expr.entries.length);
     if (expr.typeArguments != null &&
         expr.typeArguments.arguments.length == 2) {
-      references.add(serializeType(expr.typeArguments.arguments[0]));
-      references.add(serializeType(expr.typeArguments.arguments[1]));
+      references.add(serializeTypeName(expr.typeArguments.arguments[0]));
+      references.add(serializeTypeName(expr.typeArguments.arguments[1]));
       operations.add(UnlinkedConstOperation.makeTypedMap);
     } else {
       operations.add(UnlinkedConstOperation.makeUntypedMap);
