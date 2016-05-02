@@ -486,7 +486,12 @@ class Elements {
     return true;
   }
 
-  static bool hasAccessToTypeVariables(Element element) {
+  static bool hasAccessToTypeVariable(Element element,
+      TypeVariableElement typeVariable) {
+    GenericElement declaration = typeVariable.typeDeclaration;
+    if (declaration is FunctionElement || declaration is ParameterElement) {
+      return true;
+    }
     Element outer = element.outermostEnclosingMemberOrTopLevel;
     return (outer != null && outer.isFactoryConstructor) ||
         !isInStaticContext(element);
@@ -1107,6 +1112,7 @@ abstract class AbstractFieldElement extends Element {
 
 abstract class FunctionSignature {
   FunctionType get type;
+  List<DartType> get typeVariables;
   List<FormalElement> get requiredParameters;
   List<FormalElement> get optionalParameters;
 
@@ -1134,7 +1140,8 @@ abstract class FunctionElement extends Element
         AstElement,
         TypedElement,
         FunctionTypedElement,
-        ExecutableElement {
+        ExecutableElement,
+        GenericElement {
   FunctionExpression get node;
 
   FunctionElement get patch;
@@ -1142,7 +1149,7 @@ abstract class FunctionElement extends Element
 
   bool get hasFunctionSignature;
 
-  /// The parameters of this functions.
+  /// The parameters of this function.
   List<ParameterElement> get parameters;
 
   /// The type of this function.
@@ -1322,9 +1329,20 @@ abstract class ConstructorBodyElement extends MethodElement {
   FunctionElement get constructor;
 }
 
+/// [GenericElement] defines the common interface for generic functions and
+/// [TypeDeclarationElement].
+abstract class GenericElement extends Element implements AstElement {
+  /**
+   * The type variables declared on this declaration. The type variables are not
+   * available until the type of the element has been computed through
+   * [computeType].
+   */
+  List<DartType> get typeVariables;
+}
+
 /// [TypeDeclarationElement] defines the common interface for class/interface
 /// declarations and typedefs.
-abstract class TypeDeclarationElement extends Element implements AstElement {
+abstract class TypeDeclarationElement extends GenericElement {
   /// The name of this type declaration, taking privacy into account.
   Name get memberName;
 
@@ -1365,13 +1383,6 @@ abstract class TypeDeclarationElement extends Element implements AstElement {
    * the input source has used explicit type arguments.
    */
   GenericType get rawType;
-
-  /**
-   * The type variables declared on this declaration. The type variables are not
-   * available until the type of the element has been computed through
-   * [computeType].
-   */
-  List<DartType> get typeVariables;
 
   bool get isResolved;
 
@@ -1569,8 +1580,9 @@ abstract class TypeVariableElement extends Element
   @deprecated
   get enclosingElement;
 
-  /// The class or typedef on which this type variable is defined.
-  TypeDeclarationElement get typeDeclaration;
+  /// The class, typedef, function, method, or function typed parameter on
+  /// which this type variable is defined.
+  GenericElement get typeDeclaration;
 
   /// The index of this type variable within its type declaration.
   int get index;
@@ -1612,7 +1624,7 @@ abstract class TypedElement extends Element {
 }
 
 /// An [Element] that can define a function type.
-abstract class FunctionTypedElement extends Element {
+abstract class FunctionTypedElement extends Element implements GenericElement {
   /// The function signature for the function type defined by this element,
   /// if any.
   FunctionSignature get functionSignature;

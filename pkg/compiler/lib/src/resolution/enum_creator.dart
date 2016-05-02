@@ -82,11 +82,12 @@ class AstBuilder {
         symbolToken(Precedence.SEMICOLON_INFO), expression);
   }
 
-  FunctionExpression functionExpression(
-      Modifiers modifiers, String name, NodeList argumentList, Statement body,
+  FunctionExpression functionExpression(Modifiers modifiers, String name,
+      NodeList typeVariables, NodeList argumentList, Statement body,
       [TypeAnnotation returnType]) {
     return new FunctionExpression(
         identifier(name),
+        typeVariables,
         argumentList,
         body,
         returnType,
@@ -229,6 +230,7 @@ class EnumCreator {
     FunctionExpression constructorNode = builder.functionExpression(
         builder.modifiers(isConst: true),
         enumClass.name,
+        null, // typeVariables
         builder.argumentList([indexDefinition]),
         builder.emptyStatement());
 
@@ -298,6 +300,7 @@ class EnumCreator {
     FunctionExpression toStringNode = builder.functionExpression(
         Modifiers.EMPTY,
         'toString',
+        null, // typeVariables
         builder.argumentList([]),
         builder.returnStatement(builder.indexGet(
             builder.mapLiteral(mapEntries, isConst: true),

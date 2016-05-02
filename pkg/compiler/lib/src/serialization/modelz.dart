@@ -755,6 +755,9 @@ abstract class FunctionTypedElementMixin
     return _decoder.getBool(Key.IS_EXTERNAL,
         isOptional: true, defaultValue: false);
   }
+
+  @override
+  List<DartType> get typeVariables => functionSignature.typeVariables;
 }
 
 abstract class ClassElementMixin implements ElementZ, ClassElement {
@@ -1331,6 +1334,9 @@ class ForwardingConstructorElementZ extends ElementZ
     // variables correctly.
     return definingConstructor.type;
   }
+
+  @override
+  List<DartType> get typeVariables => _unsupported("typeVariables");
 }
 
 abstract class MemberElementMixin
@@ -1875,6 +1881,9 @@ abstract class ParameterElementZ extends DeserializedElementZ
 
   @override
   MemberElement get memberContext => executableContext.memberContext;
+
+  @override
+  List<DartType> get typeVariables => functionSignature.typeVariables;
 }
 
 class LocalParameterElementZ extends ParameterElementZ
