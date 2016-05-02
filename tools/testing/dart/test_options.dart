@@ -157,7 +157,7 @@ class TestOptionsParser {
           'system',
           'The operating system to run tests on',
           ['-s', '--system'],
-          ['linux', 'macos', 'windows'],
+          ['linux', 'macos', 'windows', 'android'],
           Platform.operatingSystem),
       new _TestOptionSpecification(
           'checked', 'Run tests in checked mode', ['--checked'], [], false,

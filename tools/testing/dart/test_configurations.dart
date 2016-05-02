@@ -8,6 +8,7 @@ import "dart:async";
 import 'dart:io';
 import "dart:math" as math;
 
+import 'android.dart';
 import "browser_controller.dart";
 import "co19_test_config.dart";
 import "http_server.dart";
@@ -49,7 +50,7 @@ final TEST_SUITE_DIRECTORIES = [
   new Path('utils/tests/peg'),
 ];
 
-void testConfigurations(List<Map> configurations) {
+Future testConfigurations(List<Map> configurations) async {
   var startTime = new DateTime.now();
   // Extract global options from first configuration.
   var firstConf = configurations[0];
@@ -281,26 +282,34 @@ void testConfigurations(List<Map> configurations) {
     eventListener.add(new ExitCodeSetter());
   }
 
-  void startProcessQueue() {
-    // [firstConf] is needed here, since the ProcessQueue needs to know the
-    // settings of 'noBatch' and 'local_ip'
-    new ProcessQueue(
-        firstConf,
-        maxProcesses,
-        maxBrowserProcesses,
-        startTime,
-        testSuites,
-        eventListener,
-        allTestsFinished,
-        verbose,
-        recordingPath,
-        recordingOutputPath);
+  // If any of the configurations need to access android devices we'll first
+  // make a pool of all available adb devices.
+  AdbDevicePool adbDevicePool;
+  bool needsAdbDevicePool = configurations.any((Map conf) {
+    return conf['runtime'] == 'dart_precompiled' &&
+           conf['system'] == 'android';
+  });
+  if (needsAdbDevicePool) {
+    adbDevicePool = await AdbDevicePool.create();
   }
 
   // Start all the HTTP servers required before starting the process queue.
-  if (serverFutures.isEmpty) {
-    startProcessQueue();
-  } else {
-    Future.wait(serverFutures).then((_) => startProcessQueue());
+  if (!serverFutures.isEmpty) {
+    await Future.wait(serverFutures);
   }
+
+  // [firstConf] is needed here, since the ProcessQueue needs to know the
+  // settings of 'noBatch' and 'local_ip'
+  new ProcessQueue(
+      firstConf,
+      maxProcesses,
+      maxBrowserProcesses,
+      startTime,
+      testSuites,
+      eventListener,
+      allTestsFinished,
+      verbose,
+      recordingPath,
+      recordingOutputPath,
+      adbDevicePool);
 }

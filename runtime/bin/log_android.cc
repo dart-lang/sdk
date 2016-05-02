@@ -17,10 +17,18 @@ namespace bin {
 // it when we see a '\n'.
 
 void Log::VPrint(const char* format, va_list args) {
+  // If we launch the DartVM inside "adb shell" we will only get messages
+  // (critical ones or not) if we print them to stdout/stderr.
+  // We also log using android's logging system.
+  vprintf(format, args);
   __android_log_vprint(ANDROID_LOG_INFO, "Dart", format, args);
 }
 
 void Log::VPrintErr(const char* format, va_list args) {
+  // If we launch the DartVM inside "adb shell" we will only get messages
+  // (critical ones or not) if we print them to stdout/stderr.
+  // We also log using android's logging system.
+  vfprintf(stderr, format, args);
   __android_log_vprint(ANDROID_LOG_ERROR, "Dart", format, args);
 }
 

@@ -2233,12 +2233,14 @@ class TestUtils {
   static String outputDir(Map configuration) {
     var result = '';
     var system = configuration['system'];
-    if (system == 'linux') {
+    if (system == 'linux' || system == 'android') {
       result = 'out/';
     } else if (system == 'macos') {
       result = 'xcodebuild/';
     } else if (system == 'windows') {
       result = 'build/';
+    } else {
+      throw new Exception('Unknown operating system: "$system"');
     }
     return result;
   }
@@ -2335,9 +2337,22 @@ class TestUtils {
       default:
         throw 'Unrecognized mode configuration: ${configuration['mode']}';
     }
+    var os;
+    switch (configuration['system']) {
+      case 'android':
+        os = 'Android';
+        break;
+      case 'linux':
+      case 'macos':
+      case 'windows':
+        os = '';
+        break;
+      default:
+        throw 'Unrecognized operating system: ${configuration['system']}';
+    }
     var arch = configuration['arch'].toUpperCase();
-    var normal = '$mode$arch';
-    var cross = '${mode}X$arch';
+    var normal = '$mode$os$arch';
+    var cross = '$mode${os}X$arch';
     var outDir = outputDir(configuration);
     var normalDir = new Directory(new Path('$outDir$normal').toNativePath());
     var crossDir = new Directory(new Path('$outDir$cross').toNativePath());
