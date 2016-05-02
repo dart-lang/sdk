@@ -143,7 +143,7 @@ class CharSequenceReader implements CharacterReader {
 
   @override
   String getString(int start, int endDelta) =>
-      _sequence.substring(start, _charOffset + endDelta).toString();
+      _sequence.substring(start, _charOffset + endDelta);
 
   @override
   int peek() {
