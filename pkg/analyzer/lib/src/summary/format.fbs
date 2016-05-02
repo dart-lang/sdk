@@ -1624,6 +1624,11 @@ table UnlinkedExecutable {
   isAbstract:bool (id: 10);
 
   /**
+   * Indicates whether the executable has body marked as being asynchronous.
+   */
+  isAsynchronous:bool (id: 27);
+
+  /**
    * Indicates whether the executable is declared using the `const` keyword.
    */
   isConst:bool (id: 12);
@@ -1637,6 +1642,11 @@ table UnlinkedExecutable {
    * Indicates whether the executable is declared using the `factory` keyword.
    */
   isFactory:bool (id: 8);
+
+  /**
+   * Indicates whether the executable has body marked as being a generator.
+   */
+  isGenerator:bool (id: 28);
 
   /**
    * Indicates whether the executable is a redirected constructor.

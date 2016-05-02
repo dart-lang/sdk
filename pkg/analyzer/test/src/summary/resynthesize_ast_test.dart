@@ -154,18 +154,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_downwardsInferenceAsyncAwait() {
-    super.test_downwardsInferenceAsyncAwait();
-  }
-
-  @override
-  @failingTest
-  void test_downwardsInferenceForEach() {
-    super.test_downwardsInferenceForEach();
-  }
-
-  @override
-  @failingTest
   void test_downwardsInferenceOnFunctionOfTUsingTheT() {
     super.test_downwardsInferenceOnFunctionOfTUsingTheT();
   }
@@ -174,12 +162,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   @failingTest
   void test_downwardsInferenceOnGenericFunctionExpressions() {
     super.test_downwardsInferenceOnGenericFunctionExpressions();
-  }
-
-  @override
-  @failingTest
-  void test_downwardsInferenceYieldYieldStar() {
-    super.test_downwardsInferenceYieldYieldStar();
   }
 
   @override

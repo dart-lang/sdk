@@ -4208,9 +4208,11 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   UnlinkedDocumentationCommentBuilder _documentationComment;
   int _inferredReturnTypeSlot;
   bool _isAbstract;
+  bool _isAsynchronous;
   bool _isConst;
   bool _isExternal;
   bool _isFactory;
+  bool _isGenerator;
   bool _isRedirectedConstructor;
   bool _isStatic;
   idl.UnlinkedExecutableKind _kind;
@@ -4320,6 +4322,17 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
+  bool get isAsynchronous => _isAsynchronous ??= false;
+
+  /**
+   * Indicates whether the executable has body marked as being asynchronous.
+   */
+  void set isAsynchronous(bool _value) {
+    assert(!_finished);
+    _isAsynchronous = _value;
+  }
+
+  @override
   bool get isConst => _isConst ??= false;
 
   /**
@@ -4350,6 +4363,17 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   void set isFactory(bool _value) {
     assert(!_finished);
     _isFactory = _value;
+  }
+
+  @override
+  bool get isGenerator => _isGenerator ??= false;
+
+  /**
+   * Indicates whether the executable has body marked as being a generator.
+   */
+  void set isGenerator(bool _value) {
+    assert(!_finished);
+    _isGenerator = _value;
   }
 
   @override
@@ -4566,7 +4590,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     _visibleOffset = _value;
   }
 
-  UnlinkedExecutableBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, List<UnlinkedConstructorInitializerBuilder> constantInitializers, int constCycleSlot, UnlinkedDocumentationCommentBuilder documentationComment, int inferredReturnTypeSlot, bool isAbstract, bool isConst, bool isExternal, bool isFactory, bool isRedirectedConstructor, bool isStatic, idl.UnlinkedExecutableKind kind, List<UnlinkedExecutableBuilder> localFunctions, List<UnlinkedLabelBuilder> localLabels, List<UnlinkedVariableBuilder> localVariables, String name, int nameEnd, int nameOffset, List<UnlinkedParamBuilder> parameters, int periodOffset, EntityRefBuilder redirectedConstructor, String redirectedConstructorName, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters, int visibleLength, int visibleOffset})
+  UnlinkedExecutableBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, List<UnlinkedConstructorInitializerBuilder> constantInitializers, int constCycleSlot, UnlinkedDocumentationCommentBuilder documentationComment, int inferredReturnTypeSlot, bool isAbstract, bool isAsynchronous, bool isConst, bool isExternal, bool isFactory, bool isGenerator, bool isRedirectedConstructor, bool isStatic, idl.UnlinkedExecutableKind kind, List<UnlinkedExecutableBuilder> localFunctions, List<UnlinkedLabelBuilder> localLabels, List<UnlinkedVariableBuilder> localVariables, String name, int nameEnd, int nameOffset, List<UnlinkedParamBuilder> parameters, int periodOffset, EntityRefBuilder redirectedConstructor, String redirectedConstructorName, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters, int visibleLength, int visibleOffset})
     : _annotations = annotations,
       _codeRange = codeRange,
       _constantInitializers = constantInitializers,
@@ -4574,9 +4598,11 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
       _documentationComment = documentationComment,
       _inferredReturnTypeSlot = inferredReturnTypeSlot,
       _isAbstract = isAbstract,
+      _isAsynchronous = isAsynchronous,
       _isConst = isConst,
       _isExternal = isExternal,
       _isFactory = isFactory,
+      _isGenerator = isGenerator,
       _isRedirectedConstructor = isRedirectedConstructor,
       _isStatic = isStatic,
       _kind = kind,
@@ -4603,6 +4629,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     _codeRange = null;
     _constantInitializers?.forEach((b) => b.flushInformative());
     _documentationComment = null;
+    _isAsynchronous = null;
+    _isGenerator = null;
     _localFunctions?.forEach((b) => b.flushInformative());
     _localLabels = null;
     _localVariables = null;
@@ -4692,6 +4720,9 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     if (_isAbstract == true) {
       fbBuilder.addBool(10, true);
     }
+    if (_isAsynchronous == true) {
+      fbBuilder.addBool(27, true);
+    }
     if (_isConst == true) {
       fbBuilder.addBool(12, true);
     }
@@ -4700,6 +4731,9 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     }
     if (_isFactory == true) {
       fbBuilder.addBool(8, true);
+    }
+    if (_isGenerator == true) {
+      fbBuilder.addBool(28, true);
     }
     if (_isRedirectedConstructor == true) {
       fbBuilder.addBool(13, true);
@@ -4775,9 +4809,11 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   idl.UnlinkedDocumentationComment _documentationComment;
   int _inferredReturnTypeSlot;
   bool _isAbstract;
+  bool _isAsynchronous;
   bool _isConst;
   bool _isExternal;
   bool _isFactory;
+  bool _isGenerator;
   bool _isRedirectedConstructor;
   bool _isStatic;
   idl.UnlinkedExecutableKind _kind;
@@ -4839,6 +4875,12 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   }
 
   @override
+  bool get isAsynchronous {
+    _isAsynchronous ??= const fb.BoolReader().vTableGet(_bp, 27, false);
+    return _isAsynchronous;
+  }
+
+  @override
   bool get isConst {
     _isConst ??= const fb.BoolReader().vTableGet(_bp, 12, false);
     return _isConst;
@@ -4854,6 +4896,12 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   bool get isFactory {
     _isFactory ??= const fb.BoolReader().vTableGet(_bp, 8, false);
     return _isFactory;
+  }
+
+  @override
+  bool get isGenerator {
+    _isGenerator ??= const fb.BoolReader().vTableGet(_bp, 28, false);
+    return _isGenerator;
   }
 
   @override
@@ -4970,9 +5018,11 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
     if (documentationComment != null) _result["documentationComment"] = documentationComment.toJson();
     if (inferredReturnTypeSlot != 0) _result["inferredReturnTypeSlot"] = inferredReturnTypeSlot;
     if (isAbstract != false) _result["isAbstract"] = isAbstract;
+    if (isAsynchronous != false) _result["isAsynchronous"] = isAsynchronous;
     if (isConst != false) _result["isConst"] = isConst;
     if (isExternal != false) _result["isExternal"] = isExternal;
     if (isFactory != false) _result["isFactory"] = isFactory;
+    if (isGenerator != false) _result["isGenerator"] = isGenerator;
     if (isRedirectedConstructor != false) _result["isRedirectedConstructor"] = isRedirectedConstructor;
     if (isStatic != false) _result["isStatic"] = isStatic;
     if (kind != idl.UnlinkedExecutableKind.functionOrMethod) _result["kind"] = kind.toString().split('.')[1];
@@ -5002,9 +5052,11 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
     "documentationComment": documentationComment,
     "inferredReturnTypeSlot": inferredReturnTypeSlot,
     "isAbstract": isAbstract,
+    "isAsynchronous": isAsynchronous,
     "isConst": isConst,
     "isExternal": isExternal,
     "isFactory": isFactory,
+    "isGenerator": isGenerator,
     "isRedirectedConstructor": isRedirectedConstructor,
     "isStatic": isStatic,
     "kind": kind,

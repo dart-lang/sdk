@@ -2916,6 +2916,20 @@ class C {
     checkLibrary('class C { var x = 0; }');
   }
 
+  test_function_async() {
+    checkLibrary(r'''
+import 'dart:async';
+Future f() async {}
+''');
+  }
+
+  test_function_asyncStar() {
+    checkLibrary(r'''
+import 'dart:async';
+Stream f() async* {}
+''');
+  }
+
   test_function_documented() {
     checkLibrary('''
 // Extra comment so doc comment offset != 0
@@ -3526,6 +3540,24 @@ get g {
   test_main_variable_via_export() {
     addLibrarySource('/a.dart', 'var main;');
     checkLibrary('export "a.dart";');
+  }
+
+  test_member_function_async() {
+    checkLibrary(r'''
+import 'dart:async';
+class C {
+  Future f() async {}
+}
+''');
+  }
+
+  test_member_function_asyncStar() {
+    checkLibrary(r'''
+import 'dart:async';
+class C {
+  Stream f() async* {}
+}
+''');
   }
 
   test_metadata_classDeclaration() {

@@ -794,6 +794,8 @@ class _CompilationUnitSerializer {
       b.kind = UnlinkedExecutableKind.functionOrMethod;
     }
     b.isAbstract = executableElement.isAbstract;
+    b.isAsynchronous = executableElement.isAsynchronous;
+    b.isGenerator = executableElement.isGenerator;
     b.isStatic = executableElement.isStatic &&
         executableElement.enclosingElement is ClassElement;
     b.isExternal = executableElement.isExternal;

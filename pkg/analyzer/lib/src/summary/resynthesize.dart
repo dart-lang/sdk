@@ -1925,7 +1925,9 @@ class _UnitResynthesizer {
     }
     executableElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
         executableElement, null, getCurrentTypeArguments(skipLevels: 1), false);
+    executableElement.asynchronous = serializedExecutable.isAsynchronous;
     executableElement.external = serializedExecutable.isExternal;
+    executableElement.generator = serializedExecutable.isGenerator;
     buildDocumentation(
         executableElement, serializedExecutable.documentationComment);
     buildAnnotations(executableElement, serializedExecutable.annotations);

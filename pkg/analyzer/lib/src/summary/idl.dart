@@ -1670,6 +1670,13 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   bool get isAbstract;
 
   /**
+   * Indicates whether the executable has body marked as being asynchronous.
+   */
+  @informative
+  @Id(27)
+  bool get isAsynchronous;
+
+  /**
    * Indicates whether the executable is declared using the `const` keyword.
    */
   @Id(12)
@@ -1686,6 +1693,13 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
    */
   @Id(8)
   bool get isFactory;
+
+  /**
+   * Indicates whether the executable has body marked as being a generator.
+   */
+  @informative
+  @Id(28)
+  bool get isGenerator;
 
   /**
    * Indicates whether the executable is a redirected constructor.

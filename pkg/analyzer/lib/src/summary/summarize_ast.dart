@@ -577,6 +577,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     }
     b.isExternal = isExternal;
     b.isAbstract = !isExternal && body is EmptyFunctionBody;
+    b.isAsynchronous = body.isAsynchronous;
+    b.isGenerator = body.isGenerator;
     b.name = nameString;
     b.nameOffset = nameOffset;
     b.typeParameters =
