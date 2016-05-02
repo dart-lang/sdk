@@ -42,7 +42,6 @@ main() {
  */
 abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   Set<Source> otherLibrarySources = new Set<Source>();
-  bool constantInitializersAreInvalid = false;
 
   bool get checkPropagatedTypes => true;
 
@@ -335,11 +334,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       } else if (oItem is ConstructorFieldInitializer &&
           rItem is ConstructorFieldInitializer) {
         compareConstAsts(rItem.fieldName, oItem.fieldName, desc);
-        if (constantInitializersAreInvalid) {
-          _assertUnresolvedIdentifier(rItem.expression, desc);
-        } else {
-          compareConstAsts(rItem.expression, oItem.expression, desc);
-        }
+        compareConstAsts(rItem.expression, oItem.expression, desc);
       } else if (oItem is SuperConstructorInvocation &&
           rItem is SuperConstructorInvocation) {
         compareElements(rItem.staticElement, oItem.staticElement, desc);
@@ -411,9 +406,13 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         compareConstAsts(r.identifier, o.identifier, desc);
       } else if (o is PropertyAccess && r is PropertyAccess) {
         compareConstAsts(r.target, o.target, desc);
-        expect(r.propertyName.name, o.propertyName.name, reason: desc);
-        compareElements(
-            r.propertyName.staticElement, o.propertyName.staticElement, desc);
+        String oName = o.propertyName.name;
+        String rName = r.propertyName.name;
+        expect(rName, oName, reason: desc);
+        if (oName == 'length') {
+          compareElements(
+              r.propertyName.staticElement, o.propertyName.staticElement, desc);
+        }
       } else if (o is PropertyAccess &&
           o.target is PrefixedIdentifier &&
           r is SimpleIdentifier) {
@@ -1079,12 +1078,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
             resynthesized.constantValue, original.constantValue, desc);
       } else {
         Expression initializer = resynthesizedActual.constantInitializer;
-        if (constantInitializersAreInvalid) {
-          _assertUnresolvedIdentifier(initializer, desc);
-        } else {
-          compareConstAsts(initializer, originalActual.constantInitializer,
-              '$desc initializer');
-        }
+        compareConstAsts(initializer, originalActual.constantInitializer,
+            '$desc initializer');
       }
     }
     checkPossibleMember(resynthesized, original, desc);
@@ -1199,12 +1194,6 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   void setUp() {
     super.setUp();
     prepareAnalysisContext(createOptions());
-  }
-
-  void _assertUnresolvedIdentifier(Expression initializer, String desc) {
-    expect(initializer, new isInstanceOf<SimpleIdentifier>(), reason: desc);
-    SimpleIdentifier identifier = initializer;
-    expect(identifier.staticElement, isNull, reason: desc);
   }
 }
 
@@ -1668,7 +1657,6 @@ f() {
   }
 
   test_const_invalid_field_const() {
-    constantInitializersAreInvalid = true;
     checkLibrary(
         r'''
 class C {
@@ -1680,7 +1668,6 @@ int foo() => 42;
   }
 
   test_const_invalid_field_final() {
-    constantInitializersAreInvalid = true;
     checkLibrary(
         r'''
 class C {
@@ -1692,7 +1679,6 @@ int foo() => 42;
   }
 
   test_const_invalid_topLevel() {
-    constantInitializersAreInvalid = true;
     checkLibrary(
         r'''
 const v = 1 + foo();
@@ -2435,7 +2421,6 @@ class C {
   }
 
   test_constructor_initializers_field_notConst() {
-    constantInitializersAreInvalid = true;
     checkLibrary(
         '''
 class C {

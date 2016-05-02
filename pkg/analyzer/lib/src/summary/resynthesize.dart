@@ -286,9 +286,6 @@ class _ConstExprBuilder {
   Expression get expr => stack.single;
 
   Expression build() {
-    if (!uc.isValidConst) {
-      return AstFactory.identifier3(r'$$invalidConstExpr$$');
-    }
     for (UnlinkedConstOperation operation in uc.operations) {
       switch (operation) {
         case UnlinkedConstOperation.pushNull:
@@ -564,12 +561,12 @@ class _ConstExprBuilder {
   void _pushExtractProperty() {
     Expression target = _pop();
     String name = uc.strings[stringPtr++];
-    // TODO(scheglov) Only String.length property access is supported.
-    assert(name == 'length');
-    _push(AstFactory.propertyAccess(
-        target,
-        AstFactory.identifier3('length')
-          ..staticElement = _getStringLengthElement()));
+    SimpleIdentifier propertyNode = AstFactory.identifier3(name);
+    // Only String.length property access can be potentially resolved.
+    if (name == 'length') {
+      propertyNode.staticElement = _getStringLengthElement();
+    }
+    _push(AstFactory.propertyAccess(target, propertyNode));
   }
 
   void _pushInstanceCreation() {

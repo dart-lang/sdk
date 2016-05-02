@@ -154,12 +154,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_canInferAlsoFromStaticAndInstanceFieldsFlagOn() {
-    super.test_canInferAlsoFromStaticAndInstanceFieldsFlagOn();
-  }
-
-  @override
-  @failingTest
   void test_downwardsInferenceAnnotations() {
     super.test_downwardsInferenceAnnotations();
   }
