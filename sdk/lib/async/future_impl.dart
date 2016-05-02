@@ -627,11 +627,7 @@ class _Future<T> implements Future<T> {
           try {
             listenerValueOrError = listener.handleValue(sourceResult);
           } catch (e, s) {
-            if (identical(source._error.error, e)) {
-              listenerValueOrError = source._error;
-            } else {
-              listenerValueOrError = new AsyncError(e, s);
-            }
+            listenerValueOrError = new AsyncError(e, s);
             listenerHasError = true;
           }
         }
