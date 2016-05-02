@@ -57,6 +57,10 @@ class InferredTypeCollector {
       SummaryClass obj, Map<String, Object> properties, String path) {
     if (obj is UnlinkedVariable) {
       collectInferredType(obj.inferredTypeSlot, path);
+      // As a temporary measure, prevent recursion into the variable's
+      // initializer, since AST-based type inference doesn't infer its type
+      // correctly yet.  TODO(paulberry): fix.
+      properties.remove('initializer');
     } else if (obj is UnlinkedExecutable) {
       collectInferredType(obj.inferredReturnTypeSlot, path);
     } else if (obj is UnlinkedParam) {
