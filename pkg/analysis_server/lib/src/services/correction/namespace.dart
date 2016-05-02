@@ -46,7 +46,7 @@ ImportElement getImportElement(SimpleIdentifier prefixNode) {
     return importDirective.element;
   }
   ImportElementInfo info = internal_getImportElementInfo(prefixNode);
-  return info != null ? info.element : null;
+  return info?.element;
 }
 
 /**

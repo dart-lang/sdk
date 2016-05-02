@@ -160,7 +160,7 @@ class Request {
    */
   Request(this.id, this.method,
       [Map<String, Object> params, this.clientRequestTime])
-      : _params = params != null ? params : new HashMap<String, Object>();
+      : _params = params ?? new HashMap<String, Object>();
 
   /**
    * Return a request parsed from the given json, or `null` if the [data] is

@@ -89,8 +89,7 @@ void scheduleNotificationOperations(
     return;
   }
   // Dart
-  CompilationUnit dartUnit =
-      resolvedDartUnit != null ? resolvedDartUnit : parsedDartUnit;
+  CompilationUnit dartUnit = resolvedDartUnit ?? parsedDartUnit;
   if (resolvedDartUnit != null) {
     if (server.hasAnalysisSubscription(
         protocol.AnalysisService.HIGHLIGHTS, file)) {

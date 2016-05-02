@@ -1044,8 +1044,7 @@ class FixProcessor {
         } else {
           ClassDeclaration enclosingClass =
               node.getAncestor((node) => node is ClassDeclaration);
-          targetElement =
-              enclosingClass != null ? enclosingClass.element : null;
+          targetElement = enclosingClass?.element;
           argument = nameNode;
         }
       }
@@ -2592,7 +2591,7 @@ class FixProcessor {
     // return myFunction();
     if (parent is ReturnStatement) {
       ExecutableElement executable = getEnclosingExecutableElement(expression);
-      return executable != null ? executable.returnType : null;
+      return executable?.returnType;
     }
     // int v = myFunction();
     if (parent is VariableDeclaration) {
@@ -2650,7 +2649,7 @@ class FixProcessor {
     // foo( myFunction() );
     if (parent is ArgumentList) {
       ParameterElement parameter = expression.bestParameterElement;
-      return parameter != null ? parameter.type : null;
+      return parameter?.type;
     }
     // bool
     {

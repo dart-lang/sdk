@@ -334,7 +334,7 @@ class Driver implements ServerStarter {
    * Set the [plugins] that are defined outside the analysis_server package.
    */
   void set userDefinedPlugins(List<Plugin> plugins) {
-    _userDefinedPlugins = plugins == null ? <Plugin>[] : plugins;
+    _userDefinedPlugins = plugins ?? <Plugin>[];
   }
 
   /**
