@@ -57,8 +57,8 @@ void ThreadInterrupter::InterruptThread(OSThread* thread) {
 
 
 void ThreadInterrupter::InstallSignalHandler() {
-  SignalHandler::Install(
-      ThreadInterrupterAndroid::ThreadInterruptSignalHandler);
+  SignalHandler::Install<
+      ThreadInterrupterAndroid::ThreadInterruptSignalHandler>();
 }
 
 
