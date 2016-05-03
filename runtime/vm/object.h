@@ -5472,22 +5472,16 @@ class AbstractType : public Instance {
   // type.
   RawString* ClassName() const;
 
-  // Check if this type represents the 'dynamic' type.
-  bool IsDynamicType() const {
-    return !IsFunctionType() &&
-        HasResolvedTypeClass() &&
-        (type_class() == Object::dynamic_class());
-  }
+  // Check if this type represents the 'dynamic' type or if it is malformed,
+  // since a malformed type is mapped to 'dynamic'.
+  // Call IsMalformed() first, if distinction is required.
+  bool IsDynamicType() const;
+
+  // Check if this type represents the 'void' type.
+  bool IsVoidType() const;
 
   // Check if this type represents the 'Null' type.
   bool IsNullType() const;
-
-  // Check if this type represents the 'void' type.
-  bool IsVoidType() const {
-    return !IsFunctionType() &&
-        HasResolvedTypeClass() &&
-        (type_class() == Object::void_class());
-  }
 
   bool IsObjectType() const {
     return !IsFunctionType() &&

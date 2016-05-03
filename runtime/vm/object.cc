@@ -15967,6 +15967,19 @@ RawString* AbstractType::ClassName() const {
 }
 
 
+bool AbstractType::IsDynamicType() const {
+  if (IsCanonical()) {
+    return raw() == Object::dynamic_type().raw();
+  }
+  return HasResolvedTypeClass() && (type_class() == Object::dynamic_class());
+}
+
+
+bool AbstractType::IsVoidType() const {
+    return raw() == Object::void_type().raw();
+}
+
+
 bool AbstractType::IsNullType() const {
   return !IsFunctionType() &&
       HasResolvedTypeClass() &&
@@ -16823,7 +16836,15 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
   Isolate* isolate = thread->isolate();
   AbstractType& type = Type::Handle(zone);
   const Class& cls = Class::Handle(zone, type_class());
-  if (cls.raw() == Object::dynamic_class() && (isolate != Dart::vm_isolate())) {
+  // Since void is a keyword, we never have to canonicalize the void type after
+  // it is canonicalized once by the vm isolate. The parser does the mapping.
+  ASSERT((cls.raw() != Object::void_class()) ||
+         (isolate == Dart::vm_isolate()));
+  // Since dynamic is not a keyword, the parser builds a type that requires
+  // canonicalization.
+  if ((cls.raw() == Object::dynamic_class()) &&
+      (isolate != Dart::vm_isolate())) {
+    ASSERT(Object::dynamic_type().IsCanonical());
     return Object::dynamic_type().raw();
   }
   // Fast canonical lookup/registry for simple types.
