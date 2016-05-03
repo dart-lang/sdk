@@ -12,10 +12,10 @@ import 'package:compiler/src/common/backend_api.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/filenames.dart';
-import 'memory_compiler.dart';
-import 'serialization_helper.dart';
-import 'serialization_test_data.dart';
-import 'output_collector.dart';
+import '../memory_compiler.dart';
+import 'helper.dart';
+import 'test_data.dart';
+import '../output_collector.dart';
 
 main(List<String> args) {
   asyncTest(() async {

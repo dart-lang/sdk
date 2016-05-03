@@ -15,7 +15,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 
-Uri pathOfData = Platform.script.resolve('http_launch_data/');
+Uri pathOfData = Platform.script.resolve('../http_launch_data/');
 Directory tempDir;
 String outFilePath;
 
@@ -43,7 +43,7 @@ Future launchDart2Js(args) {
   String ext = Platform.isWindows ? '.bat' : '';
   String command =
       path.normalize(path.join(path.fromUri(Platform.script),
-                    '../../../../sdk/bin/dart2js${ext}'));
+                    '../../../../../sdk/bin/dart2js${ext}'));
   return Process.run(command, args);
 }
 

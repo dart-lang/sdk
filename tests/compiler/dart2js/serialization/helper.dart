@@ -28,7 +28,7 @@ import 'package:compiler/src/universe/call_structure.dart';
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/universe/use.dart';
 
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
 class Arguments {
   final String filename;

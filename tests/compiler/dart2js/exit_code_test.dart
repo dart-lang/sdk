@@ -242,7 +242,7 @@ Future testExitCode(
     entry.compileFunc = compile;
 
     List<String> args = new List<String>.from(options)
-        ..add("tests/compiler/dart2js/exit_code_helper.dart");
+        ..add("tests/compiler/dart2js/data/exit_code_helper.dart");
     Future result = entry.internalMain(args);
     return result.catchError((e, s) {
       // Capture crashes.

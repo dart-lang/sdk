@@ -43,9 +43,9 @@ DeclarationMirror findMirror(Iterable<DeclarationMirror> list, Symbol name) {
 
 main() {
   Uri scriptUri = currentDirectory.resolveUri(Platform.script);
-  Uri packageRoot = scriptUri.resolve('./packages/');
-  Uri libUri = scriptUri.resolve('../../../sdk/');
-  Uri inputUri = scriptUri.resolve('mirrors_helper.dart');
+  Uri packageRoot = scriptUri.resolve('../packages/');
+  Uri libUri = scriptUri.resolve('../../../../sdk/');
+  Uri inputUri = scriptUri.resolve('../data/mirrors_helper.dart');
   var provider = new CompilerSourceFileProvider();
   var diagnosticHandler = new FormattingDiagnosticHandler(provider);
   asyncStart();
