@@ -131,7 +131,8 @@ class ClosureFieldElement extends ElementX
   bool get hasResolvedAst => hasTreeElements;
 
   ResolvedAst get resolvedAst {
-    return new ParsedResolvedAst(this, null, null, treeElements);
+    return new ParsedResolvedAst(this, null, null, treeElements,
+        memberContext.compilationUnit.script.resourceUri);
   }
 
   Expression get initializer {
@@ -348,7 +349,8 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
   Element get analyzableElement => closureClass.methodElement.analyzableElement;
 
   ResolvedAst get resolvedAst {
-    return new ParsedResolvedAst(this, node, node.body, treeElements);
+    return new ParsedResolvedAst(this, node, node.body, treeElements,
+        expression.compilationUnit.script.resourceUri);
   }
 
   accept(ElementVisitor visitor, arg) {

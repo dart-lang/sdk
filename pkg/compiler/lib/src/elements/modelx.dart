@@ -3272,6 +3272,10 @@ abstract class AstElementMixin implements AstElement {
       body = node.asFunctionExpression().body;
     }
     return new ParsedResolvedAst(
-        declaration, node, body, definingElement.treeElements);
+        declaration,
+        node,
+        body,
+        definingElement.treeElements,
+        definingElement.compilationUnit.script.resourceUri);
   }
 }

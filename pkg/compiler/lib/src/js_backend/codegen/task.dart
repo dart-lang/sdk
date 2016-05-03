@@ -336,7 +336,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
       code = backend.rewriteAsync(element, code);
       work.registry.registerAsyncMarker(element);
     }
-    return attachPosition(code, element);
+    return attachPosition(code, work.resolvedAst);
   }
 
   Iterable<CompilerTask> get tasks {
@@ -348,9 +348,9 @@ class CpsFunctionCompiler implements FunctionCompiler {
     ]..addAll(fallbackCompiler.tasks);
   }
 
-  js.Node attachPosition(js.Node node, AstElement element) {
+  js.Node attachPosition(js.Node node, ResolvedAst resolvedAst) {
     return node.withSourceInformation(sourceInformationFactory
-        .createBuilderForContext(element)
-        .buildDeclaration(backend.frontend.getResolvedAst(element)));
+        .createBuilderForContext(resolvedAst)
+        .buildDeclaration(resolvedAst));
   }
 }

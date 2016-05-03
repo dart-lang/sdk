@@ -771,7 +771,9 @@ bool testResolvedAstEquivalence(
           'node', resolvedAst1.node, resolvedAst2.node) &&
       new NodeEquivalenceVisitor(strategy).testNodes(resolvedAst1, resolvedAst2,
           'body', resolvedAst1.body, resolvedAst2.body) &&
-      testTreeElementsEquivalence(resolvedAst1, resolvedAst2, strategy);
+      testTreeElementsEquivalence(resolvedAst1, resolvedAst2, strategy) &&
+      strategy.test(resolvedAst1, resolvedAst2, 'sourceUri',
+          resolvedAst1.sourceUri, resolvedAst2.sourceUri);
 }
 
 /// Tests the equivalence of the data stored in the [TreeElements] of

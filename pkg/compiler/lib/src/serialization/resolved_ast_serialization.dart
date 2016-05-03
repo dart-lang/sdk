@@ -339,10 +339,10 @@ class ResolvedAstDeserializer {
       DeserializerPlugin nativeDataDeserializer) {
     CompilationUnitElement compilationUnit = element.compilationUnit;
     DiagnosticReporter reporter = parsing.reporter;
+    Uri uri = objectDecoder.getUri(Key.URI);
 
     /// Returns the first [Token] for parsing the [Node] for [element].
     Token readBeginToken() {
-      Uri uri = objectDecoder.getUri(Key.URI);
       int charOffset = objectDecoder.getInt(Key.OFFSET);
       Token beginToken = getBeginToken(uri, charOffset);
       if (beginToken == null) {
@@ -627,6 +627,6 @@ class ResolvedAstDeserializer {
         }
       }
     }
-    return new ParsedResolvedAst(element, root, body, elements);
+    return new ParsedResolvedAst(element, root, body, elements, uri);
   }
 }

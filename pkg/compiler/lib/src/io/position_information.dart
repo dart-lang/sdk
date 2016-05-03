@@ -101,8 +101,8 @@ class PositionSourceInformationStrategy
   const PositionSourceInformationStrategy();
 
   @override
-  SourceInformationBuilder createBuilderForContext(AstElement element) {
-    return new PositionSourceInformationBuilder(element);
+  SourceInformationBuilder createBuilderForContext(ResolvedAst resolvedAst) {
+    return new PositionSourceInformationBuilder(resolvedAst);
   }
 
   @override
@@ -141,12 +141,12 @@ class SourceMappedMarker extends SourceInformation {
 class PositionSourceInformationBuilder implements SourceInformationBuilder {
   final SourceFile sourceFile;
   final String name;
-  final AstElement element;
+  final ResolvedAst resolvedAst;
 
-  PositionSourceInformationBuilder(AstElement element)
-      : this.element = element,
-        sourceFile = element.implementation.compilationUnit.script.file,
-        name = computeElementNameForSourceMaps(element);
+  PositionSourceInformationBuilder(ResolvedAst resolvedAst)
+      : this.resolvedAst = resolvedAst,
+        sourceFile = computeSourceFile(resolvedAst),
+        name = computeElementNameForSourceMaps(resolvedAst.element);
 
   SourceInformation buildDeclaration(ResolvedAst resolvedAst) {
     if (resolvedAst.kind != ResolvedAstKind.PARSED) {
@@ -238,15 +238,10 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
 
   @override
   SourceInformation buildVariableDeclaration() {
-    if (element.hasNode) {
-      Node node = element.node;
-      if (node is FunctionExpression) {
-        return buildBegin(node.body);
-      } else if (element.isField) {
-        FieldElement field = element;
-        if (field.initializer != null) {
-          return buildBegin(field.initializer);
-        }
+    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+      Node body = resolvedAst.body;
+      if (body != null) {
+        return buildBegin(body);
       }
       // TODO(johnniwinther): Are there other cases?
     }
@@ -254,8 +249,8 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
   }
 
   @override
-  SourceInformationBuilder forContext(AstElement element) {
-    return new PositionSourceInformationBuilder(element);
+  SourceInformationBuilder forContext(ResolvedAst resolvedAst) {
+    return new PositionSourceInformationBuilder(resolvedAst);
   }
 
   @override

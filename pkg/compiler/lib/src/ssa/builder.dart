@@ -1134,7 +1134,7 @@ class SsaBuilder extends ast.Visitor
     localsHandler = new LocalsHandler(this, target, null);
     sourceElementStack.add(target);
     sourceInformationBuilder =
-        sourceInformationFactory.createBuilderForContext(target);
+        sourceInformationFactory.createBuilderForContext(resolvedAst);
     graph.sourceInformation =
         sourceInformationBuilder.buildVariableDeclaration();
   }
@@ -1535,7 +1535,7 @@ class SsaBuilder extends ast.Visitor
           function, selector, providedArguments, currentNode);
       enterInlinedMethod(function, functionResolvedAst, compiledArguments,
           instanceType: instanceType);
-      inlinedFrom(function, () {
+      inlinedFrom(functionResolvedAst, () {
         if (!isReachable) {
           emitReturn(graph.addConstantNull(compiler), null);
         } else {
@@ -1572,14 +1572,15 @@ class SsaBuilder extends ast.Visitor
     return allInlinedFunctionsCalledOnce && isFunctionCalledOnce(element);
   }
 
-  inlinedFrom(Element element, f()) {
+  inlinedFrom(ResolvedAst resolvedAst, f()) {
+    Element element = resolvedAst.element;
     assert(element is FunctionElement || element is VariableElement);
-    return reporter.withCurrentElement(element, () {
+    return reporter.withCurrentElement(element.implementation, () {
       // The [sourceElementStack] contains declaration elements.
       SourceInformationBuilder oldSourceInformationBuilder =
           sourceInformationBuilder;
       sourceInformationBuilder =
-          sourceInformationBuilder.forContext(element.implementation);
+          sourceInformationBuilder.forContext(resolvedAst);
       sourceElementStack.add(element.declaration);
       var result = f();
       sourceInformationBuilder = oldSourceInformationBuilder;
@@ -1992,7 +1993,7 @@ class SsaBuilder extends ast.Visitor
       // For redirecting constructors, the fields will be initialized later
       // by the effective target.
       if (!callee.isRedirectingGenerative) {
-        inlinedFrom(callee, () {
+        inlinedFrom(constructorRecolvedAst, () {
           buildFieldInitializers(
               callee.enclosingClass.implementation, fieldValues);
         });
@@ -2120,7 +2121,7 @@ class SsaBuilder extends ast.Visitor
               elements.getSelector(call).callStructure;
           Link<ast.Node> arguments = call.arguments;
           List<HInstruction> compiledArguments;
-          inlinedFrom(constructor, () {
+          inlinedFrom(resolvedAst, () {
             compiledArguments =
                 makeStaticArgumentList(callStructure, arguments, target);
           });
@@ -2135,7 +2136,7 @@ class SsaBuilder extends ast.Visitor
           ast.SendSet init = link.head;
           Link<ast.Node> arguments = init.arguments;
           assert(!arguments.isEmpty && arguments.tail.isEmpty);
-          inlinedFrom(constructor, () {
+          inlinedFrom(resolvedAst, () {
             visit(arguments.head);
           });
           fieldValues[elements[init]] = pop();
@@ -2202,7 +2203,7 @@ class SsaBuilder extends ast.Visitor
           // closure to class mapper.
           compiler.closureToClassMapper
               .computeClosureToClassMapping(resolvedAst);
-          inlinedFrom(member, () => right.accept(this));
+          inlinedFrom(fieldResolvedAst, () => right.accept(this));
           resolvedAst = savedResolvedAst;
           fieldValues[member] = pop();
         }

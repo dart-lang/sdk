@@ -51,7 +51,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
     return new js.Fun(parameters, body, asyncModifier: asyncModifier)
         .withSourceInformation(sourceInformationFactory
-            .createBuilderForContext(resolvedAst.element)
+            .createBuilderForContext(resolvedAst)
             .buildDeclaration(resolvedAst));
   }
 
@@ -67,7 +67,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
       SourceInformation sourceInformation = sourceInformationFactory
-          .createBuilderForContext(work.element)
+          .createBuilderForContext(work.resolvedAst)
           .buildDeclaration(work.resolvedAst);
       SsaCodeGenerator codegen = new SsaCodeGenerator(backend, work);
       codegen.visitGraph(graph);

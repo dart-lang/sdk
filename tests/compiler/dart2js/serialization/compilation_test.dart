@@ -49,10 +49,7 @@ Future compile(String serializedData, Uri entryPoint, Test test,
       entryPoint: entryPoint,
       memorySourceFiles: test != null ? test.sourceFiles : const {},
       options: [Flags.disableTypeInference,
-                Flags.disableInlining,
-                // TODO(johnniwinther): Reenable this: We have some invalid
-                // locations
-                Flags.noSourceMaps],
+                Flags.disableInlining],
       outputProvider: outputCollector,
       beforeRun: (Compiler compiler) {
         deserialize(compiler, serializedData, deserializeResolvedAst: true);

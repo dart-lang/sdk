@@ -1698,6 +1698,10 @@ abstract class ResolvedAst {
   /// The [TreeElements] containing the resolution data for [node]. This only
   /// available of [kind] is `ResolvedAstKind.PARSED`.
   TreeElements get elements;
+
+  /// Returns the uri for the source file defining [node] and [body]. This
+  /// only available if [kind] is `ResolvedAstKind.PARSED`.
+  Uri get sourceUri;
 }
 
 /// [ResolvedAst] implementation used for elements whose semantics is defined in
@@ -1707,8 +1711,10 @@ class ParsedResolvedAst implements ResolvedAst {
   final Node node;
   final Node body;
   final TreeElements elements;
+  final Uri sourceUri;
 
-  ParsedResolvedAst(this.element, this.node, this.body, this.elements);
+  ParsedResolvedAst(
+      this.element, this.node, this.body, this.elements, this.sourceUri);
 
   ResolvedAstKind get kind => ResolvedAstKind.PARSED;
 
@@ -1736,6 +1742,11 @@ class SynthesizedResolvedAst implements ResolvedAst {
   @override
   Node get body {
     throw new UnsupportedError('$this does not have a body AST node');
+  }
+
+  @override
+  Uri get sourceUri {
+    throw new UnsupportedError('$this does not have a source URI');
   }
 
   String toString() => '$kind:$element';
