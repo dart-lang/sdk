@@ -1361,20 +1361,24 @@ RawCode* Code::ReadFrom(SnapshotReader* reader,
   result.set_lazy_deopt_pc_offset(-1);
 
   int32_t text_offset = reader->Read<int32_t>();
-  int32_t instructions_size = reader->Read<int32_t>();
-  uword entry_point = reader->GetInstructionsAt(text_offset);
+  RawInstructions* instr = reinterpret_cast<RawInstructions*>(
+      reader->GetInstructionsAt(text_offset) + kHeapObjectTag);
+  uword entry_point = Instructions::EntryPoint(instr);
 
 #if defined(DEBUG)
+  ASSERT(instr->IsMarked());
+  ASSERT(instr->IsVMHeapObject());
   uword expected_check = reader->Read<uword>();
+  intptr_t instructions_size = Utils::RoundUp(instr->size_,
+                                              OS::PreferredCodeAlignment());
   uword actual_check = Checksum(entry_point, instructions_size);
   ASSERT(expected_check == actual_check);
 #endif
 
   result.StoreNonPointer(&result.raw_ptr()->entry_point_, entry_point);
 
-  result.StorePointer(reinterpret_cast<RawSmi*const*>(
-                          &result.raw_ptr()->instructions_),
-                      Smi::New(instructions_size));
+  result.StorePointer(&result.raw_ptr()->active_instructions_, instr);
+  result.StorePointer(&result.raw_ptr()->instructions_, instr);
 
   (*reader->PassiveObjectHandle()) ^= reader->ReadObjectImpl(kAsReference);
   result.StorePointer(reinterpret_cast<RawObject*const*>(
@@ -1418,9 +1422,6 @@ RawCode* Code::ReadFrom(SnapshotReader* reader,
   result.StorePointer(&result.raw_ptr()->return_address_metadata_,
                       Object::null());
 
-  ASSERT(result.Size() == instructions_size);
-  ASSERT(result.EntryPoint() == entry_point);
-
   return result.raw();
 }
 
@@ -1449,14 +1450,18 @@ void RawCode::WriteTo(SnapshotWriter* writer,
   // Write out all the non object fields.
   writer->Write<int32_t>(ptr()->state_bits_);
 
+  // No disabled code in precompilation.
+  ASSERT(ptr()->instructions_ == ptr()->active_instructions_);
+
   RawInstructions* instr = ptr()->instructions_;
-  intptr_t size = instr->ptr()->size_;
   int32_t text_offset = writer->GetInstructionsId(instr, this);
   writer->Write<int32_t>(text_offset);
-  writer->Write<int32_t>(size);
+
 #if defined(DEBUG)
   uword entry = ptr()->entry_point_;
-  uword check = Checksum(entry, size);
+  intptr_t instructions_size = Utils::RoundUp(instr->size_,
+                                              OS::PreferredCodeAlignment());
+  uword check = Checksum(entry, instructions_size);
   writer->Write<uword>(check);
 #endif
 

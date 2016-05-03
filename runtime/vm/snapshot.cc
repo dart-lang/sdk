@@ -1160,13 +1160,9 @@ int32_t InstructionsWriter::GetOffsetFor(RawInstructions* instructions,
   }
 #endif
 
-  intptr_t payload_size = instructions->ptr()->size_;
-  payload_size = Utils::RoundUp(payload_size, OS::PreferredCodeAlignment());
-
+  intptr_t heap_size = instructions->Size();
   intptr_t offset = next_offset_;
-  ASSERT(Utils::IsAligned(next_offset_, OS::PreferredCodeAlignment()));
-  next_offset_ += payload_size;
-  ASSERT(Utils::IsAligned(next_offset_, OS::PreferredCodeAlignment()));
+  next_offset_ += heap_size;
   instructions_.Add(InstructionsData(instructions, code, offset));
 
   return offset;
@@ -1235,7 +1231,32 @@ void AssemblyInstructionsWriter::Write() {
 
     ASSERT(insns.raw()->Size() % sizeof(uint64_t) == 0);
 
-    // 1. Write a label at the entry point.
+    // 1. Write from the header to the entry point.
+    {
+      NoSafepointScope no_safepoint;
+
+      uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
+      uword entry = beginning + Instructions::HeaderSize();
+
+      ASSERT(Utils::IsAligned(beginning, sizeof(uint64_t)));
+      ASSERT(Utils::IsAligned(entry, sizeof(uint64_t)));
+
+      // Write Instructions with the mark and VM heap bits set.
+      uword marked_tags = insns.raw_ptr()->tags_;
+      marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
+      marked_tags = RawObject::MarkBit::update(true, marked_tags);
+
+      WriteWordLiteral(marked_tags);
+      beginning += sizeof(uword);
+
+      for (uword* cursor = reinterpret_cast<uword*>(beginning);
+           cursor < reinterpret_cast<uword*>(entry);
+           cursor++) {
+        WriteWordLiteral(*cursor);
+      }
+    }
+
+    // 2. Write a label at the entry point.
     owner = code.owner();
     if (owner.IsNull()) {
       const char* name = StubCode::NameOfStub(insns.EntryPoint());
@@ -1255,7 +1276,7 @@ void AssemblyInstructionsWriter::Write() {
     }
 
     {
-      // 2. Write from the entry point to the end.
+      // 3. Write from the entry point to the end.
       NoSafepointScope no_safepoint;
       uword beginning = reinterpret_cast<uword>(insns.raw()) - kHeapObjectTag;
       uword entry = beginning + Instructions::HeaderSize();
@@ -1342,8 +1363,33 @@ void BlobInstructionsWriter::Write() {
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     const Instructions& insns = *instructions_[i].insns_;
 
+    // 1. Write from the header to the entry point.
     {
-      // 2. Write from the entry point to the end.
+      NoSafepointScope no_safepoint;
+
+      uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
+      uword entry = beginning + Instructions::HeaderSize();
+
+      ASSERT(Utils::IsAligned(beginning, sizeof(uint64_t)));
+      ASSERT(Utils::IsAligned(entry, sizeof(uint64_t)));
+
+      // Write Instructions with the mark and VM heap bits set.
+      uword marked_tags = insns.raw_ptr()->tags_;
+      marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
+      marked_tags = RawObject::MarkBit::update(true, marked_tags);
+
+      instructions_blob_stream_.WriteWord(marked_tags);
+      beginning += sizeof(uword);
+
+      for (uword* cursor = reinterpret_cast<uword*>(beginning);
+           cursor < reinterpret_cast<uword*>(entry);
+           cursor++) {
+        instructions_blob_stream_.WriteWord(*cursor);
+      }
+    }
+
+    // 2. Write from the entry point to the end.
+    {
       NoSafepointScope no_safepoint;
       uword beginning = reinterpret_cast<uword>(insns.raw()) - kHeapObjectTag;
       uword entry = beginning + Instructions::HeaderSize();

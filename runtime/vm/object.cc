@@ -13525,26 +13525,6 @@ void Code::set_static_calls_target_table(const Array& value) const {
 }
 
 
-uword Code::EntryPoint() const {
-  RawObject* instr = instructions();
-  if (!instr->IsHeapObject()) {
-    return active_entry_point();
-  } else {
-    return Instructions::EntryPoint(instructions());
-  }
-}
-
-
-intptr_t Code::Size() const {
-  RawObject* instr = instructions();
-  if (!instr->IsHeapObject()) {
-    return Smi::Value(raw_ptr()->precompiled_instructions_size_);
-  } else {
-    return instructions()->ptr()->size_;
-  }
-}
-
-
 bool Code::HasBreakpoint() const {
   if (!FLAG_support_debugger) {
     return false;
@@ -13890,12 +13870,9 @@ RawCode* Code::FinalizeCode(const char* name,
     }
 
     // Hook up Code and Instructions objects.
-    code.set_instructions(instrs.raw());
     code.SetActiveInstructions(instrs.raw());
+    code.set_instructions(instrs.raw());
     code.set_is_alive(true);
-
-    ASSERT(code.EntryPoint() == instrs.EntryPoint());
-    ASSERT(code.Size() == instrs.size());
 
     // Set object pool in Instructions object.
     INC_STAT(Thread::Current(),
@@ -14099,10 +14076,9 @@ bool Code::IsFunctionCode() const {
 void Code::DisableDartCode() const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(IsFunctionCode());
-  ASSERT(!IsDisabled());
+  ASSERT(instructions() == active_instructions());
   const Code& new_code =
       Code::Handle(StubCode::FixCallersTarget_entry()->code());
-  ASSERT(new_code.instructions()->IsVMHeapObject());
   SetActiveInstructions(new_code.instructions());
 }
 
@@ -14111,10 +14087,9 @@ void Code::DisableStubCode() const {
 #if !defined(TARGET_ARCH_DBC)
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsAllocationStubCode());
-  ASSERT(!IsDisabled());
+  ASSERT(instructions() == active_instructions());
   const Code& new_code =
       Code::Handle(StubCode::FixAllocationStubTarget_entry()->code());
-  ASSERT(new_code.instructions()->IsVMHeapObject());
   SetActiveInstructions(new_code.instructions());
 #else
   // DBC does not use allocation stubs.
@@ -14127,6 +14102,7 @@ void Code::SetActiveInstructions(RawInstructions* instructions) const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint() || !is_alive());
   // RawInstructions are never allocated in New space and hence a
   // store buffer update is not needed here.
+  StorePointer(&raw_ptr()->active_instructions_, instructions);
   StoreNonPointer(&raw_ptr()->entry_point_,
                   reinterpret_cast<uword>(instructions->ptr()) +
                   Instructions::HeaderSize());

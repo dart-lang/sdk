@@ -207,6 +207,9 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     if (vm_isolate_snapshot != NULL) {
       NOT_IN_PRODUCT(TimelineDurationScope tds(Timeline::GetVMStream(),
                                                "VMIsolateSnapshot"));
+      if (instructions_snapshot != NULL) {
+        vm_isolate_->SetupInstructionsSnapshotPage(instructions_snapshot);
+      }
       if (data_snapshot != NULL) {
         vm_isolate_->SetupDataSnapshotPage(data_snapshot);
       }

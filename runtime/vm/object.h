@@ -3964,7 +3964,8 @@ class Instructions : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Instructions, Object);
   friend class Class;
   friend class Code;
-  friend class InstructionsWriter;
+  friend class AssemblyInstructionsWriter;
+  friend class BlobInstructionsWriter;
 };
 
 
@@ -4377,7 +4378,9 @@ class DeoptInfo : public AllStatic {
 
 class Code : public Object {
  public:
-  uword active_entry_point() const { return raw_ptr()->entry_point_; }
+  RawInstructions* active_instructions() const {
+    return raw_ptr()->active_instructions_;
+  }
 
   RawInstructions* instructions() const { return raw_ptr()->instructions_; }
 
@@ -4407,15 +4410,20 @@ class Code : public Object {
   }
   void set_is_alive(bool value) const;
 
-  uword EntryPoint() const;
-  intptr_t Size() const;
-
+  uword EntryPoint() const {
+    return Instructions::Handle(instructions()).EntryPoint();
+  }
+  intptr_t Size() const {
+    const Instructions& instr = Instructions::Handle(instructions());
+    return instr.size();
+  }
   RawObjectPool* GetObjectPool() const {
     return object_pool();
   }
   bool ContainsInstructionAt(uword addr) const {
-    const uword offset = addr - EntryPoint();
-    return offset < static_cast<uword>(Size());
+    const Instructions& instr = Instructions::Handle(instructions());
+    const uword offset = addr - instr.EntryPoint();
+    return offset < static_cast<uword>(instr.size());
   }
 
   // Returns true if there is a debugger breakpoint set in this code object.
@@ -4654,11 +4662,12 @@ class Code : public Object {
   void Enable() const {
     if (!IsDisabled()) return;
     ASSERT(Thread::Current()->IsMutatorThread());
+    ASSERT(instructions() != active_instructions());
     SetActiveInstructions(instructions());
   }
 
   bool IsDisabled() const {
-    return active_entry_point() != EntryPoint();
+    return instructions() != active_instructions();
   }
 
  private:
