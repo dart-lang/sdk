@@ -269,7 +269,7 @@ class List<E> {
 
   @patch
   factory List.unmodifiable(Iterable elements) {
-    List result = new List<E>.from(elements, growable: false);
+    var result = new List<E>.from(elements, growable: false);
     return makeFixedListUnmodifiable/*<E>*/(result);
   }
 }
