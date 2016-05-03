@@ -2923,6 +2923,20 @@ void main() {
 ''');
   }
 
+  void test_referenceToFieldOfStaticField() {
+    var mainUnit = checkFile('''
+class C {
+  static D d;
+}
+class D {
+  int i;
+}
+final x = C.d.i;
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.type.toString(), 'int');
+  }
+
   void test_staticRefersToNonStaticField_inOtherLibraryCycle() {
     addFile(
         '''

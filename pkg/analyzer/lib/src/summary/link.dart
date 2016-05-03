@@ -3662,8 +3662,10 @@ class PropertyAccessorElementForLink_Variable
   }
 
   @override
-  ReferenceableElementForLink getContainedName(String name) =>
-      UndefinedElementForLink.instance;
+  ReferenceableElementForLink getContainedName(String name) {
+    Element element = variable._getContainedElement(name);
+    return new NonstaticMemberElementForLink(element, variable._constNode);
+  }
 
   @override
   bool isAccessibleIn(LibraryElement library) =>
