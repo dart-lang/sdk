@@ -145,7 +145,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
 
   void onError(Function handleError) {
     if (handleError == null) handleError = _nullErrorHandler;
-    _onError = _registerErrorHandler(handleError, _zone);
+    _onError = _registerErrorHandler/*<T>*/(handleError, _zone);
   }
 
   void onDone(void handleDone()) {

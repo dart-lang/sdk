@@ -237,7 +237,7 @@ class _Future<T> implements Future<T> {
     if (!identical(currentZone, _ROOT_ZONE)) {
       f = currentZone.registerUnaryCallback/*<dynamic, T>*/(f);
       if (onError != null) {
-        onError = _registerErrorHandler(onError, currentZone);
+        onError = _registerErrorHandler/*<T>*/(onError, currentZone);
       }
     }
     return _thenNoZoneRegistration/*<E>*/(f, onError);
@@ -250,13 +250,13 @@ class _Future<T> implements Future<T> {
     return result;
   }
 
-  Future/*<E>*/ catchError/*<E>*/(Function onError, { bool test(error) }) {
-    _Future/*<E>*/ result = new _Future/*<E>*/();
+  Future/*<T>*/ catchError(Function onError, { bool test(error) }) {
+    _Future/*<T>*/ result = new _Future/*<T>*/();
     if (!identical(result._zone, _ROOT_ZONE)) {
-      onError = _registerErrorHandler(onError, result._zone);
+      onError = _registerErrorHandler/*<T>*/(onError, result._zone);
       if (test != null) test = result._zone.registerUnaryCallback(test);
     }
-    _addListener(new _FutureListener/*<T, E>*/.catchError(
+    _addListener(new _FutureListener/*<T, T>*/.catchError(
         result, onError, test));
     return result;
   }

@@ -486,8 +486,17 @@ abstract class Future<T> {
    *     }
    *
    */
-  Future catchError(Function onError,
-                    {bool test(Object error)});
+  // The `Function` below can stand for several types:
+  // - (dynamic) -> T
+  // - (dynamic, StackTrace) -> T
+  // - (dynamic) -> Future<T>
+  // - (dynamic, StackTrace) -> Future<T>
+  // Given that there is a `test` function that is usually used to do an
+  // `isCheck` we should also expect functions that take a specific argument.
+  // Note: making `catchError` return a `Future<T>` in non-strong mode could be
+  // a breaking change.
+  Future/*<T>*/ catchError(Function onError,
+                           {bool test(Object error)});
 
   /**
    * Register a function to be called when this future completes.
