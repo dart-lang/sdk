@@ -262,7 +262,7 @@ class CoreRuntimeTypesTest {
     assertEquals(d.year, 1970);
 
     d = new DateTime.now();
-    assertEquals(d.year >= 2011, true);
+    assertEquals(d.year >= 1970, true);
   }
 
   static testLiterals() {
