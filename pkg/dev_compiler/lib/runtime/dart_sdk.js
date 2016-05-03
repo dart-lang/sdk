@@ -1183,10 +1183,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     return true;
   };
-  dart.defineProperty = Object.defineProperty;
-  dart.getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
-  dart.getOwnPropertyNames = Object.getOwnPropertyNames;
-  dart.getOwnPropertySymbols = Object.getOwnPropertySymbols;
+  dart.defineProperty = function(obj, name, desc) {
+    return Object.defineProperty(obj, name, desc);
+  };
+  dart.getOwnPropertyDescriptor = function(obj, name) {
+    return Object.getOwnPropertyDescriptor(obj, name);
+  };
+  dart.getOwnPropertyNames = function(obj) {
+    return Object.getOwnPropertyNames(obj);
+  };
+  dart.getOwnPropertySymbols = function(obj) {
+    return Object.getOwnPropertySymbols(obj);
+  };
   dart.hasOwnProperty = Object.prototype.hasOwnProperty;
   dart.StrongModeError = (function() {
     function StrongModeError(message) {
@@ -1204,11 +1212,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     throw Error(message);
   };
   dart.getOwnNamesAndSymbols = function(obj) {
-    return dart.getOwnPropertyNames(obj).concat(dart.getOwnPropertySymbols(obj));
+    let names = dart.getOwnPropertyNames(obj);
+    let symbols = dart.getOwnPropertySymbols(obj);
+    return names.concat(symbols);
   };
   dart.safeGetOwnProperty = function(obj, name) {
     let desc = dart.getOwnPropertyDescriptor(obj, name);
-    if (desc) return desc.value;
+    if (desc != null) return desc.value;
   };
   dart.defineLazyProperty = function(to, name, desc) {
     let init = desc.get;
@@ -1242,21 +1252,25 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.copyTheseProperties = function(to, from, names) {
     for (let name of names) {
-      let desc = dart.getOwnPropertyDescriptor(from, name);
-      if (desc != void 0) {
-        if (name == Symbol.iterator) {
-          let existing = dart.getOwnPropertyDescriptor(to, name);
-          if (existing != null) {
-            if (existing.writable) to[Symbol.iterator] = desc.value;
-            continue;
-          }
-        }
-        dart.defineProperty(to, name, desc);
-      } else {
-        dart.defineLazyProperty(to, name, () => from[name]);
-      }
+      dart.copyProperty(to, from, name);
     }
     return to;
+  };
+  dart.copyProperty = function(to, from, name) {
+    let desc = dart.getOwnPropertyDescriptor(from, name);
+    if (name == Symbol.iterator) {
+      let existing = dart.getOwnPropertyDescriptor(to, name);
+      if (existing != null) {
+        if (existing.writable) {
+          to[name] = desc.value;
+        }
+        return;
+      }
+    }
+    dart.defineProperty(to, name, desc);
+  };
+  dart.export = function(to, from, name) {
+    return dart.copyProperty(to, from, name);
   };
   dart.copyProperties = function(to, from) {
     return dart.copyTheseProperties(to, from, dart.getOwnNamesAndSymbols(from));

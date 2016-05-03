@@ -91,6 +91,8 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   final _hasDeferredSupertype = new HashSet<ClassElement>();
 
+  final _eagerTopLevelFields = new HashSet<Element>.identity();
+
   /// The  type provider from the current Analysis [context].
   final TypeProvider types;
 
@@ -382,15 +384,34 @@ class CodeGenerator extends GeneralizingAstVisitor
     var exportedNames =
         new NamespaceBuilder().createExportNamespaceForDirective(element);
 
+    var libraryName = emitLibraryName(currentLibrary);
+
     // TODO(jmesserly): we could collect all of the names for bulk re-export,
     // but this is easier to implement for now.
     void emitExport(Element export, {String suffix: ''}) {
       var name = _emitTopLevelName(export, suffix: suffix);
-      _moduleItems.add(js.statement(
-          '#.# = #;', [emitLibraryName(currentLibrary), name.selector, name]));
+
+      if (export is TypeDefiningElement || export is FunctionElement ||
+          _eagerTopLevelFields.contains(export)) {
+        // classes, typedefs, functions, and eager init fields can be assigned
+        // directly.
+        // TODO(jmesserly): we don't know about eager init fields from other
+        // modules we import, so we will never go down this code path for them.
+        _moduleItems
+            .add(js.statement('#.# = #;', [libraryName, name.selector, name]));
+      } else {
+        // top-level fields, getters, setters need to copy the property
+        // descriptor.
+        _moduleItems.add(js.statement('dart.export(#, #, #);',
+            [libraryName, name.receiver, name.selector]));
+      }
     }
 
     for (var export in exportedNames.definedNames.values) {
+      if (export is PropertyAccessorElement) {
+        export = (export as PropertyAccessorElement).variable;
+      }
+
       // Don't allow redefining names from this library.
       if (currentNames.containsKey(export.name)) continue;
 
@@ -2795,6 +2816,10 @@ class CodeGenerator extends GeneralizingAstVisitor
     // TODO(jmesserly): we don't track dependencies correctly for these.
     var isJSTopLevel = field.isFinal && _isFinalJSDecl(field);
     if (eagerInit || isJSTopLevel) {
+      // Remember that we emitted it this way, so re-export can take advantage
+      // of this fact.
+      _eagerTopLevelFields.add(element);
+
       return annotate(
           js.statement('# = #;', [_emitTopLevelName(element), jsInit]),
           field,

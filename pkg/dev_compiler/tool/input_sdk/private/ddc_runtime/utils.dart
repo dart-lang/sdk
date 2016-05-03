@@ -7,10 +7,15 @@ part of dart._runtime;
 /// by the Dart runtime.
 // TODO(ochafik): Rewrite some of these in Dart when possible.
 
-final defineProperty = JS('', 'Object.defineProperty');
-final getOwnPropertyDescriptor = JS('', 'Object.getOwnPropertyDescriptor');
-final getOwnPropertyNames = JS('', 'Object.getOwnPropertyNames');
-final getOwnPropertySymbols = JS('', 'Object.getOwnPropertySymbols');
+defineProperty(obj, name, desc) =>
+    JS('', 'Object.defineProperty(#, #, #)', obj, name, desc);
+
+getOwnPropertyDescriptor(obj, name) =>
+    JS('', 'Object.getOwnPropertyDescriptor(#, #)', obj, name);
+
+getOwnPropertyNames(obj) => JS('', 'Object.getOwnPropertyNames(#)', obj);
+
+getOwnPropertySymbols(obj) => JS('', 'Object.getOwnPropertySymbols(#)', obj);
 
 final hasOwnProperty = JS('', 'Object.prototype.hasOwnProperty');
 
@@ -25,23 +30,25 @@ final StrongModeError = JS('', '''(function() {
 })()''');
 
 /// This error indicates a strong mode specific failure.
-void throwStrongModeError(String message) => JS('', '''(() => {
-  throw new $StrongModeError($message);
-})()''');
+void throwStrongModeError(String message) {
+  JS('', 'throw new #(#);', StrongModeError, message);
+}
 
 /// This error indicates a bug in the runtime or the compiler.
-void throwInternalError(String message) => JS('', '''(() => {
-  throw Error($message);
-})()''');
+void throwInternalError(String message) {
+  JS('', 'throw Error(#)', message);
+}
 
-getOwnNamesAndSymbols(obj) => JS('', '''(() => {
-  return $getOwnPropertyNames($obj).concat($getOwnPropertySymbols($obj));
-})()''');
+getOwnNamesAndSymbols(obj) {
+  var names = getOwnPropertyNames(obj);
+  var symbols = getOwnPropertySymbols(obj);
+  return JS('', '#.concat(#)', names, symbols);
+}
 
-safeGetOwnProperty(obj, String name) => JS('', '''(() => {
-  let desc = $getOwnPropertyDescriptor($obj, $name);
-  if (desc) return desc.value;
-})()''');
+safeGetOwnProperty(obj, String name) {
+  var desc = getOwnPropertyDescriptor(obj, name);
+  if (desc != null) return JS('', '#.value', desc);
+}
 
 /// Defines a lazy property.
 /// After initial get or set, it will replace itself with a value property.
@@ -79,36 +86,40 @@ void defineLazy(to, from) => JS('', '''(() => {
   }
 })()''');
 
-defineMemoizedGetter(obj, String name, getter) => JS('', '''(() => {
-  return $defineLazyProperty($obj, $name, {get: $getter});
-})()''');
+defineMemoizedGetter(obj, String name, getter) {
+  return defineLazyProperty(obj, name, JS('', '{get: #}', getter));
+}
 
-
-// TODO(jmesserly): don't stomp on native Symbol.iterator.
-// We need to find a better solution for this.
-// See: https://github.com/dart-lang/dev_compiler/issues/487
 copyTheseProperties(to, from, names) => JS('', '''(() => {
   for (let name of $names) {
-    let desc = $getOwnPropertyDescriptor($from, name);
-    if (desc != void 0) {
-      if (name == Symbol.iterator) {
-        // On native types, Symbol.iterator may already be present.
-        let existing = $getOwnPropertyDescriptor($to, name);
-        if (existing != null) {
-          if (existing.writable) $to[Symbol.iterator] = desc.value;
-          continue;
-        }
-      }
-      $defineProperty($to, name, desc);
-    } else {
-      $defineLazyProperty($to, name, () => $from[name]);
-    }
+    $copyProperty($to, $from, name);
   }
   return $to;
 })()''');
 
+copyProperty(to, from, name) {
+  var desc = getOwnPropertyDescriptor(from, name);
+  if (JS('bool', '# == Symbol.iterator', name)) {
+    // On native types, Symbol.iterator may already be present.
+    // TODO(jmesserly): investigate if we still need this.
+    // If so, we need to find a better solution.
+    // See: https://github.com/dart-lang/dev_compiler/issues/487
+    var existing = getOwnPropertyDescriptor(to, name);
+    if (existing != null) {
+      if (JS('bool', '#.writable', existing)) {
+        JS('', '#[#] = #.value', to, name, desc);
+      }
+      return;
+    }
+  }
+  defineProperty(to, name, desc);
+}
+
+@JSExportName('export')
+exportProperty(to, from, name) => copyProperty(to, from, name);
+
 /// Copy properties from source to destination object.
 /// This operation is commonly called `mixin` in JS.
-copyProperties(to, from) => JS('', '''(() => {
-  return $copyTheseProperties($to, $from, $getOwnNamesAndSymbols($from));
-})()''');
+copyProperties(to, from) {
+  return copyTheseProperties(to, from, getOwnNamesAndSymbols(from));
+}
