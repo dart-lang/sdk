@@ -368,7 +368,7 @@ class ClassElementForLink_Class extends ClassElementForLink
   List<MethodElementForLink> _methods;
   List<InterfaceType> _mixins;
   List<InterfaceType> _interfaces;
-  List<PropertyAccessorElement> _accessors;
+  List<PropertyAccessorElementForLink> _accessors;
 
   ClassElementForLink_Class(
       CompilationUnitElementForLink enclosingElement, this._unlinkedClass)
@@ -377,7 +377,7 @@ class ClassElementForLink_Class extends ClassElementForLink
   @override
   List<PropertyAccessorElement> get accessors {
     if (_accessors == null) {
-      _accessors = <PropertyAccessorElement>[];
+      _accessors = <PropertyAccessorElementForLink>[];
       Map<String, SyntheticVariableElementForLink> syntheticVariables =
           <String, SyntheticVariableElementForLink>{};
       for (UnlinkedExecutable unlinkedExecutable
@@ -392,7 +392,7 @@ class ClassElementForLink_Class extends ClassElementForLink
           SyntheticVariableElementForLink syntheticVariable = syntheticVariables
               .putIfAbsent(name, () => new SyntheticVariableElementForLink());
           PropertyAccessorElementForLink_Executable accessor =
-              new PropertyAccessorElementForLink_Executable(
+              new PropertyAccessorElementForLink_Executable(enclosingElement,
                   this, unlinkedExecutable, syntheticVariable);
           _accessors.add(accessor);
           if (unlinkedExecutable.kind == UnlinkedExecutableKind.getter) {
@@ -699,6 +699,7 @@ abstract class CompilationUnitElementForLink
   List<TopLevelVariableElementForLink> _topLevelVariables;
   List<ClassElementForLink_Enum> _enums;
   List<TopLevelFunctionElementForLink> _functions;
+  List<PropertyAccessorElementForLink> _accessors;
 
   /**
    * Index of this unit in the list of units in the enclosing library.
@@ -709,6 +710,38 @@ abstract class CompilationUnitElementForLink
       int numReferences, this._absoluteUri)
       : _references = new List<ReferenceableElementForLink>(numReferences),
         _unlinkedUnit = unlinkedUnit;
+
+  @override
+  List<PropertyAccessorElementForLink> get accessors {
+    if (_accessors == null) {
+      _accessors = <PropertyAccessorElementForLink>[];
+      Map<String, SyntheticVariableElementForLink> syntheticVariables =
+          <String, SyntheticVariableElementForLink>{};
+      for (UnlinkedExecutable unlinkedExecutable in _unlinkedUnit.executables) {
+        if (unlinkedExecutable.kind == UnlinkedExecutableKind.getter ||
+            unlinkedExecutable.kind == UnlinkedExecutableKind.setter) {
+          String name = unlinkedExecutable.name;
+          if (unlinkedExecutable.kind == UnlinkedExecutableKind.setter) {
+            assert(name.endsWith('='));
+            name = name.substring(0, name.length - 1);
+          }
+          SyntheticVariableElementForLink syntheticVariable = syntheticVariables
+              .putIfAbsent(name, () => new SyntheticVariableElementForLink());
+          PropertyAccessorElementForLink_Executable accessor =
+              new PropertyAccessorElementForLink_Executable(
+                  this, null, unlinkedExecutable, syntheticVariable);
+          _accessors.add(accessor);
+          if (unlinkedExecutable.kind == UnlinkedExecutableKind.getter) {
+            syntheticVariable._getter = accessor;
+          } else {
+            syntheticVariable._setter = accessor;
+          }
+        }
+      }
+      // TODO(paulberry): also add synthetic accessors.
+    }
+    return _accessors;
+  }
 
   @override
   LibraryElementForLink get enclosingElement;
@@ -809,6 +842,13 @@ abstract class CompilationUnitElementForLink
       }
       for (TopLevelFunctionElementForLink function in functions) {
         _containedNames[function.name] = function;
+      }
+      for (PropertyAccessorElementForLink accessor in accessors) {
+        // TODO(paulberry): consider handling synthetic accessors and getting
+        // rid of the loop above for topLevelVariables.
+        if (!accessor.isSynthetic) {
+          _containedNames[accessor.name] = accessor;
+        }
       }
       // TODO(paulberry): fill in other top level entities (typedefs
       // and executables).
@@ -3484,11 +3524,11 @@ class PropertyAccessorElementForLink_Executable extends ExecutableElementForLink
   SyntheticVariableElementForLink variable;
 
   PropertyAccessorElementForLink_Executable(
+      CompilationUnitElementForLink enclosingUnit,
       ClassElementForLink_Class enclosingClass,
       UnlinkedExecutable unlinkedExecutable,
       this.variable)
-      : super(enclosingClass.enclosingElement, enclosingClass,
-            unlinkedExecutable);
+      : super(enclosingUnit, enclosingClass, unlinkedExecutable);
 
   @override
   ConstructorElementForLink get asConstructor => null;

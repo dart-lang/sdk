@@ -1257,6 +1257,17 @@ class C {
     expect(x.type.toString(), 'int');
   }
 
+  void test_fieldRefersToTopLevelGetter() {
+    var mainUnit = checkFile('''
+class C {
+  final x = y;
+}
+int get y => null;
+''');
+    var x = mainUnit.types[0].fields[0];
+    expect(x.type.toString(), 'int');
+  }
+
   void test_genericMethods_basicDownwardInference() {
     checkFile(r'''
 /*=T*/ f/*<S, T>*/(/*=S*/ s) => null;
