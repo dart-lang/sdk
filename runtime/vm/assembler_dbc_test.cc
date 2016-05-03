@@ -704,6 +704,317 @@ ASSEMBLER_TEST_RUN(AssertBooleanFail2, test) {
   EXPECT(EXECUTE_TEST_CODE_OBJECT(test->code()).IsError());
 }
 
+
+//  - Drop1; DropR n; Drop n
+//
+//    Drop 1 or n values from the stack, if instruction is DropR push the first
+//    dropped value to the stack;
+ASSEMBLER_TEST_GENERATE(Drop1, assembler) {
+  __ PushConstant(Smi::Handle(Smi::New(0)));
+  __ PushConstant(Smi::Handle(Smi::New(42)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ Drop1();
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(Drop1, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Drop, assembler) {
+  __ PushConstant(Smi::Handle(Smi::New(0)));
+  __ PushConstant(Smi::Handle(Smi::New(42)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ Drop(11);
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(Drop, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(DropR, assembler) {
+  __ PushConstant(Smi::Handle(Smi::New(0)));
+  __ PushConstant(Smi::Handle(Smi::New(1)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ PushConstant(Smi::Handle(Smi::New(41)));
+  __ DropR(11);
+  __ AddTOS();
+  __ PushConstant(Smi::Handle(Smi::New(0)));  // Should be skipped.
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(DropR, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+//  - Frame D
+//
+//    Reserve and initialize with null space for D local variables.
+ASSEMBLER_TEST_GENERATE(FrameInitialized1, assembler) {
+  __ Frame(1);
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(FrameInitialized1, test) {
+  EXPECT(EXECUTE_TEST_CODE_OBJECT(test->code()).IsNull());
+}
+
+
+ASSEMBLER_TEST_GENERATE(FrameInitialized, assembler) {
+  Label error;
+  __ PushConstant(Smi::Handle(Smi::New(42)));
+  __ Frame(4);
+  __ PushConstant(Object::null_object());
+  __ IfNeStrictTOS();
+  __ Jump(&error);
+  __ PushConstant(Object::null_object());
+  __ IfNeStrictTOS();
+  __ Jump(&error);
+  __ PushConstant(Object::null_object());
+  __ IfNeStrictTOS();
+  __ Jump(&error);
+  __ PushConstant(Object::null_object());
+  __ IfNeStrictTOS();
+  __ Jump(&error);
+  __ ReturnTOS();
+
+  // If a frame slot was not initialized to null.
+  __ Bind(&error);
+  __ PushConstant(Smi::Handle(Smi::New(0)));
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(FrameInitialized, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+//  - StoreLocal rX; PopLocal rX
+//
+//    Store top of the stack into FP[rX] and pop it if needed.
+//
+//  - Push rX
+//
+//    Push FP[rX] to the stack.
+ASSEMBLER_TEST_GENERATE(StoreLocalPush, assembler) {
+  __ Frame(1);
+  __ PushConstant(Smi::Handle(Smi::New(21)));
+  __ StoreLocal(0);
+  __ Push(0);
+  __ AddTOS();
+  __ PushConstant(Smi::Handle(Smi::New(0)));  // Should be skipped.
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(StoreLocalPush, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(PopLocalPush, assembler) {
+  __ Frame(1);
+  __ PushConstant(Smi::Handle(Smi::New(21)));
+  __ PopLocal(0);
+  __ Push(0);
+  __ Push(0);
+  __ AddTOS();
+  __ PushConstant(Smi::Handle(Smi::New(0)));  // Should be skipped.
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(PopLocalPush, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadConstantPush, assembler) {
+  __ Frame(1);
+  __ LoadConstant(0, Smi::Handle(Smi::New(21)));
+  __ Push(0);
+  __ Push(0);
+  __ AddTOS();
+  __ PushConstant(Smi::Handle(Smi::New(0)));  // Should be skipped.
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadConstantPush, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+//  - Move rA, rX
+//
+//    FP[rA] <- FP[rX]
+//    Note: rX is signed so it can be used to address parameters which are
+//    at negative indices with respect to FP.
+ASSEMBLER_TEST_GENERATE(MoveLocalLocal, assembler) {
+  __ Frame(2);
+  __ PushConstant(Smi::Handle(Smi::New(21)));
+  __ PopLocal(0);
+  __ Move(1, 0);
+  __ Push(0);
+  __ Push(1);
+  __ AddTOS();
+  __ PushConstant(Smi::Handle(Smi::New(0)));  // Should be skipped.
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(MoveLocalLocal, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+//  - Return R; ReturnTOS
+//
+//    Return to the caller using either a value from the given register or a
+//    value from the top-of-stack as a result.
+ASSEMBLER_TEST_GENERATE(Return1, assembler) {
+  __ Frame(1);
+  __ PushConstant(Smi::Handle(Smi::New(42)));
+  __ StoreLocal(0);
+  __ Return(0);
+}
+
+
+ASSEMBLER_TEST_RUN(Return1, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Return2, assembler) {
+  __ Frame(2);
+  __ PushConstant(Smi::Handle(Smi::New(42)));
+  __ StoreLocal(1);
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(Return2, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Loop, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadConstant(1, Smi::Handle(Smi::New(0)));
+
+  Label loop_entry, error;
+  __ Bind(&loop_entry);
+  // Add 1 to FP[1].
+  __ PushConstant(Smi::Handle(Smi::New(1)));
+  __ Push(1);
+  __ AddTOS();
+  __ Jump(&error);
+  __ PopLocal(1);
+
+  // Subtract 1 from FP[0].
+  __ Push(0);
+  __ PushConstant(Smi::Handle(Smi::New(1)));
+  __ SubTOS();
+  __ Jump(&error);
+
+  // Jump to loop_entry if FP[0] != 0.
+  __ StoreLocal(0);
+  __ PushConstant(Smi::Handle(Smi::New(0)));
+  __ IfNeStrictNumTOS();
+  __ Jump(&loop_entry);
+
+  __ Return(1);
+
+  __ Bind(&error);
+  __ LoadConstant(1, Smi::Handle(Smi::New(-42)));
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(Loop, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+//  - LoadClassIdTOS, LoadClassId rA, D
+//
+//    LoadClassIdTOS loads the class id from the object at SP[0] and stores it
+//    to SP[0]. LoadClassId loads the class id from FP[rA] and stores it to
+//    FP[D].
+ASSEMBLER_TEST_GENERATE(LoadClassIdTOS, assembler) {
+  __ PushConstant(Smi::Handle(Smi::New(42)));
+  __ LoadClassIdTOS();
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(LoadClassIdTOS, test) {
+  EXPECT_EQ(kSmiCid, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadClassId, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ LoadClassId(1, 0);
+  __ Return(1);
+}
+
+
+ASSEMBLER_TEST_RUN(LoadClassId, test) {
+  EXPECT_EQ(kSmiCid, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+//  - CreateArrayTOS
+//
+//    Allocate array of length SP[0] with type arguments SP[-1].
+ASSEMBLER_TEST_GENERATE(CreateArrayTOS, assembler) {
+  __ PushConstant(Object::null_object());
+  __ PushConstant(Smi::Handle(Smi::New(10)));
+  __ CreateArrayTOS();
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(CreateArrayTOS, test) {
+  const Object& obj = EXECUTE_TEST_CODE_OBJECT(test->code());
+  EXPECT(obj.IsArray());
+  Array& array = Array::Handle();
+  array ^= obj.raw();
+  EXPECT_EQ(10, array.Length());
+}
+
 }  // namespace dart
 
 #endif  // defined(TARGET_ARCH_DBC)
