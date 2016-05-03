@@ -319,16 +319,8 @@ abstract class ClassElementForLink
       for (ConstructorElementForLink constructor in constructors) {
         _containedNames[constructor.name] = constructor;
       }
-      for (FieldElementForLink field in fields) {
-        // TODO(paulberry): do we need to handle nonstatic fields for
-        // consistent behavior with erroneous code?
-        if (field.isStatic) {
-          _containedNames[field.name] = field;
-        }
-      }
       for (PropertyAccessorElementForLink accessor in accessors) {
-        if (accessor.isStatic && !accessor.isSynthetic) {
-          // TODO(paulberry): add synthetic elements too?
+        if (accessor.isStatic) {
           _containedNames[accessor.name] = accessor;
         }
       }
@@ -403,11 +395,9 @@ class ClassElementForLink_Class extends ClassElementForLink
         }
       }
       for (FieldElementForLink_ClassField field in fields) {
-        _accessors
-            .add(new PropertyAccessorElementForLink_Variable(field, false));
+        _accessors.add(field.getter);
         if (!field.isConst && !field.isFinal) {
-          _accessors
-              .add(new PropertyAccessorElementForLink_Variable(field, true));
+          _accessors.add(field.setter);
         }
       }
     }
@@ -1263,7 +1253,7 @@ class ConstConstructorNode extends ConstNode {
         // Note: non-static const isn't allowed but we handle it anyway so
         // that we won't be confused by incorrect code.
         if ((field.isFinal || field.isConst) && !field.isStatic) {
-          safeAddDependency(field.asConstVariable);
+          safeAddDependency(field.getter.asConstVariable);
         }
       }
       for (ParameterElementForLink parameterElement
@@ -2458,8 +2448,13 @@ class ExprTypeComputer {
  * Element representing a field resynthesized from a summary during
  * linking.
  */
-abstract class FieldElementForLink
-    implements FieldElement, ReferenceableElementForLink {}
+abstract class FieldElementForLink implements FieldElement {
+  @override
+  PropertyAccessorElementForLink get getter;
+
+  @override
+  PropertyAccessorElementForLink get setter;
+}
 
 /**
  * Specialization of [FieldElementForLink] for class fields.
@@ -2468,6 +2463,9 @@ class FieldElementForLink_ClassField extends VariableElementForLink
     implements FieldElementForLink {
   @override
   final ClassElementForLink_Class enclosingElement;
+
+  PropertyAccessorElementForLink_Variable _getter;
+  PropertyAccessorElementForLink_Variable _setter;
 
   /**
    * If this is an instance field, the type that was computed by
@@ -2481,7 +2479,21 @@ class FieldElementForLink_ClassField extends VariableElementForLink
         super(unlinkedVariable, enclosingElement.enclosingElement);
 
   @override
+  PropertyAccessorElementForLink_Variable get getter =>
+      _getter ??= new PropertyAccessorElementForLink_Variable(this, false);
+
+  @override
   bool get isStatic => unlinkedVariable.isStatic;
+
+  @override
+  PropertyAccessorElementForLink_Variable get setter {
+    if (!isConst && !isFinal) {
+      return _setter ??=
+          new PropertyAccessorElementForLink_Variable(this, true);
+    } else {
+      return null;
+    }
+  }
 
   @override
   void set type(DartType inferredType) {
@@ -2527,23 +2539,6 @@ class FieldElementForLink_EnumField extends FieldElementForLink
   FieldElementForLink_EnumField(this.unlinkedEnumValue, this.enclosingElement);
 
   @override
-  ConstructorElementForLink get asConstructor => null;
-
-  @override
-  ConstVariableNode get asConstVariable {
-    // Even though enum fields are constants, there is no need to include them
-    // in the const dependency graph because they can't participate in a
-    // circularity.
-    return null;
-  }
-
-  @override
-  DartType get asStaticType => enclosingElement.type;
-
-  @override
-  TypeInferenceNode get asTypeInferenceNode => null;
-
-  @override
   bool get isStatic => true;
 
   @override
@@ -2552,15 +2547,6 @@ class FieldElementForLink_EnumField extends FieldElementForLink
   @override
   String get name =>
       unlinkedEnumValue == null ? 'values' : unlinkedEnumValue.name;
-
-  @override
-  DartType buildType(DartType getTypeArgument(int i),
-          List<int> implicitFunctionTypeIndices) =>
-      DynamicTypeImpl.instance;
-
-  @override
-  ReferenceableElementForLink getContainedName(String name) =>
-      UndefinedElementForLink.instance;
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -3590,6 +3576,18 @@ class PropertyAccessorElementForLink_Variable
   PropertyAccessorElementForLink_Variable(this.variable, this.isSetter);
 
   @override
+  ConstructorElementForLink get asConstructor => null;
+
+  @override
+  ConstVariableNode get asConstVariable => variable._constNode;
+
+  @override
+  DartType get asStaticType => returnType;
+
+  @override
+  TypeInferenceNode get asTypeInferenceNode => variable._typeInferenceNode;
+
+  @override
   Element get enclosingElement => variable.enclosingElement;
 
   @override
@@ -3640,6 +3638,11 @@ class PropertyAccessorElementForLink_Variable
     return const [];
   }
 
+  @override
+  DartType buildType(DartType getTypeArgument(int i),
+          List<int> implicitFunctionTypeIndices) =>
+      DynamicTypeImpl.instance;
+
   /**
    * Compute the type of the corresponding variable, which may depend on the
    * progress of type inference.
@@ -3657,6 +3660,10 @@ class PropertyAccessorElementForLink_Variable
       return variable.type;
     }
   }
+
+  @override
+  ReferenceableElementForLink getContainedName(String name) =>
+      UndefinedElementForLink.instance;
 
   @override
   bool isAccessibleIn(LibraryElement library) =>
