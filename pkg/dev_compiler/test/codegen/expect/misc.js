@@ -17,10 +17,10 @@ dart_library.library('misc', null, /* Imports */[
   misc.Generic$ = dart.generic(T => {
     class Generic extends core.Object {
       get type() {
-        return misc.Generic;
+        return dart.wrapType(misc.Generic);
       }
       m() {
-        return core.print(T);
+        return core.print(dart.wrapType(T));
       }
     }
     dart.setSignature(Generic, {
@@ -57,8 +57,8 @@ dart_library.library('misc', null, /* Imports */[
     core.print(dart.toString(1.0));
     core.print(dart.toString(1.1));
     let x = 42;
-    core.print(dart.equals(x, dart.dynamic));
-    core.print(dart.equals(x, misc.Generic));
+    core.print(dart.equals(x, dart.wrapType(dart.dynamic)));
+    core.print(dart.equals(x, dart.wrapType(misc.Generic)));
     core.print(new (misc.Generic$(core.int))().type);
     core.print(dart.equals(new misc.Derived(), new misc.Derived()));
     new (misc.Generic$(core.int))().m();

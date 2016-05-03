@@ -21,8 +21,8 @@ var _devtoolsFormatter = new JsonMLFormatter(new DartFormatter());
 String _typeof(object) => JS('String', 'typeof #', object);
 bool _instanceof(object, clazz) => JS('bool', '# instanceof #', object, clazz);
 
-List<String> getOwnPropertyNames(object) =>
-    dart.list(JS('List', 'Object.getOwnPropertyNames(#)', object), String);
+List<String> getOwnPropertyNames(object) => JS('List<String>',
+    'dart.list(Object.getOwnPropertyNames(#), #)', object, String);
 
 List getOwnPropertySymbols(object) =>
     JS('List', 'Object.getOwnPropertySymbols(#)', object);
@@ -38,18 +38,18 @@ class JSNative {
 
 bool isRegularDartObject(object) {
   if (_typeof(object) == 'function') return false;
-  return _instanceof(object, Object);
+  return _instanceof(object, JS('Type', '#', Object));
 }
 
 String getObjectTypeName(object) {
-  var realRuntimeType = dart.realRuntimeType(object);
-  if (realRuntimeType == null) {
+  var reifiedType = dart.getReifiedType(object);
+  if (reifiedType == null) {
     if (_typeof(object) == 'function') {
       return '[[Raw JavaScript Function]]';
     }
     return '<Error getting type name>';
   }
-  return getTypeName(realRuntimeType);
+  return getTypeName(reifiedType);
 }
 
 String getTypeName(Type type) {
@@ -301,7 +301,7 @@ class ObjectFormatter extends Formatter {
   _addMembers(current, object, List<NameValuePair> properties) {
     // TODO(jacobr): optionally distinguish properties and fields so that
     // it is safe to expand untrusted objects without side effects.
-    var className = dart.realRuntimeType(current).name;
+    var className = dart.getReifiedType(current).name;
     for (var name in getOwnPropertyNames(current)) {
       if (name == 'constructor' ||
           name == '__proto__' ||
@@ -357,13 +357,13 @@ class ObjectFormatter extends Formatter {
 class FunctionFormatter extends Formatter {
   accept(object) {
     if (_typeof(object) != 'function') return false;
-    return dart.realRuntimeType(object) != null;
+    return dart.getReifiedType(object) != null;
   }
 
   bool hasChildren(object) => true;
 
   String preview(object) {
-    return dart.typeName(dart.realRuntimeType(object));
+    return dart.typeName(dart.getReifiedType(object));
   }
 
   List<NameValuePair> children(object) => <NameValuePair>[
@@ -448,7 +448,7 @@ class ClassMetadataFormatter implements Formatter {
 
   _getType(object) {
     if (object is Type) return object;
-    return dart.realRuntimeType(object);
+    return dart.getReifiedType(object);
   }
 
   String preview(object) {

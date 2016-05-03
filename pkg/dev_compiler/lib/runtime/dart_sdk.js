@@ -527,7 +527,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return false;
   };
   dart.strongInstanceOf = function(obj, type, ignoreFromWhiteList) {
-    let actual = dart.realRuntimeType(obj);
+    let actual = dart.getReifiedType(obj);
     if (dart.isSubtype(actual, type) || actual == dart.jsobject || actual == core.int && type == core.double) return true;
     if (ignoreFromWhiteList == void 0) return false;
     if (dart.isGroundType(type)) return false;
@@ -541,12 +541,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.is = function(obj, type) {
     if (dart.strongInstanceOf(obj, type)) return true;
     if (dart.isGroundType(type)) return false;
-    let actual = dart.realRuntimeType(obj);
+    let actual = dart.getReifiedType(obj);
     dart.throwStrongModeError('Strong mode is check failure: ' + dart.typeName(actual) + ' does not soundly subtype ' + dart.typeName(type));
   };
   dart.as = function(obj, type) {
     if (dart.instanceOfOrNull(obj, type)) return obj;
-    let actual = dart.realRuntimeType(obj);
+    let actual = dart.getReifiedType(obj);
     if (dart.isGroundType(type)) dart.throwCastError(actual, type);
     if (dart._ignoreTypeFailure(actual, type)) return obj;
     dart.throwStrongModeError('Strong mode cast failure from ' + dart.typeName(actual) + ' to ' + dart.typeName(type));
@@ -556,7 +556,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return null;
     }
     if (Math.floor(obj) != obj) {
-      dart.throwCastError(dart.realRuntimeType(obj), core.int);
+      dart.throwCastError(dart.getReifiedType(obj), core.int);
     }
     return obj;
   };
@@ -639,7 +639,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.constants = new Map();
   dart.const = function(obj) {
-    let objectKey = [dart.realRuntimeType(obj)];
+    let objectKey = [dart.getReifiedType(obj)];
     for (let name of dart.getOwnNamesAndSymbols(obj)) {
       objectKey.push(name);
       objectKey.push(obj[name]);
@@ -739,18 +739,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.runtimeType = function(obj) {
     let result = dart.checkPrimitiveType(obj);
-    if (result !== null) return result;
-    result = obj.runtimeType;
-    if (result) return result;
-    return dart._nonPrimitiveRuntimeType(obj);
+    if (result !== null) return dart.wrapType(result);
+    return obj.runtimeType;
   };
   dart.getFunctionType = function(obj) {
     let args = Array(obj.length).fill(dart.dynamic);
     return dart.definiteFunctionType(dart.bottom, args);
   };
-  dart.realRuntimeType = function(obj) {
+  dart.objectRuntimeType = function(obj) {
+    return dart.wrapType(dart.getReifiedType(obj));
+  };
+  dart.getReifiedType = function(obj) {
     let result = dart.checkPrimitiveType(obj);
-    if (result !== null) return result;
+    if (result != null) return result;
     return dart._nonPrimitiveRuntimeType(obj);
   };
   dart._nonPrimitiveRuntimeType = function(obj) {
@@ -763,6 +764,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.jsobject;
     }
     return result;
+  };
+  dart.wrapType = function(type) {
+    if (type.hasOwnProperty(dart._typeObject)) {
+      return type[dart._typeObject];
+    }
+    return type[dart._typeObject] = new dart.WrappedType(type);
   };
   dart._getRuntimeType = function(value) {
     return value[dart._runtimeType];
@@ -779,6 +786,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart._mixins = Symbol("mixins");
   dart.implements = Symbol("implements");
   dart.metadata = Symbol("metadata");
+  dart._typeObject = Symbol("typeObject");
   dart.TypeRep = class TypeRep {
     get name() {
       return this.toString();
@@ -811,6 +819,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.jsobject = new dart.JSObject();
+  dart.WrappedType = class WrappedType extends dart.TypeRep {
+    constructor(type) {
+      super();
+      this._runtimeType = type;
+    }
+    toString() {
+      return dart.typeName(this._runtimeType);
+    }
+  };
   dart.AbstractFunctionType = class AbstractFunctionType extends dart.TypeRep {
     constructor() {
       super();
@@ -978,15 +995,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
     if (tag === core.Type) {
       let name = type.name;
       let args = dart.getGenericArgs(type);
-      if (args) {
-        name += '<';
-        for (let i = 0; i < args.length; ++i) {
-          if (i > 0) name += ', ';
-          name += dart.typeName(args[i]);
-        }
-        name += '>';
+      if (!args) return name;
+      let result = name;
+      let allDynamic = true;
+      result += '<';
+      for (let i = 0; i < args.length; ++i) {
+        if (i > 0) name += ', ';
+        let argName = dart.typeName(args[i]);
+        if (argName != 'dynamic') allDynamic = false;
+        result += argName;
       }
-      return name;
+      result += '>';
+      if (allDynamic) return name;
+      return result;
     }
     if (tag) return "Not a type: " + tag.name;
     return "JSObject<" + type.name + ">";
@@ -1052,12 +1073,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return true;
   };
   dart.canonicalType = function(t) {
-    if (t === Object) return core.Object;
-    if (t === Function) return core.Function;
-    if (t === Array) return core.List;
-    if (t === String) return core.String;
-    if (t === Number) return core.double;
-    if (t === Boolean) return core.bool;
+    if (t === Object) return Object;
+    if (t === Function) return Function;
+    if (t === Array) return List;
+    if (t === String) return String;
+    if (t === Number) return double;
+    if (t === Boolean) return bool;
     return t;
   };
   dart.subtypeMap = new Map();
@@ -1260,7 +1281,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.NoSuchMethodError(this, invocation.memberName, invocation.positionalArguments, invocation.namedArguments));
     }
     get runtimeType() {
-      return dart.realRuntimeType(this);
+      return dart.objectRuntimeType(this);
     }
   };
   dart.setSignature(core.Object, {
@@ -1288,7 +1309,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.lazyFn(_debugger._instanceof, () => [core.bool, [dart.dynamic, dart.dynamic]]);
   _debugger.getOwnPropertyNames = function(object) {
-    return dart.as(dart.list(Object.getOwnPropertyNames(object), core.String), core.List$(core.String));
+    return dart.list(Object.getOwnPropertyNames(object), core.String);
   };
   dart.lazyFn(_debugger.getOwnPropertyNames, () => [core.List$(core.String), [dart.dynamic]]);
   _debugger.getOwnPropertySymbols = function(object) {
@@ -1316,14 +1337,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.lazyFn(_debugger.isRegularDartObject, () => [core.bool, [dart.dynamic]]);
   _debugger.getObjectTypeName = function(object) {
-    let realRuntimeType = dart.realRuntimeType(object);
-    if (realRuntimeType == null) {
+    let reifiedType = dart.getReifiedType(object);
+    if (reifiedType == null) {
       if (_debugger._typeof(object) == 'function') {
         return '[[Raw JavaScript Function]]';
       }
       return '<Error getting type name>';
     }
-    return _debugger.getTypeName(dart.as(realRuntimeType, core.Type));
+    return _debugger.getTypeName(dart.as(reifiedType, core.Type));
   };
   dart.lazyFn(_debugger.getObjectTypeName, () => [core.String, [dart.dynamic]]);
   _debugger.getTypeName = function(type) {
@@ -1563,7 +1584,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return true;
     }
     [_addMembers](current, object, properties) {
-      let className = dart.dload(dart.realRuntimeType(current), 'name');
+      let className = dart.dload(dart.getReifiedType(current), 'name');
       for (let name of _debugger.getOwnPropertyNames(current)) {
         if (name == 'constructor' || name == '__proto__' || dart.equals(name, className)) continue;
         if (dart.notNull(_debugger.hasMethod(object, name))) {
@@ -1621,13 +1642,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _debugger.FunctionFormatter = class FunctionFormatter extends _debugger.Formatter {
     accept(object) {
       if (_debugger._typeof(object) != 'function') return false;
-      return dart.realRuntimeType(object) != null;
+      return dart.getReifiedType(object) != null;
     }
     hasChildren(object) {
       return true;
     }
     preview(object) {
-      return dart.as(dart.typeName(dart.realRuntimeType(object)), core.String);
+      return dart.as(dart.typeName(dart.getReifiedType(object)), core.String);
     }
     children(object) {
       return dart.list([new _debugger.NameValuePair({name: 'signature', value: this.preview(object)}), new _debugger.NameValuePair({name: 'JavaScript Function', value: object, skipDart: true})], _debugger.NameValuePair);
@@ -1704,7 +1725,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [_getType](object) {
       if (dart.is(object, core.Type)) return object;
-      return dart.realRuntimeType(object);
+      return dart.getReifiedType(object);
     }
     preview(object) {
       let entry = dart.as(object, _debugger.ClassMetadata);
@@ -1952,7 +1973,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this ? 2 * 3 * 23 * 3761 : 269 * 811;
     }
     get runtimeType() {
-      return core.bool;
+      return dart.wrapType(core.bool);
     }
   };
   _interceptors.JSBool[dart.implements] = () => [core.bool];
@@ -1972,7 +1993,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return 0;
     }
     get runtimeType() {
-      return _interceptors.JSObject;
+      return dart.wrapType(_interceptors.JSObject);
     }
   };
   _interceptors.JavaScriptObject[dart.implements] = () => [_interceptors.JSObject];
@@ -3301,7 +3322,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return 536870911 & hash + ((16383 & hash) << 15);
     }
     get runtimeType() {
-      return core.String;
+      return dart.wrapType(core.String);
     }
     get [dartx.length]() {
       return this.length;
@@ -9070,7 +9091,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.toString(_js_helper.getRuntimeType(object));
     }
     static objectToString(object) {
-      let name = dart.typeName(dart.realRuntimeType(object));
+      let name = dart.typeName(dart.getReifiedType(object));
       return `Instance of '${name}'`;
     }
     static dateNow() {
@@ -10137,7 +10158,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.fn(_js_helper.stringJoinUnchecked);
   _js_helper.getRuntimeType = function(object) {
-    return dart.realRuntimeType(object);
+    return dart.getReifiedType(object);
   };
   dart.lazyFn(_js_helper.getRuntimeType, () => [core.Type, [dart.dynamic]]);
   _js_helper.getIndex = function(array, index) {
@@ -10340,7 +10361,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.throw(new core.UnimplementedError("ClassMirror.staticMembers unimplemented"));
     }
     get superclass() {
-      if (dart.equals(this[_cls], core.Object)) {
+      if (dart.equals(this[_cls], dart.wrapType(core.Object))) {
         return null;
       } else {
         return new _js_mirrors.JsClassMirror._(this[_cls].__proto__);
@@ -10668,7 +10689,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.byteLength;
     }
     get runtimeType() {
-      return typed_data.ByteBuffer;
+      return dart.wrapType(typed_data.ByteBuffer);
     }
     [dartx.asUint8List](offsetInBytes, length) {
       if (offsetInBytes === void 0) offsetInBytes = 0;
@@ -11075,7 +11096,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     get runtimeType() {
-      return typed_data.Float32x4List;
+      return dart.wrapType(typed_data.Float32x4List);
     }
     static fromList(list) {
       if (dart.is(list, _native_typed_data.NativeFloat32x4List)) {
@@ -11464,7 +11485,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     get runtimeType() {
-      return typed_data.Int32x4List;
+      return dart.wrapType(typed_data.Int32x4List);
     }
     static fromList(list) {
       if (dart.is(list, _native_typed_data.NativeInt32x4List)) {
@@ -11606,7 +11627,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     get runtimeType() {
-      return typed_data.Float64x2List;
+      return dart.wrapType(typed_data.Float64x2List);
     }
     get buffer() {
       return this[_storage][dartx.buffer];
@@ -11815,7 +11836,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return length == null ? _native_typed_data.NativeByteData._create2(buffer, offsetInBytes) : _native_typed_data.NativeByteData._create3(buffer, offsetInBytes, length);
     }
     get runtimeType() {
-      return typed_data.ByteData;
+      return dart.wrapType(typed_data.ByteData);
     }
     get [dartx.elementSizeInBytes]() {
       return 1;
@@ -12095,7 +12116,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return length == null ? _native_typed_data.NativeFloat32List._create2(buffer, offsetInBytes) : _native_typed_data.NativeFloat32List._create3(buffer, offsetInBytes, length);
     }
     get runtimeType() {
-      return typed_data.Float32List;
+      return dart.wrapType(typed_data.Float32List);
     }
     [dartx.sublist](start, end) {
       if (end === void 0) end = null;
@@ -12146,7 +12167,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return length == null ? _native_typed_data.NativeFloat64List._create2(buffer, offsetInBytes) : _native_typed_data.NativeFloat64List._create3(buffer, offsetInBytes, length);
     }
     get runtimeType() {
-      return typed_data.Float64List;
+      return dart.wrapType(typed_data.Float64List);
     }
     [dartx.sublist](start, end) {
       if (end === void 0) end = null;
@@ -12198,7 +12219,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return length == null ? _native_typed_data.NativeInt16List._create2(buffer, offsetInBytes) : _native_typed_data.NativeInt16List._create3(buffer, offsetInBytes, length);
     }
     get runtimeType() {
-      return typed_data.Int16List;
+      return dart.wrapType(typed_data.Int16List);
     }
     [dartx.get](index) {
       this[_checkIndex](index, this[dartx.length]);
@@ -12257,7 +12278,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return length == null ? _native_typed_data.NativeInt32List._create2(buffer, offsetInBytes) : _native_typed_data.NativeInt32List._create3(buffer, offsetInBytes, length);
     }
     get runtimeType() {
-      return typed_data.Int32List;
+      return dart.wrapType(typed_data.Int32List);
     }
     [dartx.get](index) {
       this[_checkIndex](index, this[dartx.length]);
@@ -12316,7 +12337,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.as(length == null ? _native_typed_data.NativeInt8List._create2(buffer, offsetInBytes) : _native_typed_data.NativeInt8List._create3(buffer, offsetInBytes, length), _native_typed_data.NativeInt8List);
     }
     get runtimeType() {
-      return typed_data.Int8List;
+      return dart.wrapType(typed_data.Int8List);
     }
     [dartx.get](index) {
       this[_checkIndex](index, this[dartx.length]);
@@ -12375,7 +12396,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return length == null ? _native_typed_data.NativeUint16List._create2(buffer, offsetInBytes) : _native_typed_data.NativeUint16List._create3(buffer, offsetInBytes, length);
     }
     get runtimeType() {
-      return typed_data.Uint16List;
+      return dart.wrapType(typed_data.Uint16List);
     }
     [dartx.get](index) {
       this[_checkIndex](index, this[dartx.length]);
@@ -12434,7 +12455,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return length == null ? _native_typed_data.NativeUint32List._create2(buffer, offsetInBytes) : _native_typed_data.NativeUint32List._create3(buffer, offsetInBytes, length);
     }
     get runtimeType() {
-      return typed_data.Uint32List;
+      return dart.wrapType(typed_data.Uint32List);
     }
     [dartx.get](index) {
       this[_checkIndex](index, this[dartx.length]);
@@ -12494,7 +12515,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return length == null ? _native_typed_data.NativeUint8ClampedList._create2(buffer, offsetInBytes) : _native_typed_data.NativeUint8ClampedList._create3(buffer, offsetInBytes, length);
     }
     get runtimeType() {
-      return typed_data.Uint8ClampedList;
+      return dart.wrapType(typed_data.Uint8ClampedList);
     }
     get [dartx.length]() {
       return this.length;
@@ -12557,7 +12578,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return length == null ? _native_typed_data.NativeUint8List._create2(buffer, offsetInBytes) : _native_typed_data.NativeUint8List._create3(buffer, offsetInBytes, length);
     }
     get runtimeType() {
-      return typed_data.Uint8List;
+      return dart.wrapType(typed_data.Uint8List);
     }
     get [dartx.length]() {
       return this.length;
@@ -29529,7 +29550,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     } else if (o instanceof Date) {
       let ms = o.getTime();
       return new core.DateTime.fromMillisecondsSinceEpoch(dart.asInt(ms));
-    } else if (dart.is(o, js._DartObject) && dart.jsobject != dart.realRuntimeType(o)) {
+    } else if (dart.is(o, js._DartObject) && dart.jsobject != dart.getReifiedType(o)) {
       return o[_dartObj];
     } else {
       return js._putIfAbsent(js._dartProxies, o, js._wrapToDart);
@@ -30123,7 +30144,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.lazyFn(mirrors.reflect, () => [mirrors.InstanceMirror, [core.Object]]);
   mirrors.reflectClass = function(key) {
-    if (!dart.is(key, core.Type) || dart.equals(key, dart.dynamic)) {
+    if (!dart.is(key, core.Type) || dart.equals(key, dart.wrapType(dart.dynamic))) {
       dart.throw(new core.ArgumentError(`${key} does not denote a class`));
     }
     let tm = mirrors.reflectType(key);
@@ -30134,7 +30155,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.lazyFn(mirrors.reflectClass, () => [mirrors.ClassMirror, [core.Type]]);
   mirrors.reflectType = function(key) {
-    if (dart.equals(key, dart.dynamic)) {
+    if (dart.equals(key, dart.wrapType(dart.dynamic))) {
       return mirrors.currentMirrorSystem().dynamicType;
     }
     return _js_mirrors.reflectType(key);
@@ -66520,7 +66541,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[_parent$].altKey;
     }
     static _makeRecord() {
-      let interceptor = _foreign_helper.JS_INTERCEPTOR_CONSTANT(html$.KeyboardEvent);
+      let interceptor = _foreign_helper.JS_INTERCEPTOR_CONSTANT(dart.wrapType(html$.KeyboardEvent));
       return _js_helper.makeLeafDispatchRecord(interceptor);
     }
     wrap(parent) {
@@ -68256,7 +68277,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (!dart.equals(baseClassName, 'HTMLElement')) {
           dart.throw(new core.UnsupportedError('Class must provide extendsTag if base ' + 'native class is not HtmlElement'));
         }
-        this[_nativeType] = html$.HtmlElement;
+        this[_nativeType] = dart.wrapType(html$.HtmlElement);
       } else {
         let element = document[dartx.createElement](extendsTag);
         if (!(element instanceof window[baseClassName])) {

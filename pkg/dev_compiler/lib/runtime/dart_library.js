@@ -107,15 +107,6 @@ var dart_library =
 
     // Force import of core.
     var dart_sdk = import_('dart_sdk');
-    var core = dart_sdk.core;
-
-    // TODO(jmesserly): this can't be right.
-    // See: https://github.com/dart-lang/dev_compiler/issues/488
-    core.Object.toString = function() {
-      // Interface types are represented by the corresponding constructor
-      // function.  This ensures that Dart interface types print properly.
-      return this.name;
-    }
 
     // TODO(vsm): DOM facades?
     // See: https://github.com/dart-lang/dev_compiler/issues/173

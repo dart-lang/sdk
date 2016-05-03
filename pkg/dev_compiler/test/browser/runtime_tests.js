@@ -119,7 +119,7 @@ suite('instanceOf', () => {
   let cast = dart.as;
   let instanceOf = dart.is;
   let strongInstanceOf = dart.strongInstanceOf;
-  let runtimeType = dart.realRuntimeType;
+  let getReifiedType = dart.getReifiedType;
   let functionType = dart.functionType;
   let typedef = dart.typedef;
   let isSubtype = dart.isSubtype;
@@ -213,7 +213,7 @@ suite('instanceOf', () => {
 
   test('int', () => {
     expect(isGroundType(int), true);
-    expect(isGroundType(runtimeType(5)), true);
+    expect(isGroundType(getReifiedType(5)), true);
 
     checkType(5, int);
     checkType(5, dynamic);
@@ -260,7 +260,7 @@ suite('instanceOf', () => {
 
   test('String', () => {
     expect(isGroundType(String), true);
-    expect(isGroundType(runtimeType("foo")), true);
+    expect(isGroundType(getReifiedType("foo")), true);
     checkType("foo", String);
     checkType("foo", Object);
     checkType("foo", dynamic);
@@ -278,15 +278,15 @@ suite('instanceOf', () => {
 
 
     expect(isGroundType(Map), true);
-    expect(isGroundType(runtimeType(m1)), false);
+    expect(isGroundType(getReifiedType(m1)), false);
     expect(isGroundType(Map$(String, String)), false);
-    expect(isGroundType(runtimeType(m2)), true);
+    expect(isGroundType(getReifiedType(m2)), true);
     expect(isGroundType(Map$(Object, Object)), true);
-    expect(isGroundType(runtimeType(m3)), true);
+    expect(isGroundType(getReifiedType(m3)), true);
     expect(isGroundType(Map), true);
-    expect(isGroundType(runtimeType(m4)), true);
+    expect(isGroundType(getReifiedType(m4)), true);
     expect(isGroundType(collection.HashMap$(dynamic, dynamic)), true);
-    expect(isGroundType(runtimeType(m5)), true);
+    expect(isGroundType(getReifiedType(m5)), true);
     expect(isGroundType(collection.LinkedHashMap), true);
     expect(isGroundType(collection.LinkedHashMap), true);
 
@@ -295,15 +295,15 @@ suite('instanceOf', () => {
     checkType(m1, Object);
 
     // Instance of self
-    checkType(m1, runtimeType(m1));
+    checkType(m1, getReifiedType(m1));
     checkType(m1, Map$(String, String));
 
     // Covariance on generics
-    checkType(m1, runtimeType(m2));
+    checkType(m1, getReifiedType(m2));
     checkType(m1, Map$(Object, Object));
 
     // No contravariance on generics.
-    checkType(m2, runtimeType(m1), false, true);
+    checkType(m2, getReifiedType(m1), false, true);
     checkType(m2, Map$(String, String), false, true);
 
     // null is! Map
@@ -358,19 +358,19 @@ suite('instanceOf', () => {
 
   test('generic and inheritance', () => {
     let aaraw = new AA();
-    let aarawtype = runtimeType(aaraw);
+    let aarawtype = getReifiedType(aaraw);
     let aadynamic = new (AA$(dynamic, dynamic))();
-    let aadynamictype = runtimeType(aadynamic);
+    let aadynamictype = getReifiedType(aadynamic);
     let aa = new (AA$(String, List))();
-    let aatype = runtimeType(aa);
+    let aatype = getReifiedType(aa);
     let bb = new (BB$(String, List))();
-    let bbtype = runtimeType(bb);
+    let bbtype = getReifiedType(bb);
     let cc = new CC();
-    let cctype = runtimeType(cc);
+    let cctype = getReifiedType(cc);
     // We don't allow constructing bad types.
     // This was AA<String> in Dart (wrong number of type args).
     let aabad = new (AA$(dart.dynamic, dart.dynamic))();
-    let aabadtype = runtimeType(aabad);
+    let aabadtype = getReifiedType(aabad);
 
     expect(isGroundType(aatype), false);
     expect(isGroundType(AA$(String, List)), false);
@@ -471,18 +471,18 @@ suite('instanceOf', () => {
     checkType(cls7, Foo);
     checkType(bar7, functionType(B, [B, String]));
     checkType(cls7, functionType(B, [B, String]));
-    checkType(bar7, runtimeType(bar6));
-    checkType(cls7, runtimeType(bar6));
+    checkType(bar7, getReifiedType(bar6));
+    checkType(cls7, getReifiedType(bar6));
     checkType(bar8, Foo);
     checkType(cls8, Foo);
     checkType(bar8, functionType(B, [B, String]));
     checkType(cls8, functionType(B, [B, String]));
-    checkType(bar8, runtimeType(bar6), false, true);
-    checkType(cls8, runtimeType(bar6), false, true);
-    checkType(bar7, runtimeType(bar8), false, true);
-    checkType(cls7, runtimeType(bar8), false, true);
-    checkType(bar8, runtimeType(bar7), false, true);
-    checkType(cls8, runtimeType(bar7), false, true);
+    checkType(bar8, getReifiedType(bar6), false, true);
+    checkType(cls8, getReifiedType(bar6), false, true);
+    checkType(bar7, getReifiedType(bar8), false, true);
+    checkType(cls7, getReifiedType(bar8), false, true);
+    checkType(bar8, getReifiedType(bar7), false, true);
+    checkType(cls8, getReifiedType(bar7), false, true);
 
     // Parameterized typedefs
     expect(isGroundType(FuncG), true);
@@ -747,8 +747,6 @@ suite('instanceOf', () => {
     assert.equal(nullHash, 0);
     let nullString = dart.toString(null);
     assert.equal(nullString, 'null');
-    let nullType = dart.runtimeType(null);
-    assert.equal(nullType, core.Null);
 
     let map = new Map();
     let mapHash = dart.hashCode(map);
@@ -758,8 +756,6 @@ suite('instanceOf', () => {
     let mapString = dart.toString(map);
     assert.equal(mapString, map.toString());
     checkType(mapString, core.String);
-    let mapType = dart.runtimeType(map);
-    assert.equal(mapType, map.runtimeType);
 
     let str = "A string";
     let strHash = dart.hashCode(str);
@@ -768,8 +764,6 @@ suite('instanceOf', () => {
     let strString = dart.toString(str);
     checkType(strString, core.String);
     assert.equal(str, strString);
-    let strType = dart.runtimeType(str);
-    assert.equal(strType, core.String);
 
     let n = 42;
     let intHash = dart.hashCode(n);
@@ -777,8 +771,6 @@ suite('instanceOf', () => {
 
     let intString = dart.toString(n);
     assert.equal(intString, '42');
-    let intType = dart.runtimeType(n);
-    assert.equal(intType, core.int);
   });
 });
 

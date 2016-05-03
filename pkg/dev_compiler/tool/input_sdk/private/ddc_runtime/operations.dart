@@ -195,7 +195,7 @@ _ignoreTypeFailure(actual, type) => JS('', '''(() => {
 })()''');
 
 strongInstanceOf(obj, type, ignoreFromWhiteList) => JS('', '''(() => {
-  let actual = $realRuntimeType($obj);
+  let actual = $getReifiedType($obj);
   if ($isSubtype(actual, $type) || actual == $jsobject ||
       actual == $int && type == $double) return true;
   if ($ignoreFromWhiteList == void 0) return false;
@@ -217,7 +217,7 @@ instanceOf(obj, type) => JS('', '''(() => {
   // TODO(vsm): We can statically detect many cases where this
   // check is unnecessary.
   if ($isGroundType($type)) return false;
-  let actual = $realRuntimeType($obj);
+  let actual = $getReifiedType($obj);
   $throwStrongModeError('Strong mode is check failure: ' +
     $typeName(actual) + ' does not soundly subtype ' +
     $typeName($type));
@@ -228,7 +228,7 @@ cast(obj, type) => JS('', '''(() => {
   // TODO(#296): This is perhaps too eager to throw a StrongModeError?
   // TODO(vsm): handle non-nullable types
   if ($instanceOfOrNull($obj, $type)) return $obj;
-  let actual = $realRuntimeType($obj);
+  let actual = $getReifiedType($obj);
   if ($isGroundType($type)) $throwCastError(actual, $type);
 
   if ($_ignoreTypeFailure(actual, $type)) return $obj;
@@ -243,7 +243,7 @@ asInt(obj) => JS('', '''(() => {
   }
   if (Math.floor($obj) != $obj) {
     // Note: null will also be caught by this check
-    $throwCastError($realRuntimeType($obj), $int);
+    $throwCastError($getReifiedType($obj), $int);
   }
   return $obj;
 })()''');
@@ -390,7 +390,7 @@ final constants = JS('', 'new Map()');
 ///
 @JSExportName('const')
 const_(obj) => JS('', '''(() => {
-  let objectKey = [$realRuntimeType($obj)];
+  let objectKey = [$getReifiedType($obj)];
   // TODO(jmesserly): there's no guarantee in JS that names/symbols are
   // returned in the same order.
   //

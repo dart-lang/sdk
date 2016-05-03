@@ -176,7 +176,7 @@ class Primitives {
   /// In minified mode, uses the unminified names if available.
   static String objectToString(Object object) {
     // String name = objectTypeName(object);
-    String name = JS('String', 'dart.typeName(dart.realRuntimeType(#))', object);
+    String name = JS('String', 'dart.typeName(dart.getReifiedType(#))', object);
     return "Instance of '$name'";
   }
 

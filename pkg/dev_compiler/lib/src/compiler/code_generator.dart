@@ -116,6 +116,9 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   String _buildRoot;
 
+  /// Whether we are currently generating code for the body of a `JS()` call.
+  bool _isInForeignJS = false;
+
   CodeGenerator(AnalysisContext c, this.options, this._extensionTypes)
       : context = c,
         types = c.typeProvider,
@@ -219,7 +222,6 @@ class CodeGenerator extends GeneralizingAstVisitor
     // Add implicit dart:core dependency so it is first.
     emitLibraryName(dartCoreLibrary);
 
-    //
     // Visit each compilation unit and emit its code.
     //
     // NOTE: declarations are not necessarily emitted in this order.
@@ -2009,7 +2011,18 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     // type literal
     if (element is TypeDefiningElement) {
-      return _emitTypeName(fillDynamicTypeArgs(element.type));
+      var typeName = _emitTypeName(fillDynamicTypeArgs(element.type));
+
+      // If the type is a type literal expression in Dart code, wrap the raw
+      // runtime type in a "Type" instance.
+      if (!_isInForeignJS &&
+          node.parent is! MethodInvocation &&
+          node.parent is! PrefixedIdentifier &&
+          node.parent is! PropertyAccess) {
+        typeName = js.call('dart.wrapType(#)', typeName);
+      }
+
+      return typeName;
     }
 
     // library member
@@ -2477,8 +2490,20 @@ class CodeGenerator extends GeneralizingAstVisitor
         source = (code as StringLiteral).stringValue;
       }
 
+      // TODO(rnystrom): The JS() calls are almost never nested, and probably
+      // really shouldn't be, but there are at least a couple of calls in the
+      // HTML library where an argument to JS() is itself a JS() call. If those
+      // go away, this can just assert(!_isInForeignJS).
+      // Inside JS(), type names evaluate to the raw runtime type, not the
+      // wrapped Type object.
+      var wasInForeignJS = _isInForeignJS;
+      _isInForeignJS = true;
+
       var template = js.parseForeignJS(source);
       var result = template.instantiate(_visitList(templateArgs));
+
+      _isInForeignJS = wasInForeignJS;
+
       // `throw` is emitted as a statement by `parseForeignJS`.
       assert(result is JS.Expression || node.parent is ExpressionStatement);
       return result;

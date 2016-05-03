@@ -6,12 +6,14 @@
 /// runtime types.
 part of dart._runtime;
 
-///
 /// Runtime type information.  This module defines the mapping from
 /// runtime objects to their runtime type information.  See the types
 /// module for the definition of how type information is represented.
 ///
-/// Runtime objects fall into four main categories:
+/// There are two kinds of objects that represent "types" at runtime. A
+/// "runtime type" contains all of the data needed to implement the runtime
+/// type checking inserted by the compiler. These objects fall into four
+/// categories:
 ///
 ///   - Things represented by javascript primitives, such as
 ///     null, numbers, booleans, strings, and symbols.  For these
@@ -36,7 +38,12 @@ part of dart._runtime;
 ///     reliably recognize type objects and map directly to core.Type
 ///     rather than attaching this property everywhere.
 ///
-///
+/// The other kind of object representing a "type" is the instances of the
+/// dart:core Type class. These are the user visible objects you get by calling
+/// "runtimeType" on an object or using a class literal expression. These are
+/// different from the above objects, and are created by calling `wrapType()`
+/// on a runtime type.
+
 /// Tag a closure with a type, using one of two forms:
 ///
 /// `dart.fn(cls)` marks cls has having no optional or named
@@ -96,15 +103,12 @@ checkPrimitiveType(obj) => JS('', '''(() => {
 })()''');
 
 runtimeType(obj) => JS('', '''(() => {
-  // Lookup primitive (int/double/string)
+  // Handle primitives where the method isn't on the object.
   let result = $checkPrimitiveType($obj);
-  if (result !== null) return result;
+  if (result !== null) return $wrapType(result);
 
-  // Lookup recorded type
-  result = $obj.runtimeType;
-  if (result) return result;
-
-  return $_nonPrimitiveRuntimeType(obj);
+  // Delegate to the actual method on the object.
+  return $obj.runtimeType;
 })()''');
 
 getFunctionType(obj) => JS('', '''(() => {
@@ -113,19 +117,19 @@ getFunctionType(obj) => JS('', '''(() => {
   return $definiteFunctionType($bottom, args);
 })()''');
 
-///
-/// Returns the runtime type of obj. This is the same as `obj.realRuntimeType`
-/// but will not call an overridden getter.
-///
-/// Currently this will return null for non-Dart objects.
-///
-realRuntimeType(obj) => JS('', '''(() => {
-  // Lookup primitive type
-  let result = $checkPrimitiveType($obj);
-  if (result !== null) return result;
+/// The base implementation of Object.runtimeType.
+objectRuntimeType(obj) => wrapType(getReifiedType(obj));
 
-  return $_nonPrimitiveRuntimeType(obj);
-})()''');
+/// Returns an the runtime representation of the type of obj.
+///
+/// The resulting object is used internally for runtime type checking. This is
+/// different from the user-visible Type object returned by calling
+/// `runtimeType` on some Dart object.
+getReifiedType(obj) {
+  var result = checkPrimitiveType(obj);
+  if (result != null) return result;
+  return _nonPrimitiveRuntimeType(obj);
+}
 
 _nonPrimitiveRuntimeType(obj) => JS('', '''(() => {
   // Lookup recorded *real* type (not user definable runtimeType)
@@ -147,6 +151,17 @@ _nonPrimitiveRuntimeType(obj) => JS('', '''(() => {
   }
   return result;
 })()''');
+
+/// Given an internal runtime type object, wraps it in a `WrappedType` object
+/// that implements the dart:core Type interface.
+wrapType(type) {
+  // If we've already wrapped this type once, use the previous wrapper. This
+  // way, multiple references to the same type return an identical Type.
+  if (JS('bool', '#.hasOwnProperty(#)', type, _typeObject)) {
+    return JS('', '#[#]', type, _typeObject);
+  }
+  return JS('', '#[#] = new #(#)', type, _typeObject, WrappedType, type);
+}
 
 _getRuntimeType(value) => JS('', '#[#]', value, _runtimeType);
 

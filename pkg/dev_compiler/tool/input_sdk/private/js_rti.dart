@@ -7,7 +7,7 @@ part of dart._js_helper;
 // TODO(leafp): Maybe get rid of this?  Currently used by the interceptors
 // library, but that should probably be culled as well.
 Type getRuntimeType(var object) =>
-    JS('Type|null', 'dart.realRuntimeType(#)', object);
+    JS('Type|null', 'dart.getReifiedType(#)', object);
 
 /// Returns the property [index] of the JavaScript array [array].
 getIndex(var array, int index) {

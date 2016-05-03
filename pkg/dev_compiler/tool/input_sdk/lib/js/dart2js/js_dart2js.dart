@@ -487,7 +487,7 @@ Object _convertToDart(o) {
     var ms = JS('num', '#.getTime()', o);
     return new DateTime.fromMillisecondsSinceEpoch(ms);
   } else if (o is _DartObject &&
-             JS('bool', 'dart.jsobject != dart.realRuntimeType(#)', o)) {
+             JS('bool', 'dart.jsobject != dart.getReifiedType(#)', o)) {
     return o._dartObj;
   } else {
     return _putIfAbsent(_dartProxies, o, _wrapToDart);
