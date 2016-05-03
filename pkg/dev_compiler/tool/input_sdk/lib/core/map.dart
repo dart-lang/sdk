@@ -51,6 +51,22 @@ abstract class Map<K, V> {
   factory Map.from(Map other) = LinkedHashMap<K, V>.from;
 
   /**
+   * Creates an unmodifiable hash based map containing the entries of [other].
+   *
+   * The keys must all be assignable to [K] and the values to [V].
+   * The [other] map itself can have any type.
+   *
+   * The map requires the keys to implement compatible
+   * `operator==` and `hashCode`, and it allows `null` as a key.
+   * The created map iterates keys in a fixed order,
+   * preserving the order provided by [other].
+   *
+   * The resulting map behaves like the result of [Map.from],
+   * except that the map returned by this constructor is not modifiable.
+   */
+  external factory Map.unmodifiable(Map other);
+
+  /**
    * Creates an identity map with the default implementation, [LinkedHashMap].
    *
    * The returned map allows `null` as a key.
@@ -133,7 +149,7 @@ abstract class Map<K, V> {
   /**
    * Returns true if this map contains the given [key].
    *
-   * Returns true if any of the keys in the map ar equal to `key`
+   * Returns true if any of the keys in the map are equal to `key`
    * according to the equality used by the map.
    */
   bool containsKey(Object key);

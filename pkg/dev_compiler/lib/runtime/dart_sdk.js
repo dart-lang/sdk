@@ -27246,6 +27246,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       static from(other) {
         return collection.LinkedHashMap$(K, V).from(other);
       }
+      static unmodifiable(other) {
+        return new (collection.UnmodifiableMapView$(K, V))(core.Map$(K, V).from(other));
+      }
       static identity() {
         return collection.LinkedHashMap$(K, V).identity();
       }
@@ -27260,6 +27263,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       constructors: () => ({
         new: [core.Map$(K, V), []],
         from: [core.Map$(K, V), [core.Map]],
+        unmodifiable: [core.Map$(K, V), [core.Map]],
         identity: [core.Map$(K, V), []],
         fromIterable: [core.Map$(K, V), [core.Iterable], {key: dart.functionType(K, [dart.dynamic]), value: dart.functionType(V, [dart.dynamic])}],
         fromIterables: [core.Map$(K, V), [core.Iterable$(K), core.Iterable$(V)]]

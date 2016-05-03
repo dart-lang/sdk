@@ -274,6 +274,13 @@ class List<E> {
   }
 }
 
+@patch
+class Map<K, V> {
+  @patch
+  factory Map.unmodifiable(Map other) {
+    return new UnmodifiableMapView<K, V>(new Map<K, V>.from(other));
+  }
+}
 
 @patch
 class String {
