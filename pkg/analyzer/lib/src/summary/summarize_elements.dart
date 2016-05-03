@@ -355,7 +355,7 @@ class _CompilationUnitSerializer {
             kind: ReferenceKind.classOrEnum,
             name: cls.name,
             numTypeParameters: cls.typeParameters.length,
-            members: serializeClassConstMembers(cls)));
+            members: serializeClassStaticMembers(cls)));
       }
     }
     for (ClassElement enm in compilationUnit.enums) {
@@ -363,7 +363,7 @@ class _CompilationUnitSerializer {
         names.add(new UnlinkedPublicNameBuilder(
             kind: ReferenceKind.classOrEnum,
             name: enm.name,
-            members: serializeClassConstMembers(enm)));
+            members: serializeClassStaticMembers(enm)));
       }
     }
     for (FunctionElement function in compilationUnit.functions) {
@@ -594,11 +594,11 @@ class _CompilationUnitSerializer {
   }
 
   /**
-   * If [cls] is a class, return the list of its members available for
-   * constants - static constant fields, static methods and constructors.
-   * Otherwise return `null`.
+   * If [cls] is a class, return the list of its static members - static
+   * constant fields, static methods and constructors.  Otherwise return `null`.
    */
-  List<UnlinkedPublicNameBuilder> serializeClassConstMembers(ClassElement cls) {
+  List<UnlinkedPublicNameBuilder> serializeClassStaticMembers(
+      ClassElement cls) {
     if (cls.isMixinApplication) {
       // Mixin application members can't be determined directly from the AST so
       // we can't store them in UnlinkedPublicName.
@@ -607,16 +607,6 @@ class _CompilationUnitSerializer {
     }
     if (cls.kind == ElementKind.CLASS) {
       List<UnlinkedPublicNameBuilder> bs = <UnlinkedPublicNameBuilder>[];
-      for (FieldElement field in cls.fields) {
-        if (field.isStatic && field.isConst && field.isPublic) {
-          // TODO(paulberry): include non-consts
-          // TODO(paulberry): should numTypeParameters include class params?
-          bs.add(new UnlinkedPublicNameBuilder(
-              name: field.name,
-              kind: ReferenceKind.propertyAccessor,
-              numTypeParameters: 0));
-        }
-      }
       for (MethodElement method in cls.methods) {
         if (method.isStatic && method.isPublic) {
           // TODO(paulberry): should numTypeParameters include class params?
@@ -629,9 +619,7 @@ class _CompilationUnitSerializer {
       for (PropertyAccessorElement accessor in cls.accessors) {
         if (accessor.isStatic &&
             accessor.isGetter &&
-            accessor.isPublic &&
-            !accessor.isSynthetic) {
-          // TODO(paulberry): combine with field code above.
+            accessor.isPublic) {
           // TODO(paulberry): should numTypeParameters include class params?
           bs.add(new UnlinkedPublicNameBuilder(
               name: accessor.name, kind: ReferenceKind.propertyAccessor));

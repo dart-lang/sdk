@@ -68,9 +68,7 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
         node.typeParameters?.typeParameters?.length ?? 0);
     if (cls != null) {
       for (ClassMember member in node.members) {
-        if (member is FieldDeclaration &&
-            member.isStatic &&
-            member.fields.isConst) {
+        if (member is FieldDeclaration && member.isStatic) {
           for (VariableDeclaration field in member.fields.variables) {
             String name = field.name.name;
             if (isPublic(name)) {

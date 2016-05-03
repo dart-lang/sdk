@@ -2287,8 +2287,8 @@ abstract class UnlinkedPublicName extends base.SummaryClass {
 
   /**
    * If this [UnlinkedPublicName] is a class, the list of members which can be
-   * referenced from constants or factory redirects - static constant fields,
-   * static methods, and constructors.  Otherwise empty.
+   * referenced statically - static fields, static methods, and constructors.
+   * Otherwise empty.
    *
    * Unnamed constructors are not included since they do not constitute a
    * separate name added to any namespace.

@@ -43,7 +43,8 @@ Object canonicalize(Object obj, {bool orderByName: false}) {
     Map<String, Object> result = <String, Object>{};
     obj.toMap().forEach((String key, Object value) {
       bool orderByName = false;
-      if (obj is UnlinkedPublicNamespace && key == 'names') {
+      if (obj is UnlinkedPublicNamespace && key == 'names' ||
+          obj is UnlinkedPublicName && key == 'members') {
         orderByName = true;
       }
       result[key] = canonicalize(value, orderByName: orderByName);
@@ -1156,17 +1157,19 @@ class C {
     Map<String, UnlinkedPublicName> executablesMap =
         <String, UnlinkedPublicName>{};
     className.members.forEach((e) => executablesMap[e.name] = e);
-    expect(executablesMap, hasLength(2));
-    {
-      UnlinkedPublicName executable = executablesMap['fieldStaticConst'];
-      expect(executable.kind, ReferenceKind.propertyAccessor);
+    expect(executablesMap, hasLength(4));
+    Map<String, ReferenceKind> expectedExecutableKinds =
+        <String, ReferenceKind>{
+      'fieldStaticConst': ReferenceKind.propertyAccessor,
+      'fieldStaticFinal': ReferenceKind.propertyAccessor,
+      'fieldStatic': ReferenceKind.propertyAccessor,
+      'methodStaticPublic': ReferenceKind.method,
+    };
+    expectedExecutableKinds.forEach((String name, ReferenceKind expectedKind) {
+      UnlinkedPublicName executable = executablesMap[name];
+      expect(executable.kind, expectedKind);
       expect(executable.members, isEmpty);
-    }
-    {
-      UnlinkedPublicName executable = executablesMap['methodStaticPublic'];
-      expect(executable.kind, ReferenceKind.method);
-      expect(executable.members, isEmpty);
-    }
+    });
   }
 
   test_class_constMembers_constructors() {
@@ -6946,6 +6949,9 @@ final v = 42 is num;
     expect(variable.constExpr, isNull);
     expect(findExecutable('i', executables: cls.executables), isNull);
     expect(findExecutable('i=', executables: cls.executables), isNull);
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].name, 'C');
+    expect(unlinkedUnits[0].publicNamespace.names[0].members, isEmpty);
   }
 
   test_field_const() {
@@ -7096,6 +7102,17 @@ class C<T> {
         serializeClassText('class C { static int i; }').fields[0];
     expect(variable.isStatic, isTrue);
     expect(variable.constExpr, isNull);
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].name, 'C');
+    expect(unlinkedUnits[0].publicNamespace.names[0].members, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].members[0].name, 'i');
+    expect(unlinkedUnits[0].publicNamespace.names[0].members[0].kind,
+        ReferenceKind.propertyAccessor);
+    expect(
+        unlinkedUnits[0].publicNamespace.names[0].members[0].numTypeParameters,
+        0);
+    expect(
+        unlinkedUnits[0].publicNamespace.names[0].members[0].members, isEmpty);
   }
 
   test_field_static_final() {
