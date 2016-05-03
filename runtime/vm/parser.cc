@@ -3297,7 +3297,9 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
 
     // The number of parameters and their type are not yet set in local
     // functions, since they are not 'top-level' parsed.
-    if (func.IsLocalFunction()) {
+    // However, they are already set when the local function is compiled, since
+    // the local function was parsed when its parent was compiled.
+    if (func.parameter_types() == Object::empty_array().raw()) {
       AddFormalParamsToFunction(&params, func);
     }
     SetupDefaultsForOptionalParams(params);
@@ -7287,6 +7289,8 @@ void Parser::AddFormalParamsToFunction(const ParamList* params,
                                 params->has_optional_positional_parameters);
   const int num_parameters = params->parameters->length();
   ASSERT(num_parameters == func.NumParameters());
+  ASSERT(func.parameter_types() == Object::empty_array().raw());
+  ASSERT(func.parameter_names() == Object::empty_array().raw());
   func.set_parameter_types(Array::Handle(Array::New(num_parameters,
                                                     Heap::kOld)));
   func.set_parameter_names(Array::Handle(Array::New(num_parameters,
