@@ -36,6 +36,21 @@ class JSArray<E> implements List<E>, JSIndexable {
     return list;
   }
 
+  static List markUnmodifiableList(List list) {
+    // Functions are stored in the hidden class and not as properties in
+    // the object. We never actually look at the value, but only want
+    // to know if the property exists.
+    JS('void', r'#.fixed$length = Array', list);
+    JS('void', r'#.immutable$list = Array', list);
+    return JS('JSUnmodifiableArray', '#', list);
+  }
+
+  checkMutable(reason) {
+    if (JS('bool', r'#.immutable$list', this)) {
+      throw new UnsupportedError(reason);
+    }
+  }
+
   checkGrowable(reason) {
     if (JS('bool', r'#.fixed$length', this)) {
       throw new UnsupportedError(reason);
@@ -314,6 +329,7 @@ class JSArray<E> implements List<E>, JSIndexable {
   }
 
   void operator []=(int index, E value) {
+    checkMutable('indexed set');
     if (index is !int) throw new ArgumentError(index);
     if (index >= length || index < 0) throw new RangeError.value(index);
     JS('void', r'#[#] = #', this, index, value);
@@ -332,3 +348,4 @@ class JSArray<E> implements List<E>, JSIndexable {
 class JSMutableArray<E> extends JSArray<E> implements JSMutableIndexable {}
 class JSFixedArray<E> extends JSMutableArray<E> {}
 class JSExtendableArray<E> extends JSMutableArray<E> {}
+class JSUnmodifiableArray<E> extends JSArray<E> {} // Already is JSIndexable.

@@ -122,6 +122,17 @@ abstract class List<E> implements Iterable<E> {
   }
 
   /**
+   * Creates an unmodifiable list containing all [elements].
+   *
+   * The [Iterator] of [elements] provides the order of the elements.
+   *
+   * An unmodifiable list cannot have its length or elements changed.
+   * If the elements are themselves immutable, then the resulting list
+   * is also immutable.
+   */
+  external factory List.unmodifiable(Iterable elements);
+
+  /**
    * Returns the object at the given [index] in the list
    * or throws a [RangeError] if [index] is out of bounds.
    */

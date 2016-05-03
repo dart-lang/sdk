@@ -2012,6 +2012,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.fn(_interceptors.setDispatchProperty);
   _interceptors.JSArray$ = dart.generic(E => {
     dart.defineExtensionNames([
+      'checkMutable',
       'checkGrowable',
       'add',
       'removeAt',
@@ -2084,6 +2085,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       static markFixedList(list) {
         list.fixed$length = Array;
         return list;
+      }
+      static markUnmodifiableList(list) {
+        list.fixed$length = Array;
+        list.immutable$list = Array;
+        return list;
+      }
+      [dartx.checkMutable](reason) {
+        if (this.immutable$list) {
+          dart.throw(new core.UnsupportedError(dart.as(reason, core.String)));
+        }
       }
       [dartx.checkGrowable](reason) {
         if (this.fixed$length) {
@@ -2367,6 +2378,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [dartx.set](index, value) {
         dart.as(value, E);
+        this[dartx.checkMutable]('indexed set');
         if (!(typeof index == 'number')) dart.throw(new core.ArgumentError(index));
         if (dart.notNull(index) >= dart.notNull(this[dartx.length]) || dart.notNull(index) < 0) dart.throw(new core.RangeError.value(index));
         this[index] = value;
@@ -2386,6 +2398,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         markGrowable: [_interceptors.JSArray$(E), [dart.dynamic]]
       }),
       methods: () => ({
+        [dartx.checkMutable]: [dart.dynamic, [dart.dynamic]],
         [dartx.checkGrowable]: [dart.dynamic, [dart.dynamic]],
         [dartx.add]: [dart.void, [E]],
         [dartx.removeAt]: [E, [core.int]],
@@ -2432,8 +2445,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
         [dartx.set]: [dart.void, [core.int, E]],
         [dartx.asMap]: [core.Map$(core.int, E), []]
       }),
-      statics: () => ({markFixedList: [core.List, [core.List]]}),
-      names: ['markFixedList']
+      statics: () => ({
+        markFixedList: [core.List, [core.List]],
+        markUnmodifiableList: [core.List, [core.List]]
+      }),
+      names: ['markFixedList', 'markUnmodifiableList']
     });
     JSArray[dart.metadata] = () => [dart.const(new _js_helper.JsPeerInterface({name: 'Array'}))];
     return JSArray;
@@ -2460,6 +2476,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return JSExtendableArray;
   });
   _interceptors.JSExtendableArray = _interceptors.JSExtendableArray$();
+  _interceptors.JSUnmodifiableArray$ = dart.generic(E => {
+    class JSUnmodifiableArray extends _interceptors.JSArray$(E) {
+      JSUnmodifiableArray() {
+        super.JSArray();
+      }
+    }
+    return JSUnmodifiableArray;
+  });
+  _interceptors.JSUnmodifiableArray = _interceptors.JSUnmodifiableArray$();
   const _isInt32 = Symbol('_isInt32');
   const _tdivSlow = Symbol('_tdivSlow');
   const _shlPositive = Symbol('_shlPositive');
@@ -6337,11 +6362,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }),
     names: ['add', 'length', 'remove']
   });
-  _internal.makeListFixedLength = function(growableList) {
-    _interceptors.JSArray.markFixedList(growableList);
-    return growableList;
+  _internal.makeListFixedLength = function(E) {
+    return growableList => {
+      _interceptors.JSArray.markFixedList(growableList);
+      return growableList;
+    };
   };
-  dart.lazyFn(_internal.makeListFixedLength, () => [core.List, [core.List]]);
+  dart.lazyFn(_internal.makeListFixedLength, () => [E => [core.List$(E), [core.List$(E)]]]);
+  _internal.makeFixedListUnmodifiable = function(E) {
+    return list => {
+      _interceptors.JSArray.markUnmodifiableList(list);
+      return list;
+    };
+  };
+  dart.lazyFn(_internal.makeFixedListUnmodifiable, () => [E => [core.List$(E), [core.List$(E)]]]);
   _internal.Lists = class Lists extends core.Object {
     static copy(src, srcStart, dst, dstStart, count) {
       if (dart.notNull(srcStart) < dart.notNull(dstStart)) {
@@ -23572,7 +23606,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           list[dartx.add](dart.as(e, E));
         }
         if (dart.notNull(growable)) return list;
-        return dart.as(_internal.makeListFixedLength(list), core.List$(E));
+        return _internal.makeListFixedLength(E)(list);
       }
       static generate(length, generator, opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
@@ -23588,6 +23622,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
         return result;
       }
+      static unmodifiable(elements) {
+        let result = core.List$(E).from(elements, {growable: false});
+        return _internal.makeFixedListUnmodifiable(E)(result);
+      }
       [Symbol.iterator]() {
         return new dart.JsIterator(this[dartx.iterator]);
       }
@@ -23598,7 +23636,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
         new: [core.List$(E), [], [core.int]],
         filled: [core.List$(E), [core.int, E]],
         from: [core.List$(E), [core.Iterable], {growable: core.bool}],
-        generate: [core.List$(E), [core.int, dart.functionType(E, [core.int])], {growable: core.bool}]
+        generate: [core.List$(E), [core.int, dart.functionType(E, [core.int])], {growable: core.bool}],
+        unmodifiable: [core.List$(E), [core.Iterable]]
       })
     });
     return List;
