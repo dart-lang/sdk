@@ -609,6 +609,7 @@ class _CompilationUnitSerializer {
       List<UnlinkedPublicNameBuilder> bs = <UnlinkedPublicNameBuilder>[];
       for (FieldElement field in cls.fields) {
         if (field.isStatic && field.isConst && field.isPublic) {
+          // TODO(paulberry): include non-consts
           // TODO(paulberry): should numTypeParameters include class params?
           bs.add(new UnlinkedPublicNameBuilder(
               name: field.name,
@@ -623,6 +624,17 @@ class _CompilationUnitSerializer {
               name: method.name,
               kind: ReferenceKind.method,
               numTypeParameters: method.typeParameters.length));
+        }
+      }
+      for (PropertyAccessorElement accessor in cls.accessors) {
+        if (accessor.isStatic &&
+            accessor.isGetter &&
+            accessor.isPublic &&
+            !accessor.isSynthetic) {
+          // TODO(paulberry): combine with field code above.
+          // TODO(paulberry): should numTypeParameters include class params?
+          bs.add(new UnlinkedPublicNameBuilder(
+              name: accessor.name, kind: ReferenceKind.propertyAccessor));
         }
       }
       for (ConstructorElement constructor in cls.constructors) {

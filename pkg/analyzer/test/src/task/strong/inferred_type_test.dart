@@ -1246,6 +1246,17 @@ Iterable<Map<int, int>> bar() sync* {
   ''');
   }
 
+  void test_fieldRefersToStaticGetter() {
+    var mainUnit = checkFile('''
+class C {
+  final x = _x;
+  static int get _x => null;
+}
+''');
+    var x = mainUnit.types[0].fields[0];
+    expect(x.type.toString(), 'int');
+  }
+
   void test_genericMethods_basicDownwardInference() {
     checkFile(r'''
 /*=T*/ f/*<S, T>*/(/*=S*/ s) => null;

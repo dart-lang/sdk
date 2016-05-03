@@ -2819,6 +2819,73 @@ class C {
     ]);
   }
 
+  test_constExpr_pushReference_staticGetter() {
+    UnlinkedVariable variable = serializeVariableText('''
+class C {
+  static int get x => null;
+}
+const v = C.x;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'x',
+              expectedKind: ReferenceKind.propertyAccessor,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+              ])
+    ]);
+  }
+
+  test_constExpr_pushReference_staticGetter_imported() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C {
+  static int get x => null;
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart';
+const v = C.x;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'x',
+              expectedKind: ReferenceKind.propertyAccessor,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                    absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart')
+              ])
+    ]);
+  }
+
+  test_constExpr_pushReference_staticGetter_imported_withPrefix() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C {
+  static int get x => null;
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart' as p;
+const v = p.C.x;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'x',
+              expectedKind: ReferenceKind.propertyAccessor,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                    absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
+                new _PrefixExpectation(ReferenceKind.prefix, 'p')
+              ])
+    ]);
+  }
+
   test_constExpr_pushReference_staticMethod() {
     UnlinkedVariable variable = serializeVariableText('''
 class C {
@@ -2953,6 +3020,48 @@ const v = p.f;
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.prefix, 'p')
               ])
+    ]);
+  }
+
+  test_constExpr_pushReference_topLevelGetter() {
+    UnlinkedVariable variable = serializeVariableText('''
+int get x => null;
+const v = x;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'x',
+          expectedKind: ReferenceKind.topLevelPropertyAccessor)
+    ]);
+  }
+
+  test_constExpr_pushReference_topLevelGetter_imported() {
+    addNamedSource('/a.dart', 'int get x => null;');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart';
+const v = x;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'x',
+          expectedKind: ReferenceKind.topLevelPropertyAccessor)
+    ]);
+  }
+
+  test_constExpr_pushReference_topLevelGetter_imported_withPrefix() {
+    addNamedSource('/a.dart', 'int get x => null;');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart' as p;
+const v = p.x;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'x',
+          expectedKind: ReferenceKind.topLevelPropertyAccessor,
+          expectedPrefix: 'p')
     ]);
   }
 
@@ -5282,9 +5391,13 @@ class C {
     expect(executable.isAsynchronous, isFalse);
     expect(executable.isExternal, isFalse);
     expect(executable.isGenerator, isFalse);
+    expect(executable.isStatic, isFalse);
     _assertCodeRange(executable.codeRange, 10, 15);
     expect(findVariable('f', variables: cls.fields), isNull);
     expect(findExecutable('f=', executables: cls.executables), isNull);
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].name, 'C');
+    expect(unlinkedUnits[0].publicNamespace.names[0].members, isEmpty);
   }
 
   test_executable_member_getter_external() {
@@ -5292,6 +5405,25 @@ class C {
     UnlinkedExecutable executable =
         findExecutable('f', executables: cls.executables, failIfAbsent: true);
     expect(executable.isExternal, isTrue);
+  }
+
+  test_executable_member_getter_static() {
+    UnlinkedClass cls =
+        serializeClassText('class C { static int get f => 1; }');
+    UnlinkedExecutable executable =
+        findExecutable('f', executables: cls.executables, failIfAbsent: true);
+    expect(executable.isStatic, isTrue);
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].name, 'C');
+    expect(unlinkedUnits[0].publicNamespace.names[0].members, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].members[0].name, 'f');
+    expect(unlinkedUnits[0].publicNamespace.names[0].members[0].kind,
+        ReferenceKind.propertyAccessor);
+    expect(
+        unlinkedUnits[0].publicNamespace.names[0].members[0].numTypeParameters,
+        0);
+    expect(
+        unlinkedUnits[0].publicNamespace.names[0].members[0].members, isEmpty);
   }
 
   test_executable_member_setter() {

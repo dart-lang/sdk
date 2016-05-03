@@ -83,14 +83,15 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
         }
         if (member is MethodDeclaration &&
             member.isStatic &&
-            !member.isGetter &&
             !member.isSetter &&
             !member.isOperator) {
           String name = member.name.name;
           if (isPublic(name)) {
             cls.members.add(new UnlinkedPublicNameBuilder(
                 name: name,
-                kind: ReferenceKind.method,
+                kind: member.isGetter
+                    ? ReferenceKind.propertyAccessor
+                    : ReferenceKind.method,
                 numTypeParameters:
                     member.typeParameters?.typeParameters?.length ?? 0));
           }

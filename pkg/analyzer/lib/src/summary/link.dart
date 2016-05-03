@@ -271,6 +271,9 @@ abstract class ClassElementForLink
         hasBeenInferred = !enclosingElement.isInBuildUnit;
 
   @override
+  List<PropertyAccessorElementForLink> get accessors;
+
+  @override
   ConstructorElementForLink get asConstructor => unnamedConstructor;
 
   @override
@@ -321,6 +324,12 @@ abstract class ClassElementForLink
         // consistent behavior with erroneous code?
         if (field.isStatic) {
           _containedNames[field.name] = field;
+        }
+      }
+      for (PropertyAccessorElementForLink accessor in accessors) {
+        if (accessor.isStatic && !accessor.isSynthetic) {
+          // TODO(paulberry): add synthetic elements too?
+          _containedNames[accessor.name] = accessor;
         }
       }
       // TODO(paulberry): add methods.
@@ -3461,7 +3470,7 @@ abstract class ParameterParentElementForLink implements Element {
  * linking.
  */
 abstract class PropertyAccessorElementForLink
-    implements PropertyAccessorElementImpl {
+    implements PropertyAccessorElementImpl, ReferenceableElementForLink {
   void link(CompilationUnitElementInBuildUnit compilationUnit);
 }
 
@@ -3482,6 +3491,18 @@ class PropertyAccessorElementForLink_Executable extends ExecutableElementForLink
             unlinkedExecutable);
 
   @override
+  ConstructorElementForLink get asConstructor => null;
+
+  @override
+  ConstVariableNode get asConstVariable => null;
+
+  @override
+  DartType get asStaticType => returnType;
+
+  @override
+  TypeInferenceNode get asTypeInferenceNode => null;
+
+  @override
   PropertyAccessorElementForLink_Executable get correspondingGetter =>
       variable.getter;
 
@@ -3496,6 +3517,15 @@ class PropertyAccessorElementForLink_Executable extends ExecutableElementForLink
   @override
   ElementKind get kind => _unlinkedExecutable.kind ==
       UnlinkedExecutableKind.getter ? ElementKind.GETTER : ElementKind.SETTER;
+
+  @override
+  DartType buildType(DartType getTypeArgument(int i),
+          List<int> implicitFunctionTypeIndices) =>
+      DynamicTypeImpl.instance;
+
+  @override
+  ReferenceableElementForLink getContainedName(String name) =>
+      UndefinedElementForLink.instance;
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

@@ -647,7 +647,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       return;
     }
     expect(original, isNotNull);
-    expect(resynthesized, isNotNull);
+    expect(resynthesized, isNotNull, reason: desc);
     expect(rImpl.runtimeType, oImpl.runtimeType);
     expect(resynthesized.kind, original.kind);
     expect(resynthesized.location, original.location, reason: desc);
