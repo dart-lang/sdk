@@ -208,7 +208,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       // Use a list to keep track of the classes we've seen, so that we won't
       // go into an infinite loop in the event of a non-trivial loop in the
       // class hierarchy.
-      List<ClassElementImpl> classesSeen = <ClassElementImpl>[this];
+      List<ClassElement> classesSeen = <ClassElement>[this];
       while (nearestNonMixinClass.isMixinApplication) {
         if (classesSeen.contains(nearestNonMixinClass)) {
           // Loop in the class hierarchy (which is reported elsewhere).  Don't
