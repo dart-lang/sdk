@@ -588,6 +588,7 @@ class Driver implements CommandLineStarter {
     // to activate batch mode.
     if (sdk == null) {
       sdk = new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
+      sdk.useSummary = true;
       sdk.analysisOptions = createAnalysisOptionsForCommandLineOptions(options);
     }
     _isBatch = options.shouldBatch;
