@@ -391,7 +391,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     void emitExport(Element export, {String suffix: ''}) {
       var name = _emitTopLevelName(export, suffix: suffix);
 
-      if (export is TypeDefiningElement || export is FunctionElement ||
+      if (export is TypeDefiningElement ||
+          export is FunctionElement ||
           _eagerTopLevelFields.contains(export)) {
         // classes, typedefs, functions, and eager init fields can be assigned
         // directly.

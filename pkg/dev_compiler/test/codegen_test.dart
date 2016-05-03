@@ -98,9 +98,10 @@ main(arguments) {
           // Collect any other files we've imported.
           var files = new Set<String>();
           _collectTransitiveImports(contents, files, from: filePath);
-
+          var moduleName =
+              path.withoutExtension(path.relative(filePath, from: inputDir));
           var unit = new BuildUnit(
-              filename, baseDir, files.toList(), _moduleForLibrary);
+              moduleName, baseDir, files.toList(), _moduleForLibrary);
           var module = compiler.compile(unit, options);
           _writeModule(path.join(outDir.path, filename), module);
         });
