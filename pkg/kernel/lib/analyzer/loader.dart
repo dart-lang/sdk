@@ -53,7 +53,6 @@ class AnalyzerLoader implements ReferenceLevelLoader {
 
   ast.Library getLibraryBody(LibraryElement element) {
     var library = getLibraryReference(element);
-    library.name = element.name;
     if (!library.isLoaded) {
       _buildLibraryBody(element, library);
     }
@@ -61,6 +60,7 @@ class AnalyzerLoader implements ReferenceLevelLoader {
   }
 
   void _buildLibraryBody(LibraryElement element, ast.Library library) {
+    library.name = element.name.isEmpty ? null : element.name;
     for (var unit in element.units) {
       for (var type in unit.types) {
         library.addClass(getClassReference(type));
