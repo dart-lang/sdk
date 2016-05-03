@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_DBC)
 
 #include "vm/assembler.h"
+#include "vm/stack_frame.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -39,6 +40,18 @@ ASSEMBLER_TEST_GENERATE(Simple, assembler) {
 
 ASSEMBLER_TEST_RUN(Simple, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+// Called from assembler_test.cc.
+// FP[-kParamEndSlotFromFp - 1]: growable array
+// FP[-kParamEndSlotFromFp - 2]: value
+ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
+  __ Frame(2);
+  __ Move(0, -kParamEndSlotFromFp - 1);
+  __ Move(1, -kParamEndSlotFromFp - 2);
+  __ StoreField(0, GrowableObjectArray::data_offset() / kWordSize, 1);
+  __ Return(0);
 }
 
 
