@@ -223,5 +223,3 @@ large_class_declaration_test: Skip
 [ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
 vm/optimized_guarded_field_isolates_test: Skip # Issue #26373
 issue23244_test: Skip # Issue #26373
-
-vm/debug_break_enabled_vm_test/01: Skip # Issue #26375

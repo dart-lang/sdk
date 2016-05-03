@@ -333,6 +333,7 @@ class AdbDevice {
       if (index >= 0) {
         exitCode = int.parse(
             lines.last.substring(index + MARKER.length).trim());
+        exitCode = exitCode.toSigned(8);
       } else {
         // In case of timeouts, for example, we won't get the exitcode marker.
         assert(result.exitCode != 0);
