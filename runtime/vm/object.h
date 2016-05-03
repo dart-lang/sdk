@@ -6134,6 +6134,8 @@ class Smi : public Integer {
   friend class Api;  // For ValueFromRaw
   friend class Class;
   friend class Object;
+  friend class ReusableSmiHandleScope;
+  friend class Thread;
 };
 
 

@@ -11,6 +11,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/raw_object.h"
+#include "vm/reusable_handles.h"
 #include "vm/snapshot_ids.h"
 #include "vm/unicode.h"
 #include "vm/visitor.h"
@@ -602,18 +603,25 @@ RawString* Symbols::FromConcatAll(Thread* thread,
 // StringType can be StringSlice, ConcatString, or {Latin1,UTF16,UTF32}Array.
 template<typename StringType>
 RawString* Symbols::NewSymbol(Thread* thread, const StringType& str) {
-  Zone* zone = thread->zone();
-  String& symbol = String::Handle(zone);
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  REUSABLE_SMI_HANDLESCOPE(thread);
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  String& symbol = String::Handle(thread->zone());
+  dart::Object& key = thread->ObjectHandle();
+  Smi& value = thread->SmiHandle();
+  Array& data = thread->ArrayHandle();
   {
     Isolate* vm_isolate = Dart::vm_isolate();
-    SymbolTable table(zone, vm_isolate->object_store()->symbol_table());
+    data ^= vm_isolate->object_store()->symbol_table();
+    SymbolTable table(&key, &value, &data);
     symbol ^= table.GetOrNull(str);
     table.Release();
   }
   if (symbol.IsNull()) {
     Isolate* isolate = thread->isolate();
     SafepointMutexLocker ml(isolate->symbols_mutex());
-    SymbolTable table(zone, isolate->object_store()->symbol_table());
+    data ^= isolate->object_store()->symbol_table();
+    SymbolTable table(&key, &value, &data);
     symbol ^= table.InsertNewOrGet(str);
     isolate->object_store()->set_symbol_table(table.Release());
   }
@@ -625,18 +633,25 @@ RawString* Symbols::NewSymbol(Thread* thread, const StringType& str) {
 
 template<typename StringType>
 RawString* Symbols::Lookup(Thread* thread, const StringType& str) {
-  Isolate* isolate = thread->isolate();
-  Zone* zone = thread->zone();
-  String& symbol = String::Handle(zone);
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  REUSABLE_SMI_HANDLESCOPE(thread);
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  String& symbol = String::Handle(thread->zone());
+  dart::Object& key = thread->ObjectHandle();
+  Smi& value = thread->SmiHandle();
+  Array& data = thread->ArrayHandle();
   {
     Isolate* vm_isolate = Dart::vm_isolate();
-    SymbolTable table(zone, vm_isolate->object_store()->symbol_table());
+    data ^= vm_isolate->object_store()->symbol_table();
+    SymbolTable table(&key, &value, &data);
     symbol ^= table.GetOrNull(str);
     table.Release();
   }
   if (symbol.IsNull()) {
+    Isolate* isolate = thread->isolate();
     SafepointMutexLocker ml(isolate->symbols_mutex());
-    SymbolTable table(zone, isolate->object_store()->symbol_table());
+    data ^= isolate->object_store()->symbol_table();
+    SymbolTable table(&key, &value, &data);
     symbol ^= table.GetOrNull(str);
     table.Release();
   }
