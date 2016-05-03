@@ -54,7 +54,8 @@ void ThreadInterrupter::InterruptThread(OSThread* thread) {
 
 
 void ThreadInterrupter::InstallSignalHandler() {
-  SignalHandler::Install(ThreadInterrupterLinux::ThreadInterruptSignalHandler);
+  SignalHandler::Install<
+      ThreadInterrupterLinux::ThreadInterruptSignalHandler>();
 }
 
 

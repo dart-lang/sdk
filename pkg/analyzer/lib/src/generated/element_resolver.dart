@@ -613,7 +613,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     } else if (methodName.name == FunctionElement.LOAD_LIBRARY_NAME &&
         _isDeferredPrefix(target)) {
       if (node.operator.type == TokenType.QUESTION_PERIOD) {
-        _resolver.reportErrorForNode(
+        _resolver.errorReporter.reportErrorForNode(
             CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
             target,
             [(target as SimpleIdentifier).name]);
@@ -749,7 +749,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         identical(errorCode,
             CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT) ||
         identical(errorCode, StaticTypeWarningCode.UNDEFINED_FUNCTION)) {
-      _resolver.reportErrorForNode(errorCode, methodName, [methodName.name]);
+      _resolver.errorReporter
+          .reportErrorForNode(errorCode, methodName, [methodName.name]);
     } else if (identical(errorCode, StaticTypeWarningCode.UNDEFINED_METHOD)) {
       String targetTypeName;
       if (target == null) {
@@ -798,7 +799,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             }
           }
         }
-        targetTypeName = targetType == null ? null : targetType.displayName;
+        targetTypeName = targetType?.displayName;
         ErrorCode proxyErrorCode = (generatedWithTypePropagation
             ? HintCode.UNDEFINED_METHOD
             : StaticTypeWarningCode.UNDEFINED_METHOD);
@@ -817,8 +818,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
       DartType targetType = getSuperType(_getStaticType(target));
       String targetTypeName = targetType?.name;
-      _resolver.reportErrorForNode(StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
-          methodName, [methodName.name, targetTypeName]);
+      _resolver.errorReporter.reportErrorForNode(
+          StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
+          methodName,
+          [methodName.name, targetTypeName]);
     }
     return null;
   }
@@ -892,17 +895,21 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
       if (element == null) {
         if (identifier.inSetterContext()) {
-          _resolver.reportErrorForNode(StaticWarningCode.UNDEFINED_SETTER,
-              identifier, [identifier.name, prefixElement.name]);
+          _resolver.errorReporter.reportErrorForNode(
+              StaticWarningCode.UNDEFINED_SETTER,
+              identifier,
+              [identifier.name, prefixElement.name]);
           return null;
         }
         AstNode parent = node.parent;
         if (parent is Annotation) {
-          _resolver.reportErrorForNode(
+          _resolver.errorReporter.reportErrorForNode(
               CompileTimeErrorCode.INVALID_ANNOTATION, parent);
         } else {
-          _resolver.reportErrorForNode(StaticWarningCode.UNDEFINED_GETTER,
-              identifier, [identifier.name, prefixElement.name]);
+          _resolver.errorReporter.reportErrorForNode(
+              StaticWarningCode.UNDEFINED_GETTER,
+              identifier,
+              [identifier.name, prefixElement.name]);
         }
         return null;
       }
@@ -1077,25 +1084,25 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     ClassElement enclosingClass = _resolver.enclosingClass;
     if (_isFactoryConstructorReturnType(node) &&
         !identical(element, enclosingClass)) {
-      _resolver.reportErrorForNode(
+      _resolver.errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, node);
     } else if (_isConstructorReturnType(node) &&
         !identical(element, enclosingClass)) {
-      _resolver.reportErrorForNode(
+      _resolver.errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
       element = null;
     } else if (element == null ||
         (element is PrefixElement && !_isValidAsPrefix(node))) {
       // TODO(brianwilkerson) Recover from this error.
       if (_isConstructorReturnType(node)) {
-        _resolver.reportErrorForNode(
+        _resolver.errorReporter.reportErrorForNode(
             CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
       } else {
         if (parent is Annotation) {
-          _resolver.reportErrorForNode(
+          _resolver.errorReporter.reportErrorForNode(
               CompileTimeErrorCode.INVALID_ANNOTATION, parent);
         } else if (element != null) {
-          _resolver.reportErrorForNode(
+          _resolver.errorReporter.reportErrorForNode(
               CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
               node,
               [element.name]);
@@ -1137,19 +1144,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       return null;
     }
     SimpleIdentifier name = node.constructorName;
-    String superName = name != null ? name.name : null;
+    String superName = name?.name;
     ConstructorElement element =
         superType.lookUpConstructor(superName, _definingLibrary);
     if (element == null ||
         (!enclosingClass.doesMixinLackConstructors &&
             !enclosingClass.isSuperConstructorAccessible(element))) {
       if (name != null) {
-        _resolver.reportErrorForNode(
+        _resolver.errorReporter.reportErrorForNode(
             CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
             node,
             [superType.displayName, name]);
       } else {
-        _resolver.reportErrorForNode(
+        _resolver.errorReporter.reportErrorForNode(
             CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
             node,
             [superType.displayName]);
@@ -1157,7 +1164,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       return null;
     } else {
       if (element.isFactory) {
-        _resolver.reportErrorForNode(
+        _resolver.errorReporter.reportErrorForNode(
             CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, node, [element]);
       }
     }
@@ -1177,7 +1184,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   @override
   Object visitSuperExpression(SuperExpression node) {
     if (!_isSuperInValidContext(node)) {
-      _resolver.reportErrorForNode(
+      _resolver.errorReporter.reportErrorForNode(
           CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, node);
     }
     return super.visitSuperExpression(node);
@@ -1526,7 +1533,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
       NodeList<TypeName> arguments = typeArguments?.arguments;
       if (arguments != null && arguments.length != parameters.length) {
-        _resolver.reportErrorForNode(
+        _resolver.errorReporter.reportErrorForNode(
             StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
             node,
             [invokeType, parameters.length, arguments?.length ?? 0]);
@@ -1635,7 +1642,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       if (labelScope == null) {
         // There are no labels in scope, so by definition the label is
         // undefined.
-        _resolver.reportErrorForNode(
+        _resolver.errorReporter.reportErrorForNode(
             CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, [labelNode.name]);
         return null;
       }
@@ -1643,7 +1650,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       if (definingScope == null) {
         // No definition of the given label name could be found in any
         // enclosing scope.
-        _resolver.reportErrorForNode(
+        _resolver.errorReporter.reportErrorForNode(
             CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, [labelNode.name]);
         return null;
       }
@@ -1652,8 +1659,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       ExecutableElement labelContainer = definingScope.element
           .getAncestor((element) => element is ExecutableElement);
       if (!identical(labelContainer, _resolver.enclosingFunction)) {
-        _resolver.reportErrorForNode(CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
-            labelNode, [labelNode.name]);
+        _resolver.errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
+            labelNode,
+            [labelNode.name]);
       }
       return definingScope.node;
     }
@@ -1815,7 +1824,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   void _recordUndefinedNode(Element declaringElement, ErrorCode errorCode,
       AstNode node, List<Object> arguments) {
     if (_doesntHaveProxy(declaringElement)) {
-      _resolver.reportErrorForNode(errorCode, node, arguments);
+      _resolver.errorReporter.reportErrorForNode(errorCode, node, arguments);
     }
   }
 
@@ -1830,7 +1839,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   void _recordUndefinedOffset(Element declaringElement, ErrorCode errorCode,
       int offset, int length, List<Object> arguments) {
     if (_doesntHaveProxy(declaringElement)) {
-      _resolver.reportErrorForOffset(errorCode, offset, length, arguments);
+      _resolver.errorReporter
+          .reportErrorForOffset(errorCode, offset, length, arguments);
     }
   }
 
@@ -1845,7 +1855,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   void _recordUndefinedToken(Element declaringElement, ErrorCode errorCode,
       Token token, List<Object> arguments) {
     if (_doesntHaveProxy(declaringElement)) {
-      _resolver.reportErrorForToken(errorCode, token, arguments);
+      _resolver.errorReporter.reportErrorForToken(errorCode, token, arguments);
     }
   }
 
@@ -1951,7 +1961,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     }
     // we need constructor
     if (constructor == null) {
-      _resolver.reportErrorForNode(
+      _resolver.errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       return;
     }
@@ -1965,19 +1975,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       Annotation annotation, PropertyAccessorElement accessorElement) {
     // accessor should be synthetic
     if (!accessorElement.isSynthetic) {
-      _resolver.reportErrorForNode(
+      _resolver.errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
       return;
     }
     // variable should be constant
     VariableElement variableElement = accessorElement.variable;
     if (!variableElement.isConst) {
-      _resolver.reportErrorForNode(
+      _resolver.errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
     }
     // no arguments
     if (annotation.arguments != null) {
-      _resolver.reportErrorForNode(
+      _resolver.errorReporter.reportErrorForNode(
           CompileTimeErrorCode.ANNOTATION_WITH_NON_CLASS,
           annotation.name,
           [annotation.name]);
@@ -2017,7 +2027,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   List<ParameterElement> _resolveArgumentsToParameters(bool reportAsError,
       ArgumentList argumentList, List<ParameterElement> parameters) {
     return ResolverVisitor.resolveArgumentsToParameters(
-        argumentList, parameters, _resolver.reportErrorForNode,
+        argumentList, parameters, _resolver.errorReporter.reportErrorForNode,
         reportAsError: reportAsError);
   }
 
@@ -2183,7 +2193,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       Element targetElement = target.staticElement;
       if (targetElement is PrefixElement) {
         if (isConditional) {
-          _resolver.reportErrorForNode(
+          _resolver.errorReporter.reportErrorForNode(
               CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
               target,
               [target.name]);
@@ -2288,9 +2298,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           shouldReportMissingMember_static ? staticType : propagatedType;
       Element staticOrPropagatedEnclosingElt = staticOrPropagatedType.element;
       bool isStaticProperty = _isStatic(staticOrPropagatedEnclosingElt);
-      DartType displayType = staticOrPropagatedType != null
-          ? staticOrPropagatedType
-          : propagatedType != null ? propagatedType : staticType;
+      DartType displayType =
+          staticOrPropagatedType ?? propagatedType ?? staticType;
       // Special getter cases.
       if (propertyName.inGetterContext()) {
         if (!isStaticProperty &&
@@ -2306,7 +2315,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             return;
           } else if (staticOrPropagatedEnclosingElt.isEnum &&
               propertyName.name == "_name") {
-            _resolver.reportErrorForNode(
+            _resolver.errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD,
                 propertyName,
                 [propertyName.name]);

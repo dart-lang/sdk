@@ -44,6 +44,9 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   }
 
   @override
+  bool get mayCheckTypesOfLocals => false;
+
+  @override
   bool get skipBrokenAstInference => true;
 
   @override
@@ -79,26 +82,26 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_async_allReturnsAreValues() {
-    super.test_blockBodiedLambdas_async_allReturnsAreValues();
+  void test_blockBodiedLambdas_async_allReturnsAreFutures_topLevel() {
+    super.test_blockBodiedLambdas_async_allReturnsAreFutures_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_async_alReturnsAreFutures() {
-    super.test_blockBodiedLambdas_async_alReturnsAreFutures();
+  void test_blockBodiedLambdas_async_allReturnsAreValues_topLevel() {
+    super.test_blockBodiedLambdas_async_allReturnsAreValues_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_async_mixOfValuesAndFutures() {
-    super.test_blockBodiedLambdas_async_mixOfValuesAndFutures();
+  void test_blockBodiedLambdas_async_mixOfValuesAndFutures_topLevel() {
+    super.test_blockBodiedLambdas_async_mixOfValuesAndFutures_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_asyncStar() {
-    super.test_blockBodiedLambdas_asyncStar();
+  void test_blockBodiedLambdas_asyncStar_topLevel() {
+    super.test_blockBodiedLambdas_asyncStar_topLevel();
   }
 
   @override
@@ -109,32 +112,26 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_doesNotInferBottom_async() {
-    super.test_blockBodiedLambdas_doesNotInferBottom_async();
+  void test_blockBodiedLambdas_doesNotInferBottom_async_topLevel() {
+    super.test_blockBodiedLambdas_doesNotInferBottom_async_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_doesNotInferBottom_asyncStar() {
-    super.test_blockBodiedLambdas_doesNotInferBottom_asyncStar();
+  void test_blockBodiedLambdas_doesNotInferBottom_asyncStar_topLevel() {
+    super.test_blockBodiedLambdas_doesNotInferBottom_asyncStar_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_doesNotInferBottom_sync() {
-    super.test_blockBodiedLambdas_doesNotInferBottom_sync();
+  void test_blockBodiedLambdas_doesNotInferBottom_sync_topLevel() {
+    super.test_blockBodiedLambdas_doesNotInferBottom_sync_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_doesNotInferBottom_syncStar() {
-    super.test_blockBodiedLambdas_doesNotInferBottom_syncStar();
-  }
-
-  @override
-  @failingTest
-  void test_blockBodiedLambdas_downwardsIncompatibleWithUpwardsInference() {
-    super.test_blockBodiedLambdas_downwardsIncompatibleWithUpwardsInference();
+  void test_blockBodiedLambdas_doesNotInferBottom_syncStar_topLevel() {
+    super.test_blockBodiedLambdas_doesNotInferBottom_syncStar_topLevel();
   }
 
   @override
@@ -145,44 +142,14 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_nestedLambdas() {
-    super.test_blockBodiedLambdas_nestedLambdas();
+  void test_blockBodiedLambdas_nestedLambdas_topLevel() {
+    super.test_blockBodiedLambdas_nestedLambdas_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_noReturn() {
-    super.test_blockBodiedLambdas_noReturn();
-  }
-
-  @override
-  @failingTest
-  void test_blockBodiedLambdas_syncStar() {
-    super.test_blockBodiedLambdas_syncStar();
-  }
-
-  @override
-  @failingTest
-  void test_canInferAlsoFromStaticAndInstanceFieldsFlagOn() {
-    super.test_canInferAlsoFromStaticAndInstanceFieldsFlagOn();
-  }
-
-  @override
-  @failingTest
-  void test_downwardsInferenceAnnotations() {
-    super.test_downwardsInferenceAnnotations();
-  }
-
-  @override
-  @failingTest
-  void test_downwardsInferenceAsyncAwait() {
-    super.test_downwardsInferenceAsyncAwait();
-  }
-
-  @override
-  @failingTest
-  void test_downwardsInferenceForEach() {
-    super.test_downwardsInferenceForEach();
+  void test_blockBodiedLambdas_syncStar_topLevel() {
+    super.test_blockBodiedLambdas_syncStar_topLevel();
   }
 
   @override
@@ -195,12 +162,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   @failingTest
   void test_downwardsInferenceOnGenericFunctionExpressions() {
     super.test_downwardsInferenceOnGenericFunctionExpressions();
-  }
-
-  @override
-  @failingTest
-  void test_downwardsInferenceYieldYieldStar() {
-    super.test_downwardsInferenceYieldYieldStar();
   }
 
   @override
@@ -562,6 +523,42 @@ var b = a.m();
     super.test_inferenceInCyclesIsDeterministic();
   }
 
+  @override
+  @failingTest
+  void test_instantiateToBounds_generic2_hasBound_definedAfter() {
+    super.test_instantiateToBounds_generic2_hasBound_definedAfter();
+  }
+
+  @override
+  @failingTest
+  void test_instantiateToBounds_generic2_hasBound_definedBefore() {
+    super.test_instantiateToBounds_generic2_hasBound_definedBefore();
+  }
+
+  @override
+  @failingTest
+  void test_instantiateToBounds_generic2_noBound() {
+    super.test_instantiateToBounds_generic2_noBound();
+  }
+
+  @override
+  @failingTest
+  void test_instantiateToBounds_generic_hasBound_definedAfter() {
+    super.test_instantiateToBounds_generic_hasBound_definedAfter();
+  }
+
+  @override
+  @failingTest
+  void test_instantiateToBounds_generic_hasBound_definedBefore() {
+    super.test_instantiateToBounds_generic_hasBound_definedBefore();
+  }
+
+  @override
+  @failingTest
+  void test_instantiateToBounds_notGeneric() {
+    super.test_instantiateToBounds_notGeneric();
+  }
+
   void test_invokeMethod_notGeneric_genericClass() {
     var unit = checkFile(r'''
 class C<T> {
@@ -580,18 +577,6 @@ class C {
 var v = new C().m(1, b: 'bbb', c: 2.0);
   ''');
     expect(unit.topLevelVariables[0].type.toString(), 'int');
-  }
-
-  @override
-  @failingTest
-  void test_listLiteralsShouldNotInferBottom() {
-    super.test_listLiteralsShouldNotInferBottom();
-  }
-
-  @override
-  @failingTest
-  void test_mapLiteralsShouldNotInferBottom() {
-    super.test_mapLiteralsShouldNotInferBottom();
   }
 
   @override
@@ -636,38 +621,8 @@ class ResynthesizeAstTest extends ResynthesizeTest
 
   @override
   @failingTest
-  void test_constructor_initializers_field_notConst() {
-    super.test_constructor_initializers_field_notConst();
-  }
-
-  @override
-  @failingTest
   void test_inferred_function_type_in_generic_class_constructor() {
     super.test_inferred_function_type_in_generic_class_constructor();
-  }
-
-  @override
-  @failingTest
-  void test_metadata_constructor_call_named() {
-    super.test_metadata_constructor_call_named();
-  }
-
-  @override
-  @failingTest
-  void test_metadata_constructor_call_named_prefixed() {
-    super.test_metadata_constructor_call_named_prefixed();
-  }
-
-  @override
-  @failingTest
-  void test_metadata_constructor_call_unnamed() {
-    super.test_metadata_constructor_call_unnamed();
-  }
-
-  @override
-  @failingTest
-  void test_metadata_constructor_call_with_args() {
-    super.test_metadata_constructor_call_with_args();
   }
 
   @override

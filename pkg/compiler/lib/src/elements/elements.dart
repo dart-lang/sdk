@@ -329,6 +329,12 @@ abstract class Element implements Entity {
 
   bool get impliesType;
 
+  /// The character offset of the declaration of this element within its
+  /// compilation unit, if available.
+  ///
+  /// This is used to sort the elements.
+  int get sourceOffset;
+
   // TODO(johnniwinther): Remove this.
   Token get position;
 
@@ -480,7 +486,12 @@ class Elements {
     return true;
   }
 
-  static bool hasAccessToTypeVariables(Element element) {
+  static bool hasAccessToTypeVariable(
+      Element element, TypeVariableElement typeVariable) {
+    GenericElement declaration = typeVariable.typeDeclaration;
+    if (declaration is FunctionElement || declaration is ParameterElement) {
+      return true;
+    }
     Element outer = element.outermostEnclosingMemberOrTopLevel;
     return (outer != null && outer.isFactoryConstructor) ||
         !isInStaticContext(element);
@@ -683,10 +694,8 @@ class Elements {
     if (r != 0) return r;
     r = a.compilationUnit.compareTo(b.compilationUnit);
     if (r != 0) return r;
-    Token positionA = a.position;
-    Token positionB = b.position;
-    int offsetA = positionA == null ? -1 : positionA.charOffset;
-    int offsetB = positionB == null ? -1 : positionB.charOffset;
+    int offsetA = a.sourceOffset ?? -1;
+    int offsetB = b.sourceOffset ?? -1;
     r = offsetA.compareTo(offsetB);
     if (r != 0) return r;
     r = a.name.compareTo(b.name);
@@ -1103,6 +1112,7 @@ abstract class AbstractFieldElement extends Element {
 
 abstract class FunctionSignature {
   FunctionType get type;
+  List<DartType> get typeVariables;
   List<FormalElement> get requiredParameters;
   List<FormalElement> get optionalParameters;
 
@@ -1130,7 +1140,8 @@ abstract class FunctionElement extends Element
         AstElement,
         TypedElement,
         FunctionTypedElement,
-        ExecutableElement {
+        ExecutableElement,
+        GenericElement {
   FunctionExpression get node;
 
   FunctionElement get patch;
@@ -1138,7 +1149,7 @@ abstract class FunctionElement extends Element
 
   bool get hasFunctionSignature;
 
-  /// The parameters of this functions.
+  /// The parameters of this function.
   List<ParameterElement> get parameters;
 
   /// The type of this function.
@@ -1228,7 +1239,7 @@ abstract class ConstructorElement extends FunctionElement
   /// The effective target of this constructor, that is the non-redirecting
   /// constructor that is called on invocation of this constructor.
   ///
-  /// Consider for instance this hierachy:
+  /// Consider for instance this hierarchy:
   ///
   ///     class C { factory C.c() = D.d; }
   ///     class D { factory D.d() = E.e2; }
@@ -1241,7 +1252,7 @@ abstract class ConstructorElement extends FunctionElement
 
   /// The immediate redirection target of a redirecting factory constructor.
   ///
-  /// Consider for instance this hierachy:
+  /// Consider for instance this hierarchy:
   ///
   ///     class C { factory C() = D; }
   ///     class D { factory D() = E; }
@@ -1318,9 +1329,20 @@ abstract class ConstructorBodyElement extends MethodElement {
   FunctionElement get constructor;
 }
 
+/// [GenericElement] defines the common interface for generic functions and
+/// [TypeDeclarationElement].
+abstract class GenericElement extends Element implements AstElement {
+  /**
+   * The type variables declared on this declaration. The type variables are not
+   * available until the type of the element has been computed through
+   * [computeType].
+   */
+  List<DartType> get typeVariables;
+}
+
 /// [TypeDeclarationElement] defines the common interface for class/interface
 /// declarations and typedefs.
-abstract class TypeDeclarationElement extends Element implements AstElement {
+abstract class TypeDeclarationElement extends GenericElement {
   /// The name of this type declaration, taking privacy into account.
   Name get memberName;
 
@@ -1361,13 +1383,6 @@ abstract class TypeDeclarationElement extends Element implements AstElement {
    * the input source has used explicit type arguments.
    */
   GenericType get rawType;
-
-  /**
-   * The type variables declared on this declaration. The type variables are not
-   * available until the type of the element has been computed through
-   * [computeType].
-   */
-  List<DartType> get typeVariables;
 
   bool get isResolved;
 
@@ -1565,8 +1580,9 @@ abstract class TypeVariableElement extends Element
   @deprecated
   get enclosingElement;
 
-  /// The class or typedef on which this type variable is defined.
-  TypeDeclarationElement get typeDeclaration;
+  /// The class, typedef, function, method, or function typed parameter on
+  /// which this type variable is defined.
+  GenericElement get typeDeclaration;
 
   /// The index of this type variable within its type declaration.
   int get index;
@@ -1608,7 +1624,7 @@ abstract class TypedElement extends Element {
 }
 
 /// An [Element] that can define a function type.
-abstract class FunctionTypedElement extends Element {
+abstract class FunctionTypedElement extends Element implements GenericElement {
   /// The function signature for the function type defined by this element,
   /// if any.
   FunctionSignature get functionSignature;
@@ -1682,6 +1698,10 @@ abstract class ResolvedAst {
   /// The [TreeElements] containing the resolution data for [node]. This only
   /// available of [kind] is `ResolvedAstKind.PARSED`.
   TreeElements get elements;
+
+  /// Returns the uri for the source file defining [node] and [body]. This
+  /// only available if [kind] is `ResolvedAstKind.PARSED`.
+  Uri get sourceUri;
 }
 
 /// [ResolvedAst] implementation used for elements whose semantics is defined in
@@ -1691,8 +1711,10 @@ class ParsedResolvedAst implements ResolvedAst {
   final Node node;
   final Node body;
   final TreeElements elements;
+  final Uri sourceUri;
 
-  ParsedResolvedAst(this.element, this.node, this.body, this.elements);
+  ParsedResolvedAst(
+      this.element, this.node, this.body, this.elements, this.sourceUri);
 
   ResolvedAstKind get kind => ResolvedAstKind.PARSED;
 
@@ -1720,6 +1742,11 @@ class SynthesizedResolvedAst implements ResolvedAst {
   @override
   Node get body {
     throw new UnsupportedError('$this does not have a body AST node');
+  }
+
+  @override
+  Uri get sourceUri {
+    throw new UnsupportedError('$this does not have a source URI');
   }
 
   String toString() => '$kind:$element';

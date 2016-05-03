@@ -159,7 +159,7 @@ class NullConstantValue extends PrimitiveConstantValue {
   /** The value a Dart null is compiled to in JavaScript. */
   static const String JsNull = "null";
 
-  factory NullConstantValue() => const NullConstantValue._internal();
+  const factory NullConstantValue() = NullConstantValue._internal;
 
   const NullConstantValue._internal();
 

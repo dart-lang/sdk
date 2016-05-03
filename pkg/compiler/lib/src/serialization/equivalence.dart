@@ -6,6 +6,7 @@
 
 library dart2js.serialization.equivalence;
 
+import '../common.dart';
 import '../common/resolution.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
@@ -770,7 +771,9 @@ bool testResolvedAstEquivalence(
           'node', resolvedAst1.node, resolvedAst2.node) &&
       new NodeEquivalenceVisitor(strategy).testNodes(resolvedAst1, resolvedAst2,
           'body', resolvedAst1.body, resolvedAst2.body) &&
-      testTreeElementsEquivalence(resolvedAst1, resolvedAst2, strategy);
+      testTreeElementsEquivalence(resolvedAst1, resolvedAst2, strategy) &&
+      strategy.test(resolvedAst1, resolvedAst2, 'sourceUri',
+          resolvedAst1.sourceUri, resolvedAst2.sourceUri);
 }
 
 /// Tests the equivalence of the data stored in the [TreeElements] of
@@ -1054,30 +1057,39 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
 
   bool testNodes(
       var object1, var object2, String property, Node node1, Node node2) {
-    if (node1 == node2) return true;
-    if (node1 == null || node2 == null) return false;
-    return node1.accept1(this, node2);
+    return strategy.test(object1, object2, property, node1, node2,
+        (Node n1, Node n2) {
+      if (n1 == n2) return true;
+      if (n1 == null || n2 == null) return false;
+      return n1.accept1(this, n2);
+    });
   }
 
   bool testNodeLists(var object1, var object2, String property,
       Link<Node> list1, Link<Node> list2) {
-    if (list1 == list2) return true;
-    if (list1 == null || list2 == null) return false;
-    while (list1.isNotEmpty && list2.isNotEmpty) {
-      if (!list1.head.accept1(this, list2.head)) {
-        return false;
+    return strategy.test(object1, object2, property, list1, list2,
+        (Link<Node> l1, Link<Node> l2) {
+      if (l1 == l2) return true;
+      if (l1 == null || l2 == null) return false;
+      while (l1.isNotEmpty && l2.isNotEmpty) {
+        if (!l1.head.accept1(this, l2.head)) {
+          return false;
+        }
+        l1 = l1.tail;
+        l2 = l2.tail;
       }
-      list1 = list1.tail;
-      list2 = list2.tail;
-    }
-    return list1.isEmpty && list2.isEmpty;
+      return l1.isEmpty && l2.isEmpty;
+    });
   }
 
   bool testTokens(
       var object1, var object2, String property, Token token1, Token token2) {
-    if (token1 == token2) return true;
-    if (token1 == null || token2 == null) return false;
-    return token1.hashCode == token2.hashCode;
+    return strategy.test(object1, object2, property, token1, token2,
+        (Token t1, Token t2) {
+      if (t1 == t2) return true;
+      if (t1 == null || t2 == null) return false;
+      return strategy.test(t1, t2, 'hashCode', t1.hashCode, t2.hashCode);
+    });
   }
 
   @override

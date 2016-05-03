@@ -25,10 +25,10 @@ import 'package:compiler/src/serialization/task.dart';
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/universe/use.dart';
-import 'memory_compiler.dart';
-import 'serialization_helper.dart';
-import 'serialization_test_data.dart';
-import 'serialization_test_helper.dart';
+import '../memory_compiler.dart';
+import 'helper.dart';
+import 'test_data.dart';
+import 'test_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {

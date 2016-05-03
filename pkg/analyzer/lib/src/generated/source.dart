@@ -14,7 +14,8 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
-import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
+import 'package:analyzer/src/generated/source_io.dart'
+    show FileBasedSource, FileUriResolver, PackageUriResolver;
 import 'package:analyzer/task/model.dart';
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
@@ -111,7 +112,7 @@ class CustomUriResolver extends UriResolver {
     if (!fileUri.isAbsolute) return null;
 
     JavaFile javaFile = new JavaFile.fromUri(fileUri);
-    return new FileBasedSource(javaFile, actualUri != null ? actualUri : uri);
+    return new FileBasedSource(javaFile, actualUri ?? uri);
   }
 }
 
@@ -894,6 +895,20 @@ class UriKind extends Enum<UriKind> {
       break;
     }
     return null;
+  }
+
+  /**
+   * Return the URI kind corresponding to the given scheme string.
+   */
+  static UriKind fromScheme(String scheme) {
+    if (scheme == PackageUriResolver.PACKAGE_SCHEME) {
+      return UriKind.PACKAGE_URI;
+    } else if (scheme == DartUriResolver.DART_SCHEME) {
+      return UriKind.DART_URI;
+    } else if (scheme == FileUriResolver.FILE_SCHEME) {
+      return UriKind.FILE_URI;
+    }
+    return UriKind.FILE_URI;
   }
 }
 

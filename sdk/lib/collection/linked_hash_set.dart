@@ -102,7 +102,7 @@ abstract class LinkedHashSet<E> implements HashSet<E> {
    *     Iterable<SuperType> tmp = superSet.where((e) => e is SubType);
    *     Set<SubType> subSet = new LinkedHashSet<SubType>.from(tmp);
    */
-  factory LinkedHashSet.from(Iterable<E> elements) {
+  factory LinkedHashSet.from(Iterable elements) {
     LinkedHashSet<E> result = new LinkedHashSet<E>();
     for (final E element in elements) {
       result.add(element);

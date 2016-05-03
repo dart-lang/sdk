@@ -4,12 +4,8 @@
 
 library dart2js.common.tasks;
 
-import 'dart:async' show
-    Future,
-    Zone,
-    ZoneDelegate,
-    ZoneSpecification,
-    runZoned;
+import 'dart:async'
+    show Future, Zone, ZoneDelegate, ZoneSpecification, runZoned;
 
 import '../common.dart';
 import '../compiler.dart' show Compiler;
@@ -149,9 +145,8 @@ class CompilerTask {
       }
     }
 
-    return runZoned(
-        action,
-        zoneValues: { measurer: this },
+    return runZoned(action,
+        zoneValues: {measurer: this},
         zoneSpecification: new ZoneSpecification(
             run: run, runUnary: runUnary, runBinary: runBinary));
   }

@@ -79,7 +79,8 @@ abstract class CompilerConfiguration {
             isDebug: isDebug,
             isChecked: isChecked,
             arch: configuration['arch'],
-            useBlobs: useBlobs);
+            useBlobs: useBlobs,
+            isAndroid: configuration['system'] == 'android');
       case 'none':
         return new NoneCompilerConfiguration(
             isDebug: isDebug,
@@ -302,11 +303,11 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
 class PrecompilerCompilerConfiguration extends CompilerConfiguration {
   final String arch;
   final bool useBlobs;
+  final bool isAndroid;
 
-  PrecompilerCompilerConfiguration({bool isDebug, bool isChecked, String arch, bool useBlobs})
-      : super._subclass(isDebug: isDebug, isChecked: isChecked),
-        arch = arch,
-        useBlobs = useBlobs;
+  PrecompilerCompilerConfiguration({bool isDebug, bool isChecked,
+    this.arch, this.useBlobs, this.isAndroid})
+      : super._subclass(isDebug: isDebug, isChecked: isChecked);
 
   int computeTimeoutMultiplier() {
     int multiplier = 2;
@@ -345,6 +346,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     if (useBlobs) {
       args.add("--use_blobs");
     }
+    if (isAndroid && arch == 'arm') {
+      args.add('--no-sim-use-hardfp');
+    }
     args.addAll(arguments);
 
     return commandBuilder.getCompilationCommand('precompiler', tempDir, !useSdk,
@@ -357,7 +361,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       CommandBuilder commandBuilder,
       List arguments,
       Map<String, String> environmentOverrides) {
-    var cc, cc_flags, shared, libname;
+
+    var cc, shared, libname;
     if (Platform.isLinux) {
       cc = 'gcc';
       shared = '-shared';
@@ -369,17 +374,24 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     } else {
       throw "Platform not supported: ${Platform.operatingSystem}";
     }
+    if (isAndroid) {
+      // TODO: If we're not using "--use_blobs" we need to use the arm cross
+      // compiler instead of just 'gcc' for .
+    }
 
+    var cc_flags;
     if (arch == 'x64') {
       cc_flags = "-m64";
     } else if (arch == 'simarm64') {
       cc_flags = "-m64";
+    } else if (arch == 'ia32') {
+      cc_flags = "-m32";
     } else if (arch == 'simarm') {
       cc_flags = "-m32";
     } else if (arch == 'simmips') {
       cc_flags = "-m32";
     } else if (arch == 'arm') {
-      cc_flags = "";
+      cc_flags = null;
     } else if (arch == 'mips') {
       cc_flags = "-EL";
     } else {
@@ -387,13 +399,12 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     }
 
     var exec = cc;
-    var args = [
-      shared,
-      cc_flags,
+    var args = (cc_flags != null) ? [ shared, cc_flags ] : [ shared ];
+    args.addAll([
       '-o',
       '$tempDir/$libname',
       '$tempDir/precompiled.S'
-    ];
+    ]);
 
     return commandBuilder.getCompilationCommand('assemble', tempDir, !useSdk,
         bootstrapDependencies(buildDir), exec, args, environmentOverrides);

@@ -609,6 +609,7 @@ class _CompilationUnitSerializer {
       List<UnlinkedPublicNameBuilder> bs = <UnlinkedPublicNameBuilder>[];
       for (FieldElement field in cls.fields) {
         if (field.isStatic && field.isConst && field.isPublic) {
+          // TODO(paulberry): include non-consts
           // TODO(paulberry): should numTypeParameters include class params?
           bs.add(new UnlinkedPublicNameBuilder(
               name: field.name,
@@ -623,6 +624,17 @@ class _CompilationUnitSerializer {
               name: method.name,
               kind: ReferenceKind.method,
               numTypeParameters: method.typeParameters.length));
+        }
+      }
+      for (PropertyAccessorElement accessor in cls.accessors) {
+        if (accessor.isStatic &&
+            accessor.isGetter &&
+            accessor.isPublic &&
+            !accessor.isSynthetic) {
+          // TODO(paulberry): combine with field code above.
+          // TODO(paulberry): should numTypeParameters include class params?
+          bs.add(new UnlinkedPublicNameBuilder(
+              name: accessor.name, kind: ReferenceKind.propertyAccessor));
         }
       }
       for (ConstructorElement constructor in cls.constructors) {
@@ -794,6 +806,8 @@ class _CompilationUnitSerializer {
       b.kind = UnlinkedExecutableKind.functionOrMethod;
     }
     b.isAbstract = executableElement.isAbstract;
+    b.isAsynchronous = executableElement.isAsynchronous;
+    b.isGenerator = executableElement.isGenerator;
     b.isStatic = executableElement.isStatic &&
         executableElement.enclosingElement is ClassElement;
     b.isExternal = executableElement.isExternal;
@@ -1331,21 +1345,19 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
       EntityRefBuilder constructor;
       if (nameElement is ConstructorElement && name is PrefixedIdentifier) {
         assert(annotation.constructorName == null);
-        constructor = serializeConstructorName(
-            new TypeName(name.prefix, null)..type = nameElement.returnType,
-            name.identifier);
+        constructor = serializeConstructorRef(
+            nameElement.returnType, name.prefix, null, name.identifier);
       } else if (nameElement is TypeDefiningElement) {
-        constructor = serializeConstructorName(
-            new TypeName(annotation.name, null)..type = nameElement.type,
-            annotation.constructorName);
+        constructor = serializeConstructorRef(nameElement.type, annotation.name,
+            null, annotation.constructorName);
       } else if (nameElement == null) {
         // Unresolved annotation.
         if (name is PrefixedIdentifier && annotation.constructorName == null) {
-          constructor = serializeConstructorName(
-              new TypeName(name.prefix, null), name.identifier);
+          constructor =
+              serializeConstructorRef(null, name.prefix, null, name.identifier);
         } else {
-          constructor = serializeConstructorName(
-              new TypeName(annotation.name, null), annotation.constructorName);
+          constructor = serializeConstructorRef(
+              null, annotation.name, null, annotation.constructorName);
         }
       } else {
         throw new StateError('Unexpected annotation nameElement type:'
@@ -1356,9 +1368,9 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   }
 
   @override
-  EntityRefBuilder serializeConstructorName(
-      TypeName type, SimpleIdentifier name) {
-    EntityRefBuilder typeRef = serializeType(type);
+  EntityRefBuilder serializeConstructorRef(DartType type, Identifier typeName,
+      TypeArgumentList typeArguments, SimpleIdentifier name) {
+    EntityRefBuilder typeRef = serializeType(type, typeName, typeArguments);
     if (name == null) {
       return typeRef;
     } else {
@@ -1433,15 +1445,15 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   }
 
   @override
-  EntityRefBuilder serializeType(TypeName typeName) {
-    if (typeName != null) {
-      DartType type = typeName.type;
+  EntityRefBuilder serializeType(
+      DartType type, Identifier name, TypeArgumentList arguments) {
+    if (name != null) {
       if (type == null || type.isUndefined) {
-        return serializeIdentifier(typeName.name);
+        return serializeIdentifier(name);
       }
     }
-    DartType type = typeName != null ? typeName.type : DynamicTypeImpl.instance;
-    return serializer.serializeTypeRef(type, context);
+    DartType typeOrDynamic = type ?? DynamicTypeImpl.instance;
+    return serializer.serializeTypeRef(typeOrDynamic, context);
   }
 
   /**

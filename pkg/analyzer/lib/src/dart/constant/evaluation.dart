@@ -85,10 +85,9 @@ class ConstantEvaluationEngine {
    */
   ConstantEvaluationEngine(this.typeProvider, this._declaredVariables,
       {ConstantEvaluationValidator validator, TypeSystem typeSystem})
-      : validator = validator != null
-            ? validator
-            : new ConstantEvaluationValidator_ForProduction(),
-        typeSystem = typeSystem != null ? typeSystem : new TypeSystemImpl();
+      : validator =
+            validator ?? new ConstantEvaluationValidator_ForProduction(),
+        typeSystem = typeSystem ?? new TypeSystemImpl();
 
   /**
    * Check that the arguments to a call to fromEnvironment() are correct. The
@@ -1476,7 +1475,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    */
   void _error(AstNode node, ErrorCode code) {
     _errorReporter.reportErrorForNode(
-        code == null ? CompileTimeErrorCode.INVALID_CONSTANT : code, node);
+        code ?? CompileTimeErrorCode.INVALID_CONSTANT, node);
   }
 
   /**
@@ -1929,8 +1928,7 @@ class EvaluationResult {
    * compile time constant if the errors would have been reported by other parts
    * of the analysis engine.
    */
-  List<AnalysisError> get errors =>
-      _errors == null ? AnalysisError.NO_ERRORS : _errors;
+  List<AnalysisError> get errors => _errors ?? AnalysisError.NO_ERRORS;
 
   /**
    * Return `true` if the expression is a compile-time constant expression that
@@ -1973,7 +1971,7 @@ class EvaluationResultImpl {
   final DartObjectImpl value;
 
   EvaluationResultImpl(this.value, [List<AnalysisError> errors]) {
-    this._errors = errors == null ? <AnalysisError>[] : errors;
+    this._errors = errors ?? <AnalysisError>[];
   }
 
   List<AnalysisError> get errors => _errors;

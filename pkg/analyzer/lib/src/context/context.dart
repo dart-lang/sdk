@@ -843,10 +843,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  InternalAnalysisContext getContextFor(Source source) {
-    InternalAnalysisContext context = _cache.getContextFor(source);
-    return context == null ? this : context;
-  }
+  InternalAnalysisContext getContextFor(Source source) =>
+      _cache.getContextFor(source) ?? this;
 
   @override
   Element getElement(ElementLocation location) {
@@ -1205,10 +1203,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       setValue(LIBRARY_ELEMENT6, library);
       setValue(LIBRARY_ELEMENT7, library);
       setValue(LIBRARY_ELEMENT8, library);
+      setValue(LIBRARY_ELEMENT9, library);
       setValue(LINE_INFO, new LineInfo(<int>[0]));
       setValue(PARSE_ERRORS, AnalysisError.NO_ERRORS);
       entry.setState(PARSED_UNIT, CacheState.FLUSHED);
       entry.setState(RESOLVE_TYPE_NAMES_ERRORS, CacheState.FLUSHED);
+      entry.setState(RESOLVE_TYPE_BOUNDS_ERRORS, CacheState.FLUSHED);
       setValue(SCAN_ERRORS, AnalysisError.NO_ERRORS);
       setValue(SOURCE_KIND, SourceKind.LIBRARY);
       entry.setState(TOKEN_STREAM, CacheState.FLUSHED);
@@ -1235,6 +1235,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT11, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT12, CacheState.FLUSHED);
+      entry.setState(RESOLVED_UNIT13, CacheState.FLUSHED);
       // USED_IMPORTED_ELEMENTS
       // USED_LOCAL_ELEMENTS
       setValue(STRONG_MODE_ERRORS, AnalysisError.NO_ERRORS);
@@ -1314,6 +1315,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT11, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT12, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT13, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
   }
 
@@ -1549,12 +1551,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         new LibrarySpecificUnit(librarySource, unitSource);
     for (ResultDescriptor result in [
       RESOLVED_UNIT,
+      RESOLVED_UNIT13,
       RESOLVED_UNIT12,
       RESOLVED_UNIT11,
       RESOLVED_UNIT10,
       RESOLVED_UNIT9,
-      RESOLVED_UNIT8,
-      RESOLVED_UNIT7
+      RESOLVED_UNIT8
     ]) {
       CompilationUnit unit = getResult(target, result);
       if (unit != null) {
@@ -1790,6 +1792,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       entry.explicitlyAdded = true;
       entry.modificationTime = getModificationStamp(source);
       entry.setState(CONTENT, CacheState.INVALID);
+      entry.setState(MODIFICATION_TIME, CacheState.INVALID);
     }
   }
 

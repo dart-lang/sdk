@@ -2827,7 +2827,7 @@ f() {
   void test_invalidFactoryNameNotAClass() {
     Source source = addSource(r'''
 class A {
-  factory A() {}
+  factory A() => null;
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -3491,7 +3491,7 @@ class B extends Object with A {}''');
   void test_mixinDeclaresConstructor_factory() {
     Source source = addSource(r'''
 class A {
-  factory A() {}
+  factory A() => null;
 }
 class B extends Object with A {}''');
     computeLibrarySourceErrors(source);
@@ -4275,7 +4275,7 @@ class A {
     Source source = addSource(r'''
 class A {
   A.named() {}
-  factory A() {}
+  factory A() => null;
 }
 class B extends A {
   B() : super.named();
@@ -4693,7 +4693,7 @@ class B implements A {
   factory B() = C;
 }
 class C implements B {
-  factory C() {}
+  factory C() => null;
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);

@@ -28,7 +28,7 @@ import 'package:compiler/src/universe/call_structure.dart';
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/universe/use.dart';
 
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
 class Arguments {
   final String filename;
@@ -211,7 +211,7 @@ class _DeserializerSystem extends DeserializerSystem {
   }
 
   @override
-  bool hasResolvedAst(Element element) {
+  bool hasResolvedAst(ExecutableElement element) {
     if (_resolvedAstDeserializer != null) {
       return _resolvedAstDeserializer.hasResolvedAst(element);
     }
@@ -219,7 +219,7 @@ class _DeserializerSystem extends DeserializerSystem {
   }
 
   @override
-  ResolvedAst getResolvedAst(Element element) {
+  ResolvedAst getResolvedAst(ExecutableElement element) {
     if (_resolvedAstDeserializer != null) {
       return _resolvedAstDeserializer.getResolvedAst(element);
     }
@@ -300,27 +300,30 @@ class ResolvedAstDeserializerPlugin extends DeserializerPlugin {
   final Backend backend;
   final Map<Uri, SourceFile> sourceFiles = <Uri, SourceFile>{};
 
-  Map<Element, ResolvedAst> _resolvedAstMap = <Element, ResolvedAst>{};
-  Map<Element, ObjectDecoder> _decoderMap = <Element, ObjectDecoder>{};
+  Map<ExecutableElement, ResolvedAst> _resolvedAstMap =
+      <ExecutableElement, ResolvedAst>{};
+  Map<MemberElement, ObjectDecoder> _decoderMap =
+      <MemberElement, ObjectDecoder>{};
   Map<Uri, Token> beginTokenMap = <Uri, Token>{};
 
   ResolvedAstDeserializerPlugin(this.parsingContext, this.backend);
 
-  bool hasResolvedAst(Element element) {
+  bool hasResolvedAst(ExecutableElement element) {
     return _resolvedAstMap.containsKey(element) ||
-        _decoderMap.containsKey(element);
+        _decoderMap.containsKey(element.memberContext);
   }
 
-  ResolvedAst getResolvedAst(Element element) {
+  ResolvedAst getResolvedAst(ExecutableElement element) {
     ResolvedAst resolvedAst = _resolvedAstMap[element];
     if (resolvedAst == null) {
-      ObjectDecoder decoder = _decoderMap[element];
+      ObjectDecoder decoder = _decoderMap[element.memberContext];
       if (decoder != null) {
-        resolvedAst = _resolvedAstMap[element] =
-            ResolvedAstDeserializer.deserialize(
-                element, decoder, parsingContext, findToken,
-                backend.serialization.deserializer);
+         ResolvedAstDeserializer.deserialize(
+             element.memberContext, decoder, parsingContext, findToken,
+             backend.serialization.deserializer,
+             _resolvedAstMap);
         _decoderMap.remove(element);
+        resolvedAst = _resolvedAstMap[element];
       }
     }
     return resolvedAst;

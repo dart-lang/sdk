@@ -18,6 +18,7 @@ import "dart:convert" show LineSplitter, UTF8, JSON;
 // CommandOutput.exitCode in subclasses of CommandOutput.
 import "dart:io" as io;
 import "dart:math" as math;
+import 'android.dart';
 import 'dependency_graph.dart' as dgraph;
 import "browser_controller.dart";
 import "path.dart";
@@ -344,6 +345,33 @@ class VmCommand extends ProcessCommand {
       : super._("vm", executable, arguments, environmentOverrides);
 }
 
+class AdbPrecompilationCommand extends Command {
+  final String precompiledRunnerFilename;
+  final String precompiledTestDirectory;
+  final bool useBlobs;
+
+  AdbPrecompilationCommand._(this.precompiledRunnerFilename,
+                             this.precompiledTestDirectory,
+                             this.useBlobs)
+      : super._("adb_precompilation");
+
+  void _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.add(precompiledRunnerFilename);
+    builder.add(precompiledTestDirectory);
+    builder.add(useBlobs);
+  }
+
+  bool _equal(AdbPrecompilationCommand other) =>
+      super._equal(other) &&
+      precompiledRunnerFilename == other.precompiledRunnerFilename &&
+      useBlobs == other.useBlobs &&
+      precompiledTestDirectory == other.precompiledTestDirectory;
+
+  String toString() => 'Steps to push precompiled runner and precompiled code '
+                       'to an attached device. Uses (and requires) adb.';
+}
+
 class JSCommandlineCommand extends ProcessCommand {
   JSCommandlineCommand._(
       String displayName, String executable, List<String> arguments,
@@ -607,6 +635,14 @@ class CommandBuilder {
   VmCommand getVmCommand(String executable, List<String> arguments,
       Map<String, String> environmentOverrides) {
     var command = new VmCommand._(executable, arguments, environmentOverrides);
+    return _getUniqueCommand(command);
+  }
+
+  AdbPrecompilationCommand getAdbPrecompiledCommand(String precompiledRunner,
+                                                    String testDirectory,
+                                                    bool useBlobs) {
+    var command = new AdbPrecompilationCommand._(
+        precompiledRunner, testDirectory, useBlobs);
     return _getUniqueCommand(command);
   }
 
@@ -1625,6 +1661,9 @@ CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
   } else if (command is VmCommand) {
     return new VmCommandOutputImpl(
         command, exitCode, timedOut, stdout, stderr, time, pid);
+  } else if (command is AdbPrecompilationCommand) {
+    return new VmCommandOutputImpl(
+        command, exitCode, timedOut, stdout, stderr, time, pid);
   } else if (command is CompilationCommand) {
     if (command.displayName == 'precompiler' ||
         command.displayName == 'dart2snapshot') {
@@ -2396,6 +2435,7 @@ class CommandExecutorImpl implements CommandExecutor {
   final Map globalConfiguration;
   final int maxProcesses;
   final int maxBrowserProcesses;
+  AdbDevicePool adbDevicePool;
 
   // For dart2js and analyzer batch processing,
   // we keep a list of batch processes.
@@ -2406,7 +2446,8 @@ class CommandExecutorImpl implements CommandExecutor {
   bool _finishing = false;
 
   CommandExecutorImpl(
-      this.globalConfiguration, this.maxProcesses, this.maxBrowserProcesses);
+      this.globalConfiguration, this.maxProcesses, this.maxBrowserProcesses,
+      {this.adbDevicePool});
 
   Future cleanup() {
     assert(!_finishing);
@@ -2460,9 +2501,97 @@ class CommandExecutorImpl implements CommandExecutor {
           .runCommand(command.flavor, command, timeout, command.arguments);
     } else if (command is ScriptCommand) {
       return command.run();
+    } else if (command is AdbPrecompilationCommand) {
+      assert(adbDevicePool != null);
+      return adbDevicePool.acquireDevice().then((AdbDevice device) {
+        return _runAdbPrecompilationCommand(
+            device, command, timeout).whenComplete(() {
+          adbDevicePool.releaseDevice(device);
+        });
+      });
     } else {
       return new RunningProcess(command, timeout).run();
     }
+  }
+
+  Future<CommandOutput> _runAdbPrecompilationCommand(
+      AdbDevice device, AdbPrecompilationCommand command, int timeout) async {
+    var runner = command.precompiledRunnerFilename;
+    var testdir = command.precompiledTestDirectory;
+    var devicedir = '/data/local/tmp/precompilation-testing';
+    var deviceTestDir = '/data/local/tmp/precompilation-testing/test';
+
+    // We copy all the files which the vm precompiler puts into the test
+    // directory.
+    List<String> files = new io.Directory(testdir)
+        .listSync()
+        .where((fse) => fse is io.File)
+        .map((file) => file.path)
+        .map((path) => path.substring(path.lastIndexOf('/') + 1))
+        .toList();
+
+    var timeoutDuration = new Duration(seconds: timeout);
+
+    // All closures are of type "Future<AdbCommandResult> run()"
+    List<Function> steps = [];
+
+    steps.add(() => device.runAdbShellCommand(
+          ['rm', '-Rf', deviceTestDir]));
+    steps.add(() => device.runAdbShellCommand(
+          ['mkdir', '-p', deviceTestDir]));
+    // TODO: We should find a way for us to cache the runner binary and avoid
+    // pushhing it for every single test (this is bad for SSD cycle time, test
+    // timing).
+    steps.add(() => device.runAdbCommand(
+          ['push', runner, '$devicedir/runner']));
+    steps.add(() => device.runAdbShellCommand(
+          ['chmod', '777', '$devicedir/runner']));
+
+    for (var file in files) {
+      steps.add(() => device.runAdbCommand(
+            ['push', '$testdir/$file', '$deviceTestDir/$file']));
+    }
+
+    if (command.useBlobs) {
+      steps.add(() => device.runAdbShellCommand(
+            ['$devicedir/runner', '--run-precompiled-snapshot=$deviceTestDir',
+             '--use_blobs', 'ignored.dart'], timeout: timeoutDuration));
+    } else {
+      steps.add(() => device.runAdbShellCommand(
+            ['$devicedir/runner', '--run-precompiled-snapshot=$deviceTestDir',
+             'ignored.dart'], timeout: timeoutDuration));
+    }
+
+    var stopwatch = new Stopwatch()..start();
+    var writer = new StringBuffer();
+
+    await device.waitForBootCompleted();
+    await device.waitForDevice();
+
+    AdbCommandResult result;
+    for (var i = 0; i < steps.length; i++) {
+      var fun = steps[i];
+      var commandStopwatch = new Stopwatch()..start();
+      result = await fun();
+
+      writer.writeln("Executing ${result.command}");
+      if (result.stdout.length > 0) {
+        writer.writeln("Stdout:\n${result.stdout.trim()}");
+      }
+      if (result.stderr.length > 0) {
+        writer.writeln("Stderr:\n${result.stderr.trim()}");
+      }
+      writer.writeln("ExitCode: ${result.exitCode}");
+      writer.writeln("Time: ${commandStopwatch.elapsed}");
+      writer.writeln("");
+
+      // If one command fails, we stop processing the others and return
+      // immediately.
+      if (result.exitCode != 0) break;
+    }
+    return createCommandOutput(
+        command, result.exitCode, result.timedOut, UTF8.encode('$writer'),
+        [], stopwatch.elapsed, false);
   }
 
   BatchRunnerProcess _getBatchRunner(String identifier) {
@@ -2716,7 +2845,8 @@ class ProcessQueue {
       DateTime startTime, testSuites, this._eventListener, this._allDone,
       [bool verbose = false,
       String recordingOutputFile,
-      String recordedInputFile]) {
+      String recordedInputFile,
+      AdbDevicePool adbDevicePool]) {
     void setupForListing(TestCaseEnqueuer testCaseEnqueuer) {
       _graph.events
           .where((event) => event is dgraph.GraphSealedEvent)
@@ -2817,7 +2947,8 @@ class ProcessQueue {
         executor = new ReplayingCommandExecutor(new Path(recordedInputFile));
       } else {
         executor = new CommandExecutorImpl(
-            _globalConfiguration, maxProcesses, maxBrowserProcesses);
+            _globalConfiguration, maxProcesses,
+            maxBrowserProcesses, adbDevicePool: adbDevicePool);
       }
 
       // Run "runnable commands" using [executor] subject to

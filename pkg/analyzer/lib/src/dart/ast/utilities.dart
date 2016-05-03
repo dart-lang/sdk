@@ -3679,7 +3679,7 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
    */
   NodeLocator(int startOffset, [int endOffset])
       : this._startOffset = startOffset,
-        this._endOffset = endOffset == null ? startOffset : endOffset;
+        this._endOffset = endOffset ?? startOffset;
 
   /**
    * Return the node that was found that corresponds to the given source range
@@ -3783,7 +3783,7 @@ class NodeLocator2 extends UnifyingAstVisitor<Object> {
    */
   NodeLocator2(int startOffset, [int endOffset])
       : this._startOffset = startOffset,
-        this._endOffset = endOffset == null ? startOffset : endOffset;
+        this._endOffset = endOffset ?? startOffset;
 
   /**
    * Search within the given AST [node] and return the node that was found,

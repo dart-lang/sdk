@@ -1474,9 +1474,9 @@ class JavaScriptBackend extends Backend {
     }
     if (kind.category == ElementCategory.VARIABLE) {
       VariableElement variableElement = element;
-      ConstantValue initialValue =
-          constants.getConstantValue(variableElement.constant);
-      if (initialValue != null) {
+      ConstantExpression constant = variableElement.constant;
+      if (constant != null) {
+        ConstantValue initialValue = constants.getConstantValue(constant);
         registerCompileTimeConstant(initialValue, work.registry);
         addCompileTimeConstantForEmission(initialValue);
         // We don't need to generate code for static or top-level
@@ -1851,7 +1851,9 @@ class JavaScriptBackend extends Backend {
       if (library.isPlatformLibrary &&
           // Don't patch library currently disallowed.
           !library.isSynthesized &&
-          !library.isPatched) {
+          !library.isPatched &&
+          // Don't patch deserialized libraries.
+          !compiler.serialization.isDeserialized(library)) {
         // Apply patch, if any.
         Uri patchUri = compiler.resolvePatchUri(library.canonicalUri.path);
         if (patchUri != null) {
@@ -2505,10 +2507,32 @@ class JSFrontendAccess implements Frontend {
   }
 
   @override
-  ResolvedAst getResolvedAst(Element element) {
+  bool hasResolvedAst(ExecutableElement element) {
+    if (element is SynthesizedCallMethodElementX) {
+      return true;
+    } else if (element is ConstructorBodyElementX) {
+      return true;
+    } else if (element is FieldElementX) {
+      return true;
+    } else if (element is DeferredLoaderGetterElementX) {
+      return true;
+    } else {
+      return resolution.hasResolvedAst(element);
+    }
+  }
+
+  @override
+  ResolvedAst getResolvedAst(ExecutableElement element) {
     if (element is SynthesizedCallMethodElementX) {
       return element.resolvedAst;
     } else if (element is ConstructorBodyElementX) {
+      return element.resolvedAst;
+    } else if (element is DeferredLoaderGetterElementX) {
+      return element.resolvedAst;
+    } else if (element is FieldElementX) {
+      // TODO(johnniwinther): Find a good invariant for resolution of fields.
+      // Currently some but not all are resolved (maybe it has to do with
+      // initializers?)
       return element.resolvedAst;
     } else {
       assert(invariant(element, resolution.hasResolvedAst(element.declaration),

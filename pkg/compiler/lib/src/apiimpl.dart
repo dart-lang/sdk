@@ -258,8 +258,7 @@ class CompilerImpl extends Compiler {
       Duration duration = task.duration;
       if (duration != Duration.ZERO) {
         cumulatedDuration += duration;
-        timings.writeln(
-            '    $running${task.name} took'
+        timings.writeln('    $running${task.name} took'
             ' ${duration.inMilliseconds}msec');
         for (String subtask in task.subtasks) {
           int subtime = task.getSubtaskTime(subtask);
@@ -271,10 +270,9 @@ class CompilerImpl extends Compiler {
     }
     Duration unaccountedDuration =
         totalDuration - cumulatedDuration - setupDuration - asyncDuration;
-    double percent = unaccountedDuration.inMilliseconds * 100
-        / totalDuration.inMilliseconds;
-    timings.write(
-        '    Total compile-time ${totalDuration.inMilliseconds}msec;'
+    double percent =
+        unaccountedDuration.inMilliseconds * 100 / totalDuration.inMilliseconds;
+    timings.write('    Total compile-time ${totalDuration.inMilliseconds}msec;'
         ' setup ${setupDuration.inMilliseconds}msec;'
         ' async ${asyncDuration.inMilliseconds}msec;'
         ' unaccounted ${unaccountedDuration.inMilliseconds}msec'

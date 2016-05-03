@@ -12,10 +12,10 @@ import 'package:compiler/src/common/backend_api.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/filenames.dart';
-import 'memory_compiler.dart';
-import 'serialization_helper.dart';
-import 'serialization_test_data.dart';
-import 'output_collector.dart';
+import '../memory_compiler.dart';
+import 'helper.dart';
+import 'test_data.dart';
+import '../output_collector.dart';
 
 main(List<String> args) {
   asyncTest(() async {
@@ -29,7 +29,7 @@ main(List<String> args) {
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
       // TODO(johnniwinther): Handle the remaining tests.
-      for (Test test in TESTS.sublist(0, 1)) {
+      for (Test test in TESTS.sublist(0, 5)) {
         await compile(serializedData, entryPoint, test,
                       verbose: arguments.verbose);
       }
@@ -48,8 +48,7 @@ Future compile(String serializedData, Uri entryPoint, Test test,
   await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: test != null ? test.sourceFiles : const {},
-      options: [Flags.disableTypeInference,
-                Flags.disableInlining],
+      options: [],
       outputProvider: outputCollector,
       beforeRun: (Compiler compiler) {
         deserialize(compiler, serializedData, deserializeResolvedAst: true);

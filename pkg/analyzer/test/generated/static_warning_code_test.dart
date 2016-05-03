@@ -19,6 +19,21 @@ main() {
 
 @reflectiveTest
 class StaticWarningCodeTest extends ResolverTestCase {
+  void fail_argumentTypeNotAssignable_tearOff_required() {
+    Source source = addSource(r'''
+class C {
+  Object/*=T*/ f/*<T>*/(Object/*=T*/ x) => x;
+}
+g(C c) {
+  var h = c.f/*<int>*/;
+  print(h('s'));
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
   void fail_undefinedGetter() {
     Source source = addSource(r'''
 ''');

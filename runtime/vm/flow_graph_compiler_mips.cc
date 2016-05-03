@@ -1330,15 +1330,13 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // Load receiver into T0,
   __ lw(T0, Address(SP, (argument_count - 1) * kWordSize));
   Label done;
-  if (name.raw() == Symbols::hashCode().raw()) {
-    Label try_onebytestring, megamorphic_call;
+  if (ShouldInlineSmiStringHashCode(ic_data)) {
+    Label megamorphic_call;
     __ Comment("Inlined get:hashCode for Smi and OneByteString");
     __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
-    __ bne(CMPRES1, ZR, &try_onebytestring);  // Not Smi.
-    __ mov(V0, T0);
-    __ b(&done);
+    __ beq(CMPRES1, ZR, &done);  // Is Smi.
+    __ delay_slot()->mov(V0, T0);  // Move Smi hashcode to V0.
 
-    __ Bind(&try_onebytestring);
     __ LoadClassId(CMPRES1, T0);  // Class ID check.
     __ BranchNotEqual(
         CMPRES1, Immediate(kOneByteStringCid), &megamorphic_call);

@@ -309,7 +309,8 @@ abstract class Enqueuer {
         recentClasses.add(superclass);
         superclass.ensureResolved(resolution);
         superclass.implementation.forEachMember(processInstantiatedClassMember);
-        if (isResolutionQueue && !superclass.isSynthesized) {
+        if (isResolutionQueue &&
+            !compiler.serialization.isDeserialized(superclass)) {
           compiler.resolver.checkClass(superclass);
         }
         // We only tell the backend once that [superclass] was instantiated, so

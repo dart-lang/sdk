@@ -45,6 +45,7 @@ class RawError;
 class RawGrowableObjectArray;
 class RawString;
 class RuntimeEntry;
+class Smi;
 class StackResource;
 class String;
 class TypeArguments;
@@ -65,6 +66,7 @@ class Zone;
   V(Library)                                                                   \
   V(Object)                                                                    \
   V(PcDescriptors)                                                             \
+  V(Smi)                                                                       \
   V(String)                                                                    \
   V(TypeArguments)                                                             \
   V(TypeParameter)                                                             \

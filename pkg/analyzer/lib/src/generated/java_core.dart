@@ -37,7 +37,7 @@ String formatList(String pattern, List<Object> arguments) {
     int index = int.parse(indexStr);
     Object arg = arguments[index];
     assert(arg != null);
-    return arg != null ? arg.toString() : null;
+    return arg?.toString();
   });
 }
 

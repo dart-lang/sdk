@@ -245,7 +245,11 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     }
   }
 
+  @override
   ConstantValue getConstantValue(ConstantExpression expression) {
+    assert(invariant(CURRENT_ELEMENT_SPANNABLE, expression != null,
+        message: "ConstantExpression is null in getConstantValue."));
+    evaluate(expression);
     ConstantValue value = super.getConstantValue(expression);
     if (value == null &&
         expression != null &&

@@ -167,10 +167,21 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       sanitizeNode(node, parent);
 
       var child = node.lastChild;
-      while (child != null) {
-        // Child may be removed during the walk.
-        var nextChild = child.previousNode;
-        walk(child, node);
+      while (null != child) {
+        var nextChild;
+        try {
+          // Child may be removed during the walk, and we may not
+          // even be able to get its previousNode.
+          nextChild = child.previousNode;
+        } catch (e) {
+          // Child appears bad, remove it. We want to check the rest of the
+          // children of node and, but we have no way of getting to the next
+          // child, so start again from the last child.
+          _removeNode(child, node);
+          child = null;
+          nextChild = node.lastChild;
+        }
+        if (child != null) walk(child, node);
         child = nextChild;
       }
     }

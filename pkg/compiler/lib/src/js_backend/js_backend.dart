@@ -38,7 +38,8 @@ import '../deferred_load.dart' show DeferredLoadTask;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
-import '../elements/modelx.dart' show ConstructorBodyElementX;
+import '../elements/modelx.dart'
+    show ConstructorBodyElementX, FieldElementX, DeferredLoaderGetterElementX;
 import '../elements/visitor.dart' show BaseElementVisitor;
 import '../enqueue.dart' show Enqueuer, ResolutionEnqueuer;
 import '../io/code_output.dart';

@@ -18,6 +18,7 @@ import '../elements/elements.dart'
         ErroneousElement,
         PrefixElement,
         TypedefElement,
+        TypeDeclarationElement,
         TypeVariableElement;
 import '../elements/modelx.dart' show ErroneousElementX;
 import '../tree/tree.dart';
@@ -205,12 +206,17 @@ class TypeResolver {
           }
         }
       } else if (element.isTypeVariable) {
+        // FIXME: check enclosing, which may be not class, not typedef (so
+        // it's a generic method) then set the type to `const DynamicType()`.
+        // This should later be fixed such that we don't tell the user that they
+        // wrote `dynamic` anywhere.
         TypeVariableElement typeVariable = element;
         Element outer =
             visitor.enclosingElement.outermostEnclosingMemberOrTopLevel;
         if (!outer.isClass &&
             !outer.isTypedef &&
-            !Elements.hasAccessToTypeVariables(visitor.enclosingElement)) {
+            !Elements.hasAccessToTypeVariable(
+                visitor.enclosingElement, typeVariable)) {
           registry.registerFeature(Feature.THROW_RUNTIME_ERROR);
           type = reportFailureAndCreateType(
               MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,

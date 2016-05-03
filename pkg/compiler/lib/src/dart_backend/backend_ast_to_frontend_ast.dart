@@ -495,6 +495,8 @@ class TreePrinter {
           : makeFunctionBody(exp.body);
       result = new tree.FunctionExpression(
           constructorName(exp),
+          // TODO(eernst): retrieve and pass the actual type variables.
+          null, // typeVariables
           parameters,
           body,
           null, // return type
@@ -514,6 +516,8 @@ class TreePrinter {
       tree.Node body = makeFunctionBody(exp.body);
       result = new tree.FunctionExpression(
           functionName(exp),
+          // TODO(eernst): retrieve and pass the actual type variables.
+          null, // typeVariables
           parameters,
           body,
           exp.returnType == null || exp.element.isConstructor
@@ -798,6 +802,8 @@ class TreePrinter {
     } else if (stmt is FunctionDeclaration) {
       tree.FunctionExpression function = new tree.FunctionExpression(
           stmt.name != null ? makeIdentifier(stmt.name) : null,
+          // TODO(eernst): retrieve and pass the actual type variables.
+          null, // typeVariables
           makeParameters(stmt.parameters),
           makeFunctionBody(stmt.body),
           stmt.returnType != null ? makeType(stmt.returnType) : null,
@@ -965,6 +971,8 @@ class TreePrinter {
     if (param.isFunction) {
       tree.Node definition = new tree.FunctionExpression(
           makeIdentifier(param.name),
+          // TODO(eernst): retrieve and pass the actual type variables.
+          null, // typeVariables
           makeParameters(param.parameters),
           null, // body
               param.type == null ? null : makeType(param.type),

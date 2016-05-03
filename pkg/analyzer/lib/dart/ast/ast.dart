@@ -125,12 +125,9 @@ abstract class Annotation extends AstNode {
    * named constructor. The [arguments] can be `null` if the annotation is not
    * referencing a constructor.
    */
-  factory Annotation(
-      Token atSign,
-      Identifier name,
-      Token period,
-      SimpleIdentifier constructorName,
-      ArgumentList arguments) = AnnotationImpl;
+  factory Annotation(Token atSign, Identifier name, Token period,
+          SimpleIdentifier constructorName, ArgumentList arguments) =>
+      new AnnotationImpl(atSign, name, period, constructorName, arguments);
 
   /**
    * Return the arguments to the constructor being invoked, or `null` if this
@@ -288,8 +285,9 @@ abstract class AsExpression extends Expression {
   /**
    * Initialize a newly created as expression.
    */
-  factory AsExpression(Expression expression, Token asOperator, TypeName type) =
-      AsExpressionImpl;
+  factory AsExpression(
+          Expression expression, Token asOperator, TypeName type) =>
+      new AsExpressionImpl(expression, asOperator, type);
 
   /**
    * Return the 'as' operator.
@@ -337,13 +335,15 @@ abstract class AssertStatement extends Statement {
    * be `null` if there is no message.
    */
   factory AssertStatement(
-      Token assertKeyword,
-      Token leftParenthesis,
-      Expression condition,
-      Token comma,
-      Expression message,
-      Token rightParenthesis,
-      Token semicolon) = AssertStatementImpl;
+          Token assertKeyword,
+          Token leftParenthesis,
+          Expression condition,
+          Token comma,
+          Expression message,
+          Token rightParenthesis,
+          Token semicolon) =>
+      new AssertStatementImpl(assertKeyword, leftParenthesis, condition, comma,
+          message, rightParenthesis, semicolon);
 
   /**
    * Return the token representing the 'assert' keyword.
@@ -433,8 +433,8 @@ abstract class AssignmentExpression extends Expression {
    * Initialize a newly created assignment expression.
    */
   factory AssignmentExpression(
-          Expression leftHandSide, Token operator, Expression rightHandSide) =
-      AssignmentExpressionImpl;
+          Expression leftHandSide, Token operator, Expression rightHandSide) =>
+      new AssignmentExpressionImpl(leftHandSide, operator, rightHandSide);
 
   /**
    * Return the best element available for this operator. If resolution was able
@@ -862,8 +862,8 @@ abstract class AwaitExpression extends Expression {
   /**
    * Initialize a newly created await expression.
    */
-  factory AwaitExpression(Token awaitKeyword, Expression expression) =
-      AwaitExpressionImpl;
+  factory AwaitExpression(Token awaitKeyword, Expression expression) =>
+      new AwaitExpressionImpl(awaitKeyword, expression);
 
   /**
    * Return the 'await' keyword.
@@ -899,8 +899,8 @@ abstract class BinaryExpression extends Expression {
    * Initialize a newly created binary expression.
    */
   factory BinaryExpression(
-          Expression leftOperand, Token operator, Expression rightOperand) =
-      BinaryExpressionImpl;
+          Expression leftOperand, Token operator, Expression rightOperand) =>
+      new BinaryExpressionImpl(leftOperand, operator, rightOperand);
 
   /**
    * Return the best element available for this operator. If resolution was able
@@ -985,8 +985,8 @@ abstract class Block extends Statement {
    * Initialize a newly created block of code.
    */
   factory Block(
-          Token leftBracket, List<Statement> statements, Token rightBracket) =
-      BlockImpl;
+          Token leftBracket, List<Statement> statements, Token rightBracket) =>
+      new BlockImpl(leftBracket, statements, rightBracket);
 
   /**
    * Return the left curly bracket.
@@ -1029,8 +1029,8 @@ abstract class BlockFunctionBody extends FunctionBody {
    * for the block. The [star] can be `null` if there is no star following the
    * keyword (and must be `null` if there is no keyword).
    */
-  factory BlockFunctionBody(Token keyword, Token star, Block block) =
-      BlockFunctionBodyImpl;
+  factory BlockFunctionBody(Token keyword, Token star, Block block) =>
+      new BlockFunctionBodyImpl(keyword, star, block);
 
   /**
    * Return the block representing the body of the function.
@@ -1097,8 +1097,8 @@ abstract class BreakStatement extends Statement {
    * there is no label associated with the statement.
    */
   factory BreakStatement(
-          Token breakKeyword, SimpleIdentifier label, Token semicolon) =
-      BreakStatementImpl;
+          Token breakKeyword, SimpleIdentifier label, Token semicolon) =>
+      new BreakStatementImpl(breakKeyword, label, semicolon);
 
   /**
    * Return the token representing the 'break' keyword.
@@ -1173,8 +1173,8 @@ abstract class CascadeExpression extends Expression {
    * [cascadeSections] must contain at least one element.
    */
   factory CascadeExpression(
-          Expression target, List<Expression> cascadeSections) =
-      CascadeExpressionImpl;
+          Expression target, List<Expression> cascadeSections) =>
+      new CascadeExpressionImpl(target, cascadeSections);
 
   /**
    * Return the cascade sections sharing the common target.
@@ -1212,15 +1212,25 @@ abstract class CatchClause extends AstNode {
    * parameter is not defined.
    */
   factory CatchClause(
-      Token onKeyword,
-      TypeName exceptionType,
-      Token catchKeyword,
-      Token leftParenthesis,
-      SimpleIdentifier exceptionParameter,
-      Token comma,
-      SimpleIdentifier stackTraceParameter,
-      Token rightParenthesis,
-      Block body) = CatchClauseImpl;
+          Token onKeyword,
+          TypeName exceptionType,
+          Token catchKeyword,
+          Token leftParenthesis,
+          SimpleIdentifier exceptionParameter,
+          Token comma,
+          SimpleIdentifier stackTraceParameter,
+          Token rightParenthesis,
+          Block body) =>
+      new CatchClauseImpl(
+          onKeyword,
+          exceptionType,
+          catchKeyword,
+          leftParenthesis,
+          exceptionParameter,
+          comma,
+          stackTraceParameter,
+          rightParenthesis,
+          body);
 
   /**
    * Return the body of the catch block.
@@ -1346,18 +1356,31 @@ abstract class ClassDeclaration extends NamedCompilationUnitMember {
    * not have any members.
    */
   factory ClassDeclaration(
-      Comment comment,
-      List<Annotation> metadata,
-      Token abstractKeyword,
-      Token classKeyword,
-      SimpleIdentifier name,
-      TypeParameterList typeParameters,
-      ExtendsClause extendsClause,
-      WithClause withClause,
-      ImplementsClause implementsClause,
-      Token leftBracket,
-      List<ClassMember> members,
-      Token rightBracket) = ClassDeclarationImpl;
+          Comment comment,
+          List<Annotation> metadata,
+          Token abstractKeyword,
+          Token classKeyword,
+          SimpleIdentifier name,
+          TypeParameterList typeParameters,
+          ExtendsClause extendsClause,
+          WithClause withClause,
+          ImplementsClause implementsClause,
+          Token leftBracket,
+          List<ClassMember> members,
+          Token rightBracket) =>
+      new ClassDeclarationImpl(
+          comment,
+          metadata,
+          abstractKeyword,
+          classKeyword,
+          name,
+          typeParameters,
+          extendsClause,
+          withClause,
+          implementsClause,
+          leftBracket,
+          members,
+          rightBracket);
 
   /**
    * Return the 'abstract' keyword, or `null` if the keyword was absent.
@@ -1515,17 +1538,29 @@ abstract class ClassTypeAlias extends TypeAlias {
    * if the class does not implement any interfaces.
    */
   factory ClassTypeAlias(
-      Comment comment,
-      List<Annotation> metadata,
-      Token keyword,
-      SimpleIdentifier name,
-      TypeParameterList typeParameters,
-      Token equals,
-      Token abstractKeyword,
-      TypeName superclass,
-      WithClause withClause,
-      ImplementsClause implementsClause,
-      Token semicolon) = ClassTypeAliasImpl;
+          Comment comment,
+          List<Annotation> metadata,
+          Token keyword,
+          SimpleIdentifier name,
+          TypeParameterList typeParameters,
+          Token equals,
+          Token abstractKeyword,
+          TypeName superclass,
+          WithClause withClause,
+          ImplementsClause implementsClause,
+          Token semicolon) =>
+      new ClassTypeAliasImpl(
+          comment,
+          metadata,
+          keyword,
+          name,
+          typeParameters,
+          equals,
+          abstractKeyword,
+          superclass,
+          withClause,
+          implementsClause,
+          semicolon);
 
   /**
    * Return the token for the 'abstract' keyword, or `null` if this is not
@@ -1716,8 +1751,8 @@ abstract class CommentReference extends AstNode {
    * Initialize a newly created reference to a Dart element. The [newKeyword]
    * can be `null` if the reference is not to a constructor.
    */
-  factory CommentReference(Token newKeyword, Identifier identifier) =
-      CommentReferenceImpl;
+  factory CommentReference(Token newKeyword, Identifier identifier) =>
+      new CommentReferenceImpl(newKeyword, identifier);
 
   /**
    * Return the identifier being referenced.
@@ -1775,11 +1810,13 @@ abstract class CompilationUnit extends AstNode {
    * be `null` if there are no declarations in the compilation unit.
    */
   factory CompilationUnit(
-      Token beginToken,
-      ScriptTag scriptTag,
-      List<Directive> directives,
-      List<CompilationUnitMember> declarations,
-      Token endToken) = CompilationUnitImpl;
+          Token beginToken,
+          ScriptTag scriptTag,
+          List<Directive> directives,
+          List<CompilationUnitMember> declarations,
+          Token endToken) =>
+      new CompilationUnitImpl(
+          beginToken, scriptTag, directives, declarations, endToken);
 
   /**
    * Set the first token included in this node's source range to the given
@@ -1872,12 +1909,10 @@ abstract class ConditionalExpression extends Expression {
   /**
    * Initialize a newly created conditional expression.
    */
-  factory ConditionalExpression(
-      Expression condition,
-      Token question,
-      Expression thenExpression,
-      Token colon,
-      Expression elseExpression) = ConditionalExpressionImpl;
+  factory ConditionalExpression(Expression condition, Token question,
+          Expression thenExpression, Token colon, Expression elseExpression) =>
+      new ConditionalExpressionImpl(
+          condition, question, thenExpression, colon, elseExpression);
 
   /**
    * Return the token used to separate the then expression from the else
@@ -1958,13 +1993,15 @@ abstract class Configuration extends AstNode {
    * Initialize a newly created configuration.
    */
   factory Configuration(
-      Token ifKeyword,
-      Token leftParenthesis,
-      DottedName name,
-      Token equalToken,
-      StringLiteral value,
-      Token rightParenthesis,
-      StringLiteral libraryUri) = ConfigurationImpl;
+          Token ifKeyword,
+          Token leftParenthesis,
+          DottedName name,
+          Token equalToken,
+          StringLiteral value,
+          Token rightParenthesis,
+          StringLiteral libraryUri) =>
+      new ConfigurationImpl(ifKeyword, leftParenthesis, name, equalToken, value,
+          rightParenthesis, libraryUri);
 
   /**
    * Return the token for the equal operator, or `null` if the condition does
@@ -2084,19 +2121,33 @@ abstract class ConstructorDeclaration extends ClassMember {
    * the constructor does not have a body.
    */
   factory ConstructorDeclaration(
-      Comment comment,
-      List<Annotation> metadata,
-      Token externalKeyword,
-      Token constKeyword,
-      Token factoryKeyword,
-      Identifier returnType,
-      Token period,
-      SimpleIdentifier name,
-      FormalParameterList parameters,
-      Token separator,
-      List<ConstructorInitializer> initializers,
-      ConstructorName redirectedConstructor,
-      FunctionBody body) = ConstructorDeclarationImpl;
+          Comment comment,
+          List<Annotation> metadata,
+          Token externalKeyword,
+          Token constKeyword,
+          Token factoryKeyword,
+          Identifier returnType,
+          Token period,
+          SimpleIdentifier name,
+          FormalParameterList parameters,
+          Token separator,
+          List<ConstructorInitializer> initializers,
+          ConstructorName redirectedConstructor,
+          FunctionBody body) =>
+      new ConstructorDeclarationImpl(
+          comment,
+          metadata,
+          externalKeyword,
+          constKeyword,
+          factoryKeyword,
+          returnType,
+          period,
+          name,
+          parameters,
+          separator,
+          initializers,
+          redirectedConstructor,
+          body);
 
   /**
    * Return the body of the constructor, or `null` if the constructor does not
@@ -2240,12 +2291,10 @@ abstract class ConstructorFieldInitializer extends ConstructorInitializer {
    * the given name to the value of the given expression. The [thisKeyword] and
    * [period] can be `null` if the 'this' keyword was not specified.
    */
-  factory ConstructorFieldInitializer(
-      Token thisKeyword,
-      Token period,
-      SimpleIdentifier fieldName,
-      Token equals,
-      Expression expression) = ConstructorFieldInitializerImpl;
+  factory ConstructorFieldInitializer(Token thisKeyword, Token period,
+          SimpleIdentifier fieldName, Token equals, Expression expression) =>
+      new ConstructorFieldInitializerImpl(
+          thisKeyword, period, fieldName, equals, expression);
 
   /**
    * Return the token for the equal sign between the field name and the
@@ -2329,8 +2378,8 @@ abstract class ConstructorName extends AstNode {
    * Initialize a newly created constructor name. The [period] and [name] can be
    * `null` if the constructor being named is the unnamed constructor.
    */
-  factory ConstructorName(TypeName type, Token period, SimpleIdentifier name) =
-      ConstructorNameImpl;
+  factory ConstructorName(TypeName type, Token period, SimpleIdentifier name) =>
+      new ConstructorNameImpl(type, period, name);
 
   /**
    * Return the name of the constructor, or `null` if the specified constructor
@@ -2393,8 +2442,8 @@ abstract class ContinueStatement extends Statement {
    * there is no label associated with the statement.
    */
   factory ContinueStatement(
-          Token continueKeyword, SimpleIdentifier label, Token semicolon) =
-      ContinueStatementImpl;
+          Token continueKeyword, SimpleIdentifier label, Token semicolon) =>
+      new ContinueStatementImpl(continueKeyword, label, semicolon);
 
   /**
    * Return the token representing the 'continue' keyword.
@@ -2474,12 +2523,9 @@ abstract class DeclaredIdentifier extends Declaration {
    * corresponding attribute. The [keyword] can be `null` if a type name is
    * given. The [type] must be `null` if the keyword is 'var'.
    */
-  factory DeclaredIdentifier(
-      Comment comment,
-      List<Annotation> metadata,
-      Token keyword,
-      TypeName type,
-      SimpleIdentifier identifier) = DeclaredIdentifierImpl;
+  factory DeclaredIdentifier(Comment comment, List<Annotation> metadata,
+          Token keyword, TypeName type, SimpleIdentifier identifier) =>
+      new DeclaredIdentifierImpl(comment, metadata, keyword, type, identifier);
 
   @override
   LocalVariableElement get element;
@@ -2548,11 +2594,9 @@ abstract class DefaultFormalParameter extends FormalParameter {
    * Initialize a newly created default formal parameter. The [separator] and
    * [defaultValue] can be `null` if there is no default value.
    */
-  factory DefaultFormalParameter(
-      NormalFormalParameter parameter,
-      ParameterKind kind,
-      Token separator,
-      Expression defaultValue) = DefaultFormalParameterImpl;
+  factory DefaultFormalParameter(NormalFormalParameter parameter,
+          ParameterKind kind, Token separator, Expression defaultValue) =>
+      new DefaultFormalParameterImpl(parameter, kind, separator, defaultValue);
 
   /**
    * Return the expression computing the default value for the parameter, or
@@ -2639,13 +2683,15 @@ abstract class DoStatement extends Statement {
    * Initialize a newly created do loop.
    */
   factory DoStatement(
-      Token doKeyword,
-      Statement body,
-      Token whileKeyword,
-      Token leftParenthesis,
-      Expression condition,
-      Token rightParenthesis,
-      Token semicolon) = DoStatementImpl;
+          Token doKeyword,
+          Statement body,
+          Token whileKeyword,
+          Token leftParenthesis,
+          Expression condition,
+          Token rightParenthesis,
+          Token semicolon) =>
+      new DoStatementImpl(doKeyword, body, whileKeyword, leftParenthesis,
+          condition, rightParenthesis, semicolon);
 
   /**
    * Return the body of the loop.
@@ -2844,8 +2890,8 @@ abstract class EnumConstantDeclaration extends Declaration {
    * but we allow it for consistency.)
    */
   factory EnumConstantDeclaration(
-          Comment comment, List<Annotation> metadata, SimpleIdentifier name) =
-      EnumConstantDeclarationImpl;
+          Comment comment, List<Annotation> metadata, SimpleIdentifier name) =>
+      new EnumConstantDeclarationImpl(comment, metadata, name);
 
   /**
    * Return the name of the constant.
@@ -2874,13 +2920,15 @@ abstract class EnumDeclaration extends NamedCompilationUnitMember {
    * value.
    */
   factory EnumDeclaration(
-      Comment comment,
-      List<Annotation> metadata,
-      Token enumKeyword,
-      SimpleIdentifier name,
-      Token leftBracket,
-      List<EnumConstantDeclaration> constants,
-      Token rightBracket) = EnumDeclarationImpl;
+          Comment comment,
+          List<Annotation> metadata,
+          Token enumKeyword,
+          SimpleIdentifier name,
+          Token leftBracket,
+          List<EnumConstantDeclaration> constants,
+          Token rightBracket) =>
+      new EnumDeclarationImpl(comment, metadata, enumKeyword, name, leftBracket,
+          constants, rightBracket);
 
   /**
    * Return the enumeration constants being declared.
@@ -2937,13 +2985,15 @@ abstract class ExportDirective extends NamespaceDirective {
    * are no combinators.
    */
   factory ExportDirective(
-      Comment comment,
-      List<Annotation> metadata,
-      Token keyword,
-      StringLiteral libraryUri,
-      List<Configuration> configurations,
-      List<Combinator> combinators,
-      Token semicolon) = ExportDirectiveImpl;
+          Comment comment,
+          List<Annotation> metadata,
+          Token keyword,
+          StringLiteral libraryUri,
+          List<Configuration> configurations,
+          List<Combinator> combinators,
+          Token semicolon) =>
+      new ExportDirectiveImpl(comment, metadata, keyword, libraryUri,
+          configurations, combinators, semicolon);
 }
 
 /**
@@ -3038,6 +3088,13 @@ abstract class Expression extends AstNode {
    * Set the static type of this expression to the given [type].
    */
   void set staticType(DartType type);
+
+  /**
+   * If this expression is a parenthesized expression, return the result of
+   * unwrapping the expression inside the parentheses. Otherwise, return this
+   * expression.
+   */
+  Expression get unParenthesized;
 }
 
 /**
@@ -3055,7 +3112,9 @@ abstract class ExpressionFunctionBody extends FunctionBody {
    * async function body.
    */
   factory ExpressionFunctionBody(Token keyword, Token functionDefinition,
-      Expression expression, Token semicolon) = ExpressionFunctionBodyImpl;
+          Expression expression, Token semicolon) =>
+      new ExpressionFunctionBodyImpl(
+          keyword, functionDefinition, expression, semicolon);
 
   /**
    * Return the expression representing the body of the function.
@@ -3108,8 +3167,8 @@ abstract class ExpressionStatement extends Statement {
   /**
    * Initialize a newly created expression statement.
    */
-  factory ExpressionStatement(Expression expression, Token semicolon) =
-      ExpressionStatementImpl;
+  factory ExpressionStatement(Expression expression, Token semicolon) =>
+      new ExpressionStatementImpl(expression, semicolon);
 
   /**
    * Return the expression that comprises the statement.
@@ -3145,8 +3204,8 @@ abstract class ExtendsClause extends AstNode {
   /**
    * Initialize a newly created extends clause.
    */
-  factory ExtendsClause(Token extendsKeyword, TypeName superclass) =
-      ExtendsClauseImpl;
+  factory ExtendsClause(Token extendsKeyword, TypeName superclass) =>
+      new ExtendsClauseImpl(extendsKeyword, superclass);
 
   /**
    * Return the token representing the 'extends' keyword.
@@ -3185,11 +3244,13 @@ abstract class FieldDeclaration extends ClassMember {
    * not a static field.
    */
   factory FieldDeclaration(
-      Comment comment,
-      List<Annotation> metadata,
-      Token staticKeyword,
-      VariableDeclarationList fieldList,
-      Token semicolon) = FieldDeclarationImpl;
+          Comment comment,
+          List<Annotation> metadata,
+          Token staticKeyword,
+          VariableDeclarationList fieldList,
+          Token semicolon) =>
+      new FieldDeclarationImpl(
+          comment, metadata, staticKeyword, fieldList, semicolon);
 
   /**
    * Return the fields being declared.
@@ -3248,15 +3309,17 @@ abstract class FieldFormalParameter extends NormalFormalParameter {
    * parameter.
    */
   factory FieldFormalParameter(
-      Comment comment,
-      List<Annotation> metadata,
-      Token keyword,
-      TypeName type,
-      Token thisKeyword,
-      Token period,
-      SimpleIdentifier identifier,
-      TypeParameterList typeParameters,
-      FormalParameterList parameters) = FieldFormalParameterImpl;
+          Comment comment,
+          List<Annotation> metadata,
+          Token keyword,
+          TypeName type,
+          Token thisKeyword,
+          Token period,
+          SimpleIdentifier identifier,
+          TypeParameterList typeParameters,
+          FormalParameterList parameters) =>
+      new FieldFormalParameterImpl(comment, metadata, keyword, type,
+          thisKeyword, period, identifier, typeParameters, parameters);
 
   /**
    * Return the token representing either the 'final', 'const' or 'var' keyword,
@@ -3344,14 +3407,23 @@ abstract class ForEachStatement extends Statement {
    * `null` if this is not an asynchronous for loop.
    */
   factory ForEachStatement.withDeclaration(
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      DeclaredIdentifier loopVariable,
-      Token inKeyword,
-      Expression iterator,
-      Token rightParenthesis,
-      Statement body) = ForEachStatementImpl.withDeclaration;
+          Token awaitKeyword,
+          Token forKeyword,
+          Token leftParenthesis,
+          DeclaredIdentifier loopVariable,
+          Token inKeyword,
+          Expression iterator,
+          Token rightParenthesis,
+          Statement body) =>
+      new ForEachStatementImpl.withDeclaration(
+          awaitKeyword,
+          forKeyword,
+          leftParenthesis,
+          loopVariable,
+          inKeyword,
+          iterator,
+          rightParenthesis,
+          body);
 
   /**
    * Initialize a newly created for-each statement whose loop control variable
@@ -3359,14 +3431,23 @@ abstract class ForEachStatement extends Statement {
    * is not an asynchronous for loop.
    */
   factory ForEachStatement.withReference(
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      SimpleIdentifier identifier,
-      Token inKeyword,
-      Expression iterator,
-      Token rightParenthesis,
-      Statement body) = ForEachStatementImpl.withReference;
+          Token awaitKeyword,
+          Token forKeyword,
+          Token leftParenthesis,
+          SimpleIdentifier identifier,
+          Token inKeyword,
+          Expression iterator,
+          Token rightParenthesis,
+          Statement body) =>
+      new ForEachStatementImpl.withReference(
+          awaitKeyword,
+          forKeyword,
+          leftParenthesis,
+          identifier,
+          inKeyword,
+          iterator,
+          rightParenthesis,
+          body);
 
   /**
    * Return the token representing the 'await' keyword, or `null` if there is no
@@ -3630,16 +3711,27 @@ abstract class ForStatement extends Statement {
    * attribute.
    */
   factory ForStatement(
-      Token forKeyword,
-      Token leftParenthesis,
-      VariableDeclarationList variableList,
-      Expression initialization,
-      Token leftSeparator,
-      Expression condition,
-      Token rightSeparator,
-      List<Expression> updaters,
-      Token rightParenthesis,
-      Statement body) = ForStatementImpl;
+          Token forKeyword,
+          Token leftParenthesis,
+          VariableDeclarationList variableList,
+          Expression initialization,
+          Token leftSeparator,
+          Expression condition,
+          Token rightSeparator,
+          List<Expression> updaters,
+          Token rightParenthesis,
+          Statement body) =>
+      new ForStatementImpl(
+          forKeyword,
+          leftParenthesis,
+          variableList,
+          initialization,
+          leftSeparator,
+          condition,
+          rightSeparator,
+          updaters,
+          rightParenthesis,
+          body);
 
   /**
    * Return the body of the loop.
@@ -3830,13 +3922,15 @@ abstract class FunctionDeclaration extends NamedCompilationUnitMember {
    * function is neither a getter or a setter.
    */
   factory FunctionDeclaration(
-      Comment comment,
-      List<Annotation> metadata,
-      Token externalKeyword,
-      TypeName returnType,
-      Token propertyKeyword,
-      SimpleIdentifier name,
-      FunctionExpression functionExpression) = FunctionDeclarationImpl;
+          Comment comment,
+          List<Annotation> metadata,
+          Token externalKeyword,
+          TypeName returnType,
+          Token propertyKeyword,
+          SimpleIdentifier name,
+          FunctionExpression functionExpression) =>
+      new FunctionDeclarationImpl(comment, metadata, externalKeyword,
+          returnType, propertyKeyword, name, functionExpression);
 
   @override
   ExecutableElement get element;
@@ -3933,10 +4027,9 @@ abstract class FunctionExpression extends Expression {
   /**
    * Initialize a newly created function declaration.
    */
-  factory FunctionExpression(
-      TypeParameterList typeParameters,
-      FormalParameterList parameters,
-      FunctionBody body) = FunctionExpressionImpl;
+  factory FunctionExpression(TypeParameterList typeParameters,
+          FormalParameterList parameters, FunctionBody body) =>
+      new FunctionExpressionImpl(typeParameters, parameters, body);
 
   /**
    * Return the body of the function, or `null` if this is an external function.
@@ -3998,10 +4091,10 @@ abstract class FunctionExpressionInvocation extends InvocationExpression {
   /**
    * Initialize a newly created function expression invocation.
    */
-  factory FunctionExpressionInvocation(
-      Expression function,
-      TypeArgumentList typeArguments,
-      ArgumentList argumentList) = FunctionExpressionInvocationImpl;
+  factory FunctionExpressionInvocation(Expression function,
+          TypeArgumentList typeArguments, ArgumentList argumentList) =>
+      new FunctionExpressionInvocationImpl(
+          function, typeArguments, argumentList);
 
   /**
    * Set the list of arguments to the method to the given [argumentList].
@@ -4120,14 +4213,16 @@ abstract class FunctionTypeAlias extends TypeAlias {
    * type parameters.
    */
   factory FunctionTypeAlias(
-      Comment comment,
-      List<Annotation> metadata,
-      Token keyword,
-      TypeName returnType,
-      SimpleIdentifier name,
-      TypeParameterList typeParameters,
-      FormalParameterList parameters,
-      Token semicolon) = FunctionTypeAliasImpl;
+          Comment comment,
+          List<Annotation> metadata,
+          Token keyword,
+          TypeName returnType,
+          SimpleIdentifier name,
+          TypeParameterList typeParameters,
+          FormalParameterList parameters,
+          Token semicolon) =>
+      new FunctionTypeAliasImpl(comment, metadata, keyword, returnType, name,
+          typeParameters, parameters, semicolon);
 
   /**
    * Return the parameters associated with the function type.
@@ -4181,12 +4276,14 @@ abstract class FunctionTypedFormalParameter extends NormalFormalParameter {
    * was specified.
    */
   factory FunctionTypedFormalParameter(
-      Comment comment,
-      List<Annotation> metadata,
-      TypeName returnType,
-      SimpleIdentifier identifier,
-      TypeParameterList typeParameters,
-      FormalParameterList parameters) = FunctionTypedFormalParameterImpl;
+          Comment comment,
+          List<Annotation> metadata,
+          TypeName returnType,
+          SimpleIdentifier identifier,
+          TypeParameterList typeParameters,
+          FormalParameterList parameters) =>
+      new FunctionTypedFormalParameterImpl(comment, metadata, returnType,
+          identifier, typeParameters, parameters);
 
   /**
    * Return the parameters of the function-typed parameter.
@@ -4308,13 +4405,15 @@ abstract class IfStatement extends Statement {
    * [elseStatement] can be `null` if there is no else clause.
    */
   factory IfStatement(
-      Token ifKeyword,
-      Token leftParenthesis,
-      Expression condition,
-      Token rightParenthesis,
-      Statement thenStatement,
-      Token elseKeyword,
-      Statement elseStatement) = IfStatementImpl;
+          Token ifKeyword,
+          Token leftParenthesis,
+          Expression condition,
+          Token rightParenthesis,
+          Statement thenStatement,
+          Token elseKeyword,
+          Statement elseStatement) =>
+      new IfStatementImpl(ifKeyword, leftParenthesis, condition,
+          rightParenthesis, thenStatement, elseKeyword, elseStatement);
 
   /**
    * Return the condition used to determine which of the statements is executed
@@ -4460,8 +4559,8 @@ abstract class ImportDirective extends NamespaceDirective {
     //
     SimpleIdentifier prefix1 = import1.prefix;
     SimpleIdentifier prefix2 = import2.prefix;
-    String prefixStr1 = prefix1 != null ? prefix1.name : null;
-    String prefixStr2 = prefix2 != null ? prefix2.name : null;
+    String prefixStr1 = prefix1?.name;
+    String prefixStr2 = prefix2?.name;
     if (prefixStr1 != null || prefixStr2 != null) {
       if (prefixStr1 == null) {
         return -1;
@@ -4537,16 +4636,27 @@ abstract class ImportDirective extends NamespaceDirective {
    * are no combinators.
    */
   factory ImportDirective(
-      Comment comment,
-      List<Annotation> metadata,
-      Token keyword,
-      StringLiteral libraryUri,
-      List<Configuration> configurations,
-      Token deferredKeyword,
-      Token asKeyword,
-      SimpleIdentifier prefix,
-      List<Combinator> combinators,
-      Token semicolon) = ImportDirectiveImpl;
+          Comment comment,
+          List<Annotation> metadata,
+          Token keyword,
+          StringLiteral libraryUri,
+          List<Configuration> configurations,
+          Token deferredKeyword,
+          Token asKeyword,
+          SimpleIdentifier prefix,
+          List<Combinator> combinators,
+          Token semicolon) =>
+      new ImportDirectiveImpl(
+          comment,
+          metadata,
+          keyword,
+          libraryUri,
+          configurations,
+          deferredKeyword,
+          asKeyword,
+          prefix,
+          combinators,
+          semicolon);
 
   /**
    * Return the token representing the 'as' keyword, or `null` if the imported
@@ -4595,13 +4705,17 @@ abstract class IndexExpression extends Expression {
    * Initialize a newly created index expression.
    */
   factory IndexExpression.forCascade(Token period, Token leftBracket,
-      Expression index, Token rightBracket) = IndexExpressionImpl.forCascade;
+          Expression index, Token rightBracket) =>
+      new IndexExpressionImpl.forCascade(
+          period, leftBracket, index, rightBracket);
 
   /**
    * Initialize a newly created index expression.
    */
   factory IndexExpression.forTarget(Expression target, Token leftBracket,
-      Expression index, Token rightBracket) = IndexExpressionImpl.forTarget;
+          Expression index, Token rightBracket) =>
+      new IndexExpressionImpl.forTarget(
+          target, leftBracket, index, rightBracket);
 
   /**
    * Return the auxiliary elements associated with this identifier, or `null` if
@@ -4758,10 +4872,10 @@ abstract class InstanceCreationExpression extends Expression {
   /**
    * Initialize a newly created instance creation expression.
    */
-  factory InstanceCreationExpression(
-      Token keyword,
-      ConstructorName constructorName,
-      ArgumentList argumentList) = InstanceCreationExpressionImpl;
+  factory InstanceCreationExpression(Token keyword,
+          ConstructorName constructorName, ArgumentList argumentList) =>
+      new InstanceCreationExpressionImpl(
+          keyword, constructorName, argumentList);
 
   /**
    * Return the list of arguments to the constructor.
@@ -4883,8 +4997,8 @@ abstract class InterpolationExpression extends InterpolationElement {
    * Initialize a newly created interpolation expression.
    */
   factory InterpolationExpression(
-          Token leftBracket, Expression expression, Token rightBracket) =
-      InterpolationExpressionImpl;
+          Token leftBracket, Expression expression, Token rightBracket) =>
+      new InterpolationExpressionImpl(leftBracket, expression, rightBracket);
 
   /**
    * Return the expression to be evaluated for the value to be converted into a
@@ -5052,7 +5166,8 @@ abstract class IsExpression extends Expression {
    * if the sense of the test is not negated.
    */
   factory IsExpression(Expression expression, Token isOperator,
-      Token notOperator, TypeName type) = IsExpressionImpl;
+          Token notOperator, TypeName type) =>
+      new IsExpressionImpl(expression, isOperator, notOperator, type);
 
   /**
    * Return the expression used to compute the value whose type is being tested.
@@ -5108,7 +5223,8 @@ abstract class Label extends AstNode {
   /**
    * Initialize a newly created label.
    */
-  factory Label(SimpleIdentifier label, Token colon) = LabelImpl;
+  factory Label(SimpleIdentifier label, Token colon) =>
+      new LabelImpl(label, colon);
 
   /**
    * Return the colon that separates the label from the statement.
@@ -5144,8 +5260,8 @@ abstract class LabeledStatement extends Statement {
   /**
    * Initialize a newly created labeled statement.
    */
-  factory LabeledStatement(List<Label> labels, Statement statement) =
-      LabeledStatementImpl;
+  factory LabeledStatement(List<Label> labels, Statement statement) =>
+      new LabeledStatementImpl(labels, statement);
 
   /**
    * Return the labels being associated with the statement.
@@ -5178,12 +5294,10 @@ abstract class LibraryDirective extends Directive {
    * [comment] and [metadata] can be `null` if the directive does not have the
    * corresponding attribute.
    */
-  factory LibraryDirective(
-      Comment comment,
-      List<Annotation> metadata,
-      Token libraryKeyword,
-      LibraryIdentifier name,
-      Token semicolon) = LibraryDirectiveImpl;
+  factory LibraryDirective(Comment comment, List<Annotation> metadata,
+          Token libraryKeyword, LibraryIdentifier name, Token semicolon) =>
+      new LibraryDirectiveImpl(
+          comment, metadata, libraryKeyword, name, semicolon);
 
   /**
    * Return the token representing the 'library' keyword.
@@ -5361,8 +5475,8 @@ abstract class MapLiteralEntry extends AstNode {
   /**
    * Initialize a newly created map literal entry.
    */
-  factory MapLiteralEntry(Expression key, Token separator, Expression value) =
-      MapLiteralEntryImpl;
+  factory MapLiteralEntry(Expression key, Token separator, Expression value) =>
+      new MapLiteralEntryImpl(key, separator, value);
 
   /**
    * Return the expression computing the key with which the value will be
@@ -5428,17 +5542,29 @@ abstract class MethodDeclaration extends ClassMember {
    * this method declares a getter.
    */
   factory MethodDeclaration(
-      Comment comment,
-      List<Annotation> metadata,
-      Token externalKeyword,
-      Token modifierKeyword,
-      TypeName returnType,
-      Token propertyKeyword,
-      Token operatorKeyword,
-      SimpleIdentifier name,
-      TypeParameterList typeParameters,
-      FormalParameterList parameters,
-      FunctionBody body) = MethodDeclarationImpl;
+          Comment comment,
+          List<Annotation> metadata,
+          Token externalKeyword,
+          Token modifierKeyword,
+          TypeName returnType,
+          Token propertyKeyword,
+          Token operatorKeyword,
+          SimpleIdentifier name,
+          TypeParameterList typeParameters,
+          FormalParameterList parameters,
+          FunctionBody body) =>
+      new MethodDeclarationImpl(
+          comment,
+          metadata,
+          externalKeyword,
+          modifierKeyword,
+          returnType,
+          propertyKeyword,
+          operatorKeyword,
+          name,
+          typeParameters,
+          parameters,
+          body);
 
   /**
    * Return the body of the method.
@@ -5586,11 +5712,13 @@ abstract class MethodInvocation extends InvocationExpression {
    * can be `null` if there is no target.
    */
   factory MethodInvocation(
-      Expression target,
-      Token operator,
-      SimpleIdentifier methodName,
-      TypeArgumentList typeArguments,
-      ArgumentList argumentList) = MethodInvocationImpl;
+          Expression target,
+          Token operator,
+          SimpleIdentifier methodName,
+          TypeArgumentList typeArguments,
+          ArgumentList argumentList) =>
+      new MethodInvocationImpl(
+          target, operator, methodName, typeArguments, argumentList);
 
   /**
    * Set the list of arguments to the method to the given [argumentList].
@@ -5727,8 +5855,8 @@ abstract class NamedExpression extends Expression {
   /**
    * Initialize a newly created named expression..
    */
-  factory NamedExpression(Label name, Expression expression) =
-      NamedExpressionImpl;
+  factory NamedExpression(Label name, Expression expression) =>
+      new NamedExpressionImpl(name, expression);
 
   /**
    * Return the element representing the parameter being named by this
@@ -5809,8 +5937,8 @@ abstract class NativeClause extends AstNode {
   /**
    * Initialize a newly created native clause.
    */
-  factory NativeClause(Token nativeKeyword, StringLiteral name) =
-      NativeClauseImpl;
+  factory NativeClause(Token nativeKeyword, StringLiteral name) =>
+      new NativeClauseImpl(nativeKeyword, name);
 
   /**
    * Return the name of the native object that implements the class.
@@ -5849,8 +5977,8 @@ abstract class NativeFunctionBody extends FunctionBody {
    * a string literal, and a semicolon.
    */
   factory NativeFunctionBody(
-          Token nativeKeyword, StringLiteral stringLiteral, Token semicolon) =
-      NativeFunctionBodyImpl;
+          Token nativeKeyword, StringLiteral stringLiteral, Token semicolon) =>
+      new NativeFunctionBodyImpl(nativeKeyword, stringLiteral, semicolon);
 
   /**
    * Return the token representing 'native' that marks the start of the function
@@ -6024,7 +6152,9 @@ abstract class ParenthesizedExpression extends Expression {
    * Initialize a newly created parenthesized expression.
    */
   factory ParenthesizedExpression(Token leftParenthesis, Expression expression,
-      Token rightParenthesis) = ParenthesizedExpressionImpl;
+          Token rightParenthesis) =>
+      new ParenthesizedExpressionImpl(
+          leftParenthesis, expression, rightParenthesis);
 
   /**
    * Return the expression within the parentheses.
@@ -6114,12 +6244,14 @@ abstract class PartOfDirective extends Directive {
    * corresponding attribute.
    */
   factory PartOfDirective(
-      Comment comment,
-      List<Annotation> metadata,
-      Token partKeyword,
-      Token ofKeyword,
-      LibraryIdentifier libraryName,
-      Token semicolon) = PartOfDirectiveImpl;
+          Comment comment,
+          List<Annotation> metadata,
+          Token partKeyword,
+          Token ofKeyword,
+          LibraryIdentifier libraryName,
+          Token semicolon) =>
+      new PartOfDirectiveImpl(
+          comment, metadata, partKeyword, ofKeyword, libraryName, semicolon);
 
   /**
    * Return the name of the library that the containing compilation unit is part
@@ -6176,8 +6308,8 @@ abstract class PostfixExpression extends Expression {
   /**
    * Initialize a newly created postfix expression.
    */
-  factory PostfixExpression(Expression operand, Token operator) =
-      PostfixExpressionImpl;
+  factory PostfixExpression(Expression operand, Token operator) =>
+      new PostfixExpressionImpl(operand, operator);
 
   /**
    * Return the best element available for this operator. If resolution was able
@@ -6251,8 +6383,8 @@ abstract class PrefixedIdentifier extends Identifier {
    * Initialize a newly created prefixed identifier.
    */
   factory PrefixedIdentifier(
-          SimpleIdentifier prefix, Token period, SimpleIdentifier identifier) =
-      PrefixedIdentifierImpl;
+          SimpleIdentifier prefix, Token period, SimpleIdentifier identifier) =>
+      new PrefixedIdentifierImpl(prefix, period, identifier);
 
   /**
    * Return the identifier being prefixed.
@@ -6309,8 +6441,8 @@ abstract class PrefixExpression extends Expression {
   /**
    * Initialize a newly created prefix expression.
    */
-  factory PrefixExpression(Token operator, Expression operand) =
-      PrefixExpressionImpl;
+  factory PrefixExpression(Token operator, Expression operand) =>
+      new PrefixExpressionImpl(operator, operand);
 
   /**
    * Return the best element available for this operator. If resolution was able
@@ -6387,8 +6519,8 @@ abstract class PropertyAccess extends Expression {
    * Initialize a newly created property access expression.
    */
   factory PropertyAccess(
-          Expression target, Token operator, SimpleIdentifier propertyName) =
-      PropertyAccessImpl;
+          Expression target, Token operator, SimpleIdentifier propertyName) =>
+      new PropertyAccessImpl(target, operator, propertyName);
 
   /**
    * Return `true` if this expression is cascaded. If it is, then the target of
@@ -6456,11 +6588,10 @@ abstract class RedirectingConstructorInvocation extends ConstructorInitializer {
    * with the given name with the given arguments. The [constructorName] can be
    * `null` if the constructor being invoked is the unnamed constructor.
    */
-  factory RedirectingConstructorInvocation(
-      Token thisKeyword,
-      Token period,
-      SimpleIdentifier constructorName,
-      ArgumentList argumentList) = RedirectingConstructorInvocationImpl;
+  factory RedirectingConstructorInvocation(Token thisKeyword, Token period,
+          SimpleIdentifier constructorName, ArgumentList argumentList) =>
+      new RedirectingConstructorInvocationImpl(
+          thisKeyword, period, constructorName, argumentList);
 
   /**
    * Return the list of arguments to the constructor.
@@ -6559,8 +6690,8 @@ abstract class ReturnStatement extends Statement {
    * if no explicit value was provided.
    */
   factory ReturnStatement(
-          Token returnKeyword, Expression expression, Token semicolon) =
-      ReturnStatementImpl;
+          Token returnKeyword, Expression expression, Token semicolon) =>
+      new ReturnStatementImpl(returnKeyword, expression, semicolon);
 
   /**
    * Return the expression computing the value to be returned, or `null` if no
@@ -6657,12 +6788,10 @@ abstract class SimpleFormalParameter extends NormalFormalParameter {
    * corresponding attribute. The [keyword] can be `null` if a type was
    * specified. The [type] must be `null` if the keyword is 'var'.
    */
-  factory SimpleFormalParameter(
-      Comment comment,
-      List<Annotation> metadata,
-      Token keyword,
-      TypeName type,
-      SimpleIdentifier identifier) = SimpleFormalParameterImpl;
+  factory SimpleFormalParameter(Comment comment, List<Annotation> metadata,
+          Token keyword, TypeName type, SimpleIdentifier identifier) =>
+      new SimpleFormalParameterImpl(
+          comment, metadata, keyword, type, identifier);
 
   /**
    * Return the token representing either the 'final', 'const' or 'var' keyword,
@@ -6958,11 +7087,10 @@ abstract class SuperConstructorInvocation extends ConstructorInitializer {
    * [constructorName] can be `null` if the constructor being invoked is the
    * unnamed constructor.
    */
-  factory SuperConstructorInvocation(
-      Token superKeyword,
-      Token period,
-      SimpleIdentifier constructorName,
-      ArgumentList argumentList) = SuperConstructorInvocationImpl;
+  factory SuperConstructorInvocation(Token superKeyword, Token period,
+          SimpleIdentifier constructorName, ArgumentList argumentList) =>
+      new SuperConstructorInvocationImpl(
+          superKeyword, period, constructorName, argumentList);
 
   /**
    * Return the list of arguments to the constructor.
@@ -7061,7 +7189,8 @@ abstract class SwitchCase extends SwitchMember {
    * if there are no labels.
    */
   factory SwitchCase(List<Label> labels, Token keyword, Expression expression,
-      Token colon, List<Statement> statements) = SwitchCaseImpl;
+          Token colon, List<Statement> statements) =>
+      new SwitchCaseImpl(labels, keyword, expression, colon, statements);
 
   /**
    * Return the expression controlling whether the statements will be executed.
@@ -7151,13 +7280,15 @@ abstract class SwitchStatement extends Statement {
    * `null` if there are no switch members.
    */
   factory SwitchStatement(
-      Token switchKeyword,
-      Token leftParenthesis,
-      Expression expression,
-      Token rightParenthesis,
-      Token leftBracket,
-      List<SwitchMember> members,
-      Token rightBracket) = SwitchStatementImpl;
+          Token switchKeyword,
+          Token leftParenthesis,
+          Expression expression,
+          Token rightParenthesis,
+          Token leftBracket,
+          List<SwitchMember> members,
+          Token rightBracket) =>
+      new SwitchStatementImpl(switchKeyword, leftParenthesis, expression,
+          rightParenthesis, leftBracket, members, rightBracket);
 
   /**
    * Return the expression used to determine which of the switch members will be
@@ -7295,8 +7426,8 @@ abstract class ThrowExpression extends Expression {
   /**
    * Initialize a newly created throw expression.
    */
-  factory ThrowExpression(Token throwKeyword, Expression expression) =
-      ThrowExpressionImpl;
+  factory ThrowExpression(Token throwKeyword, Expression expression) =>
+      new ThrowExpressionImpl(throwKeyword, expression);
 
   /**
    * Return the expression computing the exception to be thrown.
@@ -7336,10 +7467,12 @@ abstract class TopLevelVariableDeclaration extends CompilationUnitMember {
    * the corresponding attribute.
    */
   factory TopLevelVariableDeclaration(
-      Comment comment,
-      List<Annotation> metadata,
-      VariableDeclarationList variableList,
-      Token semicolon) = TopLevelVariableDeclarationImpl;
+          Comment comment,
+          List<Annotation> metadata,
+          VariableDeclarationList variableList,
+          Token semicolon) =>
+      new TopLevelVariableDeclarationImpl(
+          comment, metadata, variableList, semicolon);
 
   /**
    * Return the semicolon terminating the declaration.
@@ -7381,11 +7514,13 @@ abstract class TryStatement extends Statement {
    * [finallyBlock] can be `null` if there is no finally clause.
    */
   factory TryStatement(
-      Token tryKeyword,
-      Block body,
-      List<CatchClause> catchClauses,
-      Token finallyKeyword,
-      Block finallyBlock) = TryStatementImpl;
+          Token tryKeyword,
+          Block body,
+          List<CatchClause> catchClauses,
+          Token finallyKeyword,
+          Block finallyBlock) =>
+      new TryStatementImpl(
+          tryKeyword, body, catchClauses, finallyKeyword, finallyBlock);
 
   /**
    * Return the body of the statement.
@@ -7558,8 +7693,8 @@ abstract class TypeName extends AstNode {
    * Initialize a newly created type name. The [typeArguments] can be `null` if
    * there are no type arguments.
    */
-  factory TypeName(Identifier name, TypeArgumentList typeArguments) =
-      TypeNameImpl;
+  factory TypeName(Identifier name, TypeArgumentList typeArguments) =>
+      new TypeNameImpl(name, typeArguments);
 
   /**
    * Return `true` if this type is a deferred type.
@@ -7618,12 +7753,9 @@ abstract class TypeParameter extends Declaration {
    * corresponding attribute. The [extendsKeyword] and [bound] can be `null` if
    * the parameter does not have an upper bound.
    */
-  factory TypeParameter(
-      Comment comment,
-      List<Annotation> metadata,
-      SimpleIdentifier name,
-      Token extendsKeyword,
-      TypeName bound) = TypeParameterImpl;
+  factory TypeParameter(Comment comment, List<Annotation> metadata,
+          SimpleIdentifier name, Token extendsKeyword, TypeName bound) =>
+      new TypeParameterImpl(comment, metadata, name, extendsKeyword, bound);
 
   /**
    * Return the name of the upper bound for legal arguments, or `null` if there
@@ -7784,8 +7916,8 @@ abstract class VariableDeclaration extends Declaration {
    * [initializer] can be `null` if there is no initializer.
    */
   factory VariableDeclaration(
-          SimpleIdentifier name, Token equals, Expression initializer) =
-      VariableDeclarationImpl;
+          SimpleIdentifier name, Token equals, Expression initializer) =>
+      new VariableDeclarationImpl(name, equals, initializer);
 
   @override
   VariableElement get element;
@@ -7858,12 +7990,10 @@ abstract class VariableDeclarationList extends AnnotatedNode {
    * the corresponding attribute. The [keyword] can be `null` if a type was
    * specified. The [type] must be `null` if the keyword is 'var'.
    */
-  factory VariableDeclarationList(
-      Comment comment,
-      List<Annotation> metadata,
-      Token keyword,
-      TypeName type,
-      List<VariableDeclaration> variables) = VariableDeclarationListImpl;
+  factory VariableDeclarationList(Comment comment, List<Annotation> metadata,
+          Token keyword, TypeName type, List<VariableDeclaration> variables) =>
+      new VariableDeclarationListImpl(
+          comment, metadata, keyword, type, variables);
 
   /**
    * Return `true` if the variables in this list were declared with the 'const'
@@ -7922,8 +8052,8 @@ abstract class VariableDeclarationStatement extends Statement {
    * Initialize a newly created variable declaration statement.
    */
   factory VariableDeclarationStatement(
-          VariableDeclarationList variableList, Token semicolon) =
-      VariableDeclarationStatementImpl;
+          VariableDeclarationList variableList, Token semicolon) =>
+      new VariableDeclarationStatementImpl(variableList, semicolon);
 
   /**
    * Return the semicolon terminating the statement.
@@ -7958,12 +8088,10 @@ abstract class WhileStatement extends Statement {
   /**
    * Initialize a newly created while statement.
    */
-  factory WhileStatement(
-      Token whileKeyword,
-      Token leftParenthesis,
-      Expression condition,
-      Token rightParenthesis,
-      Statement body) = WhileStatementImpl;
+  factory WhileStatement(Token whileKeyword, Token leftParenthesis,
+          Expression condition, Token rightParenthesis, Statement body) =>
+      new WhileStatementImpl(
+          whileKeyword, leftParenthesis, condition, rightParenthesis, body);
 
   /**
    * Return the body of the loop.
@@ -8063,7 +8191,8 @@ abstract class YieldStatement extends Statement {
    * star was provided.
    */
   factory YieldStatement(Token yieldKeyword, Token star, Expression expression,
-      Token semicolon) = YieldStatementImpl;
+          Token semicolon) =>
+      new YieldStatementImpl(yieldKeyword, star, expression, semicolon);
 
   /**
    * Return the expression whose value will be yielded.

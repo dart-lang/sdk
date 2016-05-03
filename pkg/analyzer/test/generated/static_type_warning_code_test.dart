@@ -1288,6 +1288,64 @@ var b = 1 is G<B>;
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
+  void test_typeArgumentNotMatchingBounds_methodInvocation_localFunction() {
+    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    assertErrorsInCode(
+        r'''
+class Point<T extends num> {
+  Point(T x, T y);
+}
+
+main() {
+  Point/*<T>*/ f/*<T extends num>*/(num/*=T*/ x, num/*=T*/ y) {
+    return new Point/*<T>*/(x, y);
+  }
+  print(f/*<String>*/('hello', 'world'));
+}
+''',
+        [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+  }
+
+  void test_typeArgumentNotMatchingBounds_methodInvocation_method() {
+    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    assertErrorsInCode(
+        r'''
+class Point<T extends num> {
+  Point(T x, T y);
+}
+
+class PointFactory {
+  Point/*<T>*/ point/*<T extends num>*/(num/*=T*/ x, num/*=T*/ y) {
+    return new Point/*<T>*/(x, y);
+  }
+}
+
+f(PointFactory factory) {
+  print(factory.point/*<String>*/('hello', 'world'));
+}
+''',
+        [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+  }
+
+  void test_typeArgumentNotMatchingBounds_methodInvocation_topLevelFunction() {
+    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    assertErrorsInCode(
+        r'''
+class Point<T extends num> {
+  Point(T x, T y);
+}
+
+Point/*<T>*/ f/*<T extends num>*/(num/*=T*/ x, num/*=T*/ y) {
+  return new Point/*<T>*/(x, y);
+}
+
+main() {
+  print(f/*<String>*/('hello', 'world'));
+}
+''',
+        [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+  }
+
   void test_typeArgumentNotMatchingBounds_methodReturnType() {
     assertErrorsInCode(
         r'''
@@ -2360,5 +2418,52 @@ main() {
       }
     }
     verify([source]);
+  }
+
+  void test_legalAsyncGeneratorReturnType_function_supertypeOfStream() {
+    assertErrorsInCode(
+        '''
+import 'dart:async';
+f() async* { yield 42; }
+dynamic f2() async* { yield 42; }
+Object f3() async* { yield 42; }
+Stream f4() async* { yield 42; }
+Stream<dynamic> f5() async* { yield 42; }
+Stream<Object> f6() async* { yield 42; }
+Stream<num> f7() async* { yield 42; }
+Stream<int> f8() async* { yield 42; }
+''',
+        []);
+  }
+
+  void test_legalAsyncReturnType_function_supertypeOfFuture() {
+    assertErrorsInCode(
+        '''
+import 'dart:async';
+f() async { return 42; }
+dynamic f2() async { return 42; }
+Object f3() async { return 42; }
+Future f4() async { return 42; }
+Future<dynamic> f5() async { return 42; }
+Future<Object> f6() async { return 42; }
+Future<num> f7() async { return 42; }
+Future<int> f8() async { return 42; }
+''',
+        []);
+  }
+
+  void test_legalSyncGeneratorReturnType_function_supertypeOfIterable() {
+    assertErrorsInCode(
+        '''
+f() sync* { yield 42; }
+dynamic f2() sync* { yield 42; }
+Object f3() sync* { yield 42; }
+Iterable f4() sync* { yield 42; }
+Iterable<dynamic> f5() sync* { yield 42; }
+Iterable<Object> f6() sync* { yield 42; }
+Iterable<num> f7() sync* { yield 42; }
+Iterable<int> f8() sync* { yield 42; }
+''',
+        []);
   }
 }

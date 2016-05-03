@@ -329,11 +329,13 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
 
   // We did not read a keyword.
   current_token_.kind = Token::kIDENT;
-  String& literal =
-      String::ZoneHandle(Z, Symbols::New(T, source_, ident_pos, ident_length));
+  String& literal = String::ZoneHandle(Z);
   if (ident_char0 == Library::kPrivateIdentifierStart) {
     // Private identifiers are mangled on a per library basis.
+    literal = String::SubString(T, source_, ident_pos, ident_length);
     literal = Symbols::FromConcat(T, literal, private_key_);
+  } else {
+    literal = Symbols::New(T, source_, ident_pos, ident_length);
   }
   current_token_.literal = &literal;
 }

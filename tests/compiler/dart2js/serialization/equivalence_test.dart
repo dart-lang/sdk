@@ -5,7 +5,7 @@
 library dart2js.serialization_test;
 
 import 'dart:io';
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
@@ -21,7 +21,7 @@ import 'package:compiler/src/serialization/element_serialization.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/serialization/json_serializer.dart';
 import 'package:compiler/src/serialization/serialization.dart';
-import 'serialization_test_helper.dart';
+import 'test_helper.dart';
 
 main(List<String> arguments) {
   // Ensure that we can print out constant expressions.
@@ -243,6 +243,8 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
     if (element1 == element2) return;
     check(element1, element2, 'kind', element1.kind, element2.kind);
     element1.accept(this, element2);
+    check(element1, element2, 'isSynthesized',
+        element1.isSynthesized, element2.isSynthesized);
   }
 
   @override
@@ -560,6 +562,24 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
           element1.constantConstructor,
           element2.constantConstructor);
     }
+    check(element1, element2, 'isRedirectingGenerative',
+        element1.isRedirectingGenerative, element2.isRedirectingGenerative);
+    check(element1, element2, 'isRedirectingFactory',
+        element1.isRedirectingFactory, element2.isRedirectingFactory);
+    checkElementIdentities(element1, element2, 'effectiveTarget',
+        element1.effectiveTarget, element2.effectiveTarget);
+    checkElementIdentities(element1, element2, 'definingConstructor',
+        element1.definingConstructor, element2.definingConstructor);
+    check(
+        element1, element2, 'effectiveTargetType',
+        element1.computeEffectiveTargetType(element1.enclosingClass.thisType),
+        element2.computeEffectiveTargetType(element2.enclosingClass.thisType),
+        areTypesEquivalent);
+    checkElementIdentities(element1, element2, 'immediateRedirectionTarget',
+        element1.immediateRedirectionTarget,
+        element2.immediateRedirectionTarget);
+    checkElementIdentities(element1, element2, 'redirectionDeferredPrefix',
+        element1.redirectionDeferredPrefix, element2.redirectionDeferredPrefix);
   }
 
   @override

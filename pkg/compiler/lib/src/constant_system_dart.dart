@@ -450,6 +450,11 @@ class DartConstantSystem extends ConstantSystem {
         compiler.backend.typeImplementation.computeType(compiler.resolution));
   }
 
+  @override
+  ConstantValue createSymbol(Compiler compiler, String text) {
+    throw new UnsupportedError('DartConstantSystem.evaluate');
+  }
+
   bool isInt(ConstantValue constant) => constant.isInt;
   bool isDouble(ConstantValue constant) => constant.isDouble;
   bool isString(ConstantValue constant) => constant.isString;

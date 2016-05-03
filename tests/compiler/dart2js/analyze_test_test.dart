@@ -38,17 +38,15 @@ const Map<String, List/*<String|MessageKind>*/> WHITE_LIST = const {
 
 const List<String> SKIP_LIST = const <String>[
   // Helper files:
-  "dart2js_batch2_run.dart",
+  "/data/",
   "http_launch_data/",
   "mirrors_helper.dart",
   "path%20with%20spaces/",
-  "one_line_dart_program.dart",
-  "sourcemaps/invokes_test_file.dart",
   "cps_ir/input/",
   // No longer maintained:
   "backend_dart/",
   // Broken tests:
-  "http_test.dart",
+  "quarantined/http_test.dart",
   // Package directory
   "packages/",
 ];

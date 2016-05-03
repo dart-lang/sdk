@@ -14,6 +14,7 @@ import '../elements/elements.dart'
         AstElement,
         ClassElement,
         Element,
+        ExecutableElement,
         FunctionElement,
         FunctionSignature,
         MetadataAnnotation,
@@ -188,8 +189,11 @@ class ListLiteralUse {
 /// Interface for the accessing the front-end analysis.
 // TODO(johnniwinther): Find a better name for this.
 abstract class Frontend {
+  /// Returns `true` if [element] has a [ResolvedAst].
+  bool hasResolvedAst(ExecutableElement element);
+
   /// Returns the `ResolvedAst` for the [element].
-  ResolvedAst getResolvedAst(Element element);
+  ResolvedAst getResolvedAst(ExecutableElement element);
 
   /// Returns the [ResolutionImpact] for [element].
   ResolutionImpact getResolutionImpact(Element element);
@@ -225,10 +229,10 @@ abstract class Resolution implements Frontend {
       Element element, ItemCompilationContext compilationContext);
 
   /// Returns `true` if [element] as a fully computed [ResolvedAst].
-  bool hasResolvedAst(Element element);
+  bool hasResolvedAst(ExecutableElement element);
 
   /// Returns the `ResolvedAst` for the [element].
-  ResolvedAst getResolvedAst(Element element);
+  ResolvedAst getResolvedAst(ExecutableElement element);
 
   /// Returns `true` if the [ResolutionImpact] for [element] is cached.
   bool hasResolutionImpact(Element element);

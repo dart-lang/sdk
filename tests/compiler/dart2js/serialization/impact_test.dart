@@ -12,9 +12,9 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
-import 'memory_compiler.dart';
-import 'serialization_helper.dart';
-import 'serialization_test_helper.dart';
+import '../memory_compiler.dart';
+import 'helper.dart';
+import 'test_helper.dart';
 
 main(List<String> args) {
   Arguments arguments = new Arguments.from(args);

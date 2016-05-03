@@ -1417,9 +1417,9 @@ bool RunMainIsolate(const char* script_name,
       uint8_t* assembly_buffer = NULL;
       intptr_t assembly_size = 0;
       uint8_t* instructions_blob_buffer = NULL;
-      intptr_t instructions_blob_size = NULL;
+      intptr_t instructions_blob_size = 0;
       uint8_t* rodata_blob_buffer = NULL;
-      intptr_t rodata_blob_size = NULL;
+      intptr_t rodata_blob_size = 0;
       if (use_blobs) {
         result = Dart_CreatePrecompiledSnapshotBlob(
             &vm_isolate_buffer,

@@ -63,16 +63,13 @@ class StartEndSourceInformation extends SourceInformation {
   static StartEndSourceInformation _computeSourceInformation(
       ResolvedAst resolvedAst) {
     String name = computeElementNameForSourceMaps(resolvedAst.element);
-    SourceFile sourceFile;
+    SourceFile sourceFile = computeSourceFile(resolvedAst);
     int begin;
     int end;
     if (resolvedAst.kind != ResolvedAstKind.PARSED) {
       // Synthesized node. Use the enclosing element for the location.
-      sourceFile = resolvedAst.element.compilationUnit.script.file;
       begin = end = resolvedAst.element.sourcePosition.begin;
     } else {
-      AstElement implementation = resolvedAst.element.implementation;
-      sourceFile = implementation.compilationUnit.script.file;
       Node node = resolvedAst.node;
       begin = node.getBeginToken().charOffset;
       end = node.getEndToken().charOffset;
@@ -116,8 +113,8 @@ class StartEndSourceInformationStrategy
   const StartEndSourceInformationStrategy();
 
   @override
-  SourceInformationBuilder createBuilderForContext(AstElement element) {
-    return new StartEndSourceInformationBuilder(element);
+  SourceInformationBuilder createBuilderForContext(ResolvedAst resolvedAst) {
+    return new StartEndSourceInformationBuilder(resolvedAst);
   }
 
   @override
@@ -158,9 +155,9 @@ class StartEndSourceInformationBuilder extends SourceInformationBuilder {
   final SourceFile sourceFile;
   final String name;
 
-  StartEndSourceInformationBuilder(AstElement element)
-      : sourceFile = element.compilationUnit.script.file,
-        name = computeElementNameForSourceMaps(element);
+  StartEndSourceInformationBuilder(ResolvedAst resolvedAst)
+      : sourceFile = computeSourceFile(resolvedAst),
+        name = computeElementNameForSourceMaps(resolvedAst.element);
 
   SourceInformation buildDeclaration(ResolvedAst resolvedAst) {
     return StartEndSourceInformation._computeSourceInformation(resolvedAst);
@@ -219,8 +216,8 @@ class StartEndSourceInformationBuilder extends SourceInformationBuilder {
   SourceInformation buildIf(Node node) => buildGeneric(node);
 
   @override
-  SourceInformationBuilder forContext(AstElement element,
+  SourceInformationBuilder forContext(ResolvedAst resolvedAst,
       {SourceInformation sourceInformation}) {
-    return new StartEndSourceInformationBuilder(element);
+    return new StartEndSourceInformationBuilder(resolvedAst);
   }
 }

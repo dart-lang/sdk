@@ -140,9 +140,9 @@ class JavaScriptBackendDeserializer implements DeserializerPlugin {
         .getStrings(SPECIAL_TYPES_RETURNED, isOptional: true)
         .map(SpecialType.fromName));
 
-    behavior.typesReturned
+    behavior.typesInstantiated
         .addAll(decoder.getTypes(DART_TYPES_INSTANTIATED, isOptional: true));
-    behavior.typesReturned.addAll(decoder
+    behavior.typesInstantiated.addAll(decoder
         .getStrings(SPECIAL_TYPES_INSTANTIATED, isOptional: true)
         .map(SpecialType.fromName));
 

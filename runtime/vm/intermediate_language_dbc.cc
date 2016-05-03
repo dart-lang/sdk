@@ -108,15 +108,15 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(UnboxInteger32)                                                            \
   M(CheckedSmiOp)                                                              \
   M(CheckArrayBound)                                                           \
-  M(CheckSmi)        \
-  M(LoadClassId)     \
-  M(CheckClassId)    \
-  M(CheckClass)      \
-  M(BinarySmiOp)     \
-  M(TestSmi)         \
-  M(RelationalOp)    \
-  M(EqualityCompare) \
-  M(LoadIndexed)     \
+  M(CheckSmi)                                                                  \
+  M(CheckClassId)                                                              \
+  M(CheckClass)                                                                \
+  M(BinarySmiOp)                                                               \
+  M(TestSmi)                                                                   \
+  M(RelationalOp)                                                              \
+  M(EqualityCompare)                                                           \
+  M(LoadIndexed)
+
 // Location summaries actually are not used by the unoptimizing DBC compiler
 // because we don't allocate any registers.
 static LocationSummary* CreateLocationSummary(Zone* zone,
@@ -234,6 +234,15 @@ EMIT_NATIVE_CODE(StoreLocal, 0, false) {
   } else {
     __ PopLocal(
       (local().index() > 0) ? (-local().index()) : (-local().index() - 1));
+  }
+}
+
+
+EMIT_NATIVE_CODE(LoadClassId, 1, true) {
+  if (compiler->is_optimizing()) {
+    __ LoadClassId(locs()->out(0).reg(), locs()->in(0).reg());
+  } else {
+    __ LoadClassIdTOS();
   }
 }
 

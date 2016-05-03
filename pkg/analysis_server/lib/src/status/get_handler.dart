@@ -461,6 +461,10 @@ class GetHandler {
     if (unit != null) {
       return unit;
     }
+    unit = entry.getValue(RESOLVED_UNIT13);
+    if (unit != null) {
+      return unit;
+    }
     return entry.getValue(RESOLVED_UNIT);
   }
 
@@ -492,6 +496,7 @@ class GetHandler {
         results.add(LIBRARY_ELEMENT3);
         results.add(LIBRARY_ELEMENT4);
         results.add(LIBRARY_ELEMENT5);
+        results.add(LIBRARY_ELEMENT6);
         results.add(LIBRARY_ELEMENT);
         results.add(LIBRARY_ERRORS_READY);
         results.add(PARSE_ERRORS);
@@ -518,6 +523,7 @@ class GetHandler {
       results.add(INFERABLE_STATIC_VARIABLES_IN_UNIT);
       results.add(LIBRARY_UNIT_ERRORS);
       results.add(RESOLVE_TYPE_NAMES_ERRORS);
+      results.add(RESOLVE_TYPE_BOUNDS_ERRORS);
       results.add(RESOLVE_UNIT_ERRORS);
       results.add(RESOLVED_UNIT1);
       results.add(RESOLVED_UNIT2);
@@ -531,6 +537,7 @@ class GetHandler {
       results.add(RESOLVED_UNIT10);
       results.add(RESOLVED_UNIT11);
       results.add(RESOLVED_UNIT12);
+      results.add(RESOLVED_UNIT13);
       results.add(RESOLVED_UNIT);
       results.add(STRONG_MODE_ERRORS);
       results.add(USED_IMPORTED_ELEMENTS);

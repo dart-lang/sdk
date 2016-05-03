@@ -11,8 +11,5 @@ import 'package:analyzer/src/generated/source.dart';
  * A function that will return a [UriResolver] that can be used to resolve a
  * specific kind of URI within the analysis context rooted at the given
  * [folder].
- *
- * The given [folder] may be `null` if analysis is performed in an environment
- * where URI resolution is always the same in any folder.
  */
 typedef UriResolver ResolverProvider(Folder folder);

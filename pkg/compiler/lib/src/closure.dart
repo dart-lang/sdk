@@ -55,10 +55,10 @@ class ClosureTask extends CompilerTask {
         return new ClosureClassMap(null, null, null, new ThisLocal(element));
       } else {
         assert(element.isField);
-        VariableElement field = element;
-        if (field.initializer != null) {
+        Node initializer = resolvedAst.body;
+        if (initializer != null) {
           // The lazy initializer of a static.
-          translator.translateLazyInitializer(element, node, field.initializer);
+          translator.translateLazyInitializer(element, node, initializer);
         } else {
           assert(element.isInstanceMember);
           closureMappingCache[node] =
@@ -131,7 +131,8 @@ class ClosureFieldElement extends ElementX
   bool get hasResolvedAst => hasTreeElements;
 
   ResolvedAst get resolvedAst {
-    return new ParsedResolvedAst(this, null, null, treeElements);
+    return new ParsedResolvedAst(this, null, null, treeElements,
+        memberContext.compilationUnit.script.resourceUri);
   }
 
   Expression get initializer {
@@ -320,11 +321,13 @@ class ThisLocal extends Local {
 class SynthesizedCallMethodElementX extends BaseFunctionElementX
     implements MethodElement {
   final LocalFunctionElement expression;
+  final FunctionExpression node;
+  final TreeElements treeElements;
 
-  SynthesizedCallMethodElementX(
-      String name, LocalFunctionElementX other, ClosureClassElement enclosing)
+  SynthesizedCallMethodElementX(String name, LocalFunctionElement other,
+      ClosureClassElement enclosing, this.node, this.treeElements)
       : expression = other,
-        super(name, other.kind, other.modifiers, enclosing) {
+        super(name, other.kind, Modifiers.EMPTY, enclosing) {
     asyncMarker = other.asyncMarker;
     functionSignature = other.functionSignature;
   }
@@ -339,17 +342,16 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
     return closureClass.methodElement.memberContext;
   }
 
-  bool get hasNode => expression.hasNode;
-
-  FunctionExpression get node => expression.node;
+  bool get hasNode => node != null;
 
   FunctionExpression parseNode(ParsingContext parsing) => node;
 
-  ResolvedAst get resolvedAst {
-    return new ParsedResolvedAst(this, node, node.body, treeElements);
-  }
-
   Element get analyzableElement => closureClass.methodElement.analyzableElement;
+
+  ResolvedAst get resolvedAst {
+    return new ParsedResolvedAst(this, node, node.body, treeElements,
+        expression.compilationUnit.script.resourceUri);
+  }
 
   accept(ElementVisitor visitor, arg) {
     return visitor.visitMethodElement(this, arg);
@@ -1032,7 +1034,7 @@ class ClosureTranslator extends Visitor {
     compiler.world
         .registerClass(globalizedElement, isDirectlyInstantiated: true);
     FunctionElement callElement = new SynthesizedCallMethodElementX(
-        Identifiers.call, element, globalizedElement);
+        Identifiers.call, element, globalizedElement, node, elements);
     backend.maybeMarkClosureAsNeededForReflection(
         globalizedElement, callElement, element);
     MemberElement enclosing = element.memberContext;

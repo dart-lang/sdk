@@ -2819,6 +2819,73 @@ class C {
     ]);
   }
 
+  test_constExpr_pushReference_staticGetter() {
+    UnlinkedVariable variable = serializeVariableText('''
+class C {
+  static int get x => null;
+}
+const v = C.x;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'x',
+              expectedKind: ReferenceKind.propertyAccessor,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+              ])
+    ]);
+  }
+
+  test_constExpr_pushReference_staticGetter_imported() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C {
+  static int get x => null;
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart';
+const v = C.x;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'x',
+              expectedKind: ReferenceKind.propertyAccessor,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                    absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart')
+              ])
+    ]);
+  }
+
+  test_constExpr_pushReference_staticGetter_imported_withPrefix() {
+    addNamedSource(
+        '/a.dart',
+        '''
+class C {
+  static int get x => null;
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart' as p;
+const v = p.C.x;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'x',
+              expectedKind: ReferenceKind.propertyAccessor,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                    absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
+                new _PrefixExpectation(ReferenceKind.prefix, 'p')
+              ])
+    ]);
+  }
+
   test_constExpr_pushReference_staticMethod() {
     UnlinkedVariable variable = serializeVariableText('''
 class C {
@@ -2953,6 +3020,48 @@ const v = p.f;
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.prefix, 'p')
               ])
+    ]);
+  }
+
+  test_constExpr_pushReference_topLevelGetter() {
+    UnlinkedVariable variable = serializeVariableText('''
+int get x => null;
+const v = x;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'x',
+          expectedKind: ReferenceKind.topLevelPropertyAccessor)
+    ]);
+  }
+
+  test_constExpr_pushReference_topLevelGetter_imported() {
+    addNamedSource('/a.dart', 'int get x => null;');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart';
+const v = x;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'x',
+          expectedKind: ReferenceKind.topLevelPropertyAccessor)
+    ]);
+  }
+
+  test_constExpr_pushReference_topLevelGetter_imported_withPrefix() {
+    addNamedSource('/a.dart', 'int get x => null;');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart' as p;
+const v = p.x;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'x',
+          expectedKind: ReferenceKind.topLevelPropertyAccessor,
+          expectedPrefix: 'p')
     ]);
   }
 
@@ -3142,7 +3251,9 @@ const v = p.C.foo;
         findExecutable('', executables: serializeClassText(text).executables);
     expect(executable.kind, UnlinkedExecutableKind.constructor);
     expect(executable.returnType, isNull);
+    expect(executable.isAsynchronous, isFalse);
     expect(executable.isExternal, isFalse);
+    expect(executable.isGenerator, isFalse);
     expect(executable.nameOffset, text.indexOf('C();'));
     expect(executable.periodOffset, 0);
     expect(executable.nameEnd, 0);
@@ -4738,7 +4849,9 @@ enum E {
     UnlinkedExecutable executable = serializeExecutableText(text);
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.returnType, isNull);
+    expect(executable.isAsynchronous, isFalse);
     expect(executable.isExternal, isFalse);
+    expect(executable.isGenerator, isFalse);
     expect(executable.nameOffset, text.indexOf('f'));
     expect(executable.visibleOffset, 0);
     expect(executable.visibleLength, 0);
@@ -4747,6 +4860,24 @@ enum E {
         ReferenceKind.topLevelFunction);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'f');
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
+  }
+
+  test_executable_function_async() {
+    UnlinkedExecutable executable = serializeExecutableText(r'''
+import 'dart:async';
+Future f() async {}
+''');
+    expect(executable.isAsynchronous, isTrue);
+    expect(executable.isGenerator, isFalse);
+  }
+
+  test_executable_function_asyncStar() {
+    UnlinkedExecutable executable = serializeExecutableText(r'''
+import 'dart:async';
+Stream f() async* {}
+''');
+    expect(executable.isAsynchronous, isTrue);
+    expect(executable.isGenerator, isTrue);
   }
 
   test_executable_function_explicit_return() {
@@ -4770,7 +4901,9 @@ enum E {
     UnlinkedExecutable executable = serializeExecutableText(text);
     expect(executable.kind, UnlinkedExecutableKind.getter);
     expect(executable.returnType, isNotNull);
+    expect(executable.isAsynchronous, isFalse);
     expect(executable.isExternal, isFalse);
+    expect(executable.isGenerator, isFalse);
     expect(executable.nameOffset, text.indexOf('f'));
     expect(findVariable('f'), isNull);
     expect(findExecutable('f='), isNull);
@@ -5203,10 +5336,36 @@ get g { // 1
         executables: serializeClassText('class C { f() {} }').executables);
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.returnType, isNull);
+    expect(executable.isAsynchronous, isFalse);
     expect(executable.isExternal, isFalse);
+    expect(executable.isGenerator, isFalse);
     expect(executable.visibleOffset, 0);
     expect(executable.visibleLength, 0);
     _assertCodeRange(executable.codeRange, 10, 6);
+  }
+
+  test_executable_member_function_async() {
+    UnlinkedExecutable executable =
+        findExecutable('f', executables: serializeClassText(r'''
+import 'dart:async';
+class C {
+  Future f() async {}
+}
+''').executables);
+    expect(executable.isAsynchronous, isTrue);
+    expect(executable.isGenerator, isFalse);
+  }
+
+  test_executable_member_function_asyncStar() {
+    UnlinkedExecutable executable =
+        findExecutable('f', executables: serializeClassText(r'''
+import 'dart:async';
+class C {
+  Stream f() async* {}
+}
+''').executables);
+    expect(executable.isAsynchronous, isTrue);
+    expect(executable.isGenerator, isTrue);
   }
 
   test_executable_member_function_explicit_return() {
@@ -5229,10 +5388,16 @@ get g { // 1
         findExecutable('f', executables: cls.executables, failIfAbsent: true);
     expect(executable.kind, UnlinkedExecutableKind.getter);
     expect(executable.returnType, isNotNull);
+    expect(executable.isAsynchronous, isFalse);
     expect(executable.isExternal, isFalse);
+    expect(executable.isGenerator, isFalse);
+    expect(executable.isStatic, isFalse);
     _assertCodeRange(executable.codeRange, 10, 15);
     expect(findVariable('f', variables: cls.fields), isNull);
     expect(findExecutable('f=', executables: cls.executables), isNull);
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].name, 'C');
+    expect(unlinkedUnits[0].publicNamespace.names[0].members, isEmpty);
   }
 
   test_executable_member_getter_external() {
@@ -5242,13 +5407,34 @@ get g { // 1
     expect(executable.isExternal, isTrue);
   }
 
+  test_executable_member_getter_static() {
+    UnlinkedClass cls =
+        serializeClassText('class C { static int get f => 1; }');
+    UnlinkedExecutable executable =
+        findExecutable('f', executables: cls.executables, failIfAbsent: true);
+    expect(executable.isStatic, isTrue);
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].name, 'C');
+    expect(unlinkedUnits[0].publicNamespace.names[0].members, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].members[0].name, 'f');
+    expect(unlinkedUnits[0].publicNamespace.names[0].members[0].kind,
+        ReferenceKind.propertyAccessor);
+    expect(
+        unlinkedUnits[0].publicNamespace.names[0].members[0].numTypeParameters,
+        0);
+    expect(
+        unlinkedUnits[0].publicNamespace.names[0].members[0].members, isEmpty);
+  }
+
   test_executable_member_setter() {
     UnlinkedClass cls = serializeClassText('class C { void set f(value) {} }');
     UnlinkedExecutable executable =
         findExecutable('f=', executables: cls.executables, failIfAbsent: true);
     expect(executable.kind, UnlinkedExecutableKind.setter);
     expect(executable.returnType, isNotNull);
+    expect(executable.isAsynchronous, isFalse);
     expect(executable.isExternal, isFalse);
+    expect(executable.isGenerator, isFalse);
     _assertCodeRange(executable.codeRange, 10, 20);
     expect(findVariable('f', variables: cls.fields), isNull);
     expect(findExecutable('f', executables: cls.executables), isNull);
@@ -5302,8 +5488,10 @@ get g { // 1
     expect(executable.name, '+');
     expect(executable.returnType, isNotNull);
     expect(executable.isAbstract, false);
+    expect(executable.isAsynchronous, isFalse);
     expect(executable.isConst, false);
     expect(executable.isFactory, false);
+    expect(executable.isGenerator, isFalse);
     expect(executable.isStatic, false);
     expect(executable.parameters, hasLength(1));
     checkTypeRef(executable.returnType, null, null, 'C');
@@ -5316,7 +5504,9 @@ get g { // 1
         serializeClassText('class C { C operator+(C c); }', allowErrors: true)
             .executables[0];
     expect(executable.isAbstract, true);
+    expect(executable.isAsynchronous, isFalse);
     expect(executable.isExternal, false);
+    expect(executable.isGenerator, isFalse);
   }
 
   test_executable_operator_equal() {
@@ -5331,7 +5521,9 @@ get g { // 1
         serializeClassText('class C { external C operator+(C c); }')
             .executables[0];
     expect(executable.isAbstract, false);
+    expect(executable.isAsynchronous, isFalse);
     expect(executable.isExternal, true);
+    expect(executable.isGenerator, isFalse);
   }
 
   test_executable_operator_greater_equal() {
@@ -5582,7 +5774,9 @@ f(MyFunction myFunction) {}
         serializeExecutableText(text, executableName: 'f=');
     expect(executable.kind, UnlinkedExecutableKind.setter);
     expect(executable.returnType, isNotNull);
+    expect(executable.isAsynchronous, isFalse);
     expect(executable.isExternal, isFalse);
+    expect(executable.isGenerator, isFalse);
     expect(executable.nameOffset, text.indexOf('f'));
     expect(findVariable('f'), isNull);
     expect(findExecutable('f'), isNull);

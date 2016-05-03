@@ -109,13 +109,15 @@ abstract class ElementX extends Element with ElementCommon {
     return enclosingElement != null && enclosingElement.isCompilationUnit;
   }
 
+  @override
+  int get sourceOffset => position?.charOffset;
+
   Token get position => null;
 
   SourceSpan get sourcePosition {
     if (position == null) return null;
     Uri uri = compilationUnit.script.resourceUri;
-    return new SourceSpan(
-        uri, position.charOffset, position.charOffset + position.charCount);
+    return new SourceSpan(uri, position.charOffset, position.charEnd);
   }
 
   Token findMyName(Token token) {
@@ -149,7 +151,7 @@ abstract class ElementX extends Element with ElementCommon {
 
   Name get memberName => new Name(name, library);
 
-  LibraryElementX get implementationLibrary {
+  LibraryElement get implementationLibrary {
     Element element = this;
     while (!identical(element.kind, ElementKind.LIBRARY)) {
       element = element.enclosingElement;
@@ -160,13 +162,6 @@ abstract class ElementX extends Element with ElementCommon {
   ClassElement get enclosingClass {
     for (Element e = this; e != null; e = e.enclosingElement) {
       if (e.isClass) return e;
-    }
-    return null;
-  }
-
-  Element get enclosingClassOrCompilationUnit {
-    for (Element e = this; e != null; e = e.enclosingElement) {
-      if (e.isClass || e.isCompilationUnit) return e;
     }
     return null;
   }
@@ -288,6 +283,9 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   @override
   bool get isFromEnvironmentConstructor => false;
+
+  @override
+  List<DartType> get typeVariables => unsupported();
 }
 
 /// A constructor that was synthesized to recover from a compile-time error.
@@ -721,7 +719,8 @@ class CompilationUnitElementX extends ElementX
     localMembers = localMembers.prepend(element);
     // Provide the member to the library to build scope.
     if (enclosingElement.isPatch) {
-      implementationLibrary.addMember(element, reporter);
+      LibraryElementX library = implementationLibrary;
+      library.addMember(element, reporter);
     } else {
       library.addMember(element, reporter);
     }
@@ -1408,11 +1407,17 @@ abstract class ConstantVariableMixin implements VariableElement {
       originVariable.constant = value;
       return;
     }
+    if (constantCache != null &&
+        constantCache.kind == ConstantExpressionKind.ERRONEOUS) {
+      // TODO(johnniwinther): Find out why we sometimes compute a non-erroneous
+      // constant for a variable already known to be erroneous.
+      return;
+    }
     assert(invariant(this, constantCache == null || constantCache == value,
         message: "Constant has already been computed for $this. "
             "Existing constant: "
-            "${constantCache != null ? constantCache.toDartText() : ''}, "
-            "New constant: ${value != null ? value.toDartText() : ''}."));
+            "${constantCache != null ? constantCache.toStructuredText() : ''}, "
+            "New constant: ${value != null ? value.toStructuredText() : ''}."));
     constantCache = value;
   }
 }
@@ -1663,6 +1668,9 @@ class FormalElementX extends ElementX
   final Identifier identifier;
   DartType typeCache;
 
+  @override
+  List<DartType> get typeVariables => functionSignature.typeVariables;
+
   /**
    * Function signature for a variable with a function type. The signature is
    * kept to provide full information about parameter names through the mirror
@@ -1892,6 +1900,7 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
 // TODO(karlklose): all these lists should have element type [FormalElement].
 class FunctionSignatureX extends FunctionSignatureCommon
     implements FunctionSignature {
+  final List<DartType> typeVariables;
   final List<Element> requiredParameters;
   final List<Element> optionalParameters;
   final int requiredParameterCount;
@@ -1902,7 +1911,8 @@ class FunctionSignatureX extends FunctionSignatureCommon
   final bool hasOptionalParameters;
 
   FunctionSignatureX(
-      {this.requiredParameters: const <Element>[],
+      {this.typeVariables: const <DartType>[],
+      this.requiredParameters: const <Element>[],
       this.requiredParameterCount: 0,
       List<Element> optionalParameters: const <Element>[],
       this.optionalParameterCount: 0,
@@ -1983,6 +1993,9 @@ abstract class BaseFunctionElementX extends ElementX
 
   FunctionElement asFunctionElement() => this;
 
+  @override
+  Scope buildScope() => new TypeDeclarationScope(super.buildScope(), this);
+
   String toString() {
     if (isPatch) {
       return 'patch ${super.toString()}';
@@ -1997,6 +2010,9 @@ abstract class BaseFunctionElementX extends ElementX
 
   // A function is defined by the implementation element.
   AstElement get definingElement => implementation;
+
+  @override
+  List<DartType> get typeVariables => functionSignature.typeVariables;
 }
 
 abstract class FunctionElementX extends BaseFunctionElementX
@@ -2154,6 +2170,10 @@ abstract class ConstantConstructorMixin implements ConstructorElement {
             enclosingClass.name == 'int' ||
             enclosingClass.name == 'String');
   }
+
+  /// Returns the empty list of type variables by default.
+  @override
+  List<DartType> get typeVariables => functionSignature.typeVariables;
 }
 
 abstract class ConstructorElementX extends FunctionElementX
@@ -2487,10 +2507,6 @@ abstract class BaseClassElementX extends ElementX
   bool isProxy = false;
   bool hasIncompleteHierarchy = false;
 
-  // backendMembers are members that have been added by the backend to simplify
-  // compilation. They don't have any user-side counter-part.
-  Link<Element> backendMembers = const Link<Element>();
-
   OrderedTypeSet allSupertypesAndSelf;
 
   BaseClassElementX(String name, Element enclosing, this.id, int initialState)
@@ -2499,8 +2515,6 @@ abstract class BaseClassElementX extends ElementX
         super(name, ElementKind.CLASS, enclosing);
 
   int get hashCode => id;
-
-  bool get hasBackendMembers => !backendMembers.isEmpty;
 
   bool get isUnnamedMixinApplication => false;
 
@@ -2554,26 +2568,6 @@ abstract class BaseClassElementX extends ElementX
   void setDefaultConstructor(
       FunctionElement constructor, DiagnosticReporter reporter);
 
-  void addBackendMember(Element member) {
-    // TODO(ngeoffray): Deprecate this method.
-    assert(member.isGenerativeConstructorBody);
-    backendMembers = backendMembers.prepend(member);
-  }
-
-  void reverseBackendMembers() {
-    backendMembers = backendMembers.reverse();
-  }
-
-  /// Lookup a synthetic element created by the backend.
-  Element lookupBackendMember(String memberName) {
-    for (Element element in backendMembers) {
-      if (element.name == memberName) {
-        return element;
-      }
-    }
-    return null;
-  }
-
   ConstructorElement lookupDefaultConstructor() {
     ConstructorElement constructor = lookupConstructor("");
     // This method might be called on constructors that have not been
@@ -2596,10 +2590,6 @@ abstract class BaseClassElementX extends ElementX
     assert(invariant(this, supertypeLoadState == STATE_DONE,
         message: "Superclass has not been computed for $this."));
     return supertype == null ? null : supertype.element;
-  }
-
-  void forEachBackendMember(void f(Element member)) {
-    backendMembers.forEach(f);
   }
 
   // TODO(johnniwinther): Remove these when issue 18630 is fixed.
@@ -3114,10 +3104,10 @@ class TypeVariableElementX extends ElementX
   DartType boundCache;
 
   TypeVariableElementX(
-      String name, TypeDeclarationElement enclosing, this.index, this.node)
+      String name, GenericElement enclosing, this.index, this.node)
       : super(name, ElementKind.TYPE_VARIABLE, enclosing);
 
-  TypeDeclarationElement get typeDeclaration => enclosingElement;
+  GenericElement get typeDeclaration => enclosingElement;
 
   TypeVariableType computeType(Resolution resolution) => type;
 
@@ -3278,6 +3268,10 @@ abstract class AstElementMixin implements AstElement {
       body = node.asFunctionExpression().body;
     }
     return new ParsedResolvedAst(
-        declaration, node, body, definingElement.treeElements);
+        declaration,
+        node,
+        body,
+        definingElement.treeElements,
+        definingElement.compilationUnit.script.resourceUri);
   }
 }

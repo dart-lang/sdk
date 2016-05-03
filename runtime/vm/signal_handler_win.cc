@@ -38,7 +38,7 @@ uintptr_t SignalHandler::GetLinkRegister(const mcontext_t& mcontext) {
 }
 
 
-void SignalHandler::Install(SignalAction action) {
+void SignalHandler::InstallImpl(SignalAction action) {
   UNIMPLEMENTED();
 }
 

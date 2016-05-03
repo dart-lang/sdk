@@ -251,17 +251,8 @@ void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
 
 
 void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
-  if (!check->Dependencies().IsNone()) {
-    // TODO(vegorov): If check is affected by side-effect we can still propagate
-    // the type further but not the cid.
-    return;
-  }
-
-  LoadClassIdInstr* load_cid =
-      check->value()->definition()->OriginalDefinition()->AsLoadClassId();
-  if (load_cid != NULL) {
-    SetCid(load_cid->object()->definition(), check->cid());
-  }
+  // Can't propagate the type/cid because it may cause illegal code motion and
+  // we don't track dependencies in all places via redefinitions.
 }
 
 

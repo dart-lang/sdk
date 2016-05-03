@@ -934,6 +934,23 @@ Isolate* Isolate::Init(const char* name_prefix,
 }
 
 
+void Isolate::SetupInstructionsSnapshotPage(
+    const uint8_t* instructions_snapshot_buffer) {
+  InstructionsSnapshot snapshot(instructions_snapshot_buffer);
+#if defined(DEBUG)
+  if (FLAG_trace_isolates) {
+    OS::Print("Precompiled instructions are at [0x%" Px ", 0x%" Px ")\n",
+              reinterpret_cast<uword>(snapshot.instructions_start()),
+              reinterpret_cast<uword>(snapshot.instructions_start()) +
+              snapshot.instructions_size());
+  }
+#endif
+  heap_->SetupExternalPage(snapshot.instructions_start(),
+                           snapshot.instructions_size(),
+                           /* is_executable = */ true);
+}
+
+
 void Isolate::SetupDataSnapshotPage(const uint8_t* data_snapshot_buffer) {
   DataSnapshot snapshot(data_snapshot_buffer);
 #if defined(DEBUG)
@@ -1386,6 +1403,12 @@ void Isolate::Run() {
 
 
 void Isolate::AddClosureFunction(const Function& function) const {
+  // TODO(regis): remove once debugging complete.
+  if (Compiler::IsBackgroundCompilation()) {
+    NOT_IN_PRODUCT(Profiler::DumpStackTrace(true /*native*/));
+    UNREACHABLE();
+  }
+  ASSERT(!Compiler::IsBackgroundCompilation());
   GrowableObjectArray& closures =
       GrowableObjectArray::Handle(object_store()->closure_functions());
   ASSERT(!closures.IsNull());

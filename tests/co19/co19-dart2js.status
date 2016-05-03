@@ -656,7 +656,6 @@ LayoutTests/fast/canvas/webgl/bad-arguments-test_t01: RuntimeError # Please tria
 LayoutTests/fast/canvas/webgl/buffer-data-array-buffer_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/context-attributes-alpha-depth-stencil-antialias-t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/context-lost-restored_t01: Pass, Timeout # Please triage this failure
-LayoutTests/fast/canvas/webgl/copy-tex-image-and-sub-image-2d_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/css-webkit-canvas-repaint_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/css-webkit-canvas_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/framebuffer-bindings-unaffected-on-resize_t01: RuntimeError # Please triage this failure
@@ -1472,9 +1471,15 @@ WebPlatformTest/shadow-dom/events/event-dispatch/test-003_t01: RuntimeError # Pl
 WebPlatformTest/shadow-dom/events/event-retargeting/test-001_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/events/event-retargeting/test-002_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/events/event-retargeting/test-004_t01: RuntimeError # Please triage this failure
-WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-004_t01: RuntimeError # Please triage this failure
-WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-005_t01: RuntimeError # Please triage this failure
-WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-007_t01: RuntimeError # Please triage this failure
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-001_t01: Pass, RuntimeError # Issue 52 
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-002_t01: Pass, RuntimeError # Issue 52
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-003_t01: Pass, RuntimeError # Issue 52
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-004_t01: Pass, RuntimeError # Issue 52
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-005_t01: Pass, RuntimeError # Issue 52
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-006_t01: Pass, RuntimeError # Issue 52
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-007_t01: Pass, RuntimeError # Issue 52
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-008_t01: Pass, RuntimeError # Issue 52
+WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-009_t01: Pass, RuntimeError # Issue 52
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t02: Skip # Times out. Please triage this failure
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t05: Skip # Times out. Please triage this failure
@@ -1596,6 +1601,7 @@ LayoutTests/fast/canvas/webgl/compressed-tex-image_t01: RuntimeError # Please tr
 LayoutTests/fast/canvas/webgl/context-destroyed-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/context-lost_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/context-lost-restored_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/copy-tex-image-and-sub-image-2d_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/draw-arrays-out-of-bounds_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/draw-elements-out-of-bounds_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/draw-webgl-to-canvas-2d_t01: RuntimeError # Please triage this failure
@@ -2080,6 +2086,7 @@ LayoutTests/fast/dom/Document/CaretRangeFromPoint/caretRangeFromPoint-in-user-se
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/caretRangeFromPoint-in-zoom-and-scroll_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/caretRangeFromPoint-with-first-letter-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/hittest-relative-to-viewport_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/Document/CaretRangeFromPoint/replace-element_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Document/createElement-valid-names_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Document/createElementNS-namespace-err_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Document/document-title-get_t01: RuntimeError # Please triage this failure
@@ -3246,12 +3253,6 @@ LayoutTests/fast/canvas/getPutImageDataPairTest_t01: RuntimeError # Please triag
 LayoutTests/fast/canvas/setWidthResetAfterForcedRender_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/webgl/bad-arguments-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/context-attributes-alpha-depth-stencil-antialias-t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/framebuffer-test_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/object-deletion-behaviour_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-canvas_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-data-rgb565_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-data-rgba4444_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-data-rgba5551_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgb565_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba4444_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba5551_t01: RuntimeError # Please triage this failure
@@ -3260,11 +3261,8 @@ LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgb565_t01: 
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: RuntimeError, Timeout # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: RuntimeError, Timeout # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-sub-image-2d_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/texture-transparent-pixels-initialized_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/uniform-location_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/uninitialized-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/webgl-depth-texture_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/webgl-large-texture_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css-generated-content/malformed-url_t01: RuntimeError # Please triage this failure
@@ -3335,6 +3333,7 @@ LayoutTests/fast/css/cursor-parsing-quirks_t01: RuntimeError # Please triage thi
 LayoutTests/fast/css/deprecated-flexbox-auto-min-size_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/draggable-region-parser_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/dynamic-class-backdrop-pseudo_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/ex-unit-with-no-x-height_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/first-child-display-change-inverse_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/focus-display-block-inline_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-cache-bug_t01: RuntimeError # Please triage this failure
@@ -3450,6 +3449,7 @@ LayoutTests/fast/dom/HTMLLinkElement/link-and-subresource-test_t01: Skip # Times
 LayoutTests/fast/dom/HTMLLinkElement/prefetch-onerror_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/prefetch-onload_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/prefetch_t01: Skip # Times out. Please triage this failure
+LayoutTests/fast/dom/HTMLLinkElement/resolve-url-on-insertion_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLOptionElement/collection-setter-getter_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLOutputElement/dom-settable-token-list_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLScriptElement/async-false-inside-async-false-load_t01: RuntimeError # Please triage this failure
@@ -3501,6 +3501,7 @@ LayoutTests/fast/dom/anchor-without-content_t01: RuntimeError # Please triage th
 LayoutTests/fast/dom/attribute-namespaces-get-set_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/characterdata-api-arguments_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/css-selectorText_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/custom/attribute-changed-callback_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/custom/constructor-calls-created-synchronously_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/custom/created-callback_t01: RuntimeError # Please triage this failure
@@ -3530,12 +3531,13 @@ LayoutTests/fast/dom/HTMLDialogElement/dialog-return-value_t01: RuntimeError # D
 LayoutTests/fast/dom/implementation-api-args_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/importNode-unsupported-node-type_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/location-hash_t01: Skip # Times out. Please triage this failure
+LayoutTests/fast/dom/mutation-event-remove-inserted-node_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: Skip # API not supported.
 LayoutTests/fast/dom/navigatorcontentutils/register-protocol-handler_t01: Skip # API not supported.
 LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: Skip # API not supported.
 LayoutTests/fast/dom/object-plugin-hides-properties_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/option-properties_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/partial-layout-overlay-scrollbars_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/partial-layout-non-overlay-scrollbars_t01: Pass, RuntimeError # Issue 53
 LayoutTests/fast/dom/set-innerHTML_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/shadow/access-document-of-detached-stylesheetlist-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/shadow/base-in-shadow-tree_t01: RuntimeError # Please triage this failure
@@ -3693,6 +3695,7 @@ LayoutTests/fast/forms/button/button-disabled-blur_t01: RuntimeError # Please tr
 LayoutTests/fast/forms/clone-input-with-dirty-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/color/color-setrangetext_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/color/input-value-sanitization-color_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/datalist/datalist-child-validation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datalist/datalist_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datalist/input-list_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/input-valueasnumber-datetimelocal_t01: RuntimeError # Dartium JSInterop failure
@@ -3978,6 +3981,7 @@ LibTest/html/Element/dataset_A02_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/enteredView_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/getAttributeNS_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/getAttributeNS_A02_t01: RuntimeError # Please triage this failure
+LibTest/html/Element/getBoundingClientRect_A01_t02: Pass, RuntimeError # Issue 53
 LibTest/html/Element/getClientRects_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/Element/getNamespacedAttributes_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/isTagSupported_A01_t01: RuntimeError # Please triage this failure
@@ -7782,7 +7786,6 @@ LayoutTests/fast/canvas/webgl/drawingbuffer-test_t01: Pass, RuntimeError # Pleas
 LayoutTests/fast/canvas/webgl/error-reporting_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/framebuffer-bindings-unaffected-on-resize_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/framebuffer-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/functions-returning-strings_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/get-active-test_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-bind-attrib-location-test_t01: Pass, RuntimeError # Please triage this failure
@@ -7828,7 +7831,6 @@ LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-uniform-binding-bugs_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-webgl_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-sub-image-2d-bad-args_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-sub-image-2d_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-sub-image-cube-maps_t01: RuntimeError # Please triage this failure
@@ -7843,7 +7845,6 @@ LayoutTests/fast/canvas/webgl/texture-transparent-pixels-initialized_t01: Skip #
 LayoutTests/fast/canvas/webgl/triangle_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/uniform-location-length-limits_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/uniform-location_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/webgl/uninitialized-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/viewport-unchanged-upon-resize_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/webgl-composite-modes-repaint_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/webgl-composite-modes_t01: Pass, RuntimeError # Please triage this failure

@@ -151,6 +151,13 @@ abstract class ElementCommon implements Element {
     }
     return null;
   }
+
+  Element get enclosingClassOrCompilationUnit {
+    for (Element e = this; e != null; e = e.enclosingElement) {
+      if (e.isClass || e.isCompilationUnit) return e;
+    }
+    return null;
+  }
 }
 
 abstract class LibraryElementCommon implements LibraryElement {
@@ -464,6 +471,36 @@ abstract class ClassElementCommon implements ClassElement {
   @override
   bool get isNamedMixinApplication {
     return isMixinApplication && !isUnnamedMixinApplication;
+  }
+
+  // backendMembers are members that have been added by the backend to simplify
+  // compilation. They don't have any user-side counter-part.
+  Link<Element> backendMembers = const Link<Element>();
+
+  bool get hasBackendMembers => !backendMembers.isEmpty;
+
+  void addBackendMember(Element member) {
+    // TODO(ngeoffray): Deprecate this method.
+    assert(member.isGenerativeConstructorBody);
+    backendMembers = backendMembers.prepend(member);
+  }
+
+  void reverseBackendMembers() {
+    backendMembers = backendMembers.reverse();
+  }
+
+  /// Lookup a synthetic element created by the backend.
+  Element lookupBackendMember(String memberName) {
+    for (Element element in backendMembers) {
+      if (element.name == memberName) {
+        return element;
+      }
+    }
+    return null;
+  }
+
+  void forEachBackendMember(void f(Element member)) {
+    backendMembers.forEach(f);
   }
 }
 

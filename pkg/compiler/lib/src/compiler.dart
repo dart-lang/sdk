@@ -403,17 +403,17 @@ abstract class Compiler implements LibraryLoaderListener {
   // The resulting future will complete with true if the compilation
   // succeeded.
   Future<bool> run(Uri uri) => selfTask.measureSubtask("Compiler.run", () {
-    measurer.startWallClock();
+        measurer.startWallClock();
 
-    return new Future.sync(() => runInternal(uri))
-        .catchError((error) => _reporter.onError(uri, error))
-        .whenComplete(() {
-      tracer.close();
-      measurer.stopWallClock();
-    }).then((_) {
-      return !compilationFailed;
-    });
-  });
+        return new Future.sync(() => runInternal(uri))
+            .catchError((error) => _reporter.onError(uri, error))
+            .whenComplete(() {
+          tracer.close();
+          measurer.stopWallClock();
+        }).then((_) {
+          return !compilationFailed;
+        });
+      });
 
   /// This method is called immediately after the [LibraryElement] [library] has
   /// been created.
@@ -449,9 +449,7 @@ abstract class Compiler implements LibraryLoaderListener {
     //
     // This could for example happen if dart:async is disabled, then loading it
     // should not try to find the given element.
-    // TODO(johnniwinther): This should just be library.isSynthesized, but that
-    // does not work yet for deserialized elements.
-    if (!library.compilationUnit.script.isSynthesized) {
+    if (!library.isSynthesized) {
       if (uri == Uris.dart_core) {
         initializeCoreClasses();
         identicalFunction = coreLibrary.find('identical');
@@ -809,112 +807,112 @@ abstract class Compiler implements LibraryLoaderListener {
   }
 
   /// Performs the compilation when all libraries have been loaded.
-  void compileLoadedLibraries()
-      => selfTask.measureSubtask("Compiler.compileLoadedLibraries", () {
+  void compileLoadedLibraries() =>
+      selfTask.measureSubtask("Compiler.compileLoadedLibraries", () {
+        computeMain();
 
-    computeMain();
+        mirrorUsageAnalyzerTask.analyzeUsage(mainApp);
 
-    mirrorUsageAnalyzerTask.analyzeUsage(mainApp);
+        // In order to see if a library is deferred, we must compute the
+        // compile-time constants that are metadata.  This means adding
+        // something to the resolution queue.  So we cannot wait with
+        // this until after the resolution queue is processed.
+        deferredLoadTask.beforeResolution(this);
+        impactStrategy = backend.createImpactStrategy(
+            supportDeferredLoad: deferredLoadTask.isProgramSplit,
+            supportDumpInfo: options.dumpInfo,
+            supportSerialization: serialization.supportSerialization);
 
-    // In order to see if a library is deferred, we must compute the
-    // compile-time constants that are metadata.  This means adding
-    // something to the resolution queue.  So we cannot wait with
-    // this until after the resolution queue is processed.
-    deferredLoadTask.beforeResolution(this);
-    impactStrategy = backend.createImpactStrategy(
-        supportDeferredLoad: deferredLoadTask.isProgramSplit,
-        supportDumpInfo: options.dumpInfo,
-        supportSerialization: serialization.supportSerialization);
-
-    phase = PHASE_RESOLVING;
-    if (analyzeAll) {
-      libraryLoader.libraries.forEach((LibraryElement library) {
-        reporter.log('Enqueuing ${library.canonicalUri}');
-        fullyEnqueueLibrary(library, enqueuer.resolution);
-      });
-    } else if (options.analyzeMain) {
-      if (mainApp != null) {
-        fullyEnqueueLibrary(mainApp, enqueuer.resolution);
-      }
-      if (librariesToAnalyzeWhenRun != null) {
-        for (Uri libraryUri in librariesToAnalyzeWhenRun) {
-          fullyEnqueueLibrary(
-              libraryLoader.lookupLibrary(libraryUri), enqueuer.resolution);
+        phase = PHASE_RESOLVING;
+        if (analyzeAll) {
+          libraryLoader.libraries.forEach((LibraryElement library) {
+            reporter.log('Enqueuing ${library.canonicalUri}');
+            fullyEnqueueLibrary(library, enqueuer.resolution);
+          });
+        } else if (options.analyzeMain) {
+          if (mainApp != null) {
+            fullyEnqueueLibrary(mainApp, enqueuer.resolution);
+          }
+          if (librariesToAnalyzeWhenRun != null) {
+            for (Uri libraryUri in librariesToAnalyzeWhenRun) {
+              fullyEnqueueLibrary(
+                  libraryLoader.lookupLibrary(libraryUri), enqueuer.resolution);
+            }
+          }
         }
-      }
-    }
-    // Elements required by enqueueHelpers are global dependencies
-    // that are not pulled in by a particular element.
-    backend.enqueueHelpers(enqueuer.resolution, globalDependencies);
-    resolveLibraryMetadata();
-    reporter.log('Resolving...');
-    processQueue(enqueuer.resolution, mainFunction);
-    enqueuer.resolution.logSummary(reporter.log);
+        // Elements required by enqueueHelpers are global dependencies
+        // that are not pulled in by a particular element.
+        backend.enqueueHelpers(enqueuer.resolution, globalDependencies);
+        resolveLibraryMetadata();
+        reporter.log('Resolving...');
+        processQueue(enqueuer.resolution, mainFunction);
+        enqueuer.resolution.logSummary(reporter.log);
 
-    _reporter.reportSuppressedMessagesSummary();
+        _reporter.reportSuppressedMessagesSummary();
 
-    if (compilationFailed) {
-      if (!options.generateCodeWithCompileTimeErrors) return;
-      if (!backend.enableCodegenWithErrorsIfSupported(NO_LOCATION_SPANNABLE)) {
-        return;
-      }
-    }
+        if (compilationFailed) {
+          if (!options.generateCodeWithCompileTimeErrors) return;
+          if (!backend
+              .enableCodegenWithErrorsIfSupported(NO_LOCATION_SPANNABLE)) {
+            return;
+          }
+        }
 
-    if (options.analyzeOnly) {
-      if (!analyzeAll && !compilationFailed) {
-        // No point in reporting unused code when [analyzeAll] is true: all
-        // code is artificially used.
-        // If compilation failed, it is possible that the error prevents the
-        // compiler from analyzing all the code.
-        // TODO(johnniwinther): Reenable this when the reporting is more
-        // precise.
-        //reportUnusedCode();
-      }
-      return;
-    }
-    assert(mainFunction != null);
-    phase = PHASE_DONE_RESOLVING;
+        if (options.analyzeOnly) {
+          if (!analyzeAll && !compilationFailed) {
+            // No point in reporting unused code when [analyzeAll] is true: all
+            // code is artificially used.
+            // If compilation failed, it is possible that the error prevents the
+            // compiler from analyzing all the code.
+            // TODO(johnniwinther): Reenable this when the reporting is more
+            // precise.
+            //reportUnusedCode();
+          }
+          return;
+        }
+        assert(mainFunction != null);
+        phase = PHASE_DONE_RESOLVING;
 
-    world.populate();
-    // Compute whole-program-knowledge that the backend needs. (This might
-    // require the information computed in [world.populate].)
-    backend.onResolutionComplete();
+        world.populate();
+        // Compute whole-program-knowledge that the backend needs. (This might
+        // require the information computed in [world.populate].)
+        backend.onResolutionComplete();
 
-    deferredLoadTask.onResolutionComplete(mainFunction);
+        deferredLoadTask.onResolutionComplete(mainFunction);
 
-    reporter.log('Inferring types...');
-    typesTask.onResolutionComplete(mainFunction);
+        reporter.log('Inferring types...');
+        typesTask.onResolutionComplete(mainFunction);
 
-    if (stopAfterTypeInference) return;
+        if (stopAfterTypeInference) return;
 
-    backend.onTypeInferenceComplete();
+        backend.onTypeInferenceComplete();
 
-    reporter.log('Compiling...');
-    phase = PHASE_COMPILING;
-    backend.onCodegenStart();
-    // TODO(johnniwinther): Move these to [CodegenEnqueuer].
-    if (hasIsolateSupport) {
-      backend.enableIsolateSupport(enqueuer.codegen);
-    }
-    if (compileAll) {
-      libraryLoader.libraries.forEach((LibraryElement library) {
-        fullyEnqueueLibrary(library, enqueuer.codegen);
+        reporter.log('Compiling...');
+        phase = PHASE_COMPILING;
+        backend.onCodegenStart();
+        // TODO(johnniwinther): Move these to [CodegenEnqueuer].
+        if (hasIsolateSupport) {
+          backend.enableIsolateSupport(enqueuer.codegen);
+        }
+        if (compileAll) {
+          libraryLoader.libraries.forEach((LibraryElement library) {
+            fullyEnqueueLibrary(library, enqueuer.codegen);
+          });
+        }
+        processQueue(enqueuer.codegen, mainFunction);
+        enqueuer.codegen.logSummary(reporter.log);
+
+        int programSize = backend.assembleProgram();
+
+        if (options.dumpInfo) {
+          dumpInfoTask.reportSize(programSize);
+          dumpInfoTask.dumpInfo();
+        }
+
+        backend.sourceInformationStrategy.onComplete();
+
+        checkQueues();
       });
-    }
-    processQueue(enqueuer.codegen, mainFunction);
-    enqueuer.codegen.logSummary(reporter.log);
-
-    int programSize = backend.assembleProgram();
-
-    if (options.dumpInfo) {
-      dumpInfoTask.reportSize(programSize);
-      dumpInfoTask.dumpInfo();
-    }
-
-    backend.sourceInformationStrategy.onComplete();
-
-    checkQueues();
-  });
 
   void fullyEnqueueLibrary(LibraryElement library, Enqueuer world) {
     void enqueueAll(Element element) {
@@ -950,48 +948,53 @@ abstract class Compiler implements LibraryLoaderListener {
   /**
    * Empty the [world] queue.
    */
-  void emptyQueue(Enqueuer world)
-      => selfTask.measureSubtask("Compiler.emptyQueue", () {
-    world.forEach((WorkItem work) {
-      reporter.withCurrentElement(
-          work.element, () => selfTask.measureSubtask("world.applyImpact", () {
-        world.applyImpact(
-            work.element,
-            selfTask.measureSubtask("work.run", () => work.run(this, world)));
-      }));
-    });
-  });
+  void emptyQueue(Enqueuer world) =>
+      selfTask.measureSubtask("Compiler.emptyQueue", () {
+        world.forEach((WorkItem work) {
+          reporter.withCurrentElement(
+              work.element,
+              () => selfTask.measureSubtask("world.applyImpact", () {
+                    world.applyImpact(
+                        work.element,
+                        selfTask.measureSubtask(
+                            "work.run", () => work.run(this, world)));
+                  }));
+        });
+      });
 
-  void processQueue(Enqueuer world, Element main)
-      => selfTask.measureSubtask("Compiler.processQueue", () {
-    world.nativeEnqueuer.processNativeClasses(libraryLoader.libraries);
-    if (main != null && !main.isMalformed) {
-      FunctionElement mainMethod = main;
-      mainMethod.computeType(resolution);
-      if (mainMethod.functionSignature.parameterCount != 0) {
-        // The first argument could be a list of strings.
-        backend.listImplementation.ensureResolved(resolution);
-        backend.registerInstantiatedType(
-            backend.listImplementation.rawType, world, globalDependencies);
-        backend.stringImplementation.ensureResolved(resolution);
-        backend.registerInstantiatedType(
-            backend.stringImplementation.rawType, world, globalDependencies);
+  void processQueue(Enqueuer world, Element main) =>
+      selfTask.measureSubtask("Compiler.processQueue", () {
+        world.nativeEnqueuer.processNativeClasses(libraryLoader.libraries);
+        if (main != null && !main.isMalformed) {
+          FunctionElement mainMethod = main;
+          mainMethod.computeType(resolution);
+          if (mainMethod.functionSignature.parameterCount != 0) {
+            // The first argument could be a list of strings.
+            backend.listImplementation.ensureResolved(resolution);
+            backend.registerInstantiatedType(
+                backend.listImplementation.rawType, world, globalDependencies);
+            backend.stringImplementation.ensureResolved(resolution);
+            backend.registerInstantiatedType(
+                backend.stringImplementation.rawType,
+                world,
+                globalDependencies);
 
-        backend.registerMainHasArguments(world);
-      }
-      world.addToWorkList(main);
-    }
-    if (options.verbose) {
-      progress.reset();
-    }
-    emptyQueue(world);
-    world.queueIsClosed = true;
-    // Notify the impact strategy impacts are no longer needed for this
-    // enqueuer.
-    impactStrategy.onImpactUsed(world.impactUse);
-    backend.onQueueClosed();
-    assert(compilationFailed || world.checkNoEnqueuedInvokedInstanceMethods());
-  });
+            backend.registerMainHasArguments(world);
+          }
+          world.addToWorkList(main);
+        }
+        if (options.verbose) {
+          progress.reset();
+        }
+        emptyQueue(world);
+        world.queueIsClosed = true;
+        // Notify the impact strategy impacts are no longer needed for this
+        // enqueuer.
+        impactStrategy.onImpactUsed(world.impactUse);
+        backend.onQueueClosed();
+        assert(
+            compilationFailed || world.checkNoEnqueuedInvokedInstanceMethods());
+      });
 
   /**
    * Perform various checks of the queues. This includes checking that
@@ -1032,47 +1035,47 @@ abstract class Compiler implements LibraryLoaderListener {
     }
   }
 
-  WorldImpact analyzeElement(Element element)
-      => selfTask.measureSubtask("Compiler.analyzeElement", () {
-    assert(invariant(
-        element,
-        element.impliesType ||
-            element.isField ||
-            element.isFunction ||
-            element.isConstructor ||
-            element.isGetter ||
-            element.isSetter,
-        message: 'Unexpected element kind: ${element.kind}'));
-    assert(invariant(element, element is AnalyzableElement,
-        message: 'Element $element is not analyzable.'));
-    assert(invariant(element, element.isDeclaration));
-    return resolution.computeWorldImpact(element);
-  });
+  WorldImpact analyzeElement(Element element) =>
+      selfTask.measureSubtask("Compiler.analyzeElement", () {
+        assert(invariant(
+            element,
+            element.impliesType ||
+                element.isField ||
+                element.isFunction ||
+                element.isConstructor ||
+                element.isGetter ||
+                element.isSetter,
+            message: 'Unexpected element kind: ${element.kind}'));
+        assert(invariant(element, element is AnalyzableElement,
+            message: 'Element $element is not analyzable.'));
+        assert(invariant(element, element.isDeclaration));
+        return resolution.computeWorldImpact(element);
+      });
 
-  WorldImpact analyze(ResolutionWorkItem work,
-                      ResolutionEnqueuer world)
-      => selfTask.measureSubtask("Compiler.analyze", () {
-    assert(invariant(work.element, identical(world, enqueuer.resolution)));
-    assert(invariant(work.element, !work.isAnalyzed,
-        message: 'Element ${work.element} has already been analyzed'));
-    if (shouldPrintProgress) {
-      // TODO(ahe): Add structured diagnostics to the compiler API and
-      // use it to separate this from the --verbose option.
-      if (phase == PHASE_RESOLVING) {
-        reporter.log('Resolved ${enqueuer.resolution.processedElements.length} '
-            'elements.');
-        progress.reset();
-      }
-    }
-    AstElement element = work.element;
-    if (world.hasBeenProcessed(element)) {
-      return const WorldImpact();
-    }
-    WorldImpact worldImpact = analyzeElement(element);
-    backend.onElementResolved(element);
-    world.registerProcessedElement(element);
-    return worldImpact;
-  });
+  WorldImpact analyze(ResolutionWorkItem work, ResolutionEnqueuer world) =>
+      selfTask.measureSubtask("Compiler.analyze", () {
+        assert(invariant(work.element, identical(world, enqueuer.resolution)));
+        assert(invariant(work.element, !work.isAnalyzed,
+            message: 'Element ${work.element} has already been analyzed'));
+        if (shouldPrintProgress) {
+          // TODO(ahe): Add structured diagnostics to the compiler API and
+          // use it to separate this from the --verbose option.
+          if (phase == PHASE_RESOLVING) {
+            reporter
+                .log('Resolved ${enqueuer.resolution.processedElements.length} '
+                    'elements.');
+            progress.reset();
+          }
+        }
+        AstElement element = work.element;
+        if (world.hasBeenProcessed(element)) {
+          return const WorldImpact();
+        }
+        WorldImpact worldImpact = analyzeElement(element);
+        backend.onElementResolved(element);
+        world.registerProcessedElement(element);
+        return worldImpact;
+      });
 
   WorldImpact codegen(CodegenWorkItem work, CodegenEnqueuer world) {
     assert(invariant(work.element, identical(world, enqueuer.codegen)));
@@ -1915,27 +1918,25 @@ class _CompilerResolution implements Resolution {
   }
 
   @override
-  bool hasResolvedAst(Element element) {
+  bool hasResolvedAst(ExecutableElement element) {
     assert(invariant(element, element.isDeclaration,
         message: "Element $element must be the declaration."));
     if (compiler.serialization.isDeserialized(element)) {
       return compiler.serialization.hasResolvedAst(element);
     }
-    return element is AstElement &&
-        hasBeenResolved(element) &&
+    return hasBeenResolved(element.memberContext.declaration) &&
         element.hasResolvedAst;
   }
 
   @override
-  ResolvedAst getResolvedAst(Element element) {
+  ResolvedAst getResolvedAst(ExecutableElement element) {
     assert(invariant(element, element.isDeclaration,
         message: "Element $element must be the declaration."));
     if (hasResolvedAst(element)) {
       if (compiler.serialization.isDeserialized(element)) {
         return compiler.serialization.getResolvedAst(element);
       }
-      AstElement astElement = element;
-      return astElement.resolvedAst;
+      return element.resolvedAst;
     }
     assert(invariant(element, hasResolvedAst(element),
         message: "ResolvedAst not available for $element."));

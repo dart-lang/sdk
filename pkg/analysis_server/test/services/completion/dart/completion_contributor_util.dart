@@ -143,10 +143,10 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     if (elemOffset != null) {
       expect(cs.element.location.offset, elemOffset);
     }
-    if(paramName != null) {
+    if (paramName != null) {
       expect(cs.parameterName, paramName);
     }
-    if(paramType != null) {
+    if (paramType != null) {
       expect(cs.parameterType, paramType);
     }
     return cs;
@@ -262,8 +262,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       expect(cs.returnType, returnType);
     } else if (isNullExpectedReturnTypeConsideredDynamic) {
       expect(cs.returnType, 'dynamic');
-    } else {
-      expect(cs.returnType, isNull);
     }
     protocol.Element element = cs.element;
     expect(element, isNotNull);
@@ -278,8 +276,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       expect(element.returnType, returnType);
     } else if (isNullExpectedReturnTypeConsideredDynamic) {
       expect(element.returnType, 'dynamic');
-    } else {
-      expect(element.returnType, isNull);
     }
     assertHasParameterInfo(cs);
     return cs;
@@ -369,8 +365,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
-  CompletionSuggestion assertSuggestName(
-      String name,
+  CompletionSuggestion assertSuggestName(String name,
       {int relevance: DART_RELEVANCE_DEFAULT,
       String importUri,
       CompletionSuggestionKind kind: CompletionSuggestionKind.IDENTIFIER,
@@ -419,8 +414,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       expect(cs.returnType, returnType);
     } else if (isNullExpectedReturnTypeConsideredDynamic) {
       expect(cs.returnType, 'dynamic');
-    } else {
-      expect(cs.returnType, isNull);
     }
     protocol.Element element = cs.element;
     expect(element, isNotNull);
@@ -431,8 +424,6 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       expect(element.returnType, returnType);
     } else if (isNullExpectedReturnTypeConsideredDynamic) {
       expect(element.returnType, 'dynamic');
-    } else {
-      expect(element.returnType, isNull);
     }
     assertHasNoParameterInfo(cs);
     return cs;

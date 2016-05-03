@@ -1444,9 +1444,14 @@ RawError* Compiler::CompileOptimizedFunction(Thread* thread,
                                              intptr_t osr_id) {
 NOT_IN_PRODUCT(
   VMTagScope tagScope(thread, VMTag::kCompileOptimizedTagId);
-  const char* event_name = IsBackgroundCompilation()
-      ? "BackgroundCompileOptimizedFunction"
-      : "CompileOptimizedFunction";
+  const char* event_name;
+  if (osr_id != kNoOSRDeoptId) {
+    event_name = "CompileFunctionOptimizedOSR";
+  } else if (IsBackgroundCompilation()) {
+    event_name = "CompileFunctionOptimizedBackground";
+  } else {
+    event_name = "CompileFunctionOptimized";
+  }
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, event_name, function);
 )  // !PRODUCT
 
@@ -1494,9 +1499,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   const Function& function = Function::Handle(code.function());
   ParsedFunction* parsed_function = new ParsedFunction(
       Thread::Current(), Function::ZoneHandle(function.raw()));
-  LocalVarDescriptors& var_descs =
-      LocalVarDescriptors::Handle(code.var_descriptors());
-  ASSERT(var_descs.IsNull());
+  ASSERT(code.var_descriptors() == Object::null());
   // IsIrregexpFunction have eager var descriptors generation.
   ASSERT(!function.IsIrregexpFunction());
   // In background compilation, parser can produce 'errors": bailouts
@@ -1505,8 +1508,8 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   if (setjmp(*jump.Set()) == 0) {
     Parser::ParseFunction(parsed_function);
     parsed_function->AllocateVariables();
-    var_descs = parsed_function->node_sequence()->scope()->
-        GetVarDescriptors(function);
+    const LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle(
+        parsed_function->node_sequence()->scope()->GetVarDescriptors(function));
     ASSERT(!var_descs.IsNull());
     code.set_var_descriptors(var_descs);
   } else {

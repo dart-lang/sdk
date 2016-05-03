@@ -461,8 +461,7 @@ class InheritanceManager {
   List<Map<String, ExecutableElement>> _gatherInterfaceLookupMaps(
       ClassElement classElt, HashSet<ClassElement> visitedInterfaces) {
     InterfaceType supertype = classElt.supertype;
-    ClassElement superclassElement =
-        supertype != null ? supertype.element : null;
+    ClassElement superclassElement = supertype?.element;
     List<InterfaceType> mixins = classElt.mixins;
     List<InterfaceType> interfaces = classElt.interfaces;
     // Recursively collect the list of mappings from all of the interface types

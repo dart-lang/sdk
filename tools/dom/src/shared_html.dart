@@ -14,7 +14,10 @@ _wrapZoneCallback/*<A, R>*/ _wrapZone/*<A, R>*/(_wrapZoneCallback/*<A, R>*/ call
   if (callback == null) return null;
   // TODO(jacobr): we cast to _wrapZoneCallback/*<A, R>*/ to hack around missing
   // generic method support in zones.
-  return Zone.current.bindUnaryCallback(callback, runGuarded: true) as _wrapZoneCallback/*<A, R>*/;
+  // ignore: STRONG_MODE_DOWN_CAST_COMPOSITE
+  _wrapZoneCallback/*<A, R>*/ wrapped =
+      Zone.current.bindUnaryCallback(callback, runGuarded: true);
+  return wrapped;
 }
 
 _wrapZoneBinaryCallback/*<A, B, R>*/ _wrapBinaryZone/*<A, B, R>*/(_wrapZoneBinaryCallback/*<A, B, R>*/ callback) {
@@ -22,7 +25,10 @@ _wrapZoneBinaryCallback/*<A, B, R>*/ _wrapBinaryZone/*<A, B, R>*/(_wrapZoneBinar
   if (callback == null) return null;
   // We cast to _wrapZoneBinaryCallback/*<A, B, R>*/ to hack around missing
   // generic method support in zones.
-  return Zone.current.bindBinaryCallback(callback, runGuarded: true) as _wrapZoneBinaryCallback/*<A, B, R>*/;
+  // ignore: STRONG_MODE_DOWN_CAST_COMPOSITE
+  _wrapZoneBinaryCallback/*<A, B, R>*/ wrapped =
+      Zone.current.bindBinaryCallback(callback, runGuarded: true);
+  return wrapped;
 }
 
 /**

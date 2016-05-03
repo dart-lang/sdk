@@ -78,7 +78,7 @@ class IrBuilderTask extends CompilerTask {
       element = element.implementation;
       return reporter.withCurrentElement(element, () {
         SourceInformationBuilder sourceInformationBuilder =
-            sourceInformationStrategy.createBuilderForContext(element);
+            sourceInformationStrategy.createBuilderForContext(resolvedAst);
 
         IrBuilderVisitor builder = new IrBuilderVisitor(
             resolvedAst, compiler, sourceInformationBuilder, typeMaskSystem);
@@ -502,8 +502,9 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   /// Every visitor can only be applied to nodes in one context, because
   /// the [elements] field is specific to that context.
   IrBuilderVisitor makeVisitorForContext(AstElement context) {
-    return new IrBuilderVisitor(context.resolvedAst, compiler,
-        sourceInformationBuilder.forContext(context), typeMaskSystem);
+    ResolvedAst resolvedAst = backend.frontend.getResolvedAst(context);
+    return new IrBuilderVisitor(resolvedAst, compiler,
+        sourceInformationBuilder.forContext(resolvedAst), typeMaskSystem);
   }
 
   /// Builds the IR for an [expression] taken from a different [context].
@@ -1681,7 +1682,11 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   ConstantValue getConstantForVariable(VariableElement element) {
-    return irBuilder.state.constants.getConstantValue(element.constant);
+    ConstantExpression constant = element.constant;
+    if (constant != null) {
+      return irBuilder.state.constants.getConstantValue(constant);
+    }
+    return null;
   }
 
   ir.Primitive buildConstantExpression(

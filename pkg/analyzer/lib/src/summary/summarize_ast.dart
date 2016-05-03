@@ -7,6 +7,7 @@ library serialization.summarize_ast;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/type.dart' show DartType;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -49,20 +50,20 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
       Identifier name = annotation.name;
       EntityRefBuilder constructor;
       if (name is PrefixedIdentifier && annotation.constructorName == null) {
-        constructor = serializeConstructorName(
-            new TypeName(name.prefix, null), name.identifier);
+        constructor =
+            serializeConstructorRef(null, name.prefix, null, name.identifier);
       } else {
-        constructor = serializeConstructorName(
-            new TypeName(annotation.name, null), annotation.constructorName);
+        constructor = serializeConstructorRef(
+            null, annotation.name, null, annotation.constructorName);
       }
       serializeInstanceCreation(constructor, annotation.arguments);
     }
   }
 
   @override
-  EntityRefBuilder serializeConstructorName(
-      TypeName type, SimpleIdentifier name) {
-    EntityRefBuilder typeBuilder = serializeType(type);
+  EntityRefBuilder serializeConstructorRef(DartType type, Identifier typeName,
+      TypeArgumentList typeArguments, SimpleIdentifier name) {
+    EntityRefBuilder typeBuilder = serializeType(type, typeName, typeArguments);
     if (name == null) {
       return typeBuilder;
     } else {
@@ -117,8 +118,9 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   }
 
   @override
-  EntityRefBuilder serializeType(TypeName node) {
-    return visitor.serializeTypeName(node);
+  EntityRefBuilder serializeType(
+      DartType type, Identifier name, TypeArgumentList arguments) {
+    return visitor.serializeType(name, arguments);
   }
 }
 
@@ -575,6 +577,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     }
     b.isExternal = isExternal;
     b.isAbstract = !isExternal && body is EmptyFunctionBody;
+    b.isAsynchronous = body.isAsynchronous;
+    b.isGenerator = body.isGenerator;
     b.name = nameString;
     b.nameOffset = nameOffset;
     b.typeParameters =
@@ -750,12 +754,12 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * a [EntityRef].  Note that this method does the right thing if the
    * name doesn't refer to an entity other than a type (e.g. a class member).
    */
-  EntityRefBuilder serializeTypeName(TypeName node) {
-    if (node == null) {
+  EntityRefBuilder serializeType(
+      Identifier identifier, TypeArgumentList typeArguments) {
+    if (identifier == null) {
       return null;
     } else {
       EntityRefBuilder b = new EntityRefBuilder();
-      Identifier identifier = node.name;
       if (identifier is SimpleIdentifier) {
         String name = identifier.name;
         int indexOffset = 0;
@@ -788,9 +792,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         throw new StateError(
             'Unexpected identifier type: ${identifier.runtimeType}');
       }
-      if (node.typeArguments != null) {
+      if (typeArguments != null) {
         // Trailing type arguments of type 'dynamic' should be omitted.
-        NodeList<TypeName> args = node.typeArguments.arguments;
+        NodeList<TypeName> args = typeArguments.arguments;
         int numArgsToSerialize = args.length;
         while (
             numArgsToSerialize > 0 && isDynamic(args[numArgsToSerialize - 1])) {
@@ -806,6 +810,16 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       }
       return b;
     }
+  }
+
+  /**
+   * Serialize a type name (which might be defined in a nested scope, at top
+   * level within this library, or at top level within an imported library) to
+   * a [EntityRef].  Note that this method does the right thing if the
+   * name doesn't refer to an entity other than a type (e.g. a class member).
+   */
+  EntityRefBuilder serializeTypeName(TypeName node) {
+    return serializeType(node?.name, node?.typeArguments);
   }
 
   /**
@@ -950,9 +964,10 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       b.isFactory = true;
       if (node.redirectedConstructor != null) {
         b.isRedirectedConstructor = true;
+        TypeName typeName = node.redirectedConstructor.type;
         b.redirectedConstructor = new _ConstExprSerializer(this, null)
-            .serializeConstructorName(node.redirectedConstructor.type,
-                node.redirectedConstructor.name);
+            .serializeConstructorRef(null, typeName.name,
+                typeName.typeArguments, node.redirectedConstructor.name);
       }
     } else {
       for (ConstructorInitializer initializer in node.initializers) {

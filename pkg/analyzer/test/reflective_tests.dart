@@ -12,6 +12,13 @@ import 'package:unittest/unittest.dart';
 
 /**
  * A marker annotation used to annotate overridden test methods (so we cannot
+ * rename them to `fail_`) which are expected to fail at `assert` in the
+ * checked mode.
+ */
+const _AssertFailingTest assertFailingTest = const _AssertFailingTest();
+
+/**
+ * A marker annotation used to annotate overridden test methods (so we cannot
  * rename them to `fail_`) which are expected to fail.
  */
 const _FailingTest failingTest = const _FailingTest();
@@ -21,6 +28,18 @@ const _FailingTest failingTest = const _FailingTest();
  * for the annotated classes.
  */
 const ReflectiveTest reflectiveTest = const ReflectiveTest();
+
+/**
+ * Is `true` the application is running in the checked mode.
+ */
+final bool _isCheckedMode = () {
+  try {
+    assert(false);
+    return false;
+  } catch (_) {
+    return true;
+  }
+}();
 
 /**
  * Runs test methods existing in the given [type].
@@ -58,7 +77,8 @@ void runReflectiveTests(Type type) {
       // test_
       if (memberName.startsWith('test_')) {
         test(memberName, () {
-          if (_hasFailingTestAnnotation(memberMirror)) {
+          if (_hasFailingTestAnnotation(memberMirror) ||
+              _isCheckedMode && _hasAssertFailingTestAnnotation(memberMirror)) {
             return _runFailingTest(classMirror, symbol);
           } else {
             return _runTest(classMirror, symbol);
@@ -88,10 +108,15 @@ void runReflectiveTests(Type type) {
   });
 }
 
-bool _hasFailingTestAnnotation(MethodMirror method) {
-  return method.metadata.any((InstanceMirror annotation) =>
-      annotation.type.reflectedType == _FailingTest);
-}
+bool _hasAnnotationInstance(DeclarationMirror declaration, instance) =>
+    declaration.metadata.any((InstanceMirror annotation) =>
+        identical(annotation.reflectee, instance));
+
+bool _hasAssertFailingTestAnnotation(MethodMirror method) =>
+    _hasAnnotationInstance(method, assertFailingTest);
+
+bool _hasFailingTestAnnotation(MethodMirror method) =>
+    _hasAnnotationInstance(method, failingTest);
 
 Future _invokeSymbolIfExists(InstanceMirror instanceMirror, Symbol symbol) {
   var invocationResult = null;
@@ -135,6 +160,15 @@ _runTest(ClassMirror classMirror, Symbol symbol) {
  */
 class ReflectiveTest {
   const ReflectiveTest();
+}
+
+/**
+ * A marker annotation used to annotate overridden test methods (so we cannot
+ * rename them to `fail_`) which are expected to fail at `assert` in the
+ * checked mode.
+ */
+class _AssertFailingTest {
+  const _AssertFailingTest();
 }
 
 /**

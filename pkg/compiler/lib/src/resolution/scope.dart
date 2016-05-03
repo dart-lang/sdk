@@ -58,17 +58,14 @@ class VariableDefinitionScope extends NestedScope {
   }
 }
 
-/**
- * [TypeDeclarationScope] defines the outer scope of a type declaration in
- * which the declared type variables and the entities in the enclosing scope are
- * available but where declared and inherited members are not available. This
- * scope is only used for class declarations during resolution of the
- * class hierarchy. In all other cases [ClassScope] is used.
- */
-class TypeDeclarationScope extends NestedScope {
-  final TypeDeclarationElement element;
+/// [TypeVariablesScope] defines the outer scope in a context where some type
+/// variables are declared and the entities in the enclosing scope are
+/// available, but where locally declared and inherited members are not
+/// available.
+abstract class TypeVariablesScope extends NestedScope {
+  List<DartType> get typeVariables;
 
-  TypeDeclarationScope(parent, this.element) : super(parent) {
+  TypeVariablesScope(Scope parent) : super(parent) {
     assert(parent != null);
   }
 
@@ -77,7 +74,6 @@ class TypeDeclarationScope extends NestedScope {
   }
 
   Element lookupTypeVariable(String name) {
-    List<DartType> typeVariables = element.typeVariables;
     for (TypeVariableType type in typeVariables) {
       if (type.name == name) {
         return type.element;
@@ -87,6 +83,22 @@ class TypeDeclarationScope extends NestedScope {
   }
 
   Element localLookup(String name) => lookupTypeVariable(name);
+}
+
+/**
+ * [TypeDeclarationScope] defines the outer scope of a type declaration in
+ * which the declared type variables and the entities in the enclosing scope are
+ * available but where declared and inherited members are not available. This
+ * scope is used for class declarations during resolution of the class hierarchy
+ * and when resolving typedef signatures. In other cases [ClassScope] is used.
+ */
+class TypeDeclarationScope extends TypeVariablesScope {
+  final GenericElement element;
+
+  @override
+  List<DartType> get typeVariables => element.typeVariables;
+
+  TypeDeclarationScope(Scope parent, this.element) : super(parent);
 
   String toString() => 'TypeDeclarationScope($element)';
 }

@@ -122,7 +122,7 @@ class _ConverterStreamEventSink<S, T> implements EventSink<S> {
    * The input sink for new data. All data that is received with
    * [handleData] is added into this sink.
    */
-  ChunkedConversionSink<S> _chunkedSink;
+  final ChunkedConversionSink<S> _chunkedSink;
 
   _ConverterStreamEventSink(
       Converter/*=ChunkedConverter<dynamic, dynamic, S, T>*/ converter,

@@ -1564,8 +1564,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     InterfaceType supertype = superclass;
-    ClassElement supertypeElement =
-        supertype == null ? null : supertype.element;
+    ClassElement supertypeElement = supertype?.element;
     while (supertype != null && !visitedClasses.contains(supertypeElement)) {
       visitedClasses.add(supertypeElement);
       PropertyAccessorElement element = supertype.getGetter(getterName);
@@ -1579,7 +1578,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       }
       supertype = supertype.superclass;
-      supertypeElement = supertype == null ? null : supertype.element;
+      supertypeElement = supertype?.element;
     }
     return null;
   }
@@ -1669,8 +1668,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     InterfaceType supertype = superclass;
-    ClassElement supertypeElement =
-        supertype == null ? null : supertype.element;
+    ClassElement supertypeElement = supertype?.element;
     while (supertype != null && !visitedClasses.contains(supertypeElement)) {
       visitedClasses.add(supertypeElement);
       MethodElement element = supertype.getMethod(methodName);
@@ -1684,7 +1682,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       }
       supertype = supertype.superclass;
-      supertypeElement = supertype == null ? null : supertype.element;
+      supertypeElement = supertype?.element;
     }
     return null;
   }
@@ -1710,8 +1708,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     InterfaceType supertype = superclass;
-    ClassElement supertypeElement =
-        supertype == null ? null : supertype.element;
+    ClassElement supertypeElement = supertype?.element;
     while (supertype != null && !visitedClasses.contains(supertypeElement)) {
       visitedClasses.add(supertypeElement);
       PropertyAccessorElement element = supertype.getSetter(setterName);
@@ -1725,7 +1722,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       }
       supertype = supertype.superclass;
-      supertypeElement = supertype == null ? null : supertype.element;
+      supertypeElement = supertype?.element;
     }
     return null;
   }

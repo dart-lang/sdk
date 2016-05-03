@@ -47,6 +47,10 @@ abstract class InferrerEngine<T, V extends TypeSystem>
 
   CoreTypes get coreTypes => compiler.coreTypes;
 
+  ResolvedAst getResolvedAst(Element element) {
+    return compiler.backend.frontend.getResolvedAst(element.declaration);
+  }
+
   /**
    * Records the default type of parameter [parameter].
    */
@@ -256,6 +260,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
     return returnType;
   }
 
+  // TODO(johnniwinther): Pass the [ResolvedAst] instead of [owner].
   void updateSelectorInTree(
       AstElement owner, Spannable node, Selector selector, TypeMask mask) {
     if (node is cps_ir.Node) {
@@ -263,7 +268,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
       throw "updateSelector for IR node $node";
     }
     ast.Node astNode = node;
-    TreeElements elements = owner.resolvedAst.elements;
+    TreeElements elements = getResolvedAst(owner).elements;
     if (astNode.asSendSet() != null) {
       if (selector.isSetter || selector.isIndexSet) {
         elements.setTypeMask(node, mask);
@@ -295,7 +300,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
         element.isField;
   }
 
-  void analyze(Element element, ArgumentsTypes arguments);
+  void analyze(ResolvedAst resolvedAst, ArgumentsTypes arguments);
 
   bool checkIfExposesThis(Element element) {
     element = element.implementation;
@@ -354,17 +359,24 @@ class SimpleTypeInferrerVisitor<T>
             compiler,
             handler);
 
+  ResolvedAst getResolvedAst(Element element) {
+    return compiler.backend.frontend.getResolvedAst(element.declaration);
+  }
+
   void analyzeSuperConstructorCall(Element target, ArgumentsTypes arguments) {
-    inferrer.analyze(target, arguments);
+    ResolvedAst resolvedAst = getResolvedAst(target);
+    inferrer.analyze(resolvedAst, arguments);
     isThisExposed = isThisExposed || inferrer.checkIfExposesThis(target);
   }
 
   T run() {
-    var node = analyzedElement.node;
+    var node;
+    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+      node = resolvedAst.node;
+    }
     ast.Expression initializer;
     if (analyzedElement.isField) {
-      VariableElement fieldElement = analyzedElement;
-      initializer = fieldElement.initializer;
+      initializer = resolvedAst.body;
       if (initializer == null) {
         // Eagerly bailout, because computing the closure data only
         // works for functions and field assignments.
@@ -475,7 +487,8 @@ class SimpleTypeInferrerVisitor<T>
         cls.forEachInstanceField((_, FieldElement field) {
           if (field.isFinal) return;
           T type = locals.fieldScope.readField(field);
-          if (type == null && field.initializer == null) {
+          ResolvedAst resolvedAst = getResolvedAst(field);
+          if (type == null && resolvedAst.body == null) {
             inferrer.recordTypeOfNonFinalField(
                 spannable, field, types.nullType);
           }
@@ -552,7 +565,7 @@ class SimpleTypeInferrerVisitor<T>
     LocalsHandler closureLocals =
         new LocalsHandler<T>.from(locals, node, useOtherTryBlock: false);
     SimpleTypeInferrerVisitor visitor = new SimpleTypeInferrerVisitor<T>(
-        element, element.resolvedAst, compiler, inferrer, closureLocals);
+        element, getResolvedAst(element), compiler, inferrer, closureLocals);
     visitor.run();
     inferrer.recordReturnType(element, visitor.returnType);
 

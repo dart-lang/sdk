@@ -2120,7 +2120,7 @@ class Parser {
   final AnalysisErrorListener _errorListener;
 
   /**
-   * An [errorListener] lock, if more than `0`, then errors are not reported.
+   * An [_errorListener] lock, if more than `0`, then errors are not reported.
    */
   int _errorListenerLock = 0;
 
@@ -8199,12 +8199,8 @@ class Parser {
       _advance();
       variables.add(_parseVariableDeclaration());
     }
-    return new VariableDeclarationList(
-        commentAndMetadata != null ? commentAndMetadata.comment : null,
-        commentAndMetadata != null ? commentAndMetadata.metadata : null,
-        keyword,
-        type,
-        variables);
+    return new VariableDeclarationList(commentAndMetadata?.comment,
+        commentAndMetadata?.metadata, keyword, type, variables);
   }
 
   /**

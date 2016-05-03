@@ -1282,6 +1282,14 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   if (FLAG_support_debugger && do_stacktrace) {
     String& var_name = String::Handle();
     Instance& var_value = Instance::Handle();
+    // Collecting the stack trace and accessing local variables
+    // of frames may trigger parsing of functions to compute
+    // variable descriptors of functions. Parsing may trigger
+    // code execution, e.g. to compute compile-time constants. Thus,
+    // disable FLAG_stacktrace_every during trace collection to prevent
+    // recursive stack trace collection.
+    intptr_t saved_stacktrace_every = FLAG_stacktrace_every;
+    FLAG_stacktrace_every = 0;
     DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
     intptr_t num_frames = stack->Length();
     for (intptr_t i = 0; i < num_frames; i++) {
@@ -1294,6 +1302,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
         frame->VariableAt(v, &var_name, &unused, &unused, &var_value);
       }
     }
+    FLAG_stacktrace_every = saved_stacktrace_every;
   }
 
   const Error& error = Error::Handle(thread->HandleInterrupts());

@@ -387,44 +387,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     }
   }
 
-  void _addLocalSuggestion_includeTypeNameSuggestions(
-      SimpleIdentifier id, TypeName typeName, protocol.ElementKind elemKind,
-      {bool isAbstract: false,
-      bool isDeprecated: false,
-      ClassDeclaration classDecl,
-      FormalParameterList param,
-      int relevance: DART_RELEVANCE_DEFAULT}) {
-    relevance = optype.typeNameSuggestionsFilter(
-        _staticTypeOfIdentifier(id), relevance);
-    if (relevance != null) {
-      _addLocalSuggestion(id, typeName, elemKind,
-          isAbstract: isAbstract,
-          isDeprecated: isDeprecated,
-          classDecl: classDecl,
-          param: param,
-          relevance: relevance);
-    }
-  }
-
-  void _addLocalSuggestion_includeReturnValueSuggestions(
-      SimpleIdentifier id, TypeName typeName, protocol.ElementKind elemKind,
-      {bool isAbstract: false,
-      bool isDeprecated: false,
-      ClassDeclaration classDecl,
-      FormalParameterList param,
-      int relevance: DART_RELEVANCE_DEFAULT}) {
-    relevance = optype.returnValueSuggestionsFilter(
-        _staticTypeOfIdentifier(id), relevance);
-    if (relevance != null) {
-      _addLocalSuggestion(id, typeName, elemKind,
-          isAbstract: isAbstract,
-          isDeprecated: isDeprecated,
-          classDecl: classDecl,
-          param: param,
-          relevance: relevance);
-    }
-  }
-
   void _addLocalSuggestion(
       SimpleIdentifier id, TypeName typeName, protocol.ElementKind elemKind,
       {bool isAbstract: false,
@@ -447,13 +409,51 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       suggestion.element = _createLocalElement(request.source, elemKind, id,
           isAbstract: isAbstract,
           isDeprecated: isDeprecated,
-          parameters: param != null ? param.toSource() : null,
+          parameters: param?.toSource(),
           returnType: typeName);
       if ((elemKind == protocol.ElementKind.METHOD ||
               elemKind == protocol.ElementKind.FUNCTION) &&
           param != null) {
         _addParameterInfo(suggestion, param);
       }
+    }
+  }
+
+  void _addLocalSuggestion_includeReturnValueSuggestions(
+      SimpleIdentifier id, TypeName typeName, protocol.ElementKind elemKind,
+      {bool isAbstract: false,
+      bool isDeprecated: false,
+      ClassDeclaration classDecl,
+      FormalParameterList param,
+      int relevance: DART_RELEVANCE_DEFAULT}) {
+    relevance = optype.returnValueSuggestionsFilter(
+        _staticTypeOfIdentifier(id), relevance);
+    if (relevance != null) {
+      _addLocalSuggestion(id, typeName, elemKind,
+          isAbstract: isAbstract,
+          isDeprecated: isDeprecated,
+          classDecl: classDecl,
+          param: param,
+          relevance: relevance);
+    }
+  }
+
+  void _addLocalSuggestion_includeTypeNameSuggestions(
+      SimpleIdentifier id, TypeName typeName, protocol.ElementKind elemKind,
+      {bool isAbstract: false,
+      bool isDeprecated: false,
+      ClassDeclaration classDecl,
+      FormalParameterList param,
+      int relevance: DART_RELEVANCE_DEFAULT}) {
+    relevance = optype.typeNameSuggestionsFilter(
+        _staticTypeOfIdentifier(id), relevance);
+    if (relevance != null) {
+      _addLocalSuggestion(id, typeName, elemKind,
+          isAbstract: isAbstract,
+          isDeprecated: isDeprecated,
+          classDecl: classDecl,
+          param: param,
+          relevance: relevance);
     }
   }
 

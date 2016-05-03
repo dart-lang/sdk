@@ -183,3 +183,6 @@ spawn_uri_missing_test: Skip # SpawnUri in product mode
 
 [ $compiler == dart2js && $cps_ir && $checked ]
 *: Skip # `assert` not implemented
+
+[ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
+*: Skip # Issue #26373

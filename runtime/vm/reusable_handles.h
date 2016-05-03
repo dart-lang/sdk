@@ -110,6 +110,8 @@ REUSABLE_HANDLE_LIST(REUSABLE_SCOPE)
   ReusableObjectHandleScope reused_object_handle(thread);
 #define REUSABLE_PC_DESCRIPTORS_HANDLESCOPE(thread)                            \
   ReusablePcDescriptorsHandleScope reused_pc_descriptors_handle(thread);
+#define REUSABLE_SMI_HANDLESCOPE(thread)                                       \
+  ReusableSmiHandleScope reused_smi_handle(thread);
 #define REUSABLE_STRING_HANDLESCOPE(thread)                                    \
   ReusableStringHandleScope reused_string_handle(thread);
 #define REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread)                            \

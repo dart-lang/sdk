@@ -69,10 +69,10 @@ void ExitFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-#if !defined(TARGET_ARCH_DBC)
   ASSERT(thread() == Thread::Current());
   // Visit objects between SP and (FP - callee_save_area).
   ASSERT(visitor != NULL);
+#if !defined(TARGET_ARCH_DBC)
   RawObject** first = reinterpret_cast<RawObject**>(sp());
   RawObject** last = reinterpret_cast<RawObject**>(
       fp() + (kExitLinkSlotFromEntryFp - 1) * kWordSize);
@@ -87,6 +87,8 @@ void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  ASSERT(thread() == Thread::Current());
+  ASSERT(visitor != NULL);
 #if !defined(TARGET_ARCH_DBC)
   // NOTE: This code runs while GC is in progress and runs within
   // a NoHandleScope block. Hence it is not ok to use regular Zone or
@@ -94,8 +96,6 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // these handles are not traversed. The use of handles is mainly to
   // be able to reuse the handle based code and avoid having to add
   // helper functions to the raw object interface.
-  ASSERT(thread() == Thread::Current());
-  ASSERT(visitor != NULL);
   NoSafepointScope no_safepoint;
   Code code;
   code = LookupDartCode();
@@ -109,7 +109,8 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     Array maps;
     maps = Array::null();
     Stackmap map;
-    const uword entry = code.EntryPoint();
+    const uword entry = reinterpret_cast<uword>(code.instructions()->ptr()) +
+                        Instructions::HeaderSize();
     map = code.GetStackmap(pc() - entry, &maps, &map);
     if (!map.IsNull()) {
       RawObject** first = reinterpret_cast<RawObject**>(sp());

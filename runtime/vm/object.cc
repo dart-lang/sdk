@@ -2714,12 +2714,12 @@ void Class::Finalize() const {
 class CHACodeArray : public WeakCodeReferences {
  public:
   explicit CHACodeArray(const Class& cls)
-      : WeakCodeReferences(Array::Handle(cls.cha_codes())), cls_(cls) {
+      : WeakCodeReferences(Array::Handle(cls.dependent_code())), cls_(cls) {
   }
 
   virtual void UpdateArrayTo(const Array& value) {
     // TODO(fschneider): Fails for classes in the VM isolate.
-    cls_.set_cha_codes(value);
+    cls_.set_dependent_code(value);
   }
 
   virtual void ReportDeoptimization(const Code& code) {
@@ -2871,8 +2871,8 @@ bool Class::ValidatePostFinalizePatch(const Class& orig_class,
 }
 
 
-void Class::set_cha_codes(const Array& cache) const {
-  StorePointer(&raw_ptr()->cha_codes_, cache.raw());
+void Class::set_dependent_code(const Array& array) const {
+  StorePointer(&raw_ptr()->dependent_code_, array.raw());
 }
 
 
@@ -6418,23 +6418,6 @@ bool Function::TestParameterType(
     Heap::Space space) const {
   AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
-
-  // TODO(regis): Remove this debugging code.
-  if (other_param_type.IsNull()) {
-    const Class& owner = Class::Handle(Owner());
-    const Class& other_owner = Class::Handle(other.Owner());
-    THR_Print("*** null other_param_type ***\n");
-    THR_Print("parameter_position: %" Pd "\n", parameter_position);
-    THR_Print("other_parameter_position: %" Pd "\n", other_parameter_position);
-    THR_Print("function: %s\n", ToCString());
-    THR_Print("function owner: %s\n", owner.ToCString());
-    THR_Print("other function: %s\n", other.ToCString());
-    THR_Print("other function owner: %s\n", other_owner.ToCString());
-    AbstractType& param_type =
-        AbstractType::Handle(ParameterTypeAt(parameter_position));
-    THR_Print("param_type: %s\n", param_type.ToCString());
-  }
-
   if (!other_param_type.IsInstantiated()) {
     other_param_type =
         other_param_type.InstantiateFrom(other_type_arguments,
@@ -6452,16 +6435,40 @@ bool Function::TestParameterType(
 
   // TODO(regis): Remove this debugging code.
   if (param_type.IsNull()) {
-    const Class& owner = Class::Handle(Owner());
-    const Class& other_owner = Class::Handle(other.Owner());
     THR_Print("*** null param_type ***\n");
     THR_Print("parameter_position: %" Pd "\n", parameter_position);
     THR_Print("other_parameter_position: %" Pd "\n", other_parameter_position);
-    THR_Print("function: %s\n", ToCString());
+    String& str = String::Handle();
+    str = QualifiedScrubbedName();
+    THR_Print("function name: %s\n", str.ToCString());
+    str = other.QualifiedScrubbedName();
+    THR_Print("other function name: %s\n", str.ToCString());
+    Class& owner = Class::Handle();
+    owner = Owner();
     THR_Print("function owner: %s\n", owner.ToCString());
-    THR_Print("other function: %s\n", other.ToCString());
-    THR_Print("other function owner: %s\n", other_owner.ToCString());
+    owner = other.Owner();
+    THR_Print("other function owner: %s\n", owner.ToCString());
     THR_Print("other_param_type: %s\n", other_param_type.ToCString());
+    AbstractType& type = AbstractType::Handle();
+    if (parameter_position > 0) {
+      type = ParameterTypeAt(0);
+      THR_Print("receiver type: %s\n",
+                type.IsNull()? "null" : type.ToCString());
+    }
+    THR_Print("has code: %s\n", HasCode() ? "yes" : "no");
+    str = Report::PrependSnippet(Report::kWarning,
+                                 Script::Handle(script()),
+                                 token_pos(),
+                                 Report::AtLocation,
+                                 Symbols::Empty());
+    THR_Print("function source: %s\n", str.ToCString());
+    for (intptr_t i = 0; i < NumParameters(); i++) {
+      THR_Print("function param %" Pd "\n", i);
+      str = ParameterNameAt(i);
+      THR_Print("  name: %s\n", str.IsNull() ? "null" : str.ToCString());
+      type = ParameterTypeAt(i);
+      THR_Print("  type: %s\n", type.IsNull() ? "null" : type.ToCString());
+    }
   }
 
   if (!param_type.IsInstantiated()) {
@@ -13024,6 +13031,81 @@ RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
 }
 
 
+// (cid, count) tuple used to sort ICData by count.
+struct CidCount {
+  CidCount(intptr_t cid_, intptr_t count_, Function* f_)
+      : cid(cid_), count(count_), function(f_) {}
+
+  static int HighestCountFirst(const CidCount* a, const CidCount* b);
+
+  intptr_t cid;
+  intptr_t count;
+  Function* function;
+};
+
+
+int CidCount::HighestCountFirst(const CidCount* a, const CidCount* b) {
+  if (a->count > b->count) {
+    return -1;
+  }
+  return (a->count < b->count) ? 1 : 0;
+}
+
+
+RawICData* ICData::AsUnaryClassChecksSortedByCount() const {
+  ASSERT(!IsNull());
+  const intptr_t kNumArgsTested = 1;
+  const intptr_t len = NumberOfChecks();
+  if (len <= 1) {
+    // No sorting needed.
+    return AsUnaryClassChecks();
+  }
+  GrowableArray<CidCount> aggregate;
+  for (intptr_t i = 0; i < len; i++) {
+    const intptr_t class_id = GetClassIdAt(i, 0);
+    const intptr_t count = GetCountAt(i);
+    if (count == 0) {
+      continue;
+    }
+    bool found = false;
+    for (intptr_t r = 0; r < aggregate.length(); r++) {
+      if (aggregate[r].cid == class_id) {
+        aggregate[r].count += count;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      aggregate.Add(CidCount(class_id, count,
+                             &Function::ZoneHandle(GetTargetAt(i))));
+    }
+  }
+  aggregate.Sort(CidCount::HighestCountFirst);
+
+  ICData& result = ICData::Handle(ICData::NewFrom(*this, kNumArgsTested));
+  ASSERT(result.NumberOfChecks() == 0);
+  // Room for all entries and the sentinel.
+  const intptr_t data_len =
+      result.TestEntryLength() * (aggregate.length() + 1);
+  const Array& data = Array::Handle(Array::New(data_len, Heap::kOld));
+  result.set_ic_data_array(data);
+  ASSERT(result.NumberOfChecks() == aggregate.length());
+
+  intptr_t pos = 0;
+  for (intptr_t i = 0; i < aggregate.length(); i++) {
+    data.SetAt(pos + 0, Smi::Handle(Smi::New(aggregate[i].cid)));
+    data.SetAt(pos + TargetIndexFor(1), *aggregate[i].function);
+    data.SetAt(pos + CountIndexFor(1),
+        Smi::Handle(Smi::New(aggregate[i].count)));
+
+    pos += result.TestEntryLength();
+  }
+  WriteSentinel(data, result.TestEntryLength());
+  result.set_ic_data_array(data);
+  return result.raw();
+}
+
+
 bool ICData::AllTargetsHaveSameOwner(intptr_t owner_cid) const {
   if (NumberOfChecks() == 0) return false;
   Class& cls = Class::Handle();
@@ -13443,26 +13525,6 @@ void Code::set_static_calls_target_table(const Array& value) const {
 }
 
 
-uword Code::EntryPoint() const {
-  RawObject* instr = instructions();
-  if (!instr->IsHeapObject()) {
-    return active_entry_point();
-  } else {
-    return Instructions::EntryPoint(instructions());
-  }
-}
-
-
-intptr_t Code::Size() const {
-  RawObject* instr = instructions();
-  if (!instr->IsHeapObject()) {
-    return Smi::Value(raw_ptr()->precompiled_instructions_size_);
-  } else {
-    return instructions()->ptr()->size_;
-  }
-}
-
-
 bool Code::HasBreakpoint() const {
   if (!FLAG_support_debugger) {
     return false;
@@ -13808,12 +13870,9 @@ RawCode* Code::FinalizeCode(const char* name,
     }
 
     // Hook up Code and Instructions objects.
-    code.set_instructions(instrs.raw());
     code.SetActiveInstructions(instrs.raw());
+    code.set_instructions(instrs.raw());
     code.set_is_alive(true);
-
-    ASSERT(code.EntryPoint() == instrs.EntryPoint());
-    ASSERT(code.Size() == instrs.size());
 
     // Set object pool in Instructions object.
     INC_STAT(Thread::Current(),
@@ -14017,10 +14076,9 @@ bool Code::IsFunctionCode() const {
 void Code::DisableDartCode() const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(IsFunctionCode());
-  ASSERT(!IsDisabled());
+  ASSERT(instructions() == active_instructions());
   const Code& new_code =
       Code::Handle(StubCode::FixCallersTarget_entry()->code());
-  ASSERT(new_code.instructions()->IsVMHeapObject());
   SetActiveInstructions(new_code.instructions());
 }
 
@@ -14029,10 +14087,9 @@ void Code::DisableStubCode() const {
 #if !defined(TARGET_ARCH_DBC)
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsAllocationStubCode());
-  ASSERT(!IsDisabled());
+  ASSERT(instructions() == active_instructions());
   const Code& new_code =
       Code::Handle(StubCode::FixAllocationStubTarget_entry()->code());
-  ASSERT(new_code.instructions()->IsVMHeapObject());
   SetActiveInstructions(new_code.instructions());
 #else
   // DBC does not use allocation stubs.
@@ -14045,6 +14102,7 @@ void Code::SetActiveInstructions(RawInstructions* instructions) const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint() || !is_alive());
   // RawInstructions are never allocated in New space and hence a
   // store buffer update is not needed here.
+  StorePointer(&raw_ptr()->active_instructions_, instructions);
   StoreNonPointer(&raw_ptr()->entry_point_,
                   reinterpret_cast<uword>(instructions->ptr()) +
                   Instructions::HeaderSize());
@@ -19968,7 +20026,8 @@ RawString* String::SubString(const String& str,
 }
 
 
-RawString* String::SubString(const String& str,
+RawString* String::SubString(Thread* thread,
+                             const String& str,
                              intptr_t begin_index,
                              intptr_t length,
                              Heap::Space space) {
@@ -19981,7 +20040,6 @@ RawString* String::SubString(const String& str,
   if (begin_index > str.Length()) {
     return String::null();
   }
-  String& result = String::Handle();
   bool is_one_byte_string = true;
   intptr_t char_size = str.CharSize();
   if (char_size == kTwoByteChar) {
@@ -19992,6 +20050,8 @@ RawString* String::SubString(const String& str,
       }
     }
   }
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  String& result = thread->StringHandle();
   if (is_one_byte_string) {
     result = OneByteString::New(length, space);
   } else {

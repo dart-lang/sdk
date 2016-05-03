@@ -1303,15 +1303,13 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // Load receiver into EBX.
   __ movl(EBX, Address(ESP, (argument_count - 1) * kWordSize));
   Label done;
-  if (name.raw() == Symbols::hashCode().raw()) {
-    Label try_onebytestring, megamorphic_call;
+  if (ShouldInlineSmiStringHashCode(ic_data)) {
+    Label megamorphic_call;
     __ Comment("Inlined get:hashCode for Smi and OneByteString");
+    __ movl(EAX, EBX);  // Move Smi hashcode to EAX.
     __ testl(EBX, Immediate(kSmiTagMask));
-    __ j(NOT_ZERO, &try_onebytestring, Assembler::kNearJump);  // Non-smi value.
-    __ movl(EAX, EBX);
-    __ jmp(&done, Assembler::kNearJump);
+    __ j(ZERO, &done, Assembler::kNearJump);  // It is Smi, we are done.
 
-    __ Bind(&try_onebytestring);
     __ CompareClassId(EBX, kOneByteStringCid, EAX);
     __ j(NOT_EQUAL, &megamorphic_call, Assembler::kNearJump);
     __ movl(EAX, FieldAddress(EBX, String::hash_offset()));

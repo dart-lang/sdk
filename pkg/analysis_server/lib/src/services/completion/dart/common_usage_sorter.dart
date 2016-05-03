@@ -55,7 +55,7 @@ class CommonUsageSorter implements DartContributionSorter {
     if (libElem is LibraryElement) {
       var unit = request.context.getResult(
           new LibrarySpecificUnit(libElem.source, request.source),
-          RESOLVED_UNIT4);
+          RESOLVED_UNIT5);
       if (unit is CompilationUnit) {
         return new CompletionTarget.forOffset(unit, request.offset);
       }

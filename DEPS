@@ -49,7 +49,7 @@ vars = {
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.4",
   "dartdoc_tag" : "@v0.9.0",
-  "dev_compiler_rev": "@0ed6aeca35fa0e618ad0f7f19f3eba64afdd80c4",
+  "dev_compiler_rev": "@ec95b3c45819f4d0de847588fdaa752a8e4651fb",
   "fixnum_tag": "@0.10.4",
   "func_rev": "@8d4aea75c21be2179cb00dc2b94a71414653094e",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",

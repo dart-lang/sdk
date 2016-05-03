@@ -28,9 +28,9 @@ const Base64Codec BASE64 = const Base64Codec();
  *
  * Examples:
  *
- *     var encoded = BASE64.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
- *                                  0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
- *     var decoded = BASE64.decode("YmzDpWLDpnJncsO4ZAo=");
+ *     var encoded = BASE64URL.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
+ *                                     0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
+ *     var decoded = BASE64URL.decode("YmzDpWLDpnJncsO4ZAo=");
  */
 const Base64Codec BASE64URL = const Base64Codec.urlSafe();
 

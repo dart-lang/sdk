@@ -106,9 +106,6 @@ abstract class Iterable<E> {
    *
    * The empty iterable has no elements, and iterating it always stops
    * immediately.
-   *
-   * An empty iterable can be used in places where you always that
-   * the iterable you would otherwise create is empty.
    */
   const factory Iterable.empty() = EmptyIterable<E>;
 

@@ -354,8 +354,7 @@ static RawInstance* CreateClassMirror(const Class& cls,
 }
 
 
-static RawInstance* CreateLibraryMirror(const Library& lib) {
-  Thread* thread = Thread::Current();
+static RawInstance* CreateLibraryMirror(Thread* thread, const Library& lib) {
   Zone* zone = thread->zone();
   ASSERT(!lib.IsNull());
   const Array& args = Array::Handle(zone, Array::New(3));
@@ -405,14 +404,15 @@ static RawInstance* CreateCombinatorMirror(const Object& identifiers,
 }
 
 
-static RawInstance* CreateLibraryDependencyMirror(const Instance& importer,
+static RawInstance* CreateLibraryDependencyMirror(Thread* thread,
+                                                  const Instance& importer,
                                                   const Namespace& ns,
                                                   const LibraryPrefix& prefix,
                                                   const bool is_import,
                                                   const bool is_deferred) {
   const Library& importee = Library::Handle(ns.library());
   const Instance& importee_mirror =
-      Instance::Handle(CreateLibraryMirror(importee));
+      Instance::Handle(CreateLibraryMirror(thread, importee));
   if (importee_mirror.IsNull()) {
     // Imported library is censored: censor the import.
     return Instance::null();
@@ -462,7 +462,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_fromPrefix, 1) {
   if (!deferred_lib.Loaded()) {
     return Instance::null();
   }
-  return CreateLibraryMirror(deferred_lib);
+  return CreateLibraryMirror(thread, deferred_lib);
 }
 
 
@@ -483,7 +483,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 2) {
   for (intptr_t i = 0; i < ports.Length(); i++) {
     ns ^= ports.At(i);
     if (!ns.IsNull()) {
-      dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, true, false);
+      dep = CreateLibraryDependencyMirror(
+          thread, lib_mirror, ns, prefix, true, false);
       if (!dep.IsNull()) {
         deps.Add(dep);
       }
@@ -494,7 +495,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 2) {
   ports = lib.exports();
   for (intptr_t i = 0; i < ports.Length(); i++) {
     ns ^= ports.At(i);
-    dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, false, false);
+    dep = CreateLibraryDependencyMirror(
+        thread, lib_mirror, ns, prefix, false, false);
     if (!dep.IsNull()) {
       deps.Add(dep);
     }
@@ -511,8 +513,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 2) {
       for (intptr_t i = 0; i < ports.Length(); i++) {
         ns ^= ports.At(i);
         if (!ns.IsNull()) {
-          dep = CreateLibraryDependencyMirror(lib_mirror, ns, prefix, true,
-                                              prefix.is_deferred_load());
+          dep = CreateLibraryDependencyMirror(
+              thread, lib_mirror, ns, prefix, true, prefix.is_deferred_load());
           if (!dep.IsNull()) {
             deps.Add(dep);
           }
@@ -578,7 +580,7 @@ static RawInstance* CreateIsolateMirror() {
   const Library& root_library = Library::Handle(thread->zone(),
       isolate->object_store()->root_library());
   const Instance& root_library_mirror =
-      Instance::Handle(CreateLibraryMirror(root_library));
+      Instance::Handle(CreateLibraryMirror(thread, root_library));
 
   const Array& args = Array::Handle(Array::New(2));
   args.SetAt(0, debug_name);
@@ -800,7 +802,7 @@ DEFINE_NATIVE_ENTRY(MirrorSystem_libraries, 0) {
 
   for (int i = 0; i < num_libraries; i++) {
     library ^= libraries.At(i);
-    library_mirror = CreateLibraryMirror(library);
+    library_mirror = CreateLibraryMirror(thread, library);
     if (!library_mirror.IsNull() && library.Loaded()) {
       library_mirrors.Add(library_mirror);
     }
@@ -1931,7 +1933,7 @@ DEFINE_NATIVE_ENTRY(MethodMirror_owner, 2) {
   }
   const Class& owner = Class::Handle(func.Owner());
   if (owner.IsTopLevel()) {
-    return CreateLibraryMirror(Library::Handle(owner.library()));
+    return CreateLibraryMirror(thread, Library::Handle(owner.library()));
   }
 
   AbstractType& type = AbstractType::Handle(owner.DeclarationType());

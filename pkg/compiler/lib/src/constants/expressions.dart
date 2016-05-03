@@ -680,8 +680,7 @@ class SymbolConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
-    // TODO(johnniwinther): Implement this.
-    throw new UnsupportedError('SymbolConstantExpression.evaluate');
+    return constantSystem.createSymbol(environment.compiler, name);
   }
 
   @override
@@ -1261,7 +1260,11 @@ class BoolFromEnvironmentConstantExpression
     sb.write('bool.fromEnvironment(name=');
     name._createStructuredText(sb);
     sb.write(',defaultValue=');
-    defaultValue._createStructuredText(sb);
+    if (defaultValue != null) {
+      defaultValue._createStructuredText(sb);
+    } else {
+      sb.write('null');
+    }
     sb.write(')');
   }
 
@@ -1320,7 +1323,11 @@ class IntFromEnvironmentConstantExpression
     sb.write('int.fromEnvironment(name=');
     name._createStructuredText(sb);
     sb.write(',defaultValue=');
-    defaultValue._createStructuredText(sb);
+    if (defaultValue != null) {
+      defaultValue._createStructuredText(sb);
+    } else {
+      sb.write('null');
+    }
     sb.write(')');
   }
 
@@ -1381,7 +1388,11 @@ class StringFromEnvironmentConstantExpression
     sb.write('String.fromEnvironment(name=');
     name._createStructuredText(sb);
     sb.write(',defaultValue=');
-    defaultValue._createStructuredText(sb);
+    if (defaultValue != null) {
+      defaultValue._createStructuredText(sb);
+    } else {
+      sb.write('null');
+    }
     sb.write(')');
   }
 
@@ -1438,7 +1449,8 @@ class DeferredConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
-    return expression.evaluate(environment, constantSystem);
+    return new DeferredConstantValue(
+        expression.evaluate(environment, constantSystem), prefix);
   }
 
   @override

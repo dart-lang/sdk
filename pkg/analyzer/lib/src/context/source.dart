@@ -53,9 +53,8 @@ class SourceFactoryImpl implements SourceFactory {
    */
   SourceFactoryImpl(this.resolvers,
       [this._packages, ResourceProvider resourceProvider])
-      : _resourceProvider = resourceProvider != null
-            ? resourceProvider
-            : PhysicalResourceProvider.INSTANCE;
+      : _resourceProvider =
+            resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
   /**
    * Return the [DartSdk] associated with this [SourceFactory], or `null` if
@@ -105,7 +104,7 @@ class SourceFactoryImpl implements SourceFactory {
     // Default to the PackageMapUriResolver.
     PackageMapUriResolver resolver = resolvers
         .firstWhere((r) => r is PackageMapUriResolver, orElse: () => null);
-    return resolver != null ? resolver.packageMap : null;
+    return resolver?.packageMap;
   }
 
   /**

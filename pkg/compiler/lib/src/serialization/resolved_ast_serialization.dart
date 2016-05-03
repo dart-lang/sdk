@@ -110,9 +110,6 @@ class ResolvedAstSerializer extends Visitor {
         Key.URI,
         elements.analyzedElement.compilationUnit.script.resourceUri,
         elements.analyzedElement.compilationUnit.script.resourceUri);
-    if (resolvedAst.body != null) {
-      objectEncoder.setInt(Key.BODY, nodeIndices[resolvedAst.body]);
-    }
     AstKind kind;
     if (element.enclosingClass is EnumClassElement) {
       if (element.name == 'index') {
@@ -148,6 +145,13 @@ class ResolvedAstSerializer extends Visitor {
     }
     objectEncoder.setEnum(Key.SUB_KIND, kind);
     root.accept(indexComputer);
+    if (resolvedAst.body != null) {
+      int index = nodeIndices[resolvedAst.body];
+      assert(invariant(element, index != null,
+          message:
+              "No index for body of $element: ${resolvedAst.body} ($nodeIndices)."));
+      objectEncoder.setInt(Key.BODY, index);
+    }
     root.accept(this);
     if (jumpTargetMap.isNotEmpty) {
       ListEncoder list = objectEncoder.createList(Key.JUMP_TARGETS);
@@ -290,6 +294,16 @@ class ResolvedAstSerializer extends Visitor {
           .setInt(Key.LABEL_DEFINITION, getLabelDefinitionId(labelDefinition));
     }
   }
+
+  @override
+  visitFunctionExpression(FunctionExpression node) {
+    visitExpression(node);
+    Element function = elements.getFunctionDefinition(node);
+    if (function != null && function.isFunction && function.isLocal) {
+      // Mark root nodes of local functions; these need their own ResolvedAst.
+      getNodeDataEncoder(node).setElement(Key.FUNCTION, function);
+    }
+  }
 }
 
 class ResolvedAstDeserializer {
@@ -304,41 +318,47 @@ class ResolvedAstDeserializer {
     return null;
   }
 
-  /// Deserializes the [ResolvedAst] for [element] from [objectDecoder].
+  /// Deserializes the [ResolvedAst]s for [element] and its nested local
+  /// functions from [objectDecoder] and adds these to [resolvedAstMap].
   /// [parsing] and [getBeginToken] are used for parsing the [Node] for
   /// [element] from its source code.
-  static ResolvedAst deserialize(
+  static void deserialize(
       Element element,
       ObjectDecoder objectDecoder,
       ParsingContext parsing,
       Token getBeginToken(Uri uri, int charOffset),
-      DeserializerPlugin nativeDataDeserializer) {
+      DeserializerPlugin nativeDataDeserializer,
+      Map<Element, ResolvedAst> resolvedAstMap) {
     ResolvedAstKind kind =
         objectDecoder.getEnum(Key.KIND, ResolvedAstKind.values);
     switch (kind) {
       case ResolvedAstKind.PARSED:
-        return deserializeParsed(element, objectDecoder, parsing, getBeginToken,
-            nativeDataDeserializer);
+        deserializeParsed(element, objectDecoder, parsing, getBeginToken,
+            nativeDataDeserializer, resolvedAstMap);
+        break;
       case ResolvedAstKind.DEFAULT_CONSTRUCTOR:
       case ResolvedAstKind.FORWARDING_CONSTRUCTOR:
-        return new SynthesizedResolvedAst(element, kind);
+        resolvedAstMap[element] = new SynthesizedResolvedAst(element, kind);
+        break;
     }
   }
 
-  /// Deserialize a [ResolvedAst] that is defined in terms of an AST together
-  /// with [TreeElements].
-  static ResolvedAst deserializeParsed(
+  /// Deserialize the [ResolvedAst]s for the member [element] (constructor,
+  /// method, or field) and its nested closures. The [ResolvedAst]s are added
+  /// to [resolvedAstMap].
+  static void deserializeParsed(
       Element element,
       ObjectDecoder objectDecoder,
       ParsingContext parsing,
       Token getBeginToken(Uri uri, int charOffset),
-      DeserializerPlugin nativeDataDeserializer) {
+      DeserializerPlugin nativeDataDeserializer,
+      Map<Element, ResolvedAst> resolvedAstMap) {
     CompilationUnitElement compilationUnit = element.compilationUnit;
     DiagnosticReporter reporter = parsing.reporter;
+    Uri uri = objectDecoder.getUri(Key.URI);
 
     /// Returns the first [Token] for parsing the [Node] for [element].
     Token readBeginToken() {
-      Uri uri = objectDecoder.getUri(Key.URI);
       int charOffset = objectDecoder.getInt(Key.OFFSET);
       Token beginToken = getBeginToken(uri, charOffset);
       if (beginToken == null) {
@@ -425,6 +445,7 @@ class ResolvedAstDeserializer {
           FunctionExpression toStringNode = builder.functionExpression(
               Modifiers.EMPTY,
               'toString',
+              null,
               builder.argumentList([]),
               builder.returnStatement(builder.indexGet(
                   builder.mapLiteral(mapEntries, isConst: true),
@@ -437,6 +458,7 @@ class ResolvedAstDeserializer {
           FunctionExpression constructorNode = builder.functionExpression(
               builder.modifiers(isConst: true),
               element.enclosingClass.name,
+              null,
               builder.argumentList([indexDefinition]),
               builder.emptyStatement());
           return constructorNode;
@@ -489,12 +511,15 @@ class ResolvedAstDeserializer {
     AstIndexComputer indexComputer = new AstIndexComputer();
     Map<Node, int> nodeIndices = indexComputer.nodeIndices;
     List<Node> nodeList = indexComputer.nodeList;
+    root.accept(indexComputer);
     Node body;
     int bodyNodeIndex = objectDecoder.getInt(Key.BODY, isOptional: true);
     if (bodyNodeIndex != null) {
+      assert(invariant(element, bodyNodeIndex < nodeList.length,
+          message: "Body node index ${bodyNodeIndex} out of range. "
+              "Node count: ${nodeList.length}"));
       body = nodeList[bodyNodeIndex];
     }
-    root.accept(indexComputer);
 
     List<JumpTarget> jumpTargets = <JumpTarget>[];
     Map<JumpTarget, List<int>> jumpTargetLabels = <JumpTarget, List<int>>{};
@@ -545,7 +570,7 @@ class ResolvedAstDeserializer {
       jumpTarget.labels = linkBuilder.toLink();
     });
 
-    ListDecoder dataDecoder = objectDecoder.getList(Key.DATA);
+    ListDecoder dataDecoder = objectDecoder.getList(Key.DATA, isOptional: true);
     if (dataDecoder != null) {
       for (int i = 0; i < dataDecoder.length; i++) {
         ObjectDecoder objectDecoder = dataDecoder.getObject(i);
@@ -616,8 +641,20 @@ class ResolvedAstDeserializer {
             elements.registerNativeData(node, nativeData);
           }
         }
+        FunctionElement function =
+            objectDecoder.getElement(Key.FUNCTION, isOptional: true);
+        if (function != null) {
+          FunctionExpression functionExpression = node;
+          assert(invariant(function, !resolvedAstMap.containsKey(function),
+              message: "ResolvedAst has already been computed for $function."));
+          resolvedAstMap[function] = new ParsedResolvedAst(function,
+              functionExpression, functionExpression.body, elements, uri);
+        }
       }
     }
-    return new ParsedResolvedAst(element, root, body, elements);
+    assert(invariant(element, !resolvedAstMap.containsKey(element),
+        message: "ResolvedAst has already been computed for $element."));
+    resolvedAstMap[element] =
+        new ParsedResolvedAst(element, root, body, elements, uri);
   }
 }

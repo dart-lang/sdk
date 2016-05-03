@@ -816,7 +816,7 @@ class AnalysisEngine {
    * analysis engine to the given [logger].
    */
   void set logger(Logger logger) {
-    this._logger = logger == null ? Logger.NULL : logger;
+    this._logger = logger ?? Logger.NULL;
   }
 
   /**
@@ -1200,14 +1200,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool enableAsync = true;
 
   /**
-   * A flag indicating whether interface libraries are to be supported (DEP 40).
-   */
-  bool get enableConditionalDirectives => true;
-
-  @deprecated
-  void set enableConditionalDirectives(_) {}
-
-  /**
    * A flag indicating whether generic methods are to be supported (DEP 22).
    */
   bool enableGenericMethods = false;
@@ -1348,6 +1340,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     }
     _analyzeFunctionBodiesPredicate = value;
   }
+
+  /**
+   * A flag indicating whether interface libraries are to be supported (DEP 40).
+   */
+  bool get enableConditionalDirectives => true;
+
+  @deprecated
+  void set enableConditionalDirectives(_) {}
 
   @override
   int encodeCrossContextOptions() =>

@@ -741,7 +741,10 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
       : this.analyzedElement = analyzedElement,
         this.locals = handler {
     if (handler != null) return;
-    Node node = analyzedElement.node;
+    Node node;
+    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+      node = resolvedAst.node;
+    }
     FieldInitializationScope<T> fieldScope =
         analyzedElement.isGenerativeConstructor
             ? new FieldInitializationScope<T>(types)

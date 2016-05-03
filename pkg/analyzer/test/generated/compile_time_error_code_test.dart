@@ -2209,7 +2209,7 @@ class A {
     Source source = addSource(r'''
 class A {
   int x;
-  factory A(this.x) {}
+  factory A(this.x) => null;
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(
@@ -3201,7 +3201,7 @@ class A {
     Source source = addSource(r'''
 int B;
 class A {
-  factory B() {}
+  factory B() => null;
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(
@@ -3212,7 +3212,7 @@ class A {
   void test_invalidFactoryNameNotAClass_notEnclosingClassName() {
     Source source = addSource(r'''
 class A {
-  factory B() {}
+  factory B() => null;
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(
@@ -4736,7 +4736,7 @@ class B extends A {
   void test_nonGenerativeConstructor_explicit() {
     Source source = addSource(r'''
 class A {
-  factory A.named() {}
+  factory A.named() => null;
 }
 class B extends A {
   B() : super.named();
@@ -4749,7 +4749,7 @@ class B extends A {
   void test_nonGenerativeConstructor_implicit() {
     Source source = addSource(r'''
 class A {
-  factory A() {}
+  factory A() => null;
 }
 class B extends A {
   B();
@@ -4762,7 +4762,7 @@ class B extends A {
   void test_nonGenerativeConstructor_implicit2() {
     Source source = addSource(r'''
 class A {
-  factory A() {}
+  factory A() => null;
 }
 class B extends A {
 }''');
@@ -5760,6 +5760,7 @@ class A {
 class B extends A {
   factory B() {
     super.m();
+    return null;
   }
 }''');
     computeLibrarySourceErrors(source);

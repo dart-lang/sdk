@@ -2729,7 +2729,7 @@ main() {new ^ String x = "hello";}''');
     // in which case suggestions will have null (unresolved) returnType
     assertSuggestTopLevelVar('T1', null);
     assertSuggestFunction('F1', null);
-    assertSuggestFunctionTypeAlias('D1', 'null');
+    assertSuggestFunctionTypeAlias('D1', 'dynamic');
     assertSuggestClass('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');

@@ -274,6 +274,9 @@ class _Prelinker {
                   UnlinkedExecutableKind.functionOrMethod &&
               executable.isStatic) {
             kind = ReferenceKind.method;
+          } else if (executable.kind == UnlinkedExecutableKind.getter &&
+              executable.isStatic) {
+            kind = ReferenceKind.propertyAccessor;
           }
           if (kind != null && executable.name.isNotEmpty) {
             namespace[executable.name] = new _Meaning(

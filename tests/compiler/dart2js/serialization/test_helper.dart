@@ -5,7 +5,7 @@
 library dart2js.serialization_test_helper;
 
 import 'dart:io';
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/commandline_options.dart';

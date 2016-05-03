@@ -210,9 +210,19 @@ char* TestCase::BigintToHexValue(Dart_CObject* bigint) {
 void AssemblerTest::Assemble() {
   const String& function_name = String::ZoneHandle(
       Symbols::New(Thread::Current(), name_));
+
+  // We make a dummy script so that exception objects can be composed for
+  // assembler instructions that do runtime calls, in particular on DBC.
+  const char* kDummyScript = "assembler_test_dummy_function() {}";
+  const Script& script = Script::Handle(Script::New(
+      function_name,
+      String::Handle(String::New(kDummyScript)),
+      RawScript::kSourceTag));
+  script.Tokenize(String::Handle());
+
   const Class& cls = Class::ZoneHandle(
       Class::New(function_name,
-                 Script::Handle(),
+                 script,
                  TokenPosition::kMinSource));
   const Library& lib = Library::ZoneHandle(Library::New(function_name));
   cls.set_library(lib);
@@ -221,6 +231,8 @@ void AssemblerTest::Assemble() {
                     true, false, false, false, false, cls,
                     TokenPosition::kMinSource));
   code_ = Code::FinalizeCode(function, assembler_);
+  code_.set_owner(function);
+  code_.set_exception_handlers(Object::empty_exception_handlers());
   if (FLAG_disassemble) {
     OS::Print("Code for test '%s' {\n", name_);
     const Instructions& instructions =

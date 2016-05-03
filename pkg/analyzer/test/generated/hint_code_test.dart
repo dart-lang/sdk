@@ -658,6 +658,28 @@ class A {
     verify([source]);
   }
 
+  void test_deprecatedAnnotationUse_positional() {
+    Source source = addSource(r'''
+class A {
+  m([@deprecated int x]) {}
+  n() {m(1);}
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    verify([source]);
+  }
+
+  void test_deprecatedAnnotationUse_named() {
+    Source source = addSource(r'''
+class A {
+  m({@deprecated int x}) {}
+  n() {m(x: 1);}
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    verify([source]);
+  }
+
   void test_deprecatedAnnotationUse_export() {
     Source source = addSource("export 'deprecated_library.dart';");
     addNamedSource(
@@ -807,6 +829,21 @@ class A {
 }
 class B extends A {
   B() : super.named() {}
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    verify([source]);
+  }
+
+  void test_deprecatedAnnotationUse_call() {
+    Source source = addSource(r'''
+class A {
+  @deprecated
+  call() {}
+  m() {
+    A a = new A();
+    a();
+  }
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
@@ -1318,6 +1355,17 @@ Future<int> f() async {}
 
   void test_missingReturn_function() {
     Source source = addSource("int f() {}");
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
+  void test_missingReturn_factory() {
+    Source source = addSource(r'''
+class A {
+  factory A() {}
+}
+''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_RETURN]);
     verify([source]);

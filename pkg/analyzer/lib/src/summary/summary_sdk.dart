@@ -65,6 +65,7 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
           result == LIBRARY_ELEMENT6 ||
           result == LIBRARY_ELEMENT7 ||
           result == LIBRARY_ELEMENT8 ||
+          result == LIBRARY_ELEMENT9 ||
           result == LIBRARY_ELEMENT) {
         // TODO(scheglov) try to find a way to avoid listing every result
         // e.g. "result.whenComplete == LIBRARY_ELEMENT"
@@ -73,8 +74,8 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
         entry.setValue(result, libraryElement, TargetedResult.EMPTY_LIST);
         return true;
       } else if (result == READY_LIBRARY_ELEMENT2 ||
-          result == READY_LIBRARY_ELEMENT5 ||
-          result == READY_LIBRARY_ELEMENT6) {
+          result == READY_LIBRARY_ELEMENT6 ||
+          result == READY_LIBRARY_ELEMENT7) {
         entry.setValue(result, true, TargetedResult.EMPTY_LIST);
         return true;
       } else if (result == SOURCE_KIND) {
@@ -102,7 +103,8 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
           result == CREATED_RESOLVED_UNIT7 ||
           result == CREATED_RESOLVED_UNIT8 ||
           result == CREATED_RESOLVED_UNIT9 ||
-          result == CREATED_RESOLVED_UNIT10) {
+          result == CREATED_RESOLVED_UNIT10 ||
+          result == CREATED_RESOLVED_UNIT11) {
         entry.setValue(result, true, TargetedResult.EMPTY_LIST);
         return true;
       }

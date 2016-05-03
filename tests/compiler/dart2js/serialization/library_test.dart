@@ -5,7 +5,7 @@
 library dart2js.serialization_library_test;
 
 import 'dart:io';
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/names.dart';
@@ -21,7 +21,7 @@ import 'package:compiler/src/serialization/element_serialization.dart';
 import 'package:compiler/src/serialization/json_serializer.dart';
 import 'package:compiler/src/serialization/serialization.dart';
 
-import 'serialization_test.dart';
+import 'equivalence_test.dart';
 
 main(List<String> arguments) {
   // Ensure that we can print out constant expressions.

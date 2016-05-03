@@ -168,3 +168,10 @@ LibTest/typed_data/Uint8List/runtimeType_A01_t01: Fail,OK  # Expects exact type 
 # TODO(vegorov) These tests are very slow on unoptimized SIMDBC
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t02: Timeout
+
+[ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
+LibTest/isolate/*: Skip # Issue #26373
+Language/Expressions/Spawning_an_Isolate/new_isolate_t01: Skip # Issue #26373
+
+LibTest/math/log_A01_t01: RuntimeError # Precision of Math.log (Issue #18998)
+Language/Expressions/Object_Identity/double_t02: RuntimeError # Issue #26374

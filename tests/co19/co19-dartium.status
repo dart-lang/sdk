@@ -1366,10 +1366,11 @@ LayoutTests/fast/dom/HTMLTemplateElement/cycles_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/computed-style-set-property_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/custom/document-register-type-extensions_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/custom/document-register-namespace_t01: RuntimeError # Issue 26134
+LayoutTests/fast/dom/custom/element-type_t01: RuntimeError # Issue 26134
+LayoutTests/fast/dom/custom/element-upgrade_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/DOMException/prototype-object_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/shadow/shadow-hierarchy-exception_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/Node/contains-method_t01: RuntimeError # Issue 26134
-LayoutTests/fast/dom/MutationObserver/observe-attributes_t01: RuntimeError # Issue 26134
 LayoutTests/fast/events/mutation-during-append-child_t01: RuntimeError # Issue 26134
 LayoutTests/fast/events/mutation-during-insert-before_t01: RuntimeError # Issue 26134
 LayoutTests/fast/events/clipboard-dataTransferItemList-remove_t01: Skip # Issue 26134, timesout

@@ -68,6 +68,8 @@ abstract class ConstantSystem {
       List<ConstantValue> keys, List<ConstantValue> values);
   // TODO(johnniwinther): Remove the need for [compiler].
   ConstantValue createType(Compiler compiler, DartType type);
+  // TODO(johnniwinther): Remove the need for [compiler].
+  ConstantValue createSymbol(Compiler compiler, String text);
 
   // We need to special case the subtype check for JavaScript constant
   // system because an int is a double at runtime.

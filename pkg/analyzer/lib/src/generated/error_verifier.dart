@@ -648,8 +648,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     try {
       _inAsync = node.isAsynchronous;
       _inGenerator = node.isGenerator;
-      FunctionType functionType =
-          _enclosingFunction == null ? null : _enclosingFunction.type;
+      FunctionType functionType = _enclosingFunction?.type;
       DartType expectedReturnType = functionType == null
           ? DynamicTypeImpl.instance
           : functionType.returnType;
@@ -770,6 +769,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _errorReporter.reportErrorForNode(
           StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
           functionExpression);
+    } else if (expressionType is FunctionType) {
+      _checkTypeArguments(expressionType.element, node.typeArguments);
     }
     return super.visitFunctionExpressionInvocation(node);
   }
@@ -943,6 +944,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     _checkForMissingRequiredParam(
         node.staticInvokeType, node.argumentList, methodName);
+    _checkTypeArguments(
+        node.methodName.staticElement, node.typeArguments, target?.staticType);
     return super.visitMethodInvocation(node);
   }
 
@@ -1404,7 +1407,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // an error message once it's ready to "return false".
     if (!overridingFT.typeFormals.isEmpty) {
       if (overriddenFT.typeFormals.isEmpty) {
-        overriddenFT = _typeSystem.instantiateToBounds(overriddenFT);
+        overridingFT = _typeSystem.instantiateToBounds(overridingFT);
       } else {
         List<TypeParameterElement> params1 = overridingFT.typeFormals;
         List<TypeParameterElement> params2 = overriddenFT.typeFormals;
@@ -1792,8 +1795,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return;
     }
     FormalParameterList formalParameterList = method.parameters;
-    NodeList<FormalParameter> parameterList =
-        formalParameterList != null ? formalParameterList.parameters : null;
+    NodeList<FormalParameter> parameterList = formalParameterList?.parameters;
     List<AstNode> parameters =
         parameterList != null ? new List.from(parameterList) : null;
     _checkForAllInvalidOverrideErrorCodesForExecutable(executableElement,
@@ -1916,8 +1918,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE].
    */
   void _checkForAllReturnStatementErrorCodes(ReturnStatement statement) {
-    FunctionType functionType =
-        _enclosingFunction == null ? null : _enclosingFunction.type;
+    FunctionType functionType = _enclosingFunction?.type;
     DartType expectedReturnType = functionType == null
         ? DynamicTypeImpl.instance
         : functionType.returnType;
@@ -2034,8 +2035,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return;
     }
     ParameterElement staticParameterElement = argument.staticParameterElement;
-    DartType staticParameterType =
-        staticParameterElement == null ? null : staticParameterElement.type;
+    DartType staticParameterType = staticParameterElement?.type;
     _checkForArgumentTypeNotAssignableWithExpectedTypes(argument,
         staticParameterType, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
   }
@@ -3440,39 +3440,60 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     if (_enclosingFunction.isAsynchronous) {
       if (_enclosingFunction.isGenerator) {
-        if (_options.strongMode) {
-          if (_enclosingFunction.returnType.element !=
-              _typeProvider.streamType.element) {
-            _errorReporter.reportErrorForNode(
-                StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
-                returnType);
-          }
-        } else if (!_typeSystem.isAssignableTo(
-            _enclosingFunction.returnType, _typeProvider.streamDynamicType)) {
-          _errorReporter.reportErrorForNode(
-              StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
-              returnType);
-        }
+        _checkForIllegalReturnTypeCode(
+            returnType,
+            _typeProvider.streamDynamicType,
+            StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE);
       } else {
-        if (_options.strongMode) {
-          if (_enclosingFunction.returnType.element !=
-              _typeProvider.futureType.element) {
-            _errorReporter.reportErrorForNode(
-                StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, returnType);
-          }
-        } else if (!_typeSystem.isAssignableTo(
-            _enclosingFunction.returnType, _typeProvider.futureDynamicType)) {
-          _errorReporter.reportErrorForNode(
-              StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, returnType);
-        }
+        _checkForIllegalReturnTypeCode(
+            returnType,
+            _typeProvider.futureDynamicType,
+            StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE);
       }
     } else if (_enclosingFunction.isGenerator) {
-      if (!_typeSystem.isAssignableTo(
-          _enclosingFunction.returnType, _typeProvider.iterableDynamicType)) {
-        _errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE,
-            returnType);
+      _checkForIllegalReturnTypeCode(
+          returnType,
+          _typeProvider.iterableDynamicType,
+          StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE);
+    }
+  }
+
+  /**
+   * If the current function is async, async*, or sync*, verify that its
+   * declared return type is assignable to Future, Stream, or Iterable,
+   * respectively. This is called by [_checkForIllegalReturnType] to check if
+   * the declared [returnTypeName] is assignable to the required [expectedType]
+   * and if not report [errorCode].
+   */
+  void _checkForIllegalReturnTypeCode(TypeName returnTypeName,
+      DartType expectedType, StaticTypeWarningCode errorCode) {
+    DartType returnType = _enclosingFunction.returnType;
+    if (_options.strongMode) {
+      //
+      // When checking an async/sync*/async* method, we know the exact type
+      // that will be returned (e.g. Future, Iterable, or Stream).
+      //
+      // For example an `async` function body will return a `Future<T>` for
+      // some `T` (possibly `dynamic`).
+      //
+      // We allow the declared return type to be a supertype of that
+      // (e.g. `dynamic`, `Object`), or Future<S> for some S.
+      // (We assume the T <: S relation is checked elsewhere.)
+      //
+      // We do not allow user-defined subtypes of Future, because an `async`
+      // method will never return those.
+      //
+      // To check for this, we ensure that `Future<bottom> <: returnType`.
+      //
+      // Similar logic applies for sync* and async*.
+      //
+      InterfaceType genericType = (expectedType.element as ClassElement).type;
+      DartType lowerBound = genericType.instantiate([BottomTypeImpl.instance]);
+      if (!_typeSystem.isSubtypeOf(lowerBound, returnType)) {
+        _errorReporter.reportErrorForNode(errorCode, returnTypeName);
       }
+    } else if (!_typeSystem.isAssignableTo(returnType, expectedType)) {
+      _errorReporter.reportErrorForNode(errorCode, returnTypeName);
     }
   }
 
@@ -3678,9 +3699,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
 
     // The type of the loop variable.
-    SimpleIdentifier variable = node.identifier != null
-        ? node.identifier
-        : node.loopVariable.identifier;
+    SimpleIdentifier variable = node.identifier ?? node.loopVariable.identifier;
     DartType variableType = getStaticType(variable);
 
     DartType loopType = node.awaitKeyword != null
@@ -3767,8 +3786,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         !executableElement.isOperator) {
       HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
       InterfaceType superclassType = _enclosingClass.supertype;
-      ClassElement superclassElement =
-          superclassType == null ? null : superclassType.element;
+      ClassElement superclassElement = superclassType?.element;
       bool executableElementPrivate =
           Identifier.isPrivateName(executableElementName);
       while (superclassElement != null &&
@@ -3820,8 +3838,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           }
         }
         superclassType = superclassElement.supertype;
-        superclassElement =
-            superclassType == null ? null : superclassType.element;
+        superclassElement = superclassType?.element;
       }
     }
     return false;
@@ -3839,8 +3856,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return;
     }
     ParameterElement staticParameterElement = argument.staticParameterElement;
-    DartType staticParameterType =
-        staticParameterElement == null ? null : staticParameterElement.type;
+    DartType staticParameterType = staticParameterElement?.type;
     _checkForArgumentTypeNotAssignable(argument, staticParameterType, _intType,
         StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
   }
@@ -4571,6 +4587,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           FunctionType requiredMemberFT = _inheritanceManager
               .substituteTypeArgumentsInMemberFromInheritance(
                   requiredMemberType, memberName, enclosingType);
+          foundConcreteFT =
+              _typeSystem.typeToConcreteType(_typeProvider, foundConcreteFT);
+          requiredMemberFT =
+              _typeSystem.typeToConcreteType(_typeProvider, requiredMemberFT);
           if (_typeSystem.isSubtypeOf(foundConcreteFT, requiredMemberFT)) {
             continue;
           }
@@ -5217,13 +5237,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       int loopThroughIndex =
           math.min(typeNameArgList.length, boundingElts.length);
 
+      bool shouldSubstitute = typeArguments.length != 0 &&
+          typeArguments.length == typeParameters.length;
       for (int i = 0; i < loopThroughIndex; i++) {
         TypeName argTypeName = typeNameArgList[i];
         DartType argType = argTypeName.type;
         DartType boundType = boundingElts[i].bound;
         if (argType != null && boundType != null) {
-          if (typeArguments.length != 0 &&
-              typeArguments.length == typeParameters.length) {
+          if (shouldSubstitute) {
             boundType = boundType.substitute2(typeArguments, typeParameters);
           }
           if (!_typeSystem.isSubtypeOf(argType, boundType)) {
@@ -5642,6 +5663,82 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS,
             interfaceNode,
             [superType.displayName]);
+      }
+    }
+  }
+
+  /**
+   * Verify that the given [typeArguments] are all within their bounds, as
+   * defined by the given [element].
+   *
+   * See [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
+   */
+  void _checkTypeArguments(Element element, TypeArgumentList typeArguments,
+      [DartType targetType]) {
+    if (element == null || typeArguments == null) {
+      return;
+    }
+    void reportError(
+        TypeName argument, DartType argumentType, DartType parameterType) {
+      _errorReporter.reportTypeErrorForNode(
+          StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          argument,
+          [argumentType, parameterType]);
+    }
+    if (element is FunctionTypedElement) {
+      _checkTypeArgumentsAgainstBounds(
+          element.typeParameters, typeArguments, targetType, reportError);
+    } else if (element is ClassElement) {
+      _checkTypeArgumentsAgainstBounds(
+          element.typeParameters, typeArguments, targetType, reportError);
+    } else if (element is ParameterElement || element is LocalVariableElement) {
+      // TODO(brianwilkerson) Implement this case
+    } else {
+      print('Unhandled element type: ${element.runtimeType}');
+    }
+  }
+
+  void _checkTypeArgumentsAgainstBounds(
+      List<TypeParameterElement> typeParameters,
+      TypeArgumentList typeArgumentList,
+      DartType targetType,
+      void reportError(
+          TypeName argument, DartType argumentType, DartType parameterType)) {
+    NodeList<TypeName> typeArguments = typeArgumentList.arguments;
+    int argumentsLength = typeArguments.length;
+    int maxIndex = math.min(typeParameters.length, argumentsLength);
+
+    bool shouldSubstitute =
+        argumentsLength != 0 && argumentsLength == typeParameters.length;
+    List<DartType> argumentTypes = shouldSubstitute
+        ? typeArguments.map((TypeName typeName) => typeName.type).toList()
+        : null;
+    List<DartType> parameterTypes = shouldSubstitute
+        ? typeParameters
+            .map((TypeParameterElement element) => element.type)
+            .toList()
+        : null;
+    List<DartType> targetTypeParameterTypes = null;
+    for (int i = 0; i < maxIndex; i++) {
+      TypeName argTypeName = typeArguments[i];
+      DartType argType = argTypeName.type;
+      DartType boundType = typeParameters[i].bound;
+      if (argType != null && boundType != null) {
+        if (targetType is ParameterizedType) {
+          if (targetTypeParameterTypes == null) {
+            targetTypeParameterTypes = targetType.typeParameters
+                .map((TypeParameterElement element) => element.type)
+                .toList();
+          }
+          boundType = boundType.substitute2(
+              targetType.typeArguments, targetTypeParameterTypes);
+        }
+        if (shouldSubstitute) {
+          boundType = boundType.substitute2(argumentTypes, parameterTypes);
+        }
+        if (!_typeSystem.isSubtypeOf(argType, boundType)) {
+          reportError(argTypeName, argType, boundType);
+        }
       }
     }
   }

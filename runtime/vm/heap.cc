@@ -369,6 +369,7 @@ void Heap::UpdateClassHeapStatsBeforeGC(Heap::Space space) {
 void Heap::CollectNewSpaceGarbage(Thread* thread,
                                   ApiCallbacks api_callbacks,
                                   GCReason reason) {
+  ASSERT((reason == kNewSpace) || (reason == kFull));
   if (BeginNewSpaceGC(thread)) {
     bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
     RecordBeforeGC(kNew, reason);
@@ -381,7 +382,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
     RecordAfterGC(kNew);
     PrintStats();
     EndNewSpaceGC();
-    if (old_space_.NeedsGarbageCollection()) {
+    if ((reason == kNewSpace) && old_space_.NeedsGarbageCollection()) {
       // Old collections should call the API callbacks.
       CollectOldSpaceGarbage(thread, kInvokeApiCallbacks, kPromotion);
     }
@@ -392,6 +393,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
 void Heap::CollectOldSpaceGarbage(Thread* thread,
                                   ApiCallbacks api_callbacks,
                                   GCReason reason) {
+  ASSERT((reason != kNewSpace));
   if (BeginOldSpaceGC(thread)) {
     bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
     RecordBeforeGC(kOld, reason);

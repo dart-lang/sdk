@@ -3147,7 +3147,7 @@ class ErrorReporter {
    * Setting the source to `null` will cause the default source to be used.
    */
   void set source(Source source) {
-    this._source = source == null ? _defaultSource : source;
+    this._source = source ?? _defaultSource;
   }
 
   /**
