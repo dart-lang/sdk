@@ -459,7 +459,7 @@ class _ConstExprBuilder {
         case UnlinkedConstOperation.typeCast:
         case UnlinkedConstOperation.typeCheck:
         case UnlinkedConstOperation.throwException:
-          throw new UnimplementedError('$operation');
+          return AstFactory.identifier3(r'$notConst$');
       }
     }
     return stack.single;
