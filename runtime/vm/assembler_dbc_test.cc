@@ -10,7 +10,26 @@
 
 namespace dart {
 
+static RawObject* ExecuteTest(const Code& code) {
+  Thread* thread = Thread::Current();
+  TransitionToGenerated transition(thread);
+  return Simulator::Current()->Call(
+      code,
+      Array::Handle(ArgumentsDescriptor::New(0)),
+      Array::Handle(Array::New(0)),
+      thread);
+}
+
+
+#define EXECUTE_TEST_CODE_INTPTR(code)                                         \
+    Smi::Value(Smi::RawCast(ExecuteTest(code)))
+#define EXECUTE_TEST_CODE_BOOL(code)                                           \
+    (Bool::RawCast(ExecuteTest(code)) == Bool::True().raw())
+#define EXECUTE_TEST_CODE_OBJECT(code)                                         \
+    Object::Handle(ExecuteTest(code))
+
 #define __ assembler->
+
 
 ASSEMBLER_TEST_GENERATE(Simple, assembler) {
   __ PushConstant(Smi::Handle(Smi::New(42)));
@@ -593,6 +612,96 @@ ASSEMBLER_TEST_GENERATE(IfEqStrictNumTOSNotTakenDouble, assembler) {
 
 ASSEMBLER_TEST_RUN(IfEqStrictNumTOSNotTakenDouble, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+
+//  - BooleanNegateTOS
+//
+//    SP[0] = !SP[0]
+ASSEMBLER_TEST_GENERATE(BooleanNegateTOSTrue, assembler) {
+  __ PushConstant(Bool::True());
+  __ BooleanNegateTOS();
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(BooleanNegateTOSTrue, test) {
+  EXPECT(!EXECUTE_TEST_CODE_BOOL(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(BooleanNegateTOSFalse, assembler) {
+  __ PushConstant(Bool::False());
+  __ BooleanNegateTOS();
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(BooleanNegateTOSFalse, test) {
+  EXPECT(EXECUTE_TEST_CODE_BOOL(test->code()));
+}
+
+
+//  - AssertBoolean A
+//
+//    Assert that TOS is a boolean (A = 1) or that TOS is not null (A = 0).
+ASSEMBLER_TEST_GENERATE(AssertBooleanTrue, assembler) {
+  __ PushConstant(Bool::True());
+  __ AssertBoolean(1);
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(AssertBooleanTrue, test) {
+  EXPECT(EXECUTE_TEST_CODE_BOOL(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AssertBooleanFalse, assembler) {
+  __ PushConstant(Bool::False());
+  __ AssertBoolean(1);
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(AssertBooleanFalse, test) {
+  EXPECT(!EXECUTE_TEST_CODE_BOOL(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AssertBooleanNotNull, assembler) {
+  __ PushConstant(Bool::True());
+  __ AssertBoolean(0);
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(AssertBooleanNotNull, test) {
+  EXPECT(EXECUTE_TEST_CODE_BOOL(test->code()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(AssertBooleanFail1, assembler) {
+  __ PushConstant(Smi::Handle(Smi::New(37)));
+  __ AssertBoolean(1);
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(AssertBooleanFail1, test) {
+  EXPECT(EXECUTE_TEST_CODE_OBJECT(test->code()).IsError());
+}
+
+
+ASSEMBLER_TEST_GENERATE(AssertBooleanFail2, assembler) {
+  __ PushConstant(Object::null_object());
+  __ AssertBoolean(0);
+  __ ReturnTOS();
+}
+
+
+ASSEMBLER_TEST_RUN(AssertBooleanFail2, test) {
+  EXPECT(EXECUTE_TEST_CODE_OBJECT(test->code()).IsError());
 }
 
 }  // namespace dart

@@ -224,20 +224,6 @@
       Utils::High32Bits(bit_cast<int64_t, double>(double_arg)),                \
       0, 0, false, true))
 #endif  // defined(HOST_ARCH_ARM) || defined(HOST_ARCH_MIPS)
-#else
-// For DBC Assembler tests.
-#define EXECUTE_TEST_CODE_INTPTR(code)                                         \
-    Smi::Value(Smi::RawCast(Simulator::Current()->Call(                        \
-      code,                                                                    \
-      Array::Handle(ArgumentsDescriptor::New(0)),                              \
-      Array::Handle(Array::New(0)),                                            \
-      Thread::Current())))
-#define EXECUTE_TEST_CODE_BOOL(code)                                           \
-    (Bool::RawCast(Simulator::Current()->Call(                                 \
-       code,                                                                   \
-       Array::Handle(ArgumentsDescriptor::New(0)),                             \
-       Array::Handle(Array::New(0)),                                           \
-       Thread::Current())) == Bool::True().raw())
 #endif  // defined(TARGET_ARCH_{ARM, ARM64, MIPS})
 
 
