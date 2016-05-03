@@ -41,13 +41,13 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
   VariableDefinitions currentDefinitions;
 
   SignatureResolver(Compiler compiler, FunctionTypedElement enclosingElement,
-      Scope scope,
-      ResolutionRegistry registry,
+      Scope scope, ResolutionRegistry registry,
       {this.defaultValuesError, this.createRealParameters})
       : this.scope = scope,
         this.enclosingElement = enclosingElement,
         this.resolver = new ResolverVisitor(
-            compiler, enclosingElement, registry, scope: scope),
+            compiler, enclosingElement, registry,
+            scope: scope),
         super(compiler, registry);
 
   bool get defaultValuesAllowed => defaultValuesError == null;

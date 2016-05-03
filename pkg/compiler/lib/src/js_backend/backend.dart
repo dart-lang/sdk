@@ -2507,12 +2507,14 @@ class JSFrontendAccess implements Frontend {
   }
 
   @override
-  bool hasResolvedAst(Element element) {
+  bool hasResolvedAst(ExecutableElement element) {
     if (element is SynthesizedCallMethodElementX) {
       return true;
     } else if (element is ConstructorBodyElementX) {
       return true;
     } else if (element is FieldElementX) {
+      return true;
+    } else if (element is DeferredLoaderGetterElementX) {
       return true;
     } else {
       return resolution.hasResolvedAst(element);
@@ -2520,10 +2522,12 @@ class JSFrontendAccess implements Frontend {
   }
 
   @override
-  ResolvedAst getResolvedAst(Element element) {
+  ResolvedAst getResolvedAst(ExecutableElement element) {
     if (element is SynthesizedCallMethodElementX) {
       return element.resolvedAst;
     } else if (element is ConstructorBodyElementX) {
+      return element.resolvedAst;
+    } else if (element is DeferredLoaderGetterElementX) {
       return element.resolvedAst;
     } else if (element is FieldElementX) {
       // TODO(johnniwinther): Find a good invariant for resolution of fields.

@@ -294,6 +294,16 @@ class ResolvedAstSerializer extends Visitor {
           .setInt(Key.LABEL_DEFINITION, getLabelDefinitionId(labelDefinition));
     }
   }
+
+  @override
+  visitFunctionExpression(FunctionExpression node) {
+    visitExpression(node);
+    Element function = elements.getFunctionDefinition(node);
+    if (function != null && function.isFunction && function.isLocal) {
+      // Mark root nodes of local functions; these need their own ResolvedAst.
+      getNodeDataEncoder(node).setElement(Key.FUNCTION, function);
+    }
+  }
 }
 
 class ResolvedAstDeserializer {
@@ -308,35 +318,41 @@ class ResolvedAstDeserializer {
     return null;
   }
 
-  /// Deserializes the [ResolvedAst] for [element] from [objectDecoder].
+  /// Deserializes the [ResolvedAst]s for [element] and its nested local
+  /// functions from [objectDecoder] and adds these to [resolvedAstMap].
   /// [parsing] and [getBeginToken] are used for parsing the [Node] for
   /// [element] from its source code.
-  static ResolvedAst deserialize(
+  static void deserialize(
       Element element,
       ObjectDecoder objectDecoder,
       ParsingContext parsing,
       Token getBeginToken(Uri uri, int charOffset),
-      DeserializerPlugin nativeDataDeserializer) {
+      DeserializerPlugin nativeDataDeserializer,
+      Map<Element, ResolvedAst> resolvedAstMap) {
     ResolvedAstKind kind =
         objectDecoder.getEnum(Key.KIND, ResolvedAstKind.values);
     switch (kind) {
       case ResolvedAstKind.PARSED:
-        return deserializeParsed(element, objectDecoder, parsing, getBeginToken,
-            nativeDataDeserializer);
+        deserializeParsed(element, objectDecoder, parsing, getBeginToken,
+            nativeDataDeserializer, resolvedAstMap);
+        break;
       case ResolvedAstKind.DEFAULT_CONSTRUCTOR:
       case ResolvedAstKind.FORWARDING_CONSTRUCTOR:
-        return new SynthesizedResolvedAst(element, kind);
+        resolvedAstMap[element] = new SynthesizedResolvedAst(element, kind);
+        break;
     }
   }
 
-  /// Deserialize a [ResolvedAst] that is defined in terms of an AST together
-  /// with [TreeElements].
-  static ResolvedAst deserializeParsed(
+  /// Deserialize the [ResolvedAst]s for the member [element] (constructor,
+  /// method, or field) and its nested closures. The [ResolvedAst]s are added
+  /// to [resolvedAstMap].
+  static void deserializeParsed(
       Element element,
       ObjectDecoder objectDecoder,
       ParsingContext parsing,
       Token getBeginToken(Uri uri, int charOffset),
-      DeserializerPlugin nativeDataDeserializer) {
+      DeserializerPlugin nativeDataDeserializer,
+      Map<Element, ResolvedAst> resolvedAstMap) {
     CompilationUnitElement compilationUnit = element.compilationUnit;
     DiagnosticReporter reporter = parsing.reporter;
     Uri uri = objectDecoder.getUri(Key.URI);
@@ -554,7 +570,7 @@ class ResolvedAstDeserializer {
       jumpTarget.labels = linkBuilder.toLink();
     });
 
-    ListDecoder dataDecoder = objectDecoder.getList(Key.DATA);
+    ListDecoder dataDecoder = objectDecoder.getList(Key.DATA, isOptional: true);
     if (dataDecoder != null) {
       for (int i = 0; i < dataDecoder.length; i++) {
         ObjectDecoder objectDecoder = dataDecoder.getObject(i);
@@ -625,8 +641,20 @@ class ResolvedAstDeserializer {
             elements.registerNativeData(node, nativeData);
           }
         }
+        FunctionElement function =
+            objectDecoder.getElement(Key.FUNCTION, isOptional: true);
+        if (function != null) {
+          FunctionExpression functionExpression = node;
+          assert(invariant(function, !resolvedAstMap.containsKey(function),
+              message: "ResolvedAst has already been computed for $function."));
+          resolvedAstMap[function] = new ParsedResolvedAst(function,
+              functionExpression, functionExpression.body, elements, uri);
+        }
       }
     }
-    return new ParsedResolvedAst(element, root, body, elements, uri);
+    assert(invariant(element, !resolvedAstMap.containsKey(element),
+        message: "ResolvedAst has already been computed for $element."));
+    resolvedAstMap[element] =
+        new ParsedResolvedAst(element, root, body, elements, uri);
   }
 }

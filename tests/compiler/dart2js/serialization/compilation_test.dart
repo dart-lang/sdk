@@ -48,8 +48,7 @@ Future compile(String serializedData, Uri entryPoint, Test test,
   await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: test != null ? test.sourceFiles : const {},
-      options: [Flags.disableTypeInference,
-                Flags.disableInlining],
+      options: [],
       outputProvider: outputCollector,
       beforeRun: (Compiler compiler) {
         deserialize(compiler, serializedData, deserializeResolvedAst: true);

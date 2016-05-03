@@ -365,7 +365,7 @@ class TreeElementMapping extends TreeElements {
   }
 
   @override
-  FunctionElement getFunctionDefinition(FunctionExpression node) {
+  Element getFunctionDefinition(FunctionExpression node) {
     return this[node];
   }
 

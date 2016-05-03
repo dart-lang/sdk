@@ -68,7 +68,8 @@ void checkAllResolvedAsts(
       compiler1,
       compiler2,
       (Element member1) {
-        return compiler1.resolution.hasResolvedAst(member1);
+        return member1 is ExecutableElement &&
+            compiler1.resolution.hasResolvedAst(member1);
       },
       checkResolvedAsts,
       verbose: verbose);

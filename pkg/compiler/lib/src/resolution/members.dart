@@ -154,9 +154,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         this.currentClass =
             element.isClassMember ? element.enclosingClass : null,
         this.statementScope = new StatementScope(),
-        this.scope = scope ?? (useEnclosingScope
-            ? Scope.buildEnclosingScope(element)
-            : element.buildScope()),
+        this.scope = scope ??
+            (useEnclosingScope
+                ? Scope.buildEnclosingScope(element)
+                : element.buildScope()),
         // The type annotations on a typedef do not imply type checks.
         // TODO(karlklose): clean this up (dartbug.com/8870).
         inCheckContext = compiler.options.enableTypeAssertions &&
@@ -413,8 +414,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     // Create the scope where the type variables are introduced, if any.
     scope = new MethodScope(scope, function);
-    functionSignature.typeVariables.forEach(
-        (DartType type) => addToScope(type.element));
+    functionSignature.typeVariables
+        .forEach((DartType type) => addToScope(type.element));
 
     // Create the scope for the function body, and put the parameters in scope.
     scope = new BlockScope(scope);
@@ -452,8 +453,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       parameterNodes = parameterNodes.tail;
     });
     addDeferredAction(enclosingElement, () {
-      functionSignature
-          .forEachOptionalParameter((ParameterElementX parameter) {
+      functionSignature.forEachOptionalParameter((ParameterElementX parameter) {
         parameter.constant =
             compiler.resolver.constantCompiler.compileConstant(parameter);
       });

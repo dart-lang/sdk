@@ -497,8 +497,8 @@ class NodeListener extends ElementListener {
     Expression name = popNode();
     TypeAnnotation returnType = popNode();
     Modifiers modifiers = popNode();
-    pushNode(new FunctionExpression(name, typeVariables, formalParameters,
-        body, returnType, modifiers, initializers, getOrSet, asyncModifier));
+    pushNode(new FunctionExpression(name, typeVariables, formalParameters, body,
+        returnType, modifiers, initializers, getOrSet, asyncModifier));
   }
 
   void handleLiteralMap(

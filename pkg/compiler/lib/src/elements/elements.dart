@@ -486,8 +486,8 @@ class Elements {
     return true;
   }
 
-  static bool hasAccessToTypeVariable(Element element,
-      TypeVariableElement typeVariable) {
+  static bool hasAccessToTypeVariable(
+      Element element, TypeVariableElement typeVariable) {
     GenericElement declaration = typeVariable.typeDeclaration;
     if (declaration is FunctionElement || declaration is ParameterElement) {
       return true;

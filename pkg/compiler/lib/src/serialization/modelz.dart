@@ -1867,8 +1867,13 @@ abstract class ParameterElementZ extends DeserializedElementZ
   @override
   FunctionSignature get functionSignature => _unsupported('functionSignature');
 
+  // TODO(johnniwinther): HACK. Remove [initializer] and [node] on
+  // [ParameterElementZ] when the inference does need these.
   @override
-  Expression get initializer => _unsupported('initializer');
+  Expression get initializer => null;
+
+  @override
+  Node get node => null;
 
   @override
   bool get isNamed => _decoder.getBool(Key.IS_NAMED);

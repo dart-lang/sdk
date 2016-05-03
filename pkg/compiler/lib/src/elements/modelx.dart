@@ -15,11 +15,7 @@ import '../diagnostics/messages.dart' show MessageTemplate;
 import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../resolution/class_members.dart' show ClassMemberMixin;
 import '../resolution/scope.dart'
-    show
-        ClassScope,
-        LibraryScope,
-        Scope,
-        TypeDeclarationScope;
+    show ClassScope, LibraryScope, Scope, TypeDeclarationScope;
 import '../resolution/resolution.dart' show AnalyzableElementX;
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../resolution/typedefs.dart' show TypedefCyclicVisitor;
