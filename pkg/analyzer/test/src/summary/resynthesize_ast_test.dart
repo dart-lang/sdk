@@ -66,7 +66,7 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   }
 
   @override
-  void compareLocalVariableElementLists(ExecutableElement resynthesized,
+  void compareLocalElementsOfExecutable(ExecutableElement resynthesized,
       ExecutableElement original, String desc) {
     // We don't resynthesize local elements during link.
     // So, we should not compare them.
@@ -150,18 +150,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   @failingTest
   void test_blockBodiedLambdas_syncStar_topLevel() {
     super.test_blockBodiedLambdas_syncStar_topLevel();
-  }
-
-  @override
-  @failingTest
-  void test_downwardsInferenceOnFunctionOfTUsingTheT() {
-    super.test_downwardsInferenceOnFunctionOfTUsingTheT();
-  }
-
-  @override
-  @failingTest
-  void test_downwardsInferenceOnGenericFunctionExpressions() {
-    super.test_downwardsInferenceOnGenericFunctionExpressions();
   }
 
   @override
@@ -577,12 +565,6 @@ class C {
 var v = new C().m(1, b: 'bbb', c: 2.0);
   ''');
     expect(unit.topLevelVariables[0].type.toString(), 'int');
-  }
-
-  @override
-  @failingTest
-  void test_nullLiteralShouldNotInferAsBottom() {
-    super.test_nullLiteralShouldNotInferAsBottom();
   }
 
   LibraryElementImpl _checkSource(

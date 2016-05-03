@@ -702,27 +702,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
           original.typeParameters[i],
           '$desc type parameter ${original.typeParameters[i].name}');
     }
-    if (original is! Member) {
-      List<FunctionElement> rFunctions = resynthesized.functions;
-      List<FunctionElement> oFunctions = original.functions;
-      expect(rFunctions, hasLength(oFunctions.length));
-      for (int i = 0; i < oFunctions.length; i++) {
-        compareFunctionElements(rFunctions[i], oFunctions[i],
-            '$desc local function ${oFunctions[i].name}');
-      }
-    }
-    if (original is! Member) {
-      List<LabelElement> rLabels = resynthesized.labels;
-      List<LabelElement> oLabels = original.labels;
-      expect(rLabels, hasLength(oLabels.length));
-      for (int i = 0; i < oLabels.length; i++) {
-        compareLabelElements(
-            rLabels[i], oLabels[i], '$desc label ${oLabels[i].name}');
-      }
-    }
-    if (original is! Member) {
-      compareLocalVariableElementLists(resynthesized, original, desc);
-    }
+    compareLocalElementsOfExecutable(resynthesized, original, desc);
   }
 
   void compareExportElements(ExportElementImpl resynthesized,
@@ -800,14 +780,34 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     compareElements(resynthesized, original, desc);
   }
 
-  void compareLocalVariableElementLists(ExecutableElement resynthesized,
+  void compareLocalElementsOfExecutable(ExecutableElement resynthesized,
       ExecutableElement original, String desc) {
-    List<LocalVariableElement> rVariables = resynthesized.localVariables;
-    List<LocalVariableElement> oVariables = original.localVariables;
-    expect(rVariables, hasLength(oVariables.length));
-    for (int i = 0; i < oVariables.length; i++) {
-      compareVariableElements(rVariables[i], oVariables[i],
-          '$desc local variable ${oVariables[i].name}');
+    if (original is! Member) {
+      List<FunctionElement> rFunctions = resynthesized.functions;
+      List<FunctionElement> oFunctions = original.functions;
+      expect(rFunctions, hasLength(oFunctions.length));
+      for (int i = 0; i < oFunctions.length; i++) {
+        compareFunctionElements(rFunctions[i], oFunctions[i],
+            '$desc local function ${oFunctions[i].name}');
+      }
+    }
+    if (original is! Member) {
+      List<LabelElement> rLabels = resynthesized.labels;
+      List<LabelElement> oLabels = original.labels;
+      expect(rLabels, hasLength(oLabels.length));
+      for (int i = 0; i < oLabels.length; i++) {
+        compareLabelElements(
+            rLabels[i], oLabels[i], '$desc label ${oLabels[i].name}');
+      }
+    }
+    if (original is! Member) {
+      List<LocalVariableElement> rVariables = resynthesized.localVariables;
+      List<LocalVariableElement> oVariables = original.localVariables;
+      expect(rVariables, hasLength(oVariables.length));
+      for (int i = 0; i < oVariables.length; i++) {
+        compareVariableElements(rVariables[i], oVariables[i],
+            '$desc local variable ${oVariables[i].name}');
+      }
     }
   }
 
