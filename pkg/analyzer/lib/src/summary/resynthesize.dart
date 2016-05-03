@@ -286,6 +286,9 @@ class _ConstExprBuilder {
   Expression get expr => stack.single;
 
   Expression build() {
+    if (!uc.isValidConst) {
+      return AstFactory.identifier3(r'$$invalidConstExpr$$');
+    }
     for (UnlinkedConstOperation operation in uc.operations) {
       switch (operation) {
         case UnlinkedConstOperation.pushNull:
@@ -459,7 +462,8 @@ class _ConstExprBuilder {
         case UnlinkedConstOperation.typeCast:
         case UnlinkedConstOperation.typeCheck:
         case UnlinkedConstOperation.throwException:
-          return AstFactory.identifier3(r'$notConst$');
+          throw new UnimplementedError(
+              'Unexpected $operation in a constant expression.');
       }
     }
     return stack.single;

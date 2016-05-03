@@ -153,6 +153,12 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   }
 
   @override
+  void test_canInferAlsoFromStaticAndInstanceFieldsFlagOn() {
+    variablesWithNotConstInitializers.add('a2');
+    super.test_canInferAlsoFromStaticAndInstanceFieldsFlagOn();
+  }
+
+  @override
   @failingTest
   void test_genericMethods_inferJSBuiltin() {
     super.test_genericMethods_inferJSBuiltin();

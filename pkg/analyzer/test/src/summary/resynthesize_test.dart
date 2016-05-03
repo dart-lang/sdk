@@ -43,6 +43,12 @@ main() {
 abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   Set<Source> otherLibrarySources = new Set<Source>();
 
+  /**
+   * Names of variables which have initializers that are not valid constants,
+   * so they are not resynthesized.
+   */
+  Set<String> variablesWithNotConstInitializers = new Set<String>();
+
   bool get checkPropagatedTypes => true;
 
   /**
@@ -334,7 +340,11 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       } else if (oItem is ConstructorFieldInitializer &&
           rItem is ConstructorFieldInitializer) {
         compareConstAsts(rItem.fieldName, oItem.fieldName, desc);
-        compareConstAsts(rItem.expression, oItem.expression, desc);
+        if (variablesWithNotConstInitializers.contains(rItem.fieldName.name)) {
+          _assertUnresolvedIdentifier(rItem.expression, desc);
+        } else {
+          compareConstAsts(rItem.expression, oItem.expression, desc);
+        }
       } else if (oItem is SuperConstructorInvocation &&
           rItem is SuperConstructorInvocation) {
         compareElements(rItem.staticElement, oItem.staticElement, desc);
@@ -1078,8 +1088,12 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
             resynthesized.constantValue, original.constantValue, desc);
       } else {
         Expression initializer = resynthesizedActual.constantInitializer;
-        compareConstAsts(initializer, originalActual.constantInitializer,
-            '$desc initializer');
+        if (variablesWithNotConstInitializers.contains(resynthesized.name)) {
+          _assertUnresolvedIdentifier(initializer, desc);
+        } else {
+          compareConstAsts(initializer, originalActual.constantInitializer,
+              '$desc initializer');
+        }
       }
     }
     checkPossibleMember(resynthesized, original, desc);
@@ -1194,6 +1208,12 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   void setUp() {
     super.setUp();
     prepareAnalysisContext(createOptions());
+  }
+
+  void _assertUnresolvedIdentifier(Expression initializer, String desc) {
+    expect(initializer, new isInstanceOf<SimpleIdentifier>(), reason: desc);
+    SimpleIdentifier identifier = initializer;
+    expect(identifier.staticElement, isNull, reason: desc);
   }
 }
 
@@ -1657,6 +1677,7 @@ f() {
   }
 
   test_const_invalid_field_const() {
+    variablesWithNotConstInitializers.add('f');
     checkLibrary(
         r'''
 class C {
@@ -1668,6 +1689,7 @@ int foo() => 42;
   }
 
   test_const_invalid_field_final() {
+    variablesWithNotConstInitializers.add('f');
     checkLibrary(
         r'''
 class C {
@@ -1679,6 +1701,7 @@ int foo() => 42;
   }
 
   test_const_invalid_topLevel() {
+    variablesWithNotConstInitializers.add('v');
     checkLibrary(
         r'''
 const v = 1 + foo();
@@ -2421,6 +2444,7 @@ class C {
   }
 
   test_constructor_initializers_field_notConst() {
+    variablesWithNotConstInitializers.add('x');
     checkLibrary(
         '''
 class C {
