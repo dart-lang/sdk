@@ -30,7 +30,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "@0.13.4",
-  "async_tag": "@1.9.0",
+  "async_tag": "@1.10.0",
   "barback-0.13.0_rev": "@34853",
   "barback-0.14.0_rev": "@36398",
   "barback-0.14.1_rev": "@38525",
@@ -41,7 +41,7 @@ vars = {
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
   "cli_util_tag" : "@0.0.1+2",
-  "collection_rev": "@f6135e6350c63eb3f4dd12953b8d4363faff16fc",
+  "collection_tag": "@1.6.0",
   "convert_tag": "@1.0.0",
   "crypto_tag" : "@1.1.0",
   "csslib_tag" : "@0.12.0",
@@ -102,7 +102,7 @@ vars = {
   "typed_data_tag": "@1.1.2",
   "usage_rev": "@b5080dac0d26a5609b266f8fdb0d053bc4c1c638",
   "utf_rev": "@1f55027068759e2d52f2c12de6a57cce5f3c5ee6",
-  "watcher_tag": "@0.9.7",
+  "watcher_tag": "@0.9.7+2",
   "web_components_rev": "@6349e09f9118dce7ae1b309af5763745e25a9d61",
   "web_socket_channel_tag": "@1.0.0",
   "WebCore_rev": "@a86fe28efadcfc781f836037a80f27e22a5dad17",
@@ -163,7 +163,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/cli_util":
       (Var("github_mirror") % "cli_util") + Var("cli_util_tag"),
   Var("dart_root") + "/third_party/pkg/collection":
-      (Var("github_mirror") % "collection") + Var("collection_rev"),
+      (Var("github_mirror") % "collection") + Var("collection_tag"),
   Var("dart_root") + "/third_party/pkg/convert":
       "https://github.com/dart-lang/convert.git" + Var("convert_tag"),
   Var("dart_root") + "/third_party/pkg/crypto":
