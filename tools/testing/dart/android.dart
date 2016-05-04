@@ -333,7 +333,10 @@ class AdbDevice {
       if (index >= 0) {
         exitCode = int.parse(
             lines.last.substring(index + MARKER.length).trim());
-        exitCode = exitCode.toSigned(8);
+        if (exitCode > 128 && exitCode <= 128 + 31) {
+          // Return negative exit codes for signals 1..31 (128+N for signal N)
+          exitCode = 128 - exitCode;
+        }
       } else {
         // In case of timeouts, for example, we won't get the exitcode marker.
         assert(result.exitCode != 0);
