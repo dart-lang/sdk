@@ -40,14 +40,14 @@ class JSNumber extends Interceptor implements int, double {
   bool get isNaN => JS('bool', r'isNaN(#)', this);
 
   bool get isInfinite {
-    return JS('bool', r'# == Infinity', this)
-        || JS('bool', r'# == -Infinity', this);
+    return JS('bool', r'# == (1/0)', this)
+        || JS('bool', r'# == (-1/0)', this);
   }
 
   bool get isFinite => JS('bool', r'isFinite(#)', this);
 
   JSNumber remainder(num b) {
-    checkNull(b); // TODO(ngeoffray): This is not specified but co19 tests it.
+    if (b is! num) throw argumentErrorValue(b);
     return JS('num', r'# % #', this, b);
   }
 
@@ -66,13 +66,33 @@ class JSNumber extends Interceptor implements int, double {
       return JS('int', r'# + 0', truncateToDouble());  // Converts -0.0 to +0.0.
     }
     // This is either NaN, Infinity or -Infinity.
-    throw new UnsupportedError(JS("String", "''+#", this));
+    throw new UnsupportedError(JS("String", '"" + #', this));
   }
 
   int truncate() => toInt();
+
   int ceil() => ceilToDouble().toInt();
+
   int floor() => floorToDouble().toInt();
-  int round() => roundToDouble().toInt();
+
+  int round() {
+    if (this > 0) {
+      // This path excludes the special cases -0.0, NaN and -Infinity, leaving
+      // only +Infinity, for which a direct test is faster than [isFinite].
+      if (JS('bool', r'# !== (1/0)', this)) {
+        return JS('int', r'Math.round(#)', this);
+      }
+    } else if (JS('bool', '# > (-1/0)', this)) {
+      // This test excludes NaN and -Infinity, leaving only -0.0.
+      //
+      // Subtraction from zero rather than negation forces -0.0 to 0.0 so code
+      // inside Math.round and code to handle result never sees -0.0, which on
+      // some JavaScript VMs can be a slow path.
+      return JS('int', r'0 - Math.round(0 - #)', this);
+    }
+    // This is either NaN, Infinity or -Infinity.
+    throw new UnsupportedError(JS("String", '"" + #', this));
+  }
 
   double ceilToDouble() => JS('num', r'Math.ceil(#)', this);
 
@@ -90,7 +110,7 @@ class JSNumber extends Interceptor implements int, double {
 
   num clamp(num lowerLimit, num upperLimit) {
     if (lowerLimit.compareTo(upperLimit) > 0) {
-      throw new ArgumentError(lowerLimit);
+      throw argumentErrorValue(lowerLimit);
     }
     if (this.compareTo(lowerLimit) < 0) return lowerLimit;
     if (this.compareTo(upperLimit) > 0) return upperLimit;
@@ -102,7 +122,7 @@ class JSNumber extends Interceptor implements int, double {
   String toStringAsFixed(int fractionDigits) {
     checkInt(fractionDigits);
     if (fractionDigits < 0 || fractionDigits > 20) {
-      throw new RangeError(fractionDigits);
+      throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
     }
     String result = JS('String', r'#.toFixed(#)', this, fractionDigits);
     if (this == 0 && isNegative) return "-$result";
@@ -114,7 +134,7 @@ class JSNumber extends Interceptor implements int, double {
     if (fractionDigits != null) {
       checkInt(fractionDigits);
       if (fractionDigits < 0 || fractionDigits > 20) {
-        throw new RangeError(fractionDigits);
+        throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
       }
       result = JS('String', r'#.toExponential(#)', this, fractionDigits);
     } else {
@@ -127,7 +147,7 @@ class JSNumber extends Interceptor implements int, double {
   String toStringAsPrecision(int precision) {
     checkInt(precision);
     if (precision < 1 || precision > 21) {
-      throw new RangeError(precision);
+      throw new RangeError.range(precision, 1, 21, "precision");
     }
     String result = JS('String', r'#.toPrecision(#)',
                        this, precision);
@@ -137,7 +157,9 @@ class JSNumber extends Interceptor implements int, double {
 
   String toRadixString(int radix) {
     checkInt(radix);
-    if (radix < 2 || radix > 36) throw new RangeError(radix);
+    if (radix < 2 || radix > 36) {
+      throw new RangeError.range(radix, 2, 36, "radix");
+    }
     String result = JS('String', r'#.toString(#)', this, radix);
     const int rightParenCode = 0x29;
     if (result.codeUnitAt(result.length - 1) != rightParenCode) {
@@ -179,27 +201,27 @@ class JSNumber extends Interceptor implements int, double {
   JSNumber operator -() => JS('num', r'-#', this);
 
   JSNumber operator +(num other) {
-    checkNull(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('num', '# + #', this, other);
   }
 
   JSNumber operator -(num other) {
-    checkNull(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('num', '# - #', this, other);
   }
 
   double operator /(num other) {
-    checkNull(other);
-    return JS('double', '# / #', this, other);
+    if (other is !num) throw argumentErrorValue(other);
+    return JS('num', '# / #', this, other);
   }
 
   JSNumber operator *(num other) {
-    checkNull(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('num', '# * #', this, other);
   }
 
   JSNumber operator %(num other) {
-    checkNull(other);
+    if (other is !num) throw argumentErrorValue(other);
     // Euclidean Modulo.
     num result = JS('num', r'# % #', this, other);
     if (result == 0) return (0 as JSNumber);  // Make sure we don't return -0.0.
@@ -222,7 +244,7 @@ class JSNumber extends Interceptor implements int, double {
   }
 
   int _tdivSlow(num other) {
-    checkNull(other);
+    if (other is !num) throw argumentErrorValue(other);
     return (JS('num', r'# / #', this, other)).toInt();
   }
 
@@ -232,7 +254,8 @@ class JSNumber extends Interceptor implements int, double {
   // the grain at which we do the type checks.
 
   int operator <<(num other) {
-    if (other < 0) throw new ArgumentError(other);
+    if (other is !num) throw argumentErrorValue(other);
+    if (JS('num', '#', other) < 0) throw argumentErrorValue(other);
     return _shlPositive(other);
   }
 
@@ -245,7 +268,8 @@ class JSNumber extends Interceptor implements int, double {
   }
 
   int operator >>(num other) {
-    if (other < 0) throw new ArgumentError(other);
+    if (other is !num) throw argumentErrorValue(other);
+    if (JS('num', '#', other) < 0) throw argumentErrorValue(other);
     return _shrOtherPositive(other);
   }
 
@@ -272,37 +296,37 @@ class JSNumber extends Interceptor implements int, double {
   }
 
   int operator &(num other) {
-    checkNull(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('int', r'(# & #) >>> 0', this, other);
   }
 
   int operator |(num other) {
-    checkNull(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('int', r'(# | #) >>> 0', this, other);
   }
 
   int operator ^(num other) {
-    checkNull(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('int', r'(# ^ #) >>> 0', this, other);
   }
 
   bool operator <(num other) {
-    checkNull(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('bool', '# < #', this, other);
   }
 
   bool operator >(num other) {
-    checkNull(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('bool', '# > #', this, other);
   }
 
   bool operator <=(num other) {
-    checkNull(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('bool', '# <= #', this, other);
   }
 
   bool operator >=(num other) {
-    checkNull(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('bool', '# >= #', this, other);
   }
 
@@ -331,6 +355,134 @@ class JSNumber extends Interceptor implements int, double {
       return _bitCount(_spread(nonneg)) + 32;
     }
     return _bitCount(_spread(nonneg));
+  }
+
+  // Returns pow(this, e) % m.
+  int modPow(int e, int m) {
+    if (e is! int) {
+      throw new ArgumentError.value(e, "exponent", "not an integer");
+    }
+    if (m is! int) {
+      throw new ArgumentError.value(m, "modulus", "not an integer");
+    }
+    if (e < 0) throw new RangeError.range(e, 0, null, "exponent");
+    if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
+    if (e == 0) return 1;
+    int b = this;
+    if (b < 0 || b > m) {
+      b %= m;
+    }
+    int r = 1;
+    while (e > 0) {
+      if (e.isOdd) {
+        r = (r * b) % m;
+      }
+      e ~/= 2;
+      b = (b * b) % m;
+    }
+    return r;
+  }
+
+  // If inv is false, returns gcd(x, y).
+  // If inv is true and gcd(x, y) = 1, returns d, so that c*x + d*y = 1.
+  // If inv is true and gcd(x, y) != 1, throws Exception("Not coprime").
+  static int _binaryGcd(int x, int y, bool inv) {
+    int s = 1;
+    if (!inv) {
+      while (x.isEven && y.isEven) {
+        x ~/= 2;
+        y ~/= 2;
+        s *= 2;
+      }
+      if (y.isOdd) {
+        var t = x;
+        x = y;
+        y = t;
+      }
+    }
+    final bool ac = x.isEven;
+    int u = x;
+    int v = y;
+    int a = 1,
+        b = 0,
+        c = 0,
+        d = 1;
+    do {
+      while (u.isEven) {
+        u ~/= 2;
+        if (ac) {
+          if (!a.isEven || !b.isEven) {
+            a += y;
+            b -= x;
+          }
+          a ~/= 2;
+        } else if (!b.isEven) {
+          b -= x;
+        }
+        b ~/= 2;
+      }
+      while (v.isEven) {
+        v ~/= 2;
+        if (ac) {
+          if (!c.isEven || !d.isEven) {
+            c += y;
+            d -= x;
+          }
+          c ~/= 2;
+        } else if (!d.isEven) {
+          d -= x;
+        }
+        d ~/= 2;
+      }
+      if (u >= v) {
+        u -= v;
+        if (ac) a -= c;
+        b -= d;
+      } else {
+        v -= u;
+        if (ac) c -= a;
+        d -= b;
+      }
+    } while (u != 0);
+    if (!inv) return s*v;
+    if (v != 1) throw new Exception("Not coprime");
+    if (d < 0) {
+      d += x;
+      if (d < 0) d += x;
+    } else if (d > x) {
+      d -= x;
+      if (d > x) d -= x;
+    }
+    return d;
+  }
+
+  // Returns 1/this % m, with m > 0.
+  int modInverse(int m) {
+    if (m is! int) {
+      throw new ArgumentError.value(m, "modulus", "not an integer");
+    }
+    if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
+    if (m == 1) return 0;
+    int t = this;
+    if ((t < 0) || (t >= m)) t %= m;
+    if (t == 1) return 1;
+    if ((t == 0) || (t.isEven && m.isEven)) {
+      throw new Exception("Not coprime");
+    }
+    return _binaryGcd(m, t, true);
+  }
+
+  // Returns gcd of abs(this) and abs(other).
+  int gcd(int other) {
+    if (other is! int) {
+      throw new ArgumentError.value(other, "other", "not an integer");
+    }
+    int x = this.abs();
+    int y = other.abs();
+    if (x == 0) return y;
+    if (y == 0) return x;
+    if ((x == 1) || (y == 1)) return 1;
+    return _binaryGcd(x, y, false);
   }
 
   // Assumes i is <= 32-bit and unsigned.
