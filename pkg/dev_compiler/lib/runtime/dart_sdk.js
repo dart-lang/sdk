@@ -239,6 +239,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     });
   };
   dart.canonicalMember = function(obj, name) {
+    if (typeof name === 'symbol') return name;
     if (obj != null && obj[dart._extensionType]) return dart.dartx[name];
     if (name == 'constructor' || name == 'prototype') {
       name = '+' + name;

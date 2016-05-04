@@ -343,6 +343,9 @@ defineExtensionMembers(type, methodNames) => JS('', '''(() => {
 })()''');
 
 canonicalMember(obj, name) => JS('', '''(() => {
+  // Private names are symbols and are already canonical.
+  if (typeof name === 'symbol') return name;
+
   if ($obj != null && $obj[$_extensionType]) return $dartx[$name];
   // Check for certain names that we can't use in JS
   if ($name == 'constructor' || $name == 'prototype') {
