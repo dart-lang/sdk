@@ -16791,9 +16791,29 @@ RawAbstractType* Type::CloneUninstantiated(const Class& new_owner,
     const LanguageError& bound_error = LanguageError::Handle(zone, error());
     clone.set_error(bound_error);
   }
+  TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
+  bool type_args_cloned = false;
   // Clone the signature if this type represents a function type.
   const Function& fun = Function::Handle(zone, signature());
   if (!fun.IsNull()) {
+    // If the scope class is not a typedef and if it is generic, it must be the
+    // mixin class, set it to the new owner.
+    if (!type_cls.IsTypedefClass() && type_cls.IsGeneric()) {
+      clone.set_type_class(new_owner);
+      AbstractType& decl_type = AbstractType::Handle(zone);
+#ifdef DEBUG
+      decl_type = type_cls.DeclarationType();
+      ASSERT(decl_type.IsFinalized());
+      const TypeArguments& decl_type_args =
+          TypeArguments::Handle(zone, decl_type.arguments());
+      ASSERT(type_args.Equals(decl_type_args));
+#endif  // DEBUG
+      decl_type = new_owner.DeclarationType();
+      ASSERT(decl_type.IsFinalized());
+      type_args = decl_type.arguments();
+      clone.set_arguments(type_args);
+      type_args_cloned = true;
+    }
     Function& fun_clone = Function::Handle(zone,
         Function::NewSignatureFunction(new_owner, TokenPosition::kNoSource));
     AbstractType& type = AbstractType::Handle(zone, fun.result_type());
@@ -16813,13 +16833,14 @@ RawAbstractType* Type::CloneUninstantiated(const Class& new_owner,
     fun_clone.set_parameter_names(Array::Handle(zone, fun.parameter_names()));
     clone.set_signature(fun_clone);
   }
-  TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
-  // Upper bounds of uninstantiated type arguments may form a cycle.
-  if (type_args.IsRecursive() || !type_args.IsInstantiated()) {
-    AddOnlyBuddyToTrail(&trail, clone);
+  if (!type_args_cloned) {
+    // Upper bounds of uninstantiated type arguments may form a cycle.
+    if (type_args.IsRecursive() || !type_args.IsInstantiated()) {
+      AddOnlyBuddyToTrail(&trail, clone);
+    }
+    type_args = type_args.CloneUninstantiated(new_owner, trail);
+    clone.set_arguments(type_args);
   }
-  type_args = type_args.CloneUninstantiated(new_owner, trail);
-  clone.set_arguments(type_args);
   clone.SetIsFinalized();
   return clone.raw();
 }
