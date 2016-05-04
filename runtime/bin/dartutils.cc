@@ -406,51 +406,45 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
   }
 
   bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_string);
-  bool is_io_library = DartUtils::IsDartIOLibURL(library_url_string);
+  bool is_dart_library = DartUtils::IsDartSchemeURL(library_url_string);
 
-  // Handle URI canonicalization requests.
-  if (tag == Dart_kCanonicalizeUrl) {
-    // If this is a Dart Scheme URL or 'part' of a io library
-    // then it is not modified as it will be handled internally.
-    if (is_dart_scheme_url || is_io_library) {
+  // Handle canonicalization, 'import' and 'part' of 'dart:' libraries.
+  if (is_dart_scheme_url || is_dart_library) {
+    if (tag == Dart_kCanonicalizeUrl) {
+      // These will be handled internally.
       return url;
-    }
-    // Resolve the url within the context of the library's URL.
-    return ResolveUri(library_url, url);
-  }
-
-  // Handle 'import' of dart scheme URIs (i.e they start with 'dart:').
-  if (is_dart_scheme_url) {
-    if (tag == Dart_kImportTag) {
-      // Handle imports of other built-in libraries present in the SDK.
-      if (DartUtils::IsDartIOLibURL(url_string)) {
-        return Builtin::LoadLibrary(url, Builtin::kIOLibrary);
+    } else if (tag == Dart_kImportTag) {
+      Builtin::BuiltinLibraryId id = Builtin::FindId(url_string);
+      if (id == Builtin::kInvalidLibrary) {
+        return NewError("The built-in library '%s' is not available"
+                        " on the stand-alone VM.\n", url_string);
       }
-      return NewError("The built-in library '%s' is not available"
-                      " on the stand-alone VM.\n", url_string);
+      return Builtin::LoadLibrary(url, id);
     } else {
       ASSERT(tag == Dart_kSourceTag);
-      return NewError("Unable to load source '%s' ", url_string);
-    }
-  }
-
-  // Handle 'part' of IO library.
-  if (is_io_library) {
-    if (tag == Dart_kSourceTag) {
+      Builtin::BuiltinLibraryId id = Builtin::FindId(library_url_string);
+      if (id == Builtin::kInvalidLibrary) {
+        return NewError("The built-in library '%s' is not available"
+                        " on the stand-alone VM. Trying to load"
+                        " '%s'.\n", library_url_string, url_string);
+      }
       // Prepend the library URI to form a unique script URI for the part.
       intptr_t len = snprintf(NULL, 0, "%s/%s", library_url_string, url_string);
       char* part_uri = reinterpret_cast<char*>(malloc(len + 1));
       snprintf(part_uri, len + 1, "%s/%s", library_url_string, url_string);
       Dart_Handle part_uri_obj = DartUtils::NewString(part_uri);
       free(part_uri);
-      return Dart_LoadSource(
-          library,
-          part_uri_obj,
-          Builtin::PartSource(Builtin::kIOLibrary, url_string), 0, 0);
-    } else {
-      ASSERT(tag == Dart_kImportTag);
-      return NewError("Unable to import '%s' ", url_string);
+      return Dart_LoadSource(library,
+                             part_uri_obj,
+                             Builtin::PartSource(id, url_string), 0, 0);
     }
+    // All cases should have been handled above.
+    UNREACHABLE();
+  }
+
+  if (tag == Dart_kCanonicalizeUrl) {
+    // Resolve the url within the context of the library's URL.
+    return ResolveUri(library_url, url);
   }
 
   if (DartUtils::IsDartExtensionSchemeURL(url_string)) {

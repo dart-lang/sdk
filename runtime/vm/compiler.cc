@@ -1538,6 +1538,11 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
     if (!func.HasCode() &&
         !func.is_abstract() &&
         !func.IsRedirectingFactory()) {
+      if ((cls.is_mixin_app_alias() || cls.IsMixinApplication()) &&
+          func.HasOptionalParameters()) {
+        // Skipping optional parameters in mixin application.
+        continue;
+      }
       error = CompileFunction(thread, func);
       if (!error.IsNull()) {
         return error.raw();

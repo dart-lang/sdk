@@ -2749,8 +2749,8 @@ AstNode* Parser::CheckDuplicateFieldInit(
       // no existing names.
       nsm_args->Add(new(Z) LiteralNode(init_pos, Object::null_array()));
 
-      AstNode* nsm_call =
-          MakeStaticCall(Symbols::NoSuchMethodError(),
+      AstNode* nsm_call = MakeStaticCall(
+          Symbols::NoSuchMethodError(),
           Library::PrivateCoreLibName(Symbols::ThrowNew()),
           nsm_args);
 

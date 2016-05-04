@@ -8,6 +8,18 @@
 
     'io_cc_file': '<(gen_source_dir)/io_gen.cc',
     'io_patch_cc_file': '<(gen_source_dir)/io_patch_gen.cc',
+    'html_cc_file': '<(gen_source_dir)/html_gen.cc',
+    'html_common_cc_file': '<(gen_source_dir)/html_common_gen.cc',
+    'js_cc_file': '<(gen_source_dir)/js_gen.cc',
+    'blink_cc_file': '<(gen_source_dir)/blink_gen.cc',
+    'indexeddb_cc_file': '<(gen_source_dir)/indexeddb_gen.cc',
+    'cached_patches_cc_file': '<(gen_source_dir)/cached_patches_gen.cc',
+    'web_gl_cc_file': '<(gen_source_dir)/web_gl_gen.cc',
+    'metadata_cc_file': '<(gen_source_dir)/metadata_gen.cc',
+    'websql_cc_file': '<(gen_source_dir)/websql_gen.cc',
+    'svg_cc_file': '<(gen_source_dir)/svg_gen.cc',
+    'webaudio_cc_file': '<(gen_source_dir)/webaudio_gen.cc',
+
     'builtin_in_cc_file': 'builtin_in.cc',
     'builtin_cc_file': '<(gen_source_dir)/builtin_gen.cc',
     'snapshot_in_cc_file': 'snapshot_in.cc',
@@ -120,6 +132,364 @@
       ]
     },
     {
+      'target_name': 'generate_html_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'sources': [
+        '../../sdk/lib/html/dartium/html_dartium.dart',
+      ],
+      'actions': [
+      {
+        'action_name': 'generate_html_cc',
+        'inputs': [
+          '../tools/gen_library_src_paths.py',
+          '<(builtin_in_cc_file)',
+          '<@(_sources)',
+        ],
+        'outputs': [
+          '<(html_cc_file)',
+        ],
+        'action': [
+          'python',
+          'tools/gen_library_src_paths.py',
+          '--output', '<(html_cc_file)',
+          '--input_cc', '<(builtin_in_cc_file)',
+          '--include', 'bin/builtin.h',
+          '--var_name', 'dart::bin::Builtin::html_source_paths_',
+          '--library_name', 'dart:html',
+          '<@(_sources)',
+        ],
+        'message': 'Generating ''<(html_cc_file)'' file.'
+      },
+      ]
+    },
+    {
+      'target_name': 'generate_html_common_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'sources': [
+      '../../sdk/lib/html/html_common/html_common.dart',
+      '../../sdk/lib/html/html_common/css_class_set.dart',
+      '../../sdk/lib/html/html_common/device.dart',
+      '../../sdk/lib/html/html_common/filtered_element_list.dart',
+      '../../sdk/lib/html/html_common/lists.dart',
+      '../../sdk/lib/html/html_common/conversions.dart',
+      '../../sdk/lib/html/html_common/conversions_dartium.dart',
+      ],
+      'actions': [
+      {
+        'action_name': 'generate_html_common_cc',
+        'inputs': [
+        '../tools/gen_library_src_paths.py',
+        '<(builtin_in_cc_file)',
+        '<@(_sources)',
+        ],
+        'outputs': [
+        '<(html_common_cc_file)',
+        ],
+        'action': [
+        'python',
+        'tools/gen_library_src_paths.py',
+        '--output', '<(html_common_cc_file)',
+        '--input_cc', '<(builtin_in_cc_file)',
+        '--include', 'bin/builtin.h',
+        '--var_name', 'dart::bin::Builtin::html_common_source_paths_',
+        '--library_name', 'dart:html_common',
+        '<@(_sources)',
+        ],
+        'message': 'Generating ''<(html_common_cc_file)'' file.'
+      },
+      ]
+    },
+    {
+      'target_name': 'generate_js_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'sources': [
+      '../../sdk/lib/js/dartium/js_dartium.dart',
+      ],
+      'actions': [
+      {
+        'action_name': 'generate_js_cc',
+        'inputs': [
+        '../tools/gen_library_src_paths.py',
+        '<(builtin_in_cc_file)',
+        '<@(_sources)',
+        ],
+        'outputs': [
+        '<(js_cc_file)',
+        ],
+        'action': [
+        'python',
+        'tools/gen_library_src_paths.py',
+        '--output', '<(js_cc_file)',
+        '--input_cc', '<(builtin_in_cc_file)',
+        '--include', 'bin/builtin.h',
+        '--var_name', 'dart::bin::Builtin::js_source_paths_',
+        '--library_name', 'dart:js',
+        '<@(_sources)',
+        ],
+        'message': 'Generating ''<(js_cc_file)'' file.'
+      },
+      ]
+    },
+    {
+      'target_name': 'generate_blink_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'sources': [
+      '../../sdk/lib/_blink/dartium/_blink_dartium.dart',
+      ],
+      'actions': [
+      {
+        'action_name': 'generate_blink_cc',
+        'inputs': [
+        '../tools/gen_library_src_paths.py',
+        '<(builtin_in_cc_file)',
+        '<@(_sources)',
+        ],
+        'outputs': [
+        '<(blink_cc_file)',
+        ],
+        'action': [
+        'python',
+        'tools/gen_library_src_paths.py',
+        '--output', '<(blink_cc_file)',
+        '--input_cc', '<(builtin_in_cc_file)',
+        '--include', 'bin/builtin.h',
+        '--var_name', 'dart::bin::Builtin::blink_source_paths_',
+        '--library_name', 'dart:_blink',
+        '<@(_sources)',
+        ],
+        'message': 'Generating ''<(blink_cc_file)'' file.'
+      },
+      ]
+    },
+    {
+      'target_name': 'generate_indexeddb_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'sources': [
+      '../../sdk/lib/indexed_db/dartium/indexed_db_dartium.dart',
+      ],
+      'actions': [
+      {
+        'action_name': 'generate_indexeddb_cc',
+        'inputs': [
+        '../tools/gen_library_src_paths.py',
+        '<(builtin_in_cc_file)',
+        '<@(_sources)',
+        ],
+        'outputs': [
+        '<(indexeddb_cc_file)',
+        ],
+        'action': [
+        'python',
+        'tools/gen_library_src_paths.py',
+        '--output', '<(indexeddb_cc_file)',
+        '--input_cc', '<(builtin_in_cc_file)',
+        '--include', 'bin/builtin.h',
+        '--var_name', 'dart::bin::Builtin::indexeddb_source_paths_',
+        '--library_name', 'dart:indexed_db',
+        '<@(_sources)',
+        ],
+        'message': 'Generating ''<(indexeddb_cc_file)'' file.'
+      },
+      ]
+    },
+    {
+      'target_name': 'generate_cached_patches_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'sources': [
+      '../../sdk/lib/js/dartium/cached_patches.dart',
+      ],
+      'actions': [
+      {
+        'action_name': 'generate_cached_patches_cc',
+        'inputs': [
+        '../tools/gen_library_src_paths.py',
+        '<(builtin_in_cc_file)',
+        '<@(_sources)',
+        ],
+        'outputs': [
+        '<(cached_patches_cc_file)',
+        ],
+        'action': [
+        'python',
+        'tools/gen_library_src_paths.py',
+        '--output', '<(cached_patches_cc_file)',
+        '--input_cc', '<(builtin_in_cc_file)',
+        '--include', 'bin/builtin.h',
+        '--var_name', 'dart::bin::Builtin::cached_patches_source_paths_',
+        '--library_name', 'cached_patches.dart',
+        '<@(_sources)',
+        ],
+        'message': 'Generating ''<(cached_patches_cc_file)'' file.'
+      },
+      ]
+    },
+    {
+      'target_name': 'generate_web_gl_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'sources': [
+      '../../sdk/lib/web_gl/dartium/web_gl_dartium.dart',
+      ],
+      'actions': [
+      {
+        'action_name': 'generate_web_gl_cc',
+        'inputs': [
+        '../tools/gen_library_src_paths.py',
+        '<(builtin_in_cc_file)',
+        '<@(_sources)',
+        ],
+        'outputs': [
+        '<(web_gl_cc_file)',
+        ],
+        'action': [
+        'python',
+        'tools/gen_library_src_paths.py',
+        '--output', '<(web_gl_cc_file)',
+        '--input_cc', '<(builtin_in_cc_file)',
+        '--include', 'bin/builtin.h',
+        '--var_name', 'dart::bin::Builtin::web_gl_source_paths_',
+        '--library_name', 'dart:web_gl',
+        '<@(_sources)',
+        ],
+        'message': 'Generating ''<(web_gl_cc_file)'' file.'
+      },
+      ]
+    },
+    {
+      'target_name': 'generate_metadata_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'sources': [
+      '../../sdk/lib/html/html_common/metadata.dart',
+      ],
+      'actions': [
+      {
+        'action_name': 'generate_metadata_cc',
+        'inputs': [
+        '../tools/gen_library_src_paths.py',
+        '<(builtin_in_cc_file)',
+        '<@(_sources)',
+        ],
+        'outputs': [
+        '<(metadata_cc_file)',
+        ],
+        'action': [
+        'python',
+        'tools/gen_library_src_paths.py',
+        '--output', '<(metadata_cc_file)',
+        '--input_cc', '<(builtin_in_cc_file)',
+        '--include', 'bin/builtin.h',
+        '--var_name', 'dart::bin::Builtin::metadata_source_paths_',
+        '--library_name', 'metadata.dart',
+        '<@(_sources)',
+        ],
+        'message': 'Generating ''<(metadata_cc_file)'' file.'
+      },
+      ]
+    },
+    {
+      'target_name': 'generate_websql_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'sources': [
+      '../../sdk/lib/web_sql/dartium/web_sql_dartium.dart',
+      ],
+      'actions': [
+      {
+        'action_name': 'generate_websql_cc',
+        'inputs': [
+        '../tools/gen_library_src_paths.py',
+        '<(builtin_in_cc_file)',
+        '<@(_sources)',
+        ],
+        'outputs': [
+        '<(websql_cc_file)',
+        ],
+        'action': [
+        'python',
+        'tools/gen_library_src_paths.py',
+        '--output', '<(websql_cc_file)',
+        '--input_cc', '<(builtin_in_cc_file)',
+        '--include', 'bin/builtin.h',
+        '--var_name', 'dart::bin::Builtin::websql_source_paths_',
+        '--library_name', 'dart:web_sql',
+        '<@(_sources)',
+        ],
+        'message': 'Generating ''<(websql_cc_file)'' file.'
+      },
+      ]
+    },
+    {
+      'target_name': 'generate_svg_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'sources': [
+      '../../sdk/lib/svg/dartium/svg_dartium.dart',
+      ],
+      'actions': [
+      {
+        'action_name': 'generate_svg_cc',
+        'inputs': [
+        '../tools/gen_library_src_paths.py',
+        '<(builtin_in_cc_file)',
+        '<@(_sources)',
+        ],
+        'outputs': [
+        '<(svg_cc_file)',
+        ],
+        'action': [
+        'python',
+        'tools/gen_library_src_paths.py',
+        '--output', '<(svg_cc_file)',
+        '--input_cc', '<(builtin_in_cc_file)',
+        '--include', 'bin/builtin.h',
+        '--var_name', 'dart::bin::Builtin::svg_source_paths_',
+        '--library_name', 'dart:svg',
+        '<@(_sources)',
+        ],
+        'message': 'Generating ''<(svg_cc_file)'' file.'
+      },
+      ]
+    },
+    {
+      'target_name': 'generate_webaudio_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'sources': [
+      '../../sdk/lib/web_audio/dartium/web_audio_dartium.dart',
+      ],
+      'actions': [
+      {
+        'action_name': 'generate_webaudio_cc',
+        'inputs': [
+        '../tools/gen_library_src_paths.py',
+        '<(builtin_in_cc_file)',
+        '<@(_sources)',
+        ],
+        'outputs': [
+        '<(webaudio_cc_file)',
+        ],
+        'action': [
+        'python',
+        'tools/gen_library_src_paths.py',
+        '--output', '<(webaudio_cc_file)',
+        '--input_cc', '<(builtin_in_cc_file)',
+        '--include', 'bin/builtin.h',
+        '--var_name', 'dart::bin::Builtin::webaudio_source_paths_',
+        '--library_name', 'dart:web_audio',
+        '<@(_sources)',
+        ],
+        'message': 'Generating ''<(webaudio_cc_file)'' file.'
+      },
+      ]
+    },
+   {
       'target_name': 'libdart_builtin',
       'type': 'static_library',
       'toolsets':['target','host'],
@@ -127,6 +497,17 @@
         'generate_builtin_cc_file#host',
         'generate_io_cc_file#host',
         'generate_io_patch_cc_file#host',
+        'generate_html_cc_file#host',
+        'generate_html_common_cc_file#host',
+        'generate_js_cc_file#host',
+        'generate_blink_cc_file#host',
+        'generate_indexeddb_cc_file#host',
+        'generate_cached_patches_cc_file#host',
+        'generate_web_gl_cc_file#host',
+        'generate_metadata_cc_file#host',
+        'generate_websql_cc_file#host',
+        'generate_svg_cc_file#host',
+        'generate_webaudio_cc_file#host',
       ],
       'include_dirs': [
         '..',
@@ -866,6 +1247,18 @@
         '<(builtin_cc_file)',
         '<(io_cc_file)',
         '<(io_patch_cc_file)',
+        '<(html_cc_file)',
+        '<(html_common_cc_file)',
+        '<(js_cc_file)',
+        '<(blink_cc_file)',
+        '<(indexeddb_cc_file)',
+        '<(cached_patches_cc_file)',
+        '<(web_gl_cc_file)',
+        '<(metadata_cc_file)',
+        '<(websql_cc_file)',
+        '<(svg_cc_file)',
+        '<(webaudio_cc_file)',
+
         '<(resources_cc_file)',
       ],
       'defines': [
