@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// test w/ `dart test/util/solo_test.dart unnecessary_brace_in_string_interp`
+
 main(args) {
   print('hello');
   print('hello $args');
@@ -11,4 +13,6 @@ main(args) {
   print('hello ${args}!'); //LINT
   print('hello ${args.length}');
   print('hello _${args}_');
+  var $someString = 'Some Value';
+  print('Value is: ${$someString}'); //OK
 }
