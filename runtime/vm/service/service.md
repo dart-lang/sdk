@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.4
+# Dart VM Service Protocol 3.5
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.4_ of the Dart VM Service Protocol. This
+This document describes of _version 3.5_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -120,7 +120,7 @@ Here is an example response for our [getVersion](#getversion) request above:
   "result": {
     "type": "Version",
     "major": 3,
-    "minor": 0
+    "minor": 5
   }
   "id": "1"
 }
@@ -311,7 +311,7 @@ version number:
   "result": {
     "type": "Version",
     "major": 3,
-    "minor": 0
+    "minor": 5
   }
 ```
 
@@ -2317,6 +2317,10 @@ class SourceReportRange {
   // Has this range been compiled by the Dart VM?
   bool compiled;
 
+  // The error while attempting to compile this range, if this
+  // report was generated with forceCompile=true.
+  @Error error [optional];
+
   // Code coverage information for this range.  Provided only when the
   // Coverage report has been requested and the range has been
   // compiled.
@@ -2519,4 +2523,5 @@ version | comments
 3.2 | Isolate objects now include the runnable bit and many debugger related RPCs will return an error if executed on an isolate before it is runnable.
 3.3 | Pause event now indicates if the isolate is paused at an await, yield, or yield* suspension point via the 'atAsyncSuspension' field. Resume command now supports the step parameter 'OverAsyncSuspension'. A Breakpoint added synthetically by an 'OverAsyncSuspension' resume command identifies itself as such via the 'isSyntheticAsyncContinuation' field.
 3.4 | Add the superType and mixin fields to Class. Added new pause event 'None'.
+3.5 | Add the error field to SourceReportRange.
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

@@ -338,8 +338,16 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   Code& code = Code::Handle(zone(), func.unoptimized_code());
   if (code.IsNull()) {
     if (func.HasCode() || (compile_mode_ == kForceCompile)) {
-      if (Compiler::EnsureUnoptimizedCode(thread(), func) != Error::null()) {
-        // Ignore the error and this function entirely.
+      const Error& err =
+          Error::Handle(Compiler::EnsureUnoptimizedCode(thread(), func));
+      if (!err.IsNull()) {
+        // Emit an uncompiled range for this function with error information.
+        JSONObject range(jsarr);
+        range.AddProperty("scriptIndex", GetScriptIndex(script));
+        range.AddProperty("startPos", begin_pos);
+        range.AddProperty("endPos", end_pos);
+        range.AddProperty("compiled", false);
+        range.AddProperty("error", err);
         return;
       }
       code = func.unoptimized_code();
@@ -393,9 +401,36 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
   Class& cls = Class::Handle(zone());
   Array& functions = Array::Handle(zone());
   Function& func = Function::Handle(zone());
+  Script& script = Script::Handle(zone());
   ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
   while (it.HasNext()) {
     cls = it.GetNextClass();
+    if (!cls.is_finalized()) {
+      if (compile_mode_ == kForceCompile) {
+        const Error& err = Error::Handle(cls.EnsureIsFinalized(thread()));
+        if (!err.IsNull()) {
+          // Emit an uncompiled range for this class with error information.
+          JSONObject range(jsarr);
+          script = cls.script();
+          range.AddProperty("scriptIndex", GetScriptIndex(script));
+          range.AddProperty("startPos", cls.token_pos());
+          range.AddProperty("endPos", cls.ComputeEndTokenPos());
+          range.AddProperty("compiled", false);
+          range.AddProperty("error", err);
+          continue;
+        }
+      } else {
+        // Emit one range for the whole uncompiled class.
+        JSONObject range(jsarr);
+        script = cls.script();
+        range.AddProperty("scriptIndex", GetScriptIndex(script));
+        range.AddProperty("startPos", cls.token_pos());
+        range.AddProperty("endPos", cls.ComputeEndTokenPos());
+        range.AddProperty("compiled", false);
+        continue;
+      }
+    }
+
     functions = cls.functions();
     for (int i = 0; i < functions.Length(); i++) {
       func ^= functions.At(i);
