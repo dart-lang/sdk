@@ -43,7 +43,7 @@ Dart_Handle Builtin::GetSource(const char** source_paths, const char* uri) {
 
 void Builtin::SetNativeResolver(BuiltinLibraryId id) {
   ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
-         kInvalidLibrary);
+         kInvalidLibrary + 1);
   ASSERT(id >= kBuiltinLibrary && id < kInvalidLibrary);
   if (builtin_libraries_[id].has_natives_) {
     Dart_Handle url = DartUtils::NewString(builtin_libraries_[id].url_);
@@ -69,7 +69,7 @@ Builtin::BuiltinLibraryId Builtin::FindId(const char* url_string) {
 
 Dart_Handle Builtin::LoadAndCheckLibrary(BuiltinLibraryId id) {
   ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
-         kInvalidLibrary);
+         kInvalidLibrary + 1);
   ASSERT(id >= kBuiltinLibrary && id < kInvalidLibrary);
   Dart_Handle url = DartUtils::NewString(builtin_libraries_[id].url_);
   Dart_Handle library = Dart_LookupLibrary(url);
