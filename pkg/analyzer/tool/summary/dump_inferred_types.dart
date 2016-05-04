@@ -63,6 +63,10 @@ class InferredTypeCollector {
       properties.remove('initializer');
     } else if (obj is UnlinkedExecutable) {
       collectInferredType(obj.inferredReturnTypeSlot, path);
+      // As a temporary measure, prevent recursion into the executable's local
+      // variables and local functions, since AST-based type inference doesn't
+      // infer locals correctly yet.  TODO(paulberry): fix if necessary.
+      properties.remove('localFunctions');
     } else if (obj is UnlinkedParam) {
       collectInferredType(obj.inferredTypeSlot, path);
       // As a temporary measure, prevent recursion into the parameter's
