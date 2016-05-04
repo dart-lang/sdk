@@ -182,8 +182,6 @@ class _HttpClientResponse
   // The HttpClientRequest of this response.
   final _HttpClientRequest _httpRequest;
 
-  List<Cookie> _cookies;
-
   _HttpClientResponse(_HttpIncoming _incoming, this._httpRequest,
                       this._httpClient) : super(_incoming) {
     // Set uri for potential exceptions.
