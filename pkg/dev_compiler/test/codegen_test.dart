@@ -121,8 +121,9 @@ main(arguments) {
 void _writeModule(String outPath, JSModuleFile result) {
   new Directory(path.dirname(outPath)).createSync(recursive: true);
 
-  result.errors.add(''); // for trailing newline
-  new File(outPath + '.txt').writeAsStringSync(result.errors.join('\n'));
+  String errors = result.errors.join('\n');
+  if (errors.isNotEmpty && !errors.endsWith('\n')) errors += '\n';
+  new File(outPath + '.txt').writeAsStringSync(errors);
 
   if (result.isValid) {
     new File(outPath + '.js').writeAsStringSync(result.code);
@@ -131,6 +132,9 @@ void _writeModule(String outPath, JSModuleFile result) {
       new File(mapPath)
           .writeAsStringSync(JSON.encode(result.placeSourceMap(mapPath)));
     }
+  } else {
+    // Also write the errors to a '.err' file for easy counting.
+    new File(outPath + '.err').writeAsStringSync(errors);
   }
 }
 
