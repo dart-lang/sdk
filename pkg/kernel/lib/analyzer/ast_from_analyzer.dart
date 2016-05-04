@@ -785,9 +785,24 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
 
   ast.Statement visitVariableDeclarationStatement(
       VariableDeclarationStatement node) {
-    // Variables may only be declared at block level.  See visitBlock.
-    log.warning('Invalid variable declaration seen in ${scope.location}');
-    return new ast.InvalidStatement();
+    // This is only reached when a variable is declared in non-block level,
+    // because visitBlock intercepts visits to its children.
+    // An example where we hit this case is:
+    //
+    //   if (foo) var x = 5, y = x + 1;
+    //
+    // We wrap these in a block:
+    //
+    //   if (foo) {
+    //     var x = 5;
+    //     var y = x + 1;
+    //   }
+    //
+    // The block is not strictly necessary for single-variable declarations,
+    // but they are so rare that the overhead makes no difference.
+    List<ast.Statement> statements = <ast.Statement>[];
+    buildBlockMember(node, statements);
+    return new ast.Block(statements);
   }
 
   ast.Statement visitYieldStatement(YieldStatement node) {
