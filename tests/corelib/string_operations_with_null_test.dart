@@ -3,11 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import "../language/compiler_annotations.dart";
 
-@DontInline()
+@NoInline()
+@AssumeDynamic()
 returnStringOrNull() {
-  () => 42;
   return new DateTime.now().millisecondsSinceEpoch == 0 ? 'foo' : null;
 }
 
