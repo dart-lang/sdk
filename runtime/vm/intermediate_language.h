@@ -454,7 +454,6 @@ class EmbeddedArray<T, 0> {
   M(PolymorphicInstanceCall)                                                   \
   M(StaticCall)                                                                \
   M(LoadLocal)                                                                 \
-  M(PushTemp)                                                                  \
   M(DropTemps)                                                                 \
   M(StoreLocal)                                                                \
   M(StrictCompare)                                                             \
@@ -3365,34 +3364,6 @@ class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
   const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadLocalInstr);
-};
-
-
-class PushTempInstr : public TemplateDefinition<1, NoThrow> {
- public:
-  explicit PushTempInstr(Value* value) {
-    SetInputAt(0, value);
-  }
-
-  DECLARE_INSTRUCTION(PushTemp)
-
-  Value* value() const { return inputs_[0]; }
-
-  virtual CompileType ComputeType() const;
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual EffectSet Effects() const {
-    UNREACHABLE();  // Eliminated by SSA construction.
-    return EffectSet::None();
-  }
-
-  virtual TokenPosition token_pos() const {
-    return TokenPosition::kTempMove;
-  }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(PushTempInstr);
 };
 
 

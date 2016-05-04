@@ -910,11 +910,6 @@ CompileType LoadLocalInstr::ComputeType() const {
 }
 
 
-CompileType PushTempInstr::ComputeType() const {
-  return CompileType::Dynamic();
-}
-
-
 CompileType DropTempsInstr::ComputeType() const {
   return *value()->Type();
 }

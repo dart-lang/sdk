@@ -1400,7 +1400,7 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   }
 
   // Allocate all unallocated input locations.
-  const bool should_pop = !instr->IsPushArgument() && !instr->IsPushTemp();
+  const bool should_pop = !instr->IsPushArgument();
   for (intptr_t i = locs->input_count() - 1; i >= 0; i--) {
     Location loc = locs->in(i);
     Register reg = kNoRegister;
@@ -1932,7 +1932,6 @@ void FlowGraphCompiler::FrameStateUpdateWith(Instruction* instr) {
 
   switch (instr->tag()) {
     case Instruction::kPushArgument:
-    case Instruction::kPushTemp:
       // Do nothing.
       break;
 

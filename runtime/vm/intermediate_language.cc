@@ -2969,21 +2969,6 @@ void CurrentContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* PushTempInstr::MakeLocationSummary(Zone* zone,
-                                                    bool optimizing) const {
-  return LocationSummary::Make(zone,
-                               1,
-                               Location::NoLocation(),
-                               LocationSummary::kNoCall);
-}
-
-
-void PushTempInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(!compiler->is_optimizing());
-  // Nothing to do.
-}
-
-
 LocationSummary* DropTempsInstr::MakeLocationSummary(Zone* zone,
                                                      bool optimizing) const {
   return (InputCount() == 1)
