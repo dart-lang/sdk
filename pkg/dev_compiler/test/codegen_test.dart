@@ -40,6 +40,7 @@ main(arguments) {
   var expectDir = path.join(inputDir, 'expect');
   var testDirs = [
     'language',
+    'corelib',
     path.join('lib', 'typed_data'),
     path.join('lib', 'html')
   ];

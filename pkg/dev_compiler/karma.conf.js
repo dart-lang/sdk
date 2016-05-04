@@ -26,6 +26,7 @@ module.exports = function(config) {
       'test/codegen/expect/language/**.js',
       'test/codegen/expect/language/sub/sub.js',
       'test/codegen/expect/language/*.lib',
+      'test/codegen/expect/corelib/**.js',
       'test/codegen/expect/lib/typed_data/**.js',
       'test/codegen/expect/lib/html/**.js',
       'test/browser/*.js',
