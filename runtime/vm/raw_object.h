@@ -432,38 +432,29 @@ class RawObject {
     return TryAcquireTagBit<RememberedBit>();
   }
 
+#define DEFINE_IS_CID(clazz)                                                   \
+  bool Is##clazz() { return ((GetClassId() == k##clazz##Cid)); }
+CLASS_LIST(DEFINE_IS_CID)
+#undef DEFINE_IS_CID
+
+#define DEFINE_IS_CID(clazz)                                                   \
+  bool IsTypedData##clazz() {                                                  \
+    return ((GetClassId() == kTypedData##clazz##Cid));                         \
+  }                                                                            \
+  bool IsTypedDataView##clazz() {                                              \
+    return ((GetClassId() == kTypedDataView##clazz##Cid));                     \
+  }                                                                            \
+  bool IsExternalTypedData##clazz() {                                          \
+    return ((GetClassId() == kExternalTypedData##clazz##Cid));                 \
+  }                                                                            \
+CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
+#undef DEFINE_IS_CID
+
   bool IsDartInstance() {
     return (!IsHeapObject() || (GetClassId() >= kInstanceCid));
   }
   bool IsFreeListElement() {
     return ((GetClassId() == kFreeListElement));
-  }
-  bool IsScript() {
-    return ((GetClassId() == kScriptCid));
-  }
-  bool IsField() {
-    return ((GetClassId() == kFieldCid));
-  }
-  bool IsFunction() {
-    return ((GetClassId() == kFunctionCid));
-  }
-  bool IsInstructions() {
-    return ((GetClassId() == kInstructionsCid));
-  }
-  bool IsCode() {
-    return ((GetClassId() == kCodeCid));
-  }
-  bool IsString() {
-    return IsStringClassId(GetClassId());
-  }
-  bool IsStackmap() {
-    return ((GetClassId() == kStackmapCid));
-  }
-  bool IsPcDescriptors() {
-    return ((GetClassId() == kPcDescriptorsCid));
-  }
-  bool IsOneByteString() {
-    return ((GetClassId() == kOneByteStringCid));
   }
 
   intptr_t Size() const {

@@ -3422,14 +3422,16 @@ TokenPosition Class::ComputeEndTokenPos() const {
   if (is_synthesized_class() || IsMixinApplication() || IsTopLevel()) {
     return token_pos();
   }
-  const Script& scr = Script::Handle(script());
+  Zone* zone = Thread::Current()->zone();
+  const Script& scr = Script::Handle(zone, script());
   ASSERT(!scr.IsNull());
-  const TokenStream& tkns = TokenStream::Handle(scr.tokens());
+  const TokenStream& tkns = TokenStream::Handle(zone, scr.tokens());
   if (tkns.IsNull()) {
     ASSERT(Dart::IsRunningPrecompiledCode());
     return TokenPosition::kNoSource;
   }
-  TokenStream::Iterator tkit(tkns,
+  TokenStream::Iterator tkit(zone,
+                             tkns,
                              token_pos(),
                              TokenStream::Iterator::kNoNewlines);
   intptr_t level = 0;
@@ -7038,20 +7040,20 @@ bool Function::HasInstantiatedSignature() const {
 
 
 RawClass* Function::Owner() const {
-  const Object& obj = Object::Handle(raw_ptr()->owner_);
-  if (obj.IsClass()) {
-    return Class::Cast(obj).raw();
+  if (raw_ptr()->owner_->IsClass()) {
+    return Class::RawCast(raw_ptr()->owner_);
   }
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
   ASSERT(obj.IsPatchClass());
   return PatchClass::Cast(obj).patched_class();
 }
 
 
 RawClass* Function::origin() const {
-  const Object& obj = Object::Handle(raw_ptr()->owner_);
-  if (obj.IsClass()) {
-    return Class::Cast(obj).raw();
+  if (raw_ptr()->owner_->IsClass()) {
+    return Class::RawCast(raw_ptr()->owner_);
   }
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
   ASSERT(obj.IsPatchClass());
   return PatchClass::Cast(obj).origin_class();
 }
@@ -7124,15 +7126,16 @@ RawString* Function::GetSource() const {
     // constructor from the mixin to use.
     return String::null();
   }
-  const Script& func_script = Script::Handle(script());
-  const TokenStream& stream = TokenStream::Handle(func_script.tokens());
+  Zone* zone = Thread::Current()->zone();
+  const Script& func_script = Script::Handle(zone, script());
+  const TokenStream& stream = TokenStream::Handle(zone, func_script.tokens());
   if (!func_script.HasSource()) {
     // When source is not available, avoid printing the whole token stream and
     // doing expensive position calculations.
     return stream.GenerateSource(token_pos(), end_token_pos().Next());
   }
 
-  const TokenStream::Iterator tkit(stream, end_token_pos());
+  const TokenStream::Iterator tkit(zone, stream, end_token_pos());
   intptr_t from_line;
   intptr_t from_col;
   intptr_t to_line;
@@ -7149,10 +7152,10 @@ RawString* Function::GetSource() const {
   if ((tkit.CurrentTokenKind() == Token::kCOMMA) ||                   // Case 1.
       (tkit.CurrentTokenKind() == Token::kRPAREN) ||                  // Case 2.
       (tkit.CurrentTokenKind() == Token::kSEMICOLON &&
-       String::Handle(name()).Equals("<anonymous closure>"))) {  // Case 3.
+       String::Handle(zone, name()).Equals("<anonymous closure>"))) {  // Cas 3.
     last_tok_len = 0;
   }
-  const String& result = String::Handle(func_script.GetSnippet(
+  const String& result = String::Handle(zone, func_script.GetSnippet(
       from_line, from_col, to_line, to_col + last_tok_len));
   ASSERT(!result.IsNull());
   return result.raw();
@@ -7163,10 +7166,13 @@ RawString* Function::GetSource() const {
 // arguments.
 int32_t Function::SourceFingerprint() const {
   uint32_t result = 0;
-  TokenStream::Iterator tokens_iterator(TokenStream::Handle(
-      Script::Handle(script()).tokens()), token_pos());
-  Object& obj = Object::Handle();
-  String& literal = String::Handle();
+  Zone* zone = Thread::Current()->zone();
+  TokenStream::Iterator tokens_iterator(
+      zone,
+      TokenStream::Handle(zone, Script::Handle(zone, script()).tokens()),
+      token_pos());
+  Object& obj = Object::Handle(zone);
+  String& literal = String::Handle(zone);
   while (tokens_iterator.CurrentPosition() < end_token_pos()) {
     uint32_t val = 0;
     obj = tokens_iterator.CurrentToken();
@@ -8181,18 +8187,20 @@ RawString* TokenStream::GenerateSource() const {
 
 RawString* TokenStream::GenerateSource(TokenPosition start_pos,
                                        TokenPosition end_pos) const {
-  Iterator iterator(*this, start_pos, Iterator::kAllTokens);
-  const ExternalTypedData& data = ExternalTypedData::Handle(GetStream());
+  Zone* zone = Thread::Current()->zone();
+  Iterator iterator(zone, *this, start_pos, Iterator::kAllTokens);
+  const ExternalTypedData& data = ExternalTypedData::Handle(zone, GetStream());
   const GrowableObjectArray& literals =
-      GrowableObjectArray::Handle(GrowableObjectArray::New(data.Length()));
-  const String& private_key = String::Handle(PrivateKey());
+      GrowableObjectArray::Handle(zone,
+                                  GrowableObjectArray::New(data.Length()));
+  const String& private_key = String::Handle(zone, PrivateKey());
   intptr_t private_len = private_key.Length();
 
   Token::Kind curr = iterator.CurrentTokenKind();
   Token::Kind prev = Token::kILLEGAL;
   // Handles used in the loop.
-  Object& obj = Object::Handle();
-  String& literal = String::Handle();
+  Object& obj = Object::Handle(zone);
+  String& literal = String::Handle(zone);
   // Current indentation level.
   int indent = 0;
 
@@ -8366,7 +8374,11 @@ RawString* TokenStream::GenerateSource(TokenPosition start_pos,
 
 TokenPosition TokenStream::ComputeSourcePosition(
     TokenPosition tok_pos) const {
-  Iterator iterator(*this, TokenPosition::kMinSource, Iterator::kAllTokens);
+  Zone* zone = Thread::Current()->zone();
+  Iterator iterator(zone,
+                    *this,
+                    TokenPosition::kMinSource,
+                    Iterator::kAllTokens);
   TokenPosition src_pos = TokenPosition::kMinSource;
   Token::Kind kind = iterator.CurrentTokenKind();
   while ((iterator.CurrentPosition() < tok_pos) && (kind != Token::kEOS)) {
@@ -8630,15 +8642,16 @@ const char* TokenStream::ToCString() const {
 }
 
 
-TokenStream::Iterator::Iterator(const TokenStream& tokens,
+TokenStream::Iterator::Iterator(Zone* zone,
+                                const TokenStream& tokens,
                                 TokenPosition token_pos,
                                 Iterator::StreamType stream_type)
-    : tokens_(TokenStream::Handle(tokens.raw())),
-      data_(ExternalTypedData::Handle(tokens.GetStream())),
+    : tokens_(TokenStream::Handle(zone, tokens.raw())),
+      data_(ExternalTypedData::Handle(zone, tokens.GetStream())),
       stream_(reinterpret_cast<uint8_t*>(data_.DataAddr(0)), data_.Length()),
-      token_objects_(Array::Handle(
-          GrowableObjectArray::Handle(tokens.TokenObjects()).data())),
-      obj_(Object::Handle()),
+      token_objects_(Array::Handle(zone,
+         GrowableObjectArray::Handle(zone, tokens.TokenObjects()).data())),
+      obj_(Object::Handle(zone)),
       cur_token_pos_(token_pos.Pos()),
       cur_token_kind_(Token::kILLEGAL),
       cur_token_obj_index_(-1),
@@ -8801,7 +8814,8 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
   Smi& value = Smi::Handle(zone);
   String& tokenValue = String::Handle(zone);
   ASSERT(!tkns.IsNull());
-  TokenStream::Iterator tkit(tkns,
+  TokenStream::Iterator tkit(zone,
+                             tkns,
                              TokenPosition::kMinSource,
                              TokenStream::Iterator::kAllTokens);
   int current_line = -1;
@@ -8950,7 +8964,8 @@ void Script::GetTokenLocation(TokenPosition token_pos,
                               intptr_t* column,
                               intptr_t* token_len) const {
   ASSERT(line != NULL);
-  const TokenStream& tkns = TokenStream::Handle(tokens());
+  Zone* zone = Thread::Current()->zone();
+  const TokenStream& tkns = TokenStream::Handle(zone, tokens());
   if (tkns.IsNull()) {
     ASSERT(Dart::IsRunningPrecompiledCode());
     *line = -1;
@@ -8963,7 +8978,8 @@ void Script::GetTokenLocation(TokenPosition token_pos,
     return;
   }
   if (column == NULL) {
-    TokenStream::Iterator tkit(tkns,
+    TokenStream::Iterator tkit(zone,
+                               tkns,
                                TokenPosition::kMinSource,
                                TokenStream::Iterator::kAllTokens);
     intptr_t cur_line = line_offset() + 1;
@@ -8976,7 +8992,7 @@ void Script::GetTokenLocation(TokenPosition token_pos,
     }
     *line = cur_line;
   } else {
-    const String& src = String::Handle(Source());
+    const String& src = String::Handle(zone, Source());
     TokenPosition src_pos = tkns.ComputeSourcePosition(token_pos);
     Scanner scanner(src, Symbols::Empty());
     scanner.ScanTo(src_pos);
@@ -9003,12 +9019,14 @@ void Script::TokenRangeAtLine(intptr_t line_number,
                               TokenPosition* last_token_index) const {
   ASSERT(first_token_index != NULL && last_token_index != NULL);
   ASSERT(line_number > 0);
+  Zone* zone = Thread::Current()->zone();
   *first_token_index = TokenPosition::kNoSource;
   *last_token_index = TokenPosition::kNoSource;
-  const TokenStream& tkns = TokenStream::Handle(tokens());
+  const TokenStream& tkns = TokenStream::Handle(zone, tokens());
   line_number -= line_offset();
   if (line_number < 1) line_number = 1;
-  TokenStream::Iterator tkit(tkns,
+  TokenStream::Iterator tkit(zone,
+                             tkns,
                              TokenPosition::kMinSource,
                              TokenStream::Iterator::kAllTokens);
   // Scan through the token stream to the required line.
@@ -16317,10 +16335,11 @@ bool Type::IsMalformed() const {
   if (raw_ptr()->sig_or_err_.error_ == LanguageError::null()) {
     return false;  // Valid type, but not a function type.
   }
-  const LanguageError& type_error = LanguageError::Handle(error());
-  if (type_error.IsNull()) {
+  if (!raw_ptr()->sig_or_err_.error_->IsLanguageError()) {
     return false;  // Valid function type.
   }
+  const LanguageError& type_error = LanguageError::Handle(error());
+  ASSERT(!type_error.IsNull());
   return type_error.kind() == Report::kMalformedType;
 }
 
@@ -16332,10 +16351,11 @@ bool Type::IsMalbounded() const {
   if (!Isolate::Current()->type_checks()) {
     return false;
   }
-  const LanguageError& type_error = LanguageError::Handle(error());
-  if (type_error.IsNull()) {
+  if (!raw_ptr()->sig_or_err_.error_->IsLanguageError()) {
     return false;  // Valid function type.
   }
+  const LanguageError& type_error = LanguageError::Handle(error());
+  ASSERT(!type_error.IsNull());
   return type_error.kind() == Report::kMalboundedType;
 }
 
@@ -16357,9 +16377,8 @@ bool Type::IsMalformedOrMalbounded() const {
 
 
 RawLanguageError* Type::error() const {
-  const Object& type_error = Object::Handle(raw_ptr()->sig_or_err_.error_);
-  if (type_error.IsLanguageError()) {
-    return LanguageError::RawCast(type_error.raw());
+  if (raw_ptr()->sig_or_err_.error_->IsLanguageError()) {
+    return LanguageError::RawCast(raw_ptr()->sig_or_err_.error_);
   }
   return LanguageError::null();
 }

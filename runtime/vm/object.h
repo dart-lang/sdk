@@ -3307,7 +3307,8 @@ class TokenStream : public Object {
       kAllTokens
     };
 
-    Iterator(const TokenStream& tokens,
+    Iterator(Zone* zone,
+             const TokenStream& tokens,
              TokenPosition token_pos,
              Iterator::StreamType stream_type = kNoNewlines);
 

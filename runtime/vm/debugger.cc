@@ -1693,9 +1693,11 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
 }
 
 
-static TokenPosition LastTokenOnLine(const TokenStream& tokens,
+static TokenPosition LastTokenOnLine(Zone* zone,
+                                     const TokenStream& tokens,
                                      TokenPosition pos) {
-  TokenStream::Iterator iter(tokens,
+  TokenStream::Iterator iter(zone,
+                             tokens,
                              pos,
                              TokenStream::Iterator::kAllTokens);
   ASSERT(iter.IsValid());
@@ -1780,10 +1782,11 @@ TokenPosition Debugger::ResolveBreakpointPos(
     last_token_pos = func.end_token_pos();
   }
 
-  Script& script = Script::Handle(func.script());
-  Code& code = Code::Handle(func.unoptimized_code());
+  Zone* zone = Thread::Current()->zone();
+  Script& script = Script::Handle(zone, func.script());
+  Code& code = Code::Handle(zone, func.unoptimized_code());
   ASSERT(!code.IsNull());
-  PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
+  PcDescriptors& desc = PcDescriptors::Handle(zone, code.pc_descriptors());
 
   // First pass: find the safe point which is closest to the beginning
   // of the given token range.
@@ -1830,10 +1833,11 @@ TokenPosition Debugger::ResolveBreakpointPos(
   // the token on the line which is at the best fit column (if column
   // was specified) and has the lowest code address.
   if (best_fit_pos != TokenPosition::kMaxSource) {
-    const Script& script = Script::Handle(func.script());
-    const TokenStream& tokens = TokenStream::Handle(script.tokens());
+    const Script& script = Script::Handle(zone, func.script());
+    const TokenStream& tokens = TokenStream::Handle(zone, script.tokens());
     const TokenPosition begin_pos = best_fit_pos;
-    const TokenPosition end_of_line_pos = LastTokenOnLine(tokens, begin_pos);
+    const TokenPosition end_of_line_pos =
+        LastTokenOnLine(zone, tokens, begin_pos);
     uword lowest_pc_offset = kUwordMax;
     PcDescriptors::Iterator iter(desc, kSafepointKind);
     while (iter.MoveNext()) {
@@ -2662,13 +2666,15 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
 
 
 bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
-  Object& closure_or_null = Object::Handle(top_frame->GetAsyncOperation());
+  Zone* zone = Thread::Current()->zone();
+  Object& closure_or_null =
+      Object::Handle(zone, top_frame->GetAsyncOperation());
   if (!closure_or_null.IsNull()) {
     ASSERT(closure_or_null.IsInstance());
     ASSERT(Instance::Cast(closure_or_null).IsClosure());
-    const Script& script = Script::Handle(top_frame->SourceScript());
-    const TokenStream& tokens = TokenStream::Handle(script.tokens());
-    TokenStream::Iterator iter(tokens, top_frame->TokenPos());
+    const Script& script = Script::Handle(zone, top_frame->SourceScript());
+    const TokenStream& tokens = TokenStream::Handle(zone, script.tokens());
+    TokenStream::Iterator iter(zone, tokens, top_frame->TokenPos());
     if ((iter.CurrentTokenKind() == Token::kIDENT) &&
         ((iter.CurrentLiteral() == Symbols::Await().raw()) ||
          (iter.CurrentLiteral() == Symbols::YieldKw().raw()))) {
