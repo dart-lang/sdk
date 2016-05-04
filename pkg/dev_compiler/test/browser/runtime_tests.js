@@ -204,10 +204,12 @@ suite('instanceOf', () => {
     if (expectedTrue === undefined) expectedTrue = true;
     if (strongOnly == undefined) strongOnly = false;
     if (!strongOnly) {
+      assert.doesNotThrow(() => instanceOf(x, type));
       expect(instanceOf(x, type), expectedTrue);
     } else {
       assert.throws(() => instanceOf(x, type), dart.StrongModeError);
-      expect(strongInstanceOf(x, type), expectedTrue);
+      expect(expectedTrue, false);
+      expect(strongInstanceOf(x, type), null);
     }
   }
 
@@ -303,8 +305,8 @@ suite('instanceOf', () => {
     checkType(m1, Map$(Object, Object));
 
     // No contravariance on generics.
-    checkType(m2, getReifiedType(m1), false, true);
-    checkType(m2, Map$(String, String), false, true);
+    checkType(m2, getReifiedType(m1), false);
+    checkType(m2, Map$(String, String), false);
 
     // null is! Map
     checkType(null, Map, false);
@@ -319,8 +321,7 @@ suite('instanceOf', () => {
     assert.throws(() => dart.is(m6, Map$(String, String)),
       dart.StrongModeError);
     assert.isTrue(dart.is(m1, Map$(String, String)));
-    assert.throws(() => dart.is(m2, Map$(String, String)),
-      dart.StrongModeError);
+    assert.isFalse(dart.is(m2, Map$(String, String)));
 
     // As checks
     // TODO(vsm): Enable these.  We're currently only logging warnings on
@@ -378,14 +379,14 @@ suite('instanceOf', () => {
     expect(isGroundType(BB$(String, List)), false);
     expect(isGroundType(cctype), true);
     expect(isGroundType(CC), true);
-    checkType(cc, aatype, false, true);
-    checkType(cc, AA$(String, List), false, true);
+    checkType(cc, aatype, false);
+    checkType(cc, AA$(String, List), false);
     checkType(cc, bbtype);
     checkType(cc, BB$(String, List));
     checkType(aa, cctype, false);
     checkType(aa, CC, false);
-    checkType(aa, bbtype, false, true);
-    checkType(aa, BB$(String, List), false, true);
+    checkType(aa, bbtype, false);
+    checkType(aa, BB$(String, List), false);
     checkType(bb, cctype, false);
     checkType(bb, CC, false);
     checkType(aa, aabadtype);
@@ -412,11 +413,11 @@ suite('instanceOf', () => {
 
     checkType(s1, c.IterableMixin);
     checkType(s1, c.IterableMixin$(String));
-    checkType(s1, c.IterableMixin$(int), false, true);
+    checkType(s1, c.IterableMixin$(int), false);
 
     checkType(s1, c.SetMixin);
     checkType(s1, c.SetMixin$(String));
-    checkType(s1, c.SetMixin$(int), false, true);
+    checkType(s1, c.SetMixin$(int), false);
   });
 
   test('Type', () => {
@@ -463,10 +464,10 @@ suite('instanceOf', () => {
     checkType(cls5, Foo);
     checkType(bar5, functionType(B, [B, String]));
     checkType(cls5, functionType(B, [B, String]));
-    checkType(bar6, Foo, false, true);
-    checkType(cls6, Foo, false, true);
-    checkType(bar6, functionType(B, [B, String]), false, true);
-    checkType(cls6, functionType(B, [B, String]), false, true);
+    checkType(bar6, Foo, false);
+    checkType(cls6, Foo, false);
+    checkType(bar6, functionType(B, [B, String]), false);
+    checkType(cls6, functionType(B, [B, String]), false);
     checkType(bar7, Foo);
     checkType(cls7, Foo);
     checkType(bar7, functionType(B, [B, String]));
@@ -477,12 +478,12 @@ suite('instanceOf', () => {
     checkType(cls8, Foo);
     checkType(bar8, functionType(B, [B, String]));
     checkType(cls8, functionType(B, [B, String]));
-    checkType(bar8, getReifiedType(bar6), false, true);
-    checkType(cls8, getReifiedType(bar6), false, true);
-    checkType(bar7, getReifiedType(bar8), false, true);
-    checkType(cls7, getReifiedType(bar8), false, true);
-    checkType(bar8, getReifiedType(bar7), false, true);
-    checkType(cls8, getReifiedType(bar7), false, true);
+    checkType(bar8, getReifiedType(bar6), false);
+    checkType(cls8, getReifiedType(bar6), false);
+    checkType(bar7, getReifiedType(bar8), false);
+    checkType(cls7, getReifiedType(bar8), false);
+    checkType(bar8, getReifiedType(bar7), false);
+    checkType(cls8, getReifiedType(bar7), false);
 
     // Parameterized typedefs
     expect(isGroundType(FuncG), true);
@@ -622,9 +623,9 @@ suite('instanceOf', () => {
                                                   core.int]));
     checkType(ii_2i, dart.functionType(core.int, [], [core.int,
                                                       core.int]),
-              false, true);
+              false);
     checkType(ii_2i, dart.functionType(core.int, [core.int],
-                                       {extra: core.int}), false, true);
+                                       {extra: core.int}), false);
 
     // Named types
     function i_i2i(x, opts) {return x};
@@ -632,13 +633,13 @@ suite('instanceOf', () => {
     checkType(i_i2i, dart.functionType(core.int, [core.int],
                                        {extra: core.int}));
     checkType(i_i2i, dart.functionType(core.int,
-                                       [core.int, core.int]), false, true);
+                                       [core.int, core.int]), false);
     checkType(i_i2i, dart.functionType(core.int, [core.int], {}));
     checkType(i_i2i,
         dart.functionType(core.int, [], {extra: core.int,
-                                         also: core.int}), false, true);
+                                         also: core.int}), false);
     checkType(i_i2i,
-        dart.functionType(core.int, [core.int], [core.int]), false, true);
+        dart.functionType(core.int, [core.int], [core.int]), false);
   });
 
   test('Method tearoffs', () => {
@@ -648,13 +649,13 @@ suite('instanceOf', () => {
     checkType(dart.bind(map, 'toString'),
         dart.functionType(String, []));
     checkType(dart.bind(map, 'toString'),
-        dart.functionType(int, []), false, true);
+              dart.functionType(int, []), false, true);
 
     // Tear off of a method directly on the object
     let smap = new (c.SplayTreeMap$(core.int, core.String))();
     checkType(dart.bind(smap, 'forEach'),
         dart.functionType(dart.void,
-            [dart.functionType(dart.void, [core.int, core.String])]));
+                          [dart.functionType(dart.void, [core.int, core.String])]));
     checkType(dart.bind(smap, 'forEach'),
         dart.functionType(dart.void,
             [dart.functionType(dart.void,
@@ -772,6 +773,153 @@ suite('instanceOf', () => {
     let intString = dart.toString(n);
     assert.equal(intString, '42');
   });
+});
+
+suite('subtyping', function() {
+  'use strict';
+
+  let functionType = dart.functionType;
+  let definiteFunctionType = dart.definiteFunctionType;
+  let typedef = dart.typedef;
+  let isSubtype = dart.isSubtype;
+  let int = core.int;
+  let num = core.num;
+  let dyn = dart.dynamic;
+
+  function always(t1, t2) {
+    assert.equal(isSubtype(t1, t2), true);
+  }
+  function never(t1, t2) {
+    assert.equal(isSubtype(t1, t2), false);
+  }
+  function maybe(t1, t2) {
+    assert.equal(isSubtype(t1, t2), null);
+  }
+
+  function always2(t1, t2) {
+    assert.equal(isSubtype(t1, t2), true);
+    always(functionType(t1, [t2]), functionType(t2, [t1]));
+  }
+  function never2(t1, t2) {
+    assert.equal(isSubtype(t1, t2), false);
+    maybe(functionType(t1, [t2]), functionType(t2, [t1]));
+  }
+  function maybe2(t1, t2) {
+    assert.equal(isSubtype(t1, t2), null);
+    maybe(functionType(t1, [t2]), functionType(t2, [t1]));
+  }
+
+  test('basic function types', () => {
+    always2(functionType(int, [int]), functionType(int, [int]));
+    always2(functionType(int, [num]), functionType(int, [int]));
+    always2(functionType(int, [int]), functionType(num, [int]));
+
+    always2(functionType(int, [], [int]), functionType(int, [], [int]));
+    always2(functionType(int, [], [num]), functionType(int, [], [int]));
+    always2(functionType(int, [], [int]), functionType(num, [], [int]));
+
+    always2(functionType(int, [], [int]), functionType(int, [int]));
+    always2(functionType(int, [], [num]), functionType(int, [int]));
+    always2(functionType(int, [], [int]), functionType(num, [int]));
+
+    always2(functionType(int, [], [int]), functionType(int, []));
+    always2(functionType(int, [], [num]), functionType(int, []));
+    always2(functionType(int, [], [int]), functionType(num, []));
+
+    always2(functionType(int, [int], {extra: int}), functionType(int, [int]));
+    always2(functionType(int, [num], {extra: int}), functionType(int, [int]));
+    always2(functionType(int, [int], {extra: int}), functionType(num, [int]));
+
+    maybe2(functionType(int, [int]), functionType(int, [num]));
+    maybe2(functionType(num, [int]), functionType(int, [int]));
+
+    maybe2(functionType(num, [], [num]), functionType(int, []));
+
+    maybe2(functionType(int, [], [int]), functionType(int, [], [num]));
+    maybe2(functionType(num, [], [int]), functionType(int, [], [int]));
+
+    maybe2(functionType(int, [], [int]), functionType(int, [num]));
+    maybe2(functionType(num, [], [int]), functionType(int, [int]));
+
+    maybe2(functionType(int, [int], {extra: int}), functionType(int, [num]));
+    maybe2(functionType(num, [int], {extra: int}), functionType(int, [int]));
+
+    never2(functionType(int, []), functionType(int, [num]));
+    never2(functionType(num, []), functionType(int, [int]));
+    never2(functionType(num, []), functionType(num, [num]));
+
+    never2(functionType(int, [int]), functionType(int, []));
+    never2(functionType(num, [int]), functionType(int, []));
+    never2(functionType(num, [num]), functionType(num, []));
+
+    never2(functionType(int, []), functionType(int, [], [num]));
+    never2(functionType(num, []), functionType(int, [], [int]));
+    never2(functionType(num, []), functionType(num, [], [num]));
+
+    never2(functionType(int, [int]), functionType(int, [], [num]));
+    never2(functionType(num, [int]), functionType(int, [], [int]));
+    never2(functionType(num, [num]), functionType(num, [], [num]));
+
+    never2(functionType(int, [], {extra: int}), functionType(int, [num]));
+    never2(functionType(num, [], {extra: int}), functionType(int, [int]));
+    never2(functionType(num, [], {extra: int}), functionType(num, [num]));
+
+    never2(functionType(int, [], {extra: int}), functionType(int, [], [num]));
+    never2(functionType(num, [], {extra: int}), functionType(int, [], [int]));
+    never2(functionType(num, [], {extra: int}), functionType(num, [], [num]));
+
+    never2(functionType(int, []), functionType(int, [], {extra: int}));
+    never2(functionType(num, []), functionType(int, [], {extra: int}));
+    never2(functionType(num, []), functionType(num, [], {extra: int}));
+
+    never2(functionType(int, [int]), functionType(int, [], {extra: int}));
+    never2(functionType(num, [int]), functionType(int, [], {extra: int}));
+    never2(functionType(num, [num]), functionType(num, [], {extra: int}));
+
+    never2(functionType(int, [int]), functionType(int, [int], {extra: int}));
+    never2(functionType(num, [int]), functionType(int, [int], {extra: int}));
+    never2(functionType(num, [num]), functionType(num, [num], {extra: int}));
+  });
+
+  test('fuzzy function types', () => {
+    always(functionType(int, [int]), functionType(dyn, [dyn]));
+
+    always(functionType(int, [], [int]), functionType(dyn, [], [dyn]));
+
+    always(functionType(int, [], [int]), functionType(dyn, [dyn]));
+
+    always(functionType(int, [], [int]), functionType(dyn, []));
+
+    always(functionType(int, [int], {extra: int}), functionType(dyn, [dyn]));
+
+  });
+
+  test('mixed types', () => {
+    let AA$ = dart.generic((T) => class AA extends core.Object {});
+
+    always(int, dyn);
+    maybe(dyn, int);
+
+    never(functionType(int, [int]), int);
+
+    never(int, functionType(int, [int]));
+
+    always(AA$(int), AA$(dyn));
+    maybe(AA$(dyn), AA$(int));
+    never(AA$(core.Object), AA$(int));
+
+    always(AA$(functionType(int, [int])), AA$(dyn));
+    maybe(AA$(dyn), AA$(functionType(int, [int])));
+    never(AA$(core.Object), AA$(functionType(int, [int])));
+
+    always(AA$(functionType(int, [int])), AA$(functionType(dyn, [dyn])));
+    maybe(AA$(functionType(dyn, [dyn])), AA$(functionType(int, [int])));
+    maybe(AA$(functionType(core.Object, [core.Object])),
+          AA$(functionType(int, [int])));
+
+
+  });
+
 });
 
 suite('primitives', function() {

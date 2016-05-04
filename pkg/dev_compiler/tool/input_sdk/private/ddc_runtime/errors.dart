@@ -4,7 +4,8 @@
 part of dart._runtime;
 
 throwCastError(actual, type) => JS('', '''(() => {
-  $throw_(new $CastErrorImplementation($actual, $type));
+  $throw_(new $CastErrorImplementation($typeName($actual),
+                                       $typeName($type)));
 })()''');
 
 throwAssertionError() => JS('', '''(() => {

@@ -180,13 +180,13 @@ _ignoreTypeFailure(actual, type) => JS('', '''(() => {
   // TODO(vsm): Remove this hack ...
   // This is primarily due to the lack of generic methods,
   // but we need to triage all the types.
-  if ($isSubtype($type, $Iterable) && $isSubtype($actual, $Iterable) ||
-      $isSubtype($type, $Future) && $isSubtype($actual, $Future) ||
-      $isSubtype($type, $Map) && $isSubtype($actual, $Map) ||
-      $isSubtype($type, $Function) && $isSubtype($actual, $Function) ||
-      $isSubtype($type, $Stream) && $isSubtype($actual, $Stream) ||
-      $isSubtype($type, $StreamSubscription) &&
-          $isSubtype($actual, $StreamSubscription)) {
+  if (!!$isSubtype($type, $Iterable) && !!$isSubtype($actual, $Iterable) ||
+      !!$isSubtype($type, $Future) && !!$isSubtype($actual, $Future) ||
+      !!$isSubtype($type, $Map) && !!$isSubtype($actual, $Map) ||
+      !!$isSubtype($type, $Function) && !!$isSubtype($actual, $Function) ||
+      !!$isSubtype($type, $Stream) && !!$isSubtype($actual, $Stream) ||
+      !!$isSubtype($type, $StreamSubscription) &&
+          !!$isSubtype($actual, $StreamSubscription)) {
     console.warn('Ignoring cast fail from ' + $typeName($actual) +
       ' to ' + $typeName($type));
     return true;
@@ -194,29 +194,34 @@ _ignoreTypeFailure(actual, type) => JS('', '''(() => {
   return false;
 })()''');
 
+/// Returns true if [obj] is an instance of [type]
+/// Returns false if [obj] is not an instance of [type] in both spec
+///  and strong mode
+/// Returns null if [obj] is not an instance of [type] in strong mode
+///  but might be in spec mode
 strongInstanceOf(obj, type, ignoreFromWhiteList) => JS('', '''(() => {
   let actual = $getReifiedType($obj);
-  if ($isSubtype(actual, $type) || actual == $jsobject ||
+  let result = $isSubtype(actual, $type);
+  if (result || actual == $jsobject ||
       actual == $int && type == $double) return true;
-  if ($ignoreFromWhiteList == void 0) return false;
-  if ($isGroundType($type)) return false;
+  if ($ignoreFromWhiteList == void 0) return result;
   if ($_ignoreTypeFailure(actual, $type)) return true;
-  return false;
+  return result;
 })()''');
 
+/// Returns true if [obj] is null or an instance of [type]
+/// Returns false if [obj] is non-null and not an instance of [type]
+/// in strong mode
 instanceOfOrNull(obj, type) => JS('', '''(() => {
+  // If strongInstanceOf returns null, convert to false here.
   if (($obj == null) || $strongInstanceOf($obj, $type, true)) return true;
   return false;
 })()''');
 
 @JSExportName('is')
 instanceOf(obj, type) => JS('', '''(() => {
-  if ($strongInstanceOf($obj, $type)) return true;
-  // TODO(#296): This is perhaps too eager to throw a StrongModeError?
-  // It will throw on <int>[] is List<String>.
-  // TODO(vsm): We can statically detect many cases where this
-  // check is unnecessary.
-  if ($isGroundType($type)) return false;
+  let result = $strongInstanceOf($obj, $type);
+  if (result !== null) return result;
   let actual = $getReifiedType($obj);
   $throwStrongModeError('Strong mode is check failure: ' +
     $typeName(actual) + ' does not soundly subtype ' +
@@ -225,13 +230,14 @@ instanceOf(obj, type) => JS('', '''(() => {
 
 @JSExportName('as')
 cast(obj, type) => JS('', '''(() => {
-  // TODO(#296): This is perhaps too eager to throw a StrongModeError?
-  // TODO(vsm): handle non-nullable types
-  if ($instanceOfOrNull($obj, $type)) return $obj;
-  let actual = $getReifiedType($obj);
-  if ($isGroundType($type)) $throwCastError(actual, $type);
+  if ($obj == null) return $obj;
 
-  if ($_ignoreTypeFailure(actual, $type)) return $obj;
+  let result = $strongInstanceOf($obj, $type, true);
+  if (result) return $obj;
+
+  let actual = $getReifiedType($obj);
+
+  if (result === false) $throwCastError(actual, $type);
 
   $throwStrongModeError('Strong mode cast failure from ' +
     $typeName(actual) + ' to ' + $typeName($type));

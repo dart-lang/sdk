@@ -257,7 +257,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     derived.prototype.__proto__ = base.prototype;
   };
   dart.throwCastError = function(actual, type) {
-    dart.throw(new _js_helper.CastErrorImplementation(actual, type));
+    dart.throw(new _js_helper.CastErrorImplementation(dart.typeName(actual), dart.typeName(type)));
   };
   dart.throwAssertionError = function() {
     dart.throw(new core.AssertionError());
@@ -520,7 +520,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return dart._callMethod(obj, 'set', null, [index, value], '[]=');
   };
   dart._ignoreTypeFailure = function(actual, type) {
-    if (dart.isSubtype(type, core.Iterable) && dart.isSubtype(actual, core.Iterable) || dart.isSubtype(type, async.Future) && dart.isSubtype(actual, async.Future) || dart.isSubtype(type, core.Map) && dart.isSubtype(actual, core.Map) || dart.isSubtype(type, core.Function) && dart.isSubtype(actual, core.Function) || dart.isSubtype(type, async.Stream) && dart.isSubtype(actual, async.Stream) || dart.isSubtype(type, async.StreamSubscription) && dart.isSubtype(actual, async.StreamSubscription)) {
+    if (!!dart.isSubtype(type, core.Iterable) && !!dart.isSubtype(actual, core.Iterable) || !!dart.isSubtype(type, async.Future) && !!dart.isSubtype(actual, async.Future) || !!dart.isSubtype(type, core.Map) && !!dart.isSubtype(actual, core.Map) || !!dart.isSubtype(type, core.Function) && !!dart.isSubtype(actual, core.Function) || !!dart.isSubtype(type, async.Stream) && !!dart.isSubtype(actual, async.Stream) || !!dart.isSubtype(type, async.StreamSubscription) && !!dart.isSubtype(actual, async.StreamSubscription)) {
       console.warn('Ignoring cast fail from ' + dart.typeName(actual) + ' to ' + dart.typeName(type));
       return true;
     }
@@ -528,27 +528,28 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.strongInstanceOf = function(obj, type, ignoreFromWhiteList) {
     let actual = dart.getReifiedType(obj);
-    if (dart.isSubtype(actual, type) || actual == dart.jsobject || actual == core.int && type == core.double) return true;
-    if (ignoreFromWhiteList == void 0) return false;
-    if (dart.isGroundType(type)) return false;
+    let result = dart.isSubtype(actual, type);
+    if (result || actual == dart.jsobject || actual == core.int && type == core.double) return true;
+    if (ignoreFromWhiteList == void 0) return result;
     if (dart._ignoreTypeFailure(actual, type)) return true;
-    return false;
+    return result;
   };
   dart.instanceOfOrNull = function(obj, type) {
     if (obj == null || dart.strongInstanceOf(obj, type, true)) return true;
     return false;
   };
   dart.is = function(obj, type) {
-    if (dart.strongInstanceOf(obj, type)) return true;
-    if (dart.isGroundType(type)) return false;
+    let result = dart.strongInstanceOf(obj, type);
+    if (result !== null) return result;
     let actual = dart.getReifiedType(obj);
     dart.throwStrongModeError('Strong mode is check failure: ' + dart.typeName(actual) + ' does not soundly subtype ' + dart.typeName(type));
   };
   dart.as = function(obj, type) {
-    if (dart.instanceOfOrNull(obj, type)) return obj;
+    if (obj == null) return obj;
+    let result = dart.strongInstanceOf(obj, type, true);
+    if (result) return obj;
     let actual = dart.getReifiedType(obj);
-    if (dart.isGroundType(type)) dart.throwCastError(actual, type);
-    if (dart._ignoreTypeFailure(actual, type)) return obj;
+    if (result === false) dart.throwCastError(actual, type);
     dart.throwStrongModeError('Strong mode cast failure from ' + dart.typeName(actual) + ' to ' + dart.typeName(type));
   };
   dart.asInt = function(obj) {
@@ -990,7 +991,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return dart._getRuntimeType(type) === core.Type;
   };
   dart.typeName = function(type) {
-    if (type instanceof dart.TypeRep) return type.toString();
+    if (type instanceof dart.TypeRep) {
+      if (type instanceof dart.Typedef) {
+        return type.name + "(" + type.functionType.toString() + ")";
+      }
+      return type.toString();
+    }
     let tag = dart._getRuntimeType(type);
     if (tag === core.Type) {
       let name = type.name;
@@ -1019,41 +1025,36 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.isFunctionType = function(type) {
     return type instanceof dart.AbstractFunctionType || type === core.Function;
   };
-  dart.isFunctionSubType = function(ft1, ft2) {
-    if (ft2 == core.Function) {
+  dart.isFunctionSubtype = function(ft1, ft2, covariant) {
+    if (ft2 === core.Function) {
       return true;
     }
     let ret1 = ft1.returnType;
     let ret2 = ft2.returnType;
-    if (!dart.isSubtype_(ret1, ret2)) {
-      if (ret2 != dart.void) {
-        return false;
-      }
-    }
     let args1 = ft1.args;
     let args2 = ft2.args;
     if (args1.length > args2.length) {
-      return false;
+      return covariant ? false : null;
     }
     for (let i = 0; i < args1.length; ++i) {
-      if (!dart.isSubtype_(args2[i], args1[i])) {
-        return false;
+      if (!dart.isSubtype_(args2[i], args1[i], !covariant)) {
+        return null;
       }
     }
     let optionals1 = ft1.optionals;
     let optionals2 = ft2.optionals;
     if (args1.length + optionals1.length < args2.length + optionals2.length) {
-      return false;
+      return covariant ? false : null;
     }
     let j = 0;
     for (let i = args1.length; i < args2.length; ++i, ++j) {
-      if (!dart.isSubtype_(args2[i], optionals1[j])) {
-        return false;
+      if (!dart.isSubtype_(args2[i], optionals1[j], !covariant)) {
+        return null;
       }
     }
     for (let i = 0; i < optionals2.length; ++i, ++j) {
-      if (!dart.isSubtype_(optionals2[i], optionals1[j])) {
-        return false;
+      if (!dart.isSubtype_(optionals2[i], optionals1[j], !covariant)) {
+        return null;
       }
     }
     let named1 = ft1.named;
@@ -1064,10 +1065,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let n1 = named1[name];
       let n2 = named2[name];
       if (n1 === void 0) {
-        return false;
+        return covariant ? false : null;
       }
-      if (!dart.isSubtype_(n2, n1)) {
-        return false;
+      if (!dart.isSubtype_(n2, n1, !covariant)) {
+        return null;
+      }
+    }
+    let result = dart.isSubtype_(ret1, ret2, covariant);
+    if (result === null) return result;
+    if (!result) {
+      if (ret2 !== dart.void) {
+        return null;
       }
     }
     return true;
@@ -1091,7 +1099,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     } else {
       dart.subtypeMap.set(t1, map = new Map());
     }
-    result = dart.isSubtype_(t1, t2);
+    result = dart.isSubtype_(t1, t2, true);
     map.set(t2, result);
     return result;
   };
@@ -1101,27 +1109,28 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart._isTop = function(type) {
     return type == core.Object || type == dart.dynamic;
   };
-  dart.isSubtype_ = function(t1, t2) {
+  dart.isSubtype_ = function(t1, t2, covariant) {
     t1 = dart.canonicalType(t1);
     t2 = dart.canonicalType(t2);
-    if (t1 == t2) return true;
+    if (t1 === t2) return true;
     if (dart._isTop(t2) || dart._isBottom(t1)) {
       return true;
     }
-    if (dart._isTop(t1) || dart._isBottom(t2)) {
+    if (dart._isBottom(t2)) return null;
+    if (dart._isTop(t1)) {
+      if (t1 === dart.dynamic) return null;
       return false;
     }
-    if (dart.isClassSubType(t1, t2)) {
-      return true;
-    }
+    let result = dart.isClassSubType(t1, t2, covariant);
+    if (result === true || result === null) return result;
     t1 = dart.getImplicitFunctionType(t1);
     if (!t1) return false;
     if (dart.isFunctionType(t1) && dart.isFunctionType(t2)) {
-      return dart.isFunctionSubType(t1, t2);
+      return dart.isFunctionSubtype(t1, t2, covariant);
     }
     return false;
   };
-  dart.isClassSubType = function(t1, t2) {
+  dart.isClassSubType = function(t1, t2, covariant) {
     t1 = dart.canonicalType(t1);
     dart.assert(t2 == dart.canonicalType(t2));
     if (t1 == t2) return true;
@@ -1136,29 +1145,41 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (typeArguments2.length == 0) {
         return true;
       } else if (length == 0) {
-        return false;
+        if (typeArguments2.every(dart._isTop)) return true;
+        return null;
       }
       dart.assert(length == typeArguments2.length);
       for (let i = 0; i < length; ++i) {
-        if (!dart.isSubtype(typeArguments1[i], typeArguments2[i])) {
-          return false;
+        let result = dart.isSubtype_(typeArguments1[i], typeArguments2[i], covariant);
+        if (!result) {
+          return result;
         }
       }
       return true;
     }
-    if (dart.isClassSubType(t1.__proto__, t2)) return true;
+    let indefinite = false;
+    function definitive(t1, t2) {
+      let result = dart.isClassSubType(t1, t2, covariant);
+      if (result == null) {
+        indefinite = true;
+        return false;
+      }
+      return result;
+    }
+    if (definitive(t1.__proto__, t2)) return true;
     let mixins = dart.getMixins(t1);
     if (mixins) {
       for (let m1 of mixins) {
-        if (m1 != null && dart.isClassSubType(m1, t2)) return true;
+        if (m1 != null && definitive(m1, t2)) return true;
       }
     }
     let getInterfaces = dart.getImplements(t1);
     if (getInterfaces) {
       for (let i1 of getInterfaces()) {
-        if (i1 != null && dart.isClassSubType(i1, t2)) return true;
+        if (i1 != null && definitive(i1, t2)) return true;
       }
     }
+    if (indefinite) return null;
     return false;
   };
   dart.isGroundType = function(type) {

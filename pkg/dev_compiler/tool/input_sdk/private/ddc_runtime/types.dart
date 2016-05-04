@@ -313,7 +313,13 @@ bool isDartType(type) => JS('bool', '#(#) === #', _getRuntimeType, type, Type);
 
 typeName(type) => JS('', '''(() => {
   // Non-instance types
-  if ($type instanceof $TypeRep) return $type.toString();
+  if ($type instanceof $TypeRep) {
+    if ($type instanceof $Typedef) {
+      return $type.name + "(" + $type.functionType.toString() + ")";
+    }
+    return $type.toString();
+  }
+
   // Instance types
   let tag = $_getRuntimeType($type);
   if (tag === $Type) {
@@ -355,36 +361,35 @@ isFunctionType(type) =>
     JS('bool', '# instanceof # || # === #',
         type, AbstractFunctionType, type, Function);
 
-isFunctionSubType(ft1, ft2) => JS('', '''(() => {
-  if ($ft2 == $Function) {
+/// Returns true if [ft1] <: [ft2].
+/// Returns false if [ft1] </: [ft2] in both spec and strong mode
+/// Returns null if [ft1] </: [ft2] in strong mode, but spec mode
+/// may differ
+/// If [covariant] is true, then we are checking subtyping in a covariant
+/// position, and hence the direction of the check for function types
+/// corresponds to the direction of the check according to the Dart spec.
+isFunctionSubtype(ft1, ft2, covariant) => JS('', '''(() => {
+  if ($ft2 === $Function) {
     return true;
   }
 
   let ret1 = $ft1.returnType;
   let ret2 = $ft2.returnType;
 
-  if (!$isSubtype_(ret1, ret2)) {
-    // Covariant return types
-    // Note, void (which can only appear as a return type) is effectively
-    // treated as dynamic.  If the base return type is void, we allow any
-    // subtype return type.
-    // E.g., we allow:
-    //   () -> int <: () -> void
-    if (ret2 != $voidR) {
-      return false;
-    }
-  }
-
   let args1 = $ft1.args;
   let args2 = $ft2.args;
 
   if (args1.length > args2.length) {
-    return false;
+    // If we're in a covariant position, then Dart's arity rules
+    // agree with strong mode, otherwise we can't be sure.
+    return ($covariant) ? false : null;
   }
 
   for (let i = 0; i < args1.length; ++i) {
-    if (!$isSubtype_(args2[i], args1[i])) {
-      return false;
+    if (!$isSubtype_(args2[i], args1[i], !$covariant)) {
+      // Even if isSubtype returns false, assignability
+      // means that we can't be definitive
+      return null;
     }
   }
 
@@ -392,19 +397,19 @@ isFunctionSubType(ft1, ft2) => JS('', '''(() => {
   let optionals2 = $ft2.optionals;
 
   if (args1.length + optionals1.length < args2.length + optionals2.length) {
-    return false;
+    return ($covariant) ? false : null;
   }
 
   let j = 0;
   for (let i = args1.length; i < args2.length; ++i, ++j) {
-    if (!$isSubtype_(args2[i], optionals1[j])) {
-      return false;
+    if (!$isSubtype_(args2[i], optionals1[j], !$covariant)) {
+      return null;
     }
   }
 
   for (let i = 0; i < optionals2.length; ++i, ++j) {
-    if (!$isSubtype_(optionals2[i], optionals1[j])) {
-      return false;
+    if (!$isSubtype_(optionals2[i], optionals1[j], !$covariant)) {
+      return null;
     }
   }
 
@@ -417,10 +422,28 @@ isFunctionSubType(ft1, ft2) => JS('', '''(() => {
     let n1 = named1[name];
     let n2 = named2[name];
     if (n1 === void 0) {
-      return false;
+      return ($covariant) ? false : null;
     }
-    if (!$isSubtype_(n2, n1)) {
-      return false;
+    if (!$isSubtype_(n2, n1, !$covariant)) {
+      return null;
+    }
+  }
+
+  // Check return type last, so that arity mismatched functions can be
+  // definitively rejected.
+  {
+    let result = $isSubtype_(ret1, ret2, $covariant);
+    if (result === null) return result;
+    if (!result) {
+      // Covariant return types
+      // Note, void (which can only appear as a return type) is effectively
+      // treated as dynamic.  If the base return type is void, we allow any
+      // subtype return type.
+      // E.g., we allow:
+      //   () -> int <: () -> void
+      if (ret2 !== $voidR) {
+        return null;
+      }
     }
   }
 
@@ -446,6 +469,10 @@ canonicalType(t) => JS('', '''(() => {
 })()''');
 
 final subtypeMap = JS('', 'new Map()');
+/// Returns true if [t1] <: [t2].
+/// Returns false if [t1] </: [t2] in both spec and strong mode
+/// Returns undefined if [t1] </: [t2] in strong mode, but spec
+///  mode may differ
 isSubtype(t1, t2) => JS('', '''(() => {
   // See if we already know the answer
   // TODO(jmesserly): general purpose memoize function?
@@ -457,7 +484,7 @@ isSubtype(t1, t2) => JS('', '''(() => {
   } else {
     $subtypeMap.set($t1, map = new Map());
   }
-  result = $isSubtype_($t1, $t2);
+  result = $isSubtype_($t1, $t2, true);
   map.set($t2, result);
   return result;
 })()''');
@@ -466,10 +493,10 @@ _isBottom(type) => JS('bool', '# == #', type, bottom);
 
 _isTop(type) => JS('bool', '# == # || # == #', type, Object, type, dynamicR);
 
-isSubtype_(t1, t2) => JS('', '''(() => {
+isSubtype_(t1, t2, covariant) => JS('', '''(() => {
   $t1 = $canonicalType($t1);
   $t2 = $canonicalType($t2);
-  if ($t1 == $t2) return true;
+  if ($t1 === $t2) return true;
 
   // Trivially true.
   if ($_isTop($t2) || $_isBottom($t1)) {
@@ -477,13 +504,16 @@ isSubtype_(t1, t2) => JS('', '''(() => {
   }
 
   // Trivially false.
-  if ($_isTop($t1) || $_isBottom($t2)) {
+  if ($_isBottom($t2)) return null;
+  if ($_isTop($t1)) {
+    if ($t1 === $dynamicR) return null;
     return false;
   }
 
   // "Traditional" name-based subtype check.
-  if ($isClassSubType($t1, $t2)) {
-    return true;
+  {
+    let result = $isClassSubType($t1, $t2, $covariant);
+    if (result === true || result === null) return result;
   }
 
   // Function subtyping.
@@ -495,12 +525,12 @@ isSubtype_(t1, t2) => JS('', '''(() => {
 
   if ($isFunctionType($t1) &&
       $isFunctionType($t2)) {
-    return $isFunctionSubType($t1, $t2);
+    return $isFunctionSubtype($t1, $t2, $covariant);
   }
   return false;
 })()''');
 
-isClassSubType(t1, t2) => JS('', '''(() => {
+isClassSubType(t1, t2, covariant) => JS('', '''(() => {
   // We support Dart's covariant generics with the caveat that we do not
   // substitute bottom for dynamic in subtyping rules.
   // I.e., given T1, ..., Tn where at least one Ti != dynamic we disallow:
@@ -528,26 +558,38 @@ isClassSubType(t1, t2) => JS('', '''(() => {
       return true;
     } else if (length == 0) {
       // t1 is raw, but t2 is not
-      return false;
+      if (typeArguments2.every($_isTop)) return true;
+      return null;
     }
     $assert_(length == typeArguments2.length);
     for (let i = 0; i < length; ++i) {
-      if (!$isSubtype(typeArguments1[i], typeArguments2[i])) {
-        return false;
+      let result =
+          $isSubtype_(typeArguments1[i], typeArguments2[i], $covariant);
+      if (!result) {
+        return result;
       }
     }
     return true;
   }
 
-  // Check superclass.
-  if ($isClassSubType($t1.__proto__, $t2)) return true;
+  let indefinite = false;
+  function definitive(t1, t2) {
+    let result = $isClassSubType(t1, t2, $covariant);
+    if (result == null) {
+      indefinite = true;
+      return false;
+    }
+    return result;
+  }
+
+  if (definitive($t1.__proto__, $t2)) return true;
 
   // Check mixins.
   let mixins = $getMixins($t1);
   if (mixins) {
     for (let m1 of mixins) {
       // TODO(jmesserly): remove the != null check once we can load core libs.
-      if (m1 != null && $isClassSubType(m1, $t2)) return true;
+      if (m1 != null && definitive(m1, $t2)) return true;
     }
   }
 
@@ -556,10 +598,15 @@ isClassSubType(t1, t2) => JS('', '''(() => {
   if (getInterfaces) {
     for (let i1 of getInterfaces()) {
       // TODO(jmesserly): remove the != null check once we can load core libs.
-      if (i1 != null && $isClassSubType(i1, $t2)) return true;
+      if (i1 != null && definitive(i1, $t2)) return true;
     }
   }
 
+  // We found no definite supertypes, and at least one indefinite supertype
+  // so the answer is indefinite.
+  if (indefinite) return null;
+  // We found no definite supertypes and no indefinite supertypes, so we
+  // can return false.
   return false;
 })()''');
 
