@@ -2037,10 +2037,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
       // If the type is a type literal expression in Dart code, wrap the raw
       // runtime type in a "Type" instance.
-      if (!_isInForeignJS &&
-          node.parent is! MethodInvocation &&
-          node.parent is! PrefixedIdentifier &&
-          node.parent is! PropertyAccess) {
+      if (!_isInForeignJS && _isTypeLiteral(node)) {
         typeName = js.call('dart.wrapType(#)', typeName);
       }
 
@@ -2086,6 +2083,32 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
 
     return new JS.Identifier(name);
+  }
+
+  /// Returns `true` if the type name referred to by [node] is used in a
+  /// position where it should evaluate as a type literal -- an object of type
+  /// Type.
+  bool _isTypeLiteral(SimpleIdentifier node) {
+    var parent = node.parent;
+
+    // Static member call.
+    if (parent is MethodInvocation || parent is PropertyAccess) return false;
+
+    // An expression like "a.b".
+    if (parent is PrefixedIdentifier) {
+      // In "a.b", "b" may be a type literal, but "a", is not.
+      if (node != parent.identifier) return false;
+
+      // If the prefix expression is itself used as an invocation, like
+      // "a.b.c", then "b" is not a type literal.
+      var grand = parent.parent;
+      if (grand is MethodInvocation || grand is PropertyAccess) return false;
+
+      return true;
+    }
+
+    // In any other context, it's a type literal.
+    return true;
   }
 
   JS.Identifier _emitParameter(ParameterElement element,
