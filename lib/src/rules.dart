@@ -19,6 +19,7 @@ import 'package:linter/src/rules/await_only_futures.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/rules/constant_identifier_names.dart';
 import 'package:linter/src/rules/control_flow_in_finally.dart';
+import 'package:linter/src/rules/dont_compare_unrelated_types_for_equality.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
 import 'package:linter/src/rules/hash_and_equals.dart';
 import 'package:linter/src/rules/implementation_imports.dart';
@@ -54,6 +55,7 @@ final Registry ruleRegistry = new Registry()
   ..register(new AwaitOnlyFutures())
   ..register(new CamelCaseTypes())
   ..register(new ConstantIdentifierNames())
+  ..register(new DontCompareUnrelatedTypesForEquality())
   ..register(new EmptyConstructorBodies())
   ..register(new TestTypesInEquals())
   ..register(new OverridenField())
