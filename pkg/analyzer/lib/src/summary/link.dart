@@ -3253,18 +3253,21 @@ abstract class Node<NodeType> {
  * member of an element that is not a container (e.g. accessing the "length"
  * property of a constant).
  *
- * Also handles accesses to a chain of non-static members separated by '.'.
+ * Accesses to a chain of non-static members separated by '.' are andled by
+ * creating a [NonstaticMemberElementForLink] that points to another
+ * [NonstaticMemberElementForLink], to whatever nesting level is necessary.
  */
 class NonstaticMemberElementForLink implements ReferenceableElementForLink {
   /**
-   * The static variable element from which the non-static member access begins.
+   * The [ReferenceableElementForLink] which is the target of the non-static
+   * reference.
    */
-  final VariableElementForLink _variable;
+  final ReferenceableElementForLink _target;
 
   /**
-   * The list of non-static members that are accessed.
+   * The name of the non-static members that is being accessed.
    */
-  final List<String> _names;
+  final String _name;
 
   /**
    * The library in which the access occurs.  This determines whether private
@@ -3272,29 +3275,38 @@ class NonstaticMemberElementForLink implements ReferenceableElementForLink {
    */
   final LibraryElementForLink _library;
 
-  NonstaticMemberElementForLink(this._library, this._variable, this._names);
+  NonstaticMemberElementForLink(this._library, this._target, this._name);
 
   @override
   ConstructorElementForLink get asConstructor => null;
 
   @override
-  ConstVariableNode get asConstVariable => _variable._constNode;
+  ConstVariableNode get asConstVariable => _target.asConstVariable;
 
   @override
   DartType get asStaticType {
     if (_library._linker.strongMode) {
-      DartType type = _variable.asStaticType;
-      for (String name in _names) {
-        type = _typeLookupStep(type, name);
+      DartType targetType = _target.asStaticType;
+      if (targetType is InterfaceType) {
+        PropertyAccessorElement getter =
+            targetType.lookUpGetter(_name, _library);
+        if (getter != null) {
+          return getter.returnType;
+        }
+        MethodElement method = targetType.lookUpMethod(_name, _library);
+        if (method != null) {
+          return method.type;
+        }
       }
-      return type;
+      // TODO(paulberry): handle .call on function types and .toString or
+      // .hashCode on all types.
     }
     // TODO(paulberry, scheglov): implement for propagated types
     return DynamicTypeImpl.instance;
   }
 
   @override
-  TypeInferenceNode get asTypeInferenceNode => _variable._typeInferenceNode;
+  TypeInferenceNode get asTypeInferenceNode => _target.asTypeInferenceNode;
 
   @override
   DartType buildType(DartType getTypeArgument(int i),
@@ -3303,28 +3315,7 @@ class NonstaticMemberElementForLink implements ReferenceableElementForLink {
 
   @override
   ReferenceableElementForLink getContainedName(String name) {
-    return new NonstaticMemberElementForLink(
-        _library, _variable, _names.toList()..add(name));
-  }
-
-  /**
-   * Perform a single step in the resolution of the non-static access, looking
-   * up in [type] for the nonstatic entity having the given [name].  Return the
-   * type of the entity that was found, or `dynamic` if no entity was found.
-   */
-  DartType _typeLookupStep(DartType type, String name) {
-    if (type is InterfaceType) {
-      PropertyAccessorElement getter = type.lookUpGetter(name, _library);
-      if (getter != null) {
-        return getter.returnType;
-      }
-      MethodElement method = type.lookUpMethod(name, _library);
-      if (method != null) {
-        return method.type;
-      }
-    }
-    // TODO(paulberry): handle .call on function types and .toString or .hashCode on all types.
-    return DynamicTypeImpl.instance;
+    return new NonstaticMemberElementForLink(_library, this, name);
   }
 }
 
@@ -3565,8 +3556,9 @@ class PropertyAccessorElementForLink_Executable extends ExecutableElementForLink
       DynamicTypeImpl.instance;
 
   @override
-  ReferenceableElementForLink getContainedName(String name) =>
-      UndefinedElementForLink.instance;
+  ReferenceableElementForLink getContainedName(String name) {
+    return new NonstaticMemberElementForLink(library, this, name);
+  }
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -3678,7 +3670,7 @@ class PropertyAccessorElementForLink_Variable
 
   @override
   ReferenceableElementForLink getContainedName(String name) {
-    return new NonstaticMemberElementForLink(library, variable, <String>[name]);
+    return new NonstaticMemberElementForLink(library, this, name);
   }
 
   @override
@@ -4441,7 +4433,7 @@ class VariableElementForLink
       DynamicTypeImpl.instance;
 
   ReferenceableElementForLink getContainedName(String name) {
-    return new NonstaticMemberElementForLink(library, this, <String>[name]);
+    return new NonstaticMemberElementForLink(library, this, name);
   }
 
   @override

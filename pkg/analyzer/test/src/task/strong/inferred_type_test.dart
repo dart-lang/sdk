@@ -2937,6 +2937,20 @@ final x = C.d.i;
     expect(x.type.toString(), 'int');
   }
 
+  void test_referenceToFieldOfStaticGetter() {
+    var mainUnit = checkFile('''
+class C {
+  static D get d => null;
+}
+class D {
+  int i;
+}
+final x = C.d.i;
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.type.toString(), 'int');
+  }
+
   void test_staticRefersToNonStaticField_inOtherLibraryCycle() {
     addFile(
         '''
@@ -2988,22 +3002,6 @@ test() {
 ''');
   }
 
-  void test_typeInferenceDependency_topLevelVariable_inIdentifierSequence() {
-    // Check that type inference dependencies are properly checked when a top
-    // level variable appears at the beginning of a string of identifiers
-    // separated by '.'.
-    var mainUnit = checkFile('''
-final a = /*info:DYNAMIC_INVOKE*/c.i;
-final c = new C(a);
-class C {
-  C(_);
-  int i;
-}
-''');
-    // No type should be inferred for a because there is a circular reference
-    // between a and c.
-  }
-
   void test_typeInferenceDependency_staticVariable_inIdentifierSequence() {
     // Check that type inference dependencies are properly checked when a static
     // variable appears in the middle of a string of identifiers separated by
@@ -3022,6 +3020,22 @@ class D {
     // between a and C.d.
     var a = mainUnit.topLevelVariables[0];
     expect(a.type.toString(), 'dynamic');
+  }
+
+  void test_typeInferenceDependency_topLevelVariable_inIdentifierSequence() {
+    // Check that type inference dependencies are properly checked when a top
+    // level variable appears at the beginning of a string of identifiers
+    // separated by '.'.
+    var mainUnit = checkFile('''
+final a = /*info:DYNAMIC_INVOKE*/c.i;
+final c = new C(a);
+class C {
+  C(_);
+  int i;
+}
+''');
+    // No type should be inferred for a because there is a circular reference
+    // between a and c.
   }
 }
 
