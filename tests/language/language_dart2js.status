@@ -40,6 +40,7 @@ generic_functions_test: CompileTimeError # Issue 25835
 generic_local_functions_test: CompileTimeError # Issue 25835
 generic_methods_test: CompileTimeError # Issue 25835
 generic_sends_test: CompileTimeError # Issue 25835
+generic_method_type_usage_test: CompiletimeError # Tests --generic-method-syntax, plus issue 25835
 
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
