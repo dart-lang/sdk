@@ -2987,6 +2987,42 @@ test() {
 }
 ''');
   }
+
+  void test_typeInferenceDependency_topLevelVariable_inIdentifierSequence() {
+    // Check that type inference dependencies are properly checked when a top
+    // level variable appears at the beginning of a string of identifiers
+    // separated by '.'.
+    var mainUnit = checkFile('''
+final a = /*info:DYNAMIC_INVOKE*/c.i;
+final c = new C(a);
+class C {
+  C(_);
+  int i;
+}
+''');
+    // No type should be inferred for a because there is a circular reference
+    // between a and c.
+  }
+
+  void test_typeInferenceDependency_staticVariable_inIdentifierSequence() {
+    // Check that type inference dependencies are properly checked when a static
+    // variable appears in the middle of a string of identifiers separated by
+    // '.'.
+    var mainUnit = checkFile('''
+final a = /*info:DYNAMIC_INVOKE*/C.d.i;
+class C {
+  static final d = new D(a);
+}
+class D {
+  D(_);
+  int i;
+}
+''');
+    // No type should be inferred for a because there is a circular reference
+    // between a and C.d.
+    var a = mainUnit.topLevelVariables[0];
+    expect(a.type.toString(), 'dynamic');
+  }
 }
 
 @reflectiveTest
