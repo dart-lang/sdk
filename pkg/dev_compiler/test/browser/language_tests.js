@@ -444,6 +444,7 @@
       'stacktrace_fromstring_test': fail,
       'string_from_environment2_test': fail,
       'string_from_environment_test': fail,
+      'string_from_list_test': skip_timeout,
       'string_fromcharcodes_test': fail,
       'string_operations_with_null_test': fail,
       'symbol_reserved_word_test_06_multi': fail,
