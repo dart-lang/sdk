@@ -18,10 +18,13 @@ doc/api/
 test/codegen/expect/dev_compiler/
 test/codegen/expect/language/
 test/codegen/expect/lib/
+test/codegen/expect/corelib/
 test/codegen/expect/sunflower/dev_compiler/
 test/codegen/expect/matcher/
 test/codegen/language/*_multi.dart
 test/codegen/lib/html/*_multi.dart
+test/codegen/corelib/*_multi.dart
+test/codegen/expect/*.err
 
 # Created by ./tool/build_sdk.sh
 tool/generated_sdk/

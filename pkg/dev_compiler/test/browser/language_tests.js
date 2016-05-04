@@ -450,6 +450,7 @@
       'symbol_reserved_word_test_09_multi': fail,
       'symbol_reserved_word_test_12_multi': fail,
       'throw_half_surrogate_pair_test_01_multi': fail,
+      'uri_test': fail,
       'uri_file_test': fail,
       'uri_normalize_path_test': fail,
       'uri_normalize_test': fail,
