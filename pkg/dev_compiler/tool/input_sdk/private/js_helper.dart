@@ -243,14 +243,14 @@ class Primitives {
   static String stringFromCodePoints(codePoints) {
     List<int> a = <int>[];
     for (var i in codePoints) {
-      if (i is !int) throw new ArgumentError(i);
+      if (i is !int) throw argumentErrorValue(i);
       if (i <= 0xffff) {
         a.add(i);
       } else if (i <= 0x10ffff) {
         a.add(0xd800 + ((((i - 0x10000) >> 10) & 0x3ff)));
         a.add(0xdc00 + (i & 0x3ff));
       } else {
-        throw new ArgumentError(i);
+        throw argumentErrorValue(i);
       }
     }
     return _fromCharCodeApply(a);
@@ -258,14 +258,14 @@ class Primitives {
 
   static String stringFromCharCodes(charCodes) {
     for (var i in charCodes) {
-      if (i is !int) throw new ArgumentError(i);
-      if (i < 0) throw new ArgumentError(i);
+      if (i is !int) throw argumentErrorValue(i);
+      if (i < 0) throw argumentErrorValue(i);
       if (i > 0xffff) return stringFromCodePoints(charCodes);
     }
     return _fromCharCodeApply(charCodes);
   }
 
-  static String stringFromCharCode(charCode) {
+  static String stringFromCharCode(int charCode) {
     if (0 <= charCode) {
       if (charCode <= 0xffff) {
         return JS('String', 'String.fromCharCode(#)', charCode);
@@ -430,22 +430,22 @@ class Primitives {
   }
 
   static valueFromDateString(str) {
-    if (str is !String) throw new ArgumentError(str);
+    if (str is !String) throw argumentErrorValue(str);
     var value = JS('num', r'Date.parse(#)', str);
-    if (value.isNaN) throw new ArgumentError(str);
+    if (value.isNaN) throw argumentErrorValue(str);
     return value;
   }
 
   static getProperty(object, key) {
     if (object == null || object is bool || object is num || object is String) {
-      throw new ArgumentError(object);
+      throw argumentErrorValue(object);
     }
     return JS('var', '#[#]', object, key);
   }
 
   static void setProperty(object, key, value) {
     if (object == null || object is bool || object is num || object is String) {
-      throw new ArgumentError(object);
+      throw argumentErrorValue(object);
     }
     JS('void', '#[#] = #', object, key, value);
   }
@@ -460,41 +460,79 @@ class Primitives {
     return getTraceFromException(JS('', r'#.$thrownJsError', error));
   }
 }
+/**
+ * Diagnoses an indexing error. Returns the ArgumentError or RangeError that
+ * describes the problem.
+ */
+@NoInline()
+Error diagnoseIndexError(indexable, index) {
+  if (index is !int) return new ArgumentError.value(index, 'index');
+  int length = indexable.length;
+  // The following returns the same error that would be thrown by calling
+  // [RangeError.checkValidIndex] with no optional parameters provided.
+  if (index < 0 || index >= length) {
+    return new RangeError.index(index, indexable, 'index', null, length);
+  }
+  // The above should always match, but if it does not, use the following.
+  return new RangeError.value(index, 'index');
+}
+
+/**
+ * Diagnoses a range error. Returns the ArgumentError or RangeError that
+ * describes the problem.
+ */
+@NoInline()
+Error diagnoseRangeError(start, end, length) {
+  if (start is! int) {
+    return new ArgumentError.value(start, 'start');
+  }
+  if (start < 0 || start > length) {
+    return new RangeError.range(start, 0, length, 'start');
+  }
+  if (end != null) {
+    if (end is! int) {
+      return new ArgumentError.value(end, 'end');
+    }
+    if (end < start || end > length) {
+      return new RangeError.range(end, start, length, 'end');
+    }
+  }
+  // The above should always match, but if it does not, use the following.
+  return new ArgumentError.value(end, "end");
+}
 
 stringLastIndexOfUnchecked(receiver, element, start)
   => JS('int', r'#.lastIndexOf(#, #)', receiver, element, start);
 
 
+/// 'factory' for constructing ArgumentError.value to keep the call sites small.
+@NoInline()
+ArgumentError argumentErrorValue(object) {
+  return new ArgumentError.value(object);
+}
+
 checkNull(object) {
-  if (object == null) throw new ArgumentError(null);
+  if (object == null) throw argumentErrorValue(object);
   return object;
 }
 
 checkNum(value) {
-  if (value is !num) {
-    throw new ArgumentError(value);
-  }
+  if (value is !num) throw argumentErrorValue(value);
   return value;
 }
 
 checkInt(value) {
-  if (value is !int) {
-    throw new ArgumentError(value);
-  }
+  if (value is !int) throw argumentErrorValue(value);
   return value;
 }
 
 checkBool(value) {
-  if (value is !bool) {
-    throw new ArgumentError(value);
-  }
+  if (value is !bool) throw argumentErrorValue(value);
   return value;
 }
 
 checkString(value) {
-  if (value is !String) {
-    throw new ArgumentError(value);
-  }
+  if (value is !String) throw argumentErrorValue(value);
   return value;
 }
 

@@ -9154,39 +9154,39 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static stringFromCodePoints(codePoints) {
       let a = dart.list([], core.int);
       for (let i of dart.as(codePoints, core.Iterable)) {
-        if (!(typeof i == 'number')) dart.throw(new core.ArgumentError(i));
+        if (!(typeof i == 'number')) dart.throw(_js_helper.argumentErrorValue(i));
         if (dart.notNull(dart.as(dart.dsend(i, '<=', 65535), core.bool))) {
           a[dartx.add](dart.as(i, core.int));
         } else if (dart.notNull(dart.as(dart.dsend(i, '<=', 1114111), core.bool))) {
           a[dartx.add](dart.asInt(55296 + dart.notNull(dart.as(dart.dsend(dart.dsend(dart.dsend(i, '-', 65536), '>>', 10), '&', 1023), core.num))));
           a[dartx.add](dart.asInt(56320 + dart.notNull(dart.as(dart.dsend(i, '&', 1023), core.num))));
         } else {
-          dart.throw(new core.ArgumentError(i));
+          dart.throw(_js_helper.argumentErrorValue(i));
         }
       }
       return _js_helper.Primitives._fromCharCodeApply(a);
     }
     static stringFromCharCodes(charCodes) {
       for (let i of dart.as(charCodes, core.Iterable)) {
-        if (!(typeof i == 'number')) dart.throw(new core.ArgumentError(i));
-        if (dart.notNull(dart.as(dart.dsend(i, '<', 0), core.bool))) dart.throw(new core.ArgumentError(i));
+        if (!(typeof i == 'number')) dart.throw(_js_helper.argumentErrorValue(i));
+        if (dart.notNull(dart.as(dart.dsend(i, '<', 0), core.bool))) dart.throw(_js_helper.argumentErrorValue(i));
         if (dart.notNull(dart.as(dart.dsend(i, '>', 65535), core.bool))) return _js_helper.Primitives.stringFromCodePoints(charCodes);
       }
       return _js_helper.Primitives._fromCharCodeApply(dart.as(charCodes, core.List$(core.int)));
     }
     static stringFromCharCode(charCode) {
-      if (0 <= dart.notNull(dart.as(charCode, core.num))) {
-        if (dart.notNull(dart.as(dart.dsend(charCode, '<=', 65535), core.bool))) {
+      if (0 <= dart.notNull(charCode)) {
+        if (dart.notNull(charCode) <= 65535) {
           return String.fromCharCode(charCode);
         }
-        if (dart.notNull(dart.as(dart.dsend(charCode, '<=', 1114111), core.bool))) {
-          let bits = dart.dsend(charCode, '-', 65536);
-          let low = (56320 | dart.notNull(dart.as(dart.dsend(bits, '&', 1023), core.int))) >>> 0;
-          let high = (55296 | dart.notNull(dart.as(dart.dsend(bits, '>>', 10), core.int))) >>> 0;
+        if (dart.notNull(charCode) <= 1114111) {
+          let bits = dart.notNull(charCode) - 65536;
+          let low = 56320 | bits & 1023;
+          let high = (55296 | bits[dartx['>>']](10)) >>> 0;
           return String.fromCharCode(high, low);
         }
       }
-      dart.throw(new core.RangeError.range(dart.as(charCode, core.num), 0, 1114111));
+      dart.throw(new core.RangeError.range(charCode, 0, 1114111));
     }
     static stringConcatUnchecked(string1, string2) {
       return _foreign_helper.JS_STRING_CONCAT(string1, string2);
@@ -9271,20 +9271,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return (weekday + 6)[dartx['%']](7) + 1;
     }
     static valueFromDateString(str) {
-      if (!(typeof str == 'string')) dart.throw(new core.ArgumentError(str));
+      if (!(typeof str == 'string')) dart.throw(_js_helper.argumentErrorValue(str));
       let value = Date.parse(str);
-      if (dart.notNull(value[dartx.isNaN])) dart.throw(new core.ArgumentError(str));
+      if (dart.notNull(value[dartx.isNaN])) dart.throw(_js_helper.argumentErrorValue(str));
       return value;
     }
     static getProperty(object, key) {
       if (object == null || typeof object == 'boolean' || typeof object == 'number' || typeof object == 'string') {
-        dart.throw(new core.ArgumentError(object));
+        dart.throw(_js_helper.argumentErrorValue(object));
       }
       return object[key];
     }
     static setProperty(object, key, value) {
       if (object == null || typeof object == 'boolean' || typeof object == 'number' || typeof object == 'string') {
-        dart.throw(new core.ArgumentError(object));
+        dart.throw(_js_helper.argumentErrorValue(object));
       }
       object[key] = value;
     }
@@ -9310,7 +9310,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _fromCharCodeApply: [core.String, [core.List$(core.int)]],
       stringFromCodePoints: [core.String, [dart.dynamic]],
       stringFromCharCodes: [core.String, [dart.dynamic]],
-      stringFromCharCode: [core.String, [dart.dynamic]],
+      stringFromCharCode: [core.String, [core.int]],
       stringConcatUnchecked: [core.String, [core.String, core.String]],
       flattenString: [core.String, [core.String]],
       getTimeZoneName: [core.String, [dart.dynamic]],
@@ -9339,40 +9339,63 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _js_helper.Primitives.DOLLAR_CHAR_VALUE = 36;
   _js_helper.Primitives.timerFrequency = null;
   _js_helper.Primitives.timerTicks = null;
+  _js_helper.diagnoseIndexError = function(indexable, index) {
+    if (!(typeof index == 'number')) return new core.ArgumentError.value(index, 'index');
+    let length = dart.as(dart.dload(indexable, 'length'), core.int);
+    if (dart.notNull(dart.as(dart.dsend(index, '<', 0), core.bool)) || dart.notNull(dart.as(dart.dsend(index, '>=', length), core.bool))) {
+      return core.RangeError.index(dart.as(index, core.int), indexable, 'index', null, length);
+    }
+    return new core.RangeError.value(dart.as(index, core.num), 'index');
+  };
+  dart.lazyFn(_js_helper.diagnoseIndexError, () => [core.Error, [dart.dynamic, dart.dynamic]]);
+  _js_helper.diagnoseRangeError = function(start, end, length) {
+    if (!(typeof start == 'number')) {
+      return new core.ArgumentError.value(start, 'start');
+    }
+    if (dart.notNull(dart.as(dart.dsend(start, '<', 0), core.bool)) || dart.notNull(dart.as(dart.dsend(start, '>', length), core.bool))) {
+      return new core.RangeError.range(dart.as(start, core.num), 0, dart.as(length, core.int), 'start');
+    }
+    if (end != null) {
+      if (!(typeof end == 'number')) {
+        return new core.ArgumentError.value(end, 'end');
+      }
+      if (dart.notNull(dart.as(dart.dsend(end, '<', start), core.bool)) || dart.notNull(dart.as(dart.dsend(end, '>', length), core.bool))) {
+        return new core.RangeError.range(dart.as(end, core.num), dart.as(start, core.int), dart.as(length, core.int), 'end');
+      }
+    }
+    return new core.ArgumentError.value(end, "end");
+  };
+  dart.lazyFn(_js_helper.diagnoseRangeError, () => [core.Error, [dart.dynamic, dart.dynamic, dart.dynamic]]);
   _js_helper.stringLastIndexOfUnchecked = function(receiver, element, start) {
     return receiver.lastIndexOf(element, start);
   };
   dart.fn(_js_helper.stringLastIndexOfUnchecked);
+  _js_helper.argumentErrorValue = function(object) {
+    return new core.ArgumentError.value(object);
+  };
+  dart.lazyFn(_js_helper.argumentErrorValue, () => [core.ArgumentError, [dart.dynamic]]);
   _js_helper.checkNull = function(object) {
-    if (object == null) dart.throw(new core.ArgumentError(null));
+    if (object == null) dart.throw(_js_helper.argumentErrorValue(object));
     return object;
   };
   dart.fn(_js_helper.checkNull);
   _js_helper.checkNum = function(value) {
-    if (!(typeof value == 'number')) {
-      dart.throw(new core.ArgumentError(value));
-    }
+    if (!(typeof value == 'number')) dart.throw(_js_helper.argumentErrorValue(value));
     return value;
   };
   dart.fn(_js_helper.checkNum);
   _js_helper.checkInt = function(value) {
-    if (!(typeof value == 'number')) {
-      dart.throw(new core.ArgumentError(value));
-    }
+    if (!(typeof value == 'number')) dart.throw(_js_helper.argumentErrorValue(value));
     return value;
   };
   dart.fn(_js_helper.checkInt);
   _js_helper.checkBool = function(value) {
-    if (!(typeof value == 'boolean')) {
-      dart.throw(new core.ArgumentError(value));
-    }
+    if (!(typeof value == 'boolean')) dart.throw(_js_helper.argumentErrorValue(value));
     return value;
   };
   dart.fn(_js_helper.checkBool);
   _js_helper.checkString = function(value) {
-    if (!(typeof value == 'string')) {
-      dart.throw(new core.ArgumentError(value));
-    }
+    if (!(typeof value == 'string')) dart.throw(_js_helper.argumentErrorValue(value));
     return value;
   };
   dart.fn(_js_helper.checkString);
@@ -26598,6 +26621,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   const _hasValue$ = Symbol('_hasValue');
+  const _errorName = Symbol('_errorName');
+  const _errorExplanation = Symbol('_errorExplanation');
   core.ArgumentError = class ArgumentError extends core.Error {
     ArgumentError(message) {
       if (message === void 0) message = null;
@@ -26609,7 +26634,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     value(value, name, message) {
       if (name === void 0) name = null;
-      if (message === void 0) message = "Invalid argument";
+      if (message === void 0) message = null;
       this.name = name;
       this.message = message;
       this.invalidValue = value;
@@ -26618,21 +26643,29 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     notNull(name) {
       if (name === void 0) name = null;
-      this.value(null, name, "Must not be null");
+      this.name = name;
+      this[_hasValue$] = false;
+      this.message = "Must not be null";
+      this.invalidValue = null;
+      super.Error();
+    }
+    get [_errorName]() {
+      return `Invalid argument${!dart.notNull(this[_hasValue$]) ? "(s)" : ""}`;
+    }
+    get [_errorExplanation]() {
+      return "";
     }
     toString() {
-      if (!dart.notNull(this[_hasValue$])) {
-        let result = "Invalid arguments(s)";
-        if (this.message != null) {
-          result = `${result}: ${this.message}`;
-        }
-        return result;
-      }
       let nameString = "";
       if (this.name != null) {
         nameString = ` (${this.name})`;
       }
-      return `${this.message}${nameString}: ${core.Error.safeToString(this.invalidValue)}`;
+      let message = this.message == null ? "" : `: ${this.message}`;
+      let prefix = `${this[_errorName]}${nameString}${message}`;
+      if (!dart.notNull(this[_hasValue$])) return prefix;
+      let explanation = this[_errorExplanation];
+      let errorValue = core.Error.safeToString(this.invalidValue);
+      return `${prefix}${explanation}: ${errorValue}`;
     }
   };
   dart.defineNamedConstructor(core.ArgumentError, 'value');
@@ -26679,7 +26712,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (length === void 0) length = null;
       if (message === void 0) message = null;
       if (length == null) length = dart.as(dart.dload(indexable, 'length'), core.int);
-      if (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(length)) {
+      if (0 > dart.notNull(index) || dart.notNull(index) >= dart.notNull(length)) {
         if (name == null) name = "index";
         dart.throw(core.RangeError.index(index, indexable, name, message, length));
       }
@@ -26688,23 +26721,29 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (startName === void 0) startName = null;
       if (endName === void 0) endName = null;
       if (message === void 0) message = null;
-      if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(length)) {
+      if (0 > dart.notNull(start) || dart.notNull(start) > dart.notNull(length)) {
         if (startName == null) startName = "start";
         dart.throw(new core.RangeError.range(start, 0, length, startName, message));
       }
-      if (end != null && (dart.notNull(end) < dart.notNull(start) || dart.notNull(end) > dart.notNull(length))) {
-        if (endName == null) endName = "end";
-        dart.throw(new core.RangeError.range(end, start, length, endName, message));
+      if (end != null) {
+        if (dart.notNull(start) > dart.notNull(end) || dart.notNull(end) > dart.notNull(length)) {
+          if (endName == null) endName = "end";
+          dart.throw(new core.RangeError.range(end, start, length, endName, message));
+        }
+        return end;
       }
+      return length;
     }
     static checkNotNegative(value, name, message) {
       if (name === void 0) name = null;
       if (message === void 0) message = null;
       if (dart.notNull(value) < 0) dart.throw(new core.RangeError.range(value, 0, null, name, message));
     }
-    toString() {
-      if (!dart.notNull(this[_hasValue$])) return `RangeError: ${this.message}`;
-      let value = core.Error.safeToString(this.invalidValue);
+    get [_errorName]() {
+      return "RangeError";
+    }
+    get [_errorExplanation]() {
+      dart.assert(this[_hasValue$]);
       let explanation = "";
       if (this.start == null) {
         if (this.end != null) {
@@ -26713,13 +26752,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       } else if (this.end == null) {
         explanation = `: Not greater than or equal to ${this.start}`;
       } else if (dart.notNull(this.end) > dart.notNull(this.start)) {
-        explanation = `: Not in range ${this.start}..${this.end}, inclusive.`;
+        explanation = `: Not in range ${this.start}..${this.end}, inclusive`;
       } else if (dart.notNull(this.end) < dart.notNull(this.start)) {
         explanation = ": Valid value range is empty";
       } else {
         explanation = `: Only valid value is ${this.start}`;
       }
-      return `RangeError: ${this.message} (${value})${explanation}`;
+      return explanation;
     }
   };
   dart.defineNamedConstructor(core.RangeError, 'value');
@@ -26734,7 +26773,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     statics: () => ({
       checkValueInInterval: [dart.void, [core.int, core.int, core.int], [core.String, core.String]],
       checkValidIndex: [dart.void, [core.int, dart.dynamic], [core.String, core.int, core.String]],
-      checkValidRange: [dart.void, [core.int, core.int, core.int], [core.String, core.String, core.String]],
+      checkValidRange: [core.int, [core.int, core.int, core.int], [core.String, core.String, core.String]],
       checkNotNegative: [dart.void, [core.int], [core.String, core.String]]
     }),
     names: ['checkValueInInterval', 'checkValidIndex', 'checkValidRange', 'checkNotNegative']
@@ -26754,14 +26793,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get end() {
       return dart.notNull(this.length) - 1;
     }
-    toString() {
+    get [_errorName]() {
+      return "RangeError";
+    }
+    get [_errorExplanation]() {
       dart.assert(this[_hasValue$]);
-      let target = core.Error.safeToString(this.indexable);
-      let explanation = `index should be less than ${this.length}`;
       if (dart.notNull(dart.as(dart.dsend(this.invalidValue, '<', 0), core.bool))) {
-        explanation = "index must not be negative";
+        return ": index must not be negative";
       }
-      return `RangeError: ${this.message} (${target}[${this.invalidValue}]): ${explanation}`;
+      if (this.length == 0) {
+        return ": no indices are valid";
+      }
+      return `: index should be less than ${this.length}`;
     }
   };
   core.IndexError[dart.implements] = () => [core.RangeError];

@@ -157,32 +157,34 @@ class ArgumentError extends Error {
    */
   ArgumentError.value(value,
                       [String this.name,
-                       String this.message = "Invalid argument"])
+                       String this.message])
       : invalidValue = value,
         _hasValue = true;
 
   /**
    * Create an argument error for a `null` argument that must not be `null`.
-   *
-   * Shorthand for calling [ArgumentError.value] with a `null` value and a
-   * message of `"Must not be null"`.
    */
-  ArgumentError.notNull([String name])
-      : this.value(null, name, "Must not be null");
+  ArgumentError.notNull([this.name])
+      : _hasValue = false,
+        message = "Must not be null",
+        invalidValue = null;
+
+  // Helper functions for toString overridden in subclasses.
+  String get _errorName => "Invalid argument${!_hasValue ? "(s)" : ""}";
+  String get _errorExplanation => "";
 
   String toString() {
-    if (!_hasValue) {
-      var result = "Invalid arguments(s)";
-      if (message != null) {
-        result = "$result: $message";
-      }
-      return result;
-    }
     String nameString = "";
     if (name != null) {
       nameString = " ($name)";
     }
-    return "$message$nameString: ${Error.safeToString(invalidValue)}";
+    var message = (this.message == null) ? "" : ": ${this.message}";
+    String prefix = "$_errorName$nameString$message";
+    if (!_hasValue) return prefix;
+    // If we know the invalid value, we can try to describe the problem.
+    String explanation = _errorExplanation;
+    String errorValue = Error.safeToString(invalidValue);
+    return "$prefix$explanation: $errorValue";
   }
 }
 
@@ -274,12 +276,13 @@ class RangeError extends ArgumentError {
    * `[]` that accepts an index if `0 <= index < length`.
    *
    * If [length] is provided, it is used as the length of the indexable object,
-   * otherwise the length is found as `idexable.length`.
+   * otherwise the length is found as `indexable.length`.
    */
   static void checkValidIndex(int index, var indexable,
                               [String name, int length, String message]) {
     if (length == null) length = indexable.length;
-    if (index < 0 || index >= length) {
+    // Comparing with `0` as receiver produces better dart2js type inference.
+    if (0 > index || index >= length) {
       if (name == null) name = "index";
       throw new RangeError.index(index, indexable, name, message, length);
     }
@@ -297,18 +300,27 @@ class RangeError extends ArgumentError {
    *
    * The [startName] and [endName] defaults to `"start"` and `"end"`,
    * respectively.
+   *
+   * Returns the actual `end` value, which is `length` if `end` is `null`,
+   * and `end` otherwise.
    */
-  static void checkValidRange(int start, int end, int length,
+  static int checkValidRange(int start, int end, int length,
                               [String startName, String endName,
                                String message]) {
-    if (start < 0 || start > length) {
+    // Comparing with `0` as receiver produces better dart2js type inference.
+    // Ditto `start > end` below.
+    if (0 > start || start > length) {
       if (startName == null) startName = "start";
       throw new RangeError.range(start, 0, length, startName, message);
     }
-    if (end != null && (end < start || end > length)) {
-      if (endName == null) endName = "end";
-      throw new RangeError.range(end, start, length, endName, message);
+    if (end != null) {
+      if (start > end || end > length) {
+        if (endName == null) endName = "end";
+        throw new RangeError.range(end, start, length, endName, message);
+      }
+      return end;
     }
+    return length;
   }
 
   /**
@@ -320,9 +332,9 @@ class RangeError extends ArgumentError {
     if (value < 0) throw new RangeError.range(value, 0, null, name, message);
   }
 
-  String toString() {
-    if (!_hasValue) return "RangeError: $message";
-    String value = Error.safeToString(invalidValue);
+  String get _errorName => "RangeError";
+  String get _errorExplanation {
+    assert(_hasValue);
     String explanation = "";
     if (start == null) {
       if (end != null) {
@@ -332,14 +344,14 @@ class RangeError extends ArgumentError {
     } else if (end == null) {
       explanation = ": Not greater than or equal to $start";
     } else if (end > start) {
-      explanation = ": Not in range $start..$end, inclusive.";
+      explanation = ": Not in range $start..$end, inclusive";
     } else if (end < start) {
       explanation = ": Valid value range is empty";
     } else {
       // end == start.
       explanation = ": Only valid value is $start";
     }
-    return "RangeError: $message ($value)$explanation";
+    return explanation;
   }
 }
 
@@ -376,14 +388,16 @@ class IndexError extends ArgumentError implements RangeError {
   int get start => 0;
   int get end => length - 1;
 
-  String toString() {
+  String get _errorName => "RangeError";
+  String get _errorExplanation {
     assert(_hasValue);
-    String target = Error.safeToString(indexable);
-    var explanation = "index should be less than $length";
     if (invalidValue < 0) {
-      explanation = "index must not be negative";
+      return ": index must not be negative";
     }
-    return "RangeError: $message ($target[$invalidValue]): $explanation";
+    if (length == 0) {
+      return ": no indices are valid";
+    }
+    return ": index should be less than $length";
   }
 }
 
