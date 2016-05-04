@@ -12,4 +12,5 @@ final info = new Info();
 void main() {
   Expect.equals(38, info.x);
   Expect.equals(38, bar.y);
+  Expect.equals(38, bar.z);
 }

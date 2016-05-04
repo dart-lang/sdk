@@ -416,7 +416,12 @@ class CodeGenerator extends GeneralizingAstVisitor
       // Don't allow redefining names from this library.
       if (currentNames.containsKey(export.name)) continue;
 
-      _loader.emitDeclaration(export);
+      if (export.isSynthetic && export is PropertyInducingElement) {
+        _loader.emitDeclaration(export.getter);
+        _loader.emitDeclaration(export.setter);
+      } else {
+        _loader.emitDeclaration(export);
+      }
       if (export is ClassElement && export.typeParameters.isNotEmpty) {
         // Export the generic name as well.
         // TODO(jmesserly): revisit generic classes

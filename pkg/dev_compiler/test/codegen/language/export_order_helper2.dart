@@ -7,3 +7,5 @@ import 'export_order_helper1.dart';
 class Info {
   int x = y;
 }
+
+int get z => 38;
