@@ -1252,8 +1252,8 @@ class _LibraryResynthesizer {
     String partUri;
     if (unit != 0) {
       String uri = dependency.parts[unit - 1];
-      Source partSource = summaryResynthesizer.sourceFactory
-          .resolveUri(referencedLibrarySource, uri);
+      Source partSource =
+          summaryResynthesizer.sourceFactory.resolveUri(librarySource, uri);
       partUri = partSource.uri.toString();
     } else {
       partUri = referencedLibraryUri;

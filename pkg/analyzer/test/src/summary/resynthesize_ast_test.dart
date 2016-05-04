@@ -612,12 +612,6 @@ class ResynthesizeAstTest extends ResynthesizeTest
   void test_inferred_function_type_in_generic_class_constructor() {
     super.test_inferred_function_type_in_generic_class_constructor();
   }
-
-  @override
-  @failingTest
-  void test_type_reference_to_import_part_in_subdir() {
-    super.test_type_reference_to_import_part_in_subdir();
-  }
 }
 
 /**
