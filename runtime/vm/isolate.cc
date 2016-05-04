@@ -1403,11 +1403,6 @@ void Isolate::Run() {
 
 
 void Isolate::AddClosureFunction(const Function& function) const {
-  // TODO(regis): remove once debugging complete.
-  if (Compiler::IsBackgroundCompilation()) {
-    NOT_IN_PRODUCT(Profiler::DumpStackTrace(true /*native*/));
-    UNREACHABLE();
-  }
   ASSERT(!Compiler::IsBackgroundCompilation());
   GrowableObjectArray& closures =
       GrowableObjectArray::Handle(object_store()->closure_functions());

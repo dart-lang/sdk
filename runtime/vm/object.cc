@@ -6432,45 +6432,6 @@ bool Function::TestParameterType(
   }
   AbstractType& param_type =
       AbstractType::Handle(ParameterTypeAt(parameter_position));
-
-  // TODO(regis): Remove this debugging code.
-  if (param_type.IsNull()) {
-    THR_Print("*** null param_type ***\n");
-    THR_Print("parameter_position: %" Pd "\n", parameter_position);
-    THR_Print("other_parameter_position: %" Pd "\n", other_parameter_position);
-    String& str = String::Handle();
-    str = QualifiedScrubbedName();
-    THR_Print("function name: %s\n", str.ToCString());
-    str = other.QualifiedScrubbedName();
-    THR_Print("other function name: %s\n", str.ToCString());
-    Class& owner = Class::Handle();
-    owner = Owner();
-    THR_Print("function owner: %s\n", owner.ToCString());
-    owner = other.Owner();
-    THR_Print("other function owner: %s\n", owner.ToCString());
-    THR_Print("other_param_type: %s\n", other_param_type.ToCString());
-    AbstractType& type = AbstractType::Handle();
-    if (parameter_position > 0) {
-      type = ParameterTypeAt(0);
-      THR_Print("receiver type: %s\n",
-                type.IsNull()? "null" : type.ToCString());
-    }
-    THR_Print("has code: %s\n", HasCode() ? "yes" : "no");
-    str = Report::PrependSnippet(Report::kWarning,
-                                 Script::Handle(script()),
-                                 token_pos(),
-                                 Report::AtLocation,
-                                 Symbols::Empty());
-    THR_Print("function source: %s\n", str.ToCString());
-    for (intptr_t i = 0; i < NumParameters(); i++) {
-      THR_Print("function param %" Pd "\n", i);
-      str = ParameterNameAt(i);
-      THR_Print("  name: %s\n", str.IsNull() ? "null" : str.ToCString());
-      type = ParameterTypeAt(i);
-      THR_Print("  type: %s\n", type.IsNull() ? "null" : type.ToCString());
-    }
-  }
-
   if (!param_type.IsInstantiated()) {
     param_type = param_type.InstantiateFrom(type_arguments,
                                             bound_error,
@@ -15605,15 +15566,6 @@ TokenPosition AbstractType::token_pos() const {
 
 bool AbstractType::IsInstantiated(TrailPtr trail) const {
   // AbstractType is an abstract class.
-#if !defined(PRODUCT)
-  // TODO(srdjan) : Remove temporary code.
-NOT_IN_PRODUCT(
-  Profiler::DumpStackTrace(true);  // Only native stack trace.
-)
-  if (Compiler::IsBackgroundCompilation()) {
-    UNREACHABLE();
-  }
-#endif
   UNREACHABLE();
   return false;
 }
