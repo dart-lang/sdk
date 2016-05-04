@@ -728,7 +728,12 @@ abstract class CompilationUnitElementForLink
           }
         }
       }
-      // TODO(paulberry): also add synthetic accessors.
+      for (TopLevelVariableElementForLink variable in topLevelVariables) {
+        _accessors.add(variable.getter);
+        if (!variable.isConst && !variable.isFinal) {
+          _accessors.add(variable.setter);
+        }
+      }
     }
     return _accessors;
   }
@@ -827,18 +832,11 @@ abstract class CompilationUnitElementForLink
       for (ClassElementForLink_Enum enm in enums) {
         _containedNames[enm.name] = enm;
       }
-      for (TopLevelVariableElementForLink variable in topLevelVariables) {
-        _containedNames[variable.name] = variable;
-      }
       for (TopLevelFunctionElementForLink function in functions) {
         _containedNames[function.name] = function;
       }
       for (PropertyAccessorElementForLink accessor in accessors) {
-        // TODO(paulberry): consider handling synthetic accessors and getting
-        // rid of the loop above for topLevelVariables.
-        if (!accessor.isSynthetic) {
-          _containedNames[accessor.name] = accessor;
-        }
+        _containedNames[accessor.name] = accessor;
       }
       // TODO(paulberry): fill in other top level entities (typedefs
       // and executables).
@@ -2464,9 +2462,6 @@ class FieldElementForLink_ClassField extends VariableElementForLink
   @override
   final ClassElementForLink_Class enclosingElement;
 
-  PropertyAccessorElementForLink_Variable _getter;
-  PropertyAccessorElementForLink_Variable _setter;
-
   /**
    * If this is an instance field, the type that was computed by
    * [InstanceMemberInferrer] (if any).  Otherwise `null`.
@@ -2479,21 +2474,7 @@ class FieldElementForLink_ClassField extends VariableElementForLink
         super(unlinkedVariable, enclosingElement.enclosingElement);
 
   @override
-  PropertyAccessorElementForLink_Variable get getter =>
-      _getter ??= new PropertyAccessorElementForLink_Variable(this, false);
-
-  @override
   bool get isStatic => unlinkedVariable.isStatic;
-
-  @override
-  PropertyAccessorElementForLink_Variable get setter {
-    if (!isConst && !isFinal) {
-      return _setter ??=
-          new PropertyAccessorElementForLink_Variable(this, true);
-    } else {
-      return null;
-    }
-  }
 
   @override
   void set type(DartType inferredType) {
@@ -3846,6 +3827,9 @@ class TopLevelVariableElementForLink extends VariableElementForLink
       : super(unlinkedVariable, enclosingElement);
 
   @override
+  CompilationUnitElementForLink get enclosingElement => compilationUnit;
+
+  @override
   bool get isStatic => true;
 
   @override
@@ -3860,7 +3844,7 @@ class TopLevelVariableElementForLink extends VariableElementForLink
    */
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
     if (hasImplicitType) {
-      TypeInferenceNode typeInferenceNode = this.asTypeInferenceNode;
+      TypeInferenceNode typeInferenceNode = this._typeInferenceNode;
       if (typeInferenceNode != null) {
         compilationUnit._storeLinkedType(
             unlinkedVariable.inferredTypeSlot, inferredType, null);
@@ -3976,6 +3960,9 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
           new ExprTypeComputer(variableElement).compute();
     }
   }
+
+  @override
+  String toString() => 'TypeInferenceNode($variableElement)';
 }
 
 /**
@@ -4285,11 +4272,8 @@ class UndefinedElementForLink implements ReferenceableElementForLink {
  * Element representing a top level variable resynthesized from a
  * summary during linking.
  */
-class VariableElementForLink
-    implements
-        VariableElementImpl,
-        PropertyInducingElement,
-        ReferenceableElementForLink {
+abstract class VariableElementForLink
+    implements VariableElementImpl, PropertyInducingElement {
   /**
    * The unlinked representation of the variable in the summary.
    */
@@ -4312,6 +4296,8 @@ class VariableElementForLink
   FunctionElementForLink_Initializer _initializer;
   DartType _inferredType;
   DartType _declaredType;
+  PropertyAccessorElementForLink_Variable _getter;
+  PropertyAccessorElementForLink_Variable _setter;
 
   /**
    * The compilation unit in which this variable appears.
@@ -4327,18 +4313,6 @@ class VariableElementForLink
     }
   }
 
-  @override
-  ConstructorElementForLink get asConstructor => null;
-
-  @override
-  ConstVariableNode get asConstVariable => _constNode;
-
-  @override
-  DartType get asStaticType => type;
-
-  @override
-  TypeInferenceNode get asTypeInferenceNode => _typeInferenceNode;
-
   /**
    * If the variable has an explicitly declared return type, return it.
    * Otherwise return `null`.
@@ -4351,6 +4325,10 @@ class VariableElementForLink
           unlinkedVariable.type, _typeParameterContext);
     }
   }
+
+  @override
+  PropertyAccessorElementForLink_Variable get getter =>
+      _getter ??= new PropertyAccessorElementForLink_Variable(this, false);
 
   @override
   bool get hasImplicitType => unlinkedVariable.type == null;
@@ -4414,6 +4392,16 @@ class VariableElementForLink
   }
 
   @override
+  PropertyAccessorElementForLink_Variable get setter {
+    if (!isConst && !isFinal) {
+      return _setter ??=
+          new PropertyAccessorElementForLink_Variable(this, true);
+    } else {
+      return null;
+    }
+  }
+
+  @override
   DartType get type => declaredType ?? inferredType;
 
   @override
@@ -4428,14 +4416,8 @@ class VariableElementForLink
   TypeParameterizedElementForLink get _typeParameterContext;
 
   @override
-  DartType buildType(DartType getTypeArgument(int i),
-          List<int> implicitFunctionTypeIndices) =>
-      DynamicTypeImpl.instance;
-
-  ReferenceableElementForLink getContainedName(String name) {
-    return new NonstaticMemberElementForLink(library, this, name);
-  }
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  String toString() => '$enclosingElement.$name';
 }
