@@ -396,7 +396,6 @@
       'error_stack_trace1_test': fail,
       'error_stack_trace2_test': fail,
       'file_resource_test': skip_fail, // crashes during import load.
-      'format_exception_test': fail,
       'from_environment_const_type_test_01_multi': skip_fail,  // constructor throws
       'from_environment_const_type_test_05_multi': skip_fail,  // constructor throws
       'from_environment_const_type_test_10_multi': skip_fail,  // constructor throws

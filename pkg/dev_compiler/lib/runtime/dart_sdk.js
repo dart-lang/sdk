@@ -26626,8 +26626,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
     AssertionError() {
       super.Error();
     }
+    toString() {
+      return "Assertion failed";
+    }
   };
-  core.TypeError = class TypeError extends core.AssertionError {};
+  dart.setSignature(core.AssertionError, {
+    constructors: () => ({AssertionError: [core.AssertionError, []]})
+  });
+  core.TypeError = class TypeError extends core.AssertionError {
+    TypeError() {
+      super.AssertionError();
+    }
+  };
   core.CastError = class CastError extends core.Error {
     CastError() {
       super.Error();
@@ -26999,14 +27009,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   core.Exception = class Exception extends core.Object {
     static new(message) {
       if (message === void 0) message = null;
-      return new core._ExceptionImplementation(message);
+      return new core._Exception(message);
     }
   };
   dart.setSignature(core.Exception, {
     constructors: () => ({new: [core.Exception, [], [dart.dynamic]]})
   });
-  core._ExceptionImplementation = class _ExceptionImplementation extends core.Object {
-    _ExceptionImplementation(message) {
+  core._Exception = class _Exception extends core.Object {
+    _Exception(message) {
       if (message === void 0) message = null;
       this.message = message;
     }
@@ -27015,15 +27025,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return `Exception: ${this.message}`;
     }
   };
-  core._ExceptionImplementation[dart.implements] = () => [core.Exception];
-  dart.setSignature(core._ExceptionImplementation, {
-    constructors: () => ({_ExceptionImplementation: [core._ExceptionImplementation, [], [dart.dynamic]]})
+  core._Exception[dart.implements] = () => [core.Exception];
+  dart.setSignature(core._Exception, {
+    constructors: () => ({_Exception: [core._Exception, [], [dart.dynamic]]})
   });
   core.FormatException = class FormatException extends core.Object {
     FormatException(message, source, offset) {
       if (message === void 0) message = "";
       if (source === void 0) source = null;
-      if (offset === void 0) offset = -1;
+      if (offset === void 0) offset = null;
       this.message = message;
       this.source = source;
       this.offset = offset;
@@ -27035,15 +27045,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       let offset = this.offset;
       if (!(typeof this.source == 'string')) {
-        if (offset != -1) {
+        if (offset != null) {
           report = report + ` (at offset ${offset})`;
         }
         return report;
       }
-      if (offset != -1 && (dart.notNull(offset) < 0 || dart.notNull(offset) > dart.notNull(dart.as(dart.dload(this.source, 'length'), core.num)))) {
-        offset = -1;
+      if (offset != null && (dart.notNull(offset) < 0 || dart.notNull(offset) > dart.notNull(dart.as(dart.dload(this.source, 'length'), core.num)))) {
+        offset = null;
       }
-      if (offset == -1) {
+      if (offset == null) {
         let source = dart.as(this.source, core.String);
         if (dart.notNull(source[dartx.length]) > 78) {
           source = dart.notNull(source[dartx.substring](0, 75)) + "...";

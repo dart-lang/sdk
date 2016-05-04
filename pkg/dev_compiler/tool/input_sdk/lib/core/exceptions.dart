@@ -18,15 +18,15 @@ part of dart.core;
  * until the actual exceptions used by a library are done.
  */
 abstract class Exception {
-  factory Exception([var message]) => new _ExceptionImplementation(message);
+  factory Exception([var message]) => new _Exception(message);
 }
 
 
 /** Default implementation of [Exception] which carries a message. */
-class _ExceptionImplementation implements Exception {
+class _Exception implements Exception {
   final message;
 
-  _ExceptionImplementation([this.message]);
+  _Exception([this.message]);
 
   String toString() {
     if (message == null) return "Exception";
@@ -46,7 +46,7 @@ class FormatException implements Exception {
   final String message;
 
   /**
-   * The actual source input that caused the error.
+   * The actual source input which caused the error.
    *
    * This is usually a [String], but can be other types too.
    * If it is a string, parts of it may be included in the [toString] message.
@@ -73,10 +73,10 @@ class FormatException implements Exception {
   /**
    * Creates a new FormatException with an optional error [message].
    *
-   * Optionally also supply the actual [source] that had the incorrect format,
-   * and an [offset] in the format where a problem was detected.
+   * Optionally also supply the actual [source] with the incorrect format,
+   * and the [offset] in the format where a problem was detected.
    */
-  const FormatException([this.message = "", this.source, this.offset = -1]);
+  const FormatException([this.message = "", this.source, this.offset]);
 
   /**
    * Returns a description of the format exception.
@@ -100,16 +100,16 @@ class FormatException implements Exception {
     }
     int offset = this.offset;
     if (source is! String) {
-      if (offset != -1) {
+      if (offset != null) {
         report += " (at offset $offset)";
       }
       return report;
     }
-    if (offset != -1 && (offset < 0 || offset > source.length)) {
-      offset = -1;
+    if (offset != null && (offset < 0 || offset > source.length)) {
+      offset = null;
     }
     // Source is string and offset is null or valid.
-    if (offset == -1) {
+    if (offset == null) {
       String source = this.source;
       if (source.length > 78) {
         source = source.substring(0, 75) + "...";
@@ -174,6 +174,7 @@ class FormatException implements Exception {
   }
 }
 
+// Exception thrown when doing integer division with a zero divisor.
 class IntegerDivisionByZeroException implements Exception {
   const IntegerDivisionByZeroException();
   String toString() => "IntegerDivisionByZeroException";

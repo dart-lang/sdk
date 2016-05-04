@@ -21,11 +21,19 @@ class bool {
    * In all other cases, including when there is no declaration for `name`,
    * the result is the [defaultValue].
    *
+   * The result is the same as would be returned by:
+   *
+   *     (const String.fromEnvironment(name) == "true")
+   *         ? true
+   *         : (const String.fromEnvironment(name) == "false")
+   *             ? false
+   *             : defaultValue
+   *
    * Example:
    *
    *     const loggingFlag = const bool.fromEnvironment("logging");
    *
-   * If you want to use a different truth-string, you can use the
+   * If you want to use a different truth-string than `"true"`, you can use the
    * [String.fromEnvironment] constructor directly:
    *
    *     const isLoggingOn = (const String.fromEnvironment("logging") == "on");
