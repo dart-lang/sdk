@@ -42,9 +42,18 @@ import 'error_helpers.dart' show errorSeverity, formatError, sortErrors;
 /// about them.
 class ModuleCompiler {
   final AnalysisContext context;
-  final _extensionTypes = new ExtensionTypeSet();
+  final ExtensionTypeSet _extensionTypes;
 
-  ModuleCompiler.withContext(this.context);
+  ModuleCompiler.withContext(AnalysisContext context)
+      : context = context,
+        _extensionTypes = new ExtensionTypeSet(context) {
+    if (!context.analysisOptions.strongMode) {
+      throw new ArgumentError('AnalysisContext must be strong mode');
+    }
+    if (!context.sourceFactory.dartSdk.context.analysisOptions.strongMode) {
+      throw new ArgumentError('AnalysisContext must have strong mode SDK');
+    }
+  }
 
   ModuleCompiler(AnalyzerOptions analyzerOptions)
       : this.withContext(createAnalysisContextWithSources(analyzerOptions));

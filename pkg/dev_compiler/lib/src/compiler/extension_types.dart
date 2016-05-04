@@ -2,748 +2,173 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart' show Element;
-import 'package:analyzer/dart/element/visitor.dart'
-    show GeneralizingElementVisitor;
-import 'package:collection/collection.dart' show binarySearch;
+import 'dart:collection';
+import 'package:analyzer/dart/element/element.dart'
+    show ClassElement, CompilationUnitElement, Element;
+import 'package:analyzer/dart/element/type.dart' show DartType, InterfaceType;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 
-class ExtensionTypeSet extends GeneralizingElementVisitor {
-  bool contains(Element element) {
-    var library = element?.library;
-    if (library == null) return false;
+/// Contains information about native JS types (those types provided by the
+/// implementation) that are also provided by the Dart SDK.
+///
+/// For types provided by JavaScript, it is important that we don't add methods
+/// directly to those types. Instead, we must call through a special set of
+/// JS Symbol names, that are used for the "Dart extensions". For example:
+///
+///     // Dart
+///     Iterable iter = myList;
+///     print(iter.first);
+///
+///     // JS
+///     let iter =  myLib.myList;
+///     core.print(iter[dartx.first]);
+///
+/// This will provide the [Iterable.first] property, without needing to add
+/// `first` to the `Array.prototype`.
+class ExtensionTypeSet {
+  final AnalysisContext _context;
 
-    var source = library.source;
-    if (source.isInSystemLibrary) {
-      var types = _extensionTypes[source.uri.toString()];
-      if (types != null) {
-        int index = binarySearch(types, element.name);
-        return index >= 0;
+  // Abstract types that may be implemented by both native and non-native
+  // classes.
+  final _extensibleTypes = new HashSet<ClassElement>();
+
+  // Concrete native types.
+  final _nativeTypes = new HashSet<ClassElement>();
+  final _pendingLibraries = new HashSet<String>();
+
+  ExtensionTypeSet(this._context) {
+    // TODO(vsm): Eventually, we want to make this extensible - i.e., find
+    // annotations in user code as well.  It would need to be summarized in
+    // the element model - not searched this way on every compile.  To make this
+    // a little more efficient now, we do this in two phases.
+
+    // First, core types:
+    // TODO(vsm): If we're analyzing against the main SDK, those
+    // types are not explicitly annotated.
+    var types = _context.typeProvider;
+    _addExtensionType(types.intType, true);
+    _addExtensionType(types.doubleType, true);
+    _addExtensionType(types.boolType, true);
+    _addExtensionType(types.stringType, true);
+    _addExtensionTypes('dart:_interceptors');
+    _addExtensionTypes('dart:_native_typed_data');
+
+    // These are used natively by dart:html but also not annotated.
+    _addExtensionTypesForLibrary('dart:core', ['Comparable', 'Map']);
+    _addExtensionTypesForLibrary('dart:collection', ['ListMixin']);
+    _addExtensionTypesForLibrary('dart:math', ['Rectangle']);
+
+    // Second, html types - these are only searched if we use dart:html, etc.:
+    _addPendingExtensionTypes('dart:html');
+    _addPendingExtensionTypes('dart:indexed_db');
+    _addPendingExtensionTypes('dart:svg');
+    _addPendingExtensionTypes('dart:web_audio');
+    _addPendingExtensionTypes('dart:web_gl');
+    _addPendingExtensionTypes('dart:web_sql');
+  }
+
+  void _visitCompilationUnit(CompilationUnitElement unit) {
+    unit.types.forEach(_visitClass);
+  }
+
+  void _visitClass(ClassElement element) {
+    if (_isNative(element)) {
+      _addExtensionType(element.type, true);
+    }
+  }
+
+  bool _isNative(ClassElement element) {
+    for (var metadata in element.metadata) {
+      var e = metadata.element?.enclosingElement;
+      if (e.name == 'Native' || e.name == 'JsPeerInterface') {
+        if (e.source.isInSystemLibrary) return true;
       }
     }
     return false;
   }
 
-  // TODO(vsm): Eventually, we want to make this extensible - i.e., find
-  // annotations in user code as well.  It would need to be summarized in
-  // the element model - not searched this way on every compile.  To make this
-  // a little more efficient now, we do this in two phases.
-  final _extensionTypes = {
-    'dart:_interceptors': [
-      'Interceptor',
-      'JSArray',
-      'JSBool',
-      'JSIndexable',
-      'JSMutableIndexable',
-      'JSNumber',
-      'JSString'
-    ],
-    'dart:_internal': ['FixedLengthListMixin'],
-    'dart:_js_helper': ['JavaScriptIndexingBehavior'],
-    'dart:_native_typed_data': [
-      'NativeByteBuffer',
-      'NativeByteData',
-      'NativeFloat32List',
-      'NativeFloat64List',
-      'NativeInt16List',
-      'NativeInt32List',
-      'NativeInt8List',
-      'NativeTypedArray',
-      'NativeTypedArrayOfDouble',
-      'NativeTypedArrayOfInt',
-      'NativeTypedData',
-      'NativeUint16List',
-      'NativeUint32List',
-      'NativeUint8ClampedList',
-      'NativeUint8List'
-    ],
-    'dart:collection': ['ListMixin'],
-    'dart:core': [
-      'Comparable',
-      'Iterable',
-      'List',
-      'Map',
-      'Pattern',
-      'String',
-      'bool',
-      'double',
-      'int',
-      'num'
-    ],
-    'dart:indexed_db': [
-      'Cursor',
-      'CursorWithValue',
-      'Database',
-      'IdbFactory',
-      'Index',
-      'KeyRange',
-      'ObjectStore',
-      'OpenDBRequest',
-      'Request',
-      'Transaction',
-      'VersionChangeEvent'
-    ],
-    'dart:math': ['Rectangle', '_RectangleBase'],
-    'dart:typed_data': [
-      'ByteBuffer',
-      'ByteData',
-      'Float32List',
-      'Float64List',
-      'Int16List',
-      'Int32List',
-      'Int8List',
-      'TypedData',
-      'Uint16List',
-      'Uint32List',
-      'Uint8ClampedList',
-      'Uint8List'
-    ],
-    'dart:html': [
-      'AbstractWorker',
-      'AnchorElement',
-      'Animation',
-      'AnimationEffect',
-      'AnimationEvent',
-      'AnimationNode',
-      'AnimationPlayer',
-      'AnimationPlayerEvent',
-      'AnimationTimeline',
-      'ApplicationCache',
-      'ApplicationCacheErrorEvent',
-      'AreaElement',
-      'AudioElement',
-      'AudioTrack',
-      'AudioTrackList',
-      'AutocompleteErrorEvent',
-      'BRElement',
-      'BarProp',
-      'BaseElement',
-      'BatteryManager',
-      'BeforeUnloadEvent',
-      'Blob',
-      'Body',
-      'BodyElement',
-      'ButtonElement',
-      'ButtonInputElement',
-      'CDataSection',
-      'CacheStorage',
-      'Canvas2DContextAttributes',
-      'CanvasElement',
-      'CanvasGradient',
-      'CanvasImageSource',
-      'CanvasPattern',
-      'CanvasRenderingContext',
-      'CanvasRenderingContext2D',
-      'CharacterData',
-      'CheckboxInputElement',
-      'ChildNode',
-      'CircularGeofencingRegion',
-      'CloseEvent',
-      'Comment',
-      'CompositionEvent',
-      'ConsoleBase',
-      'ContentElement',
-      'Coordinates',
-      'Credential',
-      'CredentialsContainer',
-      'Crypto',
-      'CryptoKey',
-      'Css',
-      'CssCharsetRule',
-      'CssFilterRule',
-      'CssFontFaceRule',
-      'CssImportRule',
-      'CssKeyframeRule',
-      'CssKeyframesRule',
-      'CssMediaRule',
-      'CssPageRule',
-      'CssRule',
-      'CssStyleDeclaration',
-      'CssStyleDeclarationBase',
-      'CssStyleRule',
-      'CssStyleSheet',
-      'CssSupportsRule',
-      'CssViewportRule',
-      'CustomEvent',
-      'DListElement',
-      'DataListElement',
-      'DataTransfer',
-      'DataTransferItem',
-      'DataTransferItemList',
-      'DateInputElement',
-      'DedicatedWorkerGlobalScope',
-      'DeprecatedStorageInfo',
-      'DeprecatedStorageQuota',
-      'DetailsElement',
-      'DeviceAcceleration',
-      'DeviceLightEvent',
-      'DeviceMotionEvent',
-      'DeviceOrientationEvent',
-      'DeviceRotationRate',
-      'DialogElement',
-      'DirectoryEntry',
-      'DirectoryReader',
-      'DivElement',
-      'Document',
-      'DocumentFragment',
-      'DomError',
-      'DomException',
-      'DomImplementation',
-      'DomIterator',
-      'DomMatrix',
-      'DomMatrixReadOnly',
-      'DomParser',
-      'DomPoint',
-      'DomPointReadOnly',
-      'DomRectReadOnly',
-      'DomSettableTokenList',
-      'DomStringList',
-      'DomTokenList',
-      'Element',
-      'EmailInputElement',
-      'EmbedElement',
-      'Entry',
-      'ErrorEvent',
-      'Event',
-      'EventSource',
-      'EventTarget',
-      'ExtendableEvent',
-      'FederatedCredential',
-      'FetchEvent',
-      'FieldSetElement',
-      'File',
-      'FileEntry',
-      'FileError',
-      'FileList',
-      'FileReader',
-      'FileStream',
-      'FileSystem',
-      'FileUploadInputElement',
-      'FileWriter',
-      'FocusEvent',
-      'FontFace',
-      'FontFaceSet',
-      'FontFaceSetLoadEvent',
-      'FormData',
-      'FormElement',
-      'Gamepad',
-      'GamepadButton',
-      'GamepadEvent',
-      'Geofencing',
-      'GeofencingRegion',
-      'Geolocation',
-      'Geoposition',
-      'GlobalEventHandlers',
-      'HRElement',
-      'HashChangeEvent',
-      'HeadElement',
-      'Headers',
-      'HeadingElement',
-      'HiddenInputElement',
-      'History',
-      'HistoryBase',
-      'HtmlCollection',
-      'HtmlDocument',
-      'HtmlElement',
-      'HtmlFormControlsCollection',
-      'HtmlHtmlElement',
-      'HtmlOptionsCollection',
-      'HttpRequest',
-      'HttpRequestEventTarget',
-      'HttpRequestUpload',
-      'IFrameElement',
-      'ImageBitmap',
-      'ImageButtonInputElement',
-      'ImageData',
-      'ImageElement',
-      'ImmutableListMixin',
-      'InjectedScriptHost',
-      'InputElement',
-      'InputElementBase',
-      'InputMethodContext',
-      'InstallEvent',
-      'KeyboardEvent',
-      'KeygenElement',
-      'LIElement',
-      'LabelElement',
-      'LegendElement',
-      'LinkElement',
-      'LocalCredential',
-      'LocalDateTimeInputElement',
-      'Location',
-      'LocationBase',
-      'MapElement',
-      'MediaController',
-      'MediaDeviceInfo',
-      'MediaElement',
-      'MediaError',
-      'MediaKeyError',
-      'MediaKeyEvent',
-      'MediaKeyMessageEvent',
-      'MediaKeyNeededEvent',
-      'MediaKeySession',
-      'MediaKeys',
-      'MediaList',
-      'MediaQueryList',
-      'MediaQueryListEvent',
-      'MediaSource',
-      'MediaStream',
-      'MediaStreamEvent',
-      'MediaStreamTrack',
-      'MediaStreamTrackEvent',
-      'MemoryInfo',
-      'MenuElement',
-      'MenuItemElement',
-      'MessageChannel',
-      'MessageEvent',
-      'MessagePort',
-      'MetaElement',
-      'Metadata',
-      'MeterElement',
-      'MidiAccess',
-      'MidiConnectionEvent',
-      'MidiInput',
-      'MidiInputMap',
-      'MidiMessageEvent',
-      'MidiOutput',
-      'MidiOutputMap',
-      'MidiPort',
-      'MimeType',
-      'MimeTypeArray',
-      'ModElement',
-      'MonthInputElement',
-      'MouseEvent',
-      'MutationObserver',
-      'MutationRecord',
-      'Navigator',
-      'NavigatorCpu',
-      'NavigatorID',
-      'NavigatorLanguage',
-      'NavigatorOnLine',
-      'NavigatorUserMediaError',
-      'NetworkInformation',
-      'Node',
-      'NodeFilter',
-      'NodeIterator',
-      'NodeList',
-      'Notification',
-      'NumberInputElement',
-      'OListElement',
-      'ObjectElement',
-      'OptGroupElement',
-      'OptionElement',
-      'OutputElement',
-      'OverflowEvent',
-      'PageTransitionEvent',
-      'ParagraphElement',
-      'ParamElement',
-      'ParentNode',
-      'PasswordInputElement',
-      'Path2D',
-      'Performance',
-      'PerformanceEntry',
-      'PerformanceMark',
-      'PerformanceMeasure',
-      'PerformanceNavigation',
-      'PerformanceResourceTiming',
-      'PerformanceTiming',
-      'PictureElement',
-      'Plugin',
-      'PluginArray',
-      'PluginPlaceholderElement',
-      'PopStateEvent',
-      'PositionError',
-      'PreElement',
-      'Presentation',
-      'ProcessingInstruction',
-      'ProgressElement',
-      'ProgressEvent',
-      'PushEvent',
-      'PushManager',
-      'PushRegistration',
-      'QuoteElement',
-      'RadioButtonInputElement',
-      'Range',
-      'RangeInputElement',
-      'RangeInputElementBase',
-      'ReadableStream',
-      'RelatedEvent',
-      'ResetButtonInputElement',
-      'ResourceProgressEvent',
-      'RtcDataChannel',
-      'RtcDataChannelEvent',
-      'RtcDtmfSender',
-      'RtcDtmfToneChangeEvent',
-      'RtcIceCandidate',
-      'RtcIceCandidateEvent',
-      'RtcPeerConnection',
-      'RtcSessionDescription',
-      'RtcStatsReport',
-      'RtcStatsResponse',
-      'Screen',
-      'ScreenOrientation',
-      'ScriptElement',
-      'SearchInputElement',
-      'SecurityPolicyViolationEvent',
-      'SelectElement',
-      'Selection',
-      'ServiceWorkerClient',
-      'ServiceWorkerClients',
-      'ServiceWorkerContainer',
-      'ServiceWorkerGlobalScope',
-      'ServiceWorkerRegistration',
-      'ShadowElement',
-      'ShadowRoot',
-      'SharedWorker',
-      'SharedWorkerGlobalScope',
-      'SourceBuffer',
-      'SourceBufferList',
-      'SourceElement',
-      'SourceInfo',
-      'SpanElement',
-      'SpeechGrammar',
-      'SpeechGrammarList',
-      'SpeechRecognition',
-      'SpeechRecognitionAlternative',
-      'SpeechRecognitionError',
-      'SpeechRecognitionEvent',
-      'SpeechRecognitionResult',
-      'SpeechSynthesis',
-      'SpeechSynthesisEvent',
-      'SpeechSynthesisUtterance',
-      'SpeechSynthesisVoice',
-      'Storage',
-      'StorageEvent',
-      'StorageInfo',
-      'StorageQuota',
-      'StyleElement',
-      'StyleMedia',
-      'StyleSheet',
-      'SubmitButtonInputElement',
-      'TableCaptionElement',
-      'TableCellElement',
-      'TableColElement',
-      'TableElement',
-      'TableRowElement',
-      'TableSectionElement',
-      'TelephoneInputElement',
-      'TemplateElement',
-      'Text',
-      'TextAreaElement',
-      'TextEvent',
-      'TextInputElement',
-      'TextInputElementBase',
-      'TextMetrics',
-      'TextTrack',
-      'TextTrackCue',
-      'TextTrackCueList',
-      'TextTrackList',
-      'TimeInputElement',
-      'TimeRanges',
-      'Timing',
-      'TitleElement',
-      'Touch',
-      'TouchEvent',
-      'TouchList',
-      'TrackElement',
-      'TrackEvent',
-      'TransitionEvent',
-      'TreeWalker',
-      'UIEvent',
-      'UListElement',
-      'UnknownElement',
-      'Url',
-      'UrlInputElement',
-      'UrlUtils',
-      'UrlUtilsReadOnly',
-      'ValidityState',
-      'VideoElement',
-      'VideoPlaybackQuality',
-      'VideoTrack',
-      'VideoTrackList',
-      'VttCue',
-      'VttRegion',
-      'VttRegionList',
-      'WebSocket',
-      'WeekInputElement',
-      'WheelEvent',
-      'Window',
-      'WindowBase',
-      'WindowBase64',
-      'WindowEventHandlers',
-      'Worker',
-      'WorkerConsole',
-      'WorkerGlobalScope',
-      'WorkerPerformance',
-      'XPathEvaluator',
-      'XPathExpression',
-      'XPathNSResolver',
-      'XPathResult',
-      'XmlDocument',
-      'XmlSerializer',
-      'XsltProcessor',
-      '_Attr',
-      '_CSSPrimitiveValue',
-      '_CSSUnknownRule',
-      '_CSSValue',
-      '_Cache',
-      '_CanvasPathMethods',
-      '_ClientRect',
-      '_ClientRectList',
-      '_Counter',
-      '_CssRuleList',
-      '_CssValueList',
-      '_DOMFileSystemSync',
-      '_DirectoryEntrySync',
-      '_DirectoryReaderSync',
-      '_DocumentType',
-      '_DomRect',
-      '_EntryArray',
-      '_EntrySync',
-      '_FileEntrySync',
-      '_FileReaderSync',
-      '_FileWriterSync',
-      '_GamepadList',
-      '_HTMLAllCollection',
-      '_HTMLAppletElement',
-      '_HTMLDirectoryElement',
-      '_HTMLFontElement',
-      '_HTMLFrameElement',
-      '_HTMLFrameSetElement',
-      '_HTMLMarqueeElement',
-      '_MutationEvent',
-      '_NamedNodeMap',
-      '_PagePopupController',
-      '_RGBColor',
-      '_Rect',
-      '_Request',
-      '_Response',
-      '_ServiceWorker',
-      '_SpeechRecognitionResultList',
-      '_StyleSheetList',
-      '_SubtleCrypto',
-      '_WebKitCSSFilterValue',
-      '_WebKitCSSMatrix',
-      '_WebKitCSSTransformValue',
-      '_WindowTimers',
-      '_WorkerLocation',
-      '_WorkerNavigator',
-      '_XMLHttpRequestProgressEvent'
-    ],
-    'dart:svg': [
-      'AElement',
-      'AltGlyphElement',
-      'Angle',
-      'AnimateElement',
-      'AnimateMotionElement',
-      'AnimateTransformElement',
-      'AnimatedAngle',
-      'AnimatedBoolean',
-      'AnimatedEnumeration',
-      'AnimatedInteger',
-      'AnimatedLength',
-      'AnimatedLengthList',
-      'AnimatedNumber',
-      'AnimatedNumberList',
-      'AnimatedPreserveAspectRatio',
-      'AnimatedRect',
-      'AnimatedString',
-      'AnimatedTransformList',
-      'AnimationElement',
-      'CircleElement',
-      'ClipPathElement',
-      'DefsElement',
-      'DescElement',
-      'DiscardElement',
-      'EllipseElement',
-      'FEBlendElement',
-      'FEColorMatrixElement',
-      'FEComponentTransferElement',
-      'FECompositeElement',
-      'FEConvolveMatrixElement',
-      'FEDiffuseLightingElement',
-      'FEDisplacementMapElement',
-      'FEDistantLightElement',
-      'FEFloodElement',
-      'FEFuncAElement',
-      'FEFuncBElement',
-      'FEFuncGElement',
-      'FEFuncRElement',
-      'FEGaussianBlurElement',
-      'FEImageElement',
-      'FEMergeElement',
-      'FEMergeNodeElement',
-      'FEMorphologyElement',
-      'FEOffsetElement',
-      'FEPointLightElement',
-      'FESpecularLightingElement',
-      'FESpotLightElement',
-      'FETileElement',
-      'FETurbulenceElement',
-      'FilterElement',
-      'FilterPrimitiveStandardAttributes',
-      'FitToViewBox',
-      'ForeignObjectElement',
-      'GElement',
-      'GeometryElement',
-      'GraphicsElement',
-      'ImageElement',
-      'Length',
-      'LengthList',
-      'LineElement',
-      'LinearGradientElement',
-      'MarkerElement',
-      'MaskElement',
-      'Matrix',
-      'MetadataElement',
-      'Number',
-      'NumberList',
-      'PathElement',
-      'PathSeg',
-      'PathSegArcAbs',
-      'PathSegArcRel',
-      'PathSegClosePath',
-      'PathSegCurvetoCubicAbs',
-      'PathSegCurvetoCubicRel',
-      'PathSegCurvetoCubicSmoothAbs',
-      'PathSegCurvetoCubicSmoothRel',
-      'PathSegCurvetoQuadraticAbs',
-      'PathSegCurvetoQuadraticRel',
-      'PathSegCurvetoQuadraticSmoothAbs',
-      'PathSegCurvetoQuadraticSmoothRel',
-      'PathSegLinetoAbs',
-      'PathSegLinetoHorizontalAbs',
-      'PathSegLinetoHorizontalRel',
-      'PathSegLinetoRel',
-      'PathSegLinetoVerticalAbs',
-      'PathSegLinetoVerticalRel',
-      'PathSegList',
-      'PathSegMovetoAbs',
-      'PathSegMovetoRel',
-      'PatternElement',
-      'Point',
-      'PointList',
-      'PolygonElement',
-      'PolylineElement',
-      'PreserveAspectRatio',
-      'RadialGradientElement',
-      'Rect',
-      'RectElement',
-      'RenderingIntent',
-      'ScriptElement',
-      'SetElement',
-      'StopElement',
-      'StringList',
-      'StyleElement',
-      'SvgElement',
-      'SvgSvgElement',
-      'SwitchElement',
-      'SymbolElement',
-      'TSpanElement',
-      'Tests',
-      'TextContentElement',
-      'TextElement',
-      'TextPathElement',
-      'TextPositioningElement',
-      'TitleElement',
-      'Transform',
-      'TransformList',
-      'UnitTypes',
-      'UriReference',
-      'UseElement',
-      'ViewElement',
-      'ViewSpec',
-      'ZoomAndPan',
-      'ZoomEvent',
-      '_GradientElement',
-      '_SVGAltGlyphDefElement',
-      '_SVGAltGlyphItemElement',
-      '_SVGComponentTransferFunctionElement',
-      '_SVGCursorElement',
-      '_SVGFEDropShadowElement',
-      '_SVGFontElement',
-      '_SVGFontFaceElement',
-      '_SVGFontFaceFormatElement',
-      '_SVGFontFaceNameElement',
-      '_SVGFontFaceSrcElement',
-      '_SVGFontFaceUriElement',
-      '_SVGGlyphElement',
-      '_SVGGlyphRefElement',
-      '_SVGHKernElement',
-      '_SVGMPathElement',
-      '_SVGMissingGlyphElement',
-      '_SVGVKernElement'
-    ],
-    'dart:web_audio': [
-      'AnalyserNode',
-      'AudioBuffer',
-      'AudioBufferSourceNode',
-      'AudioContext',
-      'AudioDestinationNode',
-      'AudioListener',
-      'AudioNode',
-      'AudioParam',
-      'AudioProcessingEvent',
-      'AudioSourceNode',
-      'BiquadFilterNode',
-      'ChannelMergerNode',
-      'ChannelSplitterNode',
-      'ConvolverNode',
-      'DelayNode',
-      'DynamicsCompressorNode',
-      'GainNode',
-      'MediaElementAudioSourceNode',
-      'MediaStreamAudioDestinationNode',
-      'MediaStreamAudioSourceNode',
-      'OfflineAudioCompletionEvent',
-      'OfflineAudioContext',
-      'OscillatorNode',
-      'PannerNode',
-      'PeriodicWave',
-      'ScriptProcessorNode',
-      'WaveShaperNode'
-    ],
-    'dart:web_gl': [
-      'ActiveInfo',
-      'AngleInstancedArrays',
-      'Buffer',
-      'CompressedTextureAtc',
-      'CompressedTextureETC1',
-      'CompressedTexturePvrtc',
-      'CompressedTextureS3TC',
-      'ContextAttributes',
-      'ContextEvent',
-      'DebugRendererInfo',
-      'DebugShaders',
-      'DepthTexture',
-      'DrawBuffers',
-      'ExtBlendMinMax',
-      'ExtFragDepth',
-      'ExtShaderTextureLod',
-      'ExtTextureFilterAnisotropic',
-      'Framebuffer',
-      'LoseContext',
-      'OesElementIndexUint',
-      'OesStandardDerivatives',
-      'OesTextureFloat',
-      'OesTextureFloatLinear',
-      'OesTextureHalfFloat',
-      'OesTextureHalfFloatLinear',
-      'OesVertexArrayObject',
-      'Program',
-      'Renderbuffer',
-      'RenderingContext',
-      'Shader',
-      'ShaderPrecisionFormat',
-      'Texture',
-      'UniformLocation',
-      'VertexArrayObject'
-    ],
-    'dart:web_sql': [
-      'SqlDatabase',
-      'SqlError',
-      'SqlResultSet',
-      'SqlResultSetRowList',
-      'SqlTransaction'
-    ]
-  };
+  void _addExtensionType(InterfaceType t, [bool mustBeNative = false]) {
+    if (t.isObject) return;
+    var element = t.element;
+    if (_extensibleTypes.contains(element) || _nativeTypes.contains(element)) {
+      return;
+    }
+    bool isNative = mustBeNative || _isNative(element);
+    if (isNative) {
+      _nativeTypes.add(element);
+    } else {
+      _extensibleTypes.add(element);
+    }
+    element.interfaces.forEach(_addExtensionType);
+    element.mixins.forEach(_addExtensionType);
+    _addExtensionType(element.supertype);
+  }
+
+  void _addExtensionTypesForLibrary(String libraryUri, List<String> typeNames) {
+    var sourceFactory = _context.sourceFactory.forUri(libraryUri);
+    var library = _context.computeLibraryElement(sourceFactory);
+    for (var typeName in typeNames) {
+      _addExtensionType(library.getType(typeName).type);
+    }
+  }
+
+  void _addExtensionTypes(String libraryUri) {
+    var sourceFactory = _context.sourceFactory.forUri(libraryUri);
+    var library = _context.computeLibraryElement(sourceFactory);
+    _visitCompilationUnit(library.definingCompilationUnit);
+    library.parts.forEach(_visitCompilationUnit);
+  }
+
+  void _addPendingExtensionTypes(String libraryUri) {
+    _pendingLibraries.add(libraryUri);
+  }
+
+  bool _processPending(Element element) {
+    if (_pendingLibraries.isEmpty) return false;
+    if (element is ClassElement) {
+      var uri = element.library.source.uri.toString();
+      if (_pendingLibraries.contains(uri)) {
+        // Load all pending libraries
+        _pendingLibraries.forEach(_addExtensionTypes);
+        _pendingLibraries.clear();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _setContains(HashSet<ClassElement> set, Element element) {
+    return set.contains(element) ||
+        _processPending(element) && set.contains(element);
+  }
+
+  bool isNativeClass(Element element) => _setContains(_nativeTypes, element);
+
+  bool _isNativeInterface(Element element) =>
+      _setContains(_extensibleTypes, element);
+
+  bool hasNativeSubtype(DartType type) =>
+      _isNativeInterface(type.element) || isNativeClass(type.element);
+
+  /// Collects all supertypes that may themselves contain native subtypes,
+  /// excluding [Object], for example `List` is implemented by several native
+  /// types.
+  LinkedHashSet<ClassElement> collectNativeInterfaces(ClassElement element) {
+    var types = new LinkedHashSet<ClassElement>();
+    _collectNativeInterfaces(element.type, types);
+    return types;
+  }
+
+  void _collectNativeInterfaces(InterfaceType type, Set<ClassElement> types) {
+    if (type.isObject) return;
+    var element = type.element;
+    if (_isNativeInterface(element)) types.add(element);
+    for (var m in element.mixins.reversed) {
+      _collectNativeInterfaces(m, types);
+    }
+    for (var i in element.interfaces) {
+      _collectNativeInterfaces(i, types);
+    }
+    _collectNativeInterfaces(element.supertype, types);
+  }
 }

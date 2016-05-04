@@ -23,7 +23,7 @@ PropertyOverrideResult checkForPropertyOverride(FieldElement field,
 
   for (var superclass in superclasses) {
     // Stop if we reach a native type.
-    if (extensionTypes.contains(superclass)) break;
+    if (extensionTypes.isNativeClass(superclass)) break;
 
     var superprop = getProperty(superclass, field.library, field.name);
     if (superprop == null) continue;

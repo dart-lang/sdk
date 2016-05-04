@@ -867,7 +867,7 @@ class CodeGenerator extends GeneralizingAstVisitor
           jsMethods.add(_emitIterable(type));
         }
       } else if (m is FieldDeclaration) {
-        if (_extensionTypes.contains(element)) {
+        if (_extensionTypes.isNativeClass(element)) {
           jsMethods.addAll(_emitNativeFieldAccessors(m));
           continue;
         }
@@ -937,7 +937,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     // Generate a corresponding virtual getter / setter.
     var name = _elementMemberName(methodElement,
-        allowExtensions: _extensionTypes.contains(type.element));
+        allowExtensions: _extensionTypes.isNativeClass(type.element));
     if (method.isGetter) {
       // Generate a setter
       if (field.setter != null || !propertyOverrideResult.foundSetter)
@@ -1000,7 +1000,7 @@ class CodeGenerator extends GeneralizingAstVisitor
         classElem,
         (a) =>
             isJsPeerInterface(a) ||
-            isNativeAnnotation(a) && _extensionTypes.contains(classElem));
+            isNativeAnnotation(a) && _extensionTypes.isNativeClass(classElem));
     if (jsPeerName != null && jsPeerName.contains(',')) {
       jsPeerName = jsPeerName.split(',')[0];
     }
@@ -1091,7 +1091,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (extensions.isNotEmpty) {
       var methodNames = <JS.Expression>[];
       for (var e in extensions) {
-        methodNames.add(_elementMemberName(e));
+        methodNames.add(_elementMemberName(e, allowExtensions: false));
       }
       body.add(js.statement('dart.defineExtensionMembers(#, #);', [
         className,
@@ -1128,7 +1128,8 @@ class CodeGenerator extends GeneralizingAstVisitor
         if (inheritedElement != null && inheritedElement.type == element.type) {
           continue;
         }
-        var memberName = _elementMemberName(element);
+        var memberName = _elementMemberName(element,
+            allowExtensions: _extensionTypes.isNativeClass(classElem));
         var parts = _emitFunctionTypeParts(element.type);
         var property =
             new JS.Property(memberName, new JS.ArrayInitializer(parts));
@@ -1180,7 +1181,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       List<MethodDeclaration> methods,
       List<FieldDeclaration> fields,
       List<JS.Statement> body) {
-    if (_extensionTypes.contains(classElem)) {
+    if (_extensionTypes.hasNativeSubtype(classElem.type)) {
       var dartxNames = <JS.Expression>[];
       for (var m in methods) {
         if (!m.isAbstract && !m.isStatic && m.element.isPublic) {
@@ -1206,12 +1207,11 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   List<ExecutableElement> _extensionsToImplement(ClassElement element) {
     var members = <ExecutableElement>[];
-    if (_extensionTypes.contains(element)) return members;
+    if (_extensionTypes.isNativeClass(element)) return members;
 
     // Collect all extension types we implement.
     var type = element.type;
-    var types = new Set<ClassElement>();
-    _collectExtensions(type, types);
+    var types = _extensionTypes.collectNativeInterfaces(element);
     if (types.isEmpty) return members;
 
     // Collect all possible extension method names.
@@ -1229,21 +1229,6 @@ class CodeGenerator extends GeneralizingAstVisitor
       }
     }
     return members;
-  }
-
-  /// Collections the type and all supertypes, including interfaces, but
-  /// excluding [Object].
-  void _collectExtensions(InterfaceType type, Set<ClassElement> types) {
-    if (type.isObject) return;
-    var element = type.element;
-    if (_extensionTypes.contains(element)) types.add(element);
-    for (var m in type.mixins.reversed) {
-      _collectExtensions(m, types);
-    }
-    for (var i in type.interfaces) {
-      _collectExtensions(i, types);
-    }
-    _collectExtensions(type.superclass, types);
   }
 
   /// Generates the implicit default constructor for class C of the form
@@ -1665,7 +1650,10 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
 
     return annotate(
-        new JS.Method(_elementMemberName(node.element), fn,
+        new JS.Method(
+            _elementMemberName(node.element,
+                allowExtensions: _extensionTypes.isNativeClass(type.element)),
+            fn,
             isGetter: node.isGetter,
             isSetter: node.isSetter,
             isStatic: node.isStatic),
@@ -3541,7 +3529,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var type = getStaticType(target);
     return isNullable(target) ||
         type.isDynamic ||
-        (_extensionTypes.contains(type.element) && target is! SuperExpression);
+        (_extensionTypes.hasNativeSubtype(type) && target is! SuperExpression);
   }
 
   /// Shared code for [PrefixedIdentifier] and [PropertyAccess].
@@ -4144,7 +4132,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
     if (allowExtensions &&
         baseType != null &&
-        _extensionTypes.contains(baseType.element) &&
+        _extensionTypes.hasNativeSubtype(baseType) &&
         !isObjectProperty(name)) {
       return js.call('dartx.#', _propertyName(name));
     }
