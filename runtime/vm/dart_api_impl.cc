@@ -4121,6 +4121,15 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                            cls_name.ToCString(),
                            function_name.ToCString());
     }
+    NOT_IN_PRODUCT(if (tds.enabled()) {
+      const String& cls_name = String::Handle(Z, cls.Name());
+      tds.SetNumArguments(1);
+      tds.FormatArgument(0,
+                         "name",
+                         "%s.%s",
+                         cls_name.ToCString(),
+                         function_name.ToCString());
+    });
     // Setup args and check for malformed arguments in the arguments list.
     result = SetupArguments(T, number_of_arguments, arguments, 0, &args);
     if (!::Dart_IsError(result)) {
@@ -4156,6 +4165,17 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
       }
       return result;
     }
+    NOT_IN_PRODUCT(if (tds.enabled()) {
+      const Class& cls = Class::Handle(Z, instance.clazz());
+      ASSERT(!cls.IsNull());
+      const String& cls_name = String::Handle(Z, cls.Name());
+      tds.SetNumArguments(1);
+      tds.FormatArgument(0,
+                         "name",
+                         "%s.%s",
+                         cls_name.ToCString(),
+                         function_name.ToCString());
+    });
     // Setup args and check for malformed arguments in the arguments list.
     result = SetupArguments(T, number_of_arguments, arguments, 1, &args);
     if (!::Dart_IsError(result)) {
@@ -4181,6 +4201,17 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                            CURRENT_FUNC,
                            function_name.ToCString());
     }
+
+    NOT_IN_PRODUCT(if (tds.enabled()) {
+      const String& lib_name = String::Handle(Z, lib.url());
+      tds.SetNumArguments(1);
+      tds.FormatArgument(0,
+                         "name",
+                         "%s.%s",
+                         lib_name.ToCString(),
+                         function_name.ToCString());
+    });
+
     // LookupFunctionAllowPrivate does not check argument arity, so we
     // do it here.
     String& error_message = String::Handle(Z);
@@ -4271,6 +4302,15 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
       getter = cls.LookupStaticFunctionAllowPrivate(getter_name);
     }
 
+    NOT_IN_PRODUCT(if (tds.enabled()) {
+      const String& cls_name = String::Handle(cls.Name());
+      tds.SetNumArguments(1);
+      tds.FormatArgument(0,
+                         "name",
+                         "%s.%s",
+                         cls_name.ToCString(), field_name.ToCString());
+    });
+
     if (!getter.IsNull()) {
       // Invoke the getter and return the result.
       return Api::NewHandle(
@@ -4296,6 +4336,15 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
       }
       cls = cls.SuperClass();
     }
+
+    NOT_IN_PRODUCT(if (tds.enabled()) {
+      const String& cls_name = String::Handle(cls.Name());
+      tds.SetNumArguments(1);
+      tds.FormatArgument(0,
+                         "name",
+                         "%s.%s",
+                         cls_name.ToCString(), field_name.ToCString());
+    });
 
     // Invoke the getter and return the result.
     const int kNumArgs = 1;
@@ -4335,6 +4384,15 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
           Field::GetterName(field_name));
       getter = cls.LookupStaticFunctionAllowPrivate(getter_name);
     }
+
+    NOT_IN_PRODUCT(if (tds.enabled()) {
+      const String& lib_name = String::Handle(lib.url());
+      tds.SetNumArguments(1);
+      tds.FormatArgument(0,
+                         "name",
+                         "%s.%s",
+                         lib_name.ToCString(), field_name.ToCString());
+    });
 
     if (!getter.IsNull()) {
       // Invoke the getter and return the result.
