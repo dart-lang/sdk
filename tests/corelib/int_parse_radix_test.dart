@@ -7,7 +7,7 @@ import "dart:math" show pow;
 
 void main() {
   bool checkedMode = false;
-  assert(checkedMode = true);
+  assert((checkedMode = true));
   const String oneByteWhiteSpace = "\x09\x0a\x0b\x0c\x0d\x20"
     "\x85"    /// 01: ok
     "\xa0";
@@ -116,7 +116,7 @@ void main() {
     }
     // In checked mode, it's always a TypeError.
     Expect.throws(() => int.parse(source, radix: radix, onError: (s) => 0),
-                  (e) => e is TypeError);
+                  (e) => e is TypeError || e is CastError);
   }
 
   testBadTypes(9, 10);
@@ -135,11 +135,7 @@ void main() {
   testBadArguments("0", 1);
   testBadArguments("0", 37);
 
-  // If handleError isn't an unary function, and it's called, it also throws
-  // (either TypeError in checked mode, or some failure in unchecked mode).
-  Expect.throws(() => int.parse("9", radix: 8, onError: "not a function"));
-  Expect.throws(() => int.parse("9", radix: 8, onError: () => 42));
-  Expect.throws(() => int.parse("9", radix: 8, onError: (v1, v2) => 42));
+  // See also int_parse_radix_bad_handler_test.dart
 }
 
 bool isFail(e) => e == "FAIL";

@@ -139,7 +139,7 @@ from_environment_const_type_undefined_test/14: CompileTimeError
 from_environment_const_type_undefined_test/16: CompileTimeError
 
 [ $compiler == dart2analyzer ]
-int_parse_radix_test: fail
+int_parse_radix_bad_handler_test: fail
 list_insert_test: fail
 list_removeat_test: fail
 hash_set_type_check_test: StaticWarning, OK # Tests failing type tests.
