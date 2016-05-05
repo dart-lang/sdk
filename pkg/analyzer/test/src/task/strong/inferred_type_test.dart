@@ -2104,6 +2104,29 @@ var y = new C().m(1, b: 'bbb', c: 2.0);
     expect(unit.topLevelVariables[0].type.toString(), 'double');
   }
 
+  void test_refineBinaryExpressionType_typeParameter() {
+    checkFile('''
+class Point<T extends num> {
+  T x;
+  T y;
+
+  Point(this.x, this.y);
+
+  Point<T> operator +(Point<T> other) {
+    return new Point<T>(x + other.x, y + other.y);
+  }
+
+  Point<T> operator -(Point<T> other) {
+    return new Point<T>(x - other.x, y - other.y);
+  }
+
+  Point<T> operator *(Point<T> other) {
+    return new Point<T>(x * other.x, y * other.y);
+  }
+}
+  ''');
+  }
+
   void test_inferGenericMethodType_positional() {
     var unit = checkFile('''
 class C {

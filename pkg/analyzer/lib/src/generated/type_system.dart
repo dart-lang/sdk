@@ -348,6 +348,26 @@ class StrongTypeSystemImpl extends TypeSystem {
   }
 
   @override
+  DartType refineBinaryExpressionType(
+      TypeProvider typeProvider,
+      DartType leftType,
+      TokenType operator,
+      DartType rightType,
+      DartType currentType) {
+    if (leftType is TypeParameterType &&
+        leftType.element.bound == typeProvider.numType &&
+        leftType == rightType) {
+      if (operator == TokenType.PLUS ||
+          operator == TokenType.MINUS ||
+          operator == TokenType.STAR) {
+        return leftType;
+      }
+    }
+    return super.refineBinaryExpressionType(
+        typeProvider, leftType, operator, rightType, currentType);
+  }
+
+  @override
   DartType typeToConcreteType(TypeProvider typeProvider, DartType t) {
     if (t is FunctionType) {
       return functionTypeToConcreteType(typeProvider, t);
