@@ -67,6 +67,7 @@ class InferredTypeCollector {
       // variables and local functions, since AST-based type inference doesn't
       // infer locals correctly yet.  TODO(paulberry): fix if necessary.
       properties.remove('localFunctions');
+      properties.remove('localVariables');
     } else if (obj is UnlinkedParam) {
       collectInferredType(obj.inferredTypeSlot, path);
       // As a temporary measure, prevent recursion into the parameter's
