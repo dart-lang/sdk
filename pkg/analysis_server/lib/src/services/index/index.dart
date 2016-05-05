@@ -270,18 +270,22 @@ class _ContextIndex {
    * Index declarations in the given partially resolved [unit].
    */
   void indexDeclarations(CompilationUnit unit) {
-    PackageIndexAssembler assembler = new PackageIndexAssembler();
-    assembler.indexDeclarations(unit);
-    _putUnitIndexBuilder(unit, assembler);
+    String key = _getUnitKeyForElement(unit.element);
+    if (!indexMap.containsKey(key)) {
+      PackageIndexAssembler assembler = new PackageIndexAssembler();
+      assembler.indexDeclarations(unit);
+      _putUnitIndexBuilder(key, assembler);
+    }
   }
 
   /**
    * Index the given fully resolved [unit].
    */
   void indexUnit(CompilationUnit unit) {
+    String key = _getUnitKeyForElement(unit.element);
     PackageIndexAssembler assembler = new PackageIndexAssembler();
     assembler.indexUnit(unit);
-    _putUnitIndexBuilder(unit, assembler);
+    _putUnitIndexBuilder(key, assembler);
   }
 
   /**
@@ -315,13 +319,11 @@ class _ContextIndex {
     return locations;
   }
 
-  void _putUnitIndexBuilder(
-      CompilationUnit unit, PackageIndexAssembler assembler) {
+  void _putUnitIndexBuilder(String key, PackageIndexAssembler assembler) {
     PackageIndexBuilder indexBuilder = assembler.assemble();
     // Put the index into the map.
     List<int> indexBytes = indexBuilder.toBuffer();
     PackageIndex index = new PackageIndex.fromBuffer(indexBytes);
-    String key = _getUnitKeyForElement(unit.element);
     indexMap[key] = index;
   }
 }
