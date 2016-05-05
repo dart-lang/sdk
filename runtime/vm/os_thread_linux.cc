@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"  // NOLINT
-#include "platform/signal_blocker.h"  // NOLINT
 
 #if defined(TARGET_OS_LINUX)
 
@@ -15,6 +14,7 @@
 #include <sys/time.h>  // NOLINT
 
 #include "platform/assert.h"
+#include "platform/signal_blocker.h"
 #include "platform/utils.h"
 
 namespace dart {
