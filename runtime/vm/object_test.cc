@@ -2687,7 +2687,6 @@ VM_TEST_CASE(CheckedHandle) {
 }
 
 
-#if !defined(TARGET_ARCH_DBC)
 static RawLibrary* CreateDummyLibrary(const String& library_name) {
   return Library::New(library_name);
 }
@@ -2969,7 +2968,6 @@ VM_TEST_CASE(PcDescriptorsLargeDeltas) {
 
   EXPECT_EQ(false, iter.MoveNext());
 }
-#endif  // !defined(TARGET_ARCH_DBC)
 
 
 static RawClass* CreateTestClass(const char* name) {
