@@ -93,11 +93,11 @@ class Duration implements Comparable<Duration> {
                   int milliseconds: 0,
                   int microseconds: 0})
       : this._microseconds(
-            days * MICROSECONDS_PER_DAY +
-            hours * MICROSECONDS_PER_HOUR +
-            minutes * MICROSECONDS_PER_MINUTE +
-            seconds * MICROSECONDS_PER_SECOND +
-            milliseconds * MICROSECONDS_PER_MILLISECOND +
+            MICROSECONDS_PER_DAY * days +
+            MICROSECONDS_PER_HOUR * hours +
+            MICROSECONDS_PER_MINUTE * minutes +
+            MICROSECONDS_PER_SECOND * seconds +
+            MICROSECONDS_PER_MILLISECOND * milliseconds +
             microseconds);
 
   // Fast path internal direct constructor to avoids the optional arguments and

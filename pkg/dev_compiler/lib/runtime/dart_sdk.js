@@ -26899,7 +26899,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let seconds = opts && 'seconds' in opts ? opts.seconds : 0;
       let milliseconds = opts && 'milliseconds' in opts ? opts.milliseconds : 0;
       let microseconds = opts && 'microseconds' in opts ? opts.microseconds : 0;
-      this._microseconds(dart.notNull(days) * dart.notNull(core.Duration.MICROSECONDS_PER_DAY) + dart.notNull(hours) * dart.notNull(core.Duration.MICROSECONDS_PER_HOUR) + dart.notNull(minutes) * dart.notNull(core.Duration.MICROSECONDS_PER_MINUTE) + dart.notNull(seconds) * dart.notNull(core.Duration.MICROSECONDS_PER_SECOND) + dart.notNull(milliseconds) * dart.notNull(core.Duration.MICROSECONDS_PER_MILLISECOND) + dart.notNull(microseconds));
+      this._microseconds(dart.notNull(core.Duration.MICROSECONDS_PER_DAY) * dart.notNull(days) + dart.notNull(core.Duration.MICROSECONDS_PER_HOUR) * dart.notNull(hours) + dart.notNull(core.Duration.MICROSECONDS_PER_MINUTE) * dart.notNull(minutes) + dart.notNull(core.Duration.MICROSECONDS_PER_SECOND) * dart.notNull(seconds) + dart.notNull(core.Duration.MICROSECONDS_PER_MILLISECOND) * dart.notNull(milliseconds) + dart.notNull(microseconds));
     }
     _microseconds(duration) {
       this[_duration] = duration;
@@ -27889,7 +27889,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (this[_start$0] == null) {
         return 0;
       }
-      return dart.asInt(this[_stop] == null ? dart.notNull(core.Stopwatch._now()) - dart.notNull(this[_start$0]) : dart.notNull(this[_stop]) - dart.notNull(this[_start$0]));
+      return this[_stop] == null ? dart.notNull(core.Stopwatch._now()) - dart.notNull(this[_start$0]) : dart.notNull(this[_stop]) - dart.notNull(this[_start$0]);
     }
     get elapsed() {
       return new core.Duration({microseconds: this.elapsedMicroseconds});
