@@ -359,7 +359,10 @@ class StrongTypeSystemImpl extends TypeSystem {
         leftType == rightType) {
       if (operator == TokenType.PLUS ||
           operator == TokenType.MINUS ||
-          operator == TokenType.STAR) {
+          operator == TokenType.STAR ||
+          operator == TokenType.PLUS_EQ ||
+          operator == TokenType.MINUS_EQ ||
+          operator == TokenType.STAR_EQ) {
         return leftType;
       }
     }
@@ -985,7 +988,11 @@ abstract class TypeSystem {
       if (operator == TokenType.MINUS ||
           operator == TokenType.PERCENT ||
           operator == TokenType.PLUS ||
-          operator == TokenType.STAR) {
+          operator == TokenType.STAR ||
+          operator == TokenType.MINUS_EQ ||
+          operator == TokenType.PERCENT_EQ ||
+          operator == TokenType.PLUS_EQ ||
+          operator == TokenType.STAR_EQ) {
         DartType doubleType = typeProvider.doubleType;
         if (rightType == doubleType) {
           return doubleType;
@@ -996,7 +1003,12 @@ abstract class TypeSystem {
           operator == TokenType.PERCENT ||
           operator == TokenType.PLUS ||
           operator == TokenType.STAR ||
-          operator == TokenType.TILDE_SLASH) {
+          operator == TokenType.TILDE_SLASH ||
+          operator == TokenType.MINUS_EQ ||
+          operator == TokenType.PERCENT_EQ ||
+          operator == TokenType.PLUS_EQ ||
+          operator == TokenType.STAR_EQ ||
+          operator == TokenType.TILDE_SLASH_EQ) {
         if (rightType == intType) {
           return intType;
         }

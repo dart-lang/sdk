@@ -3039,6 +3039,12 @@ class Point<T extends num> {
   Point<T> operator *(Point<T> other) {
     return new Point<T>(x * other.x, y * other.y);
   }
+
+  void compoundAssignment(T k) {
+    x += k;
+    x -= k;
+    x *= k;
+  }
 }
   ''');
   }
