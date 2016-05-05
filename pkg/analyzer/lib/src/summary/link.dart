@@ -187,7 +187,7 @@ EntityRefBuilder _createLinkedType(
     Element element = type.element;
     if (element is FunctionElementForLink_FunctionTypedParam) {
       result.reference =
-          compilationUnit.addReference(element.innermostExecutable);
+          compilationUnit.addReference(element.typeParameterContext);
       result.implicitFunctionTypeIndices = element.implicitFunctionTypeIndices;
       _storeTypeArguments(
           type.typeArguments, result, compilationUnit, typeParameterContext);
@@ -200,6 +200,12 @@ EntityRefBuilder _createLinkedType(
       return result;
     }
     if (element is MethodElementForLink) {
+      result.reference = compilationUnit.addReference(element);
+      _storeTypeArguments(
+          type.typeArguments, result, compilationUnit, typeParameterContext);
+      return result;
+    }
+    if (element is FunctionTypeAliasElementForLink) {
       result.reference = compilationUnit.addReference(element);
       _storeTypeArguments(
           type.typeArguments, result, compilationUnit, typeParameterContext);
@@ -403,6 +409,9 @@ class ClassElementForLink_Class extends ClassElementForLink
     }
     return _accessors;
   }
+
+  @override
+  CompilationUnitElementForLink get compilationUnit => enclosingElement;
 
   @override
   List<ConstructorElementForLink> get constructors {
@@ -690,6 +699,7 @@ abstract class CompilationUnitElementForLink
   List<ClassElementForLink_Enum> _enums;
   List<TopLevelFunctionElementForLink> _functions;
   List<PropertyAccessorElementForLink> _accessors;
+  List<FunctionTypeAliasElementForLink> _functionTypeAliases;
 
   /**
    * Index of this unit in the list of units in the enclosing library.
@@ -766,6 +776,13 @@ abstract class CompilationUnitElementForLink
   }
 
   @override
+  List<FunctionTypeAliasElementForLink> get functionTypeAliases =>
+      _functionTypeAliases ??= _unlinkedUnit.typedefs
+          .map((UnlinkedTypedef t) =>
+              new FunctionTypeAliasElementForLink(this, t))
+          .toList();
+
+  @override
   String get identifier => _absoluteUri;
 
   /**
@@ -837,6 +854,10 @@ abstract class CompilationUnitElementForLink
       }
       for (PropertyAccessorElementForLink accessor in accessors) {
         _containedNames[accessor.name] = accessor;
+      }
+      for (FunctionTypeAliasElementForLink functionTypeAlias
+          in functionTypeAliases) {
+        _containedNames[functionTypeAlias.name] = functionTypeAlias;
       }
       // TODO(paulberry): fill in other top level entities (typedefs
       // and executables).
@@ -1020,6 +1041,12 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
           dependency: library.addDependency(element.library),
           numTypeParameters: element.typeParameters.length,
           unitNum: element.enclosingElement.unitNum);
+    } else if (element is FunctionTypeAliasElementForLink) {
+      return addRawReference(element.name,
+          dependency: library.addDependency(element.library),
+          numTypeParameters: element.typeParameters.length,
+          unitNum: element.enclosingElement.unitNum,
+          kind: ReferenceKind.typedef);
     } else if (element is ExecutableElementForLink) {
       ClassElementForLink_Class enclosingClass = element.enclosingClass;
       ReferenceKind kind;
@@ -1270,7 +1297,7 @@ class ConstConstructorNode extends ConstNode {
     EntityRef redirectedConstructor =
         constructorElement._unlinkedExecutable.redirectedConstructor;
     if (redirectedConstructor != null) {
-      return constructorElement.enclosingUnit
+      return constructorElement.compilationUnit
           ._resolveRef(redirectedConstructor.reference)
           .asConstructor;
     } else {
@@ -1647,7 +1674,6 @@ abstract class ExecutableElementForLink extends Object
   DartType _declaredReturnType;
   DartType _inferredReturnType;
   FunctionTypeImpl _type;
-  List<TypeParameterElementForLink> _typeParameters;
   String _name;
   String _displayName;
 
@@ -1657,13 +1683,11 @@ abstract class ExecutableElementForLink extends Object
    */
   final ClassElementForLink_Class enclosingClass;
 
-  /**
-   * Return the compilation unit in which this executable appears.
-   */
-  final CompilationUnitElementForLink enclosingUnit;
+  @override
+  final CompilationUnitElementForLink compilationUnit;
 
   ExecutableElementForLink(
-      this.enclosingUnit, this.enclosingClass, this._unlinkedExecutable);
+      this.compilationUnit, this.enclosingClass, this._unlinkedExecutable);
 
   /**
    * If the executable element had an explicitly declared return type, return
@@ -1674,7 +1698,7 @@ abstract class ExecutableElementForLink extends Object
       return null;
     } else {
       return _declaredReturnType ??=
-          enclosingUnit._resolveTypeRef(_unlinkedExecutable.returnType, this);
+          compilationUnit._resolveTypeRef(_unlinkedExecutable.returnType, this);
     }
   }
 
@@ -1690,7 +1714,7 @@ abstract class ExecutableElementForLink extends Object
   }
 
   @override
-  Element get enclosingElement => enclosingClass ?? enclosingUnit;
+  Element get enclosingElement => enclosingClass ?? compilationUnit;
 
   @override
   TypeParameterizedElementForLink get enclosingTypeParameterContext =>
@@ -1712,7 +1736,7 @@ abstract class ExecutableElementForLink extends Object
     assert(_unlinkedExecutable.returnType == null);
     if (Linker._initializerTypeInferenceCycle != null &&
         Linker._initializerTypeInferenceCycle ==
-            enclosingUnit.library.libraryCycleForLink) {
+            compilationUnit.library.libraryCycleForLink) {
       // We are currently computing the type of an initializer expression in the
       // current library cycle, so type inference results should be ignored.
       return _computeDefaultReturnType();
@@ -1721,18 +1745,15 @@ abstract class ExecutableElementForLink extends Object
       if (_unlinkedExecutable.kind == UnlinkedExecutableKind.constructor) {
         // TODO(paulberry): implement.
         throw new UnimplementedError();
-      } else if (enclosingUnit.isInBuildUnit) {
+      } else if (compilationUnit.isInBuildUnit) {
         _inferredReturnType = _computeDefaultReturnType();
       } else {
-        _inferredReturnType = enclosingUnit.getLinkedType(
+        _inferredReturnType = compilationUnit.getLinkedType(
             _unlinkedExecutable.inferredReturnTypeSlot, this);
       }
     }
     return _inferredReturnType;
   }
-
-  @override
-  ExecutableElementForLink get innermostExecutable => this;
 
   @override
   bool get isStatic => _unlinkedExecutable.isStatic;
@@ -1765,6 +1786,9 @@ abstract class ExecutableElementForLink extends Object
 
   @override
   FunctionTypeImpl get type => _type ??= new FunctionTypeImpl(this);
+
+  @override
+  TypeParameterizedElementForLink get typeParameterContext => this;
 
   @override
   List<UnlinkedParam> get unlinkedParameters => _unlinkedExecutable.parameters;
@@ -2547,7 +2571,7 @@ class FunctionElementForLink_FunctionTypedParam extends Object
   final ParameterElementForLink enclosingElement;
 
   @override
-  final ExecutableElementForLink innermostExecutable;
+  final TypeParameterizedElementForLink typeParameterContext;
 
   @override
   final List<UnlinkedParam> unlinkedParameters;
@@ -2555,8 +2579,8 @@ class FunctionElementForLink_FunctionTypedParam extends Object
   DartType _returnType;
   List<int> _implicitFunctionTypeIndices;
 
-  FunctionElementForLink_FunctionTypedParam(
-      this.enclosingElement, this.innermostExecutable, this.unlinkedParameters);
+  FunctionElementForLink_FunctionTypedParam(this.enclosingElement,
+      this.typeParameterContext, this.unlinkedParameters);
 
   @override
   List<int> get implicitFunctionTypeIndices {
@@ -2576,7 +2600,7 @@ class FunctionElementForLink_FunctionTypedParam extends Object
         _returnType = DynamicTypeImpl.instance;
       } else {
         _returnType = enclosingElement.compilationUnit._resolveTypeRef(
-            enclosingElement._unlinkedParam.type, innermostExecutable);
+            enclosingElement._unlinkedParam.type, typeParameterContext);
       }
     }
     return _returnType;
@@ -2619,6 +2643,108 @@ class FunctionElementForLink_Initializer implements FunctionElementImpl {
   void set returnType(DartType newType) {
     // InstanceMemberInferrer stores the new type both here and on the variable
     // element.  We don't need to record both values, so we ignore it here.
+  }
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/**
+ * Element representing a typedef resynthesized from a summary during linking.
+ */
+class FunctionTypeAliasElementForLink extends Object
+    with TypeParameterizedElementForLink, ParameterParentElementForLink
+    implements
+        FunctionTypeAliasElement,
+        ReferenceableElementForLink,
+        ElementImpl {
+  @override
+  final CompilationUnitElementForLink enclosingElement;
+
+  /**
+   * The unlinked representation of the typedef in the summary.
+   */
+  final UnlinkedTypedef _unlinkedTypedef;
+
+  FunctionTypeImpl _type;
+  DartType _returnType;
+
+  FunctionTypeAliasElementForLink(this.enclosingElement, this._unlinkedTypedef);
+
+  @override
+  ConstructorElementForLink get asConstructor => null;
+
+  @override
+  ConstVariableNode get asConstVariable {
+    // When a typedef name is used as a constant variable, it doesn't depend on
+    // anything, so it is not necessary to include it in the constant
+    // dependency graph.
+    return null;
+  }
+
+  @override
+  DartType get asStaticType {
+    return enclosingElement.enclosingElement._linker.typeProvider.typeType;
+  }
+
+  @override
+  TypeInferenceNode get asTypeInferenceNode => null;
+
+  @override
+  CompilationUnitElementForLink get compilationUnit => enclosingElement;
+
+  @override
+  TypeParameterizedElementForLink get enclosingTypeParameterContext => null;
+
+  @override
+  String get identifier => _unlinkedTypedef.name;
+
+  @override
+  List<int> get implicitFunctionTypeIndices => const <int>[];
+
+  @override
+  bool get isSynthetic => false;
+
+  @override
+  LibraryElementForLink get library => enclosingElement.library;
+
+  @override
+  String get name => _unlinkedTypedef.name;
+
+  @override
+  DartType get returnType => _returnType ??=
+      enclosingElement._resolveTypeRef(_unlinkedTypedef.returnType, this);
+
+  @override
+  TypeParameterizedElementForLink get typeParameterContext => this;
+
+  @override
+  List<UnlinkedParam> get unlinkedParameters => _unlinkedTypedef.parameters;
+
+  @override
+  List<UnlinkedTypeParam> get _unlinkedTypeParams =>
+      _unlinkedTypedef.typeParameters;
+
+  @override
+  DartType buildType(
+      DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
+    int numTypeParameters = _unlinkedTypedef.typeParameters.length;
+    if (numTypeParameters != 0) {
+      List<DartType> typeArguments = new List<DartType>(numTypeParameters);
+      for (int i = 0; i < numTypeParameters; i++) {
+        typeArguments[i] = getTypeArgument(i);
+      }
+      return new FunctionTypeImpl.elementWithNameAndArgs(
+          this, name, typeArguments, true);
+    } else {
+      return _type ??= new FunctionTypeImpl.forTypedef(this);
+    }
+  }
+
+  @override
+  ReferenceableElementForLink getContainedName(String name) {
+    // TODO(paulberry): implement.
+    throw new UnimplementedError();
   }
 
   @override
@@ -3311,9 +3437,9 @@ class ParameterElementForLink implements ParameterElementImpl {
   final UnlinkedParam _unlinkedParam;
 
   /**
-   * The innermost executable element containing this parameter.
+   * The innermost enclosing element that can declare type parameters.
    */
-  final ExecutableElementForLink _innermostExecutable;
+  final TypeParameterizedElementForLink _typeParameterContext;
 
   /**
    * If this parameter has a default value and the enclosing library
@@ -3339,11 +3465,14 @@ class ParameterElementForLink implements ParameterElementImpl {
   DartType _declaredType;
 
   ParameterElementForLink(this.enclosingElement, this._unlinkedParam,
-      this._innermostExecutable, this.compilationUnit, this._parameterIndex) {
+      this._typeParameterContext, this.compilationUnit, this._parameterIndex) {
     if (_unlinkedParam.defaultValue != null) {
       _constNode = new ConstParameterNode(this);
     }
   }
+
+  @override
+  String get displayName => _unlinkedParam.name;
 
   @override
   bool get hasImplicitType =>
@@ -3372,18 +3501,18 @@ class ParameterElementForLink implements ParameterElementImpl {
       if (_unlinkedParam.isFunctionTyped) {
         _declaredType = new FunctionTypeImpl(
             new FunctionElementForLink_FunctionTypedParam(
-                this, _innermostExecutable, _unlinkedParam.parameters));
+                this, _typeParameterContext, _unlinkedParam.parameters));
       } else if (_unlinkedParam.type == null) {
         if (!compilationUnit.isInBuildUnit) {
           _inferredType = compilationUnit.getLinkedType(
-              _unlinkedParam.inferredTypeSlot, _innermostExecutable);
+              _unlinkedParam.inferredTypeSlot, _typeParameterContext);
           return _inferredType;
         } else {
           _declaredType = DynamicTypeImpl.instance;
         }
       } else {
         _declaredType = compilationUnit._resolveTypeRef(
-            _unlinkedParam.type, _innermostExecutable);
+            _unlinkedParam.type, _typeParameterContext);
       }
     }
     return _declaredType;
@@ -3401,7 +3530,7 @@ class ParameterElementForLink implements ParameterElementImpl {
    */
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
     compilationUnit._storeLinkedType(
-        _unlinkedParam.inferredTypeSlot, _inferredType, _innermostExecutable);
+        _unlinkedParam.inferredTypeSlot, _inferredType, _typeParameterContext);
   }
 
   @override
@@ -3450,12 +3579,6 @@ abstract class ParameterParentElementForLink implements Element {
   List<int> get implicitFunctionTypeIndices;
 
   /**
-   * Get the innermost enclosing ExecutableElement (which may be [this], or may
-   * be a parent when there are function-typed parameters).
-   */
-  ExecutableElementForLink get innermostExecutable;
-
-  /**
    * Get all the parameters of this element.
    */
   List<ParameterElementForLink> get parameters {
@@ -3466,11 +3589,18 @@ abstract class ParameterParentElementForLink implements Element {
       for (int i = 0; i < numParameters; i++) {
         UnlinkedParam unlinkedParam = unlinkedParameters[i];
         _parameters[i] = new ParameterElementForLink(this, unlinkedParam,
-            innermostExecutable, innermostExecutable.enclosingUnit, i);
+            typeParameterContext, typeParameterContext.compilationUnit, i);
       }
     }
     return _parameters;
   }
+
+  /**
+   * Get the innermost enclosing element that can declare type parameters (which
+   * may be [this], or may be a parent when there are function-typed
+   * parameters).
+   */
+  TypeParameterizedElementForLink get typeParameterContext;
 
   /**
    * Get the list of unlinked parameters of this element.
@@ -4027,6 +4157,11 @@ abstract class TypeParameterizedElementForLink
   List<TypeParameterType> _typeParameterTypes;
   List<TypeParameterElementForLink> _typeParameters;
   int _nestingLevel;
+
+  /**
+   * Get the compilation unit in which this element is declared.
+   */
+  CompilationUnitElementForLink get compilationUnit;
 
   /**
    * Get the type parameter context enclosing this one, if any.

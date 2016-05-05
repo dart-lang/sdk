@@ -587,14 +587,14 @@ class D extends C {
   void test_parameterParentElementForLink_innermostExecutable() {
     createLinker('void f(void g(void h())) {}');
     TopLevelFunctionElementForLink f = testLibrary.getContainedName('f');
-    expect(f.innermostExecutable, same(f));
+    expect(f.typeParameterContext, same(f));
     ParameterElementForLink g = f.parameters[0];
     FunctionType gType = g.type;
     FunctionElementForLink_FunctionTypedParam gTypeElement = gType.element;
-    expect(gTypeElement.innermostExecutable, same(f));
+    expect(gTypeElement.typeParameterContext, same(f));
     ParameterElementForLink h = gTypeElement.parameters[0];
     FunctionType hType = h.type;
     FunctionElementForLink_FunctionTypedParam hTypeElement = hType.element;
-    expect(hTypeElement.innermostExecutable, same(f));
+    expect(hTypeElement.typeParameterContext, same(f));
   }
 }

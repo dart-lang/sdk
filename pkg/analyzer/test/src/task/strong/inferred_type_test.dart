@@ -1394,6 +1394,48 @@ main() {
   ''');
   }
 
+  void test_genericMethods_inferGenericFunctionParameterType() {
+    var mainUnit = checkFile('''
+class C<T> extends D<T> {
+  f/*<U>*/(x) {}
+}
+class D<T> {
+  F/*<U>*/ f/*<U>*/(/*=U*/ u) => null;
+}
+typedef void F<V>(V v);
+''');
+    var f = mainUnit.getType('C').methods[0];
+    expect(f.type.toString(), '<U>(U) → (U) → void');
+  }
+
+  void test_genericMethods_inferGenericFunctionParameterType2() {
+    var mainUnit = checkFile('''
+class C<T> extends D<T> {
+  f/*<U>*/(g) => null;
+}
+abstract class D<T> {
+  void f/*<U>*/(G/*<U>*/ g);
+}
+typedef List<V> G<V>();
+''');
+    var f = mainUnit.getType('C').methods[0];
+    expect(f.type.toString(), '<U>(() → List<U>) → void');
+  }
+
+  void test_genericMethods_inferGenericFunctionReturnType() {
+    var mainUnit = checkFile('''
+class C<T> extends D<T> {
+  f/*<U>*/(x) {}
+}
+class D<T> {
+  F/*<U>*/ f/*<U>*/(/*=U*/ u) => null;
+}
+typedef V F<V>();
+''');
+    var f = mainUnit.getType('C').methods[0];
+    expect(f.type.toString(), '<U>(U) → () → U');
+  }
+
   void test_genericMethods_inferGenericInstantiation() {
     checkFile('''
 import 'dart:math' as math;
@@ -2160,6 +2202,24 @@ class Foo {
   var x = 1;
   Foo([this.x = /*warning:INVALID_ASSIGNMENT*/"1"]);
 }''');
+  }
+
+  void test_inferredType_isTypedef() {
+    var mainUnit = checkFile('''
+typedef void F();
+final x = <String, F>{};
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.type.toString(), 'Map<String, () → void>');
+  }
+
+  void test_inferredType_isTypedef_parameterized() {
+    var mainUnit = checkFile('''
+typedef T F<T>();
+final x = <String, F<int>>{};
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.type.toString(), 'Map<String, () → int>');
   }
 
   void test_inferStaticsTransitively() {
@@ -2949,6 +3009,15 @@ final x = C.d.i;
 ''');
     var x = mainUnit.topLevelVariables[0];
     expect(x.type.toString(), 'int');
+  }
+
+  void test_referenceToTypedef() {
+    var mainUnit = checkFile('''
+typedef void F();
+final x = F;
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.type.toString(), 'Type');
   }
 
   void test_staticRefersToNonStaticField_inOtherLibraryCycle() {
