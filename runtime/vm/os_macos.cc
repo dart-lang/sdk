@@ -159,7 +159,7 @@ int64_t OS::GetCurrentThreadCPUMicros() {
       (info->system_time.seconds + info->user_time.seconds);
   thread_cpu_micros *= kMicrosecondsPerSecond;
   thread_cpu_micros += info->user_time.microseconds;
-  thread_cpu_micros += info->system_time.microseconds
+  thread_cpu_micros += info->system_time.microseconds;
   return thread_cpu_micros;
 #endif  // TARGET_OS_IOS
 }
