@@ -573,8 +573,8 @@ abstract class SummaryTest {
    * Verify that the given [typeRef] represents a reference to a type declared
    * in a file reachable via [absoluteUri] and [relativeUri], having name
    * [expectedName].  If [expectedPrefix] is supplied, verify that the type is
-   * reached via the given prefix.  If [allowTypeParameters] is true, allow the
-   * type reference to supply type parameters.  [expectedKind] is the kind of
+   * reached via the given prefix.  Verify that the number of type arguments
+   * is equal to [numTypeArguments].  [expectedKind] is the kind of
    * object referenced.  [linkedSourceUnit] and [unlinkedSourceUnit] refer
    * to the compilation unit within which the [typeRef] appears; if not
    * specified they are assumed to refer to the defining compilation unit.
@@ -590,7 +590,7 @@ abstract class SummaryTest {
       String expectedName,
       {String expectedPrefix,
       List<_PrefixExpectation> prefixExpectations,
-      bool allowTypeParameters: false,
+      int numTypeArguments: 0,
       ReferenceKind expectedKind: ReferenceKind.classOrEnum,
       int expectedTargetUnit: 0,
       LinkedUnit linkedSourceUnit,
@@ -602,9 +602,7 @@ abstract class SummaryTest {
     expect(typeRef, new isInstanceOf<EntityRef>());
     expect(typeRef.paramReference, 0);
     int index = typeRef.reference;
-    if (!allowTypeParameters) {
-      expect(typeRef.typeArguments, isEmpty);
-    }
+    expect(typeRef.typeArguments, hasLength(numTypeArguments));
     UnlinkedReference reference = checkReferenceIndex(
         index, absoluteUri, relativeUri, expectedName,
         expectedKind: expectedKind,
@@ -1350,7 +1348,7 @@ class E {}
     expect(cls.typeParameters[0].name, 'T');
     expect(cls.typeParameters[0].bound, isNotNull);
     checkTypeRef(cls.typeParameters[0].bound, 'dart:core', 'dart:core', 'List',
-        allowTypeParameters: true, numTypeParameters: 1);
+        numTypeParameters: 1);
   }
 
   test_class_type_param_f_bound() {
@@ -1765,7 +1763,7 @@ const v = const C<int, String>.named();
               new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
                   numTypeParameters: 2)
             ],
-            allowTypeParameters: true);
+            numTypeArguments: 2);
         checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
         checkTypeRef(r.typeArguments[1], 'dart:core', 'dart:core', 'String');
       }
@@ -1799,7 +1797,7 @@ const v = const C<int, String>.named();
                   relativeUri: 'a.dart',
                   numTypeParameters: 2)
             ],
-            allowTypeParameters: true);
+            numTypeArguments: 2);
         checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
         checkTypeRef(r.typeArguments[1], 'dart:core', 'dart:core', 'String');
       }
@@ -1834,7 +1832,7 @@ const v = const p.C<int, String>.named();
                   numTypeParameters: 2),
               new _PrefixExpectation(ReferenceKind.prefix, 'p')
             ],
-            allowTypeParameters: true);
+            numTypeArguments: 2);
         checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
         checkTypeRef(r.typeArguments[1], 'dart:core', 'dart:core', 'String');
       }
@@ -1858,7 +1856,7 @@ const v = const C<int, String>();
         checkTypeRef(r, null, null, 'C',
             expectedKind: ReferenceKind.classOrEnum,
             numTypeParameters: 2,
-            allowTypeParameters: true);
+            numTypeArguments: 2);
         checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
         checkTypeRef(r.typeArguments[1], 'dart:core', 'dart:core', 'String');
       }
@@ -1887,7 +1885,7 @@ const v = const C<int, String>();
         checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'C',
             expectedKind: ReferenceKind.classOrEnum,
             numTypeParameters: 2,
-            allowTypeParameters: true);
+            numTypeArguments: 2);
         checkTypeRef(r.typeArguments[0], 'dart:core', 'dart:core', 'int');
         checkTypeRef(r.typeArguments[1], 'dart:core', 'dart:core', 'String');
       }
@@ -1916,7 +1914,7 @@ const v = const p.C<int, String>();
         checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'C',
             expectedKind: ReferenceKind.classOrEnum,
             numTypeParameters: 2,
-            allowTypeParameters: true,
+            numTypeArguments: 2,
             prefixExpectations: [
               new _PrefixExpectation(ReferenceKind.prefix, 'p')
             ]);
@@ -3737,7 +3735,7 @@ class D<T, U> extends C<U, T> {
           new _PrefixExpectation(ReferenceKind.classOrEnum, 'D',
               numTypeParameters: 2)
         ],
-        allowTypeParameters: true);
+        numTypeArguments: 2);
     checkParamTypeRef(executable.redirectedConstructor.typeArguments[0], 1);
     checkParamTypeRef(executable.redirectedConstructor.typeArguments[1], 2);
   }
@@ -3800,7 +3798,7 @@ class C<T, U> {
               absoluteUri: absUri('/foo.dart'),
               relativeUri: 'foo.dart')
         ],
-        allowTypeParameters: true);
+        numTypeArguments: 2);
     checkParamTypeRef(executable.redirectedConstructor.typeArguments[0], 1);
     checkParamTypeRef(executable.redirectedConstructor.typeArguments[1], 2);
   }
@@ -3865,7 +3863,7 @@ class C<T, U> {
               relativeUri: 'foo.dart'),
           new _PrefixExpectation(ReferenceKind.prefix, 'foo')
         ],
-        allowTypeParameters: true);
+        numTypeArguments: 2);
     checkParamTypeRef(executable.redirectedConstructor.typeArguments[0], 1);
     checkParamTypeRef(executable.redirectedConstructor.typeArguments[1], 2);
   }
@@ -3904,7 +3902,7 @@ class D<T, U> extends C<U, T> {
     expect(executable.isFactory, isTrue);
     expect(executable.redirectedConstructorName, isEmpty);
     checkTypeRef(executable.redirectedConstructor, null, null, 'D',
-        allowTypeParameters: true, numTypeParameters: 2);
+        numTypeParameters: 2, numTypeArguments: 2);
     checkParamTypeRef(executable.redirectedConstructor.typeArguments[0], 1);
     checkParamTypeRef(executable.redirectedConstructor.typeArguments[1], 2);
   }
@@ -3957,7 +3955,7 @@ class C<T, U> {
     expect(executable.redirectedConstructorName, isEmpty);
     checkTypeRef(
         executable.redirectedConstructor, absUri('/foo.dart'), 'foo.dart', 'D',
-        allowTypeParameters: true, numTypeParameters: 2);
+        numTypeParameters: 2, numTypeArguments: 2);
     checkParamTypeRef(executable.redirectedConstructor.typeArguments[0], 1);
     checkParamTypeRef(executable.redirectedConstructor.typeArguments[1], 2);
   }
@@ -4011,7 +4009,7 @@ class C<T, U> {
     expect(executable.redirectedConstructorName, isEmpty);
     checkTypeRef(
         executable.redirectedConstructor, absUri('/foo.dart'), 'foo.dart', 'D',
-        allowTypeParameters: true, numTypeParameters: 2, expectedPrefix: 'foo');
+        numTypeParameters: 2, expectedPrefix: 'foo', numTypeArguments: 2);
     checkParamTypeRef(executable.redirectedConstructor.typeArguments[0], 1);
     checkParamTypeRef(executable.redirectedConstructor.typeArguments[1], 2);
   }
@@ -8838,7 +8836,7 @@ bool f() => true;
   test_type_arguments_explicit() {
     EntityRef typeRef = serializeTypeText('List<int>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'List',
-        allowTypeParameters: true, numTypeParameters: 1);
+        numTypeParameters: 1, numTypeArguments: 1);
     expect(typeRef.typeArguments, hasLength(1));
     checkTypeRef(typeRef.typeArguments[0], 'dart:core', 'dart:core', 'int');
   }
@@ -8846,14 +8844,14 @@ bool f() => true;
   test_type_arguments_explicit_dynamic() {
     EntityRef typeRef = serializeTypeText('List<dynamic>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'List',
-        allowTypeParameters: true, numTypeParameters: 1);
+        numTypeParameters: 1);
     expect(typeRef.typeArguments, isEmpty);
   }
 
   test_type_arguments_explicit_dynamic_dynamic() {
     EntityRef typeRef = serializeTypeText('Map<dynamic, dynamic>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'Map',
-        allowTypeParameters: true, numTypeParameters: 2);
+        numTypeParameters: 2);
     // Trailing type arguments of type `dynamic` are omitted.
     expect(typeRef.typeArguments, isEmpty);
   }
@@ -8861,7 +8859,7 @@ bool f() => true;
   test_type_arguments_explicit_dynamic_int() {
     EntityRef typeRef = serializeTypeText('Map<dynamic, int>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'Map',
-        allowTypeParameters: true, numTypeParameters: 2);
+        numTypeParameters: 2, numTypeArguments: 2);
     // Leading type arguments of type `dynamic` are not omitted.
     expect(typeRef.typeArguments.length, 2);
     checkDynamicTypeRef(typeRef.typeArguments[0]);
@@ -8872,16 +8870,16 @@ bool f() => true;
     EntityRef typeRef =
         serializeTypeText('F<dynamic>', otherDeclarations: 'typedef T F<T>();');
     checkTypeRef(typeRef, null, null, 'F',
-        allowTypeParameters: true,
         expectedKind: ReferenceKind.typedef,
-        numTypeParameters: 1);
+        numTypeParameters: 1,
+        numTypeArguments: 0);
     expect(typeRef.typeArguments, isEmpty);
   }
 
   test_type_arguments_explicit_String_dynamic() {
     EntityRef typeRef = serializeTypeText('Map<String, dynamic>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'Map',
-        allowTypeParameters: true, numTypeParameters: 2);
+        numTypeParameters: 2, numTypeArguments: 1);
     // Trailing type arguments of type `dynamic` are omitted.
     expect(typeRef.typeArguments.length, 1);
     checkTypeRef(typeRef.typeArguments[0], 'dart:core', 'dart:core', 'String');
@@ -8890,7 +8888,7 @@ bool f() => true;
   test_type_arguments_explicit_String_int() {
     EntityRef typeRef = serializeTypeText('Map<String, int>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'Map',
-        allowTypeParameters: true, numTypeParameters: 2);
+        numTypeParameters: 2, numTypeArguments: 2);
     expect(typeRef.typeArguments.length, 2);
     checkTypeRef(typeRef.typeArguments[0], 'dart:core', 'dart:core', 'String');
     checkTypeRef(typeRef.typeArguments[1], 'dart:core', 'dart:core', 'int');
@@ -8900,9 +8898,9 @@ bool f() => true;
     EntityRef typeRef =
         serializeTypeText('F<int>', otherDeclarations: 'typedef T F<T>();');
     checkTypeRef(typeRef, null, null, 'F',
-        allowTypeParameters: true,
         expectedKind: ReferenceKind.typedef,
-        numTypeParameters: 1);
+        numTypeParameters: 1,
+        numTypeArguments: 1);
     expect(typeRef.typeArguments, hasLength(1));
     checkTypeRef(typeRef.typeArguments[0], 'dart:core', 'dart:core', 'int');
   }
@@ -8910,7 +8908,7 @@ bool f() => true;
   test_type_arguments_implicit() {
     EntityRef typeRef = serializeTypeText('List');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'List',
-        allowTypeParameters: true, numTypeParameters: 1);
+        numTypeParameters: 1);
     expect(typeRef.typeArguments, isEmpty);
   }
 
@@ -8918,16 +8916,16 @@ bool f() => true;
     EntityRef typeRef =
         serializeTypeText('F', otherDeclarations: 'typedef T F<T>();');
     checkTypeRef(typeRef, null, null, 'F',
-        allowTypeParameters: true,
         expectedKind: ReferenceKind.typedef,
-        numTypeParameters: 1);
+        numTypeParameters: 1,
+        numTypeArguments: 0);
     expect(typeRef.typeArguments, isEmpty);
   }
 
   test_type_arguments_order() {
     EntityRef typeRef = serializeTypeText('Map<int, Object>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'Map',
-        allowTypeParameters: true, numTypeParameters: 2);
+        numTypeParameters: 2, numTypeArguments: 2);
     expect(typeRef.typeArguments, hasLength(2));
     checkTypeRef(typeRef.typeArguments[0], 'dart:core', 'dart:core', 'int');
     checkTypeRef(typeRef.typeArguments[1], 'dart:core', 'dart:core', 'Object');
