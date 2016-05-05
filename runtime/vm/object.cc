@@ -16447,14 +16447,14 @@ void Type::set_error(const LanguageError& value) const {
 
 
 RawFunction* Type::signature() const {
-  if (raw_ptr()->sig_or_err_.signature_ == Function::null()) {
+  intptr_t cid = raw_ptr()->sig_or_err_.signature_->GetClassId();
+  if (cid == kNullCid) {
     return Function::null();
   }
-  const Object& obj = Object::Handle(raw_ptr()->sig_or_err_.signature_);
-  if (obj.IsFunction()) {
-    return Function::RawCast(obj.raw());
+  if (cid == kFunctionCid) {
+    return Function::RawCast(raw_ptr()->sig_or_err_.signature_);
   }
-  ASSERT(obj.IsLanguageError());  // Type is malformed or malbounded.
+  ASSERT(cid == kLanguageErrorCid);  // Type is malformed or malbounded.
   return Function::null();
 }
 
