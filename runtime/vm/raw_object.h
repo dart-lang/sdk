@@ -712,6 +712,8 @@ class RawClass : public RawObject {
       case Snapshot::kAppNoJIT:
         return reinterpret_cast<RawObject**>(&ptr()->direct_subclasses_);
       case Snapshot::kMessage:
+      case Snapshot::kNone:
+      case Snapshot::kInvalid:
         break;
     }
     UNREACHABLE();
@@ -940,6 +942,8 @@ class RawField : public RawObject {
       case Snapshot::kAppNoJIT:
         return reinterpret_cast<RawObject**>(&ptr()->initializer_);
       case Snapshot::kMessage:
+      case Snapshot::kNone:
+      case Snapshot::kInvalid:
         break;
     }
     UNREACHABLE();
@@ -1020,6 +1024,8 @@ class RawScript : public RawObject {
       case Snapshot::kScript:
         return reinterpret_cast<RawObject**>(&ptr()->tokens_);
       case Snapshot::kMessage:
+      case Snapshot::kNone:
+      case Snapshot::kInvalid:
         break;
     }
     UNREACHABLE();
@@ -1506,6 +1512,8 @@ class RawICData : public RawObject {
       case Snapshot::kAppWithJIT:
         return to();
       case Snapshot::kMessage:
+      case Snapshot::kNone:
+      case Snapshot::kInvalid:
         break;
     }
     UNREACHABLE();
@@ -1637,6 +1645,8 @@ class RawLibraryPrefix : public RawInstance {
       case Snapshot::kAppNoJIT:
         return reinterpret_cast<RawObject**>(&ptr()->importer_);
       case Snapshot::kMessage:
+      case Snapshot::kNone:
+      case Snapshot::kInvalid:
         break;
     }
     UNREACHABLE();

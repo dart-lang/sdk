@@ -345,7 +345,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   GET_NATIVE_ARGUMENT(String, packageRoot, arguments->NativeArgAt(10));
   GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(11));
 
-  if (Dart::IsRunningPrecompiledCode()) {
+  if (Snapshot::IncludesCode(Dart::snapshot_kind())) {
     const Array& args = Array::Handle(Array::New(1));
     args.SetAt(0, String::Handle(String::New(
         "Isolate.spawnUri not supported under precompilation")));

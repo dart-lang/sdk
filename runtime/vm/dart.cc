@@ -47,6 +47,7 @@ int64_t Dart::start_time_ = 0;
 ThreadPool* Dart::thread_pool_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 ReadOnlyHandles* Dart::predefined_handles_ = NULL;
+Snapshot::Kind Dart::snapshot_kind_ = Snapshot::kInvalid;
 const uint8_t* Dart::instructions_snapshot_buffer_ = NULL;
 const uint8_t* Dart::data_snapshot_buffer_ = NULL;
 Dart_ThreadExitCallback Dart::thread_exit_callback_ = NULL;
@@ -131,15 +132,6 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
     return "VM already initialized or flags not initialized.";
   }
-#if defined(DART_PRECOMPILED_RUNTIME)
-  if (instructions_snapshot == NULL) {
-    return "Precompiled runtime requires a precompiled snapshot";
-  }
-#else
-  if (instructions_snapshot != NULL) {
-    return "JIT runtime cannot run a precompiled snapshot";
-  }
-#endif
   set_thread_exit_callback(thread_exit);
   SetFileCallbacks(file_open, file_read, file_write, file_close);
   set_entropy_source_callback(entropy_source);
@@ -178,14 +170,12 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     ASSERT(vm_isolate_ == NULL);
     ASSERT(Flags::Initialized());
     const bool is_vm_isolate = true;
-    const bool precompiled = instructions_snapshot != NULL;
 
     // Setup default flags for the VM isolate.
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
     vm_isolate_ = Isolate::Init("vm-isolate", api_flags, is_vm_isolate);
     start_time_ = vm_isolate_->start_time();
-    vm_isolate_->set_compilation_allowed(!precompiled);
     // Verify assumptions about executing in the VM isolate.
     ASSERT(vm_isolate_ == Isolate::Current());
     ASSERT(vm_isolate_ == Thread::Current()->isolate());
@@ -200,24 +190,48 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     Object::InitOnce(vm_isolate_);
     ArgumentsDescriptor::InitOnce();
     ICData::InitOnce();
-    // When precompiled the stub code is initialized from the snapshot.
-    if (!precompiled) {
-      StubCode::InitOnce();
-    }
     if (vm_isolate_snapshot != NULL) {
       NOT_IN_PRODUCT(TimelineDurationScope tds(Timeline::GetVMStream(),
                                                "VMIsolateSnapshot"));
-      if (instructions_snapshot != NULL) {
-        vm_isolate_->SetupInstructionsSnapshotPage(instructions_snapshot);
-      }
-      if (data_snapshot != NULL) {
-        vm_isolate_->SetupDataSnapshotPage(data_snapshot);
-      }
       const Snapshot* snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
       if (snapshot == NULL) {
-        return "Invalid vm isolate snapshot seen.";
+        return "Invalid vm isolate snapshot seen";
       }
-      ASSERT(Snapshot::IsFull(snapshot->kind()));
+      snapshot_kind_ = snapshot->kind();
+      if (Snapshot::IncludesCode(snapshot_kind_)) {
+        if (snapshot_kind_ == Snapshot::kAppNoJIT) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+          vm_isolate_->set_compilation_allowed(false);
+          if (!FLAG_precompiled_runtime) {
+            return "Flag --precompilation was not specified";
+          }
+#else
+          return "JIT runtime cannot run a precompiled snapshot";
+#endif
+        }
+        if (instructions_snapshot == NULL) {
+          return "Missing instructions snapshot";
+        }
+        if (data_snapshot == NULL) {
+          return "Missing rodata snapshot";
+        }
+        vm_isolate_->SetupInstructionsSnapshotPage(instructions_snapshot);
+        vm_isolate_->SetupDataSnapshotPage(data_snapshot);
+      } else if (Snapshot::IsFull(snapshot_kind_)) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+        return "Precompiled runtime requires a precompiled snapshot";
+#else
+        if (instructions_snapshot != NULL) {
+          return "Unexpected instructions snapshot";
+        }
+        if (data_snapshot != NULL) {
+          return "Unexpected rodata snapshot";
+        }
+        StubCode::InitOnce();
+#endif
+      } else {
+        return "Invalid vm isolate snapshot seen";
+      }
       VmIsolateSnapshotReader reader(snapshot->kind(),
                                      snapshot->content(),
                                      snapshot->length(),
@@ -226,7 +240,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                                      T);
       const Error& error = Error::Handle(reader.ReadVmIsolateSnapshot());
       if (!error.IsNull()) {
-        return error.ToCString();
+        return error.ToErrorCString();
       }
       NOT_IN_PRODUCT(if (tds.enabled()) {
         tds.SetNumArguments(2);
@@ -247,7 +261,13 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
         OS::Print("VM Isolate: Symbol table capacity : %" Pd "\n", capacity);
       }
     } else {
+#if defined(DART_PRECOMPILED_RUNTIME)
+      return "Precompiled runtime requires a precompiled snapshot";
+#else
+      snapshot_kind_ = Snapshot::kNone;
+      StubCode::InitOnce();
       Symbols::InitOnce(vm_isolate_);
+#endif
     }
     // We need to initialize the constants here for the vm isolate thread due to
     // bootstrapping issues.
@@ -487,6 +507,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
       return ApiError::New(message);
     }
     ASSERT(Snapshot::IsFull(snapshot->kind()));
+    ASSERT(snapshot->kind() == snapshot_kind_);
     if (FLAG_trace_isolates) {
       OS::Print("Size of isolate snapshot = %" Pd "\n", snapshot->length());
     }
@@ -511,6 +532,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
       MegamorphicCacheTable::PrintSizes(I);
     }
   } else {
+    ASSERT(snapshot_kind_ == Snapshot::kNone);
     // Populate the isolate's symbol table with all symbols from the
     // VM isolate. We do this so that when we generate a full snapshot
     // for the isolate we have a unified symbol table that we can then
@@ -530,7 +552,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // When running precompiled, the megamorphic miss function/code comes from the
   // snapshot.
-  if (!Dart::IsRunningPrecompiledCode()) {
+  if (!Snapshot::IncludesCode(Dart::snapshot_kind())) {
     MegamorphicCacheTable::InitMissHandler(I);
   }
 #endif

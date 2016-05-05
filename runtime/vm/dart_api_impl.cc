@@ -1148,9 +1148,6 @@ DART_EXPORT char* Dart_Initialize(
     Dart_FileCloseCallback file_close,
     Dart_EntropySource entropy_source,
     Dart_GetVMServiceAssetsArchive get_service_assets) {
-  if ((instructions_snapshot != NULL) && !FLAG_precompiled_runtime) {
-    return strdup("Flag --precompilation was not specified.");
-  }
   if (interrupt != NULL) {
     return strdup("Dart_Initialize: "
                   "Setting of interrupt callback is not supported.");
@@ -3829,7 +3826,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
   }
   if (constructor.IsGenerativeConstructor()) {
 #if defined(DEBUG)
-    if (!cls.is_allocated() && Dart::IsRunningPrecompiledCode()) {
+    if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppNoJIT)) {
       return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
     }
 #endif
@@ -3924,7 +3921,7 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
 #if defined(DEBUG)
-  if (!cls.is_allocated() && Dart::IsRunningPrecompiledCode()) {
+  if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppNoJIT)) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
@@ -3954,7 +3951,7 @@ DART_EXPORT Dart_Handle Dart_AllocateWithNativeFields(
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
 #if defined(DEBUG)
-  if (!cls.is_allocated() && Dart::IsRunningPrecompiledCode()) {
+  if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppNoJIT)) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
@@ -6121,10 +6118,13 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
   AssemblyInstructionsWriter instructions_writer(assembly_buffer,
                                                  ApiReallocate,
                                                  2 * MB /* initial_size */);
-  PrecompiledSnapshotWriter writer(vm_isolate_snapshot_buffer,
-                                   isolate_snapshot_buffer,
-                                   ApiReallocate,
-                                   &instructions_writer);
+  FullSnapshotWriter writer(Snapshot::kAppNoJIT,
+                            vm_isolate_snapshot_buffer,
+                            isolate_snapshot_buffer,
+                            ApiReallocate,
+                            &instructions_writer,
+                            false /* vm_isolate_is_symbolic */);
+
   writer.WriteFullSnapshot();
   *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
   *isolate_snapshot_size = writer.IsolateSnapshotSize();
@@ -6180,10 +6180,13 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
                                              rodata_blob_buffer,
                                              ApiReallocate,
                                              2 * MB /* initial_size */);
-  PrecompiledSnapshotWriter writer(vm_isolate_snapshot_buffer,
-                                   isolate_snapshot_buffer,
-                                   ApiReallocate,
-                                   &instructions_writer);
+  FullSnapshotWriter writer(Snapshot::kAppNoJIT,
+                            vm_isolate_snapshot_buffer,
+                            isolate_snapshot_buffer,
+                            ApiReallocate,
+                            &instructions_writer,
+                            false /* vm_isolate_is_symbolic */);
+
   writer.WriteFullSnapshot();
   *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
   *isolate_snapshot_size = writer.IsolateSnapshotSize();
@@ -6195,8 +6198,105 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
 #endif  // DART_PRECOMPILER
 
 
+DART_EXPORT Dart_Handle Dart_PrecompileJIT() {
+  API_TIMELINE_BEGIN_END;
+  DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
+  Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);
+  if (::Dart_IsError(result)) {
+    return result;
+  }
+  CHECK_CALLBACK_STATE(T);
+  GrowableObjectArray& libraries =
+      GrowableObjectArray::Handle(Z, I->object_store()->libraries());
+  Library& lib = Library::Handle(Z);
+  Class& cls = Class::Handle(Z);
+  Error& error = Error::Handle(Z);
+  for (intptr_t i = 0; i < libraries.Length(); i++) {
+    lib ^= libraries.At(i);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      if (cls.IsDynamicClass()) {
+        continue;  // class 'dynamic' is in the read-only VM isolate.
+      }
+      error = cls.EnsureIsFinalized(T);
+      if (!error.IsNull()) {
+        return Api::NewHandle(T, error.raw());
+      }
+    }
+  }
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_CreatePrecompiledJITSnapshotBlob(
+    uint8_t** vm_isolate_snapshot_buffer,
+    intptr_t* vm_isolate_snapshot_size,
+    uint8_t** isolate_snapshot_buffer,
+    intptr_t* isolate_snapshot_size,
+    uint8_t** instructions_blob_buffer,
+    intptr_t* instructions_blob_size,
+    uint8_t** rodata_blob_buffer,
+    intptr_t* rodata_blob_size) {
+  ASSERT(FLAG_load_deferred_eagerly);
+  API_TIMELINE_DURATION;
+  DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
+  if (vm_isolate_snapshot_buffer == NULL) {
+    RETURN_NULL_ERROR(vm_isolate_snapshot_buffer);
+  }
+  if (vm_isolate_snapshot_size == NULL) {
+    RETURN_NULL_ERROR(vm_isolate_snapshot_size);
+  }
+  if (isolate_snapshot_buffer == NULL) {
+    RETURN_NULL_ERROR(isolate_snapshot_buffer);
+  }
+  if (isolate_snapshot_size == NULL) {
+    RETURN_NULL_ERROR(isolate_snapshot_size);
+  }
+  if (instructions_blob_buffer == NULL) {
+    RETURN_NULL_ERROR(instructions_blob_buffer);
+  }
+  if (instructions_blob_size == NULL) {
+    RETURN_NULL_ERROR(instructions_blob_size);
+  }
+  if (rodata_blob_buffer == NULL) {
+    RETURN_NULL_ERROR(instructions_blob_buffer);
+  }
+  if (rodata_blob_size == NULL) {
+    RETURN_NULL_ERROR(instructions_blob_size);
+  }
+  // Finalize all classes if needed.
+  Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
+  if (::Dart_IsError(state)) {
+    return state;
+  }
+  I->heap()->CollectAllGarbage();
+  I->StopBackgroundCompiler();
+
+  BlobInstructionsWriter instructions_writer(instructions_blob_buffer,
+                                             rodata_blob_buffer,
+                                             ApiReallocate,
+                                             2 * MB /* initial_size */);
+  FullSnapshotWriter writer(Snapshot::kAppWithJIT,
+                            vm_isolate_snapshot_buffer,
+                            isolate_snapshot_buffer,
+                            ApiReallocate,
+                            &instructions_writer,
+                            false /* vm_isolate_is_symbolic */);
+  writer.WriteFullSnapshot();
+  *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
+  *isolate_snapshot_size = writer.IsolateSnapshotSize();
+  *instructions_blob_size = instructions_writer.InstructionsBlobSize();
+  *rodata_blob_size = instructions_writer.RodataBlobSize();
+
+  return Api::Success();
+}
+
+
 DART_EXPORT bool Dart_IsRunningPrecompiledCode() {
-  return Dart::IsRunningPrecompiledCode();
+  return Snapshot::IncludesCode(Dart::snapshot_kind());
 }
 
 }  // namespace dart

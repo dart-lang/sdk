@@ -644,13 +644,12 @@ void RawClosureData::WriteTo(SnapshotWriter* writer,
   // Context scope.
   if (ptr()->context_scope_ == Object::empty_context_scope().raw()) {
     writer->WriteVMIsolateObject(kEmptyContextScopeObject);
+  } else if (ptr()->context_scope_->ptr()->is_implicit_ ||
+             (kind == Snapshot::kAppWithJIT)) {
+    writer->WriteObjectImpl(ptr()->context_scope_, kAsInlinedObject);
   } else {
-    if (ptr()->context_scope_->ptr()->is_implicit_) {
-      writer->WriteObjectImpl(ptr()->context_scope_, kAsInlinedObject);
-    } else {
-      // We don't write non implicit context scopes in the snapshot.
-      writer->WriteVMIsolateObject(kNullObject);
-    }
+    // We don't write non implicit context scopes in the snapshot.
+    writer->WriteVMIsolateObject(kNullObject);
   }
 
   // Parent function.
@@ -730,7 +729,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
     func.set_kind_tag(reader->Read<uint32_t>());
     func.set_token_pos(TokenPosition::SnapshotDecode(token_pos));
     func.set_end_token_pos(TokenPosition::SnapshotDecode(end_token_pos));
-    if (Snapshot::IncludesCode(kind)) {
+    if (kind == Snapshot::kAppNoJIT) {
       func.set_usage_counter(0);
       func.set_deoptimization_counter(0);
       func.set_optimized_instruction_count(0);
@@ -748,12 +747,23 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
                        func.raw()->from(), func.raw()->to_snapshot(),
                        kAsReference);
     // Initialize all fields that are not part of the snapshot.
-    if (Snapshot::IncludesCode(kind)) {
+    if (kind == Snapshot::kAppNoJIT) {
+      // Read the code object and fixup entry point.
       func.ClearICDataArray();
       func.ClearCode();
-      // Read the code object and fixup entry point.
       (*reader->CodeHandle()) ^= reader->ReadObjectImpl(kAsInlinedObject);
       func.SetInstructions(*reader->CodeHandle());
+    } else if (kind == Snapshot::kAppWithJIT) {
+      (*reader->ArrayHandle()) ^= reader->ReadObjectImpl(kAsReference);
+      func.set_ic_data_array(*reader->ArrayHandle());
+      (*reader->CodeHandle()) ^= reader->ReadObjectImpl(kAsInlinedObject);
+      func.set_unoptimized_code(*reader->CodeHandle());
+      if (!reader->CodeHandle()->IsNull()) {
+        func.SetInstructions(*reader->CodeHandle());
+        func.set_was_compiled(true);
+      } else {
+        func.ClearCode();
+      }
     } else {
       bool is_optimized = func.usage_counter() != 0;
       if (is_optimized) {
@@ -784,7 +794,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
     intptr_t tags = writer->GetObjectTags(ptr()->owner_);
     intptr_t cid = ClassIdTag::decode(tags);
     owner_is_class = (cid == kClassCid);
-    is_in_fullsnapshot =  owner_is_class ?
+    is_in_fullsnapshot = owner_is_class ?
         Class::IsInFullSnapshot(reinterpret_cast<RawClass*>(ptr()->owner_)) :
         PatchClass::IsInFullSnapshot(
             reinterpret_cast<RawPatchClass*>(ptr()->owner_));
@@ -811,7 +821,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
     writer->Write<int16_t>(ptr()->num_fixed_parameters_);
     writer->Write<int16_t>(ptr()->num_optional_parameters_);
     writer->Write<uint32_t>(ptr()->kind_tag_);
-    if (Snapshot::IncludesCode(kind)) {
+    if (kind == Snapshot::kAppNoJIT) {
       // Omit fields used to support de/reoptimization.
     } else {
       if (is_optimized) {
@@ -827,15 +837,16 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
     // Write out all the object pointer fields.
     SnapshotWriterVisitor visitor(writer, kAsReference);
     visitor.VisitPointers(from(), to_snapshot());
-    if (Snapshot::IncludesCode(kind)) {
+    if (kind == Snapshot::kAppNoJIT) {
       ASSERT(ptr()->ic_data_array_ == Array::null());
       ASSERT((ptr()->code_ == ptr()->unoptimized_code_) ||
              (ptr()->unoptimized_code_ == Code::null()));
-      // Write out the code object as we are generating a precompiled snapshot.
       writer->WriteObjectImpl(ptr()->code_, kAsInlinedObject);
+    } else if (kind == Snapshot::kAppWithJIT) {
+      writer->WriteObjectImpl(ptr()->ic_data_array_, kAsReference);
+      writer->WriteObjectImpl(ptr()->unoptimized_code_, kAsInlinedObject);
     } else if (is_optimized) {
-      // Write out the ic data array as the function is optimized or
-      // we are generating a precompiled snapshot.
+      // Write out the ic data array as the function is optimized.
       writer->WriteObjectImpl(ptr()->ic_data_array_, kAsReference);
     }
   } else {
@@ -921,6 +932,9 @@ void RawField::WriteTo(SnapshotWriter* writer,
     if (kind == Snapshot::kAppNoJIT) {
       // For precompiled static fields, the value was already reset and
       // initializer_ now contains a Function.
+      writer->WriteObjectImpl(ptr()->value_.static_value_, kAsReference);
+    } else if (Field::ConstBit::decode(ptr()->kind_bits_)) {
+      // Do not reset const fields.
       writer->WriteObjectImpl(ptr()->value_.static_value_, kAsReference);
     } else {
       // Otherwise, for static fields we write out the initial static value.
@@ -1436,8 +1450,20 @@ void RawCode::WriteTo(SnapshotWriter* writer,
   intptr_t pointer_offsets_length =
       Code::PtrOffBits::decode(ptr()->state_bits_);
   if (pointer_offsets_length != 0) {
-    // Should only be IA32.
     FATAL("Cannot serialize code with embedded pointers");
+  }
+  if (kind == Snapshot::kAppNoJIT) {
+    // No disabled code in precompilation.
+    ASSERT(ptr()->instructions_ == ptr()->active_instructions_);
+  } else {
+    ASSERT(kind == Snapshot::kAppWithJIT);
+    // We never include optimized code in JIT precompilation. Deoptimization
+    // requires code patching and we cannot patch code that is shared between
+    // isolates and should not mutate memory allocated by the embedder.
+    bool is_optimized = Code::PtrOffBits::decode(ptr()->state_bits_);
+    if (is_optimized) {
+      FATAL("Cannot include optimized code in a JIT snapshot");
+    }
   }
 
   // Write out the serialization header value for this object.
@@ -1449,9 +1475,6 @@ void RawCode::WriteTo(SnapshotWriter* writer,
 
   // Write out all the non object fields.
   writer->Write<int32_t>(ptr()->state_bits_);
-
-  // No disabled code in precompilation.
-  ASSERT(ptr()->instructions_ == ptr()->active_instructions_);
 
   RawInstructions* instr = ptr()->instructions_;
   int32_t text_offset = writer->GetInstructionsId(instr, this);
@@ -1912,7 +1935,7 @@ RawContextScope* ContextScope::ReadFrom(SnapshotReader* reader,
   // Allocate context object.
   bool is_implicit = reader->Read<bool>();
   if (is_implicit) {
-    ContextScope& context_scope = ContextScope::ZoneHandle();
+    ContextScope& context_scope = ContextScope::ZoneHandle(reader->zone());
     if (Snapshot::IsFull(kind)) {
       context_scope = reader->NewContextScope(1);
       context_scope.set_is_implicit(true);
@@ -1931,6 +1954,19 @@ RawContextScope* ContextScope::ReadFrom(SnapshotReader* reader,
     context_scope.SetTypeAt(0, *reader->TypeHandle());
     context_scope.SetContextIndexAt(0, 0);
     context_scope.SetContextLevelAt(0, 0);
+    return context_scope.raw();
+  } else if (kind == Snapshot::kAppWithJIT) {
+    int32_t num_vars = reader->Read<int32_t>();
+
+    ContextScope& context_scope = ContextScope::ZoneHandle(reader->zone());
+    context_scope = reader->NewContextScope(num_vars);
+    context_scope.set_is_implicit(false);
+    reader->AddBackRef(object_id, &context_scope, kIsDeserialized);
+
+    READ_OBJECT_FIELDS(context_scope,
+                       context_scope.raw()->from(),
+                       context_scope.raw()->to(num_vars),
+                       kAsInlinedObject);
     return context_scope.raw();
   }
   UNREACHABLE();
@@ -1960,6 +1996,23 @@ void RawContextScope::WriteTo(SnapshotWriter* writer,
 
     // Write out the type of 'this' the variable.
     writer->WriteObjectImpl(var->type, kAsInlinedObject);
+
+    return;
+  } else if (kind == Snapshot::kAppWithJIT) {
+    // Write out the serialization header value for this object.
+    writer->WriteInlinedObjectHeader(object_id);
+
+    // Write out the class and tags information.
+    writer->WriteVMIsolateObject(kContextScopeCid);
+    writer->WriteTags(writer->GetObjectTags(this));
+
+    // Write out is_implicit flag for the context scope.
+    writer->Write<bool>(false);
+    int32_t num_vars = ptr()->num_variables_;
+    writer->Write<int32_t>(num_vars);
+
+    SnapshotWriterVisitor visitor(writer, kAsInlinedObject);
+    visitor.VisitPointers(from(), to(num_vars));
 
     return;
   }

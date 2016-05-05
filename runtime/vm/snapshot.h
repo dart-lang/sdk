@@ -161,6 +161,8 @@ class Snapshot {
                   // not compile in the future.
     kScript,      // A partial snapshot of only the application script.
     kMessage,     // A partial snapshot used only for isolate messaging.
+    kNone,        // dart_bootstrap/gen_snapshot
+    kInvalid
   };
 
   static const int kHeaderSize = 2 * sizeof(int64_t);
@@ -919,7 +921,8 @@ class AssemblyInstructionsWriter : public InstructionsWriter {
                              ReAlloc alloc,
                              intptr_t initial_size)
     : InstructionsWriter(),
-      assembly_stream_(assembly_buffer, alloc, initial_size) {
+      assembly_stream_(assembly_buffer, alloc, initial_size),
+      binary_size_(0) {
   }
 
   virtual void Write();
@@ -1176,16 +1179,6 @@ class FullSnapshotWriter {
   bool vm_isolate_is_symbolic_;
 
   DISALLOW_COPY_AND_ASSIGN(FullSnapshotWriter);
-};
-
-
-class PrecompiledSnapshotWriter : public FullSnapshotWriter {
- public:
-  PrecompiledSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
-                            uint8_t** isolate_snapshot_buffer,
-                            ReAlloc alloc,
-                            InstructionsWriter* instructions_writer);
-  ~PrecompiledSnapshotWriter();
 };
 
 

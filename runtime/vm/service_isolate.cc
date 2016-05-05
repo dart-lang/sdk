@@ -336,6 +336,7 @@ class RunServiceTask : public ThreadPool::Task {
       OS::PrintErr("vm-service: Isolate creation error: %s\n", error);
       ServiceIsolate::SetServiceIsolate(NULL);
       ServiceIsolate::FinishedInitializing();
+      ServiceIsolate::FinishedExiting();
       return;
     }
 

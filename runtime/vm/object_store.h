@@ -582,6 +582,8 @@ class ObjectStore {
         return to();
       case Snapshot::kScript:
       case Snapshot::kMessage:
+      case Snapshot::kNone:
+      case Snapshot::kInvalid:
         break;
     }
     UNREACHABLE();

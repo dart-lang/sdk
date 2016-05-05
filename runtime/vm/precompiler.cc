@@ -229,7 +229,8 @@ void Precompiler::DoCompileAll(
     zone_ = NULL;
   }
 
-  intptr_t dropped_symbols_count = Symbols::Compact(I);
+  // TODO(rmacnak): intptr_t dropped_symbols_count = Symbols::Compact(I);
+  intptr_t dropped_symbols_count = 0;
 
   if (FLAG_trace_precompiler) {
     THR_Print("Precompiled %" Pd " functions,", function_count_);
@@ -764,7 +765,7 @@ void Precompiler::AddField(const Field& field) {
         if (FLAG_trace_precompiler) {
           THR_Print("Precompiling initializer for %s\n", field.ToCString());
         }
-        ASSERT(!Dart::IsRunningPrecompiledCode());
+        ASSERT(Dart::snapshot_kind() != Snapshot::kAppNoJIT);
         field.SetStaticValue(Instance::Handle(field.SavedInitialStaticValue()));
         const Function& initializer =
             Function::Handle(CompileStaticInitializer(field));

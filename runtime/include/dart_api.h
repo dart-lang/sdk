@@ -2977,6 +2977,20 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
     intptr_t* rodata_blob_size);
 
 
+DART_EXPORT Dart_Handle Dart_PrecompileJIT();
+
+
+DART_EXPORT Dart_Handle Dart_CreatePrecompiledJITSnapshotBlob(
+    uint8_t** vm_isolate_snapshot_buffer,
+    intptr_t* vm_isolate_snapshot_size,
+    uint8_t** isolate_snapshot_buffer,
+    intptr_t* isolate_snapshot_size,
+    uint8_t** instructions_blob_buffer,
+    intptr_t* instructions_blob_size,
+    uint8_t** rodata_blob_buffer,
+    intptr_t* rodata_blob_size);
+
+
 DART_EXPORT bool Dart_IsRunningPrecompiledCode();
 
 #endif  /* INCLUDE_DART_API_H_ */  /* NOLINT */

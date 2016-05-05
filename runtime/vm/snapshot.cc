@@ -625,7 +625,7 @@ RawApiError* SnapshotReader::ReadFullSnapshot() {
       }
     }
 
-    if (Snapshot::IncludesCode(kind_)) {
+    if (kind_ == Snapshot::kAppNoJIT) {
       ICData& ic = ICData::Handle(thread->zone());
       Object& funcOrCode = Object::Handle(thread->zone());
       Code& code = Code::Handle(thread->zone());
@@ -1764,7 +1764,7 @@ IsolateSnapshotReader::IsolateSnapshotReader(Snapshot::Kind kind,
                      new ZoneGrowableArray<BackRefNode>(
                          kNumInitialReferencesInFullSnapshot),
                      thread) {
-  isolate()->set_compilation_allowed(instructions_buffer_ == NULL);
+  isolate()->set_compilation_allowed(kind != Snapshot::kAppNoJIT);
   ASSERT(Snapshot::IsFull(kind));
 }
 
@@ -2186,23 +2186,6 @@ void FullSnapshotWriter::WriteFullSnapshot() {
     OS::Print("Total(CodeSize): %" Pd "\n", total);
   }
 }
-
-
-PrecompiledSnapshotWriter::PrecompiledSnapshotWriter(
-    uint8_t** vm_isolate_snapshot_buffer,
-    uint8_t** isolate_snapshot_buffer,
-    ReAlloc alloc,
-    InstructionsWriter* instructions_writer)
-  : FullSnapshotWriter(Snapshot::kAppNoJIT,
-                       vm_isolate_snapshot_buffer,
-                       isolate_snapshot_buffer,
-                       alloc,
-                       instructions_writer,
-                       false /* vm_isolate_is_symbolic */) {
-}
-
-
-PrecompiledSnapshotWriter::~PrecompiledSnapshotWriter() {}
 
 
 ForwardList::ForwardList(Thread* thread, intptr_t first_object_id)
