@@ -1482,13 +1482,13 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
   if (::Dart_IsError(state)) {
     return state;
   }
-  I->heap()->CollectAllGarbage();
   I->StopBackgroundCompiler();
 
 #if defined(DEBUG)
+  I->heap()->CollectAllGarbage();
   FunctionVisitor check_canonical(T);
   I->heap()->IterateObjects(&check_canonical);
-#endif  // #if defined(DEBUG).
+#endif  // #if defined(DEBUG)
 
   FullSnapshotWriter writer(Snapshot::kCore,
                             vm_isolate_snapshot_buffer,
@@ -1525,11 +1525,13 @@ static Dart_Handle createLibrarySnapshot(Dart_Handle library,
   } else {
     lib ^= Api::UnwrapHandle(library);
   }
-  I->heap()->CollectAllGarbage();
+
 #if defined(DEBUG)
+  I->heap()->CollectAllGarbage();
   FunctionVisitor check_canonical(T);
   I->heap()->IterateObjects(&check_canonical);
-#endif  // #if defined(DEBUG).
+#endif  // #if defined(DEBUG)
+
   ScriptSnapshotWriter writer(buffer, ApiReallocate);
   writer.WriteScriptSnapshot(lib);
   *size = writer.BytesWritten();
@@ -6115,7 +6117,6 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
   if (assembly_size == NULL) {
     RETURN_NULL_ERROR(assembly_size);
   }
-  I->heap()->CollectAllGarbage();
   AssemblyInstructionsWriter instructions_writer(assembly_buffer,
                                                  ApiReallocate,
                                                  2 * MB /* initial_size */);
@@ -6176,7 +6177,6 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
   if (rodata_blob_size == NULL) {
     RETURN_NULL_ERROR(instructions_blob_size);
   }
-  I->heap()->CollectAllGarbage();
   BlobInstructionsWriter instructions_writer(instructions_blob_buffer,
                                              rodata_blob_buffer,
                                              ApiReallocate,
@@ -6273,7 +6273,6 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledJITSnapshotBlob(
   if (::Dart_IsError(state)) {
     return state;
   }
-  I->heap()->CollectAllGarbage();
   I->StopBackgroundCompiler();
 
   BlobInstructionsWriter instructions_writer(instructions_blob_buffer,

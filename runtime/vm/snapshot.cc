@@ -2037,6 +2037,7 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
 #if defined(DEBUG)
   isolate()->ValidateClassTable();
 #endif
+  ASSERT(isolate()->background_compiler() == NULL);
 
   // Collect all the script objects and their accompanying token stream objects
   // into an array so that we can write it out as part of the VM isolate
