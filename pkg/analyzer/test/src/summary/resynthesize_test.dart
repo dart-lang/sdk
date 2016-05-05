@@ -2476,6 +2476,17 @@ class C extends A {
 ''');
   }
 
+  test_constructor_initializers_superInvocation_namedExpression() {
+    checkLibrary('''
+class A {
+  const A.aaa(a, {int b});
+}
+class C extends A {
+  const C() : super.aaa(1, b: 2);
+}
+''');
+  }
+
   test_constructor_initializers_superInvocation_unnamed() {
     checkLibrary('''
 class A {

@@ -3434,6 +3434,27 @@ class C {
         operators: [UnlinkedConstOperation.pushString], strings: ['bbb']);
   }
 
+  test_constructor_initializers_thisInvocation_nameExpression() {
+    UnlinkedExecutable executable =
+        findExecutable('', executables: serializeClassText(r'''
+class C {
+  const C() : this.named(a: 1, b: 2);
+  const C.named({int a, int b});
+}
+''').executables);
+    expect(executable.constantInitializers, hasLength(1));
+    UnlinkedConstructorInitializer initializer =
+        executable.constantInitializers[0];
+    expect(initializer.kind, UnlinkedConstructorInitializerKind.thisInvocation);
+    expect(initializer.name, 'named');
+    expect(initializer.expression, isNull);
+    expect(initializer.arguments, hasLength(2));
+    _assertUnlinkedConst(initializer.arguments[0],
+        name: 'a', operators: [UnlinkedConstOperation.pushInt], ints: [1]);
+    _assertUnlinkedConst(initializer.arguments[1],
+        name: 'b', operators: [UnlinkedConstOperation.pushInt], ints: [2]);
+  }
+
   test_constructor_initializers_thisInvocation_unnamed() {
     UnlinkedExecutable executable =
         findExecutable('named', executables: serializeClassText(r'''
@@ -9713,6 +9734,7 @@ final v = $expr;
    */
   void _assertUnlinkedConst(UnlinkedConst constExpr,
       {bool isValidConst: true,
+      String name: '',
       List<UnlinkedConstOperation> operators: const <UnlinkedConstOperation>[],
       List<UnlinkedExprAssignOperator> assignmentOperators:
           const <UnlinkedExprAssignOperator>[],
@@ -9723,6 +9745,7 @@ final v = $expr;
           const <_EntityRefValidator>[]}) {
     expect(constExpr, isNotNull);
     expect(constExpr.isValidConst, isValidConst);
+    expect(constExpr.name, name);
     expect(constExpr.operations, operators);
     expect(constExpr.ints, ints);
     expect(constExpr.doubles, doubles);

@@ -283,9 +283,15 @@ class _ConstExprBuilder {
 
   _ConstExprBuilder(this.resynthesizer, this.uc);
 
-  Expression get expr => stack.single;
-
   Expression build() {
+    Expression expr = _build();
+    if (uc.name.isNotEmpty) {
+      return AstFactory.namedExpression2(uc.name, expr);
+    }
+    return expr;
+  }
+
+  Expression _build() {
     if (!uc.isValidConst) {
       return AstFactory.identifier3(r'$$invalidConstExpr$$');
     }

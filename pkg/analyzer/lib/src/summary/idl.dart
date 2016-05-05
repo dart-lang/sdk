@@ -1034,6 +1034,12 @@ abstract class UnlinkedConst extends base.SummaryClass {
   bool get isValidConst;
 
   /**
+   * If the expression is a [NamedExpression], the name of the expression.
+   */
+  @Id(7)
+  String get name;
+
+  /**
    * Sequence of operations to execute (starting with an empty stack) to form
    * the constant value.
    */

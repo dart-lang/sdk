@@ -1440,6 +1440,11 @@ table UnlinkedConst {
   isValidConst:bool (id: 5);
 
   /**
+   * If the expression is a [NamedExpression], the name of the expression.
+   */
+  name:string (id: 7);
+
+  /**
    * Sequence of operations to execute (starting with an empty stack) to form
    * the constant value.
    */
