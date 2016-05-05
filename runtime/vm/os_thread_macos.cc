@@ -195,30 +195,6 @@ bool OSThread::Compare(ThreadId a, ThreadId b) {
 }
 
 
-void OSThread::GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage) {
-  ASSERT(thread_id == GetCurrentThreadId());
-  ASSERT(cpu_usage != NULL);
-  // TODO(johnmccutchan): Enable this after fixing issue with macos directory
-  // watcher.
-  const bool get_cpu_usage = false;
-  if (get_cpu_usage) {
-    mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
-    thread_basic_info_data_t info_data;
-    thread_basic_info_t info = &info_data;
-    mach_port_t thread_port = mach_thread_self();
-    kern_return_t r = thread_info(thread_port, THREAD_BASIC_INFO,
-                                  (thread_info_t)info, &count);
-    mach_port_deallocate(mach_task_self(), thread_port);
-    if (r == KERN_SUCCESS) {
-      *cpu_usage = (info->user_time.seconds * kMicrosecondsPerSecond) +
-                   info->user_time.microseconds;
-      return;
-    }
-  }
-  *cpu_usage = 0;
-}
-
-
 Mutex::Mutex() {
   pthread_mutexattr_t attr;
   int result = pthread_mutexattr_init(&attr);

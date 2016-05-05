@@ -156,20 +156,27 @@ class TimelineEvent {
                 int64_t micros = OS::GetCurrentMonotonicMicros());
 
   void DurationBegin(const char* label,
-                     int64_t micros = OS::GetCurrentMonotonicMicros());
-  void DurationEnd(int64_t micros = OS::GetCurrentMonotonicMicros());
+                     int64_t micros = OS::GetCurrentMonotonicMicros(),
+                     int64_t thread_micros = OS::GetCurrentThreadCPUMicros());
+  void DurationEnd(int64_t micros = OS::GetCurrentMonotonicMicros(),
+                   int64_t thread_micros = OS::GetCurrentThreadCPUMicros());
+
   void Instant(const char* label,
                int64_t micros = OS::GetCurrentMonotonicMicros());
 
   void Duration(const char* label,
                 int64_t start_micros,
-                int64_t end_micros);
+                int64_t end_micros,
+                int64_t thread_start_micros = -1,
+                int64_t thread_end_micros = -1);
 
   void Begin(const char* label,
-             int64_t micros = OS::GetCurrentMonotonicMicros());
+             int64_t micros = OS::GetCurrentMonotonicMicros(),
+             int64_t thread_micros = OS::GetCurrentThreadCPUMicros());
 
   void End(const char* label,
-           int64_t micros = OS::GetCurrentMonotonicMicros());
+           int64_t micros = OS::GetCurrentMonotonicMicros(),
+           int64_t thread_micros = OS::GetCurrentThreadCPUMicros());
 
   void Counter(const char* label,
                int64_t micros = OS::GetCurrentMonotonicMicros());
@@ -203,6 +210,10 @@ class TimelineEvent {
   bool IsFinishedDuration() const {
     return (event_type() == kDuration) && (timestamp1_ > timestamp0_);
   }
+
+  bool HasThreadCPUTime() const;
+  int64_t ThreadCPUTimeDuration() const;
+  int64_t ThreadCPUTimeOrigin() const;
 
   int64_t TimeOrigin() const;
   int64_t AsyncId() const;
@@ -311,6 +322,16 @@ class TimelineEvent {
     timestamp1_ = value;
   }
 
+  void set_thread_timestamp0(int64_t value) {
+    ASSERT(thread_timestamp0_ == -1);
+    thread_timestamp0_ = value;
+  }
+
+  void set_thread_timestamp1(int64_t value) {
+    ASSERT(thread_timestamp1_ == -1);
+    thread_timestamp1_ = value;
+  }
+
   bool pre_serialized_json() const {
     return PreSerializedJSON::decode(state_);
   }
@@ -337,6 +358,8 @@ class TimelineEvent {
 
   int64_t timestamp0_;
   int64_t timestamp1_;
+  int64_t thread_timestamp0_;
+  int64_t thread_timestamp1_;
   TimelineEventArgument* arguments_;
   intptr_t arguments_length_;
   uword state_;
@@ -486,6 +509,7 @@ class TimelineDurationScope : public TimelineEventScope {
 
  private:
   int64_t timestamp_;
+  int64_t thread_timestamp_;
 
   DISALLOW_COPY_AND_ASSIGN(TimelineDurationScope);
 };

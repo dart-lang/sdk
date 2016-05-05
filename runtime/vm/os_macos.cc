@@ -139,6 +139,32 @@ int64_t OS::GetCurrentMonotonicMicros() {
 }
 
 
+int64_t OS::GetCurrentThreadCPUMicros() {
+#if TARGET_OS_IOS
+  // TODO(johnmccutchan): Implement this. No implementation exists in base.
+  return -1
+#else
+  mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
+  thread_basic_info_data_t info_data;
+  thread_basic_info_t info = &info_data;
+  mach_port_t thread_port = mach_thread_self();
+  if (thread_port == MACH_PORT_NULL) {
+    return -1;
+  }
+  kern_return_t r = thread_info(thread_port, THREAD_BASIC_INFO,
+                                (thread_info_t)info, &count);
+  mach_port_deallocate(mach_task_self(), thread_port);
+  ASSERT(r == KERN_SUCCESS);
+  int64_t thread_cpu_micros =
+      (info->system_time.seconds + info->user_time.seconds);
+  thread_cpu_micros *= kMicrosecondsPerSecond;
+  thread_cpu_micros += info->user_time.microseconds;
+  thread_cpu_micros += info->system_time.microseconds
+  return thread_cpu_micros;
+#endif  // TARGET_OS_IOS
+}
+
+
 void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
   const int kMinimumAlignment = 16;
   ASSERT(Utils::IsPowerOfTwo(alignment));

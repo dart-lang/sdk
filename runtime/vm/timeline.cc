@@ -308,6 +308,8 @@ Dart_EmbedderTimelineStopRecording Timeline::stop_recording_cb_ = NULL;
 TimelineEvent::TimelineEvent()
     : timestamp0_(0),
       timestamp1_(0),
+      thread_timestamp0_(-1),
+      thread_timestamp1_(-1),
       arguments_(NULL),
       arguments_length_(0),
       state_(0),
@@ -370,15 +372,19 @@ void TimelineEvent::AsyncEnd(const char* label,
 
 
 void TimelineEvent::DurationBegin(const char* label,
-                                  int64_t micros) {
+                                  int64_t micros,
+                                  int64_t thread_micros) {
   Init(kDuration, label);
   set_timestamp0(micros);
+  set_thread_timestamp0(thread_micros);
 }
 
 
-void TimelineEvent::DurationEnd(int64_t micros) {
+void TimelineEvent::DurationEnd(int64_t micros,
+                                int64_t thread_micros) {
   ASSERT(timestamp1_ == 0);
   set_timestamp1(micros);
+  set_thread_timestamp1(thread_micros);
 }
 
 
@@ -391,24 +397,32 @@ void TimelineEvent::Instant(const char* label,
 
 void TimelineEvent::Duration(const char* label,
                              int64_t start_micros,
-                             int64_t end_micros) {
+                             int64_t end_micros,
+                             int64_t thread_start_micros,
+                             int64_t thread_end_micros) {
   Init(kDuration, label);
   set_timestamp0(start_micros);
   set_timestamp1(end_micros);
+  set_thread_timestamp0(thread_start_micros);
+  set_thread_timestamp1(thread_end_micros);
 }
 
 
 void TimelineEvent::Begin(const char* label,
-                          int64_t micros) {
+                          int64_t micros,
+                          int64_t thread_micros) {
   Init(kBegin, label);
   set_timestamp0(micros);
+  set_thread_timestamp0(thread_micros);
 }
 
 
 void TimelineEvent::End(const char* label,
-                        int64_t micros) {
+                        int64_t micros,
+                        int64_t thread_micros) {
   Init(kEnd, label);
   set_timestamp0(micros);
+  set_thread_timestamp0(thread_micros);
 }
 
 
@@ -522,6 +536,8 @@ void TimelineEvent::Init(EventType event_type,
   state_ = 0;
   timestamp0_ = 0;
   timestamp1_ = 0;
+  thread_timestamp0_ = -1;
+  thread_timestamp1_ = -1;
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != NULL);
   thread_ = os_thread->trace_id();
@@ -588,7 +604,9 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
   obj.AddProperty64("tid", tid);
   obj.AddProperty64("pid", pid);
   obj.AddPropertyTimeMicros("ts", TimeOrigin());
-
+  if (HasThreadCPUTime()) {
+    obj.AddPropertyTimeMicros("tts", ThreadCPUTimeOrigin());
+  }
   switch (event_type()) {
     case kBegin: {
       obj.AddProperty("ph", "B");
@@ -601,6 +619,9 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
     case kDuration: {
       obj.AddProperty("ph", "X");
       obj.AddPropertyTimeMicros("dur", TimeDuration());
+      if (HasThreadCPUTime()) {
+        obj.AddPropertyTimeMicros("tdur", ThreadCPUTimeDuration());
+      }
     }
     break;
     case kInstant: {
@@ -665,6 +686,28 @@ int64_t TimelineEvent::TimeDuration() const {
     return OS::GetCurrentMonotonicMicros() - timestamp0_;
   }
   return timestamp1_ - timestamp0_;
+}
+
+
+bool TimelineEvent::HasThreadCPUTime() const {
+  return (thread_timestamp0_ != -1);
+}
+
+
+
+int64_t TimelineEvent::ThreadCPUTimeOrigin() const {
+  ASSERT(HasThreadCPUTime());
+  return thread_timestamp0_;
+}
+
+
+int64_t TimelineEvent::ThreadCPUTimeDuration() const {
+  ASSERT(HasThreadCPUTime());
+  if (thread_timestamp1_ == -1) {
+    // This duration is still open, use current time as end.
+    return OS::GetCurrentThreadCPUMicros() - thread_timestamp0_;
+  }
+  return thread_timestamp1_ - thread_timestamp0_;
 }
 
 
@@ -831,6 +874,7 @@ TimelineDurationScope::TimelineDurationScope(TimelineStream* stream,
     return;
   }
   timestamp_ = OS::GetCurrentMonotonicMicros();
+  thread_timestamp_ = OS::GetCurrentThreadCPUMicros();
 }
 
 
@@ -842,6 +886,7 @@ TimelineDurationScope::TimelineDurationScope(Thread* thread,
     return;
   }
   timestamp_ = OS::GetCurrentMonotonicMicros();
+  thread_timestamp_ = OS::GetCurrentThreadCPUMicros();
 }
 
 
@@ -859,7 +904,11 @@ TimelineDurationScope::~TimelineDurationScope() {
   }
   ASSERT(event != NULL);
   // Emit a duration event.
-  event->Duration(label(), timestamp_, OS::GetCurrentMonotonicMicros());
+  event->Duration(label(),
+                  timestamp_,
+                  OS::GetCurrentMonotonicMicros(),
+                  thread_timestamp_,
+                  OS::GetCurrentThreadCPUMicros());
   StealArguments(event);
   event->Complete();
 }
