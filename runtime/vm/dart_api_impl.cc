@@ -6300,4 +6300,13 @@ DART_EXPORT bool Dart_IsRunningPrecompiledCode() {
   return Snapshot::IncludesCode(Dart::snapshot_kind());
 }
 
+
+DART_EXPORT bool Dart_IsPrecompiledRuntime() {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return true;
+#else
+  return false;
+#endif
+}
+
 }  // namespace dart
