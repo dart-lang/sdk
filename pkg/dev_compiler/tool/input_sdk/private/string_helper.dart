@@ -54,7 +54,7 @@ Iterable<Match> allMatchesInStringUnchecked(String pattern, String string,
   return new _StringAllMatchesIterable(string, pattern, startIndex);
 }
 
-class _StringAllMatchesIterable extends IterableBase<Match> {
+class _StringAllMatchesIterable extends Iterable<Match> {
   final String _input;
   final String _pattern;
   final int _index;

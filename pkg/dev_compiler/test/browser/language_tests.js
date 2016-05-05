@@ -416,7 +416,6 @@
       'int_modulo_arith_test_none_multi': fail,
       'integer_to_radix_string_test': fail,
       'integer_to_string_test_01_multi': fail,
-      'iterable_empty_test': fail,
       'iterable_generate_test': fail,
       'iterable_return_type_test_01_multi': fail,
       'iterable_return_type_test_02_multi': fail,
