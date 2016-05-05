@@ -58,7 +58,8 @@ class _CompressionMaxWindowBits {
  * will lead to undefined behaviour.
  */
 // TODO(ajohnsen): make this transformer reusable?
-class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
+class _WebSocketProtocolTransformer
+    implements StreamTransformer<List<int>, dynamic>, EventSink<List<int>> {
   static const int START = 0;
   static const int LEN_FIRST = 1;
   static const int LEN_REST = 2;
@@ -114,7 +115,8 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
   /**
    * Process data received from the underlying communication channel.
    */
-  void add(Uint8List buffer) {
+  void add(List<int> bytes) {
+    var buffer = bytes is Uint8List ? bytes : new Uint8List.fromList(bytes);
     int index = 0;
     int lastIndex = buffer.length;
     if (_state == CLOSED) {
@@ -626,9 +628,10 @@ class _WebSocketPerMessageDeflate {
 }
 
 // TODO(ajohnsen): Make this transformer reusable.
-class _WebSocketOutgoingTransformer implements StreamTransformer, EventSink {
+class _WebSocketOutgoingTransformer
+    implements StreamTransformer<dynamic, List<int>>, EventSink {
   final _WebSocketImpl webSocket;
-  EventSink _eventSink;
+  EventSink<List<int>> _eventSink;
 
   _WebSocketPerMessageDeflate _deflateHelper;
 
@@ -636,8 +639,8 @@ class _WebSocketOutgoingTransformer implements StreamTransformer, EventSink {
     _deflateHelper = webSocket._deflate;
   }
 
-  Stream bind(Stream stream) {
-    return new Stream.eventTransformed(stream, (EventSink eventSink) {
+  Stream<List<int>> bind(Stream stream) {
+    return new Stream.eventTransformed(stream, (eventSink) {
       if (_eventSink != null) {
         throw new StateError("WebSocket transformer already used");
       }
@@ -662,11 +665,12 @@ class _WebSocketOutgoingTransformer implements StreamTransformer, EventSink {
         opcode = _WebSocketOpcode.TEXT;
         data = UTF8.encode(message);
       } else {
-        if (message is! List<int>) {
+        if (message is List<int>) {
+          data = message;
+          opcode = _WebSocketOpcode.BINARY;
+        } else {
           throw new ArgumentError(message);
         }
-        opcode = _WebSocketOpcode.BINARY;
-        data = message;
       }
 
       if (_deflateHelper != null) {
@@ -708,7 +712,7 @@ class _WebSocketOutgoingTransformer implements StreamTransformer, EventSink {
         _eventSink.add(e);
       });
 
-  static Iterable createFrame(
+  static Iterable<List<int>> createFrame(
       int opcode, List<int> data, bool serverSide, bool compressed) {
     bool mask = !serverSide; // Masking not implemented for server.
     int dataLength = data == null ? 0 : data.length;
@@ -1218,7 +1222,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
 
   Map _toJSON(bool ref) {
     var name = '${_socket.address.host}:${_socket.port}';
-    var r = {
+    var r = <String, dynamic>{
       'id': _servicePath,
       'type': _serviceType(ref),
       'name': name,
