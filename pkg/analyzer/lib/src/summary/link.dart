@@ -2370,7 +2370,8 @@ class ExprTypeComputer {
       MethodElement method = left.lookUpMethod(operator.lexeme, library);
       if (method != null) {
         DartType type = method.returnType;
-        type = _refineBinaryExpressionType(operator, type, left, right);
+        type = linker.typeSystem.refineBinaryExpressionType(
+            typeProvider, left, operator, right, type);
         stack.add(type);
         return;
       }
@@ -2387,35 +2388,6 @@ class ExprTypeComputer {
       TokenType operator, DartType operandType) {
     DartType propertyType = _getPropertyType(targetType, propertyName);
     _pushBinaryOperatorType(propertyType, operator, operandType);
-  }
-
-  DartType _refineBinaryExpressionType(TokenType operator, DartType currentType,
-      DartType leftType, DartType rightType) {
-    DartType intType = typeProvider.intType;
-    if (leftType == intType) {
-      // int op double
-      if (operator == TokenType.MINUS ||
-          operator == TokenType.PERCENT ||
-          operator == TokenType.PLUS ||
-          operator == TokenType.STAR) {
-        DartType doubleType = typeProvider.doubleType;
-        if (rightType == doubleType) {
-          return doubleType;
-        }
-      }
-      // int op int
-      if (operator == TokenType.MINUS ||
-          operator == TokenType.PERCENT ||
-          operator == TokenType.PLUS ||
-          operator == TokenType.STAR ||
-          operator == TokenType.TILDE_SLASH) {
-        if (rightType == intType) {
-          return intType;
-        }
-      }
-    }
-    // default
-    return currentType;
   }
 
   static TokenType _convertAssignOperatorToTokenType(

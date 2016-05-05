@@ -7,6 +7,7 @@ library analyzer.src.generated.type_system;
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -939,6 +940,50 @@ abstract class TypeSystem {
     // Since the interface may be implemented multiple times with different
     // type arguments, choose the best one.
     return InterfaceTypeImpl.findMostSpecificType(candidates, this);
+  }
+
+  /**
+   * Attempts to make a better guess for the type of a binary with the given
+   * [operator], given that resolution has so far produced the [currentType].
+   */
+  DartType refineBinaryExpressionType(
+      TypeProvider typeProvider,
+      DartType leftType,
+      TokenType operator,
+      DartType rightType,
+      DartType currentType) {
+    // bool
+    if (operator == TokenType.AMPERSAND_AMPERSAND ||
+        operator == TokenType.BAR_BAR ||
+        operator == TokenType.EQ_EQ ||
+        operator == TokenType.BANG_EQ) {
+      return typeProvider.boolType;
+    }
+    DartType intType = typeProvider.intType;
+    if (leftType == intType) {
+      // int op double
+      if (operator == TokenType.MINUS ||
+          operator == TokenType.PERCENT ||
+          operator == TokenType.PLUS ||
+          operator == TokenType.STAR) {
+        DartType doubleType = typeProvider.doubleType;
+        if (rightType == doubleType) {
+          return doubleType;
+        }
+      }
+      // int op int
+      if (operator == TokenType.MINUS ||
+          operator == TokenType.PERCENT ||
+          operator == TokenType.PLUS ||
+          operator == TokenType.STAR ||
+          operator == TokenType.TILDE_SLASH) {
+        if (rightType == intType) {
+          return intType;
+        }
+      }
+    }
+    // default
+    return currentType;
   }
 
   /**
