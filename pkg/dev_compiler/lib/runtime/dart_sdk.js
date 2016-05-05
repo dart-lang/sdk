@@ -30809,7 +30809,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return `Rectangle (${this[dartx.left]}, ${this[dartx.top]}) ${this[dartx.width]} x ${this[dartx.height]}`;
       }
       ['=='](other) {
-        if (!dart.is(other, math.Rectangle)) return false;
+        if (!dart.is(other, math.Rectangle$(core.num))) return false;
         return dart.equals(this[dartx.left], dart.dload(other, 'left')) && dart.equals(this[dartx.top], dart.dload(other, 'top')) && dart.equals(this[dartx.right], dart.dload(other, 'right')) && dart.equals(this[dartx.bottom], dart.dload(other, 'bottom'));
       }
       get hashCode() {
@@ -30818,10 +30818,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       intersection(other) {
         dart.as(other, math.Rectangle$(T));
         let x0 = math.max(T)(this[dartx.left], other[dartx.left]);
-        let x1 = math.min(core.num)(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
+        let x1 = math.min(T)(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
         if (dart.notNull(x0) <= dart.notNull(x1)) {
           let y0 = math.max(T)(this[dartx.top], other[dartx.top]);
-          let y1 = math.min(core.num)(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
+          let y1 = math.min(T)(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
           if (dart.notNull(y0) <= dart.notNull(y1)) {
             return new (math.Rectangle$(T))(x0, y0, dart.notNull(x1) - dart.notNull(x0), dart.notNull(y1) - dart.notNull(y0));
           }
@@ -30833,8 +30833,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       boundingBox(other) {
         dart.as(other, math.Rectangle$(T));
-        let right = math.max(core.num)(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
-        let bottom = math.max(core.num)(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
+        let right = math.max(T)(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
+        let bottom = math.max(T)(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
         let left = math.min(T)(this[dartx.left], other[dartx.left]);
         let top = math.min(T)(this[dartx.top], other[dartx.top]);
         return new (math.Rectangle$(T))(left, top, dart.notNull(right) - dart.notNull(left), dart.notNull(bottom) - dart.notNull(top));
@@ -48310,7 +48310,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_ptr] = ptr;
     }
     get(type) {
-      return new html$._EventStream(this[_ptr], type, false);
+      return new (html$._EventStream$(html$.Event))(this[_ptr], type, false);
     }
   };
   dart.setSignature(html$.Events, {
@@ -48324,10 +48324,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get(type) {
       if (dart.notNull(html$.ElementEvents.webkitEvents[dartx.keys][dartx.contains](type[dartx.toLowerCase]()))) {
         if (dart.notNull(html_common.Device.isWebKit)) {
-          return new html$._ElementEventStreamImpl(this[_ptr], html$.ElementEvents.webkitEvents[dartx.get](type[dartx.toLowerCase]()), false);
+          return new (html$._ElementEventStreamImpl$(html$.Event))(this[_ptr], html$.ElementEvents.webkitEvents[dartx.get](type[dartx.toLowerCase]()), false);
         }
       }
-      return new html$._ElementEventStreamImpl(this[_ptr], type, false);
+      return new (html$._ElementEventStreamImpl$(html$.Event))(this[_ptr], type, false);
     }
   };
   dart.setSignature(html$.ElementEvents, {
@@ -65773,12 +65773,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     forTarget(e, opts) {
       let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-      let stream = new html$._EventStream(e, this[_eventType], useCapture);
+      let stream = new (html$._EventStream$(html$.Event))(e, this[_eventType], useCapture);
       let controller = async.StreamController$(html$.BeforeUnloadEvent).new({sync: true});
       stream.listen(dart.fn(event => {
-        let wrapped = new html$._BeforeUnloadEvent(dart.as(event, html$.Event));
+        let wrapped = new html$._BeforeUnloadEvent(event);
         controller.add(wrapped);
-      }, dart.void, [dart.dynamic]));
+      }, dart.void, [html$.Event]));
       return controller.stream;
     }
     getEventType(target) {
@@ -65786,11 +65786,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     forElement(e, opts) {
       let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-      return new (html$._ElementEventStreamImpl$(html$.BeforeUnloadEvent))(e, this[_eventType], useCapture);
+      return new (html$._ElementEventStreamImpl$(html$.Event))(e, this[_eventType], useCapture);
     }
     [_forElementList](e, opts) {
       let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-      return new (html$._ElementListEventStreamImpl$(html$.BeforeUnloadEvent))(e, this[_eventType], useCapture);
+      return new (html$._ElementListEventStreamImpl$(html$.Event))(e, this[_eventType], useCapture);
     }
   };
   html$._BeforeUnloadEventStreamProvider[dart.implements] = () => [html$.EventStreamProvider$(html$.BeforeUnloadEvent)];
@@ -68587,7 +68587,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [_forElementList](e, opts) {
         let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-        return new (html$._ElementListEventStreamImpl$(T))(e, this[_eventType], useCapture);
+        return new (html$._ElementListEventStreamImpl$(html$.Event))(e, this[_eventType], useCapture);
       }
       getEventType(target) {
         return this[_eventType];
@@ -70285,7 +70285,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_list$] = list;
       }
       get iterator() {
-        return new (html$._WrappedIterator$(E))(this[_list$][dartx.iterator]);
+        return new (html$._WrappedIterator$(html$.Node))(this[_list$][dartx.iterator]);
       }
       get length() {
         return this[_list$][dartx.length];
