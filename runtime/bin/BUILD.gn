@@ -330,7 +330,7 @@ source_set("embedded_dart_io") {
     ]
   } else {
     deps = [
-      "../../third_party/boringssl",
+      "//third_party/boringssl",
     ]
   }
 
