@@ -382,7 +382,7 @@ main() {
 }
 ''');
     var f = mainUnit.functions[0].localVariables[0];
-    expect(f.type.toString(), '() → (int) → num');
+    expect(f.type.toString(), '() → (int) → double');
   }
 
   void test_blockBodiedLambdas_nestedLambdas_topLevel() {
@@ -393,7 +393,7 @@ var f = /*info:INFERRED_TYPE_CLOSURE*/() {
 };
 ''');
     var f = mainUnit.topLevelVariables[0];
-    expect(f.type.toString(), '() → (int) → num');
+    expect(f.type.toString(), '() → (int) → double');
   }
 
   void test_blockBodiedLambdas_noReturn() {
@@ -2104,29 +2104,6 @@ var y = new C().m(1, b: 'bbb', c: 2.0);
     expect(unit.topLevelVariables[0].type.toString(), 'double');
   }
 
-  void test_refineBinaryExpressionType_typeParameter() {
-    checkFile('''
-class Point<T extends num> {
-  T x;
-  T y;
-
-  Point(this.x, this.y);
-
-  Point<T> operator +(Point<T> other) {
-    return new Point<T>(x + other.x, y + other.y);
-  }
-
-  Point<T> operator -(Point<T> other) {
-    return new Point<T>(x - other.x, y - other.y);
-  }
-
-  Point<T> operator *(Point<T> other) {
-    return new Point<T>(x * other.x, y * other.y);
-  }
-}
-  ''');
-  }
-
   void test_inferGenericMethodType_positional() {
     var unit = checkFile('''
 class C {
@@ -3041,6 +3018,29 @@ final x = F;
 ''');
     var x = mainUnit.topLevelVariables[0];
     expect(x.type.toString(), 'Type');
+  }
+
+  void test_refineBinaryExpressionType_typeParameter() {
+    checkFile('''
+class Point<T extends num> {
+  T x;
+  T y;
+
+  Point(this.x, this.y);
+
+  Point<T> operator +(Point<T> other) {
+    return new Point<T>(x + other.x, y + other.y);
+  }
+
+  Point<T> operator -(Point<T> other) {
+    return new Point<T>(x - other.x, y - other.y);
+  }
+
+  Point<T> operator *(Point<T> other) {
+    return new Point<T>(x * other.x, y * other.y);
+  }
+}
+  ''');
   }
 
   void test_staticRefersToNonStaticField_inOtherLibraryCycle() {
