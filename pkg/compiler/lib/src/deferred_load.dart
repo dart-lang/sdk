@@ -339,11 +339,14 @@ class DeferredLoadTask extends CompilerTask {
         treeElements
             .forEachConstantNode((Node node, ConstantExpression expression) {
           // Explicitly depend on the backend constants.
-          ConstantValue value = backend.constants.getConstantValue(expression);
-          assert(invariant(node, value != null,
-              message:
-                  "No constant value for ${expression.toStructuredText()}."));
-          constants.add(value);
+          ConstantValue value;
+          value = backend.constants.getConstantValue(expression);
+          // TODO(johnniwinther): ensure `value` is not null or use directly the
+          // expression to calculate dependencies. See dartbug.com/26406 for
+          // context.
+          if (value != null) {
+            constants.add(value);
+          }
         });
       }
     }

@@ -853,9 +853,13 @@ class TypeGraphInferrerEngine
             // For non-container types, the constant handler does
             // constant folding that could give more precise results.
             ConstantExpression constant = fieldElement.constant;
-            if (constant != null) {
-              ConstantValue value =
-                  compiler.backend.constants.getConstantValue(constant);
+            // TODO(johnniwinther): ensure `value` is not null. Note that
+            // calling `evaluate` in getConstantValue may trigger issues for
+            // deferred loading (dartbug.com/26406).
+            ConstantValue value = constant == null
+                ? null
+                : compiler.backend.constants.getConstantValue(constant);
+            if (value != null) {
               if (value.isFunction) {
                 FunctionConstantValue functionConstant = value;
                 type = types.allocateClosure(node, functionConstant.element);
