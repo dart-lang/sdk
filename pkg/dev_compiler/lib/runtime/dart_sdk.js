@@ -1122,8 +1122,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (t1 === dart.dynamic) return null;
       return false;
     }
-    let result = dart.isClassSubType(t1, t2, covariant);
-    if (result === true || result === null) return result;
+    if (!(t1 instanceof dart.AbstractFunctionType) && !(t2 instanceof dart.AbstractFunctionType)) {
+      let result = dart.isClassSubType(t1, t2, covariant);
+      if (result === true || result === null) return result;
+    }
     t1 = dart.getImplicitFunctionType(t1);
     if (!t1) return false;
     if (dart.isFunctionType(t1) && dart.isFunctionType(t2)) {

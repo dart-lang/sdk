@@ -809,76 +809,144 @@ suite('subtyping', function() {
     maybe(functionType(t1, [t2]), functionType(t2, [t1]));
   }
 
+  function run_test(func1, func2, func2opt, func1extra, func2extra) {
+    always2(func2(int, int), func2(int, int));
+    always2(func2(int, num), func2(int, int));
+    always2(func2(int, int), func2(num, int));
+
+    always2(func2opt(int, int), func2opt(int, int));
+    always2(func2opt(int, num), func2opt(int, int));
+    always2(func2opt(int, int), func2opt(num, int));
+
+    always2(func2opt(int, int), func2(int, int));
+    always2(func2opt(int, num), func2(int, int));
+    always2(func2opt(int, int), func2(num, int));
+
+    always2(func2opt(int, int), func1(int));
+    always2(func2opt(int, num), func1(int));
+    always2(func2opt(int, int), func1(num));
+
+    always2(func2extra(int, int), func2(int, int));
+    always2(func2extra(int, num), func2(int, int));
+    always2(func2extra(int, int), func2(num, int));
+
+    maybe2(func2(int, int), func2(int, num));
+    maybe2(func2(num, int), func2(int, int));
+
+    maybe2(func2opt(num, num), func1(int));
+
+    maybe2(func2opt(int, int), func2opt(int, num));
+    maybe2(func2opt(num, int), func2opt(int, int));
+
+    maybe2(func2opt(int, int), func2(int, num));
+    maybe2(func2opt(num, int), func2(int, int));
+
+    maybe2(func2extra(int, int), func2(int, num));
+    maybe2(func2extra(num, int), func2(int, int));
+
+    never2(func1(int), func2(int, num));
+    never2(func1(num), func2(int, int));
+    never2(func1(num), func2(num, num));
+
+    never2(func2(int, int), func1(int));
+    never2(func2(num, int), func1(int));
+    never2(func2(num, num), func1(num));
+
+    never2(func1(int), func2opt(int, num));
+    never2(func1(num), func2opt(int, int));
+    never2(func1(num), func2opt(num, num));
+
+    never2(func2(int, int), func2opt(int, num));
+    never2(func2(num, int), func2opt(int, int));
+    never2(func2(num, num), func2opt(num, num));
+
+    never2(func1extra(int), func2(int, num));
+    never2(func1extra(num), func2(int, int));
+    never2(func1extra(num), func2(num, num));
+
+    never2(func1extra(int), func2opt(int, num));
+    never2(func1extra(num), func2opt(int, int));
+    never2(func1extra(num), func2opt(num, num));
+
+    never2(func1(int), func1extra(int));
+    never2(func1(num), func1extra(int));
+    never2(func1(num), func1extra(num));
+
+    never2(func2(int, int), func1extra(int));
+    never2(func2(num, int), func1extra(int));
+    never2(func2(num, num), func1extra(num));
+
+    never2(func2(int, int), func2extra(int, int));
+    never2(func2(num, int), func2extra(int, int));
+    never2(func2(num, num), func2extra(num, num));
+  };
+
   test('basic function types', () => {
-    always2(functionType(int, [int]), functionType(int, [int]));
-    always2(functionType(int, [num]), functionType(int, [int]));
-    always2(functionType(int, [int]), functionType(num, [int]));
+    function func1(S) {
+      return functionType(S, []);
+    }
 
-    always2(functionType(int, [], [int]), functionType(int, [], [int]));
-    always2(functionType(int, [], [num]), functionType(int, [], [int]));
-    always2(functionType(int, [], [int]), functionType(num, [], [int]));
+    function func2(S, T) {
+      return functionType(S, [T]);
+    }
 
-    always2(functionType(int, [], [int]), functionType(int, [int]));
-    always2(functionType(int, [], [num]), functionType(int, [int]));
-    always2(functionType(int, [], [int]), functionType(num, [int]));
+    function func2opt(S, T) {
+      return functionType(S, [], [T]);
+    }
 
-    always2(functionType(int, [], [int]), functionType(int, []));
-    always2(functionType(int, [], [num]), functionType(int, []));
-    always2(functionType(int, [], [int]), functionType(num, []));
+    function func1extra(S) {
+      return functionType(S, [], {extra: int});
+    }
 
-    always2(functionType(int, [int], {extra: int}), functionType(int, [int]));
-    always2(functionType(int, [num], {extra: int}), functionType(int, [int]));
-    always2(functionType(int, [int], {extra: int}), functionType(num, [int]));
+    function func2extra(S, T) {
+      return functionType(S, [T], {extra: int});
+    }
 
-    maybe2(functionType(int, [int]), functionType(int, [num]));
-    maybe2(functionType(num, [int]), functionType(int, [int]));
+    run_test(func1, func2, func2opt, func1extra, func2extra);
+  });
 
-    maybe2(functionType(num, [], [num]), functionType(int, []));
+  test('basic typedefs', () => {
+    function func1(S) {
+      return dart.typedef('Func1', () => functionType(S, []))
+    }
 
-    maybe2(functionType(int, [], [int]), functionType(int, [], [num]));
-    maybe2(functionType(num, [], [int]), functionType(int, [], [int]));
+    function func2(S, T) {
+      return dart.typedef('Func2', () => functionType(S, [T]))
+    }
 
-    maybe2(functionType(int, [], [int]), functionType(int, [num]));
-    maybe2(functionType(num, [], [int]), functionType(int, [int]));
+    function func2opt(S, T) {
+      return dart.typedef('Func2', () => functionType(S, [], [T]))
+    }
 
-    maybe2(functionType(int, [int], {extra: int}), functionType(int, [num]));
-    maybe2(functionType(num, [int], {extra: int}), functionType(int, [int]));
+    function func1extra(S) {
+      return dart.typedef('Func1', () => functionType(S, [], {extra: int}))
+    }
 
-    never2(functionType(int, []), functionType(int, [num]));
-    never2(functionType(num, []), functionType(int, [int]));
-    never2(functionType(num, []), functionType(num, [num]));
+    function func2extra(S, T) {
+      return dart.typedef('Func2', () => functionType(S, [T], {extra: int}))
+    }
 
-    never2(functionType(int, [int]), functionType(int, []));
-    never2(functionType(num, [int]), functionType(int, []));
-    never2(functionType(num, [num]), functionType(num, []));
+    run_test(func1, func2, func2opt, func1extra, func2extra);
+  });
 
-    never2(functionType(int, []), functionType(int, [], [num]));
-    never2(functionType(num, []), functionType(int, [], [int]));
-    never2(functionType(num, []), functionType(num, [], [num]));
+  test('basic generic typedefs', () => {
+    let func1 = dart.generic(
+      (S) => dart.typedef('Func1', () => functionType(S, [])));
 
-    never2(functionType(int, [int]), functionType(int, [], [num]));
-    never2(functionType(num, [int]), functionType(int, [], [int]));
-    never2(functionType(num, [num]), functionType(num, [], [num]));
+    let func2 = dart.generic(
+      (S, T) => dart.typedef('Func2', () => functionType(S, [T])));
 
-    never2(functionType(int, [], {extra: int}), functionType(int, [num]));
-    never2(functionType(num, [], {extra: int}), functionType(int, [int]));
-    never2(functionType(num, [], {extra: int}), functionType(num, [num]));
+    let func2opt = dart.generic(
+      (S, T) => dart.typedef('Func2', () => functionType(S, [], [T])));
 
-    never2(functionType(int, [], {extra: int}), functionType(int, [], [num]));
-    never2(functionType(num, [], {extra: int}), functionType(int, [], [int]));
-    never2(functionType(num, [], {extra: int}), functionType(num, [], [num]));
+    let func1extra = dart.generic(
+      (S) => dart.typedef('Func1', () => functionType(S, [], {extra: int})));
 
-    never2(functionType(int, []), functionType(int, [], {extra: int}));
-    never2(functionType(num, []), functionType(int, [], {extra: int}));
-    never2(functionType(num, []), functionType(num, [], {extra: int}));
+    let func2extra = dart.generic(
+      (S, T) => dart.typedef('Func2',
+                             () => functionType(S, [T], {extra: int})));
 
-    never2(functionType(int, [int]), functionType(int, [], {extra: int}));
-    never2(functionType(num, [int]), functionType(int, [], {extra: int}));
-    never2(functionType(num, [num]), functionType(num, [], {extra: int}));
-
-    never2(functionType(int, [int]), functionType(int, [int], {extra: int}));
-    never2(functionType(num, [int]), functionType(int, [int], {extra: int}));
-    never2(functionType(num, [num]), functionType(num, [num], {extra: int}));
+    run_test(func1, func2, func2opt, func1extra, func2extra);
   });
 
   test('fuzzy function types', () => {
@@ -892,6 +960,21 @@ suite('subtyping', function() {
 
     always(functionType(int, [int], {extra: int}), functionType(dyn, [dyn]));
 
+  });
+
+  test('higher-order typedef', () => {
+    let Func$ = dart.generic((S, T) =>
+                             dart.typedef('Func', () =>
+                                          functionType(T, [S])));
+    let Func2$ = dart.generic((R, S, T) =>
+                              dart.typedef('Func2', () =>
+                                           functionType(T, [Func$(R, S)])));
+
+    maybe(functionType(int, [functionType(int, [num])]),
+          functionType(num, [functionType(int, [int])]));
+    maybe(functionType(int, [Func$(num, int)]),
+          functionType(num, [Func$(int, int)]));
+    maybe(Func2$(num, int, int), Func2$(int, int, num));
   });
 
   test('mixed types', () => {
