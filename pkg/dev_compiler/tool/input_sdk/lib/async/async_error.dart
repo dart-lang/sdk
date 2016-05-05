@@ -9,15 +9,18 @@ _invokeErrorHandler(Function errorHandler,
   if (errorHandler is ZoneBinaryCallback) {
     return errorHandler(error, stackTrace);
   } else {
-    return errorHandler(error);
+    ZoneUnaryCallback unaryErrorHandler = errorHandler;
+    return unaryErrorHandler(error);
   }
 }
 
-Function _registerErrorHandler(Function errorHandler, Zone zone) {
+Function _registerErrorHandler/*<R>*/(Function errorHandler, Zone zone) {
   if (errorHandler is ZoneBinaryCallback) {
-    return zone.registerBinaryCallback(errorHandler);
+    return zone.registerBinaryCallback/*<R, dynamic, StackTrace>*/(
+        errorHandler as dynamic/*=ZoneBinaryCallback<R, dynamic, StackTrace>*/);
   } else {
-    return zone.registerUnaryCallback(errorHandler);
+    return zone.registerUnaryCallback/*<R, dynamic>*/(
+        errorHandler as dynamic/*=ZoneUnaryCallback<R, dynamic>*/);
   }
 }
 

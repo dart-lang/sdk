@@ -36,7 +36,6 @@
       'async_star_cancel_and_throw_in_finally_test': skip_timeout,
 
       'async_star_cancel_while_paused_test': skip_fail,
-      'async_star_regression_fisk_test': skip_fail,
 
       // TODO(vsm): Re-enable.
       // See https://github.com/dart-lang/dev_compiler/issues/456
@@ -47,7 +46,6 @@
       'async_star_test_04_multi': ['unittest', 'skip', 'fail'],
       'async_star_test_05_multi': ['unittest', 'skip', 'fail'],
 
-      'async_switch_test': skip_fail,
       'asyncstar_throw_in_catch_test': skip_fail,
       'await_future_test': skip_fail,
       'bit_operations_test_none_multi': skip_fail,

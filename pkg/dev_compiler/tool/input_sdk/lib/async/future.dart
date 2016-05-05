@@ -95,7 +95,7 @@ part of dart.async;
  */
 abstract class Future<T> {
   // The `_nullFuture` is a completed Future with the value `null`.
-  static final _Future _nullFuture = new _Future.immediate(null);
+  static final _Future _nullFuture = new Future.value(null);
 
   /**
    * Creates a future containing the result of calling [computation]
@@ -112,7 +112,7 @@ abstract class Future<T> {
    * with that value.
    */
   factory Future(computation()) {
-    _Future result = new _Future<T>();
+    _Future<T> result = new _Future<T>();
     Timer.run(() {
       try {
         result._complete(computation());
@@ -138,7 +138,7 @@ abstract class Future<T> {
    * the returned future is completed with that value.
    */
   factory Future.microtask(computation()) {
-    _Future result = new _Future<T>();
+    _Future<T> result = new _Future<T>();
     scheduleMicrotask(() {
       try {
         result._complete(computation());
@@ -221,8 +221,8 @@ abstract class Future<T> {
    * See also [Completer] for a way to create and complete a future at a
    * later time that isn't necessarily after a known fixed duration.
    */
-  factory Future.delayed(Duration duration, [T computation()]) {
-    _Future result = new _Future<T>();
+  factory Future.delayed(Duration duration, [computation()]) {
+    _Future<T> result = new _Future<T>();
     new Timer(duration, () {
       try {
         result._complete(computation == null ? null : computation());
@@ -268,10 +268,10 @@ abstract class Future<T> {
       remaining--;
       if (values != null) {
         if (cleanUp != null) {
-          for (var value2 in values) {
-            if (value2 != null) {
+          for (var value in values) {
+            if (value != null) {
               // Ensure errors from cleanUp are uncaught.
-              new Future.sync(() { cleanUp(value2); });
+              new Future.sync(() { cleanUp(value); });
             }
           }
         }
@@ -291,7 +291,7 @@ abstract class Future<T> {
     // position in the list of values.
     for (Future future in futures) {
       int pos = remaining++;
-      future.then((Object value) {
+      future.then((Object/*=T*/ value) {
         remaining--;
         if (values != null) {
           values[pos] = value;
@@ -315,6 +315,31 @@ abstract class Future<T> {
     values = new List/*<T>*/(remaining);
     return result;
   }
+
+  /**
+   * Returns the result of the first future in [futures] to complete.
+   *
+   * The returned future is completed with the result of the first
+   * future in [futures] to report that it is complete.
+   * The results of all the other futures are discarded.
+   *
+   * If [futures] is empty, or if none of its futures complete,
+   * the returned future never completes.
+   */
+  static Future/*<T>*/ any/*<T>*/(Iterable<Future/*<T>*/> futures) {
+    var completer = new Completer/*<T>*/.sync();
+    var onValue = (/*=T*/ value) {
+      if (!completer.isCompleted) completer.complete(value);
+    };
+    var onError = (error, stack) {
+      if (!completer.isCompleted) completer.completeError(error, stack);
+    };
+    for (var future in futures) {
+      future.then(onValue, onError: onError);
+    }
+    return completer.future;
+  }
+
 
   /**
    * Perform an async operation for each element of the iterable, in turn.
@@ -461,8 +486,17 @@ abstract class Future<T> {
    *     }
    *
    */
-  Future catchError(Function onError,
-                    {bool test(Object error)});
+  // The `Function` below can stand for several types:
+  // - (dynamic) -> T
+  // - (dynamic, StackTrace) -> T
+  // - (dynamic) -> Future<T>
+  // - (dynamic, StackTrace) -> Future<T>
+  // Given that there is a `test` function that is usually used to do an
+  // `isCheck` we should also expect functions that take a specific argument.
+  // Note: making `catchError` return a `Future<T>` in non-strong mode could be
+  // a breaking change.
+  Future/*<T>*/ catchError(Function onError,
+                           {bool test(Object error)});
 
   /**
    * Register a function to be called when this future completes.
@@ -521,11 +555,12 @@ abstract class Future<T> {
    * If this future does not complete before `timeLimit` has passed,
    * the [onTimeout] action is executed instead, and its result (whether it
    * returns or throws) is used as the result of the returned future.
+   * The [onTimeout] function must return a [T] or a `Future<T>`.
    *
    * If `onTimeout` is omitted, a timeout will cause the returned future to
    * complete with a [TimeoutException].
    */
-  Future timeout(Duration timeLimit, {onTimeout()});
+  Future<T> timeout(Duration timeLimit, {onTimeout()});
 }
 
 /**
@@ -625,7 +660,7 @@ abstract class Completer<T> {
    * behavior, but using a synchronous completer incorrectly can cause
    * otherwise correct programs to break.
    *
-   * An asynchronous completer is only intended for optimizing event
+   * A synchronous completer is only intended for optimizing event
    * propagation when one asynchronous event immediately triggers another.
    * It should not be used unless the calls to [complete] and [completeError]
    * are guaranteed to occur in places where it won't break `Future` invariants.

@@ -20,14 +20,16 @@ import 'dart:_foreign_helper' show JS;
 class _AsyncRun {
   @patch
   static void _scheduleImmediate(void callback()) {
-    scheduleImmediateClosure(callback);
+    _scheduleImmediateClosure(callback);
   }
 
   // Lazily initialized.
-  static final Function scheduleImmediateClosure =
+  static final Function _scheduleImmediateClosure =
       _initializeScheduleImmediate();
 
   static Function _initializeScheduleImmediate() {
+    // TODO(rnystrom): Not needed by dev_compiler.
+    // requiresPreamble();
     if (JS('', 'self.scheduleImmediate') != null) {
       return _scheduleImmediateJsOverride;
     }
@@ -116,4 +118,10 @@ class Timer {
   }
 }
 
-bool get _hasDocument => JS('String', 'typeof document') == 'object';
+@patch
+void _rethrow(Object error, StackTrace stackTrace) {
+  // TODO(rnystrom): Not needed by dev_compiler.
+  // error = wrapException(error);
+  JS("void", "#.stack = #", error, stackTrace.toString());
+  JS("void", "throw #", error);
+}
