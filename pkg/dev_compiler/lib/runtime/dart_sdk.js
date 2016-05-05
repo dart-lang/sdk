@@ -3114,7 +3114,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'replaceAllMapped',
     'splitMapJoin',
     'replaceFirst',
+    'replaceFirstMapped',
     'split',
+    'replaceRange',
     'startsWith',
     'substring',
     'toLowerCase',
@@ -3144,9 +3146,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.Interceptor();
     }
     [dartx.codeUnitAt](index) {
-      if (!(typeof index == 'number')) dart.throw(new core.ArgumentError(index));
-      if (dart.notNull(index) < 0) dart.throw(new core.RangeError.value(index));
-      if (dart.notNull(index) >= dart.notNull(this[dartx.length])) dart.throw(new core.RangeError.value(index));
+      if (!(typeof index == 'number')) dart.throw(_js_helper.diagnoseIndexError(this, index));
+      if (dart.notNull(index) < 0) dart.throw(_js_helper.diagnoseIndexError(this, index));
+      if (dart.notNull(index) >= dart.notNull(this[dartx.length])) dart.throw(_js_helper.diagnoseIndexError(this, index));
       return this.charCodeAt(index);
     }
     [dartx.allMatches](string, start) {
@@ -3172,7 +3174,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return new _js_helper.StringMatch(start, string, this);
     }
     [dartx['+']](other) {
-      if (!(typeof other == 'string')) dart.throw(new core.ArgumentError(other));
+      if (!(typeof other == 'string')) dart.throw(new core.ArgumentError.value(other));
       return this + other;
     }
     [dartx.endsWith](other) {
@@ -3183,7 +3185,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.replaceAll](from, to) {
       _js_helper.checkString(to);
-      return dart.as(_js_helper.stringReplaceAllUnchecked(this, from, to), core.String);
+      return _js_helper.stringReplaceAllUnchecked(this, from, to);
     }
     [dartx.replaceAllMapped](from, convert) {
       return this[dartx.splitMapJoin](from, {onMatch: convert});
@@ -3191,16 +3193,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.splitMapJoin](from, opts) {
       let onMatch = opts && 'onMatch' in opts ? opts.onMatch : null;
       let onNonMatch = opts && 'onNonMatch' in opts ? opts.onNonMatch : null;
-      return dart.as(_js_helper.stringReplaceAllFuncUnchecked(this, from, onMatch, onNonMatch), core.String);
+      return _js_helper.stringReplaceAllFuncUnchecked(this, from, onMatch, onNonMatch);
     }
     [dartx.replaceFirst](from, to, startIndex) {
       if (startIndex === void 0) startIndex = 0;
       _js_helper.checkString(to);
       _js_helper.checkInt(startIndex);
-      if (dart.notNull(startIndex) < 0 || dart.notNull(startIndex) > dart.notNull(this[dartx.length])) {
-        dart.throw(new core.RangeError.range(startIndex, 0, this[dartx.length]));
-      }
-      return dart.as(_js_helper.stringReplaceFirstUnchecked(this, from, to, startIndex), core.String);
+      core.RangeError.checkValueInInterval(startIndex, 0, this[dartx.length], "startIndex");
+      return _js_helper.stringReplaceFirstUnchecked(this, from, to, startIndex);
+    }
+    [dartx.replaceFirstMapped](from, replace, startIndex) {
+      if (startIndex === void 0) startIndex = 0;
+      _js_helper.checkNull(replace);
+      _js_helper.checkInt(startIndex);
+      core.RangeError.checkValueInInterval(startIndex, 0, this[dartx.length], "startIndex");
+      return _js_helper.stringReplaceFirstMappedUnchecked(this, from, replace, startIndex);
     }
     [dartx.split](pattern) {
       _js_helper.checkNull(pattern);
@@ -3212,6 +3219,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       } else {
         return this[_defaultSplit](pattern);
       }
+    }
+    [dartx.replaceRange](start, end, replacement) {
+      _js_helper.checkString(replacement);
+      _js_helper.checkInt(start);
+      end = core.RangeError.checkValidRange(start, end, this[dartx.length]);
+      _js_helper.checkInt(end);
+      return _js_helper.stringReplaceRangeUnchecked(this, start, end, replacement);
     }
     [_defaultSplit](pattern) {
       let result = dart.list([], core.String);
@@ -3431,12 +3445,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [dartx.indexOf](pattern, start) {
       if (start === void 0) start = 0;
       _js_helper.checkNull(pattern);
-      if (!(typeof start == 'number')) dart.throw(new core.ArgumentError(start));
+      if (!(typeof start == 'number')) dart.throw(_js_helper.argumentErrorValue(start));
       if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(this[dartx.length])) {
         dart.throw(new core.RangeError.range(start, 0, this[dartx.length]));
       }
       if (typeof pattern == 'string') {
-        return this.indexOf(pattern, start);
+        return _js_helper.stringIndexOfStringUnchecked(this, pattern, start);
       }
       if (dart.is(pattern, _js_helper.JSSyntaxRegExp)) {
         let re = pattern;
@@ -3454,7 +3468,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (start == null) {
         start = this[dartx.length];
       } else if (!(typeof start == 'number')) {
-        dart.throw(new core.ArgumentError(start));
+        dart.throw(_js_helper.argumentErrorValue(start));
       } else if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(this[dartx.length])) {
         dart.throw(new core.RangeError.range(start, 0, this[dartx.length]));
       }
@@ -3476,7 +3490,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (dart.notNull(startIndex) < 0 || dart.notNull(startIndex) > dart.notNull(this[dartx.length])) {
         dart.throw(new core.RangeError.range(startIndex, 0, this[dartx.length]));
       }
-      return dart.as(_js_helper.stringContainsUnchecked(this, other, startIndex), core.bool);
+      return _js_helper.stringContainsUnchecked(this, other, startIndex);
     }
     get [dartx.isEmpty]() {
       return this[dartx.length] == 0;
@@ -3485,7 +3499,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return !dart.notNull(this[dartx.isEmpty]);
     }
     [dartx.compareTo](other) {
-      if (!(typeof other == 'string')) dart.throw(new core.ArgumentError(other));
+      if (!(typeof other == 'string')) dart.throw(_js_helper.argumentErrorValue(other));
       return dart.equals(this, other) ? 0 : this < other ? -1 : 1;
     }
     toString() {
@@ -3509,8 +3523,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.length;
     }
     [dartx.get](index) {
-      if (!(typeof index == 'number')) dart.throw(new core.ArgumentError(index));
-      if (dart.notNull(index) >= dart.notNull(this[dartx.length]) || dart.notNull(index) < 0) dart.throw(new core.RangeError.value(index));
+      if (!(typeof index == 'number')) dart.throw(_js_helper.diagnoseIndexError(this, index));
+      if (dart.notNull(index) >= dart.notNull(this[dartx.length]) || dart.notNull(index) < 0) dart.throw(_js_helper.diagnoseIndexError(this, index));
       return this[index];
     }
   };
@@ -3527,7 +3541,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.replaceAllMapped]: [core.String, [core.Pattern, dart.functionType(core.String, [core.Match])]],
       [dartx.splitMapJoin]: [core.String, [core.Pattern], {onMatch: dart.functionType(core.String, [core.Match]), onNonMatch: dart.functionType(core.String, [core.String])}],
       [dartx.replaceFirst]: [core.String, [core.Pattern, core.String], [core.int]],
+      [dartx.replaceFirstMapped]: [core.String, [core.Pattern, dart.functionType(core.String, [core.Match])], [core.int]],
       [dartx.split]: [core.List$(core.String), [core.Pattern]],
+      [dartx.replaceRange]: [core.String, [core.int, core.int, core.String]],
       [_defaultSplit]: [core.List$(core.String), [core.Pattern]],
       [dartx.startsWith]: [core.bool, [core.Pattern], [core.int]],
       [dartx.substring]: [core.String, [core.int], [core.int]],
@@ -10220,6 +10236,22 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return regExp[_execGlobal](string, start);
   };
   dart.lazyFn(_js_helper.firstMatchAfter, () => [core.Match, [_js_helper.JSSyntaxRegExp, core.String, core.int]]);
+  _js_helper.stringIndexOfStringUnchecked = function(receiver, other, startIndex) {
+    return receiver.indexOf(other, startIndex);
+  };
+  dart.fn(_js_helper.stringIndexOfStringUnchecked, core.int, [dart.dynamic, dart.dynamic, dart.dynamic]);
+  _js_helper.substring1Unchecked = function(receiver, startIndex) {
+    return receiver.substring(startIndex);
+  };
+  dart.lazyFn(_js_helper.substring1Unchecked, () => [core.String, [dart.dynamic, dart.dynamic]]);
+  _js_helper.substring2Unchecked = function(receiver, startIndex, endIndex) {
+    return receiver.substring(startIndex, endIndex);
+  };
+  dart.lazyFn(_js_helper.substring2Unchecked, () => [core.String, [dart.dynamic, dart.dynamic, dart.dynamic]]);
+  _js_helper.stringContainsStringUnchecked = function(receiver, other, startIndex) {
+    return dart.notNull(_js_helper.stringIndexOfStringUnchecked(receiver, other, startIndex)) >= 0;
+  };
+  dart.lazyFn(_js_helper.stringContainsStringUnchecked, () => [core.bool, [dart.dynamic, dart.dynamic, dart.dynamic]]);
   _js_helper.StringMatch = class StringMatch extends core.Object {
     StringMatch(start, input, pattern) {
       this.start = start;
@@ -10258,84 +10290,126 @@ dart_library.library('dart_sdk', null, /* Imports */[
       groups: [core.List$(core.String), [core.List$(core.int)]]
     })
   });
-  _js_helper.allMatchesInStringUnchecked = function(needle, haystack, startIndex) {
-    let result = core.List$(core.Match).new();
-    let length = haystack[dartx.length];
-    let patternLength = needle[dartx.length];
-    while (true) {
-      let position = haystack[dartx.indexOf](needle, startIndex);
-      if (position == -1) {
-        break;
-      }
-      result[dartx.add](new _js_helper.StringMatch(position, haystack, needle));
-      let endIndex = dart.notNull(position) + dart.notNull(patternLength);
-      if (endIndex == length) {
-        break;
-      } else if (position == endIndex) {
-        startIndex = dart.notNull(startIndex) + 1;
-      } else {
-        startIndex = endIndex;
-      }
-    }
-    return result;
+  _js_helper.allMatchesInStringUnchecked = function(pattern, string, startIndex) {
+    return new _js_helper._StringAllMatchesIterable(string, pattern, startIndex);
   };
-  dart.lazyFn(_js_helper.allMatchesInStringUnchecked, () => [core.List$(core.Match), [core.String, core.String, core.int]]);
+  dart.lazyFn(_js_helper.allMatchesInStringUnchecked, () => [core.Iterable$(core.Match), [core.String, core.String, core.int]]);
+  const _input = Symbol('_input');
+  const _pattern = Symbol('_pattern');
+  const _index$ = Symbol('_index');
+  _js_helper._StringAllMatchesIterable = class _StringAllMatchesIterable extends collection.IterableBase$(core.Match) {
+    _StringAllMatchesIterable(input, pattern, index) {
+      this[_input] = input;
+      this[_pattern] = pattern;
+      this[_index$] = index;
+      super.IterableBase();
+    }
+    get iterator() {
+      return new _js_helper._StringAllMatchesIterator(this[_input], this[_pattern], this[_index$]);
+    }
+    get first() {
+      let index = _js_helper.stringIndexOfStringUnchecked(this[_input], this[_pattern], this[_index$]);
+      if (dart.notNull(index) >= 0) {
+        return new _js_helper.StringMatch(index, this[_input], this[_pattern]);
+      }
+      dart.throw(_internal.IterableElementError.noElement());
+    }
+  };
+  dart.setSignature(_js_helper._StringAllMatchesIterable, {
+    constructors: () => ({_StringAllMatchesIterable: [_js_helper._StringAllMatchesIterable, [core.String, core.String, core.int]]})
+  });
+  dart.defineExtensionMembers(_js_helper._StringAllMatchesIterable, ['iterator', 'first']);
+  _js_helper._StringAllMatchesIterator = class _StringAllMatchesIterator extends core.Object {
+    _StringAllMatchesIterator(input, pattern, index) {
+      this[_input] = input;
+      this[_pattern] = pattern;
+      this[_index$] = index;
+      this[_current$] = null;
+    }
+    moveNext() {
+      if (dart.notNull(this[_index$]) + dart.notNull(this[_pattern][dartx.length]) > dart.notNull(this[_input][dartx.length])) {
+        this[_current$] = null;
+        return false;
+      }
+      let index = _js_helper.stringIndexOfStringUnchecked(this[_input], this[_pattern], this[_index$]);
+      if (dart.notNull(index) < 0) {
+        this[_index$] = dart.notNull(this[_input][dartx.length]) + 1;
+        this[_current$] = null;
+        return false;
+      }
+      let end = dart.notNull(index) + dart.notNull(this[_pattern][dartx.length]);
+      this[_current$] = new _js_helper.StringMatch(index, this[_input], this[_pattern]);
+      if (end == this[_index$]) end++;
+      this[_index$] = end;
+      return true;
+    }
+    get current() {
+      return this[_current$];
+    }
+  };
+  _js_helper._StringAllMatchesIterator[dart.implements] = () => [core.Iterator$(core.Match)];
+  dart.setSignature(_js_helper._StringAllMatchesIterator, {
+    constructors: () => ({_StringAllMatchesIterator: [_js_helper._StringAllMatchesIterator, [core.String, core.String, core.int]]}),
+    methods: () => ({moveNext: [core.bool, []]})
+  });
   _js_helper.stringContainsUnchecked = function(receiver, other, startIndex) {
     if (typeof other == 'string') {
-      return !dart.equals(dart.dsend(receiver, 'indexOf', other, startIndex), -1);
+      return _js_helper.stringContainsStringUnchecked(receiver, other, startIndex);
     } else if (dart.is(other, _js_helper.JSSyntaxRegExp)) {
-      return other.hasMatch(dart.as(dart.dsend(receiver, 'substring', startIndex), core.String));
+      return other.hasMatch(receiver[dartx.substring](startIndex));
     } else {
-      let substr = dart.dsend(receiver, 'substring', startIndex);
-      return dart.dload(dart.dsend(other, 'allMatches', substr), 'isNotEmpty');
+      let substr = receiver[dartx.substring](startIndex);
+      return dart.as(dart.dload(dart.dsend(other, 'allMatches', substr), 'isNotEmpty'), core.bool);
     }
   };
-  dart.fn(_js_helper.stringContainsUnchecked);
-  _js_helper.stringReplaceJS = function(receiver, replacer, to) {
-    to = to.replace(/\$/g, "$$$$");
-    return receiver.replace(replacer, to);
+  dart.lazyFn(_js_helper.stringContainsUnchecked, () => [core.bool, [core.String, dart.dynamic, core.int]]);
+  _js_helper.stringReplaceJS = function(receiver, replacer, replacement) {
+    replacement = replacement.replace(/\$/g, "$$$$");
+    return receiver.replace(replacer, replacement);
   };
-  dart.fn(_js_helper.stringReplaceJS);
-  _js_helper.stringReplaceFirstRE = function(receiver, regexp, to, startIndex) {
-    let match = dart.dsend(regexp, _execGlobal, receiver, startIndex);
+  dart.lazyFn(_js_helper.stringReplaceJS, () => [core.String, [dart.dynamic, dart.dynamic, dart.dynamic]]);
+  _js_helper.stringReplaceFirstRE = function(receiver, regexp, replacement, startIndex) {
+    let match = regexp[_execGlobal](receiver, startIndex);
     if (match == null) return receiver;
-    let start = dart.dload(match, 'start');
-    let end = dart.dload(match, 'end');
-    return `${dart.dsend(receiver, 'substring', 0, start)}${to}${dart.dsend(receiver, 'substring', end)}`;
+    let start = match.start;
+    let end = match.end;
+    return _js_helper.stringReplaceRangeUnchecked(receiver, start, end, replacement);
   };
-  dart.fn(_js_helper.stringReplaceFirstRE);
-  _js_helper.ESCAPE_REGEXP = '[[\\]{}()*+?.\\\\^$|]';
-  _js_helper.stringReplaceAllUnchecked = function(receiver, from, to) {
-    _js_helper.checkString(to);
-    if (typeof from == 'string') {
-      if (from == "") {
-        if (dart.equals(receiver, "")) {
-          return to;
+  dart.lazyFn(_js_helper.stringReplaceFirstRE, () => [core.String, [core.String, _js_helper.JSSyntaxRegExp, core.String, core.int]]);
+  _js_helper.quoteStringForRegExp = function(string) {
+    return string.replace(/[[\]{}()*+?.\\^$|]/g, "\\$&");
+  };
+  dart.lazyFn(_js_helper.quoteStringForRegExp, () => [core.String, [dart.dynamic]]);
+  _js_helper.stringReplaceAllUnchecked = function(receiver, pattern, replacement) {
+    _js_helper.checkString(replacement);
+    if (typeof pattern == 'string') {
+      if (pattern == "") {
+        if (receiver == "") {
+          return replacement;
         } else {
           let result = new core.StringBuffer();
-          let length = dart.as(dart.dload(receiver, 'length'), core.int);
-          result.write(to);
+          let length = receiver[dartx.length];
+          result.write(replacement);
           for (let i = 0; i < dart.notNull(length); i++) {
-            result.write(dart.dindex(receiver, i));
-            result.write(to);
+            result.write(receiver[dartx.get](i));
+            result.write(replacement);
           }
           return result.toString();
         }
       } else {
-        let quoter = new RegExp(_js_helper.ESCAPE_REGEXP, 'g');
-        let quoted = from.replace(quoter, "\\$&");
+        let quoted = _js_helper.quoteStringForRegExp(pattern);
         let replacer = new RegExp(quoted, 'g');
-        return _js_helper.stringReplaceJS(receiver, replacer, to);
+        return _js_helper.stringReplaceJS(receiver, replacer, replacement);
       }
-    } else if (dart.is(from, _js_helper.JSSyntaxRegExp)) {
-      let re = _js_helper.regExpGetGlobalNative(from);
-      return _js_helper.stringReplaceJS(receiver, re, to);
+    } else if (dart.is(pattern, _js_helper.JSSyntaxRegExp)) {
+      let re = _js_helper.regExpGetGlobalNative(pattern);
+      return _js_helper.stringReplaceJS(receiver, re, replacement);
     } else {
-      _js_helper.checkNull(from);
+      _js_helper.checkNull(pattern);
       dart.throw("String.replaceAll(Pattern) UNIMPLEMENTED");
     }
   };
-  dart.fn(_js_helper.stringReplaceAllUnchecked);
+  dart.lazyFn(_js_helper.stringReplaceAllUnchecked, () => [core.String, [core.String, core.Pattern, core.String]]);
   _js_helper._matchString = function(match) {
     return match.get(0);
   };
@@ -10345,89 +10419,105 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.lazyFn(_js_helper._stringIdentity, () => [core.String, [core.String]]);
   _js_helper.stringReplaceAllFuncUnchecked = function(receiver, pattern, onMatch, onNonMatch) {
-    if (!dart.is(pattern, core.Pattern)) {
-      dart.throw(new core.ArgumentError(`${pattern} is not a Pattern`));
-    }
     if (onMatch == null) onMatch = _js_helper._matchString;
     if (onNonMatch == null) onNonMatch = _js_helper._stringIdentity;
     if (typeof pattern == 'string') {
       return _js_helper.stringReplaceAllStringFuncUnchecked(receiver, pattern, onMatch, onNonMatch);
     }
+    if (!dart.is(pattern, core.Pattern)) {
+      dart.throw(new core.ArgumentError.value(pattern, 'pattern', 'is not a Pattern'));
+    }
     let buffer = new core.StringBuffer();
     let startIndex = 0;
-    for (let match of dart.as(dart.dsend(pattern, 'allMatches', receiver), core.Iterable)) {
-      dart.as(match, core.Match);
-      buffer.write(dart.dcall(onNonMatch, dart.dsend(receiver, 'substring', startIndex, match.start)));
-      buffer.write(dart.dcall(onMatch, match));
+    for (let match of pattern[dartx.allMatches](receiver)) {
+      buffer.write(onNonMatch(receiver[dartx.substring](startIndex, match.start)));
+      buffer.write(onMatch(match));
       startIndex = match.end;
     }
-    buffer.write(dart.dcall(onNonMatch, dart.dsend(receiver, 'substring', startIndex)));
+    buffer.write(onNonMatch(receiver[dartx.substring](startIndex)));
     return buffer.toString();
   };
-  dart.fn(_js_helper.stringReplaceAllFuncUnchecked);
+  dart.lazyFn(_js_helper.stringReplaceAllFuncUnchecked, () => [core.String, [core.String, core.Pattern, dart.functionType(core.String, [core.Match]), dart.functionType(core.String, [core.String])]]);
   _js_helper.stringReplaceAllEmptyFuncUnchecked = function(receiver, onMatch, onNonMatch) {
     let buffer = new core.StringBuffer();
-    let length = dart.as(dart.dload(receiver, 'length'), core.int);
+    let length = receiver[dartx.length];
     let i = 0;
-    buffer.write(dart.dcall(onNonMatch, ""));
+    buffer.write(onNonMatch(""));
     while (i < dart.notNull(length)) {
-      buffer.write(dart.dcall(onMatch, new _js_helper.StringMatch(i, dart.as(receiver, core.String), "")));
-      let code = dart.as(dart.dsend(receiver, 'codeUnitAt', i), core.int);
+      buffer.write(onMatch(new _js_helper.StringMatch(i, receiver, "")));
+      let code = receiver[dartx.codeUnitAt](i);
       if ((dart.notNull(code) & ~1023) >>> 0 == 55296 && dart.notNull(length) > i + 1) {
-        code = dart.as(dart.dsend(receiver, 'codeUnitAt', i + 1), core.int);
+        code = receiver[dartx.codeUnitAt](i + 1);
         if ((dart.notNull(code) & ~1023) >>> 0 == 56320) {
-          buffer.write(dart.dcall(onNonMatch, dart.dsend(receiver, 'substring', i, i + 2)));
+          buffer.write(onNonMatch(receiver[dartx.substring](i, i + 2)));
           i = i + 2;
           continue;
         }
       }
-      buffer.write(dart.dcall(onNonMatch, dart.dindex(receiver, i)));
+      buffer.write(onNonMatch(receiver[dartx.get](i)));
       i++;
     }
-    buffer.write(dart.dcall(onMatch, new _js_helper.StringMatch(i, dart.as(receiver, core.String), "")));
-    buffer.write(dart.dcall(onNonMatch, ""));
+    buffer.write(onMatch(new _js_helper.StringMatch(i, receiver, "")));
+    buffer.write(onNonMatch(""));
     return buffer.toString();
   };
-  dart.fn(_js_helper.stringReplaceAllEmptyFuncUnchecked);
+  dart.lazyFn(_js_helper.stringReplaceAllEmptyFuncUnchecked, () => [core.String, [core.String, dart.functionType(core.String, [core.Match]), dart.functionType(core.String, [core.String])]]);
   _js_helper.stringReplaceAllStringFuncUnchecked = function(receiver, pattern, onMatch, onNonMatch) {
-    let patternLength = dart.as(dart.dload(pattern, 'length'), core.int);
+    let patternLength = pattern[dartx.length];
     if (patternLength == 0) {
       return _js_helper.stringReplaceAllEmptyFuncUnchecked(receiver, onMatch, onNonMatch);
     }
-    let length = dart.as(dart.dload(receiver, 'length'), core.int);
+    let length = receiver[dartx.length];
     let buffer = new core.StringBuffer();
     let startIndex = 0;
     while (startIndex < dart.notNull(length)) {
-      let position = dart.as(dart.dsend(receiver, 'indexOf', pattern, startIndex), core.int);
+      let position = _js_helper.stringIndexOfStringUnchecked(receiver, pattern, startIndex);
       if (position == -1) {
         break;
       }
-      buffer.write(dart.dcall(onNonMatch, dart.dsend(receiver, 'substring', startIndex, position)));
-      buffer.write(dart.dcall(onMatch, new _js_helper.StringMatch(position, dart.as(receiver, core.String), dart.as(pattern, core.String))));
+      buffer.write(onNonMatch(receiver[dartx.substring](startIndex, position)));
+      buffer.write(onMatch(new _js_helper.StringMatch(position, receiver, pattern)));
       startIndex = dart.notNull(position) + dart.notNull(patternLength);
     }
-    buffer.write(dart.dcall(onNonMatch, dart.dsend(receiver, 'substring', startIndex)));
+    buffer.write(onNonMatch(receiver[dartx.substring](startIndex)));
     return buffer.toString();
   };
-  dart.fn(_js_helper.stringReplaceAllStringFuncUnchecked);
-  _js_helper.stringReplaceFirstUnchecked = function(receiver, from, to, startIndex) {
-    if (startIndex === void 0) startIndex = 0;
-    if (typeof from == 'string') {
-      let index = dart.dsend(receiver, 'indexOf', from, startIndex);
-      if (dart.notNull(dart.as(dart.dsend(index, '<', 0), core.bool))) return receiver;
-      return `${dart.dsend(receiver, 'substring', 0, index)}${to}` + `${dart.dsend(receiver, 'substring', dart.dsend(index, '+', from[dartx.length]))}`;
-    } else if (dart.is(from, _js_helper.JSSyntaxRegExp)) {
-      return startIndex == 0 ? _js_helper.stringReplaceJS(receiver, _js_helper.regExpGetNative(from), to) : _js_helper.stringReplaceFirstRE(receiver, from, to, startIndex);
-    } else {
-      _js_helper.checkNull(from);
-      dart.throw("String.replace(Pattern) UNIMPLEMENTED");
+  dart.lazyFn(_js_helper.stringReplaceAllStringFuncUnchecked, () => [core.String, [core.String, core.String, dart.functionType(core.String, [core.Match]), dart.functionType(core.String, [core.String])]]);
+  _js_helper.stringReplaceFirstUnchecked = function(receiver, pattern, replacement, startIndex) {
+    if (typeof pattern == 'string') {
+      let index = _js_helper.stringIndexOfStringUnchecked(receiver, pattern, startIndex);
+      if (dart.notNull(index) < 0) return receiver;
+      let end = dart.notNull(index) + dart.notNull(pattern[dartx.length]);
+      return _js_helper.stringReplaceRangeUnchecked(receiver, index, end, replacement);
     }
+    if (dart.is(pattern, _js_helper.JSSyntaxRegExp)) {
+      return startIndex == 0 ? _js_helper.stringReplaceJS(receiver, _js_helper.regExpGetNative(pattern), replacement) : _js_helper.stringReplaceFirstRE(receiver, pattern, replacement, startIndex);
+    }
+    _js_helper.checkNull(pattern);
+    let matches = pattern[dartx.allMatches](receiver, startIndex)[dartx.iterator];
+    if (!dart.notNull(matches.moveNext())) return receiver;
+    let match = matches.current;
+    return receiver[dartx.replaceRange](match.start, match.end, replacement);
   };
-  dart.fn(_js_helper.stringReplaceFirstUnchecked, dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic], [core.int]);
+  dart.lazyFn(_js_helper.stringReplaceFirstUnchecked, () => [core.String, [core.String, core.Pattern, core.String, core.int]]);
+  _js_helper.stringReplaceFirstMappedUnchecked = function(receiver, pattern, replace, startIndex) {
+    let matches = pattern[dartx.allMatches](receiver, startIndex)[dartx.iterator];
+    if (!dart.notNull(matches.moveNext())) return receiver;
+    let match = matches.current;
+    let replacement = `${replace(match)}`;
+    return receiver[dartx.replaceRange](match.start, match.end, replacement);
+  };
+  dart.lazyFn(_js_helper.stringReplaceFirstMappedUnchecked, () => [core.String, [core.String, core.Pattern, dart.functionType(core.String, [core.Match]), core.int]]);
   _js_helper.stringJoinUnchecked = function(array, separator) {
     return array.join(separator);
   };
-  dart.fn(_js_helper.stringJoinUnchecked);
+  dart.lazyFn(_js_helper.stringJoinUnchecked, () => [core.String, [dart.dynamic, dart.dynamic]]);
+  _js_helper.stringReplaceRangeUnchecked = function(receiver, start, end, replacement) {
+    let prefix = receiver.substring(0, start);
+    let suffix = receiver.substring(end);
+    return `${prefix}${replacement}${suffix}`;
+  };
+  dart.lazyFn(_js_helper.stringReplaceRangeUnchecked, () => [core.String, [core.String, core.int, core.int, core.String]]);
   _js_helper.getRuntimeType = function(object) {
     return dart.getReifiedType(object);
   };
@@ -27556,20 +27646,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return _GeneratorIterable;
   });
   core._GeneratorIterable = core._GeneratorIterable$();
-  const _index$ = Symbol('_index');
+  const _index$0 = Symbol('_index');
   const _current$2 = Symbol('_current');
   core._GeneratorIterator$ = dart.generic(E => {
     class _GeneratorIterator extends core.Object {
       _GeneratorIterator(index, end, generator) {
-        this[_index$] = index;
+        this[_index$0] = index;
         this[_end$] = end;
         this[_generator$] = generator;
         this[_current$2] = null;
       }
       moveNext() {
-        if (dart.notNull(this[_index$]) < dart.notNull(this[_end$])) {
-          this[_current$2] = this[_generator$](this[_index$]);
-          this[_index$] = dart.notNull(this[_index$]) + 1;
+        if (dart.notNull(this[_index$0]) < dart.notNull(this[_end$])) {
+          this[_current$2] = this[_generator$](this[_index$0]);
+          this[_index$0] = dart.notNull(this[_index$0]) + 1;
           return true;
         } else {
           this[_current$2] = null;
@@ -27853,7 +27943,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_currentCodePoint] = null;
     }
     get current() {
-      return dart.asInt(this[_currentCodePoint]);
+      return this[_currentCodePoint];
     }
     get currentSize() {
       return dart.notNull(this[_nextPosition]) - dart.notNull(this[_position$]);
