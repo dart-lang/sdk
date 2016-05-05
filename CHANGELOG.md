@@ -10,6 +10,21 @@
     `NetworkInterface.list` is supported, and `false` otherwise. Currently,
     `NetworkInterface.list` is not supported on Android.
 
+### Tool Changes
+
+* Pub
+  * TAR files created while publishing a package on Mac OS and Linux now use a
+    more portable format.
+
+  * Errors caused by invalid arguments now print the full usage information for
+    the command.
+
+  * SDK constraints for dependency overrides are no longer considered when
+    determining the total SDK constraint for a lockfile.
+
+  * A bug has been fixed in which a lockfile was considered up-to-date when it
+    actually wasn't.
+
 ## 1.16.0
 
 ### Core library changes
