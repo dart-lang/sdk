@@ -387,6 +387,15 @@
         ],
       },
 
+      'ProductSIMDBC': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_simdbc_Base', 'Dart_Product',
+          'Dart_<(dart_target_os)_Base',
+          'Dart_<(dart_target_os)_simdbc_Base',
+          'Dart_<(dart_target_os)_Product',
+        ],
+      },
+
       'DebugSIMDBC64': {
         'inherit_from': [
           'Dart_Base', 'Dart_simdbc_Base', 'Dart_Debug',
@@ -405,6 +414,15 @@
           'Dart_<(dart_target_os)_Base',
           'Dart_<(dart_target_os)_simdbc64_Base',
           'Dart_<(dart_target_os)_Release',
+        ],
+      },
+
+      'ProductSIMDBC64': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_simdbc_Base', 'Dart_Product',
+          'Dart_<(dart_target_os)_Base',
+          'Dart_<(dart_target_os)_simdbc64_Base',
+          'Dart_<(dart_target_os)_Product',
         ],
       },
 
