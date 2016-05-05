@@ -48,7 +48,8 @@ main(List<String> arguments) {
   } else {
     // Run the test and capture stdout.
     var pr = Process.runSync(Platform.executable,
-        ["--collect-code",
+        ["--verbose-gc",
+         "--collect-code",
          "--code-collection-interval-in-us=0",
          "--old_gen_growth_rate=10",
          "--log-code-drop",
@@ -61,6 +62,7 @@ main(List<String> arguments) {
 
     // Code drops are logged with --log-code-drop. Look through stdout for the
     // message that foo's code was dropped.
+    print(pr.stdout);
     var count = 0;
     pr.stdout.split("\n").forEach((line) {
       if (line.contains("foo=2")) {
