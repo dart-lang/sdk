@@ -15,6 +15,7 @@
   //   'skip' - don't run the test
   //   'fail' - test fails
   //   'timeout' - test times out
+  //   'slow' - use 5s timeout instead of default 2s.
   //   'helper'  - not a test, used by other tests.
   //   'unittest' - run separately as a unittest test.
   //
@@ -412,6 +413,9 @@
       'int_modulo_arith_test_bignum_multi': fail,
       'int_modulo_arith_test_modPow_multi': fail,
       'int_modulo_arith_test_none_multi': fail,
+      'int_parse_radix_test_01_multi': fail, // JS implementations disagree on U+0085 being whitespace.
+      'int_parse_radix_test_02_multi': ['fail', 'timeout', 'skip'], // No bigints.
+      'int_parse_radix_test_none_multi': ['slow'],
       'integer_to_radix_string_test': fail,
       'integer_to_string_test_01_multi': fail,
       'iterable_generate_test': fail,
@@ -515,17 +519,41 @@
         continue;
       }
 
-      test(name, (done) => {
+      function protect(f) {  // Returns the exception, or `null`.
+        try {
+          f();
+          return null;
+        } catch (e) {
+          return e;
+        };
+      }
+
+      test(name, function(done) { // 'function' to allow `this.timeout`.
         async_helper.asyncTestInitialize(done);
         console.debug('Running test:  ' + name);
 
         let mainLibrary = dart_library.import(module)[name];
         let negative = /negative_test/.test(name);
-        if (has('fail')) negative = !negative;
-        if (negative) {
-          assert.throws(mainLibrary.main);
+        if (has('slow')) this.timeout(5000);
+        if (has('fail')) {
+          let e = protect(mainLibrary.main);
+          if (negative) {
+            if (e != null) {
+              throw new Error(
+                  "negative test marked as 'fail' " +
+                  "but passed by throwing:\n" + e);
+            }
+          } else {
+            if (e == null) {
+              throw new Error("test marked as 'fail' but passed");
+            }
+          }
         } else {
-          mainLibrary.main();
+          if (negative) {
+            assert.throws(mainLibrary.main);
+          } else {
+            mainLibrary.main();
+          }
         }
 
         if (!async_helper.asyncTestStarted) done();

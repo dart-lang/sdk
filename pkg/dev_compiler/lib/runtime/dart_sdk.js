@@ -4566,34 +4566,29 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static parse(input, onError) {
       if (onError === void 0) onError = null;
       let source = input[dartx.trim]();
-      core.num._parseError = false;
-      let result = core.int.parse(source, {onError: core.num._onParseErrorInt});
-      if (!dart.notNull(core.num._parseError)) return result;
-      core.num._parseError = false;
-      result = core.double.parse(source, core.num._onParseErrorDouble);
-      if (!dart.notNull(core.num._parseError)) return result;
+      let result = core.int.parse(source, {onError: core.num._returnIntNull});
+      if (result != null) return result;
+      result = core.double.parse(source, core.num._returnDoubleNull);
+      if (result != null) return result;
       if (onError == null) dart.throw(new core.FormatException(input));
       return onError(input);
     }
-    static _onParseErrorInt(_) {
-      core.num._parseError = true;
-      return 0;
+    static _returnIntNull(_) {
+      return null;
     }
-    static _onParseErrorDouble(_) {
-      core.num._parseError = true;
-      return 0.0;
+    static _returnDoubleNull(_) {
+      return null;
     }
   };
   core.num[dart.implements] = () => [core.Comparable$(core.num)];
   dart.setSignature(core.num, {
     statics: () => ({
       parse: [core.num, [core.String], [dart.functionType(core.num, [core.String])]],
-      _onParseErrorInt: [core.int, [core.String]],
-      _onParseErrorDouble: [core.double, [core.String]]
+      _returnIntNull: [core.int, [core.String]],
+      _returnDoubleNull: [core.double, [core.String]]
     }),
-    names: ['parse', '_onParseErrorInt', '_onParseErrorDouble']
+    names: ['parse', '_returnIntNull', '_returnDoubleNull']
   });
-  core.num._parseError = false;
   core.int = class int extends core.num {
     static fromEnvironment(name, opts) {
       let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : null;
@@ -9018,62 +9013,68 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       return hash;
     }
-    static _throwFormatException(string) {
-      dart.throw(new core.FormatException(string));
+    static _parseIntError(source, handleError) {
+      if (handleError == null) dart.throw(new core.FormatException(source));
+      return handleError(source);
     }
     static parseInt(source, radix, handleError) {
-      if (handleError == null) handleError = dart.fn(s => dart.as(_js_helper.Primitives._throwFormatException(s), core.int), core.int, [core.String]);
       _js_helper.checkString(source);
-      let match = /^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i.exec(source);
+      let re = /^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i;
+      let match = re.exec(source);
       let digitsIndex = 1;
       let hexIndex = 2;
       let decimalIndex = 3;
       let nonDecimalHexIndex = 4;
+      if (match == null) {
+        return _js_helper.Primitives._parseIntError(source, handleError);
+      }
+      let decimalMatch = match[dartx.get](decimalIndex);
       if (radix == null) {
-        radix = 10;
-        if (match != null) {
-          if (dart.dindex(match, hexIndex) != null) {
-            return parseInt(source, 16);
-          }
-          if (dart.dindex(match, decimalIndex) != null) {
-            return parseInt(source, 10);
-          }
-          return handleError(source);
+        if (decimalMatch != null) {
+          return parseInt(source, 10);
         }
-      } else {
-        if (!(typeof radix == 'number')) dart.throw(new core.ArgumentError("Radix is not an integer"));
-        if (dart.notNull(radix) < 2 || dart.notNull(radix) > 36) {
-          dart.throw(new core.RangeError(`Radix ${radix} not in range 2..36`));
+        if (match[dartx.get](hexIndex) != null) {
+          return parseInt(source, 16);
         }
-        if (match != null) {
-          if (radix == 10 && dart.dindex(match, decimalIndex) != null) {
-            return parseInt(source, 10);
-          }
-          if (dart.notNull(radix) < 10 || dart.dindex(match, decimalIndex) == null) {
-            let maxCharCode = null;
-            if (dart.notNull(radix) <= 10) {
-              maxCharCode = 48 + dart.notNull(radix) - 1;
-            } else {
-              maxCharCode = 97 + dart.notNull(radix) - 10 - 1;
-            }
-            let digitsPart = dart.as(dart.dindex(match, digitsIndex), core.String);
-            for (let i = 0; i < dart.notNull(digitsPart[dartx.length]); i++) {
-              let characterCode = (dart.notNull(digitsPart[dartx.codeUnitAt](0)) | 32) >>> 0;
-              if (dart.notNull(digitsPart[dartx.codeUnitAt](i)) > dart.notNull(maxCharCode)) {
-                return handleError(source);
-              }
-            }
+        return _js_helper.Primitives._parseIntError(source, handleError);
+      }
+      if (!(typeof radix == 'number')) {
+        dart.throw(new core.ArgumentError.value(radix, 'radix', 'is not an integer'));
+      }
+      if (dart.notNull(radix) < 2 || dart.notNull(radix) > 36) {
+        dart.throw(new core.RangeError.range(radix, 2, 36, 'radix'));
+      }
+      if (radix == 10 && decimalMatch != null) {
+        return parseInt(source, 10);
+      }
+      if (dart.notNull(radix) < 10 || decimalMatch == null) {
+        let maxCharCode = null;
+        if (dart.notNull(radix) <= 10) {
+          maxCharCode = 48 - 1 + dart.notNull(radix);
+        } else {
+          maxCharCode = 97 - 10 - 1 + dart.notNull(radix);
+        }
+        dart.assert(typeof match[dartx.get](digitsIndex) == 'string');
+        let digitsPart = match[digitsIndex];
+        for (let i = 0; i < dart.notNull(digitsPart[dartx.length]); i++) {
+          let characterCode = (dart.notNull(digitsPart[dartx.codeUnitAt](i)) | 32) >>> 0;
+          if (characterCode > dart.notNull(maxCharCode)) {
+            return _js_helper.Primitives._parseIntError(source, handleError);
           }
         }
       }
-      if (match == null) return handleError(source);
       return parseInt(source, radix);
+    }
+    static _parseDoubleError(source, handleError) {
+      if (handleError == null) {
+        dart.throw(new core.FormatException('Invalid double', source));
+      }
+      return handleError(source);
     }
     static parseDouble(source, handleError) {
       _js_helper.checkString(source);
-      if (handleError == null) handleError = dart.fn(s => dart.as(_js_helper.Primitives._throwFormatException(s), core.double), core.double, [core.String]);
       if (!/^\s*[+-]?(?:Infinity|NaN|(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(source)) {
-        return handleError(source);
+        return _js_helper.Primitives._parseDoubleError(source, handleError);
       }
       let result = parseFloat(source);
       if (dart.notNull(result[dartx.isNaN])) {
@@ -9081,7 +9082,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN') {
           return result;
         }
-        return handleError(source);
+        return _js_helper.Primitives._parseDoubleError(source, handleError);
       }
       return result;
     }
@@ -9283,8 +9284,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     statics: () => ({
       initializeStatics: [dart.void, [core.int]],
       objectHashCode: [core.int, [dart.dynamic]],
-      _throwFormatException: [dart.dynamic, [core.String]],
+      _parseIntError: [core.int, [core.String, dart.functionType(core.int, [core.String])]],
       parseInt: [core.int, [core.String, core.int, dart.functionType(core.int, [core.String])]],
+      _parseDoubleError: [core.double, [core.String, dart.functionType(core.double, [core.String])]],
       parseDouble: [core.double, [core.String, dart.functionType(core.double, [core.String])]],
       objectTypeName: [core.String, [core.Object]],
       objectToString: [core.String, [core.Object]],
@@ -9316,7 +9318,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       identicalImplementation: [core.bool, [dart.dynamic, dart.dynamic]],
       extractStackTrace: [core.StackTrace, [core.Error]]
     }),
-    names: ['initializeStatics', 'objectHashCode', '_throwFormatException', 'parseInt', 'parseDouble', 'objectTypeName', 'objectToString', 'dateNow', 'initTicker', 'currentUri', '_fromCharCodeApply', 'stringFromCodePoints', 'stringFromCharCodes', 'stringFromCharCode', 'stringConcatUnchecked', 'flattenString', 'getTimeZoneName', 'getTimeZoneOffsetInMinutes', 'valueFromDecomposedDate', 'patchUpY2K', 'lazyAsJsDate', 'getYear', 'getMonth', 'getDay', 'getHours', 'getMinutes', 'getSeconds', 'getMilliseconds', 'getWeekday', 'valueFromDateString', 'getProperty', 'setProperty', 'identicalImplementation', 'extractStackTrace']
+    names: ['initializeStatics', 'objectHashCode', '_parseIntError', 'parseInt', '_parseDoubleError', 'parseDouble', 'objectTypeName', 'objectToString', 'dateNow', 'initTicker', 'currentUri', '_fromCharCodeApply', 'stringFromCodePoints', 'stringFromCharCodes', 'stringFromCharCode', 'stringConcatUnchecked', 'flattenString', 'getTimeZoneName', 'getTimeZoneOffsetInMinutes', 'valueFromDecomposedDate', 'patchUpY2K', 'lazyAsJsDate', 'getYear', 'getMonth', 'getDay', 'getHours', 'getMinutes', 'getSeconds', 'getMilliseconds', 'getWeekday', 'valueFromDateString', 'getProperty', 'setProperty', 'identicalImplementation', 'extractStackTrace']
   });
   _js_helper.Primitives.mirrorFunctionCacheName = '$cachedFunction';
   _js_helper.Primitives.mirrorInvokeCacheName = '$cachedInvocation';
@@ -24502,7 +24504,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return new dart.JsIterator(this[dartx.iterator]);
       }
     }
-    List[dart.implements] = () => [core.Iterable$(E)];
+    List[dart.implements] = () => [core.Iterable$(E), _internal.EfficientLength];
     dart.setSignature(List, {
       constructors: () => ({
         new: [core.List$(E), [], [core.int]],

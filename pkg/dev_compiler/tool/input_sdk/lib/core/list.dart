@@ -51,7 +51,7 @@ part of dart.core;
  * directly or through iterating an [Iterable] that is backed by the list, will
  * break the iteration.
  */
-abstract class List<E> implements Iterable<E> {
+abstract class List<E> implements Iterable<E>, EfficientLength {
   /**
    * Creates a list of the given length.
    *
@@ -82,9 +82,14 @@ abstract class List<E> implements Iterable<E> {
    *
    *     new List<int>.filled(3, 0); // [0, 0, 0]
    *
-   * The [length] must not be negative or null.
+   * The [length] must be a non-negative integer.
+   *
+   * If the list is growable, changing its length will not initialize new
+   * entries with [fill]. After being created and filled, the list is
+   * no different from any other growable or fixed-length list
+   * created using [List].
    */
-  external factory List.filled(int length, E fill);
+  external factory List.filled(int length, E fill, {bool growable: false});
 
   /**
    * Creates a list containing all [elements].
@@ -186,17 +191,27 @@ abstract class List<E> implements Iterable<E> {
    * Sorts this list according to the order specified by the [compare] function.
    *
    * The [compare] function must act as a [Comparator].
-   *     List<String> numbers = ['one', 'two', 'three', 'four'];
+   *
+   *     List<String> numbers = ['two', 'three', 'four'];
    *     // Sort from shortest to longest.
-   *     numbers.sort((x, y) => x.length.compareTo(y.length));
-   *     numbers.join(', '); // 'one, two, four, three'
+   *     numbers.sort((a, b) => a.length.compareTo(b.length));
+   *     print(numbers);  // [two, four, three]
    *
    * The default List implementations use [Comparable.compare] if
    * [compare] is omitted.
    *
    *     List<int> nums = [13, 2, -11];
    *     nums.sort();
-      nums.join(', '); // '-11, 2, 13'
+   *     print(nums);  // [-11, 2, 13]
+   *
+   * A [Comparator] may compare objects as equal (return zero), even if they
+   * are distinct objects.
+   * The sort function is not guaranteed to be stable, so distinct objects
+   * that compare as equal may occur in any order in the result:
+   *
+   *     List<String> numbers = ['one', 'two', 'three', 'four'];
+   *     numbers.sort((a, b) => a.length.compareTo(b.length));
+   *     print(numbers);  // [one, two, four, three] OR [two, one, four, three]
    */
   void sort([int compare(E a, E b)]);
 

@@ -63,86 +63,97 @@ class Primitives {
     return JS('int', '#', hash);
   }
 
-  static _throwFormatException(String string) {
-    throw new FormatException(string);
+  @NoInline()
+  static int _parseIntError(String source, int handleError(String source)) {
+    if (handleError == null) throw new FormatException(source);
+    return handleError(source);
   }
 
   static int parseInt(String source,
                       int radix,
                       int handleError(String source)) {
-    // TODO(vsm): Make _throwFormatException generic and use directly
-    // to avoid closure allocation.
-    if (handleError == null) handleError = (s) => _throwFormatException(s);
-
     checkString(source);
-    var match = JS('JSExtendableArray|Null',
-        r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i.exec(#)',
-        source);
+    var re = JS('', r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i');
+    var/*=JSArray<String>*/ match = JS('JSExtendableArray|Null', '#.exec(#)', re, source);
     int digitsIndex = 1;
     int hexIndex = 2;
     int decimalIndex = 3;
     int nonDecimalHexIndex = 4;
+    if (match == null) {
+      // TODO(sra): It might be that the match failed due to unrecognized U+0085
+      // spaces.  We could replace them with U+0020 spaces and try matching
+      // again.
+      return _parseIntError(source, handleError);
+    }
+    String decimalMatch = match[decimalIndex];
     if (radix == null) {
-      radix = 10;
-      if (match != null) {
-        if (match[hexIndex] != null) {
-          // Cannot fail because we know that the digits are all hex.
-          return JS('int', r'parseInt(#, 16)', source);
-        }
-        if (match[decimalIndex] != null) {
-          // Cannot fail because we know that the digits are all decimal.
-          return JS('int', r'parseInt(#, 10)', source);
-        }
-        return handleError(source);
+      if (decimalMatch != null) {
+        // Cannot fail because we know that the digits are all decimal.
+        return JS('int', r'parseInt(#, 10)', source);
       }
-    } else {
-      if (radix is! int) throw new ArgumentError("Radix is not an integer");
-      if (radix < 2 || radix > 36) {
-        throw new RangeError("Radix $radix not in range 2..36");
+      if (match[hexIndex] != null) {
+        // Cannot fail because we know that the digits are all hex.
+        return JS('int', r'parseInt(#, 16)', source);
       }
-      if (match != null) {
-        if (radix == 10 && match[decimalIndex] != null) {
-          // Cannot fail because we know that the digits are all decimal.
-          return JS('int', r'parseInt(#, 10)', source);
-        }
-        if (radix < 10 || match[decimalIndex] == null) {
-          // We know that the characters must be ASCII as otherwise the
-          // regexp wouldn't have matched. Lowercasing by doing `| 0x20` is thus
-          // guaranteed to be a safe operation, since it preserves digits
-          // and lower-cases ASCII letters.
-          int maxCharCode;
-          if (radix <= 10) {
-            // Allow all digits less than the radix. For example 0, 1, 2 for
-            // radix 3.
-            // "0".codeUnitAt(0) + radix - 1;
-            maxCharCode = 0x30 + radix - 1;
-          } else {
-            // Letters are located after the digits in ASCII. Therefore we
-            // only check for the character code. The regexp above made already
-            // sure that the string does not contain anything but digits or
-            // letters.
-            // "a".codeUnitAt(0) + (radix - 10) - 1;
-            maxCharCode = 0x61 + radix - 10 - 1;
-          }
-          String digitsPart = match[digitsIndex];
-          for (int i = 0; i < digitsPart.length; i++) {
-            int characterCode = digitsPart.codeUnitAt(0) | 0x20;
-            if (digitsPart.codeUnitAt(i) > maxCharCode) {
-              return handleError(source);
-            }
-          }
+      return _parseIntError(source, handleError);
+    }
+
+    if (radix is! int) {
+      throw new ArgumentError.value(radix, 'radix', 'is not an integer');
+    }
+    if (radix < 2 || radix > 36) {
+      throw new RangeError.range(radix, 2, 36, 'radix');
+    }
+    if (radix == 10 && decimalMatch != null) {
+      // Cannot fail because we know that the digits are all decimal.
+      return JS('int', r'parseInt(#, 10)', source);
+    }
+    // If radix >= 10 and we have only decimal digits the string is safe.
+    // Otherwise we need to check the digits.
+    if (radix < 10 || decimalMatch == null) {
+      // We know that the characters must be ASCII as otherwise the
+      // regexp wouldn't have matched. Lowercasing by doing `| 0x20` is thus
+      // guaranteed to be a safe operation, since it preserves digits
+      // and lower-cases ASCII letters.
+      int maxCharCode;
+      if (radix <= 10) {
+        // Allow all digits less than the radix. For example 0, 1, 2 for
+        // radix 3.
+        // "0".codeUnitAt(0) + radix - 1;
+        maxCharCode = (0x30 - 1) + radix;
+      } else {
+        // Letters are located after the digits in ASCII. Therefore we
+        // only check for the character code. The regexp above made already
+        // sure that the string does not contain anything but digits or
+        // letters.
+        // "a".codeUnitAt(0) + (radix - 10) - 1;
+        maxCharCode = (0x61 - 10 - 1) + radix;
+      }
+      assert(match[digitsIndex] is String);
+      String digitsPart = JS('String', '#[#]', match, digitsIndex);
+      for (int i = 0; i < digitsPart.length; i++) {
+        int characterCode = digitsPart.codeUnitAt(i) | 0x20;
+        if (characterCode > maxCharCode) {
+          return _parseIntError(source, handleError);
         }
       }
     }
-    if (match == null) return handleError(source);
+    // The above matching and checks ensures the source has at least one digits
+    // and all digits are suitable for the radix, so parseInt cannot return NaN.
     return JS('int', r'parseInt(#, #)', source, radix);
+  }
+
+  @NoInline()
+  static double _parseDoubleError(String source,
+                                  double handleError(String source)) {
+    if (handleError == null) {
+      throw new FormatException('Invalid double', source);
+    }
+    return handleError(source);
   }
 
   static double parseDouble(String source, double handleError(String source)) {
     checkString(source);
-    // TODO(vsm): Make _throwFormatException generic and use directly
-    // to avoid closure allocation.
-    if (handleError == null) handleError = (s) => _throwFormatException(s);
     // Notice that JS parseFloat accepts garbage at the end of the string.
     // Accept only:
     // - [+/-]NaN
@@ -153,7 +164,7 @@ class Primitives {
             r'/^\s*[+-]?(?:Infinity|NaN|'
                 r'(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(#)',
             source)) {
-      return handleError(source);
+      return _parseDoubleError(source, handleError);
     }
     var result = JS('num', r'parseFloat(#)', source);
     if (result.isNaN) {
@@ -161,7 +172,7 @@ class Primitives {
       if (trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN') {
         return result;
       }
-      return handleError(source);
+      return _parseDoubleError(source, handleError);
     }
     return result;
   }
