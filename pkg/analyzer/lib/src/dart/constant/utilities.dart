@@ -172,8 +172,10 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
     super.visitAnnotation(node);
     ElementAnnotation elementAnnotation = node.elementAnnotation;
     if (elementAnnotation == null) {
-      // Analyzer ignores annotations on "part of" directives.
-      assert(node.parent is PartOfDirective);
+      // Analyzer ignores annotations on "part of" directives and on enum
+      // constant declarations.
+      assert(node.parent is PartOfDirective ||
+          node.parent is EnumConstantDeclaration);
     } else {
       constantsToCompute.add(elementAnnotation);
     }
