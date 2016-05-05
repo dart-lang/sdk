@@ -405,7 +405,7 @@ intptr_t Symbols::Compact(Isolate* isolate) {
           zone_(thread->zone()) {}
 
     void VisitObject(RawObject* obj) {
-      if (obj->IsString() && obj->IsCanonical()) {
+      if (obj->IsCanonical() && obj->IsStringInstance()) {
         symbols_->Add(&String::ZoneHandle(zone_, String::RawCast(obj)));
       }
     }

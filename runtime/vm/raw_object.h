@@ -433,27 +433,30 @@ class RawObject {
   }
 
 #define DEFINE_IS_CID(clazz)                                                   \
-  bool Is##clazz() { return ((GetClassId() == k##clazz##Cid)); }
+  bool Is##clazz() const { return ((GetClassId() == k##clazz##Cid)); }
 CLASS_LIST(DEFINE_IS_CID)
 #undef DEFINE_IS_CID
 
 #define DEFINE_IS_CID(clazz)                                                   \
-  bool IsTypedData##clazz() {                                                  \
+  bool IsTypedData##clazz() const {                                            \
     return ((GetClassId() == kTypedData##clazz##Cid));                         \
   }                                                                            \
-  bool IsTypedDataView##clazz() {                                              \
-    return ((GetClassId() == kTypedDataView##clazz##Cid));                     \
+  bool IsTypedDataView##clazz() const {                                        \
+    return ((GetClassId() == kTypedData##clazz##ViewCid));                     \
   }                                                                            \
-  bool IsExternalTypedData##clazz() {                                          \
+  bool IsExternalTypedData##clazz() const {                                    \
     return ((GetClassId() == kExternalTypedData##clazz##Cid));                 \
-  }                                                                            \
+  }
 CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
 #undef DEFINE_IS_CID
 
-  bool IsDartInstance() {
+  bool IsStringInstance() const {
+    return IsStringClassId(GetClassId());
+  }
+  bool IsDartInstance() const {
     return (!IsHeapObject() || (GetClassId() >= kInstanceCid));
   }
-  bool IsFreeListElement() {
+  bool IsFreeListElement() const {
     return ((GetClassId() == kFreeListElement));
   }
 

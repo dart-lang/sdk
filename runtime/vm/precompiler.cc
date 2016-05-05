@@ -229,9 +229,7 @@ void Precompiler::DoCompileAll(
     zone_ = NULL;
   }
 
-  // TODO(rmacnak): intptr_t dropped_symbols_count = Symbols::Compact(I);
-  intptr_t dropped_symbols_count = 0;
-
+  intptr_t dropped_symbols_count = Symbols::Compact(I);
   if (FLAG_trace_precompiler) {
     THR_Print("Precompiled %" Pd " functions,", function_count_);
     THR_Print(" %" Pd " dynamic types,", class_count_);
