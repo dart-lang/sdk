@@ -28177,7 +28177,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({new: [core.RegExp, [core.String], {multiLine: core.bool, caseSensitive: core.bool}]})
   });
   core.Set$ = dart.generic(E => {
-    class Set extends collection.IterableBase$(E) {
+    class Set extends core.Iterable$(E) {
       static new() {
         return collection.LinkedHashSet$(E).new();
       }
