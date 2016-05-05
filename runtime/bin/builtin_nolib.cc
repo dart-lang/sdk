@@ -23,6 +23,9 @@ Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
 };
 
 Dart_Port Builtin::load_port_ = ILLEGAL_PORT;
+const int Builtin::num_libs_ =
+    sizeof(Builtin::builtin_libraries_) / sizeof(Builtin::builtin_lib_props);
+
 
 Dart_Handle Builtin::Source(BuiltinLibraryId id) {
   return DartUtils::NewError("Unreachable code in Builtin::Source (%d).", id);
@@ -42,9 +45,9 @@ Dart_Handle Builtin::GetSource(const char** source_paths, const char* uri) {
 
 
 void Builtin::SetNativeResolver(BuiltinLibraryId id) {
-  ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
-         kInvalidLibrary + 1);
-  ASSERT(id >= kBuiltinLibrary && id < kInvalidLibrary);
+  ASSERT(static_cast<int>(id) >= 0);
+  ASSERT(static_cast<int>(id) < num_libs_);
+
   if (builtin_libraries_[id].has_natives_) {
     Dart_Handle url = DartUtils::NewString(builtin_libraries_[id].url_);
     Dart_Handle library = Dart_LookupLibrary(url);
@@ -68,9 +71,9 @@ Builtin::BuiltinLibraryId Builtin::FindId(const char* url_string) {
 
 
 Dart_Handle Builtin::LoadAndCheckLibrary(BuiltinLibraryId id) {
-  ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
-         kInvalidLibrary + 1);
-  ASSERT(id >= kBuiltinLibrary && id < kInvalidLibrary);
+  ASSERT(static_cast<int>(id) >= 0);
+  ASSERT(static_cast<int>(id) < num_libs_);
+
   Dart_Handle url = DartUtils::NewString(builtin_libraries_[id].url_);
   Dart_Handle library = Dart_LookupLibrary(url);
   return library;

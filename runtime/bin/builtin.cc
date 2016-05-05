@@ -39,6 +39,8 @@ Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
 };
 
 Dart_Port Builtin::load_port_ = ILLEGAL_PORT;
+const int Builtin::num_libs_ =
+    sizeof(Builtin::builtin_libraries_) / sizeof(Builtin::builtin_lib_props);
 
 // Patch all the specified patch files in the array 'patch_files' into the
 // library specified in 'library'.
@@ -66,9 +68,8 @@ static void LoadPatchFiles(Dart_Handle library,
 
 
 Dart_Handle Builtin::Source(BuiltinLibraryId id) {
-  ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
-      kInvalidLibrary + 1);
-  ASSERT(id >= kBuiltinLibrary && id < kInvalidLibrary);
+  ASSERT(static_cast<int>(id) >= 0);
+  ASSERT(static_cast<int>(id) < num_libs_);
 
   // Try to read the source using the path specified for the uri.
   const char* uri = builtin_libraries_[id].url_;
@@ -78,9 +79,8 @@ Dart_Handle Builtin::Source(BuiltinLibraryId id) {
 
 
 Dart_Handle Builtin::PartSource(BuiltinLibraryId id, const char* part_uri) {
-  ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
-      kInvalidLibrary + 1);
-  ASSERT(id >= kBuiltinLibrary && id < kInvalidLibrary);
+  ASSERT(static_cast<int>(id) >= 0);
+  ASSERT(static_cast<int>(id) < num_libs_);
 
   // Try to read the source using the path specified for the uri.
   const char** source_paths = builtin_libraries_[id].source_paths_;
@@ -116,7 +116,7 @@ void Builtin::SetNativeResolver(BuiltinLibraryId id) {
 
 Dart_Handle Builtin::LoadLibrary(Dart_Handle url, BuiltinLibraryId id) {
   ASSERT(static_cast<int>(id) >= 0);
-  ASSERT(static_cast<int>(id) < kInvalidLibrary);
+  ASSERT(static_cast<int>(id) < num_libs_);
 
   Dart_Handle library = Dart_LoadLibrary(url, Source(id), 0, 0);
   if (!Dart_IsError(library) && (builtin_libraries_[id].has_natives_)) {
@@ -149,9 +149,9 @@ Builtin::BuiltinLibraryId Builtin::FindId(const char* url_string) {
 
 
 Dart_Handle Builtin::LoadAndCheckLibrary(BuiltinLibraryId id) {
-  ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
-      kInvalidLibrary + 1);
-  ASSERT(id >= kBuiltinLibrary && id < kInvalidLibrary);
+  ASSERT(static_cast<int>(id) >= 0);
+  ASSERT(static_cast<int>(id) < num_libs_);
+
   Dart_Handle url = DartUtils::NewString(builtin_libraries_[id].url_);
   Dart_Handle library = Dart_LookupLibrary(url);
   if (Dart_IsError(library)) {

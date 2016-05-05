@@ -28,23 +28,9 @@ class Builtin {
   // Note: Changes to this enum should be accompanied with changes to
   // the builtin_libraries_ array in builtin.cc and builtin_nolib.cc.
   enum BuiltinLibraryId {
+    kInvalidLibrary = -1,
     kBuiltinLibrary = 0,
-    kIOLibrary,
-#if defined(DART_NO_SNAPSHOT)
-    // Only include these libraries in the dart_bootstrap case for now.
-    kHTMLLibrary,
-    kHTMLCommonLibrary,
-    kJSLibrary,
-    kBlinkLibrary,
-    kIndexedDbLibrary,
-    kCachedPatchesLibrary,
-    kWebGlLibrary,
-    kMetaDataLibrary,
-    kWebSqlLibrary,
-    kSvgLibrary,
-    kWebAudioLibrary,
-#endif  // defined(DART_NO_SNAPSHOT)
-    kInvalidLibrary,
+    kIOLibrary
   };
 
   // Get source corresponding to built in library specified in 'id'.
@@ -93,6 +79,7 @@ class Builtin {
   static const char* webaudio_source_paths_[];
 
   static Dart_Port load_port_;
+  static const int num_libs_;
 
   typedef struct {
     const char* url_;
