@@ -547,6 +547,12 @@ throwAbstractClassInstantiationError(className) {
   throw new AbstractClassInstantiationError(className);
 }
 
+
+@NoInline()
+throwConcurrentModificationError(collection) {
+  throw new ConcurrentModificationError(collection);
+}
+
 class NullError extends Error implements NoSuchMethodError {
   final String _message;
   final String _method;
@@ -556,7 +562,7 @@ class NullError extends Error implements NoSuchMethodError {
 
   String toString() {
     if (_method == null) return 'NullError: $_message';
-    return 'NullError: Cannot call "$_method" on null';
+    return "NullError: method not found: '$_method' on null";
   }
 }
 
@@ -573,10 +579,10 @@ class JsNoSuchMethodError extends Error implements NoSuchMethodError {
   String toString() {
     if (_method == null) return 'NoSuchMethodError: $_message';
     if (_receiver == null) {
-      return 'NoSuchMethodError: Cannot call "$_method" ($_message)';
+      return "NoSuchMethodError: method not found: '$_method' ($_message)";
     }
-    return 'NoSuchMethodError: Cannot call "$_method" on "$_receiver" '
-        '($_message)';
+    return "NoSuchMethodError: "
+        "method not found: '$_method' on '$_receiver' ($_message)";
   }
 }
 
@@ -600,10 +606,11 @@ class _StackTrace implements StackTrace {
   _StackTrace(this._exception);
 
   String toString() {
-    if (_trace != null) return _trace;
+    if (_trace != null) return JS('String', '#', _trace);
 
     String trace;
-    if (JS('bool', 'typeof # === "object"', _exception)) {
+    if (JS('bool', '# !== null', _exception) &&
+        JS('bool', 'typeof # === "object"', _exception)) {
       trace = JS("String|Null", r"#.stack", _exception);
     }
     return _trace = (trace == null) ? '' : trace;

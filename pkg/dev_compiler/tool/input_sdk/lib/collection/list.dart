@@ -244,8 +244,12 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   void addAll(Iterable<E> iterable) {
+    int i = this.length;
     for (E element in iterable) {
-      this[this.length++] = element;
+      assert(this.length == i || (throw new ConcurrentModificationError(this)));
+      this.length = i + 1;
+      this[i] = element;
+      i++;
     }
   }
 
@@ -472,7 +476,7 @@ abstract class ListMixin<E> implements List<E> {
 
   void insertAll(int index, Iterable<E> iterable) {
     RangeError.checkValueInInterval(index, 0, length, "index");
-    if (iterable is EfficientLength) {
+    if (iterable is! EfficientLength || identical(iterable, this)) {
       iterable = iterable.toList();
     }
     int insertionLength = iterable.length;
@@ -480,6 +484,12 @@ abstract class ListMixin<E> implements List<E> {
     // will end up being modified but the operation not complete. Unless we
     // always go through a "toList" we can't really avoid that.
     this.length += insertionLength;
+    if (iterable.length != insertionLength) {
+      // If the iterable's length is linked to this list's length somehow,
+      // we can't insert one in the other.
+      this.length -= insertionLength;
+      throw new ConcurrentModificationError(iterable);
+    }
     setRange(index + insertionLength, this.length, this, index);
     setAll(index, iterable);
   }
