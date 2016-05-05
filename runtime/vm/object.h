@@ -3633,7 +3633,9 @@ class Library : public Object {
     StoreNonPointer(&raw_ptr()->index_, value);
   }
 
-  void Register() const;
+  void Register(Thread* thread) const;
+  static void RegisterLibraries(Thread* thread,
+                                const GrowableObjectArray& libs);
 
   bool IsDebuggable() const {
     return raw_ptr()->debuggable_;
@@ -3655,7 +3657,7 @@ class Library : public Object {
 
   inline intptr_t UrlHash() const;
 
-  static RawLibrary* LookupLibrary(const String& url);
+  static RawLibrary* LookupLibrary(Thread* thread, const String& url);
   static RawLibrary* GetLibrary(intptr_t index);
 
   static void InitCoreLibrary(Isolate* isolate);
@@ -3739,7 +3741,6 @@ class Library : public Object {
                                       bool import_core_lib);
   RawObject* LookupEntry(const String& name, intptr_t *index) const;
 
-  static bool IsKeyUsed(intptr_t key);
   void AllocatePrivateKey() const;
 
   RawString* MakeMetadataName(const Object& obj) const;

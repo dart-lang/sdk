@@ -1146,7 +1146,7 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
   if ((kind == Snapshot::kScript) && is_in_fullsnapshot) {
     // Lookup the object as it should already exist in the heap.
     *reader->StringHandle() ^= reader->ReadObjectImpl(kAsInlinedObject);
-    library = Library::LookupLibrary(*reader->StringHandle());
+    library = Library::LookupLibrary(reader->thread(), *reader->StringHandle());
     ASSERT(library.is_in_fullsnapshot());
   } else {
     // Allocate library object.
@@ -1188,7 +1188,7 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
     if (!Snapshot::IsFull(kind)) {
       // The cache of resolved names in library scope is not serialized.
       library.InitResolvedNamesCache(kInitialNameCacheSize);
-      library.Register();
+      library.Register(reader->thread());
     } else {
       library.InitResolvedNamesCache(kInitialNameCacheSize, reader);
     }

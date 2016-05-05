@@ -1243,11 +1243,12 @@ NOT_IN_PRODUCT(
   // Pre-register the isolate library so the native class implementations
   // can be hooked up before compiling it.
   Library& isolate_lib =
-      Library::Handle(zone, Library::LookupLibrary(Symbols::DartIsolate()));
+      Library::Handle(zone, Library::LookupLibrary(thread,
+                                                   Symbols::DartIsolate()));
   if (isolate_lib.IsNull()) {
     isolate_lib = Library::NewLibraryHelper(Symbols::DartIsolate(), true);
     isolate_lib.SetLoadRequested();
-    isolate_lib.Register();
+    isolate_lib.Register(thread);
     object_store->set_bootstrap_library(ObjectStore::kIsolate, isolate_lib);
   }
   ASSERT(!isolate_lib.IsNull());
@@ -1365,11 +1366,11 @@ NOT_IN_PRODUCT(
   // Pre-register the mirrors library so we can place the vm class
   // MirrorReference there rather than the core library.
 NOT_IN_PRODUCT(
-  lib = Library::LookupLibrary(Symbols::DartMirrors());
+  lib = Library::LookupLibrary(thread, Symbols::DartMirrors());
   if (lib.IsNull()) {
     lib = Library::NewLibraryHelper(Symbols::DartMirrors(), true);
     lib.SetLoadRequested();
-    lib.Register();
+    lib.Register(thread);
     object_store->set_bootstrap_library(ObjectStore::kMirrors, lib);
   }
   ASSERT(!lib.IsNull());
@@ -1381,11 +1382,11 @@ NOT_IN_PRODUCT(
 
   // Pre-register the collection library so we can place the vm class
   // LinkedHashMap there rather than the core library.
-  lib = Library::LookupLibrary(Symbols::DartCollection());
+  lib = Library::LookupLibrary(thread, Symbols::DartCollection());
   if (lib.IsNull()) {
     lib = Library::NewLibraryHelper(Symbols::DartCollection(), true);
     lib.SetLoadRequested();
-    lib.Register();
+    lib.Register(thread);
     object_store->set_bootstrap_library(ObjectStore::kCollection, lib);
   }
   ASSERT(!lib.IsNull());
@@ -1400,17 +1401,17 @@ NOT_IN_PRODUCT(
 
   // Pre-register the developer library so we can place the vm class
   // UserTag there rather than the core library.
-  lib = Library::LookupLibrary(Symbols::DartDeveloper());
+  lib = Library::LookupLibrary(thread, Symbols::DartDeveloper());
   if (lib.IsNull()) {
     lib = Library::NewLibraryHelper(Symbols::DartDeveloper(), true);
     lib.SetLoadRequested();
-    lib.Register();
+    lib.Register(thread);
     object_store->set_bootstrap_library(ObjectStore::kDeveloper, lib);
   }
   ASSERT(!lib.IsNull());
   ASSERT(lib.raw() == Library::DeveloperLibrary());
 
-  lib = Library::LookupLibrary(Symbols::DartDeveloper());
+  lib = Library::LookupLibrary(thread, Symbols::DartDeveloper());
   ASSERT(!lib.IsNull());
   cls = Class::New<UserTag>();
   RegisterPrivateClass(cls, Symbols::_UserTag(), lib);
@@ -1423,11 +1424,11 @@ NOT_IN_PRODUCT(
 
   // Pre-register the typed_data library so the native class implementations
   // can be hooked up before compiling it.
-  lib = Library::LookupLibrary(Symbols::DartTypedData());
+  lib = Library::LookupLibrary(thread, Symbols::DartTypedData());
   if (lib.IsNull()) {
     lib = Library::NewLibraryHelper(Symbols::DartTypedData(), true);
     lib.SetLoadRequested();
-    lib.Register();
+    lib.Register(thread);
     object_store->set_bootstrap_library(ObjectStore::kTypedData, lib);
   }
   ASSERT(!lib.IsNull());
@@ -1582,7 +1583,7 @@ NOT_IN_PRODUCT(
   MethodRecognizer::InitializeState();
 
   // Adds static const fields (class ids) to the class 'ClassID');
-  lib = Library::LookupLibrary(Symbols::DartInternal());
+  lib = Library::LookupLibrary(thread, Symbols::DartInternal());
   ASSERT(!lib.IsNull());
   cls = lib.LookupClassAllowPrivate(Symbols::ClassID());
   ASSERT(!cls.IsNull());
@@ -10524,19 +10525,21 @@ RawLibrary* Library::New(const String& url) {
 
 
 void Library::InitCoreLibrary(Isolate* isolate) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   const String& core_lib_url = Symbols::DartCore();
   const Library& core_lib =
-      Library::Handle(Library::NewLibraryHelper(core_lib_url, false));
+      Library::Handle(zone, Library::NewLibraryHelper(core_lib_url, false));
   core_lib.SetLoadRequested();
-  core_lib.Register();
+  core_lib.Register(thread);
   isolate->object_store()->set_bootstrap_library(ObjectStore::kCore, core_lib);
   isolate->object_store()->set_root_library(Library::Handle());
 
   // Hook up predefined classes without setting their library pointers. These
   // classes are coming from the VM isolate, and are shared between multiple
   // isolates so setting their library pointers would be wrong.
-  const Class& cls = Class::Handle(Object::dynamic_class());
-  core_lib.AddObject(cls, String::Handle(cls.Name()));
+  const Class& cls = Class::Handle(zone, Object::dynamic_class());
+  core_lib.AddObject(cls, String::Handle(zone, cls.Name()));
 }
 
 
@@ -10562,7 +10565,7 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
   const String& native_flds_lib_name = Symbols::DartNativeWrappersLibName();
   native_flds_lib.SetName(native_flds_lib_name);
   native_flds_lib.SetLoadRequested();
-  native_flds_lib.Register();
+  native_flds_lib.Register(thread);
   native_flds_lib.SetLoadInProgress();
   isolate->object_store()->set_native_wrappers_library(native_flds_lib);
   static const char* const kNativeWrappersClass = "NativeFieldWrapperClass";
@@ -10583,31 +10586,51 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
 }
 
 
+// LibraryLookupSet maps URIs to libraries.
+class LibraryLookupTraits {
+ public:
+  static const char* Name() { return "LibraryLookupTraits"; }
+  static bool ReportStats() { return false; }
+
+  static bool IsMatch(const Object& a, const Object& b) {
+    const String& a_str = String::Cast(a);
+    const String& b_str = String::Cast(b);
+
+    ASSERT(a_str.HasHash() && b_str.HasHash());
+    return a_str.Equals(b_str);
+  }
+
+  static uword Hash(const Object& key) {
+    return String::Cast(key).Hash();
+  }
+
+  static RawObject* NewKey(const String& str) {
+    return str.raw();
+  }
+};
+typedef UnorderedHashMap<LibraryLookupTraits> LibraryLookupMap;
+
+
 // Returns library with given url in current isolate, or NULL.
-RawLibrary* Library::LookupLibrary(const String &url) {
-  Thread* thread = Thread::Current();
+RawLibrary* Library::LookupLibrary(Thread* thread, const String &url) {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  Library& lib = Library::Handle(zone, Library::null());
-  String& lib_url = String::Handle(zone, String::null());
-  GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      zone, isolate->object_store()->libraries());
+  ObjectStore* object_store = isolate->object_store();
 
   // Make sure the URL string has an associated hash code
   // to speed up the repeated equality checks.
   url.Hash();
 
-  intptr_t len = libs.Length();
-  for (intptr_t i = 0; i < len; i++) {
-    lib ^= libs.At(i);
-    lib_url ^= lib.url();
-
-    ASSERT(url.HasHash() && lib_url.HasHash());
-    if (lib_url.Equals(url)) {
-      return lib.raw();
-    }
+  // Use the libraries map to lookup the library by URL.
+  Library& lib = Library::Handle(zone);
+  if (object_store->libraries_map() == Array::null()) {
+    return Library::null();
+  } else {
+    LibraryLookupMap map(object_store->libraries_map());
+    lib ^= map.GetOrNull(url);
+    ASSERT(map.Release().raw() == object_store->libraries_map());
   }
-  return Library::null();
+  return lib.raw();
 }
 
 
@@ -10631,34 +10654,28 @@ bool Library::IsPrivate(const String& name) {
 }
 
 
-bool Library::IsKeyUsed(intptr_t key) {
-  intptr_t lib_key;
-  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      Isolate::Current()->object_store()->libraries());
-  Library& lib = Library::Handle();
-  String& lib_url = String::Handle();
-  for (int i = 0; i < libs.Length(); i++) {
-    lib ^= libs.At(i);
-    lib_url ^= lib.url();
-    lib_key = lib_url.Hash();
-    if (lib_key == key) {
-      return true;
-    }
-  }
-  return false;
-}
-
-
+// Create a private key for this library. It is based on the hash of the
+// library URI and the sequence number of the library to guarantee unique
+// private keys without having to verify.
 void Library::AllocatePrivateKey() const {
-  const String& url = String::Handle(this->url());
-  intptr_t key_value = url.Hash() & kIntptrMax;
-  while ((key_value == 0) || Library::IsKeyUsed(key_value)) {
-    key_value = (key_value + 1) & kIntptrMax;
-  }
-  ASSERT(key_value > 0);
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+
+  // Format of the private key is: "@<sequence number><6 digits of hash>
+  const intptr_t hash_mask = 0x7FFFF;
+
+  const String& url = String::Handle(zone, this->url());
+  intptr_t hash_value = url.Hash() & hash_mask;
+
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(zone,
+      isolate->object_store()->libraries());
+  intptr_t sequence_value = libs.Length();
+
   char private_key[32];
   OS::SNPrint(private_key, sizeof(private_key),
-              "%c%" Pd "", kPrivateKeySeparator, key_value);
+              "%c%" Pd "%06" Pd "",
+              kPrivateKeySeparator, sequence_value, hash_value);
   StorePointer(&raw_ptr()->private_key_, String::New(private_key, Heap::kOld));
 }
 
@@ -10700,12 +10717,14 @@ RawString* Library::PrivateName(const String& name) const {
 
 
 RawLibrary* Library::GetLibrary(intptr_t index) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(isolate->object_store()->libraries());
+      GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
   ASSERT(!libs.IsNull());
   if ((0 <= index) && (index < libs.Length())) {
-    Library& lib = Library::Handle();
+    Library& lib = Library::Handle(zone);
     lib ^= libs.At(index);
     return lib.raw();
   }
@@ -10713,15 +10732,53 @@ RawLibrary* Library::GetLibrary(intptr_t index) {
 }
 
 
-void Library::Register() const {
-  ASSERT(Library::LookupLibrary(String::Handle(url())) == Library::null());
-  ASSERT(String::Handle(url()).HasHash());
-  ObjectStore* object_store = Isolate::Current()->object_store();
-  GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(object_store->libraries());
+void Library::Register(Thread* thread) const {
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  ObjectStore* object_store = isolate->object_store();
+
+  // A library is "registered" in two places:
+  // - A growable array mapping from index to library.
+  const String& lib_url = String::Handle(zone, url());
+  ASSERT(Library::LookupLibrary(thread, lib_url) == Library::null());
+  ASSERT(lib_url.HasHash());
+  GrowableObjectArray& libs = GrowableObjectArray::Handle(zone,
+      object_store->libraries());
   ASSERT(!libs.IsNull());
   set_index(libs.Length());
   libs.Add(*this);
+
+  // - A map from URL string to library.
+  if (object_store->libraries_map() == Array::null()) {
+    LibraryLookupMap map(HashTables::New<LibraryLookupMap>(16, Heap::kOld));
+    object_store->set_libraries_map(map.Release());
+  }
+
+  LibraryLookupMap map(object_store->libraries_map());
+  bool present = map.UpdateOrInsert(lib_url, *this);
+  ASSERT(!present);
+  object_store->set_libraries_map(map.Release());
+}
+
+
+void Library::RegisterLibraries(Thread* thread,
+                                const GrowableObjectArray& libs) {
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  Library& lib = Library::Handle(zone);
+  String& lib_url = String::Handle(zone);
+
+  LibraryLookupMap map(HashTables::New<LibraryLookupMap>(16, Heap::kOld));
+
+  intptr_t len = libs.Length();
+  for (intptr_t i = 0; i < len; i++) {
+    lib ^= libs.At(i);
+    lib_url = lib.url();
+    map.InsertNewOrGetValue(lib_url, lib);
+  }
+  // Now rememeber these in the isolate's object store.
+  isolate->object_store()->set_libraries(libs);
+  isolate->object_store()->set_libraries_map(map.Release());
 }
 
 

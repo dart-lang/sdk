@@ -253,7 +253,7 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   AddBackRef(object_id, &cls, kIsDeserialized);
   // Read the library/class information and lookup the class.
   str_ ^= ReadObjectImpl(class_header, kAsInlinedObject, kInvalidPatchIndex, 0);
-  library_ = Library::LookupLibrary(str_);
+  library_ = Library::LookupLibrary(thread(), str_);
   if (library_.IsNull() || !library_.Loaded()) {
     SetReadException("Invalid object found in message.");
   }
@@ -280,7 +280,7 @@ RawFunction* SnapshotReader::ReadFunctionId(intptr_t object_id) {
   AddBackRef(object_id, &func, kIsDeserialized);
   // Read the library/class/function information and lookup the function.
   str_ ^= ReadObjectImpl(func_header, kAsInlinedObject, kInvalidPatchIndex, 0);
-  library_ = Library::LookupLibrary(str_);
+  library_ = Library::LookupLibrary(thread(), str_);
   if (library_.IsNull() || !library_.Loaded()) {
     SetReadException("Expected a library name, but found an invalid name.");
   }
@@ -316,7 +316,7 @@ RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
 
   // Read the library/class/function information and lookup the function.
   str_ ^= ReadObjectImpl(kAsInlinedObject);
-  library_ = Library::LookupLibrary(str_);
+  library_ = Library::LookupLibrary(thread(), str_);
   if (library_.IsNull() || !library_.Loaded()) {
     SetReadException("Invalid Library object found in message.");
   }

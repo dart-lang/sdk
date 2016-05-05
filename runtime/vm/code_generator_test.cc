@@ -213,14 +213,16 @@ CODEGEN_TEST_RUN(DoubleUnaryOpCodegen, Double::New(-12.0))
 
 
 static Library& MakeTestLibrary(const char* url) {
-  const String& lib_url = String::ZoneHandle(Symbols::New(Thread::Current(),
-                                                          url));
-  Library& lib = Library::ZoneHandle(Library::New(lib_url));
-  lib.Register();
-  Library& core_lib = Library::Handle(Library::CoreLibrary());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  const String& lib_url = String::ZoneHandle(zone, Symbols::New(thread, url));
+  Library& lib = Library::ZoneHandle(zone, Library::New(lib_url));
+  lib.Register(thread);
+  Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
   ASSERT(!core_lib.IsNull());
-  const Namespace& core_ns = Namespace::Handle(
-      Namespace::New(core_lib, Array::Handle(), Array::Handle()));
+  const Namespace& core_ns = Namespace::Handle(zone,
+      Namespace::New(core_lib, Array::Handle(zone), Array::Handle(zone)));
   lib.AddImport(core_ns);
   return lib;
 }

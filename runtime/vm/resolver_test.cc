@@ -19,6 +19,9 @@ static void SetupFunction(const char* test_library_name,
                           const char* test_class_name,
                           const char* test_static_function_name,
                           bool is_static) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
   // Setup a dart class and function.
   char script_chars[1024];
   OS::SNPrint(script_chars,
@@ -35,16 +38,16 @@ static void SetupFunction(const char* test_library_name,
               is_static ? "static" : "",
               test_static_function_name);
 
-  String& url = String::Handle(is_static ?
-                               String::New("dart-test:DartStaticResolve") :
-                               String::New("dart-test:DartDynamicResolve"));
-  String& source = String::Handle(String::New(script_chars));
-  Script& script = Script::Handle(Script::New(url,
-                                              source,
-                                              RawScript::kScriptTag));
-  const String& lib_name = String::Handle(String::New(test_library_name));
-  Library& lib = Library::Handle(Library::New(lib_name));
-  lib.Register();
+  String& url = String::Handle(zone,
+      is_static ?
+          String::New("dart-test:DartStaticResolve") :
+          String::New("dart-test:DartDynamicResolve"));
+  String& source = String::Handle(zone, String::New(script_chars));
+  Script& script = Script::Handle(zone,
+      Script::New(url, source, RawScript::kScriptTag));
+  const String& lib_name = String::Handle(zone, String::New(test_library_name));
+  Library& lib = Library::Handle(zone, Library::New(lib_name));
+  lib.Register(thread);
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::ProcessPendingClasses());
 }
@@ -87,7 +90,7 @@ TEST_CASE(DartStaticResolve) {
 
   const String& library_name = String::Handle(String::New(test_library_name));
   const Library& library =
-      Library::Handle(Library::LookupLibrary(library_name));
+      Library::Handle(Library::LookupLibrary(thread, library_name));
   const String& class_name = String::Handle(String::New(test_class_name));
   const String& static_function_name =
       String::Handle(String::New(test_static_function_name));
@@ -155,7 +158,8 @@ TEST_CASE(DartDynamicResolve) {
   // Now create an instance object of the class and try to
   // resolve a function in it.
   const String& lib_name = String::Handle(String::New(test_library_name));
-  const Library& lib = Library::Handle(Library::LookupLibrary(lib_name));
+  const Library& lib = Library::Handle(Library::LookupLibrary(thread,
+                                                              lib_name));
   ASSERT(!lib.IsNull());
   const Class& cls = Class::Handle(lib.LookupClass(
       String::Handle(Symbols::New(thread, test_class_name))));

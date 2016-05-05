@@ -4012,7 +4012,7 @@ TEST_CASE(FunctionSourceFingerprint) {
   TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const String& name = String::Handle(String::New(TestCase::url()));
-  const Library& lib = Library::Handle(Library::LookupLibrary(name));
+  const Library& lib = Library::Handle(Library::LookupLibrary(thread, name));
   EXPECT(!lib.IsNull());
 
   const Class& class_a = Class::Handle(
@@ -4077,7 +4077,7 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
 
   // With no breakpoint, function A.b is inlineable.
   const String& name = String::Handle(String::New(TestCase::url()));
-  const Library& vmlib = Library::Handle(Library::LookupLibrary(name));
+  const Library& vmlib = Library::Handle(Library::LookupLibrary(thread, name));
   EXPECT(!vmlib.IsNull());
   const Class& class_a = Class::Handle(
       vmlib.LookupClass(String::Handle(Symbols::New(thread, "A"))));

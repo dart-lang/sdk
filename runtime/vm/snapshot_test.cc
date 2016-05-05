@@ -950,7 +950,7 @@ TEST_CASE(SerializeScript) {
                                                     RawScript::kScriptTag));
   const String& lib_url = String::Handle(zone, Symbols::New(thread, "TestLib"));
   Library& lib = Library::Handle(zone, Library::New(lib_url));
-  lib.Register();
+  lib.Register(thread);
   EXPECT(CompilerTest::TestCompileScript(lib, script));
 
   // Write snapshot with script content.

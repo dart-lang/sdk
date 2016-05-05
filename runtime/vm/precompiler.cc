@@ -355,7 +355,7 @@ void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
     class_name = Symbols::New(thread(), entry_points[i].class_name);
     function_name = Symbols::New(thread(), entry_points[i].function_name);
 
-    lib = Library::LookupLibrary(library_uri);
+    lib = Library::LookupLibrary(T, library_uri);
     if (lib.IsNull()) {
       String& msg = String::Handle(Z, String::NewFormatted(
           "Cannot find entry point %s\n", entry_points[i].library_uri));
@@ -1639,7 +1639,8 @@ void Precompiler::DropClasses() {
 void Precompiler::DropLibraries() {
   const GrowableObjectArray& retained_libraries =
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
-  Library& root_lib = Library::Handle(Z, I->object_store()->root_library());
+  const Library& root_lib = Library::Handle(Z,
+      I->object_store()->root_library());
   Library& lib = Library::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
@@ -1669,7 +1670,7 @@ void Precompiler::DropLibraries() {
     }
   }
 
-  I->object_store()->set_libraries(retained_libraries);
+  Library::RegisterLibraries(T, retained_libraries);
   libraries_ = retained_libraries.raw();
 }
 

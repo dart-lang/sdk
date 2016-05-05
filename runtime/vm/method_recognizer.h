@@ -16,38 +16,38 @@ namespace dart {
   V(::, identical, ObjectIdentical, 317103244)                                 \
   V(ClassID, getID, ClassIDgetID, 1385157717)                                  \
   V(Object, Object., ObjectConstructor, 1746278398)                            \
-  V(_List, ., ObjectArrayAllocate, 184405219)                                  \
-  V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 187609847)                     \
-  V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 1826086346)                  \
-  V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 1174755987)                  \
-  V(_TypedList, _getUint16, ByteArrayBaseGetUint16, 1936358273)                \
-  V(_TypedList, _getInt32, ByteArrayBaseGetInt32, 1123951931)                  \
-  V(_TypedList, _getUint32, ByteArrayBaseGetUint32, 853172551)                 \
-  V(_TypedList, _getInt64, ByteArrayBaseGetInt64, 1115954619)                  \
-  V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 165422183)               \
-  V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 1564825450)              \
-  V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 1123952315)          \
-  V(_TypedList, _getInt32x4, ByteArrayBaseGetInt32x4, 831892409)               \
-  V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 2043203289)                    \
-  V(_TypedList, _setUint8, ByteArrayBaseSetUint8, 1759261408)                  \
-  V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 267848339)                   \
-  V(_TypedList, _setUint16, ByteArrayBaseSetUint16, 350952121)                 \
-  V(_TypedList, _setInt32, ByteArrayBaseSetInt32, 1170619358)                  \
-  V(_TypedList, _setUint32, ByteArrayBaseSetUint32, 1325523969)                \
-  V(_TypedList, _setInt64, ByteArrayBaseSetInt64, 935451230)                   \
-  V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 541136999)               \
-  V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 365317124)               \
-  V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 1766802707)          \
-  V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 2075229300)              \
-  V(_StringBase, _interpolate, StringBaseInterpolate, 1597087225)              \
-  V(_IntegerImplementation, toDouble, IntegerToDouble, 150718448)              \
-  V(_Double, _add, DoubleAdd, 1190606283)                                      \
-  V(_Double, _sub, DoubleSub, 1086286468)                                      \
-  V(_Double, _mul, DoubleMul, 166332351)                                       \
-  V(_Double, _div, DoubleDiv, 821396195)                                       \
+  V(_List, ., ObjectArrayAllocate, 1661438741)                                 \
+  V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 1508321565)                    \
+  V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 953411007)                   \
+  V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 433971756)                   \
+  V(_TypedList, _getUint16, ByteArrayBaseGetUint16, 1329446488)                \
+  V(_TypedList, _getInt32, ByteArrayBaseGetInt32, 137212209)                   \
+  V(_TypedList, _getUint32, ByteArrayBaseGetUint32, 499907480)                 \
+  V(_TypedList, _getInt64, ByteArrayBaseGetInt64, 1639388276)                  \
+  V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 1672834581)              \
+  V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 966634744)               \
+  V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 1197581758)          \
+  V(_TypedList, _getInt32x4, ByteArrayBaseGetInt32x4, 810805548)               \
+  V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 1317196265)                    \
+  V(_TypedList, _setUint8, ByteArrayBaseSetUint8, 1328908284)                  \
+  V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 1827614958)                  \
+  V(_TypedList, _setUint16, ByteArrayBaseSetUint16, 1694054572)                \
+  V(_TypedList, _setInt32, ByteArrayBaseSetInt32, 915652649)                   \
+  V(_TypedList, _setUint32, ByteArrayBaseSetUint32, 1958474336)                \
+  V(_TypedList, _setInt64, ByteArrayBaseSetInt64, 1970687707)                  \
+  V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 1853026980)              \
+  V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 1197862362)              \
+  V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 2093630771)          \
+  V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 1982971324)              \
+  V(_StringBase, _interpolate, StringBaseInterpolate, 1872292681)              \
+  V(_IntegerImplementation, toDouble, IntegerToDouble, 792762465)              \
+  V(_Double, _add, DoubleAdd, 2213216)                                         \
+  V(_Double, _sub, DoubleSub, 1100692582)                                      \
+  V(_Double, _mul, DoubleMul, 436784097)                                       \
+  V(_Double, _div, DoubleDiv, 953317135)                                       \
   V(::, min, MathMin, 1115051548)                                              \
   V(::, max, MathMax, 1410473322)                                              \
-  V(::, _doublePow, MathDoublePow, 562154128)                                  \
+  V(::, _doublePow, MathDoublePow, 1770960781)                                 \
   V(Float32x4, Float32x4., Float32x4Constructor, 93751705)                     \
   V(Float32x4, Float32x4.zero, Float32x4Zero, 1193954374)                      \
   V(Float32x4, Float32x4.splat, Float32x4Splat, 12296613)                      \
@@ -56,21 +56,21 @@ namespace dart {
   V(Float32x4, shuffle, Float32x4Shuffle, 2015957023)                          \
   V(Float32x4, shuffleMix, Float32x4ShuffleMix, 1099087979)                    \
   V(Float32x4, get:signMask, Float32x4GetSignMask, 487049875)                  \
-  V(Float32x4, _cmpequal, Float32x4Equal, 1069901308)                          \
-  V(Float32x4, _cmpgt, Float32x4GreaterThan, 2112381651)                       \
-  V(Float32x4, _cmpgte, Float32x4GreaterThanOrEqual, 1088241265)               \
-  V(Float32x4, _cmplt, Float32x4LessThan, 2001171012)                          \
-  V(Float32x4, _cmplte, Float32x4LessThanOrEqual, 1568686387)                  \
-  V(Float32x4, _cmpnequal, Float32x4NotEqual, 1833412828)                      \
-  V(Float32x4, _min, Float32x4Min, 1194113943)                                 \
-  V(Float32x4, _max, Float32x4Max, 1876936155)                                 \
-  V(Float32x4, _scale, Float32x4Scale, 1176743640)                             \
-  V(Float32x4, _sqrt, Float32x4Sqrt, 526238610)                                \
-  V(Float32x4, _reciprocalSqrt, Float32x4ReciprocalSqrt, 860560177)            \
-  V(Float32x4, _reciprocal, Float32x4Reciprocal, 1703468100)                   \
-  V(Float32x4, _negate, Float32x4Negate, 1409902640)                           \
-  V(Float32x4, _abs, Float32x4Absolute, 2116840471)                            \
-  V(Float32x4, _clamp, Float32x4Clamp, 1789892357)                             \
+  V(Float32x4, _cmpequal, Float32x4Equal, 127403211)                           \
+  V(Float32x4, _cmpgt, Float32x4GreaterThan, 2118391173)                       \
+  V(Float32x4, _cmpgte, Float32x4GreaterThanOrEqual, 557807661)                \
+  V(Float32x4, _cmplt, Float32x4LessThan, 1061691185)                          \
+  V(Float32x4, _cmplte, Float32x4LessThanOrEqual, 102608993)                   \
+  V(Float32x4, _cmpnequal, Float32x4NotEqual, 1873649982)                      \
+  V(Float32x4, _min, Float32x4Min, 1158016632)                                 \
+  V(Float32x4, _max, Float32x4Max, 118915526)                                  \
+  V(Float32x4, _scale, Float32x4Scale, 415757469)                              \
+  V(Float32x4, _sqrt, Float32x4Sqrt, 1934518992)                               \
+  V(Float32x4, _reciprocalSqrt, Float32x4ReciprocalSqrt, 1586141174)           \
+  V(Float32x4, _reciprocal, Float32x4Reciprocal, 1651466502)                   \
+  V(Float32x4, _negate, Float32x4Negate, 2142478676)                           \
+  V(Float32x4, _abs, Float32x4Absolute, 337704007)                             \
+  V(Float32x4, _clamp, Float32x4Clamp, 1107305005)                             \
   V(Float32x4, withX, Float32x4WithX, 1311992575)                              \
   V(Float32x4, withY, Float32x4WithY, 175290640)                               \
   V(Float32x4, withZ, Float32x4WithZ, 837367384)                               \
@@ -81,7 +81,7 @@ namespace dart {
   V(Float64x2, Float64x2.fromFloat32x4, Float64x2FromFloat32x4, 792974246)     \
   V(Float64x2, get:x, Float64x2GetX, 1488958362)                               \
   V(Float64x2, get:y, Float64x2GetY, 1022688506)                               \
-  V(Float64x2, _negate, Float64x2Negate, 960840275)                            \
+  V(Float64x2, _negate, Float64x2Negate, 1693416311)                           \
   V(Float64x2, abs, Float64x2Abs, 52403783)                                    \
   V(Float64x2, sqrt, Float64x2Sqrt, 2012680669)                                \
   V(Float64x2, get:signMask, Float64x2GetSignMask, 668856717)                  \
@@ -100,48 +100,48 @@ namespace dart {
   V(Int32x4, get:signMask, Int32x4GetSignMask, 740215269)                      \
   V(Int32x4, shuffle, Int32x4Shuffle, 549194518)                               \
   V(Int32x4, shuffleMix, Int32x4ShuffleMix, 1550866145)                        \
-  V(Int32x4, select, Int32x4Select, 614943686)                                 \
+  V(Int32x4, select, Int32x4Select, 1368318775)                                \
   V(Int32x4, withFlagX, Int32x4WithFlagX, 250974159)                           \
   V(Int32x4, withFlagY, Int32x4WithFlagY, 1686481348)                          \
   V(Int32x4, withFlagZ, Int32x4WithFlagZ, 645582330)                           \
   V(Int32x4, withFlagW, Int32x4WithFlagW, 878364277)                           \
-  V(Float32List, [], Float32ArrayGetIndexed, 1002307136)                       \
-  V(Float32List, []=, Float32ArraySetIndexed, 279546769)                       \
-  V(Int8List, [], Int8ArrayGetIndexed, 1141846285)                             \
-  V(Int8List, []=, Int8ArraySetIndexed, 1486839324)                            \
-  V(Uint8ClampedList, [], Uint8ClampedArrayGetIndexed, 513704632)              \
-  V(Uint8ClampedList, []=, Uint8ClampedArraySetIndexed, 1015846567)            \
+  V(Float32List, [], Float32ArrayGetIndexed, 1451643535)                       \
+  V(Float32List, []=, Float32ArraySetIndexed, 453873887)                       \
+  V(Int8List, [], Int8ArrayGetIndexed, 110819507)                              \
+  V(Int8List, []=, Int8ArraySetIndexed, 865684695)                             \
+  V(Uint8ClampedList, [], Uint8ClampedArrayGetIndexed, 41288685)               \
+  V(Uint8ClampedList, []=, Uint8ClampedArraySetIndexed, 687206488)             \
   V(_ExternalUint8ClampedArray, [], ExternalUint8ClampedArrayGetIndexed,       \
-    513704632)                                                                 \
+    41288685)                                                                  \
   V(_ExternalUint8ClampedArray, []=, ExternalUint8ClampedArraySetIndexed,      \
-    1015846567)                                                                \
-  V(Int16List, [], Int16ArrayGetIndexed, 1826359619)                           \
-  V(Int16List, []=, Int16ArraySetIndexed, 1108689116)                          \
-  V(Uint16List, [], Uint16ArrayGetIndexed, 118958722)                          \
-  V(Uint16List, []=, Uint16ArraySetIndexed, 658824450)                         \
-  V(Int32List, [], Int32ArrayGetIndexed, 681203163)                            \
-  V(Int32List, []=, Int32ArraySetIndexed, 1786886245)                          \
-  V(Int64List, [], Int64ArrayGetIndexed, 1883155004)                           \
-  V(Int64List, []=, Int64ArraySetIndexed, 905815059)                           \
-  V(Float32x4List, [], Float32x4ArrayGetIndexed, 694822356)                    \
-  V(Float32x4List, []=, Float32x4ArraySetIndexed, 1166109127)                  \
-  V(Int32x4List, [], Int32x4ArrayGetIndexed, 668249259)                        \
-  V(Int32x4List, []=, Int32x4ArraySetIndexed, 654739449)                       \
-  V(Float64x2List, [], Float64x2ArrayGetIndexed, 196472005)                    \
-  V(Float64x2List, []=, Float64x2ArraySetIndexed, 1421858500)                  \
-  V(_Bigint, get:_neg, Bigint_getNeg, 1681019799)                              \
-  V(_Bigint, get:_used, Bigint_getUsed, 1439136438)                            \
-  V(_Bigint, get:_digits, Bigint_getDigits, 769722770)                         \
-  V(_HashVMBase, get:_index, LinkedHashMap_getIndex, 2048715833)               \
-  V(_HashVMBase, set:_index, LinkedHashMap_setIndex, 1882796480)               \
-  V(_HashVMBase, get:_data, LinkedHashMap_getData, 942992497)                  \
-  V(_HashVMBase, set:_data, LinkedHashMap_setData, 1410623019)                 \
-  V(_HashVMBase, get:_usedData, LinkedHashMap_getUsedData, 1698421819)         \
-  V(_HashVMBase, set:_usedData, LinkedHashMap_setUsedData, 1858754514)         \
-  V(_HashVMBase, get:_hashMask, LinkedHashMap_getHashMask, 98745045)           \
-  V(_HashVMBase, set:_hashMask, LinkedHashMap_setHashMask, 340628211)          \
-  V(_HashVMBase, get:_deletedKeys, LinkedHashMap_getDeletedKeys, 1340385546)   \
-  V(_HashVMBase, set:_deletedKeys, LinkedHashMap_setDeletedKeys, 638315987)    \
+    687206488)                                                                 \
+  V(Int16List, [], Int16ArrayGetIndexed, 389863073)                            \
+  V(Int16List, []=, Int16ArraySetIndexed, 855133756)                           \
+  V(Uint16List, [], Uint16ArrayGetIndexed, 1053739567)                         \
+  V(Uint16List, []=, Uint16ArraySetIndexed, 1547307961)                        \
+  V(Int32List, [], Int32ArrayGetIndexed, 640610057)                            \
+  V(Int32List, []=, Int32ArraySetIndexed, 453358705)                           \
+  V(Int64List, [], Int64ArrayGetIndexed, 202150810)                            \
+  V(Int64List, []=, Int64ArraySetIndexed, 924110852)                           \
+  V(Float32x4List, [], Float32x4ArrayGetIndexed, 29819259)                     \
+  V(Float32x4List, []=, Float32x4ArraySetIndexed, 1458062250)                  \
+  V(Int32x4List, [], Int32x4ArrayGetIndexed, 137707405)                        \
+  V(Int32x4List, []=, Int32x4ArraySetIndexed, 496650149)                       \
+  V(Float64x2List, [], Float64x2ArrayGetIndexed, 1721439384)                   \
+  V(Float64x2List, []=, Float64x2ArraySetIndexed, 1994027006)                  \
+  V(_Bigint, get:_neg, Bigint_getNeg, 2079423063)                              \
+  V(_Bigint, get:_used, Bigint_getUsed, 1426329619)                            \
+  V(_Bigint, get:_digits, Bigint_getDigits, 1185333683)                        \
+  V(_HashVMBase, get:_index, LinkedHashMap_getIndex, 2104211307)               \
+  V(_HashVMBase, set:_index, LinkedHashMap_setIndex, 1273697266)               \
+  V(_HashVMBase, get:_data, LinkedHashMap_getData, 1274399923)                 \
+  V(_HashVMBase, set:_data, LinkedHashMap_setData, 1611093357)                 \
+  V(_HashVMBase, get:_usedData, LinkedHashMap_getUsedData, 367462469)          \
+  V(_HashVMBase, set:_usedData, LinkedHashMap_setUsedData, 1049390812)         \
+  V(_HashVMBase, get:_hashMask, LinkedHashMap_getHashMask, 902147072)          \
+  V(_HashVMBase, set:_hashMask, LinkedHashMap_setHashMask, 1236137630)         \
+  V(_HashVMBase, get:_deletedKeys, LinkedHashMap_getDeletedKeys, 812542585)    \
+  V(_HashVMBase, set:_deletedKeys, LinkedHashMap_setDeletedKeys, 1072259010)   \
 
 
 // List of intrinsics:
@@ -149,94 +149,95 @@ namespace dart {
 #define CORE_LIB_INTRINSIC_LIST(V)                                             \
   V(_Smi, ~, Smi_bitNegate, 1673522705)                                        \
   V(_Smi, get:bitLength, Smi_bitLength, 632480332)                             \
-  V(_Bigint, _lsh, Bigint_lsh, 834311957)                                      \
-  V(_Bigint, _rsh, Bigint_rsh, 333337658)                                      \
-  V(_Bigint, _absAdd, Bigint_absAdd, 473436659)                                \
-  V(_Bigint, _absSub, Bigint_absSub, 1018678324)                               \
-  V(_Bigint, _mulAdd, Bigint_mulAdd, 571005736)                                \
-  V(_Bigint, _sqrAdd, Bigint_sqrAdd, 372896038)                                \
-  V(_Bigint, _estQuotientDigit, Bigint_estQuotientDigit, 540033329)            \
-  V(_Montgomery, _mulMod, Montgomery_mulMod, 118781828)                        \
-  V(_Double, >, Double_greaterThan, 1413076759)                                \
+  V(_Bigint, _lsh, Bigint_lsh, 1557746963)                                     \
+  V(_Bigint, _rsh, Bigint_rsh, 761843937)                                      \
+  V(_Bigint, _absAdd, Bigint_absAdd, 1227835493)                               \
+  V(_Bigint, _absSub, Bigint_absSub, 390740532)                                \
+  V(_Bigint, _mulAdd, Bigint_mulAdd, 617534446)                                \
+  V(_Bigint, _sqrAdd, Bigint_sqrAdd, 1623635507)                               \
+  V(_Bigint, _estQuotientDigit, Bigint_estQuotientDigit, 797340802)            \
+  V(_Montgomery, _mulMod, Montgomery_mulMod, 1947987219)                       \
+  V(_Double, >, Double_greaterThan, 1453001345)                                \
   V(_Double, >=, Double_greaterEqualThan, 1815180096)                          \
   V(_Double, <, Double_lessThan, 652059836)                                    \
   V(_Double, <=, Double_lessEqualThan, 512138528)                              \
-  V(_Double, ==, Double_equal, 752327620)                                      \
-  V(_Double, +, Double_add, 854024064)                                         \
-  V(_Double, -, Double_sub, 685132889)                                         \
-  V(_Double, *, Double_mul, 542254390)                                         \
-  V(_Double, /, Double_div, 1145710768)                                        \
+  V(_Double, ==, Double_equal, 1468668497)                                     \
+  V(_Double, +, Double_add, 1269587413)                                        \
+  V(_Double, -, Double_sub, 1644506555)                                        \
+  V(_Double, *, Double_mul, 600860888)                                         \
+  V(_Double, /, Double_div, 1220198876)                                        \
   V(_Double, get:isNaN, Double_getIsNaN, 184085483)                            \
   V(_Double, get:isNegative, Double_getIsNegative, 978911030)                  \
-  V(_Double, _mulFromInteger, Double_mulFromInteger, 543831179)                \
-  V(_Double, .fromInteger, DoubleFromInteger, 1453449234)                      \
+  V(_Double, _mulFromInteger, Double_mulFromInteger, 1893886883)               \
+  V(_Double, .fromInteger, DoubleFromInteger, 2129942595)                      \
   V(_List, []=, ObjectArraySetIndexed, 886228780)                              \
-  V(_GrowableList, .withData, GrowableArray_Allocate, 131424500)               \
-  V(_GrowableList, add, GrowableArray_add, 242296201)                          \
-  V(_RegExp, _ExecuteMatch, RegExp_ExecuteMatch, 2077783530)                   \
+  V(_GrowableList, .withData, GrowableArray_Allocate, 631736030)               \
+  V(_GrowableList, add, GrowableArray_add, 219371757)                          \
+  V(_RegExp, _ExecuteMatch, RegExp_ExecuteMatch, 1614206970)                   \
   V(Object, ==, ObjectEquals, 291909336)                                       \
   V(Object, get:runtimeType, ObjectRuntimeType, 15188587)                      \
   V(_StringBase, get:hashCode, String_getHashCode, 2026040200)                 \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, 1958879178)                   \
   V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 1436590579)                 \
-  V(_StringBase, _substringMatches, StringBaseSubstringMatches, 1548648995)    \
+  V(_StringBase, _substringMatches, StringBaseSubstringMatches, 797253099)     \
   V(_StringBase, [], StringBaseCharAt, 754527301)                              \
   V(_OneByteString, get:hashCode, OneByteString_getHashCode, 2026040200)       \
   V(_OneByteString, _substringUncheckedNative,                                 \
-    OneByteString_substringUnchecked, 2063670029)                              \
-  V(_OneByteString, _setAt, OneByteStringSetAt, 929822971)                     \
-  V(_OneByteString, _allocate, OneByteString_allocate, 1737851380)             \
+    OneByteString_substringUnchecked, 1670133538)                              \
+  V(_OneByteString, _setAt, OneByteStringSetAt, 1160066031)                    \
+  V(_OneByteString, _allocate, OneByteString_allocate, 1028631946)             \
   V(_OneByteString, ==, OneByteString_equality, 1062844160)                    \
   V(_TwoByteString, ==, TwoByteString_equality, 1062844160)                    \
 
 
 #define CORE_INTEGER_LIB_INTRINSIC_LIST(V)                                     \
-  V(_IntegerImplementation, _addFromInteger, Integer_addFromInteger, 298045644)\
-  V(_IntegerImplementation, +, Integer_add, 364498398)                         \
-  V(_IntegerImplementation, _subFromInteger, Integer_subFromInteger, 422157928)\
-  V(_IntegerImplementation, -, Integer_sub, 1682674911)                        \
+  V(_IntegerImplementation, _addFromInteger, Integer_addFromInteger,           \
+    2042488139)                                                                \
+  V(_IntegerImplementation, +, Integer_add, 239272130)                         \
+  V(_IntegerImplementation, _subFromInteger, Integer_subFromInteger, 957923759)\
+  V(_IntegerImplementation, -, Integer_sub, 216175811)                         \
   V(_IntegerImplementation, _mulFromInteger, Integer_mulFromInteger,           \
-    2074733333)                                                                \
-  V(_IntegerImplementation, *, Integer_mul, 1651115456)                        \
+    2032062140)                                                                \
+  V(_IntegerImplementation, *, Integer_mul, 1301152164)                        \
   V(_IntegerImplementation, _moduloFromInteger, Integer_moduloFromInteger,     \
-    2100319763)                                                                \
-  V(_IntegerImplementation, ~/, Integer_truncDivide, 108494012)                \
+    779285842)                                                                 \
+  V(_IntegerImplementation, ~/, Integer_truncDivide, 1018128256)               \
   V(_IntegerImplementation, unary-, Integer_negate, 1507648892)                \
   V(_IntegerImplementation, _bitAndFromInteger, Integer_bitAndFromInteger,     \
-    363854564)                                                                 \
-  V(_IntegerImplementation, &, Integer_bitAnd, 286231290)                      \
+    503046514)                                                                 \
+  V(_IntegerImplementation, &, Integer_bitAnd, 1500136766)                     \
   V(_IntegerImplementation, _bitOrFromInteger, Integer_bitOrFromInteger,       \
-    1623085924)                                                                \
-  V(_IntegerImplementation, |, Integer_bitOr, 1111108792)                      \
+    1031383580)                                                                \
+  V(_IntegerImplementation, |, Integer_bitOr, 119412028)                       \
   V(_IntegerImplementation, _bitXorFromInteger, Integer_bitXorFromInteger,     \
-    140783758)                                                                 \
-  V(_IntegerImplementation, ^, Integer_bitXor, 1884808537)                     \
+    1339506501)                                                                \
+  V(_IntegerImplementation, ^, Integer_bitXor, 210430781)                      \
   V(_IntegerImplementation, _greaterThanFromInteger,                           \
-    Integer_greaterThanFromInt, 814932166)                                     \
-  V(_IntegerImplementation, >, Integer_greaterThan, 293890061)                 \
-  V(_IntegerImplementation, ==, Integer_equal, 4489308)                        \
+    Integer_greaterThanFromInt, 780147656)                                     \
+  V(_IntegerImplementation, >, Integer_greaterThan, 673741711)                 \
+  V(_IntegerImplementation, ==, Integer_equal, 272474439)                      \
   V(_IntegerImplementation, _equalToInteger, Integer_equalToInteger,           \
-    1818326386)                                                                \
+    2004079901)                                                                \
   V(_IntegerImplementation, <, Integer_lessThan, 652059836)                    \
   V(_IntegerImplementation, <=, Integer_lessEqualThan, 512138528)              \
   V(_IntegerImplementation, >=, Integer_greaterEqualThan, 1815180096)          \
-  V(_IntegerImplementation, <<, Integer_shl, 293751452)                        \
-  V(_IntegerImplementation, >>, Integer_sar, 125091101)                        \
+  V(_IntegerImplementation, <<, Integer_shl, 1127538624)                       \
+  V(_IntegerImplementation, >>, Integer_sar, 1243972513)                       \
   V(_Double, toInt, DoubleToInteger, 653210699)
 
 
 #define MATH_LIB_INTRINSIC_LIST(V)                                             \
-  V(::, sqrt, MathSqrt, 1446681622)                                            \
-  V(_Random, _nextState, Random_nextState, 1241583299)                         \
+  V(::, sqrt, MathSqrt, 417912310)                                             \
+  V(_Random, _nextState, Random_nextState, 508231939)                          \
 
 #define GRAPH_MATH_LIB_INTRINSIC_LIST(V)                                       \
-  V(::, sin, MathSin, 939048573)                                               \
-  V(::, cos, MathCos, 1148850331)                                              \
-  V(::, tan, MathTan, 179725235)                                               \
-  V(::, asin, MathAsin, 848695059)                                             \
-  V(::, acos, MathAcos, 337299516)                                             \
-  V(::, atan, MathAtan, 866406810)                                             \
-  V(::, atan2, MathAtan2, 1901969510)                                          \
+  V(::, sin, MathSin, 65032)                                                   \
+  V(::, cos, MathCos, 2006233918)                                              \
+  V(::, tan, MathTan, 1276867325)                                              \
+  V(::, asin, MathAsin, 1678592173)                                            \
+  V(::, acos, MathAcos, 1121218433)                                            \
+  V(::, atan, MathAtan, 1109653625)                                            \
+  V(::, atan2, MathAtan2, 894696289)                                           \
 
 #define TYPED_DATA_LIB_INTRINSIC_LIST(V)                                       \
   V(Int8List, ., TypedData_Int8Array_factory, 779569635)                       \
@@ -255,22 +256,22 @@ namespace dart {
   V(Float64x2List, ., TypedData_Float64x2Array_factory, 416019673)             \
 
 #define GRAPH_TYPED_DATA_INTRINSICS_LIST(V)                                    \
-  V(Uint8List, [], Uint8ArrayGetIndexed, 513704632)                            \
-  V(Uint8List, []=, Uint8ArraySetIndexed, 2123520783)                          \
-  V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 513704632)          \
-  V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, 2123520783)        \
-  V(Uint32List, [], Uint32ArrayGetIndexed, 1179675338)                         \
-  V(Uint32List, []=, Uint32ArraySetIndexed, 1455695417)                        \
-  V(Float64List, []=, Float64ArraySetIndexed, 1929239576)                      \
-  V(Float64List, [], Float64ArrayGetIndexed, 816943529)                        \
+  V(Uint8List, [], Uint8ArrayGetIndexed, 41288685)                             \
+  V(Uint8List, []=, Uint8ArraySetIndexed, 101536342)                           \
+  V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 41288685)           \
+  V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, 101536342)         \
+  V(Uint32List, [], Uint32ArrayGetIndexed, 1614870523)                         \
+  V(Uint32List, []=, Uint32ArraySetIndexed, 978194713)                         \
+  V(Float64List, []=, Float64ArraySetIndexed, 328934501)                       \
+  V(Float64List, [], Float64ArrayGetIndexed, 2049378701)                       \
   V(_TypedList, get:length, TypedDataLength, 546364442)                        \
   V(Float32x4, get:x, Float32x4ShuffleX, 1674625343)                           \
   V(Float32x4, get:y, Float32x4ShuffleY, 540293915)                            \
   V(Float32x4, get:z, Float32x4ShuffleZ, 320347578)                            \
   V(Float32x4, get:w, Float32x4ShuffleW, 1770606624)                           \
-  V(Float32x4, _mul, Float32x4Mul, 861549065)                                  \
-  V(Float32x4, _sub, Float32x4Sub, 460363214)                                  \
-  V(Float32x4, _add, Float32x4Add, 1487592255)                                 \
+  V(Float32x4, _mul, Float32x4Mul, 42807622)                                   \
+  V(Float32x4, _sub, Float32x4Sub, 103774455)                                  \
+  V(Float32x4, _add, Float32x4Add, 1352634374)                                 \
 
 #define GRAPH_CORE_INTRINSICS_LIST(V)                                          \
   V(_List, get:length, ObjectArrayLength, 630471378)                           \
@@ -278,9 +279,9 @@ namespace dart {
   V(_ImmutableList, get:length, ImmutableArrayLength, 630471378)               \
   V(_ImmutableList, [], ImmutableArrayGetIndexed, 360400496)                   \
   V(_GrowableList, get:length, GrowableArrayLength, 417111542)                 \
-  V(_GrowableList, get:_capacity, GrowableArrayCapacity, 193746510)            \
-  V(_GrowableList, _setData, GrowableArraySetData, 1496536873)                 \
-  V(_GrowableList, _setLength, GrowableArraySetLength, 32203572)               \
+  V(_GrowableList, get:_capacity, GrowableArrayCapacity, 41110914)             \
+  V(_GrowableList, _setData, GrowableArraySetData, 210059283)                  \
+  V(_GrowableList, _setLength, GrowableArraySetLength, 335652822)              \
   V(_GrowableList, [], GrowableArrayGetIndexed, 1957529650)                    \
   V(_GrowableList, []=, GrowableArraySetIndexed, 225246870)                    \
   V(_StringBase, get:length, StringBaseLength, 707533587)                      \
@@ -289,7 +290,7 @@ namespace dart {
   V(_Double, roundToDouble, DoubleRound, 797558034)                            \
   V(_Double, floorToDouble, DoubleFloor, 1789426271)                           \
   V(_Double, ceilToDouble, DoubleCeil, 453271198)                              \
-  V(_Double, _modulo, DoubleMod, 1093862165)
+  V(_Double, _modulo, DoubleMod, 776062204)
 
 
 #define GRAPH_INTRINSICS_LIST(V)                                               \
@@ -299,8 +300,8 @@ namespace dart {
 
 #define DEVELOPER_LIB_INTRINSIC_LIST(V)                                        \
   V(_UserTag, makeCurrent, UserTag_makeCurrent, 187721469)                     \
-  V(::, _getDefaultTag, UserTag_defaultTag, 1872263331)                        \
-  V(::, _getCurrentTag, Profiler_getCurrentTag, 692104531)                     \
+  V(::, _getDefaultTag, UserTag_defaultTag, 350077879)                         \
+  V(::, _getCurrentTag, Profiler_getCurrentTag, 1215225901)                    \
 
 #define ALL_INTRINSICS_NO_INTEGER_LIB_LIST(V)                                  \
   CORE_LIB_INTRINSIC_LIST(V)                                                   \
@@ -324,154 +325,154 @@ namespace dart {
   V(_ImmutableList, get:length, ImmutableArrayLength, 630471378)               \
   V(_TypedList, get:length, TypedDataLength, 546364442)                        \
   V(_GrowableList, get:length, GrowableArrayLength, 417111542)                 \
-  V(_GrowableList, add, GrowableListAdd, 242296201)                            \
-  V(_GrowableList, removeLast, GrowableListRemoveLast, 1655383014)             \
+  V(_GrowableList, add, GrowableListAdd, 219371757)                            \
+  V(_GrowableList, removeLast, GrowableListRemoveLast, 324891524)              \
   V(_StringBase, get:length, StringBaseLength, 707533587)                      \
-  V(ListIterator, moveNext, ListIteratorMoveNext, 1467737539)                  \
-  V(_FixedSizeArrayIterator, moveNext, FixedListIteratorMoveNext, 784200630)   \
+  V(ListIterator, moveNext, ListIteratorMoveNext, 1065954929)                  \
+  V(_FixedSizeArrayIterator, moveNext, FixedListIteratorMoveNext, 1451346178)  \
   V(_GrowableList, get:iterator, GrowableArrayIterator, 1840323187)            \
   V(_GrowableList, forEach, GrowableArrayForEach, 620771070)                   \
-  V(_List, ., ObjectArrayAllocate, 184405219)                                  \
+  V(_List, ., ObjectArrayAllocate, 1661438741)                                 \
   V(_List, [], ObjectArrayGetIndexed, 360400496)                               \
   V(_List, []=, ObjectArraySetIndexed, 886228780)                              \
   V(ListMixin, get:isEmpty, ListMixinIsEmpty, 2021497798)                      \
-  V(_List, get:iterator, ObjectArrayIterator, 1930956161)                      \
+  V(_List, get:iterator, ObjectArrayIterator, 295498778)                       \
   V(_List, forEach, ObjectArrayForEach, 180150673)                             \
-  V(_List, _slice, ObjectArraySlice, 1785552519)                               \
-  V(_ImmutableList, get:iterator, ImmutableArrayIterator, 1930956161)          \
+  V(_List, _slice, ObjectArraySlice, 840558357)                                \
+  V(_ImmutableList, get:iterator, ImmutableArrayIterator, 295498778)           \
   V(_ImmutableList, forEach, ImmutableArrayForEach, 180150673)                 \
   V(_ImmutableList, [], ImmutableArrayGetIndexed, 360400496)                   \
   V(_GrowableList, [], GrowableArrayGetIndexed, 1957529650)                    \
   V(_GrowableList, []=, GrowableArraySetIndexed, 225246870)                    \
-  V(Float32List, [], Float32ArrayGetIndexed, 1002307136)                       \
-  V(Float32List, []=, Float32ArraySetIndexed, 279546769)                       \
-  V(Float64List, [], Float64ArrayGetIndexed, 816943529)                        \
-  V(Float64List, []=, Float64ArraySetIndexed, 1929239576)                      \
-  V(Int8List, [], Int8ArrayGetIndexed, 1141846285)                             \
-  V(Int8List, []=, Int8ArraySetIndexed, 1486839324)                            \
-  V(Uint8List, [], Uint8ArrayGetIndexed, 513704632)                            \
-  V(Uint8List, []=, Uint8ArraySetIndexed, 2123520783)                          \
-  V(Uint8ClampedList, [], Uint8ClampedArrayGetIndexed, 513704632)              \
-  V(Uint8ClampedList, []=, Uint8ClampedArraySetIndexed, 1015846567)            \
-  V(Uint16List, [], Uint16ArrayGetIndexed, 118958722)                          \
-  V(Uint16List, []=, Uint16ArraySetIndexed, 658824450)                         \
-  V(Int16List, [], Int16ArrayGetIndexed, 1826359619)                           \
-  V(Int16List, []=, Int16ArraySetIndexed, 1108689116)                          \
-  V(Int32List, [], Int32ArrayGetIndexed, 681203163)                            \
-  V(Int32List, []=, Int32ArraySetIndexed, 1786886245)                          \
-  V(Int64List, [], Int64ArrayGetIndexed, 1883155004)                           \
-  V(Int64List, []=, Int64ArraySetIndexed, 905815059)                           \
-  V(_Uint8ArrayView, [], Uint8ArrayViewGetIndexed, 215420949)                  \
-  V(_Uint8ArrayView, []=, Uint8ArrayViewSetIndexed, 1138146450)                \
-  V(_Int8ArrayView, [], Int8ArrayViewGetIndexed, 1003520035)                   \
-  V(_Int8ArrayView, []=, Int8ArrayViewSetIndexed, 225448326)                   \
-  V(_ByteDataView, setInt8, ByteDataViewSetInt8, 1091734252)                   \
-  V(_ByteDataView, setUint8, ByteDataViewSetUint8, 549773093)                  \
-  V(_ByteDataView, setInt16, ByteDataViewSetInt16, 1580120352)                 \
-  V(_ByteDataView, setUint16, ByteDataViewSetUint16, 948267909)                \
-  V(_ByteDataView, setInt32, ByteDataViewSetInt32, 2088513508)                 \
-  V(_ByteDataView, setUint32, ByteDataViewSetUint32, 1125319)                  \
-  V(_ByteDataView, setInt64, ByteDataViewSetInt64, 192928709)                  \
-  V(_ByteDataView, setUint64, ByteDataViewSetUint64, 483118836)                \
-  V(_ByteDataView, setFloat32, ByteDataViewSetFloat32, 1241910514)             \
-  V(_ByteDataView, setFloat64, ByteDataViewSetFloat64, 1950485343)             \
-  V(_ByteDataView, getInt8, ByteDataViewGetInt8, 1939363561)                   \
-  V(_ByteDataView, getUint8, ByteDataViewGetUint8, 121087953)                  \
-  V(_ByteDataView, getInt16, ByteDataViewGetInt16, 591911343)                  \
-  V(_ByteDataView, getUint16, ByteDataViewGetUint16, 2114157459)               \
-  V(_ByteDataView, getInt32, ByteDataViewGetInt32, 712570242)                  \
-  V(_ByteDataView, getUint32, ByteDataViewGetUint32, 162058988)                \
-  V(_ByteDataView, getInt64, ByteDataViewGetInt64, 1566486016)                 \
-  V(_ByteDataView, getUint64, ByteDataViewGetUint64, 1397980812)               \
-  V(_ByteDataView, getFloat32, ByteDataViewGetFloat32, 1251636679)             \
-  V(_ByteDataView, getFloat64, ByteDataViewGetFloat64, 1940177769)             \
-  V(::, asin, MathASin, 848695059)                                             \
-  V(::, acos, MathACos, 337299516)                                             \
-  V(::, atan, MathATan, 866406810)                                             \
-  V(::, atan2, MathATan2, 1901969510)                                          \
-  V(::, cos, MathCos, 1148850331)                                              \
-  V(::, exp, MathExp, 1006863255)                                              \
-  V(::, log, MathLog, 817988874)                                               \
+  V(Float32List, [], Float32ArrayGetIndexed, 1451643535)                       \
+  V(Float32List, []=, Float32ArraySetIndexed, 453873887)                       \
+  V(Float64List, [], Float64ArrayGetIndexed, 2049378701)                       \
+  V(Float64List, []=, Float64ArraySetIndexed, 328934501)                       \
+  V(Int8List, [], Int8ArrayGetIndexed, 110819507)                              \
+  V(Int8List, []=, Int8ArraySetIndexed, 865684695)                             \
+  V(Uint8List, [], Uint8ArrayGetIndexed, 41288685)                             \
+  V(Uint8List, []=, Uint8ArraySetIndexed, 101536342)                           \
+  V(Uint8ClampedList, [], Uint8ClampedArrayGetIndexed, 41288685)               \
+  V(Uint8ClampedList, []=, Uint8ClampedArraySetIndexed, 687206488)             \
+  V(Uint16List, [], Uint16ArrayGetIndexed, 1053739567)                         \
+  V(Uint16List, []=, Uint16ArraySetIndexed, 1547307961)                        \
+  V(Int16List, [], Int16ArrayGetIndexed, 389863073)                            \
+  V(Int16List, []=, Int16ArraySetIndexed, 855133756)                           \
+  V(Int32List, [], Int32ArrayGetIndexed, 640610057)                            \
+  V(Int32List, []=, Int32ArraySetIndexed, 453358705)                           \
+  V(Int64List, [], Int64ArrayGetIndexed, 202150810)                            \
+  V(Int64List, []=, Int64ArraySetIndexed, 924110852)                           \
+  V(_Uint8ArrayView, [], Uint8ArrayViewGetIndexed, 1338422227)                 \
+  V(_Uint8ArrayView, []=, Uint8ArrayViewSetIndexed, 540212720)                 \
+  V(_Int8ArrayView, [], Int8ArrayViewGetIndexed, 302213458)                    \
+  V(_Int8ArrayView, []=, Int8ArrayViewSetIndexed, 1837635160)                  \
+  V(_ByteDataView, setInt8, ByteDataViewSetInt8, 660389322)                    \
+  V(_ByteDataView, setUint8, ByteDataViewSetUint8, 1651986039)                 \
+  V(_ByteDataView, setInt16, ByteDataViewSetInt16, 2051262146)                 \
+  V(_ByteDataView, setUint16, ByteDataViewSetUint16, 1692244111)               \
+  V(_ByteDataView, setInt32, ByteDataViewSetInt32, 862135882)                  \
+  V(_ByteDataView, setUint32, ByteDataViewSetUint32, 361732249)                \
+  V(_ByteDataView, setInt64, ByteDataViewSetInt64, 1208972197)                 \
+  V(_ByteDataView, setUint64, ByteDataViewSetUint64, 1545853836)               \
+  V(_ByteDataView, setFloat32, ByteDataViewSetFloat32, 1333183642)             \
+  V(_ByteDataView, setFloat64, ByteDataViewSetFloat64, 1579015503)             \
+  V(_ByteDataView, getInt8, ByteDataViewGetInt8, 29018237)                     \
+  V(_ByteDataView, getUint8, ByteDataViewGetUint8, 312322868)                  \
+  V(_ByteDataView, getInt16, ByteDataViewGetInt16, 1613243255)                 \
+  V(_ByteDataView, getUint16, ByteDataViewGetUint16, 284020105)                \
+  V(_ByteDataView, getInt32, ByteDataViewGetInt32, 2036535169)                 \
+  V(_ByteDataView, getUint32, ByteDataViewGetUint32, 571293096)                \
+  V(_ByteDataView, getInt64, ByteDataViewGetInt64, 1971181000)                 \
+  V(_ByteDataView, getUint64, ByteDataViewGetUint64, 799775022)                \
+  V(_ByteDataView, getFloat32, ByteDataViewGetFloat32, 947822534)              \
+  V(_ByteDataView, getFloat64, ByteDataViewGetFloat64, 1402356525)             \
+  V(::, asin, MathASin, 1678592173)                                            \
+  V(::, acos, MathACos, 1121218433)                                            \
+  V(::, atan, MathATan, 1109653625)                                            \
+  V(::, atan2, MathATan2, 894696289)                                           \
+  V(::, cos, MathCos, 2006233918)                                              \
+  V(::, exp, MathExp, 1500946333)                                              \
+  V(::, log, MathLog, 739403086)                                               \
   V(::, max, MathMax, 1410473322)                                              \
   V(::, min, MathMin, 1115051548)                                              \
-  V(::, pow, MathPow, 864430827)                                               \
-  V(::, sin, MathSin, 939048573)                                               \
-  V(::, sqrt, MathSqrt, 1446681622)                                            \
-  V(::, tan, MathTan, 179725235)                                               \
+  V(::, pow, MathPow, 2058759335)                                              \
+  V(::, sin, MathSin, 65032)                                                   \
+  V(::, sqrt, MathSqrt, 417912310)                                             \
+  V(::, tan, MathTan, 1276867325)                                              \
   V(Lists, copy, ListsCopy, 564237562)                                         \
-  V(_Bigint, get:_neg, Bigint_getNeg, 1681019799)                              \
-  V(_Bigint, get:_used, Bigint_getUsed, 1439136438)                            \
-  V(_Bigint, get:_digits, Bigint_getDigits, 769722770)                         \
-  V(_HashVMBase, get:_index, LinkedHashMap_getIndex, 2048715833)               \
-  V(_HashVMBase, set:_index, LinkedHashMap_setIndex, 1882796480)               \
-  V(_HashVMBase, get:_data, LinkedHashMap_getData, 942992497)                  \
-  V(_HashVMBase, set:_data, LinkedHashMap_setData, 1410623019)                 \
-  V(_HashVMBase, get:_usedData, LinkedHashMap_getUsedData, 1698421819)         \
-  V(_HashVMBase, set:_usedData, LinkedHashMap_setUsedData, 1858754514)         \
-  V(_HashVMBase, get:_hashMask, LinkedHashMap_getHashMask, 98745045)           \
-  V(_HashVMBase, set:_hashMask, LinkedHashMap_setHashMask, 340628211)          \
-  V(_HashVMBase, get:_deletedKeys, LinkedHashMap_getDeletedKeys, 1340385546)   \
-  V(_HashVMBase, set:_deletedKeys, LinkedHashMap_setDeletedKeys, 638315987)    \
+  V(_Bigint, get:_neg, Bigint_getNeg, 2079423063)                              \
+  V(_Bigint, get:_used, Bigint_getUsed, 1426329619)                            \
+  V(_Bigint, get:_digits, Bigint_getDigits, 1185333683)                        \
+  V(_HashVMBase, get:_index, LinkedHashMap_getIndex, 2104211307)               \
+  V(_HashVMBase, set:_index, LinkedHashMap_setIndex, 1273697266)               \
+  V(_HashVMBase, get:_data, LinkedHashMap_getData, 1274399923)                 \
+  V(_HashVMBase, set:_data, LinkedHashMap_setData, 1611093357)                 \
+  V(_HashVMBase, get:_usedData, LinkedHashMap_getUsedData, 367462469)          \
+  V(_HashVMBase, set:_usedData, LinkedHashMap_setUsedData, 1049390812)         \
+  V(_HashVMBase, get:_hashMask, LinkedHashMap_getHashMask, 902147072)          \
+  V(_HashVMBase, set:_hashMask, LinkedHashMap_setHashMask, 1236137630)         \
+  V(_HashVMBase, get:_deletedKeys, LinkedHashMap_getDeletedKeys, 812542585)    \
+  V(_HashVMBase, set:_deletedKeys, LinkedHashMap_setDeletedKeys, 1072259010)   \
 
 // A list of core function that should never be inlined.
 #define INLINE_BLACK_LIST(V)                                                   \
-  V(_Bigint, _lsh, Bigint_lsh, 834311957)                                      \
-  V(_Bigint, _rsh, Bigint_rsh, 333337658)                                      \
-  V(_Bigint, _absAdd, Bigint_absAdd, 473436659)                                \
-  V(_Bigint, _absSub, Bigint_absSub, 1018678324)                               \
-  V(_Bigint, _mulAdd, Bigint_mulAdd, 571005736)                                \
-  V(_Bigint, _sqrAdd, Bigint_sqrAdd, 372896038)                                \
-  V(_Bigint, _estQuotientDigit, Bigint_estQuotientDigit, 540033329)            \
-  V(_Montgomery, _mulMod, Montgomery_mulMod, 118781828)                        \
-  V(_Double, >, Double_greaterThan, 1413076759)                                \
+  V(_Bigint, _lsh, Bigint_lsh, 1557746963)                                     \
+  V(_Bigint, _rsh, Bigint_rsh, 761843937)                                      \
+  V(_Bigint, _absAdd, Bigint_absAdd, 1227835493)                               \
+  V(_Bigint, _absSub, Bigint_absSub, 390740532)                                \
+  V(_Bigint, _mulAdd, Bigint_mulAdd, 617534446)                                \
+  V(_Bigint, _sqrAdd, Bigint_sqrAdd, 1623635507)                               \
+  V(_Bigint, _estQuotientDigit, Bigint_estQuotientDigit, 797340802)            \
+  V(_Montgomery, _mulMod, Montgomery_mulMod, 1947987219)                       \
+  V(_Double, >, Double_greaterThan, 1453001345)                                \
   V(_Double, >=, Double_greaterEqualThan, 1815180096)                          \
   V(_Double, <, Double_lessThan, 652059836)                                    \
   V(_Double, <=, Double_lessEqualThan, 512138528)                              \
-  V(_Double, ==, Double_equal, 752327620)                                      \
-  V(_Double, +, Double_add, 854024064)                                         \
-  V(_Double, -, Double_sub, 685132889)                                         \
-  V(_Double, *, Double_mul, 542254390)                                         \
-  V(_Double, /, Double_div, 1145710768)                                        \
-  V(_IntegerImplementation, +, Integer_add, 364498398)                         \
-  V(_IntegerImplementation, -, Integer_sub, 1682674911)                        \
-  V(_IntegerImplementation, *, Integer_mul, 1651115456)                        \
-  V(_IntegerImplementation, ~/, Integer_truncDivide, 108494012)                \
+  V(_Double, ==, Double_equal, 1468668497)                                     \
+  V(_Double, +, Double_add, 1269587413)                                        \
+  V(_Double, -, Double_sub, 1644506555)                                        \
+  V(_Double, *, Double_mul, 600860888)                                         \
+  V(_Double, /, Double_div, 1220198876)                                        \
+  V(_IntegerImplementation, +, Integer_add, 239272130)                         \
+  V(_IntegerImplementation, -, Integer_sub, 216175811)                         \
+  V(_IntegerImplementation, *, Integer_mul, 1301152164)                        \
+  V(_IntegerImplementation, ~/, Integer_truncDivide, 1018128256)               \
   V(_IntegerImplementation, unary-, Integer_negate, 1507648892)                \
-  V(_IntegerImplementation, &, Integer_bitAnd, 286231290)                      \
-  V(_IntegerImplementation, |, Integer_bitOr, 1111108792)                      \
-  V(_IntegerImplementation, ^, Integer_bitXor, 1884808537)                     \
-  V(_IntegerImplementation, >, Integer_greaterThan, 293890061)                 \
-  V(_IntegerImplementation, ==, Integer_equal, 4489308)                        \
+  V(_IntegerImplementation, &, Integer_bitAnd, 1500136766)                     \
+  V(_IntegerImplementation, |, Integer_bitOr, 119412028)                       \
+  V(_IntegerImplementation, ^, Integer_bitXor, 210430781)                      \
+  V(_IntegerImplementation, >, Integer_greaterThan, 673741711)                 \
+  V(_IntegerImplementation, ==, Integer_equal, 272474439)                      \
   V(_IntegerImplementation, <, Integer_lessThan, 652059836)                    \
   V(_IntegerImplementation, <=, Integer_lessEqualThan, 512138528)              \
   V(_IntegerImplementation, >=, Integer_greaterEqualThan, 1815180096)          \
-  V(_IntegerImplementation, <<, Integer_shl, 293751452)                        \
-  V(_IntegerImplementation, >>, Integer_sar, 125091101)                        \
+  V(_IntegerImplementation, <<, Integer_shl, 1127538624)                       \
+  V(_IntegerImplementation, >>, Integer_sar, 1243972513)                       \
 
 // A list of core functions that internally dispatch based on received id.
 #define POLYMORPHIC_TARGET_LIST(V)                                             \
   V(_StringBase, [], StringBaseCharAt, 754527301)                              \
   V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 1436590579)                 \
-  V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 187609847)                     \
-  V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 1826086346)                  \
-  V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 1174755987)                  \
-  V(_TypedList, _getUint16, ByteArrayBaseGetUint16, 1936358273)                \
-  V(_TypedList, _getInt32, ByteArrayBaseGetInt32, 1123951931)                  \
-  V(_TypedList, _getUint32, ByteArrayBaseGetUint32, 853172551)                 \
-  V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 165422183)               \
-  V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 1564825450)              \
-  V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 1123952315)          \
-  V(_TypedList, _getInt32x4, ByteArrayBaseGetInt32x4, 831892409)               \
-  V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 2043203289)                    \
-  V(_TypedList, _setUint8, ByteArrayBaseSetInt8, 1759261408)                   \
-  V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 267848339)                   \
-  V(_TypedList, _setUint16, ByteArrayBaseSetInt16, 350952121)                  \
-  V(_TypedList, _setInt32, ByteArrayBaseSetInt32, 1170619358)                  \
-  V(_TypedList, _setUint32, ByteArrayBaseSetUint32, 1325523969)                \
-  V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 541136999)               \
-  V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 365317124)               \
-  V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 1766802707)          \
-  V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 2075229300)              \
+  V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 1508321565)                    \
+  V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 953411007)                   \
+  V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 433971756)                   \
+  V(_TypedList, _getUint16, ByteArrayBaseGetUint16, 1329446488)                \
+  V(_TypedList, _getInt32, ByteArrayBaseGetInt32, 137212209)                   \
+  V(_TypedList, _getUint32, ByteArrayBaseGetUint32, 499907480)                 \
+  V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 1672834581)              \
+  V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 966634744)               \
+  V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 1197581758)          \
+  V(_TypedList, _getInt32x4, ByteArrayBaseGetInt32x4, 810805548)               \
+  V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 1317196265)                    \
+  V(_TypedList, _setUint8, ByteArrayBaseSetInt8, 1328908284)                   \
+  V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 1827614958)                  \
+  V(_TypedList, _setUint16, ByteArrayBaseSetInt16, 1694054572)                 \
+  V(_TypedList, _setInt32, ByteArrayBaseSetInt32, 915652649)                   \
+  V(_TypedList, _setUint32, ByteArrayBaseSetUint32, 1958474336)                \
+  V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 1853026980)              \
+  V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 1197862362)              \
+  V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 2093630771)          \
+  V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 1982971324)              \
 
 // Forward declarations.
 class Function;
@@ -511,9 +512,9 @@ class MethodRecognizer : public AllStatic {
 // List of recognized list factories:
 // (factory-name-symbol, result-cid, fingerprint).
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
-  V(_ListFactory, kArrayCid, 184405219)                                        \
-  V(_GrowableListWithData, kGrowableObjectArrayCid, 131424500)                 \
-  V(_GrowableListFactory, kGrowableObjectArrayCid, 664918385)                  \
+  V(_ListFactory, kArrayCid, 1661438741)                                       \
+  V(_GrowableListWithData, kGrowableObjectArrayCid, 631736030)                 \
+  V(_GrowableListFactory, kGrowableObjectArrayCid, 1330464656)                 \
   V(_Int8ArrayFactory, kTypedDataInt8ArrayCid, 779569635)                      \
   V(_Uint8ArrayFactory, kTypedDataUint8ArrayCid, 1790399545)                   \
   V(_Uint8ClampedArrayFactory, kTypedDataUint8ClampedArrayCid, 405875159)      \

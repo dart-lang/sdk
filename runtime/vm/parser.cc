@@ -5924,10 +5924,10 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
       CallLibraryTagHandler(Dart_kCanonicalizeUrl, import_pos, url));
 
   // Create a new library if it does not exist yet.
-  Library& library = Library::Handle(Z, Library::LookupLibrary(canon_url));
+  Library& library = Library::Handle(Z, Library::LookupLibrary(T, canon_url));
   if (library.IsNull()) {
     library = Library::New(canon_url);
-    library.Register();
+    library.Register(T);
   }
 
   // If loading hasn't been requested yet, and if this is not a deferred
@@ -12000,7 +12000,7 @@ class ConstMapKeyEqualsTraits {
     return HashValue(String::HashRawSymbol(key.script_url.raw()),
                      key.token_pos.value());
   }
-  // Used by CachConstantValue if a new constant is added to the map.
+  // Used by CacheConstantValue if a new constant is added to the map.
   static RawObject* NewKey(const ConstantPosKey& key) {
     const Array& key_obj = Array::Handle(Array::New(2));
     key_obj.SetAt(0, key.script_url);

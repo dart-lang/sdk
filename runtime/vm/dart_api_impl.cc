@@ -2838,8 +2838,8 @@ static RawObject* ThrowArgumentError(const char* exception_message) {
   // Lookup the class ArgumentError in dart:core.
   const String& lib_url = String::Handle(String::New("dart:core"));
   const String& class_name = String::Handle(String::New("ArgumentError"));
-  const Library& lib =
-      Library::Handle(zone, Library::LookupLibrary(lib_url));
+  const Library& lib = Library::Handle(zone,
+      Library::LookupLibrary(thread, lib_url));
   if (lib.IsNull()) {
     const String& message = String::Handle(
         String::NewFormatted("%s: library '%s' not found.",
@@ -4991,7 +4991,7 @@ RawString* Api::GetEnvironmentValue(Thread* thread, const String& name) {
         const String& dart_library_name =
             String::Handle(String::Concat(Symbols::DartScheme(), library_name));
         const Library& library =
-            Library::Handle(Library::LookupLibrary(dart_library_name));
+            Library::Handle(Library::LookupLibrary(thread, dart_library_name));
         if (!library.IsNull()) {
           return Symbols::True().raw();
         }
@@ -5144,7 +5144,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
 
   library = Library::New(url_str);
   library.set_debuggable(true);
-  library.Register();
+  library.Register(T);
   I->object_store()->set_root_library(library);
 
   const Script& script = Script::Handle(Z,
@@ -5345,7 +5345,8 @@ DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url) {
   if (url_str.IsNull()) {
     RETURN_TYPE_ERROR(Z, url, String);
   }
-  const Library& library = Library::Handle(Z, Library::LookupLibrary(url_str));
+  const Library& library = Library::Handle(Z,
+      Library::LookupLibrary(T, url_str));
   if (library.IsNull()) {
     return Api::NewError("%s: library '%s' not found.",
                          CURRENT_FUNC, url_str.ToCString());
@@ -5411,10 +5412,10 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
 
   NoHeapGrowthControlScope no_growth_control;
 
-  Library& library = Library::Handle(Z, Library::LookupLibrary(url_str));
+  Library& library = Library::Handle(Z, Library::LookupLibrary(T, url_str));
   if (library.IsNull()) {
     library = Library::New(url_str);
-    library.Register();
+    library.Register(T);
   } else if (library.LoadInProgress() ||
       library.Loaded() ||
       library.LoadFailed()) {

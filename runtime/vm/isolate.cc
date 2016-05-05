@@ -2630,22 +2630,26 @@ IsolateSpawnState::~IsolateSpawnState() {
 
 
 RawObject* IsolateSpawnState::ResolveFunction() {
-  const String& func_name = String::Handle(String::New(function_name()));
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  const String& func_name = String::Handle(zone, String::New(function_name()));
 
   if (library_url() == NULL) {
     // Handle spawnUri lookup rules.
     // Check whether the root library defines a main function.
-    const Library& lib = Library::Handle(I->object_store()->root_library());
-    Function& func = Function::Handle(lib.LookupLocalFunction(func_name));
+    const Library& lib = Library::Handle(zone,
+                                         I->object_store()->root_library());
+    Function& func = Function::Handle(zone, lib.LookupLocalFunction(func_name));
     if (func.IsNull()) {
       // Check whether main is reexported from the root library.
-      const Object& obj = Object::Handle(lib.LookupReExport(func_name));
+      const Object& obj = Object::Handle(zone, lib.LookupReExport(func_name));
       if (obj.IsFunction()) {
         func ^= obj.raw();
       }
     }
     if (func.IsNull()) {
-      const String& msg = String::Handle(String::NewFormatted(
+      const String& msg = String::Handle(zone, String::NewFormatted(
           "Unable to resolve function '%s' in script '%s'.",
           function_name(), script_url()));
       return LanguageError::New(msg);
@@ -2655,19 +2659,21 @@ RawObject* IsolateSpawnState::ResolveFunction() {
 
   // Lookup the to be spawned function for the Isolate.spawn implementation.
   // Resolve the library.
-  const String& lib_url = String::Handle(String::New(library_url()));
-  const Library& lib = Library::Handle(Library::LookupLibrary(lib_url));
+  const String& lib_url = String::Handle(zone, String::New(library_url()));
+  const Library& lib = Library::Handle(zone,
+                                       Library::LookupLibrary(thread, lib_url));
   if (lib.IsNull() || lib.IsError()) {
-    const String& msg = String::Handle(String::NewFormatted(
+    const String& msg = String::Handle(zone, String::NewFormatted(
         "Unable to find library '%s'.", library_url()));
     return LanguageError::New(msg);
   }
 
   // Resolve the function.
   if (class_name() == NULL) {
-    const Function& func = Function::Handle(lib.LookupLocalFunction(func_name));
+    const Function& func = Function::Handle(zone,
+                                            lib.LookupLocalFunction(func_name));
     if (func.IsNull()) {
-      const String& msg = String::Handle(String::NewFormatted(
+      const String& msg = String::Handle(zone, String::NewFormatted(
           "Unable to resolve function '%s' in library '%s'.",
           function_name(), library_url()));
       return LanguageError::New(msg);
@@ -2675,19 +2681,19 @@ RawObject* IsolateSpawnState::ResolveFunction() {
     return func.raw();
   }
 
-  const String& cls_name = String::Handle(String::New(class_name()));
-  const Class& cls = Class::Handle(lib.LookupLocalClass(cls_name));
+  const String& cls_name = String::Handle(zone, String::New(class_name()));
+  const Class& cls = Class::Handle(zone, lib.LookupLocalClass(cls_name));
   if (cls.IsNull()) {
-    const String& msg = String::Handle(String::NewFormatted(
+    const String& msg = String::Handle(zone, String::NewFormatted(
           "Unable to resolve class '%s' in library '%s'.",
           class_name(),
           (library_url() != NULL ? library_url() : script_url())));
     return LanguageError::New(msg);
   }
   const Function& func =
-      Function::Handle(cls.LookupStaticFunctionAllowPrivate(func_name));
+      Function::Handle(zone, cls.LookupStaticFunctionAllowPrivate(func_name));
   if (func.IsNull()) {
-    const String& msg = String::Handle(String::NewFormatted(
+    const String& msg = String::Handle(zone, String::NewFormatted(
           "Unable to resolve static method '%s.%s' in library '%s'.",
           class_name(), function_name(),
           (library_url() != NULL ? library_url() : script_url())));
