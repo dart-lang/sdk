@@ -7549,6 +7549,35 @@ class D extends p.C {} // Prevent "unused import" warning
     expect(unlinkedUnits[0].imports[0].uri, 'dart:async');
   }
 
+  test_inferred_function_type_parameter_type_with_unrelated_type_param() {
+    if (!strongMode || skipFullyLinkedData) {
+      return;
+    }
+    // The type that is inferred for C.f's parameter g is "() -> void".
+    // Since the associated element for that function type is B.f's parameter g,
+    // and B has a type parameter, the inferred type will record a type
+    // parameter.  However, since that type parameter is irrelevant, the summary
+    // should encode it as `dynamic`.
+    UnlinkedClass c = serializeClassText('''
+abstract class B<T> {
+  void f(void g());
+}
+class C<T> extends B<T> {
+  void f(g) {}
+}
+''');
+    expect(c.executables, hasLength(1));
+    UnlinkedExecutable f = c.executables[0];
+    expect(f.parameters, hasLength(1));
+    UnlinkedParam g = f.parameters[0];
+    expect(g.name, 'g');
+    EntityRef typeRef = getTypeRefForSlot(g.inferredTypeSlot);
+    checkLinkedTypeRef(typeRef, null, null, 'f',
+        expectedKind: ReferenceKind.method, allowTypeArguments: true);
+    expect(typeRef.typeArguments, hasLength(1));
+    checkLinkedTypeRef(typeRef.typeArguments[0], null, null, 'dynamic');
+  }
+
   test_inferred_type_keeps_leading_dynamic() {
     if (!strongMode || skipFullyLinkedData) {
       return;

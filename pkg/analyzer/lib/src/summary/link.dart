@@ -180,8 +180,15 @@ EntityRefBuilder _createLinkedType(
     return result;
   } else if (type is TypeParameterType) {
     TypeParameterElementForLink element = type.element;
-    result.paramReference =
-        typeParameterContext.typeParameterNestingLevel - element.nestingLevel;
+    if (typeParameterContext.isTypeParameterInScope(element)) {
+      result.paramReference =
+          typeParameterContext.typeParameterNestingLevel - element.nestingLevel;
+    } else {
+      // Out-of-scope type parameters only occur in circumstances where they
+      // are irrelevant (i.e. when a type parameter is unused).  So we can
+      // safely convert them to `dynamic`.
+      result.reference = compilationUnit.addRawReference('dynamic');
+    }
     return result;
   } else if (type is FunctionType) {
     Element element = type.element;
@@ -4198,6 +4205,20 @@ abstract class TypeParameterizedElementForLink
       // If we get here, it means that a summary contained a type parameter index
       // that was out of range.
       throw new RangeError('Invalid type parameter index');
+    }
+  }
+
+  /**
+   * Find out if the given [typeParameter] is in scope in this context.
+   */
+  bool isTypeParameterInScope(TypeParameterElementForLink typeParameter) {
+    if (typeParameter.enclosingElement == this) {
+      return true;
+    } else if (enclosingTypeParameterContext != null) {
+      return enclosingTypeParameterContext
+          .isTypeParameterInScope(typeParameter);
+    } else {
+      return false;
     }
   }
 }
