@@ -7,7 +7,7 @@ library linter.src.rules.overriden_field;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/linter.dart';
 
 const desc = r'Do not override fields.';
@@ -50,53 +50,80 @@ class Ok extends Base {
 }
 ```
 
+**GOOD:**
+```
+abstract class BaseLoggingHandler {
+  Base transformer;
+}
+
+class LogPrintHandler implements BaseLoggingHandler {
+  @override
+  Derived transformer; // OK
+}
+```
 ''';
 
 class OverridenField extends LintRule {
+  _Visitor _visitor;
+
   OverridenField()
       : super(
-            name: 'overriden_field',
-            description: desc,
-            details: details,
-            group: Group.style);
+      name: 'overriden_field',
+      description: desc,
+      details: details,
+      group: Group.style,
+      maturity: Maturity.experimental) {
+    _visitor = new _Visitor(this);
+  }
 
   @override
-  AstVisitor getVisitor() => new _Visitor(this);
+  AstVisitor getVisitor() => _visitor;
 }
 
 class _Visitor extends SimpleAstVisitor {
-  InheritanceManager _manager;
-
   final LintRule rule;
-  _Visitor(this.rule);
 
-  @override
-  visitCompilationUnit(CompilationUnit node) {
-    LibraryElement library = node?.element?.library;
-    _manager = library == null ? null : new InheritanceManager(library);
-  }
+  _Visitor(this.rule);
 
   @override
   visitFieldDeclaration(FieldDeclaration node) {
     node.fields.variables.forEach((VariableDeclaration variable) {
-      ExecutableElement member = _getOverriddenMember(variable.element);
-      if (member is PropertyAccessorElement && member.isSynthetic) {
+      PropertyAccessorElement field = _getOverriddenMember(variable.element);
+      if (field != null) {
         rule.reportLint(variable.name);
       }
     });
   }
 
-  ExecutableElement _getOverriddenMember(Element member) {
-    if (member == null || _manager == null) {
-      return null;
-    }
+  PropertyAccessorElement _getOverriddenMember(Element member) {
+    String memberName = member.name;
+    Function isOverriddenMember =
+        (PropertyAccessorElement a) => a.isSynthetic && a.name == memberName;
+    Function containsOverridenMember =
+        (InterfaceType i) => i.accessors.any(isOverriddenMember);
+    ClassElement classElement = member.enclosingElement;
 
-    ClassElement classElement =
-        member.getAncestor((element) => element is ClassElement);
-    if (classElement == null) {
-      return null;
-    }
-
-    return _manager.lookupInheritance(classElement, member.name);
+    Iterable<InterfaceType> interfaces =
+        _findAllSupertypesAndMixins(classElement.type, <InterfaceType>[]);
+    InterfaceType interface =
+        interfaces.firstWhere(containsOverridenMember, orElse: () => null);
+    return interface == null
+        ? null
+        : interface.accessors.firstWhere(isOverriddenMember);
   }
+}
+
+Iterable<InterfaceType> _findAllSupertypesAndMixins(InterfaceType interface, List<InterfaceType> accumulator) {
+  if (interface == null ||
+      interface.isObject ||
+      accumulator.contains(interface)) {
+    return accumulator;
+  }
+
+  accumulator.add(interface);
+  InterfaceType superclass = interface.superclass;
+  Iterable<InterfaceType> interfaces = [superclass]
+    ..addAll(interface.element.mixins)
+    ..addAll(_findAllSupertypesAndMixins(superclass, accumulator));
+  return interfaces.where((i) => i != interface);
 }
