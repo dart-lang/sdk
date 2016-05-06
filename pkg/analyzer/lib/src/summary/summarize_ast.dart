@@ -793,20 +793,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
             'Unexpected identifier type: ${identifier.runtimeType}');
       }
       if (typeArguments != null) {
-        // Trailing type arguments of type 'dynamic' should be omitted.
-        NodeList<TypeName> args = typeArguments.arguments;
-        int numArgsToSerialize = args.length;
-        while (
-            numArgsToSerialize > 0 && isDynamic(args[numArgsToSerialize - 1])) {
-          --numArgsToSerialize;
-        }
-        if (numArgsToSerialize > 0) {
-          List<EntityRefBuilder> serializedArguments = <EntityRefBuilder>[];
-          for (int i = 0; i < numArgsToSerialize; i++) {
-            serializedArguments.add(serializeTypeName(args[i]));
-          }
-          b.typeArguments = serializedArguments;
-        }
+        b.typeArguments =
+            typeArguments.arguments.map(serializeTypeName).toList();
       }
       return b;
     }

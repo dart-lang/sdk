@@ -548,8 +548,7 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
 
   /**
    * If this is an instantiation of a generic type or generic executable, the
-   * type arguments used to instantiate it.  Trailing type arguments of type
-   * `dynamic` are omitted.
+   * type arguments used to instantiate it (if any).
    */
   void set typeArguments(List<EntityRefBuilder> _value) {
     assert(!_finished);

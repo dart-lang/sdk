@@ -357,7 +357,7 @@ abstract class SummaryTest {
    */
   void checkInferredTypeSlot(
       int slotId, String absoluteUri, String relativeUri, String expectedName,
-      {bool allowTypeParameters: false,
+      {int numTypeArguments: 0,
       ReferenceKind expectedKind: ReferenceKind.classOrEnum,
       int expectedTargetUnit: 0,
       LinkedUnit linkedSourceUnit,
@@ -366,7 +366,7 @@ abstract class SummaryTest {
       bool onlyInStrongMode: true}) {
     if (strongMode || !onlyInStrongMode) {
       checkLinkedTypeSlot(slotId, absoluteUri, relativeUri, expectedName,
-          allowTypeArguments: allowTypeParameters,
+          numTypeArguments: numTypeArguments,
           expectedKind: expectedKind,
           expectedTargetUnit: expectedTargetUnit,
           linkedSourceUnit: linkedSourceUnit,
@@ -400,10 +400,17 @@ abstract class SummaryTest {
   }
 
   /**
+   * Verify that the given [typeRef] represents the type `dynamic`.
+   */
+  void checkLinkedDynamicTypeRef(EntityRef typeRef) {
+    checkLinkedTypeRef(typeRef, null, null, 'dynamic');
+  }
+
+  /**
    * Verify that the given [typeRef] represents a reference to a type declared
    * in a file reachable via [absoluteUri] and [relativeUri], having name
-   * [expectedName].  If [allowTypeArguments] is true, allow the type
-   * reference to supply type arguments.  [expectedKind] is the kind of object
+   * [expectedName].  Verify that the number of type arguments
+   * is equal to [numTypeArguments].  [expectedKind] is the kind of object
    * referenced.  [linkedSourceUnit] and [unlinkedSourceUnit] refer to the
    * compilation unit within which the [typeRef] appears; if not specified they
    * are assumed to refer to the defining compilation unit.
@@ -414,7 +421,7 @@ abstract class SummaryTest {
    */
   void checkLinkedTypeRef(EntityRef typeRef, String absoluteUri,
       String relativeUri, String expectedName,
-      {bool allowTypeArguments: false,
+      {int numTypeArguments: 0,
       ReferenceKind expectedKind: ReferenceKind.classOrEnum,
       int expectedTargetUnit: 0,
       LinkedUnit linkedSourceUnit,
@@ -425,9 +432,7 @@ abstract class SummaryTest {
         reason: 'No entry in linkedSourceUnit.types matching slotId');
     expect(typeRef.paramReference, 0);
     int index = typeRef.reference;
-    if (!allowTypeArguments) {
-      expect(typeRef.typeArguments, isEmpty);
-    }
+    expect(typeRef.typeArguments, hasLength(numTypeArguments));
     checkReferenceIndex(index, absoluteUri, relativeUri, expectedName,
         expectedKind: expectedKind,
         expectedTargetUnit: expectedTargetUnit,
@@ -439,8 +444,8 @@ abstract class SummaryTest {
   /**
    * Verify that the given [slotId] represents a reference to a type declared
    * in a file reachable via [absoluteUri] and [relativeUri], having name
-   * [expectedName].  If [allowTypeArguments] is true, allow the type
-   * reference to supply type arguments.  [expectedKind] is the kind of object
+   * [expectedName].  Verify that the number of type arguments
+   * is equal to [numTypeArguments].  [expectedKind] is the kind of object
    * referenced.  [linkedSourceUnit] and [unlinkedSourceUnit] refer to the
    * compilation unit within which the [typeRef] appears; if not specified they
    * are assumed to refer to the defining compilation unit.
@@ -451,7 +456,7 @@ abstract class SummaryTest {
    */
   void checkLinkedTypeSlot(
       int slotId, String absoluteUri, String relativeUri, String expectedName,
-      {bool allowTypeArguments: false,
+      {int numTypeArguments: 0,
       ReferenceKind expectedKind: ReferenceKind.classOrEnum,
       int expectedTargetUnit: 0,
       LinkedUnit linkedSourceUnit,
@@ -468,7 +473,7 @@ abstract class SummaryTest {
         absoluteUri,
         relativeUri,
         expectedName,
-        allowTypeArguments: allowTypeArguments,
+        numTypeArguments: numTypeArguments,
         expectedKind: expectedKind,
         expectedTargetUnit: expectedTargetUnit,
         linkedSourceUnit: linkedSourceUnit,
@@ -1096,7 +1101,12 @@ class E {}
   test_class_alias_reference_generic() {
     EntityRef typeRef = serializeTypeText('C',
         otherDeclarations: 'class C<D, E> = F with G; class F {} class G {}');
-    checkTypeRef(typeRef, null, null, 'C', numTypeParameters: 2);
+    checkTypeRef(typeRef, null, null, 'C',
+        numTypeParameters: 2, numTypeArguments: !checkAstDerivedData ? 2 : 0);
+    if (!checkAstDerivedData) {
+      checkDynamicTypeRef(typeRef.typeArguments[0]);
+      checkDynamicTypeRef(typeRef.typeArguments[1]);
+    }
   }
 
   test_class_alias_reference_generic_imported() {
@@ -1105,7 +1115,11 @@ class E {}
     EntityRef typeRef =
         serializeTypeText('C', otherDeclarations: 'import "lib.dart";');
     checkTypeRef(typeRef, absUri('/lib.dart'), 'lib.dart', 'C',
-        numTypeParameters: 2);
+        numTypeParameters: 2, numTypeArguments: !checkAstDerivedData ? 2 : 0);
+    if (!checkAstDerivedData) {
+      checkDynamicTypeRef(typeRef.typeArguments[0]);
+      checkDynamicTypeRef(typeRef.typeArguments[1]);
+    }
   }
 
   test_class_alias_supertype() {
@@ -1318,7 +1332,12 @@ class E {}
   test_class_reference_generic() {
     EntityRef typeRef =
         serializeTypeText('C', otherDeclarations: 'class C<D, E> {}');
-    checkTypeRef(typeRef, null, null, 'C', numTypeParameters: 2);
+    checkTypeRef(typeRef, null, null, 'C',
+        numTypeParameters: 2, numTypeArguments: !checkAstDerivedData ? 2 : 0);
+    if (!checkAstDerivedData) {
+      checkDynamicTypeRef(typeRef.typeArguments[0]);
+      checkDynamicTypeRef(typeRef.typeArguments[1]);
+    }
   }
 
   test_class_reference_generic_imported() {
@@ -1326,7 +1345,11 @@ class E {}
     EntityRef typeRef =
         serializeTypeText('C', otherDeclarations: 'import "lib.dart";');
     checkTypeRef(typeRef, absUri('/lib.dart'), 'lib.dart', 'C',
-        numTypeParameters: 2);
+        numTypeParameters: 2, numTypeArguments: !checkAstDerivedData ? 2 : 0);
+    if (!checkAstDerivedData) {
+      checkDynamicTypeRef(typeRef.typeArguments[0]);
+      checkDynamicTypeRef(typeRef.typeArguments[1]);
+    }
   }
 
   test_class_superclass() {
@@ -1345,10 +1368,16 @@ class E {}
   test_class_type_param_bound() {
     UnlinkedClass cls = serializeClassText('class C<T extends List> {}');
     expect(cls.typeParameters, hasLength(1));
-    expect(cls.typeParameters[0].name, 'T');
-    expect(cls.typeParameters[0].bound, isNotNull);
-    checkTypeRef(cls.typeParameters[0].bound, 'dart:core', 'dart:core', 'List',
-        numTypeParameters: 1);
+    {
+      UnlinkedTypeParam typeParameter = cls.typeParameters[0];
+      expect(typeParameter.name, 'T');
+      expect(typeParameter.bound, isNotNull);
+      checkTypeRef(typeParameter.bound, 'dart:core', 'dart:core', 'List',
+          numTypeParameters: 1, numTypeArguments: !checkAstDerivedData ? 1 : 0);
+      if (!checkAstDerivedData) {
+        checkDynamicTypeRef(typeParameter.bound.typeArguments[0]);
+      }
+    }
   }
 
   test_class_type_param_f_bound() {
@@ -7425,7 +7454,12 @@ get f => null;''';
     UnlinkedVariable variable =
         serializeVariableText('import "dart:async" as a; a.Future v;');
     checkTypeRef(variable.type, 'dart:async', 'dart:async', 'Future',
-        expectedPrefix: 'a', numTypeParameters: 1);
+        expectedPrefix: 'a',
+        numTypeParameters: 1,
+        numTypeArguments: !checkAstDerivedData ? 1 : 0);
+    if (!checkAstDerivedData) {
+      checkDynamicTypeRef(variable.type.typeArguments[0]);
+    }
   }
 
   test_import_prefixes_take_precedence_over_imported_names() {
@@ -7455,7 +7489,10 @@ D dCls;
     UnlinkedVariable variable =
         serializeVariableText('import "dart:async"; Future v;');
     checkTypeRef(variable.type, 'dart:async', 'dart:async', 'Future',
-        numTypeParameters: 1);
+        numTypeParameters: 1, numTypeArguments: !checkAstDerivedData ? 1 : 0);
+    if (!checkAstDerivedData) {
+      checkDynamicTypeRef(variable.type.typeArguments[0]);
+    }
   }
 
   test_import_reference_merged_no_prefix() {
@@ -7466,10 +7503,24 @@ import "dart:async" show Stream;
 Future f;
 Stream s;
 ''');
-    checkTypeRef(findVariable('f').type, 'dart:async', 'dart:async', 'Future',
-        numTypeParameters: 1);
-    checkTypeRef(findVariable('s').type, 'dart:async', 'dart:async', 'Stream',
-        expectedTargetUnit: 1, numTypeParameters: 1);
+    {
+      EntityRef typeRef = findVariable('f').type;
+      checkTypeRef(typeRef, 'dart:async', 'dart:async', 'Future',
+          numTypeParameters: 1, numTypeArguments: !checkAstDerivedData ? 1 : 0);
+      if (!checkAstDerivedData) {
+        checkDynamicTypeRef(typeRef.typeArguments[0]);
+      }
+    }
+    {
+      EntityRef typeRef = findVariable('s').type;
+      checkTypeRef(typeRef, 'dart:async', 'dart:async', 'Stream',
+          expectedTargetUnit: 1,
+          numTypeParameters: 1,
+          numTypeArguments: !checkAstDerivedData ? 1 : 0);
+      if (!checkAstDerivedData) {
+        checkDynamicTypeRef(typeRef.typeArguments[0]);
+      }
+    }
   }
 
   test_import_reference_merged_prefixed() {
@@ -7480,10 +7531,27 @@ import "dart:async" as a show Stream;
 a.Future f;
 a.Stream s;
 ''');
-    checkTypeRef(findVariable('f').type, 'dart:async', 'dart:async', 'Future',
-        expectedPrefix: 'a', numTypeParameters: 1);
-    checkTypeRef(findVariable('s').type, 'dart:async', 'dart:async', 'Stream',
-        expectedTargetUnit: 1, expectedPrefix: 'a', numTypeParameters: 1);
+    {
+      EntityRef typeRef = findVariable('f').type;
+      checkTypeRef(typeRef, 'dart:async', 'dart:async', 'Future',
+          expectedPrefix: 'a',
+          numTypeParameters: 1,
+          numTypeArguments: !checkAstDerivedData ? 1 : 0);
+      if (!checkAstDerivedData) {
+        checkDynamicTypeRef(typeRef.typeArguments[0]);
+      }
+    }
+    {
+      EntityRef typeRef = findVariable('s').type;
+      checkTypeRef(typeRef, 'dart:async', 'dart:async', 'Stream',
+          expectedTargetUnit: 1,
+          expectedPrefix: 'a',
+          numTypeParameters: 1,
+          numTypeArguments: !checkAstDerivedData ? 1 : 0);
+      if (!checkAstDerivedData) {
+        checkDynamicTypeRef(typeRef.typeArguments[0]);
+      }
+    }
   }
 
   test_import_reference_merged_prefixed_separate_libraries() {
@@ -7573,9 +7641,8 @@ class C<T> extends B<T> {
     expect(g.name, 'g');
     EntityRef typeRef = getTypeRefForSlot(g.inferredTypeSlot);
     checkLinkedTypeRef(typeRef, null, null, 'f',
-        expectedKind: ReferenceKind.method, allowTypeArguments: true);
-    expect(typeRef.typeArguments, hasLength(1));
-    checkLinkedTypeRef(typeRef.typeArguments[0], null, null, 'dynamic');
+        expectedKind: ReferenceKind.method, numTypeArguments: 1);
+    checkLinkedDynamicTypeRef(typeRef.typeArguments[0]);
   }
 
   test_inferred_type_keeps_leading_dynamic() {
@@ -7587,8 +7654,7 @@ class C<T> extends B<T> {
     EntityRef type = getTypeRefForSlot(cls.fields[0].inferredTypeSlot);
     // Check that x has inferred type `Map<dynamic, int>`.
     checkLinkedTypeRef(type, 'dart:core', 'dart:core', 'Map',
-        allowTypeArguments: true, numTypeParameters: 2);
-    expect(type.typeArguments, hasLength(2));
+        numTypeParameters: 2, numTypeArguments: 2);
     checkLinkedTypeRef(type.typeArguments[0], null, null, 'dynamic');
     checkLinkedTypeRef(type.typeArguments[1], 'dart:core', 'dart:core', 'int');
   }
@@ -7604,7 +7670,7 @@ class C<T> extends B<T> {
     EntityRef type = getTypeRefForSlot(cls.fields[0].inferredTypeSlot);
     // Check that v has inferred type Map<T, int>.
     checkLinkedTypeRef(type, 'dart:core', 'dart:core', 'Map',
-        allowTypeArguments: true, numTypeParameters: 2);
+        numTypeParameters: 2, numTypeArguments: 2);
     checkParamTypeRef(type.typeArguments[0], 1);
     checkLinkedTypeRef(type.typeArguments[1], 'dart:core', 'dart:core', 'int');
   }
@@ -7795,12 +7861,11 @@ var v = f(g: (x, y) {});
     UnlinkedClass cls =
         serializeClassText('class C { final x = <int, dynamic>{}; }');
     EntityRef type = getTypeRefForSlot(cls.fields[0].inferredTypeSlot);
-    // Check that x has inferred type `Map<int>`.  The trailing type argument
-    // `dynamic` is omitted.
+    // Check that x has inferred type `Map<int, dynamic>`.
     checkLinkedTypeRef(type, 'dart:core', 'dart:core', 'Map',
-        allowTypeArguments: true, numTypeParameters: 2);
-    expect(type.typeArguments, hasLength(1));
+        numTypeParameters: 2, numTypeArguments: 2);
     checkLinkedTypeRef(type.typeArguments[0], 'dart:core', 'dart:core', 'int');
+    checkLinkedDynamicTypeRef(type.typeArguments[1]);
   }
 
   test_inferred_type_skips_unnecessary_dynamic() {
@@ -7809,9 +7874,9 @@ var v = f(g: (x, y) {});
     }
     UnlinkedClass cls = serializeClassText('class C { final x = []; }');
     EntityRef type = getTypeRefForSlot(cls.fields[0].inferredTypeSlot);
-    // Check that x has inferred type `List`, not `List<dynamic>`.
+    // Check that x has inferred type `List<dynamic>`.
     checkLinkedTypeRef(type, 'dart:core', 'dart:core', 'List',
-        numTypeParameters: 1);
+        numTypeParameters: 1, numTypeArguments: 1);
   }
 
   test_initializer_executable_with_bottom_return_type() {
@@ -8945,31 +9010,28 @@ bool f() => true;
     EntityRef typeRef = serializeTypeText('List<int>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'List',
         numTypeParameters: 1, numTypeArguments: 1);
-    expect(typeRef.typeArguments, hasLength(1));
     checkTypeRef(typeRef.typeArguments[0], 'dart:core', 'dart:core', 'int');
   }
 
   test_type_arguments_explicit_dynamic() {
     EntityRef typeRef = serializeTypeText('List<dynamic>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'List',
-        numTypeParameters: 1);
-    expect(typeRef.typeArguments, isEmpty);
+        numTypeParameters: 1, numTypeArguments: 1);
+    checkDynamicTypeRef(typeRef.typeArguments[0]);
   }
 
   test_type_arguments_explicit_dynamic_dynamic() {
     EntityRef typeRef = serializeTypeText('Map<dynamic, dynamic>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'Map',
-        numTypeParameters: 2);
-    // Trailing type arguments of type `dynamic` are omitted.
-    expect(typeRef.typeArguments, isEmpty);
+        numTypeParameters: 2, numTypeArguments: 2);
+    checkDynamicTypeRef(typeRef.typeArguments[0]);
+    checkDynamicTypeRef(typeRef.typeArguments[1]);
   }
 
   test_type_arguments_explicit_dynamic_int() {
     EntityRef typeRef = serializeTypeText('Map<dynamic, int>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'Map',
         numTypeParameters: 2, numTypeArguments: 2);
-    // Leading type arguments of type `dynamic` are not omitted.
-    expect(typeRef.typeArguments.length, 2);
     checkDynamicTypeRef(typeRef.typeArguments[0]);
     checkTypeRef(typeRef.typeArguments[1], 'dart:core', 'dart:core', 'int');
   }
@@ -8980,24 +9042,22 @@ bool f() => true;
     checkTypeRef(typeRef, null, null, 'F',
         expectedKind: ReferenceKind.typedef,
         numTypeParameters: 1,
-        numTypeArguments: 0);
-    expect(typeRef.typeArguments, isEmpty);
+        numTypeArguments: 1);
+    checkDynamicTypeRef(typeRef.typeArguments[0]);
   }
 
   test_type_arguments_explicit_String_dynamic() {
     EntityRef typeRef = serializeTypeText('Map<String, dynamic>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'Map',
-        numTypeParameters: 2, numTypeArguments: 1);
-    // Trailing type arguments of type `dynamic` are omitted.
-    expect(typeRef.typeArguments.length, 1);
+        numTypeParameters: 2, numTypeArguments: 2);
     checkTypeRef(typeRef.typeArguments[0], 'dart:core', 'dart:core', 'String');
+    checkDynamicTypeRef(typeRef.typeArguments[1]);
   }
 
   test_type_arguments_explicit_String_int() {
     EntityRef typeRef = serializeTypeText('Map<String, int>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'Map',
         numTypeParameters: 2, numTypeArguments: 2);
-    expect(typeRef.typeArguments.length, 2);
     checkTypeRef(typeRef.typeArguments[0], 'dart:core', 'dart:core', 'String');
     checkTypeRef(typeRef.typeArguments[1], 'dart:core', 'dart:core', 'int');
   }
@@ -9009,15 +9069,16 @@ bool f() => true;
         expectedKind: ReferenceKind.typedef,
         numTypeParameters: 1,
         numTypeArguments: 1);
-    expect(typeRef.typeArguments, hasLength(1));
     checkTypeRef(typeRef.typeArguments[0], 'dart:core', 'dart:core', 'int');
   }
 
   test_type_arguments_implicit() {
     EntityRef typeRef = serializeTypeText('List');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'List',
-        numTypeParameters: 1);
-    expect(typeRef.typeArguments, isEmpty);
+        numTypeParameters: 1, numTypeArguments: !checkAstDerivedData ? 1 : 0);
+    if (!checkAstDerivedData) {
+      checkDynamicTypeRef(typeRef.typeArguments[0]);
+    }
   }
 
   test_type_arguments_implicit_typedef() {
@@ -9026,15 +9087,32 @@ bool f() => true;
     checkTypeRef(typeRef, null, null, 'F',
         expectedKind: ReferenceKind.typedef,
         numTypeParameters: 1,
-        numTypeArguments: 0);
-    expect(typeRef.typeArguments, isEmpty);
+        numTypeArguments: !checkAstDerivedData ? 1 : 0);
+    if (!checkAstDerivedData) {
+      checkDynamicTypeRef(typeRef.typeArguments[0]);
+    }
+  }
+
+  test_type_arguments_implicit_typedef_withBound() {
+    EntityRef typeRef = serializeTypeText('F',
+        otherDeclarations: 'typedef T F<T extends num>();');
+    checkTypeRef(typeRef, null, null, 'F',
+        expectedKind: ReferenceKind.typedef,
+        numTypeParameters: 1,
+        numTypeArguments: !checkAstDerivedData ? 1 : 0);
+    if (!checkAstDerivedData) {
+      if (strongMode) {
+        checkTypeRef(typeRef.typeArguments[0], 'dart:core', 'dart:core', 'num');
+      } else {
+        checkDynamicTypeRef(typeRef.typeArguments[0]);
+      }
+    }
   }
 
   test_type_arguments_order() {
     EntityRef typeRef = serializeTypeText('Map<int, Object>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'Map',
         numTypeParameters: 2, numTypeArguments: 2);
-    expect(typeRef.typeArguments, hasLength(2));
     checkTypeRef(typeRef.typeArguments[0], 'dart:core', 'dart:core', 'int');
     checkTypeRef(typeRef.typeArguments[1], 'dart:core', 'dart:core', 'Object');
   }
@@ -9358,7 +9436,13 @@ typedef F();''';
     EntityRef typeRef =
         serializeTypeText('F', otherDeclarations: 'typedef void F<A, B>();');
     checkTypeRef(typeRef, null, null, 'F',
-        numTypeParameters: 2, expectedKind: ReferenceKind.typedef);
+        numTypeParameters: 2,
+        expectedKind: ReferenceKind.typedef,
+        numTypeArguments: !checkAstDerivedData ? 2 : 0);
+    if (!checkAstDerivedData) {
+      checkDynamicTypeRef(typeRef.typeArguments[0]);
+      checkDynamicTypeRef(typeRef.typeArguments[1]);
+    }
   }
 
   test_typedef_reference_generic_imported() {
@@ -9366,7 +9450,13 @@ typedef F();''';
     EntityRef typeRef =
         serializeTypeText('F', otherDeclarations: 'import "lib.dart";');
     checkTypeRef(typeRef, absUri('/lib.dart'), 'lib.dart', 'F',
-        numTypeParameters: 2, expectedKind: ReferenceKind.typedef);
+        numTypeParameters: 2,
+        expectedKind: ReferenceKind.typedef,
+        numTypeArguments: !checkAstDerivedData ? 2 : 0);
+    if (!checkAstDerivedData) {
+      checkDynamicTypeRef(typeRef.typeArguments[0]);
+      checkDynamicTypeRef(typeRef.typeArguments[1]);
+    }
   }
 
   test_typedef_return_type_explicit() {
@@ -9654,9 +9744,9 @@ var v;''';
     UnlinkedVariable v = serializeVariableText('final v = <int, dynamic>{};');
     EntityRef type = getTypeRefForSlot(v.propagatedTypeSlot);
     checkLinkedTypeRef(type, 'dart:core', 'dart:core', 'Map',
-        allowTypeArguments: true, numTypeParameters: 2);
-    expect(type.typeArguments, hasLength(1));
+        numTypeParameters: 2, numTypeArguments: 2);
     checkLinkedTypeRef(type.typeArguments[0], 'dart:core', 'dart:core', 'int');
+    checkLinkedDynamicTypeRef(type.typeArguments[1]);
   }
 
   test_variable_propagatedTypeSlot_const() {

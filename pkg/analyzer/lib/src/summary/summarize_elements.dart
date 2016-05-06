@@ -1072,20 +1072,9 @@ class _CompilationUnitSerializer {
       }
       List<DartType> typeArguments = getTypeArguments(type);
       if (typeArguments != null) {
-        // Trailing type arguments of type 'dynamic' should be omitted.
-        int numArgsToSerialize = typeArguments.length;
-        while (numArgsToSerialize > 0 &&
-            typeArguments[numArgsToSerialize - 1].isDynamic) {
-          --numArgsToSerialize;
-        }
-        if (numArgsToSerialize > 0) {
-          List<EntityRefBuilder> serializedArguments = <EntityRefBuilder>[];
-          for (int i = 0; i < numArgsToSerialize; i++) {
-            serializedArguments
-                .add(serializeTypeRef(typeArguments[i], context));
-          }
-          b.typeArguments = serializedArguments;
-        }
+        b.typeArguments = typeArguments
+            .map((typeArgument) => serializeTypeRef(typeArgument, context))
+            .toList();
       }
     }
     return b;

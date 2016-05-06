@@ -202,8 +202,7 @@ abstract class EntityRef extends base.SummaryClass {
 
   /**
    * If this is an instantiation of a generic type or generic executable, the
-   * type arguments used to instantiate it.  Trailing type arguments of type
-   * `dynamic` are omitted.
+   * type arguments used to instantiate it (if any).
    */
   @Id(1)
   List<EntityRef> get typeArguments;

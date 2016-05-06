@@ -228,8 +228,6 @@ EntityRefBuilder _createLinkedType(
 /**
  * Store the given [typeArguments] in [encodedType], using [compilationUnit] and
  * [typeParameterContext] to serialize them.
- *
- * Trailing arguments of type `dynamic` are dropped.
  */
 void _storeTypeArguments(
     List<DartType> typeArguments,
@@ -237,20 +235,13 @@ void _storeTypeArguments(
     CompilationUnitElementInBuildUnit compilationUnit,
     TypeParameterizedElementForLink typeParameterContext) {
   int count = typeArguments.length;
-  while (count > 0) {
-    if (typeArguments[count - 1].isDynamic) {
-      count--;
-    } else {
-      List<EntityRefBuilder> encodedTypeArguments =
-          new List<EntityRefBuilder>(count);
-      for (int i = 0; i < count; i++) {
-        encodedTypeArguments[i] = _createLinkedType(
-            typeArguments[i], compilationUnit, typeParameterContext);
-      }
-      encodedType.typeArguments = encodedTypeArguments;
-      break;
-    }
+  List<EntityRefBuilder> encodedTypeArguments =
+      new List<EntityRefBuilder>(count);
+  for (int i = 0; i < count; i++) {
+    encodedTypeArguments[i] = _createLinkedType(
+        typeArguments[i], compilationUnit, typeParameterContext);
   }
+  encodedType.typeArguments = encodedTypeArguments;
 }
 
 /**
