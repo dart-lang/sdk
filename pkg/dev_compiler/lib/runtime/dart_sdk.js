@@ -1072,13 +1072,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return null;
       }
     }
-    let result = dart.isSubtype_(ret1, ret2, covariant);
-    if (result === null) return result;
-    if (!result) {
-      if (ret2 !== dart.void) {
-        return null;
-      }
-    }
+    if (ret2 === dart.void) return true;
+    if (ret1 === dart.void) return ret2 === dart.dynamic;
+    if (!dart.isSubtype_(ret1, ret2, covariant)) return null;
     return true;
   };
   dart.canonicalType = function(t) {

@@ -647,7 +647,7 @@ suite('instanceOf', () => {
     // Tear off of an inherited method
     let map = new (Map$(core.int, core.String))();
     checkType(dart.bind(map, 'toString'),
-        dart.functionType(String, []));
+              dart.functionType(String, []));
     checkType(dart.bind(map, 'toString'),
               dart.functionType(int, []), false, true);
 
@@ -951,14 +951,61 @@ suite('subtyping', function() {
 
   test('fuzzy function types', () => {
     always(functionType(int, [int]), functionType(dyn, [dyn]));
-
     always(functionType(int, [], [int]), functionType(dyn, [], [dyn]));
-
     always(functionType(int, [], [int]), functionType(dyn, [dyn]));
-
     always(functionType(int, [], [int]), functionType(dyn, []));
-
     always(functionType(int, [int], {extra: int}), functionType(dyn, [dyn]));
+
+    always(functionType(dyn, [dyn]), functionType(dyn, [dyn]));
+    always(functionType(dyn, [], [dyn]), functionType(dyn, [], [dyn]));
+    always(functionType(dyn, [], [dyn]), functionType(dyn, [dyn]));
+    always(functionType(dyn, [], [dyn]), functionType(dyn, []));
+    always(functionType(dyn, [dyn], {extra: dyn}), functionType(dyn, [dyn]));
+
+  });
+
+  test('void function types', () => {
+    always(functionType(int, [int]), functionType(dart.void, [dyn]));
+    always(functionType(int, [], [int]), functionType(dart.void, [], [dyn]));
+    always(functionType(int, [], [int]), functionType(dart.void, [dyn]));
+    always(functionType(int, [], [int]), functionType(dart.void, []));
+    always(functionType(int, [int], {extra: int}), functionType(dart.void, [dyn]));
+
+    always(functionType(dart.void, [int]), functionType(dart.void, [dyn]));
+    always(functionType(dart.void, [], [int]), functionType(dart.void, [], [dyn]));
+    always(functionType(dart.void, [], [int]), functionType(dart.void, [dyn]));
+    always(functionType(dart.void, [], [int]), functionType(dart.void, []));
+    always(functionType(dart.void, [int], {extra: int}), functionType(dart.void, [dyn]));
+
+    always(functionType(dyn, [dyn]), functionType(dart.void, [dyn]));
+    always(functionType(dyn, [], [dyn]), functionType(dart.void, [], [dyn]));
+    always(functionType(dyn, [], [dyn]), functionType(dart.void, [dyn]));
+    always(functionType(dyn, [], [dyn]), functionType(dart.void, []));
+    always(functionType(dyn, [dyn], {extra: dyn}), functionType(dart.void, [dyn]));
+
+    always(functionType(dart.void, [dyn]), functionType(dart.void, [dyn]));
+    always(functionType(dart.void, [], [dyn]), functionType(dart.void, [], [dyn]));
+    always(functionType(dart.void, [], [dyn]), functionType(dart.void, [dyn]));
+    always(functionType(dart.void, [], [dyn]), functionType(dart.void, []));
+    always(functionType(dart.void, [dyn], {extra: dyn}), functionType(dart.void, [dyn]));
+
+    always(functionType(dart.void, [int]), functionType(dyn, [dyn]));
+    always(functionType(dart.void, [], [int]), functionType(dyn, [], [dyn]));
+    always(functionType(dart.void, [], [int]), functionType(dyn, [dyn]));
+    always(functionType(dart.void, [], [int]), functionType(dyn, []));
+    always(functionType(dart.void, [int], {extra: int}), functionType(dyn, [dyn]));
+
+    never(functionType(dart.void, [int]), functionType(int, [dyn]));
+    never(functionType(dart.void, [], [int]), functionType(int, [], [dyn]));
+    never(functionType(dart.void, [], [int]), functionType(int, [dyn]));
+    never(functionType(dart.void, [], [int]), functionType(int, []));
+    never(functionType(dart.void, [int], {extra: int}), functionType(int, [dyn]));
+
+    never(functionType(dart.void, [int]), functionType(int, [int]));
+    never(functionType(dart.void, [], [int]), functionType(int, [], [int]));
+    never(functionType(dart.void, [], [int]), functionType(int, [int]));
+    never(functionType(dart.void, [], [int]), functionType(int, []));
+    never(functionType(dart.void, [int], {extra: int}), functionType(int, [int]));
 
   });
 

@@ -431,22 +431,13 @@ isFunctionSubtype(ft1, ft2, covariant) => JS('', '''(() => {
 
   // Check return type last, so that arity mismatched functions can be
   // definitively rejected.
-  {
-    let result = $isSubtype_(ret1, ret2, $covariant);
-    if (result === null) return result;
-    if (!result) {
-      // Covariant return types
-      // Note, void (which can only appear as a return type) is effectively
-      // treated as dynamic.  If the base return type is void, we allow any
-      // subtype return type.
-      // E.g., we allow:
-      //   () -> int <: () -> void
-      if (ret2 !== $voidR) {
-        return null;
-      }
-    }
-  }
 
+  // We allow any type to subtype a void return type, but not vice versa
+  if (ret2 === $voidR) return true;
+  // Dart allows void functions to subtype dynamic functions, but not
+  // other functions.
+  if (ret1 === $voidR) return (ret2 === $dynamicR);
+  if (!$isSubtype_(ret1, ret2, $covariant)) return null;
   return true;
 })()''');
 
