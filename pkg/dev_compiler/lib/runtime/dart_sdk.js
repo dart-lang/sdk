@@ -9290,9 +9290,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       object[key] = value;
     }
-    static identicalImplementation(a, b) {
-      return a == null ? b == null : a === b;
-    }
     static extractStackTrace(error) {
       return _js_helper.getTraceFromException(error.$thrownJsError);
     }
@@ -9333,10 +9330,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       valueFromDateString: [dart.dynamic, [dart.dynamic]],
       getProperty: [dart.dynamic, [dart.dynamic, dart.dynamic]],
       setProperty: [dart.void, [dart.dynamic, dart.dynamic, dart.dynamic]],
-      identicalImplementation: [core.bool, [dart.dynamic, dart.dynamic]],
       extractStackTrace: [core.StackTrace, [core.Error]]
     }),
-    names: ['initializeStatics', 'objectHashCode', '_parseIntError', 'parseInt', '_parseDoubleError', 'parseDouble', 'objectTypeName', 'objectToString', 'dateNow', 'initTicker', 'currentUri', '_fromCharCodeApply', 'stringFromCodePoints', 'stringFromCharCodes', 'stringFromNativeUint8List', 'stringFromCharCode', 'stringConcatUnchecked', 'flattenString', 'getTimeZoneName', 'getTimeZoneOffsetInMinutes', 'valueFromDecomposedDate', 'patchUpY2K', 'lazyAsJsDate', 'getYear', 'getMonth', 'getDay', 'getHours', 'getMinutes', 'getSeconds', 'getMilliseconds', 'getWeekday', 'valueFromDateString', 'getProperty', 'setProperty', 'identicalImplementation', 'extractStackTrace']
+    names: ['initializeStatics', 'objectHashCode', '_parseIntError', 'parseInt', '_parseDoubleError', 'parseDouble', 'objectTypeName', 'objectToString', 'dateNow', 'initTicker', 'currentUri', '_fromCharCodeApply', 'stringFromCodePoints', 'stringFromCharCodes', 'stringFromNativeUint8List', 'stringFromCharCode', 'stringConcatUnchecked', 'flattenString', 'getTimeZoneName', 'getTimeZoneOffsetInMinutes', 'valueFromDecomposedDate', 'patchUpY2K', 'lazyAsJsDate', 'getYear', 'getMonth', 'getDay', 'getHours', 'getMinutes', 'getSeconds', 'getMilliseconds', 'getWeekday', 'valueFromDateString', 'getProperty', 'setProperty', 'extractStackTrace']
   });
   _js_helper.Primitives.mirrorFunctionCacheName = '$cachedFunction';
   _js_helper.Primitives.mirrorInvokeCacheName = '$cachedInvocation';
@@ -28021,7 +28017,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     names: ['apply', '_toMangledNames']
   });
   core.identical = function(a, b) {
-    return _js_helper.Primitives.identicalImplementation(a, b);
+    return a == null ? b == null : a === b;
   };
   dart.fn(core.identical, core.bool, [core.Object, core.Object]);
   core.identityHashCode = function(object) {
@@ -28483,24 +28479,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     writeAll(objects, separator) {
       if (separator === void 0) separator = "";
-      let iterator = objects[dartx.iterator];
-      if (!dart.notNull(iterator.moveNext())) return;
-      if (dart.notNull(separator[dartx.isEmpty])) {
-        do {
-          this.write(iterator.current);
-        } while (dart.notNull(iterator.moveNext()));
-      } else {
-        this.write(iterator.current);
-        while (dart.notNull(iterator.moveNext())) {
-          this.write(separator);
-          this.write(iterator.current);
-        }
-      }
+      this[_contents] = core.StringBuffer._writeAll(this[_contents], objects, separator);
     }
     writeln(obj) {
       if (obj === void 0) obj = "";
-      this.write(obj);
-      this.write("\n");
+      this[_writeString](`${obj}\n`);
     }
     clear() {
       this[_contents] = "";
@@ -28510,6 +28493,25 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [_writeString](str) {
       this[_contents] = _js_helper.Primitives.stringConcatUnchecked(this[_contents], dart.as(str, core.String));
+    }
+    static _writeAll(string, objects, separator) {
+      let iterator = objects[dartx.iterator];
+      if (!dart.notNull(iterator.moveNext())) return string;
+      if (dart.notNull(separator[dartx.isEmpty])) {
+        do {
+          string = core.StringBuffer._writeOne(string, iterator.current);
+        } while (dart.notNull(iterator.moveNext()));
+      } else {
+        string = core.StringBuffer._writeOne(string, iterator.current);
+        while (dart.notNull(iterator.moveNext())) {
+          string = core.StringBuffer._writeOne(string, separator);
+          string = core.StringBuffer._writeOne(string, iterator.current);
+        }
+      }
+      return string;
+    }
+    static _writeOne(string, obj) {
+      return _js_helper.Primitives.stringConcatUnchecked(string, `${obj}`);
     }
   };
   core.StringBuffer[dart.implements] = () => [core.StringSink];
@@ -28522,7 +28524,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       writeln: [dart.void, [], [core.Object]],
       clear: [dart.void, []],
       [_writeString]: [dart.void, [dart.dynamic]]
-    })
+    }),
+    statics: () => ({
+      _writeAll: [core.String, [core.String, core.Iterable, core.String]],
+      _writeOne: [core.String, [core.String, core.Object]]
+    }),
+    names: ['_writeAll', '_writeOne']
   });
   core.Symbol = class Symbol extends core.Object {
     static new(name) {

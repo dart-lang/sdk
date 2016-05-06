@@ -375,7 +375,7 @@ class RegExp {
 // Patch for 'identical' function.
 @patch
 bool identical(Object a, Object b) {
-  return Primitives.identicalImplementation(a, b);
+  return JS('bool', '(# == null ? # == null : # === #)', a, b, a, b);
 }
 
 @patch
@@ -398,8 +398,14 @@ class StringBuffer {
     _writeString(new String.fromCharCode(charCode));
   }
 
-  void _writeString(str) {
-    _contents = Primitives.stringConcatUnchecked(_contents, str);
+  @patch
+  void writeAll(Iterable objects, [String separator = ""]) {
+    _contents = _writeAll(_contents, objects, separator);
+  }
+
+  @patch
+  void writeln([Object obj = ""]) {
+    _writeString('$obj\n');
   }
 
   @patch
@@ -409,6 +415,31 @@ class StringBuffer {
 
   @patch
   String toString() => Primitives.flattenString(_contents);
+
+  void _writeString(str) {
+    _contents = Primitives.stringConcatUnchecked(_contents, str);
+  }
+
+  static String _writeAll(String string, Iterable objects, String separator) {
+    Iterator iterator = objects.iterator;
+    if (!iterator.moveNext()) return string;
+    if (separator.isEmpty) {
+      do {
+        string = _writeOne(string, iterator.current);
+      } while (iterator.moveNext());
+    } else {
+      string = _writeOne(string, iterator.current);
+      while (iterator.moveNext()) {
+        string = _writeOne(string, separator);
+        string = _writeOne(string, iterator.current);
+      }
+    }
+    return string;
+  }
+
+  static String _writeOne(String string, Object obj) {
+    return Primitives.stringConcatUnchecked(string, '$obj');
+  }
 }
 
 @patch
