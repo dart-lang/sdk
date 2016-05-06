@@ -3,13 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 
-import 'dart:_internal' show FixedLengthListMixin;
-import 'dart:_foreign_helper' show JS;
-import 'dart:math' as Math;
-import 'dart:_internal';
-import 'dart:_interceptors' show JSIndexable, JSUInt32, JSUInt31;
-import 'dart:_js_helper'
-    show Creates, JavaScriptIndexingBehavior, JSName, Returns, patch;
+import 'dart:_js_helper' show patch;
 import 'dart:_native_typed_data';
 
 @patch class ByteData {
