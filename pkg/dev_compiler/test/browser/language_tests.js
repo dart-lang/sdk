@@ -8,7 +8,8 @@
   let dart_sdk = dart_library.import('dart_sdk');
   dart_sdk._isolate_helper.startRootIsolate(function() {}, []);
   let async_helper = dart_library.import('async_helper').async_helper;
-
+  let unittest = dart_library.import('unittest');
+  let html_config = unittest.html_config;
   // Test attributes are a list of strings, or a string for a single
   // attribute. Valid attribues are:
   //
@@ -24,6 +25,10 @@
   const skip_fail = ['skip', 'fail'];
   const skip_timeout = ['skip', 'timeout'];
 
+  // The number of expected unittest errors should be zero but unfortunately
+  // there are a lot of broken html unittests.
+  let num_expected_unittest_errors = 5;
+
   // TODO(jmesserly): separate StrongModeError from other errors.
   let all_status = {
     'language': {
@@ -37,6 +42,7 @@
       'async_star_cancel_and_throw_in_finally_test': skip_timeout,
 
       'async_star_cancel_while_paused_test': skip_fail,
+      'async_star_regression_fisk_test': skip_fail,
 
       // TODO(vsm): Re-enable.
       // See https://github.com/dart-lang/dev_compiler/issues/456
@@ -47,6 +53,7 @@
       'async_star_test_04_multi': ['unittest', 'skip', 'fail'],
       'async_star_test_05_multi': ['unittest', 'skip', 'fail'],
 
+      'async_switch_test': skip_fail,
       'asyncstar_throw_in_catch_test': skip_fail,
       'await_future_test': skip_fail,
       'bit_operations_test_none_multi': skip_fail,
@@ -472,13 +479,178 @@
       'setRange_5_test': skip_fail,
     },
 
+    // TODO(jacobr): enable more of the html tests in unittest once they have
+    // more hope of passing. Triage tests that can never run in this test
+    // runner and track them separately.
     'lib/html': {
+      'async_spawnuri_test': ['unittest', 'skip', 'fail'],
+      'async_test': ['unittest', 'skip', 'fail'],
+      'audiobuffersourcenode_test': ['unittest', 'skip', 'fail'],
+      'audiocontext_test': ['unittest', 'skip', 'fail'],
+      'audioelement_test': ['unittest', 'skip', 'fail'],
+      'b_element_test': ['unittest', 'skip', 'fail'],
+      'blob_constructor_test': ['unittest', 'skip', 'fail'],
+      'cache_test': ['unittest', 'skip', 'fail'],
+      'callbacks_test': ['unittest', 'skip', 'fail'],
+      'canvas_pixel_array_type_alias_test': ['unittest'],
+      'canvasrenderingcontext2d_test': ['unittest'],
+      'canvas_test': ['unittest'],
+      'cdata_test': ['unittest', 'skip', 'fail'],
+      'client_rect_test': ['unittest', 'skip', 'fail'],
+      'cross_domain_iframe_test': ['unittest', 'skip', 'fail'],
+      'cross_frame_test': ['unittest', 'skip', 'fail'],
+      'crypto_test': ['unittest', 'skip', 'fail'],
+      'css_rule_list_test': ['unittest', 'skip', 'fail'],
+      'cssstyledeclaration_test': ['unittest', 'skip', 'fail'],
+      'css_test': ['unittest', 'skip', 'fail'],
+      'custom_element_method_clash_test': ['unittest', 'skip', 'fail'],
+      'custom_element_name_clash_test': ['unittest', 'skip', 'fail'],
+      'custom_elements_23127_test': ['unittest', 'skip', 'fail'],
+      'custom_elements_test': ['unittest', 'skip', 'fail'],
+      'custom_tags_test': ['unittest', 'skip', 'fail'],
+      'dart_object_local_storage_test': ['unittest', 'skip', 'fail'],
+      'datalistelement_test': ['unittest', 'skip', 'fail'],
+      'documentfragment_test': ['unittest', 'skip', 'fail'],
+      'document_test': ['unittest'],
+      'dom_constructors_test': ['unittest', 'skip', 'fail'],
+      'domparser_test': ['unittest', 'skip', 'fail'],
+      'element_add_test': ['unittest', 'skip', 'fail'],
+      'element_animate_test': ['unittest', 'skip', 'fail'],
+      'element_classes_svg_test': ['unittest', 'skip', 'fail'],
+      'element_classes_test': ['unittest', 'skip', 'fail'],
+      'element_constructor_1_test': ['unittest', 'skip', 'fail'],
+      'element_dimensions_test': ['unittest', 'skip', 'fail'],
+      'element_offset_test': ['unittest', 'skip', 'fail'],
+      'element_test': ['unittest', 'skip', 'fail'],
+      'element_types_constructors1_test': ['unittest', 'skip', 'fail'],
+      'element_types_constructors2_test': ['unittest', 'skip', 'fail'],
+      'element_types_constructors3_test': ['unittest', 'skip', 'fail'],
+      'element_types_constructors4_test': ['unittest', 'skip', 'fail'],
+      'element_types_constructors5_test': ['unittest', 'skip', 'fail'],
+      'element_types_constructors6_test': ['unittest', 'skip', 'fail'],
+      'element_types_test': ['unittest', 'skip', 'fail'],
+      'event_customevent_test': ['unittest', 'skip', 'fail'],
+      'events_test': ['unittest', 'skip', 'fail'],
+      'event_test': ['unittest', 'skip', 'fail'],
+      'exceptions_test': ['unittest', 'skip', 'fail'],
+      'fileapi_test': ['unittest', 'skip', 'fail'],
+      'filereader_test': ['unittest', 'skip', 'fail'],
+      'filteredelementlist_test': ['unittest', 'skip', 'fail'],
+      'fontface_loaded_test': ['unittest', 'skip', 'fail'],
+      'fontface_test': ['unittest', 'skip', 'fail'],
+      'form_data_test': ['unittest', 'skip', 'fail'],
+      'form_element_test': ['unittest', 'skip', 'fail'],
+      'geolocation_test': ['unittest', 'skip', 'fail'],
+      'hidden_dom_1_test': ['unittest', 'skip', 'fail'],
+      'hidden_dom_2_test': ['unittest', 'skip', 'fail'],
+      'history_test': ['unittest', 'skip', 'fail'],
+      'htmlcollection_test': ['unittest', 'skip', 'fail'],
+      'htmlelement_test': ['unittest', 'skip', 'fail'],
+      'htmloptionscollection_test': ['unittest', 'skip', 'fail'],
+      'indexeddb_1_test': ['unittest', 'skip', 'fail'],
+      'indexeddb_2_test': ['unittest', 'skip', 'fail'],
+      'indexeddb_3_test': ['unittest', 'skip', 'fail'],
+      'indexeddb_4_test': ['unittest', 'skip', 'fail'],
+      'indexeddb_5_test': ['unittest', 'skip', 'fail'],
+      'input_element_test': ['unittest', 'skip', 'fail'],
+      'instance_of_test': ['unittest', 'skip', 'fail'],
+      'interactive_test': ['unittest', 'skip', 'fail'],
+      'isolates_test': ['unittest', 'skip', 'fail'],
+      'js_function_getter_test': ['unittest', 'skip', 'fail'],
+      'js_function_getter_trust_types_test': ['unittest', 'skip', 'fail'],
+      'js_interop_1_test': ['unittest', 'skip', 'fail'],
+      'js_test': ['unittest', 'skip', 'fail'],
+      'js_typed_interop_anonymous2_exp_test': ['unittest', 'skip', 'fail'],
+      'js_typed_interop_anonymous2_test': ['unittest', 'skip', 'fail'],
+      'js_typed_interop_anonymous_exp_test': ['unittest', 'skip', 'fail'],
+      'js_typed_interop_anonymous_test': ['unittest', 'skip', 'fail'],
+      'js_typed_interop_anonymous_unreachable_exp_test': ['unittest', 'skip', 'fail'],
+      'js_typed_interop_anonymous_unreachable_test': ['unittest', 'skip', 'fail'],
+      'js_typed_interop_default_arg_test': ['unittest', 'skip', 'fail'],
+      'js_typed_interop_side_cast_exp_test': ['unittest', 'skip', 'fail'],
+      'js_typed_interop_side_cast_test': ['unittest', 'skip', 'fail'],
+      'js_typed_interop_test': ['unittest', 'skip', 'fail'],
+      'keyboard_event_test': ['unittest', 'skip', 'fail'],
+      'localstorage_test': ['unittest', 'skip', 'fail'],
+      'location_test': ['unittest', 'skip', 'fail'],
+      'mediasource_test': ['unittest', 'skip', 'fail'],
+      'media_stream_test': ['unittest', 'skip', 'fail'],
+      'messageevent_test': ['unittest', 'skip', 'fail'],
+      'mirrors_js_typed_interop_test': ['unittest', 'skip', 'fail'],
+      'mouse_event_test': ['unittest', 'skip', 'fail'],
+      'mutationobserver_test': ['unittest', 'skip', 'fail'],
+      'native_gc_test': ['unittest', 'skip', 'fail'],
+      'navigator_test': ['unittest', 'skip', 'fail'],
+      'node_test': ['unittest', 'skip', 'fail'],
+      'node_validator_important_if_you_suppress_make_the_bug_critical_test': ['unittest', 'skip', 'fail'],
+      'non_instantiated_is_test': ['unittest', 'skip', 'fail'],
+      'notification_test': ['unittest', 'skip', 'fail'],
+      'performance_api_test': ['unittest', 'skip', 'fail'],
+      'postmessage_structured_test': ['unittest', 'skip', 'fail'],
+      'private_extension_member_test': ['unittest', 'skip', 'fail'],
+      'queryall_test': ['unittest', 'skip', 'fail'],
+      'query_test': ['unittest', 'skip', 'fail'],
+      'range_test': ['unittest', 'skip', 'fail'],
+      'request_animation_frame_test': ['unittest', 'skip', 'fail'],
+      'resource_http_test': ['unittest', 'skip', 'fail'],
+      'rtc_test': ['unittest', 'skip', 'fail'],
+      'selectelement_test': ['unittest', 'skip', 'fail'],
+      'serialized_script_value_test': ['unittest', 'skip', 'fail'],
+      'shadow_dom_test': ['unittest', 'skip', 'fail'],
+      'shadowroot_test': ['unittest', 'skip', 'fail'],
+      'speechrecognition_test': ['unittest', 'skip', 'fail'],
+      'storage_test': ['unittest', 'skip', 'fail'],
+      'streams_test': ['unittest', 'skip', 'fail'],
+      'svgelement_test': ['unittest', 'skip', 'fail'],
+      'svg_test': ['unittest', 'skip', 'fail'],
+      'table_test': ['unittest', 'skip', 'fail'],
+      'text_event_test': ['unittest', 'skip', 'fail'],
+      'touchevent_test': ['unittest', 'skip', 'fail'],
+      'track_element_constructor_test': ['unittest', 'skip', 'fail'],
+      'transferables_test': ['unittest', 'skip', 'fail'],
+      'transition_event_test': ['unittest', 'skip', 'fail'],
+      'trusted_html_tree_sanitizer_test': ['unittest', 'skip', 'fail'],
+      'typed_arrays_1_test': ['unittest', 'skip', 'fail'],
+      'typed_arrays_2_test': ['unittest', 'skip', 'fail'],
+      'typed_arrays_3_test': ['unittest', 'skip', 'fail'],
+      'typed_arrays_4_test': ['unittest', 'skip', 'fail'],
+      'typed_arrays_5_test': ['unittest', 'skip', 'fail'],
+      'typed_arrays_arraybuffer_test': ['unittest', 'skip', 'fail'],
+      'typed_arrays_dataview_test': ['unittest', 'skip', 'fail'],
+      'typed_arrays_range_checks_test': ['unittest', 'skip', 'fail'],
+      'typed_arrays_simd_test': ['unittest', 'skip', 'fail'],
+      'typing_test': ['unittest', 'skip', 'fail'],
+      'unknownelement_test': ['unittest', 'skip', 'fail'],
+      'uri_test': ['unittest', 'skip', 'fail'],
+      'url_test': ['unittest', 'skip', 'fail'],
+      'webgl_1_test': ['unittest', 'skip', 'fail'],
+      'websocket_test': ['unittest', 'skip', 'fail'],
+      'websql_test': ['unittest', 'skip', 'fail'],
+      'wheelevent_test': ['unittest', 'skip', 'fail'],
+      'window_eq_test': ['unittest', 'skip', 'fail'],
+      'window_mangling_test': ['unittest', 'skip', 'fail'],
+      'window_nosuchmethod_test': ['unittest', 'skip', 'fail'],
+      'window_test': ['unittest', 'skip', 'fail'],
+      'worker_api_test': ['unittest', 'skip', 'fail'],
+      'worker_test': ['unittest', 'skip', 'fail'],
+      'wrapping_collections_test': ['unittest', 'skip', 'fail'],
+      'xhr_cross_origin_test': ['unittest', 'skip', 'fail'],
+      'xhr_test': ['unittest', 'skip', 'fail'],
+      'xsltprocessor_test': ['unittest', 'skip', 'fail'],
+
+      'js_typed_interop_default_arg_test_none_multi': ['unittest', 'skip', 'fail'],
+      'js_typed_interop_default_arg_test_explicit_argument_multi': ['unittest', 'skip', 'fail'],
+      'js_typed_interop_default_arg_test_default_value_multi': ['unittest', 'skip', 'fail']
     },
   };
 
   let unittest_tests = [];
 
   let languageTestPattern = new RegExp('(.*)/([^/]*_test[^/]*)');
+  html_config.useHtmlConfiguration();
+  // We need to let Dart unittest control when tests are run not mocha.
+  // mocha.allowUncaught(true);
+  let dartUnittestsLeft = 0;
   for (let testFile of dart_library.libraries()) {
     let match = languageTestPattern.exec(testFile);
     if (match != null) {
@@ -561,7 +733,46 @@
     }
   }
 
-  for (let action of unittest_tests) {
-    action();
-  }
+  let mochaOnError;
+  // We run these tests in a mocha test wrapper to avoid the confusing failure
+  // case of dart unittests being interleaved with mocha tests.
+  // In practice we are really just suppressing all mocha test behavior while
+  // Dart unittests run and then re-enabling it when the dart tests complete.
+  test('run all dart unittests', function(done) { // 'function' to allow `this.timeout`
+    this.enableTimeouts(false);
+    // Suppress mocha on-error handling because it will mess up unittests.
+    mochaOnError = window.onerror;
+    window.onerror = function(err, url, line) {
+      console.error(err, url, line);     
+    };
+    window.addEventListener('message', (event) => {
+      if (event.data == 'unittest-suite-done') {
+        window.console.log("Done running unittests");
+        let output = document.body.textContent;
+        // Restore the Mocha onerror handler in case future tests need to run.
+        window.onerror = mochaOnError;
+        this.enableTimeouts(true);
+
+        var matches = output.match(/ERROR/g);
+        let numErrors = matches ? matches.length : 0;
+        if (numErrors != num_expected_unittest_errors) {
+          output = "Expected " + num_expected_unittest_errors +
+              " failing unittests, got " + numErrors + ".\n" + output;
+          console.error(output);
+          done(new Error(output));
+        } else {
+          console.log(output);
+          done();
+        }
+      }
+    });
+
+    for (let action of unittest_tests) {
+      try {
+        action();
+      } catch (e) {
+        console.error("Caught error tying to setup test:", e);
+      }
+    }
+  });
 })();

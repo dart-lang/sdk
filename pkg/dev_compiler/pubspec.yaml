@@ -26,6 +26,7 @@ dev_dependencies:
   # changes, may change the output format.
   dart_style: 0.2.4
   test: ^0.12.0
+  unittest: ^0.11.6
   webdriver: ^0.8.8
 
 environment:

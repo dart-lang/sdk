@@ -55,7 +55,19 @@ main(arguments) {
     _buildPackages(compiler, expectDir);
 
     test('matcher', () {
-      _buildMatcher(compiler, expectDir);
+      _buildPackage(compiler, expectDir, "matcher");
+    });
+
+    test('unittest', () {
+      _buildPackage(compiler, expectDir, "unittest");
+    });
+
+    test('stack_trace', () {
+      _buildPackage(compiler, expectDir, "stack_trace");
+    });
+
+    test('path', () {
+      _buildPackage(compiler, expectDir, "path");
     });
   });
 
@@ -171,23 +183,24 @@ void _buildPackages(ModuleCompiler compiler, String expectDir) {
   }
 }
 
-void _buildMatcher(ModuleCompiler compiler, String expectDir) {
+void _buildPackage(ModuleCompiler compiler, String expectDir, packageName) {
   var options = new CompilerOptions(sourceMap: false, summarizeApi: false);
 
   var packageRoot = path.join(inputDir, 'packages');
-  var filePath = path.join(packageRoot, 'matcher', 'matcher.dart');
-  var contents = new File(filePath).readAsStringSync();
+  var packageInputDir = path.join(packageRoot, packageName);
+  var files = new Directory(packageInputDir).listSync(recursive: true);
 
-  // Collect any other files we've imported.
-  var files = new Set<String>();
-  _collectTransitiveImports(contents, files,
-      packageRoot: packageRoot, from: filePath);
-
-  var unit =
-      new BuildUnit('matcher', inputDir, files.toList(), _moduleForLibrary);
+  var unit = new BuildUnit(
+      packageName,
+      packageInputDir,
+      files
+          .where((entry) => entry.path.endsWith('dart'))
+          .map((entry) => entry.path)
+          .toList(),
+      _moduleForLibrary);
   var module = compiler.compile(unit, options);
 
-  var outPath = path.join(expectDir, 'matcher', 'matcher');
+  var outPath = path.join(expectDir, packageName, packageName);
   _writeModule(outPath, module);
 }
 
@@ -237,8 +250,6 @@ final packageUrlMappings = {
   'package:expect/expect.dart': path.join(inputDir, 'expect.dart'),
   'package:async_helper/async_helper.dart':
       path.join(inputDir, 'async_helper.dart'),
-  'package:unittest/unittest.dart': path.join(inputDir, 'unittest.dart'),
-  'package:unittest/html_config.dart': path.join(inputDir, 'html_config.dart'),
   'package:js/js.dart': path.join(inputDir, 'packages', 'js', 'js.dart')
 };
 

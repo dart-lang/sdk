@@ -19,6 +19,8 @@ module.exports = function(config) {
       'test/codegen/expect/async_helper/async_helper.js',
       'test/codegen/expect/dom/dom.js',
       'test/codegen/expect/expect/expect.js',
+      'test/codegen/expect/path/path.js',
+      'test/codegen/expect/stack_trace/stack_trace.js',
       'test/codegen/expect/js/js.js',
       'test/codegen/expect/matcher/matcher.js',
       'test/codegen/expect/unittest/unittest.js',
