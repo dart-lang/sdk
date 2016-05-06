@@ -313,7 +313,7 @@ class ImportedReferenceContributorTest extends DartCompletionContributorTest {
     // The current DartCompletionRequest#resolveExpression resolves
     // the world (which it should not) and causes the imported library
     // to be resolved.
-    assertSuggestFunction('hasLength',  /* null */ 'bool');
+    assertSuggestFunction('hasLength', /* null */ 'bool');
     assertNotSuggested('main');
   }
 
@@ -2166,6 +2166,12 @@ int myFunc() {}
     assertSuggestClass('int');
   }
 
+  test_ForStatement_typing_inKeyword() async {
+    addTestSource('main() { for (var v i^) }');
+    await computeSuggestions();
+    assertNotSuggested('int');
+  }
+
   test_ForStatement_updaters() async {
     // SimpleIdentifier  ForStatement
     addTestSource('main() {for (int index = 0; index < 10; i^)}');
@@ -2496,6 +2502,12 @@ class B extends A {
     assertNotSuggested('Object');
     assertNotSuggested('A');
     assertNotSuggested('==');
+  }
+
+  test_IfStatement_typing_isKeyword() async {
+    addTestSource('main() { if (v i^) }');
+    await computeSuggestions();
+    assertNotSuggested('int');
   }
 
   test_ImportDirective_dart() async {

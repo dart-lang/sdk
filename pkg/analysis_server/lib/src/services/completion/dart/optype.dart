@@ -464,6 +464,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitForStatement(ForStatement node) {
+    if (_isEntityPrevTokenSynthetic()) {
+      // Actual: for (var v i^)
+      // Parsed: for (var i; i^;)
+      return;
+    }
     optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
     optype.includeVoidReturnSuggestions = true;
@@ -496,7 +501,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitIfStatement(IfStatement node) {
-    if (identical(entity, node.condition)) {
+    if (_isEntityPrevTokenSynthetic()) {
+      // Actual: if (var v i^)
+      // Parsed: if (v) i^;
+    } else if (identical(
+        entity, node.condition)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     } else if (identical(entity, node.thenStatement) ||
@@ -765,6 +774,16 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    if (entity is Token) {
+      Token token = entity;
+      if (token.isSynthetic || token.lexeme == ';') {
+        optype.includeVarNameSuggestions = true;
+      }
+    }
+  }
+
+  @override
   void visitTypeArgumentList(TypeArgumentList node) {
     NodeList<TypeName> arguments = node.arguments;
     for (TypeName typeName in arguments) {
@@ -817,16 +836,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-   if (entity is Token) {
-     Token token = entity;
-     if (token.isSynthetic || token.lexeme == ';') {
-       optype.includeVarNameSuggestions = true;
-     }
-   }
-  }
-
-  @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {}
 
   @override
@@ -835,5 +844,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
+  }
+
+  bool _isEntityPrevTokenSynthetic() {
+    Object entity = this.entity;
+    if (entity is AstNode && entity.beginToken.previous?.isSynthetic ??
+        false) {
+      return true;
+    }
+    return false;
   }
 }
