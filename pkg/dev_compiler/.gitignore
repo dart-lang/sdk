@@ -23,6 +23,7 @@ test/codegen/expect/sunflower/dev_compiler/
 test/codegen/expect/matcher/
 test/codegen/expect/path/
 test/codegen/expect/stack_trace/
+test/codegen/expect/unittest/
 test/codegen/language/*_multi.dart
 test/codegen/lib/html/*_multi.dart
 test/codegen/corelib/*_multi.dart
