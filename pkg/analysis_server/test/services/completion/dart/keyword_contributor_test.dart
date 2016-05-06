@@ -670,6 +670,13 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
+  test_for_initialization_var() async {
+    addTestSource('main() {for (va^)}');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.FINAL, Keyword.VAR],
+        relevance: DART_RELEVANCE_HIGH);
+  }
+
   test_function_async() async {
     addTestSource('main()^');
     await computeSuggestions();

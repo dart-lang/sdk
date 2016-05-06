@@ -9,12 +9,12 @@ import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/dart/optype.dart';
 
 const ASYNC = 'async';
 const ASYNC_STAR = 'async*';
@@ -221,11 +221,19 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitForStatement(ForStatement node) {
+    // Actual: for (va^)
+    // Parsed: for (va^; ;)
+    if (node.initialization == entity && entity is SimpleIdentifier) {
+      if (_isNextTokenSynthetic(entity, TokenType.SEMICOLON)) {
+        _addSuggestion(Keyword.VAR, DART_RELEVANCE_HIGH);
+        _addSuggestion(Keyword.FINAL, DART_RELEVANCE_HIGH);
+      }
+    }
+    // Actual: for (int x i^)
+    // Parsed: for (int x; i^;)
     // Handle the degenerate case while typing - for (int x i^)
     if (node.condition == entity && entity is SimpleIdentifier) {
-      Token entityToken = (entity as SimpleIdentifier).beginToken;
-      if (entityToken.previous.isSynthetic &&
-          entityToken.previous.type == TokenType.SEMICOLON) {
+      if (_isPreviousTokenSynthetic(entity, TokenType.SEMICOLON)) {
         _addSuggestion(Keyword.IN, DART_RELEVANCE_HIGH);
       }
     }
@@ -570,4 +578,22 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   bool _inWhileLoop(AstNode node) =>
       node.getAncestor((p) => p is WhileStatement) != null;
+
+  static bool _isNextTokenSynthetic(Object entity, TokenType type) {
+    if (entity is AstNode) {
+      Token token = entity.beginToken;
+      Token nextToken = token.next;
+      return nextToken.isSynthetic && nextToken.type == type;
+    }
+    return false;
+  }
+
+  static bool _isPreviousTokenSynthetic(Object entity, TokenType type) {
+    if (entity is AstNode) {
+      Token token = entity.beginToken;
+      Token previousToken = token.previous;
+      return previousToken.isSynthetic && previousToken.type == type;
+    }
+    return false;
+  }
 }
