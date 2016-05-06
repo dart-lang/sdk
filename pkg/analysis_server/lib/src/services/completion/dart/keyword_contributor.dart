@@ -260,7 +260,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitIfStatement(IfStatement node) {
-    if (entity == node.thenStatement) {
+    if (_isPreviousTokenSynthetic(entity, TokenType.CLOSE_PAREN)) {
+      // Actual: if (x i^)
+      // Parsed: if (x) i^
+      _addSuggestion(Keyword.IS, DART_RELEVANCE_HIGH);
+    } else if (entity == node.thenStatement) {
       _addStatementKeywords(node);
     } else if (entity == node.condition) {
       _addExpressionKeywords(node);
