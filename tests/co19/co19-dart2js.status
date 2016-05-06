@@ -692,6 +692,7 @@ LayoutTests/fast/canvas/webgl/uninitialized-test_t01: RuntimeError # Please tria
 LayoutTests/fast/canvas/webgl/webgl-depth-texture_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/webgl-large-texture_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/webgl-layer-update_t01: Skip # Times out. Please triage this failure
+LayoutTests/fast/css/background-clip-text_t01: RuntimeError # Issue 54
 LayoutTests/fast/css-generated-content/hit-test-generated-content_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css-generated-content/malformed-url_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/css-generated-content/pseudo-animation-before-onload_t01: Pass, RuntimeError # Please triage this failure
@@ -919,6 +920,7 @@ LayoutTests/fast/dom/SelectorAPI/dumpNodeList-2_t01: RuntimeError # Please triag
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/detached-parent-rule-without-wrapper_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/StyleSheet/detached-stylesheet-without-wrapper_t01: RuntimeError # Issue 55
 LayoutTests/fast/dom/TreeWalker/TreeWalker-basic_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Window/getMatchedCSSRules-nested-rules_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Window/getMatchedCSSRules-with-pseudo-elements-complex_t01: RuntimeError # Please triage this failure
@@ -949,6 +951,7 @@ LayoutTests/fast/dom/getelementsbyname-invalidation-cache_t01: RuntimeError # Is
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/icon-size-property_t01: RuntimeError # https://github.com/dart-lang/sdk/issues/26422
 LayoutTests/fast/dom/location-hash_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: Skip # API not supported.
 LayoutTests/fast/dom/navigatorcontentutils/register-protocol-handler_t01: Skip # API not supported.
