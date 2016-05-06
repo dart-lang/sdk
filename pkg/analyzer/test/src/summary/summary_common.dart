@@ -7692,6 +7692,44 @@ var v = h((y) {});
     checkReferenceIndex(linkedReference.containingReference, null, null, 'D');
   }
 
+  test_inferred_type_refers_to_nested_function_typed_param() {
+    if (!strongMode || skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedVariable v = serializeVariableText('''
+f(void g(int x, void h())) => null;
+var v = f((x, y) {});
+''');
+    expect(v.initializer.localFunctions, hasLength(1));
+    UnlinkedExecutable closure = v.initializer.localFunctions[0];
+    expect(closure.parameters, hasLength(2));
+    UnlinkedParam y = closure.parameters[1];
+    expect(y.name, 'y');
+    EntityRef typeRef = getTypeRefForSlot(y.inferredTypeSlot);
+    checkLinkedTypeRef(typeRef, null, null, 'f',
+        expectedKind: ReferenceKind.topLevelFunction);
+    expect(typeRef.implicitFunctionTypeIndices, [0, 1]);
+  }
+
+  test_inferred_type_refers_to_nested_function_typed_param_named() {
+    if (!strongMode || skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedVariable v = serializeVariableText('''
+f({void g(int x, void h())}) => null;
+var v = f(g: (x, y) {});
+''');
+    expect(v.initializer.localFunctions, hasLength(1));
+    UnlinkedExecutable closure = v.initializer.localFunctions[0];
+    expect(closure.parameters, hasLength(2));
+    UnlinkedParam y = closure.parameters[1];
+    expect(y.name, 'y');
+    EntityRef typeRef = getTypeRefForSlot(y.inferredTypeSlot);
+    checkLinkedTypeRef(typeRef, null, null, 'f',
+        expectedKind: ReferenceKind.topLevelFunction);
+    expect(typeRef.implicitFunctionTypeIndices, [0, 1]);
+  }
+
   test_inferred_type_refers_to_setter_function_typed_parameter_type() {
     if (!strongMode || skipFullyLinkedData) {
       return;

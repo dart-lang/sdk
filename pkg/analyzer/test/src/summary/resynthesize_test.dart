@@ -3357,6 +3357,20 @@ var v = h(/*info:INFERRED_TYPE_CLOSURE*/(y) {});
         ' abstract class D { void f(int x, int g(String s)); }');
   }
 
+  test_inferred_type_refers_to_nested_function_typed_param() {
+    checkLibrary('''
+f(void g(int x, void h())) => null;
+var v = f((x, y) {});
+''');
+  }
+
+  test_inferred_type_refers_to_nested_function_typed_param_named() {
+    checkLibrary('''
+f({void g(int x, void h())}) => null;
+var v = f(g: (x, y) {});
+''');
+  }
+
   test_inferred_type_refers_to_setter_function_typed_parameter_type() {
     checkLibrary('class C extends D { void set f(g) {} }'
         ' abstract class D { void set f(int g(String s)); }');

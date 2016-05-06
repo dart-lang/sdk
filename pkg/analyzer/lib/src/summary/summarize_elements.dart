@@ -617,9 +617,7 @@ class _CompilationUnitSerializer {
         }
       }
       for (PropertyAccessorElement accessor in cls.accessors) {
-        if (accessor.isStatic &&
-            accessor.isGetter &&
-            accessor.isPublic) {
+        if (accessor.isStatic && accessor.isGetter && accessor.isPublic) {
           // TODO(paulberry): should numTypeParameters include class params?
           bs.add(new UnlinkedPublicNameBuilder(
               name: accessor.name, kind: ReferenceKind.propertyAccessor));
@@ -1051,19 +1049,19 @@ class _CompilationUnitSerializer {
         ParameterElement parameterElement = typeElement.enclosingElement;
         while (true) {
           Element parent = parameterElement.enclosingElement;
-          if (parent is FunctionTypedElement) {
-            Element grandParent = parent.enclosingElement;
+          if (parent is ParameterElement) {
+            // Function-typed parameter inside a function-typed parameter.
             b.implicitFunctionTypeIndices
                 .insert(0, parent.parameters.indexOf(parameterElement));
-            if (grandParent is ParameterElement) {
-              // Function-typed parameter inside a function-typed parameter.
-              parameterElement = grandParent;
-              continue;
-            } else {
-              // Function-typed parameter inside a top level function or method.
-              b.reference = _getElementReferenceId(parent);
-              break;
-            }
+            parameterElement = parent;
+            continue;
+          } else if (parent is FunctionTypedElement) {
+            b.implicitFunctionTypeIndices
+                .insert(0, parent.parameters.indexOf(parameterElement));
+            // Function-typed parameter inside a top level function, method, or
+            // typedef.
+            b.reference = _getElementReferenceId(parent);
+            break;
           } else {
             throw new StateError(
                 'Unexpected element enclosing parameter: ${parent.runtimeType}');
