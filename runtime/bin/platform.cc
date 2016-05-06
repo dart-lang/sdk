@@ -40,7 +40,6 @@ void FUNCTION_NAME(Platform_LocalHostname)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(Platform_ExecutableName)(Dart_NativeArguments args) {
-  ASSERT(Platform::GetExecutableName() != NULL);
   if (Dart_IsRunningPrecompiledCode()) {
     // This is a work-around to be able to use most of the existing test suite
     // for precompilation. Many tests do something like Process.run(
@@ -51,8 +50,12 @@ void FUNCTION_NAME(Platform_ExecutableName)(Dart_NativeArguments args) {
         "Platform.executable not supported under precompilation"));
     UNREACHABLE();
   }
-  Dart_SetReturnValue(
-      args, Dart_NewStringFromCString(Platform::GetExecutableName()));
+  if (Platform::GetExecutableName() != NULL) {
+    Dart_SetReturnValue(
+        args, Dart_NewStringFromCString(Platform::GetExecutableName()));
+  } else {
+    Dart_SetReturnValue(args, Dart_Null());
+  }
 }
 
 

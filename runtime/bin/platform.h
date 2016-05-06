@@ -69,7 +69,10 @@ class Platform {
   static const char* GetResolvedExecutableName() {
     if (resolved_executable_name_ == NULL) {
       // Try to resolve the executable path using platform specific APIs.
-      resolved_executable_name_ = strdup(Platform::ResolveExecutablePath());
+      const char* resolved_name = Platform::ResolveExecutablePath();
+      if (resolved_name != NULL) {
+        resolved_executable_name_ = strdup(resolved_name);
+      }
     }
     return resolved_executable_name_;
   }
