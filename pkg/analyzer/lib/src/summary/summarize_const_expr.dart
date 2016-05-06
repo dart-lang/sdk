@@ -467,8 +467,8 @@ abstract class AbstractConstExprSerializer {
     ArgumentList argumentList = invocation.argumentList;
     if (_isIdentifierSequence(methodName)) {
       EntityRefBuilder ref = serializeIdentifierSequence(methodName);
-      references.add(ref);
       _serializeArguments(argumentList);
+      references.add(ref);
       operations.add(UnlinkedConstOperation.invokeMethodRef);
     } else {
       if (!invocation.isCascaded) {

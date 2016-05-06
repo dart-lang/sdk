@@ -6933,6 +6933,29 @@ final v = p.C.m();
     ]);
   }
 
+  test_expr_invokeMethodRef_with_reference_arg() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+f(x) => null;
+final u = null;
+final v = f(u);
+''');
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
+      UnlinkedConstOperation.pushReference,
+      UnlinkedConstOperation.invokeMethodRef
+    ], ints: [
+      0,
+      1
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'u',
+          expectedKind: ReferenceKind.topLevelPropertyAccessor),
+      (EntityRef r) => checkTypeRef(r, null, null, 'f',
+          expectedKind: ReferenceKind.topLevelFunction)
+    ]);
+  }
+
   test_expr_throwException() {
     if (skipNonConstInitializers) {
       return;
