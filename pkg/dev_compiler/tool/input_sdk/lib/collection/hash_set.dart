@@ -55,21 +55,41 @@ abstract class HashSet<E> implements Set<E> {
    *
    * The provided [equals] must define a stable equivalence relation, and
    * [hashCode] must be consistent with [equals]. If the [equals] or [hashCode]
-   * methods won't work on all objects, but only to instances of E, the
-   * [isValidKey] predicate can be used to restrict the keys that they are
-   * applied to. Any key for which [isValidKey] returns false is automatically
-   * assumed to not be in the set.
+   * methods won't work on all objects, but only on some instances of E, the
+   * [isValidKey] predicate can be used to restrict the keys that the functions
+   * are applied to.
+   * Any key for which [isValidKey] returns false is automatically assumed
+   * to not be in the set when asking `contains`.
    *
    * If [equals] or [hashCode] are omitted, the set uses
-   * the objects' intrinsic [Object.operator==] and [Object.hashCode].
-   *
-   * If [isValidKey] is omitted, it defaults to testing if the object is an
-   * [E] instance.
+   * the elements' intrinsic [Object.operator==] and [Object.hashCode].
    *
    * If you supply one of [equals] and [hashCode],
    * you should generally also to supply the other.
-   * An example would be using [identical] and [identityHashCode],
-   * which is equivalent to using the shorthand [LinkedSet.identity]).
+   *
+   * If the supplied `equals` or `hashCode` functions won't work on all [E]
+   * objects, and the map will be used in a setting where a non-`E` object
+   * is passed to, e.g., `contains`, then the [isValidKey] function should
+   * also be supplied.
+   *
+   * If [isValidKey] is omitted, it defaults to testing if the object is an
+   * [E] instance. That means that:
+   *
+   *     new HashSet<int>(equals: (int e1, int e2) => (e1 - e2) % 5 == 0,
+   *                      hashCode: (int e) => e % 5)
+   *
+   * does not need an `isValidKey` argument, because it defaults to only
+   * accepting `int` values which are accepted by both `equals` and `hashCode`.
+   *
+   * If neither `equals`, `hashCode`, nor `isValidKey` is provided,
+   * the default `isValidKey` instead accepts all values.
+   * The default equality and hashcode operations are assumed to work on all
+   * objects.
+   *
+   * Likewise, if `equals` is [identical], `hashCode` is [identityHashCode]
+   * and `isValidKey` is omitted, the resulting set is identity based,
+   * and the `isValidKey` defaults to accepting all keys.
+   * Such a map can be created directly using [HashSet.identity].
    */
   external factory HashSet({bool equals(E e1, E e2),
                             int hashCode(E e),
@@ -80,7 +100,8 @@ abstract class HashSet<E> implements Set<E> {
    *
    * Effectively a shorthand for:
    *
-   *     new HashSet(equals: identical, hashCode: identityHashCodeOf)
+   *     new HashSet<E>(equals: identical,
+   *                    hashCode: identityHashCode)
    */
   external factory HashSet.identity();
 
@@ -100,7 +121,7 @@ abstract class HashSet<E> implements Set<E> {
    */
   factory HashSet.from(Iterable elements) {
     HashSet<E> result = new HashSet<E>();
-    for (E e in elements) result.add(e);
+    for (final e in elements) result.add(e as E);
     return result;
   }
 

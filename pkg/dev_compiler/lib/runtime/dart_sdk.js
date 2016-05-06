@@ -4164,7 +4164,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       sort(compare) {
         if (compare === void 0) compare = null;
         dart.as(compare, dart.functionType(core.int, [E, E]));
-        _internal.Sort.sort(this, compare == null ? core.Comparable.compare : compare);
+        if (compare == null) {
+          _internal.Sort.sort(this, core.Comparable.compare);
+        } else {
+          _internal.Sort.sort(this, compare);
+        }
       }
       shuffle(random) {
         if (random === void 0) random = null;
@@ -4221,8 +4225,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
         core.RangeError.checkNotNegative(skipCount, "skipCount");
         let otherList = null;
         let otherStart = null;
-        if (dart.is(iterable, core.List)) {
-          otherList = dart.as(iterable, core.List);
+        if (dart.is(iterable, core.List$(E))) {
+          otherList = iterable;
           otherStart = skipCount;
         } else {
           otherList = iterable[dartx.skip](skipCount)[dartx.toList]({growable: false});
@@ -4233,11 +4237,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
         if (dart.notNull(otherStart) < dart.notNull(start)) {
           for (let i = length - 1; i >= 0; i--) {
-            this[dartx.set](dart.notNull(start) + i, dart.as(otherList[dartx.get](dart.notNull(otherStart) + i), E));
+            this[dartx.set](dart.notNull(start) + i, otherList[dartx.get](dart.notNull(otherStart) + i));
           }
         } else {
           for (let i = 0; i < length; i++) {
-            this[dartx.set](dart.notNull(start) + i, dart.as(otherList[dartx.get](dart.notNull(otherStart) + i), E));
+            this[dartx.set](dart.notNull(start) + i, otherList[dartx.get](dart.notNull(otherStart) + i));
           }
         }
       }
@@ -9670,221 +9674,26 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _generator = Symbol('_generator');
   const _args = Symbol('_args');
   collection.IterableBase$ = dart.generic(E => {
-    class IterableBase extends core.Object {
+    class IterableBase extends core.Iterable$(E) {
       IterableBase() {
-      }
-      map(T) {
-        return f => {
-          dart.as(f, dart.functionType(T, [E]));
-          return _internal.MappedIterable$(E, T).new(this, f);
-        };
-      }
-      where(f) {
-        dart.as(f, dart.functionType(core.bool, [E]));
-        return new (_internal.WhereIterable$(E))(this, f);
-      }
-      expand(T) {
-        return f => {
-          dart.as(f, dart.functionType(core.Iterable$(T), [E]));
-          return new (_internal.ExpandIterable$(E, T))(this, f);
-        };
-      }
-      contains(element) {
-        for (let e of this) {
-          if (dart.equals(e, element)) return true;
-        }
-        return false;
-      }
-      forEach(f) {
-        dart.as(f, dart.functionType(dart.void, [E]));
-        for (let element of this)
-          f(element);
-      }
-      reduce(combine) {
-        dart.as(combine, dart.functionType(E, [E, E]));
-        let iterator = this.iterator;
-        if (!dart.notNull(iterator.moveNext())) {
-          dart.throw(_internal.IterableElementError.noElement());
-        }
-        let value = iterator.current;
-        while (dart.notNull(iterator.moveNext())) {
-          value = combine(value, iterator.current);
-        }
-        return value;
-      }
-      fold(T) {
-        return (initialValue, combine) => {
-          dart.as(combine, dart.functionType(T, [T, E]));
-          let value = initialValue;
-          for (let element of this)
-            value = combine(value, element);
-          return value;
-        };
-      }
-      every(f) {
-        dart.as(f, dart.functionType(core.bool, [E]));
-        for (let element of this) {
-          if (!dart.notNull(f(element))) return false;
-        }
-        return true;
-      }
-      join(separator) {
-        if (separator === void 0) separator = "";
-        let iterator = this.iterator;
-        if (!dart.notNull(iterator.moveNext())) return "";
-        let buffer = new core.StringBuffer();
-        if (separator == null || separator == "") {
-          do {
-            buffer.write(`${iterator.current}`);
-          } while (dart.notNull(iterator.moveNext()));
-        } else {
-          buffer.write(`${iterator.current}`);
-          while (dart.notNull(iterator.moveNext())) {
-            buffer.write(separator);
-            buffer.write(`${iterator.current}`);
-          }
-        }
-        return buffer.toString();
-      }
-      any(f) {
-        dart.as(f, dart.functionType(core.bool, [E]));
-        for (let element of this) {
-          if (dart.notNull(f(element))) return true;
-        }
-        return false;
-      }
-      toList(opts) {
-        let growable = opts && 'growable' in opts ? opts.growable : true;
-        return core.List$(E).from(this, {growable: growable});
-      }
-      toSet() {
-        return core.Set$(E).from(this);
-      }
-      get length() {
-        dart.assert(!dart.is(this, _internal.EfficientLength));
-        let count = 0;
-        let it = this[dartx.iterator];
-        while (dart.notNull(it.moveNext())) {
-          count++;
-        }
-        return count;
-      }
-      get isEmpty() {
-        return !dart.notNull(this[dartx.iterator].moveNext());
-      }
-      get isNotEmpty() {
-        return !dart.notNull(this.isEmpty);
-      }
-      take(n) {
-        return _internal.TakeIterable$(E).new(this, n);
-      }
-      takeWhile(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
-        return new (_internal.TakeWhileIterable$(E))(this, test);
-      }
-      skip(n) {
-        return _internal.SkipIterable$(E).new(this, n);
-      }
-      skipWhile(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
-        return new (_internal.SkipWhileIterable$(E))(this, test);
-      }
-      get first() {
-        let it = this[dartx.iterator];
-        if (!dart.notNull(it.moveNext())) {
-          dart.throw(_internal.IterableElementError.noElement());
-        }
-        return it.current;
-      }
-      get last() {
-        let it = this[dartx.iterator];
-        if (!dart.notNull(it.moveNext())) {
-          dart.throw(_internal.IterableElementError.noElement());
-        }
-        let result = null;
-        do {
-          result = it.current;
-        } while (dart.notNull(it.moveNext()));
-        return result;
-      }
-      get single() {
-        let it = this[dartx.iterator];
-        if (!dart.notNull(it.moveNext())) dart.throw(_internal.IterableElementError.noElement());
-        let result = it.current;
-        if (dart.notNull(it.moveNext())) dart.throw(_internal.IterableElementError.tooMany());
-        return result;
-      }
-      firstWhere(test, opts) {
-        dart.as(test, dart.functionType(core.bool, [E]));
-        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
-        dart.as(orElse, dart.functionType(E, []));
-        for (let element of this) {
-          if (dart.notNull(test(element))) return element;
-        }
-        if (orElse != null) return orElse();
-        dart.throw(_internal.IterableElementError.noElement());
-      }
-      lastWhere(test, opts) {
-        dart.as(test, dart.functionType(core.bool, [E]));
-        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
-        dart.as(orElse, dart.functionType(E, []));
-        let result = null;
-        let foundMatching = false;
-        for (let element of this) {
-          if (dart.notNull(test(element))) {
-            result = element;
-            foundMatching = true;
-          }
-        }
-        if (foundMatching) return result;
-        if (orElse != null) return orElse();
-        dart.throw(_internal.IterableElementError.noElement());
-      }
-      singleWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
-        let result = null;
-        let foundMatching = false;
-        for (let element of this) {
-          if (dart.notNull(test(element))) {
-            if (foundMatching) {
-              dart.throw(_internal.IterableElementError.tooMany());
-            }
-            result = element;
-            foundMatching = true;
-          }
-        }
-        if (foundMatching) return result;
-        dart.throw(_internal.IterableElementError.noElement());
-      }
-      elementAt(index) {
-        if (!(typeof index == 'number')) dart.throw(new core.ArgumentError.notNull("index"));
-        core.RangeError.checkNotNegative(index, "index");
-        let elementIndex = 0;
-        for (let element of this) {
-          if (index == elementIndex) return element;
-          elementIndex++;
-        }
-        dart.throw(core.RangeError.index(index, this, "index", null, elementIndex));
-      }
-      toString() {
-        return collection.IterableBase.iterableToShortString(this, '(', ')');
+        super.Iterable();
       }
       static iterableToShortString(iterable, leftDelimiter, rightDelimiter) {
         if (leftDelimiter === void 0) leftDelimiter = '(';
         if (rightDelimiter === void 0) rightDelimiter = ')';
-        if (dart.notNull(collection.IterableBase._isToStringVisiting(iterable))) {
+        if (dart.notNull(collection._isToStringVisiting(iterable))) {
           if (leftDelimiter == "(" && rightDelimiter == ")") {
             return "(...)";
           }
           return `${leftDelimiter}...${rightDelimiter}`;
         }
         let parts = [];
-        collection.IterableBase._toStringVisiting[dartx.add](iterable);
+        collection._toStringVisiting[dartx.add](iterable);
         try {
-          collection.IterableBase._iterablePartsToStrings(iterable, parts);
+          collection._iterablePartsToStrings(iterable, parts);
         } finally {
-          dart.assert(core.identical(collection.IterableBase._toStringVisiting[dartx.last], iterable));
-          collection.IterableBase._toStringVisiting[dartx.removeLast]();
+          dart.assert(core.identical(collection._toStringVisiting[dartx.last], iterable));
+          collection._toStringVisiting[dartx.removeLast]();
         }
         return (() => {
           let _ = new core.StringBuffer(leftDelimiter);
@@ -9896,176 +9705,32 @@ dart_library.library('dart_sdk', null, /* Imports */[
       static iterableToFullString(iterable, leftDelimiter, rightDelimiter) {
         if (leftDelimiter === void 0) leftDelimiter = '(';
         if (rightDelimiter === void 0) rightDelimiter = ')';
-        if (dart.notNull(collection.IterableBase._isToStringVisiting(iterable))) {
+        if (dart.notNull(collection._isToStringVisiting(iterable))) {
           return `${leftDelimiter}...${rightDelimiter}`;
         }
         let buffer = new core.StringBuffer(leftDelimiter);
-        collection.IterableBase._toStringVisiting[dartx.add](iterable);
+        collection._toStringVisiting[dartx.add](iterable);
         try {
           buffer.writeAll(iterable, ", ");
         } finally {
-          dart.assert(core.identical(collection.IterableBase._toStringVisiting[dartx.last], iterable));
-          collection.IterableBase._toStringVisiting[dartx.removeLast]();
+          dart.assert(core.identical(collection._toStringVisiting[dartx.last], iterable));
+          collection._toStringVisiting[dartx.removeLast]();
         }
         buffer.write(rightDelimiter);
         return buffer.toString();
       }
-      static _isToStringVisiting(o) {
-        for (let i = 0; i < dart.notNull(collection.IterableBase._toStringVisiting[dartx.length]); i++) {
-          if (core.identical(o, collection.IterableBase._toStringVisiting[dartx.get](i))) return true;
-        }
-        return false;
-      }
-      static _iterablePartsToStrings(iterable, parts) {
-        let LENGTH_LIMIT = 80;
-        let HEAD_COUNT = 3;
-        let TAIL_COUNT = 2;
-        let MAX_COUNT = 100;
-        let OVERHEAD = 2;
-        let ELLIPSIS_SIZE = 3;
-        let length = 0;
-        let count = 0;
-        let it = iterable[dartx.iterator];
-        while (dart.notNull(length) < LENGTH_LIMIT || count < HEAD_COUNT) {
-          if (!dart.notNull(it.moveNext())) return;
-          let next = `${it.current}`;
-          parts[dartx.add](next);
-          length = dart.notNull(length) + (dart.notNull(next[dartx.length]) + OVERHEAD);
-          count++;
-        }
-        let penultimateString = null;
-        let ultimateString = null;
-        let penultimate = null;
-        let ultimate = null;
-        if (!dart.notNull(it.moveNext())) {
-          if (count <= HEAD_COUNT + TAIL_COUNT) return;
-          ultimateString = dart.as(parts[dartx.removeLast](), core.String);
-          penultimateString = dart.as(parts[dartx.removeLast](), core.String);
-        } else {
-          penultimate = it.current;
-          count++;
-          if (!dart.notNull(it.moveNext())) {
-            if (count <= HEAD_COUNT + 1) {
-              parts[dartx.add](`${penultimate}`);
-              return;
-            }
-            ultimateString = `${penultimate}`;
-            penultimateString = dart.as(parts[dartx.removeLast](), core.String);
-            length = dart.notNull(length) + (dart.notNull(ultimateString[dartx.length]) + OVERHEAD);
-          } else {
-            ultimate = it.current;
-            count++;
-            dart.assert(count < MAX_COUNT);
-            while (dart.notNull(it.moveNext())) {
-              penultimate = ultimate;
-              ultimate = it.current;
-              count++;
-              if (count > MAX_COUNT) {
-                while (dart.notNull(length) > LENGTH_LIMIT - ELLIPSIS_SIZE - OVERHEAD && count > HEAD_COUNT) {
-                  length = dart.notNull(length) - dart.notNull(dart.as(dart.dsend(dart.dload(parts[dartx.removeLast](), 'length'), '+', OVERHEAD), core.int));
-                  count--;
-                }
-                parts[dartx.add]("...");
-                return;
-              }
-            }
-            penultimateString = `${penultimate}`;
-            ultimateString = `${ultimate}`;
-            length = dart.notNull(length) + (dart.notNull(ultimateString[dartx.length]) + dart.notNull(penultimateString[dartx.length]) + 2 * OVERHEAD);
-          }
-        }
-        let elision = null;
-        if (count > dart.notNull(parts[dartx.length]) + TAIL_COUNT) {
-          elision = "...";
-          length = dart.notNull(length) + (ELLIPSIS_SIZE + OVERHEAD);
-        }
-        while (dart.notNull(length) > LENGTH_LIMIT && dart.notNull(parts[dartx.length]) > HEAD_COUNT) {
-          length = dart.notNull(length) - dart.notNull(dart.as(dart.dsend(dart.dload(parts[dartx.removeLast](), 'length'), '+', OVERHEAD), core.int));
-          if (elision == null) {
-            elision = "...";
-            length = dart.notNull(length) + (ELLIPSIS_SIZE + OVERHEAD);
-          }
-        }
-        if (elision != null) {
-          parts[dartx.add](elision);
-        }
-        parts[dartx.add](penultimateString);
-        parts[dartx.add](ultimateString);
-      }
-      [Symbol.iterator]() {
-        return new dart.JsIterator(this.iterator);
-      }
     }
-    IterableBase[dart.implements] = () => [core.Iterable$(E)];
     dart.setSignature(IterableBase, {
       constructors: () => ({IterableBase: [collection.IterableBase$(E), []]}),
-      methods: () => ({
-        map: [T => [core.Iterable$(T), [dart.functionType(T, [E])]]],
-        where: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        expand: [T => [core.Iterable$(T), [dart.functionType(core.Iterable$(T), [E])]]],
-        contains: [core.bool, [core.Object]],
-        forEach: [dart.void, [dart.functionType(dart.void, [E])]],
-        reduce: [E, [dart.functionType(E, [E, E])]],
-        fold: [T => [T, [T, dart.functionType(T, [T, E])]]],
-        every: [core.bool, [dart.functionType(core.bool, [E])]],
-        join: [core.String, [], [core.String]],
-        any: [core.bool, [dart.functionType(core.bool, [E])]],
-        toList: [core.List$(E), [], {growable: core.bool}],
-        toSet: [core.Set$(E), []],
-        take: [core.Iterable$(E), [core.int]],
-        takeWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        skip: [core.Iterable$(E), [core.int]],
-        skipWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        firstWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
-        lastWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
-        singleWhere: [E, [dart.functionType(core.bool, [E])]],
-        elementAt: [E, [core.int]]
-      }),
       statics: () => ({
         iterableToShortString: [core.String, [core.Iterable], [core.String, core.String]],
-        iterableToFullString: [core.String, [core.Iterable], [core.String, core.String]],
-        _isToStringVisiting: [core.bool, [core.Object]],
-        _iterablePartsToStrings: [dart.void, [core.Iterable, core.List]]
+        iterableToFullString: [core.String, [core.Iterable], [core.String, core.String]]
       }),
-      names: ['iterableToShortString', 'iterableToFullString', '_isToStringVisiting', '_iterablePartsToStrings']
+      names: ['iterableToShortString', 'iterableToFullString']
     });
-    dart.defineExtensionMembers(IterableBase, [
-      'map',
-      'where',
-      'expand',
-      'contains',
-      'forEach',
-      'reduce',
-      'fold',
-      'every',
-      'join',
-      'any',
-      'toList',
-      'toSet',
-      'take',
-      'takeWhile',
-      'skip',
-      'skipWhile',
-      'firstWhere',
-      'lastWhere',
-      'singleWhere',
-      'elementAt',
-      'toString',
-      'length',
-      'isEmpty',
-      'isNotEmpty',
-      'first',
-      'last',
-      'single'
-    ]);
     return IterableBase;
   });
   collection.IterableBase = collection.IterableBase$();
-  dart.defineLazy(collection.IterableBase, {
-    get _toStringVisiting() {
-      return [];
-    }
-  });
   _js_helper.SyncIterable$ = dart.generic(E => {
     class SyncIterable extends collection.IterableBase$(E) {
       SyncIterable(generator, args) {
@@ -21331,11 +20996,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._defaultEquals = function(a, b) {
     return dart.equals(a, b);
   };
-  dart.lazyFn(collection._defaultEquals, () => [core.bool, [core.Object, core.Object]]);
+  dart.lazyFn(collection._defaultEquals, () => [core.bool, [dart.dynamic, dart.dynamic]]);
   collection._defaultHashCode = function(a) {
     return dart.hashCode(a);
   };
-  dart.fn(collection._defaultHashCode, core.int, [core.Object]);
+  dart.fn(collection._defaultHashCode, core.int, [dart.dynamic]);
   collection._Equality$ = dart.generic(K => {
     const _Equality = dart.typedef('_Equality', () => dart.functionType(core.bool, [K, K]));
     return _Equality;
@@ -21447,10 +21112,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       static from(elements) {
         let result = collection.HashSet$(E).new();
-        for (let e of elements) {
-          dart.as(e, E);
-          result.add(e);
-        }
+        for (let e of elements)
+          result.add(dart.as(e, E));
         return result;
       }
       [Symbol.iterator]() {
@@ -21572,15 +21235,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
       get isNotEmpty() {
         return !dart.notNull(this.isEmpty);
       }
-      take(n) {
-        return _internal.TakeIterable$(E).new(this, n);
+      take(count) {
+        return _internal.TakeIterable$(E).new(this, count);
       }
       takeWhile(test) {
         dart.as(test, dart.functionType(core.bool, [E]));
         return new (_internal.TakeWhileIterable$(E))(this, test);
       }
-      skip(n) {
-        return _internal.SkipIterable$(E).new(this, n);
+      skip(count) {
+        return _internal.SkipIterable$(E).new(this, count);
       }
       skipWhile(test) {
         dart.as(test, dart.functionType(core.bool, [E]));
@@ -21727,6 +21390,95 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return IterableMixin;
   });
   collection.IterableMixin = collection.IterableMixin$();
+  dart.defineLazy(collection, {
+    get _toStringVisiting() {
+      return [];
+    }
+  });
+  collection._isToStringVisiting = function(o) {
+    for (let i = 0; i < dart.notNull(collection._toStringVisiting[dartx.length]); i++) {
+      if (core.identical(o, collection._toStringVisiting[dartx.get](i))) return true;
+    }
+    return false;
+  };
+  dart.lazyFn(collection._isToStringVisiting, () => [core.bool, [core.Object]]);
+  collection._iterablePartsToStrings = function(iterable, parts) {
+    let LENGTH_LIMIT = 80;
+    let HEAD_COUNT = 3;
+    let TAIL_COUNT = 2;
+    let MAX_COUNT = 100;
+    let OVERHEAD = 2;
+    let ELLIPSIS_SIZE = 3;
+    let length = 0;
+    let count = 0;
+    let it = iterable[dartx.iterator];
+    while (dart.notNull(length) < LENGTH_LIMIT || count < HEAD_COUNT) {
+      if (!dart.notNull(it.moveNext())) return;
+      let next = `${it.current}`;
+      parts[dartx.add](next);
+      length = dart.notNull(length) + (dart.notNull(next[dartx.length]) + OVERHEAD);
+      count++;
+    }
+    let penultimateString = null;
+    let ultimateString = null;
+    let penultimate = null;
+    let ultimate = null;
+    if (!dart.notNull(it.moveNext())) {
+      if (count <= HEAD_COUNT + TAIL_COUNT) return;
+      ultimateString = dart.as(parts[dartx.removeLast](), core.String);
+      penultimateString = dart.as(parts[dartx.removeLast](), core.String);
+    } else {
+      penultimate = it.current;
+      count++;
+      if (!dart.notNull(it.moveNext())) {
+        if (count <= HEAD_COUNT + 1) {
+          parts[dartx.add](`${penultimate}`);
+          return;
+        }
+        ultimateString = `${penultimate}`;
+        penultimateString = dart.as(parts[dartx.removeLast](), core.String);
+        length = dart.notNull(length) + (dart.notNull(ultimateString[dartx.length]) + OVERHEAD);
+      } else {
+        ultimate = it.current;
+        count++;
+        dart.assert(count < MAX_COUNT);
+        while (dart.notNull(it.moveNext())) {
+          penultimate = ultimate;
+          ultimate = it.current;
+          count++;
+          if (count > MAX_COUNT) {
+            while (dart.notNull(length) > LENGTH_LIMIT - ELLIPSIS_SIZE - OVERHEAD && count > HEAD_COUNT) {
+              length = dart.notNull(length) - dart.notNull(dart.as(dart.dsend(dart.dload(parts[dartx.removeLast](), 'length'), '+', OVERHEAD), core.int));
+              count--;
+            }
+            parts[dartx.add]("...");
+            return;
+          }
+        }
+        penultimateString = `${penultimate}`;
+        ultimateString = `${ultimate}`;
+        length = dart.notNull(length) + (dart.notNull(ultimateString[dartx.length]) + dart.notNull(penultimateString[dartx.length]) + 2 * OVERHEAD);
+      }
+    }
+    let elision = null;
+    if (count > dart.notNull(parts[dartx.length]) + TAIL_COUNT) {
+      elision = "...";
+      length = dart.notNull(length) + (ELLIPSIS_SIZE + OVERHEAD);
+    }
+    while (dart.notNull(length) > LENGTH_LIMIT && dart.notNull(parts[dartx.length]) > HEAD_COUNT) {
+      length = dart.notNull(length) - dart.notNull(dart.as(dart.dsend(dart.dload(parts[dartx.removeLast](), 'length'), '+', OVERHEAD), core.int));
+      if (elision == null) {
+        elision = "...";
+        length = dart.notNull(length) + (ELLIPSIS_SIZE + OVERHEAD);
+      }
+    }
+    if (elision != null) {
+      parts[dartx.add](elision);
+    }
+    parts[dartx.add](penultimateString);
+    parts[dartx.add](ultimateString);
+  };
+  dart.lazyFn(collection._iterablePartsToStrings, () => [dart.void, [core.Iterable, core.List]]);
   const _iterator$0 = Symbol('_iterator');
   const _state$ = Symbol('_state');
   const _move = Symbol('_move');
@@ -21743,7 +21495,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       next() {
         if (!dart.notNull(this.hasNext)) dart.throw(new core.StateError("No more elements"));
         dart.assert(this[_state$] == collection.HasNextIterator._HAS_NEXT_AND_NEXT_IN_CURRENT);
-        let result = dart.as(this[_iterator$0].current, E);
+        let result = this[_iterator$0].current;
         this[_move]();
         return result;
       }
@@ -21756,7 +21508,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(HasNextIterator, {
-      constructors: () => ({HasNextIterator: [collection.HasNextIterator$(E), [core.Iterator]]}),
+      constructors: () => ({HasNextIterator: [collection.HasNextIterator$(E), [core.Iterator$(E)]]}),
       methods: () => ({
         next: [E, []],
         [_move]: [dart.void, []]
@@ -21878,7 +21630,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       static from(elements) {
         let result = collection.LinkedHashSet$(E).new();
         for (let element of elements) {
-          result.add(element);
+          result.add(dart.as(element, E));
         }
         return result;
       }
@@ -21891,7 +21643,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       constructors: () => ({
         new: [collection.LinkedHashSet$(E), [], {equals: dart.functionType(core.bool, [E, E]), hashCode: dart.functionType(core.int, [E]), isValidKey: dart.functionType(core.bool, [core.Object])}],
         identity: [collection.LinkedHashSet$(E), []],
-        from: [collection.LinkedHashSet$(E), [core.Iterable$(E)]]
+        from: [collection.LinkedHashSet$(E), [core.Iterable]]
       })
     });
     return LinkedHashSet;
@@ -22138,7 +21890,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       putIfAbsent(key, ifAbsent) {
         dart.as(key, K);
         dart.as(ifAbsent, dart.functionType(V, []));
-        if (dart.notNull(this.keys[dartx.contains](key))) {
+        if (dart.notNull(this.containsKey(key))) {
           return this.get(key);
         }
         return this.set(key, ifAbsent());
@@ -22156,7 +21908,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this.keys[dartx.isNotEmpty];
       }
       get values() {
-        return new (collection._MapBaseValueIterable$(V))(this);
+        return new (collection._MapBaseValueIterable$(K, V))(this);
       }
       toString() {
         return collection.Maps.mapToString(this);
@@ -22244,11 +21996,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return UnmodifiableMapBase;
   });
   collection.UnmodifiableMapBase = collection.UnmodifiableMapBase$();
-  collection._MapBaseValueIterable$ = dart.generic(V => {
-    class _MapBaseValueIterable extends collection.IterableBase$(V) {
+  collection._MapBaseValueIterable$ = dart.generic((K, V) => {
+    class _MapBaseValueIterable extends core.Iterable$(V) {
       _MapBaseValueIterable(map) {
         this[_map$] = map;
-        super.IterableBase();
+        super.Iterable();
       }
       get length() {
         return this[_map$][dartx.length];
@@ -22260,21 +22012,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_map$][dartx.isNotEmpty];
       }
       get first() {
-        return dart.as(this[_map$][dartx.get](this[_map$][dartx.keys][dartx.first]), V);
+        return this[_map$][dartx.get](this[_map$][dartx.keys][dartx.first]);
       }
       get single() {
-        return dart.as(this[_map$][dartx.get](this[_map$][dartx.keys][dartx.single]), V);
+        return this[_map$][dartx.get](this[_map$][dartx.keys][dartx.single]);
       }
       get last() {
-        return dart.as(this[_map$][dartx.get](this[_map$][dartx.keys][dartx.last]), V);
+        return this[_map$][dartx.get](this[_map$][dartx.keys][dartx.last]);
       }
       get iterator() {
-        return new (collection._MapBaseValueIterator$(V))(this[_map$]);
+        return new (collection._MapBaseValueIterator$(K, V))(this[_map$]);
       }
     }
     _MapBaseValueIterable[dart.implements] = () => [_internal.EfficientLength];
     dart.setSignature(_MapBaseValueIterable, {
-      constructors: () => ({_MapBaseValueIterable: [collection._MapBaseValueIterable$(V), [core.Map]]})
+      constructors: () => ({_MapBaseValueIterable: [collection._MapBaseValueIterable$(K, V), [core.Map$(K, V)]]})
     });
     dart.defineExtensionMembers(_MapBaseValueIterable, [
       'length',
@@ -22288,7 +22040,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return _MapBaseValueIterable;
   });
   collection._MapBaseValueIterable = collection._MapBaseValueIterable$();
-  collection._MapBaseValueIterator$ = dart.generic(V => {
+  collection._MapBaseValueIterator$ = dart.generic((K, V) => {
     class _MapBaseValueIterator extends core.Object {
       _MapBaseValueIterator(map) {
         this[_map$] = map;
@@ -22297,7 +22049,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       moveNext() {
         if (dart.notNull(this[_keys].moveNext())) {
-          this[_current$2] = dart.as(this[_map$][dartx.get](this[_keys].current), V);
+          this[_current$2] = this[_map$][dartx.get](this[_keys].current);
           return true;
         }
         this[_current$2] = null;
@@ -22309,7 +22061,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _MapBaseValueIterator[dart.implements] = () => [core.Iterator$(V)];
     dart.setSignature(_MapBaseValueIterator, {
-      constructors: () => ({_MapBaseValueIterator: [collection._MapBaseValueIterator$(V), [core.Map]]}),
+      constructors: () => ({_MapBaseValueIterator: [collection._MapBaseValueIterator$(K, V), [core.Map$(K, V)]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return _MapBaseValueIterator;
@@ -22419,7 +22171,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection.Maps = class Maps extends core.Object {
     static containsValue(map, value) {
       for (let v of map[dartx.values]) {
-        if (dart.equals(value, v)) {
+        if (dart.equals(v, value)) {
           return true;
         }
       }
@@ -22427,7 +22179,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static containsKey(map, key) {
       for (let k of map[dartx.keys]) {
-        if (dart.equals(key, k)) {
+        if (dart.equals(k, key)) {
           return true;
         }
       }
@@ -22464,12 +22216,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return map[dartx.keys][dartx.isNotEmpty];
     }
     static mapToString(m) {
-      if (dart.notNull(collection.IterableBase._isToStringVisiting(m))) {
+      if (dart.notNull(collection._isToStringVisiting(m))) {
         return '{...}';
       }
       let result = new core.StringBuffer();
       try {
-        collection.IterableBase._toStringVisiting[dartx.add](m);
+        collection._toStringVisiting[dartx.add](m);
         result.write('{');
         let first = true;
         m[dartx.forEach](dart.fn((k, v) => {
@@ -22483,8 +22235,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }, dart.void, [dart.dynamic, dart.dynamic]));
         result.write('}');
       } finally {
-        dart.assert(core.identical(collection.IterableBase._toStringVisiting[dartx.last], m));
-        collection.IterableBase._toStringVisiting[dartx.removeLast]();
+        dart.assert(core.identical(collection._toStringVisiting[dartx.last], m));
+        collection._toStringVisiting[dartx.removeLast]();
       }
       return result.toString();
     }
@@ -22515,8 +22267,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.setSignature(collection.Maps, {
     statics: () => ({
-      containsValue: [core.bool, [core.Map, dart.dynamic]],
-      containsKey: [core.bool, [core.Map, dart.dynamic]],
+      containsValue: [core.bool, [core.Map, core.Object]],
+      containsKey: [core.bool, [core.Map, core.Object]],
       putIfAbsent: [dart.dynamic, [core.Map, dart.dynamic, dart.functionType(dart.dynamic, [])]],
       clear: [dart.dynamic, [core.Map]],
       forEach: [dart.dynamic, [core.Map, dart.functionType(dart.void, [dart.dynamic, dart.dynamic])]],

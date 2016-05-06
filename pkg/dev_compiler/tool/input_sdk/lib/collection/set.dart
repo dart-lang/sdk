@@ -158,7 +158,7 @@ abstract class SetMixin<E> implements Set<E> {
   }
 
   dynamic/*=T*/ fold/*<T>*/(var/*=T*/ initialValue,
-               dynamic/*=T*/ combine(var/*=T*/ previousValue, E element)) {
+      dynamic/*=T*/ combine(var/*=T*/ previousValue, E element)) {
     var value = initialValue;
     for (E element in this) value = combine(value, element);
     return value;

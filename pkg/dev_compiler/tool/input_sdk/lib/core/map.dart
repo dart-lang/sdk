@@ -45,7 +45,7 @@ abstract class Map<K, V> {
    * The [other] map itself can have any type.
    *
    * A `LinkedHashMap` requires the keys to implement compatible
-   * `operator==` and `hashCode`, and it allows null as a key.
+   * `operator==` and `hashCode`, and it allows `null` as a key.
    * It iterates in key insertion order.
    */
   factory Map.from(Map other) = LinkedHashMap<K, V>.from;

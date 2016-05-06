@@ -369,7 +369,6 @@
 
       // TODO(vsm): Triage further
       // exports._GeneratorIterable$ is not a function
-      'typed_data_list_test': skip_fail,
       'byte_data_test': skip_fail,
       'endianness_test': skip_fail,
 
@@ -469,6 +468,7 @@
       'int32x4_bigint_test': skip_fail,
       'int64_list_load_store_test': skip_fail,
       'typed_data_hierarchy_int64_test': skip_fail,
+      'typed_data_list_test': fail,
 
       // TODO(vsm): List.toString is different in DDC
       // https://github.com/dart-lang/dev_compiler/issues/445

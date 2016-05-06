@@ -175,7 +175,8 @@ abstract class ListMixin<E> implements List<E> {
 
   Iterable<E> where(bool test(E element)) => new WhereIterable<E>(this, test);
 
-  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(E element)) => new MappedListIterable<E, dynamic/*=T*/>(this, f);
+  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(E element)) =>
+      new MappedListIterable/*<E, T>*/(this, f);
 
   Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element)) =>
       new ExpandIterable<E, dynamic/*=T*/>(this, f);
@@ -193,7 +194,8 @@ abstract class ListMixin<E> implements List<E> {
     return value;
   }
 
-  /*=T*/ fold/*<T>*/(var/*=T*/ initialValue, /*=T*/combine(var/*=T*/ previousValue, E element)) {
+  dynamic/*=T*/ fold/*<T>*/(var/*=T*/ initialValue,
+               dynamic/*=T*/ combine(var/*=T*/ previousValue, E element)) {
     var value = initialValue;
     int length = this.length;
     for (int i = 0; i < length; i++) {
@@ -306,7 +308,11 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   void sort([int compare(E a, E b)]) {
-    Sort.sort(this, compare == null ? Comparable.compare : compare);
+    if (compare == null) {
+      Sort.sort(this, Comparable.compare);
+    } else {
+      Sort.sort(this, compare);
+    }
   }
 
   void shuffle([Random random]) {
@@ -362,10 +368,10 @@ abstract class ListMixin<E> implements List<E> {
     if (length == 0) return;
     RangeError.checkNotNegative(skipCount, "skipCount");
 
-    List otherList;
+    List<E> otherList;
     int otherStart;
     // TODO(floitsch): Make this accept more.
-    if (iterable is List) {
+    if (iterable is List/*<E>*/) {
       otherList = iterable;
       otherStart = skipCount;
     } else {

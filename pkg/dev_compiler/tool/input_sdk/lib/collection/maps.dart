@@ -68,7 +68,7 @@ abstract class MapMixin<K, V> implements Map<K, V> {
   }
 
   V putIfAbsent(K key, V ifAbsent()) {
-    if (keys.contains(key)) {
+    if (containsKey(key)) {
       return this[key];
     }
     return this[key] = ifAbsent();
@@ -78,7 +78,7 @@ abstract class MapMixin<K, V> implements Map<K, V> {
   int get length => keys.length;
   bool get isEmpty => keys.isEmpty;
   bool get isNotEmpty => keys.isNotEmpty;
-  Iterable<V> get values => new _MapBaseValueIterable<V>(this);
+  Iterable<V> get values => new _MapBaseValueIterable<K, V>(this);
   String toString() => Maps.mapToString(this);
 }
 
@@ -111,9 +111,9 @@ abstract class UnmodifiableMapBase<K, V> =
  * It accesses the values by iterating over the keys of the map, and using the
  * map's `operator[]` to lookup the keys.
  */
-class _MapBaseValueIterable<V> extends IterableBase<V>
-                               implements EfficientLength {
-  final Map _map;
+class _MapBaseValueIterable<K, V> extends Iterable<V>
+                                  implements EfficientLength {
+  final Map<K, V> _map;
   _MapBaseValueIterable(this._map);
 
   int get length => _map.length;
@@ -123,7 +123,7 @@ class _MapBaseValueIterable<V> extends IterableBase<V>
   V get single => _map[_map.keys.single];
   V get last => _map[_map.keys.last];
 
-  Iterator<V> get iterator => new _MapBaseValueIterator<V>(_map);
+  Iterator<V> get iterator => new _MapBaseValueIterator<K, V>(_map);
 }
 
 /**
@@ -132,12 +132,14 @@ class _MapBaseValueIterable<V> extends IterableBase<V>
  * Iterates over the values of a map by iterating its keys and lookup up the
  * values.
  */
-class _MapBaseValueIterator<V> implements Iterator<V> {
-  final Iterator _keys;
-  final Map _map;
+class _MapBaseValueIterator<K, V> implements Iterator<V> {
+  final Iterator<K> _keys;
+  final Map<K, V> _map;
   V _current = null;
 
-  _MapBaseValueIterator(Map map) : _map = map, _keys = map.keys.iterator;
+  _MapBaseValueIterator(Map<K, V> map)
+      : _map = map,
+        _keys = map.keys.iterator;
 
   bool moveNext() {
     if (_keys.moveNext()) {
@@ -218,18 +220,18 @@ class UnmodifiableMapView<K, V> =
  * necessary to implement each particular operation.
  */
 class Maps {
-  static bool containsValue(Map map, value) {
+  static bool containsValue(Map map, Object value) {
     for (final v in map.values) {
-      if (value == v) {
+      if (v == value) {
         return true;
       }
     }
     return false;
   }
 
-  static bool containsKey(Map map, key) {
+  static bool containsKey(Map map, Object key) {
     for (final k in map.keys) {
-      if (key == k) {
+      if (k == key) {
         return true;
       }
     }
@@ -285,11 +287,11 @@ class Maps {
    */
   static String mapToString(Map m) {
     // Reuse the list in IterableBase for detecting toString cycles.
-    if (IterableBase._isToStringVisiting(m)) { return '{...}'; }
+    if (_isToStringVisiting(m)) { return '{...}'; }
 
     var result = new StringBuffer();
     try {
-      IterableBase._toStringVisiting.add(m);
+      _toStringVisiting.add(m);
       result.write('{');
       bool first = true;
       m.forEach((k, v) {
@@ -303,8 +305,8 @@ class Maps {
       });
       result.write('}');
     } finally {
-      assert(identical(IterableBase._toStringVisiting.last, m));
-      IterableBase._toStringVisiting.removeLast();
+      assert(identical(_toStringVisiting.last, m));
+      _toStringVisiting.removeLast();
     }
 
     return result.toString();
