@@ -25019,8 +25019,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return _ConverterStreamEventSink;
   });
   convert._ConverterStreamEventSink = convert._ConverterStreamEventSink$();
-  const _first$ = Symbol('_first');
   const _second = Symbol('_second');
+  const _first$ = Symbol('_first');
   convert._FusedCodec$ = dart.generic((S, M, T) => {
     class _FusedCodec extends convert.Codec$(S, T) {
       get encoder() {

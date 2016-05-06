@@ -118,6 +118,11 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   String _buildRoot;
 
+  bool _superAllowed = true;
+
+  List<JS.TemporaryId> _superHelperSymbols = <JS.TemporaryId>[];
+  List<JS.Method> _superHelpers = <JS.Method>[];
+
   /// Whether we are currently generating code for the body of a `JS()` call.
   bool _isInForeignJS = false;
 
@@ -595,6 +600,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var body = <JS.Statement>[];
     var extensions = _extensionsToImplement(classElem);
     _initExtensionSymbols(classElem, methods, fields, body);
+    _emitSuperHelperSymbols(_superHelperSymbols, body);
 
     // Emit the class, e.g. `core.Object = class Object { ... }`
     _defineClass(classElem, className, classExpr, body);
@@ -617,6 +623,14 @@ class CodeGenerator extends GeneralizingAstVisitor
     _emitStaticFields(staticFields, staticFieldOverrides, classElem, body);
     _registerExtensionType(classElem, body);
     return _statement(body);
+  }
+
+  void _emitSuperHelperSymbols(
+      List<JS.TemporaryId> superHelperSymbols, List<JS.Statement> body) {
+    for (var id in superHelperSymbols) {
+      body.add(js.statement('const # = Symbol(#)', [id, js.string(id.name)]));
+    }
+    superHelperSymbols.clear();
   }
 
   void _registerPropertyOverrides(
@@ -896,6 +910,10 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (!hasJsPeer && !hasIterator && _implementsIterable(type)) {
       jsMethods.add(_emitIterable(type));
     }
+
+    // Add all of the super helper methods
+    jsMethods.addAll(_superHelpers);
+    _superHelpers.clear();
 
     return jsMethods.where((m) => m != null).toList(growable: false);
   }
@@ -1630,7 +1648,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
   }
 
-  JS.Method _emitMethodDeclaration(DartType type, MethodDeclaration node) {
+  JS.Method _emitMethodDeclaration(InterfaceType type, MethodDeclaration node) {
     if (node.isAbstract) {
       return null;
     }
@@ -1956,8 +1974,11 @@ class CodeGenerator extends GeneralizingAstVisitor
     } else {
       _asyncStarController = null;
     }
+    var savedSuperAllowed = _superAllowed;
+    _superAllowed = false;
     // Visit the body with our async* controller set.
     var jsBody = _visit(body);
+    _superAllowed = savedSuperAllowed;
     _asyncStarController = savedController;
 
     DartType returnType = _getExpectedReturnType(element);
@@ -2003,8 +2024,12 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// function instantiation.
   @override
   JS.Expression visitSimpleIdentifier(SimpleIdentifier node) {
-    return _applyFunctionTypeArguments(
-        _emitSimpleIdentifier(node), node.staticElement, node.staticType);
+    var typeArgs = _getTypeArgs(node.staticElement, node.staticType);
+    var simpleId = _emitSimpleIdentifier(node);
+    if (typeArgs == null) {
+      return simpleId;
+    }
+    return js.call('dart.gbind(#, #)', [simpleId, typeArgs]);
   }
 
   /// Emits a simple identifier, handling implicit `this` as well as
@@ -2384,8 +2409,59 @@ class CodeGenerator extends GeneralizingAstVisitor
     return _emitMethodCall(target, node);
   }
 
-  /// Emits a (possibly generic) instance method call.
   JS.Expression _emitMethodCall(Expression target, MethodInvocation node) {
+    List<JS.Expression> args = _visit(node.argumentList);
+    var typeArgs = _emitInvokeTypeArguments(node);
+
+    if (target is SuperExpression && !_superAllowed) {
+      return _emitSuperHelperCall(typeArgs, args, target, node);
+    }
+
+    return _emitMethodCallInternal(target, node, args, typeArgs);
+  }
+
+  JS.Expression _emitSuperHelperCall(List<JS.Expression> typeArgs,
+      List<JS.Expression> args, SuperExpression target, MethodInvocation node) {
+    var fakeTypeArgs =
+        typeArgs?.map((_) => new JS.TemporaryId('a'))?.toList(growable: false);
+    var fakeArgs =
+        args.map((_) => new JS.TemporaryId('a')).toList(growable: false);
+    var combinedFakeArgs = <JS.TemporaryId>[];
+    if (fakeTypeArgs != null) {
+      combinedFakeArgs.addAll(fakeTypeArgs);
+    }
+    combinedFakeArgs.addAll(fakeArgs);
+
+    var forwardedCall =
+        _emitMethodCallInternal(target, node, fakeArgs, fakeTypeArgs);
+    var superForwarder = _getSuperHelperFor(
+        node.methodName.name, forwardedCall, combinedFakeArgs);
+
+    var combinedRealArgs = <JS.Expression>[];
+    if (typeArgs != null) {
+      combinedRealArgs.addAll(typeArgs);
+    }
+    combinedRealArgs.addAll(args);
+
+    return js.call('this.#(#)', [superForwarder, combinedRealArgs]);
+  }
+
+  JS.Expression _getSuperHelperFor(String name, JS.Expression forwardedCall,
+      List<JS.Expression> helperArgs) {
+    var helperMethod =
+        new JS.Fun(helperArgs, new JS.Block([new JS.Return(forwardedCall)]));
+    var helperMethodName = new JS.TemporaryId('super\$$name');
+    _superHelperSymbols.add(helperMethodName);
+    _superHelpers.add(new JS.Method(helperMethodName, helperMethod));
+    return helperMethodName;
+  }
+
+  /// Emits a (possibly generic) instance method call.
+  JS.Expression _emitMethodCallInternal(
+      Expression target,
+      MethodInvocation node,
+      List<JS.Expression> args,
+      List<JS.Expression> typeArgs) {
     var type = getStaticType(target);
     var name = node.methodName.name;
     var element = node.methodName.staticElement;
@@ -2393,8 +2469,6 @@ class CodeGenerator extends GeneralizingAstVisitor
     var memberName = _emitMemberName(name, type: type, isStatic: isStatic);
 
     JS.Expression jsTarget = _visit(target);
-    var typeArgs = _emitInvokeTypeArguments(node);
-    List<JS.Expression> args = _visit(node.argumentList);
     if (DynamicInvoke.get(target)) {
       if (typeArgs != null) {
         return js.call('dart.dgsend(#, #, #, #)',
@@ -2410,6 +2484,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
 
     jsTarget = new JS.PropertyAccess(jsTarget, memberName);
+
     if (typeArgs != null) jsTarget = new JS.Call(jsTarget, typeArgs);
 
     if (DynamicInvoke.get(node.methodName)) {
@@ -3544,8 +3619,45 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (member is PropertyAccessorElement) {
       member = (member as PropertyAccessorElement).variable;
     }
+    String memberName = memberId.name;
+    var typeArgs = _getTypeArgs(member, resultType);
+
+    if (target is SuperExpression && !_superAllowed) {
+      return _emitSuperHelperAccess(target, member, memberName, typeArgs);
+    }
+    return _emitAccessInternal(target, member, memberName, typeArgs);
+  }
+
+  JS.Expression _emitSuperHelperAccess(SuperExpression target, Element member,
+      String memberName, List<JS.Expression> typeArgs) {
+    var fakeTypeArgs =
+        typeArgs?.map((_) => new JS.TemporaryId('a'))?.toList(growable: false);
+
+    var forwardedAccess =
+        _emitAccessInternal(target, member, memberName, fakeTypeArgs);
+    var superForwarder = _getSuperHelperFor(
+        memberName, forwardedAccess, fakeTypeArgs ?? const []);
+
+    return js.call('this.#(#)', [superForwarder, typeArgs ?? const []]);
+  }
+
+  List<JS.Expression> _getTypeArgs(Element member, DartType instantiated) {
+    DartType type;
+    if (member is ExecutableElement) {
+      type = member.type;
+    } else if (member is VariableElement) {
+      type = member.type;
+    }
+
+    // TODO(jmesserly): handle explicitly passed type args.
+    if (type == null) return null;
+    return _emitFunctionTypeArguments(type, instantiated);
+  }
+
+  JS.Expression _emitAccessInternal(Expression target, Element member,
+      String memberName, List<JS.Expression> typeArgs) {
     bool isStatic = member is ClassMemberElement && member.isStatic;
-    var name = _emitMemberName(memberId.name,
+    var name = _emitMemberName(memberName,
         type: getStaticType(target), isStatic: isStatic);
     if (DynamicInvoke.get(target)) {
       return js.call('dart.dload(#, #)', [_visit(target), name]);
@@ -3565,34 +3677,19 @@ class CodeGenerator extends GeneralizingAstVisitor
       // Tear-off methods: explicitly bind it.
       if (isSuper) {
         result = js.call('dart.bind(this, #, #.#)', [name, jsTarget, name]);
-      } else if (_isObjectMemberCall(target, memberId.name)) {
+      } else if (_isObjectMemberCall(target, memberName)) {
         result = js.call('dart.bind(#, #, dart.#)', [jsTarget, name, name]);
       } else {
         result = js.call('dart.bind(#, #)', [jsTarget, name]);
       }
-    } else if (_isObjectMemberCall(target, memberId.name)) {
+    } else if (_isObjectMemberCall(target, memberName)) {
       result = js.call('dart.#(#)', [name, jsTarget]);
     } else {
       result = js.call('#.#', [jsTarget, name]);
     }
-    return _applyFunctionTypeArguments(result, member, resultType);
-  }
-
-  /// If this is an inferred instantiation of a generic function/method, this
-  /// will add the inferred type arguments.
-  JS.Expression _applyFunctionTypeArguments(
-      JS.Expression result, Element member, DartType instantiated) {
-    DartType type;
-    if (member is ExecutableElement) {
-      type = member.type;
-    } else if (member is VariableElement) {
-      type = member.type;
+    if (typeArgs == null) {
+      return result;
     }
-
-    // TODO(jmesserly): handle explicitly passed type args.
-    if (type == null) return result;
-    var typeArgs = _emitFunctionTypeArguments(type, instantiated);
-    if (typeArgs == null) return result;
     return js.call('dart.gbind(#, #)', [result, typeArgs]);
   }
 
@@ -3790,8 +3887,12 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   @override
   visitTryStatement(TryStatement node) {
-    return new JS.Try(_visit(node.body), _visitCatch(node.catchClauses),
-        _visit(node.finallyBlock));
+    var savedSuperAllowed = _superAllowed;
+    _superAllowed = false;
+    var finallyBlock = _visit(node.finallyBlock);
+    _superAllowed = savedSuperAllowed;
+    return new JS.Try(
+        _visit(node.body), _visitCatch(node.catchClauses), finallyBlock);
   }
 
   _visitCatch(NodeList<CatchClause> clauses) {
