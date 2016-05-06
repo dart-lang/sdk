@@ -24,10 +24,12 @@ class CompileCommand extends Command {
   CompileCommand({MessageHandler messageHandler})
       : this.messageHandler = messageHandler ?? print {
     argParser.addOption('out', abbr: 'o', help: 'Output file (required)');
+    argParser.addOption('module-root',
+        help: 'Root module directory. '
+            'Generated module paths are relative to this root.');
     argParser.addOption('build-root',
-        help: '''
-Root of source files.  Generated library names are relative to this root.
-''');
+        help: 'Root of source files. '
+            'Generated library names are relative to this root.');
     CompilerOptions.addArguments(argParser);
     AnalyzerOptions.addArguments(argParser);
   }
@@ -50,8 +52,23 @@ Root of source files.  Generated library names are relative to this root.
     } else {
       buildRoot = Directory.current.path;
     }
-    var unit = new BuildUnit(path.basenameWithoutExtension(outPath), buildRoot,
-        argResults.rest, _moduleForLibrary);
+    var moduleRoot = argResults['module-root'] as String;
+    String modulePath;
+    if (moduleRoot != null) {
+      moduleRoot = path.absolute(moduleRoot);
+      if (!path.isWithin(moduleRoot, outPath)) {
+        usageException('Output file $outPath must be within the module root '
+            'directory $moduleRoot');
+      }
+      modulePath =
+          path.withoutExtension(path.relative(outPath, from: moduleRoot));
+    } else {
+      moduleRoot = path.dirname(outPath);
+      modulePath = path.basenameWithoutExtension(outPath);
+    }
+
+    var unit = new BuildUnit(modulePath, buildRoot, argResults.rest,
+        (source) => _moduleForLibrary(moduleRoot, source));
 
     JSModuleFile module = compiler.compile(unit, compilerOptions);
     module.errors.forEach(messageHandler);
@@ -71,9 +88,17 @@ Root of source files.  Generated library names are relative to this root.
     }
   }
 
-  String _moduleForLibrary(Source source) {
+  String _moduleForLibrary(String moduleRoot, Source source) {
     if (source is InSummarySource) {
-      return path.basenameWithoutExtension(source.summaryPath);
+      var summaryPath = source.summaryPath;
+      if (path.isWithin(moduleRoot, summaryPath)) {
+        return path
+            .withoutExtension(path.relative(summaryPath, from: moduleRoot));
+      }
+
+      throw usageException(
+          'Imported file ${source.uri} is not within the module root '
+          'directory $moduleRoot');
     }
 
     throw usageException(
