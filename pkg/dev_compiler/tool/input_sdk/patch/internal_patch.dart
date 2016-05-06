@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_js_primitives' show printString;
-import 'dart:_js_helper' show JS, patch;
+import 'dart:_js_helper' show patch;
 import 'dart:_interceptors' show JSArray;
 
 @patch

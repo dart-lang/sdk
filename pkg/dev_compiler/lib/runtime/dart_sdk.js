@@ -9164,6 +9164,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       return _js_helper.Primitives._fromCharCodeApply(dart.as(charCodes, core.List$(core.int)));
     }
+    static stringFromNativeUint8List(charCodes, start, end) {
+      let kMaxApply = 500;
+      if (dart.notNull(end) <= kMaxApply && start == 0 && end == charCodes[dartx.length]) {
+        return String.fromCharCode.apply(null, charCodes);
+      }
+      let result = '';
+      for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + kMaxApply) {
+        let chunkEnd = dart.notNull(i) + kMaxApply < dart.notNull(end) ? dart.notNull(i) + kMaxApply : end;
+        result = result + String.fromCharCode.apply(null, charCodes.subarray(i, chunkEnd));
+      }
+      return result;
+    }
     static stringFromCharCode(charCode) {
       if (0 <= dart.notNull(charCode)) {
         if (dart.notNull(charCode) <= 65535) {
@@ -9301,6 +9313,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _fromCharCodeApply: [core.String, [core.List$(core.int)]],
       stringFromCodePoints: [core.String, [dart.dynamic]],
       stringFromCharCodes: [core.String, [dart.dynamic]],
+      stringFromNativeUint8List: [core.String, [_native_typed_data.NativeUint8List, core.int, core.int]],
       stringFromCharCode: [core.String, [core.int]],
       stringConcatUnchecked: [core.String, [core.String, core.String]],
       flattenString: [core.String, [core.String]],
@@ -9323,7 +9336,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       identicalImplementation: [core.bool, [dart.dynamic, dart.dynamic]],
       extractStackTrace: [core.StackTrace, [core.Error]]
     }),
-    names: ['initializeStatics', 'objectHashCode', '_parseIntError', 'parseInt', '_parseDoubleError', 'parseDouble', 'objectTypeName', 'objectToString', 'dateNow', 'initTicker', 'currentUri', '_fromCharCodeApply', 'stringFromCodePoints', 'stringFromCharCodes', 'stringFromCharCode', 'stringConcatUnchecked', 'flattenString', 'getTimeZoneName', 'getTimeZoneOffsetInMinutes', 'valueFromDecomposedDate', 'patchUpY2K', 'lazyAsJsDate', 'getYear', 'getMonth', 'getDay', 'getHours', 'getMinutes', 'getSeconds', 'getMilliseconds', 'getWeekday', 'valueFromDateString', 'getProperty', 'setProperty', 'identicalImplementation', 'extractStackTrace']
+    names: ['initializeStatics', 'objectHashCode', '_parseIntError', 'parseInt', '_parseDoubleError', 'parseDouble', 'objectTypeName', 'objectToString', 'dateNow', 'initTicker', 'currentUri', '_fromCharCodeApply', 'stringFromCodePoints', 'stringFromCharCodes', 'stringFromNativeUint8List', 'stringFromCharCode', 'stringConcatUnchecked', 'flattenString', 'getTimeZoneName', 'getTimeZoneOffsetInMinutes', 'valueFromDecomposedDate', 'patchUpY2K', 'lazyAsJsDate', 'getYear', 'getMonth', 'getDay', 'getHours', 'getMinutes', 'getSeconds', 'getMilliseconds', 'getWeekday', 'valueFromDateString', 'getProperty', 'setProperty', 'identicalImplementation', 'extractStackTrace']
   });
   _js_helper.Primitives.mirrorFunctionCacheName = '$cachedFunction';
   _js_helper.Primitives.mirrorInvokeCacheName = '$cachedInvocation';
@@ -24393,23 +24406,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static fromCharCodes(charCodes, start, end) {
       if (start === void 0) start = 0;
       if (end === void 0) end = null;
-      if (!dart.is(charCodes, _interceptors.JSArray)) {
-        return core.String._stringFromIterable(charCodes, start, end);
+      if (dart.is(charCodes, _interceptors.JSArray)) {
+        return core.String._stringFromJSArray(dart.as(charCodes, core.List), start, end);
       }
-      let list = dart.as(charCodes, core.List);
-      let len = list[dartx.length];
-      if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(len)) {
-        dart.throw(new core.RangeError.range(start, 0, len));
+      if (dart.is(charCodes, _native_typed_data.NativeUint8List)) {
+        return core.String._stringFromUint8List(charCodes, start, end);
       }
-      if (end == null) {
-        end = len;
-      } else if (dart.notNull(end) < dart.notNull(start) || dart.notNull(end) > dart.notNull(len)) {
-        dart.throw(new core.RangeError.range(end, start, len));
-      }
-      if (dart.notNull(start) > 0 || dart.notNull(end) < dart.notNull(len)) {
-        list = list[dartx.sublist](start, end);
-      }
-      return _js_helper.Primitives.stringFromCharCodes(list);
+      return core.String._stringFromIterable(charCodes, start, end);
     }
     static fromCharCode(charCode) {
       return _js_helper.Primitives.stringFromCharCode(charCode);
@@ -24417,6 +24420,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static fromEnvironment(name, opts) {
       let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : null;
       dart.throw(new core.UnsupportedError('String.fromEnvironment can only be used as a const constructor'));
+    }
+    static _stringFromJSArray(list, start, endOrNull) {
+      let len = list[dartx.length];
+      let end = core.RangeError.checkValidRange(start, endOrNull, len);
+      if (dart.notNull(start) > 0 || dart.notNull(end) < dart.notNull(len)) {
+        list = list[dartx.sublist](start, end);
+      }
+      return _js_helper.Primitives.stringFromCharCodes(list);
+    }
+    static _stringFromUint8List(charCodes, start, endOrNull) {
+      let len = charCodes[dartx.length];
+      let end = core.RangeError.checkValidRange(start, endOrNull, len);
+      return _js_helper.Primitives.stringFromNativeUint8List(charCodes, start, end);
     }
     static _stringFromIterable(charCodes, start, end) {
       if (dart.notNull(start) < 0) dart.throw(new core.RangeError.range(start, 0, charCodes[dartx.length]));
@@ -24451,8 +24467,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       fromCharCode: [core.String, [core.int]],
       fromEnvironment: [core.String, [core.String], {defaultValue: core.String}]
     }),
-    statics: () => ({_stringFromIterable: [core.String, [core.Iterable$(core.int), core.int, core.int]]}),
-    names: ['_stringFromIterable']
+    statics: () => ({
+      _stringFromJSArray: [core.String, [core.List, core.int, core.int]],
+      _stringFromUint8List: [core.String, [_native_typed_data.NativeUint8List, core.int, core.int]],
+      _stringFromIterable: [core.String, [core.Iterable$(core.int), core.int, core.int]]
+    }),
+    names: ['_stringFromJSArray', '_stringFromUint8List', '_stringFromIterable']
   });
   core.List$ = dart.generic(E => {
     class List extends core.Object {

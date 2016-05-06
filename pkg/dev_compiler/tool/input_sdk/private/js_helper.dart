@@ -16,6 +16,8 @@ import 'dart:_internal' show
     MappedIterable,
     IterableElementError;
 
+import 'dart:_native_typed_data';
+
 part 'annotations.dart';
 part 'native_helper.dart';
 part 'regexp_helper.dart';
@@ -278,6 +280,24 @@ class Primitives {
     }
     return _fromCharCodeApply(charCodes);
   }
+
+  // [start] and [end] are validated.
+  static String stringFromNativeUint8List(
+      NativeUint8List charCodes, int start, int end) {
+    const kMaxApply = 500;
+    if (end <= kMaxApply && start == 0 && end == charCodes.length) {
+      return JS('String', r'String.fromCharCode.apply(null, #)', charCodes);
+    }
+    String result = '';
+    for (int i = start; i < end; i += kMaxApply) {
+      int chunkEnd = (i + kMaxApply < end) ? i + kMaxApply : end;
+      result = JS('String',
+          r'# + String.fromCharCode.apply(null, #.subarray(#, #))',
+          result, charCodes, i, chunkEnd);
+    }
+    return result;
+  }
+
 
   static String stringFromCharCode(int charCode) {
     if (0 <= charCode) {
