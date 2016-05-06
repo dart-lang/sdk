@@ -458,6 +458,9 @@ class ClassElementForLink_Class extends ClassElementForLink
       _unlinkedClass.interfaces.map(_computeInterfaceType).toList();
 
   @override
+  bool get isMixinApplication => _unlinkedClass.isMixinApplication;
+
+  @override
   bool get isObject => _unlinkedClass.hasNoSupertype;
 
   @override

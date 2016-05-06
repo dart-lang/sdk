@@ -4,6 +4,7 @@
 
 library analyzer.test.generated.static_warning_code_test;
 
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:unittest/unittest.dart';
@@ -2856,6 +2857,23 @@ class I {
 }
 class C implements I {
 }''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source,
+        [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO]);
+    verify([source]);
+  }
+
+  void
+      test_nonAbstractClassInheritsAbstractMemberTwo_variable_fromMixin_missingBoth() {
+    // 26411
+    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource(r'''
+class A {
+  int f;
+}
+class B extends A {}
+class C extends Object with B {}
+''');
     computeLibrarySourceErrors(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO]);

@@ -491,23 +491,6 @@ mixin_supertype_subclass4_test/03: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass4_test/04: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass4_test/05: MissingStaticWarning # Issue 25614
 
-mixin_of_mixin_test/01: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/02: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/04: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/05: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/06: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/08: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/09: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/10: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/12: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/13: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/15: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/16: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/17: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/19: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/20: MissingStaticWarning # Issue 25605
-mixin_of_mixin_test/21: MissingStaticWarning # Issue 25605
-
 accessor_conflict_export2_test: StaticWarning # Issue 25624
 accessor_conflict_export_test: StaticWarning # Issue 25624
 accessor_conflict_import2_test: StaticWarning # Issue 25624
