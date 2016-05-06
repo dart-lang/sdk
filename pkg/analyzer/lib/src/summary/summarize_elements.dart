@@ -1051,7 +1051,7 @@ class _CompilationUnitSerializer {
         ParameterElement parameterElement = typeElement.enclosingElement;
         while (true) {
           Element parent = parameterElement.enclosingElement;
-          if (parent is ExecutableElement) {
+          if (parent is FunctionTypedElement) {
             Element grandParent = parent.enclosingElement;
             b.implicitFunctionTypeIndices
                 .insert(0, parent.parameters.indexOf(parameterElement));

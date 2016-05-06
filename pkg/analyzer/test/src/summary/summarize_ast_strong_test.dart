@@ -66,6 +66,12 @@ class LinkedSummarizeAstStrongTest extends LinkedSummarizeAstTest {
 
   @override
   @failingTest
+  test_inferred_type_refers_to_function_typed_param_of_typedef() {
+    super.test_inferred_type_refers_to_function_typed_param_of_typedef();
+  }
+
+  @override
+  @failingTest
   test_initializer_executable_with_bottom_return_type() {
     super.test_initializer_executable_with_bottom_return_type();
   }

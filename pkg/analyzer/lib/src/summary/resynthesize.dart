@@ -1376,12 +1376,6 @@ class _ReferenceInfo {
     if (element is ClassElementHandle) {
       return new InterfaceTypeImpl.elementWithNameAndArgs(element, name,
           _buildTypeArguments(numTypeParameters, getTypeArgument));
-    } else if (element is FunctionTypeAliasElementHandle) {
-      return new FunctionTypeImpl.elementWithNameAndArgs(
-          element,
-          name,
-          _buildTypeArguments(numTypeParameters, getTypeArgument),
-          numTypeParameters != 0);
     } else if (element is FunctionTypedElement) {
       int numTypeArguments;
       FunctionTypedElementComputer computer;
@@ -1394,6 +1388,12 @@ class _ReferenceInfo {
           }
           return element;
         };
+      } else if (element is FunctionTypeAliasElementHandle) {
+        return new FunctionTypeImpl.elementWithNameAndArgs(
+            element,
+            name,
+            _buildTypeArguments(numTypeParameters, getTypeArgument),
+            numTypeParameters != 0);
       } else {
         // For a type that refers to a generic executable, the type arguments are
         // not supposed to include the arguments to the executable itself.

@@ -3331,6 +3331,14 @@ f<T>() {
         ' abstract class D<U, V> { Map<V, U> get v; }');
   }
 
+  void test_inferred_type_refers_to_function_typed_param_of_typedef() {
+    checkLibrary('''
+typedef void F(int g(String s));
+h(F f) => null;
+var v = h(/*info:INFERRED_TYPE_CLOSURE*/(y) {});
+''');
+  }
+
   test_inferred_type_refers_to_function_typed_parameter_type_generic_class() {
     checkLibrary('class C<T, U> extends D<U, int> { void f(int x, g) {} }'
         ' abstract class D<V, W> { void f(int x, W g(V s)); }');

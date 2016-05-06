@@ -7580,6 +7580,26 @@ class D extends p.C {} // Prevent "unused import" warning
     checkLinkedTypeRef(type.typeArguments[1], 'dart:core', 'dart:core', 'int');
   }
 
+  test_inferred_type_refers_to_function_typed_param_of_typedef() {
+    if (!strongMode || skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedVariable v = serializeVariableText('''
+typedef void F(int g(String s));
+h(F f) => null;
+var v = h((y) {});
+''');
+    expect(v.initializer.localFunctions, hasLength(1));
+    UnlinkedExecutable closure = v.initializer.localFunctions[0];
+    expect(closure.parameters, hasLength(1));
+    UnlinkedParam y = closure.parameters[0];
+    expect(y.name, 'y');
+    EntityRef typeRef = getTypeRefForSlot(y.inferredTypeSlot);
+    checkLinkedTypeRef(typeRef, null, null, 'F',
+        expectedKind: ReferenceKind.typedef);
+    expect(typeRef.implicitFunctionTypeIndices, [0]);
+  }
+
   test_inferred_type_refers_to_function_typed_parameter_type_generic_class() {
     if (!strongMode || skipFullyLinkedData) {
       return;
