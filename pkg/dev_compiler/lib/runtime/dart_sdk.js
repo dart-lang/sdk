@@ -3660,7 +3660,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this[dartx['+']](padding[dartx['*']](delta));
     }
     get [dartx.codeUnits]() {
-      return new _interceptors._CodeUnits(this);
+      return new _internal.CodeUnits(this);
     }
     get [dartx.runes]() {
       return new core.Runes(this);
@@ -3793,6 +3793,53 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   _interceptors.JSString[dart.metadata] = () => [dart.const(new _js_helper.JsPeerInterface({name: 'String'}))];
   dart.registerExtension(dart.global.String, _interceptors.JSString);
+  core.num = class num extends core.Object {
+    static parse(input, onError) {
+      if (onError === void 0) onError = null;
+      let source = input[dartx.trim]();
+      let result = core.int.parse(source, {onError: core.num._returnIntNull});
+      if (result != null) return result;
+      result = core.double.parse(source, core.num._returnDoubleNull);
+      if (result != null) return result;
+      if (onError == null) dart.throw(new core.FormatException(input));
+      return onError(input);
+    }
+    static _returnIntNull(_) {
+      return null;
+    }
+    static _returnDoubleNull(_) {
+      return null;
+    }
+  };
+  core.num[dart.implements] = () => [core.Comparable$(core.num)];
+  dart.setSignature(core.num, {
+    statics: () => ({
+      parse: [core.num, [core.String], [dart.functionType(core.num, [core.String])]],
+      _returnIntNull: [core.int, [core.String]],
+      _returnDoubleNull: [core.double, [core.String]]
+    }),
+    names: ['parse', '_returnIntNull', '_returnDoubleNull']
+  });
+  core.double = class double extends core.num {
+    static parse(source, onError) {
+      if (onError === void 0) onError = null;
+      return _js_helper.Primitives.parseDouble(source, onError);
+    }
+  };
+  dart.setSignature(core.double, {
+    statics: () => ({parse: [core.double, [core.String], [dart.functionType(core.double, [core.String])]]}),
+    names: ['parse']
+  });
+  core.double.NAN = 0.0 / 0.0;
+  core.double.INFINITY = 1.0 / 0.0;
+  core.double.MIN_POSITIVE = 5e-324;
+  core.double.MAX_FINITE = 1.7976931348623157e+308;
+  dart.defineLazy(core.double, {
+    get NEGATIVE_INFINITY() {
+      return -dart.notNull(core.double.INFINITY);
+    }
+  });
+  _internal.POWERS_OF_TEN = dart.const(dart.list([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22], core.double));
   const _string = Symbol('_string');
   collection.ListMixin$ = dart.generic(E => {
     dart.defineExtensionNames([
@@ -4562,33 +4609,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return UnmodifiableListBase;
   });
   _internal.UnmodifiableListBase = _internal.UnmodifiableListBase$();
-  core.num = class num extends core.Object {
-    static parse(input, onError) {
-      if (onError === void 0) onError = null;
-      let source = input[dartx.trim]();
-      let result = core.int.parse(source, {onError: core.num._returnIntNull});
-      if (result != null) return result;
-      result = core.double.parse(source, core.num._returnDoubleNull);
-      if (result != null) return result;
-      if (onError == null) dart.throw(new core.FormatException(input));
-      return onError(input);
-    }
-    static _returnIntNull(_) {
-      return null;
-    }
-    static _returnDoubleNull(_) {
-      return null;
-    }
-  };
-  core.num[dart.implements] = () => [core.Comparable$(core.num)];
-  dart.setSignature(core.num, {
-    statics: () => ({
-      parse: [core.num, [core.String], [dart.functionType(core.num, [core.String])]],
-      _returnIntNull: [core.int, [core.String]],
-      _returnDoubleNull: [core.double, [core.String]]
-    }),
-    names: ['parse', '_returnIntNull', '_returnDoubleNull']
-  });
   core.int = class int extends core.num {
     static fromEnvironment(name, opts) {
       let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : null;
@@ -4605,8 +4625,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     statics: () => ({parse: [core.int, [core.String], {radix: core.int, onError: dart.functionType(core.int, [core.String])}]}),
     names: ['parse']
   });
-  _interceptors._CodeUnits = class _CodeUnits extends _internal.UnmodifiableListBase$(core.int) {
-    _CodeUnits(string) {
+  _internal.CodeUnits = class CodeUnits extends _internal.UnmodifiableListBase$(core.int) {
+    CodeUnits(string) {
       this[_string] = string;
     }
     get length() {
@@ -4618,32 +4638,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get(i) {
       return this[_string][dartx.codeUnitAt](i);
     }
-  };
-  dart.setSignature(_interceptors._CodeUnits, {
-    constructors: () => ({_CodeUnits: [_interceptors._CodeUnits, [core.String]]}),
-    methods: () => ({get: [core.int, [core.int]]})
-  });
-  dart.defineExtensionMembers(_interceptors._CodeUnits, ['get', 'length']);
-  core.double = class double extends core.num {
-    static parse(source, onError) {
-      if (onError === void 0) onError = null;
-      return _js_helper.Primitives.parseDouble(source, onError);
+    static stringOf(u) {
+      return u[_string];
     }
   };
-  dart.setSignature(core.double, {
-    statics: () => ({parse: [core.double, [core.String], [dart.functionType(core.double, [core.String])]]}),
-    names: ['parse']
+  dart.setSignature(_internal.CodeUnits, {
+    constructors: () => ({CodeUnits: [_internal.CodeUnits, [core.String]]}),
+    methods: () => ({get: [core.int, [core.int]]}),
+    statics: () => ({stringOf: [core.String, [_internal.CodeUnits]]}),
+    names: ['stringOf']
   });
-  core.double.NAN = 0.0 / 0.0;
-  core.double.INFINITY = 1.0 / 0.0;
-  core.double.MIN_POSITIVE = 5e-324;
-  core.double.MAX_FINITE = 1.7976931348623157e+308;
-  dart.defineLazy(core.double, {
-    get NEGATIVE_INFINITY() {
-      return -dart.notNull(core.double.INFINITY);
-    }
-  });
-  _internal.POWERS_OF_TEN = dart.const(dart.list([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22], core.double));
+  dart.defineExtensionMembers(_internal.CodeUnits, ['get', 'length']);
   _internal.EfficientLength = class EfficientLength extends core.Object {};
   core.Iterable$ = dart.generic(E => {
     dart.defineExtensionNames([
