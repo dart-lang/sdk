@@ -4,6 +4,22 @@
 
 part of dart._js_helper;
 
+int stringIndexOfStringUnchecked(receiver, other, startIndex) {
+  return JS('int', '#.indexOf(#, #)', receiver, other, startIndex);
+}
+
+String substring1Unchecked(receiver, startIndex) {
+  return JS('String', '#.substring(#)', receiver, startIndex);
+}
+
+String substring2Unchecked(receiver, startIndex, endIndex) {
+  return JS('String', '#.substring(#, #)', receiver, startIndex, endIndex);
+}
+
+bool stringContainsStringUnchecked(receiver, other, startIndex) {
+  return stringIndexOfStringUnchecked(receiver, other, startIndex) >= 0;
+}
+
 class StringMatch implements Match {
   const StringMatch(int this.start,
                     String this.input,
@@ -33,34 +49,63 @@ class StringMatch implements Match {
   final String pattern;
 }
 
-List<Match> allMatchesInStringUnchecked(String needle, String haystack,
-                                        int startIndex) {
-  // Copied from StringBase.allMatches in
-  // /runtime/lib/string_base.dart
-  List<Match> result = new List<Match>();
-  int length = haystack.length;
-  int patternLength = needle.length;
-  while (true) {
-    int position = haystack.indexOf(needle, startIndex);
-    if (position == -1) {
-      break;
-    }
-    result.add(new StringMatch(position, haystack, needle));
-    int endIndex = position + patternLength;
-    if (endIndex == length) {
-      break;
-    } else if (position == endIndex) {
-      ++startIndex;  // empty match, advance and restart
-    } else {
-      startIndex = endIndex;
-    }
-  }
-  return result;
+Iterable<Match> allMatchesInStringUnchecked(String pattern, String string,
+                                            int startIndex) {
+  return new _StringAllMatchesIterable(string, pattern, startIndex);
 }
 
-stringContainsUnchecked(receiver, other, startIndex) {
+class _StringAllMatchesIterable extends Iterable<Match> {
+  final String _input;
+  final String _pattern;
+  final int _index;
+
+  _StringAllMatchesIterable(this._input, this._pattern, this._index);
+
+  Iterator<Match> get iterator =>
+      new _StringAllMatchesIterator(_input, _pattern, _index);
+
+  Match get first {
+    int index = stringIndexOfStringUnchecked(_input, _pattern, _index);
+    if (index >= 0) {
+      return new StringMatch(index, _input, _pattern);
+    }
+    throw IterableElementError.noElement();
+  }
+}
+
+class _StringAllMatchesIterator implements Iterator<Match> {
+  final String _input;
+  final String _pattern;
+  int _index;
+  Match _current;
+
+  _StringAllMatchesIterator(this._input, this._pattern, this._index);
+
+  bool moveNext() {
+    if (_index + _pattern.length > _input.length) {
+      _current = null;
+      return false;
+    }
+    var index = stringIndexOfStringUnchecked(_input, _pattern, _index);
+    if (index < 0) {
+      _index = _input.length + 1;
+      _current = null;
+      return false;
+    }
+    int end = index + _pattern.length;
+    _current = new StringMatch(index, _input, _pattern);
+    // Empty match, don't start at same location again.
+    if (end == _index) end++;
+    _index = end;
+    return true;
+  }
+
+  Match get current => _current;
+}
+
+bool stringContainsUnchecked(String receiver, other, int startIndex) {
   if (other is String) {
-    return receiver.indexOf(other, startIndex) != -1;
+    return stringContainsStringUnchecked(receiver, other, startIndex);
   } else if (other is JSSyntaxRegExp) {
     return other.hasMatch(receiver.substring(startIndex));
   } else {
@@ -69,51 +114,57 @@ stringContainsUnchecked(receiver, other, startIndex) {
   }
 }
 
-stringReplaceJS(receiver, replacer, to) {
+String stringReplaceJS(receiver, replacer, replacement) {
   // The JavaScript String.replace method recognizes replacement
   // patterns in the replacement string. Dart does not have that
   // behavior.
-  to = JS('String', r'#.replace(/\$/g, "$$$$")', to);
-  return JS('String', r'#.replace(#, #)', receiver, replacer, to);
+  replacement = JS('String', r'#.replace(/\$/g, "$$$$")', replacement);
+  return JS('String', r'#.replace(#, #)', receiver, replacer, replacement);
 }
 
-stringReplaceFirstRE(receiver, regexp, to, startIndex) {
+String stringReplaceFirstRE(String receiver,
+    JSSyntaxRegExp regexp, String replacement, int startIndex) {
   var match = regexp._execGlobal(receiver, startIndex);
   if (match == null) return receiver;
   var start = match.start;
   var end = match.end;
-  return "${receiver.substring(0,start)}$to${receiver.substring(end)}";
+  return stringReplaceRangeUnchecked(receiver, start, end, replacement);
 }
 
-const String ESCAPE_REGEXP = r'[[\]{}()*+?.\\^$|]';
 
-stringReplaceAllUnchecked(receiver, from, to) {
-  checkString(to);
-  if (from is String) {
-    if (from == "") {
+/// Returns a string for a RegExp pattern that matches [string]. This is done by
+/// escaping all RegExp metacharacters.
+String quoteStringForRegExp(string) {
+  return JS('String', r'#.replace(/[[\]{}()*+?.\\^$|]/g, "\\$&")', string);
+}
+
+String stringReplaceAllUnchecked(
+    String receiver, Pattern pattern, String replacement) {
+  checkString(replacement);
+  if (pattern is String) {
+    if (pattern == "") {
       if (receiver == "") {
-        return to;
+        return replacement;
       } else {
         StringBuffer result = new StringBuffer();
         int length = receiver.length;
-        result.write(to);
+        result.write(replacement);
         for (int i = 0; i < length; i++) {
           result.write(receiver[i]);
-          result.write(to);
+          result.write(replacement);
         }
         return result.toString();
       }
     } else {
-      var quoter = JS('', "new RegExp(#, 'g')", ESCAPE_REGEXP);
-      var quoted = JS('String', r'#.replace(#, "\\$&")', from, quoter);
+      var quoted = quoteStringForRegExp(pattern);
       var replacer = JS('', "new RegExp(#, 'g')", quoted);
-      return stringReplaceJS(receiver, replacer, to);
+      return stringReplaceJS(receiver, replacer, replacement);
     }
-  } else if (from is JSSyntaxRegExp) {
-    var re = regExpGetGlobalNative(from);
-    return stringReplaceJS(receiver, re, to);
+  } else if (pattern is JSSyntaxRegExp) {
+    var re = regExpGetGlobalNative(pattern);
+    return stringReplaceJS(receiver, re, replacement);
   } else {
-    checkNull(from);
+    checkNull(pattern);
     // TODO(floitsch): implement generic String.replace (with patterns).
     throw "String.replaceAll(Pattern) UNIMPLEMENTED";
   }
@@ -122,15 +173,22 @@ stringReplaceAllUnchecked(receiver, from, to) {
 String _matchString(Match match) => match[0];
 String _stringIdentity(String string) => string;
 
-stringReplaceAllFuncUnchecked(receiver, pattern, onMatch, onNonMatch) {
-  if (pattern is! Pattern) {
-    throw new ArgumentError("${pattern} is not a Pattern");
-  }
+String stringReplaceAllFuncUnchecked(
+    String receiver,
+    Pattern pattern,
+    String onMatch(Match match),
+    String onNonMatch(String nonMatch)) {
   if (onMatch == null) onMatch = _matchString;
   if (onNonMatch == null) onNonMatch = _stringIdentity;
   if (pattern is String) {
     return stringReplaceAllStringFuncUnchecked(receiver, pattern,
                                                onMatch, onNonMatch);
+  }
+  // Placing the Pattern test here is indistingishable from placing it at the
+  // top of the method but it saves an extra check on the `pattern is String`
+  // path.
+  if (pattern is! Pattern) {
+    throw new ArgumentError.value(pattern, 'pattern', 'is not a Pattern');
   }
   StringBuffer buffer = new StringBuffer();
   int startIndex = 0;
@@ -143,7 +201,9 @@ stringReplaceAllFuncUnchecked(receiver, pattern, onMatch, onNonMatch) {
   return buffer.toString();
 }
 
-stringReplaceAllEmptyFuncUnchecked(receiver, onMatch, onNonMatch) {
+String stringReplaceAllEmptyFuncUnchecked(String receiver,
+    String onMatch(Match match),
+    String onNonMatch(String nonMatch)) {
   // Pattern is the empty string.
   StringBuffer buffer = new StringBuffer();
   int length = receiver.length;
@@ -171,7 +231,11 @@ stringReplaceAllEmptyFuncUnchecked(receiver, onMatch, onNonMatch) {
   return buffer.toString();
 }
 
-stringReplaceAllStringFuncUnchecked(receiver, pattern, onMatch, onNonMatch) {
+String stringReplaceAllStringFuncUnchecked(
+    String receiver,
+    String pattern,
+    String onMatch(Match match),
+    String onNonMatch(String nonMatch)) {
   int patternLength = pattern.length;
   if (patternLength == 0) {
     return stringReplaceAllEmptyFuncUnchecked(receiver, onMatch, onNonMatch);
@@ -180,7 +244,7 @@ stringReplaceAllStringFuncUnchecked(receiver, pattern, onMatch, onNonMatch) {
   StringBuffer buffer = new StringBuffer();
   int startIndex = 0;
   while (startIndex < length) {
-    int position = receiver.indexOf(pattern, startIndex);
+    int position = stringIndexOfStringUnchecked(receiver, pattern, startIndex);
     if (position == -1) {
       break;
     }
@@ -193,23 +257,45 @@ stringReplaceAllStringFuncUnchecked(receiver, pattern, onMatch, onNonMatch) {
 }
 
 
-stringReplaceFirstUnchecked(receiver, from, to, [int startIndex = 0]) {
-  if (from is String) {
-    var index = receiver.indexOf(from, startIndex);
+String stringReplaceFirstUnchecked(
+    String receiver, Pattern pattern, String replacement, int startIndex) {
+  if (pattern is String) {
+    int index = stringIndexOfStringUnchecked(receiver, pattern, startIndex);
     if (index < 0) return receiver;
-    return '${receiver.substring(0, index)}$to'
-           '${receiver.substring(index + from.length)}';
-  } else if (from is JSSyntaxRegExp) {
-    return startIndex == 0 ?
-        stringReplaceJS(receiver, regExpGetNative(from), to) :
-        stringReplaceFirstRE(receiver, from, to, startIndex);
-  } else {
-    checkNull(from);
-    // TODO(floitsch): implement generic String.replace (with patterns).
-    throw "String.replace(Pattern) UNIMPLEMENTED";
+    int end = index + pattern.length;
+    return stringReplaceRangeUnchecked(receiver, index, end, replacement);
   }
+  if (pattern is JSSyntaxRegExp) {
+    return startIndex == 0
+        ? stringReplaceJS(receiver, regExpGetNative(pattern), replacement)
+        : stringReplaceFirstRE(receiver, pattern, replacement, startIndex);
+  }
+  checkNull(pattern);
+  Iterator<Match> matches = pattern.allMatches(receiver, startIndex).iterator;
+  if (!matches.moveNext()) return receiver;
+  Match match = matches.current;
+  return receiver.replaceRange(match.start, match.end, replacement);
 }
 
-stringJoinUnchecked(array, separator) {
+String stringReplaceFirstMappedUnchecked(
+    String receiver,
+    Pattern pattern,
+    String replace(Match current),
+    int startIndex) {
+  Iterator<Match> matches = pattern.allMatches(receiver, startIndex).iterator;
+  if (!matches.moveNext()) return receiver;
+  Match match = matches.current;
+  String replacement = "${replace(match)}";
+  return receiver.replaceRange(match.start, match.end, replacement);
+}
+
+String stringJoinUnchecked(array, separator) {
   return JS('String', r'#.join(#)', array, separator);
+}
+
+String stringReplaceRangeUnchecked(String receiver,
+    int start, int end, String replacement) {
+  var prefix = JS('String', '#.substring(0, #)', receiver, start);
+  var suffix = JS('String', '#.substring(#)', receiver, end);
+  return "$prefix$replacement$suffix";
 }

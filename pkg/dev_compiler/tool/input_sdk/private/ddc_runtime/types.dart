@@ -510,8 +510,11 @@ isSubtype_(t1, t2, covariant) => JS('', '''(() => {
     return false;
   }
 
-  // "Traditional" name-based subtype check.
-  {
+  // "Traditional" name-based subtype check.  Avoid passing
+  // function types to the class subtype checks, since we don't
+  // currently distinguish between generic typedefs and classes.
+  if (!($t1 instanceof $AbstractFunctionType) &&
+      !($t2 instanceof $AbstractFunctionType)) {
     let result = $isClassSubType($t1, $t2, $covariant);
     if (result === true || result === null) return result;
   }

@@ -11,7 +11,12 @@ import 'dart:_foreign_helper' show
     JS_STRING_CONCAT;
 
 import 'dart:_interceptors';
-import 'dart:_runtime';
+import 'dart:_internal' show
+    EfficientLength,
+    MappedIterable,
+    IterableElementError;
+
+import 'dart:_native_typed_data';
 
 part 'annotations.dart';
 part 'native_helper.dart';
@@ -60,86 +65,97 @@ class Primitives {
     return JS('int', '#', hash);
   }
 
-  static _throwFormatException(String string) {
-    throw new FormatException(string);
+  @NoInline()
+  static int _parseIntError(String source, int handleError(String source)) {
+    if (handleError == null) throw new FormatException(source);
+    return handleError(source);
   }
 
   static int parseInt(String source,
                       int radix,
                       int handleError(String source)) {
-    // TODO(vsm): Make _throwFormatException generic and use directly
-    // to avoid closure allocation.
-    if (handleError == null) handleError = (s) => _throwFormatException(s);
-
     checkString(source);
-    var match = JS('JSExtendableArray|Null',
-        r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i.exec(#)',
-        source);
+    var re = JS('', r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i');
+    var/*=JSArray<String>*/ match = JS('JSExtendableArray|Null', '#.exec(#)', re, source);
     int digitsIndex = 1;
     int hexIndex = 2;
     int decimalIndex = 3;
     int nonDecimalHexIndex = 4;
+    if (match == null) {
+      // TODO(sra): It might be that the match failed due to unrecognized U+0085
+      // spaces.  We could replace them with U+0020 spaces and try matching
+      // again.
+      return _parseIntError(source, handleError);
+    }
+    String decimalMatch = match[decimalIndex];
     if (radix == null) {
-      radix = 10;
-      if (match != null) {
-        if (match[hexIndex] != null) {
-          // Cannot fail because we know that the digits are all hex.
-          return JS('int', r'parseInt(#, 16)', source);
-        }
-        if (match[decimalIndex] != null) {
-          // Cannot fail because we know that the digits are all decimal.
-          return JS('int', r'parseInt(#, 10)', source);
-        }
-        return handleError(source);
+      if (decimalMatch != null) {
+        // Cannot fail because we know that the digits are all decimal.
+        return JS('int', r'parseInt(#, 10)', source);
       }
-    } else {
-      if (radix is! int) throw new ArgumentError("Radix is not an integer");
-      if (radix < 2 || radix > 36) {
-        throw new RangeError("Radix $radix not in range 2..36");
+      if (match[hexIndex] != null) {
+        // Cannot fail because we know that the digits are all hex.
+        return JS('int', r'parseInt(#, 16)', source);
       }
-      if (match != null) {
-        if (radix == 10 && match[decimalIndex] != null) {
-          // Cannot fail because we know that the digits are all decimal.
-          return JS('int', r'parseInt(#, 10)', source);
-        }
-        if (radix < 10 || match[decimalIndex] == null) {
-          // We know that the characters must be ASCII as otherwise the
-          // regexp wouldn't have matched. Lowercasing by doing `| 0x20` is thus
-          // guaranteed to be a safe operation, since it preserves digits
-          // and lower-cases ASCII letters.
-          int maxCharCode;
-          if (radix <= 10) {
-            // Allow all digits less than the radix. For example 0, 1, 2 for
-            // radix 3.
-            // "0".codeUnitAt(0) + radix - 1;
-            maxCharCode = 0x30 + radix - 1;
-          } else {
-            // Letters are located after the digits in ASCII. Therefore we
-            // only check for the character code. The regexp above made already
-            // sure that the string does not contain anything but digits or
-            // letters.
-            // "a".codeUnitAt(0) + (radix - 10) - 1;
-            maxCharCode = 0x61 + radix - 10 - 1;
-          }
-          String digitsPart = match[digitsIndex];
-          for (int i = 0; i < digitsPart.length; i++) {
-            int characterCode = digitsPart.codeUnitAt(0) | 0x20;
-            if (digitsPart.codeUnitAt(i) > maxCharCode) {
-              return handleError(source);
-            }
-          }
+      return _parseIntError(source, handleError);
+    }
+
+    if (radix is! int) {
+      throw new ArgumentError.value(radix, 'radix', 'is not an integer');
+    }
+    if (radix < 2 || radix > 36) {
+      throw new RangeError.range(radix, 2, 36, 'radix');
+    }
+    if (radix == 10 && decimalMatch != null) {
+      // Cannot fail because we know that the digits are all decimal.
+      return JS('int', r'parseInt(#, 10)', source);
+    }
+    // If radix >= 10 and we have only decimal digits the string is safe.
+    // Otherwise we need to check the digits.
+    if (radix < 10 || decimalMatch == null) {
+      // We know that the characters must be ASCII as otherwise the
+      // regexp wouldn't have matched. Lowercasing by doing `| 0x20` is thus
+      // guaranteed to be a safe operation, since it preserves digits
+      // and lower-cases ASCII letters.
+      int maxCharCode;
+      if (radix <= 10) {
+        // Allow all digits less than the radix. For example 0, 1, 2 for
+        // radix 3.
+        // "0".codeUnitAt(0) + radix - 1;
+        maxCharCode = (0x30 - 1) + radix;
+      } else {
+        // Letters are located after the digits in ASCII. Therefore we
+        // only check for the character code. The regexp above made already
+        // sure that the string does not contain anything but digits or
+        // letters.
+        // "a".codeUnitAt(0) + (radix - 10) - 1;
+        maxCharCode = (0x61 - 10 - 1) + radix;
+      }
+      assert(match[digitsIndex] is String);
+      String digitsPart = JS('String', '#[#]', match, digitsIndex);
+      for (int i = 0; i < digitsPart.length; i++) {
+        int characterCode = digitsPart.codeUnitAt(i) | 0x20;
+        if (characterCode > maxCharCode) {
+          return _parseIntError(source, handleError);
         }
       }
     }
-    if (match == null) return handleError(source);
+    // The above matching and checks ensures the source has at least one digits
+    // and all digits are suitable for the radix, so parseInt cannot return NaN.
     return JS('int', r'parseInt(#, #)', source, radix);
+  }
+
+  @NoInline()
+  static double _parseDoubleError(String source,
+                                  double handleError(String source)) {
+    if (handleError == null) {
+      throw new FormatException('Invalid double', source);
+    }
+    return handleError(source);
   }
 
   static double parseDouble(String source, double handleError(String source)) {
     checkString(source);
-    // TODO(vsm): Make _throwFormatException generic and use directly
-    // to avoid closure allocation.
-    if (handleError == null) handleError = (s) => _throwFormatException(s);
     // Notice that JS parseFloat accepts garbage at the end of the string.
     // Accept only:
     // - [+/-]NaN
@@ -150,7 +166,7 @@ class Primitives {
             r'/^\s*[+-]?(?:Infinity|NaN|'
                 r'(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(#)',
             source)) {
-      return handleError(source);
+      return _parseDoubleError(source, handleError);
     }
     var result = JS('num', r'parseFloat(#)', source);
     if (result.isNaN) {
@@ -158,7 +174,7 @@ class Primitives {
       if (trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN') {
         return result;
       }
-      return handleError(source);
+      return _parseDoubleError(source, handleError);
     }
     return result;
   }
@@ -264,6 +280,24 @@ class Primitives {
     }
     return _fromCharCodeApply(charCodes);
   }
+
+  // [start] and [end] are validated.
+  static String stringFromNativeUint8List(
+      NativeUint8List charCodes, int start, int end) {
+    const kMaxApply = 500;
+    if (end <= kMaxApply && start == 0 && end == charCodes.length) {
+      return JS('String', r'String.fromCharCode.apply(null, #)', charCodes);
+    }
+    String result = '';
+    for (int i = start; i < end; i += kMaxApply) {
+      int chunkEnd = (i + kMaxApply < end) ? i + kMaxApply : end;
+      result = JS('String',
+          r'# + String.fromCharCode.apply(null, #.subarray(#, #))',
+          result, charCodes, i, chunkEnd);
+    }
+    return result;
+  }
+
 
   static String stringFromCharCode(int charCode) {
     if (0 <= charCode) {
@@ -450,12 +484,6 @@ class Primitives {
     JS('void', '#[#] = #', object, key, value);
   }
 
-  static bool identicalImplementation(a, b) {
-    return JS('bool', '# == null', a)
-      ? JS('bool', '# == null', b)
-      : JS('bool', '# === #', a, b);
-  }
-
   static StackTrace extractStackTrace(Error error) {
     return getTraceFromException(JS('', r'#.$thrownJsError', error));
   }
@@ -544,6 +572,12 @@ throwAbstractClassInstantiationError(className) {
   throw new AbstractClassInstantiationError(className);
 }
 
+
+@NoInline()
+throwConcurrentModificationError(collection) {
+  throw new ConcurrentModificationError(collection);
+}
+
 class NullError extends Error implements NoSuchMethodError {
   final String _message;
   final String _method;
@@ -553,7 +587,7 @@ class NullError extends Error implements NoSuchMethodError {
 
   String toString() {
     if (_method == null) return 'NullError: $_message';
-    return 'NullError: Cannot call "$_method" on null';
+    return "NullError: method not found: '$_method' on null";
   }
 }
 
@@ -570,10 +604,10 @@ class JsNoSuchMethodError extends Error implements NoSuchMethodError {
   String toString() {
     if (_method == null) return 'NoSuchMethodError: $_message';
     if (_receiver == null) {
-      return 'NoSuchMethodError: Cannot call "$_method" ($_message)';
+      return "NoSuchMethodError: method not found: '$_method' ($_message)";
     }
-    return 'NoSuchMethodError: Cannot call "$_method" on "$_receiver" '
-        '($_message)';
+    return "NoSuchMethodError: "
+        "method not found: '$_method' on '$_receiver' ($_message)";
   }
 }
 
@@ -597,10 +631,11 @@ class _StackTrace implements StackTrace {
   _StackTrace(this._exception);
 
   String toString() {
-    if (_trace != null) return _trace;
+    if (_trace != null) return JS('String', '#', _trace);
 
     String trace;
-    if (JS('bool', 'typeof # === "object"', _exception)) {
+    if (JS('bool', '# !== null', _exception) &&
+        JS('bool', 'typeof # === "object"', _exception)) {
       trace = JS("String|Null", r"#.stack", _exception);
     }
     return _trace = (trace == null) ? '' : trace;

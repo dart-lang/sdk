@@ -24,8 +24,8 @@ abstract class EfficientLength {
  * All other methods are implemented in terms of [length] and [elementAt],
  * including [iterator].
  */
-abstract class ListIterable<E> extends IterableBase<E>
-    implements EfficientLength {
+abstract class ListIterable<E> extends Iterable<E>
+                               implements EfficientLength {
   int get length;
   E elementAt(int i);
 
@@ -94,7 +94,7 @@ abstract class ListIterable<E> extends IterableBase<E>
     return false;
   }
 
-  E firstWhere(bool test(E element), {E orElse()}) {
+  E firstWhere(bool test(E element), { E orElse() }) {
     int length = this.length;
     for (int i = 0; i < length; i++) {
       E element = elementAt(i);
@@ -107,7 +107,7 @@ abstract class ListIterable<E> extends IterableBase<E>
     throw IterableElementError.noElement();
   }
 
-  E lastWhere(bool test(E element), {E orElse()}) {
+  E lastWhere(bool test(E element), { E orElse() }) {
     int length = this.length;
     for (int i = length - 1; i >= 0; i--) {
       E element = elementAt(i);
@@ -303,8 +303,8 @@ class SubListIterable<E> extends ListIterable<E> {
     if (_endOrLength != null && _endOrLength < end) end = _endOrLength;
     int length = end - start;
     if (length < 0) length = 0;
-    List result =
-        growable ? (new List<E>()..length = length) : new List<E>(length);
+    List<E> result = growable ? (new List<E>()..length = length)
+                              : new List<E>(length);
     for (int i = 0; i < length; i++) {
       result[i] = _iterable.elementAt(start + i);
       if (_iterable.length < end) throw new ConcurrentModificationError(this);
@@ -327,9 +327,7 @@ class ListIterator<E> implements Iterator<E> {
   E _current;
 
   ListIterator(Iterable<E> iterable)
-      : _iterable = iterable,
-        _length = iterable.length,
-        _index = 0;
+      : _iterable = iterable, _length = iterable.length, _index = 0;
 
   E get current => _current;
 
@@ -350,11 +348,11 @@ class ListIterator<E> implements Iterator<E> {
 
 typedef T _Transformation<S, T>(S value);
 
-class MappedIterable<S, T> extends IterableBase<T> {
+class MappedIterable<S, T> extends Iterable<T> {
   final Iterable<S> _iterable;
   final _Transformation<S, T> _f;
 
-  factory MappedIterable(Iterable iterable, T function(S value)) {
+  factory MappedIterable(Iterable<S> iterable, T function(S value)) {
     if (iterable is EfficientLength) {
       return new EfficientLengthMappedIterable<S, T>(iterable, function);
     }
@@ -377,8 +375,8 @@ class MappedIterable<S, T> extends IterableBase<T> {
 }
 
 class EfficientLengthMappedIterable<S, T> extends MappedIterable<S, T>
-    implements EfficientLength {
-  EfficientLengthMappedIterable(Iterable iterable, T function(S value))
+                                          implements EfficientLength {
+  EfficientLengthMappedIterable(Iterable<S> iterable, T function(S value))
       : super._(iterable, function);
 }
 
@@ -407,7 +405,7 @@ class MappedIterator<S, T> extends Iterator<T> {
  * Expects efficient `length` and `elementAt` on the source iterable.
  */
 class MappedListIterable<S, T> extends ListIterable<T>
-    implements EfficientLength {
+                               implements EfficientLength {
   final Iterable<S> _source;
   final _Transformation<S, T> _f;
 
@@ -417,9 +415,10 @@ class MappedListIterable<S, T> extends ListIterable<T>
   T elementAt(int index) => _f(_source.elementAt(index));
 }
 
+
 typedef bool _ElementPredicate<E>(E element);
 
-class WhereIterable<E> extends IterableBase<E> {
+class WhereIterable<E> extends Iterable<E> {
   final Iterable<E> _iterable;
   final _ElementPredicate<E> _f;
 
@@ -448,9 +447,9 @@ class WhereIterator<E> extends Iterator<E> {
 
 typedef Iterable<T> _ExpandFunction<S, T>(S sourceElement);
 
-class ExpandIterable<S, T> extends IterableBase<T> {
+class ExpandIterable<S, T> extends Iterable<T> {
   final Iterable<S> _iterable;
-  final _ExpandFunction _f;
+  final _ExpandFunction<S, T> _f;
 
   ExpandIterable(this._iterable, Iterable<T> this._f(S element));
 
@@ -459,7 +458,7 @@ class ExpandIterable<S, T> extends IterableBase<T> {
 
 class ExpandIterator<S, T> implements Iterator<T> {
   final Iterator<S> _iterator;
-  final _ExpandFunction _f;
+  final _ExpandFunction<S, T> _f;
   // Initialize _currentExpansion to an empty iterable. A null value
   // marks the end of iteration, and we don't want to call _f before
   // the first moveNext call.
@@ -467,8 +466,6 @@ class ExpandIterator<S, T> implements Iterator<T> {
   T _current;
 
   ExpandIterator(this._iterator, Iterable<T> this._f(S element));
-
-  void _nextExpansion() {}
 
   T get current => _current;
 
@@ -490,7 +487,7 @@ class ExpandIterator<S, T> implements Iterator<T> {
   }
 }
 
-class TakeIterable<E> extends IterableBase<E> {
+class TakeIterable<E> extends Iterable<E> {
   final Iterable<E> _iterable;
   final int _takeCount;
 
@@ -512,7 +509,7 @@ class TakeIterable<E> extends IterableBase<E> {
 }
 
 class EfficientLengthTakeIterable<E> extends TakeIterable<E>
-    implements EfficientLength {
+                                     implements EfficientLength {
   EfficientLengthTakeIterable(Iterable<E> iterable, int takeCount)
       : super._(iterable, takeCount);
 
@@ -522,6 +519,7 @@ class EfficientLengthTakeIterable<E> extends TakeIterable<E>
     return iterableLength;
   }
 }
+
 
 class TakeIterator<E> extends Iterator<E> {
   final Iterator<E> _iterator;
@@ -546,7 +544,7 @@ class TakeIterator<E> extends Iterator<E> {
   }
 }
 
-class TakeWhileIterable<E> extends IterableBase<E> {
+class TakeWhileIterable<E> extends Iterable<E> {
   final Iterable<E> _iterable;
   final _ElementPredicate<E> _f;
 
@@ -579,7 +577,7 @@ class TakeWhileIterator<E> extends Iterator<E> {
   }
 }
 
-class SkipIterable<E> extends IterableBase<E> {
+class SkipIterable<E> extends Iterable<E> {
   final Iterable<E> _iterable;
   final int _skipCount;
 
@@ -611,7 +609,7 @@ class SkipIterable<E> extends IterableBase<E> {
 }
 
 class EfficientLengthSkipIterable<E> extends SkipIterable<E>
-    implements EfficientLength {
+                                     implements EfficientLength {
   EfficientLengthSkipIterable(Iterable<E> iterable, int skipCount)
       : super._(iterable, skipCount);
 
@@ -639,7 +637,7 @@ class SkipIterator<E> extends Iterator<E> {
   E get current => _iterator.current;
 }
 
-class SkipWhileIterable<E> extends IterableBase<E> {
+class SkipWhileIterable<E> extends Iterable<E> {
   final Iterable<E> _iterable;
   final _ElementPredicate<E> _f;
 
@@ -673,7 +671,7 @@ class SkipWhileIterator<E> extends Iterator<E> {
 /**
  * The always empty [Iterable].
  */
-class EmptyIterable<E> extends IterableBase<E> implements EfficientLength {
+class EmptyIterable<E> extends Iterable<E> implements EfficientLength {
   const EmptyIterable();
 
   Iterator<E> get iterator => const EmptyIterator();
@@ -684,21 +682,13 @@ class EmptyIterable<E> extends IterableBase<E> implements EfficientLength {
 
   int get length => 0;
 
-  E get first {
-    throw IterableElementError.noElement();
-  }
+  E get first { throw IterableElementError.noElement(); }
 
-  E get last {
-    throw IterableElementError.noElement();
-  }
+  E get last { throw IterableElementError.noElement(); }
 
-  E get single {
-    throw IterableElementError.noElement();
-  }
+  E get single { throw IterableElementError.noElement(); }
 
-  E elementAt(int index) {
-    throw new RangeError.range(index, 0, 0, "index");
-  }
+  E elementAt(int index) { throw new RangeError.range(index, 0, 0, "index"); }
 
   bool contains(Object element) => false;
 
@@ -761,413 +751,6 @@ class EmptyIterator<E> implements Iterator<E> {
   const EmptyIterator();
   bool moveNext() => false;
   E get current => null;
-}
-
-/** An [Iterator] that can move in both directions. */
-abstract class BidirectionalIterator<T> implements Iterator<T> {
-  bool movePrevious();
-}
-
-/**
- * This class provides default implementations for Iterables (including Lists).
- *
- * The uses of this class will be replaced by mixins.
- */
-class IterableMixinWorkaround<T> {
-  static bool contains/*<E>*/(Iterable/*<E>*/ iterable, var element) {
-    for (final e in iterable) {
-      if (e == element) return true;
-    }
-    return false;
-  }
-
-  static void forEach/*<E>*/(Iterable/*<E>*/ iterable, void f(/*=E*/ o)) {
-    for (final e in iterable) {
-      f(e);
-    }
-  }
-
-  static bool any/*<E>*/(Iterable/*<E>*/ iterable, bool f(/*=E*/ o)) {
-    for (final e in iterable) {
-      if (f(e)) return true;
-    }
-    return false;
-  }
-
-  static bool every/*<E>*/(Iterable/*<E>*/ iterable, bool f(/*=E*/ o)) {
-    for (final e in iterable) {
-      if (!f(e)) return false;
-    }
-    return true;
-  }
-
-  static dynamic/*=E*/ reduce/*<E>*/(Iterable/*<E>*/ iterable,
-      dynamic/*=E*/ combine(/*=E*/ previousValue, /*=E*/ element)) {
-    Iterator/*<E>*/ iterator = iterable.iterator;
-    if (!iterator.moveNext()) throw IterableElementError.noElement();
-    var value = iterator.current;
-    while (iterator.moveNext()) {
-      value = combine(value, iterator.current);
-    }
-    return value;
-  }
-
-  static/*=V*/ fold/*<E, V>*/(
-      Iterable/*<E>*/ iterable,
-      dynamic/*=V*/ initialValue,
-      dynamic/*=V*/ combine(dynamic/*=V*/ previousValue, /*=E*/ element)) {
-    for (final element in iterable) {
-      initialValue = combine(initialValue, element);
-    }
-    return initialValue;
-  }
-
-  /**
-   * Removes elements matching [test] from [list].
-   *
-   * This is performed in two steps, to avoid exposing an inconsistent state
-   * to the [test] function. First the elements to retain are found, and then
-   * the original list is updated to contain those elements.
-   */
-  static void removeWhereList/*<E>*/(
-      List/*<E>*/ list, bool test(var/*=E*/ element)) {
-    List/*<E>*/ retained = [];
-    int length = list.length;
-    for (int i = 0; i < length; i++) {
-      var element = list[i];
-      if (!test(element)) {
-        retained.add(element);
-      }
-      if (length != list.length) {
-        throw new ConcurrentModificationError(list);
-      }
-    }
-    if (retained.length == length) return;
-    list.length = retained.length;
-    for (int i = 0; i < retained.length; i++) {
-      list[i] = retained[i];
-    }
-  }
-
-  static bool isEmpty/*<E>*/(Iterable/*<E>*/ iterable) {
-    return !iterable.iterator.moveNext();
-  }
-
-  static dynamic/*=E*/ first/*<E>*/(Iterable/*<E>*/ iterable) {
-    Iterator/*<E>*/ it = iterable.iterator;
-    if (!it.moveNext()) {
-      throw IterableElementError.noElement();
-    }
-    return it.current;
-  }
-
-  static dynamic/*=E*/ last/*<E>*/(Iterable/*<E>*/ iterable) {
-    Iterator/*<E>*/ it = iterable.iterator;
-    if (!it.moveNext()) {
-      throw IterableElementError.noElement();
-    }
-    var/*=E*/ result;
-    do {
-      result = it.current;
-    } while (it.moveNext());
-    return result;
-  }
-
-  static dynamic/*=E*/ single/*<E>*/(Iterable/*<E>*/ iterable) {
-    Iterator/*<E>*/ it = iterable.iterator;
-    if (!it.moveNext()) throw IterableElementError.noElement();
-    var result = it.current;
-    if (it.moveNext()) throw IterableElementError.tooMany();
-    return result;
-  }
-
-  static dynamic/*=E*/ firstWhere/*<E>*/(Iterable/*<E>*/ iterable,
-      bool test(dynamic/*=E*/ value), dynamic/*=E*/ orElse()) {
-    for (var element in iterable) {
-      if (test(element)) return element;
-    }
-    if (orElse != null) return orElse();
-    throw IterableElementError.noElement();
-  }
-
-  static dynamic/*=E*/ lastWhere/*<E>*/(Iterable/*<E>*/ iterable,
-      bool test(dynamic/*=E*/ value), dynamic/*=E*/ orElse()) {
-    dynamic/*=E*/ result = null;
-    bool foundMatching = false;
-    for (var element in iterable) {
-      if (test(element)) {
-        result = element;
-        foundMatching = true;
-      }
-    }
-    if (foundMatching) return result;
-    if (orElse != null) return orElse();
-    throw IterableElementError.noElement();
-  }
-
-  static dynamic/*=E*/ lastWhereList/*<E>*/(List/*<E>*/ list,
-      bool test(dynamic/*=E*/ value), dynamic/*=E*/ orElse()) {
-    // TODO(floitsch): check that arguments are of correct type?
-    for (int i = list.length - 1; i >= 0; i--) {
-      var element = list[i];
-      if (test(element)) return element;
-    }
-    if (orElse != null) return orElse();
-    throw IterableElementError.noElement();
-  }
-
-  static dynamic/*=E*/ singleWhere/*<E>*/(
-      Iterable/*<E>*/ iterable, bool test(dynamic/*=E*/ value)) {
-    dynamic/*=E*/ result = null;
-    bool foundMatching = false;
-    for (var element in iterable) {
-      if (test(element)) {
-        if (foundMatching) {
-          throw IterableElementError.tooMany();
-        }
-        result = element;
-        foundMatching = true;
-      }
-    }
-    if (foundMatching) return result;
-    throw IterableElementError.noElement();
-  }
-
-  static dynamic/*=E*/ elementAt/*<E>*/(Iterable/*<E>*/ iterable, int index) {
-    if (index is! int) throw new ArgumentError.notNull("index");
-    RangeError.checkNotNegative(index, "index");
-    int elementIndex = 0;
-    for (var element in iterable) {
-      if (index == elementIndex) return element;
-      elementIndex++;
-    }
-    throw new RangeError.index(index, iterable, "index", null, elementIndex);
-  }
-
-  static String join/*<E>*/(Iterable/*<E>*/ iterable, [String separator]) {
-    StringBuffer buffer = new StringBuffer();
-    buffer.writeAll(iterable, separator);
-    return buffer.toString();
-  }
-
-  static String joinList/*<E>*/(List/*<E>*/ list, [String separator]) {
-    if (list.isEmpty) return "";
-    if (list.length == 1) return "${list[0]}";
-    StringBuffer buffer = new StringBuffer();
-    if (separator.isEmpty) {
-      for (int i = 0; i < list.length; i++) {
-        buffer.write(list[i]);
-      }
-    } else {
-      buffer.write(list[0]);
-      for (int i = 1; i < list.length; i++) {
-        buffer.write(separator);
-        buffer.write(list[i]);
-      }
-    }
-    return buffer.toString();
-  }
-
-  Iterable<T> where(Iterable<T> iterable, bool f(T element)) {
-    return new WhereIterable<T>(iterable, f);
-  }
-
-  static Iterable/*<V>*/ map/*<E, V>*/(
-      Iterable/*<E>*/ iterable, /*=V*/ f(var/*=E*/ element)) {
-    return new MappedIterable/*<E, V>*/(iterable, f);
-  }
-
-  static Iterable/*<V>*/ mapList/*<E, V>*/(
-      List/*<E>*/ list, /*=V*/ f(var/*=E*/ element)) {
-    return new MappedListIterable/*<E, V>*/(list, f);
-  }
-
-  static Iterable/*<V>*/ expand/*<E, V>*/(
-      Iterable/*<E>*/ iterable, Iterable/*<V>*/ f(var/*=E*/ element)) {
-    return new ExpandIterable/*<E, V>*/(iterable, f);
-  }
-
-  Iterable<T> takeList(List list, int n) {
-    // The generic type is currently lost. It will be fixed with mixins.
-    return new SubListIterable<T>(list, 0, n);
-  }
-
-  Iterable<T> takeWhile(Iterable iterable, bool test(var value)) {
-    // The generic type is currently lost. It will be fixed with mixins.
-    return new TakeWhileIterable<T>(iterable, test);
-  }
-
-  Iterable<T> skipList(List list, int n) {
-    // The generic type is currently lost. It will be fixed with mixins.
-    return new SubListIterable<T>(list, n, null);
-  }
-
-  Iterable<T> skipWhile(Iterable iterable, bool test(var value)) {
-    // The generic type is currently lost. It will be fixed with mixins.
-    return new SkipWhileIterable<T>(iterable, test);
-  }
-
-  Iterable<T> reversedList(List list) {
-    return new ReversedListIterable<T>(list);
-  }
-
-  static void sortList(List list, int compare(a, b)) {
-    if (compare == null) compare = Comparable.compare;
-    Sort.sort(list, compare);
-  }
-
-  static void shuffleList(List list, Random random) {
-    if (random == null) random = new Random();
-    int length = list.length;
-    while (length > 1) {
-      int pos = random.nextInt(length);
-      length -= 1;
-      var tmp = list[length];
-      list[length] = list[pos];
-      list[pos] = tmp;
-    }
-  }
-
-  static int indexOfList(List list, var element, int start) {
-    return Lists.indexOf(list, element, start, list.length);
-  }
-
-  static int lastIndexOfList(List list, var element, int start) {
-    if (start == null) start = list.length - 1;
-    return Lists.lastIndexOf(list, element, start);
-  }
-
-  static void _rangeCheck(List list, int start, int end) {
-    RangeError.checkValidRange(start, end, list.length);
-  }
-
-  Iterable<T> getRangeList(List list, int start, int end) {
-    _rangeCheck(list, start, end);
-    // The generic type is currently lost. It will be fixed with mixins.
-    return new SubListIterable<T>(list, start, end);
-  }
-
-  static void setRangeList(
-      List list, int start, int end, Iterable from, int skipCount) {
-    _rangeCheck(list, start, end);
-    int length = end - start;
-    if (length == 0) return;
-
-    if (skipCount < 0) throw new ArgumentError(skipCount);
-
-    // TODO(floitsch): Make this accept more.
-    List otherList;
-    int otherStart;
-    if (from is List) {
-      otherList = from;
-      otherStart = skipCount;
-    } else {
-      otherList = from.skip(skipCount).toList(growable: false);
-      otherStart = 0;
-    }
-    if (otherStart + length > otherList.length) {
-      throw IterableElementError.tooFew();
-    }
-    Lists.copy(otherList, otherStart, list, start, length);
-  }
-
-  static void replaceRangeList(
-      List list, int start, int end, Iterable iterable) {
-    _rangeCheck(list, start, end);
-    if (iterable is! EfficientLength) {
-      iterable = iterable.toList();
-    }
-    int removeLength = end - start;
-    int insertLength = iterable.length;
-    if (removeLength >= insertLength) {
-      int delta = removeLength - insertLength;
-      int insertEnd = start + insertLength;
-      int newEnd = list.length - delta;
-      list.setRange(start, insertEnd, iterable);
-      if (delta != 0) {
-        list.setRange(insertEnd, newEnd, list, end);
-        list.length = newEnd;
-      }
-    } else {
-      int delta = insertLength - removeLength;
-      int newLength = list.length + delta;
-      int insertEnd = start + insertLength; // aka. end + delta.
-      list.length = newLength;
-      list.setRange(insertEnd, newLength, list, end);
-      list.setRange(start, insertEnd, iterable);
-    }
-  }
-
-  static void fillRangeList(List list, int start, int end, fillValue) {
-    _rangeCheck(list, start, end);
-    for (int i = start; i < end; i++) {
-      list[i] = fillValue;
-    }
-  }
-
-  static void insertAllList(List list, int index, Iterable iterable) {
-    RangeError.checkValueInInterval(index, 0, list.length, "index");
-    if (iterable is! EfficientLength) {
-      iterable = iterable.toList(growable: false);
-    }
-    int insertionLength = iterable.length;
-    list.length += insertionLength;
-    list.setRange(index + insertionLength, list.length, list, index);
-    for (var element in iterable) {
-      list[index++] = element;
-    }
-  }
-
-  static void setAllList(List list, int index, Iterable iterable) {
-    RangeError.checkValueInInterval(index, 0, list.length, "index");
-    for (var element in iterable) {
-      list[index++] = element;
-    }
-  }
-
-  Map<int, T> asMapList(List l) {
-    return new ListMapView<T>(l);
-  }
-
-  static bool setContainsAll(Set set, Iterable other) {
-    for (var element in other) {
-      if (!set.contains(element)) return false;
-    }
-    return true;
-  }
-
-  static Set setIntersection(Set set, Set other, Set result) {
-    Set smaller;
-    Set larger;
-    if (set.length < other.length) {
-      smaller = set;
-      larger = other;
-    } else {
-      smaller = other;
-      larger = set;
-    }
-    for (var element in smaller) {
-      if (larger.contains(element)) {
-        result.add(element);
-      }
-    }
-    return result;
-  }
-
-  static Set setUnion(Set set, Set other, Set result) {
-    result.addAll(set);
-    result.addAll(other);
-    return result;
-  }
-
-  static Set setDifference(Set set, Set other, Set result) {
-    for (var element in set) {
-      if (!other.contains(element)) {
-        result.add(element);
-      }
-    }
-    return result;
-  }
 }
 
 /**

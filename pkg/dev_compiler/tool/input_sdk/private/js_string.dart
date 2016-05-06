@@ -15,9 +15,9 @@ class JSString extends Interceptor implements String, JSIndexable {
   const JSString();
 
   int codeUnitAt(int index) {
-    if (index is !int) throw new ArgumentError(index);
-    if (index < 0) throw new RangeError.value(index);
-    if (index >= length) throw new RangeError.value(index);
+    if (index is !int) throw diagnoseIndexError(this, index);
+    if (index < 0) throw diagnoseIndexError(this, index);
+    if (index >= length) throw diagnoseIndexError(this, index);
     return JS('int', r'#.charCodeAt(#)', this, index);
   }
 
@@ -45,7 +45,7 @@ class JSString extends Interceptor implements String, JSIndexable {
   }
 
   String operator +(String other) {
-    if (other is !String) throw new ArgumentError(other);
+    if (other is !String) throw new ArgumentError.value(other);
     return JS('String', r'# + #', this, other);
   }
 
@@ -74,10 +74,16 @@ class JSString extends Interceptor implements String, JSIndexable {
   String replaceFirst(Pattern from, String to, [int startIndex = 0]) {
     checkString(to);
     checkInt(startIndex);
-    if (startIndex < 0 || startIndex > this.length) {
-      throw new RangeError.range(startIndex, 0, this.length);
-    }
+    RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
     return stringReplaceFirstUnchecked(this, from, to, startIndex);
+  }
+
+  String replaceFirstMapped(Pattern from, String replace(Match match),
+                            [int startIndex = 0]) {
+    checkNull(replace);
+    checkInt(startIndex);
+    RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
+    return stringReplaceFirstMappedUnchecked(this, from, replace, startIndex);
   }
 
   List<String> split(Pattern pattern) {
@@ -90,6 +96,14 @@ class JSString extends Interceptor implements String, JSIndexable {
     } else {
       return _defaultSplit(pattern);
     }
+  }
+
+  String replaceRange(int start, int end, String replacement) {
+    checkString(replacement);
+    checkInt(start);
+    end = RangeError.checkValidRange(start, end, this.length);
+    checkInt(end);
+    return stringReplaceRangeUnchecked(this, start, end, replacement);
   }
 
   List<String> _defaultSplit(Pattern pattern) {
@@ -360,18 +374,18 @@ class JSString extends Interceptor implements String, JSIndexable {
     return this + padding * delta;
   }
 
-  List<int> get codeUnits => new _CodeUnits(this);
+  List<int> get codeUnits => new CodeUnits(this);
 
   Runes get runes => new Runes(this);
 
   int indexOf(Pattern pattern, [int start = 0]) {
     checkNull(pattern);
-    if (start is! int) throw new ArgumentError(start);
+    if (start is! int) throw argumentErrorValue(start);
     if (start < 0 || start > this.length) {
       throw new RangeError.range(start, 0, this.length);
     }
     if (pattern is String) {
-      return JS('int', r'#.indexOf(#, #)', this, pattern, start);
+      return stringIndexOfStringUnchecked(this, pattern, start);
     }
     if (pattern is JSSyntaxRegExp) {
       JSSyntaxRegExp re = pattern;
@@ -389,7 +403,7 @@ class JSString extends Interceptor implements String, JSIndexable {
     if (start == null) {
       start = length;
     } else if (start is! int) {
-      throw new ArgumentError(start);
+      throw argumentErrorValue(start);
     } else if (start < 0 || start > this.length) {
       throw new RangeError.range(start, 0, this.length);
     }
@@ -419,9 +433,9 @@ class JSString extends Interceptor implements String, JSIndexable {
   bool get isNotEmpty => !isEmpty;
 
   int compareTo(String other) {
-    if (other is !String) throw new ArgumentError(other);
+    if (other is !String) throw argumentErrorValue(other);
     return this == other ? 0
-      : JS('bool', r'# < #', this, other) ? -1 : 1;
+        : JS('bool', r'# < #', this, other) ? -1 : 1;
   }
 
   // Note: if you change this, also change the function [S].
@@ -452,21 +466,8 @@ class JSString extends Interceptor implements String, JSIndexable {
   int get length => JS('int', r'#.length', this);
 
   String operator [](int index) {
-    if (index is !int) throw new ArgumentError(index);
-    if (index >= length || index < 0) throw new RangeError.value(index);
+    if (index is !int) throw diagnoseIndexError(this, index);
+    if (index >= length || index < 0) throw diagnoseIndexError(this, index);
     return JS('String', '#[#]', this, index);
   }
-}
-
-/**
- * An [Iterable] of the UTF-16 code units of a [String] in index order.
- */
-class _CodeUnits extends UnmodifiableListBase<int> {
-  /** The string that this is the code units of. */
-  String _string;
-
-  _CodeUnits(this._string);
-
-  int get length => _string.length;
-  int operator[](int i) => _string.codeUnitAt(i);
 }

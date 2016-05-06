@@ -18,8 +18,8 @@ class Stopwatch {
   // If _start is null, then the [Stopwatch] has not been started yet.
   // If _stop is null, then the [Stopwatch] has not been stopped yet,
   // or is running.
-  num _start;
-  num _stop;
+  int _start;
+  int _stop;
 
   /**
    * Creates a [Stopwatch] in stopped state with a zero elapsed count.

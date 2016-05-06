@@ -13,10 +13,10 @@ part of dart.core;
  * When you define a class, you should override [toString]
  * to return a string describing an instance of that class.
  * You might also need to define [hashCode] and [==], as described in the
- * [Implementing map keys]
- * (http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-implementing-map-keys)
- * section of the [library tour]
- * (http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html).
+ * [Implementing map
+ * keys](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#implementing-map-keys)
+ * section of the [library
+ * tour](http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html).
  */
 class Object {
   /**
@@ -78,14 +78,13 @@ class Object {
   external String toString();
 
   /**
-   * [noSuchMethod] is invoked when users invoke a non-existent method
-   * on an object. The name of the method and the arguments of the
-   * invocation are passed to [noSuchMethod] in an [Invocation].
-   * If [noSuchMethod] returns a value, that value becomes the result of
-   * the original invocation.
+   * Invoked when a non-existent method or property is accessed.
    *
-   * The default behavior of [noSuchMethod] is to throw a
-   * [NoSuchMethodError].
+   * Classes can override [noSuchMethod] to provide custom behavior.
+   *
+   * If a value is returned, it becomes the result of the original invocation.
+   *
+   * The default behavior is to throw a [NoSuchMethodError].
    */
   external dynamic noSuchMethod(Invocation invocation);
 

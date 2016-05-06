@@ -31,7 +31,7 @@ part of dart.core;
  * iterating either the set itself or any [Iterable] that is backed by the set,
  * such as the ones returned by methods like [where] and [map].
  */
-abstract class Set<E> extends IterableBase<E> implements EfficientLength {
+abstract class Set<E> extends Iterable<E> implements EfficientLength {
   /**
    * Creates an empty [Set].
    *
@@ -88,9 +88,25 @@ abstract class Set<E> extends IterableBase<E> implements EfficientLength {
   bool contains(Object value);
 
   /**
-   * Adds [value] into the set. Returns `true` if [value] was added to the set.
+   * Adds [value] to the set.
    *
-   * If [value] already exists, the set is not changed and `false` is returned.
+   * Returns `true` if [value] (or an equal value) was not yet in the set.
+   * Otherwise returns `false` and the set is not changed.
+   *
+   * Example:
+   *
+   *     var set = new Set();
+   *     var time1 = new DateTime.fromMillisecondsSinceEpoch(0);
+   *     var time2 = new DateTime.fromMillisecondsSinceEpoch(0);
+   *     // time1 and time2 are equal, but not identical.
+   *     Expect.isTrue(time1 == time2);
+   *     Expect.isFalse(identical(time1, time2));
+   *     set.add(time1);  // => true.
+   *     // A value equal to time2 exists already in the set, and the call to
+   *     // add doesn't change the set.
+   *     set.add(time2);  // => false.
+   *     Expect.isTrue(set.length == 1);
+   *     Expect.isTrue(identical(time1, set.first));
    */
   bool add(E value);
 

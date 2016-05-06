@@ -439,24 +439,15 @@ abstract class num implements Comparable<num> {
   static num parse(String input, [num onError(String input)]) {
     String source = input.trim();
     // TODO(lrn): Optimize to detect format and result type in one check.
-    _parseError = false;
-    num result = int.parse(source, onError: _onParseErrorInt);
-    if (!_parseError) return result;
-    _parseError = false;
-    result = double.parse(source, _onParseErrorDouble);
-    if (!_parseError) return result;
+    num result = int.parse(source, onError: _returnIntNull);
+    if (result != null) return result;
+    result = double.parse(source, _returnDoubleNull);
+    if (result != null) return result;
     if (onError == null) throw new FormatException(input);
     return onError(input);
   }
 
   /** Helper functions for [parse]. */
-  static bool _parseError = false;
-  static int _onParseErrorInt(String _) {
-    _parseError = true;
-    return 0;
-  }
-  static double _onParseErrorDouble(String _) {
-    _parseError = true;
-    return 0.0;
-  }
+  static int _returnIntNull(String _) => null;
+  static double _returnDoubleNull(String _) => null;
 }

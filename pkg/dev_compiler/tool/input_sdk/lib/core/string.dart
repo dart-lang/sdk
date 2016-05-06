@@ -86,9 +86,8 @@ part of dart.core;
  * Also see:
 
  * * [Dart Cookbook](https://www.dartlang.org/docs/cookbook/#strings)
- * for String examples and recipes.
- * * [Dart Up and Running]
- * (https://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-strings-and-regular-expressions)
+ *   for String examples and recipes.
+ * * [Dart Up and Running](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#strings-and-regular-expressions)
  */
 abstract class String implements Comparable<String>, Pattern {
   /**
@@ -414,13 +413,27 @@ abstract class String implements Comparable<String>, Pattern {
   bool contains(Pattern other, [int startIndex = 0]);
 
   /**
-   * Returns a new string in which  the first occurence of [from] in this string
+   * Returns a new string in which the first occurence of [from] in this string
    * is replaced with [to], starting from [startIndex]:
    *
    *     '0.0001'.replaceFirst(new RegExp(r'0'), ''); // '.0001'
    *     '0.0001'.replaceFirst(new RegExp(r'0'), '7', 1); // '0.7001'
    */
   String replaceFirst(Pattern from, String to, [int startIndex = 0]);
+
+  /**
+   * Replace the first occurence of [from] in this string.
+   *
+   * Returns a new string, which is this string
+   * except that the first match of [pattern], starting from [startIndex],
+   * is replaced by the result of calling [replace] with the match object.
+   *
+   * If the value returned by calling `replace` is not a [String], it
+   * is converted to a `String` using its `toString` method, which must
+   * then return a string.
+   */
+  String replaceFirstMapped(Pattern from, String replace(Match match),
+                            [int startIndex = 0]);
 
   /**
    * Replaces all substrings that match [from] with [replace].
@@ -461,6 +474,19 @@ abstract class String implements Comparable<String>, Pattern {
    *     pigLatin('I have a secret now!'); // 'Iway avehay away ecretsay ownay!'
    */
   String replaceAllMapped(Pattern from, String replace(Match match));
+
+  /**
+   * Replaces the substring from [start] to [end] with [replacement].
+   *
+   * Returns a new string equivalent to:
+   *
+   *     this.substring(0, start) + replacement + this.substring(end)
+   *
+   * The [start] and [end] indices must specify a valid range of this string.
+   * That is `0 <= start <= end <= this.length`.
+   * If [end] is `null`, it defaults to [length].
+   */
+  String replaceRange(int start, int end, String replacement);
 
   /**
    * Splits the string at matches of [pattern] and returns a list of substrings.
@@ -576,7 +602,7 @@ abstract class String implements Comparable<String>, Pattern {
 /**
  * The runes (integer Unicode code points) of a [String].
  */
-class Runes extends IterableBase<int> {
+class Runes extends Iterable<int> {
   final String string;
   Runes(this.string);
 
@@ -626,7 +652,7 @@ class RuneIterator implements BidirectionalIterator<int> {
    * If the iterator has hit either end, the [_currentCodePoint] is null
    * and [: _position == _nextPosition :].
    */
-  num _currentCodePoint;
+  int _currentCodePoint;
 
   /** Create an iterator positioned at the beginning of the string. */
   RuneIterator(String string)

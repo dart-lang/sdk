@@ -17,6 +17,8 @@ import 'dart:_js_helper' show patch,
 
 import 'dart:_foreign_helper' show JS;
 
+import 'dart:_native_typed_data' show NativeUint8List;
+
 String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
 
 @patch
@@ -287,26 +289,13 @@ class String {
   @patch
   factory String.fromCharCodes(Iterable<int> charCodes,
                                [int start = 0, int end]) {
-    // If possible, recognize typed lists too.
-    if (charCodes is! JSArray) {
-      return _stringFromIterable(charCodes, start, end);
+    if (charCodes is JSArray) {
+      return _stringFromJSArray(charCodes, start, end);
     }
-
-    List list = charCodes;
-    int len = list.length;
-    if (start < 0 || start > len) {
-      throw new RangeError.range(start, 0, len);
+    if (charCodes is NativeUint8List) {
+      return _stringFromUint8List(charCodes, start, end);
     }
-    if (end == null) {
-      end = len;
-    } else if (end < start || end > len) {
-      throw new RangeError.range(end, start, len);
-    }
-
-    if (start > 0 || end < len) {
-      list = list.sublist(start, end);
-    }
-    return Primitives.stringFromCharCodes(list);
+    return _stringFromIterable(charCodes, start, end);
   }
 
   @patch
@@ -318,6 +307,22 @@ class String {
   factory String.fromEnvironment(String name, {String defaultValue}) {
     throw new UnsupportedError(
         'String.fromEnvironment can only be used as a const constructor');
+  }
+
+  static String _stringFromJSArray(List list, int start, int endOrNull) {
+    int len = list.length;
+    int end = RangeError.checkValidRange(start, endOrNull, len);
+    if (start > 0 || end < len) {
+      list = list.sublist(start, end);
+    }
+    return Primitives.stringFromCharCodes(list);
+  }
+
+  static String _stringFromUint8List(
+      NativeUint8List charCodes, int start, int endOrNull) {
+    int len = charCodes.length;
+    int end = RangeError.checkValidRange(start, endOrNull, len);
+    return Primitives.stringFromNativeUint8List(charCodes, start, end);
   }
 
   static String _stringFromIterable(Iterable<int> charCodes,
@@ -370,7 +375,7 @@ class RegExp {
 // Patch for 'identical' function.
 @patch
 bool identical(Object a, Object b) {
-  return Primitives.identicalImplementation(a, b);
+  return JS('bool', '(# == null ? # == null : # === #)', a, b, a, b);
 }
 
 @patch
@@ -393,8 +398,14 @@ class StringBuffer {
     _writeString(new String.fromCharCode(charCode));
   }
 
-  void _writeString(str) {
-    _contents = Primitives.stringConcatUnchecked(_contents, str);
+  @patch
+  void writeAll(Iterable objects, [String separator = ""]) {
+    _contents = _writeAll(_contents, objects, separator);
+  }
+
+  @patch
+  void writeln([Object obj = ""]) {
+    _writeString('$obj\n');
   }
 
   @patch
@@ -404,6 +415,31 @@ class StringBuffer {
 
   @patch
   String toString() => Primitives.flattenString(_contents);
+
+  void _writeString(str) {
+    _contents = Primitives.stringConcatUnchecked(_contents, str);
+  }
+
+  static String _writeAll(String string, Iterable objects, String separator) {
+    Iterator iterator = objects.iterator;
+    if (!iterator.moveNext()) return string;
+    if (separator.isEmpty) {
+      do {
+        string = _writeOne(string, iterator.current);
+      } while (iterator.moveNext());
+    } else {
+      string = _writeOne(string, iterator.current);
+      while (iterator.moveNext()) {
+        string = _writeOne(string, separator);
+        string = _writeOne(string, iterator.current);
+      }
+    }
+    return string;
+  }
+
+  static String _writeOne(String string, Object obj) {
+    return Primitives.stringConcatUnchecked(string, '$obj');
+  }
 }
 
 @patch
