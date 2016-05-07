@@ -454,7 +454,7 @@ class NoSuchMethodError extends Error {
    * The [namedArguments] is a map from [Symbol]s to the values of named
    * arguments that the method was called with.
    *
-   * The optional [exisitingArgumentNames] is the expected parameters of a
+   * The optional [existingArgumentNames] is the expected parameters of a
    * method with the same name on the receiver, if available. This is
    * the signature of the method that would have been called if the parameters
    * had matched.
