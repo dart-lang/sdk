@@ -151,6 +151,18 @@ class Error {
 @patch
 class DateTime {
   @patch
+  DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
+                                      {bool isUtc: false})
+      : this._withValue(millisecondsSinceEpoch, isUtc: isUtc);
+
+  @patch
+  DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
+                                      {bool isUtc: false})
+      : this._withValue(
+          _microsecondInRoundedMilliseconds(microsecondsSinceEpoch),
+          isUtc: isUtc);
+
+  @patch
   DateTime._internal(int year,
                      int month,
                      int day,
@@ -158,24 +170,38 @@ class DateTime {
                      int minute,
                      int second,
                      int millisecond,
+                     int microsecond,
                      bool isUtc)
         // checkBool is manually inlined here because dart2js doesn't inline it
         // and [isUtc] is usually a constant.
-      : this.isUtc = isUtc is bool ? isUtc : throw new ArgumentError(isUtc),
-        millisecondsSinceEpoch = checkInt(Primitives.valueFromDecomposedDate(
-            year, month, day, hour, minute, second, millisecond, isUtc));
+      : this.isUtc = isUtc is bool
+            ? isUtc
+            : throw new ArgumentError.value(isUtc, 'isUtc'),
+        _value = checkInt(Primitives.valueFromDecomposedDate(
+            year, month, day, hour, minute, second,
+            millisecond + _microsecondInRoundedMilliseconds(microsecond),
+            isUtc));
 
   @patch
   DateTime._now()
       : isUtc = false,
-        millisecondsSinceEpoch = Primitives.dateNow();
+        _value = Primitives.dateNow();
+
+  /// Rounds the given [microsecond] to the nearest milliseconds value.
+  ///
+  /// For example, invoked with argument `2600` returns `3`.
+  static int _microsecondInRoundedMilliseconds(int microsecond) {
+    return (microsecond / 1000).round();
+  }
 
   @patch
-  static int _brokenDownDateToMillisecondsSinceEpoch(
+  static int _brokenDownDateToValue(
       int year, int month, int day, int hour, int minute, int second,
-      int millisecond, bool isUtc) {
+      int millisecond, int microsecond, bool isUtc) {
     return Primitives.valueFromDecomposedDate(
-        year, month, day, hour, minute, second, millisecond, isUtc);
+        year, month, day, hour, minute, second,
+        millisecond + _microsecondInRoundedMilliseconds(microsecond),
+        isUtc);
   }
 
   @patch
@@ -189,6 +215,29 @@ class DateTime {
     if (isUtc) return new Duration();
     return new Duration(minutes: Primitives.getTimeZoneOffsetInMinutes(this));
   }
+
+  @patch
+  DateTime add(Duration duration) {
+    return new DateTime._withValue(
+        _value + duration.inMilliseconds, isUtc: isUtc);
+  }
+
+  @patch
+  DateTime subtract(Duration duration) {
+    return new DateTime._withValue(
+        _value - duration.inMilliseconds, isUtc: isUtc);
+  }
+
+  @patch
+  Duration difference(DateTime other) {
+    return new Duration(milliseconds: _value - other._value);
+  }
+
+  @patch
+  int get millisecondsSinceEpoch => _value;
+
+  @patch
+  int get microsecondsSinceEpoch => _value * 1000;
 
   @patch
   int get year => Primitives.getYear(this);
@@ -210,6 +259,9 @@ class DateTime {
 
   @patch
   int get millisecond => Primitives.getMilliseconds(this);
+
+  @patch
+  int get microsecond => 0;
 
   @patch
   int get weekday => Primitives.getWeekday(this);
@@ -282,6 +334,9 @@ class Map<K, V> {
   factory Map.unmodifiable(Map other) {
     return new UnmodifiableMapView<K, V>(new Map<K, V>.from(other));
   }
+
+  @patch
+  factory Map() = JsLinkedHashMap<K, V>.es6;
 }
 
 @patch

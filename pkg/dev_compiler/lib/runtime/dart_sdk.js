@@ -26668,30 +26668,33 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return Comparable;
   });
   core.Comparable = core.Comparable$();
+  const _value$0 = Symbol('_value');
   core.DateTime = class DateTime extends core.Object {
-    DateTime(year, month, day, hour, minute, second, millisecond) {
+    DateTime(year, month, day, hour, minute, second, millisecond, microsecond) {
       if (month === void 0) month = 1;
       if (day === void 0) day = 1;
       if (hour === void 0) hour = 0;
       if (minute === void 0) minute = 0;
       if (second === void 0) second = 0;
       if (millisecond === void 0) millisecond = 0;
-      this._internal(year, month, day, hour, minute, second, millisecond, false);
+      if (microsecond === void 0) microsecond = 0;
+      this._internal(year, month, day, hour, minute, second, millisecond, microsecond, false);
     }
-    utc(year, month, day, hour, minute, second, millisecond) {
+    utc(year, month, day, hour, minute, second, millisecond, microsecond) {
       if (month === void 0) month = 1;
       if (day === void 0) day = 1;
       if (hour === void 0) hour = 0;
       if (minute === void 0) minute = 0;
       if (second === void 0) second = 0;
       if (millisecond === void 0) millisecond = 0;
-      this._internal(year, month, day, hour, minute, second, millisecond, true);
+      if (microsecond === void 0) microsecond = 0;
+      this._internal(year, month, day, hour, minute, second, millisecond, microsecond, true);
     }
     now() {
       this._now();
     }
     static parse(formattedString) {
-      let re = core.RegExp.new('^([+-]?\\d{4,6})-?(\\d\\d)-?(\\d\\d)' + '(?:[ T](\\d\\d)(?::?(\\d\\d)(?::?(\\d\\d)(.\\d{1,6})?)?)?' + '( ?[zZ]| ?([-+])(\\d\\d)(?::?(\\d\\d))?)?)?$');
+      let re = core.RegExp.new('^([+-]?\\d{4,6})-?(\\d\\d)-?(\\d\\d)' + '(?:[ T](\\d\\d)(?::?(\\d\\d)(?::?(\\d\\d)(?:\\.(\\d{1,6}))?)?)?' + '( ?[zZ]| ?([-+])(\\d\\d)(?::?(\\d\\d))?)?)?$');
       let match = re.firstMatch(formattedString);
       if (match != null) {
         function parseIntOrZero(matched) {
@@ -26699,11 +26702,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
           return core.int.parse(matched);
         }
         dart.fn(parseIntOrZero, core.int, [core.String]);
-        function parseDoubleOrZero(matched) {
-          if (matched == null) return 0.0;
-          return core.double.parse(matched);
+        function parseMilliAndMicroseconds(matched) {
+          if (matched == null) return 0;
+          let length = matched[dartx.length];
+          dart.assert(dart.notNull(length) >= 1);
+          dart.assert(dart.notNull(length) <= 6);
+          let result = 0;
+          for (let i = 0; i < 6; i++) {
+            result = result * 10;
+            if (i < dart.notNull(matched[dartx.length])) {
+              result = result + ((dart.notNull(matched[dartx.codeUnitAt](i)) ^ 48) >>> 0);
+            }
+          }
+          return result;
         }
-        dart.fn(parseDoubleOrZero, core.double, [core.String]);
+        dart.fn(parseMilliAndMicroseconds, core.int, [core.String]);
         let years = core.int.parse(match.get(1));
         let month = core.int.parse(match.get(2));
         let day = core.int.parse(match.get(3));
@@ -26711,11 +26724,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let minute = parseIntOrZero(match.get(5));
         let second = parseIntOrZero(match.get(6));
         let addOneMillisecond = false;
-        let millisecond = (dart.notNull(parseDoubleOrZero(match.get(7))) * 1000)[dartx.round]();
-        if (millisecond == 1000) {
-          addOneMillisecond = true;
-          millisecond = 999;
-        }
+        let milliAndMicroseconds = parseMilliAndMicroseconds(match.get(7));
+        let millisecond = (dart.notNull(milliAndMicroseconds) / dart.notNull(core.Duration.MICROSECONDS_PER_MILLISECOND))[dartx.truncate]();
+        let microsecond = dart.asInt(milliAndMicroseconds[dartx.remainder](core.Duration.MICROSECONDS_PER_MILLISECOND));
         let isUtc = false;
         if (match.get(8) != null) {
           isUtc = true;
@@ -26727,55 +26738,60 @@ dart_library.library('dart_sdk', null, /* Imports */[
             minute = dart.notNull(minute) - sign * dart.notNull(minuteDifference);
           }
         }
-        let millisecondsSinceEpoch = core.DateTime._brokenDownDateToMillisecondsSinceEpoch(years, month, day, hour, minute, second, millisecond, isUtc);
-        if (millisecondsSinceEpoch == null) {
+        let value = core.DateTime._brokenDownDateToValue(years, month, day, hour, minute, second, millisecond, microsecond, isUtc);
+        if (value == null) {
           dart.throw(new core.FormatException("Time out of range", formattedString));
         }
-        if (addOneMillisecond) {
-          millisecondsSinceEpoch = dart.notNull(millisecondsSinceEpoch) + 1;
-        }
-        return new core.DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch, {isUtc: isUtc});
+        return new core.DateTime._withValue(value, {isUtc: isUtc});
       } else {
         dart.throw(new core.FormatException("Invalid date format", formattedString));
       }
     }
     fromMillisecondsSinceEpoch(millisecondsSinceEpoch, opts) {
       let isUtc = opts && 'isUtc' in opts ? opts.isUtc : false;
-      this.millisecondsSinceEpoch = millisecondsSinceEpoch;
+      this._withValue(millisecondsSinceEpoch, {isUtc: isUtc});
+    }
+    fromMicrosecondsSinceEpoch(microsecondsSinceEpoch, opts) {
+      let isUtc = opts && 'isUtc' in opts ? opts.isUtc : false;
+      this._withValue(core.DateTime._microsecondInRoundedMilliseconds(microsecondsSinceEpoch), {isUtc: isUtc});
+    }
+    _withValue(value, opts) {
+      let isUtc = opts && 'isUtc' in opts ? opts.isUtc : null;
+      this[_value$0] = value;
       this.isUtc = isUtc;
-      if (dart.notNull(millisecondsSinceEpoch[dartx.abs]()) > dart.notNull(core.DateTime._MAX_MILLISECONDS_SINCE_EPOCH)) {
-        dart.throw(new core.ArgumentError(millisecondsSinceEpoch));
+      if (dart.notNull(this.millisecondsSinceEpoch[dartx.abs]()) > dart.notNull(core.DateTime._MAX_MILLISECONDS_SINCE_EPOCH) || this.millisecondsSinceEpoch[dartx.abs]() == core.DateTime._MAX_MILLISECONDS_SINCE_EPOCH && this.microsecond != 0) {
+        dart.throw(new core.ArgumentError(this.millisecondsSinceEpoch));
       }
-      if (isUtc == null) dart.throw(new core.ArgumentError(isUtc));
+      if (this.isUtc == null) dart.throw(new core.ArgumentError(this.isUtc));
     }
     ['=='](other) {
       if (!dart.is(other, core.DateTime)) return false;
-      return dart.equals(this.millisecondsSinceEpoch, dart.dload(other, 'millisecondsSinceEpoch')) && dart.equals(this.isUtc, dart.dload(other, 'isUtc'));
+      return dart.equals(this[_value$0], dart.dload(other, _value$0)) && dart.equals(this.isUtc, dart.dload(other, 'isUtc'));
     }
     isBefore(other) {
-      return dart.notNull(this.millisecondsSinceEpoch) < dart.notNull(other.millisecondsSinceEpoch);
+      return dart.notNull(this[_value$0]) < dart.notNull(other[_value$0]);
     }
     isAfter(other) {
-      return dart.notNull(this.millisecondsSinceEpoch) > dart.notNull(other.millisecondsSinceEpoch);
+      return dart.notNull(this[_value$0]) > dart.notNull(other[_value$0]);
     }
     isAtSameMomentAs(other) {
-      return this.millisecondsSinceEpoch == other.millisecondsSinceEpoch;
+      return this[_value$0] == other[_value$0];
     }
     compareTo(other) {
-      return this.millisecondsSinceEpoch[dartx.compareTo](other.millisecondsSinceEpoch);
+      return this[_value$0][dartx.compareTo](other[_value$0]);
     }
     get hashCode() {
-      return this.millisecondsSinceEpoch;
+      return (dart.notNull(this[_value$0]) ^ this[_value$0][dartx['>>']](30)) & 1073741823;
     }
     toLocal() {
       if (dart.notNull(this.isUtc)) {
-        return new core.DateTime.fromMillisecondsSinceEpoch(this.millisecondsSinceEpoch, {isUtc: false});
+        return new core.DateTime._withValue(this[_value$0], {isUtc: false});
       }
       return this;
     }
     toUtc() {
       if (dart.notNull(this.isUtc)) return this;
-      return new core.DateTime.fromMillisecondsSinceEpoch(this.millisecondsSinceEpoch, {isUtc: true});
+      return new core.DateTime._withValue(this[_value$0], {isUtc: true});
     }
     static _fourDigits(n) {
       let absN = n[dartx.abs]();
@@ -26809,10 +26825,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let min = core.DateTime._twoDigits(this.minute);
       let sec = core.DateTime._twoDigits(this.second);
       let ms = core.DateTime._threeDigits(this.millisecond);
+      let us = this.microsecond == 0 ? "" : core.DateTime._threeDigits(this.microsecond);
       if (dart.notNull(this.isUtc)) {
-        return `${y}-${m}-${d} ${h}:${min}:${sec}.${ms}Z`;
+        return `${y}-${m}-${d} ${h}:${min}:${sec}.${ms}${us}Z`;
       } else {
-        return `${y}-${m}-${d} ${h}:${min}:${sec}.${ms}`;
+        return `${y}-${m}-${d} ${h}:${min}:${sec}.${ms}${us}`;
       }
     }
     toIso8601String() {
@@ -26823,35 +26840,38 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let min = core.DateTime._twoDigits(this.minute);
       let sec = core.DateTime._twoDigits(this.second);
       let ms = core.DateTime._threeDigits(this.millisecond);
+      let us = this.microsecond == 0 ? "" : core.DateTime._threeDigits(this.microsecond);
       if (dart.notNull(this.isUtc)) {
-        return `${y}-${m}-${d}T${h}:${min}:${sec}.${ms}Z`;
+        return `${y}-${m}-${d}T${h}:${min}:${sec}.${ms}${us}Z`;
       } else {
-        return `${y}-${m}-${d}T${h}:${min}:${sec}.${ms}`;
+        return `${y}-${m}-${d}T${h}:${min}:${sec}.${ms}${us}`;
       }
     }
     add(duration) {
-      let ms = this.millisecondsSinceEpoch;
-      return new core.DateTime.fromMillisecondsSinceEpoch(dart.notNull(ms) + dart.notNull(duration.inMilliseconds), {isUtc: this.isUtc});
+      return new core.DateTime._withValue(dart.notNull(this[_value$0]) + dart.notNull(duration.inMilliseconds), {isUtc: this.isUtc});
     }
     subtract(duration) {
-      let ms = this.millisecondsSinceEpoch;
-      return new core.DateTime.fromMillisecondsSinceEpoch(dart.notNull(ms) - dart.notNull(duration.inMilliseconds), {isUtc: this.isUtc});
+      return new core.DateTime._withValue(dart.notNull(this[_value$0]) - dart.notNull(duration.inMilliseconds), {isUtc: this.isUtc});
     }
     difference(other) {
-      let ms = this.millisecondsSinceEpoch;
-      let otherMs = other.millisecondsSinceEpoch;
-      return new core.Duration({milliseconds: dart.notNull(ms) - dart.notNull(otherMs)});
+      return new core.Duration({milliseconds: dart.notNull(this[_value$0]) - dart.notNull(other[_value$0])});
     }
-    _internal(year, month, day, hour, minute, second, millisecond, isUtc) {
-      this.isUtc = typeof isUtc == 'boolean' ? isUtc : dart.throw(new core.ArgumentError(isUtc));
-      this.millisecondsSinceEpoch = dart.as(_js_helper.checkInt(_js_helper.Primitives.valueFromDecomposedDate(year, month, day, hour, minute, second, millisecond, isUtc)), core.int);
+    _internal(year, month, day, hour, minute, second, millisecond, microsecond, isUtc) {
+      this.isUtc = typeof isUtc == 'boolean' ? isUtc : dart.throw(new core.ArgumentError.value(isUtc, 'isUtc'));
+      this[_value$0] = dart.as(_js_helper.checkInt(_js_helper.Primitives.valueFromDecomposedDate(year, month, day, hour, minute, second, dart.notNull(millisecond) + dart.notNull(core.DateTime._microsecondInRoundedMilliseconds(microsecond)), isUtc)), core.int);
     }
     _now() {
       this.isUtc = false;
-      this.millisecondsSinceEpoch = _js_helper.Primitives.dateNow();
+      this[_value$0] = _js_helper.Primitives.dateNow();
     }
-    static _brokenDownDateToMillisecondsSinceEpoch(year, month, day, hour, minute, second, millisecond, isUtc) {
-      return dart.as(_js_helper.Primitives.valueFromDecomposedDate(year, month, day, hour, minute, second, millisecond, isUtc), core.int);
+    static _brokenDownDateToValue(year, month, day, hour, minute, second, millisecond, microsecond, isUtc) {
+      return dart.as(_js_helper.Primitives.valueFromDecomposedDate(year, month, day, hour, minute, second, dart.notNull(millisecond) + dart.notNull(core.DateTime._microsecondInRoundedMilliseconds(microsecond)), isUtc), core.int);
+    }
+    get millisecondsSinceEpoch() {
+      return this[_value$0];
+    }
+    get microsecondsSinceEpoch() {
+      return dart.notNull(this[_value$0]) * 1000;
     }
     get timeZoneName() {
       if (dart.notNull(this.isUtc)) return "UTC";
@@ -26882,23 +26902,33 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get millisecond() {
       return dart.as(_js_helper.Primitives.getMilliseconds(this), core.int);
     }
+    get microsecond() {
+      return 0;
+    }
     get weekday() {
       return dart.as(_js_helper.Primitives.getWeekday(this), core.int);
+    }
+    static _microsecondInRoundedMilliseconds(microsecond) {
+      return (dart.notNull(microsecond) / 1000)[dartx.round]();
     }
   };
   dart.defineNamedConstructor(core.DateTime, 'utc');
   dart.defineNamedConstructor(core.DateTime, 'now');
   dart.defineNamedConstructor(core.DateTime, 'fromMillisecondsSinceEpoch');
+  dart.defineNamedConstructor(core.DateTime, 'fromMicrosecondsSinceEpoch');
+  dart.defineNamedConstructor(core.DateTime, '_withValue');
   dart.defineNamedConstructor(core.DateTime, '_internal');
   dart.defineNamedConstructor(core.DateTime, '_now');
   core.DateTime[dart.implements] = () => [core.Comparable];
   dart.setSignature(core.DateTime, {
     constructors: () => ({
-      DateTime: [core.DateTime, [core.int], [core.int, core.int, core.int, core.int, core.int, core.int]],
-      utc: [core.DateTime, [core.int], [core.int, core.int, core.int, core.int, core.int, core.int]],
+      DateTime: [core.DateTime, [core.int], [core.int, core.int, core.int, core.int, core.int, core.int, core.int]],
+      utc: [core.DateTime, [core.int], [core.int, core.int, core.int, core.int, core.int, core.int, core.int]],
       now: [core.DateTime, []],
       fromMillisecondsSinceEpoch: [core.DateTime, [core.int], {isUtc: core.bool}],
-      _internal: [core.DateTime, [core.int, core.int, core.int, core.int, core.int, core.int, core.int, core.bool]],
+      fromMicrosecondsSinceEpoch: [core.DateTime, [core.int], {isUtc: core.bool}],
+      _withValue: [core.DateTime, [core.int], {isUtc: core.bool}],
+      _internal: [core.DateTime, [core.int, core.int, core.int, core.int, core.int, core.int, core.int, core.int, core.bool]],
       _now: [core.DateTime, []]
     }),
     methods: () => ({
@@ -26919,9 +26949,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _sixDigits: [core.String, [core.int]],
       _threeDigits: [core.String, [core.int]],
       _twoDigits: [core.String, [core.int]],
-      _brokenDownDateToMillisecondsSinceEpoch: [core.int, [core.int, core.int, core.int, core.int, core.int, core.int, core.int, core.bool]]
+      _brokenDownDateToValue: [core.int, [core.int, core.int, core.int, core.int, core.int, core.int, core.int, core.int, core.bool]],
+      _microsecondInRoundedMilliseconds: [core.int, [core.int]]
     }),
-    names: ['parse', '_fourDigits', '_sixDigits', '_threeDigits', '_twoDigits', '_brokenDownDateToMillisecondsSinceEpoch']
+    names: ['parse', '_fourDigits', '_sixDigits', '_threeDigits', '_twoDigits', '_brokenDownDateToValue', '_microsecondInRoundedMilliseconds']
   });
   dart.defineExtensionMembers(core.DateTime, ['compareTo']);
   core.DateTime.MONDAY = 1;
@@ -47765,13 +47796,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     statics: () => ({createElement_tag: [dart.dynamic, [core.String, core.String]]}),
     names: ['createElement_tag']
   });
-  const _value$0 = Symbol('_value');
+  const _value$1 = Symbol('_value');
   html$.ScrollAlignment = class ScrollAlignment extends core.Object {
     _internal(value) {
-      this[_value$0] = value;
+      this[_value$1] = value;
     }
     toString() {
-      return `ScrollAlignment.${this[_value$0]}`;
+      return `ScrollAlignment.${this[_value$1]}`;
     }
   };
   dart.defineNamedConstructor(html$.ScrollAlignment, '_internal');
@@ -68191,43 +68222,43 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _unit = Symbol('_unit');
   html$.Dimension = class Dimension extends core.Object {
     percent(value) {
-      this[_value$0] = value;
+      this[_value$1] = value;
       this[_unit] = '%';
     }
     px(value) {
-      this[_value$0] = value;
+      this[_value$1] = value;
       this[_unit] = 'px';
     }
     pc(value) {
-      this[_value$0] = value;
+      this[_value$1] = value;
       this[_unit] = 'pc';
     }
     pt(value) {
-      this[_value$0] = value;
+      this[_value$1] = value;
       this[_unit] = 'pt';
     }
     inch(value) {
-      this[_value$0] = value;
+      this[_value$1] = value;
       this[_unit] = 'in';
     }
     cm(value) {
-      this[_value$0] = value;
+      this[_value$1] = value;
       this[_unit] = 'cm';
     }
     mm(value) {
-      this[_value$0] = value;
+      this[_value$1] = value;
       this[_unit] = 'mm';
     }
     em(value) {
-      this[_value$0] = value;
+      this[_value$1] = value;
       this[_unit] = 'em';
     }
     ex(value) {
-      this[_value$0] = value;
+      this[_value$1] = value;
       this[_unit] = 'ex';
     }
     css(cssValue) {
-      this[_value$0] = null;
+      this[_value$1] = null;
       this[_unit] = null;
       if (cssValue == '') cssValue = '0px';
       if (dart.notNull(cssValue[dartx.endsWith]('%'))) {
@@ -68236,16 +68267,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_unit] = cssValue[dartx.substring](dart.notNull(cssValue[dartx.length]) - 2);
       }
       if (dart.notNull(cssValue[dartx.contains]('.'))) {
-        this[_value$0] = core.double.parse(cssValue[dartx.substring](0, dart.notNull(cssValue[dartx.length]) - dart.notNull(this[_unit][dartx.length])));
+        this[_value$1] = core.double.parse(cssValue[dartx.substring](0, dart.notNull(cssValue[dartx.length]) - dart.notNull(this[_unit][dartx.length])));
       } else {
-        this[_value$0] = core.int.parse(cssValue[dartx.substring](0, dart.notNull(cssValue[dartx.length]) - dart.notNull(this[_unit][dartx.length])));
+        this[_value$1] = core.int.parse(cssValue[dartx.substring](0, dart.notNull(cssValue[dartx.length]) - dart.notNull(this[_unit][dartx.length])));
       }
     }
     toString() {
-      return `${this[_value$0]}${this[_unit]}`;
+      return `${this[_value$1]}${this[_unit]}`;
     }
     get value() {
-      return this[_value$0];
+      return this[_value$1];
     }
   };
   dart.defineNamedConstructor(html$.Dimension, 'percent');
