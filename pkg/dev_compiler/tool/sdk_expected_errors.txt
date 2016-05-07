@@ -1,6 +1,6 @@
 [error] The argument type 'InternalMap' cannot be assigned to the parameter type 'Map'. (dart:_isolate_helper/isolate_serialization.dart, line 47, col 47)
 [error] Base class introduces an invalid override. The type of JSArray.[]= ((int, E) → void) is not a subtype of JSMutableIndexable.[]= ((int, dynamic) → dynamic). (dart:_interceptors/js_array.dart, line 576, col 25)
-[error] Invalid override. The type of NativeTypedArrayOfDouble.[]= ((int, num) → void) is not a subtype of JSMutableIndexable.[]= ((int, dynamic) → dynamic). (dart:_native_typed_data, line 897, col 3)
+[error] Invalid override. The type of NativeTypedArrayOfDouble.[]= ((int, num) → void) is not a subtype of JSMutableIndexable.[]= ((int, dynamic) → dynamic). (dart:_native_typed_data, line 793, col 3)
 [error] Invalid override. The type of _JsonStringStringifierPretty.writeIndentation ((int) → void) is not a subtype of _JsonPrettyPrintMixin.writeIndentation ((dynamic) → void). (dart:convert/json.dart, line 875, col 3)
 [error] Invalid override. The type of _JsonUtf8StringifierPretty.writeIndentation ((int) → void) is not a subtype of _JsonPrettyPrintMixin.writeIndentation ((dynamic) → void). (dart:convert/json.dart, line 1034, col 3)
 [error] Invalid override. The type of DateTime.compareTo ((DateTime) → int) is not a subtype of Comparable<dynamic>.compareTo ((dynamic) → int). (dart:core/date_time.dart, line 412, col 3)

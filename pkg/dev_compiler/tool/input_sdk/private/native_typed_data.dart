@@ -12,7 +12,8 @@ import 'dart:collection';
 import 'dart:_internal';
 import 'dart:_interceptors' show JSIndexable;
 import 'dart:_js_helper'
-show Creates, JavaScriptIndexingBehavior, JSName, Native, Null, Returns;
+show Creates, JavaScriptIndexingBehavior, JSName, Native, Null, Returns,
+    diagnoseIndexError, diagnoseRangeError;
 import 'dart:_foreign_helper' show JS;
 import 'dart:math' as Math;
 
@@ -147,39 +148,10 @@ class NativeFloat32x4List
 
   int get elementSizeInBytes => Float32x4List.BYTES_PER_ELEMENT;
 
-  void _invalidIndex(int index, int length) {
-    if (index < 0 || index >= length) {
-      if (length == this.length) {
-        throw new RangeError.index(index, this);
-      }
-      throw new RangeError.range(index, 0, length - 1);
-    } else {
-      throw new ArgumentError('Invalid list index $index');
-    }
-  }
-
-  void _checkIndex(int index, int length) {
-    if (JS('bool', '(# >>> 0 != #)', index, index) || index >= length) {
-      _invalidIndex(index, length);
-    }
-  }
-
-  int _checkSublistArguments(int start, int end, int length) {
-    // For `sublist` the [start] and [end] indices are allowed to be equal to
-    // [length]. However, [_checkIndex] only allows indices in the range
-    // 0 .. length - 1. We therefore increment the [length] argument by one
-    // for the [_checkIndex] checks.
-    _checkIndex(start, length + 1);
-    if (end == null) return length;
-    _checkIndex(end, length + 1);
-    if (start > end) throw new RangeError.range(start, 0, end);
-    return end;
-  }
-
   int get length => _storage.length ~/ 4;
 
   Float32x4 operator[](int index) {
-    _checkIndex(index, length);
+    _checkValidIndex(index, this, this.length);
     double _x = _storage[(index * 4) + 0];
     double _y = _storage[(index * 4) + 1];
     double _z = _storage[(index * 4) + 2];
@@ -188,7 +160,7 @@ class NativeFloat32x4List
   }
 
   void operator[]=(int index, Float32x4 value) {
-    _checkIndex(index, length);
+    _checkValidIndex(index, this, this.length);
     _storage[(index * 4) + 0] = value.x;
     _storage[(index * 4) + 1] = value.y;
     _storage[(index * 4) + 2] = value.z;
@@ -196,7 +168,7 @@ class NativeFloat32x4List
   }
 
   List<Float32x4> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
+    end = _checkValidRange(start, end, this.length);
     return new NativeFloat32x4List._externalStorage(
         _storage.sublist(start * 4, end * 4));
   }
@@ -256,40 +228,10 @@ class NativeInt32x4List
 
   int get elementSizeInBytes => Int32x4List.BYTES_PER_ELEMENT;
 
-  void _invalidIndex(int index, int length) {
-    if (index < 0 || index >= length) {
-      if (length == this.length) {
-        throw new RangeError.index(index, this);
-      }
-      throw new RangeError.range(index, 0, length - 1);
-    } else {
-      throw new ArgumentError('Invalid list index $index');
-    }
-  }
-
-  void _checkIndex(int index, int length) {
-    if (JS('bool', '(# >>> 0 != #)', index, index)
-        || JS('bool', '# >= #', index, length)) {
-      _invalidIndex(index, length);
-    }
-  }
-
-  int _checkSublistArguments(int start, int end, int length) {
-    // For `sublist` the [start] and [end] indices are allowed to be equal to
-    // [length]. However, [_checkIndex] only allows indices in the range
-    // 0 .. length - 1. We therefore increment the [length] argument by one
-    // for the [_checkIndex] checks.
-    _checkIndex(start, length + 1);
-    if (end == null) return length;
-    _checkIndex(end, length + 1);
-    if (start > end) throw new RangeError.range(start, 0, end);
-    return end;
-  }
-
   int get length => _storage.length ~/ 4;
 
   Int32x4 operator[](int index) {
-    _checkIndex(index, length);
+    _checkValidIndex(index, this, this.length);
     int _x = _storage[(index * 4) + 0];
     int _y = _storage[(index * 4) + 1];
     int _z = _storage[(index * 4) + 2];
@@ -298,7 +240,7 @@ class NativeInt32x4List
   }
 
   void operator[]=(int index, Int32x4 value) {
-    _checkIndex(index, length);
+    _checkValidIndex(index, this, this.length);
     _storage[(index * 4) + 0] = value.x;
     _storage[(index * 4) + 1] = value.y;
     _storage[(index * 4) + 2] = value.z;
@@ -306,7 +248,7 @@ class NativeInt32x4List
   }
 
   List<Int32x4> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
+    end = _checkValidRange(start, end, this.length);
     return new NativeInt32x4List._externalStorage(
         _storage.sublist(start * 4, end * 4));
   }
@@ -365,57 +307,29 @@ class NativeFloat64x2List
 
   int get elementSizeInBytes => Float64x2List.BYTES_PER_ELEMENT;
 
-  void _invalidIndex(int index, int length) {
-    if (index < 0 || index >= length) {
-      if (length == this.length) {
-        throw new RangeError.index(index, this);
-      }
-      throw new RangeError.range(index, 0, length - 1);
-    } else {
-      throw new ArgumentError('Invalid list index $index');
-    }
-  }
-
-  void _checkIndex(int index, int length) {
-    if (JS('bool', '(# >>> 0 != #)', index, index) || index >= length) {
-      _invalidIndex(index, length);
-    }
-  }
-
-  int _checkSublistArguments(int start, int end, int length) {
-    // For `sublist` the [start] and [end] indices are allowed to be equal to
-    // [length]. However, [_checkIndex] only allows indices in the range
-    // 0 .. length - 1. We therefore increment the [length] argument by one
-    // for the [_checkIndex] checks.
-    _checkIndex(start, length + 1);
-    if (end == null) return length;
-    _checkIndex(end, length + 1);
-    if (start > end) throw new RangeError.range(start, 0, end);
-    return end;
-  }
-
   int get length => _storage.length ~/ 2;
 
   Float64x2 operator[](int index) {
-    _checkIndex(index, length);
+    _checkValidIndex(index, this, this.length);
     double _x = _storage[(index * 2) + 0];
     double _y = _storage[(index * 2) + 1];
     return new Float64x2(_x, _y);
   }
 
   void operator[]=(int index, Float64x2 value) {
-    _checkIndex(index, length);
+    _checkValidIndex(index, this, this.length);
     _storage[(index * 2) + 0] = value.x;
     _storage[(index * 2) + 1] = value.y;
   }
 
   List<Float64x2> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
+    end = _checkValidRange(start, end, this.length);
     return new NativeFloat64x2List._externalStorage(
         _storage.sublist(start * 2, end * 2));
   }
 }
 
+@Native("ArrayBufferView")
 class NativeTypedData implements TypedData {
   /**
    * Returns the byte buffer associated with this object.
@@ -444,37 +358,19 @@ class NativeTypedData implements TypedData {
   @JSName('BYTES_PER_ELEMENT')
   external int get elementSizeInBytes;
 
-  void _invalidIndex(int index, int length) {
-    if (index < 0 || index >= length) {
-      if (this is List) {
-        // Typed as dynamic to avoid warning.
-        if (length == (this as dynamic).length) {
-          throw new RangeError.index(index, this);
-        }
-      }
-      throw new RangeError.range(index, 0, length - 1);
+  void _invalidPosition(int position, int length, String name) {
+    if (position is !int) {
+      throw new ArgumentError.value(position, name, 'Invalid list position');
     } else {
-      throw new ArgumentError('Invalid list index $index');
+      throw new RangeError.range(position, 0, length, name);
     }
   }
 
-  void _checkIndex(int index, int length) {
-    if (JS('bool', '(# >>> 0) !== #', index, index) ||
-        JS('int', '#', index) >= length) {  // 'int' guaranteed by above test.
-      _invalidIndex(index, length);
+  void _checkPosition(int position, int length, String name) {
+    if (JS('bool', '(# >>> 0) !== #', position, position) ||
+        JS('int', '#', position) > length) {  // 'int' guaranteed by above test.
+      _invalidPosition(position, length, name);
     }
-  }
-
-  int _checkSublistArguments(int start, int end, int length) {
-    // For `sublist` the [start] and [end] indices are allowed to be equal to
-    // [length]. However, [_checkIndex] only allows indices in the range
-    // 0 .. length - 1. We therefore increment the [length] argument by one
-    // for the [_checkIndex] checks.
-    _checkIndex(start, length + 1);
-    if (end == null) return length;
-    _checkIndex(end, length + 1);
-    if (start > end) throw new RangeError.range(start, 0, end);
-    return end;
   }
 }
 
@@ -862,8 +758,8 @@ abstract class NativeTypedArray extends NativeTypedData
   void _setRangeFast(int start, int end,
       NativeTypedArray source, int skipCount) {
     int targetLength = this.length;
-    _checkIndex(start, targetLength + 1);
-    _checkIndex(end, targetLength + 1);
+    _checkPosition(start, targetLength, "start");
+    _checkPosition(end, targetLength, "end");
     if (start > end) throw new RangeError.range(start, 0, end);
     int count = end - start;
 
@@ -890,12 +786,12 @@ abstract class NativeTypedArrayOfDouble
   int get length => JS('int', '#.length', this);
 
   double operator[](int index) {
-    _checkIndex(index, length);
+    _checkValidIndex(index, this, this.length);
     return JS('double', '#[#]', this, index);
   }
 
   void operator[]=(int index, num value) {
-    _checkIndex(index, length);
+    _checkValidIndex(index, this, this.length);
     JS('void', '#[#] = #', this, index, value);
   }
 
@@ -920,7 +816,7 @@ abstract class NativeTypedArrayOfInt
   // types
 
   void operator[]=(int index, int value) {
-    _checkIndex(index, length);
+    _checkValidIndex(index, this, this.length);
     JS('void', '#[#] = #', this, index, value);
   }
 
@@ -956,7 +852,7 @@ class NativeFloat32List
   Type get runtimeType => Float32List;
 
   List<double> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
+    end = _checkValidRange(start, end, this.length);
     var source = JS('NativeFloat32List', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
@@ -993,7 +889,7 @@ class NativeFloat64List
   Type get runtimeType => Float64List;
 
   List<double> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
+    end = _checkValidRange(start, end, this.length);
     var source = JS('NativeFloat64List', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
@@ -1030,12 +926,12 @@ class NativeInt16List
   Type get runtimeType => Int16List;
 
   int operator[](int index) {
-    _checkIndex(index, length);
+    _checkValidIndex(index, this, this.length);
     return JS('int', '#[#]', this, index);
   }
 
   List<int> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
+    end = _checkValidRange(start, end, this.length);
     var source = JS('NativeInt16List', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
@@ -1070,12 +966,12 @@ class NativeInt32List extends NativeTypedArrayOfInt implements Int32List {
   Type get runtimeType => Int32List;
 
   int operator[](int index) {
-    _checkIndex(index, length);
+    _checkValidIndex(index, this, this.length);
     return JS('int', '#[#]', this, index);
   }
 
   List<int> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
+    end = _checkValidRange(start, end, this.length);
     var source = JS('NativeInt32List', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
@@ -1110,12 +1006,12 @@ class NativeInt8List extends NativeTypedArrayOfInt implements Int8List {
   Type get runtimeType => Int8List;
 
   int operator[](int index) {
-    _checkIndex(index, length);
+    _checkValidIndex(index, this, this.length);
     return JS('int', '#[#]', this, index);
   }
 
   List<int> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
+    end = _checkValidRange(start, end, this.length);
     var source = JS('NativeInt8List', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
@@ -1150,12 +1046,12 @@ class NativeUint16List extends NativeTypedArrayOfInt implements Uint16List {
   Type get runtimeType => Uint16List;
 
   int operator[](int index) {
-    _checkIndex(index, length);
+    _checkValidIndex(index, this, this.length);
     return JS('int', '#[#]', this, index);
   }
 
   List<int> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
+    end = _checkValidRange(start, end, this.length);
     var source = JS('NativeUint16List', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
@@ -1190,12 +1086,12 @@ class NativeUint32List extends NativeTypedArrayOfInt implements Uint32List {
   Type get runtimeType => Uint32List;
 
   int operator[](int index) {
-    _checkIndex(index, length);
+    _checkValidIndex(index, this, this.length);
     return JS('int', '#[#]', this, index);
   }
 
   List<int> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
+    end = _checkValidRange(start, end, this.length);
     var source = JS('NativeUint32List', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
@@ -1234,12 +1130,12 @@ class NativeUint8ClampedList
   int get length => JS('int', '#.length', this);
 
   int operator[](int index) {
-    _checkIndex(index, length);
+    _checkValidIndex(index, this, this.length);
     return JS('int', '#[#]', this, index);
   }
 
   List<int> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
+    end = _checkValidRange(start, end, this.length);
     var source = JS('NativeUint8ClampedList', '#.subarray(#, #)',
         this, start, end);
     return _create1(source);
@@ -1282,12 +1178,12 @@ class NativeUint8List extends NativeTypedArrayOfInt implements Uint8List {
   int get length => JS('int', '#.length', this);
 
   int operator[](int index) {
-    _checkIndex(index, length);
+    _checkValidIndex(index, this, this.length);
     return JS('int', '#[#]', this, index);
   }
 
   List<int> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
+    end = _checkValidRange(start, end, this.length);
     var source = JS('NativeUint8List', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
@@ -1544,42 +1440,42 @@ class NativeFloat32x4 implements Float32x4 {
   }
 
   /// Shuffle the lane values. [mask] must be one of the 256 shuffle constants.
-  Float32x4 shuffle(int m) {
-    if ((m < 0) || (m > 255)) {
-      throw new RangeError('mask $m must be in the range [0..256)');
+  Float32x4 shuffle(int mask) {
+    if ((mask < 0) || (mask > 255)) {
+      throw new RangeError.range(mask, 0, 255, "mask");
     }
     _list[0] = x;
     _list[1] = y;
     _list[2] = z;
     _list[3] = w;
 
-    double _x = _list[m & 0x3];
-    double _y = _list[(m >> 2) & 0x3];
-    double _z = _list[(m >> 4) & 0x3];
-    double _w = _list[(m >> 6) & 0x3];
+    double _x = _list[mask & 0x3];
+    double _y = _list[(mask >> 2) & 0x3];
+    double _z = _list[(mask >> 4) & 0x3];
+    double _w = _list[(mask >> 6) & 0x3];
     return new NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
 
   /// Shuffle the lane values in [this] and [other]. The returned
   /// Float32x4 will have XY lanes from [this] and ZW lanes from [other].
   /// Uses the same [mask] as [shuffle].
-  Float32x4 shuffleMix(Float32x4 other, int m) {
-    if ((m < 0) || (m > 255)) {
-      throw new RangeError('mask $m must be in the range [0..256)');
+  Float32x4 shuffleMix(Float32x4 other, int mask) {
+    if ((mask < 0) || (mask > 255)) {
+      throw new RangeError.range(mask, 0, 255, "mask");
     }
     _list[0] = x;
     _list[1] = y;
     _list[2] = z;
     _list[3] = w;
-    double _x = _list[m & 0x3];
-    double _y = _list[(m >> 2) & 0x3];
+    double _x = _list[mask & 0x3];
+    double _y = _list[(mask >> 2) & 0x3];
 
     _list[0] = other.x;
     _list[1] = other.y;
     _list[2] = other.z;
     _list[3] = other.w;
-    double _z = _list[(m >> 4) & 0x3];
-    double _w = _list[(m >> 6) & 0x3];
+    double _z = _list[(mask >> 4) & 0x3];
+    double _w = _list[(mask >> 6) & 0x3];
     return new NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
 
@@ -1767,7 +1663,7 @@ class NativeInt32x4 implements Int32x4 {
   /// Shuffle the lane values. [mask] must be one of the 256 shuffle constants.
   Int32x4 shuffle(int mask) {
     if ((mask < 0) || (mask > 255)) {
-      throw new RangeError('mask $mask must be in the range [0..256)');
+      throw new RangeError.range(mask, 0, 255, "mask");
     }
     _list[0] = x;
     _list[1] = y;
@@ -1785,7 +1681,7 @@ class NativeInt32x4 implements Int32x4 {
   /// Uses the same [mask] as [shuffle].
   Int32x4 shuffleMix(Int32x4 other, int mask) {
     if ((mask < 0) || (mask > 255)) {
-      throw new RangeError('mask $mask must be in the range [0..256)');
+      throw new RangeError.range(mask, 0, 255, "mask");
     }
     _list[0] = x;
     _list[1] = y;
@@ -2009,4 +1905,38 @@ class NativeFloat64x2 implements Float64x2 {
   Float64x2 sqrt() {
       return new NativeFloat64x2._doubles(Math.sqrt(x), Math.sqrt(y));
   }
+}
+
+/// Checks that the value is a Uint32. If not, it's not valid as an array
+/// index or offset. Also ensures that the value is non-negative.
+bool _isInvalidArrayIndex(int index) {
+  return (JS('bool', '(# >>> 0 !== #)', index, index));
+}
+
+/// Checks that [index] is a valid index into [list] which has length [length].
+///
+/// That is, [index] is an insteger in the range `0..length - 1`.
+void _checkValidIndex(int index, List list, int length) {
+  if (_isInvalidArrayIndex(index) || JS('int', '#', index) >= length) {
+    throw diagnoseIndexError(list, index);
+  }
+}
+
+/// Checks that [start] and [end] form a range of a list of length [length].
+///
+/// That is: `start` and `end` are integers with `0 <= start <= end <= length`.
+/// If `end` is `null` in which case it is considered to be `length`
+///
+/// Returns the actual value of `end`, which is `length` if `end` is `null`, and
+/// the original value of `end` otherwise.
+int _checkValidRange(int start, int end, int length) {
+  if (_isInvalidArrayIndex(start) ||  // Ensures start is non-negative int.
+      ((end == null) ? start > length
+                     : (_isInvalidArrayIndex(end) ||
+                        start > end ||
+                        end > length))) {
+    throw diagnoseRangeError(start, end, length);
+  }
+  if (end == null) return length;
+  return end;
 }

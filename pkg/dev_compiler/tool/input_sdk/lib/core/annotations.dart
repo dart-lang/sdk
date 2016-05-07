@@ -113,26 +113,37 @@ class _Proxy {
 }
 
 /**
- * The annotation `@proxy` marks a class as implementing interfaces and members
- * dynamically through `noSuchMethod`.
+ * The annotation `@proxy` marks a class as implementing members dynamically
+ * through `noSuchMethod`.
  *
  * The annotation applies to any class. It is inherited by subclasses from both
  * superclass and interfaces.
  *
  * If a class is annotated with `@proxy`, or it implements any class that is
- * annotated, then the class is considered to implement any interface and
- * any member with regard to static type analysis. As such, it is not a static
- * type warning to assign the object to a variable of any type, and it is not
- * a static type warning to access any member of the object.
+ * annotated, then the class is considered to implement any member with regard
+ * to static type analysis.
+ * As such, it is not a static type warning to access any member of the object
+ * which is not implemented by the class, or to call a method with a different
+ * number of parameters than it is declared with.
  *
- * This only applies to static type warnings. The runtime type of the object
- * is unaffected. It is not considered to implement any special interfaces at
- * runtime, so assigning it to a typed variable may fail in checked mode, and
- * testing it with the `is` operator will not work for any type except the
- * ones it actually implements.
+ * The annotation does not change which classes the annotated class implements,
+ * and does not prevent static warnings for assigning an object to a variable
+ * with a static type not implemented by the object.
  *
- * Tools that understand `@proxy` should tell the user if a class using `@proxy`
- * does not override the `noSuchMethod` declared on [Object].
+ * The suppression of warnings only affect static type warnings about
+ * member access.
+ * The runtime type of the object is unaffected.
+ * It is not considered to implement any special interfaces,
+ * so assigning it to a typed variable may fail in checked mode,
+ * and testing it with the `is` operator
+ * will only return true for types it actually implements or extends.
+ * Accessing a member which isn't implemented by the classs
+ * will cause the `noSuchMethod` method to be called normally,
+ * the `@proxy` annotation merely states the intent to handle (some of) those
+ * `noSuchMethod` calls gracefully.
+ *
+ * A class that marked as `@proxy` should override the `noSuchMethod`
+ * declared on [Object].
  *
  * The intent of the `@proxy` notation is to create objects that implement a
  * type (or multiple types) that are not known at compile time. If the types

@@ -10966,9 +10966,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _native_typed_data.NativeByteBuffer[dart.metadata] = () => [dart.const(new _js_helper.Native("ArrayBuffer"))];
   dart.registerExtension(dart.global.ArrayBuffer, _native_typed_data.NativeByteBuffer);
   const _storage = Symbol('_storage');
-  const _invalidIndex = Symbol('_invalidIndex');
-  const _checkIndex = Symbol('_checkIndex');
-  const _checkSublistArguments = Symbol('_checkSublistArguments');
   typed_data.Float32x4 = class Float32x4 extends core.Object {
     static new(x, y, z, w) {
       return new _native_typed_data.NativeFloat32x4(x, y, z, w);
@@ -11290,28 +11287,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get elementSizeInBytes() {
       return typed_data.Float32x4List.BYTES_PER_ELEMENT;
     }
-    [_invalidIndex](index, length) {
-      if (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(length)) {
-        if (length == this.length) {
-          dart.throw(core.RangeError.index(index, this));
-        }
-        dart.throw(new core.RangeError.range(index, 0, dart.notNull(length) - 1));
-      } else {
-        dart.throw(new core.ArgumentError(`Invalid list index ${index}`));
-      }
-    }
-    [_checkIndex](index, length) {
-      if (index >>> 0 != index || dart.notNull(index) >= dart.notNull(length)) {
-        this[_invalidIndex](index, length);
-      }
-    }
-    [_checkSublistArguments](start, end, length) {
-      this[_checkIndex](start, dart.notNull(length) + 1);
-      if (end == null) return length;
-      this[_checkIndex](end, dart.notNull(length) + 1);
-      if (dart.notNull(start) > dart.notNull(end)) dart.throw(new core.RangeError.range(start, 0, end));
-      return end;
-    }
     get length() {
       return (dart.notNull(this[_storage][dartx.length]) / 4)[dartx.truncate]();
     }
@@ -11319,7 +11294,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.length = value;
     }
     get(index) {
-      this[_checkIndex](index, this.length);
+      _native_typed_data._checkValidIndex(index, this, this.length);
       let _x = this[_storage][dartx.get](dart.notNull(index) * 4 + 0);
       let _y = this[_storage][dartx.get](dart.notNull(index) * 4 + 1);
       let _z = this[_storage][dartx.get](dart.notNull(index) * 4 + 2);
@@ -11327,7 +11302,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return new _native_typed_data.NativeFloat32x4._truncated(_x, _y, _z, _w);
     }
     set(index, value) {
-      this[_checkIndex](index, this.length);
+      _native_typed_data._checkValidIndex(index, this, this.length);
       this[_storage][dartx.set](dart.notNull(index) * 4 + 0, value.x);
       this[_storage][dartx.set](dart.notNull(index) * 4 + 1, value.y);
       this[_storage][dartx.set](dart.notNull(index) * 4 + 2, value.z);
@@ -11336,7 +11311,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     sublist(start, end) {
       if (end === void 0) end = null;
-      end = this[_checkSublistArguments](start, end, this.length);
+      end = _native_typed_data._checkValidRange(start, end, this.length);
       return new _native_typed_data.NativeFloat32x4List._externalStorage(dart.as(this[_storage][dartx.sublist](dart.notNull(start) * 4, dart.notNull(end) * 4), _native_typed_data.NativeFloat32List));
     }
   };
@@ -11351,9 +11326,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       fromList: [_native_typed_data.NativeFloat32x4List, [core.List$(typed_data.Float32x4)]]
     }),
     methods: () => ({
-      [_invalidIndex]: [dart.void, [core.int, core.int]],
-      [_checkIndex]: [dart.void, [core.int, core.int]],
-      [_checkSublistArguments]: [core.int, [core.int, core.int, core.int]],
       get: [typed_data.Float32x4, [core.int]],
       set: [dart.void, [core.int, typed_data.Float32x4]],
       sublist: [core.List$(typed_data.Float32x4), [core.int], [core.int]]
@@ -11682,28 +11654,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get elementSizeInBytes() {
       return typed_data.Int32x4List.BYTES_PER_ELEMENT;
     }
-    [_invalidIndex](index, length) {
-      if (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(length)) {
-        if (length == this.length) {
-          dart.throw(core.RangeError.index(index, this));
-        }
-        dart.throw(new core.RangeError.range(index, 0, dart.notNull(length) - 1));
-      } else {
-        dart.throw(new core.ArgumentError(`Invalid list index ${index}`));
-      }
-    }
-    [_checkIndex](index, length) {
-      if (index >>> 0 != index || index >= length) {
-        this[_invalidIndex](index, length);
-      }
-    }
-    [_checkSublistArguments](start, end, length) {
-      this[_checkIndex](start, dart.notNull(length) + 1);
-      if (end == null) return length;
-      this[_checkIndex](end, dart.notNull(length) + 1);
-      if (dart.notNull(start) > dart.notNull(end)) dart.throw(new core.RangeError.range(start, 0, end));
-      return end;
-    }
     get length() {
       return (dart.notNull(this[_storage][dartx.length]) / 4)[dartx.truncate]();
     }
@@ -11711,7 +11661,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.length = value;
     }
     get(index) {
-      this[_checkIndex](index, this.length);
+      _native_typed_data._checkValidIndex(index, this, this.length);
       let _x = this[_storage][dartx.get](dart.notNull(index) * 4 + 0);
       let _y = this[_storage][dartx.get](dart.notNull(index) * 4 + 1);
       let _z = this[_storage][dartx.get](dart.notNull(index) * 4 + 2);
@@ -11719,7 +11669,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return new _native_typed_data.NativeInt32x4._truncated(_x, _y, _z, _w);
     }
     set(index, value) {
-      this[_checkIndex](index, this.length);
+      _native_typed_data._checkValidIndex(index, this, this.length);
       this[_storage][dartx.set](dart.notNull(index) * 4 + 0, value.x);
       this[_storage][dartx.set](dart.notNull(index) * 4 + 1, value.y);
       this[_storage][dartx.set](dart.notNull(index) * 4 + 2, value.z);
@@ -11728,7 +11678,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     sublist(start, end) {
       if (end === void 0) end = null;
-      end = this[_checkSublistArguments](start, end, this.length);
+      end = _native_typed_data._checkValidRange(start, end, this.length);
       return new _native_typed_data.NativeInt32x4List._externalStorage(dart.as(this[_storage][dartx.sublist](dart.notNull(start) * 4, dart.notNull(end) * 4), typed_data.Int32List));
     }
   };
@@ -11743,9 +11693,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       fromList: [_native_typed_data.NativeInt32x4List, [core.List$(typed_data.Int32x4)]]
     }),
     methods: () => ({
-      [_invalidIndex]: [dart.void, [core.int, core.int]],
-      [_checkIndex]: [dart.void, [core.int, core.int]],
-      [_checkSublistArguments]: [core.int, [core.int, core.int, core.int]],
       get: [typed_data.Int32x4, [core.int]],
       set: [dart.void, [core.int, typed_data.Int32x4]],
       sublist: [core.List$(typed_data.Int32x4), [core.int], [core.int]]
@@ -11820,28 +11767,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get elementSizeInBytes() {
       return typed_data.Float64x2List.BYTES_PER_ELEMENT;
     }
-    [_invalidIndex](index, length) {
-      if (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(length)) {
-        if (length == this.length) {
-          dart.throw(core.RangeError.index(index, this));
-        }
-        dart.throw(new core.RangeError.range(index, 0, dart.notNull(length) - 1));
-      } else {
-        dart.throw(new core.ArgumentError(`Invalid list index ${index}`));
-      }
-    }
-    [_checkIndex](index, length) {
-      if (index >>> 0 != index || dart.notNull(index) >= dart.notNull(length)) {
-        this[_invalidIndex](index, length);
-      }
-    }
-    [_checkSublistArguments](start, end, length) {
-      this[_checkIndex](start, dart.notNull(length) + 1);
-      if (end == null) return length;
-      this[_checkIndex](end, dart.notNull(length) + 1);
-      if (dart.notNull(start) > dart.notNull(end)) dart.throw(new core.RangeError.range(start, 0, end));
-      return end;
-    }
     get length() {
       return (dart.notNull(this[_storage][dartx.length]) / 2)[dartx.truncate]();
     }
@@ -11849,20 +11774,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.length = value;
     }
     get(index) {
-      this[_checkIndex](index, this.length);
+      _native_typed_data._checkValidIndex(index, this, this.length);
       let _x = this[_storage][dartx.get](dart.notNull(index) * 2 + 0);
       let _y = this[_storage][dartx.get](dart.notNull(index) * 2 + 1);
       return typed_data.Float64x2.new(_x, _y);
     }
     set(index, value) {
-      this[_checkIndex](index, this.length);
+      _native_typed_data._checkValidIndex(index, this, this.length);
       this[_storage][dartx.set](dart.notNull(index) * 2 + 0, value.x);
       this[_storage][dartx.set](dart.notNull(index) * 2 + 1, value.y);
       return value;
     }
     sublist(start, end) {
       if (end === void 0) end = null;
-      end = this[_checkSublistArguments](start, end, this.length);
+      end = _native_typed_data._checkValidRange(start, end, this.length);
       return new _native_typed_data.NativeFloat64x2List._externalStorage(dart.as(this[_storage][dartx.sublist](dart.notNull(start) * 2, dart.notNull(end) * 2), _native_typed_data.NativeFloat64List));
     }
   };
@@ -11877,9 +11802,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       fromList: [_native_typed_data.NativeFloat64x2List, [core.List$(typed_data.Float64x2)]]
     }),
     methods: () => ({
-      [_invalidIndex]: [dart.void, [core.int, core.int]],
-      [_checkIndex]: [dart.void, [core.int, core.int]],
-      [_checkSublistArguments]: [core.int, [core.int, core.int, core.int]],
       get: [typed_data.Float64x2, [core.int]],
       set: [dart.void, [core.int, typed_data.Float64x2]],
       sublist: [core.List$(typed_data.Float64x2), [core.int], [core.int]]
@@ -11895,6 +11817,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'elementSizeInBytes',
     'length'
   ]);
+  const _invalidPosition = Symbol('_invalidPosition');
+  const _checkPosition = Symbol('_checkPosition');
   dart.defineExtensionNames([
     'buffer',
     'lengthInBytes',
@@ -11902,60 +11826,40 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'elementSizeInBytes'
   ]);
   _native_typed_data.NativeTypedData = class NativeTypedData extends core.Object {
-    get buffer() {
+    get [dartx.buffer]() {
       return this.buffer;
     }
-    get lengthInBytes() {
+    get [dartx.lengthInBytes]() {
       return this.byteLength;
     }
-    get offsetInBytes() {
+    get [dartx.offsetInBytes]() {
       return this.byteOffset;
     }
-    get elementSizeInBytes() {
+    get [dartx.elementSizeInBytes]() {
       return this.BYTES_PER_ELEMENT;
     }
-    [_invalidIndex](index, length) {
-      if (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(length)) {
-        if (dart.is(this, core.List)) {
-          if (dart.equals(length, dart.dload(this, 'length'))) {
-            dart.throw(core.RangeError.index(index, this));
-          }
-        }
-        dart.throw(new core.RangeError.range(index, 0, dart.notNull(length) - 1));
+    [_invalidPosition](position, length, name) {
+      if (!(typeof position == 'number')) {
+        dart.throw(new core.ArgumentError.value(position, name, 'Invalid list position'));
       } else {
-        dart.throw(new core.ArgumentError(`Invalid list index ${index}`));
+        dart.throw(new core.RangeError.range(position, 0, length, name));
       }
     }
-    [_checkIndex](index, length) {
-      if (index >>> 0 !== index || index >= dart.notNull(length)) {
-        this[_invalidIndex](index, length);
+    [_checkPosition](position, length, name) {
+      if (position >>> 0 !== position || position > dart.notNull(length)) {
+        this[_invalidPosition](position, length, name);
       }
-    }
-    [_checkSublistArguments](start, end, length) {
-      this[_checkIndex](start, dart.notNull(length) + 1);
-      if (end == null) return length;
-      this[_checkIndex](end, dart.notNull(length) + 1);
-      if (dart.notNull(start) > dart.notNull(end)) dart.throw(new core.RangeError.range(start, 0, end));
-      return end;
     }
   };
   _native_typed_data.NativeTypedData[dart.implements] = () => [typed_data.TypedData];
   dart.setSignature(_native_typed_data.NativeTypedData, {
     methods: () => ({
-      [_invalidIndex]: [dart.void, [core.int, core.int]],
-      [_checkIndex]: [dart.void, [core.int, core.int]],
-      [_checkSublistArguments]: [core.int, [core.int, core.int, core.int]]
+      [_invalidPosition]: [dart.void, [core.int, core.int, core.String]],
+      [_checkPosition]: [dart.void, [core.int, core.int, core.String]]
     })
   });
-  dart.defineExtensionMembers(_native_typed_data.NativeTypedData, [
-    _invalidIndex,
-    _checkIndex,
-    _checkSublistArguments,
-    'buffer',
-    'lengthInBytes',
-    'offsetInBytes',
-    'elementSizeInBytes'
-  ]);
+  _native_typed_data.NativeTypedData[dart.metadata] = () => [dart.const(new _js_helper.Native("ArrayBufferView"))];
+  dart.registerExtension(dart.global.ArrayBufferView, _native_typed_data.NativeTypedData);
   _native_typed_data._checkLength = function(length) {
     if (!(typeof length == 'number')) dart.throw(new core.ArgumentError(`Invalid length ${length}`));
     return dart.as(length, core.int);
@@ -12207,8 +12111,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _native_typed_data.NativeTypedArray = class NativeTypedArray extends _native_typed_data.NativeTypedData {
     [_setRangeFast](start, end, source, skipCount) {
       let targetLength = this[dartx.length];
-      this[_checkIndex](start, dart.notNull(targetLength) + 1);
-      this[_checkIndex](end, dart.notNull(targetLength) + 1);
+      this[_checkPosition](start, targetLength, "start");
+      this[_checkPosition](end, targetLength, "end");
       if (dart.notNull(start) > dart.notNull(end)) dart.throw(new core.RangeError.range(start, 0, end));
       let count = dart.notNull(end) - dart.notNull(start);
       if (dart.notNull(skipCount) < 0) dart.throw(new core.ArgumentError(skipCount));
@@ -12241,11 +12145,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.length = value;
     }
     get(index) {
-      this[_checkIndex](index, this[dartx.length]);
+      _native_typed_data._checkValidIndex(index, this, this[dartx.length]);
       return this[index];
     }
     set(index, value) {
-      this[_checkIndex](index, this[dartx.length]);
+      _native_typed_data._checkValidIndex(index, this, this[dartx.length]);
       this[index] = value;
       return value;
     }
@@ -12279,7 +12183,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.length = value;
     }
     set(index, value) {
-      this[_checkIndex](index, this[dartx.length]);
+      _native_typed_data._checkValidIndex(index, this, this[dartx.length]);
       this[index] = value;
       return value;
     }
@@ -12320,7 +12224,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.sublist](start, end) {
       if (end === void 0) end = null;
-      end = this[_checkSublistArguments](start, end, this[dartx.length]);
+      end = _native_typed_data._checkValidRange(start, end, this[dartx.length]);
       let source = this.subarray(start, end);
       return _native_typed_data.NativeFloat32List._create1(source);
     }
@@ -12371,7 +12275,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.sublist](start, end) {
       if (end === void 0) end = null;
-      end = this[_checkSublistArguments](start, end, this[dartx.length]);
+      end = _native_typed_data._checkValidRange(start, end, this[dartx.length]);
       let source = this.subarray(start, end);
       return _native_typed_data.NativeFloat64List._create1(source);
     }
@@ -12422,12 +12326,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.wrapType(typed_data.Int16List);
     }
     [dartx.get](index) {
-      this[_checkIndex](index, this[dartx.length]);
+      _native_typed_data._checkValidIndex(index, this, this[dartx.length]);
       return this[index];
     }
     [dartx.sublist](start, end) {
       if (end === void 0) end = null;
-      end = this[_checkSublistArguments](start, end, this[dartx.length]);
+      end = _native_typed_data._checkValidRange(start, end, this[dartx.length]);
       let source = this.subarray(start, end);
       return _native_typed_data.NativeInt16List._create1(source);
     }
@@ -12481,12 +12385,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.wrapType(typed_data.Int32List);
     }
     [dartx.get](index) {
-      this[_checkIndex](index, this[dartx.length]);
+      _native_typed_data._checkValidIndex(index, this, this[dartx.length]);
       return this[index];
     }
     [dartx.sublist](start, end) {
       if (end === void 0) end = null;
-      end = this[_checkSublistArguments](start, end, this[dartx.length]);
+      end = _native_typed_data._checkValidRange(start, end, this[dartx.length]);
       let source = this.subarray(start, end);
       return _native_typed_data.NativeInt32List._create1(source);
     }
@@ -12540,12 +12444,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.wrapType(typed_data.Int8List);
     }
     [dartx.get](index) {
-      this[_checkIndex](index, this[dartx.length]);
+      _native_typed_data._checkValidIndex(index, this, this[dartx.length]);
       return this[index];
     }
     [dartx.sublist](start, end) {
       if (end === void 0) end = null;
-      end = this[_checkSublistArguments](start, end, this[dartx.length]);
+      end = _native_typed_data._checkValidRange(start, end, this[dartx.length]);
       let source = this.subarray(start, end);
       return _native_typed_data.NativeInt8List._create1(source);
     }
@@ -12599,12 +12503,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.wrapType(typed_data.Uint16List);
     }
     [dartx.get](index) {
-      this[_checkIndex](index, this[dartx.length]);
+      _native_typed_data._checkValidIndex(index, this, this[dartx.length]);
       return this[index];
     }
     [dartx.sublist](start, end) {
       if (end === void 0) end = null;
-      end = this[_checkSublistArguments](start, end, this[dartx.length]);
+      end = _native_typed_data._checkValidRange(start, end, this[dartx.length]);
       let source = this.subarray(start, end);
       return _native_typed_data.NativeUint16List._create1(source);
     }
@@ -12658,12 +12562,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.wrapType(typed_data.Uint32List);
     }
     [dartx.get](index) {
-      this[_checkIndex](index, this[dartx.length]);
+      _native_typed_data._checkValidIndex(index, this, this[dartx.length]);
       return this[index];
     }
     [dartx.sublist](start, end) {
       if (end === void 0) end = null;
-      end = this[_checkSublistArguments](start, end, this[dartx.length]);
+      end = _native_typed_data._checkValidRange(start, end, this[dartx.length]);
       let source = this.subarray(start, end);
       return _native_typed_data.NativeUint32List._create1(source);
     }
@@ -12724,12 +12628,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super[dartx.length] = value;
     }
     [dartx.get](index) {
-      this[_checkIndex](index, this[dartx.length]);
+      _native_typed_data._checkValidIndex(index, this, this[dartx.length]);
       return this[index];
     }
     [dartx.sublist](start, end) {
       if (end === void 0) end = null;
-      end = this[_checkSublistArguments](start, end, this[dartx.length]);
+      end = _native_typed_data._checkValidRange(start, end, this[dartx.length]);
       let source = this.subarray(start, end);
       return _native_typed_data.NativeUint8ClampedList._create1(source);
     }
@@ -12790,12 +12694,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super[dartx.length] = value;
     }
     [dartx.get](index) {
-      this[_checkIndex](index, this[dartx.length]);
+      _native_typed_data._checkValidIndex(index, this, this[dartx.length]);
       return this[index];
     }
     [dartx.sublist](start, end) {
       if (end === void 0) end = null;
-      end = this[_checkSublistArguments](start, end, this[dartx.length]);
+      end = _native_typed_data._checkValidRange(start, end, this[dartx.length]);
       let source = this.subarray(start, end);
       return _native_typed_data.NativeUint8List._create1(source);
     }
@@ -12998,36 +12902,36 @@ dart_library.library('dart_sdk', null, /* Imports */[
       mw = (dart.notNull(view[dartx.get](3)) & 2147483648) >>> 0 >>> 28;
       return dart.as(dart.dsend(dart.dsend(dart.dsend(mx, '|', my), '|', mz), '|', mw), core.int);
     }
-    shuffle(m) {
-      if (dart.notNull(m) < 0 || dart.notNull(m) > 255) {
-        dart.throw(new core.RangeError(`mask ${m} must be in the range [0..256)`));
+    shuffle(mask) {
+      if (dart.notNull(mask) < 0 || dart.notNull(mask) > 255) {
+        dart.throw(new core.RangeError.range(mask, 0, 255, "mask"));
       }
       _native_typed_data.NativeFloat32x4._list[dartx.set](0, this.x);
       _native_typed_data.NativeFloat32x4._list[dartx.set](1, this.y);
       _native_typed_data.NativeFloat32x4._list[dartx.set](2, this.z);
       _native_typed_data.NativeFloat32x4._list[dartx.set](3, this.w);
-      let _x = _native_typed_data.NativeFloat32x4._list[dartx.get](dart.notNull(m) & 3);
-      let _y = _native_typed_data.NativeFloat32x4._list[dartx.get](m[dartx['>>']](2) & 3);
-      let _z = _native_typed_data.NativeFloat32x4._list[dartx.get](m[dartx['>>']](4) & 3);
-      let _w = _native_typed_data.NativeFloat32x4._list[dartx.get](m[dartx['>>']](6) & 3);
+      let _x = _native_typed_data.NativeFloat32x4._list[dartx.get](dart.notNull(mask) & 3);
+      let _y = _native_typed_data.NativeFloat32x4._list[dartx.get](mask[dartx['>>']](2) & 3);
+      let _z = _native_typed_data.NativeFloat32x4._list[dartx.get](mask[dartx['>>']](4) & 3);
+      let _w = _native_typed_data.NativeFloat32x4._list[dartx.get](mask[dartx['>>']](6) & 3);
       return new _native_typed_data.NativeFloat32x4._truncated(_x, _y, _z, _w);
     }
-    shuffleMix(other, m) {
-      if (dart.notNull(m) < 0 || dart.notNull(m) > 255) {
-        dart.throw(new core.RangeError(`mask ${m} must be in the range [0..256)`));
+    shuffleMix(other, mask) {
+      if (dart.notNull(mask) < 0 || dart.notNull(mask) > 255) {
+        dart.throw(new core.RangeError.range(mask, 0, 255, "mask"));
       }
       _native_typed_data.NativeFloat32x4._list[dartx.set](0, this.x);
       _native_typed_data.NativeFloat32x4._list[dartx.set](1, this.y);
       _native_typed_data.NativeFloat32x4._list[dartx.set](2, this.z);
       _native_typed_data.NativeFloat32x4._list[dartx.set](3, this.w);
-      let _x = _native_typed_data.NativeFloat32x4._list[dartx.get](dart.notNull(m) & 3);
-      let _y = _native_typed_data.NativeFloat32x4._list[dartx.get](m[dartx['>>']](2) & 3);
+      let _x = _native_typed_data.NativeFloat32x4._list[dartx.get](dart.notNull(mask) & 3);
+      let _y = _native_typed_data.NativeFloat32x4._list[dartx.get](mask[dartx['>>']](2) & 3);
       _native_typed_data.NativeFloat32x4._list[dartx.set](0, other.x);
       _native_typed_data.NativeFloat32x4._list[dartx.set](1, other.y);
       _native_typed_data.NativeFloat32x4._list[dartx.set](2, other.z);
       _native_typed_data.NativeFloat32x4._list[dartx.set](3, other.w);
-      let _z = _native_typed_data.NativeFloat32x4._list[dartx.get](m[dartx['>>']](4) & 3);
-      let _w = _native_typed_data.NativeFloat32x4._list[dartx.get](m[dartx['>>']](6) & 3);
+      let _z = _native_typed_data.NativeFloat32x4._list[dartx.get](mask[dartx['>>']](4) & 3);
+      let _w = _native_typed_data.NativeFloat32x4._list[dartx.get](mask[dartx['>>']](6) & 3);
       return new _native_typed_data.NativeFloat32x4._truncated(_x, _y, _z, _w);
     }
     withX(newX) {
@@ -13198,7 +13102,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     shuffle(mask) {
       if (dart.notNull(mask) < 0 || dart.notNull(mask) > 255) {
-        dart.throw(new core.RangeError(`mask ${mask} must be in the range [0..256)`));
+        dart.throw(new core.RangeError.range(mask, 0, 255, "mask"));
       }
       _native_typed_data.NativeInt32x4._list[dartx.set](0, this.x);
       _native_typed_data.NativeInt32x4._list[dartx.set](1, this.y);
@@ -13212,7 +13116,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     shuffleMix(other, mask) {
       if (dart.notNull(mask) < 0 || dart.notNull(mask) > 255) {
-        dart.throw(new core.RangeError(`mask ${mask} must be in the range [0..256)`));
+        dart.throw(new core.RangeError.range(mask, 0, 255, "mask"));
       }
       _native_typed_data.NativeInt32x4._list[dartx.set](0, this.x);
       _native_typed_data.NativeInt32x4._list[dartx.set](1, this.y);
@@ -13461,6 +13365,24 @@ dart_library.library('dart_sdk', null, /* Imports */[
     },
     set _uint32View(_) {}
   });
+  _native_typed_data._isInvalidArrayIndex = function(index) {
+    return index >>> 0 !== index;
+  };
+  dart.lazyFn(_native_typed_data._isInvalidArrayIndex, () => [core.bool, [core.int]]);
+  _native_typed_data._checkValidIndex = function(index, list, length) {
+    if (dart.notNull(_native_typed_data._isInvalidArrayIndex(index)) || index >= dart.notNull(length)) {
+      dart.throw(_js_helper.diagnoseIndexError(list, index));
+    }
+  };
+  dart.lazyFn(_native_typed_data._checkValidIndex, () => [dart.void, [core.int, core.List, core.int]]);
+  _native_typed_data._checkValidRange = function(start, end, length) {
+    if (dart.notNull(_native_typed_data._isInvalidArrayIndex(start)) || (end == null ? dart.notNull(start) > dart.notNull(length) : dart.notNull(_native_typed_data._isInvalidArrayIndex(end)) || dart.notNull(start) > dart.notNull(end) || dart.notNull(end) > dart.notNull(length))) {
+      dart.throw(_js_helper.diagnoseRangeError(start, end, length));
+    }
+    if (end == null) return length;
+    return end;
+  };
+  dart.fn(_native_typed_data._checkValidRange, core.int, [core.int, core.int, core.int]);
   async._invokeErrorHandler = function(errorHandler, error, stackTrace) {
     if (dart.is(errorHandler, async.ZoneBinaryCallback)) {
       return dart.dcall(errorHandler, error, stackTrace);
@@ -29996,7 +29918,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }),
     methods: () => ({apply: [dart.dynamic, [core.List], {thisArg: dart.dynamic}]})
   });
-  const _checkIndex$ = Symbol('_checkIndex');
+  const _checkIndex = Symbol('_checkIndex');
   const _checkInsertIndex = Symbol('_checkInsertIndex');
   js.JsArray$ = dart.generic(E => {
     class JsArray extends dart.mixin(js.JsObject, collection.ListMixin$(E)) {
@@ -30013,7 +29935,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _fromJs(jsObject) {
         super._fromJs(jsObject);
       }
-      [_checkIndex$](index) {
+      [_checkIndex](index) {
         if (typeof index == 'number' && (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(this.length))) {
           dart.throw(new core.RangeError.range(index, 0, this.length));
         }
@@ -30033,14 +29955,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       get(index) {
         if (typeof index == 'number' && index == index[dartx.toInt]()) {
-          this[_checkIndex$](dart.asInt(index));
+          this[_checkIndex](dart.asInt(index));
         }
         return dart.as(super.get(index), E);
       }
       set(index, value) {
         dart.as(value, E);
         if (typeof index == 'number' && index == index[dartx.toInt]()) {
-          this[_checkIndex$](dart.asInt(index));
+          this[_checkIndex](dart.asInt(index));
         }
         super.set(index, value);
         return value;
@@ -30070,7 +29992,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this.callMethod('splice', dart.list([index, 0, element], core.Object));
       }
       removeAt(index) {
-        this[_checkIndex$](index);
+        this[_checkIndex](index);
         return dart.as(dart.dindex(this.callMethod('splice', dart.list([index, 1], core.int)), 0), E);
       }
       removeLast() {
@@ -30107,7 +30029,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         _fromJs: [js.JsArray$(E), [dart.dynamic]]
       }),
       methods: () => ({
-        [_checkIndex$]: [dart.dynamic, [core.int]],
+        [_checkIndex]: [dart.dynamic, [core.int]],
         [_checkInsertIndex]: [dart.dynamic, [core.int]],
         get: [E, [core.Object]],
         set: [dart.void, [core.Object, E]],
