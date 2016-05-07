@@ -4995,7 +4995,14 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
   void _resolveFieldDeclaration(FieldDeclaration node) {
     if (!node.isStatic) {
       for (VariableDeclaration field in node.fields.variables) {
-        field.initializer?.accept(this);
+        if (field.initializer != null) {
+          field.initializer.accept(this);
+          FieldElement fieldElement = field.name.staticElement;
+          if (fieldElement.initializer != null) {
+            (fieldElement.initializer as ExecutableElementImpl).returnType =
+                field.initializer.staticType;
+          }
+        }
       }
     }
   }

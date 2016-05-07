@@ -2196,6 +2196,39 @@ main() {
   ''');
   }
 
+  void test_inferred_nonstatic_field_depends_on_static_field_complex() {
+    var mainUnit = checkFile('''
+class C {
+  static var x = 'x';
+  var y = /*info:INFERRED_TYPE_LITERAL*/{
+    'a': /*info:INFERRED_TYPE_LITERAL*/{'b': 'c'},
+    'd': /*info:INFERRED_TYPE_LITERAL*/{'e': x}
+  };
+}
+''');
+    var x = mainUnit.getType('C').fields[0];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'String');
+    var y = mainUnit.getType('C').fields[1];
+    expect(y.name, 'y');
+    expect(y.type.toString(), 'Map<String, Map<String, String>>');
+  }
+
+  void test_inferred_nonstatic_field_depends_on_toplevel_var_simple() {
+    var mainUnit = checkFile('''
+var x = 'x';
+class C {
+  var y = x;
+}
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'String');
+    var y = mainUnit.getType('C').fields[0];
+    expect(y.name, 'y');
+    expect(y.type.toString(), 'String');
+  }
+
   void test_inferredInitializingFormalChecksDefaultValue() {
     checkFile('''
 class Foo {
