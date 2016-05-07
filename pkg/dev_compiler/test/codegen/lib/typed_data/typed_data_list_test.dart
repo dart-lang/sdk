@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 @NoInline()
 confuse(x) => x;
 
-void testListFunctions(list, first, last, toElementType) {
+void testListFunctions/*<T>*/(list, first, last, /*=T*/ toElementType(dynamic x)) {
   assert(list.length > 0);
 
   var reversed = list.reversed;
@@ -20,16 +20,21 @@ void testListFunctions(list, first, last, toElementType) {
     index--;
   }
 
+  var zero = toElementType(0);
+  var one = toElementType(1);
+  var two = toElementType(2);
   // Typed lists are fixed length.
-  Expect.throws(() => list.add(0), (e) => e is UnsupportedError);
-  Expect.throws(() => list.addAll([1, 2]), (e) => e is UnsupportedError);
+  Expect.throws(() => list.add(zero), (e) => e is UnsupportedError);
+  Expect.throws(() => list.addAll([one, two]), (e) => e is UnsupportedError);
   Expect.throws(() => list.clear(), (e) => e is UnsupportedError);
-  Expect.throws(() => list.insert(0, 0), (e) => e is UnsupportedError);
-  Expect.throws(() => list.insertAll(0, [1, 2]), (e) => e is UnsupportedError);
-  Expect.throws(() => list.remove(0), (e) => e is UnsupportedError);
+  Expect.throws(() => list.insert(0, zero), (e) => e is UnsupportedError);
+  Expect.throws(() => list.insertAll(0, [one, two]),
+                (e) => e is UnsupportedError);
+  Expect.throws(() => list.remove(zero), (e) => e is UnsupportedError);
   Expect.throws(() => list.removeAt(0), (e) => e is UnsupportedError);
   Expect.throws(() => list.removeLast(), (e) => e is UnsupportedError);
-  Expect.throws(() => list.removeRange(0, 1), (e) => e is UnsupportedError);
+  Expect.throws(() => list.removeRange(0, 1),
+                (e) => e is UnsupportedError);
   Expect.throws(() => list.removeWhere((x) => true),
                 (e) => e is UnsupportedError);
   Expect.throws(() => list.replaceRange(0, 1, []),
@@ -123,7 +128,7 @@ void testListFunctions(list, first, last, toElementType) {
       (e) => e is RangeError);
 }
 
-void emptyChecks(list) {
+void emptyChecks/*<T>*/(list, /*=T*/ toElementType(dynamic c)) {
   assert(list.length == 0);
 
   Expect.isTrue(list.isEmpty);
@@ -131,13 +136,16 @@ void emptyChecks(list) {
   var reversed = list.reversed;
   Expect.listEquals(list, reversed.toList().reversed.toList());
 
+  var zero = toElementType(0);
+  var one = toElementType(1);
+  var two = toElementType(2);
   // Typed lists are fixed length. Even when they are empty.
-  Expect.throws(() => list.add(0), (e) => e is UnsupportedError);
-  Expect.throws(() => list.addAll([1, 2]), (e) => e is UnsupportedError);
+  Expect.throws(() => list.add(zero), (e) => e is UnsupportedError);
+  Expect.throws(() => list.addAll([one, two]), (e) => e is UnsupportedError);
   Expect.throws(() => list.clear(), (e) => e is UnsupportedError);
-  Expect.throws(() => list.insert(0, 0), (e) => e is UnsupportedError);
-  Expect.throws(() => list.insertAll(0, [1, 2]), (e) => e is UnsupportedError);
-  Expect.throws(() => list.remove(0), (e) => e is UnsupportedError);
+  Expect.throws(() => list.insert(0, zero), (e) => e is UnsupportedError);
+  Expect.throws(() => list.insertAll(0, [one, two]), (e) => e is UnsupportedError);
+  Expect.throws(() => list.remove(zero), (e) => e is UnsupportedError);
   Expect.throws(() => list.removeAt(0), (e) => e is UnsupportedError);
   Expect.throws(() => list.removeLast(), (e) => e is UnsupportedError);
   Expect.throws(() => list.removeRange(0, 1), (e) => e is UnsupportedError);
@@ -174,8 +182,8 @@ void emptyChecks(list) {
 }
 
 main() {
-  toDouble(x) => x.toDouble();
-  toInt(x) => x.toInt();
+  double toDouble(x) => x.toDouble();
+  int toInt(x) => x.toInt();
 
   testListFunctions(new Float32List.fromList([1.5, 6.3, 9.5]),
                     1.5, 9.5, toDouble);
@@ -188,12 +196,12 @@ main() {
   testListFunctions(new Uint16List.fromList([3, 5, 9]), 3, 9, toInt);
   testListFunctions(new Uint32List.fromList([3, 5, 9]), 3, 9, toInt);
 
-  emptyChecks(new Float32List(0));
-  emptyChecks(new Float64List(0));
-  emptyChecks(new Int8List(0));
-  emptyChecks(new Int16List(0));
-  emptyChecks(new Int32List(0));
-  emptyChecks(new Uint8List(0));
-  emptyChecks(new Uint16List(0));
-  emptyChecks(new Uint32List(0));
+  emptyChecks(new Float32List(0), toDouble);
+  emptyChecks(new Float64List(0), toDouble);
+  emptyChecks(new Int8List(0), toInt);
+  emptyChecks(new Int16List(0), toInt);
+  emptyChecks(new Int32List(0), toInt);
+  emptyChecks(new Uint8List(0), toInt);
+  emptyChecks(new Uint16List(0), toInt);
+  emptyChecks(new Uint32List(0), toInt);
 }

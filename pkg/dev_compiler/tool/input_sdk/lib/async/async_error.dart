@@ -16,11 +16,21 @@ _invokeErrorHandler(Function errorHandler,
 
 Function _registerErrorHandler/*<R>*/(Function errorHandler, Zone zone) {
   if (errorHandler is ZoneBinaryCallback) {
-    return zone.registerBinaryCallback/*<R, dynamic, StackTrace>*/(
-        errorHandler as dynamic/*=ZoneBinaryCallback<R, dynamic, StackTrace>*/);
+    // TODO(leafp): These are commented out, because the async libraries
+    // pass a (...) -> void into this function which fails whenever R
+    // is something interesting.  This needs to be sorted out in the main
+    // SDK as to what the intent is here: if this is really supposed to
+    // return an R, then the function that gets passed in is wrong.  If not,
+    // then this code doesn't need to track the return type at all.
+    //    return zone.registerBinaryCallback/*<R, dynamic, StackTrace>*/(
+    //        errorHandler as dynamic/*=ZoneBinaryCallback<R, dynamic, StackTrace>*/);
+    return zone.registerBinaryCallback/*<dynamic, dynamic, StackTrace>*/(
+        errorHandler as dynamic/*=ZoneBinaryCallback<dynamic, dynamic, StackTrace>*/);
   } else {
-    return zone.registerUnaryCallback/*<R, dynamic>*/(
-        errorHandler as dynamic/*=ZoneUnaryCallback<R, dynamic>*/);
+    //    return zone.registerUnaryCallback/*<R, dynamic>*/(
+    //        errorHandler as dynamic/*=ZoneUnaryCallback<R, dynamic>*/);
+    return zone.registerUnaryCallback/*<dynamic, dynamic>*/(
+        errorHandler as dynamic/*=ZoneUnaryCallback<dynamic, dynamic>*/);
   }
 }
 

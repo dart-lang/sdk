@@ -531,6 +531,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     let actual = dart.getReifiedType(obj);
     let result = dart.isSubtype(actual, type);
     if (result || actual == dart.jsobject || actual == core.int && type == core.double) return true;
+    if (result === false) return false;
     if (ignoreFromWhiteList == void 0) return result;
     if (dart._ignoreTypeFailure(actual, type)) return true;
     return result;
@@ -13395,9 +13396,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._registerErrorHandler = function(R) {
     return (errorHandler, zone) => {
       if (dart.is(errorHandler, async.ZoneBinaryCallback)) {
-        return zone.registerBinaryCallback(R, dart.dynamic, core.StackTrace)(dart.as(errorHandler, async.ZoneBinaryCallback$(R, dart.dynamic, core.StackTrace)));
+        return zone.registerBinaryCallback(dart.dynamic, dart.dynamic, core.StackTrace)(dart.as(errorHandler, async.ZoneBinaryCallback$(dart.dynamic, dart.dynamic, core.StackTrace)));
       } else {
-        return zone.registerUnaryCallback(R, dart.dynamic)(dart.as(errorHandler, async.ZoneUnaryCallback$(R, dart.dynamic)));
+        return zone.registerUnaryCallback(dart.dynamic, dart.dynamic)(dart.as(errorHandler, async.ZoneUnaryCallback));
       }
     };
   };
