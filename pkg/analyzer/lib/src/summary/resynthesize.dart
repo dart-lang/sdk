@@ -2149,13 +2149,20 @@ class _UnitResynthesizer {
       FunctionElementImpl parameterTypeElement =
           new FunctionElementImpl('', -1);
       parameterTypeElement.synthetic = true;
-      parameterElement.parameters =
-          serializedParameter.parameters.map(buildParameter).toList();
-      parameterTypeElement.enclosingElement = parameterElement;
-      parameterTypeElement.shareParameters(parameterElement.parameters);
+      List<ParameterElement> subParameters = serializedParameter.parameters
+          .map((UnlinkedParam p) => buildParameter(p, synthetic: synthetic))
+          .toList();
+      if (synthetic) {
+        parameterTypeElement.parameters = subParameters;
+      } else {
+        parameterElement.parameters = subParameters;
+        parameterTypeElement.shareParameters(subParameters);
+        parameterTypeElement.enclosingElement = parameterElement;
+      }
       parameterTypeElement.returnType = buildType(serializedParameter.type);
       parameterElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
           parameterTypeElement, null, getCurrentTypeArguments(), false);
+      parameterTypeElement.type = parameterElement.type;
     } else {
       if (serializedParameter.isInitializingFormal &&
           serializedParameter.type == null) {

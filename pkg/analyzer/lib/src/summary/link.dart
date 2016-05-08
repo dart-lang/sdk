@@ -218,11 +218,65 @@ EntityRefBuilder _createLinkedType(
           type.typeArguments, result, compilationUnit, typeParameterContext);
       return result;
     }
+    if (element is FunctionElement) {
+      // Element is a FunctionElement but not a TopLevelFunctionElementForLink
+      // or a MethodElementForLink.  This means that it's a synthetic function
+      // element that was generated on the fly to represent a type that has no
+      // associated source code location.
+      assert(element.enclosingElement == null);
+      result.syntheticReturnType = _createLinkedType(
+          element.returnType, compilationUnit, typeParameterContext);
+      result.syntheticParams = element.parameters
+          .map((ParameterElement param) => _serializeSyntheticParam(
+              param, compilationUnit, typeParameterContext))
+          .toList();
+      return result;
+    }
     // TODO(paulberry): implement other cases.
     throw new UnimplementedError('${element.runtimeType}');
   }
   // TODO(paulberry): implement other cases.
   throw new UnimplementedError('${type.runtimeType}');
+}
+
+/**
+ * Create an [UnlinkedParam] representing the given [parameter], which should be
+ * a parameter of a synthetic function type (e.g. one produced during type
+ * inference as a result of computing the least upper bound of two function
+ * types).
+ */
+UnlinkedParamBuilder _serializeSyntheticParam(
+    ParameterElement parameter,
+    CompilationUnitElementInBuildUnit compilationUnit,
+    TypeParameterizedElementForLink typeParameterContext) {
+  UnlinkedParamBuilder b = new UnlinkedParamBuilder();
+  b.name = parameter.name;
+  switch (parameter.parameterKind) {
+    case ParameterKind.REQUIRED:
+      b.kind = UnlinkedParamKind.required;
+      break;
+    case ParameterKind.POSITIONAL:
+      b.kind = UnlinkedParamKind.positional;
+      break;
+    case ParameterKind.NAMED:
+      b.kind = UnlinkedParamKind.named;
+      break;
+  }
+  DartType type = parameter.type;
+  if (!parameter.hasImplicitType) {
+    if (type is FunctionType && type.element.isSynthetic) {
+      b.isFunctionTyped = true;
+      b.type = _createLinkedType(
+          type.returnType, compilationUnit, typeParameterContext);
+      b.parameters = type.parameters
+          .map((parameter) => _serializeSyntheticParam(
+              parameter, compilationUnit, typeParameterContext))
+          .toList();
+    } else {
+      b.type = _createLinkedType(type, compilationUnit, typeParameterContext);
+    }
+  }
+  return b;
 }
 
 /**
@@ -310,6 +364,9 @@ abstract class ClassElementForLink
   LibraryElementForLink get library => enclosingElement.library;
 
   @override
+  List<MethodElementForLink> get methods;
+
+  @override
   String get name;
 
   @override
@@ -328,7 +385,11 @@ abstract class ClassElementForLink
           _containedNames[accessor.name] = accessor;
         }
       }
-      // TODO(paulberry): add methods.
+      for (MethodElementForLink method in methods) {
+        if (method.isStatic) {
+          _containedNames[method.name] = method;
+        }
+      }
     }
     return _containedNames.putIfAbsent(
         name, () => UndefinedElementForLink.instance);
@@ -639,7 +700,7 @@ class ClassElementForLink_Enum extends ClassElementForLink {
   bool get isObject => false;
 
   @override
-  List<MethodElement> get methods => const [];
+  List<MethodElementForLink> get methods => const [];
 
   @override
   List<InterfaceType> get mixins => const [];
@@ -3270,17 +3331,40 @@ class Linker {
  * Element representing a method resynthesized from a summary during linking.
  */
 class MethodElementForLink extends ExecutableElementForLink
-    implements MethodElementImpl {
+    implements MethodElementImpl, ReferenceableElementForLink {
   MethodElementForLink(ClassElementForLink_Class enclosingClass,
       UnlinkedExecutable unlinkedExecutable)
       : super(enclosingClass.enclosingElement, enclosingClass,
             unlinkedExecutable);
 
   @override
+  ConstructorElementForLink get asConstructor => null;
+
+  @override
+  ConstVariableNode get asConstVariable => null;
+
+  @override
+  DartType get asStaticType => type;
+
+  @override
+  TypeInferenceNode get asTypeInferenceNode => null;
+
+  @override
   String get identifier => name;
 
   @override
   ElementKind get kind => ElementKind.METHOD;
+
+  @override
+  DartType buildType(DartType getTypeArgument(int i),
+          List<int> implicitFunctionTypeIndices) =>
+      DynamicTypeImpl.instance;
+
+  @override
+  ReferenceableElementForLink getContainedName(String name) {
+    // TODO(paulberry): handle references to `call`.
+    return UndefinedElementForLink.instance;
+  }
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

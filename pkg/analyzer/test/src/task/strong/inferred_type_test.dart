@@ -1843,6 +1843,56 @@ foo() {
 ''');
   }
 
+  void test_inferedType_usesSyntheticFunctionType() {
+    var mainUnit = checkFile('''
+int f() => null;
+String g() => null;
+var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'List<() → Object>');
+  }
+
+  void test_inferedType_usesSyntheticFunctionType_functionTypedParam() {
+    var mainUnit = checkFile('''
+int f(int x(String y)) => null;
+String g(int x(String y)) => null;
+var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'List<((String) → int) → Object>');
+  }
+
+  void test_inferedType_usesSyntheticFunctionType_namedParam() {
+    var mainUnit = checkFile('''
+int f({int x}) => null;
+String g({int x}) => null;
+var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'List<({x: int}) → Object>');
+  }
+
+  void test_inferedType_usesSyntheticFunctionType_positionalParam() {
+    var mainUnit = checkFile('''
+int f([int x]) => null;
+String g([int x]) => null;
+var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'List<([int]) → Object>');
+  }
+
+  void test_inferedType_usesSyntheticFunctionType_requiredParam() {
+    var mainUnit = checkFile('''
+int f(int x) => null;
+String g(int x) => null;
+var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'List<(int) → Object>');
+  }
+
   void test_inferenceInCyclesIsDeterministic() {
     addFile(
         '''
@@ -3080,6 +3130,17 @@ class Point<T extends num> {
   }
 }
   ''');
+  }
+
+  void test_staticMethod_tearoff() {
+    var mainUnit = checkFile('''
+const v = C.f;
+class C {
+  static int f(String s) => null;
+}
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), '(String) → int');
   }
 
   void test_staticRefersToNonStaticField_inOtherLibraryCycle() {

@@ -658,7 +658,13 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     }
     expect(original, isNotNull);
     expect(resynthesized, isNotNull, reason: desc);
-    expect(rImpl.runtimeType, oImpl.runtimeType);
+    if (rImpl is DefaultParameterElementImpl && oImpl is ParameterElementImpl) {
+      // This is ok provided the resynthesized parameter element doesn't have
+      // any evaluation result.
+      expect(rImpl.evaluationResult, isNull);
+    } else {
+      expect(rImpl.runtimeType, oImpl.runtimeType);
+    }
     expect(resynthesized.kind, original.kind);
     expect(resynthesized.location, original.location, reason: desc);
     expect(resynthesized.name, original.name);
@@ -3224,6 +3230,14 @@ Stream s;
     addLibrarySource('/a.dart', 'library a; class C {}');
     addLibrarySource('/b.dart', 'library b; class D {}');
     checkLibrary('import "a.dart"; import "b.dart"; C c; D d;');
+  }
+
+  void test_inferedType_usesSyntheticFunctionType_functionTypedParam() {
+    checkLibrary('''
+int f(int x(String y)) => null;
+String g(int x(String y)) => null;
+var v = [f, g];
+''');
   }
 
   test_inferred_function_type_for_variable_in_generic_function() {
