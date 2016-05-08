@@ -432,7 +432,7 @@ class ClassElementForLink_Class extends ClassElementForLink
       : super(enclosingElement);
 
   @override
-  List<PropertyAccessorElement> get accessors {
+  List<PropertyAccessorElementForLink> get accessors {
     if (_accessors == null) {
       _accessors = <PropertyAccessorElementForLink>[];
       Map<String, SyntheticVariableElementForLink> syntheticVariables =
@@ -664,15 +664,22 @@ class ClassElementForLink_Enum extends ClassElementForLink {
 
   InterfaceType _type;
   List<FieldElementForLink_EnumField> _fields;
+  List<PropertyAccessorElementForLink> _accessors;
+  DartType _valuesType;
 
   ClassElementForLink_Enum(
       CompilationUnitElementForLink enclosingElement, this._unlinkedEnum)
       : super(enclosingElement);
 
   @override
-  List<PropertyAccessorElement> get accessors {
-    // TODO(paulberry): do we need to include synthetic accessors?
-    return const [];
+  List<PropertyAccessorElementForLink> get accessors {
+    if (_accessors == null) {
+      _accessors = <PropertyAccessorElementForLink>[];
+      for (FieldElementForLink_EnumField field in fields) {
+        _accessors.add(field.getter);
+      }
+    }
+    return _accessors;
   }
 
   @override
@@ -719,6 +726,12 @@ class ClassElementForLink_Enum extends ClassElementForLink {
 
   @override
   ConstructorElementForLink get unnamedConstructor => null;
+
+  /**
+   * Get the type of the enum's static member `values`.
+   */
+  DartType get valuesType =>
+      _valuesType ??= library._linker.typeProvider.listType.instantiate([type]);
 
   @override
   DartType buildType(DartType getTypeArgument(int i),
@@ -2572,10 +2585,16 @@ class FieldElementForLink_EnumField extends FieldElementForLink
    */
   final UnlinkedEnumValue unlinkedEnumValue;
 
+  PropertyAccessorElementForLink_EnumField _getter;
+
   @override
   final ClassElementForLink_Enum enclosingElement;
 
   FieldElementForLink_EnumField(this.unlinkedEnumValue, this.enclosingElement);
+
+  @override
+  PropertyAccessorElementForLink_EnumField get getter =>
+      _getter ??= new PropertyAccessorElementForLink_EnumField(this);
 
   @override
   bool get isStatic => true;
@@ -2586,6 +2605,11 @@ class FieldElementForLink_EnumField extends FieldElementForLink
   @override
   String get name =>
       unlinkedEnumValue == null ? 'values' : unlinkedEnumValue.name;
+
+  @override
+  DartType get type => unlinkedEnumValue == null
+      ? enclosingElement.valuesType
+      : enclosingElement.type;
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -3672,6 +3696,92 @@ abstract class ParameterParentElementForLink implements Element {
 abstract class PropertyAccessorElementForLink
     implements PropertyAccessorElementImpl, ReferenceableElementForLink {
   void link(CompilationUnitElementInBuildUnit compilationUnit);
+}
+
+/**
+ * Specialization of [PropertyAccessorElementForLink] for synthetic accessors
+ * implied by the synthetic fields of an enum declaration.
+ */
+class PropertyAccessorElementForLink_EnumField
+    implements PropertyAccessorElementForLink {
+  @override
+  final FieldElementForLink_EnumField variable;
+
+  FunctionTypeImpl _type;
+
+  PropertyAccessorElementForLink_EnumField(this.variable);
+
+  @override
+  ConstructorElementForLink get asConstructor => null;
+
+  @override
+  ConstVariableNode get asConstVariable => null;
+
+  @override
+  DartType get asStaticType => returnType;
+
+  @override
+  TypeInferenceNode get asTypeInferenceNode => null;
+
+  @override
+  Element get enclosingElement => variable.enclosingElement;
+
+  @override
+  bool get isGetter => true;
+
+  @override
+  bool get isSetter => false;
+
+  @override
+  bool get isStatic => variable.isStatic;
+
+  @override
+  bool get isSynthetic => true;
+
+  @override
+  ElementKind get kind => ElementKind.GETTER;
+
+  @override
+  LibraryElementForLink get library =>
+      variable.enclosingElement.enclosingElement.enclosingElement;
+
+  @override
+  String get name => variable.name;
+
+  @override
+  List<ParameterElement> get parameters => const [];
+
+  @override
+  DartType get returnType => variable.type;
+
+  @override
+  FunctionTypeImpl get type => _type ??= new FunctionTypeImpl(this);
+
+  @override
+  List<TypeParameterElement> get typeParameters => const [];
+
+  @override
+  DartType buildType(DartType getTypeArgument(int i),
+          List<int> implicitFunctionTypeIndices) =>
+      DynamicTypeImpl.instance;
+
+  @override
+  ReferenceableElementForLink getContainedName(String name) {
+    return new NonstaticMemberElementForLink(library, this, name);
+  }
+
+  @override
+  bool isAccessibleIn(LibraryElement library) =>
+      !Identifier.isPrivateName(name) || identical(this.library, library);
+
+  @override
+  void link(CompilationUnitElementInBuildUnit compilationUnit) {}
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() => '$enclosingElement.$name';
 }
 
 /**

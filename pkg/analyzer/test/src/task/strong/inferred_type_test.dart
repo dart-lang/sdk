@@ -2287,6 +2287,24 @@ class Foo {
 }''');
   }
 
+  void test_inferredType_isEnum() {
+    var mainUnit = checkFile('''
+enum E { v1 }
+final x = E.v1;
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.type.toString(), 'E');
+  }
+
+  void test_inferredType_isEnumValues() {
+    var mainUnit = checkFile('''
+enum E { v1 }
+final x = E.values;
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.type.toString(), 'List<E>');
+  }
+
   void test_inferredType_isTypedef() {
     var mainUnit = checkFile('''
 typedef void F();
