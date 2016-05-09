@@ -4,10 +4,11 @@
 
 import 'package:kernel/kernel.dart';
 import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/type_algebra.dart';
 import 'package:test/test.dart';
+import 'class_hierarchy_basic.dart';
 import 'util.dart';
 import 'dart:io';
+import 'dart:math';
 
 /// Checks class hierarchy correctness by comparing every possible query
 /// on a given program against a naive implementation.
@@ -17,132 +18,89 @@ main(List<String> args) {
   testClassHierarchyOnProgram(program, verbose: true);
 }
 
-Iterable<InterfaceType> getSuperClass(Class classNode) {
-  return classNode.superType == null ? const [] : [classNode.superType];
-}
-
-Iterable<InterfaceType> getSuperClassAndMixin(Class classNode) {
-  return [
-    classNode.superType == null ? const [] : [classNode.superType],
-    classNode.mixedInType == null ? const [] : [classNode.mixedInType]
-  ].expand((x) => x);
-}
-
-Iterable<InterfaceType> getAllSupers(Class classNode) {
-  return classNode.supers;
-}
-
 void testClassHierarchyOnProgram(Program program, {bool verbose: false}) {
-  var watch = new Stopwatch()..start();
+  BasicClassHierarchy basic = new BasicClassHierarchy(program);
   ClassHierarchy classHierarchy = new ClassHierarchy(program);
-  int fastTime = watch.elapsedMicroseconds;
-  watch.reset();
-  BasicClassHierarchy basicSubclasses =
-      new BasicClassHierarchy(program, getSuperClass);
-  BasicClassHierarchy basicSubmixtures =
-      new BasicClassHierarchy(program, getSuperClassAndMixin);
-  BasicClassHierarchy basicSubtypes =
-      new BasicClassHierarchy(program, getAllSupers);
-  BasicAsInstanceOf basicAsInstanceOf =
-      new BasicAsInstanceOf(program);
-  int slowTime = watch.elapsedMicroseconds;
   int total = classHierarchy.classes.length;
   int progress = 0;
   for (var class1 in classHierarchy.classes) {
     for (var class2 in classHierarchy.classes) {
-      watch.reset();
       bool isSubclass = classHierarchy.isSubclassOf(class1, class2);
       bool isSubmixture = classHierarchy.isSubmixtureOf(class1, class2);
       bool isSubtype = classHierarchy.isSubtypeOf(class1, class2);
       var asInstance = classHierarchy.getClassAsInstanceOf(class1, class2);
-      fastTime += watch.elapsedMicroseconds;
-      watch.reset();
-      if (isSubclass != basicSubclasses.isReachable(class1, class2)) {
+      if (isSubclass != basic.isSubclassOf(class1, class2)) {
         fail('isSubclassOf(${class1.name}, ${class2.name}) returned '
             '$isSubclass but should be ${!isSubclass}');
       }
-      if (isSubmixture != basicSubmixtures.isReachable(class1, class2)) {
+      if (isSubmixture != basic.isSubmixtureOf(class1, class2)) {
         fail('isSubmixtureOf(${class1.name}, ${class2.name}) returned '
             '$isSubclass but should be ${!isSubclass}');
       }
-      if (isSubtype != basicSubtypes.isReachable(class1, class2)) {
+      if (isSubtype != basic.isSubtypeOf(class1, class2)) {
         fail('isSubtypeOf(${class1.name}, ${class2.name}) returned '
             '$isSubtype but should be ${!isSubtype}');
       }
-      if (asInstance != basicAsInstanceOf.asInstanceOf(class1, class2)) {
+      if (asInstance != basic.getClassAsInstanceOf(class1, class2)) {
         fail('asInstanceOf(${class1.name}, ${class2.name}) returned '
-            '$asInstance but should be ${basicAsInstanceOf.asInstanceOf(class1, class2)}');
+            '$asInstance but should be '
+            '${basic.getClassAsInstanceOf(class1, class2)}');
       }
-      slowTime += watch.elapsedMicroseconds;
     }
     ++progress;
     if (verbose) {
-      stdout.write('\rProgress ${100 * progress ~/ total}%');
+      stdout.write('\rSubclass queries ${100 * progress ~/ total}%');
+    }
+  }
+  Set<Name> names = new Set<Name>();
+  for (var classNode in classHierarchy.classes) {
+    for (var member in classNode.members) {
+      names.add(member.name);
+    }
+  }
+  List<Name> nameList = names.toList();
+  progress = 0;
+  for (var classNode in classHierarchy.classes) {
+    Iterable<Name> candidateNames =
+        [basic.gettersAndCalls[classNode].keys,
+         basic.setters[classNode].keys,
+         pickRandom(nameList, 100)].expand((x) => x);
+    for (Name name in candidateNames) {
+      Member expectedGetter =
+          basic.getDispatchTarget(classNode, name, setter: false);
+      Member expectedSetter =
+          basic.getDispatchTarget(classNode, name, setter: true);
+      Member actualGetter = classHierarchy
+          .getDispatchTarget(classNode, name, setter: false);
+      Member actualSetter = classHierarchy
+          .getDispatchTarget(classNode, name, setter: true);
+      if (actualGetter != expectedGetter) {
+        fail('lookupGetter(${classNode.debugName}, $name) returned '
+            '${actualGetter.debugName} but should be '
+            '${expectedGetter.debugName}');
+      }
+      if (actualSetter != expectedSetter) {
+        fail('lookupSetter(${classNode.debugName}, $name) returned '
+            '${actualSetter.debugName} but should be '
+            '${expectedSetter.debugName}');
+      }
+    }
+    ++progress;
+    if (verbose) {
+      stdout.write('\rEnvironment queries ${100 * progress ~/ total}%');
     }
   }
   if (verbose) {
     print('\rProgress 100%. Done.');
-    print('Class hierarchy took ${(fastTime / 1000000).toStringAsFixed(2)} s');
-    print('Checks took ${(slowTime / 1000000).toStringAsFixed(2)} s');
   }
 }
 
-typedef Iterable<InterfaceType> SuperCallback(Class node);
+var random = new Random(12345);
 
-class BasicClassHierarchy {
-  final Map<Class, Set<Class>> supers = <Class, Set<Class>>{};
-  SuperCallback callback;
-
-  BasicClassHierarchy(Program program, this.callback) {
-    for (var library in program.libraries) {
-      for (var class_ in library.classes) {
-        build(class_);
-      }
-    }
+List pickRandom(List items, int n) {
+  var result = [];
+  for (int i = 0; i < n; ++i) {
+    result.add(items[random.nextInt(items.length)]);
   }
-
-  void build(Class node) {
-    if (supers.containsKey(node)) return;
-    supers[node] = new Set<Class>()..add(node);
-    for (var superType in callback(node)) {
-      var superClass = superType.classNode;
-      build(superClass);
-      supers[node].addAll(supers[superClass]);
-    }
-  }
-
-  bool isReachable(Class sub, Class superClass) {
-    return supers[sub].contains(superClass);
-  }
-}
-
-class BasicAsInstanceOf {
-  final Map<Class, Map<Class, InterfaceType>> supers =
-      <Class, Map<Class, InterfaceType>>{};
-
-  BasicAsInstanceOf(Program program) {
-    for (var library in program.libraries) {
-      for (var class_ in library.classes) {
-        build(class_);
-      }
-    }
-  }
-
-  void build(Class node) {
-    if (supers.containsKey(node)) return;
-    supers[node] = <Class, InterfaceType>{node: node.thisType};
-    for (var superType in getAllSupers(node)) {
-      var superClass = superType.classNode;
-      build(superClass);
-      var substitution = new Map<TypeParameter, DartType>.fromIterables(
-          superClass.typeParameters, superType.typeArguments);
-      supers[superClass].forEach((Class key, InterfaceType type) {
-        supers[node][key] = substitute(type, substitution);
-      });
-    }
-  }
-
-  InterfaceType asInstanceOf(Class type, Class superType) {
-    return supers[type][superType];
-  }
+  return result;
 }

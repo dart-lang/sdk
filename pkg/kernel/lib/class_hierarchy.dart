@@ -22,7 +22,8 @@ class ClassHierarchy {
 
   NormalClass get rootClass => classes[0];
 
-  int indexOf(Class class_) => _infoFor[class_].topologicalIndex;
+  /// Returns the index of [class_] in the [classes] list.
+  int getClassIndex(Class class_) => _infoFor[class_].topologicalIndex;
 
   /// True if [subclass] inherits from [superClass] though zero or more
   /// `extends` relationships.
@@ -77,9 +78,43 @@ class ClassHierarchy {
   InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superType) {
     InterfaceType castedType = getClassAsInstanceOf(type.classNode, superType);
     if (castedType == null) return null;
-    return substitutePairwise(castedType,
-        type.classNode.typeParameters,
-        type.typeArguments);
+    return substitutePairwise(
+        castedType, type.classNode.typeParameters, type.typeArguments);
+  }
+
+  /// Returns the instance member that would respond to a dynamic dispatch of
+  /// [name] to an instance of [class_], or `null` if no such member exists.
+  ///
+  /// If [setter] is `false`, the name is dispatched as a getter or call,
+  /// and will return a field, getter, method, or operator (or null).
+  ///
+  /// If [setter] is `true`, the name is dispatched as a setter, roughly
+  /// corresponding to `name=` in the Dart specification, but note that the
+  /// returned member will not have a name ending with `=`.  In this case,
+  /// a non-final field or setter (or null) will be returned.
+  ///
+  /// If the class is abstract, abstract members are ignored and the dispatch
+  /// is resolved if the class was not abstract.
+  Member getDispatchTarget(Class class_, Name name, {bool setter: false}) {
+    _ClassInfo info = _infoFor[class_];
+    List<Member> list =
+        setter ? info.implementedSetters : info.implementedGettersAndCalls;
+    return _findMemberByName(list, name);
+  }
+
+  /// Returns the list of potential targets of dynamic dispatch to an instance
+  /// of [class_].
+  ///
+  /// If [setters] is `false`, only potential targets of a getter or call
+  /// dispatch are returned.  If [setters] is `true`, only potential targets
+  /// of a setter dispatch are returned.
+  ///
+  /// See [getDispatchTarget] for more details.
+  ///
+  /// The returned list should not be modified.
+  List<Member> getDispatchTargets(Class class_, {bool setters: false}) {
+    _ClassInfo info = _infoFor[class_];
+    return setters ? info.implementedSetters : info.implementedGettersAndCalls;
   }
 
   ClassHierarchy._internal(Program program, int numberOfClasses)
@@ -137,10 +172,93 @@ class ClassHierarchy {
       _topologicalSortVisit(superType.classNode);
       _recordSuperTypes(info, superType);
     }
+    _buildDeclaredMembers(classNode, info);
+    _buildImplementedMembers(classNode, info);
     int id = _topSortIndex++;
     info.topologicalIndex = id;
     classes[id] = info.classNode;
     info.isBeingVisited = false;
+  }
+
+  void _buildDeclaredMembers(Class classNode, _ClassInfo info) {
+    if (classNode.mixedInType != null) {
+      _ClassInfo mixedInfo = _infoFor[classNode.mixedInType.classNode];
+      info.declaredGettersAndCalls = mixedInfo.declaredGettersAndCalls;
+      info.declaredSetters = mixedInfo.declaredSetters;
+    } else {
+      var members = info.declaredGettersAndCalls = <Member>[];
+      var setters = info.declaredSetters = <Member>[];
+      for (Procedure procedure in classNode.procedures) {
+        if (procedure.isStatic || procedure.isAbstract) continue;
+        if (procedure.kind == ProcedureKind.Setter) {
+          setters.add(procedure);
+        } else {
+          members.add(procedure);
+        }
+      }
+      for (Field field in classNode.fields) {
+        if (field.isStatic) continue;
+        members.add(field);
+        if (!field.isFinal) {
+          setters.add(field);
+        }
+      }
+      members.sort(_compareMembers);
+      setters.sort(_compareMembers);
+    }
+  }
+
+  void _buildImplementedMembers(Class classNode, _ClassInfo info) {
+    List<Member> inheritedMembers;
+    List<Member> inheritedSetters;
+    if (classNode.superType == null) {
+      inheritedMembers = inheritedSetters = const <Member>[];
+    } else {
+      _ClassInfo superInfo = _infoFor[classNode.superType.classNode];
+      inheritedMembers = superInfo.implementedGettersAndCalls;
+      inheritedSetters = superInfo.implementedSetters;
+    }
+    info.implementedGettersAndCalls =
+        _inheritMembers(info.declaredGettersAndCalls, inheritedMembers);
+    info.implementedSetters =
+        _inheritMembers(info.declaredSetters, inheritedSetters);
+  }
+
+  /// Computes the list of implemented members, based on the declared instance
+  /// members and inherited instance members.
+  ///
+  /// Both lists are sorted by name beforehand.
+  List<Member> _inheritMembers(List<Member> declared, List<Member> inherited) {
+    List<Member> result = <Member>[]
+        ..length = declared.length + inherited.length;
+    // Since both lists are sorted, we can fuse them like in merge sort.
+    int storeIndex = 0;
+    int i = 0, j = 0;
+    while (i < declared.length && j < inherited.length) {
+      Member declaredMember = declared[i];
+      Member inheritedMember = inherited[j];
+      int comparison = _compareMembers(declaredMember, inheritedMember);
+      if (comparison < 0) {
+        result[storeIndex++] = declaredMember;
+        ++i;
+      } else if (comparison > 0) {
+        result[storeIndex++] = inheritedMember;
+        ++j;
+      } else {
+        result[storeIndex++] = declaredMember;
+        ++i;
+        ++j; // Move past overridden member.
+      }
+    }
+    // One of the two lists is now exhausted, copy over the remains.
+    while (i < declared.length) {
+      result[storeIndex++] = declared[i++];
+    }
+    while (j < inherited.length) {
+      result[storeIndex++] = inherited[j++];
+    }
+    result.length = storeIndex;
+    return result;
   }
 
   void _recordSuperTypes(_ClassInfo subInfo, InterfaceType superType) {
@@ -359,6 +477,56 @@ int _intervalListSize(Uint32List intervalList) {
   return size;
 }
 
+Member _findMemberByName(List<Member> members, Name name) {
+  int low = 0, high = members.length - 1;
+  while (low <= high) {
+    int mid = low + ((high - low) >> 1);
+    Member pivot = members[mid];
+    int comparison = _compareNames(name, pivot.name);
+    if (comparison < 0) {
+      high = mid - 1;
+    } else if (comparison > 0) {
+      low = mid + 1;
+    } else {
+      return pivot;
+    }
+  }
+  return null;
+}
+
+/// Compares members by name.
+int _compareMembers(Member first, Member second) {
+  return _compareNames(first.name, second.name);
+}
+
+/// Compares names using an arbitrary as-fast-as-possible sorting criterion.
+int _compareNames(Name firstName, Name secondName) {
+  int firstHash = firstName.hashCode;
+  int secondHash = secondName.hashCode;
+  if (firstHash != secondHash) return firstHash - secondHash;
+  String firstString = firstName.name;
+  String secondString = secondName.name;
+  int firstLength = firstString.length;
+  int secondLength = secondString.length;
+  if (firstLength != secondLength) {
+    return firstLength - secondLength;
+  }
+  Library firstLibrary = firstName.library;
+  Library secondLibrary = secondName.library;
+  if (firstLibrary != secondLibrary) {
+    if (firstLibrary == null) return -1;
+    if (secondLibrary == null) return 1;
+    return firstLibrary.compareTo(secondLibrary);
+  }
+  for (int i = 0; i < firstLength; ++i) {
+    int firstUnit = firstString.codeUnitAt(i);
+    int secondUnit = secondString.codeUnitAt(i);
+    int delta = firstUnit - secondUnit;
+    if (delta != 0) return delta;
+  }
+  return 0;
+}
+
 class _ClassInfo {
   final Class classNode;
   int topologicalIndex = 0;
@@ -422,6 +590,22 @@ class _ClassInfo {
   /// we may add additional entries to the map or transfer ownership to another
   /// class.
   bool ownsGenericSuperTypeMap = true;
+
+  /// Instance fields, getters, methods, and operators declared in this class
+  /// or its mixed-in class, sorted according to [_compareMembers].
+  List<Member> declaredGettersAndCalls;
+
+  /// Non-final instance fields and setters declared in this class or its
+  /// mixed-in class, sorted according to [_compareMembers].
+  List<Member> declaredSetters;
+
+  /// Instance fields, getters, methods, and operators implemented by this class
+  /// (declared or inherited).
+  List<Member> implementedGettersAndCalls;
+
+  /// Non-final instance fields and setters implemented by this class
+  /// (declared or inherited).
+  List<Member> implementedSetters;
 
   _ClassInfo(this.classNode);
 }

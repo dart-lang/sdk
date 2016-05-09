@@ -158,7 +158,7 @@ abstract class TreeNode extends Node {
 //                      LIBRARIES and CLASSES
 // ------------------------------------------------------------------------
 
-class Library extends TreeNode {
+class Library extends TreeNode implements Comparable<Library> {
   /// An absolute import path to this library.
   ///
   /// The [Uri] should have the `dart`, `package`, or `file` scheme.
@@ -229,6 +229,11 @@ class Library extends TreeNode {
   /// Returns a possibly synthesized name for this library, consistent with
   /// the names used in [toString] calls.
   String get debugName => debugLibraryName(this);
+
+  static int _libraryIdCounter = 0;
+  int _libraryId = ++_libraryIdCounter;
+
+  int compareTo(Library other) => _libraryId - other._libraryId;
 }
 
 /// A class declaration.
@@ -330,7 +335,7 @@ abstract class Class extends TreeNode {
 
   /// Returns a possibly synthesized name for this class, consistent with
   /// the names used in [toString] calls.
-  String get debugName => debugClassName(this);
+  String get debugName => debugQualifiedClassName(this);
 }
 
 /// A class that is not a mixin application.
@@ -429,8 +434,9 @@ class MixinClass extends Class {
 // ------------------------------------------------------------------------
 
 abstract class Member extends TreeNode {
-  Name get name;
-  set name(Name name);
+  Name name;
+
+  Member(this.name);
 
   Class get enclosingClass => parent is Class ? parent : null;
   Library get enclosingLibrary => parent is Class ? parent.parent : parent;
@@ -440,27 +446,30 @@ abstract class Member extends TreeNode {
 
   bool get isLoaded => enclosingLibrary.isLoaded;
 
+  /// Returns true if this is an abstract procedure.
+  bool get isAbstract => false;
+
   /// Returns a possibly synthesized name for this member, consistent with
   /// the names used in [toString] calls.
-  String get debugName => debugMemberName(this);
+  String get debugName => debugQualifiedMemberName(this);
 }
 
 /// A field declaration.
 ///
 /// The implied getter and setter for the field are not represented explicitly.
 class Field extends Member {
-  Name name;
   DartType type; // Not null. Defaults to DynamicType.
   int flags = 0;
   Expression initializer; // May be null.
 
-  Field(this.name,
+  Field(Name name,
       {DartType type,
       this.initializer,
       bool isFinal: false,
       bool isConst: false,
       bool isStatic: false})
-      : this.type = type ?? const DynamicType() {
+      : this.type = type ?? const DynamicType(),
+        super(name) {
     initializer?.parent = this;
     this.isFinal = isFinal;
     this.isConst = isConst;
@@ -514,24 +523,21 @@ class Field extends Member {
 ///
 /// Constructors do not take type parameters.  Type arguments from a constructor
 /// invocation should be matched with the type parameters declared in the class.
+///
+/// For non-external constructors, the name is cosmetic.  For unnamed
+/// constructors, the name is an empty string (in a [Name]).
 class Constructor extends Member {
   int flags = 0;
-
-  /// Name of the constructor.
-  ///
-  /// For non-external constructors, the name is cosmetic.
-  ///
-  /// For unnamed constructors, this is the empty string (in a [Name]).
-  Name name;
   FunctionNode function;
   List<Initializer> initializers;
 
   Constructor(this.function,
-      {this.name,
+      {Name name,
       bool isConst: false,
       bool isExternal: false,
       List<Initializer> initializers})
-      : this.initializers = initializers ?? <Initializer>[] {
+      : this.initializers = initializers ?? <Initializer>[],
+        super(name) {
     function?.parent = this;
     _setParents(this.initializers, this);
     this.isConst = isConst;
@@ -577,32 +583,30 @@ class Constructor extends Member {
 ///
 /// Procedures can have the static, abstract, and/or external modifier, although
 /// only the static and external modifiers may be used together.
+///
+/// For static non-external procedures, the name is cosmetic and may be `null`
+/// but keep that the name may show up in stack traces.
+///
+/// For non-static procedures the name is required for dynamic dispatch.
+/// For external procedures the name is required for identifying the external
+/// implementation.
+///
+/// For methods, getters, and setters the name is just as it was declared.
+/// For setters this does not include a trailing `=`.
+/// For index-getters/setters, this is `[]` and `[]=`.
+/// For operators, this is the token for the operator, e.g. `+` or `==`,
+/// except for the unary minus operator, whose name is `unary-`.
 class Procedure extends Member {
   ProcedureKind kind;
   int flags = 0;
-
-  /// Name of the procedure.
-  ///
-  /// For static non-external procedures, the name is cosmetic and may be `null`
-  /// but keep that the name may show up in stack traces.
-  ///
-  /// For non-static procedures the name is required for dynamic dispatch.
-  /// For external procedures the name is required for identifying the external
-  /// implementation.
-  ///
-  /// For methods, getters, and setters, this is just name as it was declared.
-  /// For setters this does NOT include a trailing `=`.
-  /// For index-getters/setters, this is `[]` and `[]=`.
-  /// For operators, this is the token for the operator, e.g. `+` or `==`,
-  /// except for the unary minus operator, whose name is `unary-`.
-  Name name;
   FunctionNode function; // Body is null if and only if abstract or external.
 
-  Procedure(this.name, this.kind, this.function,
+  Procedure(Name name, this.kind, this.function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,
-      bool isConst: false}) {
+      bool isConst: false})
+      : super(name) {
     function?.parent = this;
     this.isAbstract = isAbstract;
     this.isStatic = isStatic;
@@ -2307,11 +2311,12 @@ class FunctionDeclaration extends Statement {
 /// The [toString] method returns a human-readable string that includes the
 /// library name for private names; uniqueness is not guaranteed.
 abstract class Name implements Node {
+  final int hashCode;
   final String name;
   Library get library;
   bool get isPrivate;
 
-  Name._internal(this.name);
+  Name._internal(this.hashCode, this.name);
 
   factory Name(String name, [Library library]) {
     /// Use separate subclasses for the public and private case to save memory
@@ -2327,8 +2332,6 @@ abstract class Name implements Node {
     return other is Name && name == other.name && library == other.library;
   }
 
-  int get hashCode => 131 * name.hashCode + 17 * library.hashCode;
-
   accept(Visitor v) => v.visitName(this);
 
   visitChildren(Visitor v) {
@@ -2340,16 +2343,22 @@ class _PrivateName extends Name {
   final Library library;
   bool get isPrivate => true;
 
-  _PrivateName(String name, this.library) : super._internal(name);
+  _PrivateName(String name, Library library)
+      : this.library = library,
+        super._internal(_computeHashCode(name, library), name);
 
   String toString() => library != null ? '${library.name}::$name' : name;
+
+  static int _computeHashCode(String name, Library library) {
+    return 131 * name.hashCode + 17 * library.hashCode;
+  }
 }
 
 class _PublicName extends Name {
   Library get library => null;
   bool get isPrivate => false;
 
-  _PublicName(String name) : super._internal(name);
+  _PublicName(String name) : super._internal(name.hashCode, name);
 
   String toString() => name;
 }

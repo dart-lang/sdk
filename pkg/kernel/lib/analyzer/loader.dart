@@ -245,7 +245,9 @@ class AnalyzerLoader implements ReferenceLevelLoader {
   }
 
   ast.Name _nameOfMember(Element element) {
-    return new ast.Name(element.name, getLibraryReference(element.library));
+    // Use 'displayName' to avoid a trailing '=' for setters.
+    return new ast.Name(element.displayName,
+        getLibraryReference(element.library));
   }
 
   void ensureLibraryIsLoaded(ast.Library node) {

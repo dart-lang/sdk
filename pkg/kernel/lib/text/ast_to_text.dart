@@ -43,8 +43,24 @@ String debugClassName(Class node) {
   return node.name ?? globalDebuggingNames.nameClass(node);
 }
 
+String debugQualifiedClassName(Class node) {
+  return debugLibraryName(node.enclosingLibrary) + '::' + debugClassName(node);
+}
+
 String debugMemberName(Member node) {
   return node.name?.name ?? globalDebuggingNames.nameMember(node);
+}
+
+String debugQualifiedMemberName(Member node) {
+  if (node.enclosingClass != null) {
+    return debugQualifiedClassName(node.enclosingClass) +
+        '::' +
+        debugMemberName(node);
+  } else {
+    return debugLibraryName(node.enclosingLibrary) +
+        '::' +
+        debugMemberName(node);
+  }
 }
 
 String debugTypeParameterName(TypeParameter node) {
@@ -150,8 +166,8 @@ class Printer extends Visitor<Null> {
 
   void writeProgramFile(Program program) {
     ImportTable imports = new ProgramImportTable(program);
-    var inner = new Printer(sink,
-        importTable: imports, syntheticNames: syntheticNames);
+    var inner =
+        new Printer(sink, importTable: imports, syntheticNames: syntheticNames);
     endLine('program;');
     writeWord('main');
     writeSpaced('=');

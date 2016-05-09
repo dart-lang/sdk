@@ -4,115 +4,210 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:kernel/kernel.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:args/args.dart';
+import 'class_hierarchy_basic.dart';
 import 'dart:math';
 import 'dart:io';
 
+ArgParser argParser = new ArgParser()
+  ..addFlag('basic', help: 'Measure the basic implementation', negatable: false)
+  ..addOption('cycle', abbr: 'c',
+      help: 'Build N copies of the class hierarchy and cycle queries '
+      'between them',
+      defaultsTo: '1');
+
+String usage = '''
+Usage: class_hierarchy_bench [options] FILE.dart
+
+Options:
+${argParser.usage}
+''';
+
 main(List<String> args) {
   if (args.length == 0) {
-    print('USAGE: class_hierarchy_bench FILE.bart');
+    print(usage);
     exit(1);
   }
-  Program program = loadProgramFromBinary(args[0]);
+  ArgResults options = argParser.parse(args);
+  if (options.rest.length != 1) {
+    print('Exactly one file must be given');
+    exit(1);
+  }
+  String filename = options.rest.single;
+
+  Program program = loadProgramFromBinary(filename);
+
+  ClassHierarchy buildHierarchy() {
+    return options['basic']
+        ? new BasicClassHierarchy(program)
+        : new ClassHierarchy(program);
+  }
 
   var watch = new Stopwatch()..start();
-  var classHierarchy = new ClassHierarchy(program);
+  buildHierarchy();
   int coldBuildTime = watch.elapsedMilliseconds;
-
   watch.reset();
   const int numBuildTrials = 100;
   for (int i = 0; i < numBuildTrials; i++) {
-    new ClassHierarchy(program);
+    buildHierarchy();
   }
   int hotBuildTime = watch.elapsedMilliseconds ~/ numBuildTrials;
 
+  int hierarchyCount = int.parse(options['cycle']);
+  var hierarchies = <ClassHierarchy>[];
+  for (int i = 0; i < hierarchyCount; i++) {
+    hierarchies.add(buildHierarchy());
+  }
+
+  int currentHierarchy = 0;
+  ClassHierarchy getClassHierarchy() {
+    currentHierarchy = (currentHierarchy + 1) % hierarchies.length;
+    return hierarchies[currentHierarchy];
+  }
+
   Random rnd = new Random(12345);
-  const int numQueryTrials = 100000; // should match 100K in output string.
+  const int numQueryTrials = 100000;
+
+  // Measure isSubclassOf, isSubmixtureOf, isSubtypeOf, getClassAsInstanceOf.
+
+  // Warm-up run to ensure the JIT compiler does not favor the first query we
+  // test.
+  watch.reset();
+  for (int i = 0; i < numQueryTrials; i++) {
+    var classHierarchy = getClassHierarchy();
+    int first = rnd.nextInt(classHierarchy.classes.length);
+    int second = rnd.nextInt(classHierarchy.classes.length);
+    Class firstClass = classHierarchy.classes[first];
+    Class secondClass = classHierarchy.classes[second];
+    classHierarchy.isSubclassOf(firstClass, secondClass);
+    classHierarchy.isSubmixtureOf(firstClass, secondClass);
+    classHierarchy.isSubtypeOf(firstClass, secondClass);
+    classHierarchy.getClassAsInstanceOf(firstClass, secondClass);
+  }
 
   watch.reset();
   for (int i = 0; i < numQueryTrials; i++) {
+    var classHierarchy = getClassHierarchy();
     int first = rnd.nextInt(classHierarchy.classes.length);
     int second = rnd.nextInt(classHierarchy.classes.length);
     Class firstClass = classHierarchy.classes[first];
     Class secondClass = classHierarchy.classes[second];
     classHierarchy.isSubclassOf(firstClass, secondClass);
   }
-  int subclassQueryTime = watch.elapsedMilliseconds;
+  int subclassQueryTime = watch.elapsedMicroseconds;
 
   watch.reset();
   for (int i = 0; i < numQueryTrials; i++) {
+    var classHierarchy = getClassHierarchy();
+    int first = rnd.nextInt(classHierarchy.classes.length);
+    int second = rnd.nextInt(classHierarchy.classes.length);
+    Class firstClass = classHierarchy.classes[first];
+    Class secondClass = classHierarchy.classes[second];
+    classHierarchy.isSubmixtureOf(firstClass, secondClass);
+  }
+  int submixtureQueryTime = watch.elapsedMicroseconds;
+
+  watch.reset();
+  for (int i = 0; i < numQueryTrials; i++) {
+    var classHierarchy = getClassHierarchy();
     int first = rnd.nextInt(classHierarchy.classes.length);
     int second = rnd.nextInt(classHierarchy.classes.length);
     Class firstClass = classHierarchy.classes[first];
     Class secondClass = classHierarchy.classes[second];
     classHierarchy.isSubtypeOf(firstClass, secondClass);
   }
-  int subtypeQueryTime = watch.elapsedMilliseconds;
+  int subtypeQueryTime = watch.elapsedMicroseconds;
 
   watch.reset();
   for (int i = 0; i < numQueryTrials; i++) {
-    int first = rnd.nextInt(classHierarchy.classes.length);
-    int second = first - rnd.nextInt(100);
-    if (second < 0) {
-      second = 0;
-    }
-    Class firstClass = classHierarchy.classes[first];
-    Class secondClass = classHierarchy.classes[second];
-    classHierarchy.isSubclassOf(firstClass, secondClass);
-  }
-  int subclassDenseQueryTime = watch.elapsedMilliseconds;
-
-  int asInstanceOfQueryTimeSparse = 0;
-  for (int i = 0; i < numQueryTrials; i++) {
+    var classHierarchy = getClassHierarchy();
     int first = rnd.nextInt(classHierarchy.classes.length);
     int second = rnd.nextInt(classHierarchy.classes.length);
     Class firstClass = classHierarchy.classes[first];
     Class secondClass = classHierarchy.classes[second];
-    watch.reset();
     classHierarchy.getClassAsInstanceOf(firstClass, secondClass);
-    asInstanceOfQueryTimeSparse += watch.elapsedMicroseconds;
   }
-  asInstanceOfQueryTimeSparse ~/= 1000; // Convert to milliseconds
+  int asInstanceOfQueryTime = watch.elapsedMicroseconds;
 
-  int asInstanceOfQueryTimeDense = 0;
+  // Estimate the overhead from test case generation.
+  watch.reset();
   for (int i = 0; i < numQueryTrials; i++) {
+    var classHierarchy = getClassHierarchy();
     int first = rnd.nextInt(classHierarchy.classes.length);
-    Class firstClass = classHierarchy.classes[first];
-    Class candidate = firstClass;
-    Class secondClass = firstClass;
-    int steps = 0;
-    while (candidate != null) {
-      ++steps;
-      if (rnd.nextInt(steps) == 0) {
-        secondClass = candidate;
-      }
-      candidate = candidate.superType?.classNode;
-    }
-    watch.reset();
-    classHierarchy.getClassAsInstanceOf(firstClass, secondClass);
-    asInstanceOfQueryTimeDense += watch.elapsedMicroseconds;
+    int second = rnd.nextInt(classHierarchy.classes.length);
+    classHierarchy.classes[first];
+    classHierarchy.classes[second];
   }
-  asInstanceOfQueryTimeDense ~/= 1000; // Convert to milliseconds
+  int queryNoise = watch.elapsedMicroseconds;
+
+  subclassQueryTime -= queryNoise;
+  submixtureQueryTime -= queryNoise;
+  subtypeQueryTime -= queryNoise;
+  asInstanceOfQueryTime -= queryNoise;
+
+  String subclassPerSecond = perSecond(subclassQueryTime, numQueryTrials);
+  String submixturePerSecond = perSecond(submixtureQueryTime, numQueryTrials);
+  String subtypePerSecond = perSecond(subtypeQueryTime, numQueryTrials);
+  String asInstanceOfPerSecond =
+      perSecond(asInstanceOfQueryTime, numQueryTrials);
+
+  // Measure getDispatchTarget and getDispatchTargets.
+  watch.reset();
+  for (int i = 0; i < numQueryTrials; i++) {
+    var classHierarchy = getClassHierarchy();
+    int classId = rnd.nextInt(classHierarchy.classes.length);
+    Class classNode = classHierarchy.classes[classId];
+    classHierarchy.getDispatchTarget(classNode, new Name('toString'));
+  }
+  int dispatchToStringTime = watch.elapsedMicroseconds;
 
   watch.reset();
   for (int i = 0; i < numQueryTrials; i++) {
-    int first = rnd.nextInt(classHierarchy.classes.length);
-    int second = first - rnd.nextInt(100);
-    if (second < 0) {
-      second = 0;
-    }
-    Class firstClass = classHierarchy.classes[first];
-    Class secondClass = classHierarchy.classes[second];
-    classHierarchy.isSubtypeOf(firstClass, secondClass);
+    var classHierarchy = getClassHierarchy();
+    int classId = rnd.nextInt(classHierarchy.classes.length);
+    Class classNode = classHierarchy.classes[classId];
+    classHierarchy.getDispatchTarget(classNode, new Name('getFloo'));
   }
-  int subtypeDenseQueryTime = watch.elapsedMilliseconds;
+  int dispatchGenericGetTime = watch.elapsedMicroseconds;
 
+  watch.reset();
+  for (int i = 0; i < numQueryTrials; i++) {
+    var classHierarchy = getClassHierarchy();
+    int classId = rnd.nextInt(classHierarchy.classes.length);
+    Class classNode = classHierarchy.classes[classId];
+    for (var _ in classHierarchy.getDispatchTargets(classNode)) {
+    }
+  }
+  int dispatchAllTargetsTime = watch.elapsedMicroseconds;
+
+  // Estimate overhead from test case generation.
+  watch.reset();
+  for (int i = 0; i < numQueryTrials; i++) {
+    var classHierarchy = getClassHierarchy();
+    int classId = rnd.nextInt(classHierarchy.classes.length);
+    classHierarchy.classes[classId];
+  }
+  int dispatchTargetNoise = watch.elapsedMicroseconds;
+
+  dispatchToStringTime -= dispatchTargetNoise;
+  dispatchGenericGetTime -= dispatchTargetNoise;
+  dispatchAllTargetsTime -= dispatchTargetNoise;
+
+  String dispatchToStringPerSecond =
+      perSecond(dispatchToStringTime, numQueryTrials);
+  String dispatchGetPerSecond =
+      perSecond(dispatchGenericGetTime, numQueryTrials);
+  String dispatchAllTargetsPerSecond =
+      perSecond(dispatchAllTargetsTime, numQueryTrials);
+
+  var classHierarchy = getClassHierarchy();
   List<int> depth = new List(classHierarchy.classes.length);
   for (int i = 0; i < depth.length; ++i) {
     int parentDepth = 0;
     var classNode = classHierarchy.classes[i];
     for (var superType in classNode.supers) {
       var superClass = superType.classNode;
-      int index = classHierarchy.indexOf(superClass);
+      int index = classHierarchy.getClassIndex(superClass);
       if (!(index < i)) {
         throw '${classNode.name}($i) extends ${superClass.name}($index)';
       }
@@ -127,25 +222,33 @@ main(List<String> args) {
   int totalDepth = sum(depth);
 
   int numberOfClasses = classHierarchy.classes.length;
+  String expenseHistogram =
+      classHierarchy.getExpenseHistogram().skip(1).join(' ');
 
   print('''
 classes: $numberOfClasses
 build.cold: $coldBuildTime ms
-build.hot: $hotBuildTime ms
-isSubclassOf.random: $subclassQueryTime ms (per 100K)
-isSubclassOf.dense: $subclassDenseQueryTime ms
-isSubtypeOf.random: $subtypeQueryTime ms
-isSubtypeOf.dense: $subtypeDenseQueryTime ms
-asInstanceOf.sparse: $asInstanceOfQueryTimeSparse ms
-asInstanceOf.dense: $asInstanceOfQueryTimeDense ms
-expense-histogram: ${classHierarchy.getExpenseHistogram().join(' ')}
-compression-ratio: ${classHierarchy.getCompressionRatio()}
-depth-histogram: ${depthHistogram.join(' ')}
-depth-average: $averageDepth
-depth-median: $medianDepth
-depth-total: $totalDepth
-hash-table-size: ${classHierarchy.getSuperTypeHashTableSize()}
+build.hot:  $hotBuildTime ms
+query.isSubclassOf:                $subclassPerSecond
+query.isSubmixtureOf:              $submixturePerSecond
+query.isSubtypeOf:                 $subtypePerSecond
+query.getClassAsInstanceOf:        $asInstanceOfPerSecond
+query.getDispatchTarget(toString): $dispatchToStringPerSecond
+query.getDispatchTarget(getFloo):  $dispatchGetPerSecond
+query.getDispatchTargets.iterate:  $dispatchAllTargetsPerSecond
+isSubtypeOf.expense-histogram: $expenseHistogram
+isSubtypeOf.compression-ratio: ${classHierarchy.getCompressionRatio()}
+asInstanceOf.table-size: ${classHierarchy.getSuperTypeHashTableSize()}
+depth.histogram: ${depthHistogram.skip(1).join(' ')}
+depth.average: $averageDepth
+depth.median:  $medianDepth
+depth.total:   $totalDepth
 ''');
+}
+
+String perSecond(int microseconds, int trials) {
+  double millionsPerSecond = trials / microseconds;
+  return '${millionsPerSecond.toStringAsFixed(1)} M/s';
 }
 
 List<int> getHistogramOf(Iterable<int> values) {

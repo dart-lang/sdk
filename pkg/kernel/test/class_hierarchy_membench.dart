@@ -4,22 +4,50 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:kernel/kernel.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:args/args.dart';
+import 'class_hierarchy_basic.dart';
 import 'dart:io';
+
+ArgParser argParser = new ArgParser()
+  ..addFlag('basic', help: 'Measure the basic implementation', negatable: false)
+  ..addOption('count', abbr: 'c',
+      help: 'Build N copies of the class hierarchy',
+      defaultsTo: '300');
+
+String usage = """
+Usage: class_hierarchy_membench [options] FILE.dart
+
+Options:
+${argParser.usage}
+""";
 
 /// Builds N copies of the class hierarchy for the given program.
 /// Pass --print-metrics to the Dart VM to measure the memory use.
 main(List<String> args) {
   if (args.length == 0) {
-    print('USAGE: class_hierarchy_membench FILE.bart NUM_COPIES');
+    print(usage);
     exit(1);
   }
-  Program program = loadProgramFromBinary(args[0]);
+  ArgResults options = argParser.parse(args);
+  if (options.rest.length != 1) {
+    print('Exactly one file should be given');
+    exit(1);
+  }
+  String filename = options.rest.single;
 
-  const int defaultCopyCount = 300;
-  int copyCount = args.length == 2 ? int.parse(args[1]) : defaultCopyCount;
+  Program program = loadProgramFromBinary(filename);
+
+  int copyCount = int.parse(options['count']);
+
+  ClassHierarchy buildHierarchy() {
+    return options['basic']
+        ? new BasicClassHierarchy(program)
+        : new ClassHierarchy(program);
+  }
+
   List<ClassHierarchy> keepAlive = <ClassHierarchy>[];
   for (int i = 0; i < copyCount; ++i) {
-    keepAlive.add(new ClassHierarchy(program));
+    keepAlive.add(buildHierarchy());
   }
 
   print('$copyCount copies built');
