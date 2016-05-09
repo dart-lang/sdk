@@ -7682,6 +7682,19 @@ class C<T> extends B<T> {
     checkLinkedTypeRef(type.typeArguments[1], 'dart:core', 'dart:core', 'int');
   }
 
+  test_inferred_type_reference_shared_prefixed() {
+    if (!strongMode || skipFullyLinkedData) {
+      return;
+    }
+    // Variable `y` has an inferred type of `p.C`.  Verify that the reference
+    // used by the explicit type of `x` is re-used for the inferred type.
+    addNamedSource('/a.dart', 'class C {}');
+    serializeLibraryText('import "a.dart" as p; p.C x; var y = new p.C();');
+    EntityRef xType = findVariable('x').type;
+    EntityRef yType = getTypeRefForSlot(findVariable('y').inferredTypeSlot);
+    expect(yType.reference, xType.reference);
+  }
+
   test_inferred_type_refers_to_bound_type_param() {
     if (!strongMode || skipFullyLinkedData) {
       return;

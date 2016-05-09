@@ -1079,6 +1079,16 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
     List<UnlinkedReference> unlinkedReferences = _unlinkedUnit.references;
     for (int i = 0; i < linkedReferences.length; i++) {
       LinkedReferenceBuilder linkedReference = linkedReferences[i];
+      int candidateContainingReference = i < unlinkedReferences.length
+          ? unlinkedReferences[i].prefixReference
+          : linkedReference.containingReference;
+      if (candidateContainingReference != 0 &&
+          linkedReferences[candidateContainingReference].kind ==
+              ReferenceKind.prefix) {
+        // We don't need to match containing references when they are prefixes,
+        // since the relevant information is in linkedReference.dependency.
+        candidateContainingReference = 0;
+      }
       if (linkedReference.dependency == dependency &&
           (i < unlinkedReferences.length
                   ? unlinkedReferences[i].name
@@ -1086,10 +1096,7 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
               name &&
           linkedReference.numTypeParameters == numTypeParameters &&
           linkedReference.unit == unitNum &&
-          (i < unlinkedReferences.length
-                  ? unlinkedReferences[i].prefixReference
-                  : linkedReference.containingReference) ==
-              containingReference &&
+          candidateContainingReference == containingReference &&
           linkedReference.kind == kind) {
         return i;
       }
