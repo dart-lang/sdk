@@ -252,9 +252,8 @@ class MockServerChannel implements ServerCommunicationChannel {
     pumpEventQueue().then((_) {
       responseController.addError(new NoResponseException(request));
     });
-    return responseController.stream.firstWhere((response) {
-      return response.id == id;
-    });
+    return new Future<Response>(() =>
+        responseController.stream.firstWhere((response) => response.id == id));
   }
 }
 
@@ -297,7 +296,7 @@ class MockSocket<T> implements WebSocket {
     return socket1;
   }
 
-  void add(T text) => controller.add(text);
+  void add(dynamic text) => controller.add(text as T);
 
   void allowMultipleListeners() {
     stream = stream.asBroadcastStream();
@@ -306,14 +305,14 @@ class MockSocket<T> implements WebSocket {
   Future close([int code, String reason]) =>
       controller.close().then((_) => twin.controller.close());
 
-  StreamSubscription<T> listen(void onData(T event),
+  StreamSubscription<T> listen(void onData(dynamic event),
           {Function onError, void onDone(), bool cancelOnError}) =>
-      stream.listen(onData,
+      stream.listen((T data) => onData(data),
           onError: onError, onDone: onDone, cancelOnError: cancelOnError);
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
-  Stream<T> where(bool test(T t)) => stream.where(test);
+  Stream<T> where(bool test(dynamic t)) => stream.where((T data) => test(data));
 }
 
 class MockSource extends StringTypedMock implements Source {
