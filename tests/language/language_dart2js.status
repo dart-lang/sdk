@@ -35,13 +35,6 @@ accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
 accessor_conflict_import_test: RuntimeError # Issue 25626
 
-# Experimental feature: Syntactic support for generic methods.
-generic_functions_test: CompileTimeError # Issue 25835
-generic_local_functions_test: CompileTimeError # Issue 25835
-generic_methods_test: CompileTimeError # Issue 25835
-generic_sends_test: CompileTimeError # Issue 25835
-generic_method_type_usage_test: CompiletimeError # Tests --generic-method-syntax, plus issue 25835
-
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
@@ -51,6 +44,12 @@ async_star_no_cancel2_test: RuntimeError # Need triage
 
 [ $compiler == dart2js && $browser ]
 config_import_test: Fail # Test flag is not passed to the compiler.
+
+# Experimental feature: Syntactic support for generic methods.
+generic_functions_test: CompileTimeError # DartOptions not passed to compiler.
+generic_local_functions_test: CompileTimeError # DartOptions not passed to compiler.
+generic_methods_test: CompileTimeError # DartOptions not passed to compiler.
+generic_sends_test: CompileTimeError # DartOptions not passed to compiler.
 
 [ $compiler == dart2js ]
 invocation_mirror_empty_arguments_test: Fail # Issue 24331
