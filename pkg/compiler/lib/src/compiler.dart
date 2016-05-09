@@ -1932,15 +1932,12 @@ class _CompilerResolution implements Resolution {
   ResolvedAst getResolvedAst(ExecutableElement element) {
     assert(invariant(element, element.isDeclaration,
         message: "Element $element must be the declaration."));
-    if (hasResolvedAst(element)) {
-      if (compiler.serialization.isDeserialized(element)) {
-        return compiler.serialization.getResolvedAst(element);
-      }
-      return element.resolvedAst;
-    }
     assert(invariant(element, hasResolvedAst(element),
         message: "ResolvedAst not available for $element."));
-    return null;
+    if (compiler.serialization.isDeserialized(element)) {
+      return compiler.serialization.getResolvedAst(element);
+    }
+    return element.resolvedAst;
   }
 
   @override

@@ -556,7 +556,7 @@ class Listener {
   }
 
   void reportErrorHelper(Spannable spannable, MessageKind messageKind,
-         [Map arguments = const {}]) {
+      [Map arguments = const {}]) {
     MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
     String message = template.message(arguments, true).toString();
     Token token;
