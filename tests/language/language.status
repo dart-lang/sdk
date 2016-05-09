@@ -49,6 +49,7 @@ generic_methods_test: CompiletimeError # Issue 25869
 generic_functions_test: CompiletimeError # Issue 25869
 generic_local_functions_test: CompiletimeError # Issue 25869
 generic_sends_test: CompiletimeError # Issue 25869
+generic_method_type_usage_test: CompiletimeError # Tests --generic-method-syntax, plus issue 25869
 
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) ]
 
@@ -94,6 +95,7 @@ generic_methods_test: RuntimeError # Issue 25869
 generic_functions_test: RuntimeError # Issue 25869
 generic_local_functions_test: RuntimeError # Issue 25869
 generic_sends_test: RuntimeError # Issue 25869
+generic_method_type_usage_test: CompiletimeError # Tests --generic-method-syntax, plus issue 25869
 config_import_test: Skip  # Issue 26250
 
 [ $compiler == none && $runtime == dartium && $system == linux && $arch != x64 ]
