@@ -4579,16 +4579,22 @@ abstract class ImportDirective extends NamespaceDirective {
     NodeList<Combinator> combinators1 = import1.combinators;
     List<String> allHides1 = new List<String>();
     List<String> allShows1 = new List<String>();
-    for (Combinator combinator in combinators1) {
+    int length1 = combinators1.length;
+    for (int i = 0; i < length1; i++) {
+      Combinator combinator = combinators1[i];
       if (combinator is HideCombinator) {
         NodeList<SimpleIdentifier> hides = combinator.hiddenNames;
-        for (SimpleIdentifier simpleIdentifier in hides) {
+        int hideLength = hides.length;
+        for (int j = 0; j < hideLength; j++) {
+          SimpleIdentifier simpleIdentifier = hides[j];
           allHides1.add(simpleIdentifier.name);
         }
       } else {
         NodeList<SimpleIdentifier> shows =
             (combinator as ShowCombinator).shownNames;
-        for (SimpleIdentifier simpleIdentifier in shows) {
+        int showLength = shows.length;
+        for (int j = 0; j < showLength; j++) {
+          SimpleIdentifier simpleIdentifier = shows[j];
           allShows1.add(simpleIdentifier.name);
         }
       }
@@ -4596,16 +4602,22 @@ abstract class ImportDirective extends NamespaceDirective {
     NodeList<Combinator> combinators2 = import2.combinators;
     List<String> allHides2 = new List<String>();
     List<String> allShows2 = new List<String>();
-    for (Combinator combinator in combinators2) {
+    int length2 = combinators2.length;
+    for (int i = 0; i < length2; i++) {
+      Combinator combinator = combinators2[i];
       if (combinator is HideCombinator) {
         NodeList<SimpleIdentifier> hides = combinator.hiddenNames;
-        for (SimpleIdentifier simpleIdentifier in hides) {
+        int hideLength = hides.length;
+        for (int j = 0; j < hideLength; j++) {
+          SimpleIdentifier simpleIdentifier = hides[j];
           allHides2.add(simpleIdentifier.name);
         }
       } else {
         NodeList<SimpleIdentifier> shows =
             (combinator as ShowCombinator).shownNames;
-        for (SimpleIdentifier simpleIdentifier in shows) {
+        int showLength = shows.length;
+        for (int j = 0; j < showLength; j++) {
+          SimpleIdentifier simpleIdentifier = shows[j];
           allShows2.add(simpleIdentifier.name);
         }
       }

@@ -69,7 +69,9 @@ class AdjacentStringsImpl extends StringLiteralImpl implements AdjacentStrings {
 
   @override
   void _appendStringValue(StringBuffer buffer) {
-    for (StringLiteralImpl stringLiteral in strings) {
+    int length = strings.length;
+    for (int i = 0; i < length; i++) {
+      StringLiteralImpl stringLiteral = strings[i];
       stringLiteral._appendStringValue(buffer);
     }
   }
@@ -159,8 +161,10 @@ abstract class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
       _comment?.accept(visitor);
       _metadata.accept(visitor);
     } else {
-      for (AstNode child in sortedCommentAndAnnotations) {
-        child.accept(visitor);
+      List<AstNode> children = sortedCommentAndAnnotations;
+      int length = children.length;
+      for (int i = 0; i < length; i++) {
+        children[i].accept(visitor);
       }
     }
   }
@@ -1837,7 +1841,9 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   ConstructorDeclaration getConstructor(String name) {
-    for (ClassMember classMember in _members) {
+    int length = _members.length;
+    for (int i = 0; i < length; i++) {
+      ClassMember classMember = _members[i];
       if (classMember is ConstructorDeclaration) {
         ConstructorDeclaration constructor = classMember;
         SimpleIdentifier constructorName = constructor.name;
@@ -1854,12 +1860,16 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   VariableDeclaration getField(String name) {
-    for (ClassMember classMember in _members) {
+    int memberLength = _members.length;
+    for (int i = 0; i < memberLength; i++) {
+      ClassMember classMember = _members[i];
       if (classMember is FieldDeclaration) {
         FieldDeclaration fieldDeclaration = classMember;
         NodeList<VariableDeclaration> fields =
             fieldDeclaration.fields.variables;
-        for (VariableDeclaration field in fields) {
+        int fieldLength = fields.length;
+        for (int i = 0; i < fieldLength; i++) {
+          VariableDeclaration field = fields[i];
           SimpleIdentifier fieldName = field.name;
           if (fieldName != null && name == fieldName.name) {
             return field;
@@ -1872,7 +1882,9 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   MethodDeclaration getMethod(String name) {
-    for (ClassMember classMember in _members) {
+    int length = _members.length;
+    for (int i = 0; i < length; i++) {
+      ClassMember classMember = _members[i];
       if (classMember is MethodDeclaration) {
         MethodDeclaration method = classMember;
         SimpleIdentifier methodName = method.name;
@@ -2426,7 +2438,9 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
       _directives.accept(visitor);
       _declarations.accept(visitor);
     } else {
-      for (AstNode child in sortedDirectivesAndDeclarations) {
+      int length = sortedDirectivesAndDeclarations.length;
+      for (int i = 0; i < length; i++) {
+        AstNode child = sortedDirectivesAndDeclarations[i];
         child.accept(visitor);
       }
     }
@@ -4671,7 +4685,9 @@ class FormalParameterListImpl extends AstNodeImpl
     // TODO(paulberry): include commas.
     ChildEntities result = new ChildEntities()..add(leftParenthesis);
     bool leftDelimiterNeeded = leftDelimiter != null;
-    for (FormalParameter parameter in _parameters) {
+    int length = _parameters.length;
+    for (int i = 0; i < length; i++) {
+      FormalParameter parameter = _parameters[i];
       if (leftDelimiterNeeded && leftDelimiter.offset < parameter.offset) {
         result.add(leftDelimiter);
         leftDelimiterNeeded = false;
@@ -6676,7 +6692,9 @@ class LibraryIdentifierImpl extends IdentifierImpl
   String get name {
     StringBuffer buffer = new StringBuffer();
     bool needsPeriod = false;
-    for (SimpleIdentifier identifier in _components) {
+    int length = _components.length;
+    for (int i = 0; i < length; i++) {
+      SimpleIdentifier identifier = _components[i];
       if (needsPeriod) {
         buffer.write(".");
       } else {
@@ -7672,9 +7690,18 @@ class NodeListImpl<E extends AstNode> extends Object
   @override
   bool addAll(Iterable<E> nodes) {
     if (nodes != null && !nodes.isEmpty) {
-      _elements.addAll(nodes);
-      for (E node in nodes) {
-        _owner._becomeParentOf(node as AstNodeImpl);
+      if (nodes is List<E>) {
+        int length = nodes.length;
+        for (int i = 0; i < length; i++) {
+          E node = nodes[i];
+          _elements.add(node);
+          _owner._becomeParentOf(node as AstNodeImpl);
+        }
+      } else {
+        for (E node in nodes) {
+          _elements.add(node);
+          _owner._becomeParentOf(node as AstNodeImpl);
+        }
       }
       return true;
     }
@@ -7813,8 +7840,10 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
       _comment?.accept(visitor);
       _metadata.accept(visitor);
     } else {
-      for (AstNode child in sortedCommentAndAnnotations) {
-        child.accept(visitor);
+      List<AstNode> children = sortedCommentAndAnnotations;
+      int length = children.length;
+      for (int i = 0; i < length; i++) {
+        children[i].accept(visitor);
       }
     }
   }

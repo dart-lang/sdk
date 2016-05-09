@@ -1234,7 +1234,10 @@ class BuildEnumMemberElementsTask extends SourceBasedAnalysisTask {
     // Build the enum members if they have not already been created.
     //
     EnumDeclaration findFirstEnum() {
-      for (CompilationUnitMember member in unit.declarations) {
+      NodeList<CompilationUnitMember> members = unit.declarations;
+      int length = members.length;
+      for (int i = 0; i < length; i++) {
+        CompilationUnitMember member = members[i];
         if (member is EnumDeclaration) {
           return member;
         }
@@ -1407,7 +1410,9 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         definingCompilationUnit.element;
     Map<Source, CompilationUnit> partUnitMap =
         new HashMap<Source, CompilationUnit>();
-    for (CompilationUnit partUnit in partUnits) {
+    int partLength = partUnits.length;
+    for (int i = 0; i < partLength; i++) {
+      CompilationUnit partUnit = partUnits[i];
       Source partSource = partUnit.element.source;
       partUnitMap[partSource] = partUnit;
     }
@@ -1422,7 +1427,10 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     List<Directive> directivesToResolve = <Directive>[];
     List<CompilationUnitElementImpl> sourcedCompilationUnits =
         <CompilationUnitElementImpl>[];
-    for (Directive directive in definingCompilationUnit.directives) {
+    NodeList<Directive> directives = definingCompilationUnit.directives;
+    int directiveLength = directives.length;
+    for (int i = 0; i < directiveLength; i++) {
+      Directive directive = directives[i];
       if (directive is LibraryDirective) {
         libraryNameNode = directive.name;
         directivesToResolve.add(directive);
@@ -1533,7 +1541,9 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     // TODO(brianwilkerson) This updates the state of the AST structures but
     // does not associate a new result with it.
     //
-    for (Directive directive in directivesToResolve) {
+    int length = directivesToResolve.length;
+    for (int i = 0; i < length; i++) {
+      Directive directive = directivesToResolve[i];
       directive.element = libraryElement;
     }
     //
@@ -1549,7 +1559,10 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
    * [element] does not define an entry point.
    */
   FunctionElement _findEntryPoint(CompilationUnitElementImpl element) {
-    for (FunctionElement function in element.functions) {
+    List<FunctionElement> functions = element.functions;
+    int length = functions.length;
+    for (int i = 0; i < length; i++) {
+      FunctionElement function = functions[i];
       if (function.isEntryPoint) {
         return function;
       }
@@ -1563,7 +1576,10 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
    */
   String _getPartLibraryName(Source partSource, CompilationUnit partUnit,
       List<Directive> directivesToResolve) {
-    for (Directive directive in partUnit.directives) {
+    NodeList<Directive> directives = partUnit.directives;
+    int length = directives.length;
+    for (int i = 0; i < length; i++) {
+      Directive directive = directives[i];
       if (directive is PartOfDirective) {
         directivesToResolve.add(directive);
         LibraryIdentifier libraryName = directive.libraryName;
@@ -1580,7 +1596,10 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
    * import directive with a `dart-ext:` URI.
    */
   bool _hasExtUri(CompilationUnit unit) {
-    for (Directive directive in unit.directives) {
+    NodeList<Directive> directives = unit.directives;
+    int length = directives.length;
+    for (int i = 0; i < length; i++) {
+      Directive directive = directives[i];
       if (directive is ImportDirective) {
         if (DartUriResolver.isDartExtUri(directive.uriContent)) {
           return true;
@@ -1921,7 +1940,9 @@ class ComputeConstantValueTask extends ConstantEvaluationAnalysisTask {
     } else {
       List<ConstantEvaluationTarget> constantsInCycle =
           <ConstantEvaluationTarget>[];
-      for (WorkItem workItem in dependencyCycle) {
+      int length = dependencyCycle.length;
+      for (int i = 0; i < length; i++) {
+        WorkItem workItem = dependencyCycle[i];
         if (workItem.descriptor == DESCRIPTOR) {
           constantsInCycle.add(workItem.target);
         }
@@ -2104,9 +2125,11 @@ class ComputeLibraryCycleTask extends SourceBasedAnalysisTask {
           deps.addAll(l.units);
         }
       }
-      for (LibraryElement l in component) {
-        l.importedLibraries.forEach(addLibrary);
-        l.exportedLibraries.forEach(addLibrary);
+      int length = component.length;
+      for (int i = 0; i < length; i++) {
+        LibraryElement library = component[i];
+        library.importedLibraries.forEach(addLibrary);
+        library.exportedLibraries.forEach(addLibrary);
       }
       //
       // Record outputs.
@@ -2385,7 +2408,9 @@ class DartDelta extends Delta {
     if (targetSource != null) {
       List<Source> librarySources =
           context.getLibrariesContaining(targetSource);
-      for (Source librarySource in librarySources) {
+      int length = librarySources.length;
+      for (int i = 0; i < length; i++) {
+        Source librarySource = librarySources[i];
         AnalysisCache cache = context.analysisCache;
         ReferencedNames referencedNames =
             cache.getValue(librarySource, REFERENCED_NAMES);
@@ -2443,11 +2468,17 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
     // Prepare inputs.
     //
     EnginePlugin enginePlugin = AnalysisEngine.instance.enginePlugin;
-    for (ResultDescriptor result in enginePlugin.dartErrorsForSource) {
+    List<ResultDescriptor> errorsForSource = enginePlugin.dartErrorsForSource;
+    int sourceLength = errorsForSource.length;
+    for (int i = 0; i < sourceLength; i++) {
+      ResultDescriptor result = errorsForSource[i];
       String inputName = result.name + '_input';
       errorLists.add(getRequiredInput(inputName));
     }
-    for (ResultDescriptor result in enginePlugin.dartErrorsForUnit) {
+    List<ResultDescriptor> errorsForUnit = enginePlugin.dartErrorsForUnit;
+    int unitLength = errorsForUnit.length;
+    for (int i = 0; i < unitLength; i++) {
+      ResultDescriptor result = errorsForUnit[i];
       String inputName = result.name + '_input';
       Map<Source, List<AnalysisError>> errorMap = getRequiredInput(inputName);
       for (List<AnalysisError> errors in errorMap.values) {
@@ -2544,12 +2575,18 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
     inputs[PARSED_UNIT_INPUT] = PARSED_UNIT.of(source);
     EnginePlugin enginePlugin = AnalysisEngine.instance.enginePlugin;
     // for Source
-    for (ResultDescriptor result in enginePlugin.dartErrorsForSource) {
+    List<ResultDescriptor> errorsForSource = enginePlugin.dartErrorsForSource;
+    int sourceLength = errorsForSource.length;
+    for (int i = 0; i < sourceLength; i++) {
+      ResultDescriptor result = errorsForSource[i];
       String inputName = result.name + '_input';
       inputs[inputName] = result.of(source);
     }
     // for LibrarySpecificUnit
-    for (ResultDescriptor result in enginePlugin.dartErrorsForUnit) {
+    List<ResultDescriptor> errorsForUnit = enginePlugin.dartErrorsForUnit;
+    int unitLength = errorsForUnit.length;
+    for (int i = 0; i < unitLength; i++) {
+      ResultDescriptor result = errorsForUnit[i];
       String inputName = result.name + '_input';
       inputs[inputName] =
           CONTAINING_LIBRARIES.of(source).toMap((Source library) {
@@ -2936,7 +2973,9 @@ class GenerateLintsTask extends SourceBasedAnalysisTask {
 
     bool timeVisits = analysisOptions.enableTiming;
     List<Linter> linters = getLints(context);
-    for (Linter linter in linters) {
+    int length = linters.length;
+    for (int i = 0; i < length; i++) {
+      Linter linter = linters[i];
       AstVisitor visitor = linter.getVisitor();
       if (visitor != null) {
         linter.reporter = errorReporter;
@@ -3586,7 +3625,10 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     HashSet<Source> explicitlyImportedSourceSet = new HashSet<Source>();
     HashSet<Source> exportedSourceSet = new HashSet<Source>();
     HashSet<Source> includedSourceSet = new HashSet<Source>();
-    for (Directive directive in unit.directives) {
+    NodeList<Directive> directives = unit.directives;
+    int length = directives.length;
+    for (int i = 0; i < length; i++) {
+      Directive directive = directives[i];
       if (directive is PartOfDirective) {
         hasPartOfDirective = true;
       } else {
@@ -4666,8 +4708,9 @@ class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
     List<CompilationUnit> units = getRequiredInput(UNITS_INPUT);
     // Compute referenced names.
     ReferencedNames referencedNames = new ReferencedNames();
-    for (CompilationUnit unit in units) {
-      new ReferencedNamesBuilder(referencedNames).build(unit);
+    int length = units.length;
+    for (int i = 0; i < length; i++) {
+      new ReferencedNamesBuilder(referencedNames).build(units[i]);
     }
     //
     // Record outputs.
@@ -5595,7 +5638,10 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
    * exists and report an error if it does not.
    */
   void validateDirectives(CompilationUnit unit) {
-    for (Directive directive in unit.directives) {
+    NodeList<Directive> directives = unit.directives;
+    int length = directives.length;
+    for (int i = 0; i < length; i++) {
+      Directive directive = directives[i];
       if (directive is UriBasedDirective) {
         validateReferencedSource(directive);
       }
@@ -5717,14 +5763,20 @@ class _SourceClosureTaskInputBuilder implements TaskInputBuilder<List<Source>> {
     if (_libraries.add(library)) {
       if (kind == _SourceClosureKind.IMPORT ||
           kind == _SourceClosureKind.IMPORT_EXPORT) {
-        for (ImportElement importElement in library.imports) {
+        List<ImportElement> imports = library.imports;
+        int length = imports.length;
+        for (int i = 0; i < length; i++) {
+          ImportElement importElement = imports[i];
           Source importedSource = importElement.importedLibrary.source;
           _newSources.add(importedSource);
         }
       }
       if (kind == _SourceClosureKind.EXPORT ||
           kind == _SourceClosureKind.IMPORT_EXPORT) {
-        for (ExportElement exportElement in library.exports) {
+        List<ExportElement> exports = library.exports;
+        int length = exports.length;
+        for (int i = 0; i < length; i++) {
+          ExportElement exportElement = exports[i];
           Source exportedSource = exportElement.exportedLibrary.source;
           _newSources.add(exportedSource);
         }

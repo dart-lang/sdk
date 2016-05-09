@@ -470,7 +470,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     SimpleIdentifier prefixNode = node.prefix;
     if (prefixNode != null) {
       String prefixName = prefixNode.name;
-      for (PrefixElement prefixElement in _definingLibrary.prefixes) {
+      List<PrefixElement> prefixes = _definingLibrary.prefixes;
+      int count = prefixes.length;
+      for (int i = 0; i < count; i++) {
+        PrefixElement prefixElement = prefixes[i];
         if (prefixElement.displayName == prefixName) {
           prefixNode.staticElement = prefixElement;
           break;
@@ -1391,7 +1394,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   Element _findImportWithoutPrefix(SimpleIdentifier identifier) {
     Element element = null;
     Scope nameScope = _resolver.nameScope;
-    for (ImportElement importElement in _definingLibrary.imports) {
+    List<ImportElement> imports = _definingLibrary.imports;
+    int length = imports.length;
+    for (int i = 0; i < length; i++) {
+      ImportElement importElement = imports[i];
       PrefixElement prefixElement = importElement.prefix;
       if (prefixElement != null) {
         Identifier prefixedIdentifier = new PrefixedIdentifierImpl.temp(
