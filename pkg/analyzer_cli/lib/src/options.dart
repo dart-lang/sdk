@@ -508,7 +508,7 @@ class CommandLineOptions {
         exitHandler(0);
         return null; // Only reachable in testing.
       } else {
-        if (results.rest.isEmpty) {
+        if (results.rest.isEmpty && !results['build-mode']) {
           _showUsage(parser);
           exitHandler(15);
           return null; // Only reachable in testing.
