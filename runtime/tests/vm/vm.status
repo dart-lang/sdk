@@ -140,11 +140,6 @@ cc/Coverage_Empty: Skip
 cc/Coverage_FilterFunction: Skip
 cc/Coverage_MainWithClass: Skip
 
-# TODO(vegorov) DisassembleToJSONStream requires
-# DecodeLoadObjectFromPoolOrThread which is unimplemented.
-cc/Service_Code: Skip
-cc/PrintJSON: Skip
-
 # TODO(vegorov) These tests don't seem to work if FLAG_interpret_irregexp
 # is switched on by default because they attempt to call regexp functions
 # directly instead of going through JSSyntaxRegExp_ExecuteMatch.

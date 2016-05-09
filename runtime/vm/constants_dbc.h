@@ -468,6 +468,12 @@ BYTECODES_LIST(DECLARE_BYTECODE)
 #endif
     return (call >> 8) & 0xFF;
   }
+
+  static Instr At(uword pc) { return *reinterpret_cast<Instr*>(pc); }
+
+ private:
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(Bytecode);
 };
 
 // Various dummy declarations to make shared code compile.
