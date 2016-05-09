@@ -22,6 +22,7 @@ import '../tree/tree.dart';
 import '../universe/selector.dart';
 import '../util/util.dart';
 import 'keys.dart';
+import 'modelz.dart';
 import 'serialization.dart';
 import 'serialization_util.dart';
 
@@ -165,6 +166,19 @@ class ResolvedAstSerializer extends Visitor {
         serializeLabelDefinition(labelDefinition, list.createObject());
       }
     }
+    if (element is FunctionElement) {
+      FunctionElement function = element;
+      function.functionSignature.forEachParameter((ParameterElement parameter) {
+        ParameterElement parameterImpl = parameter.implementation;
+        // TODO(johnniwinther): Should we support element->node mapping as well?
+        getNodeDataEncoder(parameterImpl.node)
+            .setElement(PARAMETER_NODE, parameter);
+        if (parameter.initializer != null) {
+          getNodeDataEncoder(parameterImpl.initializer)
+              .setElement(PARAMETER_INITIALIZER, parameter);
+        }
+      });
+    }
   }
 
   /// Serialize [target] into [encoder].
@@ -203,7 +217,9 @@ class ResolvedAstSerializer extends Visitor {
 
   /// Computes the [ObjectEncoder] for serializing data for [node].
   ObjectEncoder getNodeDataEncoder(Node node) {
+    assert(invariant(element, node != null, message: "Node must be non-null."));
     int id = nodeIndices[node];
+    assert(invariant(element, id != null, message: "Node without id: $node"));
     return nodeData.putIfAbsent(id, () {
       ObjectEncoder objectEncoder = nodeDataEncoder.createObject();
       objectEncoder.setInt(Key.ID, id);
@@ -650,6 +666,18 @@ class ResolvedAstDeserializer {
           resolvedAstMap[function] = new ParsedResolvedAst(function,
               functionExpression, functionExpression.body, elements, uri);
         }
+        // TODO(johnniwinther): Remove these when inference doesn't need `.node`
+        // and `.initializer` of [ParameterElement]s.
+        ParameterElementZ parameter =
+            objectDecoder.getElement(PARAMETER_NODE, isOptional: true);
+        if (parameter != null) {
+          parameter.node = node;
+        }
+        parameter =
+            objectDecoder.getElement(PARAMETER_INITIALIZER, isOptional: true);
+        if (parameter != null) {
+          parameter.initializer = node;
+        }
       }
     }
     assert(invariant(element, !resolvedAstMap.containsKey(element),
@@ -658,3 +686,6 @@ class ResolvedAstDeserializer {
         new ParsedResolvedAst(element, root, body, elements, uri);
   }
 }
+
+const Key PARAMETER_NODE = const Key('parameter.node');
+const Key PARAMETER_INITIALIZER = const Key('parameter.initializer');
