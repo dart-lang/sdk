@@ -458,7 +458,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       return fromExpr;
     }
 
-    return js.call('dart.as(#, #)', [fromExpr, _emitTypeName(to)]);
+    return js.call('dart.as(#, #)', [fromExpr, _emitType(to)]);
   }
 
   @override
@@ -472,7 +472,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       result = js.call('typeof # == #', [lhs, js.string(typeofName, "'")]);
     } else {
       // Always go through a runtime helper, because implicit interfaces.
-      result = js.call('dart.is(#, #)', [lhs, _emitTypeName(type)]);
+      result = js.call('dart.is(#, #)', [lhs, _emitType(type)]);
     }
 
     if (node.notOperator != null) {
@@ -495,7 +495,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     JS.Expression body = annotate(
         js.call('dart.typedef(#, () => #)', [
           js.string(element.name, "'"),
-          _emitTypeName(element.type, lowerTypedef: true)
+          _emitType(element.type, lowerTypedef: true)
         ]),
         node,
         element);
@@ -513,7 +513,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   JS.Expression visitTypeName(TypeName node) {
     // TODO(jmesserly): should only happen for erroneous code.
     if (node.type == null) return js.call('dart.dynamic');
-    return _emitTypeName(node.type);
+    return _emitType(node.type);
   }
 
   @override
@@ -741,7 +741,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var values = new JS.ArrayInitializer(new List<JS.Expression>.from(
         fields.map((f) => js.call('#.#', [id, f.name]))));
     result.add(js.statement('#.values = dart.const(dart.list(#, #));',
-        [id, values, _emitTypeName(type)]));
+        [id, values, _emitType(type)]));
 
     return _statement(result);
   }
@@ -759,7 +759,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     ]);
 
     var dynType = fillDynamicTypeArgs(element.type);
-    var genericInst = _emitTypeName(dynType, lowerGeneric: true);
+    var genericInst = _emitType(dynType, lowerGeneric: true);
     return js.statement(
         '{ #; # = #; }', [genericDef, _emitTopLevelName(element), genericInst]);
   }
@@ -804,10 +804,10 @@ class CodeGenerator extends GeneralizingAstVisitor
       supertype = fillDynamicTypeArgs(supertype.element.type);
       _hasDeferredSupertype.add(element);
     }
-    heritage = _emitTypeName(supertype);
+    heritage = _emitType(supertype);
 
     if (type.mixins.isNotEmpty) {
-      var mixins = type.mixins.map(_emitTypeName).toList();
+      var mixins = type.mixins.map(_emitType).toList();
       mixins.insert(0, heritage);
       heritage = js.call('dart.mixin(#)', [mixins]);
     }
@@ -1051,7 +1051,8 @@ class CodeGenerator extends GeneralizingAstVisitor
       // TODO(jmesserly): we should really just extend Array in the first place.
       newBaseClass = js.call('dart.global.#', [jsPeerName]);
     } else if (_hasDeferredSupertype.contains(classElem)) {
-      newBaseClass = _emitTypeName(classElem.type.superclass);
+      newBaseClass = _emitType(classElem.type.superclass,
+          subClass: classElem, className: className);
     }
     if (newBaseClass != null) {
       body.add(
@@ -1136,7 +1137,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       body.add(js.statement('#[dart.implements] = () => #;', [
         className,
         new JS.ArrayInitializer(new List<JS.Expression>.from(
-            classElem.interfaces.map(_emitTypeName)))
+            classElem.interfaces.map(_emitType)))
       ]));
     }
 
@@ -1608,7 +1609,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       var paramType = param.element.type;
       if (!constructor && _hasUnsoundTypeParameter(paramType)) {
         body.add(js
-            .statement('dart.as(#, #);', [jsParam, _emitTypeName(paramType)]));
+            .statement('dart.as(#, #);', [jsParam, _emitType(paramType)]));
       }
     }
     return body.isEmpty ? null : _statement(body);
@@ -1989,7 +1990,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       gen = js.call('#.bind(this)', gen);
     }
 
-    var T = _emitTypeName(returnType);
+    var T = _emitType(returnType);
     return js.call('dart.#(#)', [
       kind,
       [gen, T]..addAll(visitFormalParameterList(parameters, destructure: false))
@@ -2052,7 +2053,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     // type literal
     if (element is TypeDefiningElement) {
-      var typeName = _emitTypeName(fillDynamicTypeArgs(element.type));
+      var typeName = _emitType(fillDynamicTypeArgs(element.type));
 
       // If the type is a type literal expression in Dart code, wrap the raw
       // runtime type in a "Type" instance.
@@ -2081,7 +2082,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       // library prefix. We don't need those because static calls can't use
       // the generic type.
       if (isStatic) {
-        var dynType = _emitTypeName(fillDynamicTypeArgs(type));
+        var dynType = _emitType(fillDynamicTypeArgs(type));
         return new JS.PropertyAccess(dynType, member);
       }
 
@@ -2157,7 +2158,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     for (int i = 0; i < types.length; ++i) {
       var metadata =
           parameters != null ? _parameterMetadata(parameters[i]) : [];
-      var typeName = _emitTypeName(types[i]);
+      var typeName = _emitType(types[i]);
       var value = typeName;
       // TODO(vsm): Make this optional per #268.
       if (metadata.isNotEmpty) {
@@ -2173,7 +2174,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var properties = <JS.Property>[];
     types.forEach((name, type) {
       var key = _propertyName(name);
-      var value = _emitTypeName(type);
+      var value = _emitType(type);
       properties.add(new JS.Property(key, value));
     });
     return new JS.ObjectInitializer(properties);
@@ -2186,7 +2187,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var parameterTypes = type.normalParameterTypes;
     var optionalTypes = type.optionalParameterTypes;
     var namedTypes = type.namedParameterTypes;
-    var rt = _emitTypeName(type.returnType);
+    var rt = _emitType(type.returnType);
     var ra = _emitTypeNames(parameterTypes, parameters);
 
     List<JS.Expression> typeParts;
@@ -2221,8 +2222,15 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// function type. Similarly if [lowerGeneric] is set, the `List$()` form
   /// will be used instead of `List`. These flags are used when generating
   /// the definitions for typedefs and generic types, respectively.
-  JS.Expression _emitTypeName(DartType type,
-      {bool lowerTypedef: false, bool lowerGeneric: false}) {
+  ///
+  /// If [subClass] is set, then we are setting the base class for the given
+  /// class and should emit the given [className], which will already be
+  /// defined.
+  JS.Expression _emitType(DartType type,
+      {bool lowerTypedef: false,
+      bool lowerGeneric: false,
+      ClassElement subClass,
+      JS.Expression className}) {
     // The void and dynamic types are not defined in core.
     if (type.isVoid) {
       return js.call('dart.void');
@@ -2252,11 +2260,16 @@ class CodeGenerator extends GeneralizingAstVisitor
       return new JS.Identifier(name);
     }
 
+    if (type == subClass?.type) {
+      return className;
+    }
+
     if (type is ParameterizedType) {
       var args = type.typeArguments;
       Iterable jsArgs = null;
       if (args.any((a) => !a.isDynamic)) {
-        jsArgs = args.map(_emitTypeName);
+        jsArgs = args.map(
+            (x) => _emitType(x, subClass: subClass, className: className));
       } else if (lowerGeneric) {
         jsArgs = [];
       }
@@ -2537,7 +2550,7 @@ class CodeGenerator extends GeneralizingAstVisitor
         f is FunctionType &&
         f.typeFormals.isEmpty) {
       return _recoverTypeArguments(g, f)
-          .map(_emitTypeName)
+          .map(_emitType)
           .toList(growable: false);
     } else if (typeArgs != null) {
       // Dynamic calls may have type arguments, even though the function types
@@ -2979,7 +2992,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   JS.Expression _emitConstructorName(
       ConstructorElement element, DartType type, SimpleIdentifier name) {
-    var typeName = _emitTypeName(type);
+    var typeName = _emitType(type);
     if (name != null || element.isFactory) {
       var namedCtor = _constructorName(element);
       return new JS.PropertyAccess(typeName, namedCtor);
@@ -3005,7 +3018,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       if (element == null) {
         // TODO(jmesserly): this only happens if we had a static error.
         // Should we generate a throw instead?
-        ctor = _emitTypeName(type);
+        ctor = _emitType(type);
         if (name != null) {
           ctor = new JS.PropertyAccess(ctor, _propertyName(name.name));
         }
@@ -3931,7 +3944,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     return new JS.If(
         js.call('dart.is(#, #)', [
           _visit(_catchParameter),
-          _emitTypeName(clause.exceptionType.type),
+          _emitType(clause.exceptionType.type),
         ]),
         then,
         otherwise);
@@ -4021,7 +4034,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       // TODO(vsm): When we canonicalize, we need to treat private symbols
       // correctly.
       var name = js.string(node.components.join('.'), "'");
-      return js.call('#.new(#)', [_emitTypeName(types.symbolType), name]);
+      return js.call('#.new(#)', [_emitType(types.symbolType), name]);
     }
     return _emitConst(emitSymbol);
   }
@@ -4039,7 +4052,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       if (!elementType.isDynamic) {
         // dart.list helper internally depends on _interceptors.JSArray.
         _loader.declareBeforeUse(_jsArray);
-        list = js.call('dart.list(#, #)', [list, _emitTypeName(elementType)]);
+        list = js.call('dart.list(#, #)', [list, _emitType(elementType)]);
       }
       return list;
     }
@@ -4075,7 +4088,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       }
       var types = <JS.Expression>[];
       if (typeArgs != null) {
-        types.addAll(typeArgs.arguments.map((e) => _emitTypeName(e.type)));
+        types.addAll(typeArgs.arguments.map((e) => _emitType(e.type)));
       }
       return js.call('dart.map(#, #)', [mapArguments, types]);
     }
