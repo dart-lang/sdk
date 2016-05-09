@@ -1136,8 +1136,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (classElem.interfaces.isNotEmpty) {
       body.add(js.statement('#[dart.implements] = () => #;', [
         className,
-        new JS.ArrayInitializer(new List<JS.Expression>.from(
-            classElem.interfaces.map(_emitType)))
+        new JS.ArrayInitializer(
+            new List<JS.Expression>.from(classElem.interfaces.map(_emitType)))
       ]));
     }
 
@@ -1608,8 +1608,8 @@ class CodeGenerator extends GeneralizingAstVisitor
       // https://github.com/dart-lang/dev_compiler/issues/161
       var paramType = param.element.type;
       if (!constructor && _hasUnsoundTypeParameter(paramType)) {
-        body.add(js
-            .statement('dart.as(#, #);', [jsParam, _emitType(paramType)]));
+        body.add(
+            js.statement('dart.as(#, #);', [jsParam, _emitType(paramType)]));
       }
     }
     return body.isEmpty ? null : _statement(body);
@@ -2268,8 +2268,8 @@ class CodeGenerator extends GeneralizingAstVisitor
       var args = type.typeArguments;
       Iterable jsArgs = null;
       if (args.any((a) => !a.isDynamic)) {
-        jsArgs = args.map(
-            (x) => _emitType(x, subClass: subClass, className: className));
+        jsArgs = args
+            .map((x) => _emitType(x, subClass: subClass, className: className));
       } else if (lowerGeneric) {
         jsArgs = [];
       }
@@ -2549,9 +2549,7 @@ class CodeGenerator extends GeneralizingAstVisitor
         g.typeFormals.isNotEmpty &&
         f is FunctionType &&
         f.typeFormals.isEmpty) {
-      return _recoverTypeArguments(g, f)
-          .map(_emitType)
-          .toList(growable: false);
+      return _recoverTypeArguments(g, f).map(_emitType).toList(growable: false);
     } else if (typeArgs != null) {
       // Dynamic calls may have type arguments, even though the function types
       // are not known.
@@ -3942,10 +3940,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     // TODO(jmesserly): this is inconsistent with [visitIsExpression], which
     // has special case for typeof.
     return new JS.If(
-        js.call('dart.is(#, #)', [
-          _visit(_catchParameter),
-          _emitType(clause.exceptionType.type),
-        ]),
+        js.call('dart.is(#, #)',
+            [_visit(_catchParameter), _emitType(clause.exceptionType.type),]),
         then,
         otherwise);
   }

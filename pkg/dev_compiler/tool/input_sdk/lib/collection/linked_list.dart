@@ -29,40 +29,37 @@ part of dart.collection;
  * and a constant time length getter.
  */
 class LinkedList<E extends LinkedListEntry<E>>
-    extends IterableBase<E>
-    implements _LinkedListLink {
+    extends Iterable<E> {
 
   int _modificationCount = 0;
   int _length = 0;
-  _LinkedListLink _next;
-  _LinkedListLink _previous;
+  E _first;
 
   /**
    * Construct a new empty linked list.
    */
-  LinkedList() {
-    _next = _previous = this;
-  }
+  LinkedList();
 
   /**
    * Add [entry] to the beginning of the linked list.
    */
   void addFirst(E entry) {
-    _insertAfter(this, entry);
+    _insertBefore(_first, entry, updateFirst: true);
+    _first = entry;
   }
 
   /**
    * Add [entry] to the end of the linked list.
    */
   void add(E entry) {
-    _insertAfter(_previous, entry);
+    _insertBefore(_first, entry, updateFirst: false);
   }
 
   /**
    * Add [entries] to the end of the linked list.
    */
   void addAll(Iterable<E> entries) {
-    entries.forEach((entry) => _insertAfter(_previous, entry));
+    entries.forEach(add);
   }
 
   /**
@@ -88,38 +85,41 @@ class LinkedList<E extends LinkedListEntry<E>>
    */
   void clear() {
     _modificationCount++;
-    _LinkedListLink next = _next;
-    while (!identical(next, this)) {
+    if (isEmpty) return;
+
+    E next = _first;
+    do {
       E entry = next;
       next = entry._next;
       entry._next = entry._previous = entry._list = null;
-    }
-    _next = _previous = this;
+    } while (!identical(next, _first));
+
+    _first = null;
     _length = 0;
   }
 
   E get first {
-    if (identical(_next, this)) {
+    if (isEmpty) {
       throw new StateError('No such element');
     }
-    return _next;
+    return _first;
   }
 
   E get last {
-    if (identical(_previous, this)) {
+    if (isEmpty) {
       throw new StateError('No such element');
     }
-    return _previous;
+    return _first._previous;
   }
 
   E get single {
-    if (identical(_previous, this)) {
+    if (isEmpty) {
       throw new StateError('No such element');
     }
-    if (!identical(_previous, _next)) {
+    if (_length > 1) {
       throw new StateError('Too many elements');
     }
-    return _next;
+    return _first;
   }
 
   /**
@@ -129,40 +129,62 @@ class LinkedList<E extends LinkedListEntry<E>>
    */
   void forEach(void action(E entry)) {
     int modificationCount = _modificationCount;
-    _LinkedListLink current = _next;
-    while (!identical(current, this)) {
+    if (isEmpty) return;
+
+    E current = _first;
+    do {
       action(current);
       if (modificationCount != _modificationCount) {
         throw new ConcurrentModificationError(this);
       }
       current = current._next;
-    }
+    } while (!identical(current, _first));
   }
 
   bool get isEmpty => _length == 0;
 
-  void _insertAfter(_LinkedListLink entry, E newEntry) {
+  /// Inserts [newEntry] as last entry of the list.
+  ///
+  /// If [updateFirst] is true and [entry] is the first entry in the list,
+  /// updates the [_first] field to point to the [newEntry] as first entry.
+  void _insertBefore(E entry, E newEntry, {bool updateFirst}) {
     if (newEntry.list != null) {
       throw new StateError(
           'LinkedListEntry is already in a LinkedList');
     }
     _modificationCount++;
+
     newEntry._list = this;
-    var predecessor = entry;
-    var successor = entry._next;
-    successor._previous = newEntry;
+    if (isEmpty) {
+      assert(entry == null);
+      newEntry._previous = newEntry._next = newEntry;
+      _first = newEntry;
+      _length++;
+      return;
+    }
+    E predecessor = entry._previous;
+    E successor = entry;
     newEntry._previous = predecessor;
     newEntry._next = successor;
     predecessor._next = newEntry;
+    successor._previous = newEntry;
+    if (updateFirst && identical(entry, _first)) {
+      _first = newEntry;
+    }
     _length++;
   }
 
-  void _unlink(LinkedListEntry<E> entry) {
+  void _unlink(E entry) {
     _modificationCount++;
     entry._next._previous = entry._previous;
-    entry._previous._next = entry._next;
+    E next = entry._previous._next = entry._next;
     _length--;
     entry._list = entry._next = entry._previous = null;
+    if (isEmpty) {
+      _first = null;
+    } else if (identical(entry, _first)) {
+      _first = next;
+    }
   }
 }
 
@@ -172,33 +194,31 @@ class _LinkedListIterator<E extends LinkedListEntry<E>>
   final LinkedList<E> _list;
   final int _modificationCount;
   E _current;
-  _LinkedListLink _next;
+  LinkedListEntry<E> _next;
+  bool _visitedFirst;
 
   _LinkedListIterator(LinkedList<E> list)
     : _list = list,
       _modificationCount = list._modificationCount,
-      _next = list._next;
+      _next = list._first,
+      _visitedFirst = false;
 
   E get current => _current;
 
   bool moveNext() {
-    if (identical(_next, _list)) {
-      _current = null;
-      return false;
-    }
     if (_modificationCount != _list._modificationCount) {
       throw new ConcurrentModificationError(this);
     }
+    if (_list.isEmpty ||
+        (_visitedFirst && identical(_next, _list.first))) {
+      _current = null;
+      return false;
+    }
+    _visitedFirst = true;
     _current = _next;
     _next = _next._next;
     return true;
   }
-}
-
-
-class _LinkedListLink {
-  _LinkedListLink _next;
-  _LinkedListLink _previous;
 }
 
 
@@ -216,11 +236,10 @@ class _LinkedListLink {
  *
  * When created, an entry is not in any linked list.
  */
-abstract class LinkedListEntry<E extends LinkedListEntry<E>>
-    implements _LinkedListLink {
+abstract class LinkedListEntry<E extends LinkedListEntry<E>> {
   LinkedList<E> _list;
-  _LinkedListLink _next;
-  _LinkedListLink _previous;
+  E _next;
+  E _previous;
 
   /**
    * Get the linked list containing this element.
@@ -245,9 +264,8 @@ abstract class LinkedListEntry<E extends LinkedListEntry<E>>
    * entry is not currently in any list.
    */
   E get next {
-    if (identical(_next, _list)) return null;
-    E result = _next;
-    return result;
+    if (identical(this, _next)) return null;
+    return _next;
   }
 
   /**
@@ -257,8 +275,8 @@ abstract class LinkedListEntry<E extends LinkedListEntry<E>>
    * entry is not currently in any list.
    */
   E get previous {
-    if (identical(_previous, _list)) return null;
-    return _previous as E;
+    if (identical(this, _previous)) return null;
+    return _previous;
   }
 
   /**
@@ -268,7 +286,7 @@ abstract class LinkedListEntry<E extends LinkedListEntry<E>>
    * The [entry] must not be in a linked list.
    */
   void insertAfter(E entry) {
-    _list._insertAfter(this, entry);
+    _list._insertBefore(_next, entry, updateFirst: false);
   }
 
   /**
@@ -278,6 +296,6 @@ abstract class LinkedListEntry<E extends LinkedListEntry<E>>
    * The [entry] must not be in a linked list.
    */
   void insertBefore(E entry) {
-    _list._insertAfter(_previous, entry);
+    _list._insertBefore(this as E, entry, updateFirst: true);
   }
 }

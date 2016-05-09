@@ -21573,33 +21573,29 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   collection.LinkedHashSet = collection.LinkedHashSet$();
   const _modificationCount = Symbol('_modificationCount');
-  const _insertAfter = Symbol('_insertAfter');
+  const _insertBefore$ = Symbol('_insertBefore');
   const _list = Symbol('_list');
   const _unlink$ = Symbol('_unlink');
   collection.LinkedList$ = dart.generic(E => {
-    class LinkedList extends collection.IterableBase$(E) {
+    class LinkedList extends core.Iterable$(E) {
       LinkedList() {
         this[_modificationCount] = 0;
         this[_length$0] = 0;
-        this[_next$] = null;
-        this[_previous$] = null;
-        super.IterableBase();
-        this[_next$] = this[_previous$] = this;
+        this[_first] = null;
+        super.Iterable();
       }
       addFirst(entry) {
         dart.as(entry, E);
-        this[_insertAfter](this, entry);
+        this[_insertBefore$](this[_first], entry, {updateFirst: true});
+        this[_first] = entry;
       }
       add(entry) {
         dart.as(entry, E);
-        this[_insertAfter](this[_previous$], entry);
+        this[_insertBefore$](this[_first], entry, {updateFirst: false});
       }
       addAll(entries) {
         dart.as(entries, core.Iterable$(E));
-        entries[dartx.forEach](dart.fn(entry => {
-          dart.as(entry, E);
-          return this[_insertAfter](this[_previous$], entry);
-        }, dart.void, [E]));
+        entries[dartx.forEach](dart.bind(this, 'add'));
       }
       remove(entry) {
         dart.as(entry, E);
@@ -21615,76 +21611,94 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       clear() {
         this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
-        let next = this[_next$];
-        while (!core.identical(next, this)) {
-          let entry = dart.as(next, E);
+        if (dart.notNull(this.isEmpty)) return;
+        let next = this[_first];
+        do {
+          let entry = next;
           next = entry[_next$];
           entry[_next$] = entry[_previous$] = entry[_list] = null;
-        }
-        this[_next$] = this[_previous$] = this;
+        } while (!core.identical(next, this[_first]));
+        this[_first] = null;
         this[_length$0] = 0;
       }
       get first() {
-        if (core.identical(this[_next$], this)) {
+        if (dart.notNull(this.isEmpty)) {
           dart.throw(new core.StateError('No such element'));
         }
-        return dart.as(this[_next$], E);
+        return this[_first];
       }
       get last() {
-        if (core.identical(this[_previous$], this)) {
+        if (dart.notNull(this.isEmpty)) {
           dart.throw(new core.StateError('No such element'));
         }
-        return dart.as(this[_previous$], E);
+        return this[_first][_previous$];
       }
       get single() {
-        if (core.identical(this[_previous$], this)) {
+        if (dart.notNull(this.isEmpty)) {
           dart.throw(new core.StateError('No such element'));
         }
-        if (!core.identical(this[_previous$], this[_next$])) {
+        if (dart.notNull(this[_length$0]) > 1) {
           dart.throw(new core.StateError('Too many elements'));
         }
-        return dart.as(this[_next$], E);
+        return this[_first];
       }
       forEach(action) {
         dart.as(action, dart.functionType(dart.void, [E]));
         let modificationCount = this[_modificationCount];
-        let current = this[_next$];
-        while (!core.identical(current, this)) {
-          action(dart.as(current, E));
+        if (dart.notNull(this.isEmpty)) return;
+        let current = this[_first];
+        do {
+          action(current);
           if (modificationCount != this[_modificationCount]) {
             dart.throw(new core.ConcurrentModificationError(this));
           }
           current = current[_next$];
-        }
+        } while (!core.identical(current, this[_first]));
       }
       get isEmpty() {
         return this[_length$0] == 0;
       }
-      [_insertAfter](entry, newEntry) {
+      [_insertBefore$](entry, newEntry, opts) {
+        dart.as(entry, E);
         dart.as(newEntry, E);
+        let updateFirst = opts && 'updateFirst' in opts ? opts.updateFirst : null;
         if (newEntry.list != null) {
           dart.throw(new core.StateError('LinkedListEntry is already in a LinkedList'));
         }
         this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
         newEntry[_list] = this;
-        let predecessor = entry;
-        let successor = entry[_next$];
-        successor[_previous$] = newEntry;
+        if (dart.notNull(this.isEmpty)) {
+          dart.assert(entry == null);
+          newEntry[_previous$] = newEntry[_next$] = newEntry;
+          this[_first] = newEntry;
+          this[_length$0] = dart.notNull(this[_length$0]) + 1;
+          return;
+        }
+        let predecessor = entry[_previous$];
+        let successor = entry;
         newEntry[_previous$] = predecessor;
         newEntry[_next$] = successor;
         predecessor[_next$] = newEntry;
+        successor[_previous$] = newEntry;
+        if (dart.notNull(updateFirst) && core.identical(entry, this[_first])) {
+          this[_first] = newEntry;
+        }
         this[_length$0] = dart.notNull(this[_length$0]) + 1;
       }
       [_unlink$](entry) {
-        dart.as(entry, collection.LinkedListEntry$(E));
+        dart.as(entry, E);
         this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
         entry[_next$][_previous$] = entry[_previous$];
-        entry[_previous$][_next$] = entry[_next$];
+        let next = entry[_previous$][_next$] = entry[_next$];
         this[_length$0] = dart.notNull(this[_length$0]) - 1;
         entry[_list] = entry[_next$] = entry[_previous$] = null;
+        if (dart.notNull(this.isEmpty)) {
+          this[_first] = null;
+        } else if (core.identical(entry, this[_first])) {
+          this[_first] = next;
+        }
       }
     }
-    LinkedList[dart.implements] = () => [collection._LinkedListLink];
     dart.setSignature(LinkedList, {
       constructors: () => ({LinkedList: [collection.LinkedList$(E), []]}),
       methods: () => ({
@@ -21694,8 +21708,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
         remove: [core.bool, [E]],
         clear: [dart.void, []],
         forEach: [dart.void, [dart.functionType(dart.void, [E])]],
-        [_insertAfter]: [dart.void, [collection._LinkedListLink, E]],
-        [_unlink$]: [dart.void, [collection.LinkedListEntry$(E)]]
+        [_insertBefore$]: [dart.void, [E, E], {updateFirst: core.bool}],
+        [_unlink$]: [dart.void, [E]]
       })
     });
     dart.defineExtensionMembers(LinkedList, [
@@ -21710,25 +21724,28 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return LinkedList;
   });
   collection.LinkedList = collection.LinkedList$();
+  const _visitedFirst = Symbol('_visitedFirst');
   collection._LinkedListIterator$ = dart.generic(E => {
     class _LinkedListIterator extends core.Object {
       _LinkedListIterator(list) {
         this[_list] = list;
         this[_modificationCount] = list[_modificationCount];
-        this[_next$] = list[_next$];
+        this[_next$] = list[_first];
+        this[_visitedFirst] = false;
         this[_current$2] = null;
       }
       get current() {
         return this[_current$2];
       }
       moveNext() {
-        if (core.identical(this[_next$], this[_list])) {
-          this[_current$2] = null;
-          return false;
-        }
         if (this[_modificationCount] != this[_list][_modificationCount]) {
           dart.throw(new core.ConcurrentModificationError(this));
         }
+        if (dart.notNull(this[_list].isEmpty) || dart.notNull(this[_visitedFirst]) && core.identical(this[_next$], this[_list].first)) {
+          this[_current$2] = null;
+          return false;
+        }
+        this[_visitedFirst] = true;
         this[_current$2] = dart.as(this[_next$], E);
         this[_next$] = this[_next$][_next$];
         return true;
@@ -21742,12 +21759,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return _LinkedListIterator;
   });
   collection._LinkedListIterator = collection._LinkedListIterator$();
-  collection._LinkedListLink = class _LinkedListLink extends core.Object {
-    _LinkedListLink() {
-      this[_next$] = null;
-      this[_previous$] = null;
-    }
-  };
   collection.LinkedListEntry$ = dart.generic(E => {
     class LinkedListEntry extends core.Object {
       LinkedListEntry() {
@@ -21759,27 +21770,25 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_list];
       }
       unlink() {
-        this[_list][_unlink$](this);
+        this[_list][_unlink$](dart.as(this, E));
       }
       get next() {
-        if (core.identical(this[_next$], this[_list])) return null;
-        let result = dart.as(this[_next$], E);
-        return result;
+        if (core.identical(this, this[_next$])) return null;
+        return this[_next$];
       }
       get previous() {
-        if (core.identical(this[_previous$], this[_list])) return null;
-        return dart.as(this[_previous$], E);
+        if (core.identical(this, this[_previous$])) return null;
+        return this[_previous$];
       }
       insertAfter(entry) {
         dart.as(entry, E);
-        this[_list][_insertAfter](this, entry);
+        this[_list][_insertBefore$](this[_next$], entry, {updateFirst: false});
       }
       insertBefore(entry) {
         dart.as(entry, E);
-        this[_list][_insertAfter](this[_previous$], entry);
+        this[_list][_insertBefore$](dart.as(this, E), entry, {updateFirst: true});
       }
     }
-    LinkedListEntry[dart.implements] = () => [collection._LinkedListLink];
     dart.setSignature(LinkedListEntry, {
       methods: () => ({
         unlink: [dart.void, []],
@@ -22228,116 +22237,223 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return Queue;
   });
   collection.Queue = collection.Queue$();
+  const _previousLink = Symbol('_previousLink');
+  const _nextLink = Symbol('_nextLink');
   const _link = Symbol('_link');
-  const _asNonSentinelEntry = Symbol('_asNonSentinelEntry');
-  collection.DoubleLinkedQueueEntry$ = dart.generic(E => {
-    class DoubleLinkedQueueEntry extends core.Object {
-      DoubleLinkedQueueEntry(e) {
-        this[_element] = e;
-        this[_previous$] = null;
-        this[_next$] = null;
+  collection._DoubleLink$ = dart.generic(E => {
+    class _DoubleLink extends core.Object {
+      _DoubleLink() {
+        this[_previousLink] = null;
+        this[_nextLink] = null;
       }
       [_link](previous, next) {
-        dart.as(previous, collection.DoubleLinkedQueueEntry$(E));
-        dart.as(next, collection.DoubleLinkedQueueEntry$(E));
-        this[_next$] = next;
-        this[_previous$] = previous;
-        previous[_next$] = this;
-        next[_previous$] = this;
+        dart.as(previous, E);
+        dart.as(next, E);
+        this[_nextLink] = next;
+        this[_previousLink] = previous;
+        if (previous != null) previous[_nextLink] = this;
+        if (next != null) next[_previousLink] = this;
       }
-      append(e) {
-        dart.as(e, E);
-        new (collection.DoubleLinkedQueueEntry$(E))(e)[_link](this, this[_next$]);
+      [_unlink$]() {
+        if (this[_previousLink] != null) this[_previousLink][_nextLink] = this[_nextLink];
+        if (this[_nextLink] != null) this[_nextLink][_previousLink] = this[_previousLink];
+        this[_nextLink] = null;
+        this[_previousLink] = null;
       }
-      prepend(e) {
-        dart.as(e, E);
-        new (collection.DoubleLinkedQueueEntry$(E))(e)[_link](this[_previous$], this);
-      }
-      remove() {
-        this[_previous$][_next$] = this[_next$];
-        this[_next$][_previous$] = this[_previous$];
-        this[_next$] = null;
-        this[_previous$] = null;
-        return this[_element];
-      }
-      [_asNonSentinelEntry]() {
-        return this;
-      }
-      previousEntry() {
-        return this[_previous$][_asNonSentinelEntry]();
-      }
-      nextEntry() {
-        return this[_next$][_asNonSentinelEntry]();
-      }
-      get element() {
-        return this[_element];
-      }
-      set element(e) {
-        dart.as(e, E);
-        this[_element] = e;
+    }
+    dart.setSignature(_DoubleLink, {
+      methods: () => ({
+        [_link]: [dart.void, [E, E]],
+        [_unlink$]: [dart.void, []]
+      })
+    });
+    return _DoubleLink;
+  });
+  collection._DoubleLink = collection._DoubleLink$();
+  collection.DoubleLinkedQueueEntry$ = dart.generic(E => {
+    class DoubleLinkedQueueEntry extends core.Object {
+      static new(element) {
+        return new (collection._UserDoubleLinkedQueueEntry$(E))(element);
       }
     }
     dart.setSignature(DoubleLinkedQueueEntry, {
-      constructors: () => ({DoubleLinkedQueueEntry: [collection.DoubleLinkedQueueEntry$(E), [E]]}),
-      methods: () => ({
-        [_link]: [dart.void, [collection.DoubleLinkedQueueEntry$(E), collection.DoubleLinkedQueueEntry$(E)]],
-        append: [dart.void, [E]],
-        prepend: [dart.void, [E]],
-        remove: [E, []],
-        [_asNonSentinelEntry]: [collection.DoubleLinkedQueueEntry$(E), []],
-        previousEntry: [collection.DoubleLinkedQueueEntry$(E), []],
-        nextEntry: [collection.DoubleLinkedQueueEntry$(E), []]
-      })
+      constructors: () => ({new: [collection.DoubleLinkedQueueEntry$(E), [E]]})
     });
     return DoubleLinkedQueueEntry;
   });
   collection.DoubleLinkedQueueEntry = collection.DoubleLinkedQueueEntry$();
-  collection._DoubleLinkedQueueEntrySentinel$ = dart.generic(E => {
-    class _DoubleLinkedQueueEntrySentinel extends collection.DoubleLinkedQueueEntry$(E) {
-      _DoubleLinkedQueueEntrySentinel() {
-        super.DoubleLinkedQueueEntry(null);
-        this[_link](this, this);
+  collection._UserDoubleLinkedQueueEntry$ = dart.generic(E => {
+    class _UserDoubleLinkedQueueEntry extends collection._DoubleLink {
+      _UserDoubleLinkedQueueEntry(element) {
+        this.element = element;
+        super._DoubleLink();
+      }
+      append(e) {
+        dart.as(e, E);
+        new (collection._UserDoubleLinkedQueueEntry$(E))(e)[_link](this, this[_nextLink]);
+      }
+      prepend(e) {
+        dart.as(e, E);
+        new (collection._UserDoubleLinkedQueueEntry$(E))(e)[_link](this[_previousLink], this);
       }
       remove() {
-        dart.throw(_internal.IterableElementError.noElement());
+        this[_unlink$]();
+        return this.element;
+      }
+      previousEntry() {
+        return this[_previousLink];
+      }
+      nextEntry() {
+        return this[_nextLink];
+      }
+    }
+    dart.setBaseClass(_UserDoubleLinkedQueueEntry, collection._DoubleLink$(_UserDoubleLinkedQueueEntry));
+    _UserDoubleLinkedQueueEntry[dart.implements] = () => [collection.DoubleLinkedQueueEntry$(E)];
+    dart.setSignature(_UserDoubleLinkedQueueEntry, {
+      constructors: () => ({_UserDoubleLinkedQueueEntry: [collection._UserDoubleLinkedQueueEntry$(E), [E]]}),
+      methods: () => ({
+        append: [dart.void, [E]],
+        prepend: [dart.void, [E]],
+        remove: [E, []],
+        previousEntry: [collection.DoubleLinkedQueueEntry$(E), []],
+        nextEntry: [collection.DoubleLinkedQueueEntry$(E), []]
+      })
+    });
+    return _UserDoubleLinkedQueueEntry;
+  });
+  collection._UserDoubleLinkedQueueEntry = collection._UserDoubleLinkedQueueEntry$();
+  const _queue = Symbol('_queue');
+  const _append = Symbol('_append');
+  const _prepend = Symbol('_prepend');
+  const _asNonSentinelEntry = Symbol('_asNonSentinelEntry');
+  collection._DoubleLinkedQueueEntry$ = dart.generic(E => {
+    class _DoubleLinkedQueueEntry extends collection._DoubleLink {
+      _DoubleLinkedQueueEntry(queue) {
+        this[_queue] = queue;
+        super._DoubleLink();
+      }
+      [_append](e) {
+        dart.as(e, E);
+        new (collection._DoubleLinkedQueueElement$(E))(e, this[_queue])[_link](this, this[_nextLink]);
+      }
+      [_prepend](e) {
+        dart.as(e, E);
+        new (collection._DoubleLinkedQueueElement$(E))(e, this[_queue])[_link](this[_previousLink], this);
+      }
+      nextEntry() {
+        return this[_nextLink][_asNonSentinelEntry]();
+      }
+      previousEntry() {
+        return this[_previousLink][_asNonSentinelEntry]();
+      }
+    }
+    dart.setBaseClass(_DoubleLinkedQueueEntry, collection._DoubleLink$(_DoubleLinkedQueueEntry));
+    dart.setSignature(_DoubleLinkedQueueEntry, {
+      constructors: () => ({_DoubleLinkedQueueEntry: [collection._DoubleLinkedQueueEntry$(E), [collection.DoubleLinkedQueue$(E)]]}),
+      methods: () => ({
+        [_append]: [dart.void, [E]],
+        [_prepend]: [dart.void, [E]],
+        nextEntry: [collection.DoubleLinkedQueueEntry$(E), []],
+        previousEntry: [collection.DoubleLinkedQueueEntry$(E), []]
+      })
+    });
+    return _DoubleLinkedQueueEntry;
+  });
+  collection._DoubleLinkedQueueEntry = collection._DoubleLinkedQueueEntry$();
+  const _elementCount = Symbol('_elementCount');
+  collection._DoubleLinkedQueueElement$ = dart.generic(E => {
+    class _DoubleLinkedQueueElement extends collection._DoubleLinkedQueueEntry$(E) {
+      _DoubleLinkedQueueElement(element, queue) {
+        this.element = element;
+        super._DoubleLinkedQueueEntry(queue);
+      }
+      append(e) {
+        dart.as(e, E);
+        this[_append](e);
+        if (this[_queue] != null) {
+          let o = this[_queue];
+          o[_elementCount] = dart.notNull(o[_elementCount]) + 1;
+        }
+      }
+      prepend(e) {
+        dart.as(e, E);
+        this[_prepend](e);
+        if (this[_queue] != null) {
+          let o = this[_queue];
+          o[_elementCount] = dart.notNull(o[_elementCount]) + 1;
+        }
+      }
+      [_remove]() {
+        this[_queue] = null;
+        this[_unlink$]();
+        return this.element;
+      }
+      remove() {
+        if (this[_queue] != null) {
+          let o = this[_queue];
+          o[_elementCount] = dart.notNull(o[_elementCount]) - 1;
+        }
+        return this[_remove]();
+      }
+      [_asNonSentinelEntry]() {
+        return this;
+      }
+    }
+    _DoubleLinkedQueueElement[dart.implements] = () => [collection.DoubleLinkedQueueEntry$(E)];
+    dart.setSignature(_DoubleLinkedQueueElement, {
+      constructors: () => ({_DoubleLinkedQueueElement: [collection._DoubleLinkedQueueElement$(E), [E, collection.DoubleLinkedQueue$(E)]]}),
+      methods: () => ({
+        append: [dart.void, [E]],
+        prepend: [dart.void, [E]],
+        [_remove]: [E, []],
+        remove: [E, []],
+        [_asNonSentinelEntry]: [collection._DoubleLinkedQueueElement$(E), []]
+      })
+    });
+    return _DoubleLinkedQueueElement;
+  });
+  collection._DoubleLinkedQueueElement = collection._DoubleLinkedQueueElement$();
+  collection._DoubleLinkedQueueSentinel$ = dart.generic(E => {
+    class _DoubleLinkedQueueSentinel extends collection._DoubleLinkedQueueEntry$(E) {
+      _DoubleLinkedQueueSentinel(queue) {
+        super._DoubleLinkedQueueEntry(queue);
+        this[_previousLink] = this;
+        this[_nextLink] = this;
       }
       [_asNonSentinelEntry]() {
         return null;
       }
-      set element(e) {
-        dart.as(e, E);
-        dart.assert(false);
+      [_remove]() {
+        dart.throw(_internal.IterableElementError.noElement());
       }
       get element() {
         dart.throw(_internal.IterableElementError.noElement());
       }
     }
-    dart.setSignature(_DoubleLinkedQueueEntrySentinel, {
-      constructors: () => ({_DoubleLinkedQueueEntrySentinel: [collection._DoubleLinkedQueueEntrySentinel$(E), []]}),
+    dart.setSignature(_DoubleLinkedQueueSentinel, {
+      constructors: () => ({_DoubleLinkedQueueSentinel: [collection._DoubleLinkedQueueSentinel$(E), [collection.DoubleLinkedQueue$(E)]]}),
       methods: () => ({
-        remove: [E, []],
-        [_asNonSentinelEntry]: [collection.DoubleLinkedQueueEntry$(E), []]
+        [_asNonSentinelEntry]: [collection.DoubleLinkedQueueEntry$(E), []],
+        [_remove]: [E, []]
       })
     });
-    return _DoubleLinkedQueueEntrySentinel;
+    return _DoubleLinkedQueueSentinel;
   });
-  collection._DoubleLinkedQueueEntrySentinel = collection._DoubleLinkedQueueEntrySentinel$();
+  collection._DoubleLinkedQueueSentinel = collection._DoubleLinkedQueueSentinel$();
   const _sentinel = Symbol('_sentinel');
-  const _elementCount = Symbol('_elementCount');
   const _filter = Symbol('_filter');
   collection.DoubleLinkedQueue$ = dart.generic(E => {
-    class DoubleLinkedQueue extends collection.IterableBase$(E) {
+    class DoubleLinkedQueue extends core.Iterable$(E) {
       DoubleLinkedQueue() {
         this[_sentinel] = null;
         this[_elementCount] = 0;
-        super.IterableBase();
-        this[_sentinel] = new (collection._DoubleLinkedQueueEntrySentinel$(E))();
+        super.Iterable();
+        this[_sentinel] = new (collection._DoubleLinkedQueueSentinel$(E))(this);
       }
       static from(elements) {
         let list = new (collection.DoubleLinkedQueue$(E))();
         for (let e of elements) {
-          dart.as(e, E);
-          list.addLast(e);
+          list.addLast(dart.as(e, E));
         }
         return dart.as(list, collection.DoubleLinkedQueue$(E));
       }
@@ -22346,55 +22462,57 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       addLast(value) {
         dart.as(value, E);
-        this[_sentinel].prepend(value);
+        this[_sentinel][_prepend](value);
         this[_elementCount] = dart.notNull(this[_elementCount]) + 1;
       }
       addFirst(value) {
         dart.as(value, E);
-        this[_sentinel].append(value);
+        this[_sentinel][_append](value);
         this[_elementCount] = dart.notNull(this[_elementCount]) + 1;
       }
       add(value) {
         dart.as(value, E);
-        this[_sentinel].prepend(value);
+        this[_sentinel][_prepend](value);
         this[_elementCount] = dart.notNull(this[_elementCount]) + 1;
       }
       addAll(iterable) {
         dart.as(iterable, core.Iterable$(E));
         for (let value of iterable) {
-          this[_sentinel].prepend(value);
+          this[_sentinel][_prepend](value);
           this[_elementCount] = dart.notNull(this[_elementCount]) + 1;
         }
       }
       removeLast() {
-        let result = this[_sentinel][_previous$].remove();
+        let lastEntry = this[_sentinel][_previousLink];
+        let result = lastEntry[_remove]();
         this[_elementCount] = dart.notNull(this[_elementCount]) - 1;
         return result;
       }
       removeFirst() {
-        let result = this[_sentinel][_next$].remove();
+        let firstEntry = this[_sentinel][_nextLink];
+        let result = firstEntry[_remove]();
         this[_elementCount] = dart.notNull(this[_elementCount]) - 1;
         return result;
       }
       remove(o) {
-        let entry = this[_sentinel][_next$];
+        let entry = this[_sentinel][_nextLink];
         while (!core.identical(entry, this[_sentinel])) {
           if (dart.equals(entry.element, o)) {
-            entry.remove();
+            entry[_remove]();
             this[_elementCount] = dart.notNull(this[_elementCount]) - 1;
             return true;
           }
-          entry = entry[_next$];
+          entry = entry[_nextLink];
         }
         return false;
       }
       [_filter](test, removeMatching) {
         dart.as(test, dart.functionType(core.bool, [E]));
-        let entry = this[_sentinel][_next$];
+        let entry = this[_sentinel][_nextLink];
         while (!core.identical(entry, this[_sentinel])) {
-          let next = entry[_next$];
+          let next = entry[_nextLink];
           if (core.identical(removeMatching, test(entry.element))) {
-            entry.remove();
+            entry[_remove]();
             this[_elementCount] = dart.notNull(this[_elementCount]) - 1;
           }
           entry = next;
@@ -22409,14 +22527,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_filter](test, false);
       }
       get first() {
-        return this[_sentinel][_next$].element;
+        let firstEntry = this[_sentinel][_nextLink];
+        return firstEntry.element;
       }
       get last() {
-        return this[_sentinel][_previous$].element;
+        let lastEntry = this[_sentinel][_previousLink];
+        return lastEntry.element;
       }
       get single() {
-        if (core.identical(this[_sentinel][_next$], this[_sentinel][_previous$])) {
-          return this[_sentinel][_next$].element;
+        if (core.identical(this[_sentinel][_nextLink], this[_sentinel][_previousLink])) {
+          let entry = this[_sentinel][_nextLink];
+          return entry.element;
         }
         dart.throw(_internal.IterableElementError.tooMany());
       }
@@ -22427,19 +22548,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_sentinel].nextEntry();
       }
       get isEmpty() {
-        return core.identical(this[_sentinel][_next$], this[_sentinel]);
+        return core.identical(this[_sentinel][_nextLink], this[_sentinel]);
       }
       clear() {
-        this[_sentinel][_next$] = this[_sentinel];
-        this[_sentinel][_previous$] = this[_sentinel];
+        this[_sentinel][_nextLink] = this[_sentinel];
+        this[_sentinel][_previousLink] = this[_sentinel];
         this[_elementCount] = 0;
       }
       forEachEntry(f) {
         dart.as(f, dart.functionType(dart.void, [collection.DoubleLinkedQueueEntry$(E)]));
-        let entry = this[_sentinel][_next$];
+        let entry = this[_sentinel][_nextLink];
         while (!core.identical(entry, this[_sentinel])) {
-          let nextEntry = entry[_next$];
-          f(entry);
+          let nextEntry = entry[_nextLink];
+          let element = dart.as(entry, collection._DoubleLinkedQueueElement$(E));
+          f(element);
           entry = nextEntry;
         }
       }
@@ -22490,18 +22612,23 @@ dart_library.library('dart_sdk', null, /* Imports */[
     class _DoubleLinkedQueueIterator extends core.Object {
       _DoubleLinkedQueueIterator(sentinel) {
         this[_sentinel] = sentinel;
-        this[_nextEntry] = sentinel[_next$];
+        this[_nextEntry] = sentinel[_nextLink];
         this[_current$2] = null;
       }
       moveNext() {
-        if (!core.identical(this[_nextEntry], this[_sentinel])) {
-          this[_current$2] = this[_nextEntry][_element];
-          this[_nextEntry] = this[_nextEntry][_next$];
-          return true;
+        if (core.identical(this[_nextEntry], this[_sentinel])) {
+          this[_current$2] = null;
+          this[_nextEntry] = null;
+          this[_sentinel] = null;
+          return false;
         }
-        this[_current$2] = null;
-        this[_nextEntry] = this[_sentinel] = null;
-        return false;
+        let elementEntry = dart.as(this[_nextEntry], collection._DoubleLinkedQueueElement$(E));
+        if (elementEntry[_queue] == null) {
+          dart.throw(new core.ConcurrentModificationError(this[_sentinel][_queue]));
+        }
+        this[_current$2] = elementEntry.element;
+        this[_nextEntry] = elementEntry[_nextLink];
+        return true;
       }
       get current() {
         return this[_current$2];
@@ -22509,7 +22636,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _DoubleLinkedQueueIterator[dart.implements] = () => [core.Iterator$(E)];
     dart.setSignature(_DoubleLinkedQueueIterator, {
-      constructors: () => ({_DoubleLinkedQueueIterator: [collection._DoubleLinkedQueueIterator$(E), [collection._DoubleLinkedQueueEntrySentinel$(E)]]}),
+      constructors: () => ({_DoubleLinkedQueueIterator: [collection._DoubleLinkedQueueIterator$(E), [collection._DoubleLinkedQueueSentinel$(E)]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return _DoubleLinkedQueueIterator;
@@ -22523,14 +22650,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _preGrow = Symbol('_preGrow');
   const _grow = Symbol('_grow');
   collection.ListQueue$ = dart.generic(E => {
-    class ListQueue extends collection.IterableBase$(E) {
+    class ListQueue extends core.Iterable$(E) {
       ListQueue(initialCapacity) {
         if (initialCapacity === void 0) initialCapacity = null;
         this[_head] = 0;
         this[_tail] = 0;
         this[_table] = null;
         this[_modificationCount] = 0;
-        super.IterableBase();
+        super.Iterable();
         if (initialCapacity == null || dart.notNull(initialCapacity) < dart.notNull(collection.ListQueue._INITIAL_CAPACITY)) {
           initialCapacity = collection.ListQueue._INITIAL_CAPACITY;
         } else if (!dart.notNull(collection.ListQueue._isPowerOf2(initialCapacity))) {
@@ -22544,8 +22671,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
           let length = elements[dartx.length];
           let queue = new (collection.ListQueue$(E))(dart.notNull(length) + 1);
           dart.assert(dart.notNull(queue[_table][dartx.length]) > dart.notNull(length));
-          let sourceList = elements;
-          queue[_table][dartx.setRange](0, length, dart.as(sourceList, core.Iterable$(E)), 0);
+          for (let i = 0; i < dart.notNull(length); i++) {
+            queue[_table][dartx.set](i, dart.as(elements[dartx.get](i), E));
+          }
           queue[_tail] = length;
           return queue;
         } else {
@@ -22555,8 +22683,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           }
           let result = new (collection.ListQueue$(E))(capacity);
           for (let element of elements) {
-            dart.as(element, E);
-            result.addLast(element);
+            result.addLast(dart.as(element, E));
           }
           return result;
         }
@@ -22607,29 +22734,29 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_writeToList](list);
         return list;
       }
-      add(element) {
-        dart.as(element, E);
-        this[_add$0](element);
+      add(value) {
+        dart.as(value, E);
+        this[_add$0](value);
       }
       addAll(elements) {
         dart.as(elements, core.Iterable$(E));
-        if (dart.is(elements, core.List)) {
-          let list = dart.as(elements, core.List);
+        if (dart.is(elements, core.List$(E))) {
+          let list = elements;
           let addCount = list[dartx.length];
           let length = this.length;
           if (dart.notNull(length) + dart.notNull(addCount) >= dart.notNull(this[_table][dartx.length])) {
             this[_preGrow](dart.notNull(length) + dart.notNull(addCount));
-            this[_table][dartx.setRange](length, dart.notNull(length) + dart.notNull(addCount), dart.as(list, core.Iterable$(E)), 0);
+            this[_table][dartx.setRange](length, dart.notNull(length) + dart.notNull(addCount), list, 0);
             this[_tail] = dart.notNull(this[_tail]) + dart.notNull(addCount);
           } else {
             let endSpace = dart.notNull(this[_table][dartx.length]) - dart.notNull(this[_tail]);
             if (dart.notNull(addCount) < endSpace) {
-              this[_table][dartx.setRange](this[_tail], dart.notNull(this[_tail]) + dart.notNull(addCount), dart.as(list, core.Iterable$(E)), 0);
+              this[_table][dartx.setRange](this[_tail], dart.notNull(this[_tail]) + dart.notNull(addCount), list, 0);
               this[_tail] = dart.notNull(this[_tail]) + dart.notNull(addCount);
             } else {
               let preSpace = dart.notNull(addCount) - endSpace;
-              this[_table][dartx.setRange](this[_tail], dart.notNull(this[_tail]) + endSpace, dart.as(list, core.Iterable$(E)), 0);
-              this[_table][dartx.setRange](0, preSpace, dart.as(list, core.Iterable$(E)), endSpace);
+              this[_table][dartx.setRange](this[_tail], dart.notNull(this[_tail]) + endSpace, list, 0);
+              this[_table][dartx.setRange](0, preSpace, list, endSpace);
               this[_tail] = preSpace;
             }
           }
@@ -22639,10 +22766,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
             this[_add$0](element);
         }
       }
-      remove(object) {
+      remove(value) {
         for (let i = this[_head]; i != this[_tail]; i = (dart.notNull(i) + 1 & dart.notNull(this[_table][dartx.length]) - 1) >>> 0) {
           let element = this[_table][dartx.get](i);
-          if (dart.equals(element, object)) {
+          if (dart.equals(element, value)) {
             this[_remove](i);
             this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
             return true;
@@ -22652,7 +22779,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [_filterWhere](test, removeMatching) {
         dart.as(test, dart.functionType(core.bool, [E]));
-        let index = this[_head];
         let modificationCount = this[_modificationCount];
         let i = this[_head];
         while (i != this[_tail]) {
@@ -22687,14 +22813,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
       toString() {
         return collection.IterableBase.iterableToFullString(this, "{", "}");
       }
-      addLast(element) {
-        dart.as(element, E);
-        this[_add$0](element);
+      addLast(value) {
+        dart.as(value, E);
+        this[_add$0](value);
       }
-      addFirst(element) {
-        dart.as(element, E);
+      addFirst(value) {
+        dart.as(value, E);
         this[_head] = (dart.notNull(this[_head]) - 1 & dart.notNull(this[_table][dartx.length]) - 1) >>> 0;
-        this[_table][dartx.set](this[_head], element);
+        this[_table][dartx.set](this[_head], value);
         if (this[_head] == this[_tail]) this[_grow]();
         this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
       }
@@ -22847,7 +22973,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   collection.ListQueue = collection.ListQueue$();
   collection.ListQueue._INITIAL_CAPACITY = 8;
-  const _queue = Symbol('_queue');
   const _end = Symbol('_end');
   const _position = Symbol('_position');
   collection._ListQueueIterator$ = dart.generic(E => {
@@ -22868,14 +22993,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
           this[_current$2] = null;
           return false;
         }
-        this[_current$2] = dart.as(this[_queue][_table][dartx.get](this[_position]), E);
+        this[_current$2] = this[_queue][_table][dartx.get](this[_position]);
         this[_position] = (dart.notNull(this[_position]) + 1 & dart.notNull(this[_queue][_table][dartx.length]) - 1) >>> 0;
         return true;
       }
     }
     _ListQueueIterator[dart.implements] = () => [core.Iterator$(E)];
     dart.setSignature(_ListQueueIterator, {
-      constructors: () => ({_ListQueueIterator: [collection._ListQueueIterator$(E), [collection.ListQueue]]}),
+      constructors: () => ({_ListQueueIterator: [collection._ListQueueIterator$(E), [collection.ListQueue$(E)]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return _ListQueueIterator;
@@ -22913,10 +23038,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return _SplayTreeMapNode;
   });
   collection._SplayTreeMapNode = collection._SplayTreeMapNode$();
-  const _dummy = Symbol('_dummy');
-  const _root = Symbol('_root');
   const _count$ = Symbol('_count');
   const _splayCount = Symbol('_splayCount');
+  const _root = Symbol('_root');
+  const _dummy = Symbol('_dummy');
   const _comparator = Symbol('_comparator');
   const _compare = Symbol('_compare');
   const _splay = Symbol('_splay');
@@ -22924,11 +23049,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _splayMax = Symbol('_splayMax');
   const _addNewRoot = Symbol('_addNewRoot');
   const _clear$ = Symbol('_clear');
-  collection._SplayTree$ = dart.generic(K => {
+  collection._SplayTree$ = dart.generic((K, Node) => {
     class _SplayTree extends core.Object {
       _SplayTree() {
-        this[_dummy] = new (collection._SplayTreeNode$(K))(null);
-        this[_root] = null;
         this[_count$] = 0;
         this[_modificationCount] = 0;
         this[_splayCount] = 0;
@@ -22949,17 +23072,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
               let tmp = current.left;
               current.left = tmp.right;
               tmp.right = current;
-              current = tmp;
+              current = dart.as(tmp, Node);
               if (current.left == null) break;
             }
             right.left = current;
             right = current;
-            current = current.left;
+            current = dart.as(current.left, Node);
           } else if (dart.notNull(comp) < 0) {
             if (current.right == null) break;
             comp = this[_compare](current.right.key, key);
             if (dart.notNull(comp) < 0) {
-              let tmp = current.right;
+              let tmp = dart.as(current.right, Node);
               current.right = tmp.left;
               tmp.left = current;
               current = tmp;
@@ -22967,7 +23090,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
             }
             left.right = current;
             left = current;
-            current = current.right;
+            current = dart.as(current.right, Node);
           } else {
             break;
           }
@@ -22983,26 +23106,26 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return comp;
       }
       [_splayMin](node) {
-        dart.as(node, collection._SplayTreeNode$(K));
+        dart.as(node, Node);
         let current = node;
         while (current.left != null) {
-          let left = current.left;
+          let left = dart.as(current.left, Node);
           current.left = left.right;
           left.right = current;
           current = left;
         }
-        return dart.as(current, collection._SplayTreeNode$(K));
+        return current;
       }
       [_splayMax](node) {
-        dart.as(node, collection._SplayTreeNode$(K));
+        dart.as(node, Node);
         let current = node;
         while (current.right != null) {
-          let right = current.right;
+          let right = dart.as(current.right, Node);
           current.right = right.left;
           right.left = current;
           current = right;
         }
-        return dart.as(current, collection._SplayTreeNode$(K));
+        return current;
       }
       [_remove](key) {
         dart.as(key, K);
@@ -23012,17 +23135,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let result = this[_root];
         this[_count$] = dart.notNull(this[_count$]) - 1;
         if (this[_root].left == null) {
-          this[_root] = this[_root].right;
+          this[_root] = dart.as(this[_root].right, Node);
         } else {
-          let right = this[_root].right;
-          this[_root] = this[_splayMax](this[_root].left);
+          let right = dart.as(this[_root].right, Node);
+          this[_root] = this[_splayMax](dart.as(this[_root].left, Node));
           this[_root].right = right;
         }
         this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
         return result;
       }
       [_addNewRoot](node, comp) {
-        dart.as(node, collection._SplayTreeNode$(K));
+        dart.as(node, Node);
         this[_count$] = dart.notNull(this[_count$]) + 1;
         this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
         if (this[_root] == null) {
@@ -23059,29 +23182,49 @@ dart_library.library('dart_sdk', null, /* Imports */[
     dart.setSignature(_SplayTree, {
       methods: () => ({
         [_splay]: [core.int, [K]],
-        [_splayMin]: [collection._SplayTreeNode$(K), [collection._SplayTreeNode$(K)]],
-        [_splayMax]: [collection._SplayTreeNode$(K), [collection._SplayTreeNode$(K)]],
-        [_remove]: [collection._SplayTreeNode, [K]],
-        [_addNewRoot]: [dart.void, [collection._SplayTreeNode$(K), core.int]],
+        [_splayMin]: [Node, [Node]],
+        [_splayMax]: [Node, [Node]],
+        [_remove]: [Node, [K]],
+        [_addNewRoot]: [dart.void, [Node, core.int]],
         [_clear$]: [dart.void, []]
       })
     });
     return _SplayTree;
   });
   collection._SplayTree = collection._SplayTree$();
+  collection._TypeTest$ = dart.generic(T => {
+    class _TypeTest extends core.Object {
+      test(v) {
+        return dart.is(v, T);
+      }
+    }
+    dart.setSignature(_TypeTest, {
+      methods: () => ({test: [core.bool, [dart.dynamic]]})
+    });
+    return _TypeTest;
+  });
+  collection._TypeTest = collection._TypeTest$();
   collection.SplayTreeMap$ = dart.generic((K, V) => {
-    class SplayTreeMap extends collection._SplayTree$(K) {
+    class SplayTreeMap extends collection._SplayTree$(K, collection._SplayTreeMapNode$(K, V)) {
       SplayTreeMap(compare, isValidKey) {
         if (compare === void 0) compare = null;
         if (isValidKey === void 0) isValidKey = null;
-        this[_comparator] = dart.as(compare == null ? core.Comparable.compare : compare, core.Comparator$(K));
-        this[_validKey] = isValidKey != null ? isValidKey : dart.fn(v => dart.is(v, K), core.bool, [core.Object]);
+        this[_dummy] = new (collection._SplayTreeMapNode$(K, V))(null, null);
+        this[_comparator] = (() => {
+          let l = compare;
+          return l != null ? l : dart.as(core.Comparable.compare, core.Comparator$(K));
+        })();
+        this[_validKey] = (() => {
+          let l = isValidKey;
+          return l != null ? l : dart.fn(v => dart.is(v, K), core.bool, [dart.dynamic]);
+        })();
+        this[_root] = null;
         super._SplayTree();
       }
       static from(other, compare, isValidKey) {
         if (compare === void 0) compare = null;
         if (isValidKey === void 0) isValidKey = null;
-        let result = new (collection.SplayTreeMap$(K, V))();
+        let result = new (collection.SplayTreeMap$(K, V))(compare, isValidKey);
         other[dartx.forEach](dart.fn((k, v) => {
           result.set(dart.as(k, K), dart.as(v, V));
         }, dart.void, [dart.dynamic, dart.dynamic]));
@@ -23109,26 +23252,26 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_comparator](key1, key2);
       }
       _internal() {
+        this[_dummy] = new (collection._SplayTreeMapNode$(K, V))(null, null);
+        this[_root] = null;
         this[_comparator] = null;
         this[_validKey] = null;
         super._SplayTree();
       }
       get(key) {
-        if (key == null) dart.throw(new core.ArgumentError(key));
-        if (!dart.notNull(this[_validKey](key))) return null;
+        if (!dart.notNull(dart.dcall(this[_validKey], key))) return null;
         if (this[_root] != null) {
           let comp = this[_splay](dart.as(key, K));
           if (comp == 0) {
-            let mapRoot = dart.as(this[_root], collection._SplayTreeMapNode);
-            return dart.as(mapRoot.value, V);
+            return this[_root].value;
           }
         }
         return null;
       }
       remove(key) {
-        if (!dart.notNull(this[_validKey](key))) return null;
-        let mapRoot = dart.as(this[_remove](dart.as(key, K)), collection._SplayTreeMapNode);
-        if (mapRoot != null) return dart.as(mapRoot.value, V);
+        if (!dart.notNull(dart.dcall(this[_validKey], key))) return null;
+        let mapRoot = this[_remove](dart.as(key, K));
+        if (mapRoot != null) return mapRoot.value;
         return null;
       }
       set(key, value) {
@@ -23138,11 +23281,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
           if (key == null) dart.throw(new core.ArgumentError(key));
           let comp = this[_splay](key);
           if (comp == 0) {
-            let mapRoot = dart.as(this[_root], collection._SplayTreeMapNode);
-            mapRoot.value = value;
+            this[_root].value = value;
             return;
           }
-          this[_addNewRoot](new (collection._SplayTreeMapNode$(K, dart.dynamic))(key, value), comp);
+          this[_addNewRoot](new (collection._SplayTreeMapNode$(K, V))(key, value), comp);
         })();
         return value;
       }
@@ -23152,8 +23294,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (key == null) dart.throw(new core.ArgumentError(key));
         let comp = this[_splay](key);
         if (comp == 0) {
-          let mapRoot = dart.as(this[_root], collection._SplayTreeMapNode);
-          return dart.as(mapRoot.value, V);
+          return this[_root].value;
         }
         let modificationCount = this[_modificationCount];
         let splayCount = this[_splayCount];
@@ -23165,7 +23306,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           comp = this[_splay](key);
           dart.assert(comp != 0);
         }
-        this[_addNewRoot](new (collection._SplayTreeMapNode$(K, dart.dynamic))(key, value), comp);
+        this[_addNewRoot](new (collection._SplayTreeMapNode$(K, V))(key, value), comp);
         return value;
       }
       addAll(other) {
@@ -23197,7 +23338,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_clear$]();
       }
       containsKey(key) {
-        return dart.notNull(this[_validKey](key)) && this[_splay](dart.as(key, K)) == 0;
+        return dart.notNull(dart.dcall(this[_validKey], key)) && this[_splay](dart.as(key, K)) == 0;
       }
       containsValue(value) {
         let found = false;
@@ -23214,7 +23355,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           return false;
         }).bind(this);
         dart.fn(visit, core.bool, [collection._SplayTreeMapNode]);
-        return visit(dart.as(this[_root], collection._SplayTreeMapNode));
+        return visit(this[_root]);
       }
       get keys() {
         return new (collection._SplayTreeKeyIterable$(K))(this);
@@ -23227,11 +23368,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       firstKey() {
         if (this[_root] == null) return null;
-        return dart.as(this[_first].key, K);
+        return this[_first].key;
       }
       lastKey() {
         if (this[_root] == null) return null;
-        return dart.as(this[_last].key, K);
+        return this[_last].key;
       }
       lastKeyBefore(key) {
         dart.as(key, K);
@@ -23264,10 +23405,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     SplayTreeMap[dart.implements] = () => [core.Map$(K, V)];
     dart.setSignature(SplayTreeMap, {
       constructors: () => ({
-        SplayTreeMap: [collection.SplayTreeMap$(K, V), [], [dart.functionType(core.int, [K, K]), dart.functionType(core.bool, [core.Object])]],
-        from: [collection.SplayTreeMap$(K, V), [core.Map], [dart.functionType(core.int, [K, K]), dart.functionType(core.bool, [core.Object])]],
-        fromIterable: [collection.SplayTreeMap$(K, V), [core.Iterable], {key: dart.functionType(K, [dart.dynamic]), value: dart.functionType(V, [dart.dynamic]), compare: dart.functionType(core.int, [K, K]), isValidKey: dart.functionType(core.bool, [core.Object])}],
-        fromIterables: [collection.SplayTreeMap$(K, V), [core.Iterable$(K), core.Iterable$(V)], [dart.functionType(core.int, [K, K]), dart.functionType(core.bool, [core.Object])]],
+        SplayTreeMap: [collection.SplayTreeMap$(K, V), [], [dart.functionType(core.int, [K, K]), dart.functionType(core.bool, [dart.dynamic])]],
+        from: [collection.SplayTreeMap$(K, V), [core.Map], [dart.functionType(core.int, [K, K]), dart.functionType(core.bool, [dart.dynamic])]],
+        fromIterable: [collection.SplayTreeMap$(K, V), [core.Iterable], {key: dart.functionType(K, [dart.dynamic]), value: dart.functionType(V, [dart.dynamic]), compare: dart.functionType(core.int, [K, K]), isValidKey: dart.functionType(core.bool, [dart.dynamic])}],
+        fromIterables: [collection.SplayTreeMap$(K, V), [core.Iterable$(K), core.Iterable$(V)], [dart.functionType(core.int, [K, K]), dart.functionType(core.bool, [dart.dynamic])]],
         _internal: [collection.SplayTreeMap$(K, V), []]
       }),
       methods: () => ({
@@ -23312,10 +23453,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _findLeftMostDescendent = Symbol('_findLeftMostDescendent');
   const _getValue = Symbol('_getValue');
   const _rebuildWorkList = Symbol('_rebuildWorkList');
-  collection._SplayTreeIterator$ = dart.generic(T => {
+  collection._SplayTreeIterator$ = dart.generic((K, T) => {
     class _SplayTreeIterator extends core.Object {
       _SplayTreeIterator(tree) {
-        this[_workList] = dart.list([], collection._SplayTreeNode);
+        this[_workList] = dart.list([], collection._SplayTreeNode$(K));
         this[_tree] = tree;
         this[_modificationCount] = tree[_modificationCount];
         this[_splayCount] = tree[_splayCount];
@@ -23323,7 +23464,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_findLeftMostDescendent](tree[_root]);
       }
       startAt(tree, startKey) {
-        this[_workList] = dart.list([], collection._SplayTreeNode);
+        this[_workList] = dart.list([], collection._SplayTreeNode$(K));
         this[_tree] = tree;
         this[_modificationCount] = tree[_modificationCount];
         this[_splayCount] = null;
@@ -23339,15 +23480,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       get current() {
         if (this[_currentNode] == null) return null;
-        return this[_getValue](dart.as(this[_currentNode], collection._SplayTreeMapNode));
+        return this[_getValue](this[_currentNode]);
       }
       [_findLeftMostDescendent](node) {
+        dart.as(node, collection._SplayTreeNode$(K));
         while (node != null) {
           this[_workList][dartx.add](node);
           node = node.left;
         }
       }
       [_rebuildWorkList](currentNode) {
+        dart.as(currentNode, collection._SplayTreeNode$(K));
         dart.assert(!dart.notNull(this[_workList][dartx.isEmpty]));
         this[_workList][dartx.clear]();
         if (currentNode == null) {
@@ -23378,12 +23521,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     _SplayTreeIterator[dart.implements] = () => [core.Iterator$(T)];
     dart.setSignature(_SplayTreeIterator, {
       constructors: () => ({
-        _SplayTreeIterator: [collection._SplayTreeIterator$(T), [collection._SplayTree]],
-        startAt: [collection._SplayTreeIterator$(T), [collection._SplayTree, dart.dynamic]]
+        _SplayTreeIterator: [collection._SplayTreeIterator$(K, T), [collection._SplayTree$(K, collection._SplayTreeNode$(K))]],
+        startAt: [collection._SplayTreeIterator$(K, T), [collection._SplayTree$(K, collection._SplayTreeNode$(K)), K]]
       }),
       methods: () => ({
-        [_findLeftMostDescendent]: [dart.void, [collection._SplayTreeNode]],
-        [_rebuildWorkList]: [dart.void, [collection._SplayTreeNode]],
+        [_findLeftMostDescendent]: [dart.void, [collection._SplayTreeNode$(K)]],
+        [_rebuildWorkList]: [dart.void, [collection._SplayTreeNode$(K)]],
         moveNext: [core.bool, []]
       })
     });
@@ -23392,10 +23535,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._SplayTreeIterator = collection._SplayTreeIterator$();
   const _copyNode = Symbol('_copyNode');
   collection._SplayTreeKeyIterable$ = dart.generic(K => {
-    class _SplayTreeKeyIterable extends collection.IterableBase$(K) {
+    class _SplayTreeKeyIterable extends core.Iterable$(K) {
       _SplayTreeKeyIterable(tree) {
         this[_tree] = tree;
-        super.IterableBase();
+        super.Iterable();
       }
       get length() {
         return this[_tree][_count$];
@@ -23407,8 +23550,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return new (collection._SplayTreeKeyIterator$(K))(this[_tree]);
       }
       toSet() {
-        let setOrMap = this[_tree];
-        let set = new (collection.SplayTreeSet$(K))(setOrMap[_comparator], setOrMap[_validKey]);
+        let set = new (collection.SplayTreeSet$(K))(this[_tree][_comparator], this[_tree][_validKey]);
         set[_count$] = this[_tree][_count$];
         set[_root] = set[_copyNode](this[_tree][_root]);
         return set;
@@ -23416,7 +23558,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _SplayTreeKeyIterable[dart.implements] = () => [_internal.EfficientLength];
     dart.setSignature(_SplayTreeKeyIterable, {
-      constructors: () => ({_SplayTreeKeyIterable: [collection._SplayTreeKeyIterable$(K), [collection._SplayTree$(K)]]}),
+      constructors: () => ({_SplayTreeKeyIterable: [collection._SplayTreeKeyIterable$(K), [collection._SplayTree$(K, collection._SplayTreeNode$(K))]]}),
       methods: () => ({toSet: [core.Set$(K), []]})
     });
     dart.defineExtensionMembers(_SplayTreeKeyIterable, ['toSet', 'length', 'isEmpty', 'iterator']);
@@ -23424,10 +23566,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   collection._SplayTreeKeyIterable = collection._SplayTreeKeyIterable$();
   collection._SplayTreeValueIterable$ = dart.generic((K, V) => {
-    class _SplayTreeValueIterable extends collection.IterableBase$(V) {
+    class _SplayTreeValueIterable extends core.Iterable$(V) {
       _SplayTreeValueIterable(map) {
         this[_map$] = map;
-        super.IterableBase();
+        super.Iterable();
       }
       get length() {
         return this[_map$][_count$];
@@ -23448,39 +23590,42 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   collection._SplayTreeValueIterable = collection._SplayTreeValueIterable$();
   collection._SplayTreeKeyIterator$ = dart.generic(K => {
-    class _SplayTreeKeyIterator extends collection._SplayTreeIterator$(K) {
+    class _SplayTreeKeyIterator extends collection._SplayTreeIterator$(K, K) {
       _SplayTreeKeyIterator(map) {
         super._SplayTreeIterator(map);
       }
       [_getValue](node) {
-        return dart.as(node.key, K);
+        dart.as(node, collection._SplayTreeNode$(K));
+        return node.key;
       }
     }
     dart.setSignature(_SplayTreeKeyIterator, {
-      constructors: () => ({_SplayTreeKeyIterator: [collection._SplayTreeKeyIterator$(K), [collection._SplayTree$(K)]]}),
-      methods: () => ({[_getValue]: [K, [collection._SplayTreeNode]]})
+      constructors: () => ({_SplayTreeKeyIterator: [collection._SplayTreeKeyIterator$(K), [collection._SplayTree$(K, collection._SplayTreeNode$(K))]]}),
+      methods: () => ({[_getValue]: [K, [collection._SplayTreeNode$(K)]]})
     });
     return _SplayTreeKeyIterator;
   });
   collection._SplayTreeKeyIterator = collection._SplayTreeKeyIterator$();
   collection._SplayTreeValueIterator$ = dart.generic((K, V) => {
-    class _SplayTreeValueIterator extends collection._SplayTreeIterator$(V) {
+    class _SplayTreeValueIterator extends collection._SplayTreeIterator$(K, V) {
       _SplayTreeValueIterator(map) {
         super._SplayTreeIterator(map);
       }
       [_getValue](node) {
-        return dart.as(node.value, V);
+        dart.as(node, collection._SplayTreeNode$(K));
+        let mapNode = dart.as(node, collection._SplayTreeMapNode$(K, V));
+        return mapNode.value;
       }
     }
     dart.setSignature(_SplayTreeValueIterator, {
       constructors: () => ({_SplayTreeValueIterator: [collection._SplayTreeValueIterator$(K, V), [collection.SplayTreeMap$(K, V)]]}),
-      methods: () => ({[_getValue]: [V, [collection._SplayTreeMapNode]]})
+      methods: () => ({[_getValue]: [V, [collection._SplayTreeNode$(K)]]})
     });
     return _SplayTreeValueIterator;
   });
   collection._SplayTreeValueIterator = collection._SplayTreeValueIterator$();
   collection._SplayTreeNodeIterator$ = dart.generic(K => {
-    class _SplayTreeNodeIterator extends collection._SplayTreeIterator$(collection._SplayTreeNode$(K)) {
+    class _SplayTreeNodeIterator extends collection._SplayTreeIterator$(K, collection._SplayTreeNode$(K)) {
       _SplayTreeNodeIterator(tree) {
         super._SplayTreeIterator(tree);
       }
@@ -23488,28 +23633,37 @@ dart_library.library('dart_sdk', null, /* Imports */[
         super.startAt(tree, startKey);
       }
       [_getValue](node) {
-        return dart.as(node, collection._SplayTreeNode$(K));
+        dart.as(node, collection._SplayTreeNode$(K));
+        return node;
       }
     }
     dart.defineNamedConstructor(_SplayTreeNodeIterator, 'startAt');
     dart.setSignature(_SplayTreeNodeIterator, {
       constructors: () => ({
-        _SplayTreeNodeIterator: [collection._SplayTreeNodeIterator$(K), [collection._SplayTree$(K)]],
-        startAt: [collection._SplayTreeNodeIterator$(K), [collection._SplayTree$(K), dart.dynamic]]
+        _SplayTreeNodeIterator: [collection._SplayTreeNodeIterator$(K), [collection._SplayTree$(K, collection._SplayTreeNode$(K))]],
+        startAt: [collection._SplayTreeNodeIterator$(K), [collection._SplayTree$(K, collection._SplayTreeNode$(K)), K]]
       }),
-      methods: () => ({[_getValue]: [collection._SplayTreeNode$(K), [collection._SplayTreeNode]]})
+      methods: () => ({[_getValue]: [collection._SplayTreeNode$(K), [collection._SplayTreeNode$(K)]]})
     });
     return _SplayTreeNodeIterator;
   });
   collection._SplayTreeNodeIterator = collection._SplayTreeNodeIterator$();
   const _clone = Symbol('_clone');
   collection.SplayTreeSet$ = dart.generic(E => {
-    class SplayTreeSet extends dart.mixin(collection._SplayTree$(E), collection.IterableMixin$(E), collection.SetMixin$(E)) {
+    class SplayTreeSet extends dart.mixin(collection._SplayTree$(E, collection._SplayTreeNode$(E)), collection.IterableMixin$(E), collection.SetMixin$(E)) {
       SplayTreeSet(compare, isValidKey) {
         if (compare === void 0) compare = null;
         if (isValidKey === void 0) isValidKey = null;
-        this[_comparator] = dart.as(compare == null ? core.Comparable.compare : compare, core.Comparator$(E));
-        this[_validKey] = isValidKey != null ? isValidKey : dart.fn(v => dart.is(v, E), core.bool, [core.Object]);
+        this[_dummy] = new (collection._SplayTreeNode$(E))(null);
+        this[_comparator] = (() => {
+          let l = compare;
+          return l != null ? l : dart.as(core.Comparable.compare, core.Comparator$(E));
+        })();
+        this[_validKey] = (() => {
+          let l = isValidKey;
+          return l != null ? l : dart.fn(v => dart.is(v, E), core.bool, [dart.dynamic]);
+        })();
+        this[_root] = null;
         super._SplayTree();
       }
       static from(elements, compare, isValidKey) {
@@ -23517,8 +23671,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (isValidKey === void 0) isValidKey = null;
         let result = new (collection.SplayTreeSet$(E))(compare, isValidKey);
         for (let element of elements) {
-          dart.as(element, E);
-          result.add(element);
+          result.add(dart.as(element, E));
         }
         return result;
       }
@@ -23541,11 +23694,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       get first() {
         if (this[_count$] == 0) dart.throw(_internal.IterableElementError.noElement());
-        return dart.as(this[_first].key, E);
+        return this[_first].key;
       }
       get last() {
         if (this[_count$] == 0) dart.throw(_internal.IterableElementError.noElement());
-        return dart.as(this[_last].key, E);
+        return this[_last].key;
       }
       get single() {
         if (this[_count$] == 0) dart.throw(_internal.IterableElementError.noElement());
@@ -23553,7 +23706,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_root].key;
       }
       contains(object) {
-        return dart.notNull(this[_validKey](object)) && this[_splay](dart.as(object, E)) == 0;
+        return dart.notNull(dart.dcall(this[_validKey], object)) && this[_splay](dart.as(object, E)) == 0;
       }
       add(element) {
         dart.as(element, E);
@@ -23563,7 +23716,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return true;
       }
       remove(object) {
-        if (!dart.notNull(this[_validKey](object))) return false;
+        if (!dart.notNull(dart.dcall(this[_validKey], object))) return false;
         return this[_remove](dart.as(object, E)) != null;
       }
       addAll(elements) {
@@ -23577,7 +23730,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       removeAll(elements) {
         for (let element of elements) {
-          if (dart.notNull(this[_validKey](element))) this[_remove](dart.as(element, E));
+          if (dart.notNull(dart.dcall(this[_validKey], element))) this[_remove](dart.as(element, E));
         }
       }
       retainAll(elements) {
@@ -23587,7 +23740,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
           if (modificationCount != this[_modificationCount]) {
             dart.throw(new core.ConcurrentModificationError(this));
           }
-          if (dart.notNull(this[_validKey](object)) && this[_splay](dart.as(object, E)) == 0) retainSet.add(this[_root].key);
+          if (dart.notNull(dart.dcall(this[_validKey], object)) && this[_splay](dart.as(object, E)) == 0) {
+            retainSet.add(this[_root].key);
+          }
         }
         if (retainSet[_count$] != this[_count$]) {
           this[_root] = retainSet[_root];
@@ -23596,7 +23751,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
       }
       lookup(object) {
-        if (!dart.notNull(this[_validKey](object))) return null;
+        if (!dart.notNull(dart.dcall(this[_validKey], object))) return null;
         let comp = this[_splay](dart.as(object, E));
         if (comp != 0) return null;
         return this[_root].key;
@@ -23647,8 +23802,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     dart.setSignature(SplayTreeSet, {
       constructors: () => ({
-        SplayTreeSet: [collection.SplayTreeSet$(E), [], [dart.functionType(core.int, [E, E]), dart.functionType(core.bool, [core.Object])]],
-        from: [collection.SplayTreeSet$(E), [core.Iterable], [dart.functionType(core.int, [E, E]), dart.functionType(core.bool, [core.Object])]]
+        SplayTreeSet: [collection.SplayTreeSet$(E), [], [dart.functionType(core.int, [E, E]), dart.functionType(core.bool, [dart.dynamic])]],
+        from: [collection.SplayTreeSet$(E), [core.Iterable], [dart.functionType(core.int, [E, E]), dart.functionType(core.bool, [dart.dynamic])]]
       }),
       methods: () => ({
         [_compare]: [core.int, [E, E]],
