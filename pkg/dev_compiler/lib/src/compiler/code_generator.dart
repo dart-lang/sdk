@@ -24,6 +24,7 @@ import 'package:analyzer/src/summary/summarize_elements.dart'
     show PackageBundleAssembler;
 import 'package:analyzer/src/task/strong/info.dart' show DynamicInvoke;
 import 'package:source_maps/source_maps.dart';
+import 'package:path/path.dart' show separator;
 
 import '../closure/closure_annotator.dart' show ClosureAnnotator;
 import '../js_ast/js_ast.dart' as JS;
@@ -145,8 +146,8 @@ class CodeGenerator extends GeneralizingAstVisitor
       List<String> errors) {
     _buildUnit = unit;
     _buildRoot = _buildUnit.buildRoot;
-    if (!_buildRoot.endsWith('/')) {
-      _buildRoot = '$_buildRoot/';
+    if (!_buildRoot.endsWith(separator)) {
+      _buildRoot = '$_buildRoot${separator}';
     }
 
     var jsTree = _emitModule(compilationUnits);
@@ -4359,12 +4360,12 @@ String jsLibraryName(String buildRoot, LibraryElement library) {
     // TODO(vsm): This is not unique if an escaped '/'appears in a filename.
     // E.g., "foo/bar.dart" and "foo$47bar.dart" would collide.
     qualifiedPath = uri.pathSegments.skip(1).join(separator);
-  } else if (uri.path.startsWith(buildRoot)) {
+  } else if (uri.toFilePath().startsWith(buildRoot)) {
     qualifiedPath =
         uri.path.substring(buildRoot.length).replaceAll('/', separator);
   } else {
     // We don't have a unique name.
-    throw 'Invalid build root.  $buildRoot does not contain ${uri.path}';
+    throw 'Invalid build root.  $buildRoot does not contain ${uri.toFilePath()}';
   }
   return pathToJSIdentifier(qualifiedPath);
 }
