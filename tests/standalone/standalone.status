@@ -114,6 +114,7 @@ regress_25335_test: Skip # Int64List not supported.
 
 [ ($runtime == vm || $runtime == dart_product) && ($arch == arm || $arch == arm64) ]
 io/file_stream_test: Skip # Issue 26109
+io/file_typed_data_test: Skip # Issue 26109
 
 [ $compiler == dart2js && $jscl ]
 assert_test: RuntimeError, OK # Assumes unspecified fields on the AssertionError.
