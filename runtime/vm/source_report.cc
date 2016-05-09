@@ -146,7 +146,7 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
   while (iter.MoveNext()) {
     HANDLESCOPE(thread());
     const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
-    if (!ic_data->IsNull()) {
+    if (ic_data != NULL) {
       const TokenPosition token_pos = iter.TokenPos();
       if ((token_pos < begin_pos) || (token_pos > end_pos)) {
         // Does not correspond to a valid source position.
@@ -187,7 +187,7 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
   while (iter.MoveNext()) {
     HANDLESCOPE(thread());
     const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
-    if (!ic_data->IsNull()) {
+    if (ic_data != NULL) {
       const TokenPosition token_pos = iter.TokenPos();
       if ((token_pos < begin_pos) || (token_pos > end_pos)) {
         // Does not correspond to a valid source position.
