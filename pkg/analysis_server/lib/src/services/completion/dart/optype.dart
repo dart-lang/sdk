@@ -464,17 +464,25 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitForStatement(ForStatement node) {
+    var entity = this.entity;
     if (_isEntityPrevTokenSynthetic()) {
       // Actual: for (var v i^)
       // Parsed: for (var i; i^;)
-      return;
+    } else if (entity is Token &&
+        entity.isSynthetic &&
+        node.leftSeparator == entity) {
+      // Actual: for (String ^)
+      // Parsed: for (String; ;)
+      //                    ^
+      optype.includeVarNameSuggestions = true;
+    } else {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+      optype.includeVoidReturnSuggestions = true;
+      // TODO (danrubel) void return suggestions only belong after
+      // the 2nd semicolon.  Return value suggestions only belong after the
+      // first or second semicolon.
     }
-    optype.includeReturnValueSuggestions = true;
-    optype.includeTypeNameSuggestions = true;
-    optype.includeVoidReturnSuggestions = true;
-    // TODO (danrubel) void return suggestions only belong after
-    // the 2nd semicolon.  Return value suggestions only belong after the
-    // first or second semicolon.
   }
 
   @override
@@ -504,8 +512,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (_isEntityPrevTokenSynthetic()) {
       // Actual: if (var v i^)
       // Parsed: if (v) i^;
-    } else if (identical(
-        entity, node.condition)) {
+    } else if (identical(entity, node.condition)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     } else if (identical(entity, node.thenStatement) ||
@@ -848,8 +855,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   bool _isEntityPrevTokenSynthetic() {
     Object entity = this.entity;
-    if (entity is AstNode && entity.beginToken.previous?.isSynthetic ??
-        false) {
+    if (entity is AstNode && entity.beginToken.previous?.isSynthetic ?? false) {
       return true;
     }
     return false;

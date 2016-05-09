@@ -99,6 +99,19 @@ class OpTypeTest {
     assertOpType(namedArgs: true, returnValue: true, typeNames: true);
   }
 
+  test_ArgumentList_namedParam() {
+    // SimpleIdentifier  NamedExpression  ArgumentList  MethodInvocation
+    // ExpressionStatement
+    addTestSource('void main() {expect(foo: ^)}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_ArgumentList_prefixedIdentifier() {
+    // SimpleIdentifier  PrefixedIdentifier  ArgumentList
+    addTestSource('void main() {expect(aa.^)}');
+    assertOpType(returnValue: true, typeNames: true, prefixed: true);
+  }
+
   test_ArgumentList_resolved() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('void main() {int.parse(^)}', resolved: true);
@@ -121,19 +134,6 @@ class OpTypeTest {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('void main() {int.parse("16", ^)}', resolved: true);
     assertOpType(namedArgs: true);
-  }
-
-  test_ArgumentList_namedParam() {
-    // SimpleIdentifier  NamedExpression  ArgumentList  MethodInvocation
-    // ExpressionStatement
-    addTestSource('void main() {expect(foo: ^)}');
-    assertOpType(returnValue: true, typeNames: true);
-  }
-
-  test_ArgumentList_prefixedIdentifier() {
-    // SimpleIdentifier  PrefixedIdentifier  ArgumentList
-    addTestSource('void main() {expect(aa.^)}');
-    assertOpType(returnValue: true, typeNames: true, prefixed: true);
   }
 
   test_AsExpression() {
@@ -677,6 +677,16 @@ class OpTypeTest {
     addTestSource('main() {List a; for (^)}');
     // TODO (danrubel) may want to exclude methods/functions with void return
     assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_ForStatement_initializer_inKeyword() {
+    addTestSource('main() { for (var v i^) }');
+    assertOpType();
+  }
+
+  test_ForStatement_initializer_variableNameEmpty_afterType() {
+    addTestSource('main() { for (String ^) }');
+    assertOpType(varNames: true);
   }
 
   test_ForStatement_updaters() {

@@ -2166,6 +2166,12 @@ int myFunc() {}
     assertSuggestClass('int');
   }
 
+  test_ForStatement_initializer_variableName_afterType() async {
+    addTestSource('main() { for (String ^) }');
+    await computeSuggestions();
+    assertNotSuggested('int');
+  }
+
   test_ForStatement_typing_inKeyword() async {
     addTestSource('main() { for (var v i^) }');
     await computeSuggestions();
