@@ -616,7 +616,7 @@ class PrimaryNode : public AstNode {
   DISALLOW_IMPLICIT_CONSTRUCTORS(PrimaryNode);
 };
 
-// In asynchronous code that gets suspeded and resumed, return nodes
+// In asynchronous code that gets suspended and resumed, return nodes
 // can be of different types:
 // * A regular return node that in the case of async functions
 //    gets replaced with appropriate completer calls. (kRegular)
