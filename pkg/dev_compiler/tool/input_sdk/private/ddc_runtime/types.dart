@@ -475,7 +475,6 @@ _subtypeMemo(f) => JS('', '''(() => {
     } else {
       memo.set(t1, map = new Map());
     }
-    console.log("Checking " + $typeName(t1) + " <: " + $typeName(t2));
     result = $f(t1, t2);
     map.set(t2, result);
     return result;
