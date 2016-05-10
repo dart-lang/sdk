@@ -13,9 +13,11 @@ defineProperty(obj, name, desc) =>
 getOwnPropertyDescriptor(obj, name) =>
     JS('', 'Object.getOwnPropertyDescriptor(#, #)', obj, name);
 
-getOwnPropertyNames(obj) => JS('', 'Object.getOwnPropertyNames(#)', obj);
+Iterable getOwnPropertyNames(obj) =>
+    JS('', 'Object.getOwnPropertyNames(#)', obj);
 
-getOwnPropertySymbols(obj) => JS('', 'Object.getOwnPropertySymbols(#)', obj);
+Iterable getOwnPropertySymbols(obj) =>
+    JS('', 'Object.getOwnPropertySymbols(#)', obj);
 
 final hasOwnProperty = JS('', 'Object.prototype.hasOwnProperty');
 

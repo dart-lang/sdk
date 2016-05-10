@@ -5,10 +5,6 @@
 /// This library defines the representation of runtime types.
 part of dart._runtime;
 
-/// The Symbol for storing type arguments on a specialized generic type.
-final _mixins = JS('', 'Symbol("mixins")');
-@JSExportName('implements')
-final implements_ = JS('', 'Symbol("implements")');
 final metadata = JS('', 'Symbol("metadata")');
 
 /// The symbol used to store the cached `Type` object associated with a class.
@@ -44,52 +40,40 @@ final _typeObject = JS('', 'Symbol("typeObject")');
 ///
 ///     get String name;
 ///     String toString();
-final TypeRep = JS('', '''
-  class TypeRep {
-    get name() { return this.toString(); }
-    get [$_runtimeType]() { return $Type; }
-  }
-''');
+class TypeRep implements Type {
+  String get name => this.toString();
+}
 
-final Dynamic = JS('', '''
-  class Dynamic extends $TypeRep {
-    toString() { return "dynamic"; }
-  }
-''');
+class Dynamic extends TypeRep {
+  toString() => 'dynamic';
+}
+
 @JSExportName('dynamic')
-final dynamicR = JS('', 'new $Dynamic()');
+final _dynamic = new Dynamic();
 
-final Void = JS('', '''
-  class Void extends $TypeRep {
-    toString() { return "void"; }
-  }
-''');
+class Void extends TypeRep {
+  toString() => 'void';
+}
+
 @JSExportName('void')
-final voidR = JS('', 'new $Void()');
+final _void = new Void();
 
-final Bottom = JS('', '''
-  class Bottom extends $TypeRep {
-    toString() { return "bottom"; }
-  }
-''');
-final bottom = JS('', 'new $Bottom()');
+class Bottom extends TypeRep {
+  toString() => 'bottom';
+}
+final bottom = new Bottom();
 
-final JSObject = JS('', '''
-  class JSObject extends $TypeRep {
-    toString() { return "NativeJavaScriptObject"; }
-  }
-''');
-final jsobject = JS('', 'new $JSObject()');
+class JSObject extends TypeRep {
+  toString() => 'NativeJavaScriptObject';
+}
 
-final WrappedType = JS('', '''
-  class WrappedType extends $TypeRep {
-    constructor(type) {
-      super();
-      this._runtimeType = type;
-    }
-    toString() { return $typeName(this._runtimeType); }
-  }
-''');
+final jsobject = new JSObject();
+
+class WrappedType extends TypeRep {
+  final _runtimeType;
+  WrappedType(this._runtimeType);
+  toString() => typeName(_runtimeType);
+}
 
 final AbstractFunctionType = JS('', '''
   class AbstractFunctionType extends $TypeRep {
@@ -191,7 +175,7 @@ final FunctionType = JS('', '''
       if (this.definite) return;
 
       function replace(a) {
-        return (a == $dynamicR) ? $bottom : a;
+        return (a == $dynamic) ? $bottom : a;
       }
 
       this.args = this.args.map(replace);
@@ -354,12 +338,12 @@ typeName(type) => JS('', '''(() => {
 
 /// Get the underlying function type, potentially from the call method
 /// for a class type.
-getImplicitFunctionType(type) => JS('', '''(() => {
-  if ($isFunctionType($type)) return $type;
-  return $getMethodTypeFromType(type, 'call');
-})()''');
+getImplicitFunctionType(type) {
+  if (isFunctionType(type)) return type;
+  return getMethodTypeFromType(type, 'call');
+}
 
-isFunctionType(type) =>
+bool isFunctionType(type) =>
     JS('bool', '# instanceof # || # === #',
         type, AbstractFunctionType, type, Function);
 
@@ -388,7 +372,7 @@ isFunctionSubtype(ft1, ft2, covariant) => JS('', '''(() => {
   }
 
   for (let i = 0; i < args1.length; ++i) {
-    if (!$isSubtype_(args2[i], args1[i], !$covariant)) {
+    if (!$_isSubtype(args2[i], args1[i], !$covariant)) {
       // Even if isSubtype returns false, assignability
       // means that we can't be definitive
       return null;
@@ -404,13 +388,13 @@ isFunctionSubtype(ft1, ft2, covariant) => JS('', '''(() => {
 
   let j = 0;
   for (let i = args1.length; i < args2.length; ++i, ++j) {
-    if (!$isSubtype_(args2[i], optionals1[j], !$covariant)) {
+    if (!$_isSubtype(args2[i], optionals1[j], !$covariant)) {
       return null;
     }
   }
 
   for (let i = 0; i < optionals2.length; ++i, ++j) {
-    if (!$isSubtype_(optionals2[i], optionals1[j], !$covariant)) {
+    if (!$_isSubtype(optionals2[i], optionals1[j], !$covariant)) {
       return null;
     }
   }
@@ -426,7 +410,7 @@ isFunctionSubtype(ft1, ft2, covariant) => JS('', '''(() => {
     if (n1 === void 0) {
       return ($covariant) ? false : null;
     }
-    if (!$isSubtype_(n2, n1, !$covariant)) {
+    if (!$_isSubtype(n2, n1, !$covariant)) {
       return null;
     }
   }
@@ -435,11 +419,11 @@ isFunctionSubtype(ft1, ft2, covariant) => JS('', '''(() => {
   // definitively rejected.
 
   // We allow any type to subtype a void return type, but not vice versa
-  if (ret2 === $voidR) return true;
+  if (ret2 === $_void) return true;
   // Dart allows void functions to subtype dynamic functions, but not
   // other functions.
-  if (ret1 === $voidR) return (ret2 === $dynamicR);
-  if (!$isSubtype_(ret1, ret2, $covariant)) return null;
+  if (ret1 === $_void) return (ret2 === $dynamic);
+  if (!$_isSubtype(ret1, ret2, $covariant)) return null;
   return true;
 })()''');
 
@@ -485,17 +469,14 @@ _subtypeMemo(f) => JS('', '''(() => {
 /// Returns false if [t1] </: [t2] in both spec and strong mode
 /// Returns undefined if [t1] </: [t2] in strong mode, but spec
 ///  mode may differ
-final isSubtype = JS('', '''(() => {
-  return $_subtypeMemo((t1, t2) => {
-    return $isSubtype_(t1, t2, true);
-  });
-})()''');
+final isSubtype =
+    JS('', '$_subtypeMemo((t1, t2) => $_isSubtype(t1, t2, true))');
 
 _isBottom(type) => JS('bool', '# == #', type, bottom);
 
-_isTop(type) => JS('bool', '# == # || # == #', type, Object, type, dynamicR);
+_isTop(type) => JS('bool', '# == # || # == #', type, Object, type, dynamic);
 
-isSubtype_(t1, t2, covariant) => JS('', '''(() => {
+_isSubtype(t1, t2, covariant) => JS('', '''(() => {
   $t1 = $canonicalType($t1);
   $t2 = $canonicalType($t2);
   if ($t1 === $t2) return true;
@@ -508,7 +489,7 @@ isSubtype_(t1, t2, covariant) => JS('', '''(() => {
   // Trivially false.
   if ($_isBottom($t2)) return null;
   if ($_isTop($t1)) {
-    if ($t1 === $dynamicR) return null;
+    if ($t1 === $dynamic) return null;
     return false;
   }
 
@@ -528,8 +509,7 @@ isSubtype_(t1, t2, covariant) => JS('', '''(() => {
   t1 = $getImplicitFunctionType(t1);
   if (!t1) return false;
 
-  if ($isFunctionType($t1) &&
-      $isFunctionType($t2)) {
+  if ($isFunctionType($t1) && $isFunctionType($t2)) {
     return $isFunctionSubtype($t1, $t2, $covariant);
   }
   return false;
@@ -548,7 +528,7 @@ isClassSubType(t1, t2, covariant) => JS('', '''(() => {
   if ($t1 == $Object) return false;
 
   // If t1 is a JS Object, we may not hit core.Object.
-  if ($t1 == null) return $t2 == $Object || $t2 == $dynamicR;
+  if ($t1 == null) return $t2 == $Object || $t2 == $dynamic;
 
   // Check if t1 and t2 have the same raw type.  If so, check covariance on
   // type parameters.
@@ -569,7 +549,7 @@ isClassSubType(t1, t2, covariant) => JS('', '''(() => {
     $assert_(length == typeArguments2.length);
     for (let i = 0; i < length; ++i) {
       let result =
-          $isSubtype_(typeArguments1[i], typeArguments2[i], $covariant);
+          $_isSubtype(typeArguments1[i], typeArguments2[i], $covariant);
       if (!result) {
         return result;
       }
@@ -639,7 +619,7 @@ isGroundType(type) => JS('', '''(() => {
   let typeArgs = $getGenericArgs($type);
   if (!typeArgs) return true;
   for (let t of typeArgs) {
-    if (t != $Object && t != $dynamicR) return false;
+    if (t != $Object && t != $dynamic) return false;
   }
   return true;
 })()''');

@@ -224,11 +224,20 @@ class CodeGenerator extends GeneralizingAstVisitor
     // Collect all Element -> Node mappings, in case we need to forward declare
     // any nodes.
     var nodes = new HashMap<Element, AstNode>.identity();
-    compilationUnits.map(_collectElements).forEach(nodes.addAll);
+    var sdkBootstrappingFns = new List<FunctionElement>();
+    for (var unit in compilationUnits) {
+      if (_isDartRuntime(unit.element.library)) {
+        sdkBootstrappingFns.addAll(unit.element.functions);
+      }
+      _collectElements(unit, nodes);
+    }
     _loader = new ElementLoader(_emitModuleItem, nodes);
 
     // Add implicit dart:core dependency so it is first.
     emitLibraryName(dartCoreLibrary);
+
+    // Emit SDK bootstrapping functions first, if any.
+    sdkBootstrappingFns.forEach(_loader.emitDeclaration);
 
     // Visit each compilation unit and emit its code.
     //
@@ -319,8 +328,8 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   /// Collect toplevel elements and nodes we need to emit, and returns
   /// an ordered map of these.
-  static Map<Element, AstNode> _collectElements(CompilationUnit unit) {
-    var map = <Element, AstNode>{};
+  static void _collectElements(
+      CompilationUnit unit, Map<Element, AstNode> map) {
     for (var declaration in unit.declarations) {
       if (declaration is TopLevelVariableDeclaration) {
         for (var field in declaration.variables.variables) {
@@ -330,7 +339,6 @@ class CodeGenerator extends GeneralizingAstVisitor
         map[declaration.element] = declaration;
       }
     }
-    return map;
   }
 
   void _emitModuleItem(AstNode node) {
@@ -961,7 +969,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     // Generate a corresponding virtual getter / setter.
     var name = _elementMemberName(methodElement,
-        allowExtensions: _extensionTypes.isNativeClass(type.element));
+        useExtension: _extensionTypes.isNativeClass(type.element));
     if (method.isGetter) {
       // Generate a setter
       if (field.setter != null || !propertyOverrideResult.foundSetter)
@@ -1116,7 +1124,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (extensions.isNotEmpty) {
       var methodNames = <JS.Expression>[];
       for (var e in extensions) {
-        methodNames.add(_elementMemberName(e, allowExtensions: false));
+        methodNames.add(_elementMemberName(e, useExtension: false));
       }
       body.add(js.statement('dart.defineExtensionMembers(#, #);', [
         className,
@@ -1154,7 +1162,7 @@ class CodeGenerator extends GeneralizingAstVisitor
           continue;
         }
         var memberName = _elementMemberName(element,
-            allowExtensions: _extensionTypes.isNativeClass(classElem));
+            useExtension: _extensionTypes.isNativeClass(classElem));
         var parts = _emitFunctionTypeParts(element.type);
         var property =
             new JS.Property(memberName, new JS.ArrayInitializer(parts));
@@ -1210,7 +1218,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       var dartxNames = <JS.Expression>[];
       for (var m in methods) {
         if (!m.isAbstract && !m.isStatic && m.element.isPublic) {
-          dartxNames.add(_elementMemberName(m.element, allowExtensions: false));
+          dartxNames.add(_elementMemberName(m.element, useExtension: false));
         }
       }
       for (var f in fields) {
@@ -1218,7 +1226,7 @@ class CodeGenerator extends GeneralizingAstVisitor
           for (var d in f.fields.variables) {
             if (d.element.isPublic) {
               dartxNames.add(
-                  _elementMemberName(d.element.getter, allowExtensions: false));
+                  _elementMemberName(d.element.getter, useExtension: false));
             }
           }
         }
@@ -1243,7 +1251,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var extensionMembers = new HashSet<String>();
     for (var t in types) {
       for (var m in [t.methods, t.accessors].expand((e) => e)) {
-        if (!m.isStatic) extensionMembers.add(m.name);
+        if (!m.isStatic && m.isPublic) extensionMembers.add(m.name);
       }
     }
 
@@ -1677,7 +1685,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     return annotate(
         new JS.Method(
             _elementMemberName(node.element,
-                allowExtensions: _extensionTypes.isNativeClass(type.element)),
+                useExtension: _extensionTypes.isNativeClass(type.element)),
             fn,
             isGetter: node.isGetter,
             isSetter: node.isSetter,
@@ -2492,9 +2500,8 @@ class CodeGenerator extends GeneralizingAstVisitor
       }
     }
     if (_isObjectMemberCall(target, name)) {
-      // Object methods require a helper for null checks & native types.
       assert(typeArgs == null); // Object methods don't take type args.
-      return js.call('dart.#(#, #)', [memberName, jsTarget, args]);
+      return js.call('dart.#(#, #)', [name, jsTarget, args]);
     }
 
     jsTarget = new JS.PropertyAccess(jsTarget, memberName);
@@ -2845,11 +2852,6 @@ class CodeGenerator extends GeneralizingAstVisitor
     return new JS.VariableInitialization(name, _visitInitializer(node));
   }
 
-  bool _isFinalJSDecl(AstNode field) =>
-      field is VariableDeclaration &&
-      field.isFinal &&
-      _isJSInvocation(field.initializer);
-
   /// Try to emit a constant static field.
   ///
   /// If the field's initializer does not cause side effects, and if all of
@@ -2915,10 +2917,9 @@ class CodeGenerator extends GeneralizingAstVisitor
       eagerInit = false;
     }
 
-    // Treat `final x = JS('', '...')` as a const (non-lazy) to help compile
-    // runtime helpers.
-    // TODO(jmesserly): we don't track dependencies correctly for these.
-    var isJSTopLevel = field.isFinal && _isFinalJSDecl(field);
+    // Treat dart:runtime stuff as safe to eagerly evaluate.
+    // TODO(jmesserly): it'd be nice to avoid this special case.
+    var isJSTopLevel = field.isFinal && _isDartRuntime(element.library);
     if (eagerInit || isJSTopLevel) {
       // Remember that we emitted it this way, so re-export can take advantage
       // of this fact.
@@ -3611,8 +3612,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// For example `null.toString()` is legal in Dart, so we need to generate
   /// that as `dart.toString(obj)`.
   bool _isObjectMemberCall(Expression target, String memberName) {
-    // Is this a member on `Object`?
-    if (!isObjectProperty(memberName)) {
+    if (!isObjectMember(memberName)) {
       return false;
     }
 
@@ -3690,12 +3690,13 @@ class CodeGenerator extends GeneralizingAstVisitor
       if (isSuper) {
         result = js.call('dart.bind(this, #, #.#)', [name, jsTarget, name]);
       } else if (_isObjectMemberCall(target, memberName)) {
-        result = js.call('dart.bind(#, #, dart.#)', [jsTarget, name, name]);
+        result = js.call('dart.bind(#, #, dart.#)',
+            [jsTarget, _propertyName(memberName), memberName]);
       } else {
         result = js.call('dart.bind(#, #)', [jsTarget, name]);
       }
     } else if (_isObjectMemberCall(target, memberName)) {
-      result = js.call('dart.#(#)', [name, jsTarget]);
+      result = js.call('dart.#(#)', [memberName, jsTarget]);
     } else {
       result = js.call('#.#', [jsTarget, name]);
     }
@@ -4161,8 +4162,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   ///
   /// Unlike call sites, we always have an element available, so we can use it
   /// directly rather than computing the relevant options for [_emitMemberName].
-  JS.Expression _elementMemberName(ExecutableElement e,
-      {bool allowExtensions: true}) {
+  JS.Expression _elementMemberName(ExecutableElement e, {bool useExtension}) {
     String name;
     if (e is PropertyAccessorElement) {
       name = e.variable.name;
@@ -4173,7 +4173,7 @@ class CodeGenerator extends GeneralizingAstVisitor
         type: (e.enclosingElement as ClassElement).type,
         unary: e.parameters.isEmpty,
         isStatic: e.isStatic,
-        allowExtensions: allowExtensions);
+        useExtension: useExtension);
   }
 
   /// This handles member renaming for private names and operators.
@@ -4221,7 +4221,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       {DartType type,
       bool unary: false,
       bool isStatic: false,
-      bool allowExtensions: true}) {
+      bool useExtension}) {
     // Static members skip the rename steps.
     if (isStatic) return _propertyName(name);
 
@@ -4241,19 +4241,20 @@ class CodeGenerator extends GeneralizingAstVisitor
       name = '+$name';
     }
 
-    // Dart "extension" methods. Used for JS Array, Boolean, Number, String.
-    var baseType = type;
-    while (baseType is TypeParameterType) {
-      baseType = baseType.element.bound;
-    }
-    if (allowExtensions &&
-        baseType != null &&
-        _extensionTypes.hasNativeSubtype(baseType) &&
-        !isObjectProperty(name)) {
-      return js.call('dartx.#', _propertyName(name));
+    var result = _propertyName(name);
+
+    if (useExtension == null) {
+      // Dart "extension" methods. Used for JS Array, Boolean, Number, String.
+      var baseType = type;
+      while (baseType is TypeParameterType) {
+        baseType = baseType.element.bound;
+      }
+      useExtension = baseType != null &&
+          _extensionTypes.hasNativeSubtype(baseType) &&
+          !isObjectMember(name);
     }
 
-    return _propertyName(name);
+    return useExtension ? js.call('dartx.#', result) : result;
   }
 
   JS.TemporaryId _emitPrivateNameSymbol(LibraryElement library, String name) {
@@ -4299,18 +4300,22 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// a subtype of int and double (and num). It's in our "dart:_interceptors".
   bool _isNumberInJS(DartType t) => rules.isSubtypeOf(t, types.numType);
 
-  bool _isObjectGetter(String name) {
-    PropertyAccessorElement element = types.objectType.element.getGetter(name);
-    return (element != null && !element.isStatic);
-  }
-
-  bool _isObjectMethod(String name) {
-    MethodElement element = types.objectType.element.getMethod(name);
-    return (element != null && !element.isStatic);
-  }
-
-  bool isObjectProperty(String name) {
-    return _isObjectGetter(name) || _isObjectMethod(name);
+  /// Return true if this is one of the methods/properties on all Dart Objects
+  /// (toString, hashCode, noSuchMethod, runtimeType).
+  ///
+  /// Operator == is excluded, as it is handled as part of the equality binary
+  /// operator.
+  bool isObjectMember(String name) {
+    // We could look these up on Object, but we have hard coded runtime helpers
+    // so it's not really providing any benefit.
+    switch (name) {
+      case 'hashCode':
+      case 'toString':
+      case 'noSuchMethod':
+      case 'runtimeType':
+        return true;
+    }
+    return false;
   }
 
   // TODO(leafp): Various analyzer pieces computed similar things.

@@ -23,7 +23,7 @@ import 'element_helpers.dart' show getStaticType, isInlineJS;
 abstract class NullableTypeInference {
   LibraryElement dartCoreLibrary;
   bool isPrimitiveType(DartType type);
-  bool isObjectProperty(String name);
+  bool isObjectMember(String name);
 
   /// Known non-null local variables.
   HashSet<LocalVariableElement> _notNullLocals;
@@ -102,7 +102,7 @@ abstract class NullableTypeInference {
           return false;
         }
         // We encountered a non-Object method/property.
-        if (e != null && !isObjectProperty(e.name)) {
+        if (e != null && !isObjectMember(e.name)) {
           return false;
         }
       }
