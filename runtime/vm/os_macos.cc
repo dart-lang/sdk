@@ -140,10 +140,6 @@ int64_t OS::GetCurrentMonotonicMicros() {
 
 
 int64_t OS::GetCurrentThreadCPUMicros() {
-#if TARGET_OS_IOS
-  // TODO(johnmccutchan): Implement this. No implementation exists in base.
-  return -1;
-#else
   mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
   thread_basic_info_data_t info_data;
   thread_basic_info_t info = &info_data;
@@ -161,7 +157,6 @@ int64_t OS::GetCurrentThreadCPUMicros() {
   thread_cpu_micros += info->user_time.microseconds;
   thread_cpu_micros += info->system_time.microseconds;
   return thread_cpu_micros;
-#endif  // TARGET_OS_IOS
 }
 
 
