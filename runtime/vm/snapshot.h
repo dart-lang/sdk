@@ -152,6 +152,8 @@ class Snapshot {
  public:
   enum Kind {
     kCore = 0,    // Full snapshot of core libraries. No root library, no code.
+    kScript,      // A partial snapshot of only the application script.
+    kMessage,     // A partial snapshot used only for isolate messaging.
     kAppWithJIT,  // Full snapshot of core libraries and application. Has some
                   // code, but may compile in the future because we haven't
                   // necessarily included code for every function or to
@@ -159,8 +161,6 @@ class Snapshot {
     kAppNoJIT,    // Full snapshot of core libraries and application. Has
                   // complete code for the application that never deopts. Will
                   // not compile in the future.
-    kScript,      // A partial snapshot of only the application script.
-    kMessage,     // A partial snapshot used only for isolate messaging.
     kNone,        // dart_bootstrap/gen_snapshot
     kInvalid
   };
