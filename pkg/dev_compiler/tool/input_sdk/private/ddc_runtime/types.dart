@@ -312,6 +312,8 @@ typedef(name, closure) => JS('', 'new #(#, #)', Typedef, name, closure);
 bool isDartType(type) => JS('bool', '#(#) === #', _getRuntimeType, type, Type);
 
 typeName(type) => JS('', '''(() => {
+  if ($type === void 0) return "undefined type";
+  if ($type === null) return "null type";
   // Non-instance types
   if ($type instanceof $TypeRep) {
     if ($type instanceof $Typedef) {
@@ -332,7 +334,7 @@ typeName(type) => JS('', '''(() => {
 
     result += '<';
     for (let i = 0; i < args.length; ++i) {
-      if (i > 0) name += ', ';
+      if (i > 0) result += ', ';
 
       let argName = $typeName(args[i]);
       if (argName != 'dynamic') allDynamic = false;
@@ -459,25 +461,35 @@ canonicalType(t) => JS('', '''(() => {
    return t;
 })()''');
 
-final subtypeMap = JS('', 'new Map()');
+/// TODO(leafp): This duplicates code in operations.dart.
+/// I haven't found a way to factor it out that makes the
+/// code generator happy though.
+_subtypeMemo(f) => JS('', '''(() => {
+  let memo = new Map();
+  return (t1, t2) => {
+    let map = memo.get(t1);
+    let result;
+    if (map) {
+      result = map.get(t2);
+      if (result !== void 0) return result;
+    } else {
+      memo.set(t1, map = new Map());
+    }
+    console.log("Checking " + $typeName(t1) + " <: " + $typeName(t2));
+    result = $f(t1, t2);
+    map.set(t2, result);
+    return result;
+  };
+})()''');
+
 /// Returns true if [t1] <: [t2].
 /// Returns false if [t1] </: [t2] in both spec and strong mode
 /// Returns undefined if [t1] </: [t2] in strong mode, but spec
 ///  mode may differ
-isSubtype(t1, t2) => JS('', '''(() => {
-  // See if we already know the answer
-  // TODO(jmesserly): general purpose memoize function?
-  let map = $subtypeMap.get($t1);
-  let result;
-  if (map) {
-    result = map.get($t2);
-    if (result !== void 0) return result;
-  } else {
-    $subtypeMap.set($t1, map = new Map());
-  }
-  result = $isSubtype_($t1, $t2, true);
-  map.set($t2, result);
-  return result;
+final isSubtype = JS('', '''(() => {
+  return $_subtypeMemo((t1, t2) => {
+    return $isSubtype_(t1, t2, true);
+  });
 })()''');
 
 _isBottom(type) => JS('bool', '# == #', type, bottom);

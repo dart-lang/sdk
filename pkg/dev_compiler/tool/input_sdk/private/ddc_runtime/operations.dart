@@ -176,22 +176,44 @@ dindex(obj, index) => _callMethod(obj, 'get', null, JS('', '[#]', index), '[]');
 dsetindex(obj, index, value) =>
     _callMethod(obj, 'set', null, JS('', '[#, #]', index, value), '[]=');
 
-_ignoreTypeFailure(actual, type) => JS('', '''(() => {
-  // TODO(vsm): Remove this hack ...
-  // This is primarily due to the lack of generic methods,
-  // but we need to triage all the types.
-  if (!!$isSubtype($type, $Iterable) && !!$isSubtype($actual, $Iterable) ||
-      !!$isSubtype($type, $Future) && !!$isSubtype($actual, $Future) ||
-      !!$isSubtype($type, $Map) && !!$isSubtype($actual, $Map) ||
-      !!$isSubtype($type, $Function) && !!$isSubtype($actual, $Function) ||
-      !!$isSubtype($type, $Stream) && !!$isSubtype($actual, $Stream) ||
-      !!$isSubtype($type, $StreamSubscription) &&
-          !!$isSubtype($actual, $StreamSubscription)) {
-    console.warn('Ignoring cast fail from ' + $typeName($actual) +
-      ' to ' + $typeName($type));
-    return true;
-  }
-  return false;
+/// TODO(leafp): This duplicates code in types.dart.
+/// I haven't found a way to factor it out that makes the
+/// code generator happy though.
+_ignoreMemo(f) => JS('', '''(() => {
+  let memo = new Map();
+  return (t1, t2) => {
+    let map = memo.get(t1);
+    let result;
+    if (map) {
+      result = map.get(t2);
+      if (result !== void 0) return result;
+    } else {
+      memo.set(t1, map = new Map());
+    }
+    result = $f(t1, t2);
+    map.set(t2, result);
+    return result;
+  };
+})()''');
+
+final _ignoreTypeFailure = JS('', '''(() => {
+  return $_ignoreMemo((actual, type) => {
+      // TODO(vsm): Remove this hack ...
+      // This is primarily due to the lack of generic methods,
+      // but we need to triage all the types.
+    if (!!$isSubtype(type, $Iterable) && !!$isSubtype(actual, $Iterable) ||
+        !!$isSubtype(type, $Future) && !!$isSubtype(actual, $Future) ||
+        !!$isSubtype(type, $Map) && !!$isSubtype(actual, $Map) ||
+        $isFunctionType(type) && $isFunctionType(actual) ||
+        !!$isSubtype(type, $Stream) && !!$isSubtype(actual, $Stream) ||
+        !!$isSubtype(type, $StreamSubscription) &&
+        !!$isSubtype(actual, $StreamSubscription)) {
+      console.warn('Ignoring cast fail from ' + $typeName(actual) +
+                   ' to ' + $typeName(type));
+      return true;
+    }
+    return false;
+  });
 })()''');
 
 /// Returns true if [obj] is an instance of [type]

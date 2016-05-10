@@ -520,13 +520,31 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.dsetindex = function(obj, index, value) {
     return dart._callMethod(obj, 'set', null, [index, value], '[]=');
   };
-  dart._ignoreTypeFailure = function(actual, type) {
-    if (!!dart.isSubtype(type, core.Iterable) && !!dart.isSubtype(actual, core.Iterable) || !!dart.isSubtype(type, async.Future) && !!dart.isSubtype(actual, async.Future) || !!dart.isSubtype(type, core.Map) && !!dart.isSubtype(actual, core.Map) || !!dart.isSubtype(type, core.Function) && !!dart.isSubtype(actual, core.Function) || !!dart.isSubtype(type, async.Stream) && !!dart.isSubtype(actual, async.Stream) || !!dart.isSubtype(type, async.StreamSubscription) && !!dart.isSubtype(actual, async.StreamSubscription)) {
-      console.warn('Ignoring cast fail from ' + dart.typeName(actual) + ' to ' + dart.typeName(type));
-      return true;
-    }
-    return false;
+  dart._ignoreMemo = function(f) {
+    let memo = new Map();
+    return (t1, t2) => {
+      let map = memo.get(t1);
+      let result;
+      if (map) {
+        result = map.get(t2);
+        if (result !== void 0) return result;
+      } else {
+        memo.set(t1, map = new Map());
+      }
+      result = f(t1, t2);
+      map.set(t2, result);
+      return result;
+    };
   };
+  dart._ignoreTypeFailure = (() => {
+    return dart._ignoreMemo((actual, type) => {
+      if (!!dart.isSubtype(type, core.Iterable) && !!dart.isSubtype(actual, core.Iterable) || !!dart.isSubtype(type, async.Future) && !!dart.isSubtype(actual, async.Future) || !!dart.isSubtype(type, core.Map) && !!dart.isSubtype(actual, core.Map) || dart.isFunctionType(type) && dart.isFunctionType(actual) || !!dart.isSubtype(type, async.Stream) && !!dart.isSubtype(actual, async.Stream) || !!dart.isSubtype(type, async.StreamSubscription) && !!dart.isSubtype(actual, async.StreamSubscription)) {
+        console.warn('Ignoring cast fail from ' + dart.typeName(actual) + ' to ' + dart.typeName(type));
+        return true;
+      }
+      return false;
+    });
+  })();
   dart.strongInstanceOf = function(obj, type, ignoreFromWhiteList) {
     let actual = dart.getReifiedType(obj);
     let result = dart.isSubtype(actual, type);
@@ -993,6 +1011,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return dart._getRuntimeType(type) === core.Type;
   };
   dart.typeName = function(type) {
+    if (type === void 0) return "undefined type";
+    if (type === null) return "null type";
     if (type instanceof dart.TypeRep) {
       if (type instanceof dart.Typedef) {
         return type.name + "(" + type.functionType.toString() + ")";
@@ -1008,7 +1028,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let allDynamic = true;
       result += '<';
       for (let i = 0; i < args.length; ++i) {
-        if (i > 0) name += ', ';
+        if (i > 0) result += ', ';
         let argName = dart.typeName(args[i]);
         if (argName != 'dynamic') allDynamic = false;
         result += argName;
@@ -1087,20 +1107,28 @@ dart_library.library('dart_sdk', null, /* Imports */[
     if (t === Boolean) return bool;
     return t;
   };
-  dart.subtypeMap = new Map();
-  dart.isSubtype = function(t1, t2) {
-    let map = dart.subtypeMap.get(t1);
-    let result;
-    if (map) {
-      result = map.get(t2);
-      if (result !== void 0) return result;
-    } else {
-      dart.subtypeMap.set(t1, map = new Map());
-    }
-    result = dart.isSubtype_(t1, t2, true);
-    map.set(t2, result);
-    return result;
+  dart._subtypeMemo = function(f) {
+    let memo = new Map();
+    return (t1, t2) => {
+      let map = memo.get(t1);
+      let result;
+      if (map) {
+        result = map.get(t2);
+        if (result !== void 0) return result;
+      } else {
+        memo.set(t1, map = new Map());
+      }
+      console.log("Checking " + dart.typeName(t1) + " <: " + dart.typeName(t2));
+      result = f(t1, t2);
+      map.set(t2, result);
+      return result;
+    };
   };
+  dart.isSubtype = (() => {
+    return dart._subtypeMemo((t1, t2) => {
+      return dart.isSubtype_(t1, t2, true);
+    });
+  })();
   dart._isBottom = function(type) {
     return type == dart.bottom;
   };
