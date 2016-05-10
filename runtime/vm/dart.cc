@@ -533,11 +533,6 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     }
   } else {
     ASSERT(snapshot_kind_ == Snapshot::kNone);
-    // Populate the isolate's symbol table with all symbols from the
-    // VM isolate. We do this so that when we generate a full snapshot
-    // for the isolate we have a unified symbol table that we can then
-    // read into the VM isolate.
-    Symbols::AddPredefinedSymbolsToIsolate();
   }
 
   Object::VerifyBuiltinVtables();

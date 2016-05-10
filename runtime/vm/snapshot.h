@@ -989,7 +989,7 @@ class SnapshotWriter : public BaseWriter {
                  ForwardList* forward_list,
                  InstructionsWriter* instructions_writer,
                  bool can_send_any_object,
-                 bool vm_isolate_is_symbolic);
+                 bool writing_vm_isolate = false);
 
  public:
   // Snapshot kind.
@@ -1015,13 +1015,11 @@ class SnapshotWriter : public BaseWriter {
     exception_msg_ = msg;
   }
   bool can_send_any_object() const { return can_send_any_object_; }
-  bool vm_isolate_is_symbolic() const { return vm_isolate_is_symbolic_; }
+  bool writing_vm_isolate() const { return writing_vm_isolate_; }
   void ThrowException(Exceptions::ExceptionType type, const char* msg);
 
   // Write a version string for the snapshot.
   void WriteVersion();
-
-  static intptr_t FirstObjectId();
 
   int32_t GetInstructionsId(RawInstructions* instructions, RawCode* code) {
     return instructions_writer_->GetOffsetFor(instructions, code);
@@ -1068,15 +1066,6 @@ class SnapshotWriter : public BaseWriter {
   bool AllowObjectsInDartLibrary(RawLibrary* library);
   intptr_t FindVmSnapshotObject(RawObject* rawobj);
 
-  void InitializeForwardList(ForwardList* forward_list) {
-    ASSERT(forward_list_ == NULL);
-    forward_list_ = forward_list;
-  }
-  void ResetForwardList() {
-    ASSERT(forward_list_ != NULL);
-    forward_list_ = NULL;
-  }
-
   ObjectStore* object_store() const { return object_store_; }
 
  private:
@@ -1090,7 +1079,7 @@ class SnapshotWriter : public BaseWriter {
   const char* exception_msg_;  // Message associated with exception.
   bool unmarked_objects_;  // True if marked objects have been unmarked.
   bool can_send_any_object_;  // True if any Dart instance can be sent.
-  bool vm_isolate_is_symbolic_;
+  bool writing_vm_isolate_;
 
   friend class FullSnapshotWriter;
   friend class RawArray;
@@ -1131,8 +1120,7 @@ class FullSnapshotWriter {
                      uint8_t** vm_isolate_snapshot_buffer,
                      uint8_t** isolate_snapshot_buffer,
                      ReAlloc alloc,
-                     InstructionsWriter* instructions_writer,
-                     bool vm_isolate_is_symbolic);
+                     InstructionsWriter* instructions_writer);
   ~FullSnapshotWriter();
 
   uint8_t** vm_isolate_snapshot_buffer() {
@@ -1175,8 +1163,8 @@ class FullSnapshotWriter {
   ForwardList* forward_list_;
   InstructionsWriter* instructions_writer_;
   Array& scripts_;
-  Array& symbol_table_;
-  bool vm_isolate_is_symbolic_;
+  Array& saved_symbol_table_;
+  Array& new_vm_symbol_table_;
 
   DISALLOW_COPY_AND_ASSIGN(FullSnapshotWriter);
 };

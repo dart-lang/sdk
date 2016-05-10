@@ -229,15 +229,24 @@ void Precompiler::DoCompileAll(
     zone_ = NULL;
   }
 
-  intptr_t dropped_symbols_count = Symbols::Compact(I);
+  intptr_t symbols_before = -1;
+  intptr_t symbols_after = -1;
+  intptr_t capacity = -1;
   if (FLAG_trace_precompiler) {
+    Symbols::GetStats(I, &symbols_before, &capacity);
+  }
+
+  Symbols::Compact(I);
+
+  if (FLAG_trace_precompiler) {
+    Symbols::GetStats(I, &symbols_after, &capacity);
     THR_Print("Precompiled %" Pd " functions,", function_count_);
     THR_Print(" %" Pd " dynamic types,", class_count_);
     THR_Print(" %" Pd " dynamic selectors.\n", selector_count_);
 
     THR_Print("Dropped %" Pd " functions,", dropped_function_count_);
     THR_Print(" %" Pd " fields,", dropped_field_count_);
-    THR_Print(" %" Pd " symbols,", dropped_symbols_count);
+    THR_Print(" %" Pd " symbols,", symbols_before - symbols_after);
     THR_Print(" %" Pd " types,", dropped_type_count_);
     THR_Print(" %" Pd " type arguments,", dropped_typearg_count_);
     THR_Print(" %" Pd " classes,", dropped_class_count_);

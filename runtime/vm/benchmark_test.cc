@@ -528,8 +528,7 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
                             &vm_isolate_snapshot_buffer,
                             &isolate_snapshot_buffer,
                             &malloc_allocator,
-                            NULL, /* instructions_writer */
-                            true /* vm_isolate_is_symbolic */);
+                            NULL /* instructions_writer */);
   writer.WriteFullSnapshot();
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(isolate_snapshot_buffer);
   ASSERT(snapshot->kind() == Snapshot::kCore);
@@ -565,8 +564,7 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
                             &vm_isolate_snapshot_buffer,
                             &isolate_snapshot_buffer,
                             &malloc_allocator,
-                            NULL, /* instructions_writer */
-                            true /* vm_isolate_is_symbolic */);
+                            NULL /* instructions_writer */);
   writer.WriteFullSnapshot();
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(isolate_snapshot_buffer);
   ASSERT(snapshot->kind() == Snapshot::kCore);

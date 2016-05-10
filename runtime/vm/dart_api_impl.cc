@@ -1494,8 +1494,7 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
                             vm_isolate_snapshot_buffer,
                             isolate_snapshot_buffer,
                             ApiReallocate,
-                            NULL, /* instructions_writer */
-                            true /* vm_isolate_is_symbolic */);
+                            NULL /* instructions_writer */);
   writer.WriteFullSnapshot();
   *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
   *isolate_snapshot_size = writer.IsolateSnapshotSize();
@@ -6182,8 +6181,7 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
                             vm_isolate_snapshot_buffer,
                             isolate_snapshot_buffer,
                             ApiReallocate,
-                            &instructions_writer,
-                            false /* vm_isolate_is_symbolic */);
+                            &instructions_writer);
 
   writer.WriteFullSnapshot();
   *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
@@ -6243,8 +6241,7 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
                             vm_isolate_snapshot_buffer,
                             isolate_snapshot_buffer,
                             ApiReallocate,
-                            &instructions_writer,
-                            false /* vm_isolate_is_symbolic */);
+                            &instructions_writer);
 
   writer.WriteFullSnapshot();
   *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
@@ -6341,8 +6338,7 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledJITSnapshotBlob(
                             vm_isolate_snapshot_buffer,
                             isolate_snapshot_buffer,
                             ApiReallocate,
-                            &instructions_writer,
-                            false /* vm_isolate_is_symbolic */);
+                            &instructions_writer);
   writer.WriteFullSnapshot();
   *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
   *isolate_snapshot_size = writer.IsolateSnapshotSize();

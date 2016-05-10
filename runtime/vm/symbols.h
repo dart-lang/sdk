@@ -555,19 +555,15 @@ class Symbols : public AllStatic {
   static void InitOnce(Isolate* isolate);
   static void InitOnceFromSnapshot(Isolate* isolate);
 
-  // Add all the symbols that were cached in the VM isolate to this isolate,
-  // we do this when an Isolate is not created from the snapshot so that
-  // we get a unified symbol table that can be be dumped into the VM isolate
-  // snapshot.
-  static void AddPredefinedSymbolsToIsolate();
-
   // Initialize and setup a symbol table for the isolate.
   static void SetupSymbolTable(Isolate* isolate);
 
-  // Treat the symbol table as weak and collect garbage. Answer the number of
-  // symbols deleted from the symbol table because they where not referenced
-  // from anywhere else.
-  static intptr_t Compact(Isolate* isolate);
+  static RawArray* UnifiedSymbolTable();
+
+#if defined(DART_PRECOMPILER)
+  // Treat the symbol table as weak and collect garbage.
+  static void Compact(Isolate* isolate);
+#endif
 
   // Creates a Symbol given a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
@@ -644,22 +640,22 @@ class Symbols : public AllStatic {
   static RawString* LookupFromSet(Thread* thread, const String& str);
   static RawString* LookupFromDot(Thread* thread, const String& str);
 
+  static void GetStats(Isolate* isolate,
+                       intptr_t* size,
+                       intptr_t* capacity);
+
  private:
   enum {
     kInitialVMIsolateSymtabSize = 1024,
     kInitialSymtabSize = 2048
   };
 
-  static void GetStats(Isolate* isolate,
-                       intptr_t* size,
-                       intptr_t* capacity);
-
   template<typename StringType>
   static RawString* NewSymbol(Thread* thread, const StringType& str);
 
-  static intptr_t LookupVMSymbol(RawObject* obj);
-  static RawObject* GetVMSymbol(intptr_t object_id);
-  static bool IsVMSymbolId(intptr_t object_id) {
+  static intptr_t LookupPredefinedSymbol(RawObject* obj);
+  static RawObject* GetPredefinedSymbol(intptr_t object_id);
+  static bool IsPredefinedSymbolId(intptr_t object_id) {
     return (object_id >= kMaxPredefinedObjectIds &&
             object_id < (kMaxPredefinedObjectIds + kMaxPredefinedId));
   }

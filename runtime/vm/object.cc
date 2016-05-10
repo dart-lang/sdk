@@ -10676,7 +10676,10 @@ void Library::AllocatePrivateKey() const {
   OS::SNPrint(private_key, sizeof(private_key),
               "%c%" Pd "%06" Pd "",
               kPrivateKeySeparator, sequence_value, hash_value);
-  StorePointer(&raw_ptr()->private_key_, String::New(private_key, Heap::kOld));
+  const String& key = String::Handle(zone, String::New(private_key,
+                                                       Heap::kOld));
+  key.Hash();  // This string may end up in the VM isolate.
+  StorePointer(&raw_ptr()->private_key_, key.raw());
 }
 
 
