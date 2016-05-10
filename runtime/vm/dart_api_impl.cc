@@ -5040,6 +5040,14 @@ RawString* Api::GetEnvironmentValue(Thread* thread, const String& name) {
       return Symbols::False().raw();
     }
 
+    if (name.Equals(Symbols::DartVMProduct())) {
+#ifdef PRODUCT
+      return Symbols::True().raw();
+#else
+      return Symbols::False().raw();
+#endif
+    }
+
     const String& prefix = Symbols::DartLibrary();
     if (name.StartsWith(prefix)) {
       const String& library_name =

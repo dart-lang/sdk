@@ -4,6 +4,8 @@
 
 part of dart.developer;
 
+const bool _isProduct = const bool.fromEnvironment("dart.vm.product");
+
 typedef dynamic TimelineSyncFunction();
 typedef Future TimelineAsyncFunction();
 
@@ -13,12 +15,15 @@ class Timeline {
   /// a [Map] of [arguments]. This operation must be finished before
   /// returning to the event queue.
   static void startSync(String name, {Map arguments}) {
+    if (_isProduct) {
+      return;
+    }
     if (name is! String) {
       throw new ArgumentError.value(name,
                                     'name',
                                     'Must be a String');
     }
-    var block = new _SyncBlock._(name, _getTraceClock());
+    var block = new _SyncBlock._(name, _getTraceClock(), _getThreadCpuClock());
     if (arguments is Map) {
       block._appendArguments(arguments);
     }
@@ -27,6 +32,9 @@ class Timeline {
 
   /// Finish the last synchronous operation that was started.
   static void finishSync() {
+    if (_isProduct) {
+      return;
+    }
     if (_stack.length == 0) {
       throw new StateError(
           'Uneven calls to startSync and finishSync');
@@ -39,6 +47,9 @@ class Timeline {
 
   /// Emit an instant event.
   static void instantSync(String name, {Map arguments}) {
+    if (_isProduct) {
+      return;
+    }
     if (name is! String) {
       throw new ArgumentError.value(name,
                                     'name',
@@ -101,6 +112,9 @@ class TimelineTask {
   /// Start a synchronous operation within this task named [name].
   /// Optionally takes a [Map] of [arguments].
   void start(String name, {Map arguments}) {
+    if (_isProduct) {
+      return;
+    }
     if (name is! String) {
       throw new ArgumentError.value(name,
                                     'name',
@@ -116,6 +130,9 @@ class TimelineTask {
 
   /// Emit an instant event for this task.
   void instant(String name, {Map arguments}) {
+    if (_isProduct) {
+      return;
+    }
     if (name is! String) {
       throw new ArgumentError.value(name,
                                     'name',
@@ -135,6 +152,9 @@ class TimelineTask {
 
   /// Finish the last synchronous operation that was started.
   void finish() {
+    if (_isProduct) {
+      return;
+    }
     if (_stack.length == 0) {
       throw new StateError(
           'Uneven calls to start and finish');
@@ -215,16 +235,19 @@ class _SyncBlock {
   Map _arguments;
   // The start time stamp.
   final int _start;
+  // The start time stamp of the thread cpu clock.
+  final int _startCpu;
 
   _SyncBlock._(this.name,
-               this._start);
+               this._start,
+               this._startCpu);
 
   /// Finish this block of time. At this point, this block can no longer be
   /// used.
   void finish() {
     // Report event to runtime.
     _reportCompleteEvent(_start,
-                         _getTraceClock(),
+                         _startCpu,
                          category,
                          name,
                          _argumentsAsJson(_arguments));
@@ -261,6 +284,9 @@ external int _getNextAsyncId();
 /// Returns the current value from the trace clock.
 external int _getTraceClock();
 
+/// Returns the current value from the thread CPU usage clock.
+external int _getThreadCpuClock();
+
 /// Returns the isolate's main port number.
 external int _getIsolateNum();
 
@@ -274,7 +300,7 @@ external void _reportTaskEvent(int start,
 
 /// Reports a complete synchronous event.
 external void _reportCompleteEvent(int start,
-                                   int end,
+                                   int startCpu,
                                    String category,
                                    String name,
                                    String argumentsAsJson);

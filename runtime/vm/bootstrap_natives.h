@@ -161,6 +161,7 @@ namespace dart {
   V(Timeline_getIsolateNum, 0)                                                 \
   V(Timeline_getNextAsyncId, 0)                                                \
   V(Timeline_getTraceClock, 0)                                                 \
+  V(Timeline_getThreadCpuClock, 0)                                             \
   V(Timeline_reportCompleteEvent, 5)                                           \
   V(Timeline_reportInstantEvent, 4)                                            \
   V(Timeline_reportTaskEvent, 6)                                               \

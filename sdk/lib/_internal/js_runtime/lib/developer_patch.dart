@@ -58,6 +58,11 @@ int _getTraceClock() {
 }
 int _clockValue = 0;
 
+int _getThreadCpuClock() {
+  return -1;
+}
+
+
 @patch
 void _reportCompleteEvent(int start,
                           int end,
