@@ -361,7 +361,6 @@
       // https://github.com/dart-lang/sdk/issues/26124
       'prefix10_negative_test': skip_fail,
 
-
       // TODO(vsm): Right shift should not propagate sign
       // https://github.com/dart-lang/dev_compiler/issues/446
       'float32x4_sign_mask_test': skip_fail,
@@ -392,7 +391,6 @@
       'const_list_literal_test': fail,
       'const_list_remove_range_test': fail,
       'const_list_set_range_test': fail,
-      'data_uri_test': fail,
       'double_parse_test_01_multi': fail,
       'error_stack_trace1_test': fail,
       'error_stack_trace2_test': fail,
@@ -450,28 +448,39 @@
       'symbol_reserved_word_test_09_multi': fail,
       'symbol_reserved_word_test_12_multi': fail,
       'throw_half_surrogate_pair_test_01_multi': fail,
-      'uri_test': fail,
-      'uri_file_test': fail,
-      'uri_normalize_path_test': fail,
-      'uri_normalize_test': fail,
-      'uri_parameters_all_test': fail,
-      'uri_parse_test': fail,
+      // TODO(rnystrom): Times out because it tests a huge number of
+      // combinations of URLs (4 * 5 * 5 * 8 * 6 * 6 * 4 = 115200).
+      'uri_parse_test': skip_timeout,
     },
 
-    'lib/typed_data': {
-      // No bigint or int64 support
-      'int32x4_bigint_test': skip_fail,
-      'int64_list_load_store_test': skip_fail,
-      'typed_data_hierarchy_int64_test': skip_fail,
-      'typed_data_list_test': fail,
+    'lib/convert': {
+      // TODO(rnystrom): A lot of the convert tests timeout. Some do pass if
+      // you increase the time by a large amount, but it's pretty gratuitous.
+      // I'm not sure why they are so slow. One guess is that they are spewing
+      // a ton of warnings, that slow down the test.
+      'chunked_conversion_utf84_test': skip_timeout,
+      'chunked_conversion_utf88_test': skip_timeout,
+      'chunked_conversion_utf8_test': skip_timeout,
 
-      // TODO(vsm): List.toString is different in DDC
-      // https://github.com/dart-lang/dev_compiler/issues/445
-      'setRange_1_test': skip_fail,
-      'setRange_2_test': skip_fail,
-      'setRange_3_test': skip_fail,
-      'setRange_4_test': skip_fail,
-      'setRange_5_test': skip_fail,
+      // TODO(rnystrom): Strong mode cast failures.
+      'codec1_test': skip_fail,
+      'encoding_test': skip_fail,
+
+      // TODO(rnystrom): If this test is enabled, karma gets confused and
+      // disconnects randomly.
+      'json_lib_test': skip_fail,
+
+      'json_utf8_chunk_test': skip_timeout,
+
+      // TODO(rnystrom): Strong mode cast failure.
+      'line_splitter_test': skip_fail,
+
+      'streamed_conversion_json_encode1_test': skip_timeout,
+      'streamed_conversion_json_utf8_decode_test': skip_timeout,
+      'streamed_conversion_json_utf8_encode_test': skip_timeout,
+      'streamed_conversion_utf8_decode_test': skip_timeout,
+      'streamed_conversion_utf8_encode_test': skip_timeout,
+      'utf85_test': skip_timeout,
     },
 
     // TODO(jacobr): enable more of the html tests in unittest once they have
@@ -637,6 +646,22 @@
       'js_typed_interop_default_arg_test_explicit_argument_multi': ['unittest', 'skip', 'fail'],
       'js_typed_interop_default_arg_test_default_value_multi': ['unittest', 'skip', 'fail']
     },
+
+    'lib/typed_data': {
+      // No bigint or int64 support
+      'int32x4_bigint_test': skip_fail,
+      'int64_list_load_store_test': skip_fail,
+      'typed_data_hierarchy_int64_test': skip_fail,
+      'typed_data_list_test': fail,
+
+      // TODO(vsm): List.toString is different in DDC
+      // https://github.com/dart-lang/dev_compiler/issues/445
+      'setRange_1_test': skip_fail,
+      'setRange_2_test': skip_fail,
+      'setRange_3_test': skip_fail,
+      'setRange_4_test': skip_fail,
+      'setRange_5_test': skip_fail,
+    },
   };
 
   let unittest_tests = [];
@@ -738,7 +763,7 @@
     // Suppress mocha on-error handling because it will mess up unittests.
     mochaOnError = window.onerror;
     window.onerror = function(err, url, line) {
-      console.error(err, url, line);     
+      console.error(err, url, line);
     };
     window.addEventListener('message', (event) => {
       if (event.data == 'unittest-suite-done') {

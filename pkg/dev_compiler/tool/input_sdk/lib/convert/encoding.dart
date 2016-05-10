@@ -10,6 +10,9 @@ part of dart.convert;
 abstract class Encoding extends Codec<String, List<int>> {
   const Encoding();
 
+  ChunkedConverter<String, List<int>, String, List<int>> get encoder;
+  ChunkedConverter<List<int>, String, List<int>, String> get decoder;
+
   Future<String> decodeStream(Stream<List<int>> byteStream) {
     return byteStream
       .transform(decoder)
@@ -69,8 +72,8 @@ abstract class Encoding extends Codec<String, List<int>> {
   * If character set is not supported [:null:] is returned.
   */
   static Encoding getByName(String name) {
-      if (name == null) return null;
-      name = name.toLowerCase();
-      return _nameToEncoding[name];
+    if (name == null) return null;
+    name = name.toLowerCase();
+    return _nameToEncoding[name];
   }
 }

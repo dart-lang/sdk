@@ -41,8 +41,9 @@ main(arguments) {
   var testDirs = [
     'language',
     'corelib',
-    path.join('lib', 'typed_data'),
-    path.join('lib', 'html')
+    path.join('lib', 'convert'),
+    path.join('lib', 'html'),
+    path.join('lib', 'typed_data')
   ];
 
   var multitests = expandMultiTests(testDirs, filePattern);

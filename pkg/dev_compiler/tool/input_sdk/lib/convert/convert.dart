@@ -11,8 +11,7 @@
  * provides support for implementing converters in a way which makes them easy to
  * chain and to use with streams.
  *
- * The `dart:convert` library works in both web apps and command-line apps.
- * To use it:
+ * To use this library in your code:
  *
  *     import 'dart:convert';
  *
@@ -58,6 +57,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 part 'ascii.dart';
+part 'base64.dart';
 part 'byte_conversion.dart';
 part 'chunked_conversion.dart';
 part 'codec.dart';

@@ -10,7 +10,7 @@ part of dart.convert;
  * It is recommended that implementations of `Converter` extend this class,
  * to inherit any further methods that may be added to the class.
  */
-abstract class Converter<S, T> implements StreamTransformer<S, T> {
+abstract class Converter<S, T> implements StreamTransformer {
   const Converter();
 
   /**
@@ -29,17 +29,25 @@ abstract class Converter<S, T> implements StreamTransformer<S, T> {
   }
 
   /**
-   * Starts a chunked conversion.
+   * Deprecated.
+   *
+   * Use the [ChunkedConverter] interface instead.
    */
-  ChunkedConversionSink startChunkedConversion(Sink<T> sink) {
+  @deprecated
+  ChunkedConversionSink startChunkedConversion(Sink sink) {
     throw new UnsupportedError(
         "This converter does not support chunked conversions: $this");
   }
 
-  // Subclasses are encouraged to provide better types.
-  Stream<T> bind(Stream<S> source) {
+  /**
+   * Deprecated.
+   *
+   * Use the [ChunkedConverter] interface instead.
+   */
+  @deprecated
+  Stream bind(Stream stream) {
     return new Stream.eventTransformed(
-        source,
+        stream,
         (EventSink sink) => new _ConverterStreamEventSink(this, sink));
   }
 }
@@ -50,14 +58,10 @@ abstract class Converter<S, T> implements StreamTransformer<S, T> {
  * For a non-chunked conversion converts the input in sequence.
  */
 class _FusedConverter<S, M, T> extends Converter<S, T> {
-  final Converter _first;
-  final Converter _second;
+  final Converter<S, M> _first;
+  final Converter<M, T> _second;
 
   _FusedConverter(this._first, this._second);
 
   T convert(S input) => _second.convert(_first.convert(input));
-
-  ChunkedConversionSink startChunkedConversion(Sink<T> sink) {
-    return _first.startChunkedConversion(_second.startChunkedConversion(sink));
-  }
 }

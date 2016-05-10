@@ -155,8 +155,11 @@ library dart.core;
 import "dart:collection";
 import "dart:_internal" hide Symbol;
 import "dart:_internal" as internal show Symbol;
-import "dart:convert" show UTF8, LATIN1, Encoding;
+import "dart:convert" show
+  Encoding, ASCII, LATIN1, UTF8,
+  BASE64, StringConversionSink, ChunkedConversionSink;
 import "dart:math" show Random;  // Used by List.shuffle.
+import "dart:typed_data" show Uint8List;
 
 part "annotations.dart";
 part "bool.dart";

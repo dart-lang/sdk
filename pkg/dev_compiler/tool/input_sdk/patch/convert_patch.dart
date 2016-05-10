@@ -4,7 +4,7 @@
 
 // Patch file for dart:convert library.
 
-import 'dart:_js_helper' show patch;
+import 'dart:_js_helper' show argumentErrorValue, patch;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JSExtendableArray;
 import 'dart:_internal' show MappedIterable, ListIterable;
@@ -28,12 +28,12 @@ import 'dart:collection' show Maps, LinkedHashMap;
  */
 @patch
 _parseJson(String source, reviver(key, value)) {
-  if (source is! String) throw new ArgumentError(source);
+  if (source is! String) throw argumentErrorValue(source);
 
   var parsed;
   try {
     parsed = JS('=Object|JSExtendableArray|Null|bool|num|String',
-                'dart.global.JSON.parse(#)',
+                'JSON.parse(#)',
                 source);
   } catch (e) {
     throw new FormatException(JS('String', 'String(#)', e));
@@ -140,7 +140,7 @@ class _JsonMap implements LinkedHashMap {
 
   _JsonMap(this._original);
 
-  operator[](Object key) {
+  operator[](key) {
     if (_isUpgraded) {
       return _upgradedMap[key];
     } else if (key is !String) {
@@ -190,7 +190,7 @@ class _JsonMap implements LinkedHashMap {
     });
   }
 
-  bool containsValue(Object value) {
+  bool containsValue(value) {
     if (_isUpgraded) return _upgradedMap.containsValue(value);
     List<String> keys = _computeKeys();
     for (int i = 0; i < keys.length; i++) {
@@ -200,7 +200,7 @@ class _JsonMap implements LinkedHashMap {
     return false;
   }
 
-  bool containsKey(Object key) {
+  bool containsKey(key) {
     if (_isUpgraded) return _upgradedMap.containsKey(key);
     if (key is !String) return false;
     return _hasProperty(_original, key);
@@ -399,5 +399,12 @@ class _JsonDecoderSink extends _StringSinkConversionSink {
   @patch
   Converter<List<int>,dynamic> fuse(Converter<String, dynamic> next) {
     return super.fuse(next);
+  }
+
+  // Currently not intercepting UTF8 decoding.
+  @patch
+  static String _convertIntercepted(bool allowMalformed, List<int> codeUnits,
+                                    int start, int end) {
+    return null;  // This call was not intercepted.
   }
 }

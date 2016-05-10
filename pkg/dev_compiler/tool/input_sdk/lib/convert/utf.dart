@@ -66,7 +66,7 @@ class Utf8Codec extends Encoding {
     return new Utf8Decoder(allowMalformed: allowMalformed).convert(codeUnits);
   }
 
-  Utf8Encoder get encoder => new Utf8Encoder();
+  Utf8Encoder get encoder => const Utf8Encoder();
   Utf8Decoder get decoder {
     return new Utf8Decoder(allowMalformed: _allowMalformed);
   }
@@ -76,7 +76,8 @@ class Utf8Codec extends Encoding {
  * This class converts strings to their UTF-8 code units (a list of
  * unsigned 8-bit integers).
  */
-class Utf8Encoder extends Converter<String, List<int>> {
+class Utf8Encoder extends
+    ChunkedConverter<String, List<int>, String, List<int>> {
 
   const Utf8Encoder();
 
@@ -304,7 +305,8 @@ class _Utf8EncoderSink extends _Utf8Encoder with StringConversionSinkMixin {
  * This class converts UTF-8 code units (lists of unsigned 8-bit integers)
  * to a string.
  */
-class Utf8Decoder extends Converter<List<int>, String> {
+class Utf8Decoder extends
+    ChunkedConverter<List<int>, String, List<int>, String> {
   final bool _allowMalformed;
 
   /**
@@ -331,6 +333,13 @@ class Utf8Decoder extends Converter<List<int>, String> {
    * character is discarded.
    */
   String convert(List<int> codeUnits, [int start = 0, int end]) {
+    // Allow the implementation to intercept and specialize based on the type
+    // of codeUnits.
+    String result = _convertIntercepted(_allowMalformed, codeUnits, start, end);
+    if (result != null) {
+      return result;
+    }
+
     int length = codeUnits.length;
     RangeError.checkValidRange(start, end, length);
     if (end == null) end = length;
@@ -361,6 +370,9 @@ class Utf8Decoder extends Converter<List<int>, String> {
   Stream<String> bind(Stream<List<int>> stream) => super.bind(stream);
 
   external Converter<List<int>,dynamic> fuse(Converter<String, dynamic> next);
+
+  external static String _convertIntercepted(
+      bool allowMalformed, List<int> codeUnits, int start, int end);
 }
 
 // UTF-8 constants.
@@ -376,8 +388,6 @@ const int _SURROGATE_VALUE_MASK = 0x3FF;
 const int _LEAD_SURROGATE_MIN = 0xD800;
 const int _TAIL_SURROGATE_MIN = 0xDC00;
 
-bool _isSurrogate(int codeUnit) =>
-    (codeUnit & _SURROGATE_MASK) == _LEAD_SURROGATE_MIN;
 bool _isLeadSurrogate(int codeUnit) =>
     (codeUnit & _SURROGATE_TAG_MASK) == _LEAD_SURROGATE_MIN;
 bool _isTailSurrogate(int codeUnit) =>
@@ -385,7 +395,6 @@ bool _isTailSurrogate(int codeUnit) =>
 int _combineSurrogatePair(int lead, int tail) =>
     0x10000 + ((lead & _SURROGATE_VALUE_MASK) << 10)
             | (tail & _SURROGATE_VALUE_MASK);
-
 
 /**
  * Decodes UTF-8.

@@ -59,9 +59,9 @@ class Latin1Codec extends Encoding {
     }
   }
 
-  Converter<String, List<int>> get encoder => const Latin1Encoder();
+  Latin1Encoder get encoder => const Latin1Encoder();
 
-  Converter<List<int>, String> get decoder =>
+  Latin1Decoder get decoder =>
       _allowInvalid ? const Latin1Decoder(allowInvalid: true)
                     : const Latin1Decoder(allowInvalid: false);
 }
@@ -116,6 +116,7 @@ class _Latin1DecoderSink extends ByteConversionSinkBase {
 
   void close() {
     _sink.close();
+    _sink = null;
   }
 
   void add(List<int> source) {
@@ -132,19 +133,40 @@ class _Latin1DecoderSink extends ByteConversionSinkBase {
   }
 
   void addSlice(List<int> source, int start, int end, bool isLast) {
-    RangeError.checkValidRange(start, end, source.length);
+    end = RangeError.checkValidRange(start, end, source.length);
+    if (start == end) return;
+    if (source is! Uint8List) {
+      // List may contain value outside of the 0..255 range. If so, throw.
+      // Technically, we could excuse Uint8ClampedList as well, but it unlikely
+      // to be relevant.
+      _checkValidLatin1(source, start, end);
+    }
+    _addSliceToSink(source, start, end, isLast);
+  }
+
+  static void _checkValidLatin1(List<int> source, int start, int end) {
+    int mask = 0;
+    for (int i = start; i < end; i++) {
+      mask |= source[i];
+    }
+    if (mask >= 0 && mask <= _LATIN1_MASK) {
+      return;
+    }
+    _reportInvalidLatin1(source, start, end);  // Always throws.
+  }
+
+
+  static void _reportInvalidLatin1(List<int> source, int start, int end) {
+    // Find the index of the first non-Latin-1 character code.
     for (int i = start; i < end; i++) {
       int char = source[i];
-      if (char > _LATIN1_MASK || char < 0) {
-        throw new FormatException("Source contains non-Latin-1 characters.");
+      if (char < 0 || char > _LATIN1_MASK) {
+        throw new FormatException("Source contains non-Latin-1 characters.",
+                                  source, i);
       }
     }
-    if (start < end) {
-      _addSliceToSink(source, start, end, isLast);
-    }
-    if (isLast) {
-      close();
-    }
+    // Unreachable - we only call the function if the loop above throws.
+    assert(false);
   }
 }
 
