@@ -837,6 +837,7 @@ void Heap::PrintStats() {
 
 
 void Heap::PrintStatsToTimeline(TimelineEventScope* event) {
+#if !defined(PRODUCT)
   if ((event == NULL) || !event->enabled()) {
     return;
   }
@@ -891,6 +892,7 @@ void Heap::PrintStatsToTimeline(TimelineEventScope* event) {
                         "After.Old.External (kB)",
                         "%" Pd "",
                         RoundWordsToKB(stats_.after_.old_.external_in_words));
+#endif  // !defined(PRODUCT)
 }
 
 
