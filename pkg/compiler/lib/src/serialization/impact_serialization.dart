@@ -25,8 +25,10 @@ class ImpactSerializer implements WorldImpactVisitor {
   final ListEncoder staticUses;
   final ListEncoder dynamicUses;
   final ListEncoder typeUses;
+  final SerializerPlugin nativeDataSerializer;
 
-  ImpactSerializer(this.element, ObjectEncoder objectEncoder)
+  ImpactSerializer(
+      this.element, ObjectEncoder objectEncoder, this.nativeDataSerializer)
       : this.objectEncoder = objectEncoder,
         staticUses = objectEncoder.createList(Key.STATIC_USES),
         dynamicUses = objectEncoder.createList(Key.DYNAMIC_USES),
@@ -54,6 +56,12 @@ class ImpactSerializer implements WorldImpactVisitor {
         useEncoder.setType(Key.TYPE, use.type);
         useEncoder.setBool(Key.IS_CONST, use.isConstant);
         useEncoder.setBool(Key.IS_EMPTY, use.isEmpty);
+      }
+    }
+    if (resolutionImpact.nativeData.isNotEmpty) {
+      ListEncoder encoder = objectEncoder.createList(Key.NATIVE);
+      for (dynamic data in resolutionImpact.nativeData) {
+        nativeDataSerializer.onData(data, encoder.createObject());
       }
     }
   }
@@ -91,6 +99,7 @@ class DeserializedResolutionImpact extends WorldImpact
   final Iterable<MapLiteralUse> mapLiterals;
   final Iterable<StaticUse> staticUses;
   final Iterable<TypeUse> typeUses;
+  final Iterable<dynamic> nativeData;
 
   DeserializedResolutionImpact(
       {this.constSymbolNames: const <String>[],
@@ -100,7 +109,8 @@ class DeserializedResolutionImpact extends WorldImpact
       this.listLiterals: const <ListLiteralUse>[],
       this.mapLiterals: const <MapLiteralUse>[],
       this.staticUses: const <StaticUse>[],
-      this.typeUses: const <TypeUse>[]})
+      this.typeUses: const <TypeUse>[],
+      this.nativeData: const <dynamic>[]})
       : this._features = features;
 
   Iterable<Feature> get features {
@@ -112,8 +122,8 @@ class DeserializedResolutionImpact extends WorldImpact
 
 class ImpactDeserializer {
   /// Deserializes a [WorldImpact] from [objectDecoder].
-  static ResolutionImpact deserializeImpact(
-      Element element, ObjectDecoder objectDecoder) {
+  static ResolutionImpact deserializeImpact(Element element,
+      ObjectDecoder objectDecoder, DeserializerPlugin nativeDataDeserializer) {
     ListDecoder staticUseDecoder = objectDecoder.getList(Key.STATIC_USES);
     List<StaticUse> staticUses = <StaticUse>[];
     for (int index = 0; index < staticUseDecoder.length; index++) {
@@ -180,6 +190,20 @@ class ImpactDeserializer {
       }
     }
 
+    ListDecoder nativeDataDecoder =
+        objectDecoder.getList(Key.NATIVE, isOptional: true);
+    List<dynamic> nativeData = const <dynamic>[];
+    if (nativeDataDecoder != null) {
+      nativeData = <dynamic>[];
+      for (int i = 0; i < nativeDataDecoder.length; i++) {
+        dynamic data =
+            nativeDataDeserializer.onData(nativeDataDecoder.getObject(i));
+        if (data != null) {
+          nativeData.add(data);
+        }
+      }
+    }
+
     return new DeserializedResolutionImpact(
         constSymbolNames: constSymbolNames,
         constantLiterals: constantLiterals,
@@ -188,6 +212,7 @@ class ImpactDeserializer {
         listLiterals: listLiterals,
         mapLiterals: mapLiterals,
         staticUses: staticUses,
-        typeUses: typeUses);
+        typeUses: typeUses,
+        nativeData: nativeData);
   }
 }

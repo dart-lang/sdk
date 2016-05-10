@@ -36,6 +36,7 @@ class _ResolutionWorldImpact extends ResolutionImpact with WorldImpactBuilder {
   Setlet<ListLiteralUse> _listLiterals;
   Setlet<String> _constSymbolNames;
   Setlet<ConstantExpression> _constantLiterals;
+  Setlet<dynamic> _nativeData;
 
   _ResolutionWorldImpact(this.name);
 
@@ -102,6 +103,19 @@ class _ResolutionWorldImpact extends ResolutionImpact with WorldImpactBuilder {
     return _constantLiterals != null
         ? _constantLiterals
         : const <ConstantExpression>[];
+  }
+
+  void registerNativeData(dynamic nativeData) {
+    assert(nativeData != null);
+    if (_nativeData == null) {
+      _nativeData = new Setlet<dynamic>();
+    }
+    _nativeData.add(nativeData);
+  }
+
+  @override
+  Iterable<dynamic> get nativeData {
+    return _nativeData != null ? _nativeData : const <dynamic>[];
   }
 
   String toString() {
@@ -359,7 +373,9 @@ class ResolutionRegistry extends Registry {
     var nativeData = backend.resolveForeignCall(node, element, callStructure,
         new ForeignResolutionResolver(visitor, this));
     if (nativeData != null) {
+      // Split impact from resolution result.
       mapping.registerNativeData(node, nativeData);
+      worldImpact.registerNativeData(nativeData);
     }
   }
 

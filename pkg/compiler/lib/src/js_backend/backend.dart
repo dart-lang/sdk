@@ -2626,6 +2626,11 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
   BackendImpacts get impacts => backend.impacts;
 
+  // TODO(johnniwinther): Avoid this dependency.
+  ResolutionEnqueuer get resolutionEnqueuer {
+    return backend.compiler.enqueuer.resolution;
+  }
+
   @override
   WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
     TransformedWorldImpact transformed =
@@ -2785,8 +2790,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         registerBackendImpact(transformed, impacts.closure);
         LocalFunctionElement closure = staticUse.element;
         if (closure.type.containsTypeVariables) {
-          backend.compiler.enqueuer.resolution.universe
-              .closuresWithFreeTypeVariables
+          resolutionEnqueuer.universe.closuresWithFreeTypeVariables
               .add(closure);
           registerBackendImpact(transformed, impacts.computeSignature);
         }
@@ -2814,6 +2818,11 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           assert(invariant(NO_LOCATION_SPANNABLE, false,
               message: "Unexpected constant literal: ${constant.kind}."));
       }
+    }
+
+    for (native.NativeBehavior behavior in worldImpact.nativeData) {
+      resolutionEnqueuer.nativeEnqueuer
+          .registerNativeBehavior(behavior, worldImpact);
     }
 
     return transformed;

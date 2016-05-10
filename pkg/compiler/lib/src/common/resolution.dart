@@ -57,6 +57,8 @@ class ResolutionImpact extends WorldImpact {
   Iterable<ConstantExpression> get constantLiterals {
     return const <ConstantExpression>[];
   }
+
+  Iterable<dynamic> get nativeData => const <dynamic>[];
 }
 
 /// A language feature seen during resolution.
