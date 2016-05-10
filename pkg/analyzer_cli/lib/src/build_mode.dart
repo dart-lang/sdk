@@ -324,6 +324,11 @@ class BuildMode {
       // Parse the source and serialize its AST.
       Uri uri = Uri.parse(absoluteUri);
       Source source = context.sourceFactory.forUri2(uri);
+      if (!source.exists()) {
+        // TODO(paulberry): we should report a warning/error because DDC
+        // compilations are unlikely to work.
+        return null;
+      }
       return uriToUnit.putIfAbsent(uri, () {
         CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
         UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
