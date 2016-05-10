@@ -1862,6 +1862,11 @@ abstract class TypeParameterElement implements TypeDefiningElement {
  */
 abstract class TypeParameterizedElement implements Element {
   /**
+   * The type of this element, which will be a parameterized type.
+   */
+  ParameterizedType get type;
+
+  /**
    * Return a list containing all of the type parameters declared by this
    * element directly. This does not include type parameters that are declared
    * by any enclosing elements.
