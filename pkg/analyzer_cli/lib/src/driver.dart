@@ -587,8 +587,13 @@ class Driver implements CommandLineStarter {
     // the command lines sent to stdin.  So process it before deciding whether
     // to activate batch mode.
     if (sdk == null) {
-      sdk = new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
-      sdk.useSummary = true;
+      String dartSdkPath = options.dartSdkPath;
+      sdk = new DirectoryBasedDartSdk(new JavaFile(dartSdkPath));
+      sdk.useSummary = options.sourceFiles.every((String sourcePath) {
+            sourcePath = path.absolute(sourcePath);
+            sourcePath = path.normalize(sourcePath);
+            return !path.isWithin(dartSdkPath, sourcePath);
+          });
       sdk.analysisOptions = createAnalysisOptionsForCommandLineOptions(options);
     }
     _isBatch = options.shouldBatch;
