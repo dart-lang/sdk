@@ -6,7 +6,7 @@ import 'package:args/args.dart';
 import 'package:linter/src/util.dart';
 
 /// AST Spelunker
-void main([args]) {
+void main([List<String> args]) {
   var parser = new ArgParser(allowTrailingOptions: true);
 
   var options = parser.parse(args);

@@ -137,7 +137,7 @@ class AnalysisDriver {
     // we have a proper plugin.
     ruleRegistry.forEach((lint) {
       if (lint is ProjectVisitor) {
-        lint.visit(project);
+        (lint as ProjectVisitor).visit(project);
       }
     });
 

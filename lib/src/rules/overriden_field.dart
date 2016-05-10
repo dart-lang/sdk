@@ -63,16 +63,32 @@ class LogPrintHandler implements BaseLoggingHandler {
 ```
 ''';
 
+Iterable<InterfaceType> _findAllSupertypesAndMixins(
+    InterfaceType interface, List<InterfaceType> accumulator) {
+  if (interface == null ||
+      interface.isObject ||
+      accumulator.contains(interface)) {
+    return accumulator;
+  }
+
+  accumulator.add(interface);
+  InterfaceType superclass = interface.superclass;
+  Iterable<InterfaceType> interfaces = [superclass]
+    ..addAll(interface.element.mixins)
+    ..addAll(_findAllSupertypesAndMixins(superclass, accumulator));
+  return interfaces.where((i) => i != interface);
+}
+
 class OverridenField extends LintRule {
   _Visitor _visitor;
 
   OverridenField()
       : super(
-      name: 'overriden_field',
-      description: desc,
-      details: details,
-      group: Group.style,
-      maturity: Maturity.experimental) {
+            name: 'overriden_field',
+            description: desc,
+            details: details,
+            group: Group.style,
+            maturity: Maturity.experimental) {
     _visitor = new _Visitor(this);
   }
 
@@ -97,10 +113,10 @@ class _Visitor extends SimpleAstVisitor {
 
   PropertyAccessorElement _getOverriddenMember(Element member) {
     String memberName = member.name;
-    Function isOverriddenMember =
-        (PropertyAccessorElement a) => a.isSynthetic && a.name == memberName;
-    Function containsOverridenMember =
-        (InterfaceType i) => i.accessors.any(isOverriddenMember);
+    bool isOverriddenMember(PropertyAccessorElement a) =>
+        a.isSynthetic && a.name == memberName;
+    bool containsOverridenMember(InterfaceType i) =>
+        i.accessors.any(isOverriddenMember);
     ClassElement classElement = member.enclosingElement;
 
     Iterable<InterfaceType> interfaces =
@@ -111,19 +127,4 @@ class _Visitor extends SimpleAstVisitor {
         ? null
         : interface.accessors.firstWhere(isOverriddenMember);
   }
-}
-
-Iterable<InterfaceType> _findAllSupertypesAndMixins(InterfaceType interface, List<InterfaceType> accumulator) {
-  if (interface == null ||
-      interface.isObject ||
-      accumulator.contains(interface)) {
-    return accumulator;
-  }
-
-  accumulator.add(interface);
-  InterfaceType superclass = interface.superclass;
-  Iterable<InterfaceType> interfaces = [superclass]
-    ..addAll(interface.element.mixins)
-    ..addAll(_findAllSupertypesAndMixins(superclass, accumulator));
-  return interfaces.where((i) => i != interface);
 }

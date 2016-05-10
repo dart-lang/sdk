@@ -15,11 +15,11 @@ const desc =
 const details = '''
 From the [style guide] (https://www.dartlang.org/articles/style-guide/):
 
-**PREFER** using a public final field instead of a private field with a public 
+**PREFER** using a public final field instead of a private field with a public
 getter.
 
-If you have a field that outside code should be able to see but not assign to 
-(and you don't need to set it outside of the constructor), a simple solution 
+If you have a field that outside code should be able to see but not assign to
+(and you don't need to set it outside of the constructor), a simple solution
 that works in many cases is to just mark it `final`.
 
 **GOOD:**
@@ -41,11 +41,12 @@ class Box {
 ''';
 
 class UnnecessaryGetters extends LintRule {
-  UnnecessaryGetters() : super(
-          name: 'unnecessary_getters',
-          description: desc,
-          details: details,
-          group: Group.style);
+  UnnecessaryGetters()
+      : super(
+            name: 'unnecessary_getters',
+            description: desc,
+            details: details,
+            group: Group.style);
 
   @override
   AstVisitor getVisitor() => new Visitor(this);
@@ -64,7 +65,7 @@ class Visitor extends SimpleAstVisitor {
     var methods = node.members.where(isPublicMethod);
 
     // Build getter/setter maps
-    for (var method in methods) {
+    for (MethodDeclaration method in methods) {
       if (method.isGetter) {
         getters[method.name.toString()] = method;
       } else if (method.isSetter) {

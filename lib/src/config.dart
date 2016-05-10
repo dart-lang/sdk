@@ -63,7 +63,7 @@ abstract class LintConfig {
 }
 
 abstract class RuleConfig {
-  Map<String, dynamic> args;
+  Map<String, dynamic> args = <String, dynamic>{};
   String get group;
   String get name;
 
@@ -112,7 +112,7 @@ class _LintConfig implements LintConfig {
     return null;
   }
 
-  Object parseArgs(args) {
+  Map<String, dynamic> parseArgs(args) {
     bool enabled = asBool(args);
     if (enabled != null) {
       return {'enabled': enabled};
@@ -211,7 +211,7 @@ class _LintConfig implements LintConfig {
           // - unnecessary_getters
           // - camel_case_types
           if (v is List) {
-            v.forEach((rule) {
+            (v as List).forEach((rule) {
               var config = new _RuleConfig();
               config.name = asString(rule);
               config.args = {'enabled': true};
@@ -255,6 +255,4 @@ class _RuleConfig extends RuleConfig {
   String group;
   @override
   String name;
-  @override
-  var args = <String, dynamic>{};
 }

@@ -10,7 +10,7 @@ import 'package:linter/src/rules.dart';
 import 'package:markdown/markdown.dart';
 
 /// Generates lint rule docs for publishing to http://dart-lang.github.io/
-void main([args]) {
+void main([List<String> args]) {
   var parser = new ArgParser(allowTrailingOptions: true);
 
   parser.addOption('out', abbr: 'o', help: 'Specifies output directory.');
@@ -45,7 +45,7 @@ void main([args]) {
 
 const ruleFootMatter = '''
 In addition, rules can be further distinguished by *maturity*.  Unqualified
-rules are considered stable, while others may be marked **experimental** 
+rules are considered stable, while others may be marked **experimental**
 to indicate that they are under review.
 
 Rules can be selectively enabled in the analyzer using
@@ -55,7 +55,7 @@ auto-generated list enabling all options is provided
 some lints will be enabled in practice, but this list should provide a
 convenient jumping-off point.
 
-These rules are under active development.  Feedback is 
+These rules are under active development.  Feedback is
 [welcome](https://github.com/dart-lang/linter/issues)!
 ''';
 

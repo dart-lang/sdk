@@ -14,7 +14,7 @@ import 'package:path/path.dart' as p;
 
 Pubspec _findAndParsePubspec(Directory root) {
   if (root.existsSync()) {
-    var pubspec = root
+    File pubspec = root
         .listSync(followLinks: false)
         .firstWhere((f) => isPubspecFile(f), orElse: () => null);
     if (pubspec != null) {

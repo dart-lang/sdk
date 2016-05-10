@@ -202,32 +202,27 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   AssignmentExpression assignment = expression;
 
   var leftHandSide = assignment.leftHandSide;
-  if (leftHandSide is! SimpleIdentifier) {
-    return false;
-  }
-  var staticElement = leftHandSide.staticElement;
-  if (staticElement is! PropertyAccessorElement || !staticElement.isSynthetic) {
-    return false;
-  }
-
   var rightHandSide = assignment.rightHandSide;
-  if (rightHandSide is! SimpleIdentifier) {
-    return false;
-  }
+  if (leftHandSide is SimpleIdentifier && rightHandSide is SimpleIdentifier) {
+    var leftElement = leftHandSide.staticElement;
+    if (leftElement is! PropertyAccessorElement || !leftElement.isSynthetic) {
+      return false;
+    }
 
-  // To guard against setters used as type constraints
-  if (leftHandSide.staticType != rightHandSide.staticType) {
-    return false;
-  }
+    // To guard against setters used as type constraints
+    if (leftHandSide.staticType != rightHandSide.staticType) {
+      return false;
+    }
 
-  staticElement = rightHandSide.staticElement;
-  if (staticElement is! ParameterElement) {
-    return false;
-  }
+    var rightElement = rightHandSide.staticElement;
+    if (rightElement is! ParameterElement) {
+      return false;
+    }
 
-  var parameters = setter.parameters.parameters;
-  if (parameters.length == 1) {
-    return staticElement == parameters[0].element;
+    var parameters = setter.parameters.parameters;
+    if (parameters.length == 1) {
+      return rightElement == parameters[0].element;
+    }
   }
 
   return false;

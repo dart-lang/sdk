@@ -166,15 +166,21 @@ class _Visitor extends SimpleAstVisitor {
 
   bool _unrelatedTypes(BinaryExpression node) {
     DartType leftType = node.leftOperand.bestType;
-    ClassElement leftClass = leftType.element;
     DartType rightType = node.rightOperand.bestType;
-    ClassElement rightClass = rightType.element;
-    return node.leftOperand is! NullLiteral &&
-        node.rightOperand is! NullLiteral &&
-        !leftType.isMoreSpecificThan(rightType) &&
-        !rightType.isMoreSpecificThan(leftType) &&
-        leftType != rightType &&
-        (leftClass.supertype.isObject ||
-            leftClass.supertype != rightClass.supertype);
+    if (leftType.isBottom || leftType.isDynamic || rightType.isBottom || rightType.isDynamic) {
+      return false;
+    }
+    if (leftType == rightType ||
+        leftType.isMoreSpecificThan(rightType) ||
+        rightType.isMoreSpecificThan(leftType)) {
+      return false;
+    }
+    Element leftElement = leftType.element;
+    Element rightElement = rightType.element;
+    if (leftElement is ClassElement && rightElement is ClassElement) {
+      return leftElement.supertype.isObject ||
+          leftElement.supertype != rightElement.supertype;
+    }
+    return false;
   }
 }

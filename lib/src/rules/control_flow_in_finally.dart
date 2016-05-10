@@ -97,29 +97,6 @@ class ControlFlowInFinally extends LintRule {
   AstVisitor getVisitor() => _visitor;
 }
 
-class _Visitor extends SimpleAstVisitor
-    with ControlFlowInFinallyBlockReporterMixin {
-  @override
-  final LintRule rule;
-
-  _Visitor(this.rule);
-
-  @override
-  visitReturnStatement(ReturnStatement node) {
-    reportIfFinallyAncestorExists(node);
-  }
-
-  @override
-  visitContinueStatement(ContinueStatement node) {
-    reportIfFinallyAncestorExists(node, ancestor: node.target);
-  }
-
-  @override
-  visitBreakStatement(BreakStatement node) {
-    reportIfFinallyAncestorExists(node, ancestor: node.target);
-  }
-}
-
 /// Do not extend this class, it is meant to be used from
 /// [NoThrowInFinallyBlock] which is in a separate rule to allow a more granular
 /// configurability given that reporting throw statements in a finally clause is
@@ -131,8 +108,7 @@ abstract class ControlFlowInFinallyBlockReporterMixin {
     final TryStatement tryStatement =
         node.getAncestor((n) => n is TryStatement);
     final finallyBlock = tryStatement?.finallyBlock;
-    final Function finallyBlockAncestorPredicate =
-        (AstNode n) => n == finallyBlock;
+    bool finallyBlockAncestorPredicate(AstNode n) => n == finallyBlock;
     if (tryStatement == null ||
         finallyBlock == null ||
         node.getAncestor(finallyBlockAncestorPredicate) == null) {
@@ -153,7 +129,7 @@ abstract class ControlFlowInFinallyBlockReporterMixin {
       TryStatement tryStatement) {
     AstNode enablerNode;
     if (ancestor == null) {
-      final functionBlockPredicate = (n) =>
+      bool functionBlockPredicate(n) =>
           n is FunctionBody &&
           n.getAncestor(finallyBlockAncestorPredicate) != null;
       enablerNode = node.getAncestor(functionBlockPredicate);
@@ -162,5 +138,28 @@ abstract class ControlFlowInFinallyBlockReporterMixin {
     }
 
     return enablerNode;
+  }
+}
+
+class _Visitor extends SimpleAstVisitor
+    with ControlFlowInFinallyBlockReporterMixin {
+  @override
+  final LintRule rule;
+
+  _Visitor(this.rule);
+
+  @override
+  visitBreakStatement(BreakStatement node) {
+    reportIfFinallyAncestorExists(node, ancestor: node.target);
+  }
+
+  @override
+  visitContinueStatement(ContinueStatement node) {
+    reportIfFinallyAncestorExists(node, ancestor: node.target);
+  }
+
+  @override
+  visitReturnStatement(ReturnStatement node) {
+    reportIfFinallyAncestorExists(node);
   }
 }

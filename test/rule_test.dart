@@ -200,10 +200,10 @@ defineRuleUnitTests() {
     });
     group('isUpperCase', () {
       var caps = new List<int>.generate(26, (i) => 'A'.codeUnitAt(0) + i);
-      testEach(caps, isUpperCase, isTrue);
+      testEachInt(caps, isUpperCase, isTrue);
 
       var bad = ['a', '1', 'z'].map((c) => c.codeUnitAt(0));
-      testEach(bad, isUpperCase, isFalse);
+      testEachInt(bad, isUpperCase, isFalse);
     });
     group('libary_name_prefixes', () {
       testEach(
@@ -343,7 +343,11 @@ AnnotationMatcher matchesAnnotation(
         String message, ErrorType type, int lineNumber) =>
     new AnnotationMatcher(new Annotation(message, type, lineNumber));
 
-testEach(Iterable<Object> values, dynamic f(Object s), Matcher m) {
+testEach(Iterable<Object> values, bool f(String s), Matcher m) {
+  values.forEach((s) => test('"$s"', () => expect(f(s), m)));
+}
+
+testEachInt(Iterable<Object> values, bool f(int s), Matcher m) {
   values.forEach((s) => test('"$s"', () => expect(f(s), m)));
 }
 
@@ -447,8 +451,7 @@ class AnnotationMatcher extends Matcher {
       description.addDescriptionOf(_expected);
 
   @override
-  bool matches(item, Map matchState) =>
-      item is Annotation && _matches(item as Annotation);
+  bool matches(item, Map matchState) => item is Annotation && _matches(item);
 
   bool _matches(Annotation other) {
     // Only test messages if they're specified in the expectation

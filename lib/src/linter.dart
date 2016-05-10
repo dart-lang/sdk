@@ -194,8 +194,6 @@ class LinterException implements Exception {
 /// Linter options.
 class LinterOptions extends DriverOptions {
   Iterable<LintRule> enabledLints;
-  @override
-  final bool enableLints = true;
   LintFilter filter;
   LinterOptions([this.enabledLints]) {
     enabledLints ??= ruleRegistry;

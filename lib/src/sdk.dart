@@ -211,11 +211,13 @@ class HtmlElement {}
   AnalysisContextImpl _analysisContext;
 
   MockSdk() {
-    LIBRARIES.forEach((_MockSdkLibrary library) {
-      provider.newFile(library.path, library.content);
-      library.parts.forEach((file) {
-        provider.newFile(file.path, file.content);
-      });
+    LIBRARIES.forEach((SdkLibrary library) {
+      if (library is _MockSdkLibrary) {
+        provider.newFile(library.path, library.content);
+        library.parts.forEach((file) {
+          provider.newFile(file.path, file.content);
+        });
+      }
     });
   }
 

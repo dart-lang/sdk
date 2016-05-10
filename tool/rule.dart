@@ -8,7 +8,7 @@ import 'package:args/args.dart';
 
 /// Generates rule and rule test stub files (int src/rules and test/rules
 /// respectively), as well as the rule index (rules.dart).
-void main([args]) {
+void main([List<String> args]) {
   var parser = new ArgParser(allowTrailingOptions: true);
 
   parser.addOption('out', abbr: 'o', help: 'Specifies project root.');

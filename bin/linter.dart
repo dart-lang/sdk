@@ -37,7 +37,7 @@ void printUsage(ArgParser parser, IOSink out, [String error]) {
   out.writeln('''$message
 Usage: linter <file>
 ${parser.usage}
-  
+
 For more information, see https://github.com/dart-lang/linter
 ''');
 }
@@ -68,7 +68,7 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
     ..addOption('package-root',
         abbr: 'p', help: 'Custom package root. (Discouraged.)');
 
-  var options;
+  ArgResults options;
   try {
     options = parser.parse(args);
   } on FormatException catch (err) {
@@ -99,14 +99,16 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
 
   var lints = options['lints'];
   if (lints != null && !lints.isEmpty) {
-    var rules = lints.map((lint) {
+    var rules = <LintRule>[];
+    for (var lint in lints) {
       var rule = ruleRegistry[lint];
       if (rule == null) {
         errorSink.write('Unrecognized lint rule: $lint');
         exit(unableToProcessExitCode);
       }
-      return rule;
-    }).toList();
+      rules.add(rule);
+    }
+    ;
 
     lintOptions.enabledLints = rules;
   }
