@@ -2839,6 +2839,22 @@ A v = null;
     expect(unit.topLevelVariables[0].type.toString(), 'A<int>');
   }
 
+  void test_instantiateToBounds_invokeConstructor_noBound() {
+    var unit = checkFile('''
+class C<T> {}
+var x = new C();
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'C<dynamic>');
+  }
+
+  void test_instantiateToBounds_invokeConstructor_typeArgsExact() {
+    var unit = checkFile('''
+class C<T extends num> {}
+var x = new C<int>();
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'C<int>');
+  }
+
   void test_instantiateToBounds_notGeneric() {
     var unit = checkFile(r'''
 class A {}

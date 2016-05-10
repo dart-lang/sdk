@@ -24,6 +24,13 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 typedef FunctionTypedElement FunctionTypedElementComputer();
 
 /**
+ * Computer of type arguments which is used to delay computing of type
+ * arguments until they are requested, instead of at the [ParameterizedType]
+ * creation time.
+ */
+typedef List<DartType> TypeArgumentsComputer();
+
+/**
  * A [Type] that represents the type 'bottom'.
  */
 class BottomTypeImpl extends TypeImpl {
@@ -1117,7 +1124,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /**
    * A list containing the actual types of the type arguments.
    */
-  List<DartType> typeArguments = DartType.EMPTY_LIST;
+  List<DartType> _typeArguments = DartType.EMPTY_LIST;
+
+  /**
+   * If not `null` and [_typeArguments] is `null`, the actual type arguments
+   * should be computed (once) using this function.
+   */
+  TypeArgumentsComputer _typeArgumentsComputer;
 
   /**
    * The set of typedefs which should not be expanded when exploring this type,
@@ -1136,10 +1149,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * with the given [name] and [typeArguments].
    */
   InterfaceTypeImpl.elementWithNameAndArgs(
-      ClassElement element, String name, List<DartType> typeArguments)
+      ClassElement element, String name, this._typeArgumentsComputer)
       : prunedTypedefs = null,
         super(element, name) {
-    this.typeArguments = typeArguments;
+    _typeArguments = null;
   }
 
   /**
@@ -1298,6 +1311,23 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return supertype;
     }
     return supertype.substitute2(typeArguments, typeParameters);
+  }
+
+  @override
+  List<DartType> get typeArguments {
+    if (_typeArguments == null) {
+      _typeArguments = _typeArgumentsComputer();
+      _typeArgumentsComputer = null;
+    }
+    return _typeArguments;
+  }
+
+  /**
+   * Set [typeArguments].
+   */
+  void set typeArguments(List<DartType> typeArguments) {
+    _typeArguments = typeArguments;
+    _typeArgumentsComputer = null;
   }
 
   @override

@@ -582,12 +582,13 @@ class ClassElementForLink_Class extends ClassElementForLink
       DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
     int numTypeParameters = _unlinkedClass.typeParameters.length;
     if (numTypeParameters != 0) {
-      List<DartType> typeArguments = new List<DartType>(numTypeParameters);
-      for (int i = 0; i < numTypeParameters; i++) {
-        typeArguments[i] = getTypeArgument(i);
-      }
-      return new InterfaceTypeImpl.elementWithNameAndArgs(
-          this, name, typeArguments);
+      return new InterfaceTypeImpl.elementWithNameAndArgs(this, name, () {
+        List<DartType> typeArguments = new List<DartType>(numTypeParameters);
+        for (int i = 0; i < numTypeParameters; i++) {
+          typeArguments[i] = getTypeArgument(i);
+        }
+        return typeArguments;
+      });
     } else {
       return _type ??= new InterfaceTypeImpl(this);
     }
@@ -2242,12 +2243,23 @@ class ExprTypeComputer {
     ConstructorElementForLink element =
         unit._resolveRef(ref.reference).asConstructor;
     if (element != null) {
-      stack.add(element.enclosingClass.buildType(
-          (int i) => i >= ref.typeArguments.length
-              ? DynamicTypeImpl.instance
-              : unit._resolveTypeRef(
-                  ref.typeArguments[i], variable._typeParameterContext),
-          const []));
+      ClassElementForLink_Class enclosingClass = element.enclosingClass;
+      stack.add(enclosingClass.buildType((int i) {
+        // Type argument explicitly specified.
+        if (i < ref.typeArguments.length) {
+          return unit._resolveTypeRef(
+              ref.typeArguments[i], variable._typeParameterContext);
+        }
+        // In strong mode, type argument defaults to bound (if any).
+        if (linker.strongMode) {
+          TypeParameterElement typeParameter = enclosingClass.typeParameters[i];
+          if (typeParameter.bound != null) {
+            return typeParameter.bound;
+          }
+        }
+        // Otherwise type argument defaults to `dynamic`.
+        return DynamicTypeImpl.instance;
+      }, const []));
     } else {
       stack.add(DynamicTypeImpl.instance);
     }
@@ -4291,6 +4303,8 @@ class TypeParameterElementForLink implements TypeParameterElementImpl {
   TypeParameterTypeImpl _type;
   ElementLocation _location;
 
+  DartType _bound;
+
   TypeParameterElementForLink(
       this.enclosingElement, this._unlinkedTypeParam, this.nestingLevel);
 
@@ -4299,8 +4313,8 @@ class TypeParameterElementForLink implements TypeParameterElementImpl {
     if (_unlinkedTypeParam.bound == null) {
       return null;
     }
-    // TODO(scheglov) implement
-    throw new UnimplementedError();
+    return _bound ??= enclosingElement.compilationUnit
+        ._resolveTypeRef(_unlinkedTypeParam.bound, enclosingElement);
   }
 
   @override

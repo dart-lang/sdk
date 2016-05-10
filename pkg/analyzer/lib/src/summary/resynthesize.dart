@@ -521,10 +521,13 @@ class _ConstExprBuilder {
   TypeName _buildTypeAst(DartType type) {
     List<TypeName> argumentNodes;
     if (type is ParameterizedType) {
-      List<DartType> typeArguments = type.typeArguments;
-      argumentNodes = typeArguments.every((a) => a.isDynamic)
-          ? null
-          : typeArguments.map(_buildTypeAst).toList();
+      if (!resynthesizer.libraryResynthesizer.typesWithImplicitTypeArguments
+          .contains(type)) {
+        List<DartType> typeArguments = type.typeArguments;
+        argumentNodes = typeArguments.every((a) => a.isDynamic)
+            ? null
+            : typeArguments.map(_buildTypeAst).toList();
+      }
     }
     TypeName node = AstFactory.typeName4(type.name, argumentNodes);
     node.type = type;
@@ -950,6 +953,13 @@ class _LibraryResynthesizer {
   final Map<String, Map<String, Element>> resynthesizedElements =
       <String, Map<String, Element>>{};
 
+  /**
+   * Types with implicit type arguments, which are the same as type parameter
+   * bounds (in strong mode), or `dynamic` (in spec mode).
+   */
+  final Set<DartType> typesWithImplicitTypeArguments =
+      new Set<DartType>.identity();
+
   _LibraryResynthesizer(this.summaryResynthesizer, this.linkedLibrary,
       this.unlinkedUnits, this.librarySource) {
     isCoreLibrary = librarySource.uri.toString() == 'dart:core';
@@ -1287,6 +1297,11 @@ class _LibraryResynthesizer {
  */
 class _ReferenceInfo {
   /**
+   * The [_LibraryResynthesizer] which is being used to obtain summaries.
+   */
+  final _LibraryResynthesizer libraryResynthesizer;
+
+  /**
    * The enclosing [_ReferenceInfo], or `null` for top-level elements.
    */
   final _ReferenceInfo enclosing;
@@ -1324,12 +1339,12 @@ class _ReferenceInfo {
    * the type itself.  Otherwise, pass `null` and the type will be computed
    * when appropriate.
    */
-  _ReferenceInfo(this.enclosing, this.name, this.element, DartType specialType,
-      this.numTypeParameters) {
+  _ReferenceInfo(this.libraryResynthesizer, this.enclosing, this.name,
+      this.element, DartType specialType, this.numTypeParameters) {
     if (specialType != null) {
       type = specialType;
     } else {
-      type = _buildType((_) => DynamicTypeImpl.instance, const []);
+      type = _buildType(true, 0, (_) => DynamicTypeImpl.instance, const []);
     }
   }
 
@@ -1346,12 +1361,13 @@ class _ReferenceInfo {
    * If the entity referred to by this [_ReferenceInfo] is not a type, `null`
    * is returned.
    */
-  DartType buildType(
+  DartType buildType(bool instantiateToBoundsAllowed, int numTypeArguments,
       DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
     DartType result =
         (numTypeParameters == 0 && implicitFunctionTypeIndices.isEmpty)
             ? type
-            : _buildType(getTypeArgument, implicitFunctionTypeIndices);
+            : _buildType(instantiateToBoundsAllowed, numTypeArguments,
+                getTypeArgument, implicitFunctionTypeIndices);
     if (result == null) {
       // TODO(paulberry): figure out how to handle this case (which should
       // only occur in the event of erroneous code).
@@ -1361,21 +1377,51 @@ class _ReferenceInfo {
   }
 
   /**
-   * If this reference refers to a type, build a [DartType] which instantiates
-   * it with type arguments returned by [getTypeArgument].  Otherwise return
-   * `null`.
+   * If this reference refers to a type, build a [DartType].  Otherwise return
+   * `null`.  If [numTypeArguments] is the same as the [numTypeParameters],
+   * the type in instantiated with type arguments returned by [getTypeArgument],
+   * otherwise it is instantiated with type parameter bounds (if strong mode),
+   * or with `dynamic` type arguments.
    *
    * If [implicitFunctionTypeIndices] is not null, a [DartType] should be
    * created which refers to a function type implicitly defined by one of the
    * element's parameters.  [implicitFunctionTypeIndices] is interpreted as in
    * [EntityRef.implicitFunctionTypeIndices].
    */
-  DartType _buildType(
+  DartType _buildType(bool instantiateToBoundsAllowed, int numTypeArguments,
       DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
     ElementHandle element = this.element; // To allow type promotion
     if (element is ClassElementHandle) {
-      return new InterfaceTypeImpl.elementWithNameAndArgs(element, name,
-          _buildTypeArguments(numTypeParameters, getTypeArgument));
+      List<DartType> typeArguments = null;
+      // If type arguments are specified, use them.
+      // Otherwise, delay until they are requested.
+      if (numTypeParameters == 0) {
+        typeArguments = const <DartType>[];
+      } else if (numTypeArguments == numTypeParameters) {
+        typeArguments = new List<DartType>(numTypeParameters);
+        for (int i = 0; i < numTypeParameters; i++) {
+          typeArguments[i] = getTypeArgument(i);
+        }
+      }
+      InterfaceTypeImpl type =
+          new InterfaceTypeImpl.elementWithNameAndArgs(element, name, () {
+        if (typeArguments == null) {
+          typeArguments = element.typeParameters.map((typeParameter) {
+            DartType bound = typeParameter.bound;
+            return libraryResynthesizer.summaryResynthesizer.strongMode &&
+                instantiateToBoundsAllowed &&
+                bound != null ? bound : DynamicTypeImpl.instance;
+          }).toList();
+        }
+        return typeArguments;
+      });
+      // Mark the type as having implicit type arguments, so that we don't
+      // attempt to request them during constant expression resynthesizing.
+      if (typeArguments == null) {
+        libraryResynthesizer.typesWithImplicitTypeArguments.add(type);
+      }
+      // Done.
+      return type;
     } else if (element is FunctionTypedElement) {
       int numTypeArguments;
       FunctionTypedElementComputer computer;
@@ -2212,7 +2258,8 @@ class _UnitResynthesizer {
    * deserialized, so handles are used to avoid having to deserialize other
    * libraries in the process.
    */
-  DartType buildType(EntityRef type, {bool defaultVoid: false}) {
+  DartType buildType(EntityRef type,
+      {bool defaultVoid: false, bool instantiateToBoundsAllowed: true}) {
     if (type == null) {
       if (defaultVoid) {
         return VoidTypeImpl.instance;
@@ -2243,7 +2290,10 @@ class _UnitResynthesizer {
       }
       _ReferenceInfo referenceInfo = referenceInfos[type.reference];
       return referenceInfo.buildType(
-          getTypeArgument, type.implicitFunctionTypeIndices);
+          instantiateToBoundsAllowed,
+          type.typeArguments.length,
+          getTypeArgument,
+          type.implicitFunctionTypeIndices);
     }
   }
 
@@ -2388,7 +2438,8 @@ class _UnitResynthesizer {
   void finishTypeParameter(UnlinkedTypeParam serializedTypeParameter,
       TypeParameterElementImpl typeParameterElement) {
     if (serializedTypeParameter.bound != null) {
-      typeParameterElement.bound = buildType(serializedTypeParameter.bound);
+      typeParameterElement.bound = buildType(serializedTypeParameter.bound,
+          instantiateToBoundsAllowed: false);
     }
   }
 
@@ -2540,7 +2591,7 @@ class _UnitResynthesizer {
             break;
         }
       }
-      referenceInfos[i] = new _ReferenceInfo(
+      referenceInfos[i] = new _ReferenceInfo(libraryResynthesizer,
           enclosingInfo, name, element, type, numTypeParameters);
     }
   }
@@ -2627,7 +2678,7 @@ class _UnitResynthesizer {
     bool isClass = info.element is ClassElement;
     _ReferenceInfo classInfo = isClass ? info : info.enclosing;
     List<DartType> typeArguments = typeArgumentRefs.map(buildType).toList();
-    return classInfo.buildType((i) {
+    return classInfo.buildType(true, typeArguments.length, (i) {
       if (i < typeArguments.length) {
         return typeArguments[i];
       } else {
