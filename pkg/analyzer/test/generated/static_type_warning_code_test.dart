@@ -1381,6 +1381,17 @@ f() { return new G<A>(); }
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
+  void test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias() {
+    assertErrorsInCode(
+        r'''
+class A {}
+class B {}
+typedef F<T extends A>();
+F<B> fff;
+''',
+        [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+  }
+
   void test_typeArgumentNotMatchingBounds_parameter() {
     assertErrorsInCode(
         r'''

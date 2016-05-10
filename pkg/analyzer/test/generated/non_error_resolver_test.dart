@@ -5112,6 +5112,30 @@ f() { return new G<B>(); }''');
     verify([source]);
   }
 
+  void test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias_hasBound() {
+    Source source = addSource(r'''
+class A {}
+class B extends A {}
+typedef F<T extends A>();
+F<A> fa;
+F<B> fb;
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias_noBound() {
+    Source source = addSource(r'''
+typedef F<T>();
+F<int> f1;
+F<String> f2;
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_typeArgumentNotMatchingBounds_typeArgumentList_0() {
     Source source = addSource("abstract class A<T extends A>{}");
     computeLibrarySourceErrors(source);

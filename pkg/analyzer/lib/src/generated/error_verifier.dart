@@ -5225,40 +5225,45 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (type == null) {
       return;
     }
-    // prepare ClassElement
+    // prepare type parameters
+    List<DartType> typeParameters = null;
+    List<TypeParameterElement> boundingElts = null;
+    List<DartType> typeArguments = null;
     Element element = type.element;
     if (element is ClassElement) {
-      // prepare type parameters
-      List<DartType> typeParameters = element.type.typeArguments;
-      List<TypeParameterElement> boundingElts = element.typeParameters;
-      // iterate over each bounded type parameter and corresponding argument
-      NodeList<TypeName> typeNameArgList = typeName.typeArguments.arguments;
-      List<DartType> typeArguments = (type as InterfaceType).typeArguments;
-      int loopThroughIndex =
-          math.min(typeNameArgList.length, boundingElts.length);
-
-      bool shouldSubstitute = typeArguments.length != 0 &&
-          typeArguments.length == typeParameters.length;
-      for (int i = 0; i < loopThroughIndex; i++) {
-        TypeName argTypeName = typeNameArgList[i];
-        DartType argType = argTypeName.type;
-        DartType boundType = boundingElts[i].bound;
-        if (argType != null && boundType != null) {
-          if (shouldSubstitute) {
-            boundType = boundType.substitute2(typeArguments, typeParameters);
+      typeParameters = element.type.typeArguments;
+      boundingElts = element.typeParameters;
+      typeArguments = (type as InterfaceType).typeArguments;
+    } else if (element is FunctionTypeAliasElement) {
+      typeParameters = element.type.typeArguments;
+      boundingElts = element.typeParameters;
+      typeArguments = (type as FunctionType).typeArguments;
+    } else {
+      return;
+    }
+    // iterate over each bounded type parameter and corresponding argument
+    NodeList<TypeName> typeNameArgList = typeName.typeArguments.arguments;
+    int loopThroughIndex =
+        math.min(typeNameArgList.length, boundingElts.length);
+    bool shouldSubstitute = typeArguments.length != 0 &&
+        typeArguments.length == typeParameters.length;
+    for (int i = 0; i < loopThroughIndex; i++) {
+      TypeName argTypeName = typeNameArgList[i];
+      DartType argType = argTypeName.type;
+      DartType boundType = boundingElts[i].bound;
+      if (argType != null && boundType != null) {
+        if (shouldSubstitute) {
+          boundType = boundType.substitute2(typeArguments, typeParameters);
+        }
+        if (!_typeSystem.isSubtypeOf(argType, boundType)) {
+          ErrorCode errorCode;
+          if (_isInConstInstanceCreation) {
+            errorCode = CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS;
+          } else {
+            errorCode = StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS;
           }
-          if (!_typeSystem.isSubtypeOf(argType, boundType)) {
-            ErrorCode errorCode;
-            if (_isInConstInstanceCreation) {
-              errorCode =
-                  CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS;
-            } else {
-              errorCode =
-                  StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS;
-            }
-            _errorReporter.reportTypeErrorForNode(
-                errorCode, argTypeName, [argType, boundType]);
-          }
+          _errorReporter.reportTypeErrorForNode(
+              errorCode, argTypeName, [argType, boundType]);
         }
       }
     }
