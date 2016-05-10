@@ -29,6 +29,9 @@ abstract class ConstantEnvironment {
   /// The [ConstantSystem] used by this environment.
   ConstantSystem get constantSystem;
 
+  /// Returns `true` if a value has been computed for [expression].
+  bool hasConstantValue(ConstantExpression expression);
+
   /// Returns the constant value computed for [expression].
   // TODO(johnniwinther): Support directly evaluation of [expression].
   ConstantValue getConstantValue(ConstantExpression expression);
@@ -285,6 +288,10 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
       return constant.expression;
     }
     return null;
+  }
+
+  bool hasConstantValue(ConstantExpression expression) {
+    return constantValueMap.containsKey(expression);
   }
 
   ConstantValue getConstantValue(ConstantExpression expression) {

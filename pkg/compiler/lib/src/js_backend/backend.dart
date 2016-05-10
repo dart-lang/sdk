@@ -1475,12 +1475,11 @@ class JavaScriptBackend extends Backend {
     if (kind.category == ElementCategory.VARIABLE) {
       VariableElement variableElement = element;
       ConstantExpression constant = variableElement.constant;
-      // TODO(johnniwinther): ensure `initialValue` is not null. Note that
-      // calling `evaluate` in getConstantValue may trigger issues for deferred
-      // loading (dartbug.com/26406).
-      ConstantValue initialValue =
-          constant == null ? null : constants.getConstantValue(constant);
-      if (initialValue != null) {
+      if (constant != null) {
+        ConstantValue initialValue = constants.getConstantValue(constant);
+        assert(invariant(variableElement, initialValue != null,
+            message: "Constant expression without value: "
+                "${constant.toStructuredText()}."));
         registerCompileTimeConstant(initialValue, work.registry);
         addCompileTimeConstantForEmission(initialValue);
         // We don't need to generate code for static or top-level
