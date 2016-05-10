@@ -768,21 +768,17 @@ void Precompiler::AddField(const Field& field) {
       const bool is_initialized = value.raw() != Object::sentinel().raw();
       if (is_initialized && !reset_fields_) return;
 
-      if (!field.HasPrecompiledInitializer()) {
+      if (!field.HasPrecompiledInitializer() ||
+          !Function::Handle(Z, field.PrecompiledInitializer()).HasCode()) {
         if (FLAG_trace_precompiler) {
           THR_Print("Precompiling initializer for %s\n", field.ToCString());
         }
         ASSERT(Dart::snapshot_kind() != Snapshot::kAppNoJIT);
-        field.SetStaticValue(Instance::Handle(field.SavedInitialStaticValue()));
         const Function& initializer =
-            Function::Handle(CompileStaticInitializer(field));
-        if (!initializer.IsNull()) {
-          field.SetPrecompiledInitializer(initializer);
-        }
-        ASSERT(field.HasPrecompiledInitializer());
-        const Function& function =
-            Function::Handle(Z, field.PrecompiledInitializer());
-        AddCalleesOf(function);
+            Function::Handle(Z, CompileStaticInitializer(field));
+        ASSERT(!initializer.IsNull());
+        field.SetPrecompiledInitializer(initializer);
+        AddCalleesOf(initializer);
       }
     }
   }
