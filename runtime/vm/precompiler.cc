@@ -54,6 +54,7 @@ DEFINE_FLAG(bool, print_unique_targets, false, "Print unique dynaic targets");
 DEFINE_FLAG(bool, trace_precompiler, false, "Trace precompiler.");
 DEFINE_FLAG(int, max_speculative_inlining_attempts, 1,
     "Max number of attempts with speculative inlining (precompilation only)");
+DEFINE_FLAG(int, precompiler_rounds, 1, "Number of precompiler iterations");
 
 DECLARE_FLAG(bool, allocation_sinking);
 DECLARE_FLAG(bool, common_subexpression_elimination);
@@ -168,8 +169,7 @@ void Precompiler::DoCompileAll(
     // because their class hasn't been finalized yet.
     FinalizeAllClasses();
 
-    const intptr_t kPrecompilerRounds = 1;
-    for (intptr_t round = 0; round < kPrecompilerRounds; round++) {
+    for (intptr_t round = 0; round < FLAG_precompiler_rounds; round++) {
       if (FLAG_trace_precompiler) {
         THR_Print("Precompiler round %" Pd "\n", round);
       }
