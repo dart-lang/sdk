@@ -3121,30 +3121,56 @@ final x = F;
     expect(x.type.toString(), 'Type');
   }
 
-  void test_refineBinaryExpressionType_typeParameter() {
+  void test_refineBinaryExpressionType_typeParameter_T_double() {
     checkFile('''
-class Point<T extends num> {
-  T x;
-  T y;
+class C<T extends num> {
+  T a;
 
-  Point(this.x, this.y);
-
-  Point<T> operator +(Point<T> other) {
-    return new Point<T>(x + other.x, y + other.y);
+  void op(double b) {
+    double r1 = a + b;
+    double r2 = a - b;
+    double r3 = a * b;
+    double r4 = a / b;
+  }
+}
+  ''');
   }
 
-  Point<T> operator -(Point<T> other) {
-    return new Point<T>(x - other.x, y - other.y);
+  void test_refineBinaryExpressionType_typeParameter_T_int() {
+    checkFile('''
+class C<T extends num> {
+  T a;
+
+  void op(int b) {
+    T r1 = a + b;
+    T r2 = a - b;
+    T r3 = a * b;
   }
 
-  Point<T> operator *(Point<T> other) {
-    return new Point<T>(x * other.x, y * other.y);
+  void opEq(int b) {
+    a += b;
+    a -= b;
+    a *= b;
+  }
+}
+  ''');
   }
 
-  void compoundAssignment(T k) {
-    x += k;
-    x -= k;
-    x *= k;
+  void test_refineBinaryExpressionType_typeParameter_T_T() {
+    checkFile('''
+class C<T extends num> {
+  T a;
+
+  void op(T b) {
+    T r1 = a + b;
+    T r2 = a - b;
+    T r3 = a * b;
+  }
+
+  void opEq(T b) {
+    a += b;
+    a -= b;
+    a *= b;
   }
 }
   ''');

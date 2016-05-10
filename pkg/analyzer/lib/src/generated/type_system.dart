@@ -355,16 +355,26 @@ class StrongTypeSystemImpl extends TypeSystem {
       DartType rightType,
       DartType currentType) {
     if (leftType is TypeParameterType &&
-        leftType.element.bound == typeProvider.numType &&
-        leftType == rightType) {
-      if (operator == TokenType.PLUS ||
-          operator == TokenType.MINUS ||
-          operator == TokenType.STAR ||
-          operator == TokenType.PLUS_EQ ||
-          operator == TokenType.MINUS_EQ ||
-          operator == TokenType.STAR_EQ) {
-        return leftType;
+        leftType.element.bound == typeProvider.numType) {
+      if (rightType == leftType || rightType == typeProvider.intType) {
+        if (operator == TokenType.PLUS ||
+            operator == TokenType.MINUS ||
+            operator == TokenType.STAR ||
+            operator == TokenType.PLUS_EQ ||
+            operator == TokenType.MINUS_EQ ||
+            operator == TokenType.STAR_EQ) {
+          return leftType;
+        }
       }
+      if (rightType == typeProvider.doubleType) {
+        if (operator == TokenType.PLUS ||
+            operator == TokenType.MINUS ||
+            operator == TokenType.STAR ||
+            operator == TokenType.SLASH) {
+          return typeProvider.doubleType;
+        }
+      }
+      return currentType;
     }
     return super.refineBinaryExpressionType(
         typeProvider, leftType, operator, rightType, currentType);
