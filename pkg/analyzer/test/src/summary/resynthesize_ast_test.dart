@@ -124,12 +124,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_doesNotInferBottom_sync_topLevel() {
-    super.test_blockBodiedLambdas_doesNotInferBottom_sync_topLevel();
-  }
-
-  @override
-  @failingTest
   void test_blockBodiedLambdas_doesNotInferBottom_syncStar_topLevel() {
     super.test_blockBodiedLambdas_doesNotInferBottom_syncStar_topLevel();
   }

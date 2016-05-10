@@ -460,6 +460,7 @@ class _ConstExprBuilder {
         case UnlinkedConstOperation.typeCast:
         case UnlinkedConstOperation.typeCheck:
         case UnlinkedConstOperation.throwException:
+        case UnlinkedConstOperation.pushLocalFunctionReference:
           throw new UnimplementedError(
               'Unexpected $operation in a constant expression.');
       }

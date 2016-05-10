@@ -2287,6 +2287,24 @@ class Foo {
 }''');
   }
 
+  void test_inferredType_blockBodiedClosure_noArguments() {
+    var mainUnit = checkFile('''
+class C {
+  static final v = () {};
+}
+''');
+    var v = mainUnit.getType('C').fields[0];
+    expect(v.type.toString(), '() → dynamic');
+  }
+
+  void test_inferredType_blockClosure_noArgs_noReturn() {
+    var mainUnit = checkFile('''
+var f = () {};
+''');
+    var f = mainUnit.topLevelVariables[0];
+    expect(f.type.toString(), '() → dynamic');
+  }
+
   void test_inferredType_isEnum() {
     var mainUnit = checkFile('''
 enum E { v1 }

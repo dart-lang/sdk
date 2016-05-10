@@ -1772,6 +1772,57 @@ class C<T> {
         strings: ['T']);
   }
 
+  test_constExpr_functionExpression_asArgument() {
+    // Even though function expressions are not allowed in constant
+    // declarations, they might occur due to erroneous code, so make sure they
+    // function correctly.
+    UnlinkedVariable variable = serializeVariableText('''
+const v = foo(5, () => 42);
+foo(a, b) {}
+''');
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushLocalFunctionReference,
+      UnlinkedConstOperation.invokeMethodRef
+    ], ints: [
+      5,
+      0,
+      0,
+      0,
+      2
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'foo',
+          expectedKind: ReferenceKind.topLevelFunction)
+    ]);
+  }
+
+  test_constExpr_functionExpression_asArgument_multiple() {
+    // Even though function expressions are not allowed in constant
+    // declarations, they might occur due to erroneous code, so make sure they
+    // function correctly.
+    UnlinkedVariable variable = serializeVariableText('''
+const v = foo(5, () => 42, () => 43);
+foo(a, b, c) {}
+''');
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushLocalFunctionReference,
+      UnlinkedConstOperation.pushLocalFunctionReference,
+      UnlinkedConstOperation.invokeMethodRef
+    ], ints: [
+      5,
+      0,
+      0,
+      0,
+      1,
+      0,
+      3
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'foo',
+          expectedKind: ReferenceKind.topLevelFunction)
+    ]);
+  }
+
   test_constExpr_invokeConstructor_generic_named() {
     UnlinkedVariable variable = serializeVariableText('''
 class C<K, V> {
@@ -6804,12 +6855,41 @@ foo(a, b) {}
 ''');
     _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushNull,
+      UnlinkedConstOperation.pushLocalFunctionReference,
       UnlinkedConstOperation.invokeMethodRef
     ], ints: [
       5,
       0,
+      0,
+      0,
       2
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'foo',
+          expectedKind: ReferenceKind.topLevelFunction)
+    ]);
+  }
+
+  test_expr_functionExpression_asArgument_multiple() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+final v = foo(5, () => 42, () => 43);
+foo(a, b, c) {}
+''');
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushLocalFunctionReference,
+      UnlinkedConstOperation.pushLocalFunctionReference,
+      UnlinkedConstOperation.invokeMethodRef
+    ], ints: [
+      5,
+      0,
+      0,
+      0,
+      1,
+      0,
+      3
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'foo',
           expectedKind: ReferenceKind.topLevelFunction)
@@ -6824,7 +6904,9 @@ foo(a, b) {}
 final v = () { return 42; };
 ''');
     _assertUnlinkedConst(variable.constExpr,
-        isValidConst: false, operators: [UnlinkedConstOperation.pushNull]);
+        isValidConst: false,
+        operators: [UnlinkedConstOperation.pushLocalFunctionReference],
+        ints: [0, 0]);
   }
 
   test_expr_functionExpression_withExpressionBody() {
@@ -6835,7 +6917,9 @@ final v = () { return 42; };
 final v = () => 42;
 ''');
     _assertUnlinkedConst(variable.constExpr,
-        isValidConst: false, operators: [UnlinkedConstOperation.pushNull]);
+        isValidConst: false,
+        operators: [UnlinkedConstOperation.pushLocalFunctionReference],
+        ints: [0, 0]);
   }
 
   test_expr_functionExpressionInvocation_withBlockBody() {
@@ -8948,8 +9032,8 @@ void set f(value) {}''';
     // ids should be reused.
     addNamedSource('/a.dart', 'part of foo; final v = 0;');
     serializeLibraryText('library foo; part "a.dart"; final w = 0;');
-    expect(unlinkedUnits[0].variables[0].propagatedTypeSlot, 1);
-    expect(unlinkedUnits[1].variables[0].propagatedTypeSlot, 1);
+    expect(unlinkedUnits[1].variables[0].propagatedTypeSlot,
+        unlinkedUnits[0].variables[0].propagatedTypeSlot);
   }
 
   test_syntheticFunctionType_genericClosure() {

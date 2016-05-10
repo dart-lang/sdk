@@ -519,7 +519,7 @@ class _CompilationUnitSerializer {
     }
     return element.metadata.map((ElementAnnotation a) {
       _ConstExprSerializer serializer =
-          new _ConstExprSerializer(this, element, null);
+          new _ConstExprSerializer(this, element, null, null);
       serializer
           .serializeAnnotation((a as ElementAnnotationImpl).annotationAst);
       return serializer.toBuilder();
@@ -664,11 +664,11 @@ class _CompilationUnitSerializer {
   /**
    * Serialize the given [expression], creating an [UnlinkedConstBuilder].
    */
-  UnlinkedConstBuilder serializeConstExpr(
-      Element context, Expression expression,
+  UnlinkedConstBuilder serializeConstExpr(Element context,
+      ExecutableElement executableContext, Expression expression,
       [Set<String> constructorParameterNames]) {
-    _ConstExprSerializer serializer =
-        new _ConstExprSerializer(this, context, constructorParameterNames);
+    _ConstExprSerializer serializer = new _ConstExprSerializer(
+        this, context, executableContext, constructorParameterNames);
     serializer.serialize(expression);
     return serializer.toBuilder();
   }
@@ -783,7 +783,7 @@ class _CompilationUnitSerializer {
               .map((ConstructorInitializer initializer) =>
                   serializeConstructorInitializer(
                       initializer,
-                      (expr) => serializeConstExpr(
+                      (expr) => serializeConstExpr(executableElement,
                           executableElement, expr, constructorParameterNames)))
               .toList();
         }
@@ -923,7 +923,10 @@ class _CompilationUnitSerializer {
       ConstVariableElement constParameter = parameter as ConstVariableElement;
       Expression initializer = constParameter.constantInitializer;
       if (initializer != null) {
-        b.defaultValue = serializeConstExpr(parameter, initializer);
+        b.defaultValue = serializeConstExpr(
+            parameter,
+            parameter.getAncestor((Element e) => e is ExecutableElement),
+            initializer);
         b.defaultValueCode = parameter.defaultValueCode;
       }
     }
@@ -1134,7 +1137,8 @@ class _CompilationUnitSerializer {
       ConstVariableElement constVariable = variable as ConstVariableElement;
       Expression initializer = constVariable.constantInitializer;
       if (initializer != null) {
-        b.constExpr = serializeConstExpr(variable, initializer);
+        b.constExpr =
+            serializeConstExpr(variable, variable.initializer, initializer);
       }
     }
     if (variable is PropertyInducingElement) {
@@ -1294,6 +1298,7 @@ class _CompilationUnitSerializer {
 class _ConstExprSerializer extends AbstractConstExprSerializer {
   final _CompilationUnitSerializer serializer;
   final Element context;
+  final ExecutableElement executableContext;
 
   /**
    * If a constructor initializer expression is being serialized, the names of
@@ -1301,8 +1306,8 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
    */
   final Set<String> constructorParameterNames;
 
-  _ConstExprSerializer(
-      this.serializer, this.context, this.constructorParameterNames);
+  _ConstExprSerializer(this.serializer, this.context, this.executableContext,
+      this.constructorParameterNames);
 
   @override
   bool isConstructorParameterName(String name) {
@@ -1361,6 +1366,21 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
       return new EntityRefBuilder(
           reference: refId, typeArguments: typeRef.typeArguments);
     }
+  }
+
+  @override
+  List<int> serializeFunctionExpression(FunctionExpression functionExpression) {
+    if (executableContext == null) {
+      return null;
+    }
+    ExecutableElement functionElement = functionExpression.element;
+    // TOOD(paulberry): handle the situation where [functionExpression] is not
+    // an immediate child of [executableContext].
+    assert(functionElement.enclosingElement == executableContext);
+    int popCount = 0;
+    int localIndex = executableContext.functions.indexOf(functionElement);
+    assert(localIndex != -1);
+    return <int>[popCount, localIndex];
   }
 
   EntityRefBuilder serializeIdentifier(Identifier identifier,

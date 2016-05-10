@@ -218,18 +218,21 @@ EntityRefBuilder _createLinkedType(
           type.typeArguments, result, compilationUnit, typeParameterContext);
       return result;
     }
-    if (element is FunctionElement) {
-      // Element is a FunctionElement but not a TopLevelFunctionElementForLink
-      // or a MethodElementForLink.  This means that it's a synthetic function
-      // element that was generated on the fly to represent a type that has no
-      // associated source code location.
-      assert(element.enclosingElement == null);
+    if (element is FunctionElement && element.enclosingElement == null) {
+      // Element is a synthetic function element that was generated on the fly
+      // to represent a type that has no associated source code location.
       result.syntheticReturnType = _createLinkedType(
           element.returnType, compilationUnit, typeParameterContext);
       result.syntheticParams = element.parameters
           .map((ParameterElement param) => _serializeSyntheticParam(
               param, compilationUnit, typeParameterContext))
           .toList();
+      return result;
+    }
+    if (element is FunctionElement) {
+      // Element is a local function inside another executable.
+      result.reference = compilationUnit.addReference(element);
+      // TODO(paulberry): do I need to store type arguments?
       return result;
     }
     // TODO(paulberry): implement other cases.
@@ -1075,6 +1078,7 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
       int numTypeParameters: 0,
       int unitNum: 0,
       int containingReference: 0,
+      int localIndex: 0,
       ReferenceKind kind: ReferenceKind.classOrEnum}) {
     List<LinkedReferenceBuilder> linkedReferences = _linkedUnit.references;
     List<UnlinkedReference> unlinkedReferences = _unlinkedUnit.references;
@@ -1098,7 +1102,8 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
           linkedReference.numTypeParameters == numTypeParameters &&
           linkedReference.unit == unitNum &&
           candidateContainingReference == containingReference &&
-          linkedReference.kind == kind) {
+          linkedReference.kind == kind &&
+          linkedReference.localIndex == localIndex) {
         return i;
       }
     }
@@ -1109,7 +1114,8 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
         numTypeParameters: numTypeParameters,
         unit: unitNum,
         containingReference: containingReference,
-        kind: kind));
+        kind: kind,
+        localIndex: localIndex));
     return result;
   }
 
@@ -1151,6 +1157,28 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
           containingReference:
               enclosingClass != null ? addReference(enclosingClass) : null,
           kind: kind);
+    } else if (element is FunctionElementForLink_Local) {
+      FunctionElementImpl parent = element.enclosingElement;
+      int localIndex = parent.functions.indexOf(element);
+      assert(localIndex != -1);
+      return addRawReference(element.name,
+          containingReference: addReference(parent),
+          kind: ReferenceKind.function,
+          localIndex: localIndex);
+    } else if (element is FunctionElementForLink_Initializer) {
+      return addRawReference('',
+          containingReference: addReference(element.enclosingElement),
+          kind: ReferenceKind.function);
+    } else if (element is TopLevelVariableElementForLink) {
+      return addRawReference(element.name,
+          kind: ReferenceKind.topLevelPropertyAccessor);
+    } else if (element is FieldElementForLink_ClassField) {
+      ClassElementForLink_Class enclosingClass = element.enclosingElement;
+      // TODO(paulberry): do we need to set numTypeParameters to nonzero if the
+      // class has type parameters?
+      return addRawReference(element.name,
+          containingReference: addReference(enclosingClass),
+          kind: ReferenceKind.propertyAccessor);
     }
     // TODO(paulberry): implement other cases
     throw new UnimplementedError('${element.runtimeType}');
@@ -1916,6 +1944,7 @@ abstract class ExecutableElementForLink extends Object
 
 class ExprTypeComputer {
   VariableElementForLink variable;
+  FunctionElementForLink_Initializer initializer;
   CompilationUnitElementForLink unit;
   LibraryElementForLink library;
   Linker linker;
@@ -1930,6 +1959,7 @@ class ExprTypeComputer {
 
   ExprTypeComputer(VariableElementForLink variableElement) {
     this.variable = variableElement;
+    initializer = variableElement.initializer;
     unit = variableElement.compilationUnit;
     library = unit.enclosingElement;
     linker = library._linker;
@@ -2095,6 +2125,11 @@ class ExprTypeComputer {
         case UnlinkedConstOperation.throwException:
           stack.removeLast();
           stack.add(BottomTypeImpl.instance);
+          break;
+        case UnlinkedConstOperation.pushLocalFunctionReference:
+          int popCount = _getNextInt();
+          assert(popCount == 0); // TODO(paulberry): handle the nonzero case.
+          stack.add(initializer.functions[_getNextInt()].type);
           break;
         default:
           // TODO(paulberry): implement.
@@ -2699,7 +2734,19 @@ class FunctionElementForLink_Initializer implements FunctionElementImpl {
    */
   final VariableElementForLink _variable;
 
+  List<FunctionElementForLink_Local> _functions;
+
   FunctionElementForLink_Initializer(this._variable);
+
+  @override
+  VariableElementForLink get enclosingElement => _variable;
+
+  @override
+  List<FunctionElementForLink_Local> get functions => _functions ??= _variable
+      .unlinkedVariable.initializer.localFunctions
+      .map(
+          (UnlinkedExecutable ex) => new FunctionElementForLink_Local(this, ex))
+      .toList();
 
   @override
   DartType get returnType {
@@ -2721,6 +2768,33 @@ class FunctionElementForLink_Initializer implements FunctionElementImpl {
     // InstanceMemberInferrer stores the new type both here and on the variable
     // element.  We don't need to record both values, so we ignore it here.
   }
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/**
+ * Element representing a local function (possibly a closure) inside another
+ * executable.
+ */
+class FunctionElementForLink_Local implements FunctionElementImpl {
+  /**
+   * The unlinked representation of the local function in the summary.
+   */
+  final UnlinkedExecutable _executable;
+
+  @override
+  final FunctionElementImpl enclosingElement;
+
+  DartType _type;
+
+  FunctionElementForLink_Local(this.enclosingElement, this._executable);
+
+  @override
+  String get name => _executable.name;
+
+  @override
+  DartType get type => _type ??= new FunctionTypeImpl(this);
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

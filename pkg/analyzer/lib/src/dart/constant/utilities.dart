@@ -48,6 +48,13 @@ class ConstantAstCloner extends AstCloner {
   }
 
   @override
+  FunctionExpression visitFunctionExpression(FunctionExpression node) {
+    FunctionExpression expression = super.visitFunctionExpression(node);
+    expression.element = node.element;
+    return expression;
+  }
+
+  @override
   InstanceCreationExpression visitInstanceCreationExpression(
       InstanceCreationExpression node) {
     InstanceCreationExpression expression =

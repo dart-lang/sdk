@@ -614,7 +614,15 @@ enum UnlinkedConstOperation : byte {
   /**
    * Pop the top value from the stack and raise an exception with this value.
    */
-  throwException
+  throwException,
+
+  /**
+   * Obtain two values `n` and `m` from [UnlinkedConst.ints].  Then, starting at
+   * the executable element for the expression being evaluated, if n > 0, pop to
+   * the nth enclosing function element.  Then, push the mth local function of
+   * that element onto the stack.
+   */
+  pushLocalFunctionReference
 }
 
 /**

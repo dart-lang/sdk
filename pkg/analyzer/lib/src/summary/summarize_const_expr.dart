@@ -143,6 +143,18 @@ abstract class AbstractConstExprSerializer {
   EntityRefBuilder serializeIdentifier(Identifier identifier);
 
   /**
+   * Return a pair of ints showing how the given [functionExpression] is nested
+   * within the constant currently being serialized.  The first int indicates
+   * how many levels of function nesting must be popped in order to reach the
+   * parent of the [functionExpression].  The second int is the index of the
+   * [functionExpression] within its parent element.
+   *
+   * If the constant being summarized is in a context where local function
+   * references are not allowed, return `null`.
+   */
+  List<int> serializeFunctionExpression(FunctionExpression functionExpression);
+
+  /**
    * Return [EntityRefBuilder] that corresponds to the given [expr], which
    * must be a sequence of identifiers.
    */
@@ -303,8 +315,14 @@ abstract class AbstractConstExprSerializer {
       _serializeCascadeExpression(expr);
     } else if (expr is FunctionExpression) {
       isValidConst = false;
-      // TODO(scheglov) implement
-      operations.add(UnlinkedConstOperation.pushNull);
+      List<int> indices = serializeFunctionExpression(expr);
+      if (indices != null) {
+        ints.addAll(serializeFunctionExpression(expr));
+        operations.add(UnlinkedConstOperation.pushLocalFunctionReference);
+      } else {
+        // Invalid expression; just push null.
+        operations.add(UnlinkedConstOperation.pushNull);
+      }
     } else if (expr is FunctionExpressionInvocation) {
       isValidConst = false;
       // TODO(scheglov) implement
