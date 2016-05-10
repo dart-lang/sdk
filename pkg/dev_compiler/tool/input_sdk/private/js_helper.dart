@@ -19,6 +19,7 @@ import 'dart:_internal' show
 import 'dart:_native_typed_data';
 
 part 'annotations.dart';
+part 'linked_hash_map.dart';
 part 'native_helper.dart';
 part 'regexp_helper.dart';
 part 'string_helper.dart';
