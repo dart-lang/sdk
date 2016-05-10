@@ -1439,11 +1439,6 @@ table UnlinkedConst {
   isValidConst:bool (id: 5);
 
   /**
-   * If the expression is a [NamedExpression], the name of the expression.
-   */
-  name:string (id: 7);
-
-  /**
    * Sequence of operations to execute (starting with an empty stack) to form
    * the constant value.
    */
@@ -1473,6 +1468,13 @@ table UnlinkedConstructorInitializer {
    * invocation.  Otherwise empty.
    */
   arguments:[UnlinkedConst] (id: 3);
+
+  /**
+   * If there are `m` [arguments] and `n` [argumentNames], then each argument
+   * from [arguments] with index `i` such that `n + i - m >= 0`, should be used
+   * with the name at `n + i - m`.
+   */
+  argumentNames:[string] (id: 4);
 
   /**
    * If [kind] is `field`, the expression of the field initializer.

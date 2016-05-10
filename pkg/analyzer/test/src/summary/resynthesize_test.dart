@@ -2513,6 +2513,15 @@ class C {
 ''');
   }
 
+  test_constructor_initializers_thisInvocation_namedExpression() {
+    checkLibrary('''
+class C {
+  const C() : this.named(1, b: 2);
+  const C.named(a, {int b});
+}
+''');
+  }
+
   test_constructor_initializers_thisInvocation_unnamed() {
     checkLibrary('''
 class C {

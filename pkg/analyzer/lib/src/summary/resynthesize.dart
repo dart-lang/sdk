@@ -284,14 +284,6 @@ class _ConstExprBuilder {
   _ConstExprBuilder(this.resynthesizer, this.uc);
 
   Expression build() {
-    Expression expr = _build();
-    if (uc.name.isNotEmpty) {
-      return AstFactory.namedExpression2(uc.name, expr);
-    }
-    return expr;
-  }
-
-  Expression _build() {
     if (!uc.isValidConst) {
       return AstFactory.identifier3(r'$$invalidConstExpr$$');
     }
@@ -1731,29 +1723,6 @@ class _UnitResynthesizer {
   }
 
   /**
-   * Resynthesize the [ConstructorInitializer] in context of
-   * [currentConstructor], which is used to resolve constructor parameter names.
-   */
-  ConstructorInitializer buildConstantInitializer(
-      UnlinkedConstructorInitializer serialized) {
-    UnlinkedConstructorInitializerKind kind = serialized.kind;
-    String name = serialized.name;
-    List<Expression> arguments =
-        serialized.arguments.map(_buildConstExpression).toList();
-    switch (kind) {
-      case UnlinkedConstructorInitializerKind.field:
-        return AstFactory.constructorFieldInitializer(
-            false, name, _buildConstExpression(serialized.expression));
-      case UnlinkedConstructorInitializerKind.superInvocation:
-        return AstFactory.superConstructorInvocation2(
-            name.isNotEmpty ? name : null, arguments);
-      case UnlinkedConstructorInitializerKind.thisInvocation:
-        return AstFactory.redirectingConstructorInvocation2(
-            name.isNotEmpty ? name : null, arguments);
-    }
-  }
-
-  /**
    * Resynthesize a [ConstructorElement] and place it in the given [holder].
    * [classType] is the type of the class for which this element is a
    * constructor.
@@ -1779,7 +1748,7 @@ class _UnitResynthesizer {
     currentConstructor.const2 = serializedExecutable.isConst;
     currentConstructor.constantInitializers = serializedExecutable
         .constantInitializers
-        .map(buildConstantInitializer)
+        .map(buildConstructorInitializer)
         .toList();
     if (serializedExecutable.isRedirectedConstructor) {
       if (serializedExecutable.isFactory) {
@@ -1802,6 +1771,41 @@ class _UnitResynthesizer {
     }
     holder.addConstructor(currentConstructor);
     currentConstructor = null;
+  }
+
+  /**
+   * Resynthesize the [ConstructorInitializer] in context of
+   * [currentConstructor], which is used to resolve constructor parameter names.
+   */
+  ConstructorInitializer buildConstructorInitializer(
+      UnlinkedConstructorInitializer serialized) {
+    UnlinkedConstructorInitializerKind kind = serialized.kind;
+    String name = serialized.name;
+    List<Expression> arguments = <Expression>[];
+    {
+      int numArguments = serialized.arguments.length;
+      int numNames = serialized.argumentNames.length;
+      for (int i = 0; i < numArguments; i++) {
+        Expression expression = _buildConstExpression(serialized.arguments[i]);
+        int nameIndex = numNames + i - numArguments;
+        if (nameIndex >= 0) {
+          expression = AstFactory.namedExpression2(
+              serialized.argumentNames[nameIndex], expression);
+        }
+        arguments.add(expression);
+      }
+    }
+    switch (kind) {
+      case UnlinkedConstructorInitializerKind.field:
+        return AstFactory.constructorFieldInitializer(
+            false, name, _buildConstExpression(serialized.expression));
+      case UnlinkedConstructorInitializerKind.superInvocation:
+        return AstFactory.superConstructorInvocation2(
+            name.isNotEmpty ? name : null, arguments);
+      case UnlinkedConstructorInitializerKind.thisInvocation:
+        return AstFactory.redirectingConstructorInvocation2(
+            name.isNotEmpty ? name : null, arguments);
+    }
   }
 
   /**

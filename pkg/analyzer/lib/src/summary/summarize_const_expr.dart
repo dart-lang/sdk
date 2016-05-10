@@ -22,19 +22,35 @@ UnlinkedConstructorInitializer serializeConstructorInitializer(
         name: node.fieldName.name,
         expression: serializeConstExpr(node.expression));
   }
+
+  List<UnlinkedConstBuilder> arguments = <UnlinkedConstBuilder>[];
+  List<String> argumentNames = <String>[];
+  void serializeArguments(List<Expression> args) {
+    for (Expression arg in args) {
+      if (arg is NamedExpression) {
+        NamedExpression namedExpression = arg;
+        argumentNames.add(namedExpression.name.label.name);
+        arg = namedExpression.expression;
+      }
+      arguments.add(serializeConstExpr(arg));
+    }
+  }
+
   if (node is RedirectingConstructorInvocation) {
+    serializeArguments(node.argumentList.arguments);
     return new UnlinkedConstructorInitializerBuilder(
         kind: UnlinkedConstructorInitializerKind.thisInvocation,
         name: node?.constructorName?.name,
-        arguments:
-            node.argumentList.arguments.map(serializeConstExpr).toList());
+        arguments: arguments,
+        argumentNames: argumentNames);
   }
   if (node is SuperConstructorInvocation) {
+    serializeArguments(node.argumentList.arguments);
     return new UnlinkedConstructorInitializerBuilder(
         kind: UnlinkedConstructorInitializerKind.superInvocation,
         name: node?.constructorName?.name,
-        arguments:
-            node.argumentList.arguments.map(serializeConstExpr).toList());
+        arguments: arguments,
+        argumentNames: argumentNames);
   }
   throw new StateError('Unexpected initializer type ${node.runtimeType}');
 }
@@ -162,7 +178,6 @@ abstract class AbstractConstExprSerializer {
   UnlinkedConstBuilder toBuilder() {
     return new UnlinkedConstBuilder(
         isValidConst: isValidConst,
-        name: name,
         operations: operations,
         assignmentOperators: assignmentOperators,
         ints: ints,

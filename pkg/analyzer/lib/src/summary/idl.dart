@@ -1033,12 +1033,6 @@ abstract class UnlinkedConst extends base.SummaryClass {
   bool get isValidConst;
 
   /**
-   * If the expression is a [NamedExpression], the name of the expression.
-   */
-  @Id(7)
-  String get name;
-
-  /**
    * Sequence of operations to execute (starting with an empty stack) to form
    * the constant value.
    */
@@ -1471,6 +1465,14 @@ abstract class UnlinkedConstructorInitializer extends base.SummaryClass {
    */
   @Id(3)
   List<UnlinkedConst> get arguments;
+
+  /**
+   * If there are `m` [arguments] and `n` [argumentNames], then each argument
+   * from [arguments] with index `i` such that `n + i - m >= 0`, should be used
+   * with the name at `n + i - m`.
+   */
+  @Id(4)
+  List<String> get argumentNames;
 
   /**
    * If [kind] is `field`, the expression of the field initializer.
