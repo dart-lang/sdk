@@ -145,6 +145,14 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
       RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall);
   while (iter.MoveNext()) {
     HANDLESCOPE(thread());
+    // TODO(zra): Remove this bailout once DBC has reliable ICData.
+#if defined(TARGET_ARCH_DBC)
+    if (iter.DeoptId() >= ic_data_array->length()) {
+      continue;
+    }
+#else
+    ASSERT(iter.DeoptId() < ic_data_array->length());
+#endif
     const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
     if (ic_data != NULL) {
       const TokenPosition token_pos = iter.TokenPos();
@@ -157,6 +165,7 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
     }
   }
 }
+
 
 void SourceReport::PrintCoverageData(JSONObject* jsobj,
                                      const Function& function,
@@ -186,6 +195,14 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
       RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall);
   while (iter.MoveNext()) {
     HANDLESCOPE(thread());
+    // TODO(zra): Remove this bailout once DBC has reliable ICData.
+#if defined(TARGET_ARCH_DBC)
+    if (iter.DeoptId() >= ic_data_array->length()) {
+      continue;
+    }
+#else
+    ASSERT(iter.DeoptId() < ic_data_array->length());
+#endif
     const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
     if (ic_data != NULL) {
       const TokenPosition token_pos = iter.TokenPos();
@@ -225,6 +242,7 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
     }
   }
 }
+
 
 void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
                                                 const Function& func,
@@ -485,6 +503,5 @@ void SourceReport::PrintJSON(JSONStream* js,
   JSONArray scripts(&report, "scripts");
   PrintScriptTable(&scripts);
 }
-
 
 }  // namespace dart
