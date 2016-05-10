@@ -770,11 +770,11 @@ void Precompiler::AddField(const Field& field) {
         if (!initializer.IsNull()) {
           field.SetPrecompiledInitializer(initializer);
         }
+        ASSERT(field.HasPrecompiledInitializer());
+        const Function& function =
+            Function::Handle(Z, field.PrecompiledInitializer());
+        AddCalleesOf(function);
       }
-
-      const Function& function =
-          Function::Handle(Z, field.PrecompiledInitializer());
-      AddCalleesOf(function);
     }
   }
 }
@@ -782,23 +782,24 @@ void Precompiler::AddField(const Field& field) {
 
 RawFunction* Precompiler::CompileStaticInitializer(const Field& field) {
   ASSERT(field.is_static());
-  if (field.HasPrecompiledInitializer()) {
-    // TODO(rmacnak): Investigate why this happens for _enum_names.
-    THR_Print("Warning: Ignoring repeated request for initializer for %s\n",
-              field.ToCString());
-    return Function::null();
-  }
+  ASSERT(!field.HasPrecompiledInitializer());
   Thread* thread = Thread::Current();
   StackZone zone(thread);
 
   ParsedFunction* parsed_function = Parser::ParseStaticFieldInitializer(field);
 
   parsed_function->AllocateVariables();
-  // Non-optimized code generator.
   DartCompilationPipeline pipeline;
   PrecompileParsedFunctionHelper helper(parsed_function,
-                                        /* optimized = */ false);
-  helper.Compile(&pipeline);
+                                        /* optimized = */ true);
+  bool success = helper.Compile(&pipeline);
+  ASSERT(success);
+
+  if ((FLAG_disassemble || FLAG_disassemble_optimized) &&
+      FlowGraphPrinter::ShouldPrint(parsed_function->function())) {
+    Disassembler::DisassembleCode(parsed_function->function(),
+                                  /* optimized = */ true);
+  }
   return parsed_function->function().raw();
 }
 
@@ -817,8 +818,6 @@ RawObject* Precompiler::EvaluateStaticInitializer(const Field& field) {
     Function& initializer = Function::Handle();
     if (!field.HasPrecompiledInitializer()) {
       initializer = CompileStaticInitializer(field);
-      Code::Handle(initializer.unoptimized_code()).set_var_descriptors(
-          Object::empty_var_descriptors());
     } else {
       initializer ^= field.PrecompiledInitializer();
     }
@@ -1959,6 +1958,8 @@ void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
+  Array& fields = Array::Handle(Z);
+  Field& field = Field::Handle(Z);
   Object& object = Object::Handle(Z);
   Function& function = Function::Handle(Z);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
@@ -1987,6 +1988,14 @@ void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
         object = functions.At(j);
         if (object.IsFunction()) {
           function ^= functions.At(j);
+          visitor->VisitFunction(function);
+        }
+      }
+      fields = cls.fields();
+      for (intptr_t j = 0; j < fields.Length(); j++) {
+        field ^= fields.At(j);
+        if (field.is_static() && field.HasPrecompiledInitializer()) {
+          function ^= field.PrecompiledInitializer();
           visitor->VisitFunction(function);
         }
       }
@@ -2130,6 +2139,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   ASSERT(FLAG_precompiled_mode);
   const Function& function = parsed_function()->function();
   if (optimized() && !function.IsOptimizable()) {
+    // All functions compiled by precompiler must be optimizable.
+    UNREACHABLE();
     return false;
   }
   bool is_compiled = false;
@@ -2705,7 +2716,7 @@ static RawError* PrecompileFunctionHelper(CompilationPipeline* pipeline,
 
     per_compile_timer.Stop();
 
-    if (trace_compiler && success) {
+    if (trace_compiler) {
       THR_Print("--> '%s' entry: %#" Px " size: %" Pd " time: %" Pd64 " us\n",
                 function.ToFullyQualifiedCString(),
                 Code::Handle(function.CurrentCode()).EntryPoint(),
@@ -2718,10 +2729,7 @@ static RawError* PrecompileFunctionHelper(CompilationPipeline* pipeline,
     } else if (FLAG_disassemble_optimized &&
                optimized &&
                FlowGraphPrinter::ShouldPrint(function)) {
-      // TODO(fschneider): Print unoptimized code along with the optimized code.
-      THR_Print("*** BEGIN CODE\n");
       Disassembler::DisassembleCode(function, true);
-      THR_Print("*** END CODE\n");
     }
     return Error::null();
   } else {

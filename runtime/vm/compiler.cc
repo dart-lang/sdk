@@ -1341,10 +1341,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     } else if (FLAG_disassemble_optimized &&
                optimized &&
                FlowGraphPrinter::ShouldPrint(function)) {
-      // TODO(fschneider): Print unoptimized code along with the optimized code.
-      THR_Print("*** BEGIN CODE\n");
       Disassembler::DisassembleCode(function, true);
-      THR_Print("*** END CODE\n");
     }
     DEBUG_ONLY(CheckInliningIntervals(function));
     return Error::null();

@@ -1256,12 +1256,11 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
                     field.token_pos()));
   initializer.set_result_type(AbstractType::Handle(zone, field.type()));
   // Static initializer functions are hidden from the user.
-  // Since they are only executed once, we avoid optimizing
-  // and inlining them. After the field is initialized, the
-  // compiler can eliminate the call to the static initializer.
+  // Since they are only executed once, we avoid inlining them.
+  // After the field is initialized, the compiler can eliminate
+  // the call to the static initializer.
   initializer.set_is_reflectable(false);
   initializer.set_is_debuggable(false);
-  initializer.SetIsOptimizable(false);
   initializer.set_is_inlinable(false);
 
   ParsedFunction* parsed_function = new ParsedFunction(thread, initializer);
