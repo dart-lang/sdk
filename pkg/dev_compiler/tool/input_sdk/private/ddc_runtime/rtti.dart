@@ -60,8 +60,8 @@ fn(closure, rType, argsT, extras) {
   if (rType == null) {
     // No type arguments, it's all dynamic
     t = definiteFunctionType(
-        dynamicR,
-        JS('', 'Array(#.length).fill(#)', closure, dynamicR),
+        JS('', '#', dynamic),
+        JS('', 'Array(#.length).fill(#)', closure, dynamic),
         JS('', 'void 0'));
   } else {
     // We're passed the piecewise components of the function type,
@@ -83,42 +83,31 @@ lazyFn(closure, computeTypeParts) {
 // TODO(vsm): How should we encode the runtime type?
 final _runtimeType = JS('', 'Symbol("_runtimeType")');
 
-checkPrimitiveType(obj) => JS('', '''(() => {
-  switch (typeof $obj) {
-    case "undefined":
-      return $Null;
+_checkPrimitiveType(obj) {
+  // TODO(jmesserly): JS is used to prevent type literal wrapping.
+  // Is there a better way we can handle this?
+
+  // Check for null and undefined
+  if (obj == null) return JS('', '#', Null);
+  switch (JS('String', 'typeof #', obj)) {
     case "number":
-      return Math.floor($obj) == $obj ? $int : $double;
+      return JS('bool', 'Math.floor(#) == # ? # : #', obj, obj, int, double);
     case "boolean":
-      return $bool;
+      return JS('', '#', bool);
     case "string":
-      return $String;
+      return JS('', '#', String);
     case "symbol":
-      return Symbol;
+      // Note: this is a JS Symbol, not a Dart one.
+      return JS('', '#', jsobject);
   }
-  // Undefined is handled above. For historical reasons,
-  // typeof null == "object" in JS.
-  if ($obj === null) return $Null;
   return null;
-})()''');
+}
 
-runtimeType(obj) => JS('', '''(() => {
-  // Handle primitives where the method isn't on the object.
-  let result = $checkPrimitiveType($obj);
-  if (result !== null) return $wrapType(result);
-
-  // Delegate to the actual method on the object.
-  return $obj.runtimeType;
-})()''');
-
-getFunctionType(obj) => JS('', '''(() => {
+getFunctionType(obj) {
   // TODO(vsm): Encode this properly on the function for Dart-generated code.
-  let args = Array($obj.length).fill($dynamicR);
-  return $definiteFunctionType($bottom, args);
-})()''');
-
-/// The base implementation of Object.runtimeType.
-objectRuntimeType(obj) => wrapType(getReifiedType(obj));
+  var args = JS('', 'Array(#.length).fill(#)', obj, dynamic);
+  return definiteFunctionType(bottom, args, JS('', 'void 0'));
+}
 
 /// Returns an the runtime representation of the type of obj.
 ///
@@ -126,31 +115,31 @@ objectRuntimeType(obj) => wrapType(getReifiedType(obj));
 /// different from the user-visible Type object returned by calling
 /// `runtimeType` on some Dart object.
 getReifiedType(obj) {
-  var result = checkPrimitiveType(obj);
+  var result = _checkPrimitiveType(obj);
   if (result != null) return result;
   return _nonPrimitiveRuntimeType(obj);
 }
 
-_nonPrimitiveRuntimeType(obj) => JS('', '''(() => {
+_nonPrimitiveRuntimeType(obj) {
   // Lookup recorded *real* type (not user definable runtimeType)
   // TODO(vsm): Should we treat Dart and JS objects differently here?
   // E.g., we can check if obj instanceof core.Object to differentiate.
-  let result = $obj[$_runtimeType];
-  if (result) return result;
+  var result = _getRuntimeType(obj);
+  if (result != null) return result;
 
   // Lookup extension type
-  result = $obj[$_extensionType];
-  if (result) return result;
+  result = getExtensionType(obj);
+  if (result != null) return result;
 
   // Fallback on constructor for class types
-  result = $obj.constructor;
-  if (result == Function) {
-    // An undecorated Function should have come from
-    // JavaScript.  Treat as untyped.
-    return $jsobject;
+  result = JS('', '#.constructor', obj);
+  if (JS('bool', '# === Function', result)) {
+    // An undecorated Function should have come from JavaScript.
+    // Treat as untyped.
+    return JS('', '#', jsobject);
   }
   return result;
-})()''');
+}
 
 /// Given an internal runtime type object, wraps it in a `WrappedType` object
 /// that implements the dart:core Type interface.

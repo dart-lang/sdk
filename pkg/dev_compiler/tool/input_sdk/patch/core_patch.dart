@@ -44,7 +44,8 @@ class Object {
   }
 
   @patch
-  Type get runtimeType => JS('Type', 'dart.objectRuntimeType(#)', this);
+  Type get runtimeType =>
+      JS('Type', 'dart.wrapType(dart.getReifiedType(#))', this);
 }
 
 // Patch for Function implementation.

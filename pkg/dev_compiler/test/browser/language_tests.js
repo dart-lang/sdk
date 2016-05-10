@@ -84,6 +84,10 @@
       'cha_deopt1_test': skip_fail,
       'cha_deopt2_test': skip_fail,
       'cha_deopt3_test': skip_fail,
+
+      // interpolation does not call Dart's toString:
+      // https://github.com/dart-lang/dev_compiler/issues/470
+      'class_syntax2_test': skip_fail,
       'classes_static_method_clash_test': skip_fail,
       'closure_call_wrong_argument_count_negative_test': skip_fail,
       'closure_in_constructor_test': skip_fail,
@@ -426,7 +430,6 @@
       'list_replace_range_test': fail,
       'list_set_all_test': fail,
       'list_to_string2_test': fail,
-      'list_to_string_test': fail,
       'main_test': fail,
       'map_keys2_test': fail,
       'map_to_string_test': fail,
@@ -454,6 +457,11 @@
     },
 
     'lib/convert': {
+      // TODO(jmesserly): this could be a failure we didn't notice before
+      // because we now call the right Dart double.toString, resulting in a
+      // difference between -0.0 and 0?
+      'chunked_conversion_json_encode1_test': skip_fail,
+
       // TODO(rnystrom): A lot of the convert tests timeout. Some do pass if
       // you increase the time by a large amount, but it's pretty gratuitous.
       // I'm not sure why they are so slow. One guess is that they are spewing
@@ -717,7 +725,7 @@
           return null;
         } catch (e) {
           return e;
-        };
+        }
       }
 
       test(name, function(done) { // 'function' to allow `this.timeout`.

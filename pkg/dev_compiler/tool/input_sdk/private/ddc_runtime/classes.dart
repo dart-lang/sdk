@@ -63,12 +63,20 @@ mixin(base, @rest mixins) => JS('', '''(() => {
   return Mixin;
 })()''');
 
+
+/// The Symbol for storing type arguments on a specialized generic type.
+final _mixins = JS('', 'Symbol("mixins")');
+
 getMixins(clazz) => JS('', '$clazz[$_mixins]');
 
-getImplements(clazz) => JS('', '$clazz[$implements_]');
+@JSExportName('implements')
+final _implements = JS('', 'Symbol("implements")');
+
+getImplements(clazz) => JS('', '#[#]', clazz, _implements);
 
 /// The Symbol for storing type arguments on a specialized generic type.
 final _typeArguments = JS('', 'Symbol("typeArguments")');
+
 final _originalDeclaration = JS('', 'Symbol("originalDeclaration")');
 
 /// Memoize a generic type constructor function.
@@ -82,7 +90,7 @@ generic(typeConstructor) => JS('', '''(() => {
     if (args.length != length && args.length != 0) {
       $throwInternalError('requires ' + length + ' or 0 type arguments');
     }
-    while (args.length < length) args.push($dynamicR);
+    while (args.length < length) args.push($dynamic);
 
     let value = resultMap;
     for (let i = 0; i < length; i++) {
@@ -255,26 +263,40 @@ defineNamedConstructor(clazz, name) => JS('', '''(() => {
 
 final _extensionType = JS('', 'Symbol("extensionType")');
 
-getExtensionType(obj) => JS('', '$obj[$_extensionType]');
+getExtensionType(obj) => JS('', '#[#]', obj, _extensionType);
 
 final dartx = JS('', 'dartx');
 
-getExtensionSymbol(name) => JS('', '''(() => {
-  let sym = $dartx[$name];
-  if (!sym) $dartx[$name] = sym = Symbol('dartx.' + $name.toString());
+getExtensionSymbol(name) {
+  var sym = JS('', 'dartx[#]', name);
+  if (sym == null) {
+    sym = JS('', 'Symbol("dartx." + #.toString())', name);
+    JS('', 'dartx[#] = #', name, sym);
+  }
   return sym;
-})()''');
+}
 
-defineExtensionNames(names) => JS('', '$names.forEach($getExtensionSymbol)');
+defineExtensionNames(names) =>
+    JS('', '#.forEach(#)', names, getExtensionSymbol);
 
 // Install properties in prototype order.  Properties / descriptors from
 // more specific types should overwrite ones from less specific types.
-_installProperties(jsProto, extProto) => JS('', '''(() => {
-  if (extProto !== $Object.prototype && extProto !== jsProto) {
-    $_installProperties(jsProto, extProto.__proto__);
+_installProperties(jsProto, extProto) {
+  var coreObjProto = JS('', '#.prototype', Object);
+  if (JS('bool', '# === #', extProto, coreObjProto)) {
+    // core.Object members need to be copied from the non-symbol name to the
+    // symbol name.
+    for (var name in getOwnPropertyNames(coreObjProto)) {
+      var desc = getOwnPropertyDescriptor(coreObjProto, name);
+      defineProperty(jsProto, getExtensionSymbol(name), desc);
+    }
+    return;
   }
-  $copyTheseProperties(jsProto, extProto, $getOwnPropertySymbols(extProto));
-})()''');
+  if (JS('bool', '# !== #', jsProto, extProto)) {
+    _installProperties(jsProto, JS('', '#.__proto__', extProto));
+  }
+  copyTheseProperties(jsProto, extProto, getOwnPropertySymbols(extProto));
+}
 
 ///
 /// Copy symbols from the prototype of the source to destination.

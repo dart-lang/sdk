@@ -30,8 +30,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const web_audio = Object.create(null);
   const web_gl = Object.create(null);
   const web_sql = Object.create(null);
-  dart.global = typeof window == "undefined" ? global : window;
-  dart.JsSymbol = Symbol;
   dart.mixin = function(base, ...mixins) {
     class Mixin extends base {
       [base.name](...args) {
@@ -65,8 +63,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.getImplements = function(clazz) {
     return clazz[dart.implements];
   };
-  dart._typeArguments = Symbol("typeArguments");
-  dart._originalDeclaration = Symbol("originalDeclaration");
   dart.generic = function(typeConstructor) {
     let length = typeConstructor.length;
     if (length < 1) {
@@ -110,9 +106,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.getGenericArgs = function(type) {
     return dart.safeGetOwnProperty(type, dart._typeArguments);
   };
-  dart._constructorSig = Symbol("sigCtor");
-  dart._methodSig = Symbol("sig");
-  dart._staticSig = Symbol("sigStatic");
   dart.getMethodType = function(obj, name) {
     let type = obj == null ? core.Object : obj.__proto__.constructor;
     return dart.getMethodTypeFromType(type, name);
@@ -193,21 +186,30 @@ dart_library.library('dart_sdk', null, /* Imports */[
     ctor.prototype = proto;
     dart.defineProperty(clazz, name, {value: ctor, configurable: true});
   };
-  dart._extensionType = Symbol("extensionType");
   dart.getExtensionType = function(obj) {
     return obj[dart._extensionType];
   };
-  dart.dartx = dartx;
   dart.getExtensionSymbol = function(name) {
-    let sym = dart.dartx[name];
-    if (!sym) dart.dartx[name] = sym = Symbol('dartx.' + name.toString());
+    let sym = dartx[name];
+    if (sym == null) {
+      sym = Symbol("dartx." + name.toString());
+      dartx[name] = sym;
+    }
     return sym;
   };
   dart.defineExtensionNames = function(names) {
     return names.forEach(dart.getExtensionSymbol);
   };
   dart._installProperties = function(jsProto, extProto) {
-    if (extProto !== core.Object.prototype && extProto !== jsProto) {
+    let coreObjProto = core.Object.prototype;
+    if (extProto === coreObjProto) {
+      for (let name of dart.getOwnPropertyNames(coreObjProto)) {
+        let desc = dart.getOwnPropertyDescriptor(coreObjProto, name);
+        dart.defineProperty(jsProto, dart.getExtensionSymbol(name), desc);
+      }
+      return;
+    }
+    if (jsProto !== extProto) {
       dart._installProperties(jsProto, extProto.__proto__);
     }
     dart.copyTheseProperties(jsProto, extProto, dart.getOwnPropertySymbols(extProto));
@@ -266,8 +268,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.throwNullValueError = function() {
     dart.throw(new core.NoSuchMethodError(null, new core.Symbol('<Unexpected Null Value>'), null, null, null));
   };
-  dart._jsIterator = Symbol("_jsIterator");
-  dart._current = Symbol("_current");
   dart.syncStar = function(gen, E, ...args) {
     const SyncIterable_E = dart.getGenericClass(_js_helper.SyncIterable)(E);
     return new SyncIterable_E(gen, args);
@@ -293,109 +293,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       iter = gen(...args)[Symbol.iterator]();
       return onValue();
     });
-  };
-  dart._AsyncStarStreamController = class _AsyncStarStreamController {
-    constructor(generator, T, args) {
-      this.isAdding = false;
-      this.isWaiting = false;
-      this.isScheduled = false;
-      this.isSuspendedAtYield = false;
-      this.canceler = null;
-      this.iterator = generator(this, ...args)[Symbol.iterator]();
-      this.controller = dart.getGenericClass(async.StreamController)(T).new({
-        onListen: () => this.scheduleGenerator(),
-        onResume: () => this.onResume(),
-        onCancel: () => this.onCancel()
-      });
-    }
-    onResume() {
-      if (this.isSuspendedAtYield) {
-        this.scheduleGenerator();
-      }
-    }
-    onCancel() {
-      if (this.controller.isClosed) {
-        return null;
-      }
-      if (this.canceler == null) {
-        this.canceler = async.Completer.new();
-        this.scheduleGenerator();
-      }
-      return this.canceler.future;
-    }
-    close() {
-      if (this.canceler != null && !this.canceler.isCompleted) {
-        this.canceler.complete();
-      }
-      this.controller.close();
-    }
-    scheduleGenerator() {
-      if (this.isScheduled || this.controller.isPaused || this.isAdding || this.isWaiting) {
-        return;
-      }
-      this.isScheduled = true;
-      async.scheduleMicrotask(() => this.runBody());
-    }
-    runBody(opt_awaitValue) {
-      this.isScheduled = false;
-      this.isSuspendedAtYield = false;
-      this.isWaiting = false;
-      let iter;
-      try {
-        iter = this.iterator.next(opt_awaitValue);
-      } catch (e) {
-        this.addError(e, dart.stackTrace(e));
-        this.close();
-        return;
-      }
-
-      if (iter.done) {
-        this.close();
-        return;
-      }
-      if (this.isSuspendedAtYield || this.isAdding) return;
-      this.isWaiting = true;
-      let future = iter.value;
-      if (!dart.is(future, dart.getGenericClass(async.Future))) {
-        future = async.Future.value(future);
-      }
-      return future.then(dart.dynamic)(x => this.runBody(x), {
-        onError: (e, s) => this.throwError(e, s)
-      });
-    }
-    add(event) {
-      if (!this.controller.hasListener) return true;
-      this.controller.add(event);
-      this.scheduleGenerator();
-      this.isSuspendedAtYield = true;
-      return false;
-    }
-    addStream(stream) {
-      if (!this.controller.hasListener) return true;
-      this.isAdding = true;
-      this.controller.addStream(stream, {cancelOnError: false}).then(dart.dynamic)(() => {
-        this.isAdding = false;
-        this.scheduleGenerator();
-      }, {
-        onError: (e, s) => this.throwError(e, s)
-      });
-    }
-    throwError(error, stackTrace) {
-      try {
-        this.iterator.throw(error);
-      } catch (e) {
-        this.addError(e, stackTrace);
-      }
-
-    }
-    addError(error, stackTrace) {
-      if (this.canceler != null && !this.canceler.isCompleted) {
-        this.canceler.completeError(error, stackTrace);
-        return;
-      }
-      if (!this.controller.hasListener) return;
-      this.controller.addError(error, stackTrace);
-    }
   };
   dart.asyncStar = function(gen, T, ...args) {
     return new dart._AsyncStarStreamController(gen, T, args).controller.stream;
@@ -536,15 +433,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return result;
     };
   };
-  dart._ignoreTypeFailure = (() => {
-    return dart._ignoreMemo((actual, type) => {
-      if (!!dart.isSubtype(type, core.Iterable) && !!dart.isSubtype(actual, core.Iterable) || !!dart.isSubtype(type, async.Future) && !!dart.isSubtype(actual, async.Future) || !!dart.isSubtype(type, core.Map) && !!dart.isSubtype(actual, core.Map) || dart.isFunctionType(type) && dart.isFunctionType(actual) || !!dart.isSubtype(type, async.Stream) && !!dart.isSubtype(actual, async.Stream) || !!dart.isSubtype(type, async.StreamSubscription) && !!dart.isSubtype(actual, async.StreamSubscription)) {
-        console.warn('Ignoring cast fail from ' + dart.typeName(actual) + ' to ' + dart.typeName(type));
-        return true;
-      }
-      return false;
-    });
-  })();
   dart.strongInstanceOf = function(obj, type, ignoreFromWhiteList) {
     let actual = dart.getReifiedType(obj);
     let result = dart.isSubtype(actual, type);
@@ -617,7 +505,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.assert = function(condition) {
     if (!condition) dart.throwAssertionError();
   };
-  dart._stack = new WeakMap();
   dart.throw = function(obj) {
     if (obj != null && (typeof obj == 'object' || typeof obj == 'function')) {
       dart._stack.set(obj, new Error());
@@ -644,7 +531,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     return obj;
   };
-  dart._value = Symbol("_value");
   dart.multiKeyPutIfAbsent = function(map, keys, valueFn) {
     for (let k of keys) {
       let value = map.get(k);
@@ -658,7 +544,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     map.set(dart._value, value);
     return value;
   };
-  dart.constants = new Map();
   dart.const = function(obj) {
     let objectKey = [dart.getReifiedType(obj)];
     for (let name of dart.getOwnNamesAndSymbols(obj)) {
@@ -668,51 +553,49 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return dart.multiKeyPutIfAbsent(dart.constants, objectKey, () => obj);
   };
   dart.hashCode = function(obj) {
-    if (obj == null) {
-      return 0;
-    }
+    if (obj == null) return 0;
     switch (typeof obj) {
       case "number":
-      case "boolean":
       {
         return obj & 0x1FFFFFFF;
       }
-      case "string":
+      case "boolean":
       {
-        return obj.length;
+        return obj ? 2 * 3 * 23 * 3761 : 269 * 811;
       }
+    }
+    let extension = dart.getExtensionType(obj);
+    if (extension != null) {
+      return obj[dartx.hashCode];
     }
     return obj.hashCode;
   };
   dart.toString = function(obj) {
-    if (obj == null) {
-      return "null";
+    if (obj == null) return "null";
+    let extension = dart.getExtensionType(obj);
+    if (extension != null) {
+      return obj[dartx.toString]();
     }
     return obj.toString();
   };
   dart.noSuchMethod = function(obj, invocation) {
     if (obj == null) {
-      dart.throwNoSuchMethod(obj, invocation.memberName, invocation.positionalArguments, invocation.namedArguments);
+      dart.throw(new core.NoSuchMethodError(null, invocation.memberName, invocation.positionalArguments, invocation.namedArguments));
     }
-    switch (typeof obj) {
-      case "number":
-      case "boolean":
-      case "string":
-      {
-        dart.throwNoSuchMethod(obj, invocation.memberName, invocation.positionalArguments, invocation.namedArguments);
-      }
+    let extension = dart.getExtensionType(obj);
+    if (extension != null) {
+      return obj[dartx.noSuchMethod](invocation);
     }
     return obj.noSuchMethod(invocation);
   };
-  dart.JsIterator = class JsIterator {
-    constructor(dartIterator) {
-      this.dartIterator = dartIterator;
+  dart.runtimeType = function(obj) {
+    let result = dart._checkPrimitiveType(obj);
+    if (result != null) return dart.wrapType(result);
+    let extension = dart.getExtensionType(obj);
+    if (extension != null) {
+      return obj[dartx.runtimeType];
     }
-    next() {
-      let i = this.dartIterator;
-      let done = !i.moveNext();
-      return {done: done, value: done ? void 0 : i.current};
-    }
+    return obj.runtimeType;
   };
   dart.fn = function(closure, rType, argsT, extras) {
     let t = null;
@@ -731,13 +614,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     });
     return closure;
   };
-  dart._runtimeType = Symbol("_runtimeType");
-  dart.checkPrimitiveType = function(obj) {
+  dart._checkPrimitiveType = function(obj) {
+    if (obj == null) return core.Null;
     switch (typeof obj) {
-      case "undefined":
-      {
-        return core.Null;
-      }
       case "number":
       {
         return Math.floor(obj) == obj ? core.int : core.double;
@@ -752,36 +631,27 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       case "symbol":
       {
-        return Symbol;
+        return dart.jsobject;
       }
     }
-    if (obj === null) return core.Null;
     return null;
-  };
-  dart.runtimeType = function(obj) {
-    let result = dart.checkPrimitiveType(obj);
-    if (result !== null) return dart.wrapType(result);
-    return obj.runtimeType;
   };
   dart.getFunctionType = function(obj) {
     let args = Array(obj.length).fill(dart.dynamic);
-    return dart.definiteFunctionType(dart.bottom, args);
-  };
-  dart.objectRuntimeType = function(obj) {
-    return dart.wrapType(dart.getReifiedType(obj));
+    return dart.definiteFunctionType(dart.bottom, args, void 0);
   };
   dart.getReifiedType = function(obj) {
-    let result = dart.checkPrimitiveType(obj);
+    let result = dart._checkPrimitiveType(obj);
     if (result != null) return result;
     return dart._nonPrimitiveRuntimeType(obj);
   };
   dart._nonPrimitiveRuntimeType = function(obj) {
-    let result = obj[dart._runtimeType];
-    if (result) return result;
-    result = obj[dart._extensionType];
-    if (result) return result;
+    let result = dart._getRuntimeType(obj);
+    if (result != null) return result;
+    result = dart.getExtensionType(obj);
+    if (result != null) return result;
     result = obj.constructor;
-    if (result == Function) {
+    if (result === Function) {
       return dart.jsobject;
     }
     return result;
@@ -804,51 +674,554 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.tagLazy = function(value, compute) {
     dart.defineLazyProperty(value, dart._runtimeType, {get: compute});
   };
+  dart._functionType = function(definite, returnType, args, extra) {
+    if (args === void 0 && extra === void 0) {
+      const fnTypeParts = returnType;
+      function makeGenericFnType(...types) {
+        let parts = fnTypeParts(...types);
+        return dart._functionType(definite, parts[0], parts[1], parts[2]);
+      }
+      makeGenericFnType[dart._typeFormalCount] = fnTypeParts.length;
+      return makeGenericFnType;
+    }
+    let optionals;
+    let named;
+    if (extra === void 0) {
+      optionals = [];
+      named = {};
+    } else if (extra instanceof Array) {
+      optionals = extra;
+      named = {};
+    } else {
+      optionals = [];
+      named = extra;
+    }
+    return new dart.FunctionType(definite, returnType, args, optionals, named);
+  };
+  dart.functionType = function(returnType, args, extra) {
+    return dart._functionType(false, returnType, args, extra);
+  };
+  dart.definiteFunctionType = function(returnType, args, extra) {
+    return dart._functionType(true, returnType, args, extra);
+  };
+  dart.typedef = function(name, closure) {
+    return new dart.Typedef(name, closure);
+  };
+  dart.isDartType = function(type) {
+    return dart._getRuntimeType(type) === core.Type;
+  };
+  dart.typeName = function(type) {
+    if (type === void 0) return "undefined type";
+    if (type === null) return "null type";
+    if (type instanceof dart.TypeRep) {
+      if (type instanceof dart.Typedef) {
+        return type.name + "(" + type.functionType.toString() + ")";
+      }
+      return type.toString();
+    }
+    let tag = dart._getRuntimeType(type);
+    if (tag === core.Type) {
+      let name = type.name;
+      let args = dart.getGenericArgs(type);
+      if (!args) return name;
+      let result = name;
+      let allDynamic = true;
+      result += '<';
+      for (let i = 0; i < args.length; ++i) {
+        if (i > 0) result += ', ';
+        let argName = dart.typeName(args[i]);
+        if (argName != 'dynamic') allDynamic = false;
+        result += argName;
+      }
+      result += '>';
+      if (allDynamic) return name;
+      return result;
+    }
+    if (tag) return "Not a type: " + tag.name;
+    return "JSObject<" + type.name + ">";
+  };
+  dart.getImplicitFunctionType = function(type) {
+    if (dart.notNull(dart.isFunctionType(type))) return type;
+    return dart.getMethodTypeFromType(type, 'call');
+  };
+  dart.isFunctionType = function(type) {
+    return type instanceof dart.AbstractFunctionType || type === core.Function;
+  };
+  dart.isFunctionSubtype = function(ft1, ft2, covariant) {
+    if (ft2 === core.Function) {
+      return true;
+    }
+    let ret1 = ft1.returnType;
+    let ret2 = ft2.returnType;
+    let args1 = ft1.args;
+    let args2 = ft2.args;
+    if (args1.length > args2.length) {
+      return covariant ? false : null;
+    }
+    for (let i = 0; i < args1.length; ++i) {
+      if (!dart._isSubtype(args2[i], args1[i], !covariant)) {
+        return null;
+      }
+    }
+    let optionals1 = ft1.optionals;
+    let optionals2 = ft2.optionals;
+    if (args1.length + optionals1.length < args2.length + optionals2.length) {
+      return covariant ? false : null;
+    }
+    let j = 0;
+    for (let i = args1.length; i < args2.length; ++i, ++j) {
+      if (!dart._isSubtype(args2[i], optionals1[j], !covariant)) {
+        return null;
+      }
+    }
+    for (let i = 0; i < optionals2.length; ++i, ++j) {
+      if (!dart._isSubtype(optionals2[i], optionals1[j], !covariant)) {
+        return null;
+      }
+    }
+    let named1 = ft1.named;
+    let named2 = ft2.named;
+    let names = dart.getOwnPropertyNames(named2);
+    for (let i = 0; i < names.length; ++i) {
+      let name = names[i];
+      let n1 = named1[name];
+      let n2 = named2[name];
+      if (n1 === void 0) {
+        return covariant ? false : null;
+      }
+      if (!dart._isSubtype(n2, n1, !covariant)) {
+        return null;
+      }
+    }
+    if (ret2 === dart.void) return true;
+    if (ret1 === dart.void) return ret2 === dart.dynamic;
+    if (!dart._isSubtype(ret1, ret2, covariant)) return null;
+    return true;
+  };
+  dart.canonicalType = function(t) {
+    if (t === Object) return Object;
+    if (t === Function) return Function;
+    if (t === Array) return List;
+    if (t === String) return String;
+    if (t === Number) return double;
+    if (t === Boolean) return bool;
+    return t;
+  };
+  dart._subtypeMemo = function(f) {
+    let memo = new Map();
+    return (t1, t2) => {
+      let map = memo.get(t1);
+      let result;
+      if (map) {
+        result = map.get(t2);
+        if (result !== void 0) return result;
+      } else {
+        memo.set(t1, map = new Map());
+      }
+      result = f(t1, t2);
+      map.set(t2, result);
+      return result;
+    };
+  };
+  dart._isBottom = function(type) {
+    return type == dart.bottom;
+  };
+  dart._isTop = function(type) {
+    return type == core.Object || type == dart.dynamic;
+  };
+  dart._isSubtype = function(t1, t2, covariant) {
+    t1 = dart.canonicalType(t1);
+    t2 = dart.canonicalType(t2);
+    if (t1 === t2) return true;
+    if (dart._isTop(t2) || dart._isBottom(t1)) {
+      return true;
+    }
+    if (dart._isBottom(t2)) return null;
+    if (dart._isTop(t1)) {
+      if (t1 === dart.dynamic) return null;
+      return false;
+    }
+    if (!(t1 instanceof dart.AbstractFunctionType) && !(t2 instanceof dart.AbstractFunctionType)) {
+      let result = dart.isClassSubType(t1, t2, covariant);
+      if (result === true || result === null) return result;
+    }
+    t1 = dart.getImplicitFunctionType(t1);
+    if (!t1) return false;
+    if (dart.isFunctionType(t1) && dart.isFunctionType(t2)) {
+      return dart.isFunctionSubtype(t1, t2, covariant);
+    }
+    return false;
+  };
+  dart.isClassSubType = function(t1, t2, covariant) {
+    t1 = dart.canonicalType(t1);
+    dart.assert(t2 == dart.canonicalType(t2));
+    if (t1 == t2) return true;
+    if (t1 == core.Object) return false;
+    if (t1 == null) return t2 == core.Object || t2 == dart.dynamic;
+    let raw1 = dart.getGenericClass(t1);
+    let raw2 = dart.getGenericClass(t2);
+    if (raw1 != null && raw1 == raw2) {
+      let typeArguments1 = dart.getGenericArgs(t1);
+      let typeArguments2 = dart.getGenericArgs(t2);
+      let length = typeArguments1.length;
+      if (typeArguments2.length == 0) {
+        return true;
+      } else if (length == 0) {
+        if (typeArguments2.every(dart._isTop)) return true;
+        return null;
+      }
+      dart.assert(length == typeArguments2.length);
+      for (let i = 0; i < length; ++i) {
+        let result = dart._isSubtype(typeArguments1[i], typeArguments2[i], covariant);
+        if (!result) {
+          return result;
+        }
+      }
+      return true;
+    }
+    let indefinite = false;
+    function definitive(t1, t2) {
+      let result = dart.isClassSubType(t1, t2, covariant);
+      if (result == null) {
+        indefinite = true;
+        return false;
+      }
+      return result;
+    }
+    if (definitive(t1.__proto__, t2)) return true;
+    let mixins = dart.getMixins(t1);
+    if (mixins) {
+      for (let m1 of mixins) {
+        if (m1 != null && definitive(m1, t2)) return true;
+      }
+    }
+    let getInterfaces = dart.getImplements(t1);
+    if (getInterfaces) {
+      for (let i1 of getInterfaces()) {
+        if (i1 != null && definitive(i1, t2)) return true;
+      }
+    }
+    if (indefinite) return null;
+    return false;
+  };
+  dart.isGroundType = function(type) {
+    if (type instanceof dart.AbstractFunctionType) {
+      if (!dart._isTop(type.returnType)) return false;
+      for (let i = 0; i < type.args.length; ++i) {
+        if (!dart._isBottom(type.args[i])) return false;
+      }
+      for (let i = 0; i < type.optionals.length; ++i) {
+        if (!dart._isBottom(type.optionals[i])) return false;
+      }
+      let names = dart.getOwnPropertyNames(type.named);
+      for (let i = 0; i < names.length; ++i) {
+        if (!dart._isBottom(type.named[names[i]])) return false;
+      }
+      return true;
+    }
+    let typeArgs = dart.getGenericArgs(type);
+    if (!typeArgs) return true;
+    for (let t of typeArgs) {
+      if (t != core.Object && t != dart.dynamic) return false;
+    }
+    return true;
+  };
+  dart.defineProperty = function(obj, name, desc) {
+    return Object.defineProperty(obj, name, desc);
+  };
+  dart.getOwnPropertyDescriptor = function(obj, name) {
+    return Object.getOwnPropertyDescriptor(obj, name);
+  };
+  dart.getOwnPropertyNames = function(obj) {
+    return Object.getOwnPropertyNames(obj);
+  };
+  dart.getOwnPropertySymbols = function(obj) {
+    return Object.getOwnPropertySymbols(obj);
+  };
+  dart.throwStrongModeError = function(message) {
+    throw new dart.StrongModeError(message);
+  };
+  dart.throwInternalError = function(message) {
+    throw Error(message);
+  };
+  dart.getOwnNamesAndSymbols = function(obj) {
+    let names = dart.getOwnPropertyNames(obj);
+    let symbols = dart.getOwnPropertySymbols(obj);
+    return names.concat(symbols);
+  };
+  dart.safeGetOwnProperty = function(obj, name) {
+    let desc = dart.getOwnPropertyDescriptor(obj, name);
+    if (desc != null) return desc.value;
+  };
+  dart.defineLazyProperty = function(to, name, desc) {
+    let init = desc.get;
+    let value = null;
+    function lazySetter(x) {
+      init = null;
+      value = x;
+    }
+    function circularInitError() {
+      dart.throwInternalError('circular initialization for field ' + name);
+    }
+    function lazyGetter() {
+      if (init == null) return value;
+      let f = init;
+      init = circularInitError;
+      lazySetter(f());
+      return value;
+    }
+    desc.get = lazyGetter;
+    desc.configurable = true;
+    if (desc.set) desc.set = lazySetter;
+    return dart.defineProperty(to, name, desc);
+  };
+  dart.defineLazy = function(to, from) {
+    for (let name of dart.getOwnNamesAndSymbols(from)) {
+      dart.defineLazyProperty(to, name, dart.getOwnPropertyDescriptor(from, name));
+    }
+  };
+  dart.defineMemoizedGetter = function(obj, name, getter) {
+    return dart.defineLazyProperty(obj, name, {get: getter});
+  };
+  dart.copyTheseProperties = function(to, from, names) {
+    for (let name of names) {
+      dart.copyProperty(to, from, name);
+    }
+    return to;
+  };
+  dart.copyProperty = function(to, from, name) {
+    let desc = dart.getOwnPropertyDescriptor(from, name);
+    if (name == Symbol.iterator) {
+      let existing = dart.getOwnPropertyDescriptor(to, name);
+      if (existing != null) {
+        if (existing.writable) {
+          to[name] = desc.value;
+        }
+        return;
+      }
+    }
+    dart.defineProperty(to, name, desc);
+  };
+  dart.export = function(to, from, name) {
+    return dart.copyProperty(to, from, name);
+  };
+  dart.copyProperties = function(to, from) {
+    return dart.copyTheseProperties(to, from, dart.getOwnNamesAndSymbols(from));
+  };
+  dart.global = typeof window == "undefined" ? global : window;
+  dart.JsSymbol = Symbol;
   dart._mixins = Symbol("mixins");
   dart.implements = Symbol("implements");
+  dart._typeArguments = Symbol("typeArguments");
+  dart._originalDeclaration = Symbol("originalDeclaration");
+  dart._constructorSig = Symbol("sigCtor");
+  dart._methodSig = Symbol("sig");
+  dart._staticSig = Symbol("sigStatic");
+  dart._extensionType = Symbol("extensionType");
+  dart.dartx = dartx;
+  dart._jsIterator = Symbol("_jsIterator");
+  dart._current = Symbol("_current");
+  dart._AsyncStarStreamController = class _AsyncStarStreamController {
+    constructor(generator, T, args) {
+      this.isAdding = false;
+      this.isWaiting = false;
+      this.isScheduled = false;
+      this.isSuspendedAtYield = false;
+      this.canceler = null;
+      this.iterator = generator(this, ...args)[Symbol.iterator]();
+      this.controller = dart.getGenericClass(async.StreamController)(T).new({
+        onListen: () => this.scheduleGenerator(),
+        onResume: () => this.onResume(),
+        onCancel: () => this.onCancel()
+      });
+    }
+    onResume() {
+      if (this.isSuspendedAtYield) {
+        this.scheduleGenerator();
+      }
+    }
+    onCancel() {
+      if (this.controller.isClosed) {
+        return null;
+      }
+      if (this.canceler == null) {
+        this.canceler = async.Completer.new();
+        this.scheduleGenerator();
+      }
+      return this.canceler.future;
+    }
+    close() {
+      if (this.canceler != null && !this.canceler.isCompleted) {
+        this.canceler.complete();
+      }
+      this.controller.close();
+    }
+    scheduleGenerator() {
+      if (this.isScheduled || this.controller.isPaused || this.isAdding || this.isWaiting) {
+        return;
+      }
+      this.isScheduled = true;
+      async.scheduleMicrotask(() => this.runBody());
+    }
+    runBody(opt_awaitValue) {
+      this.isScheduled = false;
+      this.isSuspendedAtYield = false;
+      this.isWaiting = false;
+      let iter;
+      try {
+        iter = this.iterator.next(opt_awaitValue);
+      } catch (e) {
+        this.addError(e, dart.stackTrace(e));
+        this.close();
+        return;
+      }
+
+      if (iter.done) {
+        this.close();
+        return;
+      }
+      if (this.isSuspendedAtYield || this.isAdding) return;
+      this.isWaiting = true;
+      let future = iter.value;
+      if (!dart.is(future, dart.getGenericClass(async.Future))) {
+        future = async.Future.value(future);
+      }
+      return future.then(dart.dynamic)(x => this.runBody(x), {
+        onError: (e, s) => this.throwError(e, s)
+      });
+    }
+    add(event) {
+      if (!this.controller.hasListener) return true;
+      this.controller.add(event);
+      this.scheduleGenerator();
+      this.isSuspendedAtYield = true;
+      return false;
+    }
+    addStream(stream) {
+      if (!this.controller.hasListener) return true;
+      this.isAdding = true;
+      this.controller.addStream(stream, {cancelOnError: false}).then(dart.dynamic)(() => {
+        this.isAdding = false;
+        this.scheduleGenerator();
+      }, {
+        onError: (e, s) => this.throwError(e, s)
+      });
+    }
+    throwError(error, stackTrace) {
+      try {
+        this.iterator.throw(error);
+      } catch (e) {
+        this.addError(e, stackTrace);
+      }
+
+    }
+    addError(error, stackTrace) {
+      if (this.canceler != null && !this.canceler.isCompleted) {
+        this.canceler.completeError(error, stackTrace);
+        return;
+      }
+      if (!this.controller.hasListener) return;
+      this.controller.addError(error, stackTrace);
+    }
+  };
+  dart._ignoreTypeFailure = (() => {
+    return dart._ignoreMemo((actual, type) => {
+      if (!!dart.isSubtype(type, core.Iterable) && !!dart.isSubtype(actual, core.Iterable) || !!dart.isSubtype(type, async.Future) && !!dart.isSubtype(actual, async.Future) || !!dart.isSubtype(type, core.Map) && !!dart.isSubtype(actual, core.Map) || dart.isFunctionType(type) && dart.isFunctionType(actual) || !!dart.isSubtype(type, async.Stream) && !!dart.isSubtype(actual, async.Stream) || !!dart.isSubtype(type, async.StreamSubscription) && !!dart.isSubtype(actual, async.StreamSubscription)) {
+        console.warn('Ignoring cast fail from ' + dart.typeName(actual) + ' to ' + dart.typeName(type));
+        return true;
+      }
+      return false;
+    });
+  })();
+  dart._stack = new WeakMap();
+  dart._value = Symbol("_value");
+  dart.constants = new Map();
+  dart.JsIterator = class JsIterator {
+    constructor(dartIterator) {
+      this.dartIterator = dartIterator;
+    }
+    next() {
+      let i = this.dartIterator;
+      let done = !i.moveNext();
+      return {done: done, value: done ? void 0 : i.current};
+    }
+  };
+  dart._runtimeType = Symbol("_runtimeType");
   dart.metadata = Symbol("metadata");
   dart._typeObject = Symbol("typeObject");
-  dart.TypeRep = class TypeRep {
+  core.Object = class Object {
+    constructor() {
+      let name = this.constructor.name;
+      let result = void 0;
+      if (name in this) result = this[name](...arguments);
+      return result === void 0 ? this : result;
+    }
+    ['=='](other) {
+      return core.identical(this, other);
+    }
+    get hashCode() {
+      return _js_helper.Primitives.objectHashCode(this);
+    }
+    toString() {
+      return _js_helper.Primitives.objectToString(this);
+    }
+    noSuchMethod(invocation) {
+      dart.throw(new core.NoSuchMethodError(this, invocation.memberName, invocation.positionalArguments, invocation.namedArguments));
+    }
+    get runtimeType() {
+      return dart.wrapType(dart.getReifiedType(this));
+    }
+  };
+  dart.setSignature(core.Object, {
+    constructors: () => ({Object: [core.Object, []]}),
+    methods: () => ({
+      '==': [core.bool, [dart.dynamic]],
+      toString: [core.String, []],
+      noSuchMethod: [dart.dynamic, [core.Invocation]]
+    })
+  });
+  dart.TypeRep = class TypeRep extends core.Object {
     get name() {
       return this.toString();
     }
-    get [dart._runtimeType]() {
-      return core.Type;
-    }
   };
+  dart.TypeRep[dart.implements] = () => [core.Type];
   dart.Dynamic = class Dynamic extends dart.TypeRep {
     toString() {
-      return "dynamic";
+      return 'dynamic';
     }
   };
   dart.dynamic = new dart.Dynamic();
   dart.Void = class Void extends dart.TypeRep {
     toString() {
-      return "void";
+      return 'void';
     }
   };
   dart.void = new dart.Void();
   dart.Bottom = class Bottom extends dart.TypeRep {
     toString() {
-      return "bottom";
+      return 'bottom';
     }
   };
   dart.bottom = new dart.Bottom();
   dart.JSObject = class JSObject extends dart.TypeRep {
     toString() {
-      return "NativeJavaScriptObject";
+      return 'NativeJavaScriptObject';
     }
   };
   dart.jsobject = new dart.JSObject();
+  const _runtimeType = Symbol('_runtimeType');
   dart.WrappedType = class WrappedType extends dart.TypeRep {
-    constructor(type) {
-      super();
-      this._runtimeType = type;
+    WrappedType(runtimeType) {
+      this[_runtimeType] = runtimeType;
     }
     toString() {
-      return dart.typeName(this._runtimeType);
+      return dart.as(dart.typeName(this[_runtimeType]), core.String);
     }
   };
+  dart.setSignature(dart.WrappedType, {
+    constructors: () => ({WrappedType: [dart.WrappedType, [dart.dynamic]]})
+  });
   dart.AbstractFunctionType = class AbstractFunctionType extends dart.TypeRep {
     constructor() {
       super();
@@ -974,276 +1347,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart._typeFormalCount = Symbol("_typeFormalCount");
-  dart._functionType = function(definite, returnType, args, extra) {
-    if (args === void 0 && extra === void 0) {
-      const fnTypeParts = returnType;
-      function makeGenericFnType(...types) {
-        let parts = fnTypeParts(...types);
-        return dart._functionType(definite, parts[0], parts[1], parts[2]);
-      }
-      makeGenericFnType[dart._typeFormalCount] = fnTypeParts.length;
-      return makeGenericFnType;
-    }
-    let optionals;
-    let named;
-    if (extra === void 0) {
-      optionals = [];
-      named = {};
-    } else if (extra instanceof Array) {
-      optionals = extra;
-      named = {};
-    } else {
-      optionals = [];
-      named = extra;
-    }
-    return new dart.FunctionType(definite, returnType, args, optionals, named);
-  };
-  dart.functionType = function(returnType, args, extra) {
-    return dart._functionType(false, returnType, args, extra);
-  };
-  dart.definiteFunctionType = function(returnType, args, extra) {
-    return dart._functionType(true, returnType, args, extra);
-  };
-  dart.typedef = function(name, closure) {
-    return new dart.Typedef(name, closure);
-  };
-  dart.isDartType = function(type) {
-    return dart._getRuntimeType(type) === core.Type;
-  };
-  dart.typeName = function(type) {
-    if (type === void 0) return "undefined type";
-    if (type === null) return "null type";
-    if (type instanceof dart.TypeRep) {
-      if (type instanceof dart.Typedef) {
-        return type.name + "(" + type.functionType.toString() + ")";
-      }
-      return type.toString();
-    }
-    let tag = dart._getRuntimeType(type);
-    if (tag === core.Type) {
-      let name = type.name;
-      let args = dart.getGenericArgs(type);
-      if (!args) return name;
-      let result = name;
-      let allDynamic = true;
-      result += '<';
-      for (let i = 0; i < args.length; ++i) {
-        if (i > 0) result += ', ';
-        let argName = dart.typeName(args[i]);
-        if (argName != 'dynamic') allDynamic = false;
-        result += argName;
-      }
-      result += '>';
-      if (allDynamic) return name;
-      return result;
-    }
-    if (tag) return "Not a type: " + tag.name;
-    return "JSObject<" + type.name + ">";
-  };
-  dart.getImplicitFunctionType = function(type) {
-    if (dart.isFunctionType(type)) return type;
-    return dart.getMethodTypeFromType(type, 'call');
-  };
-  dart.isFunctionType = function(type) {
-    return type instanceof dart.AbstractFunctionType || type === core.Function;
-  };
-  dart.isFunctionSubtype = function(ft1, ft2, covariant) {
-    if (ft2 === core.Function) {
-      return true;
-    }
-    let ret1 = ft1.returnType;
-    let ret2 = ft2.returnType;
-    let args1 = ft1.args;
-    let args2 = ft2.args;
-    if (args1.length > args2.length) {
-      return covariant ? false : null;
-    }
-    for (let i = 0; i < args1.length; ++i) {
-      if (!dart.isSubtype_(args2[i], args1[i], !covariant)) {
-        return null;
-      }
-    }
-    let optionals1 = ft1.optionals;
-    let optionals2 = ft2.optionals;
-    if (args1.length + optionals1.length < args2.length + optionals2.length) {
-      return covariant ? false : null;
-    }
-    let j = 0;
-    for (let i = args1.length; i < args2.length; ++i, ++j) {
-      if (!dart.isSubtype_(args2[i], optionals1[j], !covariant)) {
-        return null;
-      }
-    }
-    for (let i = 0; i < optionals2.length; ++i, ++j) {
-      if (!dart.isSubtype_(optionals2[i], optionals1[j], !covariant)) {
-        return null;
-      }
-    }
-    let named1 = ft1.named;
-    let named2 = ft2.named;
-    let names = dart.getOwnPropertyNames(named2);
-    for (let i = 0; i < names.length; ++i) {
-      let name = names[i];
-      let n1 = named1[name];
-      let n2 = named2[name];
-      if (n1 === void 0) {
-        return covariant ? false : null;
-      }
-      if (!dart.isSubtype_(n2, n1, !covariant)) {
-        return null;
-      }
-    }
-    if (ret2 === dart.void) return true;
-    if (ret1 === dart.void) return ret2 === dart.dynamic;
-    if (!dart.isSubtype_(ret1, ret2, covariant)) return null;
-    return true;
-  };
-  dart.canonicalType = function(t) {
-    if (t === Object) return Object;
-    if (t === Function) return Function;
-    if (t === Array) return List;
-    if (t === String) return String;
-    if (t === Number) return double;
-    if (t === Boolean) return bool;
-    return t;
-  };
-  dart._subtypeMemo = function(f) {
-    let memo = new Map();
-    return (t1, t2) => {
-      let map = memo.get(t1);
-      let result;
-      if (map) {
-        result = map.get(t2);
-        if (result !== void 0) return result;
-      } else {
-        memo.set(t1, map = new Map());
-      }
-      console.log("Checking " + dart.typeName(t1) + " <: " + dart.typeName(t2));
-      result = f(t1, t2);
-      map.set(t2, result);
-      return result;
-    };
-  };
-  dart.isSubtype = (() => {
-    return dart._subtypeMemo((t1, t2) => {
-      return dart.isSubtype_(t1, t2, true);
-    });
-  })();
-  dart._isBottom = function(type) {
-    return type == dart.bottom;
-  };
-  dart._isTop = function(type) {
-    return type == core.Object || type == dart.dynamic;
-  };
-  dart.isSubtype_ = function(t1, t2, covariant) {
-    t1 = dart.canonicalType(t1);
-    t2 = dart.canonicalType(t2);
-    if (t1 === t2) return true;
-    if (dart._isTop(t2) || dart._isBottom(t1)) {
-      return true;
-    }
-    if (dart._isBottom(t2)) return null;
-    if (dart._isTop(t1)) {
-      if (t1 === dart.dynamic) return null;
-      return false;
-    }
-    if (!(t1 instanceof dart.AbstractFunctionType) && !(t2 instanceof dart.AbstractFunctionType)) {
-      let result = dart.isClassSubType(t1, t2, covariant);
-      if (result === true || result === null) return result;
-    }
-    t1 = dart.getImplicitFunctionType(t1);
-    if (!t1) return false;
-    if (dart.isFunctionType(t1) && dart.isFunctionType(t2)) {
-      return dart.isFunctionSubtype(t1, t2, covariant);
-    }
-    return false;
-  };
-  dart.isClassSubType = function(t1, t2, covariant) {
-    t1 = dart.canonicalType(t1);
-    dart.assert(t2 == dart.canonicalType(t2));
-    if (t1 == t2) return true;
-    if (t1 == core.Object) return false;
-    if (t1 == null) return t2 == core.Object || t2 == dart.dynamic;
-    let raw1 = dart.getGenericClass(t1);
-    let raw2 = dart.getGenericClass(t2);
-    if (raw1 != null && raw1 == raw2) {
-      let typeArguments1 = dart.getGenericArgs(t1);
-      let typeArguments2 = dart.getGenericArgs(t2);
-      let length = typeArguments1.length;
-      if (typeArguments2.length == 0) {
-        return true;
-      } else if (length == 0) {
-        if (typeArguments2.every(dart._isTop)) return true;
-        return null;
-      }
-      dart.assert(length == typeArguments2.length);
-      for (let i = 0; i < length; ++i) {
-        let result = dart.isSubtype_(typeArguments1[i], typeArguments2[i], covariant);
-        if (!result) {
-          return result;
-        }
-      }
-      return true;
-    }
-    let indefinite = false;
-    function definitive(t1, t2) {
-      let result = dart.isClassSubType(t1, t2, covariant);
-      if (result == null) {
-        indefinite = true;
-        return false;
-      }
-      return result;
-    }
-    if (definitive(t1.__proto__, t2)) return true;
-    let mixins = dart.getMixins(t1);
-    if (mixins) {
-      for (let m1 of mixins) {
-        if (m1 != null && definitive(m1, t2)) return true;
-      }
-    }
-    let getInterfaces = dart.getImplements(t1);
-    if (getInterfaces) {
-      for (let i1 of getInterfaces()) {
-        if (i1 != null && definitive(i1, t2)) return true;
-      }
-    }
-    if (indefinite) return null;
-    return false;
-  };
-  dart.isGroundType = function(type) {
-    if (type instanceof dart.AbstractFunctionType) {
-      if (!dart._isTop(type.returnType)) return false;
-      for (let i = 0; i < type.args.length; ++i) {
-        if (!dart._isBottom(type.args[i])) return false;
-      }
-      for (let i = 0; i < type.optionals.length; ++i) {
-        if (!dart._isBottom(type.optionals[i])) return false;
-      }
-      let names = dart.getOwnPropertyNames(type.named);
-      for (let i = 0; i < names.length; ++i) {
-        if (!dart._isBottom(type.named[names[i]])) return false;
-      }
-      return true;
-    }
-    let typeArgs = dart.getGenericArgs(type);
-    if (!typeArgs) return true;
-    for (let t of typeArgs) {
-      if (t != core.Object && t != dart.dynamic) return false;
-    }
-    return true;
-  };
-  dart.defineProperty = function(obj, name, desc) {
-    return Object.defineProperty(obj, name, desc);
-  };
-  dart.getOwnPropertyDescriptor = function(obj, name) {
-    return Object.getOwnPropertyDescriptor(obj, name);
-  };
-  dart.getOwnPropertyNames = function(obj) {
-    return Object.getOwnPropertyNames(obj);
-  };
-  dart.getOwnPropertySymbols = function(obj) {
-    return Object.getOwnPropertySymbols(obj);
-  };
+  dart.isSubtype = dart._subtypeMemo((t1, t2) => dart._isSubtype(t1, t2, true));
   dart.hasOwnProperty = Object.prototype.hasOwnProperty;
   dart.StrongModeError = (function() {
     function StrongModeError(message) {
@@ -1254,107 +1358,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     Object.setPrototypeOf(StrongModeError.prototype, Error.prototype);
     return StrongModeError;
   })();
-  dart.throwStrongModeError = function(message) {
-    throw new dart.StrongModeError(message);
-  };
-  dart.throwInternalError = function(message) {
-    throw Error(message);
-  };
-  dart.getOwnNamesAndSymbols = function(obj) {
-    let names = dart.getOwnPropertyNames(obj);
-    let symbols = dart.getOwnPropertySymbols(obj);
-    return names.concat(symbols);
-  };
-  dart.safeGetOwnProperty = function(obj, name) {
-    let desc = dart.getOwnPropertyDescriptor(obj, name);
-    if (desc != null) return desc.value;
-  };
-  dart.defineLazyProperty = function(to, name, desc) {
-    let init = desc.get;
-    let value = null;
-    function lazySetter(x) {
-      init = null;
-      value = x;
-    }
-    function circularInitError() {
-      dart.throwInternalError('circular initialization for field ' + name);
-    }
-    function lazyGetter() {
-      if (init == null) return value;
-      let f = init;
-      init = circularInitError;
-      lazySetter(f());
-      return value;
-    }
-    desc.get = lazyGetter;
-    desc.configurable = true;
-    if (desc.set) desc.set = lazySetter;
-    return dart.defineProperty(to, name, desc);
-  };
-  dart.defineLazy = function(to, from) {
-    for (let name of dart.getOwnNamesAndSymbols(from)) {
-      dart.defineLazyProperty(to, name, dart.getOwnPropertyDescriptor(from, name));
-    }
-  };
-  dart.defineMemoizedGetter = function(obj, name, getter) {
-    return dart.defineLazyProperty(obj, name, {get: getter});
-  };
-  dart.copyTheseProperties = function(to, from, names) {
-    for (let name of names) {
-      dart.copyProperty(to, from, name);
-    }
-    return to;
-  };
-  dart.copyProperty = function(to, from, name) {
-    let desc = dart.getOwnPropertyDescriptor(from, name);
-    if (name == Symbol.iterator) {
-      let existing = dart.getOwnPropertyDescriptor(to, name);
-      if (existing != null) {
-        if (existing.writable) {
-          to[name] = desc.value;
-        }
-        return;
-      }
-    }
-    dart.defineProperty(to, name, desc);
-  };
-  dart.export = function(to, from, name) {
-    return dart.copyProperty(to, from, name);
-  };
-  dart.copyProperties = function(to, from) {
-    return dart.copyTheseProperties(to, from, dart.getOwnNamesAndSymbols(from));
-  };
-  core.Object = class Object {
-    constructor() {
-      let name = this.constructor.name;
-      let result = void 0;
-      if (name in this) result = this[name](...arguments);
-      return result === void 0 ? this : result;
-    }
-    ['=='](other) {
-      return core.identical(this, other);
-    }
-    get hashCode() {
-      return _js_helper.Primitives.objectHashCode(this);
-    }
-    toString() {
-      return _js_helper.Primitives.objectToString(this);
-    }
-    noSuchMethod(invocation) {
-      dart.throw(new core.NoSuchMethodError(this, invocation.memberName, invocation.positionalArguments, invocation.namedArguments));
-    }
-    get runtimeType() {
-      return dart.objectRuntimeType(this);
-    }
-  };
-  dart.setSignature(core.Object, {
-    constructors: () => ({Object: [core.Object, []]}),
-    methods: () => ({
-      '==': [core.bool, [dart.dynamic]],
-      toString: [core.String, []],
-      noSuchMethod: [dart.dynamic, [core.Invocation]]
-    })
-  });
   _debugger.skipDartConfig = dart.const(new core.Object());
   _debugger.maxIterableChildrenToDisplay = 50;
   dart.defineLazy(_debugger, {
@@ -2029,13 +2032,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     JSBool() {
       super.Interceptor();
     }
-    toString() {
+    [dartx.toString]() {
       return String(this);
     }
-    get hashCode() {
+    get [dartx.hashCode]() {
       return this ? 2 * 3 * 23 * 3761 : 269 * 811;
     }
-    get runtimeType() {
+    get [dartx.runtimeType]() {
       return dart.wrapType(core.bool);
     }
   };
@@ -2609,7 +2612,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       get [dartx.isNotEmpty]() {
         return !dart.notNull(this[dartx.isEmpty]);
       }
-      toString() {
+      [dartx.toString]() {
         return collection.ListBase.listToString(this);
       }
       [dartx.toList](opts) {
@@ -2624,7 +2627,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       get [dartx.iterator]() {
         return new (_interceptors.ArrayIterator$(E))(this);
       }
-      get hashCode() {
+      get [dartx.hashCode]() {
         return _js_helper.Primitives.objectHashCode(this);
       }
       get [dartx.length]() {
@@ -3010,14 +3013,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       return dart.notNull(result) + "0"[dartx['*']](exponent);
     }
-    toString() {
+    [dartx.toString]() {
       if (this == 0 && 1 / this < 0) {
         return '-0.0';
       } else {
         return "" + this;
       }
     }
-    get hashCode() {
+    get [dartx.hashCode]() {
       return this & 0x1FFFFFFF;
     }
     [dartx['unary-']]() {
@@ -3750,10 +3753,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (!(typeof other == 'string')) dart.throw(_js_helper.argumentErrorValue(other));
       return dart.equals(this, other) ? 0 : this < other ? -1 : 1;
     }
-    toString() {
+    [dartx.toString]() {
       return this;
     }
-    get hashCode() {
+    get [dartx.hashCode]() {
       let hash = 0;
       for (let i = 0; i < dart.notNull(this[dartx.length]); i++) {
         hash = 536870911 & hash + this.charCodeAt(i);
@@ -3764,7 +3767,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       hash = hash ^ hash >> 11;
       return 536870911 & hash + ((16383 & hash) << 15);
     }
-    get runtimeType() {
+    get [dartx.runtimeType]() {
       return dart.wrapType(core.String);
     }
     get [dartx.length]() {
@@ -7256,7 +7259,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({_IsolateEvent: [_isolate_helper._IsolateEvent, [_isolate_helper._IsolateContext, core.Function, core.String]]}),
     methods: () => ({process: [dart.void, []]})
   });
-  _isolate_helper._global = typeof global == 'undefined' ? self : global;
+  dart.defineLazy(_isolate_helper, {
+    get _global() {
+      return typeof global == 'undefined' ? self : global;
+    }
+  });
   _isolate_helper._MainManagerStub = class _MainManagerStub extends core.Object {
     postMessage(msg) {
       _isolate_helper._global.postMessage(msg);
@@ -10398,7 +10405,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return new _js_mirrors.JsClassMirror._(key);
   };
   dart.lazyFn(_js_mirrors.reflectType, () => [mirrors.TypeMirror, [core.Type]]);
-  _js_mirrors._dart = dart;
+  dart.defineLazy(_js_mirrors, {
+    get _dart() {
+      return dart;
+    }
+  });
   _js_mirrors._dload = function(obj, name) {
     return _js_mirrors._dart.dload(obj, name);
   };
@@ -10890,7 +10901,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.lengthInBytes]() {
       return this.byteLength;
     }
-    get runtimeType() {
+    get [dartx.runtimeType]() {
       return dart.wrapType(typed_data.ByteBuffer);
     }
     [dartx.asUint8List](offsetInBytes, length) {
@@ -11959,7 +11970,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _native_typed_data._checkViewArguments(buffer, offsetInBytes, length);
       return length == null ? _native_typed_data.NativeByteData._create2(buffer, offsetInBytes) : _native_typed_data.NativeByteData._create3(buffer, offsetInBytes, length);
     }
-    get runtimeType() {
+    get [dartx.runtimeType]() {
       return dart.wrapType(typed_data.ByteData);
     }
     get [dartx.elementSizeInBytes]() {
@@ -12159,7 +12170,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(_native_typed_data.NativeTypedArray, {
     methods: () => ({[_setRangeFast]: [dart.void, [core.int, core.int, _native_typed_data.NativeTypedArray, core.int]]})
   });
-  dart.defineExtensionMembers(_native_typed_data.NativeTypedArray, [_setRangeFast]);
   dart.defineExtensionNames([
     'length',
     'get',
@@ -12248,7 +12258,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _native_typed_data._checkViewArguments(buffer, offsetInBytes, length);
       return length == null ? _native_typed_data.NativeFloat32List._create2(buffer, offsetInBytes) : _native_typed_data.NativeFloat32List._create3(buffer, offsetInBytes, length);
     }
-    get runtimeType() {
+    get [dartx.runtimeType]() {
       return dart.wrapType(typed_data.Float32List);
     }
     [dartx.sublist](start, end) {
@@ -12299,7 +12309,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _native_typed_data._checkViewArguments(buffer, offsetInBytes, length);
       return length == null ? _native_typed_data.NativeFloat64List._create2(buffer, offsetInBytes) : _native_typed_data.NativeFloat64List._create3(buffer, offsetInBytes, length);
     }
-    get runtimeType() {
+    get [dartx.runtimeType]() {
       return dart.wrapType(typed_data.Float64List);
     }
     [dartx.sublist](start, end) {
@@ -12351,7 +12361,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _native_typed_data._checkViewArguments(buffer, offsetInBytes, length);
       return length == null ? _native_typed_data.NativeInt16List._create2(buffer, offsetInBytes) : _native_typed_data.NativeInt16List._create3(buffer, offsetInBytes, length);
     }
-    get runtimeType() {
+    get [dartx.runtimeType]() {
       return dart.wrapType(typed_data.Int16List);
     }
     [dartx.get](index) {
@@ -12410,7 +12420,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _native_typed_data._checkViewArguments(buffer, offsetInBytes, length);
       return length == null ? _native_typed_data.NativeInt32List._create2(buffer, offsetInBytes) : _native_typed_data.NativeInt32List._create3(buffer, offsetInBytes, length);
     }
-    get runtimeType() {
+    get [dartx.runtimeType]() {
       return dart.wrapType(typed_data.Int32List);
     }
     [dartx.get](index) {
@@ -12469,7 +12479,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _native_typed_data._checkViewArguments(buffer, offsetInBytes, length);
       return dart.as(length == null ? _native_typed_data.NativeInt8List._create2(buffer, offsetInBytes) : _native_typed_data.NativeInt8List._create3(buffer, offsetInBytes, length), _native_typed_data.NativeInt8List);
     }
-    get runtimeType() {
+    get [dartx.runtimeType]() {
       return dart.wrapType(typed_data.Int8List);
     }
     [dartx.get](index) {
@@ -12528,7 +12538,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _native_typed_data._checkViewArguments(buffer, offsetInBytes, length);
       return length == null ? _native_typed_data.NativeUint16List._create2(buffer, offsetInBytes) : _native_typed_data.NativeUint16List._create3(buffer, offsetInBytes, length);
     }
-    get runtimeType() {
+    get [dartx.runtimeType]() {
       return dart.wrapType(typed_data.Uint16List);
     }
     [dartx.get](index) {
@@ -12587,7 +12597,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _native_typed_data._checkViewArguments(buffer, offsetInBytes, length);
       return length == null ? _native_typed_data.NativeUint32List._create2(buffer, offsetInBytes) : _native_typed_data.NativeUint32List._create3(buffer, offsetInBytes, length);
     }
-    get runtimeType() {
+    get [dartx.runtimeType]() {
       return dart.wrapType(typed_data.Uint32List);
     }
     [dartx.get](index) {
@@ -12647,7 +12657,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _native_typed_data._checkViewArguments(buffer, offsetInBytes, length);
       return length == null ? _native_typed_data.NativeUint8ClampedList._create2(buffer, offsetInBytes) : _native_typed_data.NativeUint8ClampedList._create3(buffer, offsetInBytes, length);
     }
-    get runtimeType() {
+    get [dartx.runtimeType]() {
       return dart.wrapType(typed_data.Uint8ClampedList);
     }
     get [dartx.length]() {
@@ -12713,7 +12723,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _native_typed_data._checkViewArguments(buffer, offsetInBytes, length);
       return length == null ? _native_typed_data.NativeUint8List._create2(buffer, offsetInBytes) : _native_typed_data.NativeUint8List._create3(buffer, offsetInBytes, length);
     }
-    get runtimeType() {
+    get [dartx.runtimeType]() {
       return dart.wrapType(typed_data.Uint8List);
     }
     get [dartx.length]() {
@@ -27567,7 +27577,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : false;
       dart.throw(new core.UnsupportedError('bool.fromEnvironment can only be used as a const constructor'));
     }
-    toString() {
+    [dartx.toString]() {
       return this ? "true" : "false";
     }
   };
@@ -31257,7 +31267,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(isolate.Capability, {
     constructors: () => ({new: [isolate.Capability, []]})
   });
-  js._global = dart.global;
+  dart.defineLazy(js, {
+    get _global() {
+      return dart.global;
+    }
+  });
   dart.defineLazy(js, {
     get context() {
       return js._wrapToDart(js._global);
@@ -31617,8 +31631,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return new js.JsObject._fromJs(o);
   };
   dart.fn(js._wrapToDart, js.JsObject, [dart.dynamic]);
-  js._dartProxies = new WeakMap();
-  js._jsProxies = new WeakMap();
+  dart.defineLazy(js, {
+    get _dartProxies() {
+      return new WeakMap();
+    }
+  });
+  dart.defineLazy(js, {
+    get _jsProxies() {
+      return new WeakMap();
+    }
+  });
   js._putIfAbsent = function(weakMap, o, getValue) {
     let value = weakMap.get(o);
     if (value == null) {
@@ -34113,7 +34135,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_removeChild](this[dartx.firstChild]);
       }
     }
-    toString() {
+    [dartx.toString]() {
       let value = this[dartx.nodeValue];
       return value == null ? super.toString() : value;
     }
@@ -34657,7 +34679,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.namespaceUri]() {
       return this[_namespaceUri];
     }
-    toString() {
+    [dartx.toString]() {
       return this[dartx.localName];
     }
     [dartx.scrollIntoView](alignment) {
@@ -36007,7 +36029,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     set [dartx.username](value) {
       this.username = value;
     }
-    toString() {
+    [dartx.toString]() {
       return String(this);
     }
   };
@@ -36639,7 +36661,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     set [dartx.username](value) {
       this.username = value;
     }
-    toString() {
+    [dartx.toString]() {
       return String(this);
     }
   };
@@ -47710,7 +47732,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.message]() {
       return this.message;
     }
-    toString() {
+    [dartx.toString]() {
       return String(this);
     }
   };
@@ -48373,14 +48395,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'y'
   ]);
   html$.DomRectReadOnly = class DomRectReadOnly extends _interceptors.Interceptor {
-    toString() {
+    [dartx.toString]() {
       return `Rectangle (${this[dartx.left]}, ${this[dartx.top]}) ${this[dartx.width]} x ${this[dartx.height]}`;
     }
-    ['=='](other) {
+    [dartx['==']](other) {
       if (!dart.is(other, math.Rectangle$(core.num))) return false;
       return dart.equals(this[dartx.left], dart.dload(other, 'left')) && dart.equals(this[dartx.top], dart.dload(other, 'top')) && dart.equals(this[dartx.width], dart.dload(other, 'width')) && dart.equals(this[dartx.height], dart.dload(other, 'height'));
     }
-    get hashCode() {
+    get [dartx.hashCode]() {
       return html$._JenkinsSmiHash.hash4(dart.hashCode(this[dartx.left]), dart.hashCode(this[dartx.top]), dart.hashCode(this[dartx.width]), dart.hashCode(this[dartx.height]));
     }
     [dartx.intersection](other) {
@@ -54219,7 +54241,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       return `${this[dartx.protocol]}//${this[dartx.host]}`;
     }
-    toString() {
+    [dartx.toString]() {
       return String(this);
     }
   };
@@ -57788,7 +57810,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(html$.ParentNode, {
     constructors: () => ({_: [html$.ParentNode, []]})
   });
-  dart.defineExtensionMembers(html$.ParentNode, [_childElementCount, _children, _firstElementChild, _lastElementChild]);
   html$.ParentNode[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ParentNode')), dart.const(new _metadata.Experimental())];
   dart.defineExtensionNames([
     'formData',
@@ -64831,7 +64852,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static revokeObjectUrl(url) {
       return (self.URL || self.webkitURL).revokeObjectURL(url);
     }
-    toString() {
+    [dartx.toString]() {
       return String(this);
     }
     static _() {
@@ -67561,14 +67582,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'width'
   ]);
   html$._ClientRect = class _ClientRect extends _interceptors.Interceptor {
-    toString() {
+    [dartx.toString]() {
       return `Rectangle (${this[dartx.left]}, ${this[dartx.top]}) ${this[dartx.width]} x ${this[dartx.height]}`;
     }
-    ['=='](other) {
+    [dartx['==']](other) {
       if (!dart.is(other, math.Rectangle$(core.num))) return false;
       return dart.equals(this[dartx.left], dart.dload(other, 'left')) && dart.equals(this[dartx.top], dart.dload(other, 'top')) && dart.equals(this[dartx.width], dart.dload(other, 'width')) && dart.equals(this[dartx.height], dart.dload(other, 'height'));
     }
-    get hashCode() {
+    get [dartx.hashCode]() {
       return html$._JenkinsSmiHash.hash4(dart.hashCode(this[dartx.left]), dart.hashCode(this[dartx.top]), dart.hashCode(this[dartx.width]), dart.hashCode(this[dartx.height]));
     }
     [dartx.intersection](other) {
