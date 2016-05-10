@@ -58,6 +58,7 @@ int _getTraceClock() {
 }
 int _clockValue = 0;
 
+@patch
 int _getThreadCpuClock() {
   return -1;
 }
