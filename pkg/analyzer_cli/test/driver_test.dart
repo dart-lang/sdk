@@ -263,6 +263,15 @@ linter:
           doDrive();
           expect(driver.context.analysisOptions.enableSuperMixins, isTrue);
         });
+
+        test('strongMode', () {
+          doDrive();
+          expect(driver.context.analysisOptions.strongMode, isTrue);
+          //https://github.com/dart-lang/sdk/issues/26129
+          AnalysisContext sdkContext =
+              driver.context.sourceFactory.dartSdk.context;
+          expect(sdkContext.analysisOptions.strongMode, isTrue);
+        });
       });
 
       group('with flags', () {

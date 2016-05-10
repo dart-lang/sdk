@@ -73,9 +73,6 @@ class Driver implements CommandLineStarter {
   /// The plugins that are defined outside the `analyzer_cli` package.
   List<Plugin> _userDefinedPlugins = <Plugin>[];
 
-  /// Indicates whether the analyzer is running in batch mode.
-  bool _isBatch;
-
   /// The context that was most recently created by a call to [_analyzeAll], or
   /// `null` if [_analyzeAll] hasn't been called yet.
   AnalysisContext _context;
@@ -92,6 +89,9 @@ class Driver implements CommandLineStarter {
 
   @override
   ResolverProvider packageResolverProvider;
+
+  /// SDK instance.
+  DirectoryBasedDartSdk sdk;
 
   /// Collected analysis statistics.
   final AnalysisStats stats = new AnalysisStats();
@@ -120,9 +120,6 @@ class Driver implements CommandLineStarter {
     // Parse commandline options.
     CommandLineOptions options = CommandLineOptions.parse(args);
 
-    // Cache options of interest to inform analysis.
-    _setupEnv(options);
-
     // Do analysis.
     if (options.buildMode) {
       ErrorSeverity severity = _buildModeAnalyze(options);
@@ -130,7 +127,7 @@ class Driver implements CommandLineStarter {
       if (severity == ErrorSeverity.ERROR) {
         exitCode = severity.ordinal;
       }
-    } else if (_isBatch) {
+    } else if (options.shouldBatch) {
       _BatchRunner.runAsBatch(args, (List<String> args) {
         CommandLineOptions options = CommandLineOptions.parse(args);
         return _analyzeAll(options);
@@ -306,7 +303,7 @@ class Driver implements CommandLineStarter {
   /// [AnalyzeFunctionBodiesPredicate] that implements this policy.
   AnalyzeFunctionBodiesPredicate _chooseDietParsingPolicy(
       CommandLineOptions options) {
-    if (_isBatch) {
+    if (options.shouldBatch) {
       // As analyzer is currently implemented, once a file has been diet
       // parsed, it can't easily be un-diet parsed without creating a brand new
       // context and losing caching.  In batch mode, we can't predict which
@@ -507,19 +504,22 @@ class Driver implements CommandLineStarter {
     // Create a context.
     _context = AnalysisEngine.instance.createAnalysisContext();
 
-    // Choose a package resolution policy and a diet parsing policy based on
-    // the command-line options.
-    SourceFactory sourceFactory = _chooseUriResolutionPolicy(
-        options, (_context as InternalAnalysisContext).embedderYamlLocator);
     AnalyzeFunctionBodiesPredicate dietParsingPolicy =
         _chooseDietParsingPolicy(options);
-
-    _context.sourceFactory = sourceFactory;
-
     setAnalysisContextOptions(_context, options,
         (AnalysisOptionsImpl contextOptions) {
       contextOptions.analyzeFunctionBodiesPredicate = dietParsingPolicy;
     });
+
+    // Once options are processed, setup the SDK.
+    _setupSdk(options);
+
+    // Choose a package resolution policy and a diet parsing policy based on
+    // the command-line options.
+    SourceFactory sourceFactory = _chooseUriResolutionPolicy(
+        options, (_context as InternalAnalysisContext).embedderYamlLocator);
+
+    _context.sourceFactory = sourceFactory;
   }
 
   /// Return discovered packagespec, or `null` if none is found.
@@ -582,10 +582,7 @@ class Driver implements CommandLineStarter {
     return errorSeverity;
   }
 
-  void _setupEnv(CommandLineOptions options) {
-    // In batch mode, SDK is specified on the main command line rather than in
-    // the command lines sent to stdin.  So process it before deciding whether
-    // to activate batch mode.
+  void _setupSdk(CommandLineOptions options) {
     if (sdk == null) {
       String dartSdkPath = options.dartSdkPath;
       sdk = new DirectoryBasedDartSdk(new JavaFile(dartSdkPath));
@@ -594,9 +591,8 @@ class Driver implements CommandLineStarter {
             sourcePath = path.normalize(sourcePath);
             return !path.isWithin(dartSdkPath, sourcePath);
           });
-      sdk.analysisOptions = createAnalysisOptionsForCommandLineOptions(options);
+      sdk.analysisOptions = context.analysisOptions;
     }
-    _isBatch = options.shouldBatch;
   }
 
   static AnalysisOptionsImpl createAnalysisOptionsForCommandLineOptions(
