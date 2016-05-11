@@ -59,7 +59,7 @@ class _CompressionMaxWindowBits {
  */
 // TODO(ajohnsen): make this transformer reusable?
 class _WebSocketProtocolTransformer
-    implements StreamTransformer<List<int>, dynamic>, EventSink<Uint8List> {
+    implements StreamTransformer<List<int>, dynamic>, EventSink<List<int>> {
   static const int START = 0;
   static const int LEN_FIRST = 1;
   static const int LEN_REST = 2;
@@ -1000,7 +1000,6 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
 
       return request.close();
     }).then((response) {
-
       void error(String message) {
         // Flush data.
         response.detachSocket().then((socket) {
@@ -1008,7 +1007,6 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
         });
         throw new WebSocketException(message);
       }
-
       if (response.statusCode != HttpStatus.SWITCHING_PROTOCOLS ||
           response.headers[HttpHeaders.CONNECTION] == null ||
           !response.headers[HttpHeaders.CONNECTION]
@@ -1038,7 +1036,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
       _WebSocketPerMessageDeflate deflate =
           negotiateClientCompression(response, compression);
 
-      return response.detachSocket().then/*<WebSocket>*/((socket) =>
+      return response.detachSocket().then((socket) =>
           new _WebSocketImpl._fromSocket(
               socket, protocol, compression, false, deflate));
     });
@@ -1066,7 +1064,8 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
           return DEFAULT_WINDOW_BITS;
         }
 
-        return int.parse(o, onError: (s) => DEFAULT_WINDOW_BITS);
+        o = int.parse(o, onError: (s) => DEFAULT_WINDOW_BITS);
+        return o;
       }
 
       return new _WebSocketPerMessageDeflate(
@@ -1221,7 +1220,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
   String get _serviceTypePath => 'io/websockets';
   String get _serviceTypeName => 'WebSocket';
 
-  Map<String, dynamic> _toJSON(bool ref) {
+  Map _toJSON(bool ref) {
     var name = '${_socket.address.host}:${_socket.port}';
     var r = <String, dynamic>{
       'id': _servicePath,

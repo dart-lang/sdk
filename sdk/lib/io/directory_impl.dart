@@ -22,9 +22,7 @@ class _Directory extends FileSystemEntity implements Directory {
   external static _create(String path);
   external static _deleteNative(String path, bool recursive);
   external static _rename(String path, String newPath);
-  external static void _fillWithDirectoryListing(
-      List<FileSystemEntity> list, String path, bool recursive,
-      bool followLinks);
+  external static List _list(String path, bool recursive, bool followLinks);
 
   static Directory get current {
     var result = _current();
@@ -224,18 +222,14 @@ class _Directory extends FileSystemEntity implements Directory {
         followLinks).stream;
   }
 
-  List<FileSystemEntity> listSync(
-      {bool recursive: false, bool followLinks: true}) {
+  List listSync({bool recursive: false, bool followLinks: true}) {
     if (recursive is! bool || followLinks is! bool) {
       throw new ArgumentError();
     }
-    var result = <FileSystemEntity>[];
-    _fillWithDirectoryListing(
-        result,
+    return _list(
         FileSystemEntity._ensureTrailingPathSeparators(path),
         recursive,
         followLinks);
-    return result;
   }
 
   String toString() => "Directory: '$path'";

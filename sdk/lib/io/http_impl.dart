@@ -129,14 +129,13 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
       var proto = headers['x-forwarded-proto'];
       var scheme = proto != null ? proto.first :
           _httpConnection._socket is SecureSocket ? "https" : "http";
-      var hostList = headers['x-forwarded-host'];
-      String host;
-      if (hostList != null) {
-        host = hostList.first;
+      var host = headers['x-forwarded-host'];
+      if (host != null) {
+        host = host.first;
       } else {
-        hostList = headers['host'];
-        if (hostList != null) {
-          host = hostList.first;
+        host = headers['host'];
+        if (host != null) {
+          host = host.first;
         } else {
           host = "${_httpServer.address.host}:${_httpServer.port}";
         }
@@ -183,6 +182,8 @@ class _HttpClientResponse
   // The HttpClientRequest of this response.
   final _HttpClientRequest _httpRequest;
 
+  List<Cookie> _cookies;
+
   _HttpClientResponse(_HttpIncoming _incoming, this._httpRequest,
                       this._httpClient) : super(_incoming) {
     // Set uri for potential exceptions.
@@ -193,9 +194,9 @@ class _HttpClientResponse
   String get reasonPhrase => _incoming.reasonPhrase;
 
   X509Certificate get certificate {
+    // The peerCertificate isn't on a plain socket, so cast to dynamic.
     var socket = _httpRequest._httpClientConnection._socket;
-    if (socket is SecureSocket) return socket.peerCertificate;
-    throw new UnsupportedError("Socket is not a SecureSocket");
+    return socket.peerCertificate;
   }
 
   List<Cookie> get cookies {
@@ -868,12 +869,8 @@ class _HttpGZipSink extends ByteConversionSink {
     _consume(chunk);
   }
 
-  void addSlice(List<int> chunk, int start, int end, bool isLast) {
-    if (chunk is Uint8List) {
-      _consume(new Uint8List.view(chunk.buffer, start, end - start));
-    } else {
-      _consume(chunk.sublist(start, end - start));
-    }
+  void addSlice(Uint8List chunk, int start, int end, bool isLast) {
+    _consume(new Uint8List.view(chunk.buffer, start, end - start));
   }
 
   void close() {}
@@ -939,16 +936,14 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
             "Headers size exceeded the of '$_OUTGOING_BUFFER_SIZE'"
             " bytes"));
       }
-      return null;
     }
-
     if (headersWritten) return null;
     headersWritten = true;
     Future drainFuture;
+    bool isServerSide = outbound is _HttpResponse;
     bool gzip = false;
-    if (outbound is _HttpResponse) {
-      // Server side.
-      _HttpResponse response = outbound;
+    if (isServerSide) {
+      var response = outbound;
       if (response._httpRequest._httpServer.autoCompress &&
           outbound.bufferOutput &&
           outbound.headers.chunkedTransferEncoding) {
@@ -1500,8 +1495,7 @@ class _HttpClientConnection {
             throw "Proxy failed to establish tunnel "
                   "(${response.statusCode} ${response.reasonPhrase})";
           }
-          var socket = (response as _HttpClientResponse)._httpRequest
-              ._httpClientConnection._socket;
+          var socket = response._httpRequest._httpClientConnection._socket;
           return SecureSocket.secure(
               socket,
               host: host,
@@ -1635,12 +1629,9 @@ class _ConnectionTarget {
       return completer.future;
     }
     var currentBadCertificateCallback = client._badCertificateCallback;
-
-    bool callback(X509Certificate certificate) {
-      if (currentBadCertificateCallback == null) return false;
-      return currentBadCertificateCallback(certificate, uriHost, uriPort);
-    }
-
+    callback(X509Certificate certificate) =>
+        currentBadCertificateCallback == null ? false :
+        currentBadCertificateCallback(certificate, uriHost, uriPort);
     Future socketFuture = (isSecure && proxy.isDirect
         ? SecureSocket.connect(host,
                                port,
@@ -1673,7 +1664,6 @@ class _ConnectionTarget {
   }
 }
 
-typedef bool BadCertificateCallback(X509Certificate cr, String host, int port);
 
 class _HttpClient implements HttpClient {
   bool _closing = false;
@@ -1687,7 +1677,7 @@ class _HttpClient implements HttpClient {
   Function _authenticateProxy;
   Function _findProxy = HttpClient.findProxyFromEnvironment;
   Duration _idleTimeout = const Duration(seconds: 15);
-  BadCertificateCallback _badCertificateCallback;
+  Function _badCertificateCallback;
 
   Duration get idleTimeout => _idleTimeout;
 
@@ -1744,8 +1734,9 @@ class _HttpClient implements HttpClient {
     return _openUrl(method, uri);
   }
 
-  Future<HttpClientRequest> openUrl(String method, Uri url)
-      => _openUrl(method, url);
+  Future<HttpClientRequest> openUrl(String method, Uri url) {
+    return _openUrl(method, url);
+  }
 
   Future<HttpClientRequest> get(String host, int port, String path)
       => open("get", host, port, path);
@@ -1808,7 +1799,7 @@ class _HttpClient implements HttpClient {
 
   set findProxy(String f(Uri uri)) => _findProxy = f;
 
-  Future<_HttpClientRequest> _openUrl(String method, Uri uri) {
+  Future<HttpClientRequest> _openUrl(String method, Uri uri) {
     // Ignore any fragments on the request URI.
     uri = uri.removeFragment();
 
@@ -1843,15 +1834,13 @@ class _HttpClient implements HttpClient {
       }
     }
     return _getConnection(uri.host, port, proxyConf, isSecure)
-        .then((_ConnectionInfo info) {
-
-          _HttpClientRequest send(_ConnectionInfo info) {
+        .then((info) {
+          send(info) {
             return info.connection.send(uri,
                                         port,
                                         method.toUpperCase(),
                                         info.proxy);
           }
-
           // If the connection was closed before the request was sent, create
           // and use another connection.
           if (info.connection.closed) {
@@ -1862,13 +1851,13 @@ class _HttpClient implements HttpClient {
         });
   }
 
-  Future<_HttpClientRequest> _openUrlFromRequest(String method,
+  Future<HttpClientRequest> _openUrlFromRequest(String method,
                                                 Uri uri,
                                                 _HttpClientRequest previous) {
     // If the new URI is relative (to either '/' or some sub-path),
     // construct a full URI from the previous one.
     Uri resolved = previous.uri.resolveUri(uri);
-    return _openUrl(method, resolved).then((_HttpClientRequest request) {
+    return openUrl(method, resolved).then((_HttpClientRequest request) {
 
           request
               // Only follow redirects if initial request did.
@@ -1952,13 +1941,10 @@ class _HttpClient implements HttpClient {
   _SiteCredentials _findCredentials(Uri url, [_AuthenticationScheme scheme]) {
     // Look for credentials.
     _SiteCredentials cr =
-        _credentials.fold(null, (_SiteCredentials prev, value) {
-          var siteCredentials = value as _SiteCredentials;
-          if (siteCredentials.applies(url, scheme)) {
+        _credentials.fold(null, (prev, value) {
+          if (value.applies(url, scheme)) {
             if (prev == null) return value;
-            return siteCredentials.uri.path.length > prev.uri.path.length
-                ? siteCredentials
-                : prev;
+            return value.uri.path.length > prev.uri.path.length ? value : prev;
           } else {
             return prev;
           }
@@ -1975,7 +1961,6 @@ class _HttpClient implements HttpClient {
         return it.current;
       }
     }
-    return null;
   }
 
   void _removeCredentials(_Credentials cr) {
@@ -2181,7 +2166,7 @@ class _HttpConnection
   Map _toJSON(bool ref) {
     var name = "${_socket.address.host}:${_socket.port} <-> "
         "${_socket.remoteAddress.host}:${_socket.remotePort}";
-    var r = <String, dynamic>{
+    var r = {
       'id': _servicePath,
       'type': _serviceType(ref),
       'name': name,
@@ -2427,8 +2412,8 @@ class _HttpServer
   String get _serviceTypePath => 'io/http/servers';
   String get _serviceTypeName => 'HttpServer';
 
-  Map<String, dynamic> _toJSON(bool ref) {
-    var r = <String, dynamic>{
+  Map _toJSON(bool ref) {
+    var r = {
       'id': _servicePath,
       'type': _serviceType(ref),
       'name': '${address.host}:$port',

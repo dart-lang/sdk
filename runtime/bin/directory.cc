@@ -115,20 +115,28 @@ void FUNCTION_NAME(Directory_Rename)(Dart_NativeArguments args) {
 }
 
 
-void FUNCTION_NAME(Directory_FillWithDirectoryListing)(
-    Dart_NativeArguments args) {
-  // The list that we should fill.
-  Dart_Handle results = Dart_GetNativeArgument(args, 0);
-  Dart_Handle path = Dart_GetNativeArgument(args, 1);
-  Dart_Handle recursive = Dart_GetNativeArgument(args, 2);
-  Dart_Handle follow_links = Dart_GetNativeArgument(args, 3);
-  // Pass the list that should hold the directory listing to the
+void FUNCTION_NAME(Directory_List)(Dart_NativeArguments args) {
+  Dart_Handle path = Dart_GetNativeArgument(args, 0);
+  Dart_Handle recursive = Dart_GetNativeArgument(args, 1);
+  // Create the list to hold the directory listing here, and pass it to the
   // SyncDirectoryListing object, which adds elements to it.
+  Dart_Handle follow_links = Dart_GetNativeArgument(args, 2);
+  // Create the list to hold the directory listing here, and pass it to the
+  // SyncDirectoryListing object, which adds elements to it.
+  Dart_Handle results =
+      Dart_New(DartUtils::GetDartType(DartUtils::kCoreLibURL, "List"),
+               Dart_Null(),
+               0,
+               NULL);
+  if (Dart_IsError(results)) {
+    Dart_PropagateError(results);
+  }
   SyncDirectoryListing sync_listing(results,
                                     DartUtils::GetStringValue(path),
                                     DartUtils::GetBooleanValue(recursive),
                                     DartUtils::GetBooleanValue(follow_links));
   Directory::List(&sync_listing);
+  Dart_SetReturnValue(args, results);
 }
 
 
@@ -399,10 +407,7 @@ bool SyncDirectoryListing::HandleDirectory(const char* dir_name) {
   Dart_Handle dir_name_dart = DartUtils::NewString(dir_name);
   Dart_Handle dir =
       Dart_New(directory_type_, Dart_Null(), 1, &dir_name_dart);
-  Dart_Handle result = Dart_Invoke(results_, add_string_, 1, &dir);
-  if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
-  }
+  Dart_Invoke(results_, add_string_, 1, &dir);
   return true;
 }
 
@@ -411,10 +416,7 @@ bool SyncDirectoryListing::HandleLink(const char* link_name) {
   Dart_Handle link_name_dart = DartUtils::NewString(link_name);
   Dart_Handle link =
       Dart_New(link_type_, Dart_Null(), 1, &link_name_dart);
-  Dart_Handle result = Dart_Invoke(results_, add_string_, 1, &link);
-  if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
-  }
+  Dart_Invoke(results_, add_string_, 1, &link);
   return true;
 }
 
@@ -423,10 +425,7 @@ bool SyncDirectoryListing::HandleFile(const char* file_name) {
   Dart_Handle file_name_dart = DartUtils::NewString(file_name);
   Dart_Handle file =
       Dart_New(file_type_, Dart_Null(), 1, &file_name_dart);
-  Dart_Handle result = Dart_Invoke(results_, add_string_, 1, &file);
-  if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
-  }
+  Dart_Invoke(results_, add_string_, 1, &file);
   return true;
 }
 

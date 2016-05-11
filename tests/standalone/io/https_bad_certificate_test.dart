@@ -71,8 +71,7 @@ Future runClient(int port,
   } catch (error) {
     Expect.notEquals(result, 'pass');
     if (result == 'fail') {
-      Expect.isTrue(error is HandshakeException ||
-          (callbackReturns is! bool && error is TypeError));
+      Expect.isTrue(error is HandshakeException);
     } else if (result == 'throw') {
       Expect.isTrue(error is CustomException);
     } else {
