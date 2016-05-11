@@ -234,6 +234,16 @@ class TypeVariableType extends DartType {
   String toString() => name;
 }
 
+/// Provides a thin model of method type variables: They are treated as if
+/// their value were `dynamic` when used in a type annotation, and as a
+/// malformed type when used in an `as` or `is` expression.
+class MethodTypeVariableType extends TypeVariableType {
+  MethodTypeVariableType(TypeVariableElement element) : super(element);
+
+  @override
+  bool get treatAsDynamic => true;
+}
+
 /// Internal type representing the result of analyzing a statement.
 class StatementType extends DartType {
   Element get element => null;
@@ -1347,6 +1357,9 @@ class Types implements DartTypes {
   static ClassElement getClassContext(DartType type) {
     TypeVariableType typeVariable = type.typeVariableOccurrence;
     if (typeVariable == null) return null;
+    // TODO(eernst): When generic method support is complete enough to include
+    // a runtime value for method type variables, this may need to be updated.
+    if (typeVariable.element.typeDeclaration is! ClassElement) return null;
     return typeVariable.element.typeDeclaration;
   }
 

@@ -4766,6 +4766,17 @@ class SsaBuilder extends ast.Visitor
       // The type variable is stored on the object.
       return readTypeVariable(member.enclosingClass, type.element,
           sourceInformation: sourceInformation);
+    } else if (type is MethodTypeVariableType) {
+      // TODO(eernst): The enclosing `else if` was added to provide minimal
+      // support for generic methods: The method type arguments are always
+      // pretending to have the value `dynamic`. Revise for full support.
+      DynamicType type = const DynamicType();
+      JavaScriptBackend backend = compiler.backend;
+      ClassElement cls = backend.helpers.DynamicRuntimeType;
+      HInstruction instruction =
+          new HDynamicType(type, new TypeMask.exact(cls, compiler.world));
+      add(instruction);
+      return instruction;
     } else {
       reporter.internalError(
           type.element, 'Unexpected type variable in static context.');

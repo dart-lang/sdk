@@ -314,10 +314,11 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
         nodes = nodes.tail;
         TypeVariableElementX variableElement =
             new TypeVariableElementX(variableName, element, index, node);
-        // TODO(eernst): When type variables are implemented fully we will need
-        // to resolve the actual bounds; currently we just claim [dynamic].
+        // TODO(eernst): When method type variables are implemented fully we
+        // must resolve the actual bounds; currently we just claim [dynamic].
         variableElement.boundCache = const DynamicType();
-        TypeVariableType variableType = new TypeVariableType(variableElement);
+        TypeVariableType variableType =
+            new MethodTypeVariableType(variableElement);
         variableElement.typeCache = variableType;
         return variableType;
       }, growable: false);
