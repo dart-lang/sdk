@@ -257,7 +257,7 @@ class Primitives {
     return result;
   }
 
-  static String stringFromCodePoints(codePoints) {
+  static String stringFromCodePoints(/*=JSArray<int>*/ codePoints) {
     List<int> a = <int>[];
     for (var i in codePoints) {
       if (i is !int) throw argumentErrorValue(i);
@@ -273,7 +273,7 @@ class Primitives {
     return _fromCharCodeApply(a);
   }
 
-  static String stringFromCharCodes(charCodes) {
+  static String stringFromCharCodes(/*=JSArray<int>*/ charCodes) {
     for (var i in charCodes) {
       if (i is !int) throw argumentErrorValue(i);
       if (i < 0) throw argumentErrorValue(i);

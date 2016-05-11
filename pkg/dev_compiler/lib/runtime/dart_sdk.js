@@ -9179,13 +9179,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static stringFromCodePoints(codePoints) {
       let a = dart.list([], core.int);
-      for (let i of dart.as(codePoints, core.Iterable)) {
+      for (let i of codePoints) {
         if (!(typeof i == 'number')) dart.throw(_js_helper.argumentErrorValue(i));
-        if (dart.notNull(dart.as(dart.dsend(i, '<=', 65535), core.bool))) {
-          a[dartx.add](dart.as(i, core.int));
-        } else if (dart.notNull(dart.as(dart.dsend(i, '<=', 1114111), core.bool))) {
-          a[dartx.add](dart.asInt(55296 + dart.notNull(dart.as(dart.dsend(dart.dsend(dart.dsend(i, '-', 65536), '>>', 10), '&', 1023), core.num))));
-          a[dartx.add](dart.asInt(56320 + dart.notNull(dart.as(dart.dsend(i, '&', 1023), core.num))));
+        if (dart.notNull(i) <= 65535) {
+          a[dartx.add](i);
+        } else if (dart.notNull(i) <= 1114111) {
+          a[dartx.add](55296 + ((dart.notNull(i) - 65536)[dartx['>>']](10) & 1023));
+          a[dartx.add](56320 + (dart.notNull(i) & 1023));
         } else {
           dart.throw(_js_helper.argumentErrorValue(i));
         }
@@ -9193,12 +9193,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return _js_helper.Primitives._fromCharCodeApply(a);
     }
     static stringFromCharCodes(charCodes) {
-      for (let i of dart.as(charCodes, core.Iterable)) {
+      for (let i of charCodes) {
         if (!(typeof i == 'number')) dart.throw(_js_helper.argumentErrorValue(i));
-        if (dart.notNull(dart.as(dart.dsend(i, '<', 0), core.bool))) dart.throw(_js_helper.argumentErrorValue(i));
-        if (dart.notNull(dart.as(dart.dsend(i, '>', 65535), core.bool))) return _js_helper.Primitives.stringFromCodePoints(charCodes);
+        if (dart.notNull(i) < 0) dart.throw(_js_helper.argumentErrorValue(i));
+        if (dart.notNull(i) > 65535) return _js_helper.Primitives.stringFromCodePoints(charCodes);
       }
-      return _js_helper.Primitives._fromCharCodeApply(dart.as(charCodes, core.List$(core.int)));
+      return _js_helper.Primitives._fromCharCodeApply(charCodes);
     }
     static stringFromNativeUint8List(charCodes, start, end) {
       let kMaxApply = 500;
@@ -9344,8 +9344,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       initTicker: [dart.void, []],
       currentUri: [core.String, []],
       _fromCharCodeApply: [core.String, [core.List$(core.int)]],
-      stringFromCodePoints: [core.String, [dart.dynamic]],
-      stringFromCharCodes: [core.String, [dart.dynamic]],
+      stringFromCodePoints: [core.String, [_interceptors.JSArray$(core.int)]],
+      stringFromCharCodes: [core.String, [_interceptors.JSArray$(core.int)]],
       stringFromNativeUint8List: [core.String, [_native_typed_data.NativeUint8List, core.int, core.int]],
       stringFromCharCode: [core.String, [core.int]],
       stringConcatUnchecked: [core.String, [core.String, core.String]],
@@ -24754,7 +24754,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (start === void 0) start = 0;
       if (end === void 0) end = null;
       if (dart.is(charCodes, _interceptors.JSArray)) {
-        return core.String._stringFromJSArray(dart.as(charCodes, core.List), start, end);
+        return core.String._stringFromJSArray(dart.as(charCodes, _interceptors.JSArray$(core.int)), start, end);
       }
       if (dart.is(charCodes, _native_typed_data.NativeUint8List)) {
         return core.String._stringFromUint8List(charCodes, start, end);
@@ -24772,7 +24772,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let len = list[dartx.length];
       let end = core.RangeError.checkValidRange(start, endOrNull, len);
       if (dart.notNull(start) > 0 || dart.notNull(end) < dart.notNull(len)) {
-        list = list[dartx.sublist](start, end);
+        list = dart.as(list[dartx.sublist](start, end), _interceptors.JSArray$(core.int));
       }
       return _js_helper.Primitives.stringFromCharCodes(list);
     }
@@ -24804,7 +24804,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           list[dartx.add](it.current);
         }
       }
-      return _js_helper.Primitives.stringFromCharCodes(list);
+      return _js_helper.Primitives.stringFromCharCodes(dart.as(list, _interceptors.JSArray$(core.int)));
     }
   };
   core.String[dart.implements] = () => [core.Comparable$(core.String), core.Pattern];
@@ -24815,7 +24815,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       fromEnvironment: [core.String, [core.String], {defaultValue: core.String}]
     }),
     statics: () => ({
-      _stringFromJSArray: [core.String, [core.List, core.int, core.int]],
+      _stringFromJSArray: [core.String, [_interceptors.JSArray$(core.int), core.int, core.int]],
       _stringFromUint8List: [core.String, [_native_typed_data.NativeUint8List, core.int, core.int]],
       _stringFromIterable: [core.String, [core.Iterable$(core.int), core.int, core.int]]
     }),
