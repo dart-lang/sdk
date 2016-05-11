@@ -870,6 +870,34 @@ class A {
         pseudoKeywords: ['await', 'yield', 'yield*']);
   }
 
+  test_if_after_else() async {
+    addTestSource('main() { if (true) {} else ^ }');
+    await computeSuggestions();
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+        relevance: DART_RELEVANCE_KEYWORD);
+  }
+
+  test_if_afterThen_nextCloseCurlyBrace0() async {
+    addTestSource('main() { if (true) {} ^ }');
+    await computeSuggestions();
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS.toList()..add(Keyword.ELSE),
+        relevance: DART_RELEVANCE_KEYWORD);
+  }
+
+  test_if_afterThen_nextCloseCurlyBrace1() async {
+    addTestSource('main() { if (true) {} e^ }');
+    await computeSuggestions();
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS.toList()..add(Keyword.ELSE),
+        relevance: DART_RELEVANCE_KEYWORD);
+  }
+
+  test_if_afterThen_nextStatement0() async {
+    addTestSource('main() { if (true) {} ^ print(0); }');
+    await computeSuggestions();
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS.toList()..add(Keyword.ELSE),
+        relevance: DART_RELEVANCE_KEYWORD);
+  }
+
   test_if_condition_isKeyword() async {
     addTestSource('main() { if (v i^) {} }');
     await computeSuggestions();

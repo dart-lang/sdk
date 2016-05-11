@@ -265,7 +265,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       // Actual: if (x i^)
       // Parsed: if (x) i^
       _addSuggestion(Keyword.IS, DART_RELEVANCE_HIGH);
-    } else if (entity == node.thenStatement) {
+    } else if (entity == node.thenStatement || entity == node.elseStatement) {
       _addStatementKeywords(node);
     } else if (entity == node.condition) {
       _addExpressionKeywords(node);
@@ -502,6 +502,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     if (_inSwitch(node)) {
       _addSuggestions([Keyword.BREAK]);
     }
+    if (_isEntityAfterIfWithoutElse(node)) {
+      _addSuggestions([Keyword.ELSE]);
+    }
     _addSuggestions([
       Keyword.ASSERT,
       Keyword.CONST,
@@ -583,6 +586,30 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   bool _inWhileLoop(AstNode node) =>
       node.getAncestor((p) => p is WhileStatement) != null;
+
+  bool _isEntityAfterIfWithoutElse(AstNode node) {
+    Block block = node?.getAncestor((n) => n is Block);
+    if (block == null) {
+      return false;
+    }
+    Object entity = this.entity;
+    if (entity is Statement) {
+      int entityIndex = block.statements.indexOf(entity);
+      if (entityIndex > 0) {
+        Statement prevStatement = block.statements[entityIndex - 1];
+        return prevStatement is IfStatement &&
+            prevStatement.elseStatement == null;
+      }
+    }
+    if (entity is Token) {
+      for (Statement statement in block.statements) {
+        if (statement.endToken.next == entity) {
+          return statement is IfStatement && statement.elseStatement == null;
+        }
+      }
+    }
+    return false;
+  }
 
   static bool _isNextTokenSynthetic(Object entity, TokenType type) {
     if (entity is AstNode) {
