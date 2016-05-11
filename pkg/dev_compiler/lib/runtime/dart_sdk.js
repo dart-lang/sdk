@@ -786,15 +786,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     if (!dart._isSubtype(ret1, ret2, covariant)) return null;
     return true;
   };
-  dart.canonicalType = function(t) {
-    if (t === Object) return Object;
-    if (t === Function) return Function;
-    if (t === Array) return List;
-    if (t === String) return String;
-    if (t === Number) return double;
-    if (t === Boolean) return bool;
-    return t;
-  };
   dart._subtypeMemo = function(f) {
     let memo = new Map();
     return (t1, t2) => {
@@ -818,8 +809,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return type == core.Object || type == dart.dynamic;
   };
   dart._isSubtype = function(t1, t2, covariant) {
-    t1 = dart.canonicalType(t1);
-    t2 = dart.canonicalType(t2);
     if (t1 === t2) return true;
     if (dart._isTop(t2) || dart._isBottom(t1)) {
       return true;
@@ -841,8 +830,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return false;
   };
   dart.isClassSubType = function(t1, t2, covariant) {
-    t1 = dart.canonicalType(t1);
-    dart.assert(t2 == dart.canonicalType(t2));
     if (t1 == t2) return true;
     if (t1 == core.Object) return false;
     if (t1 == null) return t2 == core.Object || t2 == dart.dynamic;

@@ -516,24 +516,6 @@ isFunctionSubtype(ft1, ft2, covariant) => JS('', '''(() => {
   return true;
 })()''');
 
-///
-/// Computes the canonical type.
-/// This maps JS types onto their corresponding Dart Type.
-///
-// TODO(jmesserly): lots more needs to be done here.
-canonicalType(t) => JS('', '''(() => {
-  if (t === Object) return Object;
-  if (t === Function) return Function;
-  if (t === Array) return List;
-
-  // We shouldn't normally get here with these types, unless something strange
-  // happens like subclassing Number in JS and passing it to Dart.
-  if (t === String) return String;
-  if (t === Number) return double;
-  if (t === Boolean) return bool;
-   return t;
-})()''');
-
 /// TODO(leafp): This duplicates code in operations.dart.
 /// I haven't found a way to factor it out that makes the
 /// code generator happy though.
@@ -566,8 +548,6 @@ _isBottom(type) => JS('bool', '# == #', type, bottom);
 _isTop(type) => JS('bool', '# == # || # == #', type, Object, type, dynamic);
 
 _isSubtype(t1, t2, covariant) => JS('', '''(() => {
-  $t1 = $canonicalType($t1);
-  $t2 = $canonicalType($t2);
   if ($t1 === $t2) return true;
 
   // Trivially true.
@@ -610,8 +590,6 @@ isClassSubType(t1, t2, covariant) => JS('', '''(() => {
   // I.e., given T1, ..., Tn where at least one Ti != dynamic we disallow:
   // - S !<: S<T1, ..., Tn>
   // - S<dynamic, ..., dynamic> !<: S<T1, ..., Tn>
-  $t1 = $canonicalType($t1);
-  $assert_($t2 == $canonicalType($t2));
   if ($t1 == $t2) return true;
 
   if ($t1 == $Object) return false;
