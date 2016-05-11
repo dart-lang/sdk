@@ -789,7 +789,7 @@ static bool IsLengthOneString(Definition* d) {
       return false;
     }
   } else {
-    return d->IsStringFromCharCode();
+    return d->IsOneByteStringFromCharCode();
   }
 }
 
@@ -823,9 +823,10 @@ bool AotOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
       ConstantInstr* char_code_left = flow_graph()->GetConstant(
           Smi::ZoneHandle(Z, Smi::New(static_cast<intptr_t>(str.CharAt(0)))));
       left_val = new(Z) Value(char_code_left);
-    } else if (left->IsStringFromCharCode()) {
+    } else if (left->IsOneByteStringFromCharCode()) {
       // Use input of string-from-charcode as left value.
-      StringFromCharCodeInstr* instr = left->AsStringFromCharCode();
+      OneByteStringFromCharCodeInstr* instr =
+          left->AsOneByteStringFromCharCode();
       left_val = new(Z) Value(instr->char_code()->definition());
       to_remove_left = instr;
     } else {
@@ -835,9 +836,10 @@ bool AotOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
 
     Definition* to_remove_right = NULL;
     Value* right_val = NULL;
-    if (right->IsStringFromCharCode()) {
+    if (right->IsOneByteStringFromCharCode()) {
       // Skip string-from-char-code, and use its input as right value.
-      StringFromCharCodeInstr* right_instr = right->AsStringFromCharCode();
+      OneByteStringFromCharCodeInstr* right_instr =
+          right->AsOneByteStringFromCharCode();
       right_val = new(Z) Value(right_instr->char_code()->definition());
       to_remove_right = right_instr;
     } else {
@@ -1787,11 +1789,24 @@ bool AotOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     return true;
   }
 
-  if (((recognized_kind == MethodRecognizer::kStringBaseCodeUnitAt) ||
-       (recognized_kind == MethodRecognizer::kStringBaseCharAt)) &&
-      (ic_data.NumberOfChecks() == 1) &&
-      ((class_ids[0] == kOneByteStringCid) ||
-       (class_ids[0] == kTwoByteStringCid))) {
+  if ((recognized_kind == MethodRecognizer::kOneByteStringCodeUnitAt) ||
+      (recognized_kind == MethodRecognizer::kTwoByteStringCodeUnitAt) ||
+      (recognized_kind == MethodRecognizer::kExternalOneByteStringCodeUnitAt) ||
+      (recognized_kind == MethodRecognizer::kExternalTwoByteStringCodeUnitAt)) {
+      ASSERT(ic_data.NumberOfChecks() == 1);
+      ASSERT((class_ids[0] == kOneByteStringCid) ||
+             (class_ids[0] == kTwoByteStringCid) ||
+             (class_ids[0] == kExternalOneByteStringCid) ||
+             (class_ids[0] == kExternalTwoByteStringCid));
+    return TryReplaceInstanceCallWithInline(call);
+  }
+
+  if ((recognized_kind == MethodRecognizer::kStringBaseCharAt) &&
+      (ic_data.NumberOfChecks() == 1)) {
+      ASSERT((class_ids[0] == kOneByteStringCid) ||
+             (class_ids[0] == kTwoByteStringCid) ||
+             (class_ids[0] == kExternalOneByteStringCid) ||
+             (class_ids[0] == kExternalTwoByteStringCid));
     return TryReplaceInstanceCallWithInline(call);
   }
 

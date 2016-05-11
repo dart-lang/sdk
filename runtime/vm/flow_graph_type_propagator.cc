@@ -921,8 +921,8 @@ CompileType StoreLocalInstr::ComputeType() const {
 }
 
 
-CompileType StringFromCharCodeInstr::ComputeType() const {
-  return CompileType::FromCid(cid_);
+CompileType OneByteStringFromCharCodeInstr::ComputeType() const {
+  return CompileType::FromCid(kOneByteStringCid);
 }
 
 

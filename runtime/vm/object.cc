@@ -15534,7 +15534,8 @@ intptr_t Instance::ElementSizeFor(intptr_t cid) {
 
 
 intptr_t Instance::DataOffsetFor(intptr_t cid) {
-  if (RawObject::IsExternalTypedDataClassId(cid)) {
+  if (RawObject::IsExternalTypedDataClassId(cid) ||
+      RawObject::IsExternalStringClassId(cid)) {
     // Elements start at offset 0 of the external data.
     return 0;
   }

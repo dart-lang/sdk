@@ -2803,6 +2803,25 @@ static Definition* PrepareInlineStringIndexOp(
                                 call->env(),
                                 FlowGraph::kEffect);
 
+  // For external strings: Load backing store.
+  if (cid == kExternalOneByteStringCid) {
+    str = new LoadUntaggedInstr(new Value(str),
+                                ExternalOneByteString::external_data_offset());
+    cursor = flow_graph->AppendTo(cursor, str, NULL, FlowGraph::kValue);
+    str = new LoadUntaggedInstr(
+        new Value(str),
+        RawExternalOneByteString::ExternalData::data_offset());
+    cursor = flow_graph->AppendTo(cursor, str, NULL, FlowGraph::kValue);
+  } else if (cid == kExternalTwoByteStringCid) {
+    str = new LoadUntaggedInstr(new Value(str),
+                                ExternalTwoByteString::external_data_offset());
+    cursor = flow_graph->AppendTo(cursor, str, NULL, FlowGraph::kValue);
+    str = new LoadUntaggedInstr(
+        new Value(str),
+        RawExternalTwoByteString::ExternalData::data_offset());
+    cursor = flow_graph->AppendTo(cursor, str, NULL, FlowGraph::kValue);
+  }
+
   LoadIndexedInstr* load_indexed = new(Z) LoadIndexedInstr(
       new(Z) Value(str),
       new(Z) Value(index),
@@ -2823,8 +2842,7 @@ static bool InlineStringBaseCharAt(
     intptr_t cid,
     TargetEntryInstr** entry,
     Definition** last) {
-  // TODO(johnmccutchan): Handle external strings in PrepareInlineStringIndexOp.
-  if (RawObject::IsExternalStringClassId(cid) || cid != kOneByteStringCid) {
+  if ((cid != kOneByteStringCid) && (cid != kExternalOneByteStringCid)) {
     return false;
   }
   Definition* str = call->ArgumentAt(0);
@@ -2836,8 +2854,8 @@ static bool InlineStringBaseCharAt(
 
   *last = PrepareInlineStringIndexOp(flow_graph, call, cid, str, index, *entry);
 
-  StringFromCharCodeInstr* char_at = new(Z) StringFromCharCodeInstr(
-      new(Z) Value(*last), cid);
+  OneByteStringFromCharCodeInstr* char_at =
+      new(Z) OneByteStringFromCharCodeInstr(new(Z) Value(*last));
 
   flow_graph->AppendTo(*last, char_at, NULL, FlowGraph::kValue);
   *last = char_at;
@@ -2852,11 +2870,6 @@ static bool InlineStringCodeUnitAt(
     intptr_t cid,
     TargetEntryInstr** entry,
     Definition** last) {
-  // TODO(johnmccutchan): Handle external strings in PrepareInlineStringIndexOp.
-  if (RawObject::IsExternalStringClassId(cid)) {
-    return false;
-  }
-
   Definition* str = call->ArgumentAt(0);
   Definition* index = call->ArgumentAt(1);
 
@@ -3097,7 +3110,10 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
                                       receiver_cid,
                                       kTypedDataInt32x4ArrayCid,
                                       entry, last);
-    case MethodRecognizer::kStringBaseCodeUnitAt:
+    case MethodRecognizer::kOneByteStringCodeUnitAt:
+    case MethodRecognizer::kTwoByteStringCodeUnitAt:
+    case MethodRecognizer::kExternalOneByteStringCodeUnitAt:
+    case MethodRecognizer::kExternalTwoByteStringCodeUnitAt:
       return InlineStringCodeUnitAt(
           flow_graph, call, receiver_cid, entry, last);
     case MethodRecognizer::kStringBaseCharAt:

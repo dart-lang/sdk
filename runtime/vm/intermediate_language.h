@@ -514,7 +514,7 @@ class EmbeddedArray<T, 0> {
   M(CheckArrayBound)                                                           \
   M(Constraint)                                                                \
   M(StringToCharCode)                                                          \
-  M(StringFromCharCode)                                                        \
+  M(OneByteStringFromCharCode)                                                 \
   M(StringInterpolate)                                                         \
   M(InvokeMathCFunction)                                                       \
   M(MergedMath)                                                                \
@@ -3929,17 +3929,14 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
 };
 
 
-class StringFromCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class OneByteStringFromCharCodeInstr
+    : public TemplateDefinition<1, NoThrow, Pure> {
  public:
-  StringFromCharCodeInstr(Value* char_code, intptr_t cid) : cid_(cid) {
-    ASSERT(char_code != NULL);
-    ASSERT(char_code->definition()->IsLoadIndexed());
-    ASSERT(char_code->definition()->AsLoadIndexed()->class_id() ==
-           kOneByteStringCid);
+  explicit OneByteStringFromCharCodeInstr(Value* char_code) {
     SetInputAt(0, char_code);
   }
 
-  DECLARE_INSTRUCTION(StringFromCharCode)
+  DECLARE_INSTRUCTION(OneByteStringFromCharCode)
   virtual CompileType ComputeType() const;
 
   Value* char_code() const { return inputs_[0]; }
@@ -3947,13 +3944,11 @@ class StringFromCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsStringFromCharCode()->cid_ == cid_;
+    return true;
   }
 
  private:
-  const intptr_t cid_;
-
-  DISALLOW_COPY_AND_ASSIGN(StringFromCharCodeInstr);
+  DISALLOW_COPY_AND_ASSIGN(OneByteStringFromCharCodeInstr);
 };
 
 

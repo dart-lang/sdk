@@ -1655,38 +1655,6 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
 }
 
 
-void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
-  Label fall_through, try_two_byte_string;
-
-  __ ldr(R1, Address(SP, 0 * kWordSize));  // Index.
-  __ ldr(R0, Address(SP, 1 * kWordSize));  // String.
-  __ tsti(R1, Immediate(kSmiTagMask));
-  __ b(&fall_through, NE);  // Index is not a Smi.
-  // Range check.
-  __ ldr(R2, FieldAddress(R0, String::length_offset()));
-  __ cmp(R1, Operand(R2));
-  __ b(&fall_through, CS);  // Runtime throws exception.
-  __ CompareClassId(R0, kOneByteStringCid);
-  __ b(&try_two_byte_string, NE);
-  __ SmiUntag(R1);
-  __ AddImmediate(R0, R0, OneByteString::data_offset() - kHeapObjectTag);
-  __ ldr(R0, Address(R0, R1), kUnsignedByte);
-  __ SmiTag(R0);
-  __ ret();
-
-  __ Bind(&try_two_byte_string);
-  __ CompareClassId(R0, kTwoByteStringCid);
-  __ b(&fall_through, NE);
-  ASSERT(kSmiTagShift == 1);
-  __ AddImmediate(R0, R0, TwoByteString::data_offset() - kHeapObjectTag);
-  __ ldr(R0, Address(R0, R1), kUnsignedHalfword);
-  __ SmiTag(R0);
-  __ ret();
-
-  __ Bind(&fall_through);
-}
-
-
 void GenerateSubstringMatchesSpecialization(Assembler* assembler,
                                             intptr_t receiver_cid,
                                             intptr_t other_cid,

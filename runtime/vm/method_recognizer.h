@@ -178,7 +178,6 @@ namespace dart {
   V(Object, get:runtimeType, ObjectRuntimeType, 15188587)                      \
   V(_StringBase, get:hashCode, String_getHashCode, 2026040200)                 \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, 1958879178)                   \
-  V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 1436590579)                 \
   V(_StringBase, _substringMatches, StringBaseSubstringMatches, 797253099)     \
   V(_StringBase, [], StringBaseCharAt, 754527301)                              \
   V(_OneByteString, get:hashCode, OneByteString_getHashCode, 2026040200)       \
@@ -285,6 +284,12 @@ namespace dart {
   V(_GrowableList, [], GrowableArrayGetIndexed, 1957529650)                    \
   V(_GrowableList, []=, GrowableArraySetIndexed, 225246870)                    \
   V(_StringBase, get:length, StringBaseLength, 707533587)                      \
+  V(_OneByteString, codeUnitAt, OneByteStringCodeUnitAt, 1436590579)           \
+  V(_TwoByteString, codeUnitAt, TwoByteStringCodeUnitAt, 1436590579)           \
+  V(_ExternalOneByteString, codeUnitAt, ExternalOneByteStringCodeUnitAt,       \
+    1436590579)                                                                \
+  V(_ExternalTwoByteString, codeUnitAt, ExternalTwoByteStringCodeUnitAt,       \
+    1436590579)                                                                \
   V(_Double, unary-, DoubleFlipSignBit, 1783281169)                            \
   V(_Double, truncateToDouble, DoubleTruncate, 791143891)                      \
   V(_Double, roundToDouble, DoubleRound, 797558034)                            \
@@ -452,7 +457,6 @@ namespace dart {
 // A list of core functions that internally dispatch based on received id.
 #define POLYMORPHIC_TARGET_LIST(V)                                             \
   V(_StringBase, [], StringBaseCharAt, 754527301)                              \
-  V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 1436590579)                 \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 1508321565)                    \
   V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 953411007)                   \
   V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 433971756)                   \

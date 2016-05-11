@@ -659,6 +659,68 @@ bool Intrinsifier::Build_Float64ArrayGetIndexed(FlowGraph* flow_graph) {
 }
 
 
+static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  Definition* index = builder.AddParameter(1);
+  Definition* str = builder.AddParameter(2);
+  PrepareIndexedOp(&builder, str, index, String::length_offset());
+
+  // For external strings: Load external data.
+  if (cid == kExternalOneByteStringCid) {
+    str = builder.AddDefinition(
+        new LoadUntaggedInstr(new Value(str),
+                              ExternalOneByteString::external_data_offset()));
+    str = builder.AddDefinition(
+        new LoadUntaggedInstr(
+            new Value(str),
+            RawExternalOneByteString::ExternalData::data_offset()));
+  } else if (cid == kExternalTwoByteStringCid) {
+    str = builder.AddDefinition(
+      new LoadUntaggedInstr(new Value(str),
+                            ExternalTwoByteString::external_data_offset()));
+    str = builder.AddDefinition(
+        new LoadUntaggedInstr(
+            new Value(str),
+            RawExternalTwoByteString::ExternalData::data_offset()));
+  }
+
+  Definition* result = builder.AddDefinition(
+      new LoadIndexedInstr(new Value(str),
+                           new Value(index),
+                           Instance::ElementSizeFor(cid),
+                           cid,
+                           Thread::kNoDeoptId,
+                           builder.TokenPos()));
+  builder.AddIntrinsicReturn(new Value(result));
+  return true;
+}
+
+
+bool Intrinsifier::Build_OneByteStringCodeUnitAt(FlowGraph* flow_graph) {
+  return BuildCodeUnitAt(flow_graph, kOneByteStringCid);
+}
+
+
+bool Intrinsifier::Build_TwoByteStringCodeUnitAt(FlowGraph* flow_graph) {
+  return BuildCodeUnitAt(flow_graph, kTwoByteStringCid);
+}
+
+
+bool Intrinsifier::Build_ExternalOneByteStringCodeUnitAt(
+    FlowGraph* flow_graph) {
+  return BuildCodeUnitAt(flow_graph, kExternalOneByteStringCid);
+}
+
+
+bool Intrinsifier::Build_ExternalTwoByteStringCodeUnitAt(
+    FlowGraph* flow_graph) {
+  return BuildCodeUnitAt(flow_graph, kExternalTwoByteStringCid);
+}
+
+
 static bool BuildBinaryFloat32x4Op(FlowGraph* flow_graph, Token::Kind kind) {
   if (!FlowGraphCompiler::SupportsUnboxedSimd128()) return false;
 
