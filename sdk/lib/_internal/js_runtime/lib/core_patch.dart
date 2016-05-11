@@ -390,7 +390,6 @@ class String {
   @patch
   factory String.fromCharCodes(Iterable<int> charCodes,
                                [int start = 0, int end]) {
-
     if (charCodes is JSArray) {
       return _stringFromJSArray(charCodes, start, end);
     }
@@ -411,7 +410,8 @@ class String {
         'String.fromEnvironment can only be used as a const constructor');
   }
 
-  static String _stringFromJSArray(List list, int start, int endOrNull) {
+  static String _stringFromJSArray(
+      /*=JSArray<int>*/ list, int start, int endOrNull) {
     int len = list.length;
     int end = RangeError.checkValidRange(start, endOrNull, len);
     if (start > 0 || end < len) {

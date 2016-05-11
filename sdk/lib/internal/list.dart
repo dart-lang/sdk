@@ -11,7 +11,7 @@ part of dart._internal;
  */
 abstract class FixedLengthListMixin<E> {
   /** This operation is not supported by a fixed length list. */
-  set length(int newLength) {
+  void set length(int newLength) {
     throw new UnsupportedError(
         "Cannot change the length of a fixed-length list");
   }
@@ -105,7 +105,7 @@ abstract class UnmodifiableListMixin<E> implements List<E> {
   }
 
   /** This operation is not supported by an unmodifiable list. */
-  set length(int newLength) {
+  void set length(int newLength) {
     throw new UnsupportedError(
         "Cannot change the length of an unmodifiable list");
   }
@@ -373,7 +373,7 @@ abstract class NonGrowableListError {
  * conversion, at the cost of leaving the original list in an unspecified
  * state.
  */
-external List makeListFixedLength(List growableList);
+external List/*<E>*/ makeListFixedLength/*<E>*/(List/*<E>*/ growableList);
 
 /**
  * Converts a fixed-length list to an unmodifiable list.
@@ -389,4 +389,5 @@ external List makeListFixedLength(List growableList);
  *
  * The unmodifiable list type is similar to the one used by const lists.
  */
-external List makeFixedListUnmodifiable(List fixedLengthList);
+external List/*<E>*/ makeFixedListUnmodifiable/*<E>*/(
+    List/*<E>*/ fixedLengthList);

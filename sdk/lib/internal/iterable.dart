@@ -184,7 +184,6 @@ abstract class ListIterable<E> extends Iterable<E>
       if (length != this.length) {
         throw new ConcurrentModificationError(this);
       }
-
     }
     return value;
   }
@@ -211,7 +210,7 @@ abstract class ListIterable<E> extends Iterable<E>
 
   Iterable<E> takeWhile(bool test(E element)) => super.takeWhile(test);
 
-  List<E> toList({ bool growable: true }) {
+  List<E> toList({bool growable: true}) {
     List<E> result;
     if (growable) {
       result = new List<E>()..length = length;
@@ -234,7 +233,7 @@ abstract class ListIterable<E> extends Iterable<E>
 }
 
 class SubListIterable<E> extends ListIterable<E> {
-  final Iterable<E> _iterable;  // Has efficient length and elementAt.
+  final Iterable<E> _iterable; // Has efficient length and elementAt.
   final int _start;
   /** If null, represents the length of the iterable. */
   final int _endOrLength;
@@ -430,7 +429,7 @@ class WhereIterable<E> extends Iterable<E> {
 
 class WhereIterator<E> extends Iterator<E> {
   final Iterator<E> _iterator;
-  final _ElementPredicate _f;
+  final _ElementPredicate<E> _f;
 
   WhereIterator(this._iterator, bool this._f(E element));
 
@@ -697,17 +696,17 @@ class EmptyIterable<E> extends Iterable<E> implements EfficientLength {
 
   bool any(bool test(E element)) => false;
 
-  E firstWhere(bool test(E element), { E orElse() }) {
+  E firstWhere(bool test(E element), {E orElse()}) {
     if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
-  E lastWhere(bool test(E element), { E orElse() }) {
+  E lastWhere(bool test(E element), {E orElse()}) {
     if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E element), { E orElse() }) {
+  E singleWhere(bool test(E element), {E orElse()}) {
     if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
