@@ -914,8 +914,9 @@ void Scanner::ScanAll(GrowableTokenStream* token_stream) {
 }
 
 
-void Scanner::ScanTo(TokenPosition token_index) {
-  TokenPosition index = TokenPosition::kMinSource;
+void Scanner::ScanTo(intptr_t token_index) {
+  ASSERT(token_index >= 0);
+  intptr_t index = 0;
   Reset();
   do {
     Scan();
@@ -925,7 +926,7 @@ void Scanner::ScanTo(TokenPosition token_index) {
          diff > 0;
          diff--) {
       // Advance the index to account for tokens added in ScanAll.
-      index.Next();
+      index++;
       inserted_new_lines = true;
     }
 
@@ -933,9 +934,9 @@ void Scanner::ScanTo(TokenPosition token_index) {
         ((current_token_.kind == Token::kINTERPOL_VAR) ||
          (current_token_.kind == Token::kINTERPOL_START))) {
           // Advance the index to account for tokens added in ScanAll.
-          index.Next();
+          index++;
     }
-    index.Next();
+    index++;
     prev_token_line_ = current_token_.position.line;
   } while ((token_index >= index) && (current_token_.kind != Token::kEOS));
 }

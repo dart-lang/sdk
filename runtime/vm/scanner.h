@@ -11,7 +11,6 @@
 
 #include "vm/growable_array.h"
 #include "vm/token.h"
-#include "vm/token_position.h"
 
 namespace dart {
 
@@ -55,8 +54,8 @@ class Scanner : ValueObject {
   void Scan();
 
   // Scans to specified token position.
-  // Use CurrentPosition() to extract position.
-  void ScanTo(TokenPosition token_index);
+  // Use CurrentPosition() to extract line and column number.
+  void ScanTo(intptr_t token_index);
 
   // Scans entire source and returns a stream of tokens.
   // Should be called only once.

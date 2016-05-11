@@ -8373,19 +8373,18 @@ RawString* TokenStream::GenerateSource(TokenPosition start_pos,
 }
 
 
-TokenPosition TokenStream::ComputeSourcePosition(
-    TokenPosition tok_pos) const {
+intptr_t TokenStream::ComputeSourcePosition(TokenPosition tok_pos) const {
   Zone* zone = Thread::Current()->zone();
   Iterator iterator(zone,
                     *this,
                     TokenPosition::kMinSource,
                     Iterator::kAllTokens);
-  TokenPosition src_pos = TokenPosition::kMinSource;
+  intptr_t src_pos = 0;
   Token::Kind kind = iterator.CurrentTokenKind();
   while ((iterator.CurrentPosition() < tok_pos) && (kind != Token::kEOS)) {
     iterator.Advance();
     kind = iterator.CurrentTokenKind();
-    src_pos.Next();
+    src_pos++;
   }
   return src_pos;
 }
@@ -8994,7 +8993,7 @@ void Script::GetTokenLocation(TokenPosition token_pos,
     *line = cur_line;
   } else {
     const String& src = String::Handle(zone, Source());
-    TokenPosition src_pos = tkns.ComputeSourcePosition(token_pos);
+    intptr_t src_pos = tkns.ComputeSourcePosition(token_pos);
     Scanner scanner(src, Symbols::Empty());
     scanner.ScanTo(src_pos);
     intptr_t relative_line = scanner.CurrentPosition().line;

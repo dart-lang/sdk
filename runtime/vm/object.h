@@ -3279,7 +3279,7 @@ class TokenStream : public Object {
   RawString* GenerateSource() const;
   RawString* GenerateSource(TokenPosition start,
                             TokenPosition end) const;
-  TokenPosition ComputeSourcePosition(TokenPosition tok_pos) const;
+  intptr_t ComputeSourcePosition(TokenPosition tok_pos) const;
 
   RawString* PrivateKey() const;
 
