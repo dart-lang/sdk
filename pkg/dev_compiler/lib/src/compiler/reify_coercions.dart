@@ -163,4 +163,13 @@ class _TreeCloner extends analyzer.AstCloner {
         (node as FunctionBodyImpl).localVariableInfo;
     return clone;
   }
+
+  // TODO(jmesserly): workaround for
+  // https://github.com/dart-lang/sdk/issues/26368
+  @override
+  TypeName visitTypeName(TypeName node) {
+    var clone = super.visitTypeName(node);
+    clone.type = node.type;
+    return clone;
+  }
 }

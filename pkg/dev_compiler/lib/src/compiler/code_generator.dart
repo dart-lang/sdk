@@ -519,8 +519,12 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   @override
   JS.Expression visitTypeName(TypeName node) {
-    // TODO(jmesserly): should only happen for erroneous code.
-    if (node.type == null) return js.call('dart.dynamic');
+    if (node.type == null) {
+      // TODO(jmesserly): if the type fails to resolve, should we generate code
+      // that throws instead?
+      assert(options.unsafeForceCompile);
+      return js.call('dart.dynamic');
+    }
     return _emitType(node.type);
   }
 
@@ -2560,8 +2564,6 @@ class CodeGenerator extends GeneralizingAstVisitor
     } else if (typeArgs != null) {
       // Dynamic calls may have type arguments, even though the function types
       // are not known.
-      // TODO(jmesserly): seems to be mostly broken in Analyzer at the moment:
-      // https://github.com/dart-lang/sdk/issues/26368
       return typeArgs.arguments.map(visitTypeName).toList(growable: false);
     }
     return null;
