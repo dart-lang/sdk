@@ -15,9 +15,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, print_tokens, false, "Print scanned tokens.");
-
-
 // Quick access to the locally defined zone() and thread() methods.
 #define Z (zone())
 #define T (thread())
@@ -181,23 +178,29 @@ bool Scanner::IsIdent(const String& str) {
 }
 
 
-// This method is used when parsing integers and doubles in Dart code. We
+// This method is used when parsing integers in Dart code. We
 // are reusing the Scanner's handling of number literals in that situation.
-bool Scanner::IsValidLiteral(const Scanner::GrowableTokenStream& tokens,
-                             Token::Kind literal_kind,
+bool Scanner::IsValidInteger(const String& str,
                              bool* is_positive,
                              const String** value) {
-  if ((tokens.length() == 2) &&
-      (tokens[0].kind == literal_kind) &&
+  Scanner s(str, Symbols::Empty());
+  TokenDescriptor tokens[3];
+  s.Scan();
+  tokens[0] = s.current_token();
+  s.Scan();
+  tokens[1] = s.current_token();
+  s.Scan();
+  tokens[2] = s.current_token();
+
+  if ((tokens[0].kind == Token::kINTEGER) &&
       (tokens[1].kind == Token::kEOS)) {
     *is_positive = true;
     *value = tokens[0].literal;
     return true;
   }
-  if ((tokens.length() == 3) &&
-      ((tokens[0].kind == Token::kADD) ||
+  if (((tokens[0].kind == Token::kADD) ||
        (tokens[0].kind == Token::kSUB)) &&
-      (tokens[1].kind == literal_kind) &&
+      (tokens[1].kind == Token::kINTEGER) &&
       (tokens[2].kind == Token::kEOS)) {
     // Check there is no space between "+/-" and number.
     if ((tokens[0].offset + 1) != tokens[1].offset) {
@@ -886,29 +889,27 @@ void Scanner::Scan() {
 }
 
 
-void Scanner::ScanAll(GrowableTokenStream* token_stream) {
+void Scanner::ScanAll(TokenCollector* collector) {
   Reset();
   do {
     Scan();
-
     bool inserted_new_lines = false;
     for (intptr_t diff = current_token_.position.line - prev_token_line_;
          diff > 0;
          diff--) {
       newline_token_.position.line = current_token_.position.line - diff;
-      token_stream->Add(newline_token_);
+      collector->AddToken(newline_token_);
       inserted_new_lines = true;
     }
-
     if (inserted_new_lines &&
         ((current_token_.kind == Token::kINTERPOL_VAR) ||
          (current_token_.kind == Token::kINTERPOL_START))) {
-      // NOTE: If this changes, be sure to update
-      // Script::GenerateLineNumberArray to stay in sync.
-      empty_string_token_.position.line = current_token_.position.line;
-      token_stream->Add(empty_string_token_);
-    }
-    token_stream->Add(current_token_);
+          // NOTE: If this changes, be sure to update
+          // Script::GenerateLineNumberArray to stay in sync.
+          empty_string_token_.position.line = current_token_.position.line;
+          collector->AddToken(empty_string_token_);
+        }
+    collector->AddToken(current_token_);
     prev_token_line_ = current_token_.position.line;
   } while (current_token_.kind != Token::kEOS);
 }
@@ -920,7 +921,6 @@ void Scanner::ScanTo(intptr_t token_index) {
   Reset();
   do {
     Scan();
-
     bool inserted_new_lines = false;
     for (intptr_t diff = current_token_.position.line - prev_token_line_;
          diff > 0;
@@ -929,7 +929,6 @@ void Scanner::ScanTo(intptr_t token_index) {
       index++;
       inserted_new_lines = true;
     }
-
     if (inserted_new_lines &&
         ((current_token_.kind == Token::kINTERPOL_VAR) ||
          (current_token_.kind == Token::kINTERPOL_START))) {
@@ -939,30 +938,6 @@ void Scanner::ScanTo(intptr_t token_index) {
     index++;
     prev_token_line_ = current_token_.position.line;
   } while ((token_index >= index) && (current_token_.kind != Token::kEOS));
-}
-
-
-const Scanner::GrowableTokenStream& Scanner::GetStream() {
-  GrowableTokenStream* ts = new(Z) GrowableTokenStream(128);
-  ScanAll(ts);
-  if (FLAG_print_tokens) {
-    Scanner::PrintTokens(*ts);
-  }
-  return *ts;
-}
-
-
-void Scanner::PrintTokens(const GrowableTokenStream& ts) {
-  int currentLine = -1;
-  for (int i = 0; i < ts.length(); i++) {
-    const TokenDescriptor& td = ts[i];
-    if (currentLine != td.position.line) {
-      currentLine = td.position.line;
-      OS::Print("\n%d (%d): ", currentLine, i);
-    }
-    OS::Print("%s ", Token::Name(td.kind));
-  }
-  OS::Print("\n");
 }
 
 

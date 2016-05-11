@@ -165,14 +165,9 @@ VM_TEST_CASE(TokenStream) {
   Zone* zone = Thread::Current()->zone();
   String& source = String::Handle(zone, String::New("= ( 9 , ."));
   String& private_key = String::Handle(zone, String::New(""));
-  Scanner scanner(source, private_key);
-  const Scanner::GrowableTokenStream& ts = scanner.GetStream();
-  EXPECT_EQ(6, ts.length());
-  EXPECT_EQ(Token::kLPAREN, ts[1].kind);
   const TokenStream& token_stream = TokenStream::Handle(
-      zone, TokenStream::New(ts, private_key, false));
+      zone, TokenStream::New(source, private_key, false));
   TokenStream::Iterator iterator(zone, token_stream, TokenPosition::kMinSource);
-  // EXPECT_EQ(6, token_stream.Length());
   iterator.Advance();  // Advance to '(' token.
   EXPECT_EQ(Token::kLPAREN, iterator.CurrentTokenKind());
   iterator.Advance();

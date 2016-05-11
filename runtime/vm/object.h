@@ -3291,7 +3291,7 @@ class TokenStream : public Object {
   }
 
   static RawTokenStream* New(intptr_t length);
-  static RawTokenStream* New(const Scanner::GrowableTokenStream& tokens,
+  static RawTokenStream* New(const String& source,
                              const String& private_key,
                              bool use_shared_tokens);
 

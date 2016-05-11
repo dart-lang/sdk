@@ -869,9 +869,8 @@ static void GenerateSourceAndCheck(const Script& script) {
   const String& str = String::Handle(zone, expected_tokens.GenerateSource());
   const String& private_key =
       String::Handle(zone, expected_tokens.PrivateKey());
-  Scanner scanner(str, private_key);
   const TokenStream& reconstructed_tokens =
-      TokenStream::Handle(zone, TokenStream::New(scanner.GetStream(),
+      TokenStream::Handle(zone, TokenStream::New(str,
                                                  private_key,
                                                  false));
   expected_iterator.SetCurrentPosition(TokenPosition::kMinSource);

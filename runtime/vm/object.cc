@@ -8456,7 +8456,7 @@ typedef UnorderedHashMap<CompressedTokenTraits> CompressedTokenMap;
 
 
 // Helper class for creation of compressed token stream data.
-class CompressedTokenStreamData : public ValueObject {
+class CompressedTokenStreamData : public Scanner::TokenCollector {
  public:
   static const intptr_t kInitialBufferSize = 16 * KB;
   static const bool kPrintTokenObjects = false;
@@ -8468,9 +8468,32 @@ class CompressedTokenStreamData : public ValueObject {
       token_objects_(ta),
       tokens_(map),
       value_(Object::Handle()),
-      fresh_index_smi_(Smi::Handle()) {
+      fresh_index_smi_(Smi::Handle()),
+      num_tokens_collected_(0) {
+  }
+  virtual ~CompressedTokenStreamData() { }
+
+  virtual void AddToken(const Scanner::TokenDescriptor& token) {
+    if (token.kind == Token::kIDENT) {  // Identifier token.
+      AddIdentToken(*token.literal);
+    } else if (Token::NeedsLiteralToken(token.kind)) {  // Literal token.
+      AddLiteralToken(token);
+    } else {  // Keyword, pseudo keyword etc.
+      ASSERT(token.kind < Token::kNumTokens);
+      AddSimpleToken(token.kind);
+    }
+    num_tokens_collected_++;
   }
 
+  // Return the compressed token stream.
+  uint8_t* GetStream() const { return buffer_; }
+
+  // Return the compressed token stream length.
+  intptr_t Length() const { return stream_.bytes_written(); }
+
+  intptr_t NumTokens() const { return num_tokens_collected_; }
+
+ private:
   // Add an IDENT token into the stream and the token hash map.
   void AddIdentToken(const String& ident) {
     ASSERT(ident.IsSymbol());
@@ -8521,13 +8544,6 @@ class CompressedTokenStreamData : public ValueObject {
     stream_.WriteUnsigned(kind);
   }
 
-  // Return the compressed token stream.
-  uint8_t* GetStream() const { return buffer_; }
-
-  // Return the compressed token stream length.
-  intptr_t Length() const { return stream_.bytes_written(); }
-
- private:
   void WriteIndex(intptr_t value) {
     stream_.WriteUnsigned(value + Token::kNumTokens);
   }
@@ -8545,18 +8561,17 @@ class CompressedTokenStreamData : public ValueObject {
   CompressedTokenMap* tokens_;
   Object& value_;
   Smi& fresh_index_smi_;
+  intptr_t num_tokens_collected_;
 
   DISALLOW_COPY_AND_ASSIGN(CompressedTokenStreamData);
 };
 
 
-RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
+RawTokenStream* TokenStream::New(const String& source,
                                  const String& private_key,
                                  bool use_shared_tokens) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  // Copy the relevant data out of the scanner into a compressed stream of
-  // tokens.
 
   GrowableObjectArray& token_objects = GrowableObjectArray::Handle(zone);
   Array& token_objects_map = Array::Handle(zone);
@@ -8580,20 +8595,9 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
   }
   CompressedTokenMap map(token_objects_map.raw());
   CompressedTokenStreamData data(token_objects, &map);
-
-  intptr_t len = tokens.length();
-  for (intptr_t i = 0; i < len; i++) {
-    Scanner::TokenDescriptor token = tokens[i];
-    if (token.kind == Token::kIDENT) {  // Identifier token.
-      data.AddIdentToken(*token.literal);
-    } else if (Token::NeedsLiteralToken(token.kind)) {  // Literal token.
-      data.AddLiteralToken(token);
-    } else {  // Keyword, pseudo keyword etc.
-      ASSERT(token.kind < Token::kNumTokens);
-      data.AddSimpleToken(token.kind);
-    }
-  }
-  data.AddSimpleToken(Token::kEOS);  // End of stream.
+  Scanner scanner(source, private_key);
+  scanner.ScanAll(&data);
+  INC_STAT(thread, num_tokens_scanned, data.NumTokens());
 
   // Create and setup the token stream object.
   const ExternalTypedData& stream = ExternalTypedData::Handle(
@@ -8941,11 +8945,9 @@ void Script::Tokenize(const String& private_key,
   VMTagScope tagScope(thread, VMTag::kCompileScannerTagId);
   CSTAT_TIMER_SCOPE(thread, scanner_timer);
   const String& src = String::Handle(zone, Source());
-  Scanner scanner(src, private_key);
-  const Scanner::GrowableTokenStream& ts = scanner.GetStream();
-  INC_STAT(thread, num_tokens_scanned, ts.length());
-  set_tokens(TokenStream::Handle(zone,
-      TokenStream::New(ts, private_key, use_shared_tokens)));
+  const TokenStream& ts = TokenStream::Handle(zone,
+      TokenStream::New(src, private_key, use_shared_tokens));
+  set_tokens(ts);
   INC_STAT(thread, src_length, src.Length());
 }
 
