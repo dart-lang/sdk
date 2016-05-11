@@ -40,7 +40,7 @@ class LinterPlugin implements Plugin {
   static const String LINT_RULE_EXTENSION_POINT = 'rule';
 
   /// The extension point that allows plugins to register new lint rules.
-  ExtensionPoint lintRuleExtensionPoint;
+  ExtensionPoint<LintRule> lintRuleExtensionPoint;
 
   /// An options processor for creating lint configs from analysis options.
   AnalysisOptionsProcessor _optionsProcessor;
@@ -68,8 +68,9 @@ class LinterPlugin implements Plugin {
 
   @override
   void registerExtensionPoints(RegisterExtensionPoint registerExtensionPoint) {
-    lintRuleExtensionPoint = registerExtensionPoint(
-        LINT_RULE_EXTENSION_POINT, _validateTaskExtension);
+    lintRuleExtensionPoint =
+        new ExtensionPoint<LintRule>(this, LINT_RULE_EXTENSION_POINT, null);
+    registerExtensionPoint(lintRuleExtensionPoint);
   }
 
   @override
@@ -101,11 +102,4 @@ class LinterPlugin implements Plugin {
 
   List<Linter> _getRules(LintConfig config) =>
       config != null ? ruleRegistry.enabled(config).toList() : _noLints;
-
-  void _validateTaskExtension(Object extension) {
-    if (extension is! LintRule) {
-      String id = lintRuleExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError('Extensions to $id must implement LintRule');
-    }
-  }
 }

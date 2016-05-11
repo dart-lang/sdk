@@ -10,7 +10,7 @@ dependencies:
   args: '>=0.12.1 <0.14.0'
   cli_util: ^0.0.1
   glob: ^1.0.3
-  plugin: ^0.1.0
+  plugin: ^0.2.0
   source_span: ^1.0.2
   yaml: ^2.1.2
 dev_dependencies:
