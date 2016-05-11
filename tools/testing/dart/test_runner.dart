@@ -2543,9 +2543,9 @@ class CommandExecutorImpl implements CommandExecutor {
     // pushhing it for every single test (this is bad for SSD cycle time, test
     // timing).
     steps.add(() => device.runAdbCommand(
-          ['push', runner, '$devicedir/runner']));
+          ['push', runner, '$devicedir/dart_precompiled_runtime']));
     steps.add(() => device.runAdbShellCommand(
-          ['chmod', '777', '$devicedir/runner']));
+          ['chmod', '777', '$devicedir/dart_precompiled_runtime']));
 
     for (var file in files) {
       steps.add(() => device.runAdbCommand(
@@ -2554,12 +2554,16 @@ class CommandExecutorImpl implements CommandExecutor {
 
     if (command.useBlobs) {
       steps.add(() => device.runAdbShellCommand(
-            ['$devicedir/runner', '--run-precompiled-snapshot=$deviceTestDir',
-             '--use_blobs', 'ignored.dart'], timeout: timeoutDuration));
+            ['$devicedir/dart_precompiled_runtime',
+             '--run-app-snapshot=$deviceTestDir',
+             '--use-blobs', 'ignored.dart'],
+            timeout: timeoutDuration));
     } else {
       steps.add(() => device.runAdbShellCommand(
-            ['$devicedir/runner', '--run-precompiled-snapshot=$deviceTestDir',
-             'ignored.dart'], timeout: timeoutDuration));
+            ['$devicedir/dart_precompiled_runtime',
+             '--run-app-snapshot=$deviceTestDir',
+             'ignored.dart'],
+            timeout: timeoutDuration));
     }
 
     var stopwatch = new Stopwatch()..start();

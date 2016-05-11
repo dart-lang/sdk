@@ -21,7 +21,7 @@ import 'package:compiler/src/serialization/element_serialization.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/serialization/json_serializer.dart';
 import 'package:compiler/src/serialization/serialization.dart';
-
+import 'package:compiler/src/tree/nodes.dart';
 
 /// Strategy for checking equivalence.
 ///
@@ -96,6 +96,13 @@ class CheckStrategy implements TestStrategy {
       List<ConstantExpression> list1,
       List<ConstantExpression> list2) {
     return checkConstantLists(object1, object2, property, list1, list2);
+  }
+
+  @override
+  bool testNodes(Object object1, Object object2, String property,
+      Node node1, Node node2) {
+    return new NodeEquivalenceVisitor(this).testNodes(
+        object1, object2, property, node1, node2);
   }
 }
 

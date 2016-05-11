@@ -6,6 +6,8 @@ import 'dart:_internal';
 
 patch int _getTraceClock() native "Timeline_getTraceClock";
 
+patch int _getThreadCpuClock() native "Timeline_getThreadCpuClock";
+
 patch int _getNextAsyncId() native "Timeline_getNextAsyncId";
 
 patch int _getIsolateNum() native "Timeline_getIsolateNum";

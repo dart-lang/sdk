@@ -31,7 +31,8 @@ class TokenStreamVisitor : public ObjectVisitor {
     }
     obj_ = raw_obj;
     if (obj_.GetClassId() == TokenStream::kClassId) {
-      TokenStream::Iterator tkit(TokenStream::Cast(obj_),
+      TokenStream::Iterator tkit(Thread::Current()->zone(),
+                                 TokenStream::Cast(obj_),
                                  TokenPosition::kMinSource,
                                  TokenStream::Iterator::kNoNewlines);
       Token::Kind kind = tkit.CurrentTokenKind();

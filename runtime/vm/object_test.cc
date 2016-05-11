@@ -162,15 +162,16 @@ VM_TEST_CASE(TypeArguments) {
 
 
 VM_TEST_CASE(TokenStream) {
-  String& source = String::Handle(String::New("= ( 9 , ."));
-  String& private_key = String::Handle(String::New(""));
+  Zone* zone = Thread::Current()->zone();
+  String& source = String::Handle(zone, String::New("= ( 9 , ."));
+  String& private_key = String::Handle(zone, String::New(""));
   Scanner scanner(source, private_key);
   const Scanner::GrowableTokenStream& ts = scanner.GetStream();
   EXPECT_EQ(6, ts.length());
   EXPECT_EQ(Token::kLPAREN, ts[1].kind);
   const TokenStream& token_stream = TokenStream::Handle(
-      TokenStream::New(ts, private_key, false));
-  TokenStream::Iterator iterator(token_stream, TokenPosition::kMinSource);
+      zone, TokenStream::New(ts, private_key, false));
+  TokenStream::Iterator iterator(zone, token_stream, TokenPosition::kMinSource);
   // EXPECT_EQ(6, token_stream.Length());
   iterator.Advance();  // Advance to '(' token.
   EXPECT_EQ(Token::kLPAREN, iterator.CurrentTokenKind());
@@ -2686,7 +2687,6 @@ VM_TEST_CASE(CheckedHandle) {
 }
 
 
-#if !defined(TARGET_ARCH_DBC)
 static RawLibrary* CreateDummyLibrary(const String& library_name) {
   return Library::New(library_name);
 }
@@ -2968,7 +2968,6 @@ VM_TEST_CASE(PcDescriptorsLargeDeltas) {
 
   EXPECT_EQ(false, iter.MoveNext());
 }
-#endif  // !defined(TARGET_ARCH_DBC)
 
 
 static RawClass* CreateTestClass(const char* name) {
@@ -4011,7 +4010,7 @@ TEST_CASE(FunctionSourceFingerprint) {
   TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const String& name = String::Handle(String::New(TestCase::url()));
-  const Library& lib = Library::Handle(Library::LookupLibrary(name));
+  const Library& lib = Library::Handle(Library::LookupLibrary(thread, name));
   EXPECT(!lib.IsNull());
 
   const Class& class_a = Class::Handle(
@@ -4076,7 +4075,7 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
 
   // With no breakpoint, function A.b is inlineable.
   const String& name = String::Handle(String::New(TestCase::url()));
-  const Library& vmlib = Library::Handle(Library::LookupLibrary(name));
+  const Library& vmlib = Library::Handle(Library::LookupLibrary(thread, name));
   EXPECT(!vmlib.IsNull());
   const Class& class_a = Class::Handle(
       vmlib.LookupClass(String::Handle(Symbols::New(thread, "A"))));

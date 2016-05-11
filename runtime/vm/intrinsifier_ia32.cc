@@ -1718,35 +1718,6 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
 }
 
 
-void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
-  Label fall_through, try_two_byte_string;
-  __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
-  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // String.
-  __ testl(EBX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
-  // Range check.
-  __ cmpl(EBX, FieldAddress(EAX, String::length_offset()));
-  // Runtime throws exception.
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
-  __ CompareClassId(EAX, kOneByteStringCid, EDI);
-  __ j(NOT_EQUAL, &try_two_byte_string, Assembler::kNearJump);
-  __ SmiUntag(EBX);
-  __ movzxb(EAX, FieldAddress(EAX, EBX, TIMES_1, OneByteString::data_offset()));
-  __ SmiTag(EAX);
-  __ ret();
-
-  __ Bind(&try_two_byte_string);
-  __ CompareClassId(EAX, kTwoByteStringCid, EDI);
-  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
-  ASSERT(kSmiTagShift == 1);
-  __ movzxw(EAX, FieldAddress(EAX, EBX, TIMES_1, TwoByteString::data_offset()));
-  __ SmiTag(EAX);
-  __ ret();
-
-  __ Bind(&fall_through);
-}
-
-
 // bool _substringMatches(int start, String other)
 void Intrinsifier::StringBaseSubstringMatches(Assembler* assembler) {
   // For precompilation, not implemented on IA32.

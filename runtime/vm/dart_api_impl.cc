@@ -1148,9 +1148,6 @@ DART_EXPORT char* Dart_Initialize(
     Dart_FileCloseCallback file_close,
     Dart_EntropySource entropy_source,
     Dart_GetVMServiceAssetsArchive get_service_assets) {
-  if ((instructions_snapshot != NULL) && !FLAG_precompiled_runtime) {
-    return strdup("Flag --precompilation was not specified.");
-  }
   if (interrupt != NULL) {
     return strdup("Dart_Initialize: "
                   "Setting of interrupt callback is not supported.");
@@ -1485,20 +1482,19 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
   if (::Dart_IsError(state)) {
     return state;
   }
-  I->heap()->CollectAllGarbage();
   I->StopBackgroundCompiler();
 
 #if defined(DEBUG)
+  I->heap()->CollectAllGarbage();
   FunctionVisitor check_canonical(T);
   I->heap()->IterateObjects(&check_canonical);
-#endif  // #if defined(DEBUG).
+#endif  // #if defined(DEBUG)
 
   FullSnapshotWriter writer(Snapshot::kCore,
                             vm_isolate_snapshot_buffer,
                             isolate_snapshot_buffer,
                             ApiReallocate,
-                            NULL, /* instructions_writer */
-                            true /* vm_isolate_is_symbolic */);
+                            NULL /* instructions_writer */);
   writer.WriteFullSnapshot();
   *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
   *isolate_snapshot_size = writer.IsolateSnapshotSize();
@@ -1528,11 +1524,13 @@ static Dart_Handle createLibrarySnapshot(Dart_Handle library,
   } else {
     lib ^= Api::UnwrapHandle(library);
   }
-  I->heap()->CollectAllGarbage();
+
 #if defined(DEBUG)
+  I->heap()->CollectAllGarbage();
   FunctionVisitor check_canonical(T);
   I->heap()->IterateObjects(&check_canonical);
-#endif  // #if defined(DEBUG).
+#endif  // #if defined(DEBUG)
+
   ScriptSnapshotWriter writer(buffer, ApiReallocate);
   writer.WriteScriptSnapshot(lib);
   *size = writer.BytesWritten();
@@ -2841,8 +2839,8 @@ static RawObject* ThrowArgumentError(const char* exception_message) {
   // Lookup the class ArgumentError in dart:core.
   const String& lib_url = String::Handle(String::New("dart:core"));
   const String& class_name = String::Handle(String::New("ArgumentError"));
-  const Library& lib =
-      Library::Handle(zone, Library::LookupLibrary(lib_url));
+  const Library& lib = Library::Handle(zone,
+      Library::LookupLibrary(thread, lib_url));
   if (lib.IsNull()) {
     const String& message = String::Handle(
         String::NewFormatted("%s: library '%s' not found.",
@@ -3829,7 +3827,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
   }
   if (constructor.IsGenerativeConstructor()) {
 #if defined(DEBUG)
-    if (!cls.is_allocated() && Dart::IsRunningPrecompiledCode()) {
+    if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppNoJIT)) {
       return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
     }
 #endif
@@ -3924,7 +3922,7 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
 #if defined(DEBUG)
-  if (!cls.is_allocated() && Dart::IsRunningPrecompiledCode()) {
+  if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppNoJIT)) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
@@ -3954,7 +3952,7 @@ DART_EXPORT Dart_Handle Dart_AllocateWithNativeFields(
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
 #if defined(DEBUG)
-  if (!cls.is_allocated() && Dart::IsRunningPrecompiledCode()) {
+  if (!cls.is_allocated() && (Dart::snapshot_kind() == Snapshot::kAppNoJIT)) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
@@ -4122,6 +4120,15 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                            cls_name.ToCString(),
                            function_name.ToCString());
     }
+    NOT_IN_PRODUCT(if (tds.enabled()) {
+      const String& cls_name = String::Handle(Z, cls.Name());
+      tds.SetNumArguments(1);
+      tds.FormatArgument(0,
+                         "name",
+                         "%s.%s",
+                         cls_name.ToCString(),
+                         function_name.ToCString());
+    });
     // Setup args and check for malformed arguments in the arguments list.
     result = SetupArguments(T, number_of_arguments, arguments, 0, &args);
     if (!::Dart_IsError(result)) {
@@ -4157,6 +4164,17 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
       }
       return result;
     }
+    NOT_IN_PRODUCT(if (tds.enabled()) {
+      const Class& cls = Class::Handle(Z, instance.clazz());
+      ASSERT(!cls.IsNull());
+      const String& cls_name = String::Handle(Z, cls.Name());
+      tds.SetNumArguments(1);
+      tds.FormatArgument(0,
+                         "name",
+                         "%s.%s",
+                         cls_name.ToCString(),
+                         function_name.ToCString());
+    });
     // Setup args and check for malformed arguments in the arguments list.
     result = SetupArguments(T, number_of_arguments, arguments, 1, &args);
     if (!::Dart_IsError(result)) {
@@ -4182,6 +4200,17 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                            CURRENT_FUNC,
                            function_name.ToCString());
     }
+
+    NOT_IN_PRODUCT(if (tds.enabled()) {
+      const String& lib_name = String::Handle(Z, lib.url());
+      tds.SetNumArguments(1);
+      tds.FormatArgument(0,
+                         "name",
+                         "%s.%s",
+                         lib_name.ToCString(),
+                         function_name.ToCString());
+    });
+
     // LookupFunctionAllowPrivate does not check argument arity, so we
     // do it here.
     String& error_message = String::Handle(Z);
@@ -4272,6 +4301,15 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
       getter = cls.LookupStaticFunctionAllowPrivate(getter_name);
     }
 
+    NOT_IN_PRODUCT(if (tds.enabled()) {
+      const String& cls_name = String::Handle(cls.Name());
+      tds.SetNumArguments(1);
+      tds.FormatArgument(0,
+                         "name",
+                         "%s.%s",
+                         cls_name.ToCString(), field_name.ToCString());
+    });
+
     if (!getter.IsNull()) {
       // Invoke the getter and return the result.
       return Api::NewHandle(
@@ -4297,6 +4335,15 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
       }
       cls = cls.SuperClass();
     }
+
+    NOT_IN_PRODUCT(if (tds.enabled()) {
+      const String& cls_name = String::Handle(cls.Name());
+      tds.SetNumArguments(1);
+      tds.FormatArgument(0,
+                         "name",
+                         "%s.%s",
+                         cls_name.ToCString(), field_name.ToCString());
+    });
 
     // Invoke the getter and return the result.
     const int kNumArgs = 1;
@@ -4336,6 +4383,15 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
           Field::GetterName(field_name));
       getter = cls.LookupStaticFunctionAllowPrivate(getter_name);
     }
+
+    NOT_IN_PRODUCT(if (tds.enabled()) {
+      const String& lib_name = String::Handle(lib.url());
+      tds.SetNumArguments(1);
+      tds.FormatArgument(0,
+                         "name",
+                         "%s.%s",
+                         lib_name.ToCString(), field_name.ToCString());
+    });
 
     if (!getter.IsNull()) {
       // Invoke the getter and return the result.
@@ -4984,6 +5040,14 @@ RawString* Api::GetEnvironmentValue(Thread* thread, const String& name) {
       return Symbols::False().raw();
     }
 
+    if (name.Equals(Symbols::DartVMProduct())) {
+#ifdef PRODUCT
+      return Symbols::True().raw();
+#else
+      return Symbols::False().raw();
+#endif
+    }
+
     const String& prefix = Symbols::DartLibrary();
     if (name.StartsWith(prefix)) {
       const String& library_name =
@@ -4994,7 +5058,7 @@ RawString* Api::GetEnvironmentValue(Thread* thread, const String& name) {
         const String& dart_library_name =
             String::Handle(String::Concat(Symbols::DartScheme(), library_name));
         const Library& library =
-            Library::Handle(Library::LookupLibrary(dart_library_name));
+            Library::Handle(Library::LookupLibrary(thread, dart_library_name));
         if (!library.IsNull()) {
           return Symbols::True().raw();
         }
@@ -5147,7 +5211,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
 
   library = Library::New(url_str);
   library.set_debuggable(true);
-  library.Register();
+  library.Register(T);
   I->object_store()->set_root_library(library);
 
   const Script& script = Script::Handle(Z,
@@ -5348,7 +5412,8 @@ DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url) {
   if (url_str.IsNull()) {
     RETURN_TYPE_ERROR(Z, url, String);
   }
-  const Library& library = Library::Handle(Z, Library::LookupLibrary(url_str));
+  const Library& library = Library::Handle(Z,
+      Library::LookupLibrary(T, url_str));
   if (library.IsNull()) {
     return Api::NewError("%s: library '%s' not found.",
                          CURRENT_FUNC, url_str.ToCString());
@@ -5414,10 +5479,10 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
 
   NoHeapGrowthControlScope no_growth_control;
 
-  Library& library = Library::Handle(Z, Library::LookupLibrary(url_str));
+  Library& library = Library::Handle(Z, Library::LookupLibrary(T, url_str));
   if (library.IsNull()) {
     library = Library::New(url_str);
-    library.Register();
+    library.Register(T);
   } else if (library.LoadInProgress() ||
       library.Loaded() ||
       library.LoadFailed()) {
@@ -6117,14 +6182,15 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
   if (assembly_size == NULL) {
     RETURN_NULL_ERROR(assembly_size);
   }
-  I->heap()->CollectAllGarbage();
   AssemblyInstructionsWriter instructions_writer(assembly_buffer,
                                                  ApiReallocate,
                                                  2 * MB /* initial_size */);
-  PrecompiledSnapshotWriter writer(vm_isolate_snapshot_buffer,
-                                   isolate_snapshot_buffer,
-                                   ApiReallocate,
-                                   &instructions_writer);
+  FullSnapshotWriter writer(Snapshot::kAppNoJIT,
+                            vm_isolate_snapshot_buffer,
+                            isolate_snapshot_buffer,
+                            ApiReallocate,
+                            &instructions_writer);
+
   writer.WriteFullSnapshot();
   *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
   *isolate_snapshot_size = writer.IsolateSnapshotSize();
@@ -6175,15 +6241,16 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
   if (rodata_blob_size == NULL) {
     RETURN_NULL_ERROR(instructions_blob_size);
   }
-  I->heap()->CollectAllGarbage();
   BlobInstructionsWriter instructions_writer(instructions_blob_buffer,
                                              rodata_blob_buffer,
                                              ApiReallocate,
                                              2 * MB /* initial_size */);
-  PrecompiledSnapshotWriter writer(vm_isolate_snapshot_buffer,
-                                   isolate_snapshot_buffer,
-                                   ApiReallocate,
-                                   &instructions_writer);
+  FullSnapshotWriter writer(Snapshot::kAppNoJIT,
+                            vm_isolate_snapshot_buffer,
+                            isolate_snapshot_buffer,
+                            ApiReallocate,
+                            &instructions_writer);
+
   writer.WriteFullSnapshot();
   *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
   *isolate_snapshot_size = writer.IsolateSnapshotSize();
@@ -6195,8 +6262,112 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
 #endif  // DART_PRECOMPILER
 
 
+DART_EXPORT Dart_Handle Dart_PrecompileJIT() {
+  API_TIMELINE_BEGIN_END;
+  DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
+  Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);
+  if (::Dart_IsError(result)) {
+    return result;
+  }
+  CHECK_CALLBACK_STATE(T);
+  GrowableObjectArray& libraries =
+      GrowableObjectArray::Handle(Z, I->object_store()->libraries());
+  Library& lib = Library::Handle(Z);
+  Class& cls = Class::Handle(Z);
+  Error& error = Error::Handle(Z);
+  for (intptr_t i = 0; i < libraries.Length(); i++) {
+    lib ^= libraries.At(i);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      if (cls.IsDynamicClass()) {
+        continue;  // class 'dynamic' is in the read-only VM isolate.
+      }
+      error = cls.EnsureIsFinalized(T);
+      if (!error.IsNull()) {
+        return Api::NewHandle(T, error.raw());
+      }
+    }
+  }
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_CreatePrecompiledJITSnapshotBlob(
+    uint8_t** vm_isolate_snapshot_buffer,
+    intptr_t* vm_isolate_snapshot_size,
+    uint8_t** isolate_snapshot_buffer,
+    intptr_t* isolate_snapshot_size,
+    uint8_t** instructions_blob_buffer,
+    intptr_t* instructions_blob_size,
+    uint8_t** rodata_blob_buffer,
+    intptr_t* rodata_blob_size) {
+  ASSERT(FLAG_load_deferred_eagerly);
+  API_TIMELINE_DURATION;
+  DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
+  if (vm_isolate_snapshot_buffer == NULL) {
+    RETURN_NULL_ERROR(vm_isolate_snapshot_buffer);
+  }
+  if (vm_isolate_snapshot_size == NULL) {
+    RETURN_NULL_ERROR(vm_isolate_snapshot_size);
+  }
+  if (isolate_snapshot_buffer == NULL) {
+    RETURN_NULL_ERROR(isolate_snapshot_buffer);
+  }
+  if (isolate_snapshot_size == NULL) {
+    RETURN_NULL_ERROR(isolate_snapshot_size);
+  }
+  if (instructions_blob_buffer == NULL) {
+    RETURN_NULL_ERROR(instructions_blob_buffer);
+  }
+  if (instructions_blob_size == NULL) {
+    RETURN_NULL_ERROR(instructions_blob_size);
+  }
+  if (rodata_blob_buffer == NULL) {
+    RETURN_NULL_ERROR(instructions_blob_buffer);
+  }
+  if (rodata_blob_size == NULL) {
+    RETURN_NULL_ERROR(instructions_blob_size);
+  }
+  // Finalize all classes if needed.
+  Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
+  if (::Dart_IsError(state)) {
+    return state;
+  }
+  I->StopBackgroundCompiler();
+
+  BlobInstructionsWriter instructions_writer(instructions_blob_buffer,
+                                             rodata_blob_buffer,
+                                             ApiReallocate,
+                                             2 * MB /* initial_size */);
+  FullSnapshotWriter writer(Snapshot::kAppWithJIT,
+                            vm_isolate_snapshot_buffer,
+                            isolate_snapshot_buffer,
+                            ApiReallocate,
+                            &instructions_writer);
+  writer.WriteFullSnapshot();
+  *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
+  *isolate_snapshot_size = writer.IsolateSnapshotSize();
+  *instructions_blob_size = instructions_writer.InstructionsBlobSize();
+  *rodata_blob_size = instructions_writer.RodataBlobSize();
+
+  return Api::Success();
+}
+
+
 DART_EXPORT bool Dart_IsRunningPrecompiledCode() {
-  return Dart::IsRunningPrecompiledCode();
+  return Snapshot::IncludesCode(Dart::snapshot_kind());
+}
+
+
+DART_EXPORT bool Dart_IsPrecompiledRuntime() {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return true;
+#else
+  return false;
+#endif
 }
 
 }  // namespace dart

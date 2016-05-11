@@ -2957,15 +2957,36 @@ DART_EXPORT Dart_Handle Dart_Precompile(
     bool reset_fields);
 
 
+/**
+ *  Creates a precompiled snapshot.
+ *   - The VM must not have been started from a snapshot.
+ *   - A root library must have been loaded.
+ *   - Dart_Precompile must have been called.
+ *
+ *  Outputs a vm isolate snapshot, an isolate snapshot, and an assembly file
+ *  defining the symbols kInstructionsSnapshot and kDataSnapshot. The assembly
+ *  should be compiled as a static or shared library and linked or loaded by the
+ *  embedder.
+ *  Running this snapshot requires a VM compiled with DART_PRECOMPILED_SNAPSHOT.
+ *  The vm isolate snapshot, kInstructionsSnapshot and kDataSnapshot should be
+ *  passed as arguments to Dart_Initialize. The isolate snapshot should be
+ *  passed to Dart_CreateIsolate.
+ */
 DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
     uint8_t** vm_isolate_snapshot_buffer,
     intptr_t* vm_isolate_snapshot_size,
     uint8_t** isolate_snapshot_buffer,
     intptr_t* isolate_snapshot_size,
-    uint8_t** instructions_assembly_buffer,
-    intptr_t* instructions_assembly_size);
+    uint8_t** assembly_buffer,
+    intptr_t* assembly_size);
 
 
+/**
+ *  Same as Dart_CreatePrecompiledSnapshotAssembly, except the instruction and
+ *  data snapshot pieces are provided directly as bytes that the embedder can
+ *  load with mmap. The instructions piece must be loaded with read and
+ *  execute permissions; the rodata piece may be loaded as read-only.
+ */
 DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
     uint8_t** vm_isolate_snapshot_buffer,
     intptr_t* vm_isolate_snapshot_size,
@@ -2977,6 +2998,35 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
     intptr_t* rodata_blob_size);
 
 
+DART_EXPORT Dart_Handle Dart_PrecompileJIT();
+
+
+DART_EXPORT Dart_Handle Dart_CreatePrecompiledJITSnapshotBlob(
+    uint8_t** vm_isolate_snapshot_buffer,
+    intptr_t* vm_isolate_snapshot_size,
+    uint8_t** isolate_snapshot_buffer,
+    intptr_t* isolate_snapshot_size,
+    uint8_t** instructions_blob_buffer,
+    intptr_t* instructions_blob_size,
+    uint8_t** rodata_blob_buffer,
+    intptr_t* rodata_blob_size);
+
+
+/**
+ *  Returns whether the VM only supports running from precompiled snapshots and
+ *  not from any other kind of snapshot or no snapshot (that is, the VM was
+ *  compiled with DART_PRECOMPILED_RUNTIME).
+ */
+DART_EXPORT bool Dart_IsPrecompiledRuntime();
+
+
+/**
+ *  Returns whether the VM was initialized with a precompiled snapshot. Only
+ *  valid after Dart_Initialize.
+ *  DEPRECATED. This is currently used to disable Platform.executable and
+ *  Platform.resolvedExecutable under precompilation to prevent process
+ *  spawning tests from becoming fork-bombs.
+ */
 DART_EXPORT bool Dart_IsRunningPrecompiledCode();
 
 #endif  /* INCLUDE_DART_API_H_ */  /* NOLINT */

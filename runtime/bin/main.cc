@@ -52,10 +52,16 @@ extern const uint8_t* isolate_snapshot_buffer;
  * - Running the full application snapshot generated above :
  * dart --run-full-snapshot=<filename> <script_uri> [<script_options>]
  */
-static bool generate_script_snapshot = false;
-static bool generate_full_snapshot_after_run = false;
-static bool run_full_snapshot = false;
+static bool run_app_snapshot = false;
 static const char* snapshot_filename = NULL;
+enum SnapshotKind {
+  kNone,
+  kScript,
+  kAppAOT,
+  kAppJITAfterRun,
+  kAppAfterRun,
+};
+static SnapshotKind gen_snapshot_kind = kNone;
 
 // Value of the --package-root flag.
 // (This pointer points into an argv buffer and does not need to be
@@ -73,25 +79,9 @@ static const char* commandline_packages_file = NULL;
 static bool compile_all = false;
 
 
-// Global flag that is used to indicate that we want to compile all the
-// dart functions before running main and not compile anything thereafter.
-static bool gen_precompiled_snapshot = false;
-
-
-// Global flag that is used to indicate that we want to run from a precompiled
-// snapshot.
-static bool run_precompiled_snapshot = false;
-
-
 // Global flag that is used to indicate that we want to use blobs/mmap instead
 // of assembly/shared libraries for precompilation.
 static bool use_blobs = false;
-
-
-// Value of the --gen/run_precompiled_snapshot flag.
-// (This pointer points into an argv buffer and does not need to be
-// free'd.)
-static const char* precompiled_snapshot_directory = NULL;
 
 
 // Global flag that is used to indicate that we want to compile everything in
@@ -108,14 +98,13 @@ static const bool is_noopt = false;
 extern const char* kPrecompiledLibraryName;
 extern const char* kPrecompiledInstructionsSymbolName;
 extern const char* kPrecompiledDataSymbolName;
-static const char* kPrecompiledVmIsolateName = "precompiled.vmisolate";
-static const char* kPrecompiledIsolateName = "precompiled.isolate";
-static const char* kPrecompiledAssemblyName = "precompiled.S";
-static const char* kPrecompiledInstructionsBlobName =
-    "precompiled.instructions";
-static const char* kPrecompiledRodataBlobName = "precompiled.rodata";
-static const char* kVMIsolateSuffix = "vmisolate";
-static const char* kIsolateSuffix = "isolate";
+
+static const char* kVMIsolateSuffix = "snapshot.vmisolate";
+static const char* kIsolateSuffix = "snapshot.isolate";
+static const char* kAssemblySuffix = "snapshot.S";
+static const char* kInstructionsSuffix = "snapshot.instructions";
+static const char* kRODataSuffix = "snapshot.rodata";
+
 
 // Global flag that is used to indicate that we want to trace resolution of
 // URIs and the loading of libraries, parts and scripts.
@@ -345,97 +334,43 @@ static bool ProcessUseBlobsOption(const char* arg,
 }
 
 
-static bool ProcessGenPrecompiledSnapshotOption(
-    const char* arg,
-    CommandLineOptions* vm_options) {
-#if !defined(DART_PRECOMPILER)
-  Log::PrintErr("Precompiled snapshots must be generated with "
-                "dart_bootstrap.\n");
-  return false;
-#else  // defined(DART_PRECOMPILER)
-  ASSERT(arg != NULL);
-  if ((arg[0] == '=') || (arg[0] == ':')) {
-    precompiled_snapshot_directory = &arg[1];
-  } else {
-    precompiled_snapshot_directory = arg;
-  }
-  gen_precompiled_snapshot = true;
-  vm_options->AddArgument("--precompilation");
-  return true;
-#endif  // defined(DART_PRECOMPILER)
-}
-
-
-static bool ProcessRunPrecompiledSnapshotOption(
-    const char* arg,
-    CommandLineOptions* vm_options) {
-  ASSERT(arg != NULL);
-  precompiled_snapshot_directory = arg;
-  if ((precompiled_snapshot_directory[0] == '=') ||
-      (precompiled_snapshot_directory[0] == ':')) {
-    precompiled_snapshot_directory = &precompiled_snapshot_directory[1];
-  }
-  run_precompiled_snapshot = true;
-  vm_options->AddArgument("--precompilation");
-  return true;
-}
-
-
-static bool ProcessSnapshotOptionHelper(const char* filename,
-                                        bool* snapshot_option) {
-  ASSERT((filename != NULL) && (strlen(filename) != 0));
+static bool ProcessSnapshotFilenameOption(const char* filename,
+                                          CommandLineOptions* vm_options) {
   snapshot_filename = filename;
-  *snapshot_option = true;
-  if (generate_script_snapshot && generate_full_snapshot_after_run) {
-    Log::PrintErr("--snapshot and --snapshot-after-run options"
-                  " cannot be specified at the same time\n");
-    *snapshot_option = false;
-    return false;
+  if (gen_snapshot_kind == kNone) {
+    gen_snapshot_kind = kScript;  // Default behavior.
   }
   return true;
 }
 
 
-static bool ProcessScriptSnapshotOption(const char* filename,
-                                        CommandLineOptions* vm_options) {
-  if ((filename == NULL) || (strlen(filename) == 0)) {
-    return false;
+static bool ProcessSnapshotKindOption(const char* kind,
+                                      CommandLineOptions* vm_options) {
+  if (strcmp(kind, "script") == 0) {
+    gen_snapshot_kind = kScript;
+    return true;
+  } else if (strcmp(kind, "app-aot") == 0) {
+    gen_snapshot_kind = kAppAOT;
+    return true;
+  } else if (strcmp(kind, "app-jit-after-run") == 0) {
+    gen_snapshot_kind = kAppJITAfterRun;
+    return true;
+  } else if (strcmp(kind, "app-after-run") == 0) {
+    gen_snapshot_kind = kAppAfterRun;
+    return true;
   }
-  // Ensure that we are already running using a full snapshot.
-  if (isolate_snapshot_buffer == NULL) {
-    Log::PrintErr("Script snapshots cannot be generated in this version of"
-                  " Dart\n");
-    return false;
-  }
-  return ProcessSnapshotOptionHelper(filename, &generate_script_snapshot);
-}
-
-
-static bool ProcessFullSnapshotAfterRunOption(
-    const char* filename, CommandLineOptions* vm_options) {
-  if ((filename == NULL) || (strlen(filename) == 0)) {
-    return false;
-  }
-  // Ensure that we are running 'dart_bootstrap'.
-  if (isolate_snapshot_buffer != NULL) {
-    Log::PrintErr("Full Application snapshots must be generated with"
-                  " dart_bootstrap\n");
-    return false;
-  }
-  return ProcessSnapshotOptionHelper(filename,
-                                     &generate_full_snapshot_after_run);
-}
-
-
-static bool ProcessRunFullSnapshotOption(
-    const char* filename, CommandLineOptions* vm_options) {
-#if !defined(PRODUCT)
-  Log::PrintErr("Full Application snapshots can only be be run with"
-                " product mode\n");
+  Log::PrintErr("Unrecognized snapshot kind: '%s'\nValid kinds are: "
+                "script, app-aot, app-jit-after-run, app-after-run\n", kind);
   return false;
-#else
-  return ProcessSnapshotOptionHelper(filename, &run_full_snapshot);
-#endif  // defined(PRODUCT)
+}
+
+
+static bool ProcessRunAppSnapshotOption(
+    const char* filename, CommandLineOptions* vm_options) {
+  ASSERT(filename != NULL);
+  snapshot_filename = filename;
+  run_app_snapshot = true;
+  return true;
 }
 
 
@@ -532,15 +467,13 @@ static struct {
 
   // VM specific options to the standalone dart program.
   { "--compile_all", ProcessCompileAllOption },
-  { "--use_blobs", ProcessUseBlobsOption },
   { "--enable-vm-service", ProcessEnableVmServiceOption },
-  { "--gen-precompiled-snapshot", ProcessGenPrecompiledSnapshotOption },
   { "--observe", ProcessObserveOption },
-  { "--run-precompiled-snapshot", ProcessRunPrecompiledSnapshotOption },
   { "--shutdown", ProcessShutdownOption },
-  { "--snapshot=", ProcessScriptSnapshotOption },
-  { "--full-snapshot-after-run=", ProcessFullSnapshotAfterRunOption },
-  { "--run-full-snapshot=", ProcessRunFullSnapshotOption },
+  { "--snapshot=", ProcessSnapshotFilenameOption },
+  { "--snapshot-kind=", ProcessSnapshotKindOption },
+  { "--run-app-snapshot=", ProcessRunAppSnapshotOption },
+  { "--use-blobs", ProcessUseBlobsOption },
   { "--trace-loading", ProcessTraceLoadingOption },
   { NULL, NULL }
 };
@@ -657,25 +590,15 @@ static int ParseArguments(int argc,
                   "file is invalid.\n");
     return -1;
   }
-  if (is_noopt) {
-    if (gen_precompiled_snapshot) {
-      Log::PrintErr("Running dart_noopt with --gen_precompiled_snapshot"
-                    " is invalid.\n");
-      return -1;
-    }
-    if (run_precompiled_snapshot) {
-      Log::PrintErr("Running dart_noopt with --run_precompiled_snapshot"
-                    " is invalid.\n");
-      return -1;
-    }
-  }
-  if (run_full_snapshot && run_precompiled_snapshot) {
-    Log::PrintErr("Specifying --run_full_snapshot and"
-                  " --run_precompiled_snapshot is invalid.\n");
+  if (is_noopt && gen_snapshot_kind != kNone) {
+    Log::PrintErr("Generating a snapshot with dart_noopt is invalid.\n");
     return -1;
   }
-  if ((generate_full_snapshot_after_run || gen_precompiled_snapshot) &&
-      (run_full_snapshot || run_precompiled_snapshot)) {
+  if ((gen_snapshot_kind != kNone) && (snapshot_filename == NULL)) {
+    Log::PrintErr("Generating a snapshot requires a filename (--snapshot).\n");
+    return -1;
+  }
+  if ((gen_snapshot_kind != kNone) && run_app_snapshot) {
     Log::PrintErr("Specifying an option to generate a snapshot and"
                   " run using a snapshot is invalid.\n");
     return -1;
@@ -766,16 +689,16 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
                                                 int* exit_code) {
   ASSERT(script_uri != NULL);
 
+  const bool needs_load_port = !run_app_snapshot;
 #if defined(PRODUCT)
-  const bool run_service_isolate = !run_full_snapshot &&
-                                   !run_precompiled_snapshot;
+  const bool run_service_isolate = needs_load_port;
 #else
-  const bool run_service_isolate = !run_full_snapshot;
+  // Always create the service isolate in DEBUG and RELEASE modes for profiling,
+  // even if we don't need it for loading.
+  const bool run_service_isolate = true;
 #endif  // PRODUCT
   if (!run_service_isolate &&
       (strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0)) {
-    // We do not create a service isolate when running a full application
-    // snapshot or a precompiled snapshot in product mode.
     return NULL;
   }
 
@@ -807,9 +730,10 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
 
   if (Dart_IsServiceIsolate(isolate)) {
     // If this is the service isolate, load embedder specific bits and return.
+    bool skip_library_load = run_app_snapshot;
     if (!VmService::Setup(vm_service_server_ip,
                           vm_service_server_port,
-                          run_precompiled_snapshot)) {
+                          skip_library_load)) {
       *error = strdup(VmService::GetErrorMessage());
       return NULL;
     }
@@ -828,12 +752,9 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   result = DartUtils::PrepareForScriptLoading(false, trace_loading);
   CHECK_RESULT(result);
 
-  if (!run_precompiled_snapshot && !run_full_snapshot) {
+  if (needs_load_port) {
     // Set up the load port provided by the service isolate so that we can
     // load scripts.
-    // With a full snapshot or a precompiled snapshot in product mode, there is
-    // no service isolate. A precompiled snapshot in release or debug mode does
-    // have the service isolate, but it doesn't use it for loading.
     result = DartUtils::SetupServiceLoadPort();
     CHECK_RESULT(result);
   }
@@ -845,7 +766,10 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   result = Dart_SetEnvironmentCallback(EnvironmentCallback);
   CHECK_RESULT(result);
 
-  if (!run_precompiled_snapshot && !run_full_snapshot) {
+  if (run_app_snapshot) {
+    result = DartUtils::SetupIOLibrary(script_uri);
+    CHECK_RESULT(result);
+  } else {
     // Load the specified application script into the newly created isolate.
     result = DartUtils::LoadScript(script_uri);
     CHECK_RESULT(result);
@@ -860,9 +784,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
                        Dart_Timeline_Event_Async_End,
                        0, NULL, NULL);
 
-    result = DartUtils::SetupIOLibrary(script_uri);
-    CHECK_RESULT(result);
-  } else if (run_full_snapshot) {
     result = DartUtils::SetupIOLibrary(script_uri);
     CHECK_RESULT(result);
   }
@@ -1206,19 +1127,13 @@ static void* LoadLibrarySymbol(const char* snapshot_directory,
     qualified_libname = libname;
   }
   void* library = Extensions::LoadExtensionLibrary(qualified_libname);
-  if (library == NULL) {
-    Log::PrintErr("Error: Failed to load library '%s'\n", qualified_libname);
-    Platform::Exit(kErrorExitCode);
-  }
-  void* symbol = Extensions::ResolveSymbol(library, symname);
-  if (symbol == NULL) {
-    Log::PrintErr("Error: Failed to load symbol '%s'\n", symname);
-    Platform::Exit(kErrorExitCode);
-  }
   if (concat != NULL) {
     delete concat;
   }
-  return symbol;
+  if (library == NULL) {
+    return NULL;
+  }
+  return Extensions::ResolveSymbol(library, symname);
 }
 
 
@@ -1235,16 +1150,107 @@ static void GenerateScriptSnapshot() {
 }
 
 
-static void ComputeSnapshotFilenames(const char* filename,
-                                     char** vm_snapshot_fname,
-                                     char** isolate_snapshot_fname) {
-  intptr_t len = snprintf(NULL, 0, "%s.%s", filename, kVMIsolateSuffix);
-  *vm_snapshot_fname = new char[len + 1];
-  snprintf(*vm_snapshot_fname, len + 1, "%s.%s", filename, kVMIsolateSuffix);
+static void GeneratePrecompiledSnapshot() {
+  uint8_t* vm_isolate_buffer = NULL;
+  intptr_t vm_isolate_size = 0;
+  uint8_t* isolate_buffer = NULL;
+  intptr_t isolate_size = 0;
+  uint8_t* assembly_buffer = NULL;
+  intptr_t assembly_size = 0;
+  uint8_t* instructions_blob_buffer = NULL;
+  intptr_t instructions_blob_size = 0;
+  uint8_t* rodata_blob_buffer = NULL;
+  intptr_t rodata_blob_size = 0;
+  Dart_Handle result;
+  if (use_blobs) {
+    result = Dart_CreatePrecompiledSnapshotBlob(
+        &vm_isolate_buffer,
+        &vm_isolate_size,
+        &isolate_buffer,
+        &isolate_size,
+        &instructions_blob_buffer,
+        &instructions_blob_size,
+        &rodata_blob_buffer,
+        &rodata_blob_size);
+  } else {
+    result = Dart_CreatePrecompiledSnapshotAssembly(
+        &vm_isolate_buffer,
+        &vm_isolate_size,
+        &isolate_buffer,
+        &isolate_size,
+        &assembly_buffer,
+        &assembly_size);
+  }
+  if (Dart_IsError(result)) {
+    ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
+  }
+  WriteSnapshotFile(snapshot_filename, kVMIsolateSuffix,
+                    false,
+                    vm_isolate_buffer,
+                    vm_isolate_size);
+  WriteSnapshotFile(snapshot_filename, kIsolateSuffix,
+                    false,
+                    isolate_buffer,
+                    isolate_size);
+  if (use_blobs) {
+    WriteSnapshotFile(snapshot_filename, kInstructionsSuffix,
+                      false,
+                      instructions_blob_buffer,
+                      instructions_blob_size);
+    WriteSnapshotFile(snapshot_filename, kRODataSuffix,
+                      false,
+                      rodata_blob_buffer,
+                      rodata_blob_size);
+  } else {
+    WriteSnapshotFile(snapshot_filename, kAssemblySuffix,
+                      false,
+                      assembly_buffer,
+                      assembly_size);
+  }
+}
 
-  len = snprintf(NULL, 0, "%s.%s", filename, kIsolateSuffix);
-  *isolate_snapshot_fname = new char[len + 1];
-  snprintf(*isolate_snapshot_fname, len + 1, "%s.%s", filename, kIsolateSuffix);
+
+static void GeneratePrecompiledJITSnapshot() {
+  if (!use_blobs) {
+    ErrorExit(kErrorExitCode,
+              "Generating app JIT snapshots as assembly unimplemented\n");
+  }
+  uint8_t* vm_isolate_buffer = NULL;
+  intptr_t vm_isolate_size = 0;
+  uint8_t* isolate_buffer = NULL;
+  intptr_t isolate_size = 0;
+  uint8_t* instructions_blob_buffer = NULL;
+  intptr_t instructions_blob_size = 0;
+  uint8_t* rodata_blob_buffer = NULL;
+  intptr_t rodata_blob_size = 0;
+  Dart_Handle result = Dart_CreatePrecompiledJITSnapshotBlob(
+      &vm_isolate_buffer,
+      &vm_isolate_size,
+      &isolate_buffer,
+      &isolate_size,
+      &instructions_blob_buffer,
+      &instructions_blob_size,
+      &rodata_blob_buffer,
+      &rodata_blob_size);
+  if (Dart_IsError(result)) {
+    ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
+  }
+  WriteSnapshotFile(snapshot_filename, kVMIsolateSuffix,
+                    false,
+                    vm_isolate_buffer,
+                    vm_isolate_size);
+  WriteSnapshotFile(snapshot_filename, kIsolateSuffix,
+                    false,
+                    isolate_buffer,
+                    isolate_size);
+  WriteSnapshotFile(snapshot_filename, kInstructionsSuffix,
+                    false,
+                    instructions_blob_buffer,
+                    instructions_blob_size);
+  WriteSnapshotFile(snapshot_filename, kRODataSuffix,
+                    false,
+                    rodata_blob_buffer,
+                    rodata_blob_size);
 }
 
 
@@ -1255,8 +1261,6 @@ static void GenerateFullSnapshot() {
   intptr_t vm_isolate_size = 0;
   uint8_t* isolate_buffer = NULL;
   intptr_t isolate_size = 0;
-  char* vm_snapshot_fname = NULL;
-  char* isolate_snapshot_fname = NULL;
 
   result = Dart_CreateSnapshot(&vm_isolate_buffer,
                                &vm_isolate_size,
@@ -1266,17 +1270,13 @@ static void GenerateFullSnapshot() {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
 
-  // Compute snapshot file names and write out the snapshot files.
-  ComputeSnapshotFilenames(snapshot_filename,
-                           &vm_snapshot_fname,
-                           &isolate_snapshot_fname);
-  WriteSnapshotFile(NULL,
-                    vm_snapshot_fname,
+  WriteSnapshotFile(snapshot_filename,
+                    kVMIsolateSuffix,
                     false,
                     vm_isolate_buffer,
                     vm_isolate_size);
-  WriteSnapshotFile(NULL,
-                    isolate_snapshot_fname,
+  WriteSnapshotFile(snapshot_filename,
+                    kIsolateSuffix,
                     false,
                     isolate_buffer,
                     isolate_size);
@@ -1339,7 +1339,7 @@ bool RunMainIsolate(const char* script_name,
 
   Dart_EnterScope();
 
-  if (generate_script_snapshot) {
+  if (gen_snapshot_kind == kScript) {
     GenerateScriptSnapshot();
   } else {
     // Lookup the library of the root script.
@@ -1351,9 +1351,12 @@ bool RunMainIsolate(const char* script_name,
     result = Dart_LibraryImportLibrary(
         isolate_data->builtin_lib(), root_lib, Dart_Null());
 #if !defined(PRODUCT)
-    if (is_noopt || gen_precompiled_snapshot) {
+    if (is_noopt ||
+        (gen_snapshot_kind == kAppAfterRun) ||
+        (gen_snapshot_kind == kAppAOT) ||
+        (gen_snapshot_kind == kAppJITAfterRun)) {
       // Load the embedder's portion of the VM service's Dart code so it will
-      // be included in the precompiled snapshot.
+      // be included in the app snapshot.
       if (!VmService::LoadForGenPrecompiled()) {
         fprintf(stderr,
                 "VM service loading failed: %s\n",
@@ -1369,7 +1372,7 @@ bool RunMainIsolate(const char* script_name,
       CHECK_RESULT(result);
     }
 
-    if (is_noopt || gen_precompiled_snapshot) {
+    if (is_noopt || (gen_snapshot_kind == kAppAOT)) {
       Dart_QualifiedFunctionName standalone_entry_points[] = {
         { "dart:_builtin", "::", "_getMainClosure" },
         { "dart:_builtin", "::", "_getPrintClosure" },
@@ -1404,71 +1407,13 @@ bool RunMainIsolate(const char* script_name,
         { NULL, NULL, NULL }  // Must be terminated with NULL entries.
       };
 
-      const bool reset_fields = gen_precompiled_snapshot;
+      const bool reset_fields = gen_snapshot_kind == kAppAOT;
       result = Dart_Precompile(standalone_entry_points, reset_fields);
       CHECK_RESULT(result);
     }
 
-    if (gen_precompiled_snapshot) {
-      uint8_t* vm_isolate_buffer = NULL;
-      intptr_t vm_isolate_size = 0;
-      uint8_t* isolate_buffer = NULL;
-      intptr_t isolate_size = 0;
-      uint8_t* assembly_buffer = NULL;
-      intptr_t assembly_size = 0;
-      uint8_t* instructions_blob_buffer = NULL;
-      intptr_t instructions_blob_size = 0;
-      uint8_t* rodata_blob_buffer = NULL;
-      intptr_t rodata_blob_size = 0;
-      if (use_blobs) {
-        result = Dart_CreatePrecompiledSnapshotBlob(
-            &vm_isolate_buffer,
-            &vm_isolate_size,
-            &isolate_buffer,
-            &isolate_size,
-            &instructions_blob_buffer,
-            &instructions_blob_size,
-            &rodata_blob_buffer,
-            &rodata_blob_size);
-        CHECK_RESULT(result);
-      } else {
-        result = Dart_CreatePrecompiledSnapshotAssembly(
-            &vm_isolate_buffer,
-            &vm_isolate_size,
-            &isolate_buffer,
-            &isolate_size,
-            &assembly_buffer,
-            &assembly_size);
-        CHECK_RESULT(result);
-      }
-      WriteSnapshotFile(precompiled_snapshot_directory,
-                        kPrecompiledVmIsolateName,
-                        false,
-                        vm_isolate_buffer,
-                        vm_isolate_size);
-      WriteSnapshotFile(precompiled_snapshot_directory,
-                        kPrecompiledIsolateName,
-                        false,
-                        isolate_buffer,
-                        isolate_size);
-      if (use_blobs) {
-        WriteSnapshotFile(precompiled_snapshot_directory,
-                          kPrecompiledInstructionsBlobName,
-                          false,
-                          instructions_blob_buffer,
-                          instructions_blob_size);
-        WriteSnapshotFile(precompiled_snapshot_directory,
-                          kPrecompiledRodataBlobName,
-                          false,
-                          rodata_blob_buffer,
-                          rodata_blob_size);
-      } else {
-        WriteSnapshotFile(precompiled_snapshot_directory,
-                          kPrecompiledAssemblyName,
-                          false,
-                          assembly_buffer,
-                          assembly_size);
-      }
+    if (gen_snapshot_kind == kAppAOT) {
+      GeneratePrecompiledSnapshot();
     } else {
       if (Dart_IsNull(root_lib)) {
         ErrorExit(kErrorExitCode,
@@ -1499,11 +1444,18 @@ bool RunMainIsolate(const char* script_name,
 
       // Keep handling messages until the last active receive port is closed.
       result = Dart_RunLoop();
-      // Generate a full snapshot after execution if specified.
-      if (generate_full_snapshot_after_run) {
+      // Generate an app snapshot after execution if specified.
+      if ((gen_snapshot_kind == kAppAfterRun) ||
+          (gen_snapshot_kind == kAppJITAfterRun)) {
         if (!Dart_IsCompilationError(result) &&
             !Dart_IsVMRestartRequest(result)) {
-          GenerateFullSnapshot();
+          if (gen_snapshot_kind == kAppAfterRun) {
+            GenerateFullSnapshot();
+          } else {
+            Dart_Handle prepare_result = Dart_PrecompileJIT();
+            CHECK_RESULT(prepare_result);
+            GeneratePrecompiledJITSnapshot();
+          }
         }
       }
       CHECK_RESULT(result);
@@ -1661,18 +1613,17 @@ void main(int argc, char** argv) {
     Platform::Exit(kErrorExitCode);
   }
 
-#if !defined(PRODUCT)
-  // Constant true in PRODUCT mode.
-  if (generate_script_snapshot ||
-      generate_full_snapshot_after_run ||
-      run_full_snapshot) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  // Constant true if PRODUCT or DART_PRECOMPILED_RUNTIME.
+  if ((gen_snapshot_kind != kNone) || run_app_snapshot) {
     vm_options.AddArgument("--load_deferred_eagerly");
   }
 #endif
 
-#if defined(DART_PRECOMPILER) && !defined(DART_NO_SNAPSHOT)
-  // Always set --precompilation with dart_noopt.
-  ASSERT(!gen_precompiled_snapshot && !run_precompiled_snapshot);
+  if ((gen_snapshot_kind == kAppAOT) || is_noopt) {
+    vm_options.AddArgument("--precompilation");
+  }
+#if defined(DART_PRECOMPILED_RUNTIME)
   vm_options.AddArgument("--precompilation");
 #endif
 
@@ -1684,43 +1635,27 @@ void main(int argc, char** argv) {
 
   const uint8_t* instructions_snapshot = NULL;
   const uint8_t* data_snapshot = NULL;
-  if (run_precompiled_snapshot) {
-    ReadSnapshotFile(precompiled_snapshot_directory,
-                     kPrecompiledVmIsolateName,
+  if (run_app_snapshot) {
+    ReadSnapshotFile(snapshot_filename, kVMIsolateSuffix,
                      &vm_isolate_snapshot_buffer);
-    ReadSnapshotFile(precompiled_snapshot_directory,
-                     kPrecompiledIsolateName,
+    ReadSnapshotFile(snapshot_filename, kIsolateSuffix,
                      &isolate_snapshot_buffer);
     if (use_blobs) {
-      ReadExecutableSnapshotFile(precompiled_snapshot_directory,
-                                 kPrecompiledInstructionsBlobName,
+      ReadExecutableSnapshotFile(snapshot_filename,
+                                 kInstructionsSuffix,
                                  &instructions_snapshot);
-      ReadSnapshotFile(precompiled_snapshot_directory,
-                       kPrecompiledRodataBlobName,
+      ReadSnapshotFile(snapshot_filename, kRODataSuffix,
                        &data_snapshot);
     } else {
       instructions_snapshot = reinterpret_cast<const uint8_t*>(
-          LoadLibrarySymbol(precompiled_snapshot_directory,
+          LoadLibrarySymbol(snapshot_filename,
                             kPrecompiledLibraryName,
                             kPrecompiledInstructionsSymbolName));
       data_snapshot = reinterpret_cast<const uint8_t*>(
-          LoadLibrarySymbol(precompiled_snapshot_directory,
+          LoadLibrarySymbol(snapshot_filename,
                             kPrecompiledLibraryName,
                             kPrecompiledDataSymbolName));
     }
-  } else if (run_full_snapshot) {
-    char* vm_snapshot_fname;
-    char* isolate_snapshot_fname;
-
-    // Compute file names.
-    ComputeSnapshotFilenames(snapshot_filename,
-                             &vm_snapshot_fname,
-                             &isolate_snapshot_fname);
-
-    ReadSnapshotFile(NULL, vm_snapshot_fname, &vm_isolate_snapshot_buffer);
-    ReadSnapshotFile(NULL, isolate_snapshot_fname, &isolate_snapshot_buffer);
-    delete vm_snapshot_fname;
-    delete isolate_snapshot_fname;
   }
 
   // Initialize the Dart VM.

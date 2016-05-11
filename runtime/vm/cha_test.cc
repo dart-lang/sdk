@@ -38,7 +38,7 @@ TEST_CASE(ClassHierarchyAnalysis) {
   TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const String& name = String::Handle(String::New(TestCase::url()));
-  const Library& lib = Library::Handle(Library::LookupLibrary(name));
+  const Library& lib = Library::Handle(Library::LookupLibrary(thread, name));
   EXPECT(!lib.IsNull());
 
   const Class& class_a = Class::Handle(

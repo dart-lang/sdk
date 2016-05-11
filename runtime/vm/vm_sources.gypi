@@ -304,6 +304,7 @@
     'object.h',
     'object_arm_test.cc',
     'object_arm64_test.cc',
+    'object_dbc_test.cc',
     'object_graph.cc',
     'object_graph.h',
     'object_graph_test.cc',

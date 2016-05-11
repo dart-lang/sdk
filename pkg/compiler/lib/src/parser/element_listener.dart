@@ -755,7 +755,8 @@ class ElementListener extends Listener {
     throw new ParserError(message);
   }
 
-  void reportError(Spannable spannable, MessageKind errorCode,
+  @override
+  void reportErrorHelper(Spannable spannable, MessageKind errorCode,
       [Map arguments = const {}]) {
     if (currentMemberHasParseError) return; // Error already reported.
     if (suppressParseErrors) return;

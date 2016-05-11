@@ -364,10 +364,11 @@ void Parser::TryStack::AddNodeForFinallyInlining(AstNode* node) {
 Parser::Parser(const Script& script,
                const Library& library,
                TokenPosition token_pos)
-    : isolate_(Thread::Current()->isolate()),
-      thread_(Thread::Current()),
+    : thread_(Thread::Current()),
+      isolate_(thread()->isolate()),
       script_(Script::Handle(zone(), script.raw())),
-      tokens_iterator_(TokenStream::Handle(zone(), script.tokens()),
+      tokens_iterator_(zone(),
+                       TokenStream::Handle(zone(), script.tokens()),
                        token_pos),
       token_kind_(Token::kILLEGAL),
       current_block_(NULL),
@@ -395,10 +396,11 @@ Parser::Parser(const Script& script,
 Parser::Parser(const Script& script,
                ParsedFunction* parsed_function,
                TokenPosition token_pos)
-    : isolate_(Thread::Current()->isolate()),
-      thread_(Thread::Current()),
+    : thread_(Thread::Current()),
+      isolate_(thread()->isolate()),
       script_(Script::Handle(zone(), script.raw())),
-      tokens_iterator_(TokenStream::Handle(zone(), script.tokens()),
+      tokens_iterator_(zone(),
+                       TokenStream::Handle(zone(), script.tokens()),
                        token_pos),
       token_kind_(Token::kILLEGAL),
       current_block_(NULL),
@@ -1254,12 +1256,11 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
                     field.token_pos()));
   initializer.set_result_type(AbstractType::Handle(zone, field.type()));
   // Static initializer functions are hidden from the user.
-  // Since they are only executed once, we avoid optimizing
-  // and inlining them. After the field is initialized, the
-  // compiler can eliminate the call to the static initializer.
+  // Since they are only executed once, we avoid inlining them.
+  // After the field is initialized, the compiler can eliminate
+  // the call to the static initializer.
   initializer.set_is_reflectable(false);
   initializer.set_is_debuggable(false);
-  initializer.SetIsOptimizable(false);
   initializer.set_is_inlinable(false);
 
   ParsedFunction* parsed_function = new ParsedFunction(thread, initializer);
@@ -2749,8 +2750,8 @@ AstNode* Parser::CheckDuplicateFieldInit(
       // no existing names.
       nsm_args->Add(new(Z) LiteralNode(init_pos, Object::null_array()));
 
-      AstNode* nsm_call =
-          MakeStaticCall(Symbols::NoSuchMethodError(),
+      AstNode* nsm_call = MakeStaticCall(
+          Symbols::NoSuchMethodError(),
           Library::PrivateCoreLibName(Symbols::ThrowNew()),
           nsm_args);
 
@@ -3297,7 +3298,9 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
 
     // The number of parameters and their type are not yet set in local
     // functions, since they are not 'top-level' parsed.
-    if (func.IsLocalFunction()) {
+    // However, they are already set when the local function is compiled, since
+    // the local function was parsed when its parent was compiled.
+    if (func.parameter_types() == Object::empty_array().raw()) {
       AddFormalParamsToFunction(&params, func);
     }
     SetupDefaultsForOptionalParams(params);
@@ -5920,10 +5923,10 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
       CallLibraryTagHandler(Dart_kCanonicalizeUrl, import_pos, url));
 
   // Create a new library if it does not exist yet.
-  Library& library = Library::Handle(Z, Library::LookupLibrary(canon_url));
+  Library& library = Library::Handle(Z, Library::LookupLibrary(T, canon_url));
   if (library.IsNull()) {
     library = Library::New(canon_url);
-    library.Register();
+    library.Register(T);
   }
 
   // If loading hasn't been requested yet, and if this is not a deferred
@@ -7287,6 +7290,8 @@ void Parser::AddFormalParamsToFunction(const ParamList* params,
                                 params->has_optional_positional_parameters);
   const int num_parameters = params->parameters->length();
   ASSERT(num_parameters == func.NumParameters());
+  ASSERT(func.parameter_types() == Object::empty_array().raw());
+  ASSERT(func.parameter_names() == Object::empty_array().raw());
   func.set_parameter_types(Array::Handle(Array::New(num_parameters,
                                                     Heap::kOld)));
   func.set_parameter_names(Array::Handle(Array::New(num_parameters,
@@ -10022,6 +10027,56 @@ AstNode* Parser::ParseStatement() {
         ReportError(expr_pos, "generator functions may not return a value");
       }
       AstNode* expr = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
+      if (I->type_checks() &&
+          current_function().IsAsyncClosure() &&
+          (current_block_->scope->function_level() == 0)) {
+        // In checked mode, when the declared result type is Future<T>, verify
+        // that the returned expression is of type T or Future<T> as follows:
+        // return temp = expr, temp is Future ? temp as Future<T> : temp as T;
+        // In case of a mismatch, we need a TypeError and not a CastError, so
+        // we do not actually implement an "as" test, but an "assignable" test.
+        const Function& async_func =
+            Function::Handle(Z, current_function().parent_function());
+        const AbstractType& result_type =
+            AbstractType::ZoneHandle(Z, async_func.result_type());
+        const Class& future_class =
+            Class::ZoneHandle(Z, I->object_store()->future_class());
+        ASSERT(!future_class.IsNull());
+        if (result_type.type_class() == future_class.raw()) {
+          const TypeArguments& result_type_args =
+              TypeArguments::ZoneHandle(Z, result_type.arguments());
+          if (!result_type_args.IsNull() && (result_type_args.Length() == 1)) {
+            const AbstractType& result_type_arg =
+                AbstractType::ZoneHandle(Z, result_type_args.TypeAt(0));
+            LetNode* checked_expr = new(Z) LetNode(expr_pos);
+            LocalVariable* temp = checked_expr->AddInitializer(expr);
+            temp->set_is_final();
+            const AbstractType& future_type =
+                AbstractType::ZoneHandle(Z, future_class.RareType());
+            AstNode* is_future = new(Z) LoadLocalNode(expr_pos, temp);
+            is_future = new(Z) ComparisonNode(expr_pos,
+                                              Token::kIS,
+                                              is_future,
+                                              new(Z) TypeNode(expr_pos,
+                                                              future_type));
+            AstNode* as_future_t = new(Z) LoadLocalNode(expr_pos, temp);
+            as_future_t = new(Z) AssignableNode(expr_pos,
+                                                as_future_t,
+                                                result_type,
+                                                Symbols::FunctionResult());
+            AstNode* as_t = new(Z) LoadLocalNode(expr_pos, temp);
+            as_t = new(Z) AssignableNode(expr_pos,
+                                         as_t,
+                                         result_type_arg,
+                                         Symbols::FunctionResult());
+            checked_expr->AddNode(new(Z) ConditionalExprNode(expr_pos,
+                                                             is_future,
+                                                             as_future_t,
+                                                             as_t));
+            expr = checked_expr;
+          }
+        }
+      }
       statement = new(Z) ReturnNode(statement_pos, expr);
     } else {
       if (current_function().IsSyncGenClosure() &&
@@ -11994,7 +12049,7 @@ class ConstMapKeyEqualsTraits {
     return HashValue(String::HashRawSymbol(key.script_url.raw()),
                      key.token_pos.value());
   }
-  // Used by CachConstantValue if a new constant is added to the map.
+  // Used by CacheConstantValue if a new constant is added to the map.
   static RawObject* NewKey(const ConstantPosKey& key) {
     const Array& key_obj = Array::Handle(Array::New(2));
     key_obj.SetAt(0, key.script_url);

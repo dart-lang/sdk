@@ -7,6 +7,7 @@
 
 #include "include/dart_api.h"
 #include "vm/allocation.h"
+#include "vm/snapshot.h"
 
 namespace dart {
 
@@ -60,16 +61,15 @@ class Dart : public AllStatic {
   static uword AllocateReadOnlyHandle();
   static bool IsReadOnlyHandle(uword address);
 
+  static Snapshot::Kind snapshot_kind() {
+    return snapshot_kind_;
+  }
   static const uint8_t* instructions_snapshot_buffer() {
     return instructions_snapshot_buffer_;
   }
   static void set_instructions_snapshot_buffer(const uint8_t* buffer) {
     instructions_snapshot_buffer_ = buffer;
   }
-  static bool IsRunningPrecompiledCode() {
-    return instructions_snapshot_buffer_ != NULL;
-  }
-
   static const uint8_t* data_snapshot_buffer() {
     return data_snapshot_buffer_;
   }
@@ -121,6 +121,7 @@ class Dart : public AllStatic {
   static ThreadPool* thread_pool_;
   static DebugInfo* pprof_symbol_generator_;
   static ReadOnlyHandles* predefined_handles_;
+  static Snapshot::Kind snapshot_kind_;
   static const uint8_t* instructions_snapshot_buffer_;
   static const uint8_t* data_snapshot_buffer_;
   static Dart_ThreadExitCallback thread_exit_callback_;

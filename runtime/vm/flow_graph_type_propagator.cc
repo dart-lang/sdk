@@ -910,11 +910,6 @@ CompileType LoadLocalInstr::ComputeType() const {
 }
 
 
-CompileType PushTempInstr::ComputeType() const {
-  return CompileType::Dynamic();
-}
-
-
 CompileType DropTempsInstr::ComputeType() const {
   return *value()->Type();
 }
@@ -926,8 +921,8 @@ CompileType StoreLocalInstr::ComputeType() const {
 }
 
 
-CompileType StringFromCharCodeInstr::ComputeType() const {
-  return CompileType::FromCid(cid_);
+CompileType OneByteStringFromCharCodeInstr::ComputeType() const {
+  return CompileType::FromCid(kOneByteStringCid);
 }
 
 

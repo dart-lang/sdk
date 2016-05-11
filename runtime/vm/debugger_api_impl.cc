@@ -789,13 +789,14 @@ DART_EXPORT Dart_Handle Dart_GenerateScriptSource(Dart_Handle library_url_in,
   UNWRAP_AND_CHECK_PARAM(String, library_url, library_url_in);
   UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
 
-  const Library& library = Library::Handle(Library::LookupLibrary(library_url));
+  const Library& library = Library::Handle(Z,
+      Library::LookupLibrary(T, library_url));
   if (library.IsNull()) {
     return Api::NewError("%s: library '%s' not found",
                          CURRENT_FUNC, library_url.ToCString());
   }
 
-  const Script& script = Script::Handle(library.LookupScript(script_url));
+  const Script& script = Script::Handle(Z, library.LookupScript(script_url));
   if (script.IsNull()) {
     return Api::NewError("%s: script '%s' not found in library '%s'",
                          CURRENT_FUNC, script_url.ToCString(),
@@ -810,17 +811,18 @@ DART_EXPORT Dart_Handle Dart_GetScriptURLs(Dart_Handle library_url_in) {
   DARTSCOPE(Thread::Current());
   UNWRAP_AND_CHECK_PARAM(String, library_url, library_url_in);
 
-  const Library& library = Library::Handle(Library::LookupLibrary(library_url));
+  const Library& library = Library::Handle(Z,
+      Library::LookupLibrary(T, library_url));
   if (library.IsNull()) {
     return Api::NewError("%s: library '%s' not found",
                          CURRENT_FUNC, library_url.ToCString());
   }
-  const Array& loaded_scripts = Array::Handle(library.LoadedScripts());
+  const Array& loaded_scripts = Array::Handle(Z, library.LoadedScripts());
   ASSERT(!loaded_scripts.IsNull());
   intptr_t num_scripts = loaded_scripts.Length();
-  const Array& script_list = Array::Handle(Array::New(num_scripts));
-  Script& script = Script::Handle();
-  String& url = String::Handle();
+  const Array& script_list = Array::Handle(Z, Array::New(num_scripts));
+  Script& script = Script::Handle(Z);
+  String& url = String::Handle(Z);
   for (int i = 0; i < num_scripts; i++) {
     script ^= loaded_scripts.At(i);
     url = script.url();

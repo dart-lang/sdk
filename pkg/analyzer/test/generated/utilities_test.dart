@@ -1588,886 +1588,918 @@ class DirectedGraphTest extends EngineTestCase {
 class DirectedGraphTest_Node {}
 
 class Getter_NodeReplacerTest_test_annotation
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<Annotation, ArgumentList> {
   @override
   ArgumentList get(Annotation node) => node.arguments;
 }
 
 class Getter_NodeReplacerTest_test_annotation_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<Annotation, Identifier> {
   @override
   Identifier get(Annotation node) => node.name;
 }
 
 class Getter_NodeReplacerTest_test_annotation_3
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<Annotation, SimpleIdentifier> {
   @override
   SimpleIdentifier get(Annotation node) => node.constructorName;
 }
 
 class Getter_NodeReplacerTest_test_asExpression
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<AsExpression, TypeName> {
   @override
   TypeName get(AsExpression node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_asExpression_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<AsExpression, Expression> {
   @override
   Expression get(AsExpression node) => node.expression;
 }
 
 class Getter_NodeReplacerTest_test_assertStatement
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<AssertStatement, Expression> {
   @override
   Expression get(AssertStatement node) => node.condition;
 }
 
 class Getter_NodeReplacerTest_test_assertStatement_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<AssertStatement, Expression> {
   @override
   Expression get(AssertStatement node) => node.message;
 }
 
 class Getter_NodeReplacerTest_test_assignmentExpression
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<AssignmentExpression, Expression> {
   @override
   Expression get(AssignmentExpression node) => node.rightHandSide;
 }
 
 class Getter_NodeReplacerTest_test_assignmentExpression_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<AssignmentExpression, Expression> {
   @override
   Expression get(AssignmentExpression node) => node.leftHandSide;
 }
 
 class Getter_NodeReplacerTest_test_awaitExpression
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<AwaitExpression, Expression> {
   @override
   Expression get(AwaitExpression node) => node.expression;
 }
 
 class Getter_NodeReplacerTest_test_binaryExpression
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<BinaryExpression, Expression> {
   @override
   Expression get(BinaryExpression node) => node.leftOperand;
 }
 
 class Getter_NodeReplacerTest_test_binaryExpression_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<BinaryExpression, Expression> {
   @override
   Expression get(BinaryExpression node) => node.rightOperand;
 }
 
 class Getter_NodeReplacerTest_test_blockFunctionBody
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<BlockFunctionBody, Block> {
   @override
   Block get(BlockFunctionBody node) => node.block;
 }
 
 class Getter_NodeReplacerTest_test_breakStatement
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<BreakStatement, SimpleIdentifier> {
   @override
   SimpleIdentifier get(BreakStatement node) => node.label;
 }
 
 class Getter_NodeReplacerTest_test_cascadeExpression
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<CascadeExpression, Expression> {
   @override
   Expression get(CascadeExpression node) => node.target;
 }
 
 class Getter_NodeReplacerTest_test_catchClause
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<CatchClause, SimpleIdentifier> {
   @override
   SimpleIdentifier get(CatchClause node) => node.stackTraceParameter;
 }
 
 class Getter_NodeReplacerTest_test_catchClause_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<CatchClause, SimpleIdentifier> {
   @override
   SimpleIdentifier get(CatchClause node) => node.exceptionParameter;
 }
 
 class Getter_NodeReplacerTest_test_catchClause_3
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<CatchClause, TypeName> {
   @override
   TypeName get(CatchClause node) => node.exceptionType;
 }
 
 class Getter_NodeReplacerTest_test_classDeclaration
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ClassDeclaration, ImplementsClause> {
   @override
   ImplementsClause get(ClassDeclaration node) => node.implementsClause;
 }
 
 class Getter_NodeReplacerTest_test_classDeclaration_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ClassDeclaration, WithClause> {
   @override
   WithClause get(ClassDeclaration node) => node.withClause;
 }
 
 class Getter_NodeReplacerTest_test_classDeclaration_3
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ClassDeclaration, NativeClause> {
   @override
   NativeClause get(ClassDeclaration node) => node.nativeClause;
 }
 
 class Getter_NodeReplacerTest_test_classDeclaration_4
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ClassDeclaration, ExtendsClause> {
   @override
   ExtendsClause get(ClassDeclaration node) => node.extendsClause;
 }
 
 class Getter_NodeReplacerTest_test_classDeclaration_5
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ClassDeclaration, TypeParameterList> {
   @override
   TypeParameterList get(ClassDeclaration node) => node.typeParameters;
 }
 
 class Getter_NodeReplacerTest_test_classDeclaration_6
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ClassDeclaration, SimpleIdentifier> {
   @override
   SimpleIdentifier get(ClassDeclaration node) => node.name;
 }
 
 class Getter_NodeReplacerTest_test_classTypeAlias
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ClassTypeAlias, TypeName> {
   @override
   TypeName get(ClassTypeAlias node) => node.superclass;
 }
 
 class Getter_NodeReplacerTest_test_classTypeAlias_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ClassTypeAlias, ImplementsClause> {
   @override
   ImplementsClause get(ClassTypeAlias node) => node.implementsClause;
 }
 
 class Getter_NodeReplacerTest_test_classTypeAlias_3
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ClassTypeAlias, WithClause> {
   @override
   WithClause get(ClassTypeAlias node) => node.withClause;
 }
 
 class Getter_NodeReplacerTest_test_classTypeAlias_4
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ClassTypeAlias, SimpleIdentifier> {
   @override
   SimpleIdentifier get(ClassTypeAlias node) => node.name;
 }
 
 class Getter_NodeReplacerTest_test_classTypeAlias_5
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ClassTypeAlias, TypeParameterList> {
   @override
   TypeParameterList get(ClassTypeAlias node) => node.typeParameters;
 }
 
 class Getter_NodeReplacerTest_test_commentReference
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<CommentReference, Identifier> {
   @override
   Identifier get(CommentReference node) => node.identifier;
 }
 
 class Getter_NodeReplacerTest_test_compilationUnit
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<CompilationUnit, ScriptTag> {
   @override
   ScriptTag get(CompilationUnit node) => node.scriptTag;
 }
 
 class Getter_NodeReplacerTest_test_conditionalExpression
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ConditionalExpression, Expression> {
   @override
   Expression get(ConditionalExpression node) => node.elseExpression;
 }
 
 class Getter_NodeReplacerTest_test_conditionalExpression_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ConditionalExpression, Expression> {
   @override
   Expression get(ConditionalExpression node) => node.thenExpression;
 }
 
 class Getter_NodeReplacerTest_test_conditionalExpression_3
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ConditionalExpression, Expression> {
   @override
   Expression get(ConditionalExpression node) => node.condition;
 }
 
 class Getter_NodeReplacerTest_test_constructorDeclaration
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<ConstructorDeclaration, ConstructorName> {
   @override
   ConstructorName get(ConstructorDeclaration node) =>
       node.redirectedConstructor;
 }
 
 class Getter_NodeReplacerTest_test_constructorDeclaration_2
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<ConstructorDeclaration, SimpleIdentifier> {
   @override
   SimpleIdentifier get(ConstructorDeclaration node) => node.name;
 }
 
 class Getter_NodeReplacerTest_test_constructorDeclaration_3
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ConstructorDeclaration, Identifier> {
   @override
   Identifier get(ConstructorDeclaration node) => node.returnType;
 }
 
 class Getter_NodeReplacerTest_test_constructorDeclaration_4
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<ConstructorDeclaration, FormalParameterList> {
   @override
   FormalParameterList get(ConstructorDeclaration node) => node.parameters;
 }
 
 class Getter_NodeReplacerTest_test_constructorDeclaration_5
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ConstructorDeclaration, FunctionBody> {
   @override
   FunctionBody get(ConstructorDeclaration node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_constructorFieldInitializer
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<ConstructorFieldInitializer, SimpleIdentifier> {
   @override
   SimpleIdentifier get(ConstructorFieldInitializer node) => node.fieldName;
 }
 
 class Getter_NodeReplacerTest_test_constructorFieldInitializer_2
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<ConstructorFieldInitializer, Expression> {
   @override
   Expression get(ConstructorFieldInitializer node) => node.expression;
 }
 
 class Getter_NodeReplacerTest_test_constructorName
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ConstructorName, TypeName> {
   @override
   TypeName get(ConstructorName node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_constructorName_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ConstructorName, SimpleIdentifier> {
   @override
   SimpleIdentifier get(ConstructorName node) => node.name;
 }
 
 class Getter_NodeReplacerTest_test_continueStatement
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ContinueStatement, SimpleIdentifier> {
   @override
   SimpleIdentifier get(ContinueStatement node) => node.label;
 }
 
 class Getter_NodeReplacerTest_test_declaredIdentifier
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<DeclaredIdentifier, TypeName> {
   @override
   TypeName get(DeclaredIdentifier node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_declaredIdentifier_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<DeclaredIdentifier, SimpleIdentifier> {
   @override
   SimpleIdentifier get(DeclaredIdentifier node) => node.identifier;
 }
 
 class Getter_NodeReplacerTest_test_defaultFormalParameter
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<DefaultFormalParameter, NormalFormalParameter> {
   @override
   NormalFormalParameter get(DefaultFormalParameter node) => node.parameter;
 }
 
 class Getter_NodeReplacerTest_test_defaultFormalParameter_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<DefaultFormalParameter, Expression> {
   @override
   Expression get(DefaultFormalParameter node) => node.defaultValue;
 }
 
 class Getter_NodeReplacerTest_test_doStatement
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<DoStatement, Expression> {
   @override
   Expression get(DoStatement node) => node.condition;
 }
 
 class Getter_NodeReplacerTest_test_doStatement_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<DoStatement, Statement> {
   @override
   Statement get(DoStatement node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_enumConstantDeclaration
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<EnumConstantDeclaration, SimpleIdentifier> {
   @override
   SimpleIdentifier get(EnumConstantDeclaration node) => node.name;
 }
 
 class Getter_NodeReplacerTest_test_enumDeclaration
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<EnumDeclaration, SimpleIdentifier> {
   @override
   SimpleIdentifier get(EnumDeclaration node) => node.name;
 }
 
 class Getter_NodeReplacerTest_test_expressionFunctionBody
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ExpressionFunctionBody, Expression> {
   @override
   Expression get(ExpressionFunctionBody node) => node.expression;
 }
 
 class Getter_NodeReplacerTest_test_expressionStatement
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ExpressionStatement, Expression> {
   @override
   Expression get(ExpressionStatement node) => node.expression;
 }
 
 class Getter_NodeReplacerTest_test_extendsClause
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ExtendsClause, TypeName> {
   @override
   TypeName get(ExtendsClause node) => node.superclass;
 }
 
 class Getter_NodeReplacerTest_test_fieldDeclaration
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<FieldDeclaration, VariableDeclarationList> {
   @override
   VariableDeclarationList get(FieldDeclaration node) => node.fields;
 }
 
 class Getter_NodeReplacerTest_test_fieldFormalParameter
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<FieldFormalParameter, FormalParameterList> {
   @override
   FormalParameterList get(FieldFormalParameter node) => node.parameters;
 }
 
 class Getter_NodeReplacerTest_test_fieldFormalParameter_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<FieldFormalParameter, TypeName> {
   @override
   TypeName get(FieldFormalParameter node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withIdentifier
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ForEachStatement, Statement> {
   @override
   Statement get(ForEachStatement node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withIdentifier_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ForEachStatement, SimpleIdentifier> {
   @override
   SimpleIdentifier get(ForEachStatement node) => node.identifier;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withIdentifier_3
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ForEachStatement, Expression> {
   @override
   Expression get(ForEachStatement node) => node.iterable;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withLoopVariable
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ForEachStatement, Expression> {
   @override
   Expression get(ForEachStatement node) => node.iterable;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withLoopVariable_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ForEachStatement, DeclaredIdentifier> {
   @override
   DeclaredIdentifier get(ForEachStatement node) => node.loopVariable;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withLoopVariable_3
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ForEachStatement, Statement> {
   @override
   Statement get(ForEachStatement node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_forStatement_withInitialization
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ForStatement, Statement> {
   @override
   Statement get(ForStatement node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_forStatement_withInitialization_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ForStatement, Expression> {
   @override
   Expression get(ForStatement node) => node.condition;
 }
 
 class Getter_NodeReplacerTest_test_forStatement_withInitialization_3
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ForStatement, Expression> {
   @override
   Expression get(ForStatement node) => node.initialization;
 }
 
 class Getter_NodeReplacerTest_test_forStatement_withVariables
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ForStatement, Statement> {
   @override
   Statement get(ForStatement node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_forStatement_withVariables_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ForStatement, VariableDeclarationList> {
   @override
   VariableDeclarationList get(ForStatement node) => node.variables;
 }
 
 class Getter_NodeReplacerTest_test_forStatement_withVariables_3
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ForStatement, Expression> {
   @override
   Expression get(ForStatement node) => node.condition;
 }
 
 class Getter_NodeReplacerTest_test_functionDeclaration
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<FunctionDeclaration, TypeName> {
   @override
   TypeName get(FunctionDeclaration node) => node.returnType;
 }
 
 class Getter_NodeReplacerTest_test_functionDeclaration_2
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<FunctionDeclaration, FunctionExpression> {
   @override
   FunctionExpression get(FunctionDeclaration node) => node.functionExpression;
 }
 
 class Getter_NodeReplacerTest_test_functionDeclaration_3
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<FunctionDeclaration, SimpleIdentifier> {
   @override
   SimpleIdentifier get(FunctionDeclaration node) => node.name;
 }
 
 class Getter_NodeReplacerTest_test_functionDeclarationStatement
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<FunctionDeclarationStatement,
+            FunctionDeclaration> {
   @override
   FunctionDeclaration get(FunctionDeclarationStatement node) =>
       node.functionDeclaration;
 }
 
 class Getter_NodeReplacerTest_test_functionExpression
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<FunctionExpression, FormalParameterList> {
   @override
   FormalParameterList get(FunctionExpression node) => node.parameters;
 }
 
 class Getter_NodeReplacerTest_test_functionExpression_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<FunctionExpression, FunctionBody> {
   @override
   FunctionBody get(FunctionExpression node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_functionExpressionInvocation
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<FunctionExpressionInvocation, Expression> {
   @override
   Expression get(FunctionExpressionInvocation node) => node.function;
 }
 
 class Getter_NodeReplacerTest_test_functionExpressionInvocation_2
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<FunctionExpressionInvocation, ArgumentList> {
   @override
   ArgumentList get(FunctionExpressionInvocation node) => node.argumentList;
 }
 
 class Getter_NodeReplacerTest_test_functionTypeAlias
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<FunctionTypeAlias, TypeParameterList> {
   @override
   TypeParameterList get(FunctionTypeAlias node) => node.typeParameters;
 }
 
 class Getter_NodeReplacerTest_test_functionTypeAlias_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<FunctionTypeAlias, FormalParameterList> {
   @override
   FormalParameterList get(FunctionTypeAlias node) => node.parameters;
 }
 
 class Getter_NodeReplacerTest_test_functionTypeAlias_3
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<FunctionTypeAlias, TypeName> {
   @override
   TypeName get(FunctionTypeAlias node) => node.returnType;
 }
 
 class Getter_NodeReplacerTest_test_functionTypeAlias_4
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<FunctionTypeAlias, SimpleIdentifier> {
   @override
   SimpleIdentifier get(FunctionTypeAlias node) => node.name;
 }
 
 class Getter_NodeReplacerTest_test_functionTypedFormalParameter
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<FunctionTypedFormalParameter, TypeName> {
   @override
   TypeName get(FunctionTypedFormalParameter node) => node.returnType;
 }
 
 class Getter_NodeReplacerTest_test_functionTypedFormalParameter_2
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<FunctionTypedFormalParameter,
+            FormalParameterList> {
   @override
   FormalParameterList get(FunctionTypedFormalParameter node) => node.parameters;
 }
 
 class Getter_NodeReplacerTest_test_ifStatement
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<IfStatement, Expression> {
   @override
   Expression get(IfStatement node) => node.condition;
 }
 
 class Getter_NodeReplacerTest_test_ifStatement_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<IfStatement, Statement> {
   @override
   Statement get(IfStatement node) => node.elseStatement;
 }
 
 class Getter_NodeReplacerTest_test_ifStatement_3
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<IfStatement, Statement> {
   @override
   Statement get(IfStatement node) => node.thenStatement;
 }
 
 class Getter_NodeReplacerTest_test_importDirective
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ImportDirective, SimpleIdentifier> {
   @override
   SimpleIdentifier get(ImportDirective node) => node.prefix;
 }
 
 class Getter_NodeReplacerTest_test_indexExpression
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<IndexExpression, Expression> {
   @override
   Expression get(IndexExpression node) => node.target;
 }
 
 class Getter_NodeReplacerTest_test_indexExpression_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<IndexExpression, Expression> {
   @override
   Expression get(IndexExpression node) => node.index;
 }
 
 class Getter_NodeReplacerTest_test_instanceCreationExpression
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<InstanceCreationExpression, ArgumentList> {
   @override
   ArgumentList get(InstanceCreationExpression node) => node.argumentList;
 }
 
 class Getter_NodeReplacerTest_test_instanceCreationExpression_2
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<InstanceCreationExpression, ConstructorName> {
   @override
   ConstructorName get(InstanceCreationExpression node) => node.constructorName;
 }
 
 class Getter_NodeReplacerTest_test_interpolationExpression
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<InterpolationExpression, Expression> {
   @override
   Expression get(InterpolationExpression node) => node.expression;
 }
 
 class Getter_NodeReplacerTest_test_isExpression
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<IsExpression, Expression> {
   @override
   Expression get(IsExpression node) => node.expression;
 }
 
 class Getter_NodeReplacerTest_test_isExpression_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<IsExpression, TypeName> {
   @override
   TypeName get(IsExpression node) => node.type;
 }
 
-class Getter_NodeReplacerTest_test_label implements NodeReplacerTest_Getter {
+class Getter_NodeReplacerTest_test_label
+    implements NodeReplacerTest_Getter<Label, SimpleIdentifier> {
   @override
   SimpleIdentifier get(Label node) => node.label;
 }
 
 class Getter_NodeReplacerTest_test_labeledStatement
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<LabeledStatement, Statement> {
   @override
   Statement get(LabeledStatement node) => node.statement;
 }
 
 class Getter_NodeReplacerTest_test_libraryDirective
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<LibraryDirective, LibraryIdentifier> {
   @override
   LibraryIdentifier get(LibraryDirective node) => node.name;
 }
 
 class Getter_NodeReplacerTest_test_mapLiteralEntry
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<MapLiteralEntry, Expression> {
   @override
   Expression get(MapLiteralEntry node) => node.value;
 }
 
 class Getter_NodeReplacerTest_test_mapLiteralEntry_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<MapLiteralEntry, Expression> {
   @override
   Expression get(MapLiteralEntry node) => node.key;
 }
 
 class Getter_NodeReplacerTest_test_methodDeclaration
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<MethodDeclaration, TypeName> {
   @override
   TypeName get(MethodDeclaration node) => node.returnType;
 }
 
 class Getter_NodeReplacerTest_test_methodDeclaration_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<MethodDeclaration, FunctionBody> {
   @override
   FunctionBody get(MethodDeclaration node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_methodDeclaration_3
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<MethodDeclaration, SimpleIdentifier> {
   @override
   SimpleIdentifier get(MethodDeclaration node) => node.name;
 }
 
 class Getter_NodeReplacerTest_test_methodDeclaration_4
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<MethodDeclaration, FormalParameterList> {
   @override
   FormalParameterList get(MethodDeclaration node) => node.parameters;
 }
 
 class Getter_NodeReplacerTest_test_methodInvocation
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<MethodInvocation, ArgumentList> {
   @override
   ArgumentList get(MethodInvocation node) => node.argumentList;
 }
 
 class Getter_NodeReplacerTest_test_methodInvocation_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<MethodInvocation, Expression> {
   @override
   Expression get(MethodInvocation node) => node.target;
 }
 
 class Getter_NodeReplacerTest_test_methodInvocation_3
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<MethodInvocation, SimpleIdentifier> {
   @override
   SimpleIdentifier get(MethodInvocation node) => node.methodName;
 }
 
 class Getter_NodeReplacerTest_test_namedExpression
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<NamedExpression, Label> {
   @override
   Label get(NamedExpression node) => node.name;
 }
 
 class Getter_NodeReplacerTest_test_namedExpression_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<NamedExpression, Expression> {
   @override
   Expression get(NamedExpression node) => node.expression;
 }
 
 class Getter_NodeReplacerTest_test_nativeClause
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<NativeClause, StringLiteral> {
   @override
   StringLiteral get(NativeClause node) => node.name;
 }
 
 class Getter_NodeReplacerTest_test_nativeFunctionBody
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<NativeFunctionBody, StringLiteral> {
   @override
   StringLiteral get(NativeFunctionBody node) => node.stringLiteral;
 }
 
 class Getter_NodeReplacerTest_test_parenthesizedExpression
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ParenthesizedExpression, Expression> {
   @override
   Expression get(ParenthesizedExpression node) => node.expression;
 }
 
 class Getter_NodeReplacerTest_test_partOfDirective
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<PartOfDirective, LibraryIdentifier> {
   @override
   LibraryIdentifier get(PartOfDirective node) => node.libraryName;
 }
 
 class Getter_NodeReplacerTest_test_postfixExpression
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<PostfixExpression, Expression> {
   @override
   Expression get(PostfixExpression node) => node.operand;
 }
 
 class Getter_NodeReplacerTest_test_prefixedIdentifier
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<PrefixedIdentifier, SimpleIdentifier> {
   @override
   SimpleIdentifier get(PrefixedIdentifier node) => node.identifier;
 }
 
 class Getter_NodeReplacerTest_test_prefixedIdentifier_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<PrefixedIdentifier, SimpleIdentifier> {
   @override
   SimpleIdentifier get(PrefixedIdentifier node) => node.prefix;
 }
 
 class Getter_NodeReplacerTest_test_prefixExpression
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<PrefixExpression, Expression> {
   @override
   Expression get(PrefixExpression node) => node.operand;
 }
 
 class Getter_NodeReplacerTest_test_propertyAccess
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<PropertyAccess, Expression> {
   @override
   Expression get(PropertyAccess node) => node.target;
 }
 
 class Getter_NodeReplacerTest_test_propertyAccess_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<PropertyAccess, SimpleIdentifier> {
   @override
   SimpleIdentifier get(PropertyAccess node) => node.propertyName;
 }
 
 class Getter_NodeReplacerTest_test_redirectingConstructorInvocation
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<RedirectingConstructorInvocation,
+            SimpleIdentifier> {
   @override
   SimpleIdentifier get(RedirectingConstructorInvocation node) =>
       node.constructorName;
 }
 
 class Getter_NodeReplacerTest_test_redirectingConstructorInvocation_2
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<RedirectingConstructorInvocation,
+            ArgumentList> {
   @override
   ArgumentList get(RedirectingConstructorInvocation node) => node.argumentList;
 }
 
 class Getter_NodeReplacerTest_test_returnStatement
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ReturnStatement, Expression> {
   @override
   Expression get(ReturnStatement node) => node.expression;
 }
 
 class Getter_NodeReplacerTest_test_simpleFormalParameter
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<SimpleFormalParameter, TypeName> {
   @override
   TypeName get(SimpleFormalParameter node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_superConstructorInvocation
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<SuperConstructorInvocation, SimpleIdentifier> {
   @override
   SimpleIdentifier get(SuperConstructorInvocation node) => node.constructorName;
 }
 
 class Getter_NodeReplacerTest_test_superConstructorInvocation_2
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<SuperConstructorInvocation, ArgumentList> {
   @override
   ArgumentList get(SuperConstructorInvocation node) => node.argumentList;
 }
 
 class Getter_NodeReplacerTest_test_switchCase
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<SwitchCase, Expression> {
   @override
   Expression get(SwitchCase node) => node.expression;
 }
 
 class Getter_NodeReplacerTest_test_switchStatement
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<SwitchStatement, Expression> {
   @override
   Expression get(SwitchStatement node) => node.expression;
 }
 
 class Getter_NodeReplacerTest_test_throwExpression
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<ThrowExpression, Expression> {
   @override
   Expression get(ThrowExpression node) => node.expression;
 }
 
 class Getter_NodeReplacerTest_test_topLevelVariableDeclaration
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<TopLevelVariableDeclaration,
+            VariableDeclarationList> {
   @override
   VariableDeclarationList get(TopLevelVariableDeclaration node) =>
       node.variables;
 }
 
 class Getter_NodeReplacerTest_test_tryStatement
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<TryStatement, Block> {
   @override
   Block get(TryStatement node) => node.finallyBlock;
 }
 
 class Getter_NodeReplacerTest_test_tryStatement_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<TryStatement, Block> {
   @override
   Block get(TryStatement node) => node.body;
 }
 
-class Getter_NodeReplacerTest_test_typeName implements NodeReplacerTest_Getter {
+class Getter_NodeReplacerTest_test_typeName
+    implements NodeReplacerTest_Getter<TypeName, TypeArgumentList> {
   @override
   TypeArgumentList get(TypeName node) => node.typeArguments;
 }
 
 class Getter_NodeReplacerTest_test_typeName_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<TypeName, Identifier> {
   @override
   Identifier get(TypeName node) => node.name;
 }
 
 class Getter_NodeReplacerTest_test_typeParameter
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<TypeParameter, TypeName> {
   @override
   TypeName get(TypeParameter node) => node.bound;
 }
 
 class Getter_NodeReplacerTest_test_typeParameter_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<TypeParameter, SimpleIdentifier> {
   @override
   SimpleIdentifier get(TypeParameter node) => node.name;
 }
 
 class Getter_NodeReplacerTest_test_variableDeclaration
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<VariableDeclaration, SimpleIdentifier> {
   @override
   SimpleIdentifier get(VariableDeclaration node) => node.name;
 }
 
 class Getter_NodeReplacerTest_test_variableDeclaration_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<VariableDeclaration, Expression> {
   @override
   Expression get(VariableDeclaration node) => node.initializer;
 }
 
 class Getter_NodeReplacerTest_test_variableDeclarationList
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<VariableDeclarationList, TypeName> {
   @override
   TypeName get(VariableDeclarationList node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_variableDeclarationStatement
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<VariableDeclarationStatement,
+            VariableDeclarationList> {
   @override
   VariableDeclarationList get(VariableDeclarationStatement node) =>
       node.variables;
 }
 
 class Getter_NodeReplacerTest_test_whileStatement
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<WhileStatement, Expression> {
   @override
   Expression get(WhileStatement node) => node.condition;
 }
 
 class Getter_NodeReplacerTest_test_whileStatement_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<WhileStatement, Statement> {
   @override
   Statement get(WhileStatement node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_yieldStatement
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<YieldStatement, Expression> {
   @override
   Expression get(YieldStatement node) => node.expression;
 }
 
 class Getter_NodeReplacerTest_testAnnotatedNode
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<AnnotatedNode, Comment> {
   @override
   Comment get(AnnotatedNode node) => node.documentationComment;
 }
 
 class Getter_NodeReplacerTest_testNormalFormalParameter
-    implements NodeReplacerTest_Getter {
+    implements
+        NodeReplacerTest_Getter<NormalFormalParameter, SimpleIdentifier> {
   @override
   SimpleIdentifier get(NormalFormalParameter node) => node.identifier;
 }
 
 class Getter_NodeReplacerTest_testNormalFormalParameter_2
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<NormalFormalParameter, Comment> {
   @override
   Comment get(NormalFormalParameter node) => node.documentationComment;
 }
 
 class Getter_NodeReplacerTest_testTypedLiteral
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<TypedLiteral, TypeArgumentList> {
   @override
   TypeArgumentList get(TypedLiteral node) => node.typeArguments;
 }
 
 class Getter_NodeReplacerTest_testUriBasedDirective
-    implements NodeReplacerTest_Getter {
+    implements NodeReplacerTest_Getter<UriBasedDirective, StringLiteral> {
   @override
   StringLiteral get(UriBasedDirective node) => node.uri;
 }

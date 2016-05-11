@@ -622,8 +622,8 @@ class CodeChecker extends RecursiveAstVisitor {
       var staticInfo;
       var rhsType = _getStaticType(expr.rightHandSide);
       var lhsType = _getStaticType(expr.leftHandSide);
-      var returnType = _specializedBinaryReturnType(
-          op, lhsType, rhsType, functionType.returnType);
+      var returnType = rules.refineBinaryExpressionType(
+          typeProvider, lhsType, op, rhsType, functionType.returnType);
 
       if (!rules.isSubtypeOf(returnType, lhsType)) {
         final numType = typeProvider.numType;
@@ -920,32 +920,6 @@ class CodeChecker extends RecursiveAstVisitor {
       // assert(CoercionInfo.get(info.node) == null);
       CoercionInfo.set(info.node, info);
     }
-  }
-
-  DartType _specializedBinaryReturnType(
-      TokenType op, DartType t1, DartType t2, DartType normalReturnType) {
-    // This special cases binary return types as per 16.26 and 16.27 of the
-    // Dart language spec.
-    switch (op) {
-      case TokenType.PLUS:
-      case TokenType.MINUS:
-      case TokenType.STAR:
-      case TokenType.TILDE_SLASH:
-      case TokenType.PERCENT:
-      case TokenType.PLUS_EQ:
-      case TokenType.MINUS_EQ:
-      case TokenType.STAR_EQ:
-      case TokenType.TILDE_SLASH_EQ:
-      case TokenType.PERCENT_EQ:
-        if (t1 == typeProvider.intType && t2 == typeProvider.intType) return t1;
-        if (t1 == typeProvider.doubleType && t2 == typeProvider.doubleType)
-          return t1;
-        // This particular combo is not spelled out in the spec, but all
-        // implementations and analyzer seem to follow this.
-        if (t1 == typeProvider.doubleType && t2 == typeProvider.intType)
-          return t1;
-    }
-    return normalReturnType;
   }
 }
 

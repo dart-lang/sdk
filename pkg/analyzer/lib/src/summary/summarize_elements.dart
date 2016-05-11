@@ -355,7 +355,7 @@ class _CompilationUnitSerializer {
             kind: ReferenceKind.classOrEnum,
             name: cls.name,
             numTypeParameters: cls.typeParameters.length,
-            members: serializeClassConstMembers(cls)));
+            members: serializeClassStaticMembers(cls)));
       }
     }
     for (ClassElement enm in compilationUnit.enums) {
@@ -363,7 +363,7 @@ class _CompilationUnitSerializer {
         names.add(new UnlinkedPublicNameBuilder(
             kind: ReferenceKind.classOrEnum,
             name: enm.name,
-            members: serializeClassConstMembers(enm)));
+            members: serializeClassStaticMembers(enm)));
       }
     }
     for (FunctionElement function in compilationUnit.functions) {
@@ -519,7 +519,7 @@ class _CompilationUnitSerializer {
     }
     return element.metadata.map((ElementAnnotation a) {
       _ConstExprSerializer serializer =
-          new _ConstExprSerializer(this, element, null);
+          new _ConstExprSerializer(this, element, null, null);
       serializer
           .serializeAnnotation((a as ElementAnnotationImpl).annotationAst);
       return serializer.toBuilder();
@@ -594,11 +594,11 @@ class _CompilationUnitSerializer {
   }
 
   /**
-   * If [cls] is a class, return the list of its members available for
-   * constants - static constant fields, static methods and constructors.
-   * Otherwise return `null`.
+   * If [cls] is a class, return the list of its static members - static
+   * constant fields, static methods and constructors.  Otherwise return `null`.
    */
-  List<UnlinkedPublicNameBuilder> serializeClassConstMembers(ClassElement cls) {
+  List<UnlinkedPublicNameBuilder> serializeClassStaticMembers(
+      ClassElement cls) {
     if (cls.isMixinApplication) {
       // Mixin application members can't be determined directly from the AST so
       // we can't store them in UnlinkedPublicName.
@@ -607,16 +607,6 @@ class _CompilationUnitSerializer {
     }
     if (cls.kind == ElementKind.CLASS) {
       List<UnlinkedPublicNameBuilder> bs = <UnlinkedPublicNameBuilder>[];
-      for (FieldElement field in cls.fields) {
-        if (field.isStatic && field.isConst && field.isPublic) {
-          // TODO(paulberry): include non-consts
-          // TODO(paulberry): should numTypeParameters include class params?
-          bs.add(new UnlinkedPublicNameBuilder(
-              name: field.name,
-              kind: ReferenceKind.propertyAccessor,
-              numTypeParameters: 0));
-        }
-      }
       for (MethodElement method in cls.methods) {
         if (method.isStatic && method.isPublic) {
           // TODO(paulberry): should numTypeParameters include class params?
@@ -627,11 +617,7 @@ class _CompilationUnitSerializer {
         }
       }
       for (PropertyAccessorElement accessor in cls.accessors) {
-        if (accessor.isStatic &&
-            accessor.isGetter &&
-            accessor.isPublic &&
-            !accessor.isSynthetic) {
-          // TODO(paulberry): combine with field code above.
+        if (accessor.isStatic && accessor.isGetter && accessor.isPublic) {
           // TODO(paulberry): should numTypeParameters include class params?
           bs.add(new UnlinkedPublicNameBuilder(
               name: accessor.name, kind: ReferenceKind.propertyAccessor));
@@ -678,11 +664,11 @@ class _CompilationUnitSerializer {
   /**
    * Serialize the given [expression], creating an [UnlinkedConstBuilder].
    */
-  UnlinkedConstBuilder serializeConstExpr(
-      Element context, Expression expression,
+  UnlinkedConstBuilder serializeConstExpr(Element context,
+      ExecutableElement executableContext, Expression expression,
       [Set<String> constructorParameterNames]) {
-    _ConstExprSerializer serializer =
-        new _ConstExprSerializer(this, context, constructorParameterNames);
+    _ConstExprSerializer serializer = new _ConstExprSerializer(
+        this, context, executableContext, constructorParameterNames);
     serializer.serialize(expression);
     return serializer.toBuilder();
   }
@@ -797,7 +783,7 @@ class _CompilationUnitSerializer {
               .map((ConstructorInitializer initializer) =>
                   serializeConstructorInitializer(
                       initializer,
-                      (expr) => serializeConstExpr(
+                      (expr) => serializeConstExpr(executableElement,
                           executableElement, expr, constructorParameterNames)))
               .toList();
         }
@@ -937,7 +923,10 @@ class _CompilationUnitSerializer {
       ConstVariableElement constParameter = parameter as ConstVariableElement;
       Expression initializer = constParameter.constantInitializer;
       if (initializer != null) {
-        b.defaultValue = serializeConstExpr(parameter, initializer);
+        b.defaultValue = serializeConstExpr(
+            parameter,
+            parameter.getAncestor((Element e) => e is ExecutableElement),
+            initializer);
         b.defaultValueCode = parameter.defaultValueCode;
       }
     }
@@ -1063,19 +1052,19 @@ class _CompilationUnitSerializer {
         ParameterElement parameterElement = typeElement.enclosingElement;
         while (true) {
           Element parent = parameterElement.enclosingElement;
-          if (parent is ExecutableElement) {
-            Element grandParent = parent.enclosingElement;
+          if (parent is ParameterElement) {
+            // Function-typed parameter inside a function-typed parameter.
             b.implicitFunctionTypeIndices
                 .insert(0, parent.parameters.indexOf(parameterElement));
-            if (grandParent is ParameterElement) {
-              // Function-typed parameter inside a function-typed parameter.
-              parameterElement = grandParent;
-              continue;
-            } else {
-              // Function-typed parameter inside a top level function or method.
-              b.reference = _getElementReferenceId(parent);
-              break;
-            }
+            parameterElement = parent;
+            continue;
+          } else if (parent is FunctionTypedElement) {
+            b.implicitFunctionTypeIndices
+                .insert(0, parent.parameters.indexOf(parameterElement));
+            // Function-typed parameter inside a top level function, method, or
+            // typedef.
+            b.reference = _getElementReferenceId(parent);
+            break;
           } else {
             throw new StateError(
                 'Unexpected element enclosing parameter: ${parent.runtimeType}');
@@ -1086,20 +1075,9 @@ class _CompilationUnitSerializer {
       }
       List<DartType> typeArguments = getTypeArguments(type);
       if (typeArguments != null) {
-        // Trailing type arguments of type 'dynamic' should be omitted.
-        int numArgsToSerialize = typeArguments.length;
-        while (numArgsToSerialize > 0 &&
-            typeArguments[numArgsToSerialize - 1].isDynamic) {
-          --numArgsToSerialize;
-        }
-        if (numArgsToSerialize > 0) {
-          List<EntityRefBuilder> serializedArguments = <EntityRefBuilder>[];
-          for (int i = 0; i < numArgsToSerialize; i++) {
-            serializedArguments
-                .add(serializeTypeRef(typeArguments[i], context));
-          }
-          b.typeArguments = serializedArguments;
-        }
+        b.typeArguments = typeArguments
+            .map((typeArgument) => serializeTypeRef(typeArgument, context))
+            .toList();
       }
     }
     return b;
@@ -1159,7 +1137,8 @@ class _CompilationUnitSerializer {
       ConstVariableElement constVariable = variable as ConstVariableElement;
       Expression initializer = constVariable.constantInitializer;
       if (initializer != null) {
-        b.constExpr = serializeConstExpr(variable, initializer);
+        b.constExpr =
+            serializeConstExpr(variable, variable.initializer, initializer);
       }
     }
     if (variable is PropertyInducingElement) {
@@ -1319,6 +1298,7 @@ class _CompilationUnitSerializer {
 class _ConstExprSerializer extends AbstractConstExprSerializer {
   final _CompilationUnitSerializer serializer;
   final Element context;
+  final ExecutableElement executableContext;
 
   /**
    * If a constructor initializer expression is being serialized, the names of
@@ -1326,8 +1306,8 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
    */
   final Set<String> constructorParameterNames;
 
-  _ConstExprSerializer(
-      this.serializer, this.context, this.constructorParameterNames);
+  _ConstExprSerializer(this.serializer, this.context, this.executableContext,
+      this.constructorParameterNames);
 
   @override
   bool isConstructorParameterName(String name) {
@@ -1386,6 +1366,21 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
       return new EntityRefBuilder(
           reference: refId, typeArguments: typeRef.typeArguments);
     }
+  }
+
+  @override
+  List<int> serializeFunctionExpression(FunctionExpression functionExpression) {
+    if (executableContext == null) {
+      return null;
+    }
+    ExecutableElement functionElement = functionExpression.element;
+    // TOOD(paulberry): handle the situation where [functionExpression] is not
+    // an immediate child of [executableContext].
+    assert(functionElement.enclosingElement == executableContext);
+    int popCount = 0;
+    int localIndex = executableContext.functions.indexOf(functionElement);
+    assert(localIndex != -1);
+    return <int>[popCount, localIndex];
   }
 
   EntityRefBuilder serializeIdentifier(Identifier identifier,

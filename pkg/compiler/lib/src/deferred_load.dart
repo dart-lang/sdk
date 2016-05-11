@@ -336,14 +336,29 @@ class DeferredLoadTask extends CompilerTask {
         TreeElements treeElements = analyzableElement.resolvedAst.elements;
         assert(treeElements != null);
 
+        // TODO(johnniwinther): Add only expressions that are actually needed.
+        // Currently we have some noise here: Some potential expressions are
+        // seen that should never be added (for instance field initializers
+        // in constant constructors, like `this.field = parameter`). And some
+        // implicit constant expression are seen that we should be able to add
+        // (like primitive constant literals like `true`, `"foo"` and `0`).
+        // See dartbug.com/26406 for context.
         treeElements
             .forEachConstantNode((Node node, ConstantExpression expression) {
           // Explicitly depend on the backend constants.
-          ConstantValue value = backend.constants.getConstantValue(expression);
-          assert(invariant(node, value != null,
-              message:
-                  "No constant value for ${expression.toStructuredText()}."));
-          constants.add(value);
+          if (backend.constants.hasConstantValue(expression)) {
+            ConstantValue value =
+                backend.constants.getConstantValue(expression);
+            assert(invariant(node, value != null,
+                message: "Constant expression without value: "
+                         "${expression.toStructuredText()}."));
+            constants.add(value);
+          } else {
+            assert(invariant(node,
+                expression.isImplicit || expression.isPotential,
+                message: "Unexpected unevaluated constant expression: "
+                    "${expression.toStructuredText()}."));
+          }
         });
       }
     }

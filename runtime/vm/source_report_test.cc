@@ -143,6 +143,140 @@ TEST_CASE(SourceReport_Coverage_ForceCompile) {
 }
 
 
+TEST_CASE(SourceReport_Coverage_UnusedClass_NoForceCompile) {
+  char buffer[1024];
+  const char* kScript =
+      "helper0() {}\n"
+      "class Unused {\n"
+      "  helper1() { helper0(); }\n"
+      "}\n"
+      "main() {\n"
+      "  helper0();\n"
+      "}";
+
+  Library& lib = Library::Handle();
+  lib ^= ExecuteScript(kScript);
+  ASSERT(!lib.IsNull());
+  const Script& script = Script::Handle(lib.LookupScript(
+      String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kCoverage);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // UnusedClass is not compiled.
+      "{\"scriptIndex\":0,\"startPos\":6,\"endPos\":20,\"compiled\":false},"
+
+      // helper0 is compiled.
+      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":4,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[],\"misses\":[]}},"
+
+      // One range with a hit (main).
+      "{\"scriptIndex\":0,\"startPos\":22,\"endPos\":32,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[27],\"misses\":[]}}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
+      buffer);
+}
+
+
+TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompile) {
+  char buffer[1024];
+  const char* kScript =
+      "helper0() {}\n"
+      "class Unused {\n"
+      "  helper1() { helper0(); }\n"
+      "}\n"
+      "main() {\n"
+      "  helper0();\n"
+      "}";
+
+  Library& lib = Library::Handle();
+  lib ^= ExecuteScript(kScript);
+  ASSERT(!lib.IsNull());
+  const Script& script = Script::Handle(lib.LookupScript(
+      String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // UnusedClass.helper1 is compiled.
+      "{\"scriptIndex\":0,\"startPos\":10,\"endPos\":18,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[],\"misses\":[14]}},"
+
+      // helper0 is compiled.
+      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":4,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[],\"misses\":[]}},"
+
+      // One range with a hit (main).
+      "{\"scriptIndex\":0,\"startPos\":22,\"endPos\":32,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[27],\"misses\":[]}}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
+      buffer);
+}
+
+
+TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
+  char buffer[1024];
+  const char* kScript =
+      "helper0() {}\n"
+      "class Unused {\n"
+      "  helper1() { helper0()+ }\n"  // syntax error
+      "}\n"
+      "main() {\n"
+      "  helper0();\n"
+      "}";
+
+  Library& lib = Library::Handle();
+  lib ^= ExecuteScript(kScript);
+  ASSERT(!lib.IsNull());
+  const Script& script = Script::Handle(lib.LookupScript(
+      String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // UnusedClass has a syntax error.
+      "{\"scriptIndex\":0,\"startPos\":10,\"endPos\":18,\"compiled\":false,"
+      "\"error\":{\"type\":\"@Error\",\"_vmType\":\"LanguageError\","
+      "\"kind\":\"LanguageError\",\"id\":\"objects\\/0\","
+      "\"message\":\"'test-lib': error: line 3 pos 26: unexpected token '}'\\n"
+      "  helper1() { helper0()+ }\\n                         ^\\n\"}},"
+
+      // helper0 is compiled.
+      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":4,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[],\"misses\":[]}},"
+
+      // One range with a hit (main).
+      "{\"scriptIndex\":0,\"startPos\":22,\"endPos\":32,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[27],\"misses\":[]}}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
+      buffer);
+}
+
+
 TEST_CASE(SourceReport_Coverage_NestedFunctions) {
   char buffer[1024];
   const char* kScript =

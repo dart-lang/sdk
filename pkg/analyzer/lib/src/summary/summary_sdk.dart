@@ -104,7 +104,8 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
           result == CREATED_RESOLVED_UNIT8 ||
           result == CREATED_RESOLVED_UNIT9 ||
           result == CREATED_RESOLVED_UNIT10 ||
-          result == CREATED_RESOLVED_UNIT11) {
+          result == CREATED_RESOLVED_UNIT11 ||
+          result == CREATED_RESOLVED_UNIT12) {
         entry.setValue(result, true, TargetedResult.EMPTY_LIST);
         return true;
       }

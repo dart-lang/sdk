@@ -360,7 +360,9 @@ abstract class Token {
   static Token lexicallyFirst(List<Token> tokens) {
     Token first = null;
     int offset = -1;
-    for (Token token in tokens) {
+    int length = tokens.length;
+    for (int i = 0; i < length; i++) {
+      Token token = tokens[i];
       if (token != null && (offset < 0 || token.offset < offset)) {
         first = token;
         offset = token.offset;

@@ -3,6 +3,7 @@ import 'dart:io' as io;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -85,6 +86,36 @@ class InputPackagesResultProvider extends ResultProvider {
           return true;
         }
         return false;
+      }
+    } else if (target is LibrarySpecificUnit) {
+      String uriString = target.library.uri.toString();
+      if (!_resynthesizer.hasLibrarySummary(uriString)) {
+        return false;
+      }
+      if (result == CREATED_RESOLVED_UNIT1 ||
+          result == CREATED_RESOLVED_UNIT2 ||
+          result == CREATED_RESOLVED_UNIT3 ||
+          result == CREATED_RESOLVED_UNIT4 ||
+          result == CREATED_RESOLVED_UNIT5 ||
+          result == CREATED_RESOLVED_UNIT6 ||
+          result == CREATED_RESOLVED_UNIT7 ||
+          result == CREATED_RESOLVED_UNIT8 ||
+          result == CREATED_RESOLVED_UNIT9 ||
+          result == CREATED_RESOLVED_UNIT10 ||
+          result == CREATED_RESOLVED_UNIT11 ||
+          result == CREATED_RESOLVED_UNIT12) {
+        entry.setValue(result, true, TargetedResult.EMPTY_LIST);
+        return true;
+      }
+      if (result == COMPILATION_UNIT_ELEMENT) {
+        String libraryUri = target.library.uri.toString();
+        String unitUri = target.unit.uri.toString();
+        CompilationUnitElement unit = _resynthesizer.getElement(
+            new ElementLocationImpl.con3(<String>[libraryUri, unitUri]));
+        if (unit != null) {
+          entry.setValue(result, unit, TargetedResult.EMPTY_LIST);
+          return true;
+        }
       }
     } else if (target is VariableElement) {
       if (!_resynthesizer

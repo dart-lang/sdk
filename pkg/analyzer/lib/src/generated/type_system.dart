@@ -7,6 +7,7 @@ library analyzer.src.generated.type_system;
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -344,6 +345,39 @@ class StrongTypeSystemImpl extends TypeSystem {
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return _isSubtypeOf(leftType, rightType, null);
+  }
+
+  @override
+  DartType refineBinaryExpressionType(
+      TypeProvider typeProvider,
+      DartType leftType,
+      TokenType operator,
+      DartType rightType,
+      DartType currentType) {
+    if (leftType is TypeParameterType &&
+        leftType.element.bound == typeProvider.numType) {
+      if (rightType == leftType || rightType == typeProvider.intType) {
+        if (operator == TokenType.PLUS ||
+            operator == TokenType.MINUS ||
+            operator == TokenType.STAR ||
+            operator == TokenType.PLUS_EQ ||
+            operator == TokenType.MINUS_EQ ||
+            operator == TokenType.STAR_EQ) {
+          return leftType;
+        }
+      }
+      if (rightType == typeProvider.doubleType) {
+        if (operator == TokenType.PLUS ||
+            operator == TokenType.MINUS ||
+            operator == TokenType.STAR ||
+            operator == TokenType.SLASH) {
+          return typeProvider.doubleType;
+        }
+      }
+      return currentType;
+    }
+    return super.refineBinaryExpressionType(
+        typeProvider, leftType, operator, rightType, currentType);
   }
 
   @override
@@ -939,6 +973,59 @@ abstract class TypeSystem {
     // Since the interface may be implemented multiple times with different
     // type arguments, choose the best one.
     return InterfaceTypeImpl.findMostSpecificType(candidates, this);
+  }
+
+  /**
+   * Attempts to make a better guess for the type of a binary with the given
+   * [operator], given that resolution has so far produced the [currentType].
+   */
+  DartType refineBinaryExpressionType(
+      TypeProvider typeProvider,
+      DartType leftType,
+      TokenType operator,
+      DartType rightType,
+      DartType currentType) {
+    // bool
+    if (operator == TokenType.AMPERSAND_AMPERSAND ||
+        operator == TokenType.BAR_BAR ||
+        operator == TokenType.EQ_EQ ||
+        operator == TokenType.BANG_EQ) {
+      return typeProvider.boolType;
+    }
+    DartType intType = typeProvider.intType;
+    if (leftType == intType) {
+      // int op double
+      if (operator == TokenType.MINUS ||
+          operator == TokenType.PERCENT ||
+          operator == TokenType.PLUS ||
+          operator == TokenType.STAR ||
+          operator == TokenType.MINUS_EQ ||
+          operator == TokenType.PERCENT_EQ ||
+          operator == TokenType.PLUS_EQ ||
+          operator == TokenType.STAR_EQ) {
+        DartType doubleType = typeProvider.doubleType;
+        if (rightType == doubleType) {
+          return doubleType;
+        }
+      }
+      // int op int
+      if (operator == TokenType.MINUS ||
+          operator == TokenType.PERCENT ||
+          operator == TokenType.PLUS ||
+          operator == TokenType.STAR ||
+          operator == TokenType.TILDE_SLASH ||
+          operator == TokenType.MINUS_EQ ||
+          operator == TokenType.PERCENT_EQ ||
+          operator == TokenType.PLUS_EQ ||
+          operator == TokenType.STAR_EQ ||
+          operator == TokenType.TILDE_SLASH_EQ) {
+        if (rightType == intType) {
+          return intType;
+        }
+      }
+    }
+    // default
+    return currentType;
   }
 
   /**

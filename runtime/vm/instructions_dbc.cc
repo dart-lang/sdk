@@ -109,10 +109,40 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
 }
 
 
+static bool HasLoadFromPool(Instr instr) {
+  switch (Bytecode::DecodeOpcode(instr)) {
+    case Bytecode::kLoadConstant:
+    case Bytecode::kPushConstant:
+    case Bytecode::kStaticCall:
+    case Bytecode::kInstanceCall:
+    case Bytecode::kInstanceCall2:
+    case Bytecode::kInstanceCall3:
+    case Bytecode::kStoreStaticTOS:
+    case Bytecode::kPushStatic:
+    case Bytecode::kAllocate:
+    case Bytecode::kInstantiateType:
+    case Bytecode::kInstantiateTypeArgumentsTOS:
+    case Bytecode::kAssertAssignable:
+      return true;
+    default:
+      return false;
+  }
+}
+
+
 bool DecodeLoadObjectFromPoolOrThread(uword pc,
                                       const Code& code,
                                       Object* obj) {
-  UNIMPLEMENTED();
+  ASSERT(code.ContainsInstructionAt(pc));
+  Instr instr = Bytecode::At(pc);
+  if (HasLoadFromPool(instr)) {
+    uint16_t index = Bytecode::DecodeD(instr);
+    const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
+    if (pool.InfoAt(index) == ObjectPool::kTaggedObject) {
+      *obj = pool.ObjectAt(index);
+      return true;
+    }
+  }
   return false;
 }
 

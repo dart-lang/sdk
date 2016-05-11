@@ -3307,7 +3307,8 @@ class TokenStream : public Object {
       kAllTokens
     };
 
-    Iterator(const TokenStream& tokens,
+    Iterator(Zone* zone,
+             const TokenStream& tokens,
              TokenPosition token_pos,
              Iterator::StreamType stream_type = kNoNewlines);
 
@@ -3632,7 +3633,9 @@ class Library : public Object {
     StoreNonPointer(&raw_ptr()->index_, value);
   }
 
-  void Register() const;
+  void Register(Thread* thread) const;
+  static void RegisterLibraries(Thread* thread,
+                                const GrowableObjectArray& libs);
 
   bool IsDebuggable() const {
     return raw_ptr()->debuggable_;
@@ -3654,7 +3657,7 @@ class Library : public Object {
 
   inline intptr_t UrlHash() const;
 
-  static RawLibrary* LookupLibrary(const String& url);
+  static RawLibrary* LookupLibrary(Thread* thread, const String& url);
   static RawLibrary* GetLibrary(intptr_t index);
 
   static void InitCoreLibrary(Isolate* isolate);
@@ -3738,7 +3741,6 @@ class Library : public Object {
                                       bool import_core_lib);
   RawObject* LookupEntry(const String& name, intptr_t *index) const;
 
-  static bool IsKeyUsed(intptr_t key);
   void AllocatePrivateKey() const;
 
   RawString* MakeMetadataName(const Object& obj) const;
@@ -5472,22 +5474,16 @@ class AbstractType : public Instance {
   // type.
   RawString* ClassName() const;
 
-  // Check if this type represents the 'dynamic' type.
-  bool IsDynamicType() const {
-    return !IsFunctionType() &&
-        HasResolvedTypeClass() &&
-        (type_class() == Object::dynamic_class());
-  }
+  // Check if this type represents the 'dynamic' type or if it is malformed,
+  // since a malformed type is mapped to 'dynamic'.
+  // Call IsMalformed() first, if distinction is required.
+  bool IsDynamicType() const;
+
+  // Check if this type represents the 'void' type.
+  bool IsVoidType() const;
 
   // Check if this type represents the 'Null' type.
   bool IsNullType() const;
-
-  // Check if this type represents the 'void' type.
-  bool IsVoidType() const {
-    return !IsFunctionType() &&
-        HasResolvedTypeClass() &&
-        (type_class() == Object::void_class());
-  }
 
   bool IsObjectType() const {
     return !IsFunctionType() &&

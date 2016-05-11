@@ -40,6 +40,7 @@ generic_functions_test: CompileTimeError # Issue 25835
 generic_local_functions_test: CompileTimeError # Issue 25835
 generic_methods_test: CompileTimeError # Issue 25835
 generic_sends_test: CompileTimeError # Issue 25835
+generic_method_type_usage_test: CompiletimeError # Tests --generic-method-syntax, plus issue 25835
 
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
@@ -112,6 +113,9 @@ multiline_newline_test/06: MissingCompileTimeError # Issue 23888
 multiline_newline_test/none: RuntimeError # Issue 23888
 
 [ $compiler == dart2js && $checked ]
+async_return_types_test/nestedFuture: Fail # Issue 26429
+async_return_types_test/wrongTypeParameter: Fail # Issue 26429
+regress_26133_test: RuntimeError # Issue 26429
 type_variable_bounds_test/02: Fail # Issue 12702
 type_variable_bounds2_test/01: Fail # Issue 12702
 type_variable_bounds2_test/04: Fail # Issue 12702

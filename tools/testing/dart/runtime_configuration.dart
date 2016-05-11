@@ -238,7 +238,7 @@ class DartProductRuntimeConfiguration extends DartVmRuntimeConfiguration {
     }
 
     var augmentedArgs = new List();
-    augmentedArgs.add("--run-full-snapshot=${artifact.filename}");
+    augmentedArgs.add("--run-app-snapshot=${artifact.filename}");
     augmentedArgs.addAll(arguments);
 
     return <Command>[
@@ -265,9 +265,9 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
     }
 
     var augmentedArgs = new List();
-    augmentedArgs.add("--run-precompiled-snapshot=${artifact.filename}");
+    augmentedArgs.add("--run-app-snapshot=${artifact.filename}");
     if (useBlobs) {
-      augmentedArgs.add("--use_blobs");
+      augmentedArgs.add("--use-blobs");
     }
     augmentedArgs.addAll(arguments);
 

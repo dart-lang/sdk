@@ -302,6 +302,12 @@ namespace dart {
 //    match patched call's argument count so that Return instructions continue
 //    to work.
 //
+//  - LoadClassIdTOS, LoadClassId rA, D
+//
+//    LoadClassIdTOS loads the class id from the object at SP[0] and stores it
+//    to SP[0]. LoadClassId loads the class id from FP[rA] and stores it to
+//    FP[D].
+//
 // TODO(vegorov) the way we replace calls with DebugBreak does not work
 //               with our smi fast paths because DebugBreak is simply skipped.
 //
@@ -462,6 +468,12 @@ BYTECODES_LIST(DECLARE_BYTECODE)
 #endif
     return (call >> 8) & 0xFF;
   }
+
+  static Instr At(uword pc) { return *reinterpret_cast<Instr*>(pc); }
+
+ private:
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(Bytecode);
 };
 
 // Various dummy declarations to make shared code compile.

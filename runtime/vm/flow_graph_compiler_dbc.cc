@@ -132,7 +132,6 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
         (defn->tag() != Instruction::kStoreLocal) &&
         (defn->tag() != Instruction::kStoreInstanceField) &&
         (defn->tag() != Instruction::kDropTemps) &&
-        (defn->tag() != Instruction::kPushTemp) &&
         !defn->HasTemp()) {
       __ Drop1();
     }

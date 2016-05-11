@@ -1080,8 +1080,8 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     // 2a. Handle uses:
     // Update the expression stack renaming environment for each use by
     // removing the renamed value.
-    // For each use of a LoadLocal, StoreLocal, or Constant: Replace it with
-    // the renamed value.
+    // For each use of a LoadLocal, StoreLocal, DropTemps or Constant: Replace
+    // it with the renamed value.
     for (intptr_t i = current->InputCount() - 1; i >= 0; --i) {
       Value* v = current->InputAt(i);
       // Update expression stack.
@@ -1089,13 +1089,11 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
 
       Definition* reaching_defn = env->RemoveLast();
       Definition* input_defn = v->definition();
-      if (input_defn->IsLoadLocal() ||
-          input_defn->IsStoreLocal() ||
-          input_defn->IsPushTemp() ||
-          input_defn->IsDropTemps() ||
-          input_defn->IsConstant()) {
-        // Remove the load/store from the graph.
-        input_defn->RemoveFromGraph();
+      if (input_defn != reaching_defn) {
+        ASSERT(input_defn->IsLoadLocal() ||
+               input_defn->IsStoreLocal() ||
+               input_defn->IsDropTemps() ||
+               input_defn->IsConstant());
         // Assert we are not referencing nulls in the initial environment.
         ASSERT(reaching_defn->ssa_temp_index() != -1);
         v->set_definition(reaching_defn);
@@ -1109,17 +1107,15 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
       env->RemoveLast();
     }
 
-    // 2b. Handle LoadLocal, StoreLocal, and Constant.
+    // 2b. Handle LoadLocal, StoreLocal, DropTemps and Constant.
     Definition* definition = current->AsDefinition();
     if (definition != NULL) {
       LoadLocalInstr* load = definition->AsLoadLocal();
       StoreLocalInstr* store = definition->AsStoreLocal();
-      PushTempInstr* push = definition->AsPushTemp();
       DropTempsInstr* drop = definition->AsDropTemps();
       ConstantInstr* constant = definition->AsConstant();
       if ((load != NULL) ||
           (store != NULL) ||
-          (push != NULL) ||
           (drop != NULL) ||
           (constant != NULL)) {
         Definition* result = NULL;
@@ -1158,12 +1154,6 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
             intptr_t index = load->local().BitIndexIn(num_non_copied_params_);
             captured_parameters_->Add(index);
           }
-
-        } else if (push != NULL) {
-          result = push->value()->definition();
-          env->Add(result);
-          it.RemoveCurrentFromGraph();
-          continue;
         } else if (drop != NULL) {
           // Drop temps from the environment.
           for (intptr_t j = 0; j < drop->num_temps(); j++) {
@@ -1181,13 +1171,10 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         if (definition->HasTemp()) {
           ASSERT(result != NULL);
           env->Add(result);
-          // We remove load/store/constant instructions when we find their
-          // use in 2a.
-        } else {
-          it.RemoveCurrentFromGraph();
         }
+        it.RemoveCurrentFromGraph();
       } else {
-        // Not a load, store, or constant.
+        // Not a load, store, drop or constant.
         if (definition->HasTemp()) {
           // Assign fresh SSA temporary and update expression stack.
           AllocateSSAIndexes(definition);

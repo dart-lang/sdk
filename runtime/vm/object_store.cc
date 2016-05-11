@@ -73,6 +73,7 @@ ObjectStore::ObjectStore()
     typed_data_library_(Library::null()),
     vmservice_library_(Library::null()),
     libraries_(GrowableObjectArray::null()),
+    libraries_map_(Array::null()),
     closure_functions_(GrowableObjectArray::null()),
     pending_classes_(GrowableObjectArray::null()),
     pending_deferred_loads_(GrowableObjectArray::null()),

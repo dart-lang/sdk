@@ -403,12 +403,6 @@ void ConstantPropagator::VisitLoadLocal(LoadLocalInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitPushTemp(PushTempInstr* instr) {
-  // Instruction is eliminated when translating to SSA.
-  UNREACHABLE();
-}
-
-
 void ConstantPropagator::VisitDropTemps(DropTempsInstr* instr) {
   // Instruction is eliminated when translating to SSA.
   UNREACHABLE();
@@ -610,8 +604,8 @@ void ConstantPropagator::VisitDebugStepCheck(DebugStepCheckInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitStringFromCharCode(
-    StringFromCharCodeInstr* instr) {
+void ConstantPropagator::VisitOneByteStringFromCharCode(
+    OneByteStringFromCharCodeInstr* instr) {
   const Object& o = instr->char_code()->definition()->constant_value();
   if (o.IsNull() || IsNonConstant(o)) {
     SetValue(instr, non_constant_);

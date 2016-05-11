@@ -262,15 +262,13 @@ class InheritanceManager {
     } else {
       resultMap = new Map<String, ExecutableElement>();
     }
-    ClassElement superclassElt = null;
     InterfaceType supertype = classElt.supertype;
-    if (supertype != null) {
-      superclassElt = supertype.element;
-    } else {
+    if (supertype == null) {
       // classElt is Object
       _classLookup[classElt] = resultMap;
       return resultMap;
     }
+    ClassElement superclassElt = supertype.element;
     if (superclassElt != null) {
       if (!visitedClasses.contains(superclassElt)) {
         visitedClasses.add(superclassElt);
@@ -309,14 +307,9 @@ class InheritanceManager {
           visitedClasses.add(mixinElement);
           try {
             Map<String, ExecutableElement> map =
-                new Map<String, ExecutableElement>.from(
-                    _computeClassChainLookupMap(mixinElement, visitedClasses));
+                new Map<String, ExecutableElement>();
             //
-            // Substitute the super types down the hierarchy.
-            //
-            _substituteTypeParametersDownHierarchy(mixin, map);
-            //
-            // Include the members from the superclass in the resultMap.
+            // Include the members from the mixin in the resultMap.
             //
             _recordMapWithClassMembers(map, mixin, false);
             //
@@ -608,6 +601,16 @@ class InheritanceManager {
    */
   void _recordMapWithClassMembers(Map<String, ExecutableElement> map,
       InterfaceType type, bool doIncludeAbstract) {
+    Set<InterfaceType> seenTypes = new HashSet<InterfaceType>();
+    while (type.element.isMixinApplication) {
+      List<InterfaceType> mixins = type.mixins;
+      if (!seenTypes.add(type) || mixins.isEmpty) {
+        // In the case of a circularity in the type hierarchy, just don't add
+        // any members to the map.
+        return;
+      }
+      type = mixins.last;
+    }
     List<MethodElement> methods = type.methods;
     for (MethodElement method in methods) {
       if (method.isAccessibleIn(_library) &&
@@ -850,13 +853,8 @@ class InheritanceManager {
     for (Map<String, ExecutableElement> lookupMap in lookupMaps) {
       for (String memberName in lookupMap.keys) {
         // Get the list value out of the unionMap
-        List<ExecutableElement> list = unionMap[memberName];
-        // If we haven't created such a map for this key yet, do create it and
-        // put the list entry into the unionMap.
-        if (list == null) {
-          list = new List<ExecutableElement>();
-          unionMap[memberName] = list;
-        }
+        List<ExecutableElement> list = unionMap.putIfAbsent(
+            memberName, () => new List<ExecutableElement>());
         // Fetch the entry out of this lookupMap
         ExecutableElement newExecutableElementEntry = lookupMap[memberName];
         if (list.isEmpty) {

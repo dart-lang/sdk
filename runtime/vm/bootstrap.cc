@@ -301,11 +301,11 @@ RawError* Bootstrap::LoadandCompileScripts() {
     }
 #endif  // !PRODUCT
     uri = Symbols::New(thread, bootstrap_libraries[i].uri_);
-    lib = Library::LookupLibrary(uri);
+    lib = Library::LookupLibrary(thread, uri);
     if (lib.IsNull()) {
       lib = Library::NewLibraryHelper(uri, false);
       lib.SetLoadRequested();
-      lib.Register();
+      lib.Register(thread);
     }
     isolate->object_store()->set_bootstrap_library(
         bootstrap_libraries[i].index_, lib);
@@ -321,7 +321,7 @@ RawError* Bootstrap::LoadandCompileScripts() {
     }
 #endif  // PRODUCT
     uri = Symbols::New(thread, bootstrap_libraries[i].uri_);
-    lib = Library::LookupLibrary(uri);
+    lib = Library::LookupLibrary(thread, uri);
     ASSERT(!lib.IsNull());
     source = GetLibrarySource(lib, uri, false);
     if (source.IsNull()) {

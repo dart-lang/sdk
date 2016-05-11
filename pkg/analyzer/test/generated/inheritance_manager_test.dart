@@ -280,6 +280,32 @@ class InheritanceManagerTest {
     _assertNoErrors(classB);
   }
 
+  void test_getMapOfMembersInheritedFromInterfaces_field_indirectWith() {
+    // class A { int f; }
+    // class B extends A {}
+    // class C extends Object with B {}
+    ClassElementImpl classA = ElementFactory.classElement2('A');
+    String fieldName = "f";
+    FieldElement fieldF = ElementFactory.fieldElement(
+        fieldName, false, false, false, _typeProvider.intType);
+    classA.fields = <FieldElement>[fieldF];
+    classA.accessors = <PropertyAccessorElement>[fieldF.getter, fieldF.setter];
+
+    ClassElementImpl classB = ElementFactory.classElement('B', classA.type);
+
+    ClassElementImpl classC = ElementFactory.classElement2('C');
+    classC.mixins = <InterfaceType>[classB.type];
+
+    Map<String, ExecutableElement> mapC =
+        _inheritanceManager.getMembersInheritedFromInterfaces(classC);
+    expect(mapC, hasLength(_numOfMembersInObject + 2));
+    expect(mapC[fieldName], same(fieldF.getter));
+    expect(mapC['$fieldName='], same(fieldF.setter));
+    _assertNoErrors(classA);
+    _assertNoErrors(classB);
+    _assertNoErrors(classC);
+  }
+
   void test_getMapOfMembersInheritedFromInterfaces_implicitExtends() {
     // class A {}
     ClassElementImpl classA = ElementFactory.classElement2("A");
@@ -867,6 +893,30 @@ class InheritanceManagerTest {
     expect(mapA.length, _numOfMembersInObject + 1);
     expect(mapA[methodName], same(methodM4));
     _assertNoErrors(classA);
+  }
+
+  void test_getMembersInheritedFromClasses_field_indirectWith() {
+    // class A { int f; }
+    // class B extends A {}
+    // class C extends Object with B {}
+    ClassElementImpl classA = ElementFactory.classElement2('A');
+    String fieldName = "f";
+    FieldElement fieldF = ElementFactory.fieldElement(
+        fieldName, false, false, false, _typeProvider.intType);
+    classA.fields = <FieldElement>[fieldF];
+    classA.accessors = <PropertyAccessorElement>[fieldF.getter, fieldF.setter];
+
+    ClassElementImpl classB = ElementFactory.classElement('B', classA.type);
+
+    ClassElementImpl classC = ElementFactory.classElement2('C');
+    classC.mixins = <InterfaceType>[classB.type];
+
+    Map<String, ExecutableElement> mapC =
+        _inheritanceManager.getMembersInheritedFromClasses(classC);
+    expect(mapC, hasLength(_numOfMembersInObject));
+    _assertNoErrors(classA);
+    _assertNoErrors(classB);
+    _assertNoErrors(classC);
   }
 
   void test_lookupInheritance_interface_getter() {

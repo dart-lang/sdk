@@ -1060,7 +1060,8 @@ class BuildLibraryElementUtils {
    */
   static void patchTopLevelAccessors(LibraryElementImpl library) {
     // Without parts getters/setters already share the same variable element.
-    if (library.parts.isEmpty) {
+    List<CompilationUnitElement> parts = library.parts;
+    if (parts.isEmpty) {
       return;
     }
     // Collect getters and setters.
@@ -1068,11 +1069,15 @@ class BuildLibraryElementUtils {
         new HashMap<String, PropertyAccessorElement>();
     List<PropertyAccessorElement> setters = <PropertyAccessorElement>[];
     _collectAccessors(getters, setters, library.definingCompilationUnit);
-    for (CompilationUnitElement unit in library.parts) {
+    int partLength = parts.length;
+    for (int i = 0; i < partLength; i++) {
+      CompilationUnitElement unit = parts[i];
       _collectAccessors(getters, setters, unit);
     }
     // Move every setter to the corresponding getter's variable (if exists).
-    for (PropertyAccessorElement setter in setters) {
+    int setterLength = setters.length;
+    for (int j = 0; j < setterLength; j++) {
+      PropertyAccessorElement setter = setters[j];
       PropertyAccessorElement getter = getters[setter.displayName];
       if (getter != null) {
         TopLevelVariableElementImpl variable = getter.variable;
@@ -1091,7 +1096,10 @@ class BuildLibraryElementUtils {
    */
   static void _collectAccessors(Map<String, PropertyAccessorElement> getters,
       List<PropertyAccessorElement> setters, CompilationUnitElement unit) {
-    for (PropertyAccessorElement accessor in unit.accessors) {
+    List<PropertyAccessorElement> accessors = unit.accessors;
+    int length = accessors.length;
+    for (int i = 0; i < length; i++) {
+      PropertyAccessorElement accessor = accessors[i];
       if (accessor.isGetter) {
         if (!accessor.isSynthetic && accessor.correspondingSetter == null) {
           getters[accessor.displayName] = accessor;
@@ -1316,9 +1324,10 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     if (reportEqualKeys) {
-      for (Expression key in invalidKeys) {
+      int length = invalidKeys.length;
+      for (int i = 0; i < length; i++) {
         _errorReporter.reportErrorForNode(
-            StaticWarningCode.EQUAL_KEYS_IN_MAP, key);
+            StaticWarningCode.EQUAL_KEYS_IN_MAP, invalidKeys[i]);
       }
     }
     return null;
@@ -1470,7 +1479,9 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
    * @param errorCode the error code to be used
    */
   void _reportErrors(List<AnalysisError> errors, ErrorCode errorCode) {
-    for (AnalysisError data in errors) {
+    int length = errors.length;
+    for (int i = 0; i < length; i++) {
+      AnalysisError data = errors[i];
       ErrorCode dataErrorCode = data.errorCode;
       if (identical(dataErrorCode,
               CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION) ||
@@ -1980,7 +1991,9 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
               return null;
             }
           }
-          for (DartType type in visitedTypes) {
+          int length = visitedTypes.length;
+          for (int j = 0; j < length; j++) {
+            DartType type = visitedTypes[j];
             if (_typeSystem.isSubtypeOf(currentType, type)) {
               CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
               int offset = catchClause.offset;
@@ -2684,7 +2697,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object>
   Element _findWithNameAndOffset(
       List<Element> elements, AstNode node, String name, int offset,
       {bool required: true}) {
-    for (Element element in elements) {
+    int length = elements.length;
+    for (int i = 0; i < length; i++) {
+      Element element = elements[i];
       if (element.nameOffset == offset && element.name == name) {
         return element;
       }
@@ -2692,7 +2707,8 @@ class DeclarationResolver extends RecursiveAstVisitor<Object>
     if (!required) {
       return null;
     }
-    for (Element element in elements) {
+    for (int i = 0; i < length; i++) {
+      Element element = elements[i];
       if (element.name == name) {
         _mismatch(
             'Found element with name "$name" at ${element.nameOffset}, '
@@ -2853,7 +2869,9 @@ class DirectiveResolver extends SimpleAstVisitor with ExistingElementResolver {
     if (source == null) {
       return null;
     }
-    for (ExportElement export in exports) {
+    int length = exports.length;
+    for (int i = 0; i < length; i++) {
+      ExportElement export = exports[i];
       if (export.exportedLibrary.source == source) {
         // Must have the same offset.
         if (export.nameOffset != node.offset) {
@@ -2884,7 +2902,9 @@ class DirectiveResolver extends SimpleAstVisitor with ExistingElementResolver {
     }
     SimpleIdentifier prefix = node.prefix;
     bool foundSource = false;
-    for (ImportElement element in imports) {
+    int length = imports.length;
+    for (int i = 0; i < length; i++) {
+      ImportElement element = imports[i];
       if (element.importedLibrary.source == source) {
         foundSource = true;
         // Must have the same offset.
@@ -3180,7 +3200,9 @@ class ElementHolder {
     if (_fields == null) {
       return null;
     }
-    for (FieldElement field in _fields) {
+    int length = _fields.length;
+    for (int i = 0; i < length; i++) {
+      FieldElement field = _fields[i];
       if (field.name == fieldName) {
         return field;
       }
@@ -3192,7 +3214,9 @@ class ElementHolder {
     if (_topLevelVariables == null) {
       return null;
     }
-    for (TopLevelVariableElement variable in _topLevelVariables) {
+    int length = _topLevelVariables.length;
+    for (int i = 0; i < length; i++) {
+      TopLevelVariableElement variable = _topLevelVariables[i];
       if (variable.name == variableName) {
         return variable;
       }
@@ -3980,7 +4004,10 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
     // If the element is multiply defined then call this method recursively for
     // each of the conflicting elements.
     if (element is MultiplyDefinedElement) {
-      for (Element elt in element.conflictingElements) {
+      List<Element> conflictingElements = element.conflictingElements;
+      int length = conflictingElements.length;
+      for (int i = 0; i < length; i++) {
+        Element elt = conflictingElements[i];
         _visitIdentifier(identifier, elt);
       }
       return;
@@ -4206,7 +4233,9 @@ class HintGenerator {
 
   void generateForLibrary() {
     PerformanceStatistics.hints.makeCurrentWhile(() {
-      for (CompilationUnit unit in _compilationUnits) {
+      int length = _compilationUnits.length;
+      for (int i = 0; i < length; i++) {
+        CompilationUnit unit = _compilationUnits[i];
         CompilationUnitElement element = unit.element;
         if (element != null) {
           _generateForCompilationUnit(unit, element.source);
@@ -4407,9 +4436,10 @@ class ImportsVerifier {
    *          hints to
    */
   void generateDuplicateImportHints(ErrorReporter errorReporter) {
-    for (ImportDirective duplicateImport in _duplicateImports) {
+    int length = _duplicateImports.length;
+    for (int i = 0; i < length; i++) {
       errorReporter.reportErrorForNode(
-          HintCode.DUPLICATE_IMPORT, duplicateImport.uri);
+          HintCode.DUPLICATE_IMPORT, _duplicateImports[i].uri);
     }
   }
 
@@ -4422,7 +4452,9 @@ class ImportsVerifier {
    *          hints
    */
   void generateUnusedImportHints(ErrorReporter errorReporter) {
-    for (ImportDirective unusedImport in _unusedImports) {
+    int length = _unusedImports.length;
+    for (int i = 0; i < length; i++) {
+      ImportDirective unusedImport = _unusedImports[i];
       // Check that the import isn't dart:core
       ImportElement importElement = unusedImport.element;
       if (importElement != null) {
@@ -4452,7 +4484,9 @@ class ImportsVerifier {
         // This is then an "unused import", rather than unused shown names.
         return;
       }
-      for (Identifier identifier in identifiers) {
+      int length = identifiers.length;
+      for (int i = 0; i < length; i++) {
+        Identifier identifier = identifiers[i];
         reporter.reportErrorForNode(
             HintCode.UNUSED_SHOWN_NAME, identifier, [identifier.name]);
       }
@@ -4472,9 +4506,13 @@ class ImportsVerifier {
         .forEach((PrefixElement prefix, List<Element> elements) {
       List<ImportDirective> importDirectives = _prefixElementMap[prefix];
       if (importDirectives != null) {
-        for (ImportDirective importDirective in importDirectives) {
+        int importLength = importDirectives.length;
+        for (int i = 0; i < importLength; i++) {
+          ImportDirective importDirective = importDirectives[i];
           _unusedImports.remove(importDirective);
-          for (Element element in elements) {
+          int elementLength = elements.length;
+          for (int j = 0; j < elementLength; j++) {
+            Element element = elements[j];
             _removeFromUnusedShownNamesMap(element, importDirective);
           }
         }
@@ -4522,7 +4560,10 @@ class ImportsVerifier {
     if (!visitedLibraries.add(library)) {
       return;
     }
-    for (ExportElement exportElt in library.exports) {
+    List<ExportElement> exports = library.exports;
+    int length = exports.length;
+    for (int i = 0; i < length; i++) {
+      ExportElement exportElt = exports[i];
       LibraryElement exportedLibrary = exportElt.exportedLibrary;
       _putIntoLibraryMap(exportedLibrary, importDirective);
       _addAdditionalLibrariesForExports(
@@ -4597,7 +4638,9 @@ class ImportsVerifier {
     if (identifiers == null) {
       return;
     }
-    for (Identifier identifier in identifiers) {
+    int length = identifiers.length;
+    for (int i = 0; i < length; i++) {
+      Identifier identifier = identifiers[i];
       if (element is PropertyAccessorElement) {
         // If the getter or setter of a variable is used, then the variable (the
         // shown name) is used.
@@ -4821,14 +4864,18 @@ class InferenceContext {
           return true;
         }
 
-        for (final parent in t1.mixins) {
-          if (match(parent, visited)) {
+        List<InterfaceType> mixins = t1.mixins;
+        int mixinLength = mixins.length;
+        for (int i = 0; i < mixinLength; i++) {
+          if (match(mixins[i], visited)) {
             return true;
           }
         }
 
-        for (final parent in t1.interfaces) {
-          if (match(parent, visited)) {
+        List<InterfaceType> interfaces = t1.interfaces;
+        int interfaceLength = interfaces.length;
+        for (int j = 0; j < interfaceLength; j++) {
+          if (match(interfaces[j], visited)) {
             return true;
           }
         }
@@ -4995,7 +5042,14 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
   void _resolveFieldDeclaration(FieldDeclaration node) {
     if (!node.isStatic) {
       for (VariableDeclaration field in node.fields.variables) {
-        field.initializer?.accept(this);
+        if (field.initializer != null) {
+          field.initializer.accept(this);
+          FieldElement fieldElement = field.name.staticElement;
+          if (fieldElement.initializer != null) {
+            (fieldElement.initializer as ExecutableElementImpl).returnType =
+                field.initializer.staticType;
+          }
+        }
       }
     }
   }
@@ -5158,7 +5212,9 @@ class PartialResolverVisitor extends ResolverVisitor {
    * Add all of the [variables] with initializers to [propagableVariables].
    */
   void _addPropagableVariables(List<VariableDeclaration> variables) {
-    for (VariableDeclaration variable in variables) {
+    int length = variables.length;
+    for (int i = 0; i < length; i++) {
+      VariableDeclaration variable = variables[i];
       if (variable.name.name.isNotEmpty && variable.initializer != null) {
         VariableElement element = variable.element;
         if (element.isConst || element.isFinal) {
@@ -5176,7 +5232,9 @@ class PartialResolverVisitor extends ResolverVisitor {
    * refer to a field whose type was inferred.
    */
   void _addStaticVariables(List<VariableDeclaration> variables) {
-    for (VariableDeclaration variable in variables) {
+    int length = variables.length;
+    for (int i = 0; i < length; i++) {
+      VariableDeclaration variable = variables[i];
       if (variable.name.name.isNotEmpty && variable.initializer != null) {
         staticVariables.add(variable.element);
       }
@@ -7388,7 +7446,9 @@ class ResolverVisitor extends ScopedVisitor {
     int unnamedParameterCount = 0;
     List<ParameterElement> unnamedParameters = new List<ParameterElement>();
     HashMap<String, ParameterElement> namedParameters = null;
-    for (ParameterElement parameter in parameters) {
+    int length = parameters.length;
+    for (int i = 0; i < length; i++) {
+      ParameterElement parameter = parameters[i];
       ParameterKind kind = parameter.parameterKind;
       if (kind == ParameterKind.REQUIRED) {
         unnamedParameters.add(parameter);
@@ -7935,9 +7995,11 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
             new CaughtException(new AnalysisException(), null));
       } else {
         nameScope = new EnclosedScope(nameScope);
-        for (TypeParameterElement typeParameter
-            in parameterElement.typeParameters) {
-          nameScope.define(typeParameter);
+        List<TypeParameterElement> typeParameters =
+            parameterElement.typeParameters;
+        int length = typeParameters.length;
+        for (int i = 0; i < length; i++) {
+          nameScope.define(typeParameters[i]);
         }
       }
       super.visitFunctionTypedFormalParameter(node);
@@ -8183,14 +8245,18 @@ class SubtypeManager {
       }
     }
     List<InterfaceType> interfaceTypes = classElement.interfaces;
-    for (InterfaceType interfaceType in interfaceTypes) {
+    int interfaceLength = interfaceTypes.length;
+    for (int i = 0; i < interfaceLength; i++) {
+      InterfaceType interfaceType = interfaceTypes[i];
       ClassElement interfaceElement = interfaceType.element;
       if (interfaceElement != null) {
         _putInSubtypeMap(interfaceElement, classElement);
       }
     }
     List<InterfaceType> mixinTypes = classElement.mixins;
-    for (InterfaceType mixinType in mixinTypes) {
+    int mixinLength = mixinTypes.length;
+    for (int i = 0; i < mixinLength; i++) {
+      InterfaceType mixinType = mixinTypes[i];
       ClassElement mixinElement = mixinType.element;
       if (mixinElement != null) {
         _putInSubtypeMap(mixinElement, classElement);
@@ -8207,7 +8273,9 @@ class SubtypeManager {
    */
   void _computeSubtypesInCompilationUnit(CompilationUnitElement unitElement) {
     List<ClassElement> classElements = unitElement.types;
-    for (ClassElement classElement in classElements) {
+    int length = classElements.length;
+    for (int i = 0; i < length; i++) {
+      ClassElement classElement = classElements[i];
       _computeSubtypesInClass(classElement);
     }
   }
@@ -8227,15 +8295,21 @@ class SubtypeManager {
     _visitedLibraries.add(libraryElement);
     _computeSubtypesInCompilationUnit(libraryElement.definingCompilationUnit);
     List<CompilationUnitElement> parts = libraryElement.parts;
-    for (CompilationUnitElement part in parts) {
+    int partLength = parts.length;
+    for (int i = 0; i < partLength; i++) {
+      CompilationUnitElement part = parts[i];
       _computeSubtypesInCompilationUnit(part);
     }
     List<LibraryElement> imports = libraryElement.importedLibraries;
-    for (LibraryElement importElt in imports) {
+    int importLength = imports.length;
+    for (int i = 0; i < importLength; i++) {
+      LibraryElement importElt = imports[i];
       _computeSubtypesInLibrary(importElt.library);
     }
     List<LibraryElement> exports = libraryElement.exportedLibraries;
-    for (LibraryElement exportElt in exports) {
+    int exportLength = exports.length;
+    for (int i = 0; i < exportLength; i++) {
+      LibraryElement exportElt = exports[i];
       _computeSubtypesInLibrary(exportElt.library);
     }
   }
@@ -8718,7 +8792,9 @@ class TypeNameResolver {
    */
   InterfaceType _getTypeWhenMultiplyDefined(List<Element> elements) {
     InterfaceType type = null;
-    for (Element element in elements) {
+    int length = elements.length;
+    for (int i = 0; i < length; i++) {
+      Element element = elements[i];
       if (element is ClassElement) {
         if (type != null) {
           return null;
@@ -8940,7 +9016,9 @@ class TypeOverrideManager {
    * the branching, then its propagated type is reset to `null`.
    */
   void mergeOverrides(List<Map<VariableElement, DartType>> perBranchOverrides) {
-    for (Map<VariableElement, DartType> branch in perBranchOverrides) {
+    int length = perBranchOverrides.length;
+    for (int i = 0; i < length; i++) {
+      Map<VariableElement, DartType> branch = perBranchOverrides[i];
       branch.forEach((VariableElement variable, DartType branchType) {
         DartType currentType = currentScope.getType(variable);
         if (currentType != branchType) {
@@ -10562,7 +10640,9 @@ class UsedLocalElements {
 
   factory UsedLocalElements.merge(List<UsedLocalElements> parts) {
     UsedLocalElements result = new UsedLocalElements();
-    for (UsedLocalElements part in parts) {
+    int length = parts.length;
+    for (int i = 0; i < length; i++) {
+      UsedLocalElements part = parts[i];
       result.elements.addAll(part.elements);
       result.catchExceptionElements.addAll(part.catchExceptionElements);
       result.catchStackTraceElements.addAll(part.catchStackTraceElements);
@@ -10801,7 +10881,9 @@ class _ConstantVerifier_validateInitializerExpression extends ConstantVisitor {
   @override
   DartObjectImpl visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.staticElement;
-    for (ParameterElement parameterElement in parameterElements) {
+    int length = parameterElements.length;
+    for (int i = 0; i < length; i++) {
+      ParameterElement parameterElement = parameterElements[i];
       if (identical(parameterElement, element) && parameterElement != null) {
         DartType type = parameterElement.type;
         if (type != null) {

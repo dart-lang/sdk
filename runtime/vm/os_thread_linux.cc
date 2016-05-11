@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"  // NOLINT
+
 #if defined(TARGET_OS_LINUX)
 
 #include "vm/os_thread.h"
@@ -13,6 +14,7 @@
 #include <sys/time.h>  // NOLINT
 
 #include "platform/assert.h"
+#include "platform/signal_blocker.h"
 #include "platform/utils.h"
 
 namespace dart {
@@ -85,6 +87,21 @@ class ThreadStartData {
 };
 
 
+// Spawned threads inherit their spawner's signal mask. We sometimes spawn
+// threads for running Dart code from a thread that is blocking SIGPROF.
+// This function explicitly unblocks SIGPROF so the profiler continues to
+// sample this thread.
+static void UnblockSIGPROF() {
+  sigset_t set;
+  sigemptyset(&set);
+  sigaddset(&set, SIGPROF);
+  int r = pthread_sigmask(SIG_UNBLOCK, &set, NULL);
+  USE(r);
+  ASSERT(r == 0);
+  ASSERT(!CHECK_IS_BLOCKING(SIGPROF));
+}
+
+
 // Dispatch to the thread start function provided by the caller. This trampoline
 // is used to ensure that the thread is properly destroyed if the thread just
 // exits.
@@ -101,7 +118,7 @@ static void* ThreadStart(void* data_ptr) {
   if (thread != NULL) {
     OSThread::SetCurrent(thread);
     thread->set_name(name);
-
+    UnblockSIGPROF();
     // Call the supplied thread start function handing it its parameters.
     function(parameter);
   }
@@ -201,17 +218,6 @@ ThreadId OSThread::ThreadIdFromIntPtr(intptr_t id) {
 
 bool OSThread::Compare(ThreadId a, ThreadId b) {
   return pthread_equal(a, b) != 0;
-}
-
-
-void OSThread::GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage) {
-  ASSERT(thread_id == GetCurrentThreadId());
-  ASSERT(cpu_usage != NULL);
-  struct timespec ts;
-  int r = clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
-  ASSERT(r == 0);
-  *cpu_usage = (ts.tv_sec * kNanosecondsPerSecond + ts.tv_nsec) /
-               kNanosecondsPerMicrosecond;
 }
 
 

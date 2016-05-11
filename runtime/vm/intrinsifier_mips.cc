@@ -1682,41 +1682,6 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
 }
 
 
-void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
-  Label fall_through, try_two_byte_string;
-
-  __ lw(T1, Address(SP, 0 * kWordSize));  // Index.
-  __ lw(T0, Address(SP, 1 * kWordSize));  // String.
-
-  // Checks.
-  __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
-  __ bne(CMPRES1, ZR, &fall_through);  // Index is not a Smi.
-  __ lw(T2, FieldAddress(T0, String::length_offset()));  // Range check.
-  // Runtime throws exception.
-  __ BranchUnsignedGreaterEqual(T1, T2, &fall_through);
-  __ LoadClassId(CMPRES1, T0);  // Class ID check.
-  __ BranchNotEqual(
-      CMPRES1, Immediate(kOneByteStringCid), &try_two_byte_string);
-
-  // Grab byte and return.
-  __ SmiUntag(T1);
-  __ addu(T2, T0, T1);
-  __ lbu(V0, FieldAddress(T2, OneByteString::data_offset()));
-  __ Ret();
-  __ delay_slot()->SmiTag(V0);
-
-  __ Bind(&try_two_byte_string);
-  __ BranchNotEqual(CMPRES1, Immediate(kTwoByteStringCid), &fall_through);
-  ASSERT(kSmiTagShift == 1);
-  __ addu(T2, T0, T1);
-  __ lhu(V0, FieldAddress(T2, TwoByteString::data_offset()));
-  __ Ret();
-  __ delay_slot()->SmiTag(V0);
-
-  __ Bind(&fall_through);
-}
-
-
 void GenerateSubstringMatchesSpecialization(Assembler* assembler,
                                             intptr_t receiver_cid,
                                             intptr_t other_cid,

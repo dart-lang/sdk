@@ -56,6 +56,13 @@ class OS {
   // Returns the frequency of the monotonic clock.
   static int64_t GetCurrentMonotonicFrequency();
 
+  // Returns the value of current thread's CPU usage clock in microseconds.
+  // NOTE: This clock will return different values depending on the calling
+  // thread. It is only expected to increase in value as the thread uses
+  // CPU time.
+  // NOTE: This function will return -1 on OSs that are not supported.
+  static int64_t GetCurrentThreadCPUMicros();
+
   // Returns a cleared aligned array of type T with n entries.
   // Alignment must be >= 16 and a power of two.
   template<typename T>

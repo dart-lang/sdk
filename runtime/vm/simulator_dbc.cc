@@ -1129,6 +1129,7 @@ RawObject* Simulator::Call(const Code& code,
 
   {
     BYTECODE(DebugBreak, A);
+#if !defined(PRODUCT)
     {
       const uint32_t original_bc =
           static_cast<uint32_t>(reinterpret_cast<uintptr_t>(
@@ -1141,6 +1142,10 @@ RawObject* Simulator::Call(const Code& code,
       INVOKE_RUNTIME(DRT_BreakpointRuntimeHandler, args)
       DISPATCH_OP(original_bc);
     }
+#else
+    // There should be no debug breaks in product mode.
+    UNREACHABLE();
+#endif
     DISPATCH();
   }
 

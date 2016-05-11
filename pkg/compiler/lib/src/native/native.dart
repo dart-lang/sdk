@@ -38,5 +38,7 @@ bool maybeEnableNative(Compiler compiler, LibraryElement library) {
     return _allowedDartSchemePaths.contains(uri.path);
   }
 
-  return allowedTestLibrary() || allowedDartLibary();
+  return allowedTestLibrary() ||
+      allowedDartLibary() ||
+      compiler.options.allowNativeExtensions;
 }

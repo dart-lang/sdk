@@ -1243,11 +1243,12 @@ NOT_IN_PRODUCT(
   // Pre-register the isolate library so the native class implementations
   // can be hooked up before compiling it.
   Library& isolate_lib =
-      Library::Handle(zone, Library::LookupLibrary(Symbols::DartIsolate()));
+      Library::Handle(zone, Library::LookupLibrary(thread,
+                                                   Symbols::DartIsolate()));
   if (isolate_lib.IsNull()) {
     isolate_lib = Library::NewLibraryHelper(Symbols::DartIsolate(), true);
     isolate_lib.SetLoadRequested();
-    isolate_lib.Register();
+    isolate_lib.Register(thread);
     object_store->set_bootstrap_library(ObjectStore::kIsolate, isolate_lib);
   }
   ASSERT(!isolate_lib.IsNull());
@@ -1365,11 +1366,11 @@ NOT_IN_PRODUCT(
   // Pre-register the mirrors library so we can place the vm class
   // MirrorReference there rather than the core library.
 NOT_IN_PRODUCT(
-  lib = Library::LookupLibrary(Symbols::DartMirrors());
+  lib = Library::LookupLibrary(thread, Symbols::DartMirrors());
   if (lib.IsNull()) {
     lib = Library::NewLibraryHelper(Symbols::DartMirrors(), true);
     lib.SetLoadRequested();
-    lib.Register();
+    lib.Register(thread);
     object_store->set_bootstrap_library(ObjectStore::kMirrors, lib);
   }
   ASSERT(!lib.IsNull());
@@ -1381,11 +1382,11 @@ NOT_IN_PRODUCT(
 
   // Pre-register the collection library so we can place the vm class
   // LinkedHashMap there rather than the core library.
-  lib = Library::LookupLibrary(Symbols::DartCollection());
+  lib = Library::LookupLibrary(thread, Symbols::DartCollection());
   if (lib.IsNull()) {
     lib = Library::NewLibraryHelper(Symbols::DartCollection(), true);
     lib.SetLoadRequested();
-    lib.Register();
+    lib.Register(thread);
     object_store->set_bootstrap_library(ObjectStore::kCollection, lib);
   }
   ASSERT(!lib.IsNull());
@@ -1400,17 +1401,17 @@ NOT_IN_PRODUCT(
 
   // Pre-register the developer library so we can place the vm class
   // UserTag there rather than the core library.
-  lib = Library::LookupLibrary(Symbols::DartDeveloper());
+  lib = Library::LookupLibrary(thread, Symbols::DartDeveloper());
   if (lib.IsNull()) {
     lib = Library::NewLibraryHelper(Symbols::DartDeveloper(), true);
     lib.SetLoadRequested();
-    lib.Register();
+    lib.Register(thread);
     object_store->set_bootstrap_library(ObjectStore::kDeveloper, lib);
   }
   ASSERT(!lib.IsNull());
   ASSERT(lib.raw() == Library::DeveloperLibrary());
 
-  lib = Library::LookupLibrary(Symbols::DartDeveloper());
+  lib = Library::LookupLibrary(thread, Symbols::DartDeveloper());
   ASSERT(!lib.IsNull());
   cls = Class::New<UserTag>();
   RegisterPrivateClass(cls, Symbols::_UserTag(), lib);
@@ -1423,11 +1424,11 @@ NOT_IN_PRODUCT(
 
   // Pre-register the typed_data library so the native class implementations
   // can be hooked up before compiling it.
-  lib = Library::LookupLibrary(Symbols::DartTypedData());
+  lib = Library::LookupLibrary(thread, Symbols::DartTypedData());
   if (lib.IsNull()) {
     lib = Library::NewLibraryHelper(Symbols::DartTypedData(), true);
     lib.SetLoadRequested();
-    lib.Register();
+    lib.Register(thread);
     object_store->set_bootstrap_library(ObjectStore::kTypedData, lib);
   }
   ASSERT(!lib.IsNull());
@@ -1582,7 +1583,7 @@ NOT_IN_PRODUCT(
   MethodRecognizer::InitializeState();
 
   // Adds static const fields (class ids) to the class 'ClassID');
-  lib = Library::LookupLibrary(Symbols::DartInternal());
+  lib = Library::LookupLibrary(thread, Symbols::DartInternal());
   ASSERT(!lib.IsNull());
   cls = lib.LookupClassAllowPrivate(Symbols::ClassID());
   ASSERT(!cls.IsNull());
@@ -3422,14 +3423,16 @@ TokenPosition Class::ComputeEndTokenPos() const {
   if (is_synthesized_class() || IsMixinApplication() || IsTopLevel()) {
     return token_pos();
   }
-  const Script& scr = Script::Handle(script());
+  Zone* zone = Thread::Current()->zone();
+  const Script& scr = Script::Handle(zone, script());
   ASSERT(!scr.IsNull());
-  const TokenStream& tkns = TokenStream::Handle(scr.tokens());
+  const TokenStream& tkns = TokenStream::Handle(zone, scr.tokens());
   if (tkns.IsNull()) {
-    ASSERT(Dart::IsRunningPrecompiledCode());
+    ASSERT(Dart::snapshot_kind() == Snapshot::kAppNoJIT);
     return TokenPosition::kNoSource;
   }
-  TokenStream::Iterator tkit(tkns,
+  TokenStream::Iterator tkit(zone,
+                             tkns,
                              token_pos(),
                              TokenStream::Iterator::kNoNewlines);
   intptr_t level = 0;
@@ -6432,45 +6435,6 @@ bool Function::TestParameterType(
   }
   AbstractType& param_type =
       AbstractType::Handle(ParameterTypeAt(parameter_position));
-
-  // TODO(regis): Remove this debugging code.
-  if (param_type.IsNull()) {
-    THR_Print("*** null param_type ***\n");
-    THR_Print("parameter_position: %" Pd "\n", parameter_position);
-    THR_Print("other_parameter_position: %" Pd "\n", other_parameter_position);
-    String& str = String::Handle();
-    str = QualifiedScrubbedName();
-    THR_Print("function name: %s\n", str.ToCString());
-    str = other.QualifiedScrubbedName();
-    THR_Print("other function name: %s\n", str.ToCString());
-    Class& owner = Class::Handle();
-    owner = Owner();
-    THR_Print("function owner: %s\n", owner.ToCString());
-    owner = other.Owner();
-    THR_Print("other function owner: %s\n", owner.ToCString());
-    THR_Print("other_param_type: %s\n", other_param_type.ToCString());
-    AbstractType& type = AbstractType::Handle();
-    if (parameter_position > 0) {
-      type = ParameterTypeAt(0);
-      THR_Print("receiver type: %s\n",
-                type.IsNull()? "null" : type.ToCString());
-    }
-    THR_Print("has code: %s\n", HasCode() ? "yes" : "no");
-    str = Report::PrependSnippet(Report::kWarning,
-                                 Script::Handle(script()),
-                                 token_pos(),
-                                 Report::AtLocation,
-                                 Symbols::Empty());
-    THR_Print("function source: %s\n", str.ToCString());
-    for (intptr_t i = 0; i < NumParameters(); i++) {
-      THR_Print("function param %" Pd "\n", i);
-      str = ParameterNameAt(i);
-      THR_Print("  name: %s\n", str.IsNull() ? "null" : str.ToCString());
-      type = ParameterTypeAt(i);
-      THR_Print("  type: %s\n", type.IsNull() ? "null" : type.ToCString());
-    }
-  }
-
   if (!param_type.IsInstantiated()) {
     param_type = param_type.InstantiateFrom(type_arguments,
                                             bound_error,
@@ -7077,20 +7041,20 @@ bool Function::HasInstantiatedSignature() const {
 
 
 RawClass* Function::Owner() const {
-  const Object& obj = Object::Handle(raw_ptr()->owner_);
-  if (obj.IsClass()) {
-    return Class::Cast(obj).raw();
+  if (raw_ptr()->owner_->IsClass()) {
+    return Class::RawCast(raw_ptr()->owner_);
   }
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
   ASSERT(obj.IsPatchClass());
   return PatchClass::Cast(obj).patched_class();
 }
 
 
 RawClass* Function::origin() const {
-  const Object& obj = Object::Handle(raw_ptr()->owner_);
-  if (obj.IsClass()) {
-    return Class::Cast(obj).raw();
+  if (raw_ptr()->owner_->IsClass()) {
+    return Class::RawCast(raw_ptr()->owner_);
   }
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
   ASSERT(obj.IsPatchClass());
   return PatchClass::Cast(obj).origin_class();
 }
@@ -7163,15 +7127,16 @@ RawString* Function::GetSource() const {
     // constructor from the mixin to use.
     return String::null();
   }
-  const Script& func_script = Script::Handle(script());
-  const TokenStream& stream = TokenStream::Handle(func_script.tokens());
+  Zone* zone = Thread::Current()->zone();
+  const Script& func_script = Script::Handle(zone, script());
+  const TokenStream& stream = TokenStream::Handle(zone, func_script.tokens());
   if (!func_script.HasSource()) {
     // When source is not available, avoid printing the whole token stream and
     // doing expensive position calculations.
     return stream.GenerateSource(token_pos(), end_token_pos().Next());
   }
 
-  const TokenStream::Iterator tkit(stream, end_token_pos());
+  const TokenStream::Iterator tkit(zone, stream, end_token_pos());
   intptr_t from_line;
   intptr_t from_col;
   intptr_t to_line;
@@ -7188,10 +7153,10 @@ RawString* Function::GetSource() const {
   if ((tkit.CurrentTokenKind() == Token::kCOMMA) ||                   // Case 1.
       (tkit.CurrentTokenKind() == Token::kRPAREN) ||                  // Case 2.
       (tkit.CurrentTokenKind() == Token::kSEMICOLON &&
-       String::Handle(name()).Equals("<anonymous closure>"))) {  // Case 3.
+       String::Handle(zone, name()).Equals("<anonymous closure>"))) {  // Cas 3.
     last_tok_len = 0;
   }
-  const String& result = String::Handle(func_script.GetSnippet(
+  const String& result = String::Handle(zone, func_script.GetSnippet(
       from_line, from_col, to_line, to_col + last_tok_len));
   ASSERT(!result.IsNull());
   return result.raw();
@@ -7202,10 +7167,13 @@ RawString* Function::GetSource() const {
 // arguments.
 int32_t Function::SourceFingerprint() const {
   uint32_t result = 0;
-  TokenStream::Iterator tokens_iterator(TokenStream::Handle(
-      Script::Handle(script()).tokens()), token_pos());
-  Object& obj = Object::Handle();
-  String& literal = String::Handle();
+  Zone* zone = Thread::Current()->zone();
+  TokenStream::Iterator tokens_iterator(
+      zone,
+      TokenStream::Handle(zone, Script::Handle(zone, script()).tokens()),
+      token_pos());
+  Object& obj = Object::Handle(zone);
+  String& literal = String::Handle(zone);
   while (tokens_iterator.CurrentPosition() < end_token_pos()) {
     uint32_t val = 0;
     obj = tokens_iterator.CurrentToken();
@@ -8220,18 +8188,20 @@ RawString* TokenStream::GenerateSource() const {
 
 RawString* TokenStream::GenerateSource(TokenPosition start_pos,
                                        TokenPosition end_pos) const {
-  Iterator iterator(*this, start_pos, Iterator::kAllTokens);
-  const ExternalTypedData& data = ExternalTypedData::Handle(GetStream());
+  Zone* zone = Thread::Current()->zone();
+  Iterator iterator(zone, *this, start_pos, Iterator::kAllTokens);
+  const ExternalTypedData& data = ExternalTypedData::Handle(zone, GetStream());
   const GrowableObjectArray& literals =
-      GrowableObjectArray::Handle(GrowableObjectArray::New(data.Length()));
-  const String& private_key = String::Handle(PrivateKey());
+      GrowableObjectArray::Handle(zone,
+                                  GrowableObjectArray::New(data.Length()));
+  const String& private_key = String::Handle(zone, PrivateKey());
   intptr_t private_len = private_key.Length();
 
   Token::Kind curr = iterator.CurrentTokenKind();
   Token::Kind prev = Token::kILLEGAL;
   // Handles used in the loop.
-  Object& obj = Object::Handle();
-  String& literal = String::Handle();
+  Object& obj = Object::Handle(zone);
+  String& literal = String::Handle(zone);
   // Current indentation level.
   int indent = 0;
 
@@ -8405,7 +8375,11 @@ RawString* TokenStream::GenerateSource(TokenPosition start_pos,
 
 TokenPosition TokenStream::ComputeSourcePosition(
     TokenPosition tok_pos) const {
-  Iterator iterator(*this, TokenPosition::kMinSource, Iterator::kAllTokens);
+  Zone* zone = Thread::Current()->zone();
+  Iterator iterator(zone,
+                    *this,
+                    TokenPosition::kMinSource,
+                    Iterator::kAllTokens);
   TokenPosition src_pos = TokenPosition::kMinSource;
   Token::Kind kind = iterator.CurrentTokenKind();
   while ((iterator.CurrentPosition() < tok_pos) && (kind != Token::kEOS)) {
@@ -8669,15 +8643,16 @@ const char* TokenStream::ToCString() const {
 }
 
 
-TokenStream::Iterator::Iterator(const TokenStream& tokens,
+TokenStream::Iterator::Iterator(Zone* zone,
+                                const TokenStream& tokens,
                                 TokenPosition token_pos,
                                 Iterator::StreamType stream_type)
-    : tokens_(TokenStream::Handle(tokens.raw())),
-      data_(ExternalTypedData::Handle(tokens.GetStream())),
+    : tokens_(TokenStream::Handle(zone, tokens.raw())),
+      data_(ExternalTypedData::Handle(zone, tokens.GetStream())),
       stream_(reinterpret_cast<uint8_t*>(data_.DataAddr(0)), data_.Length()),
-      token_objects_(Array::Handle(
-          GrowableObjectArray::Handle(tokens.TokenObjects()).data())),
-      obj_(Object::Handle()),
+      token_objects_(Array::Handle(zone,
+         GrowableObjectArray::Handle(zone, tokens.TokenObjects()).data())),
+      obj_(Object::Handle(zone)),
       cur_token_pos_(token_pos.Pos()),
       cur_token_kind_(Token::kILLEGAL),
       cur_token_obj_index_(-1),
@@ -8822,7 +8797,7 @@ RawString* Script::Source() const {
 RawString* Script::GenerateSource() const {
   const TokenStream& token_stream = TokenStream::Handle(tokens());
   if (token_stream.IsNull()) {
-    ASSERT(Dart::IsRunningPrecompiledCode());
+    ASSERT(Dart::snapshot_kind() == Snapshot::kAppNoJIT);
     return String::null();
   }
   return token_stream.GenerateSource();
@@ -8840,7 +8815,8 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
   Smi& value = Smi::Handle(zone);
   String& tokenValue = String::Handle(zone);
   ASSERT(!tkns.IsNull());
-  TokenStream::Iterator tkit(tkns,
+  TokenStream::Iterator tkit(zone,
+                             tkns,
                              TokenPosition::kMinSource,
                              TokenStream::Iterator::kAllTokens);
   int current_line = -1;
@@ -8989,9 +8965,10 @@ void Script::GetTokenLocation(TokenPosition token_pos,
                               intptr_t* column,
                               intptr_t* token_len) const {
   ASSERT(line != NULL);
-  const TokenStream& tkns = TokenStream::Handle(tokens());
+  Zone* zone = Thread::Current()->zone();
+  const TokenStream& tkns = TokenStream::Handle(zone, tokens());
   if (tkns.IsNull()) {
-    ASSERT(Dart::IsRunningPrecompiledCode());
+    ASSERT(Dart::snapshot_kind() == Snapshot::kAppNoJIT);
     *line = -1;
     if (column != NULL) {
       *column = -1;
@@ -9002,7 +8979,8 @@ void Script::GetTokenLocation(TokenPosition token_pos,
     return;
   }
   if (column == NULL) {
-    TokenStream::Iterator tkit(tkns,
+    TokenStream::Iterator tkit(zone,
+                               tkns,
                                TokenPosition::kMinSource,
                                TokenStream::Iterator::kAllTokens);
     intptr_t cur_line = line_offset() + 1;
@@ -9015,7 +8993,7 @@ void Script::GetTokenLocation(TokenPosition token_pos,
     }
     *line = cur_line;
   } else {
-    const String& src = String::Handle(Source());
+    const String& src = String::Handle(zone, Source());
     TokenPosition src_pos = tkns.ComputeSourcePosition(token_pos);
     Scanner scanner(src, Symbols::Empty());
     scanner.ScanTo(src_pos);
@@ -9042,12 +9020,14 @@ void Script::TokenRangeAtLine(intptr_t line_number,
                               TokenPosition* last_token_index) const {
   ASSERT(first_token_index != NULL && last_token_index != NULL);
   ASSERT(line_number > 0);
+  Zone* zone = Thread::Current()->zone();
   *first_token_index = TokenPosition::kNoSource;
   *last_token_index = TokenPosition::kNoSource;
-  const TokenStream& tkns = TokenStream::Handle(tokens());
+  const TokenStream& tkns = TokenStream::Handle(zone, tokens());
   line_number -= line_offset();
   if (line_number < 1) line_number = 1;
-  TokenStream::Iterator tkit(tkns,
+  TokenStream::Iterator tkit(zone,
+                             tkns,
                              TokenPosition::kMinSource,
                              TokenStream::Iterator::kAllTokens);
   // Scan through the token stream to the required line.
@@ -9090,7 +9070,7 @@ void Script::TokenRangeAtLine(intptr_t line_number,
 RawString* Script::GetLine(intptr_t line_number, Heap::Space space) const {
   const String& src = String::Handle(Source());
   if (src.IsNull()) {
-    ASSERT(Dart::IsRunningPrecompiledCode());
+    ASSERT(Dart::snapshot_kind() == Snapshot::kAppNoJIT);
     return Symbols::OptimizedOut().raw();
   }
   intptr_t relative_line_number = line_number - line_offset();
@@ -9132,7 +9112,7 @@ RawString* Script::GetSnippet(intptr_t from_line,
                               intptr_t to_column) const {
   const String& src = String::Handle(Source());
   if (src.IsNull()) {
-    ASSERT(Dart::IsRunningPrecompiledCode());
+    ASSERT(Dart::snapshot_kind() == Snapshot::kAppNoJIT);
     return Symbols::OptimizedOut().raw();
   }
   intptr_t length = src.Length();
@@ -10545,19 +10525,21 @@ RawLibrary* Library::New(const String& url) {
 
 
 void Library::InitCoreLibrary(Isolate* isolate) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   const String& core_lib_url = Symbols::DartCore();
   const Library& core_lib =
-      Library::Handle(Library::NewLibraryHelper(core_lib_url, false));
+      Library::Handle(zone, Library::NewLibraryHelper(core_lib_url, false));
   core_lib.SetLoadRequested();
-  core_lib.Register();
+  core_lib.Register(thread);
   isolate->object_store()->set_bootstrap_library(ObjectStore::kCore, core_lib);
   isolate->object_store()->set_root_library(Library::Handle());
 
   // Hook up predefined classes without setting their library pointers. These
   // classes are coming from the VM isolate, and are shared between multiple
   // isolates so setting their library pointers would be wrong.
-  const Class& cls = Class::Handle(Object::dynamic_class());
-  core_lib.AddObject(cls, String::Handle(cls.Name()));
+  const Class& cls = Class::Handle(zone, Object::dynamic_class());
+  core_lib.AddObject(cls, String::Handle(zone, cls.Name()));
 }
 
 
@@ -10583,7 +10565,7 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
   const String& native_flds_lib_name = Symbols::DartNativeWrappersLibName();
   native_flds_lib.SetName(native_flds_lib_name);
   native_flds_lib.SetLoadRequested();
-  native_flds_lib.Register();
+  native_flds_lib.Register(thread);
   native_flds_lib.SetLoadInProgress();
   isolate->object_store()->set_native_wrappers_library(native_flds_lib);
   static const char* const kNativeWrappersClass = "NativeFieldWrapperClass";
@@ -10604,31 +10586,51 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
 }
 
 
+// LibraryLookupSet maps URIs to libraries.
+class LibraryLookupTraits {
+ public:
+  static const char* Name() { return "LibraryLookupTraits"; }
+  static bool ReportStats() { return false; }
+
+  static bool IsMatch(const Object& a, const Object& b) {
+    const String& a_str = String::Cast(a);
+    const String& b_str = String::Cast(b);
+
+    ASSERT(a_str.HasHash() && b_str.HasHash());
+    return a_str.Equals(b_str);
+  }
+
+  static uword Hash(const Object& key) {
+    return String::Cast(key).Hash();
+  }
+
+  static RawObject* NewKey(const String& str) {
+    return str.raw();
+  }
+};
+typedef UnorderedHashMap<LibraryLookupTraits> LibraryLookupMap;
+
+
 // Returns library with given url in current isolate, or NULL.
-RawLibrary* Library::LookupLibrary(const String &url) {
-  Thread* thread = Thread::Current();
+RawLibrary* Library::LookupLibrary(Thread* thread, const String &url) {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  Library& lib = Library::Handle(zone, Library::null());
-  String& lib_url = String::Handle(zone, String::null());
-  GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      zone, isolate->object_store()->libraries());
+  ObjectStore* object_store = isolate->object_store();
 
   // Make sure the URL string has an associated hash code
   // to speed up the repeated equality checks.
   url.Hash();
 
-  intptr_t len = libs.Length();
-  for (intptr_t i = 0; i < len; i++) {
-    lib ^= libs.At(i);
-    lib_url ^= lib.url();
-
-    ASSERT(url.HasHash() && lib_url.HasHash());
-    if (lib_url.Equals(url)) {
-      return lib.raw();
-    }
+  // Use the libraries map to lookup the library by URL.
+  Library& lib = Library::Handle(zone);
+  if (object_store->libraries_map() == Array::null()) {
+    return Library::null();
+  } else {
+    LibraryLookupMap map(object_store->libraries_map());
+    lib ^= map.GetOrNull(url);
+    ASSERT(map.Release().raw() == object_store->libraries_map());
   }
-  return Library::null();
+  return lib.raw();
 }
 
 
@@ -10652,35 +10654,32 @@ bool Library::IsPrivate(const String& name) {
 }
 
 
-bool Library::IsKeyUsed(intptr_t key) {
-  intptr_t lib_key;
-  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      Isolate::Current()->object_store()->libraries());
-  Library& lib = Library::Handle();
-  String& lib_url = String::Handle();
-  for (int i = 0; i < libs.Length(); i++) {
-    lib ^= libs.At(i);
-    lib_url ^= lib.url();
-    lib_key = lib_url.Hash();
-    if (lib_key == key) {
-      return true;
-    }
-  }
-  return false;
-}
-
-
+// Create a private key for this library. It is based on the hash of the
+// library URI and the sequence number of the library to guarantee unique
+// private keys without having to verify.
 void Library::AllocatePrivateKey() const {
-  const String& url = String::Handle(this->url());
-  intptr_t key_value = url.Hash() & kIntptrMax;
-  while ((key_value == 0) || Library::IsKeyUsed(key_value)) {
-    key_value = (key_value + 1) & kIntptrMax;
-  }
-  ASSERT(key_value > 0);
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+
+  // Format of the private key is: "@<sequence number><6 digits of hash>
+  const intptr_t hash_mask = 0x7FFFF;
+
+  const String& url = String::Handle(zone, this->url());
+  intptr_t hash_value = url.Hash() & hash_mask;
+
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(zone,
+      isolate->object_store()->libraries());
+  intptr_t sequence_value = libs.Length();
+
   char private_key[32];
   OS::SNPrint(private_key, sizeof(private_key),
-              "%c%" Pd "", kPrivateKeySeparator, key_value);
-  StorePointer(&raw_ptr()->private_key_, String::New(private_key, Heap::kOld));
+              "%c%" Pd "%06" Pd "",
+              kPrivateKeySeparator, sequence_value, hash_value);
+  const String& key = String::Handle(zone, String::New(private_key,
+                                                       Heap::kOld));
+  key.Hash();  // This string may end up in the VM isolate.
+  StorePointer(&raw_ptr()->private_key_, key.raw());
 }
 
 
@@ -10721,12 +10720,14 @@ RawString* Library::PrivateName(const String& name) const {
 
 
 RawLibrary* Library::GetLibrary(intptr_t index) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(isolate->object_store()->libraries());
+      GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
   ASSERT(!libs.IsNull());
   if ((0 <= index) && (index < libs.Length())) {
-    Library& lib = Library::Handle();
+    Library& lib = Library::Handle(zone);
     lib ^= libs.At(index);
     return lib.raw();
   }
@@ -10734,15 +10735,53 @@ RawLibrary* Library::GetLibrary(intptr_t index) {
 }
 
 
-void Library::Register() const {
-  ASSERT(Library::LookupLibrary(String::Handle(url())) == Library::null());
-  ASSERT(String::Handle(url()).HasHash());
-  ObjectStore* object_store = Isolate::Current()->object_store();
-  GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(object_store->libraries());
+void Library::Register(Thread* thread) const {
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  ObjectStore* object_store = isolate->object_store();
+
+  // A library is "registered" in two places:
+  // - A growable array mapping from index to library.
+  const String& lib_url = String::Handle(zone, url());
+  ASSERT(Library::LookupLibrary(thread, lib_url) == Library::null());
+  ASSERT(lib_url.HasHash());
+  GrowableObjectArray& libs = GrowableObjectArray::Handle(zone,
+      object_store->libraries());
   ASSERT(!libs.IsNull());
   set_index(libs.Length());
   libs.Add(*this);
+
+  // - A map from URL string to library.
+  if (object_store->libraries_map() == Array::null()) {
+    LibraryLookupMap map(HashTables::New<LibraryLookupMap>(16, Heap::kOld));
+    object_store->set_libraries_map(map.Release());
+  }
+
+  LibraryLookupMap map(object_store->libraries_map());
+  bool present = map.UpdateOrInsert(lib_url, *this);
+  ASSERT(!present);
+  object_store->set_libraries_map(map.Release());
+}
+
+
+void Library::RegisterLibraries(Thread* thread,
+                                const GrowableObjectArray& libs) {
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  Library& lib = Library::Handle(zone);
+  String& lib_url = String::Handle(zone);
+
+  LibraryLookupMap map(HashTables::New<LibraryLookupMap>(16, Heap::kOld));
+
+  intptr_t len = libs.Length();
+  for (intptr_t i = 0; i < len; i++) {
+    lib ^= libs.At(i);
+    lib_url = lib.url();
+    map.InsertNewOrGetValue(lib_url, lib);
+  }
+  // Now rememeber these in the isolate's object store.
+  isolate->object_store()->set_libraries(libs);
+  isolate->object_store()->set_libraries_map(map.Release());
 }
 
 
@@ -10981,7 +11020,7 @@ bool LibraryPrefix::LoadLibrary() const {
   }
   ASSERT(is_deferred_load());
   ASSERT(num_imports() == 1);
-  if (Dart::IsRunningPrecompiledCode()) {
+  if (Dart::snapshot_kind() == Snapshot::kAppNoJIT) {
     // The library list was tree-shaken away.
     this->set_is_loaded();
     return true;
@@ -13550,7 +13589,7 @@ RawTypedData* Code::GetDeoptInfoAtPc(uword pc,
   uword code_entry = instrs.EntryPoint();
   const Array& table = Array::Handle(deopt_info_array());
   if (table.IsNull()) {
-    ASSERT(Dart::IsRunningPrecompiledCode());
+    ASSERT(Dart::snapshot_kind() == Snapshot::kAppNoJIT);
     return TypedData::null();
   }
   // Linear search for the PC offset matching the target PC.
@@ -15495,7 +15534,8 @@ intptr_t Instance::ElementSizeFor(intptr_t cid) {
 
 
 intptr_t Instance::DataOffsetFor(intptr_t cid) {
-  if (RawObject::IsExternalTypedDataClassId(cid)) {
+  if (RawObject::IsExternalTypedDataClassId(cid) ||
+      RawObject::IsExternalStringClassId(cid)) {
     // Elements start at offset 0 of the external data.
     return 0;
   }
@@ -15605,15 +15645,6 @@ TokenPosition AbstractType::token_pos() const {
 
 bool AbstractType::IsInstantiated(TrailPtr trail) const {
   // AbstractType is an abstract class.
-#if !defined(PRODUCT)
-  // TODO(srdjan) : Remove temporary code.
-NOT_IN_PRODUCT(
-  Profiler::DumpStackTrace(true);  // Only native stack trace.
-)
-  if (Compiler::IsBackgroundCompilation()) {
-    UNREACHABLE();
-  }
-#endif
   UNREACHABLE();
   return false;
 }
@@ -15964,6 +15995,19 @@ RawString* AbstractType::ClassName() const {
   } else {
     return UnresolvedClass::Handle(unresolved_class()).Name();
   }
+}
+
+
+bool AbstractType::IsDynamicType() const {
+  if (IsCanonical()) {
+    return raw() == Object::dynamic_type().raw();
+  }
+  return HasResolvedTypeClass() && (type_class() == Object::dynamic_class());
+}
+
+
+bool AbstractType::IsVoidType() const {
+    return raw() == Object::void_type().raw();
 }
 
 
@@ -16352,10 +16396,11 @@ bool Type::IsMalformed() const {
   if (raw_ptr()->sig_or_err_.error_ == LanguageError::null()) {
     return false;  // Valid type, but not a function type.
   }
-  const LanguageError& type_error = LanguageError::Handle(error());
-  if (type_error.IsNull()) {
+  if (!raw_ptr()->sig_or_err_.error_->IsLanguageError()) {
     return false;  // Valid function type.
   }
+  const LanguageError& type_error = LanguageError::Handle(error());
+  ASSERT(!type_error.IsNull());
   return type_error.kind() == Report::kMalformedType;
 }
 
@@ -16367,10 +16412,11 @@ bool Type::IsMalbounded() const {
   if (!Isolate::Current()->type_checks()) {
     return false;
   }
-  const LanguageError& type_error = LanguageError::Handle(error());
-  if (type_error.IsNull()) {
+  if (!raw_ptr()->sig_or_err_.error_->IsLanguageError()) {
     return false;  // Valid function type.
   }
+  const LanguageError& type_error = LanguageError::Handle(error());
+  ASSERT(!type_error.IsNull());
   return type_error.kind() == Report::kMalboundedType;
 }
 
@@ -16392,9 +16438,8 @@ bool Type::IsMalformedOrMalbounded() const {
 
 
 RawLanguageError* Type::error() const {
-  const Object& type_error = Object::Handle(raw_ptr()->sig_or_err_.error_);
-  if (type_error.IsLanguageError()) {
-    return LanguageError::RawCast(type_error.raw());
+  if (raw_ptr()->sig_or_err_.error_->IsLanguageError()) {
+    return LanguageError::RawCast(raw_ptr()->sig_or_err_.error_);
   }
   return LanguageError::null();
 }
@@ -16406,14 +16451,14 @@ void Type::set_error(const LanguageError& value) const {
 
 
 RawFunction* Type::signature() const {
-  if (raw_ptr()->sig_or_err_.signature_ == Function::null()) {
+  intptr_t cid = raw_ptr()->sig_or_err_.signature_->GetClassId();
+  if (cid == kNullCid) {
     return Function::null();
   }
-  const Object& obj = Object::Handle(raw_ptr()->sig_or_err_.signature_);
-  if (obj.IsFunction()) {
-    return Function::RawCast(obj.raw());
+  if (cid == kFunctionCid) {
+    return Function::RawCast(raw_ptr()->sig_or_err_.signature_);
   }
-  ASSERT(obj.IsLanguageError());  // Type is malformed or malbounded.
+  ASSERT(cid == kLanguageErrorCid);  // Type is malformed or malbounded.
   return Function::null();
 }
 
@@ -16778,9 +16823,29 @@ RawAbstractType* Type::CloneUninstantiated(const Class& new_owner,
     const LanguageError& bound_error = LanguageError::Handle(zone, error());
     clone.set_error(bound_error);
   }
+  TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
+  bool type_args_cloned = false;
   // Clone the signature if this type represents a function type.
   const Function& fun = Function::Handle(zone, signature());
   if (!fun.IsNull()) {
+    // If the scope class is not a typedef and if it is generic, it must be the
+    // mixin class, set it to the new owner.
+    if (!type_cls.IsTypedefClass() && type_cls.IsGeneric()) {
+      clone.set_type_class(new_owner);
+      AbstractType& decl_type = AbstractType::Handle(zone);
+#ifdef DEBUG
+      decl_type = type_cls.DeclarationType();
+      ASSERT(decl_type.IsFinalized());
+      const TypeArguments& decl_type_args =
+          TypeArguments::Handle(zone, decl_type.arguments());
+      ASSERT(type_args.Equals(decl_type_args));
+#endif  // DEBUG
+      decl_type = new_owner.DeclarationType();
+      ASSERT(decl_type.IsFinalized());
+      type_args = decl_type.arguments();
+      clone.set_arguments(type_args);
+      type_args_cloned = true;
+    }
     Function& fun_clone = Function::Handle(zone,
         Function::NewSignatureFunction(new_owner, TokenPosition::kNoSource));
     AbstractType& type = AbstractType::Handle(zone, fun.result_type());
@@ -16800,13 +16865,14 @@ RawAbstractType* Type::CloneUninstantiated(const Class& new_owner,
     fun_clone.set_parameter_names(Array::Handle(zone, fun.parameter_names()));
     clone.set_signature(fun_clone);
   }
-  TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
-  // Upper bounds of uninstantiated type arguments may form a cycle.
-  if (type_args.IsRecursive() || !type_args.IsInstantiated()) {
-    AddOnlyBuddyToTrail(&trail, clone);
+  if (!type_args_cloned) {
+    // Upper bounds of uninstantiated type arguments may form a cycle.
+    if (type_args.IsRecursive() || !type_args.IsInstantiated()) {
+      AddOnlyBuddyToTrail(&trail, clone);
+    }
+    type_args = type_args.CloneUninstantiated(new_owner, trail);
+    clone.set_arguments(type_args);
   }
-  type_args = type_args.CloneUninstantiated(new_owner, trail);
-  clone.set_arguments(type_args);
   clone.SetIsFinalized();
   return clone.raw();
 }
@@ -16823,7 +16889,15 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
   Isolate* isolate = thread->isolate();
   AbstractType& type = Type::Handle(zone);
   const Class& cls = Class::Handle(zone, type_class());
-  if (cls.raw() == Object::dynamic_class() && (isolate != Dart::vm_isolate())) {
+  // Since void is a keyword, we never have to canonicalize the void type after
+  // it is canonicalized once by the vm isolate. The parser does the mapping.
+  ASSERT((cls.raw() != Object::void_class()) ||
+         (isolate == Dart::vm_isolate()));
+  // Since dynamic is not a keyword, the parser builds a type that requires
+  // canonicalization.
+  if ((cls.raw() == Object::dynamic_class()) &&
+      (isolate != Dart::vm_isolate())) {
+    ASSERT(Object::dynamic_type().IsCanonical());
     return Object::dynamic_type().raw();
   }
   // Fast canonical lookup/registry for simple types.

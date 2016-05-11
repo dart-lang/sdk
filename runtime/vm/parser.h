@@ -850,8 +850,8 @@ class Parser : public ValueObject {
   Isolate* isolate() const { return isolate_; }
   Zone* zone() const { return thread_->zone(); }
 
+  Thread* thread_;  // Cached current thread.
   Isolate* isolate_;  // Cached current isolate.
-  Thread* thread_;
 
   Script& script_;
   TokenStream::Iterator tokens_iterator_;

@@ -332,6 +332,11 @@ class ObjectStore {
     libraries_ = value.raw();
   }
 
+  RawArray* libraries_map() const { return libraries_map_; }
+  void set_libraries_map(const Array& value) {
+    libraries_map_ = value.raw();
+  }
+
   RawGrowableObjectArray* closure_functions() const {
     return closure_functions_;
   }
@@ -548,6 +553,7 @@ class ObjectStore {
   RawLibrary* typed_data_library_;
   RawLibrary* vmservice_library_;
   RawGrowableObjectArray* libraries_;
+  RawArray* libraries_map_;
   RawGrowableObjectArray* closure_functions_;
   RawGrowableObjectArray* pending_classes_;
   RawGrowableObjectArray* pending_deferred_loads_;
@@ -582,6 +588,8 @@ class ObjectStore {
         return to();
       case Snapshot::kScript:
       case Snapshot::kMessage:
+      case Snapshot::kNone:
+      case Snapshot::kInvalid:
         break;
     }
     UNREACHABLE();

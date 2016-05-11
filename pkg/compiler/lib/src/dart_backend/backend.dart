@@ -465,6 +465,11 @@ class DartConstantTask extends ConstantCompilerTask
   ConstantSystem get constantSystem => constantCompiler.constantSystem;
 
   @override
+  bool hasConstantValue(ConstantExpression expression) {
+    return constantCompiler.hasConstantValue(expression);
+  }
+
+  @override
   ConstantValue getConstantValue(ConstantExpression expression) {
     return constantCompiler.getConstantValue(expression);
   }

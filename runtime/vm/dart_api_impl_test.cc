@@ -6799,7 +6799,7 @@ TEST_CASE(ParsePatchLibrary) {
                             kPatchNoClassChars };
   const String& lib_url = String::Handle(String::New("theLibrary"));
 
-  const Library& lib = Library::Handle(Library::LookupLibrary(lib_url));
+  const Library& lib = Library::Handle(Library::LookupLibrary(thread, lib_url));
 
   for (int i = 0; i < 3; i++) {
     const String& patch_url = String::Handle(String::New(patchNames[i]));

@@ -34,6 +34,9 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
   // retained, for instance impacts, resolution data etc.
   bool supportSerialization = false;
 
+  /// If `true`, deserialized data is supported.
+  bool get supportsDeserialization => deserializer != null;
+
   /// Returns the [LibraryElement] for [resolvedUri] if available from
   /// serialization.
   Future<LibraryElement> readLibrary(Uri resolvedUri) {

@@ -387,6 +387,15 @@
         ],
       },
 
+      'ProductSIMDBC': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_simdbc_Base', 'Dart_Product',
+          'Dart_<(dart_target_os)_Base',
+          'Dart_<(dart_target_os)_simdbc_Base',
+          'Dart_<(dart_target_os)_Product',
+        ],
+      },
+
       'DebugSIMDBC64': {
         'inherit_from': [
           'Dart_Base', 'Dart_simdbc_Base', 'Dart_Debug',
@@ -405,6 +414,47 @@
           'Dart_<(dart_target_os)_Base',
           'Dart_<(dart_target_os)_simdbc64_Base',
           'Dart_<(dart_target_os)_Release',
+        ],
+      },
+
+      'ProductSIMDBC64': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_simdbc_Base', 'Dart_Product',
+          'Dart_<(dart_target_os)_Base',
+          'Dart_<(dart_target_os)_simdbc64_Base',
+          'Dart_<(dart_target_os)_Product',
+        ],
+      },
+
+      # Special Linux-only targets to enable SIMDBC cross compilation for
+      # non-Android ARM devices.
+      'DebugXARMSIMDBC': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_simdbc_Base', 'Dart_Debug',
+          'Dart_Linux_Base',
+          'Dart_Linux_xarm_Base',
+          'Dart_Linux_Debug',
+        ],
+        'defines': [
+          'DEBUG',
+        ],
+      },
+
+      'ReleaseXARMSIMDBC': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_simdbc_Base', 'Dart_Release',
+          'Dart_Linux_Base',
+          'Dart_Linux_xarm_Base',
+          'Dart_Linux_Release',
+        ],
+      },
+
+      'ProductXARMSIMDBC': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_simdbc_Base', 'Dart_Product',
+          'Dart_Linux_Base',
+          'Dart_Linux_xarm_Base',
+          'Dart_Linux_Product',
         ],
       },
 

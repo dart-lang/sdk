@@ -294,8 +294,8 @@ profiler/metrics_num_test: Fail # Issue 20309
 mirrors/regress_16321_test/01: MissingCompileTimeError # Issue 16391
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
-async/*deferred*: Skip # Issue 17458
-mirrors/*deferred*: Skip # Issue 17458
+async/*deferred*: Pass,RuntimeError # Issue 17458
+mirrors/*deferred*: Pass,RuntimeError # Issue 17458
 
 [ $compiler == dart2js && $mode == debug ]
 mirrors/native_class_test: Pass, Slow

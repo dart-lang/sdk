@@ -382,7 +382,7 @@ main() {
 }
 ''');
     var f = mainUnit.functions[0].localVariables[0];
-    expect(f.type.toString(), '() → (int) → num');
+    expect(f.type.toString(), '() → (int) → double');
   }
 
   void test_blockBodiedLambdas_nestedLambdas_topLevel() {
@@ -393,7 +393,7 @@ var f = /*info:INFERRED_TYPE_CLOSURE*/() {
 };
 ''');
     var f = mainUnit.topLevelVariables[0];
-    expect(f.type.toString(), '() → (int) → num');
+    expect(f.type.toString(), '() → (int) → double');
   }
 
   void test_blockBodiedLambdas_noReturn() {
@@ -1257,6 +1257,17 @@ class C {
     expect(x.type.toString(), 'int');
   }
 
+  void test_fieldRefersToTopLevelGetter() {
+    var mainUnit = checkFile('''
+class C {
+  final x = y;
+}
+int get y => null;
+''');
+    var x = mainUnit.types[0].fields[0];
+    expect(x.type.toString(), 'int');
+  }
+
   void test_genericMethods_basicDownwardInference() {
     checkFile(r'''
 /*=T*/ f/*<S, T>*/(/*=S*/ s) => null;
@@ -1381,6 +1392,48 @@ main() {
   print(y);
 }
   ''');
+  }
+
+  void test_genericMethods_inferGenericFunctionParameterType() {
+    var mainUnit = checkFile('''
+class C<T> extends D<T> {
+  f/*<U>*/(x) {}
+}
+class D<T> {
+  F/*<U>*/ f/*<U>*/(/*=U*/ u) => null;
+}
+typedef void F<V>(V v);
+''');
+    var f = mainUnit.getType('C').methods[0];
+    expect(f.type.toString(), '<U>(U) → (U) → void');
+  }
+
+  void test_genericMethods_inferGenericFunctionParameterType2() {
+    var mainUnit = checkFile('''
+class C<T> extends D<T> {
+  f/*<U>*/(g) => null;
+}
+abstract class D<T> {
+  void f/*<U>*/(G/*<U>*/ g);
+}
+typedef List<V> G<V>();
+''');
+    var f = mainUnit.getType('C').methods[0];
+    expect(f.type.toString(), '<U>(() → List<U>) → void');
+  }
+
+  void test_genericMethods_inferGenericFunctionReturnType() {
+    var mainUnit = checkFile('''
+class C<T> extends D<T> {
+  f/*<U>*/(x) {}
+}
+class D<T> {
+  F/*<U>*/ f/*<U>*/(/*=U*/ u) => null;
+}
+typedef V F<V>();
+''');
+    var f = mainUnit.getType('C').methods[0];
+    expect(f.type.toString(), '<U>(U) → () → U');
   }
 
   void test_genericMethods_inferGenericInstantiation() {
@@ -1790,6 +1843,56 @@ foo() {
 ''');
   }
 
+  void test_inferedType_usesSyntheticFunctionType() {
+    var mainUnit = checkFile('''
+int f() => null;
+String g() => null;
+var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'List<() → Object>');
+  }
+
+  void test_inferedType_usesSyntheticFunctionType_functionTypedParam() {
+    var mainUnit = checkFile('''
+int f(int x(String y)) => null;
+String g(int x(String y)) => null;
+var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'List<((String) → int) → Object>');
+  }
+
+  void test_inferedType_usesSyntheticFunctionType_namedParam() {
+    var mainUnit = checkFile('''
+int f({int x}) => null;
+String g({int x}) => null;
+var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'List<({x: int}) → Object>');
+  }
+
+  void test_inferedType_usesSyntheticFunctionType_positionalParam() {
+    var mainUnit = checkFile('''
+int f([int x]) => null;
+String g([int x]) => null;
+var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'List<([int]) → Object>');
+  }
+
+  void test_inferedType_usesSyntheticFunctionType_requiredParam() {
+    var mainUnit = checkFile('''
+int f(int x) => null;
+String g(int x) => null;
+var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'List<(int) → Object>');
+  }
+
   void test_inferenceInCyclesIsDeterministic() {
     addFile(
         '''
@@ -2143,12 +2246,99 @@ main() {
   ''');
   }
 
+  void test_inferred_nonstatic_field_depends_on_static_field_complex() {
+    var mainUnit = checkFile('''
+class C {
+  static var x = 'x';
+  var y = /*info:INFERRED_TYPE_LITERAL*/{
+    'a': /*info:INFERRED_TYPE_LITERAL*/{'b': 'c'},
+    'd': /*info:INFERRED_TYPE_LITERAL*/{'e': x}
+  };
+}
+''');
+    var x = mainUnit.getType('C').fields[0];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'String');
+    var y = mainUnit.getType('C').fields[1];
+    expect(y.name, 'y');
+    expect(y.type.toString(), 'Map<String, Map<String, String>>');
+  }
+
+  void test_inferred_nonstatic_field_depends_on_toplevel_var_simple() {
+    var mainUnit = checkFile('''
+var x = 'x';
+class C {
+  var y = x;
+}
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'String');
+    var y = mainUnit.getType('C').fields[0];
+    expect(y.name, 'y');
+    expect(y.type.toString(), 'String');
+  }
+
   void test_inferredInitializingFormalChecksDefaultValue() {
     checkFile('''
 class Foo {
   var x = 1;
   Foo([this.x = /*warning:INVALID_ASSIGNMENT*/"1"]);
 }''');
+  }
+
+  void test_inferredType_blockBodiedClosure_noArguments() {
+    var mainUnit = checkFile('''
+class C {
+  static final v = () {};
+}
+''');
+    var v = mainUnit.getType('C').fields[0];
+    expect(v.type.toString(), '() → dynamic');
+  }
+
+  void test_inferredType_blockClosure_noArgs_noReturn() {
+    var mainUnit = checkFile('''
+var f = () {};
+''');
+    var f = mainUnit.topLevelVariables[0];
+    expect(f.type.toString(), '() → dynamic');
+  }
+
+  void test_inferredType_isEnum() {
+    var mainUnit = checkFile('''
+enum E { v1 }
+final x = E.v1;
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.type.toString(), 'E');
+  }
+
+  void test_inferredType_isEnumValues() {
+    var mainUnit = checkFile('''
+enum E { v1 }
+final x = E.values;
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.type.toString(), 'List<E>');
+  }
+
+  void test_inferredType_isTypedef() {
+    var mainUnit = checkFile('''
+typedef void F();
+final x = <String, F>{};
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.type.toString(), 'Map<String, () → void>');
+  }
+
+  void test_inferredType_isTypedef_parameterized() {
+    var mainUnit = checkFile('''
+typedef T F<T>();
+final x = <String, F<int>>{};
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.type.toString(), 'Map<String, () → int>');
   }
 
   void test_inferStaticsTransitively() {
@@ -2667,6 +2857,22 @@ A v = null;
     expect(unit.topLevelVariables[0].type.toString(), 'A<int>');
   }
 
+  void test_instantiateToBounds_invokeConstructor_noBound() {
+    var unit = checkFile('''
+class C<T> {}
+var x = new C();
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'C<dynamic>');
+  }
+
+  void test_instantiateToBounds_invokeConstructor_typeArgsExact() {
+    var unit = checkFile('''
+class C<T extends num> {}
+var x = new C<int>();
+''');
+    expect(unit.topLevelVariables[0].type.toString(), 'C<int>');
+  }
+
   void test_instantiateToBounds_notGeneric() {
     var unit = checkFile(r'''
 class A {}
@@ -2912,6 +3118,109 @@ void main() {
 ''');
   }
 
+  void test_referenceToFieldOfStaticField() {
+    var mainUnit = checkFile('''
+class C {
+  static D d;
+}
+class D {
+  int i;
+}
+final x = C.d.i;
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.type.toString(), 'int');
+  }
+
+  void test_referenceToFieldOfStaticGetter() {
+    var mainUnit = checkFile('''
+class C {
+  static D get d => null;
+}
+class D {
+  int i;
+}
+final x = C.d.i;
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.type.toString(), 'int');
+  }
+
+  void test_referenceToTypedef() {
+    var mainUnit = checkFile('''
+typedef void F();
+final x = F;
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.type.toString(), 'Type');
+  }
+
+  void test_refineBinaryExpressionType_typeParameter_T_double() {
+    checkFile('''
+class C<T extends num> {
+  T a;
+
+  void op(double b) {
+    double r1 = a + b;
+    double r2 = a - b;
+    double r3 = a * b;
+    double r4 = a / b;
+  }
+}
+  ''');
+  }
+
+  void test_refineBinaryExpressionType_typeParameter_T_int() {
+    checkFile('''
+class C<T extends num> {
+  T a;
+
+  void op(int b) {
+    T r1 = a + b;
+    T r2 = a - b;
+    T r3 = a * b;
+  }
+
+  void opEq(int b) {
+    a += b;
+    a -= b;
+    a *= b;
+  }
+}
+  ''');
+  }
+
+  void test_refineBinaryExpressionType_typeParameter_T_T() {
+    checkFile('''
+class C<T extends num> {
+  T a;
+
+  void op(T b) {
+    T r1 = a + b;
+    T r2 = a - b;
+    T r3 = a * b;
+  }
+
+  void opEq(T b) {
+    a += b;
+    a -= b;
+    a *= b;
+  }
+}
+  ''');
+  }
+
+  void test_staticMethod_tearoff() {
+    var mainUnit = checkFile('''
+const v = C.f;
+class C {
+  static int f(String s) => null;
+}
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), '(String) → int');
+  }
+
   void test_staticRefersToNonStaticField_inOtherLibraryCycle() {
     addFile(
         '''
@@ -2961,6 +3270,42 @@ test() {
   y = "hi";
 }
 ''');
+  }
+
+  void test_typeInferenceDependency_staticVariable_inIdentifierSequence() {
+    // Check that type inference dependencies are properly checked when a static
+    // variable appears in the middle of a string of identifiers separated by
+    // '.'.
+    var mainUnit = checkFile('''
+final a = /*info:DYNAMIC_INVOKE*/C.d.i;
+class C {
+  static final d = new D(a);
+}
+class D {
+  D(_);
+  int i;
+}
+''');
+    // No type should be inferred for a because there is a circular reference
+    // between a and C.d.
+    var a = mainUnit.topLevelVariables[0];
+    expect(a.type.toString(), 'dynamic');
+  }
+
+  void test_typeInferenceDependency_topLevelVariable_inIdentifierSequence() {
+    // Check that type inference dependencies are properly checked when a top
+    // level variable appears at the beginning of a string of identifiers
+    // separated by '.'.
+    var mainUnit = checkFile('''
+final a = /*info:DYNAMIC_INVOKE*/c.i;
+final c = new C(a);
+class C {
+  C(_);
+  int i;
+}
+''');
+    // No type should be inferred for a because there is a circular reference
+    // between a and c.
   }
 }
 

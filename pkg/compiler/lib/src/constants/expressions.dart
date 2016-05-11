@@ -124,6 +124,21 @@ abstract class ConstantExpression {
         'ConstantExpression.toString()');
     return toDartText();
   }
+
+  /// Returns `true` if this expression is implicitly constant, that is, that
+  /// it doesn't declare its constness with the 'const' keyword.
+  ///
+  /// Implicit constants are simple literals, like bool, int and string
+  /// literals, constant references and compositions of implicit constants.
+  /// Explicit constants are constructor constants, and constant map and list
+  /// literals.
+  bool get isImplicit => true;
+
+  /// Returns `true` if this expression is only potentially constant, that is,
+  /// if it contains positional or named references, used to define constant
+  /// constructors.
+  // TODO(johnniwinther): Maybe make this final if we use it outside assertions.
+  bool get isPotential => true;
 }
 
 /// A synthetic constant used to recover from errors.
@@ -183,6 +198,12 @@ class SyntheticConstantExpression extends ConstantExpression {
   }
 
   ConstantExpressionKind get kind => ConstantExpressionKind.SYNTHETIC;
+
+  @override
+  bool get isPotential => false;
+
+  @override
+  bool get isImplicit => false;
 }
 
 /// A boolean, int, double, string, or null constant.
@@ -422,6 +443,12 @@ class ListConstantExpression extends ConstantExpression {
 
   @override
   DartType getKnownType(CoreTypes coreTypes) => type;
+
+  @override
+  bool get isImplicit => false;
+
+  @override
+  bool get isPotential => values.any((e) => e.isPotential);
 }
 
 /// Literal map constant.
@@ -491,6 +518,14 @@ class MapConstantExpression extends ConstantExpression {
 
   @override
   DartType getKnownType(CoreTypes coreTypes) => type;
+
+  @override
+  bool get isImplicit => false;
+
+  @override
+  bool get isPotential {
+    return keys.any((e) => e.isPotential) || values.any((e) => e.isPotential);
+  }
 }
 
 /// Invocation of a const constructor.
@@ -571,6 +606,14 @@ class ConstructedConstantExpression extends ConstantExpression {
     }
     return true;
   }
+
+  @override
+  bool get isImplicit => false;
+
+  @override
+  bool get isPotential {
+    return arguments.any((e) => e.isPotential);
+  }
 }
 
 /// String literal with juxtaposition and/or interpolations.
@@ -650,6 +693,11 @@ class ConcatenateConstantExpression extends ConstantExpression {
 
   @override
   DartType getKnownType(CoreTypes coreTypes) => coreTypes.stringType;
+
+  @override
+  bool get isPotential {
+    return expressions.any((e) => e.isPotential);
+  }
 }
 
 /// Symbol literal.
@@ -895,6 +943,11 @@ class BinaryConstantExpression extends ConstantExpression {
         right == other.right;
   }
 
+  @override
+  bool get isPotential {
+    return left.isPotential || right.isPotential;
+  }
+
   static const Map<BinaryOperatorKind, int> PRECEDENCE_MAP = const {
     BinaryOperatorKind.EQ: 6,
     BinaryOperatorKind.NOT_EQ: 6,
@@ -968,6 +1021,11 @@ class IdenticalConstantExpression extends ConstantExpression {
 
   @override
   DartType getKnownType(CoreTypes coreTypes) => coreTypes.boolType;
+
+  @override
+  bool get isPotential {
+    return left.isPotential || right.isPotential;
+  }
 }
 
 /// A unary constant expression like `-a`.
@@ -1019,6 +1077,11 @@ class UnaryConstantExpression extends ConstantExpression {
   @override
   DartType getKnownType(CoreTypes coreTypes) {
     return expression.getKnownType(coreTypes);
+  }
+
+  @override
+  bool get isPotential {
+    return expression.isPotential;
   }
 
   static const Map<UnaryOperatorKind, int> PRECEDENCE_MAP = const {
@@ -1076,6 +1139,11 @@ class StringLengthConstantExpression extends ConstantExpression {
 
   @override
   DartType getKnownType(CoreTypes coreTypes) => coreTypes.intType;
+
+  @override
+  bool get isPotential {
+    return expression.isPotential;
+  }
 }
 
 /// A constant conditional expression like `a ? b : c`.
@@ -1149,6 +1217,11 @@ class ConditionalConstantExpression extends ConstantExpression {
     }
     return null;
   }
+
+  @override
+  bool get isPotential {
+    return condition.isPotential || trueExp.isPotential || falseExp.isPotential;
+  }
 }
 
 /// A reference to a position parameter.
@@ -1184,6 +1257,11 @@ class PositionalArgumentReference extends ConstantExpression {
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
     throw new UnsupportedError('PositionalArgumentReference.evaluate');
+  }
+
+  @override
+  bool get isPotential {
+    return true;
   }
 }
 
@@ -1221,6 +1299,11 @@ class NamedArgumentReference extends ConstantExpression {
       Environment environment, ConstantSystem constantSystem) {
     throw new UnsupportedError('NamedArgumentReference.evaluate');
   }
+
+  @override
+  bool get isPotential {
+    return true;
+  }
 }
 
 abstract class FromEnvironmentConstantExpression extends ConstantExpression {
@@ -1237,6 +1320,17 @@ abstract class FromEnvironmentConstantExpression extends ConstantExpression {
   @override
   bool _equals(FromEnvironmentConstantExpression other) {
     return name == other.name && defaultValue == other.defaultValue;
+  }
+
+  @override
+  bool get isImplicit {
+    return false;
+  }
+
+  @override
+  bool get isPotential {
+    return name.isPotential ||
+        (defaultValue != null && defaultValue.isPotential);
   }
 }
 
@@ -1470,6 +1564,11 @@ class DeferredConstantExpression extends ConstantExpression {
   @override
   accept(ConstantExpressionVisitor visitor, [context]) {
     return visitor.visitDeferred(this, context);
+  }
+
+  @override
+  bool get isPotential {
+    return expression.isPotential;
   }
 }
 

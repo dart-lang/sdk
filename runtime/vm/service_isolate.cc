@@ -336,6 +336,7 @@ class RunServiceTask : public ThreadPool::Task {
       OS::PrintErr("vm-service: Isolate creation error: %s\n", error);
       ServiceIsolate::SetServiceIsolate(NULL);
       ServiceIsolate::FinishedInitializing();
+      ServiceIsolate::FinishedExiting();
       return;
     }
 
@@ -501,8 +502,9 @@ void ServiceIsolate::Shutdown() {
 
 
 void ServiceIsolate::BootVmServiceLibrary() {
+  Thread* thread = Thread::Current();
   const Library& vmservice_library =
-      Library::Handle(Library::LookupLibrary(Symbols::DartVMService()));
+      Library::Handle(Library::LookupLibrary(thread, Symbols::DartVMService()));
   ASSERT(!vmservice_library.IsNull());
   const String& boot_function_name = String::Handle(String::New("boot"));
   const Function& boot_function =

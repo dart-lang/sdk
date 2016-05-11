@@ -307,41 +307,6 @@ void Symbols::InitOnceFromSnapshot(Isolate* vm_isolate) {
 }
 
 
-void Symbols::AddPredefinedSymbolsToIsolate() {
-  // Should only be run by regular Dart isolates.
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  Zone* zone = thread->zone();
-  ASSERT(isolate != Dart::vm_isolate());
-  String& str = String::Handle(zone);
-
-  SymbolTable table(zone, isolate->object_store()->symbol_table());
-
-  // Set up all the predefined string symbols and create symbols for
-  // language keywords.
-  for (intptr_t i = 1; i < Symbols::kNullCharId; i++) {
-    str = OneByteString::New(names[i], Heap::kOld);
-    str.Hash();
-    str ^= table.InsertOrGet(str);
-    str.SetCanonical();  // Make canonical once entered.
-  }
-
-  // Add Latin1 characters as Symbols, so that Symbols::FromCharCode is fast.
-  for (intptr_t c = 0; c < kNumberOfOneCharCodeSymbols; c++) {
-    intptr_t idx = (kNullCharId + c);
-    ASSERT(idx < kMaxPredefinedId);
-    ASSERT(Utf::IsLatin1(c));
-    uint8_t ch = static_cast<uint8_t>(c);
-    str = OneByteString::New(&ch, 1, Heap::kOld);
-    str.Hash();
-    str ^= table.InsertOrGet(str);
-    str.SetCanonical();  // Make canonical once entered.
-  }
-
-  isolate->object_store()->set_symbol_table(table.Release());
-}
-
-
 void Symbols::SetupSymbolTable(Isolate* isolate) {
   ASSERT(isolate != NULL);
 
@@ -354,48 +319,54 @@ void Symbols::SetupSymbolTable(Isolate* isolate) {
 }
 
 
-intptr_t Symbols::Compact(Isolate* isolate) {
-  ASSERT(isolate != Dart::vm_isolate());
+RawArray* Symbols::UnifiedSymbolTable() {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
 
-  Zone* zone = Thread::Current()->zone();
-  intptr_t initial_size = -1;
-  intptr_t final_size = -1;
+  ASSERT(thread->IsMutatorThread());
+  ASSERT(isolate->background_compiler() == NULL);
 
-  // 1. Build a collection of all the predefined symbols so they are
-  // strongly referenced (the read only handles are not traced).
-  {
-    SymbolTable table(zone, isolate->object_store()->symbol_table());
-    initial_size = table.NumOccupied();
+  SymbolTable vm_table(zone,
+                       Dart::vm_isolate()->object_store()->symbol_table());
+  SymbolTable table(zone, isolate->object_store()->symbol_table());
+  intptr_t unified_size = vm_table.NumOccupied() + table.NumOccupied();
+  SymbolTable unified_table(zone, HashTables::New<SymbolTable>(unified_size,
+                                                               Heap::kOld));
+  String& symbol = String::Handle(zone);
 
-    if (Object::vm_isolate_snapshot_object_table().Length() == 0) {
-      GrowableObjectArray& predefined_symbols = GrowableObjectArray::Handle(
-          GrowableObjectArray::New(kMaxPredefinedId));
-      String& symbol = String::Handle();
-      for (intptr_t i = 1; i < Symbols::kNullCharId; i++) {
-        const unsigned char* name =
-          reinterpret_cast<const unsigned char*>(names[i]);
-        symbol ^= table.GetOrNull(Latin1Array(name, strlen(names[i])));
-        ASSERT(!symbol.IsNull());
-        predefined_symbols.Add(symbol);
-      }
-      for (intptr_t c = 0; c < kNumberOfOneCharCodeSymbols; c++) {
-        intptr_t idx = (kNullCharId + c);
-        ASSERT(idx < kMaxPredefinedId);
-        ASSERT(Utf::IsLatin1(c));
-        uint8_t ch = static_cast<uint8_t>(c);
-        symbol ^= table.GetOrNull(Latin1Array(&ch, 1));
-        ASSERT(!symbol.IsNull());
-        predefined_symbols.Add(symbol);
-      }
-    }
-    table.Release();
+  SymbolTable::Iterator vm_iter(&vm_table);
+  while (vm_iter.MoveNext()) {
+    symbol ^= vm_table.GetKey(vm_iter.Current());
+    ASSERT(!symbol.IsNull());
+    bool present = unified_table.Insert(symbol);
+    ASSERT(!present);
   }
+  vm_table.Release();
 
-  // 2. Knock out the symbol table and do a full garbage collection.
+  SymbolTable::Iterator iter(&table);
+  while (iter.MoveNext()) {
+    symbol ^= table.GetKey(iter.Current());
+    ASSERT(!symbol.IsNull());
+    bool present = unified_table.Insert(symbol);
+    ASSERT(!present);
+  }
+  table.Release();
+
+  return unified_table.Release().raw();
+}
+
+
+#if defined(DART_PRECOMPILER)
+void Symbols::Compact(Isolate* isolate) {
+  ASSERT(isolate != Dart::vm_isolate());
+  Zone* zone = Thread::Current()->zone();
+
+  // 1. Drop the symbol table and do a full garbage collection.
   isolate->object_store()->set_symbol_table(Object::empty_array());
   isolate->heap()->CollectAllGarbage();
 
-  // 3. Walk the heap and build a new table from surviving symbols.
+  // 2. Walk the heap to find surviving symbols.
   GrowableArray<String*> symbols;
   class SymbolCollector : public ObjectVisitor {
    public:
@@ -405,7 +376,7 @@ intptr_t Symbols::Compact(Isolate* isolate) {
           zone_(thread->zone()) {}
 
     void VisitObject(RawObject* obj) {
-      if (obj->IsString() && obj->IsCanonical()) {
+      if (obj->IsCanonical() && obj->IsStringInstance()) {
         symbols_->Add(&String::ZoneHandle(zone_, String::RawCast(obj)));
       }
     }
@@ -418,24 +389,21 @@ intptr_t Symbols::Compact(Isolate* isolate) {
   SymbolCollector visitor(Thread::Current(), &symbols);
   isolate->heap()->IterateObjects(&visitor);
 
-  {
-    Array& array =
-        Array::Handle(HashTables::New<SymbolTable>(symbols.length() * 4 / 3,
-                                                   Heap::kOld));
-    SymbolTable table(zone, array.raw());
-    for (intptr_t i = 0; i < symbols.length(); i++) {
-      String& symbol = *symbols[i];
-      ASSERT(symbol.IsString());
-      ASSERT(symbol.IsCanonical());
-      bool present = table.Insert(symbol);
-      ASSERT(!present);
-    }
-    final_size = table.NumOccupied();
-    isolate->object_store()->set_symbol_table(table.Release());
+  // 3. Build a new table from the surviving symbols.
+  Array& array =
+      Array::Handle(zone, HashTables::New<SymbolTable>(symbols.length() * 4 / 3,
+                                                       Heap::kOld));
+  SymbolTable table(zone, array.raw());
+  for (intptr_t i = 0; i < symbols.length(); i++) {
+    String& symbol = *symbols[i];
+    ASSERT(symbol.IsString());
+    ASSERT(symbol.IsCanonical());
+    bool present = table.Insert(symbol);
+    ASSERT(!present);
   }
-
-  return initial_size - final_size;
+  isolate->object_store()->set_symbol_table(table.Release());
 }
+#endif   // DART_PRECOMPILER
 
 
 void Symbols::GetStats(Isolate* isolate, intptr_t* size, intptr_t* capacity) {
@@ -655,7 +623,6 @@ RawString* Symbols::Lookup(Thread* thread, const StringType& str) {
     symbol ^= table.GetOrNull(str);
     table.Release();
   }
-
   ASSERT(symbol.IsNull() || symbol.IsSymbol());
   ASSERT(symbol.IsNull() || symbol.HasHash());
   return symbol.raw();
@@ -758,7 +725,7 @@ void Symbols::DumpStats() {
 }
 
 
-intptr_t Symbols::LookupVMSymbol(RawObject* obj) {
+intptr_t Symbols::LookupPredefinedSymbol(RawObject* obj) {
   for (intptr_t i = 1; i < Symbols::kMaxPredefinedId; i++) {
     if (symbol_handles_[i]->raw() == obj) {
       return (i + kMaxPredefinedObjectIds);
@@ -768,8 +735,8 @@ intptr_t Symbols::LookupVMSymbol(RawObject* obj) {
 }
 
 
-RawObject* Symbols::GetVMSymbol(intptr_t object_id) {
-  ASSERT(IsVMSymbolId(object_id));
+RawObject* Symbols::GetPredefinedSymbol(intptr_t object_id) {
+  ASSERT(IsPredefinedSymbolId(object_id));
   intptr_t i = (object_id - kMaxPredefinedObjectIds);
   if ((i > kIllegal) && (i < Symbols::kMaxPredefinedId)) {
     return symbol_handles_[i]->raw();

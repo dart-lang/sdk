@@ -67,6 +67,13 @@ const _Dart_kResourceLoad = 3;
 // command line.
 bool _traceLoading = false;
 
+// This is currently a build time flag only. We measure the time from the first
+// load request (opening the receive port) to completing the last load
+// request (closing the receive port). Future, deferred load operations will
+// add to this time.
+bool _timeLoading = false;
+Stopwatch _stopwatch;
+
 // A port for communicating with the service isolate for I/O.
 SendPort _loadPort;
 // The receive port for a load request. Multiple sources can be fetched in
@@ -358,9 +365,10 @@ void _finishLoadRequest(_LoadRequest req) {
   }
 
   if (!_pendingLoads() && (_dataPort != null)) {
+    _stopwatch.stop();
     // Close the _dataPort now that there are no more requests outstanding.
-    if (_traceLoading) {
-      _log("Closing loading port.");
+    if (_traceLoading || _timeLoading) {
+      _log("Closing loading port: ${_stopwatch.elapsedMilliseconds} ms");
     }
     _dataPort.close();
     _dataPort = null;
@@ -408,8 +416,13 @@ void _startLoadRequest(int tag, String uri, Uri resourceUri, context) {
     if (_traceLoading) {
       _log("Initializing load port.");
     }
+    // Allocate the Stopwatch if necessary.
+    if (_stopwatch == null) {
+      _stopwatch = new Stopwatch();
+    }
     assert(_dataPort == null);
     _dataPort = new RawReceivePort(_handleLoaderReply);
+    _stopwatch.start();
   }
   // Register the load request and send it to the VM service isolate.
   var req = new _LoadRequest(tag, uri, resourceUri, context);

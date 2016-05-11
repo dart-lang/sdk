@@ -548,8 +548,7 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
 
   /**
    * If this is an instantiation of a generic type or generic executable, the
-   * type arguments used to instantiate it.  Trailing type arguments of type
-   * `dynamic` are omitted.
+   * type arguments used to instantiate it (if any).
    */
   void set typeArguments(List<EntityRefBuilder> _value) {
     assert(!_finished);
@@ -3538,6 +3537,7 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
   bool _finished = false;
 
   List<UnlinkedConstBuilder> _arguments;
+  List<String> _argumentNames;
   UnlinkedConstBuilder _expression;
   idl.UnlinkedConstructorInitializerKind _kind;
   String _name;
@@ -3552,6 +3552,19 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
   void set arguments(List<UnlinkedConstBuilder> _value) {
     assert(!_finished);
     _arguments = _value;
+  }
+
+  @override
+  List<String> get argumentNames => _argumentNames ??= <String>[];
+
+  /**
+   * If there are `m` [arguments] and `n` [argumentNames], then each argument
+   * from [arguments] with index `i` such that `n + i - m >= 0`, should be used
+   * with the name at `n + i - m`.
+   */
+  void set argumentNames(List<String> _value) {
+    assert(!_finished);
+    _argumentNames = _value;
   }
 
   @override
@@ -3591,8 +3604,9 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
     _name = _value;
   }
 
-  UnlinkedConstructorInitializerBuilder({List<UnlinkedConstBuilder> arguments, UnlinkedConstBuilder expression, idl.UnlinkedConstructorInitializerKind kind, String name})
+  UnlinkedConstructorInitializerBuilder({List<UnlinkedConstBuilder> arguments, List<String> argumentNames, UnlinkedConstBuilder expression, idl.UnlinkedConstructorInitializerKind kind, String name})
     : _arguments = arguments,
+      _argumentNames = argumentNames,
       _expression = expression,
       _kind = kind,
       _name = name;
@@ -3609,10 +3623,14 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
     assert(!_finished);
     _finished = true;
     fb.Offset offset_arguments;
+    fb.Offset offset_argumentNames;
     fb.Offset offset_expression;
     fb.Offset offset_name;
     if (!(_arguments == null || _arguments.isEmpty)) {
       offset_arguments = fbBuilder.writeList(_arguments.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_argumentNames == null || _argumentNames.isEmpty)) {
+      offset_argumentNames = fbBuilder.writeList(_argumentNames.map((b) => fbBuilder.writeString(b)).toList());
     }
     if (_expression != null) {
       offset_expression = _expression.finish(fbBuilder);
@@ -3623,6 +3641,9 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
     fbBuilder.startTable();
     if (offset_arguments != null) {
       fbBuilder.addOffset(3, offset_arguments);
+    }
+    if (offset_argumentNames != null) {
+      fbBuilder.addOffset(4, offset_argumentNames);
     }
     if (offset_expression != null) {
       fbBuilder.addOffset(1, offset_expression);
@@ -3650,6 +3671,7 @@ class _UnlinkedConstructorInitializerImpl extends Object with _UnlinkedConstruct
   _UnlinkedConstructorInitializerImpl(this._bp);
 
   List<idl.UnlinkedConst> _arguments;
+  List<String> _argumentNames;
   idl.UnlinkedConst _expression;
   idl.UnlinkedConstructorInitializerKind _kind;
   String _name;
@@ -3658,6 +3680,12 @@ class _UnlinkedConstructorInitializerImpl extends Object with _UnlinkedConstruct
   List<idl.UnlinkedConst> get arguments {
     _arguments ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 3, const <idl.UnlinkedConst>[]);
     return _arguments;
+  }
+
+  @override
+  List<String> get argumentNames {
+    _argumentNames ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 4, const <String>[]);
+    return _argumentNames;
   }
 
   @override
@@ -3684,6 +3712,7 @@ abstract class _UnlinkedConstructorInitializerMixin implements idl.UnlinkedConst
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (arguments.isNotEmpty) _result["arguments"] = arguments.map((_value) => _value.toJson()).toList();
+    if (argumentNames.isNotEmpty) _result["argumentNames"] = argumentNames;
     if (expression != null) _result["expression"] = expression.toJson();
     if (kind != idl.UnlinkedConstructorInitializerKind.field) _result["kind"] = kind.toString().split('.')[1];
     if (name != '') _result["name"] = name;
@@ -3693,6 +3722,7 @@ abstract class _UnlinkedConstructorInitializerMixin implements idl.UnlinkedConst
   @override
   Map<String, Object> toMap() => {
     "arguments": arguments,
+    "argumentNames": argumentNames,
     "expression": expression,
     "kind": kind,
     "name": name,
@@ -6477,8 +6507,8 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
 
   /**
    * If this [UnlinkedPublicName] is a class, the list of members which can be
-   * referenced from constants or factory redirects - static constant fields,
-   * static methods, and constructors.  Otherwise empty.
+   * referenced statically - static fields, static methods, and constructors.
+   * Otherwise empty.
    *
    * Unnamed constructors are not included since they do not constitute a
    * separate name added to any namespace.

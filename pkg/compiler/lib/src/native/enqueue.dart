@@ -606,11 +606,8 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
    *
    */
   NativeBehavior resolveJsCall(Send node, ForeignResolver resolver) {
-    NativeBehavior behavior = NativeBehavior.ofJsCall(
+    return NativeBehavior.ofJsCall(
         node, reporter, compiler.parsingContext, compiler.coreTypes, resolver);
-    // TODO(johnniwinther): Move registration to the world impact application.
-    registerNativeBehavior(behavior, node);
-    return behavior;
   }
 
   /**
@@ -624,11 +621,8 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
    */
   NativeBehavior resolveJsEmbeddedGlobalCall(
       Send node, ForeignResolver resolver) {
-    NativeBehavior behavior = NativeBehavior.ofJsEmbeddedGlobalCall(
+    return NativeBehavior.ofJsEmbeddedGlobalCall(
         node, reporter, compiler.parsingContext, compiler.coreTypes, resolver);
-    // TODO(johnniwinther): Move registration to the world impact application.
-    registerNativeBehavior(behavior, node);
-    return behavior;
   }
 
   /**
@@ -641,11 +635,8 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
    *
    */
   NativeBehavior resolveJsBuiltinCall(Send node, ForeignResolver resolver) {
-    NativeBehavior behavior = NativeBehavior.ofJsBuiltinCall(
+    return NativeBehavior.ofJsBuiltinCall(
         node, reporter, compiler.parsingContext, compiler.coreTypes, resolver);
-    // TODO(johnniwinther): Move registration to the world impact application.
-    registerNativeBehavior(behavior, node);
-    return behavior;
   }
 }
 

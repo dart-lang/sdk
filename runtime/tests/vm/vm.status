@@ -132,15 +132,13 @@ cc/SourceReport_Coverage_AllFunctions: Skip
 cc/SourceReport_Coverage_ForceCompile: Skip
 cc/SourceReport_Coverage_NestedFunctions: Skip
 cc/SourceReport_Coverage_SimpleCall: Skip
+cc/SourceReport_Coverage_UnusedClass_NoForceCompile: Skip
+cc/SourceReport_Coverage_UnusedClass_ForceCompile: Skip
+cc/SourceReport_Coverage_UnusedClass_ForceCompileError: Skip
 cc/SourceReport_MultipleReports: Skip
 cc/Coverage_Empty: Skip
 cc/Coverage_FilterFunction: Skip
 cc/Coverage_MainWithClass: Skip
-
-# TODO(vegorov) DisassembleToJSONStream requires
-# DecodeLoadObjectFromPoolOrThread which is unimplemented.
-cc/Service_Code: Skip
-cc/PrintJSON: Skip
 
 # TODO(vegorov) These tests don't seem to work if FLAG_interpret_irregexp
 # is switched on by default because they attempt to call regexp functions

@@ -1573,35 +1573,6 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
 }
 
 
-void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
-  Label fall_through, try_two_byte_string;
-  __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
-  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // String.
-  __ testq(RCX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
-  // Range check.
-  __ cmpq(RCX, FieldAddress(RAX, String::length_offset()));
-  // Runtime throws exception.
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
-  __ CompareClassId(RAX, kOneByteStringCid);
-  __ j(NOT_EQUAL, &try_two_byte_string, Assembler::kNearJump);
-  __ SmiUntag(RCX);
-  __ movzxb(RAX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
-  __ SmiTag(RAX);
-  __ ret();
-
-  __ Bind(&try_two_byte_string);
-  __ CompareClassId(RAX, kTwoByteStringCid);
-  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
-  ASSERT(kSmiTagShift == 1);
-  __ movzxw(RAX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
-  __ SmiTag(RAX);
-  __ ret();
-
-  __ Bind(&fall_through);
-}
-
-
 void GenerateSubstringMatchesSpecialization(Assembler* assembler,
                                             intptr_t receiver_cid,
                                             intptr_t other_cid,

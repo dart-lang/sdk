@@ -43,6 +43,12 @@ main() {
 abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   Set<Source> otherLibrarySources = new Set<Source>();
 
+  /**
+   * Names of variables which have initializers that are not valid constants,
+   * so they are not resynthesized.
+   */
+  Set<String> variablesWithNotConstInitializers = new Set<String>();
+
   bool get checkPropagatedTypes => true;
 
   /**
@@ -334,7 +340,11 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       } else if (oItem is ConstructorFieldInitializer &&
           rItem is ConstructorFieldInitializer) {
         compareConstAsts(rItem.fieldName, oItem.fieldName, desc);
-        compareConstAsts(rItem.expression, oItem.expression, desc);
+        if (variablesWithNotConstInitializers.contains(rItem.fieldName.name)) {
+          _assertUnresolvedIdentifier(rItem.expression, desc);
+        } else {
+          compareConstAsts(rItem.expression, oItem.expression, desc);
+        }
       } else if (oItem is SuperConstructorInvocation &&
           rItem is SuperConstructorInvocation) {
         compareElements(rItem.staticElement, oItem.staticElement, desc);
@@ -648,7 +658,13 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     }
     expect(original, isNotNull);
     expect(resynthesized, isNotNull, reason: desc);
-    expect(rImpl.runtimeType, oImpl.runtimeType);
+    if (rImpl is DefaultParameterElementImpl && oImpl is ParameterElementImpl) {
+      // This is ok provided the resynthesized parameter element doesn't have
+      // any evaluation result.
+      expect(rImpl.evaluationResult, isNull);
+    } else {
+      expect(rImpl.runtimeType, oImpl.runtimeType);
+    }
     expect(resynthesized.kind, original.kind);
     expect(resynthesized.location, original.location, reason: desc);
     expect(resynthesized.name, original.name);
@@ -702,27 +718,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
           original.typeParameters[i],
           '$desc type parameter ${original.typeParameters[i].name}');
     }
-    if (original is! Member) {
-      List<FunctionElement> rFunctions = resynthesized.functions;
-      List<FunctionElement> oFunctions = original.functions;
-      expect(rFunctions, hasLength(oFunctions.length));
-      for (int i = 0; i < oFunctions.length; i++) {
-        compareFunctionElements(rFunctions[i], oFunctions[i],
-            '$desc local function ${oFunctions[i].name}');
-      }
-    }
-    if (original is! Member) {
-      List<LabelElement> rLabels = resynthesized.labels;
-      List<LabelElement> oLabels = original.labels;
-      expect(rLabels, hasLength(oLabels.length));
-      for (int i = 0; i < oLabels.length; i++) {
-        compareLabelElements(
-            rLabels[i], oLabels[i], '$desc label ${oLabels[i].name}');
-      }
-    }
-    if (original is! Member) {
-      compareLocalVariableElementLists(resynthesized, original, desc);
-    }
+    compareLocalElementsOfExecutable(resynthesized, original, desc);
   }
 
   void compareExportElements(ExportElementImpl resynthesized,
@@ -800,14 +796,34 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     compareElements(resynthesized, original, desc);
   }
 
-  void compareLocalVariableElementLists(ExecutableElement resynthesized,
+  void compareLocalElementsOfExecutable(ExecutableElement resynthesized,
       ExecutableElement original, String desc) {
-    List<LocalVariableElement> rVariables = resynthesized.localVariables;
-    List<LocalVariableElement> oVariables = original.localVariables;
-    expect(rVariables, hasLength(oVariables.length));
-    for (int i = 0; i < oVariables.length; i++) {
-      compareVariableElements(rVariables[i], oVariables[i],
-          '$desc local variable ${oVariables[i].name}');
+    if (original is! Member) {
+      List<FunctionElement> rFunctions = resynthesized.functions;
+      List<FunctionElement> oFunctions = original.functions;
+      expect(rFunctions, hasLength(oFunctions.length));
+      for (int i = 0; i < oFunctions.length; i++) {
+        compareFunctionElements(rFunctions[i], oFunctions[i],
+            '$desc local function ${oFunctions[i].name}');
+      }
+    }
+    if (original is! Member) {
+      List<LabelElement> rLabels = resynthesized.labels;
+      List<LabelElement> oLabels = original.labels;
+      expect(rLabels, hasLength(oLabels.length));
+      for (int i = 0; i < oLabels.length; i++) {
+        compareLabelElements(
+            rLabels[i], oLabels[i], '$desc label ${oLabels[i].name}');
+      }
+    }
+    if (original is! Member) {
+      List<LocalVariableElement> rVariables = resynthesized.localVariables;
+      List<LocalVariableElement> oVariables = original.localVariables;
+      expect(rVariables, hasLength(oVariables.length));
+      for (int i = 0; i < oVariables.length; i++) {
+        compareVariableElements(rVariables[i], oVariables[i],
+            '$desc local variable ${oVariables[i].name}');
+      }
     }
   }
 
@@ -1078,8 +1094,12 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
             resynthesized.constantValue, original.constantValue, desc);
       } else {
         Expression initializer = resynthesizedActual.constantInitializer;
-        compareConstAsts(initializer, originalActual.constantInitializer,
-            '$desc initializer');
+        if (variablesWithNotConstInitializers.contains(resynthesized.name)) {
+          _assertUnresolvedIdentifier(initializer, desc);
+        } else {
+          compareConstAsts(initializer, originalActual.constantInitializer,
+              '$desc initializer');
+        }
       }
     }
     checkPossibleMember(resynthesized, original, desc);
@@ -1194,6 +1214,12 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   void setUp() {
     super.setUp();
     prepareAnalysisContext(createOptions());
+  }
+
+  void _assertUnresolvedIdentifier(Expression initializer, String desc) {
+    expect(initializer, new isInstanceOf<SimpleIdentifier>(), reason: desc);
+    SimpleIdentifier identifier = initializer;
+    expect(identifier.staticElement, isNull, reason: desc);
   }
 }
 
@@ -1657,6 +1683,7 @@ f() {
   }
 
   test_const_invalid_field_const() {
+    variablesWithNotConstInitializers.add('f');
     checkLibrary(
         r'''
 class C {
@@ -1668,6 +1695,7 @@ int foo() => 42;
   }
 
   test_const_invalid_field_final() {
+    variablesWithNotConstInitializers.add('f');
     checkLibrary(
         r'''
 class C {
@@ -1679,6 +1707,7 @@ int foo() => 42;
   }
 
   test_const_invalid_topLevel() {
+    variablesWithNotConstInitializers.add('v');
     checkLibrary(
         r'''
 const v = 1 + foo();
@@ -2421,6 +2450,7 @@ class C {
   }
 
   test_constructor_initializers_field_notConst() {
+    variablesWithNotConstInitializers.add('x');
     checkLibrary(
         '''
 class C {
@@ -2452,6 +2482,17 @@ class C extends A {
 ''');
   }
 
+  test_constructor_initializers_superInvocation_namedExpression() {
+    checkLibrary('''
+class A {
+  const A.aaa(a, {int b});
+}
+class C extends A {
+  const C() : super.aaa(1, b: 2);
+}
+''');
+  }
+
   test_constructor_initializers_superInvocation_unnamed() {
     checkLibrary('''
 class A {
@@ -2468,6 +2509,15 @@ class C extends A {
 class C {
   const C() : this.named(1, 'bbb');
   const C.named(int a, String b);
+}
+''');
+  }
+
+  test_constructor_initializers_thisInvocation_namedExpression() {
+    checkLibrary('''
+class C {
+  const C() : this.named(1, b: 2);
+  const C.named(a, {int b});
 }
 ''');
   }
@@ -3191,6 +3241,14 @@ Stream s;
     checkLibrary('import "a.dart"; import "b.dart"; C c; D d;');
   }
 
+  void test_inferedType_usesSyntheticFunctionType_functionTypedParam() {
+    checkLibrary('''
+int f(int x(String y)) => null;
+String g(int x(String y)) => null;
+var v = [f, g];
+''');
+  }
+
   test_inferred_function_type_for_variable_in_generic_function() {
     // In the code below, `x` has an inferred type of `() => int`, with 2
     // (unused) type parameters from the enclosing top level function.
@@ -3296,6 +3354,14 @@ f<T>() {
         ' abstract class D<U, V> { Map<V, U> get v; }');
   }
 
+  void test_inferred_type_refers_to_function_typed_param_of_typedef() {
+    checkLibrary('''
+typedef void F(int g(String s));
+h(F f) => null;
+var v = h(/*info:INFERRED_TYPE_CLOSURE*/(y) {});
+''');
+  }
+
   test_inferred_type_refers_to_function_typed_parameter_type_generic_class() {
     checkLibrary('class C<T, U> extends D<U, int> { void f(int x, g) {} }'
         ' abstract class D<V, W> { void f(int x, W g(V s)); }');
@@ -3312,6 +3378,20 @@ f<T>() {
   test_inferred_type_refers_to_method_function_typed_parameter_type() {
     checkLibrary('class C extends D { void f(int x, g) {} }'
         ' abstract class D { void f(int x, int g(String s)); }');
+  }
+
+  test_inferred_type_refers_to_nested_function_typed_param() {
+    checkLibrary('''
+f(void g(int x, void h())) => null;
+var v = f((x, y) {});
+''');
+  }
+
+  test_inferred_type_refers_to_nested_function_typed_param_named() {
+    checkLibrary('''
+f({void g(int x, void h())}) => null;
+var v = f(g: (x, y) {});
+''');
   }
 
   test_inferred_type_refers_to_setter_function_typed_parameter_type() {

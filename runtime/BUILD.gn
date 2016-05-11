@@ -26,6 +26,8 @@ declare_args() {
   # this unspecified results in automatic target architecture detection.
   # Available options are: arm, arm64, mips, x64 and ia32
   dart_target_arch = ""
+
+  dart_experimental_interpreter = false
 }
 
 config("dart_public_config") {
@@ -70,13 +72,19 @@ config("dart_precompiled_runtime_config") {
       print("Debug and release mode are mutually exclusive.")
     }
     assert(!dart_debug)
-    defines += ["DART_PRECOMPILED_RUNTIME"]
+
+    if (!dart_experimental_interpreter) {
+      defines += ["DART_PRECOMPILED_RUNTIME"]
+    }
   } else if (dart_runtime_mode == "profile") {
     if (dart_debug) {
       print("Debug and profile mode are mutually exclusive.")
     }
     assert(!dart_debug)
-    defines += ["DART_PRECOMPILED_RUNTIME"]
+
+    if (!dart_experimental_interpreter) {
+      defines += ["DART_PRECOMPILED_RUNTIME"]
+    }
   }
 }
 
@@ -88,6 +96,10 @@ config("dart_precompiler_config") {
 
 config("dart_config") {
   defines = []
+
+  if (dart_experimental_interpreter) {
+    dart_target_arch = "dbc"
+  }
 
   if (dart_target_arch != "") {
     if (dart_target_arch == "arm") {

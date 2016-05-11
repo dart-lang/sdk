@@ -2544,12 +2544,13 @@ const char* ProfileTrieWalker::CurrentToken() {
     // No function.
     return NULL;
   }
-  const Script& script = Script::Handle(function.script());
+  Zone* zone = Thread::Current()->zone();
+  const Script& script = Script::Handle(zone, function.script());
   if (script.IsNull()) {
     // No script.
     return NULL;
   }
-  const TokenStream& token_stream = TokenStream::Handle(script.tokens());
+  const TokenStream& token_stream = TokenStream::Handle(zone, script.tokens());
   if (token_stream.IsNull()) {
     // No token position.
     return NULL;
@@ -2567,8 +2568,8 @@ const char* ProfileTrieWalker::CurrentToken() {
   if (token_pos.IsSynthetic()) {
     token_pos = token_pos.FromSynthetic();
   }
-  TokenStream::Iterator iterator(token_stream, token_pos);
-  const String& str = String::Handle(iterator.CurrentLiteral());
+  TokenStream::Iterator iterator(zone, token_stream, token_pos);
+  const String& str = String::Handle(zone, iterator.CurrentLiteral());
   if (str.IsNull()) {
     return NULL;
   }

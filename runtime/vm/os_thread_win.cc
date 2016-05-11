@@ -173,38 +173,6 @@ bool OSThread::Compare(ThreadId a, ThreadId b) {
 }
 
 
-void OSThread::GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage) {
-  static const int64_t kTimeEpoc = 116444736000000000LL;
-  static const int64_t kTimeScaler = 10;  // 100 ns to us.
-  // Although win32 uses 64-bit integers for representing timestamps,
-  // these are packed into a FILETIME structure. The FILETIME
-  // structure is just a struct representing a 64-bit integer. The
-  // TimeStamp union allows access to both a FILETIME and an integer
-  // representation of the timestamp. The Windows timestamp is in
-  // 100-nanosecond intervals since January 1, 1601.
-  union TimeStamp {
-    FILETIME ft_;
-    int64_t t_;
-  };
-  ASSERT(cpu_usage != NULL);
-  TimeStamp created;
-  TimeStamp exited;
-  TimeStamp kernel;
-  TimeStamp user;
-  HANDLE handle = OpenThread(THREAD_QUERY_INFORMATION, false, thread_id);
-  BOOL result = GetThreadTimes(handle,
-                               &created.ft_,
-                               &exited.ft_,
-                               &kernel.ft_,
-                               &user.ft_);
-  CloseHandle(handle);
-  if (!result) {
-    FATAL1("GetThreadCpuUsage failed %d\n", GetLastError());
-  }
-  *cpu_usage = (user.t_ - kTimeEpoc) / kTimeScaler;
-}
-
-
 void OSThread::SetThreadLocal(ThreadLocalKey key, uword value) {
   ASSERT(key != kUnsetThreadLocalKey);
   BOOL result = TlsSetValue(key, reinterpret_cast<void*>(value));

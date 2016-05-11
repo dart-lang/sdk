@@ -22,19 +22,35 @@ UnlinkedConstructorInitializer serializeConstructorInitializer(
         name: node.fieldName.name,
         expression: serializeConstExpr(node.expression));
   }
+
+  List<UnlinkedConstBuilder> arguments = <UnlinkedConstBuilder>[];
+  List<String> argumentNames = <String>[];
+  void serializeArguments(List<Expression> args) {
+    for (Expression arg in args) {
+      if (arg is NamedExpression) {
+        NamedExpression namedExpression = arg;
+        argumentNames.add(namedExpression.name.label.name);
+        arg = namedExpression.expression;
+      }
+      arguments.add(serializeConstExpr(arg));
+    }
+  }
+
   if (node is RedirectingConstructorInvocation) {
+    serializeArguments(node.argumentList.arguments);
     return new UnlinkedConstructorInitializerBuilder(
         kind: UnlinkedConstructorInitializerKind.thisInvocation,
         name: node?.constructorName?.name,
-        arguments:
-            node.argumentList.arguments.map(serializeConstExpr).toList());
+        arguments: arguments,
+        argumentNames: argumentNames);
   }
   if (node is SuperConstructorInvocation) {
+    serializeArguments(node.argumentList.arguments);
     return new UnlinkedConstructorInitializerBuilder(
         kind: UnlinkedConstructorInitializerKind.superInvocation,
         name: node?.constructorName?.name,
-        arguments:
-            node.argumentList.arguments.map(serializeConstExpr).toList());
+        arguments: arguments,
+        argumentNames: argumentNames);
   }
   throw new StateError('Unexpected initializer type ${node.runtimeType}');
 }
@@ -45,9 +61,14 @@ UnlinkedConstructorInitializer serializeConstructorInitializer(
  */
 abstract class AbstractConstExprSerializer {
   /**
-   * See [UnlinkedConstBuilder.isInvalid].
+   * See [UnlinkedConstBuilder.isValidConst].
    */
   bool isValidConst = true;
+
+  /**
+   * See [UnlinkedConstBuilder.nmae].
+   */
+  String name = null;
 
   /**
    * See [UnlinkedConstBuilder.operations].
@@ -91,6 +112,11 @@ abstract class AbstractConstExprSerializer {
    */
   void serialize(Expression expr) {
     try {
+      if (expr is NamedExpression) {
+        NamedExpression namedExpression = expr;
+        name = namedExpression.name.label.name;
+        expr = namedExpression.expression;
+      }
       _serialize(expr);
     } on StateError {
       isValidConst = false;
@@ -115,6 +141,18 @@ abstract class AbstractConstExprSerializer {
    * Return [EntityRefBuilder] that corresponds to the given [identifier].
    */
   EntityRefBuilder serializeIdentifier(Identifier identifier);
+
+  /**
+   * Return a pair of ints showing how the given [functionExpression] is nested
+   * within the constant currently being serialized.  The first int indicates
+   * how many levels of function nesting must be popped in order to reach the
+   * parent of the [functionExpression].  The second int is the index of the
+   * [functionExpression] within its parent element.
+   *
+   * If the constant being summarized is in a context where local function
+   * references are not allowed, return `null`.
+   */
+  List<int> serializeFunctionExpression(FunctionExpression functionExpression);
 
   /**
    * Return [EntityRefBuilder] that corresponds to the given [expr], which
@@ -277,8 +315,14 @@ abstract class AbstractConstExprSerializer {
       _serializeCascadeExpression(expr);
     } else if (expr is FunctionExpression) {
       isValidConst = false;
-      // TODO(scheglov) implement
-      operations.add(UnlinkedConstOperation.pushNull);
+      List<int> indices = serializeFunctionExpression(expr);
+      if (indices != null) {
+        ints.addAll(serializeFunctionExpression(expr));
+        operations.add(UnlinkedConstOperation.pushLocalFunctionReference);
+      } else {
+        // Invalid expression; just push null.
+        operations.add(UnlinkedConstOperation.pushNull);
+      }
     } else if (expr is FunctionExpressionInvocation) {
       isValidConst = false;
       // TODO(scheglov) implement
@@ -456,8 +500,8 @@ abstract class AbstractConstExprSerializer {
     ArgumentList argumentList = invocation.argumentList;
     if (_isIdentifierSequence(methodName)) {
       EntityRefBuilder ref = serializeIdentifierSequence(methodName);
-      references.add(ref);
       _serializeArguments(argumentList);
+      references.add(ref);
       operations.add(UnlinkedConstOperation.invokeMethodRef);
     } else {
       if (!invocation.isCascaded) {

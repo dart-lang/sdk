@@ -430,6 +430,29 @@ class AssemblerTest {
         reinterpret_cast<intptr_t>(arg3),
         0, fp_return, fp_args);
   }
+#elif defined(USING_SIMULATOR) && defined(TARGET_ARCH_DBC)
+  template<typename ResultType,
+           typename Arg1Type,
+           typename Arg2Type,
+           typename Arg3Type>
+  ResultType Invoke(Arg1Type arg1, Arg2Type arg2, Arg3Type arg3) {
+    // TODO(fschneider): Support double arguments for simulator calls.
+    COMPILE_ASSERT(is_void<ResultType>::value);
+    COMPILE_ASSERT(!is_double<Arg1Type>::value);
+    COMPILE_ASSERT(!is_double<Arg2Type>::value);
+    COMPILE_ASSERT(!is_double<Arg3Type>::value);
+    const Object& arg1obj = Object::Handle(reinterpret_cast<RawObject*>(arg1));
+    const Object& arg2obj = Object::Handle(reinterpret_cast<RawObject*>(arg2));
+    const Array& argdesc = Array::Handle(ArgumentsDescriptor::New(2));
+    const Array& arguments = Array::Handle(Array::New(2));
+    arguments.SetAt(0, arg1obj);
+    arguments.SetAt(1, arg2obj);
+    Simulator::Current()->Call(
+        code(),
+        argdesc,
+        arguments,
+        reinterpret_cast<Thread*>(arg3));
+  }
 #else
   template<typename ResultType> ResultType InvokeWithCodeAndThread() {
     Thread* thread = Thread::Current();

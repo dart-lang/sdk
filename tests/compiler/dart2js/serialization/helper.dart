@@ -103,11 +103,14 @@ Serializer serialize(
   assert(compiler.serialization.supportSerialization);
 
   Serializer serializer = new Serializer();
-  serializer.plugins.add(compiler.backend.serialization.serializer);
-  serializer.plugins.add(new ResolutionImpactSerializer(compiler.resolution));
+  SerializerPlugin backendSerializer =
+      compiler.backend.serialization.serializer;
+  serializer.plugins.add(backendSerializer);
+  serializer.plugins.add(new ResolutionImpactSerializer(
+      compiler.resolution, backendSerializer));
   if (serializeResolvedAst) {
-    serializer.plugins.add(
-        new ResolvedAstSerializerPlugin(compiler.resolution, compiler.backend));
+    serializer.plugins.add(new ResolvedAstSerializerPlugin(
+        compiler.resolution, backendSerializer));
   }
 
   for (LibraryElement library in libraries) {
@@ -137,28 +140,34 @@ const String WORLD_IMPACT_TAG = 'worldImpact';
 
 class ResolutionImpactSerializer extends SerializerPlugin {
   final Resolution resolution;
+  final SerializerPlugin nativeDataSerializer;
 
-  ResolutionImpactSerializer(this.resolution);
+  ResolutionImpactSerializer(this.resolution, this.nativeDataSerializer);
 
   @override
   void onElement(Element element, ObjectEncoder createEncoder(String tag)) {
     if (resolution.hasBeenResolved(element)) {
       ResolutionImpact impact = resolution.getResolutionImpact(element);
       ObjectEncoder encoder = createEncoder(WORLD_IMPACT_TAG);
-      new ImpactSerializer(element, encoder).serialize(impact);
+      new ImpactSerializer(element, encoder, nativeDataSerializer)
+          .serialize(impact);
     }
   }
 }
 
 class ResolutionImpactDeserializer extends DeserializerPlugin {
   Map<Element, ResolutionImpact> impactMap = <Element, ResolutionImpact>{};
+  final DeserializerPlugin nativeDataDeserializer;
+
+  ResolutionImpactDeserializer(this.nativeDataDeserializer);
 
   @override
   void onElement(Element element, ObjectDecoder getDecoder(String tag)) {
     ObjectDecoder decoder = getDecoder(WORLD_IMPACT_TAG);
     if (decoder != null) {
       impactMap[element] =
-          ImpactDeserializer.deserializeImpact(element, decoder);
+          ImpactDeserializer.deserializeImpact(
+              element, decoder, nativeDataDeserializer);
     }
   }
 }
@@ -167,34 +176,53 @@ class _DeserializerSystem extends DeserializerSystem {
   final Compiler _compiler;
   final Deserializer _deserializer;
   final List<LibraryElement> deserializedLibraries = <LibraryElement>[];
-  final ResolutionImpactDeserializer _resolutionImpactDeserializer =
-      new ResolutionImpactDeserializer();
+  final ResolutionImpactDeserializer _resolutionImpactDeserializer;
   final ResolvedAstDeserializerPlugin _resolvedAstDeserializer;
   final ImpactTransformer _impactTransformer;
-  final bool _deserializeResolvedAst;
+  final bool deserializeResolvedAst;
 
-  _DeserializerSystem(
+  factory _DeserializerSystem(
       Compiler compiler,
+      Deserializer deserializer,
+      ImpactTransformer impactTransformer,
+      {bool deserializeResolvedAst: false}) {
+    List<DeserializerPlugin> plugins = <DeserializerPlugin>[];
+    DeserializerPlugin backendDeserializer =
+        compiler.backend.serialization.deserializer;
+    deserializer.plugins.add(backendDeserializer);
+    ResolutionImpactDeserializer resolutionImpactDeserializer =
+        new ResolutionImpactDeserializer(backendDeserializer);
+    deserializer.plugins.add(resolutionImpactDeserializer);
+    ResolvedAstDeserializerPlugin resolvedAstDeserializer;
+    if (deserializeResolvedAst) {
+      resolvedAstDeserializer = new ResolvedAstDeserializerPlugin(
+          compiler.parsingContext, backendDeserializer);
+      deserializer.plugins.add(resolvedAstDeserializer);
+    }
+    return new _DeserializerSystem._(
+        compiler,
+        deserializer,
+        impactTransformer,
+        resolutionImpactDeserializer,
+        resolvedAstDeserializer,
+        deserializeResolvedAst: deserializeResolvedAst);
+  }
+
+  _DeserializerSystem._(
+      this._compiler,
       this._deserializer,
       this._impactTransformer,
-      {bool deserializeResolvedAst: false})
-      : this._compiler = compiler,
-        this._deserializeResolvedAst = deserializeResolvedAst,
-        this._resolvedAstDeserializer = deserializeResolvedAst
-           ? new ResolvedAstDeserializerPlugin(
-               compiler.parsingContext, compiler.backend) : null {
-    _deserializer.plugins.add(_resolutionImpactDeserializer);
-    if (_deserializeResolvedAst) {
-      _deserializer.plugins.add(_resolvedAstDeserializer);
-    }
-  }
+      this._resolutionImpactDeserializer,
+      this._resolvedAstDeserializer,
+      {this.deserializeResolvedAst: false});
+
 
   @override
   Future<LibraryElement> readLibrary(Uri resolvedUri) {
     LibraryElement library = _deserializer.lookupLibrary(resolvedUri);
     if (library != null) {
       deserializedLibraries.add(library);
-      if (_deserializeResolvedAst) {
+      if (deserializeResolvedAst) {
         return Future.forEach(library.compilationUnits,
             (CompilationUnitElement compilationUnit) {
           ScriptZ script = compilationUnit.script;
@@ -274,9 +302,9 @@ const String RESOLVED_AST_TAG = 'resolvedAst';
 
 class ResolvedAstSerializerPlugin extends SerializerPlugin {
   final Resolution resolution;
-  final Backend backend;
+  final SerializerPlugin nativeDataSerializer;
 
-  ResolvedAstSerializerPlugin(this.resolution, this.backend);
+  ResolvedAstSerializerPlugin(this.resolution, this.nativeDataSerializer);
 
   @override
   void onElement(Element element, ObjectEncoder createEncoder(String tag)) {
@@ -290,14 +318,14 @@ class ResolvedAstSerializerPlugin extends SerializerPlugin {
       new ResolvedAstSerializer(
           objectEncoder,
           resolvedAst,
-          backend.serialization.serializer).serialize();
+          nativeDataSerializer).serialize();
     }
   }
 }
 
 class ResolvedAstDeserializerPlugin extends DeserializerPlugin {
   final ParsingContext parsingContext;
-  final Backend backend;
+  final DeserializerPlugin nativeDataDeserializer;
   final Map<Uri, SourceFile> sourceFiles = <Uri, SourceFile>{};
 
   Map<ExecutableElement, ResolvedAst> _resolvedAstMap =
@@ -306,7 +334,8 @@ class ResolvedAstDeserializerPlugin extends DeserializerPlugin {
       <MemberElement, ObjectDecoder>{};
   Map<Uri, Token> beginTokenMap = <Uri, Token>{};
 
-  ResolvedAstDeserializerPlugin(this.parsingContext, this.backend);
+  ResolvedAstDeserializerPlugin(
+      this.parsingContext, this.nativeDataDeserializer);
 
   bool hasResolvedAst(ExecutableElement element) {
     return _resolvedAstMap.containsKey(element) ||
@@ -320,7 +349,7 @@ class ResolvedAstDeserializerPlugin extends DeserializerPlugin {
       if (decoder != null) {
          ResolvedAstDeserializer.deserialize(
              element.memberContext, decoder, parsingContext, findToken,
-             backend.serialization.deserializer,
+             nativeDataDeserializer,
              _resolvedAstMap);
         _decoderMap.remove(element);
         resolvedAst = _resolvedAstMap[element];

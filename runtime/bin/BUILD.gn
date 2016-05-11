@@ -5,6 +5,7 @@
 
 declare_args() {
   dart_io_support = false
+  dart_boringssl_path = "../../third_party/boringssl"
 }
 
 
@@ -330,7 +331,7 @@ source_set("embedded_dart_io") {
     ]
   } else {
     deps = [
-      "../../third_party/boringssl",
+      rebase_path(dart_boringssl_path, "."),
     ]
   }
 

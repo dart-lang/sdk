@@ -454,7 +454,6 @@ class EmbeddedArray<T, 0> {
   M(PolymorphicInstanceCall)                                                   \
   M(StaticCall)                                                                \
   M(LoadLocal)                                                                 \
-  M(PushTemp)                                                                  \
   M(DropTemps)                                                                 \
   M(StoreLocal)                                                                \
   M(StrictCompare)                                                             \
@@ -515,7 +514,7 @@ class EmbeddedArray<T, 0> {
   M(CheckArrayBound)                                                           \
   M(Constraint)                                                                \
   M(StringToCharCode)                                                          \
-  M(StringFromCharCode)                                                        \
+  M(OneByteStringFromCharCode)                                                 \
   M(StringInterpolate)                                                         \
   M(InvokeMathCFunction)                                                       \
   M(MergedMath)                                                                \
@@ -3368,34 +3367,6 @@ class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
 };
 
 
-class PushTempInstr : public TemplateDefinition<1, NoThrow> {
- public:
-  explicit PushTempInstr(Value* value) {
-    SetInputAt(0, value);
-  }
-
-  DECLARE_INSTRUCTION(PushTemp)
-
-  Value* value() const { return inputs_[0]; }
-
-  virtual CompileType ComputeType() const;
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual EffectSet Effects() const {
-    UNREACHABLE();  // Eliminated by SSA construction.
-    return EffectSet::None();
-  }
-
-  virtual TokenPosition token_pos() const {
-    return TokenPosition::kTempMove;
-  }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(PushTempInstr);
-};
-
-
 class DropTempsInstr : public Definition {
  public:
   DropTempsInstr(intptr_t num_temps, Value* value)
@@ -3958,17 +3929,14 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
 };
 
 
-class StringFromCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class OneByteStringFromCharCodeInstr
+    : public TemplateDefinition<1, NoThrow, Pure> {
  public:
-  StringFromCharCodeInstr(Value* char_code, intptr_t cid) : cid_(cid) {
-    ASSERT(char_code != NULL);
-    ASSERT(char_code->definition()->IsLoadIndexed());
-    ASSERT(char_code->definition()->AsLoadIndexed()->class_id() ==
-           kOneByteStringCid);
+  explicit OneByteStringFromCharCodeInstr(Value* char_code) {
     SetInputAt(0, char_code);
   }
 
-  DECLARE_INSTRUCTION(StringFromCharCode)
+  DECLARE_INSTRUCTION(OneByteStringFromCharCode)
   virtual CompileType ComputeType() const;
 
   Value* char_code() const { return inputs_[0]; }
@@ -3976,13 +3944,11 @@ class StringFromCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsStringFromCharCode()->cid_ == cid_;
+    return true;
   }
 
  private:
-  const intptr_t cid_;
-
-  DISALLOW_COPY_AND_ASSIGN(StringFromCharCodeInstr);
+  DISALLOW_COPY_AND_ASSIGN(OneByteStringFromCharCodeInstr);
 };
 
 

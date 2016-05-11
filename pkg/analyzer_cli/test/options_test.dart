@@ -257,6 +257,12 @@ class CommandLineOptionsTest extends AbstractStatusTest {
     expect(options.buildMode, isTrue);
   }
 
+  test_buildMode_allowsEmptyFileList() {
+    _parse(['--build-mode']);
+    expect(options.buildMode, isTrue);
+    expect(options.sourceFiles, isEmpty);
+  }
+
   test_buildSummaryFallback() {
     _parse([
       '--build-mode',

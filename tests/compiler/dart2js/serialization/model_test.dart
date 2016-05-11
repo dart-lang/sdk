@@ -95,8 +95,6 @@ Future check(
       compilerDeserialized.resolverWorld.instantiatedTypes,
       "Instantiated types mismatch",
       areTypesEquivalent,
-      // TODO(johnniwinther): Ensure that all instantiated types are tracked.
-      failOnUnfound: false,
       verbose: verbose);
 
   checkSets(

@@ -26,6 +26,11 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
   ConstantSystem get constantSystem => dartConstantCompiler.constantSystem;
 
   @override
+  bool hasConstantValue(ConstantExpression expression) {
+    return dartConstantCompiler.hasConstantValue(expression);
+  }
+
+  @override
   ConstantValue getConstantValue(ConstantExpression expression) {
     return dartConstantCompiler.getConstantValue(expression);
   }
@@ -249,7 +254,11 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
   ConstantValue getConstantValue(ConstantExpression expression) {
     assert(invariant(CURRENT_ELEMENT_SPANNABLE, expression != null,
         message: "ConstantExpression is null in getConstantValue."));
-    evaluate(expression);
+    // TODO(johhniwinther): ensure expressions have been evaluated at this
+    // point. This can't be enabled today due to dartbug.com/26406.
+    if (compiler.serialization.supportsDeserialization) {
+      evaluate(expression);
+    }
     ConstantValue value = super.getConstantValue(expression);
     if (value == null &&
         expression != null &&

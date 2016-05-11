@@ -66,7 +66,7 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   }
 
   @override
-  void compareLocalVariableElementLists(ExecutableElement resynthesized,
+  void compareLocalElementsOfExecutable(ExecutableElement resynthesized,
       ExecutableElement original, String desc) {
     // We don't resynthesize local elements during link.
     // So, we should not compare them.
@@ -124,12 +124,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_doesNotInferBottom_sync_topLevel() {
-    super.test_blockBodiedLambdas_doesNotInferBottom_sync_topLevel();
-  }
-
-  @override
-  @failingTest
   void test_blockBodiedLambdas_doesNotInferBottom_syncStar_topLevel() {
     super.test_blockBodiedLambdas_doesNotInferBottom_syncStar_topLevel();
   }
@@ -153,15 +147,9 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   }
 
   @override
-  @failingTest
-  void test_downwardsInferenceOnFunctionOfTUsingTheT() {
-    super.test_downwardsInferenceOnFunctionOfTUsingTheT();
-  }
-
-  @override
-  @failingTest
-  void test_downwardsInferenceOnGenericFunctionExpressions() {
-    super.test_downwardsInferenceOnGenericFunctionExpressions();
+  void test_canInferAlsoFromStaticAndInstanceFieldsFlagOn() {
+    variablesWithNotConstInitializers.add('a2');
+    super.test_canInferAlsoFromStaticAndInstanceFieldsFlagOn();
   }
 
   @override
@@ -523,42 +511,6 @@ var b = a.m();
     super.test_inferenceInCyclesIsDeterministic();
   }
 
-  @override
-  @failingTest
-  void test_instantiateToBounds_generic2_hasBound_definedAfter() {
-    super.test_instantiateToBounds_generic2_hasBound_definedAfter();
-  }
-
-  @override
-  @failingTest
-  void test_instantiateToBounds_generic2_hasBound_definedBefore() {
-    super.test_instantiateToBounds_generic2_hasBound_definedBefore();
-  }
-
-  @override
-  @failingTest
-  void test_instantiateToBounds_generic2_noBound() {
-    super.test_instantiateToBounds_generic2_noBound();
-  }
-
-  @override
-  @failingTest
-  void test_instantiateToBounds_generic_hasBound_definedAfter() {
-    super.test_instantiateToBounds_generic_hasBound_definedAfter();
-  }
-
-  @override
-  @failingTest
-  void test_instantiateToBounds_generic_hasBound_definedBefore() {
-    super.test_instantiateToBounds_generic_hasBound_definedBefore();
-  }
-
-  @override
-  @failingTest
-  void test_instantiateToBounds_notGeneric() {
-    super.test_instantiateToBounds_notGeneric();
-  }
-
   void test_invokeMethod_notGeneric_genericClass() {
     var unit = checkFile(r'''
 class C<T> {
@@ -577,12 +529,6 @@ class C {
 var v = new C().m(1, b: 'bbb', c: 2.0);
   ''');
     expect(unit.topLevelVariables[0].type.toString(), 'int');
-  }
-
-  @override
-  @failingTest
-  void test_nullLiteralShouldNotInferAsBottom() {
-    super.test_nullLiteralShouldNotInferAsBottom();
   }
 
   LibraryElementImpl _checkSource(
@@ -623,12 +569,6 @@ class ResynthesizeAstTest extends ResynthesizeTest
   @failingTest
   void test_inferred_function_type_in_generic_class_constructor() {
     super.test_inferred_function_type_in_generic_class_constructor();
-  }
-
-  @override
-  @failingTest
-  void test_type_reference_to_import_part_in_subdir() {
-    super.test_type_reference_to_import_part_in_subdir();
   }
 }
 

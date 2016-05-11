@@ -449,9 +449,9 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 4) {
   const SubtypeTestCache& cache =
       SubtypeTestCache::CheckedHandle(zone, arguments.ArgAt(3));
   ASSERT(type.IsFinalized());
-  ASSERT(!type.IsDynamicType());  // No need to check assignment.
   ASSERT(!type.IsMalformed());  // Already checked in code generator.
   ASSERT(!type.IsMalbounded());  // Already checked in code generator.
+  ASSERT(!type.IsDynamicType());  // No need to check assignment.
   Error& bound_error = Error::Handle(zone);
   const Bool& result =
       Bool::Get(instance.IsInstanceOf(type,
@@ -495,9 +495,9 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
   const String& dst_name = String::CheckedHandle(zone, arguments.ArgAt(3));
   const SubtypeTestCache& cache =
       SubtypeTestCache::CheckedHandle(zone, arguments.ArgAt(4));
-  ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
   ASSERT(!dst_type.IsMalformed());  // Already checked in code generator.
   ASSERT(!dst_type.IsMalbounded());  // Already checked in code generator.
+  ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
   ASSERT(!src_instance.IsNull());  // Already checked in inlined code.
 
   Error& bound_error = Error::Handle(zone);

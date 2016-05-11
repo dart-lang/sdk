@@ -18,8 +18,10 @@ main(List<String> args) {
   for (String arg in args) {
     PackageBundle bundle =
         new PackageBundle.fromBuffer(new File(arg).readAsBytesSync());
-    collector.visitPackageBundle(bundle);
+    collector.visitPackageBundle(bundle, arg);
   }
+  collector.dumpLibraryIndex();
+  collector.dumpPartIndex();
   collector.dumpCollectedTypes();
 }
 
@@ -32,6 +34,8 @@ class InferredTypeCollector {
   LinkedUnit linkedUnit;
   final Map<String, String> inferredTypes = <String, String>{};
   List<String> typeParamsInScope = <String>[];
+  final Map<String, Set<String>> libraryIndex = <String, Set<String>>{};
+  final Map<String, Set<String>> partIndex = <String, Set<String>>{};
 
   /**
    * If an inferred type exists matching the given [slot], record that it is the
@@ -63,6 +67,11 @@ class InferredTypeCollector {
       properties.remove('initializer');
     } else if (obj is UnlinkedExecutable) {
       collectInferredType(obj.inferredReturnTypeSlot, path);
+      // As a temporary measure, prevent recursion into the executable's local
+      // variables and local functions, since AST-based type inference doesn't
+      // infer locals correctly yet.  TODO(paulberry): fix if necessary.
+      properties.remove('localFunctions');
+      properties.remove('localVariables');
     } else if (obj is UnlinkedParam) {
       collectInferredType(obj.inferredTypeSlot, path);
       // As a temporary measure, prevent recursion into the parameter's
@@ -76,11 +85,44 @@ class InferredTypeCollector {
    * Print out all the inferred types collected so far, in alphabetical order.
    */
   void dumpCollectedTypes() {
+    print('Collected types (${inferredTypes.length}):');
     List<String> paths = inferredTypes.keys.toList();
     paths.sort();
     for (String path in paths) {
       print('$path -> ${inferredTypes[path]}');
     }
+  }
+
+  /**
+   * Print out an index mapping library names to the summary files containing
+   * them.
+   */
+  void dumpLibraryIndex() {
+    print('Library index:');
+    List<String> libraryNames = libraryIndex.keys.toList();
+    libraryNames.sort();
+    for (String libraryName in libraryNames) {
+      List<String> summaryFiles = libraryIndex[libraryName].toList();
+      summaryFiles.sort();
+      print('$libraryName -> ${summaryFiles.join(', ')}');
+    }
+    print('');
+  }
+
+  /**
+   * Print out an index mapping part file names to the summary files containing
+   * them.
+   */
+  void dumpPartIndex() {
+    print('Part index:');
+    List<String> partNames = partIndex.keys.toList();
+    partNames.sort();
+    for (String partName in partNames) {
+      List<String> summaryFiles = partIndex[partName].toList();
+      summaryFiles.sort();
+      print('$partName -> ${summaryFiles.join(', ')}');
+    }
+    print('');
   }
 
   /**
@@ -173,14 +215,29 @@ class InferredTypeCollector {
           typeParamsInScope.length - entityRef.paramReference];
     }
     String result = formatReference(entityRef.reference, typeOf: true);
-    if (entityRef.typeArguments.isNotEmpty) {
-      result += '<${entityRef.typeArguments.map(formatType).join(', ')}>';
+    List<EntityRef> typeArguments = entityRef.typeArguments.toList();
+    while (typeArguments.isNotEmpty && isDynamic(typeArguments.last)) {
+      typeArguments.removeLast();
+    }
+    if (typeArguments.isNotEmpty) {
+      result += '<${typeArguments.map(formatType).join(', ')}>';
     }
     if (implicitFunctionTypeIndices.isNotEmpty) {
       result =
           'parameterOf($result, ${implicitFunctionTypeIndices.join(', ')})';
     }
     return result;
+  }
+
+  /**
+   * Determine if the given [entityRef] represents the pseudo-type `dynamic`.
+   */
+  bool isDynamic(EntityRef entityRef) {
+    if (entityRef.syntheticReturnType != null ||
+        entityRef.paramReference != 0) {
+      return false;
+    }
+    return formatReference(entityRef.reference, typeOf: true) == 'dynamic';
   }
 
   /**
@@ -223,14 +280,18 @@ class InferredTypeCollector {
   /**
    * Collect all the inferred types contained in [bundle].
    */
-  void visitPackageBundle(PackageBundle bundle) {
+  void visitPackageBundle(PackageBundle bundle, String summaryPath) {
     Map<String, LinkedLibrary> linkedLibraries = <String, LinkedLibrary>{};
     Map<String, UnlinkedUnit> unlinkedUnits = <String, UnlinkedUnit>{};
     for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
       linkedLibraries[bundle.linkedLibraryUris[i]] = bundle.linkedLibraries[i];
     }
     for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
-      unlinkedUnits[bundle.unlinkedUnitUris[i]] = bundle.unlinkedUnits[i];
+      String unitUriString = bundle.unlinkedUnitUris[i];
+      partIndex
+          .putIfAbsent(unitUriString, () => new Set<String>())
+          .add(summaryPath);
+      unlinkedUnits[unitUriString] = bundle.unlinkedUnits[i];
     }
     // Figure out which unlinked units are a part of another library so we won't
     // visit them redundantly.
@@ -248,6 +309,9 @@ class InferredTypeCollector {
       if (partOfUris.contains(libraryUriString)) {
         return;
       }
+      libraryIndex
+          .putIfAbsent(libraryUriString, () => new Set<String>())
+          .add(summaryPath);
       Uri libraryUri = Uri.parse(libraryUriString);
       UnlinkedUnit definingUnlinkedUnit = unlinkedUnits[libraryUriString];
       if (definingUnlinkedUnit != null) {

@@ -464,12 +464,37 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitForStatement(ForStatement node) {
-    optype.includeReturnValueSuggestions = true;
-    optype.includeTypeNameSuggestions = true;
-    optype.includeVoidReturnSuggestions = true;
-    // TODO (danrubel) void return suggestions only belong after
-    // the 2nd semicolon.  Return value suggestions only belong after the
-    // first or second semicolon.
+    var entity = this.entity;
+    if (_isEntityPrevTokenSynthetic()) {
+      // Actual: for (var v i^)
+      // Parsed: for (var i; i^;)
+    } else if (entity is Token &&
+        entity.isSynthetic &&
+        node.leftSeparator == entity) {
+      // Actual: for (String ^)
+      // Parsed: for (String; ;)
+      //                    ^
+      optype.includeVarNameSuggestions = true;
+    } else {
+      // for (^) {}
+      // for (Str^ str = null;) {}
+      // In theory it is possible to specify any expression in initializer,
+      // but for any practical use we need only types.
+      if (entity == node.initialization || entity == node.variables) {
+        optype.includeTypeNameSuggestions = true;
+      }
+      // for (; ^) {}
+      if (entity == node.condition) {
+        optype.includeTypeNameSuggestions = true;
+        optype.includeReturnValueSuggestions = true;
+      }
+      // for (; ; ^) {}
+      if (node.updaters.contains(entity)) {
+        optype.includeTypeNameSuggestions = true;
+        optype.includeReturnValueSuggestions = true;
+        optype.includeVoidReturnSuggestions = true;
+      }
+    }
   }
 
   @override
@@ -496,7 +521,10 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitIfStatement(IfStatement node) {
-    if (identical(entity, node.condition)) {
+    if (_isEntityPrevTokenSynthetic()) {
+      // Actual: if (var v i^)
+      // Parsed: if (v) i^;
+    } else if (identical(entity, node.condition)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     } else if (identical(entity, node.thenStatement) ||
@@ -765,6 +793,16 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    if (entity is Token) {
+      Token token = entity;
+      if (token.isSynthetic || token.lexeme == ';') {
+        optype.includeVarNameSuggestions = true;
+      }
+    }
+  }
+
+  @override
   void visitTypeArgumentList(TypeArgumentList node) {
     NodeList<TypeName> arguments = node.arguments;
     for (TypeName typeName in arguments) {
@@ -817,16 +855,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-   if (entity is Token) {
-     Token token = entity;
-     if (token.isSynthetic || token.lexeme == ';') {
-       optype.includeVarNameSuggestions = true;
-     }
-   }
-  }
-
-  @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {}
 
   @override
@@ -835,5 +863,21 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
+  }
+
+  bool _isEntityPrevToken(TokenType expectedType) {
+    Object entity = this.entity;
+    if (entity is SimpleIdentifier && entity.token.isSynthetic) {
+      return entity.token.previous.type == expectedType;
+    }
+    return false;
+  }
+
+  bool _isEntityPrevTokenSynthetic() {
+    Object entity = this.entity;
+    if (entity is AstNode && entity.beginToken.previous?.isSynthetic ?? false) {
+      return true;
+    }
+    return false;
   }
 }

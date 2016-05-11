@@ -56,7 +56,7 @@ def BuildOptions():
   result.add_option("-a", "--arch",
       help='Target architectures (comma-separated).',
       metavar='[all,ia32,x64,simarm,arm,simarmv6,armv6,simarmv5te,armv5te,'
-              'simmips,mips,simarm64,arm64,simdbc,]',
+              'simmips,mips,simarm64,arm64,simdbc,armsimdbc]',
       default=utils.GuessArchitecture())
   result.add_option("--os",
     help='Target OSs (comma-separated).',
@@ -88,7 +88,7 @@ def ProcessOsOption(os_name):
 
 def ProcessOptions(options, args):
   if options.arch == 'all':
-    options.arch = 'ia32,x64,simarm,simmips,simarm64'
+    options.arch = 'ia32,x64,simarm,simarm64,simmips,simdbc'
   if options.mode == 'all':
     options.mode = 'debug,release,product'
   if options.os == 'all':
@@ -103,7 +103,7 @@ def ProcessOptions(options, args):
   for arch in options.arch:
     archs = ['ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6',
              'simarmv5te', 'armv5te', 'simmips', 'mips', 'simarm64', 'arm64',
-             'simdbc', 'simdbc64']
+             'simdbc', 'simdbc64', 'armsimdbc']
     if not arch in archs:
       print "Unknown arch %s" % arch
       return False
@@ -154,7 +154,7 @@ def GetToolchainPrefix(target_os, arch, options):
                     'supported on Linux.')
 
   # For ARM Linux, by default use the Linux distribution's cross-compiler.
-  if arch == 'arm':
+  if arch == 'arm' or arch == 'armsimdbc':
     # To use a non-hf compiler, specify on the command line with --toolchain.
     return (DEFAULT_ARM_CROSS_COMPILER_PATH + "/arm-linux-gnueabihf")
   if arch == 'arm64':

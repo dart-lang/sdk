@@ -59,8 +59,14 @@ int _getTraceClock() {
 int _clockValue = 0;
 
 @patch
+int _getThreadCpuClock() {
+  return -1;
+}
+
+
+@patch
 void _reportCompleteEvent(int start,
-                          int end,
+                          int startCpu,
                           String category,
                           String name,
                           String argumentsAsJson) {

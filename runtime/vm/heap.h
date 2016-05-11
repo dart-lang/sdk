@@ -22,6 +22,7 @@ class Isolate;
 class ObjectPointerVisitor;
 class ObjectSet;
 class ServiceEvent;
+class TimelineEventScope;
 class VirtualMemory;
 
 class Heap {
@@ -327,6 +328,7 @@ class Heap {
   void PrintStats();
   void UpdateClassHeapStatsBeforeGC(Heap::Space space);
   void UpdatePretenurePolicy();
+  void PrintStatsToTimeline(TimelineEventScope* event);
 
   // Updates gc in progress flags.
   bool BeginNewSpaceGC(Thread* thread);

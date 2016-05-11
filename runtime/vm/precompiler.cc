@@ -54,6 +54,7 @@ DEFINE_FLAG(bool, print_unique_targets, false, "Print unique dynaic targets");
 DEFINE_FLAG(bool, trace_precompiler, false, "Trace precompiler.");
 DEFINE_FLAG(int, max_speculative_inlining_attempts, 1,
     "Max number of attempts with speculative inlining (precompilation only)");
+DEFINE_FLAG(int, precompiler_rounds, 1, "Number of precompiler iterations");
 
 DECLARE_FLAG(bool, allocation_sinking);
 DECLARE_FLAG(bool, common_subexpression_elimination);
@@ -168,8 +169,7 @@ void Precompiler::DoCompileAll(
     // because their class hasn't been finalized yet.
     FinalizeAllClasses();
 
-    const intptr_t kPrecompilerRounds = 1;
-    for (intptr_t round = 0; round < kPrecompilerRounds; round++) {
+    for (intptr_t round = 0; round < FLAG_precompiler_rounds; round++) {
       if (FLAG_trace_precompiler) {
         THR_Print("Precompiler round %" Pd "\n", round);
       }
@@ -229,16 +229,24 @@ void Precompiler::DoCompileAll(
     zone_ = NULL;
   }
 
-  intptr_t dropped_symbols_count = Symbols::Compact(I);
+  intptr_t symbols_before = -1;
+  intptr_t symbols_after = -1;
+  intptr_t capacity = -1;
+  if (FLAG_trace_precompiler) {
+    Symbols::GetStats(I, &symbols_before, &capacity);
+  }
+
+  Symbols::Compact(I);
 
   if (FLAG_trace_precompiler) {
+    Symbols::GetStats(I, &symbols_after, &capacity);
     THR_Print("Precompiled %" Pd " functions,", function_count_);
     THR_Print(" %" Pd " dynamic types,", class_count_);
     THR_Print(" %" Pd " dynamic selectors.\n", selector_count_);
 
     THR_Print("Dropped %" Pd " functions,", dropped_function_count_);
     THR_Print(" %" Pd " fields,", dropped_field_count_);
-    THR_Print(" %" Pd " symbols,", dropped_symbols_count);
+    THR_Print(" %" Pd " symbols,", symbols_before - symbols_after);
     THR_Print(" %" Pd " types,", dropped_type_count_);
     THR_Print(" %" Pd " type arguments,", dropped_typearg_count_);
     THR_Print(" %" Pd " classes,", dropped_class_count_);
@@ -354,7 +362,7 @@ void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
     class_name = Symbols::New(thread(), entry_points[i].class_name);
     function_name = Symbols::New(thread(), entry_points[i].function_name);
 
-    lib = Library::LookupLibrary(library_uri);
+    lib = Library::LookupLibrary(T, library_uri);
     if (lib.IsNull()) {
       String& msg = String::Handle(Z, String::NewFormatted(
           "Cannot find entry point %s\n", entry_points[i].library_uri));
@@ -760,22 +768,18 @@ void Precompiler::AddField(const Field& field) {
       const bool is_initialized = value.raw() != Object::sentinel().raw();
       if (is_initialized && !reset_fields_) return;
 
-      if (!field.HasPrecompiledInitializer()) {
+      if (!field.HasPrecompiledInitializer() ||
+          !Function::Handle(Z, field.PrecompiledInitializer()).HasCode()) {
         if (FLAG_trace_precompiler) {
           THR_Print("Precompiling initializer for %s\n", field.ToCString());
         }
-        ASSERT(!Dart::IsRunningPrecompiledCode());
-        field.SetStaticValue(Instance::Handle(field.SavedInitialStaticValue()));
+        ASSERT(Dart::snapshot_kind() != Snapshot::kAppNoJIT);
         const Function& initializer =
-            Function::Handle(CompileStaticInitializer(field));
-        if (!initializer.IsNull()) {
-          field.SetPrecompiledInitializer(initializer);
-        }
+            Function::Handle(Z, CompileStaticInitializer(field));
+        ASSERT(!initializer.IsNull());
+        field.SetPrecompiledInitializer(initializer);
+        AddCalleesOf(initializer);
       }
-
-      const Function& function =
-          Function::Handle(Z, field.PrecompiledInitializer());
-      AddCalleesOf(function);
     }
   }
 }
@@ -783,23 +787,24 @@ void Precompiler::AddField(const Field& field) {
 
 RawFunction* Precompiler::CompileStaticInitializer(const Field& field) {
   ASSERT(field.is_static());
-  if (field.HasPrecompiledInitializer()) {
-    // TODO(rmacnak): Investigate why this happens for _enum_names.
-    THR_Print("Warning: Ignoring repeated request for initializer for %s\n",
-              field.ToCString());
-    return Function::null();
-  }
+  ASSERT(!field.HasPrecompiledInitializer());
   Thread* thread = Thread::Current();
   StackZone zone(thread);
 
   ParsedFunction* parsed_function = Parser::ParseStaticFieldInitializer(field);
 
   parsed_function->AllocateVariables();
-  // Non-optimized code generator.
   DartCompilationPipeline pipeline;
   PrecompileParsedFunctionHelper helper(parsed_function,
-                                        /* optimized = */ false);
-  helper.Compile(&pipeline);
+                                        /* optimized = */ true);
+  bool success = helper.Compile(&pipeline);
+  ASSERT(success);
+
+  if ((FLAG_disassemble || FLAG_disassemble_optimized) &&
+      FlowGraphPrinter::ShouldPrint(parsed_function->function())) {
+    Disassembler::DisassembleCode(parsed_function->function(),
+                                  /* optimized = */ true);
+  }
   return parsed_function->function().raw();
 }
 
@@ -818,8 +823,6 @@ RawObject* Precompiler::EvaluateStaticInitializer(const Field& field) {
     Function& initializer = Function::Handle();
     if (!field.HasPrecompiledInitializer()) {
       initializer = CompileStaticInitializer(field);
-      Code::Handle(initializer.unoptimized_code()).set_var_descriptors(
-          Object::empty_var_descriptors());
     } else {
       initializer ^= field.PrecompiledInitializer();
     }
@@ -1638,7 +1641,8 @@ void Precompiler::DropClasses() {
 void Precompiler::DropLibraries() {
   const GrowableObjectArray& retained_libraries =
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
-  Library& root_lib = Library::Handle(Z, I->object_store()->root_library());
+  const Library& root_lib = Library::Handle(Z,
+      I->object_store()->root_library());
   Library& lib = Library::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
@@ -1668,7 +1672,7 @@ void Precompiler::DropLibraries() {
     }
   }
 
-  I->object_store()->set_libraries(retained_libraries);
+  Library::RegisterLibraries(T, retained_libraries);
   libraries_ = retained_libraries.raw();
 }
 
@@ -1959,6 +1963,8 @@ void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
+  Array& fields = Array::Handle(Z);
+  Field& field = Field::Handle(Z);
   Object& object = Object::Handle(Z);
   Function& function = Function::Handle(Z);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
@@ -1987,6 +1993,14 @@ void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
         object = functions.At(j);
         if (object.IsFunction()) {
           function ^= functions.At(j);
+          visitor->VisitFunction(function);
+        }
+      }
+      fields = cls.fields();
+      for (intptr_t j = 0; j < fields.Length(); j++) {
+        field ^= fields.At(j);
+        if (field.is_static() && field.HasPrecompiledInitializer()) {
+          function ^= field.PrecompiledInitializer();
           visitor->VisitFunction(function);
         }
       }
@@ -2130,6 +2144,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   ASSERT(FLAG_precompiled_mode);
   const Function& function = parsed_function()->function();
   if (optimized() && !function.IsOptimizable()) {
+    // All functions compiled by precompiler must be optimizable.
+    UNREACHABLE();
     return false;
   }
   bool is_compiled = false;
@@ -2705,7 +2721,7 @@ static RawError* PrecompileFunctionHelper(CompilationPipeline* pipeline,
 
     per_compile_timer.Stop();
 
-    if (trace_compiler && success) {
+    if (trace_compiler) {
       THR_Print("--> '%s' entry: %#" Px " size: %" Pd " time: %" Pd64 " us\n",
                 function.ToFullyQualifiedCString(),
                 Code::Handle(function.CurrentCode()).EntryPoint(),
@@ -2718,10 +2734,7 @@ static RawError* PrecompileFunctionHelper(CompilationPipeline* pipeline,
     } else if (FLAG_disassemble_optimized &&
                optimized &&
                FlowGraphPrinter::ShouldPrint(function)) {
-      // TODO(fschneider): Print unoptimized code along with the optimized code.
-      THR_Print("*** BEGIN CODE\n");
       Disassembler::DisassembleCode(function, true);
-      THR_Print("*** END CODE\n");
     }
     return Error::null();
   } else {

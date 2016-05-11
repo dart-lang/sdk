@@ -2051,7 +2051,7 @@ void main() {
       typedef void ToVoid<T>(T x);
       class F {
         void set f(ToVoid<dynamic> x) {}
-        void set g(ToVoid<int> x) {} 
+        void set g(ToVoid<int> x) {}
         void set h(dynamic x) {}
         void set i(int x) {}
      }
@@ -2343,8 +2343,8 @@ void main() {
 
             x = /*info:DOWN_CAST_IMPLICIT*/x + z;
             x += /*info:DOWN_CAST_IMPLICIT*/z;
-            y = /*info:DOWN_CAST_IMPLICIT*/y + z;
-            y += /*info:DOWN_CAST_IMPLICIT*/z;
+            y = y + z;
+            y += z;
 
             dynamic w = 42;
             x += /*info:DYNAMIC_CAST*/w;

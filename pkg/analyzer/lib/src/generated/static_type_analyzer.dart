@@ -341,14 +341,23 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     }
     ExecutableElement staticMethodElement = node.staticElement;
     DartType staticType = _computeStaticReturnType(staticMethodElement);
-    staticType = _refineBinaryExpressionType(node, staticType, _getStaticType);
+    staticType = _typeSystem.refineBinaryExpressionType(
+        _typeProvider,
+        node.leftOperand.staticType,
+        node.operator.type,
+        node.rightOperand.staticType,
+        staticType);
     _recordStaticType(node, staticType);
     MethodElement propagatedMethodElement = node.propagatedElement;
     if (!identical(propagatedMethodElement, staticMethodElement)) {
       DartType propagatedType =
           _computeStaticReturnType(propagatedMethodElement);
-      propagatedType =
-          _refineBinaryExpressionType(node, propagatedType, _getBestType);
+      propagatedType = _typeSystem.refineBinaryExpressionType(
+          _typeProvider,
+          node.leftOperand.bestType,
+          node.operator.type,
+          node.rightOperand.bestType,
+          propagatedType);
       _resolver.recordPropagatedTypeIfBetter(node, propagatedType);
     }
     return null;
@@ -1634,13 +1643,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return the best type of the given [expression].
-   */
-  DartType _getBestType(Expression expression) {
-    return expression.bestType;
-  }
-
-  /**
    * If the given element name can be mapped to the name of a class defined within the given
    * library, return the type specified by the argument.
    *
@@ -2169,50 +2171,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           operator == TokenType.STAR_EQ ||
           operator == TokenType.TILDE_SLASH_EQ) {
         if (typeAccessor(rightHandSide) == intType) {
-          return intType;
-        }
-      }
-    }
-    // default
-    return currentType;
-  }
-
-  /**
-   * Attempts to make a better guess for the type of the given binary
-   * [expression], given that resolution has so far produced the [currentType].
-   * The [typeAccessor] is used to access the corresponding type of the left
-   * and right operands.
-   */
-  DartType _refineBinaryExpressionType(
-      BinaryExpression expression, DartType currentType,
-      [DartType typeAccessor(Expression node)]) {
-    TokenType operator = expression.operator.type;
-    // bool
-    if (operator == TokenType.AMPERSAND_AMPERSAND ||
-        operator == TokenType.BAR_BAR ||
-        operator == TokenType.EQ_EQ ||
-        operator == TokenType.BANG_EQ) {
-      return _typeProvider.boolType;
-    }
-    DartType intType = _typeProvider.intType;
-    if (typeAccessor(expression.leftOperand) == intType) {
-      // int op double
-      if (operator == TokenType.MINUS ||
-          operator == TokenType.PERCENT ||
-          operator == TokenType.PLUS ||
-          operator == TokenType.STAR) {
-        DartType doubleType = _typeProvider.doubleType;
-        if (typeAccessor(expression.rightOperand) == doubleType) {
-          return doubleType;
-        }
-      }
-      // int op int
-      if (operator == TokenType.MINUS ||
-          operator == TokenType.PERCENT ||
-          operator == TokenType.PLUS ||
-          operator == TokenType.STAR ||
-          operator == TokenType.TILDE_SLASH) {
-        if (typeAccessor(expression.rightOperand) == intType) {
           return intType;
         }
       }

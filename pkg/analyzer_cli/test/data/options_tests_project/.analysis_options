@@ -1,4 +1,5 @@
 analyzer:
+  strong-mode: true
   errors:
     unused_local_variable: ignore
     missing_return: error

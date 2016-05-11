@@ -587,14 +587,57 @@ class D extends C {
   void test_parameterParentElementForLink_innermostExecutable() {
     createLinker('void f(void g(void h())) {}');
     TopLevelFunctionElementForLink f = testLibrary.getContainedName('f');
-    expect(f.innermostExecutable, same(f));
+    expect(f.typeParameterContext, same(f));
     ParameterElementForLink g = f.parameters[0];
     FunctionType gType = g.type;
     FunctionElementForLink_FunctionTypedParam gTypeElement = gType.element;
-    expect(gTypeElement.innermostExecutable, same(f));
+    expect(gTypeElement.typeParameterContext, same(f));
     ParameterElementForLink h = gTypeElement.parameters[0];
     FunctionType hType = h.type;
     FunctionElementForLink_FunctionTypedParam hTypeElement = hType.element;
-    expect(hTypeElement.innermostExecutable, same(f));
+    expect(hTypeElement.typeParameterContext, same(f));
+  }
+
+  void test_typeParameter_isTypeParameterInScope_direct() {
+    createLinker('class C<T, U> {}');
+    ClassElementForLink_Class c = testLibrary.getContainedName('C');
+    TypeParameterElementForLink t = c.typeParameters[0];
+    TypeParameterElementForLink u = c.typeParameters[1];
+    expect(c.isTypeParameterInScope(t), true);
+    expect(c.isTypeParameterInScope(u), true);
+  }
+
+  void test_typeParameter_isTypeParameterInScope_indirect() {
+    createLinker('class C<T, U> { f<V, W>() {} }');
+    ClassElementForLink_Class c = testLibrary.getContainedName('C');
+    MethodElementForLink f = c.methods[0];
+    TypeParameterElementForLink t = c.typeParameters[0];
+    TypeParameterElementForLink u = c.typeParameters[1];
+    expect(f.isTypeParameterInScope(t), true);
+    expect(f.isTypeParameterInScope(u), true);
+  }
+
+  void test_typeParameter_isTypeParameterInScope_reversed() {
+    createLinker('class C<T, U> { f<V, W>() {} }');
+    ClassElementForLink_Class c = testLibrary.getContainedName('C');
+    MethodElementForLink f = c.methods[0];
+    TypeParameterElementForLink v = f.typeParameters[0];
+    TypeParameterElementForLink w = f.typeParameters[1];
+    expect(c.isTypeParameterInScope(v), false);
+    expect(c.isTypeParameterInScope(w), false);
+  }
+
+  void test_typeParameter_isTypeParameterInScope_unrelated() {
+    createLinker('class C<T, U> {} class D<V, W> {}');
+    ClassElementForLink_Class c = testLibrary.getContainedName('C');
+    ClassElementForLink_Class d = testLibrary.getContainedName('D');
+    TypeParameterElementForLink t = c.typeParameters[0];
+    TypeParameterElementForLink u = c.typeParameters[1];
+    TypeParameterElementForLink v = d.typeParameters[0];
+    TypeParameterElementForLink w = d.typeParameters[1];
+    expect(c.isTypeParameterInScope(v), false);
+    expect(c.isTypeParameterInScope(w), false);
+    expect(d.isTypeParameterInScope(t), false);
+    expect(d.isTypeParameterInScope(u), false);
   }
 }

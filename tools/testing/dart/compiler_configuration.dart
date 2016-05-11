@@ -342,9 +342,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       Map<String, String> environmentOverrides) {
     var exec = "$buildDir/dart_bootstrap";
     var args = new List();
-    args.add("--gen-precompiled-snapshot=$tempDir");
+    args.add("--snapshot=$tempDir");
+    args.add("--snapshot-kind=app-aot");
     if (useBlobs) {
-      args.add("--use_blobs");
+      args.add("--use-blobs");
     }
     if (isAndroid && arch == 'arm') {
       args.add('--no-sim-use-hardfp');
@@ -375,7 +376,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       throw "Platform not supported: ${Platform.operatingSystem}";
     }
     if (isAndroid) {
-      // TODO: If we're not using "--use_blobs" we need to use the arm cross
+      // TODO: If we're not using "--use-blobs" we need to use the arm cross
       // compiler instead of just 'gcc' for .
     }
 
@@ -403,7 +404,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     args.addAll([
       '-o',
       '$tempDir/$libname',
-      '$tempDir/precompiled.S'
+      '$tempDir/snapshot.S'
     ]);
 
     return commandBuilder.getCompilationCommand('assemble', tempDir, !useSdk,
@@ -419,7 +420,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       List arguments,
       Map<String, String> environmentOverrides) {
     var exec = 'rm';
-    var args = ['$tempDir/precompiled.S'];
+    var args = ['$tempDir/snapshot.S'];
 
     return commandBuilder.getCompilationCommand(
         'remove_assembly',
@@ -490,32 +491,27 @@ class Dart2AppSnapshotCompilerConfiguration extends CompilerConfiguration {
       CommandBuilder commandBuilder,
       List arguments,
       Map<String, String> environmentOverrides) {
-    String outputName = computeOutputName(tempDir);
     return new CommandArtifact(<Command>[
-      this.computeCompilationCommand(outputName, buildDir,
+      this.computeCompilationCommand(tempDir, buildDir,
           CommandBuilder.instance, arguments, environmentOverrides)
-    ], outputName, 'application/dart-snapshot');
-  }
-
-  String computeOutputName(String tempDir) {
-    var randName = TestUtils.getRandomNumber().toString();
-    return '$tempDir/test.$randName';
+    ], tempDir, 'application/dart-snapshot');
   }
 
   CompilationCommand computeCompilationCommand(
-      String outputName,
+      String tempDir,
       String buildDir,
       CommandBuilder commandBuilder,
       List arguments,
       Map<String, String> environmentOverrides) {
     var exec = "$buildDir/dart_bootstrap";
     var args = new List();
-    args.add("--full-snapshot-after-run=$outputName");
+    args.add("--snapshot=$tempDir");
+    args.add("--snapshot-kind=app-after-run");
     args.addAll(arguments);
 
     return commandBuilder.getCompilationCommand(
         'dart2snapshot',
-        outputName,
+        tempDir,
         !useSdk,
         bootstrapDependencies(buildDir),
         exec,

@@ -1477,6 +1477,9 @@ class JavaScriptBackend extends Backend {
       ConstantExpression constant = variableElement.constant;
       if (constant != null) {
         ConstantValue initialValue = constants.getConstantValue(constant);
+        assert(invariant(variableElement, initialValue != null,
+            message: "Constant expression without value: "
+                "${constant.toStructuredText()}."));
         registerCompileTimeConstant(initialValue, work.registry);
         addCompileTimeConstantForEmission(initialValue);
         // We don't need to generate code for static or top-level
@@ -2623,6 +2626,11 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
   BackendImpacts get impacts => backend.impacts;
 
+  // TODO(johnniwinther): Avoid this dependency.
+  ResolutionEnqueuer get resolutionEnqueuer {
+    return backend.compiler.enqueuer.resolution;
+  }
+
   @override
   WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
     TransformedWorldImpact transformed =
@@ -2782,8 +2790,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         registerBackendImpact(transformed, impacts.closure);
         LocalFunctionElement closure = staticUse.element;
         if (closure.type.containsTypeVariables) {
-          backend.compiler.enqueuer.resolution.universe
-              .closuresWithFreeTypeVariables
+          resolutionEnqueuer.universe.closuresWithFreeTypeVariables
               .add(closure);
           registerBackendImpact(transformed, impacts.computeSignature);
         }
@@ -2811,6 +2818,11 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           assert(invariant(NO_LOCATION_SPANNABLE, false,
               message: "Unexpected constant literal: ${constant.kind}."));
       }
+    }
+
+    for (native.NativeBehavior behavior in worldImpact.nativeData) {
+      resolutionEnqueuer.nativeEnqueuer
+          .registerNativeBehavior(behavior, worldImpact);
     }
 
     return transformed;

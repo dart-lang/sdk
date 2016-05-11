@@ -30,7 +30,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "@0.13.4",
-  "async_tag": "@1.9.0",
+  "async_tag": "@1.10.0",
   "barback-0.13.0_rev": "@34853",
   "barback-0.14.0_rev": "@36398",
   "barback-0.14.1_rev": "@38525",
@@ -41,7 +41,7 @@ vars = {
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
   "cli_util_tag" : "@0.0.1+2",
-  "collection_rev": "@f6135e6350c63eb3f4dd12953b8d4363faff16fc",
+  "collection_tag": "@1.6.0",
   "convert_tag": "@1.0.0",
   "crypto_tag" : "@1.1.0",
   "csslib_tag" : "@0.12.0",
@@ -49,8 +49,8 @@ vars = {
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.4",
   "dartdoc_tag" : "@v0.9.0",
-  "dev_compiler_rev": "@ec95b3c45819f4d0de847588fdaa752a8e4651fb",
-  "fixnum_tag": "@0.10.4",
+  "dev_compiler_rev": "@a0557e2f76fc85a6e71fe8391d1beda69905a548",
+  "fixnum_tag": "@0.10.5",
   "func_rev": "@8d4aea75c21be2179cb00dc2b94a71414653094e",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
   "html_tag" : "@0.12.1+1",
@@ -62,7 +62,7 @@ vars = {
   "intl_rev": "@a8b480b9c436f6c0ec16730804c914bdb4e30d53",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.0",
-  "linter_rev": "@6d3bdf09b4326a411e44ff472953edd9003bc33a",
+  "linter_rev": "@ecfaed3ea52ea2b5a7d9e0a7db94cf1f92208280",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "markdown_rev": "@4aaadf3d940bb172e1f6285af4d2b1710d309982",
   "matcher_tag": "@0.12.0",
@@ -79,7 +79,7 @@ vars = {
   "pool_tag": "@1.2.1",
   "protobuf_tag": "@0.5.1+1",
   "pub_cache_tag": "@v0.1.0",
-  "pub_rev": "@217fc8ae2bdee58ebf4b11a6fa3d49624d90c0c4",
+  "pub_rev": "@0b96a97d61673cea04f69eb47b2ef2b5b37337d3",
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
   "resource_rev":"@a49101ba2deb29c728acba6fb86000a8f730f4b1",
@@ -102,7 +102,7 @@ vars = {
   "typed_data_tag": "@1.1.2",
   "usage_rev": "@b5080dac0d26a5609b266f8fdb0d053bc4c1c638",
   "utf_rev": "@1f55027068759e2d52f2c12de6a57cce5f3c5ee6",
-  "watcher_tag": "@0.9.7",
+  "watcher_tag": "@0.9.7+2",
   "web_components_rev": "@6349e09f9118dce7ae1b309af5763745e25a9d61",
   "web_socket_channel_tag": "@1.0.0",
   "WebCore_rev": "@a86fe28efadcfc781f836037a80f27e22a5dad17",
@@ -163,7 +163,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/cli_util":
       (Var("github_mirror") % "cli_util") + Var("cli_util_tag"),
   Var("dart_root") + "/third_party/pkg/collection":
-      (Var("github_mirror") % "collection") + Var("collection_rev"),
+      (Var("github_mirror") % "collection") + Var("collection_tag"),
   Var("dart_root") + "/third_party/pkg/convert":
       "https://github.com/dart-lang/convert.git" + Var("convert_tag"),
   Var("dart_root") + "/third_party/pkg/crypto":

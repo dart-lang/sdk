@@ -276,6 +276,13 @@ bool areNewStructuresEquivalent(NewStructure a, NewStructure b) {
   }
 }
 
+/// Returns `true` if nodes [a] and [b] are equivalent.
+bool areNodesEquivalent(Node node1, Node node2) {
+  if (identical(node1, node2)) return true;
+  if (node1 == null || node2 == null) return false;
+  return node1.accept1(const NodeEquivalenceVisitor(), node2);
+}
+
 /// Strategy for testing equivalence.
 ///
 /// Use this strategy to determine equivalence without failing on inequivalence.
@@ -322,6 +329,11 @@ class TestStrategy {
   bool testConstantLists(Object object1, Object object2, String property,
       List<ConstantExpression> list1, List<ConstantExpression> list2) {
     return areConstantListsEquivalent(list1, list2);
+  }
+
+  bool testNodes(
+      Object object1, Object object2, String property, Node node1, Node node2) {
+    return areNodesEquivalent(node1, node2);
   }
 }
 
@@ -765,15 +777,33 @@ bool testResolvedAstEquivalence(
     // Nothing more to check.
     return true;
   }
-  return strategy.testElements(resolvedAst1, resolvedAst2, 'element',
+  bool result = strategy.testElements(resolvedAst1, resolvedAst2, 'element',
           resolvedAst1.element, resolvedAst2.element) &&
-      new NodeEquivalenceVisitor(strategy).testNodes(resolvedAst1, resolvedAst2,
-          'node', resolvedAst1.node, resolvedAst2.node) &&
-      new NodeEquivalenceVisitor(strategy).testNodes(resolvedAst1, resolvedAst2,
-          'body', resolvedAst1.body, resolvedAst2.body) &&
+      strategy.testNodes(resolvedAst1, resolvedAst2, 'node', resolvedAst1.node,
+          resolvedAst2.node) &&
+      strategy.testNodes(resolvedAst1, resolvedAst2, 'body', resolvedAst1.body,
+          resolvedAst2.body) &&
       testTreeElementsEquivalence(resolvedAst1, resolvedAst2, strategy) &&
       strategy.test(resolvedAst1, resolvedAst2, 'sourceUri',
           resolvedAst1.sourceUri, resolvedAst2.sourceUri);
+  if (resolvedAst1.element is FunctionElement) {
+    FunctionElement element1 = resolvedAst1.element;
+    FunctionElement element2 = resolvedAst2.element;
+    for (int index = 0; index < element1.parameters.length; index++) {
+      var parameter1 = element1.parameters[index];
+      var parameter2 = element2.parameters[index];
+      result = result &&
+          strategy.testNodes(parameter1, parameter2, 'node',
+              parameter1.implementation.node, parameter2.implementation.node) &&
+          strategy.testNodes(
+              parameter1,
+              parameter2,
+              'initializer',
+              parameter1.implementation.initializer,
+              parameter2.implementation.initializer);
+    }
+  }
+  return result;
 }
 
 /// Tests the equivalence of the data stored in the [TreeElements] of

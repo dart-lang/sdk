@@ -1980,7 +1980,7 @@ static RawInstance* CreateSourceLocation(const String& uri,
 
 DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, reflectee, arguments->NativeArgAt(0));
-  Object& decl = Object::Handle();
+  Object& decl = Object::Handle(zone);
   if (reflectee.IsMirrorReference()) {
     const MirrorReference& decl_ref = MirrorReference::Cast(reflectee);
     decl = decl_ref.referent();
@@ -1990,7 +1990,7 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
     UNREACHABLE();
   }
 
-  Script& script = Script::Handle();
+  Script& script = Script::Handle(zone);
   TokenPosition token_pos = TokenPosition::kNoSource;
 
   if (decl.IsFunction()) {
@@ -2018,7 +2018,7 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
     token_pos = field.token_pos();
   } else if (decl.IsTypeParameter()) {
     const TypeParameter& type_var = TypeParameter::Cast(decl);
-    const Class& owner = Class::Handle(type_var.parameterized_class());
+    const Class& owner = Class::Handle(zone, type_var.parameterized_class());
     script = owner.script();
     token_pos = type_var.token_pos();
   } else if (decl.IsLibrary()) {
@@ -2026,20 +2026,20 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
     if (lib.raw() == Library::NativeWrappersLibrary()) {
       return Instance::null();  // No source.
     }
-    const Array& scripts = Array::Handle(lib.LoadedScripts());
+    const Array& scripts = Array::Handle(zone, lib.LoadedScripts());
     for (intptr_t i = 0; i < scripts.Length(); i++) {
       script ^= scripts.At(i);
       if (script.kind() == RawScript::kLibraryTag) break;
     }
     ASSERT(!script.IsNull());
-    const String& libname = String::Handle(lib.name());
+    const String& libname = String::Handle(zone, lib.name());
     if (libname.Length() == 0) {
       // No library declaration.
-      const String& uri = String::Handle(script.url());
+      const String& uri = String::Handle(zone, script.url());
       return CreateSourceLocation(uri, 1, 1);
     }
-    const TokenStream& stream = TokenStream::Handle(script.tokens());
-    TokenStream::Iterator tkit(stream, TokenPosition::kMinSource);
+    const TokenStream& stream = TokenStream::Handle(zone, script.tokens());
+    TokenStream::Iterator tkit(zone, stream, TokenPosition::kMinSource);
     if (tkit.CurrentTokenKind() == Token::kSCRIPTTAG) tkit.Advance();
     token_pos = tkit.CurrentPosition();
   }
@@ -2047,7 +2047,7 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
   ASSERT(!script.IsNull());
   ASSERT(token_pos != TokenPosition::kNoSource);
 
-  const String& uri = String::Handle(script.url());
+  const String& uri = String::Handle(zone, script.url());
   intptr_t from_line = 0;
   intptr_t from_col = 0;
   if (script.HasSource()) {

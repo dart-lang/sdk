@@ -13,7 +13,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -24,8 +23,6 @@ import 'package:path/path.dart' as pathos;
 
 /// The maximum number of sources for which AST structures should be kept in the cache.
 const int _maxCacheSize = 512;
-
-DirectoryBasedDartSdk sdk;
 
 int currentTimeMillis() => new DateTime.now().millisecondsSinceEpoch;
 
