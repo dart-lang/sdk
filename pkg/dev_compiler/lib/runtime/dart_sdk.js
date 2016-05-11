@@ -456,21 +456,23 @@ dart_library.library('dart_sdk', null, /* Imports */[
     if (obj == null) return obj;
     let result = dart.strongInstanceOf(obj, type, true);
     if (result) return obj;
+    dart._throwCastError(obj, type, result);
+  };
+  dart.test = function(obj) {
+    if (typeof obj == "boolean") return obj;
+    dart.throwCastError(dart.getReifiedType(obj), core.bool);
+  };
+  dart._throwCastError = function(obj, type, result) {
     let actual = dart.getReifiedType(obj);
-    if (result === false) dart.throwCastError(actual, type);
-    dart.throwStrongModeError('Strong mode cast failure from ' + dart.typeName(actual) + ' to ' + dart.typeName(type));
+    if (result == false) dart.throwCastError(actual, type);
+    dart.throwStrongModeError('Strong mode cast failure from ' + dart.notNull(dart.as(dart.typeName(actual), core.String)) + ' to ' + dart.notNull(dart.as(dart.typeName(type), core.String)));
   };
   dart.asInt = function(obj) {
-    if (obj == null) {
-      return null;
-    }
+    if (obj == null) return null;
     if (Math.floor(obj) != obj) {
       dart.throwCastError(dart.getReifiedType(obj), core.int);
     }
     return obj;
-  };
-  dart.arity = function(f) {
-    return {min: f.length, max: f.length};
   };
   dart.equals = function(x, y) {
     if (x == null || y == null) return x == y;
@@ -6976,7 +6978,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (this.doneHandlers == null) {
         this.doneHandlers = [];
       }
-      if (dart.notNull(dart.as(dart.dsend(this.doneHandlers, 'contains', responsePort), core.bool))) return;
+      if (dart.test(dart.dsend(this.doneHandlers, 'contains', responsePort))) return;
       dart.dsend(this.doneHandlers, 'add', responsePort);
     }
     removeDoneListener(responsePort) {
@@ -7070,7 +7072,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         _isolate_helper._globalState.currentContext = old;
         if (old != null) old[_setGlobals]();
         if (this[_scheduledControlEvents] != null) {
-          while (dart.notNull(dart.as(dart.dload(this[_scheduledControlEvents], 'isNotEmpty'), core.bool))) {
+          while (dart.test(dart.dload(this[_scheduledControlEvents], 'isNotEmpty'))) {
             dart.dcall(dart.dsend(this[_scheduledControlEvents], 'removeFirst'));
           }
         }
@@ -9289,20 +9291,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _js_helper.checkBool(isUtc);
       let jsMonth = dart.dsend(month, '-', 1);
       let value = null;
-      if (dart.notNull(dart.as(isUtc, core.bool))) {
+      if (dart.test(isUtc)) {
         value = Date.UTC(years, jsMonth, day, hours, minutes, seconds, milliseconds);
       } else {
         value = new Date(years, jsMonth, day, hours, minutes, seconds, milliseconds).valueOf();
       }
-      if (dart.notNull(dart.as(dart.dload(value, 'isNaN'), core.bool)) || dart.notNull(dart.as(dart.dsend(value, '<', -MAX_MILLISECONDS_SINCE_EPOCH), core.bool)) || dart.notNull(dart.as(dart.dsend(value, '>', MAX_MILLISECONDS_SINCE_EPOCH), core.bool))) {
+      if (dart.test(dart.dload(value, 'isNaN')) || dart.test(dart.dsend(value, '<', -MAX_MILLISECONDS_SINCE_EPOCH)) || dart.test(dart.dsend(value, '>', MAX_MILLISECONDS_SINCE_EPOCH))) {
         return null;
       }
-      if (dart.notNull(dart.as(dart.dsend(years, '<=', 0), core.bool)) || dart.notNull(dart.as(dart.dsend(years, '<', 100), core.bool))) return _js_helper.Primitives.patchUpY2K(value, years, isUtc);
+      if (dart.test(dart.dsend(years, '<=', 0)) || dart.test(dart.dsend(years, '<', 100))) return _js_helper.Primitives.patchUpY2K(value, years, isUtc);
       return value;
     }
     static patchUpY2K(value, years, isUtc) {
       let date = new Date(value);
-      if (dart.notNull(dart.as(isUtc, core.bool))) {
+      if (dart.test(isUtc)) {
         date.setUTCFullYear(years);
       } else {
         date.setFullYear(years);
@@ -9410,7 +9412,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _js_helper.diagnoseIndexError = function(indexable, index) {
     if (!(typeof index == 'number')) return new core.ArgumentError.value(index, 'index');
     let length = dart.as(dart.dload(indexable, 'length'), core.int);
-    if (dart.notNull(dart.as(dart.dsend(index, '<', 0), core.bool)) || dart.notNull(dart.as(dart.dsend(index, '>=', length), core.bool))) {
+    if (dart.test(dart.dsend(index, '<', 0)) || dart.test(dart.dsend(index, '>=', length))) {
       return core.RangeError.index(dart.as(index, core.int), indexable, 'index', null, length);
     }
     return new core.RangeError.value(dart.as(index, core.num), 'index');
@@ -9420,14 +9422,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     if (!(typeof start == 'number')) {
       return new core.ArgumentError.value(start, 'start');
     }
-    if (dart.notNull(dart.as(dart.dsend(start, '<', 0), core.bool)) || dart.notNull(dart.as(dart.dsend(start, '>', length), core.bool))) {
+    if (dart.test(dart.dsend(start, '<', 0)) || dart.test(dart.dsend(start, '>', length))) {
       return new core.RangeError.range(dart.as(start, core.num), 0, dart.as(length, core.int), 'start');
     }
     if (end != null) {
       if (!(typeof end == 'number')) {
         return new core.ArgumentError.value(end, 'end');
       }
-      if (dart.notNull(dart.as(dart.dsend(end, '<', start), core.bool)) || dart.notNull(dart.as(dart.dsend(end, '>', length), core.bool))) {
+      if (dart.test(dart.dsend(end, '<', start)) || dart.test(dart.dsend(end, '>', length))) {
         return new core.RangeError.range(dart.as(end, core.num), dart.as(start, core.int), dart.as(length, core.int), 'end');
       }
     }
@@ -28799,7 +28801,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [_errorExplanation]() {
       dart.assert(this[_hasValue]);
-      if (dart.notNull(dart.as(dart.dsend(this.invalidValue, '<', 0), core.bool))) {
+      if (dart.test(dart.dsend(this.invalidValue, '<', 0))) {
         return ": index must not be negative";
       }
       if (this.length == 0) {
@@ -30361,9 +30363,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       } else {
         result = pathSegments[dartx.map](core.String)(dart.fn(s => core.Uri._uriEncode(core.Uri._pathCharTable, s, convert.UTF8, false), core.String, [core.String]))[dartx.join]("/");
       }
-      if (dart.notNull(dart.as(dart.dload(result, 'isEmpty'), core.bool))) {
+      if (dart.test(dart.dload(result, 'isEmpty'))) {
         if (isFile) return "/";
-      } else if (ensureLeadingSlash && !dart.notNull(dart.as(dart.dsend(result, 'startsWith', '/'), core.bool))) {
+      } else if (ensureLeadingSlash && !dart.test(dart.dsend(result, 'startsWith', '/'))) {
         result = "/" + dart.notNull(dart.as(result, core.String));
       }
       result = core.Uri._normalizePath(dart.as(result, core.String), scheme, hasAuthority);
@@ -31250,7 +31252,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let indices = dart.list([core.UriData._noScheme], core.int);
       core.UriData._writeUri(dart.as(mimeType, core.String), null, parameters, buffer, indices);
       indices[dartx.add](buffer.length);
-      if (dart.notNull(dart.as(percentEncoded, core.bool))) {
+      if (dart.test(percentEncoded)) {
         buffer.write(',');
         core.UriData._uriEncodeBytes(core.UriData._uricTable, bytes, buffer);
       } else {
@@ -33225,13 +33227,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (dart.notNull(html_common.isJavaScriptDate(object))) return true;
       if (dart.is(object, core.List)) {
         for (let i = 0; i < dart.notNull(object[dartx.length]); i++) {
-          if (dart.notNull(dart.as(containsDate(object[dartx.get](i)), core.bool))) return true;
+          if (dart.test(containsDate(object[dartx.get](i)))) return true;
         }
       }
       return false;
     }
     dart.fn(containsDate);
-    if (dart.notNull(dart.as(containsDate(nativeKey), core.bool))) {
+    if (dart.test(containsDate(nativeKey))) {
       dart.throw(new core.UnimplementedError('Key containing DateTime'));
     }
     return nativeKey;
@@ -69613,10 +69615,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     set height(newHeight) {
       if (dart.is(newHeight, html$.Dimension)) {
-        if (dart.notNull(dart.as(dart.dsend(dart.dload(newHeight, 'value'), '<', 0), core.bool))) newHeight = new html$.Dimension.px(0);
+        if (dart.test(dart.dsend(dart.dload(newHeight, 'value'), '<', 0))) newHeight = new html$.Dimension.px(0);
         this[_element$][dartx.style][dartx.height] = dart.toString(newHeight);
       } else if (typeof newHeight == 'number') {
-        if (dart.notNull(dart.as(dart.dsend(newHeight, '<', 0), core.bool))) newHeight = 0;
+        if (dart.test(dart.dsend(newHeight, '<', 0))) newHeight = 0;
         this[_element$][dartx.style][dartx.height] = `${newHeight}px`;
       } else {
         dart.throw(new core.ArgumentError("newHeight is not a Dimension or num"));
@@ -69624,10 +69626,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     set width(newWidth) {
       if (dart.is(newWidth, html$.Dimension)) {
-        if (dart.notNull(dart.as(dart.dsend(dart.dload(newWidth, 'value'), '<', 0), core.bool))) newWidth = new html$.Dimension.px(0);
+        if (dart.test(dart.dsend(dart.dload(newWidth, 'value'), '<', 0))) newWidth = new html$.Dimension.px(0);
         this[_element$][dartx.style][dartx.width] = dart.toString(newWidth);
       } else if (typeof newWidth == 'number') {
-        if (dart.notNull(dart.as(dart.dsend(newWidth, '<', 0), core.bool))) newWidth = 0;
+        if (dart.test(dart.dsend(newWidth, '<', 0))) newWidth = 0;
         this[_element$][dartx.style][dartx.width] = `${newWidth}px`;
       } else {
         dart.throw(new core.ArgumentError("newWidth is not a Dimension or num"));

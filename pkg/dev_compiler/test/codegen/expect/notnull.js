@@ -156,10 +156,10 @@ dart_library.library('notnull', null, /* Imports */[
     }
     f(o) {
       core.print(1 + dart.notNull(dart.as(this.varField, core.num)) + 2);
-      while (dart.notNull(dart.as(dart.dsend(this.varField, '<', 10), core.bool))) {
+      while (dart.test(dart.dsend(this.varField, '<', 10))) {
         this.varField = dart.dsend(this.varField, '+', 1);
       }
-      while (dart.notNull(dart.as(dart.dsend(this.varField, '<', 10), core.bool)))
+      while (dart.test(dart.dsend(this.varField, '<', 10)))
         this.varField = dart.dsend(this.varField, '+', 1);
       core.print(1 + dart.notNull(this.intField) + 2);
       while (dart.notNull(this.intField) < 10) {

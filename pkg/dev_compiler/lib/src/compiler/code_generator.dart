@@ -446,27 +446,44 @@ class CodeGenerator extends GeneralizingAstVisitor
   }
 
   @override
-  visitAsExpression(AsExpression node) {
-    var from = getStaticType(node.expression);
-    var to = node.type.type;
+  visitAsExpression(AsExpression node) =>
+      _emitCast(node.expression, to: node.type.type);
 
-    var fromExpr = _visit(node.expression);
+  /// Emits a cast and/or a null check (i.e. a cast to a non-null type).
+  JS.Expression _emitCast(Expression fromExpr,
+      {DartType to, bool checkNull: false}) {
+    var jsFrom = _visit(fromExpr);
+    var from = getStaticType(fromExpr);
+
+    JS.Expression maybeCheckNull(JS.Expression jsExpr) {
+      if (checkNull && isNullable(fromExpr)) {
+        return js.call('dart.notNull(#)', jsExpr);
+      }
+      return jsExpr;
+    }
 
     // Skip the cast if it's not needed.
-    if (rules.isSubtypeOf(from, to)) return fromExpr;
+    if (to == null || rules.isSubtypeOf(from, to)) {
+      return maybeCheckNull(jsFrom);
+    }
 
     // All Dart number types map to a JS double.
     if (_isNumberInJS(from) && _isNumberInJS(to)) {
       // Make sure to check when converting to int.
       if (from != types.intType && to == types.intType) {
-        return js.call('dart.asInt(#)', [fromExpr]);
+        // TODO(jmesserly): fuse this with notNull check.
+        return maybeCheckNull(js.call('dart.asInt(#)', [jsFrom]));
       }
 
       // A no-op in JavaScript.
-      return fromExpr;
+      return maybeCheckNull(jsFrom);
     }
 
-    return js.call('dart.as(#, #)', [fromExpr, _emitType(to)]);
+    if (to == types.boolType && checkNull) {
+      return js.call('dart.test(#)', _visit(fromExpr));
+    }
+
+    return maybeCheckNull(js.call('dart.as(#, #)', [jsFrom, _emitType(to)]));
   }
 
   @override
@@ -3061,9 +3078,10 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   JS.Expression notNull(Expression expr) {
     if (expr == null) return null;
-    var jsExpr = _visit(expr);
-    if (!isNullable(expr)) return jsExpr;
-    return js.call('dart.notNull(#)', jsExpr);
+    if (expr is AsExpression) {
+      return _emitCast(expr.expression, to: expr.type.type, checkNull: true);
+    }
+    return _emitCast(expr, checkNull: true);
   }
 
   @override

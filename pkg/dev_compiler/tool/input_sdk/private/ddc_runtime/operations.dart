@@ -221,7 +221,7 @@ final _ignoreTypeFailure = JS('', '''(() => {
 ///  and strong mode
 /// Returns null if [obj] is not an instance of [type] in strong mode
 ///  but might be in spec mode
-strongInstanceOf(obj, type, ignoreFromWhiteList) => JS('', '''(() => {
+bool strongInstanceOf(obj, type, ignoreFromWhiteList) => JS('', '''(() => {
   let actual = $getReifiedType($obj);
   let result = $isSubtype(actual, $type);
   if (result || actual == $jsobject ||
@@ -252,36 +252,35 @@ instanceOf(obj, type) => JS('', '''(() => {
 })()''');
 
 @JSExportName('as')
-cast(obj, type) => JS('', '''(() => {
-  if ($obj == null) return $obj;
+cast(obj, type) {
+  if (obj == null) return obj;
 
-  let result = $strongInstanceOf($obj, $type, true);
-  if (result) return $obj;
+  bool result = strongInstanceOf(obj, type, true);
+  if (JS('bool', '#', result)) return obj;
+  _throwCastError(obj, type, result);
+}
 
-  let actual = $getReifiedType($obj);
+bool test(obj) {
+  if (JS('bool', 'typeof # == "boolean"', obj)) return JS('bool', '#', obj);
+  throwCastError(getReifiedType(obj), JS('', '#', bool));
+}
 
-  if (result === false) $throwCastError(actual, $type);
+void _throwCastError(obj, type, bool result) {
+  var actual = getReifiedType(obj);
+  if (result == false) throwCastError(actual, type);
 
-  $throwStrongModeError('Strong mode cast failure from ' +
-    $typeName(actual) + ' to ' + $typeName($type));
-})()''');
+  throwStrongModeError('Strong mode cast failure from ' +
+      typeName(actual) + ' to ' + typeName(type));
+}
 
-asInt(obj) => JS('', '''(() => {
-  if ($obj == null) {
-    return null;
+asInt(obj) {
+  if (obj == null) return null;
+
+  if (JS('bool', 'Math.floor(#) != #', obj, obj)) {
+    throwCastError(getReifiedType(obj), JS('', '#', int));
   }
-  if (Math.floor($obj) != $obj) {
-    // Note: null will also be caught by this check
-    $throwCastError($getReifiedType($obj), $int);
-  }
-  return $obj;
-})()''');
-
-arity(f) => JS('', '''(() => {
-  // TODO(jmesserly): need to parse optional params.
-  // In ES6, length is the number of required arguments.
-  return { min: $f.length, max: $f.length };
-})()''');
+  return obj;
+}
 
 equals(x, y) => JS('', '''(() => {
   if ($x == null || $y == null) return $x == $y;
