@@ -476,12 +476,24 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       //                    ^
       optype.includeVarNameSuggestions = true;
     } else {
-      optype.includeReturnValueSuggestions = true;
-      optype.includeTypeNameSuggestions = true;
-      optype.includeVoidReturnSuggestions = true;
-      // TODO (danrubel) void return suggestions only belong after
-      // the 2nd semicolon.  Return value suggestions only belong after the
-      // first or second semicolon.
+      // for (^) {}
+      // for (Str^ str = null;) {}
+      // In theory it is possible to specify any expression in initializer,
+      // but for any practical use we need only types.
+      if (entity == node.initialization || entity == node.variables) {
+        optype.includeTypeNameSuggestions = true;
+      }
+      // for (; ^) {}
+      if (entity == node.condition) {
+        optype.includeTypeNameSuggestions = true;
+        optype.includeReturnValueSuggestions = true;
+      }
+      // for (; ; ^) {}
+      if (node.updaters.contains(entity)) {
+        optype.includeTypeNameSuggestions = true;
+        optype.includeReturnValueSuggestions = true;
+        optype.includeVoidReturnSuggestions = true;
+      }
     }
   }
 
@@ -851,6 +863,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
+  }
+
+  bool _isEntityPrevToken(TokenType expectedType) {
+    Object entity = this.entity;
+    if (entity is SimpleIdentifier && entity.token.isSynthetic) {
+      return entity.token.previous.type == expectedType;
+    }
+    return false;
   }
 
   bool _isEntityPrevTokenSynthetic() {

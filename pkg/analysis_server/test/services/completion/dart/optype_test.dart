@@ -668,20 +668,24 @@ class OpTypeTest {
   test_ForStatement_condition() {
     // SimpleIdentifier  ForStatement
     addTestSource('main() {for (int index = 0; i^)}');
-    // TODO (danrubel) may want to exclude methods/functions with void return
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    assertOpType(returnValue: true, typeNames: true);
   }
 
   test_ForStatement_initializer() {
     // SimpleIdentifier  ForStatement
     addTestSource('main() {List a; for (^)}');
-    // TODO (danrubel) may want to exclude methods/functions with void return
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    assertOpType(typeNames: true);
   }
 
   test_ForStatement_initializer_inKeyword() {
     addTestSource('main() { for (var v i^) }');
     assertOpType();
+  }
+
+  test_ForStatement_initializer_type() {
+    // SimpleIdentifier  ForStatement
+    addTestSource('main() {List a; for (i^ v = 0;)}');
+    assertOpType(typeNames: true);
   }
 
   test_ForStatement_initializer_variableNameEmpty_afterType() {

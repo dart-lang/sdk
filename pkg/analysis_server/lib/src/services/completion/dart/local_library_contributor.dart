@@ -112,17 +112,19 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
 
   @override
   void visitPropertyAccessorElement(PropertyAccessorElement element) {
-    int relevance;
-    if (element.library == containingLibrary) {
-      if (element.enclosingElement is ClassElement) {
-        relevance = DART_RELEVANCE_LOCAL_FIELD;
+    if (optype.includeReturnValueSuggestions) {
+      int relevance;
+      if (element.library == containingLibrary) {
+        if (element.enclosingElement is ClassElement) {
+          relevance = DART_RELEVANCE_LOCAL_FIELD;
+        } else {
+          relevance = DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE;
+        }
       } else {
-        relevance = DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE;
+        relevance = DART_RELEVANCE_DEFAULT;
       }
-    } else {
-      relevance = DART_RELEVANCE_DEFAULT;
+      addSuggestion(element, prefix: prefix, relevance: relevance);
     }
-    addSuggestion(element, prefix: prefix, relevance: relevance);
   }
 
   @override

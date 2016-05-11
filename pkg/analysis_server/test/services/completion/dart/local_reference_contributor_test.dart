@@ -2170,7 +2170,7 @@ class A {a(^) { }}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestLocalVariable('a', 'List');
+    assertNotSuggested('a');
     assertNotSuggested('Object');
     assertNotSuggested('int');
   }

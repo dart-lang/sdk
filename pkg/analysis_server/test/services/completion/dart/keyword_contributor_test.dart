@@ -658,6 +658,12 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     assertSuggestKeywords([Keyword.IN], relevance: DART_RELEVANCE_HIGH);
   }
 
+  test_for_expression_in_inInitializer() async {
+    addTestSource('main() {for (int i^)}');
+    await computeSuggestions();
+    assertSuggestKeywords([]);
+  }
+
   test_for_expression_init() async {
     addTestSource('main() {for (int x = i^)}');
     await computeSuggestions();
@@ -671,10 +677,9 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   test_for_initialization_var() async {
-    addTestSource('main() {for (va^)}');
+    addTestSource('main() {for (^)}');
     await computeSuggestions();
-    assertSuggestKeywords([Keyword.FINAL, Keyword.VAR],
-        relevance: DART_RELEVANCE_HIGH);
+    assertSuggestKeywords([Keyword.VAR], relevance: DART_RELEVANCE_HIGH);
   }
 
   test_function_async() async {

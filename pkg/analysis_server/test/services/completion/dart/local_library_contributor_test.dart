@@ -60,8 +60,7 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('T1');
     assertNotSuggested('_d');
     assertNotSuggested('z');
-    assertSuggestTopLevelVar('m', 'dynamic',
-        relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
+    assertNotSuggested('m');
   }
 
   test_partFile_Constructor2() async {

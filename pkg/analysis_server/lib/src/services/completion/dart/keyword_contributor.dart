@@ -226,13 +226,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     if (node.initialization == entity && entity is SimpleIdentifier) {
       if (_isNextTokenSynthetic(entity, TokenType.SEMICOLON)) {
         _addSuggestion(Keyword.VAR, DART_RELEVANCE_HIGH);
-        _addSuggestion(Keyword.FINAL, DART_RELEVANCE_HIGH);
       }
     }
     // Actual: for (int x i^)
     // Parsed: for (int x; i^;)
     // Handle the degenerate case while typing - for (int x i^)
-    if (node.condition == entity && entity is SimpleIdentifier) {
+    if (node.condition == entity &&
+        entity is SimpleIdentifier &&
+        node.variables != null) {
       if (_isPreviousTokenSynthetic(entity, TokenType.SEMICOLON)) {
         _addSuggestion(Keyword.IN, DART_RELEVANCE_HIGH);
       }

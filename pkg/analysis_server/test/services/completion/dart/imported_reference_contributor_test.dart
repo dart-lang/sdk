@@ -779,7 +779,7 @@ class B extends A {
     //    'num',
     //    false,
     //    COMPLETION_RELEVANCE_LOW);
-    assertSuggestTopLevelVar('T1', null);
+    assertNotSuggested('T1');
     assertNotSuggested('_T2');
     //assertSuggestImportedTopLevelVar('T3', 'int', COMPLETION_RELEVANCE_LOW);
     assertNotSuggested('_T4');
@@ -902,7 +902,7 @@ class B extends A {
     //    'num',
     //    false,
     //    COMPLETION_RELEVANCE_LOW);
-    assertSuggestTopLevelVar('T1', null);
+    assertNotSuggested('T1');
     assertNotSuggested('_T2');
     //assertSuggestImportedTopLevelVar('T3', 'int', COMPLETION_RELEVANCE_LOW);
     assertNotSuggested('_T4');
@@ -1009,7 +1009,7 @@ class B extends A {
     //    'num',
     //    false,
     //    COMPLETION_RELEVANCE_LOW);
-    assertSuggestTopLevelVar('T1', null);
+    assertNotSuggested('T1');
     assertNotSuggested('_T2');
     //assertSuggestImportedTopLevelVar('T3', 'int', COMPLETION_RELEVANCE_LOW);
     assertNotSuggested('_T4');
@@ -2155,13 +2155,19 @@ int myFunc() {}
   }
 
   test_ForStatement_initializer() async {
-    // SimpleIdentifier  ForStatement
-    addTestSource('main() {List a; for (^)}');
+    addTestSource('''
+import 'dart:math';
+main() {
+  List localVar;
+  for (^) {}
+}
+''');
 
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertNotSuggested('a');
+    assertNotSuggested('localVar');
+    assertNotSuggested('PI');
     assertSuggestClass('Object');
     assertSuggestClass('int');
   }
@@ -2359,7 +2365,7 @@ class B extends A {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestClass('Object');
-    assertSuggestTopLevelVar('T1', 'int');
+    assertNotSuggested('T1');
     assertNotSuggested('F1');
     assertSuggestFunctionTypeAlias('D1', 'dynamic');
     assertSuggestClass('C1');
@@ -2391,7 +2397,7 @@ class B extends A {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestClass('Object');
-    assertSuggestTopLevelVar('T1', 'int');
+    assertNotSuggested('T1');
     assertNotSuggested('F1');
     assertSuggestFunctionTypeAlias('D1', 'dynamic');
     assertSuggestClass('C1');
@@ -2424,7 +2430,7 @@ class B extends A {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestClass('Object');
-    assertSuggestTopLevelVar('T1', 'int');
+    assertNotSuggested('T1');
     assertNotSuggested('F1');
     assertSuggestFunctionTypeAlias('D1', 'dynamic');
     assertSuggestClass('C1');
@@ -2662,7 +2668,7 @@ main() {new ^ String x = "hello";}''');
     // The current DartCompletionRequest#resolveExpression resolves
     // the world (which it should not) and causes the imported library
     // to be resolved.
-    assertSuggestTopLevelVar('T1', /* null */ 'int');
+    assertNotSuggested('T1');
     assertNotSuggested('T2');
   }
 
@@ -3322,7 +3328,7 @@ class B {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestClass('Object');
-    assertSuggestTopLevelVar('T1', 'int');
+    assertNotSuggested('T1');
     assertNotSuggested('F1');
     assertSuggestFunctionTypeAlias('D1', 'dynamic');
     assertSuggestClass('C1');
@@ -3353,7 +3359,7 @@ class B {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestClass('Object');
-    assertSuggestTopLevelVar('T1', 'int');
+    assertNotSuggested('T1');
     assertNotSuggested('F1');
     assertSuggestFunctionTypeAlias('D1', 'dynamic');
     assertSuggestClass('C1');
@@ -3384,7 +3390,7 @@ class B {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestClass('Object');
-    assertSuggestTopLevelVar('T1', 'int');
+    assertNotSuggested('T1');
     assertNotSuggested('F1');
     assertSuggestFunctionTypeAlias('D1', 'dynamic');
     assertSuggestClass('C1');
@@ -3417,7 +3423,7 @@ class B {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestClass('Object');
-    assertSuggestTopLevelVar('T1', 'int');
+    assertNotSuggested('T1');
     assertNotSuggested('F1');
     assertSuggestFunctionTypeAlias('D1', 'dynamic');
     assertSuggestClass('C1');
@@ -3636,7 +3642,7 @@ class B extends A {
     // Suggested by LocalLibraryContributor
     assertNotSuggested('A');
     assertNotSuggested('F1');
-    assertSuggestTopLevelVar('T1', 'int');
+    assertNotSuggested('T1');
     assertNotSuggested('_d');
     assertNotSuggested('z');
     assertNotSuggested('m');
@@ -3676,7 +3682,7 @@ class B extends A {
     // Suggested by LocalLibraryContributor
     assertNotSuggested('B');
     assertNotSuggested('F1');
-    assertSuggestTopLevelVar('T1', 'int');
+    assertNotSuggested('T1');
     assertNotSuggested('_d');
     assertNotSuggested('z');
     assertNotSuggested('m');
