@@ -1135,8 +1135,14 @@ class UglyFuture implements Future<dynamic> {
     c.complete(new Future.microtask(() => action(_result)));
     return c.future;
   }
-  Future catchError(onError, {test}) {}  // Never an error.
+  Future catchError(onError, {test}) => this;  // Never an error.
   Future whenComplete(action()) {
     return new Future.microtask(action).then((_) => this);
+  }
+  Stream asStream() {
+    return (new StreamController()..add(_result)..close()).stream;
+  }
+  Future timeout(Duration duration, {onTimeout()}) {
+    return this;
   }
 }
