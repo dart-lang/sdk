@@ -328,13 +328,18 @@ StdioType stdioType(object) {
     return StdioType.FILE;
   }
   if (object is Socket) {
-    switch (_StdIOUtils._socketType(object._nativeSocket)) {
-      case _STDIO_HANDLE_TYPE_TERMINAL: return StdioType.TERMINAL;
-      case _STDIO_HANDLE_TYPE_PIPE: return StdioType.PIPE;
-      case _STDIO_HANDLE_TYPE_FILE:  return StdioType.FILE;
+    int socketType = _StdIOUtils._socketType(object);
+    if (socketType == null) return StdioType.OTHER;
+    switch (socketType) {
+      case _STDIO_HANDLE_TYPE_TERMINAL:
+        return StdioType.TERMINAL;
+      case _STDIO_HANDLE_TYPE_PIPE:
+        return StdioType.PIPE;
+      case _STDIO_HANDLE_TYPE_FILE:
+        return StdioType.FILE;
     }
   }
-  if (object is IOSink) {
+  if (object is _IOSinkImpl) {
     try {
       if (object._target is _FileStreamConsumer) {
         return StdioType.FILE;
@@ -350,6 +355,7 @@ StdioType stdioType(object) {
 class _StdIOUtils {
   external static _getStdioOutputStream(int fd);
   external static Stdin _getStdioInputStream();
-  external static int _socketType(nativeSocket);
+  /// Returns the socket type or `null` if [socket] is not a builtin socket.
+  external static int _socketType(Socket socket);
   external static _getStdioHandleType(int fd);
 }

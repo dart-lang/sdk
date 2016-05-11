@@ -39,8 +39,10 @@ class _Directory {
     throw new UnsupportedError("Directory._rename");
   }
   @patch
-  static List _list(String path, bool recursive, bool followLinks) {
-    throw new UnsupportedError("Directory._list");
+  static void _fillWithDirectoryListing(
+      List<FileSystemEntity> list, String path, bool recursive,
+      bool followLinks) {
+    throw new UnsupportedError("Directory._fillWithDirectoryListing");
   }
 }
 
@@ -308,6 +310,11 @@ class InternetAddress {
       String host, {InternetAddressType type: InternetAddressType.ANY}) {
     throw new UnsupportedError("InternetAddress.lookup");
   }
+  @patch
+  static InternetAddress _cloneWithNewHost(
+      InternetAddress address, String host) {
+    throw new UnsupportedError("InternetAddress._cloneWithNewHost");
+  }
 }
 
 @patch
@@ -427,7 +434,7 @@ class _StdIOUtils {
     throw new UnsupportedError("StdIOUtils._getStdioOutputStream");
   }
   @patch
-  static int _socketType(nativeSocket) {
+  static int _socketType(Socket socket) {
     throw new UnsupportedError("StdIOUtils._socketType");
   }
   @patch

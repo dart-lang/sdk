@@ -96,19 +96,20 @@ class _Platform {
 class _CaseInsensitiveStringMap<V> implements Map<String, V> {
   final Map<String, V> _map = new Map<String, V>();
 
-  bool containsKey(String key) => _map.containsKey(key.toUpperCase());
+  bool containsKey(Object key) =>
+      key is String && _map.containsKey(key.toUpperCase());
   bool containsValue(Object value) => _map.containsValue(value);
-  V operator [](String key) => _map[key.toUpperCase()];
+  V operator [](Object key) => key is String ? _map[key.toUpperCase()] : null;
   void operator []=(String key, V value) {
     _map[key.toUpperCase()] = value;
   }
   V putIfAbsent(String key, V ifAbsent()) {
-    _map.putIfAbsent(key.toUpperCase(), ifAbsent);
+    return _map.putIfAbsent(key.toUpperCase(), ifAbsent);
   }
-  addAll(Map other) {
+  void addAll(Map other) {
     other.forEach((key, value) => this[key.toUpperCase()] = value);
   }
-  V remove(String key) => _map.remove(key.toUpperCase());
+  V remove(Object key) => key is String ? _map.remove(key.toUpperCase()) : null;
   void clear() { _map.clear(); }
   void forEach(void f(String key, V value)) { _map.forEach(f); }
   Iterable<String> get keys => _map.keys;

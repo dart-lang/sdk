@@ -29,10 +29,16 @@ patch class _StdIOUtils {
     }
   }
 
-  static int _socketType(nativeSocket) {
+  static int _socketType(Socket socket) {
+    if (socket is _Socket) return _nativeSocketType(socket._nativeSocket);
+    return null;
+  }
+
+  static int _nativeSocketType(_NativeSocket nativeSocket) {
     var result = _getSocketType(nativeSocket);
     if (result is OSError) {
-      throw new FileSystemException("Error retrieving socket type", "", result);
+      throw new FileSystemException(
+          "Error retrieving socket type", "", result);
     }
     return result;
   }

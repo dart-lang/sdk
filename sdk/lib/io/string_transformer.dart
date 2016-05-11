@@ -62,9 +62,6 @@ class _WindowsCodePageEncoder
     return new _WindowsCodePageEncoderSink(sink);
   }
 
-  // Override the base-class' bind, to provide a better type.
-  Stream<List<int>> bind(Stream<String> stream) => super.bind(stream);
-
   external static List<int> _encodeString(String string);
 }
 
@@ -113,9 +110,6 @@ class _WindowsCodePageDecoder
   ByteConversionSink startChunkedConversion(Sink<String> sink) {
     return new _WindowsCodePageDecoderSink(sink);
   }
-
-  // Override the base-class' bind, to provide a better type.
-  Stream<String> bind(Stream<List<int>> stream) => super.bind(stream);
 
   external static String _decodeBytes(List<int> bytes);
 }
