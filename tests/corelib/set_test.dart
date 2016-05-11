@@ -523,5 +523,5 @@ main() {
   testASetFrom((x) => new Set<A>.from(x));
   testASetFrom((x) => new HashSet<A>.from(x));
   testASetFrom((x) => new LinkedHashSet<A>.from(x));
-  testASetFrom((x) => new SplayTreeSet<A>.from(x));
+  testASetFrom((x) => new SplayTreeSet<A>.from(x, identityCompare));
 }

@@ -96,12 +96,11 @@ abstract class Queue<E> implements Iterable<E>, EfficientLength {
 }
 
 
-class _DoubleLink {
-  _DoubleLink _previousLink;
-  _DoubleLink _nextLink;
+class _DoubleLink<E extends _DoubleLink> {
+  E _previousLink;
+  E _nextLink;
 
-  void _link(_DoubleLink previous,
-             _DoubleLink next) {
+  void _link(E previous, E next) {
     _nextLink = next;
     _previousLink = previous;
     if (previous != null) previous._nextLink = this;
@@ -120,17 +119,43 @@ class _DoubleLink {
  * An entry in a doubly linked list. It contains a pointer to the next
  * entry, the previous entry, and the boxed element.
  */
-class DoubleLinkedQueueEntry<E> extends _DoubleLink {
+abstract class DoubleLinkedQueueEntry<E> {
+  factory DoubleLinkedQueueEntry(E element) = _UserDoubleLinkedQueueEntry<E>;
+
+  /// The element in the queue.
+  E get element;
+
+  /// Appends the given [e] as entry just after this entry.
+  void append(E e);
+
+  /// Prepends the given [e] as entry just before this entry.
+  void prepend(E e);
+
+  /// Returns the previous entry or `null` if there is none.
+  DoubleLinkedQueueEntry<E> previousEntry();
+
+  /// Returns the next entry or `null` if there is none.
+  DoubleLinkedQueueEntry<E> nextEntry();
+}
+
+/// Default implementation of a doubly linked queue entry.
+///
+/// This implementation is only used if a user instantiates a
+/// [DoubleLinkedQueueEntry] directly. The internal implementations don't use
+/// this class.
+class _UserDoubleLinkedQueueEntry<E>
+    extends _DoubleLink<_UserDoubleLinkedQueueEntry<E>>
+    implements DoubleLinkedQueueEntry<E> {
   E element;
 
-  DoubleLinkedQueueEntry(this.element);
+  _UserDoubleLinkedQueueEntry(this.element);
 
   void append(E e) {
-    new DoubleLinkedQueueEntry<E>(e)._link(this, _nextLink);
+    new _UserDoubleLinkedQueueEntry<E>(e)._link(this, _nextLink);
   }
 
   void prepend(E e) {
-    new DoubleLinkedQueueEntry<E>(e)._link(_previousLink, this);
+    new _UserDoubleLinkedQueueEntry<E>(e)._link(_previousLink, this);
   }
 
   E remove() {
@@ -138,28 +163,25 @@ class DoubleLinkedQueueEntry<E> extends _DoubleLink {
     return element;
   }
 
-  DoubleLinkedQueueEntry<E> previousEntry() {
-    return _previousLink;
-  }
+  DoubleLinkedQueueEntry<E> previousEntry() => _previousLink;
 
-  DoubleLinkedQueueEntry<E> nextEntry() {
-    return _nextLink;
-  }
+  DoubleLinkedQueueEntry<E> nextEntry() => _nextLink;
 }
 
 /**
  * Interface for the link classes used by [DoubleLinkedQueue].
  *
  * Both the [_DoubleLinkedQueueElement] and [_DoubleLinkedQueueSentinel]
- * implements this interface.
+ * implement this interface.
  * The entry contains a link back to the queue, so calling `append`
  * or `prepend` can correctly update the element count.
  */
-abstract class _DoubleLinkedQueueEntry<E> extends _DoubleLink {
+abstract class _DoubleLinkedQueueEntry<E>
+    extends _DoubleLink<_DoubleLinkedQueueEntry<E>> {
   DoubleLinkedQueue<E> _queue;
   _DoubleLinkedQueueEntry(this._queue);
 
-  _DoubleLinkedQueueElement _asNonSentinelEntry();
+  DoubleLinkedQueueEntry<E> _asNonSentinelEntry();
 
   void _append(E e) {
     new _DoubleLinkedQueueElement<E>(e, _queue)._link(this, _nextLink);
@@ -174,13 +196,11 @@ abstract class _DoubleLinkedQueueEntry<E> extends _DoubleLink {
   E get element;
 
   DoubleLinkedQueueEntry<E> nextEntry() {
-    _DoubleLinkedQueueEntry next = _nextLink;
-    return next._asNonSentinelEntry();
+    return _nextLink._asNonSentinelEntry();
   }
 
   DoubleLinkedQueueEntry<E> previousEntry() {
-    _DoubleLinkedQueueEntry previous = _previousLink;
-    return previous._asNonSentinelEntry();
+    return _previousLink._asNonSentinelEntry();
   }
 }
 
@@ -217,7 +237,7 @@ class _DoubleLinkedQueueElement<E> extends _DoubleLinkedQueueEntry<E>
     return _remove();
   }
 
-  _DoubleLinkedQueueElement _asNonSentinelEntry() {
+  _DoubleLinkedQueueElement<E> _asNonSentinelEntry() {
     return this;
   }
 }
@@ -231,12 +251,12 @@ class _DoubleLinkedQueueElement<E> extends _DoubleLinkedQueueEntry<E>
  * A sentinel does not box any user element.
  */
 class _DoubleLinkedQueueSentinel<E> extends _DoubleLinkedQueueEntry<E> {
-  _DoubleLinkedQueueSentinel(DoubleLinkedQueue queue) : super(queue) {
+  _DoubleLinkedQueueSentinel(DoubleLinkedQueue<E> queue) : super(queue) {
     _previousLink = this;
     _nextLink = this;
   }
 
-  _DoubleLinkedQueueElement _asNonSentinelEntry() {
+  DoubleLinkedQueueEntry<E> _asNonSentinelEntry() {
     return null;
   }
 
@@ -272,8 +292,9 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
    */
   factory DoubleLinkedQueue.from(Iterable elements) {
     Queue<E> list = new DoubleLinkedQueue<E>();
-    for (final E e in elements) {
-      list.addLast(e);
+    for (final e in elements) {
+      E element = e as Object/*=E*/;
+      list.addLast(element);
     }
     return list;
   }
@@ -303,14 +324,14 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   }
 
   E removeLast() {
-    _DoubleLinkedQueueEntry lastEntry = _sentinel._previousLink;
+    _DoubleLinkedQueueEntry<E> lastEntry = _sentinel._previousLink;
     E result = lastEntry._remove();
     _elementCount--;
     return result;
   }
 
   E removeFirst() {
-    _DoubleLinkedQueueEntry firstEntry = _sentinel._nextLink;
+    _DoubleLinkedQueueEntry<E> firstEntry = _sentinel._nextLink;
     E result = firstEntry._remove();
     _elementCount--;
     return result;
@@ -350,12 +371,12 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   }
 
   E get first {
-    _DoubleLinkedQueueEntry firstEntry = _sentinel._nextLink;
+    _DoubleLinkedQueueEntry<E> firstEntry = _sentinel._nextLink;
     return firstEntry.element;
   }
 
   E get last {
-    _DoubleLinkedQueueEntry lastEntry = _sentinel._previousLink;
+    _DoubleLinkedQueueEntry<E> lastEntry = _sentinel._previousLink;
     return lastEntry.element;
   }
 
@@ -363,7 +384,7 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
     // Note that this throws correctly if the queue is empty
     // because reading element on the sentinel throws.
     if (identical(_sentinel._nextLink, _sentinel._previousLink)) {
-      _DoubleLinkedQueueEntry entry = _sentinel._nextLink;
+      _DoubleLinkedQueueEntry<E> entry = _sentinel._nextLink;
       return entry.element;
     }
     throw IterableElementError.tooMany();
@@ -391,7 +412,7 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
     _DoubleLinkedQueueEntry<E> entry = _sentinel._nextLink;
     while (!identical(entry, _sentinel)) {
       _DoubleLinkedQueueEntry<E> nextEntry = entry._nextLink;
-      _DoubleLinkedQueueElement element = entry;
+      _DoubleLinkedQueueElement<E> element = entry;
       f(element);
       entry = nextEntry;
     }
@@ -410,7 +431,8 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
   E _current;
 
   _DoubleLinkedQueueIterator(_DoubleLinkedQueueSentinel<E> sentinel)
-      : _sentinel = sentinel, _nextEntry = sentinel._nextLink;
+      : _sentinel = sentinel,
+        _nextEntry = sentinel._nextLink;
 
   bool moveNext() {
     if (identical(_nextEntry, _sentinel)) {
@@ -419,7 +441,7 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
       _sentinel = null;
       return false;
     }
-    _DoubleLinkedQueueElement elementEntry = _nextEntry;
+    _DoubleLinkedQueueElement<E> elementEntry = _nextEntry;
     if (elementEntry._queue == null) {
       throw new ConcurrentModificationError(_sentinel._queue);
     }
@@ -476,8 +498,9 @@ class ListQueue<E> extends Iterable<E> implements Queue<E> {
       int length = elements.length;
       ListQueue<E> queue = new ListQueue(length + 1);
       assert(queue._table.length > length);
-      List sourceList = elements;
-      queue._table.setRange(0, length, sourceList, 0);
+      for (int i = 0; i < length; i++) {
+        queue._table[i] = elements[i] as Object/*=E*/;
+      }
       queue._tail = length;
       return queue;
     } else {
@@ -486,8 +509,8 @@ class ListQueue<E> extends Iterable<E> implements Queue<E> {
         capacity = elements.length;
       }
       ListQueue<E> result = new ListQueue<E>(capacity);
-      for (final E element in elements) {
-        result.addLast(element);
+      for (final element in elements) {
+        result.addLast(element as Object/*=E*/);
       }
       return result;
     }
@@ -548,8 +571,8 @@ class ListQueue<E> extends Iterable<E> implements Queue<E> {
   }
 
   void addAll(Iterable<E> elements) {
-    if (elements is List) {
-      List list = elements;
+    if (elements is List/*<E>*/) {
+      List<E> list = elements;
       int addCount = list.length;
       int length = this.length;
       if (length + addCount >= _table.length) {
@@ -792,13 +815,13 @@ class ListQueue<E> extends Iterable<E> implements Queue<E> {
  * Considers any add or remove operation a concurrent modification.
  */
 class _ListQueueIterator<E> implements Iterator<E> {
-  final ListQueue _queue;
+  final ListQueue<E> _queue;
   final int _end;
   final int _modificationCount;
   int _position;
   E _current;
 
-  _ListQueueIterator(ListQueue queue)
+  _ListQueueIterator(ListQueue<E> queue)
       : _queue = queue,
         _end = queue._tail,
         _modificationCount = queue._modificationCount,

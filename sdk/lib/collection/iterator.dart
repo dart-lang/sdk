@@ -15,7 +15,7 @@ class HasNextIterator<E> {
   static const int _NO_NEXT = 1;
   static const int _NOT_MOVED_YET = 2;
 
-  Iterator _iterator;
+  Iterator<E> _iterator;
   int _state = _NOT_MOVED_YET;
 
   HasNextIterator(this._iterator);

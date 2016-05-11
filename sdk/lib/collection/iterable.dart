@@ -121,7 +121,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
   }
 
   E get first {
-    Iterator it = iterator;
+    Iterator<E> it = iterator;
     if (!it.moveNext()) {
       throw IterableElementError.noElement();
     }
@@ -129,7 +129,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
   }
 
   E get last {
-    Iterator it = iterator;
+    Iterator<E> it = iterator;
     if (!it.moveNext()) {
       throw IterableElementError.noElement();
     }
@@ -141,7 +141,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
   }
 
   E get single {
-    Iterator it = iterator;
+    Iterator<E> it = iterator;
     if (!it.moveNext()) throw IterableElementError.noElement();
     E result = it.current;
     if (it.moveNext()) throw IterableElementError.tooMany();

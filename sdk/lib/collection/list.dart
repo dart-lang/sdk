@@ -309,10 +309,10 @@ abstract class ListMixin<E> implements List<E> {
 
   void sort([int compare(E a, E b)]) {
     if (compare == null) {
-      var defaultCompare = Comparable.compare;
-      compare = defaultCompare;
+      Sort.sort(this, Comparable.compare);
+    } else {
+      Sort.sort(this, compare);
     }
-    Sort.sort(this, compare);
   }
 
   void shuffle([Random random]) {
@@ -368,10 +368,10 @@ abstract class ListMixin<E> implements List<E> {
     if (length == 0) return;
     RangeError.checkNotNegative(skipCount, "skipCount");
 
-    List otherList;
+    List<E> otherList;
     int otherStart;
     // TODO(floitsch): Make this accept more.
-    if (iterable is List) {
+    if (iterable is List/*<E>*/) {
       otherList = iterable;
       otherStart = skipCount;
     } else {
