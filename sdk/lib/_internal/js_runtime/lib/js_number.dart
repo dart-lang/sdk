@@ -114,7 +114,7 @@ class JSNumber extends Interceptor implements num {
 
   double truncateToDouble() => this < 0 ? ceilToDouble() : floorToDouble();
 
-  num clamp(num lowerLimit, num upperLimit) {
+  num clamp(lowerLimit, upperLimit) {
     if (lowerLimit is! num) throw argumentErrorValue(lowerLimit);
     if (upperLimit is! num) throw argumentErrorValue(upperLimit);
     if (lowerLimit.compareTo(upperLimit) > 0) {
@@ -188,7 +188,7 @@ class JSNumber extends Interceptor implements num {
       // Then we don't know how to handle it at all.
       throw new UnsupportedError("Unexpected toString result: $result");
     }
-    result = JS('String', '#', match[1]);
+    String result = JS('String', '#', match[1]);
     int exponent = JS("int", "+#", match[3]);
     if (match[2] != null) {
       result = JS('String', '# + #', result, match[2]);
@@ -270,13 +270,13 @@ class JSNumber extends Interceptor implements num {
   // we define these methods on number for now but we need to decide
   // the grain at which we do the type checks.
 
-  int operator <<(num other) {
+  num operator <<(num other) {
     if (other is !num) throw argumentErrorValue(other);
     if (JS('num', '#', other) < 0) throw argumentErrorValue(other);
     return _shlPositive(other);
   }
 
-  int _shlPositive(num other) {
+  num _shlPositive(num other) {
     // JavaScript only looks at the last 5 bits of the shift-amount. Shifting
     // by 33 is hence equivalent to a shift by 1.
     return JS('bool', r'# > 31', other)
@@ -284,14 +284,14 @@ class JSNumber extends Interceptor implements num {
         : JS('JSUInt32', r'(# << #) >>> 0', this, other);
   }
 
-  int operator >>(num other) {
+  num operator >>(num other) {
     if (false) _shrReceiverPositive(other);
     if (other is !num) throw argumentErrorValue(other);
     if (JS('num', '#', other) < 0) throw argumentErrorValue(other);
     return _shrOtherPositive(other);
   }
 
-  int _shrOtherPositive(num other) {
+  num _shrOtherPositive(num other) {
     return JS('num', '#', this) > 0
         ? _shrBothPositive(other)
         // For negative numbers we just clamp the shift-by amount.
@@ -301,12 +301,12 @@ class JSNumber extends Interceptor implements num {
         : JS('JSUInt32', r'(# >> #) >>> 0', this, other > 31 ? 31 : other);
   }
 
-  int _shrReceiverPositive(num other) {
+  num _shrReceiverPositive(num other) {
     if (JS('num', '#', other) < 0) throw argumentErrorValue(other);
     return _shrBothPositive(other);
   }
 
-  int _shrBothPositive(num other) {
+  num _shrBothPositive(num other) {
     return JS('bool', r'# > 31', other)
         // JavaScript only looks at the last 5 bits of the shift-amount. In JS
         // shifting by 33 is hence equivalent to a shift by 1. Shortcut the
@@ -318,17 +318,17 @@ class JSNumber extends Interceptor implements num {
         : JS('JSUInt32', r'# >>> #', this, other);
   }
 
-  int operator &(num other) {
+  num operator &(num other) {
     if (other is !num) throw argumentErrorValue(other);
     return JS('JSUInt32', r'(# & #) >>> 0', this, other);
   }
 
-  int operator |(num other) {
+  num operator |(num other) {
     if (other is !num) throw argumentErrorValue(other);
     return JS('JSUInt32', r'(# | #) >>> 0', this, other);
   }
 
-  int operator ^(num other) {
+  num operator ^(num other) {
     if (other is !num) throw argumentErrorValue(other);
     return JS('JSUInt32', r'(# ^ #) >>> 0', this, other);
   }
@@ -543,9 +543,9 @@ class JSInt extends JSNumber implements int, double {
     return (i & 0x0000003F);
   }
 
-  static int _shru(int value, int shift) => JS('int', '# >>> #', value, shift);
-  static int _shrs(int value, int shift) => JS('int', '# >> #', value, shift);
-  static int _ors(int a, int b) => JS('int', '# | #', a, b);
+  static _shru(int value, int shift) => JS('int', '# >>> #', value, shift);
+  static _shrs(int value, int shift) => JS('int', '# >> #', value, shift);
+  static _ors(int a, int b) => JS('int', '# | #', a, b);
 
   // Assumes i is <= 32-bit
   static int _spread(int i) {
