@@ -124,8 +124,104 @@ final AbstractFunctionType = JS('', '''
   }
 ''');
 
+/// Memo table for named argument groups. A named argument packet
+/// {name1 : type1, ..., namen : typen} corresponds to the path
+/// n, name1, type1, ...., namen, typen.  The element of the map
+/// reached via this path (if any) is the canonical representative
+/// for this packet.  
+final _fnTypeNamedArgMap = JS('', 'new Map()');
+/// Memo table for positional argument groups. A positional argument 
+/// packet [type1, ..., typen] (required or optional) corresponds to
+/// the path n, type1, ...., typen.  The element reached via
+/// this path (if any) is the canonical representative for this
+/// packet. Note that required and optional parameters packages
+/// may have the same canonical representation.
+final _fnTypeArrayArgMap = JS('', 'new Map()');
+/// Memo table for function types. The index path consists of the
+/// path length - 1, the returnType, the canonical positional argument
+/// packet, and if present, the canonical optional or named argument
+/// packet.  A level of indirection could be avoided here if desired.
+final _fnTypeTypeMap = JS('', 'new Map()');
+/// Memo table for small function types with no optional or named
+/// arguments and less than a fixed n (currently 3) number of
+/// required arguments.  Indexing into this table by the number
+/// of required arguments yields a map which is indexed by the
+/// argument types themselves.  The element reached via this
+/// index path (if present) is the canonical function type.
+final _fnTypeSmallMap = JS('', '[new Map(), new Map(), new Map()]');
+
 final FunctionType = JS('', '''
   class FunctionType extends $AbstractFunctionType {
+    static _memoizeArray(map, arr, create) {
+      let len = arr.length;
+      map = FunctionType._lookupNonTerminal(map, len);
+      for (var i = 0; i < len-1; ++i) {
+        map = FunctionType._lookupNonTerminal(map, arr[i]);
+      }
+      let result = map.get(arr[len-1]);
+      if (result !== void 0) return result;
+      map.set(arr[len-1], result = create());
+      return result;
+    }
+
+    // Map dynamic to bottom. If meta-data is present,
+    // we slice off the remaining meta-data and make
+    // it the second element of a packet for processing
+    // later on in the constructor.
+    static _normalizeParameter(a) {
+      if (a instanceof Array) {
+        let result = [];
+        result.push((a[0] == $dynamic) ? $bottom : a[0]);
+        result.push(a.slice(1));
+        return result;
+      }
+      return (a == $dynamic) ? $bottom : a;
+    }
+
+    static _canonicalizeArray(definite, arr, map) {
+      if (!definite) arr = arr.map(FunctionType._normalizeParameter);
+      return FunctionType._memoizeArray(map, arr, () => arr);
+    }
+
+    // TODO(leafp): This only canonicalizes of the names are
+    // emitted in a consistent order.  
+    static _canonicalizeNamed(definite, named, map) {
+      let key = [];
+      let names = $getOwnPropertyNames(named);
+      let r = {};
+      for (var i = 0; i < names.length; ++i) {
+        let name = names[i];
+        let type = named[name];
+        if (!definite) r[name] = type = FunctionType._normalizeParameter(type);
+        key.push(name);
+        key.push(type);
+      }
+      if (!definite) named = r;
+      return FunctionType._memoizeArray(map, key, () => named);
+    }
+
+    static _lookupNonTerminal(map, key) {
+      let result = map.get(key);
+      if (result !== void 0) return result;
+      map.set(key, result = new Map());
+      return result;
+    }
+
+    // TODO(leafp): This handles some low hanging fruit, but
+    // really we should make all of this faster, and also
+    // handle more cases here.
+    static _createSmall(count, definite, returnType, args) {
+      let map = $_fnTypeSmallMap[count];
+      if (!definite) args = args.map(FunctionType._normalizeParameter);
+      for (var i = 0; i < count; ++i) {
+        map = FunctionType._lookupNonTerminal(map, args[i]);
+     }
+     let result = map.get(returnType);
+     if (result !== void 0) return result;
+     result = new FunctionType(returnType, args, [], {});
+     map.set(returnType, result);
+     return result;
+    }
     /**
      * Construct a function type. There are two arrow constructors,
      * distinguished by the "definite" flag.
@@ -136,15 +232,47 @@ final FunctionType = JS('', '''
      *
      * The definite arrow (definite is true) leaves arguments unchanged.
      *
-     * We eagerly canonize the argument types to avoid having to deal with
+     * We eagerly normalize the argument types to avoid having to deal with
      * this logic in multiple places.
      *
-     * TODO(leafp): Figure out how to present this to the user.  How
-     * should these be printed out?
+     * This code does best effort canonicalization.  It does not guarantee
+     * that all instances will share.
+     *
      */
-    constructor(definite, returnType, args, optionals, named) {
+    static create(definite, returnType, args, extra) {
+      // Note that if extra is ever passed as an empty array
+      // or an empty map, we can end up with semantically
+      // identical function types that don't canonicalize
+      // to the same object since we won't fall into this
+      // fast path.
+      if (extra === void 0 && args.length < 3) {
+        return FunctionType._createSmall(
+          args.length, definite, returnType, args);
+      }
+      args = FunctionType._canonicalizeArray(
+        definite, args, $_fnTypeArrayArgMap);
+      let keys;
+      let create;
+      if (extra === void 0) {
+        keys = [returnType, args];
+        create = () => new FunctionType(returnType, args, [], {});
+      } else if (extra instanceof Array) {
+        let optionals =
+          FunctionType._canonicalizeArray(definite, extra, $_fnTypeArrayArgMap);
+        keys = [returnType, args, optionals];
+        create =
+          () => new FunctionType(returnType, args, optionals, {});
+      } else {
+        let named =
+          FunctionType._canonicalizeNamed(definite, extra, $_fnTypeNamedArgMap);
+        keys = [returnType, args, named];
+        create = () => new FunctionType(returnType, args, [], named);
+      }
+      return FunctionType._memoizeArray($_fnTypeTypeMap, keys, create);
+    }
+
+    constructor(returnType, args, optionals, named) {
       super();
-      this.definite = definite;
       this.returnType = returnType;
       this.args = args;
       this.optionals = optionals;
@@ -157,7 +285,7 @@ final FunctionType = JS('', '''
         for (var i = 0; i < array.length; ++i) {
           var arg = array[i];
           if (arg instanceof Array) {
-            metadata.push(arg.slice(1));
+            metadata.push(arg[1]);
             result.push(arg[0]);
           } else {
             metadata.push([]);
@@ -169,31 +297,10 @@ final FunctionType = JS('', '''
       this.args = process(this.args, this.metadata);
       this.optionals = process(this.optionals, this.metadata);
       // TODO(vsm): Add named arguments.
-      this._canonize();
-    }
-    _canonize() {
-      if (this.definite) return;
-
-      function replace(a) {
-        return (a == $dynamic) ? $bottom : a;
-      }
-
-      this.args = this.args.map(replace);
-
-      if (this.optionals.length > 0) {
-        this.optionals = this.optionals.map(replace);
-      }
-
-      if (Object.keys(this.named).length > 0) {
-        let r = {};
-        for (let name of $getOwnPropertyNames(this.named)) {
-          r[name] = replace(this.named[name]);
-        }
-        this.named = r;
-      }
     }
   }
 ''');
+
 
 final Typedef = JS('', '''
   class Typedef extends $AbstractFunctionType {
@@ -202,10 +309,6 @@ final Typedef = JS('', '''
       this._name = name;
       this._closure = closure;
       this._functionType = null;
-    }
-
-    get definite() {
-      return this._functionType.definite;
     }
 
     get name() {
@@ -255,26 +358,12 @@ _functionType(definite, returnType, args, extra) => JS('', '''(() => {
     // Return a function that makes the type.
     function makeGenericFnType(...types) {
       let parts = fnTypeParts(...types);
-      return $_functionType($definite, parts[0], parts[1], parts[2]);
+      return $FunctionType.create($definite, parts[0], parts[1], parts[2]);
     }
     makeGenericFnType[$_typeFormalCount] = fnTypeParts.length;
     return makeGenericFnType;
   }
-
-  // TODO(vsm): Cache / memomize?
-  let optionals;
-  let named;
-  if ($extra === void 0) {
-    optionals = [];
-    named = {};
-  } else if ($extra instanceof Array) {
-    optionals = $extra;
-    named = {};
-  } else {
-    optionals = [];
-    named = $extra;
-  }
-  return new $FunctionType($definite, $returnType, $args, optionals, named);
+  return $FunctionType.create($definite, $returnType, $args, $extra);
 })()''');
 
 ///
@@ -470,7 +559,7 @@ _subtypeMemo(f) => JS('', '''(() => {
 /// Returns undefined if [t1] </: [t2] in strong mode, but spec
 ///  mode may differ
 final isSubtype =
-    JS('', '$_subtypeMemo((t1, t2) => $_isSubtype(t1, t2, true))');
+    JS('', '$_subtypeMemo((t1, t2) => (t1 === t2) || $_isSubtype(t1, t2, true))');
 
 _isBottom(type) => JS('bool', '# == #', type, bottom);
 

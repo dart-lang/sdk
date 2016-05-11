@@ -1052,6 +1052,109 @@ suite('subtyping', function() {
 
 });
 
+suite('canonicalization', function() {
+  'use strict';
+  let functionType = dart.functionType;
+  let definiteFunctionType = dart.definiteFunctionType;
+  let typedef = dart.typedef;
+  let generic = dart.generic;
+
+  let Object = core.Object;
+  let String = core.String;
+  let int = core.int;
+  let dynamic = dart.dynamic;
+  let bottom = dart.bottom;
+  let Map = core.Map;
+  let Map$ = core.Map$;
+
+  class A {}
+
+  let AA$ = generic((T, U) => class AA extends core.Object {});
+  let AA = AA$();
+
+  let Func2 = typedef('Func2', () => functionType(dynamic, [dynamic, dynamic]));
+
+  let FuncG$ = generic((T, U) => typedef('FuncG', () => functionType(T, [T, U])))
+  let FuncG = FuncG$();
+
+  test('base types', () => {
+    assert.equal(Object, Object);
+    assert.equal(String, String);
+    assert.equal(dynamic, dynamic);
+  });
+
+  test('class types', () => {
+    assert.equal(A, A);
+  });
+
+  test('generic class types', () => {
+    assert.equal(AA, AA);
+    assert.equal(AA, AA$(dynamic, dynamic));
+    assert.equal(AA$(dynamic, dynamic), AA$(dynamic, dynamic));
+    assert.equal(AA$(AA, Object), AA$(AA, Object));
+    assert.equal(Map, Map);
+    assert.equal(Map$(dynamic, dynamic), Map);
+    assert.equal(Map$(int, Map$(int, int)), Map$(int, Map$(int, int)));
+  });
+
+  test('typedefs', () => {
+    assert.equal(Func2, Func2);
+    assert.equal(FuncG, FuncG$(dynamic, dynamic));
+    assert.equal(FuncG$(dynamic, dynamic), FuncG$(dynamic, dynamic));
+    assert.equal(FuncG$(String, Func2), FuncG$(String, Func2));
+  });
+
+  test('function types', () => {
+    assert.equal(functionType(dynamic, [dynamic, dynamic]),
+                 functionType(dynamic, [dynamic, dynamic]))
+
+    assert.notEqual(definiteFunctionType(dynamic, [dynamic, dynamic]),
+                    functionType(dynamic, [dynamic, dynamic]))
+
+    assert.equal(functionType(dynamic, [dynamic, dynamic]),
+                 functionType(dynamic, [bottom, bottom]))
+
+    assert.equal(functionType(dynamic, [], [dynamic, dynamic]),
+                 functionType(dynamic, [], [dynamic, dynamic]))
+
+    assert.notEqual(definiteFunctionType(dynamic, [], [dynamic, dynamic]),
+                    functionType(dynamic, [], [dynamic, dynamic]))
+
+    assert.equal(functionType(dynamic, [], [dynamic, dynamic]),
+                 functionType(dynamic, [], [bottom, bottom]))
+
+    assert.equal(functionType(dynamic, [], {extra: dynamic}),
+                 functionType(dynamic, [], {extra: dynamic}))
+
+    assert.notEqual(definiteFunctionType(dynamic, [], {extra: dynamic}),
+                    functionType(dynamic, [], {extra: dynamic}))
+
+    assert.equal(functionType(dynamic, [], {extra: dynamic}),
+                 functionType(dynamic, [], {extra: bottom}))
+
+    assert.equal(functionType(int, [int, int]),
+                 functionType(int, [int, int]))
+
+    assert.equal(functionType(int, [], [int, int]),
+                 functionType(int, [], [int, int]))
+
+    assert.equal(functionType(int, [int, int], {extra: int}),
+                 functionType(int, [int, int], {extra: int}))
+
+    assert.equal(functionType(int, [int, int, int, int, int]),
+                 functionType(int, [int, int, int, int, int]))
+
+    assert.notEqual(functionType(int, [int, int, int, int, int]),
+                    functionType(int, [int, int, int], [int, int]))
+
+    assert.notEqual(functionType(String, [int, int, int, int, int]),
+                    functionType(int, [int, int, int, int, int]))
+
+    assert.notEqual(functionType(String, []),
+                 functionType(int, []))
+  });
+});
+
 suite('primitives', function() {
   'use strict';
 

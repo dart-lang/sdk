@@ -679,24 +679,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       const fnTypeParts = returnType;
       function makeGenericFnType(...types) {
         let parts = fnTypeParts(...types);
-        return dart._functionType(definite, parts[0], parts[1], parts[2]);
+        return dart.FunctionType.create(definite, parts[0], parts[1], parts[2]);
       }
       makeGenericFnType[dart._typeFormalCount] = fnTypeParts.length;
       return makeGenericFnType;
     }
-    let optionals;
-    let named;
-    if (extra === void 0) {
-      optionals = [];
-      named = {};
-    } else if (extra instanceof Array) {
-      optionals = extra;
-      named = {};
-    } else {
-      optionals = [];
-      named = extra;
-    }
-    return new dart.FunctionType(definite, returnType, args, optionals, named);
+    return dart.FunctionType.create(definite, returnType, args, extra);
   };
   dart.functionType = function(returnType, args, extra) {
     return dart._functionType(false, returnType, args, extra);
@@ -1266,10 +1254,90 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return buffer;
     }
   };
+  dart._fnTypeNamedArgMap = new Map();
+  dart._fnTypeArrayArgMap = new Map();
+  dart._fnTypeTypeMap = new Map();
+  dart._fnTypeSmallMap = [new Map(), new Map(), new Map()];
   dart.FunctionType = class FunctionType extends dart.AbstractFunctionType {
-    constructor(definite, returnType, args, optionals, named) {
+    static _memoizeArray(map, arr, create) {
+      let len = arr.length;
+      map = FunctionType._lookupNonTerminal(map, len);
+      for (var i = 0; i < len - 1; ++i) {
+        map = FunctionType._lookupNonTerminal(map, arr[i]);
+      }
+      let result = map.get(arr[len - 1]);
+      if (result !== void 0) return result;
+      map.set(arr[len - 1], result = create());
+      return result;
+    }
+    static _normalizeParameter(a) {
+      if (a instanceof Array) {
+        let result = [];
+        result.push(a[0] == dart.dynamic ? dart.bottom : a[0]);
+        result.push(a.slice(1));
+        return result;
+      }
+      return a == dart.dynamic ? dart.bottom : a;
+    }
+    static _canonicalizeArray(definite, arr, map) {
+      if (!definite) arr = arr.map(FunctionType._normalizeParameter);
+      return FunctionType._memoizeArray(map, arr, () => arr);
+    }
+    static _canonicalizeNamed(definite, named, map) {
+      let key = [];
+      let names = dart.getOwnPropertyNames(named);
+      let r = {};
+      for (var i = 0; i < names.length; ++i) {
+        let name = names[i];
+        let type = named[name];
+        if (!definite) r[name] = type = FunctionType._normalizeParameter(type);
+        key.push(name);
+        key.push(type);
+      }
+      if (!definite) named = r;
+      return FunctionType._memoizeArray(map, key, () => named);
+    }
+    static _lookupNonTerminal(map, key) {
+      let result = map.get(key);
+      if (result !== void 0) return result;
+      map.set(key, result = new Map());
+      return result;
+    }
+    static _createSmall(count, definite, returnType, args) {
+      let map = dart._fnTypeSmallMap[count];
+      if (!definite) args = args.map(FunctionType._normalizeParameter);
+      for (var i = 0; i < count; ++i) {
+        map = FunctionType._lookupNonTerminal(map, args[i]);
+      }
+      let result = map.get(returnType);
+      if (result !== void 0) return result;
+      result = new FunctionType(returnType, args, [], {});
+      map.set(returnType, result);
+      return result;
+    }
+    static create(definite, returnType, args, extra) {
+      if (extra === void 0 && args.length < 3) {
+        return FunctionType._createSmall(args.length, definite, returnType, args);
+      }
+      args = FunctionType._canonicalizeArray(definite, args, dart._fnTypeArrayArgMap);
+      let keys;
+      let create;
+      if (extra === void 0) {
+        keys = [returnType, args];
+        create = () => new FunctionType(returnType, args, [], {});
+      } else if (extra instanceof Array) {
+        let optionals = FunctionType._canonicalizeArray(definite, extra, dart._fnTypeArrayArgMap);
+        keys = [returnType, args, optionals];
+        create = () => new FunctionType(returnType, args, optionals, {});
+      } else {
+        let named = FunctionType._canonicalizeNamed(definite, extra, dart._fnTypeNamedArgMap);
+        keys = [returnType, args, named];
+        create = () => new FunctionType(returnType, args, [], named);
+      }
+      return FunctionType._memoizeArray(dart._fnTypeTypeMap, keys, create);
+    }
+    constructor(returnType, args, optionals, named) {
       super();
-      this.definite = definite;
       this.returnType = returnType;
       this.args = args;
       this.optionals = optionals;
@@ -1280,7 +1348,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         for (var i = 0; i < array.length; ++i) {
           var arg = array[i];
           if (arg instanceof Array) {
-            metadata.push(arg.slice(1));
+            metadata.push(arg[1]);
             result.push(arg[0]);
           } else {
             metadata.push([]);
@@ -1291,24 +1359,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       this.args = process(this.args, this.metadata);
       this.optionals = process(this.optionals, this.metadata);
-      this._canonize();
-    }
-    _canonize() {
-      if (this.definite) return;
-      function replace(a) {
-        return a == dart.dynamic ? dart.bottom : a;
-      }
-      this.args = this.args.map(replace);
-      if (this.optionals.length > 0) {
-        this.optionals = this.optionals.map(replace);
-      }
-      if (Object.keys(this.named).length > 0) {
-        let r = {};
-        for (let name of dart.getOwnPropertyNames(this.named)) {
-          r[name] = replace(this.named[name]);
-        }
-        this.named = r;
-      }
     }
   };
   dart.Typedef = class Typedef extends dart.AbstractFunctionType {
@@ -1317,9 +1367,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this._name = name;
       this._closure = closure;
       this._functionType = null;
-    }
-    get definite() {
-      return this._functionType.definite;
     }
     get name() {
       return this._name;
@@ -1347,7 +1394,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart._typeFormalCount = Symbol("_typeFormalCount");
-  dart.isSubtype = dart._subtypeMemo((t1, t2) => dart._isSubtype(t1, t2, true));
+  dart.isSubtype = dart._subtypeMemo((t1, t2) => t1 === t2 || dart._isSubtype(t1, t2, true));
   dart.hasOwnProperty = Object.prototype.hasOwnProperty;
   dart.StrongModeError = (function() {
     function StrongModeError(message) {
