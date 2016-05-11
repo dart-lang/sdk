@@ -19,13 +19,11 @@ void printToConsole(String line) {
 }
 
 @patch
-List/*<E>*/ makeListFixedLength/*<E>*/(List/*<E>*/ growableList) {
-  JSArray.markFixedList(growableList);
-  return growableList;
+List makeListFixedLength(List growableList) {
+  return JSArray.markFixedList(growableList);
 }
 
 @patch
-List/*<E>*/ makeFixedListUnmodifiable/*<E>*/(List/*<E>*/ fixedLengthList) {
-  JSArray.markUnmodifiableList(fixedLengthList);
-  return fixedLengthList;
+List makeFixedListUnmodifiable(List fixedLengthList) {
+  return JSArray.markUnmodifiableList(fixedLengthList);
 }
