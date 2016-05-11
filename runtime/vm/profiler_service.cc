@@ -2334,6 +2334,8 @@ void Profile::PrintHeaderJSON(JSONObject* obj) {
                    static_cast<intptr_t>(FLAG_max_profile_depth));
   obj->AddProperty("sampleCount", sample_count());
   obj->AddProperty("timeSpan", MicrosecondsToSeconds(GetTimeSpan()));
+  obj->AddPropertyTimeMicros("timeOriginMicros", min_time());
+  obj->AddPropertyTimeMicros("timeExtentMicros", GetTimeSpan());
 }
 
 

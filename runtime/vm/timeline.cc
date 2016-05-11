@@ -680,6 +680,20 @@ int64_t TimelineEvent::AsyncId() const {
 }
 
 
+int64_t TimelineEvent::LowTime() const {
+  return timestamp0_;
+}
+
+
+int64_t TimelineEvent::HighTime() const {
+  if (event_type() == kDuration) {
+    return timestamp1_;
+  } else {
+    return timestamp0_;
+  }
+}
+
+
 int64_t TimelineEvent::TimeDuration() const {
   if (timestamp1_ == 0) {
     // This duration is still open, use current time as end.
@@ -1008,7 +1022,9 @@ IsolateTimelineEventFilter::IsolateTimelineEventFilter(
 
 
 TimelineEventRecorder::TimelineEventRecorder()
-    : async_id_(0) {
+    : async_id_(0),
+      time_low_micros_(0),
+      time_high_micros_(0) {
 }
 
 
@@ -1085,6 +1101,32 @@ TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
 #endif  // defined(DEBUG)
   thread_block_lock->Unlock();
   return NULL;
+}
+
+
+void TimelineEventRecorder::ResetTimeTracking() {
+  time_high_micros_ = 0;
+  time_low_micros_ = kMaxInt64;
+}
+
+
+void TimelineEventRecorder::ReportTime(int64_t micros) {
+  if (time_high_micros_ < micros) {
+    time_high_micros_ = micros;
+  }
+  if (time_low_micros_ > micros) {
+    time_low_micros_ = micros;
+  }
+}
+
+
+int64_t TimelineEventRecorder::TimeOriginMicros() const {
+  return time_low_micros_;
+}
+
+
+int64_t TimelineEventRecorder::TimeExtentMicros() const {
+  return time_high_micros_ - time_low_micros_;
 }
 
 
@@ -1212,6 +1254,7 @@ void TimelineEventFixedBufferRecorder::PrintJSONEvents(
     return;
   }
   MutexLocker ml(&lock_);
+  ResetTimeTracking();
   intptr_t block_offset = FindOldestBlockIndex();
   if (block_offset == -1) {
     // All blocks are empty.
@@ -1228,6 +1271,8 @@ void TimelineEventFixedBufferRecorder::PrintJSONEvents(
       if (filter->IncludeEvent(event) &&
           event->Within(filter->time_origin_micros(),
                         filter->time_extent_micros())) {
+        ReportTime(event->LowTime());
+        ReportTime(event->HighTime());
         events->AddValue(event);
       }
     }
@@ -1247,6 +1292,8 @@ void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
     PrintJSONMeta(&events);
     PrintJSONEvents(&events, filter);
   }
+  topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
+  topLevel.AddPropertyTimeMicros("TimeExtentMicros", TimeExtentMicros());
 }
 
 
@@ -1393,6 +1440,8 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
     PrintJSONMeta(&events);
     PrintJSONEvents(&events, filter);
   }
+  topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
+  topLevel.AddPropertyTimeMicros("TimeExtentMicros", TimeExtentMicros());
 }
 
 
@@ -1450,6 +1499,7 @@ void TimelineEventEndlessRecorder::PrintJSONEvents(
     return;
   }
   MutexLocker ml(&lock_);
+  ResetTimeTracking();
   // Collect all interesting blocks.
   MallocGrowableArray<TimelineEventBlock*> blocks(8);
   TimelineEventBlock* current = head_;
@@ -1475,6 +1525,8 @@ void TimelineEventEndlessRecorder::PrintJSONEvents(
       if (filter->IncludeEvent(event) &&
           event->Within(filter->time_origin_micros(),
                         filter->time_extent_micros())) {
+        ReportTime(event->LowTime());
+        ReportTime(event->HighTime());
         events->AddValue(event);
       }
     }

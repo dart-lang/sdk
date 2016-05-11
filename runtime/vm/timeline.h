@@ -223,6 +223,11 @@ class TimelineEvent {
     return timestamp1_;
   }
 
+  // The lowest time value stored in this event.
+  int64_t LowTime() const;
+  // The highest time value stored in this event.
+  int64_t HighTime() const;
+
   void PrintJSON(JSONStream* stream) const;
 
   ThreadId thread() const {
@@ -719,8 +724,15 @@ class TimelineEventRecorder {
   TimelineEvent* ThreadBlockStartEvent();
   void ThreadBlockCompleteEvent(TimelineEvent* event);
 
+  void ResetTimeTracking();
+  void ReportTime(int64_t micros);
+  int64_t TimeOriginMicros() const;
+  int64_t TimeExtentMicros() const;
+
   Mutex lock_;
   uintptr_t async_id_;
+  int64_t time_low_micros_;
+  int64_t time_high_micros_;
 
   friend class TimelineEvent;
   friend class TimelineEventBlockIterator;
