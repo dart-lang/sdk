@@ -1121,11 +1121,17 @@ void TimelineEventRecorder::ReportTime(int64_t micros) {
 
 
 int64_t TimelineEventRecorder::TimeOriginMicros() const {
+  if (time_high_micros_ == 0) {
+    return 0;
+  }
   return time_low_micros_;
 }
 
 
 int64_t TimelineEventRecorder::TimeExtentMicros() const {
+  if (time_high_micros_ == 0) {
+    return 0;
+  }
   return time_high_micros_ - time_low_micros_;
 }
 
