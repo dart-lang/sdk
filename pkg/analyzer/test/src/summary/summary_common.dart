@@ -1823,6 +1823,27 @@ foo(a, b, c) {}
     ]);
   }
 
+  test_constExpr_functionExpression_inConstructorInitializers() {
+    // Even though function expressions are not allowed in constant
+    // declarations, they might occur due to erroneous code, so make sure they
+    // function correctly.
+    UnlinkedExecutable executable = serializeClassText('''
+class C {
+  final x, y;
+  const C() : x = (() => 42), y = (() => 43);
+}
+''').executables[0];
+    expect(executable.localFunctions, hasLength(2));
+    _assertUnlinkedConst(executable.constantInitializers[0].expression,
+        isValidConst: false,
+        operators: [UnlinkedConstOperation.pushLocalFunctionReference],
+        ints: [0, 0]);
+    _assertUnlinkedConst(executable.constantInitializers[1].expression,
+        isValidConst: false,
+        operators: [UnlinkedConstOperation.pushLocalFunctionReference],
+        ints: [0, 1]);
+  }
+
   test_constExpr_invokeConstructor_generic_named() {
     UnlinkedVariable variable = serializeVariableText('''
 class C<K, V> {
@@ -3471,6 +3492,33 @@ class C extends A {
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
 
+  test_constructor_initializers_superInvocation_namedExpression() {
+    UnlinkedExecutable executable =
+        findExecutable('', executables: serializeClassText(r'''
+class A {
+  const A(a, {int b, int c});
+}
+class C extends A {
+  const C() : super(1, b: 2, c: 3);
+}
+''').executables);
+    expect(executable.constantInitializers, hasLength(1));
+    UnlinkedConstructorInitializer initializer =
+        executable.constantInitializers[0];
+    expect(
+        initializer.kind, UnlinkedConstructorInitializerKind.superInvocation);
+    expect(initializer.name, '');
+    expect(initializer.expression, isNull);
+    expect(initializer.arguments, hasLength(3));
+    _assertUnlinkedConst(initializer.arguments[0],
+        operators: [UnlinkedConstOperation.pushInt], ints: [1]);
+    _assertUnlinkedConst(initializer.arguments[1],
+        operators: [UnlinkedConstOperation.pushInt], ints: [2]);
+    _assertUnlinkedConst(initializer.arguments[2],
+        operators: [UnlinkedConstOperation.pushInt], ints: [3]);
+    expect(initializer.argumentNames, ['b', 'c']);
+  }
+
   test_constructor_initializers_superInvocation_unnamed() {
     UnlinkedExecutable executable =
         findExecutable('ccc', executables: serializeClassText(r'''
@@ -3527,33 +3575,6 @@ class C {
         executable.constantInitializers[0];
     expect(initializer.kind, UnlinkedConstructorInitializerKind.thisInvocation);
     expect(initializer.name, 'named');
-    expect(initializer.expression, isNull);
-    expect(initializer.arguments, hasLength(3));
-    _assertUnlinkedConst(initializer.arguments[0],
-        operators: [UnlinkedConstOperation.pushInt], ints: [1]);
-    _assertUnlinkedConst(initializer.arguments[1],
-        operators: [UnlinkedConstOperation.pushInt], ints: [2]);
-    _assertUnlinkedConst(initializer.arguments[2],
-        operators: [UnlinkedConstOperation.pushInt], ints: [3]);
-    expect(initializer.argumentNames, ['b', 'c']);
-  }
-
-  test_constructor_initializers_superInvocation_namedExpression() {
-    UnlinkedExecutable executable =
-        findExecutable('', executables: serializeClassText(r'''
-class A {
-  const A(a, {int b, int c});
-}
-class C extends A {
-  const C() : super(1, b: 2, c: 3);
-}
-''').executables);
-    expect(executable.constantInitializers, hasLength(1));
-    UnlinkedConstructorInitializer initializer =
-        executable.constantInitializers[0];
-    expect(
-        initializer.kind, UnlinkedConstructorInitializerKind.superInvocation);
-    expect(initializer.name, '');
     expect(initializer.expression, isNull);
     expect(initializer.arguments, hasLength(3));
     _assertUnlinkedConst(initializer.arguments[0],
