@@ -12,7 +12,7 @@ dependencies:
   linter: ^0.1.10
   logging: any
   path: any
-  plugin: <0.2.0
+  plugin: ^0.2.0
   watcher: any
   yaml: any
 dev_dependencies:
