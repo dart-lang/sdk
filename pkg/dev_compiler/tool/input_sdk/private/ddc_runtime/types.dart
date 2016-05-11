@@ -357,7 +357,7 @@ _functionType(definite, returnType, args, extra) => JS('', '''(() => {
     // A closure that computes the remaining arguments.
     // Return a function that makes the type.
     function makeGenericFnType(...types) {
-      let parts = fnTypeParts(...types);
+      let parts = fnTypeParts.apply(null, types);
       return $FunctionType.create($definite, parts[0], parts[1], parts[2]);
     }
     makeGenericFnType[$_typeFormalCount] = fnTypeParts.length;

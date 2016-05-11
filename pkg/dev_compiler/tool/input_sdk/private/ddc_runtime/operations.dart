@@ -130,7 +130,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
           formalCount + '.');
     }
     // Instantiate the function.
-    $ftype = $ftype(...$typeArgs);
+    $ftype = $ftype.apply(null, $typeArgs);
   } else if ($typeArgs != null) {
     $throwStrongModeError(
         'got type arguments to non-generic function ' + $typeName($ftype) +

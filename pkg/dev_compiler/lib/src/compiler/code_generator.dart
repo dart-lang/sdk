@@ -556,8 +556,18 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (!supertype.isObject) {
       for (var ctor in element.constructors) {
         var parentCtor = supertype.lookUpConstructor(ctor.name, ctor.library);
-        var fun = js.call('function() { super.#(...arguments); }',
-            [_constructorName(parentCtor)]) as JS.Fun;
+        // TODO(jmesserly): this avoids spread args for perf. Revisit.
+        var jsParams = <JS.Identifier>[];
+        for (var p in ctor.parameters) {
+          if (p.parameterKind != ParameterKind.NAMED) {
+            jsParams.add(new JS.Identifier(p.name));
+          } else {
+            jsParams.add(new JS.TemporaryId('namedArgs'));
+            break;
+          }
+        }
+        var fun = js.call('function(#) { super.#(#); }',
+            [jsParams, _constructorName(parentCtor), jsParams]) as JS.Fun;
         methods.add(new JS.Method(_constructorName(ctor), fun));
       }
     }
@@ -1380,7 +1390,7 @@ class CodeGenerator extends GeneralizingAstVisitor
         let name = this.constructor.name;
         // Call the default constructor.
         let result = void 0;
-        if (name in this) result = this[name](...arguments);
+        if (name in this) result = this[name].apply(this, arguments);
         return result === void 0 ? this : result;
       }''') as JS.Block;
     } else {

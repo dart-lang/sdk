@@ -136,8 +136,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return f;
   };
   dart.gbind = function(f, ...typeArgs) {
-    let result = f(...typeArgs);
-    let sig = dart._getRuntimeType(f)(...typeArgs);
+    let result = f.apply(null, typeArgs);
+    let sig = dart._getRuntimeType(f).apply(null, typeArgs);
     dart.tag(result, sig);
     return result;
   };
@@ -290,7 +290,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return future.then(dart.dynamic)(onValue, {onError: onError});
     }
     return dart.getGenericClass(async.Future)(T).new(function() {
-      iter = gen(...args)[Symbol.iterator]();
+      iter = gen.apply(null, args)[Symbol.iterator]();
       return onValue();
     });
   };
@@ -381,7 +381,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       } else if (typeArgs.length != formalCount) {
         dart.throwStrongModeError('incorrect number of arguments to generic function ' + dart.typeName(ftype) + ', got <' + typeArgs + '> expected ' + formalCount + '.');
       }
-      ftype = ftype(...typeArgs);
+      ftype = ftype.apply(null, typeArgs);
     } else if (typeArgs != null) {
       dart.throwStrongModeError('got type arguments to non-generic function ' + dart.typeName(ftype) + ', got <' + typeArgs + '> expected none.');
     }
@@ -680,7 +680,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     if (args === void 0 && extra === void 0) {
       const fnTypeParts = returnType;
       function makeGenericFnType(...types) {
-        let parts = fnTypeParts(...types);
+        let parts = fnTypeParts.apply(null, types);
         return dart.FunctionType.create(definite, parts[0], parts[1], parts[2]);
       }
       makeGenericFnType[dart._typeFormalCount] = fnTypeParts.length;
@@ -1130,7 +1130,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructor() {
       let name = this.constructor.name;
       let result = void 0;
-      if (name in this) result = this[name](...arguments);
+      if (name in this) result = this[name].apply(this, arguments);
       return result === void 0 ? this : result;
     }
     ['=='](other) {
@@ -4671,7 +4671,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal.UnmodifiableListBase$ = dart.generic(E => {
     class UnmodifiableListBase extends dart.mixin(collection.ListBase$(E), _internal.UnmodifiableListMixin$(E)) {
       UnmodifiableListBase() {
-        super.ListBase(...arguments);
+        super.ListBase();
       }
     }
     return UnmodifiableListBase;
@@ -6218,7 +6218,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal.FixedLengthListBase$ = dart.generic(E => {
     class FixedLengthListBase extends dart.mixin(collection.ListBase$(E), _internal.FixedLengthListMixin$(E)) {
       FixedLengthListBase() {
-        super.ListBase(...arguments);
+        super.ListBase();
       }
     }
     return FixedLengthListBase;
@@ -16630,8 +16630,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._AsyncStreamControllerDispatch = async._AsyncStreamControllerDispatch$();
   async._AsyncStreamController$ = dart.generic(T => {
     class _AsyncStreamController extends dart.mixin(async._StreamController$(T), async._AsyncStreamControllerDispatch$(T)) {
-      _AsyncStreamController() {
-        super._StreamController(...arguments);
+      _AsyncStreamController(onListen, onPause, onResume, onCancel) {
+        super._StreamController(onListen, onPause, onResume, onCancel);
       }
     }
     return _AsyncStreamController;
@@ -16639,8 +16639,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._AsyncStreamController = async._AsyncStreamController$();
   async._SyncStreamController$ = dart.generic(T => {
     class _SyncStreamController extends dart.mixin(async._StreamController$(T), async._SyncStreamControllerDispatch$(T)) {
-      _SyncStreamController() {
-        super._StreamController(...arguments);
+      _SyncStreamController(onListen, onPause, onResume, onCancel) {
+        super._StreamController(onListen, onPause, onResume, onCancel);
       }
     }
     return _SyncStreamController;
@@ -22481,7 +22481,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection.UnmodifiableMapBase$ = dart.generic((K, V) => {
     class UnmodifiableMapBase extends dart.mixin(collection.MapBase$(K, V), collection._UnmodifiableMapMixin$(K, V)) {
       UnmodifiableMapBase() {
-        super.MapBase(...arguments);
+        super.MapBase();
       }
     }
     return UnmodifiableMapBase;
@@ -22652,8 +22652,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection.MapView = collection.MapView$();
   collection.UnmodifiableMapView$ = dart.generic((K, V) => {
     class UnmodifiableMapView extends dart.mixin(collection.MapView$(K, V), collection._UnmodifiableMapMixin$(K, V)) {
-      UnmodifiableMapView() {
-        super.MapView(...arguments);
+      UnmodifiableMapView(map) {
+        super.MapView(map);
       }
     }
     return UnmodifiableMapView;
