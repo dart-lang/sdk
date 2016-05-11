@@ -444,7 +444,6 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       previous = current;
       current = currentMixinApplication.mixin;
     }
-    registry.registerMixinUse(mixinApplication, mixin);
     return mixinType;
   }
 

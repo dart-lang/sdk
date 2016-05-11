@@ -66,6 +66,7 @@ Future check(
       options: [Flags.analyzeOnly]);
   compilerNormal.resolution.retainCachesForTesting = true;
   await compilerNormal.run(entryPoint);
+  compilerNormal.phase = Compiler.PHASE_DONE_RESOLVING;
   compilerNormal.world.populate();
 
   print('------------------------------------------------------------------');
@@ -77,6 +78,7 @@ Future check(
   compilerDeserialized.resolution.retainCachesForTesting = true;
   deserialize(compilerDeserialized, serializedData);
   await compilerDeserialized.run(entryPoint);
+  compilerDeserialized.phase = Compiler.PHASE_DONE_RESOLVING;
   compilerDeserialized.world.populate();
 
   checkAllImpacts(
@@ -112,48 +114,68 @@ Future check(
       verbose: verbose);
 
   checkClassHierarchyNodes(
-    compilerNormal.world.getClassHierarchyNode(
-        compilerNormal.coreClasses.objectClass),
-    compilerDeserialized.world.getClassHierarchyNode(
-        compilerDeserialized.coreClasses.objectClass),
-    verbose: verbose);
+      compilerNormal,
+      compilerDeserialized,
+      compilerNormal.world.getClassHierarchyNode(
+          compilerNormal.coreClasses.objectClass),
+      compilerDeserialized.world.getClassHierarchyNode(
+          compilerDeserialized.coreClasses.objectClass),
+      verbose: verbose);
+}
+
+void checkMixinUses(
+    Compiler compiler1, Compiler compiler2,
+    ClassElement class1, ClassElement class2,
+    {bool verbose: false}) {
+
+  checkSets(
+      compiler1.world.mixinUsesOf(class1),
+      compiler2.world.mixinUsesOf(class2),
+      "Mixin uses of $class1 vs $class2",
+      areElementsEquivalent,
+      verbose: verbose);
+
 }
 
 void checkClassHierarchyNodes(
-    ClassHierarchyNode a, ClassHierarchyNode b,
+    Compiler compiler1,
+    Compiler compiler2,
+    ClassHierarchyNode node1, ClassHierarchyNode node2,
     {bool verbose: false}) {
   if (verbose) {
-    print('Checking $a vs $b');
+    print('Checking $node1 vs $node2');
   }
   Expect.isTrue(
-      areElementsEquivalent(a.cls, b.cls),
-      "Element identity mismatch for ${a.cls} vs ${b.cls}.");
+      areElementsEquivalent(node1.cls, node2.cls),
+      "Element identity mismatch for ${node1.cls} vs ${node2.cls}.");
   Expect.equals(
-      a.isDirectlyInstantiated,
-      b.isDirectlyInstantiated,
-      "Value mismatch for 'isDirectlyInstantiated' for ${a.cls} vs ${b.cls}.");
+      node1.isDirectlyInstantiated,
+      node2.isDirectlyInstantiated,
+      "Value mismatch for 'isDirectlyInstantiated' "
+      "for ${node1.cls} vs ${node2.cls}.");
   Expect.equals(
-      a.isIndirectlyInstantiated,
-      b.isIndirectlyInstantiated,
+      node1.isIndirectlyInstantiated,
+      node2.isIndirectlyInstantiated,
       "Value mismatch for 'isIndirectlyInstantiated' "
-      "for ${a.cls} vs ${b.cls}.");
+      "for ${node1.cls} vs ${node2.cls}.");
   // TODO(johnniwinther): Enforce a canonical and stable order on direct
   // subclasses.
-  for (ClassHierarchyNode child in a.directSubclasses) {
+  for (ClassHierarchyNode child in node1.directSubclasses) {
     bool found = false;
-    for (ClassHierarchyNode other in b.directSubclasses) {
+    for (ClassHierarchyNode other in node2.directSubclasses) {
       if (areElementsEquivalent(child.cls, other.cls)) {
-        checkClassHierarchyNodes(child, other,
-            verbose: verbose);
+        checkClassHierarchyNodes(compiler1, compiler2,
+            child, other, verbose: verbose);
         found = true;
         break;
       }
     }
     if (!found) {
-      Expect.isFalse(
-          child.isInstantiated, 'Missing subclass ${child.cls} of ${a.cls}');
+      Expect.isFalse(child.isInstantiated,
+          'Missing subclass ${child.cls} of ${node1.cls}');
     }
   }
+  checkMixinUses(compiler1, compiler2, node1.cls, node2.cls, verbose: verbose);
 }
 
 void checkSets(

@@ -943,6 +943,9 @@ class UnnamedMixinApplicationElementZ extends ElementZ
   CompilationUnitElement get compilationUnit => _subclass.compilationUnit;
 
   @override
+  bool get isTopLevel => true;
+
+  @override
   bool get isUnnamedMixinApplication => true;
 
   Link<ConstructorElement> get constructors {
@@ -1261,7 +1264,9 @@ class ForwardingConstructorElementZ extends ElementZ
 
   @override
   FunctionSignature get functionSignature {
-    return _unsupported('functionSignature');
+    // TODO(johnniwinther): Ensure that the function signature (and with it the
+    // function type) substitutes type variables correctly.
+    return definingConstructor.functionSignature;
   }
 
   @override
