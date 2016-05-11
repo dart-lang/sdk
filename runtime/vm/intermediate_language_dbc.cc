@@ -60,7 +60,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(ShiftMintOp)                                                               \
   M(UnaryMintOp)                                                               \
   M(StringToCharCode)                                                          \
-  M(StringFromCharCode)                                                        \
+  M(OneByteStringFromCharCode)                                                 \
   M(InvokeMathCFunction)                                                       \
   M(MergedMath)                                                                \
   M(GuardFieldClass)                                                           \
