@@ -62077,6 +62077,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       html$.ShadowRoot._shadowRootDeprecationReport();
     }
   };
+  const innerHtml = Symbol(html$.ShadowRoot.name + "." + dartx.innerHtml.toString());
   dart.setSignature(html$.ShadowRoot, {
     constructors: () => ({_: [html$.ShadowRoot, []]}),
     methods: () => ({
@@ -73556,6 +73557,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get [dartx.classes]() {
       return new svg$._AttributeClassSet(this);
     }
+    set [dartx.classes](value) {
+      super[dartx.classes] = value;
+    }
     get [dartx.children]() {
       return new html_common.FilteredElementList(this);
     }
@@ -73646,160 +73650,160 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return this.focus();
     }
     get [dartx.onAbort]() {
-      return html$.Element.abortEvent.forElement(this);
+      return svg$.SvgElement.abortEvent.forElement(this);
     }
     get [dartx.onBlur]() {
-      return html$.Element.blurEvent.forElement(this);
+      return svg$.SvgElement.blurEvent.forElement(this);
     }
     get [dartx.onCanPlay]() {
-      return html$.Element.canPlayEvent.forElement(this);
+      return svg$.SvgElement.canPlayEvent.forElement(this);
     }
     get [dartx.onCanPlayThrough]() {
-      return html$.Element.canPlayThroughEvent.forElement(this);
+      return svg$.SvgElement.canPlayThroughEvent.forElement(this);
     }
     get [dartx.onChange]() {
-      return html$.Element.changeEvent.forElement(this);
+      return svg$.SvgElement.changeEvent.forElement(this);
     }
     get [dartx.onClick]() {
-      return html$.Element.clickEvent.forElement(this);
+      return svg$.SvgElement.clickEvent.forElement(this);
     }
     get [dartx.onContextMenu]() {
-      return html$.Element.contextMenuEvent.forElement(this);
+      return svg$.SvgElement.contextMenuEvent.forElement(this);
     }
     get [dartx.onDoubleClick]() {
-      return html$.Element.doubleClickEvent.forElement(this);
+      return svg$.SvgElement.doubleClickEvent.forElement(this);
     }
     get [dartx.onDrag]() {
-      return html$.Element.dragEvent.forElement(this);
+      return svg$.SvgElement.dragEvent.forElement(this);
     }
     get [dartx.onDragEnd]() {
-      return html$.Element.dragEndEvent.forElement(this);
+      return svg$.SvgElement.dragEndEvent.forElement(this);
     }
     get [dartx.onDragEnter]() {
-      return html$.Element.dragEnterEvent.forElement(this);
+      return svg$.SvgElement.dragEnterEvent.forElement(this);
     }
     get [dartx.onDragLeave]() {
-      return html$.Element.dragLeaveEvent.forElement(this);
+      return svg$.SvgElement.dragLeaveEvent.forElement(this);
     }
     get [dartx.onDragOver]() {
-      return html$.Element.dragOverEvent.forElement(this);
+      return svg$.SvgElement.dragOverEvent.forElement(this);
     }
     get [dartx.onDragStart]() {
-      return html$.Element.dragStartEvent.forElement(this);
+      return svg$.SvgElement.dragStartEvent.forElement(this);
     }
     get [dartx.onDrop]() {
-      return html$.Element.dropEvent.forElement(this);
+      return svg$.SvgElement.dropEvent.forElement(this);
     }
     get [dartx.onDurationChange]() {
-      return html$.Element.durationChangeEvent.forElement(this);
+      return svg$.SvgElement.durationChangeEvent.forElement(this);
     }
     get [dartx.onEmptied]() {
-      return html$.Element.emptiedEvent.forElement(this);
+      return svg$.SvgElement.emptiedEvent.forElement(this);
     }
     get [dartx.onEnded]() {
-      return html$.Element.endedEvent.forElement(this);
+      return svg$.SvgElement.endedEvent.forElement(this);
     }
     get [dartx.onError]() {
-      return html$.Element.errorEvent.forElement(this);
+      return svg$.SvgElement.errorEvent.forElement(this);
     }
     get [dartx.onFocus]() {
-      return html$.Element.focusEvent.forElement(this);
+      return svg$.SvgElement.focusEvent.forElement(this);
     }
     get [dartx.onInput]() {
-      return html$.Element.inputEvent.forElement(this);
+      return svg$.SvgElement.inputEvent.forElement(this);
     }
     get [dartx.onInvalid]() {
-      return html$.Element.invalidEvent.forElement(this);
+      return svg$.SvgElement.invalidEvent.forElement(this);
     }
     get [dartx.onKeyDown]() {
-      return html$.Element.keyDownEvent.forElement(this);
+      return svg$.SvgElement.keyDownEvent.forElement(this);
     }
     get [dartx.onKeyPress]() {
-      return html$.Element.keyPressEvent.forElement(this);
+      return svg$.SvgElement.keyPressEvent.forElement(this);
     }
     get [dartx.onKeyUp]() {
-      return html$.Element.keyUpEvent.forElement(this);
+      return svg$.SvgElement.keyUpEvent.forElement(this);
     }
     get [dartx.onLoad]() {
-      return html$.Element.loadEvent.forElement(this);
+      return svg$.SvgElement.loadEvent.forElement(this);
     }
     get [dartx.onLoadedData]() {
-      return html$.Element.loadedDataEvent.forElement(this);
+      return svg$.SvgElement.loadedDataEvent.forElement(this);
     }
     get [dartx.onLoadedMetadata]() {
-      return html$.Element.loadedMetadataEvent.forElement(this);
+      return svg$.SvgElement.loadedMetadataEvent.forElement(this);
     }
     get [dartx.onMouseDown]() {
-      return html$.Element.mouseDownEvent.forElement(this);
+      return svg$.SvgElement.mouseDownEvent.forElement(this);
     }
     get [dartx.onMouseEnter]() {
-      return html$.Element.mouseEnterEvent.forElement(this);
+      return svg$.SvgElement.mouseEnterEvent.forElement(this);
     }
     get [dartx.onMouseLeave]() {
-      return html$.Element.mouseLeaveEvent.forElement(this);
+      return svg$.SvgElement.mouseLeaveEvent.forElement(this);
     }
     get [dartx.onMouseMove]() {
-      return html$.Element.mouseMoveEvent.forElement(this);
+      return svg$.SvgElement.mouseMoveEvent.forElement(this);
     }
     get [dartx.onMouseOut]() {
-      return html$.Element.mouseOutEvent.forElement(this);
+      return svg$.SvgElement.mouseOutEvent.forElement(this);
     }
     get [dartx.onMouseOver]() {
-      return html$.Element.mouseOverEvent.forElement(this);
+      return svg$.SvgElement.mouseOverEvent.forElement(this);
     }
     get [dartx.onMouseUp]() {
-      return html$.Element.mouseUpEvent.forElement(this);
+      return svg$.SvgElement.mouseUpEvent.forElement(this);
     }
     get [dartx.onMouseWheel]() {
-      return html$.Element.mouseWheelEvent.forElement(this);
+      return svg$.SvgElement.mouseWheelEvent.forElement(this);
     }
     get [dartx.onPause]() {
-      return html$.Element.pauseEvent.forElement(this);
+      return svg$.SvgElement.pauseEvent.forElement(this);
     }
     get [dartx.onPlay]() {
-      return html$.Element.playEvent.forElement(this);
+      return svg$.SvgElement.playEvent.forElement(this);
     }
     get [dartx.onPlaying]() {
-      return html$.Element.playingEvent.forElement(this);
+      return svg$.SvgElement.playingEvent.forElement(this);
     }
     get [dartx.onRateChange]() {
-      return html$.Element.rateChangeEvent.forElement(this);
+      return svg$.SvgElement.rateChangeEvent.forElement(this);
     }
     get [dartx.onReset]() {
-      return html$.Element.resetEvent.forElement(this);
+      return svg$.SvgElement.resetEvent.forElement(this);
     }
     get [dartx.onResize]() {
-      return html$.Element.resizeEvent.forElement(this);
+      return svg$.SvgElement.resizeEvent.forElement(this);
     }
     get [dartx.onScroll]() {
-      return html$.Element.scrollEvent.forElement(this);
+      return svg$.SvgElement.scrollEvent.forElement(this);
     }
     get [dartx.onSeeked]() {
-      return html$.Element.seekedEvent.forElement(this);
+      return svg$.SvgElement.seekedEvent.forElement(this);
     }
     get [dartx.onSeeking]() {
-      return html$.Element.seekingEvent.forElement(this);
+      return svg$.SvgElement.seekingEvent.forElement(this);
     }
     get [dartx.onSelect]() {
-      return html$.Element.selectEvent.forElement(this);
+      return svg$.SvgElement.selectEvent.forElement(this);
     }
     get [dartx.onStalled]() {
-      return html$.Element.stalledEvent.forElement(this);
+      return svg$.SvgElement.stalledEvent.forElement(this);
     }
     get [dartx.onSubmit]() {
-      return html$.Element.submitEvent.forElement(this);
+      return svg$.SvgElement.submitEvent.forElement(this);
     }
     get [dartx.onSuspend]() {
-      return html$.Element.suspendEvent.forElement(this);
+      return svg$.SvgElement.suspendEvent.forElement(this);
     }
     get [dartx.onTimeUpdate]() {
-      return html$.Element.timeUpdateEvent.forElement(this);
+      return svg$.SvgElement.timeUpdateEvent.forElement(this);
     }
     get [dartx.onVolumeChange]() {
-      return html$.Element.volumeChangeEvent.forElement(this);
+      return svg$.SvgElement.volumeChangeEvent.forElement(this);
     }
     get [dartx.onWaiting]() {
-      return html$.Element.waitingEvent.forElement(this);
+      return svg$.SvgElement.waitingEvent.forElement(this);
     }
   };
   dart.defineNamedConstructor(svg$.SvgElement, 'created');
@@ -73816,6 +73820,162 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.defineLazy(svg$.SvgElement, {
     get _START_TAG_REGEXP() {
       return core.RegExp.new('<(\\w+)');
+    },
+    get abortEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('abort'));
+    },
+    get blurEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('blur'));
+    },
+    get canPlayEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('canplay'));
+    },
+    get canPlayThroughEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('canplaythrough'));
+    },
+    get changeEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('change'));
+    },
+    get clickEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('click'));
+    },
+    get contextMenuEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('contextmenu'));
+    },
+    get doubleClickEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('dblclick'));
+    },
+    get dragEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('drag'));
+    },
+    get dragEndEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('dragend'));
+    },
+    get dragEnterEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('dragenter'));
+    },
+    get dragLeaveEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('dragleave'));
+    },
+    get dragOverEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('dragover'));
+    },
+    get dragStartEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('dragstart'));
+    },
+    get dropEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('drop'));
+    },
+    get durationChangeEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('durationchange'));
+    },
+    get emptiedEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('emptied'));
+    },
+    get endedEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('ended'));
+    },
+    get errorEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('error'));
+    },
+    get focusEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('focus'));
+    },
+    get inputEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('input'));
+    },
+    get invalidEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('invalid'));
+    },
+    get keyDownEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.KeyboardEvent))('keydown'));
+    },
+    get keyPressEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.KeyboardEvent))('keypress'));
+    },
+    get keyUpEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.KeyboardEvent))('keyup'));
+    },
+    get loadEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('load'));
+    },
+    get loadedDataEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('loadeddata'));
+    },
+    get loadedMetadataEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('loadedmetadata'));
+    },
+    get mouseDownEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mousedown'));
+    },
+    get mouseEnterEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mouseenter'));
+    },
+    get mouseLeaveEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mouseleave'));
+    },
+    get mouseMoveEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mousemove'));
+    },
+    get mouseOutEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mouseout'));
+    },
+    get mouseOverEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mouseover'));
+    },
+    get mouseUpEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.MouseEvent))('mouseup'));
+    },
+    get mouseWheelEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.WheelEvent))('mousewheel'));
+    },
+    get pauseEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('pause'));
+    },
+    get playEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('play'));
+    },
+    get playingEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('playing'));
+    },
+    get rateChangeEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('ratechange'));
+    },
+    get resetEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('reset'));
+    },
+    get resizeEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('resize'));
+    },
+    get scrollEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('scroll'));
+    },
+    get seekedEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('seeked'));
+    },
+    get seekingEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('seeking'));
+    },
+    get selectEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('select'));
+    },
+    get stalledEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('stalled'));
+    },
+    get submitEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('submit'));
+    },
+    get suspendEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('suspend'));
+    },
+    get timeUpdateEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('timeupdate'));
+    },
+    get volumeChangeEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('volumechange'));
+    },
+    get waitingEvent() {
+      return dart.const(new (html$.EventStreamProvider$(html$.Event))('waiting'));
     }
   });
   dart.registerExtension(dart.global.SVGElement, svg$.SvgElement);

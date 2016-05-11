@@ -656,8 +656,8 @@ class CodeGenerator extends GeneralizingAstVisitor
       Set<FieldElement> staticFieldOverrides) {
     for (var field in fields) {
       for (VariableDeclaration field in field.fields.variables) {
-        var overrideInfo = checkForPropertyOverride(
-            field.element, superclasses, _extensionTypes);
+        var overrideInfo =
+            checkForPropertyOverride(field.element, superclasses);
         if (overrideInfo.foundGetter || overrideInfo.foundSetter) {
           if (field.element.isStatic) {
             staticFieldOverrides.add(field.element);
@@ -968,8 +968,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     var methodElement = method.element as PropertyAccessorElement;
     var field = methodElement.variable;
     if (!field.isSynthetic) return null;
-    var propertyOverrideResult = checkForPropertyOverride(
-        methodElement.variable, superclasses, _extensionTypes);
+    var propertyOverrideResult =
+        checkForPropertyOverride(methodElement.variable, superclasses);
 
     // Generate a corresponding virtual getter / setter.
     var name = _elementMemberName(methodElement,
@@ -2954,7 +2954,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       methods.add(annotate(
           new JS.Method(
               access,
-              js.call('function() { return #; }', _visit(node.initializer))
+              js.call('function() { return #; }', _visitInitializer(node))
               as JS.Fun,
               isGetter: true),
           node,

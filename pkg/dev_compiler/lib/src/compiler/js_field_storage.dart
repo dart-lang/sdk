@@ -7,8 +7,6 @@ import 'dart:collection' show HashSet;
 import 'package:analyzer/dart/ast/ast.dart' show Identifier;
 import 'package:analyzer/dart/element/element.dart';
 
-import 'extension_types.dart';
-
 class PropertyOverrideResult {
   final bool foundGetter;
   final bool foundSetter;
@@ -16,21 +14,14 @@ class PropertyOverrideResult {
   PropertyOverrideResult(this.foundGetter, this.foundSetter);
 }
 
-PropertyOverrideResult checkForPropertyOverride(FieldElement field,
-    List<ClassElement> superclasses, ExtensionTypeSet extensionTypes) {
+PropertyOverrideResult checkForPropertyOverride(
+    FieldElement field, List<ClassElement> superclasses) {
   bool foundGetter = false;
   bool foundSetter = false;
 
   for (var superclass in superclasses) {
-    // Stop if we reach a native type.
-    if (extensionTypes.isNativeClass(superclass)) break;
-
     var superprop = getProperty(superclass, field.library, field.name);
     if (superprop == null) continue;
-
-    // Static fields can override superclass static fields. However, we need to
-    // handle the case where they override a getter or setter.
-    if (field.isStatic && !superprop.isSynthetic) continue;
 
     var getter = superprop.getter;
     bool hasGetter = getter != null && !getter.isAbstract;

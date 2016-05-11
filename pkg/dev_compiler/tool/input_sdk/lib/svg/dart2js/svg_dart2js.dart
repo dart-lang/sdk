@@ -4804,7 +4804,6 @@ class SvgElement extends Element implements GlobalEventHandlers {
   // To suppress missing implicit constructor warnings.
   factory SvgElement._() { throw new UnsupportedError("Not supported"); }
 
-/* TODO(vsm): see bug 522 which requires us to comment out this code.
   @DomName('SVGElement.abortEvent')
   @DocsEditable()
   @Experimental() // untriaged
@@ -5064,7 +5063,6 @@ class SvgElement extends Element implements GlobalEventHandlers {
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
-  */
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
