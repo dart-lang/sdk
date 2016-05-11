@@ -724,7 +724,7 @@ class Primitives {
                       int handleError(String source)) {
     checkString(source);
     var re = JS('', r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i');
-    var match = JS('JSExtendableArray|Null', '#.exec(#)', re, source);
+    var/*=JSArray<String>*/ match = JS('JSExtendableArray|Null', '#.exec(#)', re, source);
     int digitsIndex = 1;
     int hexIndex = 2;
     int decimalIndex = 3;
@@ -971,7 +971,7 @@ class Primitives {
     return result;
   }
 
-  static String stringFromCodePoints(codePoints) {
+  static String stringFromCodePoints(/*=JSArray<int>*/ codePoints) {
     List<int> a = <int>[];
     for (var i in codePoints) {
       if (i is !int) throw argumentErrorValue(i);
@@ -987,7 +987,7 @@ class Primitives {
     return _fromCharCodeApply(a);
   }
 
-  static String stringFromCharCodes(charCodes) {
+  static String stringFromCharCodes(/*=JSArray<int>*/ charCodes) {
     for (var i in charCodes) {
       if (i is !int) throw argumentErrorValue(i);
       if (i < 0) throw argumentErrorValue(i);
@@ -1014,7 +1014,7 @@ class Primitives {
   }
 
 
-  static String stringFromCharCode(charCode) {
+  static String stringFromCharCode(int charCode) {
     if (0 <= charCode) {
       if (charCode <= 0xffff) {
         return JS('returns:String;effects:none;depends:none',

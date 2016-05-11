@@ -355,7 +355,7 @@ class JSString extends Interceptor implements String, JSIndexable {
       throw const OutOfMemoryError();
     }
     var result = '';
-    var s = this;
+    String s = this;
     while (true) {
       if (times & 1 == 1) result = s + result;
       times = JS('JSUInt31', '# >>> 1', times);

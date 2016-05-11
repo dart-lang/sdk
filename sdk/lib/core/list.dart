@@ -113,7 +113,7 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    * The created list is fixed-length unless [growable] is true.
    */
   factory List.generate(int length, E generator(int index),
-                       { bool growable: true }) {
+                        { bool growable: true }) {
     List<E> result;
     if (growable) {
       result = <E>[]..length = length;
@@ -164,7 +164,7 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    *
    * Throws an [UnsupportedError] if the list is fixed-length.
    */
-  set length(int newLength);
+  void set length(int newLength);
 
   /**
    * Adds [value] to the end of this list,
