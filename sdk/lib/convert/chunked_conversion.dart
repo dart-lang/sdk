@@ -6,55 +6,14 @@ part of dart.convert;
 
 typedef void _ChunkedConversionCallback<T>(T accumulated);
 
-/**
- * A converter that supports chunked conversions.
- *
- * In addition to immediate conversions from [S] to [T], a chunked converter
- * also supports longer-running conversions from [S2] to [T2].
- *
- * Frequently, the source and target types are the same, but this is not a
- * requirement. In particular, converters that work with lists in the
- * immediate conversion, could flatten the type for the chunked conversion.
- *
- * For example, the [LineSplitter] class returns a `List<String>` for the
- * immediate conversion, but returns individual `String`s in the chunked
- * conversion.
- */
+/// This class is deprecated. Extend [Converter] directly.
+@deprecated
 abstract class ChunkedConverter<S, T, S2, T2> extends Converter<S, T> {
+  const ChunkedConverter(): super();
 
-  const ChunkedConverter();
-
-  /**
-   * Starts a chunked conversion.
-   *
-   * The returned sink serves as input for the long-running conversion. The
-   * given [sink] serves as output.
-   */
-  ChunkedConversionSink<S2> startChunkedConversion(Sink<T2> sink) {
-    throw new UnsupportedError(
-        "This converter does not support chunked conversions: $this");
-  }
-
-  Stream<T2> bind(Stream<S2> stream) {
-    return new Stream<T2>.eventTransformed(
-        stream,
-        (EventSink<T2> sink) =>
-            new _ConverterStreamEventSink<S2, T2>(this, sink));
-  }
-
-  /**
-   * Fuses this instance with the given [other] converter.
-   *
-   * If [other] is a ChunkedConverter (with matching generic types), returns a
-   * [ChunkedConverter].
-   */
-  Converter<S, dynamic> fuse(Converter<T, dynamic> other) {
-    if (other is ChunkedConverter<T, dynamic, T2, dynamic>) {
-      return new _FusedChunkedConverter<S, T, dynamic, S2, T2, dynamic>(
-          this, other);
-    }
-    return super.fuse(other);
-  }
+  dynamic bind(dynamic other) => super.bind(other);
+  dynamic startChunkedConversion(dynamic sink) =>
+      super.startChunkedConversion(sink);
 }
 
 /**
@@ -65,13 +24,13 @@ abstract class ChunkedConverter<S, T, S2, T2> extends Converter<S, T> {
  * work with a plain `Sink`, but may work more efficiently with certain
  * specialized types of `ChunkedConversionSink`.
  *
- * It is recommended that implementations of `ChunkedConversionSink` extends
+ * It is recommended that implementations of `ChunkedConversionSink` extend
  * this class, to inherit any further methods that may be added to the class.
  */
 abstract class ChunkedConversionSink<T> implements Sink<T> {
   ChunkedConversionSink();
   factory ChunkedConversionSink.withCallback(
-      void callback(List<T> accumulated)) = _SimpleCallbackSink;
+      void callback(List<T> accumulated)) = _SimpleCallbackSink<T>;
 
   /**
    * Adds chunked data to this sink.
@@ -122,10 +81,10 @@ class _ConverterStreamEventSink<S, T> implements EventSink<S> {
    * The input sink for new data. All data that is received with
    * [handleData] is added into this sink.
    */
-  final ChunkedConversionSink<S> _chunkedSink;
+  final Sink<S> _chunkedSink;
 
   _ConverterStreamEventSink(
-      Converter/*=ChunkedConverter<dynamic, dynamic, S, T>*/ converter,
+      Converter/*=Converter<S, T>*/ converter,
       EventSink<T> sink)
       : this._eventSink = sink,
         _chunkedSink = converter.startChunkedConversion(sink);
@@ -135,21 +94,4 @@ class _ConverterStreamEventSink<S, T> implements EventSink<S> {
     _eventSink.addError(error, stackTrace);
   }
   void close() { _chunkedSink.close(); }
-}
-
-/**
- * Fuses two chunked converters.
- */
-class _FusedChunkedConverter<S, M, T, S2, M2, T2> extends
-    ChunkedConverter<S, T, S2, T2> {
-  final ChunkedConverter<S, M, S2, M2> _first;
-  final ChunkedConverter<M, T, M2, T2> _second;
-
-  _FusedChunkedConverter(this._first, this._second);
-
-  T convert(S input) => _second.convert(_first.convert(input));
-
-  ChunkedConversionSink<S2> startChunkedConversion(Sink<T2> sink) {
-    return _first.startChunkedConversion(_second.startChunkedConversion(sink));
-  }
 }

@@ -271,8 +271,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
  * into a series of operations to be sent to the analysis server.
  * The input stream can be either an instrumenation or log file.
  */
-class InputConverter
-    extends ChunkedConverter<String, Operation, String, Operation> {
+class InputConverter extends Converter<String, Operation> {
 
   final Logger logger = new Logger('InputConverter');
 

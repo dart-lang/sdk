@@ -139,7 +139,7 @@ class JsonCodec extends Codec<Object, String> {
    * If [toEncodable] is omitted, it defaults to a function that returns the
    * result of calling `.toJson()` on the unencodable object.
    */
-  String encode(Object value, {toEncodable(var object)}) {
+  String encode(Object value, {toEncodable(object)}) {
     if (toEncodable == null) toEncodable = _toEncodable;
     if (toEncodable == null) return encoder.convert(value);
     return new JsonEncoder(toEncodable).convert(value);
@@ -159,7 +159,7 @@ class JsonCodec extends Codec<Object, String> {
 /**
  * This class converts JSON objects to strings.
  */
-class JsonEncoder extends ChunkedConverter<Object, String, Object, String> {
+class JsonEncoder extends Converter<Object, String> {
   /**
    * The string used for indention.
    *
@@ -174,7 +174,7 @@ class JsonEncoder extends ChunkedConverter<Object, String, Object, String> {
    * Function called on non-encodable objects to return a replacement
    * encodable object that will be encoded in the orignal's place.
    */
-  final Function _toEncodable;
+  final _ToEncodable _toEncodable;
 
   /**
    * Creates a JSON encoder.
@@ -188,7 +188,7 @@ class JsonEncoder extends ChunkedConverter<Object, String, Object, String> {
    * If [toEncodable] is omitted, it defaults to calling `.toJson()` on
    * the object.
    */
-  const JsonEncoder([Object toEncodable(Object nonSerializable)])
+  const JsonEncoder([toEncodable(nonSerializable)])
       : this.indent = null,
         this._toEncodable = toEncodable;
 
@@ -210,8 +210,7 @@ class JsonEncoder extends ChunkedConverter<Object, String, Object, String> {
    * If [toEncodable] is omitted, it defaults to calling `.toJson()` on
    * the object.
    */
-  const JsonEncoder.withIndent(this.indent,
-      [Object toEncodable(Object nonSerializable)])
+  const JsonEncoder.withIndent(this.indent, [toEncodable(nonSerializable)])
       : this._toEncodable = toEncodable;
 
   /**
@@ -268,11 +267,13 @@ class JsonEncoder extends ChunkedConverter<Object, String, Object, String> {
   // Override the base class's bind, to provide a better type.
   Stream<String> bind(Stream<Object> stream) => super.bind(stream);
 
-  Converter<Object, dynamic> fuse(Converter<String, dynamic> other) {
+  Converter<Object, dynamic/*=T*/> fuse/*<T>*/(
+      Converter<String, dynamic/*=T*/> other) {
     if (other is Utf8Encoder) {
-      return new JsonUtf8Encoder(indent, _toEncodable);
+      return new JsonUtf8Encoder(indent, _toEncodable)
+          as dynamic/*=Converter<Object, T>*/;
     }
-    return super.fuse(other);
+    return super.fuse/*<T>*/(other);
   }
 }
 
@@ -283,14 +284,13 @@ class JsonEncoder extends ChunkedConverter<Object, String, Object, String> {
  * a JSON string, and then UTF-8 encoding the string, but without
  * creating an intermediate string.
  */
-class JsonUtf8Encoder extends
-    ChunkedConverter<Object, List<int>, Object, List<int>> {
+class JsonUtf8Encoder extends Converter<Object, List<int>> {
   /** Default buffer size used by the JSON-to-UTF-8 encoder. */
   static const int DEFAULT_BUFFER_SIZE = 256;
   /** Indentation used in pretty-print mode, `null` if not pretty. */
   final List<int> _indent;
   /** Function called with each un-encodable object encountered. */
-  final Function _toEncodable;
+  final _ToEncodable _toEncodable;
   /** UTF-8 buffer size. */
   final int _bufferSize;
 
@@ -320,7 +320,7 @@ class JsonUtf8Encoder extends
    * object.
    */
   JsonUtf8Encoder([String indent,
-                   toEncodable(Object object),
+                   toEncodable(object),
                    int bufferSize = DEFAULT_BUFFER_SIZE])
       : _indent = _utf8Encode(indent),
         _toEncodable = toEncodable,
@@ -395,10 +395,6 @@ class JsonUtf8Encoder extends
   Stream<List<int>> bind(Stream<Object> stream) {
     return super.bind(stream);
   }
-
-  Converter<Object, dynamic> fuse(Converter<List<int>, dynamic> other) {
-    return super.fuse(other);
-  }
 }
 
 /**
@@ -408,7 +404,7 @@ class JsonUtf8Encoder extends
  */
 class _JsonEncoderSink extends ChunkedConversionSink<Object> {
   final String _indent;
-  final Function _toEncodable;
+  final _ToEncodable _toEncodable;
   final StringConversionSink _sink;
   bool _isDone = false;
 
@@ -441,7 +437,7 @@ class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object> {
   /** The byte sink receiveing the encoded chunks. */
   final ByteConversionSink _sink;
   final List<int> _indent;
-  final Function _toEncodable;
+  final _ToEncodable _toEncodable;
   final int _bufferSize;
   bool _isDone = false;
   _JsonUtf8EncoderSink(this._sink, this._toEncodable, this._indent,
@@ -474,7 +470,7 @@ class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object> {
 /**
  * This class parses JSON strings and builds the corresponding objects.
  */
-class JsonDecoder extends ChunkedConverter<String, Object, String, Object> {
+class JsonDecoder extends Converter<String, Object> {
   final _Reviver _reviver;
   /**
    * Constructs a new JsonDecoder.
@@ -517,7 +513,7 @@ external _parseJson(String source, reviver(key, value));
 
 // Implementation of encoder/stringifier.
 
-Object _defaultToEncodable(object) => object.toJson();
+dynamic _defaultToEncodable(dynamic object) => object.toJson();
 
 /**
  * JSON encoder that traverses an object structure and writes JSON source.
@@ -545,11 +541,10 @@ abstract class _JsonStringifier {
   /** List of objects currently being traversed. Used to detect cycles. */
   final List _seen = new List();
   /** Function called for each un-encodable object encountered. */
-  final Function _toEncodable;
+  final _ToEncodable _toEncodable;
 
-  _JsonStringifier(Object _toEncodable(Object o))
-      : _toEncodable = (_toEncodable != null) ? _toEncodable
-                                              : _defaultToEncodable;
+  _JsonStringifier(toEncodable(o))
+      : _toEncodable = toEncodable ?? _defaultToEncodable;
 
   /** Append a string to the JSON output. */
   void writeString(String characters);
@@ -719,7 +714,7 @@ abstract class _JsonStringifier {
   }
 
   /** Serialize a [Map]. */
-  bool writeMap(Map<String, Object> map) {
+  bool writeMap(Map map) {
     if (map.isEmpty) {
       writeString("{}");
       return true;
@@ -761,7 +756,7 @@ abstract class _JsonPrettyPrintMixin implements _JsonStringifier {
   /**
    * Add [indentLevel] indentations to the JSON output.
    */
-  void writeIndentation(indentLevel);
+  void writeIndentation(int indentLevel);
 
   void writeList(List list) {
     if (list.isEmpty) {
@@ -838,7 +833,7 @@ class _JsonStringStringifier extends _JsonStringifier {
    * for each indentation level. It should only contain valid JSON whitespace
    * characters (space, tab, carriage return or line feed).
    */
-  static String stringify(object, toEncodable(object), String indent) {
+  static String stringify(object, toEncodable(o), String indent) {
     StringBuffer output = new StringBuffer();
     printOn(object, output, toEncodable, indent);
     return output.toString();
@@ -849,8 +844,8 @@ class _JsonStringStringifier extends _JsonStringifier {
    *
    * The result is written piecemally to the sink.
    */
-  static void printOn(object, StringSink output, toEncodable(object),
-                      String indent) {
+  static void printOn(
+      object, StringSink output, toEncodable(o), String indent) {
     var stringifier;
     if (indent == null) {
       stringifier = new _JsonStringStringifier(output, toEncodable);
@@ -879,14 +874,15 @@ class _JsonStringStringifierPretty extends _JsonStringStringifier
                                    with _JsonPrettyPrintMixin {
   final String _indent;
 
-  _JsonStringStringifierPretty(StringSink sink, Function toEncodable,
-                               this._indent)
+  _JsonStringStringifierPretty(StringSink sink, toEncodable(o), this._indent)
       : super(sink, toEncodable);
 
   void writeIndentation(int count) {
     for (int i = 0; i < count; i++) writeString(_indent);
   }
 }
+
+typedef void _AddChunk(Uint8List list, int start, int end);
 
 /**
  * Specialization of [_JsonStringifier] that writes the JSON as UTF-8.
@@ -896,11 +892,11 @@ class _JsonStringStringifierPretty extends _JsonStringStringifier
  */
 class _JsonUtf8Stringifier extends _JsonStringifier {
   final int bufferSize;
-  final Function addChunk;
+  final _AddChunk addChunk;
   Uint8List buffer;
   int index = 0;
 
-  _JsonUtf8Stringifier(toEncodable, int bufferSize, this.addChunk)
+  _JsonUtf8Stringifier(toEncodable(o), int bufferSize, this.addChunk)
       : this.bufferSize = bufferSize,
         buffer = new Uint8List(bufferSize),
         super(toEncodable);
@@ -918,16 +914,15 @@ class _JsonUtf8Stringifier extends _JsonStringifier {
    */
   static void stringify(Object object,
                         List<int> indent,
-                        toEncodableFunction(Object o),
+                        toEncodable(o),
                         int bufferSize,
                         void addChunk(Uint8List chunk, int start, int end)) {
     _JsonUtf8Stringifier stringifier;
     if (indent != null) {
-      stringifier = new _JsonUtf8StringifierPretty(toEncodableFunction, indent,
+      stringifier = new _JsonUtf8StringifierPretty(toEncodable, indent,
                                                    bufferSize, addChunk);
     } else {
-      stringifier = new _JsonUtf8Stringifier(toEncodableFunction,
-                                             bufferSize, addChunk);
+      stringifier = new _JsonUtf8Stringifier(toEncodable, bufferSize, addChunk);
     }
     stringifier.writeObject(object);
     stringifier.flush();
@@ -1037,9 +1032,10 @@ class _JsonUtf8Stringifier extends _JsonStringifier {
 class _JsonUtf8StringifierPretty extends _JsonUtf8Stringifier
                                  with _JsonPrettyPrintMixin {
   final List<int> indent;
-  _JsonUtf8StringifierPretty(toEncodableFunction, this.indent,
-                             bufferSize, addChunk)
-      : super(toEncodableFunction, bufferSize, addChunk);
+  _JsonUtf8StringifierPretty(
+      toEncodable(o), this.indent,
+      bufferSize, void addChunk(Uint8List buffer, int start, int end))
+      : super(toEncodable, bufferSize, addChunk);
 
   void writeIndentation(int count) {
     List<int> indent = this.indent;

@@ -152,7 +152,7 @@ class HtmlEscapeMode {
  * found to be easier to read if greater-than is also escaped whenever
  * less-than is.
  */
-class HtmlEscape extends ChunkedConverter<String, String, String, String> {
+class HtmlEscape extends Converter<String, String> {
 
   /** The [HtmlEscapeMode] used by the converter. */
   final HtmlEscapeMode mode;

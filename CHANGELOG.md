@@ -1,6 +1,9 @@
 ## 1.17.0
 
 ### Core library changes
+* `dart:convert`
+  * Deprecate `ChunkedConverter` which was erroneously added in 1.16.
+
 * `dart:core`
   * `Uri.replace` supports iterables as values for the query parameters.
   * `Uri.parseIPv6Address` returns a `Uint8List`.

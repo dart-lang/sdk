@@ -25,7 +25,7 @@ class SystemEncoding extends Encoding {
   List<int> encode(String input) => encoder.convert(input);
   String decode(List<int> encoded) => decoder.convert(encoded);
 
-  ChunkedConverter<String, List<int>, String, List<int>> get encoder {
+  Converter<String, List<int>> get encoder {
     if (Platform.operatingSystem == "windows") {
       return const _WindowsCodePageEncoder();
     } else {
@@ -33,7 +33,7 @@ class SystemEncoding extends Encoding {
     }
   }
 
-  ChunkedConverter<List<int>, String, List<int>, String> get decoder {
+  Converter<List<int>, String> get decoder {
     if (Platform.operatingSystem == "windows") {
       return const _WindowsCodePageDecoder();
     } else {
@@ -42,8 +42,7 @@ class SystemEncoding extends Encoding {
   }
 }
 
-class _WindowsCodePageEncoder
-    extends ChunkedConverter<String, List<int>, String, List<int>> {
+class _WindowsCodePageEncoder extends Converter<String, List<int>> {
 
   const _WindowsCodePageEncoder();
 
@@ -95,8 +94,7 @@ class _WindowsCodePageEncoderSink extends StringConversionSinkBase {
 }
 
 
-class _WindowsCodePageDecoder
-    extends ChunkedConverter<List<int>, String, List<int>, String> {
+class _WindowsCodePageDecoder extends Converter<List<int>, String> {
 
   const _WindowsCodePageDecoder();
 
