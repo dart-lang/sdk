@@ -240,19 +240,17 @@ class Primitives {
   // This is to avoid stack overflows due to very large argument arrays in
   // apply().  It fixes http://dartbug.com/6919
   static String _fromCharCodeApply(List<int> array) {
-    String result = "";
     const kMaxApply = 500;
     int end = array.length;
-    for (var i = 0; i < end; i += kMaxApply) {
-      var subarray;
-      if (end <= kMaxApply) {
-        subarray = array;
-      } else {
-        subarray = JS('JSExtendableArray', r'#.slice(#, #)', array,
-                      i, i + kMaxApply < end ? i + kMaxApply : end);
-      }
-      result = JS('String', '# + String.fromCharCode.apply(#, #)',
-                  result, null, subarray);
+    if (end <= kMaxApply) {
+      return JS('String', r'String.fromCharCode.apply(null, #)', array);
+    }
+    String result = '';
+    for (int i = 0; i < end; i += kMaxApply) {
+      int chunkEnd = (i + kMaxApply < end) ? i + kMaxApply : end;
+      result = JS('String',
+          r'# + String.fromCharCode.apply(null, #.slice(#, #))',
+          result, array, i, chunkEnd);
     }
     return result;
   }

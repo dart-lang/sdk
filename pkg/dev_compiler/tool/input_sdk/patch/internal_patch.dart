@@ -25,7 +25,7 @@ List/*<E>*/ makeListFixedLength/*<E>*/(List/*<E>*/ growableList) {
 }
 
 @patch
-List/*<E>*/ makeFixedListUnmodifiable/*<E>*/(List/*<E>*/ list) {
-  JSArray.markUnmodifiableList(list);
-  return list;
+List/*<E>*/ makeFixedListUnmodifiable/*<E>*/(List/*<E>*/ fixedLengthList) {
+  JSArray.markUnmodifiableList(fixedLengthList);
+  return fixedLengthList;
 }

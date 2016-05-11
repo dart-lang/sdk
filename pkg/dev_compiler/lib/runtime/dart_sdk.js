@@ -6375,9 +6375,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.lazyFn(_internal.makeListFixedLength, () => [E => [core.List$(E), [core.List$(E)]]]);
   _internal.makeFixedListUnmodifiable = function(E) {
-    return list => {
-      _interceptors.JSArray.markUnmodifiableList(list);
-      return list;
+    return fixedLengthList => {
+      _interceptors.JSArray.markUnmodifiableList(fixedLengthList);
+      return fixedLengthList;
     };
   };
   dart.lazyFn(_internal.makeFixedListUnmodifiable, () => [E => [core.List$(E), [core.List$(E)]]]);
@@ -9163,17 +9163,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return null;
     }
     static _fromCharCodeApply(array) {
-      let result = "";
       let kMaxApply = 500;
       let end = array[dartx.length];
+      if (dart.notNull(end) <= kMaxApply) {
+        return String.fromCharCode.apply(null, array);
+      }
+      let result = '';
       for (let i = 0; i < dart.notNull(end); i = i + kMaxApply) {
-        let subarray = null;
-        if (dart.notNull(end) <= kMaxApply) {
-          subarray = array;
-        } else {
-          subarray = array.slice(i, i + kMaxApply < dart.notNull(end) ? i + kMaxApply : end);
-        }
-        result = result + String.fromCharCode.apply(null, subarray);
+        let chunkEnd = i + kMaxApply < dart.notNull(end) ? i + kMaxApply : end;
+        result = result + String.fromCharCode.apply(null, array.slice(i, chunkEnd));
       }
       return result;
     }
