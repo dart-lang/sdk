@@ -2216,6 +2216,10 @@ consists of a line number followed by _(tokenPos, columnNumber)_ pairs:
 
 > [lineNumber, (tokenPos, columnNumber)*]
 
+The _tokenPos_ is an arbitrary integer value that is used to represent
+a location in the source code.  A _tokenPos_ value is not meaningful
+in itself and code should not rely on the exact values returned.
+
 For example, a _tokenPosTable_ with the value...
 
 > [[1, 100, 5, 101, 8],[2, 102, 7]]
@@ -2523,5 +2527,5 @@ version | comments
 3.2 | Isolate objects now include the runnable bit and many debugger related RPCs will return an error if executed on an isolate before it is runnable.
 3.3 | Pause event now indicates if the isolate is paused at an await, yield, or yield* suspension point via the 'atAsyncSuspension' field. Resume command now supports the step parameter 'OverAsyncSuspension'. A Breakpoint added synthetically by an 'OverAsyncSuspension' resume command identifies itself as such via the 'isSyntheticAsyncContinuation' field.
 3.4 | Add the superType and mixin fields to Class. Added new pause event 'None'.
-3.5 | Add the error field to SourceReportRange.
+3.5 | Add the error field to SourceReportRange.  Clarify definition of token position.
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss
