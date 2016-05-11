@@ -119,6 +119,11 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
           return true;
         }
       }
+    } else if (target is VariableElement) {
+      if (result == PROPAGATED_VARIABLE || result == INFERRED_STATIC_VARIABLE) {
+        entry.setValue(result, target, TargetedResult.EMPTY_LIST);
+        return true;
+      }
     }
     return false;
   }
