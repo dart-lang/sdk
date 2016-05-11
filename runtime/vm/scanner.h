@@ -48,7 +48,7 @@ class Scanner : ValueObject {
    public:
     TokenCollector() { }
     virtual ~TokenCollector() { }
-    virtual void AddToken(const TokenDescriptor& token);
+    virtual void AddToken(const TokenDescriptor& token) { }
    private:
     DISALLOW_COPY_AND_ASSIGN(TokenCollector);
   };
