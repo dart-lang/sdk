@@ -48,7 +48,8 @@ module.exports = function(config) {
     client: {
       captureConsole: false,
       mocha: {
-        ui: 'tdd'
+        ui: 'tdd',
+        timeout : 6000
       },
     },
 
