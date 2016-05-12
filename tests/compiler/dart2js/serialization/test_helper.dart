@@ -163,7 +163,8 @@ Set computeSetDifference(
     Iterable set2,
     List common,
     List unfound,
-    [bool sameElement(a, b) = equality]) {
+    {bool sameElement(a, b): equality,
+     void checkElements(a, b)}) {
   // TODO(johnniwinther): Avoid the quadratic cost here. Some ideas:
   // - convert each set to a list and sort it first, then compare by walking
   // both lists in parallel
@@ -175,6 +176,9 @@ Set computeSetDifference(
     bool found = false;
     for (var element2 in remaining) {
       if (sameElement(element1, element2)) {
+        if (checkElements != null) {
+          checkElements(element1, element2);
+        }
         found = true;
         remaining.remove(element2);
         break;
@@ -199,11 +203,13 @@ bool checkSetEquivalence(
     String property,
     Iterable set1,
     Iterable set2,
-    bool sameElement(a, b)) {
+    bool sameElement(a, b),
+    {void onSameElement(a, b)}) {
   List common = [];
   List unfound = [];
   Set remaining =
-      computeSetDifference(set1, set2, common, unfound, sameElement);
+      computeSetDifference(set1, set2, common, unfound,
+          sameElement: sameElement, checkElements: onSameElement);
   if (unfound.isNotEmpty || remaining.isNotEmpty) {
     String message =
         "Set mismatch for `$property` on $object1 vs $object2: \n"

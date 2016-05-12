@@ -512,7 +512,12 @@ class LocalsHandler {
     // it could then have another name than the real parameter. And
     // the other one would not know it is just a copy of the real
     // parameter.
-    if (local is ParameterElement) return builder.parameters[local];
+    if (local is ParameterElement) {
+      assert(invariant(local, builder.parameters.containsKey(local),
+          message: "No local value for parameter $local in "
+              "${builder.parameters}."));
+      return builder.parameters[local];
+    }
 
     return builder.activationVariables.putIfAbsent(local, () {
       JavaScriptBackend backend = builder.backend;
@@ -1801,14 +1806,15 @@ class SsaBuilder extends ast.Visitor
       }
     });
     if (bodyElement == null) {
-      bodyElement = new ConstructorBodyElementX(constructor);
+      bodyElement =
+          new ConstructorBodyElementX(constructorResolvedAst, constructor);
       classElement.addBackendMember(bodyElement);
 
       if (constructor.isPatch) {
         // Create origin body element for patched constructors.
         ConstructorBodyElementX patch = bodyElement;
-        ConstructorBodyElementX origin =
-            new ConstructorBodyElementX(constructor.origin);
+        ConstructorBodyElementX origin = new ConstructorBodyElementX(
+            constructorResolvedAst, constructor.origin);
         origin.applyPatch(patch);
         classElement.origin.addBackendMember(bodyElement.origin);
       }

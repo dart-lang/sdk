@@ -32,6 +32,7 @@ import '../memory_compiler.dart';
 
 class Arguments {
   final String filename;
+  final int index;
   final bool loadSerializedData;
   final bool saveSerializedData;
   final String serializedDataFileName;
@@ -39,6 +40,7 @@ class Arguments {
 
   const Arguments({
     this.filename,
+    this.index,
     this.loadSerializedData: false,
     this.saveSerializedData: false,
     this.serializedDataFileName: 'out.data',
@@ -46,9 +48,13 @@ class Arguments {
 
   factory Arguments.from(List<String> arguments) {
     String filename;
+    int index;
     for (String arg in arguments) {
       if (!arg.startsWith('-')) {
-        filename = arg;
+        index = int.parse(arg);
+        if (index == null) {
+          filename = arg;
+        }
       }
     }
     bool verbose = arguments.contains('-v');
@@ -56,6 +62,7 @@ class Arguments {
     bool saveSerializedData = arguments.contains('-s');
     return new Arguments(
         filename: filename,
+        index: index,
         verbose: verbose,
         loadSerializedData: loadSerializedData,
         saveSerializedData: saveSerializedData);
@@ -64,8 +71,7 @@ class Arguments {
 
 
 Future<String> serializeDartCore(
-    {Arguments arguments: const Arguments(),
-     bool serializeResolvedAst: false}) async {
+    {Arguments arguments: const Arguments()}) async {
   print('------------------------------------------------------------------');
   print('serialize dart:core');
   print('------------------------------------------------------------------');
@@ -84,8 +90,7 @@ Future<String> serializeDartCore(
     await compiler.run(Uris.dart_core);
     serializedData = serialize(
         compiler,
-        compiler.libraryLoader.libraries,
-        serializeResolvedAst: serializeResolvedAst)
+        compiler.libraryLoader.libraries)
           .toText(const JsonSerializationEncoder());
     if (arguments.saveSerializedData) {
       File file = new File(arguments.serializedDataFileName);
@@ -98,8 +103,7 @@ Future<String> serializeDartCore(
 
 Serializer serialize(
     Compiler compiler,
-    Iterable<LibraryElement> libraries,
-    {bool serializeResolvedAst: false}) {
+    Iterable<LibraryElement> libraries) {
   assert(compiler.serialization.supportSerialization);
 
   Serializer serializer = new Serializer();
@@ -108,10 +112,8 @@ Serializer serialize(
   serializer.plugins.add(backendSerializer);
   serializer.plugins.add(new ResolutionImpactSerializer(
       compiler.resolution, backendSerializer));
-  if (serializeResolvedAst) {
-    serializer.plugins.add(new ResolvedAstSerializerPlugin(
-        compiler.resolution, backendSerializer));
-  }
+  serializer.plugins.add(new ResolvedAstSerializerPlugin(
+      compiler.resolution, backendSerializer));
 
   for (LibraryElement library in libraries) {
     serializer.serialize(library);
@@ -120,8 +122,7 @@ Serializer serialize(
 }
 
 void deserialize(Compiler compiler,
-                 String serializedData,
-                 {bool deserializeResolvedAst: false}) {
+                 String serializedData) {
   Deserializer deserializer = new Deserializer.fromText(
       new DeserializationContext(),
       serializedData,
@@ -131,8 +132,7 @@ void deserialize(Compiler compiler,
       new _DeserializerSystem(
           compiler,
           deserializer,
-          compiler.backend.impactTransformer,
-          deserializeResolvedAst: deserializeResolvedAst);
+          compiler.backend.impactTransformer);
 }
 
 
@@ -179,13 +179,11 @@ class _DeserializerSystem extends DeserializerSystem {
   final ResolutionImpactDeserializer _resolutionImpactDeserializer;
   final ResolvedAstDeserializerPlugin _resolvedAstDeserializer;
   final ImpactTransformer _impactTransformer;
-  final bool deserializeResolvedAst;
 
   factory _DeserializerSystem(
       Compiler compiler,
       Deserializer deserializer,
-      ImpactTransformer impactTransformer,
-      {bool deserializeResolvedAst: false}) {
+      ImpactTransformer impactTransformer) {
     List<DeserializerPlugin> plugins = <DeserializerPlugin>[];
     DeserializerPlugin backendDeserializer =
         compiler.backend.serialization.deserializer;
@@ -193,19 +191,16 @@ class _DeserializerSystem extends DeserializerSystem {
     ResolutionImpactDeserializer resolutionImpactDeserializer =
         new ResolutionImpactDeserializer(backendDeserializer);
     deserializer.plugins.add(resolutionImpactDeserializer);
-    ResolvedAstDeserializerPlugin resolvedAstDeserializer;
-    if (deserializeResolvedAst) {
-      resolvedAstDeserializer = new ResolvedAstDeserializerPlugin(
-          compiler.parsingContext, backendDeserializer);
-      deserializer.plugins.add(resolvedAstDeserializer);
-    }
+    ResolvedAstDeserializerPlugin resolvedAstDeserializer
+        = new ResolvedAstDeserializerPlugin(
+            compiler.parsingContext, backendDeserializer);
+    deserializer.plugins.add(resolvedAstDeserializer);
     return new _DeserializerSystem._(
         compiler,
         deserializer,
         impactTransformer,
         resolutionImpactDeserializer,
-        resolvedAstDeserializer,
-        deserializeResolvedAst: deserializeResolvedAst);
+        resolvedAstDeserializer);
   }
 
   _DeserializerSystem._(
@@ -213,8 +208,7 @@ class _DeserializerSystem extends DeserializerSystem {
       this._deserializer,
       this._impactTransformer,
       this._resolutionImpactDeserializer,
-      this._resolvedAstDeserializer,
-      {this.deserializeResolvedAst: false});
+      this._resolvedAstDeserializer);
 
 
   @override
@@ -222,36 +216,28 @@ class _DeserializerSystem extends DeserializerSystem {
     LibraryElement library = _deserializer.lookupLibrary(resolvedUri);
     if (library != null) {
       deserializedLibraries.add(library);
-      if (deserializeResolvedAst) {
-        return Future.forEach(library.compilationUnits,
-            (CompilationUnitElement compilationUnit) {
-          ScriptZ script = compilationUnit.script;
-          return _compiler.readScript(script.readableUri)
-              .then((Script newScript) {
-            script.file = newScript.file;
-            _resolvedAstDeserializer.sourceFiles[script.resourceUri] =
-                newScript.file;
-          });
-        }).then((_) => library);
-      }
+      return Future.forEach(library.compilationUnits,
+          (CompilationUnitElement compilationUnit) {
+        ScriptZ script = compilationUnit.script;
+        return _compiler.readScript(script.readableUri)
+            .then((Script newScript) {
+          script.file = newScript.file;
+          _resolvedAstDeserializer.sourceFiles[script.resourceUri] =
+              newScript.file;
+        });
+      }).then((_) => library);
     }
     return new Future<LibraryElement>.value(library);
   }
 
   @override
   bool hasResolvedAst(ExecutableElement element) {
-    if (_resolvedAstDeserializer != null) {
-      return _resolvedAstDeserializer.hasResolvedAst(element);
-    }
-    return false;
+    return _resolvedAstDeserializer.hasResolvedAst(element);
   }
 
   @override
   ResolvedAst getResolvedAst(ExecutableElement element) {
-    if (_resolvedAstDeserializer != null) {
-      return _resolvedAstDeserializer.getResolvedAst(element);
-    }
-    return null;
+    return _resolvedAstDeserializer.getResolvedAst(element);
   }
 
   @override

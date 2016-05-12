@@ -245,6 +245,12 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
     element1.accept(this, element2);
     check(element1, element2, 'isSynthesized',
         element1.isSynthesized, element2.isSynthesized);
+    check(element1, element2, 'isLocal',
+        element1.isLocal, element2.isLocal);
+    check(element1, element2, 'isFinal',
+        element1.isFinal, element2.isFinal);
+    check(element1, element2, 'isConst',
+        element1.isConst, element2.isConst);
   }
 
   @override
@@ -438,10 +444,6 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
     checkTypes(
         element1, element2, 'type',
         element1.type, element2.type);
-    check(element1, element2, 'isConst',
-          element1.isConst, element2.isConst);
-    check(element1, element2, 'isFinal',
-          element1.isFinal, element2.isFinal);
     checkConstants(
         element1, element2, 'constant',
         element1.constant, element2.constant);
@@ -553,8 +555,6 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
     checkTypes(
         element1, element2, 'type',
         element1.type, element2.type);
-    check(element1, element2, 'isConst',
-          element1.isConst, element2.isConst);
     check(element1, element2, 'isExternal',
           element1.isExternal, element2.isExternal);
     if (element1.isConst && !element1.isExternal) {
@@ -646,9 +646,6 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
     check(
         element1, element2, 'isNamed',
         element1.isNamed, element2.isNamed);
-    check(
-        element1, element2, 'isFinal',
-        element1.isFinal, element2.isFinal);
     check(element1, element2, 'name', element1.name, element2.name);
     if (element1.isOptional) {
       checkConstants(

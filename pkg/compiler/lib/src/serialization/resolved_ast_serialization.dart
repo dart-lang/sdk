@@ -146,11 +146,12 @@ class ResolvedAstSerializer extends Visitor {
     }
     objectEncoder.setEnum(Key.SUB_KIND, kind);
     root.accept(indexComputer);
+    objectEncoder.setBool(Key.CONTAINS_TRY, elements.containsTryStatement);
     if (resolvedAst.body != null) {
       int index = nodeIndices[resolvedAst.body];
       assert(invariant(element, index != null,
-          message:
-              "No index for body of $element: ${resolvedAst.body} ($nodeIndices)."));
+          message: "No index for body of $element: "
+              "${resolvedAst.body} ($nodeIndices)."));
       objectEncoder.setInt(Key.BODY, index);
     }
     root.accept(this);
@@ -528,6 +529,8 @@ class ResolvedAstDeserializer {
     Map<Node, int> nodeIndices = indexComputer.nodeIndices;
     List<Node> nodeList = indexComputer.nodeList;
     root.accept(indexComputer);
+    elements.containsTryStatement = objectDecoder.getBool(Key.CONTAINS_TRY);
+
     Node body;
     int bodyNodeIndex = objectDecoder.getInt(Key.BODY, isOptional: true);
     if (bodyNodeIndex != null) {

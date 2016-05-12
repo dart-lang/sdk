@@ -291,6 +291,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     assert(constructor.isGenerativeConstructor);
     assert(constructor.isImplementation);
     if (constructor.isSynthesized) return null;
+    ResolvedAst resolvedAst = backend.frontend.getResolvedAst(constructor);
     ast.FunctionExpression node = constructor.node;
     // If we know the body doesn't have any code, we don't generate it.
     if (!node.hasBody) return null;
@@ -306,14 +307,14 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       }
     });
     if (bodyElement == null) {
-      bodyElement = new ConstructorBodyElementX(constructor);
+      bodyElement = new ConstructorBodyElementX(resolvedAst, constructor);
       classElement.addBackendMember(bodyElement);
 
       if (constructor.isPatch) {
         // Create origin body element for patched constructors.
         ConstructorBodyElementX patch = bodyElement;
         ConstructorBodyElementX origin =
-            new ConstructorBodyElementX(constructor.origin);
+            new ConstructorBodyElementX(resolvedAst, constructor.origin);
         origin.applyPatch(patch);
         classElement.origin.addBackendMember(bodyElement.origin);
       }

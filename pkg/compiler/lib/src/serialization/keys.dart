@@ -22,6 +22,7 @@ class Key {
   static const Key CONSTANT = const Key('constant');
   static const Key CONSTANTS = const Key('constants');
   static const Key CONSTRUCTOR = const Key('constructor');
+  static const Key CONTAINS_TRY = const Key('containsTryStatement');
   static const Key DATA = const Key('data');
   static const Key DEFAULT = const Key('default');
   static const Key DEFAULTS = const Key('defaults');

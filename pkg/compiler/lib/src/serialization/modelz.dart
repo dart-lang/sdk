@@ -82,13 +82,13 @@ abstract class ElementZ extends Element with ElementCommon {
   bool get isClosure => false;
 
   @override
-  bool get isConst => _unsupported('isConst');
+  bool get isConst => false;
 
   @override
   bool get isDeferredLoaderGetter => false;
 
   @override
-  bool get isFinal => _unsupported('isFinal');
+  bool get isFinal => false;
 
   @override
   bool get isInstanceMember => false;
@@ -1904,6 +1904,9 @@ class LocalParameterElementZ extends ParameterElementZ
   accept(ElementVisitor visitor, arg) {
     return visitor.visitParameterElement(this, arg);
   }
+
+  @override
+  bool get isLocal => true;
 
   @override
   ElementKind get kind => ElementKind.PARAMETER;

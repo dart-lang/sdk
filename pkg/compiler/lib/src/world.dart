@@ -696,8 +696,8 @@ class World implements ClassWorld {
     // TODO(johnniwinther): Add map restricted to live classes.
     // We don't support patch classes as mixin.
     assert(mixin.isDeclaration);
-    Set<MixinApplicationElement> users = _mixinUses.putIfAbsent(
-        mixin, () => new Set<MixinApplicationElement>());
+    Set<MixinApplicationElement> users =
+        _mixinUses.putIfAbsent(mixin, () => new Set<MixinApplicationElement>());
     users.add(mixinApplication);
   }
 

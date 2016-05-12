@@ -20,17 +20,19 @@ import '../output_collector.dart';
 main(List<String> args) {
   asyncTest(() async {
     Arguments arguments = new Arguments.from(args);
-    String serializedData = await serializeDartCore(
-        arguments: arguments,
-        serializeResolvedAst: true);
+    String serializedData = await serializeDartCore(arguments: arguments);
     if (arguments.filename != null) {
       Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
       await compile(serializedData, entryPoint, null);
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
       // TODO(johnniwinther): Handle the remaining tests.
-      for (Test test in TESTS.sublist(0, 5)) {
+      int start = arguments.index ?? 0;
+      int end = arguments.index ?? 16/*TESTS.length - 1*/;
+      for (int index = start; index <= end; index++) {
+        Test test = TESTS[index];
         await compile(serializedData, entryPoint, test,
+                      index: index,
                       verbose: arguments.verbose);
       }
     }
@@ -38,11 +40,11 @@ main(List<String> args) {
 }
 
 Future compile(String serializedData, Uri entryPoint, Test test,
-               {bool verbose: false}) async {
+               {int index, bool verbose: false}) async {
   String testDescription =
       test != null ? test.sourceFiles[entryPoint.path] : '${entryPoint}';
   print('------------------------------------------------------------------');
-  print('compile ${testDescription}');
+  print('compile ${index != null ? '$index:' :''}${testDescription}');
   print('------------------------------------------------------------------');
   OutputCollector outputCollector = new OutputCollector();
   await runCompiler(
@@ -51,7 +53,7 @@ Future compile(String serializedData, Uri entryPoint, Test test,
       options: [],
       outputProvider: outputCollector,
       beforeRun: (Compiler compiler) {
-        deserialize(compiler, serializedData, deserializeResolvedAst: true);
+        deserialize(compiler, serializedData);
       });
   if (verbose) {
     print(outputCollector.getOutput('', 'js'));

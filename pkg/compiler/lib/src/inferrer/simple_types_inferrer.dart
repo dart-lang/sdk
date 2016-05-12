@@ -669,7 +669,7 @@ class SimpleTypeInferrerVisitor<T>
       if (element.isField) {
         if (!selector.isSetter &&
             isInClassOrSubclass(element) &&
-            !element.modifiers.isFinal &&
+            !element.isFinal &&
             locals.fieldScope.readField(element) == null &&
             element.initializer == null) {
           // If the field is being used before this constructor

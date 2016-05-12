@@ -858,7 +858,7 @@ class TypeGraphInferrerEngine
                   compiler.backend.constants.getConstantValue(constant);
               assert(invariant(fieldElement, value != null,
                   message: "Constant expression without value: "
-                           "${constant.toStructuredText()}."));
+                      "${constant.toStructuredText()}."));
               if (value.isFunction) {
                 FunctionConstantValue functionConstant = value;
                 type = types.allocateClosure(node, functionConstant.element);

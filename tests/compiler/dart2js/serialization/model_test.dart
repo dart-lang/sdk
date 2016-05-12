@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/backend_api.dart';
 import 'package:compiler/src/common/names.dart';
@@ -22,6 +23,7 @@ import 'package:compiler/src/serialization/json_serializer.dart';
 import 'package:compiler/src/serialization/serialization.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/serialization/task.dart';
+import 'package:compiler/src/tree/nodes.dart';
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/universe/use.dart';
@@ -36,13 +38,13 @@ main(List<String> args) {
     String serializedData = await serializeDartCore(arguments: arguments);
     if (arguments.filename != null) {
       Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
-      await check(serializedData, entryPoint);
+      await checkModels(serializedData, entryPoint);
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
       for (Test test in TESTS) {
         print('==============================================================');
         print(test.sourceFiles);
-        await check(
+        await checkModels(
           serializedData,
           entryPoint,
           sourceFiles: test.sourceFiles,
@@ -52,7 +54,7 @@ main(List<String> args) {
   });
 }
 
-Future check(
+Future checkModels(
   String serializedData,
   Uri entryPoint,
   {Map<String, String> sourceFiles: const <String, String>{},
@@ -68,6 +70,7 @@ Future check(
   await compilerNormal.run(entryPoint);
   compilerNormal.phase = Compiler.PHASE_DONE_RESOLVING;
   compilerNormal.world.populate();
+  compilerNormal.backend.onResolutionComplete();
 
   print('------------------------------------------------------------------');
   print('compile deserialized');
@@ -80,6 +83,7 @@ Future check(
   await compilerDeserialized.run(entryPoint);
   compilerDeserialized.phase = Compiler.PHASE_DONE_RESOLVING;
   compilerDeserialized.world.populate();
+  compilerDeserialized.backend.onResolutionComplete();
 
   checkAllImpacts(
       compilerNormal, compilerDeserialized,
@@ -111,6 +115,10 @@ Future check(
       compilerDeserialized.enqueuer.resolution.processedElements,
       "Processed element mismatch",
       areElementsEquivalent,
+      onSameElement: (a, b) {
+        checkElements(
+            compilerNormal, compilerDeserialized, a, b, verbose: verbose);
+      },
       verbose: verbose);
 
   checkClassHierarchyNodes(
@@ -121,6 +129,57 @@ Future check(
       compilerDeserialized.world.getClassHierarchyNode(
           compilerDeserialized.coreClasses.objectClass),
       verbose: verbose);
+}
+
+void checkElements(
+    Compiler compiler1, Compiler compiler2,
+    Element element1, Element element2,
+    {bool verbose: false}) {
+  if (element1.isFunction ||
+      element1.isConstructor ||
+      (element1.isField && element1.isInstanceMember)) {
+    ClosureClassMap closureData1 =
+    compiler1.closureToClassMapper.computeClosureToClassMapping(
+        compiler1.backend.frontend.getResolvedAst(element1.declaration));
+    ClosureClassMap closureData2 =
+    compiler2.closureToClassMapper.computeClosureToClassMapping(
+        compiler2.backend.frontend.getResolvedAst(element2.declaration));
+
+    checkElementIdentities(closureData1, closureData2,
+        '$element1.closureElement',
+        closureData1.closureElement, closureData2.closureElement);
+    checkElementIdentities(closureData1, closureData2,
+        '$element1.closureClassElement',
+        closureData1.closureClassElement, closureData2.closureClassElement);
+    checkElementIdentities(closureData1, closureData2,
+        '$element1.callElement',
+        closureData1.callElement, closureData2.callElement);
+    check(closureData1, closureData2,
+        '$element1.thisLocal',
+        closureData1.thisLocal, closureData2.thisLocal,
+        areLocalsEquivalent);
+    checkMaps(
+        closureData1.freeVariableMap,
+        closureData2.freeVariableMap,
+        "$element1.freeVariableMap",
+        areLocalsEquivalent,
+        areCapturedVariablesEquivalent,
+        verbose: verbose);
+    checkMaps(
+        closureData1.capturingScopes,
+        closureData2.capturingScopes,
+        "$element1.capturingScopes",
+        areNodesEquivalent,
+        areClosureScopesEquivalent,
+        verbose: verbose,
+        keyToString: nodeToString);
+    checkSets(
+        closureData1.variablesUsedInTryOrGenerator,
+        closureData2.variablesUsedInTryOrGenerator,
+        "$element1.variablesUsedInTryOrGenerator",
+        areLocalsEquivalent,
+        verbose: verbose);
+  }
 }
 
 void checkMixinUses(
@@ -182,13 +241,16 @@ void checkSets(
     Iterable set1,
     Iterable set2,
     String messagePrefix,
-    bool areEquivalent(a, b),
+    bool sameElement(a, b),
     {bool failOnUnfound: true,
-     bool verbose: false}) {
+     bool verbose: false,
+     void onSameElement(a, b)}) {
   List common = [];
   List unfound = [];
   Set remaining = computeSetDifference(
-      set1, set2, common, unfound, areEquivalent);
+      set1, set2, common, unfound,
+      sameElement: sameElement,
+      checkElements: onSameElement);
   StringBuffer sb = new StringBuffer();
   sb.write("$messagePrefix:");
   if (verbose) {
@@ -211,4 +273,137 @@ void checkSets(
   } else if (verbose) {
     print(message);
   }
+}
+
+String defaultToString(obj) => '$obj';
+
+void checkMaps(
+    Map map1,
+    Map map2,
+    String messagePrefix,
+    bool sameKey(a, b),
+    bool sameValue(a, b),
+    {bool failOnUnfound: true,
+     bool failOnMismatch: true,
+     bool verbose: false,
+     String keyToString(key): defaultToString,
+     String valueToString(key): defaultToString}) {
+  List common = [];
+  List unfound = [];
+  List<List> mismatch = <List>[];
+  Set remaining = computeSetDifference(
+      map1.keys, map2.keys, common, unfound,
+      sameElement: sameKey,
+      checkElements: (k1, k2) {
+        var v1 = map1[k1];
+        var v2 = map2[k2];
+        if (!sameValue(v1, v2)) {
+          mismatch.add([k1, k2]);
+        }
+      });
+  StringBuffer sb = new StringBuffer();
+  sb.write("$messagePrefix:");
+  if (verbose) {
+    sb.write("\n Common: \n");
+    for (List pair in common) {
+      var k1 = pair[0];
+      var k2 = pair[1];
+      var v1 = map1[k1];
+      var v2 = map2[k2];
+      sb.write(" key1   =${keyToString(k1)}\n");
+      sb.write(" key2   =${keyToString(k2)}\n");
+      sb.write("  value1=${valueToString(v1)}\n");
+      sb.write("  value2=${valueToString(v2)}\n");
+    }
+  }
+  if (unfound.isNotEmpty || verbose) {
+    sb.write("\n Unfound: \n");
+    for (var k1 in unfound) {
+      var v1 = map1[k1];
+      sb.write(" key1   =${keyToString(k1)}\n");
+      sb.write("  value1=${valueToString(v1)}\n");
+    }
+  }
+  if (remaining.isNotEmpty || verbose) {
+    sb.write("\n Extra: \n");
+    for (var k2 in remaining) {
+      var v2 = map2[k2];
+      sb.write(" key2   =${keyToString(k2)}\n");
+      sb.write("  value2=${valueToString(v2)}\n");
+    }
+  }
+  if (mismatch.isNotEmpty || verbose) {
+    sb.write("\n Mismatch: \n");
+    for (List pair in mismatch) {
+      var k1 = pair[0];
+      var k2 = pair[1];
+      var v1 = map1[k1];
+      var v2 = map2[k2];
+      sb.write(" key1   =${keyToString(k1)}\n");
+      sb.write(" key2   =${keyToString(k2)}\n");
+      sb.write("  value1=${valueToString(v1)}\n");
+      sb.write("  value2=${valueToString(v2)}\n");
+    }
+  }
+  String message = sb.toString();
+  if (unfound.isNotEmpty || mismatch.isNotEmpty || remaining.isNotEmpty) {
+    if ((unfound.isNotEmpty && failOnUnfound) ||
+        (mismatch.isNotEmpty && failOnMismatch) ||
+        remaining.isNotEmpty) {
+      Expect.fail(message);
+    } else {
+      print(message);
+    }
+  } else if (verbose) {
+    print(message);
+  }
+}
+
+bool areLocalsEquivalent(Local a, Local b) {
+  if (a == b) return true;
+  if (a == null || b == null) return false;
+
+  if (a is Element) {
+    return b is Element && areElementsEquivalent(a as Element, b as Element);
+  } else {
+    return a.runtimeType == b.runtimeType &&
+        areElementsEquivalent(a.executableContext, b.executableContext);
+  }
+}
+
+bool areCapturedVariablesEquivalent(CapturedVariable a, CapturedVariable b) {
+  if (a == b) return true;
+  if (a == null || b == null) return false;
+  if (a is ClosureFieldElement && b is ClosureFieldElement) {
+    return areElementsEquivalent(a.closureClass, b.closureClass) &&
+      areLocalsEquivalent(a.local, b.local);
+  } else if (a is BoxFieldElement && b is BoxFieldElement) {
+    return areElementsEquivalent(a.variableElement, b.variableElement) &&
+        areLocalsEquivalent(a.box, b.box);
+  }
+  return false;
+}
+
+bool areClosureScopesEquivalent(ClosureScope a, ClosureScope b) {
+  if (a == b) return true;
+  if (a == null || b == null) return false;
+  if (!areLocalsEquivalent(a.boxElement, b.boxElement)) {
+    return false;
+  }
+  checkMaps(a.capturedVariables, b.capturedVariables,
+      'ClosureScope.capturedVariables',
+      areLocalsEquivalent,
+      areElementsEquivalent);
+  checkSets(a.boxedLoopVariables, b.boxedLoopVariables,
+      'ClosureScope.boxedLoopVariables',
+      areElementsEquivalent);
+  return true;
+}
+
+String nodeToString(Node node) {
+  String text = '$node';
+  if (text.length > 40) {
+    return '(${node.runtimeType}) ${text.substring(0, 37)}...';
+  }
+  return '(${node.runtimeType}) $text';
 }
