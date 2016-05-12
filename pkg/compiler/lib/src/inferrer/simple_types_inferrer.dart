@@ -667,16 +667,17 @@ class SimpleTypeInferrerVisitor<T>
     if (isThisExposed) return;
     inferrer.forEachElementMatching(selector, mask, (element) {
       if (element.isField) {
+        ResolvedAst elementResolvedAst = getResolvedAst(element);
         if (!selector.isSetter &&
             isInClassOrSubclass(element) &&
             !element.isFinal &&
             locals.fieldScope.readField(element) == null &&
-            element.initializer == null) {
+            elementResolvedAst.body == null) {
           // If the field is being used before this constructor
           // actually had a chance to initialize it, say it can be
           // null.
           inferrer.recordTypeOfNonFinalField(
-              analyzedElement.node, element, types.nullType);
+              resolvedAst.node, element, types.nullType);
         }
         // Accessing a field does not expose [:this:].
         return true;

@@ -26,9 +26,8 @@ main(List<String> args) {
       await compile(serializedData, entryPoint, null);
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
-      // TODO(johnniwinther): Handle the remaining tests.
       int start = arguments.index ?? 0;
-      int end = arguments.index ?? 16/*TESTS.length - 1*/;
+      int end = arguments.index ?? TESTS.length - 1;
       for (int index = start; index <= end; index++) {
         Test test = TESTS[index];
         await compile(serializedData, entryPoint, test,
