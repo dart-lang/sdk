@@ -7,3 +7,4 @@ build
 pubspec.lock
 .packages
 linter.iml
+.atom
