@@ -5,19 +5,29 @@
 <polymer-element name="timeline-page" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="css/shared.css">
-    <style>
-    </style>
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <vm-nav-menu vm="{{ app.vm }}"></vm-nav-menu>
       <nav-menu link="{{ makeLink('/timeline') }}" anchor="timeline" last="{{ true }}"></nav-menu>
-      <nav-refresh id="refresh" callback="{{ refresh }}"></nav-refresh>
+      <nav-refresh id="refresh" callback="{{ refresh }}" label="Get"></nav-refresh>
       <nav-refresh callback="{{ clear }}" label="Clear"></nav-refresh>
-      <nav-refresh callback="{{ recordOn }}" label="Start recording"></nav-refresh>
-      <nav-refresh callback="{{ recordOff }}" label="Stop recording"></nav-refresh>
       <nav-refresh callback="{{ saveTimeline }}" label="Save"></nav-refresh>
       <nav-refresh callback="{{ loadTimeline }}" label="Load"></nav-refresh>
     </nav-bar>
+    <div id="control" class="content-centered-big">
+      <h2>Timeline settings</h2>
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">Recorder:</div>
+          <div class="memberValue">{{ recorderName }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Recorded Streams:</div>
+          <div id="streamList" class="memberValue"></div>
+        </div>
+      </div>
+      <br>
+    </div>
     <iframe id="root" frameborder="0" src="../../../../timeline.html">
     </iframe>
   </template>

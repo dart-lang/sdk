@@ -1299,7 +1299,7 @@ void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
     PrintJSONEvents(&events, filter);
   }
   topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
-  topLevel.AddPropertyTimeMicros("TimeExtentMicros", TimeExtentMicros());
+  topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
 }
 
 
@@ -1447,7 +1447,7 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
     PrintJSONEvents(&events, filter);
   }
   topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
-  topLevel.AddPropertyTimeMicros("TimeExtentMicros", TimeExtentMicros());
+  topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
 }
 
 

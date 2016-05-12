@@ -15,15 +15,14 @@ import 'package:polymer/polymer.dart';
 
 @CustomTag('timeline-page')
 class TimelinePageElement extends ObservatoryElement {
-  TimelinePageElement.created() : super.created();
+  TimelinePageElement.created() : super.created() {
+  }
 
   attached() {
     super.attached();
     _resizeSubscription = window.onResize.listen((_) => _updateSize());
     _updateSize();
-    // Click refresh button.
-    NavRefreshElement refreshButton = $['refresh'];
-    refreshButton.buttonClick(null, null, null);
+    _setupInitialState();
   }
 
   detached() {
@@ -50,6 +49,72 @@ class TimelinePageElement extends ObservatoryElement {
     return null;
   }
 
+  void _processFlags(ServiceMap response) {
+    // Grab the recorder name.
+    recorderName = response['recorderName'];
+    // Update the set of available streams.
+    _availableStreams.clear();
+    response['availableStreams'].forEach(
+        (String streamName) => _availableStreams.add(streamName));
+    // Update the set of recorded streams.
+    _recordedStreams.clear();
+    response['recordedStreams'].forEach(
+        (String streamName) => _recordedStreams.add(streamName));
+  }
+
+  Future _applyStreamChanges() {
+    return app.vm.invokeRpc('_setVMTimelineFlags', {
+      'recordedStreams': '[${_recordedStreams.join(', ')}]',
+    });
+  }
+
+  HtmlElement _makeStreamToggle(String streamName) {
+    LabelElement label = new LabelElement();
+    label.style.paddingLeft = '8px';
+    SpanElement span = new SpanElement();
+    span.text = streamName;
+    InputElement checkbox = new InputElement();
+    checkbox.onChange.listen((_) {
+      if (checkbox.checked) {
+        _recordedStreams.add(streamName);
+      } else {
+        _recordedStreams.remove(streamName);
+      }
+      _applyStreamChanges();
+      _updateRecorderUI();
+    });
+    checkbox.type = 'checkbox';
+    checkbox.checked = _recordedStreams.contains(streamName);
+    label.children.add(checkbox);
+    label.children.add(span);
+    return label;
+  }
+
+  void _refreshRecorderUI() {
+    DivElement e = $['streamList'];
+    e.children.clear();
+
+    for (String streamName in _availableStreams) {
+      e.children.add(_makeStreamToggle(streamName));
+    }
+  }
+
+  Future _updateRecorderUI() async {
+    // Grab the current timeline flags.
+    ServiceMap response = await app.vm.invokeRpc('_getVMTimelineFlags', {});
+    assert(response['type'] == 'TimelineFlags');
+    // Process them so we know available streams.
+    _processFlags(response);
+    // Refresh the UI.
+    _refreshRecorderUI();
+  }
+
+  Future _setupInitialState() async {
+    await _updateRecorderUI();
+    // Finally, trigger a reload so we start with the latest timeline.
+    await refresh();
+  }
+
   Future refresh() async {
     await app.vm.reload();
     await app.vm.reloadIsolates();
@@ -59,18 +124,6 @@ class TimelinePageElement extends ObservatoryElement {
   Future clear() async {
     await app.vm.invokeRpc('_clearVMTimeline', {});
     return postMessage('clear');
-  }
-
-  Future recordOn() async {
-    return app.vm.invokeRpc('_setVMTimelineFlags', {
-      'recordedStreams': ['all'],
-    });
-  }
-
-  Future recordOff() async {
-    return app.vm.invokeRpc('_setVMTimelineFlags', {
-      'recordedStreams': [],
-    });
   }
 
   Future saveTimeline() async {
@@ -93,4 +146,7 @@ class TimelinePageElement extends ObservatoryElement {
 
 
   StreamSubscription _resizeSubscription;
+  @observable String recorderName;
+  final Set<String> _availableStreams = new Set<String>();
+  final Set<String> _recordedStreams = new Set<String>();
 }

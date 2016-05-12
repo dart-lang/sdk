@@ -781,7 +781,7 @@ class TimelineEventRingRecorder : public TimelineEventFixedBufferRecorder {
   ~TimelineEventRingRecorder() {}
 
   const char* name() const {
-    return "ring";
+    return "Ring";
   }
 
  protected:
@@ -798,7 +798,7 @@ class TimelineEventStartupRecorder : public TimelineEventFixedBufferRecorder {
   ~TimelineEventStartupRecorder() {}
 
   const char* name() const {
-    return "startup";
+    return "Startup";
   }
 
  protected:
@@ -821,7 +821,7 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
   virtual void OnEvent(TimelineEvent* event) = 0;
 
   const char* name() const {
-    return "callback";
+    return "Callback";
   }
 
  protected:
@@ -849,7 +849,7 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 
   const char* name() const {
-    return "endless";
+    return "Endless";
   }
 
  protected:
