@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.dont_compare_unrelated_types_for_equality;
+library linter.src.rules.unrelated_type_equality_checks;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -126,11 +126,11 @@ class DerivedClass2 extends ClassBase with Mixin {}
 ```
 ''';
 
-class DontCompareUnrelatedTypesForEquality extends LintRule {
+class UnrelatedTypeEqualityChecks extends LintRule {
   _Visitor _visitor;
 
-  DontCompareUnrelatedTypesForEquality() : super(
-      name: 'dont_compare_unrelated_types_for_equality',
+  UnrelatedTypeEqualityChecks() : super(
+      name: 'unrelated_type_equality_checks',
       description: _desc,
       details: _details,
       group: Group.errors,

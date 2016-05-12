@@ -1,3 +1,11 @@
+# 0.1.16
+
+* Fix for false positive in `overriden_field`s.
+* New `unrelated_type_equality_checks` lint.
+* Fix to accept `$` identifiers in string interpolation lint (#214).
+* Update to new `plugin` API (`0.2.0`).
+* Strong mode cleanup.
+
 # 0.1.15
 
 * Fix to allow simple getter/setters when a decl is ``@protected` (#215).
