@@ -203,7 +203,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart._installProperties = function(jsProto, extProto) {
     let coreObjProto = core.Object.prototype;
     if (extProto === coreObjProto) {
-      for (let name of dart.getOwnPropertyNames(coreObjProto)) {
+      let names = dart.getOwnPropertyNames(coreObjProto);
+      for (let i = 0; i < names.length; ++i) {
+        let name = names[i];
         let desc = dart.getOwnPropertyDescriptor(coreObjProto, name);
         dart.defineProperty(jsProto, dart.getExtensionSymbol(name), desc);
       }
@@ -961,8 +963,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return dart.defineLazyProperty(obj, name, {get: getter});
   };
   dart.copyTheseProperties = function(to, from, names) {
-    for (let name of names) {
-      dart.copyProperty(to, from, name);
+    for (let i = 0; i < names.length; ++i) {
+      dart.copyProperty(to, from, names[i]);
     }
     return to;
   };
@@ -1268,8 +1270,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       return a == dart.dynamic ? dart.bottom : a;
     }
-    static _canonicalizeArray(definite, arr, map) {
-      if (!definite) arr = arr.map(FunctionType._normalizeParameter);
+    static _canonicalizeArray(definite, array, map) {
+      let arr = definite ? array : array.map(FunctionType._normalizeParameter);
       return FunctionType._memoizeArray(map, arr, () => arr);
     }
     static _canonicalizeNamed(definite, named, map) {
@@ -1292,9 +1294,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       map.set(key, result = new Map());
       return result;
     }
-    static _createSmall(count, definite, returnType, args) {
+    static _createSmall(count, definite, returnType, required) {
       let map = dart._fnTypeSmallMap[count];
-      if (!definite) args = args.map(FunctionType._normalizeParameter);
+      let args = definite ? required : required.map(FunctionType._normalizeParameter);
       for (var i = 0; i < count; ++i) {
         map = FunctionType._lookupNonTerminal(map, args[i]);
       }

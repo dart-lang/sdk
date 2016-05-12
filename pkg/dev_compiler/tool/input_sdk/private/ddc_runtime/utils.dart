@@ -93,8 +93,8 @@ defineMemoizedGetter(obj, String name, getter) {
 }
 
 copyTheseProperties(to, from, names) => JS('', '''(() => {
-  for (let name of $names) {
-    $copyProperty($to, $from, name);
+  for (let i = 0; i < $names.length; ++i) {
+    $copyProperty($to, $from, $names[i]);
   }
   return $to;
 })()''');

@@ -178,8 +178,10 @@ final FunctionType = JS('', '''
       return (a == $dynamic) ? $bottom : a;
     }
 
-    static _canonicalizeArray(definite, arr, map) {
-      if (!definite) arr = arr.map(FunctionType._normalizeParameter);
+    static _canonicalizeArray(definite, array, map) {
+      let arr = (definite)
+         ? array
+         : array.map(FunctionType._normalizeParameter);
       return FunctionType._memoizeArray(map, arr, () => arr);
     }
 
@@ -210,9 +212,10 @@ final FunctionType = JS('', '''
     // TODO(leafp): This handles some low hanging fruit, but
     // really we should make all of this faster, and also
     // handle more cases here.
-    static _createSmall(count, definite, returnType, args) {
+    static _createSmall(count, definite, returnType, required) {
       let map = $_fnTypeSmallMap[count];
-      if (!definite) args = args.map(FunctionType._normalizeParameter);
+      let args = (definite) ? required
+        : required.map(FunctionType._normalizeParameter);
       for (var i = 0; i < count; ++i) {
         map = FunctionType._lookupNonTerminal(map, args[i]);
      }

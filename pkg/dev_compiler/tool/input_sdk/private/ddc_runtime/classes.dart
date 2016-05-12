@@ -284,9 +284,11 @@ defineExtensionNames(names) =>
 _installProperties(jsProto, extProto) {
   var coreObjProto = JS('', '#.prototype', Object);
   if (JS('bool', '# === #', extProto, coreObjProto)) {
-    // core.Object members need to be copied from the non-symbol name to the
-    // symbol name.
-    for (var name in getOwnPropertyNames(coreObjProto)) {
+     // core.Object members need to be copied from the non-symbol name to the
+     // symbol name.
+    var names = getOwnPropertyNames(coreObjProto);
+    for (int i = 0; i < JS('int', '#.length', names); ++i) {
+      var name = JS('', '#[#]', names, i);
       var desc = getOwnPropertyDescriptor(coreObjProto, name);
       defineProperty(jsProto, getExtensionSymbol(name), desc);
     }
@@ -297,7 +299,6 @@ _installProperties(jsProto, extProto) {
   }
   copyTheseProperties(jsProto, extProto, getOwnPropertySymbols(extProto));
 }
-
 ///
 /// Copy symbols from the prototype of the source to destination.
 /// These are the only properties safe to copy onto an existing public
