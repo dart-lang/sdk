@@ -442,7 +442,6 @@
       'regress_r21715_test': fail,
       'throw_half_surrogate_pair_test_02_multi': fail,
       'stacktrace_current_test': fail,
-      'stacktrace_fromstring_test': fail,
       'string_from_environment2_test': fail,
       'string_from_environment_test': fail,
       'string_from_list_test': skip_timeout,

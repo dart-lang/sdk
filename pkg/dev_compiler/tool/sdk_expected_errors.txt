@@ -13,7 +13,7 @@
 [error] Invalid override. The type of Utf8Encoder.bind ((Stream<String>) → Stream<List<int>>) is not a subtype of StreamTransformer<dynamic, dynamic>.bind ((Stream<dynamic>) → Stream<dynamic>). (dart:convert/utf.dart, line 130, col 3)
 [error] Invalid override. The type of Utf8Decoder.bind ((Stream<List<int>>) → Stream<String>) is not a subtype of StreamTransformer<dynamic, dynamic>.bind ((Stream<dynamic>) → Stream<dynamic>). (dart:convert/utf.dart, line 370, col 3)
 [error] Invalid override. The type of DateTime.compareTo ((DateTime) → int) is not a subtype of Comparable<dynamic>.compareTo ((dynamic) → int). (dart:core/date_time.dart, line 448, col 3)
-[error] Annotation can be only constant variable or constant constructor invocation (dart:core/stacktrace.dart, line 27, col 3)
+[error] Annotation can be only constant variable or constant constructor invocation (dart:core/stacktrace.dart, line 43, col 3)
 [error] Invalid override. The type of FileList.[]= ((int, File) → void) is not a subtype of JSMutableIndexable.[]= ((int, dynamic) → dynamic). (dart:html, line 16869, col 3)
 [error] Invalid override. The type of HtmlCollection.[]= ((int, Node) → void) is not a subtype of JSMutableIndexable.[]= ((int, dynamic) → dynamic). (dart:html, line 18904, col 3)
 [error] Invalid override. The type of MimeTypeArray.[]= ((int, MimeType) → void) is not a subtype of JSMutableIndexable.[]= ((int, dynamic) → dynamic). (dart:html, line 23818, col 3)

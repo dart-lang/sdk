@@ -29384,6 +29384,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   core.Sink = core.Sink$();
   core.StackTrace = class StackTrace extends core.Object {
+    StackTrace() {
+    }
+    static fromString(stackTraceString) {
+      return new core._StringStackTrace(stackTraceString);
+    }
     static get current() {
       if (Error.captureStackTrace != null) {
         let error = new Error();
@@ -29399,6 +29404,25 @@ dart_library.library('dart_sdk', null, /* Imports */[
 
     }
   };
+  dart.setSignature(core.StackTrace, {
+    constructors: () => ({
+      StackTrace: [core.StackTrace, []],
+      fromString: [core.StackTrace, [core.String]]
+    })
+  });
+  const _stackTrace = Symbol('_stackTrace');
+  core._StringStackTrace = class _StringStackTrace extends core.Object {
+    _StringStackTrace(stackTrace) {
+      this[_stackTrace] = stackTrace;
+    }
+    toString() {
+      return this[_stackTrace];
+    }
+  };
+  core._StringStackTrace[dart.implements] = () => [core.StackTrace];
+  dart.setSignature(core._StringStackTrace, {
+    constructors: () => ({_StringStackTrace: [core._StringStackTrace, [core.String]]})
+  });
   const _stop = Symbol('_stop');
   core.Stopwatch = class Stopwatch extends core.Object {
     get frequency() {
