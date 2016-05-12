@@ -461,7 +461,7 @@
       // TODO(jmesserly): this could be a failure we didn't notice before
       // because we now call the right Dart double.toString, resulting in a
       // difference between -0.0 and 0?
-      'chunked_conversion_json_encode1_test': skip_fail,
+      'chunked_conversion_json_encode1_test': fail,
 
       // TODO(rnystrom): A lot of the convert tests timeout. Some do pass if
       // you increase the time by a large amount, but it's pretty gratuitous.
@@ -472,8 +472,8 @@
       'chunked_conversion_utf8_test': skip_timeout,
 
       // TODO(rnystrom): Strong mode cast failures.
-      'codec1_test': skip_fail,
-      'encoding_test': skip_fail,
+      'codec1_test': fail,
+      'encoding_test': skip_timeout,
       'html_escape_test': fail,
 
       // TODO(rnystrom): If this test is enabled, karma gets confused and
@@ -483,7 +483,7 @@
       'json_utf8_chunk_test': skip_timeout,
 
       // TODO(rnystrom): Strong mode cast failure.
-      'line_splitter_test': skip_fail,
+      'line_splitter_test': fail,
 
       'streamed_conversion_json_encode1_test': skip_timeout,
       'streamed_conversion_json_utf8_decode_test': skip_timeout,
