@@ -63,28 +63,28 @@ class _Double implements double {
   }
   bool _greaterThan(double other) native "Double_greaterThan";
   bool operator >=(num other) {
-    return (this == other) ||  (this > other);
+    return (this == other) || (this > other);
   }
   bool operator <=(num other) {
-    return (this == other) ||  (this < other);
+    return (this == other) || (this < other);
   }
   double _addFromInteger(int other) {
-    return new _Double.fromInteger(other) + this;
+    return new _Double.fromInteger(other)._add(this);
   }
   double _subFromInteger(int other) {
-    return new _Double.fromInteger(other) - this;
+    return new _Double.fromInteger(other)._sub(this);
   }
   double _mulFromInteger(int other) {
-    return new _Double.fromInteger(other) * this;
+    return new _Double.fromInteger(other)._mul(this);
   }
   int _truncDivFromInteger(int other) {
-    return new _Double.fromInteger(other) ~/ this;
+    return new _Double.fromInteger(other)._trunc_div(this);
   }
   double _moduloFromInteger(int other) {
-    return new _Double.fromInteger(other) % this;
+    return new _Double.fromInteger(other)._modulo(this);
   }
   double _remainderFromInteger(int other) {
-    return new _Double.fromInteger(other).remainder(this);
+    return new _Double.fromInteger(other)._remainder(this);
   }
   bool _greaterThanFromInteger(int other)
       native "Double_greaterThanFromInteger";

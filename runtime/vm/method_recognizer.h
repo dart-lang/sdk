@@ -168,7 +168,7 @@ namespace dart {
   V(_Double, /, Double_div, 1220198876)                                        \
   V(_Double, get:isNaN, Double_getIsNaN, 184085483)                            \
   V(_Double, get:isNegative, Double_getIsNegative, 978911030)                  \
-  V(_Double, _mulFromInteger, Double_mulFromInteger, 1893886883)               \
+  V(_Double, _mulFromInteger, Double_mulFromInteger, 856594998)                \
   V(_Double, .fromInteger, DoubleFromInteger, 2129942595)                      \
   V(_List, []=, ObjectArraySetIndexed, 886228780)                              \
   V(_GrowableList, .withData, GrowableArray_Allocate, 631736030)               \
