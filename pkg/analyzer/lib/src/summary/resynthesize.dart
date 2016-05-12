@@ -714,6 +714,12 @@ class _DeferredClassElement extends ClassElementHandle {
 
   ClassElementImpl _actualElement;
 
+  /**
+   * We don't resynthesize executables of classes until they are requested.
+   * TODO(scheglov) Check whether we need separate flags for separate kinds.
+   */
+  bool _executablesResynthesized = false;
+
   @override
   final String name;
 
@@ -733,12 +739,24 @@ class _DeferredClassElement extends ClassElementHandle {
       : super(null, location);
 
   @override
+  List<PropertyAccessorElement> get accessors {
+    _ensureExecutables();
+    return actualElement.accessors;
+  }
+
+  @override
   ClassElementImpl get actualElement {
     if (_actualElement == null) {
-      _actualElement = unitResynthesizer.buildClassImpl(serializedClass);
+      _actualElement = unitResynthesizer.buildClassImpl(serializedClass, this);
       _actualElement.enclosingElement = unitElement;
     }
     return _actualElement;
+  }
+
+  @override
+  List<ConstructorElement> get constructors {
+    _ensureExecutables();
+    return actualElement.constructors;
   }
 
   @override
@@ -750,6 +768,48 @@ class _DeferredClassElement extends ClassElementHandle {
   @override
   CompilationUnitElement get enclosingElement {
     return unitElement;
+  }
+
+  @override
+  List<FieldElement> get fields {
+    _ensureExecutables();
+    return actualElement.fields;
+  }
+
+  @override
+  List<MethodElement> get methods {
+    _ensureExecutables();
+    return actualElement.methods;
+  }
+
+  @override
+  void ensureAccessorsReady() {
+    _ensureExecutables();
+  }
+
+  @override
+  void ensureActualElementComplete() {
+    _ensureExecutables();
+  }
+
+  @override
+  void ensureConstructorsReady() {
+    _ensureExecutables();
+  }
+
+  @override
+  void ensureMethodsReady() {
+    _ensureExecutables();
+  }
+
+  /**
+   * Ensure that we have [actualElement], and it has all executables.
+   */
+  void _ensureExecutables() {
+    if (!_executablesResynthesized) {
+      _executablesResynthesized = true;
+      unitResynthesizer.buildClassExecutables(actualElement, serializedClass);
+    }
   }
 }
 
@@ -1610,7 +1670,7 @@ class _UnitResynthesizer {
     ClassElement classElement;
     if (libraryResynthesizer.isCoreLibrary &&
         serializedClass.supertype == null) {
-      classElement = buildClassImpl(serializedClass);
+      classElement = buildClassImpl(serializedClass, null);
       if (!serializedClass.hasNoSupertype) {
         libraryResynthesizer.delayedObjectSubclasses.add(classElement);
       }
@@ -1621,25 +1681,11 @@ class _UnitResynthesizer {
   }
 
   /**
-   * Resynthesize a [ClassElementImpl].
+   * Fill the given [ClassElementImpl] with executable elements and fields.
    */
-  ClassElementImpl buildClassImpl(UnlinkedClass serializedClass) {
-    ClassElementImpl classElement =
-        new ClassElementImpl(serializedClass.name, serializedClass.nameOffset);
-    classElement.hasBeenInferred = summaryResynthesizer.strongMode;
-    classElement.typeParameters =
-        buildTypeParameters(serializedClass.typeParameters);
-    classElement.abstract = serializedClass.isAbstract;
-    classElement.mixinApplication = serializedClass.isMixinApplication;
-    InterfaceTypeImpl correspondingType = new InterfaceTypeImpl(classElement);
-    if (serializedClass.supertype != null) {
-      classElement.supertype = buildType(serializedClass.supertype);
-    } else if (!libraryResynthesizer.isCoreLibrary) {
-      classElement.supertype = typeProvider.objectType;
-    }
-    classElement.interfaces =
-        serializedClass.interfaces.map(buildType).toList();
-    classElement.mixins = serializedClass.mixins.map(buildType).toList();
+  void buildClassExecutables(
+      ClassElementImpl classElement, UnlinkedClass serializedClass) {
+    currentTypeParameters.add(classElement.typeParameters);
     ElementHolder memberHolder = new ElementHolder();
     fields = <String, FieldElementImpl>{};
     for (UnlinkedVariable serializedVariable in serializedClass.fields) {
@@ -1653,7 +1699,7 @@ class _UnitResynthesizer {
         case UnlinkedExecutableKind.constructor:
           constructorFound = true;
           buildConstructor(
-              serializedExecutable, memberHolder, correspondingType);
+              serializedExecutable, memberHolder, classElement.type);
           break;
         case UnlinkedExecutableKind.functionOrMethod:
         case UnlinkedExecutableKind.getter:
@@ -1673,7 +1719,7 @@ class _UnitResynthesizer {
         // Synthesize implicit constructors.
         ConstructorElementImpl constructor = new ConstructorElementImpl('', -1);
         constructor.synthetic = true;
-        constructor.returnType = correspondingType;
+        constructor.returnType = classElement.type;
         constructor.type = new FunctionTypeImpl.elementWithNameAndArgs(
             constructor, null, getCurrentTypeArguments(), false);
         memberHolder.addConstructor(constructor);
@@ -1683,14 +1729,47 @@ class _UnitResynthesizer {
     classElement.accessors = memberHolder.accessors;
     classElement.fields = memberHolder.fields;
     classElement.methods = memberHolder.methods;
+    resolveConstructorInitializers(classElement);
+    currentTypeParameters.removeLast();
+    assert(currentTypeParameters.isEmpty);
+  }
+
+  /**
+   * Resynthesize a [ClassElementImpl].  If [handle] is not `null`, then
+   * executables are not resynthesized, and [InterfaceTypeImpl] is created
+   * around the [handle], so that executables are resynthesized lazily.
+   */
+  ClassElementImpl buildClassImpl(
+      UnlinkedClass serializedClass, ClassElementHandle handle) {
+    ClassElementImpl classElement =
+        new ClassElementImpl(serializedClass.name, serializedClass.nameOffset);
+    classElement.hasBeenInferred = summaryResynthesizer.strongMode;
+    classElement.typeParameters =
+        buildTypeParameters(serializedClass.typeParameters);
+    classElement.abstract = serializedClass.isAbstract;
+    classElement.mixinApplication = serializedClass.isMixinApplication;
+    InterfaceTypeImpl correspondingType =
+        new InterfaceTypeImpl(handle ?? classElement);
+    if (serializedClass.supertype != null) {
+      classElement.supertype = buildType(serializedClass.supertype);
+    } else if (!libraryResynthesizer.isCoreLibrary) {
+      classElement.supertype = typeProvider.objectType;
+    }
+    classElement.interfaces =
+        serializedClass.interfaces.map(buildType).toList();
+    classElement.mixins = serializedClass.mixins.map(buildType).toList();
     correspondingType.typeArguments = getCurrentTypeArguments();
     classElement.type = correspondingType;
     buildDocumentation(classElement, serializedClass.documentationComment);
     buildAnnotations(classElement, serializedClass.annotations);
     buildCodeRange(classElement, serializedClass.codeRange);
-    resolveConstructorInitializers(classElement);
     currentTypeParameters.removeLast();
     assert(currentTypeParameters.isEmpty);
+    // TODO(scheglov) Somehow Observatory shows too much time spent here
+    // during DDC run on the large codebase. I would expect only Object here.
+    if (handle == null) {
+      buildClassExecutables(classElement, serializedClass);
+    }
     fields = null;
     constructors = null;
     return classElement;

@@ -921,6 +921,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
    */
   static ClassElementImpl getImpl(ClassElement classElement) {
     if (classElement is ClassElementHandle) {
+      classElement.ensureActualElementComplete();
       return getImpl(classElement.actualElement);
     }
     return classElement as ClassElementImpl;
