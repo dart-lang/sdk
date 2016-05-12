@@ -1163,4 +1163,7 @@ abstract class VariableElementHandle extends ElementHandle
 
   @override
   DartType get type => actualElement.type;
+
+  @override
+  DartObject computeConstantValue() => actualElement.computeConstantValue();
 }

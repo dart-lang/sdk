@@ -1036,6 +1036,9 @@ abstract class VariableMember extends Member implements VariableElement {
   bool get isStatic => baseElement.isStatic;
 
   @override
+  DartObject computeConstantValue() => baseElement.computeConstantValue();
+
+  @override
   void visitChildren(ElementVisitor visitor) {
     // TODO(brianwilkerson) We need to finish implementing the accessors used
     // below so that we can safely invoke them.

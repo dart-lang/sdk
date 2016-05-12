@@ -27,6 +27,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/src/task/dart.dart';
 
 /**
  * For AST nodes that could be in both the getter and setter contexts
@@ -1265,11 +1266,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
  */
 class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   /**
-   * The result of evaluating this variable's initializer.
-   */
-  EvaluationResultImpl _result;
-
-  /**
    * Initialize a newly created synthetic field element to have the given
    * [name] and [offset].
    */
@@ -1279,17 +1275,6 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
    * Initialize a newly created field element to have the given [name].
    */
   ConstFieldElementImpl.forNode(Identifier name) : super.forNode(name);
-
-  @override
-  DartObject get constantValue => _result?.value;
-
-  @override
-  EvaluationResultImpl get evaluationResult => _result;
-
-  @override
-  void set evaluationResult(EvaluationResultImpl result) {
-    this._result = result;
-  }
 }
 
 /**
@@ -1298,11 +1283,6 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
  */
 class ConstLocalVariableElementImpl extends LocalVariableElementImpl
     with ConstVariableElement {
-  /**
-   * The result of evaluating this variable's initializer.
-   */
-  EvaluationResultImpl _result;
-
   /**
    * Initialize a newly created local variable element to have the given [name]
    * and [offset].
@@ -1313,17 +1293,6 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
    * Initialize a newly created local variable element to have the given [name].
    */
   ConstLocalVariableElementImpl.forNode(Identifier name) : super.forNode(name);
-
-  @override
-  DartObject get constantValue => _result?.value;
-
-  @override
-  EvaluationResultImpl get evaluationResult => _result;
-
-  @override
-  void set evaluationResult(EvaluationResultImpl result) {
-    this._result = result;
-  }
 }
 
 /**
@@ -1455,11 +1424,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
 class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
     with ConstVariableElement {
   /**
-   * The result of evaluating this variable's initializer.
-   */
-  EvaluationResultImpl _result;
-
-  /**
    * Initialize a newly created synthetic top-level variable element to have the
    * given [name] and [offset].
    */
@@ -1472,17 +1436,6 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
    */
   ConstTopLevelVariableElementImpl.forNode(Identifier name)
       : super.forNode(name);
-
-  @override
-  DartObject get constantValue => _result?.value;
-
-  @override
-  EvaluationResultImpl get evaluationResult => _result;
-
-  @override
-  void set evaluationResult(EvaluationResultImpl result) {
-    this._result = result;
-  }
 }
 
 /**
@@ -1496,7 +1449,7 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
  *
  * This class is not intended to be part of the public API for analyzer.
  */
-abstract class ConstVariableElement {
+abstract class ConstVariableElement implements ConstantEvaluationTarget {
   /**
    * If this element represents a constant variable, and it has an initializer,
    * a copy of the initializer for the constant.  Otherwise `null`.
@@ -1507,6 +1460,22 @@ abstract class ConstVariableElement {
    * initializers.
    */
   Expression constantInitializer;
+
+  @override
+  EvaluationResultImpl evaluationResult;
+
+  /**
+   * Return a representation of the value of this variable, forcing the value
+   * to be computed if it had not previously been computed, or `null` if either
+   * this variable was not declared with the 'const' modifier or if the value of
+   * this variable could not be computed because of errors.
+   */
+  DartObject computeConstantValue() {
+    if (evaluationResult == null) {
+      context?.computeResult(this, CONSTANT_VALUE);
+    }
+    return evaluationResult?.value;
+  }
 }
 
 /**
@@ -1514,11 +1483,6 @@ abstract class ConstVariableElement {
  */
 class DefaultFieldFormalParameterElementImpl
     extends FieldFormalParameterElementImpl with ConstVariableElement {
-  /**
-   * The result of evaluating this variable's initializer.
-   */
-  EvaluationResultImpl _result;
-
   /**
    * Initialize a newly created parameter element to have the given [name] and
    * [nameOffset].
@@ -1531,17 +1495,6 @@ class DefaultFieldFormalParameterElementImpl
    */
   DefaultFieldFormalParameterElementImpl.forNode(Identifier name)
       : super.forNode(name);
-
-  @override
-  DartObject get constantValue => _result?.value;
-
-  @override
-  EvaluationResultImpl get evaluationResult => _result;
-
-  @override
-  void set evaluationResult(EvaluationResultImpl result) {
-    this._result = result;
-  }
 }
 
 /**
@@ -1549,11 +1502,6 @@ class DefaultFieldFormalParameterElementImpl
  */
 class DefaultParameterElementImpl extends ParameterElementImpl
     with ConstVariableElement {
-  /**
-   * The result of evaluating this variable's initializer.
-   */
-  EvaluationResultImpl _result;
-
   /**
    * Initialize a newly created parameter element to have the given [name] and
    * [nameOffset].
@@ -1565,17 +1513,6 @@ class DefaultParameterElementImpl extends ParameterElementImpl
    * Initialize a newly created parameter element to have the given [name].
    */
   DefaultParameterElementImpl.forNode(Identifier name) : super.forNode(name);
-
-  @override
-  DartObject get constantValue => _result?.value;
-
-  @override
-  EvaluationResultImpl get evaluationResult => _result;
-
-  @override
-  void set evaluationResult(EvaluationResultImpl result) {
-    this._result = result;
-  }
 
   @override
   DefaultFormalParameter computeNode() =>
@@ -1771,6 +1708,14 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   Source get source => compilationUnit.source;
+
+  @override
+  DartObject computeConstantValue() {
+    if (evaluationResult == null) {
+      context?.computeResult(this, CONSTANT_VALUE);
+    }
+    return constantValue;
+  }
 
   @override
   String toString() => '@$element';
@@ -4949,7 +4894,7 @@ abstract class VariableElementImpl extends ElementImpl
   Expression get constantInitializer => null;
 
   @override
-  DartObject get constantValue => null;
+  DartObject get constantValue => evaluationResult?.value;
 
   /**
    * Return the result of evaluating this variable's initializer as a
@@ -5020,6 +4965,9 @@ abstract class VariableElementImpl extends ElementImpl
     buffer.write(" ");
     buffer.write(displayName);
   }
+
+  @override
+  DartObject computeConstantValue() => null;
 
   @override
   void visitChildren(ElementVisitor visitor) {

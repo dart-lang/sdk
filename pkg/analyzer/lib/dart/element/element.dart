@@ -806,6 +806,13 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   DartObject get constantValue;
 
   /**
+   * Return a representation of the value of this annotation, forcing the value
+   * to be computed if it had not previously been computed, or `null` if the
+   * value of this annotation could not be computed because of errors.
+   */
+  DartObject computeConstantValue();
+
+  /**
    * Return the element representing the field, variable, or const constructor
    * being used as an annotation.
    */
@@ -1929,6 +1936,14 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
    * errors.
    */
   DartObject get constantValue;
+
+  /**
+   * Return a representation of the value of this variable, forcing the value
+   * to be computed if it had not previously been computed, or `null` if either
+   * this variable was not declared with the 'const' modifier or if the value of
+   * this variable could not be computed because of errors.
+   */
+  DartObject computeConstantValue();
 
   /**
    * Return `true` if this variable element did not have an explicit type
