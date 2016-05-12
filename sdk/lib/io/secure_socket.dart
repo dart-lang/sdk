@@ -415,7 +415,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   String _selectedProtocol;
 
   static Future<_RawSecureSocket> connect(
-      host,
+      dynamic/*String|InternetAddress*/ host,
       int requestedPort,
       {bool is_server,
        SecurityContext context,
@@ -430,8 +430,10 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
                  requestClientCertificate, requireClientCertificate,
                  onBadCertificate);
     if (host is InternetAddress) host = host.host;
-    var address = socket.address;
-    if (host != null) address =  address._cloneWithNewHost(host);
+    InternetAddress address = socket.address;
+    if (host != null) {
+      address = InternetAddress._cloneWithNewHost(address, host);
+    }
     return new _RawSecureSocket(address,
                                 requestedPort,
                                 is_server,
@@ -517,10 +519,10 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
   }
 
-  StreamSubscription listen(void onData(RawSocketEvent data),
-                            {Function onError,
-                             void onDone(),
-                             bool cancelOnError}) {
+  StreamSubscription<RawSocketEvent> listen(void onData(RawSocketEvent data),
+                                            {Function onError,
+                                             void onDone(),
+                                             bool cancelOnError}) {
     _sendWriteEvent();
     return _stream.listen(onData,
                           onError: onError,

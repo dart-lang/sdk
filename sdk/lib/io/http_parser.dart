@@ -120,7 +120,8 @@ class _HttpDetachedStreamSubscription implements StreamSubscription<List<int>> {
 
   bool get isPaused => _subscription.isPaused;
 
-  Future asFuture([futureValue]) => _subscription.asFuture(futureValue);
+  Future/*<T>*/ asFuture/*<T>*/([/*=T*/ futureValue]) =>
+      _subscription.asFuture/*<T>*/(futureValue);
 
   Future cancel() {
     _isCanceled = true;
