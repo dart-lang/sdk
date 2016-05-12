@@ -292,14 +292,6 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
   }
 
   Dart_QualifiedFunctionName vm_entry_points[] = {
-    // TODO(rmacnak): These types are not allocated from C++ but they are
-    // cached in the object store. Consider clearing them from the object store
-    // before snapshotting and adjusting InitKnownObjects to allow their
-    // absence.
-    { "dart:async", "Future", "Future." },
-    { "dart:async", "Completer", "Completer." },
-    { "dart:async", "StreamIterator", "StreamIterator." },
-
     // Functions
     { "dart:async", "::", "_setScheduleImmediateClosure" },
     { "dart:core", "::", "_completeDeferredLoads" },
@@ -326,6 +318,7 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     { "dart:isolate", "::", "_getIsolateScheduleImmediateClosure" },
     { "dart:isolate", "::", "_setupHooks" },
     { "dart:isolate", "::", "_startMainIsolate" },
+    { "dart:isolate", "::", "_startIsolate" },
     { "dart:isolate", "_RawReceivePortImpl", "_handleMessage" },
     { "dart:isolate", "_RawReceivePortImpl", "_lookupHandler" },
     { "dart:isolate", "_SendPortImpl", "send" },
@@ -336,6 +329,7 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     { "dart:_vmservice", "::", "_registerIsolate" },
     { "dart:_vmservice", "::", "boot" },
     { "dart:developer", "Metrics", "_printMetrics" },
+    { "dart:developer", "::", "_runExtension" },
 #endif  // !PRODUCT
     // Fields
     { "dart:core", "Error", "_stackTrace" },
@@ -787,7 +781,6 @@ void Precompiler::AddField(const Field& field) {
 
 RawFunction* Precompiler::CompileStaticInitializer(const Field& field) {
   ASSERT(field.is_static());
-  ASSERT(!field.HasPrecompiledInitializer());
   Thread* thread = Thread::Current();
   StackZone zone(thread);
 
@@ -1130,6 +1123,9 @@ void Precompiler::CollectDynamicFunctionNames() {
             AddNameToFunctionsTable(zone(), &table, fname, function);
             fname = Field::NameFromGetter(fname);
             AddNameToFunctionsTable(zone(), &table, fname, function);
+          } else if (function.IsMethodExtractor()) {
+            // Skip. We already add getter names for regular methods below.
+            continue;
           } else {
             // Regular function. Enter both getter and non getter name.
             AddNameToFunctionsTable(zone(), &table, fname, function);
@@ -1174,18 +1170,6 @@ void Precompiler::CollectDynamicFunctionNames() {
   isolate()->object_store()->set_unique_dynamic_targets(
       functions_set.Release());
   table.Release();
-}
-
-
-void Precompiler::GetUniqueDynamicTarget(Isolate* isolate,
-                                         const String& fname,
-                                         Object* function) {
-  UniqueFunctionsSet functions_set(
-      isolate->object_store()->unique_dynamic_targets());
-  ASSERT(fname.IsSymbol());
-  *function = functions_set.GetOrNull(fname);
-  ASSERT(functions_set.Release().raw() ==
-      isolate->object_store()->unique_dynamic_targets());
 }
 
 

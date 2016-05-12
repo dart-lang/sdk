@@ -37,7 +37,7 @@ R(break_at_isolate_spawn, false, bool, false,                                  \
   "Insert a one-time breakpoint at the entrypoint for all spawned isolates")   \
 C(collect_code, false, true, bool, true,                                       \
   "Attempt to GC infrequently used code.")                                     \
-P(collect_dynamic_function_names, bool, false,                                 \
+P(collect_dynamic_function_names, bool, true,                                  \
   "Collects all dynamic function names to identify unique targets")            \
 R(dedup_instructions, true, bool, false,                                       \
   "Canonicalize instructions when precompiling.")                              \

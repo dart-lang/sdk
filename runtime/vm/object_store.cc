@@ -184,6 +184,10 @@ RawError* ObjectStore::PreallocateObjects() {
 
 
 void ObjectStore::InitKnownObjects() {
+#ifdef DART_PRECOMPILED_RUNTIME
+  // These objects are only needed for code generation.
+  return;
+#else
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -205,6 +209,7 @@ void ObjectStore::InitKnownObjects() {
   const Library& internal_lib = Library::Handle(internal_library());
   cls = internal_lib.LookupClass(Symbols::Symbol());
   set_symbol_class(cls);
+#endif
 }
 
 }  // namespace dart
