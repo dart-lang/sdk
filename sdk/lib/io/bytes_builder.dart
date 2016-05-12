@@ -153,17 +153,14 @@ class _CopyingBytesBuilder implements BytesBuilder {
 
 class _BytesBuilder implements BytesBuilder {
   int _length = 0;
-  final List<Uint8List> _chunks = [];
+  final _chunks = <List<int>>[];
 
   void add(List<int> bytes) {
-    Uint8List typedBytes;
-    if (bytes is Uint8List) {
-      typedBytes = bytes;
-    } else {
+    if (bytes is! Uint8List) {
       bytes = new Uint8List.fromList(bytes);
     }
-    _chunks.add(typedBytes);
-    _length += typedBytes.length;
+    _chunks.add(bytes);
+    _length += bytes.length;
   }
 
   void addByte(int byte) { add([byte]); }

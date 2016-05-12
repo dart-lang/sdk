@@ -212,10 +212,9 @@ abstract class WebSocketTransformer
    * then the [WebSocket] will be created with the default [CompressionOptions].
    */
   factory WebSocketTransformer(
-      {/*String|Future<String>*/ protocolSelector(List<String> protocols),
-      CompressionOptions compression: CompressionOptions.DEFAULT}) {
-    return new _WebSocketTransformerImpl(protocolSelector, compression);
-  }
+          {protocolSelector(List<String> protocols),
+          CompressionOptions compression: CompressionOptions.DEFAULT}) =>
+      new _WebSocketTransformerImpl(protocolSelector, compression);
 
   /**
    * Upgrades a [HttpRequest] to a [WebSocket] connection. If the
@@ -253,11 +252,9 @@ abstract class WebSocketTransformer
  * A two-way HTTP communication object for client or server applications.
  *
  * The stream exposes the messages received. A text message will be of type
- * `String` and a binary message will be of type `List<int>`.
+ * [:String:] and a binary message will be of type [:List<int>:].
  */
-abstract class WebSocket
-    implements Stream<dynamic/*String|List<int>*/>,
-        StreamSink<dynamic/*String|List<int>*/> {
+abstract class WebSocket implements Stream, StreamSink {
   /**
    * Possible states of the connection.
    */
@@ -392,14 +389,14 @@ abstract class WebSocket
 
   /**
    * Sends data on the WebSocket connection. The data in [data] must
-   * be either a `String`, or a `List<int>` holding bytes.
+   * be either a [:String:], or a [:List<int>:] holding bytes.
    */
-  void add(/*String|List<int>*/ data);
+  void add(data);
 
   /**
    * Sends data from a stream on WebSocket connection. Each data event from
    * [stream] will be send as a single WebSocket frame. The data from [stream]
-   * must be either `String`s, or `List<int>`s holding bytes.
+   * must be either [:String:]s, or [:List<int>:]s holding bytes.
    */
   Future addStream(Stream stream);
 }

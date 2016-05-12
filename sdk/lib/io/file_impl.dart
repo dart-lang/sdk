@@ -213,7 +213,7 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
   }
 
   Future<File> close() =>
-      _openFuture.then/*<File>*/((openedFile) => openedFile.close());
+      _openFuture.then((openedFile) => openedFile.close());
 }
 
 
@@ -441,9 +441,9 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<List<int>> readAsBytes() {
-    Future<List<int>> readDataChunked(RandomAccessFile file) {
+    Future<List<int>> readDataChunked(file) {
       var builder = new BytesBuilder(copy: false);
-      var completer = new Completer<List<int>>();
+      var completer = new Completer();
       void read() {
         file.read(_BLOCK_SIZE).then((data) {
           if (data.length > 0) {
@@ -472,7 +472,7 @@ class _File extends FileSystemEntity implements File {
   List<int> readAsBytesSync() {
     var opened = openSync();
     try {
-      List<int> data;
+      var data;
       var length = opened.lengthSync();
       if (length == 0) {
         // May be character device, try to read it in chunks.
@@ -670,7 +670,7 @@ class _RandomAccessFile implements RandomAccessFile {
         throw _exceptionFromResponse(response, "read failed", path);
       }
       _resourceInfo.addRead(response[1].length);
-      return response[1] as Object/*=List<int>*/;
+      return response[1];
     });
   }
 
@@ -684,7 +684,7 @@ class _RandomAccessFile implements RandomAccessFile {
       throw new FileSystemException("readSync failed", path, result);
     }
     _resourceInfo.addRead(result.length);
-    return result as Object/*=List<int>*/;
+    return result;
   }
 
   Future<int> readInto(List<int> buffer, [int start = 0, int end]) {
@@ -703,7 +703,7 @@ class _RandomAccessFile implements RandomAccessFile {
         throw _exceptionFromResponse(response, "readInto failed", path);
       }
       var read = response[1];
-      var data = response[2] as Object/*=List<int>*/;
+      var data = response[2];
       buffer.setRange(start, start + read, data);
       _resourceInfo.addRead(read);
       return read;

@@ -492,7 +492,7 @@ class _FilterSink extends ByteConversionSink {
       _filter.process(bufferAndStart.buffer,
                       bufferAndStart.start,
                       end - (start - bufferAndStart.start));
-      List<int> out;
+      var out;
       while ((out = _filter.processed(flush: false)) != null) {
         _sink.add(out);
       }
@@ -510,7 +510,7 @@ class _FilterSink extends ByteConversionSink {
     // message would not have a GZip frame (if compressed with GZip).
     if (_empty) _filter.process(const [], 0, 0);
     try {
-      List<int> out;
+      var out;
       while ((out = _filter.processed(end: true)) != null) {
         _sink.add(out);
       }

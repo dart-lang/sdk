@@ -183,7 +183,7 @@ class _HttpDetachedStreamSubscription implements StreamSubscription<List<int>> {
 
 
 class _HttpDetachedIncoming extends Stream<List<int>> {
-  final StreamSubscription<List<int>> subscription;
+  final StreamSubscription subscription;
   final List<int> bufferedData;
 
   _HttpDetachedIncoming(this.subscription, this.bufferedData);
@@ -205,8 +205,7 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
                                                  onData)
         ..resume();
     } else {
-      // TODO(26379): add test for this branch.
-      return new Stream<List<int>>.fromIterable([bufferedData])
+      return new Stream.fromIterable(bufferedData)
           .listen(onData,
                   onError: onError,
                   onDone: onDone,
@@ -268,7 +267,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
 
   // The current incoming connection.
   _HttpIncoming _incoming;
-  StreamSubscription<List<int>> _socketSubscription;
+  StreamSubscription _socketSubscription;
   bool _paused = true;
   bool _bodyPaused = false;
   StreamController<_HttpIncoming> _controller;
