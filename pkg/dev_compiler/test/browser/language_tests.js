@@ -27,7 +27,8 @@
 
   // The number of expected unittest errors should be zero but unfortunately
   // there are a lot of broken html unittests.
-  let num_expected_unittest_errors = 5;
+  let num_expected_unittest_fails = 3;
+  let num_expected_unittest_errors = 2;
 
   // TODO(jmesserly): separate StrongModeError from other errors.
   let all_status = {
@@ -473,6 +474,7 @@
       // TODO(rnystrom): Strong mode cast failures.
       'codec1_test': skip_fail,
       'encoding_test': skip_fail,
+      'html_escape_test': fail,
 
       // TODO(rnystrom): If this test is enabled, karma gets confused and
       // disconnects randomly.
@@ -683,6 +685,11 @@
     },
   };
 
+  function countMatches(text, regex) {
+    let matches = text.match(regex);
+    return matches ? matches.length : 0;
+  }
+
   let unittest_tests = [];
 
   let languageTestPattern = new RegExp('(.*)/([^/]*_test[^/]*)');
@@ -778,6 +785,7 @@
   // In practice we are really just suppressing all mocha test behavior while
   // Dart unittests run and then re-enabling it when the dart tests complete.
   test('run all dart unittests', function(done) { // 'function' to allow `this.timeout`
+    this.timeout(100000000);
     this.enableTimeouts(false);
     // Suppress mocha on-error handling because it will mess up unittests.
     mochaOnError = window.onerror;
@@ -792,11 +800,14 @@
         window.onerror = mochaOnError;
         this.enableTimeouts(true);
 
-        var matches = output.match(/ERROR/g);
-        let numErrors = matches ? matches.length : 0;
-        if (numErrors != num_expected_unittest_errors) {
-          output = "Expected " + num_expected_unittest_errors +
-              " failing unittests, got " + numErrors + ".\n" + output;
+        let numErrors = countMatches(output, /\d\s+ERROR/g);
+        let numFails = countMatches(output, /\d\s+FAIL/g);
+        if (numErrors != num_expected_unittest_errors ||
+            numFails != num_expected_unittest_fails) {
+          output = "Expected " + num_expected_unittest_fails +
+              " fail and " + num_expected_unittest_errors +
+              " error unittests, got " + numFails + " fail and " +
+              numErrors + "error tests.\n" + output;
           console.error(output);
           done(new Error(output));
         } else {

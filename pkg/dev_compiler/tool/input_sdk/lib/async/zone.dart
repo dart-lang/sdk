@@ -1274,8 +1274,11 @@ const _ROOT_ZONE = const _RootZone();
     errorHandler = (Zone self, ZoneDelegate parent, Zone zone,
                     error, StackTrace stackTrace) {
       try {
-        if (onError is ZoneBinaryCallback<dynamic/*=R*/, dynamic, StackTrace>) {
-          return self.parent.runBinary(onError, error, stackTrace);
+        // Change this is check back to
+        // onError is ZoneBinaryCallback<dynamic/*=R*/, dynamic, StackTrace>
+        // once is checks for that type are handled correctly.
+        if (onError is ZoneBinaryCallback<dynamic, dynamic, StackTrace>) {
+          return self.parent.runBinary(onError, error, stackTrace) as Object/*=R*/;
         }
         return self.parent.runUnary(onError, error);
       } catch(e, s) {

@@ -19255,8 +19255,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (onError != null) {
         errorHandler = dart.fn((self, parent, zone, error, stackTrace) => {
           try {
-            if (dart.is(onError, async.ZoneBinaryCallback$(R, dart.dynamic, core.StackTrace))) {
-              return self.parent.runBinary(R, dart.dynamic, core.StackTrace)(onError, error, stackTrace);
+            if (dart.is(onError, async.ZoneBinaryCallback$(dart.dynamic, dart.dynamic, core.StackTrace))) {
+              return dart.as(self.parent.runBinary(dart.dynamic, dart.dynamic, core.StackTrace)(onError, error, stackTrace), R);
             }
             return self.parent.runUnary(dart.dynamic, dart.dynamic)(dart.as(onError, dart.functionType(dart.dynamic, [dart.dynamic])), error);
           } catch (e) {
