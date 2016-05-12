@@ -57,8 +57,7 @@
       'async_switch_test': skip_fail,
       'asyncstar_throw_in_catch_test': skip_fail,
       'await_future_test': skip_fail,
-      'bit_operations_test_none_multi': skip_fail,
-      'bit_shift_test': skip_fail,
+      'bit_operations_test_none_multi': skip_fail,  // DDC/dart2js canonicalize bitop results to unsigned
       'bool_test': skip_fail,
       'bound_closure_equality_test': skip_fail,
       'branch_canonicalization_test': skip_fail,  // JS bit operations truncate to 32 bits.
@@ -287,12 +286,8 @@
       'number_identifier_test_05_multi': skip_fail,
       'number_identity2_test': skip_fail,
       'numbers_test': skip_fail,
-      'operator4_test': skip_fail,
-      'operator_test': skip_fail,
+      'operator4_test': skip_fail,  // CastError instead of TypeError
       'optimized_hoisting_checked_mode_assert_test': skip_fail,
-      'positive_bit_operations_test': skip_fail,
-      'prefix_test1': skip_fail,
-      'prefix_test2': skip_fail,
       'redirecting_factory_reflection_test': skip_fail,
       'regress_13462_0_test': skip_fail,
       'regress_13462_1_test': skip_fail,
