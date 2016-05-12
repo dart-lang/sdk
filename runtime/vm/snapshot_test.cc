@@ -18,8 +18,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, concurrent_sweep);
-
 // Check if serialized and deserialized objects are equal.
 static bool Equals(const Object& expected, const Object& actual) {
   if (expected.IsNull()) {

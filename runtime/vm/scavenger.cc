@@ -31,7 +31,6 @@ DEFINE_FLAG(int, early_tenuring_threshold, 66,
 DEFINE_FLAG(int, new_gen_garbage_threshold, 90,
             "Grow new gen when less than this percentage is garbage.");
 DEFINE_FLAG(int, new_gen_growth_factor, 4, "Grow new gen by this factor.");
-DECLARE_FLAG(bool, concurrent_sweep);
 
 // Scavenger uses RawObject::kMarkBit to distinguish forwaded and non-forwarded
 // objects. The kMarkBit does not intersect with the target address because of

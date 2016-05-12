@@ -35,8 +35,6 @@ DEFINE_FLAG(bool, log_code_drop, false,
             "Emit a log message when pointers to unused code are dropped.");
 DEFINE_FLAG(bool, always_drop_code, false,
             "Always try to drop code if the function's usage counter is >= 0");
-DEFINE_FLAG(bool, concurrent_sweep, true,
-            "Concurrent sweep for old generation.");
 DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 
 HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {

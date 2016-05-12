@@ -12,8 +12,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(int, marker_tasks);
-
 TEST_CASE(OldGC) {
   const char* kScriptChars =
   "main() {\n"
@@ -32,7 +30,7 @@ TEST_CASE(OldGC) {
   heap->CollectGarbage(Heap::kOld);
 }
 
-
+#if !defined(PRODUCT)
 TEST_CASE(OldGC_Unsync) {
   FLAG_marker_tasks = 0;
   const char* kScriptChars =
@@ -51,7 +49,7 @@ TEST_CASE(OldGC_Unsync) {
   Heap* heap = isolate->heap();
   heap->CollectGarbage(Heap::kOld);
 }
-
+#endif
 
 TEST_CASE(LargeSweep) {
   const char* kScriptChars =

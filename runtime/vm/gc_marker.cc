@@ -25,12 +25,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(int, marker_tasks, 2,
-            "The number of tasks to spawn during old gen GC marking (0 means "
-            "perform all marking on main thread).");
-DEFINE_FLAG(bool, log_marker_tasks, false,
-            "Log debugging information for old gen GC marking tasks.");
-
 class DelaySet {
  private:
   typedef std::multimap<RawObject*, RawWeakProperty*> Map;

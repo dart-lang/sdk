@@ -359,6 +359,11 @@ typedef simd128_value_t fpu_register_t;
 #error Unknown architecture.
 #endif
 
+// Disable background threads by default on armv5te. The relevant
+// implementations are uniprocessors.
+#if !defined(TARGET_ARCH_ARM_5TE)
+#define ARCH_IS_MULTI_CORE 1
+#endif
 
 // Short form printf format specifiers
 #define Pd PRIdPTR
