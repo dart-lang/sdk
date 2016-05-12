@@ -884,7 +884,7 @@ void TimelineEventScope::StealArguments(TimelineEvent* event) {
 TimelineDurationScope::TimelineDurationScope(TimelineStream* stream,
                                              const char* label)
     : TimelineEventScope(stream, label) {
-  if (!FLAG_support_timeline) {
+  if (!FLAG_support_timeline || !enabled()) {
     return;
   }
   timestamp_ = OS::GetCurrentMonotonicMicros();
@@ -896,7 +896,7 @@ TimelineDurationScope::TimelineDurationScope(Thread* thread,
                                              TimelineStream* stream,
                                              const char* label)
     : TimelineEventScope(thread, stream, label) {
-  if (!FLAG_support_timeline) {
+  if (!FLAG_support_timeline || !enabled()) {
     return;
   }
   timestamp_ = OS::GetCurrentMonotonicMicros();
