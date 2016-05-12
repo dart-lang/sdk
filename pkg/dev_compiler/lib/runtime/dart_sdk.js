@@ -32431,6 +32431,78 @@ dart_library.library('dart_sdk', null, /* Imports */[
   math._Random._POW2_53_D = 1.0 * 9007199254740992;
   math._Random._POW2_27_D = 1.0 * (1 << 27);
   math._Random._MASK32 = 4294967295;
+  const _buffer$ = Symbol('_buffer');
+  const _getRandomBytes = Symbol('_getRandomBytes');
+  math._JSSecureRandom = class _JSSecureRandom extends core.Object {
+    _JSSecureRandom() {
+      this[_buffer$] = typed_data.ByteData.new(8);
+      let crypto = self.crypto;
+      if (crypto != null) {
+        let getRandomValues = crypto.getRandomValues;
+        if (getRandomValues != null) {
+          return;
+        }
+      }
+      dart.throw(new core.UnsupportedError("No source of cryptographically secure random numbers available."));
+    }
+    [_getRandomBytes](start, length) {
+      crypto.getRandomValues(this[_buffer$][dartx.buffer][dartx.asUint8List](start, length));
+    }
+    nextBool() {
+      this[_getRandomBytes](0, 1);
+      return this[_buffer$][dartx.getUint8](0)[dartx.isOdd];
+    }
+    nextDouble() {
+      this[_getRandomBytes](1, 7);
+      this[_buffer$][dartx.setUint8](0, 63);
+      let highByte = this[_buffer$][dartx.getUint8](1);
+      this[_buffer$][dartx.setUint8](1, (dart.notNull(highByte) | 240) >>> 0);
+      let result = dart.notNull(this[_buffer$][dartx.getFloat64](0)) - 1.0;
+      if ((dart.notNull(highByte) & 16) != 0) {
+        result = result + 1.1102230246251565e-16;
+      }
+      return result;
+    }
+    nextInt(max) {
+      if (dart.notNull(max) <= 0 || dart.notNull(max) > dart.notNull(math._POW2_32)) {
+        dart.throw(new core.RangeError(`max must be in range 0 < max ≤ 2^32, was ${max}`));
+      }
+      let byteCount = 1;
+      if (dart.notNull(max) > 255) {
+        byteCount++;
+        if (dart.notNull(max) > 65535) {
+          byteCount++;
+          if (dart.notNull(max) > 16777215) {
+            byteCount++;
+          }
+        }
+      }
+      this[_buffer$][dartx.setUint32](0, 0);
+      let start = 4 - byteCount;
+      let randomLimit = dart.asInt(math.pow(256, byteCount));
+      while (true) {
+        this[_getRandomBytes](start, byteCount);
+        let random = this[_buffer$][dartx.getUint32](0);
+        if ((dart.notNull(max) & dart.notNull(max) - 1) >>> 0 == 0) {
+          return (dart.notNull(random) & dart.notNull(max) - 1) >>> 0;
+        }
+        let result = dart.asInt(random[dartx.remainder](max));
+        if (dart.notNull(random) - dart.notNull(result) + dart.notNull(max) < dart.notNull(randomLimit)) {
+          return result;
+        }
+      }
+    }
+  };
+  math._JSSecureRandom[dart.implements] = () => [math.Random];
+  dart.setSignature(math._JSSecureRandom, {
+    constructors: () => ({_JSSecureRandom: [math._JSSecureRandom, []]}),
+    methods: () => ({
+      [_getRandomBytes]: [dart.void, [core.int, core.int]],
+      nextBool: [core.bool, []],
+      nextDouble: [core.double, []],
+      nextInt: [core.int, [core.int]]
+    })
+  });
   math._JenkinsSmiHash = class _JenkinsSmiHash extends core.Object {
     static combine(hash, value) {
       hash = 536870911 & dart.notNull(hash) + dart.notNull(value);
@@ -32519,9 +32591,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (seed === void 0) seed = null;
       return seed == null ? dart.const(new math._JSRandom()) : new math._Random(seed);
     }
+    static secure() {
+      return math.Random._secureRandom;
+    }
   };
   dart.setSignature(math.Random, {
-    constructors: () => ({new: [math.Random, [], [core.int]]})
+    constructors: () => ({
+      new: [math.Random, [], [core.int]],
+      secure: [math.Random, []]
+    })
+  });
+  dart.defineLazy(math.Random, {
+    get _secureRandom() {
+      return new math._JSSecureRandom();
+    }
   });
   math._RectangleBase$ = dart.generic(T => {
     dart.defineExtensionNames([
@@ -32671,8 +32754,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       MutableRectangle(left, top, width, height) {
         this.left = left;
         this.top = top;
-        this[_width] = dart.notNull(width) < 0 ? math._clampToZero(width) : width;
-        this[_height] = dart.notNull(height) < 0 ? math._clampToZero(height) : height;
+        this[_width] = dart.notNull(width) < 0 ? math._clampToZero(T)(width) : width;
+        this[_height] = dart.notNull(height) < 0 ? math._clampToZero(T)(height) : height;
         super._RectangleBase();
       }
       static fromPoints(a, b) {
@@ -32687,7 +32770,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       set width(width) {
         dart.as(width, T);
-        if (dart.notNull(width) < 0) width = math._clampToZero(width);
+        if (dart.notNull(width) < 0) width = math._clampToZero(T)(width);
         this[_width] = width;
       }
       get height() {
@@ -32695,7 +32778,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       set height(height) {
         dart.as(height, T);
-        if (dart.notNull(height) < 0) height = math._clampToZero(height);
+        if (dart.notNull(height) < 0) height = math._clampToZero(T)(height);
         this[_height] = height;
       }
     }
@@ -32710,11 +32793,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return MutableRectangle;
   });
   math.MutableRectangle = math.MutableRectangle$();
-  math._clampToZero = function(value) {
-    dart.assert(dart.notNull(value) < 0);
-    return -dart.notNull(value) * 0;
+  math._clampToZero = function(T) {
+    return value => {
+      dart.assert(dart.notNull(value) < 0);
+      return -dart.notNull(value) * 0;
+    };
   };
-  dart.fn(math._clampToZero, core.num, [core.num]);
+  dart.fn(math._clampToZero, T => [T, [T]]);
   mirrors.MirrorSystem = class MirrorSystem extends core.Object {
     findLibrary(libraryName) {
       return this.libraries[dartx.values][dartx.singleWhere](dart.fn(library => dart.equals(library.simpleName, libraryName), core.bool, [mirrors.LibraryMirror]));

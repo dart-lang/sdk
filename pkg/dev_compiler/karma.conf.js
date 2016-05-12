@@ -31,6 +31,7 @@ module.exports = function(config) {
       'test/codegen/expect/corelib/**.js',
       'test/codegen/expect/lib/convert/**.js',
       'test/codegen/expect/lib/html/**.js',
+      'test/codegen/expect/lib/math/**.js',
       'test/codegen/expect/lib/typed_data/**.js',
       'test/browser/*.js',
       'test-main.js',

@@ -4,6 +4,10 @@
 
 /**
  * Mathematical constants and functions, plus a random number generator.
+ * 
+ * To use this library in your code:
+ * 
+ *     import 'dart:math';
  */
 library dart.math;
 
@@ -58,7 +62,7 @@ const double SQRT2 = 1.4142135623730951;
   * Returns the lesser of two numbers.
   *
   * Returns NaN if either argument is NaN.
-  * The lesser of [:-0.0:] and [:0.0:] is [:-0.0:].
+  * The lesser of `-0.0` and `0.0` is `-0.0`.
   * If the arguments are otherwise equal (including int and doubles with the
   * same mathematical value) then it is unspecified which of the two arguments
   * is returned.
@@ -94,7 +98,7 @@ num/*=T*/ min/*<T extends num>*/(num/*=T*/ a, num/*=T*/ b) {
   * Returns the larger of two numbers.
   *
   * Returns NaN if either argument is NaN.
-  * The larger of [:-0.0:] and [:0.0:] is [:0.0:]. If the arguments are
+  * The larger of `-0.0` and `0.0` is `0.0`. If the arguments are
   * otherwise equal (including int and doubles with the same mathematical value)
   * then it is unspecified which of the two arguments is returned.
   */
@@ -135,7 +139,7 @@ num/*=T*/ max/*<T extends num>*/(num/*=T*/ a, num/*=T*/ b) {
  * Returns the angle between the positive x-axis and the vector ([b],[a]).
  * The result, in radians, is in the range -PI..PI.
  *
- * If [b] is positive, this is the same as [:atan(b/a):].
+ * If [b] is positive, this is the same as `atan(b/a)`.
  *
  * The result is negative when [a] is negative (including when [a] is the
  * double -0.0).
@@ -204,8 +208,8 @@ external double cos(num x);
 /**
  * Converts [x] to a double and returns the tangent of the value.
  *
- * The tangent function is equivalent to [:sin(x)/cos(x):] and may be
- * infinite (positive or negative) when [:cos(x):] is equal to zero.
+ * The tangent function is equivalent to `sin(x)/cos(x)` and may be
+ * infinite (positive or negative) when `cos(x)` is equal to zero.
  * If [x] is not a finite number, the result is NaN.
  */
 external double tan(num x);
@@ -213,20 +217,22 @@ external double tan(num x);
 /**
  * Converts [x] to a double and returns the arc cosine of the value.
  *
- * Returns a value in the range -PI..PI, or NaN if [x] is outside
+ * Returns a value in the range 0..PI, or NaN if [x] is outside
  * the range -1..1.
  */
 external double acos(num x);
 
 /**
  * Converts [x] to a double and returns the arc sine of the value.
- * Returns a value in the range -PI..PI, or  NaN if [x] is outside
+ *
+ * Returns a value in the range -PI/2..PI/2, or NaN if [x] is outside
  * the range -1..1.
  */
 external double asin(num x);
 
 /**
- * Converts [x] to a dobule and returns the arc tangent of the vlaue.
+ * Converts [x] to a double and returns the arc tangent of the value.
+ *
  * Returns a value in the range -PI/2..PI/2, or NaN if [x] is NaN.
  */
 external double atan(num x);
@@ -241,12 +247,14 @@ external double sqrt(num x);
 /**
  * Converts [x] to a double and returns the natural exponent, [E],
  * to the power [x].
+ *
  * Returns NaN if [x] is NaN.
  */
 external double exp(num x);
 
 /**
  * Converts [x] to a double and returns the natural logarithm of the value.
+ *
  * Returns negative infinity if [x] is equal to zero.
  * Returns NaN if [x] is NaN or less than zero.
  */

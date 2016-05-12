@@ -655,6 +655,17 @@
       'js_typed_interop_default_arg_test_default_value_multi': ['unittest', 'skip', 'fail']
     },
 
+    'lib/math': {
+      // TODO(het): triage
+      'double_pow_test': skip_fail,
+      'low_test': skip_fail,
+      'math_test': skip_fail,
+      'math2_test': skip_fail,
+      'random_big_test': skip_fail,
+      'point_test': ['unittest', 'skip', 'fail'],
+      'rectangle_test': ['unittest', 'skip', 'fail'],
+    },
+
     'lib/typed_data': {
       // No bigint or int64 support
       'int32x4_bigint_test': skip_fail,

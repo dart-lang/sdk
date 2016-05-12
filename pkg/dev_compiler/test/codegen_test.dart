@@ -43,6 +43,7 @@ main(arguments) {
     'corelib',
     path.join('lib', 'convert'),
     path.join('lib', 'html'),
+    path.join('lib', 'math'),
     path.join('lib', 'typed_data')
   ];
 

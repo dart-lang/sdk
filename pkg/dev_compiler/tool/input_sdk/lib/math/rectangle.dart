@@ -209,8 +209,8 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
    * point `(left, top)`.
    */
   MutableRectangle(this.left, this.top, T width, T height)
-      : this._width = (width < 0) ? _clampToZero(width) : width,
-        this._height = (height < 0) ? _clampToZero(height) : height;
+      : this._width = (width < 0) ? _clampToZero/*<T>*/(width) : width,
+        this._height = (height < 0) ? _clampToZero/*<T>*/(height) : height;
 
   /**
    * Create a mutable rectangle spanned by the points [a] and [b];
@@ -244,7 +244,7 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
    * but will not change [left].
    */
   void set width(T width) {
-    if (width < 0) width = _clampToZero(width);
+    if (width < 0) width = _clampToZero/*<T>*/(width);
     _width = width;
   }
 
@@ -260,7 +260,7 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
    * but will not change [top].
    */
   void set height(T height) {
-    if (height < 0) height = _clampToZero(height);
+    if (height < 0) height = _clampToZero/*<T>*/(height);
     _height = height;
   }
 }
@@ -270,7 +270,7 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
  *
  * Returns `0` if value is int, `0.0` if value is double.
  */
-num _clampToZero(num value) {
+num/*=T*/ _clampToZero/*<T extends num>*/(num/*=T*/ value) {
   assert(value < 0);
   return -value * 0;
 }
