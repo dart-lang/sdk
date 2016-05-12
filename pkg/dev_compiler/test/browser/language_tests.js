@@ -752,7 +752,7 @@
 
         let mainLibrary = dart_library.import(module)[name];
         let negative = /negative_test/.test(name);
-        if (has('slow')) this.timeout(5000);
+        if (has('slow')) this.timeout(10000);
         if (has('fail')) {
           let e = protect(mainLibrary.main);
           if (negative) {
