@@ -193,7 +193,7 @@ class CommandLineOptions {
       [printAndFail(String msg) = printAndFail]) {
     CommandLineOptions options = _parse(args);
     // Check SDK.
-    {
+    if (!options.buildModePersistentWorker) {
       // Infer if unspecified.
       if (options.dartSdkPath == null) {
         Directory sdkDir = getSdkDir(args);
