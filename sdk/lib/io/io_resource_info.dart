@@ -19,11 +19,11 @@ abstract class _IOResourceInfo {
 
   /// Get the full set of values for a specific implementation. This is normally
   /// looked up based on an id from a referenceValueMap.
-  Map<String, String> get fullValueMap;
+  Map<String, dynamic> get fullValueMap;
 
   /// The reference map, used to return a list of values, e.g., getting
   /// all open sockets. The structure of this is shared among all subclasses.
-  Map<String, String> get referenceValueMap =>
+  Map<String, dynamic> get referenceValueMap =>
       {
         // The type for a reference object is prefixed with @ in observatory.
         'type': '@$type',
@@ -71,7 +71,7 @@ abstract class _ReadWriteResourceInfo extends _IOResourceInfo {
     lastWrite = 0.0,
     super(type);
 
-  Map<String, String> get fullValueMap =>
+  Map<String, dynamic> get fullValueMap =>
     {
       'type': type,
       'id': id,
@@ -118,9 +118,8 @@ class _FileResourceInfo extends _ReadWriteResourceInfo {
     return new Future.value(new ServiceExtensionResponse.result(json));
   }
 
-  Map<String, String> getFileInfoMap() {
-    var result = fullValueMap;
-    return result;
+  Map<String, dynamic> getFileInfoMap() {
+    return fullValueMap;
   }
 
   static Future<ServiceExtensionResponse> getFileInfoMapByID(function, params) {
@@ -155,7 +154,7 @@ class _ProcessResourceInfo extends _IOResourceInfo{
 
   void stopped() { ProcessStopped(this); }
 
-  Map<String, String> get fullValueMap =>
+  Map<String, dynamic> get fullValueMap =>
     {
       'type': type,
       'id': id,
@@ -204,7 +203,7 @@ class _SocketResourceInfo extends _ReadWriteResourceInfo {
   static const String UDP_STRING = 'UDP';
   static const String TYPE = '_socket';
 
-  final socket;
+  final /*_NativeSocket|*/ socket;
 
   static Map<int, _SocketResourceInfo> openSockets =
       new Map<int, _SocketResourceInfo>();
@@ -230,7 +229,7 @@ class _SocketResourceInfo extends _ReadWriteResourceInfo {
     return new List.from(openSockets.values.map((e) => e.referenceValueMap));
   }
 
-  Map<String, String> getSocketInfoMap() {
+  Map<String, dynamic> getSocketInfoMap() {
     var result = fullValueMap;
     result['socketType'] = socket.isTcp ? TCP_STRING : UDP_STRING;
     result['listening'] = socket.isListening;
@@ -279,5 +278,4 @@ class _SocketResourceInfo extends _ReadWriteResourceInfo {
     assert(openSockets.containsKey(info.id));
     openSockets.remove(info.id);
   }
-
 }

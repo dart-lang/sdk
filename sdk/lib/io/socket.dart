@@ -568,6 +568,10 @@ abstract class Socket implements Stream<List<int>>, IOSink {
    * Returns the remote [InternetAddress] connected to by this socket.
    */
   InternetAddress get remoteAddress;
+
+  Future<Socket> close();
+
+  Future<Socket> get done;
 }
 
 
