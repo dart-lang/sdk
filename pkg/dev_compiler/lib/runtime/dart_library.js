@@ -139,10 +139,12 @@ var dart_library =
         window.Animation = d.animate(d).constructor;
       }
       if (typeof WebGLVertexArrayObjectOES == "undefined") {
-        window.WebGLVertexArrayObjectOES = document.createElement('canvas')
-          .getContext('webgl')
-          .getExtension("OES_vertex_array_object")
-          .createVertexArrayOES().constructor;
+        let context = document.createElement('canvas').getContext('webgl');
+        if (context) {
+          window.WebGLVertexArrayObjectOES =
+              context.getExtension("OES_vertex_array_object")
+                     .createVertexArrayOES().constructor;
+        }
       }
     }
 
