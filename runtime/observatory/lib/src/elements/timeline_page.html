@@ -9,7 +9,7 @@
       <top-nav-menu></top-nav-menu>
       <vm-nav-menu vm="{{ app.vm }}"></vm-nav-menu>
       <nav-menu link="{{ makeLink('/timeline') }}" anchor="timeline" last="{{ true }}"></nav-menu>
-      <nav-refresh id="refresh" callback="{{ refresh }}" label="Get"></nav-refresh>
+      <nav-refresh id="refresh" callback="{{ refresh }}" label="Refresh"></nav-refresh>
       <nav-refresh callback="{{ clear }}" label="Clear"></nav-refresh>
       <nav-refresh callback="{{ saveTimeline }}" label="Save"></nav-refresh>
       <nav-refresh callback="{{ loadTimeline }}" label="Load"></nav-refresh>
@@ -20,6 +20,18 @@
         <div class="memberItem">
           <div class="memberName">Recorder:</div>
           <div class="memberValue">{{ recorderName }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Recorded Streams Profile:</div>
+          <div class="memberValue">
+            <select id="selectPreset" value="{{ streamPresetSelector }}">
+              <option value="None">None</option>
+              <option value="Dart">Dart Developer</option>
+              <option value="VM">VM Developer</option>
+              <option value="All">All</option>
+              <option value="Custom">Custom</option>
+            </select>
+          </div>
         </div>
         <div class="memberItem">
           <div class="memberName">Recorded Streams:</div>

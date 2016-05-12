@@ -97,6 +97,61 @@ class TimelinePageElement extends ObservatoryElement {
     for (String streamName in _availableStreams) {
       e.children.add(_makeStreamToggle(streamName));
     }
+
+    streamPresetSelector = streamPresetFromRecordedStreams();
+  }
+
+  // Dart developers care about the following streams:
+  List<String> _dartPreset =
+      ['GC', 'Compiler', 'Dart'];
+
+  // VM developers care about the following streams:
+  List<String> _vmPreset =
+      ['GC', 'Compiler', 'Dart', 'Debugger', 'Embedder', 'Isolate', 'VM'];
+
+  String streamPresetFromRecordedStreams() {
+    if (_availableStreams.length == 0) {
+      return 'None';
+    }
+    if (_recordedStreams.length == 0) {
+      return 'None';
+    }
+    if (_recordedStreams.length == _availableStreams.length) {
+      return 'All';
+    }
+    if ((_vmPreset.length == _recordedStreams.length) &&
+        _recordedStreams.containsAll(_vmPreset)) {
+      return 'VM';
+    }
+    if ((_dartPreset.length == _recordedStreams.length) &&
+        _recordedStreams.containsAll(_dartPreset)) {
+      return 'Dart';
+    }
+    return 'Custom';
+  }
+
+  void _applyPreset() {
+    switch (streamPresetSelector) {
+      case 'None':
+        _recordedStreams.clear();
+        break;
+      case 'All':
+        _recordedStreams.clear();
+        _recordedStreams.addAll(_availableStreams);
+        break;
+      case 'VM':
+        _recordedStreams.clear();
+        _recordedStreams.addAll(_vmPreset);
+        break;
+      case 'Dart':
+        _recordedStreams.clear();
+        _recordedStreams.addAll(_dartPreset);
+        break;
+      case 'Custom':
+        return;
+    }
+    _applyStreamChanges();
+    _updateRecorderUI();
   }
 
   Future _updateRecorderUI() async {
@@ -111,6 +166,10 @@ class TimelinePageElement extends ObservatoryElement {
 
   Future _setupInitialState() async {
     await _updateRecorderUI();
+    SelectElement e = $['selectPreset'];
+    e.onChange.listen((_) {
+      _applyPreset();
+    });
     // Finally, trigger a reload so we start with the latest timeline.
     await refresh();
   }
@@ -147,6 +206,7 @@ class TimelinePageElement extends ObservatoryElement {
 
   StreamSubscription _resizeSubscription;
   @observable String recorderName;
+  @observable String streamPresetSelector = 'None';
   final Set<String> _availableStreams = new Set<String>();
   final Set<String> _recordedStreams = new Set<String>();
 }
