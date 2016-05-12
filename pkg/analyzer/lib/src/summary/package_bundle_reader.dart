@@ -143,9 +143,10 @@ class InSummaryPackageUriResolver extends UriResolver {
   @override
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     actualUri ??= uri;
-    UnlinkedUnit unit = _dataStore.unlinkedMap[uri.toString()];
+    String uriString = uri.toString();
+    UnlinkedUnit unit = _dataStore.unlinkedMap[uriString];
     if (unit != null) {
-      String summaryPath = _dataStore.uriToSummaryPath[uri.toString()];
+      String summaryPath = _dataStore.uriToSummaryPath[uriString];
       if (unit.fallbackModePath.isNotEmpty) {
         return new _InSummaryFallbackSource(
             new JavaFile(unit.fallbackModePath), actualUri, summaryPath);
