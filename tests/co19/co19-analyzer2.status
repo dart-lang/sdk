@@ -172,7 +172,6 @@ WebPlatformTest/dom/nodes/Node-parentNode_t01: StaticWarning # co19-roll r722: P
 # co19-roll r738
 Language/Classes/Classes/method_definition_t06: MissingStaticWarning # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/StyleSheet/detached-parent-rule-without-wrapper_t01: StaticWarning # co19-roll r738: Please triage this failure.
-LayoutTests/fast/dom/StyleSheet/detached-stylesheet-without-wrapper_t01: StaticWarning # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/StyleSheet/removed-media-rule-deleted-parent-crash_t01: StaticWarning # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/StyleSheet/removed-stylesheet-rule-deleted-parent-crash_t01: StaticWarning # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/TreeWalker/TreeWalker-basic_t01: StaticWarning # co19-roll r738: Please triage this failure.
