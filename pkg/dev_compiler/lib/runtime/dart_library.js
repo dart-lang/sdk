@@ -115,6 +115,35 @@ var dart_library =
       NamedNodeMap.prototype.get = function(i) { return this[i]; };
       DOMTokenList.prototype.get = function(i) { return this[i]; };
       HTMLCollection.prototype.get = function(i) { return this[i]; };
+      // Expose constructors for DOM types dart:html needs to assume are
+      // available on window.
+      if (typeof PannerNode == "undefined") {
+        let audioContext = new AudioContext();
+        window.PannerNode = audioContext.createPanner().constructor;
+        window.StereoPannerNode = audioContext.createStereoPanner().constructor;
+      }
+      if (typeof AudioSourceNode == "undefined") {
+        window.AudioSourceNode = MediaElementAudioSourceNode.constructor;
+      }
+      if (typeof FontFaceSet == "undefined") {
+        window.FontFaceSet = document.fonts.__proto__.constructor;
+      }
+      if (typeof MemoryInfo == "undefined") {
+        window.MemoryInfo = window.performance.memory.constructor;
+      }
+      if (typeof Geolocation == "undefined") {
+        navigator.geolocation.constructor;
+      }
+      if (typeof Animation == "undefined") {
+        let d = document.createElement('div');
+        window.Animation = d.animate(d).constructor;
+      }
+      if (typeof WebGLVertexArrayObjectOES == "undefined") {
+        window.WebGLVertexArrayObjectOES = document.createElement('canvas')
+          .getContext('webgl')
+          .getExtension("OES_vertex_array_object")
+          .createVertexArrayOES().constructor;
+      }
     }
 
     // This import is only needed for chrome debugging. We should provide an
