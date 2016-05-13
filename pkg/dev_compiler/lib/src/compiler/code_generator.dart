@@ -598,6 +598,9 @@ class CodeGenerator extends GeneralizingAstVisitor
   JS.Statement visitClassDeclaration(ClassDeclaration node) {
     var classElem = node.element;
 
+    // If this class is annotated with `@JS`, then there is nothing to emit.
+    if (findAnnotation(classElem, isPublicJSAnnotation) != null) return null;
+
     // If this is a JavaScript type, emit it now and then exit.
     var jsTypeDef = _emitJsType(classElem);
     if (jsTypeDef != null) return jsTypeDef;
@@ -3020,6 +3023,12 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   JS.Expression _emitConstructorName(
       ConstructorElement element, DartType type, SimpleIdentifier name) {
+    var classElem = element.enclosingElement;
+    if (findAnnotation(classElem, isPublicJSAnnotation) != null) {
+      var annotationName = getAnnotationName(classElem, isPublicJSAnnotation);
+      var typeName = js.string(annotationName ?? classElem.name);
+      return new JS.PropertyAccess(new JS.Identifier('self'), typeName);
+    }
     var typeName = _emitType(type);
     if (name != null || element.isFactory) {
       var namedCtor = _constructorName(element);
@@ -3057,8 +3066,25 @@ class CodeGenerator extends GeneralizingAstVisitor
       var args = _visit(argumentList) as List<JS.Expression>;
       return isFactory ? new JS.Call(ctor, args) : new JS.New(ctor, args);
     }
+    if (_isObjectLiteral(element.enclosingElement)) {
+      return _emitObjectLiteral(argumentList);
+    }
     if (isConst) return _emitConst(emitNew);
     return emitNew();
+  }
+
+  bool _isObjectLiteral(ClassElement classElem) {
+    return findAnnotation(classElem, isPublicJSAnnotation) != null &&
+        findAnnotation(classElem, isJSAnonymousAnnotation) != null;
+  }
+
+  JS.Expression _emitObjectLiteral(ArgumentList argumentList) {
+    var args = _visit(argumentList) as List<JS.Expression>;
+    if (args.isEmpty) {
+      return js.call('{}');
+    }
+    assert(args.single is JS.ObjectInitializer);
+    return args.single;
   }
 
   @override

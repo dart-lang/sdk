@@ -40,6 +40,13 @@ bool isJsSpreadInvocation(MethodInvocation i) =>
 bool isJSAnnotation(DartObjectImpl value) =>
     _isJsLibType('JS', value.type.element) || isJsName(value);
 
+/// Returns [true] if [e] is the `JS` annotation from `package:js`.
+bool isPublicJSAnnotation(DartObjectImpl value) =>
+    _isJsLibType('JS', value.type.element);
+
+bool isJSAnonymousAnnotation(DartObjectImpl value) =>
+    _isJsLibType('_Anonymous', value.type.element);
+
 bool _isBuiltinAnnotation(
     DartObjectImpl value, String libraryName, String annotationName) {
   var e = value?.type?.element;
