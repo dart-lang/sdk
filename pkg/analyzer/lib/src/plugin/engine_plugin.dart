@@ -204,6 +204,7 @@ class EnginePlugin implements Plugin {
     registerExtension(
         taskId, ComputeInferableStaticVariableDependenciesTask.DESCRIPTOR);
     registerExtension(taskId, ComputeLibraryCycleTask.DESCRIPTOR);
+    registerExtension(taskId, ComputeRequiredConstantsTask.DESCRIPTOR);
     registerExtension(
         taskId, ComputePropagableVariableDependenciesTask.DESCRIPTOR);
     registerExtension(taskId, ContainingLibrariesTask.DESCRIPTOR);
