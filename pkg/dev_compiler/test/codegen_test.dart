@@ -140,16 +140,29 @@ void _writeModule(String outPath, JSModuleFile result) {
   if (errors.isNotEmpty && !errors.endsWith('\n')) errors += '\n';
   new File(outPath + '.txt').writeAsStringSync(errors);
 
+  var jsFile = new File(outPath + '.js');
+  var errorFile = new File(outPath + '.err');
+
   if (result.isValid) {
-    new File(outPath + '.js').writeAsStringSync(result.code);
+    jsFile.writeAsStringSync(result.code);
     if (result.sourceMap != null) {
       var mapPath = outPath + '.js.map';
       new File(mapPath)
           .writeAsStringSync(JSON.encode(result.placeSourceMap(mapPath)));
     }
+
+    // There are no errors, so delete any stale ".err" file.
+    if (errorFile.existsSync()) {
+      errorFile.deleteSync();
+    }
   } else {
     // Also write the errors to a '.err' file for easy counting.
-    new File(outPath + '.err').writeAsStringSync(errors);
+    errorFile.writeAsStringSync(errors);
+
+    // There are errors, so delete any stale ".js" file.
+    if (jsFile.existsSync()) {
+      jsFile.deleteSync();
+    }
   }
 }
 
