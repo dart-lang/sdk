@@ -287,17 +287,17 @@ abstract class ServiceObject extends Observable {
 
   Future<ServiceObject> _inProgressReload;
 
-  Future<ObservableMap> _fetchDirect() {
+  Future<ObservableMap> _fetchDirect({int count: kDefaultFieldLimit}) {
     Map params = {
       'objectId': id,
-      'count': kDefaultFieldLimit,
+      'count': count,
     };
     return isolate.invokeRpcNoUpgrade('getObject', params);
   }
 
   /// Reload [this]. Returns a future which completes to [this] or
   /// an exception.
-  Future<ServiceObject> reload() {
+  Future<ServiceObject> reload({int count: kDefaultFieldLimit}) {
     // TODO(turnidge): Checking for a null id should be part of the
     // "immmutable" check.
     bool hasId = (id != null) && (id != '');
@@ -312,7 +312,7 @@ abstract class ServiceObject extends Observable {
     if (_inProgressReload == null) {
       var completer = new Completer<ServiceObject>();
       _inProgressReload = completer.future;
-      _fetchDirect().then((ObservableMap map) {
+      _fetchDirect(count: count).then((ObservableMap map) {
         var mapType = _stripRef(map['type']);
         if (mapType == 'Sentinel') {
           // An object may have been collected, etc.
@@ -806,7 +806,7 @@ abstract class VM extends ServiceObjectOwner {
     return invokeRpc('_restartVM', {});
   }
 
-  Future<ObservableMap> _fetchDirect() async {
+  Future<ObservableMap> _fetchDirect({int count: kDefaultFieldLimit}) async {
     if (!loaded) {
       // The vm service relies on these events to keep the VM and
       // Isolate types up to date.
@@ -1288,24 +1288,26 @@ class Isolate extends ServiceObjectOwner {
     });
   }
 
-  Future<ServiceObject> getObject(String objectId, {bool reload: true}) {
+  Future<ServiceObject> getObject(String objectId,
+                                  {bool reload: true,
+                                   int count: kDefaultFieldLimit}) {
     assert(objectId != null && objectId != '');
     var obj = _cache[objectId];
     if (obj != null) {
       if (reload) {
-        return obj.reload();
+        return obj.reload(count: count);
       }
       // Returned cached object.
       return new Future.value(obj);
     }
     Map params = {
       'objectId': objectId,
-      'count': kDefaultFieldLimit,
+      'count': count,
     };
     return isolate.invokeRpc('getObject', params);
   }
 
-  Future<ObservableMap> _fetchDirect() {
+  Future<ObservableMap> _fetchDirect({int count: kDefaultFieldLimit}) async {
     return invokeRpcNoUpgrade('getIsolate', {});
   }
 
@@ -3560,11 +3562,11 @@ class Code extends HeapObject {
 
   /// Reload [this]. Returns a future which completes to [this] or an
   /// exception.
-  Future<ServiceObject> reload() {
+  Future<ServiceObject> reload({int count: kDefaultFieldLimit}) {
     assert(kind != null);
     if (isDartCode) {
       // We only reload Dart code.
-      return super.reload();
+      return super.reload(count: count);
     }
     return new Future.value(this);
   }
@@ -3845,7 +3847,7 @@ class ServiceMetric extends ServiceObject {
     _removeOld();
   }
 
-  Future<ObservableMap> _fetchDirect() {
+  Future<ObservableMap> _fetchDirect({int count: kDefaultFieldLimit}) {
     assert(owner is Isolate);
     return isolate.invokeRpcNoUpgrade('_getIsolateMetric', { 'metricId': id });
   }
