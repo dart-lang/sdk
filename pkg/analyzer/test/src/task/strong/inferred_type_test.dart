@@ -2305,6 +2305,14 @@ var f = () {};
     expect(f.type.toString(), '() → dynamic');
   }
 
+  void test_inferredType_fromTopLevelExecutableTearoff() {
+    var mainUnit = checkFile('''
+var v = print;
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), '(Object) → void');
+  }
+
   void test_inferredType_isEnum() {
     var mainUnit = checkFile('''
 enum E { v1 }

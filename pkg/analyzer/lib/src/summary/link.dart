@@ -1156,6 +1156,9 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
           numTypeParameters: element.typeParameters.length,
           containingReference:
               enclosingClass != null ? addReference(enclosingClass) : null,
+          dependency: enclosingClass != null
+              ? null
+              : library.addDependency(element.library),
           kind: kind);
     } else if (element is FunctionElementForLink_Local) {
       FunctionElementImpl parent = element.enclosingElement;
@@ -1171,6 +1174,7 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
           kind: ReferenceKind.function);
     } else if (element is TopLevelVariableElementForLink) {
       return addRawReference(element.name,
+          dependency: library.addDependency(element.library),
           kind: ReferenceKind.topLevelPropertyAccessor);
     } else if (element is FieldElementForLink_ClassField) {
       ClassElementForLink_Class enclosingClass = element.enclosingElement;
