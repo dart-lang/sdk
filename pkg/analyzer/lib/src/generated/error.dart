@@ -3595,7 +3595,8 @@ class HintCode extends ErrorCode {
    * 1: message details
    */
   static const HintCode MISSING_REQUIRED_PARAM_WITH_DETAILS = const HintCode(
-      'MISSING_REQUIRED_PARAM', "The parameter '{0}' is required. {1}");
+      'MISSING_REQUIRED_PARAM_WITH_DETAILS',
+      "The parameter '{0}' is required. {1}");
 
   /**
    * Generate a hint for an element that is annotated with `@JS(...)` whose
