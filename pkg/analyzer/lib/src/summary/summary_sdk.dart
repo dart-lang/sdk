@@ -13,9 +13,11 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart'
-    show Source, SourceFactory, SourceKind;
+    show DartUriResolver, Source, SourceFactory, SourceKind;
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
@@ -186,6 +188,79 @@ class SdkSummaryResynthesizer extends SummaryResynthesizer {
   @override
   bool hasLibrarySummary(String uri) {
     return uri.startsWith('dart:');
+  }
+}
+
+/**
+ * An implementation of [DartSdk] which provides analysis results for `dart:`
+ * libraries from the given summary file.  This implementation is limited and
+ * suitable only for command-line tools, but not for IDEs - it does not
+ * implement [sdkLibraries], [sdkVersion], [uris] and [fromFileUri].
+ */
+class SummaryBasedDartSdk implements DartSdk {
+  SummaryDataStore _dataStore;
+  InSummaryPackageUriResolver _uriResolver;
+  PackageBundle _bundle;
+
+  /**
+   * The [AnalysisContext] which is used for all of the sources in this sdk.
+   */
+  InternalAnalysisContext _analysisContext;
+
+  SummaryBasedDartSdk(String summaryPath) {
+    _dataStore = new SummaryDataStore(<String>[summaryPath]);
+    _uriResolver = new InSummaryPackageUriResolver(_dataStore);
+    _bundle = _dataStore.bundles.single;
+  }
+
+  /**
+   * Return the [PackageBundle] for this SDK, not `null`.
+   */
+  PackageBundle get bundle => _bundle;
+
+  @override
+  AnalysisContext get context {
+    if (_analysisContext == null) {
+      _analysisContext = new SdkAnalysisContext(null);
+      SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
+      _analysisContext.sourceFactory = factory;
+      _analysisContext.resultProvider =
+          new SdkSummaryResultProvider(_analysisContext, _bundle);
+    }
+    return _analysisContext;
+  }
+
+  @override
+  List<SdkLibrary> get sdkLibraries {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String get sdkVersion {
+    throw new UnimplementedError();
+  }
+
+  @override
+  List<String> get uris {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Source fromFileUri(Uri uri) {
+    return null;
+  }
+
+  @override
+  SdkLibrary getSdkLibrary(String uri) {
+    // This is not quite correct, but currently it's used only in
+    // to report errors on importing or exporting of internal libraries.
+    return null;
+  }
+
+  @override
+  Source mapDartUri(String uriStr) {
+    Uri uri = Uri.parse(uriStr);
+    return _uriResolver.resolveAbsolute(uri);
   }
 }
 

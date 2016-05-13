@@ -25,12 +25,14 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/interner.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/build_mode.dart';
@@ -91,7 +93,7 @@ class Driver implements CommandLineStarter {
   ResolverProvider packageResolverProvider;
 
   /// SDK instance.
-  DirectoryBasedDartSdk sdk;
+  DartSdk sdk;
 
   /// Collected analysis statistics.
   final AnalysisStats stats = new AnalysisStats();
@@ -584,14 +586,21 @@ class Driver implements CommandLineStarter {
 
   void _setupSdk(CommandLineOptions options) {
     if (sdk == null) {
-      String dartSdkPath = options.dartSdkPath;
-      sdk = new DirectoryBasedDartSdk(new JavaFile(dartSdkPath));
-      sdk.useSummary = options.sourceFiles.every((String sourcePath) {
-        sourcePath = path.absolute(sourcePath);
-        sourcePath = path.normalize(sourcePath);
-        return !path.isWithin(dartSdkPath, sourcePath);
-      });
-      sdk.analysisOptions = context.analysisOptions;
+      if (options.dartSdkSummaryPath != null) {
+        sdk = new SummaryBasedDartSdk(options.dartSdkSummaryPath);
+      } else {
+        String dartSdkPath = options.dartSdkPath;
+        DirectoryBasedDartSdk directorySdk =
+            new DirectoryBasedDartSdk(new JavaFile(dartSdkPath));
+        directorySdk.useSummary =
+            options.sourceFiles.every((String sourcePath) {
+          sourcePath = path.absolute(sourcePath);
+          sourcePath = path.normalize(sourcePath);
+          return !path.isWithin(dartSdkPath, sourcePath);
+        });
+        directorySdk.analysisOptions = context.analysisOptions;
+        sdk = directorySdk;
+      }
     }
   }
 

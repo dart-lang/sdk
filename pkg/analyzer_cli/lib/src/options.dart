@@ -68,8 +68,11 @@ class CommandLineOptions {
   /// Whether to suppress a nonzero exit code in build mode.
   final bool buildSuppressExitCode;
 
-  /// The path to the dart SDK
+  /// The path to the dart SDK.
   String dartSdkPath;
+
+  /// The path to the dart SDK summary file.
+  String dartSdkSummaryPath;
 
   /// A table mapping the names of defined variables to their values.
   final Map<String, String> definedVariables;
@@ -159,6 +162,7 @@ class CommandLineOptions {
         buildSummaryOutput = args['build-summary-output'],
         buildSuppressExitCode = args['build-suppress-exit-code'],
         dartSdkPath = args['dart-sdk'],
+        dartSdkSummaryPath = args['dart-sdk-summary'],
         definedVariables = definedVariables,
         analysisOptionsFile = args['options'],
         disableHints = args['no-hints'],
@@ -273,6 +277,8 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false)
       ..addOption('dart-sdk', help: 'The path to the Dart SDK.')
+      ..addOption('dart-sdk-summary',
+          help: 'The path to the Dart SDK summary file.', hide: true)
       ..addOption('packages',
           help:
               'Path to the package resolution configuration file, which supplies '

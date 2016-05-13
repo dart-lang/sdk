@@ -134,6 +134,8 @@ class InputPackagesResultProvider extends ResultProvider {
 /**
  * The [UriResolver] that knows about sources that are served from their
  * summaries.
+ *
+ * TODO(scheglov) rename to `InSummaryUriResolver` - it's not `package:` specific.
  */
 class InSummaryPackageUriResolver extends UriResolver {
   final SummaryDataStore _dataStore;
@@ -186,7 +188,7 @@ class InSummarySource extends Source {
   int get hashCode => uri.hashCode;
 
   @override
-  bool get isInSystemLibrary => false;
+  bool get isInSystemLibrary => uri.scheme == DartUriResolver.DART_SCHEME;
 
   @override
   int get modificationStamp => 0;
@@ -215,6 +217,11 @@ class InSummarySource extends Source {
  */
 class SummaryDataStore {
   /**
+   * List of all [PackageBundle]s.
+   */
+  final List<PackageBundle> bundles = <PackageBundle>[];
+
+  /**
    * Map from the URI of a compilation unit to the unlinked summary of that
    * compilation unit.
    */
@@ -238,6 +245,7 @@ class SummaryDataStore {
    * Add the given [bundle] loaded from the file with the given [path].
    */
   void addBundle(String path, PackageBundle bundle) {
+    bundles.add(bundle);
     for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
       String uri = bundle.unlinkedUnitUris[i];
       uriToSummaryPath[uri] = path;
