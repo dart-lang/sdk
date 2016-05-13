@@ -468,7 +468,6 @@
       // TODO(rnystrom): Strong mode cast failures.
       'codec1_test': fail,
       'encoding_test': skip_timeout,
-      'html_escape_test': fail,
 
       // TODO(rnystrom): If this test is enabled, karma gets confused and
       // disconnects randomly.
