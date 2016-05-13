@@ -478,6 +478,10 @@ class Namer {
         return asName('${callPrefix}\$2');
       case JsGetName.CALL_PREFIX3:
         return asName('${callPrefix}\$3');
+      case JsGetName.CALL_PREFIX4:
+        return asName('${callPrefix}\$4');
+      case JsGetName.CALL_PREFIX5:
+        return asName('${callPrefix}\$5');
       case JsGetName.CALL_CATCH_ALL:
         return asName(callCatchAllName);
       case JsGetName.REFLECTABLE:
