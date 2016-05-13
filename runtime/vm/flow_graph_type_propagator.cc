@@ -956,7 +956,7 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
         is_nullable = CompileType::kNonNullable;
         cid = obj.GetClassId();
       }
-    } else {
+    } else if (field.guarded_cid() != kIllegalCid) {
       cid = field.guarded_cid();
       if (!IsNullableCid(cid)) is_nullable = CompileType::kNonNullable;
     }
