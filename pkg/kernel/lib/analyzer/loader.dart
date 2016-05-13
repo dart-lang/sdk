@@ -192,7 +192,9 @@ class AnalyzerLoader implements ReferenceLevelLoader {
         ExecutableElement executable = element;
         return new ast.Procedure(
             _nameOfMember(element), _procedureKindOf(executable), null,
-            isAbstract: executable.isAbstract, isStatic: executable.isStatic);
+            isAbstract: executable.isAbstract,
+            isStatic: executable.isStatic,
+            isExternal: executable.isExternal);
 
       default:
         throw 'Unexpected member kind: $element';
@@ -246,8 +248,8 @@ class AnalyzerLoader implements ReferenceLevelLoader {
 
   ast.Name _nameOfMember(Element element) {
     // Use 'displayName' to avoid a trailing '=' for setters.
-    return new ast.Name(element.displayName,
-        getLibraryReference(element.library));
+    return new ast.Name(
+        element.displayName, getLibraryReference(element.library));
   }
 
   void ensureLibraryIsLoaded(ast.Library node) {
