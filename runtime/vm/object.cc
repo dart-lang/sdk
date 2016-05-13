@@ -9655,7 +9655,7 @@ RawObject* Library::ResolveName(const String& name) const {
   obj = LookupLocalObject(name);
   if (!obj.IsNull()) {
     // Names that are in this library's dictionary and are unmangled
-    // are not cached. This reduces the size of the the cache.
+    // are not cached. This reduces the size of the cache.
     return obj.raw();
   }
   String& accessor_name = String::Handle(Field::LookupGetterSymbol(name));

@@ -371,7 +371,7 @@ class _Rule {
         }
       }
     }
-    // Delegate the matching logic to the the specialized function.
+    // Delegate the matching logic to the specialized function.
     return _match(state, pos);
   }
 

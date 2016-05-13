@@ -270,7 +270,7 @@ class CpsFragment {
   ///
   /// Returns a primitive containing the function's return value.
   ///
-  /// The new hole is the the point after [target] has returned. The fragment
+  /// The new hole is the point after [target] has returned. The fragment
   /// remains open, even if [target] never returns.
   ///
   /// The [target] function is destroyed and should not be reused.

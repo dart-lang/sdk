@@ -45,7 +45,7 @@ abstract class BytesBuilder {
   /**
    * Returns the contents of `this` and clears `this`.
    *
-   * The list returned is a view of the the internal buffer, limited to the
+   * The list returned is a view of the internal buffer, limited to the
    * [length].
    */
   List<int> takeBytes();

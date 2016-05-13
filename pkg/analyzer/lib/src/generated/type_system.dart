@@ -752,7 +752,7 @@ class StrongTypeSystemImpl extends TypeSystem {
    *    to #2.
    *
    * It's not immediately obvious why this is symmetric in the case that both
-   * of the them are type parameters.  For #1, symmetry holds since subtype
+   * of them are type parameters.  For #1, symmetry holds since subtype
    * is antisymmetric.  For #2, it's clearly not symmetric if upper bounds of
    * bottom are allowed.  Ignoring this (for various reasons, not least
    * of which that there's no way to write it), there's an informal
@@ -1430,7 +1430,7 @@ class _TypeParameterVariance {
   void _visitFunctionType(
       TypeParameterType typeParam, FunctionType type, bool paramIn) {
     for (ParameterElement p in type.parameters) {
-      // If a lambda L is passed in to a function F, the the parameters are
+      // If a lambda L is passed in to a function F, the parameters are
       // "passed out" of F into L. Thus we invert the "passedIn" state.
       _visitType(typeParam, p.type, !paramIn);
     }

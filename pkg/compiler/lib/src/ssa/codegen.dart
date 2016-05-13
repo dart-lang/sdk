@@ -2205,7 +2205,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       Element element = work.element;
       if (element is FunctionElement && element.asyncMarker.isYielding) {
         // `return <expr>;` is illegal in a sync* or async* function.
-        // To have the the async-translator working, we avoid introducing
+        // To have the async-translator working, we avoid introducing
         // `return` nodes.
         pushStatement(new js.ExpressionStatement(value)
             .withSourceInformation(sourceInformation));

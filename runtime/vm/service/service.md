@@ -172,7 +172,7 @@ subscribe to the _GC_ stream multiple times from the same client.
 }
 ```
 
-In addition the the [error codes](http://www.jsonrpc.org/specification#error_object)
+In addition the [error codes](http://www.jsonrpc.org/specification#error_object)
 specified in the JSON-RPC spec, we use the following application specific error codes:
 
 code | message | meaning

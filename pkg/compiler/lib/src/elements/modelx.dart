@@ -778,7 +778,7 @@ class Importers {
   Map<Element, List<ImportElement>> importers =
       new Map<Element, List<ImportElement>>();
 
-  /// Returns the the list of [ImportElement]s through which [element] was
+  /// Returns the list of [ImportElement]s through which [element] was
   /// imported.
   List<ImportElement> getImports(Element element) {
     List<ImportElement> imports = importers[element];

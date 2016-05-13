@@ -146,7 +146,7 @@ abstract class Iterable<E> {
    * This method returns a view of the mapped elements. As long as the
    * returned [Iterable] is not iterated over, the supplied function [f] will
    * not be invoked. The transformed elements will not be cached. Iterating
-   * multiple times over the the returned [Iterable] will invoke the supplied
+   * multiple times over the returned [Iterable] will invoke the supplied
    * function [f] multiple times on the same element.
    *
    * Methods on the returned iterable are allowed to omit calling `f`

@@ -50,7 +50,7 @@ class AnalysisError {
 
   /**
    * A [Comparator] that sorts error codes first by their severity (errors
-   * first, warnings second), and then by the the error code type.
+   * first, warnings second), and then by the error code type.
    */
   static Comparator<AnalysisError> ERROR_CODE_COMPARATOR =
       (AnalysisError o1, AnalysisError o2) {

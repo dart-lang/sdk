@@ -5011,7 +5011,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Check that if the the given constructor [declaration] is generative, then
+   * Check that if the given constructor [declaration] is generative, then
    * it does not have an expression function body.
    *
    * See [CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR].

@@ -2415,7 +2415,7 @@ class CommandQueue {
 
 /*
  * [CommandExecutor] is responsible for executing commands. It will make sure
- * that the the following two constraints are satisfied
+ * that the following two constraints are satisfied
  *  - [:numberOfProcessesUsed <= maxProcesses:]
  *  - [:numberOfBrowserProcessesUsed <= maxBrowserProcesses:]
  *

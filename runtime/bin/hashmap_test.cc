@@ -146,7 +146,7 @@ void TestSet(IntKeyHash hash, int size) {
     EXPECT(!set.Present(x));
     x = x * factor + offset;
 
-    // Verify the the expected values are still there.
+    // Verify the expected values are still there.
     int y = start;
     for (uint32_t j = 0; j < n; j++) {
       if (j <= i) {

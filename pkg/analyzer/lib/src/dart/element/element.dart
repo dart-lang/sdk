@@ -3638,7 +3638,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     // represents a new back edge.  It would be sufficient to invalidate the
     // cycle information for all nodes that are between the target and the
     // node in the topological order.  For simplicity, we simply invalidate
-    // all nodes which are reachable from the the source node.
+    // all nodes which are reachable from the source node.
     // Note that in the invalidation phase, we do not cut off when we encounter
     // a node with no library cycle information, since we do not know whether
     // we are in the case where invalidation has already been performed, or we

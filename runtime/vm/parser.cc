@@ -2416,7 +2416,7 @@ StaticCallNode* Parser::GenerateSuperConstructorCall(
   arguments->Add(implicit_argument);
 
   // If this is a super call in a forwarding constructor, add the user-
-  // defined arguments to the super call and adjust the the super
+  // defined arguments to the super call and adjust the super
   // constructor name to the respective named constructor if necessary.
   if (forwarding_args != NULL) {
     for (int i = 0; i < forwarding_args->length(); i++) {

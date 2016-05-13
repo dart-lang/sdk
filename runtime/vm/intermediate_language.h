@@ -2586,7 +2586,7 @@ class ConstraintInstr : public TemplateDefinition<1, NoThrow> {
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   // Constraints for branches have their target block stored in order
-  // to find the the comparsion that generated the constraint:
+  // to find the comparison that generated the constraint:
   // target->predecessor->last_instruction->comparison.
   void set_target(TargetEntryInstr* target) {
     target_ = target;

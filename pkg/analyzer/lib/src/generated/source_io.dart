@@ -191,7 +191,7 @@ class FileBasedSource extends Source {
   /**
    * Get the contents and timestamp of the underlying file.
    *
-   * Clients should consider using the the method [AnalysisContext.getContents]
+   * Clients should consider using the method [AnalysisContext.getContents]
    * because contexts can have local overrides of the content of a source that the source is not
    * aware of.
    *
