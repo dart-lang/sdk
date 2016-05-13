@@ -309,8 +309,14 @@ defineSoloRuleTest(String ruleToTest) {
 
 Annotation extractAnnotation(String line) {
   int index = line.indexOf(new RegExp(r'(//|#)[ ]?LINT'));
-  //Grab the first comment to see if there's one preceding the annotation.
-  int comment = line.indexOf(new RegExp(r'(//|#)'));
+
+  // Grab the first comment to see if there's one preceding the annotation.
+  // Check for '#' first to allow for lints on dartdocs.
+  int comment = line.indexOf('#');
+  if (comment == -1) {
+    comment = line.indexOf('//');
+  }
+
   if (index > -1 && comment == index) {
     int column;
     int length;
@@ -330,7 +336,7 @@ Annotation extractAnnotation(String line) {
     String msg = null;
     if (msgIndex < line.length) {
       msg = line.substring(index + msgIndex).trim();
-      if (msg.length == 0) {
+      if (msg.isEmpty) {
         msg = null;
       }
     }
