@@ -269,7 +269,8 @@ class ServerPlugin implements Plugin {
       '**/*.${AnalysisEngine.SUFFIX_DART}',
       '**/*.${AnalysisEngine.SUFFIX_HTML}',
       '**/*.${AnalysisEngine.SUFFIX_HTM}',
-      '**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}'
+      '**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}',
+      '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}'
     ];
     registerExtension(ANALYZED_FILE_PATTERNS_EXTENSION_POINT_ID, patterns);
     //

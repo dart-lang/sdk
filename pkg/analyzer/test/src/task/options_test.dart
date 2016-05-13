@@ -23,7 +23,8 @@ import '../context/abstract_context.dart';
 main() {
   initializeTestEnvironment();
   runReflectiveTests(ContextConfigurationTest);
-  runReflectiveTests(GenerateOptionsErrorsTaskTest);
+  runReflectiveTests(GenerateNewOptionsErrorsTaskTest);
+  runReflectiveTests(GenerateOldOptionsErrorsTaskTest);
   runReflectiveTests(OptionsFileValidatorTest);
 }
 
@@ -146,10 +147,19 @@ analyzer:
 }
 
 @reflectiveTest
-class GenerateOptionsErrorsTaskTest extends AbstractContextTest {
-  final optionsFilePath = '/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
+class GenerateNewOptionsErrorsTaskTest extends GenerateOptionsErrorsTaskTest {
+  String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+}
 
+@reflectiveTest
+class GenerateOldOptionsErrorsTaskTest extends GenerateOptionsErrorsTaskTest {
+  String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
+}
+
+abstract class GenerateOptionsErrorsTaskTest extends AbstractContextTest {
   Source source;
+
+  String get optionsFilePath;
   LineInfo lineInfo(String source) =>
       GenerateOptionsErrorsTask.computeLineInfo(source);
 

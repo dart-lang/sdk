@@ -9,6 +9,7 @@ import 'dart:core' hide Resource;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:unittest/unittest.dart';
 import 'package:yaml/yaml.dart';
 
@@ -18,7 +19,8 @@ import '../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(AnalysisOptionsProviderTest);
+  runReflectiveTests(AnalysisOptionsProviderOldTest);
+  runReflectiveTests(AnalysisOptionsProviderNewTest);
   group('AnalysisOptionsProvider', () {
     void expectMergesTo(String defaults, String overrides, String expected) {
       var optionsProvider = new AnalysisOptionsProvider();
@@ -100,11 +102,22 @@ analyzer:
 }
 
 @reflectiveTest
-class AnalysisOptionsProviderTest {
+class AnalysisOptionsProviderNewTest extends AnalysisOptionsProviderTest {
+  String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
+}
+
+@reflectiveTest
+class AnalysisOptionsProviderOldTest extends AnalysisOptionsProviderTest {
+  String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_FILE;
+}
+
+abstract class AnalysisOptionsProviderTest {
   TestPathTranslator pathTranslator;
   ResourceProvider resourceProvider;
 
   AnalysisOptionsProvider provider = new AnalysisOptionsProvider();
+
+  String get optionsFileName;
 
   void setUp() {
     var rawProvider = new MemoryResourceProvider(isWindows: isWindows);
@@ -115,14 +128,14 @@ class AnalysisOptionsProviderTest {
   void test_getOptions_crawlUp_hasInFolder() {
     pathTranslator.newFolder('/foo/bar');
     pathTranslator.newFile(
-        '/foo/.analysis_options',
+        '/foo/$optionsFileName',
         r'''
 analyzer:
   ignore:
     - foo
 ''');
     pathTranslator.newFile(
-        '/foo/bar/.analysis_options',
+        '/foo/bar/$optionsFileName',
         r'''
 analyzer:
   ignore:
@@ -140,14 +153,14 @@ analyzer:
   void test_getOptions_crawlUp_hasInParent() {
     pathTranslator.newFolder('/foo/bar/baz');
     pathTranslator.newFile(
-        '/foo/.analysis_options',
+        '/foo/$optionsFileName',
         r'''
 analyzer:
   ignore:
     - foo
 ''');
     pathTranslator.newFile(
-        '/foo/bar/.analysis_options',
+        '/foo/bar/$optionsFileName',
         r'''
 analyzer:
   ignore:
@@ -169,14 +182,14 @@ analyzer:
   }
 
   void test_getOptions_empty() {
-    pathTranslator.newFile('/.analysis_options', r'''#empty''');
+    pathTranslator.newFile('/$optionsFileName', r'''#empty''');
     Map<String, YamlNode> options = _getOptions('/');
     expect(options, isNotNull);
     expect(options, isEmpty);
   }
 
   void test_getOptions_invalid() {
-    pathTranslator.newFile('/.analysis_options', r''':''');
+    pathTranslator.newFile('/$optionsFileName', r''':''');
     expect(() {
       _getOptions('/');
     }, throws);
@@ -184,7 +197,7 @@ analyzer:
 
   void test_getOptions_simple() {
     pathTranslator.newFile(
-        '/.analysis_options',
+        '/$optionsFileName',
         r'''
 analyzer:
   ignore:

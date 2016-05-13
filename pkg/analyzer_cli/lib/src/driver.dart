@@ -587,10 +587,10 @@ class Driver implements CommandLineStarter {
       String dartSdkPath = options.dartSdkPath;
       sdk = new DirectoryBasedDartSdk(new JavaFile(dartSdkPath));
       sdk.useSummary = options.sourceFiles.every((String sourcePath) {
-            sourcePath = path.absolute(sourcePath);
-            sourcePath = path.normalize(sourcePath);
-            return !path.isWithin(dartSdkPath, sourcePath);
-          });
+        sourcePath = path.absolute(sourcePath);
+        sourcePath = path.normalize(sourcePath);
+        return !path.isWithin(dartSdkPath, sourcePath);
+      });
       sdk.analysisOptions = context.analysisOptions;
     }
   }
@@ -661,6 +661,10 @@ class Driver implements CommandLineStarter {
     } else {
       filePath = AnalysisEngine.ANALYSIS_OPTIONS_FILE;
       file = PhysicalResourceProvider.INSTANCE.getFile(filePath);
+      if (!file.exists) {
+        filePath = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
+        file = PhysicalResourceProvider.INSTANCE.getFile(filePath);
+      }
     }
     return file;
   }

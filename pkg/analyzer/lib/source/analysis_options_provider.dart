@@ -12,14 +12,19 @@ import 'package:analyzer/src/util/yaml.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
-/// Provide the options found in the `.analysis_options` file.
+/// Provide the options found in the analysis options file.
 class AnalysisOptionsProvider {
-  /// Provide the options found in [root]/[ANALYSIS_OPTIONS_FILE].
+  /// Provide the options found in either [root]/[ANALYSIS_OPTIONS_FILE] or
+  /// [root]/[ANALYSIS_OPTIONS_YAML_FILE].
   /// Return an empty options map if the file does not exist.
   Map<String, YamlNode> getOptions(Folder root, {bool crawlUp: false}) {
     Resource resource;
     for (Folder folder = root; folder != null; folder = folder.parent) {
       resource = folder.getChild(AnalysisEngine.ANALYSIS_OPTIONS_FILE);
+      if (resource.exists) {
+        break;
+      }
+      resource = folder.getChild(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
       if (resource.exists || !crawlUp) {
         break;
       }

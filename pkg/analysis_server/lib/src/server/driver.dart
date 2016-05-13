@@ -313,7 +313,7 @@ class Driver implements ServerStarter {
    * If this flag is `true`, then single analysis context should be used for
    * analysis of multiple analysis roots, special files that could otherwise
    * cause creating additional contexts, such as `pubspec.yaml`, or `.packages`,
-   * or `.analysis_options` are ignored.
+   * or analysis options are ignored.
    */
   bool useSingleContextManager = false;
 

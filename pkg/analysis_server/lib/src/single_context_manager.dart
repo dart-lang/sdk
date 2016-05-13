@@ -22,7 +22,7 @@ import 'package:watcher/watcher.dart';
  * Implementation of [ContextManager] that supports only one [AnalysisContext].
  * So, sources from all analysis roots are added to this single context. All
  * features that could otherwise cause creating additional contexts, such as
- * presence of `pubspec.yaml` or `.packages` files, or `.analysis_options` files
+ * presence of `pubspec.yaml` or `.packages` files, or analysis options files
  * are ignored.
  */
 class SingleContextManager implements ContextManager {

@@ -5,6 +5,7 @@
 library test.integration.analysis.lint;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -29,14 +30,43 @@ class abc { // lint: not CamelCase (should get ignored though)
 
     await analysisFinished;
     expect(currentAnalysisErrors[source], isList);
-    // Should be empty without .analysis_options.
+    // Should be empty without an analysis options file.
     List<AnalysisError> errors = currentAnalysisErrors[source];
     expect(errors, hasLength(0));
   }
 
-  test_simple_lint() async {
+  test_simple_lint_newOptionsFile() async {
     writeFile(
-        sourcePath('.analysis_options'),
+        sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE),
+        '''
+linter:
+  rules:
+    - camel_case_types
+''');
+
+    String source = sourcePath('test.dart');
+    writeFile(
+        source,
+        '''
+class a { // lint: not CamelCase
+}''');
+
+    standardAnalysisSetup();
+
+    await analysisFinished;
+
+    expect(currentAnalysisErrors[source], isList);
+    List<AnalysisError> errors = currentAnalysisErrors[source];
+    expect(errors, hasLength(1));
+    AnalysisError error = errors[0];
+    expect(error.location.file, source);
+    expect(error.severity, AnalysisErrorSeverity.INFO);
+    expect(error.type, AnalysisErrorType.LINT);
+  }
+
+  test_simple_lint_oldOptionsFile() async {
+    writeFile(
+        sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_FILE),
         '''
 linter:
   rules:
