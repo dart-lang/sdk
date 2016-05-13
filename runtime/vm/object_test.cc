@@ -4079,10 +4079,8 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
   EXPECT(func_b.CanBeInlined());
 
   // After setting a breakpoint in a function A.b, it is no longer inlineable.
-  Breakpoint* bpt =
-      Isolate::Current()->debugger()->SetBreakpointAtLine(name,
-                                                          kBreakpointLine);
-  ASSERT(bpt != NULL);
+  result = Dart_SetBreakpoint(NewString(TestCase::url()), kBreakpointLine);
+  EXPECT_VALID(result);
   EXPECT(!func_b.CanBeInlined());
 }
 

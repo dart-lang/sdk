@@ -46,7 +46,6 @@ TEST_CASE(Debugger_PrintBreakpointsToJSONArray) {
 
   Isolate* isolate = Isolate::Current();
   Debugger* debugger = isolate->debugger();
-  const String& url = String::Handle(String::New(TestCase::url()));
 
   // Empty case.
   {
@@ -59,8 +58,9 @@ TEST_CASE(Debugger_PrintBreakpointsToJSONArray) {
   }
 
   // Test with a couple of breakpoints.
-  debugger->SetBreakpointAtLine(url, 2);
-  debugger->SetBreakpointAtLine(url, 3);
+  Dart_Handle url = NewString(TestCase::url());
+  EXPECT_VALID(Dart_SetBreakpoint(url, 2));
+  EXPECT_VALID(Dart_SetBreakpoint(url, 3));
   {
     JSONStream js;
     {
@@ -98,9 +98,9 @@ static void InspectPausedEvent(Dart_IsolateId isolate_id,
 
   // The debugger knows that it is paused, and why.
   EXPECT(debugger->IsPaused());
-  const DebuggerEvent* event = debugger->PauseEvent();
+  const ServiceEvent* event = debugger->PauseEvent();
   EXPECT(event != NULL);
-  EXPECT(event->type() == DebuggerEvent::kBreakpointReached);
+  EXPECT(event->kind() == ServiceEvent::kPauseBreakpoint);
   saw_paused_event = true;
 }
 
@@ -118,7 +118,6 @@ TEST_CASE(Debugger_PauseEvent) {
 
   Isolate* isolate = Isolate::Current();
   Debugger* debugger = isolate->debugger();
-  const String& url = String::Handle(String::New(TestCase::url()));
 
   // No pause event.
   EXPECT(!debugger->IsPaused());
@@ -128,7 +127,7 @@ TEST_CASE(Debugger_PauseEvent) {
   Dart_SetPausedEventHandler(InspectPausedEvent);
 
   // Set a breakpoint and run.
-  debugger->SetBreakpointAtLine(url, 2);
+  EXPECT_VALID(Dart_SetBreakpoint(NewString(TestCase::url()), 2));
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(Dart_IsString(result));

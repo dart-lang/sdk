@@ -5,12 +5,19 @@
 #ifndef VM_SERVICE_EVENT_H_
 #define VM_SERVICE_EVENT_H_
 
-#include "vm/debugger.h"
-
-class DebuggerEvent;
-class TimelineEventBlock;
+#include "vm/globals.h"
+#include "vm/heap.h"
 
 namespace dart {
+
+class ActivationFrame;
+class Breakpoint;
+class Instance;
+class Isolate;
+class Object;
+class StreamInfo;
+class String;
+class TimelineEventBlock;
 
 class ServiceEvent {
  public:
@@ -68,9 +75,12 @@ class ServiceEvent {
 
   ServiceEvent(Isolate* isolate, EventKind event_kind);
 
-  explicit ServiceEvent(const DebuggerEvent* debugger_event);
-
   Isolate* isolate() const { return isolate_; }
+
+  // Used by the C embedding api.
+  Dart_Port isolate_id() const {
+    return isolate_->main_port();
+  }
 
   EventKind kind() const { return kind_; }
 
@@ -95,6 +105,7 @@ class ServiceEvent {
     embedder_kind_ = embedder_kind;
   }
 
+  const StreamInfo* stream_info() const;
   const char* stream_id() const;
 
   void set_embedder_stream_id(const char* stream_id) {
@@ -181,6 +192,8 @@ class ServiceEvent {
   void set_extension_event(const ExtensionEvent& extension_event) {
     extension_event_ = extension_event;
   }
+
+  void UpdateTimestamp();
 
   int64_t timestamp() const {
     return timestamp_;

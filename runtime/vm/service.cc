@@ -1008,15 +1008,16 @@ static void ReportPauseOnConsole(ServiceEvent* event) {
 
 
 void Service::HandleEvent(ServiceEvent* event) {
-  if (event->isolate() != NULL &&
-      ServiceIsolate::IsServiceIsolateDescendant(event->isolate())) {
+  if (event->stream_info() != NULL &&
+      !event->stream_info()->enabled()) {
+    if (FLAG_warn_on_pause_with_no_debugger &&
+        event->IsPause()) {
+      // If we are about to pause a running program which has no
+      // debugger connected, tell the user about it.
+      ReportPauseOnConsole(event);
+    }
+    // Ignore events when no one is listening to the event stream.
     return;
-  }
-  if (FLAG_warn_on_pause_with_no_debugger &&
-      event->IsPause() && !Service::debug_stream.enabled()) {
-    // If we are about to pause a running program which has no
-    // debugger connected, tell the user about it.
-    ReportPauseOnConsole(event);
   }
   if (!ServiceIsolate::IsRunning()) {
     return;

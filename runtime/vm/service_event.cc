@@ -4,36 +4,13 @@
 
 #include "vm/service_event.h"
 
+#include "vm/debugger.h"
 #include "vm/message_handler.h"
+#include "vm/service_isolate.h"
 
 namespace dart {
 
 #ifndef PRODUCT
-
-// Translate from the legacy DebugEvent to a ServiceEvent.
-static ServiceEvent::EventKind TranslateEventKind(
-    DebuggerEvent::EventType kind) {
-    switch (kind) {
-      case DebuggerEvent::kIsolateCreated:
-        return ServiceEvent::kIsolateStart;
-
-      case DebuggerEvent::kIsolateShutdown:
-        return ServiceEvent::kIsolateExit;
-
-      case DebuggerEvent::kBreakpointReached:
-        return ServiceEvent::kPauseBreakpoint;
-
-      case DebuggerEvent::kIsolateInterrupted:
-        return ServiceEvent::kPauseInterrupted;
-
-      case DebuggerEvent::kExceptionThrown:
-        return ServiceEvent::kPauseException;
-      default:
-        UNREACHABLE();
-        return ServiceEvent::kIllegal;
-    }
-}
-
 
 ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
     : isolate_(isolate),
@@ -51,6 +28,11 @@ ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
       bytes_(NULL),
       bytes_length_(0),
       timestamp_(OS::GetCurrentTimeMillis()) {
+  // We should never generate events for the vm or service isolates.
+  ASSERT(isolate_ != Dart::vm_isolate());
+  ASSERT(isolate == NULL ||
+         !ServiceIsolate::IsServiceIsolateDescendant(isolate_));
+
   if ((event_kind == ServiceEvent::kPauseStart) &&
       !isolate->message_handler()->is_paused_on_start()) {
     // We will pause on start but the message handler lacks a valid
@@ -65,36 +47,8 @@ ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
 }
 
 
-ServiceEvent::ServiceEvent(const DebuggerEvent* debugger_event)
-    : isolate_(debugger_event->isolate()),
-      kind_(TranslateEventKind(debugger_event->type())),
-      breakpoint_(NULL),
-      top_frame_(NULL),
-      timeline_event_block_(NULL),
-      extension_rpc_(NULL),
-      exception_(NULL),
-      at_async_jump_(false),
-      inspectee_(NULL),
-      gc_stats_(NULL),
-      bytes_(NULL),
-      bytes_length_(0),
-      timestamp_(OS::GetCurrentTimeMillis()) {
-  DebuggerEvent::EventType type = debugger_event->type();
-  if (type == DebuggerEvent::kBreakpointReached) {
-    set_breakpoint(debugger_event->breakpoint());
-    set_at_async_jump(debugger_event->at_async_jump());
-  }
-  if (type == DebuggerEvent::kExceptionThrown) {
-    set_exception(debugger_event->exception());
-  }
-  if (type == DebuggerEvent::kBreakpointReached ||
-      type == DebuggerEvent::kIsolateInterrupted ||
-      type == DebuggerEvent::kExceptionThrown) {
-    set_top_frame(debugger_event->top_frame());
-  }
-  if (debugger_event->timestamp() != -1) {
-    timestamp_ = debugger_event->timestamp();
-  }
+void ServiceEvent::UpdateTimestamp() {
+  timestamp_ = OS::GetCurrentTimeMillis();
 }
 
 
@@ -155,17 +109,17 @@ const char* ServiceEvent::KindAsCString() const {
 }
 
 
-const char* ServiceEvent::stream_id() const {
+const StreamInfo* ServiceEvent::stream_info() const {
   switch (kind()) {
     case kVMUpdate:
-      return Service::vm_stream.id();
+      return &Service::vm_stream;
 
     case kIsolateStart:
     case kIsolateRunnable:
     case kIsolateExit:
     case kIsolateUpdate:
     case kServiceExtensionAdded:
-      return Service::isolate_stream.id();
+      return &Service::isolate_stream;
 
     case kPauseStart:
     case kPauseExit:
@@ -179,26 +133,37 @@ const char* ServiceEvent::stream_id() const {
     case kBreakpointRemoved:
     case kInspect:
     case kDebuggerSettingsUpdate:
-      return Service::debug_stream.id();
+      return &Service::debug_stream;
 
     case kGC:
-      return Service::gc_stream.id();
-
-    case kEmbedder:
-      return embedder_stream_id_;
+      return &Service::gc_stream;
 
     case kLogging:
-      return Service::logging_stream.id();
+      return &Service::logging_stream;
 
     case kExtension:
-      return Service::extension_stream.id();
+      return &Service::extension_stream;
 
     case kTimelineEvents:
-      return Service::timeline_stream.id();
+      return &Service::timeline_stream;
+
+    case kEmbedder:
+      return NULL;
 
     default:
       UNREACHABLE();
       return NULL;
+  }
+}
+
+
+const char* ServiceEvent::stream_id() const {
+  const StreamInfo* stream = stream_info();
+  if (stream == NULL) {
+    ASSERT(kind() == kEmbedder);
+    return embedder_stream_id_;
+  } else {
+    return stream->id();
   }
 }
 

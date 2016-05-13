@@ -545,7 +545,7 @@ void Exceptions::Throw(Thread* thread, const Instance& exception) {
     Isolate* isolate = thread->isolate();
     if (exception.raw() != isolate->object_store()->out_of_memory() &&
         exception.raw() != isolate->object_store()->stack_overflow()) {
-      isolate->debugger()->SignalExceptionThrown(exception);
+      isolate->debugger()->PauseException(exception);
     }
   }
   // Null object is a valid exception object.

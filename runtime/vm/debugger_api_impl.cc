@@ -110,13 +110,13 @@ static Dart_ExceptionThrownHandler* exc_thrown_handler = NULL;
 static Dart_IsolateEventHandler* isolate_event_handler = NULL;
 
 
-static void DebuggerEventHandler(DebuggerEvent* event) {
+static void DebuggerEventHandler(ServiceEvent* event) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   Dart_EnterScope();
   Dart_IsolateId isolate_id = isolate->debugger()->GetIsolateId();
-  if (event->type() == DebuggerEvent::kBreakpointReached) {
+  if (event->kind() == ServiceEvent::kPauseBreakpoint) {
     if (paused_event_handler != NULL) {
       Dart_CodeLocation location;
       ActivationFrame* top_frame = event->top_frame();
@@ -131,10 +131,13 @@ static void DebuggerEventHandler(DebuggerEvent* event) {
       }
       (*paused_event_handler)(isolate_id, bp_id, location);
     }
-  } else if (event->type() == DebuggerEvent::kBreakpointResolved) {
-    if (bp_resolved_handler != NULL) {
-      Breakpoint* bpt = event->breakpoint();
-      ASSERT(bpt != NULL);
+  } else if (event->kind() == ServiceEvent::kBreakpointAdded ||
+             event->kind() == ServiceEvent::kBreakpointResolved) {
+    Breakpoint* bpt = event->breakpoint();
+    ASSERT(bpt != NULL);
+    if (bp_resolved_handler != NULL &&
+        bpt->bpt_location()->IsResolved() &&
+        !bpt->IsSingleShot()) {
       Dart_CodeLocation location;
       Zone* zone = thread->zone();
       Library& library = Library::Handle(zone);
@@ -146,7 +149,9 @@ static void DebuggerEventHandler(DebuggerEvent* event) {
       location.token_pos = token_pos.Pos();
       (*bp_resolved_handler)(isolate_id, bpt->id(), location);
     }
-  } else if (event->type() == DebuggerEvent::kExceptionThrown) {
+  } else if (event->kind() == ServiceEvent::kBreakpointRemoved) {
+    // Ignore.
+  } else if (event->kind() == ServiceEvent::kPauseException) {
     if (exc_thrown_handler != NULL) {
       Dart_Handle exception =
           Api::NewHandle(thread, event->exception()->raw());
@@ -154,15 +159,15 @@ static void DebuggerEventHandler(DebuggerEvent* event) {
       reinterpret_cast<Dart_StackTrace>(isolate->debugger()->StackTrace());
       (*exc_thrown_handler)(isolate_id, exception, trace);
     }
-  } else if (event->type() == DebuggerEvent::kIsolateCreated) {
+  } else if (event->kind() == ServiceEvent::kIsolateStart) {
     if (isolate_event_handler != NULL) {
       (*isolate_event_handler)(event->isolate_id(), kCreated);
     }
-  } else if (event->type() == DebuggerEvent::kIsolateInterrupted) {
+  } else if (event->kind() == ServiceEvent::kPauseInterrupted) {
     if (isolate_event_handler != NULL) {
       (*isolate_event_handler)(event->isolate_id(), kInterrupted);
     }
-  } else if (event->type() == DebuggerEvent::kIsolateShutdown) {
+  } else if (event->kind() == ServiceEvent::kIsolateExit) {
     if (isolate_event_handler != NULL) {
       (*isolate_event_handler)(event->isolate_id(), kShutdown);
     }

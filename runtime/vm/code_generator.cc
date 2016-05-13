@@ -668,7 +668,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   const Code& orig_stub = Code::Handle(
       zone, isolate->debugger()->GetPatchedStubAddress(caller_frame->pc()));
   const Error& error =
-      Error::Handle(zone, isolate->debugger()->SignalBpReached());
+      Error::Handle(zone, isolate->debugger()->PauseBreakpoint());
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
     UNREACHABLE();
@@ -682,7 +682,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
     UNREACHABLE();
     return;
   }
-  const Error& error = Error::Handle(isolate->debugger()->SignalBpReached());
+  const Error& error = Error::Handle(isolate->debugger()->PauseBreakpoint());
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
     UNREACHABLE();
@@ -697,7 +697,7 @@ DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
     return;
   }
   const Error& error =
-      Error::Handle(zone, isolate->debugger()->DebuggerStepCallback());
+      Error::Handle(zone, isolate->debugger()->PauseStepping());
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
     UNREACHABLE();

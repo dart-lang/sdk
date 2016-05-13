@@ -338,7 +338,7 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
 
       // If we are already paused, don't pause again.
       if (FLAG_support_debugger && (I->debugger()->PauseEvent() == NULL)) {
-        return I->debugger()->SignalIsolateInterrupted();
+        return I->debugger()->PauseInterrupted();
       }
       break;
     }
@@ -670,7 +670,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
             (exception == I->object_store()->stack_overflow())) {
           // We didn't notify the debugger when the stack was full. Do it now.
           if (FLAG_support_debugger) {
-            I->debugger()->SignalExceptionThrown(Instance::Handle(exception));
+            I->debugger()->PauseException(Instance::Handle(exception));
           }
         }
       }
@@ -1772,8 +1772,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
       ServiceEvent pause_event(this, ServiceEvent::kPauseExit);
       jsobj.AddProperty("pauseEvent", &pause_event);
     } else if (debugger()->PauseEvent() != NULL && !resume_request_) {
-      ServiceEvent pause_event(debugger()->PauseEvent());
-      jsobj.AddProperty("pauseEvent", &pause_event);
+      jsobj.AddProperty("pauseEvent", debugger()->PauseEvent());
     } else {
       ServiceEvent pause_event(this, ServiceEvent::kResume);
 

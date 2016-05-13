@@ -13,6 +13,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/service.h"
+#include "vm/service_isolate.h"
 
 namespace dart {
 
@@ -26,7 +27,7 @@ DEFINE_NATIVE_ENTRY(Developer_debugger, 2) {
     return when.raw();
   }
   if (when.value()) {
-    debugger->BreakHere(msg);
+    debugger->PauseDeveloper(msg);
   }
   return when.raw();
 }
@@ -92,7 +93,13 @@ DEFINE_NATIVE_ENTRY(Developer_registerExtension, 2) {
   }
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, handler, arguments->NativeArgAt(1));
-  isolate->RegisterServiceExtensionHandler(name, handler);
+  // We don't allow service extensions to be registered for the
+  // service isolate.  This can happen, for example, because the
+  // service isolate uses dart:io.  If we decide that we want to start
+  // supporting this in the future, it will take some work.
+  if (!ServiceIsolate::IsServiceIsolateDescendant(isolate)) {
+    isolate->RegisterServiceExtensionHandler(name, handler);
+  }
   return Object::null();
 }
 
