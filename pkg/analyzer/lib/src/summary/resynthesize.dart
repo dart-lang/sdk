@@ -577,7 +577,7 @@ class _ConstExprBuilder {
 
   void _pushInstanceCreation() {
     EntityRef ref = uc.references[refPtr++];
-    _ReferenceInfo info = resynthesizer.referenceInfos[ref.reference];
+    _ReferenceInfo info = resynthesizer.getReferenceInfo(ref.reference);
     // prepare ConstructorElement
     TypeName typeNode;
     String constructorName;
@@ -645,7 +645,7 @@ class _ConstExprBuilder {
   void _pushInvokeMethodRef() {
     List<Expression> arguments = _buildArguments();
     EntityRef ref = uc.references[refPtr++];
-    _ReferenceInfo info = resynthesizer.referenceInfos[ref.reference];
+    _ReferenceInfo info = resynthesizer.getReferenceInfo(ref.reference);
     Expression node = _buildIdentifierSequence(info);
     if (node is SimpleIdentifier) {
       _push(new MethodInvocation(
@@ -686,7 +686,7 @@ class _ConstExprBuilder {
 
   void _pushReference() {
     EntityRef ref = uc.references[refPtr++];
-    _ReferenceInfo info = resynthesizer.referenceInfos[ref.reference];
+    _ReferenceInfo info = resynthesizer.getReferenceInfo(ref.reference);
     Expression node = _buildIdentifierSequence(info);
     _push(node);
   }
@@ -1615,9 +1615,13 @@ class _UnitResynthesizer {
    */
   Map<String, ConstructorElementImpl> constructors;
 
+  int numLinkedReferences;
+  int numUnlinkedReferences;
+
   /**
    * List of [_ReferenceInfo] objects describing the references in the current
-   * compilation unit.
+   * compilation unit.  This list is works as a lazily filled cache, use
+   * [getReferenceInfo] to get the [_ReferenceInfo] for an index.
    */
   List<_ReferenceInfo> referenceInfos;
 
@@ -1627,7 +1631,9 @@ class _UnitResynthesizer {
       linkedTypeMap[t.slot] = t;
     }
     constCycles = linkedUnit.constCycles.toSet();
-    populateReferenceInfos();
+    numLinkedReferences = linkedUnit.references.length;
+    numUnlinkedReferences = unlinkedUnit.references.length;
+    referenceInfos = new List<_ReferenceInfo>(numLinkedReferences);
   }
 
   SummaryResynthesizer get summaryResynthesizer =>
@@ -1840,7 +1846,7 @@ class _UnitResynthesizer {
       if (serializedExecutable.isFactory) {
         EntityRef redirectedConstructor =
             serializedExecutable.redirectedConstructor;
-        _ReferenceInfo info = referenceInfos[redirectedConstructor.reference];
+        _ReferenceInfo info = getReferenceInfo(redirectedConstructor.reference);
         List<EntityRef> typeArguments = redirectedConstructor.typeArguments;
         currentConstructor.redirectedConstructor = _createConstructorElement(
             _createConstructorDefiningType(info, typeArguments), info);
@@ -2378,7 +2384,7 @@ class _UnitResynthesizer {
           return DynamicTypeImpl.instance;
         }
       }
-      _ReferenceInfo referenceInfo = referenceInfos[type.reference];
+      _ReferenceInfo referenceInfo = getReferenceInfo(type.reference);
       return referenceInfo.buildType(
           instantiateToBoundsAllowed,
           type.typeArguments.length,
@@ -2553,44 +2559,24 @@ class _UnitResynthesizer {
   }
 
   /**
-   * Get the type parameter from the surrounding scope whose De Bruijn index is
-   * [index].
+   * Return [_ReferenceInfo] with the given [index], lazily resolving it.
    */
-  DartType getTypeParameterFromScope(int index) {
-    for (int i = currentTypeParameters.length - 1; i >= 0; i--) {
-      List<TypeParameterElement> paramsAtThisNestingLevel =
-          currentTypeParameters[i];
-      int numParamsAtThisNestingLevel = paramsAtThisNestingLevel.length;
-      if (index <= numParamsAtThisNestingLevel) {
-        return paramsAtThisNestingLevel[numParamsAtThisNestingLevel - index]
-            .type;
-      }
-      index -= numParamsAtThisNestingLevel;
-    }
-    throw new StateError('Type parameter not found');
-  }
-
-  /**
-   * Populate [referenceInfos] with the correct information for the current
-   * compilation unit.
-   */
-  void populateReferenceInfos() {
-    int numLinkedReferences = linkedUnit.references.length;
-    int numUnlinkedReferences = unlinkedUnit.references.length;
-    referenceInfos = new List<_ReferenceInfo>(numLinkedReferences);
-    for (int i = 0; i < numLinkedReferences; i++) {
-      LinkedReference linkedReference = linkedUnit.references[i];
+  _ReferenceInfo getReferenceInfo(int index) {
+    _ReferenceInfo result = referenceInfos[index];
+    if (result == null) {
+      LinkedReference linkedReference = linkedUnit.references[index];
       String name;
       int containingReference;
-      if (i < numUnlinkedReferences) {
-        name = unlinkedUnit.references[i].name;
-        containingReference = unlinkedUnit.references[i].prefixReference;
+      if (index < numUnlinkedReferences) {
+        name = unlinkedUnit.references[index].name;
+        containingReference = unlinkedUnit.references[index].prefixReference;
       } else {
-        name = linkedUnit.references[i].name;
-        containingReference = linkedUnit.references[i].containingReference;
+        name = linkedUnit.references[index].name;
+        containingReference = linkedUnit.references[index].containingReference;
       }
-      _ReferenceInfo enclosingInfo =
-          containingReference != 0 ? referenceInfos[containingReference] : null;
+      _ReferenceInfo enclosingInfo = containingReference != 0
+          ? getReferenceInfo(containingReference)
+          : null;
       Element element;
       DartType type;
       int numTypeParameters = linkedReference.numTypeParameters;
@@ -2681,9 +2667,29 @@ class _UnitResynthesizer {
             break;
         }
       }
-      referenceInfos[i] = new _ReferenceInfo(libraryResynthesizer,
-          enclosingInfo, name, element, type, numTypeParameters);
+      result = new _ReferenceInfo(libraryResynthesizer, enclosingInfo, name,
+          element, type, numTypeParameters);
+      referenceInfos[index] = result;
     }
+    return result;
+  }
+
+  /**
+   * Get the type parameter from the surrounding scope whose De Bruijn index is
+   * [index].
+   */
+  DartType getTypeParameterFromScope(int index) {
+    for (int i = currentTypeParameters.length - 1; i >= 0; i--) {
+      List<TypeParameterElement> paramsAtThisNestingLevel =
+          currentTypeParameters[i];
+      int numParamsAtThisNestingLevel = paramsAtThisNestingLevel.length;
+      if (index <= numParamsAtThisNestingLevel) {
+        return paramsAtThisNestingLevel[numParamsAtThisNestingLevel - index]
+            .type;
+      }
+      index -= numParamsAtThisNestingLevel;
+    }
+    throw new StateError('Type parameter not found');
   }
 
   /**
