@@ -981,6 +981,11 @@ class _LibraryResynthesizer {
   final Source librarySource;
 
   /**
+   * The URI of [librarySource].
+   */
+  String libraryUri;
+
+  /**
    * Indicates whether [librarySource] is the `dart:core` library.
    */
   bool isCoreLibrary;
@@ -1015,7 +1020,8 @@ class _LibraryResynthesizer {
 
   _LibraryResynthesizer(this.summaryResynthesizer, this.linkedLibrary,
       this.unlinkedUnits, this.librarySource) {
-    isCoreLibrary = librarySource.uri.toString() == 'dart:core';
+    libraryUri = librarySource.uri.toString();
+    isCoreLibrary = libraryUri == 'dart:core';
   }
 
   /**
@@ -1302,7 +1308,7 @@ class _LibraryResynthesizer {
   List<String> getReferencedLocationComponents(
       int dependencyIndex, int unit, String name) {
     if (dependencyIndex == 0) {
-      String referencedLibraryUri = librarySource.uri.toString();
+      String referencedLibraryUri = libraryUri;
       String partUri;
       if (unit != 0) {
         String uri = unlinkedUnits[0].publicNamespace.parts[unit - 1];
