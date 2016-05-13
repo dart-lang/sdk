@@ -75,6 +75,33 @@ DECLARE_FLAG(bool, trace_irregexp);
 
 #ifdef DART_PRECOMPILER
 
+class DartPrecompilationPipeline : public DartCompilationPipeline {
+ public:
+  DartPrecompilationPipeline() : result_type_(CompileType::None()) { }
+
+  virtual void FinalizeCompilation(FlowGraph* flow_graph) {
+    CompileType result_type = CompileType::None();
+    for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
+         !block_it.Done();
+         block_it.Advance()) {
+      ForwardInstructionIterator it(block_it.Current());
+      for (; !it.Done(); it.Advance()) {
+        ReturnInstr* return_instr = it.Current()->AsReturn();
+        if (return_instr != NULL) {
+          result_type.Union(return_instr->InputAt(0)->Type());
+        }
+      }
+    }
+    result_type_ = result_type;
+  }
+
+  CompileType result_type() { return result_type_; }
+
+ private:
+  CompileType result_type_;
+};
+
+
 class PrecompileParsedFunctionHelper : public ValueObject {
  public:
   PrecompileParsedFunctionHelper(ParsedFunction* parsed_function,
@@ -169,6 +196,9 @@ void Precompiler::DoCompileAll(
     // because their class hasn't been finalized yet.
     FinalizeAllClasses();
 
+    // Precompile static initializers to compute result type information.
+    PrecompileStaticInitializers();
+
     for (intptr_t round = 0; round < FLAG_precompiler_rounds; round++) {
       if (FLAG_trace_precompiler) {
         THR_Print("Precompiler round %" Pd "\n", round);
@@ -255,9 +285,52 @@ void Precompiler::DoCompileAll(
 }
 
 
+static void CompileStaticInitializerIgnoreErrors(const Field& field) {
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    Precompiler::CompileStaticInitializer(field, /* compute_type = */ true);
+  } else {
+    // Ignore compile-time errors here. If the field is actually used,
+    // the error will be reported later during Iterate().
+  }
+}
+
+
+void Precompiler::PrecompileStaticInitializers() {
+  class StaticInitializerVisitor : public ClassVisitor {
+   public:
+    explicit StaticInitializerVisitor(Zone* zone)
+      : fields_(Array::Handle(zone)),
+        field_(Field::Handle(zone)),
+        function_(Function::Handle(zone)) { }
+    void Visit(const Class& cls) {
+      fields_ = cls.fields();
+      for (intptr_t j = 0; j < fields_.Length(); j++) {
+        field_ ^= fields_.At(j);
+        if (field_.is_static() &&
+            field_.is_final() &&
+            field_.has_initializer()) {
+          if (FLAG_trace_precompiler) {
+            THR_Print("Precompiling initializer for %s\n", field_.ToCString());
+          }
+          CompileStaticInitializerIgnoreErrors(field_);
+        }
+      }
+    }
+
+   private:
+    Array& fields_;
+    Field& field_;
+    Function& function_;
+  };
+  StaticInitializerVisitor visitor(Z);
+  VisitClasses(&visitor);
+}
+
+
 void Precompiler::ClearAllCode() {
   class ClearCodeFunctionVisitor : public FunctionVisitor {
-    void VisitFunction(const Function& function) {
+    void Visit(const Function& function) {
       function.ClearCode();
       function.ClearICDataArray();
     }
@@ -768,8 +841,8 @@ void Precompiler::AddField(const Field& field) {
           THR_Print("Precompiling initializer for %s\n", field.ToCString());
         }
         ASSERT(Dart::snapshot_kind() != Snapshot::kAppNoJIT);
-        const Function& initializer =
-            Function::Handle(Z, CompileStaticInitializer(field));
+        const Function& initializer = Function::Handle(Z,
+            CompileStaticInitializer(field, /* compute_type = */ true));
         ASSERT(!initializer.IsNull());
         field.SetPrecompiledInitializer(initializer);
         AddCalleesOf(initializer);
@@ -779,7 +852,8 @@ void Precompiler::AddField(const Field& field) {
 }
 
 
-RawFunction* Precompiler::CompileStaticInitializer(const Field& field) {
+RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
+                                                   bool compute_type) {
   ASSERT(field.is_static());
   Thread* thread = Thread::Current();
   StackZone zone(thread);
@@ -787,11 +861,22 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field) {
   ParsedFunction* parsed_function = Parser::ParseStaticFieldInitializer(field);
 
   parsed_function->AllocateVariables();
-  DartCompilationPipeline pipeline;
+  DartPrecompilationPipeline pipeline;
   PrecompileParsedFunctionHelper helper(parsed_function,
                                         /* optimized = */ true);
   bool success = helper.Compile(&pipeline);
   ASSERT(success);
+
+  if (compute_type && field.is_final()) {
+    intptr_t result_cid = pipeline.result_type().ToCid();
+    if (result_cid != kDynamicCid) {
+      if (FLAG_trace_precompiler) {
+        THR_Print("Setting guarded_cid of %s to %s\n", field.ToCString(),
+                  pipeline.result_type().ToCString());
+      }
+      field.set_guarded_cid(result_cid);
+    }
+  }
 
   if ((FLAG_disassemble || FLAG_disassemble_optimized) &&
       FlowGraphPrinter::ShouldPrint(parsed_function->function())) {
@@ -815,7 +900,7 @@ RawObject* Precompiler::EvaluateStaticInitializer(const Field& field) {
     // remembering it because it won't be used again.
     Function& initializer = Function::Handle();
     if (!field.HasPrecompiledInitializer()) {
-      initializer = CompileStaticInitializer(field);
+      initializer = CompileStaticInitializer(field, /* compute_type = */ false);
     } else {
       initializer ^= field.PrecompiledInitializer();
     }
@@ -876,7 +961,7 @@ RawObject* Precompiler::ExecuteOnce(SequenceNode* fragment) {
     parsed_function->AllocateVariables();
 
     // Non-optimized code generator.
-    DartCompilationPipeline pipeline;
+    DartPrecompilationPipeline pipeline;
     PrecompileParsedFunctionHelper helper(parsed_function,
                                           /* optimized = */ false);
     helper.Compile(&pipeline);
@@ -1672,7 +1757,7 @@ void Precompiler::BindStaticCalls() {
         target_code_(Code::Handle(zone)) {
     }
 
-    void VisitFunction(const Function& function) {
+    void Visit(const Function& function) {
       if (!function.HasCode()) {
         return;
       }
@@ -1741,7 +1826,7 @@ void Precompiler::SwitchICCalls() {
         entry_point_(Smi::Handle(zone)) {
     }
 
-    void VisitFunction(const Function& function) {
+    void Visit(const Function& function) {
       if (!function.HasCode()) {
         return;
       }
@@ -1810,7 +1895,7 @@ void Precompiler::DedupStackmaps() {
       stackmap_(Stackmap::Handle(zone)) {
     }
 
-    void VisitFunction(const Function& function) {
+    void Visit(const Function& function) {
       if (!function.HasCode()) {
         return;
       }
@@ -1860,7 +1945,7 @@ void Precompiler::DedupStackmapLists() {
       stackmap_(Stackmap::Handle(zone)) {
     }
 
-    void VisitFunction(const Function& function) {
+    void Visit(const Function& function) {
       if (!function.HasCode()) {
         return;
       }
@@ -1907,7 +1992,7 @@ void Precompiler::DedupInstructions() {
       instructions_(Instructions::Handle(zone)) {
     }
 
-    void VisitFunction(const Function& function) {
+    void Visit(const Function& function) {
       if (!function.HasCode()) {
         ASSERT(function.HasImplicitClosureFunction());
         return;
@@ -1943,6 +2028,25 @@ void Precompiler::DedupInstructions() {
   VisitFunctions(&visitor);
 }
 
+
+void Precompiler::VisitClasses(ClassVisitor* visitor) {
+  Library& lib = Library::Handle(Z);
+  Class& cls = Class::Handle(Z);
+
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      if (cls.IsDynamicClass()) {
+        continue;  // class 'dynamic' is in the read-only VM isolate.
+      }
+      visitor->Visit(cls);
+    }
+  }
+}
+
+
 void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
@@ -1965,10 +2069,10 @@ void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
       functions = cls.functions();
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
-        visitor->VisitFunction(function);
+        visitor->Visit(function);
         if (function.HasImplicitClosureFunction()) {
           function = function.ImplicitClosureFunction();
-          visitor->VisitFunction(function);
+          visitor->Visit(function);
         }
       }
 
@@ -1977,7 +2081,7 @@ void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
         object = functions.At(j);
         if (object.IsFunction()) {
           function ^= functions.At(j);
-          visitor->VisitFunction(function);
+          visitor->Visit(function);
         }
       }
       fields = cls.fields();
@@ -1985,7 +2089,7 @@ void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
         field ^= fields.At(j);
         if (field.is_static() && field.HasPrecompiledInitializer()) {
           function ^= field.PrecompiledInitializer();
-          visitor->VisitFunction(function);
+          visitor->Visit(function);
         }
       }
     }
@@ -1993,7 +2097,7 @@ void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
   closures = isolate()->object_store()->closure_functions();
   for (intptr_t j = 0; j < closures.Length(); j++) {
     function ^= closures.At(j);
-    visitor->VisitFunction(function);
+    visitor->Visit(function);
     ASSERT(!function.HasImplicitClosureFunction());
   }
 }
@@ -2579,7 +2683,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                   "CompileGraph");
 #endif  // !PRODUCT
         graph_compiler.CompileGraph();
-        pipeline->FinalizeCompilation();
+        pipeline->FinalizeCompilation(flow_graph);
       }
       {
 #ifndef PRODUCT

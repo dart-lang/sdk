@@ -105,7 +105,7 @@ FlowGraph* DartCompilationPipeline::BuildFlowGraph(
 }
 
 
-void DartCompilationPipeline::FinalizeCompilation() { }
+void DartCompilationPipeline::FinalizeCompilation(FlowGraph* flow_graph) { }
 
 
 void IrregexpCompilationPipeline::ParseFunction(
@@ -142,7 +142,7 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
 }
 
 
-void IrregexpCompilationPipeline::FinalizeCompilation() {
+void IrregexpCompilationPipeline::FinalizeCompilation(FlowGraph* flow_graph) {
   backtrack_goto_->ComputeOffsetTable();
 }
 
@@ -1127,7 +1127,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                                  compiler_timeline,
                                                  "CompileGraph"));
         graph_compiler.CompileGraph();
-        pipeline->FinalizeCompilation();
+        pipeline->FinalizeCompilation(flow_graph);
       }
       {
         NOT_IN_PRODUCT(TimelineDurationScope tds(thread(),

@@ -947,13 +947,18 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
     abstract_type = &AbstractType::ZoneHandle(field.type());
   }
   ASSERT(field.is_static());
-  if (field.is_final() && !FLAG_fields_may_be_reset) {
-    const Instance& obj = Instance::Handle(field.StaticValue());
-    if ((obj.raw() != Object::sentinel().raw()) &&
-        (obj.raw() != Object::transition_sentinel().raw()) &&
-        !obj.IsNull()) {
-      is_nullable = CompileType::kNonNullable;
-      cid = obj.GetClassId();
+  if (field.is_final()) {
+    if (!FLAG_fields_may_be_reset) {
+      const Instance& obj = Instance::Handle(field.StaticValue());
+      if ((obj.raw() != Object::sentinel().raw()) &&
+          (obj.raw() != Object::transition_sentinel().raw()) &&
+          !obj.IsNull()) {
+        is_nullable = CompileType::kNonNullable;
+        cid = obj.GetClassId();
+      }
+    } else {
+      cid = field.guarded_cid();
+      if (!IsNullableCid(cid)) is_nullable = CompileType::kNonNullable;
     }
   }
   if (Field::IsExternalizableCid(cid)) {

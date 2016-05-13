@@ -270,11 +270,12 @@ class Precompiler : public ValueObject {
   static RawObject* EvaluateStaticInitializer(const Field& field);
   static RawObject* ExecuteOnce(SequenceNode* fragment);
 
+  static RawFunction* CompileStaticInitializer(const Field& field,
+                                               bool compute_type);
+
  private:
   Precompiler(Thread* thread, bool reset_fields);
 
-
-  static RawFunction* CompileStaticInitializer(const Field& field);
 
   void DoCompileAll(Dart_QualifiedFunctionName embedder_entry_points[]);
   void ClearAllCode();
@@ -317,13 +318,19 @@ class Precompiler : public ValueObject {
 
   void CollectDynamicFunctionNames();
 
-  class FunctionVisitor : public ValueObject {
+  void PrecompileStaticInitializers();
+
+  template<typename T>
+  class Visitor : public ValueObject {
    public:
-    virtual ~FunctionVisitor() {}
-    virtual void VisitFunction(const Function& function) = 0;
+    virtual ~Visitor() {}
+    virtual void Visit(const T& obj) = 0;
   };
+  typedef Visitor<Function> FunctionVisitor;
+  typedef Visitor<Class> ClassVisitor;
 
   void VisitFunctions(FunctionVisitor* visitor);
+  void VisitClasses(ClassVisitor* visitor);
 
   void FinalizeAllClasses();
 

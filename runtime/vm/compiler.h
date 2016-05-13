@@ -38,7 +38,7 @@ class CompilationPipeline : public ZoneAllocated {
       ParsedFunction* parsed_function,
       const ZoneGrowableArray<const ICData*>& ic_data_array,
       intptr_t osr_id) = 0;
-  virtual void FinalizeCompilation() = 0;
+  virtual void FinalizeCompilation(FlowGraph* flow_graph) = 0;
   virtual ~CompilationPipeline() { }
 };
 
@@ -53,7 +53,7 @@ class DartCompilationPipeline : public CompilationPipeline {
       const ZoneGrowableArray<const ICData*>& ic_data_array,
       intptr_t osr_id);
 
-  virtual void FinalizeCompilation();
+  virtual void FinalizeCompilation(FlowGraph* flow_graph);
 };
 
 
@@ -69,7 +69,7 @@ class IrregexpCompilationPipeline : public CompilationPipeline {
       const ZoneGrowableArray<const ICData*>& ic_data_array,
       intptr_t osr_id);
 
-  virtual void FinalizeCompilation();
+  virtual void FinalizeCompilation(FlowGraph* flow_graph);
 
  private:
   IndirectGotoInstr* backtrack_goto_;
