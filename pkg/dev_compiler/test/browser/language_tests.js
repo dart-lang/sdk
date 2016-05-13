@@ -464,9 +464,6 @@
       'chunked_conversion_utf84_test': skip_timeout,
       'chunked_conversion_utf88_test': skip_timeout,
       'chunked_conversion_utf8_test': skip_timeout,
-
-      // TODO(rnystrom): Strong mode cast failures.
-      'codec1_test': fail,
       'encoding_test': skip_timeout,
 
       // TODO(rnystrom): If this test is enabled, karma gets confused and

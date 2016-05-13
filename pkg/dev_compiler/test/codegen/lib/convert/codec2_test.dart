@@ -38,5 +38,5 @@ main() {
   List<int> bytes = JSON_TO_BYTES.encode(["json-object"]);
   decoded = JSON_TO_BYTES.decode(bytes);
   Expect.isTrue(decoded is List);
-  Expect.equals("json-object", decoded[0]);
+  Expect.equals("json-object", (decoded as List)[0]);
 }

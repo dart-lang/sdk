@@ -46,7 +46,7 @@ void _testConvert(HtmlEscape escape, String input, String expected) {
 }
 
 void _testTransform(HtmlEscape escape, String input, String expected) {
-  var controller = new StreamController(sync: true);
+  var controller = new StreamController<String>(sync: true);
 
   var stream = controller.stream.transform(escape);
 

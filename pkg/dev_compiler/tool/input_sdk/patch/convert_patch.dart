@@ -397,8 +397,9 @@ class _JsonDecoderSink extends _StringSinkConversionSink {
 
 @patch class Utf8Decoder {
   @patch
-  Converter<List<int>,dynamic> fuse(Converter<String, dynamic> next) {
-    return super.fuse(next);
+  Converter<List<int>, dynamic/*=T*/> fuse/*<T>*/(
+      Converter<String, dynamic/*=T*/> next) {
+    return super.fuse/*<T>*/(next);
   }
 
   // Currently not intercepting UTF8 decoding.
