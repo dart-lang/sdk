@@ -448,6 +448,11 @@ class SampleBufferControlElement extends ObservatoryElement {
       onSampleBufferUpdate(profile);
       return profile;
     }
+    profileVM = isolate.vm.profileVM;
+    if (tagSelector == null) {
+      // Set default value.
+      tagSelector = profileVM ? 'UserVM' : 'None';
+    }
     await _changeState(kFetchingState);
     try {
       var response;
@@ -516,7 +521,7 @@ class SampleBufferControlElement extends ObservatoryElement {
 
   Function onSampleBufferUpdate;
   @observable bool showTagSelector = true;
-
+  @observable bool profileVM = false;
   @observable String sampleCount = '';
   @observable String refreshTime = '';
   @observable String sampleRate = '';
@@ -524,7 +529,7 @@ class SampleBufferControlElement extends ObservatoryElement {
   @observable String timeSpan = '';
   @observable String fetchTime = '';
   @observable String loadTime = '';
-  @observable String tagSelector = 'UserVM';
+  @observable String tagSelector;
   @observable String state = kFetchingState;
   @observable var exception;
   @observable var stackTrace;
@@ -608,31 +613,66 @@ class StackTraceTreeConfigElement extends ObservatoryElement {
 class FunctionCallTreeNodeRow extends VirtualTreeRow {
   final CpuProfile profile;
   final FunctionCallTreeNode node;
-  final String selfPercent;
-  final String totalPercent;
-  final String percent;
+  String selfPercent;
+  String totalPercent;
+  String percent;
+
+  static const kHotThreshold = 0.05;  // 5%.
+  static const kMediumThreshold = 0.02;  // 2%.
+
+  double _percent(bool self) {
+    if (self) {
+      return node.profileFunction.normalizedExclusiveTicks;
+    } else {
+      return node.profileFunction.normalizedInclusiveTicks;
+    }
+  }
+
+  bool isHot(bool self) => _percent(self) > kHotThreshold;
+  bool isMedium(bool self) => _percent(self) > kMediumThreshold;
+
+  String rowClass(bool self) {
+    if (isHot(self)) {
+      return 'hotProfile';
+    } else if (isMedium(self)) {
+      return 'mediumProfile';
+    } else {
+      return 'coldProfile';
+    }
+  }
 
   FunctionCallTreeNodeRow(VirtualTree tree,
                           int depth,
                           this.profile,
                           FunctionCallTreeNode node)
       : node = node,
-        selfPercent = Utils.formatPercentNormalized(node.profileFunction.normalizedExclusiveTicks),
-        totalPercent = Utils.formatPercentNormalized(node.profileFunction.normalizedInclusiveTicks),
-        percent = Utils.formatPercentNormalized(node.percentage),
         super(tree, depth) {
+    if ((node.profileFunction.function.kind == FunctionKind.kTag) &&
+        (node.profileFunction.normalizedExclusiveTicks == 0) &&
+        (node.profileFunction.normalizedInclusiveTicks == 0)) {
+    selfPercent = '';
+    totalPercent = '';
+    } else {
+      selfPercent = Utils.formatPercentNormalized(
+          node.profileFunction.normalizedExclusiveTicks);
+      totalPercent = Utils.formatPercentNormalized(
+          node.profileFunction.normalizedInclusiveTicks);
+    }
+    percent = Utils.formatPercentNormalized(node.percentage);
   }
 
   void onRender(DivElement rowDiv) {
     rowDiv.children.add(makeGap(ems:0.1));
     rowDiv.children.add(
-        makeText(totalPercent, toolTip: 'global % on stack'));
+        makeText(totalPercent,
+                 toolTip: 'global % on stack'));
     rowDiv.children.add(makeGap());
     rowDiv.children.add(
-        makeText(selfPercent, toolTip: 'global % executing'));
+        makeText(selfPercent,
+                 toolTip: 'global % executing'));
     rowDiv.children.add(makeGap());
-    rowDiv.children.add(makeIndenter(colored: false));
-    rowDiv.children.add(makeColorBar());
+    rowDiv.children.add(makeIndenter(depth, colored: false));
+    rowDiv.children.add(makeColorBar(depth));
     rowDiv.children.add(makeGap(ems: 1.0));
     rowDiv.children.add(makeExpander());
     rowDiv.children.add(
@@ -661,31 +701,66 @@ class FunctionCallTreeNodeRow extends VirtualTreeRow {
 class CodeCallTreeNodeRow extends VirtualTreeRow {
   final CpuProfile profile;
   final CodeCallTreeNode node;
-  final String selfPercent;
-  final String totalPercent;
-  final String percent;
+  String selfPercent;
+  String totalPercent;
+  String percent;
+
+  static const kHotThreshold = 0.05;  // 5%.
+  static const kMediumThreshold = 0.02;  // 2%.
+
+  double _percent(bool self) {
+    if (self) {
+      return node.profileCode.normalizedExclusiveTicks;
+    } else {
+      return node.profileCode.normalizedInclusiveTicks;
+    }
+  }
+
+  bool isHot(bool self) => _percent(self) > kHotThreshold;
+  bool isMedium(bool self) => _percent(self) > kMediumThreshold;
+
+  String rowClass(bool self) {
+    if (isHot(self)) {
+      return 'hotProfile';
+    } else if (isMedium(self)) {
+      return 'mediumProfile';
+    } else {
+      return 'coldProfile';
+    }
+  }
 
   CodeCallTreeNodeRow(VirtualTree tree,
                       int depth,
                       this.profile,
                       CodeCallTreeNode node)
       : node = node,
-        selfPercent = Utils.formatPercentNormalized(node.profileCode.normalizedExclusiveTicks),
-        totalPercent = Utils.formatPercentNormalized(node.profileCode.normalizedInclusiveTicks),
-        percent = Utils.formatPercentNormalized(node.percentage),
         super(tree, depth) {
+    if ((node.profileCode.code.kind == CodeKind.Tag) &&
+        (node.profileCode.normalizedExclusiveTicks == 0) &&
+        (node.profileCode.normalizedInclusiveTicks == 0)) {
+      selfPercent = '';
+      totalPercent = '';
+    } else {
+      selfPercent = Utils.formatPercentNormalized(
+          node.profileCode.normalizedExclusiveTicks);
+      totalPercent = Utils.formatPercentNormalized(
+          node.profileCode.normalizedInclusiveTicks);
+    }
+    percent = Utils.formatPercentNormalized(node.percentage);
   }
 
   void onRender(DivElement rowDiv) {
     rowDiv.children.add(makeGap(ems:0.1));
     rowDiv.children.add(
-        makeText(totalPercent, toolTip: 'global % on stack'));
+        makeText(totalPercent,
+                 toolTip: 'global % on stack'));
     rowDiv.children.add(makeGap());
     rowDiv.children.add(
-        makeText(selfPercent, toolTip: 'global % executing'));
+        makeText(selfPercent,
+                 toolTip: 'global % executing'));
     rowDiv.children.add(makeGap());
-    rowDiv.children.add(makeIndenter(colored: false));
-    rowDiv.children.add(makeColorBar());
+    rowDiv.children.add(makeIndenter(depth, colored: false));
+    rowDiv.children.add(makeColorBar(depth));
     rowDiv.children.add(makeGap(ems: 1.0));
     rowDiv.children.add(makeExpander());
     rowDiv.children.add(
@@ -1283,7 +1358,7 @@ class CpuProfileTableElement extends ObservatoryElement {
   ///
   TableTree functionTree;
   _updateFunctionTreeView() {
-    cpuProfileTreeElement.functionFilter = (FunctionCallTreeNode node) {
+    cpuProfileTreeElement.filter = (FunctionCallTreeNode node) {
       return node.profileFunction.function == focusedFunction;
     };
     cpuProfileTreeElement.render();
@@ -1304,7 +1379,7 @@ class CpuProfileTableElement extends ObservatoryElement {
   CpuProfile get profile => sampleBufferControlElement.profile;
   SampleBufferControlElement sampleBufferControlElement;
   StackTraceTreeConfigElement stackTraceTreeConfigElement;
-  CpuProfileTreeElement cpuProfileTreeElement;
+  CpuProfileVirtualTreeElement cpuProfileTreeElement;
 }
 
 enum ProfileTreeDirection {
@@ -1344,9 +1419,11 @@ class CpuProfileVirtualTreeElement extends ObservatoryElement {
   }
 
   showChanged(oldValue) {
-    var treeTable = shadowRoot.querySelector('#treeTable');
-    assert(treeTable != null);
-    treeTable.style.display = show ? 'table' : 'none';
+    if (show) {
+      virtualTree?.root?.style?.display = 'block';
+    } else {
+      virtualTree?.root?.style?.display = 'none';
+    }
   }
 
   void _updateView() {

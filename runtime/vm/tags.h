@@ -62,7 +62,8 @@ class VMTag : public AllStatic {
   }
   static const char* TagName(uword id);
   static bool IsNativeEntryTag(uword id);
-
+  static bool IsDartTag(uword id);
+  static bool IsExitFrameTag(uword id);
   static bool IsRuntimeEntryTag(uword id);
   static const char* RuntimeEntryTagName(uword id);
 

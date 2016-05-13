@@ -622,6 +622,7 @@ abstract class VM extends ServiceObjectOwner {
   @observable bool assertsEnabled = false;
   @observable bool typeChecksEnabled = false;
   @observable int pid = 0;
+  @observable bool profileVM = false;
   @observable DateTime startTime;
   @observable DateTime refreshTime;
   @observable Duration get upTime {
@@ -897,6 +898,7 @@ abstract class VM extends ServiceObjectOwner {
     refreshTime = new DateTime.now();
     notifyPropertyChange(#upTime, 0, 1);
     pid = map['pid'];
+    profileVM = map['_profilerMode'] == 'VM';
     assertsEnabled = map['_assertsEnabled'];
     typeChecksEnabled = map['_typeChecksEnabled'];
     _removeDeadIsolates(map['isolates']);
