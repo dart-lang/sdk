@@ -317,8 +317,9 @@ typedef UnlinkedUnit GetUnitCallback(String absoluteUri);
  * Element representing a class or enum resynthesized from a summary
  * during linking.
  */
-abstract class ClassElementForLink
-    implements ClassElementImpl, ReferenceableElementForLink {
+abstract class ClassElementForLink extends Object
+    with ReferenceableElementForLink
+    implements ClassElementImpl {
   Map<String, ReferenceableElementForLink> _containedNames;
 
   @override
@@ -338,19 +339,8 @@ abstract class ClassElementForLink
   ConstructorElementForLink get asConstructor => unnamedConstructor;
 
   @override
-  ConstVariableNode get asConstVariable {
-    // When a class name is used as a constant variable, it doesn't depend on
-    // anything, so it is not necessary to include it in the constant
-    // dependency graph.
-    return null;
-  }
-
-  @override
   DartType get asStaticType =>
       enclosingElement.enclosingElement._linker.typeProvider.typeType;
-
-  @override
-  TypeInferenceNode get asTypeInferenceNode => null;
 
   @override
   List<ConstructorElementForLink> get constructors;
@@ -1527,7 +1517,8 @@ class ConstParameterNode extends ConstNode {
  * during linking.
  */
 class ConstructorElementForLink extends ExecutableElementForLink
-    implements ConstructorElementImpl, ReferenceableElementForLink {
+    with ReferenceableElementForLink
+    implements ConstructorElementImpl {
   /**
    * If this is a `const` constructor and the enclosing library is
    * part of the build unit being linked, the constructor's node in
@@ -1550,34 +1541,12 @@ class ConstructorElementForLink extends ExecutableElementForLink
   ConstructorElementForLink get asConstructor => this;
 
   @override
-  ConstVariableNode get asConstVariable => null;
-
-  @override
-  DartType get asStaticType {
-    // Referring to a constructor directly is an error, so just use
-    // `dynamic`.
-    return DynamicTypeImpl.instance;
-  }
-
-  @override
-  TypeInferenceNode get asTypeInferenceNode => null;
-
-  @override
   bool get isCycleFree {
     if (!_constNode.isEvaluated) {
       new ConstDependencyWalker().walk(_constNode);
     }
     return _constNode.isCycleFree;
   }
-
-  @override
-  DartType buildType(DartType getTypeArgument(int i),
-          List<int> implicitFunctionTypeIndices) =>
-      DynamicTypeImpl.instance;
-
-  @override
-  ReferenceableElementForLink getContainedName(String name) =>
-      UndefinedElementForLink.instance;
 
   /**
    * Perform const cycle detection on this constructor.
@@ -2808,11 +2777,11 @@ class FunctionElementForLink_Local implements FunctionElementImpl {
  * Element representing a typedef resynthesized from a summary during linking.
  */
 class FunctionTypeAliasElementForLink extends Object
-    with TypeParameterizedElementForLink, ParameterParentElementForLink
-    implements
-        FunctionTypeAliasElement,
-        ReferenceableElementForLink,
-        ElementImpl {
+    with
+        TypeParameterizedElementForLink,
+        ParameterParentElementForLink,
+        ReferenceableElementForLink
+    implements FunctionTypeAliasElement, ElementImpl {
   @override
   final CompilationUnitElementForLink enclosingElement;
 
@@ -2827,23 +2796,9 @@ class FunctionTypeAliasElementForLink extends Object
   FunctionTypeAliasElementForLink(this.enclosingElement, this._unlinkedTypedef);
 
   @override
-  ConstructorElementForLink get asConstructor => null;
-
-  @override
-  ConstVariableNode get asConstVariable {
-    // When a typedef name is used as a constant variable, it doesn't depend on
-    // anything, so it is not necessary to include it in the constant
-    // dependency graph.
-    return null;
-  }
-
-  @override
   DartType get asStaticType {
     return enclosingElement.enclosingElement._linker.typeProvider.typeType;
   }
-
-  @override
-  TypeInferenceNode get asTypeInferenceNode => null;
 
   @override
   CompilationUnitElementForLink get compilationUnit => enclosingElement;
@@ -2894,12 +2849,6 @@ class FunctionTypeAliasElementForLink extends Object
     } else {
       return _type ??= new FunctionTypeImpl.forTypedef(this);
     }
-  }
-
-  @override
-  ReferenceableElementForLink getContainedName(String name) {
-    // TODO(paulberry): implement.
-    throw new UnimplementedError();
   }
 
   @override
@@ -3452,40 +3401,21 @@ class Linker {
  * Element representing a method resynthesized from a summary during linking.
  */
 class MethodElementForLink extends ExecutableElementForLink
-    implements MethodElementImpl, ReferenceableElementForLink {
+    with ReferenceableElementForLink
+    implements MethodElementImpl {
   MethodElementForLink(ClassElementForLink_Class enclosingClass,
       UnlinkedExecutable unlinkedExecutable)
       : super(enclosingClass.enclosingElement, enclosingClass,
             unlinkedExecutable);
 
   @override
-  ConstructorElementForLink get asConstructor => null;
-
-  @override
-  ConstVariableNode get asConstVariable => null;
-
-  @override
   DartType get asStaticType => type;
-
-  @override
-  TypeInferenceNode get asTypeInferenceNode => null;
 
   @override
   String get identifier => name;
 
   @override
   ElementKind get kind => ElementKind.METHOD;
-
-  @override
-  DartType buildType(DartType getTypeArgument(int i),
-          List<int> implicitFunctionTypeIndices) =>
-      DynamicTypeImpl.instance;
-
-  @override
-  ReferenceableElementForLink getContainedName(String name) {
-    // TODO(paulberry): handle references to `call`.
-    return UndefinedElementForLink.instance;
-  }
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -3542,7 +3472,8 @@ abstract class Node<NodeType> {
  * creating a [NonstaticMemberElementForLink] that points to another
  * [NonstaticMemberElementForLink], to whatever nesting level is necessary.
  */
-class NonstaticMemberElementForLink implements ReferenceableElementForLink {
+class NonstaticMemberElementForLink extends Object
+    with ReferenceableElementForLink {
   /**
    * The [ReferenceableElementForLink] which is the target of the non-static
    * reference.
@@ -3561,9 +3492,6 @@ class NonstaticMemberElementForLink implements ReferenceableElementForLink {
   final LibraryElementForLink _library;
 
   NonstaticMemberElementForLink(this._library, this._target, this._name);
-
-  @override
-  ConstructorElementForLink get asConstructor => null;
 
   @override
   ConstVariableNode get asConstVariable => _target.asConstVariable;
@@ -3592,11 +3520,6 @@ class NonstaticMemberElementForLink implements ReferenceableElementForLink {
 
   @override
   TypeInferenceNode get asTypeInferenceNode => _target.asTypeInferenceNode;
-
-  @override
-  DartType buildType(DartType getTypeArgument(int i),
-          List<int> implicitFunctionTypeIndices) =>
-      DynamicTypeImpl.instance;
 
   @override
   ReferenceableElementForLink getContainedName(String name) {
@@ -3799,7 +3722,8 @@ abstract class PropertyAccessorElementForLink
  * Specialization of [PropertyAccessorElementForLink] for synthetic accessors
  * implied by the synthetic fields of an enum declaration.
  */
-class PropertyAccessorElementForLink_EnumField
+class PropertyAccessorElementForLink_EnumField extends Object
+    with ReferenceableElementForLink
     implements PropertyAccessorElementForLink {
   @override
   final FieldElementForLink_EnumField variable;
@@ -3809,16 +3733,7 @@ class PropertyAccessorElementForLink_EnumField
   PropertyAccessorElementForLink_EnumField(this.variable);
 
   @override
-  ConstructorElementForLink get asConstructor => null;
-
-  @override
-  ConstVariableNode get asConstVariable => null;
-
-  @override
   DartType get asStaticType => returnType;
-
-  @override
-  TypeInferenceNode get asTypeInferenceNode => null;
 
   @override
   Element get enclosingElement => variable.enclosingElement;
@@ -3858,11 +3773,6 @@ class PropertyAccessorElementForLink_EnumField
   List<TypeParameterElement> get typeParameters => const [];
 
   @override
-  DartType buildType(DartType getTypeArgument(int i),
-          List<int> implicitFunctionTypeIndices) =>
-      DynamicTypeImpl.instance;
-
-  @override
   ReferenceableElementForLink getContainedName(String name) {
     return new NonstaticMemberElementForLink(library, this, name);
   }
@@ -3886,6 +3796,7 @@ class PropertyAccessorElementForLink_EnumField
  * accessors explicitly declared in the source code.
  */
 class PropertyAccessorElementForLink_Executable extends ExecutableElementForLink
+    with ReferenceableElementForLink
     implements PropertyAccessorElementForLink {
   @override
   SyntheticVariableElementForLink variable;
@@ -3898,16 +3809,7 @@ class PropertyAccessorElementForLink_Executable extends ExecutableElementForLink
       : super(enclosingUnit, enclosingClass, unlinkedExecutable);
 
   @override
-  ConstructorElementForLink get asConstructor => null;
-
-  @override
-  ConstVariableNode get asConstVariable => null;
-
-  @override
   DartType get asStaticType => returnType;
-
-  @override
-  TypeInferenceNode get asTypeInferenceNode => null;
 
   @override
   PropertyAccessorElementForLink_Executable get correspondingGetter =>
@@ -3926,11 +3828,6 @@ class PropertyAccessorElementForLink_Executable extends ExecutableElementForLink
       UnlinkedExecutableKind.getter ? ElementKind.GETTER : ElementKind.SETTER;
 
   @override
-  DartType buildType(DartType getTypeArgument(int i),
-          List<int> implicitFunctionTypeIndices) =>
-      DynamicTypeImpl.instance;
-
-  @override
   ReferenceableElementForLink getContainedName(String name) {
     return new NonstaticMemberElementForLink(library, this, name);
   }
@@ -3946,7 +3843,8 @@ class PropertyAccessorElementForLink_Executable extends ExecutableElementForLink
  * Specialization of [PropertyAccessorElementForLink] for synthetic accessors
  * implied by a field or variable declaration.
  */
-class PropertyAccessorElementForLink_Variable
+class PropertyAccessorElementForLink_Variable extends Object
+    with ReferenceableElementForLink
     implements PropertyAccessorElementForLink {
   @override
   final bool isSetter;
@@ -3956,9 +3854,6 @@ class PropertyAccessorElementForLink_Variable
   List<ParameterElement> _parameters;
 
   PropertyAccessorElementForLink_Variable(this.variable, this.isSetter);
-
-  @override
-  ConstructorElementForLink get asConstructor => null;
 
   @override
   ConstVariableNode get asConstVariable => variable._constNode;
@@ -4020,11 +3915,6 @@ class PropertyAccessorElementForLink_Variable
     return const [];
   }
 
-  @override
-  DartType buildType(DartType getTypeArgument(int i),
-          List<int> implicitFunctionTypeIndices) =>
-      DynamicTypeImpl.instance;
-
   /**
    * Compute the type of the corresponding variable, which may depend on the
    * progress of type inference.
@@ -4063,8 +3953,9 @@ class PropertyAccessorElementForLink_Variable
 }
 
 /**
- * Abstract base class representing an element which can be the target
- * of a reference.
+ * Base class representing an element which can be the target of a reference.
+ * When used as a mixin, implements the default behavior shared by most
+ * elements.
  */
 abstract class ReferenceableElementForLink {
   /**
@@ -4072,35 +3963,36 @@ abstract class ReferenceableElementForLink {
    * return the associated constructor (which may be `this` or some
    * other element).  Otherwise return `null`.
    */
-  ConstructorElementForLink get asConstructor;
+  ConstructorElementForLink get asConstructor => null;
 
   /**
    * If this element can be used in a getter context to refer to a
    * constant variable, return the [ConstVariableNode] for the
    * constant value.  Otherwise return `null`.
    */
-  ConstVariableNode get asConstVariable;
+  ConstVariableNode get asConstVariable => null;
 
   /**
    * Return the static type (possibly inferred) of the entity referred to by
    * this element.
    */
-  DartType get asStaticType;
+  DartType get asStaticType => DynamicTypeImpl.instance;
 
   /**
    * If this element can be used in a getter context as a type inference
    * dependency, return the [TypeInferenceNode] for the inferred type.
    * Otherwise return `null`.
    */
-  TypeInferenceNode get asTypeInferenceNode;
+  TypeInferenceNode get asTypeInferenceNode => null;
 
   /**
    * Return the type indicated by this element when it is used in a
    * type instantiation context.  If this element can't legally be
    * instantiated as a type, return the dynamic type.
    */
-  DartType buildType(
-      DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices);
+  DartType buildType(DartType getTypeArgument(int i),
+          List<int> implicitFunctionTypeIndices) =>
+      DynamicTypeImpl.instance;
 
   /**
    * If this element contains other named elements, return the
@@ -4109,39 +4001,29 @@ abstract class ReferenceableElementForLink {
    * with the given name, return the singleton of
    * [UndefinedElementForLink].
    */
-  ReferenceableElementForLink getContainedName(String name);
+  ReferenceableElementForLink getContainedName(String name) {
+    // TODO(paulberry): handle references to `call` for function types.
+    return UndefinedElementForLink.instance;
+  }
 }
 
 /**
  * Element used for references to special types such as `void`.
  */
-class SpecialTypeElementForLink extends ReferenceableElementForLink {
+class SpecialTypeElementForLink extends Object
+    with ReferenceableElementForLink {
   final Linker linker;
   final DartType type;
 
   SpecialTypeElementForLink(this.linker, this.type);
 
   @override
-  ConstructorElementForLink get asConstructor => null;
-
-  @override
-  ConstVariableNode get asConstVariable => null;
-
-  @override
   DartType get asStaticType => linker.typeProvider.typeType;
-
-  @override
-  TypeInferenceNode get asTypeInferenceNode => null;
 
   @override
   DartType buildType(
       DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
     return type;
-  }
-
-  @override
-  ReferenceableElementForLink getContainedName(String name) {
-    return UndefinedElementForLink.instance;
   }
 }
 
@@ -4173,7 +4055,8 @@ class SyntheticVariableElementForLink implements PropertyInducingElementImpl {
  * Element representing a top-level function.
  */
 class TopLevelFunctionElementForLink extends ExecutableElementForLink
-    implements FunctionElementImpl, ReferenceableElementForLink {
+    with ReferenceableElementForLink
+    implements FunctionElementImpl {
   DartType _returnType;
 
   TopLevelFunctionElementForLink(
@@ -4181,30 +4064,10 @@ class TopLevelFunctionElementForLink extends ExecutableElementForLink
       : super(enclosingUnit, null, _buf);
 
   @override
-  ConstructorElementForLink get asConstructor => null;
-
-  @override
-  ConstVariableNode get asConstVariable => null;
-
-  @override
   DartType get asStaticType => type;
 
   @override
-  TypeInferenceNode get asTypeInferenceNode => null;
-
-  @override
   ElementKind get kind => ElementKind.FUNCTION;
-
-  @override
-  DartType buildType(DartType getTypeArgument(int i),
-          List<int> implicitFunctionTypeIndices) =>
-      DynamicTypeImpl.instance;
-
-  @override
-  ReferenceableElementForLink getContainedName(String name) {
-    // TODO(paulberry): handle references to `call`.
-    return UndefinedElementForLink.instance;
-  }
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -4656,31 +4519,11 @@ class TypeProviderForLink implements TypeProvider {
 /**
  * Singleton element used for unresolved references.
  */
-class UndefinedElementForLink implements ReferenceableElementForLink {
-  static const UndefinedElementForLink instance =
-      const UndefinedElementForLink._();
+class UndefinedElementForLink extends Object with ReferenceableElementForLink {
+  static final UndefinedElementForLink instance =
+      new UndefinedElementForLink._();
 
-  const UndefinedElementForLink._();
-
-  @override
-  ConstructorElementForLink get asConstructor => null;
-
-  @override
-  ConstVariableNode get asConstVariable => null;
-
-  @override
-  DartType get asStaticType => DynamicTypeImpl.instance;
-
-  @override
-  TypeInferenceNode get asTypeInferenceNode => null;
-
-  @override
-  DartType buildType(DartType getTypeArgument(int i),
-          List<int> implicitFunctionTypeIndices) =>
-      DynamicTypeImpl.instance;
-
-  @override
-  ReferenceableElementForLink getContainedName(String name) => this;
+  UndefinedElementForLink._();
 }
 
 /**
