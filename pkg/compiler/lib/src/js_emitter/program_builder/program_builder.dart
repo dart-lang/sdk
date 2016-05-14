@@ -323,6 +323,9 @@ class ProgramBuilder {
   }
 
   void _addJsInteropStubs(LibrariesMap librariesMap) {
+    // TODO(26456): we should be using codegenWorld instead of resolverWorld
+    // to determine what invocations could be live but codegenWorld has a bug
+    // resulting in it missing some invocations.
     if (_classes.containsKey(_compiler.coreClasses.objectClass)) {
       var toStringInvocation = namer.invocationName(Selectors.toString_);
       // TODO(jacobr): register toString as used so that it is always accessible
@@ -348,7 +351,7 @@ class ProgramBuilder {
             if (!member.isInstanceMember) return;
             if (member.isGetter || member.isField || member.isFunction) {
               var selectors =
-                  _compiler.codegenWorld.getterInvocationsByName(member.name);
+                  _compiler.resolverWorld.getterInvocationsByName(member.name);
               if (selectors != null && !selectors.isEmpty) {
                 for (var selector in selectors.keys) {
                   var stubName = namer.invocationName(selector);
@@ -363,7 +366,7 @@ class ProgramBuilder {
 
             if (member.isSetter || (member.isField && !member.isConst)) {
               var selectors =
-                  _compiler.codegenWorld.setterInvocationsByName(member.name);
+                  _compiler.resolverWorld.setterInvocationsByName(member.name);
               if (selectors != null && !selectors.isEmpty) {
                 var stubName = namer.setterForElement(member);
                 if (stubNames.add(stubName.key)) {
@@ -419,7 +422,7 @@ class ProgramBuilder {
                 maxArgs = 32767;
               }
               var selectors =
-                  _compiler.codegenWorld.invocationsByName(member.name);
+                  _compiler.resolverWorld.invocationsByName(member.name);
               // Named arguments are not yet supported. In the future we
               // may want to map named arguments to an object literal containing
               // all named arguments.
