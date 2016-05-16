@@ -1822,8 +1822,8 @@ class _UnitResynthesizer {
   void buildConstructor(UnlinkedExecutable serializedExecutable,
       ElementHolder holder, InterfaceType classType) {
     assert(serializedExecutable.kind == UnlinkedExecutableKind.constructor);
-    currentConstructor = new ConstructorElementImpl(
-        serializedExecutable.name, serializedExecutable.nameOffset);
+    currentConstructor =
+        new ConstructorElementImpl.forSerialized(serializedExecutable);
     currentConstructor.isCycleFree = serializedExecutable.isConst &&
         !constCycles.contains(serializedExecutable.constCycleSlot);
     if (serializedExecutable.name.isEmpty) {
@@ -1836,8 +1836,6 @@ class _UnitResynthesizer {
     constructors[serializedExecutable.name] = currentConstructor;
     currentConstructor.returnType = classType;
     buildExecutableCommonParts(currentConstructor, serializedExecutable);
-    currentConstructor.factory = serializedExecutable.isFactory;
-    currentConstructor.const2 = serializedExecutable.isConst;
     currentConstructor.constantInitializers = serializedExecutable
         .constantInitializers
         .map(buildConstructorInitializer)
@@ -1996,36 +1994,25 @@ class _UnitResynthesizer {
       case UnlinkedExecutableKind.functionOrMethod:
         if (isTopLevel) {
           FunctionElementImpl executableElement =
-              new FunctionElementImpl(name, serializedExecutable.nameOffset);
+              new FunctionElementImpl.forSerialized(serializedExecutable);
           buildExecutableCommonParts(executableElement, serializedExecutable);
           holder.addFunction(executableElement);
         } else {
           MethodElementImpl executableElement =
-              new MethodElementImpl(name, serializedExecutable.nameOffset);
-          executableElement.abstract = serializedExecutable.isAbstract;
+              new MethodElementImpl.forSerialized(serializedExecutable);
           buildExecutableCommonParts(executableElement, serializedExecutable);
-          executableElement.static = serializedExecutable.isStatic;
           holder.addMethod(executableElement);
         }
         break;
       case UnlinkedExecutableKind.getter:
       case UnlinkedExecutableKind.setter:
         PropertyAccessorElementImpl executableElement =
-            new PropertyAccessorElementImpl(
-                name, serializedExecutable.nameOffset);
-        if (isTopLevel) {
-          executableElement.static = true;
-        } else {
-          executableElement.static = serializedExecutable.isStatic;
-          executableElement.abstract = serializedExecutable.isAbstract;
-        }
+            new PropertyAccessorElementImpl.forSerialized(serializedExecutable);
         buildExecutableCommonParts(executableElement, serializedExecutable);
         DartType type;
         if (kind == UnlinkedExecutableKind.getter) {
-          executableElement.getter = true;
           type = executableElement.returnType;
         } else {
-          executableElement.setter = true;
           type = executableElement.parameters[0].type;
         }
         holder.addAccessor(executableElement);
@@ -2077,9 +2064,6 @@ class _UnitResynthesizer {
     }
     executableElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
         executableElement, null, getCurrentTypeArguments(skipLevels: 1), false);
-    executableElement.asynchronous = serializedExecutable.isAsynchronous;
-    executableElement.external = serializedExecutable.isExternal;
-    executableElement.generator = serializedExecutable.isGenerator;
     buildDocumentation(
         executableElement, serializedExecutable.documentationComment);
     buildAnnotations(executableElement, serializedExecutable.annotations);
