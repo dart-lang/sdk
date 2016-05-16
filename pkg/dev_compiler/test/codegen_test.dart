@@ -50,8 +50,10 @@ main(arguments) {
   var multitests = expandMultiTests(testDirs, filePattern);
 
   // Build packages tests depend on
-  var compiler = new ModuleCompiler(
-      new AnalyzerOptions(customUrlMappings: packageUrlMappings));
+  var generatedSdkDir = path.join(testDirectory, '..', 'tool', 'generated_sdk');
+  var analyzerOptions = new AnalyzerOptions(
+      customUrlMappings: packageUrlMappings, dartSdkPath: generatedSdkDir);
+  var compiler = new ModuleCompiler(analyzerOptions);
 
   group('dartdevc package', () {
     _buildPackages(compiler, expectDir);
@@ -126,8 +128,6 @@ main(arguments) {
 
   if (codeCoverage) {
     test('build_sdk code coverage', () {
-      var generatedSdkDir =
-          path.join(testDirectory, '..', 'tool', 'generated_sdk');
       return build_sdk.main(['--dart-sdk', generatedSdkDir, '-o', expectDir]);
     });
   }
