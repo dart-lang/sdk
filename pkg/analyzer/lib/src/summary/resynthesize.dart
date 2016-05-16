@@ -2064,10 +2064,7 @@ class _UnitResynthesizer {
     }
     executableElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
         executableElement, null, getCurrentTypeArguments(skipLevels: 1), false);
-    buildDocumentation(
-        executableElement, serializedExecutable.documentationComment);
     buildAnnotations(executableElement, serializedExecutable.annotations);
-    buildCodeRange(executableElement, serializedExecutable.codeRange);
     executableElement.functions =
         serializedExecutable.localFunctions.map(buildLocalFunction).toList();
     executableElement.labels =
@@ -2180,8 +2177,8 @@ class _UnitResynthesizer {
    */
   FunctionElementImpl buildLocalFunction(
       UnlinkedExecutable serializedExecutable) {
-    FunctionElementImpl element = new FunctionElementImpl(
-        serializedExecutable.name, serializedExecutable.nameOffset);
+    FunctionElementImpl element =
+        new FunctionElementImpl.forSerialized(serializedExecutable);
     if (serializedExecutable.visibleOffset != 0) {
       element.setVisibleRange(serializedExecutable.visibleOffset,
           serializedExecutable.visibleLength);
@@ -2508,7 +2505,6 @@ class _UnitResynthesizer {
     FunctionElementImpl initializerElement =
         buildLocalFunction(serializedInitializer);
     initializerElement.synthetic = true;
-    initializerElement.setCodeRange(null, null);
     variable.initializer = initializerElement;
   }
 

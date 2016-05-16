@@ -2449,11 +2449,53 @@ abstract class ExecutableElementImpl extends ElementImpl
   }
 
   @override
+  int get codeLength {
+    if (serializedExecutable != null) {
+      return serializedExecutable.codeRange?.length;
+    }
+    return super.codeLength;
+  }
+
+  @override
+  int get codeOffset {
+    if (serializedExecutable != null) {
+      return serializedExecutable.codeRange?.offset;
+    }
+    return super.codeOffset;
+  }
+
+  @override
   String get displayName {
     if (serializedExecutable != null) {
       return serializedExecutable.name;
     }
     return super.displayName;
+  }
+
+  @override
+  SourceRange get docRange {
+    if (serializedExecutable != null) {
+      UnlinkedDocumentationComment comment =
+          serializedExecutable.documentationComment;
+      return comment != null
+          ? new SourceRange(comment.offset, comment.length)
+          : null;
+    }
+    return super.docRange;
+  }
+
+  @override
+  String get documentationComment {
+    if (serializedExecutable != null) {
+      return serializedExecutable?.documentationComment?.text;
+    }
+    return super.documentationComment;
+  }
+
+  @override
+  void set documentationComment(String doc) {
+    assert(serializedExecutable == null);
+    super.documentationComment = doc;
   }
 
   /**
@@ -2685,6 +2727,18 @@ abstract class ExecutableElementImpl extends ElementImpl
       }
     }
     return null;
+  }
+
+  @override
+  void setCodeRange(int offset, int length) {
+    assert(serializedExecutable == null);
+    super.setCodeRange(offset, length);
+  }
+
+  @override
+  void setDocRange(int offset, int length) {
+    assert(serializedExecutable == null);
+    super.setDocRange(offset, length);
   }
 
   @override
