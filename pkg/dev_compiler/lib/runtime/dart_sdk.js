@@ -202,19 +202,31 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart._installProperties = function(jsProto, extProto) {
     let coreObjProto = core.Object.prototype;
+    let installedParent = dart._installedDartPeers.get(jsProto.__proto__);
+    dart._installProperties2(jsProto, extProto, coreObjProto, installedParent);
+    dart._installedDartPeers.set(jsProto, extProto);
+  };
+  dart._installProperties2 = function(jsProto, extProto, coreObjProto, installedParent) {
     if (extProto === coreObjProto) {
-      let names = dart.getOwnPropertyNames(coreObjProto);
-      for (let i = 0; i < names.length; ++i) {
-        let name = names[i];
-        let desc = dart.getOwnPropertyDescriptor(coreObjProto, name);
-        dart.defineProperty(jsProto, dart.getExtensionSymbol(name), desc);
-      }
+      dart._installPropertiesForObject(jsProto, coreObjProto);
       return;
     }
     if (jsProto !== extProto) {
-      dart._installProperties(jsProto, extProto.__proto__);
+      let extParent = extProto.__proto__;
+      if (installedParent !== extParent) {
+        dart._installProperties2(jsProto, extParent, coreObjProto, installedParent);
+      }
     }
     dart.copyTheseProperties(jsProto, extProto, dart.getOwnPropertySymbols(extProto));
+  };
+  dart._installPropertiesForObject = function(jsProto, coreObjProto) {
+    let names = dart.getOwnPropertyNames(coreObjProto);
+    for (let i = 0; i < names.length; ++i) {
+      let name = names[i];
+      let desc = dart.getOwnPropertyDescriptor(coreObjProto, name);
+      dart.defineProperty(jsProto, dart.getExtensionSymbol(name), desc);
+    }
+    return;
   };
   dart.registerExtension = function(jsType, dartExtType) {
     if (!jsType) return;
@@ -998,6 +1010,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart._staticSig = Symbol("sigStatic");
   dart._extensionType = Symbol("extensionType");
   dart.dartx = dartx;
+  dart._installedDartPeers = new Map();
   dart._jsIterator = Symbol("_jsIterator");
   dart._current = Symbol("_current");
   dart._AsyncStarStreamController = class _AsyncStarStreamController {

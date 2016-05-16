@@ -279,26 +279,60 @@ getExtensionSymbol(name) {
 defineExtensionNames(names) =>
     JS('', '#.forEach(#)', names, getExtensionSymbol);
 
-// Install properties in prototype order.  Properties / descriptors from
-// more specific types should overwrite ones from less specific types.
-_installProperties(jsProto, extProto) {
+
+/// A map from peer class prototypes to the Dart class prototype.  This is used
+/// to recognize when Dart subclass inheritance corresponds to JavaScript
+/// prototype inheritance.
+final _installedDartPeers = JS('', 'new Map()');
+
+/// Install properties in prototype-first order.  Properties / descriptors from
+/// more specific types should overwrite ones from less specific types.
+void _installProperties(jsProto, extProto) {
+
+  // This relies on the Dart type literal evaluating to the JavaScript
+  // constructor.
   var coreObjProto = JS('', '#.prototype', Object);
+
+  var installedParent =
+      JS('', '#.get(#.__proto__)', _installedDartPeers, jsProto);
+
+  _installProperties2(jsProto, extProto, coreObjProto, installedParent);
+
+  // Mark this jsProto as being the prototype for the extension class.
+  JS('', '#.set(#, #)', _installedDartPeers, jsProto, extProto);
+}
+
+void _installProperties2(jsProto, extProto, coreObjProto, installedParent) {
   if (JS('bool', '# === #', extProto, coreObjProto)) {
-     // core.Object members need to be copied from the non-symbol name to the
-     // symbol name.
-    var names = getOwnPropertyNames(coreObjProto);
-    for (int i = 0; i < JS('int', '#.length', names); ++i) {
-      var name = JS('', '#[#]', names, i);
-      var desc = getOwnPropertyDescriptor(coreObjProto, name);
-      defineProperty(jsProto, getExtensionSymbol(name), desc);
-    }
+    _installPropertiesForObject(jsProto, coreObjProto);
     return;
   }
   if (JS('bool', '# !== #', jsProto, extProto)) {
-    _installProperties(jsProto, JS('', '#.__proto__', extProto));
+    var extParent = JS('', '#.__proto__', extProto);
+
+    // If the extension methods of the parent have been installed on the parent
+    // of [jsProto], the methods will be available via prototype inheritance.
+
+    if(JS('bool', '# !== #', installedParent, extParent)) {
+      _installProperties2(jsProto, extParent, coreObjProto, installedParent);
+    }
   }
   copyTheseProperties(jsProto, extProto, getOwnPropertySymbols(extProto));
 }
+
+void _installPropertiesForObject(jsProto, coreObjProto) {
+  // core.Object members need to be copied from the non-symbol name to the
+  // symbol name.
+  var names = getOwnPropertyNames(coreObjProto);
+  for (int i = 0; i < JS('int', '#.length', names); ++i) {
+    var name = JS('', '#[#]', names, i);
+    var desc = getOwnPropertyDescriptor(coreObjProto, name);
+    defineProperty(jsProto, getExtensionSymbol(name), desc);
+  }
+  return;
+}
+
+
 ///
 /// Copy symbols from the prototype of the source to destination.
 /// These are the only properties safe to copy onto an existing public
