@@ -284,8 +284,9 @@ class DirectoryBasedDartSdk implements DartSdk {
       if (_useSummary) {
         PackageBundle sdkBundle = getSummarySdkBundle();
         if (sdkBundle != null) {
-          _analysisContext.resultProvider =
-              new SdkSummaryResultProvider(_analysisContext, sdkBundle);
+          bool strongMode = _analysisOptions?.strongMode ?? false;
+          _analysisContext.resultProvider = new SdkSummaryResultProvider(
+              _analysisContext, sdkBundle, strongMode);
         }
       }
     }

@@ -32,9 +32,9 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
   @override
   SummaryResynthesizer resynthesizer;
 
-  SdkSummaryResultProvider(this.context, this.bundle) {
+  SdkSummaryResultProvider(this.context, this.bundle, bool strongMode) {
     resynthesizer = new SdkSummaryResynthesizer(
-        context, typeProvider, context.sourceFactory, bundle);
+        context, typeProvider, context.sourceFactory, bundle, strongMode);
     _buildCoreLibrary();
     _buildAsyncLibrary();
     resynthesizer.finalizeCoreAsyncLibraries();
@@ -163,10 +163,8 @@ class SdkSummaryResynthesizer extends SummaryResynthesizer {
   final Map<String, LinkedLibrary> linkedSummaries = <String, LinkedLibrary>{};
 
   SdkSummaryResynthesizer(AnalysisContext context, TypeProvider typeProvider,
-      SourceFactory sourceFactory, this.bundle)
-      : super(null, context, typeProvider, sourceFactory, false) {
-    // TODO(paulberry): we always resynthesize the summary in weak mode.  Is
-    // this ok?
+      SourceFactory sourceFactory, this.bundle, bool strongMode)
+      : super(null, context, typeProvider, sourceFactory, strongMode) {
     for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
       unlinkedSummaries[bundle.unlinkedUnitUris[i]] = bundle.unlinkedUnits[i];
     }
@@ -198,6 +196,7 @@ class SdkSummaryResynthesizer extends SummaryResynthesizer {
  * implement [sdkLibraries], [sdkVersion], [uris] and [fromFileUri].
  */
 class SummaryBasedDartSdk implements DartSdk {
+  final bool strongMode;
   SummaryDataStore _dataStore;
   InSummaryPackageUriResolver _uriResolver;
   PackageBundle _bundle;
@@ -207,7 +206,7 @@ class SummaryBasedDartSdk implements DartSdk {
    */
   InternalAnalysisContext _analysisContext;
 
-  SummaryBasedDartSdk(String summaryPath) {
+  SummaryBasedDartSdk(String summaryPath, this.strongMode) {
     _dataStore = new SummaryDataStore(<String>[summaryPath]);
     _uriResolver = new InSummaryPackageUriResolver(_dataStore);
     _bundle = _dataStore.bundles.single;
@@ -221,11 +220,13 @@ class SummaryBasedDartSdk implements DartSdk {
   @override
   AnalysisContext get context {
     if (_analysisContext == null) {
-      _analysisContext = new SdkAnalysisContext(null);
+      AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl()
+        ..strongMode = strongMode;
+      _analysisContext = new SdkAnalysisContext(analysisOptions);
       SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
       _analysisContext.resultProvider =
-          new SdkSummaryResultProvider(_analysisContext, _bundle);
+          new SdkSummaryResultProvider(_analysisContext, _bundle, strongMode);
     }
     return _analysisContext;
   }
