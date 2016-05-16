@@ -245,8 +245,8 @@ class BuildMode {
     DartSdk sdk;
     PackageBundle sdkBundle;
     if (options.dartSdkSummaryPath != null) {
-      SummaryBasedDartSdk summarySdk =
-          new SummaryBasedDartSdk(options.dartSdkSummaryPath);
+      SummaryBasedDartSdk summarySdk = new SummaryBasedDartSdk(
+          options.dartSdkSummaryPath, options.strongMode);
       sdk = summarySdk;
       sdkBundle = summarySdk.bundle;
     } else {

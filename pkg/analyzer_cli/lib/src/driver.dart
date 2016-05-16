@@ -613,7 +613,8 @@ class Driver implements CommandLineStarter {
   void _setupSdk(CommandLineOptions options, bool hasEmbedder) {
     if (sdk == null) {
       if (options.dartSdkSummaryPath != null) {
-        sdk = new SummaryBasedDartSdk(options.dartSdkSummaryPath);
+        sdk = new SummaryBasedDartSdk(
+            options.dartSdkSummaryPath, options.strongMode);
       } else {
         String dartSdkPath = options.dartSdkPath;
         DirectoryBasedDartSdk directorySdk =
