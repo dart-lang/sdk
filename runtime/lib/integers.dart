@@ -174,22 +174,21 @@ abstract class _IntegerImplementation {
 
   num clamp(num lowerLimit, num upperLimit) {
     if (lowerLimit is! num) {
-      throw new ArgumentError.value(lowerLimit, "lowerLimit");
+      throw new ArgumentError.value(lowerLimit, "lowerLimit", "not a number");
     }
     if (upperLimit is! num) {
-      throw new ArgumentError.value(upperLimit, "upperLimit");
+      throw new ArgumentError.value(upperLimit, "upperLimit", "not a number");
     }
 
     // Special case for integers.
-    if (lowerLimit is int && upperLimit is int &&
-        lowerLimit <= upperLimit) {
+    if (lowerLimit is int && upperLimit is int && lowerLimit <= upperLimit) {
       if (this < lowerLimit) return lowerLimit;
       if (this > upperLimit) return upperLimit;
       return this;
     }
     // Generic case involving doubles, and invalid integer ranges.
     if (lowerLimit.compareTo(upperLimit) > 0) {
-      throw new RangeError.range(upperLimit, lowerLimit, null, "upperLimit");
+      throw new ArgumentError(lowerLimit);
     }
     if (lowerLimit.isNaN) return lowerLimit;
     // Note that we don't need to care for -0.0 for the lower limit.
