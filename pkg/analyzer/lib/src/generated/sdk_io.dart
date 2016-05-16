@@ -415,6 +415,11 @@ class DirectoryBasedDartSdk implements DartSdk {
   List<String> get uris => _libraryMap.uris;
 
   /**
+   * Whether an SDK summary should be used.
+   */
+  bool get useSummary => _useSummary;
+
+  /**
    * Specify whether SDK summary should be used.
    */
   void set useSummary(bool use) {

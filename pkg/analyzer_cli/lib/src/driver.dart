@@ -330,12 +330,8 @@ class Driver implements CommandLineStarter {
   /// Decide on the appropriate method for resolving URIs based on the given
   /// [options] and [customUrlMappings] settings, and return a
   /// [SourceFactory] that has been configured accordingly.
-  SourceFactory _chooseUriResolutionPolicy(
-      CommandLineOptions options, EmbedderYamlLocator yamlLocator) {
-    Packages packages;
-    Map<String, List<fileSystem.Folder>> packageMap;
-    UriResolver packageUriResolver;
-
+  SourceFactory _chooseUriResolutionPolicy(CommandLineOptions options,
+      Map<fileSystem.Folder, YamlMap> embedderMap, _PackageInfo packageInfo) {
     // Create a custom package resolver if one has been specified.
     if (packageResolverProvider != null) {
       fileSystem.Folder folder =
@@ -365,43 +361,24 @@ class Driver implements CommandLineStarter {
         return new SourceFactory(resolvers);
       }
     }
-    // Process options, caching package resolution details.
-    if (options.packageConfigPath != null) {
-      String packageConfigPath = options.packageConfigPath;
-      Uri fileUri = new Uri.file(packageConfigPath);
-      try {
-        File configFile = new File.fromUri(fileUri).absolute;
-        List<int> bytes = configFile.readAsBytesSync();
-        Map<String, Uri> map = pkgfile.parse(bytes, configFile.uri);
-        packages = new MapPackages(map);
-        packageMap = _getPackageMap(packages);
-      } catch (e) {
-        printAndFail(
-            'Unable to read package config data from $packageConfigPath: $e');
-      }
-    } else if (options.packageRootPath != null) {
-      packageMap = _PackageRootPackageMapBuilder
-          .buildPackageMap(options.packageRootPath);
 
+    UriResolver packageUriResolver;
+
+    if (options.packageRootPath != null) {
       JavaFile packageDirectory = new JavaFile(options.packageRootPath);
       packageUriResolver = new PackageUriResolver([packageDirectory]);
-    } else {
-      fileSystem.Resource cwd =
-          PhysicalResourceProvider.INSTANCE.getResource('.');
-
-      // Look for .packages.
-      packages = _discoverPackagespec(new Uri.directory(cwd.path));
-
-      if (packages != null) {
-        packageMap = _getPackageMap(packages);
-      } else {
+    } else if (options.packageConfigPath == null) {
+      // TODO(pq): remove?
+      if (packageInfo.packageMap == null) {
         // Fall back to pub list-package-dirs.
-
         PubPackageMapProvider pubPackageMapProvider =
             new PubPackageMapProvider(PhysicalResourceProvider.INSTANCE, sdk);
+        fileSystem.Resource cwd =
+            PhysicalResourceProvider.INSTANCE.getResource('.');
         PackageMapInfo packageMapInfo =
             pubPackageMapProvider.computePackageMap(cwd);
-        packageMap = packageMapInfo.packageMap;
+        Map<String, List<fileSystem.Folder>> packageMap =
+            packageMapInfo.packageMap;
 
         // Only create a packageUriResolver if pub list-package-dirs succeeded.
         // If it failed, that's not a problem; it simply means we have no way
@@ -419,10 +396,8 @@ class Driver implements CommandLineStarter {
     // 'dart:' URIs come first.
 
     // Setup embedding.
-    yamlLocator.refresh(packageMap);
-
     EmbedderUriResolver embedderUriResolver =
-        new EmbedderUriResolver(yamlLocator.embedderYamls);
+        new EmbedderUriResolver(embedderMap);
     if (embedderUriResolver.length == 0) {
       // The embedder uri resolver has no mappings. Use the default Dart SDK
       // uri resolver.
@@ -434,8 +409,8 @@ class Driver implements CommandLineStarter {
     }
 
     // Next SdkExts.
-    if (packageMap != null) {
-      resolvers.add(new SdkExtUriResolver(packageMap));
+    if (packageInfo.packageMap != null) {
+      resolvers.add(new SdkExtUriResolver(packageInfo.packageMap));
     }
 
     // Then package URIs.
@@ -446,7 +421,7 @@ class Driver implements CommandLineStarter {
     // Finally files.
     resolvers.add(new FileUriResolver());
 
-    return new SourceFactory(resolvers, packages);
+    return new SourceFactory(resolvers, packageInfo.packages);
   }
 
   /// Collect all analyzable files at [filePath], recursively if it's a
@@ -513,13 +488,20 @@ class Driver implements CommandLineStarter {
       contextOptions.analyzeFunctionBodiesPredicate = dietParsingPolicy;
     });
 
-    // Once options are processed, setup the SDK.
-    _setupSdk(options);
+    // Find package info.
+    _PackageInfo packageInfo = _findPackages(options);
+
+    // Process embedders.
+    Map<fileSystem.Folder, YamlMap> embedderMap =
+        _findEmbedders(packageInfo.packageMap);
+
+    // Once options and embedders are processed, setup the SDK.
+    _setupSdk(options, embedderMap.isNotEmpty);
 
     // Choose a package resolution policy and a diet parsing policy based on
     // the command-line options.
-    SourceFactory sourceFactory = _chooseUriResolutionPolicy(
-        options, (_context as InternalAnalysisContext).embedderYamlLocator);
+    SourceFactory sourceFactory =
+        _chooseUriResolutionPolicy(options, embedderMap, packageInfo);
 
     _context.sourceFactory = sourceFactory;
   }
@@ -536,6 +518,50 @@ class Driver implements CommandLineStarter {
     }
 
     return null;
+  }
+
+  Map<fileSystem.Folder, YamlMap> _findEmbedders(
+      Map<String, List<fileSystem.Folder>> packageMap) {
+    EmbedderYamlLocator locator =
+        (_context as InternalAnalysisContext).embedderYamlLocator;
+    locator.refresh(packageMap);
+    return locator.embedderYamls;
+  }
+
+  _PackageInfo _findPackages(CommandLineOptions options) {
+    if (packageResolverProvider != null) {
+      // The resolver provider will do all the work later.
+      return null;
+    }
+
+    Packages packages;
+    Map<String, List<fileSystem.Folder>> packageMap;
+
+    if (options.packageConfigPath != null) {
+      String packageConfigPath = options.packageConfigPath;
+      Uri fileUri = new Uri.file(packageConfigPath);
+      try {
+        File configFile = new File.fromUri(fileUri).absolute;
+        List<int> bytes = configFile.readAsBytesSync();
+        Map<String, Uri> map = pkgfile.parse(bytes, configFile.uri);
+        packages = new MapPackages(map);
+        packageMap = _getPackageMap(packages);
+      } catch (e) {
+        printAndFail(
+            'Unable to read package config data from $packageConfigPath: $e');
+      }
+    } else if (options.packageRootPath != null) {
+      packageMap = _PackageRootPackageMapBuilder
+          .buildPackageMap(options.packageRootPath);
+    } else {
+      fileSystem.Resource cwd =
+          PhysicalResourceProvider.INSTANCE.getResource('.');
+      // Look for .packages.
+      packages = _discoverPackagespec(new Uri.directory(cwd.path));
+      packageMap = _getPackageMap(packages);
+    }
+
+    return new _PackageInfo(packages, packageMap);
   }
 
   Map<String, List<fileSystem.Folder>> _getPackageMap(Packages packages) {
@@ -584,7 +610,7 @@ class Driver implements CommandLineStarter {
     return errorSeverity;
   }
 
-  void _setupSdk(CommandLineOptions options) {
+  void _setupSdk(CommandLineOptions options, bool hasEmbedder) {
     if (sdk == null) {
       if (options.dartSdkSummaryPath != null) {
         sdk = new SummaryBasedDartSdk(options.dartSdkSummaryPath);
@@ -592,12 +618,17 @@ class Driver implements CommandLineStarter {
         String dartSdkPath = options.dartSdkPath;
         DirectoryBasedDartSdk directorySdk =
             new DirectoryBasedDartSdk(new JavaFile(dartSdkPath));
-        directorySdk.useSummary =
-            options.sourceFiles.every((String sourcePath) {
-          sourcePath = path.absolute(sourcePath);
-          sourcePath = path.normalize(sourcePath);
-          return !path.isWithin(dartSdkPath, sourcePath);
-        });
+        // Summaries are disabled in the presence of embedders.
+        if (hasEmbedder) {
+          directorySdk.useSummary = false;
+        } else {
+          directorySdk.useSummary =
+              options.sourceFiles.every((String sourcePath) {
+            sourcePath = path.absolute(sourcePath);
+            sourcePath = path.normalize(sourcePath);
+            return !path.isWithin(dartSdkPath, sourcePath);
+          });
+        }
         directorySdk.analysisOptions = context.analysisOptions;
         sdk = directorySdk;
       }
@@ -772,6 +803,12 @@ class _BatchRunner {
 class _DriverError implements Exception {
   String msg;
   _DriverError(this.msg);
+}
+
+class _PackageInfo {
+  Packages packages;
+  Map<String, List<fileSystem.Folder>> packageMap;
+  _PackageInfo(this.packages, this.packageMap);
 }
 
 /// [SdkExtUriResolver] needs a Map from package name to folder. In the case
