@@ -1156,18 +1156,14 @@ DART_EXPORT char* Dart_Initialize(
     return strdup("Dart_Initialize: "
                   "Setting of unhandled exception callback is not supported.");
   }
-  const char* err_msg = Dart::InitOnce(vm_isolate_snapshot,
-                                       instructions_snapshot,
-                                       data_snapshot,
-                                       create, shutdown,
-                                       thread_exit,
-                                       file_open, file_read, file_write,
-                                       file_close, entropy_source,
-                                       get_service_assets);
-  if (err_msg != NULL) {
-    return strdup(err_msg);
-  }
-  return NULL;
+  return Dart::InitOnce(vm_isolate_snapshot,
+                        instructions_snapshot,
+                        data_snapshot,
+                        create, shutdown,
+                        thread_exit,
+                        file_open, file_read, file_write, file_close,
+                        entropy_source,
+                        get_service_assets);
 }
 
 

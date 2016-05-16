@@ -600,7 +600,7 @@ RawApiError* SnapshotReader::ReadFullSnapshot() {
   ASSERT(object_store != NULL);
 
   // First read the version string, and check that it matches.
-  RawApiError* error = VerifyVersion();
+  RawApiError* error = VerifyVersionAndFeatures();
   if (error != ApiError::null()) {
     return error;
   }
@@ -671,7 +671,7 @@ RawObject* SnapshotReader::ReadScriptSnapshot() {
   ASSERT(kind_ == Snapshot::kScript);
 
   // First read the version string, and check that it matches.
-  RawApiError* error = VerifyVersion();
+  RawApiError* error = VerifyVersionAndFeatures();
   if (error != ApiError::null()) {
     return error;
   }
@@ -694,7 +694,7 @@ RawObject* SnapshotReader::ReadScriptSnapshot() {
 }
 
 
-RawApiError* SnapshotReader::VerifyVersion() {
+RawApiError* SnapshotReader::VerifyVersionAndFeatures() {
   // If the version string doesn't match, return an error.
   // Note: New things are allocated only if we're going to return an error.
 
@@ -707,7 +707,7 @@ RawApiError* SnapshotReader::VerifyVersion() {
     OS::SNPrint(message_buffer,
                 kMessageBufferSize,
                 "No full snapshot version found, expected '%s'",
-                Version::SnapshotString());
+                expected_version);
     // This can also fail while bringing up the VM isolate, so make sure to
     // allocate the error message in old space.
     const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
@@ -724,7 +724,7 @@ RawApiError* SnapshotReader::VerifyVersion() {
                 kMessageBufferSize,
                 "Wrong %s snapshot version, expected '%s' found '%s'",
                 (Snapshot::IsFull(kind_)) ? "full" : "script",
-                Version::SnapshotString(),
+                expected_version,
                 actual_version);
     free(actual_version);
     // This can also fail while bringing up the VM isolate, so make sure to
@@ -733,6 +733,34 @@ RawApiError* SnapshotReader::VerifyVersion() {
     return ApiError::New(msg, Heap::kOld);
   }
   Advance(version_len);
+
+  const char* expected_features = Dart::FeaturesString(kind_);
+  ASSERT(expected_features != NULL);
+  const intptr_t expected_len = strlen(expected_features);
+
+  const char* features = reinterpret_cast<const char*>(CurrentBufferAddress());
+  ASSERT(features != NULL);
+  intptr_t buffer_len = strnlen(features, PendingBytes());
+  if ((buffer_len != expected_len) ||
+      strncmp(features, expected_features, expected_len)) {
+    const intptr_t kMessageBufferSize = 256;
+    char message_buffer[kMessageBufferSize];
+    char* actual_features = OS::StrNDup(features, buffer_len < 128 ? buffer_len
+                                                                   : 128);
+    OS::SNPrint(message_buffer,
+                kMessageBufferSize,
+                "Wrong features in snapshot, expected '%s' found '%s'",
+                expected_features,
+                actual_features);
+    free(const_cast<char*>(expected_features));
+    free(actual_features);
+    // This can also fail while bringing up the VM isolate, so make sure to
+    // allocate the error message in old space.
+    const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
+    return ApiError::New(msg, Heap::kOld);
+  }
+  free(const_cast<char*>(expected_features));
+  Advance(expected_len + 1);
   return ApiError::null();
 }
 
@@ -1722,7 +1750,7 @@ RawApiError* VmIsolateSnapshotReader::ReadVmIsolateSnapshot() {
   ASSERT(object_store != NULL);
 
   // First read the version string, and check that it matches.
-  RawApiError* error = VerifyVersion();
+  RawApiError* error = VerifyVersionAndFeatures();
   if (error != ApiError::null()) {
     return error;
   }
@@ -2126,7 +2154,7 @@ void FullSnapshotWriter::WriteVmIsolateSnapshot() {
     writer.ReserveHeader();
 
     // Write out the version string.
-    writer.WriteVersion();
+    writer.WriteVersionAndFeatures();
 
     /*
      * Now Write out the following
@@ -2180,7 +2208,7 @@ void FullSnapshotWriter::WriteIsolateFullSnapshot() {
     writer.ReserveHeader();
 
     // Write out the version string.
-    writer.WriteVersion();
+    writer.WriteVersionAndFeatures();
 
     // Write out the full snapshot.
 
@@ -2704,11 +2732,18 @@ void SnapshotWriter::ThrowException(Exceptions::ExceptionType type,
 }
 
 
-void SnapshotWriter::WriteVersion() {
+void SnapshotWriter::WriteVersionAndFeatures() {
   const char* expected_version = Version::SnapshotString();
   ASSERT(expected_version != NULL);
   const intptr_t version_len = strlen(expected_version);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_version), version_len);
+
+  const char* expected_features = Dart::FeaturesString(kind_);
+  ASSERT(expected_features != NULL);
+  const intptr_t features_len = strlen(expected_features);
+  WriteBytes(reinterpret_cast<const uint8_t*>(expected_features),
+             features_len + 1);
+  free(const_cast<char*>(expected_features));
 }
 
 
@@ -2742,7 +2777,7 @@ void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
     ReserveHeader();
 
     // Write out the version string.
-    WriteVersion();
+    WriteVersionAndFeatures();
 
     // Write out the library object.
     {

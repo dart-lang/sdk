@@ -436,7 +436,7 @@ class SnapshotReader : public BaseReader {
   RawObject* ReadScriptSnapshot();
 
   // Read version number of snapshot and verify.
-  RawApiError* VerifyVersion();
+  RawApiError* VerifyVersionAndFeatures();
 
   // Helper functions for creating uninitialized versions
   // of various object types. These are used when reading a
@@ -1014,7 +1014,7 @@ class SnapshotWriter : public BaseWriter {
   void ThrowException(Exceptions::ExceptionType type, const char* msg);
 
   // Write a version string for the snapshot.
-  void WriteVersion();
+  void WriteVersionAndFeatures();
 
   int32_t GetInstructionsId(RawInstructions* instructions, RawCode* code) {
     return instructions_writer_->GetOffsetFor(instructions, code);
