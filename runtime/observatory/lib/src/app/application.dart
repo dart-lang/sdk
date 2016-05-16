@@ -230,7 +230,7 @@ class ObservatoryApplication extends Observable {
   void handleException(e, st) {
     if (e is ServerRpcException) {
       if (e.code == ServerRpcException.kFeatureDisabled) return;
-      if (e.code == ServerRpcException.kVMMustBePaused) return;
+      if (e.code == ServerRpcException.kIsolateMustBePaused) return;
       if (e.code == ServerRpcException.kCannotAddBreakpoint) return;
       Logger.root.fine('Dropping exception: ${e}\n${st}');
     }

@@ -37,11 +37,11 @@ class ServerRpcException extends RpcException {
   static const kInvalidParams  = -32602;
   static const kInternalError  = -32603;
   static const kFeatureDisabled         = 100;
-  static const kVMMustBePaused          = 101;
   static const kCannotAddBreakpoint     = 102;
   static const kStreamAlreadySubscribed = 103;
   static const kStreamNotSubscribed     = 104;
   static const kIsolateMustBeRunnable   = 105;
+  static const kIsolateMustBePaused     = 106;
 
   int code;
   Map data;

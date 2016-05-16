@@ -2929,7 +2929,7 @@ static bool Resume(Thread* thread, JSONStream* js) {
     return true;
   }
 
-  js->PrintError(kVMMustBePaused, NULL);
+  js->PrintError(kIsolateMustBePaused, NULL);
   return true;
 }
 

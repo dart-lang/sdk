@@ -47,12 +47,12 @@ enum JSONRpcErrorCode {
 
   kExtensionError = -32000,
 
-  kFeatureDisabled         = 100,
-  kVMMustBePaused          = 101,
-  kCannotAddBreakpoint     = 102,
-  kStreamAlreadySubscribed = 103,
-  kStreamNotSubscribed     = 104,
-  kIsolateMustBeRunnable   = 105,
+  kFeatureDisabled           = 100,
+  kCannotAddBreakpoint       = 102,
+  kStreamAlreadySubscribed   = 103,
+  kStreamNotSubscribed       = 104,
+  kIsolateMustBeRunnable     = 105,
+  kIsolateMustBePaused       = 106,
 };
 
 // Expected that user_data is a JSONStream*.

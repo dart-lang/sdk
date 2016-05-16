@@ -131,7 +131,7 @@ The JSON-RPC spec provides for _positional_ parameters as well, but they
 are not supported by the Dart VM.
 
 By convention, every response returned by the Service Protocol is a subtype
-of [Response](#response) and provides a _type_ paramters which can be used
+of [Response](#response) and provides a _type_ parameter which can be used
 to distinguish the exact return type. In the example above, the
 [Version](#version) type is returned.
 
@@ -172,8 +172,7 @@ subscribe to the _GC_ stream multiple times from the same client.
 }
 ```
 
-In addition the [error codes](http://www.jsonrpc.org/specification#error_object)
-specified in the JSON-RPC spec, we use the following application specific error codes:
+In addition to the [error codes](http://www.jsonrpc.org/specification#error_object) specified in the JSON-RPC spec, we use the following application specific error codes:
 
 code | message | meaning
 ---- | ------- | -------
@@ -183,6 +182,7 @@ code | message | meaning
 103 | Stream already subscribed | The client is already subscribed to the specified _streamId_
 104 | Stream not subscribed | The client is not subscribed to the specified _streamId_
 105 | Isolate must be runnable | This operation cannot happen until the isolate is runnable
+106 | Isolate must be paused | This operation is only valid when the isolate is paused
 
 
 
@@ -2527,5 +2527,5 @@ version | comments
 3.2 | Isolate objects now include the runnable bit and many debugger related RPCs will return an error if executed on an isolate before it is runnable.
 3.3 | Pause event now indicates if the isolate is paused at an await, yield, or yield* suspension point via the 'atAsyncSuspension' field. Resume command now supports the step parameter 'OverAsyncSuspension'. A Breakpoint added synthetically by an 'OverAsyncSuspension' resume command identifies itself as such via the 'isSyntheticAsyncContinuation' field.
 3.4 | Add the superType and mixin fields to Class. Added new pause event 'None'.
-3.5 | Add the error field to SourceReportRange.  Clarify definition of token position.
+3.5 | Add the error field to SourceReportRange.  Clarify definition of token position.  Add "Isolate must be paused" error code.
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss
