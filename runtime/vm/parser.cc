@@ -514,8 +514,8 @@ void Parser::ParseCompilationUnit(const Library& library,
   Thread* thread = Thread::Current();
   ASSERT(thread->long_jump_base()->IsSafeToJump());
   CSTAT_TIMER_SCOPE(thread, parser_timer);
-  VMTagScope tagScope(thread, VMTag::kCompileTopLevelTagId);
 #ifndef PRODUCT
+  VMTagScope tagScope(thread, VMTag::kCompileTopLevelTagId);
   TimelineDurationScope tds(thread,
                             Timeline::GetCompilerStream(),
                             "CompileTopLevel");
@@ -989,9 +989,9 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   Zone* zone = thread->zone();
   CSTAT_TIMER_SCOPE(thread, parser_timer);
   INC_STAT(thread, num_functions_parsed, 1);
+#ifndef PRODUCT
   VMTagScope tagScope(thread, VMTag::kCompileParseFunctionTagId,
                       FLAG_profile_vm);
-#ifndef PRODUCT
   TimelineDurationScope tds(thread,
                             Timeline::GetCompilerStream(),
                             "ParseFunction");
@@ -1234,6 +1234,12 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
   Thread* thread = Thread::Current();
   // TODO(koda): Should there be a StackZone here?
   Zone* zone = thread->zone();
+#ifndef PRODUCT
+  VMTagScope tagScope(thread, VMTag::kCompileParseFunctionTagId,
+                      FLAG_profile_vm);
+  TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
+                            "ParseStaticFieldInitializer");
+#endif  // !PRODUCT
 
   const String& field_name = String::Handle(zone, field.name());
   String& init_name = String::Handle(zone,

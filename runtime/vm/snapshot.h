@@ -187,11 +187,6 @@ class Snapshot {
     return (kind == kAppWithJIT) || (kind == kAppNoJIT);
   }
 
-  bool IsMessageSnapshot() const { return kind() == kMessage; }
-  bool IsScriptSnapshot() const { return kind() == kScript; }
-  bool IsCoreSnapshot() const { return kind() == kCore; }
-  bool IsAppSnapshotWithJIT() const { return kind() == kAppWithJIT; }
-  bool IsAppSnapshotNoJIT() const { return kind() == kAppNoJIT; }
   uint8_t* Addr() { return reinterpret_cast<uint8_t*>(this); }
 
   static intptr_t length_offset() {

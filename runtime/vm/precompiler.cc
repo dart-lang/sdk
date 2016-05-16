@@ -870,7 +870,7 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
   if (compute_type && field.is_final()) {
     intptr_t result_cid = pipeline.result_type().ToCid();
     if (result_cid != kDynamicCid) {
-      if (FLAG_trace_precompiler) {
+      if (FLAG_trace_precompiler && FLAG_support_il_printer) {
         THR_Print("Setting guarded_cid of %s to %s\n", field.ToCString(),
                   pipeline.result_type().ToCString());
       }

@@ -18,6 +18,7 @@
 #include "vm/snapshot_ids.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/timeline.h"
 #include "vm/verified_memory.h"
 #include "vm/version.h"
 
@@ -1191,7 +1192,10 @@ static void EnsureIdentifier(char* label) {
 
 
 void AssemblyInstructionsWriter::Write() {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  NOT_IN_PRODUCT(TimelineDurationScope tds(thread,
+      Timeline::GetIsolateStream(), "WriteInstructions"));
 
   // Handlify collected raw pointers as building the names below
   // will allocate on the Dart heap.
@@ -1336,7 +1340,10 @@ void AssemblyInstructionsWriter::Write() {
 
 
 void BlobInstructionsWriter::Write() {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  NOT_IN_PRODUCT(TimelineDurationScope tds(thread,
+      Timeline::GetIsolateStream(), "WriteInstructions"));
 
   // Handlify collected raw pointers as building the names below
   // will allocate on the Dart heap.
@@ -2044,6 +2051,9 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
 
   intptr_t first_object_id = -1;
   if (vm_isolate_snapshot_buffer != NULL) {
+    NOT_IN_PRODUCT(TimelineDurationScope tds(thread(),
+        Timeline::GetIsolateStream(), "PrepareNewVMIsolate"));
+
     // Collect all the script objects and their accompanying token stream
     // objects into an array so that we can write it out as part of the VM
     // isolate snapshot. We first count the number of script objects, allocate
@@ -2094,6 +2104,9 @@ FullSnapshotWriter::~FullSnapshotWriter() {
 
 
 void FullSnapshotWriter::WriteVmIsolateSnapshot() {
+  NOT_IN_PRODUCT(TimelineDurationScope tds(thread(),
+      Timeline::GetIsolateStream(), "WriteVmIsolateSnapshot"));
+
   ASSERT(vm_isolate_snapshot_buffer_ != NULL);
   SnapshotWriter writer(thread(),
                         kind_,
@@ -2143,6 +2156,9 @@ void FullSnapshotWriter::WriteVmIsolateSnapshot() {
 
 
 void FullSnapshotWriter::WriteIsolateFullSnapshot() {
+  NOT_IN_PRODUCT(TimelineDurationScope tds(thread(),
+      Timeline::GetIsolateStream(), "WriteIsolateFullSnapshot"));
+
   SnapshotWriter writer(thread(),
                         kind_,
                         isolate_snapshot_buffer_,

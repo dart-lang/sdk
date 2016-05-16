@@ -1568,19 +1568,31 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
     // it now, but don't bother remembering it because it won't be used again.
     ASSERT(!field.HasPrecompiledInitializer());
     Thread* const thread = Thread::Current();
-    StackZone zone(thread);
-    ParsedFunction* parsed_function =
-        Parser::ParseStaticFieldInitializer(field);
+    Function& initializer = Function::Handle(thread->zone());
+    {
+      NOT_IN_PRODUCT(
+        VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
+        TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
+                                  "CompileStaticInitializer");
+        if (tds.enabled()) {
+          tds.SetNumArguments(1);
+          tds.CopyArgument(0, "field", field.ToCString());
+        }
+      )
 
-    parsed_function->AllocateVariables();
-    // Non-optimized code generator.
-    DartCompilationPipeline pipeline;
-    CompileParsedFunctionHelper helper(parsed_function, false, kNoOSRDeoptId);
-    helper.Compile(&pipeline);
-    const Function& initializer =
-        Function::Handle(parsed_function->function().raw());
-    Code::Handle(initializer.unoptimized_code()).set_var_descriptors(
-        Object::empty_var_descriptors());
+      StackZone zone(thread);
+      ParsedFunction* parsed_function =
+          Parser::ParseStaticFieldInitializer(field);
+
+      parsed_function->AllocateVariables();
+      // Non-optimized code generator.
+      DartCompilationPipeline pipeline;
+      CompileParsedFunctionHelper helper(parsed_function, false, kNoOSRDeoptId);
+      helper.Compile(&pipeline);
+      initializer = parsed_function->function().raw();
+      Code::Handle(initializer.unoptimized_code()).set_var_descriptors(
+          Object::empty_var_descriptors());
+    }
     // Invoke the function to evaluate the expression.
     return DartEntry::InvokeFunction(initializer, Object::empty_array());
   } else {
