@@ -81,6 +81,9 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// In an async* function, this represents the stream controller parameter.
   JS.TemporaryId _asyncStarController;
 
+  /// The top-level reference to 'self' if this is a library tagged with @JS()
+  JS.TemporaryId _self;
+
   final _privateNames =
       new HashMap<LibraryElement, HashMap<String, JS.TemporaryId>>();
   final _initializingFormalTemps =
@@ -218,6 +221,11 @@ class CodeGenerator extends GeneralizingAstVisitor
       if (_isDartRuntime(library)) {
         items.add(new JS.ExportDeclaration(
             js.call('const # = Object.create(null)', [_dartxVar])));
+      }
+
+      if (findAnnotation(library, isPublicJSAnnotation) != null) {
+        _self = new JS.TemporaryId('self');
+        items.add(js.statement('const # = window;', [_self]));
       }
     }
 
@@ -2325,6 +2333,13 @@ class CodeGenerator extends GeneralizingAstVisitor
   }
 
   JS.PropertyAccess _emitTopLevelName(Element e, {String suffix: ''}) {
+    if (e is TopLevelVariableElement &&
+        e.getter != null &&
+        findAnnotation(e.getter, isPublicJSAnnotation) != null) {
+      var annotationName = getAnnotationName(e.getter, isPublicJSAnnotation);
+      var name = js.string(annotationName ?? e.name);
+      return new JS.PropertyAccess(_self, name);
+    }
     String name = getJSExportName(e) + suffix;
     return new JS.PropertyAccess(
         emitLibraryName(e.library), _propertyName(name));
@@ -2525,7 +2540,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var memberName = _emitMemberName(name, type: type, isStatic: isStatic);
 
     JS.Expression jsTarget = _visit(target);
-    if (DynamicInvoke.get(target)) {
+    if (DynamicInvoke.get(target) || DynamicInvoke.get(node.methodName)) {
       if (typeArgs != null) {
         return js.call('dart.dgsend(#, #, #, #)',
             [jsTarget, new JS.ArrayInitializer(typeArgs), memberName, args]);
@@ -2539,15 +2554,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
 
     jsTarget = new JS.PropertyAccess(jsTarget, memberName);
-
     if (typeArgs != null) jsTarget = new JS.Call(jsTarget, typeArgs);
-
-    if (DynamicInvoke.get(node.methodName)) {
-      // This is a dynamic call to a statically known target. For example:
-      //     class Foo { Function bar; }
-      //     new Foo().bar(); // dynamic call
-      return js.call('dart.dcall(#, #)', [jsTarget, args]);
-    }
 
     return new JS.Call(jsTarget, args);
   }
@@ -3027,7 +3034,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (findAnnotation(classElem, isPublicJSAnnotation) != null) {
       var annotationName = getAnnotationName(classElem, isPublicJSAnnotation);
       var typeName = js.string(annotationName ?? classElem.name);
-      return new JS.PropertyAccess(new JS.Identifier('self'), typeName);
+      return new JS.PropertyAccess(_self, typeName);
     }
     var typeName = _emitType(type);
     if (name != null || element.isFactory) {

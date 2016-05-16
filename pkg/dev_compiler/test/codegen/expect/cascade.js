@@ -18,8 +18,8 @@ dart_library.library('cascade', null, /* Imports */[
       a = null;
     });
     let _ = a;
-    dart.dcall(_.x);
-    dart.dcall(_.x);
+    dart.dsend(_, 'x');
+    dart.dsend(_, 'x');
     core.print(a);
   };
   dart.fn(cascade.test_closure_with_mutate, dart.void, []);
@@ -28,8 +28,8 @@ dart_library.library('cascade', null, /* Imports */[
     a.x = dart.fn(() => {
       core.print(a);
     });
-    dart.dcall(a.x);
-    dart.dcall(a.x);
+    dart.dsend(a, 'x');
+    dart.dsend(a, 'x');
     core.print(a);
   };
   dart.fn(cascade.test_closure_without_mutate, dart.void, []);

@@ -29472,7 +29472,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       core.Stopwatch._frequency = _js_helper.Primitives.timerFrequency;
     }
     static _now() {
-      return dart.as(dart.dcall(_js_helper.Primitives.timerTicks), core.int);
+      return dart.as(dart.dsend(_js_helper.Primitives, 'timerTicks'), core.int);
     }
   };
   dart.setSignature(core.Stopwatch, {

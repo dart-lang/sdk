@@ -560,7 +560,7 @@
       'instance_of_test': ['unittest', 'skip', 'fail'],
       'interactive_test': ['unittest', 'skip', 'fail'],
       'isolates_test': ['unittest', 'skip', 'fail'],
-      'js_function_getter_test': ['unittest', 'skip', 'fail'],
+      'js_function_getter_test': 'unittest',
       'js_function_getter_trust_types_test': ['unittest', 'skip', 'fail'],
       'js_interop_1_test': ['unittest', 'skip', 'fail'],
       'js_test': ['unittest', 'skip', 'fail'],
