@@ -467,7 +467,8 @@ abstract class ElementHandle implements Element {
   AstNode computeNode() => actualElement.computeNode();
 
   @override
-  Element getAncestor(Predicate<Element> predicate) =>
+  Element/*=E*/ getAncestor/*<E extends Element >*/(
+          Predicate<Element> predicate) =>
       actualElement.getAncestor(predicate);
 
   @override

@@ -105,8 +105,7 @@ analyzer:
 ''');
 
     List<ErrorProcessor> processors =
-        context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS)
-        as List<ErrorProcessor>;
+        context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
     expect(processors, hasLength(2));
 
     var unused_local = new AnalysisError(

@@ -895,21 +895,22 @@ abstract class AstNodeImpl implements AstNode {
   }
 
   @override
-  AstNode getAncestor(Predicate<AstNode> predicate) {
+  AstNode/*=E*/ getAncestor/*<E extends AstNode>*/(
+      Predicate<AstNode> predicate) {
     // TODO(brianwilkerson) It is a bug that this method can return `this`.
     AstNode node = this;
     while (node != null && !predicate(node)) {
       node = node.parent;
     }
-    return node;
+    return node as AstNode/*=E*/;
   }
 
   @override
-  Object getProperty(String name) {
+  Object/*=E*/ getProperty/*<E>*/(String name) {
     if (_propertyMap == null) {
       return null;
     }
-    return _propertyMap[name];
+    return _propertyMap[name] as Object/*=E*/;
   }
 
   @override

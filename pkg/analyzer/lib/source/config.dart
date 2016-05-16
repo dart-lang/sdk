@@ -19,8 +19,7 @@ final ResultDescriptor<AnalysisConfiguration> ANALYSIS_CONFIGURATION =
 /// Return configuration associated with this [context], or `null` if there is
 /// none.
 AnalysisConfiguration getConfiguration(AnalysisContext context) =>
-    context.getConfigurationData(ANALYSIS_CONFIGURATION)
-    as AnalysisConfiguration;
+    context.getConfigurationData(ANALYSIS_CONFIGURATION);
 
 /// Associate this [config] with the given [context].
 void setConfiguration(AnalysisContext context, AnalysisConfiguration config) {
@@ -47,6 +46,7 @@ abstract class AnalysisConfiguration {
 class AnalysisConfigurationDescriptor {
   /// The name of the package hosting the configuration.
   String package;
+
   /// The name of the configuration "pragma".
   String pragma;
 

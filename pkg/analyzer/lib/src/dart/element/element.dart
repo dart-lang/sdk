@@ -2067,12 +2067,13 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  Element getAncestor(Predicate<Element> predicate) {
+  Element/*=E*/ getAncestor/*<E extends Element >*/(
+      Predicate<Element> predicate) {
     Element ancestor = _enclosingElement;
     while (ancestor != null && !predicate(ancestor)) {
       ancestor = ancestor.enclosingElement;
     }
-    return ancestor;
+    return ancestor as Element/*=E*/;
   }
 
   /**
@@ -4153,7 +4154,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   AstNode computeNode() => null;
 
   @override
-  Element getAncestor(Predicate<Element> predicate) => null;
+  Element/*=E*/ getAncestor/*<E extends Element >*/(
+          Predicate<Element> predicate) =>
+      null;
 
   @override
   String getExtendedDisplayName(String shortName) {

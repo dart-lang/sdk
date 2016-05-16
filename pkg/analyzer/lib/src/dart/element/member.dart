@@ -515,7 +515,7 @@ abstract class Member implements Element {
   AstNode computeNode() => _baseElement.computeNode();
 
   @override
-  Element getAncestor(Predicate<Element> predicate) =>
+  Element/*=E*/ getAncestor/*<E extends Element >*/(Predicate<Element> predicate) =>
       baseElement.getAncestor(predicate);
 
   @override
@@ -700,20 +700,19 @@ class ParameterMember extends VariableMember
   FormalParameter computeNode() => baseElement.computeNode();
 
   @override
-  Element getAncestor(Predicate<Element> predicate) {
+  Element/*=E*/ getAncestor/*<E extends Element>*/(Predicate<Element> predicate) {
     Element element = baseElement.getAncestor(predicate);
     ParameterizedType definingType = this.definingType;
     if (definingType is InterfaceType) {
-      InterfaceType definingInterfaceType = definingType;
       if (element is ConstructorElement) {
-        return ConstructorMember.from(element, definingInterfaceType);
+        return ConstructorMember.from(element, definingType) as Element/*=E*/;
       } else if (element is MethodElement) {
-        return MethodMember.from(element, definingInterfaceType);
+        return MethodMember.from(element, definingType) as Element/*=E*/;
       } else if (element is PropertyAccessorElement) {
-        return PropertyAccessorMember.from(element, definingInterfaceType);
+        return PropertyAccessorMember.from(element, definingType) as Element/*=E*/;
       }
     }
-    return element;
+    return element as Element/*=E*/;
   }
 
   @override

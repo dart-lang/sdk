@@ -96,8 +96,7 @@ class ErrorProcessor {
 
     // Let the user configure how specific errors are processed.
     List<ErrorProcessor> processors =
-        context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS)
-        as List<ErrorProcessor>;
+        context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
 
     // Give strong mode a chance to upgrade it.
     if (context.analysisOptions.strongMode) {
