@@ -27,17 +27,6 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       maturity: Maturity.STABLE,
       dart2jsPatchPath: "_internal/compiler/js_lib/async_patch.dart"),
 
-  "_blink": const LibraryInfo(
-      "_blink/dartium/_blink_dartium.dart",
-      category: "Client",
-      implementation: true,
-      documented: false),
-
-  "_chrome": const LibraryInfo(
-      "_chrome/dart2js/chrome_dart2js.dart",
-      documented: false,
-      category: "Client"),
-
   "collection": const LibraryInfo(
       "collection/collection.dart",
       maturity: Maturity.STABLE,
@@ -96,17 +85,6 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       "mirrors/mirrors.dart",
       maturity: Maturity.UNSTABLE,
       dart2jsPatchPath: "_internal/compiler/js_lib/mirrors_patch.dart"),
-
-  "profiler": const LibraryInfo(
-      "profiler/profiler.dart",
-      maturity: Maturity.UNSTABLE),
-
-  "nativewrappers": const LibraryInfo(
-      "html/dartium/nativewrappers.dart",
-      category: "Client",
-      implementation: true,
-      documented: false,
-      platforms: VM_PLATFORM),
 
   "typed_data": const LibraryInfo(
       "typed_data/typed_data.dart",
@@ -173,12 +151,6 @@ const Map<String, LibraryInfo> LIBRARIES = const {
 
   "_js_mirrors": const LibraryInfo(
       "_internal/compiler/js_lib/js_mirrors.dart",
-      category: "Internal",
-      documented: false,
-      platforms: DART2JS_PLATFORM),
-
-  "_js_names": const LibraryInfo(
-      "_internal/compiler/js_lib/js_names.dart",
       category: "Internal",
       documented: false,
       platforms: DART2JS_PLATFORM),
