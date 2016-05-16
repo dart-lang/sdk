@@ -23,6 +23,7 @@ import 'package:linter/src/rules/control_flow_in_finally.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
 import 'package:linter/src/rules/hash_and_equals.dart';
 import 'package:linter/src/rules/implementation_imports.dart';
+import 'package:linter/src/rules/iterable_contains_unrelated_type.dart';
 import 'package:linter/src/rules/library_names.dart';
 import 'package:linter/src/rules/library_prefixes.dart';
 import 'package:linter/src/rules/non_constant_identifier_names.dart';
@@ -63,6 +64,7 @@ final Registry ruleRegistry = new Registry()
   ..register(new OverridenField())
   ..register(new HashAndEquals())
   ..register(new ImplementationImports())
+  ..register(new IterableContainsUnrelatedType())
   ..register(new LibraryNames())
   ..register(new LibraryPrefixes())
   ..register(new NonConstantIdentifierNames())

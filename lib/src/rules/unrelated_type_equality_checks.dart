@@ -159,16 +159,21 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
 
-    if (_unrelatedTypes(node)) {
+    if (_hasNonComparableOperands(node)) {
       rule.reportLint(node);
     }
   }
+}
 
-  bool _unrelatedTypes(BinaryExpression node) {
-    DartType leftType = node.leftOperand.bestType;
-    DartType rightType = node.rightOperand.bestType;
-    if (leftType.isBottom || leftType.isDynamic || rightType.isBottom || rightType.isDynamic) {
-      return false;
+bool _hasNonComparableOperands(BinaryExpression node) =>
+    node.leftOperand is! NullLiteral &&
+        node.rightOperand is! NullLiteral &&
+        unrelatedTypes(node.leftOperand.bestType, node.rightOperand.bestType);
+
+bool unrelatedTypes(DartType leftType, DartType rightType) {
+  if (leftType == null || leftType.isBottom || leftType.isDynamic ||
+      rightType == null || rightType.isBottom || rightType.isDynamic) {
+    return false;
     }
     if (leftType == rightType ||
         leftType.isMoreSpecificThan(rightType) ||
@@ -182,5 +187,4 @@ class _Visitor extends SimpleAstVisitor {
           leftElement.supertype != rightElement.supertype;
     }
     return false;
-  }
 }
