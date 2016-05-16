@@ -48,6 +48,7 @@ class RuntimeEntry;
 class Smi;
 class StackResource;
 class String;
+class TimelineStream;
 class TypeArguments;
 class TypeParameter;
 class Zone;
@@ -269,6 +270,11 @@ class Thread : public BaseThread {
   }
   bool IsMutatorThread() const;
   bool CanCollectGarbage() const;
+
+  // Offset of Dart TimelineStream object.
+  static intptr_t dart_stream_offset() {
+    return OFFSET_OF(Thread, dart_stream_);
+  }
 
   // Is |this| executing Dart code?
   bool IsExecutingDartCode() const;
@@ -632,6 +638,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   uword stack_limit_;
   uword stack_overflow_flags_;
   Isolate* isolate_;
+  TimelineStream* dart_stream_;
   Heap* heap_;
   uword top_exit_frame_info_;
   StoreBufferBlock* store_buffer_block_;

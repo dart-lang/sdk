@@ -20,6 +20,7 @@
 #include "vm/symbols.h"
 #include "vm/thread_interrupter.h"
 #include "vm/thread_registry.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -63,6 +64,7 @@ Thread::Thread(Isolate* isolate)
       stack_limit_(0),
       stack_overflow_flags_(0),
       isolate_(NULL),
+      dart_stream_(NULL),
       heap_(NULL),
       top_exit_frame_info_(0),
       store_buffer_block_(NULL),
@@ -96,6 +98,8 @@ Thread::Thread(Isolate* isolate)
       safepoint_state_(0),
       execution_state_(kThreadInVM),
       next_(NULL) {
+  dart_stream_ = Timeline::GetDartStream();
+  ASSERT(dart_stream_ != NULL);
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
   member_name = default_init_value;
 CACHED_CONSTANTS_LIST(DEFAULT_INIT)

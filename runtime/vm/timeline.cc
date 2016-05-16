@@ -173,14 +173,12 @@ void Timeline::InitOnce() {
   enabled_streams_ = GetEnabledByDefaultTimelineStreams();
   // Global overrides.
 #define TIMELINE_STREAM_FLAG_DEFAULT(name, not_used)                           \
-  stream_##name##_enabled_ = HasStream(enabled_streams_, #name);               \
   stream_##name##_.Init(#name,                                                 \
-                        stream_##name##_enabled_,                              \
-                        &stream_##name##_enabled_);
+                        HasStream(enabled_streams_, #name));
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_FLAG_DEFAULT)
 #undef TIMELINE_STREAM_FLAG_DEFAULT
 
-  if (stream_Embedder_enabled_ &&
+  if (Timeline::stream_Embedder_.enabled() &&
       (Timeline::get_start_recording_cb() != NULL)) {
     Timeline::get_start_recording_cb()();
   }
@@ -206,7 +204,7 @@ void Timeline::StreamStateChange(const char* stream_name,
 void Timeline::Shutdown() {
   ASSERT(recorder_ != NULL);
 
-  if (stream_Embedder_enabled_ &&
+  if (Timeline::stream_Embedder_.enabled() &&
       (Timeline::get_stop_recording_cb() != NULL)) {
     Timeline::get_stop_recording_cb()();
   }
@@ -217,7 +215,7 @@ void Timeline::Shutdown() {
 
   // Disable global streams.
 #define TIMELINE_STREAM_DISABLE(name, not_used)                                \
-  stream_##name##_enabled_ = false;
+  Timeline::stream_##name##_.set_enabled(false);
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DISABLE)
 #undef TIMELINE_STREAM_DISABLE
   delete recorder_;
@@ -275,7 +273,7 @@ TIMELINE_STREAM_LIST(ADD_STREAM_NAME);
   {
     JSONArray recordedStreams(&obj, "recordedStreams");
 #define ADD_RECORDED_STREAM_NAME(name, not_used)                               \
-    if (stream_##name##_enabled_) {                                            \
+    if (stream_##name##_.enabled()) {                                          \
       recordedStreams.AddValue(#name);                                         \
     }
 TIMELINE_STREAM_LIST(ADD_RECORDED_STREAM_NAME);
@@ -300,7 +298,6 @@ Dart_EmbedderTimelineStartRecording Timeline::start_recording_cb_ = NULL;
 Dart_EmbedderTimelineStopRecording Timeline::stop_recording_cb_ = NULL;
 
 #define TIMELINE_STREAM_DEFINE(name, enabled_by_default)                       \
-  bool Timeline::stream_##name##_enabled_ = enabled_by_default;                \
   TimelineStream Timeline::stream_##name##_;
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DEFINE)
 #undef TIMELINE_STREAM_DEFINE
@@ -727,23 +724,20 @@ int64_t TimelineEvent::ThreadCPUTimeDuration() const {
 
 TimelineStream::TimelineStream()
     : name_(NULL),
-      enabled_(false),
-      globally_enabled_(NULL) {
+      enabled_(false) {
 }
 
 
 void TimelineStream::Init(const char* name,
-                          bool enabled,
-                          const bool* globally_enabled) {
+                          bool enabled) {
   name_ = name;
   enabled_ = enabled;
-  globally_enabled_ = globally_enabled;
 }
 
 
 TimelineEvent* TimelineStream::StartEvent() {
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (!Enabled() || (recorder == NULL)) {
+  if (!enabled() || (recorder == NULL)) {
     return NULL;
   }
   ASSERT(name_ != NULL);
@@ -789,7 +783,7 @@ void TimelineEventScope::Init() {
   ASSERT(enabled_ == false);
   ASSERT(label_ != NULL);
   ASSERT(stream_ != NULL);
-  if (!stream_->Enabled()) {
+  if (!stream_->enabled()) {
     // Stream is not enabled, do nothing.
     return;
   }
