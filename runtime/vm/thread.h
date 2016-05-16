@@ -638,7 +638,6 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   uword stack_limit_;
   uword stack_overflow_flags_;
   Isolate* isolate_;
-  TimelineStream* dart_stream_;
   Heap* heap_;
   uword top_exit_frame_info_;
   StoreBufferBlock* store_buffer_block_;
@@ -660,6 +659,7 @@ RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #undef DECLARE_MEMBERS
 
+  TimelineStream* dart_stream_;
   OSThread* os_thread_;
   Monitor* thread_lock_;
   Zone* zone_;
