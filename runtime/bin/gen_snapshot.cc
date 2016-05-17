@@ -154,7 +154,6 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
     memmove(name_chars, utf8_array, utf8_len);
     name_chars[utf8_len] = '\0';
     const char* value = NULL;
-    printf("Looking for %s\n", name_chars);
     if (environment != NULL) {
       HashMap::Entry* entry = environment->Lookup(
           GetHashmapKeyFromString(name_chars),
