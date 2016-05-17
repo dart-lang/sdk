@@ -3080,6 +3080,11 @@ class FunctionElementImpl extends ExecutableElementImpl
 class FunctionTypeAliasElementImpl extends ElementImpl
     implements FunctionTypeAliasElement {
   /**
+   * The unlinked representation of the type in the summary.
+   */
+  final UnlinkedTypedef _unlinkedTypedef;
+
+  /**
    * A list containing all of the parameters defined by this type alias.
    */
   List<ParameterElement> _parameters = ParameterElement.EMPTY_LIST;
@@ -3107,12 +3112,60 @@ class FunctionTypeAliasElementImpl extends ElementImpl
    *    contains the declaration of this element
    */
   FunctionTypeAliasElementImpl(String name, int nameOffset)
-      : super(name, nameOffset);
+      : _unlinkedTypedef = null,
+        super(name, nameOffset);
 
   /**
    * Initialize a newly created type alias element to have the given [name].
    */
-  FunctionTypeAliasElementImpl.forNode(Identifier name) : super.forNode(name);
+  FunctionTypeAliasElementImpl.forNode(Identifier name)
+      : _unlinkedTypedef = null,
+        super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  FunctionTypeAliasElementImpl.forSerialized(this._unlinkedTypedef)
+      : super.forSerialized();
+
+  @override
+  int get codeLength {
+    if (_unlinkedTypedef != null) {
+      return _unlinkedTypedef.codeRange?.length;
+    }
+    return super.codeLength;
+  }
+
+  @override
+  int get codeOffset {
+    if (_unlinkedTypedef != null) {
+      return _unlinkedTypedef.codeRange?.offset;
+    }
+    return super.codeOffset;
+  }
+
+  @override
+  String get displayName => name;
+
+  @override
+  SourceRange get docRange {
+    if (_unlinkedTypedef != null) {
+      UnlinkedDocumentationComment comment =
+          _unlinkedTypedef.documentationComment;
+      return comment != null
+          ? new SourceRange(comment.offset, comment.length)
+          : null;
+    }
+    return super.docRange;
+  }
+
+  @override
+  String get documentationComment {
+    if (_unlinkedTypedef != null) {
+      return _unlinkedTypedef?.documentationComment?.text;
+    }
+    return super.documentationComment;
+  }
 
   @override
   CompilationUnitElement get enclosingElement =>
@@ -3120,6 +3173,22 @@ class FunctionTypeAliasElementImpl extends ElementImpl
 
   @override
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
+
+  @override
+  String get name {
+    if (_unlinkedTypedef != null) {
+      return _unlinkedTypedef.name;
+    }
+    return super.name;
+  }
+
+  @override
+  int get nameOffset {
+    if (_unlinkedTypedef != null) {
+      return _unlinkedTypedef.nameOffset;
+    }
+    return super.nameOffset;
+  }
 
   @override
   List<ParameterElement> get parameters => _parameters;

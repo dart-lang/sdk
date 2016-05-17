@@ -2377,8 +2377,7 @@ class _UnitResynthesizer {
    */
   void buildTypedef(UnlinkedTypedef serializedTypedef) {
     FunctionTypeAliasElementImpl functionTypeAliasElement =
-        new FunctionTypeAliasElementImpl(
-            serializedTypedef.name, serializedTypedef.nameOffset);
+        new FunctionTypeAliasElementImpl.forSerialized(serializedTypedef);
     functionTypeAliasElement.typeParameters =
         buildTypeParameters(serializedTypedef.typeParameters);
     functionTypeAliasElement.parameters =
@@ -2387,10 +2386,7 @@ class _UnitResynthesizer {
         buildType(serializedTypedef.returnType);
     functionTypeAliasElement.type =
         new FunctionTypeImpl.forTypedef(functionTypeAliasElement);
-    buildDocumentation(
-        functionTypeAliasElement, serializedTypedef.documentationComment);
     buildAnnotations(functionTypeAliasElement, serializedTypedef.annotations);
-    buildCodeRange(functionTypeAliasElement, serializedTypedef.codeRange);
     unitHolder.addTypeAlias(functionTypeAliasElement);
     currentTypeParameters.removeLast();
     assert(currentTypeParameters.isEmpty);
