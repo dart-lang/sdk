@@ -61,7 +61,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
         ASSERT((class_id >= kInstanceCid) && (class_id <= kMirrorReferenceCid));
         cls = reader->isolate()->class_table()->At(class_id);
       } else {
-        cls = New<Instance>(kIllegalCid);
+        cls = Class::New<Instance>(kIllegalCid);
       }
     }
     reader->AddBackRef(object_id, &cls, kIsDeserialized);
