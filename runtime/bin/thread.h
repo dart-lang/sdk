@@ -51,7 +51,6 @@ class Thread {
   static void SetThreadLocal(ThreadLocalKey key, uword value);
   static intptr_t GetMaxStackSize();
   static ThreadId GetCurrentThreadId();
-  static bool Join(ThreadId id);
   static intptr_t ThreadIdToIntPtr(ThreadId id);
   static bool Compare(ThreadId a, ThreadId b);
   static void GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage);
