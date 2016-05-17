@@ -13,7 +13,7 @@ dart_library.library('sunflower', null, /* Imports */[
   sunflower.SEED_RADIUS = 2;
   sunflower.SCALE_FACTOR = 4;
   sunflower.MAX_D = 300;
-  sunflower.centerX = dart.notNull(sunflower.MAX_D) / 2;
+  sunflower.centerX = sunflower.MAX_D / 2;
   sunflower.centerY = sunflower.centerX;
   sunflower.querySelector = function(selector) {
     return html.document[dartx.querySelector](selector);
@@ -54,10 +54,10 @@ dart_library.library('sunflower', null, /* Imports */[
     sunflower.seeds = core.int.parse(sunflower.slider[dartx.value]);
     sunflower.context[dartx.clearRect](0, 0, sunflower.MAX_D, sunflower.MAX_D);
     for (let i = 0; i < dart.notNull(sunflower.seeds); i++) {
-      let theta = i * dart.notNull(painter.TAU) / dart.notNull(sunflower.PHI);
-      let r = dart.notNull(math.sqrt(i)) * dart.notNull(sunflower.SCALE_FACTOR);
-      let x = dart.notNull(sunflower.centerX) + r * dart.notNull(math.cos(theta));
-      let y = dart.notNull(sunflower.centerY) - r * dart.notNull(math.sin(theta));
+      let theta = i * painter.TAU / dart.notNull(sunflower.PHI);
+      let r = dart.notNull(math.sqrt(i)) * sunflower.SCALE_FACTOR;
+      let x = sunflower.centerX + r * dart.notNull(math.cos(theta));
+      let y = sunflower.centerY - r * dart.notNull(math.sin(theta));
       new sunflower.SunflowerSeed(x, y, sunflower.SEED_RADIUS).draw(sunflower.context);
     }
     sunflower.notes[dartx.text] = `${sunflower.seeds} seeds`;
@@ -105,7 +105,7 @@ dart_library.library('sunflower', null, /* Imports */[
   painter.ORANGE = "orange";
   painter.RED = "red";
   painter.BLUE = "blue";
-  painter.TAU = dart.notNull(math.PI) * 2;
+  painter.TAU = math.PI * 2;
   painter.querySelector = function(selector) {
     return html.document[dartx.querySelector](selector);
   };

@@ -95,26 +95,26 @@ dart_library.library('fieldtest', null, /* Imports */[
   fieldtest.StaticFieldOrder1.d = 4;
   dart.defineLazy(fieldtest.StaticFieldOrder1, {
     get a() {
-      return dart.notNull(fieldtest.StaticFieldOrder1.b) + 1;
+      return fieldtest.StaticFieldOrder1.b + 1;
     },
     get c() {
-      return dart.notNull(fieldtest.StaticFieldOrder1.d) + 2;
+      return fieldtest.StaticFieldOrder1.d + 2;
     },
     get b() {
-      return dart.notNull(fieldtest.StaticFieldOrder1.c) + 3;
+      return fieldtest.StaticFieldOrder1.c + 3;
     }
   });
   fieldtest.StaticFieldOrder2 = class StaticFieldOrder2 extends core.Object {};
   fieldtest.StaticFieldOrder2.d = 4;
   dart.defineLazy(fieldtest.StaticFieldOrder2, {
     get a() {
-      return dart.notNull(fieldtest.StaticFieldOrder2.b) + 1;
+      return fieldtest.StaticFieldOrder2.b + 1;
     },
     get c() {
-      return dart.notNull(fieldtest.StaticFieldOrder2.d) + 2;
+      return fieldtest.StaticFieldOrder2.d + 2;
     },
     get b() {
-      return dart.notNull(fieldtest.StaticFieldOrder2.c) + 3;
+      return fieldtest.StaticFieldOrder2.c + 3;
     }
   });
   fieldtest.MyEnum = class MyEnum extends core.Object {
