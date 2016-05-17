@@ -7,48 +7,41 @@ library analyzer_cli.test.sdk_ext;
 
 import 'dart:io';
 
+import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer_cli/src/driver.dart' show Driver, errorSink, outSink;
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
 import 'utils.dart';
 
-// TODO(pq): fix tests to run safely on the bots
-// https://github.com/dart-lang/sdk/issues/25001
-main() {}
-not_main() {
+main() {
   group('Sdk extensions', () {
     StringSink savedOutSink, savedErrorSink;
     int savedExitCode;
-    Directory savedCurrentDirectory;
+
     setUp(() {
       savedOutSink = outSink;
       savedErrorSink = errorSink;
       savedExitCode = exitCode;
       outSink = new StringBuffer();
       errorSink = new StringBuffer();
-      savedCurrentDirectory = Directory.current;
     });
     tearDown(() {
       outSink = savedOutSink;
       errorSink = savedErrorSink;
       exitCode = savedExitCode;
-      Directory.current = savedCurrentDirectory;
-    });
-
-    test('--packages option supplied', () async {
-      var testDir = path.join(testDirectory, 'data', 'no_packages_file');
-      Directory.current = new Directory(testDir);
-      var packagesPath = path.join('..', 'packages_file', '.packages');
-      new Driver().start(['--packages', packagesPath, 'sdk_ext_user.dart']);
-
-      expect(exitCode, 0);
     });
 
     test('.packages file present', () async {
-      var testDir = path.join(testDirectory, 'data', 'packages_file');
-      Directory.current = new Directory(testDir);
-      new Driver().start(['sdk_ext_user.dart']);
+      String testDir = path.join(testDirectory, 'data', 'packages_file');
+      Driver driver = new Driver()..start([
+        '--packages',
+        path.join(testDir, '.packages'),
+        path.join(testDir, 'sdk_ext_user.dart')
+      ]);
+
+      DirectoryBasedDartSdk sdk = driver.sdk;
+      expect(sdk.useSummary, isFalse);
 
       expect(exitCode, 0);
     });

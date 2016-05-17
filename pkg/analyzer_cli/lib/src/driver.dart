@@ -352,7 +352,7 @@ class Driver implements CommandLineStarter {
         // Default to a Dart URI resolver if no embedder is found.
         sdkResolver ??= new DartUriResolver(sdk);
 
-        // TODO(brianwilkerson) This doesn't sdk extensions.
+        // TODO(brianwilkerson) This doesn't handle sdk extensions.
         List<UriResolver> resolvers = <UriResolver>[
           sdkResolver,
           resolver,
@@ -495,8 +495,14 @@ class Driver implements CommandLineStarter {
     Map<fileSystem.Folder, YamlMap> embedderMap =
         _findEmbedders(packageInfo.packageMap);
 
+    // Scan for SDK extenders.
+    bool hasSdkExt = _hasSdkExt(packageInfo.packageMap?.values);
+
+    // No summaries in the presence of embedders or extenders.
+    bool useSummaries = embedderMap.isEmpty && !hasSdkExt;
+
     // Once options and embedders are processed, setup the SDK.
-    _setupSdk(options, embedderMap.isNotEmpty);
+    _setupSdk(options, useSummaries);
 
     // Choose a package resolution policy and a diet parsing policy based on
     // the command-line options.
@@ -579,6 +585,21 @@ class Driver implements CommandLineStarter {
     return folderMap;
   }
 
+  bool _hasSdkExt(Iterable<List<fileSystem.Folder>> folders) {
+    if (folders != null) {
+      //TODO: ideally share this traversal with SdkExtUriResolver
+      for (Iterable<fileSystem.Folder> libDirs in folders) {
+        if (libDirs.any((fileSystem.Folder libDir) =>
+        libDir
+            .getChild(SdkExtUriResolver.SDK_EXT_NAME)
+            .exists)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   /// Returns `true` if this relative path is a hidden directory.
   bool _isInHiddenDir(String relative) =>
       path.split(relative).any((part) => part.startsWith("."));
@@ -610,7 +631,7 @@ class Driver implements CommandLineStarter {
     return errorSeverity;
   }
 
-  void _setupSdk(CommandLineOptions options, bool hasEmbedder) {
+  void _setupSdk(CommandLineOptions options, bool useSummaries) {
     if (sdk == null) {
       if (options.dartSdkSummaryPath != null) {
         sdk = new SummaryBasedDartSdk(
@@ -619,17 +640,13 @@ class Driver implements CommandLineStarter {
         String dartSdkPath = options.dartSdkPath;
         DirectoryBasedDartSdk directorySdk =
             new DirectoryBasedDartSdk(new JavaFile(dartSdkPath));
-        // Summaries are disabled in the presence of embedders.
-        if (hasEmbedder) {
-          directorySdk.useSummary = false;
-        } else {
-          directorySdk.useSummary =
-              options.sourceFiles.every((String sourcePath) {
-            sourcePath = path.absolute(sourcePath);
-            sourcePath = path.normalize(sourcePath);
-            return !path.isWithin(dartSdkPath, sourcePath);
-          });
-        }
+        directorySdk.useSummary = useSummaries &&
+            options.sourceFiles.every((String sourcePath) {
+              sourcePath = path.absolute(sourcePath);
+              sourcePath = path.normalize(sourcePath);
+              return !path.isWithin(dartSdkPath, sourcePath);
+            });
+
         directorySdk.analysisOptions = context.analysisOptions;
         sdk = directorySdk;
       }

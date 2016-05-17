@@ -12,8 +12,8 @@ import 'package_prefix_test.dart' as package_prefix;
 import 'perf_report_test.dart' as perf;
 import 'plugin_manager_test.dart' as plugin_manager;
 import 'reporter_test.dart' as reporter;
+import 'sdk_ext_test.dart' as sdk_ext;
 import 'super_mixin_test.dart' as super_mixin;
-//import 'sdk_ext_test.dart' as sdk_ext;
 //import 'strong_mode_test.dart' as strong_mode;
 
 main() {
@@ -21,9 +21,9 @@ main() {
   build_mode_test.main();
   driver.main();
   embedder.main();
+  sdk_ext.main();
   // TODO(pq): fix tests to run safely on the bots
   // https://github.com/dart-lang/sdk/issues/25001
-  //sdk_ext.main();
   //strong_mode.main();
   error.main();
   options.main();
