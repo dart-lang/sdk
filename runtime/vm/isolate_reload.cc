@@ -656,31 +656,6 @@ void IsolateReloadContext::VerifyMaps() {
   }
   class_map.Release();
 }
-
-
-void IsolateReloadContext::VerifyCanonicalTypeArguments() {
-  Thread* thread = Thread::Current();
-  const Array& table =
-      Array::Handle(Z, I->object_store()->canonical_type_arguments());
-  const intptr_t table_size = table.Length() - 1;
-  ASSERT(Utils::IsPowerOfTwo(table_size));
-  TypeArguments& element = TypeArguments::Handle(Z);
-  TypeArguments& other_element = TypeArguments::Handle();
-  for (intptr_t i = 0; i < table_size; i++) {
-    element ^= table.At(i);
-    for (intptr_t j = 0; j < table_size; j++) {
-      if ((i != j) && (table.At(j) != TypeArguments::null())) {
-        other_element ^= table.At(j);
-        if (element.Equals(other_element)) {
-          // Recursive types may be equal, but have different hashes.
-          ASSERT(element.IsRecursive());
-          ASSERT(other_element.IsRecursive());
-          ASSERT(element.Hash() != other_element.Hash());
-        }
-      }
-    }
-  }
-}
 #endif
 
 
@@ -809,11 +784,6 @@ void IsolateReloadContext::Commit() {
                libs.Length());
     }
   }
-
-#ifdef DEBUG
-  // TODO(turnidge): Remove before committing to main branch.
-  VerifyCanonicalTypeArguments();
-#endif
 }
 
 

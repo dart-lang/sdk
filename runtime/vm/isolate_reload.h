@@ -100,7 +100,6 @@ class IsolateReloadContext {
 
 #ifdef DEBUG
   void VerifyMaps();
-  void VerifyCanonicalTypeArguments();
 #endif
 
   void Commit();
