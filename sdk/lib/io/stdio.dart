@@ -57,7 +57,7 @@ class Stdin extends _StdStream implements Stream<List<int>> {
                        bool retainNewlines: false}) {
     const CR = 13;
     const LF = 10;
-    final List line = [];
+    final List<int> line = <int>[];
     // On Windows, if lineMode is disabled, only CR is received.
     bool crIsNewline = Platform.isWindows &&
         (stdioType(stdin) == StdioType.TERMINAL) &&

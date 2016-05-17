@@ -39,7 +39,7 @@ class _Platform {
 
   // Cache the OS environemnt. This can be an OSError instance if
   // retrieving the environment failed.
-  static var _environmentCache;
+  static var/*OSError|Map<String,String>*/ _environmentCache;
 
   static int get numberOfProcessors => _numberOfProcessors();
   static String get pathSeparator => _pathSeparator();
@@ -62,7 +62,9 @@ class _Platform {
       var env = _environment();
       if (env is !OSError) {
         var isWindows = operatingSystem == 'windows';
-        var result = isWindows ? new _CaseInsensitiveStringMap() : new Map();
+        var result = isWindows
+            ? new _CaseInsensitiveStringMap<String>()
+            : new Map<String, String>();
         for (var str in env) {
           // The Strings returned by [_environment()] are expected to be
           // valid environment entries, but exceptions have been seen
@@ -84,7 +86,7 @@ class _Platform {
     if (_environmentCache is OSError) {
       throw _environmentCache;
     } else {
-      return _environmentCache;
+      return _environmentCache as Object/*=Map<String, String>*/;
     }
   }
 
@@ -106,7 +108,7 @@ class _CaseInsensitiveStringMap<V> implements Map<String, V> {
   V putIfAbsent(String key, V ifAbsent()) {
     return _map.putIfAbsent(key.toUpperCase(), ifAbsent);
   }
-  void addAll(Map other) {
+  void addAll(Map<String, V> other) {
     other.forEach((key, value) => this[key.toUpperCase()] = value);
   }
   V remove(Object key) => key is String ? _map.remove(key.toUpperCase()) : null;
