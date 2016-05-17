@@ -2439,6 +2439,7 @@ inline intptr_t RawObject::NumberOfTypedDataClasses() {
   return (kNullCid - kTypedDataInt8ArrayCid);
 }
 
+
 }  // namespace dart
 
 #endif  // VM_RAW_OBJECT_H_

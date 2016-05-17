@@ -681,6 +681,7 @@ static inline T ReadUnaligned(const T* ptr) {
 #define TAG_IC_DATA
 #endif
 
+
 }  // namespace dart
 
 #endif  // RUNTIME_PLATFORM_GLOBALS_H_
