@@ -3129,6 +3129,7 @@ class FunctionElementImpl extends ExecutableElementImpl
  * A concrete implementation of a [FunctionTypeAliasElement].
  */
 class FunctionTypeAliasElementImpl extends ElementImpl
+    with TypeParameterizedElementMixin
     implements FunctionTypeAliasElement {
   /**
    * The unlinked representation of the type in the summary.
@@ -3224,6 +3225,9 @@ class FunctionTypeAliasElementImpl extends ElementImpl
       super.enclosingElement as CompilationUnitElement;
 
   @override
+  TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
+
+  @override
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
 
   @override
@@ -3268,18 +3272,28 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   }
 
   @override
-  List<TypeParameterElement> get typeParameters => _typeParameters;
+  List<TypeParameterElement> get typeParameters {
+    if (_unlinkedTypedef != null) {
+      return super.typeParameters;
+    }
+    return _typeParameters;
+  }
 
   /**
    * Set the type parameters defined for this type to the given
    * [typeParameters].
    */
   void set typeParameters(List<TypeParameterElement> typeParameters) {
+    assert(resynthesizerContext == null);
     for (TypeParameterElement typeParameter in typeParameters) {
       (typeParameter as TypeParameterElementImpl).enclosingElement = this;
     }
     this._typeParameters = typeParameters;
   }
+
+  @override
+  List<UnlinkedTypeParam> get unlinkedTypeParams =>
+      _unlinkedTypedef.typeParameters;
 
   @override
   accept(ElementVisitor visitor) => visitor.visitFunctionTypeAliasElement(this);

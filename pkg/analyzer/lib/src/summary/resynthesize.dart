@@ -2448,15 +2448,16 @@ class _UnitResynthesizer {
     FunctionTypeAliasElementImpl functionTypeAliasElement =
         new FunctionTypeAliasElementImpl.forSerialized(
             _resynthesizerContext, serializedTypedef);
-    functionTypeAliasElement.typeParameters =
-        buildTypeParameters(serializedTypedef.typeParameters);
+    // TODO(scheglov) remove this after delaying parameters and their types
+    currentTypeParameters.add(functionTypeAliasElement.typeParameters);
     functionTypeAliasElement.parameters =
         serializedTypedef.parameters.map(buildParameter).toList();
-    functionTypeAliasElement.returnType = buildType(
-        serializedTypedef.returnType, _currentTypeParameterizedElement);
+    functionTypeAliasElement.returnType =
+        buildType(serializedTypedef.returnType, functionTypeAliasElement);
     functionTypeAliasElement.type =
         new FunctionTypeImpl.forTypedef(functionTypeAliasElement);
     unitHolder.addTypeAlias(functionTypeAliasElement);
+    // TODO(scheglov) remove this after delaying parameters and their types
     currentTypeParameters.removeLast();
     assert(currentTypeParameters.isEmpty);
   }
