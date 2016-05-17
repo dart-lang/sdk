@@ -435,12 +435,13 @@ VM_TEST_CASE(ThreadIterator_Count) {
 
 VM_TEST_CASE(ThreadIterator_FindSelf) {
   OSThread* current = OSThread::Current();
-  EXPECT(OSThread::IsThreadInList(current->join_id()));
+  EXPECT(OSThread::IsThreadInList(current->id()));
 }
 
 
 struct ThreadIteratorTestParams {
-  ThreadId spawned_thread_join_id;
+  ThreadId spawned_thread_id;
+  ThreadJoinId spawned_thread_join_id;
   Monitor* monitor;
 };
 
@@ -452,9 +453,10 @@ void ThreadIteratorTestMain(uword parameter) {
   EXPECT(thread != NULL);
 
   MonitorLocker ml(params->monitor);
-  params->spawned_thread_join_id = thread->join_id();
-  EXPECT(params->spawned_thread_join_id != OSThread::kInvalidThreadJoinId);
-  EXPECT(OSThread::IsThreadInList(thread->join_id()));
+  params->spawned_thread_id = thread->id();
+  params->spawned_thread_join_id = OSThread::GetCurrentThreadJoinId(thread);
+  EXPECT(params->spawned_thread_id != OSThread::kInvalidThreadId);
+  EXPECT(OSThread::IsThreadInList(thread->id()));
   ml.Notify();
 }
 
@@ -463,25 +465,25 @@ void ThreadIteratorTestMain(uword parameter) {
 // on Windows. See |OnDartThreadExit| in os_thread_win.cc for more details.
 TEST_CASE(ThreadIterator_AddFindRemove) {
   ThreadIteratorTestParams params;
-  params.spawned_thread_join_id = OSThread::kInvalidThreadJoinId;
+  params.spawned_thread_id = OSThread::kInvalidThreadId;
   params.monitor = new Monitor();
 
   {
     MonitorLocker ml(params.monitor);
-    EXPECT(params.spawned_thread_join_id == OSThread::kInvalidThreadJoinId);
-    // Spawn thread and wait to receive the thread join id.
+    EXPECT(params.spawned_thread_id == OSThread::kInvalidThreadId);
+    // Spawn thread and wait to receive the thread id.
     OSThread::Start("ThreadIteratorTest",
                     ThreadIteratorTestMain,
                     reinterpret_cast<uword>(&params));
-    while (params.spawned_thread_join_id == OSThread::kInvalidThreadJoinId) {
+    while (params.spawned_thread_id == OSThread::kInvalidThreadId) {
       ml.Wait();
     }
+    EXPECT(params.spawned_thread_id != OSThread::kInvalidThreadId);
     EXPECT(params.spawned_thread_join_id != OSThread::kInvalidThreadJoinId);
-    // Join thread.
     OSThread::Join(params.spawned_thread_join_id);
   }
 
-  EXPECT(!OSThread::IsThreadInList(params.spawned_thread_join_id))
+  EXPECT(!OSThread::IsThreadInList(params.spawned_thread_id))
 
   delete params.monitor;
 }

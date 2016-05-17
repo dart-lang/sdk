@@ -212,6 +212,16 @@ bool ThreadPool::RemoveWorkerFromAllList(Worker* worker) {
 }
 
 
+void ThreadPool::SetIdleLocked(Worker* worker) {
+  ASSERT(mutex_.IsOwnedByCurrentThread());
+  ASSERT(worker->owned_ && !IsIdle(worker));
+  worker->idle_next_ = idle_workers_;
+  idle_workers_ = worker;
+  count_idle_++;
+  count_running_--;
+}
+
+
 void ThreadPool::SetIdleAndReapExited(Worker* worker) {
   JoinList* list = NULL;
   {
@@ -219,17 +229,25 @@ void ThreadPool::SetIdleAndReapExited(Worker* worker) {
     if (shutting_down_) {
       return;
     }
-    ASSERT(worker->owned_ && !IsIdle(worker));
-    worker->idle_next_ = idle_workers_;
-    idle_workers_ = worker;
-    count_idle_++;
-    count_running_--;
-
-    // While we have the lock, opportunistically grab and clear the join_list_.
+    if (join_list_ == NULL) {
+      // Nothing to join, add to the idle list and return.
+      SetIdleLocked(worker);
+      return;
+    }
+    // There is something to join. Grab the join list, drop the lock, do the
+    // join, then grab the lock again and add to the idle list.
     list = join_list_;
     join_list_ = NULL;
   }
   JoinList::Join(&list);
+
+  {
+    MutexLocker ml(&mutex_);
+    if (shutting_down_) {
+      return;
+    }
+    SetIdleLocked(worker);
+  }
 }
 
 
@@ -250,7 +268,8 @@ bool ThreadPool::ReleaseIdleWorker(Worker* worker) {
   // so that we can join on it at the next opportunity.
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != NULL);
-  JoinList::AddLocked(os_thread->join_id(), &join_list_);
+  ThreadJoinId join_id = OSThread::GetCurrentThreadJoinId(os_thread);
+  JoinList::AddLocked(join_id, &join_list_);
   count_stopped_++;
   count_idle_--;
   return true;
@@ -430,7 +449,6 @@ void ThreadPool::Worker::Main(uword args) {
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != NULL);
   ThreadId id = os_thread->id();
-  ThreadJoinId join_id = os_thread->join_id();
   ThreadPool* pool;
 
   // Set the thread's stack_base based on the current stack pointer.
@@ -454,6 +472,7 @@ void ThreadPool::Worker::Main(uword args) {
     // Inform the thread pool that we are exiting. We remove this worker from
     // shutting_down_workers_ list because there will be no need for the
     // ThreadPool to take action for this worker.
+    ThreadJoinId join_id = OSThread::GetCurrentThreadJoinId(os_thread);
     {
       MutexLocker ml(&pool->mutex_);
       JoinList::AddLocked(join_id, &pool->join_list_);

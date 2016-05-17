@@ -156,11 +156,6 @@ ThreadId Thread::GetCurrentThreadId() {
 }
 
 
-bool Thread::Join(ThreadId id) {
-  return false;
-}
-
-
 intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
   ASSERT(sizeof(id) == sizeof(intptr_t));
   return static_cast<intptr_t>(id);

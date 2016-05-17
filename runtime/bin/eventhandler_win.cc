@@ -188,21 +188,13 @@ void Handle::WaitForReadThreadStarted() {
 
 
 void Handle::WaitForReadThreadFinished() {
-  // Join the Reader thread if there is one.
-  ThreadId to_join = Thread::kInvalidThreadId;
-  {
-    MonitorLocker ml(monitor_);
-    if (read_thread_id_ != Thread::kInvalidThreadId) {
-      while (!read_thread_finished_) {
-        ml.Wait();
-      }
-      read_thread_finished_ = false;
-      to_join = read_thread_id_;
-      read_thread_id_ = Thread::kInvalidThreadId;
+  MonitorLocker ml(monitor_);
+  if (read_thread_id_ != Thread::kInvalidThreadId) {
+    while (!read_thread_finished_) {
+      ml.Wait();
     }
-  }
-  if (to_join != Thread::kInvalidThreadId) {
-    Thread::Join(to_join);
+    read_thread_finished_ = false;
+    read_thread_id_ = Thread::kInvalidThreadId;
   }
 }
 
@@ -839,7 +831,6 @@ void StdHandle::DoClose() {
     while (write_thread_exists_) {
       ml.Wait(Monitor::kNoTimeout);
     }
-    Thread::Join(thread_id_);
   }
   Handle::DoClose();
 }
@@ -1376,7 +1367,6 @@ EventHandlerImplementation::EventHandlerImplementation() {
 
 
 EventHandlerImplementation::~EventHandlerImplementation() {
-  Thread::Join(handler_thread_id_);
   delete startup_monitor_;
   CloseHandle(completion_port_);
 }
