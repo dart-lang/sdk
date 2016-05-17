@@ -98,8 +98,10 @@ Thread::Thread(Isolate* isolate)
       safepoint_state_(0),
       execution_state_(kThreadInVM),
       next_(NULL) {
+NOT_IN_PRODUCT(
   dart_stream_ = Timeline::GetDartStream();
   ASSERT(dart_stream_ != NULL);
+)
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
   member_name = default_init_value;
 CACHED_CONSTANTS_LIST(DEFAULT_INIT)

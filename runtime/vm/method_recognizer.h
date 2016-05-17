@@ -307,6 +307,7 @@ namespace dart {
   V(_UserTag, makeCurrent, UserTag_makeCurrent, 187721469)                     \
   V(::, _getDefaultTag, UserTag_defaultTag, 350077879)                         \
   V(::, _getCurrentTag, Profiler_getCurrentTag, 1215225901)                    \
+  V(::, _isDartStreamEnabled, Timeline_isDartStreamEnabled, 1072246292)        \
 
 #define ALL_INTRINSICS_NO_INTEGER_LIB_LIST(V)                                  \
   CORE_LIB_INTRINSIC_LIST(V)                                                   \

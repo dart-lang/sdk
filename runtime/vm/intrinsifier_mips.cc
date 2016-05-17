@@ -14,6 +14,7 @@
 #include "vm/object_store.h"
 #include "vm/regexp_assembler.h"
 #include "vm/symbols.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -2206,6 +2207,28 @@ void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
   __ LoadIsolate(V0);
   __ Ret();
   __ delay_slot()->lw(V0, Address(V0, Isolate::current_tag_offset()));
+}
+
+
+void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler) {
+  if (!FLAG_support_timeline) {
+    __ LoadObject(V0, Bool::False());
+    __ Ret();
+    return;
+  }
+  Label true_label;
+  // Load TimelineStream*.
+  __ lw(V0, Address(THR, Thread::dart_stream_offset()));
+  // Load uintptr_t from TimelineStream*.
+  __ lw(V0, Address(V0, TimelineStream::enabled_offset()));
+  __ bne(V0, ZR, &true_label);
+  // Not enabled.
+  __ LoadObject(V0, Bool::False());
+  __ Ret();
+  // Enabled.
+  __ Bind(&true_label);
+  __ LoadObject(V0, Bool::True());
+  __ Ret();
 }
 
 }  // namespace dart

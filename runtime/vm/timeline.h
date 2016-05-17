@@ -71,6 +71,9 @@ class TimelineStream {
 
  private:
   const char* name_;
+
+  // This field is accessed by generated code (intrinsic) and expects to see
+  // 0 or 1. If this becomes a BitField, the generated code must be updated.
   uintptr_t enabled_;
 };
 
