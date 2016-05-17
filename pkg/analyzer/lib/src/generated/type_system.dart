@@ -1330,18 +1330,13 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
     if (t1 is TypeParameterType) {
       _TypeParameterBound bound = _bounds[t1];
       if (bound != null) {
-        _GuardedSubtypeChecker<DartType> guardedSubtype = _guard(_isSubtypeOf);
-
-        DartType newUpper = t2;
-        if (guardedSubtype(bound.upper, newUpper, visited)) {
-          // upper bound already covers this. Nothing to do.
-        } else if (guardedSubtype(newUpper, bound.upper, visited)) {
-          // update to the new, more precise upper bound.
-          bound.upper = newUpper;
-        } else {
-          // Failed to find an upper bound. Use bottom to signal no solution.
-          bound.upper = BottomTypeImpl.instance;
-        }
+        // Ensure T1 <: T2, where T1 is a type parameter we are inferring.
+        // T2 is an upper bound, so merge it with our existing upper bound.
+        //
+        // We already know T1 <: U, for some U.
+        // So update U to reflect the new constraint T1 <: GLB(U, T2)
+        //
+        bound.upper = getGreatestLowerBound(_typeProvider, bound.upper, t2);
         // Optimistically assume we will be able to satisfy the constraint.
         return true;
       }
@@ -1349,6 +1344,12 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
     if (t2 is TypeParameterType) {
       _TypeParameterBound bound = _bounds[t2];
       if (bound != null) {
+        // Ensure T1 <: T2, where T2 is a type parameter we are inferring.
+        // T1 is a lower bound, so merge it with our existing lower bound.
+        //
+        // We already know L <: T2, for some L.
+        // So update L to reflect the new constraint LUB(L, T1) <: T2
+        //
         bound.lower = getLeastUpperBound(_typeProvider, bound.lower, t1);
         // Optimistically assume we will be able to satisfy the constraint.
         return true;

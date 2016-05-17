@@ -1571,6 +1571,19 @@ main() {
 ''');
   }
 
+  void test_genericMethods_usesGreatestLowerBound() {
+    var mainUnit = checkFile(r'''
+typedef Iterable<num> F(int x);
+typedef List<int> G(double x);
+
+/*=T*/ generic/*<T>*/(a(/*=T*/ _), b(/*=T*/ _)) => null;
+
+var v = generic((F f) => null, (G g) => null);
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), '(num) → List<int>');
+  }
+
   void test_infer_assignToIndex() {
     checkFile(r'''
 List<double> a = <double>[];
