@@ -1126,7 +1126,7 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
           numTypeParameters: element.typeParameters.length,
           unitNum: element.enclosingElement.unitNum,
           kind: ReferenceKind.typedef);
-    } else if (element is ExecutableElementForLink) {
+    } else if (element is ExecutableElementForLink_NonLocal) {
       ClassElementForLink_Class enclosingClass = element.enclosingClass;
       ReferenceKind kind;
       switch (element._unlinkedExecutable.kind) {
@@ -1516,7 +1516,7 @@ class ConstParameterNode extends ConstNode {
  * Element representing a constructor resynthesized from a summary
  * during linking.
  */
-class ConstructorElementForLink extends ExecutableElementForLink
+class ConstructorElementForLink extends ExecutableElementForLink_NonLocal
     with ReferenceableElementForLink
     implements ConstructorElementImpl {
   /**
@@ -1761,17 +1761,10 @@ abstract class ExecutableElementForLink extends Object
   String _name;
   String _displayName;
 
-  /**
-   * Return the class in which this executable appears, maybe `null` for a
-   * top-level function.
-   */
-  final ClassElementForLink_Class enclosingClass;
-
   @override
   final CompilationUnitElementForLink compilationUnit;
 
-  ExecutableElementForLink(
-      this.compilationUnit, this.enclosingClass, this._unlinkedExecutable);
+  ExecutableElementForLink(this.compilationUnit, this._unlinkedExecutable);
 
   /**
    * If the executable element had an explicitly declared return type, return
@@ -1796,13 +1789,6 @@ abstract class ExecutableElementForLink extends Object
     }
     return _displayName;
   }
-
-  @override
-  Element get enclosingElement => enclosingClass ?? compilationUnit;
-
-  @override
-  TypeParameterizedElementForLink get enclosingTypeParameterContext =>
-      enclosingClass;
 
   @override
   bool get hasImplicitReturnType => _unlinkedExecutable.returnType == null;
@@ -1886,19 +1872,6 @@ abstract class ExecutableElementForLink extends Object
       !Identifier.isPrivateName(name) || identical(this.library, library);
 
   /**
-   * Store the results of type inference for this method in [compilationUnit].
-   */
-  void link(CompilationUnitElementInBuildUnit compilationUnit) {
-    if (_unlinkedExecutable.returnType == null) {
-      compilationUnit._storeLinkedType(
-          _unlinkedExecutable.inferredReturnTypeSlot, inferredReturnType, this);
-    }
-    for (ParameterElementForLink parameterElement in parameters) {
-      parameterElement.link(compilationUnit);
-    }
-  }
-
-  /**
    * Compute the default return type for this type of executable element (if no
    * return type is declared and strong mode type inference cannot infer a
    * better return type).
@@ -1911,6 +1884,45 @@ abstract class ExecutableElementForLink extends Object
       return VoidTypeImpl.instance;
     } else {
       return DynamicTypeImpl.instance;
+    }
+  }
+}
+
+/**
+ * Base class for executable elements that are resynthesized from a summary
+ * during linking and are not local functions.
+ */
+abstract class ExecutableElementForLink_NonLocal
+    extends ExecutableElementForLink {
+  /**
+   * Return the class in which this executable appears, maybe `null` for a
+   * top-level function.
+   */
+  final ClassElementForLink_Class enclosingClass;
+
+  ExecutableElementForLink_NonLocal(
+      CompilationUnitElementForLink compilationUnit,
+      this.enclosingClass,
+      UnlinkedExecutable unlinkedExecutable)
+      : super(compilationUnit, unlinkedExecutable);
+
+  @override
+  Element get enclosingElement => enclosingClass ?? compilationUnit;
+
+  @override
+  TypeParameterizedElementForLink get enclosingTypeParameterContext =>
+      enclosingClass;
+
+  /**
+   * Store the results of type inference for this method in [compilationUnit].
+   */
+  void link(CompilationUnitElementInBuildUnit compilationUnit) {
+    if (_unlinkedExecutable.returnType == null) {
+      compilationUnit._storeLinkedType(
+          _unlinkedExecutable.inferredReturnTypeSlot, inferredReturnType, this);
+    }
+    for (ParameterElementForLink parameterElement in parameters) {
+      parameterElement.link(compilationUnit);
     }
   }
 }
@@ -2717,8 +2729,8 @@ class FunctionElementForLink_Initializer implements FunctionElementImpl {
   @override
   List<FunctionElementForLink_Local> get functions => _functions ??= _variable
       .unlinkedVariable.initializer.localFunctions
-      .map(
-          (UnlinkedExecutable ex) => new FunctionElementForLink_Local(this, ex))
+      .map((UnlinkedExecutable ex) =>
+          new FunctionElementForLink_Local(_variable.compilationUnit, this, ex))
       .toList();
 
   @override
@@ -2750,24 +2762,14 @@ class FunctionElementForLink_Initializer implements FunctionElementImpl {
  * Element representing a local function (possibly a closure) inside another
  * executable.
  */
-class FunctionElementForLink_Local implements FunctionElementImpl {
-  /**
-   * The unlinked representation of the local function in the summary.
-   */
-  final UnlinkedExecutable _executable;
-
+class FunctionElementForLink_Local extends ExecutableElementForLink
+    implements FunctionElementImpl {
   @override
   final FunctionElementImpl enclosingElement;
 
-  DartType _type;
-
-  FunctionElementForLink_Local(this.enclosingElement, this._executable);
-
-  @override
-  String get name => _executable.name;
-
-  @override
-  DartType get type => _type ??= new FunctionTypeImpl(this);
+  FunctionElementForLink_Local(CompilationUnitElementForLink compilationUnit,
+      this.enclosingElement, UnlinkedExecutable unlinkedExecutable)
+      : super(compilationUnit, unlinkedExecutable);
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -3400,7 +3402,7 @@ class Linker {
 /**
  * Element representing a method resynthesized from a summary during linking.
  */
-class MethodElementForLink extends ExecutableElementForLink
+class MethodElementForLink extends ExecutableElementForLink_NonLocal
     with ReferenceableElementForLink
     implements MethodElementImpl {
   MethodElementForLink(ClassElementForLink_Class enclosingClass,
@@ -3795,7 +3797,8 @@ class PropertyAccessorElementForLink_EnumField extends Object
  * Specialization of [PropertyAccessorElementForLink] for non-synthetic
  * accessors explicitly declared in the source code.
  */
-class PropertyAccessorElementForLink_Executable extends ExecutableElementForLink
+class PropertyAccessorElementForLink_Executable
+    extends ExecutableElementForLink_NonLocal
     with ReferenceableElementForLink
     implements PropertyAccessorElementForLink {
   @override
@@ -4054,7 +4057,7 @@ class SyntheticVariableElementForLink implements PropertyInducingElementImpl {
 /**
  * Element representing a top-level function.
  */
-class TopLevelFunctionElementForLink extends ExecutableElementForLink
+class TopLevelFunctionElementForLink extends ExecutableElementForLink_NonLocal
     with ReferenceableElementForLink
     implements FunctionElementImpl {
   DartType _returnType;
