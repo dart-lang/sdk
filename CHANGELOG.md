@@ -28,6 +28,9 @@
   * A bug has been fixed in which a lockfile was considered up-to-date when it
     actually wasn't.
 
+  * A bug has been fixed in which `pub get --offline` would crash when a
+    prerelease version was selected.
+
 ## 1.16.0
 
 ### Core library changes
