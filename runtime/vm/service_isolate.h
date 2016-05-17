@@ -19,8 +19,8 @@ class ServiceIsolate : public AllStatic {
 
   static bool Exists();
   static bool IsRunning();
-  static bool IsServiceIsolate(Isolate* isolate);
-  static bool IsServiceIsolateDescendant(Isolate* isolate);
+  static bool IsServiceIsolate(const Isolate* isolate);
+  static bool IsServiceIsolateDescendant(const Isolate* isolate);
   static Dart_Port Port();
 
   static Dart_Port WaitForLoadPort();

@@ -113,13 +113,13 @@ bool ServiceIsolate::IsRunning() {
 }
 
 
-bool ServiceIsolate::IsServiceIsolate(Isolate* isolate) {
+bool ServiceIsolate::IsServiceIsolate(const Isolate* isolate) {
   MonitorLocker ml(monitor_);
   return isolate == isolate_;
 }
 
 
-bool ServiceIsolate::IsServiceIsolateDescendant(Isolate* isolate) {
+bool ServiceIsolate::IsServiceIsolateDescendant(const Isolate* isolate) {
   MonitorLocker ml(monitor_);
   return isolate->origin_id() == origin_;
 }

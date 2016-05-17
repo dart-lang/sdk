@@ -1923,7 +1923,7 @@ void ClassFinalizer::ApplyMixinAppAlias(const Class& mixin_app_class,
     inserted_class_name = Symbols::New(thread, inserted_class_name);
     const Script& script = Script::Handle(zone, mixin_app_class.script());
     inserted_class = Class::New(
-        inserted_class_name, script, mixin_app_class.token_pos());
+        library, inserted_class_name, script, mixin_app_class.token_pos());
     inserted_class.set_is_synthesized_class();
     library.AddClass(inserted_class);
 
@@ -2814,7 +2814,8 @@ RawType* ClassFinalizer::ResolveMixinAppType(
     mixin_app_class = library.LookupLocalClass(mixin_app_class_name);
     if (mixin_app_class.IsNull()) {
       mixin_app_class_name = Symbols::New(thread, mixin_app_class_name);
-      mixin_app_class = Class::New(mixin_app_class_name,
+      mixin_app_class = Class::New(library,
+                                   mixin_app_class_name,
                                    script,
                                    mixin_type.token_pos());
       mixin_app_class.set_super_type(mixin_super_type);

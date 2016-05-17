@@ -101,6 +101,10 @@ class ObservatoryApplication extends Observable {
         // Ignore for now.
         break;
 
+      case ServiceEvent.kIsolateReload:
+        notifications.add(new Notification.fromEvent(event));
+        break;
+
       case ServiceEvent.kIsolateExit:
       case ServiceEvent.kResume:
         removePauseEvents(event.isolate);

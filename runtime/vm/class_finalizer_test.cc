@@ -15,7 +15,8 @@ static RawClass* CreateTestClass(const char* name) {
                                                          name));
   const Script& script = Script::Handle();
   const Class& cls = Class::Handle(
-      Class::New(class_name, script, TokenPosition::kNoSource));
+      Class::New(Library::Handle(), class_name, script,
+                 TokenPosition::kNoSource));
   cls.set_interfaces(Object::empty_array());
   cls.SetFunctions(Object::empty_array());
   cls.SetFields(Object::empty_array());

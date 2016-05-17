@@ -625,6 +625,7 @@ CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
   friend class Closure;
   friend class Code;
   friend class Double;
+  friend class ForwardPointersVisitor;  // StorePointer
   friend class FreeListElement;
   friend class Function;
   friend class GCMarker;
@@ -735,6 +736,7 @@ class RawClass : public RawObject {
   uint16_t state_bits_;
 
   friend class Instance;
+  friend class Isolate;
   friend class Object;
   friend class RawInstance;
   friend class RawInstructions;
@@ -1038,6 +1040,7 @@ class RawScript : public RawObject {
   int32_t line_offset_;
   int32_t col_offset_;
   int8_t kind_;  // Of type Kind.
+  int64_t load_timestamp_;
 };
 
 
@@ -1683,9 +1686,10 @@ class RawType : public RawAbstractType {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->type_class_);
+    return reinterpret_cast<RawObject**>(&ptr()->type_class_id_);
   }
-  RawObject* type_class_;  // Either resolved class or unresolved class.
+  // Either the id of the resolved class as a Smi or an UnresolvedClass.
+  RawObject* type_class_id_;
   RawTypeArguments* arguments_;
   // This type object represents a function type if its signature field is a
   // non-null function object.
@@ -1724,12 +1728,12 @@ class RawTypeParameter : public RawAbstractType {
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->parameterized_class_);
+    return reinterpret_cast<RawObject**>(&ptr()->name_);
   }
-  RawClass* parameterized_class_;
   RawString* name_;
   RawAbstractType* bound_;  // ObjectType if no explicit bound specified.
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->bound_); }
+  classid_t parameterized_class_id_;
   TokenPosition token_pos_;
   int16_t index_;
   int8_t type_state_;

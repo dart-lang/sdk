@@ -21,24 +21,6 @@ DECLARE_FLAG(int, max_profile_depth);
 DECLARE_FLAG(bool, enable_inlining_annotations);
 DECLARE_FLAG(int, optimization_counter_threshold);
 
-template<typename T>
-class SetFlagScope : public ValueObject {
- public:
-  SetFlagScope(T* flag, T value)
-      : flag_(flag),
-        original_value_(*flag) {
-    *flag_ = value;
-  }
-
-  ~SetFlagScope() {
-    *flag_ = original_value_;
-  }
-
- private:
-  T* flag_;
-  T original_value_;
-};
-
 // Some tests are written assuming native stack trace profiling is disabled.
 class DisableNativeProfileScope : public ValueObject {
  public:

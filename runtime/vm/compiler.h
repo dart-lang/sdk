@@ -163,7 +163,14 @@ class BackgroundCompiler : public ThreadPool::Task {
   static void EnsureInit(Thread* thread);
 
   // Stops background compiler of the given isolate.
+  // TODO(turnidge): Give Stop and Disable more distinct names.
   static void Stop(Isolate* isolate);
+
+  static void Disable();
+
+  static void Enable();
+
+  static bool IsDisabled();
 
   // Call to optimize a function in the background, enters the function in the
   // compilation queue.

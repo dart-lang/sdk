@@ -19,6 +19,7 @@
 #include "vm/deopt_instructions.h"
 #include "vm/flags.h"
 #include "vm/heap.h"
+#include "vm/isolate_reload.h"
 #include "vm/lockers.h"
 #include "vm/log.h"
 #include "vm/message_handler.h"
@@ -52,6 +53,7 @@ namespace dart {
 DECLARE_FLAG(bool, print_metrics);
 DECLARE_FLAG(bool, timing);
 DECLARE_FLAG(bool, trace_service);
+DECLARE_FLAG(bool, trace_reload);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
 NOT_IN_PRODUCT(
@@ -134,7 +136,28 @@ NoOOBMessageScope::~NoOOBMessageScope() {
 
 
 
+NoReloadScope::NoReloadScope(Isolate* isolate, Thread* thread)
+    : StackResource(thread),
+      isolate_(isolate) {
+  ASSERT(isolate_ != NULL);
+  isolate_->no_reload_scope_depth_++;
+  ASSERT(isolate_->no_reload_scope_depth_ >= 0);
+}
+
+
+NoReloadScope::~NoReloadScope() {
+  isolate_->no_reload_scope_depth_--;
+  ASSERT(isolate_->no_reload_scope_depth_ >= 0);
+}
+
+
 void Isolate::RegisterClass(const Class& cls) {
+  NOT_IN_PRODUCT(
+    if (IsReloading()) {
+      reload_context()->RegisterClass(cls);
+      return;
+    }
+  )
   class_table()->Register(cls);
 }
 
@@ -624,6 +647,12 @@ static MessageHandler::MessageStatus StoreError(Thread* thread,
 
 MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     const Error& result) {
+  NOT_IN_PRODUCT(
+    if (I->IsReloading()) {
+      I->ReportReloadError(result);
+      return kOK;
+    }
+  )
   // Generate the error and stacktrace strings for the error message.
   String& exc_str = String::Handle(T->zone());
   String& stacktrace_str = String::Handle(T->zone());
@@ -785,6 +814,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       deoptimized_code_array_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
       background_compiler_(NULL),
+      background_compiler_disabled_depth_(0),
       pending_service_extension_calls_(GrowableObjectArray::null()),
       registered_service_extension_handlers_(GrowableObjectArray::null()),
       metrics_list_head_(NULL),
@@ -799,7 +829,10 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       boxed_field_list_(GrowableObjectArray::null()),
       disabling_field_list_(GrowableObjectArray::null()),
       spawn_count_monitor_(new Monitor()),
-      spawn_count_(0) {
+      spawn_count_(0),
+      has_attempted_reload_(false),
+      no_reload_scope_depth_(0),
+      reload_context_(NULL) {
   NOT_IN_PRODUCT(FlagsCopyFrom(api_flags));
   // TODO(asiva): A Thread is not available here, need to figure out
   // how the vm_tag (kEmbedderTagId) can be set, these tags need to
@@ -1014,6 +1047,60 @@ void Isolate::DoneLoading() {
   }
   TokenStream::CloseSharedTokenList(this);
 }
+
+
+bool Isolate::CanReload() const {
+#ifndef PRODUCT
+  return (!ServiceIsolate::IsServiceIsolateDescendant(this) &&
+          is_runnable() && !IsReloading() && no_reload_scope_depth_ == 0);
+#else
+  return false;
+#endif
+}
+
+
+#ifndef PRODUCT
+void Isolate::ReportReloadError(const Error& error) {
+  ASSERT(IsReloading());
+  reload_context_->AbortReload(error);
+  delete reload_context_;
+  reload_context_ = NULL;
+}
+
+
+void Isolate::OnStackReload() {
+  UNREACHABLE();
+}
+
+
+void Isolate::ReloadSources(bool test_mode) {
+  ASSERT(!IsReloading());
+  has_attempted_reload_ = true;
+  reload_context_ = new IsolateReloadContext(this, test_mode);
+  reload_context_->StartReload();
+}
+
+#endif
+
+
+void Isolate::DoneFinalizing() {
+  NOT_IN_PRODUCT(
+    if (IsReloading()) {
+      reload_context_->FinishReload();
+      if (reload_context_->has_error() && reload_context_->test_mode()) {
+        // If the reload has an error and we are in test mode keep the reload
+        // context on the isolate so that it can be used by unit tests.
+        return;
+      }
+      if (!reload_context_->has_error()) {
+        reload_context_->ReportSuccess();
+      }
+      delete reload_context_;
+      reload_context_ = NULL;
+    }
+  )
+}
+
 
 
 bool Isolate::MakeRunnable() {
@@ -1690,6 +1777,13 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     debugger()->VisitObjectPointers(visitor);
   }
 
+  NOT_IN_PRODUCT(
+    // Visit objects that are being used for isolate reload.
+    if (reload_context() != NULL) {
+      reload_context()->VisitObjectPointers(visitor);
+    }
+  )
+
   // Visit objects that are being used for deoptimization.
   if (deopt_context() != NULL) {
     deopt_context()->VisitObjectPointers(visitor);
@@ -1709,6 +1803,23 @@ void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor) {
 
 void Isolate::PrepareForGC() {
   thread_registry()->PrepareForGC();
+}
+
+
+RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
+  RawClass* raw_class = NULL;
+#ifndef PRODUCT
+  if (IsReloading()) {
+    raw_class = reload_context()->GetClassForHeapWalkAt(cid);
+  } else {
+    raw_class = class_table()->At(cid);
+  }
+#else
+  raw_class = class_table()->At(cid);
+#endif  // !PRODUCT
+  ASSERT(raw_class != NULL);
+  ASSERT(raw_class->ptr()->id_ == cid);
+  return raw_class;
 }
 
 
@@ -1755,6 +1866,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddProperty("runnable", is_runnable());
   jsobj.AddProperty("livePorts", message_handler()->live_ports());
   jsobj.AddProperty("pauseOnExit", message_handler()->should_pause_on_exit());
+  jsobj.AddProperty("_isReloading", IsReloading());
 
   if (debugger() != NULL) {
     if (!is_runnable()) {
@@ -2187,6 +2299,9 @@ void Isolate::PauseEventHandler() {
       message_notify_callback();
   set_message_notify_callback(Isolate::WakePauseEventHandler);
 
+  const bool had_isolate_reload_context = reload_context() != NULL;
+  const int64_t start_time_micros =
+      !had_isolate_reload_context ? 0 : reload_context()->start_time_micros();
   bool resume = false;
   while (true) {
     // Handle all available vm service messages, up to a resume
@@ -2197,6 +2312,17 @@ void Isolate::PauseEventHandler() {
       ml.Enter();
     }
     if (resume) {
+      break;
+    }
+
+    if (had_isolate_reload_context && (reload_context() == NULL)) {
+      if (FLAG_trace_reload) {
+        const int64_t reload_time_micros =
+            OS::GetCurrentMonotonicMicros() - start_time_micros;
+        double reload_millis =
+            MicrosecondsToMilliseconds(reload_time_micros);
+        OS::Print("Reloading has finished! (%.2f ms)\n", reload_millis);
+      }
       break;
     }
 

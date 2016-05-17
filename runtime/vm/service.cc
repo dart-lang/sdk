@@ -1453,14 +1453,21 @@ static RawObject* LookupHeapObjectLibraries(Isolate* isolate,
     return lib.raw();
   }
   if (strcmp(parts[2], "scripts") == 0) {
-    // Script ids look like "libraries/35/scripts/library%2Furl.dart"
-    if (num_parts != 4) {
+    // Script ids look like "libraries/35/scripts/library%2Furl.dart/12345"
+    if (num_parts != 5) {
       return Object::sentinel().raw();
     }
     const String& id = String::Handle(String::New(parts[3]));
     ASSERT(!id.IsNull());
     // The id is the url of the script % encoded, decode it.
     const String& requested_url = String::Handle(String::DecodeIRI(id));
+
+    // Each script id is tagged with a load time.
+    int64_t timestamp;
+    if (!GetInteger64Id(parts[4], &timestamp, 16) || (timestamp < 0)) {
+      return Object::sentinel().raw();
+    }
+
     Script& script = Script::Handle();
     String& script_url = String::Handle();
     const Array& loaded_scripts = Array::Handle(lib.LoadedScripts());
@@ -1470,7 +1477,8 @@ static RawObject* LookupHeapObjectLibraries(Isolate* isolate,
       script ^= loaded_scripts.At(i);
       ASSERT(!script.IsNull());
       script_url ^= script.url();
-      if (script_url.Equals(requested_url)) {
+      if (script_url.Equals(requested_url) &&
+          (timestamp == script.load_timestamp())) {
         return script.raw();
       }
     }
@@ -2372,6 +2380,52 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
                    script,
                    TokenPosition(start_pos),
                    TokenPosition(end_pos));
+  return true;
+}
+
+
+static const MethodParameter* reload_sources_params[] = {
+  RUNNABLE_ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool ReloadSources(Thread* thread, JSONStream* js) {
+  Isolate* isolate = thread->isolate();
+  if (!isolate->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+        "Cannot reload source when running a precompiled program.");
+    return true;
+  }
+  if (Dart::snapshot_kind() == Snapshot::kAppWithJIT) {
+    js->PrintError(kFeatureDisabled,
+        "Cannot reload source when running an app snapshot.");
+    return true;
+  }
+  Dart_LibraryTagHandler handler = isolate->library_tag_handler();
+  if (handler == NULL) {
+    js->PrintError(kFeatureDisabled,
+                   "A library tag handler must be installed.");
+    return true;
+  }
+  if (isolate->IsReloading()) {
+    js->PrintError(kIsolateIsReloading,
+                   "This isolate is being reloaded.");
+    return true;
+  }
+  DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
+  ASSERT(isolate->CanReload());
+
+  if (stack->Length() > 0) {
+    // TODO(turnidge): We need to support this case.
+    js->PrintError(kFeatureDisabled,
+                   "Source can only be reloaded when stack is empty.");
+    return true;
+  } else {
+    isolate->ReloadSources();
+  }
+
+  PrintSuccess(js);
   return true;
 }
 
@@ -3950,6 +4004,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     remove_breakpoint_params },
   { "_restartVM", RestartVM,
     restart_vm_params },
+  { "_reloadSources", ReloadSources,
+    reload_sources_params },
   { "resume", Resume,
     resume_params },
   { "_requestHeapSnapshot", RequestHeapSnapshot,

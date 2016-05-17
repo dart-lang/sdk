@@ -21,6 +21,13 @@
     <object-common object="{{ script }}"></object-common>
     <br>
 
+    <div class="memberList">
+      <div class="memberItem">
+        <div class="memberName">loaded at</div>
+        <div class="memberValue">{{ script.loadTime.toString() }}</div>
+      </div>
+    </div>
+
     <hr>
     <script-inset id="scriptInset" script="{{ script }}"
                   currentPos="{{ app.locationManager.internalArguments['pos'] | parseInt }}">

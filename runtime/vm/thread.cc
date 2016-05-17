@@ -85,6 +85,7 @@ Thread::Thread(Isolate* isolate)
 #endif
       reusable_handles_(),
       saved_stack_limit_(0),
+      defer_oob_messages_count_(0),
       deferred_interrupts_mask_(0),
       deferred_interrupts_(0),
       stack_overflow_count_(0),
@@ -423,6 +424,11 @@ uword Thread::GetAndClearInterrupts() {
 
 void Thread::DeferOOBMessageInterrupts() {
   MonitorLocker ml(thread_lock_);
+  defer_oob_messages_count_++;
+  if (defer_oob_messages_count_ > 1) {
+    // OOB message interrupts are already deferred.
+    return;
+  }
   ASSERT(deferred_interrupts_mask_ == 0);
   deferred_interrupts_mask_ = kMessageInterrupt;
 
@@ -447,6 +453,11 @@ void Thread::DeferOOBMessageInterrupts() {
 
 void Thread::RestoreOOBMessageInterrupts() {
   MonitorLocker ml(thread_lock_);
+  defer_oob_messages_count_--;
+  if (defer_oob_messages_count_ > 0) {
+    return;
+  }
+  ASSERT(defer_oob_messages_count_ == 0);
   ASSERT(deferred_interrupts_mask_ == kMessageInterrupt);
   deferred_interrupts_mask_ = 0;
   if (deferred_interrupts_ != 0) {

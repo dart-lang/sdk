@@ -53,6 +53,7 @@ enum JSONRpcErrorCode {
   kStreamNotSubscribed       = 104,
   kIsolateMustBeRunnable     = 105,
   kIsolateMustBePaused       = 106,
+  kIsolateIsReloading        = 107,
 };
 
 // Expected that user_data is a JSONStream*.

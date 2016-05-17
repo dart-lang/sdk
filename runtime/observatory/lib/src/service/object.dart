@@ -42,6 +42,7 @@ class ServerRpcException extends RpcException {
   static const kStreamNotSubscribed     = 104;
   static const kIsolateMustBeRunnable   = 105;
   static const kIsolateMustBePaused     = 106;
+  static const kIsolateIsReloading      = 107;
 
   int code;
   Map data;
@@ -1149,6 +1150,7 @@ class Isolate extends ServiceObjectOwner {
   @observable bool loading = true;
   @observable bool runnable = false;
   @observable bool ioEnabled = false;
+  @observable bool reloading = false;
 
   final List<String> extensionRPCs = new List<String>();
 
@@ -1190,6 +1192,22 @@ class Isolate extends ServiceObjectOwner {
       params['endTokenPos'] = endPos;
     }
     return invokeRpc('getSourceReport', params);
+  }
+
+  Future<ServiceMap> reloadSources() {
+    return invokeRpc('_reloadSources', {}).then((_) {
+      reloading = true;
+    });
+  }
+
+  void _handleIsolateReloadEvent(ServiceEvent event) {
+    reloading = false;
+    if (event.reloadError != null) {
+      // Failure.
+      print('Reload failed: ${event.reloadError}');
+    } else {
+      _cache.clear();
+    }
   }
 
   /// Fetches and builds the class hierarchy for this isolate. Returns the
@@ -1499,7 +1517,9 @@ class Isolate extends ServiceObjectOwner {
       case ServiceEvent.kInspect:
         // Handled elsewhere.
         break;
-
+      case ServiceEvent.kIsolateReload:
+        _handleIsolateReloadEvent(event);
+        break;
       case ServiceEvent.kBreakpointAdded:
         _addBreakpoint(event.breakpoint);
         break;
@@ -1823,6 +1843,7 @@ class ServiceEvent extends ServiceObject {
   static const kIsolateRunnable        = 'IsolateRunnable';
   static const kIsolateExit            = 'IsolateExit';
   static const kIsolateUpdate          = 'IsolateUpdate';
+  static const kIsolateReload          = 'IsolateReload';
   static const kServiceExtensionAdded  = 'ServiceExtensionAdded';
   static const kPauseStart             = 'PauseStart';
   static const kPauseExit              = 'PauseExit';
@@ -1854,6 +1875,7 @@ class ServiceEvent extends ServiceObject {
   @observable Frame topFrame;
   @observable String extensionRPC;
   @observable Instance exception;
+  @observable Instance reloadError;
   @observable bool atAsyncSuspension;
   @observable ServiceObject inspectee;
   @observable ByteData data;
@@ -1925,6 +1947,7 @@ class ServiceEvent extends ServiceObject {
     if (map['count'] != null) {
       count = map['count'];
     }
+    reloadError = map['reloadError'];
     if (map['_debuggerSettings'] != null &&
         map['_debuggerSettings']['_exceptions'] != null) {
       exceptions = map['_debuggerSettings']['_exceptions'];
@@ -2857,6 +2880,7 @@ class Script extends HeapObject {
   final lines = new ObservableList<ScriptLine>();
   @observable String uri;
   @observable String kind;
+  @observable DateTime loadTime;
   @observable int firstTokenPos;
   @observable int lastTokenPos;
   @observable int lineOffset;
@@ -2959,6 +2983,8 @@ class Script extends HeapObject {
       return;
     }
     _loaded = true;
+    int loadTimeMillis = map['_loadTime'];
+    loadTime = new DateTime.fromMillisecondsSinceEpoch(loadTimeMillis);
     lineOffset = map['lineOffset'];
     columnOffset = map['columnOffset'];
     _parseTokenPosTable(map['tokenPosTable']);

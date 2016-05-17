@@ -2658,7 +2658,8 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
 typedef enum {
   Dart_kImportTag = 0,
   Dart_kSourceTag,
-  Dart_kCanonicalizeUrl
+  Dart_kCanonicalizeUrl,
+  Dart_kScriptTag,
 } Dart_LibraryTag;
 
 /* TODO(turnidge): Document. */

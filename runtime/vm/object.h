@@ -1360,7 +1360,8 @@ class Class : public Object {
   template <class FakeObject> static RawClass* New();
 
   // Allocate instance classes.
-  static RawClass* New(const String& name,
+  static RawClass* New(const Library& lib,
+                       const String& name,
                        const Script& script,
                        TokenPosition token_pos);
   static RawClass* NewNativeWrapper(const Library& library,
@@ -1386,6 +1387,8 @@ class Class : public Object {
 
   void DisableCHAOptimizedCode(const Class& subclass);
 
+  void DisableAllCHAOptimizedCode();
+
   // Return the list of code objects that were compiled using CHA of this class.
   // These code objects will be invalidated if new subclasses of this class
   // are finalized.
@@ -1396,8 +1399,16 @@ class Class : public Object {
   void SetTraceAllocation(bool trace_allocation) const;
 
   bool ValidatePostFinalizePatch(const Class& orig_class, Error* error) const;
+  void ReplaceEnum(const Class& old_enum) const;
+  void CopyStaticFieldValues(const Class& old_cls) const;
+  void PatchFieldsAndFunctions() const;
+  void CopyCanonicalConstants(const Class& old_cls) const;
+  void CopyCanonicalTypes(const Class& old_cls) const;
+  bool CanReload(const Class& replacement) const;
 
  private:
+  template <class FakeObject> static RawClass* NewCommon(intptr_t index);
+
   enum MemberKind {
     kAny = 0,
     kStatic,
@@ -1827,6 +1838,11 @@ class ICData : public Object {
     return raw_ptr()->deopt_id_;
   }
 
+  bool IsImmutable() const;
+
+  void Reset(bool is_static_call) const;
+  void ResetData() const;
+
   // Note: only deopts with reasons before Unknown in this list are recorded in
   // the ICData. All other reasons are used purely for informational messages
   // printed during deoptimization itself.
@@ -1872,6 +1888,10 @@ class ICData : public Object {
   bool HasDeoptReason(ICData::DeoptReasonId reason) const;
   void AddDeoptReason(ICData::DeoptReasonId reason) const;
 
+  // The length of the array. This includes all sentinel entries including
+  // the final one.
+  intptr_t Length() const;
+
   intptr_t NumberOfChecks() const;
 
   // Discounts any checks with usage of zero.
@@ -1909,6 +1929,30 @@ class ICData : public Object {
     return OFFSET_OF(RawICData, owner_);
   }
 
+  // Replaces entry |index| with the sentinel.
+  void WriteSentinelAt(intptr_t index) const;
+
+  // Clears the count for entry |index|.
+  void ClearCountAt(intptr_t index) const;
+
+  // Clear all entries with the sentinel value (but will preserve initial
+  // smi smi checks).
+  void ClearWithSentinel() const;
+
+  // Clear all entries with the sentinel value and reset the first entry
+  // with the dummy target entry.
+  void ClearAndSetStaticTarget(const Function& func) const;
+
+  // Returns the first index that should be used to for a new entry. Will
+  // grow the array if necessary.
+  RawArray* FindFreeIndex(intptr_t* index) const;
+
+  void DebugDump() const;
+  void ValidateSentinelLocations() const;
+
+  // Returns true if this is a two arg smi operation.
+  bool AddSmiSmiCheckForFastSmiStubs() const;
+
   // Used for unoptimized static calls when no class-ids are checked.
   void AddTarget(const Function& target) const;
 
@@ -1923,6 +1967,9 @@ class ICData : public Object {
   void AddReceiverCheck(intptr_t receiver_class_id,
                         const Function& target,
                         intptr_t count = 1) const;
+
+  // Does entry |index| contain the sentinel value?
+  bool IsSentinelAt(intptr_t index) const;
 
   // Retrieving checks.
 
@@ -2223,6 +2270,11 @@ class Function : public Object {
   // visible formal parameters of the function.
   RawString* UserVisibleFormalParameters() const;
 
+  // Reloading support:
+  void Reparent(const Class& new_cls) const;
+  void ZeroEdgeCounters() const;
+  void FillICDataWithSentinels(const Code& code) const;
+
   RawClass* Owner() const;
   RawClass* origin() const;
   RawScript* script() const;
@@ -2260,6 +2312,13 @@ class Function : public Object {
 
   // Disables optimized code and switches to unoptimized code.
   void SwitchToUnoptimizedCode() const;
+
+  // Disables optimized code and switches to unoptimized code (or the lazy
+  // compilation stub).
+  void SwitchToLazyCompiledUnoptimizedCode() const;
+
+  // Compiles unoptimized code (if necessary) and attaches it to the function.
+  void EnsureHasCompiledUnoptimizedCode() const;
 
   // Return the most recently compiled and installed code for this function.
   // It is not the only Code object that points to this function.
@@ -3188,6 +3247,14 @@ class Field : public Object {
   static bool IsSetterName(const String& function_name);
 
  private:
+  static void InitializeNew(const Field& result,
+                            const String& name,
+                            bool is_static,
+                            bool is_final,
+                            bool is_const,
+                            bool is_reflectable,
+                            const Object& owner,
+                            TokenPosition token_pos);
   friend class StoreInstanceFieldInstr;  // Generated code access to bit field.
 
   enum {
@@ -3213,6 +3280,9 @@ class Field : public Object {
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.
   bool UpdateGuardedCidAndLength(const Object& value) const;
+
+  // Force this field's guard to be dynamic and deoptimize dependent code.
+  void ForceDynamicGuardedCidAndLength() const;
 
   void set_name(const String& value) const;
   void set_is_static(bool is_static) const {
@@ -3377,6 +3447,9 @@ class Script : public Object {
   intptr_t line_offset() const { return raw_ptr()->line_offset_; }
   intptr_t col_offset() const { return raw_ptr()->col_offset_; }
 
+  // The load time in milliseconds since epoch.
+  int64_t load_timestamp() const { return raw_ptr()->load_timestamp_; }
+
   RawTokenStream* tokens() const { return raw_ptr()->tokens_; }
 
   void Tokenize(const String& private_key,
@@ -3417,6 +3490,7 @@ class Script : public Object {
   void set_url(const String& value) const;
   void set_source(const String& value) const;
   void set_kind(RawScript::Kind value) const;
+  void set_load_timestamp(int64_t value) const;
   void set_tokens(const TokenStream& value) const;
 
   static RawScript* New();
@@ -3705,6 +3779,8 @@ class Library : public Object {
   // Character used to separate private identifiers from
   // the library-specific key.
   static const char kPrivateKeySeparator = '@';
+
+  bool CanReload(const Library& replacement) const;
 
  private:
   static const int kInitialImportsCapacity = 4;
@@ -5382,6 +5458,7 @@ class AbstractType : public Instance {
   virtual bool IsResolved() const;
   virtual void SetIsResolved() const;
   virtual bool HasResolvedTypeClass() const;
+  virtual classid_t type_class_id() const;
   virtual RawClass* type_class() const;
   virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawTypeArguments* arguments() const;
@@ -5570,8 +5647,8 @@ class AbstractType : public Instance {
 // relate to a 'raw type', as opposed to a 'cooked type' or 'rare type'.
 class Type : public AbstractType {
  public:
-  static intptr_t type_class_offset() {
-    return OFFSET_OF(RawType, type_class_);
+  static intptr_t type_class_id_offset() {
+    return OFFSET_OF(RawType, type_class_id_);
   }
   virtual bool IsFinalized() const {
     return
@@ -5594,8 +5671,10 @@ class Type : public AbstractType {
   }
   virtual void SetIsResolved() const;
   virtual bool HasResolvedTypeClass() const;  // Own type class resolved.
+  virtual classid_t type_class_id() const;
   virtual RawClass* type_class() const;
-  void set_type_class(const Object& value) const;
+  void set_type_class(const Class& value) const;
+  void set_unresolved_class(const Object& value) const;
   virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawTypeArguments* arguments() const { return raw_ptr()->arguments_; }
   virtual void set_arguments(const TypeArguments& value) const;
@@ -5786,9 +5865,8 @@ class TypeParameter : public AbstractType {
   virtual bool IsMalformedOrMalbounded() const { return false; }
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const { return false; }
-  RawClass* parameterized_class() const {
-    return raw_ptr()->parameterized_class_;
-  }
+  classid_t parameterized_class_id() const;
+  RawClass* parameterized_class() const;
   RawString* name() const { return raw_ptr()->name_; }
   intptr_t index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const;

@@ -675,6 +675,7 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #endif
   VMHandles reusable_handles_;
   uword saved_stack_limit_;
+  intptr_t defer_oob_messages_count_;
   uint16_t deferred_interrupts_mask_;
   uint16_t deferred_interrupts_;
   int32_t stack_overflow_count_;

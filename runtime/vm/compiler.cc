@@ -1452,10 +1452,12 @@ NOT_IN_PRODUCT(
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, event_name, function);
 )  // !PRODUCT
 
-  // Optimization must happen in non-mutator/Dart thread if background
-  // compilation is on. OSR compilation still occurs in the main thread.
-  ASSERT((osr_id != kNoOSRDeoptId) || !FLAG_background_compilation ||
-         !thread->IsMutatorThread());
+  // If we are in the optimizing in the mutator/Dart thread, then
+  // this is either an OSR compilation or background compilation is
+  // not currently allowed.
+  ASSERT(!thread->IsMutatorThread() ||
+         (osr_id != kNoOSRDeoptId) ||
+         !FLAG_background_compilation || BackgroundCompiler::IsDisabled());
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
   return CompileFunctionHelper(pipeline,
@@ -1563,7 +1565,10 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
   // evaluating the initializer value.
   ASSERT(field.StaticValue() == Object::transition_sentinel().raw());
   LongJumpScope jump;
+  Thread* thread = Thread::Current();
   if (setjmp(*jump.Set()) == 0) {
+    NoOOBMessageScope no_msg_scope(thread);
+    NoReloadScope no_reload_scope(thread->isolate(), thread);
     // Under lazy compilation initializer has not yet been created, so create
     // it now, but don't bother remembering it because it won't be used again.
     ASSERT(!field.HasPrecompiledInitializer());
@@ -1621,6 +1626,10 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // Don't allow message interrupts while executing constant
     // expressions.  They can cause bogus recursive compilation.
     NoOOBMessageScope no_msg_scope(thread);
+
+    // Don't allow reload requests to come in.
+    NoReloadScope no_reload_scope(thread->isolate(), thread);
+
     if (FLAG_trace_compiler) {
       THR_Print("compiling expression: ");
       if (FLAG_support_ast_printer) {
@@ -1975,6 +1984,41 @@ void BackgroundCompiler::Stop(Isolate* isolate) {
 }
 
 
+void BackgroundCompiler::Disable() {
+  Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
+  Isolate* isolate = thread->isolate();
+  MutexLocker ml(isolate->mutex());
+  BackgroundCompiler* task = isolate->background_compiler();
+  if (task != NULL) {
+    // We should only ever have to stop the task if this is the first call to
+    // Disable.
+    ASSERT(!isolate->is_background_compiler_disabled());
+    BackgroundCompiler::Stop(isolate);
+  }
+  ASSERT(isolate->background_compiler() == NULL);
+  isolate->disable_background_compiler();
+}
+
+
+bool BackgroundCompiler::IsDisabled() {
+  Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
+  Isolate* isolate = thread->isolate();
+  MutexLocker ml(isolate->mutex());
+  return isolate->is_background_compiler_disabled();
+}
+
+
+void BackgroundCompiler::Enable() {
+  Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
+  Isolate* isolate = thread->isolate();
+  MutexLocker ml(isolate->mutex());
+  isolate->enable_background_compiler();
+}
+
+
 void BackgroundCompiler::EnsureInit(Thread* thread) {
   ASSERT(thread->IsMutatorThread());
   // Finalize NoSuchMethodError, _Mint; occasionally needed in optimized
@@ -2124,6 +2168,22 @@ void BackgroundCompiler::Stop(Isolate* isolate) {
 
 void BackgroundCompiler::EnsureInit(Thread* thread) {
   UNREACHABLE();
+}
+
+
+void BackgroundCompiler::Disable() {
+  UNREACHABLE();
+}
+
+
+void BackgroundCompiler::Enable() {
+  UNREACHABLE();
+}
+
+
+bool BackgroundCompiler::IsDisabled() {
+  UNREACHABLE();
+  return true;
 }
 
 #endif  // DART_PRECOMPILED_RUNTIME

@@ -844,7 +844,9 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     SpaceUsage usage_before = GetCurrentUsage();
 
     // Mark all reachable old-gen objects.
-    bool collect_code = FLAG_collect_code && ShouldCollectCode();
+    bool collect_code = FLAG_collect_code &&
+                        ShouldCollectCode() &&
+                        !isolate->HasAttemptedReload();
     GCMarker marker(heap_);
     marker.MarkObjects(isolate, this, invoke_api_callbacks, collect_code);
     usage_.used_in_words = marker.marked_words();

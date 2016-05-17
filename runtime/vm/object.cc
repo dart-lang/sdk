@@ -27,10 +27,12 @@
 #include "vm/hash_table.h"
 #include "vm/heap.h"
 #include "vm/intrinsifier.h"
+#include "vm/isolate_reload.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/precompiler.h"
 #include "vm/profiler.h"
+#include "vm/resolver.h"
 #include "vm/reusable_handles.h"
 #include "vm/runtime_entry.h"
 #include "vm/scopes.h"
@@ -61,9 +63,13 @@ DEFINE_FLAG(bool, use_exp_cache, true, "Use library exported name cache");
 DEFINE_FLAG(bool, ignore_patch_signature_mismatch, false,
             "Ignore patch file member signature mismatch.");
 
+DEFINE_FLAG(bool, remove_script_timestamps_for_test, false,
+            "Remove script timestamps to allow for deterministic testing.");
+
 DECLARE_FLAG(bool, show_invisible_frames);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
+DECLARE_FLAG(bool, trace_reload);
 DECLARE_FLAG(bool, write_protect_code);
 DECLARE_FLAG(bool, support_externalizable_strings);
 
@@ -2773,10 +2779,15 @@ void Class::RegisterCHACode(const Code& code) {
 void Class::DisableCHAOptimizedCode(const Class& subclass) {
   ASSERT(Thread::Current()->IsMutatorThread());
   CHACodeArray a(*this);
-  if (FLAG_trace_deoptimization && a.HasCodes()) {
+  if (FLAG_trace_deoptimization && a.HasCodes() && !subclass.IsNull()) {
     THR_Print("Adding subclass %s\n", subclass.ToCString());
   }
   a.DisableCode();
+}
+
+
+void Class::DisableAllCHAOptimizedCode() {
+  DisableCHAOptimizedCode(Class::Handle());
 }
 
 
@@ -3124,7 +3135,7 @@ void Class::AddFields(const GrowableArray<const Field*>& new_fields) const {
 
 
 template <class FakeInstance>
-RawClass* Class::New(intptr_t index) {
+RawClass* Class::NewCommon(intptr_t index) {
   ASSERT(Object::class_class() != Class::null());
   Class& result = Class::Handle();
   {
@@ -3147,18 +3158,28 @@ RawClass* Class::New(intptr_t index) {
   result.set_num_native_fields(0);
   result.set_token_pos(TokenPosition::kNoSource);
   result.InitEmptyFields();
+  return result.raw();
+}
+
+
+template <class FakeInstance>
+RawClass* Class::New(intptr_t index) {
+  Class& result = Class::Handle(NewCommon<FakeInstance>(index));
   Isolate::Current()->RegisterClass(result);
   return result.raw();
 }
 
 
-RawClass* Class::New(const String& name,
+RawClass* Class::New(const Library& lib,
+                     const String& name,
                      const Script& script,
                      TokenPosition token_pos) {
-  Class& result = Class::Handle(New<Instance>(kIllegalCid));
+  Class& result = Class::Handle(NewCommon<Instance>(kIllegalCid));
+  result.set_library(lib);
   result.set_name(name);
   result.set_script(script);
   result.set_token_pos(token_pos);
+  Isolate::Current()->RegisterClass(result);
   return result.raw();
 }
 
@@ -3168,7 +3189,7 @@ RawClass* Class::NewNativeWrapper(const Library& library,
                                   int field_count) {
   Class& cls = Class::Handle(library.LookupClass(name));
   if (cls.IsNull()) {
-    cls = New(name, Script::Handle(), TokenPosition::kNoSource);
+    cls = New(library, name, Script::Handle(), TokenPosition::kNoSource);
     cls.SetFields(Object::empty_array());
     cls.SetFunctions(Object::empty_array());
     // Set super class to Object.
@@ -5471,6 +5492,19 @@ void Function::ClearCode() const {
 }
 
 
+void Function::EnsureHasCompiledUnoptimizedCode() const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  ASSERT(thread->IsMutatorThread());
+
+  const Error& error = Error::Handle(zone,
+      Compiler::EnsureUnoptimizedCode(thread, *this));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+  }
+}
+
+
 void Function::SwitchToUnoptimizedCode() const {
   ASSERT(HasOptimizedCode());
   Thread* thread = Thread::Current();
@@ -5494,6 +5528,34 @@ void Function::SwitchToUnoptimizedCode() const {
   AttachCode(unopt_code);
   unopt_code.Enable();
   isolate->TrackDeoptimizedCode(current_code);
+}
+
+
+void Function::SwitchToLazyCompiledUnoptimizedCode() const {
+  if (!HasOptimizedCode()) {
+    return;
+  }
+
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  ASSERT(thread->IsMutatorThread());
+
+  const Code& current_code = Code::Handle(zone, CurrentCode());
+  TIR_Print("Disabling optimized code for %s\n", ToCString());
+  current_code.DisableDartCode();
+
+  const Code& unopt_code = Code::Handle(zone, unoptimized_code());
+  if (unopt_code.IsNull()) {
+    // Set the lazy compile code.
+    TIR_Print("Switched to lazy compile stub for %s\n", ToCString());
+    SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
+    return;
+  }
+
+  TIR_Print("Switched to unoptimized code for %s\n", ToCString());
+
+  AttachCode(unopt_code);
+  unopt_code.Enable();
 }
 
 
@@ -7061,6 +7123,8 @@ RawClass* Function::origin() const {
 
 
 RawScript* Function::script() const {
+  // NOTE(turnidge): If you update this function, you probably want to
+  // update Class::PatchFieldsAndFunctions() at the same time.
   if (token_pos() == TokenPosition::kMinSource) {
     // Testing for position 0 is an optimization that relies on temporary
     // eval functions having token position 0.
@@ -7538,6 +7602,8 @@ RawClass* Field::Origin() const {
 
 
 RawScript* Field::Script() const {
+  // NOTE(turnidge): If you update this function, you probably want to
+  // update Class::PatchFieldsAndFunctions() at the same time.
   const Field& field = Field::Handle(Original());
   ASSERT(field.IsOriginal());
   const Object& obj = Object::Handle(field.raw_ptr()->owner_);
@@ -7569,16 +7635,14 @@ RawField* Field::New() {
 }
 
 
-RawField* Field::New(const String& name,
-                     bool is_static,
-                     bool is_final,
-                     bool is_const,
-                     bool is_reflectable,
-                     const Class& owner,
-                     const AbstractType& type,
-                     TokenPosition token_pos) {
-  ASSERT(!owner.IsNull());
-  const Field& result = Field::Handle(Field::New());
+void Field::InitializeNew(const Field& result,
+                          const String& name,
+                          bool is_static,
+                          bool is_final,
+                          bool is_const,
+                          bool is_reflectable,
+                          const Object& owner,
+                          TokenPosition token_pos) {
   result.set_name(name);
   result.set_is_static(is_static);
   if (!is_static) {
@@ -7589,19 +7653,47 @@ RawField* Field::New(const String& name,
   result.set_is_reflectable(is_reflectable);
   result.set_is_double_initialized(false);
   result.set_owner(owner);
-  result.SetFieldType(type);
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
   result.set_is_unboxing_candidate(true);
-  result.set_guarded_cid(FLAG_use_field_guards ? kIllegalCid : kDynamicCid);
-  result.set_is_nullable(FLAG_use_field_guards ? false : true);
+  Isolate* isolate = Isolate::Current();
+
+  // Use field guards if they are enabled and the isolate has never reloaded.
+  // TODO(johnmccutchan): The reload case assumes the worst case (everything is
+  // dynamic and possibly null). Attempt to relax this later.
+  const bool use_field_guards =
+      FLAG_use_field_guards && !isolate->HasAttemptedReload();
+  result.set_guarded_cid(use_field_guards ? kIllegalCid : kDynamicCid);
+  result.set_is_nullable(use_field_guards ? false : true);
   result.set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
   // Presently, we only attempt to remember the list length for final fields.
-  if (is_final && FLAG_use_field_guards) {
+  if (is_final && use_field_guards) {
     result.set_guarded_list_length(Field::kUnknownFixedLength);
   } else {
     result.set_guarded_list_length(Field::kNoFixedLength);
   }
+}
+
+
+RawField* Field::New(const String& name,
+                     bool is_static,
+                     bool is_final,
+                     bool is_const,
+                     bool is_reflectable,
+                     const Class& owner,
+                     const AbstractType& type,
+                     TokenPosition token_pos) {
+  ASSERT(!owner.IsNull());
+  const Field& result = Field::Handle(Field::New());
+  InitializeNew(result,
+                name,
+                is_static,
+                is_final,
+                is_const,
+                is_reflectable,
+                owner,
+                token_pos);
+  result.SetFieldType(type);
   return result.raw();
 }
 
@@ -7613,25 +7705,14 @@ RawField* Field::NewTopLevel(const String& name,
                              TokenPosition token_pos) {
   ASSERT(!owner.IsNull());
   const Field& result = Field::Handle(Field::New());
-  result.set_name(name);
-  result.set_is_static(true);
-  result.set_is_final(is_final);
-  result.set_is_const(is_const);
-  result.set_is_reflectable(true);
-  result.set_is_double_initialized(false);
-  result.set_owner(owner);
-  result.set_token_pos(token_pos);
-  result.set_has_initializer(false);
-  result.set_is_unboxing_candidate(true);
-  result.set_guarded_cid(FLAG_use_field_guards ? kIllegalCid : kDynamicCid);
-  result.set_is_nullable(FLAG_use_field_guards ? false : true);
-  result.set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
-  // Presently, we only attempt to remember the list length for final fields.
-  if (is_final && FLAG_use_field_guards) {
-    result.set_guarded_list_length(Field::kUnknownFixedLength);
-  } else {
-    result.set_guarded_list_length(Field::kNoFixedLength);
-  }
+  InitializeNew(result,
+                name,
+                true, /* is_static */
+                is_final,
+                is_const,
+                true, /* is_reflectable */
+                owner,
+                token_pos);
   return result.raw();
 }
 
@@ -8097,6 +8178,18 @@ void Field::RecordStore(const Object& value) const {
 
     DeoptimizeDependentCode();
   }
+}
+
+
+void Field::ForceDynamicGuardedCidAndLength() const {
+  // Assume nothing about this field.
+  set_is_unboxing_candidate(false);
+  set_guarded_cid(kDynamicCid);
+  set_is_nullable(true);
+  set_guarded_list_length(Field::kNoFixedLength);
+  set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
+  // Drop any code that relied on the above assumptions.
+  DeoptimizeDependentCode();
 }
 
 
@@ -8927,6 +9020,11 @@ void Script::set_kind(RawScript::Kind value) const {
 }
 
 
+void Script::set_load_timestamp(int64_t value) const {
+  StoreNonPointer(&raw_ptr()->load_timestamp_, value);
+}
+
+
 void Script::set_tokens(const TokenStream& value) const {
   StorePointer(&raw_ptr()->tokens_, value.raw());
 }
@@ -9180,13 +9278,16 @@ RawScript* Script::New(const String& url,
   result.set_url(String::Handle(zone, Symbols::New(thread, url)));
   result.set_source(source);
   result.set_kind(kind);
+  result.set_load_timestamp(FLAG_remove_script_timestamps_for_test
+                            ? 0 : OS::GetCurrentTimeMillis());
   result.SetLocationOffset(0, 0);
   return result.raw();
 }
 
 
 const char* Script::ToCString() const {
-  return "Script";
+  const String& name = String::Handle(url());
+  return OS::SCreate(Thread::Current()->zone(), "Script(%s)", name.ToCString());
 }
 
 
@@ -12676,9 +12777,20 @@ intptr_t ICData::TestEntryLength() const {
 }
 
 
+intptr_t ICData::Length() const {
+  return (Smi::Value(ic_data()->ptr()->length_) / TestEntryLength());
+}
+
+
 intptr_t ICData::NumberOfChecks() const {
-  // Do not count the sentinel;
-  return (Smi::Value(ic_data()->ptr()->length_) / TestEntryLength()) - 1;
+  const intptr_t length = Length();
+  for (intptr_t i = 0; i < length; i++) {
+    if (IsSentinelAt(i)) {
+      return i;
+    }
+  }
+  UNREACHABLE();
+  return -1;
 }
 
 
@@ -12715,6 +12827,7 @@ bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
     GetClassIdsAt(i, &class_ids);
     bool matches = true;
     for (intptr_t k = 0; k < class_ids.length(); k++) {
+      ASSERT(class_ids[k] != kIllegalCid);
       if (class_ids[k] != cids[k]) {
         matches = false;
         break;
@@ -12727,6 +12840,142 @@ bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
   return false;
 }
 #endif  // DEBUG
+
+
+void ICData::WriteSentinelAt(intptr_t index) const {
+  const intptr_t len = Length();
+  ASSERT(index >= 0);
+  ASSERT(index < len);
+  Array& data = Array::Handle(ic_data());
+  const intptr_t start = index * TestEntryLength();
+  const intptr_t end = start + TestEntryLength();
+  for (intptr_t i = start; i < end; i++) {
+    data.SetAt(i, smi_illegal_cid());
+  }
+}
+
+
+void ICData::ClearCountAt(intptr_t index) const {
+  const intptr_t len = NumberOfChecks();
+  ASSERT(index >= 0);
+  ASSERT(index < len);
+  SetCountAt(index, 0);
+}
+
+
+void ICData::ClearWithSentinel() const {
+  if (IsImmutable()) {
+    return;
+  }
+  // Write the sentinel value into all entries except the first one.
+  const intptr_t len = Length();
+  if (len == 0) {
+    return;
+  }
+  // The final entry is always the sentinel.
+  ASSERT(IsSentinelAt(len - 1));
+  for (intptr_t i = len - 1; i > 0; i--) {
+    WriteSentinelAt(i);
+  }
+  if (NumArgsTested() != 2) {
+    // Not the smi fast path case, write sentinel to first one and exit.
+    WriteSentinelAt(0);
+    return;
+  }
+  if (IsSentinelAt(0)) {
+    return;
+  }
+  Zone* zone = Thread::Current()->zone();
+  const String& name = String::Handle(target_name());
+  const Class& smi_class = Class::Handle(Smi::Class());
+  const Function& smi_op_target =
+      Function::Handle(Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
+  GrowableArray<intptr_t> class_ids(2);
+  Function& target = Function::Handle();
+  GetCheckAt(0, &class_ids, &target);
+  if ((target.raw() == smi_op_target.raw()) &&
+      (class_ids[0] == kSmiCid) && (class_ids[1] == kSmiCid)) {
+    // The smi fast path case, preserve the initial entry but reset the count.
+    ClearCountAt(0);
+    return;
+  }
+  WriteSentinelAt(0);
+}
+
+
+void ICData::ClearAndSetStaticTarget(const Function& func) const {
+  if (IsImmutable()) {
+    return;
+  }
+  const intptr_t len = Length();
+  if (len == 0) {
+    return;
+  }
+  // The final entry is always the sentinel.
+  ASSERT(IsSentinelAt(len - 1));
+  if (NumArgsTested() == 0) {
+    // No type feedback is being collected.
+    const Array& data = Array::Handle(ic_data());
+    // Static calls with no argument checks hold only one target and the
+    // sentinel value.
+    ASSERT(len == 2);
+    // Static calls with no argument checks only need two words.
+    ASSERT(TestEntryLength() == 2);
+    // Set the target.
+    data.SetAt(0, func);
+    // Set count to 0 as this is called during compilation, before the
+    // call has been executed.
+    const Smi& value = Smi::Handle(Smi::New(0));
+    data.SetAt(1, value);
+  } else {
+    // Type feedback on arguments is being collected.
+    const Array& data = Array::Handle(ic_data());
+
+    // Fill all but the first entry with the sentinel.
+    for (intptr_t i = len - 1; i > 0; i--) {
+      WriteSentinelAt(i);
+    }
+    // Rewrite the dummy entry.
+    const Smi& object_cid = Smi::Handle(Smi::New(kObjectCid));
+    for (intptr_t i = 0; i < NumArgsTested(); i++) {
+      data.SetAt(i, object_cid);
+    }
+    data.SetAt(NumArgsTested(), func);
+    const Smi& value = Smi::Handle(Smi::New(0));
+    data.SetAt(NumArgsTested() + 1, value);
+  }
+}
+
+
+// Add an initial Smi/Smi check with count 0.
+bool ICData::AddSmiSmiCheckForFastSmiStubs() const {
+  bool is_smi_two_args_op = false;
+
+  ASSERT(NumArgsTested() == 2);
+  const String& name = String::Handle(target_name());
+  const Class& smi_class = Class::Handle(Smi::Class());
+  Zone* zone = Thread::Current()->zone();
+  const Function& smi_op_target =
+      Function::Handle(Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
+  if (NumberOfChecks() == 0) {
+    GrowableArray<intptr_t> class_ids(2);
+    class_ids.Add(kSmiCid);
+    class_ids.Add(kSmiCid);
+    AddCheck(class_ids, smi_op_target);
+    // 'AddCheck' sets the initial count to 1.
+    SetCountAt(0, 0);
+    is_smi_two_args_op = true;
+  } else if (NumberOfChecks() == 1) {
+    GrowableArray<intptr_t> class_ids(2);
+    Function& target = Function::Handle();
+    GetCheckAt(0, &class_ids, &target);
+    if ((target.raw() == smi_op_target.raw()) &&
+        (class_ids[0] == kSmiCid) && (class_ids[1] == kSmiCid)) {
+      is_smi_two_args_op = true;
+    }
+  }
+  return is_smi_two_args_op;
+}
 
 
 // Used for unoptimized static calls when no class-ids are checked.
@@ -12798,10 +13047,10 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
       return;
     }
   }
-  const intptr_t new_len = data.Length() + TestEntryLength();
-  data = Array::Grow(data, new_len, Heap::kOld);
-  WriteSentinel(data, TestEntryLength());
-  intptr_t data_pos = old_num * TestEntryLength();
+  intptr_t index = -1;
+  data = FindFreeIndex(&index);
+  ASSERT(!data.IsNull());
+  intptr_t data_pos = index * TestEntryLength();
   Smi& value = Smi::Handle();
   for (intptr_t i = 0; i < class_ids.length(); i++) {
     // kIllegalCid is used as terminating value, do not add it.
@@ -12819,6 +13068,57 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
 }
 
 
+RawArray* ICData::FindFreeIndex(intptr_t* index) const {
+  // The final entry is always the sentinel value, don't consider it
+  // when searching.
+  const intptr_t len = Length() - 1;
+  Array& data = Array::Handle(ic_data());
+  *index = len;
+  for (intptr_t i = 0; i < len; i++) {
+    if (IsSentinelAt(i)) {
+      *index = i;
+      break;
+    }
+  }
+  if (*index < len) {
+    // We've found a free slot.
+    return data.raw();
+  }
+  // Append case.
+  ASSERT(*index == len);
+  ASSERT(*index >= 0);
+  // Grow array.
+  const intptr_t new_len = data.Length() + TestEntryLength();
+  data = Array::Grow(data, new_len, Heap::kOld);
+  WriteSentinel(data, TestEntryLength());
+  return data.raw();
+}
+
+
+void ICData::DebugDump() const {
+  const Function& owner = Function::Handle(Owner());
+  THR_Print("ICData::DebugDump\n");
+  THR_Print("Owner = %s [deopt=%" Pd "]\n", owner.ToCString(), deopt_id());
+  THR_Print("NumArgsTested = %" Pd "\n", NumArgsTested());
+  THR_Print("Length = %" Pd "\n", Length());
+  THR_Print("NumberOfChecks = %" Pd "\n", NumberOfChecks());
+
+  GrowableArray<intptr_t> class_ids;
+  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
+    THR_Print("Check[%" Pd "]:", i);
+    GetClassIdsAt(i, &class_ids);
+    for (intptr_t c = 0; c < class_ids.length(); c++) {
+      THR_Print(" %" Pd "", class_ids[c]);
+    }
+    THR_Print("--- %" Pd " hits\n", GetCountAt(i));
+  }
+}
+
+
+void ICData::ValidateSentinelLocations() const {
+}
+
+
 void ICData::AddReceiverCheck(intptr_t receiver_class_id,
                               const Function& target,
                               intptr_t count) const {
@@ -12831,12 +13131,9 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
   ASSERT(NumArgsTested() == 1);  // Otherwise use 'AddCheck'.
   ASSERT(receiver_class_id != kIllegalCid);
 
-  const intptr_t old_num = NumberOfChecks();
-  Array& data = Array::Handle(ic_data());
-  const intptr_t new_len = data.Length() + TestEntryLength();
-  data = Array::Grow(data, new_len, Heap::kOld);
-  WriteSentinel(data, TestEntryLength());
-  intptr_t data_pos = old_num * TestEntryLength();
+  intptr_t index = -1;
+  Array& data = Array::Handle(FindFreeIndex(&index));
+  intptr_t data_pos = index * TestEntryLength();
   if ((receiver_class_id == kSmiCid) && (data_pos > 0)) {
     ASSERT(GetReceiverClassIdAt(0) != kSmiCid);
     // Move class occupying position 0 to the data_pos.
@@ -12881,10 +13178,26 @@ void ICData::GetCheckAt(intptr_t index,
 }
 
 
+bool ICData::IsSentinelAt(intptr_t index) const {
+  ASSERT(index < Length());
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t entry_length = TestEntryLength();
+  intptr_t data_pos = index * TestEntryLength();
+  for (intptr_t i = 0; i < entry_length; i++) {
+    if (data.At(data_pos++) != smi_illegal_cid().raw()) {
+      return false;
+    }
+  }
+  // The entry at |index| was filled with the value kIllegalCid.
+  return true;
+}
+
+
 void ICData::GetClassIdsAt(intptr_t index,
                            GrowableArray<intptr_t>* class_ids) const {
-  ASSERT(index < NumberOfChecks());
+  ASSERT(index < Length());
   ASSERT(class_ids != NULL);
+  ASSERT(!IsSentinelAt(index));
   class_ids->Clear();
   const Array& data = Array::Handle(ic_data());
   intptr_t data_pos = index * TestEntryLength();
@@ -12923,7 +13236,8 @@ intptr_t ICData::GetClassIdAt(intptr_t index, intptr_t arg_nr) const {
 
 
 intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
-  ASSERT(index < NumberOfChecks());
+  ASSERT(index < Length());
+  ASSERT(!IsSentinelAt(index));
   const intptr_t data_pos = index * TestEntryLength();
   NoSafepointScope no_safepoint;
   RawArray* raw_data = ic_data();
@@ -13127,10 +13441,9 @@ RawICData* ICData::AsUnaryClassChecksSortedByCount() const {
   // Room for all entries and the sentinel.
   const intptr_t data_len =
       result.TestEntryLength() * (aggregate.length() + 1);
+  // Allocate the array but do not assign it to result until we have populated
+  // it with the aggregate data and the terminating sentinel.
   const Array& data = Array::Handle(Array::New(data_len, Heap::kOld));
-  result.set_ic_data_array(data);
-  ASSERT(result.NumberOfChecks() == aggregate.length());
-
   intptr_t pos = 0;
   for (intptr_t i = 0; i < aggregate.length(); i++) {
     data.SetAt(pos + 0, Smi::Handle(Smi::New(aggregate[i].cid)));
@@ -13142,6 +13455,7 @@ RawICData* ICData::AsUnaryClassChecksSortedByCount() const {
   }
   WriteSentinel(data, result.TestEntryLength());
   result.set_ic_data_array(data);
+  ASSERT(result.NumberOfChecks() == aggregate.length());
   return result.raw();
 }
 
@@ -13285,6 +13599,22 @@ RawICData* ICData::NewDescriptor(Zone* zone,
 #endif
   result.SetNumArgsTested(num_args_tested);
   return result.raw();
+}
+
+
+bool ICData::IsImmutable() const {
+  const Array& data = Array::Handle(ic_data());
+  return data.IsImmutable();
+}
+
+
+void ICData::ResetData() const {
+  // Number of array elements in one test entry.
+  intptr_t len = TestEntryLength();
+  // IC data array must be null terminated (sentinel entry).
+  const Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
+  set_ic_data_array(ic_data);
+  WriteSentinel(ic_data, len);
 }
 
 
@@ -15611,6 +15941,13 @@ bool AbstractType::HasResolvedTypeClass() const {
 }
 
 
+classid_t AbstractType::type_class_id() const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return kIllegalCid;
+}
+
+
 RawClass* AbstractType::type_class() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
@@ -16476,19 +16813,18 @@ void Type::SetIsResolved() const {
 
 
 bool Type::HasResolvedTypeClass() const {
-  return (raw_ptr()->type_class_->GetClassId() == kClassCid);
+  return !raw_ptr()->type_class_id_->IsHeapObject();
+}
+
+
+classid_t Type::type_class_id() const {
+  ASSERT(HasResolvedTypeClass());
+  return Smi::Value(reinterpret_cast<RawSmi*>(raw_ptr()->type_class_id_));
 }
 
 
 RawClass* Type::type_class() const {
-#ifdef DEBUG
-  ASSERT(HasResolvedTypeClass());
-  Class& type_class = Class::Handle();
-  type_class ^= raw_ptr()->type_class_;
-  return type_class.raw();
-#else
-  return reinterpret_cast<RawClass*>(raw_ptr()->type_class_);
-#endif
+  return Isolate::Current()->class_table()->At(type_class_id());
 }
 
 
@@ -16496,13 +16832,13 @@ RawUnresolvedClass* Type::unresolved_class() const {
 #ifdef DEBUG
   ASSERT(!HasResolvedTypeClass());
   UnresolvedClass& unresolved_class = UnresolvedClass::Handle();
-  unresolved_class ^= raw_ptr()->type_class_;
+  unresolved_class ^= raw_ptr()->type_class_id_;
   ASSERT(!unresolved_class.IsNull());
   return unresolved_class.raw();
 #else
-  ASSERT(!Object::Handle(raw_ptr()->type_class_).IsNull());
-  ASSERT(Object::Handle(raw_ptr()->type_class_).IsUnresolvedClass());
-  return reinterpret_cast<RawUnresolvedClass*>(raw_ptr()->type_class_);
+  ASSERT(!Object::Handle(raw_ptr()->type_class_id_).IsNull());
+  ASSERT(Object::Handle(raw_ptr()->type_class_id_).IsUnresolvedClass());
+  return reinterpret_cast<RawUnresolvedClass*>(raw_ptr()->type_class_id_);
 #endif
 }
 
@@ -17068,9 +17404,16 @@ intptr_t Type::Hash() const {
 }
 
 
-void Type::set_type_class(const Object& value) const {
-  ASSERT(!value.IsNull() && (value.IsClass() || value.IsUnresolvedClass()));
-  StorePointer(&raw_ptr()->type_class_, value.raw());
+void Type::set_type_class(const Class& value) const {
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->type_class_id_,
+               reinterpret_cast<RawObject*>(Smi::New(value.id())));
+}
+
+
+void Type::set_unresolved_class(const Object& value) const {
+  ASSERT(!value.IsNull() && value.IsUnresolvedClass());
+  StorePointer(&raw_ptr()->type_class_id_, value.raw());
 }
 
 
@@ -17093,7 +17436,11 @@ RawType* Type::New(const Object& clazz,
                    TokenPosition token_pos,
                    Heap::Space space) {
   const Type& result = Type::Handle(Type::New(space));
-  result.set_type_class(clazz);
+  if (clazz.IsClass()) {
+    result.set_type_class(Class::Cast(clazz));
+  } else {
+    result.set_unresolved_class(clazz);
+  }
   result.set_arguments(arguments);
   result.set_token_pos(token_pos);
   result.StoreNonPointer(&result.raw_ptr()->type_state_, RawType::kAllocated);
@@ -17341,7 +17688,25 @@ bool TypeParameter::IsEquivalent(const Instance& other, TrailPtr trail) const {
 
 void TypeParameter::set_parameterized_class(const Class& value) const {
   // Set value may be null.
-  StorePointer(&raw_ptr()->parameterized_class_, value.raw());
+  classid_t cid = kIllegalCid;
+  if (!value.IsNull()) {
+    cid = value.id();
+  }
+  StoreNonPointer(&raw_ptr()->parameterized_class_id_, cid);
+}
+
+
+classid_t TypeParameter::parameterized_class_id() const {
+  return raw_ptr()->parameterized_class_id_;
+}
+
+
+RawClass* TypeParameter::parameterized_class() const {
+  classid_t cid = parameterized_class_id();
+  if (cid == kIllegalCid) {
+    return Class::null();
+  }
+  return Isolate::Current()->class_table()->At(cid);
 }
 
 

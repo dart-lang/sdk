@@ -24,8 +24,8 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   Thread* thread = Thread::Current();
   const String& class_name = String::Handle(Symbols::New(thread, "ownerClass"));
   const Script& script = Script::Handle();
-  const Class& owner_class = Class::Handle(
-      Class::New(class_name, script, TokenPosition::kNoSource));
+  const Class& owner_class = Class::Handle(Class::New(
+      Library::Handle(), class_name, script, TokenPosition::kNoSource));
   const String& function_name = String::Handle(Symbols::New(thread,
                                                             "callerFunction"));
   const Function& function = Function::Handle(

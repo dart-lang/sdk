@@ -62,6 +62,7 @@ DECLARE_FLAG(int, inlining_depth_threshold);
 DECLARE_FLAG(int, inlining_caller_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
+DECLARE_FLAG(int, reload_every);
 
 static void PrecompilationModeHandler(bool value) {
   if (value) {
@@ -353,7 +354,9 @@ bool FlowGraphCompiler::CanOSRFunction() const {
 
 
 bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
-  if (FLAG_stacktrace_every > 0 || FLAG_deoptimize_every > 0) {
+  if ((FLAG_stacktrace_every > 0) ||
+      (FLAG_deoptimize_every > 0) ||
+      (FLAG_reload_every > 0)) {
     return true;
   }
   if (FLAG_stacktrace_filter != NULL &&

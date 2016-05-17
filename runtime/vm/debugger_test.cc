@@ -10,6 +10,8 @@ namespace dart {
 
 #ifndef PRODUCT
 
+DECLARE_FLAG(bool, remove_script_timestamps_for_test);
+
 // Search for the formatted string in buffer.
 //
 // TODO(turnidge): This function obscures the line number of failing
@@ -38,6 +40,7 @@ TEST_CASE(Debugger_PrintBreakpointsToJSONArray) {
       "  x.add('too');\n"
       "  return x.toString();\n"
       "}\n";
+  SetFlagScope<bool> sfs(&FLAG_remove_script_timestamps_for_test, true);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
   Library& vmlib = Library::Handle();
@@ -73,14 +76,14 @@ TEST_CASE(Debugger_PrintBreakpointsToJSONArray) {
         "\"breakpointNumber\":2,\"resolved\":false,"
         "\"location\":{\"type\":\"UnresolvedSourceLocation\","
         "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
-        "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
+        "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\\/0\","
         "\"uri\":\"test-lib\","
         "\"_kind\":\"script\"},\"line\":3}},"
         "{\"type\":\"Breakpoint\",\"fixedId\":true,\"id\":\"breakpoints\\/1\","
         "\"breakpointNumber\":1,\"resolved\":false,"
         "\"location\":{\"type\":\"UnresolvedSourceLocation\","
         "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
-        "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
+        "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\\/0\","
         "\"uri\":\"test-lib\","
         "\"_kind\":\"script\"},\"line\":2}}]",
         vmlib.index(), vmlib.index());

@@ -5,6 +5,7 @@
 #include "platform/globals.h"
 
 #include "platform/assert.h"
+#include "vm/become.h"
 #include "vm/dart_api_impl.h"
 #include "vm/globals.h"
 #include "vm/heap.h"
@@ -287,4 +288,80 @@ TEST_CASE(IterateReadOnly) {
   EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
 }
 
-}  // namespace dart.
+
+void TestBecomeForward(Heap::Space before_space, Heap::Space after_space) {
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  const String& before_obj = String::Handle(String::New("old", before_space));
+  const String& after_obj = String::Handle(String::New("new", after_space));
+
+  EXPECT(before_obj.raw() != after_obj.raw());
+
+  // Allocate the arrays in old space to test the remembered set.
+  const Array& before = Array::Handle(Array::New(1, Heap::kOld));
+  before.SetAt(0, before_obj);
+  const Array& after = Array::Handle(Array::New(1, Heap::kOld));
+  after.SetAt(0, after_obj);
+
+  Become::ElementsForwardIdentity(before, after);
+
+  EXPECT(before_obj.raw() == after_obj.raw());
+
+  heap->CollectAllGarbage();
+
+  EXPECT(before_obj.raw() == after_obj.raw());
+}
+
+
+VM_TEST_CASE(BecomeFowardOldToOld) {
+  TestBecomeForward(Heap::kOld, Heap::kOld);
+}
+
+
+VM_TEST_CASE(BecomeFowardNewToNew) {
+  TestBecomeForward(Heap::kNew, Heap::kNew);
+}
+
+
+VM_TEST_CASE(BecomeFowardOldToNew) {
+  TestBecomeForward(Heap::kOld, Heap::kNew);
+}
+
+
+VM_TEST_CASE(BecomeFowardNewToOld) {
+  TestBecomeForward(Heap::kNew, Heap::kOld);
+}
+
+
+VM_TEST_CASE(BecomeForwardRememberedObject) {
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  const String& new_element = String::Handle(String::New("new", Heap::kNew));
+  const String& old_element = String::Handle(String::New("old", Heap::kOld));
+  const Array& before_obj = Array::Handle(Array::New(1, Heap::kOld));
+  const Array& after_obj = Array::Handle(Array::New(1, Heap::kOld));
+  before_obj.SetAt(0, new_element);
+  after_obj.SetAt(0, old_element);
+  EXPECT(before_obj.raw()->IsRemembered());
+  EXPECT(!after_obj.raw()->IsRemembered());
+
+  EXPECT(before_obj.raw() != after_obj.raw());
+
+  const Array& before = Array::Handle(Array::New(1, Heap::kOld));
+  before.SetAt(0, before_obj);
+  const Array& after = Array::Handle(Array::New(1, Heap::kOld));
+  after.SetAt(0, after_obj);
+
+  Become::ElementsForwardIdentity(before, after);
+
+  EXPECT(before_obj.raw() == after_obj.raw());
+  EXPECT(!after_obj.raw()->IsRemembered());
+
+  heap->CollectAllGarbage();
+
+  EXPECT(before_obj.raw() == after_obj.raw());
+}
+
+}  // namespace dart

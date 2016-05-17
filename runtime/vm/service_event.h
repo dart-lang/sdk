@@ -24,11 +24,11 @@ class ServiceEvent {
   enum EventKind {
     kVMUpdate,           // VM identity information has changed
 
-    kIsolateStart,       // New isolate has started
-    kIsolateRunnable,    // Isolate is ready to run
-    kIsolateExit,        // Isolate has exited
-    kIsolateUpdate,      // Isolate identity information has changed
-
+    kIsolateStart,           // New isolate has started
+    kIsolateRunnable,        // Isolate is ready to run
+    kIsolateExit,            // Isolate has exited
+    kIsolateUpdate,          // Isolate identity information has changed
+    kIsolateReload,          // Result of a reload request
     kServiceExtensionAdded,  // A service extension was registered
 
     kPauseStart,         // --pause-isolates-on-start
@@ -149,6 +149,15 @@ class ServiceEvent {
     exception_ = exception;
   }
 
+  const Error* reload_error() const {
+    ASSERT(kind_ == kIsolateReload);
+    return reload_error_;
+  }
+  void set_reload_error(const Error* error) {
+    ASSERT(kind_ == kIsolateReload);
+    reload_error_ = error;
+  }
+
   bool at_async_jump() const {
     return at_async_jump_;
   }
@@ -222,6 +231,7 @@ class ServiceEvent {
   const TimelineEventBlock* timeline_event_block_;
   const String* extension_rpc_;
   const Object* exception_;
+  const Error* reload_error_;
   bool at_async_jump_;
   const Object* inspectee_;
   const Heap::GCStats* gc_stats_;

@@ -3083,28 +3083,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (stub_entry != NULL) {
       // We have a dedicated inline cache stub for this operation, add an
       // an initial Smi/Smi check with count 0.
-      ASSERT(call_ic_data->NumArgsTested() == 2);
-      const String& name = String::Handle(zone, call_ic_data->target_name());
-      const Class& smi_class = Class::Handle(zone, Smi::Class());
-      const Function& smi_op_target = Function::Handle(zone,
-          Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
-      if (call_ic_data->NumberOfChecks() == 0) {
-        GrowableArray<intptr_t> class_ids(2);
-        class_ids.Add(kSmiCid);
-        class_ids.Add(kSmiCid);
-        call_ic_data->AddCheck(class_ids, smi_op_target);
-        // 'AddCheck' sets the initial count to 1.
-        call_ic_data->SetCountAt(0, 0);
-        is_smi_two_args_op = true;
-      } else if (call_ic_data->NumberOfChecks() == 1) {
-        GrowableArray<intptr_t> class_ids(2);
-        Function& target = Function::Handle(zone);
-        call_ic_data->GetCheckAt(0, &class_ids, &target);
-        if ((target.raw() == smi_op_target.raw()) &&
-            (class_ids[0] == kSmiCid) && (class_ids[1] == kSmiCid)) {
-          is_smi_two_args_op = true;
-        }
-      }
+      is_smi_two_args_op = call_ic_data->AddSmiSmiCheckForFastSmiStubs();
     }
     if (is_smi_two_args_op) {
       ASSERT(ArgumentCount() == 2);

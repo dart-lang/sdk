@@ -298,6 +298,10 @@
         animation: fadein 1s;
       }
 
+      .wide-item {
+        width: 50vw;
+      }
+
       @keyframes fadein {
         from { opacity: 0; }
         to   { opacity: 1; }
@@ -327,6 +331,9 @@
       }
       a.boxclose:hover {
         background: rgba(255,255,255,0.5);
+      }
+      .error {
+        white-space: pre;
       }
     </style>
     <template if="{{ event != null }}">
@@ -369,6 +376,21 @@
         <div class="item">
           Inspect <any-service-ref ref="{{ event.inspectee }}"></any-service-ref>
           <br><br>
+          <a class="boxclose" on-click="{{ closeItem }}">&times;</a>
+        </div>
+      </template>
+      <template if="{{ event.kind == 'IsolateReload' }}">
+        <div class="wide-item item">
+          Isolate reload
+          <template if="{{ event.reloadError != null }}">
+            failed:
+            <br>
+            <br>
+            <div class="indent error">{{ event.reloadError.message.toString() }}</div><br>
+          </template>
+          <template if="{{ event.reloadError == null }}">
+            succeeded
+          </template>
           <a class="boxclose" on-click="{{ closeItem }}">&times;</a>
         </div>
       </template>

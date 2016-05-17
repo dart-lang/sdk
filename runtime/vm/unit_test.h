@@ -286,7 +286,6 @@ class TestCase : TestCaseBase {
                                     Dart_NativeEntryResolver resolver,
                                     const char* lib_uri = USER_TEST_URI,
                                     bool finalize = true);
-
   static Dart_Handle LoadCoreTestScript(const char* script,
                                         Dart_NativeEntryResolver resolver);
   static Dart_Handle lib();
@@ -304,6 +303,16 @@ class TestCase : TestCaseBase {
   static char* BigintToHexValue(Dart_CObject* bigint);
 
   virtual void Run();
+
+  // Sets |script| to be the source used at next reload.
+  static void SetReloadTestScript(const char* script);
+  // Initiates the reload.
+  static Dart_Handle TriggerReload();
+  // Gets the result of a reload.
+  static Dart_Handle GetReloadErrorOrRootLibrary();
+
+  // Helper function which reloads the current isolate using |script|.
+  static Dart_Handle ReloadTestScript(const char* script);
 
  private:
   static Dart_Isolate CreateIsolate(const uint8_t* buffer, const char* name);
@@ -585,6 +594,24 @@ class CompilerTest : public AllStatic {
 //
 void ElideJSONSubstring(const char* prefix, const char* in, char* out);
 
+
+template<typename T>
+class SetFlagScope : public ValueObject {
+ public:
+  SetFlagScope(T* flag, T value)
+      : flag_(flag),
+        original_value_(*flag) {
+    *flag_ = value;
+  }
+
+  ~SetFlagScope() {
+    *flag_ = original_value_;
+  }
+
+ private:
+  T* flag_;
+  T original_value_;
+};
 
 }  // namespace dart
 
