@@ -470,6 +470,9 @@
       // newer SDKs.
       'html_escape_test': skip_fail,
 
+      // TODO(jmesserly): seems to fail or pass based on SDK version?
+      'html_escape_test': ['skip'],
+
       // TODO(rnystrom): If this test is enabled, karma gets confused and
       // disconnects randomly.
       'json_lib_test': skip_fail,

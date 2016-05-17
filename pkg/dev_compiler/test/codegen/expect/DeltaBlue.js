@@ -12,7 +12,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
   };
   dart.fn(DeltaBlue$.main);
   BenchmarkBase$.BenchmarkBase = class BenchmarkBase extends core.Object {
-    BenchmarkBase(name) {
+    new(name) {
       this.name = name;
     }
     run() {}
@@ -56,7 +56,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     }
   };
   dart.setSignature(BenchmarkBase$.BenchmarkBase, {
-    constructors: () => ({BenchmarkBase: [BenchmarkBase$.BenchmarkBase, [core.String]]}),
+    constructors: () => ({new: [BenchmarkBase$.BenchmarkBase, [core.String]]}),
     methods: () => ({
       run: [dart.void, []],
       warmup: [dart.void, []],
@@ -70,8 +70,8 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     names: ['measureFor']
   });
   DeltaBlue$.DeltaBlue = class DeltaBlue extends BenchmarkBase$.BenchmarkBase {
-    DeltaBlue() {
-      super.BenchmarkBase("DeltaBlue");
+    new() {
+      super.new("DeltaBlue");
     }
     run() {
       DeltaBlue$.chainTest(100);
@@ -79,11 +79,11 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     }
   };
   dart.setSignature(DeltaBlue$.DeltaBlue, {
-    constructors: () => ({DeltaBlue: [DeltaBlue$.DeltaBlue, []]})
+    constructors: () => ({new: [DeltaBlue$.DeltaBlue, []]})
   });
   let const$;
   DeltaBlue$.Strength = class Strength extends core.Object {
-    Strength(value, name) {
+    new(value, name) {
       this.value = value;
       this.name = name;
     }
@@ -104,7 +104,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     }
   };
   dart.setSignature(DeltaBlue$.Strength, {
-    constructors: () => ({Strength: [DeltaBlue$.Strength, [core.int, core.String]]}),
+    constructors: () => ({new: [DeltaBlue$.Strength, [core.int, core.String]]}),
     methods: () => ({nextWeaker: [DeltaBlue$.Strength, []]}),
     statics: () => ({
       stronger: [core.bool, [DeltaBlue$.Strength, DeltaBlue$.Strength]],
@@ -122,7 +122,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
   DeltaBlue$.WEAK_DEFAULT = dart.const(new DeltaBlue$.Strength(5, "weakDefault"));
   DeltaBlue$.WEAKEST = dart.const(new DeltaBlue$.Strength(6, "weakest"));
   DeltaBlue$.Constraint = class Constraint extends core.Object {
-    Constraint(strength) {
+    new(strength) {
       this.strength = strength;
     }
     addConstraint() {
@@ -155,7 +155,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     }
   };
   dart.setSignature(DeltaBlue$.Constraint, {
-    constructors: () => ({Constraint: [DeltaBlue$.Constraint, [DeltaBlue$.Strength]]}),
+    constructors: () => ({new: [DeltaBlue$.Constraint, [DeltaBlue$.Strength]]}),
     methods: () => ({
       addConstraint: [dart.void, []],
       satisfy: [DeltaBlue$.Constraint, [dart.dynamic]],
@@ -164,10 +164,10 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     })
   });
   DeltaBlue$.UnaryConstraint = class UnaryConstraint extends DeltaBlue$.Constraint {
-    UnaryConstraint(myOutput, strength) {
+    new(myOutput, strength) {
       this.myOutput = myOutput;
       this.satisfied = false;
-      super.Constraint(strength);
+      super.new(strength);
       this.addConstraint();
     }
     addToGraph() {
@@ -201,7 +201,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     }
   };
   dart.setSignature(DeltaBlue$.UnaryConstraint, {
-    constructors: () => ({UnaryConstraint: [DeltaBlue$.UnaryConstraint, [DeltaBlue$.Variable, DeltaBlue$.Strength]]}),
+    constructors: () => ({new: [DeltaBlue$.UnaryConstraint, [DeltaBlue$.Variable, DeltaBlue$.Strength]]}),
     methods: () => ({
       addToGraph: [dart.void, []],
       chooseMethod: [dart.void, [core.int]],
@@ -215,18 +215,18 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     })
   });
   DeltaBlue$.StayConstraint = class StayConstraint extends DeltaBlue$.UnaryConstraint {
-    StayConstraint(v, str) {
-      super.UnaryConstraint(v, str);
+    new(v, str) {
+      super.new(v, str);
     }
     execute() {}
   };
   dart.setSignature(DeltaBlue$.StayConstraint, {
-    constructors: () => ({StayConstraint: [DeltaBlue$.StayConstraint, [DeltaBlue$.Variable, DeltaBlue$.Strength]]}),
+    constructors: () => ({new: [DeltaBlue$.StayConstraint, [DeltaBlue$.Variable, DeltaBlue$.Strength]]}),
     methods: () => ({execute: [dart.void, []]})
   });
   DeltaBlue$.EditConstraint = class EditConstraint extends DeltaBlue$.UnaryConstraint {
-    EditConstraint(v, str) {
-      super.UnaryConstraint(v, str);
+    new(v, str) {
+      super.new(v, str);
     }
     isInput() {
       return true;
@@ -234,18 +234,18 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     execute() {}
   };
   dart.setSignature(DeltaBlue$.EditConstraint, {
-    constructors: () => ({EditConstraint: [DeltaBlue$.EditConstraint, [DeltaBlue$.Variable, DeltaBlue$.Strength]]}),
+    constructors: () => ({new: [DeltaBlue$.EditConstraint, [DeltaBlue$.Variable, DeltaBlue$.Strength]]}),
     methods: () => ({execute: [dart.void, []]})
   });
   DeltaBlue$.NONE = 1;
   DeltaBlue$.FORWARD = 2;
   DeltaBlue$.BACKWARD = 0;
   DeltaBlue$.BinaryConstraint = class BinaryConstraint extends DeltaBlue$.Constraint {
-    BinaryConstraint(v1, v2, strength) {
+    new(v1, v2, strength) {
       this.v1 = v1;
       this.v2 = v2;
       this.direction = DeltaBlue$.NONE;
-      super.Constraint(strength);
+      super.new(strength);
       this.addConstraint();
     }
     chooseMethod(mark) {
@@ -298,7 +298,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     }
   };
   dart.setSignature(DeltaBlue$.BinaryConstraint, {
-    constructors: () => ({BinaryConstraint: [DeltaBlue$.BinaryConstraint, [DeltaBlue$.Variable, DeltaBlue$.Variable, DeltaBlue$.Strength]]}),
+    constructors: () => ({new: [DeltaBlue$.BinaryConstraint, [DeltaBlue$.Variable, DeltaBlue$.Variable, DeltaBlue$.Strength]]}),
     methods: () => ({
       chooseMethod: [dart.void, [core.int]],
       addToGraph: [dart.void, []],
@@ -313,10 +313,10 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     })
   });
   DeltaBlue$.ScaleConstraint = class ScaleConstraint extends DeltaBlue$.BinaryConstraint {
-    ScaleConstraint(src, scale, offset, dest, strength) {
+    new(src, scale, offset, dest, strength) {
       this.scale = scale;
       this.offset = offset;
-      super.BinaryConstraint(src, dest, strength);
+      super.new(src, dest, strength);
     }
     addToGraph() {
       super.addToGraph();
@@ -347,23 +347,23 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     }
   };
   dart.setSignature(DeltaBlue$.ScaleConstraint, {
-    constructors: () => ({ScaleConstraint: [DeltaBlue$.ScaleConstraint, [DeltaBlue$.Variable, DeltaBlue$.Variable, DeltaBlue$.Variable, DeltaBlue$.Variable, DeltaBlue$.Strength]]}),
+    constructors: () => ({new: [DeltaBlue$.ScaleConstraint, [DeltaBlue$.Variable, DeltaBlue$.Variable, DeltaBlue$.Variable, DeltaBlue$.Variable, DeltaBlue$.Strength]]}),
     methods: () => ({execute: [dart.void, []]})
   });
   DeltaBlue$.EqualityConstraint = class EqualityConstraint extends DeltaBlue$.BinaryConstraint {
-    EqualityConstraint(v1, v2, strength) {
-      super.BinaryConstraint(v1, v2, strength);
+    new(v1, v2, strength) {
+      super.new(v1, v2, strength);
     }
     execute() {
       this.output().value = this.input().value;
     }
   };
   dart.setSignature(DeltaBlue$.EqualityConstraint, {
-    constructors: () => ({EqualityConstraint: [DeltaBlue$.EqualityConstraint, [DeltaBlue$.Variable, DeltaBlue$.Variable, DeltaBlue$.Strength]]}),
+    constructors: () => ({new: [DeltaBlue$.EqualityConstraint, [DeltaBlue$.Variable, DeltaBlue$.Variable, DeltaBlue$.Strength]]}),
     methods: () => ({execute: [dart.void, []]})
   });
   DeltaBlue$.Variable = class Variable extends core.Object {
-    Variable(name, value) {
+    new(name, value) {
       this.constraints = dart.list([], DeltaBlue$.Constraint);
       this.name = name;
       this.value = value;
@@ -381,14 +381,14 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     }
   };
   dart.setSignature(DeltaBlue$.Variable, {
-    constructors: () => ({Variable: [DeltaBlue$.Variable, [core.String, core.int]]}),
+    constructors: () => ({new: [DeltaBlue$.Variable, [core.String, core.int]]}),
     methods: () => ({
       addConstraint: [dart.void, [DeltaBlue$.Constraint]],
       removeConstraint: [dart.void, [DeltaBlue$.Constraint]]
     })
   });
   DeltaBlue$.Planner = class Planner extends core.Object {
-    Planner() {
+    new() {
       this.currentMark = 0;
     }
     incrementalAdd(c) {
@@ -492,7 +492,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     })
   });
   DeltaBlue$.Plan = class Plan extends core.Object {
-    Plan() {
+    new() {
       this.list = dart.list([], DeltaBlue$.Constraint);
     }
     addConstraint(c) {

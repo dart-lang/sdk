@@ -531,7 +531,7 @@ suite('instanceOf', () => {
 
   test('dsend', () => {
     class Tester extends core.Object {
-      Tester() {
+      new() {
         this.f = dart.fn(x => x, core.int, [core.int]);
         this.me = this;
       }

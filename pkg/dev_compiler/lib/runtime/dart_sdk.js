@@ -31,20 +31,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const web_gl = Object.create(null);
   const web_sql = Object.create(null);
   dart.mixin = function(base, ...mixins) {
-    class Mixin extends base {
-      [base.name](...args) {
-        for (let i = mixins.length - 1; i >= 0; i--) {
-          let mixin = mixins[i];
-          let init = mixin.prototype[mixin.name];
-          if (init) init.call(this);
-        }
-        let init = base.prototype[base.name];
-        if (init) init.apply(this, args);
-      }
-    }
+    class Mixin extends base {}
     for (let m of mixins) {
       dart.copyProperties(Mixin.prototype, m.prototype);
     }
+    Mixin.prototype.new = function(...args) {
+      for (let i = mixins.length - 1; i >= 0; i--) {
+        mixins[i].prototype.new.call(this);
+      }
+      base.prototype.new.apply(this, args);
+    };
     dart.setSignature(Mixin, {
       methods: () => {
         let s = {};
@@ -1142,11 +1138,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.metadata = Symbol("metadata");
   dart._typeObject = Symbol("typeObject");
   core.Object = class Object {
-    constructor() {
-      let name = this.constructor.name;
-      let result = void 0;
-      if (name in this) result = this[name].apply(this, arguments);
-      return result === void 0 ? this : result;
+    constructor(...args) {
+      return this.new.apply(this, args);
+    }
+    new() {
     }
     ['=='](other) {
       return core.identical(this, other);
@@ -1165,7 +1160,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(core.Object, {
-    constructors: () => ({Object: [core.Object, []]}),
+    constructors: () => ({new: [core.Object, []]}),
     methods: () => ({
       '==': [core.bool, [dart.dynamic]],
       toString: [core.String, []],
@@ -1204,7 +1199,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.jsobject = new dart.JSObject();
   const _runtimeType = Symbol('_runtimeType');
   dart.WrappedType = class WrappedType extends dart.TypeRep {
-    WrappedType(runtimeType) {
+    new(runtimeType) {
       this[_runtimeType] = runtimeType;
     }
     toString() {
@@ -1212,7 +1207,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(dart.WrappedType, {
-    constructors: () => ({WrappedType: [dart.WrappedType, [dart.dynamic]]})
+    constructors: () => ({new: [dart.WrappedType, [dart.dynamic]]})
   });
   dart.AbstractFunctionType = class AbstractFunctionType extends dart.TypeRep {
     constructor() {
@@ -1498,7 +1493,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.lazyFn(_debugger.hasMethod, () => [core.bool, [dart.dynamic, core.String]]);
   _debugger.NameValuePair = class NameValuePair extends core.Object {
-    NameValuePair(opts) {
+    new(opts) {
       let name = opts && 'name' in opts ? opts.name : null;
       let value = opts && 'value' in opts ? opts.value : null;
       let skipDart = opts && 'skipDart' in opts ? opts.skipDart : null;
@@ -1508,10 +1503,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(_debugger.NameValuePair, {
-    constructors: () => ({NameValuePair: [_debugger.NameValuePair, [], {name: core.String, value: core.Object, skipDart: core.bool}]})
+    constructors: () => ({new: [_debugger.NameValuePair, [], {name: core.String, value: core.Object, skipDart: core.bool}]})
   });
   _debugger.MapEntry = class MapEntry extends core.Object {
-    MapEntry(opts) {
+    new(opts) {
       let key = opts && 'key' in opts ? opts.key : null;
       let value = opts && 'value' in opts ? opts.value : null;
       this.key = key;
@@ -1519,29 +1514,29 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(_debugger.MapEntry, {
-    constructors: () => ({MapEntry: [_debugger.MapEntry, [], {key: core.String, value: core.Object}]})
+    constructors: () => ({new: [_debugger.MapEntry, [], {key: core.String, value: core.Object}]})
   });
   _debugger.ClassMetadata = class ClassMetadata extends core.Object {
-    ClassMetadata(object) {
+    new(object) {
       this.object = object;
     }
   };
   dart.setSignature(_debugger.ClassMetadata, {
-    constructors: () => ({ClassMetadata: [_debugger.ClassMetadata, [core.Object]]})
+    constructors: () => ({new: [_debugger.ClassMetadata, [core.Object]]})
   });
   _debugger.HeritageClause = class HeritageClause extends core.Object {
-    HeritageClause(name, types) {
+    new(name, types) {
       this.name = name;
       this.types = types;
     }
   };
   dart.setSignature(_debugger.HeritageClause, {
-    constructors: () => ({HeritageClause: [_debugger.HeritageClause, [core.String, core.List]]})
+    constructors: () => ({new: [_debugger.HeritageClause, [core.String, core.List]]})
   });
   const _attributes = Symbol('_attributes');
   const _jsonML = Symbol('_jsonML');
   _debugger.JsonMLElement = class JsonMLElement extends core.Object {
-    JsonMLElement(tagName) {
+    new(tagName) {
       this[_attributes] = null;
       this[_jsonML] = null;
       this[_attributes] = {};
@@ -1584,7 +1579,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(_debugger.JsonMLElement, {
-    constructors: () => ({JsonMLElement: [_debugger.JsonMLElement, [dart.dynamic]]}),
+    constructors: () => ({new: [_debugger.JsonMLElement, [dart.dynamic]]}),
     methods: () => ({
       appendChild: [dart.dynamic, [dart.dynamic]],
       createChild: [_debugger.JsonMLElement, [core.String]],
@@ -1597,7 +1592,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   _debugger.JsonMLFormatter = class JsonMLFormatter extends core.Object {
-    JsonMLFormatter(simpleFormatter) {
+    new(simpleFormatter) {
       this[_simpleFormatter] = simpleFormatter;
     }
     header(object, config) {
@@ -1642,7 +1637,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(_debugger.JsonMLFormatter, {
-    constructors: () => ({JsonMLFormatter: [_debugger.JsonMLFormatter, [_debugger.DartFormatter]]}),
+    constructors: () => ({new: [_debugger.JsonMLFormatter, [_debugger.DartFormatter]]}),
     methods: () => ({
       header: [dart.dynamic, [dart.dynamic, dart.dynamic]],
       hasBody: [core.bool, [dart.dynamic]],
@@ -1652,7 +1647,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _debugger.Formatter = class Formatter extends core.Object {};
   const _formatters = Symbol('_formatters');
   _debugger.DartFormatter = class DartFormatter extends core.Object {
-    DartFormatter() {
+    new() {
       this[_formatters] = null;
       this[_formatters] = dart.list([new _debugger.FunctionFormatter(), new _debugger.MapFormatter(), new _debugger.IterableFormatter(), new _debugger.MapEntryFormatter(), new _debugger.ClassMetadataFormatter(), new _debugger.HeritageClauseFormatter(), new _debugger.ObjectFormatter()], _debugger.Formatter);
     }
@@ -1682,7 +1677,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(_debugger.DartFormatter, {
-    constructors: () => ({DartFormatter: [_debugger.DartFormatter, []]}),
+    constructors: () => ({new: [_debugger.DartFormatter, []]}),
     methods: () => ({
       preview: [core.String, [dart.dynamic]],
       hasChildren: [core.bool, [dart.dynamic]],
@@ -1955,12 +1950,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.lazyFn(_foreign_helper.JS, () => [dart.dynamic, [core.String, core.String], [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]]);
   _foreign_helper.JSExportName = class JSExportName extends core.Object {
-    JSExportName(name) {
+    new(name) {
       this.name = name;
     }
   };
   dart.setSignature(_foreign_helper.JSExportName, {
-    constructors: () => ({JSExportName: [_foreign_helper.JSExportName, [core.String]]})
+    constructors: () => ({new: [_foreign_helper.JSExportName, [core.String]]})
   });
   _foreign_helper.JS_CURRENT_ISOLATE_CONTEXT = function() {
   };
@@ -2040,23 +2035,23 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.lazyFn(_foreign_helper.JS_EFFECT, () => [dart.void, [core.Function]]);
   _foreign_helper.JS_CONST = class JS_CONST extends core.Object {
-    JS_CONST(code) {
+    new(code) {
       this.code = code;
     }
   };
   dart.setSignature(_foreign_helper.JS_CONST, {
-    constructors: () => ({JS_CONST: [_foreign_helper.JS_CONST, [core.String]]})
+    constructors: () => ({new: [_foreign_helper.JS_CONST, [core.String]]})
   });
   _foreign_helper.JS_STRING_CONCAT = function(a, b) {
     return a + b;
   };
   dart.lazyFn(_foreign_helper.JS_STRING_CONCAT, () => [core.String, [core.String, core.String]]);
   _foreign_helper._Rest = class _Rest extends core.Object {
-    _Rest() {
+    new() {
     }
   };
   dart.setSignature(_foreign_helper._Rest, {
-    constructors: () => ({_Rest: [_foreign_helper._Rest, []]})
+    constructors: () => ({new: [_foreign_helper._Rest, []]})
   });
   _foreign_helper.rest = dart.const(new _foreign_helper._Rest());
   _foreign_helper.spread = function(args) {
@@ -2064,11 +2059,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.fn(_foreign_helper.spread);
   _interceptors.Interceptor = class Interceptor extends core.Object {
-    Interceptor() {
+    new() {
     }
   };
   dart.setSignature(_interceptors.Interceptor, {
-    constructors: () => ({Interceptor: [_interceptors.Interceptor, []]})
+    constructors: () => ({new: [_interceptors.Interceptor, []]})
   });
   _interceptors.getInterceptor = function(obj) {
     return obj;
@@ -2080,8 +2075,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'runtimeType'
   ]);
   _interceptors.JSBool = class JSBool extends _interceptors.Interceptor {
-    JSBool() {
-      super.Interceptor();
+    new() {
+      super.new();
     }
     [dartx.toString]() {
       return String(this);
@@ -2095,7 +2090,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   _interceptors.JSBool[dart.implements] = () => [core.bool];
   dart.setSignature(_interceptors.JSBool, {
-    constructors: () => ({JSBool: [_interceptors.JSBool, []]})
+    constructors: () => ({new: [_interceptors.JSBool, []]})
   });
   _interceptors.JSBool[dart.metadata] = () => [dart.const(new _js_helper.JsPeerInterface({name: 'Boolean'}))];
   dart.registerExtension(dart.global.Boolean, _interceptors.JSBool);
@@ -2103,8 +2098,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _interceptors.JSMutableIndexable = class JSMutableIndexable extends _interceptors.JSIndexable {};
   _interceptors.JSObject = class JSObject extends core.Object {};
   _interceptors.JavaScriptObject = class JavaScriptObject extends _interceptors.Interceptor {
-    JavaScriptObject() {
-      super.Interceptor();
+    new() {
+      super.new();
     }
     get hashCode() {
       return 0;
@@ -2115,26 +2110,26 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   _interceptors.JavaScriptObject[dart.implements] = () => [_interceptors.JSObject];
   dart.setSignature(_interceptors.JavaScriptObject, {
-    constructors: () => ({JavaScriptObject: [_interceptors.JavaScriptObject, []]})
+    constructors: () => ({new: [_interceptors.JavaScriptObject, []]})
   });
   _interceptors.PlainJavaScriptObject = class PlainJavaScriptObject extends _interceptors.JavaScriptObject {
-    PlainJavaScriptObject() {
-      super.JavaScriptObject();
+    new() {
+      super.new();
     }
   };
   dart.setSignature(_interceptors.PlainJavaScriptObject, {
-    constructors: () => ({PlainJavaScriptObject: [_interceptors.PlainJavaScriptObject, []]})
+    constructors: () => ({new: [_interceptors.PlainJavaScriptObject, []]})
   });
   _interceptors.UnknownJavaScriptObject = class UnknownJavaScriptObject extends _interceptors.JavaScriptObject {
-    UnknownJavaScriptObject() {
-      super.JavaScriptObject();
+    new() {
+      super.new();
     }
     toString() {
       return String(this);
     }
   };
   dart.setSignature(_interceptors.UnknownJavaScriptObject, {
-    constructors: () => ({UnknownJavaScriptObject: [_interceptors.UnknownJavaScriptObject, []]})
+    constructors: () => ({new: [_interceptors.UnknownJavaScriptObject, []]})
   });
   _interceptors.findInterceptorConstructorForType = function(type) {
   };
@@ -2210,7 +2205,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       'asMap'
     ]);
     class JSArray extends core.Object {
-      JSArray() {
+      new() {
       }
       static typed(allocation) {
         return dart.list(allocation, E);
@@ -2699,7 +2694,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     JSArray[dart.implements] = () => [core.List$(E), _interceptors.JSIndexable];
     dart.setSignature(JSArray, {
       constructors: () => ({
-        JSArray: [_interceptors.JSArray$(E), []],
+        new: [_interceptors.JSArray$(E), []],
         typed: [_interceptors.JSArray$(E), [dart.dynamic]],
         markFixed: [_interceptors.JSArray$(E), [dart.dynamic]],
         markGrowable: [_interceptors.JSArray$(E), [dart.dynamic]]
@@ -2766,8 +2761,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.registerExtension(dart.global.Array, _interceptors.JSArray);
   _interceptors.JSMutableArray$ = dart.generic(E => {
     class JSMutableArray extends _interceptors.JSArray$(E) {
-      JSMutableArray() {
-        super.JSArray();
+      new() {
+        super.new();
       }
     }
     JSMutableArray[dart.implements] = () => [_interceptors.JSMutableIndexable];
@@ -2786,8 +2781,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _interceptors.JSExtendableArray = _interceptors.JSExtendableArray$();
   _interceptors.JSUnmodifiableArray$ = dart.generic(E => {
     class JSUnmodifiableArray extends _interceptors.JSArray$(E) {
-      JSUnmodifiableArray() {
-        super.JSArray();
+      new() {
+        super.new();
       }
     }
     return JSUnmodifiableArray;
@@ -2799,7 +2794,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _current = Symbol('_current');
   _interceptors.ArrayIterator$ = dart.generic(E => {
     class ArrayIterator extends core.Object {
-      ArrayIterator(iterable) {
+      new(iterable) {
         this[_iterable] = iterable;
         this[_length] = iterable[dartx.length];
         this[_index] = 0;
@@ -2824,7 +2819,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     ArrayIterator[dart.implements] = () => [core.Iterator$(E)];
     dart.setSignature(ArrayIterator, {
-      constructors: () => ({ArrayIterator: [_interceptors.ArrayIterator$(E), [_interceptors.JSArray$(E)]]}),
+      constructors: () => ({new: [_interceptors.ArrayIterator$(E), [_interceptors.JSArray$(E)]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return ArrayIterator;
@@ -2888,8 +2883,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     '~'
   ]);
   _interceptors.JSNumber = class JSNumber extends _interceptors.Interceptor {
-    JSNumber() {
-      super.Interceptor();
+    new() {
+      super.new();
     }
     [dartx.compareTo](b) {
       if (this < dart.notNull(b)) {
@@ -3326,7 +3321,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   _interceptors.JSNumber[dart.implements] = () => [core.int, core.double];
   dart.setSignature(_interceptors.JSNumber, {
-    constructors: () => ({JSNumber: [_interceptors.JSNumber, []]}),
+    constructors: () => ({new: [_interceptors.JSNumber, []]}),
     methods: () => ({
       [dartx.compareTo]: [core.int, [core.num]],
       [dartx.remainder]: [_interceptors.JSNumber, [core.num]],
@@ -3429,8 +3424,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'get'
   ]);
   _interceptors.JSString = class JSString extends _interceptors.Interceptor {
-    JSString() {
-      super.Interceptor();
+    new() {
+      super.new();
     }
     [dartx.codeUnitAt](index) {
       if (!(typeof index == 'number')) dart.throw(_js_helper.diagnoseIndexError(this, index));
@@ -3817,7 +3812,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   _interceptors.JSString[dart.implements] = () => [core.String, _interceptors.JSIndexable];
   dart.setSignature(_interceptors.JSString, {
-    constructors: () => ({JSString: [_interceptors.JSString, []]}),
+    constructors: () => ({new: [_interceptors.JSString, []]}),
     methods: () => ({
       [dartx.codeUnitAt]: [core.int, [core.int]],
       [dartx.allMatches]: [core.Iterable$(core.Match), [core.String], [core.int]],
@@ -4652,8 +4647,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal.UnmodifiableListMixin = _internal.UnmodifiableListMixin$();
   _internal.UnmodifiableListBase$ = dart.generic(E => {
     class UnmodifiableListBase extends dart.mixin(collection.ListBase$(E), _internal.UnmodifiableListMixin$(E)) {
-      UnmodifiableListBase() {
-        super.ListBase();
+      new() {
+        super.new();
       }
     }
     return UnmodifiableListBase;
@@ -4676,7 +4671,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     names: ['parse']
   });
   _internal.CodeUnits = class CodeUnits extends _internal.UnmodifiableListBase$(core.int) {
-    CodeUnits(string) {
+    new(string) {
       this[_string] = string;
     }
     get length() {
@@ -4693,7 +4688,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(_internal.CodeUnits, {
-    constructors: () => ({CodeUnits: [_internal.CodeUnits, [core.String]]}),
+    constructors: () => ({new: [_internal.CodeUnits, [core.String]]}),
     methods: () => ({get: [core.int, [core.int]]}),
     statics: () => ({stringOf: [core.String, [_internal.CodeUnits]]}),
     names: ['stringOf']
@@ -4731,7 +4726,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       'toString'
     ]);
     class Iterable extends core.Object {
-      Iterable() {
+      new() {
       }
       static generate(count, generator) {
         if (generator === void 0) generator = null;
@@ -4931,7 +4926,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     dart.setSignature(Iterable, {
       constructors: () => ({
-        Iterable: [core.Iterable$(E), []],
+        new: [core.Iterable$(E), []],
         generate: [core.Iterable$(E), [core.int], [dart.functionType(E, [core.int])]],
         empty: [core.Iterable$(E), []]
       }),
@@ -4992,8 +4987,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   core.Iterable = core.Iterable$();
   _internal.ListIterable$ = dart.generic(E => {
     class ListIterable extends core.Iterable$(E) {
-      ListIterable() {
-        super.Iterable();
+      new() {
+        super.new();
       }
       get iterator() {
         return new (_internal.ListIterator$(E))(this);
@@ -5200,7 +5195,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     ListIterable[dart.implements] = () => [_internal.EfficientLength];
     dart.setSignature(ListIterable, {
-      constructors: () => ({ListIterable: [_internal.ListIterable$(E), []]}),
+      constructors: () => ({new: [_internal.ListIterable$(E), []]}),
       methods: () => ({
         forEach: [dart.void, [dart.functionType(dart.void, [E])]],
         every: [core.bool, [dart.functionType(core.bool, [E])]],
@@ -5255,11 +5250,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _startIndex = Symbol('_startIndex');
   _internal.SubListIterable$ = dart.generic(E => {
     class SubListIterable extends _internal.ListIterable$(E) {
-      SubListIterable(iterable, start, endOrLength) {
+      new(iterable, start, endOrLength) {
         this[_iterable$] = iterable;
         this[_start] = start;
         this[_endOrLength] = endOrLength;
-        super.ListIterable();
+        super.new();
         core.RangeError.checkNotNegative(this[_start], "start");
         if (this[_endOrLength] != null) {
           core.RangeError.checkNotNegative(this[_endOrLength], "end");
@@ -5331,7 +5326,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(SubListIterable, {
-      constructors: () => ({SubListIterable: [_internal.SubListIterable$(E), [core.Iterable$(E), core.int, core.int]]}),
+      constructors: () => ({new: [_internal.SubListIterable$(E), [core.Iterable$(E), core.int, core.int]]}),
       methods: () => ({
         elementAt: [E, [core.int]],
         skip: [core.Iterable$(E), [core.int]],
@@ -5354,7 +5349,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _current$ = Symbol('_current');
   _internal.ListIterator$ = dart.generic(E => {
     class ListIterator extends core.Object {
-      ListIterator(iterable) {
+      new(iterable) {
         this[_iterable$] = iterable;
         this[_length$] = iterable[dartx.length];
         this[_index$] = 0;
@@ -5379,7 +5374,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     ListIterator[dart.implements] = () => [core.Iterator$(E)];
     dart.setSignature(ListIterator, {
-      constructors: () => ({ListIterator: [_internal.ListIterator$(E), [core.Iterable$(E)]]}),
+      constructors: () => ({new: [_internal.ListIterator$(E), [core.Iterable$(E)]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return ListIterator;
@@ -5402,7 +5397,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _(iterable, f) {
         this[_iterable$] = iterable;
         this[_f] = f;
-        super.Iterable();
+        super.new();
       }
       get iterator() {
         return new (_internal.MappedIterator$(S, T))(this[_iterable$][dartx.iterator], this[_f]);
@@ -5448,13 +5443,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal.MappedIterable = _internal.MappedIterable$();
   _internal.EfficientLengthMappedIterable$ = dart.generic((S, T) => {
     class EfficientLengthMappedIterable extends _internal.MappedIterable$(S, T) {
-      EfficientLengthMappedIterable(iterable, func) {
+      new(iterable, func) {
         super._(iterable, func);
       }
     }
     EfficientLengthMappedIterable[dart.implements] = () => [_internal.EfficientLength];
     dart.setSignature(EfficientLengthMappedIterable, {
-      constructors: () => ({EfficientLengthMappedIterable: [_internal.EfficientLengthMappedIterable$(S, T), [core.Iterable$(S), dart.functionType(T, [S])]]})
+      constructors: () => ({new: [_internal.EfficientLengthMappedIterable$(S, T), [core.Iterable$(S), dart.functionType(T, [S])]]})
     });
     return EfficientLengthMappedIterable;
   });
@@ -5467,7 +5462,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   core.Iterator = core.Iterator$();
   _internal.MappedIterator$ = dart.generic((S, T) => {
     class MappedIterator extends core.Iterator$(T) {
-      MappedIterator(iterator, f) {
+      new(iterator, f) {
         this[_iterator] = iterator;
         this[_f] = f;
         this[_current$] = null;
@@ -5485,7 +5480,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(MappedIterator, {
-      constructors: () => ({MappedIterator: [_internal.MappedIterator$(S, T), [core.Iterator$(S), dart.functionType(T, [S])]]}),
+      constructors: () => ({new: [_internal.MappedIterator$(S, T), [core.Iterator$(S), dart.functionType(T, [S])]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return MappedIterator;
@@ -5494,10 +5489,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _source = Symbol('_source');
   _internal.MappedListIterable$ = dart.generic((S, T) => {
     class MappedListIterable extends _internal.ListIterable$(T) {
-      MappedListIterable(source, f) {
+      new(source, f) {
         this[_source] = source;
         this[_f] = f;
-        super.ListIterable();
+        super.new();
       }
       get length() {
         return this[_source][dartx.length];
@@ -5508,7 +5503,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     MappedListIterable[dart.implements] = () => [_internal.EfficientLength];
     dart.setSignature(MappedListIterable, {
-      constructors: () => ({MappedListIterable: [_internal.MappedListIterable$(S, T), [core.Iterable$(S), dart.functionType(T, [S])]]}),
+      constructors: () => ({new: [_internal.MappedListIterable$(S, T), [core.Iterable$(S), dart.functionType(T, [S])]]}),
       methods: () => ({elementAt: [T, [core.int]]})
     });
     dart.defineExtensionMembers(MappedListIterable, ['elementAt', 'length']);
@@ -5522,17 +5517,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal._ElementPredicate = _internal._ElementPredicate$();
   _internal.WhereIterable$ = dart.generic(E => {
     class WhereIterable extends core.Iterable$(E) {
-      WhereIterable(iterable, f) {
+      new(iterable, f) {
         this[_iterable$] = iterable;
         this[_f] = f;
-        super.Iterable();
+        super.new();
       }
       get iterator() {
         return new (_internal.WhereIterator$(E))(this[_iterable$][dartx.iterator], this[_f]);
       }
     }
     dart.setSignature(WhereIterable, {
-      constructors: () => ({WhereIterable: [_internal.WhereIterable$(E), [core.Iterable$(E), dart.functionType(core.bool, [E])]]})
+      constructors: () => ({new: [_internal.WhereIterable$(E), [core.Iterable$(E), dart.functionType(core.bool, [E])]]})
     });
     dart.defineExtensionMembers(WhereIterable, ['iterator']);
     return WhereIterable;
@@ -5540,7 +5535,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal.WhereIterable = _internal.WhereIterable$();
   _internal.WhereIterator$ = dart.generic(E => {
     class WhereIterator extends core.Iterator$(E) {
-      WhereIterator(iterator, f) {
+      new(iterator, f) {
         this[_iterator] = iterator;
         this[_f] = f;
       }
@@ -5557,7 +5552,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(WhereIterator, {
-      constructors: () => ({WhereIterator: [_internal.WhereIterator$(E), [core.Iterator$(E), dart.functionType(core.bool, [E])]]}),
+      constructors: () => ({new: [_internal.WhereIterator$(E), [core.Iterator$(E), dart.functionType(core.bool, [E])]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return WhereIterator;
@@ -5570,17 +5565,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal._ExpandFunction = _internal._ExpandFunction$();
   _internal.ExpandIterable$ = dart.generic((S, T) => {
     class ExpandIterable extends core.Iterable$(T) {
-      ExpandIterable(iterable, f) {
+      new(iterable, f) {
         this[_iterable$] = iterable;
         this[_f] = f;
-        super.Iterable();
+        super.new();
       }
       get iterator() {
         return new (_internal.ExpandIterator$(S, T))(this[_iterable$][dartx.iterator], this[_f]);
       }
     }
     dart.setSignature(ExpandIterable, {
-      constructors: () => ({ExpandIterable: [_internal.ExpandIterable$(S, T), [core.Iterable$(S), dart.functionType(core.Iterable$(T), [S])]]})
+      constructors: () => ({new: [_internal.ExpandIterable$(S, T), [core.Iterable$(S), dart.functionType(core.Iterable$(T), [S])]]})
     });
     dart.defineExtensionMembers(ExpandIterable, ['iterator']);
     return ExpandIterable;
@@ -5589,7 +5584,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _currentExpansion = Symbol('_currentExpansion');
   _internal.ExpandIterator$ = dart.generic((S, T) => {
     class ExpandIterator extends core.Object {
-      ExpandIterator(iterator, f) {
+      new(iterator, f) {
         this[_iterator] = iterator;
         this[_f] = f;
         this[_currentExpansion] = dart.const(new (_internal.EmptyIterator$(T))());
@@ -5615,7 +5610,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     ExpandIterator[dart.implements] = () => [core.Iterator$(T)];
     dart.setSignature(ExpandIterator, {
-      constructors: () => ({ExpandIterator: [_internal.ExpandIterator$(S, T), [core.Iterator$(S), dart.functionType(core.Iterable$(T), [S])]]}),
+      constructors: () => ({new: [_internal.ExpandIterator$(S, T), [core.Iterator$(S), dart.functionType(core.Iterable$(T), [S])]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return ExpandIterator;
@@ -5636,7 +5631,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _(iterable, takeCount) {
         this[_iterable$] = iterable;
         this[_takeCount] = takeCount;
-        super.Iterable();
+        super.new();
       }
       get iterator() {
         return new (_internal.TakeIterator$(E))(this[_iterable$][dartx.iterator], this[_takeCount]);
@@ -5655,7 +5650,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal.TakeIterable = _internal.TakeIterable$();
   _internal.EfficientLengthTakeIterable$ = dart.generic(E => {
     class EfficientLengthTakeIterable extends _internal.TakeIterable$(E) {
-      EfficientLengthTakeIterable(iterable, takeCount) {
+      new(iterable, takeCount) {
         super._(iterable, takeCount);
       }
       get length() {
@@ -5666,7 +5661,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     EfficientLengthTakeIterable[dart.implements] = () => [_internal.EfficientLength];
     dart.setSignature(EfficientLengthTakeIterable, {
-      constructors: () => ({EfficientLengthTakeIterable: [_internal.EfficientLengthTakeIterable$(E), [core.Iterable$(E), core.int]]})
+      constructors: () => ({new: [_internal.EfficientLengthTakeIterable$(E), [core.Iterable$(E), core.int]]})
     });
     dart.defineExtensionMembers(EfficientLengthTakeIterable, ['length']);
     return EfficientLengthTakeIterable;
@@ -5675,7 +5670,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _remaining = Symbol('_remaining');
   _internal.TakeIterator$ = dart.generic(E => {
     class TakeIterator extends core.Iterator$(E) {
-      TakeIterator(iterator, remaining) {
+      new(iterator, remaining) {
         this[_iterator] = iterator;
         this[_remaining] = remaining;
         dart.assert(typeof this[_remaining] == 'number' && dart.notNull(this[_remaining]) >= 0);
@@ -5694,7 +5689,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(TakeIterator, {
-      constructors: () => ({TakeIterator: [_internal.TakeIterator$(E), [core.Iterator$(E), core.int]]}),
+      constructors: () => ({new: [_internal.TakeIterator$(E), [core.Iterator$(E), core.int]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return TakeIterator;
@@ -5702,17 +5697,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal.TakeIterator = _internal.TakeIterator$();
   _internal.TakeWhileIterable$ = dart.generic(E => {
     class TakeWhileIterable extends core.Iterable$(E) {
-      TakeWhileIterable(iterable, f) {
+      new(iterable, f) {
         this[_iterable$] = iterable;
         this[_f] = f;
-        super.Iterable();
+        super.new();
       }
       get iterator() {
         return new (_internal.TakeWhileIterator$(E))(this[_iterable$][dartx.iterator], this[_f]);
       }
     }
     dart.setSignature(TakeWhileIterable, {
-      constructors: () => ({TakeWhileIterable: [_internal.TakeWhileIterable$(E), [core.Iterable$(E), dart.functionType(core.bool, [E])]]})
+      constructors: () => ({new: [_internal.TakeWhileIterable$(E), [core.Iterable$(E), dart.functionType(core.bool, [E])]]})
     });
     dart.defineExtensionMembers(TakeWhileIterable, ['iterator']);
     return TakeWhileIterable;
@@ -5721,7 +5716,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _isFinished = Symbol('_isFinished');
   _internal.TakeWhileIterator$ = dart.generic(E => {
     class TakeWhileIterator extends core.Iterator$(E) {
-      TakeWhileIterator(iterator, f) {
+      new(iterator, f) {
         this[_iterator] = iterator;
         this[_f] = f;
         this[_isFinished] = false;
@@ -5740,7 +5735,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(TakeWhileIterator, {
-      constructors: () => ({TakeWhileIterator: [_internal.TakeWhileIterator$(E), [core.Iterator$(E), dart.functionType(core.bool, [E])]]}),
+      constructors: () => ({new: [_internal.TakeWhileIterator$(E), [core.Iterator$(E), dart.functionType(core.bool, [E])]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return TakeWhileIterator;
@@ -5758,7 +5753,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _(iterable, skipCount) {
         this[_iterable$] = iterable;
         this[_skipCount] = skipCount;
-        super.Iterable();
+        super.new();
         if (!(typeof this[_skipCount] == 'number')) {
           dart.throw(new core.ArgumentError.value(this[_skipCount], "count is not an integer"));
         }
@@ -5789,7 +5784,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal.SkipIterable = _internal.SkipIterable$();
   _internal.EfficientLengthSkipIterable$ = dart.generic(E => {
     class EfficientLengthSkipIterable extends _internal.SkipIterable$(E) {
-      EfficientLengthSkipIterable(iterable, skipCount) {
+      new(iterable, skipCount) {
         super._(iterable, skipCount);
       }
       get length() {
@@ -5800,7 +5795,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     EfficientLengthSkipIterable[dart.implements] = () => [_internal.EfficientLength];
     dart.setSignature(EfficientLengthSkipIterable, {
-      constructors: () => ({EfficientLengthSkipIterable: [_internal.EfficientLengthSkipIterable$(E), [core.Iterable$(E), core.int]]})
+      constructors: () => ({new: [_internal.EfficientLengthSkipIterable$(E), [core.Iterable$(E), core.int]]})
     });
     dart.defineExtensionMembers(EfficientLengthSkipIterable, ['length']);
     return EfficientLengthSkipIterable;
@@ -5808,7 +5803,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal.EfficientLengthSkipIterable = _internal.EfficientLengthSkipIterable$();
   _internal.SkipIterator$ = dart.generic(E => {
     class SkipIterator extends core.Iterator$(E) {
-      SkipIterator(iterator, skipCount) {
+      new(iterator, skipCount) {
         this[_iterator] = iterator;
         this[_skipCount] = skipCount;
         dart.assert(typeof this[_skipCount] == 'number' && dart.notNull(this[_skipCount]) >= 0);
@@ -5824,7 +5819,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(SkipIterator, {
-      constructors: () => ({SkipIterator: [_internal.SkipIterator$(E), [core.Iterator$(E), core.int]]}),
+      constructors: () => ({new: [_internal.SkipIterator$(E), [core.Iterator$(E), core.int]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return SkipIterator;
@@ -5832,17 +5827,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal.SkipIterator = _internal.SkipIterator$();
   _internal.SkipWhileIterable$ = dart.generic(E => {
     class SkipWhileIterable extends core.Iterable$(E) {
-      SkipWhileIterable(iterable, f) {
+      new(iterable, f) {
         this[_iterable$] = iterable;
         this[_f] = f;
-        super.Iterable();
+        super.new();
       }
       get iterator() {
         return new (_internal.SkipWhileIterator$(E))(this[_iterable$][dartx.iterator], this[_f]);
       }
     }
     dart.setSignature(SkipWhileIterable, {
-      constructors: () => ({SkipWhileIterable: [_internal.SkipWhileIterable$(E), [core.Iterable$(E), dart.functionType(core.bool, [E])]]})
+      constructors: () => ({new: [_internal.SkipWhileIterable$(E), [core.Iterable$(E), dart.functionType(core.bool, [E])]]})
     });
     dart.defineExtensionMembers(SkipWhileIterable, ['iterator']);
     return SkipWhileIterable;
@@ -5851,7 +5846,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _hasSkipped = Symbol('_hasSkipped');
   _internal.SkipWhileIterator$ = dart.generic(E => {
     class SkipWhileIterator extends core.Iterator$(E) {
-      SkipWhileIterator(iterator, f) {
+      new(iterator, f) {
         this[_iterator] = iterator;
         this[_f] = f;
         this[_hasSkipped] = false;
@@ -5870,7 +5865,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(SkipWhileIterator, {
-      constructors: () => ({SkipWhileIterator: [_internal.SkipWhileIterator$(E), [core.Iterator$(E), dart.functionType(core.bool, [E])]]}),
+      constructors: () => ({new: [_internal.SkipWhileIterator$(E), [core.Iterator$(E), dart.functionType(core.bool, [E])]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return SkipWhileIterator;
@@ -5878,8 +5873,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal.SkipWhileIterator = _internal.SkipWhileIterator$();
   _internal.EmptyIterable$ = dart.generic(E => {
     class EmptyIterable extends core.Iterable$(E) {
-      EmptyIterable() {
-        super.Iterable();
+      new() {
+        super.new();
       }
       get iterator() {
         return dart.const(new (_internal.EmptyIterator$(E))());
@@ -5975,7 +5970,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     EmptyIterable[dart.implements] = () => [_internal.EfficientLength];
     dart.setSignature(EmptyIterable, {
-      constructors: () => ({EmptyIterable: [_internal.EmptyIterable$(E), []]}),
+      constructors: () => ({new: [_internal.EmptyIterable$(E), []]}),
       methods: () => ({
         forEach: [dart.void, [dart.functionType(dart.void, [E])]],
         elementAt: [E, [core.int]],
@@ -6028,7 +6023,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal.EmptyIterable = _internal.EmptyIterable$();
   _internal.EmptyIterator$ = dart.generic(E => {
     class EmptyIterator extends core.Object {
-      EmptyIterator() {
+      new() {
       }
       moveNext() {
         return false;
@@ -6039,7 +6034,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     EmptyIterator[dart.implements] = () => [core.Iterator$(E)];
     dart.setSignature(EmptyIterator, {
-      constructors: () => ({EmptyIterator: [_internal.EmptyIterator$(E), []]}),
+      constructors: () => ({new: [_internal.EmptyIterator$(E), []]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return EmptyIterator;
@@ -6162,8 +6157,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal.FixedLengthListMixin = _internal.FixedLengthListMixin$();
   _internal.FixedLengthListBase$ = dart.generic(E => {
     class FixedLengthListBase extends dart.mixin(collection.ListBase$(E), _internal.FixedLengthListMixin$(E)) {
-      FixedLengthListBase() {
-        super.ListBase();
+      new() {
+        super.new();
       }
     }
     return FixedLengthListBase;
@@ -6171,9 +6166,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal.FixedLengthListBase = _internal.FixedLengthListBase$();
   const _backedList = Symbol('_backedList');
   _internal._ListIndicesIterable = class _ListIndicesIterable extends _internal.ListIterable$(core.int) {
-    _ListIndicesIterable(backedList) {
+    new(backedList) {
       this[_backedList] = backedList;
-      super.ListIterable();
+      super.new();
     }
     get length() {
       return this[_backedList][dartx.length];
@@ -6184,14 +6179,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(_internal._ListIndicesIterable, {
-    constructors: () => ({_ListIndicesIterable: [_internal._ListIndicesIterable, [core.List]]}),
+    constructors: () => ({new: [_internal._ListIndicesIterable, [core.List]]}),
     methods: () => ({elementAt: [core.int, [core.int]]})
   });
   dart.defineExtensionMembers(_internal._ListIndicesIterable, ['elementAt', 'length']);
   const _values = Symbol('_values');
   _internal.ListMapView$ = dart.generic(E => {
     class ListMapView extends core.Object {
-      ListMapView(values) {
+      new(values) {
         this[_values] = values;
       }
       get(key) {
@@ -6252,7 +6247,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     ListMapView[dart.implements] = () => [core.Map$(core.int, E)];
     dart.setSignature(ListMapView, {
-      constructors: () => ({ListMapView: [_internal.ListMapView$(E), [core.List$(E)]]}),
+      constructors: () => ({new: [_internal.ListMapView$(E), [core.List$(E)]]}),
       methods: () => ({
         get: [E, [core.Object]],
         containsValue: [core.bool, [core.Object]],
@@ -6286,9 +6281,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal.ListMapView = _internal.ListMapView$();
   _internal.ReversedListIterable$ = dart.generic(E => {
     class ReversedListIterable extends _internal.ListIterable$(E) {
-      ReversedListIterable(source) {
+      new(source) {
         this[_source] = source;
-        super.ListIterable();
+        super.new();
       }
       get length() {
         return this[_source][dartx.length];
@@ -6298,7 +6293,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(ReversedListIterable, {
-      constructors: () => ({ReversedListIterable: [_internal.ReversedListIterable$(E), [core.Iterable$(E)]]}),
+      constructors: () => ({new: [_internal.ReversedListIterable$(E), [core.Iterable$(E)]]}),
       methods: () => ({elementAt: [E, [core.int]]})
     });
     dart.defineExtensionMembers(ReversedListIterable, ['elementAt', 'length']);
@@ -6671,7 +6666,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal.Sort._INSERTION_SORT_THRESHOLD = 32;
   const _name = Symbol('_name');
   _internal.Symbol = class Symbol extends core.Object {
-    Symbol(name) {
+    new(name) {
       this[_name] = name;
     }
     unvalidated(name) {
@@ -6709,7 +6704,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal.Symbol[dart.implements] = () => [core.Symbol];
   dart.setSignature(_internal.Symbol, {
     constructors: () => ({
-      Symbol: [_internal.Symbol, [core.String]],
+      new: [_internal.Symbol, [core.String]],
       unvalidated: [_internal.Symbol, [core.String]],
       validated: [_internal.Symbol, [core.String]]
     }),
@@ -6802,7 +6797,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     get useWorkers() {
       return this.supportsWorkers;
     }
-    _Manager(entry) {
+    new(entry) {
       this.entry = entry;
       this.nextIsolateId = 0;
       this.currentManagerId = 0;
@@ -6859,7 +6854,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(_isolate_helper._Manager, {
-    constructors: () => ({_Manager: [_isolate_helper._Manager, [core.Function]]}),
+    constructors: () => ({new: [_isolate_helper._Manager, [core.Function]]}),
     methods: () => ({
       [_nativeDetectEnvironment]: [dart.void, []],
       [_nativeInitWorkerMessageHandler]: [dart.void, []],
@@ -6876,7 +6871,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _addRegistration = Symbol('_addRegistration');
   const _close = Symbol('_close');
   _isolate_helper._IsolateContext = class _IsolateContext extends core.Object {
-    _IsolateContext() {
+    new() {
       this.id = (() => {
         let o = _isolate_helper._globalState, x = o.nextIsolateId;
         o.nextIsolateId = dart.notNull(x) + 1;
@@ -7127,7 +7122,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   _isolate_helper._IsolateContext[dart.implements] = () => [_foreign_helper.IsolateContext];
   dart.setSignature(_isolate_helper._IsolateContext, {
-    constructors: () => ({_IsolateContext: [_isolate_helper._IsolateContext, []]}),
+    constructors: () => ({new: [_isolate_helper._IsolateContext, []]}),
     methods: () => ({
       addPause: [dart.void, [isolate.Capability, isolate.Capability]],
       removePause: [dart.void, [isolate.Capability]],
@@ -7153,7 +7148,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   const _runHelper = Symbol('_runHelper');
   _isolate_helper._EventLoop = class _EventLoop extends core.Object {
-    _EventLoop() {
+    new() {
       this.events = collection.Queue$(_isolate_helper._IsolateEvent).new();
       this[_activeJsAsyncCount] = 0;
     }
@@ -7210,7 +7205,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(_isolate_helper._EventLoop, {
-    constructors: () => ({_EventLoop: [_isolate_helper._EventLoop, []]}),
+    constructors: () => ({new: [_isolate_helper._EventLoop, []]}),
     methods: () => ({
       enqueue: [dart.void, [dart.dynamic, dart.dynamic, dart.dynamic]],
       prequeue: [dart.void, [_isolate_helper._IsolateEvent]],
@@ -7222,7 +7217,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   _isolate_helper._IsolateEvent = class _IsolateEvent extends core.Object {
-    _IsolateEvent(isolate, fn, message) {
+    new(isolate, fn, message) {
       this.isolate = isolate;
       this.fn = fn;
       this.message = message;
@@ -7236,7 +7231,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(_isolate_helper._IsolateEvent, {
-    constructors: () => ({_IsolateEvent: [_isolate_helper._IsolateEvent, [_isolate_helper._IsolateContext, core.Function, core.String]]}),
+    constructors: () => ({new: [_isolate_helper._IsolateEvent, [_isolate_helper._IsolateContext, core.Function, core.String]]}),
     methods: () => ({process: [dart.void, []]})
   });
   dart.defineLazy(_isolate_helper, {
@@ -7570,7 +7565,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _isolateId = Symbol('_isolateId');
   const _checkReplyTo = Symbol('_checkReplyTo');
   _isolate_helper._BaseSendPort = class _BaseSendPort extends core.Object {
-    _BaseSendPort(isolateId) {
+    new(isolateId) {
       this[_isolateId] = isolateId;
     }
     [_checkReplyTo](replyTo) {
@@ -7581,16 +7576,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   _isolate_helper._BaseSendPort[dart.implements] = () => [isolate.SendPort];
   dart.setSignature(_isolate_helper._BaseSendPort, {
-    constructors: () => ({_BaseSendPort: [_isolate_helper._BaseSendPort, [core.int]]}),
+    constructors: () => ({new: [_isolate_helper._BaseSendPort, [core.int]]}),
     methods: () => ({[_checkReplyTo]: [dart.void, [isolate.SendPort]]})
   });
   const _receivePort = Symbol('_receivePort');
   const _isClosed = Symbol('_isClosed');
   const _add = Symbol('_add');
   _isolate_helper._NativeJsSendPort = class _NativeJsSendPort extends _isolate_helper._BaseSendPort {
-    _NativeJsSendPort(receivePort, isolateId) {
+    new(receivePort, isolateId) {
       this[_receivePort] = receivePort;
-      super._BaseSendPort(isolateId);
+      super.new(isolateId);
     }
     send(message) {
       let isolate = _isolate_helper._globalState.isolates[dartx.get](this[_isolateId]);
@@ -7616,16 +7611,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   _isolate_helper._NativeJsSendPort[dart.implements] = () => [isolate.SendPort];
   dart.setSignature(_isolate_helper._NativeJsSendPort, {
-    constructors: () => ({_NativeJsSendPort: [_isolate_helper._NativeJsSendPort, [_isolate_helper.RawReceivePortImpl, core.int]]}),
+    constructors: () => ({new: [_isolate_helper._NativeJsSendPort, [_isolate_helper.RawReceivePortImpl, core.int]]}),
     methods: () => ({send: [dart.void, [dart.dynamic]]})
   });
   const _workerId = Symbol('_workerId');
   const _receivePortId = Symbol('_receivePortId');
   _isolate_helper._WorkerSendPort = class _WorkerSendPort extends _isolate_helper._BaseSendPort {
-    _WorkerSendPort(workerId, isolateId, receivePortId) {
+    new(workerId, isolateId, receivePortId) {
       this[_workerId] = workerId;
       this[_receivePortId] = receivePortId;
-      super._BaseSendPort(isolateId);
+      super.new(isolateId);
     }
     send(message) {
       let workerMessage = _isolate_helper._serializeMessage(dart.map({command: 'message', port: this, msg: message}));
@@ -7647,12 +7642,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   _isolate_helper._WorkerSendPort[dart.implements] = () => [isolate.SendPort];
   dart.setSignature(_isolate_helper._WorkerSendPort, {
-    constructors: () => ({_WorkerSendPort: [_isolate_helper._WorkerSendPort, [core.int, core.int, core.int]]}),
+    constructors: () => ({new: [_isolate_helper._WorkerSendPort, [core.int, core.int, core.int]]}),
     methods: () => ({send: [dart.void, [dart.dynamic]]})
   });
   const _handler = Symbol('_handler');
   _isolate_helper.RawReceivePortImpl = class RawReceivePortImpl extends core.Object {
-    RawReceivePortImpl(handler) {
+    new(handler) {
       this[_handler] = handler;
       this[_id] = (() => {
         let x = _isolate_helper.RawReceivePortImpl._nextFreeId;
@@ -7703,7 +7698,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _isolate_helper.RawReceivePortImpl[dart.implements] = () => [isolate.RawReceivePort];
   dart.setSignature(_isolate_helper.RawReceivePortImpl, {
     constructors: () => ({
-      RawReceivePortImpl: [_isolate_helper.RawReceivePortImpl, [core.Function]],
+      new: [_isolate_helper.RawReceivePortImpl, [core.Function]],
       weak: [_isolate_helper.RawReceivePortImpl, [core.Function]],
       _controlPort: [_isolate_helper.RawReceivePortImpl, []]
     }),
@@ -7724,7 +7719,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _sink = Symbol('_sink');
   async.Stream$ = dart.generic(T => {
     class Stream extends core.Object {
-      Stream() {
+      new() {
       }
       _internal() {
       }
@@ -8373,7 +8368,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     dart.defineNamedConstructor(Stream, '_internal');
     dart.setSignature(Stream, {
       constructors: () => ({
-        Stream: [async.Stream$(T), []],
+        new: [async.Stream$(T), []],
         _internal: [async.Stream$(T), []],
         empty: [async.Stream$(T), []],
         fromFuture: [async.Stream$(T), [async.Future$(T)]],
@@ -8418,16 +8413,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   async.Stream = async.Stream$();
   _isolate_helper.ReceivePortImpl = class ReceivePortImpl extends async.Stream {
-    ReceivePortImpl() {
-      this.fromRawReceivePort(new _isolate_helper.RawReceivePortImpl(null));
+    new() {
+      ReceivePortImpl.prototype.fromRawReceivePort.call(this, new _isolate_helper.RawReceivePortImpl(null));
     }
     weak() {
-      this.fromRawReceivePort(new _isolate_helper.RawReceivePortImpl.weak(null));
+      ReceivePortImpl.prototype.fromRawReceivePort.call(this, new _isolate_helper.RawReceivePortImpl.weak(null));
     }
     fromRawReceivePort(rawPort) {
       this[_rawPort] = rawPort;
       this[_controller] = null;
-      super.Stream();
+      super.new();
       this[_controller] = async.StreamController.new({onCancel: dart.bind(this, 'close'), sync: true});
       this[_rawPort].handler = dart.bind(this[_controller], 'add');
     }
@@ -8450,7 +8445,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _isolate_helper.ReceivePortImpl[dart.implements] = () => [isolate.ReceivePort];
   dart.setSignature(_isolate_helper.ReceivePortImpl, {
     constructors: () => ({
-      ReceivePortImpl: [_isolate_helper.ReceivePortImpl, []],
+      new: [_isolate_helper.ReceivePortImpl, []],
       weak: [_isolate_helper.ReceivePortImpl, []],
       fromRawReceivePort: [_isolate_helper.ReceivePortImpl, [isolate.RawReceivePort]]
     }),
@@ -8463,7 +8458,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _inEventLoop = Symbol('_inEventLoop');
   const _handle = Symbol('_handle');
   _isolate_helper.TimerImpl = class TimerImpl extends core.Object {
-    TimerImpl(milliseconds, callback) {
+    new(milliseconds, callback) {
       this[_once] = true;
       this[_inEventLoop] = false;
       this[_handle] = null;
@@ -8528,7 +8523,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _isolate_helper.TimerImpl[dart.implements] = () => [async.Timer];
   dart.setSignature(_isolate_helper.TimerImpl, {
     constructors: () => ({
-      TimerImpl: [_isolate_helper.TimerImpl, [core.int, dart.functionType(dart.void, [])]],
+      new: [_isolate_helper.TimerImpl, [core.int, dart.functionType(dart.void, [])]],
       periodic: [_isolate_helper.TimerImpl, [core.int, dart.functionType(dart.void, [async.Timer])]]
     }),
     methods: () => ({cancel: [dart.void, []]})
@@ -8538,8 +8533,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.lazyFn(_isolate_helper.hasTimer, () => [core.bool, []]);
   _isolate_helper.CapabilityImpl = class CapabilityImpl extends core.Object {
-    CapabilityImpl() {
-      this._internal(_js_helper.random64());
+    new() {
+      CapabilityImpl.prototype._internal.call(this, _js_helper.random64());
     }
     _internal(id) {
       this[_id] = id;
@@ -8567,7 +8562,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _isolate_helper.CapabilityImpl[dart.implements] = () => [isolate.Capability];
   dart.setSignature(_isolate_helper.CapabilityImpl, {
     constructors: () => ({
-      CapabilityImpl: [_isolate_helper.CapabilityImpl, []],
+      new: [_isolate_helper.CapabilityImpl, []],
       _internal: [_isolate_helper.CapabilityImpl, [core.int]]
     }),
     methods: () => ({'==': [core.bool, [core.Object]]})
@@ -8588,7 +8583,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.fn(_isolate_helper._clone);
   const _serializeSendPorts = Symbol('_serializeSendPorts');
   _isolate_helper._Serializer = class _Serializer extends core.Object {
-    _Serializer(opts) {
+    new(opts) {
       let serializeSendPorts = opts && 'serializeSendPorts' in opts ? opts.serializeSendPorts : true;
       this.serializedObjectIds = core.Map$(dart.dynamic, core.int).identity();
       this[_serializeSendPorts] = dart.as(serializeSendPorts, core.bool);
@@ -8705,7 +8700,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(_isolate_helper._Serializer, {
-    constructors: () => ({_Serializer: [_isolate_helper._Serializer, [], {serializeSendPorts: dart.dynamic}]}),
+    constructors: () => ({new: [_isolate_helper._Serializer, [], {serializeSendPorts: dart.dynamic}]}),
     methods: () => ({
       serialize: [dart.dynamic, [dart.dynamic]],
       unsupported: [dart.void, [dart.dynamic], [core.String]],
@@ -8728,7 +8723,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   const _adjustSendPorts = Symbol('_adjustSendPorts');
   _isolate_helper._Deserializer = class _Deserializer extends core.Object {
-    _Deserializer(opts) {
+    new(opts) {
       let adjustSendPorts = opts && 'adjustSendPorts' in opts ? opts.adjustSendPorts : true;
       this.deserializedObjects = core.List.new();
       this[_adjustSendPorts] = dart.as(adjustSendPorts, core.bool);
@@ -8915,7 +8910,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(_isolate_helper._Deserializer, {
-    constructors: () => ({_Deserializer: [_isolate_helper._Deserializer, [], {adjustSendPorts: dart.dynamic}]}),
+    constructors: () => ({new: [_isolate_helper._Deserializer, [], {adjustSendPorts: dart.dynamic}]}),
     methods: () => ({
       deserialize: [dart.dynamic, [dart.dynamic]],
       isPrimitive: [core.bool, [dart.dynamic]],
@@ -8968,11 +8963,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _js_embedded_names.NATIVE_SUPERCLASS_TAG_NAME = "$nativeSuperclassTag";
   _js_embedded_names.MAP_TYPE_TO_INTERCEPTOR = "mapTypeToInterceptor";
   _js_helper._Patch = class _Patch extends core.Object {
-    _Patch() {
+    new() {
     }
   };
   dart.setSignature(_js_helper._Patch, {
-    constructors: () => ({_Patch: [_js_helper._Patch, []]})
+    constructors: () => ({new: [_js_helper._Patch, []]})
   });
   _js_helper.patch = dart.const(new _js_helper._Patch());
   _js_helper.InternalMap = class InternalMap extends core.Object {};
@@ -9383,7 +9378,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _message = Symbol('_message');
   const _method = Symbol('_method');
   core.Error = class Error extends core.Object {
-    Error() {
+    new() {
     }
     static safeToString(object) {
       if (typeof object == 'number' || typeof object == 'boolean' || null == object) {
@@ -9405,7 +9400,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(core.Error, {
-    constructors: () => ({Error: [core.Error, []]}),
+    constructors: () => ({new: [core.Error, []]}),
     statics: () => ({
       safeToString: [core.String, [core.Object]],
       _stringToSafeString: [core.String, [core.String]],
@@ -9414,10 +9409,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     names: ['safeToString', '_stringToSafeString', '_objectToString']
   });
   _js_helper.NullError = class NullError extends core.Error {
-    NullError(message, match) {
+    new(message, match) {
       this[_message] = message;
       this[_method] = dart.as(match == null ? null : match.method, core.String);
-      super.Error();
+      super.new();
     }
     toString() {
       if (this[_method] == null) return `NullError: ${this[_message]}`;
@@ -9426,15 +9421,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   _js_helper.NullError[dart.implements] = () => [core.NoSuchMethodError];
   dart.setSignature(_js_helper.NullError, {
-    constructors: () => ({NullError: [_js_helper.NullError, [core.String, dart.dynamic]]})
+    constructors: () => ({new: [_js_helper.NullError, [core.String, dart.dynamic]]})
   });
   const _receiver = Symbol('_receiver');
   _js_helper.JsNoSuchMethodError = class JsNoSuchMethodError extends core.Error {
-    JsNoSuchMethodError(message, match) {
+    new(message, match) {
       this[_message] = message;
       this[_method] = dart.as(match == null ? null : match.method, core.String);
       this[_receiver] = dart.as(match == null ? null : match.receiver, core.String);
-      super.Error();
+      super.new();
     }
     toString() {
       if (this[_method] == null) return `NoSuchMethodError: ${this[_message]}`;
@@ -9446,19 +9441,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   _js_helper.JsNoSuchMethodError[dart.implements] = () => [core.NoSuchMethodError];
   dart.setSignature(_js_helper.JsNoSuchMethodError, {
-    constructors: () => ({JsNoSuchMethodError: [_js_helper.JsNoSuchMethodError, [core.String, dart.dynamic]]})
+    constructors: () => ({new: [_js_helper.JsNoSuchMethodError, [core.String, dart.dynamic]]})
   });
   _js_helper.UnknownJsTypeError = class UnknownJsTypeError extends core.Error {
-    UnknownJsTypeError(message) {
+    new(message) {
       this[_message] = message;
-      super.Error();
+      super.new();
     }
     toString() {
       return dart.notNull(this[_message][dartx.isEmpty]) ? 'Error' : `Error: ${this[_message]}`;
     }
   };
   dart.setSignature(_js_helper.UnknownJsTypeError, {
-    constructors: () => ({UnknownJsTypeError: [_js_helper.UnknownJsTypeError, [core.String]]})
+    constructors: () => ({new: [_js_helper.UnknownJsTypeError, [core.String]]})
   });
   _js_helper.getTraceFromException = function(exception) {
     return new _js_helper._StackTrace(exception);
@@ -9467,7 +9462,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _exception = Symbol('_exception');
   const _trace = Symbol('_trace');
   _js_helper._StackTrace = class _StackTrace extends core.Object {
-    _StackTrace(exception) {
+    new(exception) {
       this[_exception] = exception;
       this[_trace] = null;
     }
@@ -9482,7 +9477,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   _js_helper._StackTrace[dart.implements] = () => [core.StackTrace];
   dart.setSignature(_js_helper._StackTrace, {
-    constructors: () => ({_StackTrace: [_js_helper._StackTrace, [dart.dynamic]]})
+    constructors: () => ({new: [_js_helper._StackTrace, [dart.dynamic]]})
   });
   _js_helper.objectHashCode = function(object) {
     if (object == null || typeof object != 'object') {
@@ -9516,38 +9511,38 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.fn(_js_helper.getFallThroughError);
   _js_helper.Creates = class Creates extends core.Object {
-    Creates(types) {
+    new(types) {
       this.types = types;
     }
   };
   dart.setSignature(_js_helper.Creates, {
-    constructors: () => ({Creates: [_js_helper.Creates, [core.String]]})
+    constructors: () => ({new: [_js_helper.Creates, [core.String]]})
   });
   _js_helper.Returns = class Returns extends core.Object {
-    Returns(types) {
+    new(types) {
       this.types = types;
     }
   };
   dart.setSignature(_js_helper.Returns, {
-    constructors: () => ({Returns: [_js_helper.Returns, [core.String]]})
+    constructors: () => ({new: [_js_helper.Returns, [core.String]]})
   });
   _js_helper.JSName = class JSName extends core.Object {
-    JSName(name) {
+    new(name) {
       this.name = name;
     }
   };
   dart.setSignature(_js_helper.JSName, {
-    constructors: () => ({JSName: [_js_helper.JSName, [core.String]]})
+    constructors: () => ({new: [_js_helper.JSName, [core.String]]})
   });
   _js_helper.JavaScriptIndexingBehavior = class JavaScriptIndexingBehavior extends _interceptors.JSMutableIndexable {};
   _js_helper.TypeErrorImplementation = class TypeErrorImplementation extends core.Error {
-    TypeErrorImplementation(value, type) {
+    new(value, type) {
       this.message = `type '${_js_helper.Primitives.objectTypeName(value)}' is not a subtype ` + `of type '${type}'`;
-      super.Error();
+      super.new();
     }
     fromMessage(message) {
       this.message = message;
-      super.Error();
+      super.new();
     }
     toString() {
       return this.message;
@@ -9557,14 +9552,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _js_helper.TypeErrorImplementation[dart.implements] = () => [core.TypeError];
   dart.setSignature(_js_helper.TypeErrorImplementation, {
     constructors: () => ({
-      TypeErrorImplementation: [_js_helper.TypeErrorImplementation, [core.Object, core.String]],
+      new: [_js_helper.TypeErrorImplementation, [core.Object, core.String]],
       fromMessage: [_js_helper.TypeErrorImplementation, [core.String]]
     })
   });
   _js_helper.CastErrorImplementation = class CastErrorImplementation extends core.Error {
-    CastErrorImplementation(actualType, expectedType) {
+    new(actualType, expectedType) {
       this.message = `CastError: Casting value of type ${actualType} to` + ` incompatible type ${expectedType}`;
-      super.Error();
+      super.new();
     }
     toString() {
       return this.message;
@@ -9572,38 +9567,38 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   _js_helper.CastErrorImplementation[dart.implements] = () => [core.CastError];
   dart.setSignature(_js_helper.CastErrorImplementation, {
-    constructors: () => ({CastErrorImplementation: [_js_helper.CastErrorImplementation, [core.Object, core.Object]]})
+    constructors: () => ({new: [_js_helper.CastErrorImplementation, [core.Object, core.Object]]})
   });
   core.FallThroughError = class FallThroughError extends core.Error {
-    FallThroughError() {
-      super.Error();
+    new() {
+      super.new();
     }
   };
   dart.setSignature(core.FallThroughError, {
-    constructors: () => ({FallThroughError: [core.FallThroughError, []]})
+    constructors: () => ({new: [core.FallThroughError, []]})
   });
   _js_helper.FallThroughErrorImplementation = class FallThroughErrorImplementation extends core.FallThroughError {
-    FallThroughErrorImplementation() {
-      super.FallThroughError();
+    new() {
+      super.new();
     }
     toString() {
       return "Switch case fall-through.";
     }
   };
   dart.setSignature(_js_helper.FallThroughErrorImplementation, {
-    constructors: () => ({FallThroughErrorImplementation: [_js_helper.FallThroughErrorImplementation, []]})
+    constructors: () => ({new: [_js_helper.FallThroughErrorImplementation, []]})
   });
   _js_helper.RuntimeError = class RuntimeError extends core.Error {
-    RuntimeError(message) {
+    new(message) {
       this.message = message;
-      super.Error();
+      super.new();
     }
     toString() {
       return `RuntimeError: ${this.message}`;
     }
   };
   dart.setSignature(_js_helper.RuntimeError, {
-    constructors: () => ({RuntimeError: [_js_helper.RuntimeError, [dart.dynamic]]})
+    constructors: () => ({new: [_js_helper.RuntimeError, [dart.dynamic]]})
   });
   _js_helper.random64 = function() {
     let int32a = Math.random() * 0x100000000 >>> 0;
@@ -9619,7 +9614,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _current$0 = Symbol('_current');
   _js_helper.SyncIterator$ = dart.generic(E => {
     class SyncIterator extends core.Object {
-      SyncIterator(jsIterator) {
+      new(jsIterator) {
         this[_jsIterator] = jsIterator;
         this[_current$0] = null;
       }
@@ -9634,7 +9629,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     SyncIterator[dart.implements] = () => [core.Iterator$(E)];
     dart.setSignature(SyncIterator, {
-      constructors: () => ({SyncIterator: [_js_helper.SyncIterator$(E), [dart.dynamic]]}),
+      constructors: () => ({new: [_js_helper.SyncIterator$(E), [dart.dynamic]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return SyncIterator;
@@ -9644,8 +9639,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _args = Symbol('_args');
   collection.IterableBase$ = dart.generic(E => {
     class IterableBase extends core.Iterable$(E) {
-      IterableBase() {
-        super.Iterable();
+      new() {
+        super.new();
       }
       static iterableToShortString(iterable, leftDelimiter, rightDelimiter) {
         if (leftDelimiter === void 0) leftDelimiter = '(';
@@ -9690,7 +9685,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(IterableBase, {
-      constructors: () => ({IterableBase: [collection.IterableBase$(E), []]}),
+      constructors: () => ({new: [collection.IterableBase$(E), []]}),
       statics: () => ({
         iterableToShortString: [core.String, [core.Iterable], [core.String, core.String]],
         iterableToFullString: [core.String, [core.Iterable], [core.String, core.String]]
@@ -9702,10 +9697,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection.IterableBase = collection.IterableBase$();
   _js_helper.SyncIterable$ = dart.generic(E => {
     class SyncIterable extends collection.IterableBase$(E) {
-      SyncIterable(generator, args) {
+      new(generator, args) {
         this[_generator] = generator;
         this[_args] = args;
-        super.IterableBase();
+        super.new();
       }
       [_jsIterator]() {
         return this[_generator](...this[_args]);
@@ -9715,7 +9710,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(SyncIterable, {
-      constructors: () => ({SyncIterable: [_js_helper.SyncIterable$(E), [dart.dynamic, dart.dynamic]]}),
+      constructors: () => ({new: [_js_helper.SyncIterable$(E), [dart.dynamic, dart.dynamic]]}),
       methods: () => ({[_jsIterator]: [dart.dynamic, []]})
     });
     dart.defineExtensionMembers(SyncIterable, ['iterator']);
@@ -9723,42 +9718,42 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   _js_helper.SyncIterable = _js_helper.SyncIterable$();
   _js_helper.NoThrows = class NoThrows extends core.Object {
-    NoThrows() {
+    new() {
     }
   };
   dart.setSignature(_js_helper.NoThrows, {
-    constructors: () => ({NoThrows: [_js_helper.NoThrows, []]})
+    constructors: () => ({new: [_js_helper.NoThrows, []]})
   });
   _js_helper.NoInline = class NoInline extends core.Object {
-    NoInline() {
+    new() {
     }
   };
   dart.setSignature(_js_helper.NoInline, {
-    constructors: () => ({NoInline: [_js_helper.NoInline, []]})
+    constructors: () => ({new: [_js_helper.NoInline, []]})
   });
   _js_helper.Native = class Native extends core.Object {
-    Native(name) {
+    new(name) {
       this.name = name;
     }
   };
   dart.setSignature(_js_helper.Native, {
-    constructors: () => ({Native: [_js_helper.Native, [core.String]]})
+    constructors: () => ({new: [_js_helper.Native, [core.String]]})
   });
   _js_helper.JsPeerInterface = class JsPeerInterface extends core.Object {
-    JsPeerInterface(opts) {
+    new(opts) {
       let name = opts && 'name' in opts ? opts.name : null;
       this.name = name;
     }
   };
   dart.setSignature(_js_helper.JsPeerInterface, {
-    constructors: () => ({JsPeerInterface: [_js_helper.JsPeerInterface, [], {name: core.String}]})
+    constructors: () => ({new: [_js_helper.JsPeerInterface, [], {name: core.String}]})
   });
   _js_helper.SupportJsExtensionMethods = class SupportJsExtensionMethods extends core.Object {
-    SupportJsExtensionMethods() {
+    new() {
     }
   };
   dart.setSignature(_js_helper.SupportJsExtensionMethods, {
-    constructors: () => ({SupportJsExtensionMethods: [_js_helper.SupportJsExtensionMethods, []]})
+    constructors: () => ({new: [_js_helper.SupportJsExtensionMethods, []]})
   });
   const _length$0 = Symbol('_length');
   const _strings = Symbol('_strings');
@@ -9783,7 +9778,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _previous = Symbol('_previous');
   _js_helper.JsLinkedHashMap$ = dart.generic((K, V) => {
     class JsLinkedHashMap extends core.Object {
-      JsLinkedHashMap() {
+      new() {
         this[_length$0] = 0;
         this[_strings] = null;
         this[_nums] = null;
@@ -10052,7 +10047,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     JsLinkedHashMap[dart.implements] = () => [collection.LinkedHashMap$(K, V), _js_helper.InternalMap];
     dart.setSignature(JsLinkedHashMap, {
       constructors: () => ({
-        JsLinkedHashMap: [_js_helper.JsLinkedHashMap$(K, V), []],
+        new: [_js_helper.JsLinkedHashMap$(K, V), []],
         es6: [_js_helper.JsLinkedHashMap$(K, V), []]
       }),
       methods: () => ({
@@ -10111,8 +10106,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _js_helper.JsLinkedHashMap = _js_helper.JsLinkedHashMap$();
   _js_helper.Es6LinkedHashMap$ = dart.generic((K, V) => {
     class Es6LinkedHashMap extends _js_helper.JsLinkedHashMap$(K, V) {
-      Es6LinkedHashMap() {
-        super.JsLinkedHashMap();
+      new() {
+        super.new();
       }
       [_getTableCell](table, key) {
         return table.get(key);
@@ -10144,7 +10139,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _js_helper.Es6LinkedHashMap = _js_helper.Es6LinkedHashMap$();
   _js_helper.LinkedHashMapCell$ = dart.generic((K, V) => {
     class LinkedHashMapCell extends core.Object {
-      LinkedHashMapCell(hashMapCellKey, hashMapCellValue) {
+      new(hashMapCellKey, hashMapCellValue) {
         this.hashMapCellKey = hashMapCellKey;
         this.hashMapCellValue = hashMapCellValue;
         this[_next] = null;
@@ -10152,7 +10147,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(LinkedHashMapCell, {
-      constructors: () => ({LinkedHashMapCell: [_js_helper.LinkedHashMapCell$(K, V), [K, V]]})
+      constructors: () => ({new: [_js_helper.LinkedHashMapCell$(K, V), [K, V]]})
     });
     return LinkedHashMapCell;
   });
@@ -10160,9 +10155,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _map = Symbol('_map');
   _js_helper.LinkedHashMapKeyIterable$ = dart.generic(E => {
     class LinkedHashMapKeyIterable extends core.Iterable$(E) {
-      LinkedHashMapKeyIterable(map) {
+      new(map) {
         this[_map] = map;
-        super.Iterable();
+        super.new();
       }
       get length() {
         return this[_map][_length$0];
@@ -10190,7 +10185,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     LinkedHashMapKeyIterable[dart.implements] = () => [_internal.EfficientLength];
     dart.setSignature(LinkedHashMapKeyIterable, {
-      constructors: () => ({LinkedHashMapKeyIterable: [_js_helper.LinkedHashMapKeyIterable$(E), [_js_helper.JsLinkedHashMap$(E, dart.dynamic)]]}),
+      constructors: () => ({new: [_js_helper.LinkedHashMapKeyIterable$(E), [_js_helper.JsLinkedHashMap$(E, dart.dynamic)]]}),
       methods: () => ({forEach: [dart.void, [dart.functionType(dart.void, [E])]]})
     });
     dart.defineExtensionMembers(LinkedHashMapKeyIterable, [
@@ -10206,7 +10201,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _cell = Symbol('_cell');
   _js_helper.LinkedHashMapKeyIterator$ = dart.generic(E => {
     class LinkedHashMapKeyIterator extends core.Object {
-      LinkedHashMapKeyIterator(map, modifications) {
+      new(map, modifications) {
         this[_map] = map;
         this[_modifications] = modifications;
         this[_cell] = null;
@@ -10231,7 +10226,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     LinkedHashMapKeyIterator[dart.implements] = () => [core.Iterator$(E)];
     dart.setSignature(LinkedHashMapKeyIterator, {
-      constructors: () => ({LinkedHashMapKeyIterator: [_js_helper.LinkedHashMapKeyIterator$(E), [_js_helper.JsLinkedHashMap$(E, dart.dynamic), core.int]]}),
+      constructors: () => ({new: [_js_helper.LinkedHashMapKeyIterator$(E), [_js_helper.JsLinkedHashMap$(E, dart.dynamic), core.int]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return LinkedHashMapKeyIterator;
@@ -10285,7 +10280,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     toString() {
       return `RegExp/${this.pattern}/`;
     }
-    JSSyntaxRegExp(source, opts) {
+    new(source, opts) {
       let multiLine = opts && 'multiLine' in opts ? opts.multiLine : false;
       let caseSensitive = opts && 'caseSensitive' in opts ? opts.caseSensitive : true;
       this.pattern = source;
@@ -10378,7 +10373,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   _js_helper.JSSyntaxRegExp[dart.implements] = () => [core.RegExp];
   dart.setSignature(_js_helper.JSSyntaxRegExp, {
-    constructors: () => ({JSSyntaxRegExp: [_js_helper.JSSyntaxRegExp, [core.String], {multiLine: core.bool, caseSensitive: core.bool}]}),
+    constructors: () => ({new: [_js_helper.JSSyntaxRegExp, [core.String], {multiLine: core.bool, caseSensitive: core.bool}]}),
     methods: () => ({
       firstMatch: [core.Match, [core.String]],
       hasMatch: [core.bool, [core.String]],
@@ -10394,7 +10389,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.defineExtensionMembers(_js_helper.JSSyntaxRegExp, ['allMatches', 'matchAsPrefix']);
   const _match = Symbol('_match');
   _js_helper._MatchImplementation = class _MatchImplementation extends core.Object {
-    _MatchImplementation(pattern, match) {
+    new(pattern, match) {
       this.pattern = pattern;
       this[_match] = match;
       dart.assert(typeof this[_match].input == 'string');
@@ -10428,7 +10423,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   _js_helper._MatchImplementation[dart.implements] = () => [core.Match];
   dart.setSignature(_js_helper._MatchImplementation, {
-    constructors: () => ({_MatchImplementation: [_js_helper._MatchImplementation, [core.Pattern, core.List$(core.String)]]}),
+    constructors: () => ({new: [_js_helper._MatchImplementation, [core.Pattern, core.List$(core.String)]]}),
     methods: () => ({
       group: [core.String, [core.int]],
       get: [core.String, [core.int]],
@@ -10440,24 +10435,24 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _start$ = Symbol('_start');
   core.Match = class Match extends core.Object {};
   _js_helper._AllMatchesIterable = class _AllMatchesIterable extends collection.IterableBase$(core.Match) {
-    _AllMatchesIterable(re, string, start) {
+    new(re, string, start) {
       this[_re] = re;
       this[_string$] = string;
       this[_start$] = start;
-      super.IterableBase();
+      super.new();
     }
     get iterator() {
       return new _js_helper._AllMatchesIterator(this[_re], this[_string$], this[_start$]);
     }
   };
   dart.setSignature(_js_helper._AllMatchesIterable, {
-    constructors: () => ({_AllMatchesIterable: [_js_helper._AllMatchesIterable, [_js_helper.JSSyntaxRegExp, core.String, core.int]]})
+    constructors: () => ({new: [_js_helper._AllMatchesIterable, [_js_helper.JSSyntaxRegExp, core.String, core.int]]})
   });
   dart.defineExtensionMembers(_js_helper._AllMatchesIterable, ['iterator']);
   const _regExp = Symbol('_regExp');
   const _nextIndex = Symbol('_nextIndex');
   _js_helper._AllMatchesIterator = class _AllMatchesIterator extends core.Object {
-    _AllMatchesIterator(regExp, string, nextIndex) {
+    new(regExp, string, nextIndex) {
       this[_regExp] = regExp;
       this[_string$] = string;
       this[_nextIndex] = nextIndex;
@@ -10487,7 +10482,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   _js_helper._AllMatchesIterator[dart.implements] = () => [core.Iterator$(core.Match)];
   dart.setSignature(_js_helper._AllMatchesIterator, {
-    constructors: () => ({_AllMatchesIterator: [_js_helper._AllMatchesIterator, [_js_helper.JSSyntaxRegExp, core.String, core.int]]}),
+    constructors: () => ({new: [_js_helper._AllMatchesIterator, [_js_helper.JSSyntaxRegExp, core.String, core.int]]}),
     methods: () => ({moveNext: [core.bool, []]})
   });
   _js_helper.firstMatchAfter = function(regExp, string, start) {
@@ -10511,7 +10506,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.lazyFn(_js_helper.stringContainsStringUnchecked, () => [core.bool, [dart.dynamic, dart.dynamic, dart.dynamic]]);
   _js_helper.StringMatch = class StringMatch extends core.Object {
-    StringMatch(start, input, pattern) {
+    new(start, input, pattern) {
       this.start = start;
       this.input = input;
       this.pattern = pattern;
@@ -10541,7 +10536,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   _js_helper.StringMatch[dart.implements] = () => [core.Match];
   dart.setSignature(_js_helper.StringMatch, {
-    constructors: () => ({StringMatch: [_js_helper.StringMatch, [core.int, core.String, core.String]]}),
+    constructors: () => ({new: [_js_helper.StringMatch, [core.int, core.String, core.String]]}),
     methods: () => ({
       get: [core.String, [core.int]],
       group: [core.String, [core.int]],
@@ -10556,11 +10551,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _pattern = Symbol('_pattern');
   const _index$0 = Symbol('_index');
   _js_helper._StringAllMatchesIterable = class _StringAllMatchesIterable extends core.Iterable$(core.Match) {
-    _StringAllMatchesIterable(input, pattern, index) {
+    new(input, pattern, index) {
       this[_input] = input;
       this[_pattern] = pattern;
       this[_index$0] = index;
-      super.Iterable();
+      super.new();
     }
     get iterator() {
       return new _js_helper._StringAllMatchesIterator(this[_input], this[_pattern], this[_index$0]);
@@ -10574,11 +10569,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(_js_helper._StringAllMatchesIterable, {
-    constructors: () => ({_StringAllMatchesIterable: [_js_helper._StringAllMatchesIterable, [core.String, core.String, core.int]]})
+    constructors: () => ({new: [_js_helper._StringAllMatchesIterable, [core.String, core.String, core.int]]})
   });
   dart.defineExtensionMembers(_js_helper._StringAllMatchesIterable, ['iterator', 'first']);
   _js_helper._StringAllMatchesIterator = class _StringAllMatchesIterator extends core.Object {
-    _StringAllMatchesIterator(input, pattern, index) {
+    new(input, pattern, index) {
       this[_input] = input;
       this[_pattern] = pattern;
       this[_index$0] = index;
@@ -10607,7 +10602,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   _js_helper._StringAllMatchesIterator[dart.implements] = () => [core.Iterator$(core.Match)];
   dart.setSignature(_js_helper._StringAllMatchesIterator, {
-    constructors: () => ({_StringAllMatchesIterator: [_js_helper._StringAllMatchesIterator, [core.String, core.String, core.int]]}),
+    constructors: () => ({new: [_js_helper._StringAllMatchesIterator, [core.String, core.String, core.int]]}),
     methods: () => ({moveNext: [core.bool, []]})
   });
   _js_helper.stringContainsUnchecked = function(receiver, other, startIndex) {
@@ -11245,14 +11240,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.lazyFn(_js_primitives.printString, () => [dart.void, [core.String]]);
   _metadata.SupportedBrowser = class SupportedBrowser extends core.Object {
-    SupportedBrowser(browserName, minimumVersion) {
+    new(browserName, minimumVersion) {
       if (minimumVersion === void 0) minimumVersion = null;
       this.browserName = browserName;
       this.minimumVersion = minimumVersion;
     }
   };
   dart.setSignature(_metadata.SupportedBrowser, {
-    constructors: () => ({SupportedBrowser: [_metadata.SupportedBrowser, [core.String], [core.String]]})
+    constructors: () => ({new: [_metadata.SupportedBrowser, [core.String], [core.String]]})
   });
   _metadata.SupportedBrowser.CHROME = "Chrome";
   _metadata.SupportedBrowser.FIREFOX = "Firefox";
@@ -11260,33 +11255,33 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _metadata.SupportedBrowser.OPERA = "Opera";
   _metadata.SupportedBrowser.SAFARI = "Safari";
   _metadata.Experimental = class Experimental extends core.Object {
-    Experimental() {
+    new() {
     }
   };
   dart.setSignature(_metadata.Experimental, {
-    constructors: () => ({Experimental: [_metadata.Experimental, []]})
+    constructors: () => ({new: [_metadata.Experimental, []]})
   });
   _metadata.DomName = class DomName extends core.Object {
-    DomName(name) {
+    new(name) {
       this.name = name;
     }
   };
   dart.setSignature(_metadata.DomName, {
-    constructors: () => ({DomName: [_metadata.DomName, [core.String]]})
+    constructors: () => ({new: [_metadata.DomName, [core.String]]})
   });
   _metadata.DocsEditable = class DocsEditable extends core.Object {
-    DocsEditable() {
+    new() {
     }
   };
   dart.setSignature(_metadata.DocsEditable, {
-    constructors: () => ({DocsEditable: [_metadata.DocsEditable, []]})
+    constructors: () => ({new: [_metadata.DocsEditable, []]})
   });
   _metadata.Unstable = class Unstable extends core.Object {
-    Unstable() {
+    new() {
     }
   };
   dart.setSignature(_metadata.Unstable, {
-    constructors: () => ({Unstable: [_metadata.Unstable, []]})
+    constructors: () => ({new: [_metadata.Unstable, []]})
   });
   dart.defineExtensionNames([
     'lengthInBytes',
@@ -11699,7 +11694,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   typed_data.Float32x4.WWWZ = 191;
   typed_data.Float32x4.WWWW = 255;
   _native_typed_data.NativeFloat32x4List = class NativeFloat32x4List extends dart.mixin(core.Object, collection.ListMixin$(typed_data.Float32x4), _internal.FixedLengthListMixin$(typed_data.Float32x4)) {
-    NativeFloat32x4List(length) {
+    new(length) {
       this[_storage] = _native_typed_data.NativeFloat32List.new(dart.notNull(length) * 4);
     }
     _externalStorage(storage) {
@@ -11770,7 +11765,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _native_typed_data.NativeFloat32x4List[dart.implements] = () => [typed_data.Float32x4List];
   dart.setSignature(_native_typed_data.NativeFloat32x4List, {
     constructors: () => ({
-      NativeFloat32x4List: [_native_typed_data.NativeFloat32x4List, [core.int]],
+      new: [_native_typed_data.NativeFloat32x4List, [core.int]],
       _externalStorage: [_native_typed_data.NativeFloat32x4List, [_native_typed_data.NativeFloat32List]],
       _slowFromList: [_native_typed_data.NativeFloat32x4List, [core.List$(typed_data.Float32x4)]],
       fromList: [_native_typed_data.NativeFloat32x4List, [core.List$(typed_data.Float32x4)]]
@@ -12066,7 +12061,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   typed_data.Int32x4.WWWZ = 191;
   typed_data.Int32x4.WWWW = 255;
   _native_typed_data.NativeInt32x4List = class NativeInt32x4List extends dart.mixin(core.Object, collection.ListMixin$(typed_data.Int32x4), _internal.FixedLengthListMixin$(typed_data.Int32x4)) {
-    NativeInt32x4List(length) {
+    new(length) {
       this[_storage] = _native_typed_data.NativeInt32List.new(dart.notNull(length) * 4);
     }
     _externalStorage(storage) {
@@ -12137,7 +12132,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _native_typed_data.NativeInt32x4List[dart.implements] = () => [typed_data.Int32x4List];
   dart.setSignature(_native_typed_data.NativeInt32x4List, {
     constructors: () => ({
-      NativeInt32x4List: [_native_typed_data.NativeInt32x4List, [core.int]],
+      new: [_native_typed_data.NativeInt32x4List, [core.int]],
       _externalStorage: [_native_typed_data.NativeInt32x4List, [typed_data.Int32List]],
       _slowFromList: [_native_typed_data.NativeInt32x4List, [core.List$(typed_data.Int32x4)]],
       fromList: [_native_typed_data.NativeInt32x4List, [core.List$(typed_data.Int32x4)]]
@@ -12181,7 +12176,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   _native_typed_data.NativeFloat64x2List = class NativeFloat64x2List extends dart.mixin(core.Object, collection.ListMixin$(typed_data.Float64x2), _internal.FixedLengthListMixin$(typed_data.Float64x2)) {
-    NativeFloat64x2List(length) {
+    new(length) {
       this[_storage] = _native_typed_data.NativeFloat64List.new(dart.notNull(length) * 2);
     }
     _externalStorage(storage) {
@@ -12246,7 +12241,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _native_typed_data.NativeFloat64x2List[dart.implements] = () => [typed_data.Float64x2List];
   dart.setSignature(_native_typed_data.NativeFloat64x2List, {
     constructors: () => ({
-      NativeFloat64x2List: [_native_typed_data.NativeFloat64x2List, [core.int]],
+      new: [_native_typed_data.NativeFloat64x2List, [core.int]],
       _externalStorage: [_native_typed_data.NativeFloat64x2List, [_native_typed_data.NativeFloat64List]],
       _slowFromList: [_native_typed_data.NativeFloat64x2List, [core.List$(typed_data.Float64x2)]],
       fromList: [_native_typed_data.NativeFloat64x2List, [core.List$(typed_data.Float64x2)]]
@@ -13187,7 +13182,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _native_typed_data.NativeFloat32x4._list[dartx.set](0, dart.as(x, core.num));
       return _native_typed_data.NativeFloat32x4._list[dartx.get](0);
     }
-    NativeFloat32x4(x, y, z, w) {
+    new(x, y, z, w) {
       this.x = dart.as(_native_typed_data.NativeFloat32x4._truncate(x), core.double);
       this.y = dart.as(_native_typed_data.NativeFloat32x4._truncate(y), core.double);
       this.z = dart.as(_native_typed_data.NativeFloat32x4._truncate(z), core.double);
@@ -13198,10 +13193,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (!(typeof w == 'number')) dart.throw(new core.ArgumentError(w));
     }
     splat(v) {
-      this.NativeFloat32x4(v, v, v, v);
+      NativeFloat32x4.prototype.new.call(this, v, v, v, v);
     }
     zero() {
-      this._truncated(0.0, 0.0, 0.0, 0.0);
+      NativeFloat32x4.prototype._truncated.call(this, 0.0, 0.0, 0.0, 0.0);
     }
     static fromInt32x4Bits(i) {
       _native_typed_data.NativeFloat32x4._uint32view[dartx.set](0, i.x);
@@ -13211,7 +13206,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return new _native_typed_data.NativeFloat32x4._truncated(_native_typed_data.NativeFloat32x4._list[dartx.get](0), _native_typed_data.NativeFloat32x4._list[dartx.get](1), _native_typed_data.NativeFloat32x4._list[dartx.get](2), _native_typed_data.NativeFloat32x4._list[dartx.get](3));
     }
     fromFloat64x2(v) {
-      this._truncated(dart.as(_native_typed_data.NativeFloat32x4._truncate(v.x), core.double), dart.as(_native_typed_data.NativeFloat32x4._truncate(v.y), core.double), 0.0, 0.0);
+      NativeFloat32x4.prototype._truncated.call(this, dart.as(_native_typed_data.NativeFloat32x4._truncate(v.x), core.double), dart.as(_native_typed_data.NativeFloat32x4._truncate(v.y), core.double), 0.0, 0.0);
     }
     _doubles(x, y, z, w) {
       this.x = dart.as(_native_typed_data.NativeFloat32x4._truncate(x), core.double);
@@ -13439,7 +13434,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _native_typed_data.NativeFloat32x4[dart.implements] = () => [typed_data.Float32x4];
   dart.setSignature(_native_typed_data.NativeFloat32x4, {
     constructors: () => ({
-      NativeFloat32x4: [_native_typed_data.NativeFloat32x4, [core.double, core.double, core.double, core.double]],
+      new: [_native_typed_data.NativeFloat32x4, [core.double, core.double, core.double, core.double]],
       splat: [_native_typed_data.NativeFloat32x4, [core.double]],
       zero: [_native_typed_data.NativeFloat32x4, []],
       fromInt32x4Bits: [_native_typed_data.NativeFloat32x4, [typed_data.Int32x4]],
@@ -13490,7 +13485,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _native_typed_data.NativeInt32x4._list[dartx.set](0, dart.as(x, core.int));
       return _native_typed_data.NativeInt32x4._list[dartx.get](0);
     }
-    NativeInt32x4(x, y, z, w) {
+    new(x, y, z, w) {
       this.x = dart.as(_native_typed_data.NativeInt32x4._truncate(x), core.int);
       this.y = dart.as(_native_typed_data.NativeInt32x4._truncate(y), core.int);
       this.z = dart.as(_native_typed_data.NativeInt32x4._truncate(z), core.int);
@@ -13660,7 +13655,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _native_typed_data.NativeInt32x4[dart.implements] = () => [typed_data.Int32x4];
   dart.setSignature(_native_typed_data.NativeInt32x4, {
     constructors: () => ({
-      NativeInt32x4: [_native_typed_data.NativeInt32x4, [core.int, core.int, core.int, core.int]],
+      new: [_native_typed_data.NativeInt32x4, [core.int, core.int, core.int, core.int]],
       bool: [_native_typed_data.NativeInt32x4, [core.bool, core.bool, core.bool, core.bool]],
       fromFloat32x4Bits: [_native_typed_data.NativeInt32x4, [typed_data.Float32x4]],
       _truncated: [_native_typed_data.NativeInt32x4, [core.int, core.int, core.int, core.int]]
@@ -13693,20 +13688,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   });
   _native_typed_data.NativeFloat64x2 = class NativeFloat64x2 extends core.Object {
-    NativeFloat64x2(x, y) {
+    new(x, y) {
       this.x = x;
       this.y = y;
       if (!(typeof this.x == 'number')) dart.throw(new core.ArgumentError(this.x));
       if (!(typeof this.y == 'number')) dart.throw(new core.ArgumentError(this.y));
     }
     splat(v) {
-      this.NativeFloat64x2(v, v);
+      NativeFloat64x2.prototype.new.call(this, v, v);
     }
     zero() {
-      this.splat(0.0);
+      NativeFloat64x2.prototype.splat.call(this, 0.0);
     }
     fromFloat32x4(v) {
-      this.NativeFloat64x2(v.x, v.y);
+      NativeFloat64x2.prototype.new.call(this, v.x, v.y);
     }
     _doubles(x, y) {
       this.x = x;
@@ -13782,7 +13777,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _native_typed_data.NativeFloat64x2[dart.implements] = () => [typed_data.Float64x2];
   dart.setSignature(_native_typed_data.NativeFloat64x2, {
     constructors: () => ({
-      NativeFloat64x2: [_native_typed_data.NativeFloat64x2, [core.double, core.double]],
+      new: [_native_typed_data.NativeFloat64x2, [core.double, core.double]],
       splat: [_native_typed_data.NativeFloat64x2, [core.double]],
       zero: [_native_typed_data.NativeFloat64x2, []],
       fromFloat32x4: [_native_typed_data.NativeFloat64x2, [typed_data.Float32x4]],
@@ -13852,7 +13847,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.lazyFn(async._registerErrorHandler, () => [R => [core.Function, [core.Function, async.Zone]]]);
   async.AsyncError = class AsyncError extends core.Object {
-    AsyncError(error, stackTrace) {
+    new(error, stackTrace) {
       this.error = error;
       this.stackTrace = stackTrace;
     }
@@ -13862,11 +13857,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   async.AsyncError[dart.implements] = () => [core.Error];
   dart.setSignature(async.AsyncError, {
-    constructors: () => ({AsyncError: [async.AsyncError, [core.Object, core.StackTrace]]})
+    constructors: () => ({new: [async.AsyncError, [core.Object, core.StackTrace]]})
   });
   async._UncaughtAsyncError = class _UncaughtAsyncError extends async.AsyncError {
-    _UncaughtAsyncError(error, stackTrace) {
-      super.AsyncError(error, async._UncaughtAsyncError._getBestStackTrace(error, stackTrace));
+    new(error, stackTrace) {
+      super.new(error, async._UncaughtAsyncError._getBestStackTrace(error, stackTrace));
     }
     static _getBestStackTrace(error, stackTrace) {
       if (stackTrace != null) return stackTrace;
@@ -13884,7 +13879,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(async._UncaughtAsyncError, {
-    constructors: () => ({_UncaughtAsyncError: [async._UncaughtAsyncError, [dart.dynamic, core.StackTrace]]}),
+    constructors: () => ({new: [async._UncaughtAsyncError, [dart.dynamic, core.StackTrace]]}),
     statics: () => ({_getBestStackTrace: [core.StackTrace, [dart.dynamic, core.StackTrace]]}),
     names: ['_getBestStackTrace']
   });
@@ -13894,8 +13889,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _onListen = Symbol('_onListen');
   async._StreamImpl$ = dart.generic(T => {
     class _StreamImpl extends async.Stream$(T) {
-      _StreamImpl() {
-        super.Stream();
+      new() {
+        super.new();
       }
       listen(onData, opts) {
         let onError = opts && 'onError' in opts ? opts.onError : null;
@@ -13923,7 +13918,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._StreamImpl = async._StreamImpl$();
   async._ControllerStream$ = dart.generic(T => {
     class _ControllerStream extends async._StreamImpl$(T) {
-      _ControllerStream(controller) {
+      new(controller) {
         this[_controller$] = controller;
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
@@ -13940,7 +13935,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_ControllerStream, {
-      constructors: () => ({_ControllerStream: [async._ControllerStream$(T), [async._StreamControllerLifecycle$(T)]]}),
+      constructors: () => ({new: [async._ControllerStream$(T), [async._StreamControllerLifecycle$(T)]]}),
       methods: () => ({
         [_createSubscription]: [async.StreamSubscription$(T), [dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]],
         '==': [core.bool, [core.Object]]
@@ -13951,15 +13946,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._ControllerStream = async._ControllerStream$();
   async._BroadcastStream$ = dart.generic(T => {
     class _BroadcastStream extends async._ControllerStream$(T) {
-      _BroadcastStream(controller) {
-        super._ControllerStream(controller);
+      new(controller) {
+        super.new(controller);
       }
       get isBroadcast() {
         return true;
       }
     }
     dart.setSignature(_BroadcastStream, {
-      constructors: () => ({_BroadcastStream: [async._BroadcastStream$(T), [async._StreamControllerLifecycle$(T)]]})
+      constructors: () => ({new: [async._BroadcastStream$(T), [async._StreamControllerLifecycle$(T)]]})
     });
     return _BroadcastStream;
   });
@@ -14009,7 +14004,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _checkState = Symbol('_checkState');
   async._BufferingStreamSubscription$ = dart.generic(T => {
     class _BufferingStreamSubscription extends core.Object {
-      _BufferingStreamSubscription(onData, onError, onDone, cancelOnError) {
+      new(onData, onError, onDone, cancelOnError) {
         this[_zone] = async.Zone.current;
         this[_state] = dart.notNull(cancelOnError) ? async._BufferingStreamSubscription._STATE_CANCEL_ON_ERROR : 0;
         this[_onData] = null;
@@ -14286,7 +14281,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _BufferingStreamSubscription[dart.implements] = () => [async.StreamSubscription$(T), async._EventSink$(T), async._EventDispatch$(T)];
     dart.setSignature(_BufferingStreamSubscription, {
-      constructors: () => ({_BufferingStreamSubscription: [async._BufferingStreamSubscription$(T), [dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]]}),
+      constructors: () => ({new: [async._BufferingStreamSubscription$(T), [dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]]}),
       methods: () => ({
         [_setPendingEvents]: [dart.void, [async._PendingEvents$(T)]],
         onData: [dart.void, [dart.functionType(dart.void, [T])]],
@@ -14327,9 +14322,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._BufferingStreamSubscription._STATE_PAUSE_COUNT_SHIFT = 7;
   async._ControllerSubscription$ = dart.generic(T => {
     class _ControllerSubscription extends async._BufferingStreamSubscription$(T) {
-      _ControllerSubscription(controller, onData, onError, onDone, cancelOnError) {
+      new(controller, onData, onError, onDone, cancelOnError) {
         this[_controller$] = controller;
-        super._BufferingStreamSubscription(onData, onError, onDone, cancelOnError);
+        super.new(onData, onError, onDone, cancelOnError);
       }
       [_onCancel]() {
         return this[_controller$][_recordCancel](this);
@@ -14342,18 +14337,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_ControllerSubscription, {
-      constructors: () => ({_ControllerSubscription: [async._ControllerSubscription$(T), [async._StreamControllerLifecycle$(T), dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]]})
+      constructors: () => ({new: [async._ControllerSubscription$(T), [async._StreamControllerLifecycle$(T), dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]]})
     });
     return _ControllerSubscription;
   });
   async._ControllerSubscription = async._ControllerSubscription$();
   async._BroadcastSubscription$ = dart.generic(T => {
     class _BroadcastSubscription extends async._ControllerSubscription$(T) {
-      _BroadcastSubscription(controller, onData, onError, onDone, cancelOnError) {
+      new(controller, onData, onError, onDone, cancelOnError) {
         this[_eventState] = 0;
         this[_next$] = null;
         this[_previous$] = null;
-        super._ControllerSubscription(controller, onData, onError, onDone, cancelOnError);
+        super.new(controller, onData, onError, onDone, cancelOnError);
         this[_next$] = this[_previous$] = this;
       }
       [_expectsEvent](eventId) {
@@ -14376,7 +14371,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [_onResume]() {}
     }
     dart.setSignature(_BroadcastSubscription, {
-      constructors: () => ({_BroadcastSubscription: [async._BroadcastSubscription$(T), [async._StreamControllerLifecycle$(T), dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]]}),
+      constructors: () => ({new: [async._BroadcastSubscription$(T), [async._StreamControllerLifecycle$(T), dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]]}),
       methods: () => ({
         [_expectsEvent]: [core.bool, [core.int]],
         [_toggleEventId]: [dart.void, []],
@@ -14407,7 +14402,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _asyncComplete = Symbol('_asyncComplete');
   async._BroadcastStreamController$ = dart.generic(T => {
     class _BroadcastStreamController extends core.Object {
-      _BroadcastStreamController(onListen, onCancel) {
+      new(onListen, onCancel) {
         this.onListen = onListen;
         this.onCancel = onCancel;
         this[_state] = async._BroadcastStreamController._STATE_INITIAL;
@@ -14624,7 +14619,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _BroadcastStreamController[dart.implements] = () => [async.StreamController$(T), async._StreamControllerLifecycle$(T), async._EventSink$(T), async._EventDispatch$(T)];
     dart.setSignature(_BroadcastStreamController, {
-      constructors: () => ({_BroadcastStreamController: [async._BroadcastStreamController$(T), [async.ControllerCallback, async.ControllerCancelCallback]]}),
+      constructors: () => ({new: [async._BroadcastStreamController$(T), [async.ControllerCallback, async.ControllerCancelCallback]]}),
       methods: () => ({
         [_ensureDoneFuture]: [async._Future, []],
         [_addListener]: [dart.void, [async._BroadcastSubscription$(T)]],
@@ -14655,8 +14650,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._BroadcastStreamController._STATE_ADDSTREAM = 8;
   async._SyncBroadcastStreamController$ = dart.generic(T => {
     class _SyncBroadcastStreamController extends async._BroadcastStreamController$(T) {
-      _SyncBroadcastStreamController(onListen, onCancel) {
-        super._BroadcastStreamController(onListen, onCancel);
+      new(onListen, onCancel) {
+        super.new(onListen, onCancel);
       }
       get [_mayAddEvent]() {
         return dart.notNull(super[_mayAddEvent]) && !dart.notNull(this[_isFiring]);
@@ -14704,7 +14699,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _SyncBroadcastStreamController[dart.implements] = () => [async.SynchronousStreamController$(T)];
     dart.setSignature(_SyncBroadcastStreamController, {
-      constructors: () => ({_SyncBroadcastStreamController: [async._SyncBroadcastStreamController$(T), [dart.functionType(dart.void, []), dart.functionType(dart.void, [])]]}),
+      constructors: () => ({new: [async._SyncBroadcastStreamController$(T), [dart.functionType(dart.void, []), dart.functionType(dart.void, [])]]}),
       methods: () => ({
         [_sendData]: [dart.void, [T]],
         [_sendError]: [dart.void, [core.Object, core.StackTrace]],
@@ -14717,8 +14712,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let const$1;
   async._AsyncBroadcastStreamController$ = dart.generic(T => {
     class _AsyncBroadcastStreamController extends async._BroadcastStreamController$(T) {
-      _AsyncBroadcastStreamController(onListen, onCancel) {
-        super._BroadcastStreamController(onListen, onCancel);
+      new(onListen, onCancel) {
+        super.new(onListen, onCancel);
       }
       [_sendData](data) {
         dart.as(data, T);
@@ -14744,7 +14739,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_AsyncBroadcastStreamController, {
-      constructors: () => ({_AsyncBroadcastStreamController: [async._AsyncBroadcastStreamController$(T), [dart.functionType(dart.void, []), dart.functionType(dart.void, [])]]}),
+      constructors: () => ({new: [async._AsyncBroadcastStreamController$(T), [dart.functionType(dart.void, []), dart.functionType(dart.void, [])]]}),
       methods: () => ({
         [_sendData]: [dart.void, [T]],
         [_sendError]: [dart.void, [core.Object, core.StackTrace]],
@@ -14758,9 +14753,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let const$2;
   async._AsBroadcastStreamController$ = dart.generic(T => {
     class _AsBroadcastStreamController extends async._SyncBroadcastStreamController$(T) {
-      _AsBroadcastStreamController(onListen, onCancel) {
+      new(onListen, onCancel) {
         this[_pending] = null;
-        super._SyncBroadcastStreamController(onListen, onCancel);
+        super.new(onListen, onCancel);
       }
       get [_hasPending]() {
         return this[_pending] != null && !dart.notNull(this[_pending].isEmpty);
@@ -14814,7 +14809,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _AsBroadcastStreamController[dart.implements] = () => [async._EventDispatch$(T)];
     dart.setSignature(_AsBroadcastStreamController, {
-      constructors: () => ({_AsBroadcastStreamController: [async._AsBroadcastStreamController$(T), [dart.functionType(dart.void, []), dart.functionType(dart.void, [])]]}),
+      constructors: () => ({new: [async._AsBroadcastStreamController$(T), [dart.functionType(dart.void, []), dart.functionType(dart.void, [])]]}),
       methods: () => ({
         [_addPendingEvent]: [dart.void, [async._DelayedEvent]],
         add: [dart.void, [T]]
@@ -14827,7 +14822,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _resume = Symbol('_resume');
   async._DoneSubscription$ = dart.generic(T => {
     class _DoneSubscription extends core.Object {
-      _DoneSubscription() {
+      new() {
         this[_pauseCount] = 0;
       }
       onData(handleData) {}
@@ -14876,7 +14871,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   async._DoneSubscription = async._DoneSubscription$();
   async.DeferredLibrary = class DeferredLibrary extends core.Object {
-    DeferredLibrary(libraryName, opts) {
+    new(libraryName, opts) {
       let uri = opts && 'uri' in opts ? opts.uri : null;
       this.libraryName = libraryName;
       this.uri = uri;
@@ -14886,13 +14881,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(async.DeferredLibrary, {
-    constructors: () => ({DeferredLibrary: [async.DeferredLibrary, [core.String], {uri: core.String}]}),
+    constructors: () => ({new: [async.DeferredLibrary, [core.String], {uri: core.String}]}),
     methods: () => ({load: [async.Future$(core.Null), []]})
   });
   async.DeferredLibrary[dart.metadata] = () => [dart.const(new core.Deprecated("Dart sdk v. 1.8"))];
   const _s = Symbol('_s');
   async.DeferredLoadException = class DeferredLoadException extends core.Object {
-    DeferredLoadException(s) {
+    new(s) {
       this[_s] = s;
     }
     toString() {
@@ -14901,7 +14896,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   async.DeferredLoadException[dart.implements] = () => [core.Exception];
   dart.setSignature(async.DeferredLoadException, {
-    constructors: () => ({DeferredLoadException: [async.DeferredLoadException, [core.String]]})
+    constructors: () => ({new: [async.DeferredLoadException, [core.String]]})
   });
   const _completeWithValue = Symbol('_completeWithValue');
   let const$3;
@@ -15096,7 +15091,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   });
   async.TimeoutException = class TimeoutException extends core.Object {
-    TimeoutException(message, duration) {
+    new(message, duration) {
       if (duration === void 0) duration = null;
       this.message = message;
       this.duration = duration;
@@ -15110,7 +15105,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   async.TimeoutException[dart.implements] = () => [core.Exception];
   dart.setSignature(async.TimeoutException, {
-    constructors: () => ({TimeoutException: [async.TimeoutException, [core.String], [core.Duration]]})
+    constructors: () => ({new: [async.TimeoutException, [core.String], [core.Duration]]})
   });
   async.Completer$ = dart.generic(T => {
     class Completer extends core.Object {
@@ -15152,7 +15147,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._FutureAction = dart.typedef('_FutureAction', () => dart.functionType(dart.dynamic, []));
   async._Completer$ = dart.generic(T => {
     class _Completer extends core.Object {
-      _Completer() {
+      new() {
         this.future = new (async._Future$(T))();
       }
       completeError(error, stackTrace) {
@@ -15180,8 +15175,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _asyncCompleteError = Symbol('_asyncCompleteError');
   async._AsyncCompleter$ = dart.generic(T => {
     class _AsyncCompleter extends async._Completer$(T) {
-      _AsyncCompleter() {
-        super._Completer();
+      new() {
+        super.new();
       }
       complete(value) {
         if (value === void 0) value = null;
@@ -15203,8 +15198,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._AsyncCompleter = async._AsyncCompleter$();
   async._SyncCompleter$ = dart.generic(T => {
     class _SyncCompleter extends async._Completer$(T) {
-      _SyncCompleter() {
-        super._Completer();
+      new() {
+        super.new();
       }
       complete(value) {
         if (value === void 0) value = null;
@@ -15365,7 +15360,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _removeListeners = Symbol('_removeListeners');
   async._Future$ = dart.generic(T => {
     class _Future extends core.Object {
-      _Future() {
+      new() {
         this[_zone] = async.Zone.current;
         this[_state] = async._Future._INCOMPLETE;
         this[_resultOrListeners] = null;
@@ -15817,7 +15812,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     _Future[dart.implements] = () => [async.Future$(T)];
     dart.setSignature(_Future, {
       constructors: () => ({
-        _Future: [async._Future$(T), []],
+        new: [async._Future$(T), []],
         immediate: [async._Future$(T), [dart.dynamic]],
         immediateError: [async._Future$(T), [dart.dynamic], [core.StackTrace]]
       }),
@@ -15861,13 +15856,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._Future._ERROR = 8;
   async._AsyncCallback = dart.typedef('_AsyncCallback', () => dart.functionType(dart.void, []));
   async._AsyncCallbackEntry = class _AsyncCallbackEntry extends core.Object {
-    _AsyncCallbackEntry(callback) {
+    new(callback) {
       this.callback = callback;
       this.next = null;
     }
   };
   dart.setSignature(async._AsyncCallbackEntry, {
-    constructors: () => ({_AsyncCallbackEntry: [async._AsyncCallbackEntry, [async._AsyncCallback]]})
+    constructors: () => ({new: [async._AsyncCallbackEntry, [async._AsyncCallback]]})
   });
   async._nextCallback = null;
   async._lastCallback = null;
@@ -16031,7 +16026,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _stream = Symbol('_stream');
   async.StreamView$ = dart.generic(T => {
     class StreamView extends async.Stream$(T) {
-      StreamView(stream) {
+      new(stream) {
         this[_stream] = stream;
         super._internal();
       }
@@ -16051,7 +16046,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(StreamView, {
-      constructors: () => ({StreamView: [async.StreamView$(T), [async.Stream$(T)]]}),
+      constructors: () => ({new: [async.StreamView$(T), [async.Stream$(T)]]}),
       methods: () => ({
         asBroadcastStream: [async.Stream$(T), [], {onListen: dart.functionType(dart.void, [async.StreamSubscription$(T)]), onCancel: dart.functionType(dart.void, [async.StreamSubscription$(T)])}],
         listen: [async.StreamSubscription$(T), [dart.functionType(dart.void, [T])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}]
@@ -16103,7 +16098,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async.StreamIterator = async.StreamIterator$();
   async._ControllerEventSinkWrapper$ = dart.generic(T => {
     class _ControllerEventSinkWrapper extends core.Object {
-      _ControllerEventSinkWrapper(sink) {
+      new(sink) {
         this[_sink] = sink;
       }
       add(data) {
@@ -16120,7 +16115,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _ControllerEventSinkWrapper[dart.implements] = () => [async.EventSink$(T)];
     dart.setSignature(_ControllerEventSinkWrapper, {
-      constructors: () => ({_ControllerEventSinkWrapper: [async._ControllerEventSinkWrapper$(T), [async.EventSink]]}),
+      constructors: () => ({new: [async._ControllerEventSinkWrapper$(T), [async.EventSink]]}),
       methods: () => ({
         add: [dart.void, [T]],
         addError: [dart.void, [dart.dynamic], [core.StackTrace]],
@@ -16197,7 +16192,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let const$4;
   async._StreamController$ = dart.generic(T => {
     class _StreamController extends core.Object {
-      _StreamController(onListen, onPause, onResume, onCancel) {
+      new(onListen, onPause, onResume, onCancel) {
         this.onListen = onListen;
         this.onPause = onPause;
         this.onResume = onResume;
@@ -16414,7 +16409,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _StreamController[dart.implements] = () => [async.StreamController$(T), async._StreamControllerLifecycle$(T), async._EventSink$(T), async._EventDispatch$(T)];
     dart.setSignature(_StreamController, {
-      constructors: () => ({_StreamController: [async._StreamController$(T), [async.ControllerCallback, async.ControllerCallback, async.ControllerCallback, async.ControllerCancelCallback]]}),
+      constructors: () => ({new: [async._StreamController$(T), [async.ControllerCallback, async.ControllerCallback, async.ControllerCallback, async.ControllerCancelCallback]]}),
       methods: () => ({
         [_ensurePendingEvents]: [async._StreamImplEvents$(T), []],
         [_badEventState]: [core.Error, []],
@@ -16493,8 +16488,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._AsyncStreamControllerDispatch = async._AsyncStreamControllerDispatch$();
   async._AsyncStreamController$ = dart.generic(T => {
     class _AsyncStreamController extends dart.mixin(async._StreamController$(T), async._AsyncStreamControllerDispatch$(T)) {
-      _AsyncStreamController(onListen, onPause, onResume, onCancel) {
-        super._StreamController(onListen, onPause, onResume, onCancel);
+      new(onListen, onPause, onResume, onCancel) {
+        super.new(onListen, onPause, onResume, onCancel);
       }
     }
     return _AsyncStreamController;
@@ -16502,8 +16497,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._AsyncStreamController = async._AsyncStreamController$();
   async._SyncStreamController$ = dart.generic(T => {
     class _SyncStreamController extends dart.mixin(async._StreamController$(T), async._SyncStreamControllerDispatch$(T)) {
-      _SyncStreamController(onListen, onPause, onResume, onCancel) {
-        super._StreamController(onListen, onPause, onResume, onCancel);
+      new(onListen, onPause, onResume, onCancel) {
+        super.new(onListen, onPause, onResume, onCancel);
       }
     }
     return _SyncStreamController;
@@ -16526,7 +16521,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _target = Symbol('_target');
   async._StreamSinkWrapper$ = dart.generic(T => {
     class _StreamSinkWrapper extends core.Object {
-      _StreamSinkWrapper(target) {
+      new(target) {
         this[_target] = target;
       }
       add(data) {
@@ -16551,7 +16546,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _StreamSinkWrapper[dart.implements] = () => [async.StreamSink$(T)];
     dart.setSignature(_StreamSinkWrapper, {
-      constructors: () => ({_StreamSinkWrapper: [async._StreamSinkWrapper$(T), [async.StreamController]]}),
+      constructors: () => ({new: [async._StreamSinkWrapper$(T), [async.StreamController]]}),
       methods: () => ({
         add: [dart.void, [T]],
         addError: [dart.void, [core.Object], [core.StackTrace]],
@@ -16564,7 +16559,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._StreamSinkWrapper = async._StreamSinkWrapper$();
   async._AddStreamState$ = dart.generic(T => {
     class _AddStreamState extends core.Object {
-      _AddStreamState(controller, source, cancelOnError) {
+      new(controller, source, cancelOnError) {
         this.addStreamFuture = new async._Future();
         this.addSubscription = source.listen(dart.bind(controller, _add$), {onError: dart.as(dart.notNull(cancelOnError) ? async._AddStreamState.makeErrorHandler(controller) : dart.bind(controller, _addError), core.Function), onDone: dart.bind(controller, _close$), cancelOnError: cancelOnError});
       }
@@ -16595,7 +16590,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_AddStreamState, {
-      constructors: () => ({_AddStreamState: [async._AddStreamState$(T), [async._EventSink$(T), async.Stream, core.bool]]}),
+      constructors: () => ({new: [async._AddStreamState$(T), [async._EventSink$(T), async.Stream, core.bool]]}),
       methods: () => ({
         pause: [dart.void, []],
         resume: [dart.void, []],
@@ -16610,16 +16605,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._AddStreamState = async._AddStreamState$();
   async._StreamControllerAddStreamState$ = dart.generic(T => {
     class _StreamControllerAddStreamState extends async._AddStreamState$(T) {
-      _StreamControllerAddStreamState(controller, varData, source, cancelOnError) {
+      new(controller, varData, source, cancelOnError) {
         this.varData = varData;
-        super._AddStreamState(controller, source, cancelOnError);
+        super.new(controller, source, cancelOnError);
         if (dart.notNull(controller.isPaused)) {
           this.addSubscription.pause();
         }
       }
     }
     dart.setSignature(_StreamControllerAddStreamState, {
-      constructors: () => ({_StreamControllerAddStreamState: [async._StreamControllerAddStreamState$(T), [async._StreamController$(T), dart.dynamic, async.Stream, core.bool]]})
+      constructors: () => ({new: [async._StreamControllerAddStreamState$(T), [async._StreamController$(T), dart.dynamic, async.Stream, core.bool]]})
     });
     return _StreamControllerAddStreamState;
   });
@@ -16642,7 +16637,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _isUsed = Symbol('_isUsed');
   async._GeneratedStreamImpl$ = dart.generic(T => {
     class _GeneratedStreamImpl extends async._StreamImpl$(T) {
-      _GeneratedStreamImpl(pending) {
+      new(pending) {
         this[_pending] = pending;
         this[_isUsed] = false;
       }
@@ -16655,7 +16650,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_GeneratedStreamImpl, {
-      constructors: () => ({_GeneratedStreamImpl: [async._GeneratedStreamImpl$(T), [async._EventGenerator$(T)]]}),
+      constructors: () => ({new: [async._GeneratedStreamImpl$(T), [async._EventGenerator$(T)]]}),
       methods: () => ({[_createSubscription]: [async.StreamSubscription$(T), [dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]]})
     });
     return _GeneratedStreamImpl;
@@ -16665,7 +16660,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _eventScheduled = Symbol('_eventScheduled');
   async._PendingEvents$ = dart.generic(T => {
     class _PendingEvents extends core.Object {
-      _PendingEvents() {
+      new() {
         this[_state] = async._PendingEvents._STATE_UNSCHEDULED;
       }
       get isScheduled() {
@@ -16709,9 +16704,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._PendingEvents._STATE_CANCELED = 3;
   async._IterablePendingEvents$ = dart.generic(T => {
     class _IterablePendingEvents extends async._PendingEvents$(T) {
-      _IterablePendingEvents(data) {
+      new(data) {
         this[_iterator$] = data[dartx.iterator];
-        super._PendingEvents();
+        super.new();
       }
       get isEmpty() {
         return this[_iterator$] == null;
@@ -16744,7 +16739,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_IterablePendingEvents, {
-      constructors: () => ({_IterablePendingEvents: [async._IterablePendingEvents$(T), [core.Iterable$(T)]]}),
+      constructors: () => ({new: [async._IterablePendingEvents$(T), [core.Iterable$(T)]]}),
       methods: () => ({
         handleNext: [dart.void, [async._EventDispatch$(T)]],
         clear: [dart.void, []]
@@ -16772,7 +16767,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.fn(async._nullDoneHandler, dart.void, []);
   async._DelayedEvent$ = dart.generic(T => {
     class _DelayedEvent extends core.Object {
-      _DelayedEvent() {
+      new() {
         this.next = null;
       }
     }
@@ -16781,9 +16776,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._DelayedEvent = async._DelayedEvent$();
   async._DelayedData$ = dart.generic(T => {
     class _DelayedData extends async._DelayedEvent$(T) {
-      _DelayedData(value) {
+      new(value) {
         this.value = value;
-        super._DelayedEvent();
+        super.new();
       }
       perform(dispatch) {
         dart.as(dispatch, async._EventDispatch$(T));
@@ -16791,28 +16786,28 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_DelayedData, {
-      constructors: () => ({_DelayedData: [async._DelayedData$(T), [T]]}),
+      constructors: () => ({new: [async._DelayedData$(T), [T]]}),
       methods: () => ({perform: [dart.void, [async._EventDispatch$(T)]]})
     });
     return _DelayedData;
   });
   async._DelayedData = async._DelayedData$();
   async._DelayedError = class _DelayedError extends async._DelayedEvent {
-    _DelayedError(error, stackTrace) {
+    new(error, stackTrace) {
       this.error = error;
       this.stackTrace = stackTrace;
-      super._DelayedEvent();
+      super.new();
     }
     perform(dispatch) {
       dispatch[_sendError](this.error, this.stackTrace);
     }
   };
   dart.setSignature(async._DelayedError, {
-    constructors: () => ({_DelayedError: [async._DelayedError, [dart.dynamic, core.StackTrace]]}),
+    constructors: () => ({new: [async._DelayedError, [dart.dynamic, core.StackTrace]]}),
     methods: () => ({perform: [dart.void, [async._EventDispatch]]})
   });
   async._DelayedDone = class _DelayedDone extends core.Object {
-    _DelayedDone() {
+    new() {
     }
     perform(dispatch) {
       dispatch[_sendDone]();
@@ -16826,15 +16821,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   async._DelayedDone[dart.implements] = () => [async._DelayedEvent];
   dart.setSignature(async._DelayedDone, {
-    constructors: () => ({_DelayedDone: [async._DelayedDone, []]}),
+    constructors: () => ({new: [async._DelayedDone, []]}),
     methods: () => ({perform: [dart.void, [async._EventDispatch]]})
   });
   async._StreamImplEvents$ = dart.generic(T => {
     class _StreamImplEvents extends async._PendingEvents$(T) {
-      _StreamImplEvents() {
+      new() {
         this.firstPendingEvent = null;
         this.lastPendingEvent = null;
-        super._PendingEvents();
+        super.new();
       }
       get isEmpty() {
         return this.lastPendingEvent == null;
@@ -16874,7 +16869,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _unlink = Symbol('_unlink');
   const _insertBefore = Symbol('_insertBefore');
   async._BroadcastLinkedList = class _BroadcastLinkedList extends core.Object {
-    _BroadcastLinkedList() {
+    new() {
       this[_next$] = null;
       this[_previous$] = null;
     }
@@ -16907,7 +16902,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _isScheduled = Symbol('_isScheduled');
   async._DoneStreamSubscription$ = dart.generic(T => {
     class _DoneStreamSubscription extends core.Object {
-      _DoneStreamSubscription(onDone) {
+      new(onDone) {
         this[_onDone] = onDone;
         this[_zone] = async.Zone.current;
         this[_state] = 0;
@@ -16967,7 +16962,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _DoneStreamSubscription[dart.implements] = () => [async.StreamSubscription$(T)];
     dart.setSignature(_DoneStreamSubscription, {
-      constructors: () => ({_DoneStreamSubscription: [async._DoneStreamSubscription$(T), [async._DoneHandler]]}),
+      constructors: () => ({new: [async._DoneStreamSubscription$(T), [async._DoneHandler]]}),
       methods: () => ({
         [_schedule]: [dart.void, []],
         onData: [dart.void, [dart.functionType(dart.void, [T])]],
@@ -16995,14 +16990,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _isSubscriptionPaused = Symbol('_isSubscriptionPaused');
   async._AsBroadcastStream$ = dart.generic(T => {
     class _AsBroadcastStream extends async.Stream$(T) {
-      _AsBroadcastStream(source, onListenHandler, onCancelHandler) {
+      new(source, onListenHandler, onCancelHandler) {
         this[_source$] = source;
         this[_onListenHandler] = async.Zone.current.registerUnaryCallback(dart.dynamic, async.StreamSubscription$(T))(onListenHandler);
         this[_onCancelHandler] = async.Zone.current.registerUnaryCallback(dart.dynamic, async.StreamSubscription$(T))(onCancelHandler);
         this[_zone] = async.Zone.current;
         this[_controller$] = null;
         this[_subscription] = null;
-        super.Stream();
+        super.new();
         this[_controller$] = new (async._AsBroadcastStreamController$(T))(dart.bind(this, _onListen), dart.bind(this, _onCancel));
       }
       get isBroadcast() {
@@ -17059,7 +17054,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_AsBroadcastStream, {
-      constructors: () => ({_AsBroadcastStream: [async._AsBroadcastStream$(T), [async.Stream$(T), dart.functionType(dart.void, [async.StreamSubscription$(T)]), dart.functionType(dart.void, [async.StreamSubscription$(T)])]]}),
+      constructors: () => ({new: [async._AsBroadcastStream$(T), [async.Stream$(T), dart.functionType(dart.void, [async.StreamSubscription$(T)]), dart.functionType(dart.void, [async.StreamSubscription$(T)])]]}),
       methods: () => ({
         listen: [async.StreamSubscription$(T), [dart.functionType(dart.void, [T])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}],
         [_onCancel]: [dart.void, []],
@@ -17074,7 +17069,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._AsBroadcastStream = async._AsBroadcastStream$();
   async._BroadcastSubscriptionWrapper$ = dart.generic(T => {
     class _BroadcastSubscriptionWrapper extends core.Object {
-      _BroadcastSubscriptionWrapper(stream) {
+      new(stream) {
         this[_stream] = stream;
       }
       onData(handleData) {
@@ -17109,7 +17104,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _BroadcastSubscriptionWrapper[dart.implements] = () => [async.StreamSubscription$(T)];
     dart.setSignature(_BroadcastSubscriptionWrapper, {
-      constructors: () => ({_BroadcastSubscriptionWrapper: [async._BroadcastSubscriptionWrapper$(T), [async._AsBroadcastStream]]}),
+      constructors: () => ({new: [async._BroadcastSubscriptionWrapper$(T), [async._AsBroadcastStream]]}),
       methods: () => ({
         onData: [dart.void, [dart.functionType(dart.void, [T])]],
         onError: [dart.void, [core.Function]],
@@ -17128,7 +17123,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _clear = Symbol('_clear');
   async._StreamIteratorImpl$ = dart.generic(T => {
     class _StreamIteratorImpl extends core.Object {
-      _StreamIteratorImpl(stream) {
+      new(stream) {
         this[_subscription] = null;
         this[_current$1] = null;
         this[_futureOrPrefetch] = null;
@@ -17236,7 +17231,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _StreamIteratorImpl[dart.implements] = () => [async.StreamIterator$(T)];
     dart.setSignature(_StreamIteratorImpl, {
-      constructors: () => ({_StreamIteratorImpl: [async._StreamIteratorImpl$(T), [async.Stream$(T)]]}),
+      constructors: () => ({new: [async._StreamIteratorImpl$(T), [async.Stream$(T)]]}),
       methods: () => ({
         moveNext: [async.Future$(core.bool), []],
         [_clear]: [dart.void, []],
@@ -17257,7 +17252,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._StreamIteratorImpl._STATE_EXTRA_DONE = 5;
   async._EmptyStream$ = dart.generic(T => {
     class _EmptyStream extends async.Stream$(T) {
-      _EmptyStream() {
+      new() {
         super._internal();
       }
       get isBroadcast() {
@@ -17271,7 +17266,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_EmptyStream, {
-      constructors: () => ({_EmptyStream: [async._EmptyStream$(T), []]}),
+      constructors: () => ({new: [async._EmptyStream$(T), []]}),
       methods: () => ({listen: [async.StreamSubscription$(T), [dart.functionType(dart.void, [T])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}]})
     });
     return _EmptyStream;
@@ -17333,9 +17328,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _handleDone = Symbol('_handleDone');
   async._ForwardingStream$ = dart.generic((S, T) => {
     class _ForwardingStream extends async.Stream$(T) {
-      _ForwardingStream(source) {
+      new(source) {
         this[_source$] = source;
-        super.Stream();
+        super.new();
       }
       get isBroadcast() {
         return this[_source$].isBroadcast;
@@ -17365,7 +17360,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_ForwardingStream, {
-      constructors: () => ({_ForwardingStream: [async._ForwardingStream$(S, T), [async.Stream$(S)]]}),
+      constructors: () => ({new: [async._ForwardingStream$(S, T), [async.Stream$(S)]]}),
       methods: () => ({
         listen: [async.StreamSubscription$(T), [dart.functionType(dart.void, [T])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}],
         [_createSubscription]: [async.StreamSubscription$(T), [dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]],
@@ -17379,10 +17374,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._ForwardingStream = async._ForwardingStream$();
   async._ForwardingStreamSubscription$ = dart.generic((S, T) => {
     class _ForwardingStreamSubscription extends async._BufferingStreamSubscription$(T) {
-      _ForwardingStreamSubscription(stream, onData, onError, onDone, cancelOnError) {
+      new(stream, onData, onError, onDone, cancelOnError) {
         this[_stream] = stream;
         this[_subscription] = null;
-        super._BufferingStreamSubscription(onData, onError, onDone, cancelOnError);
+        super.new(onData, onError, onDone, cancelOnError);
         this[_subscription] = this[_stream][_source$].listen(dart.bind(this, _handleData), {onError: dart.bind(this, _handleError), onDone: dart.bind(this, _handleDone)});
       }
       [_add$](data) {
@@ -17422,7 +17417,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_ForwardingStreamSubscription, {
-      constructors: () => ({_ForwardingStreamSubscription: [async._ForwardingStreamSubscription$(S, T), [async._ForwardingStream$(S, T), dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]]}),
+      constructors: () => ({new: [async._ForwardingStreamSubscription$(S, T), [async._ForwardingStream$(S, T), dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]]}),
       methods: () => ({
         [_add$]: [dart.void, [T]],
         [_handleData]: [dart.void, [S]],
@@ -17450,9 +17445,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _test = Symbol('_test');
   async._WhereStream$ = dart.generic(T => {
     class _WhereStream extends async._ForwardingStream$(T, T) {
-      _WhereStream(source, test) {
+      new(source, test) {
         this[_test] = test;
-        super._ForwardingStream(source);
+        super.new(source);
       }
       [_handleData](inputEvent, sink) {
         dart.as(inputEvent, T);
@@ -17472,7 +17467,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_WhereStream, {
-      constructors: () => ({_WhereStream: [async._WhereStream$(T), [async.Stream$(T), dart.functionType(core.bool, [T])]]}),
+      constructors: () => ({new: [async._WhereStream$(T), [async.Stream$(T), dart.functionType(core.bool, [T])]]}),
       methods: () => ({[_handleData]: [dart.void, [T, async._EventSink$(T)]]})
     });
     return _WhereStream;
@@ -17486,9 +17481,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _transform = Symbol('_transform');
   async._MapStream$ = dart.generic((S, T) => {
     class _MapStream extends async._ForwardingStream$(S, T) {
-      _MapStream(source, transform) {
+      new(source, transform) {
         this[_transform] = transform;
-        super._ForwardingStream(source);
+        super.new(source);
       }
       [_handleData](inputEvent, sink) {
         dart.as(inputEvent, S);
@@ -17506,7 +17501,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_MapStream, {
-      constructors: () => ({_MapStream: [async._MapStream$(S, T), [async.Stream$(S), dart.functionType(T, [S])]]}),
+      constructors: () => ({new: [async._MapStream$(S, T), [async.Stream$(S), dart.functionType(T, [S])]]}),
       methods: () => ({[_handleData]: [dart.void, [S, async._EventSink$(T)]]})
     });
     return _MapStream;
@@ -17515,9 +17510,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _expand = Symbol('_expand');
   async._ExpandStream$ = dart.generic((S, T) => {
     class _ExpandStream extends async._ForwardingStream$(S, T) {
-      _ExpandStream(source, expand) {
+      new(source, expand) {
         this[_expand] = expand;
-        super._ForwardingStream(source);
+        super.new(source);
       }
       [_handleData](inputEvent, sink) {
         dart.as(inputEvent, S);
@@ -17534,7 +17529,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_ExpandStream, {
-      constructors: () => ({_ExpandStream: [async._ExpandStream$(S, T), [async.Stream$(S), dart.functionType(core.Iterable$(T), [S])]]}),
+      constructors: () => ({new: [async._ExpandStream$(S, T), [async.Stream$(S), dart.functionType(core.Iterable$(T), [S])]]}),
       methods: () => ({[_handleData]: [dart.void, [S, async._EventSink$(T)]]})
     });
     return _ExpandStream;
@@ -17543,10 +17538,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._ErrorTest = dart.typedef('_ErrorTest', () => dart.functionType(core.bool, [dart.dynamic]));
   async._HandleErrorStream$ = dart.generic(T => {
     class _HandleErrorStream extends async._ForwardingStream$(T, T) {
-      _HandleErrorStream(source, onError, test) {
+      new(source, onError, test) {
         this[_transform] = onError;
         this[_test] = test;
-        super._ForwardingStream(source);
+        super.new(source);
       }
       [_handleError](error, stackTrace, sink) {
         dart.as(sink, async._EventSink$(T));
@@ -17580,7 +17575,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_HandleErrorStream, {
-      constructors: () => ({_HandleErrorStream: [async._HandleErrorStream$(T), [async.Stream$(T), core.Function, dart.functionType(core.bool, [dart.dynamic])]]}),
+      constructors: () => ({new: [async._HandleErrorStream$(T), [async.Stream$(T), core.Function, dart.functionType(core.bool, [dart.dynamic])]]}),
       methods: () => ({[_handleError]: [dart.void, [core.Object, core.StackTrace, async._EventSink$(T)]]})
     });
     return _HandleErrorStream;
@@ -17589,9 +17584,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _count = Symbol('_count');
   async._TakeStream$ = dart.generic(T => {
     class _TakeStream extends async._ForwardingStream$(T, T) {
-      _TakeStream(source, count) {
+      new(source, count) {
         this[_count] = count;
-        super._ForwardingStream(source);
+        super.new(source);
         if (!(typeof count == 'number')) dart.throw(new core.ArgumentError(count));
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
@@ -17613,7 +17608,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_TakeStream, {
-      constructors: () => ({_TakeStream: [async._TakeStream$(T), [async.Stream$(T), core.int]]}),
+      constructors: () => ({new: [async._TakeStream$(T), [async.Stream$(T), core.int]]}),
       methods: () => ({
         [_createSubscription]: [async.StreamSubscription$(T), [dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]],
         [_handleData]: [dart.void, [T, async._EventSink$(T)]]
@@ -17626,9 +17621,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _flag = Symbol('_flag');
   async._StateStreamSubscription$ = dart.generic(T => {
     class _StateStreamSubscription extends async._ForwardingStreamSubscription$(T, T) {
-      _StateStreamSubscription(stream, onData, onError, onDone, cancelOnError, sharedState) {
+      new(stream, onData, onError, onDone, cancelOnError, sharedState) {
         this[_sharedState] = sharedState;
-        super._ForwardingStreamSubscription(stream, onData, onError, onDone, cancelOnError);
+        super.new(stream, onData, onError, onDone, cancelOnError);
       }
       get [_flag]() {
         return dart.as(this[_sharedState], core.bool);
@@ -17644,16 +17639,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_StateStreamSubscription, {
-      constructors: () => ({_StateStreamSubscription: [async._StateStreamSubscription$(T), [async._ForwardingStream$(T, T), dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool, dart.dynamic]]})
+      constructors: () => ({new: [async._StateStreamSubscription$(T), [async._ForwardingStream$(T, T), dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool, dart.dynamic]]})
     });
     return _StateStreamSubscription;
   });
   async._StateStreamSubscription = async._StateStreamSubscription$();
   async._TakeWhileStream$ = dart.generic(T => {
     class _TakeWhileStream extends async._ForwardingStream$(T, T) {
-      _TakeWhileStream(source, test) {
+      new(source, test) {
         this[_test] = test;
-        super._ForwardingStream(source);
+        super.new(source);
       }
       [_handleData](inputEvent, sink) {
         dart.as(inputEvent, T);
@@ -17676,7 +17671,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_TakeWhileStream, {
-      constructors: () => ({_TakeWhileStream: [async._TakeWhileStream$(T), [async.Stream$(T), dart.functionType(core.bool, [T])]]}),
+      constructors: () => ({new: [async._TakeWhileStream$(T), [async.Stream$(T), dart.functionType(core.bool, [T])]]}),
       methods: () => ({[_handleData]: [dart.void, [T, async._EventSink$(T)]]})
     });
     return _TakeWhileStream;
@@ -17684,9 +17679,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._TakeWhileStream = async._TakeWhileStream$();
   async._SkipStream$ = dart.generic(T => {
     class _SkipStream extends async._ForwardingStream$(T, T) {
-      _SkipStream(source, count) {
+      new(source, count) {
         this[_count] = count;
-        super._ForwardingStream(source);
+        super.new(source);
         if (!(typeof count == 'number') || dart.notNull(count) < 0) dart.throw(new core.ArgumentError(count));
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
@@ -17705,7 +17700,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_SkipStream, {
-      constructors: () => ({_SkipStream: [async._SkipStream$(T), [async.Stream$(T), core.int]]}),
+      constructors: () => ({new: [async._SkipStream$(T), [async.Stream$(T), core.int]]}),
       methods: () => ({
         [_createSubscription]: [async.StreamSubscription$(T), [dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]],
         [_handleData]: [dart.void, [T, async._EventSink$(T)]]
@@ -17716,9 +17711,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._SkipStream = async._SkipStream$();
   async._SkipWhileStream$ = dart.generic(T => {
     class _SkipWhileStream extends async._ForwardingStream$(T, T) {
-      _SkipWhileStream(source, test) {
+      new(source, test) {
         this[_test] = test;
-        super._ForwardingStream(source);
+        super.new(source);
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
         return new (async._StateStreamSubscription$(T))(this, onData, onError, onDone, cancelOnError, false);
@@ -17749,7 +17744,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_SkipWhileStream, {
-      constructors: () => ({_SkipWhileStream: [async._SkipWhileStream$(T), [async.Stream$(T), dart.functionType(core.bool, [T])]]}),
+      constructors: () => ({new: [async._SkipWhileStream$(T), [async.Stream$(T), dart.functionType(core.bool, [T])]]}),
       methods: () => ({
         [_createSubscription]: [async.StreamSubscription$(T), [dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]],
         [_handleData]: [dart.void, [T, async._EventSink$(T)]]
@@ -17766,10 +17761,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _equals = Symbol('_equals');
   async._DistinctStream$ = dart.generic(T => {
     class _DistinctStream extends async._ForwardingStream$(T, T) {
-      _DistinctStream(source, equals) {
+      new(source, equals) {
         this[_previous$] = async._DistinctStream._SENTINEL;
         this[_equals] = equals;
-        super._ForwardingStream(source);
+        super.new(source);
       }
       [_handleData](inputEvent, sink) {
         dart.as(inputEvent, T);
@@ -17799,7 +17794,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_DistinctStream, {
-      constructors: () => ({_DistinctStream: [async._DistinctStream$(T), [async.Stream$(T), dart.functionType(core.bool, [T, T])]]}),
+      constructors: () => ({new: [async._DistinctStream$(T), [async.Stream$(T), dart.functionType(core.bool, [T, T])]]}),
       methods: () => ({[_handleData]: [dart.void, [T, async._EventSink$(T)]]})
     });
     return _DistinctStream;
@@ -17813,7 +17808,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   async._EventSinkWrapper$ = dart.generic(T => {
     class _EventSinkWrapper extends core.Object {
-      _EventSinkWrapper(sink) {
+      new(sink) {
         this[_sink] = sink;
       }
       add(data) {
@@ -17830,7 +17825,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _EventSinkWrapper[dart.implements] = () => [async.EventSink$(T)];
     dart.setSignature(_EventSinkWrapper, {
-      constructors: () => ({_EventSinkWrapper: [async._EventSinkWrapper$(T), [async._EventSink]]}),
+      constructors: () => ({new: [async._EventSinkWrapper$(T), [async._EventSink]]}),
       methods: () => ({
         add: [dart.void, [T]],
         addError: [dart.void, [dart.dynamic], [core.StackTrace]],
@@ -17844,10 +17839,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _isSubscribed = Symbol('_isSubscribed');
   async._SinkTransformerStreamSubscription$ = dart.generic((S, T) => {
     class _SinkTransformerStreamSubscription extends async._BufferingStreamSubscription$(T) {
-      _SinkTransformerStreamSubscription(source, mapper, onData, onError, onDone, cancelOnError) {
+      new(source, mapper, onData, onError, onDone, cancelOnError) {
         this[_transformerSink] = null;
         this[_subscription] = null;
-        super._BufferingStreamSubscription(onData, onError, onDone, cancelOnError);
+        super.new(onData, onError, onDone, cancelOnError);
         let eventSink = new (async._EventSinkWrapper$(T))(this);
         this[_transformerSink] = mapper(eventSink);
         this[_subscription] = source.listen(dart.bind(this, _handleData), {onError: dart.bind(this, _handleError), onDone: dart.bind(this, _handleDone)});
@@ -17924,7 +17919,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_SinkTransformerStreamSubscription, {
-      constructors: () => ({_SinkTransformerStreamSubscription: [async._SinkTransformerStreamSubscription$(S, T), [async.Stream$(S), async._SinkMapper$(S, T), dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]]}),
+      constructors: () => ({new: [async._SinkTransformerStreamSubscription$(S, T), [async.Stream$(S), async._SinkMapper$(S, T), dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]]}),
       methods: () => ({
         [_add$]: [dart.void, [T]],
         [_handleData]: [dart.void, [S]],
@@ -17943,7 +17938,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _sinkMapper = Symbol('_sinkMapper');
   async._StreamSinkTransformer$ = dart.generic((S, T) => {
     class _StreamSinkTransformer extends core.Object {
-      _StreamSinkTransformer(sinkMapper) {
+      new(sinkMapper) {
         this[_sinkMapper] = sinkMapper;
       }
       bind(stream) {
@@ -17953,7 +17948,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _StreamSinkTransformer[dart.implements] = () => [async.StreamTransformer$(S, T)];
     dart.setSignature(_StreamSinkTransformer, {
-      constructors: () => ({_StreamSinkTransformer: [async._StreamSinkTransformer$(S, T), [async._SinkMapper$(S, T)]]}),
+      constructors: () => ({new: [async._StreamSinkTransformer$(S, T), [async._SinkMapper$(S, T)]]}),
       methods: () => ({bind: [async.Stream$(T), [async.Stream$(S)]]})
     });
     return _StreamSinkTransformer;
@@ -17964,10 +17959,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       get isBroadcast() {
         return this[_stream].isBroadcast;
       }
-      _BoundSinkStream(stream, sinkMapper) {
+      new(stream, sinkMapper) {
         this[_stream] = stream;
         this[_sinkMapper] = sinkMapper;
-        super.Stream();
+        super.new();
       }
       listen(onData, opts) {
         let onError = opts && 'onError' in opts ? opts.onError : null;
@@ -17979,7 +17974,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_BoundSinkStream, {
-      constructors: () => ({_BoundSinkStream: [async._BoundSinkStream$(S, T), [async.Stream$(S), async._SinkMapper$(S, T)]]}),
+      constructors: () => ({new: [async._BoundSinkStream$(S, T), [async.Stream$(S), async._SinkMapper$(S, T)]]}),
       methods: () => ({listen: [async.StreamSubscription$(T), [dart.functionType(dart.void, [T])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}]})
     });
     return _BoundSinkStream;
@@ -18002,7 +17997,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._TransformDoneHandler = async._TransformDoneHandler$();
   async._HandlerEventSink$ = dart.generic((S, T) => {
     class _HandlerEventSink extends core.Object {
-      _HandlerEventSink(handleData, handleError, handleDone, sink) {
+      new(handleData, handleError, handleDone, sink) {
         this[_handleData] = handleData;
         this[_handleError] = handleError;
         this[_handleDone] = handleDone;
@@ -18022,7 +18017,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _HandlerEventSink[dart.implements] = () => [async.EventSink$(S)];
     dart.setSignature(_HandlerEventSink, {
-      constructors: () => ({_HandlerEventSink: [async._HandlerEventSink$(S, T), [async._TransformDataHandler$(S, T), async._TransformErrorHandler$(T), async._TransformDoneHandler$(T), async.EventSink$(T)]]}),
+      constructors: () => ({new: [async._HandlerEventSink$(S, T), [async._TransformDataHandler$(S, T), async._TransformErrorHandler$(T), async._TransformDoneHandler$(T), async.EventSink$(T)]]}),
       methods: () => ({
         add: [dart.void, [S]],
         addError: [dart.void, [core.Object], [core.StackTrace]],
@@ -18034,11 +18029,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._HandlerEventSink = async._HandlerEventSink$();
   async._StreamHandlerTransformer$ = dart.generic((S, T) => {
     class _StreamHandlerTransformer extends async._StreamSinkTransformer$(S, T) {
-      _StreamHandlerTransformer(opts) {
+      new(opts) {
         let handleData = opts && 'handleData' in opts ? opts.handleData : null;
         let handleError = opts && 'handleError' in opts ? opts.handleError : null;
         let handleDone = opts && 'handleDone' in opts ? opts.handleDone : null;
-        super._StreamSinkTransformer(dart.fn(outputSink => {
+        super.new(dart.fn(outputSink => {
           if (handleData == null) handleData = async._StreamHandlerTransformer._defaultHandleData;
           if (handleError == null) handleError = async._StreamHandlerTransformer._defaultHandleError;
           if (handleDone == null) handleDone = async._StreamHandlerTransformer._defaultHandleDone;
@@ -18060,7 +18055,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_StreamHandlerTransformer, {
-      constructors: () => ({_StreamHandlerTransformer: [async._StreamHandlerTransformer$(S, T), [], {handleData: dart.functionType(dart.void, [S, async.EventSink$(T)]), handleError: dart.functionType(dart.void, [core.Object, core.StackTrace, async.EventSink$(T)]), handleDone: dart.functionType(dart.void, [async.EventSink$(T)])}]}),
+      constructors: () => ({new: [async._StreamHandlerTransformer$(S, T), [], {handleData: dart.functionType(dart.void, [S, async.EventSink$(T)]), handleError: dart.functionType(dart.void, [core.Object, core.StackTrace, async.EventSink$(T)]), handleDone: dart.functionType(dart.void, [async.EventSink$(T)])}]}),
       methods: () => ({bind: [async.Stream$(T), [async.Stream$(S)]]}),
       statics: () => ({
         _defaultHandleData: [dart.void, [dart.dynamic, async.EventSink]],
@@ -18080,7 +18075,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _transformer = Symbol('_transformer');
   async._StreamSubscriptionTransformer$ = dart.generic((S, T) => {
     class _StreamSubscriptionTransformer extends core.Object {
-      _StreamSubscriptionTransformer(transformer) {
+      new(transformer) {
         this[_transformer] = transformer;
       }
       bind(stream) {
@@ -18090,7 +18085,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _StreamSubscriptionTransformer[dart.implements] = () => [async.StreamTransformer$(S, T)];
     dart.setSignature(_StreamSubscriptionTransformer, {
-      constructors: () => ({_StreamSubscriptionTransformer: [async._StreamSubscriptionTransformer$(S, T), [async._SubscriptionTransformer$(S, T)]]}),
+      constructors: () => ({new: [async._StreamSubscriptionTransformer$(S, T), [async._SubscriptionTransformer$(S, T)]]}),
       methods: () => ({bind: [async.Stream$(T), [async.Stream$(S)]]})
     });
     return _StreamSubscriptionTransformer;
@@ -18098,10 +18093,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._StreamSubscriptionTransformer = async._StreamSubscriptionTransformer$();
   async._BoundSubscriptionStream$ = dart.generic((S, T) => {
     class _BoundSubscriptionStream extends async.Stream$(T) {
-      _BoundSubscriptionStream(stream, transformer) {
+      new(stream, transformer) {
         this[_stream] = stream;
         this[_transformer] = transformer;
-        super.Stream();
+        super.new();
       }
       listen(onData, opts) {
         let onError = opts && 'onError' in opts ? opts.onError : null;
@@ -18116,7 +18111,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_BoundSubscriptionStream, {
-      constructors: () => ({_BoundSubscriptionStream: [async._BoundSubscriptionStream$(S, T), [async.Stream$(S), async._SubscriptionTransformer$(S, T)]]}),
+      constructors: () => ({new: [async._BoundSubscriptionStream$(S, T), [async.Stream$(S), async._SubscriptionTransformer$(S, T)]]}),
       methods: () => ({listen: [async.StreamSubscription$(T), [dart.functionType(dart.void, [T])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}]})
     });
     return _BoundSubscriptionStream;
@@ -18220,13 +18215,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async.ForkHandler = dart.typedef('ForkHandler', () => dart.functionType(async.Zone, [async.Zone, async.ZoneDelegate, async.Zone, async.ZoneSpecification, core.Map]));
   async._ZoneFunction$ = dart.generic(T => {
     class _ZoneFunction extends core.Object {
-      _ZoneFunction(zone, func) {
+      new(zone, func) {
         this.zone = zone;
         this.function = func;
       }
     }
     dart.setSignature(_ZoneFunction, {
-      constructors: () => ({_ZoneFunction: [async._ZoneFunction$(T), [async._Zone, T]]})
+      constructors: () => ({new: [async._ZoneFunction$(T), [async._Zone, T]]})
     });
     return _ZoneFunction;
   });
@@ -18259,7 +18254,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   async._ZoneSpecification = class _ZoneSpecification extends core.Object {
-    _ZoneSpecification(opts) {
+    new(opts) {
       let handleUncaughtError = opts && 'handleUncaughtError' in opts ? opts.handleUncaughtError : null;
       let run = opts && 'run' in opts ? opts.run : null;
       let runUnary = opts && 'runUnary' in opts ? opts.runUnary : null;
@@ -18290,7 +18285,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   async._ZoneSpecification[dart.implements] = () => [async.ZoneSpecification];
   dart.setSignature(async._ZoneSpecification, {
-    constructors: () => ({_ZoneSpecification: [async._ZoneSpecification, [], {handleUncaughtError: async.HandleUncaughtErrorHandler, run: async.RunHandler, runUnary: async.RunUnaryHandler, runBinary: async.RunBinaryHandler, registerCallback: async.RegisterCallbackHandler, registerUnaryCallback: async.RegisterUnaryCallbackHandler, registerBinaryCallback: async.RegisterBinaryCallbackHandler, errorCallback: async.ErrorCallbackHandler, scheduleMicrotask: async.ScheduleMicrotaskHandler, createTimer: async.CreateTimerHandler, createPeriodicTimer: async.CreatePeriodicTimerHandler, print: async.PrintHandler, fork: async.ForkHandler}]})
+    constructors: () => ({new: [async._ZoneSpecification, [], {handleUncaughtError: async.HandleUncaughtErrorHandler, run: async.RunHandler, runUnary: async.RunUnaryHandler, runBinary: async.RunBinaryHandler, registerCallback: async.RegisterCallbackHandler, registerUnaryCallback: async.RegisterUnaryCallbackHandler, registerBinaryCallback: async.RegisterBinaryCallbackHandler, errorCallback: async.ErrorCallbackHandler, scheduleMicrotask: async.ScheduleMicrotaskHandler, createTimer: async.CreateTimerHandler, createPeriodicTimer: async.CreatePeriodicTimerHandler, print: async.PrintHandler, fork: async.ForkHandler}]})
   });
   async.ZoneDelegate = class ZoneDelegate extends core.Object {};
   async.Zone = class Zone extends core.Object {
@@ -18349,7 +18344,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _print = Symbol('_print');
   const _fork = Symbol('_fork');
   async._ZoneDelegate = class _ZoneDelegate extends core.Object {
-    _ZoneDelegate(delegationTarget) {
+    new(delegationTarget) {
       this[_delegationTarget] = delegationTarget;
     }
     handleUncaughtError(R) {
@@ -18448,7 +18443,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   async._ZoneDelegate[dart.implements] = () => [async.ZoneDelegate];
   dart.setSignature(async._ZoneDelegate, {
-    constructors: () => ({_ZoneDelegate: [async._ZoneDelegate, [async._Zone]]}),
+    constructors: () => ({new: [async._ZoneDelegate, [async._Zone]]}),
     methods: () => ({
       handleUncaughtError: [R => [R, [async.Zone, dart.dynamic, core.StackTrace]]],
       run: [R => [R, [async.Zone, dart.functionType(R, [])]]],
@@ -18467,7 +18462,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   const _map$ = Symbol('_map');
   async._Zone = class _Zone extends core.Object {
-    _Zone() {
+    new() {
     }
     inSameErrorZone(otherZone) {
       return core.identical(this, otherZone) || core.identical(this.errorZone, otherZone.errorZone);
@@ -18475,7 +18470,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   async._Zone[dart.implements] = () => [async.Zone];
   dart.setSignature(async._Zone, {
-    constructors: () => ({_Zone: [async._Zone, []]}),
+    constructors: () => ({new: [async._Zone, []]}),
     methods: () => ({inSameErrorZone: [core.bool, [async.Zone]]})
   });
   const _delegateCache = Symbol('_delegateCache');
@@ -18485,7 +18480,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_delegateCache] = new async._ZoneDelegate(this);
       return this[_delegateCache];
     }
-    _CustomZone(parent, specification, map) {
+    new(parent, specification, map) {
       this.parent = parent;
       this[_map$] = map;
       this[_run] = null;
@@ -18502,7 +18497,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_fork] = null;
       this[_handleUncaughtError] = null;
       this[_delegateCache] = null;
-      super._Zone();
+      super.new();
       this[_run] = specification.run != null ? new (async._ZoneFunction$(async.RunHandler))(this, specification.run) : this.parent[_run];
       this[_runUnary] = specification.runUnary != null ? new (async._ZoneFunction$(async.RunUnaryHandler))(this, specification.runUnary) : this.parent[_runUnary];
       this[_runBinary] = specification.runBinary != null ? new (async._ZoneFunction$(async.RunBinaryHandler))(this, specification.runBinary) : this.parent[_runBinary];
@@ -18710,7 +18705,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(async._CustomZone, {
-    constructors: () => ({_CustomZone: [async._CustomZone, [async._Zone, async.ZoneSpecification, core.Map]]}),
+    constructors: () => ({new: [async._CustomZone, [async._Zone, async.ZoneSpecification, core.Map]]}),
     methods: () => ({
       runGuarded: [R => [R, [dart.functionType(R, [])]]],
       runUnaryGuarded: [(R, T) => [R, [dart.functionType(R, [T]), T]]],
@@ -18873,8 +18868,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let const$18;
   let const$19;
   async._RootZone = class _RootZone extends async._Zone {
-    _RootZone() {
-      super._Zone();
+    new() {
+      super.new();
     }
     get [_run]() {
       return const$7 || (const$7 = dart.const(new (async._ZoneFunction$(async.RunHandler))(async._ROOT_ZONE, dart.gbind(async._rootRun, dart.dynamic))));
@@ -19063,7 +19058,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(async._RootZone, {
-    constructors: () => ({_RootZone: [async._RootZone, []]}),
+    constructors: () => ({new: [async._RootZone, []]}),
     methods: () => ({
       runGuarded: [R => [R, [dart.functionType(R, [])]]],
       runUnaryGuarded: [(R, T) => [R, [dart.functionType(R, [T]), T]]],
@@ -19150,7 +19145,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _remove = Symbol('_remove');
   collection._HashMap$ = dart.generic((K, V) => {
     class _HashMap extends core.Object {
-      _HashMap() {
+      new() {
         this[_length$1] = 0;
         this[_strings$] = null;
         this[_nums$] = null;
@@ -19408,7 +19403,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _HashMap[dart.implements] = () => [collection.HashMap$(K, V)];
     dart.setSignature(_HashMap, {
-      constructors: () => ({_HashMap: [collection._HashMap$(K, V), []]}),
+      constructors: () => ({new: [collection._HashMap$(K, V), []]}),
       methods: () => ({
         containsKey: [core.bool, [core.Object]],
         [_containsKey]: [core.bool, [core.Object]],
@@ -19462,8 +19457,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._HashMap = collection._HashMap$();
   collection._IdentityHashMap$ = dart.generic((K, V) => {
     class _IdentityHashMap extends collection._HashMap$(K, V) {
-      _IdentityHashMap() {
-        super._HashMap();
+      new() {
+        super.new();
       }
       [_computeHashCode](key) {
         return core.identityHashCode(key) & 0x3ffffff;
@@ -19485,11 +19480,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _validKey = Symbol('_validKey');
   collection._CustomHashMap$ = dart.generic((K, V) => {
     class _CustomHashMap extends collection._HashMap$(K, V) {
-      _CustomHashMap(equals, hashCode, validKey) {
+      new(equals, hashCode, validKey) {
         this[_equals$] = equals;
         this[_hashCode] = hashCode;
         this[_validKey] = validKey != null ? validKey : dart.fn(v => dart.is(v, K), core.bool, [core.Object]);
-        super._HashMap();
+        super.new();
       }
       get(key) {
         if (!dart.notNull(this[_validKey](key))) return null;
@@ -19525,7 +19520,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_CustomHashMap, {
-      constructors: () => ({_CustomHashMap: [collection._CustomHashMap$(K, V), [collection._Equality$(K), collection._Hasher$(K), dart.functionType(core.bool, [core.Object])]]}),
+      constructors: () => ({new: [collection._CustomHashMap$(K, V), [collection._Equality$(K), collection._Hasher$(K), dart.functionType(core.bool, [core.Object])]]}),
       methods: () => ({
         get: [V, [core.Object]],
         set: [dart.void, [K, V]],
@@ -19539,9 +19534,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _map$0 = Symbol('_map');
   collection.HashMapKeyIterable$ = dart.generic(E => {
     class HashMapKeyIterable extends collection.IterableBase$(E) {
-      HashMapKeyIterable(map) {
+      new(map) {
         this[_map$0] = map;
-        super.IterableBase();
+        super.new();
       }
       get length() {
         return dart.as(dart.dload(this[_map$0], _length$1), core.int);
@@ -19567,7 +19562,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     HashMapKeyIterable[dart.implements] = () => [_internal.EfficientLength];
     dart.setSignature(HashMapKeyIterable, {
-      constructors: () => ({HashMapKeyIterable: [collection.HashMapKeyIterable$(E), [dart.dynamic]]}),
+      constructors: () => ({new: [collection.HashMapKeyIterable$(E), [dart.dynamic]]}),
       methods: () => ({forEach: [dart.void, [dart.functionType(dart.void, [E])]]})
     });
     dart.defineExtensionMembers(HashMapKeyIterable, [
@@ -19584,7 +19579,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _current$2 = Symbol('_current');
   collection.HashMapKeyIterator$ = dart.generic(E => {
     class HashMapKeyIterator extends core.Object {
-      HashMapKeyIterator(map, keys) {
+      new(map, keys) {
         this[_map$0] = map;
         this[_keys] = keys;
         this[_offset] = 0;
@@ -19610,7 +19605,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     HashMapKeyIterator[dart.implements] = () => [core.Iterator$(E)];
     dart.setSignature(HashMapKeyIterator, {
-      constructors: () => ({HashMapKeyIterator: [collection.HashMapKeyIterator$(E), [dart.dynamic, core.List]]}),
+      constructors: () => ({new: [collection.HashMapKeyIterator$(E), [dart.dynamic, core.List]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return HashMapKeyIterator;
@@ -19628,7 +19623,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _previous$0 = Symbol('_previous');
   collection._LinkedHashMap$ = dart.generic((K, V) => {
     class _LinkedHashMap extends core.Object {
-      _LinkedHashMap() {
+      new() {
         this[_length$1] = 0;
         this[_strings$] = null;
         this[_nums$] = null;
@@ -19887,7 +19882,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _LinkedHashMap[dart.implements] = () => [collection.LinkedHashMap$(K, V), _js_helper.InternalMap];
     dart.setSignature(_LinkedHashMap, {
-      constructors: () => ({_LinkedHashMap: [collection._LinkedHashMap$(K, V), []]}),
+      constructors: () => ({new: [collection._LinkedHashMap$(K, V), []]}),
       methods: () => ({
         containsKey: [core.bool, [core.Object]],
         [_containsKey]: [core.bool, [core.Object]],
@@ -19942,8 +19937,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._LinkedHashMap = collection._LinkedHashMap$();
   collection._LinkedIdentityHashMap$ = dart.generic((K, V) => {
     class _LinkedIdentityHashMap extends collection._LinkedHashMap$(K, V) {
-      _LinkedIdentityHashMap() {
-        super._LinkedHashMap();
+      new() {
+        super.new();
       }
       [_computeHashCode](key) {
         return core.identityHashCode(key) & 0x3ffffff;
@@ -19963,11 +19958,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._LinkedIdentityHashMap = collection._LinkedIdentityHashMap$();
   collection._LinkedCustomHashMap$ = dart.generic((K, V) => {
     class _LinkedCustomHashMap extends collection._LinkedHashMap$(K, V) {
-      _LinkedCustomHashMap(equals, hashCode, validKey) {
+      new(equals, hashCode, validKey) {
         this[_equals$] = equals;
         this[_hashCode] = hashCode;
         this[_validKey] = validKey != null ? validKey : dart.fn(v => dart.is(v, K), core.bool, [core.Object]);
-        super._LinkedHashMap();
+        super.new();
       }
       get(key) {
         if (!dart.notNull(this[_validKey](key))) return null;
@@ -20001,7 +19996,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_LinkedCustomHashMap, {
-      constructors: () => ({_LinkedCustomHashMap: [collection._LinkedCustomHashMap$(K, V), [collection._Equality$(K), collection._Hasher$(K), dart.functionType(core.bool, [core.Object])]]}),
+      constructors: () => ({new: [collection._LinkedCustomHashMap$(K, V), [collection._Equality$(K), collection._Hasher$(K), dart.functionType(core.bool, [core.Object])]]}),
       methods: () => ({
         get: [V, [core.Object]],
         set: [dart.void, [K, V]],
@@ -20013,7 +20008,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   collection._LinkedCustomHashMap = collection._LinkedCustomHashMap$();
   collection.LinkedHashMapCell = class LinkedHashMapCell extends core.Object {
-    LinkedHashMapCell(key, value) {
+    new(key, value) {
       this[_key] = key;
       this[_value] = value;
       this[_next$0] = null;
@@ -20021,13 +20016,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(collection.LinkedHashMapCell, {
-    constructors: () => ({LinkedHashMapCell: [collection.LinkedHashMapCell, [dart.dynamic, dart.dynamic]]})
+    constructors: () => ({new: [collection.LinkedHashMapCell, [dart.dynamic, dart.dynamic]]})
   });
   collection.LinkedHashMapKeyIterable$ = dart.generic(E => {
     class LinkedHashMapKeyIterable extends collection.IterableBase$(E) {
-      LinkedHashMapKeyIterable(map) {
+      new(map) {
         this[_map$0] = map;
-        super.IterableBase();
+        super.new();
       }
       get length() {
         return dart.as(dart.dload(this[_map$0], _length$1), core.int);
@@ -20055,7 +20050,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     LinkedHashMapKeyIterable[dart.implements] = () => [_internal.EfficientLength];
     dart.setSignature(LinkedHashMapKeyIterable, {
-      constructors: () => ({LinkedHashMapKeyIterable: [collection.LinkedHashMapKeyIterable$(E), [dart.dynamic]]}),
+      constructors: () => ({new: [collection.LinkedHashMapKeyIterable$(E), [dart.dynamic]]}),
       methods: () => ({forEach: [dart.void, [dart.functionType(dart.void, [E])]]})
     });
     dart.defineExtensionMembers(LinkedHashMapKeyIterable, [
@@ -20071,7 +20066,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _cell$ = Symbol('_cell');
   collection.LinkedHashMapKeyIterator$ = dart.generic(E => {
     class LinkedHashMapKeyIterator extends core.Object {
-      LinkedHashMapKeyIterator(map, modifications) {
+      new(map, modifications) {
         this[_map$0] = map;
         this[_modifications$] = modifications;
         this[_cell$] = null;
@@ -20096,7 +20091,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     LinkedHashMapKeyIterator[dart.implements] = () => [core.Iterator$(E)];
     dart.setSignature(LinkedHashMapKeyIterator, {
-      constructors: () => ({LinkedHashMapKeyIterator: [collection.LinkedHashMapKeyIterator$(E), [dart.dynamic, core.int]]}),
+      constructors: () => ({new: [collection.LinkedHashMapKeyIterator$(E), [dart.dynamic, core.int]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return LinkedHashMapKeyIterator;
@@ -20459,7 +20454,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._HashSetBase = collection._HashSetBase$();
   collection._HashSet$ = dart.generic(E => {
     class _HashSet extends collection._HashSetBase$(E) {
-      _HashSet() {
+      new() {
         this[_length$1] = 0;
         this[_strings$] = null;
         this[_nums$] = null;
@@ -20676,7 +20671,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _HashSet[dart.implements] = () => [collection.HashSet$(E)];
     dart.setSignature(_HashSet, {
-      constructors: () => ({_HashSet: [collection._HashSet$(E), []]}),
+      constructors: () => ({new: [collection._HashSet$(E), []]}),
       methods: () => ({
         [_newSet]: [core.Set$(E), []],
         contains: [core.bool, [core.Object]],
@@ -20717,8 +20712,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._HashSet = collection._HashSet$();
   collection._IdentityHashSet$ = dart.generic(E => {
     class _IdentityHashSet extends collection._HashSet$(E) {
-      _IdentityHashSet() {
-        super._HashSet();
+      new() {
+        super.new();
       }
       [_newSet]() {
         return new (collection._IdentityHashSet$(E))();
@@ -20745,11 +20740,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _hasher = Symbol('_hasher');
   collection._CustomHashSet$ = dart.generic(E => {
     class _CustomHashSet extends collection._HashSet$(E) {
-      _CustomHashSet(equality, hasher, validKey) {
+      new(equality, hasher, validKey) {
         this[_equality] = equality;
         this[_hasher] = hasher;
         this[_validKey] = validKey != null ? validKey : dart.fn(x => dart.is(x, E), core.bool, [core.Object]);
-        super._HashSet();
+        super.new();
       }
       [_newSet]() {
         return new (collection._CustomHashSet$(E))(this[_equality], this[_hasher], this[_validKey]);
@@ -20783,7 +20778,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_CustomHashSet, {
-      constructors: () => ({_CustomHashSet: [collection._CustomHashSet$(E), [collection._Equality$(E), collection._Hasher$(E), dart.functionType(core.bool, [core.Object])]]}),
+      constructors: () => ({new: [collection._CustomHashSet$(E), [collection._Equality$(E), collection._Hasher$(E), dart.functionType(core.bool, [core.Object])]]}),
       methods: () => ({
         [_newSet]: [core.Set$(E), []],
         add: [core.bool, [E]],
@@ -20796,7 +20791,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._CustomHashSet = collection._CustomHashSet$();
   collection.HashSetIterator$ = dart.generic(E => {
     class HashSetIterator extends core.Object {
-      HashSetIterator(set, elements) {
+      new(set, elements) {
         this[_set] = set;
         this[_elements] = elements;
         this[_offset] = 0;
@@ -20822,7 +20817,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     HashSetIterator[dart.implements] = () => [core.Iterator$(E)];
     dart.setSignature(HashSetIterator, {
-      constructors: () => ({HashSetIterator: [collection.HashSetIterator$(E), [dart.dynamic, core.List]]}),
+      constructors: () => ({new: [collection.HashSetIterator$(E), [dart.dynamic, core.List]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return HashSetIterator;
@@ -20833,7 +20828,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _filterWhere = Symbol('_filterWhere');
   collection._LinkedHashSet$ = dart.generic(E => {
     class _LinkedHashSet extends collection._HashSetBase$(E) {
-      _LinkedHashSet() {
+      new() {
         this[_length$1] = 0;
         this[_strings$] = null;
         this[_nums$] = null;
@@ -21084,7 +21079,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _LinkedHashSet[dart.implements] = () => [collection.LinkedHashSet$(E)];
     dart.setSignature(_LinkedHashSet, {
-      constructors: () => ({_LinkedHashSet: [collection._LinkedHashSet$(E), []]}),
+      constructors: () => ({new: [collection._LinkedHashSet$(E), []]}),
       methods: () => ({
         [_newSet]: [core.Set$(E), []],
         [_unsupported]: [dart.void, [core.String]],
@@ -21134,8 +21129,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._LinkedHashSet = collection._LinkedHashSet$();
   collection._LinkedIdentityHashSet$ = dart.generic(E => {
     class _LinkedIdentityHashSet extends collection._LinkedHashSet$(E) {
-      _LinkedIdentityHashSet() {
-        super._LinkedHashSet();
+      new() {
+        super.new();
       }
       [_newSet]() {
         return new (collection._LinkedIdentityHashSet$(E))();
@@ -21161,11 +21156,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._LinkedIdentityHashSet = collection._LinkedIdentityHashSet$();
   collection._LinkedCustomHashSet$ = dart.generic(E => {
     class _LinkedCustomHashSet extends collection._LinkedHashSet$(E) {
-      _LinkedCustomHashSet(equality, hasher, validKey) {
+      new(equality, hasher, validKey) {
         this[_equality] = equality;
         this[_hasher] = hasher;
         this[_validKey] = validKey != null ? validKey : dart.fn(x => dart.is(x, E), core.bool, [core.Object]);
-        super._LinkedHashSet();
+        super.new();
       }
       [_newSet]() {
         return new (collection._LinkedCustomHashSet$(E))(this[_equality], this[_hasher], this[_validKey]);
@@ -21213,7 +21208,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_LinkedCustomHashSet, {
-      constructors: () => ({_LinkedCustomHashSet: [collection._LinkedCustomHashSet$(E), [collection._Equality$(E), collection._Hasher$(E), dart.functionType(core.bool, [core.Object])]]}),
+      constructors: () => ({new: [collection._LinkedCustomHashSet$(E), [collection._Equality$(E), collection._Hasher$(E), dart.functionType(core.bool, [core.Object])]]}),
       methods: () => ({
         [_newSet]: [core.Set$(E), []],
         add: [core.bool, [E]],
@@ -21225,18 +21220,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   collection._LinkedCustomHashSet = collection._LinkedCustomHashSet$();
   collection.LinkedHashSetCell = class LinkedHashSetCell extends core.Object {
-    LinkedHashSetCell(element) {
+    new(element) {
       this[_element] = element;
       this[_next$0] = null;
       this[_previous$0] = null;
     }
   };
   dart.setSignature(collection.LinkedHashSetCell, {
-    constructors: () => ({LinkedHashSetCell: [collection.LinkedHashSetCell, [dart.dynamic]]})
+    constructors: () => ({new: [collection.LinkedHashSetCell, [dart.dynamic]]})
   });
   collection.LinkedHashSetIterator$ = dart.generic(E => {
     class LinkedHashSetIterator extends core.Object {
-      LinkedHashSetIterator(set, modifications) {
+      new(set, modifications) {
         this[_set] = set;
         this[_modifications$] = modifications;
         this[_cell$] = null;
@@ -21261,7 +21256,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     LinkedHashSetIterator[dart.implements] = () => [core.Iterator$(E)];
     dart.setSignature(LinkedHashSetIterator, {
-      constructors: () => ({LinkedHashSetIterator: [collection.LinkedHashSetIterator$(E), [dart.dynamic, core.int]]}),
+      constructors: () => ({new: [collection.LinkedHashSetIterator$(E), [dart.dynamic, core.int]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return LinkedHashSetIterator;
@@ -21270,7 +21265,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _source$0 = Symbol('_source');
   collection.UnmodifiableListView$ = dart.generic(E => {
     class UnmodifiableListView extends _internal.UnmodifiableListBase$(E) {
-      UnmodifiableListView(source) {
+      new(source) {
         this[_source$0] = source;
       }
       get length() {
@@ -21284,7 +21279,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(UnmodifiableListView, {
-      constructors: () => ({UnmodifiableListView: [collection.UnmodifiableListView$(E), [core.Iterable$(E)]]}),
+      constructors: () => ({new: [collection.UnmodifiableListView$(E), [core.Iterable$(E)]]}),
       methods: () => ({get: [E, [core.int]]})
     });
     dart.defineExtensionMembers(UnmodifiableListView, ['get', 'length']);
@@ -21770,7 +21765,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _move = Symbol('_move');
   collection.HasNextIterator$ = dart.generic(E => {
     class HasNextIterator extends core.Object {
-      HasNextIterator(iterator) {
+      new(iterator) {
         this[_iterator$0] = iterator;
         this[_state$] = collection.HasNextIterator._NOT_MOVED_YET;
       }
@@ -21794,7 +21789,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(HasNextIterator, {
-      constructors: () => ({HasNextIterator: [collection.HasNextIterator$(E), [core.Iterator$(E)]]}),
+      constructors: () => ({new: [collection.HasNextIterator$(E), [core.Iterator$(E)]]}),
       methods: () => ({
         next: [E, []],
         [_move]: [dart.void, []]
@@ -21941,11 +21936,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _unlink$ = Symbol('_unlink');
   collection.LinkedList$ = dart.generic(E => {
     class LinkedList extends core.Iterable$(E) {
-      LinkedList() {
+      new() {
         this[_modificationCount] = 0;
         this[_length$1] = 0;
         this[_first$] = null;
-        super.Iterable();
+        super.new();
       }
       addFirst(entry) {
         dart.as(entry, E);
@@ -22062,7 +22057,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(LinkedList, {
-      constructors: () => ({LinkedList: [collection.LinkedList$(E), []]}),
+      constructors: () => ({new: [collection.LinkedList$(E), []]}),
       methods: () => ({
         addFirst: [dart.void, [E]],
         add: [dart.void, [E]],
@@ -22089,7 +22084,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _visitedFirst = Symbol('_visitedFirst');
   collection._LinkedListIterator$ = dart.generic(E => {
     class _LinkedListIterator extends core.Object {
-      _LinkedListIterator(list) {
+      new(list) {
         this[_list] = list;
         this[_modificationCount] = list[_modificationCount];
         this[_next$0] = list[_first$];
@@ -22115,7 +22110,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _LinkedListIterator[dart.implements] = () => [core.Iterator$(E)];
     dart.setSignature(_LinkedListIterator, {
-      constructors: () => ({_LinkedListIterator: [collection._LinkedListIterator$(E), [collection.LinkedList$(E)]]}),
+      constructors: () => ({new: [collection._LinkedListIterator$(E), [collection.LinkedList$(E)]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return _LinkedListIterator;
@@ -22123,7 +22118,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._LinkedListIterator = collection._LinkedListIterator$();
   collection.LinkedListEntry$ = dart.generic(E => {
     class LinkedListEntry extends core.Object {
-      LinkedListEntry() {
+      new() {
         this[_list] = null;
         this[_next$0] = null;
         this[_previous$0] = null;
@@ -22282,8 +22277,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._UnmodifiableMapMixin = collection._UnmodifiableMapMixin$();
   collection.UnmodifiableMapBase$ = dart.generic((K, V) => {
     class UnmodifiableMapBase extends dart.mixin(collection.MapBase$(K, V), collection._UnmodifiableMapMixin$(K, V)) {
-      UnmodifiableMapBase() {
-        super.MapBase();
+      new() {
+        super.new();
       }
     }
     return UnmodifiableMapBase;
@@ -22291,9 +22286,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection.UnmodifiableMapBase = collection.UnmodifiableMapBase$();
   collection._MapBaseValueIterable$ = dart.generic((K, V) => {
     class _MapBaseValueIterable extends core.Iterable$(V) {
-      _MapBaseValueIterable(map) {
+      new(map) {
         this[_map$0] = map;
-        super.Iterable();
+        super.new();
       }
       get length() {
         return this[_map$0][dartx.length];
@@ -22319,7 +22314,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _MapBaseValueIterable[dart.implements] = () => [_internal.EfficientLength];
     dart.setSignature(_MapBaseValueIterable, {
-      constructors: () => ({_MapBaseValueIterable: [collection._MapBaseValueIterable$(K, V), [core.Map$(K, V)]]})
+      constructors: () => ({new: [collection._MapBaseValueIterable$(K, V), [core.Map$(K, V)]]})
     });
     dart.defineExtensionMembers(_MapBaseValueIterable, [
       'length',
@@ -22335,7 +22330,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._MapBaseValueIterable = collection._MapBaseValueIterable$();
   collection._MapBaseValueIterator$ = dart.generic((K, V) => {
     class _MapBaseValueIterator extends core.Object {
-      _MapBaseValueIterator(map) {
+      new(map) {
         this[_map$0] = map;
         this[_keys] = map[dartx.keys][dartx.iterator];
         this[_current$2] = null;
@@ -22354,7 +22349,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _MapBaseValueIterator[dart.implements] = () => [core.Iterator$(V)];
     dart.setSignature(_MapBaseValueIterator, {
-      constructors: () => ({_MapBaseValueIterator: [collection._MapBaseValueIterator$(K, V), [core.Map$(K, V)]]}),
+      constructors: () => ({new: [collection._MapBaseValueIterator$(K, V), [core.Map$(K, V)]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return _MapBaseValueIterator;
@@ -22362,7 +22357,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._MapBaseValueIterator = collection._MapBaseValueIterator$();
   collection.MapView$ = dart.generic((K, V) => {
     class MapView extends core.Object {
-      MapView(map) {
+      new(map) {
         this[_map$0] = map;
       }
       get(key) {
@@ -22419,7 +22414,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     MapView[dart.implements] = () => [core.Map$(K, V)];
     dart.setSignature(MapView, {
-      constructors: () => ({MapView: [collection.MapView$(K, V), [core.Map$(K, V)]]}),
+      constructors: () => ({new: [collection.MapView$(K, V), [core.Map$(K, V)]]}),
       methods: () => ({
         get: [V, [core.Object]],
         set: [dart.void, [K, V]],
@@ -22453,8 +22448,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection.MapView = collection.MapView$();
   collection.UnmodifiableMapView$ = dart.generic((K, V) => {
     class UnmodifiableMapView extends dart.mixin(collection.MapView$(K, V), collection._UnmodifiableMapMixin$(K, V)) {
-      UnmodifiableMapView(map) {
-        super.MapView(map);
+      new(map) {
+        super.new(map);
       }
     }
     return UnmodifiableMapView;
@@ -22602,7 +22597,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _link = Symbol('_link');
   collection._DoubleLink$ = dart.generic(E => {
     class _DoubleLink extends core.Object {
-      _DoubleLink() {
+      new() {
         this[_previousLink] = null;
         this[_nextLink] = null;
       }
@@ -22644,9 +22639,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection.DoubleLinkedQueueEntry = collection.DoubleLinkedQueueEntry$();
   collection._UserDoubleLinkedQueueEntry$ = dart.generic(E => {
     class _UserDoubleLinkedQueueEntry extends collection._DoubleLink {
-      _UserDoubleLinkedQueueEntry(element) {
+      new(element) {
         this.element = element;
-        super._DoubleLink();
+        super.new();
       }
       append(e) {
         dart.as(e, E);
@@ -22670,7 +22665,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     dart.setBaseClass(_UserDoubleLinkedQueueEntry, collection._DoubleLink$(_UserDoubleLinkedQueueEntry));
     _UserDoubleLinkedQueueEntry[dart.implements] = () => [collection.DoubleLinkedQueueEntry$(E)];
     dart.setSignature(_UserDoubleLinkedQueueEntry, {
-      constructors: () => ({_UserDoubleLinkedQueueEntry: [collection._UserDoubleLinkedQueueEntry$(E), [E]]}),
+      constructors: () => ({new: [collection._UserDoubleLinkedQueueEntry$(E), [E]]}),
       methods: () => ({
         append: [dart.void, [E]],
         prepend: [dart.void, [E]],
@@ -22688,9 +22683,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _asNonSentinelEntry = Symbol('_asNonSentinelEntry');
   collection._DoubleLinkedQueueEntry$ = dart.generic(E => {
     class _DoubleLinkedQueueEntry extends collection._DoubleLink {
-      _DoubleLinkedQueueEntry(queue) {
+      new(queue) {
         this[_queue] = queue;
-        super._DoubleLink();
+        super.new();
       }
       [_append](e) {
         dart.as(e, E);
@@ -22709,7 +22704,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     dart.setBaseClass(_DoubleLinkedQueueEntry, collection._DoubleLink$(_DoubleLinkedQueueEntry));
     dart.setSignature(_DoubleLinkedQueueEntry, {
-      constructors: () => ({_DoubleLinkedQueueEntry: [collection._DoubleLinkedQueueEntry$(E), [collection.DoubleLinkedQueue$(E)]]}),
+      constructors: () => ({new: [collection._DoubleLinkedQueueEntry$(E), [collection.DoubleLinkedQueue$(E)]]}),
       methods: () => ({
         [_append]: [dart.void, [E]],
         [_prepend]: [dart.void, [E]],
@@ -22723,9 +22718,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _elementCount = Symbol('_elementCount');
   collection._DoubleLinkedQueueElement$ = dart.generic(E => {
     class _DoubleLinkedQueueElement extends collection._DoubleLinkedQueueEntry$(E) {
-      _DoubleLinkedQueueElement(element, queue) {
+      new(element, queue) {
         this.element = element;
-        super._DoubleLinkedQueueEntry(queue);
+        super.new(queue);
       }
       append(e) {
         dart.as(e, E);
@@ -22761,7 +22756,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _DoubleLinkedQueueElement[dart.implements] = () => [collection.DoubleLinkedQueueEntry$(E)];
     dart.setSignature(_DoubleLinkedQueueElement, {
-      constructors: () => ({_DoubleLinkedQueueElement: [collection._DoubleLinkedQueueElement$(E), [E, collection.DoubleLinkedQueue$(E)]]}),
+      constructors: () => ({new: [collection._DoubleLinkedQueueElement$(E), [E, collection.DoubleLinkedQueue$(E)]]}),
       methods: () => ({
         append: [dart.void, [E]],
         prepend: [dart.void, [E]],
@@ -22775,8 +22770,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._DoubleLinkedQueueElement = collection._DoubleLinkedQueueElement$();
   collection._DoubleLinkedQueueSentinel$ = dart.generic(E => {
     class _DoubleLinkedQueueSentinel extends collection._DoubleLinkedQueueEntry$(E) {
-      _DoubleLinkedQueueSentinel(queue) {
-        super._DoubleLinkedQueueEntry(queue);
+      new(queue) {
+        super.new(queue);
         this[_previousLink] = this;
         this[_nextLink] = this;
       }
@@ -22791,7 +22786,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_DoubleLinkedQueueSentinel, {
-      constructors: () => ({_DoubleLinkedQueueSentinel: [collection._DoubleLinkedQueueSentinel$(E), [collection.DoubleLinkedQueue$(E)]]}),
+      constructors: () => ({new: [collection._DoubleLinkedQueueSentinel$(E), [collection.DoubleLinkedQueue$(E)]]}),
       methods: () => ({
         [_asNonSentinelEntry]: [collection.DoubleLinkedQueueEntry$(E), []],
         [_remove]: [E, []]
@@ -22804,10 +22799,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _filter = Symbol('_filter');
   collection.DoubleLinkedQueue$ = dart.generic(E => {
     class DoubleLinkedQueue extends core.Iterable$(E) {
-      DoubleLinkedQueue() {
+      new() {
         this[_sentinel] = null;
         this[_elementCount] = 0;
-        super.Iterable();
+        super.new();
         this[_sentinel] = new (collection._DoubleLinkedQueueSentinel$(E))(this);
       }
       static from(elements) {
@@ -22931,7 +22926,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     DoubleLinkedQueue[dart.implements] = () => [collection.Queue$(E)];
     dart.setSignature(DoubleLinkedQueue, {
       constructors: () => ({
-        DoubleLinkedQueue: [collection.DoubleLinkedQueue$(E), []],
+        new: [collection.DoubleLinkedQueue$(E), []],
         from: [collection.DoubleLinkedQueue$(E), [core.Iterable]]
       }),
       methods: () => ({
@@ -22966,7 +22961,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _nextEntry = Symbol('_nextEntry');
   collection._DoubleLinkedQueueIterator$ = dart.generic(E => {
     class _DoubleLinkedQueueIterator extends core.Object {
-      _DoubleLinkedQueueIterator(sentinel) {
+      new(sentinel) {
         this[_sentinel] = sentinel;
         this[_nextEntry] = sentinel[_nextLink];
         this[_current$2] = null;
@@ -22992,7 +22987,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _DoubleLinkedQueueIterator[dart.implements] = () => [core.Iterator$(E)];
     dart.setSignature(_DoubleLinkedQueueIterator, {
-      constructors: () => ({_DoubleLinkedQueueIterator: [collection._DoubleLinkedQueueIterator$(E), [collection._DoubleLinkedQueueSentinel$(E)]]}),
+      constructors: () => ({new: [collection._DoubleLinkedQueueIterator$(E), [collection._DoubleLinkedQueueSentinel$(E)]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return _DoubleLinkedQueueIterator;
@@ -23007,13 +23002,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _grow = Symbol('_grow');
   collection.ListQueue$ = dart.generic(E => {
     class ListQueue extends core.Iterable$(E) {
-      ListQueue(initialCapacity) {
+      new(initialCapacity) {
         if (initialCapacity === void 0) initialCapacity = null;
         this[_head] = 0;
         this[_tail] = 0;
         this[_table] = null;
         this[_modificationCount] = 0;
-        super.Iterable();
+        super.new();
         if (initialCapacity == null || dart.notNull(initialCapacity) < collection.ListQueue._INITIAL_CAPACITY) {
           initialCapacity = collection.ListQueue._INITIAL_CAPACITY;
         } else if (!dart.notNull(collection.ListQueue._isPowerOf2(initialCapacity))) {
@@ -23278,7 +23273,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     ListQueue[dart.implements] = () => [collection.Queue$(E)];
     dart.setSignature(ListQueue, {
       constructors: () => ({
-        ListQueue: [collection.ListQueue$(E), [], [core.int]],
+        new: [collection.ListQueue$(E), [], [core.int]],
         from: [collection.ListQueue$(E), [core.Iterable]]
       }),
       methods: () => ({
@@ -23329,7 +23324,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _position = Symbol('_position');
   collection._ListQueueIterator$ = dart.generic(E => {
     class _ListQueueIterator extends core.Object {
-      _ListQueueIterator(queue) {
+      new(queue) {
         this[_queue] = queue;
         this[_end] = queue[_tail];
         this[_modificationCount] = queue[_modificationCount];
@@ -23352,7 +23347,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _ListQueueIterator[dart.implements] = () => [core.Iterator$(E)];
     dart.setSignature(_ListQueueIterator, {
-      constructors: () => ({_ListQueueIterator: [collection._ListQueueIterator$(E), [collection.ListQueue$(E)]]}),
+      constructors: () => ({new: [collection._ListQueueIterator$(E), [collection.ListQueue$(E)]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return _ListQueueIterator;
@@ -23365,27 +23360,27 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._Predicate = collection._Predicate$();
   collection._SplayTreeNode$ = dart.generic(K => {
     class _SplayTreeNode extends core.Object {
-      _SplayTreeNode(key) {
+      new(key) {
         this.key = key;
         this.left = null;
         this.right = null;
       }
     }
     dart.setSignature(_SplayTreeNode, {
-      constructors: () => ({_SplayTreeNode: [collection._SplayTreeNode$(K), [K]]})
+      constructors: () => ({new: [collection._SplayTreeNode$(K), [K]]})
     });
     return _SplayTreeNode;
   });
   collection._SplayTreeNode = collection._SplayTreeNode$();
   collection._SplayTreeMapNode$ = dart.generic((K, V) => {
     class _SplayTreeMapNode extends collection._SplayTreeNode$(K) {
-      _SplayTreeMapNode(key, value) {
+      new(key, value) {
         this.value = value;
-        super._SplayTreeNode(key);
+        super.new(key);
       }
     }
     dart.setSignature(_SplayTreeMapNode, {
-      constructors: () => ({_SplayTreeMapNode: [collection._SplayTreeMapNode$(K, V), [K, V]]})
+      constructors: () => ({new: [collection._SplayTreeMapNode$(K, V), [K, V]]})
     });
     return _SplayTreeMapNode;
   });
@@ -23403,7 +23398,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _clear$ = Symbol('_clear');
   collection._SplayTree$ = dart.generic((K, Node) => {
     class _SplayTree extends core.Object {
-      _SplayTree() {
+      new() {
         this[_count$] = 0;
         this[_modificationCount] = 0;
         this[_splayCount] = 0;
@@ -23558,7 +23553,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._TypeTest = collection._TypeTest$();
   collection.SplayTreeMap$ = dart.generic((K, V) => {
     class SplayTreeMap extends collection._SplayTree$(K, collection._SplayTreeMapNode$(K, V)) {
-      SplayTreeMap(compare, isValidKey) {
+      new(compare, isValidKey) {
         if (compare === void 0) compare = null;
         if (isValidKey === void 0) isValidKey = null;
         this[_dummy] = new (collection._SplayTreeMapNode$(K, V))(null, null);
@@ -23571,7 +23566,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           return l != null ? l : dart.fn(v => dart.is(v, K), core.bool, [dart.dynamic]);
         })();
         this[_root] = null;
-        super._SplayTree();
+        super.new();
       }
       static from(other, compare, isValidKey) {
         if (compare === void 0) compare = null;
@@ -23608,7 +23603,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_root] = null;
         this[_comparator] = null;
         this[_validKey] = null;
-        super._SplayTree();
+        super.new();
       }
       get(key) {
         if (!dart.notNull(dart.dcall(this[_validKey], key))) return null;
@@ -23754,7 +23749,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     SplayTreeMap[dart.implements] = () => [core.Map$(K, V)];
     dart.setSignature(SplayTreeMap, {
       constructors: () => ({
-        SplayTreeMap: [collection.SplayTreeMap$(K, V), [], [dart.functionType(core.int, [K, K]), dart.functionType(core.bool, [dart.dynamic])]],
+        new: [collection.SplayTreeMap$(K, V), [], [dart.functionType(core.int, [K, K]), dart.functionType(core.bool, [dart.dynamic])]],
         from: [collection.SplayTreeMap$(K, V), [core.Map], [dart.functionType(core.int, [K, K]), dart.functionType(core.bool, [dart.dynamic])]],
         fromIterable: [collection.SplayTreeMap$(K, V), [core.Iterable], {key: dart.functionType(K, [dart.dynamic]), value: dart.functionType(V, [dart.dynamic]), compare: dart.functionType(core.int, [K, K]), isValidKey: dart.functionType(core.bool, [dart.dynamic])}],
         fromIterables: [collection.SplayTreeMap$(K, V), [core.Iterable$(K), core.Iterable$(V)], [dart.functionType(core.int, [K, K]), dart.functionType(core.bool, [dart.dynamic])]],
@@ -23804,7 +23799,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _rebuildWorkList = Symbol('_rebuildWorkList');
   collection._SplayTreeIterator$ = dart.generic((K, T) => {
     class _SplayTreeIterator extends core.Object {
-      _SplayTreeIterator(tree) {
+      new(tree) {
         this[_workList] = dart.list([], collection._SplayTreeNode$(K));
         this[_tree] = tree;
         this[_modificationCount] = tree[_modificationCount];
@@ -23870,7 +23865,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     _SplayTreeIterator[dart.implements] = () => [core.Iterator$(T)];
     dart.setSignature(_SplayTreeIterator, {
       constructors: () => ({
-        _SplayTreeIterator: [collection._SplayTreeIterator$(K, T), [collection._SplayTree$(K, collection._SplayTreeNode$(K))]],
+        new: [collection._SplayTreeIterator$(K, T), [collection._SplayTree$(K, collection._SplayTreeNode$(K))]],
         startAt: [collection._SplayTreeIterator$(K, T), [collection._SplayTree$(K, collection._SplayTreeNode$(K)), K]]
       }),
       methods: () => ({
@@ -23885,9 +23880,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _copyNode = Symbol('_copyNode');
   collection._SplayTreeKeyIterable$ = dart.generic(K => {
     class _SplayTreeKeyIterable extends core.Iterable$(K) {
-      _SplayTreeKeyIterable(tree) {
+      new(tree) {
         this[_tree] = tree;
-        super.Iterable();
+        super.new();
       }
       get length() {
         return this[_tree][_count$];
@@ -23907,7 +23902,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _SplayTreeKeyIterable[dart.implements] = () => [_internal.EfficientLength];
     dart.setSignature(_SplayTreeKeyIterable, {
-      constructors: () => ({_SplayTreeKeyIterable: [collection._SplayTreeKeyIterable$(K), [collection._SplayTree$(K, collection._SplayTreeNode$(K))]]}),
+      constructors: () => ({new: [collection._SplayTreeKeyIterable$(K), [collection._SplayTree$(K, collection._SplayTreeNode$(K))]]}),
       methods: () => ({toSet: [core.Set$(K), []]})
     });
     dart.defineExtensionMembers(_SplayTreeKeyIterable, ['toSet', 'length', 'isEmpty', 'iterator']);
@@ -23916,9 +23911,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._SplayTreeKeyIterable = collection._SplayTreeKeyIterable$();
   collection._SplayTreeValueIterable$ = dart.generic((K, V) => {
     class _SplayTreeValueIterable extends core.Iterable$(V) {
-      _SplayTreeValueIterable(map) {
+      new(map) {
         this[_map$0] = map;
-        super.Iterable();
+        super.new();
       }
       get length() {
         return this[_map$0][_count$];
@@ -23932,7 +23927,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _SplayTreeValueIterable[dart.implements] = () => [_internal.EfficientLength];
     dart.setSignature(_SplayTreeValueIterable, {
-      constructors: () => ({_SplayTreeValueIterable: [collection._SplayTreeValueIterable$(K, V), [collection.SplayTreeMap$(K, V)]]})
+      constructors: () => ({new: [collection._SplayTreeValueIterable$(K, V), [collection.SplayTreeMap$(K, V)]]})
     });
     dart.defineExtensionMembers(_SplayTreeValueIterable, ['length', 'isEmpty', 'iterator']);
     return _SplayTreeValueIterable;
@@ -23940,8 +23935,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._SplayTreeValueIterable = collection._SplayTreeValueIterable$();
   collection._SplayTreeKeyIterator$ = dart.generic(K => {
     class _SplayTreeKeyIterator extends collection._SplayTreeIterator$(K, K) {
-      _SplayTreeKeyIterator(map) {
-        super._SplayTreeIterator(map);
+      new(map) {
+        super.new(map);
       }
       [_getValue](node) {
         dart.as(node, collection._SplayTreeNode$(K));
@@ -23949,7 +23944,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_SplayTreeKeyIterator, {
-      constructors: () => ({_SplayTreeKeyIterator: [collection._SplayTreeKeyIterator$(K), [collection._SplayTree$(K, collection._SplayTreeNode$(K))]]}),
+      constructors: () => ({new: [collection._SplayTreeKeyIterator$(K), [collection._SplayTree$(K, collection._SplayTreeNode$(K))]]}),
       methods: () => ({[_getValue]: [K, [collection._SplayTreeNode$(K)]]})
     });
     return _SplayTreeKeyIterator;
@@ -23957,8 +23952,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._SplayTreeKeyIterator = collection._SplayTreeKeyIterator$();
   collection._SplayTreeValueIterator$ = dart.generic((K, V) => {
     class _SplayTreeValueIterator extends collection._SplayTreeIterator$(K, V) {
-      _SplayTreeValueIterator(map) {
-        super._SplayTreeIterator(map);
+      new(map) {
+        super.new(map);
       }
       [_getValue](node) {
         dart.as(node, collection._SplayTreeNode$(K));
@@ -23967,7 +23962,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_SplayTreeValueIterator, {
-      constructors: () => ({_SplayTreeValueIterator: [collection._SplayTreeValueIterator$(K, V), [collection.SplayTreeMap$(K, V)]]}),
+      constructors: () => ({new: [collection._SplayTreeValueIterator$(K, V), [collection.SplayTreeMap$(K, V)]]}),
       methods: () => ({[_getValue]: [V, [collection._SplayTreeNode$(K)]]})
     });
     return _SplayTreeValueIterator;
@@ -23975,8 +23970,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection._SplayTreeValueIterator = collection._SplayTreeValueIterator$();
   collection._SplayTreeNodeIterator$ = dart.generic(K => {
     class _SplayTreeNodeIterator extends collection._SplayTreeIterator$(K, collection._SplayTreeNode$(K)) {
-      _SplayTreeNodeIterator(tree) {
-        super._SplayTreeIterator(tree);
+      new(tree) {
+        super.new(tree);
       }
       startAt(tree, startKey) {
         super.startAt(tree, startKey);
@@ -23989,7 +23984,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     dart.defineNamedConstructor(_SplayTreeNodeIterator, 'startAt');
     dart.setSignature(_SplayTreeNodeIterator, {
       constructors: () => ({
-        _SplayTreeNodeIterator: [collection._SplayTreeNodeIterator$(K), [collection._SplayTree$(K, collection._SplayTreeNode$(K))]],
+        new: [collection._SplayTreeNodeIterator$(K), [collection._SplayTree$(K, collection._SplayTreeNode$(K))]],
         startAt: [collection._SplayTreeNodeIterator$(K), [collection._SplayTree$(K, collection._SplayTreeNode$(K)), K]]
       }),
       methods: () => ({[_getValue]: [collection._SplayTreeNode$(K), [collection._SplayTreeNode$(K)]]})
@@ -24000,7 +23995,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _clone = Symbol('_clone');
   collection.SplayTreeSet$ = dart.generic(E => {
     class SplayTreeSet extends dart.mixin(collection._SplayTree$(E, collection._SplayTreeNode$(E)), collection.IterableMixin$(E), collection.SetMixin$(E)) {
-      SplayTreeSet(compare, isValidKey) {
+      new(compare, isValidKey) {
         if (compare === void 0) compare = null;
         if (isValidKey === void 0) isValidKey = null;
         this[_dummy] = new (collection._SplayTreeNode$(E))(null);
@@ -24013,7 +24008,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           return l != null ? l : dart.fn(v => dart.is(v, E), core.bool, [dart.dynamic]);
         })();
         this[_root] = null;
-        super._SplayTree();
+        super.new();
       }
       static from(elements, compare, isValidKey) {
         if (compare === void 0) compare = null;
@@ -24151,7 +24146,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     dart.setSignature(SplayTreeSet, {
       constructors: () => ({
-        SplayTreeSet: [collection.SplayTreeSet$(E), [], [dart.functionType(core.int, [E, E]), dart.functionType(core.bool, [dart.dynamic])]],
+        new: [collection.SplayTreeSet$(E), [], [dart.functionType(core.int, [E, E]), dart.functionType(core.bool, [dart.dynamic])]],
         from: [collection.SplayTreeSet$(E), [core.Iterable], [dart.functionType(core.int, [E, E]), dart.functionType(core.bool, [dart.dynamic])]]
       }),
       methods: () => ({
@@ -24236,7 +24231,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _process = Symbol('_process');
   const _upgrade = Symbol('_upgrade');
   convert._JsonMap = class _JsonMap extends core.Object {
-    _JsonMap(original) {
+    new(original) {
       this[_processed] = convert._JsonMap._newJavaScriptObject();
       this[_original] = original;
       this[_data] = null;
@@ -24402,7 +24397,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   convert._JsonMap[dart.implements] = () => [collection.LinkedHashMap];
   dart.setSignature(convert._JsonMap, {
-    constructors: () => ({_JsonMap: [convert._JsonMap, [dart.dynamic]]}),
+    constructors: () => ({new: [convert._JsonMap, [dart.dynamic]]}),
     methods: () => ({
       get: [dart.dynamic, [core.Object]],
       set: [dart.void, [dart.dynamic, dart.dynamic]],
@@ -24445,9 +24440,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   ]);
   const _parent = Symbol('_parent');
   convert._JsonMapKeyIterable = class _JsonMapKeyIterable extends _internal.ListIterable {
-    _JsonMapKeyIterable(parent) {
+    new(parent) {
       this[_parent] = parent;
-      super.ListIterable();
+      super.new();
     }
     get length() {
       return this[_parent].length;
@@ -24463,7 +24458,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._JsonMapKeyIterable, {
-    constructors: () => ({_JsonMapKeyIterable: [convert._JsonMapKeyIterable, [convert._JsonMap]]}),
+    constructors: () => ({new: [convert._JsonMapKeyIterable, [convert._JsonMap]]}),
     methods: () => ({elementAt: [core.String, [core.int]]})
   });
   dart.defineExtensionMembers(convert._JsonMapKeyIterable, ['elementAt', 'contains', 'length', 'iterator']);
@@ -24491,7 +24486,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   convert.StringConversionSinkBase = class StringConversionSinkBase extends convert.StringConversionSinkMixin {};
   convert._StringSinkConversionSink = class _StringSinkConversionSink extends convert.StringConversionSinkBase {
-    _StringSinkConversionSink(stringSink) {
+    new(stringSink) {
       this[_stringSink] = stringSink;
     }
     close() {}
@@ -24516,17 +24511,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._StringSinkConversionSink, {
-    constructors: () => ({_StringSinkConversionSink: [convert._StringSinkConversionSink, [core.StringSink]]}),
+    constructors: () => ({new: [convert._StringSinkConversionSink, [core.StringSink]]}),
     methods: () => ({
       close: [dart.void, []],
       addSlice: [dart.void, [core.String, core.int, core.int, core.bool]]
     })
   });
   convert._JsonDecoderSink = class _JsonDecoderSink extends convert._StringSinkConversionSink {
-    _JsonDecoderSink(reviver, sink) {
+    new(reviver, sink) {
       this[_reviver] = reviver;
       this[_sink$] = sink;
-      super._StringSinkConversionSink(new core.StringBuffer());
+      super.new(new core.StringBuffer());
     }
     close() {
       super.close();
@@ -24539,7 +24534,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._JsonDecoderSink, {
-    constructors: () => ({_JsonDecoderSink: [convert._JsonDecoderSink, [convert._Reviver, core.Sink$(core.Object)]]})
+    constructors: () => ({new: [convert._JsonDecoderSink, [convert._Reviver, core.Sink$(core.Object)]]})
   });
   const _allowInvalid = Symbol('_allowInvalid');
   let const$20;
@@ -24549,7 +24544,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let const$24;
   convert.Codec$ = dart.generic((S, T) => {
     class Codec extends core.Object {
-      Codec() {
+      new() {
       }
       encode(input) {
         dart.as(input, S);
@@ -24568,7 +24563,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(Codec, {
-      constructors: () => ({Codec: [convert.Codec$(S, T), []]}),
+      constructors: () => ({new: [convert.Codec$(S, T), []]}),
       methods: () => ({
         encode: [T, [S]],
         decode: [S, [T]],
@@ -24719,8 +24714,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   core.List = core.List$();
   convert.Encoding = class Encoding extends convert.Codec$(core.String, core.List$(core.int)) {
-    Encoding() {
-      super.Codec();
+    new() {
+      super.new();
     }
     decodeStream(byteStream) {
       return byteStream.transform(core.String)(this.decoder).fold(dart.dynamic)(new core.StringBuffer(), dart.fn((buffer, string) => ((() => {
@@ -24735,7 +24730,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert.Encoding, {
-    constructors: () => ({Encoding: [convert.Encoding, []]}),
+    constructors: () => ({new: [convert.Encoding, []]}),
     methods: () => ({decodeStream: [async.Future$(core.String), [async.Stream$(core.List$(core.int))]]}),
     statics: () => ({getByName: [convert.Encoding, [core.String]]}),
     names: ['getByName']
@@ -24747,10 +24742,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     set _nameToEncoding(_) {}
   });
   convert.AsciiCodec = class AsciiCodec extends convert.Encoding {
-    AsciiCodec(opts) {
+    new(opts) {
       let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : false;
       this[_allowInvalid] = allowInvalid;
-      super.Encoding();
+      super.new();
     }
     get name() {
       return "us-ascii";
@@ -24772,7 +24767,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert.AsciiCodec, {
-    constructors: () => ({AsciiCodec: [convert.AsciiCodec, [], {allowInvalid: core.bool}]}),
+    constructors: () => ({new: [convert.AsciiCodec, [], {allowInvalid: core.bool}]}),
     methods: () => ({decode: [core.String, [core.List$(core.int)], {allowInvalid: core.bool}]})
   });
   convert.ASCII = dart.const(new convert.AsciiCodec());
@@ -24780,7 +24775,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _subsetMask = Symbol('_subsetMask');
   convert.Converter$ = dart.generic((S, T) => {
     class Converter extends core.Object {
-      Converter() {
+      new() {
       }
       fuse(TT) {
         return other => {
@@ -24799,7 +24794,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     Converter[dart.implements] = () => [async.StreamTransformer$(S, T)];
     dart.setSignature(Converter, {
-      constructors: () => ({Converter: [convert.Converter$(S, T), []]}),
+      constructors: () => ({new: [convert.Converter$(S, T), []]}),
       methods: () => ({
         fuse: [TT => [convert.Converter$(S, TT), [convert.Converter$(T, TT)]]],
         startChunkedConversion: [core.Sink$(S), [core.Sink$(T)]],
@@ -24810,9 +24805,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   convert.Converter = convert.Converter$();
   convert._UnicodeSubsetEncoder = class _UnicodeSubsetEncoder extends convert.Converter$(core.String, core.List$(core.int)) {
-    _UnicodeSubsetEncoder(subsetMask) {
+    new(subsetMask) {
       this[_subsetMask] = subsetMask;
-      super.Converter();
+      super.new();
     }
     convert(string, start, end) {
       if (start === void 0) start = 0;
@@ -24842,7 +24837,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._UnicodeSubsetEncoder, {
-    constructors: () => ({_UnicodeSubsetEncoder: [convert._UnicodeSubsetEncoder, [core.int]]}),
+    constructors: () => ({new: [convert._UnicodeSubsetEncoder, [core.int]]}),
     methods: () => ({
       convert: [core.List$(core.int), [core.String], [core.int, core.int]],
       startChunkedConversion: [convert.StringConversionSink, [core.Sink$(core.List$(core.int))]],
@@ -24850,15 +24845,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   convert.AsciiEncoder = class AsciiEncoder extends convert._UnicodeSubsetEncoder {
-    AsciiEncoder() {
-      super._UnicodeSubsetEncoder(convert._ASCII_MASK);
+    new() {
+      super.new(convert._ASCII_MASK);
     }
   };
   dart.setSignature(convert.AsciiEncoder, {
-    constructors: () => ({AsciiEncoder: [convert.AsciiEncoder, []]})
+    constructors: () => ({new: [convert.AsciiEncoder, []]})
   });
   convert._UnicodeSubsetEncoderSink = class _UnicodeSubsetEncoderSink extends convert.StringConversionSinkBase {
-    _UnicodeSubsetEncoderSink(subsetMask, sink) {
+    new(subsetMask, sink) {
       this[_subsetMask] = subsetMask;
       this[_sink$] = sink;
     }
@@ -24880,7 +24875,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._UnicodeSubsetEncoderSink, {
-    constructors: () => ({_UnicodeSubsetEncoderSink: [convert._UnicodeSubsetEncoderSink, [core.int, convert.ByteConversionSink]]}),
+    constructors: () => ({new: [convert._UnicodeSubsetEncoderSink, [core.int, convert.ByteConversionSink]]}),
     methods: () => ({
       close: [dart.void, []],
       addSlice: [dart.void, [core.String, core.int, core.int, core.bool]]
@@ -24888,10 +24883,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   const _convertInvalid = Symbol('_convertInvalid');
   convert._UnicodeSubsetDecoder = class _UnicodeSubsetDecoder extends convert.Converter$(core.List$(core.int), core.String) {
-    _UnicodeSubsetDecoder(allowInvalid, subsetMask) {
+    new(allowInvalid, subsetMask) {
       this[_allowInvalid] = allowInvalid;
       this[_subsetMask] = subsetMask;
-      super.Converter();
+      super.new();
     }
     convert(bytes, start, end) {
       if (start === void 0) start = 0;
@@ -24924,7 +24919,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._UnicodeSubsetDecoder, {
-    constructors: () => ({_UnicodeSubsetDecoder: [convert._UnicodeSubsetDecoder, [core.bool, core.int]]}),
+    constructors: () => ({new: [convert._UnicodeSubsetDecoder, [core.bool, core.int]]}),
     methods: () => ({
       convert: [core.String, [core.List$(core.int)], [core.int, core.int]],
       [_convertInvalid]: [core.String, [core.List$(core.int), core.int, core.int]],
@@ -24932,9 +24927,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   convert.AsciiDecoder = class AsciiDecoder extends convert._UnicodeSubsetDecoder {
-    AsciiDecoder(opts) {
+    new(opts) {
       let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : false;
-      super._UnicodeSubsetDecoder(allowInvalid, convert._ASCII_MASK);
+      super.new(allowInvalid, convert._ASCII_MASK);
     }
     startChunkedConversion(sink) {
       let stringSink = null;
@@ -24951,14 +24946,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert.AsciiDecoder, {
-    constructors: () => ({AsciiDecoder: [convert.AsciiDecoder, [], {allowInvalid: core.bool}]}),
+    constructors: () => ({new: [convert.AsciiDecoder, [], {allowInvalid: core.bool}]}),
     methods: () => ({startChunkedConversion: [convert.ByteConversionSink, [core.Sink$(core.String)]]})
   });
   const _utf8Sink = Symbol('_utf8Sink');
   let const$25;
   convert.ChunkedConversionSink$ = dart.generic(T => {
     class ChunkedConversionSink extends core.Object {
-      ChunkedConversionSink() {
+      new() {
       }
       static withCallback(callback) {
         return new (convert._SimpleCallbackSink$(T))(callback);
@@ -24967,7 +24962,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     ChunkedConversionSink[dart.implements] = () => [core.Sink$(T)];
     dart.setSignature(ChunkedConversionSink, {
       constructors: () => ({
-        ChunkedConversionSink: [convert.ChunkedConversionSink$(T), []],
+        new: [convert.ChunkedConversionSink$(T), []],
         withCallback: [convert.ChunkedConversionSink$(T), [dart.functionType(dart.void, [core.List$(T)])]]
       })
     });
@@ -24975,8 +24970,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   convert.ChunkedConversionSink = convert.ChunkedConversionSink$();
   convert.ByteConversionSink = class ByteConversionSink extends convert.ChunkedConversionSink$(core.List$(core.int)) {
-    ByteConversionSink() {
-      super.ChunkedConversionSink();
+    new() {
+      super.new();
     }
     static withCallback(callback) {
       return new convert._ByteCallbackSink(callback);
@@ -24987,14 +24982,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.setSignature(convert.ByteConversionSink, {
     constructors: () => ({
-      ByteConversionSink: [convert.ByteConversionSink, []],
+      new: [convert.ByteConversionSink, []],
       withCallback: [convert.ByteConversionSink, [dart.functionType(dart.void, [core.List$(core.int)])]],
       from: [convert.ByteConversionSink, [core.Sink$(core.List$(core.int))]]
     })
   });
   convert.ByteConversionSinkBase = class ByteConversionSinkBase extends convert.ByteConversionSink {
-    ByteConversionSinkBase() {
-      super.ByteConversionSink();
+    new() {
+      super.new();
     }
     addSlice(chunk, start, end, isLast) {
       this.add(chunk[dartx.sublist](start, end));
@@ -25005,7 +25000,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     methods: () => ({addSlice: [dart.void, [core.List$(core.int), core.int, core.int, core.bool]]})
   });
   convert._ErrorHandlingAsciiDecoderSink = class _ErrorHandlingAsciiDecoderSink extends convert.ByteConversionSinkBase {
-    _ErrorHandlingAsciiDecoderSink(utf8Sink) {
+    new(utf8Sink) {
       this[_utf8Sink] = utf8Sink;
     }
     close() {
@@ -25031,14 +25026,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._ErrorHandlingAsciiDecoderSink, {
-    constructors: () => ({_ErrorHandlingAsciiDecoderSink: [convert._ErrorHandlingAsciiDecoderSink, [convert.ByteConversionSink]]}),
+    constructors: () => ({new: [convert._ErrorHandlingAsciiDecoderSink, [convert.ByteConversionSink]]}),
     methods: () => ({
       close: [dart.void, []],
       add: [dart.void, [core.List$(core.int)]]
     })
   });
   convert._SimpleAsciiDecoderSink = class _SimpleAsciiDecoderSink extends convert.ByteConversionSinkBase {
-    _SimpleAsciiDecoderSink(sink) {
+    new(sink) {
       this[_sink$] = sink;
     }
     close() {
@@ -25065,7 +25060,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._SimpleAsciiDecoderSink, {
-    constructors: () => ({_SimpleAsciiDecoderSink: [convert._SimpleAsciiDecoderSink, [core.Sink]]}),
+    constructors: () => ({new: [convert._SimpleAsciiDecoderSink, [core.Sink]]}),
     methods: () => ({
       close: [dart.void, []],
       add: [dart.void, [core.List$(core.int)]]
@@ -25073,13 +25068,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   const _urlSafe = Symbol('_urlSafe');
   convert.Base64Encoder = class Base64Encoder extends convert.Converter$(core.List$(core.int), core.String) {
-    Base64Encoder() {
+    new() {
       this[_urlSafe] = false;
-      super.Converter();
+      super.new();
     }
     urlSafe() {
       this[_urlSafe] = true;
-      super.Converter();
+      super.new();
     }
     convert(input) {
       if (dart.notNull(input[dartx.isEmpty])) return "";
@@ -25097,7 +25092,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.defineNamedConstructor(convert.Base64Encoder, 'urlSafe');
   dart.setSignature(convert.Base64Encoder, {
     constructors: () => ({
-      Base64Encoder: [convert.Base64Encoder, []],
+      new: [convert.Base64Encoder, []],
       urlSafe: [convert.Base64Encoder, []]
     }),
     methods: () => ({
@@ -25110,13 +25105,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let const$27;
   let const$28;
   convert.Base64Codec = class Base64Codec extends convert.Codec$(core.List$(core.int), core.String) {
-    Base64Codec() {
+    new() {
       this[_encoder] = const$26 || (const$26 = dart.const(new convert.Base64Encoder()));
-      super.Codec();
+      super.new();
     }
     urlSafe() {
       this[_encoder] = const$27 || (const$27 = dart.const(new convert.Base64Encoder.urlSafe()));
-      super.Codec();
+      super.new();
     }
     get encoder() {
       return this[_encoder];
@@ -25128,7 +25123,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.defineNamedConstructor(convert.Base64Codec, 'urlSafe');
   dart.setSignature(convert.Base64Codec, {
     constructors: () => ({
-      Base64Codec: [convert.Base64Codec, []],
+      new: [convert.Base64Codec, []],
       urlSafe: [convert.Base64Codec, []]
     })
   });
@@ -25138,7 +25133,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _alphabet = Symbol('_alphabet');
   const _state$0 = Symbol('_state');
   convert._Base64Encoder = class _Base64Encoder extends core.Object {
-    _Base64Encoder(urlSafe) {
+    new(urlSafe) {
       this[_alphabet] = dart.notNull(urlSafe) ? convert._Base64Encoder._base64urlAlphabet : convert._Base64Encoder._base64Alphabet;
       this[_state$0] = 0;
     }
@@ -25271,7 +25266,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._Base64Encoder, {
-    constructors: () => ({_Base64Encoder: [convert._Base64Encoder, [core.bool]]}),
+    constructors: () => ({new: [convert._Base64Encoder, [core.bool]]}),
     methods: () => ({
       createBuffer: [typed_data.Uint8List, [core.int]],
       encode: [typed_data.Uint8List, [core.List$(core.int), core.int, core.int, core.bool]]
@@ -25291,9 +25286,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   convert._Base64Encoder._countMask = 3;
   convert._Base64Encoder._sixBitMask = 63;
   convert._BufferCachingBase64Encoder = class _BufferCachingBase64Encoder extends convert._Base64Encoder {
-    _BufferCachingBase64Encoder(urlSafe) {
+    new(urlSafe) {
       this.bufferCache = null;
-      super._Base64Encoder(urlSafe);
+      super.new(urlSafe);
     }
     createBuffer(bufferLength) {
       if (this.bufferCache == null || dart.notNull(this.bufferCache[dartx.length]) < dart.notNull(bufferLength)) {
@@ -25303,7 +25298,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._BufferCachingBase64Encoder, {
-    constructors: () => ({_BufferCachingBase64Encoder: [convert._BufferCachingBase64Encoder, [core.bool]]})
+    constructors: () => ({new: [convert._BufferCachingBase64Encoder, [core.bool]]})
   });
   const _add$1 = Symbol('_add');
   convert._Base64EncoderSink = class _Base64EncoderSink extends convert.ByteConversionSinkBase {
@@ -25326,7 +25321,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   convert._AsciiBase64EncoderSink = class _AsciiBase64EncoderSink extends convert._Base64EncoderSink {
-    _AsciiBase64EncoderSink(sink, urlSafe) {
+    new(sink, urlSafe) {
       this[_sink$] = sink;
       this[_encoder] = new convert._BufferCachingBase64Encoder(urlSafe);
     }
@@ -25342,11 +25337,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._AsciiBase64EncoderSink, {
-    constructors: () => ({_AsciiBase64EncoderSink: [convert._AsciiBase64EncoderSink, [core.Sink$(core.String), core.bool]]}),
+    constructors: () => ({new: [convert._AsciiBase64EncoderSink, [core.Sink$(core.String), core.bool]]}),
     methods: () => ({[_add$1]: [dart.void, [core.List$(core.int), core.int, core.int, core.bool]]})
   });
   convert._Utf8Base64EncoderSink = class _Utf8Base64EncoderSink extends convert._Base64EncoderSink {
-    _Utf8Base64EncoderSink(sink, urlSafe) {
+    new(sink, urlSafe) {
       this[_sink$] = sink;
       this[_encoder] = new convert._Base64Encoder(urlSafe);
     }
@@ -25358,12 +25353,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._Utf8Base64EncoderSink, {
-    constructors: () => ({_Utf8Base64EncoderSink: [convert._Utf8Base64EncoderSink, [convert.ByteConversionSink, core.bool]]}),
+    constructors: () => ({new: [convert._Utf8Base64EncoderSink, [convert.ByteConversionSink, core.bool]]}),
     methods: () => ({[_add$1]: [dart.void, [core.List$(core.int), core.int, core.int, core.bool]]})
   });
   convert.Base64Decoder = class Base64Decoder extends convert.Converter$(core.String, core.List$(core.int)) {
-    Base64Decoder() {
-      super.Converter();
+    new() {
+      super.new();
     }
     convert(input, start, end) {
       if (start === void 0) start = 0;
@@ -25380,14 +25375,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert.Base64Decoder, {
-    constructors: () => ({Base64Decoder: [convert.Base64Decoder, []]}),
+    constructors: () => ({new: [convert.Base64Decoder, []]}),
     methods: () => ({
       convert: [core.List$(core.int), [core.String], [core.int, core.int]],
       startChunkedConversion: [convert.StringConversionSink, [core.Sink$(core.List$(core.int))]]
     })
   });
   convert._Base64Decoder = class _Base64Decoder extends core.Object {
-    _Base64Decoder() {
+    new() {
       this[_state$0] = 0;
     }
     static _encodeCharacterState(count, bits) {
@@ -25644,7 +25639,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   const _decoder = Symbol('_decoder');
   convert._Base64DecoderSink = class _Base64DecoderSink extends convert.StringConversionSinkBase {
-    _Base64DecoderSink(sink) {
+    new(sink) {
       this[_decoder] = new convert._Base64Decoder();
       this[_sink$] = sink;
     }
@@ -25669,14 +25664,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._Base64DecoderSink, {
-    constructors: () => ({_Base64DecoderSink: [convert._Base64DecoderSink, [core.Sink$(core.List$(core.int))]]}),
+    constructors: () => ({new: [convert._Base64DecoderSink, [core.Sink$(core.List$(core.int))]]}),
     methods: () => ({
       close: [dart.void, []],
       addSlice: [dart.void, [core.String, core.int, core.int, core.bool]]
     })
   });
   convert._ByteAdapterSink = class _ByteAdapterSink extends convert.ByteConversionSinkBase {
-    _ByteAdapterSink(sink) {
+    new(sink) {
       this[_sink$] = sink;
     }
     add(chunk) {
@@ -25687,7 +25682,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._ByteAdapterSink, {
-    constructors: () => ({_ByteAdapterSink: [convert._ByteAdapterSink, [core.Sink$(core.List$(core.int))]]}),
+    constructors: () => ({new: [convert._ByteAdapterSink, [core.Sink$(core.List$(core.int))]]}),
     methods: () => ({
       add: [dart.void, [core.List$(core.int)]],
       close: [dart.void, []]
@@ -25697,7 +25692,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _callback = Symbol('_callback');
   const _bufferIndex = Symbol('_bufferIndex');
   convert._ByteCallbackSink = class _ByteCallbackSink extends convert.ByteConversionSinkBase {
-    _ByteCallbackSink(callback) {
+    new(callback) {
       this[_buffer] = typed_data.Uint8List.new(convert._ByteCallbackSink._INITIAL_BUFFER_SIZE);
       this[_callback] = callback;
       this[_bufferIndex] = 0;
@@ -25730,7 +25725,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._ByteCallbackSink, {
-    constructors: () => ({_ByteCallbackSink: [convert._ByteCallbackSink, [dart.functionType(dart.void, [core.List$(core.int)])]]}),
+    constructors: () => ({new: [convert._ByteCallbackSink, [dart.functionType(dart.void, [core.List$(core.int)])]]}),
     methods: () => ({
       add: [dart.void, [core.Iterable$(core.int)]],
       close: [dart.void, []]
@@ -25746,8 +25741,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   convert._ChunkedConversionCallback = convert._ChunkedConversionCallback$();
   convert.ChunkedConverter$ = dart.generic((S, T, S2, T2) => {
     class ChunkedConverter extends convert.Converter$(S, T) {
-      ChunkedConverter() {
-        super.Converter();
+      new() {
+        super.new();
       }
       bind(other) {
         return super.bind(dart.as(other, async.Stream$(S)));
@@ -25757,7 +25752,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(ChunkedConverter, {
-      constructors: () => ({ChunkedConverter: [convert.ChunkedConverter$(S, T, S2, T2), []]}),
+      constructors: () => ({new: [convert.ChunkedConverter$(S, T, S2, T2), []]}),
       methods: () => ({
         bind: [dart.dynamic, [dart.dynamic]],
         startChunkedConversion: [dart.dynamic, [dart.dynamic]]
@@ -25770,10 +25765,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _accumulated = Symbol('_accumulated');
   convert._SimpleCallbackSink$ = dart.generic(T => {
     class _SimpleCallbackSink extends convert.ChunkedConversionSink$(T) {
-      _SimpleCallbackSink(callback) {
+      new(callback) {
         this[_accumulated] = dart.list([], T);
         this[_callback] = callback;
-        super.ChunkedConversionSink();
+        super.new();
       }
       add(chunk) {
         dart.as(chunk, T);
@@ -25784,7 +25779,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_SimpleCallbackSink, {
-      constructors: () => ({_SimpleCallbackSink: [convert._SimpleCallbackSink$(T), [convert._ChunkedConversionCallback$(core.List$(T))]]}),
+      constructors: () => ({new: [convert._SimpleCallbackSink$(T), [convert._ChunkedConversionCallback$(core.List$(T))]]}),
       methods: () => ({
         add: [dart.void, [T]],
         close: [dart.void, []]
@@ -25797,7 +25792,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _chunkedSink = Symbol('_chunkedSink');
   convert._ConverterStreamEventSink$ = dart.generic((S, T) => {
     class _ConverterStreamEventSink extends core.Object {
-      _ConverterStreamEventSink(converter, sink) {
+      new(converter, sink) {
         this[_eventSink] = sink;
         this[_chunkedSink] = converter.startChunkedConversion(sink);
       }
@@ -25815,7 +25810,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _ConverterStreamEventSink[dart.implements] = () => [async.EventSink$(S)];
     dart.setSignature(_ConverterStreamEventSink, {
-      constructors: () => ({_ConverterStreamEventSink: [convert._ConverterStreamEventSink$(S, T), [convert.Converter$(S, T), async.EventSink$(T)]]}),
+      constructors: () => ({new: [convert._ConverterStreamEventSink$(S, T), [convert.Converter$(S, T), async.EventSink$(T)]]}),
       methods: () => ({
         add: [dart.void, [S]],
         addError: [dart.void, [core.Object], [core.StackTrace]],
@@ -25835,14 +25830,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
       get decoder() {
         return this[_second].decoder.fuse(S)(this[_first$0].decoder);
       }
-      _FusedCodec(first, second) {
+      new(first, second) {
         this[_first$0] = first;
         this[_second] = second;
-        super.Codec();
+        super.new();
       }
     }
     dart.setSignature(_FusedCodec, {
-      constructors: () => ({_FusedCodec: [convert._FusedCodec$(S, M, T), [convert.Codec$(S, M), convert.Codec$(M, T)]]})
+      constructors: () => ({new: [convert._FusedCodec$(S, M, T), [convert.Codec$(S, M), convert.Codec$(M, T)]]})
     });
     return _FusedCodec;
   });
@@ -25850,9 +25845,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _codec = Symbol('_codec');
   convert._InvertedCodec$ = dart.generic((T, S) => {
     class _InvertedCodec extends convert.Codec$(T, S) {
-      _InvertedCodec(codec) {
+      new(codec) {
         this[_codec] = codec;
-        super.Codec();
+        super.new();
       }
       get encoder() {
         return this[_codec].decoder;
@@ -25865,17 +25860,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_InvertedCodec, {
-      constructors: () => ({_InvertedCodec: [convert._InvertedCodec$(T, S), [convert.Codec$(S, T)]]})
+      constructors: () => ({new: [convert._InvertedCodec$(T, S), [convert.Codec$(S, T)]]})
     });
     return _InvertedCodec;
   });
   convert._InvertedCodec = convert._InvertedCodec$();
   convert._FusedConverter$ = dart.generic((S, M, T) => {
     class _FusedConverter extends convert.Converter$(S, T) {
-      _FusedConverter(first, second) {
+      new(first, second) {
         this[_first$0] = first;
         this[_second] = second;
-        super.Converter();
+        super.new();
       }
       convert(input) {
         dart.as(input, S);
@@ -25887,7 +25882,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_FusedConverter, {
-      constructors: () => ({_FusedConverter: [convert._FusedConverter$(S, M, T), [convert.Converter$(S, M), convert.Converter$(M, T)]]}),
+      constructors: () => ({new: [convert._FusedConverter$(S, M, T), [convert.Converter$(S, M), convert.Converter$(M, T)]]}),
       methods: () => ({
         convert: [T, [S]],
         startChunkedConversion: [core.Sink$(S), [core.Sink$(T)]]
@@ -25913,7 +25908,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.escapeApos = escapeApos;
       this.escapeSlash = escapeSlash;
     }
-    HtmlEscapeMode(opts) {
+    new(opts) {
       let name = opts && 'name' in opts ? opts.name : "custom";
       let escapeLtGt = opts && 'escapeLtGt' in opts ? opts.escapeLtGt : false;
       let escapeQuot = opts && 'escapeQuot' in opts ? opts.escapeQuot : false;
@@ -25933,7 +25928,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(convert.HtmlEscapeMode, {
     constructors: () => ({
       _: [convert.HtmlEscapeMode, [core.String, core.bool, core.bool, core.bool, core.bool]],
-      HtmlEscapeMode: [convert.HtmlEscapeMode, [], {name: core.String, escapeLtGt: core.bool, escapeQuot: core.bool, escapeApos: core.bool, escapeSlash: core.bool}]
+      new: [convert.HtmlEscapeMode, [], {name: core.String, escapeLtGt: core.bool, escapeQuot: core.bool, escapeApos: core.bool, escapeSlash: core.bool}]
     })
   });
   dart.defineLazy(convert.HtmlEscapeMode, {
@@ -25952,10 +25947,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   const _convert = Symbol('_convert');
   convert.HtmlEscape = class HtmlEscape extends convert.Converter$(core.String, core.String) {
-    HtmlEscape(mode) {
+    new(mode) {
       if (mode === void 0) mode = convert.HtmlEscapeMode.UNKNOWN;
       this.mode = mode;
-      super.Converter();
+      super.new();
     }
     convert(text) {
       let val = this[_convert](text, 0, text[dartx.length]);
@@ -26017,7 +26012,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert.HtmlEscape, {
-    constructors: () => ({HtmlEscape: [convert.HtmlEscape, [], [convert.HtmlEscapeMode]]}),
+    constructors: () => ({new: [convert.HtmlEscape, [], [convert.HtmlEscapeMode]]}),
     methods: () => ({
       convert: [core.String, [core.String]],
       [_convert]: [core.String, [core.String, core.int, core.int]],
@@ -26027,7 +26022,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   convert.HTML_ESCAPE = dart.const(new convert.HtmlEscape());
   const _escape = Symbol('_escape');
   convert._HtmlEscapeSink = class _HtmlEscapeSink extends convert.StringConversionSinkBase {
-    _HtmlEscapeSink(escape, sink) {
+    new(escape, sink) {
       this[_escape] = escape;
       this[_sink$] = sink;
     }
@@ -26045,18 +26040,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._HtmlEscapeSink, {
-    constructors: () => ({_HtmlEscapeSink: [convert._HtmlEscapeSink, [convert.HtmlEscape, convert.StringConversionSink]]}),
+    constructors: () => ({new: [convert._HtmlEscapeSink, [convert.HtmlEscape, convert.StringConversionSink]]}),
     methods: () => ({
       addSlice: [dart.void, [core.String, core.int, core.int, core.bool]],
       close: [dart.void, []]
     })
   });
   convert.JsonUnsupportedObjectError = class JsonUnsupportedObjectError extends core.Error {
-    JsonUnsupportedObjectError(unsupportedObject, opts) {
+    new(unsupportedObject, opts) {
       let cause = opts && 'cause' in opts ? opts.cause : null;
       this.unsupportedObject = unsupportedObject;
       this.cause = cause;
-      super.Error();
+      super.new();
     }
     toString() {
       if (this.cause != null) {
@@ -26067,32 +26062,32 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert.JsonUnsupportedObjectError, {
-    constructors: () => ({JsonUnsupportedObjectError: [convert.JsonUnsupportedObjectError, [dart.dynamic], {cause: dart.dynamic}]})
+    constructors: () => ({new: [convert.JsonUnsupportedObjectError, [dart.dynamic], {cause: dart.dynamic}]})
   });
   convert.JsonCyclicError = class JsonCyclicError extends convert.JsonUnsupportedObjectError {
-    JsonCyclicError(object) {
-      super.JsonUnsupportedObjectError(object);
+    new(object) {
+      super.new(object);
     }
     toString() {
       return "Cyclic error in JSON stringify";
     }
   };
   dart.setSignature(convert.JsonCyclicError, {
-    constructors: () => ({JsonCyclicError: [convert.JsonCyclicError, [core.Object]]})
+    constructors: () => ({new: [convert.JsonCyclicError, [core.Object]]})
   });
   const _toEncodable = Symbol('_toEncodable');
   let const$37;
   let const$38;
   convert.JsonCodec = class JsonCodec extends convert.Codec$(core.Object, core.String) {
-    JsonCodec(opts) {
+    new(opts) {
       let reviver = opts && 'reviver' in opts ? opts.reviver : null;
       let toEncodable = opts && 'toEncodable' in opts ? opts.toEncodable : null;
       this[_reviver] = reviver;
       this[_toEncodable] = toEncodable;
-      super.Codec();
+      super.new();
     }
     withReviver(reviver) {
-      this.JsonCodec({reviver: reviver});
+      JsonCodec.prototype.new.call(this, {reviver: reviver});
     }
     decode(source, opts) {
       let reviver = opts && 'reviver' in opts ? opts.reviver : null;
@@ -26118,7 +26113,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.defineNamedConstructor(convert.JsonCodec, 'withReviver');
   dart.setSignature(convert.JsonCodec, {
     constructors: () => ({
-      JsonCodec: [convert.JsonCodec, [], {reviver: dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]), toEncodable: dart.functionType(dart.dynamic, [dart.dynamic])}],
+      new: [convert.JsonCodec, [], {reviver: dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]), toEncodable: dart.functionType(dart.dynamic, [dart.dynamic])}],
       withReviver: [convert.JsonCodec, [dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]]
     }),
     methods: () => ({
@@ -26130,17 +26125,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
   convert._Reviver = dart.typedef('_Reviver', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
   convert._ToEncodable = dart.typedef('_ToEncodable', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   convert.JsonEncoder = class JsonEncoder extends convert.Converter$(core.Object, core.String) {
-    JsonEncoder(toEncodable) {
+    new(toEncodable) {
       if (toEncodable === void 0) toEncodable = null;
       this.indent = null;
       this[_toEncodable] = toEncodable;
-      super.Converter();
+      super.new();
     }
     withIndent(indent, toEncodable) {
       if (toEncodable === void 0) toEncodable = null;
       this.indent = indent;
       this[_toEncodable] = toEncodable;
-      super.Converter();
+      super.new();
     }
     convert(object) {
       return convert._JsonStringStringifier.stringify(object, this[_toEncodable], this.indent);
@@ -26168,7 +26163,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.defineNamedConstructor(convert.JsonEncoder, 'withIndent');
   dart.setSignature(convert.JsonEncoder, {
     constructors: () => ({
-      JsonEncoder: [convert.JsonEncoder, [], [dart.functionType(dart.dynamic, [dart.dynamic])]],
+      new: [convert.JsonEncoder, [], [dart.functionType(dart.dynamic, [dart.dynamic])]],
       withIndent: [convert.JsonEncoder, [core.String], [dart.functionType(dart.dynamic, [dart.dynamic])]]
     }),
     methods: () => ({
@@ -26181,14 +26176,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _indent = Symbol('_indent');
   const _bufferSize = Symbol('_bufferSize');
   convert.JsonUtf8Encoder = class JsonUtf8Encoder extends convert.Converter$(core.Object, core.List$(core.int)) {
-    JsonUtf8Encoder(indent, toEncodable, bufferSize) {
+    new(indent, toEncodable, bufferSize) {
       if (indent === void 0) indent = null;
       if (toEncodable === void 0) toEncodable = null;
       if (bufferSize === void 0) bufferSize = convert.JsonUtf8Encoder.DEFAULT_BUFFER_SIZE;
       this[_indent] = convert.JsonUtf8Encoder._utf8Encode(indent);
       this[_toEncodable] = toEncodable;
       this[_bufferSize] = bufferSize;
-      super.Converter();
+      super.new();
     }
     static _utf8Encode(string) {
       if (string == null) return null;
@@ -26240,7 +26235,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert.JsonUtf8Encoder, {
-    constructors: () => ({JsonUtf8Encoder: [convert.JsonUtf8Encoder, [], [core.String, dart.functionType(dart.dynamic, [dart.dynamic]), core.int]]}),
+    constructors: () => ({new: [convert.JsonUtf8Encoder, [], [core.String, dart.functionType(dart.dynamic, [dart.dynamic]), core.int]]}),
     methods: () => ({
       convert: [core.List$(core.int), [core.Object]],
       startChunkedConversion: [convert.ChunkedConversionSink$(core.Object), [core.Sink$(core.List$(core.int))]],
@@ -26252,12 +26247,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
   convert.JsonUtf8Encoder.DEFAULT_BUFFER_SIZE = 256;
   const _isDone = Symbol('_isDone');
   convert._JsonEncoderSink = class _JsonEncoderSink extends convert.ChunkedConversionSink$(core.Object) {
-    _JsonEncoderSink(sink, toEncodable, indent) {
+    new(sink, toEncodable, indent) {
       this[_sink$] = sink;
       this[_toEncodable] = toEncodable;
       this[_indent] = indent;
       this[_isDone] = false;
-      super.ChunkedConversionSink();
+      super.new();
     }
     add(o) {
       if (dart.notNull(this[_isDone])) {
@@ -26271,7 +26266,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     close() {}
   };
   dart.setSignature(convert._JsonEncoderSink, {
-    constructors: () => ({_JsonEncoderSink: [convert._JsonEncoderSink, [convert.StringConversionSink, convert._ToEncodable, core.String]]}),
+    constructors: () => ({new: [convert._JsonEncoderSink, [convert.StringConversionSink, convert._ToEncodable, core.String]]}),
     methods: () => ({
       add: [dart.void, [core.Object]],
       close: [dart.void, []]
@@ -26279,13 +26274,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   const _addChunk = Symbol('_addChunk');
   convert._JsonUtf8EncoderSink = class _JsonUtf8EncoderSink extends convert.ChunkedConversionSink$(core.Object) {
-    _JsonUtf8EncoderSink(sink, toEncodable, indent, bufferSize) {
+    new(sink, toEncodable, indent, bufferSize) {
       this[_sink$] = sink;
       this[_toEncodable] = toEncodable;
       this[_indent] = indent;
       this[_bufferSize] = bufferSize;
       this[_isDone] = false;
-      super.ChunkedConversionSink();
+      super.new();
     }
     [_addChunk](chunk, start, end) {
       this[_sink$].addSlice(chunk, start, end, false);
@@ -26306,7 +26301,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._JsonUtf8EncoderSink, {
-    constructors: () => ({_JsonUtf8EncoderSink: [convert._JsonUtf8EncoderSink, [convert.ByteConversionSink, convert._ToEncodable, core.List$(core.int), core.int]]}),
+    constructors: () => ({new: [convert._JsonUtf8EncoderSink, [convert.ByteConversionSink, convert._ToEncodable, core.List$(core.int), core.int]]}),
     methods: () => ({
       [_addChunk]: [dart.void, [typed_data.Uint8List, core.int, core.int]],
       add: [dart.void, [core.Object]],
@@ -26314,10 +26309,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   convert.JsonDecoder = class JsonDecoder extends convert.Converter$(core.String, core.Object) {
-    JsonDecoder(reviver) {
+    new(reviver) {
       if (reviver === void 0) reviver = null;
       this[_reviver] = reviver;
-      super.Converter();
+      super.new();
     }
     convert(input) {
       return convert._parseJson(input, this[_reviver]);
@@ -26330,7 +26325,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert.JsonDecoder, {
-    constructors: () => ({JsonDecoder: [convert.JsonDecoder, [], [dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]]}),
+    constructors: () => ({new: [convert.JsonDecoder, [], [dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]]}),
     methods: () => ({
       convert: [dart.dynamic, [core.String]],
       startChunkedConversion: [convert.StringConversionSink, [core.Sink$(core.Object)]],
@@ -26361,7 +26356,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _checkCycle = Symbol('_checkCycle');
   const _removeSeen = Symbol('_removeSeen');
   convert._JsonStringifier = class _JsonStringifier extends core.Object {
-    _JsonStringifier(toEncodable) {
+    new(toEncodable) {
       this[_seen] = core.List.new();
       this[_toEncodable] = (() => {
         let l = toEncodable;
@@ -26531,7 +26526,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._JsonStringifier, {
-    constructors: () => ({_JsonStringifier: [convert._JsonStringifier, [dart.functionType(dart.dynamic, [dart.dynamic])]]}),
+    constructors: () => ({new: [convert._JsonStringifier, [dart.functionType(dart.dynamic, [dart.dynamic])]]}),
     methods: () => ({
       writeStringContent: [dart.void, [core.String]],
       [_checkCycle]: [dart.void, [dart.dynamic]],
@@ -26560,7 +26555,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   convert._JsonStringifier.CHAR_u = 117;
   const _indentLevel = Symbol('_indentLevel');
   convert._JsonPrettyPrintMixin = class _JsonPrettyPrintMixin extends core.Object {
-    _JsonPrettyPrintMixin() {
+    new() {
       this[_indentLevel] = 0;
     }
     writeList(list) {
@@ -26625,9 +26620,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   convert._JsonStringStringifier = class _JsonStringStringifier extends convert._JsonStringifier {
-    _JsonStringStringifier(sink, _toEncodable) {
+    new(sink, _toEncodable) {
       this[_sink$] = sink;
-      super._JsonStringifier(dart.as(_toEncodable, dart.functionType(dart.dynamic, [dart.dynamic])));
+      super.new(dart.as(_toEncodable, dart.functionType(dart.dynamic, [dart.dynamic])));
     }
     static stringify(object, toEncodable, indent) {
       let output = new core.StringBuffer();
@@ -26657,7 +26652,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._JsonStringStringifier, {
-    constructors: () => ({_JsonStringStringifier: [convert._JsonStringStringifier, [core.StringSink, dart.dynamic]]}),
+    constructors: () => ({new: [convert._JsonStringStringifier, [core.StringSink, dart.dynamic]]}),
     methods: () => ({
       writeNumber: [dart.void, [core.num]],
       writeString: [dart.void, [core.String]],
@@ -26671,9 +26666,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     names: ['stringify', 'printOn']
   });
   convert._JsonStringStringifierPretty = class _JsonStringStringifierPretty extends dart.mixin(convert._JsonStringStringifier, convert._JsonPrettyPrintMixin) {
-    _JsonStringStringifierPretty(sink, toEncodable, indent) {
+    new(sink, toEncodable, indent) {
       this[_indent] = indent;
-      super._JsonStringStringifier(sink, toEncodable);
+      super.new(sink, toEncodable);
     }
     writeIndentation(count) {
       for (let i = 0; i < dart.notNull(count); i++)
@@ -26681,17 +26676,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._JsonStringStringifierPretty, {
-    constructors: () => ({_JsonStringStringifierPretty: [convert._JsonStringStringifierPretty, [core.StringSink, dart.functionType(dart.dynamic, [dart.dynamic]), core.String]]}),
+    constructors: () => ({new: [convert._JsonStringStringifierPretty, [core.StringSink, dart.functionType(dart.dynamic, [dart.dynamic]), core.String]]}),
     methods: () => ({writeIndentation: [dart.void, [core.int]]})
   });
   convert._AddChunk = dart.typedef('_AddChunk', () => dart.functionType(dart.void, [typed_data.Uint8List, core.int, core.int]));
   convert._JsonUtf8Stringifier = class _JsonUtf8Stringifier extends convert._JsonStringifier {
-    _JsonUtf8Stringifier(toEncodable, bufferSize, addChunk) {
+    new(toEncodable, bufferSize, addChunk) {
       this.addChunk = addChunk;
       this.bufferSize = bufferSize;
       this.buffer = typed_data.Uint8List.new(bufferSize);
       this.index = 0;
-      super._JsonStringifier(toEncodable);
+      super.new(toEncodable);
     }
     static stringify(object, indent, toEncodable, bufferSize, addChunk) {
       let stringifier = null;
@@ -26785,7 +26780,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._JsonUtf8Stringifier, {
-    constructors: () => ({_JsonUtf8Stringifier: [convert._JsonUtf8Stringifier, [dart.functionType(dart.dynamic, [dart.dynamic]), core.int, convert._AddChunk]]}),
+    constructors: () => ({new: [convert._JsonUtf8Stringifier, [dart.functionType(dart.dynamic, [dart.dynamic]), core.int, convert._AddChunk]]}),
     methods: () => ({
       flush: [dart.void, []],
       writeNumber: [dart.void, [core.num]],
@@ -26801,9 +26796,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     names: ['stringify']
   });
   convert._JsonUtf8StringifierPretty = class _JsonUtf8StringifierPretty extends dart.mixin(convert._JsonUtf8Stringifier, convert._JsonPrettyPrintMixin) {
-    _JsonUtf8StringifierPretty(toEncodable, indent, bufferSize, addChunk) {
+    new(toEncodable, indent, bufferSize, addChunk) {
       this.indent = indent;
-      super._JsonUtf8Stringifier(toEncodable, dart.as(bufferSize, core.int), addChunk);
+      super.new(toEncodable, dart.as(bufferSize, core.int), addChunk);
     }
     writeIndentation(count) {
       let indent = this.indent;
@@ -26831,7 +26826,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._JsonUtf8StringifierPretty, {
-    constructors: () => ({_JsonUtf8StringifierPretty: [convert._JsonUtf8StringifierPretty, [dart.functionType(dart.dynamic, [dart.dynamic]), core.List$(core.int), dart.dynamic, dart.functionType(dart.void, [typed_data.Uint8List, core.int, core.int])]]}),
+    constructors: () => ({new: [convert._JsonUtf8StringifierPretty, [dart.functionType(dart.dynamic, [dart.dynamic]), core.List$(core.int), dart.dynamic, dart.functionType(dart.void, [typed_data.Uint8List, core.int, core.int])]]}),
     methods: () => ({writeIndentation: [dart.void, [core.int]]})
   });
   let const$39;
@@ -26840,10 +26835,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let const$42;
   let const$43;
   convert.Latin1Codec = class Latin1Codec extends convert.Encoding {
-    Latin1Codec(opts) {
+    new(opts) {
       let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : false;
       this[_allowInvalid] = allowInvalid;
-      super.Encoding();
+      super.new();
     }
     get name() {
       return "iso-8859-1";
@@ -26865,23 +26860,23 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert.Latin1Codec, {
-    constructors: () => ({Latin1Codec: [convert.Latin1Codec, [], {allowInvalid: core.bool}]}),
+    constructors: () => ({new: [convert.Latin1Codec, [], {allowInvalid: core.bool}]}),
     methods: () => ({decode: [core.String, [core.List$(core.int)], {allowInvalid: core.bool}]})
   });
   convert.LATIN1 = dart.const(new convert.Latin1Codec());
   convert._LATIN1_MASK = 255;
   convert.Latin1Encoder = class Latin1Encoder extends convert._UnicodeSubsetEncoder {
-    Latin1Encoder() {
-      super._UnicodeSubsetEncoder(convert._LATIN1_MASK);
+    new() {
+      super.new(convert._LATIN1_MASK);
     }
   };
   dart.setSignature(convert.Latin1Encoder, {
-    constructors: () => ({Latin1Encoder: [convert.Latin1Encoder, []]})
+    constructors: () => ({new: [convert.Latin1Encoder, []]})
   });
   convert.Latin1Decoder = class Latin1Decoder extends convert._UnicodeSubsetDecoder {
-    Latin1Decoder(opts) {
+    new(opts) {
       let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : false;
-      super._UnicodeSubsetDecoder(allowInvalid, convert._LATIN1_MASK);
+      super.new(allowInvalid, convert._LATIN1_MASK);
     }
     startChunkedConversion(sink) {
       let stringSink = null;
@@ -26895,12 +26890,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert.Latin1Decoder, {
-    constructors: () => ({Latin1Decoder: [convert.Latin1Decoder, [], {allowInvalid: core.bool}]}),
+    constructors: () => ({new: [convert.Latin1Decoder, [], {allowInvalid: core.bool}]}),
     methods: () => ({startChunkedConversion: [convert.ByteConversionSink, [core.Sink$(core.String)]]})
   });
   const _addSliceToSink = Symbol('_addSliceToSink');
   convert._Latin1DecoderSink = class _Latin1DecoderSink extends convert.ByteConversionSinkBase {
-    _Latin1DecoderSink(sink) {
+    new(sink) {
       this[_sink$] = sink;
     }
     close() {
@@ -26943,7 +26938,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._Latin1DecoderSink, {
-    constructors: () => ({_Latin1DecoderSink: [convert._Latin1DecoderSink, [convert.StringConversionSink]]}),
+    constructors: () => ({new: [convert._Latin1DecoderSink, [convert.StringConversionSink]]}),
     methods: () => ({
       close: [dart.void, []],
       add: [dart.void, [core.List$(core.int)]],
@@ -26957,8 +26952,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   let const$44;
   convert._Latin1AllowInvalidDecoderSink = class _Latin1AllowInvalidDecoderSink extends convert._Latin1DecoderSink {
-    _Latin1AllowInvalidDecoderSink(sink) {
-      super._Latin1DecoderSink(sink);
+    new(sink) {
+      super.new(sink);
     }
     addSlice(source, start, end, isLast) {
       core.RangeError.checkValidRange(start, end, source[dartx.length]);
@@ -26979,12 +26974,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._Latin1AllowInvalidDecoderSink, {
-    constructors: () => ({_Latin1AllowInvalidDecoderSink: [convert._Latin1AllowInvalidDecoderSink, [convert.StringConversionSink]]})
+    constructors: () => ({new: [convert._Latin1AllowInvalidDecoderSink, [convert.StringConversionSink]]})
   });
   convert._LF = 10;
   convert._CR = 13;
   convert.LineSplitter = class LineSplitter extends core.Object {
-    LineSplitter() {
+    new() {
     }
     static split(lines, start, end) {
       return dart.syncStar(function*(lines, start, end) {
@@ -27046,7 +27041,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   convert.LineSplitter[dart.implements] = () => [async.StreamTransformer$(core.String, core.String)];
   dart.setSignature(convert.LineSplitter, {
-    constructors: () => ({LineSplitter: [convert.LineSplitter, []]}),
+    constructors: () => ({new: [convert.LineSplitter, []]}),
     methods: () => ({
       convert: [core.List$(core.String), [core.String]],
       startChunkedConversion: [convert.StringConversionSink, [core.Sink$(core.String)]],
@@ -27059,7 +27054,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _skipLeadingLF = Symbol('_skipLeadingLF');
   const _addLines = Symbol('_addLines');
   convert._LineSplitterSink = class _LineSplitterSink extends convert.StringConversionSinkBase {
-    _LineSplitterSink(sink) {
+    new(sink) {
       this[_sink$] = sink;
       this[_carry] = null;
       this[_skipLeadingLF] = false;
@@ -27116,7 +27111,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._LineSplitterSink, {
-    constructors: () => ({_LineSplitterSink: [convert._LineSplitterSink, [convert.StringConversionSink]]}),
+    constructors: () => ({new: [convert._LineSplitterSink, [convert.StringConversionSink]]}),
     methods: () => ({
       addSlice: [dart.void, [core.String, core.int, core.int, core.bool]],
       close: [dart.void, []],
@@ -27124,9 +27119,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   convert._LineSplitterEventSink = class _LineSplitterEventSink extends convert._LineSplitterSink {
-    _LineSplitterEventSink(eventSink) {
+    new(eventSink) {
       this[_eventSink] = eventSink;
-      super._LineSplitterSink(convert.StringConversionSink.from(eventSink));
+      super.new(convert.StringConversionSink.from(eventSink));
     }
     addError(o, stackTrace) {
       if (stackTrace === void 0) stackTrace = null;
@@ -27135,12 +27130,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   convert._LineSplitterEventSink[dart.implements] = () => [async.EventSink$(core.String)];
   dart.setSignature(convert._LineSplitterEventSink, {
-    constructors: () => ({_LineSplitterEventSink: [convert._LineSplitterEventSink, [async.EventSink$(core.String)]]}),
+    constructors: () => ({new: [convert._LineSplitterEventSink, [async.EventSink$(core.String)]]}),
     methods: () => ({addError: [dart.void, [core.Object], [core.StackTrace]]})
   });
   convert.StringConversionSink = class StringConversionSink extends convert.ChunkedConversionSink$(core.String) {
-    StringConversionSink() {
-      super.ChunkedConversionSink();
+    new() {
+      super.new();
     }
     static withCallback(callback) {
       return new convert._StringCallbackSink(callback);
@@ -27154,7 +27149,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.setSignature(convert.StringConversionSink, {
     constructors: () => ({
-      StringConversionSink: [convert.StringConversionSink, []],
+      new: [convert.StringConversionSink, []],
       withCallback: [convert.StringConversionSink, [dart.functionType(dart.void, [core.String])]],
       from: [convert.StringConversionSink, [core.Sink$(core.String)]],
       fromStringSink: [convert.StringConversionSink, [core.StringSink]]
@@ -27171,7 +27166,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   convert._StringSinkCloseCallback = dart.typedef('_StringSinkCloseCallback', () => dart.functionType(dart.void, []));
   convert._ClosableStringSink = class _ClosableStringSink extends core.Object {
-    _ClosableStringSink(sink, callback) {
+    new(sink, callback) {
       this[_sink$] = sink;
       this[_callback] = callback;
     }
@@ -27195,7 +27190,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   convert._ClosableStringSink[dart.implements] = () => [convert.ClosableStringSink];
   dart.setSignature(convert._ClosableStringSink, {
-    constructors: () => ({_ClosableStringSink: [convert._ClosableStringSink, [core.StringSink, convert._StringSinkCloseCallback]]}),
+    constructors: () => ({new: [convert._ClosableStringSink, [core.StringSink, convert._StringSinkCloseCallback]]}),
     methods: () => ({
       close: [dart.void, []],
       writeCharCode: [dart.void, [core.int]],
@@ -27206,7 +27201,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   const _flush = Symbol('_flush');
   convert._StringConversionSinkAsStringSinkAdapter = class _StringConversionSinkAsStringSinkAdapter extends core.Object {
-    _StringConversionSinkAsStringSinkAdapter(chunkedSink) {
+    new(chunkedSink) {
       this[_chunkedSink] = chunkedSink;
       this[_buffer] = new core.StringBuffer();
     }
@@ -27252,7 +27247,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   convert._StringConversionSinkAsStringSinkAdapter[dart.implements] = () => [convert.ClosableStringSink];
   dart.setSignature(convert._StringConversionSinkAsStringSinkAdapter, {
-    constructors: () => ({_StringConversionSinkAsStringSinkAdapter: [convert._StringConversionSinkAsStringSinkAdapter, [convert.StringConversionSink]]}),
+    constructors: () => ({new: [convert._StringConversionSinkAsStringSinkAdapter, [convert.StringConversionSink]]}),
     methods: () => ({
       close: [dart.void, []],
       writeCharCode: [dart.void, [core.int]],
@@ -27264,9 +27259,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   convert._StringConversionSinkAsStringSinkAdapter._MIN_STRING_SIZE = 16;
   convert._StringCallbackSink = class _StringCallbackSink extends convert._StringSinkConversionSink {
-    _StringCallbackSink(callback) {
+    new(callback) {
       this[_callback] = callback;
-      super._StringSinkConversionSink(new core.StringBuffer());
+      super.new(new core.StringBuffer());
     }
     close() {
       let buffer = dart.as(this[_stringSink], core.StringBuffer);
@@ -27279,10 +27274,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._StringCallbackSink, {
-    constructors: () => ({_StringCallbackSink: [convert._StringCallbackSink, [convert._ChunkedConversionCallback$(core.String)]]})
+    constructors: () => ({new: [convert._StringCallbackSink, [convert._ChunkedConversionCallback$(core.String)]]})
   });
   convert._StringAdapterSink = class _StringAdapterSink extends convert.StringConversionSinkBase {
-    _StringAdapterSink(sink) {
+    new(sink) {
       this[_sink$] = sink;
     }
     add(str) {
@@ -27301,17 +27296,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._StringAdapterSink, {
-    constructors: () => ({_StringAdapterSink: [convert._StringAdapterSink, [core.Sink$(core.String)]]}),
+    constructors: () => ({new: [convert._StringAdapterSink, [core.Sink$(core.String)]]}),
     methods: () => ({
       addSlice: [dart.void, [core.String, core.int, core.int, core.bool]],
       close: [dart.void, []]
     })
   });
   convert._Utf8StringSinkAdapter = class _Utf8StringSinkAdapter extends convert.ByteConversionSink {
-    _Utf8StringSinkAdapter(sink, stringSink, allowMalformed) {
+    new(sink, stringSink, allowMalformed) {
       this[_sink$] = sink;
       this[_decoder] = new convert._Utf8Decoder(stringSink, allowMalformed);
-      super.ByteConversionSink();
+      super.new();
     }
     close() {
       this[_decoder].close();
@@ -27326,7 +27321,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._Utf8StringSinkAdapter, {
-    constructors: () => ({_Utf8StringSinkAdapter: [convert._Utf8StringSinkAdapter, [core.Sink, core.StringSink, core.bool]]}),
+    constructors: () => ({new: [convert._Utf8StringSinkAdapter, [core.Sink, core.StringSink, core.bool]]}),
     methods: () => ({
       close: [dart.void, []],
       add: [dart.void, [core.List$(core.int)]],
@@ -27334,14 +27329,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   convert._Utf8ConversionSink = class _Utf8ConversionSink extends convert.ByteConversionSink {
-    _Utf8ConversionSink(sink, allowMalformed) {
-      this._(sink, new core.StringBuffer(), allowMalformed);
+    new(sink, allowMalformed) {
+      _Utf8ConversionSink.prototype._.call(this, sink, new core.StringBuffer(), allowMalformed);
     }
     _(chunkedSink, stringBuffer, allowMalformed) {
       this[_chunkedSink] = chunkedSink;
       this[_decoder] = new convert._Utf8Decoder(stringBuffer, allowMalformed);
       this[_buffer] = stringBuffer;
-      super.ByteConversionSink();
+      super.new();
     }
     close() {
       this[_decoder].close();
@@ -27370,7 +27365,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.defineNamedConstructor(convert._Utf8ConversionSink, '_');
   dart.setSignature(convert._Utf8ConversionSink, {
     constructors: () => ({
-      _Utf8ConversionSink: [convert._Utf8ConversionSink, [convert.StringConversionSink, core.bool]],
+      new: [convert._Utf8ConversionSink, [convert.StringConversionSink, core.bool]],
       _: [convert._Utf8ConversionSink, [convert.StringConversionSink, core.StringBuffer, core.bool]]
     }),
     methods: () => ({
@@ -27384,10 +27379,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _allowMalformed = Symbol('_allowMalformed');
   let const$45;
   convert.Utf8Codec = class Utf8Codec extends convert.Encoding {
-    Utf8Codec(opts) {
+    new(opts) {
       let allowMalformed = opts && 'allowMalformed' in opts ? opts.allowMalformed : false;
       this[_allowMalformed] = allowMalformed;
-      super.Encoding();
+      super.new();
     }
     get name() {
       return "utf-8";
@@ -27405,15 +27400,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert.Utf8Codec, {
-    constructors: () => ({Utf8Codec: [convert.Utf8Codec, [], {allowMalformed: core.bool}]}),
+    constructors: () => ({new: [convert.Utf8Codec, [], {allowMalformed: core.bool}]}),
     methods: () => ({decode: [core.String, [core.List$(core.int)], {allowMalformed: core.bool}]})
   });
   convert.UTF8 = dart.const(new convert.Utf8Codec());
   const _fillBuffer = Symbol('_fillBuffer');
   const _writeSurrogate = Symbol('_writeSurrogate');
   convert.Utf8Encoder = class Utf8Encoder extends convert.Converter$(core.String, core.List$(core.int)) {
-    Utf8Encoder() {
-      super.Converter();
+    new() {
+      super.new();
     }
     convert(string, start, end) {
       if (start === void 0) start = 0;
@@ -27445,7 +27440,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert.Utf8Encoder, {
-    constructors: () => ({Utf8Encoder: [convert.Utf8Encoder, []]}),
+    constructors: () => ({new: [convert.Utf8Encoder, []]}),
     methods: () => ({
       convert: [core.List$(core.int), [core.String], [core.int, core.int]],
       startChunkedConversion: [convert.StringConversionSink, [core.Sink$(core.List$(core.int))]],
@@ -27453,8 +27448,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   convert._Utf8Encoder = class _Utf8Encoder extends core.Object {
-    _Utf8Encoder() {
-      this.withBufferSize(convert._Utf8Encoder._DEFAULT_BYTE_BUFFER_SIZE);
+    new() {
+      _Utf8Encoder.prototype.withBufferSize.call(this, convert._Utf8Encoder._DEFAULT_BYTE_BUFFER_SIZE);
     }
     withBufferSize(bufferSize) {
       this[_buffer] = convert._Utf8Encoder._createBuffer(bufferSize);
@@ -27571,7 +27566,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.defineNamedConstructor(convert._Utf8Encoder, 'withBufferSize');
   dart.setSignature(convert._Utf8Encoder, {
     constructors: () => ({
-      _Utf8Encoder: [convert._Utf8Encoder, []],
+      new: [convert._Utf8Encoder, []],
       withBufferSize: [convert._Utf8Encoder, [core.int]]
     }),
     methods: () => ({
@@ -27583,9 +27578,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   convert._Utf8Encoder._DEFAULT_BYTE_BUFFER_SIZE = 1024;
   convert._Utf8EncoderSink = class _Utf8EncoderSink extends dart.mixin(convert._Utf8Encoder, convert.StringConversionSinkMixin) {
-    _Utf8EncoderSink(sink) {
+    new(sink) {
       this[_sink$] = sink;
-      super._Utf8Encoder();
+      super.new();
     }
     close() {
       if (this[_carry] != 0) {
@@ -27632,17 +27627,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._Utf8EncoderSink, {
-    constructors: () => ({_Utf8EncoderSink: [convert._Utf8EncoderSink, [convert.ByteConversionSink]]}),
+    constructors: () => ({new: [convert._Utf8EncoderSink, [convert.ByteConversionSink]]}),
     methods: () => ({
       close: [dart.void, []],
       addSlice: [dart.void, [core.String, core.int, core.int, core.bool]]
     })
   });
   convert.Utf8Decoder = class Utf8Decoder extends convert.Converter$(core.List$(core.int), core.String) {
-    Utf8Decoder(opts) {
+    new(opts) {
       let allowMalformed = opts && 'allowMalformed' in opts ? opts.allowMalformed : false;
       this[_allowMalformed] = allowMalformed;
-      super.Converter();
+      super.new();
     }
     convert(codeUnits, start, end) {
       if (start === void 0) start = 0;
@@ -27682,7 +27677,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert.Utf8Decoder, {
-    constructors: () => ({Utf8Decoder: [convert.Utf8Decoder, [], {allowMalformed: core.bool}]}),
+    constructors: () => ({new: [convert.Utf8Decoder, [], {allowMalformed: core.bool}]}),
     methods: () => ({
       convert: [core.String, [core.List$(core.int)], [core.int, core.int]],
       startChunkedConversion: [convert.ByteConversionSink, [core.Sink$(core.String)]],
@@ -27718,7 +27713,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _expectedUnits = Symbol('_expectedUnits');
   const _extraUnits = Symbol('_extraUnits');
   convert._Utf8Decoder = class _Utf8Decoder extends core.Object {
-    _Utf8Decoder(stringSink, allowMalformed) {
+    new(stringSink, allowMalformed) {
       this[_stringSink] = stringSink;
       this[_allowMalformed] = allowMalformed;
       this[_isFirstCharacter] = true;
@@ -27862,7 +27857,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(convert._Utf8Decoder, {
-    constructors: () => ({_Utf8Decoder: [convert._Utf8Decoder, [core.StringSink, core.bool]]}),
+    constructors: () => ({new: [convert._Utf8Decoder, [core.StringSink, core.bool]]}),
     methods: () => ({
       close: [dart.void, []],
       flush: [dart.void, []],
@@ -27875,7 +27870,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.lazyFn(core._symbolToString, () => [core.String, [core.Symbol]]);
   core.Deprecated = class Deprecated extends core.Object {
-    Deprecated(expires) {
+    new(expires) {
       this.expires = expires;
     }
     toString() {
@@ -27883,23 +27878,23 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(core.Deprecated, {
-    constructors: () => ({Deprecated: [core.Deprecated, [core.String]]})
+    constructors: () => ({new: [core.Deprecated, [core.String]]})
   });
   core._Override = class _Override extends core.Object {
-    _Override() {
+    new() {
     }
   };
   dart.setSignature(core._Override, {
-    constructors: () => ({_Override: [core._Override, []]})
+    constructors: () => ({new: [core._Override, []]})
   });
   core.deprecated = dart.const(new core.Deprecated("next release"));
   core.override = dart.const(new core._Override());
   core._Proxy = class _Proxy extends core.Object {
-    _Proxy() {
+    new() {
     }
   };
   dart.setSignature(core._Proxy, {
-    constructors: () => ({_Proxy: [core._Proxy, []]})
+    constructors: () => ({new: [core._Proxy, []]})
   });
   core.proxy = dart.const(new core._Proxy());
   dart.defineExtensionNames([
@@ -27937,7 +27932,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   core.Comparable = core.Comparable$();
   const _value$0 = Symbol('_value');
   core.DateTime = class DateTime extends core.Object {
-    DateTime(year, month, day, hour, minute, second, millisecond, microsecond) {
+    new(year, month, day, hour, minute, second, millisecond, microsecond) {
       if (month === void 0) month = 1;
       if (day === void 0) day = 1;
       if (hour === void 0) hour = 0;
@@ -27945,7 +27940,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (second === void 0) second = 0;
       if (millisecond === void 0) millisecond = 0;
       if (microsecond === void 0) microsecond = 0;
-      this._internal(year, month, day, hour, minute, second, millisecond, microsecond, false);
+      DateTime.prototype._internal.call(this, year, month, day, hour, minute, second, millisecond, microsecond, false);
     }
     utc(year, month, day, hour, minute, second, millisecond, microsecond) {
       if (month === void 0) month = 1;
@@ -27955,10 +27950,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (second === void 0) second = 0;
       if (millisecond === void 0) millisecond = 0;
       if (microsecond === void 0) microsecond = 0;
-      this._internal(year, month, day, hour, minute, second, millisecond, microsecond, true);
+      DateTime.prototype._internal.call(this, year, month, day, hour, minute, second, millisecond, microsecond, true);
     }
     now() {
-      this._now();
+      DateTime.prototype._now.call(this);
     }
     static parse(formattedString) {
       let re = core.RegExp.new('^([+-]?\\d{4,6})-?(\\d\\d)-?(\\d\\d)' + '(?:[ T](\\d\\d)(?::?(\\d\\d)(?::?(\\d\\d)(?:\\.(\\d{1,6}))?)?)?' + '( ?[zZ]| ?([-+])(\\d\\d)(?::?(\\d\\d))?)?)?$');
@@ -28016,11 +28011,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     fromMillisecondsSinceEpoch(millisecondsSinceEpoch, opts) {
       let isUtc = opts && 'isUtc' in opts ? opts.isUtc : false;
-      this._withValue(millisecondsSinceEpoch, {isUtc: isUtc});
+      DateTime.prototype._withValue.call(this, millisecondsSinceEpoch, {isUtc: isUtc});
     }
     fromMicrosecondsSinceEpoch(microsecondsSinceEpoch, opts) {
       let isUtc = opts && 'isUtc' in opts ? opts.isUtc : false;
-      this._withValue(core.DateTime._microsecondInRoundedMilliseconds(microsecondsSinceEpoch), {isUtc: isUtc});
+      DateTime.prototype._withValue.call(this, core.DateTime._microsecondInRoundedMilliseconds(microsecondsSinceEpoch), {isUtc: isUtc});
     }
     _withValue(value, opts) {
       let isUtc = opts && 'isUtc' in opts ? opts.isUtc : null;
@@ -28189,7 +28184,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   core.DateTime[dart.implements] = () => [core.Comparable];
   dart.setSignature(core.DateTime, {
     constructors: () => ({
-      DateTime: [core.DateTime, [core.int], [core.int, core.int, core.int, core.int, core.int, core.int, core.int]],
+      new: [core.DateTime, [core.int], [core.int, core.int, core.int, core.int, core.int, core.int, core.int]],
       utc: [core.DateTime, [core.int], [core.int, core.int, core.int, core.int, core.int, core.int, core.int]],
       now: [core.DateTime, []],
       fromMillisecondsSinceEpoch: [core.DateTime, [core.int], {isUtc: core.bool}],
@@ -28246,14 +28241,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   core.DateTime._MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
   const _duration = Symbol('_duration');
   core.Duration = class Duration extends core.Object {
-    Duration(opts) {
+    new(opts) {
       let days = opts && 'days' in opts ? opts.days : 0;
       let hours = opts && 'hours' in opts ? opts.hours : 0;
       let minutes = opts && 'minutes' in opts ? opts.minutes : 0;
       let seconds = opts && 'seconds' in opts ? opts.seconds : 0;
       let milliseconds = opts && 'milliseconds' in opts ? opts.milliseconds : 0;
       let microseconds = opts && 'microseconds' in opts ? opts.microseconds : 0;
-      this._microseconds(core.Duration.MICROSECONDS_PER_DAY * dart.notNull(days) + core.Duration.MICROSECONDS_PER_HOUR * dart.notNull(hours) + core.Duration.MICROSECONDS_PER_MINUTE * dart.notNull(minutes) + core.Duration.MICROSECONDS_PER_SECOND * dart.notNull(seconds) + core.Duration.MICROSECONDS_PER_MILLISECOND * dart.notNull(milliseconds) + dart.notNull(microseconds));
+      Duration.prototype._microseconds.call(this, core.Duration.MICROSECONDS_PER_DAY * dart.notNull(days) + core.Duration.MICROSECONDS_PER_HOUR * dart.notNull(hours) + core.Duration.MICROSECONDS_PER_MINUTE * dart.notNull(minutes) + core.Duration.MICROSECONDS_PER_SECOND * dart.notNull(seconds) + core.Duration.MICROSECONDS_PER_MILLISECOND * dart.notNull(milliseconds) + dart.notNull(microseconds));
     }
     _microseconds(duration) {
       this[_duration] = duration;
@@ -28348,7 +28343,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   core.Duration[dart.implements] = () => [core.Comparable$(core.Duration)];
   dart.setSignature(core.Duration, {
     constructors: () => ({
-      Duration: [core.Duration, [], {days: core.int, hours: core.int, minutes: core.int, seconds: core.int, milliseconds: core.int, microseconds: core.int}],
+      new: [core.Duration, [], {days: core.int, hours: core.int, minutes: core.int, seconds: core.int, milliseconds: core.int, microseconds: core.int}],
       _microseconds: [core.Duration, [core.int]]
     }),
     methods: () => ({
@@ -28407,29 +28402,29 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   });
   core.AssertionError = class AssertionError extends core.Error {
-    AssertionError() {
-      super.Error();
+    new() {
+      super.new();
     }
     toString() {
       return "Assertion failed";
     }
   };
   dart.setSignature(core.AssertionError, {
-    constructors: () => ({AssertionError: [core.AssertionError, []]})
+    constructors: () => ({new: [core.AssertionError, []]})
   });
   core.TypeError = class TypeError extends core.AssertionError {
-    TypeError() {
-      super.AssertionError();
+    new() {
+      super.new();
     }
   };
   core.CastError = class CastError extends core.Error {
-    CastError() {
-      super.Error();
+    new() {
+      super.new();
     }
   };
   core.NullThrownError = class NullThrownError extends core.Error {
-    NullThrownError() {
-      super.Error();
+    new() {
+      super.new();
     }
     toString() {
       return "Throw of null.";
@@ -28439,13 +28434,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _errorName = Symbol('_errorName');
   const _errorExplanation = Symbol('_errorExplanation');
   core.ArgumentError = class ArgumentError extends core.Error {
-    ArgumentError(message) {
+    new(message) {
       if (message === void 0) message = null;
       this.message = message;
       this.invalidValue = null;
       this[_hasValue] = false;
       this.name = null;
-      super.Error();
+      super.new();
     }
     value(value, name, message) {
       if (name === void 0) name = null;
@@ -28454,7 +28449,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.message = message;
       this.invalidValue = value;
       this[_hasValue] = true;
-      super.Error();
+      super.new();
     }
     notNull(name) {
       if (name === void 0) name = null;
@@ -28462,7 +28457,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_hasValue] = false;
       this.message = "Must not be null";
       this.invalidValue = null;
-      super.Error();
+      super.new();
     }
     get [_errorName]() {
       return `Invalid argument${!dart.notNull(this[_hasValue]) ? "(s)" : ""}`;
@@ -28487,16 +28482,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.defineNamedConstructor(core.ArgumentError, 'notNull');
   dart.setSignature(core.ArgumentError, {
     constructors: () => ({
-      ArgumentError: [core.ArgumentError, [], [dart.dynamic]],
+      new: [core.ArgumentError, [], [dart.dynamic]],
       value: [core.ArgumentError, [dart.dynamic], [core.String, core.String]],
       notNull: [core.ArgumentError, [], [core.String]]
     })
   });
   core.RangeError = class RangeError extends core.ArgumentError {
-    RangeError(message) {
+    new(message) {
       this.start = null;
       this.end = null;
-      super.ArgumentError(message);
+      super.new(message);
     }
     value(value, name, message) {
       if (name === void 0) name = null;
@@ -28580,7 +28575,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.defineNamedConstructor(core.RangeError, 'range');
   dart.setSignature(core.RangeError, {
     constructors: () => ({
-      RangeError: [core.RangeError, [dart.dynamic]],
+      new: [core.RangeError, [dart.dynamic]],
       value: [core.RangeError, [core.num], [core.String, core.String]],
       range: [core.RangeError, [core.num, core.int, core.int], [core.String, core.String]],
       index: [core.RangeError, [core.int, dart.dynamic], [core.String, core.String, core.int]]
@@ -28594,7 +28589,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     names: ['checkValueInInterval', 'checkValidIndex', 'checkValidRange', 'checkNotNegative']
   });
   core.IndexError = class IndexError extends core.ArgumentError {
-    IndexError(invalidValue, indexable, name, message, length) {
+    new(invalidValue, indexable, name, message, length) {
       if (name === void 0) name = null;
       if (message === void 0) message = null;
       if (length === void 0) length = null;
@@ -28624,20 +28619,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   core.IndexError[dart.implements] = () => [core.RangeError];
   dart.setSignature(core.IndexError, {
-    constructors: () => ({IndexError: [core.IndexError, [core.int, dart.dynamic], [core.String, core.String, core.int]]})
+    constructors: () => ({new: [core.IndexError, [core.int, dart.dynamic], [core.String, core.String, core.int]]})
   });
   const _className = Symbol('_className');
   core.AbstractClassInstantiationError = class AbstractClassInstantiationError extends core.Error {
-    AbstractClassInstantiationError(className) {
+    new(className) {
       this[_className] = className;
-      super.Error();
+      super.new();
     }
     toString() {
       return `Cannot instantiate abstract class: '${this[_className]}'`;
     }
   };
   dart.setSignature(core.AbstractClassInstantiationError, {
-    constructors: () => ({AbstractClassInstantiationError: [core.AbstractClassInstantiationError, [core.String]]})
+    constructors: () => ({new: [core.AbstractClassInstantiationError, [core.String]]})
   });
   const _receiver$ = Symbol('_receiver');
   const _memberName = Symbol('_memberName');
@@ -28645,14 +28640,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _namedArguments = Symbol('_namedArguments');
   const _existingArgumentNames = Symbol('_existingArgumentNames');
   core.NoSuchMethodError = class NoSuchMethodError extends core.Error {
-    NoSuchMethodError(receiver, memberName, positionalArguments, namedArguments, existingArgumentNames) {
+    new(receiver, memberName, positionalArguments, namedArguments, existingArgumentNames) {
       if (existingArgumentNames === void 0) existingArgumentNames = null;
       this[_receiver$] = receiver;
       this[_memberName] = memberName;
       this[_arguments] = positionalArguments;
       this[_namedArguments] = namedArguments;
       this[_existingArgumentNames] = existingArgumentNames;
-      super.Error();
+      super.new();
     }
     toString() {
       let sb = new core.StringBuffer();
@@ -28693,25 +28688,25 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(core.NoSuchMethodError, {
-    constructors: () => ({NoSuchMethodError: [core.NoSuchMethodError, [core.Object, core.Symbol, core.List, core.Map$(core.Symbol, dart.dynamic)], [core.List]]})
+    constructors: () => ({new: [core.NoSuchMethodError, [core.Object, core.Symbol, core.List, core.Map$(core.Symbol, dart.dynamic)], [core.List]]})
   });
   core.UnsupportedError = class UnsupportedError extends core.Error {
-    UnsupportedError(message) {
+    new(message) {
       this.message = message;
-      super.Error();
+      super.new();
     }
     toString() {
       return `Unsupported operation: ${this.message}`;
     }
   };
   dart.setSignature(core.UnsupportedError, {
-    constructors: () => ({UnsupportedError: [core.UnsupportedError, [core.String]]})
+    constructors: () => ({new: [core.UnsupportedError, [core.String]]})
   });
   core.UnimplementedError = class UnimplementedError extends core.Error {
-    UnimplementedError(message) {
+    new(message) {
       if (message === void 0) message = null;
       this.message = message;
-      super.Error();
+      super.new();
     }
     toString() {
       return this.message != null ? `UnimplementedError: ${this.message}` : "UnimplementedError";
@@ -28719,25 +28714,25 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   core.UnimplementedError[dart.implements] = () => [core.UnsupportedError];
   dart.setSignature(core.UnimplementedError, {
-    constructors: () => ({UnimplementedError: [core.UnimplementedError, [], [core.String]]})
+    constructors: () => ({new: [core.UnimplementedError, [], [core.String]]})
   });
   core.StateError = class StateError extends core.Error {
-    StateError(message) {
+    new(message) {
       this.message = message;
-      super.Error();
+      super.new();
     }
     toString() {
       return `Bad state: ${this.message}`;
     }
   };
   dart.setSignature(core.StateError, {
-    constructors: () => ({StateError: [core.StateError, [core.String]]})
+    constructors: () => ({new: [core.StateError, [core.String]]})
   });
   core.ConcurrentModificationError = class ConcurrentModificationError extends core.Error {
-    ConcurrentModificationError(modifiedObject) {
+    new(modifiedObject) {
       if (modifiedObject === void 0) modifiedObject = null;
       this.modifiedObject = modifiedObject;
-      super.Error();
+      super.new();
     }
     toString() {
       if (this.modifiedObject == null) {
@@ -28747,10 +28742,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(core.ConcurrentModificationError, {
-    constructors: () => ({ConcurrentModificationError: [core.ConcurrentModificationError, [], [core.Object]]})
+    constructors: () => ({new: [core.ConcurrentModificationError, [], [core.Object]]})
   });
   core.OutOfMemoryError = class OutOfMemoryError extends core.Object {
-    OutOfMemoryError() {
+    new() {
     }
     toString() {
       return "Out of Memory";
@@ -28761,10 +28756,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   core.OutOfMemoryError[dart.implements] = () => [core.Error];
   dart.setSignature(core.OutOfMemoryError, {
-    constructors: () => ({OutOfMemoryError: [core.OutOfMemoryError, []]})
+    constructors: () => ({new: [core.OutOfMemoryError, []]})
   });
   core.StackOverflowError = class StackOverflowError extends core.Object {
-    StackOverflowError() {
+    new() {
     }
     toString() {
       return "Stack Overflow";
@@ -28775,20 +28770,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   core.StackOverflowError[dart.implements] = () => [core.Error];
   dart.setSignature(core.StackOverflowError, {
-    constructors: () => ({StackOverflowError: [core.StackOverflowError, []]})
+    constructors: () => ({new: [core.StackOverflowError, []]})
   });
   core.CyclicInitializationError = class CyclicInitializationError extends core.Error {
-    CyclicInitializationError(variableName) {
+    new(variableName) {
       if (variableName === void 0) variableName = null;
       this.variableName = variableName;
-      super.Error();
+      super.new();
     }
     toString() {
       return this.variableName == null ? "Reading static variable during its initialization" : `Reading static variable '${this.variableName}' during its initialization`;
     }
   };
   dart.setSignature(core.CyclicInitializationError, {
-    constructors: () => ({CyclicInitializationError: [core.CyclicInitializationError, [], [core.String]]})
+    constructors: () => ({new: [core.CyclicInitializationError, [], [core.String]]})
   });
   core.Exception = class Exception extends core.Object {
     static new(message) {
@@ -28800,7 +28795,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({new: [core.Exception, [], [dart.dynamic]]})
   });
   core._Exception = class _Exception extends core.Object {
-    _Exception(message) {
+    new(message) {
       if (message === void 0) message = null;
       this.message = message;
     }
@@ -28811,10 +28806,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   core._Exception[dart.implements] = () => [core.Exception];
   dart.setSignature(core._Exception, {
-    constructors: () => ({_Exception: [core._Exception, [], [dart.dynamic]]})
+    constructors: () => ({new: [core._Exception, [], [dart.dynamic]]})
   });
   core.FormatException = class FormatException extends core.Object {
-    FormatException(message, source, offset) {
+    new(message, source, offset) {
       if (message === void 0) message = "";
       if (source === void 0) source = null;
       if (offset === void 0) offset = null;
@@ -28900,10 +28895,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   core.FormatException[dart.implements] = () => [core.Exception];
   dart.setSignature(core.FormatException, {
-    constructors: () => ({FormatException: [core.FormatException, [], [core.String, dart.dynamic, core.int]]})
+    constructors: () => ({new: [core.FormatException, [], [core.String, dart.dynamic, core.int]]})
   });
   core.IntegerDivisionByZeroException = class IntegerDivisionByZeroException extends core.Object {
-    IntegerDivisionByZeroException() {
+    new() {
     }
     toString() {
       return "IntegerDivisionByZeroException";
@@ -28911,12 +28906,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   core.IntegerDivisionByZeroException[dart.implements] = () => [core.Exception];
   dart.setSignature(core.IntegerDivisionByZeroException, {
-    constructors: () => ({IntegerDivisionByZeroException: [core.IntegerDivisionByZeroException, []]})
+    constructors: () => ({new: [core.IntegerDivisionByZeroException, []]})
   });
   const _getKey = Symbol('_getKey');
   core.Expando$ = dart.generic(T => {
     class Expando extends core.Object {
-      Expando(name) {
+      new(name) {
         if (name === void 0) name = null;
         this.name = name;
       }
@@ -28951,7 +28946,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(Expando, {
-      constructors: () => ({Expando: [core.Expando$(T), [], [core.String]]}),
+      constructors: () => ({new: [core.Expando$(T), [], [core.String]]}),
       methods: () => ({
         get: [T, [core.Object]],
         set: [dart.void, [core.Object, T]],
@@ -29007,17 +29002,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _generator$ = Symbol('_generator');
   core._GeneratorIterable$ = dart.generic(E => {
     class _GeneratorIterable extends core.Iterable$(E) {
-      _GeneratorIterable(end, generator) {
+      new(end, generator) {
         this[_end$] = end;
         this[_start$0] = 0;
         this[_generator$] = generator != null ? generator : dart.as(core._GeneratorIterable._id, core._Generator$(E));
-        super.Iterable();
+        super.new();
       }
       slice(start, end, generator) {
         this[_start$0] = start;
         this[_end$] = end;
         this[_generator$] = generator;
-        super.Iterable();
+        super.new();
       }
       get iterator() {
         return new (core._GeneratorIterator$(E))(this[_start$0], this[_end$], this[_generator$]);
@@ -29047,7 +29042,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     _GeneratorIterable[dart.implements] = () => [_internal.EfficientLength];
     dart.setSignature(_GeneratorIterable, {
       constructors: () => ({
-        _GeneratorIterable: [core._GeneratorIterable$(E), [core.int, dart.functionType(E, [core.int])]],
+        new: [core._GeneratorIterable$(E), [core.int, dart.functionType(E, [core.int])]],
         slice: [core._GeneratorIterable$(E), [core.int, core.int, core._Generator$(E)]]
       }),
       methods: () => ({
@@ -29065,7 +29060,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _current$3 = Symbol('_current');
   core._GeneratorIterator$ = dart.generic(E => {
     class _GeneratorIterator extends core.Object {
-      _GeneratorIterator(index, end, generator) {
+      new(index, end, generator) {
         this[_index$1] = index;
         this[_end$] = end;
         this[_generator$] = generator;
@@ -29087,7 +29082,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _GeneratorIterator[dart.implements] = () => [core.Iterator$(E)];
     dart.setSignature(_GeneratorIterator, {
-      constructors: () => ({_GeneratorIterator: [core._GeneratorIterator$(E), [core.int, core.int, core._Generator$(E)]]}),
+      constructors: () => ({new: [core._GeneratorIterator$(E), [core.int, core.int, core._Generator$(E)]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return _GeneratorIterator;
@@ -29194,7 +29189,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   core.Sink = core.Sink$();
   core.StackTrace = class StackTrace extends core.Object {
-    StackTrace() {
+    new() {
     }
     static fromString(stackTraceString) {
       return new core._StringStackTrace(stackTraceString);
@@ -29216,13 +29211,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.setSignature(core.StackTrace, {
     constructors: () => ({
-      StackTrace: [core.StackTrace, []],
+      new: [core.StackTrace, []],
       fromString: [core.StackTrace, [core.String]]
     })
   });
   const _stackTrace = Symbol('_stackTrace');
   core._StringStackTrace = class _StringStackTrace extends core.Object {
-    _StringStackTrace(stackTrace) {
+    new(stackTrace) {
       this[_stackTrace] = stackTrace;
     }
     toString() {
@@ -29231,14 +29226,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   core._StringStackTrace[dart.implements] = () => [core.StackTrace];
   dart.setSignature(core._StringStackTrace, {
-    constructors: () => ({_StringStackTrace: [core._StringStackTrace, [core.String]]})
+    constructors: () => ({new: [core._StringStackTrace, [core.String]]})
   });
   const _stop = Symbol('_stop');
   core.Stopwatch = class Stopwatch extends core.Object {
     get frequency() {
       return core.Stopwatch._frequency;
     }
-    Stopwatch() {
+    new() {
       this[_start$0] = null;
       this[_stop] = null;
       core.Stopwatch._initTicker();
@@ -29290,7 +29285,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(core.Stopwatch, {
-    constructors: () => ({Stopwatch: [core.Stopwatch, []]}),
+    constructors: () => ({new: [core.Stopwatch, []]}),
     methods: () => ({
       start: [dart.void, []],
       stop: [dart.void, []],
@@ -29304,9 +29299,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   core.Stopwatch._frequency = null;
   core.Runes = class Runes extends core.Iterable$(core.int) {
-    Runes(string) {
+    new(string) {
       this.string = string;
-      super.Iterable();
+      super.new();
     }
     get iterator() {
       return new core.RuneIterator(this.string);
@@ -29327,7 +29322,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(core.Runes, {
-    constructors: () => ({Runes: [core.Runes, [core.String]]})
+    constructors: () => ({new: [core.Runes, [core.String]]})
   });
   dart.defineExtensionMembers(core.Runes, ['iterator', 'last']);
   core._isLeadSurrogate = function(code) {
@@ -29347,7 +29342,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _currentCodePoint = Symbol('_currentCodePoint');
   const _checkSplitSurrogate = Symbol('_checkSplitSurrogate');
   core.RuneIterator = class RuneIterator extends core.Object {
-    RuneIterator(string) {
+    new(string) {
       this.string = string;
       this[_position$] = 0;
       this[_nextPosition] = 0;
@@ -29437,7 +29432,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   core.RuneIterator[dart.implements] = () => [core.BidirectionalIterator$(core.int)];
   dart.setSignature(core.RuneIterator, {
     constructors: () => ({
-      RuneIterator: [core.RuneIterator, [core.String]],
+      new: [core.RuneIterator, [core.String]],
       at: [core.RuneIterator, [core.String, core.int]]
     }),
     methods: () => ({
@@ -29450,7 +29445,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _contents = Symbol('_contents');
   const _writeString = Symbol('_writeString');
   core.StringBuffer = class StringBuffer extends core.Object {
-    StringBuffer(content) {
+    new(content) {
       if (content === void 0) content = "";
       this[_contents] = `${content}`;
     }
@@ -29508,7 +29503,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   core.StringBuffer[dart.implements] = () => [core.StringSink];
   dart.setSignature(core.StringBuffer, {
-    constructors: () => ({StringBuffer: [core.StringBuffer, [], [core.Object]]}),
+    constructors: () => ({new: [core.StringBuffer, [], [core.Object]]}),
     methods: () => ({
       write: [dart.void, [core.Object]],
       writeCharCode: [dart.void, [core.int]],
@@ -31385,7 +31380,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   core.UriData._tokenCharTable = dart.const(dart.list([0, 0, 27858, 1023, 65534, 51199, 65535, 32767], core.int));
   core.UriData._uricTable = core.Uri._queryCharTable;
   isolate.IsolateSpawnException = class IsolateSpawnException extends core.Object {
-    IsolateSpawnException(message) {
+    new(message) {
       this.message = message;
     }
     toString() {
@@ -31394,11 +31389,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   isolate.IsolateSpawnException[dart.implements] = () => [core.Exception];
   dart.setSignature(isolate.IsolateSpawnException, {
-    constructors: () => ({IsolateSpawnException: [isolate.IsolateSpawnException, [core.String]]})
+    constructors: () => ({new: [isolate.IsolateSpawnException, [core.String]]})
   });
   const _pause = Symbol('_pause');
   isolate.Isolate = class Isolate extends core.Object {
-    Isolate(controlPort, opts) {
+    new(controlPort, opts) {
       let pauseCapability = opts && 'pauseCapability' in opts ? opts.pauseCapability : null;
       let terminateCapability = opts && 'terminateCapability' in opts ? opts.terminateCapability : null;
       this.controlPort = controlPort;
@@ -31523,7 +31518,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(isolate.Isolate, {
-    constructors: () => ({Isolate: [isolate.Isolate, [isolate.SendPort], {pauseCapability: isolate.Capability, terminateCapability: isolate.Capability}]}),
+    constructors: () => ({new: [isolate.Isolate, [isolate.SendPort], {pauseCapability: isolate.Capability, terminateCapability: isolate.Capability}]}),
     methods: () => ({
       pause: [isolate.Capability, [], [isolate.Capability]],
       [_pause]: [dart.void, [isolate.Capability]],
@@ -31577,7 +31572,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({new: [isolate.RawReceivePort, [], [dart.functionType(dart.void, [dart.dynamic])]]})
   });
   isolate._IsolateUnhandledException = class _IsolateUnhandledException extends core.Object {
-    _IsolateUnhandledException(message, source, stackTrace) {
+    new(message, source, stackTrace) {
       this.message = message;
       this.source = source;
       this.stackTrace = stackTrace;
@@ -31588,11 +31583,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   isolate._IsolateUnhandledException[dart.implements] = () => [core.Exception];
   dart.setSignature(isolate._IsolateUnhandledException, {
-    constructors: () => ({_IsolateUnhandledException: [isolate._IsolateUnhandledException, [dart.dynamic, dart.dynamic, core.StackTrace]]})
+    constructors: () => ({new: [isolate._IsolateUnhandledException, [dart.dynamic, dart.dynamic, core.StackTrace]]})
   });
   const _description = Symbol('_description');
   isolate.RemoteError = class RemoteError extends core.Object {
-    RemoteError(description, stackDescription) {
+    new(description, stackDescription) {
       this[_description] = description;
       this.stackTrace = new isolate._RemoteStackTrace(stackDescription);
     }
@@ -31602,11 +31597,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   isolate.RemoteError[dart.implements] = () => [core.Error];
   dart.setSignature(isolate.RemoteError, {
-    constructors: () => ({RemoteError: [isolate.RemoteError, [core.String, core.String]]})
+    constructors: () => ({new: [isolate.RemoteError, [core.String, core.String]]})
   });
   const _trace$ = Symbol('_trace');
   isolate._RemoteStackTrace = class _RemoteStackTrace extends core.Object {
-    _RemoteStackTrace(trace) {
+    new(trace) {
       this[_trace$] = trace;
     }
     toString() {
@@ -31615,7 +31610,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   isolate._RemoteStackTrace[dart.implements] = () => [core.StackTrace];
   dart.setSignature(isolate._RemoteStackTrace, {
-    constructors: () => ({_RemoteStackTrace: [isolate._RemoteStackTrace, [core.String]]})
+    constructors: () => ({new: [isolate._RemoteStackTrace, [core.String]]})
   });
   isolate.Capability = class Capability extends core.Object {
     static new() {
@@ -31791,7 +31786,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _checkInsertIndex = Symbol('_checkInsertIndex');
   js.JsArray$ = dart.generic(E => {
     class JsArray extends dart.mixin(js.JsObject, collection.ListMixin$(E)) {
-      JsArray() {
+      new() {
         super._fromJs([]);
       }
       from(other) {
@@ -31892,7 +31887,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     dart.defineNamedConstructor(JsArray, '_fromJs');
     dart.setSignature(JsArray, {
       constructors: () => ({
-        JsArray: [js.JsArray$(E), []],
+        new: [js.JsArray$(E), []],
         from: [js.JsArray$(E), [core.Iterable$(E)]],
         _fromJs: [js.JsArray$(E), [dart.dynamic]]
       }),
@@ -31935,12 +31930,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.fn(js._isBrowserType, core.bool, [dart.dynamic]);
   const _dartObj = Symbol('_dartObj');
   js._DartObject = class _DartObject extends core.Object {
-    _DartObject(dartObj) {
+    new(dartObj) {
       this[_dartObj] = dartObj;
     }
   };
   dart.setSignature(js._DartObject, {
-    constructors: () => ({_DartObject: [js._DartObject, [dart.dynamic]]})
+    constructors: () => ({new: [js._DartObject, [dart.dynamic]]})
   });
   js._convertToJS = function(o) {
     if (o == null || typeof o == 'string' || typeof o == 'number' || typeof o == 'boolean' || dart.notNull(js._isBrowserType(o))) {
@@ -32127,7 +32122,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.fn(math.log, core.double, [core.num]);
   math._POW2_32 = 4294967296;
   math._JSRandom = class _JSRandom extends core.Object {
-    _JSRandom() {
+    new() {
     }
     nextInt(max) {
       if (dart.notNull(max) <= 0 || dart.notNull(max) > math._POW2_32) {
@@ -32144,7 +32139,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   math._JSRandom[dart.implements] = () => [math.Random];
   dart.setSignature(math._JSRandom, {
-    constructors: () => ({_JSRandom: [math._JSRandom, []]}),
+    constructors: () => ({new: [math._JSRandom, []]}),
     methods: () => ({
       nextInt: [core.int, [core.int]],
       nextDouble: [core.double, []],
@@ -32155,7 +32150,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _hi = Symbol('_hi');
   const _nextState = Symbol('_nextState');
   math._Random = class _Random extends core.Object {
-    _Random(seed) {
+    new(seed) {
       this[_lo] = 0;
       this[_hi] = 0;
       let empty_seed = 0;
@@ -32254,7 +32249,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   math._Random[dart.implements] = () => [math.Random];
   dart.setSignature(math._Random, {
-    constructors: () => ({_Random: [math._Random, [core.int]]}),
+    constructors: () => ({new: [math._Random, [core.int]]}),
     methods: () => ({
       [_nextState]: [dart.void, []],
       nextInt: [core.int, [core.int]],
@@ -32268,7 +32263,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _buffer$ = Symbol('_buffer');
   const _getRandomBytes = Symbol('_getRandomBytes');
   math._JSSecureRandom = class _JSSecureRandom extends core.Object {
-    _JSSecureRandom() {
+    new() {
       this[_buffer$] = typed_data.ByteData.new(8);
       let crypto = self.crypto;
       if (crypto != null) {
@@ -32329,7 +32324,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   math._JSSecureRandom[dart.implements] = () => [math.Random];
   dart.setSignature(math._JSSecureRandom, {
-    constructors: () => ({_JSSecureRandom: [math._JSSecureRandom, []]}),
+    constructors: () => ({new: [math._JSSecureRandom, []]}),
     methods: () => ({
       [_getRandomBytes]: [dart.void, [core.int, core.int]],
       nextBool: [core.bool, []],
@@ -32366,7 +32361,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   math.Point$ = dart.generic(T => {
     class Point extends core.Object {
-      Point(x, y) {
+      new(x, y) {
         this.x = x;
         this.y = y;
       }
@@ -32408,7 +32403,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(Point, {
-      constructors: () => ({Point: [math.Point$(T), [T, T]]}),
+      constructors: () => ({new: [math.Point$(T), [T, T]]}),
       methods: () => ({
         '+': [math.Point$(T), [math.Point$(T)]],
         '-': [math.Point$(T), [math.Point$(T)]],
@@ -32459,7 +32454,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       'bottomLeft'
     ]);
     class _RectangleBase extends core.Object {
-      _RectangleBase() {
+      new() {
       }
       get right() {
         return dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]);
@@ -32521,7 +32516,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_RectangleBase, {
-      constructors: () => ({_RectangleBase: [math._RectangleBase$(T), []]}),
+      constructors: () => ({new: [math._RectangleBase$(T), []]}),
       methods: () => ({
         intersection: [math.Rectangle$(T), [math.Rectangle$(T)]],
         intersects: [core.bool, [math.Rectangle$(core.num)]],
@@ -32557,12 +32552,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       'height'
     ]);
     class Rectangle extends math._RectangleBase$(T) {
-      Rectangle(left, top, width, height) {
+      new(left, top, width, height) {
         this[dartx.left] = left;
         this[dartx.top] = top;
         this[dartx.width] = dart.notNull(width) < 0 ? -dart.notNull(width) * 0 : width;
         this[dartx.height] = dart.notNull(height) < 0 ? -dart.notNull(height) * 0 : height;
-        super._RectangleBase();
+        super.new();
       }
       static fromPoints(a, b) {
         let left = math.min(T)(a.x, b.x);
@@ -32574,7 +32569,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     dart.setSignature(Rectangle, {
       constructors: () => ({
-        Rectangle: [math.Rectangle$(T), [T, T, T, T]],
+        new: [math.Rectangle$(T), [T, T, T, T]],
         fromPoints: [math.Rectangle$(T), [math.Point$(T), math.Point$(T)]]
       })
     });
@@ -32586,12 +32581,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _height = Symbol('_height');
   math.MutableRectangle$ = dart.generic(T => {
     class MutableRectangle extends math._RectangleBase$(T) {
-      MutableRectangle(left, top, width, height) {
+      new(left, top, width, height) {
         this.left = left;
         this.top = top;
         this[_width] = dart.notNull(width) < 0 ? math._clampToZero(T)(width) : width;
         this[_height] = dart.notNull(height) < 0 ? math._clampToZero(T)(height) : height;
-        super._RectangleBase();
+        super.new();
       }
       static fromPoints(a, b) {
         let left = math.min(T)(a.x, b.x);
@@ -32620,7 +32615,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     MutableRectangle[dart.implements] = () => [math.Rectangle$(T)];
     dart.setSignature(MutableRectangle, {
       constructors: () => ({
-        MutableRectangle: [math.MutableRectangle$(T), [T, T, T, T]],
+        new: [math.MutableRectangle$(T), [T, T, T, T]],
         fromPoints: [math.MutableRectangle$(T), [math.Point$(T), math.Point$(T)]]
       })
     });
@@ -32715,17 +32710,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
   mirrors.ParameterMirror[dart.implements] = () => [mirrors.VariableMirror];
   mirrors.SourceLocation = class SourceLocation extends core.Object {};
   mirrors.Comment = class Comment extends core.Object {
-    Comment(text, trimmedText, isDocComment) {
+    new(text, trimmedText, isDocComment) {
       this.text = text;
       this.trimmedText = trimmedText;
       this.isDocComment = isDocComment;
     }
   };
   dart.setSignature(mirrors.Comment, {
-    constructors: () => ({Comment: [mirrors.Comment, [core.String, core.String, core.bool]]})
+    constructors: () => ({new: [mirrors.Comment, [core.String, core.String, core.bool]]})
   });
   mirrors.MirrorsUsed = class MirrorsUsed extends core.Object {
-    MirrorsUsed(opts) {
+    new(opts) {
       let symbols = opts && 'symbols' in opts ? opts.symbols : null;
       let targets = opts && 'targets' in opts ? opts.targets : null;
       let metaTargets = opts && 'metaTargets' in opts ? opts.metaTargets : null;
@@ -32737,7 +32732,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(mirrors.MirrorsUsed, {
-    constructors: () => ({MirrorsUsed: [mirrors.MirrorsUsed, [], {symbols: dart.dynamic, targets: dart.dynamic, metaTargets: dart.dynamic, override: dart.dynamic}]})
+    constructors: () => ({new: [mirrors.MirrorsUsed, [], {symbols: dart.dynamic, targets: dart.dynamic, metaTargets: dart.dynamic, override: dart.dynamic}]})
   });
   typed_data.ByteBuffer = class ByteBuffer extends core.Object {};
   typed_data.TypedData = class TypedData extends core.Object {};
@@ -33294,7 +33289,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   ]);
   html$.EventTarget = class EventTarget extends _interceptors.Interceptor {
     _created() {
-      super.Interceptor();
+      super.new();
     }
     get [dartx.on]() {
       return new html$.Events(this);
@@ -45465,7 +45460,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _elementCssStyleDeclarationSetIterable = Symbol('_elementCssStyleDeclarationSetIterable');
   const _setAll = Symbol('_setAll');
   html$._CssStyleDeclarationSet = class _CssStyleDeclarationSet extends dart.mixin(core.Object, html$.CssStyleDeclarationBase) {
-    _CssStyleDeclarationSet(elementIterable) {
+    new(elementIterable) {
       this[_elementIterable] = elementIterable;
       this[_elementCssStyleDeclarationSetIterable] = null;
       this[_elementCssStyleDeclarationSetIterable] = core.List.from(this[_elementIterable])[dartx.map](html$.CssStyleDeclaration)(dart.fn(e => dart.as(dart.dload(e, 'style'), html$.CssStyleDeclaration), html$.CssStyleDeclaration, [dart.dynamic]));
@@ -46025,7 +46020,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$._CssStyleDeclarationSet, {
-    constructors: () => ({_CssStyleDeclarationSet: [html$._CssStyleDeclarationSet, [core.Iterable$(html$.Element)]]}),
+    constructors: () => ({new: [html$._CssStyleDeclarationSet, [core.Iterable$(html$.Element)]]}),
     methods: () => ({
       getPropertyValue: [core.String, [core.String]],
       setProperty: [dart.void, [core.String, core.String], [core.String]],
@@ -49964,7 +49959,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.registerExtension(dart.global.EventSource, html$.EventSource);
   const _ptr = Symbol('_ptr');
   html$.Events = class Events extends core.Object {
-    Events(ptr) {
+    new(ptr) {
       this[_ptr] = ptr;
     }
     get(type) {
@@ -49972,12 +49967,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$.Events, {
-    constructors: () => ({Events: [html$.Events, [html$.EventTarget]]}),
+    constructors: () => ({new: [html$.Events, [html$.EventTarget]]}),
     methods: () => ({get: [async.Stream, [core.String]]})
   });
   html$.ElementEvents = class ElementEvents extends html$.Events {
-    ElementEvents(ptr) {
-      super.Events(ptr);
+    new(ptr) {
+      super.new(ptr);
     }
     get(type) {
       if (dart.notNull(html$.ElementEvents.webkitEvents[dartx.keys][dartx.contains](type[dartx.toLowerCase]()))) {
@@ -49989,7 +49984,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$.ElementEvents, {
-    constructors: () => ({ElementEvents: [html$.ElementEvents, [html$.Element]]})
+    constructors: () => ({new: [html$.ElementEvents, [html$.Element]]})
   });
   dart.defineLazy(html$.ElementEvents, {
     get webkitEvents() {
@@ -51369,7 +51364,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.Geolocation[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Geolocation')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("Geolocation"))];
   dart.registerExtension(dart.global.Geolocation, html$.Geolocation);
   html$._GeopositionWrapper = class _GeopositionWrapper extends core.Object {
-    _GeopositionWrapper(ptr) {
+    new(ptr) {
       this[_ptr] = ptr;
     }
     get coords() {
@@ -51381,7 +51376,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   html$._GeopositionWrapper[dart.implements] = () => [html$.Geoposition];
   dart.setSignature(html$._GeopositionWrapper, {
-    constructors: () => ({_GeopositionWrapper: [html$._GeopositionWrapper, [dart.dynamic]]})
+    constructors: () => ({new: [html$._GeopositionWrapper, [dart.dynamic]]})
   });
   dart.defineExtensionNames([
     'coords',
@@ -53593,7 +53588,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'value'
   ]);
   html$.InputElementBase = class InputElementBase extends core.Object {
-    InputElementBase() {
+    new() {
       this[dartx.autofocus] = null;
       this[dartx.disabled] = null;
       this[dartx.incremental] = null;
@@ -53640,7 +53635,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'selectionStart'
   ]);
   html$.TextInputElementBase = class TextInputElementBase extends core.Object {
-    TextInputElementBase() {
+    new() {
       this[dartx.autocomplete] = null;
       this[dartx.maxLength] = null;
       this[dartx.pattern] = null;
@@ -53793,7 +53788,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'valueAsNumber'
   ]);
   html$.RangeInputElementBase = class RangeInputElementBase extends core.Object {
-    RangeInputElementBase() {
+    new() {
       this[dartx.max] = null;
       this[dartx.min] = null;
       this[dartx.step] = null;
@@ -57188,7 +57183,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.NetworkInformation[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('NetworkInformation')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("NetworkInformation"))];
   dart.registerExtension(dart.global.NetworkInformation, html$.NetworkInformation);
   html$._ChildNodeListLazy = class _ChildNodeListLazy extends collection.ListBase$(html$.Node) {
-    _ChildNodeListLazy(this$) {
+    new(this$) {
       this[_this] = this$;
     }
     get first() {
@@ -57323,7 +57318,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   html$._ChildNodeListLazy[dart.implements] = () => [html_common.NodeListWrapper];
   dart.setSignature(html$._ChildNodeListLazy, {
-    constructors: () => ({_ChildNodeListLazy: [html$._ChildNodeListLazy, [html$.Node]]}),
+    constructors: () => ({new: [html$._ChildNodeListLazy, [html$.Node]]}),
     methods: () => ({
       add: [dart.void, [html$.Node]],
       addAll: [dart.void, [core.Iterable$(html$.Node)]],
@@ -67332,7 +67327,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.registerExtension(dart.global.Window, html$.Window);
   const _returnValue = Symbol('_returnValue');
   html$._WrappedEvent = class _WrappedEvent extends core.Object {
-    _WrappedEvent(wrapped) {
+    new(wrapped) {
       this.wrapped = wrapped;
       this[_selector] = null;
     }
@@ -67397,7 +67392,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   html$._WrappedEvent[dart.implements] = () => [html$.Event];
   dart.setSignature(html$._WrappedEvent, {
-    constructors: () => ({_WrappedEvent: [html$._WrappedEvent, [html$.Event]]}),
+    constructors: () => ({new: [html$._WrappedEvent, [html$.Event]]}),
     methods: () => ({
       [_initEvent]: [dart.void, [core.String, core.bool, core.bool]],
       preventDefault: [dart.void, []],
@@ -67406,9 +67401,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   html$._BeforeUnloadEvent = class _BeforeUnloadEvent extends html$._WrappedEvent {
-    _BeforeUnloadEvent(base) {
+    new(base) {
       this[_returnValue] = null;
-      super._WrappedEvent(base);
+      super.new(base);
     }
     get returnValue() {
       return this[_returnValue];
@@ -67422,11 +67417,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   html$._BeforeUnloadEvent[dart.implements] = () => [html$.BeforeUnloadEvent];
   dart.setSignature(html$._BeforeUnloadEvent, {
-    constructors: () => ({_BeforeUnloadEvent: [html$._BeforeUnloadEvent, [html$.Event]]})
+    constructors: () => ({new: [html$._BeforeUnloadEvent, [html$.Event]]})
   });
   const _eventType = Symbol('_eventType');
   html$._BeforeUnloadEventStreamProvider = class _BeforeUnloadEventStreamProvider extends core.Object {
-    _BeforeUnloadEventStreamProvider(eventType) {
+    new(eventType) {
       this[_eventType] = eventType;
     }
     forTarget(e, opts) {
@@ -67453,7 +67448,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   html$._BeforeUnloadEventStreamProvider[dart.implements] = () => [html$.EventStreamProvider$(html$.BeforeUnloadEvent)];
   dart.setSignature(html$._BeforeUnloadEventStreamProvider, {
-    constructors: () => ({_BeforeUnloadEventStreamProvider: [html$._BeforeUnloadEventStreamProvider, [core.String]]}),
+    constructors: () => ({new: [html$._BeforeUnloadEventStreamProvider, [core.String]]}),
     methods: () => ({
       forTarget: [async.Stream$(html$.BeforeUnloadEvent), [html$.EventTarget], {useCapture: core.bool}],
       getEventType: [core.String, [html$.EventTarget]],
@@ -69090,7 +69085,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.registerExtension(dart.global.XMLHttpRequestProgressEvent, html$._XMLHttpRequestProgressEvent);
   const _matches = Symbol('_matches');
   html$._AttributeMap = class _AttributeMap extends core.Object {
-    _AttributeMap(element) {
+    new(element) {
       this[_element$] = element;
     }
     addAll(other) {
@@ -69154,7 +69149,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   html$._AttributeMap[dart.implements] = () => [core.Map$(core.String, core.String)];
   dart.setSignature(html$._AttributeMap, {
-    constructors: () => ({_AttributeMap: [html$._AttributeMap, [html$.Element]]}),
+    constructors: () => ({new: [html$._AttributeMap, [html$.Element]]}),
     methods: () => ({
       addAll: [dart.void, [core.Map$(core.String, core.String)]],
       containsValue: [core.bool, [core.Object]],
@@ -69175,8 +69170,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'isNotEmpty'
   ]);
   html$._ElementAttributeMap = class _ElementAttributeMap extends html$._AttributeMap {
-    _ElementAttributeMap(element) {
-      super._AttributeMap(element);
+    new(element) {
+      super.new(element);
     }
     containsKey(key) {
       return this[_element$][_hasAttribute](dart.as(key, core.String));
@@ -69201,7 +69196,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$._ElementAttributeMap, {
-    constructors: () => ({_ElementAttributeMap: [html$._ElementAttributeMap, [html$.Element]]}),
+    constructors: () => ({new: [html$._ElementAttributeMap, [html$.Element]]}),
     methods: () => ({
       containsKey: [core.bool, [core.Object]],
       get: [core.String, [core.Object]],
@@ -69219,9 +69214,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   ]);
   const _namespace = Symbol('_namespace');
   html$._NamespacedAttributeMap = class _NamespacedAttributeMap extends html$._AttributeMap {
-    _NamespacedAttributeMap(element, namespace) {
+    new(element, namespace) {
       this[_namespace] = namespace;
-      super._AttributeMap(element);
+      super.new(element);
     }
     containsKey(key) {
       return this[_element$][_hasAttributeNS](this[_namespace], dart.as(key, core.String));
@@ -69246,7 +69241,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$._NamespacedAttributeMap, {
-    constructors: () => ({_NamespacedAttributeMap: [html$._NamespacedAttributeMap, [html$.Element, core.String]]}),
+    constructors: () => ({new: [html$._NamespacedAttributeMap, [html$.Element, core.String]]}),
     methods: () => ({
       containsKey: [core.bool, [core.Object]],
       get: [core.String, [core.Object]],
@@ -69267,7 +69262,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _toHyphenedName = Symbol('_toHyphenedName');
   const _toCamelCase = Symbol('_toCamelCase');
   html$._DataAttributeMap = class _DataAttributeMap extends core.Object {
-    _DataAttributeMap(attributes) {
+    new(attributes) {
       this[_attributes$] = attributes;
     }
     addAll(other) {
@@ -69366,7 +69361,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   html$._DataAttributeMap[dart.implements] = () => [core.Map$(core.String, core.String)];
   dart.setSignature(html$._DataAttributeMap, {
-    constructors: () => ({_DataAttributeMap: [html$._DataAttributeMap, [core.Map$(core.String, core.String)]]}),
+    constructors: () => ({new: [html$._DataAttributeMap, [core.Map$(core.String, core.String)]]}),
     methods: () => ({
       addAll: [dart.void, [core.Map$(core.String, core.String)]],
       containsValue: [core.bool, [core.Object]],
@@ -69409,7 +69404,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.CssClassSet[dart.implements] = () => [core.Set$(core.String)];
   const _addOrSubtractToBoxModel = Symbol('_addOrSubtractToBoxModel');
   html$.CssRect = class CssRect extends core.Object {
-    CssRect(element) {
+    new(element) {
       this[_element$] = element;
     }
     set height(newHeight) {
@@ -69493,7 +69488,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   html$.CssRect[dart.implements] = () => [math.Rectangle$(core.num)];
   dart.setSignature(html$.CssRect, {
-    constructors: () => ({CssRect: [html$.CssRect, [html$.Element]]}),
+    constructors: () => ({new: [html$.CssRect, [html$.Element]]}),
     methods: () => ({
       [_addOrSubtractToBoxModel]: [core.num, [core.List$(core.String), core.String]],
       intersection: [math.Rectangle$(core.num), [math.Rectangle$(core.num)]],
@@ -69520,8 +69515,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     'bottomLeft'
   ]);
   html$._ContentCssRect = class _ContentCssRect extends html$.CssRect {
-    _ContentCssRect(element) {
-      super.CssRect(element);
+    new(element) {
+      super.new(element);
     }
     get height() {
       return dart.notNull(this[_element$][dartx.offsetHeight]) + dart.notNull(this[_addOrSubtractToBoxModel](html$._HEIGHT, html$._CONTENT));
@@ -69559,14 +69554,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$._ContentCssRect, {
-    constructors: () => ({_ContentCssRect: [html$._ContentCssRect, [html$.Element]]})
+    constructors: () => ({new: [html$._ContentCssRect, [html$.Element]]})
   });
   dart.defineExtensionMembers(html$._ContentCssRect, ['height', 'width', 'left', 'top']);
   const _elementList = Symbol('_elementList');
   html$._ContentCssListRect = class _ContentCssListRect extends html$._ContentCssRect {
-    _ContentCssListRect(elementList) {
+    new(elementList) {
       this[_elementList] = null;
-      super._ContentCssRect(elementList[dartx.first]);
+      super.new(elementList[dartx.first]);
       this[_elementList] = elementList;
     }
     set height(newHeight) {
@@ -69583,11 +69578,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$._ContentCssListRect, {
-    constructors: () => ({_ContentCssListRect: [html$._ContentCssListRect, [core.List$(html$.Element)]]})
+    constructors: () => ({new: [html$._ContentCssListRect, [core.List$(html$.Element)]]})
   });
   html$._PaddingCssRect = class _PaddingCssRect extends html$.CssRect {
-    _PaddingCssRect(element) {
-      super.CssRect(dart.as(element, html$.Element));
+    new(element) {
+      super.new(dart.as(element, html$.Element));
     }
     get height() {
       return dart.notNull(this[_element$][dartx.offsetHeight]) + dart.notNull(this[_addOrSubtractToBoxModel](html$._HEIGHT, html$._PADDING));
@@ -69609,12 +69604,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$._PaddingCssRect, {
-    constructors: () => ({_PaddingCssRect: [html$._PaddingCssRect, [dart.dynamic]]})
+    constructors: () => ({new: [html$._PaddingCssRect, [dart.dynamic]]})
   });
   dart.defineExtensionMembers(html$._PaddingCssRect, ['height', 'width', 'left', 'top']);
   html$._BorderCssRect = class _BorderCssRect extends html$.CssRect {
-    _BorderCssRect(element) {
-      super.CssRect(dart.as(element, html$.Element));
+    new(element) {
+      super.new(dart.as(element, html$.Element));
     }
     get height() {
       return this[_element$][dartx.offsetHeight];
@@ -69636,12 +69631,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$._BorderCssRect, {
-    constructors: () => ({_BorderCssRect: [html$._BorderCssRect, [dart.dynamic]]})
+    constructors: () => ({new: [html$._BorderCssRect, [dart.dynamic]]})
   });
   dart.defineExtensionMembers(html$._BorderCssRect, ['height', 'width', 'left', 'top']);
   html$._MarginCssRect = class _MarginCssRect extends html$.CssRect {
-    _MarginCssRect(element) {
-      super.CssRect(dart.as(element, html$.Element));
+    new(element) {
+      super.new(dart.as(element, html$.Element));
     }
     get height() {
       return dart.notNull(this[_element$][dartx.offsetHeight]) + dart.notNull(this[_addOrSubtractToBoxModel](html$._HEIGHT, html$._MARGIN));
@@ -69663,7 +69658,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$._MarginCssRect, {
-    constructors: () => ({_MarginCssRect: [html$._MarginCssRect, [dart.dynamic]]})
+    constructors: () => ({new: [html$._MarginCssRect, [dart.dynamic]]})
   });
   dart.defineExtensionMembers(html$._MarginCssRect, ['height', 'width', 'left', 'top']);
   dart.defineLazy(html$, {
@@ -69978,7 +69973,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   html$._ElementCssClassSet = class _ElementCssClassSet extends html_common.CssClassSetImpl {
-    _ElementCssClassSet(element) {
+    new(element) {
       this[_element$] = element;
     }
     readClasses() {
@@ -70117,7 +70112,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$._ElementCssClassSet, {
-    constructors: () => ({_ElementCssClassSet: [html$._ElementCssClassSet, [html$.Element]]}),
+    constructors: () => ({new: [html$._ElementCssClassSet, [html$.Element]]}),
     methods: () => ({
       readClasses: [core.Set$(core.String), []],
       writeClasses: [dart.void, [core.Set$(core.String)]]
@@ -70232,7 +70227,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.EventListener = dart.typedef('EventListener', () => dart.functionType(dart.dynamic, [html$.Event]));
   html$.EventStreamProvider$ = dart.generic(T => {
     class EventStreamProvider extends core.Object {
-      EventStreamProvider(eventType) {
+      new(eventType) {
         this[_eventType] = eventType;
       }
       forTarget(e, opts) {
@@ -70252,7 +70247,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(EventStreamProvider, {
-      constructors: () => ({EventStreamProvider: [html$.EventStreamProvider$(T), [core.String]]}),
+      constructors: () => ({new: [html$.EventStreamProvider$(T), [core.String]]}),
       methods: () => ({
         forTarget: [async.Stream$(T), [html$.EventTarget], {useCapture: core.bool}],
         forElement: [html$.ElementStream$(T), [html$.Element], {useCapture: core.bool}],
@@ -70273,11 +70268,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _useCapture = Symbol('_useCapture');
   html$._EventStream$ = dart.generic(T => {
     class _EventStream extends async.Stream$(T) {
-      _EventStream(target, eventType, useCapture) {
+      new(target, eventType, useCapture) {
         this[_target$] = target;
         this[_eventType] = eventType;
         this[_useCapture] = useCapture;
-        super.Stream();
+        super.new();
       }
       asBroadcastStream(opts) {
         let onListen = opts && 'onListen' in opts ? opts.onListen : null;
@@ -70295,7 +70290,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_EventStream, {
-      constructors: () => ({_EventStream: [html$._EventStream$(T), [html$.EventTarget, core.String, core.bool]]}),
+      constructors: () => ({new: [html$._EventStream$(T), [html$.EventTarget, core.String, core.bool]]}),
       methods: () => ({
         asBroadcastStream: [async.Stream$(T), [], {onListen: dart.functionType(dart.void, [async.StreamSubscription$(T)]), onCancel: dart.functionType(dart.void, [async.StreamSubscription$(T)])}],
         listen: [async.StreamSubscription$(T), [dart.functionType(dart.void, [T])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}]
@@ -70311,8 +70306,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.fn(html$._matchesWithAncestors, core.bool, [html$.Event, core.String]);
   html$._ElementEventStreamImpl$ = dart.generic(T => {
     class _ElementEventStreamImpl extends html$._EventStream$(T) {
-      _ElementEventStreamImpl(target, eventType, useCapture) {
-        super._EventStream(dart.as(target, html$.EventTarget), dart.as(eventType, core.String), dart.as(useCapture, core.bool));
+      new(target, eventType, useCapture) {
+        super.new(dart.as(target, html$.EventTarget), dart.as(eventType, core.String), dart.as(useCapture, core.bool));
       }
       matches(selector) {
         return this.where(dart.fn(event => html$._matchesWithAncestors(event, selector), core.bool, [T])).map(T)(dart.fn(e => {
@@ -70326,7 +70321,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _ElementEventStreamImpl[dart.implements] = () => [html$.ElementStream$(T)];
     dart.setSignature(_ElementEventStreamImpl, {
-      constructors: () => ({_ElementEventStreamImpl: [html$._ElementEventStreamImpl$(T), [dart.dynamic, dart.dynamic, dart.dynamic]]}),
+      constructors: () => ({new: [html$._ElementEventStreamImpl$(T), [dart.dynamic, dart.dynamic, dart.dynamic]]}),
       methods: () => ({
         matches: [async.Stream$(T), [core.String]],
         capture: [async.StreamSubscription$(T), [dart.functionType(dart.void, [T])]]
@@ -70338,11 +70333,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _targetList = Symbol('_targetList');
   html$._ElementListEventStreamImpl$ = dart.generic(T => {
     class _ElementListEventStreamImpl extends async.Stream$(T) {
-      _ElementListEventStreamImpl(targetList, eventType, useCapture) {
+      new(targetList, eventType, useCapture) {
         this[_targetList] = targetList;
         this[_eventType] = eventType;
         this[_useCapture] = useCapture;
-        super.Stream();
+        super.new();
       }
       matches(selector) {
         return this.where(dart.fn(event => html$._matchesWithAncestors(event, selector), core.bool, [T])).map(T)(dart.fn(e => {
@@ -70378,7 +70373,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _ElementListEventStreamImpl[dart.implements] = () => [html$.ElementStream$(T)];
     dart.setSignature(_ElementListEventStreamImpl, {
-      constructors: () => ({_ElementListEventStreamImpl: [html$._ElementListEventStreamImpl$(T), [core.Iterable$(html$.Element), core.String, core.bool]]}),
+      constructors: () => ({new: [html$._ElementListEventStreamImpl$(T), [core.Iterable$(html$.Element), core.String, core.bool]]}),
       methods: () => ({
         matches: [async.Stream$(T), [core.String]],
         listen: [async.StreamSubscription$(T), [dart.functionType(dart.void, [T])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}],
@@ -70401,7 +70396,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _unlisten = Symbol('_unlisten');
   html$._EventStreamSubscription$ = dart.generic(T => {
     class _EventStreamSubscription extends async.StreamSubscription$(T) {
-      _EventStreamSubscription(target, eventType, onData, useCapture) {
+      new(target, eventType, onData, useCapture) {
         this[_target$] = target;
         this[_eventType] = eventType;
         this[_useCapture] = useCapture;
@@ -70463,7 +70458,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     dart.setSignature(_EventStreamSubscription, {
-      constructors: () => ({_EventStreamSubscription: [html$._EventStreamSubscription$(T), [html$.EventTarget, core.String, dart.functionType(dart.void, [T]), core.bool]]}),
+      constructors: () => ({new: [html$._EventStreamSubscription$(T), [html$.EventTarget, core.String, dart.functionType(dart.void, [T]), core.bool]]}),
       methods: () => ({
         cancel: [async.Future, []],
         onData: [dart.void, [dart.functionType(dart.void, [T])]],
@@ -70489,10 +70484,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _type = Symbol('_type');
   html$._CustomEventStreamImpl$ = dart.generic(T => {
     class _CustomEventStreamImpl extends async.Stream$(T) {
-      _CustomEventStreamImpl(type) {
+      new(type) {
         this[_streamController] = null;
         this[_type] = null;
-        super.Stream();
+        super.new();
         this[_type] = type;
         this[_streamController] = async.StreamController$(T).broadcast({sync: true});
       }
@@ -70517,7 +70512,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _CustomEventStreamImpl[dart.implements] = () => [html$.CustomStream$(T)];
     dart.setSignature(_CustomEventStreamImpl, {
-      constructors: () => ({_CustomEventStreamImpl: [html$._CustomEventStreamImpl$(T), [core.String]]}),
+      constructors: () => ({new: [html$._CustomEventStreamImpl$(T), [core.String]]}),
       methods: () => ({
         listen: [async.StreamSubscription$(T), [dart.functionType(dart.void, [T])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}],
         asBroadcastStream: [async.Stream$(T), [], {onListen: dart.functionType(dart.void, [async.StreamSubscription$(T)]), onCancel: dart.functionType(dart.void, [async.StreamSubscription$(T)])}],
@@ -70568,7 +70563,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_shadowCharCode] = null;
       this[_shadowKeyCode] = null;
       this[_currentTarget] = null;
-      super._WrappedEvent(parent);
+      super.new(parent);
       this[_parent$] = parent;
       this[_shadowAltKey] = this[_realAltKey];
       this[_shadowCharCode] = this[_realCharCode];
@@ -70746,8 +70741,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     set keyPressEvent(_) {}
   });
   html$._CustomKeyEventStreamImpl = class _CustomKeyEventStreamImpl extends html$._CustomEventStreamImpl$(html$.KeyEvent) {
-    _CustomKeyEventStreamImpl(type) {
-      super._CustomEventStreamImpl(type);
+    new(type) {
+      super.new(type);
     }
     add(event) {
       if (event.type == this[_type]) {
@@ -70758,7 +70753,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   html$._CustomKeyEventStreamImpl[dart.implements] = () => [html$.CustomStream$(html$.KeyEvent)];
   dart.setSignature(html$._CustomKeyEventStreamImpl, {
-    constructors: () => ({_CustomKeyEventStreamImpl: [html$._CustomKeyEventStreamImpl, [core.String]]}),
+    constructors: () => ({new: [html$._CustomKeyEventStreamImpl, [core.String]]}),
     methods: () => ({add: [dart.void, [html$.KeyEvent]]})
   });
   const _subscriptions = Symbol('_subscriptions');
@@ -70806,7 +70801,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _eventTypeGetter = Symbol('_eventTypeGetter');
   html$._CustomEventStreamProvider$ = dart.generic(T => {
     class _CustomEventStreamProvider extends core.Object {
-      _CustomEventStreamProvider(eventTypeGetter) {
+      new(eventTypeGetter) {
         this[_eventTypeGetter] = eventTypeGetter;
       }
       forTarget(e, opts) {
@@ -70830,7 +70825,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _CustomEventStreamProvider[dart.implements] = () => [html$.EventStreamProvider$(T)];
     dart.setSignature(_CustomEventStreamProvider, {
-      constructors: () => ({_CustomEventStreamProvider: [html$._CustomEventStreamProvider$(T), [dart.dynamic]]}),
+      constructors: () => ({new: [html$._CustomEventStreamProvider$(T), [dart.dynamic]]}),
       methods: () => ({
         forTarget: [async.Stream$(T), [html$.EventTarget], {useCapture: core.bool}],
         forElement: [html$.ElementStream$(T), [html$.Element], {useCapture: core.bool}],
@@ -70842,7 +70837,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   html$._CustomEventStreamProvider = html$._CustomEventStreamProvider$();
   html$._Html5NodeValidator = class _Html5NodeValidator extends core.Object {
-    _Html5NodeValidator(opts) {
+    new(opts) {
       let uriPolicy = opts && 'uriPolicy' in opts ? opts.uriPolicy : null;
       this.uriPolicy = uriPolicy != null ? uriPolicy : html$.UriPolicy.new();
       if (dart.notNull(html$._Html5NodeValidator._attributeValidators[dartx.isEmpty])) {
@@ -70877,7 +70872,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   html$._Html5NodeValidator[dart.implements] = () => [html$.NodeValidator];
   dart.setSignature(html$._Html5NodeValidator, {
-    constructors: () => ({_Html5NodeValidator: [html$._Html5NodeValidator, [], {uriPolicy: html$.UriPolicy}]}),
+    constructors: () => ({new: [html$._Html5NodeValidator, [], {uriPolicy: html$.UriPolicy}]}),
     methods: () => ({
       allowsElement: [core.bool, [html$.Element]],
       allowsAttribute: [core.bool, [html$.Element, core.String, core.String]]
@@ -71370,19 +71365,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let handler = new html$._KeyboardEventHandler.initializeAllEventListeners(this[_type], e);
       return handler[_stream$];
     }
-    _KeyboardEventHandler(type) {
+    new(type) {
       this[_keyDownList] = dart.list([], html$.KeyEvent);
       this[_type] = type;
       this[_stream$] = new html$._CustomKeyEventStreamImpl('event');
       this[_target$] = null;
-      super.EventStreamProvider(html$._KeyboardEventHandler._EVENT_TYPE);
+      super.new(html$._KeyboardEventHandler._EVENT_TYPE);
     }
     initializeAllEventListeners(type, target) {
       this[_keyDownList] = dart.list([], html$.KeyEvent);
       this[_type] = type;
       this[_target$] = target;
       this[_stream$] = null;
-      super.EventStreamProvider(html$._KeyboardEventHandler._EVENT_TYPE);
+      super.new(html$._KeyboardEventHandler._EVENT_TYPE);
       html$.Element.keyDownEvent.forTarget(this[_target$], {useCapture: true}).listen(dart.bind(this, 'processKeyDown'));
       html$.Element.keyPressEvent.forTarget(this[_target$], {useCapture: true}).listen(dart.bind(this, 'processKeyPress'));
       html$.Element.keyUpEvent.forTarget(this[_target$], {useCapture: true}).listen(dart.bind(this, 'processKeyUp'));
@@ -71618,7 +71613,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.defineNamedConstructor(html$._KeyboardEventHandler, 'initializeAllEventListeners');
   dart.setSignature(html$._KeyboardEventHandler, {
     constructors: () => ({
-      _KeyboardEventHandler: [html$._KeyboardEventHandler, [core.String]],
+      new: [html$._KeyboardEventHandler, [core.String]],
       initializeAllEventListeners: [html$._KeyboardEventHandler, [core.String, html$.EventTarget]]
     }),
     methods: () => ({
@@ -71660,7 +71655,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   const _validators = Symbol('_validators');
   html$.NodeValidatorBuilder = class NodeValidatorBuilder extends core.Object {
-    NodeValidatorBuilder() {
+    new() {
       this[_validators] = dart.list([], html$.NodeValidator);
     }
     common() {
@@ -71749,7 +71744,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.NodeValidatorBuilder[dart.implements] = () => [html$.NodeValidator];
   dart.setSignature(html$.NodeValidatorBuilder, {
     constructors: () => ({
-      NodeValidatorBuilder: [html$.NodeValidatorBuilder, []],
+      new: [html$.NodeValidatorBuilder, []],
       common: [html$.NodeValidatorBuilder, []]
     }),
     methods: () => ({
@@ -71788,7 +71783,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static allowTextElements() {
       return new html$._SimpleNodeValidator(null, {allowedElements: const$55 || (const$55 = dart.const(dart.list(['B', 'BLOCKQUOTE', 'BR', 'EM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'I', 'LI', 'OL', 'P', 'SPAN', 'UL'], core.String)))});
     }
-    _SimpleNodeValidator(uriPolicy, opts) {
+    new(uriPolicy, opts) {
       let allowedElements = opts && 'allowedElements' in opts ? opts.allowedElements : null;
       let allowedAttributes = opts && 'allowedAttributes' in opts ? opts.allowedAttributes : null;
       let allowedUriAttributes = opts && 'allowedUriAttributes' in opts ? opts.allowedUriAttributes : null;
@@ -71832,7 +71827,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       allowNavigation: [html$._SimpleNodeValidator, [html$.UriPolicy]],
       allowImages: [html$._SimpleNodeValidator, [html$.UriPolicy]],
       allowTextElements: [html$._SimpleNodeValidator, []],
-      _SimpleNodeValidator: [html$._SimpleNodeValidator, [html$.UriPolicy], {allowedElements: core.Iterable$(core.String), allowedAttributes: core.Iterable$(core.String), allowedUriAttributes: core.Iterable$(core.String)}]
+      new: [html$._SimpleNodeValidator, [html$.UriPolicy], {allowedElements: core.Iterable$(core.String), allowedAttributes: core.Iterable$(core.String), allowedUriAttributes: core.Iterable$(core.String)}]
     }),
     methods: () => ({
       allowsElement: [core.bool, [html$.Element]],
@@ -71840,10 +71835,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   html$._CustomElementNodeValidator = class _CustomElementNodeValidator extends html$._SimpleNodeValidator {
-    _CustomElementNodeValidator(uriPolicy, allowedElements, allowedAttributes, allowedUriAttributes, allowTypeExtension, allowCustomTag) {
+    new(uriPolicy, allowedElements, allowedAttributes, allowedUriAttributes, allowTypeExtension, allowCustomTag) {
       this.allowTypeExtension = allowTypeExtension == true;
       this.allowCustomTag = allowCustomTag == true;
-      super._SimpleNodeValidator(uriPolicy, {allowedElements: allowedElements, allowedAttributes: allowedAttributes, allowedUriAttributes: allowedUriAttributes});
+      super.new(uriPolicy, {allowedElements: allowedElements, allowedAttributes: allowedAttributes, allowedUriAttributes: allowedUriAttributes});
     }
     allowsElement(element) {
       if (dart.notNull(this.allowTypeExtension)) {
@@ -71865,13 +71860,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$._CustomElementNodeValidator, {
-    constructors: () => ({_CustomElementNodeValidator: [html$._CustomElementNodeValidator, [html$.UriPolicy, core.Iterable$(core.String), core.Iterable$(core.String), core.Iterable$(core.String), core.bool, core.bool]]})
+    constructors: () => ({new: [html$._CustomElementNodeValidator, [html$.UriPolicy, core.Iterable$(core.String), core.Iterable$(core.String), core.Iterable$(core.String), core.bool, core.bool]]})
   });
   const _templateAttrs = Symbol('_templateAttrs');
   html$._TemplatingNodeValidator = class _TemplatingNodeValidator extends html$._SimpleNodeValidator {
-    _TemplatingNodeValidator() {
+    new() {
       this[_templateAttrs] = core.Set$(core.String).from(html$._TemplatingNodeValidator._TEMPLATE_ATTRS);
-      super._SimpleNodeValidator(null, {allowedElements: dart.list(['TEMPLATE'], core.String), allowedAttributes: html$._TemplatingNodeValidator._TEMPLATE_ATTRS[dartx.map](core.String)(dart.fn(attr => `TEMPLATE::${attr}`, core.String, [core.String]))});
+      super.new(null, {allowedElements: dart.list(['TEMPLATE'], core.String), allowedAttributes: html$._TemplatingNodeValidator._TEMPLATE_ATTRS[dartx.map](core.String)(dart.fn(attr => `TEMPLATE::${attr}`, core.String, [core.String]))});
     }
     allowsAttribute(element, attributeName, value) {
       if (dart.notNull(super.allowsAttribute(element, attributeName, value))) {
@@ -71887,7 +71882,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html$._TemplatingNodeValidator, {
-    constructors: () => ({_TemplatingNodeValidator: [html$._TemplatingNodeValidator, []]})
+    constructors: () => ({new: [html$._TemplatingNodeValidator, []]})
   });
   html$._TemplatingNodeValidator._TEMPLATE_ATTRS = dart.const(dart.list(['bind', 'if', 'ref', 'repeat', 'syntax'], core.String));
   html$._SvgNodeValidator = class _SvgNodeValidator extends core.Object {
@@ -71924,7 +71919,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _list$ = Symbol('_list');
   html$._WrappedList$ = dart.generic(E => {
     class _WrappedList extends collection.ListBase$(E) {
-      _WrappedList(list) {
+      new(list) {
         this[_list$] = list;
       }
       get iterator() {
@@ -71996,7 +71991,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _WrappedList[dart.implements] = () => [html_common.NodeListWrapper];
     dart.setSignature(_WrappedList, {
-      constructors: () => ({_WrappedList: [html$._WrappedList$(E), [core.List$(html$.Node)]]}),
+      constructors: () => ({new: [html$._WrappedList$(E), [core.List$(html$.Node)]]}),
       methods: () => ({
         add: [dart.void, [E]],
         get: [E, [core.int]],
@@ -72034,7 +72029,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _iterator$1 = Symbol('_iterator');
   html$._WrappedIterator$ = dart.generic(E => {
     class _WrappedIterator extends core.Object {
-      _WrappedIterator(iterator) {
+      new(iterator) {
         this[_iterator$1] = iterator;
       }
       moveNext() {
@@ -72046,7 +72041,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _WrappedIterator[dart.implements] = () => [core.Iterator$(E)];
     dart.setSignature(_WrappedIterator, {
-      constructors: () => ({_WrappedIterator: [html$._WrappedIterator$(E), [core.Iterator$(html$.Node)]]}),
+      constructors: () => ({new: [html$._WrappedIterator$(E), [core.Iterator$(html$.Node)]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return _WrappedIterator;
@@ -72080,7 +72075,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _current$4 = Symbol('_current');
   html$.FixedSizeListIterator$ = dart.generic(T => {
     class FixedSizeListIterator extends core.Object {
-      FixedSizeListIterator(array) {
+      new(array) {
         this[_array] = array;
         this[_position$0] = -1;
         this[_length$2] = array[dartx.length];
@@ -72103,7 +72098,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     FixedSizeListIterator[dart.implements] = () => [core.Iterator$(T)];
     dart.setSignature(FixedSizeListIterator, {
-      constructors: () => ({FixedSizeListIterator: [html$.FixedSizeListIterator$(T), [core.List$(T)]]}),
+      constructors: () => ({new: [html$.FixedSizeListIterator$(T), [core.List$(T)]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return FixedSizeListIterator;
@@ -72111,7 +72106,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.FixedSizeListIterator = html$.FixedSizeListIterator$();
   html$._VariableSizeListIterator$ = dart.generic(T => {
     class _VariableSizeListIterator extends core.Object {
-      _VariableSizeListIterator(array) {
+      new(array) {
         this[_array] = array;
         this[_position$0] = -1;
         this[_current$4] = null;
@@ -72133,7 +72128,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _VariableSizeListIterator[dart.implements] = () => [core.Iterator$(T)];
     dart.setSignature(_VariableSizeListIterator, {
-      constructors: () => ({_VariableSizeListIterator: [html$._VariableSizeListIterator$(T), [core.List$(T)]]}),
+      constructors: () => ({new: [html$._VariableSizeListIterator$(T), [core.List$(T)]]}),
       methods: () => ({moveNext: [core.bool, []]})
     });
     return _VariableSizeListIterator;
@@ -72257,7 +72252,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _constructor = Symbol('_constructor');
   const _nativeType = Symbol('_nativeType');
   html$._JSElementUpgrader = class _JSElementUpgrader extends core.Object {
-    _JSElementUpgrader(document, type, extendsTag) {
+    new(document, type, extendsTag) {
       this[_interceptor] = null;
       this[_constructor] = null;
       this[_nativeType] = null;
@@ -72299,7 +72294,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   html$._JSElementUpgrader[dart.implements] = () => [html$.ElementUpgrader];
   dart.setSignature(html$._JSElementUpgrader, {
-    constructors: () => ({_JSElementUpgrader: [html$._JSElementUpgrader, [html$.Document, core.Type, core.String]]}),
+    constructors: () => ({new: [html$._JSElementUpgrader, [html$.Document, core.Type, core.String]]}),
     methods: () => ({upgrade: [html$.Element, [html$.Element]]})
   });
   html$._DOMWindowCrossFrame = class _DOMWindowCrossFrame extends core.Object {
@@ -72332,7 +72327,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_window].postMessage(html_common.convertDartToNative_SerializedScriptValue(message), targetOrigin, messagePorts);
       }
     }
-    _DOMWindowCrossFrame(window) {
+    new(window) {
       this[_window] = window;
     }
     static _createSafe(w) {
@@ -72367,7 +72362,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   html$._DOMWindowCrossFrame[dart.implements] = () => [html$.WindowBase];
   dart.setSignature(html$._DOMWindowCrossFrame, {
-    constructors: () => ({_DOMWindowCrossFrame: [html$._DOMWindowCrossFrame, [dart.dynamic]]}),
+    constructors: () => ({new: [html$._DOMWindowCrossFrame, [dart.dynamic]]}),
     methods: () => ({
       close: [dart.void, []],
       postMessage: [dart.void, [dart.dynamic, core.String], [core.List]],
@@ -72397,7 +72392,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _setHref(location, val) {
       location.href = val;
     }
-    _LocationCrossFrame(location) {
+    new(location) {
       this[_location] = location;
     }
     static _createSafe(location) {
@@ -72410,7 +72405,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   html$._LocationCrossFrame[dart.implements] = () => [html$.LocationBase];
   dart.setSignature(html$._LocationCrossFrame, {
-    constructors: () => ({_LocationCrossFrame: [html$._LocationCrossFrame, [dart.dynamic]]}),
+    constructors: () => ({new: [html$._LocationCrossFrame, [dart.dynamic]]}),
     statics: () => ({
       _setHref: [dart.void, [dart.dynamic, dart.dynamic]],
       _createSafe: [html$.LocationBase, [dart.dynamic]]
@@ -72429,7 +72424,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     go(distance) {
       return this[_history].go(distance);
     }
-    _HistoryCrossFrame(history) {
+    new(history) {
       this[_history] = history;
     }
     static _createSafe(h) {
@@ -72442,7 +72437,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   html$._HistoryCrossFrame[dart.implements] = () => [html$.HistoryBase];
   dart.setSignature(html$._HistoryCrossFrame, {
-    constructors: () => ({_HistoryCrossFrame: [html$._HistoryCrossFrame, [dart.dynamic]]}),
+    constructors: () => ({new: [html$._HistoryCrossFrame, [dart.dynamic]]}),
     methods: () => ({
       back: [dart.void, []],
       forward: [dart.void, []],
@@ -72531,13 +72526,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   });
   html$._TrustedHtmlTreeSanitizer = class _TrustedHtmlTreeSanitizer extends core.Object {
-    _TrustedHtmlTreeSanitizer() {
+    new() {
     }
     sanitizeTree(node) {}
   };
   html$._TrustedHtmlTreeSanitizer[dart.implements] = () => [html$.NodeTreeSanitizer];
   dart.setSignature(html$._TrustedHtmlTreeSanitizer, {
-    constructors: () => ({_TrustedHtmlTreeSanitizer: [html$._TrustedHtmlTreeSanitizer, []]}),
+    constructors: () => ({new: [html$._TrustedHtmlTreeSanitizer, []]}),
     methods: () => ({sanitizeTree: [dart.void, [html$.Node]]})
   });
   html$.UriPolicy = class UriPolicy extends core.Object {
@@ -72551,7 +72546,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _hiddenAnchor = Symbol('_hiddenAnchor');
   const _loc = Symbol('_loc');
   html$._SameOriginUriPolicy = class _SameOriginUriPolicy extends core.Object {
-    _SameOriginUriPolicy() {
+    new() {
       this[_hiddenAnchor] = html$.AnchorElement.new();
       this[_loc] = html$.window[dartx.location];
     }
@@ -72565,7 +72560,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     methods: () => ({allowsUri: [core.bool, [core.String]]})
   });
   html$._ThrowsNodeValidator = class _ThrowsNodeValidator extends core.Object {
-    _ThrowsNodeValidator(validator) {
+    new(validator) {
       this.validator = validator;
     }
     allowsElement(element) {
@@ -72582,7 +72577,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   html$._ThrowsNodeValidator[dart.implements] = () => [html$.NodeValidator];
   dart.setSignature(html$._ThrowsNodeValidator, {
-    constructors: () => ({_ThrowsNodeValidator: [html$._ThrowsNodeValidator, [html$.NodeValidator]]}),
+    constructors: () => ({new: [html$._ThrowsNodeValidator, [html$.NodeValidator]]}),
     methods: () => ({
       allowsElement: [core.bool, [html$.Element]],
       allowsAttribute: [core.bool, [html$.Element, core.String, core.String]]
@@ -72592,7 +72587,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _sanitizeElement = Symbol('_sanitizeElement');
   const _sanitizeUntrustedElement = Symbol('_sanitizeUntrustedElement');
   html$._ValidatingTreeSanitizer = class _ValidatingTreeSanitizer extends core.Object {
-    _ValidatingTreeSanitizer(validator) {
+    new(validator) {
       this.validator = validator;
     }
     sanitizeTree(node) {
@@ -72701,7 +72696,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   html$._ValidatingTreeSanitizer[dart.implements] = () => [html$.NodeTreeSanitizer];
   dart.setSignature(html$._ValidatingTreeSanitizer, {
-    constructors: () => ({_ValidatingTreeSanitizer: [html$._ValidatingTreeSanitizer, [html$.NodeValidator]]}),
+    constructors: () => ({new: [html$._ValidatingTreeSanitizer, [html$.NodeValidator]]}),
     methods: () => ({
       sanitizeTree: [dart.void, [html$.Node]],
       [_removeNode]: [dart.void, [html$.Node, html$.Node]],
@@ -72728,7 +72723,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.fn(html_common.convertNativeToDart_SerializedScriptValue);
   html_common._StructuredClone = class _StructuredClone extends core.Object {
-    _StructuredClone() {
+    new() {
       this.values = [];
       this.copies = [];
     }
@@ -72812,7 +72807,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   html_common._AcceptStructuredClone = class _AcceptStructuredClone extends core.Object {
-    _AcceptStructuredClone() {
+    new() {
       this.values = [];
       this.copies = [];
       this.mustCopy = false;
@@ -72886,7 +72881,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   html_common.ContextAttributes = class ContextAttributes extends core.Object {
-    ContextAttributes(alpha, antialias, depth, failIfMajorPerformanceCaveat, premultipliedAlpha, preserveDrawingBuffer, stencil) {
+    new(alpha, antialias, depth, failIfMajorPerformanceCaveat, premultipliedAlpha, preserveDrawingBuffer, stencil) {
       this.alpha = alpha;
       this.antialias = antialias;
       this.depth = depth;
@@ -72897,14 +72892,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(html_common.ContextAttributes, {
-    constructors: () => ({ContextAttributes: [html_common.ContextAttributes, [core.bool, core.bool, core.bool, core.bool, core.bool, core.bool, core.bool]]})
+    constructors: () => ({new: [html_common.ContextAttributes, [core.bool, core.bool, core.bool, core.bool, core.bool, core.bool, core.bool]]})
   });
   html_common.convertNativeToDart_ContextAttributes = function(nativeContextAttributes) {
     return new html_common.ContextAttributes(nativeContextAttributes.alpha, nativeContextAttributes.antialias, nativeContextAttributes.depth, nativeContextAttributes.failIfMajorPerformanceCaveat, nativeContextAttributes.premultipliedAlpha, nativeContextAttributes.preserveDrawingBuffer, nativeContextAttributes.stencil);
   };
   dart.fn(html_common.convertNativeToDart_ContextAttributes);
   html_common._TypedImageData = class _TypedImageData extends core.Object {
-    _TypedImageData(data, height, width) {
+    new(data, height, width) {
       this.data = data;
       this.height = height;
       this.width = width;
@@ -72912,7 +72907,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   html_common._TypedImageData[dart.implements] = () => [html$.ImageData];
   dart.setSignature(html_common._TypedImageData, {
-    constructors: () => ({_TypedImageData: [html_common._TypedImageData, [typed_data.Uint8ClampedList, core.int, core.int]]})
+    constructors: () => ({new: [html_common._TypedImageData, [typed_data.Uint8ClampedList, core.int, core.int]]})
   });
   html_common.convertNativeToDart_ImageData = function(nativeImageData) {
     0;
@@ -72985,8 +72980,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.fn(html_common.convertNativeToDart_AcceptStructuredClone, dart.dynamic, [dart.dynamic], {mustCopy: dart.dynamic});
   html_common._StructuredCloneDart2Js = class _StructuredCloneDart2Js extends html_common._StructuredClone {
-    _StructuredCloneDart2Js() {
-      super._StructuredClone();
+    new() {
+      super.new();
     }
     newJsMap() {
       return {};
@@ -73010,8 +73005,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     })
   });
   html_common._AcceptStructuredCloneDart2Js = class _AcceptStructuredCloneDart2Js extends html_common._AcceptStructuredClone {
-    _AcceptStructuredCloneDart2Js() {
-      super._AcceptStructuredClone();
+    new() {
+      super.new();
     }
     newJsList(length) {
       return new Array(length);
@@ -73150,7 +73145,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _iterable$0 = Symbol('_iterable');
   const _filtered = Symbol('_filtered');
   html_common.FilteredElementList = class FilteredElementList extends collection.ListBase$(html$.Element) {
-    FilteredElementList(node) {
+    new(node) {
       this[_childNodes] = node[dartx.nodes];
       this[_node] = node;
     }
@@ -73265,7 +73260,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   html_common.FilteredElementList[dart.implements] = () => [html_common.NodeListWrapper];
   dart.setSignature(html_common.FilteredElementList, {
-    constructors: () => ({FilteredElementList: [html_common.FilteredElementList, [html$.Node]]}),
+    constructors: () => ({new: [html_common.FilteredElementList, [html$.Node]]}),
     methods: () => ({
       forEach: [dart.void, [dart.functionType(dart.void, [html$.Element])]],
       set: [dart.void, [core.int, html$.Element]],
@@ -78665,7 +78660,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.registerExtension(dart.global.SVGStyleElement, svg$.StyleElement);
   const _element$0 = Symbol('_element');
   svg$._AttributeClassSet = class _AttributeClassSet extends html_common.CssClassSetImpl {
-    _AttributeClassSet(element) {
+    new(element) {
       this[_element$0] = element;
     }
     readClasses() {
@@ -78687,7 +78682,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.setSignature(svg$._AttributeClassSet, {
-    constructors: () => ({_AttributeClassSet: [svg$._AttributeClassSet, [html$.Element]]}),
+    constructors: () => ({new: [svg$._AttributeClassSet, [html$.Element]]}),
     methods: () => ({
       readClasses: [core.Set$(core.String), []],
       writeClasses: [dart.void, [core.Set]]

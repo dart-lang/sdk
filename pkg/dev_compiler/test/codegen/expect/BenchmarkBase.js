@@ -33,7 +33,7 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
     names: ['equals', 'listEquals']
   });
   BenchmarkBase$.BenchmarkBase = class BenchmarkBase extends core.Object {
-    BenchmarkBase(name) {
+    new(name) {
       this.name = name;
     }
     run() {}
@@ -77,7 +77,7 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
     }
   };
   dart.setSignature(BenchmarkBase$.BenchmarkBase, {
-    constructors: () => ({BenchmarkBase: [BenchmarkBase$.BenchmarkBase, [core.String]]}),
+    constructors: () => ({new: [BenchmarkBase$.BenchmarkBase, [core.String]]}),
     methods: () => ({
       run: [dart.void, []],
       warmup: [dart.void, []],

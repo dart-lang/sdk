@@ -10,18 +10,18 @@ dart_library.library('temps', null, /* Imports */[
   const __x = Symbol('__x');
   const _function = Symbol('_function');
   temps.FormalCollision = class FormalCollision extends core.Object {
-    FormalCollision(x, _x$, func) {
+    new(x, _x$, func) {
       this[_x] = x;
       this[__x] = _x$;
       this[_function] = func;
     }
   };
   dart.setSignature(temps.FormalCollision, {
-    constructors: () => ({FormalCollision: [temps.FormalCollision, [core.int, core.int, core.Function]]})
+    constructors: () => ({new: [temps.FormalCollision, [core.int, core.int, core.Function]]})
   });
   const _opt = Symbol('_opt');
   temps.OptionalArg = class OptionalArg extends core.Object {
-    OptionalArg(opt) {
+    new(opt) {
       if (opt === void 0) opt = 123;
       this[_opt] = opt;
       this.opt = null;
@@ -35,7 +35,7 @@ dart_library.library('temps', null, /* Imports */[
   dart.defineNamedConstructor(temps.OptionalArg, 'named');
   dart.setSignature(temps.OptionalArg, {
     constructors: () => ({
-      OptionalArg: [temps.OptionalArg, [], [core.int]],
+      new: [temps.OptionalArg, [], [core.int]],
       named: [temps.OptionalArg, [], {opt: core.int}]
     })
   });

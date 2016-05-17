@@ -8,7 +8,7 @@ dart_library.library('methods', null, /* Imports */[
   const methods = Object.create(null);
   const _c = Symbol('_c');
   methods.A = class A extends core.Object {
-    A() {
+    new() {
       this[_c] = 3;
     }
     x() {
@@ -73,7 +73,7 @@ dart_library.library('methods', null, /* Imports */[
     methods: () => ({call: [dart.dynamic, [dart.dynamic]]})
   });
   methods.Foo = class Foo extends core.Object {
-    Foo() {
+    new() {
       this.bar = new methods.Bar();
     }
   };

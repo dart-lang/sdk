@@ -17,7 +17,7 @@ closure.Foo$ = dart.generic(T => {
     static some_static_constant: string;
     static some_static_final: string;
     static some_static_var: string;
-    Foo(i: number, v: T) {
+    new(i: number, v: T) {
       this.i = i;
       this.v = v;
       this.b = null;
@@ -52,7 +52,7 @@ closure.Foo$ = dart.generic(T => {
   }
   dart.setSignature(Foo, {
     constructors: () => ({
-      Foo: [closure.Foo$(T), [core.int, T]],
+      new: [closure.Foo$(T), [core.int, T]],
       build: [closure.Foo$(T), []]
     }),
     methods: () => ({
@@ -78,12 +78,12 @@ closure.Foo.some_static_final = "abc";
 closure.Foo.some_static_var = "abc";
 closure.Bar = class Bar extends core.Object {};
 closure.Baz = class Baz extends dart.mixin(closure.Foo$(core.int), closure.Bar) {
-  Baz(i: number) {
-    super.Foo(i, 123);
+  new(i: number) {
+    super.new(i, 123);
   }
 };
 dart.setSignature(closure.Baz, {
-  constructors: () => ({Baz: [closure.Baz, [core.int]]})
+  constructors: () => ({new: [closure.Baz, [core.int]]})
 });
 closure.main = function(args): void {
 };

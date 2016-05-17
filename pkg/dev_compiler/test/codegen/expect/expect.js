@@ -266,7 +266,7 @@ dart_library.library('expect', null, /* Imports */[
   expect._CheckExceptionFn = dart.typedef('_CheckExceptionFn', () => dart.functionType(core.bool, [dart.dynamic]));
   expect._Nullary = dart.typedef('_Nullary', () => dart.functionType(dart.dynamic, []));
   expect.ExpectException = class ExpectException extends core.Object {
-    ExpectException(message) {
+    new(message) {
       this.message = message;
     }
     toString() {
@@ -275,28 +275,28 @@ dart_library.library('expect', null, /* Imports */[
   };
   expect.ExpectException[dart.implements] = () => [core.Exception];
   dart.setSignature(expect.ExpectException, {
-    constructors: () => ({ExpectException: [expect.ExpectException, [core.String]]})
+    constructors: () => ({new: [expect.ExpectException, [core.String]]})
   });
   expect.NoInline = class NoInline extends core.Object {
-    NoInline() {
+    new() {
     }
   };
   dart.setSignature(expect.NoInline, {
-    constructors: () => ({NoInline: [expect.NoInline, []]})
+    constructors: () => ({new: [expect.NoInline, []]})
   });
   expect.TrustTypeAnnotations = class TrustTypeAnnotations extends core.Object {
-    TrustTypeAnnotations() {
+    new() {
     }
   };
   dart.setSignature(expect.TrustTypeAnnotations, {
-    constructors: () => ({TrustTypeAnnotations: [expect.TrustTypeAnnotations, []]})
+    constructors: () => ({new: [expect.TrustTypeAnnotations, []]})
   });
   expect.AssumeDynamic = class AssumeDynamic extends core.Object {
-    AssumeDynamic() {
+    new() {
     }
   };
   dart.setSignature(expect.AssumeDynamic, {
-    constructors: () => ({AssumeDynamic: [expect.AssumeDynamic, []]})
+    constructors: () => ({new: [expect.AssumeDynamic, []]})
   });
   // Exports:
   exports.expect = expect;

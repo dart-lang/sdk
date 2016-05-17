@@ -24,7 +24,7 @@ dart_library.library('opassign', null, /* Imports */[
     }
   });
   opassign.Foo = class Foo extends core.Object {
-    Foo() {
+    new() {
       this.x = 100;
     }
   };

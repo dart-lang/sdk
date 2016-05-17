@@ -26,25 +26,21 @@ mixin(base, @rest mixins) => JS('', '''(() => {
   // super, we can correctly initialize base and mixins.
 
   // Create a class that will hold all of the mixin methods.
-  class Mixin extends $base {
-    // Initializer method: run mixin initializers, then the base.
-    [$base.name](...args) {
-      // Run mixin initializers. They cannot have arguments.
-      // Run them backwards so most-derived mixin is initialized first.
-      for (let i = $mixins.length - 1; i >= 0; i--) {
-        let mixin = $mixins[i];
-        let init = mixin.prototype[mixin.name];
-        if (init) init.call(this);
-      }
-      // Run base initializer.
-      let init = $base.prototype[base.name];
-      if (init) init.apply(this, args);
-    }
-  }
+  class Mixin extends $base {}
   // Copy each mixin's methods, with later ones overwriting earlier entries.
   for (let m of $mixins) {
     $copyProperties(Mixin.prototype, m.prototype);
   }
+  // Initializer method: run mixin initializers, then the base.
+  Mixin.prototype.new = function(...args) {
+    // Run mixin initializers. They cannot have arguments.
+    // Run them backwards so most-derived mixin is initialized first.
+    for (let i = $mixins.length - 1; i >= 0; i--) {
+      $mixins[i].prototype.new.call(this);
+    }
+    // Run base initializer.
+    $base.prototype.new.apply(this, args);
+  };
 
   // Set the signature of the Mixin class to be the composition
   // of the signatures of the mixins.

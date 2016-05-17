@@ -754,14 +754,13 @@ class CodeGenerator extends GeneralizingAstVisitor
   JS.Statement visitEnumDeclaration(EnumDeclaration node) {
     var element = node.element;
     var type = element.type;
-    var name = js.string(type.name);
 
     // Generate a class per section 13 of the spec.
     // TODO(vsm): Generate any accompanying metadata
 
     // Create constructor and initialize index
-    var constructor = new JS.Method(
-        name, js.call('function(index) { this.index = index; }') as JS.Fun);
+    var constructor = new JS.Method(_propertyName('new'),
+        js.call('function(index) { this.index = index; }') as JS.Fun);
     var fields = new List<FieldElement>.from(
         element.fields.where((f) => f.type == type));
 
@@ -916,7 +915,28 @@ class CodeGenerator extends GeneralizingAstVisitor
     // Iff no constructor is specified for a class C, it implicitly has a
     // default constructor `C() : super() {}`, unless C is class Object.
     var jsMethods = <JS.Method>[];
-    if (ctors.isEmpty && !isObject) {
+    if (isObject) {
+      // Implements Dart constructor behavior.
+      //
+      // Because of ES6 constructor restrictions (`this` is not available until
+      // `super` is called), we cannot emit an actual ES6 `constructor` on our
+      // classes and preserve the Dart initialization order.
+      //
+      // Instead we use the same trick as named constructors, and do them as
+      // instance methods that perform initialization.
+      //
+      // Therefore, dart:core Object gets the one real `constructor` and
+      // immediately bounces to the `new() { ... }` initializer, letting us
+      // bypass the ES6 restrictions.
+      //
+      // TODO(jmesserly): we'll need to rethink this.
+      // See <https://github.com/dart-lang/dev_compiler/issues/51>.
+      // This level of indirection will hurt performance.
+      jsMethods.add(new JS.Method(
+          _propertyName('constructor'),
+          js.call('function(...args) { return this.new.apply(this, args); }')
+          as JS.Fun));
+    } else if (ctors.isEmpty) {
       jsMethods.add(_emitImplicitConstructor(node, fields, virtualFields));
     }
 
@@ -1117,7 +1137,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     for (ConstructorDeclaration member in ctors) {
       if (member.name != null && member.factoryKeyword == null) {
         body.add(js.statement('dart.defineNamedConstructor(#, #);',
-            [className, _emitMemberName(member.name.name, isStatic: true)]));
+            [className, _constructorName(member.element)]));
       }
     }
   }
@@ -1320,15 +1340,14 @@ class CodeGenerator extends GeneralizingAstVisitor
     var superCall = _superConstructorCall(node.element);
     if (fields.isEmpty && superCall == null) return null;
 
-    dynamic body = _initializeFields(node, fields, virtualFields);
+    var initFields = _initializeFields(node, fields, virtualFields);
+    List<JS.Statement> body = [initFields];
     if (superCall != null) {
-      body = [
-        [body, superCall]
-      ];
+      body.add(superCall);
     }
     var name = _constructorName(node.element.unnamedConstructor);
     return annotate(
-        new JS.Method(name, js.call('function() { #; }', body) as JS.Fun),
+        new JS.Method(name, js.call('function() { #; }', [body]) as JS.Fun),
         node,
         node.element);
   }
@@ -1382,36 +1401,10 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
 
     // Code generation for Object's constructor.
-    JS.Block body;
-    if (isObject &&
-        node.body is EmptyFunctionBody &&
-        node.constKeyword != null &&
-        node.name == null) {
-      // Implements Dart constructor behavior. Because of V8 `super`
-      // [constructor restrictions]
-      // (https://code.google.com/p/v8/issues/detail?id=3330#c65)
-      // we cannot currently emit actual ES6 constructors with super calls.
-      // Instead we use the same trick as named constructors, and do them as
-      // instance methods that perform initialization.
-      // TODO(jmesserly): we'll need to rethink this once the ES6 spec and V8
-      // settles. See <https://github.com/dart-lang/dev_compiler/issues/51>.
-      // Performance of this pattern is likely to be bad.
-      name = _propertyName('constructor');
-      // Mark the parameter as no-rename.
-      body = js.statement('''{
-        // Get the class name for this instance.
-        let name = this.constructor.name;
-        // Call the default constructor.
-        let result = void 0;
-        if (name in this) result = this[name].apply(this, arguments);
-        return result === void 0 ? this : result;
-      }''') as JS.Block;
-    } else {
-      var savedFunction = _currentFunction;
-      _currentFunction = node.body;
-      body = _emitConstructorBody(node, fields, virtualFields);
-      _currentFunction = savedFunction;
-    }
+    var savedFunction = _currentFunction;
+    _currentFunction = node.body;
+    var body = _emitConstructorBody(node, fields, virtualFields);
+    _currentFunction = savedFunction;
 
     // We generate constructors as initializer methods in the class;
     // this allows use of `super` for instance methods/properties.
@@ -1424,16 +1417,11 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   JS.Expression _constructorName(ConstructorElement ctor) {
     var name = ctor.name;
-    if (name != '') {
-      return _emitMemberName(name, isStatic: true);
+    if (name == '') {
+      // Default constructors (factory or not) use `new` as their name.
+      return _propertyName('new');
     }
-
-    // Factory default constructors use `new` as their name, for readability
-    // Other default constructors use the class name, as they aren't called
-    // from call sites, but rather from Object's constructor.
-    // TODO(jmesserly): revisit in the context of Dart metaclasses, and cleaning
-    // up constructors to integrate more closely with ES6.
-    return _propertyName(ctor.isFactory ? 'new' : ctor.enclosingElement.name);
+    return _emitMemberName(name, isStatic: true);
   }
 
   JS.Block _emitConstructorBody(
@@ -1487,30 +1475,40 @@ class CodeGenerator extends GeneralizingAstVisitor
   @override
   JS.Statement visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
-    var name = _constructorName(node.staticElement);
-    return js.statement('this.#(#);', [name, _visit(node.argumentList)]);
+    var ctor = node.staticElement;
+    var cls = ctor.enclosingElement as ClassElement;
+    // We can't dispatch to the constructor with `this.new` as that might hit a
+    // derived class constructor with the same name.
+    return js.statement('#.prototype.#.call(this, #);', [
+      new JS.Identifier(cls.name),
+      _constructorName(ctor),
+      _visit(node.argumentList)
+    ]);
   }
 
   JS.Statement _superConstructorCall(ClassElement element,
       [SuperConstructorInvocation node]) {
+    if (element.supertype == null) {
+      assert(element.type.isObject || options.unsafeForceCompile);
+      return null;
+    }
+
     ConstructorElement superCtor;
     if (node != null) {
       superCtor = node.staticElement;
     } else {
       // Get the supertype's unnamed constructor.
       superCtor = element.supertype.element.unnamedConstructor;
-      if (superCtor == null) {
-        // This will only happen if the code has errors:
-        // we're trying to generate an implicit constructor for a type where
-        // we don't have a default constructor in the supertype.
-        assert(options.unsafeForceCompile);
-        return null;
-      }
     }
 
     if (superCtor == null) {
-      print('Error generating: ${element.displayName}');
+      // This will only happen if the code has errors:
+      // we're trying to generate an implicit constructor for a type where
+      // we don't have a default constructor in the supertype.
+      assert(options.unsafeForceCompile);
+      return null;
     }
+
     if (superCtor.name == '' && !_shouldCallUnnamedSuperCtor(element)) {
       return null;
     }
@@ -3071,7 +3069,6 @@ class CodeGenerator extends GeneralizingAstVisitor
     JS.Expression emitNew() {
       JS.Expression ctor;
       bool isFactory = false;
-      // var element = node.staticElement;
       if (element == null) {
         // TODO(jmesserly): this only happens if we had a static error.
         // Should we generate a throw instead?

@@ -7,13 +7,13 @@ dart_library.library('fieldtest', null, /* Imports */[
   const dartx = dart_sdk.dartx;
   const fieldtest = Object.create(null);
   fieldtest.A = class A extends core.Object {
-    A() {
+    new() {
       this.x = 42;
     }
   };
   fieldtest.B$ = dart.generic(T => {
     class B extends core.Object {
-      B() {
+      new() {
         this.x = null;
         this.y = null;
         this.z = null;
@@ -65,7 +65,7 @@ dart_library.library('fieldtest', null, /* Imports */[
     }
   };
   fieldtest.Derived = class Derived extends fieldtest.BaseWithGetter {
-    Derived() {
+    new() {
       this[foo] = 2;
       this.bar = 3;
     }
@@ -118,7 +118,7 @@ dart_library.library('fieldtest', null, /* Imports */[
     }
   });
   fieldtest.MyEnum = class MyEnum extends core.Object {
-    MyEnum(index) {
+    new(index) {
       this.index = index;
     }
     toString() {

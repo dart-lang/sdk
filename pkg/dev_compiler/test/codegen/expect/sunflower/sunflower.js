@@ -64,17 +64,17 @@ dart_library.library('sunflower', null, /* Imports */[
   };
   dart.fn(sunflower.draw, dart.void, []);
   circle.Circle = class Circle extends core.Object {
-    Circle(x, y, radius) {
+    new(x, y, radius) {
       this.x = x;
       this.y = y;
       this.radius = radius;
     }
   };
   dart.setSignature(circle.Circle, {
-    constructors: () => ({Circle: [circle.Circle, [core.num, core.num, core.num]]})
+    constructors: () => ({new: [circle.Circle, [core.num, core.num, core.num]]})
   });
   painter.CirclePainter = class CirclePainter extends core.Object {
-    CirclePainter() {
+    new() {
       this.color = painter.ORANGE;
     }
     draw(context) {
@@ -93,14 +93,14 @@ dart_library.library('sunflower', null, /* Imports */[
     methods: () => ({draw: [dart.void, [html.CanvasRenderingContext2D]]})
   });
   sunflower.SunflowerSeed = class SunflowerSeed extends dart.mixin(circle.Circle, painter.CirclePainter) {
-    SunflowerSeed(x, y, radius, color) {
+    new(x, y, radius, color) {
       if (color === void 0) color = null;
-      super.Circle(x, y, radius);
+      super.new(x, y, radius);
       if (color != null) this.color = color;
     }
   };
   dart.setSignature(sunflower.SunflowerSeed, {
-    constructors: () => ({SunflowerSeed: [sunflower.SunflowerSeed, [core.num, core.num, core.num], [core.String]]})
+    constructors: () => ({new: [sunflower.SunflowerSeed, [core.num, core.num, core.num], [core.String]]})
   });
   painter.ORANGE = "orange";
   painter.RED = "red";

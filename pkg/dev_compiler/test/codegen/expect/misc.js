@@ -7,11 +7,11 @@ dart_library.library('misc', null, /* Imports */[
   const dartx = dart_sdk.dartx;
   const misc = Object.create(null);
   misc._Uninitialized = class _Uninitialized extends core.Object {
-    _Uninitialized() {
+    new() {
     }
   };
   dart.setSignature(misc._Uninitialized, {
-    constructors: () => ({_Uninitialized: [misc._Uninitialized, []]})
+    constructors: () => ({new: [misc._Uninitialized, []]})
   });
   misc.UNINITIALIZED = dart.const(new misc._Uninitialized());
   misc.Generic$ = dart.generic(T => {
@@ -30,7 +30,7 @@ dart_library.library('misc', null, /* Imports */[
   });
   misc.Generic = misc.Generic$();
   misc.Base = class Base extends core.Object {
-    Base() {
+    new() {
       this.x = 1;
       this.y = 2;
     }
@@ -39,7 +39,7 @@ dart_library.library('misc', null, /* Imports */[
     }
   };
   misc.Derived = class Derived extends core.Object {
-    Derived() {
+    new() {
       this.z = 3;
     }
     ['=='](obj) {

@@ -150,7 +150,7 @@ dart_library.library('notnull', null, /* Imports */[
   };
   dart.fn(notnull.nonNullableCycle, dart.void, []);
   notnull.Foo = class Foo extends core.Object {
-    Foo() {
+    new() {
       this.intField = null;
       this.varField = null;
     }

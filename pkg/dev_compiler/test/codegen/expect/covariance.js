@@ -9,7 +9,7 @@ dart_library.library('covariance', null, /* Imports */[
   const _t = Symbol('_t');
   covariance.Foo$ = dart.generic(T => {
     class Foo extends core.Object {
-      Foo() {
+      new() {
         this[_t] = null;
       }
       add(t) {
@@ -30,8 +30,8 @@ dart_library.library('covariance', null, /* Imports */[
   });
   covariance.Foo = covariance.Foo$();
   covariance.Bar = class Bar extends covariance.Foo$(core.int) {
-    Bar() {
-      super.Foo();
+    new() {
+      super.new();
     }
     add(x) {
       core.print(`Bar.add got ${x}`);

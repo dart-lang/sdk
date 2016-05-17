@@ -7,7 +7,7 @@ dart_library.library('cascade', null, /* Imports */[
   const dartx = dart_sdk.dartx;
   const cascade = Object.create(null);
   cascade.A = class A extends core.Object {
-    A() {
+    new() {
       this.x = null;
     }
   };
@@ -89,7 +89,7 @@ dart_library.library('cascade', null, /* Imports */[
   dart.fn(cascade.test_increment, dart.void, []);
   cascade.Base$ = dart.generic(T => {
     class Base extends core.Object {
-      Base() {
+      new() {
         this.x = dart.list([], T);
       }
     }
@@ -97,8 +97,8 @@ dart_library.library('cascade', null, /* Imports */[
   });
   cascade.Base = cascade.Base$();
   cascade.Foo = class Foo extends cascade.Base$(core.int) {
-    Foo() {
-      super.Base();
+    new() {
+      super.new();
     }
     test_final_field_generic(t) {
       this.x[dartx.add](1);

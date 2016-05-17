@@ -8,9 +8,9 @@ dart_library.library('extensions', null, /* Imports */[
   const dartx = dart_sdk.dartx;
   const extensions = Object.create(null);
   extensions.StringIterable = class StringIterable extends collection.IterableBase$(core.String) {
-    StringIterable() {
+    new() {
       this.iterator = null;
-      super.IterableBase();
+      super.new();
     }
   };
   dart.setSignature(extensions.StringIterable, {});
