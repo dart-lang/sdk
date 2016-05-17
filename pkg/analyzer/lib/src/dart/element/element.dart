@@ -63,6 +63,11 @@ class AuxiliaryElements {
  */
 class ClassElementImpl extends ElementImpl implements ClassElement {
   /**
+   * The unlinked representation of the class in the summary.
+   */
+  final UnlinkedClass _unlinkedClass;
+
+  /**
    * A list containing all of the accessors (getters and setters) contained in
    * this class.
    */
@@ -130,17 +135,27 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
    * Initialize a newly created class element to have the given [name] at the
    * given [offset] in the file that contains the declaration of this element.
    */
-  ClassElementImpl(String name, int offset) : super(name, offset);
+  ClassElementImpl(String name, int offset)
+      : _unlinkedClass = null,
+        super(name, offset);
 
   /**
    * Initialize a newly created class element to have the given [name].
    */
-  ClassElementImpl.forNode(Identifier name) : super.forNode(name);
+  ClassElementImpl.forNode(Identifier name)
+      : _unlinkedClass = null,
+        super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  ClassElementImpl.forSerialized(this._unlinkedClass) : super.forSerialized();
 
   /**
    * Set whether this class is abstract.
    */
   void set abstract(bool isAbstract) {
+    assert(_unlinkedClass == null);
     setModifier(Modifier.ABSTRACT, isAbstract);
   }
 
@@ -165,6 +180,22 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @override
+  int get codeLength {
+    if (_unlinkedClass != null) {
+      return _unlinkedClass.codeRange?.length;
+    }
+    return super.codeLength;
+  }
+
+  @override
+  int get codeOffset {
+    if (_unlinkedClass != null) {
+      return _unlinkedClass.codeRange?.offset;
+    }
+    return super.codeOffset;
+  }
+
+  @override
   List<ConstructorElement> get constructors {
     if (!isMixinApplication) {
       assert(_constructors != null);
@@ -184,6 +215,29 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       (constructor as ConstructorElementImpl).enclosingElement = this;
     }
     this._constructors = constructors;
+  }
+
+  @override
+  String get displayName => name;
+
+  @override
+  SourceRange get docRange {
+    if (_unlinkedClass != null) {
+      UnlinkedDocumentationComment comment =
+          _unlinkedClass.documentationComment;
+      return comment != null
+          ? new SourceRange(comment.offset, comment.length)
+          : null;
+    }
+    return super.docRange;
+  }
+
+  @override
+  String get documentationComment {
+    if (_unlinkedClass != null) {
+      return _unlinkedClass?.documentationComment?.text;
+    }
+    return super.documentationComment;
   }
 
   /**
@@ -312,7 +366,12 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @override
-  bool get isAbstract => hasModifier(Modifier.ABSTRACT);
+  bool get isAbstract {
+    if (_unlinkedClass != null) {
+      return _unlinkedClass.isAbstract;
+    }
+    return hasModifier(Modifier.ABSTRACT);
+  }
 
   @override
   bool get isEnum => hasModifier(Modifier.ENUM);
@@ -373,6 +432,22 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
    */
   void set mixinApplication(bool isMixinApplication) {
     setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
+  }
+
+  @override
+  String get name {
+    if (_unlinkedClass != null) {
+      return _unlinkedClass.name;
+    }
+    return super.name;
+  }
+
+  @override
+  int get nameOffset {
+    if (_unlinkedClass != null) {
+      return _unlinkedClass.nameOffset;
+    }
+    return super.nameOffset;
   }
 
   @override
@@ -1760,6 +1835,11 @@ abstract class ElementImpl implements Element {
   ElementImpl _enclosingElement;
 
   /**
+   * Is `true` is this element is resynthesized from summary.
+   */
+  final bool _isResynthesized;
+
+  /**
    * The name of this element.
    */
   String _name;
@@ -1821,7 +1901,7 @@ abstract class ElementImpl implements Element {
    * Initialize a newly created element to have the given [name] at the given
    * [_nameOffset].
    */
-  ElementImpl(String name, this._nameOffset) {
+  ElementImpl(String name, this._nameOffset) : _isResynthesized = false {
     this._name = StringUtilities.intern(name);
   }
 
@@ -1830,6 +1910,11 @@ abstract class ElementImpl implements Element {
    */
   ElementImpl.forNode(Identifier name)
       : this(name == null ? "" : name.name, name == null ? -1 : name.offset);
+
+  /**
+   * Initialize from serialized information.
+   */
+  ElementImpl.forSerialized() : _isResynthesized = true;
 
   /**
    * The length of the element's code, or `null` if the element is synthetic.
@@ -1868,6 +1953,7 @@ abstract class ElementImpl implements Element {
    * The documentation comment source for this element.
    */
   void set documentationComment(String doc) {
+    assert(!_isResynthesized);
     _docComment = doc?.replaceAll('\r\n', '\n');
   }
 
@@ -2158,6 +2244,7 @@ abstract class ElementImpl implements Element {
    * Set the code range for this element.
    */
   void setCodeRange(int offset, int length) {
+    assert(!_isResynthesized);
     _codeOffset = offset;
     _codeLength = length;
   }
@@ -2166,6 +2253,7 @@ abstract class ElementImpl implements Element {
    * Set the documentation comment source range for this element.
    */
   void setDocRange(int offset, int length) {
+    assert(!_isResynthesized);
     _docRangeOffset = offset;
     _docRangeLength = length;
   }
@@ -2438,7 +2526,7 @@ abstract class ExecutableElementImpl extends ElementImpl
    * Initialize using the given serialized information.
    */
   ExecutableElementImpl.forSerialized(this.serializedExecutable)
-      : super(null, -1);
+      : super.forSerialized();
 
   /**
    * Set whether this executable element's body is asynchronous.
@@ -2490,12 +2578,6 @@ abstract class ExecutableElementImpl extends ElementImpl
       return serializedExecutable?.documentationComment?.text;
     }
     return super.documentationComment;
-  }
-
-  @override
-  void set documentationComment(String doc) {
-    assert(serializedExecutable == null);
-    super.documentationComment = doc;
   }
 
   /**
@@ -2727,18 +2809,6 @@ abstract class ExecutableElementImpl extends ElementImpl
       }
     }
     return null;
-  }
-
-  @override
-  void setCodeRange(int offset, int length) {
-    assert(serializedExecutable == null);
-    super.setCodeRange(offset, length);
-  }
-
-  @override
-  void setDocRange(int offset, int length) {
-    assert(serializedExecutable == null);
-    super.setDocRange(offset, length);
   }
 
   @override

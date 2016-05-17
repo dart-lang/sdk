@@ -1754,11 +1754,10 @@ class _UnitResynthesizer {
   ClassElementImpl buildClassImpl(
       UnlinkedClass serializedClass, ClassElementHandle handle) {
     ClassElementImpl classElement =
-        new ClassElementImpl(serializedClass.name, serializedClass.nameOffset);
+        new ClassElementImpl.forSerialized(serializedClass);
     classElement.hasBeenInferred = summaryResynthesizer.strongMode;
     classElement.typeParameters =
         buildTypeParameters(serializedClass.typeParameters);
-    classElement.abstract = serializedClass.isAbstract;
     classElement.mixinApplication = serializedClass.isMixinApplication;
     InterfaceTypeImpl correspondingType =
         new InterfaceTypeImpl(handle ?? classElement);
@@ -1772,9 +1771,7 @@ class _UnitResynthesizer {
     classElement.mixins = serializedClass.mixins.map(buildType).toList();
     correspondingType.typeArguments = getCurrentTypeArguments();
     classElement.type = correspondingType;
-    buildDocumentation(classElement, serializedClass.documentationComment);
     buildAnnotations(classElement, serializedClass.annotations);
-    buildCodeRange(classElement, serializedClass.codeRange);
     currentTypeParameters.removeLast();
     assert(currentTypeParameters.isEmpty);
     // TODO(scheglov) Somehow Observatory shows too much time spent here
