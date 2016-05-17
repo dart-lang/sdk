@@ -434,7 +434,7 @@ abstract class Iterable<E> {
    * but skipping over all initial elements where `test(element)` returns
    * true. If all elements satisfy `test` the resulting iterable is empty,
    * otherwise it iterates the remaining elements in their original order,
-   * starting with the first element for which `test(element)` returns false,
+   * starting with the first element for which `test(element)` returns false.
    */
   Iterable<E> skipWhile(bool test(E value)) {
     return new SkipWhileIterable<E>(this, test);
