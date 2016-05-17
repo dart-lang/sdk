@@ -102,7 +102,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
    */
   factory HashMap.from(Map other) {
     HashMap<K, V> result = new HashMap<K, V>();
-    other.forEach((k, v) { result[k as K] = v as V; });
+    other.forEach((k, v) { result[k as Object/*=K*/] = v as Object/*=V*/; });
     return result;
   }
 

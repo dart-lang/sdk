@@ -21405,8 +21405,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       static from(elements) {
         let result = collection.HashSet$(E).new();
-        for (let e of elements)
-          result.add(dart.as(e, E));
+        for (let e of elements) {
+          let element = dart.as(e, E);
+          result.add(element);
+        }
         return result;
       }
       [Symbol.iterator]() {
@@ -21911,7 +21913,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       static from(elements) {
         let result = collection.LinkedHashSet$(E).new();
         for (let element of elements) {
-          result.add(dart.as(element, E));
+          let e = dart.as(element, E);
+          result.add(e);
         }
         return result;
       }
@@ -22808,7 +22811,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       static from(elements) {
         let list = new (collection.DoubleLinkedQueue$(E))();
         for (let e of elements) {
-          list.addLast(dart.as(e, E));
+          let element = dart.as(e, E);
+          list.addLast(element);
         }
         return dart.as(list, collection.DoubleLinkedQueue$(E));
       }
@@ -24015,7 +24019,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (isValidKey === void 0) isValidKey = null;
         let result = new (collection.SplayTreeSet$(E))(compare, isValidKey);
         for (let element of elements) {
-          result.add(dart.as(element, E));
+          let e = dart.as(element, E);
+          result.add(e);
         }
         return result;
       }

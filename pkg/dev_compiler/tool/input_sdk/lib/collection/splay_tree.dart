@@ -287,7 +287,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
                             [int compare(K key1, K key2),
                              bool isValidKey(potentialKey)]) {
     SplayTreeMap<K, V> result = new SplayTreeMap<K, V>(compare, isValidKey);
-    other.forEach((k, v) { result[k as K] = v as V; });
+    other.forEach((k, v) { result[k as Object/*=K*/] = v as Object/*=V*/; });
     return result;
   }
 
@@ -339,7 +339,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   V operator [](Object key) {
     if (!_validKey(key)) return null;
     if (_root != null) {
-      int comp = _splay(key as K);
+      int comp = _splay(key as dynamic/*=K*/);
       if (comp == 0) {
         return _root.value;
       }
@@ -349,7 +349,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
 
   V remove(Object key) {
     if (!_validKey(key)) return null;
-    _SplayTreeMapNode<K, V> mapRoot = _remove(key as K);
+    _SplayTreeMapNode<K, V> mapRoot = _remove(key as dynamic/*=K*/);
     if (mapRoot != null) return mapRoot.value;
     return null;
   }
@@ -416,7 +416,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   }
 
   bool containsKey(Object key) {
-    return _validKey(key) && _splay(key as K) == 0;
+    return _validKey(key) && _splay(key as dynamic/*=K*/) == 0;
   }
 
   bool containsValue(Object value) {
@@ -641,7 +641,8 @@ class _SplayTreeKeyIterator<K> extends _SplayTreeIterator<K, K> {
 class _SplayTreeValueIterator<K, V> extends _SplayTreeIterator<K, V> {
   _SplayTreeValueIterator(SplayTreeMap<K, V> map): super(map);
   V _getValue(_SplayTreeNode<K> node) {
-    _SplayTreeMapNode<K, V> mapNode = node as _SplayTreeMapNode<K, V>;
+    _SplayTreeMapNode<K, V> mapNode =
+        node as dynamic/*=_SplayTreeMapNode<K, V>*/;
     return mapNode.value;
   }
 }
@@ -705,7 +706,8 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
    * type parameter: `other is E`.
    */
   SplayTreeSet([int compare(E key1, E key2), bool isValidKey(potentialKey)])
-      : _comparator = compare ?? Comparable.compare as Comparator<E>,
+      : _comparator =
+            compare ?? Comparable.compare as dynamic/*=Comparator<E>*/,
         _validKey = isValidKey ?? ((v) => v is E);
 
   /**
@@ -720,7 +722,8 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
                              bool isValidKey(potentialKey)]) {
     SplayTreeSet<E> result = new SplayTreeSet<E>(compare, isValidKey);
     for (final element in elements) {
-      result.add(element as E);
+      E e = element as Object/*=E*/;
+      result.add(e);
     }
     return result;
   }
@@ -753,7 +756,7 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
 
   // From Set.
   bool contains(Object object) {
-    return _validKey(object) && _splay(object as E) == 0;
+    return _validKey(object) && _splay(object as dynamic/*=E*/) == 0;
   }
 
   bool add(E element) {
@@ -765,7 +768,7 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
 
   bool remove(Object object) {
     if (!_validKey(object)) return false;
-    return _remove(object as E) != null;
+    return _remove(object as dynamic/*=E*/) != null;
   }
 
   void addAll(Iterable<E> elements) {
@@ -779,7 +782,7 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
 
   void removeAll(Iterable<Object> elements) {
     for (Object element in elements) {
-      if (_validKey(element)) _remove(element as E);
+      if (_validKey(element)) _remove(element as dynamic/*=E*/);
     }
   }
 
@@ -793,7 +796,7 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
         throw new ConcurrentModificationError(this);
       }
       // Equivalent to this.contains(object).
-      if (_validKey(object) && _splay(object as E) == 0) {
+      if (_validKey(object) && _splay(object as dynamic/*=E*/) == 0) {
         retainSet.add(_root.key);
       }
     }
@@ -807,7 +810,7 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
 
   E lookup(Object object) {
     if (!_validKey(object)) return null;
-    int comp = _splay(object as E);
+    int comp = _splay(object as dynamic/*=E*/);
     if (comp != 0) return null;
     return _root.key;
   }

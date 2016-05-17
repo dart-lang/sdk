@@ -293,7 +293,8 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   factory DoubleLinkedQueue.from(Iterable elements) {
     Queue<E> list = new DoubleLinkedQueue<E>();
     for (final e in elements) {
-      list.addLast(e as E);
+      E element = e as Object/*=E*/;
+      list.addLast(element);
     }
     return list;
   }
@@ -498,7 +499,7 @@ class ListQueue<E> extends Iterable<E> implements Queue<E> {
       ListQueue<E> queue = new ListQueue(length + 1);
       assert(queue._table.length > length);
       for (int i = 0; i < length; i++) {
-        queue._table[i] = elements[i] as E;
+        queue._table[i] = elements[i] as Object/*=E*/;
       }
       queue._tail = length;
       return queue;
@@ -509,7 +510,7 @@ class ListQueue<E> extends Iterable<E> implements Queue<E> {
       }
       ListQueue<E> result = new ListQueue<E>(capacity);
       for (final element in elements) {
-        result.addLast(element as E);
+        result.addLast(element as Object/*=E*/);
       }
       return result;
     }

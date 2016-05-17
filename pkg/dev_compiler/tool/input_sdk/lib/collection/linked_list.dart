@@ -296,6 +296,6 @@ abstract class LinkedListEntry<E extends LinkedListEntry<E>> {
    * The [entry] must not be in a linked list.
    */
   void insertBefore(E entry) {
-    _list._insertBefore(this as E, entry, updateFirst: true);
+    _list._insertBefore(this as dynamic/*=E*/, entry, updateFirst: true);
   }
 }
