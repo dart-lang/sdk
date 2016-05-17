@@ -2303,17 +2303,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return false;
       }
       [dartx.removeWhere](test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         this[dartx.checkGrowable]('removeWhere');
         this[_removeWhere](test, true);
       }
       [dartx.retainWhere](test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         this[dartx.checkGrowable]('retainWhere');
         this[_removeWhere](test, false);
       }
       [_removeWhere](test, removeMatching) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let retained = [];
         let end = this[dartx.length];
         for (let i = 0; i < dart.notNull(end); i++) {
@@ -2330,12 +2327,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
       }
       [dartx.where](f) {
-        dart.as(f, dart.functionType(core.bool, [E]));
         return new (_internal.WhereIterable$(E))(this, f);
       }
       [dartx.expand](T) {
         return f => {
-          dart.as(f, dart.functionType(core.Iterable$(T), [E]));
           return new (_internal.ExpandIterable$(E, T))(this, f);
         };
       }
@@ -2353,7 +2348,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[dartx.length] = 0;
       }
       [dartx.forEach](f) {
-        dart.as(f, dart.functionType(dart.void, [E]));
         let end = this[dartx.length];
         for (let i = 0; i < dart.notNull(end); i++) {
           let element = this[i];
@@ -2363,7 +2357,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [dartx.map](T) {
         return f => {
-          dart.as(f, dart.functionType(T, [E]));
           return new (_internal.MappedListIterable$(E, T))(this, f);
         };
       }
@@ -2379,14 +2372,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return new (_internal.SubListIterable$(E))(this, 0, n);
       }
       [dartx.takeWhile](test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         return new (_internal.TakeWhileIterable$(E))(this, test);
       }
       [dartx.skip](n) {
         return new (_internal.SubListIterable$(E))(this, n, null);
       }
       [dartx.skipWhile](test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         return new (_internal.SkipWhileIterable$(E))(this, test);
       }
       [dartx.reduce](combine) {
@@ -2403,7 +2394,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [dartx.fold](T) {
         return (initialValue, combine) => {
-          dart.as(combine, dart.functionType(T, [T, E]));
           let value = initialValue;
           let length = this[dartx.length];
           for (let i = 0; i < dart.notNull(length); i++) {
@@ -2415,7 +2405,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         };
       }
       [dartx.firstWhere](test, opts) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         let end = this[dartx.length];
@@ -2428,7 +2417,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(_internal.IterableElementError.noElement());
       }
       [dartx.lastWhere](test, opts) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         let length = this[dartx.length];
@@ -2443,7 +2431,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(_internal.IterableElementError.noElement());
       }
       [dartx.singleWhere](test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let length = this[dartx.length];
         let match = null;
         let matchFound = false;
@@ -2576,7 +2563,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
       }
       [dartx.any](test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let end = this[dartx.length];
         for (let i = 0; i < dart.notNull(end); i++) {
           let element = this[i];
@@ -2586,7 +2572,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return false;
       }
       [dartx.every](test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let end = this[dartx.length];
         for (let i = 0; i < dart.notNull(end); i++) {
           let element = this[i];
@@ -2600,7 +2585,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [dartx.sort](compare) {
         if (compare === void 0) compare = null;
-        dart.as(compare, dart.functionType(core.int, [E, E]));
         this[dartx.checkMutable]('sort');
         _internal.Sort.sort(this, compare == null ? core.Comparable.compare : compare);
       }
@@ -3985,7 +3969,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[dartx.get](index);
       }
       forEach(action) {
-        dart.as(action, dart.functionType(dart.void, [E]));
         let length = this[dartx.length];
         for (let i = 0; i < dart.notNull(length); i++) {
           action(this[dartx.get](i));
@@ -4024,7 +4007,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return false;
       }
       every(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let length = this[dartx.length];
         for (let i = 0; i < dart.notNull(length); i++) {
           if (!dart.notNull(test(this[dartx.get](i)))) return false;
@@ -4035,7 +4017,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return true;
       }
       any(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let length = this[dartx.length];
         for (let i = 0; i < dart.notNull(length); i++) {
           if (dart.notNull(test(this[dartx.get](i)))) return true;
@@ -4046,7 +4027,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return false;
       }
       firstWhere(test, opts) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         let length = this[dartx.length];
@@ -4061,7 +4041,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(_internal.IterableElementError.noElement());
       }
       lastWhere(test, opts) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         let length = this[dartx.length];
@@ -4076,7 +4055,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(_internal.IterableElementError.noElement());
       }
       singleWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let length = this[dartx.length];
         let match = null;
         let matchFound = false;
@@ -4104,18 +4082,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return buffer.toString();
       }
       where(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         return new (_internal.WhereIterable$(E))(this, test);
       }
       map(T) {
         return f => {
-          dart.as(f, dart.functionType(T, [E]));
           return new (_internal.MappedListIterable$(E, T))(this, f);
         };
       }
       expand(T) {
         return f => {
-          dart.as(f, dart.functionType(core.Iterable$(T), [E]));
           return new (_internal.ExpandIterable$(E, T))(this, f);
         };
       }
@@ -4134,7 +4109,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       fold(T) {
         return (initialValue, combine) => {
-          dart.as(combine, dart.functionType(T, [T, E]));
           let value = initialValue;
           let length = this[dartx.length];
           for (let i = 0; i < dart.notNull(length); i++) {
@@ -4150,14 +4124,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return new (_internal.SubListIterable$(E))(this, count, null);
       }
       skipWhile(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         return new (_internal.SkipWhileIterable$(E))(this, test);
       }
       take(count) {
         return new (_internal.SubListIterable$(E))(this, 0, count);
       }
       takeWhile(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         return new (_internal.TakeWhileIterable$(E))(this, test);
       }
       toList(opts) {
@@ -4210,11 +4182,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return false;
       }
       removeWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         collection.ListMixin._filter(this, test, false);
       }
       retainWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         collection.ListMixin._filter(this, test, true);
       }
       static _filter(source, test, retainMatching) {
@@ -4247,7 +4217,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       sort(compare) {
         if (compare === void 0) compare = null;
-        dart.as(compare, dart.functionType(core.int, [E, E]));
         if (compare == null) {
           _internal.Sort.sort(this, core.Comparable.compare);
         } else {
@@ -4594,16 +4563,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(new core.UnsupportedError("Cannot remove from an unmodifiable list"));
       }
       removeWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         dart.throw(new core.UnsupportedError("Cannot remove from an unmodifiable list"));
       }
       retainWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         dart.throw(new core.UnsupportedError("Cannot remove from an unmodifiable list"));
       }
       sort(compare) {
         if (compare === void 0) compare = null;
-        dart.as(compare, core.Comparator$(E));
         dart.throw(new core.UnsupportedError("Cannot modify an unmodifiable list"));
       }
       shuffle(random) {
@@ -4780,17 +4746,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       map(T) {
         return f => {
-          dart.as(f, dart.functionType(T, [E]));
           return _internal.MappedIterable$(E, T).new(this, f);
         };
       }
       where(f) {
-        dart.as(f, dart.functionType(core.bool, [E]));
         return new (_internal.WhereIterable$(E))(this, f);
       }
       expand(T) {
         return f => {
-          dart.as(f, dart.functionType(core.Iterable$(T), [E]));
           return new (_internal.ExpandIterable$(E, T))(this, f);
         };
       }
@@ -4801,7 +4764,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return false;
       }
       forEach(f) {
-        dart.as(f, dart.functionType(dart.void, [E]));
         for (let element of this)
           f(element);
       }
@@ -4819,7 +4781,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       fold(T) {
         return (initialValue, combine) => {
-          dart.as(combine, dart.functionType(T, [T, E]));
           let value = initialValue;
           for (let element of this)
             value = combine(value, element);
@@ -4827,7 +4788,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         };
       }
       every(f) {
-        dart.as(f, dart.functionType(core.bool, [E]));
         for (let element of this) {
           if (!dart.notNull(f(element))) return false;
         }
@@ -4852,7 +4812,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return buffer.toString();
       }
       any(f) {
-        dart.as(f, dart.functionType(core.bool, [E]));
         for (let element of this) {
           if (dart.notNull(f(element))) return true;
         }
@@ -4884,14 +4843,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return _internal.TakeIterable$(E).new(this, count);
       }
       takeWhile(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         return new (_internal.TakeWhileIterable$(E))(this, test);
       }
       skip(count) {
         return _internal.SkipIterable$(E).new(this, count);
       }
       skipWhile(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         return new (_internal.SkipWhileIterable$(E))(this, test);
       }
       get first() {
@@ -4920,7 +4877,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return result;
       }
       firstWhere(test, opts) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         for (let element of this) {
@@ -4930,7 +4886,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(_internal.IterableElementError.noElement());
       }
       lastWhere(test, opts) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         let result = null;
@@ -4946,7 +4901,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(_internal.IterableElementError.noElement());
       }
       singleWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let result = null;
         let foundMatching = false;
         for (let element of this) {
@@ -5045,7 +4999,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return new (_internal.ListIterator$(E))(this);
       }
       forEach(action) {
-        dart.as(action, dart.functionType(dart.void, [E]));
         let length = this.length;
         for (let i = 0; i < dart.notNull(length); i++) {
           action(this.elementAt(i));
@@ -5081,7 +5034,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return false;
       }
       every(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let length = this.length;
         for (let i = 0; i < dart.notNull(length); i++) {
           if (!dart.notNull(test(this.elementAt(i)))) return false;
@@ -5092,7 +5044,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return true;
       }
       any(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let length = this.length;
         for (let i = 0; i < dart.notNull(length); i++) {
           if (dart.notNull(test(this.elementAt(i)))) return true;
@@ -5103,7 +5054,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return false;
       }
       firstWhere(test, opts) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         let length = this.length;
@@ -5118,7 +5068,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(_internal.IterableElementError.noElement());
       }
       lastWhere(test, opts) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         let length = this.length;
@@ -5133,7 +5082,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(_internal.IterableElementError.noElement());
       }
       singleWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let length = this.length;
         let match = null;
         let matchFound = false;
@@ -5183,12 +5131,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
       }
       where(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         return super.where(test);
       }
       map(T) {
         return f => {
-          dart.as(f, dart.functionType(T, [E]));
           return new (_internal.MappedListIterable$(E, T))(this, f);
         };
       }
@@ -5207,7 +5153,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       fold(T) {
         return (initialValue, combine) => {
-          dart.as(combine, dart.functionType(T, [T, E]));
           let value = initialValue;
           let length = this.length;
           for (let i = 0; i < dart.notNull(length); i++) {
@@ -5223,14 +5168,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return new (_internal.SubListIterable$(E))(this, count, null);
       }
       skipWhile(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         return super.skipWhile(test);
       }
       take(count) {
         return new (_internal.SubListIterable$(E))(this, 0, count);
       }
       takeWhile(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         return super.takeWhile(test);
       }
       toList(opts) {
@@ -5941,9 +5884,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       get iterator() {
         return dart.const(new (_internal.EmptyIterator$(E))());
       }
-      forEach(action) {
-        dart.as(action, dart.functionType(dart.void, [E]));
-      }
+      forEach(action) {}
       get isEmpty() {
         return true;
       }
@@ -5966,29 +5907,24 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return false;
       }
       every(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         return true;
       }
       any(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         return false;
       }
       firstWhere(test, opts) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         if (orElse != null) return orElse();
         dart.throw(_internal.IterableElementError.noElement());
       }
       lastWhere(test, opts) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         if (orElse != null) return orElse();
         dart.throw(_internal.IterableElementError.noElement());
       }
       singleWhere(test, opts) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         if (orElse != null) return orElse();
@@ -5999,12 +5935,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return "";
       }
       where(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         return this;
       }
       map(T) {
         return f => {
-          dart.as(f, dart.functionType(T, [E]));
           return dart.const(new (_internal.EmptyIterable$(T))());
         };
       }
@@ -6014,7 +5948,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       fold(T) {
         return (initialValue, combine) => {
-          dart.as(combine, dart.functionType(T, [T, E]));
           return initialValue;
         };
       }
@@ -6023,7 +5956,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this;
       }
       skipWhile(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         return this;
       }
       take(count) {
@@ -6031,7 +5963,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this;
       }
       takeWhile(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         return this;
       }
       toList(opts) {
@@ -6173,11 +6104,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(new core.UnsupportedError("Cannot remove from a fixed-length list"));
       }
       removeWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         dart.throw(new core.UnsupportedError("Cannot remove from a fixed-length list"));
       }
       retainWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         dart.throw(new core.UnsupportedError("Cannot remove from a fixed-length list"));
       }
       clear() {
@@ -6290,7 +6219,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return typeof key == 'number' && dart.notNull(key) >= 0 && dart.notNull(key) < dart.notNull(this.length);
       }
       forEach(f) {
-        dart.as(f, dart.functionType(dart.void, [core.int, E]));
         let length = this[_values][dartx.length];
         for (let i = 0; i < dart.notNull(length); i++) {
           f(i, this[_values][dartx.get](i));
@@ -7806,7 +7734,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       static fromFuture(future) {
         let controller = dart.as(async.StreamController$(T).new({sync: true}), async._StreamController$(T));
         future.then(dart.dynamic)(dart.fn(value => {
-          dart.as(value, T);
           controller[_add$](value);
           controller[_closeUnchecked]();
         }, dart.dynamic, [T]), {onError: dart.fn((error, stackTrace) => {
@@ -7819,7 +7746,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let controller = dart.as(async.StreamController$(T).new({sync: true}), async._StreamController$(T));
         let count = 0;
         let onValue = dart.fn(value => {
-          dart.as(value, T);
           if (!dart.notNull(controller.isClosed)) {
             controller[_add$](value);
             if (--count == 0) controller[_closeUnchecked]();
@@ -7900,24 +7826,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       asBroadcastStream(opts) {
         let onListen = opts && 'onListen' in opts ? opts.onListen : null;
-        dart.as(onListen, dart.functionType(dart.void, [async.StreamSubscription$(T)]));
         let onCancel = opts && 'onCancel' in opts ? opts.onCancel : null;
-        dart.as(onCancel, dart.functionType(dart.void, [async.StreamSubscription$(T)]));
         return new (async._AsBroadcastStream$(T))(this, onListen, onCancel);
       }
       where(test) {
-        dart.as(test, dart.functionType(core.bool, [T]));
         return new (async._WhereStream$(T))(this, test);
       }
       map(S) {
         return convert => {
-          dart.as(convert, dart.functionType(S, [T]));
           return new (async._MapStream$(T, S))(this, convert);
         };
       }
       asyncMap(E) {
         return convert => {
-          dart.as(convert, dart.functionType(dart.dynamic, [T]));
           let controller = null;
           let subscription = null;
           const onListen = (function() {
@@ -7926,7 +7847,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
             let eventSink = dart.as(controller, async._EventSink$(E));
             let addError = dart.bind(eventSink, _addError);
             subscription = this.listen(dart.fn(event => {
-              dart.as(event, T);
               let newValue = null;
               try {
                 newValue = convert(event);
@@ -7963,14 +7883,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       asyncExpand(E) {
         return convert => {
-          dart.as(convert, dart.functionType(async.Stream$(E), [T]));
           let controller = null;
           let subscription = null;
           const onListen = (function() {
             dart.assert(dart.is(controller, async._StreamController) || dart.is(controller, async._BroadcastStreamController));
             let eventSink = dart.as(controller, async._EventSink$(E));
             subscription = this.listen(dart.fn(event => {
-              dart.as(event, T);
               let newStream = null;
               try {
                 newStream = convert(event);
@@ -8005,12 +7923,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       handleError(onError, opts) {
         let test = opts && 'test' in opts ? opts.test : null;
-        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
         return new (async._HandleErrorStream$(T))(this, onError, test);
       }
       expand(S) {
         return convert => {
-          dart.as(convert, dart.functionType(core.Iterable$(S), [T]));
           return new (async._ExpandStream$(T, S))(this, convert);
         };
       }
@@ -8031,10 +7947,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let value = null;
         let subscription = null;
         subscription = this.listen(dart.fn(element => {
-          dart.as(element, T);
           if (seenFirst) {
             async._runUserCode(dart.fn(() => combine(value, element), T, []), dart.fn(newValue => {
-              dart.as(newValue, T);
               value = newValue;
             }, dart.dynamic, [T]), async._cancelAndErrorClosure(subscription, result));
           } else {
@@ -8058,12 +7972,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       fold(S) {
         return (initialValue, combine) => {
-          dart.as(combine, dart.functionType(S, [S, T]));
           let result = new (async._Future$(S))();
           let value = initialValue;
           let subscription = null;
           subscription = this.listen(dart.fn(element => {
-            dart.as(element, T);
             async._runUserCode(dart.fn(() => combine(value, element), S, []), dart.fn(newValue => {
               value = newValue;
             }, dart.dynamic, [S]), async._cancelAndErrorClosure(subscription, result));
@@ -8082,7 +7994,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let subscription = null;
         let first = true;
         subscription = this.listen(dart.fn(element => {
-          dart.as(element, T);
           if (!first) {
             buffer.write(separator);
           }
@@ -8105,7 +8016,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let future = new (async._Future$(core.bool))();
         let subscription = null;
         subscription = this.listen(dart.fn(element => {
-          dart.as(element, T);
           async._runUserCode(dart.fn(() => dart.equals(element, needle), core.bool, []), dart.fn(isMatch => {
             if (dart.notNull(isMatch)) {
               async._cancelAndValue(subscription, future, true);
@@ -8117,11 +8027,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return future;
       }
       forEach(action) {
-        dart.as(action, dart.functionType(dart.void, [T]));
         let future = new async._Future();
         let subscription = null;
         subscription = this.listen(dart.fn(element => {
-          dart.as(element, T);
           async._runUserCode(dart.fn(() => action(element), dart.void, []), dart.fn(_ => {
           }), async._cancelAndErrorClosure(subscription, future));
         }, dart.void, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
@@ -8130,11 +8038,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return future;
       }
       every(test) {
-        dart.as(test, dart.functionType(core.bool, [T]));
         let future = new (async._Future$(core.bool))();
         let subscription = null;
         subscription = this.listen(dart.fn(element => {
-          dart.as(element, T);
           async._runUserCode(dart.fn(() => test(element), core.bool, []), dart.fn(isMatch => {
             if (!dart.notNull(isMatch)) {
               async._cancelAndValue(subscription, future, false);
@@ -8146,11 +8052,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return future;
       }
       any(test) {
-        dart.as(test, dart.functionType(core.bool, [T]));
         let future = new (async._Future$(core.bool))();
         let subscription = null;
         subscription = this.listen(dart.fn(element => {
-          dart.as(element, T);
           async._runUserCode(dart.fn(() => test(element), core.bool, []), dart.fn(isMatch => {
             if (dart.notNull(isMatch)) {
               async._cancelAndValue(subscription, future, true);
@@ -8165,7 +8069,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let future = new (async._Future$(core.int))();
         let count = 0;
         this.listen(dart.fn(_ => {
-          dart.as(_, T);
           count++;
         }, dart.void, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             future[_complete](count);
@@ -8176,7 +8079,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let future = new (async._Future$(core.bool))();
         let subscription = null;
         subscription = this.listen(dart.fn(_ => {
-          dart.as(_, T);
           async._cancelAndValue(subscription, future, false);
         }, dart.void, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             future[_complete](true);
@@ -8187,7 +8089,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let result = dart.list([], T);
         let future = new (async._Future$(core.List$(T)))();
         this.listen(dart.fn(data => {
-          dart.as(data, T);
           result[dartx.add](data);
         }, dart.void, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             future[_complete](result);
@@ -8198,7 +8099,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let result = core.Set$(T).new();
         let future = new (async._Future$(core.Set$(T)))();
         this.listen(dart.fn(data => {
-          dart.as(data, T);
           result.add(data);
         }, dart.void, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             future[_complete](result);
@@ -8215,26 +8115,22 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return new (async._TakeStream$(T))(this, count);
       }
       takeWhile(test) {
-        dart.as(test, dart.functionType(core.bool, [T]));
         return new (async._TakeWhileStream$(T))(this, test);
       }
       skip(count) {
         return new (async._SkipStream$(T))(this, count);
       }
       skipWhile(test) {
-        dart.as(test, dart.functionType(core.bool, [T]));
         return new (async._SkipWhileStream$(T))(this, test);
       }
       distinct(equals) {
         if (equals === void 0) equals = null;
-        dart.as(equals, dart.functionType(core.bool, [T, T]));
         return new (async._DistinctStream$(T))(this, equals);
       }
       get first() {
         let future = new (async._Future$(T))();
         let subscription = null;
         subscription = this.listen(dart.fn(value => {
-          dart.as(value, T);
           async._cancelAndValue(subscription, future, value);
         }, dart.void, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             try {
@@ -8252,7 +8148,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let result = null;
         let foundResult = false;
         this.listen(dart.fn(value => {
-          dart.as(value, T);
           foundResult = true;
           result = value;
         }, dart.void, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
@@ -8276,7 +8171,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let foundResult = false;
         let subscription = null;
         subscription = this.listen(dart.fn(value => {
-          dart.as(value, T);
           if (foundResult) {
             try {
               dart.throw(_internal.IterableElementError.tooMany());
@@ -8305,13 +8199,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return future;
       }
       firstWhere(test, opts) {
-        dart.as(test, dart.functionType(core.bool, [T]));
         let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : null;
-        dart.as(defaultValue, dart.functionType(core.Object, []));
         let future = new async._Future();
         let subscription = null;
         subscription = this.listen(dart.fn(value => {
-          dart.as(value, T);
           async._runUserCode(dart.fn(() => test(value), core.bool, []), dart.fn(isMatch => {
             if (dart.notNull(isMatch)) {
               async._cancelAndValue(subscription, future, value);
@@ -8333,15 +8224,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return future;
       }
       lastWhere(test, opts) {
-        dart.as(test, dart.functionType(core.bool, [T]));
         let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : null;
-        dart.as(defaultValue, dart.functionType(core.Object, []));
         let future = new async._Future();
         let result = null;
         let foundResult = false;
         let subscription = null;
         subscription = this.listen(dart.fn(value => {
-          dart.as(value, T);
           async._runUserCode(dart.fn(() => true == test(value), core.bool, []), dart.fn(isMatch => {
             if (dart.notNull(isMatch)) {
               foundResult = true;
@@ -8368,13 +8256,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return future;
       }
       singleWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [T]));
         let future = new (async._Future$(T))();
         let result = null;
         let foundResult = false;
         let subscription = null;
         subscription = this.listen(dart.fn(value => {
-          dart.as(value, T);
           async._runUserCode(dart.fn(() => true == test(value), core.bool, []), dart.fn(isMatch => {
             if (dart.notNull(isMatch)) {
               if (foundResult) {
@@ -8412,7 +8298,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let subscription = null;
         let elementIndex = 0;
         subscription = this.listen(dart.fn(value => {
-          dart.as(value, T);
           if (index == elementIndex) {
             async._cancelAndValue(subscription, future, value);
             return;
@@ -8425,14 +8310,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       timeout(timeLimit, opts) {
         let onTimeout = opts && 'onTimeout' in opts ? opts.onTimeout : null;
-        dart.as(onTimeout, dart.functionType(dart.void, [async.EventSink$(T)]));
         let controller = null;
         let subscription = null;
         let timer = null;
         let zone = null;
         let timeout = null;
         function onData(event) {
-          dart.as(event, T);
           timer.cancel();
           controller.add(event);
           timer = zone.createTimer(timeLimit, timeout);
@@ -9925,10 +9808,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return new (_js_helper.LinkedHashMapKeyIterable$(K))(this);
       }
       get values() {
-        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn(each => {
-          dart.as(each, K);
-          return this.get(each);
-        }, V, [K]));
+        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn(each => this.get(each), V, [K]));
       }
       containsKey(key) {
         if (dart.notNull(_js_helper.JsLinkedHashMap._isStringKey(key))) {
@@ -9950,16 +9830,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return dart.notNull(this.internalFindBucketIndex(bucket, key)) >= 0;
       }
       containsValue(value) {
-        return this.keys[dartx.any](dart.fn(each => {
-          dart.as(each, K);
-          return dart.equals(this.get(each), value);
-        }, core.bool, [K]));
+        return this.keys[dartx.any](dart.fn(each => dart.equals(this.get(each), value), core.bool, [K]));
       }
       addAll(other) {
         dart.as(other, core.Map$(K, V));
         other[dartx.forEach](dart.fn((key, value) => {
-          dart.as(key, K);
-          dart.as(value, V);
           this.set(key, value);
         }, dart.void, [K, V]));
       }
@@ -10059,7 +9934,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
       }
       forEach(action) {
-        dart.as(action, dart.functionType(dart.void, [K, V]));
         let cell = this[_first];
         let modifications = this[_modifications];
         while (cell != null) {
@@ -10303,7 +10177,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_map].containsKey(element);
       }
       forEach(f) {
-        dart.as(f, dart.functionType(dart.void, [E]));
         let cell = this[_map][_first];
         let modifications = this[_map][_modifications];
         while (cell != null) {
@@ -14025,10 +13898,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
         super.Stream();
       }
       listen(onData, opts) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
         let onError = opts && 'onError' in opts ? opts.onError : null;
         let onDone = opts && 'onDone' in opts ? opts.onDone : null;
-        dart.as(onDone, dart.functionType(dart.void, []));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         cancelOnError = core.identical(true, cancelOnError);
         let subscription = this[_createSubscription](onData, onError, onDone, cancelOnError);
@@ -14036,8 +13907,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return subscription;
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
-        dart.as(onDone, dart.functionType(dart.void, []));
         return new (async._BufferingStreamSubscription$(T))(onData, onError, onDone, cancelOnError);
       }
       [_onListen](subscription) {}
@@ -14058,8 +13927,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_controller$] = controller;
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
-        dart.as(onDone, dart.functionType(dart.void, []));
         return this[_controller$][_subscribe](onData, onError, onDone, cancelOnError);
       }
       get hashCode() {
@@ -14165,7 +14032,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
       }
       onData(handleData) {
-        dart.as(handleData, dart.functionType(dart.void, [T]));
         if (handleData == null) handleData = async._nullDataHandler;
         this[_onData] = this[_zone].registerUnaryCallback(dart.dynamic, T)(handleData);
       }
@@ -14174,7 +14040,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_onError] = async._registerErrorHandler(T)(handleError, this[_zone]);
       }
       onDone(handleDone) {
-        dart.as(handleDone, dart.functionType(dart.void, []));
         if (handleDone == null) handleDone = async._nullDoneHandler;
         this[_onDone] = this[_zone].registerCallback(dart.dynamic)(handleDone);
       }
@@ -14555,14 +14420,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(new core.UnsupportedError("Broadcast stream controllers do not support pause callbacks"));
       }
       set onPause(onPauseHandler) {
-        dart.as(onPauseHandler, dart.functionType(dart.void, []));
         dart.throw(new core.UnsupportedError("Broadcast stream controllers do not support pause callbacks"));
       }
       get onResume() {
         dart.throw(new core.UnsupportedError("Broadcast stream controllers do not support pause callbacks"));
       }
       set onResume(onResumeHandler) {
-        dart.as(onResumeHandler, dart.functionType(dart.void, []));
         dart.throw(new core.UnsupportedError("Broadcast stream controllers do not support pause callbacks"));
       }
       get stream() {
@@ -14633,8 +14496,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         subscription[_next$] = subscription[_previous$] = subscription;
       }
       [_subscribe](onData, onError, onDone, cancelOnError) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
-        dart.as(onDone, dart.functionType(dart.void, []));
         if (dart.notNull(this.isClosed)) {
           if (onDone == null) onDone = async._nullDoneHandler;
           return new (async._DoneStreamSubscription$(T))(onDone);
@@ -14726,7 +14587,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         addState.complete();
       }
       [_forEachListener](action) {
-        dart.as(action, dart.functionType(dart.void, [async._BufferingStreamSubscription$(T)]));
         if (dart.notNull(this[_isFiring])) {
           dart.throw(new core.StateError("Cannot fire new event. Controller is already firing an event"));
         }
@@ -14821,21 +14681,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
           return;
         }
         this[_forEachListener](dart.fn(subscription => {
-          dart.as(subscription, async._BufferingStreamSubscription$(T));
           subscription[_add$](data);
         }, dart.void, [async._BufferingStreamSubscription$(T)]));
       }
       [_sendError](error, stackTrace) {
         if (dart.notNull(this[_isEmpty])) return;
         this[_forEachListener](dart.fn(subscription => {
-          dart.as(subscription, async._BufferingStreamSubscription$(T));
           subscription[_addError](error, stackTrace);
         }, dart.void, [async._BufferingStreamSubscription$(T)]));
       }
       [_sendDone]() {
         if (!dart.notNull(this[_isEmpty])) {
           this[_forEachListener](dart.fn(subscription => {
-            dart.as(subscription, async._BufferingStreamSubscription$(T));
             subscription[_close$]();
           }, dart.void, [async._BufferingStreamSubscription$(T)]));
         } else {
@@ -14973,13 +14830,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _DoneSubscription() {
         this[_pauseCount] = 0;
       }
-      onData(handleData) {
-        dart.as(handleData, dart.functionType(dart.void, [T]));
-      }
+      onData(handleData) {}
       onError(handleError) {}
-      onDone(handleDone) {
-        dart.as(handleDone, dart.functionType(dart.void, []));
-      }
+      onDone(handleDone) {}
       pause(resumeSignal) {
         if (resumeSignal === void 0) resumeSignal = null;
         if (resumeSignal != null) resumeSignal.then(dart.dynamic)(dart.bind(this, _resume));
@@ -15555,7 +15408,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       then(E) {
         return (f, opts) => {
-          dart.as(f, dart.functionType(dart.dynamic, [T]));
           let onError = opts && 'onError' in opts ? opts.onError : null;
           let currentZone = async.Zone.current;
           let registered = null;
@@ -15570,7 +15422,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       [_thenNoZoneRegistration](E) {
         return (f, onError) => {
-          dart.as(f, dart.functionType(dart.dynamic, [T]));
           let result = new (async._Future$(E))();
           this[_addListener](new (async._FutureListener$(T, E)).then(result, f, onError));
           return result;
@@ -15578,7 +15429,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       catchError(onError, opts) {
         let test = opts && 'test' in opts ? opts.test : null;
-        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
         let result = new (async._Future$(T))();
         if (!core.identical(result[_zone], async._ROOT_ZONE)) {
           onError = async._registerErrorHandler(T)(onError, result[_zone]);
@@ -15588,7 +15438,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return result;
       }
       whenComplete(action) {
-        dart.as(action, dart.functionType(dart.dynamic, []));
         let result = new (async._Future$(T))();
         if (!core.identical(result[_zone], async._ROOT_ZONE)) {
           action = result[_zone].registerCallback(dart.dynamic)(action);
@@ -15929,7 +15778,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       timeout(timeLimit, opts) {
         let onTimeout = opts && 'onTimeout' in opts ? opts.onTimeout : null;
-        dart.as(onTimeout, dart.functionType(dart.dynamic, []));
         if (dart.notNull(this[_isComplete])) return new (async._Future$(T)).immediate(this);
         let result = new (async._Future$(T))();
         let timer = null;
@@ -15951,7 +15799,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
           }, dart.void, []));
         }
         this.then(dart.dynamic)(dart.fn(v => {
-          dart.as(v, T);
           if (dart.notNull(timer.isActive)) {
             timer.cancel();
             result[_completeWithValue](v);
@@ -16193,16 +16040,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       asBroadcastStream(opts) {
         let onListen = opts && 'onListen' in opts ? opts.onListen : null;
-        dart.as(onListen, dart.functionType(dart.void, [async.StreamSubscription$(T)]));
         let onCancel = opts && 'onCancel' in opts ? opts.onCancel : null;
-        dart.as(onCancel, dart.functionType(dart.void, [async.StreamSubscription$(T)]));
         return this[_stream].asBroadcastStream({onListen: onListen, onCancel: onCancel});
       }
       listen(onData, opts) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
         let onError = opts && 'onError' in opts ? opts.onError : null;
         let onDone = opts && 'onDone' in opts ? opts.onDone : null;
-        dart.as(onDone, dart.functionType(dart.void, []));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         return this[_stream].listen(onData, {onError: onError, onDone: onDone, cancelOnError: cancelOnError});
       }
@@ -16497,8 +16340,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         addState.complete();
       }
       [_subscribe](onData, onError, onDone, cancelOnError) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
-        dart.as(onDone, dart.functionType(dart.void, []));
         if (!dart.notNull(this[_isInitialState])) {
           dart.throw(new core.StateError("Stream has already been listened to."));
         }
@@ -16806,8 +16647,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_isUsed] = false;
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
-        dart.as(onDone, dart.functionType(dart.void, []));
         if (dart.notNull(this[_isUsed])) dart.throw(new core.StateError("Stream has already been listened to."));
         this[_isUsed] = true;
         let _ = new (async._BufferingStreamSubscription$(T))(onData, onError, onDone, cancelOnError);
@@ -17088,12 +16927,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_zone].scheduleMicrotask(dart.bind(this, _sendDone));
         this[_state] = (dart.notNull(this[_state]) | async._DoneStreamSubscription._SCHEDULED) >>> 0;
       }
-      onData(handleData) {
-        dart.as(handleData, dart.functionType(dart.void, [T]));
-      }
+      onData(handleData) {}
       onError(handleError) {}
       onDone(handleDone) {
-        dart.as(handleDone, dart.functionType(dart.void, []));
         this[_onDone] = handleDone;
       }
       pause(resumeSignal) {
@@ -17173,10 +17009,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return true;
       }
       listen(onData, opts) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
         let onError = opts && 'onError' in opts ? opts.onError : null;
         let onDone = opts && 'onDone' in opts ? opts.onDone : null;
-        dart.as(onDone, dart.functionType(dart.void, []));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         if (this[_controller$] == null || dart.notNull(this[_controller$].isClosed)) {
           return new (async._DoneStreamSubscription$(T))(onDone);
@@ -17244,14 +17078,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_stream] = stream;
       }
       onData(handleData) {
-        dart.as(handleData, dart.functionType(dart.void, [T]));
         dart.throw(new core.UnsupportedError("Cannot change handlers of asBroadcastStream source subscription."));
       }
       onError(handleError) {
         dart.throw(new core.UnsupportedError("Cannot change handlers of asBroadcastStream source subscription."));
       }
       onDone(handleDone) {
-        dart.as(handleDone, dart.functionType(dart.void, []));
         dart.throw(new core.UnsupportedError("Cannot change handlers of asBroadcastStream source subscription."));
       }
       pause(resumeSignal) {
@@ -17432,10 +17264,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return true;
       }
       listen(onData, opts) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
         let onError = opts && 'onError' in opts ? opts.onError : null;
         let onDone = opts && 'onDone' in opts ? opts.onDone : null;
-        dart.as(onDone, dart.functionType(dart.void, []));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         return new (async._DoneStreamSubscription$(T))(onDone);
       }
@@ -17511,17 +17341,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_source$].isBroadcast;
       }
       listen(onData, opts) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
         let onError = opts && 'onError' in opts ? opts.onError : null;
         let onDone = opts && 'onDone' in opts ? opts.onDone : null;
-        dart.as(onDone, dart.functionType(dart.void, []));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         cancelOnError = core.identical(true, cancelOnError);
         return this[_createSubscription](onData, onError, onDone, cancelOnError);
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
-        dart.as(onDone, dart.functionType(dart.void, []));
         return new (async._ForwardingStreamSubscription$(S, T))(this, onData, onError, onDone, cancelOnError);
       }
       [_handleData](data, sink) {
@@ -17769,8 +17595,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (!(typeof count == 'number')) dart.throw(new core.ArgumentError(count));
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
-        dart.as(onDone, dart.functionType(dart.void, []));
         return new (async._StateStreamSubscription$(T))(this, onData, onError, onDone, cancelOnError, this[_count]);
       }
       [_handleData](inputEvent, sink) {
@@ -17866,8 +17690,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (!(typeof count == 'number') || dart.notNull(count) < 0) dart.throw(new core.ArgumentError(count));
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
-        dart.as(onDone, dart.functionType(dart.void, []));
         return new (async._StateStreamSubscription$(T))(this, onData, onError, onDone, cancelOnError, this[_count]);
       }
       [_handleData](inputEvent, sink) {
@@ -17899,8 +17721,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         super._ForwardingStream(source);
       }
       [_createSubscription](onData, onError, onDone, cancelOnError) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
-        dart.as(onDone, dart.functionType(dart.void, []));
         return new (async._StateStreamSubscription$(T))(this, onData, onError, onDone, cancelOnError, false);
       }
       [_handleData](inputEvent, sink) {
@@ -18150,10 +17970,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
         super.Stream();
       }
       listen(onData, opts) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
         let onError = opts && 'onError' in opts ? opts.onError : null;
         let onDone = opts && 'onDone' in opts ? opts.onDone : null;
-        dart.as(onDone, dart.functionType(dart.void, []));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         cancelOnError = core.identical(true, cancelOnError);
         let subscription = new (async._SinkTransformerStreamSubscription$(S, T))(this[_stream], this[_sinkMapper], onData, onError, onDone, cancelOnError);
@@ -18221,7 +18039,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let handleError = opts && 'handleError' in opts ? opts.handleError : null;
         let handleDone = opts && 'handleDone' in opts ? opts.handleDone : null;
         super._StreamSinkTransformer(dart.fn(outputSink => {
-          dart.as(outputSink, async.EventSink$(T));
           if (handleData == null) handleData = async._StreamHandlerTransformer._defaultHandleData;
           if (handleError == null) handleError = async._StreamHandlerTransformer._defaultHandleError;
           if (handleDone == null) handleDone = async._StreamHandlerTransformer._defaultHandleDone;
@@ -18287,10 +18104,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
         super.Stream();
       }
       listen(onData, opts) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
         let onError = opts && 'onError' in opts ? opts.onError : null;
         let onDone = opts && 'onDone' in opts ? opts.onDone : null;
-        dart.as(onDone, dart.functionType(dart.void, []));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         cancelOnError = core.identical(true, cancelOnError);
         let result = this[_transformer](this[_stream], cancelOnError);
@@ -19355,10 +19170,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return new (collection.HashMapKeyIterable$(K))(this);
       }
       get values() {
-        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn(each => {
-          dart.as(each, K);
-          return this.get(each);
-        }, V, [K]));
+        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn(each => this.get(each), V, [K]));
       }
       containsKey(key) {
         if (dart.notNull(collection._HashMap._isStringKey(key))) {
@@ -19383,8 +19195,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       addAll(other) {
         dart.as(other, core.Map$(K, V));
         other[dartx.forEach](dart.fn((key, value) => {
-          dart.as(key, K);
-          dart.as(value, V);
           this.set(key, value);
         }, dart.void, [K, V]));
       }
@@ -19478,7 +19288,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
       }
       forEach(action) {
-        dart.as(action, dart.functionType(dart.void, [K, V]));
         let keys = this[_computeKeys]();
         for (let i = 0, length = keys[dartx.length]; i < dart.notNull(length); i++) {
           let key = keys[i];
@@ -19747,7 +19556,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return dart.as(dart.dsend(this[_map$0], 'containsKey', element), core.bool);
       }
       forEach(f) {
-        dart.as(f, dart.functionType(dart.void, [E]));
         let keys = dart.as(dart.dsend(this[_map$0], _computeKeys), core.List);
         for (let i = 0, length = keys.length; i < length; i++) {
           f(keys[i]);
@@ -19842,10 +19650,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return new (collection.LinkedHashMapKeyIterable$(K))(this);
       }
       get values() {
-        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn(each => {
-          dart.as(each, K);
-          return this.get(each);
-        }, V, [K]));
+        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn(each => this.get(each), V, [K]));
       }
       containsKey(key) {
         if (dart.notNull(collection._LinkedHashMap._isStringKey(key))) {
@@ -19869,16 +19674,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return dart.notNull(this[_findBucketIndex](bucket, key)) >= 0;
       }
       containsValue(value) {
-        return this.keys[dartx.any](dart.fn(each => {
-          dart.as(each, K);
-          return dart.equals(this.get(each), value);
-        }, core.bool, [K]));
+        return this.keys[dartx.any](dart.fn(each => dart.equals(this.get(each), value), core.bool, [K]));
       }
       addAll(other) {
         dart.as(other, core.Map$(K, V));
         other[dartx.forEach](dart.fn((key, value) => {
-          dart.as(key, K);
-          dart.as(value, V);
           this.set(key, value);
         }, dart.void, [K, V]));
       }
@@ -19978,7 +19778,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
       }
       forEach(action) {
-        dart.as(action, dart.functionType(dart.void, [K, V]));
         let cell = this[_first$];
         let modifications = this[_modifications$];
         while (cell != null) {
@@ -20243,7 +20042,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return dart.as(dart.dsend(this[_map$0], 'containsKey', element), core.bool);
       }
       forEach(f) {
-        dart.as(f, dart.functionType(dart.void, [E]));
         let cell = dart.as(dart.dload(this[_map$0], _first$), collection.LinkedHashMapCell);
         let modifications = dart.as(dart.dload(this[_map$0], _modifications$), core.int);
         while (cell != null) {
@@ -20341,7 +20139,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this.removeAll(toRemove);
       }
       removeWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let toRemove = [];
         for (let element of this) {
           if (dart.notNull(test(element))) toRemove[dartx.add](element);
@@ -20349,7 +20146,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this.removeAll(toRemove);
       }
       retainWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let toRemove = [];
         for (let element of this) {
           if (!dart.notNull(test(element))) toRemove[dartx.add](element);
@@ -20396,7 +20192,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       map(T) {
         return f => {
-          dart.as(f, dart.functionType(T, [E]));
           return new (_internal.EfficientLengthMappedIterable$(E, T))(this, f);
         };
       }
@@ -20411,17 +20206,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return collection.IterableBase.iterableToFullString(this, '{', '}');
       }
       where(f) {
-        dart.as(f, dart.functionType(core.bool, [E]));
         return new (_internal.WhereIterable$(E))(this, f);
       }
       expand(T) {
         return f => {
-          dart.as(f, dart.functionType(core.Iterable$(T), [E]));
           return new (_internal.ExpandIterable$(E, T))(this, f);
         };
       }
       forEach(f) {
-        dart.as(f, dart.functionType(dart.void, [E]));
         for (let element of this)
           f(element);
       }
@@ -20439,7 +20231,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       fold(T) {
         return (initialValue, combine) => {
-          dart.as(combine, dart.functionType(T, [T, E]));
           let value = initialValue;
           for (let element of this)
             value = combine(value, element);
@@ -20447,7 +20238,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         };
       }
       every(f) {
-        dart.as(f, dart.functionType(core.bool, [E]));
         for (let element of this) {
           if (!dart.notNull(f(element))) return false;
         }
@@ -20472,7 +20262,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return buffer.toString();
       }
       any(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         for (let element of this) {
           if (dart.notNull(test(element))) return true;
         }
@@ -20482,14 +20271,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return _internal.TakeIterable$(E).new(this, n);
       }
       takeWhile(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         return new (_internal.TakeWhileIterable$(E))(this, test);
       }
       skip(n) {
         return _internal.SkipIterable$(E).new(this, n);
       }
       skipWhile(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         return new (_internal.SkipWhileIterable$(E))(this, test);
       }
       get first() {
@@ -20511,7 +20298,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return result;
       }
       firstWhere(test, opts) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         for (let element of this) {
@@ -20521,7 +20307,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(_internal.IterableElementError.noElement());
       }
       lastWhere(test, opts) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         let result = null;
@@ -20537,7 +20322,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(_internal.IterableElementError.noElement());
       }
       singleWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let result = null;
         let foundMatching = false;
         for (let element of this) {
@@ -21113,7 +20897,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return dart.as(dart.dload(bucket[dartx.get](index), _element), E);
       }
       forEach(action) {
-        dart.as(action, dart.functionType(dart.void, [E]));
         let cell = this[_first$];
         let modifications = this[_modifications$];
         while (cell != null) {
@@ -21183,15 +20966,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return true;
       }
       removeWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         this[_filterWhere](test, true);
       }
       retainWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         this[_filterWhere](test, false);
       }
       [_filterWhere](test, removeMatching) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let cell = this[_first$];
         while (cell != null) {
           let element = dart.as(cell[_element], E);
@@ -21653,17 +21433,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     class IterableMixin extends core.Object {
       map(T) {
         return f => {
-          dart.as(f, dart.functionType(T, [E]));
           return _internal.MappedIterable$(E, T).new(this, f);
         };
       }
       where(f) {
-        dart.as(f, dart.functionType(core.bool, [E]));
         return new (_internal.WhereIterable$(E))(this, f);
       }
       expand(T) {
         return f => {
-          dart.as(f, dart.functionType(core.Iterable$(T), [E]));
           return new (_internal.ExpandIterable$(E, T))(this, f);
         };
       }
@@ -21674,7 +21451,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return false;
       }
       forEach(f) {
-        dart.as(f, dart.functionType(dart.void, [E]));
         for (let element of this)
           f(element);
       }
@@ -21692,7 +21468,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       fold(T) {
         return (initialValue, combine) => {
-          dart.as(combine, dart.functionType(T, [T, E]));
           let value = initialValue;
           for (let element of this)
             value = combine(value, element);
@@ -21700,7 +21475,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         };
       }
       every(f) {
-        dart.as(f, dart.functionType(core.bool, [E]));
         for (let element of this) {
           if (!dart.notNull(f(element))) return false;
         }
@@ -21725,7 +21499,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return buffer.toString();
       }
       any(f) {
-        dart.as(f, dart.functionType(core.bool, [E]));
         for (let element of this) {
           if (dart.notNull(f(element))) return true;
         }
@@ -21757,14 +21530,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return _internal.TakeIterable$(E).new(this, count);
       }
       takeWhile(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         return new (_internal.TakeWhileIterable$(E))(this, test);
       }
       skip(count) {
         return _internal.SkipIterable$(E).new(this, count);
       }
       skipWhile(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         return new (_internal.SkipWhileIterable$(E))(this, test);
       }
       get first() {
@@ -21793,7 +21564,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return result;
       }
       firstWhere(test, opts) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         for (let element of this) {
@@ -21803,7 +21573,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(_internal.IterableElementError.noElement());
       }
       lastWhere(test, opts) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         let result = null;
@@ -21819,7 +21588,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(_internal.IterableElementError.noElement());
       }
       singleWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let result = null;
         let foundMatching = false;
         for (let element of this) {
@@ -22238,7 +22006,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_first$];
       }
       forEach(action) {
-        dart.as(action, dart.functionType(dart.void, [E]));
         let modificationCount = this[_modificationCount];
         if (dart.notNull(this.isEmpty)) return;
         let current = this[_first$];
@@ -22397,7 +22164,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   collection.MapMixin$ = dart.generic((K, V) => {
     class MapMixin extends core.Object {
       forEach(action) {
-        dart.as(action, dart.functionType(dart.void, [K, V]));
         for (let key of this.keys) {
           action(key, this.get(key));
         }
@@ -22627,7 +22393,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_map$0][dartx.containsValue](value);
       }
       forEach(action) {
-        dart.as(action, dart.functionType(dart.void, [K, V]));
         this[_map$0][dartx.forEach](action);
       }
       get isEmpty() {
@@ -23102,7 +22867,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return false;
       }
       [_filter](test, removeMatching) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let entry = this[_sentinel][_nextLink];
         while (!core.identical(entry, this[_sentinel])) {
           let next = entry[_nextLink];
@@ -23114,11 +22878,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
       }
       removeWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         this[_filter](test, true);
       }
       retainWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         this[_filter](test, false);
       }
       get first() {
@@ -23151,7 +22913,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_elementCount] = 0;
       }
       forEachEntry(f) {
-        dart.as(f, dart.functionType(dart.void, [collection.DoubleLinkedQueueEntry$(E)]));
         let entry = this[_sentinel][_nextLink];
         while (!core.identical(entry, this[_sentinel])) {
           let nextEntry = entry[_nextLink];
@@ -23287,7 +23048,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return new (collection._ListQueueIterator$(E))(this);
       }
       forEach(action) {
-        dart.as(action, dart.functionType(dart.void, [E]));
         let modificationCount = this[_modificationCount];
         for (let i = this[_head]; i != this[_tail]; i = (dart.notNull(i) + 1 & dart.notNull(this[_table][dartx.length]) - 1) >>> 0) {
           action(this[_table][dartx.get](i));
@@ -23373,7 +23133,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return false;
       }
       [_filterWhere](test, removeMatching) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         let modificationCount = this[_modificationCount];
         let i = this[_head];
         while (i != this[_tail]) {
@@ -23389,11 +23148,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
       }
       removeWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         this[_filterWhere](test, true);
       }
       retainWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         this[_filterWhere](test, false);
       }
       clear() {
@@ -23907,8 +23664,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       addAll(other) {
         dart.as(other, core.Map$(K, V));
         other[dartx.forEach](dart.fn((key, value) => {
-          dart.as(key, K);
-          dart.as(value, V);
           this.set(key, value);
         }, dart.void, [K, V]));
       }
@@ -23919,7 +23674,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return !dart.notNull(this.isEmpty);
       }
       forEach(f) {
-        dart.as(f, dart.functionType(dart.void, [K, V]));
         let nodes = new (collection._SplayTreeNodeIterator$(K))(this);
         while (dart.notNull(nodes.moveNext())) {
           let node = dart.as(nodes.current, collection._SplayTreeMapNode$(K, V));
@@ -32131,7 +31885,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       sort(compare) {
         if (compare === void 0) compare = null;
-        dart.as(compare, dart.functionType(core.int, [E, E]));
         this.callMethod('sort', compare == null ? [] : dart.list([compare], dart.functionType(core.int, [E, E])));
       }
     }
@@ -49287,7 +49040,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       sort(compare) {
         if (compare === void 0) compare = null;
-        dart.as(compare, dart.functionType(core.int, [E, E]));
         dart.throw(new core.UnsupportedError("Cannot sort immutable List."));
       }
       shuffle(random) {
@@ -49316,11 +49068,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(new core.UnsupportedError("Cannot remove from immutable List."));
       }
       removeWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         dart.throw(new core.UnsupportedError("Cannot remove from immutable List."));
       }
       retainWhere(test) {
-        dart.as(test, dart.functionType(core.bool, [E]));
         dart.throw(new core.UnsupportedError("Cannot remove from immutable List."));
       }
       setRange(start, end, iterable, skipCount) {
@@ -49688,7 +49438,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       sort(compare) {
         if (compare === void 0) compare = null;
-        dart.as(compare, core.Comparator$(E));
         dart.throw(new core.UnsupportedError('Cannot sort list'));
       }
       shuffle(random) {
@@ -49711,10 +49460,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return new html$._CssStyleDeclarationSet(this);
       }
       set classes(value) {
-        this[dartx.forEach](dart.fn(e => {
-          dart.as(e, E);
-          return e[dartx.classes] = value;
-        }, core.Iterable$(core.String), [E]));
+        this[dartx.forEach](dart.fn(e => e[dartx.classes] = value, core.Iterable$(core.String), [E]));
       }
       get contentEdge() {
         return new html$._ContentCssListRect(this);
@@ -70535,19 +70281,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       asBroadcastStream(opts) {
         let onListen = opts && 'onListen' in opts ? opts.onListen : null;
-        dart.as(onListen, dart.functionType(dart.void, [async.StreamSubscription$(T)]));
         let onCancel = opts && 'onCancel' in opts ? opts.onCancel : null;
-        dart.as(onCancel, dart.functionType(dart.void, [async.StreamSubscription$(T)]));
         return this;
       }
       get isBroadcast() {
         return true;
       }
       listen(onData, opts) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
         let onError = opts && 'onError' in opts ? opts.onError : null;
         let onDone = opts && 'onDone' in opts ? opts.onDone : null;
-        dart.as(onDone, dart.functionType(dart.void, []));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         return new (html$._EventStreamSubscription$(T))(this[_target$], this[_eventType], onData, this[_useCapture]);
       }
@@ -70573,17 +70315,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
         super._EventStream(dart.as(target, html$.EventTarget), dart.as(eventType, core.String), dart.as(useCapture, core.bool));
       }
       matches(selector) {
-        return this.where(dart.fn(event => {
-          dart.as(event, T);
-          return html$._matchesWithAncestors(event, selector);
-        }, core.bool, [T])).map(T)(dart.fn(e => {
-          dart.as(e, T);
+        return this.where(dart.fn(event => html$._matchesWithAncestors(event, selector), core.bool, [T])).map(T)(dart.fn(e => {
           e[_selector] = selector;
           return e;
         }, T, [T]));
       }
       capture(onData) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
         return new (html$._EventStreamSubscription$(T))(this[_target$], this[_eventType], onData, true);
       }
     }
@@ -70608,20 +70345,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
         super.Stream();
       }
       matches(selector) {
-        return this.where(dart.fn(event => {
-          dart.as(event, T);
-          return html$._matchesWithAncestors(event, selector);
-        }, core.bool, [T])).map(T)(dart.fn(e => {
-          dart.as(e, T);
+        return this.where(dart.fn(event => html$._matchesWithAncestors(event, selector), core.bool, [T])).map(T)(dart.fn(e => {
           e[_selector] = selector;
           return e;
         }, T, [T]));
       }
       listen(onData, opts) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
         let onError = opts && 'onError' in opts ? opts.onError : null;
         let onDone = opts && 'onDone' in opts ? opts.onDone : null;
-        dart.as(onDone, dart.functionType(dart.void, []));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         let pool = new (html$._StreamPool$(T)).broadcast();
         for (let target of this[_targetList]) {
@@ -70630,7 +70361,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return pool.stream.listen(onData, {onError: onError, onDone: onDone, cancelOnError: cancelOnError});
       }
       capture(onData) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
         let pool = new (html$._StreamPool$(T)).broadcast();
         for (let target of this[_targetList]) {
           pool.add(new (html$._EventStream$(T))(target, this[_eventType], true));
@@ -70639,9 +70369,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       asBroadcastStream(opts) {
         let onListen = opts && 'onListen' in opts ? opts.onListen : null;
-        dart.as(onListen, dart.functionType(dart.void, [async.StreamSubscription$(T)]));
         let onCancel = opts && 'onCancel' in opts ? opts.onCancel : null;
-        dart.as(onCancel, dart.functionType(dart.void, [async.StreamSubscription$(T)]));
         return this;
       }
       get isBroadcast() {
@@ -70692,7 +70420,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return this[_target$] == null;
       }
       onData(handleData) {
-        dart.as(handleData, dart.functionType(dart.void, [T]));
         if (dart.notNull(this[_canceled])) {
           dart.throw(new core.StateError("Subscription has been canceled."));
         }
@@ -70701,9 +70428,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_tryResume]();
       }
       onError(handleError) {}
-      onDone(handleDone) {
-        dart.as(handleDone, dart.functionType(dart.void, []));
-      }
+      onDone(handleDone) {}
       pause(resumeSignal) {
         if (resumeSignal === void 0) resumeSignal = null;
         if (dart.notNull(this[_canceled])) return;
@@ -70772,18 +70497,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_streamController] = async.StreamController$(T).broadcast({sync: true});
       }
       listen(onData, opts) {
-        dart.as(onData, dart.functionType(dart.void, [T]));
         let onError = opts && 'onError' in opts ? opts.onError : null;
         let onDone = opts && 'onDone' in opts ? opts.onDone : null;
-        dart.as(onDone, dart.functionType(dart.void, []));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         return this[_streamController].stream.listen(onData, {onError: onError, onDone: onDone, cancelOnError: cancelOnError});
       }
       asBroadcastStream(opts) {
         let onListen = opts && 'onListen' in opts ? opts.onListen : null;
-        dart.as(onListen, dart.functionType(dart.void, [async.StreamSubscription$(T)]));
         let onCancel = opts && 'onCancel' in opts ? opts.onCancel : null;
-        dart.as(onCancel, dart.functionType(dart.void, [async.StreamSubscription$(T)]));
         return this[_streamController].stream;
       }
       get isBroadcast() {
@@ -72235,7 +71956,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       sort(compare) {
         if (compare === void 0) compare = null;
-        dart.as(compare, dart.functionType(core.int, [E, E]));
         this[_list$][dartx.sort](dart.fn((a, b) => compare(html$._downcast(html$.Node, E)(a), html$._downcast(html$.Node, E)(b)), core.int, [html$.Node, html$.Node]));
       }
       indexOf(element, start) {

@@ -17,7 +17,6 @@ dart_library.library('covariance', null, /* Imports */[
         this[_t] = t;
       }
       forEach(fn) {
-        dart.as(fn, dart.functionType(dart.void, [T]));
         fn(this[_t]);
       }
     }

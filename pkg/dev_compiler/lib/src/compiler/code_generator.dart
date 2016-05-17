@@ -1657,9 +1657,9 @@ class CodeGenerator extends GeneralizingAstVisitor
       }
 
       // TODO(jmesserly): various problems here, see:
-      // https://github.com/dart-lang/dev_compiler/issues/161
+      // https://github.com/dart-lang/dev_compiler/issues/116
       var paramType = param.element.type;
-      if (!constructor && _hasUnsoundTypeParameter(paramType)) {
+      if (node is MethodDeclaration && _unsoundCovariant(paramType, true)) {
         body.add(
             js.statement('dart.as(#, #);', [jsParam, _emitType(paramType)]));
       }
@@ -1667,12 +1667,22 @@ class CodeGenerator extends GeneralizingAstVisitor
     return body.isEmpty ? null : _statement(body);
   }
 
-  bool _isUnsoundTypeParameter(DartType t) =>
-      t is TypeParameterType && t.element.enclosingElement is ClassElement;
-
-  bool _hasUnsoundTypeParameter(DartType t) =>
-      _isUnsoundTypeParameter(t) ||
-      t is ParameterizedType && t.typeArguments.any(_hasUnsoundTypeParameter);
+  /// Given a type [t], return whether or not t is unsoundly covariant.
+  /// If [contravariant] is true, then t appears in a contravariant
+  /// position.
+  bool _unsoundCovariant(DartType t, bool contravariant) {
+    if (t is TypeParameterType) {
+      return contravariant && t.element.enclosingElement is ClassElement;
+    }
+    if (t is FunctionType) {
+      if (_unsoundCovariant(t.returnType, contravariant)) return true;
+      return t.parameters.any((p) => _unsoundCovariant(p.type, !contravariant));
+    }
+    if (t is ParameterizedType) {
+      return t.typeArguments.any((t) => _unsoundCovariant(t, contravariant));
+    }
+    return false;
+  }
 
   JS.Expression _defaultParamValue(FormalParameter param) {
     if (param is DefaultFormalParameter && param.defaultValue != null) {

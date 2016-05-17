@@ -38,14 +38,9 @@ closure.Foo$ = dart.generic(T => {
     static named_params(a, {b = null, c = null}: {b?: any, c?: number} = {}) {}
     nullary_method() {}
     function_params(f: (x: any, y?: any) => number, g: (x: any, opts?: {y?: string, z?: any}) => any, cb: closure.Callback) {
-      dart.as(f, dart.functionType(core.int, [dart.dynamic], [dart.dynamic]));
-      dart.as(g, dart.functionType(dart.dynamic, [dart.dynamic], {y: core.String, z: dart.dynamic}));
       cb({i: this.i});
     }
-    run(a: core.List<any>, b: string, c: (d: string) => core.List<any>, e: (f: (g: any) => any) => core.List<number>, {h = null}: {h?: core.Map<core.Map<any, any>, core.Map<any, any>>} = {}) {
-      dart.as(c, dart.functionType(core.List, [core.String]));
-      dart.as(e, dart.functionType(core.List$(core.int), [dart.functionType(dart.dynamic, [dart.dynamic])]));
-    }
+    run(a: core.List<any>, b: string, c: (d: string) => core.List<any>, e: (f: (g: any) => any) => core.List<number>, {h = null}: {h?: core.Map<core.Map<any, any>, core.Map<any, any>>} = {}) {}
     get prop() {
       return null;
     }
