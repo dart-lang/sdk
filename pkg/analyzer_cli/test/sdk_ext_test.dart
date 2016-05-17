@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer_cli/src/driver.dart' show Driver, errorSink, outSink;
+import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
@@ -18,11 +19,14 @@ main() {
   group('Sdk extensions', () {
     StringSink savedOutSink, savedErrorSink;
     int savedExitCode;
+    ExitHandler savedExitHandler;
 
     setUp(() {
       savedOutSink = outSink;
       savedErrorSink = errorSink;
+      savedExitHandler = exitHandler;
       savedExitCode = exitCode;
+      exitHandler = (code) => exitCode = code;
       outSink = new StringBuffer();
       errorSink = new StringBuffer();
     });
@@ -30,15 +34,17 @@ main() {
       outSink = savedOutSink;
       errorSink = savedErrorSink;
       exitCode = savedExitCode;
+      exitHandler = savedExitHandler;
     });
 
     test('.packages file present', () async {
       String testDir = path.join(testDirectory, 'data', 'packages_file');
-      Driver driver = new Driver()..start([
-        '--packages',
-        path.join(testDir, '.packages'),
-        path.join(testDir, 'sdk_ext_user.dart')
-      ]);
+      Driver driver = new Driver()
+        ..start([
+          '--packages',
+          path.join(testDir, '.packages'),
+          path.join(testDir, 'sdk_ext_user.dart')
+        ]);
 
       DirectoryBasedDartSdk sdk = driver.sdk;
       expect(sdk.useSummary, isFalse);
