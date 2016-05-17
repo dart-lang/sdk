@@ -6,12 +6,15 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/analyzer.dart'
+    show
+        ExportDirective,
+        ImportDirective,
+        PartDirective,
+        StringLiteral,
+        UriBasedDirective,
+        parseDirectives;
 import 'package:args/args.dart' show ArgParser;
-import 'package:dev_compiler/src/analyzer/context.dart'
-    show createAnalysisContextWithSources;
-import 'package:dev_compiler/src/analyzer/context.dart'
-    show createAnalysisContextWithSources, AnalyzerOptions;
 import 'package:path/path.dart' as path;
 
 const ENTRY = "main";
@@ -66,8 +69,7 @@ void main(List<String> args) {
   // TODO(vsm): We're using the analyzer just to compute the import/export/part
   // dependence graph.  This is expensive.  Is there a lighterweight way to do
   // this?
-  var context = createAnalysisContextWithSources(new AnalyzerOptions());
-  transitiveFiles(context, entry, Directory.current.path);
+  transitiveFiles(entry, Directory.current.path, packageRoot);
   orderModules();
   computeTransitiveDependences();
 
@@ -234,33 +236,46 @@ String canonicalize(String uri, String root) {
   if (sourceUri.scheme == '') {
     sourceUri = path.toUri(
         path.isAbsolute(uri) ? path.absolute(uri) : path.join(root, uri));
+    return sourceUri.path;
   }
   return sourceUri.toString();
 }
 
-void transitiveFiles(AnalysisContext context, String entryPoint, String root) {
+/// Simplified from ParseDartTask.resolveDirective.
+String _resolveDirective(UriBasedDirective directive) {
+  StringLiteral uriLiteral = directive.uri;
+  String uriContent = uriLiteral.stringValue;
+  if (uriContent != null) {
+    uriContent = uriContent.trim();
+    directive.uriContent = uriContent;
+  }
+  return directive.validate() == null ? uriContent : null;
+}
+
+String _loadFile(String uri, String packageRoot) {
+  if (uri.startsWith('package:')) {
+    uri = path.join(packageRoot, uri.substring(8));
+  }
+  return new File(uri).readAsStringSync();
+}
+
+void transitiveFiles(String entryPoint, String root, String packageRoot) {
   entryPoint = canonicalize(entryPoint, root);
   if (entryPoint.startsWith('dart:')) return;
-  var entryDir = path.dirname(entryPoint);
   if (processFile(entryPoint)) {
     // Process this
-    var source = context.sourceFactory.forUri(entryPoint);
-    if (source == null) {
-      throw new Exception('could not create a source for $entryPoint.'
-          ' The file name is in the wrong format or was not found.');
-    }
-    var library = context.computeLibraryElement(source);
-    for (var entry in library.imports) {
-      if (entry.uri == null) continue;
-      processDependence(entryPoint, canonicalize(entry.uri, entryDir));
-      transitiveFiles(context, entry.uri, entryDir);
-    }
-    for (var entry in library.exports) {
-      processDependence(entryPoint, canonicalize(entry.uri, entryDir));
-      transitiveFiles(context, entry.uri, entryDir);
-    }
-    for (var part in library.parts) {
-      processFile(canonicalize(part.uri, entryDir));
+    var source = _loadFile(entryPoint, packageRoot);
+    var entryDir = path.dirname(entryPoint);
+    var unit = parseDirectives(source, name: entryPoint, suppressErrors: true);
+    for (var d in unit.directives) {
+      if (d is ImportDirective || d is ExportDirective) {
+        var uri = _resolveDirective(d);
+        processDependence(entryPoint, canonicalize(uri, entryDir));
+        transitiveFiles(uri, entryDir, packageRoot);
+      } else if (d is PartDirective) {
+        var uri = _resolveDirective(d);
+        processFile(canonicalize(uri, entryDir));
+      }
     }
   }
 }
