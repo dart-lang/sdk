@@ -1168,9 +1168,8 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   void _emitClassMetadata(List<Annotation> metadata, JS.Expression className,
       List<JS.Statement> body) {
-    // TODO(vsm): Make this optional per #268.
     // Metadata
-    if (metadata.isNotEmpty) {
+    if (options.emitMetadata && metadata.isNotEmpty) {
       body.add(js.statement('#[dart.metadata] = () => #;', [
         className,
         new JS.ArrayInitializer(
@@ -2220,8 +2219,7 @@ class CodeGenerator extends GeneralizingAstVisitor
           parameters != null ? _parameterMetadata(parameters[i]) : [];
       var typeName = _emitType(types[i]);
       var value = typeName;
-      // TODO(vsm): Make this optional per #268.
-      if (metadata.isNotEmpty) {
+      if (options.emitMetadata && metadata.isNotEmpty) {
         metadata = metadata.map(_instantiateAnnotation).toList();
         value = new JS.ArrayInitializer([typeName]..addAll(metadata));
       }

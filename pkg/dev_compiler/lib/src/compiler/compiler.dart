@@ -150,6 +150,9 @@ class CompilerOptions {
   /// This is required for a modular build process.
   final bool summarizeApi;
 
+  /// Whether to preserve metdata only accessible via mirrors
+  final bool emitMetadata;
+
   /// Whether to force compilation of code with static errors.
   final bool unsafeForceCompile;
 
@@ -181,6 +184,7 @@ class CompilerOptions {
       this.sourceMapComment: true,
       this.summarizeApi: true,
       this.unsafeForceCompile: false,
+      this.emitMetadata: true,
       this.closure: false,
       this.destructureNamedParams: false,
       this.moduleFormat: ModuleFormat.legacy});
@@ -190,6 +194,7 @@ class CompilerOptions {
         sourceMapComment = args['source-map-comment'],
         summarizeApi = args['summarize'],
         unsafeForceCompile = args['unsafe-force-compile'],
+        emitMetadata = args['emit-metadata'],
         closure = args['closure-experimental'],
         destructureNamedParams = args['destructure-named-params'],
         moduleFormat = parseModuleFormat(args['modules']);
@@ -210,6 +215,9 @@ class CompilerOptions {
           'node': 'node.js modules (https://nodejs.org/api/modules.html)'
         },
         defaultsTo: 'legacy')
+    ..addFlag('emit-metadata',
+        help: 'emit metadata annotations queriable via mirrors',
+        defaultsTo: true)
     ..addFlag('closure-experimental',
         help: 'emit Closure Compiler-friendly code (experimental)',
         defaultsTo: false)
