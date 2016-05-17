@@ -590,9 +590,7 @@ class Driver implements CommandLineStarter {
       //TODO: ideally share this traversal with SdkExtUriResolver
       for (Iterable<fileSystem.Folder> libDirs in folders) {
         if (libDirs.any((fileSystem.Folder libDir) =>
-        libDir
-            .getChild(SdkExtUriResolver.SDK_EXT_NAME)
-            .exists)) {
+            libDir.getChild(SdkExtUriResolver.SDK_EXT_NAME).exists)) {
           return true;
         }
       }
@@ -638,8 +636,8 @@ class Driver implements CommandLineStarter {
             options.dartSdkSummaryPath, options.strongMode);
       } else {
         String dartSdkPath = options.dartSdkPath;
-        DirectoryBasedDartSdk directorySdk =
-            new DirectoryBasedDartSdk(new JavaFile(dartSdkPath));
+        DirectoryBasedDartSdk directorySdk = new DirectoryBasedDartSdk(
+            new JavaFile(dartSdkPath), options.strongMode);
         directorySdk.useSummary = useSummaries &&
             options.sourceFiles.every((String sourcePath) {
               sourcePath = path.absolute(sourcePath);
