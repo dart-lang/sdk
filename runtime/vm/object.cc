@@ -3189,6 +3189,11 @@ RawClass* Class::New(const Library& lib,
 }
 
 
+RawClass* Class::NewInstanceClass() {
+  return Class::New<Instance>(kIllegalCid);
+}
+
+
 RawClass* Class::NewNativeWrapper(const Library& library,
                                   const String& name,
                                   int field_count) {

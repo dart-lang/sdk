@@ -1508,6 +1508,9 @@ class Class : public Object {
   // Allocate an instance class which has a VM implementation.
   template <class FakeInstance> static RawClass* New(intptr_t id);
 
+  // Helper that calls 'Class::New<Instance>(kIllegalCid)'.
+  static RawClass* NewInstanceClass();
+
   // Check the subtype or 'more specific' relationship.
   bool TypeTest(TypeTestKind test_kind,
                 const TypeArguments& type_arguments,
