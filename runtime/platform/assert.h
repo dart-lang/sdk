@@ -362,5 +362,4 @@ struct CompileAssert {
 
 #endif  // defined(TESTING)
 
-
 #endif  // PLATFORM_ASSERT_H_

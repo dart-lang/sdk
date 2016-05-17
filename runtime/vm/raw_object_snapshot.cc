@@ -3790,5 +3790,4 @@ void RawUserTag::WriteTo(SnapshotWriter* writer,
   }
 }
 
-
 }  // namespace dart
