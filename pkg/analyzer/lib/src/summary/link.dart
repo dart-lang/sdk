@@ -970,8 +970,14 @@ abstract class CompilationUnitElementForLink
       if (containingReference != 0 &&
           _linkedUnit.references[containingReference].kind !=
               ReferenceKind.prefix) {
-        _references[index] =
-            _resolveRef(containingReference).getContainedName(name);
+        if (linkedReference.kind == ReferenceKind.function) {
+          // Local function
+          _references[index] = _resolveRef(containingReference)
+              .getLocalFunction(linkedReference.localIndex);
+        } else {
+          _references[index] =
+              _resolveRef(containingReference).getContainedName(name);
+        }
       } else if (linkedReference.dependency == 0) {
         if (name == 'void') {
           _references[index] = enclosingElement._linker.voidElement;
@@ -1126,6 +1132,19 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
           numTypeParameters: element.typeParameters.length,
           unitNum: element.enclosingElement.unitNum,
           kind: ReferenceKind.typedef);
+    } else if (element is FunctionElementForLink_Initializer) {
+      return addRawReference('',
+          containingReference: addReference(element.enclosingElement),
+          kind: ReferenceKind.function,
+          localIndex: 0);
+    } else if (element is FunctionElementForLink_Local_NonSynthetic) {
+      ExecutableElementForLink parent = element.enclosingElement;
+      int localIndex = parent.functions.indexOf(element);
+      assert(localIndex != -1);
+      return addRawReference(element.name,
+          containingReference: addReference(parent),
+          kind: ReferenceKind.function,
+          localIndex: localIndex);
     } else if (element is ExecutableElementForLink_NonLocal) {
       ClassElementForLink_Class enclosingClass = element.enclosingClass;
       ReferenceKind kind;
@@ -1150,14 +1169,6 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
               ? null
               : library.addDependency(element.library),
           kind: kind);
-    } else if (element is FunctionElementForLink_Local) {
-      FunctionElementImpl parent = element.enclosingElement;
-      int localIndex = parent.functions.indexOf(element);
-      assert(localIndex != -1);
-      return addRawReference(element.name,
-          containingReference: addReference(parent),
-          kind: ReferenceKind.function,
-          localIndex: localIndex);
     } else if (element is FunctionElementForLink_Initializer) {
       return addRawReference('',
           containingReference: addReference(element.enclosingElement),
@@ -2713,25 +2724,33 @@ class FunctionElementForLink_FunctionTypedParam extends Object
 /**
  * Element representing the initializer expression of a variable.
  */
-class FunctionElementForLink_Initializer implements FunctionElementImpl {
+class FunctionElementForLink_Initializer extends Object
+    with ReferenceableElementForLink
+    implements FunctionElementForLink_Local {
   /**
    * The variable for which this element is the initializer.
    */
   final VariableElementForLink _variable;
 
-  List<FunctionElementForLink_Local> _functions;
+  List<FunctionElementForLink_Local_NonSynthetic> _functions;
 
   FunctionElementForLink_Initializer(this._variable);
 
   @override
   VariableElementForLink get enclosingElement => _variable;
 
+  TypeParameterizedElementForLink get enclosingTypeParameterContext =>
+      _variable.enclosingElement is ClassElementForLink
+          ? _variable.enclosingElement
+          : null;
+
   @override
-  List<FunctionElementForLink_Local> get functions => _functions ??= _variable
-      .unlinkedVariable.initializer.localFunctions
-      .map((UnlinkedExecutable ex) =>
-          new FunctionElementForLink_Local(_variable.compilationUnit, this, ex))
-      .toList();
+  List<FunctionElementForLink_Local_NonSynthetic> get functions =>
+      _functions ??= _variable.unlinkedVariable.initializer.localFunctions
+          .map((UnlinkedExecutable ex) =>
+              new FunctionElementForLink_Local_NonSynthetic(
+                  _variable.compilationUnit, this, ex))
+          .toList();
 
   @override
   DartType get returnType {
@@ -2755,21 +2774,62 @@ class FunctionElementForLink_Initializer implements FunctionElementImpl {
   }
 
   @override
+  int get typeParameterNestingLevel =>
+      enclosingTypeParameterContext?.typeParameterNestingLevel ?? 0;
+
+  List<TypeParameterElement> get typeParameters => const [];
+
+  @override
+  FunctionElementForLink_Local getLocalFunction(int index) {
+    List<FunctionElementForLink_Local_NonSynthetic> functions = this.functions;
+    return index < functions.length ? functions[index] : null;
+  }
+
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
+
+/**
+ * Element representing a local function (possibly a closure).
+ */
+abstract class FunctionElementForLink_Local
+    implements
+        ExecutableElementForLink,
+        FunctionElementImpl,
+        ReferenceableElementForLink {}
 
 /**
  * Element representing a local function (possibly a closure) inside another
  * executable.
  */
-class FunctionElementForLink_Local extends ExecutableElementForLink
-    implements FunctionElementImpl {
+class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
+    with ReferenceableElementForLink
+    implements FunctionElementForLink_Local {
   @override
-  final FunctionElementImpl enclosingElement;
+  final ExecutableElementForLink enclosingElement;
 
-  FunctionElementForLink_Local(CompilationUnitElementForLink compilationUnit,
-      this.enclosingElement, UnlinkedExecutable unlinkedExecutable)
+  FunctionElementForLink_Local_NonSynthetic(
+      CompilationUnitElementForLink compilationUnit,
+      this.enclosingElement,
+      UnlinkedExecutable unlinkedExecutable)
       : super(compilationUnit, unlinkedExecutable);
+
+  @override
+  TypeParameterizedElementForLink get enclosingTypeParameterContext =>
+      enclosingElement;
+
+  @override
+  DartType buildType(
+      DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
+    assert(implicitFunctionTypeIndices.isEmpty);
+    return type;
+  }
+
+  @override
+  FunctionElementForLink_Local getLocalFunction(int index) {
+    // TODO(paulberry): implement.
+    throw new UnimplementedError();
+  }
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -3420,6 +3480,12 @@ class MethodElementForLink extends ExecutableElementForLink_NonLocal
   ElementKind get kind => ElementKind.METHOD;
 
   @override
+  FunctionElementForLink_Local getLocalFunction(int index) {
+    // TODO(paulberry): implement.
+    return null;
+  }
+
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
@@ -3780,6 +3846,13 @@ class PropertyAccessorElementForLink_EnumField extends Object
   }
 
   @override
+  FunctionElementForLink_Local getLocalFunction(int index) {
+    // TODO(paulberry): implement (should return the synthetic function element
+    // for the enum field's initializer).
+    return null;
+  }
+
+  @override
   bool isAccessibleIn(LibraryElement library) =>
       !Identifier.isPrivateName(name) || identical(this.library, library);
 
@@ -3836,6 +3909,12 @@ class PropertyAccessorElementForLink_Executable
   @override
   ReferenceableElementForLink getContainedName(String name) {
     return new NonstaticMemberElementForLink(library, this, name);
+  }
+
+  @override
+  FunctionElementForLink_Local getLocalFunction(int index) {
+    // TODO(paulberry): implement
+    return null;
   }
 
   @override
@@ -3945,6 +4024,15 @@ class PropertyAccessorElementForLink_Variable extends Object
   }
 
   @override
+  FunctionElementForLink_Local getLocalFunction(int index) {
+    if (index == 0) {
+      return variable.initializer;
+    } else {
+      return null;
+    }
+  }
+
+  @override
   bool isAccessibleIn(LibraryElement library) =>
       !Identifier.isPrivateName(name) || identical(this.library, library);
 
@@ -3963,7 +4051,7 @@ class PropertyAccessorElementForLink_Variable extends Object
  * When used as a mixin, implements the default behavior shared by most
  * elements.
  */
-abstract class ReferenceableElementForLink {
+class ReferenceableElementForLink {
   /**
    * If this element can be used in a constructor invocation context,
    * return the associated constructor (which may be `this` or some
@@ -4011,6 +4099,13 @@ abstract class ReferenceableElementForLink {
     // TODO(paulberry): handle references to `call` for function types.
     return UndefinedElementForLink.instance;
   }
+
+  /**
+   * If this element contains local functions, return the contained local
+   * function having the given [index].  If this element doesn't contain local
+   * functions, or the index is out of range, return `null`.
+   */
+  FunctionElementForLink_Local getLocalFunction(int index) => null;
 }
 
 /**
@@ -4077,6 +4172,12 @@ class TopLevelFunctionElementForLink extends ExecutableElementForLink_NonLocal
 
   @override
   ElementKind get kind => ElementKind.FUNCTION;
+
+  @override
+  FunctionElementForLink_Local getLocalFunction(int index) {
+    // TODO(paulberry): implement.
+    return null;
+  }
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

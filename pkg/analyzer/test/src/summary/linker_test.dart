@@ -150,6 +150,28 @@ const x = [const C()];
     expect(classC.unnamedConstructor.isCycleFree, false);
   }
 
+  void test_inferredType_closure_fromBundle() {
+    var bundle = createPackageBundle(
+        '''
+var x = () {};
+''',
+        path: '/a.dart');
+    addBundle(bundle);
+    createLinker('''
+import 'a.dart';
+var y = x;
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    expect(
+        library
+            .getContainedName('y')
+            .asTypeInferenceNode
+            .variableElement
+            .inferredType
+            .toString(),
+        '() → dynamic');
+  }
+
   void test_inferredType_instanceField_dynamic() {
     createLinker('''
 var x;
