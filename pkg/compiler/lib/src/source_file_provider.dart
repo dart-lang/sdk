@@ -238,7 +238,7 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
 
 typedef void MessageCallback(String message);
 
-class RandomAccessFileOutputProvider {
+class RandomAccessFileOutputProvider implements CompilerOutput {
   final Uri out;
   final Uri sourceMapOut;
   final MessageCallback onInfo;
@@ -262,6 +262,10 @@ class RandomAccessFileOutputProvider {
   }
 
   EventSink<String> call(String name, String extension) {
+    return createEventSink(name, extension);
+  }
+  
+  EventSink<String> createEventSink(String name, String extension) {
     Uri uri;
     bool isPrimaryOutput = false;
     // TODO (johnniwinther, sigurdm): Make a better interface for

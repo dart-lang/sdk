@@ -10,10 +10,11 @@ import 'dart:io' show exit, File, FileMode, Platform, stdin, stderr;
 
 import 'package:package_config/discovery.dart' show findPackages;
 
-import '../compiler.dart' as api;
+import '../compiler_new.dart' as api;
 import 'commandline_options.dart';
 import 'filenames.dart';
 import 'io/source_file.dart';
+import 'options.dart' show CompilerOptions;
 import 'source_file_provider.dart';
 import 'util/command_line.dart';
 import 'util/uri_extras.dart';
@@ -484,18 +485,17 @@ Future<api.CompilationResult> compile(List<String> argv) {
     return result;
   }
 
-  Uri uri = currentDirectory.resolve(arguments[0]);
-  return compileFunc(
-          uri,
-          libraryRoot,
-          packageRoot,
-          inputProvider,
-          diagnosticHandler,
-          options,
-          outputProvider,
-          environment,
-          packageConfig,
-          findPackages)
+  Uri script = currentDirectory.resolve(arguments[0]);
+  CompilerOptions compilerOptions = new CompilerOptions.parse(
+      entryPoint: script,
+      libraryRoot: libraryRoot,
+      packageRoot: packageRoot,
+      packageConfig: packageConfig,
+      packagesDiscoveryProvider: findPackages,
+      options: options,
+      environment: environment);
+  return compileFunc(compilerOptions, inputProvider, 
+    diagnosticHandler, outputProvider)
       .then(compilationDone);
 }
 
@@ -706,8 +706,15 @@ void main(List<String> arguments) {
   internalMain(arguments);
 }
 
-var exitFunc = exit;
-var compileFunc = api.compile;
+typedef void ExitFunc(int exitCode);
+typedef Future<api.CompilationResult> CompileFunc(
+    CompilerOptions compilerOptions,
+    api.CompilerInput compilerInput,
+    api.CompilerDiagnostics compilerDiagnostics,
+    api.CompilerOutput compilerOutput);
+
+ExitFunc exitFunc = exit;
+CompileFunc compileFunc = api.compile;
 
 Future<api.CompilationResult> internalMain(List<String> arguments) {
   Future onError(exception, trace) {
