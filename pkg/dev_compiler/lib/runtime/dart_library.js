@@ -138,14 +138,6 @@ var dart_library =
         let d = document.createElement('div');
         window.Animation = d.animate(d).constructor;
       }
-      if (typeof WebGLVertexArrayObjectOES == "undefined") {
-        let context = document.createElement('canvas').getContext('webgl');
-        if (context) {
-          window.WebGLVertexArrayObjectOES =
-              context.getExtension("OES_vertex_array_object")
-                     .createVertexArrayOES().constructor;
-        }
-      }
     }
 
     // This import is only needed for chrome debugging. We should provide an
