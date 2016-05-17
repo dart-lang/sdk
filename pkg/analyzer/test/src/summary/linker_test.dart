@@ -598,6 +598,36 @@ class D extends C {
     expect(hTypeElement.typeParameterContext, same(f));
   }
 
+  void test_topLevelFunction_isStatic() {
+    createLinker('f() {}');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    TopLevelFunctionElementForLink f = library.getContainedName('f');
+    expect(f.isStatic, true);
+  }
+
+  void test_topLevelGetter_isStatic() {
+    createLinker('get x => null;');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    PropertyAccessorElementForLink_Executable x = library.getContainedName('x');
+    expect(x.isStatic, true);
+  }
+
+  void test_topLevelSetter_isStatic() {
+    createLinker('void set x(value) {}');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    PropertyAccessorElementForLink_Executable x =
+        library.getContainedName('x=');
+    expect(x.isStatic, true);
+  }
+
+  void test_topLevelVariable_isStatic() {
+    createLinker('var x;');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    PropertyAccessorElementForLink_Variable x = library.getContainedName('x');
+    expect(x.isStatic, true);
+    expect(x.variable.isStatic, true);
+  }
+
   void test_typeParameter_isTypeParameterInScope_direct() {
     createLinker('class C<T, U> {}');
     ClassElementForLink_Class c = testLibrary.getContainedName('C');

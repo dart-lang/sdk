@@ -3815,6 +3815,9 @@ class PropertyAccessorElementForLink_Executable
   DartType get asStaticType => returnType;
 
   @override
+  bool get isStatic => enclosingClass == null || super.isStatic;
+
+  @override
   PropertyAccessorElementForLink_Executable get correspondingGetter =>
       variable.getter;
 
@@ -4068,6 +4071,9 @@ class TopLevelFunctionElementForLink extends ExecutableElementForLink_NonLocal
 
   @override
   DartType get asStaticType => type;
+
+  @override
+  bool get isStatic => true;
 
   @override
   ElementKind get kind => ElementKind.FUNCTION;
