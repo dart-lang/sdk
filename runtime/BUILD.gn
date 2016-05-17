@@ -104,6 +104,11 @@ config("dart_config") {
   if (dart_target_arch != "") {
     if (dart_target_arch == "arm") {
       defines += [ "TARGET_ARCH_ARM" ]
+      if (target_os == "mac" || target_os == "ios") {
+        defines += [ "TARGET_ABI_IOS" ]
+      } else {
+        defines += [ "TARGET_ABI_EABI" ]
+      }
     } else if (dart_target_arch == "arm64") {
       defines += [ "TARGET_ARCH_ARM64" ]
     } else if (dart_target_arch == "mips") {

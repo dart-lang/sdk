@@ -617,10 +617,12 @@ const char* Dart::FeaturesString(Snapshot::Kind kind) {
 
     // Generated code must match the host architecture and ABI.
 #if defined(TARGET_ARCH_ARM)
-#if defined(TARGET_OS_MACOS)
+#if defined(TARGET_ABI_IOS)
     buffer.AddString(" arm-ios");
-#else
+#elif defined(TARGET_ABI_EABI)
     buffer.AddString(" arm-eabi");
+#else
+#error Unknown ABI
 #endif
     buffer.AddString(TargetCPUFeatures::hardfp_supported() ? " hardfp"
                                                            : " softfp");
