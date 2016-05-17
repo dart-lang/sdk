@@ -14,6 +14,9 @@ packages
 node_modules
 doc/api/
 
+# Ignore generated summary
+lib/runtime/dart_sdk.sum
+
 # Ignore test output
 test/codegen/expect/dev_compiler/
 test/codegen/expect/language/
