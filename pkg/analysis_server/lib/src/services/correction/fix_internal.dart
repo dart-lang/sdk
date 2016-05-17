@@ -245,6 +245,9 @@ class FixProcessor {
       _addFix_createConstructor_insteadOfSyntheticDefault();
       _addFix_addMissingParameter();
     }
+    if (errorCode == StaticWarningCode.FUNCTION_WITHOUT_CALL) {
+      _addFix_addMissingMethodCall();
+    }
     if (errorCode == StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR) {
       _addFix_createConstructor_named();
     }
@@ -413,6 +416,32 @@ class FixProcessor {
       _replaceReturnTypeWithFuture(body);
       _addFix(DartFixKind.ADD_ASYNC, []);
     }
+  }
+
+  void _addFix_addMissingMethodCall() {
+    ClassDeclaration targetClass = node.parent as ClassDeclaration;
+    // prepare SourceBuilder
+    int insertOffset = targetClass.end - 1;
+    SourceBuilder sb = new SourceBuilder(file, insertOffset);
+    // prepare environment
+    String prefix = utils.getIndent(1);
+    String prefix2 = utils.getIndent(2);
+    // start method
+    sb.append(prefix);
+    sb.append('call() {');
+    // TO-DO
+    sb.append(eol);
+    sb.append(prefix2);
+    sb.append('// TODO: implement call');
+    sb.append(eol);
+    // close method
+    sb.append(prefix);
+    sb.append('}');
+    sb.append(eol);
+    // add proposal
+    exitPosition = new Position(file, insertOffset);
+    _insertBuilder(sb, unitElement);
+    _addFix(DartFixKind.CREATE_MISSING_METHOD_CALL, []);
   }
 
   void _addFix_addMissingParameter() {
