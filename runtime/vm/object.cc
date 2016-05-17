@@ -42,6 +42,7 @@
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
 #include "vm/timer.h"
+#include "vm/type_table.h"
 #include "vm/unicode.h"
 #include "vm/verified_memory.h"
 #include "vm/weak_code.h"
@@ -1146,12 +1147,16 @@ NOT_IN_PRODUCT(
       GrowableObjectArray::type_arguments_offset());
   cls.set_num_type_arguments(1);
 
-  // canonical_type_arguments_ are Smi terminated.
-  // Last element contains the count of used slots.
+  // Initialize hash set for canonical_type_.
+  const intptr_t kInitialCanonicalTypeSize = 16;
+  array = HashTables::New<CanonicalTypeSet>(
+      kInitialCanonicalTypeSize, Heap::kOld);
+  object_store->set_canonical_types(array);
+
+  // Initialize hash set for canonical_type_arguments_.
   const intptr_t kInitialCanonicalTypeArgumentsSize = 4;
-  array = Array::New(kInitialCanonicalTypeArgumentsSize + 1);
-  array.SetAt(kInitialCanonicalTypeArgumentsSize,
-              Smi::Handle(zone, Smi::New(0)));
+  array = HashTables::New<CanonicalTypeArgumentsSet>(
+      kInitialCanonicalTypeArgumentsSize, Heap::kOld);
   object_store->set_canonical_type_arguments(array);
 
   // Setup type class early in the process.
@@ -3632,96 +3637,26 @@ void Class::set_constants(const Array& value) const {
 }
 
 
-RawObject* Class::canonical_types() const {
-  return raw_ptr()->canonical_types_;
+RawType* Class::canonical_type() const {
+  return raw_ptr()->canonical_type_;
 }
 
 
-void Class::set_canonical_types(const Object& value) const {
+void Class::set_canonical_type(const Type& value) const {
   ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->canonical_types_, value.raw());
+  StorePointer(&raw_ptr()->canonical_type_, value.raw());
 }
 
 
 RawType* Class::CanonicalType() const {
-  if (!IsGeneric() && !IsClosureClass()) {
-    return reinterpret_cast<RawType*>(raw_ptr()->canonical_types_);
-  }
-  Array& types = Array::Handle();
-  types ^= canonical_types();
-  if (!types.IsNull() && (types.Length() > 0)) {
-    return reinterpret_cast<RawType*>(types.At(0));
-  }
-  return reinterpret_cast<RawType*>(Object::null());
+  return raw_ptr()->canonical_type_;
 }
 
 
 void Class::SetCanonicalType(const Type& type) const {
-  ASSERT(type.IsCanonical());
-  if (!IsGeneric() && !IsClosureClass()) {
-    ASSERT((canonical_types() == Object::null()) ||
-           (canonical_types() == type.raw()));  // Set during own finalization.
-    set_canonical_types(type);
-  } else {
-    Array& types = Array::Handle();
-    types ^= canonical_types();
-    ASSERT(!types.IsNull() && (types.Length() > 1));
-    ASSERT((types.At(0) == Object::null()) || (types.At(0) == type.raw()));
-    types.SetAt(0, type);
-    // Makes sure that 'canonical_types' has not changed.
-    ASSERT(types.raw() == canonical_types());
-  }
-}
-
-
-intptr_t Class::FindCanonicalTypeIndex(const AbstractType& needle) const {
-  Thread* thread = Thread::Current();
-  if (EnsureIsFinalized(thread) != Error::null()) {
-    return -1;
-  }
-  if (needle.raw() == CanonicalType()) {
-    // For a generic type or signature type, there exists another index with the
-    // same type. It will never be returned by this function.
-    return 0;
-  }
-  REUSABLE_OBJECT_HANDLESCOPE(thread);
-  Object& types = thread->ObjectHandle();
-  types = canonical_types();
-  if (types.IsNull()) {
-    return -1;
-  }
-  const intptr_t len = Array::Cast(types).Length();
-  REUSABLE_ABSTRACT_TYPE_HANDLESCOPE(thread);
-  AbstractType& type = thread->AbstractTypeHandle();
-  for (intptr_t i = 0; i < len; i++) {
-    type ^= Array::Cast(types).At(i);
-    if (needle.raw() == type.raw()) {
-      return i;
-    }
-  }
-  // No type found.
-  return -1;
-}
-
-
-RawAbstractType* Class::CanonicalTypeFromIndex(intptr_t idx) const {
-  AbstractType& type = AbstractType::Handle();
-  if (idx == 0) {
-    type = CanonicalType();
-    if (!type.IsNull()) {
-      return type.raw();
-    }
-  }
-  Object& types = Object::Handle(canonical_types());
-  if (types.IsNull() || !types.IsArray()) {
-    return Type::null();
-  }
-  if ((idx < 0) || (idx >= Array::Cast(types).Length())) {
-    return Type::null();
-  }
-  type ^= Array::Cast(types).At(idx);
-  ASSERT(!type.IsNull());
-  return type.raw();
+  ASSERT((canonical_type() == Object::null()) ||
+         (canonical_type() == type.raw()));  // Set during own finalization.
+  set_canonical_type(type);
 }
 
 
@@ -4293,84 +4228,6 @@ RawLibraryPrefix* Class::LookupLibraryPrefix(const String& name) const {
 }
 
 
-// Returns AbstractType::null() if type not found. Modifies index to the last
-// position looked up.
-RawAbstractType* Class::LookupCanonicalType(
-    Zone* zone, const AbstractType& lookup_type, intptr_t* index) const {
-  Array& canonical_types = Array::Handle(zone);
-  canonical_types ^= this->canonical_types();
-  if (canonical_types.IsNull()) {
-    return AbstractType::null();
-  }
-  AbstractType& type = Type::Handle(zone);
-  const intptr_t length = canonical_types.Length();
-  while (*index < length) {
-    type ^= canonical_types.At(*index);
-    if (type.IsNull()) {
-      break;
-    }
-    ASSERT(type.IsFinalized());
-    if (lookup_type.Equals(type)) {
-      ASSERT(type.IsCanonical());
-      return type.raw();
-    }
-    *index = *index + 1;
-  }
-  return AbstractType::null();
-}
-
-
-// Canonicalizing the type arguments may have changed the index, may have
-// grown the table, or may even have canonicalized this type. Therefore
-// conrtinue search for canonical type at the last index visited.
-RawAbstractType* Class::LookupOrAddCanonicalType(
-    const AbstractType& lookup_type, intptr_t start_index) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  AbstractType& type = Type::Handle(zone);
-  intptr_t index = start_index;
-  type ^= LookupCanonicalType(zone, lookup_type, &index);
-
-  if (!type.IsNull()) {
-    return type.raw();
-  }
-  {
-    SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
-    // Lookup again, in case the canonicalization array changed.
-    Array& canonical_types = Array::Handle(zone);
-    canonical_types ^= this->canonical_types();
-    if (canonical_types.IsNull()) {
-      canonical_types = empty_array().raw();
-    }
-    const intptr_t length = canonical_types.Length();
-    // Start looking after previously looked up last position ('length').
-    type ^= LookupCanonicalType(zone, lookup_type, &index);
-    if (!type.IsNull()) {
-      return type.raw();
-    }
-
-    // 'lookup_type' is not canonicalized yet.
-    lookup_type.SetCanonical();
-
-    // The type needs to be added to the list. Grow the list if it is full.
-    if (index >= length) {
-      ASSERT((index == length) || ((index == 1) && (length == 0)));
-      const intptr_t new_length = (length > 64) ?
-          (length + 64) :
-          ((length == 0) ? 2 : (length * 2));
-      const Array& new_canonical_types = Array::Handle(
-          zone, Array::Grow(canonical_types, new_length, Heap::kOld));
-      new_canonical_types.SetAt(index, lookup_type);
-      this->set_canonical_types(new_canonical_types);
-    } else {
-      canonical_types.SetAt(index, lookup_type);
-    }
-  }
-  return lookup_type.raw();
-}
-
-
 const char* Class::ToCString() const {
   const Library& lib = Library::Handle(library());
   const char* library_name = lib.IsNull() ? "" : lib.ToCString();
@@ -4648,15 +4505,16 @@ static uint32_t CombineHashes(uint32_t hash, uint32_t other_hash) {
 }
 
 
-static uint32_t FinalizeHash(uint32_t hash) {
+static uint32_t FinalizeHash(uint32_t hash, intptr_t hashbits) {
   hash += hash << 3;
   hash ^= hash >> 11;  // Logical shift, unsigned hash.
   hash += hash << 15;
-  return hash;
+  hash &= ((static_cast<intptr_t>(1) << hashbits) - 1);
+  return (hash == 0) ? 1 : hash;
 }
 
 
-intptr_t TypeArguments::Hash() const {
+intptr_t TypeArguments::ComputeHash() const {
   if (IsNull()) return 0;
   const intptr_t num_types = Length();
   if (IsRaw(0, num_types)) return 0;
@@ -4668,7 +4526,9 @@ intptr_t TypeArguments::Hash() const {
     // purposes only) while a type argument is still temporarily null.
     result = CombineHashes(result, type.IsNull() ? 0 : type.Hash());
   }
-  return FinalizeHash(result);
+  result = FinalizeHash(result, kHashBits);
+  SetHash(result);
+  return result;
 }
 
 
@@ -5119,6 +4979,7 @@ RawTypeArguments* TypeArguments::New(intptr_t len, Heap::Space space) {
     result ^= raw;
     // Length must be set before we start storing into the array.
     result.SetLength(len);
+    result.SetHash(0);
   }
   // The zero array should have been initialized.
   ASSERT(Object::zero_array().raw() != Array::null());
@@ -5141,99 +5002,6 @@ void TypeArguments::SetLength(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
   StoreSmi(&raw_ptr()->length_, Smi::New(value));
-}
-
-
-static void GrowCanonicalTypeArguments(Thread* thread, const Array& table) {
-  Isolate* isolate = thread->isolate();
-  Zone* zone = thread->zone();
-  // Last element of the array is the number of used elements.
-  const intptr_t table_size = table.Length() - 1;
-  const intptr_t new_table_size = table_size * 2;
-  Array& new_table = Array::Handle(zone, Array::New(new_table_size + 1));
-  // Copy all elements from the original table to the newly allocated
-  // array.
-  TypeArguments& element = TypeArguments::Handle(zone);
-  Object& new_element = Object::Handle(zone);
-  for (intptr_t i = 0; i < table_size; i++) {
-    element ^= table.At(i);
-    if (!element.IsNull()) {
-      const intptr_t hash = element.Hash();
-      ASSERT(Utils::IsPowerOfTwo(new_table_size));
-      intptr_t index = hash & (new_table_size - 1);
-      new_element = new_table.At(index);
-      while (!new_element.IsNull()) {
-        index = (index + 1) & (new_table_size - 1);  // Move to next element.
-        new_element = new_table.At(index);
-      }
-      new_table.SetAt(index, element);
-    }
-  }
-  // Copy used count.
-  new_element = table.At(table_size);
-  new_table.SetAt(new_table_size, new_element);
-  // Remember the new table now.
-  isolate->object_store()->set_canonical_type_arguments(new_table);
-}
-
-
-static void InsertIntoCanonicalTypeArguments(Thread* thread,
-                                             const Array& table,
-                                             const TypeArguments& arguments,
-                                             intptr_t index) {
-  Zone* zone = thread->zone();
-  arguments.SetCanonical();  // Mark object as being canonical.
-  table.SetAt(index, arguments);  // Remember the new element.
-  // Update used count.
-  // Last element of the array is the number of used elements.
-  const intptr_t table_size = table.Length() - 1;
-  const intptr_t used_elements =
-      Smi::Value(Smi::RawCast(table.At(table_size))) + 1;
-  const Smi& used = Smi::Handle(zone, Smi::New(used_elements));
-  table.SetAt(table_size, used);
-
-#ifdef DEBUG
-  // Verify that there are no duplicates.
-  // Duplicates could appear if hash values are not kept constant across
-  // snapshots, e.g. if class ids are not preserved by the snapshots.
-  TypeArguments& other_arguments = TypeArguments::Handle();
-  for (intptr_t i = 0; i < table_size; i++) {
-    if ((i != index) && (table.At(i) != TypeArguments::null())) {
-      other_arguments ^= table.At(i);
-      if (arguments.Equals(other_arguments)) {
-        // Recursive types may be equal, but have different hashes.
-        ASSERT(arguments.IsRecursive());
-        ASSERT(other_arguments.IsRecursive());
-        ASSERT(arguments.Hash() != other_arguments.Hash());
-      }
-    }
-  }
-#endif
-
-  // Rehash if table is 75% full.
-  if (used_elements > ((table_size / 4) * 3)) {
-    GrowCanonicalTypeArguments(thread, table);
-  }
-}
-
-
-static intptr_t FindIndexInCanonicalTypeArguments(
-    Zone* zone,
-    const Array& table,
-    const TypeArguments& arguments,
-    intptr_t hash) {
-  // Last element of the array is the number of used elements.
-  const intptr_t table_size = table.Length() - 1;
-  ASSERT(Utils::IsPowerOfTwo(table_size));
-  intptr_t index = hash & (table_size - 1);
-
-  TypeArguments& current = TypeArguments::Handle(zone);
-  current ^= table.At(index);
-  while (!current.IsNull() && !current.Equals(arguments)) {
-    index = (index + 1) & (table_size - 1);  // Move to next element.
-    current ^= table.At(index);
-  }
-  return index;  // Index of element if found or slot into which to add it.
 }
 
 
@@ -5291,15 +5059,14 @@ RawTypeArguments* TypeArguments::Canonicalize(TrailPtr trail) const {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   ObjectStore* object_store = isolate->object_store();
-  Array& table = Array::Handle(zone,
-                               object_store->canonical_type_arguments());
-  // Last element of the array is the number of used elements.
-  const intptr_t num_used =
-      Smi::Value(Smi::RawCast(table.At(table.Length() - 1)));
-  const intptr_t hash = Hash();
-  intptr_t index = FindIndexInCanonicalTypeArguments(zone, table, *this, hash);
   TypeArguments& result = TypeArguments::Handle(zone);
-  result ^= table.At(index);
+  {
+    SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
+    CanonicalTypeArgumentsSet table(zone,
+                                    object_store->canonical_type_arguments());
+    result ^= table.GetOrNull(CanonicalTypeArgumentsKey(*this));
+    object_store->set_canonical_type_arguments(table.Release());
+  }
   if (result.IsNull()) {
     // Canonicalize each type argument.
     AbstractType& type_arg = AbstractType::Handle(zone);
@@ -5313,21 +5080,18 @@ RawTypeArguments* TypeArguments::Canonicalize(TrailPtr trail) const {
       }
       SetTypeAt(i, type_arg);
     }
-    // Canonicalization of a recursive type may change its hash.
-    intptr_t canonical_hash = hash;
+    // Canonicalization of a type argument of a recursive type argument vector
+    // may change the hash of the vector, so recompute.
     if (IsRecursive()) {
-      canonical_hash = Hash();
+      ComputeHash();
     }
-    // Canonicalization of the type argument's own type arguments may add an
-    // entry to the table, or even grow the table, and thereby change the
-    // previously calculated index.
-    table = object_store->canonical_type_arguments();
-    if ((canonical_hash != hash) ||
-        (Smi::Value(Smi::RawCast(table.At(table.Length() - 1))) != num_used)) {
-      index = FindIndexInCanonicalTypeArguments(
-          zone, table, *this, canonical_hash);
-      result ^= table.At(index);
-    }
+    SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
+    CanonicalTypeArgumentsSet table(
+        zone, object_store->canonical_type_arguments());
+    // Since we canonicalized some type arguments above we need to lookup
+    // in the table again to make sure we don't already have an equivalent
+    // canonical entry.
+    result ^= table.GetOrNull(CanonicalTypeArgumentsKey(*this));
     if (result.IsNull()) {
       // Make sure we have an old space object and add it to the table.
       if (this->IsNew()) {
@@ -5336,8 +5100,12 @@ RawTypeArguments* TypeArguments::Canonicalize(TrailPtr trail) const {
         result ^= this->raw();
       }
       ASSERT(result.IsOld());
-      InsertIntoCanonicalTypeArguments(thread, table, result, index);
+      result.SetCanonical();  // Mark object as being canonical.
+      // Now add this TypeArgument into the canonical list of type arguments.
+      bool present = table.Insert(result);
+      ASSERT(!present);
     }
+    object_store->set_canonical_type_arguments(table.Release());
   }
   ASSERT(result.Equals(*this));
   ASSERT(!result.IsNull());
@@ -5368,12 +5136,13 @@ const char* TypeArguments::ToCString() const {
   if (IsNull()) {
     return "NULL TypeArguments";
   }
-  const char* prev_cstr = "TypeArguments:";
+  Zone* zone = Thread::Current()->zone();
+  const char* prev_cstr = OS::SCreate(
+      zone, "TypeArguments: (%" Pd ")", Smi::Value(raw_ptr()->hash_));
   for (int i = 0; i < Length(); i++) {
-    const AbstractType& type_at = AbstractType::Handle(TypeAt(i));
+    const AbstractType& type_at = AbstractType::Handle(zone, TypeAt(i));
     const char* type_cstr = type_at.IsNull() ? "null" : type_at.ToCString();
-    char* chars = OS::SCreate(Thread::Current()->zone(),
-        "%s [%s]", prev_cstr, type_cstr);
+    char* chars = OS::SCreate(zone, "%s [%s]", prev_cstr, type_cstr);
     prev_cstr = chars;
   }
   return prev_cstr;
@@ -9475,8 +9244,6 @@ class LibraryUrlTraits {
     return Library::Cast(key).UrlHash();
   }
 };
-
-
 typedef UnorderedHashSet<LibraryUrlTraits> LibraryLoadErrorSet;
 
 
@@ -15444,7 +15211,7 @@ uword Instance::ComputeCanonicalTableHash() const {
         *reinterpret_cast<RawObject**>(this_addr + offset));
     hash = CombineHashes(hash, value);
   }
-  return FinalizeHash(hash);
+  return FinalizeHash(hash, (kBitsPerWord - 1));
 }
 
 
@@ -17224,19 +16991,23 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  AbstractType& type = Type::Handle(zone);
-  const Class& cls = Class::Handle(zone, type_class());
+
   // Since void is a keyword, we never have to canonicalize the void type after
   // it is canonicalized once by the vm isolate. The parser does the mapping.
-  ASSERT((cls.raw() != Object::void_class()) ||
+  ASSERT((type_class() != Object::void_class()) ||
          (isolate == Dart::vm_isolate()));
+
   // Since dynamic is not a keyword, the parser builds a type that requires
   // canonicalization.
-  if ((cls.raw() == Object::dynamic_class()) &&
+  if ((type_class() == Object::dynamic_class()) &&
       (isolate != Dart::vm_isolate())) {
     ASSERT(Object::dynamic_type().IsCanonical());
     return Object::dynamic_type().raw();
   }
+
+  AbstractType& type = Type::Handle(zone);
+  const Class& cls = Class::Handle(zone, type_class());
+
   // Fast canonical lookup/registry for simple types.
   if (!cls.IsGeneric() && !cls.IsClosureClass() && !cls.IsTypedefClass()) {
     ASSERT(!IsFunctionType());
@@ -17254,12 +17025,13 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
       set_arguments(type_args);
       type = cls.CanonicalType();  // May be set while canonicalizing type args.
       if (type.IsNull()) {
-        MutexLocker ml(isolate->type_canonicalization_mutex());
+        SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
         // Recheck if type exists.
         type = cls.CanonicalType();
         if (type.IsNull()) {
+          ComputeHash();
           SetCanonical();
-          cls.set_canonical_types(*this);
+          cls.set_canonical_type(*this);
           return this->raw();
         }
       }
@@ -17269,73 +17041,76 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     return type.raw();
   }
 
-  Array& canonical_types = Array::Handle(zone);
-  canonical_types ^= cls.canonical_types();
-  if (canonical_types.IsNull()) {
-    canonical_types = empty_array().raw();
+  ObjectStore* object_store = isolate->object_store();
+  {
+    SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
+    CanonicalTypeSet table(zone, object_store->canonical_types());
+    type ^= table.GetOrNull(CanonicalTypeKey(*this));
+    object_store->set_canonical_types(table.Release());
   }
-  intptr_t length = canonical_types.Length();
-  // Linear search to see whether this type is already present in the
-  // list of canonicalized types.
-  // TODO(asiva): Try to re-factor this lookup code to make sharing
-  // easy between the 4 versions of this loop.
-  intptr_t index = 1;  // Slot 0 is reserved for CanonicalType().
-  while (index < length) {
-    type ^= canonical_types.At(index);
-    if (type.IsNull()) {
-      break;
-    }
-    ASSERT(type.IsFinalized());
-    if (this->Equals(type)) {
-      ASSERT(type.IsCanonical());
-      return type.raw();
-    }
-    index++;
-  }
-  // The type was not found in the table. It is not canonical yet.
+  if (type.IsNull()) {
+    // The type was not found in the table. It is not canonical yet.
 
-  // Canonicalize the type arguments.
-  TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
-  // In case the type is first canonicalized at runtime, its type argument
-  // vector may be longer than necessary. This is not an issue.
-  ASSERT(type_args.IsNull() || (type_args.Length() >= cls.NumTypeArguments()));
-  type_args = type_args.Canonicalize(trail);
-  if (IsCanonical()) {
-    // Canonicalizing type_args canonicalized this type as a side effect.
-    ASSERT(IsRecursive());
-    // Cycles via typedefs are detected and disallowed, but a function type can
-    // be recursive due to a cycle in its type arguments.
-    return this->raw();
-  }
-  set_arguments(type_args);
-  ASSERT(type_args.IsNull() || type_args.IsOld());
+    // Canonicalize the type arguments.
+    TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
+    // In case the type is first canonicalized at runtime, its type argument
+    // vector may be longer than necessary. This is not an issue.
+    ASSERT(type_args.IsNull() ||
+           (type_args.Length() >= cls.NumTypeArguments()));
+    type_args = type_args.Canonicalize(trail);
+    if (IsCanonical()) {
+      // Canonicalizing type_args canonicalized this type as a side effect.
+      ASSERT(IsRecursive());
+      // Cycles via typedefs are detected and disallowed, but a function type
+      // can be recursive due to a cycle in its type arguments.
+      return this->raw();
+    }
+    set_arguments(type_args);
+    ASSERT(type_args.IsNull() || type_args.IsOld());
 
-  // In case of a function type, replace the actual function by a signature
-  // function.
-  if (IsFunctionType()) {
-    const Function& fun = Function::Handle(zone, signature());
-    if (!fun.IsSignatureFunction()) {
-      Function& sig_fun = Function::Handle(zone,
-          Function::NewSignatureFunction(cls, TokenPosition::kNoSource));
-      type = fun.result_type();
-      type = type.Canonicalize(trail);
-      sig_fun.set_result_type(type);
-      const intptr_t num_params = fun.NumParameters();
-      sig_fun.set_num_fixed_parameters(fun.num_fixed_parameters());
-      sig_fun.SetNumOptionalParameters(fun.NumOptionalParameters(),
-                                       fun.HasOptionalPositionalParameters());
-      sig_fun.set_parameter_types(Array::Handle(Array::New(num_params,
-                                                           Heap::kOld)));
-      for (intptr_t i = 0; i < num_params; i++) {
-        type = fun.ParameterTypeAt(i);
+    // In case of a function type, replace the actual function by a signature
+    // function.
+    if (IsFunctionType()) {
+      const Function& fun = Function::Handle(zone, signature());
+      if (!fun.IsSignatureFunction()) {
+        Function& sig_fun = Function::Handle(
+            zone,
+            Function::NewSignatureFunction(cls, TokenPosition::kNoSource));
+        type = fun.result_type();
         type = type.Canonicalize(trail);
-        sig_fun.SetParameterTypeAt(i, type);
+        sig_fun.set_result_type(type);
+        const intptr_t num_params = fun.NumParameters();
+        sig_fun.set_num_fixed_parameters(fun.num_fixed_parameters());
+        sig_fun.SetNumOptionalParameters(fun.NumOptionalParameters(),
+                                         fun.HasOptionalPositionalParameters());
+        sig_fun.set_parameter_types(Array::Handle(Array::New(num_params,
+                                                             Heap::kOld)));
+        for (intptr_t i = 0; i < num_params; i++) {
+          type = fun.ParameterTypeAt(i);
+          type = type.Canonicalize(trail);
+          sig_fun.SetParameterTypeAt(i, type);
+        }
+        sig_fun.set_parameter_names(Array::Handle(zone, fun.parameter_names()));
+        set_signature(sig_fun);
       }
-      sig_fun.set_parameter_names(Array::Handle(zone, fun.parameter_names()));
-      set_signature(sig_fun);
     }
+
+    // Check to see if the type got added to canonical list as part of the
+    // type arguments canonicalization.
+    SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
+    CanonicalTypeSet table(zone, object_store->canonical_types());
+    type ^= table.GetOrNull(CanonicalTypeKey(*this));
+    if (type.IsNull()) {
+      // Add this Type into the canonical list of types.
+      type ^= raw();
+      ASSERT(type.IsOld());
+      type.SetCanonical();  // Mark object as being canonical.
+      bool present = table.Insert(type);
+      ASSERT(!present);
+    }
+    object_store->set_canonical_types(table.Release());
   }
-  return cls.LookupOrAddCanonicalType(*this, index);
+  return type.raw();
 }
 
 
@@ -17376,7 +17151,7 @@ RawString* Type::EnumerateURIs() const {
 }
 
 
-intptr_t Type::Hash() const {
+intptr_t Type::ComputeHash() const {
   ASSERT(IsFinalized());
   uint32_t result = 1;
   if (IsMalformed()) return result;
@@ -17400,7 +17175,9 @@ intptr_t Type::Hash() const {
       }
     }
   }
-  return FinalizeHash(result);
+  result = FinalizeHash(result, kHashBits);
+  SetHash(result);
+  return result;
 }
 
 
@@ -17442,6 +17219,7 @@ RawType* Type::New(const Object& clazz,
     result.set_unresolved_class(clazz);
   }
   result.set_arguments(arguments);
+  result.SetHash(0);
   result.set_token_pos(token_pos);
   result.StoreNonPointer(&result.raw_ptr()->type_state_, RawType::kAllocated);
   return result.raw();
@@ -17621,7 +17399,7 @@ intptr_t TypeRef::Hash() const {
   // Do not calculate the hash of the referenced type to avoid divergence.
   const uint32_t result =
       Class::Handle(AbstractType::Handle(type()).type_class()).id();
-  return FinalizeHash(result);
+  return FinalizeHash(result, kHashBits);
 }
 
 
@@ -17869,13 +17647,15 @@ RawString* TypeParameter::EnumerateURIs() const {
 }
 
 
-intptr_t TypeParameter::Hash() const {
+intptr_t TypeParameter::ComputeHash() const {
   ASSERT(IsFinalized());
   uint32_t result = Class::Handle(parameterized_class()).id();
   // No need to include the hash of the bound, since the type parameter is fully
   // identified by its class and index.
   result = CombineHashes(result, index());
-  return FinalizeHash(result);
+  result = FinalizeHash(result, kHashBits);
+  SetHash(result);
+  return result;
 }
 
 
@@ -17897,6 +17677,7 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
   result.set_index(index);
   result.set_name(name);
   result.set_bound(bound);
+  result.SetHash(0);
   result.set_token_pos(token_pos);
   result.StoreNonPointer(&result.raw_ptr()->type_state_,
                          RawTypeParameter::kAllocated);
@@ -18133,13 +17914,15 @@ RawString* BoundedType::EnumerateURIs() const {
 }
 
 
-intptr_t BoundedType::Hash() const {
+intptr_t BoundedType::ComputeHash() const {
   uint32_t result = AbstractType::Handle(type()).Hash();
   // No need to include the hash of the bound, since the bound is defined by the
   // type parameter (modulo instantiation state).
   result = CombineHashes(result,
                          TypeParameter::Handle(type_parameter()).Hash());
-  return FinalizeHash(result);
+  result = FinalizeHash(result, kHashBits);
+  SetHash(result);
+  return result;
 }
 
 
@@ -18157,6 +17940,7 @@ RawBoundedType* BoundedType::New(const AbstractType& type,
   const BoundedType& result = BoundedType::Handle(BoundedType::New());
   result.set_type(type);
   result.set_bound(bound);
+  result.SetHash(0);
   result.set_type_parameter(type_parameter);
   return result.raw();
 }
@@ -19694,10 +19478,9 @@ class StringHasher : ValueObject {
   // Return a non-zero hash of at most 'bits' bits.
   intptr_t Finalize(int bits) {
     ASSERT(1 <= bits && bits <= (kBitsPerWord - 1));
-    hash_ = FinalizeHash(hash_);
-    hash_ = hash_ & ((static_cast<intptr_t>(1) << bits) - 1);
+    hash_ = FinalizeHash(hash_, bits);
     ASSERT(hash_ <= static_cast<uint32_t>(kMaxInt32));
-    return hash_ == 0 ? 1 : hash_;
+    return hash_;
   }
  private:
   uint32_t hash_;
@@ -19730,7 +19513,7 @@ void StringHasher::Add(const String& str, intptr_t begin_index, intptr_t len) {
 intptr_t String::Hash(const String& str, intptr_t begin_index, intptr_t len) {
   StringHasher hasher;
   hasher.Add(str, begin_index, len);
-  return hasher.Finalize(String::kHashBits);
+  return hasher.Finalize(kHashBits);
 }
 
 
@@ -19745,7 +19528,7 @@ intptr_t String::HashConcat(const String& str1, const String& str2) {
     StringHasher hasher;
     hasher.Add(str1, 0, len1);
     hasher.Add(str2, 0, str2.Length());
-    return hasher.Finalize(String::kHashBits);
+    return hasher.Finalize(kHashBits);
   }
 }
 
@@ -19777,7 +19560,7 @@ intptr_t String::Hash(const uint16_t* characters, intptr_t len) {
   while (i < len) {
     hasher.Add(Utf16::Next(characters, &i, len));
   }
-  return hasher.Finalize(String::kHashBits);
+  return hasher.Finalize(kHashBits);
 }
 
 
@@ -21474,7 +21257,7 @@ uword Array::ComputeCanonicalTableHash() const {
     value = reinterpret_cast<uword>(At(i));
     hash = CombineHashes(hash, value);
   }
-  return FinalizeHash(hash);
+  return FinalizeHash(hash, kHashBits);
 }
 
 
@@ -22131,7 +21914,7 @@ uword TypedData::ComputeCanonicalTableHash() const {
   for (intptr_t i = 0; i < len; i++) {
     hash = CombineHashes(len, GetUint8(i));
   }
-  return FinalizeHash(hash);
+  return FinalizeHash(hash, kHashBits);
 }
 
 

@@ -41,6 +41,7 @@
 #include "vm/tags.h"
 #include "vm/timeline.h"
 #include "vm/timer.h"
+#include "vm/type_table.h"
 
 namespace dart {
 
@@ -1474,92 +1475,78 @@ void Precompiler::DropFields() {
 
 
 void Precompiler::DropTypes() {
-  Library& lib = Library::Handle(Z);
-  Class& cls = Class::Handle(Z);
-  Object& obj = Object::Handle(Z);
-  Array& arr = Array::Handle(Z);
-  GrowableObjectArray& retained_types = GrowableObjectArray::Handle(Z);
-  AbstractType& type = AbstractType::Handle(Z);
-
-  for (intptr_t i = 0; i < libraries_.Length(); i++) {
-    lib ^= libraries_.At(i);
-    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-    while (it.HasNext()) {
-      cls = it.GetNextClass();
-      if (cls.IsDynamicClass()) {
-        continue;  // class 'dynamic' is in the read-only VM isolate.
-      }
-      obj = cls.canonical_types();
-      if (!obj.IsArray()) {
-        // Class only has one type, keep it.
+  ObjectStore* object_store = I->object_store();
+  GrowableObjectArray& retained_types =
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  Array& types_array = Array::Handle(Z);
+  Type& type = Type::Handle(Z);
+  // First drop all the types that are not referenced.
+  {
+    CanonicalTypeSet types_table(Z, object_store->canonical_types());
+    types_array = HashTables::ToArray(types_table, false);
+    for (intptr_t i = 0; i < (types_array.Length() - 1); i++) {
+      type ^= types_array.At(i);
+      bool retain = types_to_retain_.Lookup(&type) != NULL;
+      if (retain) {
+        retained_types.Add(type);
       } else {
-        // Class has many types.
-        arr ^= obj.raw();
-        retained_types = GrowableObjectArray::New();
-
-        // Always keep the first one.
-        ASSERT(arr.Length() >= 1);
-        obj = arr.At(0);
-        retained_types.Add(obj);
-
-        for (intptr_t i = 1; i < arr.Length(); i++) {
-          obj = arr.At(i);
-          if (obj.IsNull()) {
-            continue;
-          }
-          type ^= obj.raw();
-          bool retain = types_to_retain_.Lookup(&type) != NULL;
-          if (retain) {
-            retained_types.Add(type);
-          } else {
-            dropped_type_count_++;
-          }
-        }
-        arr = Array::MakeArray(retained_types);
-        cls.set_canonical_types(arr);
+        dropped_type_count_++;
       }
     }
+    types_table.Release();
   }
+
+  // Now construct a new type table and save in the object store.
+  const intptr_t dict_size =
+      Utils::RoundUpToPowerOfTwo(retained_types.Length() * 4 / 3);
+  types_array = HashTables::New<CanonicalTypeSet>(dict_size, Heap::kOld);
+  CanonicalTypeSet types_table(Z, types_array.raw());
+  bool present;
+  for (intptr_t i = 0; i < retained_types.Length(); i++) {
+    type ^= retained_types.At(i);
+    present = types_table.Insert(type);
+    ASSERT(!present);
+  }
+  object_store->set_canonical_types(types_table.Release());
 }
 
 
 void Precompiler::DropTypeArguments() {
-  const Array& typeargs_table =
-      Array::Handle(Z, I->object_store()->canonical_type_arguments());
+  ObjectStore* object_store = I->object_store();
+  Array& typeargs_array = Array::Handle(Z);
   GrowableObjectArray& retained_typeargs =
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
   TypeArguments& typeargs = TypeArguments::Handle(Z);
-  for (intptr_t i = 0; i < (typeargs_table.Length() - 1); i++) {
-    typeargs ^= typeargs_table.At(i);
-    bool retain = typeargs_to_retain_.Lookup(&typeargs) != NULL;
-    if (retain) {
-      retained_typeargs.Add(typeargs);
-    } else {
-      dropped_typearg_count_++;
+  // First drop all the type arguments that are not referenced.
+  {
+    CanonicalTypeArgumentsSet typeargs_table(
+        Z, object_store->canonical_type_arguments());
+    typeargs_array = HashTables::ToArray(typeargs_table, false);
+    for (intptr_t i = 0; i < (typeargs_array.Length() - 1); i++) {
+      typeargs ^= typeargs_array.At(i);
+      bool retain = typeargs_to_retain_.Lookup(&typeargs) != NULL;
+      if (retain) {
+        retained_typeargs.Add(typeargs);
+      } else {
+        dropped_typearg_count_++;
+      }
     }
+    typeargs_table.Release();
   }
 
+  // Now construct a new type arguments table and save in the object store.
   const intptr_t dict_size =
       Utils::RoundUpToPowerOfTwo(retained_typeargs.Length() * 4 / 3);
-  const Array& new_table = Array::Handle(Z, Array::New(dict_size + 1));
-
-  Object& element = Object::Handle(Z);
+  typeargs_array = HashTables::New<CanonicalTypeArgumentsSet>(dict_size,
+                                                              Heap::kOld);
+  CanonicalTypeArgumentsSet typeargs_table(Z, typeargs_array.raw());
+  bool present;
   for (intptr_t i = 0; i < retained_typeargs.Length(); i++) {
     typeargs ^= retained_typeargs.At(i);
-    intptr_t hash = typeargs.Hash();
-    intptr_t index = hash & (dict_size - 1);
-    element = new_table.At(index);
-    while (!element.IsNull()) {
-      index = (index + 1) & (dict_size - 1);
-      element = new_table.At(index);
-    }
-    new_table.SetAt(index, typeargs);
+    present = typeargs_table.Insert(typeargs);
+    ASSERT(!present);
   }
-
-  const Smi& used = Smi::Handle(Z, Smi::New(retained_typeargs.Length()));
-  new_table.SetAt(dict_size, used);
-
-  I->object_store()->set_canonical_type_arguments(new_table);
+  object_store->set_canonical_type_arguments(typeargs_table.Release());
 }
 
 

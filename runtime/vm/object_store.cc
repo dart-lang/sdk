@@ -56,6 +56,7 @@ ObjectStore::ObjectStore()
     error_class_(Class::null()),
     weak_property_class_(Class::null()),
     symbol_table_(Array::null()),
+    canonical_types_(Array::null()),
     canonical_type_arguments_(Array::null()),
     async_library_(Library::null()),
     builtin_library_(Library::null()),

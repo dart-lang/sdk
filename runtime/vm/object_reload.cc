@@ -152,12 +152,12 @@ void Class::CopyCanonicalConstants(const Class& old_cls) const {
 }
 
 
-void Class::CopyCanonicalTypes(const Class& old_cls) const {
-  const Object& old_canonical_types = Object::Handle(old_cls.canonical_types());
-  if (old_canonical_types.IsNull()) {
+void Class::CopyCanonicalType(const Class& old_cls) const {
+  const Type& old_canonical_type = Type::Handle(old_cls.canonical_type());
+  if (old_canonical_type.IsNull()) {
     return;
   }
-  set_canonical_types(old_canonical_types);
+  set_canonical_type(old_canonical_type);
 }
 
 

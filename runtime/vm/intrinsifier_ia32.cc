@@ -1698,7 +1698,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ movzxw(EDI, FieldAddress(EBX, Class::num_type_arguments_offset()));
   __ cmpl(EDI, Immediate(0));
   __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
-  __ movl(EAX, FieldAddress(EBX, Class::canonical_types_offset()));
+  __ movl(EAX, FieldAddress(EBX, Class::canonical_type_offset()));
   __ CompareObject(EAX, Object::null_object());
   __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Not yet set.
   __ ret();

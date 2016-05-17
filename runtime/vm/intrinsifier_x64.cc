@@ -1553,7 +1553,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ movzxw(RCX, FieldAddress(RDI, Class::num_type_arguments_offset()));
   __ cmpq(RCX, Immediate(0));
   __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
-  __ movq(RAX, FieldAddress(RDI, Class::canonical_types_offset()));
+  __ movq(RAX, FieldAddress(RDI, Class::canonical_type_offset()));
   __ CompareObject(RAX, Object::null_object());
   __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Not yet set.
   __ ret();

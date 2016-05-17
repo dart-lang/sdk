@@ -1635,7 +1635,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ CompareImmediate(R3, 0);
   __ b(&fall_through, NE);
 
-  __ ldr(R0, FieldAddress(R2, Class::canonical_types_offset()));
+  __ ldr(R0, FieldAddress(R2, Class::canonical_type_offset()));
   __ CompareObject(R0, Object::null_object());
   __ b(&fall_through, EQ);
   __ ret();

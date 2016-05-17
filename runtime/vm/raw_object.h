@@ -698,9 +698,8 @@ class RawClass : public RawObject {
   RawAbstractType* super_type_;
   RawType* mixin_;  // Generic mixin type, e.g. M<T>, not M<int>.
   RawFunction* signature_function_;  // Associated function for typedef class.
-  RawArray* constants_;  // Canonicalized values of this class.
-  RawObject* canonical_types_;  // An array of canonicalized types of this class
-                                // or the canonical type.
+  RawArray* constants_;  // Canonicalized const instances of this class.
+  RawType* canonical_type_;  // Canonical type for this class.
   RawArray* invocation_dispatcher_cache_;  // Cache for dispatcher functions.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
   RawGrowableObjectArray* direct_subclasses_;  // Array of Class.
@@ -772,6 +771,8 @@ class RawTypeArguments : public RawObject {
                               // Odd index: instantiated (without bound error).
   // Instantiations leading to bound errors do not get cached.
   RawSmi* length_;
+
+  RawSmi* hash_;
 
   // Variable length data follows here.
   RawAbstractType* const* types() const {
@@ -1691,6 +1692,7 @@ class RawType : public RawAbstractType {
   // Either the id of the resolved class as a Smi or an UnresolvedClass.
   RawObject* type_class_id_;
   RawTypeArguments* arguments_;
+  RawSmi* hash_;
   // This type object represents a function type if its signature field is a
   // non-null function object.
   // If this type is malformed or malbounded, the signature field gets
@@ -1731,6 +1733,7 @@ class RawTypeParameter : public RawAbstractType {
     return reinterpret_cast<RawObject**>(&ptr()->name_);
   }
   RawString* name_;
+  RawSmi* hash_;
   RawAbstractType* bound_;  // ObjectType if no explicit bound specified.
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->bound_); }
   classid_t parameterized_class_id_;
@@ -1749,6 +1752,7 @@ class RawBoundedType : public RawAbstractType {
   }
   RawAbstractType* type_;
   RawAbstractType* bound_;
+  RawSmi* hash_;
   RawTypeParameter* type_parameter_;  // For more detailed error reporting.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->type_parameter_);
@@ -1764,6 +1768,7 @@ class RawMixinAppType : public RawAbstractType {
     return reinterpret_cast<RawObject**>(&ptr()->super_type_);
   }
   RawAbstractType* super_type_;
+  RawSmi* hash_;
   RawArray* mixin_types_;  // Array of AbstractType.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->mixin_types_);

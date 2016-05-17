@@ -1051,8 +1051,8 @@ class Class : public Object {
   // Caches the canonical type of this class.
   void SetCanonicalType(const Type& type) const;
 
-  static intptr_t canonical_types_offset() {
-    return OFFSET_OF(RawClass, canonical_types_);
+  static intptr_t canonical_type_offset() {
+    return OFFSET_OF(RawClass, canonical_type_);
   }
 
   // The super type of this class, Object type if not explicitly specified.
@@ -1220,9 +1220,6 @@ class Class : public Object {
   void InsertCanonicalNumber(Zone* zone,
                              intptr_t index,
                              const Number& constant) const;
-
-  intptr_t FindCanonicalTypeIndex(const AbstractType& needle) const;
-  RawAbstractType* CanonicalTypeFromIndex(intptr_t idx) const;
 
   void RehashConstants(Zone* zone) const;
 
@@ -1403,7 +1400,7 @@ class Class : public Object {
   void CopyStaticFieldValues(const Class& old_cls) const;
   void PatchFieldsAndFunctions() const;
   void CopyCanonicalConstants(const Class& old_cls) const;
-  void CopyCanonicalTypes(const Class& old_cls) const;
+  void CopyCanonicalType(const Class& old_cls) const;
   bool CanReload(const Class& replacement) const;
 
  private:
@@ -1465,8 +1462,8 @@ class Class : public Object {
 
   void set_constants(const Array& value) const;
 
-  void set_canonical_types(const Object& value) const;
-  RawObject* canonical_types() const;
+  void set_canonical_type(const Type& value) const;
+  RawType* canonical_type() const;
 
   RawArray* invocation_dispatcher_cache() const;
   void set_invocation_dispatcher_cache(const Array& cache) const;
@@ -1530,15 +1527,6 @@ class Class : public Object {
       TrailPtr bound_trail,
       Heap::Space space);
 
-  // Returns AbstractType::null() if type not found.
-  RawAbstractType* LookupCanonicalType(Zone* zone,
-                                       const AbstractType& type,
-                                       intptr_t* index) const;
-
-  // Returns canonical type. Thread safe.
-  RawAbstractType* LookupOrAddCanonicalType(const AbstractType& type,
-                                            intptr_t start_index) const;
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Class, Object);
   friend class AbstractType;
   friend class Instance;
@@ -1584,6 +1572,11 @@ class UnresolvedClass : public Object {
 // A TypeArguments is an array of AbstractType.
 class TypeArguments : public Object {
  public:
+  // We use 30 bits for the hash code so hashes in a snapshot taken on a
+  // 64-bit architecture stay in Smi range when loaded on a 32-bit
+  // architecture.
+  static const intptr_t kHashBits = 30;
+
   intptr_t Length() const;
   RawAbstractType* TypeAt(intptr_t index) const;
   static intptr_t type_at_offset(intptr_t index) {
@@ -1728,8 +1721,9 @@ class TypeArguments : public Object {
 
   static intptr_t InstanceSize(intptr_t len) {
     // Ensure that the types() is not adding to the object size, which includes
-    // 2 fields: instantiations_ and length_.
-    ASSERT(sizeof(RawTypeArguments) == (sizeof(RawObject) + (2 * kWordSize)));
+    // 3 fields: instantiations_, length_ and hash_.
+    ASSERT(sizeof(RawTypeArguments) ==
+           (sizeof(RawObject) + (kNumFields * kWordSize)));
     ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(
         sizeof(RawTypeArguments) + (len * kBytesPerElement));
@@ -1740,6 +1734,9 @@ class TypeArguments : public Object {
   static RawTypeArguments* New(intptr_t len, Heap::Space space = Heap::kOld);
 
  private:
+  intptr_t ComputeHash() const;
+  void SetHash(intptr_t value) const;
+
   // Check if the subvector of length 'len' starting at 'from_index' of this
   // type argument vector consists solely of DynamicType.
   // If raw_instantiated is true, consider each type parameter to be first
@@ -1768,6 +1765,8 @@ class TypeArguments : public Object {
   void set_instantiations(const Array& value) const;
   RawAbstractType* const* TypeAddr(intptr_t index) const;
   void SetLength(intptr_t value) const;
+  // Number of fields in the raw object=3 (instantiations_, length_ and hash_).
+  static const int kNumFields = 3;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeArguments, Object);
   friend class AbstractType;
@@ -5446,6 +5445,11 @@ class LibraryPrefix : public Instance {
 // Subclasses of AbstractType are Type and TypeParameter.
 class AbstractType : public Instance {
  public:
+  // We use 30 bits for the hash code so hashes in a snapshot taken on a
+  // 64-bit architecture stay in Smi range when loaded on a 32-bit
+  // architecture.
+  static const intptr_t kHashBits = 30;
+
   virtual bool IsFinalized() const;
   virtual void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const;
@@ -5764,6 +5768,9 @@ class Type : public AbstractType {
                       Heap::Space space = Heap::kOld);
 
  private:
+  intptr_t ComputeHash() const;
+  void SetHash(intptr_t value) const;
+
   void set_token_pos(TokenPosition token_pos) const;
   void set_type_state(int8_t state) const;
 
@@ -5914,6 +5921,9 @@ class TypeParameter : public AbstractType {
                                TokenPosition token_pos);
 
  private:
+  intptr_t ComputeHash() const;
+  void SetHash(intptr_t value) const;
+
   void set_parameterized_class(const Class& value) const;
   void set_name(const String& value) const;
   void set_token_pos(TokenPosition token_pos) const;
@@ -5999,6 +6009,9 @@ class BoundedType : public AbstractType {
                              const TypeParameter& type_parameter);
 
  private:
+  intptr_t ComputeHash() const;
+  void SetHash(intptr_t value) const;
+
   void set_type(const AbstractType& value) const;
   void set_bound(const AbstractType& value) const;
   void set_type_parameter(const TypeParameter& value) const;
@@ -6413,8 +6426,9 @@ class Double : public Number {
 // String may not be '\0' terminated.
 class String : public Instance {
  public:
-  // We use 30 bits for the hash code so that we consistently use a
-  // 32bit Smi representation for the hash code on all architectures.
+  // We use 30 bits for the hash code so hashes in a snapshot taken on a
+  // 64-bit architecture stay in Smi range when loaded on a 32-bit
+  // architecture.
   static const intptr_t kHashBits = 30;
 
   static const intptr_t kOneByteChar = 1;
@@ -7193,6 +7207,11 @@ class Bool : public Instance {
 
 class Array : public Instance {
  public:
+  // We use 30 bits for the hash code so hashes in a snapshot taken on a
+  // 64-bit architecture stay in Smi range when loaded on a 32-bit
+  // architecture.
+  static const intptr_t kHashBits = 30;
+
   intptr_t Length() const {
     ASSERT(!IsNull());
     return Smi::Value(raw_ptr()->length_);
@@ -7560,6 +7579,11 @@ class Float64x2 : public Instance {
 
 class TypedData : public Instance {
  public:
+  // We use 30 bits for the hash code so hashes in a snapshot taken on a
+  // 64-bit architecture stay in Smi range when loaded on a 32-bit
+  // architecture.
+  static const intptr_t kHashBits = 30;
+
   intptr_t Length() const {
     ASSERT(!IsNull());
     return Smi::Value(raw_ptr()->length_);
@@ -8604,6 +8628,72 @@ RawObject* MegamorphicCache::GetClassId(const Array& array, intptr_t index) {
 RawObject* MegamorphicCache::GetTargetFunction(const Array& array,
                                                intptr_t index) {
   return array.At((index * kEntryLength) + kTargetFunctionIndex);
+}
+
+
+inline intptr_t Type::Hash() const {
+  intptr_t result = Smi::Value(raw_ptr()->hash_);
+  if (result != 0) {
+    return result;
+  }
+  return ComputeHash();
+}
+
+
+inline void Type::SetHash(intptr_t value) const {
+  // This is only safe because we create a new Smi, which does not cause
+  // heap allocation.
+  StoreSmi(&raw_ptr()->hash_, Smi::New(value));
+}
+
+
+inline intptr_t TypeParameter::Hash() const {
+  ASSERT(IsFinalized());
+  intptr_t result = Smi::Value(raw_ptr()->hash_);
+  if (result != 0) {
+    return result;
+  }
+  return ComputeHash();
+}
+
+
+inline void TypeParameter::SetHash(intptr_t value) const {
+  // This is only safe because we create a new Smi, which does not cause
+  // heap allocation.
+  StoreSmi(&raw_ptr()->hash_, Smi::New(value));
+}
+
+
+inline intptr_t BoundedType::Hash() const {
+  intptr_t result = Smi::Value(raw_ptr()->hash_);
+  if (result != 0) {
+    return result;
+  }
+  return ComputeHash();
+}
+
+
+inline void BoundedType::SetHash(intptr_t value) const {
+  // This is only safe because we create a new Smi, which does not cause
+  // heap allocation.
+  StoreSmi(&raw_ptr()->hash_, Smi::New(value));
+}
+
+
+inline intptr_t TypeArguments::Hash() const {
+  if (IsNull()) return 0;
+  intptr_t result = Smi::Value(raw_ptr()->hash_);
+  if (result != 0) {
+    return result;
+  }
+  return ComputeHash();
+}
+
+
+inline void TypeArguments::SetHash(intptr_t value) const {
+  // This is only safe because we create a new Smi, which does not cause
+  // heap allocation.
+  StoreSmi(&raw_ptr()->hash_, Smi::New(value));
 }
 
 }  // namespace dart

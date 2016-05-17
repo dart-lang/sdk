@@ -35,6 +35,7 @@
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/timeline.h"
+#include "vm/type_table.h"
 #include "vm/unicode.h"
 #include "vm/version.h"
 
@@ -1597,12 +1598,13 @@ static RawObject* LookupHeapObjectClasses(Thread* thread,
     if (!GetIntegerId(parts[3], &id)) {
       return Object::sentinel().raw();
     }
-    Type& type = Type::Handle(zone);
-    type ^= cls.CanonicalTypeFromIndex(id);
-    if (type.IsNull()) {
+    if (id != 0) {
       return Object::sentinel().raw();
     }
-    return type.raw();
+    const Type& type = Type::Handle(zone, cls.CanonicalType());
+    if (!type.IsNull()) {
+      return type.raw();
+    }
   }
 
   // Not found.
@@ -3620,25 +3622,30 @@ static bool GetTypeArgumentsList(Thread* thread, JSONStream* js) {
   if (js->ParamIs("onlyWithInstantiations", "true")) {
     only_with_instantiations = true;
   }
+  Zone* zone = thread->zone();
   ObjectStore* object_store = thread->isolate()->object_store();
-  const Array& table = Array::Handle(object_store->canonical_type_arguments());
-  ASSERT(table.Length() > 0);
-  TypeArguments& type_args = TypeArguments::Handle();
-  const intptr_t table_size = table.Length() - 1;
-  const intptr_t table_used = Smi::Value(Smi::RawCast(table.At(table_size)));
+  CanonicalTypeArgumentsSet typeargs_table(
+      zone, object_store->canonical_type_arguments());
+  const intptr_t table_size = typeargs_table.NumEntries();
+  const intptr_t table_used = typeargs_table.NumOccupied();
+  const Array& typeargs_array = Array::Handle(
+      zone, HashTables::ToArray(typeargs_table, false));
+  ASSERT(typeargs_array.Length() == table_used);
+  TypeArguments& typeargs = TypeArguments::Handle(zone);
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "TypeArgumentsList");
   jsobj.AddProperty("canonicalTypeArgumentsTableSize", table_size);
   jsobj.AddProperty("canonicalTypeArgumentsTableUsed", table_used);
   JSONArray members(&jsobj, "typeArguments");
-  for (intptr_t i = 0; i < table_size; i++) {
-    type_args ^= table.At(i);
-    if (!type_args.IsNull()) {
-      if (!only_with_instantiations || type_args.HasInstantiations()) {
-        members.AddValue(type_args);
+  for (intptr_t i = 0; i < table_used; i++) {
+    typeargs ^= typeargs_array.At(i);
+    if (!typeargs.IsNull()) {
+      if (!only_with_instantiations || typeargs.HasInstantiations()) {
+        members.AddValue(typeargs);
       }
     }
   }
+  typeargs_table.Release();
   return true;
 }
 

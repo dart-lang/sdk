@@ -1665,7 +1665,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ lhu(T1, FieldAddress(T2, Class::num_type_arguments_offset()));
   __ BranchNotEqual(T1, Immediate(0), &fall_through);
 
-  __ lw(V0, FieldAddress(T2, Class::canonical_types_offset()));
+  __ lw(V0, FieldAddress(T2, Class::canonical_type_offset()));
   __ BranchEqual(V0, Object::null_object(), &fall_through);
   __ Ret();
 

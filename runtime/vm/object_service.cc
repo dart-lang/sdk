@@ -8,6 +8,7 @@
 #include "vm/object_store.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/type_table.h"
 
 namespace dart {
 
@@ -187,9 +188,15 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
   // The index in the canonical_type_arguments table cannot be used as part of
   // the object id (as in typearguments/id), because the indices are not
   // preserved when the table grows and the entries get rehashed. Use the ring.
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   ObjectStore* object_store = isolate->object_store();
-  const Array& table = Array::Handle(object_store->canonical_type_arguments());
+  CanonicalTypeArgumentsSet typeargs_table(
+      zone, object_store->canonical_type_arguments());
+  const Array& table =
+      Array::Handle(HashTables::ToArray(typeargs_table, false));
+  typeargs_table.Release();
   ASSERT(table.Length() > 0);
   AddCommonObjectProperties(&jsobj, "TypeArguments", ref);
   jsobj.AddServiceId(*this);
@@ -1130,11 +1137,13 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("kind", "Type");
   if (IsCanonical()) {
     const Class& type_cls = Class::Handle(type_class());
-    intptr_t id = type_cls.FindCanonicalTypeIndex(*this);
-    ASSERT(id >= 0);
-    intptr_t cid = type_cls.id();
-    jsobj.AddFixedServiceId("classes/%" Pd "/types/%" Pd "", cid, id);
-    jsobj.AddProperty("typeClass", type_cls);
+    if (type_cls.CanonicalType() == raw()) {
+      intptr_t cid = type_cls.id();
+      jsobj.AddFixedServiceId("classes/%" Pd "/types/%d", cid, 0);
+      jsobj.AddProperty("typeClass", type_cls);
+    } else {
+      jsobj.AddServiceId(*this);
+    }
   } else {
     jsobj.AddServiceId(*this);
   }

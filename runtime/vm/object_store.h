@@ -247,6 +247,13 @@ class ObjectStore {
   RawArray* symbol_table() const { return symbol_table_; }
   void set_symbol_table(const Array& value) { symbol_table_ = value.raw(); }
 
+  RawArray* canonical_types() const {
+    return canonical_types_;
+  }
+  void set_canonical_types(const Array& value) {
+    canonical_types_ = value.raw();
+  }
+
   RawArray* canonical_type_arguments() const {
     return canonical_type_arguments_;
   }
@@ -536,6 +543,7 @@ class ObjectStore {
   RawClass* error_class_;
   RawClass* weak_property_class_;
   RawArray* symbol_table_;
+  RawArray* canonical_types_;
   RawArray* canonical_type_arguments_;
   RawLibrary* async_library_;
   RawLibrary* builtin_library_;

@@ -298,7 +298,7 @@ void IsolateReloadContext::RegisterClass(const Class& new_cls) {
   if (!old_cls.is_enum_class()) {
     new_cls.CopyCanonicalConstants(old_cls);
   }
-  new_cls.CopyCanonicalTypes(old_cls);
+  new_cls.CopyCanonicalType(old_cls);
   AddBecomeMapping(old_cls, new_cls);
   AddClassMapping(new_cls, old_cls);
 }

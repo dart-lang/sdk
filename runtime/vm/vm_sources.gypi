@@ -496,6 +496,7 @@
     'token.h',
     'token_position.cc',
     'token_position.h',
+    'type_table.h',
     'unibrow.cc',
     'unibrow.h',
     'unibrow-inl.h',
