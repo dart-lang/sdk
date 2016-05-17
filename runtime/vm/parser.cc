@@ -7613,7 +7613,6 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // Note that we cannot share the same closure function between the closurized
   // and non-closurized versions of the same parent function.
   Function& function = Function::ZoneHandle(Z);
-  bool found_func = true;
   // TODO(hausner): There could be two different closures at the given
   // function_pos, one enclosed in a closurized function and one enclosed in the
   // non-closurized version of this same function.
@@ -7622,7 +7621,6 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // The function will be registered in the lookup table by the
     // EffectGraphVisitor::VisitClosureNode when the newly allocated closure
     // function has been properly setup.
-    found_func = false;
     function = Function::NewClosureFunction(*function_name,
                                             innermost_function(),
                                             function_pos);
@@ -7672,40 +7670,15 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     }
   }
 
+  // Parse the local function.
+  SequenceNode* statements = Parser::ParseFunc(function, !is_literal);
+  INC_STAT(thread(), num_functions_parsed, 1);
 
-  Type& signature_type = Type::ZoneHandle(Z);
-  SequenceNode* statements = NULL;
-  if (!found_func) {
-    // Parse the local function. As a side effect of the parsing, the
-    // variables of this function's scope that are referenced by the local
-    // function (and its inner nested functions) will be marked as captured.
-    statements = Parser::ParseFunc(function, !is_literal);
-    INC_STAT(thread(), num_functions_parsed, 1);
-
-    // Now that the local function has formal parameters, lookup the signature
-    signature_type = function.SignatureType();
-    signature_type ^= ClassFinalizer::FinalizeType(
-        current_class(), signature_type, ClassFinalizer::kCanonicalize);
-    function.SetSignatureType(signature_type);
-  } else {
-    // The local function was parsed before. The captured variables are
-    // saved in the function's context scope. Iterate over the context scope
-    // and mark its variables as captured.
-    const ContextScope& context_scope =
-        ContextScope::Handle(Z, function.context_scope());
-    ASSERT(!context_scope.IsNull());
-    String& var_name = String::Handle(Z);
-    for (int i = 0; i < context_scope.num_variables(); i++) {
-      var_name = context_scope.NameAt(i);
-      // We need to look up the name in a way that returns even hidden
-      // variables, e.g. 'this' in an initializer list.
-      LocalVariable* v = current_block_->scope->LookupVariable(var_name, true);
-      ASSERT(v != NULL);
-      current_block_->scope->CaptureVariable(v);
-    }
-    SkipFunctionLiteral();
-    signature_type = function.SignatureType();
-  }
+  // Now that the local function has formal parameters, lookup the signature
+  Type& signature_type = Type::ZoneHandle(Z, function.SignatureType());
+  signature_type ^= ClassFinalizer::FinalizeType(
+      current_class(), signature_type, ClassFinalizer::kCanonicalize);
+  function.SetSignatureType(signature_type);
 
   // Local functions are registered in the enclosing class, but
   // ignored during class finalization. The enclosing class has
@@ -7760,9 +7733,8 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // variables are not relevant for the compilation of the enclosing function.
   // This pruning is done by omitting to hook the local scope in its parent
   // scope in the constructor of LocalScope.
-  AstNode* closure =
-      new(Z) ClosureNode(function_pos, function, NULL,
-                         statements != NULL ? statements->scope() : NULL);
+  AstNode* closure = new(Z) ClosureNode(
+      function_pos, function, NULL, statements->scope());
 
   if (function_variable == NULL) {
     ASSERT(is_literal);
