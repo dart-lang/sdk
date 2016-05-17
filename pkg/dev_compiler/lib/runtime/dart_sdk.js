@@ -674,6 +674,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     return type[dart._typeObject] = new dart.WrappedType(type);
   };
+  const _runtimeType = Symbol('_runtimeType');
+  dart.unwrapType = function(obj) {
+    return dart.dload(obj, _runtimeType);
+  };
   dart._getRuntimeType = function(value) {
     return value[dart._runtimeType];
   };
@@ -1197,7 +1201,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
   };
   dart.jsobject = new dart.JSObject();
-  const _runtimeType = Symbol('_runtimeType');
   dart.WrappedType = class WrappedType extends dart.TypeRep {
     new(runtimeType) {
       this[_runtimeType] = runtimeType;
@@ -1347,7 +1350,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         for (var i = 0; i < array.length; ++i) {
           var arg = array[i];
           if (arg instanceof Array) {
-            metadata.push(arg[1]);
+            metadata.push(arg.slice(1));
             result.push(arg[0]);
           } else {
             metadata.push([]);
@@ -10823,6 +10826,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return _js_mirrors._dart.dsend(obj, name, ...args);
   };
   dart.lazyFn(_js_mirrors._dsend, () => [dart.dynamic, [dart.dynamic, core.String, core.List]]);
+  _js_mirrors._unwrap = function(obj) {
+    return _js_mirrors._dart.unwrapType(obj);
+  };
+  dart.fn(_js_mirrors._unwrap);
+  _js_mirrors._wrap = function(obj) {
+    return _js_mirrors._dart.wrapType(obj);
+  };
+  dart.fn(_js_mirrors._wrap);
   const _toJsMap = Symbol('_toJsMap');
   _js_mirrors.JsInstanceMirror = class JsInstanceMirror extends core.Object {
     _(reflectee) {
@@ -10889,10 +10900,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     _(cls) {
       this[_cls] = cls;
-      this.simpleName = core.Symbol.new(cls.name);
+      this.simpleName = core.Symbol.new(_js_mirrors._unwrap(cls).name);
       this[_metadata$] = null;
       this[_declarations] = null;
-      let fn = this[_cls][dart.metadata];
+      let fn = _js_mirrors._unwrap(this[_cls])[dart.metadata];
       this[_metadata$] = fn == null ? dart.list([], mirrors.InstanceMirror) : core.List$(mirrors.InstanceMirror).from(dart.as(dart.dsend(dart.dcall(fn), 'map', dart.fn(i => new _js_mirrors.JsInstanceMirror._(i), _js_mirrors.JsInstanceMirror, [dart.dynamic])), core.Iterable));
       this[_declarations] = core.Map$(core.Symbol, mirrors.MethodMirror).new();
       this[_declarations][dartx.set](this.simpleName, new _js_mirrors.JsMethodMirror._(this, this[_cls]));
@@ -10901,11 +10912,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (namedArgs === void 0) namedArgs = null;
       dart.assert(_js_mirrors.getName(constructorName) == "");
       dart.assert(namedArgs == null || dart.notNull(namedArgs[dartx.isEmpty]));
-      let instance = new this[_cls](...args);
+      let instance = new (_js_mirrors._unwrap(this[_cls]))(...args);
       return new _js_mirrors.JsInstanceMirror._(instance);
     }
     get superinterfaces() {
-      let interfaceThunk = this[_cls][dart.implements];
+      let interfaceThunk = _js_mirrors._unwrap(this[_cls])[dart.implements];
       if (interfaceThunk == null) {
         return dart.list([], mirrors.ClassMirror);
       } else {
@@ -10978,7 +10989,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (dart.equals(this[_cls], dart.wrapType(core.Object))) {
         return null;
       } else {
-        return new _js_mirrors.JsClassMirror._(this[_cls].__proto__);
+        return new _js_mirrors.JsClassMirror._(dart.as(_js_mirrors._wrap(_js_mirrors._unwrap(this[_cls]).__proto__), core.Type));
       }
     }
     get typeArguments() {
@@ -11116,7 +11127,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_method$] = method;
       this[_name$] = _js_mirrors.getName(cls.simpleName);
       this[_params] = null;
-      let ftype = _js_mirrors._dart.classGetConstructorType(cls[_cls]);
+      let ftype = _js_mirrors._dart.classGetConstructorType(_js_mirrors._unwrap(cls[_cls]));
       this[_params] = this[_createParameterMirrorList](ftype);
     }
     get constructorName() {
@@ -11135,13 +11146,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       for (let i = 0; i < dart.notNull(args[dartx.length]); ++i) {
         let type = args[dartx.get](i);
         let metadata = dart.dindex(dart.dload(ftype, 'metadata'), i);
-        let param = new _js_mirrors.JsParameterMirror._('', dart.as(type, core.Type), dart.as(metadata, core.List));
+        let param = new _js_mirrors.JsParameterMirror._('', dart.as(_js_mirrors._wrap(type), core.Type), dart.as(metadata, core.List));
         params[dartx.set](i, param);
       }
       for (let i = 0; i < dart.notNull(opts[dartx.length]); ++i) {
         let type = opts[dartx.get](i);
         let metadata = dart.dindex(dart.dload(ftype, 'metadata'), dart.notNull(args[dartx.length]) + i);
-        let param = new _js_mirrors.JsParameterMirror._('', dart.as(type, core.Type), dart.as(metadata, core.List));
+        let param = new _js_mirrors.JsParameterMirror._('', dart.as(_js_mirrors._wrap(type), core.Type), dart.as(metadata, core.List));
         params[dartx.set](i + dart.notNull(args[dartx.length]), param);
       }
       return params;

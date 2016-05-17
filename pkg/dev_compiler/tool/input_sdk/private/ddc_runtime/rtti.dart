@@ -152,6 +152,9 @@ wrapType(type) {
   return JS('', '#[#] = new #(#)', type, _typeObject, WrappedType, type);
 }
 
+/// Given a WrappedType, return the internal runtime type object.
+unwrapType(obj) => obj._runtimeType;
+
 _getRuntimeType(value) => JS('', '#[#]', value, _runtimeType);
 
 /// Tag the runtime type of [value] to be type [t].

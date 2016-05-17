@@ -13,7 +13,12 @@ import 'package:args/command_runner.dart' show CommandRunner;
 import 'package:dev_compiler/src/compiler/command.dart';
 
 main(List<String> arguments) {
-  var args = ['compile', '--unsafe-force-compile', '--no-source-map', '--no-emit-metadata'];
+  var args = [
+    'compile',
+    '--unsafe-force-compile',
+    '--no-source-map',
+    '--no-emit-metadata'
+  ];
   args.addAll(arguments);
   args.addAll([
     'dart:_runtime',

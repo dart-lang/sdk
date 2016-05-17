@@ -288,7 +288,7 @@ final FunctionType = JS('', '''
         for (var i = 0; i < array.length; ++i) {
           var arg = array[i];
           if (arg instanceof Array) {
-            metadata.push(arg[1]);
+            metadata.push(arg.slice(1));
             result.push(arg[0]);
           } else {
             metadata.push([]);

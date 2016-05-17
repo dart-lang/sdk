@@ -38,6 +38,13 @@ dynamic _dsend(obj, String name, List args) {
   return JS('', '#.dsend(#, #, ...#)', _dart, obj, name, args);
 }
 
+// TODO(vsm): These methods need to validate whether we really have a
+// WrappedType or a raw type that should be wrapped (as opposed to a
+// function).
+dynamic _unwrap(obj) => JS('', '#.unwrapType(#)', _dart, obj);
+
+dynamic _wrap(obj) => JS('', '#.wrapType(#)', _dart, obj);
+
 class JsInstanceMirror implements InstanceMirror {
   final Object reflectee;
 
@@ -95,9 +102,9 @@ class JsClassMirror implements ClassMirror {
 
   JsClassMirror._(Type cls)
       : _cls = cls,
-        simpleName = new Symbol(JS('String', '#.name', cls)) {
+        simpleName = new Symbol(JS('String', '#.name', _unwrap(cls))) {
     // Load metadata.
-    var fn = JS('Function', '#[dart.metadata]', _cls);
+    var fn = JS('Function', '#[dart.metadata]', _unwrap(_cls));
     _metadata = (fn == null)
         ? <InstanceMirror>[]
         : new List<InstanceMirror>.from(
@@ -114,12 +121,12 @@ class JsClassMirror implements ClassMirror {
     // TODO(vsm): Support named constructors and named arguments.
     assert(getName(constructorName) == "");
     assert(namedArgs == null || namedArgs.isEmpty);
-    var instance = JS('', 'new #(...#)', _cls, args);
+    var instance = JS('', 'new #(...#)', _unwrap(_cls), args);
     return new JsInstanceMirror._(instance);
   }
 
   List<ClassMirror> get superinterfaces {
-    var interfaceThunk = JS('Function', '#[dart.implements]', _cls);
+    var interfaceThunk = JS('Function', '#[dart.implements]', _unwrap(_cls));
     if (interfaceThunk == null) {
       return [];
     } else {
@@ -176,7 +183,7 @@ class JsClassMirror implements ClassMirror {
     if (_cls == Object) {
       return null;
     } else {
-      return new JsClassMirror._(JS('Type', '#.__proto__', _cls));
+      return new JsClassMirror._(_wrap(JS('Type', '#.__proto__', _unwrap(_cls))));
     }
   }
   List<TypeMirror> get typeArguments =>
@@ -268,7 +275,7 @@ class JsMethodMirror implements MethodMirror {
 
   JsMethodMirror._(JsClassMirror cls, this._method)
       : _name = getName(cls.simpleName) {
-    var ftype = JS('', '#.classGetConstructorType(#)', _dart, cls._cls);
+    var ftype = JS('', '#.classGetConstructorType(#)', _dart, _unwrap(cls._cls));
     _params = _createParameterMirrorList(ftype);
   }
 
@@ -291,7 +298,7 @@ class JsMethodMirror implements MethodMirror {
       var type = args[i];
       var metadata = ftype.metadata[i];
       // TODO(vsm): Recover the param name.
-      var param = new JsParameterMirror._('', type, metadata);
+      var param = new JsParameterMirror._('', _wrap(type), metadata);
       params[i] = param;
     }
 
@@ -299,7 +306,7 @@ class JsMethodMirror implements MethodMirror {
       var type = opts[i];
       var metadata = ftype.metadata[args.length + i];
       // TODO(vsm): Recover the param name.
-      var param = new JsParameterMirror._('', type, metadata);
+      var param = new JsParameterMirror._('', _wrap(type), metadata);
       params[i + args.length] = param;
     }
 
