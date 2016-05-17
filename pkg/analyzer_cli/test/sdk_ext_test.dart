@@ -37,12 +37,12 @@ main() {
       exitHandler = savedExitHandler;
     });
 
-    test('.packages file present', () async {
+    test('.packages file specified', () async {
       String testDir = path.join(testDirectory, 'data', 'packages_file');
       Driver driver = new Driver()
         ..start([
           '--packages',
-          path.join(testDir, '.packages'),
+          path.join(testDir, '_packages'),
           path.join(testDir, 'sdk_ext_user.dart')
         ]);
 
