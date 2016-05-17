@@ -263,6 +263,7 @@ class Handle : public DescriptorInfoBase {
   DWORD last_error_;
 
   ThreadId read_thread_id_;
+  HANDLE read_thread_handle_;
   bool read_thread_starting_;
   bool read_thread_finished_;
 
@@ -298,6 +299,7 @@ class StdHandle : public FileHandle {
   explicit StdHandle(HANDLE handle)
       : FileHandle(handle),
         thread_id_(Thread::kInvalidThreadId),
+        thread_handle_(NULL),
         thread_wrote_(0),
         write_thread_exists_(false),
         write_thread_running_(false) {
@@ -312,6 +314,7 @@ class StdHandle : public FileHandle {
 
  private:
   ThreadId thread_id_;
+  HANDLE thread_handle_;
   intptr_t thread_wrote_;
   bool write_thread_exists_;
   bool write_thread_running_;
@@ -538,6 +541,7 @@ class EventHandlerImplementation {
 
   Monitor* startup_monitor_;
   ThreadId handler_thread_id_;
+  HANDLE handler_thread_handle_;
 
   TimeoutQueue timeout_queue_;  // Time for next timeout.
   bool shutdown_;

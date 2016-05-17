@@ -126,6 +126,7 @@ Handle::Handle(intptr_t handle)
       last_error_(NOERROR),
       flags_(0),
       read_thread_id_(Thread::kInvalidThreadId),
+      read_thread_handle_(NULL),
       read_thread_starting_(false),
       read_thread_finished_(false),
       monitor_(new Monitor()) {
@@ -188,13 +189,24 @@ void Handle::WaitForReadThreadStarted() {
 
 
 void Handle::WaitForReadThreadFinished() {
-  MonitorLocker ml(monitor_);
-  if (read_thread_id_ != Thread::kInvalidThreadId) {
-    while (!read_thread_finished_) {
-      ml.Wait();
+  HANDLE to_join = NULL;
+  {
+    MonitorLocker ml(monitor_);
+    if (read_thread_id_ != Thread::kInvalidThreadId) {
+      while (!read_thread_finished_) {
+        ml.Wait();
+      }
+      read_thread_finished_ = false;
+      read_thread_id_ = Thread::kInvalidThreadId;
+      to_join = read_thread_handle_;
+      read_thread_handle_ = NULL;
     }
-    read_thread_finished_ = false;
-    read_thread_id_ = Thread::kInvalidThreadId;
+  }
+  if (to_join != NULL) {
+    // Join the read thread.
+    DWORD res = WaitForSingleObject(to_join, INFINITE);
+    CloseHandle(to_join);
+    ASSERT(res == WAIT_OBJECT_0);
   }
 }
 
@@ -242,9 +254,11 @@ void Handle::NotifyReadThreadStarted() {
   ASSERT(read_thread_starting_);
   ASSERT(read_thread_id_ == Thread::kInvalidThreadId);
   read_thread_id_ = Thread::GetCurrentThreadId();
+  read_thread_handle_ = OpenThread(SYNCHRONIZE, false, read_thread_id_);
   read_thread_starting_ = false;
   ml.Notify();
 }
+
 
 void Handle::NotifyReadThreadFinished() {
   MonitorLocker ml(monitor_);
@@ -742,6 +756,7 @@ void StdHandle::RunWriteLoop() {
   MonitorLocker ml(monitor_);
   write_thread_running_ = true;
   thread_id_ = Thread::GetCurrentThreadId();
+  thread_handle_ = OpenThread(SYNCHRONIZE, false, thread_id_);
   // Notify we have started.
   ml.Notify();
 
@@ -831,6 +846,10 @@ void StdHandle::DoClose() {
     while (write_thread_exists_) {
       ml.Wait(Monitor::kNoTimeout);
     }
+    // Join the thread.
+    DWORD res = WaitForSingleObject(thread_handle_, INFINITE);
+    CloseHandle(thread_handle_);
+    ASSERT(res == WAIT_OBJECT_0);
   }
   Handle::DoClose();
 }
@@ -1357,6 +1376,7 @@ void EventHandlerImplementation::HandleIOCompletion(DWORD bytes,
 EventHandlerImplementation::EventHandlerImplementation() {
   startup_monitor_ = new Monitor();
   handler_thread_id_ = Thread::kInvalidThreadId;
+  handler_thread_handle_ = NULL;
   completion_port_ =
       CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, NULL, 1);
   if (completion_port_ == NULL) {
@@ -1367,6 +1387,10 @@ EventHandlerImplementation::EventHandlerImplementation() {
 
 
 EventHandlerImplementation::~EventHandlerImplementation() {
+  // Join the handler thread.
+  DWORD res = WaitForSingleObject(handler_thread_handle_, INFINITE);
+  CloseHandle(handler_thread_handle_);
+  ASSERT(res == WAIT_OBJECT_0);
   delete startup_monitor_;
   CloseHandle(completion_port_);
 }
@@ -1405,6 +1429,8 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
   {
     MonitorLocker ml(handler_impl->startup_monitor_);
     handler_impl->handler_thread_id_ = Thread::GetCurrentThreadId();
+    handler_impl->handler_thread_handle_ =
+        OpenThread(SYNCHRONIZE, false, handler_impl->handler_thread_id_);
     ml.Notify();
   }
 
