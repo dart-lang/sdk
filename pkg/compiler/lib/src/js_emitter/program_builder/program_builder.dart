@@ -323,9 +323,6 @@ class ProgramBuilder {
   }
 
   void _addJsInteropStubs(LibrariesMap librariesMap) {
-    // TODO(26456): we should be using codegenWorld instead of resolverWorld
-    // to determine what invocations could be live but codegenWorld has a bug
-    // resulting in it missing some invocations.
     if (_classes.containsKey(_compiler.coreClasses.objectClass)) {
       var toStringInvocation = namer.invocationName(Selectors.toString_);
       // TODO(jacobr): register toString as used so that it is always accessible
@@ -351,7 +348,7 @@ class ProgramBuilder {
             if (!member.isInstanceMember) return;
             if (member.isGetter || member.isField || member.isFunction) {
               var selectors =
-                  _compiler.resolverWorld.getterInvocationsByName(member.name);
+                  _compiler.codegenWorld.getterInvocationsByName(member.name);
               if (selectors != null && !selectors.isEmpty) {
                 for (var selector in selectors.keys) {
                   var stubName = namer.invocationName(selector);
@@ -366,7 +363,7 @@ class ProgramBuilder {
 
             if (member.isSetter || (member.isField && !member.isConst)) {
               var selectors =
-                  _compiler.resolverWorld.setterInvocationsByName(member.name);
+                  _compiler.codegenWorld.setterInvocationsByName(member.name);
               if (selectors != null && !selectors.isEmpty) {
                 var stubName = namer.setterForElement(member);
                 if (stubNames.add(stubName.key)) {
@@ -422,7 +419,7 @@ class ProgramBuilder {
                 maxArgs = 32767;
               }
               var selectors =
-                  _compiler.resolverWorld.invocationsByName(member.name);
+                  _compiler.codegenWorld.invocationsByName(member.name);
               // Named arguments are not yet supported. In the future we
               // may want to map named arguments to an object literal containing
               // all named arguments.
@@ -431,11 +428,11 @@ class ProgramBuilder {
                   // Check whether the arity matches this member.
                   var argumentCount = selector.argumentCount;
                   // JS interop does not support named arguments.
-                  if (selector.namedArgumentCount > 0) break;
-                  if (argumentCount < minArgs) break;
-                  if (argumentCount > maxArgs) break;
+                  if (selector.namedArgumentCount > 0) continue;
+                  if (argumentCount < minArgs) continue;
+                  if (argumentCount > maxArgs) continue;
                   var stubName = namer.invocationName(selector);
-                  if (!stubNames.add(stubName.key)) break;
+                  if (!stubNames.add(stubName.key)) continue;
                   var parameters =
                       new List<String>.generate(argumentCount, (i) => 'p$i');
 
