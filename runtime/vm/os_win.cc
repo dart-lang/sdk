@@ -259,7 +259,7 @@ char* OS::StrNDup(const char* s, intptr_t n) {
 }
 
 
-intptr_t OS::StrNDup(const char* s, intptr_t n) {
+intptr_t OS::StrNLen(const char* s, intptr_t n) {
   return strnlen(s, n);
 }
 
