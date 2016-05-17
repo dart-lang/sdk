@@ -374,14 +374,10 @@ abstract class ClassElementForLink extends Object
         _containedNames[constructor.name] = constructor;
       }
       for (PropertyAccessorElementForLink accessor in accessors) {
-        if (accessor.isStatic) {
-          _containedNames[accessor.name] = accessor;
-        }
+        _containedNames[accessor.name] = accessor;
       }
       for (MethodElementForLink method in methods) {
-        if (method.isStatic) {
-          _containedNames[method.name] = method;
-        }
+        _containedNames[method.name] = method;
       }
     }
     return _containedNames.putIfAbsent(

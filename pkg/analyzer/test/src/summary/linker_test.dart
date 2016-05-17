@@ -24,6 +24,8 @@ class LinkerUnitTest extends SummaryLinkerTest {
   @override
   bool get allowMissingFiles => false;
 
+  Matcher get isUndefined => new isInstanceOf<UndefinedElementForLink>();
+
   LibraryElementInBuildUnit get testLibrary => _testLibrary ??=
       linker.getLibrary(linkerInputs.testDartUri) as LibraryElementInBuildUnit;
 
@@ -148,6 +150,34 @@ const x = [const C()];
     testLibrary.libraryCycleForLink.ensureLinked();
     ClassElementForLink classC = testLibrary.getContainedName('C');
     expect(classC.unnamedConstructor.isCycleFree, false);
+  }
+
+  void test_getContainedName_nonStaticField() {
+    createLinker('class C { var f; }');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    ClassElementForLink_Class c = library.getContainedName('C');
+    expect(c.getContainedName('f'), isNot(isUndefined));
+  }
+
+  void test_getContainedName_nonStaticGetter() {
+    createLinker('class C { get g => null; }');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    ClassElementForLink_Class c = library.getContainedName('C');
+    expect(c.getContainedName('g'), isNot(isUndefined));
+  }
+
+  void test_getContainedName_nonStaticMethod() {
+    createLinker('class C { m() {} }');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    ClassElementForLink_Class c = library.getContainedName('C');
+    expect(c.getContainedName('m'), isNot(isUndefined));
+  }
+
+  void test_getContainedName_nonStaticSetter() {
+    createLinker('class C { void set s(value) {} }');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    ClassElementForLink_Class c = library.getContainedName('C');
+    expect(c.getContainedName('s='), isNot(isUndefined));
   }
 
   void test_inferredType_closure_fromBundle() {
