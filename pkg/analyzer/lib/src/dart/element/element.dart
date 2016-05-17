@@ -61,7 +61,9 @@ class AuxiliaryElements {
 /**
  * A concrete implementation of a [ClassElement].
  */
-class ClassElementImpl extends ElementImpl implements ClassElement {
+class ClassElementImpl extends ElementImpl
+    with TypeParameterizedElementMixin
+    implements ClassElement {
   /**
    * The unlinked representation of the class in the summary.
    */
@@ -149,7 +151,9 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   /**
    * Initialize using the given serialized information.
    */
-  ClassElementImpl.forSerialized(this._unlinkedClass) : super.forSerialized();
+  ClassElementImpl.forSerialized(
+      ResynthesizerContext resynthesizerContext, this._unlinkedClass)
+      : super.forSerialized(resynthesizerContext);
 
   /**
    * Set whether this class is abstract.
@@ -283,6 +287,9 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     }
     return !nearestNonMixinClass.constructors.any(isSuperConstructorAccessible);
   }
+
+  @override
+  TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
 
   /**
    * Set whether this class is defined by an enum declaration.
@@ -451,18 +458,28 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @override
-  List<TypeParameterElement> get typeParameters => _typeParameters;
+  List<TypeParameterElement> get typeParameters {
+    if (_unlinkedClass != null) {
+      return super.typeParameters;
+    }
+    return _typeParameters;
+  }
 
   /**
    * Set the type parameters defined for this class to the given
    * [typeParameters].
    */
   void set typeParameters(List<TypeParameterElement> typeParameters) {
+    assert(resynthesizerContext == null);
     for (TypeParameterElement typeParameter in typeParameters) {
       (typeParameter as TypeParameterElementImpl).enclosingElement = this;
     }
     this._typeParameters = typeParameters;
   }
+
+  @override
+  List<UnlinkedTypeParam> get unlinkedTypeParams =>
+      _unlinkedClass.typeParameters;
 
   @override
   ConstructorElement get unnamedConstructor {
@@ -1418,8 +1435,10 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /**
    * Initialize using the given serialized information.
    */
-  ConstructorElementImpl.forSerialized(UnlinkedExecutable serializedExecutable)
-      : super.forSerialized(serializedExecutable);
+  ConstructorElementImpl.forSerialized(
+      ResynthesizerContext resynthesizerContext,
+      UnlinkedExecutable serializedExecutable)
+      : super.forSerialized(resynthesizerContext, serializedExecutable);
 
   /**
    * Set whether this constructor represents a 'const' constructor.
@@ -1835,9 +1854,10 @@ abstract class ElementImpl implements Element {
   ElementImpl _enclosingElement;
 
   /**
-   * Is `true` is this element is resynthesized from summary.
+   * The context in which this element is resynthesized, or `null` if the
+   * element is not resynthesized a summary.
    */
-  final bool _isResynthesized;
+  final ResynthesizerContext resynthesizerContext;
 
   /**
    * The name of this element.
@@ -1901,7 +1921,7 @@ abstract class ElementImpl implements Element {
    * Initialize a newly created element to have the given [name] at the given
    * [_nameOffset].
    */
-  ElementImpl(String name, this._nameOffset) : _isResynthesized = false {
+  ElementImpl(String name, this._nameOffset) : resynthesizerContext = null {
     this._name = StringUtilities.intern(name);
   }
 
@@ -1914,7 +1934,7 @@ abstract class ElementImpl implements Element {
   /**
    * Initialize from serialized information.
    */
-  ElementImpl.forSerialized() : _isResynthesized = true;
+  ElementImpl.forSerialized(this.resynthesizerContext);
 
   /**
    * The length of the element's code, or `null` if the element is synthetic.
@@ -1953,7 +1973,7 @@ abstract class ElementImpl implements Element {
    * The documentation comment source for this element.
    */
   void set documentationComment(String doc) {
-    assert(!_isResynthesized);
+    assert(resynthesizerContext == null);
     _docComment = doc?.replaceAll('\r\n', '\n');
   }
 
@@ -2244,7 +2264,7 @@ abstract class ElementImpl implements Element {
    * Set the code range for this element.
    */
   void setCodeRange(int offset, int length) {
-    assert(!_isResynthesized);
+    assert(resynthesizerContext == null);
     _codeOffset = offset;
     _codeLength = length;
   }
@@ -2253,7 +2273,7 @@ abstract class ElementImpl implements Element {
    * Set the documentation comment source range for this element.
    */
   void setDocRange(int offset, int length) {
-    assert(!_isResynthesized);
+    assert(resynthesizerContext == null);
     _docRangeOffset = offset;
     _docRangeLength = length;
   }
@@ -2525,8 +2545,9 @@ abstract class ExecutableElementImpl extends ElementImpl
   /**
    * Initialize using the given serialized information.
    */
-  ExecutableElementImpl.forSerialized(this.serializedExecutable)
-      : super.forSerialized();
+  ExecutableElementImpl.forSerialized(
+      ResynthesizerContext resynthesizerContext, this.serializedExecutable)
+      : super.forSerialized(resynthesizerContext);
 
   /**
    * Set whether this executable element's body is asynchronous.
@@ -2984,8 +3005,9 @@ class FunctionElementImpl extends ExecutableElementImpl
   /**
    * Initialize using the given serialized information.
    */
-  FunctionElementImpl.forSerialized(UnlinkedExecutable serializedExecutable)
-      : super.forSerialized(serializedExecutable);
+  FunctionElementImpl.forSerialized(ResynthesizerContext resynthesizerContext,
+      UnlinkedExecutable serializedExecutable)
+      : super.forSerialized(resynthesizerContext, serializedExecutable);
 
   /**
    * Synthesize an unnamed function element that takes [parameters] and returns
@@ -3125,8 +3147,9 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   /**
    * Initialize using the given serialized information.
    */
-  FunctionTypeAliasElementImpl.forSerialized(this._unlinkedTypedef)
-      : super.forSerialized();
+  FunctionTypeAliasElementImpl.forSerialized(
+      ResynthesizerContext resynthesizerContext, this._unlinkedTypedef)
+      : super.forSerialized(resynthesizerContext);
 
   @override
   int get codeLength {
@@ -4119,8 +4142,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /**
    * Initialize using the given serialized information.
    */
-  MethodElementImpl.forSerialized(UnlinkedExecutable serializedExecutable)
-      : super.forSerialized(serializedExecutable);
+  MethodElementImpl.forSerialized(ResynthesizerContext resynthesizerContext,
+      UnlinkedExecutable serializedExecutable)
+      : super.forSerialized(resynthesizerContext, serializedExecutable);
 
   /**
    * Set whether this method is abstract.
@@ -4848,8 +4872,9 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
    * Initialize using the given serialized information.
    */
   PropertyAccessorElementImpl.forSerialized(
+      ResynthesizerContext resynthesizerContext,
       UnlinkedExecutable serializedExecutable)
-      : super.forSerialized(serializedExecutable);
+      : super.forSerialized(resynthesizerContext, serializedExecutable);
 
   /**
    * Initialize a newly created synthetic property accessor element to be
@@ -5039,6 +5064,22 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
 }
 
 /**
+ * The context in which elements are resynthesized.
+ */
+abstract class ResynthesizerContext {
+  /**
+   * Resolve an [EntityRef] into a type.  If the reference is
+   * unresolved, return [DynamicTypeImpl.instance].
+   *
+   * TODO(paulberry): or should we have a class representing an
+   * unresolved type, for consistency with the full element model?
+   */
+  DartType resolveTypeRef(
+      EntityRef type, TypeParameterizedElementMixin typeParameterContext,
+      {bool defaultVoid: false, bool instantiateToBoundsAllowed: true});
+}
+
+/**
  * A concrete implementation of a [ShowElementCombinator].
  */
 class ShowElementCombinatorImpl implements ShowElementCombinator {
@@ -5111,37 +5152,148 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
 class TypeParameterElementImpl extends ElementImpl
     implements TypeParameterElement {
   /**
+   * The unlinked representation of the type parameter in the summary.
+   */
+  final UnlinkedTypeParam _unlinkedTypeParam;
+
+  /**
+   * The [TypeParameterizedElement] enclosing this one.
+   */
+  final TypeParameterizedElementMixin _enclosingTypeParameterizedElement;
+
+  /**
+   * The number of type parameters whose scope overlaps this one, and which are
+   * declared earlier in the file.
+   *
+   * TODO(scheglov) make private?
+   */
+  final int nestingLevel;
+
+  /**
    * The type defined by this type parameter.
    */
-  TypeParameterType type;
+  TypeParameterType _type;
 
   /**
    * The type representing the bound associated with this parameter, or `null`
    * if this parameter does not have an explicit bound.
    */
-  DartType bound;
+  DartType _bound;
 
   /**
    * Initialize a newly created method element to have the given [name] and
    * [offset].
    */
-  TypeParameterElementImpl(String name, int offset) : super(name, offset);
+  TypeParameterElementImpl(String name, int offset)
+      : _unlinkedTypeParam = null,
+        nestingLevel = null,
+        _enclosingTypeParameterizedElement = null,
+        super(name, offset);
 
   /**
    * Initialize a newly created type parameter element to have the given [name].
    */
-  TypeParameterElementImpl.forNode(Identifier name) : super.forNode(name);
+  TypeParameterElementImpl.forNode(Identifier name)
+      : _unlinkedTypeParam = null,
+        nestingLevel = null,
+        _enclosingTypeParameterizedElement = null,
+        super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  TypeParameterElementImpl.forSerialized(
+      ResynthesizerContext resynthesizerContext,
+      this._unlinkedTypeParam,
+      this._enclosingTypeParameterizedElement,
+      this.nestingLevel)
+      : super.forSerialized(resynthesizerContext);
 
   /**
    * Initialize a newly created synthetic type parameter element to have the
    * given [name], and with [synthetic] set to true.
    */
-  TypeParameterElementImpl.synthetic(String name) : super(name, -1) {
+  TypeParameterElementImpl.synthetic(String name)
+      : _unlinkedTypeParam = null,
+        nestingLevel = null,
+        _enclosingTypeParameterizedElement = null,
+        super(name, -1) {
     synthetic = true;
+  }
+
+  DartType get bound {
+    if (_unlinkedTypeParam != null) {
+      if (_unlinkedTypeParam.bound == null) {
+        return null;
+      }
+      return _bound ??= resynthesizerContext.resolveTypeRef(
+          _unlinkedTypeParam.bound, enclosingElement,
+          instantiateToBoundsAllowed: false);
+    }
+    return _bound;
+  }
+
+  void set bound(DartType bound) {
+    assert(resynthesizerContext == null);
+    _bound = bound;
+  }
+
+  @override
+  int get codeLength {
+    if (_unlinkedTypeParam != null) {
+      return _unlinkedTypeParam.codeRange?.length;
+    }
+    return super.codeLength;
+  }
+
+  @override
+  int get codeOffset {
+    if (_unlinkedTypeParam != null) {
+      return _unlinkedTypeParam.codeRange?.offset;
+    }
+    return super.codeOffset;
+  }
+
+  @override
+  String get displayName => name;
+
+  @override
+  Element get enclosingElement {
+    if (_unlinkedTypeParam != null) {
+      return _enclosingTypeParameterizedElement;
+    }
+    return super.enclosingElement;
   }
 
   @override
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
+
+  @override
+  String get name {
+    if (_unlinkedTypeParam != null) {
+      return _unlinkedTypeParam.name;
+    }
+    return super.name;
+  }
+
+  @override
+  int get nameOffset {
+    if (_unlinkedTypeParam != null) {
+      return _unlinkedTypeParam.nameOffset;
+    }
+    return super.nameOffset;
+  }
+
+  TypeParameterType get type {
+    if (_unlinkedTypeParam != null) {
+      _type ??= new TypeParameterTypeImpl(this);
+    }
+    return _type;
+  }
+
+  void set type(TypeParameterType type) {
+    _type = type;
+  }
 
   @override
   accept(ElementVisitor visitor) => visitor.visitTypeParameterElement(this);
@@ -5152,6 +5304,102 @@ class TypeParameterElementImpl extends ElementImpl
     if (bound != null) {
       buffer.write(" extends ");
       buffer.write(bound);
+    }
+  }
+}
+
+/**
+ * Mixin representing an element which can have type parameters.
+ */
+abstract class TypeParameterizedElementMixin
+    implements TypeParameterizedElement {
+  List<TypeParameterType> _typeParameterTypes;
+  List<TypeParameterElement> _typeParameterElements;
+  int _nestingLevel;
+
+  /**
+   * Get the type parameter context enclosing this one, if any.
+   */
+  TypeParameterizedElementMixin get enclosingTypeParameterContext;
+
+  /**
+   * The context in which this element is resynthesized.
+   */
+  ResynthesizerContext get resynthesizerContext;
+
+  /**
+   * Find out how many type parameters are in scope in this context.
+   */
+  int get typeParameterNestingLevel =>
+      _nestingLevel ??= unlinkedTypeParams.length +
+          (enclosingTypeParameterContext?.typeParameterNestingLevel ?? 0);
+
+  List<TypeParameterElement> get typeParameters {
+    if (_typeParameterElements == null) {
+      int enclosingNestingLevel =
+          enclosingTypeParameterContext?.typeParameterNestingLevel ?? 0;
+      int numTypeParameters = unlinkedTypeParams.length;
+      _typeParameterElements =
+          new List<TypeParameterElement>(numTypeParameters);
+      for (int i = 0; i < numTypeParameters; i++) {
+        _typeParameterElements[i] = new TypeParameterElementImpl.forSerialized(
+            resynthesizerContext,
+            unlinkedTypeParams[i],
+            this,
+            enclosingNestingLevel + i);
+      }
+    }
+    return _typeParameterElements;
+  }
+
+  /**
+   * Get a list of [TypeParameterType] objects corresponding to the
+   * element's type parameters.
+   */
+  List<TypeParameterType> get typeParameterTypes {
+    if (_typeParameterTypes == null) {
+      _typeParameterTypes =
+          typeParameters.map((TypeParameterElement e) => e.type).toList();
+    }
+    return _typeParameterTypes;
+  }
+
+  /**
+   * Get the [UnlinkedTypeParam]s representing the type parameters declared by
+   * this element.
+   *
+   * TODO(scheglov) make private after switching linker to Impl
+   */
+  List<UnlinkedTypeParam> get unlinkedTypeParams;
+
+  /**
+   * Convert the given [index] into a type parameter type.
+   */
+  TypeParameterType getTypeParameterType(int index) {
+    List<TypeParameterType> types = typeParameterTypes;
+    if (index <= types.length) {
+      return types[types.length - index];
+    } else if (enclosingTypeParameterContext != null) {
+      return enclosingTypeParameterContext
+          .getTypeParameterType(index - types.length);
+    } else {
+      // If we get here, it means that a summary contained a type parameter index
+      // that was out of range.
+      throw new RangeError('Invalid type parameter index');
+    }
+  }
+
+  /**
+   * Find out if the given [typeParameter] is in scope in this context.
+   */
+  bool isTypeParameterInScope(TypeParameterElement typeParameter) {
+    if (typeParameter.enclosingElement == this) {
+      return true;
+    } else if (enclosingTypeParameterContext != null) {
+      return enclosingTypeParameterContext
+          .isTypeParameterInScope(typeParameter);
+    } else {
+      return false;
     }
   }
 }

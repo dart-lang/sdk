@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:unittest/unittest.dart';
@@ -683,8 +684,8 @@ class D extends C {
   void test_typeParameter_isTypeParameterInScope_direct() {
     createLinker('class C<T, U> {}');
     ClassElementForLink_Class c = testLibrary.getContainedName('C');
-    TypeParameterElementForLink t = c.typeParameters[0];
-    TypeParameterElementForLink u = c.typeParameters[1];
+    TypeParameterElementImpl t = c.typeParameters[0];
+    TypeParameterElementImpl u = c.typeParameters[1];
     expect(c.isTypeParameterInScope(t), true);
     expect(c.isTypeParameterInScope(u), true);
   }
@@ -693,8 +694,8 @@ class D extends C {
     createLinker('class C<T, U> { f<V, W>() {} }');
     ClassElementForLink_Class c = testLibrary.getContainedName('C');
     MethodElementForLink f = c.methods[0];
-    TypeParameterElementForLink t = c.typeParameters[0];
-    TypeParameterElementForLink u = c.typeParameters[1];
+    TypeParameterElementImpl t = c.typeParameters[0];
+    TypeParameterElementImpl u = c.typeParameters[1];
     expect(f.isTypeParameterInScope(t), true);
     expect(f.isTypeParameterInScope(u), true);
   }
@@ -703,8 +704,8 @@ class D extends C {
     createLinker('class C<T, U> { f<V, W>() {} }');
     ClassElementForLink_Class c = testLibrary.getContainedName('C');
     MethodElementForLink f = c.methods[0];
-    TypeParameterElementForLink v = f.typeParameters[0];
-    TypeParameterElementForLink w = f.typeParameters[1];
+    TypeParameterElementImpl v = f.typeParameters[0];
+    TypeParameterElementImpl w = f.typeParameters[1];
     expect(c.isTypeParameterInScope(v), false);
     expect(c.isTypeParameterInScope(w), false);
   }
@@ -713,10 +714,10 @@ class D extends C {
     createLinker('class C<T, U> {} class D<V, W> {}');
     ClassElementForLink_Class c = testLibrary.getContainedName('C');
     ClassElementForLink_Class d = testLibrary.getContainedName('D');
-    TypeParameterElementForLink t = c.typeParameters[0];
-    TypeParameterElementForLink u = c.typeParameters[1];
-    TypeParameterElementForLink v = d.typeParameters[0];
-    TypeParameterElementForLink w = d.typeParameters[1];
+    TypeParameterElementImpl t = c.typeParameters[0];
+    TypeParameterElementImpl u = c.typeParameters[1];
+    TypeParameterElementImpl v = d.typeParameters[0];
+    TypeParameterElementImpl w = d.typeParameters[1];
     expect(c.isTypeParameterInScope(v), false);
     expect(c.isTypeParameterInScope(w), false);
     expect(d.isTypeParameterInScope(t), false);
