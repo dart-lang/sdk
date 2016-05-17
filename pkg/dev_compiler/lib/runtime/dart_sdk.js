@@ -22026,7 +22026,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (isValidKey == null) {
           if (hashCode == null) {
             if (equals == null) {
-              return new (collection._LinkedHashMap$(K, V))();
+              return _js_helper.JsLinkedHashMap$(K, V).es6();
             }
             hashCode = collection._defaultHashCode;
           } else {

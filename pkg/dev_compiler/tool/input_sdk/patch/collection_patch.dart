@@ -5,7 +5,7 @@
 // Patch file for dart:collection classes.
 import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper' show
-    fillLiteralMap, InternalMap, NoInline, NoThrows, patch;
+    fillLiteralMap, InternalMap, NoInline, NoThrows, patch, JsLinkedHashMap;
 
 @patch
 class HashMap<K, V> {
@@ -492,7 +492,7 @@ class LinkedHashMap<K, V> {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
-          return new _LinkedHashMap<K, V>();
+          return new JsLinkedHashMap<K, V>.es6();
         }
         hashCode = _defaultHashCode;
       } else {
