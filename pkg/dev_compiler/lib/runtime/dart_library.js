@@ -138,6 +138,9 @@ var dart_library =
         let d = document.createElement('div');
         window.Animation = d.animate(d).constructor;
       }
+      if (typeof SourceBufferList == "undefined") {
+        window.SourceBufferList = new MediaSource().sourceBuffers.constructor;
+      }
     }
 
     // This import is only needed for chrome debugging. We should provide an
