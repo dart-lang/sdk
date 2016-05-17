@@ -50,9 +50,11 @@ main(arguments) {
   var multitests = expandMultiTests(testDirs, filePattern);
 
   // Build packages tests depend on
-  var generatedSdkDir = path.join(testDirectory, '..', 'tool', 'generated_sdk');
+  var sdkSummaryFile =
+      path.join(testDirectory, '..', 'lib', 'runtime', 'dart_sdk.sum');
   var analyzerOptions = new AnalyzerOptions(
-      customUrlMappings: packageUrlMappings, dartSdkPath: generatedSdkDir);
+      customUrlMappings: packageUrlMappings,
+      dartSdkSummaryPath: sdkSummaryFile);
   var compiler = new ModuleCompiler(analyzerOptions);
 
   group('dartdevc package', () {
@@ -63,7 +65,14 @@ main(arguments) {
     });
 
     test('unittest', () {
-      _buildPackage(compiler, expectDir, "unittest");
+      // Only build files applicable to the web - html_*.dart and its
+      // internal dependences.
+      _buildPackage(compiler, expectDir, "unittest", packageFiles: [
+        'unittest.dart',
+        'html_config.dart',
+        'html_individual_config.dart',
+        'html_enhanced_config.dart'
+      ]);
     });
 
     test('stack_trace', () {
@@ -128,6 +137,8 @@ main(arguments) {
 
   if (codeCoverage) {
     test('build_sdk code coverage', () {
+      var generatedSdkDir =
+          path.join(testDirectory, '..', 'tool', 'generated_sdk');
       return build_sdk.main(['--dart-sdk', generatedSdkDir, '-o', expectDir]);
     });
   }
@@ -198,21 +209,33 @@ void _buildPackages(ModuleCompiler compiler, String expectDir) {
   }
 }
 
-void _buildPackage(ModuleCompiler compiler, String expectDir, packageName) {
+void _buildPackage(ModuleCompiler compiler, String expectDir, packageName,
+    {List<String> packageFiles}) {
   var options = new CompilerOptions(sourceMap: false, summarizeApi: false);
 
   var packageRoot = path.join(inputDir, 'packages');
   var packageInputDir = path.join(packageRoot, packageName);
-  var files = new Directory(packageInputDir).listSync(recursive: true);
+  List<String> files;
+  if (packageFiles != null) {
+    // Only collect files transitively reachable from packageFiles
+    var reachable = new Set<String>();
+    for (var f in packageFiles) {
+      f = path.join(packageInputDir, f);
+      _collectTransitiveImports(new File(f).readAsStringSync(), reachable,
+          packageRoot: packageRoot, from: f);
+    }
+    files = reachable.toList();
+  } else {
+    // Collect all files in the packages directory
+    files = new Directory(packageInputDir)
+        .listSync(recursive: true)
+        .where((entry) => entry.path.endsWith('.dart'))
+        .map((entry) => entry.path)
+        .toList();
+  }
 
-  var unit = new BuildUnit(
-      packageName,
-      packageInputDir,
-      files
-          .where((entry) => entry.path.endsWith('dart'))
-          .map((entry) => entry.path)
-          .toList(),
-      _moduleForLibrary);
+  var unit =
+      new BuildUnit(packageName, packageInputDir, files, _moduleForLibrary);
   var module = compiler.compile(unit, options);
 
   var outPath = path.join(expectDir, packageName, packageName);

@@ -8,7 +8,7 @@ author: Dart Dev Compiler team <dev-compiler@dartlang.org>
 homepage: https://github.com/dart-lang/dev_compiler
 
 dependencies:
-  analyzer: ^0.27.4-alpha.2
+  analyzer: ^0.27.4-alpha.6
   args: ^0.13.0
   bazel_worker: ^0.1.0
   cli_util: ^0.0.1

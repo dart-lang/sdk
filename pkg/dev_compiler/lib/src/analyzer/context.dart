@@ -21,6 +21,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart'
         InSummaryPackageUriResolver,
         InputPackagesResultProvider,
         SummaryDataStore;
+import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:path/path.dart' as path;
 
@@ -48,10 +49,15 @@ class AnalyzerOptions {
   /// be determined
   final String dartSdkPath;
 
+  /// Path to the dart-sdk summary.  If this is set, it will be used in favor
+  /// of the unsummarized one.
+  final String dartSdkSummaryPath;
+
   AnalyzerOptions(
       {this.summaryPaths: const [],
       this.useMockSdk: false,
       String dartSdkPath,
+      this.dartSdkSummaryPath,
       this.customUrlMappings: const {},
       this.packageRoot: 'packages/',
       this.packagePaths: const []})
@@ -61,6 +67,7 @@ class AnalyzerOptions {
       : summaryPaths = args['summary'],
         useMockSdk = false,
         dartSdkPath = args['dart-sdk'] ?? getSdkDir().path,
+        dartSdkSummaryPath = args['dart-sdk-summary'],
         customUrlMappings = _parseUrlMappings(args['url-mapping']),
         packageRoot = args['package-root'],
         packagePaths = args['package-paths']?.split(',') ?? [];
@@ -73,6 +80,8 @@ class AnalyzerOptions {
       ..addOption('summary',
           abbr: 's', help: 'summary file(s) to include', allowMultiple: true)
       ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
+      ..addOption('dart-sdk-summary',
+          help: 'Dart SDK Summary Path', defaultsTo: null)
       ..addOption('package-root',
           abbr: 'p',
           help: 'Package root to resolve "package:" imports',
@@ -106,7 +115,7 @@ AnalysisContext createAnalysisContextWithSources(AnalyzerOptions options,
 
   sdkResolver ??= options.useMockSdk
       ? createMockSdkResolver(mockSdkSources)
-      : createSdkPathResolver(options.dartSdkPath);
+      : createSdkPathResolver(options.dartSdkSummaryPath, options.dartSdkPath);
 
   // Read the summaries.
   SummaryDataStore summaryData;
@@ -174,11 +183,18 @@ List<UriResolver> createFileResolvers(AnalyzerOptions options) {
 DartUriResolver createMockSdkResolver(Map<String, String> mockSources) =>
     new MockDartSdk(mockSources, reportMissing: true).resolver;
 
-/// Creates a [DartUriResolver] that uses the SDK at the given [sdkPath].
-DartUriResolver createSdkPathResolver(String sdkPath) {
+DirectoryBasedDartSdk _createDirectoryBasedDartSdk(String sdkPath) {
   var sdk = new DirectoryBasedDartSdk(
       new JavaFile(sdkPath), /*useDart2jsPaths:*/ true);
   sdk.useSummary = true;
   sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
+  return sdk;
+}
+
+/// Creates a [DartUriResolver] that uses the SDK at the given [sdkPath].
+DartUriResolver createSdkPathResolver(String sdkSummaryPath, String sdkPath) {
+  var sdk = (sdkSummaryPath != null)
+      ? new SummaryBasedDartSdk(sdkSummaryPath, true)
+      : _createDirectoryBasedDartSdk(sdkPath);
   return new DartUriResolver(sdk);
 }
