@@ -5,9 +5,16 @@
 /// Helpers for Analyzer's Element model and corelib model.
 
 import 'package:analyzer/dart/ast/ast.dart'
-    show Expression, MethodInvocation, SimpleIdentifier;
+    show
+        ConstructorDeclaration,
+        Expression,
+        FunctionBody,
+        FunctionExpression,
+        MethodDeclaration,
+        MethodInvocation,
+        SimpleIdentifier;
 import 'package:analyzer/dart/element/element.dart'
-    show Element, FunctionElement;
+    show Element, ExecutableElement, FunctionElement;
 import 'package:analyzer/dart/element/type.dart'
     show DartType, InterfaceType, ParameterizedType;
 import 'package:analyzer/src/dart/element/type.dart' show DynamicTypeImpl;
@@ -81,6 +88,17 @@ bool isInlineJS(Element e) =>
     e.name == 'JS' &&
     e.library.isInSdk &&
     e.library.source.uri.toString() == 'dart:_foreign_helper';
+
+ExecutableElement getFunctionBodyElement(FunctionBody body) {
+  var f = body.parent;
+  if (f is FunctionExpression) {
+    return f.element;
+  } else if (f is MethodDeclaration) {
+    return f.element;
+  } else {
+    return (f as ConstructorDeclaration).element;
+  }
+}
 
 /// Returns the value of the `name` field from the [match]ing annotation on
 /// [element], or `null` if we didn't find a valid match or it was not a string.

@@ -466,6 +466,10 @@
       'chunked_conversion_utf8_test': skip_timeout,
       'encoding_test': skip_timeout,
 
+      // TODO(jmesserly): this is in an inconsistent state between our old and
+      // newer SDKs.
+      'html_escape_test': skip_fail,
+
       // TODO(rnystrom): If this test is enabled, karma gets confused and
       // disconnects randomly.
       'json_lib_test': skip_fail,

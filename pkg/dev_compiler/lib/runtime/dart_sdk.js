@@ -3406,6 +3406,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _interceptors.JSNumber._MAX_INT32 = 2147483647;
   dart.registerExtension(dart.global.Number, _interceptors.JSNumber);
   const _defaultSplit = Symbol('_defaultSplit');
+  let const$;
   dart.defineExtensionNames([
     'codeUnitAt',
     'allMatches',
@@ -3714,7 +3715,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (0 >= dart.notNull(times)) return '';
       if (times == 1 || this[dartx.length] == 0) return this;
       if (times != times >>> 0) {
-        dart.throw(dart.const(new core.OutOfMemoryError()));
+        dart.throw(const$ || (const$ = dart.const(new core.OutOfMemoryError())));
       }
       let result = '';
       let s = this;
@@ -14136,6 +14137,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _addPending = Symbol('_addPending');
   const _sendError = Symbol('_sendError');
   const _sendDone = Symbol('_sendDone');
+  let const$0;
   const _close$ = Symbol('_close');
   const _checkState = Symbol('_checkState');
   async._BufferingStreamSubscription$ = dart.generic(T => {
@@ -14294,7 +14296,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (dart.notNull(this[_canFire])) {
           this[_sendDone]();
         } else {
-          this[_addPending](dart.const(new async._DelayedDone()));
+          this[_addPending](const$0 || (const$0 = dart.const(new async._DelayedDone())));
         }
       }
       [_onPause]() {
@@ -14855,6 +14857,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return _SyncBroadcastStreamController;
   });
   async._SyncBroadcastStreamController = async._SyncBroadcastStreamController$();
+  let const$1;
   async._AsyncBroadcastStreamController$ = dart.generic(T => {
     class _AsyncBroadcastStreamController extends async._BroadcastStreamController$(T) {
       _AsyncBroadcastStreamController(onListen, onCancel) {
@@ -14874,7 +14877,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [_sendDone]() {
         if (!dart.notNull(this[_isEmpty])) {
           for (let subscription = this[_firstSubscription]; subscription != null; subscription = subscription[_next$]) {
-            subscription[_addPending](dart.const(new async._DelayedDone()));
+            subscription[_addPending](const$1 || (const$1 = dart.const(new async._DelayedDone())));
           }
         } else {
           dart.assert(this[_doneFuture] != null);
@@ -14895,6 +14898,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   async._AsyncBroadcastStreamController = async._AsyncBroadcastStreamController$();
   const _addPendingEvent = Symbol('_addPendingEvent');
+  let const$2;
   async._AsBroadcastStreamController$ = dart.generic(T => {
     class _AsBroadcastStreamController extends async._SyncBroadcastStreamController$(T) {
       _AsBroadcastStreamController(onListen, onCancel) {
@@ -14935,7 +14939,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       close() {
         if (!dart.notNull(this.isClosed) && dart.notNull(this[_isFiring])) {
-          this[_addPendingEvent](dart.const(new async._DelayedDone()));
+          this[_addPendingEvent](const$2 || (const$2 = dart.const(new async._DelayedDone())));
           this[_state] = (dart.notNull(this[_state]) | async._BroadcastStreamController._STATE_CLOSED) >>> 0;
           return super.done;
         }
@@ -15047,6 +15051,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({DeferredLoadException: [async.DeferredLoadException, [core.String]]})
   });
   const _completeWithValue = Symbol('_completeWithValue');
+  let const$3;
   async.Future$ = dart.generic(T => {
     class Future extends core.Object {
       static new(computation) {
@@ -15170,7 +15175,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
             }, dart.dynamic, [T]), {onError: handleError});
           }
           if (remaining == 0) {
-            return async.Future$(core.List$(T)).value(dart.const([]));
+            return async.Future$(core.List$(T)).value(const$3 || (const$3 = dart.const([])));
           }
           values = core.List$(T).new(remaining);
           return result;
@@ -16346,6 +16351,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _pendingEvents = Symbol('_pendingEvents');
   const _ensurePendingEvents = Symbol('_ensurePendingEvents');
   const _badEventState = Symbol('_badEventState');
+  let const$4;
   async._StreamController$ = dart.generic(T => {
     class _StreamController extends core.Object {
       _StreamController(onListen, onPause, onResume, onCancel) {
@@ -16465,7 +16471,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (dart.notNull(this.hasListener)) {
           this[_sendDone]();
         } else if (dart.notNull(this[_isInitialState])) {
-          this[_ensurePendingEvents]().add(dart.const(new async._DelayedDone()));
+          this[_ensurePendingEvents]().add(const$4 || (const$4 = dart.const(new async._DelayedDone())));
         }
       }
       [_add$](value) {
@@ -16619,6 +16625,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return _SyncStreamControllerDispatch;
   });
   async._SyncStreamControllerDispatch = async._SyncStreamControllerDispatch$();
+  let const$5;
   async._AsyncStreamControllerDispatch$ = dart.generic(T => {
     class _AsyncStreamControllerDispatch extends core.Object {
       [_sendData](data) {
@@ -16629,7 +16636,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_subscription][_addPending](new async._DelayedError(error, stackTrace));
       }
       [_sendDone]() {
-        this[_subscription][_addPending](dart.const(new async._DelayedDone()));
+        this[_subscription][_addPending](const$5 || (const$5 = dart.const(new async._DelayedDone())));
       }
     }
     _AsyncStreamControllerDispatch[dart.implements] = () => [async._StreamController$(T)];
@@ -19016,10 +19023,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     async.Zone.current.print(line);
   };
   dart.lazyFn(async._printToZone, () => [dart.void, [core.String]]);
+  let const$6;
   async._rootFork = function(self, parent, zone, specification, zoneValues) {
     _internal.printToZone = async._printToZone;
     if (specification == null) {
-      specification = dart.const(async.ZoneSpecification.new());
+      specification = const$6 || (const$6 = dart.const(async.ZoneSpecification.new()));
     } else if (!dart.is(specification, async._ZoneSpecification)) {
       dart.throw(new core.ArgumentError("ZoneSpecifications must be instantiated" + " with the provided constructor."));
     }
@@ -19036,48 +19044,61 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return new async._CustomZone(dart.as(zone, async._Zone), specification, valueMap);
   };
   dart.lazyFn(async._rootFork, () => [async.Zone, [async.Zone, async.ZoneDelegate, async.Zone, async.ZoneSpecification, core.Map]]);
+  let const$7;
+  let const$8;
+  let const$9;
+  let const$10;
+  let const$11;
+  let const$12;
+  let const$13;
+  let const$14;
+  let const$15;
+  let const$16;
+  let const$17;
+  let const$18;
+  let const$19;
   async._RootZone = class _RootZone extends async._Zone {
     _RootZone() {
       super._Zone();
     }
     get [_run]() {
-      return dart.const(new (async._ZoneFunction$(async.RunHandler))(async._ROOT_ZONE, dart.gbind(async._rootRun, dart.dynamic)));
+      return const$7 || (const$7 = dart.const(new (async._ZoneFunction$(async.RunHandler))(async._ROOT_ZONE, dart.gbind(async._rootRun, dart.dynamic))));
     }
     get [_runUnary]() {
-      return dart.const(new (async._ZoneFunction$(async.RunUnaryHandler))(async._ROOT_ZONE, dart.gbind(async._rootRunUnary, dart.dynamic, dart.dynamic)));
+      return const$8 || (const$8 = dart.const(new (async._ZoneFunction$(async.RunUnaryHandler))(async._ROOT_ZONE, dart.gbind(async._rootRunUnary, dart.dynamic, dart.dynamic))));
     }
     get [_runBinary]() {
-      return dart.const(new (async._ZoneFunction$(async.RunBinaryHandler))(async._ROOT_ZONE, dart.gbind(async._rootRunBinary, dart.dynamic, dart.dynamic, dart.dynamic)));
+      return const$9 || (const$9 = dart.const(new (async._ZoneFunction$(async.RunBinaryHandler))(async._ROOT_ZONE, dart.gbind(async._rootRunBinary, dart.dynamic, dart.dynamic, dart.dynamic))));
     }
     get [_registerCallback]() {
-      return dart.const(new (async._ZoneFunction$(async.RegisterCallbackHandler))(async._ROOT_ZONE, dart.gbind(async._rootRegisterCallback, dart.dynamic)));
+      return const$10 || (const$10 = dart.const(new (async._ZoneFunction$(async.RegisterCallbackHandler))(async._ROOT_ZONE, dart.gbind(async._rootRegisterCallback, dart.dynamic))));
     }
     get [_registerUnaryCallback]() {
-      return dart.const(new (async._ZoneFunction$(async.RegisterUnaryCallbackHandler))(async._ROOT_ZONE, dart.gbind(async._rootRegisterUnaryCallback, dart.dynamic, dart.dynamic)));
+      return const$11 || (const$11 = dart.const(new (async._ZoneFunction$(async.RegisterUnaryCallbackHandler))(async._ROOT_ZONE, dart.gbind(async._rootRegisterUnaryCallback, dart.dynamic, dart.dynamic))));
     }
     get [_registerBinaryCallback]() {
-      return dart.const(new (async._ZoneFunction$(async.RegisterBinaryCallbackHandler))(async._ROOT_ZONE, dart.gbind(async._rootRegisterBinaryCallback, dart.dynamic, dart.dynamic, dart.dynamic)));
+      return const$12 || (const$12 = dart.const(new (async._ZoneFunction$(async.RegisterBinaryCallbackHandler))(async._ROOT_ZONE, dart.gbind(async._rootRegisterBinaryCallback, dart.dynamic, dart.dynamic, dart.dynamic))));
     }
     get [_errorCallback]() {
-      return dart.const(new (async._ZoneFunction$(async.ErrorCallbackHandler))(async._ROOT_ZONE, async._rootErrorCallback));
+      return const$13 || (const$13 = dart.const(new (async._ZoneFunction$(async.ErrorCallbackHandler))(async._ROOT_ZONE, async._rootErrorCallback)));
     }
     get [_scheduleMicrotask]() {
-      return dart.const(new (async._ZoneFunction$(async.ScheduleMicrotaskHandler))(async._ROOT_ZONE, async._rootScheduleMicrotask));
+      return const$14 || (const$14 = dart.const(new (async._ZoneFunction$(async.ScheduleMicrotaskHandler))(async._ROOT_ZONE, async._rootScheduleMicrotask)));
     }
     get [_createTimer]() {
-      return dart.const(new (async._ZoneFunction$(async.CreateTimerHandler))(async._ROOT_ZONE, async._rootCreateTimer));
+      return const$15 || (const$15 = dart.const(new (async._ZoneFunction$(async.CreateTimerHandler))(async._ROOT_ZONE, async._rootCreateTimer)));
     }
     get [_createPeriodicTimer]() {
-      return dart.const(new (async._ZoneFunction$(async.CreatePeriodicTimerHandler))(async._ROOT_ZONE, async._rootCreatePeriodicTimer));
+      return const$16 || (const$16 = dart.const(new (async._ZoneFunction$(async.CreatePeriodicTimerHandler))(async._ROOT_ZONE, async._rootCreatePeriodicTimer)));
     }
     get [_print]() {
-      return dart.const(new (async._ZoneFunction$(async.PrintHandler))(async._ROOT_ZONE, async._rootPrint));
+      return const$17 || (const$17 = dart.const(new (async._ZoneFunction$(async.PrintHandler))(async._ROOT_ZONE, async._rootPrint)));
     }
     get [_fork]() {
-      return dart.const(new (async._ZoneFunction$(async.ForkHandler))(async._ROOT_ZONE, async._rootFork));
+      return const$18 || (const$18 = dart.const(new (async._ZoneFunction$(async.ForkHandler))(async._ROOT_ZONE, async._rootFork)));
     }
     get [_handleUncaughtError]() {
-      return dart.const(new (async._ZoneFunction$(async.HandleUncaughtErrorHandler))(async._ROOT_ZONE, dart.gbind(async._rootHandleUncaughtError, dart.dynamic)));
+      return const$19 || (const$19 = dart.const(new (async._ZoneFunction$(async.HandleUncaughtErrorHandler))(async._ROOT_ZONE, dart.gbind(async._rootHandleUncaughtError, dart.dynamic))));
     }
     get parent() {
       return null;
@@ -24767,6 +24788,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({_JsonDecoderSink: [convert._JsonDecoderSink, [convert._Reviver, core.Sink$(core.Object)]]})
   });
   const _allowInvalid = Symbol('_allowInvalid');
+  let const$20;
+  let const$21;
+  let const$22;
+  let const$23;
+  let const$24;
   convert.Codec$ = dart.generic((S, T) => {
     class Codec extends core.Object {
       Codec() {
@@ -24979,16 +25005,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : null;
       if (allowInvalid == null) allowInvalid = this[_allowInvalid];
       if (dart.notNull(allowInvalid)) {
-        return dart.const(new convert.AsciiDecoder({allowInvalid: true})).convert(bytes);
+        return (const$20 || (const$20 = dart.const(new convert.AsciiDecoder({allowInvalid: true})))).convert(bytes);
       } else {
-        return dart.const(new convert.AsciiDecoder({allowInvalid: false})).convert(bytes);
+        return (const$21 || (const$21 = dart.const(new convert.AsciiDecoder({allowInvalid: false})))).convert(bytes);
       }
     }
     get encoder() {
-      return dart.const(new convert.AsciiEncoder());
+      return const$22 || (const$22 = dart.const(new convert.AsciiEncoder()));
     }
     get decoder() {
-      return dart.notNull(this[_allowInvalid]) ? dart.const(new convert.AsciiDecoder({allowInvalid: true})) : dart.const(new convert.AsciiDecoder({allowInvalid: false}));
+      return dart.notNull(this[_allowInvalid]) ? const$23 || (const$23 = dart.const(new convert.AsciiDecoder({allowInvalid: true}))) : const$24 || (const$24 = dart.const(new convert.AsciiDecoder({allowInvalid: false})));
     }
   };
   dart.setSignature(convert.AsciiCodec, {
@@ -25175,6 +25201,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     methods: () => ({startChunkedConversion: [convert.ByteConversionSink, [core.Sink$(core.String)]]})
   });
   const _utf8Sink = Symbol('_utf8Sink');
+  let const$25;
   convert.ChunkedConversionSink$ = dart.generic(T => {
     class ChunkedConversionSink extends core.Object {
       ChunkedConversionSink() {
@@ -25238,7 +25265,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
         if ((dart.notNull(source[dartx.get](i)) & ~convert._ASCII_MASK) >>> 0 != 0) {
           if (dart.notNull(i) > dart.notNull(start)) this[_utf8Sink].addSlice(source, start, i, false);
-          this[_utf8Sink].add(dart.const(dart.list([239, 191, 189], core.int)));
+          this[_utf8Sink].add(const$25 || (const$25 = dart.const(dart.list([239, 191, 189], core.int))));
           start = dart.notNull(i) + 1;
         }
       }
@@ -25324,21 +25351,24 @@ dart_library.library('dart_sdk', null, /* Imports */[
       startChunkedConversion: [convert.ByteConversionSink, [core.Sink$(core.String)]]
     })
   });
+  let const$26;
   const _encoder = Symbol('_encoder');
+  let const$27;
+  let const$28;
   convert.Base64Codec = class Base64Codec extends convert.Codec$(core.List$(core.int), core.String) {
     Base64Codec() {
-      this[_encoder] = dart.const(new convert.Base64Encoder());
+      this[_encoder] = const$26 || (const$26 = dart.const(new convert.Base64Encoder()));
       super.Codec();
     }
     urlSafe() {
-      this[_encoder] = dart.const(new convert.Base64Encoder.urlSafe());
+      this[_encoder] = const$27 || (const$27 = dart.const(new convert.Base64Encoder.urlSafe()));
       super.Codec();
     }
     get encoder() {
       return this[_encoder];
     }
     get decoder() {
-      return dart.const(new convert.Base64Decoder());
+      return const$28 || (const$28 = dart.const(new convert.Base64Decoder()));
     }
   };
   dart.defineNamedConstructor(convert.Base64Codec, 'urlSafe');
@@ -26113,6 +26143,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   convert._FusedConverter = convert._FusedConverter$();
   const _name$0 = Symbol('_name');
+  let const$29;
+  let const$30;
+  let const$31;
+  let const$32;
+  let const$33;
+  let const$34;
+  let const$35;
+  let const$36;
   convert.HtmlEscapeMode = class HtmlEscapeMode extends core.Object {
     _(name, escapeLtGt, escapeQuot, escapeApos, escapeSlash) {
       this[_name$0] = name;
@@ -26146,16 +26184,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   dart.defineLazy(convert.HtmlEscapeMode, {
     get UNKNOWN() {
-      return dart.const(new convert.HtmlEscapeMode._('unknown', true, true, true, true));
+      return const$33 || (const$33 = dart.const(new convert.HtmlEscapeMode._('unknown', true, true, true, true)));
     },
     get ATTRIBUTE() {
-      return dart.const(new convert.HtmlEscapeMode._('attribute', true, true, false, false));
+      return const$34 || (const$34 = dart.const(new convert.HtmlEscapeMode._('attribute', true, true, false, false)));
     },
     get SQ_ATTRIBUTE() {
-      return dart.const(new convert.HtmlEscapeMode._('attribute', true, false, true, false));
+      return const$35 || (const$35 = dart.const(new convert.HtmlEscapeMode._('attribute', true, false, true, false)));
     },
     get ELEMENT() {
-      return dart.const(new convert.HtmlEscapeMode._('element', true, false, false, false));
+      return const$36 || (const$36 = dart.const(new convert.HtmlEscapeMode._('element', true, false, false, false)));
     }
   });
   const _convert = Symbol('_convert');
@@ -26289,6 +26327,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({JsonCyclicError: [convert.JsonCyclicError, [core.Object]]})
   });
   const _toEncodable = Symbol('_toEncodable');
+  let const$37;
+  let const$38;
   convert.JsonCodec = class JsonCodec extends convert.Codec$(core.Object, core.String) {
     JsonCodec(opts) {
       let reviver = opts && 'reviver' in opts ? opts.reviver : null;
@@ -26313,11 +26353,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return new convert.JsonEncoder(toEncodable).convert(value);
     }
     get encoder() {
-      if (this[_toEncodable] == null) return dart.const(new convert.JsonEncoder());
+      if (this[_toEncodable] == null) return const$37 || (const$37 = dart.const(new convert.JsonEncoder()));
       return new convert.JsonEncoder(this[_toEncodable]);
     }
     get decoder() {
-      if (this[_reviver] == null) return dart.const(new convert.JsonDecoder());
+      if (this[_reviver] == null) return const$38 || (const$38 = dart.const(new convert.JsonDecoder()));
       return new convert.JsonDecoder(this[_reviver]);
     }
   };
@@ -27040,6 +27080,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     constructors: () => ({_JsonUtf8StringifierPretty: [convert._JsonUtf8StringifierPretty, [dart.functionType(dart.dynamic, [dart.dynamic]), core.List$(core.int), dart.dynamic, dart.functionType(dart.void, [typed_data.Uint8List, core.int, core.int])]]}),
     methods: () => ({writeIndentation: [dart.void, [core.int]]})
   });
+  let const$39;
+  let const$40;
+  let const$41;
+  let const$42;
+  let const$43;
   convert.Latin1Codec = class Latin1Codec extends convert.Encoding {
     Latin1Codec(opts) {
       let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : false;
@@ -27053,16 +27098,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : null;
       if (allowInvalid == null) allowInvalid = this[_allowInvalid];
       if (dart.notNull(allowInvalid)) {
-        return dart.const(new convert.Latin1Decoder({allowInvalid: true})).convert(bytes);
+        return (const$39 || (const$39 = dart.const(new convert.Latin1Decoder({allowInvalid: true})))).convert(bytes);
       } else {
-        return dart.const(new convert.Latin1Decoder({allowInvalid: false})).convert(bytes);
+        return (const$40 || (const$40 = dart.const(new convert.Latin1Decoder({allowInvalid: false})))).convert(bytes);
       }
     }
     get encoder() {
-      return dart.const(new convert.Latin1Encoder());
+      return const$41 || (const$41 = dart.const(new convert.Latin1Encoder()));
     }
     get decoder() {
-      return dart.notNull(this[_allowInvalid]) ? dart.const(new convert.Latin1Decoder({allowInvalid: true})) : dart.const(new convert.Latin1Decoder({allowInvalid: false}));
+      return dart.notNull(this[_allowInvalid]) ? const$42 || (const$42 = dart.const(new convert.Latin1Decoder({allowInvalid: true}))) : const$43 || (const$43 = dart.const(new convert.Latin1Decoder({allowInvalid: false})));
     }
   };
   dart.setSignature(convert.Latin1Codec, {
@@ -27156,6 +27201,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }),
     names: ['_checkValidLatin1', '_reportInvalidLatin1']
   });
+  let const$44;
   convert._Latin1AllowInvalidDecoderSink = class _Latin1AllowInvalidDecoderSink extends convert._Latin1DecoderSink {
     _Latin1AllowInvalidDecoderSink(sink) {
       super._Latin1DecoderSink(sink);
@@ -27166,7 +27212,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let char = source[dartx.get](i);
         if (dart.notNull(char) > convert._LATIN1_MASK || dart.notNull(char) < 0) {
           if (dart.notNull(i) > dart.notNull(start)) this[_addSliceToSink](source, start, i, false);
-          this[_addSliceToSink](dart.const(dart.list([65533], core.int)), 0, 1, false);
+          this[_addSliceToSink](const$44 || (const$44 = dart.const(dart.list([65533], core.int))), 0, 1, false);
           start = dart.notNull(i) + 1;
         }
       }
@@ -27582,6 +27628,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   convert.UNICODE_REPLACEMENT_CHARACTER_RUNE = 65533;
   convert.UNICODE_BOM_CHARACTER_RUNE = 65279;
   const _allowMalformed = Symbol('_allowMalformed');
+  let const$45;
   convert.Utf8Codec = class Utf8Codec extends convert.Encoding {
     Utf8Codec(opts) {
       let allowMalformed = opts && 'allowMalformed' in opts ? opts.allowMalformed : false;
@@ -27597,7 +27644,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return new convert.Utf8Decoder({allowMalformed: allowMalformed}).convert(codeUnits);
     }
     get encoder() {
-      return dart.const(new convert.Utf8Encoder());
+      return const$45 || (const$45 = dart.const(new convert.Utf8Encoder()));
     }
     get decoder() {
       return new convert.Utf8Decoder({allowMalformed: this[_allowMalformed]});
@@ -29741,6 +29788,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _queryParameters = Symbol('_queryParameters');
   const _queryParameterLists = Symbol('_queryParameterLists');
   const _writeAuthority = Symbol('_writeAuthority');
+  let const$46;
   const _mergePaths = Symbol('_mergePaths');
   const _toWindowsFilePath = Symbol('_toWindowsFilePath');
   const _toFilePath = Symbol('_toFilePath');
@@ -30243,7 +30291,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (dart.notNull(pathToSplit[dartx.isNotEmpty]) && pathToSplit[dartx.codeUnitAt](0) == core.Uri._SLASH) {
         pathToSplit = pathToSplit[dartx.substring](1);
       }
-      result = pathToSplit == "" ? dart.const(dart.list([], core.String)) : core.List$(core.String).unmodifiable(pathToSplit[dartx.split]("/")[dartx.map](core.String)(core.Uri.decodeComponent));
+      result = pathToSplit == "" ? const$46 || (const$46 = dart.const(dart.list([], core.String))) : core.List$(core.String).unmodifiable(pathToSplit[dartx.split]("/")[dartx.map](core.String)(core.Uri.decodeComponent));
       this[_pathSegments] = result;
       return result;
     }
@@ -32619,10 +32667,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return Point;
   });
   math.Point = math.Point$();
+  let const$47;
   math.Random = class Random extends core.Object {
     static new(seed) {
       if (seed === void 0) seed = null;
-      return seed == null ? dart.const(new math._JSRandom()) : new math._Random(seed);
+      return seed == null ? const$47 || (const$47 = dart.const(new math._JSRandom())) : new math._Random(seed);
     }
     static secure() {
       return math.Random._secureRandom;
@@ -40748,6 +40797,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _getPropertyValue = Symbol('_getPropertyValue');
   const _setPropertyHelper = Symbol('_setPropertyHelper');
   const _browserPropertyName = Symbol('_browserPropertyName');
+  let const$48;
   const _background = Symbol('_background');
   const _backgroundAttachment = Symbol('_backgroundAttachment');
   const _backgroundColor = Symbol('_backgroundColor');
@@ -44505,7 +44555,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static _camelCase(hyphenated) {
       let replacedMs = hyphenated.replace(/^-ms-/, "ms-");
-      let fToUpper = dart.const(new _foreign_helper.JS_CONST('function(_, letter) { return letter.toUpperCase(); }'));
+      let fToUpper = const$48 || (const$48 = dart.const(new _foreign_helper.JS_CONST('function(_, letter) { return letter.toUpperCase(); }')));
       return replacedMs.replace(/-([\da-z])/ig, fToUpper);
     }
     [_setPropertyHelper](propertyName, value, priority) {
@@ -71997,15 +72047,25 @@ dart_library.library('dart_sdk', null, /* Imports */[
       allowsAttribute: [core.bool, [html$.Element, core.String, core.String]]
     })
   });
+  let const$49;
+  let const$50;
+  let const$51;
+  let const$52;
+  let const$53;
+  let const$54;
+  let const$55;
+  let const$56;
+  let const$57;
+  let const$58;
   html$._SimpleNodeValidator = class _SimpleNodeValidator extends core.Object {
     static allowNavigation(uriPolicy) {
-      return new html$._SimpleNodeValidator(uriPolicy, {allowedElements: dart.const(dart.list(['A', 'FORM'], core.String)), allowedAttributes: dart.const(dart.list(['A::accesskey', 'A::coords', 'A::hreflang', 'A::name', 'A::shape', 'A::tabindex', 'A::target', 'A::type', 'FORM::accept', 'FORM::autocomplete', 'FORM::enctype', 'FORM::method', 'FORM::name', 'FORM::novalidate', 'FORM::target'], core.String)), allowedUriAttributes: dart.const(dart.list(['A::href', 'FORM::action'], core.String))});
+      return new html$._SimpleNodeValidator(uriPolicy, {allowedElements: const$49 || (const$49 = dart.const(dart.list(['A', 'FORM'], core.String))), allowedAttributes: const$50 || (const$50 = dart.const(dart.list(['A::accesskey', 'A::coords', 'A::hreflang', 'A::name', 'A::shape', 'A::tabindex', 'A::target', 'A::type', 'FORM::accept', 'FORM::autocomplete', 'FORM::enctype', 'FORM::method', 'FORM::name', 'FORM::novalidate', 'FORM::target'], core.String))), allowedUriAttributes: const$51 || (const$51 = dart.const(dart.list(['A::href', 'FORM::action'], core.String)))});
     }
     static allowImages(uriPolicy) {
-      return new html$._SimpleNodeValidator(uriPolicy, {allowedElements: dart.const(dart.list(['IMG'], core.String)), allowedAttributes: dart.const(dart.list(['IMG::align', 'IMG::alt', 'IMG::border', 'IMG::height', 'IMG::hspace', 'IMG::ismap', 'IMG::name', 'IMG::usemap', 'IMG::vspace', 'IMG::width'], core.String)), allowedUriAttributes: dart.const(dart.list(['IMG::src'], core.String))});
+      return new html$._SimpleNodeValidator(uriPolicy, {allowedElements: const$52 || (const$52 = dart.const(dart.list(['IMG'], core.String))), allowedAttributes: const$53 || (const$53 = dart.const(dart.list(['IMG::align', 'IMG::alt', 'IMG::border', 'IMG::height', 'IMG::hspace', 'IMG::ismap', 'IMG::name', 'IMG::usemap', 'IMG::vspace', 'IMG::width'], core.String))), allowedUriAttributes: const$54 || (const$54 = dart.const(dart.list(['IMG::src'], core.String)))});
     }
     static allowTextElements() {
-      return new html$._SimpleNodeValidator(null, {allowedElements: dart.const(dart.list(['B', 'BLOCKQUOTE', 'BR', 'EM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'I', 'LI', 'OL', 'P', 'SPAN', 'UL'], core.String))});
+      return new html$._SimpleNodeValidator(null, {allowedElements: const$55 || (const$55 = dart.const(dart.list(['B', 'BLOCKQUOTE', 'BR', 'EM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'I', 'LI', 'OL', 'P', 'SPAN', 'UL'], core.String)))});
     }
     _SimpleNodeValidator(uriPolicy, opts) {
       let allowedElements = opts && 'allowedElements' in opts ? opts.allowedElements : null;
@@ -72015,9 +72075,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.allowedAttributes = core.Set$(core.String).new();
       this.allowedUriAttributes = core.Set$(core.String).new();
       this.uriPolicy = uriPolicy;
-      this.allowedElements.addAll((allowedElements != null ? allowedElements : dart.const(dart.list([], core.String))));
-      allowedAttributes = allowedAttributes != null ? allowedAttributes : dart.const(dart.list([], core.String));
-      allowedUriAttributes = allowedUriAttributes != null ? allowedUriAttributes : dart.const(dart.list([], core.String));
+      this.allowedElements.addAll((allowedElements != null ? allowedElements : const$56 || (const$56 = dart.const(dart.list([], core.String)))));
+      allowedAttributes = allowedAttributes != null ? allowedAttributes : const$57 || (const$57 = dart.const(dart.list([], core.String)));
+      allowedUriAttributes = allowedUriAttributes != null ? allowedUriAttributes : const$58 || (const$58 = dart.const(dart.list([], core.String)));
       let legalAttributes = allowedAttributes[dartx.where](dart.fn(x => !dart.notNull(html$._Html5NodeValidator._uriAttributes[dartx.contains](x)), core.bool, [core.String]));
       let extraUriAttributes = allowedAttributes[dartx.where](dart.fn(x => html$._Html5NodeValidator._uriAttributes[dartx.contains](x), core.bool, [core.String]));
       this.allowedAttributes.addAll(legalAttributes);

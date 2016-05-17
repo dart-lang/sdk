@@ -150,7 +150,11 @@ class NodeModuleBuilder extends _ModuleBuilder {
 
 /// Escape [name] to make it into a valid identifier.
 String pathToJSIdentifier(String name) {
-  name = path.basenameWithoutExtension(name);
+  return toJSIdentifier(path.basenameWithoutExtension(name));
+}
+
+/// Escape [name] to make it into a valid identifier.
+String toJSIdentifier(String name) {
   if (name.length == 0) return r'$';
 
   // Escape any invalid characters

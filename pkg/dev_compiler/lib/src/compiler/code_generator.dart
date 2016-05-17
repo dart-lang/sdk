@@ -127,6 +127,8 @@ class CodeGenerator extends GeneralizingAstVisitor
   List<JS.TemporaryId> _superHelperSymbols = <JS.TemporaryId>[];
   List<JS.Method> _superHelpers = <JS.Method>[];
 
+  List<TypeParameterType> _typeParamInConst = null;
+
   /// Whether we are currently generating code for the body of a `JS()` call.
   bool _isInForeignJS = false;
 
@@ -2307,6 +2309,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
 
     if (type is TypeParameterType) {
+      _typeParamInConst?.add(type);
       return new JS.Identifier(name);
     }
 
@@ -3392,9 +3395,22 @@ class CodeGenerator extends GeneralizingAstVisitor
   }
 
   JS.Expression _emitConst(JS.Expression expr()) {
-    // TODO(jmesserly): emit the constants at top level if possible.
-    // This wasn't quite working, so disabled for now.
-    return js.call('dart.const(#)', expr());
+    var savedTypeParams = _typeParamInConst;
+    _typeParamInConst = [];
+
+    var jsExpr = js.call('dart.const(#)', expr());
+
+    bool usesTypeParams = _typeParamInConst.isNotEmpty;
+    _typeParamInConst = savedTypeParams;
+
+    // TODO(jmesserly): if it uses type params we can still hoist it up as far
+    // as it will go, e.g. at the level the generic class is defined where type
+    // params are available.
+    if (_currentFunction == null || usesTypeParams) return jsExpr;
+
+    var temp = new JS.TemporaryId('const');
+    _moduleItems.add(js.statement('let #;', [temp]));
+    return js.call('# || (# = #)', [temp, temp, jsExpr]);
   }
 
   /// Returns a new expression, which can be be used safely *once* on the

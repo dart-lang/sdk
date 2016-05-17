@@ -81,13 +81,14 @@ dart_library.library('DeltaBlue', null, /* Imports */[
   dart.setSignature(DeltaBlue$.DeltaBlue, {
     constructors: () => ({DeltaBlue: [DeltaBlue$.DeltaBlue, []]})
   });
+  let const$;
   DeltaBlue$.Strength = class Strength extends core.Object {
     Strength(value, name) {
       this.value = value;
       this.name = name;
     }
     nextWeaker() {
-      return dart.const(dart.list([DeltaBlue$.STRONG_PREFERRED, DeltaBlue$.PREFERRED, DeltaBlue$.STRONG_DEFAULT, DeltaBlue$.NORMAL, DeltaBlue$.WEAK_DEFAULT, DeltaBlue$.WEAKEST], DeltaBlue$.Strength))[dartx.get](this.value);
+      return (const$ || (const$ = dart.const(dart.list([DeltaBlue$.STRONG_PREFERRED, DeltaBlue$.PREFERRED, DeltaBlue$.STRONG_DEFAULT, DeltaBlue$.NORMAL, DeltaBlue$.WEAK_DEFAULT, DeltaBlue$.WEAKEST], DeltaBlue$.Strength))))[dartx.get](this.value);
     }
     static stronger(s1, s2) {
       return dart.notNull(s1.value) < dart.notNull(s2.value);
