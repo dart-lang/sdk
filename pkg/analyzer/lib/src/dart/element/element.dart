@@ -422,6 +422,16 @@ class ClassElementImpl extends ElementImpl
   ElementKind get kind => ElementKind.CLASS;
 
   @override
+  List<ElementAnnotation> get metadata {
+    if (_unlinkedClass != null) {
+      return _metadata ??= _unlinkedClass.annotations
+          .map(resynthesizerContext.buildAnnotation)
+          .toList();
+    }
+    return super.metadata;
+  }
+
+  @override
   List<MethodElement> get methods => _methods;
 
   /**
@@ -1238,9 +1248,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
    */
   List<ElementAnnotation> getAnnotations(int offset) {
     if (annotationMap == null) {
-      return ElementAnnotation.EMPTY_LIST;
+      return const <ElementAnnotation>[];
     }
-    return annotationMap[offset] ?? ElementAnnotation.EMPTY_LIST;
+    return annotationMap[offset] ?? const <ElementAnnotation>[];
   }
 
   @override
@@ -1878,7 +1888,7 @@ abstract class ElementImpl implements Element {
   /**
    * A list containing all of the metadata associated with this element.
    */
-  List<ElementAnnotation> metadata = ElementAnnotation.EMPTY_LIST;
+  List<ElementAnnotation> _metadata;
 
   /**
    * A cached copy of the calculated hashCode for this element.
@@ -2084,6 +2094,15 @@ abstract class ElementImpl implements Element {
       _cachedLocation = new ElementLocationImpl.con1(this);
     }
     return _cachedLocation;
+  }
+
+  List<ElementAnnotation> get metadata {
+    return _metadata ?? const <ElementAnnotation>[];
+  }
+
+  void set metadata(List<ElementAnnotation> metadata) {
+    assert(resynthesizerContext == null);
+    _metadata = metadata;
   }
 
   @override
@@ -2708,6 +2727,16 @@ abstract class ExecutableElementImpl extends ElementImpl
   }
 
   @override
+  List<ElementAnnotation> get metadata {
+    if (serializedExecutable != null) {
+      return _metadata ??= serializedExecutable.annotations
+          .map(resynthesizerContext.buildAnnotation)
+          .toList();
+    }
+    return super.metadata;
+  }
+
+  @override
   String get name {
     if (serializedExecutable != null) {
       return serializedExecutable.name;
@@ -3196,6 +3225,16 @@ class FunctionTypeAliasElementImpl extends ElementImpl
 
   @override
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
+
+  @override
+  List<ElementAnnotation> get metadata {
+    if (_unlinkedTypedef != null) {
+      return _metadata ??= _unlinkedTypedef.annotations
+          .map(resynthesizerContext.buildAnnotation)
+          .toList();
+    }
+    return super.metadata;
+  }
 
   @override
   String get name {
@@ -4441,7 +4480,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   ElementLocation get location => null;
 
   @override
-  List<ElementAnnotation> get metadata => ElementAnnotation.EMPTY_LIST;
+  List<ElementAnnotation> get metadata => const <ElementAnnotation>[];
 
   @override
   String get name => _name;
@@ -5068,6 +5107,11 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
  */
 abstract class ResynthesizerContext {
   /**
+   * Build [ElementAnnotationImpl] for the given [UnlinkedConst].
+   */
+  ElementAnnotationImpl buildAnnotation(UnlinkedConst uc);
+
+  /**
    * Resolve an [EntityRef] into a type.  If the reference is
    * unresolved, return [DynamicTypeImpl.instance].
    *
@@ -5267,6 +5311,16 @@ class TypeParameterElementImpl extends ElementImpl
 
   @override
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
+
+  @override
+  List<ElementAnnotation> get metadata {
+    if (_unlinkedTypeParam != null) {
+      return _metadata ??= _unlinkedTypeParam.annotations
+          .map(resynthesizerContext.buildAnnotation)
+          .toList();
+    }
+    return super.metadata;
+  }
 
   @override
   String get name {

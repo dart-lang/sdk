@@ -1557,6 +1557,11 @@ class _ResynthesizerContext implements ResynthesizerContext {
   _ResynthesizerContext(this._unitResynthesizer);
 
   @override
+  ElementAnnotationImpl buildAnnotation(UnlinkedConst uc) {
+    return _unitResynthesizer.buildAnnotation(uc);
+  }
+
+  @override
   DartType resolveTypeRef(
       EntityRef type, TypeParameterizedElementMixin typeParameterContext,
       {bool defaultVoid: false, bool instantiateToBoundsAllowed: true}) {
@@ -1690,36 +1695,40 @@ class _UnitResynthesizer {
   TypeProvider get typeProvider => summaryResynthesizer.typeProvider;
 
   /**
+   * Build [ElementAnnotationImpl] for the given [UnlinkedConst].
+   */
+  ElementAnnotationImpl buildAnnotation(UnlinkedConst uc) {
+    ElementAnnotationImpl elementAnnotation = new ElementAnnotationImpl(unit);
+    Expression constExpr = _buildConstExpression(uc);
+    if (constExpr is Identifier) {
+      elementAnnotation.element = constExpr.staticElement;
+      elementAnnotation.annotationAst = AstFactory.annotation(constExpr);
+    } else if (constExpr is InstanceCreationExpression) {
+      elementAnnotation.element = constExpr.staticElement;
+      Identifier typeName = constExpr.constructorName.type.name;
+      SimpleIdentifier constructorName = constExpr.constructorName.name;
+      if (typeName is SimpleIdentifier && constructorName != null) {
+        // E.g. `@cls.ctor()`.  Since `cls.ctor` would have been parsed as
+        // a PrefixedIdentifier, we need to resynthesize it as one.
+        typeName = AstFactory.identifier(typeName, constructorName);
+        constructorName = null;
+      }
+      elementAnnotation.annotationAst = AstFactory.annotation2(
+          typeName, constructorName, constExpr.argumentList);
+    } else {
+      throw new StateError(
+          'Unexpected annotation type: ${constExpr.runtimeType}');
+    }
+    return elementAnnotation;
+  }
+
+  /**
    * Build the annotations for the given [element].
    */
   void buildAnnotations(
       ElementImpl element, List<UnlinkedConst> serializedAnnotations) {
     if (serializedAnnotations.isNotEmpty) {
-      element.metadata = serializedAnnotations.map((UnlinkedConst a) {
-        ElementAnnotationImpl elementAnnotation =
-            new ElementAnnotationImpl(this.unit);
-        Expression constExpr = _buildConstExpression(a);
-        if (constExpr is Identifier) {
-          elementAnnotation.element = constExpr.staticElement;
-          elementAnnotation.annotationAst = AstFactory.annotation(constExpr);
-        } else if (constExpr is InstanceCreationExpression) {
-          elementAnnotation.element = constExpr.staticElement;
-          Identifier typeName = constExpr.constructorName.type.name;
-          SimpleIdentifier constructorName = constExpr.constructorName.name;
-          if (typeName is SimpleIdentifier && constructorName != null) {
-            // E.g. `@cls.ctor()`.  Since `cls.ctor` would have been parsed as
-            // a PrefixedIdentifier, we need to resynthesize it as one.
-            typeName = AstFactory.identifier(typeName, constructorName);
-            constructorName = null;
-          }
-          elementAnnotation.annotationAst = AstFactory.annotation2(
-              typeName, constructorName, constExpr.argumentList);
-        } else {
-          throw new StateError(
-              'Unexpected annotation type: ${constExpr.runtimeType}');
-        }
-        return elementAnnotation;
-      }).toList();
+      element.metadata = serializedAnnotations.map(buildAnnotation).toList();
     }
   }
 
@@ -1822,7 +1831,6 @@ class _UnitResynthesizer {
     // TODO(scheglov) move to ClassElementImpl
     correspondingType.typeArguments = classElement.typeParameterTypes;
     classElement.type = correspondingType;
-    buildAnnotations(classElement, serializedClass.annotations);
     assert(currentTypeParameters.isEmpty);
     // TODO(scheglov) Somehow Observatory shows too much time spent here
     // during DDC run on the large codebase. I would expect only Object here.
@@ -2116,7 +2124,6 @@ class _UnitResynthesizer {
     }
     executableElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
         executableElement, null, getCurrentTypeArguments(skipLevels: 1), false);
-    buildAnnotations(executableElement, serializedExecutable.annotations);
     executableElement.functions =
         serializedExecutable.localFunctions.map(buildLocalFunction).toList();
     executableElement.labels =
@@ -2449,7 +2456,6 @@ class _UnitResynthesizer {
         serializedTypedef.returnType, _currentTypeParameterizedElement);
     functionTypeAliasElement.type =
         new FunctionTypeImpl.forTypedef(functionTypeAliasElement);
-    buildAnnotations(functionTypeAliasElement, serializedTypedef.annotations);
     unitHolder.addTypeAlias(functionTypeAliasElement);
     currentTypeParameters.removeLast();
     assert(currentTypeParameters.isEmpty);

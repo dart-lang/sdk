@@ -674,11 +674,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     expect(resynthesized.documentationComment, original.documentationComment,
         reason: desc);
     expect(resynthesized.docRange, original.docRange, reason: desc);
-    // TODO(scheglov) restore testing annotations for type parameters
-    // after finishing moving resynthesizing to Impl.
-    if (original is! TypeParameterElement) {
-      compareMetadata(resynthesized.metadata, original.metadata, desc);
-    }
+    compareMetadata(resynthesized.metadata, original.metadata, desc);
 
     // Validate modifiers.
     for (Modifier modifier in Modifier.persistedValues) {
