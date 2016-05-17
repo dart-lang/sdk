@@ -169,7 +169,8 @@ abstract class Iterable<E> {
    * multiple times over the returned [Iterable] will invoke the supplied
    * function [test] multiple times on the same element.
    */
-  Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);
+  Iterable<E> where(bool test(E element)) =>
+      new WhereIterable<E>(this, test);
 
   /**
    * Expands each element of this [Iterable] into zero or more elements.
