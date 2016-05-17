@@ -2508,41 +2508,6 @@ class JSFrontendAccess implements Frontend {
   ResolutionImpact getResolutionImpact(Element element) {
     return resolution.getResolutionImpact(element);
   }
-
-  @override
-  bool hasResolvedAst(ExecutableElement element) {
-    if (element is SynthesizedCallMethodElementX) {
-      return true;
-    } else if (element is ConstructorBodyElementX) {
-      return true;
-    } else if (element is FieldElementX) {
-      return true;
-    } else if (element is DeferredLoaderGetterElementX) {
-      return true;
-    } else {
-      return resolution.hasResolvedAst(element);
-    }
-  }
-
-  @override
-  ResolvedAst getResolvedAst(ExecutableElement element) {
-    if (element is SynthesizedCallMethodElementX) {
-      return element.resolvedAst;
-    } else if (element is ConstructorBodyElementX) {
-      return element.resolvedAst;
-    } else if (element is DeferredLoaderGetterElementX) {
-      return element.resolvedAst;
-    } else if (element is FieldElementX) {
-      // TODO(johnniwinther): Find a good invariant for resolution of fields.
-      // Currently some but not all are resolved (maybe it has to do with
-      // initializers?)
-      return element.resolvedAst;
-    } else {
-      assert(invariant(element, resolution.hasResolvedAst(element.declaration),
-          message: 'No ResolvedAst for $element'));
-      return resolution.getResolvedAst(element.declaration);
-    }
-  }
 }
 
 /// Handling of special annotations for tests.

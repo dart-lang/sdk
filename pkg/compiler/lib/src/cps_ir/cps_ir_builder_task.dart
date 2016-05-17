@@ -291,7 +291,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     assert(constructor.isGenerativeConstructor);
     assert(constructor.isImplementation);
     if (constructor.isSynthesized) return null;
-    ResolvedAst resolvedAst = backend.frontend.getResolvedAst(constructor);
+    ResolvedAst resolvedAst = constructor.resolvedAst;
     ast.FunctionExpression node = constructor.node;
     // If we know the body doesn't have any code, we don't generate it.
     if (!node.hasBody) return null;
@@ -503,7 +503,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   /// Every visitor can only be applied to nodes in one context, because
   /// the [elements] field is specific to that context.
   IrBuilderVisitor makeVisitorForContext(AstElement context) {
-    ResolvedAst resolvedAst = backend.frontend.getResolvedAst(context);
+    ResolvedAst resolvedAst = context.resolvedAst;
     return new IrBuilderVisitor(resolvedAst, compiler,
         sourceInformationBuilder.forContext(resolvedAst), typeMaskSystem);
   }

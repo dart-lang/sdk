@@ -1242,7 +1242,7 @@ class TypeGraphInferrerEngine
       // TODO(ngeoffray): Not sure why the resolver would put a null
       // mapping.
       if (!compiler.enqueuer.resolution.hasBeenProcessed(element)) return;
-      ResolvedAst resolvedAst = getResolvedAst(element);
+      ResolvedAst resolvedAst = element.resolvedAst;
       element = element.implementation;
       if (element.impliesType) return;
       assert(invariant(

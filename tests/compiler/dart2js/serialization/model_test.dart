@@ -138,12 +138,14 @@ void checkElements(
   if (element1.isFunction ||
       element1.isConstructor ||
       (element1.isField && element1.isInstanceMember)) {
+    AstElement astElement1 = element1;
+    AstElement astElement2 = element2;
     ClosureClassMap closureData1 =
     compiler1.closureToClassMapper.computeClosureToClassMapping(
-        compiler1.backend.frontend.getResolvedAst(element1.declaration));
+        astElement1.resolvedAst);
     ClosureClassMap closureData2 =
     compiler2.closureToClassMapper.computeClosureToClassMapping(
-        compiler2.backend.frontend.getResolvedAst(element2.declaration));
+        astElement2.resolvedAst);
 
     checkElementIdentities(closureData1, closureData2,
         '$element1.closureElement',

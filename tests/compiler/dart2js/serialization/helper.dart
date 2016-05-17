@@ -230,9 +230,10 @@ class _DeserializerSystem extends DeserializerSystem {
     return new Future<LibraryElement>.value(library);
   }
 
+  // TODO(johnniwinther): Remove the need for this method.
   @override
   bool hasResolvedAst(ExecutableElement element) {
-    return _resolvedAstDeserializer.hasResolvedAst(element);
+    return getResolvedAst(element) != null;
   }
 
   @override
@@ -275,6 +276,9 @@ class _DeserializerSystem extends DeserializerSystem {
     ResolutionImpact resolutionImpact = getResolutionImpact(element);
     assert(invariant(element, resolutionImpact != null,
         message: 'No impact found for $element (${element.library})'));
+    if (element is ExecutableElement) {
+      getResolvedAst(element);
+    }
     return _impactTransformer.transformResolutionImpact(resolutionImpact);
   }
 
@@ -314,8 +318,6 @@ class ResolvedAstDeserializerPlugin extends DeserializerPlugin {
   final DeserializerPlugin nativeDataDeserializer;
   final Map<Uri, SourceFile> sourceFiles = <Uri, SourceFile>{};
 
-  Map<ExecutableElement, ResolvedAst> _resolvedAstMap =
-      <ExecutableElement, ResolvedAst>{};
   Map<MemberElement, ObjectDecoder> _decoderMap =
       <MemberElement, ObjectDecoder>{};
   Map<Uri, Token> beginTokenMap = <Uri, Token>{};
@@ -324,24 +326,25 @@ class ResolvedAstDeserializerPlugin extends DeserializerPlugin {
       this.parsingContext, this.nativeDataDeserializer);
 
   bool hasResolvedAst(ExecutableElement element) {
-    return _resolvedAstMap.containsKey(element) ||
-        _decoderMap.containsKey(element.memberContext);
+    return getResolvedAst(element) != null;
   }
 
   ResolvedAst getResolvedAst(ExecutableElement element) {
-    ResolvedAst resolvedAst = _resolvedAstMap[element];
-    if (resolvedAst == null) {
-      ObjectDecoder decoder = _decoderMap[element.memberContext];
-      if (decoder != null) {
-         ResolvedAstDeserializer.deserialize(
-             element.memberContext, decoder, parsingContext, findToken,
-             nativeDataDeserializer,
-             _resolvedAstMap);
-        _decoderMap.remove(element);
-        resolvedAst = _resolvedAstMap[element];
-      }
+    if (element.hasResolvedAst) {
+      return element.resolvedAst;
     }
-    return resolvedAst;
+
+    ObjectDecoder decoder = _decoderMap[element.memberContext];
+    if (decoder != null) {
+      ResolvedAstDeserializer.deserialize(
+          element.memberContext, decoder, parsingContext, findToken,
+          nativeDataDeserializer);
+      _decoderMap.remove(element);
+      assert(invariant(element, element.hasResolvedAst,
+          message: "ResolvedAst not computed for $element."));
+      return element.resolvedAst;
+    }
+    return null;
   }
 
   Token findToken(Uri uri, int offset) {

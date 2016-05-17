@@ -356,6 +356,8 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
 
   Element get analyzableElement => closureClass.methodElement.analyzableElement;
 
+  bool get hasResolvedAst => true;
+
   ResolvedAst get resolvedAst {
     return new ParsedResolvedAst(this, node, node.body, treeElements,
         expression.compilationUnit.script.resourceUri);

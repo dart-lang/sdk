@@ -8,6 +8,7 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common/backend_api.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/compiler.dart';
@@ -78,9 +79,11 @@ void checkAllResolvedAsts(
 void checkResolvedAsts(Compiler compiler1, Element member1,
                        Compiler compiler2, Element member2,
                        {bool verbose: false}) {
+  if (!compiler2.serialization.isDeserialized(member2)) {
+    return;
+  }
   ResolvedAst resolvedAst1 = compiler1.resolution.getResolvedAst(member1);
-  ResolvedAst resolvedAst2 =
-      compiler2.serialization.deserializer.getResolvedAst(member2);
+  ResolvedAst resolvedAst2 = compiler2.serialization.getResolvedAst(member2);
 
   if (resolvedAst1 == null || resolvedAst2 == null) return;
 

@@ -191,12 +191,6 @@ class ListLiteralUse {
 /// Interface for the accessing the front-end analysis.
 // TODO(johnniwinther): Find a better name for this.
 abstract class Frontend {
-  /// Returns `true` if [element] has a [ResolvedAst].
-  bool hasResolvedAst(ExecutableElement element);
-
-  /// Returns the `ResolvedAst` for the [element].
-  ResolvedAst getResolvedAst(ExecutableElement element);
-
   /// Returns the [ResolutionImpact] for [element].
   ResolutionImpact getResolutionImpact(Element element);
 }

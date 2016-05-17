@@ -327,8 +327,8 @@ class LocalsHandler {
   void startFunction(AstElement element, ast.Node node) {
     assert(invariant(element, element.isImplementation));
     Compiler compiler = builder.compiler;
-    closureData = compiler.closureToClassMapper.computeClosureToClassMapping(
-        compiler.backend.frontend.getResolvedAst(element.declaration));
+    closureData = compiler.closureToClassMapper
+        .computeClosureToClassMapping(element.resolvedAst);
 
     if (element is FunctionElement) {
       FunctionElement functionElement = element;
@@ -1383,7 +1383,7 @@ class SsaBuilder extends ast.Visitor
     if (compiler.elementHasCompileTimeError(element)) return false;
 
     FunctionElement function = element;
-    ResolvedAst functionResolvedAst = backend.frontend.getResolvedAst(function);
+    ResolvedAst functionResolvedAst = function.resolvedAst;
     bool insideLoop = loopNesting > 0 || graph.calledInLoop;
 
     // Bail out early if the inlining decision is in the cache and we can't
@@ -1847,8 +1847,7 @@ class SsaBuilder extends ast.Visitor
   void setupStateForInlining(
       FunctionElement function, List<HInstruction> compiledArguments,
       {InterfaceType instanceType}) {
-    ResolvedAst resolvedAst =
-        compiler.backend.frontend.getResolvedAst(function.declaration);
+    ResolvedAst resolvedAst = function.resolvedAst;
     assert(resolvedAst != null);
     localsHandler = new LocalsHandler(this, function, instanceType);
     localsHandler.closureData =
@@ -2024,7 +2023,7 @@ class SsaBuilder extends ast.Visitor
 
       // Build the initializers in the context of the new constructor.
       ResolvedAst oldResolvedAst = resolvedAst;
-      resolvedAst = backend.frontend.getResolvedAst(callee);
+      resolvedAst = callee.resolvedAst;
       ClosureClassMap oldClosureData = localsHandler.closureData;
       ClosureClassMap newClosureData = compiler.closureToClassMapper
           .computeClosureToClassMapping(resolvedAst);
@@ -2065,7 +2064,7 @@ class SsaBuilder extends ast.Visitor
       return localsHandler.readLocal(parameter);
     }
 
-    Element target = constructor.definingConstructor.implementation;
+    ConstructorElement target = constructor.definingConstructor.implementation;
     bool match = !target.isMalformed &&
         CallStructure.addForwardingElementArgumentsToList(
             constructor,
@@ -2084,7 +2083,7 @@ class SsaBuilder extends ast.Visitor
       reporter.internalError(
           constructor, 'forwarding constructor call does not match');
     }
-    inlineSuperOrRedirect(backend.frontend.getResolvedAst(target), arguments,
+    inlineSuperOrRedirect(target.resolvedAst, arguments,
         constructorResolvedAsts, fieldValues, constructor);
   }
 
@@ -2131,12 +2130,8 @@ class SsaBuilder extends ast.Visitor
             compiledArguments =
                 makeStaticArgumentList(callStructure, arguments, target);
           });
-          inlineSuperOrRedirect(
-              backend.frontend.getResolvedAst(target.declaration),
-              compiledArguments,
-              constructorResolvedAsts,
-              fieldValues,
-              constructor);
+          inlineSuperOrRedirect(target.resolvedAst, compiledArguments,
+              constructorResolvedAsts, fieldValues, constructor);
         } else {
           // A field initializer.
           ast.SendSet init = link.head;
@@ -2169,12 +2164,8 @@ class SsaBuilder extends ast.Visitor
             target.implementation,
             null,
             handleConstantForOptionalParameter);
-        inlineSuperOrRedirect(
-            backend.frontend.getResolvedAst(target.declaration),
-            arguments,
-            constructorResolvedAsts,
-            fieldValues,
-            constructor);
+        inlineSuperOrRedirect(target.resolvedAst, arguments,
+            constructorResolvedAsts, fieldValues, constructor);
       }
     }
   }
@@ -2192,7 +2183,7 @@ class SsaBuilder extends ast.Visitor
         (ClassElement enclosingClass, FieldElement member) {
       if (compiler.elementHasCompileTimeError(member)) return;
       reporter.withCurrentElement(member, () {
-        ResolvedAst fieldResolvedAst = backend.frontend.getResolvedAst(member);
+        ResolvedAst fieldResolvedAst = member.resolvedAst;
         ast.Node node = fieldResolvedAst.node;
         ast.Expression initializer = fieldResolvedAst.body;
         if (initializer == null) {

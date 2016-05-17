@@ -234,9 +234,9 @@ class CodegenWorkItem extends WorkItem {
     // missing call of form registry.registerXXX. Alternatively, the code
     // generation could spuriously be adding dependencies on things we know we
     // don't need.
-    assert(invariant(element, compiler.backend.frontend.hasResolvedAst(element),
+    assert(invariant(element, element.hasResolvedAst,
         message: "$element has no resolved ast."));
-    ResolvedAst resolvedAst = compiler.backend.frontend.getResolvedAst(element);
+    ResolvedAst resolvedAst = element.resolvedAst;
     return new CodegenWorkItem.internal(resolvedAst, compilationContext);
   }
 

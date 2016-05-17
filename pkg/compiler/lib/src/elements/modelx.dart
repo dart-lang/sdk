@@ -2300,6 +2300,8 @@ class ConstructorBodyElementX extends BaseFunctionElementX
 
   FunctionExpression get node => _resolvedAst.node;
 
+  bool get hasResolvedAst => true;
+
   ResolvedAst get resolvedAst {
     if (_resolvedAst.kind == ResolvedAstKind.PARSED) {
       return new ParsedResolvedAst(declaration, _resolvedAst.node,
