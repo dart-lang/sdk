@@ -279,6 +279,23 @@ char* OS::StrNDup(const char* s, intptr_t n) {
 }
 
 
+intptr_t OS::StrNLen(const char* s, intptr_t n) {
+  // strnlen has only been added to Mac OS X in 10.7. We are supplying
+  // our own copy here if needed.
+#if !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || \
+    __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ <= 1060
+  intptr_t len = 0;
+  while ((len <= n) && (*s != '\0')) {
+    s++;
+    len++;
+  }
+  return len;
+#else  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
+  return strnlen(s, n);
+#endif  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
+}
+
+
 void OS::Print(const char* format, ...) {
 #if TARGET_OS_IOS
   va_list args;

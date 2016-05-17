@@ -740,7 +740,7 @@ RawApiError* SnapshotReader::VerifyVersionAndFeatures() {
 
   const char* features = reinterpret_cast<const char*>(CurrentBufferAddress());
   ASSERT(features != NULL);
-  intptr_t buffer_len = strnlen(features, PendingBytes());
+  intptr_t buffer_len = OS::StrNLen(features, PendingBytes());
   if ((buffer_len != expected_len) ||
       strncmp(features, expected_features, expected_len)) {
     const intptr_t kMessageBufferSize = 256;

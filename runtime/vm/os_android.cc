@@ -288,6 +288,11 @@ char* OS::StrNDup(const char* s, intptr_t n) {
 }
 
 
+intptr_t OS::StrNLen(const char* s, intptr_t n) {
+  return strnlen(s, n);
+}
+
+
 uint16_t HostToBigEndian16(uint16_t value) {
   return htobe16(value);
 }
