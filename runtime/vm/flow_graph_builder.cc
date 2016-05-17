@@ -2419,7 +2419,6 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   // compiler.  If it was not, set it here.
   if (function.context_scope() == ContextScope::null()) {
     ASSERT(!is_implicit);
-    ASSERT(node->scope() != NULL);
     const ContextScope& context_scope = ContextScope::ZoneHandle(
         Z, node->scope()->PreserveOuterScope(owner()->context_level()));
     ASSERT(!function.HasCode());
