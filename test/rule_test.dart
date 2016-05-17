@@ -333,7 +333,7 @@ Annotation extractAnnotation(String line) {
     if (msgIndex < 1) {
       msgIndex = annotation.indexOf('T') + 1;
     }
-    String msg = null;
+    String msg;
     if (msgIndex < line.length) {
       msg = line.substring(index + msgIndex).trim();
       if (msg.isEmpty) {

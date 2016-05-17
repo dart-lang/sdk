@@ -10,7 +10,7 @@ import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
 PSEntry _findEntry(YamlMap map, String key) {
-  PSEntry entry = null;
+  PSEntry entry;
   map.nodes.forEach((k, v) {
     if (k is YamlScalar && key == k.toString()) {
       entry = _processScalar(k, v);

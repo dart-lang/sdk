@@ -59,8 +59,8 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitSimpleIdentifier(SimpleIdentifier identifier) {
-    AstNode isEmptyAccess = null;
-    SimpleIdentifier isEmptyIdentifier = null;
+    AstNode isEmptyAccess;
+    SimpleIdentifier isEmptyIdentifier;
 
     AstNode parent = identifier.parent;
     if (parent is PropertyAccess) {

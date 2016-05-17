@@ -1,9 +1,8 @@
 analyzer:
   strong-mode: true
   exclude:
-    - test/_data/p4/lib/lib1.dart
-    - test/_data/p5/p5.dart
+    - test/_data/**
+    - test/rules/**
 linter:
   rules:
     - annotate_overrides
-

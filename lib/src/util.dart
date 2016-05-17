@@ -114,7 +114,7 @@ class _ErrorListener implements AnalysisErrorListener {
   }
 
   void throwIfErrors() {
-    if (!errors.isEmpty) {
+    if (errors.isNotEmpty) {
       throw new Exception(errors);
     }
   }

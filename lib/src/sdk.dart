@@ -205,9 +205,7 @@ class HtmlElement {}
   final resource.MemoryResourceProvider provider =
       new resource.MemoryResourceProvider();
 
-  /**
-   * The [AnalysisContextImpl] which is used for all of the sources.
-   */
+  /// The [AnalysisContextImpl] which is used for all of the sources.
   AnalysisContextImpl _analysisContext;
 
   MockSdk() {
@@ -274,7 +272,7 @@ class HtmlElement {}
       }
       if (filePath.startsWith("$libraryPath/")) {
         String pathInLibrary = filePath.substring(libraryPath.length + 1);
-        String path = '${library.shortName}/${pathInLibrary}';
+        String path = '${library.shortName}/$pathInLibrary';
         try {
           resource.File file = provider.getResource(uri.path);
           Uri dartUri = new Uri(scheme: 'dart', path: path);
@@ -362,9 +360,7 @@ class _MockSdkLibrary implements SdkLibrary {
   UnimplementedError get unimplemented => new UnimplementedError();
 }
 
-/**
- * An [AnalysisContextImpl] that only contains sources for a Dart SDK.
- */
+/// An [AnalysisContextImpl] that only contains sources for a Dart SDK.
 class _SdkAnalysisContext extends AnalysisContextImpl {
   final DartSdk sdk;
 

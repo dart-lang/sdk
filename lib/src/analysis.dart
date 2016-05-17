@@ -236,7 +236,7 @@ class DriverOptions {
 
   /// If non-null, the function to use to run pub list.  This is used to mock
   /// out executions of pub list when testing the linter.
-  RunPubList runPubList = null;
+  RunPubList runPubList;
 
   /// Whether to show SDK warnings.
   bool showSdkWarnings = false;
