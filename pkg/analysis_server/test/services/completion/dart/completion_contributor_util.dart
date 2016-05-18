@@ -216,9 +216,10 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestEnumConst(String completion,
-      {bool isDeprecated: false}) {
+      {int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
     CompletionSuggestion suggestion =
-        assertSuggest(completion, isDeprecated: isDeprecated);
+        assertSuggest(completion, relevance: relevance, isDeprecated: isDeprecated);
+    expect(suggestion.completion, completion);
     expect(suggestion.isDeprecated, isDeprecated);
     expect(suggestion.element.kind, protocol.ElementKind.ENUM_CONSTANT);
     return suggestion;

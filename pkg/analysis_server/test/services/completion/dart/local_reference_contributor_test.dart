@@ -355,20 +355,18 @@ void main() {expect(foo: ^)}''');
     expect(replacementLength, 0);
     assertSuggestTopLevelVar('a', 'A',
         relevance:
-        DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
+            DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
     assertSuggestTopLevelVar('b', 'B',
         relevance:
-        DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
+            DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
     assertSuggestTopLevelVar('c', 'C',
         relevance:
-        DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
+            DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
     assertSuggestTopLevelVar('d', 'D',
         relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
     assertSuggestTopLevelVar('e', 'E',
         relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
   }
-
-
 
   test_AsExpression_type() async {
     // SimpleIdentifier  TypeName  AsExpression
@@ -1929,6 +1927,8 @@ class A {a(blat: ^) { }}''');
     addTestSource('enum E { one, two } main() {^}');
     await computeSuggestions();
     assertSuggestEnum('E');
+    assertSuggestEnumConst('E.one');
+    assertSuggestEnumConst('E.two');
     assertNotSuggested('one');
     assertNotSuggested('two');
   }
@@ -1937,8 +1937,36 @@ class A {a(blat: ^) { }}''');
     addTestSource('@deprecated enum E { one, two } main() {^}');
     await computeSuggestions();
     assertSuggestEnum('E', isDeprecated: true);
+    assertSuggestEnumConst('E.one', isDeprecated: true);
+    assertSuggestEnumConst('E.two', isDeprecated: true);
     assertNotSuggested('one');
     assertNotSuggested('two');
+  }
+
+  test_enum_filter() async {
+    // SimpleIdentifier  NamedExpression  ArgumentList
+    // InstanceCreationExpression
+    addTestSource('''
+        enum E { one, two }
+        enum F { three, four }
+        class A {}
+        class B {
+          B({E someE});
+        }
+        A a = new A();
+        B b = new B(someE: ^);
+  ''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestEnumConst('E.one',
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+    assertSuggestEnumConst('E.two',
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_INCREMENT);
+    assertNotSuggested('a');
+    assertNotSuggested('F.three');
+    assertNotSuggested('F.four');
   }
 
   test_ExpressionStatement_identifier() async {

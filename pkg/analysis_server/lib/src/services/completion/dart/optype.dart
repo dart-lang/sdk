@@ -641,6 +641,16 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       optype.includeReturnValueSuggestions = true;
       optype.returnValueSuggestionsFilter = (DartType dartType, int relevance) {
         DartType type = node.element?.type;
+        bool isEnum = type != null &&
+            type.element is ClassElement &&
+            (type.element as ClassElement).isEnum;
+        if (isEnum) {
+          if (type == dartType) {
+            return relevance + DART_RELEVANCE_INCREMENT;
+          } else {
+            return null;
+          }
+        }
         if (type != null &&
             dartType != null &&
             !type.isDynamic &&
