@@ -22,6 +22,3 @@ lib/runtime/dart_sdk.sum
 
 # Created by ./tool/dependency_overrides.sh.
 dependency_overrides/
-
-# Include when developing application packages.
-pubspec.lock
