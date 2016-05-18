@@ -14,26 +14,13 @@ packages
 node_modules
 doc/api/
 
-# Ignore generated summary
+# Generated files go here.
+gen/
+
+# Ignore generated summary.
 lib/runtime/dart_sdk.sum
 
-# Ignore test output
-test/codegen/expect/dev_compiler/
-test/codegen/expect/language/
-test/codegen/expect/lib/
-test/codegen/expect/corelib/
-test/codegen/expect/sunflower/dev_compiler/
-test/codegen/expect/matcher/
-test/codegen/expect/path/
-test/codegen/expect/stack_trace/
-test/codegen/expect/unittest/
-test/codegen/expect/*.err
-test/**/*_multi.dart
-
-# Created by ./tool/build_sdk.sh
-tool/generated_sdk/
-
-# Created by ./tool/dependency_overrides.sh
+# Created by ./tool/dependency_overrides.sh.
 dependency_overrides/
 
 # Include when developing application packages.

@@ -19,6 +19,14 @@ if [ -d test/codegen/expect ]; then
   rm -r test/codegen/expect || fail
 fi
 
+if [ -d gen/codegen_input ]; then
+  rm -r gen/codegen_input || fail
+fi
+
+if [ -d gen/codegen_output ]; then
+  rm -r gen/codegen_output || fail
+fi
+
 # Make sure we don't run tests in code coverage mode.
 # this will cause us to generate files that are not part of the baseline
 # TODO(jmesserly): we should move diff into Dart code, so we don't need to

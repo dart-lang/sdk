@@ -1,4 +1,0 @@
-library foo;
-
-main() {
-}

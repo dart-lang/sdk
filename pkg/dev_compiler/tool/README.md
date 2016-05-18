@@ -10,7 +10,7 @@ This script combines:
 
 and produces the merged SDK sources in:
 
-    tool/generated_sdk/...
+    gen/patched_sdk/...
 
 The result has all "external" keywords replaced with the @patch implementations.
 

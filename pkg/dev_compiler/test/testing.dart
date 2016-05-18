@@ -13,6 +13,9 @@ import 'package:path/path.dart' as path;
 final String testDirectory =
     path.dirname((reflectClass(_TestUtils).owner as LibraryMirror).uri.path);
 
+/// The local path to the root directory of the dev_compiler repo.
+final String repoDirectory = path.dirname(testDirectory);
+
 class _TestUtils {}
 
 class TestUriResolver extends ResourceUriResolver {

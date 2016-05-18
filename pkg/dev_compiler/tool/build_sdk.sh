@@ -4,7 +4,7 @@ set -e
 cd $( dirname "${BASH_SOURCE[0]}" )/..
 
 echo "*** Patching SDK"
-dart -c tool/patch_sdk.dart tool/input_sdk tool/generated_sdk
+dart -c tool/patch_sdk.dart tool/input_sdk gen/patched_sdk
 
 echo "*** Compiling SDK to JavaScript"
 
@@ -17,6 +17,6 @@ echo "*** Compiling SDK to JavaScript"
 # into the compiler itself, so it can emit the correct import.
 #
 dart -c tool/build_sdk.dart \
-    --dart-sdk tool/generated_sdk \
+    --dart-sdk gen/patched_sdk \
     -o lib/runtime/dart_sdk.js \
     "$@" > tool/sdk_expected_errors.txt

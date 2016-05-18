@@ -20,14 +20,10 @@ void main(List<String> argv) {
 
     var inputExample = path.join(toolDir, 'input_sdk');
     var outExample = path.relative(
-        path.normalize(path.join(toolDir, '..', 'test', 'generated_sdk')));
+        path.normalize(path.join('gen', 'patched_sdk')));
 
     print('Usage: $self INPUT_DIR OUTPUT_DIR');
     print('For example:');
-    print('\$ $self $inputExample $outExample');
-
-    inputExample = path.join(toolDir, 'min_sdk');
-    outExample = path.join(toolDir, 'out', 'min_sdk');
     print('\$ $self $inputExample $outExample');
     exit(1);
   }
