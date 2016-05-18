@@ -1813,7 +1813,6 @@ class _UnitResynthesizer {
     ClassElementImpl classElement = new ClassElementImpl.forSerialized(
         _resynthesizerContext, serializedClass);
     classElement.hasBeenInferred = summaryResynthesizer.strongMode;
-    classElement.mixinApplication = serializedClass.isMixinApplication;
     InterfaceTypeImpl correspondingType =
         new InterfaceTypeImpl(handle ?? classElement);
     if (serializedClass.supertype != null) {
@@ -2119,8 +2118,6 @@ class _UnitResynthesizer {
           buildType(
               serializedExecutable.returnType, _currentTypeParameterizedElement,
               defaultVoid: isSetter && summaryResynthesizer.strongMode);
-      executableElement.hasImplicitReturnType =
-          serializedExecutable.returnType == null;
     }
     executableElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
         executableElement, null, getCurrentTypeArguments(skipLevels: 1), false);

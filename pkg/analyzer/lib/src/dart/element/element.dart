@@ -384,7 +384,12 @@ class ClassElementImpl extends ElementImpl
   bool get isEnum => hasModifier(Modifier.ENUM);
 
   @override
-  bool get isMixinApplication => hasModifier(Modifier.MIXIN_APPLICATION);
+  bool get isMixinApplication {
+    if (_unlinkedClass != null) {
+      return _unlinkedClass.isMixinApplication;
+    }
+    return hasModifier(Modifier.MIXIN_APPLICATION);
+  }
 
   @override
   bool get isOrInheritsProxy =>
@@ -448,6 +453,7 @@ class ClassElementImpl extends ElementImpl
    * Set whether this class is a mixin application.
    */
   void set mixinApplication(bool isMixinApplication) {
+    assert(_unlinkedClass == null);
     setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
   }
 
@@ -2651,12 +2657,19 @@ abstract class ExecutableElementImpl extends ElementImpl
   }
 
   @override
-  bool get hasImplicitReturnType => hasModifier(Modifier.IMPLICIT_TYPE);
+  bool get hasImplicitReturnType {
+    if (serializedExecutable != null) {
+      return serializedExecutable.returnType == null &&
+          serializedExecutable.kind != UnlinkedExecutableKind.constructor;
+    }
+    return hasModifier(Modifier.IMPLICIT_TYPE);
+  }
 
   /**
    * Set whether this executable element has an implicit return type.
    */
   void set hasImplicitReturnType(bool hasImplicitReturnType) {
+    assert(serializedExecutable == null);
     setModifier(Modifier.IMPLICIT_TYPE, hasImplicitReturnType);
   }
 
