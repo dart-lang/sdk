@@ -801,14 +801,13 @@ class CodeGenerator extends GeneralizingAstVisitor
   JS.Statement _defineClassTypeArguments(TypeDefiningElement element,
       List<TypeParameterElement> formals, JS.Statement body) {
     assert(formals.isNotEmpty);
-    var genericDef =
-        js.statement('# = dart.generic((#) => { #; return #; });', [
-      _emitTopLevelName(element, suffix: r'$'),
-      _emitTypeFormals(formals),
-      body,
-      element.name
-    ]);
-
+    var genericCall = js.call('dart.generic((#) => { #; return #; })',
+        [_emitTypeFormals(formals), body, element.name]);
+    if (element.type.isDartAsyncFuture) {
+      genericCall = js.call('dart.flattenFutures(#)', [genericCall]);
+    }
+    var genericDef = js.statement(
+        '# = #;', [_emitTopLevelName(element, suffix: r'$'), genericCall]);
     var dynType = fillDynamicTypeArgs(element.type);
     var genericInst = _emitType(dynType, lowerGeneric: true);
     return js.statement(

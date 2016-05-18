@@ -59,6 +59,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.getImplements = function(clazz) {
     return clazz[dart.implements];
   };
+  dart.flattenFutures = function(builder) {
+    function flatten(T) {
+      if (!T) return builder(dart.dynamic);
+      let futureClass = dart.getGenericClass(async.Future);
+      if (dart.getGenericClass(T) == futureClass) {
+        let args = dart.getGenericArgs(T);
+        if (args) return builder(args[0]);
+      }
+      return builder(T);
+    }
+    return flatten;
+  };
   dart.generic = function(typeConstructor) {
     let length = typeConstructor.length;
     if (length < 1) {
@@ -14900,7 +14912,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   const _completeWithValue = Symbol('_completeWithValue');
   let const$3;
-  async.Future$ = dart.generic(T => {
+  async.Future$ = dart.flattenFutures(dart.generic(T => {
     class Future extends core.Object {
       static new(computation) {
         let result = new (async._Future$(T))();
@@ -15083,7 +15095,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       names: ['wait', 'any', 'forEach', 'doWhile']
     });
     return Future;
-  });
+  }));
   async.Future = async.Future$();
   dart.defineLazy(async.Future, {
     get _nullFuture() {

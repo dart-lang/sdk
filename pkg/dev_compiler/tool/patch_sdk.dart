@@ -19,8 +19,8 @@ void main(List<String> argv) {
     var toolDir = path.relative(path.dirname(path.fromUri(Platform.script)));
 
     var inputExample = path.join(toolDir, 'input_sdk');
-    var outExample = path.relative(
-        path.normalize(path.join('gen', 'patched_sdk')));
+    var outExample =
+        path.relative(path.normalize(path.join('gen', 'patched_sdk')));
 
     print('Usage: $self INPUT_DIR OUTPUT_DIR');
     print('For example:');
