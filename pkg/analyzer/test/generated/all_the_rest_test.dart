@@ -3483,6 +3483,10 @@ class ExitDetectorTest extends ParserTestCase {
     _assertTrue("{ do {} while (throw ''); }");
   }
 
+  void test_doStatement_return() {
+    _assertTrue("{ do { return null; } while (1 == 2); }");
+  }
+
   void test_doStatement_true_break() {
     _assertFalse("{ do { break; } while (true); }");
   }
