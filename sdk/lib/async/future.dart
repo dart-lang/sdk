@@ -363,18 +363,19 @@ abstract class Future<T> {
   }
 
   /**
-   * Perform an async operation repeatedly until it returns `false`.
+   * Performs an async operation repeatedly until it returns `false`.
    *
-   * Runs [f] repeatedly, starting the next iteration only when the [Future]
-   * returned by [f] completes to `true`. Returns a [Future] that completes once
-   * [f] returns `false`.
+   * The function [f] is called repeatedly while it returns either the [bool]
+   * value `true` or a [Future] which completes with the value `true`.
    *
-   * The return values of all [Future]s are discarded. Any errors will cause the
-   * iteration to stop and will be piped through the returned [Future].
+   * If a call to [f] returns `false` or a [Future] that completes to `false`,
+   * iteration ends and the future returned by [doWhile] is completed.
    *
-   * The function [f] may return either a [bool] or a [Future] that completes to
-   * a [bool]. If it returns a non-[Future], iteration continues immediately.
-   * Otherwise it waits for the returned [Future] to complete.
+   * If a future returned by [f] completes with an error, iteration ends and
+   * the future returned by [doWhile] completes with the same error.
+   *
+   * The [f] function must return either a `bool` value or a [Future] completing
+   * with a `bool` value.
    */
   static Future doWhile(f()) {
     _Future doneSignal = new _Future();
