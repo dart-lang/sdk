@@ -87,6 +87,7 @@ cc/CodeImmutability: Fail,OK # Address Sanitizer turns a crash into a failure.
 
 [ $arch == ia32 && $builder_tag == asan ]
 cc/Dart2JSCompileAll: Crash # Issue 26487 - stack overflow
+cc/Dart2JSCompilerStats: Crash # Issue 26487 - stack overflow
 
 [ $noopt ]
 dart/byte_array_test: Crash # Incompatible flag --disable_alloc_stubs_after_gc
