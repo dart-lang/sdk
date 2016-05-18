@@ -72,7 +72,7 @@ abstract class LinkedHashMap<K, V> implements HashMap<K, V> {
    */
   external factory LinkedHashMap({bool equals(K key1, K key2),
                                   int hashCode(K key),
-                                  bool isValidKey(potentialKey)});
+                                  bool isValidKey(Object potentialKey)});
 
   /**
    * Creates an insertion-ordered identity-based map.
