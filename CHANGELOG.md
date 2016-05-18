@@ -1,3 +1,9 @@
+# 0.1.17
+
+* Fix to `public_member_api_docs` to check for documented getters when checking setters (#237).
+* New `iterable_contains_unrelated_type` lint to detect when `Iterable.contains` is invoked with an object of an unrelated type.
+* New `comment_references` lint to ensure identifiers referenced in docs are in scope (#240).
+
 # 0.1.16
 
 * Fix for false positive in `overriden_field`s.
