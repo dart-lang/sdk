@@ -180,7 +180,7 @@ abstract class Set<E> extends Iterable<E> implements EfficientLength {
   Set<E> union(Set<E> other);
 
   /**
-   * Returns a new set with the the elements of this that are not in [other].
+   * Returns a new set with the elements of this that are not in [other].
    *
    * That is, the returned set contains all the elements of this [Set] that
    * are not elements of [other] according to `other.contains`.

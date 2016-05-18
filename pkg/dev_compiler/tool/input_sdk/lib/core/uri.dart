@@ -3198,7 +3198,7 @@ class UriData {
   /**
    * A map representing the parameters of the media type.
    *
-   * A data URI may contain parameters between the the MIME type and the
+   * A data URI may contain parameters between the MIME type and the
    * data. This converts these parameters to a map from parameter name
    * to parameter value.
    * The map only contains parameters that actually occur in the URI.

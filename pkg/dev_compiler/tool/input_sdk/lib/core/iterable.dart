@@ -146,7 +146,7 @@ abstract class Iterable<E> {
    * This method returns a view of the mapped elements. As long as the
    * returned [Iterable] is not iterated over, the supplied function [f] will
    * not be invoked. The transformed elements will not be cached. Iterating
-   * multiple times over the the returned [Iterable] will invoke the supplied
+   * multiple times over the returned [Iterable] will invoke the supplied
    * function [f] multiple times on the same element.
    *
    * Methods on the returned iterable are allowed to omit calling `f`
@@ -169,7 +169,8 @@ abstract class Iterable<E> {
    * multiple times over the returned [Iterable] will invoke the supplied
    * function [test] multiple times on the same element.
    */
-  Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);
+  Iterable<E> where(bool test(E element)) =>
+      new WhereIterable<E>(this, test);
 
   /**
    * Expands each element of this [Iterable] into zero or more elements.
@@ -434,7 +435,7 @@ abstract class Iterable<E> {
    * but skipping over all initial elements where `test(element)` returns
    * true. If all elements satisfy `test` the resulting iterable is empty,
    * otherwise it iterates the remaining elements in their original order,
-   * starting with the first element for which `test(element)` returns false,
+   * starting with the first element for which `test(element)` returns false.
    */
   Iterable<E> skipWhile(bool test(E value)) {
     return new SkipWhileIterable<E>(this, test);

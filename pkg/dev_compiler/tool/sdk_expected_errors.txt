@@ -4,7 +4,6 @@
 [error] Invalid override. The type of ChunkedConverter.bind ((dynamic) → dynamic) is not a subtype of Converter<S, T>.bind ((Stream<S>) → Stream<T>). (dart:convert/chunked_conversion.dart, line 14, col 3)
 [error] Invalid override. The type of ChunkedConverter.bind ((dynamic) → dynamic) is not a subtype of StreamTransformer<S, T>.bind ((Stream<S>) → Stream<T>). (dart:convert/chunked_conversion.dart, line 14, col 3)
 [error] Invalid override. The type of ChunkedConverter.startChunkedConversion ((dynamic) → dynamic) is not a subtype of Converter<S, T>.startChunkedConversion ((Sink<T>) → Sink<S>). (dart:convert/chunked_conversion.dart, line 15, col 3)
-[error] Invalid override. The type of DateTime.compareTo ((DateTime) → int) is not a subtype of Comparable<dynamic>.compareTo ((dynamic) → int). (dart:core/date_time.dart, line 448, col 3)
 [error] Annotation can be only constant variable or constant constructor invocation (dart:core/stacktrace.dart, line 43, col 3)
 [error] Invalid override. The type of FileList.[]= ((int, File) → void) is not a subtype of JSMutableIndexable.[]= ((int, dynamic) → dynamic). (dart:html, line 16869, col 3)
 [error] Invalid override. The type of HtmlCollection.[]= ((int, Node) → void) is not a subtype of JSMutableIndexable.[]= ((int, dynamic) → dynamic). (dart:html, line 18904, col 3)

@@ -28186,7 +28186,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.defineNamedConstructor(core.DateTime, '_withValue');
   dart.defineNamedConstructor(core.DateTime, '_internal');
   dart.defineNamedConstructor(core.DateTime, '_now');
-  core.DateTime[dart.implements] = () => [core.Comparable];
+  core.DateTime[dart.implements] = () => [core.Comparable$(core.DateTime)];
   dart.setSignature(core.DateTime, {
     constructors: () => ({
       new: [core.DateTime, [core.int], [core.int, core.int, core.int, core.int, core.int, core.int, core.int]],
