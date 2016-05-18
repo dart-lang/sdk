@@ -4585,7 +4585,7 @@ abstract class VariableElementForLink
 
   @override
   FunctionElementForLink_Initializer get initializer {
-    if (unlinkedVariable.constExpr == null) {
+    if (unlinkedVariable.initializer == null) {
       return null;
     } else {
       return _initializer ??= new FunctionElementForLink_Initializer(this);

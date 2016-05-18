@@ -752,4 +752,25 @@ class D extends C {
     expect(d.isTypeParameterInScope(t), false);
     expect(d.isTypeParameterInScope(u), false);
   }
+
+  void test_variable_initializer_presence() {
+    // Any variable declaration with an initializer should have a non-null value
+    // for `initializer`, regardless of whether it is constant and regardless of
+    // whether it has an explicit type.
+    createLinker('''
+const int c = 0;
+int i = 0;
+int j;
+var v = 0;
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    PropertyAccessorElementForLink_Variable c = library.getContainedName('c');
+    expect(c.variable.initializer, isNotNull);
+    PropertyAccessorElementForLink_Variable i = library.getContainedName('i');
+    expect(i.variable.initializer, isNotNull);
+    PropertyAccessorElementForLink_Variable j = library.getContainedName('j');
+    expect(j.variable.initializer, isNull);
+    PropertyAccessorElementForLink_Variable v = library.getContainedName('v');
+    expect(v.variable.initializer, isNotNull);
+  }
 }
