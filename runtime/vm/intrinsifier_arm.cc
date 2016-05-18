@@ -2112,19 +2112,13 @@ void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler) {
     __ Ret();
     return;
   }
-  Label true_label;
   // Load TimelineStream*.
   __ ldr(R0, Address(THR, Thread::dart_stream_offset()));
   // Load uintptr_t from TimelineStream*.
   __ ldr(R0, Address(R0, TimelineStream::enabled_offset()));
   __ cmp(R0, Operand(0));
-  __ b(&true_label, NE);
-  // Not enabled.
-  __ LoadObject(R0, Bool::False());
-  __ Ret();
-  // Enabled.
-  __ Bind(&true_label);
-  __ LoadObject(R0, Bool::True());
+  __ LoadObject(R0, Bool::True(), NE);
+  __ LoadObject(R0, Bool::False(), EQ);
   __ Ret();
 }
 
