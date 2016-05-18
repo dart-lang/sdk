@@ -4,16 +4,19 @@
 
 library dart2js.cmdline;
 
-import 'dart:async' show Future;
+import 'dart:async' show EventSink, Future;
 import 'dart:convert' show UTF8, LineSplitter;
 import 'dart:io' show exit, File, FileMode, Platform, stdin, stderr;
 
 import 'package:package_config/discovery.dart' show findPackages;
 
 import '../compiler_new.dart' as api;
+import 'apiimpl.dart';
+import 'common/names.dart' show Uris;
 import 'commandline_options.dart';
 import 'filenames.dart';
 import 'io/source_file.dart';
+import 'null_compiler_output.dart';
 import 'options.dart' show CompilerOptions;
 import 'source_file_provider.dart';
 import 'util/command_line.dart';
@@ -793,6 +796,10 @@ void batchMain(List<String> batchArguments) {
     throw _EXIT_SIGNAL;
   };
 
+  if (USE_SERIALIZED_DART_CORE) {
+    _useSerializedDataForDartCore(compileFunc);
+  }
+
   var stream = stdin.transform(UTF8.decoder).transform(new LineSplitter());
   var subscription;
   subscription = stream.listen((line) {
@@ -822,4 +829,85 @@ void batchMain(List<String> batchArguments) {
       subscription.resume();
     });
   });
+}
+
+final bool USE_SERIALIZED_DART_CORE =
+    Platform.environment['USE_SERIALIZED_DART_CORE'] == 'true';
+
+void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
+  String serializedData;
+
+  Future<api.CompilationResult> compileWithSerializedData(
+      CompilerOptions compilerOptions,
+      api.CompilerInput compilerInput,
+      api.CompilerDiagnostics compilerDiagnostics,
+      api.CompilerOutput compilerOutput) async {
+    CompilerImpl compiler = new CompilerImpl(
+        compilerInput, compilerOutput, compilerDiagnostics, compilerOptions);
+    compiler.serialization.deserializeFromText(serializedData);
+    return compiler.run(compilerOptions.entryPoint).then((bool success) {
+      return new api.CompilationResult(compiler, isSuccess: success);
+    });
+  }
+
+  Future<api.CompilationResult> generateSerializedDataForDartCore(
+      CompilerOptions compilerOptions,
+      api.CompilerInput compilerInput,
+      api.CompilerDiagnostics compilerDiagnostics,
+      api.CompilerOutput compilerOutput) async {
+    _CompilerOutput output = new _CompilerOutput();
+    api.CompilationResult result = await oldCompileFunc(
+        new CompilerOptions.parse(
+            entryPoint: Uris.dart_core,
+            libraryRoot: compilerOptions.libraryRoot,
+            packageRoot: compilerOptions.packageRoot,
+            packageConfig: compilerOptions.packageConfig,
+            packagesDiscoveryProvider:
+                compilerOptions.packagesDiscoveryProvider,
+            environment: compilerOptions.environment,
+            resolutionOutput: Uri.parse('file:fake.data'),
+            options: [Flags.resolveOnly]),
+        compilerInput,
+        compilerDiagnostics,
+        output);
+    serializedData = output.serializedData;
+    compileFunc = compileWithSerializedData;
+    return compileWithSerializedData(
+        compilerOptions, compilerInput, compilerDiagnostics, compilerOutput);
+  }
+
+  compileFunc = generateSerializedDataForDartCore;
+}
+
+class _CompilerOutput extends NullCompilerOutput {
+  _BufferedEventSink sink;
+
+  @override
+  EventSink<String> createEventSink(String name, String extension) {
+    if (name == '' && extension == 'data') {
+      return sink = new _BufferedEventSink();
+    }
+    return super.createEventSink(name, extension);
+  }
+
+  String get serializedData => sink.sb.toString();
+}
+
+class _BufferedEventSink implements EventSink<String> {
+  StringBuffer sb = new StringBuffer();
+
+  @override
+  void add(String event) {
+    sb.write(event);
+  }
+
+  @override
+  void close() {
+    // Do nothing.
+  }
+
+  @override
+  void addError(errorEvent, [StackTrace stackTrace]) {
+    // Ignore
+  }
 }
