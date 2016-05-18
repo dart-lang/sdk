@@ -62,6 +62,7 @@ class AnalyzerWorkerLoop extends SyncWorkerLoop {
   /**
    * Perform a single loop step.
    */
+  @override
   WorkResponse performRequest(WorkRequest request) {
     errorBuffer.clear();
     outBuffer.clear();
