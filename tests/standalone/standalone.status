@@ -216,14 +216,13 @@ io/code_collection_test: Skip # Platform.executable
 full_coverage_test: Skip # Platform.executable
 regress_26031_test: Skip # Platform.resolvedExecutable
 
-[ $runtime == dart_precompiled ]
-io/compile_all_test: Crash # Incompatible flag --compile_all
+[ $compiler == precompiler || $compiler == dart2app ]
+io/compile_all_test: Skip # Incompatible flag --compile_all
 
 [ $runtime == dart_product ]
 io/stdout_bad_argument_test: Skip # Test exits and so can't generate snapshot.
 
 [ $runtime == dart_precompiled || $runtime == dart_product ]
-debugger/*: Skip
 full_coverage_test: Skip # Platform.executable
 http_launch_test: Skip # Platform.executable
 io/addlatexhash_test: Skip # Platform.executable
@@ -253,14 +252,17 @@ io/test_runner_test: Skip # Platform.executable
 io/file_lock_test: Skip # Platform.executable
 io/code_collection_test: Skip # Platform.executable
 io/file_lock_test: Skip # Platform.executable
-io/code_collection_test: Skip # Platform.executable
 io/raw_socket_cross_process_test: Skip # Platform.executable
 io/test_extension_test: Skip # Platform.executable
 io/named_pipe_script_test: Skip # Platform.executable
 io/regress_7679_test: Skip # Platform.executable
 io/process_*: Skip # Most use Platform.executable
+
+[ $runtime == dart_precompiled || $runtime == dart_product || $mode == product ]
+debugger/*: Skip
 assert_test: SkipByDesign # Requires checked mode.
 no_assert_test: SkipByDesign # Requires checked mode.
+io/code_collection_test: Skip # Incompatible flags
 
 # Code coverage is not supported in product mode.
 [ $mode == product ]

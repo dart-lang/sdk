@@ -89,7 +89,10 @@ cc/CodeImmutability: Fail,OK # Address Sanitizer turns a crash into a failure.
 dart/byte_array_test: Crash # Incompatible flag --disable_alloc_stubs_after_gc
 
 [ $noopt || $compiler == precompiler || $mode == product ]
-dart/redirection_type_shuffling_test: CompileTimeError # Imports dart:mirrors
+dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
+cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
+cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
+cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 
 [ $noopt || $runtime == dart_precompiled ]
 # Stacktraces in precompilation omit inlined frames.
@@ -102,8 +105,9 @@ dart/optimized_stacktrace_test: SkipByDesign # Requires line numbers
 
 [ $runtime == vm && $mode == product ]
 cc/IsolateSetCheckedMode: Fail,OK  # Expects exact type name.
-cc/LibraryGetClassNames: Fail,OK  # Expects exact type name.
 cc/StackTraceFormat: Fail,OK  # Expects exact type name.
+cc/String_ScrubName: Fail,OK  # Expects exact type name.
+cc/GetFunctionNames: Fail,OK  # Expects exact type name.
 
 [ $arch == simdbc || $arch == simdbc64 ]
 # TODO(vegorov) Profiler is completely disabled in SIMDBC builds.

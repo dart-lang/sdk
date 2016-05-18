@@ -11,7 +11,7 @@ void main() {
   var script =
       Platform.script.resolve("stdio_nonblocking_script.dart").toFilePath();
   Process.run(Platform.executable,
-              ['--checked', script],
+              [script],
               stdoutEncoding: ASCII,
               stderrEncoding: ASCII).then((result) {
                   print(result.stdout);
