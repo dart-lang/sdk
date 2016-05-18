@@ -3353,7 +3353,7 @@ void checkDeferredIsLoaded(String loadId, String uri) {
  * objects that support integer indexing. This interface is not
  * visible to anyone, and is only injected into special libraries.
  */
-abstract class JavaScriptIndexingBehavior extends JSMutableIndexable {
+abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {
 }
 
 // TODO(lrn): These exceptions should be implemented in core.

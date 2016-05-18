@@ -554,7 +554,7 @@ class HtmlDartInterfaceGenerator(object):
     base_type_info = None
     if self._interface.parents:
       supertype = self._interface.parents[0].type.id
-      if not IsDartCollectionType(supertype) and not IsPureInterface(supertype):
+      if not IsDartCollectionType(supertype) and not IsPureInterface(supertype, self._database):
         base_type_info = self._type_registry.TypeInfo(supertype)
 
     if base_type_info:
@@ -594,7 +594,7 @@ class HtmlDartInterfaceGenerator(object):
 
     class_modifiers = ''
     if (self._renamer.ShouldSuppressInterface(self._interface) or
-      IsPureInterface(self._interface.id)):
+      IsPureInterface(self._interface.id, self._database)):
       # XMLHttpRequestProgressEvent can't be abstract we need to instantiate
       # for JsInterop.
       if (not(isinstance(self._backend, Dart2JSBackend)) and
@@ -614,7 +614,7 @@ class HtmlDartInterfaceGenerator(object):
           class_modifiers = 'abstract '
 
     native_spec = ''
-    if not IsPureInterface(self._interface.id):
+    if not IsPureInterface(self._interface.id, self._database):
       native_spec = self._backend.NativeSpec()
 
     class_name = self._interface_type_info.implementation_name()
@@ -689,7 +689,7 @@ class HtmlDartInterfaceGenerator(object):
     if (implementation_members_emitter and
         self._options.templates._conditions['DARTIUM'] and
         self._options.dart_js_interop and
-        not IsPureInterface(self._interface.id)):
+        not IsPureInterface(self._interface.id, self._database)):
       implementation_members_emitter.Emit(js_interop_wrapper)
 
     if isElement and self._interface.id != 'Element':
@@ -760,7 +760,9 @@ class Dart2JSBackend(HtmlDartGenerator):
   def AdditionalImplementedInterfaces(self):
     implements = super(Dart2JSBackend, self).AdditionalImplementedInterfaces()
     if self._interface_type_info.list_item_type() and self.HasIndexedGetter():
-      implements.append('JavaScriptIndexingBehavior')
+      item_type = self._type_registry.TypeInfo(
+          self._interface_type_info.list_item_type()).dart_type()
+      implements.append('JavaScriptIndexingBehavior<%s>' % item_type)
     return implements
 
   def NativeSpec(self):
@@ -898,7 +900,7 @@ class Dart2JSBackend(HtmlDartGenerator):
     if self._HasCustomImplementation(attribute.id):
       return
 
-    if IsPureInterface(self._interface.id):
+    if IsPureInterface(self._interface.id, self._database):
       self._AddInterfaceAttribute(attribute, html_name, read_only)
       return
 
@@ -1068,7 +1070,7 @@ class Dart2JSBackend(HtmlDartGenerator):
     if self._HasCustomImplementation(info.name):
       return
 
-    if IsPureInterface(self._interface.id):
+    if IsPureInterface(self._interface.id, self._database):
       self._AddInterfaceOperation(info, html_name)
     elif info.callback_args:
       self._AddFutureifiedOperation(info, html_name)
@@ -1202,6 +1204,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         idl_type, self._interface.id, idl_member_name):
       return_type = self.SecureOutputType(idl_type)
       native_type = self._NarrowToImplementationType(idl_type)
+
       if native_type != return_type:
         anns = anns + [
           "@Returns('%s')" % native_type,
@@ -1227,7 +1230,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         parent = interface.parents[0]
         if IsDartCollectionType(parent.type.id):
           return (None, None)
-        if IsPureInterface(parent.type.id):
+        if IsPureInterface(parent.type.id, self._database):
           return (None, None)
         if self._database.HasInterface(parent.type.id):
           interfaces_to_search_in = []

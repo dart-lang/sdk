@@ -193,7 +193,7 @@ class DartiumBackend(HtmlDartGenerator):
 
   def StartInterface(self, members_emitter):
     # Create emitters for c++ implementation.
-    if not IsPureInterface(self._interface.id) and \
+    if not IsPureInterface(self._interface.id, self._database) and \
         not IsCustomType(self._interface.id):
       self._cpp_header_emitter = self._cpp_library_emitter.CreateHeaderEmitter(
         self._interface.id,
@@ -951,7 +951,7 @@ class DartiumBackend(HtmlDartGenerator):
         full_dart_name = \
             self.DeriveQualifiedBlinkName(self._interface.id,
                                           dart_native_name)
-        if IsPureInterface(self._interface.id):
+        if IsPureInterface(self._interface.id, self._database):
             caller_emitter.Emit(
                 '\n'
                 '  $METADATA$DART_DECLARATION;\n',

@@ -105,12 +105,6 @@ class HtmlElement extends Element {
   HtmlElement.created() : super.created();
 }
 
-// EntryArray type was removed, so explicitly adding it to allow support for
-// older Chrome versions.
-// Issue #12573.
-@Native("EntryArray")
-abstract class _EntryArray implements List<Entry> {}
-
 /**
  * Spawn a DOM isolate using the given URI in the same window.
  * This isolate is not concurrent.  It runs on the browser thread
@@ -11639,17 +11633,27 @@ class DomStringList extends Interceptor with ListMixin<String>, ImmutableListMix
 
 @DocsEditable()
 @DomName('DOMStringMap')
-abstract class DomStringMap extends Interceptor {
+@Native("DOMStringMap")
+class DomStringMap extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DomStringMap._() { throw new UnsupportedError("Not supported"); }
 
-  void __delete__(index_OR_name);
+  @DomName('DOMStringMap.__delete__')
+  @DocsEditable()
+  void __delete__(index_OR_name) native;
 
-  String __getter__(int index);
+  @DomName('DOMStringMap.__getter__')
+  @DocsEditable()
+  String __getter__(int index) native;
 
-  void __setter__(index_OR_name, String value);
+  @DomName('DOMStringMap.__setter__')
+  @DocsEditable()
+  void __setter__(index_OR_name, String value) native;
 
-  String item(String name);
+  @DomName('DOMStringMap.item')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String item(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16852,7 +16856,7 @@ class FileError extends DomError {
 @DocsEditable()
 @DomName('FileList')
 @Native("FileList")
-class FileList extends Interceptor with ListMixin<File>, ImmutableListMixin<File> implements JavaScriptIndexingBehavior, List<File> {
+class FileList extends Interceptor with ListMixin<File>, ImmutableListMixin<File> implements List<File>, JavaScriptIndexingBehavior<File> {
   // To suppress missing implicit constructor warnings.
   factory FileList._() { throw new UnsupportedError("Not supported"); }
 
@@ -18887,7 +18891,7 @@ class HmdvrDevice extends VRDevice {
 @DocsEditable()
 @DomName('HTMLCollection')
 @Native("HTMLCollection")
-class HtmlCollection extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> {
+class HtmlCollection extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior<Node>, List<Node> {
   // To suppress missing implicit constructor warnings.
   factory HtmlCollection._() { throw new UnsupportedError("Not supported"); }
 
@@ -23801,7 +23805,7 @@ class MimeType extends Interceptor {
 @DomName('MimeTypeArray')
 @Experimental() // non-standard
 @Native("MimeTypeArray")
-class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements JavaScriptIndexingBehavior, List<MimeType> {
+class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements List<MimeType>, JavaScriptIndexingBehavior<MimeType> {
   // To suppress missing implicit constructor warnings.
   factory MimeTypeArray._() { throw new UnsupportedError("Not supported"); }
 
@@ -25434,7 +25438,7 @@ class NodeIterator extends Interceptor {
 @DocsEditable()
 @DomName('NodeList')
 @Native("NodeList,RadioNodeList")
-class NodeList extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> {
+class NodeList extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior<Node>, List<Node> {
   // To suppress missing implicit constructor warnings.
   factory NodeList._() { throw new UnsupportedError("Not supported"); }
 
@@ -26938,7 +26942,7 @@ class Plugin extends Interceptor {
 @DomName('PluginArray')
 @Experimental() // non-standard
 @Native("PluginArray")
-class PluginArray extends Interceptor with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements JavaScriptIndexingBehavior, List<Plugin> {
+class PluginArray extends Interceptor with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements JavaScriptIndexingBehavior<Plugin>, List<Plugin> {
   // To suppress missing implicit constructor warnings.
   factory PluginArray._() { throw new UnsupportedError("Not supported"); }
 
@@ -28031,24 +28035,6 @@ typedef void RequestAnimationFrameCallback(num highResTime);
 
 
 @DocsEditable()
-@DomName('ResourceProgressEvent')
-// https://chromiumcodereview.appspot.com/14773025/
-@deprecated // experimental
-@Native("ResourceProgressEvent")
-class ResourceProgressEvent extends ProgressEvent {
-  // To suppress missing implicit constructor warnings.
-  factory ResourceProgressEvent._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('ResourceProgressEvent.url')
-  @DocsEditable()
-  final String url;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
 @DomName('RTCDataChannel')
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCDataChannel
 @Experimental()
@@ -28358,7 +28344,7 @@ class RtcIceCandidateEvent extends Event {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCPeerConnection
-@Native("RTCPeerConnection,mozRTCPeerConnection")
+@Native("RTCPeerConnection,webkitRTCPeerConnection,mozRTCPeerConnection")
 class RtcPeerConnection extends EventTarget {
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
     var constructorName = JS('RtcPeerConnection', 'window[#]',
@@ -30176,7 +30162,7 @@ class SourceBuffer extends EventTarget {
 // https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebufferlist
 @Experimental()
 @Native("SourceBufferList")
-class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, ImmutableListMixin<SourceBuffer> implements JavaScriptIndexingBehavior, List<SourceBuffer> {
+class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, ImmutableListMixin<SourceBuffer> implements JavaScriptIndexingBehavior<SourceBuffer>, List<SourceBuffer> {
   // To suppress missing implicit constructor warnings.
   factory SourceBufferList._() { throw new UnsupportedError("Not supported"); }
 
@@ -30370,7 +30356,7 @@ class SpeechGrammar extends Interceptor {
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#dfn-speechgrammarlist
 @Experimental()
 @Native("SpeechGrammarList")
-class SpeechGrammarList extends Interceptor with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements JavaScriptIndexingBehavior, List<SpeechGrammar> {
+class SpeechGrammarList extends Interceptor with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements JavaScriptIndexingBehavior<SpeechGrammar>, List<SpeechGrammar> {
   // To suppress missing implicit constructor warnings.
   factory SpeechGrammarList._() { throw new UnsupportedError("Not supported"); }
 
@@ -32451,7 +32437,7 @@ class TextTrackCue extends EventTarget {
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttrackcuelist
 @Experimental()
 @Native("TextTrackCueList")
-class TextTrackCueList extends Interceptor with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue>, JavaScriptIndexingBehavior {
+class TextTrackCueList extends Interceptor with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue>, JavaScriptIndexingBehavior<TextTrackCue> {
   // To suppress missing implicit constructor warnings.
   factory TextTrackCueList._() { throw new UnsupportedError("Not supported"); }
 
@@ -32521,7 +32507,7 @@ class TextTrackCueList extends Interceptor with ListMixin<TextTrackCue>, Immutab
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttracklist
 @Experimental()
 @Native("TextTrackList")
-class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableListMixin<TextTrack> implements JavaScriptIndexingBehavior, List<TextTrack> {
+class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableListMixin<TextTrack> implements List<TextTrack>, JavaScriptIndexingBehavior<TextTrack> {
   // To suppress missing implicit constructor warnings.
   factory TextTrackList._() { throw new UnsupportedError("Not supported"); }
 
@@ -32863,7 +32849,7 @@ class TouchEvent extends UIEvent {
 // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
 @Experimental()
 @Native("TouchList")
-class TouchList extends Interceptor with ListMixin<Touch>, ImmutableListMixin<Touch> implements JavaScriptIndexingBehavior, List<Touch> {
+class TouchList extends Interceptor with ListMixin<Touch>, ImmutableListMixin<Touch> implements JavaScriptIndexingBehavior<Touch>, List<Touch> {
   /// NB: This constructor likely does not work as you might expect it to! This
   /// constructor will simply fail (returning null) if you are not on a device
   /// with touch enabled. See dartbug.com/8314.
@@ -36553,7 +36539,9 @@ class _BeforeUnloadEventStreamProvider implements
   const _BeforeUnloadEventStreamProvider(this._eventType);
 
   Stream<BeforeUnloadEvent> forTarget(EventTarget e, {bool useCapture: false}) {
-    var stream = new _EventStream(e, _eventType, useCapture);
+    // Specify the generic type for EventStream only in dart2js to avoid
+    // checked mode errors in dartium.
+    var stream = new _EventStream<BeforeUnloadEvent>(e, _eventType, useCapture);
     var controller = new StreamController<BeforeUnloadEvent>(sync: true);
 
     stream.listen((event) {
@@ -36569,12 +36557,16 @@ class _BeforeUnloadEventStreamProvider implements
   }
 
   ElementStream<BeforeUnloadEvent> forElement(Element e, {bool useCapture: false}) {
-    return new _ElementEventStreamImpl(e, _eventType, useCapture);
+    // Specify the generic type for _ElementEventStreamImpl only in dart2js to
+    // avoid checked mode errors in dartium.
+    return new _ElementEventStreamImpl<BeforeUnloadEvent>(e, _eventType, useCapture);
   }
 
   ElementStream<BeforeUnloadEvent> _forElementList(ElementList e,
       {bool useCapture: false}) {
-    return new _ElementListEventStreamImpl(e, _eventType, useCapture);
+    // Specify the generic type for _ElementEventStreamImpl only in dart2js to
+    // avoid checked mode errors in dartium.
+    return new _ElementListEventStreamImpl<BeforeUnloadEvent>(e, _eventType, useCapture);
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -37642,7 +37634,7 @@ class _ClientRectList extends Interceptor with ListMixin<Rectangle>, ImmutableLi
 @DocsEditable()
 @DomName('CSSRuleList')
 @Native("CSSRuleList")
-class _CssRuleList extends Interceptor with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements JavaScriptIndexingBehavior, List<CssRule> {
+class _CssRuleList extends Interceptor with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements JavaScriptIndexingBehavior<CssRule>, List<CssRule> {
   // To suppress missing implicit constructor warnings.
   factory _CssRuleList._() { throw new UnsupportedError("Not supported"); }
 
@@ -37896,7 +37888,7 @@ abstract class _FileWriterSync extends Interceptor {
 // https://dvcs.w3.org/hg/gamepad/raw-file/default/gamepad.html
 @Experimental()
 @Native("GamepadList")
-class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements JavaScriptIndexingBehavior, List<Gamepad> {
+class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements List<Gamepad>, JavaScriptIndexingBehavior<Gamepad> {
   // To suppress missing implicit constructor warnings.
   factory _GamepadList._() { throw new UnsupportedError("Not supported"); }
 
@@ -38103,7 +38095,7 @@ abstract class _HTMLMarqueeElement extends HtmlElement {
 // http://dom.spec.whatwg.org/#namednodemap
 @deprecated // deprecated
 @Native("NamedNodeMap,MozNamedAttrMap")
-class _NamedNodeMap extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> {
+class _NamedNodeMap extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior<Node>, List<Node> {
   // To suppress missing implicit constructor warnings.
   factory _NamedNodeMap._() { throw new UnsupportedError("Not supported"); }
 
@@ -38271,6 +38263,20 @@ class _Request extends Body {
 
 
 @DocsEditable()
+@DomName('ResourceProgressEvent')
+// https://chromiumcodereview.appspot.com/14773025/
+@deprecated // experimental
+@Native("ResourceProgressEvent")
+abstract class _ResourceProgressEvent extends ProgressEvent {
+  // To suppress missing implicit constructor warnings.
+  factory _ResourceProgressEvent._() { throw new UnsupportedError("Not supported"); }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('Response')
 @Experimental() // untriaged
 @Native("Response")
@@ -38319,7 +38325,7 @@ abstract class _ServiceWorker extends EventTarget implements AbstractWorker {
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionresultlist
 @Experimental()
 @Native("SpeechRecognitionResultList")
-class _SpeechRecognitionResultList extends Interceptor with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements JavaScriptIndexingBehavior, List<SpeechRecognitionResult> {
+class _SpeechRecognitionResultList extends Interceptor with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements JavaScriptIndexingBehavior<SpeechRecognitionResult>, List<SpeechRecognitionResult> {
   // To suppress missing implicit constructor warnings.
   factory _SpeechRecognitionResultList._() { throw new UnsupportedError("Not supported"); }
 
@@ -38383,7 +38389,7 @@ class _SpeechRecognitionResultList extends Interceptor with ListMixin<SpeechReco
 @DocsEditable()
 @DomName('StyleSheetList')
 @Native("StyleSheetList")
-class _StyleSheetList extends Interceptor with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements JavaScriptIndexingBehavior, List<StyleSheet> {
+class _StyleSheetList extends Interceptor with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements List<StyleSheet>, JavaScriptIndexingBehavior<StyleSheet> {
   // To suppress missing implicit constructor warnings.
   factory _StyleSheetList._() { throw new UnsupportedError("Not supported"); }
 
@@ -39916,7 +39922,7 @@ class EventStreamProvider<T extends Event> {
    * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
    */
   ElementStream<T> _forElementList(ElementList e, {bool useCapture: false}) {
-    return new _ElementListEventStreamImpl(e, _eventType, useCapture);
+    return new _ElementListEventStreamImpl<T>(e, _eventType, useCapture);
   }
 
   /**
@@ -40134,9 +40140,9 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     }
   }
 
-  Future asFuture([var futureValue]) {
+  Future/*<E>*/ asFuture/*<E>*/([var/*=E*/ futureValue]) {
     // We just need a future that will never succeed or fail.
-    Completer completer = new Completer();
+    var completer = new Completer/*<E>*/();
     return completer.future;
   }
 }
@@ -42512,7 +42518,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
 
   // Iterable APIs
 
-  Iterator<E> get iterator => new _WrappedIterator(_list.iterator);
+  Iterator<E> get iterator => new _WrappedIterator<E>(_list.iterator);
 
   int get length => _list.length;
 

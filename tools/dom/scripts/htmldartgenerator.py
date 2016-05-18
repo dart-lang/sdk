@@ -177,7 +177,7 @@ class HtmlDartGenerator(object):
 
     # Never remove operations that are added as a result of an implements they
     # are pure interfaces (mixins to this interface).
-    if (IsPureInterface(parent_name)):
+    if (IsPureInterface(parent_name, self._database)):
       return
 
     for operation in parent.operations:

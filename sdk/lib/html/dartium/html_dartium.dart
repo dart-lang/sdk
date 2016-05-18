@@ -474,7 +474,7 @@ final htmlBlinkMap = {
   'ReadableStreamReader': () => ReadableStreamReader.instanceRuntimeType,
   'RelatedEvent': () => RelatedEvent.instanceRuntimeType,
   'Request': () => _Request.instanceRuntimeType,
-  'ResourceProgressEvent': () => ResourceProgressEvent.instanceRuntimeType,
+  'ResourceProgressEvent': () => _ResourceProgressEvent.instanceRuntimeType,
   'Response': () => _Response.instanceRuntimeType,
   'Screen': () => Screen.instanceRuntimeType,
   'ScreenOrientation': () => ScreenOrientation.instanceRuntimeType,
@@ -12308,6 +12308,13 @@ class DomStringMap extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomStringMap._() { throw new UnsupportedError("Not supported"); }
 
+
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
+
+  @Deprecated("Internal Use Only")
+  DomStringMap.internal_() { }
+
   void __delete__(index_OR_name) {
     if ((index_OR_name is String || index_OR_name == null)) {
       _blink.BlinkDOMStringMap.instance.$__delete___Callback_1_(this, index_OR_name);
@@ -12322,8 +12329,8 @@ class DomStringMap extends DartHtmlDomObject {
 
   @DomName('DOMStringMap.__getter__')
   @DocsEditable()
-  String __getter__(int index);
-
+  String __getter__(int index) => _blink.BlinkDOMStringMap.instance.$__getter___Callback_1_(this, index);
+  
   void __setter__(index_OR_name, String value) {
     if ((value is String || value == null) && (index_OR_name is String || index_OR_name == null)) {
       _blink.BlinkDOMStringMap.instance.$__setter___Callback_2_(this, index_OR_name, value);
@@ -12339,8 +12346,8 @@ class DomStringMap extends DartHtmlDomObject {
   @DomName('DOMStringMap.item')
   @DocsEditable()
   @Experimental() // untriaged
-  String item(String name);
-
+  String item(String name) => _blink.BlinkDOMStringMap.instance.item_Callback_1_(this, name);
+  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31455,34 +31462,6 @@ typedef void RequestAnimationFrameCallback(num highResTime);
 
 
 @DocsEditable()
-@DomName('ResourceProgressEvent')
-// https://chromiumcodereview.appspot.com/14773025/
-@deprecated // experimental
-class ResourceProgressEvent extends ProgressEvent {
-  // To suppress missing implicit constructor warnings.
-  factory ResourceProgressEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  ResourceProgressEvent.internal_() : super.internal_();
-
-
-  @DomName('ResourceProgressEvent.url')
-  @DocsEditable()
-  String get url => _blink.BlinkResourceProgressEvent.instance.url_Getter_(this);
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
 @DomName('RTCDataChannel')
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCDataChannel
 @Experimental()
@@ -37683,10 +37662,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -42851,6 +42830,30 @@ class _Request extends Body {
 
 
 @DocsEditable()
+@DomName('ResourceProgressEvent')
+// https://chromiumcodereview.appspot.com/14773025/
+@deprecated // experimental
+class _ResourceProgressEvent extends ProgressEvent {
+  // To suppress missing implicit constructor warnings.
+  factory _ResourceProgressEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
+
+  @Deprecated("Internal Use Only")
+  _ResourceProgressEvent.internal_() : super.internal_();
+
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('Response')
 @Experimental() // untriaged
 class _Response extends Body {
@@ -44447,7 +44450,7 @@ class EventStreamProvider<T extends Event> {
    * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
    */
   ElementStream<T> _forElementList(ElementList e, {bool useCapture: false}) {
-    return new _ElementListEventStreamImpl(e, _eventType, useCapture);
+    return new _ElementListEventStreamImpl<T>(e, _eventType, useCapture);
   }
 
   /**
@@ -44665,9 +44668,9 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     }
   }
 
-  Future asFuture([var futureValue]) {
+  Future/*<E>*/ asFuture/*<E>*/([var/*=E*/ futureValue]) {
     // We just need a future that will never succeed or fail.
-    Completer completer = new Completer();
+    var completer = new Completer/*<E>*/();
     return completer.future;
   }
 }
@@ -47349,7 +47352,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
 
   // Iterable APIs
 
-  Iterator<E> get iterator => new _WrappedIterator(_list.iterator);
+  Iterator<E> get iterator => new _WrappedIterator<E>(_list.iterator);
 
   int get length => _list.length;
 

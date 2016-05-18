@@ -16,7 +16,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
 
   // Iterable APIs
 
-  Iterator<E> get iterator => new _WrappedIterator(_list.iterator);
+  Iterator<E> get iterator => new _WrappedIterator<E>(_list.iterator);
 
   int get length => _list.length;
 
