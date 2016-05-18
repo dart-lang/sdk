@@ -109,6 +109,10 @@ int64_t OS::GetCurrentMonotonicTicks() {
   origin += boottime.tv_usec;
   return now - origin;
 #else
+  if (timebase_info.denom == 0) {
+    kern_return_t kr = mach_timebase_info(&timebase_info);
+    ASSERT(KERN_SUCCESS == kr);
+  }
   ASSERT(timebase_info.denom != 0);
   // timebase_info converts absolute time tick units into nanoseconds.
   int64_t result = mach_absolute_time();
@@ -429,8 +433,6 @@ void OS::InitOnce() {
   static bool init_once_called = false;
   ASSERT(init_once_called == false);
   init_once_called = true;
-  kern_return_t kr = mach_timebase_info(&timebase_info);
-  ASSERT(KERN_SUCCESS == kr);
 }
 
 
