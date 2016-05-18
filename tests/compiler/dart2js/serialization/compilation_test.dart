@@ -6,10 +6,6 @@ library dart2js.serialization_compilation_test;
 
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
-import 'package:expect/expect.dart';
-import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/common/backend_api.dart';
-import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/filenames.dart';
 import '../memory_compiler.dart';
@@ -52,7 +48,7 @@ Future compile(String serializedData, Uri entryPoint, Test test,
       options: [],
       outputProvider: outputCollector,
       beforeRun: (Compiler compiler) {
-        deserialize(compiler, serializedData);
+        compiler.serialization.deserializeFromText(serializedData);
       });
   if (verbose) {
     print(outputCollector.getOutput('', 'js'));

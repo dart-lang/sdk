@@ -241,6 +241,7 @@ typedef void MessageCallback(String message);
 class RandomAccessFileOutputProvider implements CompilerOutput {
   final Uri out;
   final Uri sourceMapOut;
+  final Uri resolutionOutput;
   final MessageCallback onInfo;
   final MessageCallback onFailure;
 
@@ -248,7 +249,7 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
   List<String> allOutputFiles = new List<String>();
 
   RandomAccessFileOutputProvider(this.out, this.sourceMapOut,
-      {this.onInfo, this.onFailure});
+      {this.onInfo, this.onFailure, this.resolutionOutput});
 
   static Uri computePrecompiledUri(Uri out) {
     String extension = 'precompiled.js';
@@ -264,7 +265,7 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
   EventSink<String> call(String name, String extension) {
     return createEventSink(name, extension);
   }
-  
+
   EventSink<String> createEventSink(String name, String extension) {
     Uri uri;
     bool isPrimaryOutput = false;
@@ -282,9 +283,14 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
             " \"Content-Security-Policy: script-src 'self'\"");
       } else if (extension == 'js.map' || extension == 'dart.map') {
         uri = sourceMapOut;
-      } else if (extension == "info.json") {
+      } else if (extension == 'info.json') {
         String outName = out.path.substring(out.path.lastIndexOf('/') + 1);
         uri = out.resolve('$outName.$extension');
+      } else if (extension == 'data') {
+        if (resolutionOutput == null) {
+          onFailure('Serialization target unspecified.');
+        }
+        uri = resolutionOutput;
       } else {
         onFailure('Unknown extension: $extension');
       }

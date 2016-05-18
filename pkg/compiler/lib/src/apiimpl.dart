@@ -26,6 +26,7 @@ import 'options.dart' show CompilerOptions;
 import 'platform_configuration.dart' as platform_configuration;
 import 'resolved_uri_translator.dart';
 import 'script.dart';
+import 'serialization/system.dart';
 
 /// Implements the [Compiler] using a [api.CompilerInput] for supplying the
 /// sources.
@@ -112,17 +113,8 @@ class CompilerImpl extends Compiler {
     // TODO(johnniwinther): Wrap the result from [provider] in a specialized
     // [Future] to ensure that we never execute an asynchronous action without
     // setting up the current element of the compiler.
-    return new Future.sync(() => callUserProvider(resourceUri)).then((data) {
-      SourceFile sourceFile;
-      if (data is List<int>) {
-        sourceFile = new Utf8BytesSourceFile(resourceUri, data);
-      } else if (data is String) {
-        sourceFile = new StringSourceFile.fromUri(resourceUri, data);
-      } else {
-        String message = "Expected a 'String' or a 'List<int>' from the input "
-            "provider, but got: ${Error.safeToString(data)}.";
-        reportReadError(message);
-      }
+    return new Future.sync(() => callUserProvider(resourceUri))
+        .then((SourceFile sourceFile) {
       // We use [readableUri] as the URI for the script since need to preserve
       // the scheme in the script because [Script.uri] is used for resolving
       // relative URIs mentioned in the script. See the comment on
@@ -182,10 +174,9 @@ class CompilerImpl extends Compiler {
       // and we can't depend on 'dart:io' classes.
       packages = new NonFilePackagesDirectoryPackages(options.packageRoot);
     } else if (options.packageConfig != null) {
-      return callUserProvider(options.packageConfig).then((configContents) {
-        if (configContents is String) {
-          configContents = UTF8.encode(configContents);
-        }
+      return callUserProvider(options.packageConfig)
+          .then((SourceFile sourceFile) {
+        List<int> configContents = sourceFile.slowUtf8ZeroTerminatedBytes();
         // The input provider may put a trailing 0 byte when it reads a source
         // file, which confuses the package config parser.
         if (configContents.length > 0 && configContents.last == 0) {
@@ -213,18 +204,27 @@ class CompilerImpl extends Compiler {
   }
 
   Future<Null> setupSdk() {
-    if (resolvedUriTranslator.isNotSet) {
-      return platform_configuration
-          .load(options.platformConfigUri, provider)
-          .then((Map<String, Uri> mapping) {
-        resolvedUriTranslator.resolvedUriTranslator =
-            new ResolvedUriTranslator(mapping, reporter);
+    Future future = new Future.value(null);
+    if (options.resolutionInput != null) {
+      reporter.log('Reading serialized data from ${options.resolutionInput}');
+      future = callUserProvider(options.resolutionInput)
+          .then((SourceFile sourceFile) {
+        serialization.deserializeFromText(sourceFile.slowText());
       });
-    } else {
-      // The incremental compiler sets up the sdk before run.
-      // Therefore this will be called a second time.
-      return new Future.value(null);
     }
+    if (resolvedUriTranslator.isNotSet) {
+      future = future.then((_) {
+        return platform_configuration
+            .load(options.platformConfigUri, provider)
+            .then((Map<String, Uri> mapping) {
+          resolvedUriTranslator.resolvedUriTranslator =
+              new ResolvedUriTranslator(mapping, reporter);
+        });
+      });
+    }
+    // The incremental compiler sets up the sdk before run.
+    // Therefore this will be called a second time.
+    return future;
   }
 
   Future<bool> run(Uri uri) {
@@ -316,9 +316,22 @@ class CompilerImpl extends Compiler {
     }
   }
 
-  Future callUserProvider(Uri uri) {
+  Future<SourceFile> callUserProvider(Uri uri) {
     try {
-      return userProviderTask.measureIo(() => provider.readFromUri(uri));
+      return userProviderTask
+          .measureIo(() => provider.readFromUri(uri))
+          .then((data) {
+        SourceFile sourceFile;
+        if (data is List<int>) {
+          sourceFile = new Utf8BytesSourceFile(uri, data);
+        } else if (data is String) {
+          sourceFile = new StringSourceFile.fromUri(uri, data);
+        } else {
+          throw "Expected a 'String' or a 'List<int>' from the input "
+              "provider, but got: ${Error.safeToString(data)}.";
+        }
+        return sourceFile;
+      });
     } catch (ex, s) {
       reportCrashInUserCode('Uncaught exception in input provider', ex, s);
       rethrow;

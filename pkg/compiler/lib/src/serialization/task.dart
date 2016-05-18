@@ -4,7 +4,7 @@
 
 library dart2js.serialization.task;
 
-import 'dart:async' show Future;
+import 'dart:async' show EventSink, Future;
 import '../common/resolution.dart' show ResolutionImpact, ResolutionWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../common/work.dart' show ItemCompilationContext;
@@ -12,6 +12,9 @@ import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
 import '../enqueue.dart' show ResolutionEnqueuer;
 import '../universe/world_impact.dart' show WorldImpact;
+import 'json_serializer.dart';
+import 'serialization.dart';
+import 'system.dart';
 
 /// A deserializer that can load a library element by reading it's information
 /// from a serialized form.
@@ -74,6 +77,48 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
 
   ResolvedAst getResolvedAst(ExecutableElement element) {
     return deserializer != null ? deserializer.getResolvedAst(element) : null;
+  }
+
+  Serializer createSerializer(Iterable<LibraryElement> libraries) {
+    return measure(() {
+      assert(supportSerialization);
+
+      Serializer serializer = new Serializer();
+      SerializerPlugin backendSerializer =
+          compiler.backend.serialization.serializer;
+      serializer.plugins.add(backendSerializer);
+      serializer.plugins.add(new ResolutionImpactSerializer(
+          compiler.resolution, backendSerializer));
+      serializer.plugins.add(new ResolvedAstSerializerPlugin(
+          compiler.resolution, backendSerializer));
+
+      for (LibraryElement library in libraries) {
+        serializer.serialize(library);
+      }
+      return serializer;
+    });
+  }
+
+  void serializeToSink(
+      EventSink<String> sink, Iterable<LibraryElement> libraries) {
+    measure(() {
+      sink
+        ..add(createSerializer(libraries)
+            .toText(const JsonSerializationEncoder()))
+        ..close();
+    });
+  }
+
+  void deserializeFromText(String serializedData) {
+    measure(() {
+      Deserializer dataDeserializer = new Deserializer.fromText(
+          new DeserializationContext(),
+          serializedData,
+          const JsonSerializationDecoder());
+      dataDeserializer.plugins.add(compiler.backend.serialization.deserializer);
+      deserializer = new DeserializerSystemImpl(
+          compiler, dataDeserializer, compiler.backend.impactTransformer);
+    });
   }
 }
 

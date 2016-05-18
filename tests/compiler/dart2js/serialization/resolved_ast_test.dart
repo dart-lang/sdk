@@ -6,11 +6,7 @@ library dart2js.serialization_resolved_ast_test;
 
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
-import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/common.dart';
-import 'package:compiler/src/common/backend_api.dart';
-import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/filenames.dart';
@@ -53,7 +49,7 @@ Future check(
       memorySourceFiles: sourceFiles,
       options: [Flags.analyzeAll]);
   compilerDeserialized.resolution.retainCachesForTesting = true;
-  deserialize(compilerDeserialized, serializedData);
+  compilerDeserialized.serialization.deserializeFromText(serializedData);
   await compilerDeserialized.run(entryPoint);
 
   checkAllResolvedAsts(compilerNormal, compilerDeserialized, verbose: true);
