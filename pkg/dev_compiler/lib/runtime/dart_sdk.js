@@ -198,9 +198,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart._installProperties = function(jsProto, extProto) {
     let coreObjProto = core.Object.prototype;
-    let installedParent = dart._installedDartPeers.get(jsProto.__proto__);
+    let parentsExtension = jsProto.__proto__[dart._extensionType];
+    let installedParent = parentsExtension && parentsExtension.prototype;
     dart._installProperties2(jsProto, extProto, coreObjProto, installedParent);
-    dart._installedDartPeers.set(jsProto, extProto);
   };
   dart._installProperties2 = function(jsProto, extProto, coreObjProto, installedParent) {
     if (extProto === coreObjProto) {
@@ -1017,7 +1017,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart._staticSig = Symbol("sigStatic");
   dart._extensionType = Symbol("extensionType");
   dart.dartx = dartx;
-  dart._installedDartPeers = new Map();
   dart._jsIterator = Symbol("_jsIterator");
   dart._current = Symbol("_current");
   dart._AsyncStarStreamController = class _AsyncStarStreamController {

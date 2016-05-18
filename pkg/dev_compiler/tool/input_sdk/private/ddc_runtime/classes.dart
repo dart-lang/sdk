@@ -276,11 +276,6 @@ defineExtensionNames(names) =>
     JS('', '#.forEach(#)', names, getExtensionSymbol);
 
 
-/// A map from peer class prototypes to the Dart class prototype.  This is used
-/// to recognize when Dart subclass inheritance corresponds to JavaScript
-/// prototype inheritance.
-final _installedDartPeers = JS('', 'new Map()');
-
 /// Install properties in prototype-first order.  Properties / descriptors from
 /// more specific types should overwrite ones from less specific types.
 void _installProperties(jsProto, extProto) {
@@ -289,13 +284,12 @@ void _installProperties(jsProto, extProto) {
   // constructor.
   var coreObjProto = JS('', '#.prototype', Object);
 
+  var parentsExtension =
+      JS('', '(#.__proto__)[#]', jsProto, _extensionType);
   var installedParent =
-      JS('', '#.get(#.__proto__)', _installedDartPeers, jsProto);
+      JS('', '# && #.prototype', parentsExtension, parentsExtension);
 
   _installProperties2(jsProto, extProto, coreObjProto, installedParent);
-
-  // Mark this jsProto as being the prototype for the extension class.
-  JS('', '#.set(#, #)', _installedDartPeers, jsProto, extProto);
 }
 
 void _installProperties2(jsProto, extProto, coreObjProto, installedParent) {

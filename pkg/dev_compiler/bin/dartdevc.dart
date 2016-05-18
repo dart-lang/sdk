@@ -78,7 +78,7 @@ class _CompilerWorker extends AsyncWorkerLoop {
     var args = new List.from(_startupArgs)..addAll(request.arguments);
 
     var output = new StringBuffer();
-    var exitCode =  await _runCommand(args, messageHandler: output.writeln);
+    var exitCode = await _runCommand(args, messageHandler: output.writeln);
     AnalysisEngine.instance.clearCaches();
     return new WorkResponse()
       ..exitCode = exitCode
