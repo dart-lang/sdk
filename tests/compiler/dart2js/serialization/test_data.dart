@@ -209,6 +209,14 @@ class A {
 main() => new A();
     ''',
   }),
+
+  const Test(const {
+    'main.dart': '''
+class C {
+  const C();
+}
+main() => const C();'''
+  }),
 ];
 
 class Test {
