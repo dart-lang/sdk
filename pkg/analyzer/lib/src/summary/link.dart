@@ -1002,7 +1002,8 @@ abstract class CompilationUnitElementForLink
         if (linkedReference.kind == ReferenceKind.function) {
           // Local function
           _references[index] = _resolveRef(containingReference)
-              .getLocalFunction(linkedReference.localIndex);
+                  .getLocalFunction(linkedReference.localIndex) ??
+              UndefinedElementForLink.instance;
         } else {
           _references[index] =
               _resolveRef(containingReference).getContainedName(name);

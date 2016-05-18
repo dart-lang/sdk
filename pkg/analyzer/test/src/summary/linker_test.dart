@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:unittest/unittest.dart';
 
@@ -603,6 +604,34 @@ var x = {
     expect(libraryCycle.dependencies,
         unorderedEquals([libA.libraryCycleForLink, libB.libraryCycleForLink]));
     expect(libraryCycle.libraries, [testLibrary]);
+  }
+
+  void test_malformed_function_reference() {
+    // Create a corrupted package bundle in which the inferred type of `x`
+    // refers to a non-existent local function.
+    var bundle = createPackageBundle('var x = () {}', path: '/a.dart');
+    expect(bundle.linkedLibraries, hasLength(1));
+    expect(bundle.linkedLibraries[0].units, hasLength(1));
+    for (LinkedReferenceBuilder ref
+        in bundle.linkedLibraries[0].units[0].references) {
+      if (ref.kind == ReferenceKind.function) {
+        ref.localIndex = 1234;
+      }
+    }
+    addBundle(bundle);
+    createLinker('''
+import 'a.dart';
+var y = x;
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    expect(
+        library
+            .getContainedName('y')
+            .asTypeInferenceNode
+            .variableElement
+            .inferredType
+            .toString(),
+        'dynamic');
   }
 
   void test_multiplyInheritedExecutable_differentSignatures() {
