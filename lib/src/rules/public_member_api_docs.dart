@@ -55,6 +55,10 @@ class Sub extends Base {
   void init() { ... }
 }
 ```
+
+Note that consistent with `dartdoc`, an exception to the rule is made when
+documented getters have corresponding undocumented setters. In this case the
+setters inherit the docs from the getters.
 ''';
 
 class PublicMemberApiDocs extends LintRule {
@@ -75,10 +79,12 @@ class Visitor extends GeneralizingAstVisitor {
   final LintRule rule;
   Visitor(this.rule);
 
-  void check(Declaration node) {
+  bool check(Declaration node) {
     if (node.documentationComment == null && !isOverridingMember(node)) {
       rule.reportLint(getNodeToAnnotate(node));
+      return true;
     }
+    return false;
   }
 
   ExecutableElement getOverriddenMember(Element member) {
@@ -99,9 +105,61 @@ class Visitor extends GeneralizingAstVisitor {
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    if (!isPrivate(node.name)) {
-      check(node);
+    if (isPrivate(node.name)) {
+      return;
     }
+
+    check(node);
+
+    // Check methods
+
+    Map<String, MethodDeclaration> getters = <String, MethodDeclaration>{};
+    Map<String, MethodDeclaration> setters = <String, MethodDeclaration>{};
+
+    // Non-getters/setters.
+    List<MethodDeclaration> methods = <MethodDeclaration>[];
+
+    // Identify getter/setter pairs.
+    for (ClassMember member in node.members) {
+      if (member is MethodDeclaration && !isPrivate(member.name)) {
+        if (member.isGetter) {
+          getters[member.name.name] = member;
+        } else if (member.isSetter) {
+          setters[member.name.name] = member;
+        } else {
+          methods.add(member);
+        }
+      }
+    }
+
+    // Check all getters, and collect offenders along the way.
+    List<MethodDeclaration> missingDocs = <MethodDeclaration>[];
+    for (MethodDeclaration getter in getters.values) {
+      if (check(getter)) {
+        missingDocs.add(getter);
+      }
+    }
+
+    // But only setters whose getter is missing a doc.
+    for (MethodDeclaration setter in setters.values) {
+      MethodDeclaration getter = getters[setter.name.name];
+      if (getter == null) {
+        //Look for an inherited getter.
+        ExecutableElement getter =
+            manager.lookupMember(node.element, setter.name.name);
+        if (getter is PropertyAccessorElement) {
+          if (getter.documentationComment != null) {
+            continue;
+          }
+        }
+        check(setter);
+      } else if (missingDocs.contains(getter)) {
+        check(setter);
+      }
+    }
+
+    // Check remaining methods.
+    methods.forEach(check);
   }
 
   @override
@@ -115,6 +173,50 @@ class Visitor extends GeneralizingAstVisitor {
   visitCompilationUnit(CompilationUnit node) {
     LibraryElement library = node?.element?.library;
     manager = library == null ? null : new InheritanceManager(library);
+
+    Map<String, FunctionDeclaration> getters = <String, FunctionDeclaration>{};
+    Map<String, FunctionDeclaration> setters = <String, FunctionDeclaration>{};
+
+    // Check functions.
+
+    // Non-getters/setters.
+    List<FunctionDeclaration> functions = <FunctionDeclaration>[];
+
+    // Identify getter/setter pairs.
+    for (CompilationUnitMember member in node.declarations) {
+      if (member is FunctionDeclaration) {
+        Identifier name = member.name;
+        if (!isPrivate(name) && name.name != 'main') {
+          if (member.isGetter) {
+            getters[member.name.name] = member;
+          } else if (member.isSetter) {
+            setters[member.name.name] = member;
+          } else {
+            functions.add(member);
+          }
+        }
+      }
+    }
+
+    // Check all getters, and collect offenders along the way.
+    List<FunctionDeclaration> missingDocs = <FunctionDeclaration>[];
+    for (FunctionDeclaration getter in getters.values) {
+      if (check(getter)) {
+        missingDocs.add(getter);
+      }
+    }
+
+    // But only setters whose getter is missing a doc.
+    for (FunctionDeclaration setter in setters.values) {
+      FunctionDeclaration getter = getters[setter.name.name];
+      if (getter != null && missingDocs.contains(getter)) {
+        check(setter);
+      }
+    }
+
+    // Check remaining functions.
+    functions.forEach(check);
+
     super.visitCompilationUnit(node);
   }
 
@@ -151,25 +253,8 @@ class Visitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
-    if (node.parent is! CompilationUnit) {
-      return; // Skip inner functions.
-    }
-    if (!isPrivate(node.name) && node.name.name != 'main') {
-      check(node);
-    }
-  }
-
-  @override
   visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (!isPrivate(node.name)) {
-      check(node);
-    }
-  }
-
-  @override
-  visitMethodDeclaration(MethodDeclaration node) {
-    if (!inPrivateMember(node) && !isPrivate(node.name)) {
       check(node);
     }
   }

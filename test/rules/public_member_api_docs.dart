@@ -6,6 +6,16 @@
 
 abstract class A //LINT
 {
+
+  /// Zapp.
+  int get zapp => 0;
+  set zapp(int z) //OK
+  { }
+
+  int get zapp2 => 0; //LINT
+  /// Zapp.
+  set zapp2(int z) { }
+
   static const Z = 1; //LINT
   static int _Z = 13; //OK
 
@@ -26,6 +36,16 @@ abstract class A //LINT
 
   c(); //LINT
 }
+
+/// Zapp.
+int get zapp => 0;
+set zapp(int z) //OK
+{ }
+
+int get zapp2 => 0; //LINT
+/// Zapp.
+set zapp2(int z) { }
+
 
 main() //OK
 { }
@@ -68,3 +88,15 @@ int _h; //OK
 
 int gg, //LINT
    _gg; //OK
+
+/// ZZ.
+class ZZ {
+  /// Z.
+  int get z => 0;
+}
+
+/// ZZZ.
+class ZZZ extends ZZ {
+  set z(int z) //OK
+  { }
+}
