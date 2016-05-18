@@ -4498,7 +4498,7 @@ class UndefinedElementForLink extends Object with ReferenceableElementForLink {
  * summary during linking.
  */
 abstract class VariableElementForLink
-    implements VariableElementImpl, PropertyInducingElement {
+    implements NonParameterVariableElementImpl, PropertyInducingElement {
   /**
    * The unlinked representation of the variable in the summary.
    */

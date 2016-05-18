@@ -1470,6 +1470,13 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
    * Initialize a newly created local variable element to have the given [name].
    */
   ConstLocalVariableElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  ConstLocalVariableElementImpl.forSerialized(UnlinkedVariable unlinkedVariable,
+      ExecutableElementImpl enclosingExecutable)
+      : super.forSerialized(unlinkedVariable, enclosingExecutable);
 }
 
 /**
@@ -1709,6 +1716,32 @@ class DefaultParameterElementImpl extends ParameterElementImpl
    * Initialize a newly created parameter element to have the given [name].
    */
   DefaultParameterElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  DefaultParameterElementImpl.forSerialized(
+      UnlinkedParam unlinkedParam, ExecutableElementImpl enclosingExecutable)
+      : super.forSerialized(unlinkedParam, enclosingExecutable);
+
+  @override
+  Expression get constantInitializer {
+    if (_unlinkedParam != null) {
+      UnlinkedConst defaultValue = _unlinkedParam.defaultValue;
+      if (defaultValue == null) {
+        return null;
+      }
+      return super.constantInitializer ??=
+          enclosingUnit.resynthesizerContext.buildExpression(defaultValue);
+    }
+    return super.constantInitializer;
+  }
+
+  @override
+  void set constantInitializer(Expression initializer) {
+    assert(_unlinkedParam == null);
+    super.constantInitializer = initializer;
+  }
 
   @override
   DefaultFormalParameter computeNode() =>
@@ -4202,7 +4235,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 /**
  * A concrete implementation of a [LocalVariableElement].
  */
-class LocalVariableElementImpl extends VariableElementImpl
+class LocalVariableElementImpl extends NonParameterVariableElementImpl
     implements LocalVariableElement {
   /**
    * The offset to the beginning of the visible range for this element.
@@ -4225,6 +4258,13 @@ class LocalVariableElementImpl extends VariableElementImpl
    * Initialize a newly created local variable element to have the given [name].
    */
   LocalVariableElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  LocalVariableElementImpl.forSerialized(UnlinkedVariable unlinkedVariable,
+      ExecutableElementImpl enclosingExecutable)
+      : super.forSerialized(unlinkedVariable, enclosingExecutable);
 
   @override
   String get identifier {
@@ -4763,11 +4803,132 @@ class MultiplyInheritedPropertyAccessorElementImpl
 }
 
 /**
+ * A [VariableElementImpl], which is not a parameter.
+ */
+abstract class NonParameterVariableElementImpl extends VariableElementImpl {
+  /**
+   * The unlinked representation of the variable in the summary.
+   */
+  final UnlinkedVariable _unlinkedVariable;
+
+  /**
+   * Initialize a newly created variable element to have the given [name] and
+   * [offset].
+   */
+  NonParameterVariableElementImpl(String name, int offset)
+      : _unlinkedVariable = null,
+        super(name, offset);
+
+  /**
+   * Initialize a newly created variable element to have the given [name].
+   */
+  NonParameterVariableElementImpl.forNode(Identifier name)
+      : _unlinkedVariable = null,
+        super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  NonParameterVariableElementImpl.forSerialized(
+      this._unlinkedVariable, ElementImpl enclosingElement)
+      : super.forSerialized(enclosingElement);
+
+  @override
+  int get codeLength {
+    if (_unlinkedVariable != null) {
+      return _unlinkedVariable.codeRange?.length;
+    }
+    return super.codeLength;
+  }
+
+  @override
+  int get codeOffset {
+    if (_unlinkedVariable != null) {
+      return _unlinkedVariable.codeRange?.offset;
+    }
+    return super.codeOffset;
+  }
+
+  @override
+  void set const3(bool isConst) {
+    assert(_unlinkedVariable == null);
+    super.const3 = isConst;
+  }
+
+  @override
+  void set final2(bool isFinal) {
+    assert(_unlinkedVariable == null);
+    super.final2 = isFinal;
+  }
+
+  @override
+  bool get hasImplicitType {
+    if (_unlinkedVariable != null) {
+      return _unlinkedVariable.type == null;
+    }
+    return super.hasImplicitType;
+  }
+
+  @override
+  void set hasImplicitType(bool hasImplicitType) {
+    assert(_unlinkedVariable == null);
+    super.hasImplicitType = hasImplicitType;
+  }
+
+  @override
+  bool get isConst {
+    if (_unlinkedVariable != null) {
+      return _unlinkedVariable.isConst;
+    }
+    return super.isConst;
+  }
+
+  @override
+  bool get isFinal {
+    if (_unlinkedVariable != null) {
+      return _unlinkedVariable.isFinal;
+    }
+    return super.isFinal;
+  }
+
+  @override
+  List<ElementAnnotation> get metadata {
+    if (_unlinkedVariable != null) {
+      return _metadata ??= _unlinkedVariable.annotations
+          .map(enclosingUnit.resynthesizerContext.buildAnnotation)
+          .toList();
+    }
+    return super.metadata;
+  }
+
+  @override
+  String get name {
+    if (_unlinkedVariable != null) {
+      return _unlinkedVariable.name;
+    }
+    return super.name;
+  }
+
+  @override
+  int get nameOffset {
+    if (_unlinkedVariable != null) {
+      return _unlinkedVariable.nameOffset;
+    }
+    return super.nameOffset;
+  }
+}
+
+/**
  * A concrete implementation of a [ParameterElement].
  */
 class ParameterElementImpl extends VariableElementImpl
     with ParameterElementMixin
     implements ParameterElement {
+  /**
+   * The unlinked representation of the parameter in the summary.
+   */
+  final UnlinkedParam _unlinkedParam;
+
   /**
    * A list containing all of the parameters defined by this parameter element.
    * There will only be parameters if this parameter is a function typed
@@ -4807,12 +4968,23 @@ class ParameterElementImpl extends VariableElementImpl
    * Initialize a newly created parameter element to have the given [name] and
    * [nameOffset].
    */
-  ParameterElementImpl(String name, int nameOffset) : super(name, nameOffset);
+  ParameterElementImpl(String name, int nameOffset)
+      : _unlinkedParam = null,
+        super(name, nameOffset);
 
   /**
    * Initialize a newly created parameter element to have the given [name].
    */
-  ParameterElementImpl.forNode(Identifier name) : super.forNode(name);
+  ParameterElementImpl.forNode(Identifier name)
+      : _unlinkedParam = null,
+        super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  ParameterElementImpl.forSerialized(
+      this._unlinkedParam, ElementImpl enclosingExecutable)
+      : super.forSerialized(enclosingExecutable);
 
   /**
    * Creates a synthetic parameter with [name], [type] and [kind].
@@ -4827,13 +4999,80 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   @override
-  String get defaultValueCode => _defaultValueCode;
+  int get codeLength {
+    if (_unlinkedParam != null) {
+      return _unlinkedParam.codeRange?.length;
+    }
+    return super.codeLength;
+  }
+
+  @override
+  int get codeOffset {
+    if (_unlinkedParam != null) {
+      return _unlinkedParam.codeRange?.offset;
+    }
+    return super.codeOffset;
+  }
+
+  @override
+  void set const3(bool isConst) {
+    assert(_unlinkedParam == null);
+    super.const3 = isConst;
+  }
+
+  @override
+  String get defaultValueCode {
+    if (_unlinkedParam != null) {
+      if (_unlinkedParam.defaultValue == null) {
+        return null;
+      }
+      return _unlinkedParam.defaultValueCode;
+    }
+    return _defaultValueCode;
+  }
 
   /**
    * Set Dart code of the default value.
    */
   void set defaultValueCode(String defaultValueCode) {
+    assert(_unlinkedParam == null);
     this._defaultValueCode = StringUtilities.intern(defaultValueCode);
+  }
+
+  @override
+  void set final2(bool isFinal) {
+    assert(_unlinkedParam == null);
+    super.final2 = isFinal;
+  }
+
+  @override
+  bool get hasImplicitType {
+    if (_unlinkedParam != null) {
+      return _unlinkedParam.type == null;
+    }
+    return super.hasImplicitType;
+  }
+
+  @override
+  void set hasImplicitType(bool hasImplicitType) {
+    assert(_unlinkedParam == null);
+    super.hasImplicitType = hasImplicitType;
+  }
+
+  @override
+  bool get isConst {
+    if (_unlinkedParam != null) {
+      return false;
+    }
+    return super.isConst;
+  }
+
+  @override
+  bool get isFinal {
+    if (_unlinkedParam != null) {
+      return false;
+    }
+    return super.isFinal;
   }
 
   @override
@@ -4847,6 +5086,38 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   ElementKind get kind => ElementKind.PARAMETER;
+
+  @override
+  List<ElementAnnotation> get metadata {
+    if (_unlinkedParam != null) {
+      if (_unlinkedParam.annotations.isEmpty) {
+        return const <ElementAnnotation>[];
+      }
+      return _metadata ??= _unlinkedParam.annotations
+          .map(enclosingUnit.resynthesizerContext.buildAnnotation)
+          .toList();
+    }
+    return super.metadata;
+  }
+
+  @override
+  String get name {
+    if (_unlinkedParam != null) {
+      return _unlinkedParam.name;
+    }
+    return super.name;
+  }
+
+  @override
+  int get nameOffset {
+    if (_unlinkedParam != null) {
+      if (isSynthetic) {
+        return -1;
+      }
+      return _unlinkedParam.nameOffset;
+    }
+    return super.nameOffset;
+  }
 
   @override
   List<ParameterElement> get parameters => _parameters;
@@ -4878,6 +5149,13 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   SourceRange get visibleRange {
+    if (_unlinkedParam != null) {
+      if (_unlinkedParam.visibleLength == 0) {
+        return null;
+      }
+      return new SourceRange(
+          _unlinkedParam.visibleOffset, _unlinkedParam.visibleLength);
+    }
     if (_visibleRangeLength < 0) {
       return null;
     }
@@ -4926,6 +5204,7 @@ class ParameterElementImpl extends VariableElementImpl
    * [offset] with the given [length].
    */
   void setVisibleRange(int offset, int length) {
+    assert(_unlinkedParam == null);
     _visibleRangeOffset = offset;
     _visibleRangeLength = length;
   }
@@ -5181,8 +5460,8 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 /**
  * A concrete implementation of a [PropertyInducingElement].
  */
-abstract class PropertyInducingElementImpl extends VariableElementImpl
-    implements PropertyInducingElement {
+abstract class PropertyInducingElementImpl
+    extends NonParameterVariableElementImpl implements PropertyInducingElement {
   /**
    * The getter associated with this element.
    */
@@ -5221,6 +5500,11 @@ abstract class ResynthesizerContext {
    * Build [ElementAnnotationImpl] for the given [UnlinkedConst].
    */
   ElementAnnotationImpl buildAnnotation(UnlinkedConst uc);
+
+  /**
+   * Build [Expression] for the given [UnlinkedConst].
+   */
+  Expression buildExpression(UnlinkedConst uc);
 
   /**
    * Resolve an [EntityRef] into a type.  If the reference is
@@ -5628,6 +5912,12 @@ abstract class VariableElementImpl extends ElementImpl
   VariableElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /**
+   * Initialize using the given serialized information.
+   */
+  VariableElementImpl.forSerialized(ElementImpl enclosingElement)
+      : super.forSerialized(enclosingElement);
+
+  /**
    * Set whether this variable is const.
    */
   void set const3(bool isConst) {
@@ -5647,6 +5937,9 @@ abstract class VariableElementImpl extends ElementImpl
 
   @override
   DartObject get constantValue => evaluationResult?.value;
+
+  @override
+  String get displayName => name;
 
   /**
    * Return the result of evaluating this variable's initializer as a
@@ -5673,7 +5966,9 @@ abstract class VariableElementImpl extends ElementImpl
   }
 
   @override
-  bool get hasImplicitType => hasModifier(Modifier.IMPLICIT_TYPE);
+  bool get hasImplicitType {
+    return hasModifier(Modifier.IMPLICIT_TYPE);
+  }
 
   /**
    * Set whether this variable element has an implicit type.
@@ -5697,10 +5992,14 @@ abstract class VariableElementImpl extends ElementImpl
   }
 
   @override
-  bool get isConst => hasModifier(Modifier.CONST);
+  bool get isConst {
+    return hasModifier(Modifier.CONST);
+  }
 
   @override
-  bool get isFinal => hasModifier(Modifier.FINAL);
+  bool get isFinal {
+    return hasModifier(Modifier.FINAL);
+  }
 
   @override
   bool get isPotentiallyMutatedInClosure => false;

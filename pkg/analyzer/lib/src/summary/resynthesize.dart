@@ -1563,6 +1563,11 @@ class _ResynthesizerContext implements ResynthesizerContext {
   }
 
   @override
+  Expression buildExpression(UnlinkedConst uc) {
+    return _unitResynthesizer._buildConstExpression(uc);
+  }
+
+  @override
   DartType resolveTypeRef(
       EntityRef type, TypeParameterizedElementMixin typeParameterContext,
       {bool defaultVoid: false, bool instantiateToBoundsAllowed: true}) {
@@ -2111,8 +2116,9 @@ class _UnitResynthesizer {
       UnlinkedExecutable serializedExecutable) {
     executableElement.typeParameters =
         buildTypeParameters(serializedExecutable.typeParameters);
-    executableElement.parameters =
-        serializedExecutable.parameters.map(buildParameter).toList();
+    executableElement.parameters = serializedExecutable.parameters
+        .map((p) => buildParameter(p, executableElement))
+        .toList();
     if (serializedExecutable.kind == UnlinkedExecutableKind.constructor) {
       // Caller handles setting the return type.
       assert(serializedExecutable.returnType == null);
@@ -2133,8 +2139,9 @@ class _UnitResynthesizer {
         .toList();
     executableElement.labels =
         serializedExecutable.localLabels.map(buildLocalLabel).toList();
-    executableElement.localVariables =
-        serializedExecutable.localVariables.map(buildLocalVariable).toList();
+    executableElement.localVariables = serializedExecutable.localVariables
+        .map((v) => buildLocalVariable(v, executableElement))
+        .toList();
     currentTypeParameters.removeLast();
   }
 
@@ -2266,33 +2273,37 @@ class _UnitResynthesizer {
   /**
    * Resynthesize a [LocalVariableElement].
    */
-  LocalVariableElement buildLocalVariable(UnlinkedVariable serializedVariable) {
+  LocalVariableElement buildLocalVariable(UnlinkedVariable serializedVariable,
+      ExecutableElementImpl enclosingExecutable) {
     LocalVariableElementImpl element;
     if (serializedVariable.constExpr != null && serializedVariable.isConst) {
       ConstLocalVariableElementImpl constElement =
-          new ConstLocalVariableElementImpl(
-              serializedVariable.name, serializedVariable.nameOffset);
+          new ConstLocalVariableElementImpl.forSerialized(
+              serializedVariable, enclosingExecutable);
       element = constElement;
       constElement.constantInitializer =
           _buildConstExpression(serializedVariable.constExpr);
     } else {
-      element = new LocalVariableElementImpl(
-          serializedVariable.name, serializedVariable.nameOffset);
+      element = new LocalVariableElementImpl.forSerialized(
+          serializedVariable, enclosingExecutable);
     }
     if (serializedVariable.visibleOffset != 0) {
       element.setVisibleRange(
           serializedVariable.visibleOffset, serializedVariable.visibleLength);
     }
-    buildVariableCommonParts(element, serializedVariable);
+    buildVariableCommonParts(element, serializedVariable,
+        isLazilyResynthesized: true);
     return element;
   }
 
   /**
    * Resynthesize a [ParameterElement].
    */
-  ParameterElement buildParameter(UnlinkedParam serializedParameter,
+  ParameterElement buildParameter(
+      UnlinkedParam serializedParameter, ElementImpl enclosingElement,
       {bool synthetic: false}) {
     ParameterElementImpl parameterElement;
+    bool isLazilyResynthesized = false;
     int nameOffset = synthetic ? -1 : serializedParameter.nameOffset;
     if (serializedParameter.isInitializingFormal) {
       FieldFormalParameterElementImpl initializingParameter;
@@ -2315,30 +2326,29 @@ class _UnitResynthesizer {
       initializingParameter.field = fields[serializedParameter.name];
     } else {
       if (serializedParameter.kind == UnlinkedParamKind.required) {
-        parameterElement =
-            new ParameterElementImpl(serializedParameter.name, nameOffset);
+        parameterElement = new ParameterElementImpl.forSerialized(
+            serializedParameter, enclosingElement);
+        isLazilyResynthesized = true;
       } else {
         DefaultParameterElementImpl defaultParameter =
-            new DefaultParameterElementImpl(
-                serializedParameter.name, nameOffset);
+            new DefaultParameterElementImpl.forSerialized(
+                serializedParameter, enclosingElement);
+        isLazilyResynthesized = true;
         parameterElement = defaultParameter;
-        if (serializedParameter.defaultValue != null) {
-          defaultParameter.constantInitializer =
-              _buildConstExpression(serializedParameter.defaultValue);
-          defaultParameter.defaultValueCode =
-              serializedParameter.defaultValueCode;
-        }
       }
     }
     parameterElement.synthetic = synthetic;
-    buildAnnotations(parameterElement, serializedParameter.annotations);
-    buildCodeRange(parameterElement, serializedParameter.codeRange);
+    if (!isLazilyResynthesized) {
+      buildAnnotations(parameterElement, serializedParameter.annotations);
+      buildCodeRange(parameterElement, serializedParameter.codeRange);
+    }
     if (serializedParameter.isFunctionTyped) {
       FunctionElementImpl parameterTypeElement =
           new FunctionElementImpl('', -1);
       parameterTypeElement.synthetic = true;
       List<ParameterElement> subParameters = serializedParameter.parameters
-          .map((UnlinkedParam p) => buildParameter(p, synthetic: synthetic))
+          .map((UnlinkedParam p) =>
+              buildParameter(p, parameterTypeElement, synthetic: synthetic))
           .toList();
       if (synthetic) {
         parameterTypeElement.parameters = subParameters;
@@ -2365,7 +2375,9 @@ class _UnitResynthesizer {
             buildType(
                 serializedParameter.type, _currentTypeParameterizedElement);
       }
-      parameterElement.hasImplicitType = serializedParameter.type == null;
+      if (!isLazilyResynthesized) {
+        parameterElement.hasImplicitType = serializedParameter.type == null;
+      }
     }
     buildVariableInitializer(parameterElement, serializedParameter.initializer);
     switch (serializedParameter.kind) {
@@ -2379,9 +2391,11 @@ class _UnitResynthesizer {
         parameterElement.parameterKind = ParameterKind.REQUIRED;
         break;
     }
-    if (serializedParameter.visibleOffset != 0) {
-      parameterElement.setVisibleRange(
-          serializedParameter.visibleOffset, serializedParameter.visibleLength);
+    if (!isLazilyResynthesized) {
+      if (serializedParameter.visibleOffset != 0) {
+        parameterElement.setVisibleRange(serializedParameter.visibleOffset,
+            serializedParameter.visibleLength);
+      }
     }
     return parameterElement;
   }
@@ -2420,7 +2434,8 @@ class _UnitResynthesizer {
       FunctionElementImpl element = new FunctionElementImpl('', -1);
       element.synthetic = true;
       element.parameters = type.syntheticParams
-          .map((UnlinkedParam param) => buildParameter(param, synthetic: true))
+          .map((UnlinkedParam param) =>
+              buildParameter(param, element, synthetic: true))
           .toList();
       element.returnType =
           buildType(type.syntheticReturnType, typeParameterContext);
@@ -2454,8 +2469,9 @@ class _UnitResynthesizer {
         new FunctionTypeAliasElementImpl.forSerialized(serializedTypedef, unit);
     // TODO(scheglov) remove this after delaying parameters and their types
     currentTypeParameters.add(functionTypeAliasElement.typeParameters);
-    functionTypeAliasElement.parameters =
-        serializedTypedef.parameters.map(buildParameter).toList();
+    functionTypeAliasElement.parameters = serializedTypedef.parameters
+        .map((p) => buildParameter(p, functionTypeAliasElement))
+        .toList();
     functionTypeAliasElement.returnType =
         buildType(serializedTypedef.returnType, functionTypeAliasElement);
     functionTypeAliasElement.type =
@@ -2548,17 +2564,20 @@ class _UnitResynthesizer {
    * Handle the parts that are common to variables.
    */
   void buildVariableCommonParts(
-      VariableElementImpl element, UnlinkedVariable serializedVariable) {
+      VariableElementImpl element, UnlinkedVariable serializedVariable,
+      {bool isLazilyResynthesized: false}) {
     element.type = buildLinkedType(serializedVariable.inferredTypeSlot,
             _currentTypeParameterizedElement) ??
         buildType(serializedVariable.type, _currentTypeParameterizedElement);
-    element.const3 = serializedVariable.isConst;
-    element.final2 = serializedVariable.isFinal;
-    element.hasImplicitType = serializedVariable.type == null;
+    if (!isLazilyResynthesized) {
+      element.const3 = serializedVariable.isConst;
+      element.final2 = serializedVariable.isFinal;
+      element.hasImplicitType = serializedVariable.type == null;
+      buildDocumentation(element, serializedVariable.documentationComment);
+      buildAnnotations(element, serializedVariable.annotations);
+      buildCodeRange(element, serializedVariable.codeRange);
+    }
     buildVariableInitializer(element, serializedVariable.initializer);
-    buildDocumentation(element, serializedVariable.documentationComment);
-    buildAnnotations(element, serializedVariable.annotations);
-    buildCodeRange(element, serializedVariable.codeRange);
   }
 
   /**
