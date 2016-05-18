@@ -459,7 +459,7 @@ abstract class Future<T> {
    *
    * If `test` is omitted, it defaults to a function that always returns true.
    * The `test` function should not throw, but if it does, it is handled as
-   * if the the `onError` function had thrown.
+   * if the `onError` function had thrown.
    *
    * Example:
    *

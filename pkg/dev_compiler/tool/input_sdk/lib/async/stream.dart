@@ -503,7 +503,7 @@ abstract class Stream<T> {
    *
    * The [onError] callback must be of type `void onError(error)` or
    * `void onError(error, StackTrace stackTrace)`. Depending on the function
-   * type the the stream either invokes [onError] with or without a stack
+   * type the stream either invokes [onError] with or without a stack
    * trace. The stack trace argument might be `null` if the stream itself
    * received an error without stack trace.
    *

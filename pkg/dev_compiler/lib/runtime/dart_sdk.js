@@ -4750,8 +4750,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
           return _internal.MappedIterable$(E, T).new(this, f);
         };
       }
-      where(f) {
-        return new (_internal.WhereIterable$(E))(this, f);
+      where(test) {
+        return new (_internal.WhereIterable$(E))(this, test);
       }
       expand(T) {
         return f => {
