@@ -11,7 +11,7 @@ dart_library.library('async_helper', null, /* Imports */[
   async_helper._onAsyncEnd = null;
   async_helper._asyncLevel = 0;
   async_helper._buildException = function(msg) {
-    return core.Exception.new(`Fatal: ${msg}. This is most likely a bug in your test.`);
+    return core.Exception.new(dart.str`Fatal: ${msg}. This is most likely a bug in your test.`);
   };
   dart.fn(async_helper._buildException, core.Exception, [core.String]);
   async_helper.asyncTestInitialize = function(callback) {

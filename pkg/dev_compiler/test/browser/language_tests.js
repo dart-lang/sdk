@@ -386,7 +386,6 @@
       'bit_twiddling_bigint_test': fail,
       'bool_from_environment_test': fail,
       'collection_length_test': skip_timeout,
-      'collection_to_string_test': fail,
       'compare_to2_test': fail,
       'const_list_literal_test': fail,
       'const_list_remove_range_test': fail,
@@ -671,14 +670,6 @@
       'int64_list_load_store_test': skip_fail,
       'typed_data_hierarchy_int64_test': skip_fail,
       'typed_data_list_test': fail,
-
-      // TODO(vsm): List.toString is different in DDC
-      // https://github.com/dart-lang/dev_compiler/issues/445
-      'setRange_1_test': skip_fail,
-      'setRange_2_test': skip_fail,
-      'setRange_3_test': skip_fail,
-      'setRange_4_test': skip_fail,
-      'setRange_5_test': skip_fail,
     },
   };
 

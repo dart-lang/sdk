@@ -47,7 +47,7 @@ dart_library.library('expect', null, /* Imports */[
           let end = i;
           let truncExpected = expect.Expect._truncateString(expected, start, end, 20);
           let truncActual = expect.Expect._truncateString(actual, start, end, 20);
-          return `at index ${start}: Expected <${truncExpected}>, ` + `Found: <${truncActual}>`;
+          return dart.str`at index ${start}: Expected <${truncExpected}>, ` + dart.str`Found: <${truncActual}>`;
         }
       }
       return null;
@@ -59,43 +59,43 @@ dart_library.library('expect', null, /* Imports */[
       if (typeof expected == 'string' && typeof actual == 'string') {
         let stringDifference = expect.Expect._stringDifference(expected, actual);
         if (stringDifference != null) {
-          expect.Expect._fail(`Expect.equals(${stringDifference}${msg}) fails.`);
+          expect.Expect._fail(dart.str`Expect.equals(${stringDifference}${msg}) fails.`);
         }
       }
-      expect.Expect._fail(`Expect.equals(expected: <${expected}>, actual: <${actual}>${msg}) fails.`);
+      expect.Expect._fail(dart.str`Expect.equals(expected: <${expected}>, actual: <${actual}>${msg}) fails.`);
     }
     static isTrue(actual, reason) {
       if (reason === void 0) reason = null;
       if (dart.notNull(expect._identical(actual, true))) return;
       let msg = expect.Expect._getMessage(reason);
-      expect.Expect._fail(`Expect.isTrue(${actual}${msg}) fails.`);
+      expect.Expect._fail(dart.str`Expect.isTrue(${actual}${msg}) fails.`);
     }
     static isFalse(actual, reason) {
       if (reason === void 0) reason = null;
       if (dart.notNull(expect._identical(actual, false))) return;
       let msg = expect.Expect._getMessage(reason);
-      expect.Expect._fail(`Expect.isFalse(${actual}${msg}) fails.`);
+      expect.Expect._fail(dart.str`Expect.isFalse(${actual}${msg}) fails.`);
     }
     static isNull(actual, reason) {
       if (reason === void 0) reason = null;
       if (null == actual) return;
       let msg = expect.Expect._getMessage(reason);
-      expect.Expect._fail(`Expect.isNull(actual: <${actual}>${msg}) fails.`);
+      expect.Expect._fail(dart.str`Expect.isNull(actual: <${actual}>${msg}) fails.`);
     }
     static isNotNull(actual, reason) {
       if (reason === void 0) reason = null;
       if (null != actual) return;
       let msg = expect.Expect._getMessage(reason);
-      expect.Expect._fail(`Expect.isNotNull(actual: <${actual}>${msg}) fails.`);
+      expect.Expect._fail(dart.str`Expect.isNotNull(actual: <${actual}>${msg}) fails.`);
     }
     static identical(expected, actual, reason) {
       if (reason === void 0) reason = null;
       if (dart.notNull(expect._identical(expected, actual))) return;
       let msg = expect.Expect._getMessage(reason);
-      expect.Expect._fail(`Expect.identical(expected: <${expected}>, actual: <${actual}>${msg}) ` + "fails.");
+      expect.Expect._fail(dart.str`Expect.identical(expected: <${expected}>, actual: <${actual}>${msg}) ` + "fails.");
     }
     static fail(msg) {
-      expect.Expect._fail(`Expect.fail('${msg}')`);
+      expect.Expect._fail(dart.str`Expect.fail('${msg}')`);
     }
     static approxEquals(expected, actual, tolerance, reason) {
       if (tolerance === void 0) tolerance = null;
@@ -105,13 +105,13 @@ dart_library.library('expect', null, /* Imports */[
       }
       if (dart.notNull((dart.notNull(expected) - dart.notNull(actual))[dartx.abs]()) <= dart.notNull(tolerance)) return;
       let msg = expect.Expect._getMessage(reason);
-      expect.Expect._fail(`Expect.approxEquals(expected:<${expected}>, actual:<${actual}>, ` + `tolerance:<${tolerance}>${msg}) fails`);
+      expect.Expect._fail(dart.str`Expect.approxEquals(expected:<${expected}>, actual:<${actual}>, ` + dart.str`tolerance:<${tolerance}>${msg}) fails`);
     }
     static notEquals(unexpected, actual, reason) {
       if (reason === void 0) reason = null;
       if (!dart.equals(unexpected, actual)) return;
       let msg = expect.Expect._getMessage(reason);
-      expect.Expect._fail(`Expect.notEquals(unexpected: <${unexpected}>, actual:<${actual}>${msg}) ` + "fails.");
+      expect.Expect._fail(dart.str`Expect.notEquals(unexpected: <${unexpected}>, actual:<${actual}>${msg}) ` + "fails.");
     }
     static listEquals(expected, actual, reason) {
       if (reason === void 0) reason = null;
@@ -119,11 +119,11 @@ dart_library.library('expect', null, /* Imports */[
       let n = dart.notNull(expected[dartx.length]) < dart.notNull(actual[dartx.length]) ? expected[dartx.length] : actual[dartx.length];
       for (let i = 0; i < dart.notNull(n); i++) {
         if (!dart.equals(expected[dartx.get](i), actual[dartx.get](i))) {
-          expect.Expect._fail(`Expect.listEquals(at index ${i}, ` + `expected: <${expected[dartx.get](i)}>, actual: <${actual[dartx.get](i)}>${msg}) fails`);
+          expect.Expect._fail(dart.str`Expect.listEquals(at index ${i}, ` + dart.str`expected: <${expected[dartx.get](i)}>, actual: <${actual[dartx.get](i)}>${msg}) fails`);
         }
       }
       if (expected[dartx.length] != actual[dartx.length]) {
-        expect.Expect._fail('Expect.listEquals(list length, ' + `expected: <${expected[dartx.length]}>, actual: <${actual[dartx.length]}>${msg}) ` + 'fails: Next element <' + `${dart.notNull(expected[dartx.length]) > dart.notNull(n) ? expected[dartx.get](n) : actual[dartx.get](n)}>`);
+        expect.Expect._fail('Expect.listEquals(list length, ' + dart.str`expected: <${expected[dartx.length]}>, actual: <${actual[dartx.length]}>${msg}) ` + 'fails: Next element <' + dart.str`${dart.notNull(expected[dartx.length]) > dart.notNull(n) ? expected[dartx.get](n) : actual[dartx.get](n)}>`);
       }
     }
     static mapEquals(expected, actual, reason) {
@@ -131,13 +131,13 @@ dart_library.library('expect', null, /* Imports */[
       let msg = expect.Expect._getMessage(reason);
       for (let key of expected[dartx.keys]) {
         if (!dart.notNull(actual[dartx.containsKey](key))) {
-          expect.Expect._fail(`Expect.mapEquals(missing expected key: <${key}>${msg}) fails`);
+          expect.Expect._fail(dart.str`Expect.mapEquals(missing expected key: <${key}>${msg}) fails`);
         }
         expect.Expect.equals(expected[dartx.get](key), actual[dartx.get](key));
       }
       for (let key of actual[dartx.keys]) {
         if (!dart.notNull(expected[dartx.containsKey](key))) {
-          expect.Expect._fail(`Expect.mapEquals(unexpected key: <${key}>${msg}) fails`);
+          expect.Expect._fail(dart.str`Expect.mapEquals(unexpected key: <${key}>${msg}) fails`);
         }
       }
     }
@@ -145,9 +145,9 @@ dart_library.library('expect', null, /* Imports */[
       if (reason === void 0) reason = null;
       if (expected == actual) return;
       let msg = expect.Expect._getMessage(reason);
-      let defaultMessage = `Expect.stringEquals(expected: <${expected}>", <${actual}>${msg}) fails`;
+      let defaultMessage = dart.str`Expect.stringEquals(expected: <${expected}>", <${actual}>${msg}) fails`;
       if (expected == null || actual == null) {
-        expect.Expect._fail(`${defaultMessage}`);
+        expect.Expect._fail(dart.str`${defaultMessage}`);
       }
       let left = 0;
       let right = 0;
@@ -182,8 +182,8 @@ dart_library.library('expect', null, /* Imports */[
       let rightTail = "...";
       if (left <= 10) leftLead = "";
       if (right <= 10) rightTail = "";
-      let diff = `\nDiff (${left}..${dart.notNull(eLen) - right}/${dart.notNull(aLen) - right}):\n` + `${leftLead}${leftSnippet}[ ${eSnippet} ]${rightSnippet}${rightTail}\n` + `${leftLead}${leftSnippet}[ ${aSnippet} ]${rightSnippet}${rightTail}`;
-      expect.Expect._fail(`${defaultMessage}${diff}`);
+      let diff = dart.str`\nDiff (${left}..${dart.notNull(eLen) - right}/${dart.notNull(aLen) - right}):\n` + dart.str`${leftLead}${leftSnippet}[ ${eSnippet} ]${rightSnippet}${rightTail}\n` + dart.str`${leftLead}${leftSnippet}[ ${aSnippet} ]${rightSnippet}${rightTail}`;
+      expect.Expect._fail(dart.str`${defaultMessage}${diff}`);
     }
     static setEquals(expected, actual, reason) {
       if (reason === void 0) reason = null;
@@ -193,27 +193,27 @@ dart_library.library('expect', null, /* Imports */[
       extraSet.removeAll(expected);
       if (dart.notNull(extraSet.isEmpty) && dart.notNull(missingSet.isEmpty)) return;
       let msg = expect.Expect._getMessage(reason);
-      let sb = new core.StringBuffer(`Expect.setEquals(${msg}) fails`);
+      let sb = new core.StringBuffer(dart.str`Expect.setEquals(${msg}) fails`);
       if (!dart.notNull(missingSet.isEmpty)) {
         sb.write('\nExpected collection does not contain: ');
       }
       for (let val of missingSet) {
-        sb.write(`${val} `);
+        sb.write(dart.str`${val} `);
       }
       if (!dart.notNull(extraSet.isEmpty)) {
         sb.write('\nExpected collection should not contain: ');
       }
       for (let val of extraSet) {
-        sb.write(`${val} `);
+        sb.write(dart.str`${val} `);
       }
       expect.Expect._fail(sb.toString());
     }
     static throws(f, check, reason) {
       if (check === void 0) check = null;
       if (reason === void 0) reason = null;
-      let msg = reason == null ? "" : `(${reason})`;
+      let msg = reason == null ? "" : dart.str`(${reason})`;
       if (!dart.is(f, expect._Nullary)) {
-        expect.Expect._fail(`Expect.throws${msg}: Function f not callable with zero arguments`);
+        expect.Expect._fail(dart.str`Expect.throws${msg}: Function f not callable with zero arguments`);
       }
       try {
         f();
@@ -221,16 +221,16 @@ dart_library.library('expect', null, /* Imports */[
         let s = dart.stackTrace(e);
         if (check != null) {
           if (!dart.notNull(dart.dcall(check, e))) {
-            expect.Expect._fail(`Expect.throws${msg}: Unexpected '${e}'\n${s}`);
+            expect.Expect._fail(dart.str`Expect.throws${msg}: Unexpected '${e}'\n${s}`);
           }
         }
         return;
       }
 
-      expect.Expect._fail(`Expect.throws${msg} fails: Did not throw`);
+      expect.Expect._fail(dart.str`Expect.throws${msg} fails: Did not throw`);
     }
     static _getMessage(reason) {
-      return reason == null ? "" : `, '${reason}'`;
+      return reason == null ? "" : dart.str`, '${reason}'`;
     }
     static _fail(message) {
       dart.throw(new expect.ExpectException(message));

@@ -9,7 +9,7 @@ dart_library.library('script', null, /* Imports */[
   script.main = function(args) {
     let name = args[dartx.join](' ');
     if (name == '') name = 'world';
-    core.print(`hello ${name}`);
+    core.print(dart.str`hello ${name}`);
   };
   dart.fn(script.main, dart.void, [core.List$(core.String)]);
   // Exports:

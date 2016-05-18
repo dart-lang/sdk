@@ -34,7 +34,7 @@ dart_library.library('covariance', null, /* Imports */[
       super.new();
     }
     add(x) {
-      core.print(`Bar.add got ${x}`);
+      core.print(dart.str`Bar.add got ${x}`);
       super.add(x);
     }
   };

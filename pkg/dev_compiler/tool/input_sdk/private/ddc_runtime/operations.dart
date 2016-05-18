@@ -466,7 +466,7 @@ _toString(obj) {
   if (extension != null) {
     return JS('', '#[dartx.toString]()', obj);
   }
-  return JS('', '#.toString()', obj);
+  return JS('', '"" + #', obj);
 }
 
 // TODO(jmesserly): is the argument type verified statically?
@@ -498,6 +498,18 @@ runtimeType(obj) {
   }
   return JS('', '#.runtimeType', obj);
 }
+
+/// Implements Dart's interpolated strings as ES2015 tagged template literals.
+///
+/// For example: dart.str`hello ${name}`
+String str(strings, @rest values) => JS('', '''(() => {
+  let s = $strings[0];
+  for (let i = 0, len = $values.length; i < len; ) {
+    s += $notNull($_toString($values[i])) + $strings[++i];
+  }
+  return s;
+})()''');
+
 
 final JsIterator = JS('', '''
   class JsIterator {

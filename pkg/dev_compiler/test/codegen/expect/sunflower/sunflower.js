@@ -60,7 +60,7 @@ dart_library.library('sunflower', null, /* Imports */[
       let y = sunflower.centerY - r * dart.notNull(math.sin(theta));
       new sunflower.SunflowerSeed(x, y, sunflower.SEED_RADIUS).draw(sunflower.context);
     }
-    sunflower.notes[dartx.text] = `${sunflower.seeds} seeds`;
+    sunflower.notes[dartx.text] = dart.str`${sunflower.seeds} seeds`;
   };
   dart.fn(sunflower.draw, dart.void, []);
   circle.Circle = class Circle extends core.Object {

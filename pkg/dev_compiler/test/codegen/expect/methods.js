@@ -66,7 +66,7 @@ dart_library.library('methods', null, /* Imports */[
   });
   methods.Bar = class Bar extends core.Object {
     call(x) {
-      return core.print(`hello from ${x}`);
+      return core.print(dart.str`hello from ${x}`);
     }
   };
   dart.setSignature(methods.Bar, {

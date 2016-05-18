@@ -4186,11 +4186,9 @@ class CodeGenerator extends GeneralizingAstVisitor
       _visitListToBinary(node.strings, '+');
 
   @override
-  JS.TemplateString visitStringInterpolation(StringInterpolation node) {
-    // Assuming we implement toString() on our objects, we can avoid calling it
-    // in most cases. Builtin types may differ though. We could handle this with
-    // a tagged template.
-    return new JS.TemplateString(_visitList(node.elements));
+  JS.Expression visitStringInterpolation(StringInterpolation node) {
+    return new JS.TaggedTemplate(
+        js.call('dart.str'), new JS.TemplateString(_visitList(node.elements)));
   }
 
   @override

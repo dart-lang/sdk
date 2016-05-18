@@ -2,7 +2,7 @@ export const closure = Object.create(null);
 import { core, js, dart, dartx } from 'dart_sdk';
 closure.generic_function = function(T) {
   return (items: core.List<T>, seed: T): core.List<T> => {
-    let strings = items[dartx.map](core.String)(dart.fn((i: T): string => `${i}`, core.String, [T]))[dartx.toList]();
+    let strings = items[dartx.map](core.String)(dart.fn((i: T): string => dart.str`${i}`, core.String, [T]))[dartx.toList]();
     return items;
   };
 };

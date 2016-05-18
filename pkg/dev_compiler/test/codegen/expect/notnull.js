@@ -220,7 +220,7 @@ dart_library.library('notnull', null, /* Imports */[
       dart.dsend(null, 'foo');
     } catch (e) {
       let trace = dart.stackTrace(e);
-      core.print(`${typeof e == 'string' ? e : dart.toString(e)} at ${trace}`);
+      core.print(dart.str`${typeof e == 'string' ? e : dart.toString(e)} at ${trace}`);
     }
 
   };

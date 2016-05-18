@@ -588,7 +588,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     if (extension != null) {
       return obj[dartx.toString]();
     }
-    return obj.toString();
+    return "" + obj;
   };
   dart.noSuchMethod = function(obj, invocation) {
     if (obj == null) {
@@ -608,6 +608,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return obj[dartx.runtimeType];
     }
     return obj.runtimeType;
+  };
+  dart.str = function(strings, ...values) {
+    let s = strings[0];
+    for (let i = 0, len = values.length; i < len;) {
+      s += dart.notNull(dart.toString(values[i])) + strings[++i];
+    }
+    return s;
   };
   dart.fn = function(closure, rType, argsT, extras) {
     let t = null;
@@ -1657,7 +1664,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     preview(object) {
       if (object == null) return 'null';
       if (typeof object == 'number') return dart.toString(object);
-      if (typeof object == 'string') return `"${object}"`;
+      if (typeof object == 'string') return dart.str`"${object}"`;
       for (let formatter of this[_formatters]) {
         if (dart.notNull(formatter.accept(object))) return formatter.preview(object);
       }
@@ -1786,7 +1793,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     preview(object) {
       let map = dart.as(object, core.Map);
-      return `${_debugger.getObjectTypeName(map)} length ${map[dartx.length]}`;
+      return dart.str`${_debugger.getObjectTypeName(map)} length ${map[dartx.length]}`;
     }
     children(object) {
       let map = dart.as(object, core.Map);
@@ -1808,9 +1815,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let iterable = dart.as(object, core.Iterable);
       try {
         let length = iterable[dartx.length];
-        return `${_debugger.getObjectTypeName(iterable)} length ${length}`;
+        return dart.str`${_debugger.getObjectTypeName(iterable)} length ${length}`;
       } catch (_) {
-        return `${_debugger.getObjectTypeName(iterable)}`;
+        return dart.str`${_debugger.getObjectTypeName(iterable)}`;
       }
 
     }
@@ -1884,7 +1891,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     preview(object) {
       let entry = dart.as(object, _debugger.MapEntry);
-      return `${_debugger.safePreview(entry.key)} => ${_debugger.safePreview(entry.value)}`;
+      return dart.str`${_debugger.safePreview(entry.key)} => ${_debugger.safePreview(entry.value)}`;
     }
     hasChildren(object) {
       return true;
@@ -1909,7 +1916,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     preview(object) {
       let clause = dart.as(object, _debugger.HeritageClause);
       let typeNames = clause.types[dartx.map](core.String)(dart.fn(type => _debugger.getTypeName(dart.as(type, core.Type)), core.String, [dart.dynamic]));
-      return `${clause.name} ${typeNames[dartx.join](", ")}`;
+      return dart.str`${clause.name} ${typeNames[dartx.join](", ")}`;
     }
     hasChildren(object) {
       return true;
@@ -2361,7 +2368,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (separator === void 0) separator = "";
         let list = core.List.new(this[dartx.length]);
         for (let i = 0; i < dart.notNull(this[dartx.length]); i++) {
-          list[dartx.set](i, `${this[dartx.get](i)}`);
+          list[dartx.set](i, dart.str`${this[dartx.get](i)}`);
         }
         return list.join(separator);
       }
@@ -2992,7 +2999,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(new core.RangeError.range(fractionDigits, 0, 20, "fractionDigits"));
       }
       let result = this.toFixed(fractionDigits);
-      if (this == 0 && dart.notNull(this[dartx.isNegative])) return `-${result}`;
+      if (this == 0 && dart.notNull(this[dartx.isNegative])) return dart.str`-${result}`;
       return result;
     }
     [dartx.toStringAsExponential](fractionDigits) {
@@ -3007,7 +3014,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       } else {
         result = this.toExponential();
       }
-      if (this == 0 && dart.notNull(this[dartx.isNegative])) return `-${result}`;
+      if (this == 0 && dart.notNull(this[dartx.isNegative])) return dart.str`-${result}`;
       return result;
     }
     [dartx.toStringAsPrecision](precision) {
@@ -3016,7 +3023,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         dart.throw(new core.RangeError.range(precision, 1, 21, "precision"));
       }
       let result = this.toPrecision(precision);
-      if (this == 0 && dart.notNull(this[dartx.isNegative])) return `-${result}`;
+      if (this == 0 && dart.notNull(this[dartx.isNegative])) return dart.str`-${result}`;
       return result;
     }
     [dartx.toRadixString](radix) {
@@ -3034,7 +3041,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _handleIEtoString(result) {
       let match = /^([\da-z]+)(?:\.([\da-z]+))?\(e\+(\d+)\)$/.exec(result);
       if (match == null) {
-        dart.throw(new core.UnsupportedError(`Unexpected toString result: ${result}`));
+        dart.throw(new core.UnsupportedError(dart.str`Unexpected toString result: ${result}`));
       }
       result = dart.dindex(match, 1);
       let exponent = +dart.dindex(match, 3);
@@ -4794,13 +4801,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let buffer = new core.StringBuffer();
         if (separator == null || separator == "") {
           do {
-            buffer.write(`${iterator.current}`);
+            buffer.write(dart.str`${iterator.current}`);
           } while (dart.notNull(iterator.moveNext()));
         } else {
-          buffer.write(`${iterator.current}`);
+          buffer.write(dart.str`${iterator.current}`);
           while (dart.notNull(iterator.moveNext())) {
             buffer.write(separator);
-            buffer.write(`${iterator.current}`);
+            buffer.write(dart.str`${iterator.current}`);
           }
         }
         return buffer.toString();
@@ -5100,7 +5107,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let length = this.length;
         if (!dart.notNull(separator[dartx.isEmpty])) {
           if (length == 0) return "";
-          let first = `${this.elementAt(0)}`;
+          let first = dart.str`${this.elementAt(0)}`;
           if (length != this.length) {
             dart.throw(new core.ConcurrentModificationError(this));
           }
@@ -6412,7 +6419,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       core.RangeError.checkNotNegative(length);
       core.RangeError.checkNotNegative(start);
       if (dart.notNull(start) + dart.notNull(length) > dart.notNull(a[dartx.length])) {
-        let message = `${start} + ${length} must be in the range [0..${a[dartx.length]}]`;
+        let message = dart.str`${start} + ${length} must be in the range [0..${a[dartx.length]}]`;
         dart.throw(new core.RangeError.range(length, 0, dart.notNull(a[dartx.length]) - dart.notNull(start), "length", message));
       }
     }
@@ -6430,7 +6437,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   _internal.printToZone = null;
   _internal.printToConsole = function(line) {
-    _js_primitives.printString(`${line}`);
+    _js_primitives.printString(dart.str`${line}`);
   };
   dart.lazyFn(_internal.printToConsole, () => [dart.void, [core.String]]);
   _internal.Sort = class Sort extends core.Object {
@@ -6682,7 +6689,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return 536870911 & arbitraryPrime * dart.notNull(dart.hashCode(this[_name]));
     }
     toString() {
-      return `Symbol("${this[_name]}")`;
+      return dart.str`Symbol("${this[_name]}")`;
     }
     static getName(symbol) {
       return symbol[_name];
@@ -6690,9 +6697,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static validatePublicSymbol(name) {
       if (dart.notNull(name[dartx.isEmpty]) || dart.notNull(_internal.Symbol.publicSymbolPattern.hasMatch(name))) return name;
       if (dart.notNull(name[dartx.startsWith]('_'))) {
-        dart.throw(new core.ArgumentError(`"${name}" is a private identifier`));
+        dart.throw(new core.ArgumentError(dart.str`"${name}" is a private identifier`));
       }
-      dart.throw(new core.ArgumentError(`"${name}" is not a valid (qualified) symbol name`));
+      dart.throw(new core.ArgumentError(dart.str`"${name}" is not a valid (qualified) symbol name`));
     }
     static isValidSymbol(name) {
       return dart.notNull(name[dartx.isEmpty]) || dart.notNull(_internal.Symbol.symbolPattern.hasMatch(name));
@@ -6719,16 +6726,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _internal.Symbol.operatorRE = '(?:[\\-+*/%&|^]|\\[\\]=?|==|~/?|<[<=]?|>[>=]?|unary-)';
   dart.defineLazy(_internal.Symbol, {
     get publicIdentifierRE() {
-      return '(?!' + `${_internal.Symbol.reservedWordRE}` + '\\b(?!\\$))[a-zA-Z$][\\w$]*';
+      return '(?!' + dart.str`${_internal.Symbol.reservedWordRE}` + '\\b(?!\\$))[a-zA-Z$][\\w$]*';
     },
     get identifierRE() {
-      return '(?!' + `${_internal.Symbol.reservedWordRE}` + '\\b(?!\\$))[a-zA-Z$_][\\w$]*';
+      return '(?!' + dart.str`${_internal.Symbol.reservedWordRE}` + '\\b(?!\\$))[a-zA-Z$_][\\w$]*';
     },
     get publicSymbolPattern() {
-      return core.RegExp.new(`^(?:${_internal.Symbol.operatorRE}\$|${_internal.Symbol.publicIdentifierRE}(?:=?\$|[.](?!\$)))+?\$`);
+      return core.RegExp.new(dart.str`^(?:${_internal.Symbol.operatorRE}\$|${_internal.Symbol.publicIdentifierRE}(?:=?\$|[.](?!\$)))+?\$`);
     },
     get symbolPattern() {
-      return core.RegExp.new(`^(?:${_internal.Symbol.operatorRE}\$|${_internal.Symbol.identifierRE}(?:=?\$|[.](?!\$)))+?\$`);
+      return core.RegExp.new(dart.str`^(?:${_internal.Symbol.operatorRE}\$|${_internal.Symbol.identifierRE}(?:=?\$|[.](?!\$)))+?\$`);
     }
   });
   _isolate_helper._callInIsolate = function(isolate, func) {
@@ -6761,7 +6768,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     args = args;
     if (args == null) args = [];
     if (!dart.is(args, core.List)) {
-      dart.throw(new core.ArgumentError(`Arguments to main must be a List: ${args}`));
+      dart.throw(new core.ArgumentError(dart.str`Arguments to main must be a List: ${args}`));
     }
     _isolate_helper._globalState = new _isolate_helper._Manager(dart.as(entry, core.Function));
     if (dart.notNull(_isolate_helper._globalState.isWorker)) return;
@@ -7197,7 +7204,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           this[_runHelper]();
         } catch (e) {
           let trace = dart.stackTrace(e);
-          _isolate_helper._globalState.mainManager.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'error', msg: `${e}\n${trace}`})));
+          _isolate_helper._globalState.mainManager.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'error', msg: dart.str`${e}\n${trace}`})));
         }
 
       }
@@ -7305,7 +7312,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       pattern = new RegExp("^[^@]*@(.*):[0-9]*$", "m");
       matches = stack.match(pattern);
       if (matches != null) return matches[1];
-      dart.throw(new core.UnsupportedError(`Cannot extract URI from "${stack}"`));
+      dart.throw(new core.UnsupportedError(dart.str`Cannot extract URI from "${stack}"`));
     }
     static _getEventData(e) {
       return e.data;
@@ -7518,9 +7525,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       event.preventDefault();
       let message = event.message;
       if (message == null) {
-        message = `Error spawning worker for ${uri}`;
+        message = dart.str`Error spawning worker for ${uri}`;
       } else {
-        message = `Error spawning worker for ${uri} (${message})`;
+        message = dart.str`Error spawning worker for ${uri} (${message})`;
       }
       onError(message);
       return true;
@@ -7599,7 +7606,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (!dart.notNull(this[_receivePort][_isClosed])) {
           this[_receivePort][_add](msg);
         }
-      }), `receive ${message}`);
+      }), dart.str`receive ${message}`);
     }
     ['=='](other) {
       return dart.is(other, _isolate_helper._NativeJsSendPort) && dart.equals(this[_receivePort], other[_receivePort]);
@@ -8610,7 +8617,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     unsupported(x, message) {
       if (message === void 0) message = null;
       if (message == null) message = "Can't transmit:";
-      dart.throw(new core.UnsupportedError(`${message} ${x}`));
+      dart.throw(new core.UnsupportedError(dart.str`${message} ${x}`));
     }
     makeRef(serializationId) {
       return dart.list(["ref", serializationId], core.Object);
@@ -8729,7 +8736,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     deserialize(x) {
       if (dart.notNull(this.isPrimitive(x))) return this.deserializePrimitive(x);
-      if (!dart.is(x, _interceptors.JSArray)) dart.throw(new core.ArgumentError(`Bad serialized message: ${x}`));
+      if (!dart.is(x, _interceptors.JSArray)) dart.throw(new core.ArgumentError(dart.str`Bad serialized message: ${x}`));
       switch (dart.dload(x, 'first')) {
         case "ref":
         {
@@ -8785,7 +8792,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
         default:
         {
-          dart.throw(`couldn't deserialize: ${x}`);
+          dart.throw(dart.str`couldn't deserialize: ${x}`);
         }
       }
     }
@@ -8972,8 +8979,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _js_helper.InternalMap = class InternalMap extends core.Object {};
   _js_helper.Primitives = class Primitives extends core.Object {
     static initializeStatics(id) {
-      _js_helper.Primitives.mirrorFunctionCacheName = dart.notNull(_js_helper.Primitives.mirrorFunctionCacheName) + `_${id}`;
-      _js_helper.Primitives.mirrorInvokeCacheName = dart.notNull(_js_helper.Primitives.mirrorInvokeCacheName) + `_${id}`;
+      _js_helper.Primitives.mirrorFunctionCacheName = dart.notNull(_js_helper.Primitives.mirrorFunctionCacheName) + dart.str`_${id}`;
+      _js_helper.Primitives.mirrorInvokeCacheName = dart.notNull(_js_helper.Primitives.mirrorInvokeCacheName) + dart.str`_${id}`;
     }
     static objectHashCode(object) {
       let hash = object.$identityHash;
@@ -9061,7 +9068,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static objectToString(object) {
       let name = dart.typeName(dart.getReifiedType(object));
-      return `Instance of '${name}'`;
+      return dart.str`Instance of '${name}'`;
     }
     static dateNow() {
       return Date.now();
@@ -9414,8 +9421,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.new();
     }
     toString() {
-      if (this[_method] == null) return `NullError: ${this[_message]}`;
-      return `NullError: method not found: '${this[_method]}' on null`;
+      if (this[_method] == null) return dart.str`NullError: ${this[_message]}`;
+      return dart.str`NullError: method not found: '${this[_method]}' on null`;
     }
   };
   _js_helper.NullError[dart.implements] = () => [core.NoSuchMethodError];
@@ -9431,11 +9438,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.new();
     }
     toString() {
-      if (this[_method] == null) return `NoSuchMethodError: ${this[_message]}`;
+      if (this[_method] == null) return dart.str`NoSuchMethodError: ${this[_message]}`;
       if (this[_receiver] == null) {
-        return `NoSuchMethodError: method not found: '${this[_method]}' (${this[_message]})`;
+        return dart.str`NoSuchMethodError: method not found: '${this[_method]}' (${this[_message]})`;
       }
-      return "NoSuchMethodError: " + `method not found: '${this[_method]}' on '${this[_receiver]}' (${this[_message]})`;
+      return "NoSuchMethodError: " + dart.str`method not found: '${this[_method]}' on '${this[_receiver]}' (${this[_message]})`;
     }
   };
   _js_helper.JsNoSuchMethodError[dart.implements] = () => [core.NoSuchMethodError];
@@ -9448,7 +9455,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.new();
     }
     toString() {
-      return dart.notNull(this[_message][dartx.isEmpty]) ? 'Error' : `Error: ${this[_message]}`;
+      return dart.notNull(this[_message][dartx.isEmpty]) ? 'Error' : dart.str`Error: ${this[_message]}`;
     }
   };
   dart.setSignature(_js_helper.UnknownJsTypeError, {
@@ -9536,7 +9543,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _js_helper.JavaScriptIndexingBehavior = class JavaScriptIndexingBehavior extends _interceptors.JSMutableIndexable {};
   _js_helper.TypeErrorImplementation = class TypeErrorImplementation extends core.Error {
     new(value, type) {
-      this.message = `type '${_js_helper.Primitives.objectTypeName(value)}' is not a subtype ` + `of type '${type}'`;
+      this.message = dart.str`type '${_js_helper.Primitives.objectTypeName(value)}' is not a subtype ` + dart.str`of type '${type}'`;
       super.new();
     }
     fromMessage(message) {
@@ -9557,7 +9564,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   _js_helper.CastErrorImplementation = class CastErrorImplementation extends core.Error {
     new(actualType, expectedType) {
-      this.message = `CastError: Casting value of type ${actualType} to` + ` incompatible type ${expectedType}`;
+      this.message = dart.str`CastError: Casting value of type ${actualType} to` + dart.str` incompatible type ${expectedType}`;
       super.new();
     }
     toString() {
@@ -9593,7 +9600,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.new();
     }
     toString() {
-      return `RuntimeError: ${this.message}`;
+      return dart.str`RuntimeError: ${this.message}`;
     }
   };
   dart.setSignature(_js_helper.RuntimeError, {
@@ -9648,7 +9655,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           if (leftDelimiter == "(" && rightDelimiter == ")") {
             return "(...)";
           }
-          return `${leftDelimiter}...${rightDelimiter}`;
+          return dart.str`${leftDelimiter}...${rightDelimiter}`;
         }
         let parts = [];
         collection._toStringVisiting[dartx.add](iterable);
@@ -9669,7 +9676,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (leftDelimiter === void 0) leftDelimiter = '(';
         if (rightDelimiter === void 0) rightDelimiter = ')';
         if (dart.notNull(collection._isToStringVisiting(iterable))) {
-          return `${leftDelimiter}...${rightDelimiter}`;
+          return dart.str`${leftDelimiter}...${rightDelimiter}`;
         }
         let buffer = new core.StringBuffer(leftDelimiter);
         collection._toStringVisiting[dartx.add](iterable);
@@ -10277,7 +10284,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _execAnchored = Symbol('_execAnchored');
   _js_helper.JSSyntaxRegExp = class JSSyntaxRegExp extends core.Object {
     toString() {
-      return `RegExp/${this.pattern}/`;
+      return dart.str`RegExp/${this.pattern}/`;
     }
     new(source, opts) {
       let multiLine = opts && 'multiLine' in opts ? opts.multiLine : false;
@@ -10293,7 +10300,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get [_nativeAnchoredVersion]() {
       if (this[_nativeAnchoredRegExp] != null) return this[_nativeAnchoredRegExp];
-      return this[_nativeAnchoredRegExp] = _js_helper.JSSyntaxRegExp.makeNative(`${this.pattern}|()`, this[_isMultiLine], this[_isCaseSensitive], true);
+      return this[_nativeAnchoredRegExp] = _js_helper.JSSyntaxRegExp.makeNative(dart.str`${this.pattern}|()`, this[_isMultiLine], this[_isCaseSensitive], true);
     }
     get [_isMultiLine]() {
       return this[_nativeRegExp].multiline;
@@ -10316,7 +10323,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       })();
       if (regexp instanceof RegExp) return regexp;
       let errorMessage = String(regexp);
-      dart.throw(new core.FormatException(`Illegal RegExp pattern: ${source}, ${errorMessage}`));
+      dart.throw(new core.FormatException(dart.str`Illegal RegExp pattern: ${source}, ${errorMessage}`));
     }
     firstMatch(string) {
       let m = this[_nativeRegExp].exec(_js_helper.checkString(string));
@@ -10756,7 +10763,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     let matches = pattern[dartx.allMatches](receiver, startIndex)[dartx.iterator];
     if (!dart.notNull(matches.moveNext())) return receiver;
     let match = matches.current;
-    let replacement = `${replace(match)}`;
+    let replacement = dart.str`${replace(match)}`;
     return receiver[dartx.replaceRange](match.start, match.end, replacement);
   };
   dart.lazyFn(_js_helper.stringReplaceFirstMappedUnchecked, () => [core.String, [core.String, core.Pattern, dart.functionType(core.String, [core.Match]), core.int]]);
@@ -10767,7 +10774,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _js_helper.stringReplaceRangeUnchecked = function(receiver, start, end, replacement) {
     let prefix = receiver.substring(0, start);
     let suffix = receiver.substring(end);
-    return `${prefix}${replacement}${suffix}`;
+    return dart.str`${prefix}${replacement}${suffix}`;
   };
   dart.lazyFn(_js_helper.stringReplaceRangeUnchecked, () => [core.String, [core.String, core.int, core.int, core.String]]);
   _js_helper.getRuntimeType = function(object) {
@@ -12311,7 +12318,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   dart.registerExtension(dart.global.ArrayBufferView, _native_typed_data.NativeTypedData);
   _native_typed_data._checkLength = function(length) {
-    if (!(typeof length == 'number')) dart.throw(new core.ArgumentError(`Invalid length ${length}`));
+    if (!(typeof length == 'number')) dart.throw(new core.ArgumentError(dart.str`Invalid length ${length}`));
     return dart.as(length, core.int);
   };
   dart.fn(_native_typed_data._checkLength, core.int, [dart.dynamic]);
@@ -12320,10 +12327,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.ArgumentError('Invalid view buffer'));
     }
     if (!(typeof offsetInBytes == 'number')) {
-      dart.throw(new core.ArgumentError(`Invalid view offsetInBytes ${offsetInBytes}`));
+      dart.throw(new core.ArgumentError(dart.str`Invalid view offsetInBytes ${offsetInBytes}`));
     }
     if (length != null && !(typeof length == 'number')) {
-      dart.throw(new core.ArgumentError(`Invalid view length ${length}`));
+      dart.throw(new core.ArgumentError(dart.str`Invalid view length ${length}`));
     }
   };
   dart.fn(_native_typed_data._checkViewArguments, dart.void, [dart.dynamic, dart.dynamic, dart.dynamic]);
@@ -13216,7 +13223,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.w = w;
     }
     toString() {
-      return `[${this.x}, ${this.y}, ${this.z}, ${this.w}]`;
+      return dart.str`[${this.x}, ${this.y}, ${this.z}, ${this.w}]`;
     }
     ['+'](other) {
       let _x = dart.notNull(this.x) + dart.notNull(other.x);
@@ -13512,7 +13519,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.w = w;
     }
     toString() {
-      return `[${this.x}, ${this.y}, ${this.z}, ${this.w}]`;
+      return dart.str`[${this.x}, ${this.y}, ${this.z}, ${this.w}]`;
     }
     ['|'](other) {
       return new _native_typed_data.NativeInt32x4._truncated(this.x | other.x, this.y | other.y, this.z | other.z, this.w | other.w);
@@ -13703,7 +13710,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.y = y;
     }
     toString() {
-      return `[${this.x}, ${this.y}]`;
+      return dart.str`[${this.x}, ${this.y}]`;
     }
     ['+'](other) {
       return new _native_typed_data.NativeFloat64x2._doubles(dart.notNull(this.x) + dart.notNull(other.x), dart.notNull(this.y) + dart.notNull(other.y));
@@ -13847,7 +13854,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.stackTrace = stackTrace;
     }
     toString() {
-      return `${this.error}`;
+      return dart.str`${this.error}`;
     }
   };
   async.AsyncError[dart.implements] = () => [core.Error];
@@ -13866,9 +13873,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return null;
     }
     toString() {
-      let result = `Uncaught Error: ${this.error}`;
+      let result = dart.str`Uncaught Error: ${this.error}`;
       if (this.stackTrace != null) {
-        result = result + `\nStack Trace:\n${this.stackTrace}`;
+        result = result + dart.str`\nStack Trace:\n${this.stackTrace}`;
       }
       return result;
     }
@@ -14885,7 +14892,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_s] = s;
     }
     toString() {
-      return `DeferredLoadException: '${this[_s]}'`;
+      return dart.str`DeferredLoadException: '${this[_s]}'`;
     }
   };
   async.DeferredLoadException[dart.implements] = () => [core.Exception];
@@ -15092,8 +15099,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     toString() {
       let result = "TimeoutException";
-      if (this.duration != null) result = `TimeoutException after ${this.duration}`;
-      if (this.message != null) result = `${result}: ${this.message}`;
+      if (this.duration != null) result = dart.str`TimeoutException after ${this.duration}`;
+      if (this.message != null) result = dart.str`${result}: ${this.message}`;
       return result;
     }
   };
@@ -20239,13 +20246,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let buffer = new core.StringBuffer();
         if (separator == null || separator == "") {
           do {
-            buffer.write(`${iterator.current}`);
+            buffer.write(dart.str`${iterator.current}`);
           } while (dart.notNull(iterator.moveNext()));
         } else {
-          buffer.write(`${iterator.current}`);
+          buffer.write(dart.str`${iterator.current}`);
           while (dart.notNull(iterator.moveNext())) {
             buffer.write(separator);
-            buffer.write(`${iterator.current}`);
+            buffer.write(dart.str`${iterator.current}`);
           }
         }
         return buffer.toString();
@@ -20835,7 +20842,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return new (collection._LinkedHashSet$(E))();
       }
       [_unsupported](operation) {
-        dart.throw(`LinkedHashSet: unsupported ${operation}`);
+        dart.throw(dart.str`LinkedHashSet: unsupported ${operation}`);
       }
       get iterator() {
         return new (collection.LinkedHashSetIterator$(E))(this, this[_modifications$]);
@@ -21478,13 +21485,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let buffer = new core.StringBuffer();
         if (separator == null || separator == "") {
           do {
-            buffer.write(`${iterator.current}`);
+            buffer.write(dart.str`${iterator.current}`);
           } while (dart.notNull(iterator.moveNext()));
         } else {
-          buffer.write(`${iterator.current}`);
+          buffer.write(dart.str`${iterator.current}`);
           while (dart.notNull(iterator.moveNext())) {
             buffer.write(separator);
-            buffer.write(`${iterator.current}`);
+            buffer.write(dart.str`${iterator.current}`);
           }
         }
         return buffer.toString();
@@ -21691,7 +21698,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     let it = iterable[dartx.iterator];
     while (dart.notNull(length) < LENGTH_LIMIT || count < HEAD_COUNT) {
       if (!dart.notNull(it.moveNext())) return;
-      let next = `${it.current}`;
+      let next = dart.str`${it.current}`;
       parts[dartx.add](next);
       length = dart.notNull(length) + (dart.notNull(next[dartx.length]) + OVERHEAD);
       count++;
@@ -21709,10 +21716,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
       count++;
       if (!dart.notNull(it.moveNext())) {
         if (count <= HEAD_COUNT + 1) {
-          parts[dartx.add](`${penultimate}`);
+          parts[dartx.add](dart.str`${penultimate}`);
           return;
         }
-        ultimateString = `${penultimate}`;
+        ultimateString = dart.str`${penultimate}`;
         penultimateString = dart.as(parts[dartx.removeLast](), core.String);
         length = dart.notNull(length) + (dart.notNull(ultimateString[dartx.length]) + OVERHEAD);
       } else {
@@ -21732,8 +21739,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
             return;
           }
         }
-        penultimateString = `${penultimate}`;
-        ultimateString = `${ultimate}`;
+        penultimateString = dart.str`${penultimate}`;
+        ultimateString = dart.str`${ultimate}`;
         length = dart.notNull(length) + (dart.notNull(ultimateString[dartx.length]) + dart.notNull(penultimateString[dartx.length]) + 2 * OVERHEAD);
       }
     }
@@ -24653,7 +24660,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           list = [];
         } else {
           if (!(typeof length == 'number') || dart.notNull(length) < 0) {
-            dart.throw(new core.ArgumentError(`Length must be a non-negative integer: ${length}`));
+            dart.throw(new core.ArgumentError(dart.str`Length must be a non-negative integer: ${length}`));
           }
           list = _interceptors.JSArray.markFixedList(new Array(length));
         }
@@ -24784,7 +24791,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       startChunkedConversion(sink) {
         dart.as(sink, core.Sink$(T));
-        dart.throw(new core.UnsupportedError(`This converter does not support chunked conversions: ${this}`));
+        dart.throw(new core.UnsupportedError(dart.str`This converter does not support chunked conversions: ${this}`));
       }
       bind(stream) {
         dart.as(stream, async.Stream$(S));
@@ -24864,7 +24871,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
         let codeUnit = source[dartx.codeUnitAt](i);
         if ((dart.notNull(codeUnit) & ~dart.notNull(this[_subsetMask])) >>> 0 != 0) {
-          dart.throw(new core.ArgumentError(`Source contains invalid character with code point: ${codeUnit}.`));
+          dart.throw(new core.ArgumentError(dart.str`Source contains invalid character with code point: ${codeUnit}.`));
         }
       }
       this[_sink$].add(source[dartx.codeUnits][dartx.sublist](start, end));
@@ -24897,7 +24904,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let byte = bytes[dartx.get](i);
         if ((dart.notNull(byte) & ~dart.notNull(this[_subsetMask])) >>> 0 != 0) {
           if (!dart.notNull(this[_allowInvalid])) {
-            dart.throw(new core.FormatException(`Invalid value in input: ${byte}`));
+            dart.throw(new core.FormatException(dart.str`Invalid value in input: ${byte}`));
           }
           return this[_convertInvalid](bytes, start, end);
         }
@@ -25214,7 +25221,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (dart.notNull(byte) < 0 || dart.notNull(byte) > 255) break;
         i = dart.notNull(i) + 1;
       }
-      dart.throw(new core.ArgumentError.value(bytes, `Not a byte value at index ${i}: 0x${bytes[dartx.get](i)[dartx.toRadixString](16)}`));
+      dart.throw(new core.ArgumentError.value(bytes, dart.str`Not a byte value at index ${i}: 0x${bytes[dartx.get](i)[dartx.toRadixString](16)}`));
     }
     static writeFinalChunk(alphabet, output, outputIndex, count, bits) {
       dart.assert(dart.notNull(count) > 0);
@@ -27772,7 +27779,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
                 if ((dart.notNull(unit) & 192) != 128) {
                   expectedUnits = 0;
                   if (!dart.notNull(this[_allowMalformed])) {
-                    dart.throw(new core.FormatException(`Bad UTF-8 encoding 0x${unit[dartx.toRadixString](16)}`));
+                    dart.throw(new core.FormatException(dart.str`Bad UTF-8 encoding 0x${unit[dartx.toRadixString](16)}`));
                   }
                   this[_isFirstCharacter] = false;
                   this[_stringSink].writeCharCode(convert.UNICODE_REPLACEMENT_CHARACTER_RUNE);
@@ -27785,14 +27792,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
               } while (dart.notNull(expectedUnits) > 0);
               if (dart.notNull(value) <= dart.notNull(convert._Utf8Decoder._LIMITS[dartx.get](dart.notNull(extraUnits) - 1))) {
                 if (!dart.notNull(this[_allowMalformed])) {
-                  dart.throw(new core.FormatException(`Overlong encoding of 0x${value[dartx.toRadixString](16)}`));
+                  dart.throw(new core.FormatException(dart.str`Overlong encoding of 0x${value[dartx.toRadixString](16)}`));
                 }
                 expectedUnits = extraUnits = 0;
                 value = convert.UNICODE_REPLACEMENT_CHARACTER_RUNE;
               }
               if (dart.notNull(value) > convert._FOUR_BYTE_LIMIT) {
                 if (!dart.notNull(this[_allowMalformed])) {
-                  dart.throw(new core.FormatException("Character outside valid Unicode range: " + `0x${value[dartx.toRadixString](16)}`));
+                  dart.throw(new core.FormatException("Character outside valid Unicode range: " + dart.str`0x${value[dartx.toRadixString](16)}`));
                 }
                 value = convert.UNICODE_REPLACEMENT_CHARACTER_RUNE;
               }
@@ -27816,7 +27823,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
             })());
             if (dart.notNull(unit) < 0) {
               if (!dart.notNull(this[_allowMalformed])) {
-                dart.throw(new core.FormatException(`Negative UTF-8 code unit: -0x${(-dart.notNull(unit))[dartx.toRadixString](16)}`));
+                dart.throw(new core.FormatException(dart.str`Negative UTF-8 code unit: -0x${(-dart.notNull(unit))[dartx.toRadixString](16)}`));
               }
               this[_stringSink].writeCharCode(convert.UNICODE_REPLACEMENT_CHARACTER_RUNE);
             } else {
@@ -27837,7 +27844,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
                 continue loop;
               }
               if (!dart.notNull(this[_allowMalformed])) {
-                dart.throw(new core.FormatException(`Bad UTF-8 encoding 0x${unit[dartx.toRadixString](16)}`));
+                dart.throw(new core.FormatException(dart.str`Bad UTF-8 encoding 0x${unit[dartx.toRadixString](16)}`));
               }
               value = convert.UNICODE_REPLACEMENT_CHARACTER_RUNE;
               expectedUnits = extraUnits = 0;
@@ -27872,7 +27879,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.expires = expires;
     }
     toString() {
-      return `Deprecated feature. Will be removed ${this.expires}`;
+      return dart.str`Deprecated feature. Will be removed ${this.expires}`;
     }
   };
   dart.setSignature(core.Deprecated, {
@@ -28056,26 +28063,26 @@ dart_library.library('dart_sdk', null, /* Imports */[
     static _fourDigits(n) {
       let absN = n[dartx.abs]();
       let sign = dart.notNull(n) < 0 ? "-" : "";
-      if (dart.notNull(absN) >= 1000) return `${n}`;
-      if (dart.notNull(absN) >= 100) return `${sign}0${absN}`;
-      if (dart.notNull(absN) >= 10) return `${sign}00${absN}`;
-      return `${sign}000${absN}`;
+      if (dart.notNull(absN) >= 1000) return dart.str`${n}`;
+      if (dart.notNull(absN) >= 100) return dart.str`${sign}0${absN}`;
+      if (dart.notNull(absN) >= 10) return dart.str`${sign}00${absN}`;
+      return dart.str`${sign}000${absN}`;
     }
     static _sixDigits(n) {
       dart.assert(dart.notNull(n) < -9999 || dart.notNull(n) > 9999);
       let absN = n[dartx.abs]();
       let sign = dart.notNull(n) < 0 ? "-" : "+";
-      if (dart.notNull(absN) >= 100000) return `${sign}${absN}`;
-      return `${sign}0${absN}`;
+      if (dart.notNull(absN) >= 100000) return dart.str`${sign}${absN}`;
+      return dart.str`${sign}0${absN}`;
     }
     static _threeDigits(n) {
-      if (dart.notNull(n) >= 100) return `${n}`;
-      if (dart.notNull(n) >= 10) return `0${n}`;
-      return `00${n}`;
+      if (dart.notNull(n) >= 100) return dart.str`${n}`;
+      if (dart.notNull(n) >= 10) return dart.str`0${n}`;
+      return dart.str`00${n}`;
     }
     static _twoDigits(n) {
-      if (dart.notNull(n) >= 10) return `${n}`;
-      return `0${n}`;
+      if (dart.notNull(n) >= 10) return dart.str`${n}`;
+      return dart.str`0${n}`;
     }
     toString() {
       let y = core.DateTime._fourDigits(this.year);
@@ -28087,9 +28094,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let ms = core.DateTime._threeDigits(this.millisecond);
       let us = this.microsecond == 0 ? "" : core.DateTime._threeDigits(this.microsecond);
       if (dart.notNull(this.isUtc)) {
-        return `${y}-${m}-${d} ${h}:${min}:${sec}.${ms}${us}Z`;
+        return dart.str`${y}-${m}-${d} ${h}:${min}:${sec}.${ms}${us}Z`;
       } else {
-        return `${y}-${m}-${d} ${h}:${min}:${sec}.${ms}${us}`;
+        return dart.str`${y}-${m}-${d} ${h}:${min}:${sec}.${ms}${us}`;
       }
     }
     toIso8601String() {
@@ -28102,9 +28109,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let ms = core.DateTime._threeDigits(this.millisecond);
       let us = this.microsecond == 0 ? "" : core.DateTime._threeDigits(this.microsecond);
       if (dart.notNull(this.isUtc)) {
-        return `${y}-${m}-${d}T${h}:${min}:${sec}.${ms}${us}Z`;
+        return dart.str`${y}-${m}-${d}T${h}:${min}:${sec}.${ms}${us}Z`;
       } else {
-        return `${y}-${m}-${d}T${h}:${min}:${sec}.${ms}${us}`;
+        return dart.str`${y}-${m}-${d}T${h}:${min}:${sec}.${ms}${us}`;
       }
     }
     add(duration) {
@@ -28306,26 +28313,26 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     toString() {
       function sixDigits(n) {
-        if (dart.notNull(n) >= 100000) return `${n}`;
-        if (dart.notNull(n) >= 10000) return `0${n}`;
-        if (dart.notNull(n) >= 1000) return `00${n}`;
-        if (dart.notNull(n) >= 100) return `000${n}`;
-        if (dart.notNull(n) >= 10) return `0000${n}`;
-        return `00000${n}`;
+        if (dart.notNull(n) >= 100000) return dart.str`${n}`;
+        if (dart.notNull(n) >= 10000) return dart.str`0${n}`;
+        if (dart.notNull(n) >= 1000) return dart.str`00${n}`;
+        if (dart.notNull(n) >= 100) return dart.str`000${n}`;
+        if (dart.notNull(n) >= 10) return dart.str`0000${n}`;
+        return dart.str`00000${n}`;
       }
       dart.fn(sixDigits, core.String, [core.int]);
       function twoDigits(n) {
-        if (dart.notNull(n) >= 10) return `${n}`;
-        return `0${n}`;
+        if (dart.notNull(n) >= 10) return dart.str`${n}`;
+        return dart.str`0${n}`;
       }
       dart.fn(twoDigits, core.String, [core.int]);
       if (dart.notNull(this.inMicroseconds) < 0) {
-        return `-${this['unary-']()}`;
+        return dart.str`-${this['unary-']()}`;
       }
       let twoDigitMinutes = twoDigits(dart.asInt(this.inMinutes[dartx.remainder](core.Duration.MINUTES_PER_HOUR)));
       let twoDigitSeconds = twoDigits(dart.asInt(this.inSeconds[dartx.remainder](core.Duration.SECONDS_PER_MINUTE)));
       let sixDigitUs = sixDigits(dart.asInt(this.inMicroseconds[dartx.remainder](core.Duration.MICROSECONDS_PER_SECOND)));
-      return `${this.inHours}:${twoDigitMinutes}:${twoDigitSeconds}.${sixDigitUs}`;
+      return dart.str`${this.inHours}:${twoDigitMinutes}:${twoDigitSeconds}.${sixDigitUs}`;
     }
     get isNegative() {
       return dart.notNull(this[_duration]) < 0;
@@ -28458,7 +28465,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.new();
     }
     get [_errorName]() {
-      return `Invalid argument${!dart.notNull(this[_hasValue]) ? "(s)" : ""}`;
+      return dart.str`Invalid argument${!dart.notNull(this[_hasValue]) ? "(s)" : ""}`;
     }
     get [_errorExplanation]() {
       return "";
@@ -28466,14 +28473,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
     toString() {
       let nameString = "";
       if (this.name != null) {
-        nameString = ` (${this.name})`;
+        nameString = dart.str` (${this.name})`;
       }
-      let message = this.message == null ? "" : `: ${this.message}`;
-      let prefix = `${this[_errorName]}${nameString}${message}`;
+      let message = this.message == null ? "" : dart.str`: ${this.message}`;
+      let prefix = dart.str`${this[_errorName]}${nameString}${message}`;
       if (!dart.notNull(this[_hasValue])) return prefix;
       let explanation = this[_errorExplanation];
       let errorValue = core.Error.safeToString(this.invalidValue);
-      return `${prefix}${explanation}: ${errorValue}`;
+      return dart.str`${prefix}${explanation}: ${errorValue}`;
     }
   };
   dart.defineNamedConstructor(core.ArgumentError, 'value');
@@ -28555,16 +28562,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let explanation = "";
       if (this.start == null) {
         if (this.end != null) {
-          explanation = `: Not less than or equal to ${this.end}`;
+          explanation = dart.str`: Not less than or equal to ${this.end}`;
         }
       } else if (this.end == null) {
-        explanation = `: Not greater than or equal to ${this.start}`;
+        explanation = dart.str`: Not greater than or equal to ${this.start}`;
       } else if (dart.notNull(this.end) > dart.notNull(this.start)) {
-        explanation = `: Not in range ${this.start}..${this.end}, inclusive`;
+        explanation = dart.str`: Not in range ${this.start}..${this.end}, inclusive`;
       } else if (dart.notNull(this.end) < dart.notNull(this.start)) {
         explanation = ": Valid value range is empty";
       } else {
-        explanation = `: Only valid value is ${this.start}`;
+        explanation = dart.str`: Only valid value is ${this.start}`;
       }
       return explanation;
     }
@@ -28612,7 +28619,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (this.length == 0) {
         return ": no indices are valid";
       }
-      return `: index should be less than ${this.length}`;
+      return dart.str`: index should be less than ${this.length}`;
     }
   };
   core.IndexError[dart.implements] = () => [core.RangeError];
@@ -28626,7 +28633,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.new();
     }
     toString() {
-      return `Cannot instantiate abstract class: '${this[_className]}'`;
+      return dart.str`Cannot instantiate abstract class: '${this[_className]}'`;
     }
   };
   dart.setSignature(core.AbstractClassInstantiationError, {
@@ -28670,7 +28677,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }, dart.void, [core.Symbol, dart.dynamic]));
       }
       if (this[_existingArgumentNames] == null) {
-        return `NoSuchMethodError : method not found: '${this[_memberName]}'\n` + `Receiver: ${core.Error.safeToString(this[_receiver$])}\n` + `Arguments: [${sb}]`;
+        return dart.str`NoSuchMethodError : method not found: '${this[_memberName]}'\n` + dart.str`Receiver: ${core.Error.safeToString(this[_receiver$])}\n` + dart.str`Arguments: [${sb}]`;
       } else {
         let actualParameters = sb.toString();
         sb = new core.StringBuffer();
@@ -28681,7 +28688,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           sb.write(this[_existingArgumentNames][dartx.get](i));
         }
         let formalParameters = sb.toString();
-        return "NoSuchMethodError: incorrect number of arguments passed to " + `method named '${this[_memberName]}'\n` + `Receiver: ${core.Error.safeToString(this[_receiver$])}\n` + `Tried calling: ${this[_memberName]}(${actualParameters})\n` + `Found: ${this[_memberName]}(${formalParameters})`;
+        return "NoSuchMethodError: incorrect number of arguments passed to " + dart.str`method named '${this[_memberName]}'\n` + dart.str`Receiver: ${core.Error.safeToString(this[_receiver$])}\n` + dart.str`Tried calling: ${this[_memberName]}(${actualParameters})\n` + dart.str`Found: ${this[_memberName]}(${formalParameters})`;
       }
     }
   };
@@ -28694,7 +28701,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.new();
     }
     toString() {
-      return `Unsupported operation: ${this.message}`;
+      return dart.str`Unsupported operation: ${this.message}`;
     }
   };
   dart.setSignature(core.UnsupportedError, {
@@ -28707,7 +28714,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.new();
     }
     toString() {
-      return this.message != null ? `UnimplementedError: ${this.message}` : "UnimplementedError";
+      return this.message != null ? dart.str`UnimplementedError: ${this.message}` : "UnimplementedError";
     }
   };
   core.UnimplementedError[dart.implements] = () => [core.UnsupportedError];
@@ -28720,7 +28727,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.new();
     }
     toString() {
-      return `Bad state: ${this.message}`;
+      return dart.str`Bad state: ${this.message}`;
     }
   };
   dart.setSignature(core.StateError, {
@@ -28736,7 +28743,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (this.modifiedObject == null) {
         return "Concurrent modification during iteration.";
       }
-      return "Concurrent modification during iteration: " + `${core.Error.safeToString(this.modifiedObject)}.`;
+      return "Concurrent modification during iteration: " + dart.str`${core.Error.safeToString(this.modifiedObject)}.`;
     }
   };
   dart.setSignature(core.ConcurrentModificationError, {
@@ -28777,7 +28784,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.new();
     }
     toString() {
-      return this.variableName == null ? "Reading static variable during its initialization" : `Reading static variable '${this.variableName}' during its initialization`;
+      return this.variableName == null ? "Reading static variable during its initialization" : dart.str`Reading static variable '${this.variableName}' during its initialization`;
     }
   };
   dart.setSignature(core.CyclicInitializationError, {
@@ -28799,7 +28806,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     toString() {
       if (this.message == null) return "Exception";
-      return `Exception: ${this.message}`;
+      return dart.str`Exception: ${this.message}`;
     }
   };
   core._Exception[dart.implements] = () => [core.Exception];
@@ -28818,12 +28825,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
     toString() {
       let report = "FormatException";
       if (this.message != null && "" != this.message) {
-        report = `${report}: ${this.message}`;
+        report = dart.str`${report}: ${this.message}`;
       }
       let offset = this.offset;
       if (!(typeof this.source == 'string')) {
         if (offset != null) {
-          report = report + ` (at offset ${offset})`;
+          report = report + dart.str` (at offset ${offset})`;
         }
         return report;
       }
@@ -28835,7 +28842,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (dart.notNull(source[dartx.length]) > 78) {
           source = dart.notNull(source[dartx.substring](0, 75)) + "...";
         }
-        return `${report}\n${source}`;
+        return dart.str`${report}\n${source}`;
       }
       let lineNum = 1;
       let lineStart = 0;
@@ -28855,9 +28862,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
       }
       if (lineNum > 1) {
-        report = report + ` (at line ${lineNum}, character ${dart.notNull(offset) - lineStart + 1})\n`;
+        report = report + dart.str` (at line ${lineNum}, character ${dart.notNull(offset) - lineStart + 1})\n`;
       } else {
-        report = report + ` (at character ${dart.notNull(offset) + 1})\n`;
+        report = report + dart.str` (at character ${dart.notNull(offset) + 1})\n`;
       }
       let lineEnd = dart.as(dart.dload(this.source, 'length'), core.int);
       for (let i = offset; dart.notNull(i) < dart.notNull(dart.as(dart.dload(this.source, 'length'), core.num)); i = dart.notNull(i) + 1) {
@@ -28888,7 +28895,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       let slice = dart.as(dart.dsend(this.source, 'substring', start, end), core.String);
       let markOffset = dart.notNull(offset) - start + dart.notNull(prefix[dartx.length]);
-      return `${report}${prefix}${slice}${postfix}\n${" "[dartx['*']](markOffset)}^\n`;
+      return dart.str`${report}${prefix}${slice}${postfix}\n${" "[dartx['*']](markOffset)}^\n`;
     }
   };
   core.FormatException[dart.implements] = () => [core.Exception];
@@ -28914,7 +28921,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this.name = name;
       }
       toString() {
-        return `Expando:${this.name}`;
+        return dart.str`Expando:${this.name}`;
       }
       get(object) {
         let values = _js_helper.Primitives.getProperty(object, core.Expando._EXPANDO_PROPERTY_NAME);
@@ -28933,7 +28940,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [_getKey]() {
         let key = dart.as(_js_helper.Primitives.getProperty(this, core.Expando._KEY_PROPERTY_NAME), core.String);
         if (key == null) {
-          key = `expando\$key\$${(() => {
+          key = dart.str`expando\$key\$${(() => {
             let x = core.Expando._keyCount;
             core.Expando._keyCount = dart.notNull(x) + 1;
             return x;
@@ -29139,7 +29146,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   core.Pattern = class Pattern extends core.Object {};
   core.print = function(object) {
-    let line = `${object}`;
+    let line = dart.str`${object}`;
     if (_internal.printToZone == null) {
       _internal.printToConsole(line);
     } else {
@@ -29356,7 +29363,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [_checkSplitSurrogate](index) {
       if (dart.notNull(index) > 0 && dart.notNull(index) < dart.notNull(this.string[dartx.length]) && dart.notNull(core._isLeadSurrogate(this.string[dartx.codeUnitAt](dart.notNull(index) - 1))) && dart.notNull(core._isTrailSurrogate(this.string[dartx.codeUnitAt](index)))) {
-        dart.throw(new core.ArgumentError(`Index inside surrogate pair: ${index}`));
+        dart.throw(new core.ArgumentError(dart.str`Index inside surrogate pair: ${index}`));
       }
     }
     get rawIndex() {
@@ -29445,7 +29452,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   core.StringBuffer = class StringBuffer extends core.Object {
     new(content) {
       if (content === void 0) content = "";
-      this[_contents] = `${content}`;
+      this[_contents] = dart.str`${content}`;
     }
     get length() {
       return this[_contents][dartx.length];
@@ -29457,7 +29464,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return !dart.notNull(this.isEmpty);
     }
     write(obj) {
-      this[_writeString](`${obj}`);
+      this[_writeString](dart.str`${obj}`);
     }
     writeCharCode(charCode) {
       this[_writeString](core.String.fromCharCode(charCode));
@@ -29468,7 +29475,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     writeln(obj) {
       if (obj === void 0) obj = "";
-      this[_writeString](`${obj}\n`);
+      this[_writeString](dart.str`${obj}\n`);
     }
     clear() {
       this[_contents] = "";
@@ -29496,7 +29503,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return string;
     }
     static _writeOne(string, obj) {
-      return _js_helper.Primitives.stringConcatUnchecked(string, `${obj}`);
+      return _js_helper.Primitives.stringConcatUnchecked(string, dart.str`${obj}`);
     }
   };
   core.StringBuffer[dart.implements] = () => [core.StringSink];
@@ -29873,9 +29880,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       segments[dartx.forEach](dart.fn(segment => {
         if (dart.notNull(segment[dartx.contains]("/"))) {
           if (dart.notNull(argumentError)) {
-            dart.throw(new core.ArgumentError(`Illegal path character ${segment}`));
+            dart.throw(new core.ArgumentError(dart.str`Illegal path character ${segment}`));
           } else {
-            dart.throw(new core.UnsupportedError(`Illegal path character ${segment}`));
+            dart.throw(new core.UnsupportedError(dart.str`Illegal path character ${segment}`));
           }
         }
       }, dart.void, [core.String]));
@@ -30081,7 +30088,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
           if (host[dartx.codeUnitAt](i) == core.Uri._COLON) {
             core.Uri.parseIPv6Address(host, start, end);
-            return `[${host}]`;
+            return dart.str`[${host}]`;
           }
         }
       }
@@ -30539,18 +30546,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get origin() {
       if (this.scheme == "" || this[_host] == null || this[_host] == "") {
-        dart.throw(new core.StateError(`Cannot use origin without a scheme: ${this}`));
+        dart.throw(new core.StateError(dart.str`Cannot use origin without a scheme: ${this}`));
       }
       if (this.scheme != "http" && this.scheme != "https") {
-        dart.throw(new core.StateError(`Origin is only applicable schemes http and https: ${this}`));
+        dart.throw(new core.StateError(dart.str`Origin is only applicable schemes http and https: ${this}`));
       }
-      if (this[_port] == null) return `${this.scheme}://${this[_host]}`;
-      return `${this.scheme}://${this[_host]}:${this[_port]}`;
+      if (this[_port] == null) return dart.str`${this.scheme}://${this[_host]}`;
+      return dart.str`${this.scheme}://${this[_host]}:${this[_port]}`;
     }
     toFilePath(opts) {
       let windows = opts && 'windows' in opts ? opts.windows : null;
       if (this.scheme != "" && this.scheme != "file") {
-        dart.throw(new core.UnsupportedError(`Cannot extract a file path from a ${this.scheme} URI`));
+        dart.throw(new core.UnsupportedError(dart.str`Cannot extract a file path from a ${this.scheme} URI`));
       }
       if (this.query != "") {
         dart.throw(new core.UnsupportedError("Cannot extract a file path from a URI with a query component"));
@@ -30723,7 +30730,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static parseIPv4Address(host) {
       function error(msg) {
-        dart.throw(new core.FormatException(`Illegal IPv4 address, ${msg}`));
+        dart.throw(new core.FormatException(dart.str`Illegal IPv4 address, ${msg}`));
       }
       dart.fn(error, dart.void, [core.String]);
       let bytes = host[dartx.split]('.');
@@ -30744,7 +30751,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (end == null) end = host[dartx.length];
       function error(msg, position) {
         if (position === void 0) position = null;
-        dart.throw(new core.FormatException(`Illegal IPv6 address, ${msg}`, host, dart.as(position, core.int)));
+        dart.throw(new core.FormatException(dart.str`Illegal IPv6 address, ${msg}`, host, dart.as(position, core.int)));
       }
       dart.fn(error, dart.void, [core.String], [dart.dynamic]);
       function parseHex(start, end) {
@@ -31105,7 +31112,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (!dart.notNull(uri.hasQuery)) {
         return core.UriData._parse(uri.path, 0, uri);
       }
-      return core.UriData._parse(`${uri}`, 5, uri);
+      return core.UriData._parse(dart.str`${uri}`, 5, uri);
     }
     static _writeUri(mimeType, charsetName, parameters, buffer, indices) {
       if (mimeType == null || mimeType == "text/plain") {
@@ -31135,7 +31142,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
           dart.throw(new core.ArgumentError.value("", "Parameter names must not be empty"));
         }
         if (dart.notNull(value[dartx.isEmpty])) {
-          dart.throw(new core.ArgumentError.value("", "Parameter values must not be empty", `parameters["${key}"]`));
+          dart.throw(new core.ArgumentError.value("", "Parameter values must not be empty", dart.str`parameters["${key}"]`));
         }
         if (indices != null) indices[dartx.add](buffer.length);
         buffer.write(';');
@@ -31254,7 +31261,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let charset = this.charset;
         encoding = convert.Encoding.getByName(charset);
         if (encoding == null) {
-          dart.throw(new core.UnsupportedError(`Unknown charset: ${charset}`));
+          dart.throw(new core.UnsupportedError(dart.str`Unknown charset: ${charset}`));
         }
       }
       let text = this[_text];
@@ -31350,7 +31357,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     toString() {
-      return this[_separatorIndices][dartx.get](0) == core.UriData._noScheme ? `data:${this[_text]}` : this[_text];
+      return this[_separatorIndices][dartx.get](0) == core.UriData._noScheme ? dart.str`data:${this[_text]}` : this[_text];
     }
   };
   dart.defineNamedConstructor(core.UriData, '_');
@@ -31382,7 +31389,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.message = message;
     }
     toString() {
-      return `IsolateSpawnException: ${this.message}`;
+      return dart.str`IsolateSpawnException: ${this.message}`;
     }
   };
   isolate.IsolateSpawnException[dart.implements] = () => [core.Exception];
@@ -31419,11 +31426,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
         if (dart.is(args, core.List)) {
           for (let i = 0; i < dart.notNull(args[dartx.length]); i++) {
             if (!(typeof args[dartx.get](i) == 'string')) {
-              dart.throw(new core.ArgumentError(`Args must be a list of Strings ${args}`));
+              dart.throw(new core.ArgumentError(dart.str`Args must be a list of Strings ${args}`));
             }
           }
         } else if (args != null) {
-          dart.throw(new core.ArgumentError(`Args must be a list of Strings ${args}`));
+          dart.throw(new core.ArgumentError(dart.str`Args must be a list of Strings ${args}`));
         }
         return _isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(isolate.Isolate)(dart.fn(msg => new isolate.Isolate(dart.as(msg[dartx.get](1), isolate.SendPort), {pauseCapability: dart.as(msg[dartx.get](2), isolate.Capability), terminateCapability: dart.as(msg[dartx.get](3), isolate.Capability)}), isolate.Isolate, [core.List]));
       } catch (e) {
@@ -31576,7 +31583,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.stackTrace = stackTrace;
     }
     toString() {
-      return 'IsolateUnhandledException: exception while handling message: ' + `${this.message} \n  ` + `${dart.toString(this.source)[dartx.replaceAll]("\n", "\n  ")}\n` + 'original stack trace:\n  ' + `${dart.toString(this.stackTrace)[dartx.replaceAll]("\n", "\n  ")}`;
+      return 'IsolateUnhandledException: exception while handling message: ' + dart.str`${this.message} \n  ` + dart.str`${dart.toString(this.source)[dartx.replaceAll]("\n", "\n  ")}\n` + 'original stack trace:\n  ' + dart.str`${dart.toString(this.stackTrace)[dartx.replaceAll]("\n", "\n  ")}`;
     }
   };
   isolate._IsolateUnhandledException[dart.implements] = () => [core.Exception];
@@ -32124,7 +32131,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     nextInt(max) {
       if (dart.notNull(max) <= 0 || dart.notNull(max) > math._POW2_32) {
-        dart.throw(new core.RangeError(`max must be in range 0 < max ≤ 2^32, was ${max}`));
+        dart.throw(new core.RangeError(dart.str`max must be in range 0 < max ≤ 2^32, was ${max}`));
       }
       return Math.random() * max >>> 0;
     }
@@ -32218,7 +32225,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     nextInt(max) {
       if (dart.notNull(max) <= 0 || dart.notNull(max) > math._POW2_32) {
-        dart.throw(new core.RangeError(`max must be in range 0 < max ≤ 2^32, was ${max}`));
+        dart.throw(new core.RangeError(dart.str`max must be in range 0 < max ≤ 2^32, was ${max}`));
       }
       if ((dart.notNull(max) & dart.notNull(max) - 1) >>> 0 == 0) {
         this[_nextState]();
@@ -32292,7 +32299,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     nextInt(max) {
       if (dart.notNull(max) <= 0 || dart.notNull(max) > math._POW2_32) {
-        dart.throw(new core.RangeError(`max must be in range 0 < max ≤ 2^32, was ${max}`));
+        dart.throw(new core.RangeError(dart.str`max must be in range 0 < max ≤ 2^32, was ${max}`));
       }
       let byteCount = 1;
       if (dart.notNull(max) > 255) {
@@ -32364,7 +32371,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this.y = y;
       }
       toString() {
-        return `Point(${this.x}, ${this.y})`;
+        return dart.str`Point(${this.x}, ${this.y})`;
       }
       ['=='](other) {
         if (!dart.is(other, math.Point$(core.num))) return false;
@@ -32461,7 +32468,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]);
       }
       toString() {
-        return `Rectangle (${this[dartx.left]}, ${this[dartx.top]}) ${this[dartx.width]} x ${this[dartx.height]}`;
+        return dart.str`Rectangle (${this[dartx.left]}, ${this[dartx.top]}) ${this[dartx.width]} x ${this[dartx.height]}`;
       }
       ['=='](other) {
         if (!dart.is(other, math.Rectangle$(core.num))) return false;
@@ -32658,11 +32665,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.lazyFn(mirrors.reflect, () => [mirrors.InstanceMirror, [core.Object]]);
   mirrors.reflectClass = function(key) {
     if (!dart.is(key, core.Type) || dart.equals(key, dart.wrapType(dart.dynamic))) {
-      dart.throw(new core.ArgumentError(`${key} does not denote a class`));
+      dart.throw(new core.ArgumentError(dart.str`${key} does not denote a class`));
     }
     let tm = mirrors.reflectType(key);
     if (!dart.is(tm, mirrors.ClassMirror)) {
-      dart.throw(new core.ArgumentError(`${key} does not denote a class`));
+      dart.throw(new core.ArgumentError(dart.str`${key} does not denote a class`));
     }
     return dart.as(dart.as(tm, mirrors.ClassMirror).originalDeclaration, mirrors.ClassMirror);
   };
@@ -35191,7 +35198,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
         default:
         {
-          dart.throw(new core.ArgumentError(`Invalid position ${where}`));
+          dart.throw(new core.ArgumentError(dart.str`Invalid position ${where}`));
         }
       }
     }
@@ -38932,19 +38939,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     [dartx.setFillColorRgb](r, g, b, a) {
       if (a === void 0) a = 1;
-      this[dartx.fillStyle] = `rgba(${r}, ${g}, ${b}, ${a})`;
+      this[dartx.fillStyle] = dart.str`rgba(${r}, ${g}, ${b}, ${a})`;
     }
     [dartx.setFillColorHsl](h, s, l, a) {
       if (a === void 0) a = 1;
-      this[dartx.fillStyle] = `hsla(${h}, ${s}%, ${l}%, ${a})`;
+      this[dartx.fillStyle] = dart.str`hsla(${h}, ${s}%, ${l}%, ${a})`;
     }
     [dartx.setStrokeColorRgb](r, g, b, a) {
       if (a === void 0) a = 1;
-      this[dartx.strokeStyle] = `rgba(${r}, ${g}, ${b}, ${a})`;
+      this[dartx.strokeStyle] = dart.str`rgba(${r}, ${g}, ${b}, ${a})`;
     }
     [dartx.setStrokeColorHsl](h, s, l, a) {
       if (a === void 0) a = 1;
-      this[dartx.strokeStyle] = `hsla(${h}, ${s}%, ${l}%, ${a})`;
+      this[dartx.strokeStyle] = dart.str`hsla(${h}, ${s}%, ${l}%, ${a})`;
     }
     [dartx.arc](x, y, radius, startAngle, endAngle, anticlockwise) {
       if (anticlockwise === void 0) anticlockwise = false;
@@ -48702,7 +48709,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   ]);
   html$.DomRectReadOnly = class DomRectReadOnly extends _interceptors.Interceptor {
     [dartx.toString]() {
-      return `Rectangle (${this[dartx.left]}, ${this[dartx.top]}) ${this[dartx.width]} x ${this[dartx.height]}`;
+      return dart.str`Rectangle (${this[dartx.left]}, ${this[dartx.top]}) ${this[dartx.width]} x ${this[dartx.height]}`;
     }
     [dartx['==']](other) {
       if (!dart.is(other, math.Rectangle$(core.num))) return false;
@@ -49583,7 +49590,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_value$1] = value;
     }
     toString() {
-      return `ScrollAlignment.${this[_value$1]}`;
+      return dart.str`ScrollAlignment.${this[_value$1]}`;
     }
   };
   dart.defineNamedConstructor(html$.ScrollAlignment, '_internal');
@@ -52343,7 +52350,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let onProgress = opts && 'onProgress' in opts ? opts.onProgress : null;
       let parts = [];
       data[dartx.forEach](dart.fn((key, value) => {
-        parts[dartx.add](`${core.Uri.encodeQueryComponent(key)}=` + `${core.Uri.encodeQueryComponent(value)}`);
+        parts[dartx.add](dart.str`${core.Uri.encodeQueryComponent(key)}=` + dart.str`${core.Uri.encodeQueryComponent(value)}`);
       }, dart.void, [core.String, core.String]));
       let formData = parts[dartx.join]('&');
       if (requestHeaders == null) {
@@ -52465,7 +52472,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let key = header[dartx.substring](0, splitIdx)[dartx.toLowerCase]();
         let value = header[dartx.substring](dart.notNull(splitIdx) + 2);
         if (dart.notNull(headers[dartx.containsKey](key))) {
-          headers[dartx.set](key, `${headers[dartx.get](key)}, ${value}`);
+          headers[dartx.set](key, dart.str`${headers[dartx.get](key)}, ${value}`);
         } else {
           headers[dartx.set](key, value);
         }
@@ -54462,7 +54469,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if ("origin" in this) {
         return this.origin;
       }
-      return `${this[dartx.protocol]}//${this[dartx.host]}`;
+      return dart.str`${this[dartx.protocol]}//${this[dartx.host]}`;
     }
     [dartx.toString]() {
       return String(this);
@@ -59964,7 +59971,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   ]);
   html$.RtcIceCandidate = class RtcIceCandidate extends _interceptors.Interceptor {
     static new(dictionary) {
-      let constructorName = window[dart.notNull(html_common.Device.isFirefox) ? `${html_common.Device.propertyPrefix}RTCIceCandidate` : 'RTCIceCandidate'];
+      let constructorName = window[dart.notNull(html_common.Device.isFirefox) ? dart.str`${html_common.Device.propertyPrefix}RTCIceCandidate` : 'RTCIceCandidate'];
       return new constructorName(html_common.convertDartToNative_SerializedScriptValue(dictionary));
     }
     static _() {
@@ -60059,7 +60066,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.RtcPeerConnection = class RtcPeerConnection extends html$.EventTarget {
     static new(rtcIceServers, mediaConstraints) {
       if (mediaConstraints === void 0) mediaConstraints = null;
-      let constructorName = window[`${html_common.Device.propertyPrefix}RTCPeerConnection`];
+      let constructorName = window[dart.str`${html_common.Device.propertyPrefix}RTCPeerConnection`];
       if (mediaConstraints != null) {
         return new constructorName(html_common.convertDartToNative_SerializedScriptValue(rtcIceServers), html_common.convertDartToNative_SerializedScriptValue(mediaConstraints));
       } else {
@@ -60350,7 +60357,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   ]);
   html$.RtcSessionDescription = class RtcSessionDescription extends _interceptors.Interceptor {
     static new(dictionary) {
-      let constructorName = window[dart.notNull(html_common.Device.isFirefox) ? `${html_common.Device.propertyPrefix}RTCSessionDescription` : 'RTCSessionDescription'];
+      let constructorName = window[dart.notNull(html_common.Device.isFirefox) ? dart.str`${html_common.Device.propertyPrefix}RTCSessionDescription` : 'RTCSessionDescription'];
       return new constructorName(html_common.convertDartToNative_SerializedScriptValue(dictionary));
     }
     static _() {
@@ -63282,7 +63289,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (dart.notNull(html$.Range.supportsCreateContextualFragment)) {
         return super[dartx.createFragment](html, {validator: validator, treeSanitizer: treeSanitizer});
       }
-      let contextualHtml = `<table>${html}</table>`;
+      let contextualHtml = dart.str`<table>${html}</table>`;
       let table = html$.Element.html(contextualHtml, {validator: validator, treeSanitizer: treeSanitizer});
       let fragment = html$.DocumentFragment.new();
       fragment[dartx.nodes][dartx.addAll](table[dartx.nodes]);
@@ -67577,7 +67584,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   ]);
   html$._ClientRect = class _ClientRect extends _interceptors.Interceptor {
     [dartx.toString]() {
-      return `Rectangle (${this[dartx.left]}, ${this[dartx.top]}) ${this[dartx.width]} x ${this[dartx.height]}`;
+      return dart.str`Rectangle (${this[dartx.left]}, ${this[dartx.top]}) ${this[dartx.width]} x ${this[dartx.height]}`;
     }
     [dartx['==']](other) {
       if (!dart.is(other, math.Rectangle$(core.num))) return false;
@@ -68857,7 +68864,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return !dart.notNull(this.isEmpty);
     }
     [_attr](key) {
-      return `data-${this[_toHyphenedName](key)}`;
+      return dart.str`data-${this[_toHyphenedName](key)}`;
     }
     [_matches](key) {
       return key[dartx.startsWith]('data-');
@@ -68872,7 +68879,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       for (let i = start; i < dart.notNull(segments[dartx.length]); i++) {
         let segment = segments[dartx.get](i);
         if (dart.notNull(segment[dartx.length]) > 0) {
-          segments[dartx.set](i, `${segment[dartx.get](0)[dartx.toUpperCase]()}${segment[dartx.substring](1)}`);
+          segments[dartx.set](i, dart.str`${segment[dartx.get](0)[dartx.toUpperCase]()}${segment[dartx.substring](1)}`);
         }
       }
       return segments[dartx.join]('');
@@ -68946,13 +68953,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let val = 0;
       for (let measurement of dimensions) {
         if (augmentingMeasurement == html$._MARGIN) {
-          val = dart.notNull(val) + dart.notNull(dart.asInt(new html$.Dimension.css(styles[dartx.getPropertyValue](`${augmentingMeasurement}-${measurement}`)).value));
+          val = dart.notNull(val) + dart.notNull(dart.asInt(new html$.Dimension.css(styles[dartx.getPropertyValue](dart.str`${augmentingMeasurement}-${measurement}`)).value));
         }
         if (augmentingMeasurement == html$._CONTENT) {
-          val = dart.notNull(val) - dart.notNull(dart.asInt(new html$.Dimension.css(styles[dartx.getPropertyValue](`${html$._PADDING}-${measurement}`)).value));
+          val = dart.notNull(val) - dart.notNull(dart.asInt(new html$.Dimension.css(styles[dartx.getPropertyValue](dart.str`${html$._PADDING}-${measurement}`)).value));
         }
         if (augmentingMeasurement != html$._MARGIN) {
-          val = dart.notNull(val) - dart.notNull(dart.asInt(new html$.Dimension.css(styles[dartx.getPropertyValue](`border-${measurement}-width`)).value));
+          val = dart.notNull(val) - dart.notNull(dart.asInt(new html$.Dimension.css(styles[dartx.getPropertyValue](dart.str`border-${measurement}-width`)).value));
         }
       }
       return val;
@@ -68964,7 +68971,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return dart.notNull(this.top) + dart.notNull(this.height);
     }
     toString() {
-      return `Rectangle (${this.left}, ${this.top}) ${this.width} x ${this.height}`;
+      return dart.str`Rectangle (${this.left}, ${this.top}) ${this.width} x ${this.height}`;
     }
     ['=='](other) {
       if (!dart.is(other, math.Rectangle$(core.num))) return false;
@@ -69058,7 +69065,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_element$][dartx.style][dartx.height] = dart.toString(newHeight);
       } else if (typeof newHeight == 'number') {
         if (dart.test(dart.dsend(newHeight, '<', 0))) newHeight = 0;
-        this[_element$][dartx.style][dartx.height] = `${newHeight}px`;
+        this[_element$][dartx.style][dartx.height] = dart.str`${newHeight}px`;
       } else {
         dart.throw(new core.ArgumentError("newHeight is not a Dimension or num"));
       }
@@ -69069,7 +69076,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_element$][dartx.style][dartx.width] = dart.toString(newWidth);
       } else if (typeof newWidth == 'number') {
         if (dart.test(dart.dsend(newWidth, '<', 0))) newWidth = 0;
-        this[_element$][dartx.style][dartx.width] = `${newWidth}px`;
+        this[_element$][dartx.style][dartx.width] = dart.str`${newWidth}px`;
       } else {
         dart.throw(new core.ArgumentError("newWidth is not a Dimension or num"));
       }
@@ -69721,7 +69728,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
     }
     toString() {
-      return `${this[_value$1]}${this[_unit]}`;
+      return dart.str`${this[_value$1]}${this[_unit]}`;
     }
     get value() {
       return this[_value$1];
@@ -70380,9 +70387,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     allowsAttribute(element, attributeName, value) {
       let tagName = html$.Element._safeTagName(element);
-      let validator = html$._Html5NodeValidator._attributeValidators[dartx.get](`${tagName}::${attributeName}`);
+      let validator = html$._Html5NodeValidator._attributeValidators[dartx.get](dart.str`${tagName}::${attributeName}`);
       if (validator == null) {
-        validator = html$._Html5NodeValidator._attributeValidators[dartx.get](`*::${attributeName}`);
+        validator = html$._Html5NodeValidator._attributeValidators[dartx.get](dart.str`*::${attributeName}`);
       }
       if (validator == null) {
         return false;
@@ -71213,7 +71220,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       } else {
         tagName = tagName[dartx.toUpperCase]();
       }
-      this.add(new html$._SimpleNodeValidator(null, {allowedAttributes: dart.list([`${tagName}::style`], core.String)}));
+      this.add(new html$._SimpleNodeValidator(null, {allowedAttributes: dart.list([dart.str`${tagName}::style`], core.String)}));
     }
     allowHtml5(opts) {
       let uriPolicy = opts && 'uriPolicy' in opts ? opts.uriPolicy : null;
@@ -71227,8 +71234,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let attributes = opts && 'attributes' in opts ? opts.attributes : null;
       let uriAttributes = opts && 'uriAttributes' in opts ? opts.uriAttributes : null;
       let tagNameUpper = tagName[dartx.toUpperCase]();
-      let attrs = dart.nullSafe(attributes, _ => _[dartx.map](dart.fn(name => `${tagNameUpper}::${name[dartx.toLowerCase]()}`, core.String, [core.String])));
-      let uriAttrs = dart.nullSafe(uriAttributes, _ => _[dartx.map](dart.fn(name => `${tagNameUpper}::${name[dartx.toLowerCase]()}`, core.String, [core.String])));
+      let attrs = dart.nullSafe(attributes, _ => _[dartx.map](dart.fn(name => dart.str`${tagNameUpper}::${name[dartx.toLowerCase]()}`, core.String, [core.String])));
+      let uriAttrs = dart.nullSafe(uriAttributes, _ => _[dartx.map](dart.fn(name => dart.str`${tagNameUpper}::${name[dartx.toLowerCase]()}`, core.String, [core.String])));
       if (uriPolicy == null) {
         uriPolicy = html$.UriPolicy.new();
       }
@@ -71240,8 +71247,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let uriAttributes = opts && 'uriAttributes' in opts ? opts.uriAttributes : null;
       let baseNameUpper = baseName[dartx.toUpperCase]();
       let tagNameUpper = tagName[dartx.toUpperCase]();
-      let attrs = dart.nullSafe(attributes, _ => _[dartx.map](dart.fn(name => `${baseNameUpper}::${name[dartx.toLowerCase]()}`, core.String, [core.String])));
-      let uriAttrs = dart.nullSafe(uriAttributes, _ => _[dartx.map](dart.fn(name => `${baseNameUpper}::${name[dartx.toLowerCase]()}`, core.String, [core.String])));
+      let attrs = dart.nullSafe(attributes, _ => _[dartx.map](dart.fn(name => dart.str`${baseNameUpper}::${name[dartx.toLowerCase]()}`, core.String, [core.String])));
+      let uriAttrs = dart.nullSafe(uriAttributes, _ => _[dartx.map](dart.fn(name => dart.str`${baseNameUpper}::${name[dartx.toLowerCase]()}`, core.String, [core.String])));
       if (uriPolicy == null) {
         uriPolicy = html$.UriPolicy.new();
       }
@@ -71331,15 +71338,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     allowsAttribute(element, attributeName, value) {
       let tagName = html$.Element._safeTagName(element);
-      if (dart.notNull(this.allowedUriAttributes.contains(`${tagName}::${attributeName}`))) {
+      if (dart.notNull(this.allowedUriAttributes.contains(dart.str`${tagName}::${attributeName}`))) {
         return this.uriPolicy.allowsUri(value);
-      } else if (dart.notNull(this.allowedUriAttributes.contains(`*::${attributeName}`))) {
+      } else if (dart.notNull(this.allowedUriAttributes.contains(dart.str`*::${attributeName}`))) {
         return this.uriPolicy.allowsUri(value);
-      } else if (dart.notNull(this.allowedAttributes.contains(`${tagName}::${attributeName}`))) {
+      } else if (dart.notNull(this.allowedAttributes.contains(dart.str`${tagName}::${attributeName}`))) {
         return true;
-      } else if (dart.notNull(this.allowedAttributes.contains(`*::${attributeName}`))) {
+      } else if (dart.notNull(this.allowedAttributes.contains(dart.str`*::${attributeName}`))) {
         return true;
-      } else if (dart.notNull(this.allowedAttributes.contains(`${tagName}::*`))) {
+      } else if (dart.notNull(this.allowedAttributes.contains(dart.str`${tagName}::*`))) {
         return true;
       } else if (dart.notNull(this.allowedAttributes.contains('*::*'))) {
         return true;
@@ -71392,7 +71399,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$._TemplatingNodeValidator = class _TemplatingNodeValidator extends html$._SimpleNodeValidator {
     new() {
       this[_templateAttrs] = core.Set$(core.String).from(html$._TemplatingNodeValidator._TEMPLATE_ATTRS);
-      super.new(null, {allowedElements: dart.list(['TEMPLATE'], core.String), allowedAttributes: html$._TemplatingNodeValidator._TEMPLATE_ATTRS[dartx.map](core.String)(dart.fn(attr => `TEMPLATE::${attr}`, core.String, [core.String]))});
+      super.new(null, {allowedElements: dart.list(['TEMPLATE'], core.String), allowedAttributes: html$._TemplatingNodeValidator._TEMPLATE_ATTRS[dartx.map](core.String)(dart.fn(attr => dart.str`TEMPLATE::${attr}`, core.String, [core.String]))});
     }
     allowsAttribute(element, attributeName, value) {
       if (dart.notNull(super.allowsAttribute(element, attributeName, value))) {
@@ -71739,7 +71746,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     let interceptor = interceptorClass.prototype;
     let constructor = _interceptors.findConstructorForNativeSubclassType(type, 'created');
     if (constructor == null) {
-      dart.throw(new core.ArgumentError(`${type} has no constructor called 'created'`));
+      dart.throw(new core.ArgumentError(dart.str`${type} has no constructor called 'created'`));
     }
     _interceptors.getNativeInterceptor(html$.Element.tag('article'));
     let baseClassName = dart.as(_js_helper.findDispatchTagForInterceptorClass(interceptorClass), core.String);
@@ -71788,7 +71795,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }
       this[_constructor] = _interceptors.findConstructorForNativeSubclassType(type, 'created');
       if (this[_constructor] == null) {
-        dart.throw(new core.ArgumentError(`${type} has no constructor called 'created'`));
+        dart.throw(new core.ArgumentError(dart.str`${type} has no constructor called 'created'`));
       }
       _interceptors.getNativeInterceptor(html$.Element.tag('article'));
       let baseClassName = _js_helper.findDispatchTagForInterceptorClass(interceptorClass);
@@ -71811,7 +71818,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     upgrade(element) {
       if (!dart.equals(dart.runtimeType(element), this[_nativeType])) {
-        dart.throw(new core.ArgumentError(`element is not subclass of ${this[_nativeType]}`));
+        dart.throw(new core.ArgumentError(dart.str`element is not subclass of ${this[_nativeType]}`));
       }
       _js_helper.setNativeSubclassDispatchRecord(element, this[_interceptor]);
       this[_constructor](element);
@@ -72097,7 +72104,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     allowsAttribute(element, attributeName, value) {
       if (!dart.notNull(this.validator.allowsAttribute(element, attributeName, value))) {
-        dart.throw(new core.ArgumentError(`${html$.Element._safeTagName(element)}[${attributeName}="${value}"]`));
+        dart.throw(new core.ArgumentError(dart.str`${html$.Element._safeTagName(element)}[${attributeName}="${value}"]`));
       }
     }
   };
@@ -72163,7 +72170,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         } else {
           let e = e$;
           this[_removeNode](dart.as(element, html$.Node), parent);
-          html$.window[dartx.console].warn(`Removing corrupted element ${elementText}`);
+          html$.window[dartx.console].warn(dart.str`Removing corrupted element ${elementText}`);
         }
       }
 
@@ -72171,18 +72178,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
     [_sanitizeElement](element, parent, corrupted, text, tag, attrs, isAttr) {
       if (false != corrupted) {
         this[_removeNode](element, parent);
-        html$.window[dartx.console].warn(`Removing element due to corrupted attributes on <${text}>`);
+        html$.window[dartx.console].warn(dart.str`Removing element due to corrupted attributes on <${text}>`);
         return;
       }
       if (!dart.notNull(this.validator.allowsElement(element))) {
         this[_removeNode](element, parent);
-        html$.window[dartx.console].warn(`Removing disallowed element <${tag}> from ${parent}`);
+        html$.window[dartx.console].warn(dart.str`Removing disallowed element <${tag}> from ${parent}`);
         return;
       }
       if (isAttr != null) {
         if (!dart.notNull(this.validator.allowsAttribute(element, 'is', isAttr))) {
           this[_removeNode](element, parent);
-          html$.window[dartx.console].warn('Removing disallowed type extension ' + `<${tag} is="${isAttr}">`);
+          html$.window[dartx.console].warn('Removing disallowed type extension ' + dart.str`<${tag} is="${isAttr}">`);
           return;
         }
       }
@@ -72190,7 +72197,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       for (let i = dart.notNull(attrs[dartx.length]) - 1; i >= 0; --i) {
         let name = keys[dartx.get](i);
         if (!dart.notNull(this.validator.allowsAttribute(element, dart.as(dart.dsend(name, 'toLowerCase'), core.String), dart.as(attrs[dartx.get](name), core.String)))) {
-          html$.window[dartx.console].warn('Removing disallowed attribute ' + `<${tag} ${name}="${attrs[dartx.get](name)}">`);
+          html$.window[dartx.console].warn('Removing disallowed attribute ' + dart.str`<${tag} ${name}="${attrs[dartx.get](name)}">`);
           attrs[dartx.remove](name);
         }
       }
@@ -73016,7 +73023,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         }
         treeSanitizer = html$.NodeTreeSanitizer.new(validator);
       }
-      let html = `<svg version="1.1">${svg}</svg>`;
+      let html = dart.str`<svg version="1.1">${svg}</svg>`;
       let fragment = html$.document[dartx.body][dartx.createFragment](html, {treeSanitizer: treeSanitizer});
       let svgFragment = html$.DocumentFragment.new();
       let root = fragment[dartx.nodes][dartx.single];

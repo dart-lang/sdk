@@ -51,7 +51,7 @@ dart_library.library('misc', null, /* Imports */[
   };
   dart.fn(misc._isWhitespace, core.bool, [core.String]);
   misc.expr = 'foo';
-  misc._escapeMap = dart.const(dart.map({'\n': '\\n', '\r': '\\r', '\f': '\\f', '\b': '\\b', '\t': '\\t', '\v': '\\v', '': '\\x7F', [`\${${misc.expr}}`]: ''}));
+  misc._escapeMap = dart.const(dart.map({'\n': '\\n', '\r': '\\r', '\f': '\\f', '\b': '\\b', '\t': '\\t', '\v': '\\v', '': '\\x7F', [dart.str`\${${misc.expr}}`]: ''}));
   misc.main = function() {
     core.print(dart.toString(1));
     core.print(dart.toString(1.0));
