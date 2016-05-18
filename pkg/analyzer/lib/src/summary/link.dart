@@ -872,6 +872,9 @@ abstract class CompilationUnitElementForLink
   LibraryElementForLink get library => enclosingElement;
 
   @override
+  ResynthesizerContext get resynthesizerContext => this;
+
+  @override
   List<TopLevelVariableElementForLink> get topLevelVariables {
     if (_topLevelVariables == null) {
       _topLevelVariables = <TopLevelVariableElementForLink>[];
@@ -1793,6 +1796,9 @@ abstract class ExecutableElementForLink extends Object
   }
 
   @override
+  CompilationUnitElementImpl get enclosingUnit => compilationUnit;
+
+  @override
   bool get hasImplicitReturnType => _unlinkedExecutable.returnType == null;
 
   @override
@@ -1846,9 +1852,6 @@ abstract class ExecutableElementForLink extends Object
     }
     return _name;
   }
-
-  @override
-  ResynthesizerContext get resynthesizerContext => compilationUnit;
 
   @override
   DartType get returnType => declaredReturnType ?? inferredReturnType;
@@ -2860,6 +2863,9 @@ class FunctionTypeAliasElementForLink extends Object
   TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
 
   @override
+  CompilationUnitElementInBuildUnit get enclosingUnit => enclosingElement;
+
+  @override
   String get identifier => _unlinkedTypedef.name;
 
   @override
@@ -2873,9 +2879,6 @@ class FunctionTypeAliasElementForLink extends Object
 
   @override
   String get name => _unlinkedTypedef.name;
-
-  @override
-  ResynthesizerContext get resynthesizerContext => enclosingElement;
 
   @override
   DartType get returnType => _returnType ??=
@@ -3755,7 +3758,7 @@ abstract class ParameterParentElementForLink implements Element {
             this,
             unlinkedParam,
             typeParameterContext,
-            typeParameterContext.resynthesizerContext
+            typeParameterContext.enclosingUnit.resynthesizerContext
             as CompilationUnitElementForLink,
             i);
       }

@@ -152,8 +152,8 @@ class ClassElementImpl extends ElementImpl
    * Initialize using the given serialized information.
    */
   ClassElementImpl.forSerialized(
-      ResynthesizerContext resynthesizerContext, this._unlinkedClass)
-      : super.forSerialized(resynthesizerContext);
+      this._unlinkedClass, CompilationUnitElementImpl enclosingUnit)
+      : super.forSerialized(enclosingUnit);
 
   /**
    * Set whether this class is abstract.
@@ -430,7 +430,7 @@ class ClassElementImpl extends ElementImpl
   List<ElementAnnotation> get metadata {
     if (_unlinkedClass != null) {
       return _metadata ??= _unlinkedClass.annotations
-          .map(resynthesizerContext.buildAnnotation)
+          .map(enclosingUnit.resynthesizerContext.buildAnnotation)
           .toList();
     }
     return super.metadata;
@@ -486,7 +486,7 @@ class ClassElementImpl extends ElementImpl
    * [typeParameters].
    */
   void set typeParameters(List<TypeParameterElement> typeParameters) {
-    assert(resynthesizerContext == null);
+    assert(_unlinkedClass == null);
     for (TypeParameterElement typeParameter in typeParameters) {
       (typeParameter as TypeParameterElementImpl).enclosingElement = this;
     }
@@ -1044,6 +1044,22 @@ class ClassElementImpl extends ElementImpl
 class CompilationUnitElementImpl extends UriReferencedElementImpl
     implements CompilationUnitElement {
   /**
+   * The context in which this unit is resynthesized, or `null` if the
+   * element is not resynthesized a summary.
+   */
+  final ResynthesizerContext resynthesizerContext;
+
+  /**
+   * The unlinked representation of the unit in the summary.
+   */
+  final UnlinkedUnit _unlinkedUnit;
+
+  /**
+   * The unlinked representation of the part in the summary.
+   */
+  final UnlinkedPart _unlinkedPart;
+
+  /**
    * The source that corresponds to this compilation unit.
    */
   @override
@@ -1108,7 +1124,26 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
    * Initialize a newly created compilation unit element to have the given
    * [name].
    */
-  CompilationUnitElementImpl(String name) : super(name, -1);
+  CompilationUnitElementImpl(String name)
+      : resynthesizerContext = null,
+        _unlinkedUnit = null,
+        _unlinkedPart = null,
+        super(name, -1);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  CompilationUnitElementImpl.forSerialized(
+      LibraryElementImpl enclosingLibrary,
+      this.resynthesizerContext,
+      this._unlinkedUnit,
+      this._unlinkedPart,
+      String name)
+      : super.forSerialized(null) {
+    _enclosingElement = enclosingLibrary;
+    _name = name;
+    _nameOffset = -1;
+  }
 
   @override
   List<PropertyAccessorElement> get accessors => _accessors;
@@ -1125,8 +1160,29 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
+  int get codeLength {
+    if (_unlinkedUnit != null) {
+      return _unlinkedUnit.codeRange?.length;
+    }
+    return super.codeLength;
+  }
+
+  @override
+  int get codeOffset {
+    if (_unlinkedUnit != null) {
+      return _unlinkedUnit.codeRange?.offset;
+    }
+    return super.codeOffset;
+  }
+
+  @override
   LibraryElement get enclosingElement =>
       super.enclosingElement as LibraryElement;
+
+  @override
+  CompilationUnitElementImpl get enclosingUnit {
+    return this;
+  }
 
   @override
   List<ClassElement> get enums => _enums;
@@ -1176,6 +1232,18 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
+
+  @override
+  List<ElementAnnotation> get metadata {
+    if (_unlinkedPart != null) {
+      CompilationUnitElementImpl definingUnit =
+          library.definingCompilationUnit as CompilationUnitElementImpl;
+      return _metadata ??= _unlinkedPart.annotations
+          .map(definingUnit.resynthesizerContext.buildAnnotation)
+          .toList();
+    }
+    return super.metadata;
+  }
 
   @override
   List<TopLevelVariableElement> get topLevelVariables => _variables;
@@ -1452,9 +1520,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
    * Initialize using the given serialized information.
    */
   ConstructorElementImpl.forSerialized(
-      ResynthesizerContext resynthesizerContext,
-      UnlinkedExecutable serializedExecutable)
-      : super.forSerialized(resynthesizerContext, serializedExecutable);
+      UnlinkedExecutable serializedExecutable, ClassElementImpl enclosingClass)
+      : super.forSerialized(serializedExecutable, enclosingClass);
 
   /**
    * Set whether this constructor represents a 'const' constructor.
@@ -1870,12 +1937,6 @@ abstract class ElementImpl implements Element {
   ElementImpl _enclosingElement;
 
   /**
-   * The context in which this element is resynthesized, or `null` if the
-   * element is not resynthesized a summary.
-   */
-  final ResynthesizerContext resynthesizerContext;
-
-  /**
    * The name of this element.
    */
   String _name;
@@ -1937,7 +1998,7 @@ abstract class ElementImpl implements Element {
    * Initialize a newly created element to have the given [name] at the given
    * [_nameOffset].
    */
-  ElementImpl(String name, this._nameOffset) : resynthesizerContext = null {
+  ElementImpl(String name, this._nameOffset) {
     this._name = StringUtilities.intern(name);
   }
 
@@ -1950,7 +2011,7 @@ abstract class ElementImpl implements Element {
   /**
    * Initialize from serialized information.
    */
-  ElementImpl.forSerialized(this.resynthesizerContext);
+  ElementImpl.forSerialized(this._enclosingElement);
 
   /**
    * The length of the element's code, or `null` if the element is synthetic.
@@ -1989,7 +2050,7 @@ abstract class ElementImpl implements Element {
    * The documentation comment source for this element.
    */
   void set documentationComment(String doc) {
-    assert(resynthesizerContext == null);
+    assert(!isResynthesized);
     _docComment = doc?.replaceAll('\r\n', '\n');
   }
 
@@ -2004,6 +2065,14 @@ abstract class ElementImpl implements Element {
   void set enclosingElement(Element element) {
     _enclosingElement = element as ElementImpl;
     _updateCaches();
+  }
+
+  /**
+   * Return the enclosing unit element (which might be the same as `this`), or
+   * `null` if this element is not contained in any compilation unit.
+   */
+  CompilationUnitElementImpl get enclosingUnit {
+    return _enclosingElement?.enclosingUnit;
   }
 
   @override
@@ -2084,6 +2153,11 @@ abstract class ElementImpl implements Element {
     return false;
   }
 
+  /**
+   * Return `true` if this element is resynthesized from a summary.
+   */
+  bool get isResynthesized => enclosingUnit?.resynthesizerContext != null;
+
   @override
   bool get isSynthetic => hasModifier(Modifier.SYNTHETIC);
 
@@ -2107,7 +2181,7 @@ abstract class ElementImpl implements Element {
   }
 
   void set metadata(List<ElementAnnotation> metadata) {
-    assert(resynthesizerContext == null);
+    assert(!isResynthesized);
     _metadata = metadata;
   }
 
@@ -2289,7 +2363,7 @@ abstract class ElementImpl implements Element {
    * Set the code range for this element.
    */
   void setCodeRange(int offset, int length) {
-    assert(resynthesizerContext == null);
+    assert(!isResynthesized);
     _codeOffset = offset;
     _codeLength = length;
   }
@@ -2298,7 +2372,7 @@ abstract class ElementImpl implements Element {
    * Set the documentation comment source range for this element.
    */
   void setDocRange(int offset, int length) {
-    assert(resynthesizerContext == null);
+    assert(!isResynthesized);
     _docRangeOffset = offset;
     _docRangeLength = length;
   }
@@ -2571,8 +2645,8 @@ abstract class ExecutableElementImpl extends ElementImpl
    * Initialize using the given serialized information.
    */
   ExecutableElementImpl.forSerialized(
-      ResynthesizerContext resynthesizerContext, this.serializedExecutable)
-      : super.forSerialized(resynthesizerContext);
+      this.serializedExecutable, ElementImpl enclosingElement)
+      : super.forSerialized(enclosingElement);
 
   /**
    * Set whether this executable element's body is asynchronous.
@@ -2743,7 +2817,7 @@ abstract class ExecutableElementImpl extends ElementImpl
   List<ElementAnnotation> get metadata {
     if (serializedExecutable != null) {
       return _metadata ??= serializedExecutable.annotations
-          .map(resynthesizerContext.buildAnnotation)
+          .map(enclosingUnit.resynthesizerContext.buildAnnotation)
           .toList();
     }
     return super.metadata;
@@ -3047,9 +3121,9 @@ class FunctionElementImpl extends ExecutableElementImpl
   /**
    * Initialize using the given serialized information.
    */
-  FunctionElementImpl.forSerialized(ResynthesizerContext resynthesizerContext,
-      UnlinkedExecutable serializedExecutable)
-      : super.forSerialized(resynthesizerContext, serializedExecutable);
+  FunctionElementImpl.forSerialized(
+      UnlinkedExecutable serializedExecutable, ElementImpl enclosingElement)
+      : super.forSerialized(serializedExecutable, enclosingElement);
 
   /**
    * Synthesize an unnamed function element that takes [parameters] and returns
@@ -3191,8 +3265,8 @@ class FunctionTypeAliasElementImpl extends ElementImpl
    * Initialize using the given serialized information.
    */
   FunctionTypeAliasElementImpl.forSerialized(
-      ResynthesizerContext resynthesizerContext, this._unlinkedTypedef)
-      : super.forSerialized(resynthesizerContext);
+      this._unlinkedTypedef, CompilationUnitElementImpl enclosingUnit)
+      : super.forSerialized(enclosingUnit);
 
   @override
   int get codeLength {
@@ -3241,13 +3315,17 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
 
   @override
+  CompilationUnitElementImpl get enclosingUnit =>
+      _enclosingElement as CompilationUnitElementImpl;
+
+  @override
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
 
   @override
   List<ElementAnnotation> get metadata {
     if (_unlinkedTypedef != null) {
       return _metadata ??= _unlinkedTypedef.annotations
-          .map(resynthesizerContext.buildAnnotation)
+          .map(enclosingUnit.resynthesizerContext.buildAnnotation)
           .toList();
     }
     return super.metadata;
@@ -3297,7 +3375,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
    * [typeParameters].
    */
   void set typeParameters(List<TypeParameterElement> typeParameters) {
-    assert(resynthesizerContext == null);
+    assert(_unlinkedTypedef == null);
     for (TypeParameterElement typeParameter in typeParameters) {
       (typeParameter as TypeParameterElementImpl).enclosingElement = this;
     }
@@ -3766,6 +3844,13 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
+  bool get isResynthesized {
+    CompilationUnitElement definingUnit = _definingCompilationUnit;
+    return definingUnit is CompilationUnitElementImpl &&
+        definingUnit.resynthesizerContext != null;
+  }
+
+  @override
   ElementKind get kind => ElementKind.LIBRARY;
 
   @override
@@ -4208,9 +4293,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /**
    * Initialize using the given serialized information.
    */
-  MethodElementImpl.forSerialized(ResynthesizerContext resynthesizerContext,
-      UnlinkedExecutable serializedExecutable)
-      : super.forSerialized(resynthesizerContext, serializedExecutable);
+  MethodElementImpl.forSerialized(
+      UnlinkedExecutable serializedExecutable, ClassElementImpl enclosingClass)
+      : super.forSerialized(serializedExecutable, enclosingClass);
 
   /**
    * Set whether this method is abstract.
@@ -4938,9 +5023,8 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
    * Initialize using the given serialized information.
    */
   PropertyAccessorElementImpl.forSerialized(
-      ResynthesizerContext resynthesizerContext,
-      UnlinkedExecutable serializedExecutable)
-      : super.forSerialized(resynthesizerContext, serializedExecutable);
+      UnlinkedExecutable serializedExecutable, ElementImpl enclosingElement)
+      : super.forSerialized(serializedExecutable, enclosingElement);
 
   /**
    * Initialize a newly created synthetic property accessor element to be
@@ -5274,11 +5358,11 @@ class TypeParameterElementImpl extends ElementImpl
    * Initialize using the given serialized information.
    */
   TypeParameterElementImpl.forSerialized(
-      ResynthesizerContext resynthesizerContext,
       this._unlinkedTypeParam,
+      ElementImpl enclosingElement,
       this._enclosingTypeParameterizedElement,
       this.nestingLevel)
-      : super.forSerialized(resynthesizerContext);
+      : super.forSerialized(enclosingElement);
 
   /**
    * Initialize a newly created synthetic type parameter element to have the
@@ -5297,7 +5381,7 @@ class TypeParameterElementImpl extends ElementImpl
       if (_unlinkedTypeParam.bound == null) {
         return null;
       }
-      return _bound ??= resynthesizerContext.resolveTypeRef(
+      return _bound ??= enclosingUnit.resynthesizerContext.resolveTypeRef(
           _unlinkedTypeParam.bound, enclosingElement,
           instantiateToBoundsAllowed: false);
     }
@@ -5305,7 +5389,7 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   void set bound(DartType bound) {
-    assert(resynthesizerContext == null);
+    assert(_unlinkedTypeParam == null);
     _bound = bound;
   }
 
@@ -5343,7 +5427,7 @@ class TypeParameterElementImpl extends ElementImpl
   List<ElementAnnotation> get metadata {
     if (_unlinkedTypeParam != null) {
       return _metadata ??= _unlinkedTypeParam.annotations
-          .map(resynthesizerContext.buildAnnotation)
+          .map(enclosingUnit.resynthesizerContext.buildAnnotation)
           .toList();
     }
     return super.metadata;
@@ -5393,7 +5477,7 @@ class TypeParameterElementImpl extends ElementImpl
  * Mixin representing an element which can have type parameters.
  */
 abstract class TypeParameterizedElementMixin
-    implements TypeParameterizedElement {
+    implements TypeParameterizedElement, ElementImpl {
   List<TypeParameterType> _typeParameterTypes;
   List<TypeParameterElement> _typeParameterElements;
   int _nestingLevel;
@@ -5404,9 +5488,9 @@ abstract class TypeParameterizedElementMixin
   TypeParameterizedElementMixin get enclosingTypeParameterContext;
 
   /**
-   * The context in which this element is resynthesized.
+   * The unit in which this element is resynthesized.
    */
-  ResynthesizerContext get resynthesizerContext;
+  CompilationUnitElementImpl get enclosingUnit;
 
   /**
    * Find out how many type parameters are in scope in this context.
@@ -5424,10 +5508,7 @@ abstract class TypeParameterizedElementMixin
           new List<TypeParameterElement>(numTypeParameters);
       for (int i = 0; i < numTypeParameters; i++) {
         _typeParameterElements[i] = new TypeParameterElementImpl.forSerialized(
-            resynthesizerContext,
-            unlinkedTypeParams[i],
-            this,
-            enclosingNestingLevel + i);
+            unlinkedTypeParams[i], this, this, enclosingNestingLevel + i);
       }
     }
     return _typeParameterElements;
@@ -5511,6 +5592,12 @@ abstract class UriReferencedElementImpl extends ElementImpl
    * [offset]. The offset may be `-1` if the element is synthetic.
    */
   UriReferencedElementImpl(String name, int offset) : super(name, offset);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  UriReferencedElementImpl.forSerialized(ElementImpl enclosingElement)
+      : super.forSerialized(enclosingElement);
 }
 
 /**

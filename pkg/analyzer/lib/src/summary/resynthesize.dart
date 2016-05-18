@@ -1011,6 +1011,11 @@ class _LibraryResynthesizer {
   bool isCoreLibrary;
 
   /**
+   * The resynthesized library.
+   */
+  LibraryElementImpl library;
+
+  /**
    * Classes which should have their supertype set to "object" once
    * resynthesis is complete.  Only used if [isCoreLibrary] is `true`.
    */
@@ -1195,17 +1200,17 @@ class _LibraryResynthesizer {
    * Main entry point.  Resynthesize the [LibraryElement] and return it.
    */
   LibraryElement buildLibrary() {
-    CompilationUnitElementImpl definingUnit =
-        new CompilationUnitElementImpl(librarySource.shortName);
-    _UnitResynthesizer definingUnitResynthesizer =
-        createUnitResynthesizer(definingUnit, 0);
     // Create LibraryElementImpl.
     bool hasName = unlinkedUnits[0].libraryName.isNotEmpty;
-    LibraryElementImpl library = new LibraryElementImpl(
+    library = new LibraryElementImpl(
         summaryResynthesizer.context,
         unlinkedUnits[0].libraryName,
         hasName ? unlinkedUnits[0].libraryNameOffset : -1,
         unlinkedUnits[0].libraryNameLength);
+    // Create the defining unit.
+    _UnitResynthesizer definingUnitResynthesizer =
+        createUnitResynthesizer(0, librarySource, null);
+    CompilationUnitElementImpl definingUnit = definingUnitResynthesizer.unit;
     definingUnitResynthesizer.buildDocumentation(
         library, unlinkedUnits[0].libraryDocumentationComment);
     definingUnitResynthesizer.buildAnnotations(
@@ -1214,19 +1219,19 @@ class _LibraryResynthesizer {
     definingUnit.source = librarySource;
     definingUnit.librarySource = librarySource;
     // Create parts.
-    List<CompilationUnitElement> partUnits = <CompilationUnitElement>[];
+    List<_UnitResynthesizer> partResynthesizers = <_UnitResynthesizer>[];
     UnlinkedUnit unlinkedDefiningUnit = unlinkedUnits[0];
     assert(unlinkedDefiningUnit.publicNamespace.parts.length + 1 ==
         linkedLibrary.units.length);
     for (int i = 1; i < linkedLibrary.units.length; i++) {
-      CompilationUnitElementImpl part = buildPart(
+      _UnitResynthesizer partResynthesizer = buildPart(
           definingUnitResynthesizer,
           unlinkedDefiningUnit.publicNamespace.parts[i - 1],
           unlinkedDefiningUnit.parts[i - 1],
           i);
-      partUnits.add(part);
+      partResynthesizers.add(partResynthesizer);
     }
-    library.parts = partUnits;
+    library.parts = partResynthesizers.map((r) => r.unit).toList();
     // Create imports.
     List<ImportElement> imports = <ImportElement>[];
     for (int i = 0; i < unlinkedDefiningUnit.imports.length; i++) {
@@ -1250,9 +1255,7 @@ class _LibraryResynthesizer {
     library.exports = exports;
     // Populate units.
     populateUnit(definingUnitResynthesizer);
-    for (int i = 0; i < partUnits.length; i++) {
-      _UnitResynthesizer partResynthesizer =
-          createUnitResynthesizer(partUnits[i], i + 1);
+    for (_UnitResynthesizer partResynthesizer in partResynthesizers) {
       populateUnit(partResynthesizer);
     }
     BuildLibraryElementUtils.patchTopLevelAccessors(library);
@@ -1292,32 +1295,30 @@ class _LibraryResynthesizer {
    * Create, but do not populate, the [CompilationUnitElement] for a part other
    * than the defining compilation unit.
    */
-  CompilationUnitElementImpl buildPart(
-      _UnitResynthesizer definingUnitResynthesizer,
-      String uri,
-      UnlinkedPart partDecl,
-      int unitNum) {
+  _UnitResynthesizer buildPart(_UnitResynthesizer definingUnitResynthesizer,
+      String uri, UnlinkedPart partDecl, int unitNum) {
     Source unitSource =
         summaryResynthesizer.sourceFactory.resolveUri(librarySource, uri);
-    CompilationUnitElementImpl partUnit =
-        new CompilationUnitElementImpl(unitSource.shortName);
+    _UnitResynthesizer partResynthesizer =
+        createUnitResynthesizer(unitNum, unitSource, partDecl);
+    CompilationUnitElementImpl partUnit = partResynthesizer.unit;
     partUnit.uriOffset = partDecl.uriOffset;
     partUnit.uriEnd = partDecl.uriEnd;
     partUnit.source = unitSource;
     partUnit.librarySource = librarySource;
     partUnit.uri = uri;
-    definingUnitResynthesizer.buildAnnotations(partUnit, partDecl.annotations);
-    return partUnit;
+    return partResynthesizer;
   }
 
   /**
    * Set up data structures for deserializing a compilation unit.
    */
   _UnitResynthesizer createUnitResynthesizer(
-      CompilationUnitElementImpl unit, int unitNum) {
+      int unitNum, Source unitSource, UnlinkedPart unlinkedPart) {
     LinkedUnit linkedUnit = linkedLibrary.units[unitNum];
     UnlinkedUnit unlinkedUnit = unlinkedUnits[unitNum];
-    return new _UnitResynthesizer(this, unlinkedUnit, linkedUnit, unit);
+    return new _UnitResynthesizer(
+        this, unlinkedUnit, linkedUnit, unitSource, unlinkedPart);
   }
 
   /**
@@ -1595,7 +1596,7 @@ class _UnitResynthesizer {
    * The [CompilationUnitElementImpl] for the compilation unit currently being
    * resynthesized.
    */
-  final CompilationUnitElementImpl unit;
+  CompilationUnitElementImpl unit;
 
   /**
    * [ElementHolder] into which resynthesized elements should be placed.  This
@@ -1676,7 +1677,14 @@ class _UnitResynthesizer {
   TypeParameterizedElementMixin _currentTypeParameterizedElement;
 
   _UnitResynthesizer(this.libraryResynthesizer, this.unlinkedUnit,
-      this.linkedUnit, this.unit) {
+      this.linkedUnit, Source unitSource, UnlinkedPart unlinkedPart) {
+    _resynthesizerContext = new _ResynthesizerContext(this);
+    unit = new CompilationUnitElementImpl.forSerialized(
+        libraryResynthesizer.library,
+        _resynthesizerContext,
+        unlinkedUnit,
+        unlinkedPart,
+        unitSource.shortName);
     for (EntityRef t in linkedUnit.types) {
       linkedTypeMap[t.slot] = t;
     }
@@ -1684,7 +1692,6 @@ class _UnitResynthesizer {
     numLinkedReferences = linkedUnit.references.length;
     numUnlinkedReferences = unlinkedUnit.references.length;
     referenceInfos = new List<_ReferenceInfo>(numLinkedReferences);
-    _resynthesizerContext = new _ResynthesizerContext(this);
     _currentTypeParameterizedElement =
         new _CurrentTypeParameterizedElement(this);
   }
@@ -1767,8 +1774,7 @@ class _UnitResynthesizer {
       switch (serializedExecutable.kind) {
         case UnlinkedExecutableKind.constructor:
           constructorFound = true;
-          buildConstructor(
-              serializedExecutable, memberHolder, classElement.type);
+          buildConstructor(serializedExecutable, classElement, memberHolder);
           break;
         case UnlinkedExecutableKind.functionOrMethod:
         case UnlinkedExecutableKind.getter:
@@ -1776,7 +1782,7 @@ class _UnitResynthesizer {
           if (serializedExecutable.isStatic) {
             currentTypeParameters.removeLast();
           }
-          buildExecutable(serializedExecutable, memberHolder);
+          buildExecutable(serializedExecutable, classElement, memberHolder);
           if (serializedExecutable.isStatic) {
             currentTypeParameters.add(classElement.typeParameters);
           }
@@ -1810,8 +1816,8 @@ class _UnitResynthesizer {
    */
   ClassElementImpl buildClassImpl(
       UnlinkedClass serializedClass, ClassElementHandle handle) {
-    ClassElementImpl classElement = new ClassElementImpl.forSerialized(
-        _resynthesizerContext, serializedClass);
+    ClassElementImpl classElement =
+        new ClassElementImpl.forSerialized(serializedClass, unit);
     classElement.hasBeenInferred = summaryResynthesizer.strongMode;
     InterfaceTypeImpl correspondingType =
         new InterfaceTypeImpl(handle ?? classElement);
@@ -1874,21 +1880,21 @@ class _UnitResynthesizer {
    * constructor.
    */
   void buildConstructor(UnlinkedExecutable serializedExecutable,
-      ElementHolder holder, InterfaceType classType) {
+      ClassElementImpl classElement, ElementHolder holder) {
     assert(serializedExecutable.kind == UnlinkedExecutableKind.constructor);
     currentConstructor = new ConstructorElementImpl.forSerialized(
-        _resynthesizerContext, serializedExecutable);
+        serializedExecutable, classElement);
     currentConstructor.isCycleFree = serializedExecutable.isConst &&
         !constCycles.contains(serializedExecutable.constCycleSlot);
     if (serializedExecutable.name.isEmpty) {
       currentConstructor.nameEnd =
-          serializedExecutable.nameOffset + classType.name.length;
+          serializedExecutable.nameOffset + classElement.name.length;
     } else {
       currentConstructor.nameEnd = serializedExecutable.nameEnd;
       currentConstructor.periodOffset = serializedExecutable.periodOffset;
     }
     constructors[serializedExecutable.name] = currentConstructor;
-    currentConstructor.returnType = classType;
+    currentConstructor.returnType = classElement.type;
     buildExecutableCommonParts(currentConstructor, serializedExecutable);
     currentConstructor.constantInitializers = serializedExecutable
         .constantInitializers
@@ -1904,11 +1910,11 @@ class _UnitResynthesizer {
             _createConstructorDefiningType(info, typeArguments), info);
       } else {
         List<String> locationComponents = unit.location.components.toList();
-        locationComponents.add(classType.name);
+        locationComponents.add(classElement.name);
         locationComponents.add(serializedExecutable.redirectedConstructorName);
         currentConstructor.redirectedConstructor =
             new _DeferredConstructorElement._(
-                classType,
+                classElement.type,
                 serializedExecutable.redirectedConstructorName,
                 new ElementLocationImpl.con3(locationComponents));
       }
@@ -2032,7 +2038,8 @@ class _UnitResynthesizer {
   /**
    * Resynthesize an [ExecutableElement] and place it in the given [holder].
    */
-  void buildExecutable(UnlinkedExecutable serializedExecutable,
+  void buildExecutable(
+      UnlinkedExecutable serializedExecutable, ElementImpl enclosingElement,
       [ElementHolder holder]) {
     bool isTopLevel = holder == null;
     if (holder == null) {
@@ -2049,13 +2056,13 @@ class _UnitResynthesizer {
         if (isTopLevel) {
           FunctionElementImpl executableElement =
               new FunctionElementImpl.forSerialized(
-                  _resynthesizerContext, serializedExecutable);
+                  serializedExecutable, enclosingElement);
           buildExecutableCommonParts(executableElement, serializedExecutable);
           holder.addFunction(executableElement);
         } else {
           MethodElementImpl executableElement =
               new MethodElementImpl.forSerialized(
-                  _resynthesizerContext, serializedExecutable);
+                  serializedExecutable, enclosingElement);
           buildExecutableCommonParts(executableElement, serializedExecutable);
           holder.addMethod(executableElement);
         }
@@ -2064,7 +2071,7 @@ class _UnitResynthesizer {
       case UnlinkedExecutableKind.setter:
         PropertyAccessorElementImpl executableElement =
             new PropertyAccessorElementImpl.forSerialized(
-                _resynthesizerContext, serializedExecutable);
+                serializedExecutable, enclosingElement);
         buildExecutableCommonParts(executableElement, serializedExecutable);
         DartType type;
         if (kind == UnlinkedExecutableKind.getter) {
@@ -2121,8 +2128,9 @@ class _UnitResynthesizer {
     }
     executableElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
         executableElement, null, getCurrentTypeArguments(skipLevels: 1), false);
-    executableElement.functions =
-        serializedExecutable.localFunctions.map(buildLocalFunction).toList();
+    executableElement.functions = serializedExecutable.localFunctions
+        .map((f) => buildLocalFunction(f, executableElement))
+        .toList();
     executableElement.labels =
         serializedExecutable.localLabels.map(buildLocalLabel).toList();
     executableElement.localVariables =
@@ -2233,9 +2241,9 @@ class _UnitResynthesizer {
    * Resynthesize a local [FunctionElement].
    */
   FunctionElementImpl buildLocalFunction(
-      UnlinkedExecutable serializedExecutable) {
+      UnlinkedExecutable serializedExecutable, ElementImpl enclosingElement) {
     FunctionElementImpl element = new FunctionElementImpl.forSerialized(
-        _resynthesizerContext, serializedExecutable);
+        serializedExecutable, enclosingElement);
     if (serializedExecutable.visibleOffset != 0) {
       element.setVisibleRange(serializedExecutable.visibleOffset,
           serializedExecutable.visibleLength);
@@ -2443,8 +2451,7 @@ class _UnitResynthesizer {
    */
   void buildTypedef(UnlinkedTypedef serializedTypedef) {
     FunctionTypeAliasElementImpl functionTypeAliasElement =
-        new FunctionTypeAliasElementImpl.forSerialized(
-            _resynthesizerContext, serializedTypedef);
+        new FunctionTypeAliasElementImpl.forSerialized(serializedTypedef, unit);
     // TODO(scheglov) remove this after delaying parameters and their types
     currentTypeParameters.add(functionTypeAliasElement.typeParameters);
     functionTypeAliasElement.parameters =
@@ -2564,7 +2571,7 @@ class _UnitResynthesizer {
       return null;
     }
     FunctionElementImpl initializerElement =
-        buildLocalFunction(serializedInitializer);
+        buildLocalFunction(serializedInitializer, variable);
     initializerElement.synthetic = true;
     variable.initializer = initializerElement;
   }
@@ -2741,7 +2748,7 @@ class _UnitResynthesizer {
   void populateUnit() {
     unlinkedUnit.classes.forEach(buildClass);
     unlinkedUnit.enums.forEach(buildEnum);
-    unlinkedUnit.executables.forEach(buildExecutable);
+    unlinkedUnit.executables.forEach((e) => buildExecutable(e, unit));
     unlinkedUnit.typedefs.forEach(buildTypedef);
     unlinkedUnit.variables.forEach(buildVariable);
     unit.accessors = unitHolder.accessors;
@@ -2771,7 +2778,6 @@ class _UnitResynthesizer {
     for (PropertyAccessorElementImpl accessor in unit.accessors) {
       elementMap[accessor.identifier] = accessor;
     }
-    buildCodeRange(unit, unlinkedUnit.codeRange);
     assert(currentTypeParameters.isEmpty);
   }
 
