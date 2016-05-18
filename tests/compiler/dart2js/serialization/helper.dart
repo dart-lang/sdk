@@ -12,10 +12,12 @@ import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/compiler.dart';
 
 import '../memory_compiler.dart';
+import 'test_data.dart';
 
 class Arguments {
   final String filename;
-  final int index;
+  final int start;
+  final int end;
   final bool loadSerializedData;
   final bool saveSerializedData;
   final String serializedDataFileName;
@@ -23,7 +25,8 @@ class Arguments {
 
   const Arguments({
     this.filename,
-    this.index,
+    this.start,
+    this.end,
     this.loadSerializedData: false,
     this.saveSerializedData: false,
     this.serializedDataFileName: 'out.data',
@@ -31,12 +34,17 @@ class Arguments {
 
   factory Arguments.from(List<String> arguments) {
     String filename;
-    int index;
+    int start;
+    int end;
     for (String arg in arguments) {
       if (!arg.startsWith('-')) {
-        index = int.parse(arg);
+        int index = int.parse(arg);
         if (index == null) {
           filename = arg;
+        } else if (start == null) {
+          start = index;
+        } else {
+          end = index;
         }
       }
     }
@@ -45,10 +53,20 @@ class Arguments {
     bool saveSerializedData = arguments.contains('-s');
     return new Arguments(
         filename: filename,
-        index: index,
+        start: start,
+        end: end,
         verbose: verbose,
         loadSerializedData: loadSerializedData,
         saveSerializedData: saveSerializedData);
+  }
+
+  Future forEachTest(List<Test> tests, Future f(int index, Test test)) async {
+    int first = start ?? 0;
+    int last = end ?? tests.length - 1;
+    for (int index = first; index <= last; index++) {
+      Test test = TESTS[index];
+      await f(index, test);
+    }
   }
 }
 

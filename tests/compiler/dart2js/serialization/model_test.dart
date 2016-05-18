@@ -30,7 +30,7 @@ main(List<String> args) {
       await checkModels(serializedData, entryPoint);
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
-      for (Test test in TESTS) {
+      arguments.forEachTest(TESTS, (int index, Test test) async {
         print('==============================================================');
         print(test.sourceFiles);
         await checkModels(
@@ -38,7 +38,7 @@ main(List<String> args) {
           entryPoint,
           sourceFiles: test.sourceFiles,
           verbose: arguments.verbose);
-      }
+      });
     }
   });
 }

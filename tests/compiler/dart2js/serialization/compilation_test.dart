@@ -22,14 +22,11 @@ main(List<String> args) {
       await compile(serializedData, entryPoint, null);
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
-      int start = arguments.index ?? 0;
-      int end = arguments.index ?? TESTS.length - 1;
-      for (int index = start; index <= end; index++) {
-        Test test = TESTS[index];
+      arguments.forEachTest(TESTS, (int index, Test test) async {
         await compile(serializedData, entryPoint, test,
                       index: index,
                       verbose: arguments.verbose);
-      }
+      });
     }
   });
 }
