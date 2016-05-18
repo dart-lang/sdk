@@ -37,6 +37,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:args/command_runner.dart';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:dev_compiler/src/compiler/command.dart';
@@ -77,8 +78,10 @@ class _CompilerWorker extends AsyncWorkerLoop {
     var args = new List.from(_startupArgs)..addAll(request.arguments);
 
     var output = new StringBuffer();
+    var exitCode =  await _runCommand(args, messageHandler: output.writeln);
+    AnalysisEngine.instance.clearCaches();
     return new WorkResponse()
-      ..exitCode = await _runCommand(args, messageHandler: output.writeln)
+      ..exitCode = exitCode
       ..output = output.toString();
   }
 }
