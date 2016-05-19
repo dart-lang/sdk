@@ -825,7 +825,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     assert(formals.isNotEmpty);
     var genericCall = js.call('dart.generic((#) => { #; return #; })',
         [_emitTypeFormals(formals), body, element.name]);
-    if (element.type.isDartAsyncFuture) {
+    if (element.library.isDartAsync &&
+        (element.name == "Future" || element.name == "_Future")) {
       genericCall = js.call('dart.flattenFutures(#)', [genericCall]);
     }
     var genericDef = js.statement(

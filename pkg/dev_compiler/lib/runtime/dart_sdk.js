@@ -15397,7 +15397,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   const _prependListeners = Symbol('_prependListeners');
   const _reverseListeners = Symbol('_reverseListeners');
   const _removeListeners = Symbol('_removeListeners');
-  async._Future$ = dart.generic(T => {
+  async._Future$ = dart.flattenFutures(dart.generic(T => {
     class _Future extends core.Object {
       new() {
         this[_zone] = async.Zone.current;
@@ -15886,7 +15886,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       names: ['_chainForeignFuture', '_chainCoreFuture', '_propagateToListeners']
     });
     return _Future;
-  });
+  }));
   async._Future = async._Future$();
   async._Future._INCOMPLETE = 0;
   async._Future._PENDING_COMPLETE = 1;
