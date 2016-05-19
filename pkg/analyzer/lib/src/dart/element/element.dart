@@ -1721,8 +1721,8 @@ class DefaultParameterElementImpl extends ParameterElementImpl
    * Initialize using the given serialized information.
    */
   DefaultParameterElementImpl.forSerialized(
-      UnlinkedParam unlinkedParam, ExecutableElementImpl enclosingExecutable)
-      : super.forSerialized(unlinkedParam, enclosingExecutable);
+      UnlinkedParam unlinkedParam, ElementImpl enclosingElement)
+      : super.forSerialized(unlinkedParam, enclosingElement);
 
   @override
   Expression get constantInitializer {
@@ -4983,8 +4983,8 @@ class ParameterElementImpl extends VariableElementImpl
    * Initialize using the given serialized information.
    */
   ParameterElementImpl.forSerialized(
-      this._unlinkedParam, ElementImpl enclosingExecutable)
-      : super.forSerialized(enclosingExecutable);
+      this._unlinkedParam, ElementImpl enclosingElement)
+      : super.forSerialized(enclosingElement);
 
   /**
    * Creates a synthetic parameter with [name], [type] and [kind].
