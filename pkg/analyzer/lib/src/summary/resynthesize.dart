@@ -2160,9 +2160,19 @@ class _UnitResynthesizer {
       UnlinkedExecutable serializedExecutable) {
     executableElement.typeParameters =
         buildTypeParameters(serializedExecutable.typeParameters);
-    executableElement.parameters = serializedExecutable.parameters
-        .map((p) => buildParameter(p, executableElement))
-        .toList();
+    {
+      List<UnlinkedParam> unlinkedParameters = serializedExecutable.parameters;
+      int length = unlinkedParameters.length;
+      if (length != 0) {
+        List<ParameterElementImpl> parameters =
+            new List<ParameterElementImpl>(length);
+        for (int i = 0; i < length; i++) {
+          parameters[i] =
+              buildParameter(unlinkedParameters[i], executableElement);
+        }
+        executableElement.parameters = parameters;
+      }
+    }
     if (serializedExecutable.kind == UnlinkedExecutableKind.constructor) {
       // Caller handles setting the return type.
       assert(serializedExecutable.returnType == null);
@@ -2178,14 +2188,45 @@ class _UnitResynthesizer {
     }
     executableElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
         executableElement, null, getCurrentTypeArguments(skipLevels: 1), false);
-    executableElement.functions = serializedExecutable.localFunctions
-        .map((f) => buildLocalFunction(f, executableElement))
-        .toList();
-    executableElement.labels =
-        serializedExecutable.localLabels.map(buildLocalLabel).toList();
-    executableElement.localVariables = serializedExecutable.localVariables
-        .map((v) => buildLocalVariable(v, executableElement))
-        .toList();
+    {
+      List<UnlinkedExecutable> unlinkedFunctions =
+          serializedExecutable.localFunctions;
+      int length = unlinkedFunctions.length;
+      if (length != 0) {
+        List<FunctionElementImpl> localFunctions =
+            new List<FunctionElementImpl>(length);
+        for (int i = 0; i < length; i++) {
+          localFunctions[i] =
+              buildLocalFunction(unlinkedFunctions[i], executableElement);
+        }
+        executableElement.functions = localFunctions;
+      }
+    }
+    {
+      List<UnlinkedLabel> unlinkedLabels = serializedExecutable.localLabels;
+      int length = unlinkedLabels.length;
+      if (length != 0) {
+        List<LabelElementImpl> localLabels = new List<LabelElementImpl>(length);
+        for (int i = 0; i < length; i++) {
+          localLabels[i] = buildLocalLabel(unlinkedLabels[i]);
+        }
+        executableElement.labels = localLabels;
+      }
+    }
+    {
+      List<UnlinkedVariable> unlinkedVariables =
+          serializedExecutable.localVariables;
+      int length = unlinkedVariables.length;
+      if (length != 0) {
+        List<LocalVariableElementImpl> localVariables =
+            new List<LocalVariableElementImpl>(length);
+        for (int i = 0; i < length; i++) {
+          localVariables[i] =
+              buildLocalVariable(unlinkedVariables[i], executableElement);
+        }
+        executableElement.localVariables = localVariables;
+      }
+    }
     currentTypeParameters.removeLast();
   }
 
@@ -2557,13 +2598,24 @@ class _UnitResynthesizer {
    */
   List<TypeParameterElement> buildTypeParameters(
       List<UnlinkedTypeParam> serializedTypeParameters) {
-    List<TypeParameterElement> typeParameters =
-        serializedTypeParameters.map(buildTypeParameter).toList();
-    currentTypeParameters.add(typeParameters);
-    for (int i = 0; i < serializedTypeParameters.length; i++) {
-      finishTypeParameter(serializedTypeParameters[i], typeParameters[i]);
+    int length = serializedTypeParameters.length;
+    if (length != 0) {
+      List<TypeParameterElement> typeParameters =
+          new List<TypeParameterElement>(length);
+      for (int i = 0; i < length; i++) {
+        typeParameters[i] = buildTypeParameter(serializedTypeParameters[i]);
+      }
+      currentTypeParameters.add(typeParameters);
+      for (int i = 0; i < length; i++) {
+        finishTypeParameter(serializedTypeParameters[i], typeParameters[i]);
+      }
+      return typeParameters;
+    } else {
+      List<TypeParameterElement> typeParameters =
+          const <TypeParameterElement>[];
+      currentTypeParameters.add(typeParameters);
+      return typeParameters;
     }
-    return typeParameters;
   }
 
   UnitExplicitTopLevelAccessors buildUnitExplicitTopLevelAccessors() {
