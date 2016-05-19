@@ -198,7 +198,7 @@ class IndexAccessor extends Accessor {
   }
 
   indexAccess() {
-    indexVariable ??= new VariableDeclaration.forValue(receiver);
+    indexVariable ??= new VariableDeclaration.forValue(index);
     return new VariableGet(indexVariable);
   }
 
