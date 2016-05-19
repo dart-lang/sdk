@@ -860,7 +860,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   /**
    * Invokes [callback] for each parameter of [kind] with the parameter's [name]
-   * and [type] after any type parameters have been applied.
+   * and type after any type parameters have been applied.
    */
   void _forEachParameterType(
       ParameterKind kind, callback(String name, DartType type)) {

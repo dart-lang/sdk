@@ -44,6 +44,7 @@ library analyzer.tool.summary.idl;
 import 'base.dart' as base;
 import 'base.dart' show Id, TopLevel;
 import 'format.dart' as generated;
+import 'package:analyzer/dart/element/element.dart';
 
 /**
  * Annotation describing information which is not part of Dart semantics; in

@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
+import 'package:analyzer/src/generated/error.dart' show CompileTimeErrorCode;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -1839,7 +1840,7 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
    * Initialize a newly created instance of this class. Instances of this class
    * should <b>not</b> be created except as part of creating the type associated
    * with this element. The single instance of this class should be accessed
-   * through the method [getInstance].
+   * through the method [instance].
    */
   DynamicElementImpl() : super(Keyword.DYNAMIC.syntax, -1) {
     setModifier(Modifier.SYNTHETIC, true);
@@ -3221,7 +3222,7 @@ class FunctionElementImpl extends ExecutableElementImpl
 
   /**
    * Initialize a newly created function element to have no name and the given
-   * [offset]. This is used for function expressions, that have no name.
+   * [nameOffset]. This is used for function expressions, that have no name.
    */
   FunctionElementImpl.forOffset(int nameOffset) : super("", nameOffset);
 
@@ -3679,8 +3680,8 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
 
   /**
    * Initialize a newly created label element to have the given [name].
-   * [onSwitchStatement] should be `true` if this label is associated with a
-   * `switch` statement and [onSwitchMember] should be `true` if this label is
+   * [_onSwitchStatement] should be `true` if this label is associated with a
+   * `switch` statement and [_onSwitchMember] should be `true` if this label is
    * associated with a `switch` member.
    */
   LabelElementImpl.forNode(
@@ -5448,7 +5449,7 @@ abstract class ParameterElementMixin implements ParameterElement {
 class PrefixElementImpl extends ElementImpl implements PrefixElement {
   /**
    * Initialize a newly created method element to have the given [name] and
-   * [offset].
+   * [nameOffset].
    */
   PrefixElementImpl(String name, int nameOffset) : super(name, nameOffset);
 

@@ -85,7 +85,7 @@ class InstrumentationService {
 
   /**
    * Initialize a newly created instrumentation service to communicate with the
-   * given [instrumentationServer].
+   * given [_instrumentationServer].
    */
   InstrumentationService(this._instrumentationServer);
 

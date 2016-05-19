@@ -8,6 +8,8 @@ import 'dart:collection' show HashMap;
 import 'dart:core' hide Resource;
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/package_map_provider.dart'
+    show PackageMapProvider;
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -152,7 +154,7 @@ class EmbedderSdk implements DartSdk {
   }
 }
 
-/// Given the [embedderYamls] from [EmbedderYamlLocator] check each one for the
+/// Given the 'embedderYamls' from [EmbedderYamlLocator] check each one for the
 /// top level key 'embedded_libs'. Under the 'embedded_libs' key are key value
 /// pairs. Each key is a 'dart:' library uri and each value is a path
 /// (relative to the directory containing `_embedder.yaml`) to a dart script

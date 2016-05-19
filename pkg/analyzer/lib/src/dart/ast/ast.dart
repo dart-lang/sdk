@@ -2131,7 +2131,7 @@ class CommentImpl extends AstNodeImpl implements Comment {
 
   /**
    * Initialize a newly created comment. The list of [tokens] must contain at
-   * least one token. The [type] is the type of the comment. The list of
+   * least one token. The [_type] is the type of the comment. The list of
    * [references] can be empty if the comment does not contain any embedded
    * references.
    */

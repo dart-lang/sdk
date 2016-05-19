@@ -21,7 +21,7 @@ String format(String pattern,
 }
 
 /**
- * Inserts the given [args] into [pattern].
+ * Inserts the given [arguments] into [pattern].
  *
  *     format('Hello, {0}!', ['John']) = 'Hello, John!'
  *     format('{0} are you {1}ing?', ['How', 'do']) = 'How are you doing?'

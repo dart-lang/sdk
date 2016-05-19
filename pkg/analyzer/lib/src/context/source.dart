@@ -57,7 +57,7 @@ class SourceFactoryImpl implements SourceFactory {
 
   /**
    * Initialize a newly created source factory with the given absolute URI
-   * [resolvers] and optional [packages] resolution helper.
+   * [resolvers] and optional [_packages] resolution helper.
    */
   SourceFactoryImpl(this.resolvers,
       [this._packages, ResourceProvider resourceProvider])

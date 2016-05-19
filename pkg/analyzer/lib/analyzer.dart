@@ -112,7 +112,7 @@ CompilationUnit _parseSource(String contents, Source source,
   return unit;
 }
 
-/// A simple error listener that collects errors into an [AnalysisErrorGroup].
+/// A simple error listener that collects errors into an [AnalyzerErrorGroup].
 class _ErrorCollector extends AnalysisErrorListener {
   final _errors = <AnalysisError>[];
 

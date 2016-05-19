@@ -992,7 +992,7 @@ class _OverrideChecker {
         includeParents: false);
   }
 
-  /// Check that individual methods and fields in [subType] correctly override
+  /// Check that individual methods and fields in [node] correctly override
   /// the declarations in [baseType].
   ///
   /// The [errorLocation] node indicates where errors are reported, see

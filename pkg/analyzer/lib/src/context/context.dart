@@ -215,7 +215,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   /**
    * The result of incremental resolution result of
-   * [incrementalResolutionValidation_lastSource].
+   * [incrementalResolutionValidation_lastUnitSource].
    */
   CompilationUnit incrementalResolutionValidation_lastUnit;
 

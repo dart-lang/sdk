@@ -54,7 +54,7 @@ ParameterElement _getParameter(ExecutableElement setter) {
 }
 
 /**
- * A function that returns `true` if the given [variable] passes the filter.
+ * A function that returns `true` if the given [element] passes the filter.
  */
 typedef bool VariableFilter(VariableElement element);
 
@@ -165,7 +165,7 @@ class InstanceMemberInferrer {
   }
 
   /**
-   * Given a [method], return the type of the parameter in the method that
+   * Given a method, return the type of the parameter in the method that
    * corresponds to the given [parameter]. If the parameter is positional, then
    * it appears at the given [index] in its enclosing element's list of
    * parameters.
