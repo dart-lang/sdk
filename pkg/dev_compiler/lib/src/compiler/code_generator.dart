@@ -81,9 +81,6 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// In an async* function, this represents the stream controller parameter.
   JS.TemporaryId _asyncStarController;
 
-  /// The top-level reference to 'self' if this is a library tagged with @JS()
-  JS.TemporaryId _self;
-
   final _privateNames =
       new HashMap<LibraryElement, HashMap<String, JS.TemporaryId>>();
   final _initializingFormalTemps =
@@ -224,11 +221,6 @@ class CodeGenerator extends GeneralizingAstVisitor
         items.add(new JS.ExportDeclaration(
             js.call('const # = Object.create(null)', [_dartxVar])));
       }
-
-      if (findAnnotation(library, isPublicJSAnnotation) != null) {
-        _self = new JS.TemporaryId('self');
-        items.add(js.statement('const # = window;', [_self]));
-      }
     }
 
     // Collect all Element -> Node mappings, in case we need to forward declare
@@ -274,6 +266,50 @@ class CodeGenerator extends GeneralizingAstVisitor
       case ModuleFormat.es6:
         return module;
     }
+  }
+
+  List<String> _getJSName(Element e) {
+    if (findAnnotation(e.library, isPublicJSAnnotation) == null) {
+      return null;
+    }
+
+    var libraryJSName = getAnnotationName(e.library, isPublicJSAnnotation);
+    var libraryPrefix = [];
+    if (libraryJSName != null && libraryJSName.isNotEmpty) {
+      libraryPrefix.addAll(libraryJSName.split('.'));
+    }
+
+    var elementJSName;
+    if (findAnnotation(e, isPublicJSAnnotation) != null) {
+      elementJSName = getAnnotationName(e, isPublicJSAnnotation) ?? '';
+    }
+    if (e is TopLevelVariableElement &&
+        e.getter != null &&
+        (e.getter.isExternal ||
+            findAnnotation(e.getter, isPublicJSAnnotation) != null)) {
+      elementJSName = getAnnotationName(e.getter, isPublicJSAnnotation) ?? '';
+    }
+    if (elementJSName == null) return null;
+
+    var elementJSParts = [];
+    if (elementJSName.isNotEmpty) {
+      elementJSParts.addAll(elementJSName.split('.'));
+    } else {
+      elementJSParts.add(e.name);
+    }
+
+    return libraryPrefix..addAll(elementJSParts);
+  }
+
+  JS.Expression _emitJSInterop(Element e) {
+    var jsName = _getJSName(e);
+    if (jsName == null) return null;
+    var fullName = ['global']..addAll(jsName);
+    var access = _runtimeLibVar;
+    for (var part in fullName) {
+      access = new JS.PropertyAccess(access, js.string(part));
+    }
+    return access;
   }
 
   /// Flattens blocks in [items] to a single list.
@@ -2341,17 +2377,8 @@ class CodeGenerator extends GeneralizingAstVisitor
   }
 
   JS.PropertyAccess _emitTopLevelName(Element e, {String suffix: ''}) {
-    if (e is TopLevelVariableElement &&
-        e.getter != null &&
-        findAnnotation(e.getter, isPublicJSAnnotation) != null) {
-      var annotationName = getAnnotationName(e.getter, isPublicJSAnnotation);
-      var name = annotationName ?? e.name;
-      JS.PropertyAccess result = null;
-      for (var segment in name.split('.')) {
-        result = new JS.PropertyAccess(result ?? _self, js.string(segment));
-      }
-      return result;
-    }
+    var interop = _emitJSInterop(e);
+    if (interop != null) return interop;
     String name = getJSExportName(e) + suffix;
     return new JS.PropertyAccess(
         emitLibraryName(e.library), _propertyName(name));
@@ -3043,11 +3070,8 @@ class CodeGenerator extends GeneralizingAstVisitor
   JS.Expression _emitConstructorName(
       ConstructorElement element, DartType type, SimpleIdentifier name) {
     var classElem = element.enclosingElement;
-    if (findAnnotation(classElem, isPublicJSAnnotation) != null) {
-      var annotationName = getAnnotationName(classElem, isPublicJSAnnotation);
-      var typeName = js.string(annotationName ?? classElem.name);
-      return new JS.PropertyAccess(_self, typeName);
-    }
+    var interop = _emitJSInterop(classElem);
+    if (interop != null) return interop;
     var typeName = _emitType(type);
     if (name != null || element.isFactory) {
       var namedCtor = _constructorName(element);
