@@ -1188,7 +1188,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     return;
   }
   if (FLAG_always_megamorphic_calls) {
-    EmitMegamorphicInstanceCall(ic_data, argument_count,
+    EmitMegamorphicInstanceCall(ic_data_in, argument_count,
                                 deopt_id, token_pos, locs,
                                 CatchClauseNode::kInvalidTryIndex);
     return;
@@ -1216,7 +1216,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
   }
 
   if (is_optimizing()) {
-    EmitMegamorphicInstanceCall(ic_data, argument_count,
+    EmitMegamorphicInstanceCall(ic_data_in, argument_count,
                                 deopt_id, token_pos, locs,
                                 CatchClauseNode::kInvalidTryIndex);
     return;
