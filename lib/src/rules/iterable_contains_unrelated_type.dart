@@ -123,46 +123,14 @@ class DerivedClass3 extends ClassBase implements Mixin {}
 ```
 ''';
 
-class IterableContainsUnrelatedType extends LintRule {
-  _Visitor _visitor;
-
-  IterableContainsUnrelatedType() : super(
-          name: 'iterable_contains_unrelated_type',
-            description: _desc,
-            details: _details,
-      group: Group.errors,
-      maturity: Maturity.experimental) {
-    _visitor = new _Visitor(this);
-  }
-
-  @override
-  AstVisitor getVisitor() => _visitor;
-}
-
-class _Visitor extends SimpleAstVisitor {
-  final LintRule rule;
-  _Visitor(this.rule);
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (!_isParameterizedContainsInvocation(node)) {
-      return;
-    }
-
-    ParameterizedType type = node.target != null
-        ? node.target.bestType
-        : (node.getAncestor((a) => a is ClassDeclaration) as ClassDeclaration)
-        .element.type;
-    Expression argument = node.argumentList.arguments.first;
-    if (unrelatedTypes(argument.bestType, _findIterableTypeArgument(type))) {
-      rule.reportLint(node);
-    }
-  }
-}
-
-bool _isParameterizedContainsInvocation(MethodInvocation node) =>
-        node.methodName.name == 'contains' &&
-        node.argumentList.arguments.length == 1;
+List<InterfaceType> _findImplementedInterfaces(InterfaceType type,
+        {List<InterfaceType> acc: const []}) =>
+    acc.contains(type)
+        ? acc
+        : type.interfaces.fold(
+            <InterfaceType>[type],
+            (List<InterfaceType> acc, InterfaceType e) => new List.from(acc)
+              ..addAll(_findImplementedInterfaces(e, acc: acc)));
 
 DartType _findIterableTypeArgument(InterfaceType type,
     {List<InterfaceType> accumulator: const []}) {
@@ -185,14 +153,49 @@ DartType _findIterableTypeArgument(InterfaceType type,
       accumulator: [type]..addAll(accumulator)..addAll(implementedInterfaces));
 }
 
-List<InterfaceType> _findImplementedInterfaces(InterfaceType type,
-    {List<InterfaceType> acc: const []}) =>
-    acc.contains(type)
-      ? acc
-      : type.interfaces.fold(<InterfaceType>[type],
-      (List<InterfaceType> acc, InterfaceType e) =>
-          new List.from(acc)..addAll(_findImplementedInterfaces(e, acc: acc)));
-
 bool _isDartCoreIterable(InterfaceType interface) =>
     interface.name == 'Iterable' &&
-        interface.element.library.name == 'dart.core';
+    interface.element.library.name == 'dart.core';
+
+bool _isParameterizedContainsInvocation(MethodInvocation node) =>
+    node.methodName.name == 'contains' &&
+    node.argumentList.arguments.length == 1;
+
+class IterableContainsUnrelatedType extends LintRule {
+  _Visitor _visitor;
+
+  IterableContainsUnrelatedType()
+      : super(
+            name: 'iterable_contains_unrelated_type',
+            description: _desc,
+            details: _details,
+            group: Group.errors,
+            maturity: Maturity.experimental) {
+    _visitor = new _Visitor(this);
+  }
+
+  @override
+  AstVisitor getVisitor() => _visitor;
+}
+
+class _Visitor extends SimpleAstVisitor {
+  final LintRule rule;
+  _Visitor(this.rule);
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    if (!_isParameterizedContainsInvocation(node)) {
+      return;
+    }
+
+    ParameterizedType type = node.target != null
+        ? node.target.bestType
+        : (node.getAncestor((a) => a is ClassDeclaration) as ClassDeclaration)
+            ?.element
+            ?.type;
+    Expression argument = node.argumentList.arguments.first;
+    if (unrelatedTypes(argument.bestType, _findIterableTypeArgument(type))) {
+      rule.reportLint(node);
+    }
+  }
+}
