@@ -12,9 +12,10 @@
 ///
 /// Although the frontend does not yet catch all possible errors, AST consumers
 /// should assume that a member reference always points to a meaningful target.
-/// For instance, a [SuperInvocation] will never target an abstract method, and
-/// [StaticSet] will never have a final field as a write target.  Should the
-/// input contain such errors, the frontend must create an invalid node instead.
+/// For instance, a [SuperMethodInvocation] will never target an abstract
+/// method, and [StaticSet] will never have a final field as a write target.
+/// Should the input contain such errors, the frontend must create an invalid
+/// node instead.
 ///
 /// Since the frontend is not yet complete, erroneous code may slip through,
 /// but this should be fixed in the frontend, not by the AST consumer.
