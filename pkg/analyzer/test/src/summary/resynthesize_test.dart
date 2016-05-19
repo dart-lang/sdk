@@ -515,8 +515,13 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         expect(rType, isNotNull, reason: desc);
         compareConstAsts(rType.name, oType.name, desc);
         compareConstAsts(rConstructor.name, oConstructor.name, desc);
-        compareConstAstLists(rType.typeArguments?.arguments,
-            oType.typeArguments?.arguments, desc);
+        // In strong mode type inference is performed, so that
+        // `C<int> v = new C();` is serialized as `C<int> v = new C<int>();`.
+        // So, if there are not type arguments originally, not need to check.
+        if (oType.typeArguments?.arguments?.isNotEmpty ?? false) {
+          compareConstAstLists(rType.typeArguments?.arguments,
+              oType.typeArguments?.arguments, desc);
+        }
         compareConstAstLists(
             r.argumentList.arguments, o.argumentList.arguments, desc);
       } else if (o is AnnotationImpl && r is AnnotationImpl) {
@@ -2523,6 +2528,29 @@ class C {
 class C {
   static const a = m;
   static m() {}
+}
+''');
+  }
+
+  test_constructor_default_refers_to_generic_class() {
+    checkLibrary('''
+class B<T> {
+  const B();
+}
+class C<T> {
+  const C([B<T> b = const B()]);
+}
+''');
+  }
+
+  test_constructor_default_refers_to_generic_class2() {
+    checkLibrary('''
+abstract class A<T> {}
+class B<T> implements A<T> {
+  const B();
+}
+class C<T> implements A<Iterable<T>> {
+  const C([A<T> a = const B()]);
 }
 ''');
   }

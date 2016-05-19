@@ -299,7 +299,11 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
  */
 class _ConstExprBuilder {
   final _UnitResynthesizer resynthesizer;
+  final Element context;
   final UnlinkedConst uc;
+
+  bool _typeParameterContextReady = false;
+  TypeParameterizedElementMixin _typeParameterContext;
 
   int intPtr = 0;
   int doublePtr = 0;
@@ -307,7 +311,20 @@ class _ConstExprBuilder {
   int refPtr = 0;
   final List<Expression> stack = <Expression>[];
 
-  _ConstExprBuilder(this.resynthesizer, this.uc);
+  _ConstExprBuilder(this.resynthesizer, this.context, this.uc);
+
+  TypeParameterizedElementMixin get typeParameterContext {
+    if (!_typeParameterContextReady) {
+      for (Element e = context; e != null; e = e.enclosingElement) {
+        if (e is TypeParameterizedElementMixin) {
+          _typeParameterContext = e;
+          break;
+        }
+      }
+      _typeParameterContextReady = true;
+    }
+    return _typeParameterContext;
+  }
 
   Expression build() {
     if (!uc.isValidConst) {
@@ -618,8 +635,8 @@ class _ConstExprBuilder {
         throw new StateError('Unsupported element for invokeConstructor '
             '${info.element?.runtimeType}');
       }
-      InterfaceType definingType =
-          resynthesizer._createConstructorDefiningType(info, ref.typeArguments);
+      InterfaceType definingType = resynthesizer._createConstructorDefiningType(
+          typeParameterContext, info, ref.typeArguments);
       constructorElement =
           resynthesizer._createConstructorElement(definingType, info);
       typeNode = _buildTypeAst(definingType);
@@ -1599,13 +1616,13 @@ class _ResynthesizerContext implements ResynthesizerContext {
   _ResynthesizerContext(this._unitResynthesizer);
 
   @override
-  ElementAnnotationImpl buildAnnotation(UnlinkedConst uc) {
-    return _unitResynthesizer.buildAnnotation(uc);
+  ElementAnnotationImpl buildAnnotation(Element context, UnlinkedConst uc) {
+    return _unitResynthesizer.buildAnnotation(context, uc);
   }
 
   @override
-  Expression buildExpression(UnlinkedConst uc) {
-    return _unitResynthesizer._buildConstExpression(uc);
+  Expression buildExpression(Element context, UnlinkedConst uc) {
+    return _unitResynthesizer._buildConstExpression(context, uc);
   }
 
   @override
@@ -1754,9 +1771,9 @@ class _UnitResynthesizer {
   /**
    * Build [ElementAnnotationImpl] for the given [UnlinkedConst].
    */
-  ElementAnnotationImpl buildAnnotation(UnlinkedConst uc) {
+  ElementAnnotationImpl buildAnnotation(Element context, UnlinkedConst uc) {
     ElementAnnotationImpl elementAnnotation = new ElementAnnotationImpl(unit);
-    Expression constExpr = _buildConstExpression(uc);
+    Expression constExpr = _buildConstExpression(context, uc);
     if (constExpr is Identifier) {
       elementAnnotation.element = constExpr.staticElement;
       elementAnnotation.annotationAst = AstFactory.annotation(constExpr);
@@ -1785,7 +1802,9 @@ class _UnitResynthesizer {
   void buildAnnotations(
       ElementImpl element, List<UnlinkedConst> serializedAnnotations) {
     if (serializedAnnotations.isNotEmpty) {
-      element.metadata = serializedAnnotations.map(buildAnnotation).toList();
+      element.metadata = serializedAnnotations
+          .map((a) => buildAnnotation(element, a))
+          .toList();
     }
   }
 
@@ -1815,7 +1834,7 @@ class _UnitResynthesizer {
     ElementHolder memberHolder = new ElementHolder();
     fields = <String, FieldElementImpl>{};
     for (UnlinkedVariable serializedVariable in serializedClass.fields) {
-      buildVariable(serializedVariable, memberHolder);
+      buildVariable(classElement, serializedVariable, memberHolder);
     }
     bool constructorFound = false;
     constructors = <String, ConstructorElementImpl>{};
@@ -1926,7 +1945,7 @@ class _UnitResynthesizer {
 
   /**
    * Resynthesize a [ConstructorElement] and place it in the given [holder].
-   * [classType] is the type of the class for which this element is a
+   * [classElement] is the element of the class for which this element is a
    * constructor.
    */
   void buildConstructor(UnlinkedExecutable serializedExecutable,
@@ -1948,7 +1967,7 @@ class _UnitResynthesizer {
     buildExecutableCommonParts(currentConstructor, serializedExecutable);
     currentConstructor.constantInitializers = serializedExecutable
         .constantInitializers
-        .map(buildConstructorInitializer)
+        .map((i) => buildConstructorInitializer(currentConstructor, i))
         .toList();
     if (serializedExecutable.isRedirectedConstructor) {
       if (serializedExecutable.isFactory) {
@@ -1957,7 +1976,8 @@ class _UnitResynthesizer {
         _ReferenceInfo info = getReferenceInfo(redirectedConstructor.reference);
         List<EntityRef> typeArguments = redirectedConstructor.typeArguments;
         currentConstructor.redirectedConstructor = _createConstructorElement(
-            _createConstructorDefiningType(info, typeArguments), info);
+            _createConstructorDefiningType(classElement, info, typeArguments),
+            info);
       } else {
         List<String> locationComponents = unit.location.components.toList();
         locationComponents.add(classElement.name);
@@ -1978,6 +1998,7 @@ class _UnitResynthesizer {
    * [currentConstructor], which is used to resolve constructor parameter names.
    */
   ConstructorInitializer buildConstructorInitializer(
+      ConstructorElementImpl enclosingConstructor,
       UnlinkedConstructorInitializer serialized) {
     UnlinkedConstructorInitializerKind kind = serialized.kind;
     String name = serialized.name;
@@ -1986,7 +2007,8 @@ class _UnitResynthesizer {
       int numArguments = serialized.arguments.length;
       int numNames = serialized.argumentNames.length;
       for (int i = 0; i < numArguments; i++) {
-        Expression expression = _buildConstExpression(serialized.arguments[i]);
+        Expression expression = _buildConstExpression(
+            enclosingConstructor, serialized.arguments[i]);
         int nameIndex = numNames + i - numArguments;
         if (nameIndex >= 0) {
           expression = AstFactory.namedExpression2(
@@ -1997,8 +2019,8 @@ class _UnitResynthesizer {
     }
     switch (kind) {
       case UnlinkedConstructorInitializerKind.field:
-        return AstFactory.constructorFieldInitializer(
-            false, name, _buildConstExpression(serialized.expression));
+        return AstFactory.constructorFieldInitializer(false, name,
+            _buildConstExpression(enclosingConstructor, serialized.expression));
       case UnlinkedConstructorInitializerKind.superInvocation:
         return AstFactory.superConstructorInvocation2(
             name.isNotEmpty ? name : null, arguments);
@@ -2370,8 +2392,8 @@ class _UnitResynthesizer {
           new ConstLocalVariableElementImpl.forSerialized(
               serializedVariable, enclosingExecutable);
       element = constElement;
-      constElement.constantInitializer =
-          _buildConstExpression(serializedVariable.constExpr);
+      constElement.constantInitializer = _buildConstExpression(
+          enclosingExecutable, serializedVariable.constExpr);
     } else {
       element = new LocalVariableElementImpl.forSerialized(
           serializedVariable, enclosingExecutable);
@@ -2405,8 +2427,8 @@ class _UnitResynthesizer {
                 serializedParameter.name, nameOffset);
         initializingParameter = defaultParameter;
         if (serializedParameter.defaultValue != null) {
-          defaultParameter.constantInitializer =
-              _buildConstExpression(serializedParameter.defaultValue);
+          defaultParameter.constantInitializer = _buildConstExpression(
+              enclosingElement, serializedParameter.defaultValue);
           defaultParameter.defaultValueCode =
               serializedParameter.defaultValueCode;
         }
@@ -2674,7 +2696,7 @@ class _UnitResynthesizer {
                 unlinkedVariable, unit);
         element = constElement;
         constElement.constantInitializer =
-            _buildConstExpression(unlinkedVariable.constExpr);
+            _buildConstExpression(null, unlinkedVariable.constExpr);
       } else {
         element = new TopLevelVariableElementImpl.forSerialized(
             unlinkedVariable, unit);
@@ -2698,7 +2720,8 @@ class _UnitResynthesizer {
   /**
    * Resynthesize a [TopLevelVariableElement] or [FieldElement].
    */
-  void buildVariable(UnlinkedVariable serializedVariable,
+  void buildVariable(
+      ClassElementImpl enclosingClass, UnlinkedVariable serializedVariable,
       [ElementHolder holder]) {
     if (holder == null) {
       throw new UnimplementedError('Must be lazy');
@@ -2711,7 +2734,7 @@ class _UnitResynthesizer {
             serializedVariable.name, serializedVariable.nameOffset);
         element = constElement;
         constElement.constantInitializer =
-            _buildConstExpression(serializedVariable.constExpr);
+            _buildConstExpression(enclosingClass, serializedVariable.constExpr);
       } else {
         element = new FieldElementImpl(
             serializedVariable.name, serializedVariable.nameOffset);
@@ -2974,8 +2997,8 @@ class _UnitResynthesizer {
     }
   }
 
-  Expression _buildConstExpression(UnlinkedConst uc) {
-    return new _ConstExprBuilder(this, uc).build();
+  Expression _buildConstExpression(Element context, UnlinkedConst uc) {
+    return new _ConstExprBuilder(this, context, uc).build();
   }
 
   /**
@@ -2983,11 +3006,13 @@ class _UnitResynthesizer {
    * [typeArgumentRefs] to the given linked [info].
    */
   InterfaceType _createConstructorDefiningType(
-      _ReferenceInfo info, List<EntityRef> typeArgumentRefs) {
+      TypeParameterizedElementMixin typeParameterContext,
+      _ReferenceInfo info,
+      List<EntityRef> typeArgumentRefs) {
     bool isClass = info.element is ClassElement;
     _ReferenceInfo classInfo = isClass ? info : info.enclosing;
     List<DartType> typeArguments = typeArgumentRefs
-        .map((t) => buildType(t, _currentTypeParameterizedElement))
+        .map((t) => buildType(t, typeParameterContext))
         .toList();
     return classInfo.buildType(true, typeArguments.length, (i) {
       if (i < typeArguments.length) {

@@ -431,7 +431,8 @@ class ClassElementImpl extends ElementImpl
   List<ElementAnnotation> get metadata {
     if (_unlinkedClass != null) {
       return _metadata ??= _unlinkedClass.annotations
-          .map(enclosingUnit.resynthesizerContext.buildAnnotation)
+          .map((a) =>
+              enclosingUnit.resynthesizerContext.buildAnnotation(this, a))
           .toList();
     }
     return super.metadata;
@@ -1272,7 +1273,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       CompilationUnitElementImpl definingUnit =
           library.definingCompilationUnit as CompilationUnitElementImpl;
       return _metadata ??= _unlinkedPart.annotations
-          .map(definingUnit.resynthesizerContext.buildAnnotation)
+          .map(
+              (a) => definingUnit.resynthesizerContext.buildAnnotation(this, a))
           .toList();
     }
     return super.metadata;
@@ -1806,8 +1808,8 @@ class DefaultParameterElementImpl extends ParameterElementImpl
       if (defaultValue == null) {
         return null;
       }
-      return super.constantInitializer ??=
-          enclosingUnit.resynthesizerContext.buildExpression(defaultValue);
+      return super.constantInitializer ??= enclosingUnit.resynthesizerContext
+          .buildExpression(this, defaultValue);
     }
     return super.constantInitializer;
   }
@@ -2925,7 +2927,8 @@ abstract class ExecutableElementImpl extends ElementImpl
   List<ElementAnnotation> get metadata {
     if (serializedExecutable != null) {
       return _metadata ??= serializedExecutable.annotations
-          .map(enclosingUnit.resynthesizerContext.buildAnnotation)
+          .map((a) =>
+              enclosingUnit.resynthesizerContext.buildAnnotation(this, a))
           .toList();
     }
     return super.metadata;
@@ -3433,7 +3436,8 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   List<ElementAnnotation> get metadata {
     if (_unlinkedTypedef != null) {
       return _metadata ??= _unlinkedTypedef.annotations
-          .map(enclosingUnit.resynthesizerContext.buildAnnotation)
+          .map((a) =>
+              enclosingUnit.resynthesizerContext.buildAnnotation(this, a))
           .toList();
     }
     return super.metadata;
@@ -4111,7 +4115,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         CompilationUnitElementImpl definingUnit =
             _definingCompilationUnit as CompilationUnitElementImpl;
         _metadata ??= _unlinkedDefiningUnit.libraryAnnotations
-            .map(definingUnit.resynthesizerContext.buildAnnotation)
+            .map((a) =>
+                definingUnit.resynthesizerContext.buildAnnotation(this, a))
             .toList();
       }
       return _metadata;
@@ -5100,7 +5105,8 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   List<ElementAnnotation> get metadata {
     if (_unlinkedVariable != null) {
       return _metadata ??= _unlinkedVariable.annotations
-          .map(enclosingUnit.resynthesizerContext.buildAnnotation)
+          .map((a) =>
+              enclosingUnit.resynthesizerContext.buildAnnotation(this, a))
           .toList();
     }
     return super.metadata;
@@ -5299,7 +5305,8 @@ class ParameterElementImpl extends VariableElementImpl
         return const <ElementAnnotation>[];
       }
       return _metadata ??= _unlinkedParam.annotations
-          .map(enclosingUnit.resynthesizerContext.buildAnnotation)
+          .map((a) =>
+              enclosingUnit.resynthesizerContext.buildAnnotation(this, a))
           .toList();
     }
     return super.metadata;
@@ -5711,12 +5718,12 @@ abstract class ResynthesizerContext {
   /**
    * Build [ElementAnnotationImpl] for the given [UnlinkedConst].
    */
-  ElementAnnotationImpl buildAnnotation(UnlinkedConst uc);
+  ElementAnnotationImpl buildAnnotation(Element context, UnlinkedConst uc);
 
   /**
    * Build [Expression] for the given [UnlinkedConst].
    */
-  Expression buildExpression(UnlinkedConst uc);
+  Expression buildExpression(Element context, UnlinkedConst uc);
 
   /**
    * Build explicit top-level property accessors.
@@ -5940,7 +5947,8 @@ class TypeParameterElementImpl extends ElementImpl
   List<ElementAnnotation> get metadata {
     if (_unlinkedTypeParam != null) {
       return _metadata ??= _unlinkedTypeParam.annotations
-          .map(enclosingUnit.resynthesizerContext.buildAnnotation)
+          .map((a) =>
+              enclosingUnit.resynthesizerContext.buildAnnotation(this, a))
           .toList();
     }
     return super.metadata;
