@@ -62,8 +62,8 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
    * are the first two elements of the element's location (the library URI and
    * the compilation unit URI).
    */
-  final Map<String, Map<String, CompilationUnitElement>> _resynthesizedUnits =
-      <String, Map<String, CompilationUnitElement>>{};
+  final Map<String, Map<String, CompilationUnitElementImpl>>
+      _resynthesizedUnits = <String, Map<String, CompilationUnitElementImpl>>{};
 
   /**
    * Map of top level elements resynthesized from summaries.  The three map
@@ -125,18 +125,45 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
       }
       return element;
     } else if (components.length == 3 || components.length == 4) {
-      Map<String, Map<String, Element>> libraryMap =
+      String unitUri = components[1];
+      // Prepare elements-in-units in the library.
+      Map<String, Map<String, Element>> unitsInLibrary =
           _resynthesizedElements[libraryUri];
-      if (libraryMap == null) {
-        getLibraryElement(libraryUri);
-        libraryMap = _resynthesizedElements[libraryUri];
-        assert(libraryMap != null);
+      if (unitsInLibrary == null) {
+        unitsInLibrary = new HashMap<String, Map<String, Element>>();
+        _resynthesizedElements[libraryUri] = unitsInLibrary;
       }
-      Map<String, Element> compilationUnitElements = libraryMap[components[1]];
-      Element element;
-      if (compilationUnitElements != null) {
-        element = compilationUnitElements[components[2]];
+      // Prepare elements in the unit.
+      Map<String, Element> elementsInUnit = unitsInLibrary[unitUri];
+      if (elementsInUnit == null) {
+        // Prepare the CompilationUnitElementImpl.
+        Map<String, CompilationUnitElementImpl> libraryMap =
+            _resynthesizedUnits[libraryUri];
+        if (libraryMap == null) {
+          getLibraryElement(libraryUri);
+          libraryMap = _resynthesizedUnits[libraryUri];
+          assert(libraryMap != null);
+        }
+        CompilationUnitElementImpl unitElement = libraryMap[unitUri];
+        // Fill elements in the unit map.
+        if (unitElement != null) {
+          elementsInUnit = new HashMap<String, Element>();
+          void putElement(Element e) {
+            String id =
+                e is PropertyAccessorElementImpl ? e.identifier : e.name;
+            elementsInUnit[id] = e;
+          }
+          unitElement.accessors.forEach(putElement);
+          unitElement.enums.forEach(putElement);
+          unitElement.functions.forEach(putElement);
+          unitElement.functionTypeAliases.forEach(putElement);
+          unitElement.topLevelVariables.forEach(putElement);
+          unitElement.types.forEach(putElement);
+          unitsInLibrary[unitUri] = elementsInUnit;
+        }
       }
+      // Get the element.
+      Element element = elementsInUnit[components[2]];
       if (element != null && components.length == 4) {
         String name = components[3];
         Element parentElement = element;
@@ -193,7 +220,6 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
           this, serializedLibrary, serializedUnits, librarySource);
       LibraryElement library = libraryResynthesizer.buildLibrary();
       _resynthesizedUnits[uri] = libraryResynthesizer.resynthesizedUnits;
-      _resynthesizedElements[uri] = libraryResynthesizer.resynthesizedElements;
       return library;
     });
   }
@@ -1025,16 +1051,8 @@ class _LibraryResynthesizer {
    * Map of compilation unit elements that have been resynthesized so far.  The
    * key is the URI of the compilation unit.
    */
-  final Map<String, CompilationUnitElement> resynthesizedUnits =
-      <String, CompilationUnitElement>{};
-
-  /**
-   * Map of top level elements that have been resynthesized so far.  The first
-   * key is the URI of the compilation unit; the second is the name of the top
-   * level element.
-   */
-  final Map<String, Map<String, Element>> resynthesizedElements =
-      <String, Map<String, Element>>{};
+  final Map<String, CompilationUnitElementImpl> resynthesizedUnits =
+      <String, CompilationUnitElementImpl>{};
 
   /**
    * Types with implicit type arguments, which are the same as type parameter
@@ -1202,19 +1220,17 @@ class _LibraryResynthesizer {
   LibraryElement buildLibrary() {
     // Create LibraryElementImpl.
     bool hasName = unlinkedUnits[0].libraryName.isNotEmpty;
-    library = new LibraryElementImpl(
+    library = new LibraryElementImpl.forSerialized(
         summaryResynthesizer.context,
         unlinkedUnits[0].libraryName,
         hasName ? unlinkedUnits[0].libraryNameOffset : -1,
-        unlinkedUnits[0].libraryNameLength);
+        unlinkedUnits[0].libraryNameLength,
+        new _LibraryResynthesizerContext(this),
+        unlinkedUnits[0]);
     // Create the defining unit.
     _UnitResynthesizer definingUnitResynthesizer =
         createUnitResynthesizer(0, librarySource, null);
     CompilationUnitElementImpl definingUnit = definingUnitResynthesizer.unit;
-    definingUnitResynthesizer.buildDocumentation(
-        library, unlinkedUnits[0].libraryDocumentationComment);
-    definingUnitResynthesizer.buildAnnotations(
-        library, unlinkedUnits[0].libraryAnnotations);
     library.definingCompilationUnit = definingUnit;
     definingUnit.source = librarySource;
     definingUnit.librarySource = librarySource;
@@ -1258,7 +1274,6 @@ class _LibraryResynthesizer {
     for (_UnitResynthesizer partResynthesizer in partResynthesizers) {
       populateUnit(partResynthesizer);
     }
-    BuildLibraryElementUtils.patchTopLevelAccessors(library);
     // Update delayed Object class references.
     if (isCoreLibrary) {
       ClassElement objectElement = library.getType('Object');
@@ -1266,18 +1281,6 @@ class _LibraryResynthesizer {
       for (ClassElementImpl classElement in delayedObjectSubclasses) {
         classElement.supertype = objectElement.type;
       }
-    }
-    // Compute namespaces.
-    library.publicNamespace =
-        new NamespaceBuilder().createPublicNamespaceForLibrary(library);
-    library.exportNamespace = buildExportNamespace(
-        library.publicNamespace, linkedLibrary.exportNames);
-    // Find the entry point.  Note: we can't use element.isEntryPoint because
-    // that will trigger resynthesis of exported libraries.
-    Element entryPoint =
-        library.exportNamespace.get(FunctionElement.MAIN_FUNCTION_NAME);
-    if (entryPoint is FunctionElement) {
-      library.entryPoint = entryPoint;
     }
     // Create the synthetic element for `loadLibrary`.
     // Until the client received dart:core and dart:async, we cannot do this,
@@ -1366,7 +1369,45 @@ class _LibraryResynthesizer {
     unitResynthesized.populateUnit();
     String absoluteUri = unitResynthesized.unit.source.uri.toString();
     resynthesizedUnits[absoluteUri] = unitResynthesized.unit;
-    resynthesizedElements[absoluteUri] = unitResynthesized.elementMap;
+  }
+}
+
+/**
+ * Implementation of [LibraryResynthesizerContext] for [_LibraryResynthesizer].
+ */
+class _LibraryResynthesizerContext implements LibraryResynthesizerContext {
+  final _LibraryResynthesizer resynthesizer;
+
+  _LibraryResynthesizerContext(this.resynthesizer);
+
+  @override
+  Namespace buildExportNamespace() {
+    LibraryElementImpl library = resynthesizer.library;
+    return resynthesizer.buildExportNamespace(
+        library.publicNamespace, resynthesizer.linkedLibrary.exportNames);
+  }
+
+  @override
+  Namespace buildPublicNamespace() {
+    LibraryElementImpl library = resynthesizer.library;
+    return new NamespaceBuilder().createPublicNamespaceForLibrary(library);
+  }
+
+  @override
+  FunctionElement findEntryPoint() {
+    LibraryElementImpl library = resynthesizer.library;
+    Element entryPoint =
+        library.exportNamespace.get(FunctionElement.MAIN_FUNCTION_NAME);
+    if (entryPoint is FunctionElement) {
+      return entryPoint;
+    }
+    return null;
+  }
+
+  @override
+  void patchTopLevelAccessors() {
+    LibraryElementImpl library = resynthesizer.library;
+    BuildLibraryElementUtils.patchTopLevelAccessors(library);
   }
 }
 
@@ -1568,6 +1609,16 @@ class _ResynthesizerContext implements ResynthesizerContext {
   }
 
   @override
+  UnitExplicitTopLevelAccessors buildTopLevelAccessors() {
+    return _unitResynthesizer.buildUnitExplicitTopLevelAccessors();
+  }
+
+  @override
+  UnitExplicitTopLevelVariables buildTopLevelVariables() {
+    return _unitResynthesizer.buildUnitExplicitTopLevelVariables();
+  }
+
+  @override
   DartType resolveTypeRef(
       EntityRef type, TypeParameterizedElementMixin typeParameterContext,
       {bool defaultVoid: false, bool instantiateToBoundsAllowed: true}) {
@@ -1609,12 +1660,6 @@ class _UnitResynthesizer {
    * populate the [CompilationUnitElement].
    */
   final ElementHolder unitHolder = new ElementHolder();
-
-  /**
-   * Map of top-level elements that have been resynthesized so far.  The key is
-   * the name of the top level element.
-   */
-  Map<String, Element> elementMap = <String, Element>{};
 
   /**
    * Map from slot id to the corresponding [EntityRef] object for linked types
@@ -2074,6 +2119,11 @@ class _UnitResynthesizer {
         break;
       case UnlinkedExecutableKind.getter:
       case UnlinkedExecutableKind.setter:
+        // Top-level accessors are created lazily.
+        if (isTopLevel) {
+          break;
+        }
+        // Class member accessors.
         PropertyAccessorElementImpl executableElement =
             new PropertyAccessorElementImpl.forSerialized(
                 serializedExecutable, enclosingElement);
@@ -2085,19 +2135,13 @@ class _UnitResynthesizer {
           type = executableElement.parameters[0].type;
         }
         holder.addAccessor(executableElement);
-        PropertyInducingElementImpl implicitVariable;
-        if (isTopLevel) {
-          implicitVariable = buildImplicitTopLevelVariable(name, kind, holder);
-        } else {
-          FieldElementImpl field = buildImplicitField(name, type, kind, holder);
-          field.static = serializedExecutable.isStatic;
-          implicitVariable = field;
-        }
-        executableElement.variable = implicitVariable;
+        FieldElementImpl field = buildImplicitField(name, type, kind, holder);
+        field.static = serializedExecutable.isStatic;
+        executableElement.variable = field;
         if (kind == UnlinkedExecutableKind.getter) {
-          implicitVariable.getter = executableElement;
+          field.getter = executableElement;
         } else {
-          implicitVariable.setter = executableElement;
+          field.setter = executableElement;
         }
         break;
       default:
@@ -2154,33 +2198,12 @@ class _UnitResynthesizer {
     String name = element.name;
     DartType type = element.type;
     PropertyAccessorElementImpl getter =
-        new PropertyAccessorElementImpl(name, element.nameOffset);
-    getter.getter = true;
-    getter.static = element.isStatic;
-    getter.synthetic = true;
-    getter.returnType = type;
-    getter.type = new FunctionTypeImpl(getter);
-    getter.variable = element;
-    getter.hasImplicitReturnType = element.hasImplicitType;
-    holder.addAccessor(getter);
-    element.getter = getter;
+        buildImplicitGetter(element, name, type);
+    holder?.addAccessor(getter);
     if (!(element.isConst || element.isFinal)) {
       PropertyAccessorElementImpl setter =
-          new PropertyAccessorElementImpl(name, element.nameOffset);
-      setter.setter = true;
-      setter.static = element.isStatic;
-      setter.synthetic = true;
-      setter.parameters = <ParameterElement>[
-        new ParameterElementImpl('_$name', element.nameOffset)
-          ..synthetic = true
-          ..type = type
-          ..parameterKind = ParameterKind.REQUIRED
-      ];
-      setter.returnType = VoidTypeImpl.instance;
-      setter.type = new FunctionTypeImpl(setter);
-      setter.variable = element;
-      holder.addAccessor(setter);
-      element.setter = setter;
+          buildImplicitSetter(element, name, type);
+      holder?.addAccessor(setter);
     }
   }
 
@@ -2206,23 +2229,48 @@ class _UnitResynthesizer {
   }
 
   /**
-   * Build the implicit top level variable associated with a getter or setter,
-   * and place it in [holder].
+   * Build an implicit getter for the given [property] and bind it to the
+   * [property] and to its enclosing element.
    */
-  PropertyInducingElementImpl buildImplicitTopLevelVariable(
-      String name, UnlinkedExecutableKind kind, ElementHolder holder) {
-    TopLevelVariableElementImpl variable = holder.getTopLevelVariable(name);
-    if (variable == null) {
-      variable = new TopLevelVariableElementImpl(name, -1);
-      variable.synthetic = true;
-      variable.final2 = kind == UnlinkedExecutableKind.getter;
-      holder.addTopLevelVariable(variable);
-      return variable;
-    } else {
-      // TODO(paulberry): what if the getter and setter have a type mismatch?
-      variable.final2 = false;
-      return variable;
-    }
+  PropertyAccessorElementImpl buildImplicitGetter(
+      PropertyInducingElementImpl property, String name, DartType type) {
+    PropertyAccessorElementImpl getter =
+        new PropertyAccessorElementImpl(name, property.nameOffset);
+    getter.enclosingElement = property.enclosingElement;
+    getter.getter = true;
+    getter.static = property.isStatic;
+    getter.synthetic = true;
+    getter.returnType = type;
+    getter.type = new FunctionTypeImpl(getter);
+    getter.variable = property;
+    getter.hasImplicitReturnType = property.hasImplicitType;
+    property.getter = getter;
+    return getter;
+  }
+
+  /**
+   * Build an implicit setter for the given [property] and bind it to the
+   * [property] and to its enclosing element.
+   */
+  PropertyAccessorElementImpl buildImplicitSetter(
+      PropertyInducingElementImpl property, String name, DartType type) {
+    PropertyAccessorElementImpl setter =
+        new PropertyAccessorElementImpl(name, property.nameOffset);
+    setter.enclosingElement = property.enclosingElement;
+    setter.setter = true;
+    setter.static = property.isStatic;
+    setter.synthetic = true;
+    setter.parameters = <ParameterElement>[
+      new ParameterElementImpl('_$name', property.nameOffset)
+        ..synthetic = true
+        ..type = type
+        ..parameterKind = ParameterKind.REQUIRED
+    ];
+    setter.returnType = VoidTypeImpl.instance;
+    setter.type = new FunctionTypeImpl(setter);
+    setter.variable = property;
+    property.setter = setter;
+    return setter;
   }
 
   /**
@@ -2404,9 +2452,10 @@ class _UnitResynthesizer {
    * Handle the parts that are common to top level variables and fields.
    */
   void buildPropertyIntroducingElementCommonParts(
-      PropertyInducingElementImpl element,
-      UnlinkedVariable serializedVariable) {
-    buildVariableCommonParts(element, serializedVariable);
+      PropertyInducingElementImpl element, UnlinkedVariable serializedVariable,
+      {bool isLazilyResynthesized: false}) {
+    buildVariableCommonParts(element, serializedVariable,
+        isLazilyResynthesized: isLazilyResynthesized);
     element.propagatedType = buildLinkedType(
         serializedVariable.propagatedTypeSlot,
         _currentTypeParameterizedElement);
@@ -2517,27 +2566,90 @@ class _UnitResynthesizer {
     return typeParameters;
   }
 
+  UnitExplicitTopLevelAccessors buildUnitExplicitTopLevelAccessors() {
+    HashMap<String, TopLevelVariableElementImpl> implicitVariables =
+        new HashMap<String, TopLevelVariableElementImpl>();
+    UnitExplicitTopLevelAccessors accessorsData =
+        new UnitExplicitTopLevelAccessors();
+    for (UnlinkedExecutable unlinkedExecutable in unlinkedUnit.executables) {
+      UnlinkedExecutableKind kind = unlinkedExecutable.kind;
+      if (kind == UnlinkedExecutableKind.getter ||
+          kind == UnlinkedExecutableKind.setter) {
+        // name
+        String name = unlinkedExecutable.name;
+        if (kind == UnlinkedExecutableKind.setter) {
+          assert(name.endsWith('='));
+          name = name.substring(0, name.length - 1);
+        }
+        // create
+        PropertyAccessorElementImpl accessor =
+            new PropertyAccessorElementImpl.forSerialized(
+                unlinkedExecutable, unit);
+        accessorsData.accessors.add(accessor);
+        buildExecutableCommonParts(accessor, unlinkedExecutable);
+        // implicit variable
+        TopLevelVariableElementImpl variable = implicitVariables[name];
+        if (variable == null) {
+          variable = new TopLevelVariableElementImpl(name, -1);
+          variable.enclosingElement = unit;
+          implicitVariables[name] = variable;
+          accessorsData.implicitVariables.add(variable);
+          variable.synthetic = true;
+          variable.final2 = kind == UnlinkedExecutableKind.getter;
+        } else {
+          variable.final2 = false;
+        }
+        accessor.variable = variable;
+        // link
+        if (kind == UnlinkedExecutableKind.getter) {
+          variable.getter = accessor;
+        } else {
+          variable.setter = accessor;
+        }
+      }
+    }
+    return accessorsData;
+  }
+
+  UnitExplicitTopLevelVariables buildUnitExplicitTopLevelVariables() {
+    UnitExplicitTopLevelVariables variablesData =
+        new UnitExplicitTopLevelVariables();
+    for (UnlinkedVariable unlinkedVariable in unlinkedUnit.variables) {
+      TopLevelVariableElementImpl element;
+      if (unlinkedVariable.constExpr != null && unlinkedVariable.isConst) {
+        ConstTopLevelVariableElementImpl constElement =
+            new ConstTopLevelVariableElementImpl.forSerialized(
+                unlinkedVariable, unit);
+        element = constElement;
+        constElement.constantInitializer =
+            _buildConstExpression(unlinkedVariable.constExpr);
+      } else {
+        element = new TopLevelVariableElementImpl.forSerialized(
+            unlinkedVariable, unit);
+      }
+      buildPropertyIntroducingElementCommonParts(element, unlinkedVariable,
+          isLazilyResynthesized: true);
+      variablesData.variables.add(element);
+      // implicit accessors
+      String name = element.name;
+      DartType type = element.type;
+      variablesData.implicitAccessors
+          .add(buildImplicitGetter(element, name, type));
+      if (!(element.isConst || element.isFinal)) {
+        variablesData.implicitAccessors
+            .add(buildImplicitSetter(element, name, type));
+      }
+    }
+    return variablesData;
+  }
+
   /**
    * Resynthesize a [TopLevelVariableElement] or [FieldElement].
    */
   void buildVariable(UnlinkedVariable serializedVariable,
       [ElementHolder holder]) {
     if (holder == null) {
-      TopLevelVariableElementImpl element;
-      if (serializedVariable.constExpr != null && serializedVariable.isConst) {
-        ConstTopLevelVariableElementImpl constElement =
-            new ConstTopLevelVariableElementImpl(
-                serializedVariable.name, serializedVariable.nameOffset);
-        element = constElement;
-        constElement.constantInitializer =
-            _buildConstExpression(serializedVariable.constExpr);
-      } else {
-        element = new TopLevelVariableElementImpl(
-            serializedVariable.name, serializedVariable.nameOffset);
-      }
-      buildPropertyIntroducingElementCommonParts(element, serializedVariable);
-      unitHolder.addTopLevelVariable(element);
-      buildImplicitAccessors(element, unitHolder);
+      throw new UnimplementedError('Must be lazy');
     } else {
       FieldElementImpl element;
       if (serializedVariable.constExpr != null &&
@@ -2769,8 +2881,6 @@ class _UnitResynthesizer {
     unlinkedUnit.enums.forEach(buildEnum);
     unlinkedUnit.executables.forEach((e) => buildExecutable(e, unit));
     unlinkedUnit.typedefs.forEach(buildTypedef);
-    unlinkedUnit.variables.forEach(buildVariable);
-    unit.accessors = unitHolder.accessors;
     unit.enums = unitHolder.enums;
     unit.functions = unitHolder.functions;
     List<FunctionTypeAliasElement> typeAliases = unitHolder.typeAliases;
@@ -2781,22 +2891,6 @@ class _UnitResynthesizer {
     }
     unit.typeAliases = typeAliases.where((e) => !e.isSynthetic).toList();
     unit.types = unitHolder.types;
-    unit.topLevelVariables = unitHolder.topLevelVariables;
-    for (ClassElement cls in unit.types) {
-      elementMap[cls.name] = cls;
-    }
-    for (ClassElement cls in unit.enums) {
-      elementMap[cls.name] = cls;
-    }
-    for (FunctionTypeAliasElement typeAlias in unit.functionTypeAliases) {
-      elementMap[typeAlias.name] = typeAlias;
-    }
-    for (FunctionElement function in unit.functions) {
-      elementMap[function.name] = function;
-    }
-    for (PropertyAccessorElementImpl accessor in unit.accessors) {
-      elementMap[accessor.identifier] = accessor;
-    }
     assert(currentTypeParameters.isEmpty);
   }
 

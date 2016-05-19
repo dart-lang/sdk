@@ -1085,7 +1085,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
    * A list containing all of the top-level accessors (getters and setters)
    * contained in this compilation unit.
    */
-  List<PropertyAccessorElement> _accessors = PropertyAccessorElement.EMPTY_LIST;
+  List<PropertyAccessorElement> _accessors;
 
   /**
    * A list containing all of the enums contained in this compilation unit.
@@ -1113,12 +1113,30 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /**
    * A list containing all of the variables contained in this compilation unit.
    */
-  List<TopLevelVariableElement> _variables = TopLevelVariableElement.EMPTY_LIST;
+  List<TopLevelVariableElement> _variables;
 
   /**
    * A map from offsets to elements of this unit at these offsets.
    */
   final Map<int, Element> _offsetToElementMap = new HashMap<int, Element>();
+
+  /**
+   * Resynthesized explicit top-level property accessors.
+   */
+  UnitExplicitTopLevelAccessors _explicitTopLevelAccessors;
+
+  /**
+   * Resynthesized explicit top-level variables.
+   */
+  UnitExplicitTopLevelVariables _explicitTopLevelVariables;
+
+  /**
+   * Description of top-level variable replacements that should be applied
+   * to implicit top-level variables because of re-linking top-level property
+   * accessors between different unit of the same library.
+   */
+  Map<TopLevelVariableElement, TopLevelVariableElement>
+      _topLevelVariableReplaceMap;
 
   /**
    * Initialize a newly created compilation unit element to have the given
@@ -1146,7 +1164,22 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  List<PropertyAccessorElement> get accessors => _accessors;
+  List<PropertyAccessorElement> get accessors {
+    if (_unlinkedUnit != null) {
+      if (_accessors == null) {
+        _explicitTopLevelAccessors ??=
+            resynthesizerContext.buildTopLevelAccessors();
+        _explicitTopLevelVariables ??=
+            resynthesizerContext.buildTopLevelVariables();
+        List<PropertyAccessorElementImpl> accessors =
+            <PropertyAccessorElementImpl>[];
+        accessors.addAll(_explicitTopLevelAccessors.accessors);
+        accessors.addAll(_explicitTopLevelVariables.implicitAccessors);
+        _accessors = accessors;
+      }
+    }
+    return _accessors ?? PropertyAccessorElement.EMPTY_LIST;
+  }
 
   /**
    * Set the top-level accessors (getters and setters) contained in this
@@ -1229,7 +1262,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   String get identifier => source.encoding;
-
   @override
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
 
@@ -1246,13 +1278,39 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  List<TopLevelVariableElement> get topLevelVariables => _variables;
+  List<TopLevelVariableElement> get topLevelVariables {
+    if (_unlinkedUnit != null) {
+      if (_variables == null) {
+        _explicitTopLevelAccessors ??=
+            resynthesizerContext.buildTopLevelAccessors();
+        _explicitTopLevelVariables ??=
+            resynthesizerContext.buildTopLevelVariables();
+        List<TopLevelVariableElementImpl> variables =
+            <TopLevelVariableElementImpl>[];
+        variables.addAll(_explicitTopLevelVariables.variables);
+        variables.addAll(_explicitTopLevelAccessors.implicitVariables);
+        // Ensure that getters and setters in different units use
+        // the same top-level variables.
+        (enclosingElement as LibraryElementImpl)
+            .resynthesizerContext
+            .patchTopLevelAccessors();
+        _variables = variables;
+        _topLevelVariableReplaceMap?.forEach((from, to) {
+          int index = _variables.indexOf(from);
+          _variables[index] = to;
+        });
+        _topLevelVariableReplaceMap = null;
+      }
+    }
+    return _variables ?? TopLevelVariableElement.EMPTY_LIST;
+  }
 
   /**
    * Set the top-level variables contained in this compilation unit to the given
    * [variables].
    */
   void set topLevelVariables(List<TopLevelVariableElement> variables) {
+    assert(!isResynthesized);
     for (TopLevelVariableElement field in variables) {
       (field as TopLevelVariableElementImpl).enclosingElement = this;
     }
@@ -1334,13 +1392,13 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     // thrown a CCE if any of the elements in the arrays were not of the
     // expected types.
     //
-    for (PropertyAccessorElement accessor in _accessors) {
+    for (PropertyAccessorElement accessor in accessors) {
       PropertyAccessorElementImpl accessorImpl = accessor;
       if (accessorImpl.identifier == identifier) {
         return accessorImpl;
       }
     }
-    for (TopLevelVariableElement variable in _variables) {
+    for (TopLevelVariableElement variable in topLevelVariables) {
       TopLevelVariableElementImpl variableImpl = variable;
       if (variableImpl.identifier == identifier) {
         return variableImpl;
@@ -1360,7 +1418,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     }
     for (ClassElement type in _types) {
       ClassElementImpl typeImpl = type;
-      if (typeImpl.identifier == identifier) {
+      if (typeImpl.name == identifier) {
         return typeImpl;
       }
     }
@@ -1406,8 +1464,17 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
    */
   void replaceTopLevelVariable(
       TopLevelVariableElement from, TopLevelVariableElement to) {
-    int index = _variables.indexOf(from);
-    _variables[index] = to;
+    if (_unlinkedUnit != null) {
+      // Getters and setter in different units should be patched to use the
+      // same variables before these variables were asked and returned.
+      assert(_variables == null);
+      _topLevelVariableReplaceMap ??=
+          <TopLevelVariableElement, TopLevelVariableElement>{};
+      _topLevelVariableReplaceMap[from] = to;
+    } else {
+      int index = _variables.indexOf(from);
+      _variables[index] = to;
+    }
   }
 
   /**
@@ -1422,12 +1489,12 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    safelyVisitChildren(_accessors, visitor);
+    safelyVisitChildren(accessors, visitor);
     safelyVisitChildren(_enums, visitor);
     safelyVisitChildren(_functions, visitor);
     safelyVisitChildren(_typeAliases, visitor);
     safelyVisitChildren(_types, visitor);
-    safelyVisitChildren(_variables, visitor);
+    safelyVisitChildren(topLevelVariables, visitor);
   }
 }
 
@@ -1639,6 +1706,13 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
    */
   ConstTopLevelVariableElementImpl.forNode(Identifier name)
       : super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  ConstTopLevelVariableElementImpl.forSerialized(
+      UnlinkedVariable unlinkedVariable, ElementImpl enclosingElement)
+      : super.forSerialized(unlinkedVariable, enclosingElement);
 }
 
 /**
@@ -3644,6 +3718,10 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    */
   final AnalysisContext context;
 
+  final LibraryResynthesizerContext resynthesizerContext;
+
+  final UnlinkedUnit _unlinkedDefiningUnit;
+
   /**
    * The compilation unit that defines this library.
    */
@@ -3653,7 +3731,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * The entry point for this library, or `null` if this library does not have
    * an entry point.
    */
-  FunctionElement entryPoint;
+  FunctionElement _entryPoint;
 
   /**
    * A list containing specifications of all of the imports defined in this
@@ -3695,22 +3773,22 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * The export [Namespace] of this library, `null` if it has not been
    * computed yet.
    */
-  @override
-  Namespace exportNamespace;
+  Namespace _exportNamespace;
 
   /**
    * The public [Namespace] of this library, `null` if it has not been
    * computed yet.
    */
-  @override
-  Namespace publicNamespace;
+  Namespace _publicNamespace;
 
   /**
    * Initialize a newly created library element in the given [context] to have
    * the given [name] and [offset].
    */
   LibraryElementImpl(this.context, String name, int offset, this.nameLength)
-      : super(name, offset);
+      : resynthesizerContext = null,
+        _unlinkedDefiningUnit = null,
+        super(name, offset);
 
   /**
    * Initialize a newly created library element in the given [context] to have
@@ -3718,7 +3796,19 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    */
   LibraryElementImpl.forNode(this.context, LibraryIdentifier name)
       : nameLength = name != null ? name.length : 0,
+        resynthesizerContext = null,
+        _unlinkedDefiningUnit = null,
         super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  LibraryElementImpl.forSerialized(this.context, String name, int offset,
+      this.nameLength, this.resynthesizerContext, this._unlinkedDefiningUnit)
+      : super.forSerialized(null) {
+    _name = name;
+    _nameOffset = offset;
+  }
 
   @override
   int get codeLength {
@@ -3753,6 +3843,37 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
+  SourceRange get docRange {
+    if (_unlinkedDefiningUnit != null) {
+      UnlinkedDocumentationComment comment =
+          _unlinkedDefiningUnit.libraryDocumentationComment;
+      return comment != null
+          ? new SourceRange(comment.offset, comment.length)
+          : null;
+    }
+    return super.docRange;
+  }
+
+  @override
+  String get documentationComment {
+    if (_unlinkedDefiningUnit != null) {
+      return _unlinkedDefiningUnit?.libraryDocumentationComment?.text;
+    }
+    return super.documentationComment;
+  }
+
+  FunctionElement get entryPoint {
+    if (resynthesizerContext != null) {
+      _entryPoint ??= resynthesizerContext.findEntryPoint();
+    }
+    return _entryPoint;
+  }
+
+  void set entryPoint(FunctionElement entryPoint) {
+    _entryPoint = entryPoint;
+  }
+
+  @override
   List<LibraryElement> get exportedLibraries {
     HashSet<LibraryElement> libraries = new HashSet<LibraryElement>();
     for (ExportElement element in _exports) {
@@ -3762,6 +3883,18 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       }
     }
     return new List.from(libraries);
+  }
+
+  @override
+  Namespace get exportNamespace {
+    if (resynthesizerContext != null) {
+      _exportNamespace ??= resynthesizerContext.buildExportNamespace();
+    }
+    return _exportNamespace;
+  }
+
+  void set exportNamespace(Namespace exportNamespace) {
+    _exportNamespace = exportNamespace;
   }
 
   @override
@@ -3878,9 +4011,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   bool get isResynthesized {
-    CompilationUnitElement definingUnit = _definingCompilationUnit;
-    return definingUnit is CompilationUnitElementImpl &&
-        definingUnit.resynthesizerContext != null;
+    return resynthesizerContext != null;
   }
 
   @override
@@ -3973,6 +4104,21 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
+  List<ElementAnnotation> get metadata {
+    if (_unlinkedDefiningUnit != null) {
+      if (_metadata == null) {
+        CompilationUnitElementImpl definingUnit =
+            _definingCompilationUnit as CompilationUnitElementImpl;
+        _metadata ??= _unlinkedDefiningUnit.libraryAnnotations
+            .map(definingUnit.resynthesizerContext.buildAnnotation)
+            .toList();
+      }
+      return _metadata;
+    }
+    return super.metadata;
+  }
+
+  @override
   List<CompilationUnitElement> get parts => _parts;
 
   /**
@@ -3998,6 +4144,18 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       }
     }
     return new List.from(prefixes);
+  }
+
+  @override
+  Namespace get publicNamespace {
+    if (resynthesizerContext != null) {
+      _publicNamespace ??= resynthesizerContext.buildPublicNamespace();
+    }
+    return _publicNamespace;
+  }
+
+  void set publicNamespace(Namespace publicNamespace) {
+    _publicNamespace = publicNamespace;
   }
 
   @override
@@ -4230,6 +4388,32 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     }
     return true;
   }
+}
+
+/**
+ * The context in which the library is resynthesized.
+ */
+abstract class LibraryResynthesizerContext {
+  /**
+   * Return the export namespace of the library.
+   */
+  Namespace buildExportNamespace();
+
+  /**
+   * Return the public namespace of the library.
+   */
+  Namespace buildPublicNamespace();
+
+  /**
+   * Find the entry point of the library.
+   */
+  FunctionElement findEntryPoint();
+
+  /**
+   * Ensure that getters and setters in different units use the same
+   * top-level variables.
+   */
+  void patchTopLevelAccessors();
 }
 
 /**
@@ -4853,6 +5037,26 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   void set const3(bool isConst) {
     assert(_unlinkedVariable == null);
     super.const3 = isConst;
+  }
+
+  @override
+  SourceRange get docRange {
+    if (_unlinkedVariable != null) {
+      UnlinkedDocumentationComment comment =
+          _unlinkedVariable.documentationComment;
+      return comment != null
+          ? new SourceRange(comment.offset, comment.length)
+          : null;
+    }
+    return super.docRange;
+  }
+
+  @override
+  String get documentationComment {
+    if (_unlinkedVariable != null) {
+      return _unlinkedVariable?.documentationComment?.text;
+    }
+    return super.documentationComment;
   }
 
   @override
@@ -5490,6 +5694,13 @@ abstract class PropertyInducingElementImpl
    * Initialize a newly created element to have the given [name].
    */
   PropertyInducingElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  PropertyInducingElementImpl.forSerialized(
+      UnlinkedVariable unlinkedVariable, ElementImpl enclosingElement)
+      : super.forSerialized(unlinkedVariable, enclosingElement);
 }
 
 /**
@@ -5505,6 +5716,16 @@ abstract class ResynthesizerContext {
    * Build [Expression] for the given [UnlinkedConst].
    */
   Expression buildExpression(UnlinkedConst uc);
+
+  /**
+   * Build explicit top-level property accessors.
+   */
+  UnitExplicitTopLevelAccessors buildTopLevelAccessors();
+
+  /**
+   * Build explicit top-level variables.
+   */
+  UnitExplicitTopLevelVariables buildTopLevelVariables();
 
   /**
    * Resolve an [EntityRef] into a type.  If the reference is
@@ -5570,6 +5791,13 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
    * [name].
    */
   TopLevelVariableElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  TopLevelVariableElementImpl.forSerialized(
+      UnlinkedVariable unlinkedVariable, ElementImpl enclosingElement)
+      : super.forSerialized(unlinkedVariable, enclosingElement);
 
   @override
   bool get isStatic => true;
@@ -5848,6 +6076,28 @@ abstract class TypeParameterizedElementMixin
       return false;
     }
   }
+}
+
+/**
+ * Container with information about explicit top-level property accessors and
+ * corresponding implicit top-level variables.
+ */
+class UnitExplicitTopLevelAccessors {
+  final List<PropertyAccessorElementImpl> accessors =
+      <PropertyAccessorElementImpl>[];
+  final List<TopLevelVariableElementImpl> implicitVariables =
+      <TopLevelVariableElementImpl>[];
+}
+
+/**
+ * Container with information about explicit top-level variables and
+ * corresponding implicit top-level property accessors.
+ */
+class UnitExplicitTopLevelVariables {
+  final List<TopLevelVariableElementImpl> variables =
+      <TopLevelVariableElementImpl>[];
+  final List<PropertyAccessorElementImpl> implicitAccessors =
+      <PropertyAccessorElementImpl>[];
 }
 
 /**

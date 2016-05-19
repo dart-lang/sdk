@@ -260,13 +260,15 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     compareUriReferencedElements(resynthesized, original, desc);
     expect(resynthesized.source, original.source);
     expect(resynthesized.librarySource, original.librarySource);
-    expect(resynthesized.types.length, original.types.length);
+    expect(resynthesized.types.length, original.types.length,
+        reason: '$desc types');
     for (int i = 0; i < resynthesized.types.length; i++) {
       compareClassElements(
           resynthesized.types[i], original.types[i], original.types[i].name);
     }
     expect(resynthesized.topLevelVariables.length,
-        original.topLevelVariables.length);
+        original.topLevelVariables.length,
+        reason: '$desc topLevelVariables');
     for (int i = 0; i < resynthesized.topLevelVariables.length; i++) {
       String name = resynthesized.topLevelVariables[i].name;
       compareTopLevelVariableElements(
@@ -275,25 +277,29 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
               .singleWhere((TopLevelVariableElement e) => e.name == name),
           'variable $name');
     }
-    expect(resynthesized.functions.length, original.functions.length);
+    expect(resynthesized.functions.length, original.functions.length,
+        reason: '$desc functions');
     for (int i = 0; i < resynthesized.functions.length; i++) {
       compareFunctionElements(resynthesized.functions[i], original.functions[i],
           'function ${original.functions[i].name}');
     }
     expect(resynthesized.functionTypeAliases.length,
-        original.functionTypeAliases.length);
+        original.functionTypeAliases.length,
+        reason: '$desc functionTypeAliases');
     for (int i = 0; i < resynthesized.functionTypeAliases.length; i++) {
       compareFunctionTypeAliasElements(
           resynthesized.functionTypeAliases[i],
           original.functionTypeAliases[i],
           original.functionTypeAliases[i].name);
     }
-    expect(resynthesized.enums.length, original.enums.length);
+    expect(resynthesized.enums.length, original.enums.length,
+        reason: '$desc enums');
     for (int i = 0; i < resynthesized.enums.length; i++) {
       compareClassElements(
           resynthesized.enums[i], original.enums[i], original.enums[i].name);
     }
-    expect(resynthesized.accessors.length, original.accessors.length);
+    expect(resynthesized.accessors.length, original.accessors.length,
+        reason: '$desc accessors');
     for (int i = 0; i < resynthesized.accessors.length; i++) {
       String name = resynthesized.accessors[i].name;
       if (original.accessors[i].isGetter) {
