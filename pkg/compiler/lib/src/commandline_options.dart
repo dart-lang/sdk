@@ -53,9 +53,13 @@ class Flags {
 
   // Experimental flags.
   static const String genericMethodSyntax = '--generic-method-syntax';
+  static const String resolveOnly = '--resolve-only';
 }
 
 class Option {
   static const String showPackageWarnings =
       '${Flags.showPackageWarnings}|${Flags.showPackageWarnings}=.*';
+
+  // Experimental options.
+  static const String resolutionInput = '--resolution-input=.+';
 }

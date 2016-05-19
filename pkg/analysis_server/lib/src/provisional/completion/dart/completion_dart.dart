@@ -20,7 +20,7 @@ export 'package:analysis_server/src/provisional/completion/completion_core.dart'
 const int DART_RELEVANCE_COMMON_USAGE = 1200;
 const int DART_RELEVANCE_DEFAULT = 1000;
 const int DART_RELEVANCE_HIGH = 2000;
-const int DART_RELEVANCE_INCREMENT = 20;
+const int DART_RELEVANCE_INCREMENT = 100;
 const int DART_RELEVANCE_INHERITED_ACCESSOR = 1057;
 const int DART_RELEVANCE_INHERITED_FIELD = 1058;
 const int DART_RELEVANCE_INHERITED_METHOD = 1057;

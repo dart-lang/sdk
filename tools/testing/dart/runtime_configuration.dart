@@ -299,6 +299,7 @@ class DartPrecompiledAdbRuntimeConfiguration
     return <Command>[
       commandBuilder.getAdbPrecompiledCommand(precompiledRunner,
                                               script,
+                                              arguments,
                                               useBlobs)
     ];
   }

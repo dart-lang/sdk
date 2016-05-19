@@ -1156,18 +1156,14 @@ DART_EXPORT char* Dart_Initialize(
     return strdup("Dart_Initialize: "
                   "Setting of unhandled exception callback is not supported.");
   }
-  const char* err_msg = Dart::InitOnce(vm_isolate_snapshot,
-                                       instructions_snapshot,
-                                       data_snapshot,
-                                       create, shutdown,
-                                       thread_exit,
-                                       file_open, file_read, file_write,
-                                       file_close, entropy_source,
-                                       get_service_assets);
-  if (err_msg != NULL) {
-    return strdup(err_msg);
-  }
-  return NULL;
+  return Dart::InitOnce(vm_isolate_snapshot,
+                        instructions_snapshot,
+                        data_snapshot,
+                        create, shutdown,
+                        thread_exit,
+                        file_open, file_read, file_write, file_close,
+                        entropy_source,
+                        get_service_assets);
 }
 
 
@@ -1463,10 +1459,13 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
     intptr_t* vm_isolate_snapshot_size,
     uint8_t** isolate_snapshot_buffer,
     intptr_t* isolate_snapshot_size) {
-  ASSERT(FLAG_load_deferred_eagerly);
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION;
   Isolate* I = T->isolate();
+  if (!FLAG_load_deferred_eagerly) {
+    return Dart_NewApiError(
+        "Creating full snapshots requires --load_deferred_eagerly");
+  }
   if (vm_isolate_snapshot_buffer != NULL &&
       vm_isolate_snapshot_size == NULL) {
     RETURN_NULL_ERROR(vm_isolate_snapshot_size);
@@ -5239,7 +5238,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
     return Api::NewError("%s expects parameter 'buffer' to be a script type"
                          " snapshot with a valid length.", CURRENT_FUNC);
   }
-  if (!snapshot->IsScriptSnapshot()) {
+  if (snapshot->kind() != Snapshot::kScript) {
     return Api::NewError("%s expects parameter 'buffer' to be a script type"
                          " snapshot.", CURRENT_FUNC);
   }
@@ -5647,6 +5646,8 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   if (::Dart_IsError(state)) {
     return state;
   }
+
+  I->DoneFinalizing();
 
   // Now that the newly loaded classes are finalized, notify the debugger
   // that new code has been loaded. If there are latent breakpoints in
@@ -6156,7 +6157,6 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
     intptr_t* isolate_snapshot_size,
     uint8_t** assembly_buffer,
     intptr_t* assembly_size) {
-  ASSERT(FLAG_load_deferred_eagerly);
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
@@ -6164,6 +6164,7 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
     return Dart_NewApiError("Isolate is not precompiled. "
                             "Did you forget to call Dart_Precompile?");
   }
+  ASSERT(FLAG_load_deferred_eagerly);
   if (vm_isolate_snapshot_buffer == NULL) {
     RETURN_NULL_ERROR(vm_isolate_snapshot_buffer);
   }
@@ -6182,6 +6183,9 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
   if (assembly_size == NULL) {
     RETURN_NULL_ERROR(assembly_size);
   }
+
+  NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
+                                            "WriteAppAOTSnapshot"));
   AssemblyInstructionsWriter instructions_writer(assembly_buffer,
                                                  ApiReallocate,
                                                  2 * MB /* initial_size */);
@@ -6209,7 +6213,6 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
     intptr_t* instructions_blob_size,
     uint8_t** rodata_blob_buffer,
     intptr_t* rodata_blob_size) {
-  ASSERT(FLAG_load_deferred_eagerly);
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
@@ -6217,6 +6220,7 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
     return Dart_NewApiError("Isolate is not precompiled. "
                             "Did you forget to call Dart_Precompile?");
   }
+  ASSERT(FLAG_load_deferred_eagerly);
   if (vm_isolate_snapshot_buffer == NULL) {
     RETURN_NULL_ERROR(vm_isolate_snapshot_buffer);
   }
@@ -6241,6 +6245,9 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
   if (rodata_blob_size == NULL) {
     RETURN_NULL_ERROR(instructions_blob_size);
   }
+
+  NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
+                                            "WriteAppAOTSnapshot"));
   BlobInstructionsWriter instructions_writer(instructions_blob_buffer,
                                              rodata_blob_buffer,
                                              ApiReallocate,
@@ -6303,10 +6310,13 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledJITSnapshotBlob(
     intptr_t* instructions_blob_size,
     uint8_t** rodata_blob_buffer,
     intptr_t* rodata_blob_size) {
-  ASSERT(FLAG_load_deferred_eagerly);
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
+  if (!FLAG_load_deferred_eagerly) {
+    return Dart_NewApiError(
+        "Creating full snapshots requires --load_deferred_eagerly");
+  }
   if (vm_isolate_snapshot_buffer == NULL) {
     RETURN_NULL_ERROR(vm_isolate_snapshot_buffer);
   }
@@ -6338,6 +6348,8 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledJITSnapshotBlob(
   }
   I->StopBackgroundCompiler();
 
+  NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
+                                            "WriteAppJITSnapshot"));
   BlobInstructionsWriter instructions_writer(instructions_blob_buffer,
                                              rodata_blob_buffer,
                                              ApiReallocate,

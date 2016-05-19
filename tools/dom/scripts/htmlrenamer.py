@@ -141,6 +141,8 @@ _removed_html_interfaces = [
   'WorkerLocation', # Workers
   'WorkerNavigator', # Workers
   'XMLHttpRequestProgressEvent',
+  # Obsolete event for NaCl.
+  'ResourceProgressEvent',
 ]
 
 for interface in _removed_html_interfaces:

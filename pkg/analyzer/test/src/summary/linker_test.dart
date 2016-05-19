@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:unittest/unittest.dart';
 
@@ -23,6 +25,8 @@ class LinkerUnitTest extends SummaryLinkerTest {
   LibraryElementInBuildUnit _testLibrary;
   @override
   bool get allowMissingFiles => false;
+
+  Matcher get isUndefined => new isInstanceOf<UndefinedElementForLink>();
 
   LibraryElementInBuildUnit get testLibrary => _testLibrary ??=
       linker.getLibrary(linkerInputs.testDartUri) as LibraryElementInBuildUnit;
@@ -148,6 +152,56 @@ const x = [const C()];
     testLibrary.libraryCycleForLink.ensureLinked();
     ClassElementForLink classC = testLibrary.getContainedName('C');
     expect(classC.unnamedConstructor.isCycleFree, false);
+  }
+
+  void test_getContainedName_nonStaticField() {
+    createLinker('class C { var f; }');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    ClassElementForLink_Class c = library.getContainedName('C');
+    expect(c.getContainedName('f'), isNot(isUndefined));
+  }
+
+  void test_getContainedName_nonStaticGetter() {
+    createLinker('class C { get g => null; }');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    ClassElementForLink_Class c = library.getContainedName('C');
+    expect(c.getContainedName('g'), isNot(isUndefined));
+  }
+
+  void test_getContainedName_nonStaticMethod() {
+    createLinker('class C { m() {} }');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    ClassElementForLink_Class c = library.getContainedName('C');
+    expect(c.getContainedName('m'), isNot(isUndefined));
+  }
+
+  void test_getContainedName_nonStaticSetter() {
+    createLinker('class C { void set s(value) {} }');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    ClassElementForLink_Class c = library.getContainedName('C');
+    expect(c.getContainedName('s='), isNot(isUndefined));
+  }
+
+  void test_inferredType_closure_fromBundle() {
+    var bundle = createPackageBundle(
+        '''
+var x = () {};
+''',
+        path: '/a.dart');
+    addBundle(bundle);
+    createLinker('''
+import 'a.dart';
+var y = x;
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    expect(
+        library
+            .getContainedName('y')
+            .asTypeInferenceNode
+            .variableElement
+            .inferredType
+            .toString(),
+        '() → dynamic');
   }
 
   void test_inferredType_instanceField_dynamic() {
@@ -552,6 +606,34 @@ var x = {
     expect(libraryCycle.libraries, [testLibrary]);
   }
 
+  void test_malformed_function_reference() {
+    // Create a corrupted package bundle in which the inferred type of `x`
+    // refers to a non-existent local function.
+    var bundle = createPackageBundle('var x = () {}', path: '/a.dart');
+    expect(bundle.linkedLibraries, hasLength(1));
+    expect(bundle.linkedLibraries[0].units, hasLength(1));
+    for (LinkedReferenceBuilder ref
+        in bundle.linkedLibraries[0].units[0].references) {
+      if (ref.kind == ReferenceKind.function) {
+        ref.localIndex = 1234;
+      }
+    }
+    addBundle(bundle);
+    createLinker('''
+import 'a.dart';
+var y = x;
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    expect(
+        library
+            .getContainedName('y')
+            .asTypeInferenceNode
+            .variableElement
+            .inferredType
+            .toString(),
+        'dynamic');
+  }
+
   void test_multiplyInheritedExecutable_differentSignatures() {
     createLinker('''
 class B {
@@ -598,11 +680,41 @@ class D extends C {
     expect(hTypeElement.typeParameterContext, same(f));
   }
 
+  void test_topLevelFunction_isStatic() {
+    createLinker('f() {}');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    TopLevelFunctionElementForLink f = library.getContainedName('f');
+    expect(f.isStatic, true);
+  }
+
+  void test_topLevelGetter_isStatic() {
+    createLinker('get x => null;');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    PropertyAccessorElementForLink_Executable x = library.getContainedName('x');
+    expect(x.isStatic, true);
+  }
+
+  void test_topLevelSetter_isStatic() {
+    createLinker('void set x(value) {}');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    PropertyAccessorElementForLink_Executable x =
+        library.getContainedName('x=');
+    expect(x.isStatic, true);
+  }
+
+  void test_topLevelVariable_isStatic() {
+    createLinker('var x;');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    PropertyAccessorElementForLink_Variable x = library.getContainedName('x');
+    expect(x.isStatic, true);
+    expect(x.variable.isStatic, true);
+  }
+
   void test_typeParameter_isTypeParameterInScope_direct() {
     createLinker('class C<T, U> {}');
     ClassElementForLink_Class c = testLibrary.getContainedName('C');
-    TypeParameterElementForLink t = c.typeParameters[0];
-    TypeParameterElementForLink u = c.typeParameters[1];
+    TypeParameterElementImpl t = c.typeParameters[0];
+    TypeParameterElementImpl u = c.typeParameters[1];
     expect(c.isTypeParameterInScope(t), true);
     expect(c.isTypeParameterInScope(u), true);
   }
@@ -611,8 +723,8 @@ class D extends C {
     createLinker('class C<T, U> { f<V, W>() {} }');
     ClassElementForLink_Class c = testLibrary.getContainedName('C');
     MethodElementForLink f = c.methods[0];
-    TypeParameterElementForLink t = c.typeParameters[0];
-    TypeParameterElementForLink u = c.typeParameters[1];
+    TypeParameterElementImpl t = c.typeParameters[0];
+    TypeParameterElementImpl u = c.typeParameters[1];
     expect(f.isTypeParameterInScope(t), true);
     expect(f.isTypeParameterInScope(u), true);
   }
@@ -621,8 +733,8 @@ class D extends C {
     createLinker('class C<T, U> { f<V, W>() {} }');
     ClassElementForLink_Class c = testLibrary.getContainedName('C');
     MethodElementForLink f = c.methods[0];
-    TypeParameterElementForLink v = f.typeParameters[0];
-    TypeParameterElementForLink w = f.typeParameters[1];
+    TypeParameterElementImpl v = f.typeParameters[0];
+    TypeParameterElementImpl w = f.typeParameters[1];
     expect(c.isTypeParameterInScope(v), false);
     expect(c.isTypeParameterInScope(w), false);
   }
@@ -631,13 +743,34 @@ class D extends C {
     createLinker('class C<T, U> {} class D<V, W> {}');
     ClassElementForLink_Class c = testLibrary.getContainedName('C');
     ClassElementForLink_Class d = testLibrary.getContainedName('D');
-    TypeParameterElementForLink t = c.typeParameters[0];
-    TypeParameterElementForLink u = c.typeParameters[1];
-    TypeParameterElementForLink v = d.typeParameters[0];
-    TypeParameterElementForLink w = d.typeParameters[1];
+    TypeParameterElementImpl t = c.typeParameters[0];
+    TypeParameterElementImpl u = c.typeParameters[1];
+    TypeParameterElementImpl v = d.typeParameters[0];
+    TypeParameterElementImpl w = d.typeParameters[1];
     expect(c.isTypeParameterInScope(v), false);
     expect(c.isTypeParameterInScope(w), false);
     expect(d.isTypeParameterInScope(t), false);
     expect(d.isTypeParameterInScope(u), false);
+  }
+
+  void test_variable_initializer_presence() {
+    // Any variable declaration with an initializer should have a non-null value
+    // for `initializer`, regardless of whether it is constant and regardless of
+    // whether it has an explicit type.
+    createLinker('''
+const int c = 0;
+int i = 0;
+int j;
+var v = 0;
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    PropertyAccessorElementForLink_Variable c = library.getContainedName('c');
+    expect(c.variable.initializer, isNotNull);
+    PropertyAccessorElementForLink_Variable i = library.getContainedName('i');
+    expect(i.variable.initializer, isNotNull);
+    PropertyAccessorElementForLink_Variable j = library.getContainedName('j');
+    expect(j.variable.initializer, isNull);
+    PropertyAccessorElementForLink_Variable v = library.getContainedName('v');
+    expect(v.variable.initializer, isNotNull);
   }
 }

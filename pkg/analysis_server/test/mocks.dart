@@ -24,7 +24,7 @@ import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 /**
- * Answer the absolute path the the SDK relative to the currently running
+ * Answer the absolute path the SDK relative to the currently running
  * script or throw an exception if it cannot be found.
  */
 String get sdkPath {

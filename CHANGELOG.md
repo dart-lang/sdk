@@ -1,6 +1,9 @@
 ## 1.17.0
 
 ### Core library changes
+* `dart:convert`
+  * Deprecate `ChunkedConverter` which was erroneously added in 1.16.
+
 * `dart:core`
   * `Uri.replace` supports iterables as values for the query parameters.
   * `Uri.parseIPv6Address` returns a `Uint8List`.
@@ -24,6 +27,9 @@
 
   * A bug has been fixed in which a lockfile was considered up-to-date when it
     actually wasn't.
+
+  * A bug has been fixed in which `pub get --offline` would crash when a
+    prerelease version was selected.
 
 ## 1.16.0 - 2016-04-26
 

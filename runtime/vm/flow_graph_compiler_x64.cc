@@ -442,8 +442,8 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
   // R10: instance class.
   // Check immediate superclass equality.
   __ movq(R13, FieldAddress(R10, Class::super_type_offset()));
-  __ movq(R13, FieldAddress(R13, Type::type_class_offset()));
-  __ CompareObject(R13, type_class);
+  __ movq(R13, FieldAddress(R13, Type::type_class_id_offset()));
+  __ CompareImmediate(R13, Immediate(Smi::RawValue(type_class.id())));
   __ j(EQUAL, is_instance_lbl);
 
   const Register kTypeArgumentsReg = kNoRegister;

@@ -778,7 +778,7 @@ class Importers {
   Map<Element, List<ImportElement>> importers =
       new Map<Element, List<ImportElement>>();
 
-  /// Returns the the list of [ImportElement]s through which [element] was
+  /// Returns the list of [ImportElement]s through which [element] was
   /// imported.
   List<ImportElement> getImports(Element element) {
     List<ImportElement> imports = importers[element];
@@ -2284,18 +2284,32 @@ class DeferredLoaderGetterElementX extends GetterElementX
 
 class ConstructorBodyElementX extends BaseFunctionElementX
     implements ConstructorBodyElement {
-  ConstructorElementX constructor;
+  final ResolvedAst _resolvedAst;
+  final ConstructorElement constructor;
 
-  ConstructorBodyElementX(ConstructorElementX constructor)
-      : this.constructor = constructor,
+  ConstructorBodyElementX(
+      ResolvedAst resolvedAst, ConstructorElement constructor)
+      : this._resolvedAst = resolvedAst,
+        this.constructor = constructor,
         super(constructor.name, ElementKind.GENERATIVE_CONSTRUCTOR_BODY,
             Modifiers.EMPTY, constructor.enclosingElement) {
     functionSignature = constructor.functionSignature;
   }
 
-  bool get hasNode => constructor.hasNode;
+  bool get hasNode => _resolvedAst.kind == ResolvedAstKind.PARSED;
 
-  FunctionExpression get node => constructor.node;
+  FunctionExpression get node => _resolvedAst.node;
+
+  bool get hasResolvedAst => true;
+
+  ResolvedAst get resolvedAst {
+    if (_resolvedAst.kind == ResolvedAstKind.PARSED) {
+      return new ParsedResolvedAst(declaration, _resolvedAst.node,
+          _resolvedAst.body, _resolvedAst.elements, _resolvedAst.sourceUri);
+    } else {
+      return new SynthesizedResolvedAst(declaration, _resolvedAst.kind);
+    }
+  }
 
   List<MetadataAnnotation> get metadata => constructor.metadata;
 
@@ -2306,6 +2320,8 @@ class ConstructorBodyElementX extends BaseFunctionElementX
     reporter.internalError(this, '$this.computeType.');
     return null;
   }
+
+  int get sourceOffset => constructor.sourceOffset;
 
   Token get position => constructor.position;
 

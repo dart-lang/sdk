@@ -24,8 +24,8 @@ DECLARE_FLAG(bool, write_protect_code);
 
 static RawClass* CreateDummyClass(const String& class_name,
                                   const Script& script) {
-  const Class& cls = Class::Handle(
-      Class::New(class_name, script, TokenPosition::kNoSource));
+  const Class& cls = Class::Handle(Class::New(
+      Library::Handle(), class_name, script, TokenPosition::kNoSource));
   cls.set_is_synthesized_class();  // Dummy class for testing.
   return cls.raw();
 }
@@ -165,14 +165,9 @@ VM_TEST_CASE(TokenStream) {
   Zone* zone = Thread::Current()->zone();
   String& source = String::Handle(zone, String::New("= ( 9 , ."));
   String& private_key = String::Handle(zone, String::New(""));
-  Scanner scanner(source, private_key);
-  const Scanner::GrowableTokenStream& ts = scanner.GetStream();
-  EXPECT_EQ(6, ts.length());
-  EXPECT_EQ(Token::kLPAREN, ts[1].kind);
   const TokenStream& token_stream = TokenStream::Handle(
-      zone, TokenStream::New(ts, private_key, false));
+      zone, TokenStream::New(source, private_key, false));
   TokenStream::Iterator iterator(zone, token_stream, TokenPosition::kMinSource);
-  // EXPECT_EQ(6, token_stream.Length());
   iterator.Advance();  // Advance to '(' token.
   EXPECT_EQ(Token::kLPAREN, iterator.CurrentTokenKind());
   iterator.Advance();
@@ -4084,10 +4079,8 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
   EXPECT(func_b.CanBeInlined());
 
   // After setting a breakpoint in a function A.b, it is no longer inlineable.
-  Breakpoint* bpt =
-      Isolate::Current()->debugger()->SetBreakpointAtLine(name,
-                                                          kBreakpointLine);
-  ASSERT(bpt != NULL);
+  result = Dart_SetBreakpoint(NewString(TestCase::url()), kBreakpointLine);
+  EXPECT_VALID(result);
   EXPECT(!func_b.CanBeInlined());
 }
 

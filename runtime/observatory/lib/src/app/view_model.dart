@@ -6,7 +6,7 @@ part of app;
 
 abstract class VirtualTreeRow {
   // Number of ems each subtree is indented.
-  static const subtreeIndent = 1.05;
+  static const subtreeIndent = 2.0;
 
   static const redColor = '#F44336';
   static const blueColor = '#3F51B5';
@@ -46,7 +46,7 @@ abstract class VirtualTreeRow {
     }
   }
 
-  Element makeColorBar() {
+  Element makeColorBar(int depth) {
     var element = new SpanElement();
     element.style.paddingLeft = '2px';
     element.style.paddingRight = '2px';
@@ -78,7 +78,7 @@ abstract class VirtualTreeRow {
     return element;
   }
 
-  Element makeIndenter({colored: true}) {
+  Element makeIndenter(int depth, {colored: true}) {
     SpanElement element = new SpanElement();
     element.style.paddingLeft = '${subtreeIndent * depth}em';
     element.style.flexBasis = '${subtreeIndent * depth}em';
@@ -93,7 +93,9 @@ abstract class VirtualTreeRow {
     return element;
   }
 
-  Element makeText(String text, {String toolTip, String flexBasis: '7em'}) {
+  Element makeText(String text, {String toolTip,
+                                 String flexBasis: '4.5em',
+                                 String cssClass}) {
     SpanElement element = new SpanElement();
     element.text = text;
     if (toolTip != null) {
@@ -101,6 +103,9 @@ abstract class VirtualTreeRow {
     }
     if (flexBasis != null) {
       element.style.flexBasis = flexBasis;
+    }
+    if (cssClass != null) {
+      element.classes.add(cssClass);
     }
     return element;
   }

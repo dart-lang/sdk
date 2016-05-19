@@ -1610,7 +1610,7 @@ class StandardTestSuite extends TestSuite {
    *     // OtherScripts=file1.dart file2.dart
    *
    *   - You can indicate whether a test is treated as a web-only test by
-   *   using an explicit import to a part of the the dart:html library:
+   *   using an explicit import to a part of the dart:html library:
    *
    *     import 'dart:html';
    *     import 'dart:web_audio';

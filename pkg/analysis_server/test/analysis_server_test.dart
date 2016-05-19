@@ -471,7 +471,28 @@ import "../foo/foo.dart";
     });
   }
 
-  test_setAnalysisSubscriptions_fileInIgnoredFolder() async {
+  test_setAnalysisSubscriptions_fileInIgnoredFolder_newOptions() async {
+    String path = '/project/samples/sample.dart';
+    resourceProvider.newFile(path, '');
+    resourceProvider.newFile(
+        '/project/analysis_options.yaml',
+        r'''
+analyzer:
+  exclude:
+    - 'samples/**'
+''');
+    server.setAnalysisRoots('0', ['/project'], [], {});
+    server.setAnalysisSubscriptions(<AnalysisService, Set<String>>{
+      AnalysisService.NAVIGATION: new Set<String>.from([path])
+    });
+    // the file is excluded, so no navigation notification
+    await server.onAnalysisComplete;
+    expect(channel.notificationsReceived.any((notification) {
+      return notification.event == ANALYSIS_NAVIGATION;
+    }), isFalse);
+  }
+
+  test_setAnalysisSubscriptions_fileInIgnoredFolder_oldOptions() async {
     String path = '/project/samples/sample.dart';
     resourceProvider.newFile(path, '');
     resourceProvider.newFile(

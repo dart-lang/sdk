@@ -48,6 +48,7 @@ class RuntimeEntry;
 class Smi;
 class StackResource;
 class String;
+class TimelineStream;
 class TypeArguments;
 class TypeParameter;
 class Zone;
@@ -269,6 +270,11 @@ class Thread : public BaseThread {
   }
   bool IsMutatorThread() const;
   bool CanCollectGarbage() const;
+
+  // Offset of Dart TimelineStream object.
+  static intptr_t dart_stream_offset() {
+    return OFFSET_OF(Thread, dart_stream_);
+  }
 
   // Is |this| executing Dart code?
   bool IsExecutingDartCode() const;
@@ -653,6 +659,7 @@ RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #undef DECLARE_MEMBERS
 
+  TimelineStream* dart_stream_;
   OSThread* os_thread_;
   Monitor* thread_lock_;
   Zone* zone_;
@@ -668,6 +675,7 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #endif
   VMHandles reusable_handles_;
   uword saved_stack_limit_;
+  intptr_t defer_oob_messages_count_;
   uint16_t deferred_interrupts_mask_;
   uint16_t deferred_interrupts_;
   int32_t stack_overflow_count_;

@@ -157,7 +157,7 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
     MonitorLocker startup_ml(monitor_);
     OSThread* os_thread = OSThread::Current();
     ASSERT(os_thread != NULL);
-    interrupter_thread_id_ = os_thread->join_id();
+    interrupter_thread_id_ = OSThread::GetCurrentThreadJoinId(os_thread);
     thread_running_ = true;
     startup_ml.Notify();
   }

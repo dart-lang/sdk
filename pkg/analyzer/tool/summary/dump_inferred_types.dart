@@ -8,20 +8,16 @@ import 'dart:io';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 
 /**
  * Collect the inferred types from all the summary files listed in [args] and
  * print them in alphabetical order.
  */
 main(List<String> args) {
+  SummaryDataStore summaryDataStore = new SummaryDataStore(args);
   InferredTypeCollector collector = new InferredTypeCollector();
-  for (String arg in args) {
-    PackageBundle bundle =
-        new PackageBundle.fromBuffer(new File(arg).readAsBytesSync());
-    collector.visitPackageBundle(bundle, arg);
-  }
-  collector.dumpLibraryIndex();
-  collector.dumpPartIndex();
+  collector.visitSummaryDataStore(summaryDataStore);
   collector.dumpCollectedTypes();
 }
 
@@ -34,8 +30,6 @@ class InferredTypeCollector {
   LinkedUnit linkedUnit;
   final Map<String, String> inferredTypes = <String, String>{};
   List<String> typeParamsInScope = <String>[];
-  final Map<String, Set<String>> libraryIndex = <String, Set<String>>{};
-  final Map<String, Set<String>> partIndex = <String, Set<String>>{};
 
   /**
    * If an inferred type exists matching the given [slot], record that it is the
@@ -91,38 +85,6 @@ class InferredTypeCollector {
     for (String path in paths) {
       print('$path -> ${inferredTypes[path]}');
     }
-  }
-
-  /**
-   * Print out an index mapping library names to the summary files containing
-   * them.
-   */
-  void dumpLibraryIndex() {
-    print('Library index:');
-    List<String> libraryNames = libraryIndex.keys.toList();
-    libraryNames.sort();
-    for (String libraryName in libraryNames) {
-      List<String> summaryFiles = libraryIndex[libraryName].toList();
-      summaryFiles.sort();
-      print('$libraryName -> ${summaryFiles.join(', ')}');
-    }
-    print('');
-  }
-
-  /**
-   * Print out an index mapping part file names to the summary files containing
-   * them.
-   */
-  void dumpPartIndex() {
-    print('Part index:');
-    List<String> partNames = partIndex.keys.toList();
-    partNames.sort();
-    for (String partName in partNames) {
-      List<String> summaryFiles = partIndex[partName].toList();
-      summaryFiles.sort();
-      print('$partName -> ${summaryFiles.join(', ')}');
-    }
-    print('');
   }
 
   /**
@@ -278,25 +240,14 @@ class InferredTypeCollector {
   }
 
   /**
-   * Collect all the inferred types contained in [bundle].
+   * Collect all the inferred types contained in [summaryDataStore].
    */
-  void visitPackageBundle(PackageBundle bundle, String summaryPath) {
-    Map<String, LinkedLibrary> linkedLibraries = <String, LinkedLibrary>{};
-    Map<String, UnlinkedUnit> unlinkedUnits = <String, UnlinkedUnit>{};
-    for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
-      linkedLibraries[bundle.linkedLibraryUris[i]] = bundle.linkedLibraries[i];
-    }
-    for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
-      String unitUriString = bundle.unlinkedUnitUris[i];
-      partIndex
-          .putIfAbsent(unitUriString, () => new Set<String>())
-          .add(summaryPath);
-      unlinkedUnits[unitUriString] = bundle.unlinkedUnits[i];
-    }
+  void visitSummaryDataStore(SummaryDataStore summaryDataStore) {
     // Figure out which unlinked units are a part of another library so we won't
     // visit them redundantly.
     Set<String> partOfUris = new Set<String>();
-    unlinkedUnits.forEach((String unitUriString, UnlinkedUnit unlinkedUnit) {
+    summaryDataStore.unlinkedMap
+        .forEach((String unitUriString, UnlinkedUnit unlinkedUnit) {
       Uri unitUri = Uri.parse(unitUriString);
       for (String relativePartUriString in unlinkedUnit.publicNamespace.parts) {
         partOfUris.add(
@@ -304,16 +255,14 @@ class InferredTypeCollector {
                 .toString());
       }
     });
-    linkedLibraries
+    summaryDataStore.linkedMap
         .forEach((String libraryUriString, LinkedLibrary linkedLibrary) {
       if (partOfUris.contains(libraryUriString)) {
         return;
       }
-      libraryIndex
-          .putIfAbsent(libraryUriString, () => new Set<String>())
-          .add(summaryPath);
       Uri libraryUri = Uri.parse(libraryUriString);
-      UnlinkedUnit definingUnlinkedUnit = unlinkedUnits[libraryUriString];
+      UnlinkedUnit definingUnlinkedUnit =
+          summaryDataStore.unlinkedMap[libraryUriString];
       if (definingUnlinkedUnit != null) {
         visitUnit(
             definingUnlinkedUnit, linkedLibrary.units[0], libraryUriString);
@@ -324,7 +273,8 @@ class InferredTypeCollector {
               Uri.parse(definingUnlinkedUnit.publicNamespace.parts[i]);
           String unitUriString =
               resolveRelativeUri(libraryUri, relativePartUri).toString();
-          UnlinkedUnit unlinkedUnit = unlinkedUnits[unitUriString];
+          UnlinkedUnit unlinkedUnit =
+              summaryDataStore.unlinkedMap[unitUriString];
           if (unlinkedUnit != null) {
             visitUnit(
                 unlinkedUnit, linkedLibrary.units[i + 1], libraryUriString);

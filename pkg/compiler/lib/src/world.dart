@@ -460,7 +460,7 @@ class World implements ClassWorld {
           if (isInstantiated(mixinApplication)) {
             uses.add(mixinApplication);
           } else if (mixinApplication.isNamedMixinApplication) {
-            List<MixinApplicationElement> next = _mixinUses[mixinApplication];
+            Set<MixinApplicationElement> next = _mixinUses[mixinApplication];
             if (next != null) {
               next.forEach(addLiveUse);
             }
@@ -511,8 +511,8 @@ class World implements ClassWorld {
 
   final Set<TypedefElement> allTypedefs = new Set<TypedefElement>();
 
-  final Map<ClassElement, List<MixinApplicationElement>> _mixinUses =
-      new Map<ClassElement, List<MixinApplicationElement>>();
+  final Map<ClassElement, Set<MixinApplicationElement>> _mixinUses =
+      new Map<ClassElement, Set<MixinApplicationElement>>();
   Map<ClassElement, List<MixinApplicationElement>> _liveMixinUses;
 
   final Map<ClassElement, Set<ClassElement>> _typesImplementedBySubclasses =
@@ -605,6 +605,15 @@ class World implements ClassWorld {
         ClassSet subtypeSet = _ensureClassSet(type.element);
         subtypeSet.addSubtype(node);
       }
+      if (cls.isMixinApplication) {
+        // TODO(johnniwinther): Store this in the [ClassSet].
+        MixinApplicationElement mixinApplication = cls;
+        if (mixinApplication.mixin != null) {
+          // If [mixinApplication] is malformed [mixin] is `null`.
+          registerMixinUse(mixinApplication, mixinApplication.mixin);
+        }
+      }
+
       return classSet;
     });
   }
@@ -687,8 +696,8 @@ class World implements ClassWorld {
     // TODO(johnniwinther): Add map restricted to live classes.
     // We don't support patch classes as mixin.
     assert(mixin.isDeclaration);
-    List<MixinApplicationElement> users = _mixinUses.putIfAbsent(
-        mixin, () => new List<MixinApplicationElement>());
+    Set<MixinApplicationElement> users =
+        _mixinUses.putIfAbsent(mixin, () => new Set<MixinApplicationElement>());
     users.add(mixinApplication);
   }
 

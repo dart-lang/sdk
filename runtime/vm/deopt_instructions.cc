@@ -141,7 +141,7 @@ DeoptContext::~DeoptContext() {
   if (FLAG_support_timeline && (deopt_start_micros_ != 0)) {
     TimelineStream* compiler_stream = Timeline::GetCompilerStream();
     ASSERT(compiler_stream != NULL);
-    if (compiler_stream->Enabled()) {
+    if (compiler_stream->enabled()) {
       // Allocate all Dart objects needed before calling StartEvent,
       // which blocks safe points until Complete is called.
       const Code& code = Code::Handle(zone(), code_);

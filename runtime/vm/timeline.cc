@@ -173,14 +173,12 @@ void Timeline::InitOnce() {
   enabled_streams_ = GetEnabledByDefaultTimelineStreams();
   // Global overrides.
 #define TIMELINE_STREAM_FLAG_DEFAULT(name, not_used)                           \
-  stream_##name##_enabled_ = HasStream(enabled_streams_, #name);               \
   stream_##name##_.Init(#name,                                                 \
-                        stream_##name##_enabled_,                              \
-                        &stream_##name##_enabled_);
+                        HasStream(enabled_streams_, #name));
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_FLAG_DEFAULT)
 #undef TIMELINE_STREAM_FLAG_DEFAULT
 
-  if (stream_Embedder_enabled_ &&
+  if (Timeline::stream_Embedder_.enabled() &&
       (Timeline::get_start_recording_cb() != NULL)) {
     Timeline::get_start_recording_cb()();
   }
@@ -206,7 +204,7 @@ void Timeline::StreamStateChange(const char* stream_name,
 void Timeline::Shutdown() {
   ASSERT(recorder_ != NULL);
 
-  if (stream_Embedder_enabled_ &&
+  if (Timeline::stream_Embedder_.enabled() &&
       (Timeline::get_stop_recording_cb() != NULL)) {
     Timeline::get_stop_recording_cb()();
   }
@@ -217,7 +215,7 @@ void Timeline::Shutdown() {
 
   // Disable global streams.
 #define TIMELINE_STREAM_DISABLE(name, not_used)                                \
-  stream_##name##_enabled_ = false;
+  Timeline::stream_##name##_.set_enabled(false);
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DISABLE)
 #undef TIMELINE_STREAM_DISABLE
   delete recorder_;
@@ -275,7 +273,7 @@ TIMELINE_STREAM_LIST(ADD_STREAM_NAME);
   {
     JSONArray recordedStreams(&obj, "recordedStreams");
 #define ADD_RECORDED_STREAM_NAME(name, not_used)                               \
-    if (stream_##name##_enabled_) {                                            \
+    if (stream_##name##_.enabled()) {                                          \
       recordedStreams.AddValue(#name);                                         \
     }
 TIMELINE_STREAM_LIST(ADD_RECORDED_STREAM_NAME);
@@ -300,7 +298,6 @@ Dart_EmbedderTimelineStartRecording Timeline::start_recording_cb_ = NULL;
 Dart_EmbedderTimelineStopRecording Timeline::stop_recording_cb_ = NULL;
 
 #define TIMELINE_STREAM_DEFINE(name, enabled_by_default)                       \
-  bool Timeline::stream_##name##_enabled_ = enabled_by_default;                \
   TimelineStream Timeline::stream_##name##_;
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DEFINE)
 #undef TIMELINE_STREAM_DEFINE
@@ -680,6 +677,20 @@ int64_t TimelineEvent::AsyncId() const {
 }
 
 
+int64_t TimelineEvent::LowTime() const {
+  return timestamp0_;
+}
+
+
+int64_t TimelineEvent::HighTime() const {
+  if (event_type() == kDuration) {
+    return timestamp1_;
+  } else {
+    return timestamp0_;
+  }
+}
+
+
 int64_t TimelineEvent::TimeDuration() const {
   if (timestamp1_ == 0) {
     // This duration is still open, use current time as end.
@@ -713,23 +724,20 @@ int64_t TimelineEvent::ThreadCPUTimeDuration() const {
 
 TimelineStream::TimelineStream()
     : name_(NULL),
-      enabled_(false),
-      globally_enabled_(NULL) {
+      enabled_(false) {
 }
 
 
 void TimelineStream::Init(const char* name,
-                          bool enabled,
-                          const bool* globally_enabled) {
+                          bool enabled) {
   name_ = name;
   enabled_ = enabled;
-  globally_enabled_ = globally_enabled;
 }
 
 
 TimelineEvent* TimelineStream::StartEvent() {
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (!Enabled() || (recorder == NULL)) {
+  if (!enabled() || (recorder == NULL)) {
     return NULL;
   }
   ASSERT(name_ != NULL);
@@ -775,7 +783,7 @@ void TimelineEventScope::Init() {
   ASSERT(enabled_ == false);
   ASSERT(label_ != NULL);
   ASSERT(stream_ != NULL);
-  if (!stream_->Enabled()) {
+  if (!stream_->enabled()) {
     // Stream is not enabled, do nothing.
     return;
   }
@@ -870,7 +878,7 @@ void TimelineEventScope::StealArguments(TimelineEvent* event) {
 TimelineDurationScope::TimelineDurationScope(TimelineStream* stream,
                                              const char* label)
     : TimelineEventScope(stream, label) {
-  if (!FLAG_support_timeline) {
+  if (!FLAG_support_timeline || !enabled()) {
     return;
   }
   timestamp_ = OS::GetCurrentMonotonicMicros();
@@ -882,7 +890,7 @@ TimelineDurationScope::TimelineDurationScope(Thread* thread,
                                              TimelineStream* stream,
                                              const char* label)
     : TimelineEventScope(thread, stream, label) {
-  if (!FLAG_support_timeline) {
+  if (!FLAG_support_timeline || !enabled()) {
     return;
   }
   timestamp_ = OS::GetCurrentMonotonicMicros();
@@ -1008,7 +1016,9 @@ IsolateTimelineEventFilter::IsolateTimelineEventFilter(
 
 
 TimelineEventRecorder::TimelineEventRecorder()
-    : async_id_(0) {
+    : async_id_(0),
+      time_low_micros_(0),
+      time_high_micros_(0) {
 }
 
 
@@ -1085,6 +1095,38 @@ TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
 #endif  // defined(DEBUG)
   thread_block_lock->Unlock();
   return NULL;
+}
+
+
+void TimelineEventRecorder::ResetTimeTracking() {
+  time_high_micros_ = 0;
+  time_low_micros_ = kMaxInt64;
+}
+
+
+void TimelineEventRecorder::ReportTime(int64_t micros) {
+  if (time_high_micros_ < micros) {
+    time_high_micros_ = micros;
+  }
+  if (time_low_micros_ > micros) {
+    time_low_micros_ = micros;
+  }
+}
+
+
+int64_t TimelineEventRecorder::TimeOriginMicros() const {
+  if (time_high_micros_ == 0) {
+    return 0;
+  }
+  return time_low_micros_;
+}
+
+
+int64_t TimelineEventRecorder::TimeExtentMicros() const {
+  if (time_high_micros_ == 0) {
+    return 0;
+  }
+  return time_high_micros_ - time_low_micros_;
 }
 
 
@@ -1212,6 +1254,7 @@ void TimelineEventFixedBufferRecorder::PrintJSONEvents(
     return;
   }
   MutexLocker ml(&lock_);
+  ResetTimeTracking();
   intptr_t block_offset = FindOldestBlockIndex();
   if (block_offset == -1) {
     // All blocks are empty.
@@ -1228,6 +1271,8 @@ void TimelineEventFixedBufferRecorder::PrintJSONEvents(
       if (filter->IncludeEvent(event) &&
           event->Within(filter->time_origin_micros(),
                         filter->time_extent_micros())) {
+        ReportTime(event->LowTime());
+        ReportTime(event->HighTime());
         events->AddValue(event);
       }
     }
@@ -1247,6 +1292,8 @@ void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
     PrintJSONMeta(&events);
     PrintJSONEvents(&events, filter);
   }
+  topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
+  topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
 }
 
 
@@ -1393,6 +1440,8 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
     PrintJSONMeta(&events);
     PrintJSONEvents(&events, filter);
   }
+  topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
+  topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
 }
 
 
@@ -1450,6 +1499,7 @@ void TimelineEventEndlessRecorder::PrintJSONEvents(
     return;
   }
   MutexLocker ml(&lock_);
+  ResetTimeTracking();
   // Collect all interesting blocks.
   MallocGrowableArray<TimelineEventBlock*> blocks(8);
   TimelineEventBlock* current = head_;
@@ -1475,6 +1525,8 @@ void TimelineEventEndlessRecorder::PrintJSONEvents(
       if (filter->IncludeEvent(event) &&
           event->Within(filter->time_origin_micros(),
                         filter->time_extent_micros())) {
+        ReportTime(event->LowTime());
+        ReportTime(event->HighTime());
         events->AddValue(event);
       }
     }

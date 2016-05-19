@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -563,6 +564,15 @@ final ListResultDescriptor<AnalysisError> PARSE_ERRORS =
         'PARSE_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
+ * The list of [PendingError]s for a compilation unit.
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ListResultDescriptor<PendingError> PENDING_ERRORS =
+    new ListResultDescriptor<PendingError>(
+        'PENDING_ERRORS', const <PendingError>[]);
+
+/**
  * A list of the [VariableElement]s whose type should be known to propagate
  * the type of another variable (the target).
  *
@@ -646,6 +656,15 @@ final ResultDescriptor<ReferencedNames> REFERENCED_NAMES =
  */
 final ListResultDescriptor<Source> REFERENCED_SOURCES =
     new ListResultDescriptor<Source>('REFERENCED_SOURCES', Source.EMPTY_LIST);
+
+/**
+ * The list of [ConstantEvaluationTarget]s on which error verification depends.
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ListResultDescriptor<ConstantEvaluationTarget> REQUIRED_CONSTANTS =
+    new ListResultDescriptor<ConstantEvaluationTarget>(
+        'REQUIRED_CONSTANTS', const <ConstantEvaluationTarget>[]);
 
 /**
  * The errors produced while resolving bounds of type parameters of classes,
@@ -2243,6 +2262,73 @@ class ComputePropagableVariableDependenciesTask
   static ComputePropagableVariableDependenciesTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new ComputePropagableVariableDependenciesTask(context, target);
+  }
+}
+
+/**
+ * A task that builds [REQUIRED_CONSTANTS] for a unit.
+ */
+class ComputeRequiredConstantsTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [RESOLVED_UNIT] input.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'ComputeRequiredConstantsTask',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[PENDING_ERRORS, REQUIRED_CONSTANTS]);
+
+  ComputeRequiredConstantsTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    Source source = getRequiredSource();
+    //
+    // Prepare inputs.
+    //
+    CompilationUnit unit = getRequiredInput(UNIT_INPUT);
+    //
+    // Use the ErrorVerifier to compute errors.
+    //
+    RequiredConstantsComputer computer = new RequiredConstantsComputer(source);
+    unit.accept(computer);
+    List<PendingError> pendingErrors = computer.pendingErrors;
+    List<ConstantEvaluationTarget> requiredConstants =
+        computer.requiredConstants;
+    //
+    // Record outputs.
+    //
+    outputs[PENDING_ERRORS] = pendingErrors;
+    outputs[REQUIRED_CONSTANTS] = requiredConstants;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    LibrarySpecificUnit unit = target;
+    return <String, TaskInput>{UNIT_INPUT: RESOLVED_UNIT.of(unit)};
+  }
+
+  /**
+   * Create a [ComputeRequiredConstantsTask] based on the given [target] in
+   * the given [context].
+   */
+  static ComputeRequiredConstantsTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new ComputeRequiredConstantsTask(context, target);
   }
 }
 
@@ -5547,9 +5633,9 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
  */
 class VerifyUnitTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [RESOLVED_UNIT] input.
+   * The name of the [PENDING_ERRORS] input.
    */
-  static const String UNIT_INPUT = 'UNIT_INPUT';
+  static const String PENDING_ERRORS_INPUT = 'PENDING_ERRORS_INPUT';
 
   /**
    * The name of the input of a mapping from [REFERENCED_SOURCES] to their
@@ -5562,6 +5648,11 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
    * The name of the [TYPE_PROVIDER] input.
    */
   static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
+
+  /**
+   * The name of the [RESOLVED_UNIT] input.
+   */
+  static const String UNIT_INPUT = 'UNIT_INPUT';
 
   /**
    * The task descriptor describing this kind of task.
@@ -5594,10 +5685,7 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     //
     // Prepare inputs.
     //
-    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
-    sourceTimeMap =
-        getRequiredInput(REFERENCED_SOURCE_MODIFICATION_TIME_MAP_INPUT);
     CompilationUnitElement unitElement = unit.element;
     LibraryElement libraryElement = unitElement.library;
     if (libraryElement == null) {
@@ -5605,6 +5693,10 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
           'VerifyUnitTask verifying a unit with no library: '
           '${unitElement.source.fullName}');
     }
+    List<PendingError> pendingErrors = getRequiredInput(PENDING_ERRORS_INPUT);
+    sourceTimeMap =
+        getRequiredInput(REFERENCED_SOURCE_MODIFICATION_TIME_MAP_INPUT);
+    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     //
     // Validate the directives.
     //
@@ -5626,7 +5718,12 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
         context.analysisOptions.enableSuperMixins,
         context.analysisOptions.enableAssertMessage);
     unit.accept(errorVerifier);
-
+    //
+    // Convert the pending errors into actual errors.
+    //
+    for (PendingError pendingError in pendingErrors) {
+      errorListener.onError(pendingError.toAnalysisError());
+    }
     //
     // Record outputs.
     //
@@ -5682,6 +5779,8 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
       UNIT_INPUT: RESOLVED_UNIT.of(unit),
       REFERENCED_SOURCE_MODIFICATION_TIME_MAP_INPUT:
           REFERENCED_SOURCES.of(unit.library).toMapOf(MODIFICATION_TIME),
+      PENDING_ERRORS_INPUT: PENDING_ERRORS.of(unit),
+      'requiredConstants': REQUIRED_CONSTANTS.of(unit).toListOf(CONSTANT_VALUE),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
   }

@@ -13,8 +13,10 @@ patch class _Directory {
       native "Directory_Delete";
   /* patch */ static _rename(String path, String newPath)
       native "Directory_Rename";
-  /* patch */ static List _list(String path, bool recursive, bool followLinks)
-      native "Directory_List";
+  /* patch */ static void _fillWithDirectoryListing(
+      List<FileSystemEntity> list, String path, bool recursive,
+      bool followLinks)
+      native "Directory_FillWithDirectoryListing";
 }
 
 patch class _AsyncDirectoryListerOps {

@@ -5,31 +5,39 @@
 #ifndef VM_FLAG_LIST_H_
 #define VM_FLAG_LIST_H_
 
+// Don't use USING_DBC outside of this file.
 #if defined(TARGET_ARCH_DBC)
-#define USING_DBC 1
+#define USING_DBC true
 #else
-#define USING_DBC 0
+#define USING_DBC false
+#endif
+
+// Don't use USING_MULTICORE outside of this file.
+#if defined(ARCH_IS_MULTI_CORE)
+#define USING_MULTICORE true
+#else
+#define USING_MULTICORE false
 #endif
 
 // List of all flags in the VM.
 // Flags can be one of three categories:
 // * P roduct flags: Can be set in any of the deployment modes, including in
 //   production.
-// * D ebug flags: Can only be set in debug VMs, which also have assertions
-//   enabled.
 // * R elease flags: Generally available flags except when building product.
+// * D ebug flags: Can only be set in debug VMs, which also have C++ assertions
+//   enabled.
 // * pre C ompile flags: Generally available flags except when building product
 //   or precompiled runtime.
 //
 // Usage:
 //   P(name, type, default_value, comment)
-//   D(name, type, default_value, comment)
 //   R(name, product_value, type, default_value, comment)
+//   D(name, type, default_value, comment)
 //   C(name, precompiled_value, product_value, type, default_value, comment)
 #define FLAG_LIST(P, R, D, C)                                                  \
 P(always_megamorphic_calls, bool, false,                                       \
   "Instance call always as megamorphic.")                                      \
-P(background_compilation, bool, true,                                          \
+P(background_compilation, bool, USING_MULTICORE,                               \
   "Run optimizing compilation in background")                                  \
 R(background_compilation_stop_alot, false, bool, false,                        \
   "Stress test system: stop background compiler often.")                       \
@@ -37,8 +45,10 @@ R(break_at_isolate_spawn, false, bool, false,                                  \
   "Insert a one-time breakpoint at the entrypoint for all spawned isolates")   \
 C(collect_code, false, true, bool, true,                                       \
   "Attempt to GC infrequently used code.")                                     \
-P(collect_dynamic_function_names, bool, false,                                 \
+P(collect_dynamic_function_names, bool, true,                                  \
   "Collects all dynamic function names to identify unique targets")            \
+R(concurrent_sweep, USING_MULTICORE, bool, USING_MULTICORE,                    \
+  "Concurrent sweep for old generation.")                                      \
 R(dedup_instructions, true, bool, false,                                       \
   "Canonicalize instructions when precompiling.")                              \
 C(deoptimize_alot, false, false, bool, false,                                  \
@@ -86,6 +96,11 @@ P(link_natives_lazily, bool, false,                                            \
   "Link native calls lazily")                                                  \
 C(load_deferred_eagerly, true, true, bool, false,                              \
   "Load deferred libraries eagerly.")                                          \
+R(log_marker_tasks, false, bool, false,                                        \
+  "Log debugging information for old gen GC marking tasks.")                   \
+R(marker_tasks, USING_MULTICORE ? 2 : 0, int, USING_MULTICORE ? 2 : 0,         \
+  "The number of tasks to spawn during old gen GC marking (0 means "           \
+  "perform all marking on main thread).")                                      \
 P(max_polymorphic_checks, int, 4,                                              \
   "Maximum number of polymorphic check, otherwise it is megamorphic.")         \
 P(max_equality_polymorphic_checks, int, 32,                                    \
@@ -181,6 +196,5 @@ R(verify_before_gc, false, bool, false,                                        \
   "Enables heap verification before GC.")                                      \
 D(verify_on_transition, bool, false,                                           \
   "Verify on dart <==> VM.")                                                   \
-
 
 #endif  // VM_FLAG_LIST_H_

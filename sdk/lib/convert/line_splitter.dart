@@ -17,8 +17,9 @@ const int _CR = 13;
  *
  * The returned lines do not contain the line terminators.
  */
-class LineSplitter extends
-    ChunkedConverter<String, List<String>, String, String> {
+class LineSplitter
+    extends Converter<String, List<String>>/*=Object*/
+    implements Object/*=StreamTransformer<String, String>*/ {
 
   const LineSplitter();
 
@@ -79,6 +80,12 @@ class LineSplitter extends
       sink = new StringConversionSink.from(sink);
     }
     return new _LineSplitterSink(sink);
+  }
+
+  Stream/*<String>*/ bind(Stream/*<String>*/ stream) {
+    return new Stream<String>.eventTransformed(
+          stream,
+          (EventSink<String> sink) => new _LineSplitterEventSink(sink));
   }
 }
 
@@ -155,5 +162,18 @@ class _LineSplitterSink extends StringConversionSinkBase {
     } else {
       _skipLeadingLF = (char == _CR);
     }
+  }
+}
+
+class _LineSplitterEventSink extends _LineSplitterSink
+    implements EventSink<String> {
+  final EventSink<String> _eventSink;
+
+  _LineSplitterEventSink(EventSink<String> eventSink)
+      : _eventSink = eventSink,
+        super(new StringConversionSink.from(eventSink));
+
+  void addError(Object o, [StackTrace stackTrace]) {
+    _eventSink.addError(o, stackTrace);
   }
 }

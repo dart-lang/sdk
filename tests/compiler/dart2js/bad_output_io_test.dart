@@ -56,11 +56,9 @@ class CollectingFormattingDiagnosticHandler
   int throwOnErrorCount;
 }
 
-testOutputProvider(script, libraryRoot, packageRoot, inputProvider, handler,
-                   [options, outputProvider, environment, packageConfig,
-                    findPackages]) {
+testOutputProvider(options, input, diagnostics, output) {
   diagnosticHandler = new CollectingFormattingDiagnosticHandler();
-  outputProvider("/non/existing/directory/should/fail/file", "js");
+  output.createEventSink("/non/existing/directory/should/fail/file", "js");
 }
 
 void main() {

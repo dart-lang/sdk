@@ -7,11 +7,8 @@ library dart2js.serialization_impact_test;
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/filenames.dart';
-import 'package:compiler/src/serialization/equivalence.dart';
 import '../memory_compiler.dart';
 import 'helper.dart';
 import 'test_helper.dart';
@@ -48,7 +45,7 @@ Future check(
       memorySourceFiles: sourceFiles,
       options: [Flags.analyzeAll]);
   compilerDeserialized.resolution.retainCachesForTesting = true;
-  deserialize(compilerDeserialized, serializedData);
+  compilerDeserialized.serialization.deserializeFromText(serializedData);
   await compilerDeserialized.run(entryPoint);
 
   checkAllImpacts(compilerNormal, compilerDeserialized, verbose: verbose);

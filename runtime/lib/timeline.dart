@@ -4,6 +4,8 @@
 
 import 'dart:_internal';
 
+patch bool _isDartStreamEnabled() native "Timeline_isDartStreamEnabled";
+
 patch int _getTraceClock() native "Timeline_getTraceClock";
 
 patch int _getThreadCpuClock() native "Timeline_getThreadCpuClock";

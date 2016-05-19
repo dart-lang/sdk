@@ -2317,7 +2317,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
       Object key = entry.key.accept(this);
       Object value = entry.value.accept(this);
       if (key is String && !identical(value, NOT_A_CONSTANT)) {
-        map[(key as String)] = value;
+        map[key] = value;
       } else {
         return NOT_A_CONSTANT;
       }
@@ -5611,7 +5611,9 @@ class ResolutionCopier implements AstVisitor<bool> {
   bool visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     FunctionExpressionInvocation toNode =
         this._toNode as FunctionExpressionInvocation;
-    if (_and(_isEqualNodes(node.function, toNode.function),
+    if (_and(
+        _isEqualNodes(node.function, toNode.function),
+        _isEqualNodes(node.typeArguments, toNode.typeArguments),
         _isEqualNodes(node.argumentList, toNode.argumentList))) {
       toNode.propagatedElement = node.propagatedElement;
       toNode.propagatedInvokeType = node.propagatedInvokeType;
@@ -5876,6 +5878,7 @@ class ResolutionCopier implements AstVisitor<bool> {
     if (_and(
         _isEqualNodes(node.target, toNode.target),
         _isEqualTokens(node.operator, toNode.operator),
+        _isEqualNodes(node.typeArguments, toNode.typeArguments),
         _isEqualNodes(node.methodName, toNode.methodName),
         _isEqualNodes(node.argumentList, toNode.argumentList))) {
       toNode.propagatedInvokeType = node.propagatedInvokeType;

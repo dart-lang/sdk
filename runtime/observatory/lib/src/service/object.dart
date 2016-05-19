@@ -37,11 +37,12 @@ class ServerRpcException extends RpcException {
   static const kInvalidParams  = -32602;
   static const kInternalError  = -32603;
   static const kFeatureDisabled         = 100;
-  static const kVMMustBePaused          = 101;
   static const kCannotAddBreakpoint     = 102;
   static const kStreamAlreadySubscribed = 103;
   static const kStreamNotSubscribed     = 104;
   static const kIsolateMustBeRunnable   = 105;
+  static const kIsolateMustBePaused     = 106;
+  static const kIsolateIsReloading      = 107;
 
   int code;
   Map data;
@@ -287,17 +288,17 @@ abstract class ServiceObject extends Observable {
 
   Future<ServiceObject> _inProgressReload;
 
-  Future<ObservableMap> _fetchDirect() {
+  Future<ObservableMap> _fetchDirect({int count: kDefaultFieldLimit}) {
     Map params = {
       'objectId': id,
-      'count': kDefaultFieldLimit,
+      'count': count,
     };
     return isolate.invokeRpcNoUpgrade('getObject', params);
   }
 
   /// Reload [this]. Returns a future which completes to [this] or
   /// an exception.
-  Future<ServiceObject> reload() {
+  Future<ServiceObject> reload({int count: kDefaultFieldLimit}) {
     // TODO(turnidge): Checking for a null id should be part of the
     // "immmutable" check.
     bool hasId = (id != null) && (id != '');
@@ -312,7 +313,7 @@ abstract class ServiceObject extends Observable {
     if (_inProgressReload == null) {
       var completer = new Completer<ServiceObject>();
       _inProgressReload = completer.future;
-      _fetchDirect().then((ObservableMap map) {
+      _fetchDirect(count: count).then((ObservableMap map) {
         var mapType = _stripRef(map['type']);
         if (mapType == 'Sentinel') {
           // An object may have been collected, etc.
@@ -622,6 +623,7 @@ abstract class VM extends ServiceObjectOwner {
   @observable bool assertsEnabled = false;
   @observable bool typeChecksEnabled = false;
   @observable int pid = 0;
+  @observable bool profileVM = false;
   @observable DateTime startTime;
   @observable DateTime refreshTime;
   @observable Duration get upTime {
@@ -805,7 +807,7 @@ abstract class VM extends ServiceObjectOwner {
     return invokeRpc('_restartVM', {});
   }
 
-  Future<ObservableMap> _fetchDirect() async {
+  Future<ObservableMap> _fetchDirect({int count: kDefaultFieldLimit}) async {
     if (!loaded) {
       // The vm service relies on these events to keep the VM and
       // Isolate types up to date.
@@ -897,6 +899,7 @@ abstract class VM extends ServiceObjectOwner {
     refreshTime = new DateTime.now();
     notifyPropertyChange(#upTime, 0, 1);
     pid = map['pid'];
+    profileVM = map['_profilerMode'] == 'VM';
     assertsEnabled = map['_assertsEnabled'];
     typeChecksEnabled = map['_typeChecksEnabled'];
     _removeDeadIsolates(map['isolates']);
@@ -1147,6 +1150,7 @@ class Isolate extends ServiceObjectOwner {
   @observable bool loading = true;
   @observable bool runnable = false;
   @observable bool ioEnabled = false;
+  @observable bool reloading = false;
 
   final List<String> extensionRPCs = new List<String>();
 
@@ -1188,6 +1192,22 @@ class Isolate extends ServiceObjectOwner {
       params['endTokenPos'] = endPos;
     }
     return invokeRpc('getSourceReport', params);
+  }
+
+  Future<ServiceMap> reloadSources() {
+    return invokeRpc('_reloadSources', {}).then((_) {
+      reloading = true;
+    });
+  }
+
+  void _handleIsolateReloadEvent(ServiceEvent event) {
+    reloading = false;
+    if (event.reloadError != null) {
+      // Failure.
+      print('Reload failed: ${event.reloadError}');
+    } else {
+      _cache.clear();
+    }
   }
 
   /// Fetches and builds the class hierarchy for this isolate. Returns the
@@ -1286,24 +1306,26 @@ class Isolate extends ServiceObjectOwner {
     });
   }
 
-  Future<ServiceObject> getObject(String objectId, {bool reload: true}) {
+  Future<ServiceObject> getObject(String objectId,
+                                  {bool reload: true,
+                                   int count: kDefaultFieldLimit}) {
     assert(objectId != null && objectId != '');
     var obj = _cache[objectId];
     if (obj != null) {
       if (reload) {
-        return obj.reload();
+        return obj.reload(count: count);
       }
       // Returned cached object.
       return new Future.value(obj);
     }
     Map params = {
       'objectId': objectId,
-      'count': kDefaultFieldLimit,
+      'count': count,
     };
     return isolate.invokeRpc('getObject', params);
   }
 
-  Future<ObservableMap> _fetchDirect() {
+  Future<ObservableMap> _fetchDirect({int count: kDefaultFieldLimit}) async {
     return invokeRpcNoUpgrade('getIsolate', {});
   }
 
@@ -1495,7 +1517,9 @@ class Isolate extends ServiceObjectOwner {
       case ServiceEvent.kInspect:
         // Handled elsewhere.
         break;
-
+      case ServiceEvent.kIsolateReload:
+        _handleIsolateReloadEvent(event);
+        break;
       case ServiceEvent.kBreakpointAdded:
         _addBreakpoint(event.breakpoint);
         break;
@@ -1819,6 +1843,7 @@ class ServiceEvent extends ServiceObject {
   static const kIsolateRunnable        = 'IsolateRunnable';
   static const kIsolateExit            = 'IsolateExit';
   static const kIsolateUpdate          = 'IsolateUpdate';
+  static const kIsolateReload          = 'IsolateReload';
   static const kServiceExtensionAdded  = 'ServiceExtensionAdded';
   static const kPauseStart             = 'PauseStart';
   static const kPauseExit              = 'PauseExit';
@@ -1850,6 +1875,7 @@ class ServiceEvent extends ServiceObject {
   @observable Frame topFrame;
   @observable String extensionRPC;
   @observable Instance exception;
+  @observable Instance reloadError;
   @observable bool atAsyncSuspension;
   @observable ServiceObject inspectee;
   @observable ByteData data;
@@ -1921,6 +1947,7 @@ class ServiceEvent extends ServiceObject {
     if (map['count'] != null) {
       count = map['count'];
     }
+    reloadError = map['reloadError'];
     if (map['_debuggerSettings'] != null &&
         map['_debuggerSettings']['_exceptions'] != null) {
       exceptions = map['_debuggerSettings']['_exceptions'];
@@ -2853,6 +2880,7 @@ class Script extends HeapObject {
   final lines = new ObservableList<ScriptLine>();
   @observable String uri;
   @observable String kind;
+  @observable DateTime loadTime;
   @observable int firstTokenPos;
   @observable int lastTokenPos;
   @observable int lineOffset;
@@ -2955,6 +2983,8 @@ class Script extends HeapObject {
       return;
     }
     _loaded = true;
+    int loadTimeMillis = map['_loadTime'];
+    loadTime = new DateTime.fromMillisecondsSinceEpoch(loadTimeMillis);
     lineOffset = map['lineOffset'];
     columnOffset = map['columnOffset'];
     _parseTokenPosTable(map['tokenPosTable']);
@@ -3558,11 +3588,11 @@ class Code extends HeapObject {
 
   /// Reload [this]. Returns a future which completes to [this] or an
   /// exception.
-  Future<ServiceObject> reload() {
+  Future<ServiceObject> reload({int count: kDefaultFieldLimit}) {
     assert(kind != null);
     if (isDartCode) {
       // We only reload Dart code.
-      return super.reload();
+      return super.reload(count: count);
     }
     return new Future.value(this);
   }
@@ -3843,7 +3873,7 @@ class ServiceMetric extends ServiceObject {
     _removeOld();
   }
 
-  Future<ObservableMap> _fetchDirect() {
+  Future<ObservableMap> _fetchDirect({int count: kDefaultFieldLimit}) {
     assert(owner is Isolate);
     return isolate.invokeRpcNoUpgrade('_getIsolateMetric', { 'metricId': id });
   }

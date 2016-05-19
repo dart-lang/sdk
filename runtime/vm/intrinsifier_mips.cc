@@ -14,6 +14,7 @@
 #include "vm/object_store.h"
 #include "vm/regexp_assembler.h"
 #include "vm/symbols.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -1664,7 +1665,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ lhu(T1, FieldAddress(T2, Class::num_type_arguments_offset()));
   __ BranchNotEqual(T1, Immediate(0), &fall_through);
 
-  __ lw(V0, FieldAddress(T2, Class::canonical_types_offset()));
+  __ lw(V0, FieldAddress(T2, Class::canonical_type_offset()));
   __ BranchEqual(V0, Object::null_object(), &fall_through);
   __ Ret();
 
@@ -2206,6 +2207,23 @@ void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
   __ LoadIsolate(V0);
   __ Ret();
   __ delay_slot()->lw(V0, Address(V0, Isolate::current_tag_offset()));
+}
+
+
+void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler) {
+  if (!FLAG_support_timeline) {
+    __ LoadObject(V0, Bool::False());
+    __ Ret();
+    return;
+  }
+  // Load TimelineStream*.
+  __ lw(V0, Address(THR, Thread::dart_stream_offset()));
+  // Load uintptr_t from TimelineStream*.
+  __ lw(T0, Address(V0, TimelineStream::enabled_offset()));
+  __ LoadObject(V0, Bool::True());
+  __ LoadObject(V1, Bool::False());
+  __ Ret();
+  __ delay_slot()->movz(V0, V1, T0);  // V0 = (T0 == 0) ? V1 : V0.
 }
 
 }  // namespace dart

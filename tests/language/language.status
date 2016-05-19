@@ -49,7 +49,6 @@ generic_methods_test: CompiletimeError # Issue 25869
 generic_functions_test: CompiletimeError # Issue 25869
 generic_local_functions_test: CompiletimeError # Issue 25869
 generic_sends_test: CompiletimeError # Issue 25869
-generic_method_type_usage_test: CompiletimeError # Tests --generic-method-syntax, plus issue 25869
 
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) ]
 
@@ -58,7 +57,7 @@ unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 try_catch_optimized1_test: Skip # Srdjan investigating
 
-[ ($compiler == none || $compiler == precompiler) && $checked ]
+[ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
 
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && (($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) || $runtime == drt || $runtime == dartium) ]
@@ -95,7 +94,6 @@ generic_methods_test: RuntimeError # Issue 25869
 generic_functions_test: RuntimeError # Issue 25869
 generic_local_functions_test: RuntimeError # Issue 25869
 generic_sends_test: RuntimeError # Issue 25869
-generic_method_type_usage_test: CompiletimeError # Tests --generic-method-syntax, plus issue 25869
 config_import_test: Skip  # Issue 26250
 
 [ $compiler == none && $runtime == dartium && $system == linux && $arch != x64 ]
@@ -158,17 +156,30 @@ super_call4_test: SkipByDesign
 super_getter_setter_test: SkipByDesign
 vm/reflect_core_vm_test: SkipByDesign
 
-[ ($noopt || $compiler == precompiler || $compiler == dart2app) ]
+[ $noopt || $compiler == precompiler || $compiler == dart2app || $mode == product ]
 # Deferred loading happens eagerly
 regress_23408_test: Skip
 deferred_inheritance_constraints_test: Skip
 deferred_global_test: Skip
 deferred_load_constants_test: Skip
 tearoff_basic_test: Skip
+deferred_static_seperate_test: Skip
+deferred_constraints_type_annotation_test/new_before_load: Skip
+regress_22443_test: Skip
 
+[ $compiler == precompiler || $compiler == dart2app ]
+ct_const2_test: Skip # Incompatible flag: --compile_all
+hello_dart_test: Skip # Incompatible flag: --compile_all
+
+[ $compiler == precompiler ]
+implicit_closure_test: Skip # Incompatible flag: --use_slow_path
+deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
+
+[ $noopt || $compiler == precompiler || $compiler == dart2app ]
 vm/type_vm_test: RuntimeError # Expects line and column numbers
-vm/type_cast_vm_test: RuntimeError # Line number mismatch.
+vm/type_cast_vm_test: RuntimeError # Expects line and column numbers
 
+[ $mode == product ]
 issue13474_test: SkipByDesign # Requires checked mode.
 assertion_test: SkipByDesign # Requires checked mode.
 named_parameters_type_test/01: SkipByDesign # Requires checked mode.
@@ -181,20 +192,8 @@ list_literal4_test: SkipByDesign # Requires checked mode.
 generic_test: SkipByDesign # Requires checked mode.
 map_literal4_test: SkipByDesign # Requires checked mode.
 
-[ $runtime == dart_precompiled ]
-ct_const2_test: Skip # Incompatible flag: --compile_all
-hello_dart_test: Skip # Incompatible flag: --compile_all
-implicit_closure_test: Skip # Incompatible flag: --use_slow_path
-deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
-
-[ $runtime == dart_product ]
-# Deferred loading happens eagerly (not sure why this works on precompiled code).
-deferred_static_seperate_test: Skip
-deferred_constraints_type_annotation_test/new_before_load: Skip
-regress_22443_test: Skip
-
-[ $runtime == vm && $mode == product ]
 vm/type_vm_test: Fail,OK  # Expects exact type name.
+
 
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && $browser ]
 # The following tests are supposed to fail.
@@ -206,7 +205,7 @@ library_env_test/has_no_html_support: RuntimeError, OK
 library_env_test/has_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK
 
-[ $compiler == none && $noopt == false && $mode != product ]
+[ ($compiler == none || $compiler == dart2app) && $noopt == false && $mode != product ]
 # The following tests are supposed to fail.
 library_env_test/has_no_mirror_support: RuntimeError, OK
 

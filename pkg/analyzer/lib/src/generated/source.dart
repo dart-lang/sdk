@@ -441,7 +441,7 @@ abstract class Source implements AnalysisTarget {
   /**
    * Get the contents and timestamp of this source.
    *
-   * Clients should consider using the the method [AnalysisContext.getContents]
+   * Clients should consider using the method [AnalysisContext.getContents]
    * because contexts can have local overrides of the content of a source that the source is not
    * aware of.
    *
@@ -492,7 +492,7 @@ abstract class Source implements AnalysisTarget {
    * will be returned, but if the contents of the source have been modified one
    * or more times (even if the net change is zero) the stamps will be different.
    *
-   * Clients should consider using the the method
+   * Clients should consider using the method
    * [AnalysisContext.getModificationStamp] because contexts can have local
    * overrides of the content of a source that the source is not aware of.
    */
@@ -541,7 +541,7 @@ abstract class Source implements AnalysisTarget {
   /**
    * Return `true` if this source exists.
    *
-   * Clients should consider using the the method [AnalysisContext.exists] because
+   * Clients should consider using the method [AnalysisContext.exists] because
    * contexts can have local overrides of the content of a source that the source is not aware of
    * and a source with local content is considered to exist even if there is no file on disk.
    *

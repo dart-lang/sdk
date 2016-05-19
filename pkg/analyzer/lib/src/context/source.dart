@@ -4,6 +4,8 @@
 
 library analyzer.src.context.source;
 
+import 'dart:collection';
+
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -46,6 +48,12 @@ class SourceFactoryImpl implements SourceFactory {
    * The predicate to determine is [Source] is local.
    */
   LocalSourcePredicate _localSourcePredicate = LocalSourcePredicate.NOT_SDK;
+
+  /**
+   * Cache of mapping of absolute [Uri]s to [Source]s.
+   */
+  final HashMap<Uri, Source> _absoluteUriToSourceCache =
+      new HashMap<Uri, Source>();
 
   /**
    * Initialize a newly created source factory with the given absolute URI
@@ -310,13 +318,14 @@ class SourceFactoryImpl implements SourceFactory {
       }
     }
 
-    for (UriResolver resolver in resolvers) {
-      Source result = resolver.resolveAbsolute(containedUri, actualUri);
-      if (result != null) {
-        return result;
+    return _absoluteUriToSourceCache.putIfAbsent(containedUri, () {
+      for (UriResolver resolver in resolvers) {
+        Source result = resolver.resolveAbsolute(containedUri, actualUri);
+        if (result != null) {
+          return result;
+        }
       }
-    }
-
-    return null;
+      return null;
+    });
   }
 }

@@ -384,7 +384,7 @@ static bool ProcessEnableVmServiceOption(const char* option_value,
                         DEFAULT_VM_SERVICE_SERVER_PORT,
                         DEFAULT_VM_SERVICE_SERVER_IP)) {
     Log::PrintErr("unrecognized --enable-vm-service option syntax. "
-                  "Use --enable-vm-service[:<port number>[/<IPv4 address>]]\n");
+                  "Use --enable-vm-service[=<port number>[/<IPv4 address>]]\n");
     return false;
   }
 
@@ -402,10 +402,11 @@ static bool ProcessObserveOption(const char* option_value,
                         DEFAULT_VM_SERVICE_SERVER_PORT,
                         DEFAULT_VM_SERVICE_SERVER_IP)) {
     Log::PrintErr("unrecognized --observe option syntax. "
-                  "Use --observe[:<port number>[/<IPv4 address>]]\n");
+                  "Use --observe[=<port number>[/<IPv4 address>]]\n");
     return false;
   }
 
+  // These options should also be documented in the help message.
   vm_options->AddArgument("--pause-isolates-on-exit");
   vm_options->AddArgument("--pause-isolates-on-unhandled-exceptions");
   vm_options->AddArgument("--warn-on-pause-with-no-debugger");
@@ -855,11 +856,15 @@ static void PrintUsage() {
 "--packages=<path>\n"
 "  Where to find a package spec file.\n"
 "--observe[=<port>[/<bind-address>]]\n"
-"  The observe flag is used to run a program with a default set of options\n"
-"  for debugging under Observatory. With the default options, Observatory\n"
-"  will be available at http://127.0.0.1:8181/ (default port is 8181,\n"
-"  default bind address is 127.0.0.1).  Isolates will pause at exit and\n"
-"  when they throw unhandled exceptions.\n"
+"  The observe flag is a convenience flag used to run a program with a\n"
+"  set of options which are often useful for debugging under Observatory.\n"
+"  These options are currently:\n"
+"      --enable-vm-service[=<port>[/<bind-address>]]\n"
+"      --pause-isolates-on-exit\n"
+"      --pause-isolates-on-unhandled-exceptions\n"
+"      --warn-on-pause-with-no-debugger\n"
+"  This set is subject to change.\n"
+"  Please see these options (--help --verbose) for further documentation.\n"
 "--version\n"
 "  Print the VM version.\n");
   } else {
@@ -875,11 +880,15 @@ static void PrintUsage() {
 "--packages=<path>\n"
 "  Where to find a package spec file.\n"
 "--observe[=<port>[/<bind-address>]]\n"
-"  The observe flag is used to run a program with a default set of options\n"
-"  for debugging under Observatory. With the default options, Observatory\n"
-"  will be available at http://127.0.0.1:8181/ (default port is 8181,\n"
-"  default bind address is 127.0.0.1).  Isolates will pause at exit and\n"
-"  when they throw unhandled exceptions.\n"
+"  The observe flag is a convenience flag used to run a program with a\n"
+"  set of options which are often useful for debugging under Observatory.\n"
+"  These options are currently:\n"
+"      --enable-vm-service[=<port>[/<bind-address>]]\n"
+"      --pause-isolates-on-exit\n"
+"      --pause-isolates-on-unhandled-exceptions\n"
+"      --warn-on-pause-with-no-debugger\n"
+"  This set is subject to change.\n"
+"  Please see these options for further documentation.\n"
 "--version\n"
 "  Print the VM version.\n"
 "\n"
@@ -889,7 +898,7 @@ static void PrintUsage() {
 "--trace-loading\n"
 "  enables tracing of library and script loading\n"
 "\n"
-"--enable-vm-service[:<port>[/<bind-address>]]\n"
+"--enable-vm-service[=<port>[/<bind-address>]]\n"
 "  enables the VM service and listens on specified port for connections\n"
 "  (default port number is 8181, default bind address is 127.0.0.1).\n"
 "\n"

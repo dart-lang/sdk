@@ -839,7 +839,7 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
 
   // When iterating over the hash set, it is very convenient to have a
   // list of all the elements. We cache that on the instance and clear
-  // the the cache whenever the set changes. This is also used to
+  // the cache whenever the set changes. This is also used to
   // guard against concurrent modifications.
   List _elements;
 

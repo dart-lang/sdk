@@ -115,22 +115,22 @@ static void CheckOffsets() {
 }
 
 
-const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
-                           const uint8_t* instructions_snapshot,
-                           const uint8_t* data_snapshot,
-                           Dart_IsolateCreateCallback create,
-                           Dart_IsolateShutdownCallback shutdown,
-                           Dart_ThreadExitCallback thread_exit,
-                           Dart_FileOpenCallback file_open,
-                           Dart_FileReadCallback file_read,
-                           Dart_FileWriteCallback file_write,
-                           Dart_FileCloseCallback file_close,
-                           Dart_EntropySource entropy_source,
-                           Dart_GetVMServiceAssetsArchive get_service_assets) {
+char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
+                     const uint8_t* instructions_snapshot,
+                     const uint8_t* data_snapshot,
+                     Dart_IsolateCreateCallback create,
+                     Dart_IsolateShutdownCallback shutdown,
+                     Dart_ThreadExitCallback thread_exit,
+                     Dart_FileOpenCallback file_open,
+                     Dart_FileReadCallback file_read,
+                     Dart_FileWriteCallback file_write,
+                     Dart_FileCloseCallback file_close,
+                     Dart_EntropySource entropy_source,
+                     Dart_GetVMServiceAssetsArchive get_service_assets) {
   CheckOffsets();
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
-    return "VM already initialized or flags not initialized.";
+    return strdup("VM already initialized or flags not initialized.");
   }
   set_thread_exit_callback(thread_exit);
   SetFileCallbacks(file_open, file_read, file_write, file_close);
@@ -195,42 +195,43 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                                                "VMIsolateSnapshot"));
       const Snapshot* snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
       if (snapshot == NULL) {
-        return "Invalid vm isolate snapshot seen";
+        return strdup("Invalid vm isolate snapshot seen");
       }
       snapshot_kind_ = snapshot->kind();
+
       if (Snapshot::IncludesCode(snapshot_kind_)) {
         if (snapshot_kind_ == Snapshot::kAppNoJIT) {
 #if defined(DART_PRECOMPILED_RUNTIME)
           vm_isolate_->set_compilation_allowed(false);
           if (!FLAG_precompiled_runtime) {
-            return "Flag --precompilation was not specified";
+            return strdup("Flag --precompilation was not specified");
           }
 #else
-          return "JIT runtime cannot run a precompiled snapshot";
+          return strdup("JIT runtime cannot run a precompiled snapshot");
 #endif
         }
         if (instructions_snapshot == NULL) {
-          return "Missing instructions snapshot";
+          return strdup("Missing instructions snapshot");
         }
         if (data_snapshot == NULL) {
-          return "Missing rodata snapshot";
+          return strdup("Missing rodata snapshot");
         }
         vm_isolate_->SetupInstructionsSnapshotPage(instructions_snapshot);
         vm_isolate_->SetupDataSnapshotPage(data_snapshot);
       } else if (Snapshot::IsFull(snapshot_kind_)) {
 #if defined(DART_PRECOMPILED_RUNTIME)
-        return "Precompiled runtime requires a precompiled snapshot";
+        return strdup("Precompiled runtime requires a precompiled snapshot");
 #else
         if (instructions_snapshot != NULL) {
-          return "Unexpected instructions snapshot";
+          return strdup("Unexpected instructions snapshot");
         }
         if (data_snapshot != NULL) {
-          return "Unexpected rodata snapshot";
+          return strdup("Unexpected rodata snapshot");
         }
         StubCode::InitOnce();
 #endif
       } else {
-        return "Invalid vm isolate snapshot seen";
+        return strdup("Invalid vm isolate snapshot seen");
       }
       VmIsolateSnapshotReader reader(snapshot->kind(),
                                      snapshot->content(),
@@ -240,7 +241,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                                      T);
       const Error& error = Error::Handle(reader.ReadVmIsolateSnapshot());
       if (!error.IsNull()) {
-        return error.ToErrorCString();
+        // Must copy before leaving the zone.
+        return strdup(error.ToErrorCString());
       }
       NOT_IN_PRODUCT(if (tds.enabled()) {
         tds.SetNumArguments(2);
@@ -262,7 +264,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       }
     } else {
 #if defined(DART_PRECOMPILED_RUNTIME)
-      return "Precompiled runtime requires a precompiled snapshot";
+      return strdup("Precompiled runtime requires a precompiled snapshot");
 #else
       snapshot_kind_ = Snapshot::kNone;
       StubCode::InitOnce();
@@ -276,7 +278,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     // Dart VM requires at least SSE2.
     if (!TargetCPUFeatures::sse2_supported()) {
-      return "SSE2 is required.";
+      return strdup("SSE2 is required.");
     }
 #endif
     {
@@ -592,6 +594,58 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
         GrowableObjectArray::Handle(GrowableObjectArray::New()));
   }
   return Error::null();
+}
+
+
+const char* Dart::FeaturesString(Snapshot::Kind kind) {
+  TextBuffer buffer(64);
+
+  // Different fields are included for DEBUG/RELEASE/PRODUCT.
+#if defined(DEBUG)
+  buffer.AddString("debug");
+#elif defined(PRODUCT)
+  buffer.AddString("product");
+#else
+  buffer.AddString("release");
+#endif
+
+  if (Snapshot::IncludesCode(kind)) {
+    // Checked mode affects deopt ids.
+    buffer.AddString(FLAG_enable_asserts ? " asserts" : " no-asserts");
+    buffer.AddString(FLAG_enable_type_checks ? " type-checks"
+                                             : " no-type-checks");
+
+    // Generated code must match the host architecture and ABI.
+#if defined(TARGET_ARCH_ARM)
+#if defined(TARGET_ABI_IOS)
+    buffer.AddString(" arm-ios");
+#elif defined(TARGET_ABI_EABI)
+    buffer.AddString(" arm-eabi");
+#else
+#error Unknown ABI
+#endif
+    buffer.AddString(TargetCPUFeatures::hardfp_supported() ? " hardfp"
+                                                           : " softfp");
+#elif defined(TARGET_ARCH_ARM64)
+    buffer.AddString(" arm64");
+#elif defined(TARGET_ARCH_MIPS)
+    buffer.AddString(" mips");
+#elif defined(TARGET_ARCH_IA32)
+    buffer.AddString(" ia32");
+#elif defined(TARGET_ARCH_X64)
+#if defined(_WIN64)
+    buffer.AddString(" x64-win");
+#else
+    buffer.AddString(" x64-sysv");
+#endif
+#elif defined(TARGET_ARCH_DBC)
+    buffer.AddString(" dbc");
+#elif defined(TARGET_ARCH_DBC64)
+    buffer.AddString(" dbc64");
+#endif
+  }
+
+  return buffer.Steal();
 }
 
 

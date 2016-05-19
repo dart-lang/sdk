@@ -729,9 +729,14 @@ class AnalysisEngine {
   static const String SUFFIX_HTML = "html";
 
   /**
-   * The file name used for analysis options files.
+   * The deprecated file name used for analysis options files.
    */
   static const String ANALYSIS_OPTIONS_FILE = '.analysis_options';
+
+  /**
+   * The file name used for analysis options files.
+   */
+  static const String ANALYSIS_OPTIONS_YAML_FILE = 'analysis_options.yaml';
 
   /**
    * The unique instance of this class.
@@ -876,8 +881,9 @@ class AnalysisEngine {
     if (fileName == null) {
       return false;
     }
-    return (context ?? pathos.posix).basename(fileName) ==
-        ANALYSIS_OPTIONS_FILE;
+    String basename = (context ?? pathos.posix).basename(fileName);
+    return basename == ANALYSIS_OPTIONS_FILE ||
+        basename == ANALYSIS_OPTIONS_YAML_FILE;
   }
 
   /**

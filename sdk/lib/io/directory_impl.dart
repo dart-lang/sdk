@@ -22,7 +22,9 @@ class _Directory extends FileSystemEntity implements Directory {
   external static _create(String path);
   external static _deleteNative(String path, bool recursive);
   external static _rename(String path, String newPath);
-  external static List _list(String path, bool recursive, bool followLinks);
+  external static void _fillWithDirectoryListing(
+      List<FileSystemEntity> list, String path, bool recursive,
+      bool followLinks);
 
   static Directory get current {
     var result = _current();
@@ -69,30 +71,6 @@ class _Directory extends FileSystemEntity implements Directory {
   Future<FileStat> stat() => FileStat.stat(path);
 
   FileStat statSync() => FileStat.statSync(path);
-
-  // Compute the index of the first directory in the list that exists. If
-  // none of the directories exist dirsToCreate.length is returned.
-  Future<int> _computeExistingIndex(List dirsToCreate) {
-    var future;
-    var notFound = dirsToCreate.length;
-    for (var i = 0; i < dirsToCreate.length; i++) {
-      if (future == null) {
-        future = dirsToCreate[i].exists().then((e) => e ? i : notFound);
-      } else {
-        future = future.then((index) {
-          if (index != notFound) {
-            return new Future.value(index);
-          }
-          return dirsToCreate[i].exists().then((e) => e ? i : notFound);
-        });
-      }
-    }
-    if (future == null) {
-      return new Future.value(notFound);
-    } else {
-      return future;
-    }
-  }
 
   Future<Directory> create({bool recursive: false}) {
     if (recursive) {
@@ -222,14 +200,18 @@ class _Directory extends FileSystemEntity implements Directory {
         followLinks).stream;
   }
 
-  List listSync({bool recursive: false, bool followLinks: true}) {
+  List<FileSystemEntity> listSync(
+      {bool recursive: false, bool followLinks: true}) {
     if (recursive is! bool || followLinks is! bool) {
       throw new ArgumentError();
     }
-    return _list(
+    var result = <FileSystemEntity>[];
+    _fillWithDirectoryListing(
+        result,
         FileSystemEntity._ensureTrailingPathSeparators(path),
         recursive,
         followLinks);
+    return result;
   }
 
   String toString() => "Directory: '$path'";
@@ -274,7 +256,7 @@ class _AsyncDirectoryLister {
   final bool recursive;
   final bool followLinks;
 
-  StreamController controller;
+  StreamController<FileSystemEntity> controller;
   bool canceled = false;
   bool nextRunning = false;
   bool closed = false;
@@ -282,10 +264,10 @@ class _AsyncDirectoryLister {
   Completer closeCompleter = new Completer();
 
   _AsyncDirectoryLister(this.path, this.recursive, this.followLinks) {
-    controller = new StreamController(onListen: onListen,
-                                      onResume: onResume,
-                                      onCancel: onCancel,
-                                      sync: true);
+    controller = new StreamController<FileSystemEntity>(onListen: onListen,
+                                                        onResume: onResume,
+                                                        onCancel: onCancel,
+                                                        sync: true);
   }
 
   // Calling this function will increase the reference count on the native
@@ -296,7 +278,7 @@ class _AsyncDirectoryLister {
     return (_ops == null) ? null : _ops.getPointer();
   }
 
-  Stream get stream => controller.stream;
+  Stream<FileSystemEntity> get stream => controller.stream;
 
   void onListen() {
     _IOService._dispatch(_DIRECTORY_LIST_START, [path, recursive, followLinks])

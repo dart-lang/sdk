@@ -76,7 +76,7 @@ class EventStreamProvider<T extends Event> {
    * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
    */
   ElementStream<T> _forElementList(ElementList e, {bool useCapture: false}) {
-    return new _ElementListEventStreamImpl(e, _eventType, useCapture);
+    return new _ElementListEventStreamImpl<T>(e, _eventType, useCapture);
   }
 
   /**
@@ -294,9 +294,9 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     }
   }
 
-  Future asFuture([var futureValue]) {
+  Future/*<E>*/ asFuture/*<E>*/([var/*=E*/ futureValue]) {
     // We just need a future that will never succeed or fail.
-    Completer completer = new Completer();
+    var completer = new Completer/*<E>*/();
     return completer.future;
   }
 }

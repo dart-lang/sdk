@@ -14,6 +14,7 @@
 #include "vm/ast.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler_stats.h"
+#include "vm/hash_table.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
 #include "vm/token.h"
@@ -37,6 +38,65 @@ struct ParamList;
 struct QualIdent;
 class TopLevel;
 class RecursionChecker;
+
+// We cache computed compile-time constants in a map so we can look them
+// up when the same code gets compiled again. The map key is a pair
+// (script url, token position) which is encoded in an array with 2
+// elements:
+// - key[0] contains the canonicalized url of the script.
+// - key[1] contains the token position of the constant in the script.
+
+// ConstantPosKey allows us to look up a constant in the map without
+// allocating a key pair (array).
+struct ConstantPosKey : ValueObject {
+  ConstantPosKey(const String& url, TokenPosition pos)
+      : script_url(url), token_pos(pos) { }
+  const String& script_url;
+  TokenPosition token_pos;
+};
+
+
+class ConstMapKeyEqualsTraits {
+ public:
+  static const char* Name() { return "ConstMapKeyEqualsTraits"; }
+  static bool ReportStats() { return false; }
+
+  static bool IsMatch(const Object& a, const Object& b) {
+    const Array& key1 = Array::Cast(a);
+    const Array& key2 = Array::Cast(b);
+    // Compare raw strings of script url symbol and raw smi of token positon.
+    return (key1.At(0) == key2.At(0)) && (key1.At(1) == key2.At(1));
+  }
+  static bool IsMatch(const ConstantPosKey& key1, const Object& b) {
+    const Array& key2 = Array::Cast(b);
+    // Compare raw strings of script url symbol and token positon.
+    return (key1.script_url.raw() == key2.At(0))
+        && (key1.token_pos.value() == Smi::Value(Smi::RawCast(key2.At(1))));
+  }
+  static uword Hash(const Object& obj) {
+    const Array& key = Array::Cast(obj);
+    intptr_t url_hash = String::HashRawSymbol(String::RawCast(key.At(0)));
+    intptr_t pos = Smi::Value(Smi::RawCast(key.At(1)));
+    return HashValue(url_hash, pos);
+  }
+  static uword Hash(const ConstantPosKey& key) {
+    return HashValue(String::HashRawSymbol(key.script_url.raw()),
+                     key.token_pos.value());
+  }
+  // Used by CachConstantValue if a new constant is added to the map.
+  static RawObject* NewKey(const ConstantPosKey& key) {
+    const Array& key_obj = Array::Handle(Array::New(2));
+    key_obj.SetAt(0, key.script_url);
+    key_obj.SetAt(1, Smi::Handle(Smi::New(key.token_pos.value())));
+    return key_obj.raw();;
+  }
+
+ private:
+  static uword HashValue(intptr_t url_hash, intptr_t pos) {
+    return url_hash * pos % (Smi::kMaxValue - 13);
+  }
+};
+typedef UnorderedHashMap<ConstMapKeyEqualsTraits> ConstantsMap;
 
 // The class ParsedFunction holds the result of parsing a function.
 class ParsedFunction : public ZoneAllocated {
@@ -215,6 +275,10 @@ class Parser : public ValueObject {
   // Build a function containing the initializer expression of the
   // given static field.
   static ParsedFunction* ParseStaticFieldInitializer(const Field& field);
+
+  static void InsertCachedConstantValue(const String& url,
+                                        TokenPosition token_pos,
+                                        const Instance& value);
 
   // Parse a function to retrieve parameter information that is not retained in
   // the dart::Function object. Returns either an error if the parse fails

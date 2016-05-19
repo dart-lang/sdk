@@ -193,8 +193,17 @@ ThreadId OSThread::GetCurrentThreadTraceId() {
 }
 
 
-ThreadJoinId OSThread::GetCurrentThreadJoinId() {
-  return pthread_self();
+ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
+  ASSERT(thread != NULL);
+  // Make sure we're filling in the join id for the current thread.
+  ASSERT(thread->id() == GetCurrentThreadId());
+  // Make sure the join_id_ hasn't been set, yet.
+  DEBUG_ASSERT(thread->join_id_ == kInvalidThreadJoinId);
+  pthread_t id = pthread_self();
+#if defined(DEBUG)
+  thread->join_id_ = id;
+#endif
+  return id;
 }
 
 

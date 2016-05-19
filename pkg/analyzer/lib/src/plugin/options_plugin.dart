@@ -26,31 +26,31 @@ class OptionsPlugin implements Plugin {
 
   /// The extension point that allows plugins to register new options
   /// processors.
-  ExtensionPoint optionsProcessorExtensionPoint;
+  ExtensionPoint<OptionsProcessor> optionsProcessorExtensionPoint;
 
   /// The extension point that allows plugins to register new options
   /// validators.
-  ExtensionPoint optionsValidatorExtensionPoint;
+  ExtensionPoint<OptionsValidator> optionsValidatorExtensionPoint;
 
   /// All contributed options processors.
   List<OptionsProcessor> get optionsProcessors =>
-      optionsProcessorExtensionPoint?.extensions as List<OptionsProcessor> ??
-      const <OptionsProcessor>[];
+      optionsProcessorExtensionPoint?.extensions ?? const <OptionsProcessor>[];
 
   /// All contributed options validators.
   List<OptionsValidator> get optionsValidators =>
-      optionsValidatorExtensionPoint?.extensions as List<OptionsValidator> ??
-      const <OptionsValidator>[];
+      optionsValidatorExtensionPoint?.extensions ?? const <OptionsValidator>[];
 
   @override
   String get uniqueIdentifier => UNIQUE_IDENTIFIER;
 
   @override
   void registerExtensionPoints(RegisterExtensionPoint registerExtensionPoint) {
-    optionsProcessorExtensionPoint = registerExtensionPoint(
-        OPTIONS_PROCESSOR_EXTENSION_POINT, _validateOptionsProcessorExtension);
-    optionsValidatorExtensionPoint = registerExtensionPoint(
-        OPTIONS_VALIDATOR_EXTENSION_POINT, _validateOptionsValidatorExtension);
+    optionsProcessorExtensionPoint = new ExtensionPoint<OptionsProcessor>(
+        this, OPTIONS_PROCESSOR_EXTENSION_POINT, null);
+    registerExtensionPoint(optionsProcessorExtensionPoint);
+    optionsValidatorExtensionPoint = new ExtensionPoint<OptionsValidator>(
+        this, OPTIONS_VALIDATOR_EXTENSION_POINT, null);
+    registerExtensionPoint(optionsValidatorExtensionPoint);
   }
 
   @override
@@ -61,23 +61,5 @@ class OptionsPlugin implements Plugin {
     // Validate analyzer analysis options.
     registerExtension(
         OPTIONS_VALIDATOR_EXTENSION_POINT_ID, new AnalyzerOptionsValidator());
-  }
-
-  /// Validate the given extension by throwing an [ExtensionError] if it is not
-  /// a valid options processor.
-  void _validateOptionsProcessorExtension(Object extension) {
-    if (extension is! OptionsProcessor) {
-      String id = optionsProcessorExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError('Extensions to $id must be an OptionsProcessor');
-    }
-  }
-
-  /// Validate the given extension by throwing an [ExtensionError] if it is not
-  /// a valid options validator.
-  void _validateOptionsValidatorExtension(Object extension) {
-    if (extension is! OptionsValidator) {
-      String id = optionsValidatorExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError('Extensions to $id must be an OptionsValidator');
-    }
   }
 }

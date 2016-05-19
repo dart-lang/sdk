@@ -277,6 +277,11 @@ class _Future<T> implements Future<T> {
     _state = _PENDING_COMPLETE;
   }
 
+  void _clearPendingComplete() {
+    assert(_isPendingComplete);
+    _state = _INCOMPLETE;
+  }
+
   AsyncError get _error {
     assert(_hasError);
     return _resultOrListeners;
@@ -405,7 +410,11 @@ class _Future<T> implements Future<T> {
     try {
       source.then((value) {
           assert(target._isPendingComplete);
-          target._completeWithValue(value);
+          // The "value" may be another future if the foreign future
+          // implementation is mis-behaving,
+          // so use _complete instead of _completeWithValue.
+          target._clearPendingComplete();  // Clear this first, it's set again.
+          target._complete(value);
         },
         // TODO(floitsch): eventually we would like to make this non-optional
         // and dependent on the listeners of the target future. If none of
@@ -650,7 +659,7 @@ class _Future<T> implements Future<T> {
           }
         }
 
- 
+
         if (listener.handlesComplete) {
           handleWhenCompleteCallback();
         } else if (!hasError) {
@@ -662,7 +671,7 @@ class _Future<T> implements Future<T> {
             handleError();
           }
         }
-        
+
         // If we changed zone, oldZone will not be null.
         if (oldZone != null) Zone._leave(oldZone);
 

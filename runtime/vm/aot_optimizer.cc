@@ -123,6 +123,12 @@ static bool IsNumberCid(intptr_t cid) {
 }
 
 
+// Returns named function that is a unique dynamic target, i.e.,
+// - the target is identified by its name alone, since it occurs only once.
+// - target's class has no subclasses, and neither is subclassed, i.e.,
+//   the receiver type can be only the function's class.
+// Returns Function::null() if there is no unique dynamic target for
+// given 'fname'. 'fname' must be a symbol.
 static void GetUniqueDynamicTarget(Isolate* isolate,
                                    const String& fname,
                                    Object* function) {
@@ -217,11 +223,10 @@ bool AotOptimizer::TryCreateICData(InstanceCallInstr* call) {
     Function& target_function = Function::Handle(Z);
     GetUniqueDynamicTarget(isolate(), call->function_name(), &target_function);
     // Calls with named arguments must be resolved/checked at runtime.
-    String& error_message = String::Handle(Z);
     if (!target_function.IsNull() &&
         !target_function.HasOptionalNamedParameters() &&
         target_function.AreValidArgumentCounts(call->ArgumentCount(), 0,
-                                               &error_message)) {
+                                               /* error_message = */ NULL)) {
       const intptr_t cid = Class::Handle(Z, target_function.Owner()).id();
       const ICData& ic_data = ICData::ZoneHandle(Z,
           ICData::NewFrom(*call->ic_data(), 1));

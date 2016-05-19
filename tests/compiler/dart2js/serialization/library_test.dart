@@ -9,15 +9,9 @@ import '../memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/names.dart';
-import 'package:compiler/src/constants/constructors.dart';
-import 'package:compiler/src/constants/expressions.dart';
-import 'package:compiler/src/dart_types.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/elements/visitor.dart';
-import 'package:compiler/src/ordered_typeset.dart';
-import 'package:compiler/src/serialization/element_serialization.dart';
 import 'package:compiler/src/serialization/json_serializer.dart';
 import 'package:compiler/src/serialization/serialization.dart';
 

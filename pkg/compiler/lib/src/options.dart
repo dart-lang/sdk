@@ -187,6 +187,15 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
   /// Whether to emit URIs in the reflection metadata.
   final bool preserveUris;
 
+  /// The location of serialized data used for resolution.
+  final Uri resolutionInput;
+
+  /// The location of the serialized data from resolution.
+  final Uri resolutionOutput;
+
+  // If `true`, sources are resolved and serialized.
+  final bool resolveOnly;
+
   /// URI where the compiler should generate the output source map file.
   final Uri sourceMapUri;
 
@@ -247,6 +256,8 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       Uri libraryRoot,
       Uri packageRoot,
       Uri packageConfig,
+      Uri resolutionInput,
+      Uri resolutionOutput,
       PackagesDiscoveryProvider packagesDiscoveryProvider,
       Map<String, dynamic> environment: const <String, dynamic>{},
       List<String> options}) {
@@ -298,6 +309,9 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
             _resolvePlatformConfigFromOptions(libraryRoot, options),
         preserveComments: _hasOption(options, Flags.preserveComments),
         preserveUris: _hasOption(options, Flags.preserveUris),
+        resolutionInput: resolutionInput,
+        resolutionOutput: resolutionOutput,
+        resolveOnly: _hasOption(options, Flags.resolveOnly),
         sourceMapUri: _extractUriOption(options, '--source-map='),
         strips: _extractCsvOption(options, '--force-strip='),
         testMode: _hasOption(options, Flags.testMode),
@@ -359,6 +373,9 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       Uri platformConfigUri: null,
       bool preserveComments: false,
       bool preserveUris: false,
+      Uri resolutionInput: null,
+      Uri resolutionOutput: null,
+      bool resolveOnly: false,
       Uri sourceMapUri: null,
       List<String> strips: const [],
       bool testMode: false,
@@ -398,9 +415,10 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
         packageConfig, packagesDiscoveryProvider, environment,
         allowMockCompilation: allowMockCompilation,
         allowNativeExtensions: allowNativeExtensions,
-        analyzeAll: analyzeAll,
+        analyzeAll: analyzeAll || resolveOnly,
         analyzeMain: analyzeMain,
-        analyzeOnly: analyzeOnly || analyzeSignaturesOnly || analyzeAll,
+        analyzeOnly:
+            analyzeOnly || analyzeSignaturesOnly || analyzeAll || resolveOnly,
         analyzeSignaturesOnly: analyzeSignaturesOnly,
         buildId: buildId,
         dart2dartMultiFile: dart2dartMultiFile,
@@ -430,6 +448,9 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
                 libraryRoot, null, !emitJavaScript, const []),
         preserveComments: preserveComments,
         preserveUris: preserveUris,
+        resolutionInput: resolutionInput,
+        resolutionOutput: resolutionOutput,
+        resolveOnly: resolveOnly,
         sourceMapUri: sourceMapUri,
         strips: strips,
         testMode: testMode,
@@ -478,6 +499,9 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       this.platformConfigUri: null,
       this.preserveComments: false,
       this.preserveUris: false,
+      this.resolutionInput: null,
+      this.resolutionOutput: null,
+      this.resolveOnly: false,
       this.sourceMapUri: null,
       this.strips: const [],
       this.testMode: false,

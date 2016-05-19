@@ -67,7 +67,7 @@ var tests = [
     var tree = cpuProfile.loadCodeTree('exclusive');
     var node = tree.root;
     var expected =
-        ['Root', 'test', 'test', '_Closure.call'];
+        ['Root', 'DRT_AllocateObject', 'test', 'test', '_Closure.call'];
     for (var i = 0; i < expected.length; i++) {
       expect(node.profileCode.code.name, equals(expected[i]));
       // Depth first traversal.

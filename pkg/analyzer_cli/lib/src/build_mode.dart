@@ -14,6 +14,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_io.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -23,6 +24,7 @@ import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
+import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/driver.dart';
@@ -60,6 +62,7 @@ class AnalyzerWorkerLoop extends SyncWorkerLoop {
   /**
    * Perform a single loop step.
    */
+  @override
   WorkResponse performRequest(WorkRequest request) {
     errorBuffer.clear();
     outBuffer.clear();
@@ -237,18 +240,29 @@ class BuildMode {
   }
 
   void _createContext() {
-    DirectoryBasedDartSdk sdk =
-        new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
-    sdk.analysisOptions =
-        Driver.createAnalysisOptionsForCommandLineOptions(options);
-    sdk.useSummary = !options.buildSummaryOnlyAst;
-
     // Read the summaries.
     summaryDataStore = new SummaryDataStore(options.buildSummaryInputs);
 
+    DartSdk sdk;
+    PackageBundle sdkBundle;
+    if (options.dartSdkSummaryPath != null) {
+      SummaryBasedDartSdk summarySdk = new SummaryBasedDartSdk(
+          options.dartSdkSummaryPath, options.strongMode);
+      sdk = summarySdk;
+      sdkBundle = summarySdk.bundle;
+    } else {
+      DirectoryBasedDartSdk directorySdk =
+          new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
+      directorySdk.analysisOptions =
+          Driver.createAnalysisOptionsForCommandLineOptions(options);
+      directorySdk.useSummary = !options.buildSummaryOnlyAst;
+      sdk = directorySdk;
+      sdkBundle = directorySdk.getSummarySdkBundle();
+    }
+
     // In AST mode include SDK bundle to avoid parsing SDK sources.
     if (options.buildSummaryOnlyAst) {
-      summaryDataStore.addBundle(null, sdk.getSummarySdkBundle());
+      summaryDataStore.addBundle(null, sdkBundle);
     }
 
     // Create the context.

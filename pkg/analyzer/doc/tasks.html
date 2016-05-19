@@ -44,6 +44,7 @@ digraph G {
   CONSTANT_EXPRESSION_RESOLVED [shape=box]
   CONSTANT_VALUE -> ComputeConstantValueTask
   CONSTANT_VALUE -> EvaluateUnitConstantsTask
+  CONSTANT_VALUE -> VerifyUnitTask
   CONSTANT_VALUE [shape=box]
   CONTAINING_LIBRARIES -> DartErrorsTask
   CONTAINING_LIBRARIES [shape=box]
@@ -78,6 +79,8 @@ digraph G {
   ComputeLibraryCycleTask -> LIBRARY_CYCLE_DEPENDENCIES
   ComputeLibraryCycleTask -> LIBRARY_CYCLE_UNITS
   ComputePropagableVariableDependenciesTask -> PROPAGABLE_VARIABLE_DEPENDENCIES
+  ComputeRequiredConstantsTask -> PENDING_ERRORS
+  ComputeRequiredConstantsTask -> REQUIRED_CONSTANTS
   ContainingLibrariesTask -> CONTAINING_LIBRARIES
   DART_ERRORS -> LibraryErrorsReadyTask
   DART_ERRORS [shape=box]
@@ -195,6 +198,8 @@ digraph G {
   PARSED_UNIT [shape=box]
   PARSE_ERRORS -> dartErrorsForSource
   PARSE_ERRORS [shape=box]
+  PENDING_ERRORS -> VerifyUnitTask
+  PENDING_ERRORS [shape=box]
   PROPAGABLE_VARIABLES_IN_UNIT -> PropagateVariableTypesInUnitTask
   PROPAGABLE_VARIABLES_IN_UNIT [shape=box]
   PROPAGABLE_VARIABLE_DEPENDENCIES -> PropagateVariableTypeTask
@@ -237,6 +242,9 @@ digraph G {
   REFERENCED_SOURCES -> BuildDirectiveElementsTask
   REFERENCED_SOURCES -> VerifyUnitTask
   REFERENCED_SOURCES [shape=box]
+  REQUIRED_CONSTANTS -> VerifyUnitTask
+  REQUIRED_CONSTANTS [shape=box]
+  RESOLVED_UNIT -> ComputeRequiredConstantsTask
   RESOLVED_UNIT -> GenerateHintsTask
   RESOLVED_UNIT -> GenerateLintsTask
   RESOLVED_UNIT -> ReadyResolvedUnitTask

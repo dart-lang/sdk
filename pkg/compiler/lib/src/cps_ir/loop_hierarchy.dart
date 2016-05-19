@@ -134,7 +134,7 @@ class LoopHierarchy {
     return _markInnerLoop(target, catchLoop);
   }
 
-  /// Returns the the innermost loop that effectively encloses both
+  /// Returns the innermost loop that effectively encloses both
   /// c1 and c2 (or `null` if there is no such loop).
   Continuation lowestCommonAncestor(Continuation c1, Continuation c2) {
     int d1 = getDepth(c1), d2 = getDepth(c2);

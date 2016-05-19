@@ -50,7 +50,7 @@ class AnalysisError {
 
   /**
    * A [Comparator] that sorts error codes first by their severity (errors
-   * first, warnings second), and then by the the error code type.
+   * first, warnings second), and then by the error code type.
    */
   static Comparator<AnalysisError> ERROR_CODE_COMPARATOR =
       (AnalysisError o1, AnalysisError o2) {
@@ -3595,7 +3595,8 @@ class HintCode extends ErrorCode {
    * 1: message details
    */
   static const HintCode MISSING_REQUIRED_PARAM_WITH_DETAILS = const HintCode(
-      'MISSING_REQUIRED_PARAM', "The parameter '{0}' is required. {1}");
+      'MISSING_REQUIRED_PARAM_WITH_DETAILS',
+      "The parameter '{0}' is required. {1}");
 
   /**
    * Generate a hint for an element that is annotated with `@JS(...)` whose

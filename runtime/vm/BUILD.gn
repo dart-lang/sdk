@@ -126,6 +126,7 @@ template("generate_library_source") {
       "../tools/gen_library_src_paths.py",
       "../lib/libgen_in.cc",
     ]
+    inputs += lib_sources
     outputs = [ invoker.output, ]
     args = [
       "--output", rebase_path(invoker.output, root_build_dir),

@@ -11,7 +11,6 @@
 
 #include "vm/growable_array.h"
 #include "vm/token.h"
-#include "vm/token_position.h"
 
 namespace dart {
 
@@ -23,7 +22,7 @@ class ScanContext;
 class String;
 
 // A call to Scan() scans the source one token at at time.
-// The scanned token is returned by cur_token().
+// The scanned token is returned by current_token().
 // GetStream() scans the entire source text and returns a stream of tokens.
 class Scanner : ValueObject {
  public:
@@ -45,7 +44,14 @@ class Scanner : ValueObject {
     const String* literal;    // Identifier, number or string literal.
   };
 
-  typedef ZoneGrowableArray<TokenDescriptor> GrowableTokenStream;
+  class TokenCollector : public ValueObject {
+   public:
+    TokenCollector() { }
+    virtual ~TokenCollector() { }
+    virtual void AddToken(const TokenDescriptor& token) { }
+   private:
+    DISALLOW_COPY_AND_ASSIGN(TokenCollector);
+  };
 
   // Initializes scanner to scan string source.
   Scanner(const String& source, const String& private_key);
@@ -54,13 +60,12 @@ class Scanner : ValueObject {
   // Scans one token at a time.
   void Scan();
 
-  // Scans to specified token position.
-  // Use CurrentPosition() to extract position.
-  void ScanTo(TokenPosition token_index);
+  // Scans the entire source and collects tokens in the provided collector.
+  void ScanAll(TokenCollector* collector);
 
-  // Scans entire source and returns a stream of tokens.
-  // Should be called only once.
-  const GrowableTokenStream& GetStream();
+  // Scans to specified token position.
+  // Use CurrentPosition() to extract line and column number.
+  void ScanTo(intptr_t token_index);
 
   // Info about most recently recognized token.
   const TokenDescriptor& current_token() const { return current_token_; }
@@ -78,10 +83,8 @@ class Scanner : ValueObject {
   // Return true if str is an identifier.
   bool IsIdent(const String& str);
 
-  // Does the token stream contain a valid literal. This is used to implement
-  // the Dart methods int.parse and double.parse.
-  static bool IsValidLiteral(const Scanner::GrowableTokenStream& tokens,
-                             Token::Kind literal_kind,
+  // Does the token stream contain a valid integer literal.
+  static bool IsValidInteger(const String& str,
                              bool* is_positive,
                              const String** value);
 
@@ -115,9 +118,6 @@ class Scanner : ValueObject {
   int32_t LookaheadChar(int how_many);
 
   void ErrorMsg(const char* msg);
-
-  // Scans entire source into a given stream of tokens.
-  void ScanAll(GrowableTokenStream* token_stream);
 
   // These functions return true if the given character is a letter,
   // a decimal digit, a hexadecimal digit, etc.
@@ -182,8 +182,6 @@ class Scanner : ValueObject {
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
-
-  static void PrintTokens(const GrowableTokenStream& ts);
 
   TokenDescriptor current_token_;  // Current token.
   TokenDescriptor newline_token_;  // Newline token.

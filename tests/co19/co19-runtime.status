@@ -150,20 +150,6 @@ Language/Mixins/Mixin_Application/error_t01: Pass
 Language/Mixins/Mixin_Application/error_t02: Pass
 Language/Mixins/declaring_constructor_t01: Pass
 
-[ $runtime == vm && $mode == product ]
-LibTest/typed_data/Float32List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Float32x4List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Float64List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Int16List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Int32List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Int64List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Int8List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Uint16List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Uint32List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Uint64List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Uint8ClampedList/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-LibTest/typed_data/Uint8List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
-
 [ ($arch == simdbc || $arch == simdbc64) && $mode == debug ]
 # TODO(vegorov) These tests are very slow on unoptimized SIMDBC
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Timeout

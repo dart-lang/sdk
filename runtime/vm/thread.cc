@@ -20,6 +20,7 @@
 #include "vm/symbols.h"
 #include "vm/thread_interrupter.h"
 #include "vm/thread_registry.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -68,6 +69,7 @@ Thread::Thread(Isolate* isolate)
       store_buffer_block_(NULL),
       vm_tag_(0),
       task_kind_(kUnknownTask),
+      dart_stream_(NULL),
       os_thread_(NULL),
       thread_lock_(new Monitor()),
       zone_(NULL),
@@ -83,6 +85,7 @@ Thread::Thread(Isolate* isolate)
 #endif
       reusable_handles_(),
       saved_stack_limit_(0),
+      defer_oob_messages_count_(0),
       deferred_interrupts_mask_(0),
       deferred_interrupts_(0),
       stack_overflow_count_(0),
@@ -96,6 +99,10 @@ Thread::Thread(Isolate* isolate)
       safepoint_state_(0),
       execution_state_(kThreadInVM),
       next_(NULL) {
+NOT_IN_PRODUCT(
+  dart_stream_ = Timeline::GetDartStream();
+  ASSERT(dart_stream_ != NULL);
+)
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
   member_name = default_init_value;
 CACHED_CONSTANTS_LIST(DEFAULT_INIT)
@@ -417,6 +424,11 @@ uword Thread::GetAndClearInterrupts() {
 
 void Thread::DeferOOBMessageInterrupts() {
   MonitorLocker ml(thread_lock_);
+  defer_oob_messages_count_++;
+  if (defer_oob_messages_count_ > 1) {
+    // OOB message interrupts are already deferred.
+    return;
+  }
   ASSERT(deferred_interrupts_mask_ == 0);
   deferred_interrupts_mask_ = kMessageInterrupt;
 
@@ -441,6 +453,11 @@ void Thread::DeferOOBMessageInterrupts() {
 
 void Thread::RestoreOOBMessageInterrupts() {
   MonitorLocker ml(thread_lock_);
+  defer_oob_messages_count_--;
+  if (defer_oob_messages_count_ > 0) {
+    return;
+  }
+  ASSERT(defer_oob_messages_count_ == 0);
   ASSERT(deferred_interrupts_mask_ == kMessageInterrupt);
   deferred_interrupts_mask_ = 0;
   if (deferred_interrupts_ != 0) {

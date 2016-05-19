@@ -14,7 +14,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/task/model.dart';
 
-/// The manager for `.analysis_options` specific analysis.
+/// The manager for analysis options specific analysis.
 class OptionsWorkManager implements WorkManager {
   /// The context for which work is being managed.
   final InternalAnalysisContext context;
@@ -162,7 +162,7 @@ class OptionsWorkManager implements WorkManager {
     return state != CacheState.VALID && state != CacheState.ERROR;
   }
 
-  /// Return `true` if the given target is an `.analysis_options` source.
+  /// Return `true` if the given target is an analysis options source.
   static bool _isOptionsSource(AnalysisTarget target) =>
       target is Source &&
       AnalysisEngine.isAnalysisOptionsFileName(target.fullName);

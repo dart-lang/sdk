@@ -2,6 +2,13 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail, Crash
+cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail, Crash
+cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: Fail, Crash
+cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: Fail, Crash
+cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail, Crash
+cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash
+
 # These tests are expected to crash on all platforms.
 cc/ArrayNew_Overflow_Crash: Crash, Timeout
 cc/AllocGeneric_Overflow: Crash, Timeout
@@ -78,11 +85,18 @@ cc/Dart2JSCompileAll: SkipSlow  # Timeout.
 [ $builder_tag == asan ]
 cc/CodeImmutability: Fail,OK # Address Sanitizer turns a crash into a failure.
 
+[ $arch == ia32 && $builder_tag == asan ]
+cc/Dart2JSCompileAll: Crash # Issue 26487 - stack overflow
+cc/Dart2JSCompilerStats: Crash # Issue 26487 - stack overflow
+
 [ $noopt ]
 dart/byte_array_test: Crash # Incompatible flag --disable_alloc_stubs_after_gc
 
 [ $noopt || $compiler == precompiler || $mode == product ]
-dart/redirection_type_shuffling_test: CompileTimeError # Imports dart:mirrors
+dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
+cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
+cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
+cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 
 [ $noopt || $runtime == dart_precompiled ]
 # Stacktraces in precompilation omit inlined frames.
@@ -95,8 +109,9 @@ dart/optimized_stacktrace_test: SkipByDesign # Requires line numbers
 
 [ $runtime == vm && $mode == product ]
 cc/IsolateSetCheckedMode: Fail,OK  # Expects exact type name.
-cc/LibraryGetClassNames: Fail,OK  # Expects exact type name.
 cc/StackTraceFormat: Fail,OK  # Expects exact type name.
+cc/String_ScrubName: Fail,OK  # Expects exact type name.
+cc/GetFunctionNames: Fail,OK  # Expects exact type name.
 
 [ $arch == simdbc || $arch == simdbc64 ]
 # TODO(vegorov) Profiler is completely disabled in SIMDBC builds.

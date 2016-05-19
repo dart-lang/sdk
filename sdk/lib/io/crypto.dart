@@ -234,8 +234,8 @@ abstract class _HashBase {
 
 
   // Compute the final result as a list of bytes from the hash words.
-  _resultAsBytes() {
-    var result = [];
+  List<int> _resultAsBytes() {
+    var result = <int>[];
     for (var i = 0; i < _h.length; i++) {
       result.addAll(_wordToBytes(_h[i]));
     }
@@ -261,7 +261,7 @@ abstract class _HashBase {
   }
 
   // Convert a 32-bit word to four bytes.
-  _wordToBytes(int word) {
+  List<int> _wordToBytes(int word) {
     List<int> bytes = new List(_BYTES_PER_WORD);
     bytes[0] = (word >> (_bigEndianWords ? 24 : 0)) & _MASK_8;
     bytes[1] = (word >> (_bigEndianWords ? 16 : 8)) & _MASK_8;

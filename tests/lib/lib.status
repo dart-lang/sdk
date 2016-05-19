@@ -314,6 +314,9 @@ mirrors/mirrors_reader_test: Pass, Slow
 developer/metrics_num_test: Skip # Because of a int / double type test.
 developer/timeline_test: Skip # Not supported
 
+[ $mode == product ]
+developer/timeline_test: Skip # Not supported
+
 [ $arch == simarm64 ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.
 

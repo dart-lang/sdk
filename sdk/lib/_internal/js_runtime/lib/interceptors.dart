@@ -373,9 +373,9 @@ class JSNull extends Interceptor implements Null {
  * have a type mask that contains the objects that we can use the
  * native JS [] operator and length on.
  */
-abstract class JSIndexable {
+abstract class JSIndexable<E> {
   int get length;
-  operator[](int index);
+  E operator[](int index);
 }
 
 /**
@@ -383,8 +383,8 @@ abstract class JSIndexable {
  * JavaScriptIndexingBehavior. Used by the backend to have a type mask
  * that contains the objects we can use the JS []= operator on.
  */
-abstract class JSMutableIndexable extends JSIndexable {
-  operator[]=(int index, var value);
+abstract class JSMutableIndexable<E> extends JSIndexable<E> {
+  operator[]=(int index, E value);
 }
 
 /**

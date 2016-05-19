@@ -5,6 +5,7 @@
 library analyzer.test.src.dart.element.element_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -21,12 +22,14 @@ import 'package:unittest/unittest.dart';
 
 import '../../../generated/analysis_context_factory.dart'
     show AnalysisContextHelper;
+import '../../../generated/resolver_test_case.dart';
 import '../../../generated/test_support.dart';
 import '../../../reflective_tests.dart';
 import '../../../utils.dart';
 
 main() {
   initializeTestEnvironment();
+  runReflectiveTests(ElementAnnotationImplTest);
   runReflectiveTests(FieldElementImplTest);
   runReflectiveTests(FunctionTypeImplTest);
   runReflectiveTests(InterfaceTypeImplTest);
@@ -41,6 +44,7 @@ main() {
   runReflectiveTests(MethodElementImplTest);
   runReflectiveTests(MultiplyDefinedElementImplTest);
   runReflectiveTests(ParameterElementImplTest);
+  runReflectiveTests(TopLevelVariableElementImplTest);
 }
 
 @reflectiveTest
@@ -1087,6 +1091,41 @@ part 'unit_b.dart';
     ClassElement classElement = ElementFactory.classElement2(className);
     unit.types = <ClassElement>[classElement];
     expect(unit.getType("${className}x"), isNull);
+  }
+}
+
+@reflectiveTest
+class ElementAnnotationImplTest extends ResolverTestCase {
+  void test_computeConstantValue() {
+    addNamedSource(
+        '/a.dart',
+        r'''
+class A {
+  final String f;
+  const A(this.f);
+}
+void f(@A('x') int p) {}
+''');
+    Source source = addSource(r'''
+import 'a.dart';
+main() {
+  f(3);
+}
+''');
+    LibraryElement library = resolve2(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    FunctionDeclaration main = unit.declarations[0];
+    BlockFunctionBody body = main.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    MethodInvocation invocation = statement.expression;
+    ParameterElement parameter =
+        invocation.argumentList.arguments[0].bestParameterElement;
+    ElementAnnotation annotation = parameter.metadata[0];
+    expect(annotation.constantValue, isNull);
+    DartObject value = annotation.computeConstantValue();
+    expect(value, isNotNull);
+    expect(value.getField('f').toStringValue(), 'x');
+    expect(annotation.constantValue, value);
   }
 }
 
@@ -4154,6 +4193,37 @@ class TestElementResynthesizer extends ElementResynthesizer {
   @override
   Element getElement(ElementLocation location) {
     return locationMap[location];
+  }
+}
+
+@reflectiveTest
+class TopLevelVariableElementImplTest extends ResolverTestCase {
+  void test_computeConstantValue() {
+    addNamedSource(
+        '/a.dart',
+        r'''
+const int C = 42;
+''');
+    Source source = addSource(r'''
+import 'a.dart';
+main() {
+  print(C);
+}
+''');
+    LibraryElement library = resolve2(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    FunctionDeclaration main = unit.declarations[0];
+    BlockFunctionBody body = main.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    MethodInvocation invocation = statement.expression;
+    SimpleIdentifier argument = invocation.argumentList.arguments[0];
+    PropertyAccessorElementImpl getter = argument.bestElement;
+    TopLevelVariableElement constant = getter.variable;
+    expect(constant.constantValue, isNull);
+    DartObject value = constant.computeConstantValue();
+    expect(value, isNotNull);
+    expect(value.toIntValue(), 42);
+    expect(constant.constantValue, value);
   }
 }
 

@@ -428,11 +428,11 @@ class ProgramBuilder {
                   // Check whether the arity matches this member.
                   var argumentCount = selector.argumentCount;
                   // JS interop does not support named arguments.
-                  if (selector.namedArgumentCount > 0) break;
-                  if (argumentCount < minArgs) break;
-                  if (argumentCount > maxArgs) break;
+                  if (selector.namedArgumentCount > 0) continue;
+                  if (argumentCount < minArgs) continue;
+                  if (argumentCount > maxArgs) continue;
                   var stubName = namer.invocationName(selector);
-                  if (!stubNames.add(stubName.key)) break;
+                  if (!stubNames.add(stubName.key)) continue;
                   var parameters =
                       new List<String>.generate(argumentCount, (i) => 'p$i');
 

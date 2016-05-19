@@ -1051,8 +1051,8 @@ class Class : public Object {
   // Caches the canonical type of this class.
   void SetCanonicalType(const Type& type) const;
 
-  static intptr_t canonical_types_offset() {
-    return OFFSET_OF(RawClass, canonical_types_);
+  static intptr_t canonical_type_offset() {
+    return OFFSET_OF(RawClass, canonical_type_);
   }
 
   // The super type of this class, Object type if not explicitly specified.
@@ -1221,9 +1221,6 @@ class Class : public Object {
                              intptr_t index,
                              const Number& constant) const;
 
-  intptr_t FindCanonicalTypeIndex(const AbstractType& needle) const;
-  RawAbstractType* CanonicalTypeFromIndex(intptr_t idx) const;
-
   void RehashConstants(Zone* zone) const;
 
   static intptr_t InstanceSize() {
@@ -1360,7 +1357,8 @@ class Class : public Object {
   template <class FakeObject> static RawClass* New();
 
   // Allocate instance classes.
-  static RawClass* New(const String& name,
+  static RawClass* New(const Library& lib,
+                       const String& name,
                        const Script& script,
                        TokenPosition token_pos);
   static RawClass* NewNativeWrapper(const Library& library,
@@ -1386,6 +1384,8 @@ class Class : public Object {
 
   void DisableCHAOptimizedCode(const Class& subclass);
 
+  void DisableAllCHAOptimizedCode();
+
   // Return the list of code objects that were compiled using CHA of this class.
   // These code objects will be invalidated if new subclasses of this class
   // are finalized.
@@ -1396,8 +1396,16 @@ class Class : public Object {
   void SetTraceAllocation(bool trace_allocation) const;
 
   bool ValidatePostFinalizePatch(const Class& orig_class, Error* error) const;
+  void ReplaceEnum(const Class& old_enum) const;
+  void CopyStaticFieldValues(const Class& old_cls) const;
+  void PatchFieldsAndFunctions() const;
+  void CopyCanonicalConstants(const Class& old_cls) const;
+  void CopyCanonicalType(const Class& old_cls) const;
+  bool CanReload(const Class& replacement) const;
 
  private:
+  template <class FakeObject> static RawClass* NewCommon(intptr_t index);
+
   enum MemberKind {
     kAny = 0,
     kStatic,
@@ -1454,8 +1462,8 @@ class Class : public Object {
 
   void set_constants(const Array& value) const;
 
-  void set_canonical_types(const Object& value) const;
-  RawObject* canonical_types() const;
+  void set_canonical_type(const Type& value) const;
+  RawType* canonical_type() const;
 
   RawArray* invocation_dispatcher_cache() const;
   void set_invocation_dispatcher_cache(const Array& cache) const;
@@ -1500,6 +1508,9 @@ class Class : public Object {
   // Allocate an instance class which has a VM implementation.
   template <class FakeInstance> static RawClass* New(intptr_t id);
 
+  // Helper that calls 'Class::New<Instance>(kIllegalCid)'.
+  static RawClass* NewInstanceClass();
+
   // Check the subtype or 'more specific' relationship.
   bool TypeTest(TypeTestKind test_kind,
                 const TypeArguments& type_arguments,
@@ -1518,15 +1529,6 @@ class Class : public Object {
       Error* bound_error,
       TrailPtr bound_trail,
       Heap::Space space);
-
-  // Returns AbstractType::null() if type not found.
-  RawAbstractType* LookupCanonicalType(Zone* zone,
-                                       const AbstractType& type,
-                                       intptr_t* index) const;
-
-  // Returns canonical type. Thread safe.
-  RawAbstractType* LookupOrAddCanonicalType(const AbstractType& type,
-                                            intptr_t start_index) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Class, Object);
   friend class AbstractType;
@@ -1573,6 +1575,11 @@ class UnresolvedClass : public Object {
 // A TypeArguments is an array of AbstractType.
 class TypeArguments : public Object {
  public:
+  // We use 30 bits for the hash code so hashes in a snapshot taken on a
+  // 64-bit architecture stay in Smi range when loaded on a 32-bit
+  // architecture.
+  static const intptr_t kHashBits = 30;
+
   intptr_t Length() const;
   RawAbstractType* TypeAt(intptr_t index) const;
   static intptr_t type_at_offset(intptr_t index) {
@@ -1717,8 +1724,9 @@ class TypeArguments : public Object {
 
   static intptr_t InstanceSize(intptr_t len) {
     // Ensure that the types() is not adding to the object size, which includes
-    // 2 fields: instantiations_ and length_.
-    ASSERT(sizeof(RawTypeArguments) == (sizeof(RawObject) + (2 * kWordSize)));
+    // 3 fields: instantiations_, length_ and hash_.
+    ASSERT(sizeof(RawTypeArguments) ==
+           (sizeof(RawObject) + (kNumFields * kWordSize)));
     ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(
         sizeof(RawTypeArguments) + (len * kBytesPerElement));
@@ -1729,6 +1737,9 @@ class TypeArguments : public Object {
   static RawTypeArguments* New(intptr_t len, Heap::Space space = Heap::kOld);
 
  private:
+  intptr_t ComputeHash() const;
+  void SetHash(intptr_t value) const;
+
   // Check if the subvector of length 'len' starting at 'from_index' of this
   // type argument vector consists solely of DynamicType.
   // If raw_instantiated is true, consider each type parameter to be first
@@ -1757,6 +1768,8 @@ class TypeArguments : public Object {
   void set_instantiations(const Array& value) const;
   RawAbstractType* const* TypeAddr(intptr_t index) const;
   void SetLength(intptr_t value) const;
+  // Number of fields in the raw object=3 (instantiations_, length_ and hash_).
+  static const int kNumFields = 3;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeArguments, Object);
   friend class AbstractType;
@@ -1827,6 +1840,11 @@ class ICData : public Object {
     return raw_ptr()->deopt_id_;
   }
 
+  bool IsImmutable() const;
+
+  void Reset(bool is_static_call) const;
+  void ResetData() const;
+
   // Note: only deopts with reasons before Unknown in this list are recorded in
   // the ICData. All other reasons are used purely for informational messages
   // printed during deoptimization itself.
@@ -1872,6 +1890,10 @@ class ICData : public Object {
   bool HasDeoptReason(ICData::DeoptReasonId reason) const;
   void AddDeoptReason(ICData::DeoptReasonId reason) const;
 
+  // The length of the array. This includes all sentinel entries including
+  // the final one.
+  intptr_t Length() const;
+
   intptr_t NumberOfChecks() const;
 
   // Discounts any checks with usage of zero.
@@ -1909,6 +1931,30 @@ class ICData : public Object {
     return OFFSET_OF(RawICData, owner_);
   }
 
+  // Replaces entry |index| with the sentinel.
+  void WriteSentinelAt(intptr_t index) const;
+
+  // Clears the count for entry |index|.
+  void ClearCountAt(intptr_t index) const;
+
+  // Clear all entries with the sentinel value (but will preserve initial
+  // smi smi checks).
+  void ClearWithSentinel() const;
+
+  // Clear all entries with the sentinel value and reset the first entry
+  // with the dummy target entry.
+  void ClearAndSetStaticTarget(const Function& func) const;
+
+  // Returns the first index that should be used to for a new entry. Will
+  // grow the array if necessary.
+  RawArray* FindFreeIndex(intptr_t* index) const;
+
+  void DebugDump() const;
+  void ValidateSentinelLocations() const;
+
+  // Returns true if this is a two arg smi operation.
+  bool AddSmiSmiCheckForFastSmiStubs() const;
+
   // Used for unoptimized static calls when no class-ids are checked.
   void AddTarget(const Function& target) const;
 
@@ -1923,6 +1969,9 @@ class ICData : public Object {
   void AddReceiverCheck(intptr_t receiver_class_id,
                         const Function& target,
                         intptr_t count = 1) const;
+
+  // Does entry |index| contain the sentinel value?
+  bool IsSentinelAt(intptr_t index) const;
 
   // Retrieving checks.
 
@@ -2223,6 +2272,11 @@ class Function : public Object {
   // visible formal parameters of the function.
   RawString* UserVisibleFormalParameters() const;
 
+  // Reloading support:
+  void Reparent(const Class& new_cls) const;
+  void ZeroEdgeCounters() const;
+  void FillICDataWithSentinels(const Code& code) const;
+
   RawClass* Owner() const;
   RawClass* origin() const;
   RawScript* script() const;
@@ -2260,6 +2314,13 @@ class Function : public Object {
 
   // Disables optimized code and switches to unoptimized code.
   void SwitchToUnoptimizedCode() const;
+
+  // Disables optimized code and switches to unoptimized code (or the lazy
+  // compilation stub).
+  void SwitchToLazyCompiledUnoptimizedCode() const;
+
+  // Compiles unoptimized code (if necessary) and attaches it to the function.
+  void EnsureHasCompiledUnoptimizedCode() const;
 
   // Return the most recently compiled and installed code for this function.
   // It is not the only Code object that points to this function.
@@ -3188,6 +3249,14 @@ class Field : public Object {
   static bool IsSetterName(const String& function_name);
 
  private:
+  static void InitializeNew(const Field& result,
+                            const String& name,
+                            bool is_static,
+                            bool is_final,
+                            bool is_const,
+                            bool is_reflectable,
+                            const Object& owner,
+                            TokenPosition token_pos);
   friend class StoreInstanceFieldInstr;  // Generated code access to bit field.
 
   enum {
@@ -3213,6 +3282,9 @@ class Field : public Object {
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.
   bool UpdateGuardedCidAndLength(const Object& value) const;
+
+  // Force this field's guard to be dynamic and deoptimize dependent code.
+  void ForceDynamicGuardedCidAndLength() const;
 
   void set_name(const String& value) const;
   void set_is_static(bool is_static) const {
@@ -3279,7 +3351,7 @@ class TokenStream : public Object {
   RawString* GenerateSource() const;
   RawString* GenerateSource(TokenPosition start,
                             TokenPosition end) const;
-  TokenPosition ComputeSourcePosition(TokenPosition tok_pos) const;
+  intptr_t ComputeSourcePosition(TokenPosition tok_pos) const;
 
   RawString* PrivateKey() const;
 
@@ -3291,7 +3363,7 @@ class TokenStream : public Object {
   }
 
   static RawTokenStream* New(intptr_t length);
-  static RawTokenStream* New(const Scanner::GrowableTokenStream& tokens,
+  static RawTokenStream* New(const String& source,
                              const String& private_key,
                              bool use_shared_tokens);
 
@@ -3377,6 +3449,9 @@ class Script : public Object {
   intptr_t line_offset() const { return raw_ptr()->line_offset_; }
   intptr_t col_offset() const { return raw_ptr()->col_offset_; }
 
+  // The load time in milliseconds since epoch.
+  int64_t load_timestamp() const { return raw_ptr()->load_timestamp_; }
+
   RawTokenStream* tokens() const { return raw_ptr()->tokens_; }
 
   void Tokenize(const String& private_key,
@@ -3417,6 +3492,7 @@ class Script : public Object {
   void set_url(const String& value) const;
   void set_source(const String& value) const;
   void set_kind(RawScript::Kind value) const;
+  void set_load_timestamp(int64_t value) const;
   void set_tokens(const TokenStream& value) const;
 
   static RawScript* New();
@@ -3705,6 +3781,8 @@ class Library : public Object {
   // Character used to separate private identifiers from
   // the library-specific key.
   static const char kPrivateKeySeparator = '@';
+
+  bool CanReload(const Library& replacement) const;
 
  private:
   static const int kInitialImportsCapacity = 4;
@@ -5370,6 +5448,11 @@ class LibraryPrefix : public Instance {
 // Subclasses of AbstractType are Type and TypeParameter.
 class AbstractType : public Instance {
  public:
+  // We use 30 bits for the hash code so hashes in a snapshot taken on a
+  // 64-bit architecture stay in Smi range when loaded on a 32-bit
+  // architecture.
+  static const intptr_t kHashBits = 30;
+
   virtual bool IsFinalized() const;
   virtual void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const;
@@ -5382,6 +5465,7 @@ class AbstractType : public Instance {
   virtual bool IsResolved() const;
   virtual void SetIsResolved() const;
   virtual bool HasResolvedTypeClass() const;
+  virtual classid_t type_class_id() const;
   virtual RawClass* type_class() const;
   virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawTypeArguments* arguments() const;
@@ -5570,8 +5654,8 @@ class AbstractType : public Instance {
 // relate to a 'raw type', as opposed to a 'cooked type' or 'rare type'.
 class Type : public AbstractType {
  public:
-  static intptr_t type_class_offset() {
-    return OFFSET_OF(RawType, type_class_);
+  static intptr_t type_class_id_offset() {
+    return OFFSET_OF(RawType, type_class_id_);
   }
   virtual bool IsFinalized() const {
     return
@@ -5594,8 +5678,10 @@ class Type : public AbstractType {
   }
   virtual void SetIsResolved() const;
   virtual bool HasResolvedTypeClass() const;  // Own type class resolved.
+  virtual classid_t type_class_id() const;
   virtual RawClass* type_class() const;
-  void set_type_class(const Object& value) const;
+  void set_type_class(const Class& value) const;
+  void set_unresolved_class(const Object& value) const;
   virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawTypeArguments* arguments() const { return raw_ptr()->arguments_; }
   virtual void set_arguments(const TypeArguments& value) const;
@@ -5685,6 +5771,9 @@ class Type : public AbstractType {
                       Heap::Space space = Heap::kOld);
 
  private:
+  intptr_t ComputeHash() const;
+  void SetHash(intptr_t value) const;
+
   void set_token_pos(TokenPosition token_pos) const;
   void set_type_state(int8_t state) const;
 
@@ -5786,9 +5875,8 @@ class TypeParameter : public AbstractType {
   virtual bool IsMalformedOrMalbounded() const { return false; }
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const { return false; }
-  RawClass* parameterized_class() const {
-    return raw_ptr()->parameterized_class_;
-  }
+  classid_t parameterized_class_id() const;
+  RawClass* parameterized_class() const;
   RawString* name() const { return raw_ptr()->name_; }
   intptr_t index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const;
@@ -5836,6 +5924,9 @@ class TypeParameter : public AbstractType {
                                TokenPosition token_pos);
 
  private:
+  intptr_t ComputeHash() const;
+  void SetHash(intptr_t value) const;
+
   void set_parameterized_class(const Class& value) const;
   void set_name(const String& value) const;
   void set_token_pos(TokenPosition token_pos) const;
@@ -5921,6 +6012,9 @@ class BoundedType : public AbstractType {
                              const TypeParameter& type_parameter);
 
  private:
+  intptr_t ComputeHash() const;
+  void SetHash(intptr_t value) const;
+
   void set_type(const AbstractType& value) const;
   void set_bound(const AbstractType& value) const;
   void set_type_parameter(const TypeParameter& value) const;
@@ -6335,8 +6429,9 @@ class Double : public Number {
 // String may not be '\0' terminated.
 class String : public Instance {
  public:
-  // We use 30 bits for the hash code so that we consistently use a
-  // 32bit Smi representation for the hash code on all architectures.
+  // We use 30 bits for the hash code so hashes in a snapshot taken on a
+  // 64-bit architecture stay in Smi range when loaded on a 32-bit
+  // architecture.
   static const intptr_t kHashBits = 30;
 
   static const intptr_t kOneByteChar = 1;
@@ -7115,6 +7210,11 @@ class Bool : public Instance {
 
 class Array : public Instance {
  public:
+  // We use 30 bits for the hash code so hashes in a snapshot taken on a
+  // 64-bit architecture stay in Smi range when loaded on a 32-bit
+  // architecture.
+  static const intptr_t kHashBits = 30;
+
   intptr_t Length() const {
     ASSERT(!IsNull());
     return Smi::Value(raw_ptr()->length_);
@@ -7482,6 +7582,11 @@ class Float64x2 : public Instance {
 
 class TypedData : public Instance {
  public:
+  // We use 30 bits for the hash code so hashes in a snapshot taken on a
+  // 64-bit architecture stay in Smi range when loaded on a 32-bit
+  // architecture.
+  static const intptr_t kHashBits = 30;
+
   intptr_t Length() const {
     ASSERT(!IsNull());
     return Smi::Value(raw_ptr()->length_);
@@ -8526,6 +8631,72 @@ RawObject* MegamorphicCache::GetClassId(const Array& array, intptr_t index) {
 RawObject* MegamorphicCache::GetTargetFunction(const Array& array,
                                                intptr_t index) {
   return array.At((index * kEntryLength) + kTargetFunctionIndex);
+}
+
+
+inline intptr_t Type::Hash() const {
+  intptr_t result = Smi::Value(raw_ptr()->hash_);
+  if (result != 0) {
+    return result;
+  }
+  return ComputeHash();
+}
+
+
+inline void Type::SetHash(intptr_t value) const {
+  // This is only safe because we create a new Smi, which does not cause
+  // heap allocation.
+  StoreSmi(&raw_ptr()->hash_, Smi::New(value));
+}
+
+
+inline intptr_t TypeParameter::Hash() const {
+  ASSERT(IsFinalized());
+  intptr_t result = Smi::Value(raw_ptr()->hash_);
+  if (result != 0) {
+    return result;
+  }
+  return ComputeHash();
+}
+
+
+inline void TypeParameter::SetHash(intptr_t value) const {
+  // This is only safe because we create a new Smi, which does not cause
+  // heap allocation.
+  StoreSmi(&raw_ptr()->hash_, Smi::New(value));
+}
+
+
+inline intptr_t BoundedType::Hash() const {
+  intptr_t result = Smi::Value(raw_ptr()->hash_);
+  if (result != 0) {
+    return result;
+  }
+  return ComputeHash();
+}
+
+
+inline void BoundedType::SetHash(intptr_t value) const {
+  // This is only safe because we create a new Smi, which does not cause
+  // heap allocation.
+  StoreSmi(&raw_ptr()->hash_, Smi::New(value));
+}
+
+
+inline intptr_t TypeArguments::Hash() const {
+  if (IsNull()) return 0;
+  intptr_t result = Smi::Value(raw_ptr()->hash_);
+  if (result != 0) {
+    return result;
+  }
+  return ComputeHash();
+}
+
+
+inline void TypeArguments::SetHash(intptr_t value) const {
+  // This is only safe because we create a new Smi, which does not cause
+  // heap allocation.
+  StoreSmi(&raw_ptr()->hash_, Smi::New(value));
 }
 
 }  // namespace dart

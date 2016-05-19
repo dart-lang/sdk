@@ -25,6 +25,7 @@ import 'keys.dart';
 import 'modelz.dart';
 import 'serialization.dart';
 import 'serialization_util.dart';
+import 'modelz.dart';
 
 /// Visitor that computes a node-index mapping.
 class AstIndexComputer extends Visitor {
@@ -146,11 +147,12 @@ class ResolvedAstSerializer extends Visitor {
     }
     objectEncoder.setEnum(Key.SUB_KIND, kind);
     root.accept(indexComputer);
+    objectEncoder.setBool(Key.CONTAINS_TRY, elements.containsTryStatement);
     if (resolvedAst.body != null) {
       int index = nodeIndices[resolvedAst.body];
       assert(invariant(element, index != null,
-          message:
-              "No index for body of $element: ${resolvedAst.body} ($nodeIndices)."));
+          message: "No index for body of $element: "
+              "${resolvedAst.body} ($nodeIndices)."));
       objectEncoder.setInt(Key.BODY, index);
     }
     root.accept(this);
@@ -343,18 +345,18 @@ class ResolvedAstDeserializer {
       ObjectDecoder objectDecoder,
       ParsingContext parsing,
       Token getBeginToken(Uri uri, int charOffset),
-      DeserializerPlugin nativeDataDeserializer,
-      Map<Element, ResolvedAst> resolvedAstMap) {
+      DeserializerPlugin nativeDataDeserializer) {
     ResolvedAstKind kind =
         objectDecoder.getEnum(Key.KIND, ResolvedAstKind.values);
     switch (kind) {
       case ResolvedAstKind.PARSED:
         deserializeParsed(element, objectDecoder, parsing, getBeginToken,
-            nativeDataDeserializer, resolvedAstMap);
+            nativeDataDeserializer);
         break;
       case ResolvedAstKind.DEFAULT_CONSTRUCTOR:
       case ResolvedAstKind.FORWARDING_CONSTRUCTOR:
-        resolvedAstMap[element] = new SynthesizedResolvedAst(element, kind);
+        (element as AstElementMixinZ).resolvedAst =
+            new SynthesizedResolvedAst(element, kind);
         break;
     }
   }
@@ -363,12 +365,11 @@ class ResolvedAstDeserializer {
   /// method, or field) and its nested closures. The [ResolvedAst]s are added
   /// to [resolvedAstMap].
   static void deserializeParsed(
-      Element element,
+      AstElementMixinZ element,
       ObjectDecoder objectDecoder,
       ParsingContext parsing,
       Token getBeginToken(Uri uri, int charOffset),
-      DeserializerPlugin nativeDataDeserializer,
-      Map<Element, ResolvedAst> resolvedAstMap) {
+      DeserializerPlugin nativeDataDeserializer) {
     CompilationUnitElement compilationUnit = element.compilationUnit;
     DiagnosticReporter reporter = parsing.reporter;
     Uri uri = objectDecoder.getUri(Key.URI);
@@ -479,7 +480,7 @@ class ResolvedAstDeserializer {
               builder.emptyStatement());
           return constructorNode;
         case AstKind.ENUM_CONSTANT:
-          EnumConstantElement enumConstant = element;
+          EnumConstantElementZ enumConstant = element;
           EnumClassElement enumClass = element.enclosingClass;
           int index = enumConstant.index;
           AstBuilder builder = new AstBuilder(element.sourcePosition.begin);
@@ -528,6 +529,8 @@ class ResolvedAstDeserializer {
     Map<Node, int> nodeIndices = indexComputer.nodeIndices;
     List<Node> nodeList = indexComputer.nodeList;
     root.accept(indexComputer);
+    elements.containsTryStatement = objectDecoder.getBool(Key.CONTAINS_TRY);
+
     Node body;
     int bodyNodeIndex = objectDecoder.getInt(Key.BODY, isOptional: true);
     if (bodyNodeIndex != null) {
@@ -657,13 +660,11 @@ class ResolvedAstDeserializer {
             elements.registerNativeData(node, nativeData);
           }
         }
-        FunctionElement function =
+        LocalFunctionElementZ function =
             objectDecoder.getElement(Key.FUNCTION, isOptional: true);
         if (function != null) {
           FunctionExpression functionExpression = node;
-          assert(invariant(function, !resolvedAstMap.containsKey(function),
-              message: "ResolvedAst has already been computed for $function."));
-          resolvedAstMap[function] = new ParsedResolvedAst(function,
+          function.resolvedAst = new ParsedResolvedAst(function,
               functionExpression, functionExpression.body, elements, uri);
         }
         // TODO(johnniwinther): Remove these when inference doesn't need `.node`
@@ -680,9 +681,7 @@ class ResolvedAstDeserializer {
         }
       }
     }
-    assert(invariant(element, !resolvedAstMap.containsKey(element),
-        message: "ResolvedAst has already been computed for $element."));
-    resolvedAstMap[element] =
+    element.resolvedAst =
         new ParsedResolvedAst(element, root, body, elements, uri);
   }
 }

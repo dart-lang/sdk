@@ -12,6 +12,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, remove_script_timestamps_for_test);
+
 #define NEW_OBJECT(type)                                                       \
   ((Snapshot::IsFull(kind)) ? reader->New##type() : type::New())
 
@@ -59,7 +61,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
         ASSERT((class_id >= kInstanceCid) && (class_id <= kMirrorReferenceCid));
         cls = reader->isolate()->class_table()->At(class_id);
       } else {
-        cls = New<Instance>(kIllegalCid);
+        cls = Class::NewInstanceClass();
       }
     }
     reader->AddBackRef(object_id, &cls, kIsDeserialized);
@@ -239,6 +241,11 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   // Set all the object fields.
   READ_OBJECT_FIELDS(type, type.raw()->from(), type.raw()->to(), kAsReference);
 
+  // Read in the type class.
+  (*reader->ClassHandle()) =
+      Class::RawCast(reader->ReadObjectImpl(kAsReference));
+  type.set_type_class(*reader->ClassHandle());
+
   // Set the canonical bit.
   if (!defer_canonicalization && is_canonical) {
     type.SetCanonical();
@@ -257,7 +264,7 @@ void RawType::WriteTo(SnapshotWriter* writer,
   // Only resolved and finalized types should be written to a snapshot.
   ASSERT((ptr()->type_state_ == RawType::kFinalizedInstantiated) ||
          (ptr()->type_state_ == RawType::kFinalizedUninstantiated));
-  ASSERT(ptr()->type_class_ != Object::null());
+  ASSERT(ptr()->type_class_id_ != Object::null());
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -266,12 +273,17 @@ void RawType::WriteTo(SnapshotWriter* writer,
   writer->WriteIndexedObject(kTypeCid);
   writer->WriteTags(writer->GetObjectTags(this));
 
+  // Lookup the type class.
+  RawSmi* raw_type_class_id = Smi::RawCast(ptr()->type_class_id_);
+  RawClass* type_class =
+      writer->isolate()->class_table()->At(Smi::Value(raw_type_class_id));
+
   // Write out typeclass_is_in_fullsnapshot first as this will
   // help the reader decide on how to canonicalize the type object.
-  intptr_t tags = writer->GetObjectTags(ptr()->type_class_);
+  intptr_t tags = writer->GetObjectTags(type_class);
   bool typeclass_is_in_fullsnapshot =
       (ClassIdTag::decode(tags) == kClassCid) &&
-      Class::IsInFullSnapshot(reinterpret_cast<RawClass*>(ptr()->type_class_));
+      Class::IsInFullSnapshot(reinterpret_cast<RawClass*>(type_class));
   writer->Write<bool>(typeclass_is_in_fullsnapshot);
 
   // Write out all the non object pointer fields.
@@ -279,9 +291,12 @@ void RawType::WriteTo(SnapshotWriter* writer,
   writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields.
-  ASSERT(ptr()->type_class_ != Object::null());
+  ASSERT(ptr()->type_class_id_ != Object::null());
   SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
+
+  // Write out the type class.
+  writer->WriteObjectImpl(type_class, kAsReference);
 }
 
 
@@ -348,6 +363,11 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
                      type_parameter.raw()->from(), type_parameter.raw()->to(),
                      kAsReference);
 
+  // Read in the parameterized class.
+  (*reader->ClassHandle()) =
+      Class::RawCast(reader->ReadObjectImpl(kAsReference));
+  type_parameter.set_parameterized_class(*reader->ClassHandle());
+
   return type_parameter.raw();
 }
 
@@ -376,6 +396,11 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
+
+  // Write out the parameterized class.
+  RawClass* param_class =
+      writer->isolate()->class_table()->At(ptr()->parameterized_class_id_);
+  writer->WriteObjectImpl(param_class, kAsReference);
 }
 
 
@@ -1100,6 +1125,9 @@ RawScript* Script::ReadFrom(SnapshotReader* reader,
     script.StorePointer((script.raw()->from() + i),
                         reader->PassiveObjectHandle()->raw());
   }
+
+  script.set_load_timestamp(FLAG_remove_script_timestamps_for_test
+                            ? 0 : OS::GetCurrentTimeMillis());
 
   return script.raw();
 }

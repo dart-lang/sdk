@@ -1660,7 +1660,7 @@ abstract class HttpClient {
    *
    * If a bad certificate is received on a connection attempt, the library calls
    * the function that was the value of badCertificateCallback at the time
-   * the the request is made, even if the value of badCertificateCallback
+   * the request is made, even if the value of badCertificateCallback
    * has changed since then.
    */
   set badCertificateCallback(bool callback(X509Certificate cert,

@@ -124,10 +124,12 @@ static const char* GetJSONRpcErrorMessage(intptr_t code) {
       return "Internal error";
     case kFeatureDisabled:
       return "Feature is disabled";
-    case kVMMustBePaused:
-      return "VM must be paused";
     case kCannotAddBreakpoint:
       return "Cannot add breakpoint";
+    case kIsolateMustBeRunnable:
+      return "Isolate must be runnable";
+    case kIsolateMustBePaused:
+      return "Isolate must be paused";
     default:
       return "Extension error";
   }

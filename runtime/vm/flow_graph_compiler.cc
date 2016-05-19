@@ -62,6 +62,7 @@ DECLARE_FLAG(int, inlining_depth_threshold);
 DECLARE_FLAG(int, inlining_caller_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
+DECLARE_FLAG(int, reload_every);
 
 static void PrecompilationModeHandler(bool value) {
   if (value) {
@@ -85,7 +86,6 @@ static void PrecompilationModeHandler(bool value) {
 
     FLAG_background_compilation = false;
     FLAG_always_megamorphic_calls = true;
-    FLAG_collect_dynamic_function_names = true;
     FLAG_fields_may_be_reset = true;
     FLAG_ic_range_profiling = false;
     FLAG_interpret_irregexp = true;
@@ -280,11 +280,6 @@ bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
 
 
 void FlowGraphCompiler::InitCompiler() {
-#ifndef PRODUCT
-  TimelineDurationScope tds(thread(),
-                            Timeline::GetCompilerStream(),
-                            "InitCompiler");
-#endif  // !PRODUCT
   pc_descriptors_list_ = new(zone()) DescriptorList(64);
   exception_handlers_list_ = new(zone()) ExceptionHandlerList();
   block_info_.Clear();
@@ -359,7 +354,9 @@ bool FlowGraphCompiler::CanOSRFunction() const {
 
 
 bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
-  if (FLAG_stacktrace_every > 0 || FLAG_deoptimize_every > 0) {
+  if ((FLAG_stacktrace_every > 0) ||
+      (FLAG_deoptimize_every > 0) ||
+      (FLAG_reload_every > 0)) {
     return true;
   }
   if (FLAG_stacktrace_filter != NULL &&
@@ -1197,7 +1194,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     return;
   }
   ASSERT(!ic_data.IsNull());
-  if (is_optimizing() && (ic_data.NumberOfUsedChecks() == 0)) {
+  if (is_optimizing() && (ic_data_in.NumberOfUsedChecks() == 0)) {
     // Emit IC call that will count and thus may need reoptimization at
     // function entry.
     ASSERT(may_reoptimize() || flow_graph().IsCompiledForOsr());

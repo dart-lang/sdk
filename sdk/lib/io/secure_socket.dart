@@ -74,21 +74,17 @@ abstract class SecureSocket implements Socket {
       {host,
        SecurityContext context,
        bool onBadCertificate(X509Certificate certificate)}) {
-    var completer = new Completer();
-    (socket as dynamic)._detachRaw()
-        .then((detachedRaw) {
+    return ((socket as dynamic/*_Socket*/)._detachRaw() as Future)
+        .then/*<RawSecureSocket>*/((detachedRaw) {
           return RawSecureSocket.secure(
-            detachedRaw[0],
-            subscription: detachedRaw[1],
+            detachedRaw[0] as RawSocket,
+            subscription: detachedRaw[1] as StreamSubscription<RawSocketEvent>,
             host: host,
             context: context,
             onBadCertificate: onBadCertificate);
           })
-        .then((raw) {
-          completer.complete(new SecureSocket._(raw));
-        });
-    return completer.future;
-  }
+        .then/*<SecureSocket>*/((raw) => new SecureSocket._(raw));
+ }
 
   /**
    * Takes an already connected [socket] and starts server side TLS
@@ -118,22 +114,18 @@ abstract class SecureSocket implements Socket {
        bool requestClientCertificate: false,
        bool requireClientCertificate: false,
        List<String> supportedProtocols}) {
-    var completer = new Completer();
-    (socket as dynamic)._detachRaw()
-        .then((detachedRaw) {
+    return ((socket as dynamic/*_Socket*/)._detachRaw() as Future)
+        .then/*<RawSecureSocket>*/((detachedRaw) {
           return RawSecureSocket.secureServer(
-            detachedRaw[0],
+            detachedRaw[0] as RawSocket,
             context,
-            subscription: detachedRaw[1],
+            subscription: detachedRaw[1] as StreamSubscription<RawSocketEvent>,
             bufferedData: bufferedData,
             requestClientCertificate: requestClientCertificate,
             requireClientCertificate: requireClientCertificate,
             supportedProtocols: supportedProtocols);
           })
-        .then((raw) {
-          completer.complete(new SecureSocket._(raw));
-        });
-    return completer.future;
+        .then/*<SecureSocket>*/((raw) => new SecureSocket._(raw));
   }
 
   /**
@@ -244,7 +236,7 @@ abstract class RawSecureSocket implements RawSocket {
    */
   static Future<RawSecureSocket> secure(
       RawSocket socket,
-      {StreamSubscription subscription,
+      {StreamSubscription<RawSocketEvent> subscription,
        host,
        SecurityContext context,
        bool onBadCertificate(X509Certificate certificate),
@@ -288,7 +280,7 @@ abstract class RawSecureSocket implements RawSocket {
   static Future<RawSecureSocket> secureServer(
       RawSocket socket,
       SecurityContext context,
-      {StreamSubscription subscription,
+      {StreamSubscription<RawSocketEvent> subscription,
        List<int> bufferedData,
        bool requestClientCertificate: false,
        bool requireClientCertificate: false,
@@ -405,7 +397,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   bool _socketClosedWrite = false;  // The network socket is closed for writing.
   bool _closedRead = false;  // The secure socket has fired an onClosed event.
   bool _closedWrite = false;  // The secure socket has been closed for writing.
-  Completer _closeCompleter = new Completer();  // The network socket is gone.
+  // The network socket is gone.
+  Completer<RawSecureSocket> _closeCompleter = new Completer<RawSecureSocket>();
   _FilterStatus _filterStatus = new _FilterStatus();
   bool _connectPending = true;
   bool _filterPending = false;
@@ -415,12 +408,12 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   String _selectedProtocol;
 
   static Future<_RawSecureSocket> connect(
-      host,
+      dynamic/*String|InternetAddress*/ host,
       int requestedPort,
       {bool is_server,
        SecurityContext context,
        RawSocket socket,
-       StreamSubscription subscription,
+       StreamSubscription<RawSocketEvent> subscription,
        List<int> bufferedData,
        bool requestClientCertificate: false,
        bool requireClientCertificate: false,
@@ -430,8 +423,10 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
                  requestClientCertificate, requireClientCertificate,
                  onBadCertificate);
     if (host is InternetAddress) host = host.host;
-    var address = socket.address;
-    if (host != null) address =  address._cloneWithNewHost(host);
+    InternetAddress address = socket.address;
+    if (host != null) {
+      address = InternetAddress._cloneWithNewHost(address, host);
+    }
     return new _RawSecureSocket(address,
                                 requestedPort,
                                 is_server,
@@ -517,10 +512,10 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
   }
 
-  StreamSubscription listen(void onData(RawSocketEvent data),
-                            {Function onError,
-                             void onDone(),
-                             bool cancelOnError}) {
+  StreamSubscription<RawSocketEvent> listen(void onData(RawSocketEvent data),
+                                            {Function onError,
+                                             void onDone(),
+                                             bool cancelOnError}) {
     _sendWriteEvent();
     return _stream.listen(onData,
                           onError: onError,
@@ -574,7 +569,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     return _closeCompleter.future;
   }
 
-  void _completeCloseCompleter([dummy]) {
+  void _completeCloseCompleter([RawSocket dummy]) {
     if (!_closeCompleter.isCompleted) _closeCompleter.complete(this);
   }
 
@@ -1060,7 +1055,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
  * and one writing.  All updates to start and end are done by Dart code.
  */
 class _ExternalBuffer {
-  List data;  // This will be a ExternalByteArray, backed by C allocated data.
+  // This will be an ExternalByteArray, backed by C allocated data.
+  List<int> data;
   int start;
   int end;
   final size;

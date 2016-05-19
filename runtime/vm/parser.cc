@@ -514,8 +514,8 @@ void Parser::ParseCompilationUnit(const Library& library,
   Thread* thread = Thread::Current();
   ASSERT(thread->long_jump_base()->IsSafeToJump());
   CSTAT_TIMER_SCOPE(thread, parser_timer);
-  VMTagScope tagScope(thread, VMTag::kCompileTopLevelTagId);
 #ifndef PRODUCT
+  VMTagScope tagScope(thread, VMTag::kCompileTopLevelTagId);
   TimelineDurationScope tds(thread,
                             Timeline::GetCompilerStream(),
                             "CompileTopLevel");
@@ -989,9 +989,9 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   Zone* zone = thread->zone();
   CSTAT_TIMER_SCOPE(thread, parser_timer);
   INC_STAT(thread, num_functions_parsed, 1);
+#ifndef PRODUCT
   VMTagScope tagScope(thread, VMTag::kCompileParseFunctionTagId,
                       FLAG_profile_vm);
-#ifndef PRODUCT
   TimelineDurationScope tds(thread,
                             Timeline::GetCompilerStream(),
                             "ParseFunction");
@@ -1234,6 +1234,12 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
   Thread* thread = Thread::Current();
   // TODO(koda): Should there be a StackZone here?
   Zone* zone = thread->zone();
+#ifndef PRODUCT
+  VMTagScope tagScope(thread, VMTag::kCompileParseFunctionTagId,
+                      FLAG_profile_vm);
+  TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
+                            "ParseStaticFieldInitializer");
+#endif  // !PRODUCT
 
   const String& field_name = String::Handle(zone, field.name());
   String& init_name = String::Handle(zone,
@@ -2416,7 +2422,7 @@ StaticCallNode* Parser::GenerateSuperConstructorCall(
   arguments->Add(implicit_argument);
 
   // If this is a super call in a forwarding constructor, add the user-
-  // defined arguments to the super call and adjust the the super
+  // defined arguments to the super call and adjust the super
   // constructor name to the respective named constructor if necessary.
   if (forwarding_args != NULL) {
     for (int i = 0; i < forwarding_args->length(); i++) {
@@ -4384,8 +4390,7 @@ void Parser::ParseEnumDeclaration(const GrowableObjectArray& pending_classes,
     ReportError(name_pos, "'%s' is already defined", enum_name->ToCString());
   }
   Class& cls = Class::Handle(Z);
-  cls = Class::New(*enum_name, script_, declaration_pos);
-  cls.set_library(library_);
+  cls = Class::New(library_, *enum_name, script_, declaration_pos);
   library_.AddClass(cls);
   cls.set_is_synthesized_class();
   cls.set_is_enum_class();
@@ -4428,7 +4433,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
       ReportError(classname_pos, "missing class '%s' cannot be patched",
                   class_name.ToCString());
     }
-    cls = Class::New(class_name, script_, declaration_pos);
+    cls = Class::New(library_, class_name, script_, declaration_pos);
     library_.AddClass(cls);
   } else {
     if (!obj.IsClass()) {
@@ -4440,8 +4445,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
       // Preserve and reuse the original type parameters and bounds since the
       // ones defined in the patch class will not be finalized.
       orig_type_parameters = cls.type_parameters();
-      cls = Class::New(class_name, script_, declaration_pos);
-      cls.set_library(library_);
+      cls = Class::New(library_, class_name, script_, declaration_pos);
     } else {
       // Not patching a class, but it has been found. This must be one of the
       // pre-registered classes from object.cc or a duplicate definition.
@@ -4911,7 +4915,8 @@ void Parser::ParseMixinAppAlias(
                 class_name.ToCString());
   }
   const Class& mixin_application =
-      Class::Handle(Z, Class::New(class_name, script_, classname_pos));
+      Class::Handle(Z, Class::New(library_, class_name,
+                                  script_, classname_pos));
   mixin_application.set_is_mixin_app_alias();
   library_.AddClass(mixin_application);
   set_current_class(mixin_application);
@@ -5039,8 +5044,9 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   // signature function after it has been parsed. The type parameters, in order
   // to be properly finalized, need to be associated to this scope class as
   // they are parsed.
-  const Class& function_type_alias = Class::Handle(Z,
-      Class::New(*alias_name, script_, declaration_pos));
+  const Class& function_type_alias =
+      Class::Handle(Z, Class::New(
+          library_, *alias_name, script_, declaration_pos));
   function_type_alias.set_is_synthesized_class();
   function_type_alias.set_is_abstract();
   function_type_alias.set_is_prefinalized();
@@ -6090,7 +6096,8 @@ void Parser::ParseTopLevel() {
   Object& tl_owner = Object::Handle(Z);
   Class& toplevel_class = Class::Handle(Z, library_.toplevel_class());
   if (toplevel_class.IsNull()) {
-    toplevel_class = Class::New(Symbols::TopLevel(), script_, TokenPos());
+    toplevel_class =
+        Class::New(library_, Symbols::TopLevel(), script_, TokenPos());
     toplevel_class.set_library(library_);
     library_.set_toplevel_class(toplevel_class);
     tl_owner = toplevel_class.raw();
@@ -12005,64 +12012,22 @@ bool Parser::IsInstantiatorRequired() const {
   return current_class().IsGeneric();
 }
 
-// We cache computed compile-time constants in a map so we can look them
-// up when the same code gets compiled again. The map key is a pair
-// (script url, token position) which is encoded in an array with 2
-// elements:
-// - key[0] contains the canonicalized url of the script.
-// - key[1] contains the token position of the constant in the script.
 
-// ConstantPosKey allows us to look up a constant in the map without
-// allocating a key pair (array).
-struct ConstantPosKey : ValueObject {
-  ConstantPosKey(const String& url, TokenPosition pos)
-      : script_url(url), token_pos(pos) { }
-  const String& script_url;
-  TokenPosition token_pos;
-};
-
-
-class ConstMapKeyEqualsTraits {
- public:
-  static const char* Name() { return "ConstMapKeyEqualsTraits"; }
-  static bool ReportStats() { return false; }
-
-  static bool IsMatch(const Object& a, const Object& b) {
-    const Array& key1 = Array::Cast(a);
-    const Array& key2 = Array::Cast(b);
-    // Compare raw strings of script url symbol and raw smi of token positon.
-    return (key1.At(0) == key2.At(0)) && (key1.At(1) == key2.At(1));
+void Parser::InsertCachedConstantValue(const String& url,
+                                       TokenPosition token_pos,
+                                       const Instance& value) {
+  Isolate* isolate = Isolate::Current();
+  ConstantPosKey key(url, token_pos);
+  if (isolate->object_store()->compile_time_constants() == Array::null()) {
+    const intptr_t kInitialConstMapSize = 16;
+    isolate->object_store()->set_compile_time_constants(
+        Array::Handle(HashTables::New<ConstantsMap>(kInitialConstMapSize,
+                                                    Heap::kNew)));
   }
-  static bool IsMatch(const ConstantPosKey& key1, const Object& b) {
-    const Array& key2 = Array::Cast(b);
-    // Compare raw strings of script url symbol and token positon.
-    return (key1.script_url.raw() == key2.At(0))
-        && (key1.token_pos.value() == Smi::Value(Smi::RawCast(key2.At(1))));
-  }
-  static uword Hash(const Object& obj) {
-    const Array& key = Array::Cast(obj);
-    intptr_t url_hash = String::HashRawSymbol(String::RawCast(key.At(0)));
-    intptr_t pos = Smi::Value(Smi::RawCast(key.At(1)));
-    return HashValue(url_hash, pos);
-  }
-  static uword Hash(const ConstantPosKey& key) {
-    return HashValue(String::HashRawSymbol(key.script_url.raw()),
-                     key.token_pos.value());
-  }
-  // Used by CacheConstantValue if a new constant is added to the map.
-  static RawObject* NewKey(const ConstantPosKey& key) {
-    const Array& key_obj = Array::Handle(Array::New(2));
-    key_obj.SetAt(0, key.script_url);
-    key_obj.SetAt(1, Smi::Handle(Smi::New(key.token_pos.value())));
-    return key_obj.raw();;
-  }
-
- private:
-  static uword HashValue(intptr_t url_hash, intptr_t pos) {
-    return url_hash * pos % (Smi::kMaxValue - 13);
-  }
-};
-typedef UnorderedHashMap<ConstMapKeyEqualsTraits> ConstantsMap;
+  ConstantsMap constants(isolate->object_store()->compile_time_constants());
+  constants.InsertNewOrGetValue(key, value);
+  isolate->object_store()->set_compile_time_constants(constants.Release());
+}
 
 
 void Parser::CacheConstantValue(TokenPosition token_pos,
@@ -12072,19 +12037,13 @@ void Parser::CacheConstantValue(TokenPosition token_pos,
     // evaluated only once.
     return;
   }
-  ConstantPosKey key(String::Handle(Z, script_.url()), token_pos);
-  if (isolate()->object_store()->compile_time_constants() == Array::null()) {
-    const intptr_t kInitialConstMapSize = 16;
-    isolate()->object_store()->set_compile_time_constants(
-        Array::Handle(Z, HashTables::New<ConstantsMap>(kInitialConstMapSize,
-                                                       Heap::kNew)));
-  }
-  ConstantsMap constants(isolate()->object_store()->compile_time_constants());
-  constants.InsertNewOrGetValue(key, value);
+  const String& url = String::Handle(Z, script_.url());
+  InsertCachedConstantValue(url, token_pos, value);
   if (FLAG_compiler_stats) {
+    ConstantsMap constants(isolate()->object_store()->compile_time_constants());
     thread_->compiler_stats()->num_cached_consts = constants.NumOccupied();
+    constants.Release();
   }
-  isolate()->object_store()->set_compile_time_constants(constants.Release());
 }
 
 
@@ -14525,6 +14484,13 @@ RawObject* Parser::ParseMetadata(const Field& meta_data) {
 ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
   UNREACHABLE();
   return NULL;
+}
+
+
+void Parser::InsertCachedConstantValue(const String& url,
+                                       TokenPosition token_pos,
+                                       const Instance& value) {
+  UNREACHABLE();
 }
 
 

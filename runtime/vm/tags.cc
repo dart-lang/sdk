@@ -37,6 +37,17 @@ bool VMTag::IsNativeEntryTag(uword tag) {
 }
 
 
+bool VMTag::IsDartTag(uword id) {
+  return id == kDartTagId;
+}
+
+
+bool VMTag::IsExitFrameTag(uword id) {
+  return (id != 0) && !IsDartTag(id) && (id != kIdleTagId) &&
+         (id != kVMTagId) && (id != kEmbedderTagId);
+}
+
+
 static RuntimeEntry* runtime_entry_list = NULL;
 
 

@@ -1738,6 +1738,29 @@ f() {
     verify([source]);
   }
 
+  void test_required_method_param_in_other_lib() {
+    addNamedSource(
+        '/a_lib.dart',
+        r'''
+library a_lib;
+import 'package:meta/meta.dart';
+class A {
+  void m({@Required('must specify an `a`') int a}) {}
+}
+''');
+
+    Source source = addSource(r'''
+import "a_lib.dart";
+f() {
+  new A().m();
+}
+''');
+
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
+    verify([source]);
+  }
+
   void test_typeCheck_type_is_Null() {
     Source source = addSource(r'''
 m(i) {
@@ -1765,8 +1788,7 @@ import 'lib1.dart' hide a;''');
     addNamedSource("/lib1.dart", "library lib1;");
     computeLibrarySourceErrors(source);
     assertErrors(
-        source,
-        [HintCode.UNUSED_IMPORT, HintCode.UNDEFINED_HIDDEN_NAME]);
+        source, [HintCode.UNUSED_IMPORT, HintCode.UNDEFINED_HIDDEN_NAME]);
     verify([source]);
   }
 
@@ -1777,8 +1799,7 @@ import 'lib1.dart' show a;''');
     addNamedSource("/lib1.dart", "library lib1;");
     computeLibrarySourceErrors(source);
     assertErrors(
-        source,
-        [HintCode.UNUSED_IMPORT, HintCode.UNDEFINED_SHOWN_NAME]);
+        source, [HintCode.UNUSED_IMPORT, HintCode.UNDEFINED_SHOWN_NAME]);
     verify([source]);
   }
 

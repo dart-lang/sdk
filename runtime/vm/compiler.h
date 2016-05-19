@@ -38,7 +38,7 @@ class CompilationPipeline : public ZoneAllocated {
       ParsedFunction* parsed_function,
       const ZoneGrowableArray<const ICData*>& ic_data_array,
       intptr_t osr_id) = 0;
-  virtual void FinalizeCompilation() = 0;
+  virtual void FinalizeCompilation(FlowGraph* flow_graph) = 0;
   virtual ~CompilationPipeline() { }
 };
 
@@ -53,7 +53,7 @@ class DartCompilationPipeline : public CompilationPipeline {
       const ZoneGrowableArray<const ICData*>& ic_data_array,
       intptr_t osr_id);
 
-  virtual void FinalizeCompilation();
+  virtual void FinalizeCompilation(FlowGraph* flow_graph);
 };
 
 
@@ -69,7 +69,7 @@ class IrregexpCompilationPipeline : public CompilationPipeline {
       const ZoneGrowableArray<const ICData*>& ic_data_array,
       intptr_t osr_id);
 
-  virtual void FinalizeCompilation();
+  virtual void FinalizeCompilation(FlowGraph* flow_graph);
 
  private:
   IndirectGotoInstr* backtrack_goto_;
@@ -163,7 +163,14 @@ class BackgroundCompiler : public ThreadPool::Task {
   static void EnsureInit(Thread* thread);
 
   // Stops background compiler of the given isolate.
+  // TODO(turnidge): Give Stop and Disable more distinct names.
   static void Stop(Isolate* isolate);
+
+  static void Disable();
+
+  static void Enable();
+
+  static bool IsDisabled();
 
   // Call to optimize a function in the background, enters the function in the
   // compilation queue.

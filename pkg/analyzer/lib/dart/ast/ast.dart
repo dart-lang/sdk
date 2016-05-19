@@ -598,13 +598,14 @@ abstract class AstNode {
    * returns `true`, or `null` if there is no such ancestor. Note that this node
    * will never be returned.
    */
-  AstNode getAncestor(Predicate<AstNode> predicate);
+  AstNode/*=E*/ getAncestor/*<E extends AstNode>*/(
+      Predicate<AstNode> predicate);
 
   /**
    * Return the value of the property with the given [name], or `null` if this
    * node does not have a property with the given name.
    */
-  Object getProperty(String name);
+  Object/*=E*/ getProperty/*<E>*/(String name);
 
   /**
    * Set the value of the property with the given [name] to the given [value].

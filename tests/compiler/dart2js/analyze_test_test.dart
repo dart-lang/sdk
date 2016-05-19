@@ -58,27 +58,34 @@ const List<MessageKind> MESSAGE_SKIP_LIST = const <MessageKind>[
 
 main(List<String> arguments) {
   List<String> options = <String>[];
-  for (String argument in arguments) {
-    if (argument == '-v') {
-      options.add(Flags.verbose);
-    } else if (argument.startsWith('-')) {
-      options.add(argument);
-    }
-  }
   List<Uri> uriList = <Uri>[];
-  for (String arg in arguments) {
-    if (!arg.startsWith('-')) {
-      for (String line in new File(arg).readAsLinesSync()) {
-        line = line.trim();
-        if (line.startsWith('Analyzing uri: ')) {
-          int filenameOffset = line.indexOf('tests/compiler/dart2js/');
-          if (filenameOffset != -1) {
-            uriList.add(Uri.base.resolve(
-                nativeToUriPath(line.substring(filenameOffset))));
+  String filter;
+  bool first = true;
+  for (String argument in arguments) {
+    if (argument.startsWith('-')) {
+      options.add(argument == '-v' ? Flags.verbose : argument);
+    } else if (first) {
+      File file = new File(argument);
+      if (file.existsSync()) {
+        // Read test files from [file].
+        for (String line in file.readAsLinesSync()) {
+          line = line.trim();
+          if (line.startsWith('Analyzing uri: ')) {
+            int filenameOffset = line.indexOf('tests/compiler/dart2js/');
+            if (filenameOffset != -1) {
+              uriList.add(Uri.base.resolve(
+                  nativeToUriPath(line.substring(filenameOffset))));
+            }
           }
         }
+      } else {
+        // Use argument as filter on test files.
+        filter = argument;
       }
+    } else {
+      throw new ArgumentError("Extra argument $argument in $arguments.");
     }
+    first = false;
   }
 
   asyncTest(() async {
@@ -88,6 +95,9 @@ main(List<String> arguments) {
       for (FileSystemEntity entity in dir.listSync(recursive: true)) {
         if (entity is File && entity.path.endsWith('.dart')) {
           Uri file = Uri.base.resolve(nativeToUriPath(entity.path));
+          if (filter != null && !'$file'.contains(filter)) {
+            continue;
+          }
           if (!SKIP_LIST.any((skip) => file.path.contains(skip))) {
             uriList.add(file);
           }

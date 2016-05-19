@@ -22,7 +22,6 @@ import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilder;
 import '../util/enumset.dart' show EnumSet;
-import '../world.dart' show World;
 
 import 'send_structure.dart';
 
@@ -169,10 +168,6 @@ class ResolutionRegistry extends Registry {
             new _ResolutionWorldImpact(mapping.analyzedElement.toString());
 
   bool get isForResolution => true;
-
-  ResolutionEnqueuer get world => compiler.enqueuer.resolution;
-
-  World get universe => compiler.world;
 
   Backend get backend => compiler.backend;
 
@@ -397,11 +392,6 @@ class ResolutionRegistry extends Registry {
 
   ClassElement defaultSuperclass(ClassElement element) {
     return backend.defaultSuperclass(element);
-  }
-
-  void registerMixinUse(
-      MixinApplicationElement mixinApplication, ClassElement mixin) {
-    universe.registerMixinUse(mixinApplication, mixin);
   }
 
   void registerInstantiation(InterfaceType type) {

@@ -206,14 +206,9 @@ static RawInteger* ParseInteger(const String& value) {
     }
   }
 
-  Scanner scanner(value, Symbols::Empty());
-  const Scanner::GrowableTokenStream& tokens = scanner.GetStream();
   const String* int_string;
   bool is_positive;
-  if (Scanner::IsValidLiteral(tokens,
-                             Token::kINTEGER,
-                             &is_positive,
-                             &int_string)) {
+  if (Scanner::IsValidInteger(value, &is_positive, &int_string)) {
     if (is_positive) {
       return Integer::New(*int_string);
     }

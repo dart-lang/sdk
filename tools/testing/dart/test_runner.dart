@@ -348,10 +348,12 @@ class VmCommand extends ProcessCommand {
 class AdbPrecompilationCommand extends Command {
   final String precompiledRunnerFilename;
   final String precompiledTestDirectory;
+  final List<String> arguments;
   final bool useBlobs;
 
   AdbPrecompilationCommand._(this.precompiledRunnerFilename,
                              this.precompiledTestDirectory,
+                             this.arguments,
                              this.useBlobs)
       : super._("adb_precompilation");
 
@@ -359,6 +361,7 @@ class AdbPrecompilationCommand extends Command {
     super._buildHashCode(builder);
     builder.add(precompiledRunnerFilename);
     builder.add(precompiledTestDirectory);
+    builder.add(arguments);
     builder.add(useBlobs);
   }
 
@@ -366,6 +369,7 @@ class AdbPrecompilationCommand extends Command {
       super._equal(other) &&
       precompiledRunnerFilename == other.precompiledRunnerFilename &&
       useBlobs == other.useBlobs &&
+      arguments == other.arguments &&
       precompiledTestDirectory == other.precompiledTestDirectory;
 
   String toString() => 'Steps to push precompiled runner and precompiled code '
@@ -640,9 +644,10 @@ class CommandBuilder {
 
   AdbPrecompilationCommand getAdbPrecompiledCommand(String precompiledRunner,
                                                     String testDirectory,
+                                                    List<String> arguments,
                                                     bool useBlobs) {
     var command = new AdbPrecompilationCommand._(
-        precompiledRunner, testDirectory, useBlobs);
+        precompiledRunner, testDirectory, arguments, useBlobs);
     return _getUniqueCommand(command);
   }
 
@@ -2415,7 +2420,7 @@ class CommandQueue {
 
 /*
  * [CommandExecutor] is responsible for executing commands. It will make sure
- * that the the following two constraints are satisfied
+ * that the following two constraints are satisfied
  *  - [:numberOfProcessesUsed <= maxProcesses:]
  *  - [:numberOfBrowserProcessesUsed <= maxBrowserProcesses:]
  *
@@ -2518,6 +2523,7 @@ class CommandExecutorImpl implements CommandExecutor {
       AdbDevice device, AdbPrecompilationCommand command, int timeout) async {
     var runner = command.precompiledRunnerFilename;
     var testdir = command.precompiledTestDirectory;
+    var arguments = command.arguments;
     var devicedir = '/data/local/tmp/precompilation-testing';
     var deviceTestDir = '/data/local/tmp/precompilation-testing/test';
 
@@ -2556,13 +2562,13 @@ class CommandExecutorImpl implements CommandExecutor {
       steps.add(() => device.runAdbShellCommand(
             ['$devicedir/dart_precompiled_runtime',
              '--run-app-snapshot=$deviceTestDir',
-             '--use-blobs', 'ignored.dart'],
+             '--use-blobs']..addAll(arguments),
             timeout: timeoutDuration));
     } else {
       steps.add(() => device.runAdbShellCommand(
             ['$devicedir/dart_precompiled_runtime',
-             '--run-app-snapshot=$deviceTestDir',
-             'ignored.dart'],
+             '--run-app-snapshot=$deviceTestDir'
+             ]..addAll(arguments),
             timeout: timeoutDuration));
     }
 

@@ -56,6 +56,7 @@ ObjectStore::ObjectStore()
     error_class_(Class::null()),
     weak_property_class_(Class::null()),
     symbol_table_(Array::null()),
+    canonical_types_(Array::null()),
     canonical_type_arguments_(Array::null()),
     async_library_(Library::null()),
     builtin_library_(Library::null()),
@@ -184,6 +185,10 @@ RawError* ObjectStore::PreallocateObjects() {
 
 
 void ObjectStore::InitKnownObjects() {
+#ifdef DART_PRECOMPILED_RUNTIME
+  // These objects are only needed for code generation.
+  return;
+#else
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -205,6 +210,7 @@ void ObjectStore::InitKnownObjects() {
   const Library& internal_lib = Library::Handle(internal_library());
   cls = internal_lib.LookupClass(Symbols::Symbol());
   set_symbol_class(cls);
+#endif
 }
 
 }  // namespace dart

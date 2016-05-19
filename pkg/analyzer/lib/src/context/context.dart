@@ -1016,7 +1016,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   Object/*=V*/ getResult/*<V>*/(
       AnalysisTarget target, ResultDescriptor/*<V>*/ result) {
-    return _cache.getValue(target, result) as Object/*=V*/;
+    return _cache.getValue(target, result);
   }
 
   @override

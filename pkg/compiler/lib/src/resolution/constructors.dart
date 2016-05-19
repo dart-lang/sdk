@@ -249,7 +249,7 @@ class InitializerResolver {
   /// reported and an [ErroneousConstructorElement] is returned.
   ConstructorElement verifyThatConstructorMatchesCall(
       Node node,
-      ConstructorElementX lookedupConstructor,
+      ConstructorElement lookedupConstructor,
       CallStructure callStructure,
       String className,
       {String constructorName: '',

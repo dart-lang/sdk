@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef RUNTIME_PLATFORM_GLOBALS_H_
-#define RUNTIME_PLATFORM_GLOBALS_H_
+#ifndef PLATFORM_GLOBALS_H_
+#define PLATFORM_GLOBALS_H_
 
 // __STDC_FORMAT_MACROS has to be defined before including <inttypes.h> to
 // enable platform independent printf format specifiers.
@@ -359,6 +359,25 @@ typedef simd128_value_t fpu_register_t;
 #error Unknown architecture.
 #endif
 
+// Disable background threads by default on armv5te. The relevant
+// implementations are uniprocessors.
+#if !defined(TARGET_ARCH_ARM_5TE)
+#define ARCH_IS_MULTI_CORE 1
+#endif
+
+
+#if defined(TARGET_ARCH_ARM)
+#if defined(TARGET_ABI_IOS) && defined(TARGET_ABI_EABI)
+#error Both TARGET_ABI_IOS and TARGET_ABI_EABI defined.
+#elif !defined(TARGET_ABI_IOS) && !defined(TARGET_ABI_EABI)
+#if defined(TARGET_OS_MAC)
+#define TARGET_ABI_IOS 1
+#else
+#define TARGET_ABI_EABI 1
+#endif
+#endif
+#endif  // TARGET_ARCH_ARM
+
 
 // Short form printf format specifiers
 #define Pd PRIdPTR
@@ -678,4 +697,4 @@ static inline T ReadUnaligned(const T* ptr) {
 
 }  // namespace dart
 
-#endif  // RUNTIME_PLATFORM_GLOBALS_H_
+#endif  // PLATFORM_GLOBALS_H_

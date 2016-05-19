@@ -3577,17 +3577,17 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     bool outerBreakValue = _enclosingBlockContainsBreak;
     _enclosingBlockContainsBreak = false;
     try {
+      if (_nodeExits(node.body)) {
+        return true;
+      }
       Expression conditionExpression = node.condition;
       if (_nodeExits(conditionExpression)) {
         return true;
       }
       // TODO(jwren) Do we want to take all constant expressions into account?
       if (conditionExpression is BooleanLiteral) {
-        // If do {} while (true), and the body doesn't return or the body
-        // doesn't have a break, then return true.
-        bool blockReturns = _nodeExits(node.body);
-        if (conditionExpression.value &&
-            (blockReturns || !_enclosingBlockContainsBreak)) {
+        // If do {} while (true), and the body doesn't break, then return true.
+        if (conditionExpression.value && !_enclosingBlockContainsBreak) {
           return true;
         }
       }

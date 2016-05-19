@@ -4,23 +4,12 @@
 
 library dart2js.serialization_test_helper;
 
-import 'dart:io';
-import '../memory_compiler.dart';
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common/resolution.dart';
-import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/constants/constructors.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/dart_types.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/elements/visitor.dart';
-import 'package:compiler/src/ordered_typeset.dart';
-import 'package:compiler/src/serialization/element_serialization.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
-import 'package:compiler/src/serialization/json_serializer.dart';
-import 'package:compiler/src/serialization/serialization.dart';
 import 'package:compiler/src/tree/nodes.dart';
 
 /// Strategy for checking equivalence.
@@ -163,7 +152,8 @@ Set computeSetDifference(
     Iterable set2,
     List common,
     List unfound,
-    [bool sameElement(a, b) = equality]) {
+    {bool sameElement(a, b): equality,
+     void checkElements(a, b)}) {
   // TODO(johnniwinther): Avoid the quadratic cost here. Some ideas:
   // - convert each set to a list and sort it first, then compare by walking
   // both lists in parallel
@@ -175,6 +165,9 @@ Set computeSetDifference(
     bool found = false;
     for (var element2 in remaining) {
       if (sameElement(element1, element2)) {
+        if (checkElements != null) {
+          checkElements(element1, element2);
+        }
         found = true;
         remaining.remove(element2);
         break;
@@ -199,11 +192,13 @@ bool checkSetEquivalence(
     String property,
     Iterable set1,
     Iterable set2,
-    bool sameElement(a, b)) {
+    bool sameElement(a, b),
+    {void onSameElement(a, b)}) {
   List common = [];
   List unfound = [];
   Set remaining =
-      computeSetDifference(set1, set2, common, unfound, sameElement);
+      computeSetDifference(set1, set2, common, unfound,
+          sameElement: sameElement, checkElements: onSameElement);
   if (unfound.isNotEmpty || remaining.isNotEmpty) {
     String message =
         "Set mismatch for `$property` on $object1 vs $object2: \n"

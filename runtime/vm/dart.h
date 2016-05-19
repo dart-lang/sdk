@@ -21,7 +21,7 @@ class ThreadPool;
 
 class Dart : public AllStatic {
  public:
-  static const char* InitOnce(
+  static char* InitOnce(
       const uint8_t* vm_isolate_snapshot,
       const uint8_t* instructions_snapshot,
       const uint8_t* data_snapshot,
@@ -60,6 +60,8 @@ class Dart : public AllStatic {
 
   static uword AllocateReadOnlyHandle();
   static bool IsReadOnlyHandle(uword address);
+
+  static const char* FeaturesString(Snapshot::Kind kind);
 
   static Snapshot::Kind snapshot_kind() {
     return snapshot_kind_;

@@ -91,13 +91,21 @@
             <div class="memberItem">
               <div class="memberName">Tag Order</div>
               <div class="memberValue">
-                <select value="{{tagSelector}}">
-                  <option value="UserVM">User &gt; VM</option>
-                  <option value="UserOnly">User</option>
-                  <option value="VMUser">VM &gt; User</option>
-                  <option value="VMOnly">VM</option>
-                  <option value="None">None</option>
-                </select>
+                <template if="{{ profileVM }}">
+                  <select value="{{tagSelector}}">
+                    <option value="UserVM">User &gt; VM</option>
+                    <option value="UserOnly">User</option>
+                    <option value="VMUser">VM &gt; User</option>
+                    <option value="VMOnly">VM</option>
+                    <option value="None">None</option>
+                  </select>
+                </template>
+                <template if="{{ !profileVM }}">
+                  <select value="{{tagSelector}}">
+                    <option value="UserOnly">User</option>
+                    <option value="None">None</option>
+                  </select>
+                </template>
               </div>
             </div>
           </template>
@@ -253,6 +261,15 @@
     .full {
       height: 50%;
       width: 100%;
+    }
+    .coldProfile {
+      background-color: #aea;
+    }
+    .mediumProfile {
+      background-color: #fe9;
+    }
+    .hotProfile {
+      background-color: #faa;
     }
     </style>
     <div id="tree" class="full"></div>
@@ -468,7 +485,7 @@
     <br>
     <div class="flex-row centered">
       <div class="flex-item-90-percent outlined" style="margin: 16px; margin-left: 8px; margin-right: 8px">
-        <cpu-profile-tree id="cpuProfileTree"></cpu-profile-tree>
+        <cpu-profile-virtual-tree id="cpuProfileTree"></cpu-profile-virtual-tree>
       </div>
     </div>
   </template>

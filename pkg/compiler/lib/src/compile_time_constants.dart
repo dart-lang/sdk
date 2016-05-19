@@ -1187,7 +1187,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    * the [fieldValues] map.
    */
   void evaluateConstructorInitializers() {
-    if (constructor.isSynthesized) {
+    ResolvedAst resolvedAst = constructor.resolvedAst;
+    if (resolvedAst.kind != ResolvedAstKind.PARSED) {
       List<AstConstant> compiledArguments = <AstConstant>[];
 
       Function compileArgument = (element) => definitions[element];
@@ -1198,7 +1199,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       evaluateSuperOrRedirectSend(compiledArguments, target);
       return;
     }
-    FunctionExpression functionNode = constructor.node;
+    FunctionExpression functionNode = resolvedAst.node;
     NodeList initializerList = functionNode.initializers;
 
     bool foundSuperOrRedirect = false;

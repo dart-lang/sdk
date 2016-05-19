@@ -1571,6 +1571,19 @@ main() {
 ''');
   }
 
+  void test_genericMethods_usesGreatestLowerBound() {
+    var mainUnit = checkFile(r'''
+typedef Iterable<num> F(int x);
+typedef List<int> G(double x);
+
+/*=T*/ generic/*<T>*/(a(/*=T*/ _), b(/*=T*/ _)) => null;
+
+var v = generic((F f) => null, (G g) => null);
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), '(num) → List<int>');
+  }
+
   void test_infer_assignToIndex() {
     checkFile(r'''
 List<double> a = <double>[];
@@ -2303,6 +2316,14 @@ var f = () {};
 ''');
     var f = mainUnit.topLevelVariables[0];
     expect(f.type.toString(), '() → dynamic');
+  }
+
+  void test_inferredType_fromTopLevelExecutableTearoff() {
+    var mainUnit = checkFile('''
+var v = print;
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), '(Object) → void');
   }
 
   void test_inferredType_isEnum() {

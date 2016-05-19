@@ -50,7 +50,7 @@ class DartCompletionPlugin implements Plugin {
    * The extension point that allows plugins to register Dart specific
    * completion contributor factories.
    */
-  ExtensionPoint _contributorExtensionPoint;
+  ExtensionPoint<DartCompletionContributorFactory> _contributorExtensionPoint;
 
   /**
    * Return a list containing all of the Dart specific completion contributors.
@@ -64,9 +64,10 @@ class DartCompletionPlugin implements Plugin {
 
   @override
   void registerExtensionPoints(RegisterExtensionPoint registerExtensionPoint) {
-    _contributorExtensionPoint = registerExtensionPoint(
-        CONTRIBUTOR_EXTENSION_POINT,
-        _validateDartCompletionContributorExtension);
+    _contributorExtensionPoint =
+        new ExtensionPoint<DartCompletionContributorFactory>(
+            this, CONTRIBUTOR_EXTENSION_POINT, null);
+    registerExtensionPoint(_contributorExtensionPoint);
   }
 
   @override
@@ -118,17 +119,5 @@ class DartCompletionPlugin implements Plugin {
         () => new UriContributor());
     registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
         () => new VariableNameContributor());
-  }
-
-  /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not a
-   * valid Dart specific completion contributor.
-   */
-  void _validateDartCompletionContributorExtension(Object extension) {
-    if (extension is! DartCompletionContributorFactory) {
-      String id = _contributorExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError(
-          'Extensions to $id must be a DartCompletionContributorFactory');
-    }
   }
 }

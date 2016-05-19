@@ -141,6 +141,15 @@ abstract class InternetAddress {
    */
   external static Future<List<InternetAddress>> lookup(
       String host, {InternetAddressType type: InternetAddressType.ANY});
+
+  /**
+   * Clones the given [address] with the new [host].
+   *
+   * The [address] must be an [InternetAddress] that was created with one
+   * of the static methods of this class.
+   */
+  external static InternetAddress _cloneWithNewHost(
+      InternetAddress address, String host);
 }
 
 
@@ -559,6 +568,10 @@ abstract class Socket implements Stream<List<int>>, IOSink {
    * Returns the remote [InternetAddress] connected to by this socket.
    */
   InternetAddress get remoteAddress;
+
+  Future<Socket> close();
+
+  Future<Socket> get done;
 }
 
 

@@ -564,12 +564,6 @@ class ResynthesizeAstTest extends ResynthesizeTest
   TestSummaryResynthesizer encodeDecodeLibrarySource(Source source) {
     return _encodeLibrary(source);
   }
-
-  @override
-  @failingTest
-  void test_inferred_function_type_in_generic_class_constructor() {
-    super.test_inferred_function_type_in_generic_class_constructor();
-  }
 }
 
 /**

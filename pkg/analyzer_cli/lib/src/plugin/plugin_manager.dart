@@ -11,9 +11,9 @@ import 'package:path/path.dart' as path;
 
 const _manifestFileName = 'plugins.yaml';
 
-/// Given a local configuration (as defined in `.analysis_options`)
-/// and information from a plugin manifest, return plugin info
-/// appropriate for configuring this plugin.
+/// Given a local configuration (as defined in an analysis options file) and
+/// information from a plugin manifest, return plugin info appropriate for
+/// configuring this plugin.
 PluginInfo combine(PluginInfo localConfig, PluginInfo manifestInfo) {
   return new PluginInfo(
       name: localConfig.name,

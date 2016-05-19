@@ -248,7 +248,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return enumType;
   }
 
-  /// Resolves the mixed type for [mixinNode] and checks that the the mixin type
+  /// Resolves the mixed type for [mixinNode] and checks that the mixin type
   /// is a valid, non-blacklisted interface type. The mixin type is returned.
   DartType checkMixinType(TypeAnnotation mixinNode) {
     DartType mixinType = resolveType(mixinNode);
@@ -444,7 +444,6 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       previous = current;
       current = currentMixinApplication.mixin;
     }
-    registry.registerMixinUse(mixinApplication, mixin);
     return mixinType;
   }
 

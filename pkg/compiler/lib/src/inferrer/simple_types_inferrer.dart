@@ -47,10 +47,6 @@ abstract class InferrerEngine<T, V extends TypeSystem>
 
   CoreTypes get coreTypes => compiler.coreTypes;
 
-  ResolvedAst getResolvedAst(Element element) {
-    return compiler.backend.frontend.getResolvedAst(element.declaration);
-  }
-
   /**
    * Records the default type of parameter [parameter].
    */
@@ -268,7 +264,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
       throw "updateSelector for IR node $node";
     }
     ast.Node astNode = node;
-    TreeElements elements = getResolvedAst(owner).elements;
+    TreeElements elements = owner.resolvedAst.elements;
     if (astNode.asSendSet() != null) {
       if (selector.isSetter || selector.isIndexSet) {
         elements.setTypeMask(node, mask);
@@ -359,12 +355,9 @@ class SimpleTypeInferrerVisitor<T>
             compiler,
             handler);
 
-  ResolvedAst getResolvedAst(Element element) {
-    return compiler.backend.frontend.getResolvedAst(element.declaration);
-  }
-
-  void analyzeSuperConstructorCall(Element target, ArgumentsTypes arguments) {
-    ResolvedAst resolvedAst = getResolvedAst(target);
+  void analyzeSuperConstructorCall(
+      AstElement target, ArgumentsTypes arguments) {
+    ResolvedAst resolvedAst = target.resolvedAst;
     inferrer.analyze(resolvedAst, arguments);
     isThisExposed = isThisExposed || inferrer.checkIfExposesThis(target);
   }
@@ -487,7 +480,7 @@ class SimpleTypeInferrerVisitor<T>
         cls.forEachInstanceField((_, FieldElement field) {
           if (field.isFinal) return;
           T type = locals.fieldScope.readField(field);
-          ResolvedAst resolvedAst = getResolvedAst(field);
+          ResolvedAst resolvedAst = field.resolvedAst;
           if (type == null && resolvedAst.body == null) {
             inferrer.recordTypeOfNonFinalField(
                 spannable, field, types.nullType);
@@ -565,7 +558,7 @@ class SimpleTypeInferrerVisitor<T>
     LocalsHandler closureLocals =
         new LocalsHandler<T>.from(locals, node, useOtherTryBlock: false);
     SimpleTypeInferrerVisitor visitor = new SimpleTypeInferrerVisitor<T>(
-        element, getResolvedAst(element), compiler, inferrer, closureLocals);
+        element, element.resolvedAst, compiler, inferrer, closureLocals);
     visitor.run();
     inferrer.recordReturnType(element, visitor.returnType);
 
@@ -667,16 +660,17 @@ class SimpleTypeInferrerVisitor<T>
     if (isThisExposed) return;
     inferrer.forEachElementMatching(selector, mask, (element) {
       if (element.isField) {
+        ResolvedAst elementResolvedAst = element.resolvedAst;
         if (!selector.isSetter &&
             isInClassOrSubclass(element) &&
-            !element.modifiers.isFinal &&
+            !element.isFinal &&
             locals.fieldScope.readField(element) == null &&
-            element.initializer == null) {
+            elementResolvedAst.body == null) {
           // If the field is being used before this constructor
           // actually had a chance to initialize it, say it can be
           // null.
           inferrer.recordTypeOfNonFinalField(
-              analyzedElement.node, element, types.nullType);
+              resolvedAst.node, element, types.nullType);
         }
         // Accessing a field does not expose [:this:].
         return true;

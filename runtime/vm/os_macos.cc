@@ -109,6 +109,10 @@ int64_t OS::GetCurrentMonotonicTicks() {
   origin += boottime.tv_usec;
   return now - origin;
 #else
+  if (timebase_info.denom == 0) {
+    kern_return_t kr = mach_timebase_info(&timebase_info);
+    ASSERT(KERN_SUCCESS == kr);
+  }
   ASSERT(timebase_info.denom != 0);
   // timebase_info converts absolute time tick units into nanoseconds.
   int64_t result = mach_absolute_time();
@@ -204,8 +208,24 @@ intptr_t OS::ActivationFrameAlignment() {
 
 
 intptr_t OS::PreferredCodeAlignment() {
-  ASSERT(32 <= OS::kMaxPreferredCodeAlignment);
-  return 32;
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM64) ||                                              \
+    defined(TARGET_ARCH_DBC)
+  const int kMinimumAlignment = 32;
+#elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+  const int kMinimumAlignment = 16;
+#else
+#error Unsupported architecture.
+#endif
+  intptr_t alignment = kMinimumAlignment;
+  // TODO(5411554): Allow overriding default code alignment for
+  // testing purposes.
+  // Flags::DebugIsInt("codealign", &alignment);
+  ASSERT(Utils::IsPowerOfTwo(alignment));
+  ASSERT(alignment >= kMinimumAlignment);
+  ASSERT(alignment <= OS::kMaxPreferredCodeAlignment);
+  return alignment;
 }
 
 
@@ -275,6 +295,23 @@ char* OS::StrNDup(const char* s, intptr_t n) {
   return reinterpret_cast<char*>(memmove(result, s, len));
 #else  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
   return strndup(s, n);
+#endif  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
+}
+
+
+intptr_t OS::StrNLen(const char* s, intptr_t n) {
+  // strnlen has only been added to Mac OS X in 10.7. We are supplying
+  // our own copy here if needed.
+#if !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || \
+    __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ <= 1060
+  intptr_t len = 0;
+  while ((len <= n) && (*s != '\0')) {
+    s++;
+    len++;
+  }
+  return len;
+#else  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
+  return strnlen(s, n);
 #endif  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
 }
 
@@ -396,8 +433,6 @@ void OS::InitOnce() {
   static bool init_once_called = false;
   ASSERT(init_once_called == false);
   init_once_called = true;
-  kern_return_t kr = mach_timebase_info(&timebase_info);
-  ASSERT(KERN_SUCCESS == kr);
 }
 
 

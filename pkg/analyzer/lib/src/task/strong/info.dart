@@ -469,7 +469,7 @@ abstract class StaticError extends StaticInfo {
 abstract class StaticInfo {
   /// Strong-mode error code names.
   ///
-  /// Used for error code configuration validation in `.analysis_options`.
+  /// Used for error code configuration validation in an analysis options file.
   static const List<String> names = const [
     //
     // Manually populated.

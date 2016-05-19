@@ -85,8 +85,7 @@ abstract class ClientCommunicationChannel {
  * Instances of the class [JsonStreamDecoder] convert JSON strings to JSON
  * maps.
  */
-class JsonStreamDecoder extends
-    ChunkedConverter<String, Map, String, Map> {
+class JsonStreamDecoder extends Converter<String, Map> {
   @override
   Map convert(String text) => JSON.decode(text);
 
@@ -99,8 +98,7 @@ class JsonStreamDecoder extends
  * Instances of the class [NotificationConverter] convert JSON maps to
  * [Notification]s.
  */
-class NotificationConverter extends
-    ChunkedConverter<Map, Notification, Map, Notification> {
+class NotificationConverter extends Converter<Map, Notification> {
   @override
   Notification convert(Map json) => new Notification.fromJson(json);
 
@@ -112,8 +110,7 @@ class NotificationConverter extends
 /**
  * Instances of the class [ResponseConverter] convert JSON maps to [Response]s.
  */
-class ResponseConverter extends
-    ChunkedConverter<Map, Response, Map, Response> {
+class ResponseConverter extends Converter<Map, Response> {
   @override
   Response convert(Map json) => new Response.fromJson(json);
 

@@ -14,6 +14,7 @@
 #include "vm/object_store.h"
 #include "vm/regexp_assembler.h"
 #include "vm/symbols.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -1552,7 +1553,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ movzxw(RCX, FieldAddress(RDI, Class::num_type_arguments_offset()));
   __ cmpq(RCX, Immediate(0));
   __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
-  __ movq(RAX, FieldAddress(RDI, Class::canonical_types_offset()));
+  __ movq(RAX, FieldAddress(RDI, Class::canonical_type_offset()));
   __ CompareObject(RAX, Object::null_object());
   __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Not yet set.
   __ ret();
@@ -2083,6 +2084,29 @@ void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
 void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
   __ LoadIsolate(RAX);
   __ movq(RAX, Address(RAX, Isolate::current_tag_offset()));
+  __ ret();
+}
+
+
+void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler) {
+  if (!FLAG_support_timeline) {
+    __ LoadObject(RAX, Bool::False());
+    __ ret();
+    return;
+  }
+  Label true_label;
+  // Load TimelineStream*.
+  __ movq(RAX, Address(THR, Thread::dart_stream_offset()));
+  // Load uintptr_t from TimelineStream*.
+  __ movq(RAX, Address(RAX, TimelineStream::enabled_offset()));
+  __ cmpq(RAX, Immediate(0));
+  __ j(NOT_ZERO, &true_label, Assembler::kNearJump);
+  // Not enabled.
+  __ LoadObject(RAX, Bool::False());
+  __ ret();
+  // Enabled.
+  __ Bind(&true_label);
+  __ LoadObject(RAX, Bool::True());
   __ ret();
 }
 

@@ -1299,6 +1299,19 @@ class Primitives {
           return JS('', '#[#](#[0],#[1],#[2])', function, selectorName,
           arguments, arguments, arguments);
         }
+      } else if (argumentCount == 4) {
+        String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX4);
+        if (JS('bool', '!!#[#]', function, selectorName)) {
+          return JS('', '#[#](#[0],#[1],#[2],#[3])', function, selectorName,
+          arguments, arguments, arguments, arguments);
+        }
+      } else if (argumentCount == 5) {
+        String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX5);
+        if (JS('bool', '!!#[#]', function, selectorName)) {
+          return JS('', '#[#](#[0],#[1],#[2],#[3],#[4])',
+          function, selectorName,
+          arguments, arguments, arguments, arguments, arguments);
+        }
       }
       String selectorName =
           '${JS_GET_NAME(JsGetName.CALL_PREFIX)}\$$argumentCount';
@@ -1464,6 +1477,18 @@ class Primitives {
       if (JS('bool', '!!#[#]', function, selectorName)) {
         return JS('', '#[#](#[0],#[1],#[2])', function, selectorName,
             arguments, arguments, arguments);
+      }
+    } else if (arguments.length == 4) {
+      String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX4);
+      if (JS('bool', '!!#[#]', function, selectorName)) {
+        return JS('', '#[#](#[0],#[1],#[2],#[3])', function, selectorName,
+            arguments, arguments, arguments, arguments);
+      }
+    } else if (arguments.length == 5) {
+      String selectorName = JS_GET_NAME(JsGetName.CALL_PREFIX5);
+      if (JS('bool', '!!#[#]', function, selectorName)) {
+        return JS('', '#[#](#[0],#[1],#[2],#[3],#[4])', function, selectorName,
+            arguments, arguments, arguments, arguments, arguments);
       }
     }
     return _genericApplyFunctionWithPositionalArguments(function, arguments);
@@ -3328,7 +3353,7 @@ void checkDeferredIsLoaded(String loadId, String uri) {
  * objects that support integer indexing. This interface is not
  * visible to anyone, and is only injected into special libraries.
  */
-abstract class JavaScriptIndexingBehavior extends JSMutableIndexable {
+abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {
 }
 
 // TODO(lrn): These exceptions should be implemented in core.

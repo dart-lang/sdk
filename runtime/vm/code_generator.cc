@@ -20,6 +20,7 @@
 #include "vm/parser.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
+#include "vm/service_isolate.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/thread_registry.h"
@@ -59,6 +60,9 @@ DEFINE_FLAG(charp, stacktrace_filter, NULL,
             "Compute stacktrace in named function on stack overflow checks");
 DEFINE_FLAG(charp, deoptimize_filter, NULL,
             "Deoptimize in named function on stack overflow checks");
+
+DECLARE_FLAG(int, reload_every);
+DECLARE_FLAG(bool, reload_every_optimized);
 
 #ifdef DEBUG
 DEFINE_FLAG(charp, gc_at_instance_allocation, NULL,
@@ -668,7 +672,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   const Code& orig_stub = Code::Handle(
       zone, isolate->debugger()->GetPatchedStubAddress(caller_frame->pc()));
   const Error& error =
-      Error::Handle(zone, isolate->debugger()->SignalBpReached());
+      Error::Handle(zone, isolate->debugger()->PauseBreakpoint());
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
     UNREACHABLE();
@@ -682,7 +686,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
     UNREACHABLE();
     return;
   }
-  const Error& error = Error::Handle(isolate->debugger()->SignalBpReached());
+  const Error& error = Error::Handle(isolate->debugger()->PauseBreakpoint());
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
     UNREACHABLE();
@@ -697,7 +701,7 @@ DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
     return;
   }
   const Error& error =
-      Error::Handle(zone, isolate->debugger()->DebuggerStepCallback());
+      Error::Handle(zone, isolate->debugger()->PauseStepping());
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
     UNREACHABLE();
@@ -1237,7 +1241,10 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   // debugger stack tracing.
   bool do_deopt = false;
   bool do_stacktrace = false;
-  if ((FLAG_deoptimize_every > 0) || (FLAG_stacktrace_every > 0)) {
+  bool do_reload = false;
+  if ((FLAG_deoptimize_every > 0) ||
+      (FLAG_stacktrace_every > 0) ||
+      (FLAG_reload_every > 0)) {
     // TODO(turnidge): To make --deoptimize_every and
     // --stacktrace-every faster we could move this increment/test to
     // the generated code.
@@ -1250,8 +1257,14 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
         (count % FLAG_stacktrace_every) == 0) {
       do_stacktrace = true;
     }
+    if ((FLAG_reload_every > 0) &&
+        (count % FLAG_reload_every) == 0) {
+      do_reload = isolate->CanReload();
+    }
   }
-  if ((FLAG_deoptimize_filter != NULL) || (FLAG_stacktrace_filter != NULL)) {
+  if ((FLAG_deoptimize_filter != NULL) ||
+      (FLAG_stacktrace_filter != NULL) ||
+      FLAG_reload_every_optimized) {
     DartFrameIterator iterator;
     StackFrame* frame = iterator.NextFrame();
     ASSERT(frame != NULL);
@@ -1261,6 +1274,10 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     ASSERT(!function.IsNull());
     const char* function_name = function.ToFullyQualifiedCString();
     ASSERT(function_name != NULL);
+    if (!code.is_optimized() && FLAG_reload_every_optimized) {
+      // Don't do the reload if we aren't inside optimized code.
+      do_reload = false;
+    }
     if (code.is_optimized() &&
         FLAG_deoptimize_filter != NULL &&
         strstr(function_name, FLAG_deoptimize_filter) != NULL) {
@@ -1278,6 +1295,9 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   if (do_deopt) {
     // TODO(turnidge): Consider using DeoptimizeAt instead.
     DeoptimizeFunctionsOnStack();
+  }
+  if (do_reload) {
+    NOT_IN_PRODUCT(isolate->OnStackReload();)
   }
   if (FLAG_support_debugger && do_stacktrace) {
     String& var_name = String::Handle();
@@ -1414,20 +1434,22 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
       if (FLAG_enable_inlining_annotations) {
         FATAL("Cannot enable inlining annotations and background compilation");
       }
-      if (FLAG_background_compilation_stop_alot) {
-        BackgroundCompiler::Stop(isolate);
+      if (!BackgroundCompiler::IsDisabled()) {
+        if (FLAG_background_compilation_stop_alot) {
+          BackgroundCompiler::Stop(isolate);
+        }
+        // Reduce the chance of triggering optimization while the function is
+        // being optimized in the background. INT_MIN should ensure that it
+        // takes long time to trigger optimization.
+        // Note that the background compilation queue rejects duplicate entries.
+        function.set_usage_counter(INT_MIN);
+        BackgroundCompiler::EnsureInit(thread);
+        ASSERT(isolate->background_compiler() != NULL);
+        isolate->background_compiler()->CompileOptimized(function);
+        // Continue in the same code.
+        arguments.SetReturn(Code::Handle(zone, function.CurrentCode()));
+        return;
       }
-      // Reduce the chance of triggering optimization while the function is
-      // being optimized in the background. INT_MIN should ensure that it takes
-      // long time to trigger optimization.
-      // Note that the background compilation queue rejects duplicate entries.
-      function.set_usage_counter(INT_MIN);
-      BackgroundCompiler::EnsureInit(thread);
-      ASSERT(isolate->background_compiler() != NULL);
-      isolate->background_compiler()->CompileOptimized(function);
-      // Continue in the same code.
-      arguments.SetReturn(Code::Handle(zone, function.CurrentCode()));
-      return;
     }
 
     // Reset usage counter for reoptimization before calling optimizer to

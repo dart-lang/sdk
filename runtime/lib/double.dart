@@ -63,28 +63,28 @@ class _Double implements double {
   }
   bool _greaterThan(double other) native "Double_greaterThan";
   bool operator >=(num other) {
-    return (this == other) ||  (this > other);
+    return (this == other) || (this > other);
   }
   bool operator <=(num other) {
-    return (this == other) ||  (this < other);
+    return (this == other) || (this < other);
   }
   double _addFromInteger(int other) {
-    return new _Double.fromInteger(other) + this;
+    return new _Double.fromInteger(other)._add(this);
   }
   double _subFromInteger(int other) {
-    return new _Double.fromInteger(other) - this;
+    return new _Double.fromInteger(other)._sub(this);
   }
   double _mulFromInteger(int other) {
-    return new _Double.fromInteger(other) * this;
+    return new _Double.fromInteger(other)._mul(this);
   }
   int _truncDivFromInteger(int other) {
-    return new _Double.fromInteger(other) ~/ this;
+    return new _Double.fromInteger(other)._trunc_div(this);
   }
   double _moduloFromInteger(int other) {
-    return new _Double.fromInteger(other) % this;
+    return new _Double.fromInteger(other)._modulo(this);
   }
   double _remainderFromInteger(int other) {
-    return new _Double.fromInteger(other).remainder(this);
+    return new _Double.fromInteger(other)._remainder(this);
   }
   bool _greaterThanFromInteger(int other)
       native "Double_greaterThanFromInteger";
@@ -117,8 +117,12 @@ class _Double implements double {
   double truncateToDouble() native "Double_truncate";
 
   num clamp(num lowerLimit, num upperLimit) {
-    if (lowerLimit is! num) throw new ArgumentError(lowerLimit);
-    if (upperLimit is! num) throw new ArgumentError(upperLimit);
+    if (lowerLimit is! num) {
+      throw new ArgumentError.value(lowerLimit, "lowerLimit", "not a number");
+    }
+    if (upperLimit is! num) {
+      throw new ArgumentError.value(upperLimit, "upperLimit", "not a number");
+    }
 
     if (lowerLimit.compareTo(upperLimit) > 0) {
       throw new ArgumentError(lowerLimit);
@@ -166,11 +170,12 @@ class _Double implements double {
     // See ECMAScript-262, 15.7.4.5 for details.
 
     if (fractionDigits is! int) {
-      throw new ArgumentError(fractionDigits);
+      throw new ArgumentError.value(
+          fractionDigits, "fractionDigits", "not an integer");
     }
     // Step 2.
     if (fractionDigits < 0 || fractionDigits > 20) {
-      throw new RangeError(fractionDigits);
+      throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
     }
 
     // Step 3.
@@ -200,10 +205,11 @@ class _Double implements double {
     // Step 7.
     if (fractionDigits != null) {
       if (fractionDigits is! int) {
-        throw new ArgumentError(fractionDigits);
+        throw new ArgumentError.value(
+            fractionDigits, "fractionDigits", "not an integer");
       }
       if (fractionDigits < 0 || fractionDigits > 20) {
-        throw new RangeError(fractionDigits);
+        throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
       }
     }
 
@@ -227,11 +233,12 @@ class _Double implements double {
     // at the fractionDigits. In Dart we are consistent with toStringAsFixed and
     // look at the fractionDigits first.
 
-    if (precision is! int) throw new ArgumentError(precision);
-
+    if (precision is! int) {
+      throw new ArgumentError.value(precision, "precision", "not an integer");
+    }
     // Step 8.
     if (precision < 1 || precision > 21) {
-      throw new RangeError(precision);
+      throw new RangeError.range(precision, 1, 21, "precision");
     }
 
     if (isNaN) return "NaN";

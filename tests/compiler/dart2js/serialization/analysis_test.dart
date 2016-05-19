@@ -8,8 +8,6 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/common/backend_api.dart';
-import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/filenames.dart';
 import '../memory_compiler.dart';
@@ -40,7 +38,7 @@ Future analyze(String serializedData, Uri entryPoint, Test test) async {
       options: [Flags.analyzeOnly],
       diagnosticHandler: diagnosticCollector,
       beforeRun: (Compiler compiler) {
-        deserialize(compiler, serializedData);
+        compiler.serialization.deserializeFromText(serializedData);
       });
   if (test != null) {
     Expect.equals(test.expectedErrorCount, diagnosticCollector.errors.length,

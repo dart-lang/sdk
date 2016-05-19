@@ -36,37 +36,42 @@ class ClosureTask extends CompilerTask {
       if (resolvedAst.kind != ResolvedAstKind.PARSED) {
         return new ClosureClassMap(null, null, null, new ThisLocal(element));
       }
-      Node node = resolvedAst.node;
-      TreeElements elements = resolvedAst.elements;
+      return reporter.withCurrentElement(element.implementation, () {
+        Node node = resolvedAst.node;
+        TreeElements elements = resolvedAst.elements;
 
-      ClosureClassMap cached = closureMappingCache[node];
-      if (cached != null) return cached;
+        ClosureClassMap cached = closureMappingCache[node];
+        if (cached != null) return cached;
 
-      ClosureTranslator translator =
-          new ClosureTranslator(compiler, elements, closureMappingCache);
+        ClosureTranslator translator =
+            new ClosureTranslator(compiler, elements, closureMappingCache);
 
-      // The translator will store the computed closure-mappings inside the
-      // cache. One for given node and one for each nested closure.
-      if (node is FunctionExpression) {
-        translator.translateFunction(element, node);
-      } else if (element.isSynthesized) {
-        reporter.internalError(
-            element, "Unexpected synthesized element: $element");
-        return new ClosureClassMap(null, null, null, new ThisLocal(element));
-      } else {
-        assert(element.isField);
-        Node initializer = resolvedAst.body;
-        if (initializer != null) {
-          // The lazy initializer of a static.
-          translator.translateLazyInitializer(element, node, initializer);
+        // The translator will store the computed closure-mappings inside the
+        // cache. One for given node and one for each nested closure.
+        if (node is FunctionExpression) {
+          translator.translateFunction(element, node);
+        } else if (element.isSynthesized) {
+          reporter.internalError(
+              element, "Unexpected synthesized element: $element");
+          return new ClosureClassMap(null, null, null, new ThisLocal(element));
         } else {
-          assert(element.isInstanceMember);
-          closureMappingCache[node] =
-              new ClosureClassMap(null, null, null, new ThisLocal(element));
+          assert(invariant(element, element.isField,
+              message: "Expected $element to be a field."));
+          Node initializer = resolvedAst.body;
+          if (initializer != null) {
+            // The lazy initializer of a static.
+            translator.translateLazyInitializer(element, node, initializer);
+          } else {
+            assert(invariant(element, element.isInstanceMember,
+                message: "Expected $element (${element
+                    .runtimeType}) to be an instance field."));
+            closureMappingCache[node] =
+                new ClosureClassMap(null, null, null, new ThisLocal(element));
+          }
         }
-      }
-      assert(closureMappingCache[node] != null);
-      return closureMappingCache[node];
+        assert(closureMappingCache[node] != null);
+        return closureMappingCache[node];
+      });
     });
   }
 
@@ -96,6 +101,7 @@ class ClosureTask extends CompilerTask {
 
 /// Common interface for [BoxFieldElement] and [ClosureFieldElement] as
 /// non-elements.
+// TODO(johnniwinther): Remove `implements Element`.
 abstract class CapturedVariable implements Element {}
 
 // TODO(ahe): These classes continuously cause problems.  We need to
@@ -243,6 +249,8 @@ class BoxLocal extends Local {
   final ExecutableElement executableContext;
 
   BoxLocal(this.name, this.executableContext);
+
+  String toString() => 'BoxLocal($name)';
 }
 
 // TODO(ngeoffray, ahe): These classes continuously cause problems.  We need to
@@ -348,6 +356,8 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
 
   Element get analyzableElement => closureClass.methodElement.analyzableElement;
 
+  bool get hasResolvedAst => true;
+
   ResolvedAst get resolvedAst {
     return new ParsedResolvedAst(this, node, node.body, treeElements,
         expression.compilationUnit.script.resourceUri);
@@ -433,7 +443,7 @@ class ClosureClassMap {
   ///
   /// Also parameters to a `sync*` generator must be boxed, because of the way
   /// we rewrite sync* functions. See also comments in [useLocal].
-  /// TODO(johnniwinter): Add variables to this only if the variable is mutated.
+  // TODO(johnniwinther): Add variables to this only if the variable is mutated.
   final Set<Local> variablesUsedInTryOrGenerator = new Set<Local>();
 
   ClosureClassMap(this.closureElement, this.closureClassElement,

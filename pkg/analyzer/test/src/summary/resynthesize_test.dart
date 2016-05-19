@@ -211,8 +211,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
 
   void compareClassElements(
       ClassElement resynthesized, ClassElement original, String desc) {
-    ClassElementImpl r = getActualElement(resynthesized, desc);
-    ClassElementImpl o = getActualElement(original, desc);
+    ClassElementImpl r = ClassElementImpl.getImpl(resynthesized);
+    ClassElementImpl o = ClassElementImpl.getImpl(original);
     compareElements(r, o, desc);
     expect(r.fields.length, o.fields.length, reason: '$desc fields.length');
     for (int i = 0; i < r.fields.length; i++) {
@@ -675,11 +675,11 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         reason: desc);
     expect(resynthesized.docRange, original.docRange, reason: desc);
     compareMetadata(resynthesized.metadata, original.metadata, desc);
-    // Modifiers are a pain to test via handles.  So just test them via the
-    // actual element.
+
+    // Validate modifiers.
     for (Modifier modifier in Modifier.persistedValues) {
-      bool got = rImpl.hasModifier(modifier);
-      bool want = oImpl.hasModifier(modifier);
+      bool got = _hasModifier(resynthesized, modifier);
+      bool want = _hasModifier(original, modifier);
       expect(got, want,
           reason: 'Mismatch in $desc.$modifier: got $got, want $want');
     }
@@ -1220,6 +1220,97 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     expect(initializer, new isInstanceOf<SimpleIdentifier>(), reason: desc);
     SimpleIdentifier identifier = initializer;
     expect(identifier.staticElement, isNull, reason: desc);
+  }
+
+  bool _hasModifier(Element element, Modifier modifier) {
+    if (modifier == Modifier.ABSTRACT) {
+      if (element is ClassElement) {
+        return element.isAbstract;
+      }
+      if (element is ExecutableElement) {
+        return element.isAbstract;
+      }
+      return false;
+    } else if (modifier == Modifier.ASYNCHRONOUS) {
+      if (element is ExecutableElement) {
+        return element.isAsynchronous;
+      }
+      return false;
+    } else if (modifier == Modifier.CONST) {
+      if (element is VariableElement) {
+        return element.isConst;
+      }
+      return false;
+    } else if (modifier == Modifier.DEFERRED) {
+      if (element is ImportElement) {
+        return element.isDeferred;
+      }
+      return false;
+    } else if (modifier == Modifier.ENUM) {
+      if (element is ClassElement) {
+        return element.isEnum;
+      }
+      return false;
+    } else if (modifier == Modifier.EXTERNAL) {
+      if (element is ExecutableElement) {
+        return element.isExternal;
+      }
+      return false;
+    } else if (modifier == Modifier.FACTORY) {
+      if (element is ConstructorElement) {
+        return element.isFactory;
+      }
+      return false;
+    } else if (modifier == Modifier.FINAL) {
+      if (element is VariableElement) {
+        return element.isFinal;
+      }
+      return false;
+    } else if (modifier == Modifier.GENERATOR) {
+      if (element is ExecutableElement) {
+        return element.isGenerator;
+      }
+      return false;
+    } else if (modifier == Modifier.GETTER) {
+      if (element is PropertyAccessorElement) {
+        return element.isGetter;
+      }
+      return false;
+    } else if (modifier == Modifier.HAS_EXT_URI) {
+      if (element is LibraryElement) {
+        return element.hasExtUri;
+      }
+      return false;
+    } else if (modifier == Modifier.IMPLICIT_TYPE) {
+      if (element is ExecutableElement) {
+        return element.hasImplicitReturnType;
+      }
+      return false;
+    } else if (modifier == Modifier.MIXIN_APPLICATION) {
+      if (element is ClassElement) {
+        return element.isMixinApplication;
+      }
+      return false;
+    } else if (modifier == Modifier.REFERENCES_SUPER) {
+      if (element is ClassElement) {
+        return element.hasReferenceToSuper;
+      }
+      return false;
+    } else if (modifier == Modifier.SETTER) {
+      if (element is PropertyAccessorElement) {
+        return element.isSetter;
+      }
+      return false;
+    } else if (modifier == Modifier.STATIC) {
+      if (element is ExecutableElement) {
+        return element.isStatic;
+      }
+      return false;
+    } else if (modifier == Modifier.SYNTHETIC) {
+      return element.isSynthetic;
+    }
+    throw new UnimplementedError(
+        'Modifier $modifier for ${element?.runtimeType}');
   }
 }
 

@@ -611,7 +611,7 @@ class ContextManagerImpl implements ContextManager {
         p.optionsProcessed(info.context, options);
       } catch (e, stacktrace) {
         AnalysisEngine.instance.logger.logError(
-            'Error processing .analysis_options',
+            'Error processing analysis options',
             new CaughtException(e, stacktrace));
       }
     });

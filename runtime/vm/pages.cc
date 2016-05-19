@@ -35,8 +35,6 @@ DEFINE_FLAG(bool, log_code_drop, false,
             "Emit a log message when pointers to unused code are dropped.");
 DEFINE_FLAG(bool, always_drop_code, false,
             "Always try to drop code if the function's usage counter is >= 0");
-DEFINE_FLAG(bool, concurrent_sweep, true,
-            "Concurrent sweep for old generation.");
 DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 
 HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
@@ -846,7 +844,9 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     SpaceUsage usage_before = GetCurrentUsage();
 
     // Mark all reachable old-gen objects.
-    bool collect_code = FLAG_collect_code && ShouldCollectCode();
+    bool collect_code = FLAG_collect_code &&
+                        ShouldCollectCode() &&
+                        !isolate->HasAttemptedReload();
     GCMarker marker(heap_);
     marker.MarkObjects(isolate, this, invoke_api_callbacks, collect_code);
     usage_.used_in_words = marker.marked_words();

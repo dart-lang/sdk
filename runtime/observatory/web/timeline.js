@@ -2,17 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Used to delay the initial timeline load until the timeline has finished
-// loading.
-timeline_loaded = false;
-timeline_vm_address = undefined;
-timeline_isolates = undefined;
-
-function registerForMessages() {
-  window.addEventListener("message", onMessage, false);
-}
-
-registerForMessages();
+// See also timeline_message_handler.js.
 
 function onModelLoaded() {
   viewer.globalMode = true;
@@ -38,8 +28,6 @@ function updateTimeline(events) {
   p.then(onModelLoaded, onImportFail);
 }
 
-
-
 function fetchUri(uri, onLoad, onError) {
   var xhr = new XMLHttpRequest();
   xhr.open('GET', uri, true);
@@ -50,22 +38,37 @@ function fetchUri(uri, onLoad, onError) {
   console.log('GET ' + uri);
 }
 
-
 var traceObject;
 var pendingRequests;
+var loadingOverlay;
+
+function showLoadingOverlay(msg) {
+  if (!loadingOverlay) {
+    loadingOverlay = new tr.ui.b.Overlay();
+  }
+  loadingOverlay.textContent = msg;
+  loadingOverlay.title = 'Loading...';
+  loadingOverlay.visible = true;
+}
+
+function hideLoadingOverlay() {
+  if (!loadingOverlay) {
+    return;
+  }
+  loadingOverlay.visible = false;
+  loadingOverlay = undefined;
+}
 
 function gotReponse() {
   pendingRequests--;
   if (pendingRequests == 0) {
     console.log("Got all timeline parts");
     updateTimeline(traceObject);
+    hideLoadingOverlay();
   }
 }
 
-function fetchTimelineOnLoad(event) {
-  var xhr = event.target;
-  var response = JSON.parse(xhr.responseText);
-
+function processTimelineResponse(response) {
   if (response.error) {
     // Maybe profiling is disabled.
     console.log("ERROR " + response.error.message);
@@ -86,10 +89,35 @@ function fetchTimelineOnLoad(event) {
   gotReponse();
 }
 
+function fetchTimelineOnLoad(event) {
+  var xhr = event.target;
+  var response = JSON.parse(xhr.responseText);
+  processTimelineResponse(response);
+}
+
 function fetchTimelineOnError(event) {
   var xhr = event.target;
   console.log(xhr.statusText);
   gotReponse();
+}
+
+function fetchCPUProfile(vmAddress, isolateIds, timeOrigin, timeExtent) {
+  showLoadingOverlay('Fetching CPU profile(s) from Dart VM');
+  var parser = document.createElement('a');
+  parser.href = vmAddress;
+  pendingRequests += isolateIds.length;
+  for (var i = 0; i < isolateIds.length; i++) {
+    var isolateId = isolateIds[i];
+    var requestUri = 'http://' +
+                     parser.hostname +
+                     ':' +
+                     parser.port +
+                     '/_getCpuProfileTimeline?tags=VMUser&isolateId=' +
+                     isolateId +
+                     '&timeOriginMicros=' + timeOrigin +
+                     '&timeExtentMicros=' + timeExtent;
+    fetchUri(requestUri, fetchTimelineOnLoad, fetchTimelineOnError);
+  }
 }
 
 function fetchTimeline(vmAddress, isolateIds) {
@@ -98,8 +126,9 @@ function fetchTimeline(vmAddress, isolateIds) {
     'stackFrames': {},
     'traceEvents': []
   };
-  pendingRequests = 1 + isolateIds.length;
+  pendingRequests = 1;
 
+  showLoadingOverlay('Fetching timeline from Dart VM');
   var parser = document.createElement('a');
   parser.href = vmAddress;
   var requestUri = 'http://' +
@@ -107,18 +136,22 @@ function fetchTimeline(vmAddress, isolateIds) {
                    ':' +
                    parser.port +
                    '/_getVMTimeline';
-  fetchUri(requestUri, fetchTimelineOnLoad, fetchTimelineOnError);
-
-  for (var i = 0; i < isolateIds.length; i++) {
-    var isolateId = isolateIds[i];
-    var requestUri = 'http://' +
-                     parser.hostname +
-                     ':' +
-                     parser.port +
-                     '/_getCpuProfileTimeline?tags=VMUser&isolateId=' +
-                     isolateId;
-    fetchUri(requestUri, fetchTimelineOnLoad, fetchTimelineOnError);
-  }
+  fetchUri(requestUri, function(event) {
+    // Grab the response.
+    var xhr = event.target;
+    var response = JSON.parse(xhr.responseText);
+    // Extract the time origin and extent.
+    var timeOrigin = response['result']['timeOriginMicros'];
+    var timeExtent = response['result']['timeExtentMicros'];
+    console.assert(Number.isInteger(timeOrigin), timeOrigin);
+    console.assert(Number.isInteger(timeExtent), timeExtent);
+    console.log(timeOrigin);
+    console.log(timeExtent);
+    // fetchCPUProfile.
+    fetchCPUProfile(vmAddress, isolateIds, timeOrigin, timeExtent);
+    // This must happen after 'fetchCPUProfile';
+    processTimelineResponse(response);
+  }, fetchTimelineOnError);
 }
 
 function saveTimeline() {
@@ -200,35 +233,7 @@ function loadTimeline() {
   inputElement.click();
 }
 
-function onMessage(event) {
-  var request = JSON.parse(event.data);
-  var method = request['method'];
-  var params = request['params'];
-  switch (method) {
-    case 'refresh':
-      if (!timeline_loaded) {
-        timeline_vm_address = params['vmAddress'];
-        timeline_isolates = params['isolateIds'];
-        console.log('Delaying timeline refresh until loaded.');
-      } else {
-        fetchTimeline(params['vmAddress'], params['isolateIds']);
-      }
-    break;
-    case 'clear':
-      clearTimeline();
-    break;
-    case 'save':
-      saveTimeline();
-    break;
-    case 'load':
-      loadTimeline();
-    break;
-    default:
-      console.log('Unknown method:' + method + '.');
-  }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('DOMContentLoaded', function() {
   var container = document.createElement('track-view-container');
   container.id = 'track_view_container';
   viewer = document.createElement('tr-ui-timeline-view');
@@ -238,6 +243,7 @@ document.addEventListener('DOMContentLoaded', function() {
   viewer.globalMode = true;
   document.body.appendChild(viewer);
   timeline_loaded = true;
+  console.log('DOMContentLoaded');
   if (timeline_vm_address != undefined) {
     console.log('Triggering delayed timeline refresh.');
     fetchTimeline(timeline_vm_address, timeline_isolates);
@@ -246,4 +252,4 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-console.log('loaded');
+console.log('timeline.js loaded');

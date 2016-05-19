@@ -82,13 +82,13 @@ abstract class ElementZ extends Element with ElementCommon {
   bool get isClosure => false;
 
   @override
-  bool get isConst => _unsupported('isConst');
+  bool get isConst => false;
 
   @override
   bool get isDeferredLoaderGetter => false;
 
   @override
-  bool get isFinal => _unsupported('isFinal');
+  bool get isFinal => false;
 
   @override
   bool get isInstanceMember => false;
@@ -249,20 +249,32 @@ abstract class AnalyzableElementMixin implements AnalyzableElement, ElementZ {
   TreeElements get treeElements => _unsupported('treeElements');
 }
 
-abstract class AstElementMixin implements AstElement, ElementZ {
+abstract class AstElementMixinZ implements AstElement, ElementZ {
+  ResolvedAst _resolvedAst;
+
   // TODO(johnniwinther): This is needed for the token invariant assertion. Find
   // another way to bypass the test for modelz.
   @override
   bool get hasNode => false;
 
   @override
-  bool get hasResolvedAst => _unsupported('hasResolvedAst');
+  bool get hasResolvedAst => _resolvedAst != null;
 
   @override
   get node => _unsupported('node');
 
   @override
-  ResolvedAst get resolvedAst => _unsupported('resolvedAst');
+  ResolvedAst get resolvedAst {
+    assert(invariant(this, _resolvedAst != null,
+        message: "ResolvedAst has not been set for $this."));
+    return _resolvedAst;
+  }
+
+  void set resolvedAst(ResolvedAst value) {
+    assert(invariant(this, _resolvedAst == null,
+        message: "ResolvedAst has already been set for $this."));
+    _resolvedAst = value;
+  }
 }
 
 abstract class ContainerMixin
@@ -801,7 +813,7 @@ abstract class ClassElementMixin implements ElementZ, ClassElement {
 class ClassElementZ extends DeserializedElementZ
     with
         AnalyzableElementMixin,
-        AstElementMixin,
+        AstElementMixinZ,
         ClassElementCommon,
         class_members.ClassMemberMixin,
         ContainerMixin,
@@ -922,7 +934,7 @@ class UnnamedMixinApplicationElementZ extends ElementZ
         class_members.ClassMemberMixin,
         TypeDeclarationMixin<InterfaceType>,
         AnalyzableElementMixin,
-        AstElementMixin,
+        AstElementMixinZ,
         MixinApplicationElementCommon,
         MixinApplicationElementMixin {
   final String name;
@@ -941,6 +953,9 @@ class UnnamedMixinApplicationElementZ extends ElementZ
 
   @override
   CompilationUnitElement get compilationUnit => _subclass.compilationUnit;
+
+  @override
+  bool get isTopLevel => true;
 
   @override
   bool get isUnnamedMixinApplication => true;
@@ -1040,7 +1055,7 @@ class EnumClassElementZ extends ClassElementZ implements EnumClassElement {
 abstract class ConstructorElementZ extends DeserializedElementZ
     with
         AnalyzableElementMixin,
-        AstElementMixin,
+        AstElementMixinZ,
         ClassMemberMixin,
         FunctionTypedElementMixin,
         ParametersMixin,
@@ -1221,7 +1236,7 @@ class RedirectingFactoryConstructorElementZ extends ConstructorElementZ {
 }
 
 class ForwardingConstructorElementZ extends ElementZ
-    with AnalyzableElementMixin, AstElementMixin
+    with AnalyzableElementMixin, AstElementMixinZ
     implements ConstructorElement {
   final MixinApplicationElement enclosingClass;
   final ConstructorElement definingConstructor;
@@ -1261,7 +1276,9 @@ class ForwardingConstructorElementZ extends ElementZ
 
   @override
   FunctionSignature get functionSignature {
-    return _unsupported('functionSignature');
+    // TODO(johnniwinther): Ensure that the function signature (and with it the
+    // function type) substitutes type variables correctly.
+    return definingConstructor.functionSignature;
   }
 
   @override
@@ -1354,7 +1371,7 @@ abstract class MemberElementMixin
 abstract class FieldElementZ extends DeserializedElementZ
     with
         AnalyzableElementMixin,
-        AstElementMixin,
+        AstElementMixinZ,
         TypedElementMixin,
         MemberElementMixin
     implements FieldElement {
@@ -1421,7 +1438,7 @@ class InstanceFieldElementZ extends FieldElementZ
 abstract class FunctionElementZ extends DeserializedElementZ
     with
         AnalyzableElementMixin,
-        AstElementMixin,
+        AstElementMixinZ,
         ParametersMixin,
         FunctionTypedElementMixin,
         TypedElementMixin,
@@ -1500,7 +1517,7 @@ abstract class LocalExecutableMixin
 class LocalFunctionElementZ extends DeserializedElementZ
     with
         LocalExecutableMixin,
-        AstElementMixin,
+        AstElementMixinZ,
         ParametersMixin,
         FunctionTypedElementMixin,
         TypedElementMixin
@@ -1524,7 +1541,7 @@ class LocalFunctionElementZ extends DeserializedElementZ
 abstract class GetterElementZ extends DeserializedElementZ
     with
         AnalyzableElementMixin,
-        AstElementMixin,
+        AstElementMixinZ,
         FunctionTypedElementMixin,
         ParametersMixin,
         TypedElementMixin,
@@ -1564,7 +1581,7 @@ class InstanceGetterElementZ extends GetterElementZ
 abstract class SetterElementZ extends DeserializedElementZ
     with
         AnalyzableElementMixin,
-        AstElementMixin,
+        AstElementMixinZ,
         FunctionTypedElementMixin,
         ParametersMixin,
         TypedElementMixin,
@@ -1656,7 +1673,7 @@ abstract class TypeDeclarationMixin<T extends GenericType>
 class TypedefElementZ extends DeserializedElementZ
     with
         AnalyzableElementMixin,
-        AstElementMixin,
+        AstElementMixinZ,
         LibraryMemberMixin,
         ParametersMixin,
         TypeDeclarationMixin<TypedefType>
@@ -1698,7 +1715,7 @@ class TypedefElementZ extends DeserializedElementZ
 }
 
 class TypeVariableElementZ extends DeserializedElementZ
-    with AnalyzableElementMixin, AstElementMixin, TypedElementMixin
+    with AnalyzableElementMixin, AstElementMixinZ, TypedElementMixin
     implements TypeVariableElement {
   TypeDeclarationElement _typeDeclaration;
   TypeVariableType _type;
@@ -1756,7 +1773,7 @@ class TypeVariableElementZ extends DeserializedElementZ
 }
 
 class SyntheticTypeVariableElementZ extends ElementZ
-    with AnalyzableElementMixin, AstElementMixin
+    with AnalyzableElementMixin, AstElementMixinZ
     implements TypeVariableElement {
   final TypeDeclarationElement typeDeclaration;
   final int index;
@@ -1820,7 +1837,7 @@ class SyntheticTypeVariableElementZ extends ElementZ
 }
 
 abstract class ParameterElementZ extends DeserializedElementZ
-    with AnalyzableElementMixin, AstElementMixin, TypedElementMixin
+    with AnalyzableElementMixin, AstElementMixinZ, TypedElementMixin
     implements ParameterElement {
   FunctionElement _functionDeclaration;
   ConstantExpression _constant;
@@ -1901,6 +1918,9 @@ class LocalParameterElementZ extends ParameterElementZ
   }
 
   @override
+  bool get isLocal => true;
+
+  @override
   ElementKind get kind => ElementKind.PARAMETER;
 }
 
@@ -1930,7 +1950,7 @@ class InitializingFormalElementZ extends ParameterElementZ
 class LocalVariableElementZ extends DeserializedElementZ
     with
         AnalyzableElementMixin,
-        AstElementMixin,
+        AstElementMixinZ,
         LocalExecutableMixin,
         TypedElementMixin
     implements LocalVariableElement {

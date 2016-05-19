@@ -17,8 +17,7 @@ part of dart.convert;
  * [StringConversionSinkMixin], to ensure that their class covers the newly
  * added methods.
  */
-abstract class StringConversionSink
-    extends ChunkedConversionSink<String> {
+abstract class StringConversionSink extends ChunkedConversionSink<String> {
   StringConversionSink();
   factory StringConversionSink.withCallback(void callback(String accumulated))
       = _StringCallbackSink;

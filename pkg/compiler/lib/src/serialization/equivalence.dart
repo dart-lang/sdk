@@ -6,6 +6,7 @@
 
 library dart2js.serialization.equivalence;
 
+import '../closure.dart';
 import '../common.dart';
 import '../common/resolution.dart';
 import '../constants/expressions.dart';
@@ -402,6 +403,14 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
   @override
   bool visitFieldElement(FieldElement element1, FieldElement element2) {
     return checkMembers(element1, element2);
+  }
+
+  @override
+  bool visitBoxFieldElement(
+      BoxFieldElement element1, BoxFieldElement element2) {
+    return element1.box.name == element2.box.name &&
+        visit(element1.box.executableContext, element2.box.executableContext) &&
+        visit(element1.variableElement, element2.variableElement);
   }
 
   @override
@@ -822,7 +831,11 @@ bool testTreeElementsEquivalence(
   TreeElementsEquivalenceVisitor visitor = new TreeElementsEquivalenceVisitor(
       indices1, indices2, elements1, elements2, strategy);
   resolvedAst1.node.accept(visitor);
-  return visitor.success;
+  if (visitor.success) {
+    return strategy.test(elements1, elements2, 'containsTryStatement',
+        elements1.containsTryStatement, elements2.containsTryStatement);
+  }
+  return false;
 }
 
 /// Visitor that checks the equivalence of [TreeElements] data.

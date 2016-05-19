@@ -364,6 +364,9 @@ abstract class Compiler implements LibraryLoaderListener {
       reuseLibraryTask = new GenericTask('Reuse library', this),
       selfTask = new GenericTask('self', this),
     ];
+    if (options.resolveOnly) {
+      serialization.supportSerialization = true;
+    }
 
     _parsingContext =
         new ParsingContext(reporter, options, parser, patchParser, backend);
@@ -858,6 +861,12 @@ abstract class Compiler implements LibraryLoaderListener {
           }
         }
 
+        if (options.resolveOnly) {
+          reporter.log('Serializing to ${options.resolutionOutput}');
+          serialization.serializeToSink(
+              userOutputProvider.createEventSink('', 'data'),
+              libraryLoader.libraries);
+        }
         if (options.analyzeOnly) {
           if (!analyzeAll && !compilationFailed) {
             // No point in reporting unused code when [analyzeAll] is true: all
@@ -1934,9 +1943,6 @@ class _CompilerResolution implements Resolution {
         message: "Element $element must be the declaration."));
     assert(invariant(element, hasResolvedAst(element),
         message: "ResolvedAst not available for $element."));
-    if (compiler.serialization.isDeserialized(element)) {
-      return compiler.serialization.getResolvedAst(element);
-    }
     return element.resolvedAst;
   }
 

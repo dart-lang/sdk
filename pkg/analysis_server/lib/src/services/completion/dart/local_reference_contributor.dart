@@ -256,6 +256,13 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       _addLocalSuggestion_includeTypeNameSuggestions(
           declaration.name, NO_RETURN_TYPE, protocol.ElementKind.ENUM,
           isDeprecated: _isDeprecated(declaration));
+      for (EnumConstantDeclaration enumConstant in declaration.constants) {
+        if (!enumConstant.isSynthetic) {
+          _addLocalSuggestion_includeReturnValueSuggestions_enumConstant(
+              enumConstant, declaration,
+              isDeprecated: _isDeprecated(declaration));
+        }
+      }
     }
   }
 
@@ -419,6 +426,42 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     }
   }
 
+  void _addLocalSuggestion_enumConstant(
+      EnumConstantDeclaration constantDeclaration,
+      EnumDeclaration enumDeclaration,
+      {bool isAbstract: false,
+      bool isDeprecated: false,
+      ClassDeclaration classDecl,
+      int relevance: DART_RELEVANCE_DEFAULT}) {
+    String completion =
+        '${enumDeclaration.name.name}.${constantDeclaration.name.name}';
+    CompletionSuggestion suggestion = new CompletionSuggestion(
+        CompletionSuggestionKind.INVOCATION,
+        isDeprecated ? DART_RELEVANCE_LOW : relevance,
+        completion,
+        completion.length,
+        0,
+        isDeprecated,
+        false,
+        returnType: enumDeclaration.name.name);
+
+    suggestionMap.putIfAbsent(suggestion.completion, () => suggestion);
+    int flags = protocol.Element.makeFlags(
+        isAbstract: isAbstract,
+        isDeprecated: isDeprecated,
+        isPrivate: Identifier.isPrivateName(constantDeclaration.name.name));
+    suggestion.element = new protocol.Element(
+        protocol.ElementKind.ENUM_CONSTANT,
+        constantDeclaration.name.name,
+        flags,
+        location: new Location(
+            request.source.fullName,
+            constantDeclaration.name.offset,
+            constantDeclaration.name.length,
+            0,
+            0));
+  }
+
   void _addLocalSuggestion_includeReturnValueSuggestions(
       SimpleIdentifier id, TypeName typeName, protocol.ElementKind elemKind,
       {bool isAbstract: false,
@@ -434,6 +477,22 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           isDeprecated: isDeprecated,
           classDecl: classDecl,
           param: param,
+          relevance: relevance);
+    }
+  }
+
+  void _addLocalSuggestion_includeReturnValueSuggestions_enumConstant(
+      EnumConstantDeclaration constantDeclaration,
+      EnumDeclaration enumDeclaration,
+      {bool isAbstract: false,
+      bool isDeprecated: false,
+      int relevance: DART_RELEVANCE_DEFAULT}) {
+    relevance = optype.returnValueSuggestionsFilter(
+        enumDeclaration.element.type, relevance);
+    if (relevance != null) {
+      _addLocalSuggestion_enumConstant(constantDeclaration, enumDeclaration,
+          isAbstract: isAbstract,
+          isDeprecated: isDeprecated,
           relevance: relevance);
     }
   }

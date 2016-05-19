@@ -98,29 +98,67 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   List<TypeParameterElement> get typeParameters => actualElement.typeParameters;
 
   @override
-  ConstructorElement get unnamedConstructor => actualElement.unnamedConstructor;
+  ConstructorElement get unnamedConstructor {
+    ensureConstructorsReady();
+    return actualElement.unnamedConstructor;
+  }
 
   @override
   NamedCompilationUnitMember computeNode() => super.computeNode();
 
-  @override
-  FieldElement getField(String fieldName) => actualElement.getField(fieldName);
+  /**
+   * Ensure that [ClassElement.accessors] and [ClassElement.fields] are ready
+   * in [actualElement].
+   */
+  void ensureAccessorsReady() {}
+
+  /**
+   * The method is called by [ClassElementImpl.getImpl] before returning
+   * the [actualElement] as [ClassElementImpl]. At this moment we must ensure
+   * that [ClassElementImpl] is fully complete, we cannot continue filling it
+   * lazily.
+   */
+  void ensureActualElementComplete() {}
+
+  /**
+   * Ensure that [ClassElement.constructors] are ready in [actualElement].
+   */
+  void ensureConstructorsReady() {}
+
+  /**
+   * Ensure that [ClassElement.methods] are ready in [actualElement].
+   */
+  void ensureMethodsReady() {}
 
   @override
-  PropertyAccessorElement getGetter(String getterName) =>
-      actualElement.getGetter(getterName);
+  FieldElement getField(String fieldName) {
+    ensureAccessorsReady();
+    return actualElement.getField(fieldName);
+  }
 
   @override
-  MethodElement getMethod(String methodName) =>
-      actualElement.getMethod(methodName);
+  PropertyAccessorElement getGetter(String getterName) {
+    ensureAccessorsReady();
+    return actualElement.getGetter(getterName);
+  }
 
   @override
-  ConstructorElement getNamedConstructor(String name) =>
-      actualElement.getNamedConstructor(name);
+  MethodElement getMethod(String methodName) {
+    ensureMethodsReady();
+    return actualElement.getMethod(methodName);
+  }
 
   @override
-  PropertyAccessorElement getSetter(String setterName) =>
-      actualElement.getSetter(setterName);
+  ConstructorElement getNamedConstructor(String name) {
+    ensureConstructorsReady();
+    return actualElement.getNamedConstructor(name);
+  }
+
+  @override
+  PropertyAccessorElement getSetter(String setterName) {
+    ensureAccessorsReady();
+    return actualElement.getSetter(setterName);
+  }
 
   @override
   bool isSuperConstructorAccessible(ConstructorElement constructor) =>
@@ -128,8 +166,10 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
 
   @override
   MethodElement lookUpConcreteMethod(
-          String methodName, LibraryElement library) =>
-      actualElement.lookUpConcreteMethod(methodName, library);
+      String methodName, LibraryElement library) {
+    ensureMethodsReady();
+    return actualElement.lookUpConcreteMethod(methodName, library);
+  }
 
   @override
   PropertyAccessorElement lookUpGetter(
@@ -138,32 +178,44 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
 
   @override
   PropertyAccessorElement lookUpInheritedConcreteGetter(
-          String methodName, LibraryElement library) =>
-      actualElement.lookUpInheritedConcreteGetter(methodName, library);
+      String methodName, LibraryElement library) {
+    ensureAccessorsReady();
+    return actualElement.lookUpInheritedConcreteGetter(methodName, library);
+  }
 
   @override
   MethodElement lookUpInheritedConcreteMethod(
-          String methodName, LibraryElement library) =>
-      actualElement.lookUpInheritedConcreteMethod(methodName, library);
+      String methodName, LibraryElement library) {
+    ensureMethodsReady();
+    return actualElement.lookUpInheritedConcreteMethod(methodName, library);
+  }
 
   @override
   PropertyAccessorElement lookUpInheritedConcreteSetter(
-          String methodName, LibraryElement library) =>
-      actualElement.lookUpInheritedConcreteSetter(methodName, library);
+      String methodName, LibraryElement library) {
+    ensureAccessorsReady();
+    return actualElement.lookUpInheritedConcreteSetter(methodName, library);
+  }
 
   @override
   MethodElement lookUpInheritedMethod(
-          String methodName, LibraryElement library) =>
-      actualElement.lookUpInheritedMethod(methodName, library);
+      String methodName, LibraryElement library) {
+    ensureMethodsReady();
+    return actualElement.lookUpInheritedMethod(methodName, library);
+  }
 
   @override
-  MethodElement lookUpMethod(String methodName, LibraryElement library) =>
-      actualElement.lookUpMethod(methodName, library);
+  MethodElement lookUpMethod(String methodName, LibraryElement library) {
+    ensureMethodsReady();
+    return actualElement.lookUpMethod(methodName, library);
+  }
 
   @override
   PropertyAccessorElement lookUpSetter(
-          String setterName, LibraryElement library) =>
-      actualElement.lookUpSetter(setterName, library);
+      String setterName, LibraryElement library) {
+    ensureAccessorsReady();
+    return actualElement.lookUpSetter(setterName, library);
+  }
 }
 
 /**
@@ -415,7 +467,8 @@ abstract class ElementHandle implements Element {
   AstNode computeNode() => actualElement.computeNode();
 
   @override
-  Element getAncestor(Predicate<Element> predicate) =>
+  Element/*=E*/ getAncestor/*<E extends Element >*/(
+          Predicate<Element> predicate) =>
       actualElement.getAncestor(predicate);
 
   @override
@@ -1111,4 +1164,7 @@ abstract class VariableElementHandle extends ElementHandle
 
   @override
   DartType get type => actualElement.type;
+
+  @override
+  DartObject computeConstantValue() => actualElement.computeConstantValue();
 }

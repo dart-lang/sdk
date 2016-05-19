@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
+import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -26,7 +27,9 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/strong/info.dart' show StaticInfo;
 
 /**
@@ -829,8 +832,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (type is InterfaceType) {
         _checkForConstOrNewWithAbstractClass(node, typeName, type);
         _checkForConstOrNewWithEnum(node, typeName, type);
-        _checkForMissingRequiredParam(
-            node.staticElement?.type, node.argumentList, node.constructorName);
         if (_isInConstInstanceCreation) {
           _checkForConstWithNonConst(node);
           _checkForConstWithUndefinedConstructor(
@@ -942,8 +943,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } else {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
     }
-    _checkForMissingRequiredParam(
-        node.staticInvokeType, node.argumentList, methodName);
     _checkTypeArguments(
         node.methodName.staticElement, node.typeArguments, target?.staticType);
     return super.visitMethodInvocation(node);
@@ -4246,34 +4245,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
-  void _checkForMissingRequiredParam(
-      DartType type, ArgumentList argumentList, AstNode node) {
-    if (type is FunctionType) {
-      List<ParameterElement> parameters = type.parameters;
-      for (ParameterElement param in parameters) {
-        if (param.parameterKind == ParameterKind.NAMED) {
-          ElementAnnotationImpl annotation = _getRequiredAnnotation(param);
-          if (annotation != null) {
-            String paramName = param.name;
-            if (!_containsNamedExpression(argumentList, paramName)) {
-              DartObject constantValue = annotation.constantValue;
-              String reason = constantValue.getField('reason')?.toStringValue();
-              if (reason != null) {
-                _errorReporter.reportErrorForNode(
-                    HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
-                    node,
-                    [paramName, reason]);
-              } else {
-                _errorReporter.reportErrorForNode(
-                    HintCode.MISSING_REQUIRED_PARAM, node, [paramName]);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
   /**
    * Verify that the given function [body] does not contain return statements
    * that both have and do not have return values.
@@ -5040,7 +5011,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Check that if the the given constructor [declaration] is generative, then
+   * Check that if the given constructor [declaration] is generative, then
    * it does not have an expression function body.
    *
    * See [CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR].
@@ -5235,8 +5206,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       NodeList<TypeName> typeNameArgList = typeName.typeArguments.arguments;
       int loopThroughIndex =
           math.min(typeNameArgList.length, parameterElements.length);
-      bool shouldSubstitute = arguments.length != 0 &&
-          arguments.length == parameterTypes.length;
+      bool shouldSubstitute =
+          arguments.length != 0 && arguments.length == parameterTypes.length;
       for (int i = 0; i < loopThroughIndex; i++) {
         TypeName argTypeName = typeNameArgList[i];
         DartType argType = argTypeName.type;
@@ -5760,17 +5731,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return staticReturnType;
   }
 
-  bool _containsNamedExpression(ArgumentList args, String name) {
-    for (Expression expression in args.arguments) {
-      if (expression is NamedExpression) {
-        if (expression.name.label.name == name) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   bool _expressionIsAssignableAtType(Expression expression,
       DartType actualStaticType, DartType expectedStaticType) {
     bool concrete =
@@ -5863,10 +5823,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     return _inheritanceManager.lookupInheritance(classElement, member.name);
   }
-
-  ElementAnnotationImpl _getRequiredAnnotation(ParameterElement param) => param
-      .metadata
-      .firstWhere((ElementAnnotation e) => e.isRequired, orElse: () => null);
 
   /**
    * Return the type of the first and only parameter of the given [setter].
@@ -6225,6 +6181,88 @@ class GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference
       }
     }
   }
+}
+
+/**
+ * A class used to compute a list of the constants whose value needs to be
+ * computed before errors can be computed by the [VerifyUnitTask].
+ */
+class RequiredConstantsComputer extends RecursiveAstVisitor {
+  /**
+   * The source with which any pending errors will be associated.
+   */
+  final Source source;
+
+  /**
+   * A list of the pending errors that were computed.
+   */
+  final List<PendingError> pendingErrors = <PendingError>[];
+
+  /**
+   * A list of the constants whose value needs to be computed before the pending
+   * errors can be used to compute an analysis error.
+   */
+  final List<ConstantEvaluationTarget> requiredConstants =
+      <ConstantEvaluationTarget>[];
+
+  /**
+   * Initialize a newly created computer to compute required constants within
+   * the given [source].
+   */
+  RequiredConstantsComputer(this.source);
+
+  @override
+  Object visitInstanceCreationExpression(InstanceCreationExpression node) {
+    DartType type = node.constructorName.type.type;
+    if (type is InterfaceType) {
+      _checkForMissingRequiredParam(
+          node.staticElement?.type, node.argumentList, node.constructorName);
+    }
+    return super.visitInstanceCreationExpression(node);
+  }
+
+  @override
+  Object visitMethodInvocation(MethodInvocation node) {
+    _checkForMissingRequiredParam(
+        node.staticInvokeType, node.argumentList, node.methodName);
+    return super.visitMethodInvocation(node);
+  }
+
+  void _checkForMissingRequiredParam(
+      DartType type, ArgumentList argumentList, AstNode node) {
+    if (type is FunctionType) {
+      for (ParameterElement parameter in type.parameters) {
+        if (parameter.parameterKind == ParameterKind.NAMED) {
+          ElementAnnotationImpl annotation = _getRequiredAnnotation(parameter);
+          if (annotation != null) {
+            String parameterName = parameter.name;
+            if (!_containsNamedExpression(argumentList, parameterName)) {
+              requiredConstants.add(annotation);
+              pendingErrors.add(new PendingMissingRequiredParameterError(
+                  source, parameterName, node, annotation));
+            }
+          }
+        }
+      }
+    }
+  }
+
+  bool _containsNamedExpression(ArgumentList args, String name) {
+    NodeList<Expression> arguments = args.arguments;
+    for (int i = arguments.length - 1; i >= 0; i--) {
+      Expression expression = arguments[i];
+      if (expression is NamedExpression) {
+        if (expression.name.label.name == name) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  ElementAnnotationImpl _getRequiredAnnotation(ParameterElement param) => param
+      .metadata
+      .firstWhere((ElementAnnotation e) => e.isRequired, orElse: () => null);
 }
 
 /**

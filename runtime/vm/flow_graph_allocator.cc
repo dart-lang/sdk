@@ -374,7 +374,7 @@ void LiveRange::DefineAt(intptr_t pos) {
     last_use_interval_ = first_use_interval_;
   } else {
     // Shrink the first use interval. It was optimistically expanded to
-    // cover the the block from the start to the last use in the block.
+    // cover the block from the start to the last use in the block.
     ASSERT(first_use_interval_->start_ <= pos);
     first_use_interval_->start_ = pos;
   }

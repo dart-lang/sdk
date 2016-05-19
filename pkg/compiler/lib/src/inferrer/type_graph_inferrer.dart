@@ -858,7 +858,7 @@ class TypeGraphInferrerEngine
                   compiler.backend.constants.getConstantValue(constant);
               assert(invariant(fieldElement, value != null,
                   message: "Constant expression without value: "
-                           "${constant.toStructuredText()}."));
+                      "${constant.toStructuredText()}."));
               if (value.isFunction) {
                 FunctionConstantValue functionConstant = value;
                 type = types.allocateClosure(node, functionConstant.element);
@@ -1242,7 +1242,7 @@ class TypeGraphInferrerEngine
       // TODO(ngeoffray): Not sure why the resolver would put a null
       // mapping.
       if (!compiler.enqueuer.resolution.hasBeenProcessed(element)) return;
-      ResolvedAst resolvedAst = getResolvedAst(element);
+      ResolvedAst resolvedAst = element.resolvedAst;
       element = element.implementation;
       if (element.impliesType) return;
       assert(invariant(

@@ -23,6 +23,11 @@ class Timeline {
                                     'name',
                                     'Must be a String');
     }
+    if (!_isDartStreamEnabled()) {
+      // Push a null onto the stack and return.
+      _stack.add(null);
+      return;
+    }
     var block = new _SyncBlock._(name, _getTraceClock(), _getThreadCpuClock());
     if (arguments is Map) {
       block._appendArguments(arguments);
@@ -41,6 +46,10 @@ class Timeline {
     }
     // Pop top item off of stack.
     var block = _stack.removeLast();
+    if (block == null) {
+      // Dart stream was disabled when startSync was called.
+      return;
+    }
     // Finish it.
     block.finish();
   }
@@ -54,6 +63,10 @@ class Timeline {
       throw new ArgumentError.value(name,
                                     'name',
                                     'Must be a String');
+    }
+    if (!_isDartStreamEnabled()) {
+      // Stream is disabled.
+      return;
     }
     Map instantArguments;
     if (arguments is Map) {
@@ -277,6 +290,9 @@ String _argumentsAsJson(Map arguments) {
   arguments['isolateNumber'] = Timeline._isolateIdString;
   return JSON.encode(arguments);
 }
+
+/// Returns true if the Dart Timeline stream is enabled.
+external bool _isDartStreamEnabled();
 
 /// Returns the next async task id.
 external int _getNextAsyncId();

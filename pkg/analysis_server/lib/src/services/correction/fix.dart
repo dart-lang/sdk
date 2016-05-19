@@ -70,6 +70,7 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 ||
     errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 ||
     errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS ||
+    errorCode == StaticWarningCode.FUNCTION_WITHOUT_CALL ||
     errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER ||
     errorCode ==
         CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE ||
@@ -154,6 +155,8 @@ class DartFixKind {
       const FixKind('CREATE_LOCAL_VARIABLE', 50, "Create local variable '{0}'");
   static const CREATE_METHOD =
       const FixKind('CREATE_METHOD', 50, "Create method '{0}'");
+  static const CREATE_MISSING_METHOD_CALL =
+      const FixKind('CREATE_MISSING_METHOD_CALL', 49, "Create method 'call'.");
   static const CREATE_MISSING_OVERRIDES = const FixKind(
       'CREATE_MISSING_OVERRIDES', 49, "Create {0} missing override(s)");
   static const CREATE_NO_SUCH_METHOD = const FixKind(

@@ -1139,6 +1139,21 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   final List<FunctionTypeAliasElement> prunedTypedefs;
 
   /**
+   * Cached [ConstructorElement]s - members or raw elements.
+   */
+  List<ConstructorElement> _constructors;
+
+  /**
+   * Cached [PropertyAccessorElement]s - members or raw elements.
+   */
+  List<PropertyAccessorElement> _accessors;
+
+  /**
+   * Cached [MethodElement]s - members or raw elements.
+   */
+  List<MethodElement> _methods;
+
+  /**
    * Initialize a newly created type to be declared by the given [element].
    */
   InterfaceTypeImpl(ClassElement element, [this.prunedTypedefs])
@@ -1169,26 +1184,34 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   InterfaceTypeImpl._(Element element, String name, this.prunedTypedefs)
       : super(element, name);
 
+
   @override
   List<PropertyAccessorElement> get accessors {
-    List<PropertyAccessorElement> accessors = element.accessors;
-    List<PropertyAccessorElement> members =
-        new List<PropertyAccessorElement>(accessors.length);
-    for (int i = 0; i < accessors.length; i++) {
-      members[i] = PropertyAccessorMember.from(accessors[i], this);
+    if (_accessors == null) {
+      List<PropertyAccessorElement> accessors = element.accessors;
+      List<PropertyAccessorElement> members =
+      new List<PropertyAccessorElement>(accessors.length);
+      for (int i = 0; i < accessors.length; i++) {
+        members[i] = PropertyAccessorMember.from(accessors[i], this);
+      }
+      _accessors = members;
     }
-    return members;
+    return _accessors;
   }
+
 
   @override
   List<ConstructorElement> get constructors {
-    List<ConstructorElement> constructors = element.constructors;
-    List<ConstructorElement> members =
-        new List<ConstructorElement>(constructors.length);
-    for (int i = 0; i < constructors.length; i++) {
-      members[i] = ConstructorMember.from(constructors[i], this);
+    if (_constructors == null) {
+      List<ConstructorElement> constructors = element.constructors;
+      List<ConstructorElement> members =
+          new List<ConstructorElement>(constructors.length);
+      for (int i = 0; i < constructors.length; i++) {
+        members[i] = ConstructorMember.from(constructors[i], this);
+      }
+      _constructors = members;
     }
-    return members;
+    return _constructors;
   }
 
   @override
@@ -1273,12 +1296,15 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<MethodElement> get methods {
-    List<MethodElement> methods = element.methods;
-    List<MethodElement> members = new List<MethodElement>(methods.length);
-    for (int i = 0; i < methods.length; i++) {
-      members[i] = MethodMember.from(methods[i], this);
+    if (_methods == null) {
+      List<MethodElement> methods = element.methods;
+      List<MethodElement> members = new List<MethodElement>(methods.length);
+      for (int i = 0; i < methods.length; i++) {
+        members[i] = MethodMember.from(methods[i], this);
+      }
+      _methods = members;
     }
-    return members;
+    return _methods;
   }
 
   @override

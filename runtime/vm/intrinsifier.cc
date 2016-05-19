@@ -588,7 +588,9 @@ bool Intrinsifier::Build_Uint32ArrayGetIndexed(FlowGraph* flow_graph) {
 
 
 bool Intrinsifier::Build_Float64ArraySetIndexed(FlowGraph* flow_graph) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {
+    return false;
+  }
 
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   TargetEntryInstr* normal_entry = graph_entry->normal_entry();
@@ -634,7 +636,9 @@ bool Intrinsifier::Build_Float64ArraySetIndexed(FlowGraph* flow_graph) {
 
 
 bool Intrinsifier::Build_Float64ArrayGetIndexed(FlowGraph* flow_graph) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {
+    return false;
+  }
 
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   TargetEntryInstr* normal_entry = graph_entry->normal_entry();
@@ -783,7 +787,10 @@ bool Intrinsifier::Build_Float32x4Add(FlowGraph* flow_graph) {
 
 static bool BuildFloat32x4Shuffle(FlowGraph* flow_graph,
                                   MethodRecognizer::Kind kind) {
-  if (!FlowGraphCompiler::SupportsUnboxedSimd128()) return false;
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles() ||
+      !FlowGraphCompiler::SupportsUnboxedSimd128()) {
+    return false;
+  }
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   TargetEntryInstr* normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
@@ -1021,6 +1028,9 @@ bool Intrinsifier::Build_GrowableArraySetLength(FlowGraph* flow_graph) {
 
 
 bool Intrinsifier::Build_DoubleFlipSignBit(FlowGraph* flow_graph) {
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {
+    return false;
+  }
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   TargetEntryInstr* normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
@@ -1044,6 +1054,9 @@ bool Intrinsifier::Build_DoubleFlipSignBit(FlowGraph* flow_graph) {
 static bool BuildInvokeMathCFunction(BlockBuilder* builder,
                                      MethodRecognizer::Kind kind,
                                      intptr_t num_parameters = 1) {
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {
+    return false;
+  }
   ZoneGrowableArray<Value*>* args =
       new ZoneGrowableArray<Value*>(num_parameters);
 

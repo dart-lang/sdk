@@ -52,6 +52,11 @@ _postEvent(String eventKind, String eventData) {
 
 
 @patch
+bool _isDartStreamEnabled() {
+  return false;
+}
+
+@patch
 int _getTraceClock() {
   // TODO.
   return _clockValue++;

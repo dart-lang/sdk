@@ -179,7 +179,7 @@ class AnalysisCache {
     if (entry == null) {
       return result.defaultValue;
     }
-    return entry.getValue(result) as Object/*=V*/;
+    return entry.getValue(result);
   }
 
   /**

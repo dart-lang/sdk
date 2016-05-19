@@ -6,10 +6,7 @@ library dart2js.serialization_resolved_ast_test;
 
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
-import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/common/backend_api.dart';
-import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/filenames.dart';
@@ -23,8 +20,7 @@ import 'test_helper.dart';
 main(List<String> args) {
   Arguments arguments = new Arguments.from(args);
   asyncTest(() async {
-    String serializedData = await serializeDartCore(
-        arguments: arguments, serializeResolvedAst: true);
+    String serializedData = await serializeDartCore(arguments: arguments);
     if (arguments.filename != null) {
       Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
       await check(serializedData, entryPoint);
@@ -53,8 +49,7 @@ Future check(
       memorySourceFiles: sourceFiles,
       options: [Flags.analyzeAll]);
   compilerDeserialized.resolution.retainCachesForTesting = true;
-  deserialize(
-      compilerDeserialized, serializedData, deserializeResolvedAst: true);
+  compilerDeserialized.serialization.deserializeFromText(serializedData);
   await compilerDeserialized.run(entryPoint);
 
   checkAllResolvedAsts(compilerNormal, compilerDeserialized, verbose: true);
@@ -80,9 +75,11 @@ void checkAllResolvedAsts(
 void checkResolvedAsts(Compiler compiler1, Element member1,
                        Compiler compiler2, Element member2,
                        {bool verbose: false}) {
+  if (!compiler2.serialization.isDeserialized(member2)) {
+    return;
+  }
   ResolvedAst resolvedAst1 = compiler1.resolution.getResolvedAst(member1);
-  ResolvedAst resolvedAst2 =
-      compiler2.serialization.deserializer.getResolvedAst(member2);
+  ResolvedAst resolvedAst2 = compiler2.serialization.getResolvedAst(member2);
 
   if (resolvedAst1 == null || resolvedAst2 == null) return;
 

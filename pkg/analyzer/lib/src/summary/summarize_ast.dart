@@ -388,7 +388,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       return const <UnlinkedConstBuilder>[];
     }
     return annotations.map((Annotation a) {
-      Map<int, int> localClosureIndexMap = null; // TODO(paulberry): fix.
+      // Closures can't appear inside annotations, so we don't need a
+      // localClosureIndexMap.
+      Map<int, int> localClosureIndexMap = null;
       _ConstExprSerializer serializer =
           new _ConstExprSerializer(this, localClosureIndexMap, null);
       serializer.serializeAnnotation(a);
@@ -641,7 +643,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     }
     b.visibleOffset = enclosingBlock?.offset;
     b.visibleLength = enclosingBlock?.length;
-    serializeFunctionBody(b, body);
+    serializeFunctionBody(b, null, body);
     scopes.removeLast();
     assert(scopes.length == oldScopesLength);
     return b;
@@ -651,8 +653,12 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * Record local functions and variables into the given executable. The given
    * [body] is usually an actual [FunctionBody], but may be an [Expression]
    * when we process a synthetic variable initializer function.
+   *
+   * If [initializers] is non-`null`, closures occurring inside the initializers
+   * are serialized first.
    */
-  void serializeFunctionBody(UnlinkedExecutableBuilder b, AstNode body) {
+  void serializeFunctionBody(UnlinkedExecutableBuilder b,
+      List<ConstructorInitializer> initializers, AstNode body) {
     if (body is BlockFunctionBody || body is ExpressionFunctionBody) {
       for (UnlinkedParamBuilder parameter in b.parameters) {
         parameter.visibleOffset = body.offset;
@@ -665,6 +671,11 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     executables = <UnlinkedExecutableBuilder>[];
     labels = <UnlinkedLabelBuilder>[];
     variables = <UnlinkedVariableBuilder>[];
+    if (initializers != null) {
+      for (ConstructorInitializer initializer in initializers) {
+        initializer.accept(this);
+      }
+    }
     body.accept(this);
     b.localFunctions = executables;
     b.localLabels = labels;
@@ -700,7 +711,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     }
     UnlinkedExecutableBuilder initializer =
         new UnlinkedExecutableBuilder(nameOffset: expression.offset);
-    serializeFunctionBody(initializer, expression);
+    serializeFunctionBody(initializer, null, expression);
     initializer.inferredReturnTypeSlot = assignSlot();
     return initializer;
   }
@@ -987,7 +998,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       if (node.redirectedConstructor != null) {
         b.isRedirectedConstructor = true;
         TypeName typeName = node.redirectedConstructor.type;
-        Map<int, int> localClosureIndexMap = null; // TODO(paulberry): fix.
+        // Closures can't appear inside factory constructor redirections, so we
+        // don't need a localClosureIndexMap.
+        Map<int, int> localClosureIndexMap = null;
         b.redirectedConstructor =
             new _ConstExprSerializer(this, localClosureIndexMap, null)
                 .serializeConstructorRef(null, typeName.name,
@@ -1009,10 +1022,12 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.documentationComment = serializeDocumentation(node.documentationComment);
     b.annotations = serializeAnnotations(node.metadata);
     b.codeRange = serializeCodeRange(node);
+    Map<int, int> localClosureIndexMap = _withLocalClosureIndexMap(() {
+      serializeFunctionBody(b, node.initializers, node.body);
+    });
     if (node.constKeyword != null) {
       Set<String> constructorParameterNames =
           node.parameters.parameters.map((p) => p.identifier.name).toSet();
-      Map<int, int> localClosureIndexMap = null; // TODO(paulberry): fix.
       b.constantInitializers = node.initializers
           .map((ConstructorInitializer initializer) =>
               serializeConstructorInitializer(initializer, (Expression expr) {
@@ -1021,7 +1036,6 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
               }))
           .toList();
     }
-    serializeFunctionBody(b, node.body);
     executables.add(b);
   }
 
@@ -1030,7 +1044,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       DefaultFormalParameter node) {
     UnlinkedParamBuilder b = node.parameter.accept(this);
     if (node.defaultValue != null) {
-      Map<int, int> localClosureIndexMap = null; // TODO(paulberry): fix.
+      // Closures can't appear inside default values, so we don't need a
+      // localClosureIndexMap.
+      Map<int, int> localClosureIndexMap = null;
       b.defaultValue =
           serializeConstExpr(localClosureIndexMap, node.defaultValue);
       b.defaultValueCode = node.defaultValue.toSource();

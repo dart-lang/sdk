@@ -14,6 +14,7 @@
 #include "vm/object_store.h"
 #include "vm/regexp_assembler.h"
 #include "vm/symbols.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -1634,7 +1635,7 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ CompareImmediate(R3, 0);
   __ b(&fall_through, NE);
 
-  __ ldr(R0, FieldAddress(R2, Class::canonical_types_offset()));
+  __ ldr(R0, FieldAddress(R2, Class::canonical_type_offset()));
   __ CompareObject(R0, Object::null_object());
   __ b(&fall_through, EQ);
   __ ret();
@@ -2175,6 +2176,24 @@ void Intrinsifier::UserTag_defaultTag(Assembler* assembler) {
 void Intrinsifier::Profiler_getCurrentTag(Assembler* assembler) {
   __ LoadIsolate(R0);
   __ ldr(R0, Address(R0, Isolate::current_tag_offset()));
+  __ ret();
+}
+
+
+void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler) {
+  if (!FLAG_support_timeline) {
+    __ LoadObject(R0, Bool::False());
+    __ ret();
+    return;
+  }
+  // Load TimelineStream*.
+  __ ldr(R0, Address(THR, Thread::dart_stream_offset()));
+  // Load uintptr_t from TimelineStream*.
+  __ ldr(R0, Address(R0, TimelineStream::enabled_offset()));
+  __ cmp(R0, Operand(0));
+  __ LoadObject(R0, Bool::False());
+  __ LoadObject(TMP, Bool::True());
+  __ csel(R0, TMP, R0, NE);
   __ ret();
 }
 

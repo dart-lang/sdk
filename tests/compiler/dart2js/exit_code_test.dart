@@ -11,7 +11,6 @@ import 'dart:io' show Platform;
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
-import 'package:compiler/compiler.dart' as old_api;
 import 'package:compiler/compiler_new.dart' as api;
 import 'package:compiler/src/common/codegen.dart';
 import 'package:compiler/src/compile_time_constants.dart';
@@ -26,7 +25,6 @@ import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/null_compiler_output.dart';
-import 'package:compiler/src/old_to_new_api.dart';
 import 'package:compiler/src/options.dart' show CompilerOptions;
 import 'package:compiler/src/resolution/resolution.dart';
 import 'package:compiler/src/scanner/scanner_task.dart';
@@ -42,24 +40,12 @@ class TestCompiler extends apiimpl.CompilerImpl {
   TestCompiler(api.CompilerInput inputProvider,
                api.CompilerOutput outputProvider,
                api.CompilerDiagnostics handler,
-               Uri libraryRoot,
-               Uri packageRoot,
-               List<String> options,
-               Map<String, dynamic> environment,
-               Uri packageConfig,
-               api.PackagesDiscoveryProvider findPackages,
+               CompilerOptions options,
                String this.testMarker,
                String this.testType,
                Function this.onTest)
       : reporter = new TestDiagnosticReporter(),
-        super(inputProvider, outputProvider, handler,
-            new CompilerOptions.parse(
-                libraryRoot: libraryRoot,
-                packageRoot: packageRoot,
-                options: options,
-                environment: environment,
-                packageConfig: packageConfig,
-                packagesDiscoveryProvider: findPackages)) {
+        super(inputProvider, outputProvider, handler, options) {
     reporter.compiler = this;
     reporter.reporter = super.reporter;
     test('Compiler');
@@ -186,36 +172,24 @@ Future testExitCode(
     }
   }
   return new Future(() {
-    Future<old_api.CompilationResult> compile(
-        Uri script,
-        Uri libraryRoot,
-        Uri packageRoot,
-        old_api.CompilerInputProvider inputProvider,
-        old_api.DiagnosticHandler handler,
-        [List<String> options = const [],
-         old_api.CompilerOutputProvider outputProvider,
-         Map<String, dynamic> environment = const {},
-         Uri packageConfig,
-         api.PackagesDiscoveryProvider findPackages]) {
-      libraryRoot = Platform.script.resolve('../../../sdk/');
-      outputProvider = NullSink.outputProvider;
+    Future<api.CompilationResult> compile(
+        CompilerOptions compilerOptions,
+        api.CompilerInput compilerInput,
+        api.CompilerDiagnostics compilerDiagnostics,
+        api.CompilerOutput compilerOutput) {
+      compilerOutput = const NullCompilerOutput();
       // Use this to silence the test when debugging:
       // handler = (uri, begin, end, message, kind) {};
       Compiler compiler = new TestCompiler(
-          new LegacyCompilerInput(inputProvider),
-          new LegacyCompilerOutput(outputProvider),
-          new LegacyCompilerDiagnostics(handler),
-          libraryRoot,
-          packageRoot,
-          options,
-          environment,
-          packageConfig,
-          findPackages,
+          compilerInput,
+          compilerOutput,
+          compilerDiagnostics,
+          compilerOptions,
           marker,
           type,
           onTest);
-      return compiler.run(script).then((bool success) {
-        return new old_api.CompilationResult(compiler, isSuccess: success);
+      return compiler.run(compilerOptions.entryPoint).then((bool success) {
+        return new api.CompilationResult(compiler, isSuccess: success);
       });
     }
 
@@ -242,6 +216,7 @@ Future testExitCode(
     entry.compileFunc = compile;
 
     List<String> args = new List<String>.from(options)
+        ..add("--library-root=${Platform.script.resolve('../../../sdk/')}")
         ..add("tests/compiler/dart2js/data/exit_code_helper.dart");
     Future result = entry.internalMain(args);
     return result.catchError((e, s) {

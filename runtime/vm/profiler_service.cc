@@ -19,6 +19,7 @@ namespace dart {
 DECLARE_FLAG(int, max_profile_depth);
 DECLARE_FLAG(int, profile_period);
 DECLARE_FLAG(bool, show_invisible_frames);
+DECLARE_FLAG(bool, profile_vm);
 
 #ifndef PRODUCT
 
@@ -1375,6 +1376,8 @@ class ProfileBuilder : public ValueObject {
         ASSERT(code != NULL);
         code->Tick(pc, IsExecutingFrame(sample, frame_index), sample_index);
       }
+
+      TickExitFrame(sample->vm_tag(), sample_index);
     }
     SanitizeMinMaxTimes();
   }
@@ -1490,6 +1493,10 @@ class ProfileBuilder : public ValueObject {
         current = current->GetChild(index);
         current->Tick();
       }
+
+      if (!sample->first_frame_executing()) {
+        current = AppendExitFrame(sample->vm_tag(), current);
+      }
     }
   }
 
@@ -1509,6 +1516,10 @@ class ProfileBuilder : public ValueObject {
       current = AppendTags(sample->vm_tag(), sample->user_tag(), current);
 
       ResetKind();
+
+      if (!sample->first_frame_executing()) {
+        current = AppendExitFrame(sample->vm_tag(), current);
+      }
 
       // Walk the sampled PCs.
       Code& code = Code::Handle();
@@ -1582,6 +1593,10 @@ class ProfileBuilder : public ValueObject {
         current = ProcessFrame(current, sample_index, sample, frame_index);
       }
 
+      if (!sample->first_frame_executing()) {
+        current = AppendExitFrame(sample->vm_tag(), current);
+      }
+
       sample->set_timeline_trie(current);
     }
   }
@@ -1604,6 +1619,10 @@ class ProfileBuilder : public ValueObject {
 
       ResetKind();
 
+      if (!sample->first_frame_executing()) {
+        current = AppendExitFrame(sample->vm_tag(), current);
+      }
+
       // Walk the sampled PCs.
       for (intptr_t frame_index = 0;
            frame_index < sample->length();
@@ -1611,6 +1630,8 @@ class ProfileBuilder : public ValueObject {
         ASSERT(sample->At(frame_index) != 0);
         current = ProcessFrame(current, sample_index, sample, frame_index);
       }
+
+      TickExitFrameFunction(sample->vm_tag(), sample_index);
 
       // Truncated tag.
       if (sample->truncated()) {
@@ -1750,7 +1771,8 @@ class ProfileBuilder : public ValueObject {
     }
     // Only tick the first frame's node, if we are executing OR
     // vm tags have been emitted.
-    return IsExecutingFrame(sample, frame_index) || vm_tags_emitted();
+    return IsExecutingFrame(sample, frame_index) ||
+           !FLAG_profile_vm || vm_tags_emitted();
   }
 
   ProfileFunctionTrieNode* ProcessFunction(ProfileFunctionTrieNode* current,
@@ -1912,31 +1934,89 @@ class ProfileBuilder : public ValueObject {
     return current;
   }
 
+  void TickExitFrame(uword vm_tag, intptr_t serial) {
+    if (FLAG_profile_vm) {
+      return;
+    }
+    if (!VMTag::IsExitFrameTag(vm_tag)) {
+      return;
+    }
+    ProfileCodeTable* tag_table = profile_->tag_code_;
+    ProfileCode* code = tag_table->FindCodeForPC(vm_tag);
+    ASSERT(code != NULL);
+    code->Tick(vm_tag, true, serial);
+  }
+
+  void TickExitFrameFunction(uword vm_tag, intptr_t serial) {
+    if (FLAG_profile_vm) {
+      return;
+    }
+    if (!VMTag::IsExitFrameTag(vm_tag)) {
+      return;
+    }
+    ProfileCodeTable* tag_table = profile_->tag_code_;
+    ProfileCode* code = tag_table->FindCodeForPC(vm_tag);
+    ASSERT(code != NULL);
+    ProfileFunction* function = code->function();
+    ASSERT(function != NULL);
+    function->Tick(true, serial, TokenPosition::kNoSource);
+  }
+
+  ProfileCodeTrieNode* AppendExitFrame(uword vm_tag,
+                                       ProfileCodeTrieNode* current) {
+    if (FLAG_profile_vm) {
+      return current;
+    }
+
+    if (!VMTag::IsExitFrameTag(vm_tag)) {
+      return current;
+    }
+
+    if (VMTag::IsNativeEntryTag(vm_tag) ||
+        VMTag::IsRuntimeEntryTag(vm_tag)) {
+      current = AppendSpecificNativeRuntimeEntryVMTag(vm_tag, current);
+    } else {
+      intptr_t tag_index = GetProfileCodeTagIndex(vm_tag);
+      current = current->GetChild(tag_index);
+      // Give the tag a tick.
+      current->Tick();
+    }
+    return current;
+  }
+
   ProfileCodeTrieNode* AppendTags(uword vm_tag,
                                   uword user_tag,
                                   ProfileCodeTrieNode* current) {
-    // None.
+    if (FLAG_profile_vm) {
+      // None.
+      if (tag_order() == Profile::kNoTags) {
+        return current;
+      }
+      // User first.
+      if ((tag_order() == Profile::kUserVM) ||
+          (tag_order() == Profile::kUser)) {
+        current = AppendUserTag(user_tag, current);
+        // Only user.
+        if (tag_order() == Profile::kUser) {
+          return current;
+        }
+        return AppendVMTags(vm_tag, current);
+      }
+      // VM first.
+      ASSERT((tag_order() == Profile::kVMUser) ||
+             (tag_order() == Profile::kVM));
+      current = AppendVMTags(vm_tag, current);
+      // Only VM.
+      if (tag_order() == Profile::kVM) {
+        return current;
+      }
+      return AppendUserTag(user_tag, current);
+    }
+
     if (tag_order() == Profile::kNoTags) {
       return current;
     }
-    // User first.
-    if ((tag_order() == Profile::kUserVM) ||
-        (tag_order() == Profile::kUser)) {
-      current = AppendUserTag(user_tag, current);
-      // Only user.
-      if (tag_order() == Profile::kUser) {
-        return current;
-      }
-      return AppendVMTags(vm_tag, current);
-    }
-    // VM first.
-    ASSERT((tag_order() == Profile::kVMUser) ||
-           (tag_order() == Profile::kVM));
-    current = AppendVMTags(vm_tag, current);
-    // Only VM.
-    if (tag_order() == Profile::kVM) {
-      return current;
-    }
+
     return AppendUserTag(user_tag, current);
   }
 
@@ -2031,37 +2111,66 @@ class ProfileBuilder : public ValueObject {
   }
 
   ProfileFunctionTrieNode* AppendVMTags(uword vm_tag,
-                                    ProfileFunctionTrieNode* current) {
+                                        ProfileFunctionTrieNode* current) {
     current = AppendVMTag(vm_tag, current);
     current = AppendSpecificNativeRuntimeEntryVMTag(vm_tag, current);
+    return current;
+  }
+
+  ProfileFunctionTrieNode* AppendExitFrame(uword vm_tag,
+                                           ProfileFunctionTrieNode* current) {
+    if (FLAG_profile_vm) {
+      return current;
+    }
+
+    if (!VMTag::IsExitFrameTag(vm_tag)) {
+      return current;
+    }
+    if (VMTag::IsNativeEntryTag(vm_tag) ||
+        VMTag::IsRuntimeEntryTag(vm_tag)) {
+      current = AppendSpecificNativeRuntimeEntryVMTag(vm_tag, current);
+    } else {
+      intptr_t tag_index = GetProfileFunctionTagIndex(vm_tag);
+      current = current->GetChild(tag_index);
+      // Give the tag a tick.
+      current->Tick();
+    }
     return current;
   }
 
   ProfileFunctionTrieNode* AppendTags(uword vm_tag,
                                       uword user_tag,
                                       ProfileFunctionTrieNode* current) {
-    // None.
+    if (FLAG_profile_vm) {
+      // None.
+      if (tag_order() == Profile::kNoTags) {
+        return current;
+      }
+      // User first.
+      if ((tag_order() == Profile::kUserVM) ||
+          (tag_order() == Profile::kUser)) {
+        current = AppendUserTag(user_tag, current);
+        // Only user.
+        if (tag_order() == Profile::kUser) {
+          return current;
+        }
+        return AppendVMTags(vm_tag, current);
+      }
+      // VM first.
+      ASSERT((tag_order() == Profile::kVMUser) ||
+             (tag_order() == Profile::kVM));
+      current = AppendVMTags(vm_tag, current);
+      // Only VM.
+      if (tag_order() == Profile::kVM) {
+        return current;
+      }
+      return AppendUserTag(user_tag, current);
+    }
+
     if (tag_order() == Profile::kNoTags) {
       return current;
     }
-    // User first.
-    if ((tag_order() == Profile::kUserVM) ||
-        (tag_order() == Profile::kUser)) {
-      current = AppendUserTag(user_tag, current);
-      // Only user.
-      if (tag_order() == Profile::kUser) {
-        return current;
-      }
-      return AppendVMTags(vm_tag, current);
-    }
-    // VM first.
-    ASSERT((tag_order() == Profile::kVMUser) ||
-           (tag_order() == Profile::kVM));
-    current = AppendVMTags(vm_tag, current);
-    // Only VM.
-    if (tag_order() == Profile::kVM) {
-      return current;
-    }
+
     return AppendUserTag(user_tag, current);
   }
 
@@ -2334,6 +2443,8 @@ void Profile::PrintHeaderJSON(JSONObject* obj) {
                    static_cast<intptr_t>(FLAG_max_profile_depth));
   obj->AddProperty("sampleCount", sample_count());
   obj->AddProperty("timeSpan", MicrosecondsToSeconds(GetTimeSpan()));
+  obj->AddPropertyTimeMicros("timeOriginMicros", min_time());
+  obj->AddPropertyTimeMicros("timeExtentMicros", GetTimeSpan());
 }
 
 

@@ -187,11 +187,6 @@ class Snapshot {
     return (kind == kAppWithJIT) || (kind == kAppNoJIT);
   }
 
-  bool IsMessageSnapshot() const { return kind() == kMessage; }
-  bool IsScriptSnapshot() const { return kind() == kScript; }
-  bool IsCoreSnapshot() const { return kind() == kCore; }
-  bool IsAppSnapshotWithJIT() const { return kind() == kAppWithJIT; }
-  bool IsAppSnapshotNoJIT() const { return kind() == kAppNoJIT; }
   uint8_t* Addr() { return reinterpret_cast<uint8_t*>(this); }
 
   static intptr_t length_offset() {
@@ -410,6 +405,7 @@ class SnapshotReader : public BaseReader {
   ClassTable* class_table() const { return isolate()->class_table(); }
   PassiveObject* PassiveObjectHandle() { return &pobj_; }
   Array* ArrayHandle() { return &array_; }
+  Class* ClassHandle() { return &cls_; }
   String* StringHandle() { return &str_; }
   AbstractType* TypeHandle() { return &type_; }
   TypeArguments* TypeArgumentsHandle() { return &type_arguments_; }
@@ -441,7 +437,7 @@ class SnapshotReader : public BaseReader {
   RawObject* ReadScriptSnapshot();
 
   // Read version number of snapshot and verify.
-  RawApiError* VerifyVersion();
+  RawApiError* VerifyVersionAndFeatures();
 
   // Helper functions for creating uninitialized versions
   // of various object types. These are used when reading a
@@ -1019,7 +1015,7 @@ class SnapshotWriter : public BaseWriter {
   void ThrowException(Exceptions::ExceptionType type, const char* msg);
 
   // Write a version string for the snapshot.
-  void WriteVersion();
+  void WriteVersionAndFeatures();
 
   int32_t GetInstructionsId(RawInstructions* instructions, RawCode* code) {
     return instructions_writer_->GetOffsetFor(instructions, code);
@@ -1093,7 +1089,6 @@ class SnapshotWriter : public BaseWriter {
   friend class RawGrowableObjectArray;
   friend class RawImmutableArray;
   friend class RawInstructions;
-  friend class RawRegExp;
   friend class RawLibrary;
   friend class RawLinkedHashMap;
   friend class RawLiteralToken;
@@ -1101,11 +1096,14 @@ class SnapshotWriter : public BaseWriter {
   friend class RawMirrorReference;
   friend class RawObjectPool;
   friend class RawReceivePort;
+  friend class RawRegExp;
   friend class RawScript;
   friend class RawStacktrace;
   friend class RawSubtypeTestCache;
   friend class RawTokenStream;
+  friend class RawType;
   friend class RawTypeArguments;
+  friend class RawTypeParameter;
   friend class RawUserTag;
   friend class SnapshotWriterVisitor;
   friend class WriteInlinedObjectVisitor;

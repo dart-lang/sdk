@@ -31,7 +31,6 @@ DEFINE_FLAG(int, early_tenuring_threshold, 66,
 DEFINE_FLAG(int, new_gen_garbage_threshold, 90,
             "Grow new gen when less than this percentage is garbage.");
 DEFINE_FLAG(int, new_gen_growth_factor, 4, "Grow new gen by this factor.");
-DECLARE_FLAG(bool, concurrent_sweep);
 
 // Scavenger uses RawObject::kMarkBit to distinguish forwaded and non-forwarded
 // objects. The kMarkBit does not intersect with the target address because of
@@ -526,6 +525,13 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
     total_count += count;
     while (!pending->IsEmpty()) {
       RawObject* raw_object = pending->Pop();
+      if (raw_object->IsFreeListElement()) {
+        // TODO(rmacnak): Forwarding corpse from become. Probably we should also
+        // visit the store buffer blocks during become, and mark any forwardees
+        // as remembered if their forwarders are remembered to satisfy the
+        // following assert.
+        continue;
+      }
       ASSERT(raw_object->IsRemembered());
       raw_object->ClearRememberedBit();
       visitor->VisitingOldObject(raw_object);

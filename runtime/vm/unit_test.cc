@@ -17,6 +17,7 @@
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/disassembler.h"
+#include "vm/isolate_reload.h"
 #include "vm/parser.h"
 #include "vm/symbols.h"
 #include "vm/thread.h"
@@ -66,10 +67,61 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* buffer, const char* name) {
 
 static const char* kPackageScheme = "package:";
 
+
 static bool IsPackageSchemeURL(const char* url_name) {
   static const intptr_t kPackageSchemeLen = strlen(kPackageScheme);
   return (strncmp(url_name, kPackageScheme, kPackageSchemeLen) == 0);
 }
+
+
+static bool IsImportableTestLib(const char* url_name) {
+  const char* kImportTestLibUri = "importable_test_lib";
+  static const intptr_t kImportTestLibUriLen = strlen(kImportTestLibUri);
+  return (strncmp(url_name, kImportTestLibUri, kImportTestLibUriLen) == 0);
+}
+
+
+static Dart_Handle ImportableTestLibSource() {
+  const char* kScript =
+      "importedFunc() => 'a';\n"
+      "importedIntFunc() => 4;\n"
+      "class ImportedMixin {\n"
+      "  mixinFunc() => 'mixin';\n"
+      "}\n";
+  return DartUtils::NewString(kScript);
+}
+
+
+static bool IsIsolateReloadTestLib(const char* url_name) {
+  const char* kIsolateReloadTestLibUri = "isolate_reload_test_helper";
+  static const intptr_t kIsolateReloadTestLibUriLen =
+      strlen(kIsolateReloadTestLibUri);
+  return (strncmp(url_name,
+                  kIsolateReloadTestLibUri,
+                  kIsolateReloadTestLibUriLen) == 0);
+}
+
+
+#ifndef PRODUCT
+static Dart_Handle IsolateReloadTestLibSource() {
+  // Special library with one function.
+  return DartUtils::NewString("void reloadTest() native 'Reload_Test';\n");
+}
+
+
+static void ReloadTest(Dart_NativeArguments native_args) {
+  DART_CHECK_VALID(TestCase::TriggerReload());
+}
+
+
+static Dart_NativeFunction IsolateReloadTestNativeResolver(
+    Dart_Handle name,
+    int num_of_arguments,
+    bool* auto_setup_scope) {
+  return ReloadTest;
+}
+#endif  // !PRODUCT
+
 
 static Dart_Handle ResolvePackageUri(const char* uri_chars) {
   const int kNumArgs = 1;
@@ -81,9 +133,25 @@ static Dart_Handle ResolvePackageUri(const char* uri_chars) {
                      dart_args);
 }
 
+
+static ThreadLocalKey script_reload_key = kUnsetThreadLocalKey;
+
 static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                      Dart_Handle library,
                                      Dart_Handle url) {
+  if (tag == Dart_kScriptTag) {
+    // Reload request.
+    ASSERT(script_reload_key != kUnsetThreadLocalKey);
+    const char* script_source =
+       reinterpret_cast<const char*>(
+           OSThread::GetThreadLocal(script_reload_key));
+    ASSERT(script_source != NULL);
+    OSThread::SetThreadLocal(script_reload_key, NULL);
+    return Dart_LoadScript(url,
+                           NewString(script_source),
+                           0,
+                           0);
+  }
   if (!Dart_IsLibrary(library)) {
     return Dart_NewApiError("not a library");
   }
@@ -105,6 +173,10 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_chars);
   bool is_io_library = DartUtils::IsDartIOLibURL(library_url_string);
   if (tag == Dart_kCanonicalizeUrl) {
+    // Already canonicalized.
+    if (IsImportableTestLib(url_chars) || IsIsolateReloadTestLib(url_chars)) {
+      return url;
+    }
     // If this is a Dart Scheme URL then it is not modified as it will be
     // handled by the VM internally.
     if (is_dart_scheme_url || is_io_library) {
@@ -128,6 +200,17 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
       return DartUtils::NewError("Do not know how to load '%s'", url_chars);
     }
   }
+  if (IsImportableTestLib(url_chars)) {
+    return Dart_LoadLibrary(url, ImportableTestLibSource(), 0, 0);
+  }
+  NOT_IN_PRODUCT(
+  if (IsIsolateReloadTestLib(url_chars)) {
+    Dart_Handle library =
+        Dart_LoadLibrary(url, IsolateReloadTestLibSource(), 0, 0);
+    DART_CHECK_VALID(library);
+    Dart_SetNativeResolver(library, IsolateReloadTestNativeResolver, 0);
+    return library;
+  })
   if (is_io_library) {
     ASSERT(tag == Dart_kSourceTag);
     return Dart_LoadSource(library,
@@ -177,6 +260,61 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
 }
 
 
+#ifndef PRODUCT
+
+
+void TestCase::SetReloadTestScript(const char* script) {
+  if (script_reload_key == kUnsetThreadLocalKey) {
+    script_reload_key = OSThread::CreateThreadLocal();
+  }
+  ASSERT(script_reload_key != kUnsetThreadLocalKey);
+  ASSERT(OSThread::GetThreadLocal(script_reload_key) == 0);
+  // Store the new script in TLS.
+  OSThread::SetThreadLocal(script_reload_key, reinterpret_cast<uword>(script));
+}
+
+
+Dart_Handle TestCase::TriggerReload() {
+  Isolate* isolate = Isolate::Current();
+
+  {
+    TransitionNativeToVM transition(Thread::Current());
+    isolate->ReloadSources(/* test_mode = */ true);
+  }
+
+  return Dart_FinalizeLoading(false);
+}
+
+
+Dart_Handle TestCase::GetReloadErrorOrRootLibrary() {
+  Isolate* isolate = Isolate::Current();
+
+  if (isolate->reload_context() != NULL) {
+    // We should only have a reload context hanging around if an error occurred.
+    ASSERT(isolate->reload_context()->has_error());
+    // Return a handle to the error.
+    return Api::NewHandle(Thread::Current(),
+                          isolate->reload_context()->error());
+  }
+  return Dart_RootLibrary();
+}
+
+
+Dart_Handle TestCase::ReloadTestScript(const char* script) {
+  SetReloadTestScript(script);
+
+  Dart_Handle result = TriggerReload();
+  if (Dart_IsError(result)) {
+    return result;
+  }
+
+  return GetReloadErrorOrRootLibrary();
+}
+
+
+#endif  // !PRODUCT
+
+
 Dart_Handle TestCase::LoadCoreTestScript(const char* script,
                                          Dart_NativeEntryResolver resolver) {
   return LoadTestScript(script, resolver, CORELIB_TEST_URI);
@@ -219,13 +357,12 @@ void AssemblerTest::Assemble() {
       String::Handle(String::New(kDummyScript)),
       RawScript::kSourceTag));
   script.Tokenize(String::Handle());
-
+  const Library& lib = Library::Handle(Library::CoreLibrary());
   const Class& cls = Class::ZoneHandle(
-      Class::New(function_name,
+      Class::New(lib,
+                 function_name,
                  script,
                  TokenPosition::kMinSource));
-  const Library& lib = Library::ZoneHandle(Library::New(function_name));
-  cls.set_library(lib);
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
                     true, false, false, false, false, cls,
@@ -254,8 +391,9 @@ CodeGenTest::CodeGenTest(const char* name)
       Symbols::New(Thread::Current(), name));
   // Add function to a class and that class to the class dictionary so that
   // frame walking can be used.
+  Library& lib = Library::Handle(Library::CoreLibrary());
   const Class& cls = Class::ZoneHandle(
-       Class::New(function_name, Script::Handle(),
+      Class::New(lib, function_name, Script::Handle(),
                   TokenPosition::kMinSource));
   function_ = Function::New(
       function_name, RawFunction::kRegularFunction,
@@ -264,7 +402,6 @@ CodeGenTest::CodeGenTest(const char* name)
   const Array& functions = Array::Handle(Array::New(1));
   functions.SetAt(0, function_);
   cls.SetFunctions(functions);
-  Library& lib = Library::Handle(Library::CoreLibrary());
   lib.AddClass(cls);
 }
 

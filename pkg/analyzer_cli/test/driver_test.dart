@@ -134,74 +134,78 @@ main() {
     });
 
     group('linter', () {
-      group('lints in options', () {
-        // Shared lint command.
-        var runLinter = () => drive('data/linter_project/test_file.dart',
-            options: 'data/linter_project/.analysis_options',
-            args: ['--lints']);
+      void createTests(String designator, String optionsFileName) {
+        group('lints in options - $designator', () {
+          // Shared lint command.
+          void runLinter() => drive('data/linter_project/test_file.dart',
+              options: 'data/linter_project/$optionsFileName',
+              args: ['--lints']);
 
-        test('gets analysis options', () {
-          runLinter();
+          test('gets analysis options', () {
+            runLinter();
 
-          /// Lints should be enabled.
-          expect(driver.context.analysisOptions.lint, isTrue);
+            /// Lints should be enabled.
+            expect(driver.context.analysisOptions.lint, isTrue);
 
-          /// The .analysis_options file only specifies 'camel_case_types'.
-          var lintNames = getLints(driver.context).map((r) => r.name);
-          expect(lintNames, orderedEquals(['camel_case_types']));
+            /// The analysis options file only specifies 'camel_case_types'.
+            var lintNames = getLints(driver.context).map((r) => r.name);
+            expect(lintNames, orderedEquals(['camel_case_types']));
+          });
+
+          test('generates lints', () {
+            runLinter();
+            expect(outSink.toString(),
+                contains('[lint] Name types using UpperCamelCase.'));
+          });
         });
 
-        test('generates lints', () {
-          runLinter();
-          expect(outSink.toString(),
-              contains('[lint] Name types using UpperCamelCase.'));
-        });
-      });
+        group('default lints - $designator', () {
+          // Shared lint command.
+          void runLinter() => drive('data/linter_project/test_file.dart',
+              options: 'data/linter_project/$optionsFileName',
+              args: ['--lints']);
 
-      group('default lints', () {
-        // Shared lint command.
-        var runLinter = () => drive('data/linter_project/test_file.dart',
-            options: 'data/linter_project/.analysis_options',
-            args: ['--lints']);
+          test('gets default lints', () {
+            runLinter();
 
-        test('gets default lints', () {
-          runLinter();
+            /// Lints should be enabled.
+            expect(driver.context.analysisOptions.lint, isTrue);
 
-          /// Lints should be enabled.
-          expect(driver.context.analysisOptions.lint, isTrue);
+            /// Default list should include camel_case_types.
+            var lintNames = getLints(driver.context).map((r) => r.name);
+            expect(lintNames, contains('camel_case_types'));
+          });
 
-          /// Default list should include camel_case_types.
-          var lintNames = getLints(driver.context).map((r) => r.name);
-          expect(lintNames, contains('camel_case_types'));
-        });
-
-        test('generates lints', () {
-          runLinter();
-          expect(outSink.toString(),
-              contains('[lint] Name types using UpperCamelCase.'));
-        });
-      });
-
-      group('no `--lints` flag (none in options)', () {
-        // Shared lint command.
-        var runLinter = () => drive('data/no_lints_project/test_file.dart',
-            options: 'data/no_lints_project/.analysis_options');
-
-        test('lints disabled', () {
-          runLinter();
-          expect(driver.context.analysisOptions.lint, isFalse);
+          test('generates lints', () {
+            runLinter();
+            expect(outSink.toString(),
+                contains('[lint] Name types using UpperCamelCase.'));
+          });
         });
 
-        test('no registered lints', () {
-          runLinter();
-          expect(getLints(driver.context), isEmpty);
-        });
+        group('no `--lints` flag (none in options) - $designator', () {
+          // Shared lint command.
+          void runLinter() => drive('data/no_lints_project/test_file.dart',
+              options: 'data/no_lints_project/$optionsFileName');
 
-        test('no generated warnings', () {
-          runLinter();
-          expect(outSink.toString(), contains('No issues found'));
+          test('lints disabled', () {
+            runLinter();
+            expect(driver.context.analysisOptions.lint, isFalse);
+          });
+
+          test('no registered lints', () {
+            runLinter();
+            expect(getLints(driver.context), isEmpty);
+          });
+
+          test('no generated warnings', () {
+            runLinter();
+            expect(outSink.toString(), contains('No issues found'));
+          });
         });
-      });
+      }
+      createTests('old', AnalysisEngine.ANALYSIS_OPTIONS_FILE);
+      createTests('new', AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     });
 
     test('containsLintRuleEntry', () {
@@ -230,115 +234,125 @@ linter:
     });
 
     group('options processing', () {
-      group('basic config', () {
-        // Shared driver command.
-        var doDrive = () => drive('data/options_tests_project/test_file.dart',
-            options: 'data/options_tests_project/.analysis_options');
+      void createTests(String designator, String optionsFileName) {
+        group('basic config - $designator', () {
+          // Shared driver command.
+          void doDrive() => drive('data/options_tests_project/test_file.dart',
+              options: 'data/options_tests_project/$optionsFileName');
 
-        test('filters', () {
-          doDrive();
-          expect(processors, hasLength(3));
+          test('filters', () {
+            doDrive();
+            expect(processors, hasLength(3));
 
-          // unused_local_variable: ignore
-          var unused_local_variable = new AnalysisError(
-              new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
-            ['x']
-          ]);
-          expect(processorFor(unused_local_variable).severity, isNull);
+            // unused_local_variable: ignore
+            var unused_local_variable = new AnalysisError(
+                new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
+              ['x']
+            ]);
+            expect(processorFor(unused_local_variable).severity, isNull);
 
-          // missing_return: error
-          var missing_return = new AnalysisError(
-              new TestSource(), 0, 1, HintCode.MISSING_RETURN, [
-            ['x']
-          ]);
-          expect(processorFor(missing_return).severity, ErrorSeverity.ERROR);
-          expect(
-              outSink.toString(),
-              contains(
-                  "[error] This function declares a return type of 'int'"));
-          expect(outSink.toString(), contains("1 error and 1 warning found."));
+            // missing_return: error
+            var missing_return = new AnalysisError(
+                new TestSource(), 0, 1, HintCode.MISSING_RETURN, [
+              ['x']
+            ]);
+            expect(processorFor(missing_return).severity, ErrorSeverity.ERROR);
+            expect(
+                outSink.toString(),
+                contains(
+                    "[error] This function declares a return type of 'int'"));
+            expect(
+                outSink.toString(), contains("1 error and 1 warning found."));
+          });
+
+          test('language', () {
+            doDrive();
+            expect(driver.context.analysisOptions.enableSuperMixins, isTrue);
+          });
+
+          test('strongMode', () {
+            doDrive();
+            expect(driver.context.analysisOptions.strongMode, isTrue);
+            //https://github.com/dart-lang/sdk/issues/26129
+            AnalysisContext sdkContext =
+                driver.context.sourceFactory.dartSdk.context;
+            expect(sdkContext.analysisOptions.strongMode, isTrue);
+          });
         });
 
-        test('language', () {
-          doDrive();
-          expect(driver.context.analysisOptions.enableSuperMixins, isTrue);
+        group('with flags - $designator', () {
+          // Shared driver command.
+          void doDrive() => drive('data/options_tests_project/test_file.dart',
+              args: ['--fatal-warnings'],
+              options: 'data/options_tests_project/$optionsFileName');
+
+          test('override fatal warning', () {
+            doDrive();
+            // missing_return: error
+            var undefined_function = new AnalysisError(new TestSource(), 0, 1,
+                StaticTypeWarningCode.UNDEFINED_FUNCTION, [
+              ['x']
+            ]);
+            expect(processorFor(undefined_function).severity,
+                ErrorSeverity.WARNING);
+            // Should not be made fatal by `--fatal-warnings`.
+            expect(outSink.toString(),
+                contains("[warning] The function 'baz' is not defined"));
+            expect(
+                outSink.toString(), contains("1 error and 1 warning found."));
+          });
         });
-
-        test('strongMode', () {
-          doDrive();
-          expect(driver.context.analysisOptions.strongMode, isTrue);
-          //https://github.com/dart-lang/sdk/issues/26129
-          AnalysisContext sdkContext =
-              driver.context.sourceFactory.dartSdk.context;
-          expect(sdkContext.analysisOptions.strongMode, isTrue);
-        });
-      });
-
-      group('with flags', () {
-        // Shared driver command.
-        var doDrive = () => drive('data/options_tests_project/test_file.dart',
-            args: ['--fatal-warnings'],
-            options: 'data/options_tests_project/.analysis_options');
-
-        test('override fatal warning', () {
-          doDrive();
-          // missing_return: error
-          var undefined_function = new AnalysisError(new TestSource(), 0, 1,
-              StaticTypeWarningCode.UNDEFINED_FUNCTION, [
-            ['x']
-          ]);
-          expect(
-              processorFor(undefined_function).severity, ErrorSeverity.WARNING);
-          // Should not be made fatal by `--fatal-warnings`.
-          expect(outSink.toString(),
-              contains("[warning] The function 'baz' is not defined"));
-          expect(outSink.toString(), contains("1 error and 1 warning found."));
-        });
-      });
-    });
-
-    group('build-mode', () {
-      // Shared driver command.
-      void doDrive(String filePath, {List<String> additionalArgs: const []}) {
-        drive('file:///test_file.dart|$filePath',
-            args: [
-              '--dart-sdk',
-              findSdkDirForSummaries(),
-              '--build-mode',
-              '--machine'
-            ]..addAll(additionalArgs),
-            options: 'data/options_tests_project/.analysis_options');
       }
-
-      test('no stats', () {
-        doDrive('data/test_file.dart');
-        // Should not print stat summary.
-        expect(outSink.toString(), isEmpty);
-        expect(errorSink.toString(), isEmpty);
-        expect(exitCode, 0);
-      });
-
-      test(
-          'Fails if file not found, even when --build-suppress-exit-code is given',
-          () {
-        doDrive('data/non_existent_file.dart',
-            additionalArgs: ['--build-suppress-exit-code']);
-        expect(exitCode, isNot(0));
-      });
-
-      test('Fails if there are errors', () {
-        doDrive('data/file_with_error.dart');
-        expect(exitCode, isNot(0));
-      });
-
-      test(
-          'Succeeds if there are errors, when --build-suppress-exit-code is given',
-          () {
-        doDrive('data/file_with_error.dart',
-            additionalArgs: ['--build-suppress-exit-code']);
-        expect(exitCode, 0);
-      });
+      createTests('old', AnalysisEngine.ANALYSIS_OPTIONS_FILE);
+      createTests('new', AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     });
+
+    void createTests(String designator, String optionsFileName) {
+      group('build-mode - $designator', () {
+        // Shared driver command.
+        void doDrive(String filePath, {List<String> additionalArgs: const []}) {
+          drive('file:///test_file.dart|$filePath',
+              args: [
+                '--dart-sdk',
+                findSdkDirForSummaries(),
+                '--build-mode',
+                '--machine'
+              ]..addAll(additionalArgs),
+              options: 'data/options_tests_project/$optionsFileName');
+        }
+
+        test('no stats', () {
+          doDrive('data/test_file.dart');
+          // Should not print stat summary.
+          expect(outSink.toString(), isEmpty);
+          expect(errorSink.toString(), isEmpty);
+          expect(exitCode, 0);
+        });
+
+        test(
+            'Fails if file not found, even when --build-suppress-exit-code is given',
+            () {
+          doDrive('data/non_existent_file.dart',
+              additionalArgs: ['--build-suppress-exit-code']);
+          expect(exitCode, isNot(0));
+        });
+
+        test('Fails if there are errors', () {
+          doDrive('data/file_with_error.dart');
+          expect(exitCode, isNot(0));
+        });
+
+        test(
+            'Succeeds if there are errors, when --build-suppress-exit-code is given',
+            () {
+          doDrive('data/file_with_error.dart',
+              additionalArgs: ['--build-suppress-exit-code']);
+          expect(exitCode, 0);
+        });
+      });
+    }
+    createTests('old', AnalysisEngine.ANALYSIS_OPTIONS_FILE);
+    createTests('new', AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
 
 //TODO(pq): fix to be bot-friendly (sdk#25258).
 //    group('in temp directory', () {
