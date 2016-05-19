@@ -2345,8 +2345,12 @@ class CodeGenerator extends GeneralizingAstVisitor
         e.getter != null &&
         findAnnotation(e.getter, isPublicJSAnnotation) != null) {
       var annotationName = getAnnotationName(e.getter, isPublicJSAnnotation);
-      var name = js.string(annotationName ?? e.name);
-      return new JS.PropertyAccess(_self, name);
+      var name = annotationName ?? e.name;
+      JS.PropertyAccess result = null;
+      for (var segment in name.split('.')) {
+        result = new JS.PropertyAccess(result ?? _self, js.string(segment));
+      }
+      return result;
     }
     String name = getJSExportName(e) + suffix;
     return new JS.PropertyAccess(
