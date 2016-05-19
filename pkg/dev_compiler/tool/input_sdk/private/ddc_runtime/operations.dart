@@ -470,14 +470,18 @@ hashCode(obj) {
 }
 
 @JSExportName('toString')
-_toString(obj) {
+String _toString(obj) {
   if (obj == null) return "null";
 
   var extension = getExtensionType(obj);
   if (extension != null) {
-    return JS('', '#[dartx.toString]()', obj);
+    return JS('String', '#[dartx.toString]()', obj);
   }
-  return JS('', '"" + #', obj);
+  // TODO(jmesserly): restore this faster path once ES Symbol is treated as
+  // an extension type (and thus hits the above code path).
+  // See https://github.com/dart-lang/dev_compiler/issues/578.
+  // return JS('', '"" + #', obj);
+  return JS('String', '#.toString()', obj);
 }
 
 // TODO(jmesserly): is the argument type verified statically?

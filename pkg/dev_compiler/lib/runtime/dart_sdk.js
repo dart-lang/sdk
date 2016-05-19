@@ -608,7 +608,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     if (extension != null) {
       return obj[dartx.toString]();
     }
-    return "" + obj;
+    return obj.toString();
   };
   dart.noSuchMethod = function(obj, invocation) {
     if (obj == null) {

@@ -1163,4 +1163,9 @@ suite('primitives', function() {
     list[0] = 42;
     assert.throws(() => list.add(42));
   });
+
+  test('toString on ES Symbol', () => {
+    let sym = Symbol('_foobar');
+    assert.equal(dart.toString(sym), 'Symbol(_foobar)');
+  });
 });
