@@ -1565,14 +1565,13 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
   // evaluating the initializer value.
   ASSERT(field.StaticValue() == Object::transition_sentinel().raw());
   LongJumpScope jump;
-  Thread* thread = Thread::Current();
   if (setjmp(*jump.Set()) == 0) {
+    Thread* const thread = Thread::Current();
     NoOOBMessageScope no_msg_scope(thread);
     NoReloadScope no_reload_scope(thread->isolate(), thread);
     // Under lazy compilation initializer has not yet been created, so create
     // it now, but don't bother remembering it because it won't be used again.
     ASSERT(!field.HasPrecompiledInitializer());
-    Thread* const thread = Thread::Current();
     Function& initializer = Function::Handle(thread->zone());
     {
       NOT_IN_PRODUCT(
