@@ -113,8 +113,9 @@ class _Visitor extends SimpleAstVisitor {
 
   PropertyAccessorElement _getOverriddenMember(Element member) {
     String memberName = member.name;
+    LibraryElement library = member.library;
     bool isOverriddenMember(PropertyAccessorElement a) =>
-        a.isSynthetic && a.name == memberName;
+        a.library == library && a.isSynthetic && a.name == memberName;
     bool containsOverridenMember(InterfaceType i) =>
         i.accessors.any(isOverriddenMember);
     ClassElement classElement = member.enclosingElement;

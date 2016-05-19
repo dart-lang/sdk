@@ -150,6 +150,32 @@ defineTests() {
       });
     });
 
+    group('overridden_field', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+
+      // https://github.com/dart-lang/linter/issues/246
+      test('overrides across libraries', () {
+        dartlint.main([
+          'test/_data/overridden_field',
+          '-c',
+          'test/_data/overridden_field/lintconfig.yaml'
+        ]);
+        expect(exitCode, 0);
+        expect(collectingOut.trim(),
+            stringContainsInOrder(['2 files analyzed, 0 issues found, in']));
+      });
+    });
+
     group('examples', () {
       test('lintconfig.yaml', () {
         var src = readFile('example/lintconfig.yaml');
