@@ -667,8 +667,21 @@ class StringReader extends Reader<String> {
   String read(BufferPointer ref) {
     BufferPointer object = ref.derefObject();
     int length = object._getUint32();
-    return UTF8
-        .decode(ref._buffer.buffer.asUint8List(object._offset + 4, length));
+    Uint8List bytes = ref._buffer.buffer.asUint8List(object._offset + 4, length);
+    if (_isLatin(bytes)) {
+      return new String.fromCharCodes(bytes);
+    }
+    return UTF8.decode(bytes);
+  }
+
+  static bool _isLatin(Uint8List bytes) {
+    int length = bytes.length;
+    for (int i = 0; i < length; i++) {
+      if (bytes[i] > 127) {
+        return false;
+      }
+    }
+    return true;
   }
 }
 

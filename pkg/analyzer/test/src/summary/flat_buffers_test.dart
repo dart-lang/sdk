@@ -149,6 +149,26 @@ class BuilderTest {
     }
   }
 
+  void test_table_string() {
+    String latinString = 'test';
+    String unicodeString = 'Проба пера';
+    List<int> byteList;
+    {
+      Builder builder = new Builder(initialSize: 0);
+      Offset<String> latinStringOffset = builder.writeString(latinString);
+      Offset<String> unicodeStringOffset = builder.writeString(unicodeString);
+      builder.startTable();
+      builder.addOffset(0, latinStringOffset);
+      builder.addOffset(1, unicodeStringOffset);
+      Offset offset = builder.endTable();
+      byteList = builder.finish(offset);
+    }
+    // read and verify
+    BufferPointer object = new BufferPointer.fromBytes(byteList).derefObject();
+    expect(const StringReader().vTableGet(object, 0), latinString);
+    expect(const StringReader().vTableGet(object, 1), unicodeString);
+  }
+
   void test_table_types() {
     List<int> byteList;
     {
