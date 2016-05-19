@@ -2404,6 +2404,7 @@ class InvalidType extends DartType {
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is InvalidType;
+  int get hashCode => super.hashCode;
 }
 
 class DynamicType extends DartType {
@@ -2413,6 +2414,8 @@ class DynamicType extends DartType {
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is DynamicType;
+
+  int get hashCode => super.hashCode;
 }
 
 class VoidType extends DartType {
@@ -2422,6 +2425,8 @@ class VoidType extends DartType {
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is VoidType;
+
+  int get hashCode => super.hashCode;
 }
 
 class InterfaceType extends DartType {
@@ -2464,6 +2469,8 @@ class InterfaceType extends DartType {
       return false;
     }
   }
+
+  int get hashCode => super.hashCode;
 }
 
 /// A possibly generic function type.
@@ -2551,6 +2558,8 @@ class TypeParameterType extends DartType {
   bool operator ==(Object other) {
     return other is TypeParameterType && parameter == other.parameter;
   }
+
+  int get hashCode => super.hashCode;
 }
 
 /// Declaration of a type variable.
