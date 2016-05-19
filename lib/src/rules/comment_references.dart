@@ -8,10 +8,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/linter.dart';
 
-const desc = r'Only reference in scope identifers in doc comments.';
+const desc = r'Only reference in scope identifiers in doc comments.';
 
 const details = r'''
-**DO** reference only in scope identifers in doc comments.
+**DO** reference only in scope identifiers in doc comments.
 
 If you surround things like variable, method, or type names in square brackets,
 then [dartdoc](https://www.dartlang.org/effective-dart/documentation/) will look
