@@ -135,7 +135,7 @@ bool isSimpleGetter(MethodDeclaration declaration) {
   return false;
 }
 
-/// Returns `true` if the given method [declaration] is a "simple setter".
+/// Returns `true` if the given [setter] is a "simple setter".
 ///
 /// A simple setter takes this basic form:
 ///

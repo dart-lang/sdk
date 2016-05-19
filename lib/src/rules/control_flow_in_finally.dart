@@ -98,7 +98,7 @@ class ControlFlowInFinally extends LintRule {
 }
 
 /// Do not extend this class, it is meant to be used from
-/// [NoThrowInFinallyBlock] which is in a separate rule to allow a more granular
+/// [ControlFlowInFinally] which is in a separate rule to allow a more granular
 /// configurability given that reporting throw statements in a finally clause is
 /// controversial.
 abstract class ControlFlowInFinallyBlockReporterMixin {

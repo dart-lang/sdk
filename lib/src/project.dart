@@ -53,8 +53,8 @@ class DartProject {
   /// The project's name.
   ///
   /// Project names correspond to the package name as specified in the project's
-  /// [pubspec]. The pubspec is found relative to the [projectRoot].  If no
-  /// pubspec can be found, the name defaults to the projectRoot basename.
+  /// [pubspec]. The pubspec is found relative to the project [root].  If no
+  /// pubspec can be found, the name defaults to the project root basename.
   String get name => _name ??= _calculateName();
 
   /// The project's pubspec.

@@ -6,3 +6,4 @@ analyzer:
 linter:
   rules:
     - annotate_overrides
+    - comment_references
