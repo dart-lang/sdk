@@ -261,8 +261,19 @@ cast(obj, type) {
 }
 
 bool test(obj) {
-  if (JS('bool', 'typeof # == "boolean"', obj)) return JS('bool', '#', obj);
-  throwCastError(getReifiedType(obj), JS('', '#', bool));
+  if (obj is bool) return obj;
+  return booleanConversionFailed(obj);
+}
+
+bool booleanConversionFailed(obj) {
+  if (obj == null) {
+    throw new BooleanConversionAssertionError();
+  }
+  var actual = getReifiedType(obj);
+  var expected = JS('', '#', bool);
+  throw new TypeErrorImplementation.fromMessage(
+      "type '${typeName(actual)}' is not a subtype of "
+      "type '${typeName(expected)}' in boolean expression");
 }
 
 void _throwCastError(obj, type, bool result) {

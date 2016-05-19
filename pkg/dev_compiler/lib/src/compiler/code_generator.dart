@@ -81,6 +81,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// In an async* function, this represents the stream controller parameter.
   JS.TemporaryId _asyncStarController;
 
+  // TODO(jmesserly): fuse this with notNull check.
   final _privateNames =
       new HashMap<LibraryElement, HashMap<String, JS.TemporaryId>>();
   final _initializingFormalTemps =
@@ -492,44 +493,29 @@ class CodeGenerator extends GeneralizingAstVisitor
   }
 
   @override
-  visitAsExpression(AsExpression node) =>
-      _emitCast(node.expression, to: node.type.type);
-
-  /// Emits a cast and/or a null check (i.e. a cast to a non-null type).
-  JS.Expression _emitCast(Expression fromExpr,
-      {DartType to, bool checkNull: false}) {
-    var jsFrom = _visit(fromExpr);
+  visitAsExpression(AsExpression node) {
+    Expression fromExpr = node.expression;
     var from = getStaticType(fromExpr);
+    var to = node.type.type;
 
-    JS.Expression maybeCheckNull(JS.Expression jsExpr) {
-      if (checkNull && isNullable(fromExpr)) {
-        return js.call('dart.notNull(#)', jsExpr);
-      }
-      return jsExpr;
-    }
+    var jsFrom = _visit(fromExpr);
 
     // Skip the cast if it's not needed.
-    if (to == null || rules.isSubtypeOf(from, to)) {
-      return maybeCheckNull(jsFrom);
-    }
+    if (rules.isSubtypeOf(from, to)) return jsFrom;
 
     // All Dart number types map to a JS double.
     if (_isNumberInJS(from) && _isNumberInJS(to)) {
       // Make sure to check when converting to int.
       if (from != types.intType && to == types.intType) {
         // TODO(jmesserly): fuse this with notNull check.
-        return maybeCheckNull(js.call('dart.asInt(#)', [jsFrom]));
+        return js.call('dart.asInt(#)', jsFrom);
       }
 
       // A no-op in JavaScript.
-      return maybeCheckNull(jsFrom);
+      return jsFrom;
     }
 
-    if (to == types.boolType && checkNull) {
-      return js.call('dart.test(#)', _visit(fromExpr));
-    }
-
-    return maybeCheckNull(js.call('dart.as(#, #)', [jsFrom, _emitType(to)]));
+    return js.call('dart.as(#, #)', [jsFrom, _emitType(to)]);
   }
 
   @override
@@ -3156,10 +3142,9 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   JS.Expression notNull(Expression expr) {
     if (expr == null) return null;
-    if (expr is AsExpression) {
-      return _emitCast(expr.expression, to: expr.type.type, checkNull: true);
-    }
-    return _emitCast(expr, checkNull: true);
+    var jsExpr = _visit(expr);
+    if (!isNullable(expr)) return jsExpr;
+    return js.call('dart.notNull(#)', jsExpr);
   }
 
   @override
@@ -3867,7 +3852,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   @override
   visitConditionalExpression(ConditionalExpression node) {
     return js.call('# ? # : #', [
-      notNull(node.condition),
+      _visitTest(node.condition),
       _visit(node.thenExpression),
       _visit(node.elseExpression)
     ]);
@@ -3909,8 +3894,8 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   @override
   JS.If visitIfStatement(IfStatement node) {
-    return new JS.If(notNull(node.condition), _visitScope(node.thenStatement),
-        _visitScope(node.elseStatement));
+    return new JS.If(_visitTest(node.condition),
+        _visitScope(node.thenStatement), _visitScope(node.elseStatement));
   }
 
   @override
@@ -3919,18 +3904,18 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (init == null) init = _visit(node.variables);
     var update = _visitListToBinary(node.updaters, ',');
     if (update != null) update = update.toVoidExpression();
-    return new JS.For(
-        init, notNull(node.condition), update, _visitScope(node.body));
+    var condition = node.condition == null ? null : _visitTest(node.condition);
+    return new JS.For(init, condition, update, _visitScope(node.body));
   }
 
   @override
   JS.While visitWhileStatement(WhileStatement node) {
-    return new JS.While(notNull(node.condition), _visitScope(node.body));
+    return new JS.While(_visitTest(node.condition), _visitScope(node.body));
   }
 
   @override
   JS.Do visitDoStatement(DoStatement node) {
-    return new JS.Do(_visitScope(node.body), notNull(node.condition));
+    return new JS.Do(_visitScope(node.body), _visitTest(node.condition));
   }
 
   @override
@@ -4265,6 +4250,39 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (nodes == null || nodes.isEmpty) return null;
     return new JS.Expression.binary(
         _visitList(nodes) as List<JS.Expression>, operator);
+  }
+
+  /// Generates an expression for a boolean conversion context (if, while, &&,
+  /// etc.), where conversions and null checks are implemented via `dart.test`
+  /// to give a more helpful message.
+  // TODO(sra): When nullablility is available earlier, it would be cleaner to
+  // build an input AST where the boolean conversion is a single AST node.
+  JS.Expression _visitTest(Expression node) {
+    JS.Expression finish(JS.Expression result) {
+      return annotate(result, node);
+    }
+    if (node is PrefixExpression && node.operator.lexeme == '!') {
+      return finish(js.call('!#', _visitTest(node.operand)));
+    }
+    if (node is BinaryExpression) {
+      JS.Expression shortCircuit(String code) {
+        return finish(js.call(code,
+            [_visitTest(node.leftOperand), _visitTest(node.rightOperand)]));
+      }
+      var op = node.operator.type.lexeme;
+      if (op == '&&') return shortCircuit('# && #');
+      if (op == '||') return shortCircuit('# || #');
+    }
+    // Offset 0 from start of file is syntactically impossible for normal code.
+    // TODO(sra): Find a better way to recognize reified coercion, since we
+    // can't set the isSynthetic attribute.
+    if (node is AsExpression && node.asOperator.offset == 0) {
+      assert(node.staticType == types.boolType);
+      return js.call('dart.test(#)', _visit(node.expression));
+    }
+    JS.Expression result = _visit(node);
+    if (isNullable(node)) result = js.call('dart.test(#)', result);
+    return result;
   }
 
   /// Like [_emitMemberName], but for declaration sites.

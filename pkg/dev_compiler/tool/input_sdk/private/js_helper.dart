@@ -867,3 +867,7 @@ class SyncIterable<E> extends IterableBase<E> {
 
   Iterator<E> get iterator => new SyncIterator<E>(_jsIterator());
 }
+
+class BooleanConversionAssertionError extends AssertionError {
+  toString() => 'Failed assertion: boolean expression must not be null';
+}
