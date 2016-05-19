@@ -972,21 +972,18 @@ abstract class CompilationUnitElementForLink
           return DynamicTypeImpl.instance;
         }
       }
-      ReferenceableElementForLink element = _resolveRef(type.reference);
+      ReferenceableElementForLink element = resolveRef(type.reference);
       return element.buildType(
           getTypeArgument, type.implicitFunctionTypeIndices);
     }
   }
-
-  @override
-  String toString() => enclosingElement.toString();
 
   /**
    * Return the element referred to by the given [index] in
    * [UnlinkedUnit.references].  If the reference is unresolved,
    * return [UndefinedElementForLink.instance].
    */
-  ReferenceableElementForLink _resolveRef(int index) {
+  ReferenceableElementForLink resolveRef(int index) {
     if (_references[index] == null) {
       UnlinkedReference unlinkedReference =
           index < _unlinkedUnit.references.length
@@ -1004,12 +1001,12 @@ abstract class CompilationUnitElementForLink
               ReferenceKind.prefix) {
         if (linkedReference.kind == ReferenceKind.function) {
           // Local function
-          _references[index] = _resolveRef(containingReference)
+          _references[index] = resolveRef(containingReference)
                   .getLocalFunction(linkedReference.localIndex) ??
               UndefinedElementForLink.instance;
         } else {
           _references[index] =
-              _resolveRef(containingReference).getContainedName(name);
+              resolveRef(containingReference).getContainedName(name);
         }
       } else if (linkedReference.dependency == 0) {
         if (name == 'void') {
@@ -1029,6 +1026,9 @@ abstract class CompilationUnitElementForLink
     }
     return _references[index];
   }
+
+  @override
+  String toString() => enclosingElement.toString();
 }
 
 /**
@@ -1408,7 +1408,7 @@ class ConstConstructorNode extends ConstNode {
         constructorElement._unlinkedExecutable.redirectedConstructor;
     if (redirectedConstructor != null) {
       return constructorElement.compilationUnit
-          ._resolveRef(redirectedConstructor.reference)
+          .resolveRef(redirectedConstructor.reference)
           .asConstructor;
     } else {
       return null;
@@ -1467,7 +1467,7 @@ abstract class ConstNode extends Node<ConstNode> {
         case UnlinkedConstOperation.invokeMethodRef:
           EntityRef ref = unlinkedConst.references[refPtr++];
           ConstVariableNode variable =
-              compilationUnit._resolveRef(ref.reference).asConstVariable;
+              compilationUnit.resolveRef(ref.reference).asConstVariable;
           if (variable != null) {
             dependencies.add(variable);
           }
@@ -1481,7 +1481,7 @@ abstract class ConstNode extends Node<ConstNode> {
         case UnlinkedConstOperation.invokeConstructor:
           EntityRef ref = unlinkedConst.references[refPtr++];
           ConstructorElementForLink element =
-              compilationUnit._resolveRef(ref.reference).asConstructor;
+              compilationUnit.resolveRef(ref.reference).asConstructor;
           if (element?._constNode != null) {
             dependencies.add(element._constNode);
           }
@@ -2269,7 +2269,7 @@ class ExprTypeComputer {
     strPtr += numNamed;
     EntityRef ref = _getNextRef();
     ConstructorElementForLink element =
-        unit._resolveRef(ref.reference).asConstructor;
+        unit.resolveRef(ref.reference).asConstructor;
     if (element != null) {
       ClassElementForLink_Class enclosingClass = element.enclosingClass;
       stack.add(enclosingClass.buildType((int i) {
@@ -2324,7 +2324,7 @@ class ExprTypeComputer {
     List<DartType> namedArgTypeList = _popList(numNamed);
     List<DartType> positionalArgTypes = _popList(numPositional);
     EntityRef ref = _getNextRef();
-    ReferenceableElementForLink element = unit._resolveRef(ref.reference);
+    ReferenceableElementForLink element = unit.resolveRef(ref.reference);
     stack.add(() {
       DartType rawType = element.asStaticType;
       if (rawType is FunctionType) {
@@ -2390,7 +2390,7 @@ class ExprTypeComputer {
       // Nor can implicit function types derived from
       // function-typed parameters.
       assert(ref.implicitFunctionTypeIndices.isEmpty);
-      ReferenceableElementForLink element = unit._resolveRef(ref.reference);
+      ReferenceableElementForLink element = unit.resolveRef(ref.reference);
       stack.add(element.asStaticType);
     }
   }
@@ -2912,6 +2912,9 @@ class FunctionTypeAliasElementForLink extends Object
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() => '$enclosingElement.$name';
 }
 
 /**
@@ -3590,6 +3593,12 @@ class NonstaticMemberElementForLink extends Object
   ReferenceableElementForLink getContainedName(String name) {
     return new NonstaticMemberElementForLink(_library, this, name);
   }
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() => '$_target.(dynamic)$_name';
 }
 
 /**
@@ -4053,7 +4062,7 @@ class PropertyAccessorElementForLink_Variable extends Object
  * When used as a mixin, implements the default behavior shared by most
  * elements.
  */
-class ReferenceableElementForLink {
+abstract class ReferenceableElementForLink implements Element {
   /**
    * If this element can be used in a constructor invocation context,
    * return the associated constructor (which may be `this` or some
@@ -4128,6 +4137,12 @@ class SpecialTypeElementForLink extends Object
       DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
     return type;
   }
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() => type.toString();
 }
 
 /**
@@ -4186,6 +4201,9 @@ class TopLevelFunctionElementForLink extends ExecutableElementForLink_NonLocal
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() => '$enclosingElement.$name';
 }
 
 /**
@@ -4281,7 +4299,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
           // TODO(paulberry): cache these resolved references for
           // later use by evaluate().
           TypeInferenceNode dependency =
-              compilationUnit._resolveRef(ref.reference).asTypeInferenceNode;
+              compilationUnit.resolveRef(ref.reference).asTypeInferenceNode;
           if (dependency != null) {
             dependencies.add(dependency);
           }
@@ -4491,6 +4509,9 @@ class UndefinedElementForLink extends Object with ReferenceableElementForLink {
       new UndefinedElementForLink._();
 
   UndefinedElementForLink._();
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /**

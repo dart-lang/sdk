@@ -5,9 +5,13 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 
 /**
@@ -16,7 +20,9 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
  */
 main(List<String> args) {
   SummaryDataStore summaryDataStore = new SummaryDataStore(args);
-  InferredTypeCollector collector = new InferredTypeCollector();
+  InferredTypeCollector collector = new InferredTypeCollector(
+      (String uri) => summaryDataStore.linkedMap[uri],
+      (String uri) => summaryDataStore.unlinkedMap[uri]);
   collector.visitSummaryDataStore(summaryDataStore);
   collector.dumpCollectedTypes();
 }
@@ -28,8 +34,14 @@ main(List<String> args) {
 class InferredTypeCollector {
   UnlinkedUnit unlinkedUnit;
   LinkedUnit linkedUnit;
+  CompilationUnitElementForLink unitForLink;
   final Map<String, String> inferredTypes = <String, String>{};
   List<String> typeParamsInScope = <String>[];
+  final Linker _linker;
+
+  InferredTypeCollector(
+      GetDependencyCallback getDependency, GetUnitCallback getUnit)
+      : _linker = new Linker({}, getDependency, getUnit, true);
 
   /**
    * If an inferred type exists matching the given [slot], record that it is the
@@ -88,6 +100,67 @@ class InferredTypeCollector {
   }
 
   /**
+   * Format the given [type] as a string.  Unlike the type's [toString] method,
+   * this formats types using their complete URI to avoid ambiguity.
+   */
+  String formatDartType(DartType type) {
+    if (type is FunctionType) {
+      List<String> argStrings =
+          type.normalParameterTypes.map(formatDartType).toList();
+      List<DartType> optionalParameterTypes = type.optionalParameterTypes;
+      if (optionalParameterTypes.isNotEmpty) {
+        List<String> optionalArgStrings =
+            optionalParameterTypes.map(formatDartType).toList();
+        argStrings.add('[${optionalArgStrings.join(', ')}]');
+      }
+      Map<String, DartType> namedParameterTypes = type.namedParameterTypes;
+      if (namedParameterTypes.isNotEmpty) {
+        List<String> namedArgStrings = <String>[];
+        namedParameterTypes.forEach((String name, DartType type) {
+          namedArgStrings.add('$name: ${formatDartType(type)}');
+        });
+        argStrings.add('{${namedArgStrings.join(', ')}}');
+      }
+      return '(${argStrings.join(', ')}) → ${formatDartType(type.returnType)}';
+    } else if (type is InterfaceType) {
+      if (type.typeArguments.isNotEmpty) {
+        // TODO(paulberry): implement.
+        throw new UnimplementedError('type args');
+      }
+      return formatElement(type.element);
+    } else if (type is DynamicTypeImpl) {
+      return type.toString();
+    } else {
+      // TODO(paulberry): implement.
+      throw new UnimplementedError(
+          "Don't know how to format type of type ${type.runtimeType}");
+    }
+  }
+
+  /**
+   * Format the given [element] as a string, assuming it represents a type.
+   * Unlike the element's [toString] method, this formats elements using their
+   * complete URI to avoid ambiguity.
+   */
+  String formatElement(Element element) {
+    if (element is ClassElementForLink_Class ||
+        element is MethodElementForLink ||
+        element is ClassElementForLink_Enum ||
+        element is SpecialTypeElementForLink ||
+        element is FunctionTypeAliasElementForLink ||
+        element is TopLevelFunctionElementForLink) {
+      return element.toString();
+    } else if (element is FunctionElementForLink_Local_NonSynthetic) {
+      return formatDartType(element.type);
+    } else if (element is UndefinedElementForLink) {
+      return '???';
+    } else {
+      throw new UnimplementedError(
+          "Don't know how to format reference of type ${element.runtimeType}");
+    }
+  }
+
+  /**
    * Interpret the given [param] as a parameter in a synthetic typedef, and
    * format it as a string.
    */
@@ -117,47 +190,8 @@ class InferredTypeCollector {
    * `typeof()` for clarity.
    */
   String formatReference(int index, {bool typeOf: false}) {
-    LinkedReference linkedRef = linkedUnit.references[index];
-    switch (linkedRef.kind) {
-      case ReferenceKind.classOrEnum:
-      case ReferenceKind.function:
-      case ReferenceKind.propertyAccessor:
-      case ReferenceKind.topLevelFunction:
-      case ReferenceKind.method:
-      case ReferenceKind.typedef:
-      case ReferenceKind.prefix:
-      case ReferenceKind.topLevelPropertyAccessor:
-        break;
-      default:
-        // TODO(paulberry): fix this case.
-        return 'BAD(${JSON.encode(linkedRef.toJson())})';
-    }
-    int containingReference;
-    String name;
-    if (index < unlinkedUnit.references.length) {
-      containingReference = unlinkedUnit.references[index].prefixReference;
-      name = unlinkedUnit.references[index].name;
-    } else {
-      containingReference = linkedRef.containingReference;
-      name = linkedRef.name;
-    }
-    String result;
-    if (containingReference != 0) {
-      result = '${formatReference(containingReference)}.$name';
-    } else {
-      result = name;
-    }
-    if (linkedRef.kind == ReferenceKind.function) {
-      assert(name.isEmpty);
-      result += 'localFunction[${linkedRef.localIndex}]';
-    }
-    if (!typeOf ||
-        linkedRef.kind == ReferenceKind.classOrEnum ||
-        linkedRef.kind == ReferenceKind.typedef) {
-      return result;
-    } else {
-      return 'typeof($result)';
-    }
+    ReferenceableElementForLink element = unitForLink.resolveRef(index);
+    return formatElement(element);
   }
 
   /**
@@ -260,12 +294,16 @@ class InferredTypeCollector {
       if (partOfUris.contains(libraryUriString)) {
         return;
       }
+      if (libraryUriString.startsWith('dart:')) {
+        // Don't bother dumping inferred types from the SDK.
+        return;
+      }
       Uri libraryUri = Uri.parse(libraryUriString);
       UnlinkedUnit definingUnlinkedUnit =
           summaryDataStore.unlinkedMap[libraryUriString];
       if (definingUnlinkedUnit != null) {
         visitUnit(
-            definingUnlinkedUnit, linkedLibrary.units[0], libraryUriString);
+            definingUnlinkedUnit, linkedLibrary.units[0], libraryUriString, 0);
         for (int i = 0;
             i < definingUnlinkedUnit.publicNamespace.parts.length;
             i++) {
@@ -276,8 +314,8 @@ class InferredTypeCollector {
           UnlinkedUnit unlinkedUnit =
               summaryDataStore.unlinkedMap[unitUriString];
           if (unlinkedUnit != null) {
-            visitUnit(
-                unlinkedUnit, linkedLibrary.units[i + 1], libraryUriString);
+            visitUnit(unlinkedUnit, linkedLibrary.units[i + 1],
+                libraryUriString, i + 1);
           }
         }
       }
@@ -289,11 +327,14 @@ class InferredTypeCollector {
    * by [unlinkedUnit] and [linkedUnit], which has URI [libraryUriString].
    */
   void visitUnit(UnlinkedUnit unlinkedUnit, LinkedUnit linkedUnit,
-      String libraryUriString) {
+      String libraryUriString, int unitNum) {
     this.unlinkedUnit = unlinkedUnit;
     this.linkedUnit = linkedUnit;
+    this.unitForLink =
+        _linker.getLibrary(Uri.parse(libraryUriString)).units[unitNum];
     visit(unlinkedUnit, unlinkedUnit.toMap(), libraryUriString);
     this.unlinkedUnit = null;
     this.linkedUnit = null;
+    this.unitForLink = null;
   }
 }
