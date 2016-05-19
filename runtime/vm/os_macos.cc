@@ -90,7 +90,9 @@ int64_t OS::GetCurrentTimeMicros() {
 }
 
 
+#if !TARGET_OS_IOS
 static mach_timebase_info_data_t timebase_info;
+#endif
 
 
 int64_t OS::GetCurrentMonotonicTicks() {
