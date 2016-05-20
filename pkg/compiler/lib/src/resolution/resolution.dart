@@ -418,20 +418,23 @@ class ResolverTask extends CompilerTask {
   }
 
   void resolveRedirectionChain(
-      ConstructorElementX constructor, Spannable node) {
-    ConstructorElementX target = constructor;
+      ConstructorElement constructor, Spannable node) {
+    ConstructorElement target = constructor;
     InterfaceType targetType;
     List<Element> seen = new List<Element>();
     bool isMalformed = false;
     // Follow the chain of redirections and check for cycles.
     while (target.isRedirectingFactory || target.isPatched) {
-      if (target.effectiveTargetInternal != null) {
+      if (target.hasEffectiveTarget) {
         // We found a constructor that already has been processed.
-        targetType = target.effectiveTargetType;
+        // TODO(johnniwinther): Should `effectiveTargetType` be part of the
+        // interface?
+        targetType = target.computeEffectiveTargetType(
+            target.enclosingClass.thisType);
         assert(invariant(target, targetType != null,
             message: 'Redirection target type has not been computed for '
                 '$target'));
-        target = target.effectiveTargetInternal;
+        target = target.effectiveTarget;
         break;
       }
 

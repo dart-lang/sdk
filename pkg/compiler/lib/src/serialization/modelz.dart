@@ -1108,6 +1108,9 @@ abstract class ConstructorElementZ extends DeserializedElementZ
   ConstructorElement get definingConstructor => null;
 
   @override
+  bool get hasEffectiveTarget => true;
+
+  @override
   ConstructorElement get effectiveTarget {
     if (_effectiveTarget == null) {
       _effectiveTarget =
@@ -1267,6 +1270,9 @@ class ForwardingConstructorElementZ extends ElementZ
 
   @override
   ConstantConstructor get constantConstructor => null;
+
+  @override
+  bool get hasEffectiveTarget => true;
 
   @override
   ConstructorElement get effectiveTarget => this;

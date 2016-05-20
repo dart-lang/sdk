@@ -1236,6 +1236,10 @@ abstract class LocalFunctionElement extends FunctionElement
 /// A constructor.
 abstract class ConstructorElement extends FunctionElement
     implements MemberElement {
+  /// Returns `true` if [effectiveTarget] has been computed for this
+  /// constructor.
+  bool get hasEffectiveTarget;
+
   /// The effective target of this constructor, that is the non-redirecting
   /// constructor that is called on invocation of this constructor.
   ///

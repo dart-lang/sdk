@@ -256,6 +256,8 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   bool get hasFunctionSignature => false;
 
+  bool get hasEffectiveTarget => true;
+
   get effectiveTarget => this;
 
   computeEffectiveTargetType(InterfaceType newType) => unsupported();
@@ -2198,6 +2200,8 @@ abstract class ConstructorElementX extends FunctionElementX
   ConstructorElement effectiveTargetInternal;
   DartType _effectiveTargetType;
   bool _isEffectiveTargetMalformed;
+
+  bool get hasEffectiveTarget => effectiveTargetInternal != null;
 
   void setEffectiveTarget(ConstructorElement target, DartType type,
       {bool isMalformed: false}) {

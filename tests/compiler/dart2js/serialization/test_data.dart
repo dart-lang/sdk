@@ -217,6 +217,22 @@ class C {
 }
 main() => const C();'''
   }),
+
+  const Test(const {
+    'main.dart': '''
+class C {
+  factory C() = Object;
+}
+main() => new C();'''
+  }),
+
+  const Test(const {
+    'main.dart': '''
+abstract class C implements List {
+  factory C([_]) = List;
+}
+main() => new C();'''
+  }),
 ];
 
 class Test {
