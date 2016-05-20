@@ -1382,7 +1382,6 @@ class _LibraryResynthesizer {
    * contained in it.
    */
   void populateUnit(_UnitResynthesizer unitResynthesized) {
-    // TODO(scheglov)
     unitResynthesized.populateUnit();
     String absoluteUri = unitResynthesized.unit.source.uri.toString();
     resynthesizedUnits[absoluteUri] = unitResynthesized.unit;
@@ -1628,6 +1627,11 @@ class _ResynthesizerContext implements ResynthesizerContext {
   @override
   UnitExplicitTopLevelAccessors buildTopLevelAccessors() {
     return _unitResynthesizer.buildUnitExplicitTopLevelAccessors();
+  }
+
+  @override
+  List<FunctionElementImpl> buildTopLevelFunctions() {
+    return _unitResynthesizer.buildTopLevelFunctions();
   }
 
   @override
@@ -2126,11 +2130,7 @@ class _UnitResynthesizer {
     switch (kind) {
       case UnlinkedExecutableKind.functionOrMethod:
         if (isTopLevel) {
-          FunctionElementImpl executableElement =
-              new FunctionElementImpl.forSerialized(
-                  serializedExecutable, enclosingElement);
-          buildExecutableCommonParts(executableElement, serializedExecutable);
-          holder.addFunction(executableElement);
+          // Created lazily.
         } else {
           MethodElementImpl executableElement =
               new MethodElementImpl.forSerialized(
@@ -2522,6 +2522,20 @@ class _UnitResynthesizer {
     element.propagatedType = buildLinkedType(
         serializedVariable.propagatedTypeSlot,
         _currentTypeParameterizedElement);
+  }
+
+  List<FunctionElementImpl> buildTopLevelFunctions() {
+    List<FunctionElementImpl> functions = <FunctionElementImpl>[];
+    List<UnlinkedExecutable> executables = unlinkedUnit.executables;
+    for (UnlinkedExecutable unlinkedExecutable in executables) {
+      if (unlinkedExecutable.kind == UnlinkedExecutableKind.functionOrMethod) {
+        FunctionElementImpl function =
+            new FunctionElementImpl.forSerialized(unlinkedExecutable, unit);
+        buildExecutableCommonParts(function, unlinkedExecutable);
+        functions.add(function);
+      }
+    }
+    return functions;
   }
 
   /**
@@ -2954,10 +2968,8 @@ class _UnitResynthesizer {
   void populateUnit() {
     unlinkedUnit.classes.forEach(buildClass);
     unlinkedUnit.enums.forEach(buildEnum);
-    unlinkedUnit.executables.forEach((e) => buildExecutable(e, unit));
     unlinkedUnit.typedefs.forEach(buildTypedef);
     unit.enums = unitHolder.enums;
-    unit.functions = unitHolder.functions;
     List<FunctionTypeAliasElement> typeAliases = unitHolder.typeAliases;
     for (FunctionTypeAliasElementImpl typeAlias in typeAliases) {
       if (typeAlias.isSynthetic) {

@@ -1098,7 +1098,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
    * A list containing all of the top-level functions contained in this
    * compilation unit.
    */
-  List<FunctionElement> _functions = FunctionElement.EMPTY_LIST;
+  List<FunctionElement> _functions;
 
   /**
    * A list containing all of the function type aliases contained in this
@@ -1233,7 +1233,12 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  List<FunctionElement> get functions => _functions;
+  List<FunctionElement> get functions {
+    if (_unlinkedUnit != null) {
+      _functions ??= resynthesizerContext.buildTopLevelFunctions();
+    }
+    return _functions ?? FunctionElement.EMPTY_LIST;
+  }
 
   /**
    * Set the top-level functions contained in this compilation unit to the given
@@ -1254,8 +1259,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   bool get hasLoadLibraryFunction {
-    for (int i = 0; i < _functions.length; i++) {
-      if (_functions[i].name == FunctionElement.LOAD_LIBRARY_NAME) {
+    List<FunctionElement> functions = this.functions;
+    for (int i = 0; i < functions.length; i++) {
+      if (functions[i].name == FunctionElement.LOAD_LIBRARY_NAME) {
         return true;
       }
     }
@@ -1407,7 +1413,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         return variableImpl;
       }
     }
-    for (FunctionElement function in _functions) {
+    for (FunctionElement function in functions) {
       FunctionElementImpl functionImpl = function;
       if (functionImpl.identifier == identifier) {
         return functionImpl;
@@ -1494,7 +1500,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     super.visitChildren(visitor);
     safelyVisitChildren(accessors, visitor);
     safelyVisitChildren(_enums, visitor);
-    safelyVisitChildren(_functions, visitor);
+    safelyVisitChildren(functions, visitor);
     safelyVisitChildren(_typeAliases, visitor);
     safelyVisitChildren(_types, visitor);
     safelyVisitChildren(topLevelVariables, visitor);
@@ -5729,6 +5735,11 @@ abstract class ResynthesizerContext {
    * Build explicit top-level property accessors.
    */
   UnitExplicitTopLevelAccessors buildTopLevelAccessors();
+
+  /**
+   * Build top-level functions.
+   */
+  List<FunctionElementImpl> buildTopLevelFunctions();
 
   /**
    * Build explicit top-level variables.
