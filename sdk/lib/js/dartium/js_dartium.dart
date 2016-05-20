@@ -311,7 +311,16 @@ bool _isAnonymousClass(mirrors.ClassMirror mirror) {
   return false;
 }
 
-bool _hasJsName(mirrors.DeclarationMirror mirror) => _getJsName(mirror) != null;
+bool _hasJsName(mirrors.DeclarationMirror mirror) {
+  if (_atJsType != null) {
+    for (var annotation in mirror.metadata) {
+      if (annotation.type.reflectedType == _atJsType) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 
 var _domNameType;
 
@@ -634,15 +643,7 @@ ${sb}
 // Remember the @JS type to compare annotation type.
 var _atJsType = -1;
 
-/**
- * Generates part files defining source code for JSObjectImpl, all DOM classes
- * classes. This codegen  is needed so that type checks for all registered
- * JavaScript interop classes pass.
- * If genCachedPatches is true then the patch files don't exist this is a special
- * signal to generate and emit the patches to stdout to be captured and put into
- * the file sdk/lib/js/dartium/cached_patches.dart
- */
-List<String> _generateInteropPatchFiles(List<String> libraryPaths, genCachedPatches) {
+void setupJsTypeCache() {
   // Cache the @JS Type.
   if (_atJsType == -1) {
     var uri = new Uri(scheme: "package", path: "js/js.dart");
@@ -656,6 +657,19 @@ List<String> _generateInteropPatchFiles(List<String> libraryPaths, genCachedPatc
       _atJsType = null;
     }
   }
+}
+
+/**
+ * Generates part files defining source code for JSObjectImpl, all DOM classes
+ * classes. This codegen  is needed so that type checks for all registered
+ * JavaScript interop classes pass.
+ * If genCachedPatches is true then the patch files don't exist this is a special
+ * signal to generate and emit the patches to stdout to be captured and put into
+ * the file sdk/lib/js/dartium/cached_patches.dart
+ */
+List<String> _generateInteropPatchFiles(List<String> libraryPaths, genCachedPatches) {
+  // Cache the @JS Type.
+  if (_atJsType == -1) setupJsTypeCache();
 
   var ret = _generateExternalMethods(libraryPaths, genCachedPatches ? false : true);
   var libraryPrefixes = new Map<mirrors.LibraryMirror, String>();
