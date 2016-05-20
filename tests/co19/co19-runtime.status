@@ -5,6 +5,8 @@
 
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) ]
 
+LibTest/collection/HashSet/HashSet_class_A01_t01: Pass, Timeout # Flaky timeout: Issue 26500
+
 # Failures ok in tests below. VM moves super initializer to end of list.
 Language/Classes/Constructors/Generative_Constructors/execution_t03: Fail, OK
 Language/Expressions/Instance_Creation/New/execution_t04: Fail, OK
