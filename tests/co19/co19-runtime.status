@@ -27,9 +27,6 @@ Language/Statements/Assert/type_t02: skip # co19 issue 734
 Language/Statements/Assert/type_t05: skip # co19 issue 734
 
 
-LibTest/core/DateTime/parse_A03_t01: fail # Issue 12514
-LibTest/core/DateTime/parse_A01_t02: Fail # co19 issue 17.
-
 LibTest/core/DateTime/DateTime.now_A01_t02: Pass, Fail # co19 issue 709
 
 LibTest/isolate/Isolate/spawnUri_A01_t02: Skip # Dart issue 15974
@@ -46,8 +43,6 @@ LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) ]
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
-Language/Expressions/Instance_Creation/Const/abstract_class_t01: MissingCompileTimeError # Issue 22007
-Language/Expressions/Instance_Creation/Const/abstract_class_t03: MissingCompileTimeError # Issue 22007
 # With asynchronous loading, the load errors in these tests are no longer recognized as compile errors:
 Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Fail
 Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Fail
@@ -93,7 +88,6 @@ LibTest/typed_data/Float32x4/operator_multiplication_A01_t01: Fail # Dart issue 
 # co19 update Sep 29, 2015 (3ed795ea02e022ef19c77cf1b6095b7c8f5584d0)
 Language/Classes/Getters/type_object_t01: RuntimeError # Issue 23721
 Language/Classes/Getters/type_object_t02: RuntimeError # Issue 23721
-Language/Classes/Setters/syntax_t04: RuntimeError # co19 issue 38
 Language/Classes/Setters/type_object_t01: RuntimeError # Issue 23721
 Language/Classes/Setters/type_object_t02: RuntimeError # Issue 23721
 Language/Classes/Static_Methods/type_object_t01: RuntimeError # Issue 23721
@@ -112,28 +106,50 @@ Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/cla
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t06: MissingCompileTimeError # Issue 24472
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t07: MissingCompileTimeError # Issue 24472
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError # Issue 24472
-Language/Expressions/Property_Extraction/Named_Constructor_Extraction/not_class_t01: CompileTimeError # co19 issue 41
-Language/Libraries_and_Scripts/Imports/namespace_changes_t10: RuntimeError # co19 issue 39
-Language/Libraries_and_Scripts/Parts/compilation_t09: MissingCompileTimeError # co19 issue 40
-Language/Libraries_and_Scripts/URIs/syntax_t04: RuntimeError # co19 issue 42
-Language/Libraries_and_Scripts/URIs/syntax_t05: RuntimeError # co19 issue 42
-Language/Libraries_and_Scripts/URIs/syntax_t09: RuntimeError # co19 issue 42
-Language/Libraries_and_Scripts/URIs/syntax_t10: RuntimeError # co19 issue 42
-Language/Libraries_and_Scripts/URIs/syntax_t14: RuntimeError # co19 issue 42
-Language/Libraries_and_Scripts/URIs/syntax_t15: RuntimeError # co19 issue 42
-Language/Mixins/Mixin_Application/error_t01: MissingCompileTimeError # co19 issue 43
-Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError # co19 issue 43
-Language/Mixins/declaring_constructor_t01: MissingCompileTimeError # co19 issue 43
-Language/Mixins/not_object_superclass_t01: MissingCompileTimeError # co19 issue 43 and 44
-Language/Mixins/reference_to_super_t01: MissingCompileTimeError # co19 issue 43 and 44
+Language/Expressions/Identifier_Reference/built_in_identifier_t35: MissingCompileTimeError # Issue 25732
+Language/Expressions/Identifier_Reference/built_in_identifier_t36: MissingCompileTimeError # Issue 25732
+Language/Expressions/Identifier_Reference/built_in_identifier_t37: MissingCompileTimeError # Issue 25732
+Language/Expressions/Identifier_Reference/built_in_identifier_t53: MissingCompileTimeError # Issue 25733
+Language/Expressions/Identifier_Reference/built_in_identifier_t54: MissingCompileTimeError # Issue 25733
+Language/Expressions/Identifier_Reference/built_in_identifier_t55: MissingCompileTimeError # Issue 25733
+Language/Expressions/Identifier_Reference/built_in_identifier_t56: MissingCompileTimeError # Issue 25733
+Language/Expressions/Identifier_Reference/built_in_identifier_t57: MissingCompileTimeError # Issue 25733
+Language/Expressions/Identifier_Reference/built_in_identifier_t58: MissingCompileTimeError # Issue 25733
+Language/Expressions/Identifier_Reference/built_in_identifier_t59: MissingCompileTimeError # Issue 25733
+Language/Expressions/Identifier_Reference/built_in_identifier_t60: MissingCompileTimeError # Issue 25733
+Language/Expressions/Identifier_Reference/built_in_identifier_t61: MissingCompileTimeError # Issue 25733
+Language/Expressions/Identifier_Reference/built_in_identifier_t62: MissingCompileTimeError # Issue 25733
+Language/Expressions/Identifier_Reference/built_in_identifier_t63: MissingCompileTimeError # Issue 25733
+Language/Expressions/Identifier_Reference/built_in_identifier_t64: MissingCompileTimeError # Issue 25733
+Language/Expressions/Identifier_Reference/built_in_identifier_t65: MissingCompileTimeError # Issue 25733
+Language/Expressions/Identifier_Reference/built_in_identifier_t66: MissingCompileTimeError # Issue 25733
+Language/Expressions/Identifier_Reference/built_in_identifier_t67: MissingCompileTimeError # Issue 25733
+Language/Expressions/Identifier_Reference/built_in_identifier_t68: MissingCompileTimeError # Issue 25733
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t14: MissingCompileTimeError # Issue 25732
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t19: MissingCompileTimeError # Issue 25772
+Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError # Issue 25496
+Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t02: MissingCompileTimeError # Issue 25496
+Language/Expressions/Property_Extraction/Anonymous_Constructor_Closurization/identical_t01: RuntimeError # Issue 24607
+Language/Expressions/Property_Extraction/Anonymous_Constructor_Closurization/identical_t01: RuntimeError # Issue 24607
+Language/Expressions/Property_Extraction/Named_Constructor_Closurization/identical_t01: RuntimeError # Issue 24607
+Language/Expressions/Assignment/super_assignment_failed_t05: RuntimeError # Issue 25671
+Language/Expressions/Function_Invocation/async_generator_invokation_t08: Fail # Issue 25967
+Language/Expressions/Function_Invocation/async_generator_invokation_t10: Fail # Issue 25967
+Language/Expressions/Property_Extraction/Anonymous_Constructor_Closurization/identical_t02: RuntimeError # Issue 24607
+Language/Mixins/Mixin_Application/syntax_t16: CompileTimeError # Issue 25765
+Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Issue 24767
+Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Issue 24767
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t08: RuntimeError # Issue 25748
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t09: RuntimeError # Issue 25748
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t10: RuntimeError # Issue 25748
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_sync_t05: RuntimeError # Issue 25662,25634
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompileTimeError # Issue 25495
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError # Issue 25495
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompileTimeError # Issue 25495
+Language/Statements/Continue/async_loops_t10: Crash # Issue 26133
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $checked ]
-Language/Errors_and_Warnings/static_warning_t01: RuntimeError # co19 issue 45
-Language/Errors_and_Warnings/static_warning_t02: RuntimeError # co19 issue 45
-Language/Errors_and_Warnings/static_warning_t03: RuntimeError # co19 issue 45
-Language/Errors_and_Warnings/static_warning_t04: RuntimeError # co19 issue 45
-Language/Errors_and_Warnings/static_warning_t05: RuntimeError # co19 issue 45
-Language/Errors_and_Warnings/static_warning_t06: RuntimeError # co19 issue 45
+Language/Expressions/Property_Extraction/General_Super_Property_Extraction: CompileTimeError # Issue 26287
+Language/Expressions/Property_Extraction/Super_Closurization: CompileTimeError # Issue 26287
 
 [ $noopt || $compiler == precompiler || $mode == product ]
 Language/Metadata/*: SkipByDesign # Uses dart:mirrors
@@ -146,9 +162,6 @@ LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Timeout
 LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
-Language/Mixins/Mixin_Application/error_t01: Pass
-Language/Mixins/Mixin_Application/error_t02: Pass
-Language/Mixins/declaring_constructor_t01: Pass
 
 [ ($arch == simdbc || $arch == simdbc64) && $mode == debug ]
 # TODO(vegorov) These tests are very slow on unoptimized SIMDBC
