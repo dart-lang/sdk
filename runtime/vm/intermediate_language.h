@@ -3032,7 +3032,8 @@ class TestCidsInstr : public ComparisonInstr {
                 const ZoneGrowableArray<intptr_t>& cid_results,
                 intptr_t deopt_id)
       : ComparisonInstr(token_pos, kind, value, NULL, deopt_id),
-        cid_results_(cid_results) {
+        cid_results_(cid_results),
+        licm_hoisted_(false) {
     ASSERT((kind == Token::kIS) || (kind == Token::kISNOT));
     set_operation_cid(kObjectCid);
   }
@@ -3067,10 +3068,13 @@ class TestCidsInstr : public ComparisonInstr {
   virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
                                        BranchLabels labels);
 
+  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
+
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
   const ZoneGrowableArray<intptr_t>& cid_results_;
+  bool licm_hoisted_;
   DISALLOW_COPY_AND_ASSIGN(TestCidsInstr);
 };
 

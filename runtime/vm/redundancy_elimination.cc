@@ -1353,6 +1353,8 @@ void LICM::Hoist(ForwardInstructionIterator* it,
     current->AsCheckEitherNonSmi()->set_licm_hoisted(true);
   } else if (current->IsCheckArrayBound()) {
     current->AsCheckArrayBound()->set_licm_hoisted(true);
+  } else if (current->IsTestCids()) {
+    current->AsTestCids()->set_licm_hoisted(true);
   }
   if (FLAG_trace_optimization) {
     THR_Print("Hoisting instruction %s:%" Pd " from B%" Pd " to B%" Pd "\n",
