@@ -92,7 +92,7 @@ abstract class LinkedHashSet<E> implements HashSet<E> {
    * Create a linked hash set containing all [elements].
    *
    * Creates a linked hash set as by `new LinkedHashSet<E>()` and adds each
-   * element of`elements` to this set in the order they are iterated.
+   * element of `elements` to this set in the order they are iterated.
    *
    * All the [elements] should be assignable to [E].
    * The `elements` iterable itself may have any element type,
