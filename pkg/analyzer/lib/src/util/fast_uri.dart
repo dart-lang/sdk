@@ -10,8 +10,16 @@ import 'dart:collection';
  * limited URI format, so almost always can be processed fast.
  */
 class FastUri implements Uri {
-  static HashMap<String, Uri> _cache = new HashMap<String, Uri>();
+  /***
+   * The maximum [_cache] length before we flush it and start a new generation.
+   */
+  static const int _MAX_CACHE_LENGTH_BEFORE_FLUSH = 50000;
 
+  static HashMap<String, Uri> _cache = new HashMap<String, Uri>();
+  static int _currentCacheLength = 0;
+  static int _currentCacheGeneration = 0;
+
+  final int _cacheGeneration;
   final String _text;
   final String _scheme;
   final String _path;
@@ -28,7 +36,8 @@ class FastUri implements Uri {
 
   Uri _cachedFallbackUri;
 
-  FastUri(this._text, this._scheme, this._path, this._lastSlashIndex);
+  FastUri._(this._cacheGeneration, this._text, this._scheme, this._path,
+      this._lastSlashIndex);
 
   @override
   String get authority => '';
@@ -109,10 +118,12 @@ class FastUri implements Uri {
 
   @override
   bool operator ==(other) {
-    if (other is Uri) {
-      if (other is FastUri) {
-        return _text == other._text;
+    if (other is FastUri) {
+      if (other._cacheGeneration == _cacheGeneration) {
+        return identical(other, this);
       }
+      return _text == other._text;
+    } else if (other is Uri) {
       return _fallbackUri == other;
     }
     return false;
@@ -197,12 +208,18 @@ class FastUri implements Uri {
    * of [FastUri] or [Uri] is returned for the same [text].
    */
   static Uri parse(String text) {
-    // TODO(scheglov) clear the cache if it is too big
     Uri uri = _cache[text];
     if (uri == null) {
       uri = _parse(text);
       uri ??= Uri.parse(text);
       _cache[text] = uri;
+      _currentCacheLength++;
+      // If the cache is too big, start a new generation.
+      if (_currentCacheLength > _MAX_CACHE_LENGTH_BEFORE_FLUSH) {
+        _cache.clear();
+        _currentCacheLength = 0;
+        _currentCacheGeneration++;
+      }
     }
     return uri;
   }
@@ -249,6 +266,7 @@ class FastUri implements Uri {
     if (path.startsWith('//')) {
       path = path.substring(2);
     }
-    return new FastUri(text, scheme, path, lastSlashIndex);
+    return new FastUri._(
+        _currentCacheGeneration, text, scheme, path, lastSlashIndex);
   }
 }
