@@ -234,13 +234,13 @@ class CodeGenerator extends GeneralizingAstVisitor
       }
       _collectElements(unit, nodes);
     }
-    _loader = new ElementLoader(_emitModuleItem, nodes);
+    _loader = new ElementLoader(nodes);
 
     // Add implicit dart:core dependency so it is first.
     emitLibraryName(dartCoreLibrary);
 
     // Emit SDK bootstrapping functions first, if any.
-    sdkBootstrappingFns.forEach(_loader.emitDeclaration);
+    sdkBootstrappingFns.forEach(_emitDeclaration);
 
     // Visit each compilation unit and emit its code.
     //
@@ -388,14 +388,30 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
   }
 
-  void _emitModuleItem(AstNode node) {
-    // TODO(jmesserly): ideally we could do this at a smaller granularity.
-    // We'll need to be consistent about when we're generating functions, and
-    // only run this on the outermost function.
-    inferNullableTypes(node);
+  /// Called to emit all top-level declarations.
+  ///
+  /// During the course of emitting one item, we may emit another. For example
+  ///
+  ///     class D extends B { C m() { ... } }
+  ///
+  /// Because D depends on B, we'll emit B first if needed. However C is not
+  /// used by top-level JavaScript code, so we can ignore that dependency.
+  void _emitDeclaration(Element e) {
+    var item = _loader.emitDeclaration(e, (AstNode node) {
+      // TODO(jmesserly): this is not really the right place for this.
+      // Ideally we do this per function body.
+      //
+      // We'll need to be consistent about when we're generating functions, and
+      // only run this on the outermost function, and not any closures.
+      inferNullableTypes(node);
+      return _visit(node);
+    });
 
-    var code = _visit(node);
-    if (code != null) _moduleItems.add(code);
+    if (item != null) _moduleItems.add(item);
+  }
+
+  void _declareBeforeUse(Element e) {
+    _loader.declareBeforeUse(e, _emitDeclaration);
   }
 
   @override
@@ -405,7 +421,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     for (var declaration in unit.declarations) {
       var element = declaration.element;
       if (element != null) {
-        _loader.emitDeclaration(element);
+        _emitDeclaration(element);
       } else {
         declaration.accept(this);
       }
@@ -478,10 +494,10 @@ class CodeGenerator extends GeneralizingAstVisitor
       if (currentNames.containsKey(export.name)) continue;
 
       if (export.isSynthetic && export is PropertyInducingElement) {
-        _loader.emitDeclaration(export.getter);
-        _loader.emitDeclaration(export.setter);
+        _emitDeclaration(export.getter);
+        _emitDeclaration(export.setter);
       } else {
-        _loader.emitDeclaration(export);
+        _emitDeclaration(export);
       }
       if (export is ClassElement && export.typeParameters.isNotEmpty) {
         // Export the generic name as well.
@@ -1793,19 +1809,24 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     if (_externalOrNative(node)) return null;
 
-    if (node.isGetter || node.isSetter) {
-      // If we have a getter/setter pair, they need to be defined together.
+    // If we have a getter/setter pair, they need to be defined together.
+    if (node.isGetter) {
       PropertyAccessorElement element = node.element;
-      var props = <JS.Method>[];
-      var getter = element.variable.getter;
-      if (getter != null) {
-        props.add(_loader.customEmitDeclaration(getter, _emitTopLevelProperty));
-      }
-      var setter = element.variable.setter;
+      var props = <JS.Method>[_emitTopLevelProperty(node)];
+      var setter = element.correspondingSetter;
       if (setter != null) {
-        props.add(_loader.customEmitDeclaration(setter, _emitTopLevelProperty));
+        props.add(_loader.emitDeclaration(setter, _emitTopLevelProperty));
       }
-
+      return js.statement('dart.copyProperties(#, { # });',
+          [emitLibraryName(currentLibrary), props]);
+    }
+    if (node.isSetter) {
+      PropertyAccessorElement element = node.element;
+      var props = <JS.Method>[_emitTopLevelProperty(node)];
+      var getter = element.correspondingGetter;
+      if (getter != null) {
+        props.add(_loader.emitDeclaration(getter, _emitTopLevelProperty));
+      }
       return js.statement('dart.copyProperties(#, { # });',
           [emitLibraryName(currentLibrary), props]);
     }
@@ -2130,7 +2151,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var element = accessor;
     if (accessor is PropertyAccessorElement) element = accessor.variable;
 
-    _loader.declareBeforeUse(element);
+    _declareBeforeUse(element);
 
     // type literal
     if (element is TypeDefiningElement) {
@@ -2320,7 +2341,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       return js.call('dart.bottom');
     }
 
-    _loader.declareBeforeUse(type.element);
+    _declareBeforeUse(type.element);
 
     // TODO(jmesserly): like constants, should we hoist function types out of
     // methods? Similar issue with generic types. For all of these, we may want
@@ -2870,7 +2891,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   @override
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     for (var variable in node.variables.variables) {
-      _loader.emitDeclaration(variable.element);
+      _emitDeclaration(variable.element);
     }
   }
 
@@ -4145,7 +4166,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       // generate a plain `List<dynamic>` anymore.
       if (!elementType.isDynamic) {
         // dart.list helper internally depends on _interceptors.JSArray.
-        _loader.declareBeforeUse(_jsArray);
+        _declareBeforeUse(_jsArray);
         list = js.call('dart.list(#, #)', [list, _emitType(elementType)]);
       }
       return list;

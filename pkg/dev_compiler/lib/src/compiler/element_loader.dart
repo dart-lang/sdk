@@ -2,21 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection' show HashMap, HashSet;
+import 'dart:collection' show HashMap;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:func/func.dart';
 import '../js_ast/js_ast.dart' as JS;
 
-typedef void ModuleItemEmitter(AstNode item);
-
 /// Helper that tracks order of elements visited by the compiler, detecting
 /// if the top level item can be loaded eagerly or not.
 class ElementLoader {
-  /// Whether an item has been loaded (emitted) already.
-  final _loaded = new HashSet<Element>();
-
   final HashMap<Element, AstNode> _declarationNodes;
 
   /// The stack of currently emitting elements, if generating top-level code
@@ -32,16 +27,13 @@ class ElementLoader {
 
   bool _checkReferences;
 
-  final ModuleItemEmitter _emitModuleItem;
-
-  ElementLoader(this._emitModuleItem, this._declarationNodes) {
+  ElementLoader(this._declarationNodes) {
     assert(!_declarationNodes.containsKey(null));
   }
 
   Element get currentElement => _currentElements.last;
 
-  bool isLoaded(Element e) =>
-      !_declarationNodes.containsKey(e) || _loaded.contains(e);
+  bool isLoaded(Element e) => !_declarationNodes.containsKey(e);
 
   /// True if the element is currently being loaded.
   bool _isLoading(Element e) => _currentElements.contains(e);
@@ -83,35 +75,18 @@ class ElementLoader {
 
   /// Ensures a top-level declaration is generated, and returns `true` if it
   /// is part of the current module.
-  void emitDeclaration(Element e) {
-    var node = _declarationNodes[e];
-    if (node == null) return; // not from this module.
-
-    // If we already tried to load it, see if we succeeded or not.
-    // Otherwise try and load now.
-    if (_loaded.contains(e)) return;
-
-    _loaded.add(e);
-    _currentElements.add(e);
-
-    _emitModuleItem(node);
-
-    var last = _currentElements.removeLast();
-    assert(identical(e, last));
-  }
-
-  /// Used to immediately emit a declaration and return the result.
-  ///
-  /// This will operate regardless of whether the node is currently loaded.
-  /// We use this when we encounter a getter/setter, to immediately emit the
-  /// pair and combine them.
-  /*=T*/ customEmitDeclaration/*<T extends JS.Node>*/(
+  /*=T*/ emitDeclaration/*<T extends JS.Node>*/(
       Element e, Func1<AstNode, JS.Node/*=T*/ > visit) {
-    _loaded.add(e);
+    var node = _declarationNodes.remove(e);
+    if (node == null) return null; // not from this module or already loaded.
+
     _currentElements.add(e);
-    var result = visit(_declarationNodes[e]);
+
+    var result = visit(node);
+
     var last = _currentElements.removeLast();
     assert(identical(e, last));
+
     return result;
   }
 
@@ -125,7 +100,7 @@ class ElementLoader {
   /// If we are not emitting top-level code, this does nothing, because all
   /// declarations are assumed to be available before we start execution.
   /// See [startTopLevel].
-  void declareBeforeUse(Element e) {
+  void declareBeforeUse(Element e, VoidFunc1<Element> emit) {
     if (e == null) return;
 
     if (_checkReferences != null) {
@@ -136,7 +111,7 @@ class ElementLoader {
     var topLevel = _topLevelElements;
     if (topLevel.isNotEmpty && identical(currentElement, topLevel.last)) {
       // If the item is from our library, try to emit it now.
-      emitDeclaration(e);
+      emit(e);
     }
   }
 }
