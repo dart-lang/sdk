@@ -4975,7 +4975,8 @@ class ContextScope : public Object {
 
 class MegamorphicCache : public Object {
  public:
-  static const int kInitialCapacity = 16;
+  static const intptr_t kInitialCapacity = 16;
+  static const intptr_t kSpreadFactor = 7;
   static const double kLoadFactor;
 
   RawArray* buckets() const;

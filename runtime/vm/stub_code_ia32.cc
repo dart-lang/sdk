@@ -2029,6 +2029,7 @@ void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
   // EBX: mask.
   __ pushl(ECX);  // Spill MegamorphicCache.
   __ movl(ECX, EAX);
+  __ imull(ECX, Immediate(MegamorphicCache::kSpreadFactor));
   // ECX: probe.
 
   Label loop, update, load_target_function;

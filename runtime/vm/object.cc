@@ -14735,7 +14735,7 @@ void MegamorphicCache::Insert(const Smi& class_id,
          (kLoadFactor * static_cast<double>(mask() + 1)));
   const Array& backing_array = Array::Handle(buckets());
   intptr_t id_mask = mask();
-  intptr_t index = class_id.Value() & id_mask;
+  intptr_t index = (class_id.Value() * kSpreadFactor) & id_mask;
   intptr_t i = index;
   do {
     if (Smi::Value(Smi::RawCast(GetClassId(backing_array, i))) == kIllegalCid) {
