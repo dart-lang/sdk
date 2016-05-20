@@ -504,7 +504,7 @@ intptr_t CompileType::ToNullableCid() {
                 type_class.ToCString());
           }
           if (FLAG_use_cha_deopt) {
-            cha->AddToLeafClasses(type_class);
+            cha->AddToGuardedClasses(type_class, /*subclass_count=*/0);
           }
           cid_ = type_class.id();
         } else {
@@ -752,7 +752,8 @@ CompileType ParameterInstr::ComputeType() const {
                   type_class.ToCString());
             }
             if (FLAG_use_cha_deopt) {
-              thread->cha()->AddToLeafClasses(type_class);
+              thread->cha()->AddToGuardedClasses(
+                  type_class, /*subclass_count=*/0);
             }
             cid = type_class.id();
           }

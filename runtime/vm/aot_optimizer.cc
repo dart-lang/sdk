@@ -2060,15 +2060,13 @@ bool AotOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
 
   // Private classes cannot be subclassed by later loaded libs.
   if (!type_class.IsPrivate()) {
-    if (FLAG_use_cha_deopt || isolate()->all_classes_finalized()) {
+    if (isolate()->all_classes_finalized()) {
       if (FLAG_trace_cha) {
         THR_Print("  **(CHA) Typecheck as class equality since no "
             "subclasses: %s\n",
             type_class.ToCString());
       }
-      if (FLAG_use_cha_deopt) {
-        thread()->cha()->AddToLeafClasses(type_class);
-      }
+      ASSERT(!FLAG_use_cha_deopt);
     } else {
       return false;
     }
@@ -2456,8 +2454,10 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
             instr->function_name(),
             args_desc));
     if (!function.IsNull()) {
+      intptr_t subclasses = 0;
       if (!thread()->cha()->HasOverride(receiver_class,
-                                        instr->function_name())) {
+                                        instr->function_name(),
+                                        &subclasses)) {
         if (FLAG_trace_cha) {
           THR_Print("  **(CHA) Instance call needs no check, "
               "no overrides of '%s' '%s'\n",

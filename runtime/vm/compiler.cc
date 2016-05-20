@@ -613,6 +613,13 @@ NOT_IN_PRODUCT(
           THR_Print("--> FAIL: Loading invalidation.");
         }
       }
+      if (!thread()->cha()->IsConsistentWithCurrentHierarchy()) {
+        code_is_valid = false;
+        if (trace_compiler) {
+          THR_Print("--> FAIL: Class hierarchy has new subclasses.");
+        }
+      }
+
       // Setting breakpoints at runtime could make a function non-optimizable.
       if (code_is_valid && Compiler::CanOptimizeFunction(thread(), function)) {
         const bool is_osr = osr_id() != Compiler::kNoOSRDeoptId;
@@ -632,14 +639,11 @@ NOT_IN_PRODUCT(
     }
 
     if (code_was_installed) {
-      // Register code with the classes it depends on because of CHA and
-      // fields it depends on because of store guards, unless we cannot
-      // deopt.
-      for (intptr_t i = 0;
-           i < thread()->cha()->leaf_classes().length();
-           ++i) {
-        thread()->cha()->leaf_classes()[i]->RegisterCHACode(code);
-      }
+      // The generated code was compiled under certain assumptions about
+      // class hierarchy and field types. Register these dependencies
+      // to ensure that the code will be deoptimized if they are violated.
+      thread()->cha()->RegisterDependencies(code);
+
       const ZoneGrowableArray<const Field*>& guarded_fields =
           *flow_graph->parsed_function().guarded_fields();
       for (intptr_t i = 0; i < guarded_fields.length(); i++) {

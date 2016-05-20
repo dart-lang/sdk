@@ -2391,7 +2391,7 @@ bool JitOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
             type_class.ToCString());
       }
       if (FLAG_use_cha_deopt) {
-        thread()->cha()->AddToLeafClasses(type_class);
+        thread()->cha()->AddToGuardedClasses(type_class, /*subclass_count=*/0);
       }
     } else {
       return false;
