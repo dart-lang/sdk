@@ -171,6 +171,9 @@ class ClosureFieldElement extends ElementX
   List<FunctionElement> get nestedClosures => const <FunctionElement>[];
 
   @override
+  bool get hasConstant => false;
+
+  @override
   ConstantExpression get constant => null;
 }
 
@@ -308,6 +311,9 @@ class BoxFieldElement extends ElementX
   ResolvedAst get resolvedAst {
     throw new UnsupportedError("BoxFieldElement.resolvedAst");
   }
+
+  @override
+  bool get hasConstant => false;
 
   @override
   ConstantExpression get constant => null;

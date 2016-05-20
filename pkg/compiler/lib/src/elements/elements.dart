@@ -1005,6 +1005,8 @@ abstract class VariableElement extends ExecutableElement {
 
   Expression get initializer;
 
+  bool get hasConstant;
+
   /// The constant expression defining the (initial) value of the variable.
   ///
   /// If the variable is `const` the value is always non-null, possibly an

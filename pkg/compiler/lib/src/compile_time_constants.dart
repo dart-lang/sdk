@@ -16,7 +16,7 @@ import 'constants/values.dart';
 import 'core_types.dart' show CoreTypes;
 import 'dart_types.dart';
 import 'elements/elements.dart';
-import 'elements/modelx.dart' show FieldElementX, FunctionElementX;
+import 'elements/modelx.dart' show FieldElementX, FunctionElementX, ConstantVariableMixin;
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'resolution/operators.dart';
 import 'tree/tree.dart';
@@ -187,8 +187,15 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
       ConstantExpression result = initialVariableValues[element.declaration];
       return result;
     }
+    if (element.hasConstant) {
+      if (element.constant != null &&
+          compiler.serialization.supportsDeserialization) {
+        evaluate(element.constant);
+      }
+      return element.constant;
+    }
     AstElement currentElement = element.analyzableElement;
-    return reporter.withCurrentElement(currentElement, () {
+    return reporter.withCurrentElement(element, () {
       // TODO(johnniwinther): Avoid this eager analysis.
       compiler.resolution.ensureResolved(currentElement.declaration);
 
@@ -206,7 +213,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
    * error.
    */
   ConstantExpression compileVariableWithDefinitions(
-      VariableElement element, TreeElements definitions,
+      ConstantVariableMixin element, TreeElements definitions,
       {bool isConst: false, bool checkType: true}) {
     Node node = element.node;
     if (pendingVariables.contains(element)) {
@@ -262,6 +269,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
       }
     }
     if (expression != null) {
+      element.constant = expression;
       initialVariableValues[element.declaration] = expression;
     } else {
       assert(invariant(element, !isConst,
@@ -1280,13 +1288,12 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     Map<FieldElement, AstConstant> fieldConstants =
         <FieldElement, AstConstant>{};
     classElement.implementation.forEachInstanceField(
-        (ClassElement enclosing, FieldElementX field) {
+        (ClassElement enclosing, FieldElement field) {
       AstConstant fieldValue = fieldValues[field];
       if (fieldValue == null) {
         // Use the default value.
         ConstantExpression fieldExpression =
             handler.internalCompileVariable(field, true, false);
-        field.constant = fieldExpression;
         fieldValue = new AstConstant.fromDefaultValue(
             field, fieldExpression, handler.getConstantValue(fieldExpression));
         // TODO(het): If the field value doesn't typecheck due to the type

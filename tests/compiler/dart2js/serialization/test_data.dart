@@ -233,6 +233,12 @@ abstract class C implements List {
 }
 main() => new C();'''
   }),
+
+  const Test(const {
+    'main.dart': '''
+main() => const Duration();
+''',
+  })
 ];
 
 class Test {

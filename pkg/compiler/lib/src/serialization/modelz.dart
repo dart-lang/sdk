@@ -1411,6 +1411,9 @@ abstract class FieldElementZ extends DeserializedElementZ
   }
 
   @override
+  bool get hasConstant => true;
+
+  @override
   ConstantExpression get constant {
     _ensureConstant();
     return _constant;
@@ -1858,6 +1861,9 @@ abstract class ParameterElementZ extends DeserializedElementZ
   bool get isConst => false;
 
   @override
+  bool get hasConstant => true;
+
+  @override
   ConstantExpression get constant {
     if (isOptional) {
       if (_constant == null) {
@@ -1984,6 +1990,9 @@ class LocalVariableElementZ extends DeserializedElementZ
     }
     return _isConst;
   }
+
+  @override
+  bool get hasConstant => true;
 
   @override
   ConstantExpression get constant {

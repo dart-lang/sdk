@@ -1393,6 +1393,11 @@ class VariableList implements DeclarationSite {
 abstract class ConstantVariableMixin implements VariableElement {
   ConstantExpression constantCache;
 
+  // TODO(johnniwinther): Update the on `constant = ...` when evaluation of
+  // constant expression can handle references to unanalyzed constant variables.
+  @override
+  bool get hasConstant => false;
+
   ConstantExpression get constant {
     if (isPatch) {
       ConstantVariableMixin originVariable = origin;
