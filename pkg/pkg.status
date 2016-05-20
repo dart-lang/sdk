@@ -117,6 +117,7 @@ analyzer/test/src/task/options_work_manager_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/strong/checker_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/strong/inferred_type_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/yaml_test: Pass, Slow # Issue 21628
+analyzer/tool/task_dependency_graph/check_test: Timeout # Issue 26493
 collection/test/equality_test/01: Fail # Issue 1533
 collection/test/equality_test/02: Fail # Issue 1533
 collection/test/equality_test/03: Fail # Issue 1533
