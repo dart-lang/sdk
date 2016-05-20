@@ -1617,6 +1617,10 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
 
+  @override
+  TypeParameterizedElementMixin get enclosingTypeParameterContext =>
+      super.enclosingElement as ClassElementImpl;
+
   /**
    * Set whether this constructor represents a factory method.
    */
@@ -2698,6 +2702,7 @@ class ElementLocationImpl implements ElementLocation {
  * A base class for concrete implementations of an [ExecutableElement].
  */
 abstract class ExecutableElementImpl extends ElementImpl
+    with TypeParameterizedElementMixin
     implements ExecutableElement {
   /**
    * The unlinked representation of the executable in the summary.
@@ -2985,6 +2990,10 @@ abstract class ExecutableElementImpl extends ElementImpl
   }
 
   @override
+  List<UnlinkedTypeParam> get unlinkedTypeParams =>
+      serializedExecutable.typeParameters;
+
+  @override
   void appendTo(StringBuffer buffer) {
     if (this.kind != ElementKind.GETTER) {
       int typeParameterCount = _typeParameters.length;
@@ -3254,6 +3263,15 @@ class FunctionElementImpl extends ExecutableElementImpl
     this.parameters = parameters;
 
     type = new FunctionTypeImpl(this);
+  }
+
+  @override
+  TypeParameterizedElementMixin get enclosingTypeParameterContext {
+    Element enclosingElement = this.enclosingElement;
+    if (enclosingElement is TypeParameterizedElementMixin) {
+      return enclosingElement;
+    }
+    return null;
   }
 
   @override
@@ -4554,6 +4572,10 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
 
   @override
+  TypeParameterizedElementMixin get enclosingTypeParameterContext =>
+      super.enclosingElement as ClassElementImpl;
+
+  @override
   bool get isOperator {
     String name = displayName;
     if (name.isEmpty) {
@@ -4989,6 +5011,9 @@ class MultiplyInheritedPropertyAccessorElementImpl
       : super.forNode(name) {
     synthetic = true;
   }
+
+  @override
+  TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
 
   @override
   List<ExecutableElement> get inheritedElements => _elements;
@@ -5566,6 +5591,15 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
       return name.substring(0, name.length - 1);
     }
     return super.displayName;
+  }
+
+  @override
+  TypeParameterizedElementMixin get enclosingTypeParameterContext {
+    Element enclosingElement = this.enclosingElement;
+    if (enclosingElement is TypeParameterizedElementMixin) {
+      return enclosingElement;
+    }
+    return null;
   }
 
   /**

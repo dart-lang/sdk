@@ -2532,29 +2532,6 @@ class C {
 ''');
   }
 
-  test_constructor_default_refers_to_generic_class() {
-    checkLibrary('''
-class B<T> {
-  const B();
-}
-class C<T> {
-  const C([B<T> b = const B()]);
-}
-''');
-  }
-
-  test_constructor_default_refers_to_generic_class2() {
-    checkLibrary('''
-abstract class A<T> {}
-class B<T> implements A<T> {
-  const B();
-}
-class C<T> implements A<Iterable<T>> {
-  const C([A<T> a = const B()]);
-}
-''');
-  }
-
   test_constructor_documented() {
     checkLibrary('''
 class C {
@@ -2906,6 +2883,71 @@ class C {
 class D {
   final x;
   D() : x = new C();
+}
+''');
+  }
+
+  test_defaultValue_refersToGenericClass_constructor() {
+    checkLibrary('''
+class B<T> {
+  const B();
+}
+class C<T> {
+  const C([B<T> b = const B()]);
+}
+''');
+  }
+
+  test_defaultValue_refersToGenericClass_constructor2() {
+    checkLibrary('''
+abstract class A<T> {}
+class B<T> implements A<T> {
+  const B();
+}
+class C<T> implements A<Iterable<T>> {
+  const C([A<T> a = const B()]);
+}
+''');
+  }
+
+  test_defaultValue_refersToGenericClass_functionG() {
+    checkLibrary('''
+class B<T> {
+  const B();
+}
+void foo<T>([B<T> b = const B()]) {}
+''');
+  }
+
+  test_defaultValue_refersToGenericClass_methodG() {
+    checkLibrary('''
+class B<T> {
+  const B();
+}
+class C {
+  void foo<T>([B<T> b = const B()]) {}
+}
+''');
+  }
+
+  test_defaultValue_refersToGenericClass_methodG_classG() {
+    checkLibrary('''
+class B<T1, T2> {
+  const B();
+}
+class C<E1> {
+  void foo<E2>([B<E1, E2> b = const B()]) {}
+}
+''');
+  }
+
+  test_defaultValue_refersToGenericClass_methodNG() {
+    checkLibrary('''
+class B<T> {
+  const B();
+}
+class C<T> {
+  void foo([B<T> b = const B()]) {}
 }
 ''');
   }
