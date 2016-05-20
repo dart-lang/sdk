@@ -7,6 +7,8 @@ library dart._debugger;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_runtime' as dart;
 import 'dart:core';
+import 'dart:collection';
+import 'dart:html' as html;
 
 /// Config object to pass to devtools to signal that an object should not be
 /// formatted by the Dart formatter. This is used to specify that an Object
@@ -19,7 +21,6 @@ final int maxIterableChildrenToDisplay = 50;
 var _devtoolsFormatter = new JsonMLFormatter(new DartFormatter());
 
 String _typeof(object) => JS('String', 'typeof #', object);
-bool _instanceof(object, clazz) => JS('bool', '# instanceof #', object, clazz);
 
 List<String> getOwnPropertyNames(object) => JS('List<String>',
     'dart.list(Object.getOwnPropertyNames(#), #)', object, String);
@@ -34,11 +35,6 @@ class JSNative {
   // Name may be a String or a Symbol.
   static setProperty(object, name, value) =>
       JS('', '#[#]=#', object, name, value);
-}
-
-bool isRegularDartObject(object) {
-  if (_typeof(object) == 'function') return false;
-  return _instanceof(object, JS('Type', '#', Object));
 }
 
 String getObjectTypeName(object) {
@@ -58,8 +54,8 @@ String getTypeName(Type type) {
   // TODO(jacobr): it would be nice if there was a way we could distinguish
   // between a List<dynamic> created from Dart and an Array passed in from
   // JavaScript.
-  if (name == 'JSArray<dynamic>' ||
-      name == 'JSObject<Array>') return 'List<dynamic>';
+  if (name == 'JSArray<dynamic>' || name == 'JSObject<Array>')
+    return 'List<dynamic>';
   return name;
 }
 
@@ -69,7 +65,7 @@ String safePreview(object) {
     if (preview != null) return preview;
     return object.toString();
   } catch (e) {
-    return '<Exception thrown>';
+    return '<Exception thrown> $e';
   }
 }
 
@@ -91,6 +87,11 @@ bool hasMethod(object, String name) {
 class NameValuePair {
   NameValuePair({this.name, this.value, bool skipDart})
       : skipDart = skipDart == true;
+
+  // Define equality and hashCode so that NameValuePair can be used
+  // in a Set to dedupe entries with duplicate names.
+  operator ==(other) => other is NameValuePair && other.name == name;
+  int get hashCode => name.hashCode;
 
   final String name;
   final Object value;
@@ -164,6 +165,18 @@ class JsonMLElement {
   toJsonML() => _jsonML;
 }
 
+/// Whether an object is a native JavaScript type where we should display the
+/// JavaScript view of the object instead of the custom Dart specific render
+/// of properties.
+bool isNativeJavaScriptObject(object) {
+  var type = _typeof(object);
+  // Treat Node objects as a native JavaScript type as the regular DOM render
+  // in devtools is superior to the dart specific view.
+  return (type != 'object' && type != 'function') ||
+      object is dart.JSObject ||
+      object is html.Node;
+}
+
 /// Class implementing the Devtools Formatter API described by:
 /// https://docs.google.com/document/d/1FTascZXT9cxfetuPRT2eXPQKXui4nWFivUnS_335T3U
 /// Specifically, a formatter implements a header, hasBody, and body method.
@@ -180,7 +193,9 @@ class JsonMLFormatter {
   JsonMLFormatter(this._simpleFormatter);
 
   header(object, config) {
-    if (identical(config, skipDartConfig)) return null;
+    if (identical(config, skipDartConfig) || isNativeJavaScriptObject(object)) {
+      return null;
+    }
 
     var c = _simpleFormatter.preview(object);
     if (c == null) return null;
@@ -257,12 +272,21 @@ class DartFormatter {
   }
 
   String preview(object) {
-    if (object == null) return 'null';
-    if (object is num) return object.toString();
-    if (object is String) return '"$object"';
+    try {
+      if (object == null ||
+          object is num ||
+          object is String ||
+          isNativeJavaScriptObject(object)) {
+        return object.toString();
+      }
 
-    for (var formatter in _formatters) {
-      if (formatter.accept(object)) return formatter.preview(object);
+      for (var formatter in _formatters) {
+        if (formatter.accept(object)) return formatter.preview(object);
+      }
+    } catch (e, trace) {
+      // Log formatter internal errors as unfortunately the devtools cannot
+      // be used to debug formatter errors.
+      html.window.console.error("Caught exception $e\n trace:\n$trace");
     }
 
     return null;
@@ -270,19 +294,28 @@ class DartFormatter {
 
   bool hasChildren(object) {
     if (object == null) return false;
-
-    for (var formatter in _formatters) {
-      if (formatter.accept(object)) return formatter.hasChildren(object);
+    try {
+      for (var formatter in _formatters) {
+        if (formatter.accept(object)) return formatter.hasChildren(object);
+      }
+    } catch (e, trace) {
+      // See comment for preview.
+      html.window.console
+          .error("[hasChildren] Caught exception $e\n trace:\n$trace");
     }
-
     return false;
   }
 
   List<NameValuePair> children(object) {
-    if (object != null) {
-      for (var formatter in _formatters) {
-        if (formatter.accept(object)) return formatter.children(object);
+    try {
+      if (object != null) {
+        for (var formatter in _formatters) {
+          if (formatter.accept(object)) return formatter.children(object);
+        }
       }
+    } catch (e, trace) {
+      // See comment for preview.
+      html.window.console.error("Caught exception $e\n trace:\n$trace");
     }
     return <NameValuePair>[];
   }
@@ -290,61 +323,85 @@ class DartFormatter {
 
 /// Default formatter for Dart Objects.
 class ObjectFormatter extends Formatter {
-  bool accept(object) => isRegularDartObject(object);
+  static Set<String> _customNames = new Set()
+    ..add('constructor')
+    ..add('prototype')
+    ..add('__proto__');
+  bool accept(object) => !isNativeJavaScriptObject(object);
 
   String preview(object) => getObjectTypeName(object);
 
   bool hasChildren(object) => true;
 
-  /// Helper to add members walking up the prototype chain being careful
-  /// to avoid properties that are Dart methods.
-  _addMembers(current, object, List<NameValuePair> properties) {
-    // TODO(jacobr): optionally distinguish properties and fields so that
-    // it is safe to expand untrusted objects without side effects.
-    var className = dart.getReifiedType(current).name;
-    for (var name in getOwnPropertyNames(current)) {
-      if (name == 'constructor' ||
-          name == '__proto__' ||
-          name == className) continue;
-      if (hasMethod(object, name)) {
-        continue;
-      }
-      var value;
-      try {
-        value = JSNative.getProperty(object, name);
-      } catch (e) {
-        value = '<Exception thrown>';
-      }
-      properties.add(new NameValuePair(name: name, value: value));
-    }
-    for (var symbol in getOwnPropertySymbols(current)) {
-      var dartName = symbolName(symbol);
-      if (hasMethod(object, dartName)) {
-        continue;
-      }
-      var value;
-      try {
-        value = JSNative.getProperty(object, symbol);
-      } catch (e) {
-        value = '<Exception thrown>';
-      }
-      properties.add(new NameValuePair(name: dartName, value: value));
-    }
-    var base = JSNative.getProperty(current, '__proto__');
-    if (base == null) return;
-    if (isRegularDartObject(base)) {
-      _addMembers(base, object, properties);
-    }
-  }
-
   List<NameValuePair> children(object) {
-    var properties = <NameValuePair>[];
+    var properties = new LinkedHashSet<NameValuePair>();
+    // Set of property names used to avoid duplicates.
     addMetadataChildren(object, properties);
-    _addMembers(object, object, properties);
-    return properties;
+
+    /// Helper to add members walking up the prototype chain being careful
+    /// to avoid properties that are Dart methods.
+    var protoChain = <Object>[];
+    var current = object;
+    while (current != null &&
+        !isNativeJavaScriptObject(current) &&
+        JS("bool", "# !== Object.prototype", current)) {
+      protoChain.add(current);
+      current = JSNative.getProperty(current, '__proto__');
+    }
+
+    // We walk the prototype chain for symbol properties because they take
+    // priority and are accessed instead of Dart properties according to Dart
+    // calling conventions.
+    // TODO(jacobr): where possible use the data stored by dart.setSignature
+    // instead of walking the JavaScript object directly.
+    for (current in protoChain) {
+      for (var symbol in getOwnPropertySymbols(current)) {
+        var dartName = symbolName(symbol);
+        if (hasMethod(object, dartName)) {
+          continue;
+        }
+        // TODO(jacobr): find a cleaner solution than checking for dartx
+        String dartXPrefix = 'dartx.';
+        if (dartName.startsWith(dartXPrefix)) {
+          dartName = dartName.substring(dartXPrefix.length);
+        } else if (!dartName.startsWith('_')) {
+          // Dart method extension names should either be from dartx or should
+          // start with an _
+          continue;
+        }
+        var value;
+        try {
+          value = JSNative.getProperty(object, symbol);
+        } catch (e) {
+          value = '<Exception thrown> $e';
+        }
+        properties.add(new NameValuePair(name: dartName, value: value));
+      }
+    }
+
+    for (current in protoChain) {
+      // TODO(jacobr): optionally distinguish properties and fields so that
+      // it is safe to expand untrusted objects without side effects.
+      var className = dart.getReifiedType(current).name;
+      for (var name in getOwnPropertyNames(current)) {
+        if (_customNames.contains(name) || name == className) continue;
+        if (hasMethod(object, name)) {
+          continue;
+        }
+        var value;
+        try {
+          value = JSNative.getProperty(object, name);
+        } catch (e) {
+          value = '<Exception thrown> $e';
+        }
+        properties.add(new NameValuePair(name: name, value: value));
+      }
+    }
+
+    return properties.toList();
   }
 
-  addMetadataChildren(object, List<NameValuePair> ret) {
+  addMetadataChildren(object, Set<NameValuePair> ret) {
     ret.add(
         new NameValuePair(name: '[[class]]', value: new ClassMetadata(object)));
   }
@@ -389,15 +446,14 @@ class MapFormatter extends ObjectFormatter {
     // the build in LinkedHashMap class.
     // TODO(jacobr): handle large Maps better.
     Map map = object;
-    var keys = map.keys.toList();
-    var entries = <NameValuePair>[];
+    var entries = new LinkedHashSet<NameValuePair>();
     map.forEach((key, value) {
       var entryWrapper = new MapEntry(key: key, value: value);
       entries.add(new NameValuePair(
           name: entries.length.toString(), value: entryWrapper));
     });
     addMetadataChildren(object, entries);
-    return entries;
+    return entries.toList();
   }
 }
 
@@ -423,7 +479,7 @@ class IterableFormatter extends ObjectFormatter {
     // TODO(jacobr): handle large Iterables better.
     // TODO(jacobr): consider only using numeric indices
     Iterable iterable = object;
-    var ret = <NameValuePair>[];
+    var ret = new LinkedHashSet<NameValuePair>();
     var i = 0;
     for (var entry in iterable) {
       if (i > maxIterableChildrenToDisplay) {
@@ -438,7 +494,7 @@ class IterableFormatter extends ObjectFormatter {
     // TODO(jacobr): provide a link to show regular class properties here.
     // required for subclasses of iterable, etc.
     addMetadataChildren(object, ret);
-    return ret;
+    return ret.toList();
   }
 }
 
@@ -471,9 +527,9 @@ class ClassMetadataFormatter implements Formatter {
           value: new HeritageClause('implements', implements())));
     }
     var mixins = dart.getMixins(type);
-    if (mixins != null) {
+    if (mixins != null && mixins.isNotEmpty) {
       ret.add(new NameValuePair(
-          name: '[[Mixins]]', value: new HeritageClause('mixins', mixins())));
+          name: '[[Mixins]]', value: new HeritageClause('mixins', mixins)));
     }
     ret.add(new NameValuePair(
         name: '[[JavaScript View]]', value: entry.object, skipDart: true));

@@ -693,6 +693,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     if (result === Function) {
       return dart.jsobject;
     }
+    if (result == null) {
+      return dart.jsobject;
+    }
     return result;
   };
   dart.wrapType = function(type) {
@@ -1445,10 +1448,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return typeof object;
   };
   dart.lazyFn(_debugger._typeof, () => [core.String, [dart.dynamic]]);
-  _debugger._instanceof = function(object, clazz) {
-    return object instanceof clazz;
-  };
-  dart.lazyFn(_debugger._instanceof, () => [core.bool, [dart.dynamic, dart.dynamic]]);
   _debugger.getOwnPropertyNames = function(object) {
     return dart.list(Object.getOwnPropertyNames(object), core.String);
   };
@@ -1472,11 +1471,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }),
     names: ['getProperty', 'setProperty']
   });
-  _debugger.isRegularDartObject = function(object) {
-    if (_debugger._typeof(object) == 'function') return false;
-    return _debugger._instanceof(object, core.Object);
-  };
-  dart.lazyFn(_debugger.isRegularDartObject, () => [core.bool, [dart.dynamic]]);
   _debugger.getObjectTypeName = function(object) {
     let reifiedType = dart.getReifiedType(object);
     if (reifiedType == null) {
@@ -1501,7 +1495,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (preview != null) return preview;
       return dart.toString(object);
     } catch (e) {
-      return '<Exception thrown>';
+      return dart.str`<Exception thrown> ${e}`;
     }
 
   };
@@ -1529,6 +1523,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.name = name;
       this.value = value;
       this.skipDart = skipDart == true;
+    }
+    ['=='](other) {
+      return dart.is(other, _debugger.NameValuePair) && other.name == this.name;
+    }
+    get hashCode() {
+      return dart.hashCode(this.name);
     }
   };
   dart.setSignature(_debugger.NameValuePair, {
@@ -1620,12 +1620,19 @@ dart_library.library('dart_sdk', null, /* Imports */[
       toJsonML: [dart.dynamic, []]
     })
   });
+  _debugger.isNativeJavaScriptObject = function(object) {
+    let type = _debugger._typeof(object);
+    return type != 'object' && type != 'function' || dart.is(object, dart.JSObject) || dart.is(object, html$.Node);
+  };
+  dart.lazyFn(_debugger.isNativeJavaScriptObject, () => [core.bool, [dart.dynamic]]);
   _debugger.JsonMLFormatter = class JsonMLFormatter extends core.Object {
     new(simpleFormatter) {
       this[_simpleFormatter] = simpleFormatter;
     }
     header(object, config) {
-      if (core.identical(config, _debugger.skipDartConfig)) return null;
+      if (core.identical(config, _debugger.skipDartConfig) || dart.test(_debugger.isNativeJavaScriptObject(object))) {
+        return null;
+      }
       let c = this[_simpleFormatter].preview(object);
       if (c == null) return null;
       let element = new _debugger.JsonMLElement('span');
@@ -1681,27 +1688,45 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_formatters] = dart.list([new _debugger.FunctionFormatter(), new _debugger.MapFormatter(), new _debugger.IterableFormatter(), new _debugger.MapEntryFormatter(), new _debugger.ClassMetadataFormatter(), new _debugger.HeritageClauseFormatter(), new _debugger.ObjectFormatter()], _debugger.Formatter);
     }
     preview(object) {
-      if (object == null) return 'null';
-      if (typeof object == 'number') return dart.toString(object);
-      if (typeof object == 'string') return dart.str`"${object}"`;
-      for (let formatter of this[_formatters]) {
-        if (dart.test(formatter.accept(object))) return formatter.preview(object);
+      try {
+        if (object == null || typeof object == 'number' || typeof object == 'string' || dart.test(_debugger.isNativeJavaScriptObject(object))) {
+          return dart.toString(object);
+        }
+        for (let formatter of this[_formatters]) {
+          if (dart.test(formatter.accept(object))) return formatter.preview(object);
+        }
+      } catch (e) {
+        let trace = dart.stackTrace(e);
+        html$.window[dartx.console].error(dart.str`Caught exception ${e}\n trace:\n${trace}`);
       }
+
       return null;
     }
     hasChildren(object) {
       if (object == null) return false;
-      for (let formatter of this[_formatters]) {
-        if (dart.test(formatter.accept(object))) return formatter.hasChildren(object);
+      try {
+        for (let formatter of this[_formatters]) {
+          if (dart.test(formatter.accept(object))) return formatter.hasChildren(object);
+        }
+      } catch (e) {
+        let trace = dart.stackTrace(e);
+        html$.window[dartx.console].error(dart.str`[hasChildren] Caught exception ${e}\n trace:\n${trace}`);
       }
+
       return false;
     }
     children(object) {
-      if (object != null) {
-        for (let formatter of this[_formatters]) {
-          if (dart.test(formatter.accept(object))) return formatter.children(object);
+      try {
+        if (object != null) {
+          for (let formatter of this[_formatters]) {
+            if (dart.test(formatter.accept(object))) return formatter.children(object);
+          }
         }
+      } catch (e) {
+        let trace = dart.stackTrace(e);
+        html$.window[dartx.console].error(dart.str`Caught exception ${e}\n trace:\n${trace}`);
       }
+
       return dart.list([], _debugger.NameValuePair);
     }
   };
@@ -1713,10 +1738,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       children: [core.List$(_debugger.NameValuePair), [dart.dynamic]]
     })
   });
-  const _addMembers = Symbol('_addMembers');
   _debugger.ObjectFormatter = class ObjectFormatter extends _debugger.Formatter {
     accept(object) {
-      return _debugger.isRegularDartObject(object);
+      return !dart.notNull(_debugger.isNativeJavaScriptObject(object));
     }
     preview(object) {
       return _debugger.getObjectTypeName(object);
@@ -1724,50 +1748,58 @@ dart_library.library('dart_sdk', null, /* Imports */[
     hasChildren(object) {
       return true;
     }
-    [_addMembers](current, object, properties) {
-      let className = dart.dload(dart.getReifiedType(current), 'name');
-      for (let name of _debugger.getOwnPropertyNames(current)) {
-        if (name == 'constructor' || name == '__proto__' || dart.equals(name, className)) continue;
-        if (dart.test(_debugger.hasMethod(object, name))) {
-          continue;
-        }
-        let value = null;
-        try {
-          value = _debugger.JSNative.getProperty(object, name);
-        } catch (e) {
-          value = '<Exception thrown>';
-        }
-
-        properties[dartx.add](new _debugger.NameValuePair({name: name, value: value}));
-      }
-      for (let symbol of _debugger.getOwnPropertySymbols(current)) {
-        let dartName = _debugger.symbolName(symbol);
-        if (dart.test(_debugger.hasMethod(object, dartName))) {
-          continue;
-        }
-        let value = null;
-        try {
-          value = _debugger.JSNative.getProperty(object, symbol);
-        } catch (e) {
-          value = '<Exception thrown>';
-        }
-
-        properties[dartx.add](new _debugger.NameValuePair({name: dartName, value: value}));
-      }
-      let base = _debugger.JSNative.getProperty(current, '__proto__');
-      if (base == null) return;
-      if (dart.test(_debugger.isRegularDartObject(base))) {
-        this[_addMembers](base, object, properties);
-      }
-    }
     children(object) {
-      let properties = dart.list([], _debugger.NameValuePair);
+      let properties = collection.LinkedHashSet$(_debugger.NameValuePair).new();
       this.addMetadataChildren(object, properties);
-      this[_addMembers](object, object, properties);
-      return properties;
+      let protoChain = dart.list([], core.Object);
+      let current = object;
+      while (current != null && !dart.test(_debugger.isNativeJavaScriptObject(current)) && current !== Object.prototype) {
+        protoChain[dartx.add](current);
+        current = _debugger.JSNative.getProperty(current, '__proto__');
+      }
+      for (/* Unimplemented unknown name */current of protoChain) {
+        for (let symbol of _debugger.getOwnPropertySymbols(current)) {
+          let dartName = _debugger.symbolName(symbol);
+          if (dart.test(_debugger.hasMethod(object, dartName))) {
+            continue;
+          }
+          let dartXPrefix = 'dartx.';
+          if (dart.test(dartName[dartx.startsWith](dartXPrefix))) {
+            dartName = dartName[dartx.substring](dartXPrefix[dartx.length]);
+          } else if (!dart.test(dartName[dartx.startsWith]('_'))) {
+            continue;
+          }
+          let value = null;
+          try {
+            value = _debugger.JSNative.getProperty(object, symbol);
+          } catch (e) {
+            value = dart.str`<Exception thrown> ${e}`;
+          }
+
+          properties.add(new _debugger.NameValuePair({name: dartName, value: value}));
+        }
+      }
+      for (/* Unimplemented unknown name */current of protoChain) {
+        let className = dart.dload(dart.getReifiedType(current), 'name');
+        for (let name of _debugger.getOwnPropertyNames(current)) {
+          if (dart.test(_debugger.ObjectFormatter._customNames.contains(name)) || dart.equals(name, className)) continue;
+          if (dart.test(_debugger.hasMethod(object, name))) {
+            continue;
+          }
+          let value = null;
+          try {
+            value = _debugger.JSNative.getProperty(object, name);
+          } catch (e) {
+            value = dart.str`<Exception thrown> ${e}`;
+          }
+
+          properties.add(new _debugger.NameValuePair({name: name, value: value}));
+        }
+      }
+      return properties.toList();
     }
     addMetadataChildren(object, ret) {
-      ret[dartx.add](new _debugger.NameValuePair({name: '[[class]]', value: new _debugger.ClassMetadata(object)}));
+      ret.add(new _debugger.NameValuePair({name: '[[class]]', value: new _debugger.ClassMetadata(object)}));
     }
   };
   dart.setSignature(_debugger.ObjectFormatter, {
@@ -1775,10 +1807,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
       accept: [core.bool, [dart.dynamic]],
       preview: [core.String, [dart.dynamic]],
       hasChildren: [core.bool, [dart.dynamic]],
-      [_addMembers]: [dart.dynamic, [dart.dynamic, dart.dynamic, core.List$(_debugger.NameValuePair)]],
       children: [core.List$(_debugger.NameValuePair), [dart.dynamic]],
-      addMetadataChildren: [dart.dynamic, [dart.dynamic, core.List$(_debugger.NameValuePair)]]
+      addMetadataChildren: [dart.dynamic, [dart.dynamic, core.Set$(_debugger.NameValuePair)]]
     })
+  });
+  dart.defineLazy(_debugger.ObjectFormatter, {
+    get _customNames() {
+      return (() => {
+        let _ = core.Set$(core.String).new();
+        _.add('constructor');
+        _.add('prototype');
+        _.add('__proto__');
+        return _;
+      })();
+    },
+    set _customNames(_) {}
   });
   _debugger.FunctionFormatter = class FunctionFormatter extends _debugger.Formatter {
     accept(object) {
@@ -1816,14 +1859,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     children(object) {
       let map = dart.as(object, core.Map);
-      let keys = map[dartx.keys][dartx.toList]();
-      let entries = dart.list([], _debugger.NameValuePair);
+      let entries = collection.LinkedHashSet$(_debugger.NameValuePair).new();
       map[dartx.forEach](dart.fn((key, value) => {
         let entryWrapper = new _debugger.MapEntry({key: dart.as(key, core.String), value: value});
-        entries[dartx.add](new _debugger.NameValuePair({name: dart.toString(entries[dartx.length]), value: entryWrapper}));
+        entries.add(new _debugger.NameValuePair({name: dart.toString(entries.length), value: entryWrapper}));
       }, dart.void, [dart.dynamic, dart.dynamic]));
       this.addMetadataChildren(object, entries);
-      return entries;
+      return entries.toList();
     }
   };
   _debugger.IterableFormatter = class IterableFormatter extends _debugger.ObjectFormatter {
@@ -1845,18 +1887,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     children(object) {
       let iterable = dart.as(object, core.Iterable);
-      let ret = dart.list([], _debugger.NameValuePair);
+      let ret = collection.LinkedHashSet$(_debugger.NameValuePair).new();
       let i = 0;
       for (let entry of iterable) {
         if (i > dart.notNull(_debugger.maxIterableChildrenToDisplay)) {
-          ret[dartx.add](new _debugger.NameValuePair({name: 'Warning', value: 'Truncated Iterable display'}));
+          ret.add(new _debugger.NameValuePair({name: 'Warning', value: 'Truncated Iterable display'}));
           break;
         }
-        ret[dartx.add](new _debugger.NameValuePair({name: dart.toString(i), value: entry}));
+        ret.add(new _debugger.NameValuePair({name: dart.toString(i), value: entry}));
         i++;
       }
       this.addMetadataChildren(object, ret);
-      return ret;
+      return ret.toList();
     }
   };
   const _getType = Symbol('_getType');
@@ -1884,8 +1926,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
         ret[dartx.add](new _debugger.NameValuePair({name: '[[Implements]]', value: new _debugger.HeritageClause('implements', dart.as(dart.dcall(implements$), core.List))}));
       }
       let mixins = dart.getMixins(type);
-      if (mixins != null) {
-        ret[dartx.add](new _debugger.NameValuePair({name: '[[Mixins]]', value: new _debugger.HeritageClause('mixins', dart.as(dart.dcall(mixins), core.List))}));
+      if (mixins != null && dart.test(dart.dload(mixins, 'isNotEmpty'))) {
+        ret[dartx.add](new _debugger.NameValuePair({name: '[[Mixins]]', value: new _debugger.HeritageClause('mixins', dart.as(mixins, core.List))}));
       }
       ret[dartx.add](new _debugger.NameValuePair({name: '[[JavaScript View]]', value: entry.object, skipDart: true}));
       if (!dart.is(entry.object, core.Type)) {

@@ -138,6 +138,9 @@ _nonPrimitiveRuntimeType(obj) {
     // Treat as untyped.
     return JS('', '#', jsobject);
   }
+  if (result == null) {
+    return JS('', '#', jsobject);
+  }
   return result;
 }
 
