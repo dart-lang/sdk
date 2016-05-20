@@ -18,8 +18,8 @@ class _CacheSourceKindReader extends fb.Reader<idl.CacheSourceKind> {
   int get size => 1;
 
   @override
-  idl.CacheSourceKind read(fb.BufferPointer bp) {
-    int index = const fb.Uint8Reader().read(bp);
+  idl.CacheSourceKind read(fb.BufferContext bc, int offset) {
+    int index = const fb.Uint8Reader().read(bc, offset);
     return index < idl.CacheSourceKind.values.length ? idl.CacheSourceKind.values[index] : idl.CacheSourceKind.library;
   }
 }
@@ -31,8 +31,8 @@ class _IndexNameKindReader extends fb.Reader<idl.IndexNameKind> {
   int get size => 1;
 
   @override
-  idl.IndexNameKind read(fb.BufferPointer bp) {
-    int index = const fb.Uint8Reader().read(bp);
+  idl.IndexNameKind read(fb.BufferContext bc, int offset) {
+    int index = const fb.Uint8Reader().read(bc, offset);
     return index < idl.IndexNameKind.values.length ? idl.IndexNameKind.values[index] : idl.IndexNameKind.topLevel;
   }
 }
@@ -44,8 +44,8 @@ class _IndexRelationKindReader extends fb.Reader<idl.IndexRelationKind> {
   int get size => 1;
 
   @override
-  idl.IndexRelationKind read(fb.BufferPointer bp) {
-    int index = const fb.Uint8Reader().read(bp);
+  idl.IndexRelationKind read(fb.BufferContext bc, int offset) {
+    int index = const fb.Uint8Reader().read(bc, offset);
     return index < idl.IndexRelationKind.values.length ? idl.IndexRelationKind.values[index] : idl.IndexRelationKind.IS_ANCESTOR_OF;
   }
 }
@@ -57,8 +57,8 @@ class _IndexSyntheticElementKindReader extends fb.Reader<idl.IndexSyntheticEleme
   int get size => 1;
 
   @override
-  idl.IndexSyntheticElementKind read(fb.BufferPointer bp) {
-    int index = const fb.Uint8Reader().read(bp);
+  idl.IndexSyntheticElementKind read(fb.BufferContext bc, int offset) {
+    int index = const fb.Uint8Reader().read(bc, offset);
     return index < idl.IndexSyntheticElementKind.values.length ? idl.IndexSyntheticElementKind.values[index] : idl.IndexSyntheticElementKind.notSynthetic;
   }
 }
@@ -70,8 +70,8 @@ class _ReferenceKindReader extends fb.Reader<idl.ReferenceKind> {
   int get size => 1;
 
   @override
-  idl.ReferenceKind read(fb.BufferPointer bp) {
-    int index = const fb.Uint8Reader().read(bp);
+  idl.ReferenceKind read(fb.BufferContext bc, int offset) {
+    int index = const fb.Uint8Reader().read(bc, offset);
     return index < idl.ReferenceKind.values.length ? idl.ReferenceKind.values[index] : idl.ReferenceKind.classOrEnum;
   }
 }
@@ -83,8 +83,8 @@ class _UnlinkedConstOperationReader extends fb.Reader<idl.UnlinkedConstOperation
   int get size => 1;
 
   @override
-  idl.UnlinkedConstOperation read(fb.BufferPointer bp) {
-    int index = const fb.Uint8Reader().read(bp);
+  idl.UnlinkedConstOperation read(fb.BufferContext bc, int offset) {
+    int index = const fb.Uint8Reader().read(bc, offset);
     return index < idl.UnlinkedConstOperation.values.length ? idl.UnlinkedConstOperation.values[index] : idl.UnlinkedConstOperation.pushInt;
   }
 }
@@ -96,8 +96,8 @@ class _UnlinkedConstructorInitializerKindReader extends fb.Reader<idl.UnlinkedCo
   int get size => 1;
 
   @override
-  idl.UnlinkedConstructorInitializerKind read(fb.BufferPointer bp) {
-    int index = const fb.Uint8Reader().read(bp);
+  idl.UnlinkedConstructorInitializerKind read(fb.BufferContext bc, int offset) {
+    int index = const fb.Uint8Reader().read(bc, offset);
     return index < idl.UnlinkedConstructorInitializerKind.values.length ? idl.UnlinkedConstructorInitializerKind.values[index] : idl.UnlinkedConstructorInitializerKind.field;
   }
 }
@@ -109,8 +109,8 @@ class _UnlinkedExecutableKindReader extends fb.Reader<idl.UnlinkedExecutableKind
   int get size => 1;
 
   @override
-  idl.UnlinkedExecutableKind read(fb.BufferPointer bp) {
-    int index = const fb.Uint8Reader().read(bp);
+  idl.UnlinkedExecutableKind read(fb.BufferContext bc, int offset) {
+    int index = const fb.Uint8Reader().read(bc, offset);
     return index < idl.UnlinkedExecutableKind.values.length ? idl.UnlinkedExecutableKind.values[index] : idl.UnlinkedExecutableKind.functionOrMethod;
   }
 }
@@ -122,8 +122,8 @@ class _UnlinkedExprAssignOperatorReader extends fb.Reader<idl.UnlinkedExprAssign
   int get size => 1;
 
   @override
-  idl.UnlinkedExprAssignOperator read(fb.BufferPointer bp) {
-    int index = const fb.Uint8Reader().read(bp);
+  idl.UnlinkedExprAssignOperator read(fb.BufferContext bc, int offset) {
+    int index = const fb.Uint8Reader().read(bc, offset);
     return index < idl.UnlinkedExprAssignOperator.values.length ? idl.UnlinkedExprAssignOperator.values[index] : idl.UnlinkedExprAssignOperator.assign;
   }
 }
@@ -135,8 +135,8 @@ class _UnlinkedParamKindReader extends fb.Reader<idl.UnlinkedParamKind> {
   int get size => 1;
 
   @override
-  idl.UnlinkedParamKind read(fb.BufferPointer bp) {
-    int index = const fb.Uint8Reader().read(bp);
+  idl.UnlinkedParamKind read(fb.BufferContext bc, int offset) {
+    int index = const fb.Uint8Reader().read(bc, offset);
     return index < idl.UnlinkedParamKind.values.length ? idl.UnlinkedParamKind.values[index] : idl.UnlinkedParamKind.required;
   }
 }
@@ -246,21 +246,22 @@ class CacheSourceContentBuilder extends Object with _CacheSourceContentMixin imp
 }
 
 idl.CacheSourceContent readCacheSourceContent(List<int> buffer) {
-  fb.BufferPointer rootRef = new fb.BufferPointer.fromBytes(buffer);
-  return const _CacheSourceContentReader().read(rootRef);
+  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  return const _CacheSourceContentReader().read(rootRef, 0);
 }
 
 class _CacheSourceContentReader extends fb.TableReader<_CacheSourceContentImpl> {
   const _CacheSourceContentReader();
 
   @override
-  _CacheSourceContentImpl createObject(fb.BufferPointer bp) => new _CacheSourceContentImpl(bp);
+  _CacheSourceContentImpl createObject(fb.BufferContext bc, int offset) => new _CacheSourceContentImpl(bc, offset);
 }
 
 class _CacheSourceContentImpl extends Object with _CacheSourceContentMixin implements idl.CacheSourceContent {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _CacheSourceContentImpl(this._bp);
+  _CacheSourceContentImpl(this._bc, this._bcOffset);
 
   List<String> _exportedUris;
   List<String> _importedUris;
@@ -269,25 +270,25 @@ class _CacheSourceContentImpl extends Object with _CacheSourceContentMixin imple
 
   @override
   List<String> get exportedUris {
-    _exportedUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 2, const <String>[]);
+    _exportedUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 2, const <String>[]);
     return _exportedUris;
   }
 
   @override
   List<String> get importedUris {
-    _importedUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 1, const <String>[]);
+    _importedUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 1, const <String>[]);
     return _importedUris;
   }
 
   @override
   idl.CacheSourceKind get kind {
-    _kind ??= const _CacheSourceKindReader().vTableGet(_bp, 0, idl.CacheSourceKind.library);
+    _kind ??= const _CacheSourceKindReader().vTableGet(_bc, _bcOffset, 0, idl.CacheSourceKind.library);
     return _kind;
   }
 
   @override
   List<String> get partUris {
-    _partUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 3, const <String>[]);
+    _partUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 3, const <String>[]);
     return _partUris;
   }
 }
@@ -373,26 +374,27 @@ class _CodeRangeReader extends fb.TableReader<_CodeRangeImpl> {
   const _CodeRangeReader();
 
   @override
-  _CodeRangeImpl createObject(fb.BufferPointer bp) => new _CodeRangeImpl(bp);
+  _CodeRangeImpl createObject(fb.BufferContext bc, int offset) => new _CodeRangeImpl(bc, offset);
 }
 
 class _CodeRangeImpl extends Object with _CodeRangeMixin implements idl.CodeRange {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _CodeRangeImpl(this._bp);
+  _CodeRangeImpl(this._bc, this._bcOffset);
 
   int _length;
   int _offset;
 
   @override
   int get length {
-    _length ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    _length ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
     return _length;
   }
 
   @override
   int get offset {
-    _offset ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
+    _offset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
     return _offset;
   }
 }
@@ -622,13 +624,14 @@ class _EntityRefReader extends fb.TableReader<_EntityRefImpl> {
   const _EntityRefReader();
 
   @override
-  _EntityRefImpl createObject(fb.BufferPointer bp) => new _EntityRefImpl(bp);
+  _EntityRefImpl createObject(fb.BufferContext bc, int offset) => new _EntityRefImpl(bc, offset);
 }
 
 class _EntityRefImpl extends Object with _EntityRefMixin implements idl.EntityRef {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _EntityRefImpl(this._bp);
+  _EntityRefImpl(this._bc, this._bcOffset);
 
   List<int> _implicitFunctionTypeIndices;
   int _paramReference;
@@ -640,43 +643,43 @@ class _EntityRefImpl extends Object with _EntityRefMixin implements idl.EntityRe
 
   @override
   List<int> get implicitFunctionTypeIndices {
-    _implicitFunctionTypeIndices ??= const fb.Uint32ListReader().vTableGet(_bp, 4, const <int>[]);
+    _implicitFunctionTypeIndices ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 4, const <int>[]);
     return _implicitFunctionTypeIndices;
   }
 
   @override
   int get paramReference {
-    _paramReference ??= const fb.Uint32Reader().vTableGet(_bp, 3, 0);
+    _paramReference ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 3, 0);
     return _paramReference;
   }
 
   @override
   int get reference {
-    _reference ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
+    _reference ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
     return _reference;
   }
 
   @override
   int get slot {
-    _slot ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
+    _slot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
     return _slot;
   }
 
   @override
   List<idl.UnlinkedParam> get syntheticParams {
-    _syntheticParams ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bp, 6, const <idl.UnlinkedParam>[]);
+    _syntheticParams ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bc, _bcOffset, 6, const <idl.UnlinkedParam>[]);
     return _syntheticParams;
   }
 
   @override
   idl.EntityRef get syntheticReturnType {
-    _syntheticReturnType ??= const _EntityRefReader().vTableGet(_bp, 5, null);
+    _syntheticReturnType ??= const _EntityRefReader().vTableGet(_bc, _bcOffset, 5, null);
     return _syntheticReturnType;
   }
 
   @override
   List<idl.EntityRef> get typeArguments {
-    _typeArguments ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bp, 1, const <idl.EntityRef>[]);
+    _typeArguments ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bc, _bcOffset, 1, const <idl.EntityRef>[]);
     return _typeArguments;
   }
 }
@@ -779,26 +782,27 @@ class _LinkedDependencyReader extends fb.TableReader<_LinkedDependencyImpl> {
   const _LinkedDependencyReader();
 
   @override
-  _LinkedDependencyImpl createObject(fb.BufferPointer bp) => new _LinkedDependencyImpl(bp);
+  _LinkedDependencyImpl createObject(fb.BufferContext bc, int offset) => new _LinkedDependencyImpl(bc, offset);
 }
 
 class _LinkedDependencyImpl extends Object with _LinkedDependencyMixin implements idl.LinkedDependency {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _LinkedDependencyImpl(this._bp);
+  _LinkedDependencyImpl(this._bc, this._bcOffset);
 
   List<String> _parts;
   String _uri;
 
   @override
   List<String> get parts {
-    _parts ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 1, const <String>[]);
+    _parts ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 1, const <String>[]);
     return _parts;
   }
 
   @override
   String get uri {
-    _uri ??= const fb.StringReader().vTableGet(_bp, 0, '');
+    _uri ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
     return _uri;
   }
 }
@@ -921,13 +925,14 @@ class _LinkedExportNameReader extends fb.TableReader<_LinkedExportNameImpl> {
   const _LinkedExportNameReader();
 
   @override
-  _LinkedExportNameImpl createObject(fb.BufferPointer bp) => new _LinkedExportNameImpl(bp);
+  _LinkedExportNameImpl createObject(fb.BufferContext bc, int offset) => new _LinkedExportNameImpl(bc, offset);
 }
 
 class _LinkedExportNameImpl extends Object with _LinkedExportNameMixin implements idl.LinkedExportName {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _LinkedExportNameImpl(this._bp);
+  _LinkedExportNameImpl(this._bc, this._bcOffset);
 
   int _dependency;
   idl.ReferenceKind _kind;
@@ -936,25 +941,25 @@ class _LinkedExportNameImpl extends Object with _LinkedExportNameMixin implement
 
   @override
   int get dependency {
-    _dependency ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
+    _dependency ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
     return _dependency;
   }
 
   @override
   idl.ReferenceKind get kind {
-    _kind ??= const _ReferenceKindReader().vTableGet(_bp, 3, idl.ReferenceKind.classOrEnum);
+    _kind ??= const _ReferenceKindReader().vTableGet(_bc, _bcOffset, 3, idl.ReferenceKind.classOrEnum);
     return _kind;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 1, '');
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
     return _name;
   }
 
   @override
   int get unit {
-    _unit ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
+    _unit ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
     return _unit;
   }
 }
@@ -1171,21 +1176,22 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
 }
 
 idl.LinkedLibrary readLinkedLibrary(List<int> buffer) {
-  fb.BufferPointer rootRef = new fb.BufferPointer.fromBytes(buffer);
-  return const _LinkedLibraryReader().read(rootRef);
+  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  return const _LinkedLibraryReader().read(rootRef, 0);
 }
 
 class _LinkedLibraryReader extends fb.TableReader<_LinkedLibraryImpl> {
   const _LinkedLibraryReader();
 
   @override
-  _LinkedLibraryImpl createObject(fb.BufferPointer bp) => new _LinkedLibraryImpl(bp);
+  _LinkedLibraryImpl createObject(fb.BufferContext bc, int offset) => new _LinkedLibraryImpl(bc, offset);
 }
 
 class _LinkedLibraryImpl extends Object with _LinkedLibraryMixin implements idl.LinkedLibrary {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _LinkedLibraryImpl(this._bp);
+  _LinkedLibraryImpl(this._bc, this._bcOffset);
 
   List<idl.LinkedDependency> _dependencies;
   List<int> _exportDependencies;
@@ -1197,43 +1203,43 @@ class _LinkedLibraryImpl extends Object with _LinkedLibraryMixin implements idl.
 
   @override
   List<idl.LinkedDependency> get dependencies {
-    _dependencies ??= const fb.ListReader<idl.LinkedDependency>(const _LinkedDependencyReader()).vTableGet(_bp, 0, const <idl.LinkedDependency>[]);
+    _dependencies ??= const fb.ListReader<idl.LinkedDependency>(const _LinkedDependencyReader()).vTableGet(_bc, _bcOffset, 0, const <idl.LinkedDependency>[]);
     return _dependencies;
   }
 
   @override
   List<int> get exportDependencies {
-    _exportDependencies ??= const fb.Uint32ListReader().vTableGet(_bp, 6, const <int>[]);
+    _exportDependencies ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 6, const <int>[]);
     return _exportDependencies;
   }
 
   @override
   List<idl.LinkedExportName> get exportNames {
-    _exportNames ??= const fb.ListReader<idl.LinkedExportName>(const _LinkedExportNameReader()).vTableGet(_bp, 4, const <idl.LinkedExportName>[]);
+    _exportNames ??= const fb.ListReader<idl.LinkedExportName>(const _LinkedExportNameReader()).vTableGet(_bc, _bcOffset, 4, const <idl.LinkedExportName>[]);
     return _exportNames;
   }
 
   @override
   bool get fallbackMode {
-    _fallbackMode ??= const fb.BoolReader().vTableGet(_bp, 5, false);
+    _fallbackMode ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 5, false);
     return _fallbackMode;
   }
 
   @override
   List<int> get importDependencies {
-    _importDependencies ??= const fb.Uint32ListReader().vTableGet(_bp, 1, const <int>[]);
+    _importDependencies ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 1, const <int>[]);
     return _importDependencies;
   }
 
   @override
   int get numPrelinkedDependencies {
-    _numPrelinkedDependencies ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
+    _numPrelinkedDependencies ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
     return _numPrelinkedDependencies;
   }
 
   @override
   List<idl.LinkedUnit> get units {
-    _units ??= const fb.ListReader<idl.LinkedUnit>(const _LinkedUnitReader()).vTableGet(_bp, 3, const <idl.LinkedUnit>[]);
+    _units ??= const fb.ListReader<idl.LinkedUnit>(const _LinkedUnitReader()).vTableGet(_bc, _bcOffset, 3, const <idl.LinkedUnit>[]);
     return _units;
   }
 }
@@ -1439,13 +1445,14 @@ class _LinkedReferenceReader extends fb.TableReader<_LinkedReferenceImpl> {
   const _LinkedReferenceReader();
 
   @override
-  _LinkedReferenceImpl createObject(fb.BufferPointer bp) => new _LinkedReferenceImpl(bp);
+  _LinkedReferenceImpl createObject(fb.BufferContext bc, int offset) => new _LinkedReferenceImpl(bc, offset);
 }
 
 class _LinkedReferenceImpl extends Object with _LinkedReferenceMixin implements idl.LinkedReference {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _LinkedReferenceImpl(this._bp);
+  _LinkedReferenceImpl(this._bc, this._bcOffset);
 
   int _containingReference;
   int _dependency;
@@ -1457,43 +1464,43 @@ class _LinkedReferenceImpl extends Object with _LinkedReferenceMixin implements 
 
   @override
   int get containingReference {
-    _containingReference ??= const fb.Uint32Reader().vTableGet(_bp, 5, 0);
+    _containingReference ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 5, 0);
     return _containingReference;
   }
 
   @override
   int get dependency {
-    _dependency ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    _dependency ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
     return _dependency;
   }
 
   @override
   idl.ReferenceKind get kind {
-    _kind ??= const _ReferenceKindReader().vTableGet(_bp, 2, idl.ReferenceKind.classOrEnum);
+    _kind ??= const _ReferenceKindReader().vTableGet(_bc, _bcOffset, 2, idl.ReferenceKind.classOrEnum);
     return _kind;
   }
 
   @override
   int get localIndex {
-    _localIndex ??= const fb.Uint32Reader().vTableGet(_bp, 6, 0);
+    _localIndex ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 6, 0);
     return _localIndex;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 3, '');
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 3, '');
     return _name;
   }
 
   @override
   int get numTypeParameters {
-    _numTypeParameters ??= const fb.Uint32Reader().vTableGet(_bp, 4, 0);
+    _numTypeParameters ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 4, 0);
     return _numTypeParameters;
   }
 
   @override
   int get unit {
-    _unit ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
+    _unit ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
     return _unit;
   }
 }
@@ -1621,13 +1628,14 @@ class _LinkedUnitReader extends fb.TableReader<_LinkedUnitImpl> {
   const _LinkedUnitReader();
 
   @override
-  _LinkedUnitImpl createObject(fb.BufferPointer bp) => new _LinkedUnitImpl(bp);
+  _LinkedUnitImpl createObject(fb.BufferContext bc, int offset) => new _LinkedUnitImpl(bc, offset);
 }
 
 class _LinkedUnitImpl extends Object with _LinkedUnitMixin implements idl.LinkedUnit {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _LinkedUnitImpl(this._bp);
+  _LinkedUnitImpl(this._bc, this._bcOffset);
 
   List<int> _constCycles;
   List<idl.LinkedReference> _references;
@@ -1635,19 +1643,19 @@ class _LinkedUnitImpl extends Object with _LinkedUnitMixin implements idl.Linked
 
   @override
   List<int> get constCycles {
-    _constCycles ??= const fb.Uint32ListReader().vTableGet(_bp, 2, const <int>[]);
+    _constCycles ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
     return _constCycles;
   }
 
   @override
   List<idl.LinkedReference> get references {
-    _references ??= const fb.ListReader<idl.LinkedReference>(const _LinkedReferenceReader()).vTableGet(_bp, 0, const <idl.LinkedReference>[]);
+    _references ??= const fb.ListReader<idl.LinkedReference>(const _LinkedReferenceReader()).vTableGet(_bc, _bcOffset, 0, const <idl.LinkedReference>[]);
     return _references;
   }
 
   @override
   List<idl.EntityRef> get types {
-    _types ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bp, 1, const <idl.EntityRef>[]);
+    _types ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bc, _bcOffset, 1, const <idl.EntityRef>[]);
     return _types;
   }
 }
@@ -1840,21 +1848,22 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
 }
 
 idl.PackageBundle readPackageBundle(List<int> buffer) {
-  fb.BufferPointer rootRef = new fb.BufferPointer.fromBytes(buffer);
-  return const _PackageBundleReader().read(rootRef);
+  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  return const _PackageBundleReader().read(rootRef, 0);
 }
 
 class _PackageBundleReader extends fb.TableReader<_PackageBundleImpl> {
   const _PackageBundleReader();
 
   @override
-  _PackageBundleImpl createObject(fb.BufferPointer bp) => new _PackageBundleImpl(bp);
+  _PackageBundleImpl createObject(fb.BufferContext bc, int offset) => new _PackageBundleImpl(bc, offset);
 }
 
 class _PackageBundleImpl extends Object with _PackageBundleMixin implements idl.PackageBundle {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _PackageBundleImpl(this._bp);
+  _PackageBundleImpl(this._bc, this._bcOffset);
 
   List<idl.LinkedLibrary> _linkedLibraries;
   List<String> _linkedLibraryUris;
@@ -1866,43 +1875,43 @@ class _PackageBundleImpl extends Object with _PackageBundleMixin implements idl.
 
   @override
   List<idl.LinkedLibrary> get linkedLibraries {
-    _linkedLibraries ??= const fb.ListReader<idl.LinkedLibrary>(const _LinkedLibraryReader()).vTableGet(_bp, 0, const <idl.LinkedLibrary>[]);
+    _linkedLibraries ??= const fb.ListReader<idl.LinkedLibrary>(const _LinkedLibraryReader()).vTableGet(_bc, _bcOffset, 0, const <idl.LinkedLibrary>[]);
     return _linkedLibraries;
   }
 
   @override
   List<String> get linkedLibraryUris {
-    _linkedLibraryUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 1, const <String>[]);
+    _linkedLibraryUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 1, const <String>[]);
     return _linkedLibraryUris;
   }
 
   @override
   int get majorVersion {
-    _majorVersion ??= const fb.Uint32Reader().vTableGet(_bp, 5, 0);
+    _majorVersion ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 5, 0);
     return _majorVersion;
   }
 
   @override
   int get minorVersion {
-    _minorVersion ??= const fb.Uint32Reader().vTableGet(_bp, 6, 0);
+    _minorVersion ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 6, 0);
     return _minorVersion;
   }
 
   @override
   List<String> get unlinkedUnitHashes {
-    _unlinkedUnitHashes ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 4, const <String>[]);
+    _unlinkedUnitHashes ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 4, const <String>[]);
     return _unlinkedUnitHashes;
   }
 
   @override
   List<idl.UnlinkedUnit> get unlinkedUnits {
-    _unlinkedUnits ??= const fb.ListReader<idl.UnlinkedUnit>(const _UnlinkedUnitReader()).vTableGet(_bp, 2, const <idl.UnlinkedUnit>[]);
+    _unlinkedUnits ??= const fb.ListReader<idl.UnlinkedUnit>(const _UnlinkedUnitReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedUnit>[]);
     return _unlinkedUnits;
   }
 
   @override
   List<String> get unlinkedUnitUris {
-    _unlinkedUnitUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 3, const <String>[]);
+    _unlinkedUnitUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 3, const <String>[]);
     return _unlinkedUnitUris;
   }
 }
@@ -2119,21 +2128,22 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
 }
 
 idl.PackageIndex readPackageIndex(List<int> buffer) {
-  fb.BufferPointer rootRef = new fb.BufferPointer.fromBytes(buffer);
-  return const _PackageIndexReader().read(rootRef);
+  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  return const _PackageIndexReader().read(rootRef, 0);
 }
 
 class _PackageIndexReader extends fb.TableReader<_PackageIndexImpl> {
   const _PackageIndexReader();
 
   @override
-  _PackageIndexImpl createObject(fb.BufferPointer bp) => new _PackageIndexImpl(bp);
+  _PackageIndexImpl createObject(fb.BufferContext bc, int offset) => new _PackageIndexImpl(bc, offset);
 }
 
 class _PackageIndexImpl extends Object with _PackageIndexMixin implements idl.PackageIndex {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _PackageIndexImpl(this._bp);
+  _PackageIndexImpl(this._bc, this._bcOffset);
 
   List<idl.IndexSyntheticElementKind> _elementKinds;
   List<int> _elementOffsets;
@@ -2145,43 +2155,43 @@ class _PackageIndexImpl extends Object with _PackageIndexMixin implements idl.Pa
 
   @override
   List<idl.IndexSyntheticElementKind> get elementKinds {
-    _elementKinds ??= const fb.ListReader<idl.IndexSyntheticElementKind>(const _IndexSyntheticElementKindReader()).vTableGet(_bp, 5, const <idl.IndexSyntheticElementKind>[]);
+    _elementKinds ??= const fb.ListReader<idl.IndexSyntheticElementKind>(const _IndexSyntheticElementKindReader()).vTableGet(_bc, _bcOffset, 5, const <idl.IndexSyntheticElementKind>[]);
     return _elementKinds;
   }
 
   @override
   List<int> get elementOffsets {
-    _elementOffsets ??= const fb.Uint32ListReader().vTableGet(_bp, 1, const <int>[]);
+    _elementOffsets ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 1, const <int>[]);
     return _elementOffsets;
   }
 
   @override
   List<int> get elementUnits {
-    _elementUnits ??= const fb.Uint32ListReader().vTableGet(_bp, 0, const <int>[]);
+    _elementUnits ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 0, const <int>[]);
     return _elementUnits;
   }
 
   @override
   List<String> get strings {
-    _strings ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 6, const <String>[]);
+    _strings ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 6, const <String>[]);
     return _strings;
   }
 
   @override
   List<int> get unitLibraryUris {
-    _unitLibraryUris ??= const fb.Uint32ListReader().vTableGet(_bp, 2, const <int>[]);
+    _unitLibraryUris ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
     return _unitLibraryUris;
   }
 
   @override
   List<idl.UnitIndex> get units {
-    _units ??= const fb.ListReader<idl.UnitIndex>(const _UnitIndexReader()).vTableGet(_bp, 4, const <idl.UnitIndex>[]);
+    _units ??= const fb.ListReader<idl.UnitIndex>(const _UnitIndexReader()).vTableGet(_bc, _bcOffset, 4, const <idl.UnitIndex>[]);
     return _units;
   }
 
   @override
   List<int> get unitUnitUris {
-    _unitUnitUris ??= const fb.Uint32ListReader().vTableGet(_bp, 3, const <int>[]);
+    _unitUnitUris ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 3, const <int>[]);
     return _unitUnitUris;
   }
 }
@@ -2516,13 +2526,14 @@ class _UnitIndexReader extends fb.TableReader<_UnitIndexImpl> {
   const _UnitIndexReader();
 
   @override
-  _UnitIndexImpl createObject(fb.BufferPointer bp) => new _UnitIndexImpl(bp);
+  _UnitIndexImpl createObject(fb.BufferContext bc, int offset) => new _UnitIndexImpl(bc, offset);
 }
 
 class _UnitIndexImpl extends Object with _UnitIndexMixin implements idl.UnitIndex {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnitIndexImpl(this._bp);
+  _UnitIndexImpl(this._bc, this._bcOffset);
 
   List<idl.IndexNameKind> _definedNameKinds;
   List<int> _definedNameOffsets;
@@ -2540,79 +2551,79 @@ class _UnitIndexImpl extends Object with _UnitIndexMixin implements idl.UnitInde
 
   @override
   List<idl.IndexNameKind> get definedNameKinds {
-    _definedNameKinds ??= const fb.ListReader<idl.IndexNameKind>(const _IndexNameKindReader()).vTableGet(_bp, 6, const <idl.IndexNameKind>[]);
+    _definedNameKinds ??= const fb.ListReader<idl.IndexNameKind>(const _IndexNameKindReader()).vTableGet(_bc, _bcOffset, 6, const <idl.IndexNameKind>[]);
     return _definedNameKinds;
   }
 
   @override
   List<int> get definedNameOffsets {
-    _definedNameOffsets ??= const fb.Uint32ListReader().vTableGet(_bp, 7, const <int>[]);
+    _definedNameOffsets ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 7, const <int>[]);
     return _definedNameOffsets;
   }
 
   @override
   List<int> get definedNames {
-    _definedNames ??= const fb.Uint32ListReader().vTableGet(_bp, 5, const <int>[]);
+    _definedNames ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 5, const <int>[]);
     return _definedNames;
   }
 
   @override
   int get unit {
-    _unit ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
+    _unit ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
     return _unit;
   }
 
   @override
   List<bool> get usedElementIsQualifiedFlags {
-    _usedElementIsQualifiedFlags ??= const fb.BoolListReader().vTableGet(_bp, 11, const <bool>[]);
+    _usedElementIsQualifiedFlags ??= const fb.BoolListReader().vTableGet(_bc, _bcOffset, 11, const <bool>[]);
     return _usedElementIsQualifiedFlags;
   }
 
   @override
   List<idl.IndexRelationKind> get usedElementKinds {
-    _usedElementKinds ??= const fb.ListReader<idl.IndexRelationKind>(const _IndexRelationKindReader()).vTableGet(_bp, 4, const <idl.IndexRelationKind>[]);
+    _usedElementKinds ??= const fb.ListReader<idl.IndexRelationKind>(const _IndexRelationKindReader()).vTableGet(_bc, _bcOffset, 4, const <idl.IndexRelationKind>[]);
     return _usedElementKinds;
   }
 
   @override
   List<int> get usedElementLengths {
-    _usedElementLengths ??= const fb.Uint32ListReader().vTableGet(_bp, 1, const <int>[]);
+    _usedElementLengths ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 1, const <int>[]);
     return _usedElementLengths;
   }
 
   @override
   List<int> get usedElementOffsets {
-    _usedElementOffsets ??= const fb.Uint32ListReader().vTableGet(_bp, 2, const <int>[]);
+    _usedElementOffsets ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
     return _usedElementOffsets;
   }
 
   @override
   List<int> get usedElements {
-    _usedElements ??= const fb.Uint32ListReader().vTableGet(_bp, 3, const <int>[]);
+    _usedElements ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 3, const <int>[]);
     return _usedElements;
   }
 
   @override
   List<bool> get usedNameIsQualifiedFlags {
-    _usedNameIsQualifiedFlags ??= const fb.BoolListReader().vTableGet(_bp, 12, const <bool>[]);
+    _usedNameIsQualifiedFlags ??= const fb.BoolListReader().vTableGet(_bc, _bcOffset, 12, const <bool>[]);
     return _usedNameIsQualifiedFlags;
   }
 
   @override
   List<idl.IndexRelationKind> get usedNameKinds {
-    _usedNameKinds ??= const fb.ListReader<idl.IndexRelationKind>(const _IndexRelationKindReader()).vTableGet(_bp, 10, const <idl.IndexRelationKind>[]);
+    _usedNameKinds ??= const fb.ListReader<idl.IndexRelationKind>(const _IndexRelationKindReader()).vTableGet(_bc, _bcOffset, 10, const <idl.IndexRelationKind>[]);
     return _usedNameKinds;
   }
 
   @override
   List<int> get usedNameOffsets {
-    _usedNameOffsets ??= const fb.Uint32ListReader().vTableGet(_bp, 9, const <int>[]);
+    _usedNameOffsets ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 9, const <int>[]);
     return _usedNameOffsets;
   }
 
   @override
   List<int> get usedNames {
-    _usedNames ??= const fb.Uint32ListReader().vTableGet(_bp, 8, const <int>[]);
+    _usedNames ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 8, const <int>[]);
     return _usedNames;
   }
 }
@@ -2961,13 +2972,14 @@ class _UnlinkedClassReader extends fb.TableReader<_UnlinkedClassImpl> {
   const _UnlinkedClassReader();
 
   @override
-  _UnlinkedClassImpl createObject(fb.BufferPointer bp) => new _UnlinkedClassImpl(bp);
+  _UnlinkedClassImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedClassImpl(bc, offset);
 }
 
 class _UnlinkedClassImpl extends Object with _UnlinkedClassMixin implements idl.UnlinkedClass {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedClassImpl(this._bp);
+  _UnlinkedClassImpl(this._bc, this._bcOffset);
 
   List<idl.UnlinkedConst> _annotations;
   idl.CodeRange _codeRange;
@@ -2986,85 +2998,85 @@ class _UnlinkedClassImpl extends Object with _UnlinkedClassMixin implements idl.
 
   @override
   List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 5, const <idl.UnlinkedConst>[]);
+    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 5, const <idl.UnlinkedConst>[]);
     return _annotations;
   }
 
   @override
   idl.CodeRange get codeRange {
-    _codeRange ??= const _CodeRangeReader().vTableGet(_bp, 13, null);
+    _codeRange ??= const _CodeRangeReader().vTableGet(_bc, _bcOffset, 13, null);
     return _codeRange;
   }
 
   @override
   idl.UnlinkedDocumentationComment get documentationComment {
-    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 6, null);
+    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bc, _bcOffset, 6, null);
     return _documentationComment;
   }
 
   @override
   List<idl.UnlinkedExecutable> get executables {
-    _executables ??= const fb.ListReader<idl.UnlinkedExecutable>(const _UnlinkedExecutableReader()).vTableGet(_bp, 2, const <idl.UnlinkedExecutable>[]);
+    _executables ??= const fb.ListReader<idl.UnlinkedExecutable>(const _UnlinkedExecutableReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedExecutable>[]);
     return _executables;
   }
 
   @override
   List<idl.UnlinkedVariable> get fields {
-    _fields ??= const fb.ListReader<idl.UnlinkedVariable>(const _UnlinkedVariableReader()).vTableGet(_bp, 4, const <idl.UnlinkedVariable>[]);
+    _fields ??= const fb.ListReader<idl.UnlinkedVariable>(const _UnlinkedVariableReader()).vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedVariable>[]);
     return _fields;
   }
 
   @override
   bool get hasNoSupertype {
-    _hasNoSupertype ??= const fb.BoolReader().vTableGet(_bp, 12, false);
+    _hasNoSupertype ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 12, false);
     return _hasNoSupertype;
   }
 
   @override
   List<idl.EntityRef> get interfaces {
-    _interfaces ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bp, 7, const <idl.EntityRef>[]);
+    _interfaces ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bc, _bcOffset, 7, const <idl.EntityRef>[]);
     return _interfaces;
   }
 
   @override
   bool get isAbstract {
-    _isAbstract ??= const fb.BoolReader().vTableGet(_bp, 8, false);
+    _isAbstract ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 8, false);
     return _isAbstract;
   }
 
   @override
   bool get isMixinApplication {
-    _isMixinApplication ??= const fb.BoolReader().vTableGet(_bp, 11, false);
+    _isMixinApplication ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 11, false);
     return _isMixinApplication;
   }
 
   @override
   List<idl.EntityRef> get mixins {
-    _mixins ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bp, 10, const <idl.EntityRef>[]);
+    _mixins ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bc, _bcOffset, 10, const <idl.EntityRef>[]);
     return _mixins;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
     return _name;
   }
 
   @override
   int get nameOffset {
-    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
     return _nameOffset;
   }
 
   @override
   idl.EntityRef get supertype {
-    _supertype ??= const _EntityRefReader().vTableGet(_bp, 3, null);
+    _supertype ??= const _EntityRefReader().vTableGet(_bc, _bcOffset, 3, null);
     return _supertype;
   }
 
   @override
   List<idl.UnlinkedTypeParam> get typeParameters {
-    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bp, 9, const <idl.UnlinkedTypeParam>[]);
+    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bc, _bcOffset, 9, const <idl.UnlinkedTypeParam>[]);
     return _typeParameters;
   }
 }
@@ -3214,13 +3226,14 @@ class _UnlinkedCombinatorReader extends fb.TableReader<_UnlinkedCombinatorImpl> 
   const _UnlinkedCombinatorReader();
 
   @override
-  _UnlinkedCombinatorImpl createObject(fb.BufferPointer bp) => new _UnlinkedCombinatorImpl(bp);
+  _UnlinkedCombinatorImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedCombinatorImpl(bc, offset);
 }
 
 class _UnlinkedCombinatorImpl extends Object with _UnlinkedCombinatorMixin implements idl.UnlinkedCombinator {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedCombinatorImpl(this._bp);
+  _UnlinkedCombinatorImpl(this._bc, this._bcOffset);
 
   int _end;
   List<String> _hides;
@@ -3229,25 +3242,25 @@ class _UnlinkedCombinatorImpl extends Object with _UnlinkedCombinatorMixin imple
 
   @override
   int get end {
-    _end ??= const fb.Uint32Reader().vTableGet(_bp, 3, 0);
+    _end ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 3, 0);
     return _end;
   }
 
   @override
   List<String> get hides {
-    _hides ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 1, const <String>[]);
+    _hides ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 1, const <String>[]);
     return _hides;
   }
 
   @override
   int get offset {
-    _offset ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
+    _offset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
     return _offset;
   }
 
   @override
   List<String> get shows {
-    _shows ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 0, const <String>[]);
+    _shows ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 0, const <String>[]);
     return _shows;
   }
 }
@@ -3445,13 +3458,14 @@ class _UnlinkedConstReader extends fb.TableReader<_UnlinkedConstImpl> {
   const _UnlinkedConstReader();
 
   @override
-  _UnlinkedConstImpl createObject(fb.BufferPointer bp) => new _UnlinkedConstImpl(bp);
+  _UnlinkedConstImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedConstImpl(bc, offset);
 }
 
 class _UnlinkedConstImpl extends Object with _UnlinkedConstMixin implements idl.UnlinkedConst {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedConstImpl(this._bp);
+  _UnlinkedConstImpl(this._bc, this._bcOffset);
 
   List<idl.UnlinkedExprAssignOperator> _assignmentOperators;
   List<double> _doubles;
@@ -3463,43 +3477,43 @@ class _UnlinkedConstImpl extends Object with _UnlinkedConstMixin implements idl.
 
   @override
   List<idl.UnlinkedExprAssignOperator> get assignmentOperators {
-    _assignmentOperators ??= const fb.ListReader<idl.UnlinkedExprAssignOperator>(const _UnlinkedExprAssignOperatorReader()).vTableGet(_bp, 6, const <idl.UnlinkedExprAssignOperator>[]);
+    _assignmentOperators ??= const fb.ListReader<idl.UnlinkedExprAssignOperator>(const _UnlinkedExprAssignOperatorReader()).vTableGet(_bc, _bcOffset, 6, const <idl.UnlinkedExprAssignOperator>[]);
     return _assignmentOperators;
   }
 
   @override
   List<double> get doubles {
-    _doubles ??= const fb.Float64ListReader().vTableGet(_bp, 4, const <double>[]);
+    _doubles ??= const fb.Float64ListReader().vTableGet(_bc, _bcOffset, 4, const <double>[]);
     return _doubles;
   }
 
   @override
   List<int> get ints {
-    _ints ??= const fb.Uint32ListReader().vTableGet(_bp, 1, const <int>[]);
+    _ints ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 1, const <int>[]);
     return _ints;
   }
 
   @override
   bool get isValidConst {
-    _isValidConst ??= const fb.BoolReader().vTableGet(_bp, 5, false);
+    _isValidConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 5, false);
     return _isValidConst;
   }
 
   @override
   List<idl.UnlinkedConstOperation> get operations {
-    _operations ??= const fb.ListReader<idl.UnlinkedConstOperation>(const _UnlinkedConstOperationReader()).vTableGet(_bp, 0, const <idl.UnlinkedConstOperation>[]);
+    _operations ??= const fb.ListReader<idl.UnlinkedConstOperation>(const _UnlinkedConstOperationReader()).vTableGet(_bc, _bcOffset, 0, const <idl.UnlinkedConstOperation>[]);
     return _operations;
   }
 
   @override
   List<idl.EntityRef> get references {
-    _references ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bp, 2, const <idl.EntityRef>[]);
+    _references ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bc, _bcOffset, 2, const <idl.EntityRef>[]);
     return _references;
   }
 
   @override
   List<String> get strings {
-    _strings ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 3, const <String>[]);
+    _strings ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 3, const <String>[]);
     return _strings;
   }
 }
@@ -3662,13 +3676,14 @@ class _UnlinkedConstructorInitializerReader extends fb.TableReader<_UnlinkedCons
   const _UnlinkedConstructorInitializerReader();
 
   @override
-  _UnlinkedConstructorInitializerImpl createObject(fb.BufferPointer bp) => new _UnlinkedConstructorInitializerImpl(bp);
+  _UnlinkedConstructorInitializerImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedConstructorInitializerImpl(bc, offset);
 }
 
 class _UnlinkedConstructorInitializerImpl extends Object with _UnlinkedConstructorInitializerMixin implements idl.UnlinkedConstructorInitializer {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedConstructorInitializerImpl(this._bp);
+  _UnlinkedConstructorInitializerImpl(this._bc, this._bcOffset);
 
   List<idl.UnlinkedConst> _arguments;
   List<String> _argumentNames;
@@ -3678,31 +3693,31 @@ class _UnlinkedConstructorInitializerImpl extends Object with _UnlinkedConstruct
 
   @override
   List<idl.UnlinkedConst> get arguments {
-    _arguments ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 3, const <idl.UnlinkedConst>[]);
+    _arguments ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedConst>[]);
     return _arguments;
   }
 
   @override
   List<String> get argumentNames {
-    _argumentNames ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 4, const <String>[]);
+    _argumentNames ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 4, const <String>[]);
     return _argumentNames;
   }
 
   @override
   idl.UnlinkedConst get expression {
-    _expression ??= const _UnlinkedConstReader().vTableGet(_bp, 1, null);
+    _expression ??= const _UnlinkedConstReader().vTableGet(_bc, _bcOffset, 1, null);
     return _expression;
   }
 
   @override
   idl.UnlinkedConstructorInitializerKind get kind {
-    _kind ??= const _UnlinkedConstructorInitializerKindReader().vTableGet(_bp, 2, idl.UnlinkedConstructorInitializerKind.field);
+    _kind ??= const _UnlinkedConstructorInitializerKindReader().vTableGet(_bc, _bcOffset, 2, idl.UnlinkedConstructorInitializerKind.field);
     return _kind;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
     return _name;
   }
 }
@@ -3814,13 +3829,14 @@ class _UnlinkedDocumentationCommentReader extends fb.TableReader<_UnlinkedDocume
   const _UnlinkedDocumentationCommentReader();
 
   @override
-  _UnlinkedDocumentationCommentImpl createObject(fb.BufferPointer bp) => new _UnlinkedDocumentationCommentImpl(bp);
+  _UnlinkedDocumentationCommentImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedDocumentationCommentImpl(bc, offset);
 }
 
 class _UnlinkedDocumentationCommentImpl extends Object with _UnlinkedDocumentationCommentMixin implements idl.UnlinkedDocumentationComment {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedDocumentationCommentImpl(this._bp);
+  _UnlinkedDocumentationCommentImpl(this._bc, this._bcOffset);
 
   int _length;
   int _offset;
@@ -3828,19 +3844,19 @@ class _UnlinkedDocumentationCommentImpl extends Object with _UnlinkedDocumentati
 
   @override
   int get length {
-    _length ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
+    _length ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
     return _length;
   }
 
   @override
   int get offset {
-    _offset ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
+    _offset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
     return _offset;
   }
 
   @override
   String get text {
-    _text ??= const fb.StringReader().vTableGet(_bp, 1, '');
+    _text ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
     return _text;
   }
 }
@@ -4013,13 +4029,14 @@ class _UnlinkedEnumReader extends fb.TableReader<_UnlinkedEnumImpl> {
   const _UnlinkedEnumReader();
 
   @override
-  _UnlinkedEnumImpl createObject(fb.BufferPointer bp) => new _UnlinkedEnumImpl(bp);
+  _UnlinkedEnumImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedEnumImpl(bc, offset);
 }
 
 class _UnlinkedEnumImpl extends Object with _UnlinkedEnumMixin implements idl.UnlinkedEnum {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedEnumImpl(this._bp);
+  _UnlinkedEnumImpl(this._bc, this._bcOffset);
 
   List<idl.UnlinkedConst> _annotations;
   idl.CodeRange _codeRange;
@@ -4030,37 +4047,37 @@ class _UnlinkedEnumImpl extends Object with _UnlinkedEnumMixin implements idl.Un
 
   @override
   List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 4, const <idl.UnlinkedConst>[]);
+    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedConst>[]);
     return _annotations;
   }
 
   @override
   idl.CodeRange get codeRange {
-    _codeRange ??= const _CodeRangeReader().vTableGet(_bp, 5, null);
+    _codeRange ??= const _CodeRangeReader().vTableGet(_bc, _bcOffset, 5, null);
     return _codeRange;
   }
 
   @override
   idl.UnlinkedDocumentationComment get documentationComment {
-    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 3, null);
+    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bc, _bcOffset, 3, null);
     return _documentationComment;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
     return _name;
   }
 
   @override
   int get nameOffset {
-    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
     return _nameOffset;
   }
 
   @override
   List<idl.UnlinkedEnumValue> get values {
-    _values ??= const fb.ListReader<idl.UnlinkedEnumValue>(const _UnlinkedEnumValueReader()).vTableGet(_bp, 2, const <idl.UnlinkedEnumValue>[]);
+    _values ??= const fb.ListReader<idl.UnlinkedEnumValue>(const _UnlinkedEnumValueReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedEnumValue>[]);
     return _values;
   }
 }
@@ -4176,13 +4193,14 @@ class _UnlinkedEnumValueReader extends fb.TableReader<_UnlinkedEnumValueImpl> {
   const _UnlinkedEnumValueReader();
 
   @override
-  _UnlinkedEnumValueImpl createObject(fb.BufferPointer bp) => new _UnlinkedEnumValueImpl(bp);
+  _UnlinkedEnumValueImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedEnumValueImpl(bc, offset);
 }
 
 class _UnlinkedEnumValueImpl extends Object with _UnlinkedEnumValueMixin implements idl.UnlinkedEnumValue {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedEnumValueImpl(this._bp);
+  _UnlinkedEnumValueImpl(this._bc, this._bcOffset);
 
   idl.UnlinkedDocumentationComment _documentationComment;
   String _name;
@@ -4190,19 +4208,19 @@ class _UnlinkedEnumValueImpl extends Object with _UnlinkedEnumValueMixin impleme
 
   @override
   idl.UnlinkedDocumentationComment get documentationComment {
-    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 2, null);
+    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bc, _bcOffset, 2, null);
     return _documentationComment;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
     return _name;
   }
 
   @override
   int get nameOffset {
-    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
     return _nameOffset;
   }
 }
@@ -4824,13 +4842,14 @@ class _UnlinkedExecutableReader extends fb.TableReader<_UnlinkedExecutableImpl> 
   const _UnlinkedExecutableReader();
 
   @override
-  _UnlinkedExecutableImpl createObject(fb.BufferPointer bp) => new _UnlinkedExecutableImpl(bp);
+  _UnlinkedExecutableImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedExecutableImpl(bc, offset);
 }
 
 class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedExecutableImpl(this._bp);
+  _UnlinkedExecutableImpl(this._bc, this._bcOffset);
 
   List<idl.UnlinkedConst> _annotations;
   idl.CodeRange _codeRange;
@@ -4864,175 +4883,175 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
 
   @override
   List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 6, const <idl.UnlinkedConst>[]);
+    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 6, const <idl.UnlinkedConst>[]);
     return _annotations;
   }
 
   @override
   idl.CodeRange get codeRange {
-    _codeRange ??= const _CodeRangeReader().vTableGet(_bp, 26, null);
+    _codeRange ??= const _CodeRangeReader().vTableGet(_bc, _bcOffset, 26, null);
     return _codeRange;
   }
 
   @override
   List<idl.UnlinkedConstructorInitializer> get constantInitializers {
-    _constantInitializers ??= const fb.ListReader<idl.UnlinkedConstructorInitializer>(const _UnlinkedConstructorInitializerReader()).vTableGet(_bp, 14, const <idl.UnlinkedConstructorInitializer>[]);
+    _constantInitializers ??= const fb.ListReader<idl.UnlinkedConstructorInitializer>(const _UnlinkedConstructorInitializerReader()).vTableGet(_bc, _bcOffset, 14, const <idl.UnlinkedConstructorInitializer>[]);
     return _constantInitializers;
   }
 
   @override
   int get constCycleSlot {
-    _constCycleSlot ??= const fb.Uint32Reader().vTableGet(_bp, 25, 0);
+    _constCycleSlot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 25, 0);
     return _constCycleSlot;
   }
 
   @override
   idl.UnlinkedDocumentationComment get documentationComment {
-    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 7, null);
+    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bc, _bcOffset, 7, null);
     return _documentationComment;
   }
 
   @override
   int get inferredReturnTypeSlot {
-    _inferredReturnTypeSlot ??= const fb.Uint32Reader().vTableGet(_bp, 5, 0);
+    _inferredReturnTypeSlot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 5, 0);
     return _inferredReturnTypeSlot;
   }
 
   @override
   bool get isAbstract {
-    _isAbstract ??= const fb.BoolReader().vTableGet(_bp, 10, false);
+    _isAbstract ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 10, false);
     return _isAbstract;
   }
 
   @override
   bool get isAsynchronous {
-    _isAsynchronous ??= const fb.BoolReader().vTableGet(_bp, 27, false);
+    _isAsynchronous ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 27, false);
     return _isAsynchronous;
   }
 
   @override
   bool get isConst {
-    _isConst ??= const fb.BoolReader().vTableGet(_bp, 12, false);
+    _isConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 12, false);
     return _isConst;
   }
 
   @override
   bool get isExternal {
-    _isExternal ??= const fb.BoolReader().vTableGet(_bp, 11, false);
+    _isExternal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 11, false);
     return _isExternal;
   }
 
   @override
   bool get isFactory {
-    _isFactory ??= const fb.BoolReader().vTableGet(_bp, 8, false);
+    _isFactory ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 8, false);
     return _isFactory;
   }
 
   @override
   bool get isGenerator {
-    _isGenerator ??= const fb.BoolReader().vTableGet(_bp, 28, false);
+    _isGenerator ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 28, false);
     return _isGenerator;
   }
 
   @override
   bool get isRedirectedConstructor {
-    _isRedirectedConstructor ??= const fb.BoolReader().vTableGet(_bp, 13, false);
+    _isRedirectedConstructor ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 13, false);
     return _isRedirectedConstructor;
   }
 
   @override
   bool get isStatic {
-    _isStatic ??= const fb.BoolReader().vTableGet(_bp, 9, false);
+    _isStatic ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 9, false);
     return _isStatic;
   }
 
   @override
   idl.UnlinkedExecutableKind get kind {
-    _kind ??= const _UnlinkedExecutableKindReader().vTableGet(_bp, 4, idl.UnlinkedExecutableKind.functionOrMethod);
+    _kind ??= const _UnlinkedExecutableKindReader().vTableGet(_bc, _bcOffset, 4, idl.UnlinkedExecutableKind.functionOrMethod);
     return _kind;
   }
 
   @override
   List<idl.UnlinkedExecutable> get localFunctions {
-    _localFunctions ??= const fb.ListReader<idl.UnlinkedExecutable>(const _UnlinkedExecutableReader()).vTableGet(_bp, 18, const <idl.UnlinkedExecutable>[]);
+    _localFunctions ??= const fb.ListReader<idl.UnlinkedExecutable>(const _UnlinkedExecutableReader()).vTableGet(_bc, _bcOffset, 18, const <idl.UnlinkedExecutable>[]);
     return _localFunctions;
   }
 
   @override
   List<idl.UnlinkedLabel> get localLabels {
-    _localLabels ??= const fb.ListReader<idl.UnlinkedLabel>(const _UnlinkedLabelReader()).vTableGet(_bp, 22, const <idl.UnlinkedLabel>[]);
+    _localLabels ??= const fb.ListReader<idl.UnlinkedLabel>(const _UnlinkedLabelReader()).vTableGet(_bc, _bcOffset, 22, const <idl.UnlinkedLabel>[]);
     return _localLabels;
   }
 
   @override
   List<idl.UnlinkedVariable> get localVariables {
-    _localVariables ??= const fb.ListReader<idl.UnlinkedVariable>(const _UnlinkedVariableReader()).vTableGet(_bp, 19, const <idl.UnlinkedVariable>[]);
+    _localVariables ??= const fb.ListReader<idl.UnlinkedVariable>(const _UnlinkedVariableReader()).vTableGet(_bc, _bcOffset, 19, const <idl.UnlinkedVariable>[]);
     return _localVariables;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 1, '');
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
     return _name;
   }
 
   @override
   int get nameEnd {
-    _nameEnd ??= const fb.Uint32Reader().vTableGet(_bp, 23, 0);
+    _nameEnd ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 23, 0);
     return _nameEnd;
   }
 
   @override
   int get nameOffset {
-    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
     return _nameOffset;
   }
 
   @override
   List<idl.UnlinkedParam> get parameters {
-    _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bp, 2, const <idl.UnlinkedParam>[]);
+    _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedParam>[]);
     return _parameters;
   }
 
   @override
   int get periodOffset {
-    _periodOffset ??= const fb.Uint32Reader().vTableGet(_bp, 24, 0);
+    _periodOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 24, 0);
     return _periodOffset;
   }
 
   @override
   idl.EntityRef get redirectedConstructor {
-    _redirectedConstructor ??= const _EntityRefReader().vTableGet(_bp, 15, null);
+    _redirectedConstructor ??= const _EntityRefReader().vTableGet(_bc, _bcOffset, 15, null);
     return _redirectedConstructor;
   }
 
   @override
   String get redirectedConstructorName {
-    _redirectedConstructorName ??= const fb.StringReader().vTableGet(_bp, 17, '');
+    _redirectedConstructorName ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 17, '');
     return _redirectedConstructorName;
   }
 
   @override
   idl.EntityRef get returnType {
-    _returnType ??= const _EntityRefReader().vTableGet(_bp, 3, null);
+    _returnType ??= const _EntityRefReader().vTableGet(_bc, _bcOffset, 3, null);
     return _returnType;
   }
 
   @override
   List<idl.UnlinkedTypeParam> get typeParameters {
-    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bp, 16, const <idl.UnlinkedTypeParam>[]);
+    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bc, _bcOffset, 16, const <idl.UnlinkedTypeParam>[]);
     return _typeParameters;
   }
 
   @override
   int get visibleLength {
-    _visibleLength ??= const fb.Uint32Reader().vTableGet(_bp, 20, 0);
+    _visibleLength ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 20, 0);
     return _visibleLength;
   }
 
   @override
   int get visibleOffset {
-    _visibleOffset ??= const fb.Uint32Reader().vTableGet(_bp, 21, 0);
+    _visibleOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 21, 0);
     return _visibleOffset;
   }
 }
@@ -5211,13 +5230,14 @@ class _UnlinkedExportNonPublicReader extends fb.TableReader<_UnlinkedExportNonPu
   const _UnlinkedExportNonPublicReader();
 
   @override
-  _UnlinkedExportNonPublicImpl createObject(fb.BufferPointer bp) => new _UnlinkedExportNonPublicImpl(bp);
+  _UnlinkedExportNonPublicImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedExportNonPublicImpl(bc, offset);
 }
 
 class _UnlinkedExportNonPublicImpl extends Object with _UnlinkedExportNonPublicMixin implements idl.UnlinkedExportNonPublic {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedExportNonPublicImpl(this._bp);
+  _UnlinkedExportNonPublicImpl(this._bc, this._bcOffset);
 
   List<idl.UnlinkedConst> _annotations;
   int _offset;
@@ -5226,25 +5246,25 @@ class _UnlinkedExportNonPublicImpl extends Object with _UnlinkedExportNonPublicM
 
   @override
   List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 3, const <idl.UnlinkedConst>[]);
+    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedConst>[]);
     return _annotations;
   }
 
   @override
   int get offset {
-    _offset ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
+    _offset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
     return _offset;
   }
 
   @override
   int get uriEnd {
-    _uriEnd ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    _uriEnd ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
     return _uriEnd;
   }
 
   @override
   int get uriOffset {
-    _uriOffset ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
+    _uriOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
     return _uriOffset;
   }
 }
@@ -5337,26 +5357,27 @@ class _UnlinkedExportPublicReader extends fb.TableReader<_UnlinkedExportPublicIm
   const _UnlinkedExportPublicReader();
 
   @override
-  _UnlinkedExportPublicImpl createObject(fb.BufferPointer bp) => new _UnlinkedExportPublicImpl(bp);
+  _UnlinkedExportPublicImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedExportPublicImpl(bc, offset);
 }
 
 class _UnlinkedExportPublicImpl extends Object with _UnlinkedExportPublicMixin implements idl.UnlinkedExportPublic {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedExportPublicImpl(this._bp);
+  _UnlinkedExportPublicImpl(this._bc, this._bcOffset);
 
   List<idl.UnlinkedCombinator> _combinators;
   String _uri;
 
   @override
   List<idl.UnlinkedCombinator> get combinators {
-    _combinators ??= const fb.ListReader<idl.UnlinkedCombinator>(const _UnlinkedCombinatorReader()).vTableGet(_bp, 1, const <idl.UnlinkedCombinator>[]);
+    _combinators ??= const fb.ListReader<idl.UnlinkedCombinator>(const _UnlinkedCombinatorReader()).vTableGet(_bc, _bcOffset, 1, const <idl.UnlinkedCombinator>[]);
     return _combinators;
   }
 
   @override
   String get uri {
-    _uri ??= const fb.StringReader().vTableGet(_bp, 0, '');
+    _uri ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
     return _uri;
   }
 }
@@ -5594,13 +5615,14 @@ class _UnlinkedImportReader extends fb.TableReader<_UnlinkedImportImpl> {
   const _UnlinkedImportReader();
 
   @override
-  _UnlinkedImportImpl createObject(fb.BufferPointer bp) => new _UnlinkedImportImpl(bp);
+  _UnlinkedImportImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedImportImpl(bc, offset);
 }
 
 class _UnlinkedImportImpl extends Object with _UnlinkedImportMixin implements idl.UnlinkedImport {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedImportImpl(this._bp);
+  _UnlinkedImportImpl(this._bc, this._bcOffset);
 
   List<idl.UnlinkedConst> _annotations;
   List<idl.UnlinkedCombinator> _combinators;
@@ -5615,61 +5637,61 @@ class _UnlinkedImportImpl extends Object with _UnlinkedImportMixin implements id
 
   @override
   List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 8, const <idl.UnlinkedConst>[]);
+    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 8, const <idl.UnlinkedConst>[]);
     return _annotations;
   }
 
   @override
   List<idl.UnlinkedCombinator> get combinators {
-    _combinators ??= const fb.ListReader<idl.UnlinkedCombinator>(const _UnlinkedCombinatorReader()).vTableGet(_bp, 4, const <idl.UnlinkedCombinator>[]);
+    _combinators ??= const fb.ListReader<idl.UnlinkedCombinator>(const _UnlinkedCombinatorReader()).vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedCombinator>[]);
     return _combinators;
   }
 
   @override
   bool get isDeferred {
-    _isDeferred ??= const fb.BoolReader().vTableGet(_bp, 9, false);
+    _isDeferred ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 9, false);
     return _isDeferred;
   }
 
   @override
   bool get isImplicit {
-    _isImplicit ??= const fb.BoolReader().vTableGet(_bp, 5, false);
+    _isImplicit ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 5, false);
     return _isImplicit;
   }
 
   @override
   int get offset {
-    _offset ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
+    _offset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
     return _offset;
   }
 
   @override
   int get prefixOffset {
-    _prefixOffset ??= const fb.Uint32Reader().vTableGet(_bp, 6, 0);
+    _prefixOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 6, 0);
     return _prefixOffset;
   }
 
   @override
   int get prefixReference {
-    _prefixReference ??= const fb.Uint32Reader().vTableGet(_bp, 7, 0);
+    _prefixReference ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 7, 0);
     return _prefixReference;
   }
 
   @override
   String get uri {
-    _uri ??= const fb.StringReader().vTableGet(_bp, 1, '');
+    _uri ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
     return _uri;
   }
 
   @override
   int get uriEnd {
-    _uriEnd ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
+    _uriEnd ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
     return _uriEnd;
   }
 
   @override
   int get uriOffset {
-    _uriOffset ??= const fb.Uint32Reader().vTableGet(_bp, 3, 0);
+    _uriOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 3, 0);
     return _uriOffset;
   }
 }
@@ -5804,13 +5826,14 @@ class _UnlinkedLabelReader extends fb.TableReader<_UnlinkedLabelImpl> {
   const _UnlinkedLabelReader();
 
   @override
-  _UnlinkedLabelImpl createObject(fb.BufferPointer bp) => new _UnlinkedLabelImpl(bp);
+  _UnlinkedLabelImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedLabelImpl(bc, offset);
 }
 
 class _UnlinkedLabelImpl extends Object with _UnlinkedLabelMixin implements idl.UnlinkedLabel {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedLabelImpl(this._bp);
+  _UnlinkedLabelImpl(this._bc, this._bcOffset);
 
   bool _isOnSwitchMember;
   bool _isOnSwitchStatement;
@@ -5819,25 +5842,25 @@ class _UnlinkedLabelImpl extends Object with _UnlinkedLabelMixin implements idl.
 
   @override
   bool get isOnSwitchMember {
-    _isOnSwitchMember ??= const fb.BoolReader().vTableGet(_bp, 2, false);
+    _isOnSwitchMember ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 2, false);
     return _isOnSwitchMember;
   }
 
   @override
   bool get isOnSwitchStatement {
-    _isOnSwitchStatement ??= const fb.BoolReader().vTableGet(_bp, 3, false);
+    _isOnSwitchStatement ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
     return _isOnSwitchStatement;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
     return _name;
   }
 
   @override
   int get nameOffset {
-    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
     return _nameOffset;
   }
 }
@@ -6188,13 +6211,14 @@ class _UnlinkedParamReader extends fb.TableReader<_UnlinkedParamImpl> {
   const _UnlinkedParamReader();
 
   @override
-  _UnlinkedParamImpl createObject(fb.BufferPointer bp) => new _UnlinkedParamImpl(bp);
+  _UnlinkedParamImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedParamImpl(bc, offset);
 }
 
 class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.UnlinkedParam {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedParamImpl(this._bp);
+  _UnlinkedParamImpl(this._bc, this._bcOffset);
 
   List<idl.UnlinkedConst> _annotations;
   idl.CodeRange _codeRange;
@@ -6214,91 +6238,91 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
 
   @override
   List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 9, const <idl.UnlinkedConst>[]);
+    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 9, const <idl.UnlinkedConst>[]);
     return _annotations;
   }
 
   @override
   idl.CodeRange get codeRange {
-    _codeRange ??= const _CodeRangeReader().vTableGet(_bp, 14, null);
+    _codeRange ??= const _CodeRangeReader().vTableGet(_bc, _bcOffset, 14, null);
     return _codeRange;
   }
 
   @override
   idl.UnlinkedConst get defaultValue {
-    _defaultValue ??= const _UnlinkedConstReader().vTableGet(_bp, 7, null);
+    _defaultValue ??= const _UnlinkedConstReader().vTableGet(_bc, _bcOffset, 7, null);
     return _defaultValue;
   }
 
   @override
   String get defaultValueCode {
-    _defaultValueCode ??= const fb.StringReader().vTableGet(_bp, 13, '');
+    _defaultValueCode ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 13, '');
     return _defaultValueCode;
   }
 
   @override
   int get inferredTypeSlot {
-    _inferredTypeSlot ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
+    _inferredTypeSlot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
     return _inferredTypeSlot;
   }
 
   @override
   idl.UnlinkedExecutable get initializer {
-    _initializer ??= const _UnlinkedExecutableReader().vTableGet(_bp, 12, null);
+    _initializer ??= const _UnlinkedExecutableReader().vTableGet(_bc, _bcOffset, 12, null);
     return _initializer;
   }
 
   @override
   bool get isFunctionTyped {
-    _isFunctionTyped ??= const fb.BoolReader().vTableGet(_bp, 5, false);
+    _isFunctionTyped ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 5, false);
     return _isFunctionTyped;
   }
 
   @override
   bool get isInitializingFormal {
-    _isInitializingFormal ??= const fb.BoolReader().vTableGet(_bp, 6, false);
+    _isInitializingFormal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 6, false);
     return _isInitializingFormal;
   }
 
   @override
   idl.UnlinkedParamKind get kind {
-    _kind ??= const _UnlinkedParamKindReader().vTableGet(_bp, 4, idl.UnlinkedParamKind.required);
+    _kind ??= const _UnlinkedParamKindReader().vTableGet(_bc, _bcOffset, 4, idl.UnlinkedParamKind.required);
     return _kind;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
     return _name;
   }
 
   @override
   int get nameOffset {
-    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
     return _nameOffset;
   }
 
   @override
   List<idl.UnlinkedParam> get parameters {
-    _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bp, 8, const <idl.UnlinkedParam>[]);
+    _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bc, _bcOffset, 8, const <idl.UnlinkedParam>[]);
     return _parameters;
   }
 
   @override
   idl.EntityRef get type {
-    _type ??= const _EntityRefReader().vTableGet(_bp, 3, null);
+    _type ??= const _EntityRefReader().vTableGet(_bc, _bcOffset, 3, null);
     return _type;
   }
 
   @override
   int get visibleLength {
-    _visibleLength ??= const fb.Uint32Reader().vTableGet(_bp, 10, 0);
+    _visibleLength ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 10, 0);
     return _visibleLength;
   }
 
   @override
   int get visibleOffset {
-    _visibleOffset ??= const fb.Uint32Reader().vTableGet(_bp, 11, 0);
+    _visibleOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 11, 0);
     return _visibleOffset;
   }
 }
@@ -6431,13 +6455,14 @@ class _UnlinkedPartReader extends fb.TableReader<_UnlinkedPartImpl> {
   const _UnlinkedPartReader();
 
   @override
-  _UnlinkedPartImpl createObject(fb.BufferPointer bp) => new _UnlinkedPartImpl(bp);
+  _UnlinkedPartImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedPartImpl(bc, offset);
 }
 
 class _UnlinkedPartImpl extends Object with _UnlinkedPartMixin implements idl.UnlinkedPart {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedPartImpl(this._bp);
+  _UnlinkedPartImpl(this._bc, this._bcOffset);
 
   List<idl.UnlinkedConst> _annotations;
   int _uriEnd;
@@ -6445,19 +6470,19 @@ class _UnlinkedPartImpl extends Object with _UnlinkedPartMixin implements idl.Un
 
   @override
   List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 2, const <idl.UnlinkedConst>[]);
+    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedConst>[]);
     return _annotations;
   }
 
   @override
   int get uriEnd {
-    _uriEnd ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
+    _uriEnd ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
     return _uriEnd;
   }
 
   @override
   int get uriOffset {
-    _uriOffset ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    _uriOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
     return _uriOffset;
   }
 }
@@ -6587,13 +6612,14 @@ class _UnlinkedPublicNameReader extends fb.TableReader<_UnlinkedPublicNameImpl> 
   const _UnlinkedPublicNameReader();
 
   @override
-  _UnlinkedPublicNameImpl createObject(fb.BufferPointer bp) => new _UnlinkedPublicNameImpl(bp);
+  _UnlinkedPublicNameImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedPublicNameImpl(bc, offset);
 }
 
 class _UnlinkedPublicNameImpl extends Object with _UnlinkedPublicNameMixin implements idl.UnlinkedPublicName {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedPublicNameImpl(this._bp);
+  _UnlinkedPublicNameImpl(this._bc, this._bcOffset);
 
   idl.ReferenceKind _kind;
   List<idl.UnlinkedPublicName> _members;
@@ -6602,25 +6628,25 @@ class _UnlinkedPublicNameImpl extends Object with _UnlinkedPublicNameMixin imple
 
   @override
   idl.ReferenceKind get kind {
-    _kind ??= const _ReferenceKindReader().vTableGet(_bp, 1, idl.ReferenceKind.classOrEnum);
+    _kind ??= const _ReferenceKindReader().vTableGet(_bc, _bcOffset, 1, idl.ReferenceKind.classOrEnum);
     return _kind;
   }
 
   @override
   List<idl.UnlinkedPublicName> get members {
-    _members ??= const fb.ListReader<idl.UnlinkedPublicName>(const _UnlinkedPublicNameReader()).vTableGet(_bp, 2, const <idl.UnlinkedPublicName>[]);
+    _members ??= const fb.ListReader<idl.UnlinkedPublicName>(const _UnlinkedPublicNameReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedPublicName>[]);
     return _members;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
     return _name;
   }
 
   @override
   int get numTypeParameters {
-    _numTypeParameters ??= const fb.Uint32Reader().vTableGet(_bp, 3, 0);
+    _numTypeParameters ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 3, 0);
     return _numTypeParameters;
   }
 }
@@ -6739,21 +6765,22 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
 }
 
 idl.UnlinkedPublicNamespace readUnlinkedPublicNamespace(List<int> buffer) {
-  fb.BufferPointer rootRef = new fb.BufferPointer.fromBytes(buffer);
-  return const _UnlinkedPublicNamespaceReader().read(rootRef);
+  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  return const _UnlinkedPublicNamespaceReader().read(rootRef, 0);
 }
 
 class _UnlinkedPublicNamespaceReader extends fb.TableReader<_UnlinkedPublicNamespaceImpl> {
   const _UnlinkedPublicNamespaceReader();
 
   @override
-  _UnlinkedPublicNamespaceImpl createObject(fb.BufferPointer bp) => new _UnlinkedPublicNamespaceImpl(bp);
+  _UnlinkedPublicNamespaceImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedPublicNamespaceImpl(bc, offset);
 }
 
 class _UnlinkedPublicNamespaceImpl extends Object with _UnlinkedPublicNamespaceMixin implements idl.UnlinkedPublicNamespace {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedPublicNamespaceImpl(this._bp);
+  _UnlinkedPublicNamespaceImpl(this._bc, this._bcOffset);
 
   List<idl.UnlinkedExportPublic> _exports;
   List<idl.UnlinkedPublicName> _names;
@@ -6761,19 +6788,19 @@ class _UnlinkedPublicNamespaceImpl extends Object with _UnlinkedPublicNamespaceM
 
   @override
   List<idl.UnlinkedExportPublic> get exports {
-    _exports ??= const fb.ListReader<idl.UnlinkedExportPublic>(const _UnlinkedExportPublicReader()).vTableGet(_bp, 2, const <idl.UnlinkedExportPublic>[]);
+    _exports ??= const fb.ListReader<idl.UnlinkedExportPublic>(const _UnlinkedExportPublicReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedExportPublic>[]);
     return _exports;
   }
 
   @override
   List<idl.UnlinkedPublicName> get names {
-    _names ??= const fb.ListReader<idl.UnlinkedPublicName>(const _UnlinkedPublicNameReader()).vTableGet(_bp, 0, const <idl.UnlinkedPublicName>[]);
+    _names ??= const fb.ListReader<idl.UnlinkedPublicName>(const _UnlinkedPublicNameReader()).vTableGet(_bc, _bcOffset, 0, const <idl.UnlinkedPublicName>[]);
     return _names;
   }
 
   @override
   List<String> get parts {
-    _parts ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 1, const <String>[]);
+    _parts ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 1, const <String>[]);
     return _parts;
   }
 }
@@ -6867,26 +6894,27 @@ class _UnlinkedReferenceReader extends fb.TableReader<_UnlinkedReferenceImpl> {
   const _UnlinkedReferenceReader();
 
   @override
-  _UnlinkedReferenceImpl createObject(fb.BufferPointer bp) => new _UnlinkedReferenceImpl(bp);
+  _UnlinkedReferenceImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedReferenceImpl(bc, offset);
 }
 
 class _UnlinkedReferenceImpl extends Object with _UnlinkedReferenceMixin implements idl.UnlinkedReference {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedReferenceImpl(this._bp);
+  _UnlinkedReferenceImpl(this._bc, this._bcOffset);
 
   String _name;
   int _prefixReference;
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
     return _name;
   }
 
   @override
   int get prefixReference {
-    _prefixReference ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    _prefixReference ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
     return _prefixReference;
   }
 }
@@ -7099,13 +7127,14 @@ class _UnlinkedTypedefReader extends fb.TableReader<_UnlinkedTypedefImpl> {
   const _UnlinkedTypedefReader();
 
   @override
-  _UnlinkedTypedefImpl createObject(fb.BufferPointer bp) => new _UnlinkedTypedefImpl(bp);
+  _UnlinkedTypedefImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedTypedefImpl(bc, offset);
 }
 
 class _UnlinkedTypedefImpl extends Object with _UnlinkedTypedefMixin implements idl.UnlinkedTypedef {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedTypedefImpl(this._bp);
+  _UnlinkedTypedefImpl(this._bc, this._bcOffset);
 
   List<idl.UnlinkedConst> _annotations;
   idl.CodeRange _codeRange;
@@ -7118,49 +7147,49 @@ class _UnlinkedTypedefImpl extends Object with _UnlinkedTypedefMixin implements 
 
   @override
   List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 4, const <idl.UnlinkedConst>[]);
+    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedConst>[]);
     return _annotations;
   }
 
   @override
   idl.CodeRange get codeRange {
-    _codeRange ??= const _CodeRangeReader().vTableGet(_bp, 7, null);
+    _codeRange ??= const _CodeRangeReader().vTableGet(_bc, _bcOffset, 7, null);
     return _codeRange;
   }
 
   @override
   idl.UnlinkedDocumentationComment get documentationComment {
-    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 6, null);
+    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bc, _bcOffset, 6, null);
     return _documentationComment;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
     return _name;
   }
 
   @override
   int get nameOffset {
-    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
     return _nameOffset;
   }
 
   @override
   List<idl.UnlinkedParam> get parameters {
-    _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bp, 3, const <idl.UnlinkedParam>[]);
+    _parameters ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedParam>[]);
     return _parameters;
   }
 
   @override
   idl.EntityRef get returnType {
-    _returnType ??= const _EntityRefReader().vTableGet(_bp, 2, null);
+    _returnType ??= const _EntityRefReader().vTableGet(_bc, _bcOffset, 2, null);
     return _returnType;
   }
 
   @override
   List<idl.UnlinkedTypeParam> get typeParameters {
-    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bp, 5, const <idl.UnlinkedTypeParam>[]);
+    _typeParameters ??= const fb.ListReader<idl.UnlinkedTypeParam>(const _UnlinkedTypeParamReader()).vTableGet(_bc, _bcOffset, 5, const <idl.UnlinkedTypeParam>[]);
     return _typeParameters;
   }
 }
@@ -7322,13 +7351,14 @@ class _UnlinkedTypeParamReader extends fb.TableReader<_UnlinkedTypeParamImpl> {
   const _UnlinkedTypeParamReader();
 
   @override
-  _UnlinkedTypeParamImpl createObject(fb.BufferPointer bp) => new _UnlinkedTypeParamImpl(bp);
+  _UnlinkedTypeParamImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedTypeParamImpl(bc, offset);
 }
 
 class _UnlinkedTypeParamImpl extends Object with _UnlinkedTypeParamMixin implements idl.UnlinkedTypeParam {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedTypeParamImpl(this._bp);
+  _UnlinkedTypeParamImpl(this._bc, this._bcOffset);
 
   List<idl.UnlinkedConst> _annotations;
   idl.EntityRef _bound;
@@ -7338,31 +7368,31 @@ class _UnlinkedTypeParamImpl extends Object with _UnlinkedTypeParamMixin impleme
 
   @override
   List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 3, const <idl.UnlinkedConst>[]);
+    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedConst>[]);
     return _annotations;
   }
 
   @override
   idl.EntityRef get bound {
-    _bound ??= const _EntityRefReader().vTableGet(_bp, 2, null);
+    _bound ??= const _EntityRefReader().vTableGet(_bc, _bcOffset, 2, null);
     return _bound;
   }
 
   @override
   idl.CodeRange get codeRange {
-    _codeRange ??= const _CodeRangeReader().vTableGet(_bp, 4, null);
+    _codeRange ??= const _CodeRangeReader().vTableGet(_bc, _bcOffset, 4, null);
     return _codeRange;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
     return _name;
   }
 
   @override
   int get nameOffset {
-    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
     return _nameOffset;
   }
 }
@@ -7780,21 +7810,22 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
 }
 
 idl.UnlinkedUnit readUnlinkedUnit(List<int> buffer) {
-  fb.BufferPointer rootRef = new fb.BufferPointer.fromBytes(buffer);
-  return const _UnlinkedUnitReader().read(rootRef);
+  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  return const _UnlinkedUnitReader().read(rootRef, 0);
 }
 
 class _UnlinkedUnitReader extends fb.TableReader<_UnlinkedUnitImpl> {
   const _UnlinkedUnitReader();
 
   @override
-  _UnlinkedUnitImpl createObject(fb.BufferPointer bp) => new _UnlinkedUnitImpl(bp);
+  _UnlinkedUnitImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedUnitImpl(bc, offset);
 }
 
 class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.UnlinkedUnit {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedUnitImpl(this._bp);
+  _UnlinkedUnitImpl(this._bc, this._bcOffset);
 
   List<idl.UnlinkedClass> _classes;
   idl.CodeRange _codeRange;
@@ -7816,103 +7847,103 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
 
   @override
   List<idl.UnlinkedClass> get classes {
-    _classes ??= const fb.ListReader<idl.UnlinkedClass>(const _UnlinkedClassReader()).vTableGet(_bp, 2, const <idl.UnlinkedClass>[]);
+    _classes ??= const fb.ListReader<idl.UnlinkedClass>(const _UnlinkedClassReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedClass>[]);
     return _classes;
   }
 
   @override
   idl.CodeRange get codeRange {
-    _codeRange ??= const _CodeRangeReader().vTableGet(_bp, 15, null);
+    _codeRange ??= const _CodeRangeReader().vTableGet(_bc, _bcOffset, 15, null);
     return _codeRange;
   }
 
   @override
   List<idl.UnlinkedEnum> get enums {
-    _enums ??= const fb.ListReader<idl.UnlinkedEnum>(const _UnlinkedEnumReader()).vTableGet(_bp, 12, const <idl.UnlinkedEnum>[]);
+    _enums ??= const fb.ListReader<idl.UnlinkedEnum>(const _UnlinkedEnumReader()).vTableGet(_bc, _bcOffset, 12, const <idl.UnlinkedEnum>[]);
     return _enums;
   }
 
   @override
   List<idl.UnlinkedExecutable> get executables {
-    _executables ??= const fb.ListReader<idl.UnlinkedExecutable>(const _UnlinkedExecutableReader()).vTableGet(_bp, 4, const <idl.UnlinkedExecutable>[]);
+    _executables ??= const fb.ListReader<idl.UnlinkedExecutable>(const _UnlinkedExecutableReader()).vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedExecutable>[]);
     return _executables;
   }
 
   @override
   List<idl.UnlinkedExportNonPublic> get exports {
-    _exports ??= const fb.ListReader<idl.UnlinkedExportNonPublic>(const _UnlinkedExportNonPublicReader()).vTableGet(_bp, 13, const <idl.UnlinkedExportNonPublic>[]);
+    _exports ??= const fb.ListReader<idl.UnlinkedExportNonPublic>(const _UnlinkedExportNonPublicReader()).vTableGet(_bc, _bcOffset, 13, const <idl.UnlinkedExportNonPublic>[]);
     return _exports;
   }
 
   @override
   String get fallbackModePath {
-    _fallbackModePath ??= const fb.StringReader().vTableGet(_bp, 16, '');
+    _fallbackModePath ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 16, '');
     return _fallbackModePath;
   }
 
   @override
   List<idl.UnlinkedImport> get imports {
-    _imports ??= const fb.ListReader<idl.UnlinkedImport>(const _UnlinkedImportReader()).vTableGet(_bp, 5, const <idl.UnlinkedImport>[]);
+    _imports ??= const fb.ListReader<idl.UnlinkedImport>(const _UnlinkedImportReader()).vTableGet(_bc, _bcOffset, 5, const <idl.UnlinkedImport>[]);
     return _imports;
   }
 
   @override
   List<idl.UnlinkedConst> get libraryAnnotations {
-    _libraryAnnotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 14, const <idl.UnlinkedConst>[]);
+    _libraryAnnotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 14, const <idl.UnlinkedConst>[]);
     return _libraryAnnotations;
   }
 
   @override
   idl.UnlinkedDocumentationComment get libraryDocumentationComment {
-    _libraryDocumentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 9, null);
+    _libraryDocumentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bc, _bcOffset, 9, null);
     return _libraryDocumentationComment;
   }
 
   @override
   String get libraryName {
-    _libraryName ??= const fb.StringReader().vTableGet(_bp, 6, '');
+    _libraryName ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 6, '');
     return _libraryName;
   }
 
   @override
   int get libraryNameLength {
-    _libraryNameLength ??= const fb.Uint32Reader().vTableGet(_bp, 7, 0);
+    _libraryNameLength ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 7, 0);
     return _libraryNameLength;
   }
 
   @override
   int get libraryNameOffset {
-    _libraryNameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 8, 0);
+    _libraryNameOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 8, 0);
     return _libraryNameOffset;
   }
 
   @override
   List<idl.UnlinkedPart> get parts {
-    _parts ??= const fb.ListReader<idl.UnlinkedPart>(const _UnlinkedPartReader()).vTableGet(_bp, 11, const <idl.UnlinkedPart>[]);
+    _parts ??= const fb.ListReader<idl.UnlinkedPart>(const _UnlinkedPartReader()).vTableGet(_bc, _bcOffset, 11, const <idl.UnlinkedPart>[]);
     return _parts;
   }
 
   @override
   idl.UnlinkedPublicNamespace get publicNamespace {
-    _publicNamespace ??= const _UnlinkedPublicNamespaceReader().vTableGet(_bp, 0, null);
+    _publicNamespace ??= const _UnlinkedPublicNamespaceReader().vTableGet(_bc, _bcOffset, 0, null);
     return _publicNamespace;
   }
 
   @override
   List<idl.UnlinkedReference> get references {
-    _references ??= const fb.ListReader<idl.UnlinkedReference>(const _UnlinkedReferenceReader()).vTableGet(_bp, 1, const <idl.UnlinkedReference>[]);
+    _references ??= const fb.ListReader<idl.UnlinkedReference>(const _UnlinkedReferenceReader()).vTableGet(_bc, _bcOffset, 1, const <idl.UnlinkedReference>[]);
     return _references;
   }
 
   @override
   List<idl.UnlinkedTypedef> get typedefs {
-    _typedefs ??= const fb.ListReader<idl.UnlinkedTypedef>(const _UnlinkedTypedefReader()).vTableGet(_bp, 10, const <idl.UnlinkedTypedef>[]);
+    _typedefs ??= const fb.ListReader<idl.UnlinkedTypedef>(const _UnlinkedTypedefReader()).vTableGet(_bc, _bcOffset, 10, const <idl.UnlinkedTypedef>[]);
     return _typedefs;
   }
 
   @override
   List<idl.UnlinkedVariable> get variables {
-    _variables ??= const fb.ListReader<idl.UnlinkedVariable>(const _UnlinkedVariableReader()).vTableGet(_bp, 3, const <idl.UnlinkedVariable>[]);
+    _variables ??= const fb.ListReader<idl.UnlinkedVariable>(const _UnlinkedVariableReader()).vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedVariable>[]);
     return _variables;
   }
 }
@@ -8286,13 +8317,14 @@ class _UnlinkedVariableReader extends fb.TableReader<_UnlinkedVariableImpl> {
   const _UnlinkedVariableReader();
 
   @override
-  _UnlinkedVariableImpl createObject(fb.BufferPointer bp) => new _UnlinkedVariableImpl(bp);
+  _UnlinkedVariableImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedVariableImpl(bc, offset);
 }
 
 class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implements idl.UnlinkedVariable {
-  final fb.BufferPointer _bp;
+  final fb.BufferContext _bc;
+  final int _bcOffset;
 
-  _UnlinkedVariableImpl(this._bp);
+  _UnlinkedVariableImpl(this._bc, this._bcOffset);
 
   List<idl.UnlinkedConst> _annotations;
   idl.CodeRange _codeRange;
@@ -8312,91 +8344,91 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
 
   @override
   List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 8, const <idl.UnlinkedConst>[]);
+    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 8, const <idl.UnlinkedConst>[]);
     return _annotations;
   }
 
   @override
   idl.CodeRange get codeRange {
-    _codeRange ??= const _CodeRangeReader().vTableGet(_bp, 14, null);
+    _codeRange ??= const _CodeRangeReader().vTableGet(_bc, _bcOffset, 14, null);
     return _codeRange;
   }
 
   @override
   idl.UnlinkedConst get constExpr {
-    _constExpr ??= const _UnlinkedConstReader().vTableGet(_bp, 5, null);
+    _constExpr ??= const _UnlinkedConstReader().vTableGet(_bc, _bcOffset, 5, null);
     return _constExpr;
   }
 
   @override
   idl.UnlinkedDocumentationComment get documentationComment {
-    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bp, 10, null);
+    _documentationComment ??= const _UnlinkedDocumentationCommentReader().vTableGet(_bc, _bcOffset, 10, null);
     return _documentationComment;
   }
 
   @override
   int get inferredTypeSlot {
-    _inferredTypeSlot ??= const fb.Uint32Reader().vTableGet(_bp, 9, 0);
+    _inferredTypeSlot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 9, 0);
     return _inferredTypeSlot;
   }
 
   @override
   idl.UnlinkedExecutable get initializer {
-    _initializer ??= const _UnlinkedExecutableReader().vTableGet(_bp, 13, null);
+    _initializer ??= const _UnlinkedExecutableReader().vTableGet(_bc, _bcOffset, 13, null);
     return _initializer;
   }
 
   @override
   bool get isConst {
-    _isConst ??= const fb.BoolReader().vTableGet(_bp, 6, false);
+    _isConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 6, false);
     return _isConst;
   }
 
   @override
   bool get isFinal {
-    _isFinal ??= const fb.BoolReader().vTableGet(_bp, 7, false);
+    _isFinal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 7, false);
     return _isFinal;
   }
 
   @override
   bool get isStatic {
-    _isStatic ??= const fb.BoolReader().vTableGet(_bp, 4, false);
+    _isStatic ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 4, false);
     return _isStatic;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bp, 0, '');
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
     return _name;
   }
 
   @override
   int get nameOffset {
-    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    _nameOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
     return _nameOffset;
   }
 
   @override
   int get propagatedTypeSlot {
-    _propagatedTypeSlot ??= const fb.Uint32Reader().vTableGet(_bp, 2, 0);
+    _propagatedTypeSlot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
     return _propagatedTypeSlot;
   }
 
   @override
   idl.EntityRef get type {
-    _type ??= const _EntityRefReader().vTableGet(_bp, 3, null);
+    _type ??= const _EntityRefReader().vTableGet(_bc, _bcOffset, 3, null);
     return _type;
   }
 
   @override
   int get visibleLength {
-    _visibleLength ??= const fb.Uint32Reader().vTableGet(_bp, 11, 0);
+    _visibleLength ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 11, 0);
     return _visibleLength;
   }
 
   @override
   int get visibleOffset {
-    _visibleOffset ??= const fb.Uint32Reader().vTableGet(_bp, 12, 0);
+    _visibleOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 12, 0);
     return _visibleOffset;
   }
 }

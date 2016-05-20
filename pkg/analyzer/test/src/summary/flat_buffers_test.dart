@@ -109,11 +109,12 @@ class BuilderTest {
       byteList = builder.finish(offset);
     }
     // read and verify
-    BufferPointer object = new BufferPointer.fromBytes(byteList).derefObject();
+    BufferContext buffer = new BufferContext.fromBytes(byteList);
+    int objectOffset = buffer.derefObject(0);
     // was not written, so uses the new default value
-    expect(const Int32Reader().vTableGet(object, 0, 15), 15);
+    expect(const Int32Reader().vTableGet(buffer, objectOffset, 0, 15), 15);
     // has the written value
-    expect(const Int32Reader().vTableGet(object, 1, 15), 20);
+    expect(const Int32Reader().vTableGet(buffer, objectOffset, 1, 15), 20);
   }
 
   void test_table_format() {
@@ -164,9 +165,10 @@ class BuilderTest {
       byteList = builder.finish(offset);
     }
     // read and verify
-    BufferPointer object = new BufferPointer.fromBytes(byteList).derefObject();
-    expect(const StringReader().vTableGet(object, 0), latinString);
-    expect(const StringReader().vTableGet(object, 1), unicodeString);
+    BufferContext buf = new BufferContext.fromBytes(byteList);
+    int objectOffset = buf.derefObject(0);
+    expect(const StringReader().vTableGet(buf, objectOffset, 0), latinString);
+    expect(const StringReader().vTableGet(buf, objectOffset, 1), unicodeString);
   }
 
   void test_table_types() {
@@ -186,14 +188,15 @@ class BuilderTest {
       byteList = builder.finish(offset);
     }
     // read and verify
-    BufferPointer object = new BufferPointer.fromBytes(byteList).derefObject();
-    expect(const BoolReader().vTableGet(object, 0), true);
-    expect(const Int8Reader().vTableGet(object, 1), 10);
-    expect(const Int32Reader().vTableGet(object, 2), 20);
-    expect(const StringReader().vTableGet(object, 3), '12345');
-    expect(const Int32Reader().vTableGet(object, 4), 40);
-    expect(const Uint32Reader().vTableGet(object, 5), 0x9ABCDEF0);
-    expect(const Uint8Reader().vTableGet(object, 6), 0x9A);
+    BufferContext buf = new BufferContext.fromBytes(byteList);
+    int objectOffset = buf.derefObject(0);
+    expect(const BoolReader().vTableGet(buf, objectOffset, 0), true);
+    expect(const Int8Reader().vTableGet(buf, objectOffset, 1), 10);
+    expect(const Int32Reader().vTableGet(buf, objectOffset, 2), 20);
+    expect(const StringReader().vTableGet(buf, objectOffset, 3), '12345');
+    expect(const Int32Reader().vTableGet(buf, objectOffset, 4), 40);
+    expect(const Uint32Reader().vTableGet(buf, objectOffset, 5), 0x9ABCDEF0);
+    expect(const Uint8Reader().vTableGet(buf, objectOffset, 6), 0x9A);
   }
 
   void test_writeList_of_Uint32() {
@@ -206,8 +209,8 @@ class BuilderTest {
       byteList = builder.finish(offset);
     }
     // read and verify
-    BufferPointer root = new BufferPointer.fromBytes(byteList);
-    List<int> items = const Uint32ListReader().read(root);
+    BufferContext buf = new BufferContext.fromBytes(byteList);
+    List<int> items = const Uint32ListReader().read(buf, 0);
     expect(items, hasLength(4));
     expect(items, orderedEquals(values));
   }
@@ -226,8 +229,8 @@ class BuilderTest {
         byteList = builder.finish(offset);
       }
       // read and verify
-      BufferPointer root = new BufferPointer.fromBytes(byteList);
-      List<bool> items = const BoolListReader().read(root);
+      BufferContext buf = new BufferContext.fromBytes(byteList);
+      List<bool> items = const BoolListReader().read(buf, 0);
       expect(items, hasLength(len));
       for (int i = 0; i < items.length; i++) {
         expect(items[i], trueBits.contains(i), reason: 'bit $i of $len');
@@ -263,8 +266,8 @@ class BuilderTest {
       byteList = builder.finish(offset);
     }
     // read and verify
-    BufferPointer root = new BufferPointer.fromBytes(byteList);
-    List<double> items = const Float64ListReader().read(root);
+    BufferContext buf = new BufferContext.fromBytes(byteList);
+    List<double> items = const Float64ListReader().read(buf, 0);
     expect(items, hasLength(5));
     expect(items, orderedEquals(values));
   }
@@ -277,8 +280,8 @@ class BuilderTest {
       byteList = builder.finish(offset);
     }
     // read and verify
-    BufferPointer root = new BufferPointer.fromBytes(byteList);
-    List<int> items = const ListReader<int>(const Int32Reader()).read(root);
+    BufferContext buf = new BufferContext.fromBytes(byteList);
+    List<int> items = const ListReader<int>(const Int32Reader()).read(buf, 0);
     expect(items, hasLength(5));
     expect(items, orderedEquals(<int>[1, 2, 3, 4, 5]));
   }
@@ -308,9 +311,9 @@ class BuilderTest {
       byteList = builder.finish(offset);
     }
     // read and verify
-    BufferPointer root = new BufferPointer.fromBytes(byteList);
+    BufferContext buf = new BufferContext.fromBytes(byteList);
     List<TestPointImpl> items =
-        const ListReader<TestPointImpl>(const TestPointReader()).read(root);
+        const ListReader<TestPointImpl>(const TestPointReader()).read(buf, 0);
     expect(items, hasLength(2));
     expect(items[0].x, 10);
     expect(items[0].y, 20);
@@ -328,9 +331,9 @@ class BuilderTest {
       byteList = builder.finish(offset);
     }
     // read and verify
-    BufferPointer root = new BufferPointer.fromBytes(byteList);
+    BufferContext buf = new BufferContext.fromBytes(byteList);
     List<String> items =
-        const ListReader<String>(const StringReader()).read(root);
+        const ListReader<String>(const StringReader()).read(buf, 0);
     expect(items, hasLength(2));
     expect(items, contains('12345'));
     expect(items, contains('ABC'));
@@ -348,8 +351,8 @@ class BuilderTest {
       byteList = builder.finish(offset);
     }
     // read and verify
-    BufferPointer root = new BufferPointer.fromBytes(byteList);
-    StringListWrapperImpl reader = new StringListWrapperReader().read(root);
+    BufferContext buf = new BufferContext.fromBytes(byteList);
+    StringListWrapperImpl reader = new StringListWrapperReader().read(buf, 0);
     List<String> items = reader.items;
     expect(items, hasLength(2));
     expect(items, contains('12345'));
@@ -364,8 +367,8 @@ class BuilderTest {
       byteList = builder.finish(offset);
     }
     // read and verify
-    BufferPointer root = new BufferPointer.fromBytes(byteList);
-    List<int> items = const Uint32ListReader().read(root);
+    BufferContext buf = new BufferContext.fromBytes(byteList);
+    List<int> items = const Uint32ListReader().read(buf, 0);
     expect(items, hasLength(3));
     expect(items, orderedEquals(<int>[1, 2, 0x9ABCDEF0]));
   }
@@ -378,46 +381,48 @@ class BuilderTest {
       byteList = builder.finish(offset);
     }
     // read and verify
-    BufferPointer root = new BufferPointer.fromBytes(byteList);
-    List<int> items = const Uint8ListReader().read(root);
+    BufferContext buf = new BufferContext.fromBytes(byteList);
+    List<int> items = const Uint8ListReader().read(buf, 0);
     expect(items, hasLength(5));
     expect(items, orderedEquals(<int>[1, 2, 3, 4, 0x9A]));
   }
 }
 
 class StringListWrapperImpl {
-  final BufferPointer bp;
+  final BufferContext bp;
+  final int offset;
 
-  StringListWrapperImpl(this.bp);
+  StringListWrapperImpl(this.bp, this.offset);
 
   List<String> get items =>
-      const ListReader<String>(const StringReader()).vTableGet(bp, 0);
+      const ListReader<String>(const StringReader()).vTableGet(bp, offset, 0);
 }
 
 class StringListWrapperReader extends TableReader<StringListWrapperImpl> {
   const StringListWrapperReader();
 
   @override
-  StringListWrapperImpl createObject(BufferPointer object) {
-    return new StringListWrapperImpl(object);
+  StringListWrapperImpl createObject(BufferContext object, int offset) {
+    return new StringListWrapperImpl(object, offset);
   }
 }
 
 class TestPointImpl {
-  final BufferPointer bp;
+  final BufferContext bp;
+  final int offset;
 
-  TestPointImpl(this.bp);
+  TestPointImpl(this.bp, this.offset);
 
-  int get x => const Int32Reader().vTableGet(bp, 0, 0);
+  int get x => const Int32Reader().vTableGet(bp, offset, 0, 0);
 
-  int get y => const Int32Reader().vTableGet(bp, 1, 0);
+  int get y => const Int32Reader().vTableGet(bp, offset, 1, 0);
 }
 
 class TestPointReader extends TableReader<TestPointImpl> {
   const TestPointReader();
 
   @override
-  TestPointImpl createObject(BufferPointer object) {
-    return new TestPointImpl(object);
+  TestPointImpl createObject(BufferContext object, int offset) {
+    return new TestPointImpl(object, offset);
   }
 }
