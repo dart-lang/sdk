@@ -2,5 +2,7 @@ import 'a.dart';
 
 /// B.
 class B extends A {
-  int _hidden;
+  int _private;
+  @override
+  int public;
 }

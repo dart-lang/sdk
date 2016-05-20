@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.overriden_field;
+library linter.src.rules.overridden_fields;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -79,12 +79,12 @@ Iterable<InterfaceType> _findAllSupertypesAndMixins(
   return interfaces.where((i) => i != interface);
 }
 
-class OverridenField extends LintRule {
+class OverriddenFields extends LintRule {
   _Visitor _visitor;
 
-  OverridenField()
+  OverriddenFields()
       : super(
-            name: 'overriden_field',
+            name: 'overridden_fields',
             description: desc,
             details: details,
             group: Group.style,
@@ -114,16 +114,24 @@ class _Visitor extends SimpleAstVisitor {
   PropertyAccessorElement _getOverriddenMember(Element member) {
     String memberName = member.name;
     LibraryElement library = member.library;
-    bool isOverriddenMember(PropertyAccessorElement a) =>
-        a.library == library && a.isSynthetic && a.name == memberName;
-    bool containsOverridenMember(InterfaceType i) =>
+    bool isOverriddenMember(PropertyAccessorElement a) {
+      if (a.isSynthetic && a.name == memberName) {
+        // Ensure that private members are overriding a member of the same library.
+        if (memberName[0] == '_') {
+          return library == a.library;
+        }
+        return true;
+      }
+      return false;
+    }
+    bool containsOverriddenMember(InterfaceType i) =>
         i.accessors.any(isOverriddenMember);
     ClassElement classElement = member.enclosingElement;
 
     Iterable<InterfaceType> interfaces =
         _findAllSupertypesAndMixins(classElement.type, <InterfaceType>[]);
     InterfaceType interface =
-        interfaces.firstWhere(containsOverridenMember, orElse: () => null);
+        interfaces.firstWhere(containsOverriddenMember, orElse: () => null);
     return interface == null
         ? null
         : interface.accessors.firstWhere(isOverriddenMember);

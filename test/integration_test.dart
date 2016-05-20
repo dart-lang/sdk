@@ -150,7 +150,7 @@ defineTests() {
       });
     });
 
-    group('overridden_field', () {
+    group('overridden_fields', () {
       IOSink currentOut = outSink;
       CollectingSink collectingOut = new CollectingSink();
       setUp(() {
@@ -166,13 +166,15 @@ defineTests() {
       // https://github.com/dart-lang/linter/issues/246
       test('overrides across libraries', () {
         dartlint.main([
-          'test/_data/overridden_field',
+          'test/_data/overridden_fields',
           '-c',
-          'test/_data/overridden_field/lintconfig.yaml'
+          'test/_data/overridden_fields/lintconfig.yaml'
         ]);
-        expect(exitCode, 0);
-        expect(collectingOut.trim(),
-            stringContainsInOrder(['2 files analyzed, 0 issues found, in']));
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder(
+                ['int public;', '2 files analyzed, 1 issue found, in']));
       });
     });
 

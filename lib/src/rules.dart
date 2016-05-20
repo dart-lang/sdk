@@ -28,7 +28,7 @@ import 'package:linter/src/rules/library_names.dart';
 import 'package:linter/src/rules/library_prefixes.dart';
 import 'package:linter/src/rules/non_constant_identifier_names.dart';
 import 'package:linter/src/rules/one_member_abstracts.dart';
-import 'package:linter/src/rules/overriden_field.dart';
+import 'package:linter/src/rules/overridden_fields.dart';
 import 'package:linter/src/rules/package_api_docs.dart';
 import 'package:linter/src/rules/package_prefixed_library_names.dart';
 import 'package:linter/src/rules/prefer_is_not_empty.dart';
@@ -61,7 +61,7 @@ final Registry ruleRegistry = new Registry()
   ..register(new UnrelatedTypeEqualityChecks())
   ..register(new EmptyConstructorBodies())
   ..register(new TestTypesInEquals())
-  ..register(new OverridenField())
+  ..register(new OverriddenFields())
   ..register(new HashAndEquals())
   ..register(new ImplementationImports())
   ..register(new IterableContainsUnrelatedType())
