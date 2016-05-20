@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' as utils;
+import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:package_config/packages.dart';
 
 /**
@@ -137,7 +138,7 @@ class SourceFactoryImpl implements SourceFactory {
   @override
   Source forUri(String absoluteUri) {
     try {
-      Uri uri = parseUriWithException(absoluteUri);
+      Uri uri = FastUri.parse(absoluteUri);
       if (uri.isAbsolute) {
         return _internalResolveUri(null, uri);
       }
@@ -212,8 +213,7 @@ class SourceFactoryImpl implements SourceFactory {
     }
     try {
       // Force the creation of an escaped URI to deal with spaces, etc.
-      return _internalResolveUri(
-          containingSource, parseUriWithException(containedUri));
+      return _internalResolveUri(containingSource, FastUri.parse(containedUri));
     } on URISyntaxException {
       return null;
     } catch (exception, stackTrace) {

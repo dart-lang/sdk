@@ -512,17 +512,19 @@ class AnalysisContextHelper {
 }
 
 class TestPackageUriResolver extends UriResolver {
-  Map<Uri, Source> sourceMap = new HashMap<Uri, Source>();
+  Map<String, Source> sourceMap = new HashMap<String, Source>();
 
   TestPackageUriResolver(Map<String, String> map) {
     map.forEach((String uri, String contents) {
-      sourceMap[Uri.parse(uri)] =
-          new StringSource(contents, '/test_pkg_source.dart');
+      sourceMap[uri] = new StringSource(contents, '/test_pkg_source.dart');
     });
   }
 
   @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) => sourceMap[uri];
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    String uriString = uri.toString();
+    return sourceMap[uriString];
+  }
 
   @override
   Uri restoreAbsolute(Source source) => throw new UnimplementedError();
