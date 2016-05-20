@@ -1173,8 +1173,10 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
           kind: ReferenceKind.topLevelPropertyAccessor);
     } else if (element is FieldElementForLink_ClassField) {
       ClassElementForLink_Class enclosingClass = element.enclosingElement;
-      // TODO(paulberry): do we need to set numTypeParameters to nonzero if the
-      // class has type parameters?
+      // Note: even if the class has type parameters, we don't need to set
+      // numTypeParameters because numTypeParameters does not count type
+      // parameters of parent elements (see
+      // [LinkedReference.numTypeParameters]).
       return addRawReference(element.name,
           containingReference: addReference(enclosingClass),
           kind: ReferenceKind.propertyAccessor);
