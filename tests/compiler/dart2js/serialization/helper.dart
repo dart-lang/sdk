@@ -14,6 +14,8 @@ import 'package:compiler/src/compiler.dart';
 import '../memory_compiler.dart';
 import 'test_data.dart';
 
+const String DEFAULT_DATA_FILE_NAME = 'out.data';
+
 class Arguments {
   final String filename;
   final int start;
@@ -29,7 +31,7 @@ class Arguments {
     this.end,
     this.loadSerializedData: false,
     this.saveSerializedData: false,
-    this.serializedDataFileName: 'out.data',
+    this.serializedDataFileName: DEFAULT_DATA_FILE_NAME,
     this.verbose: false});
 
   factory Arguments.from(List<String> arguments) {
@@ -38,7 +40,7 @@ class Arguments {
     int end;
     for (String arg in arguments) {
       if (!arg.startsWith('-')) {
-        int index = int.parse(arg);
+        int index = int.parse(arg, onError: (_) => null);
         if (index == null) {
           filename = arg;
         } else if (start == null) {
@@ -51,6 +53,14 @@ class Arguments {
     bool verbose = arguments.contains('-v');
     bool loadSerializedData = arguments.contains('-l');
     bool saveSerializedData = arguments.contains('-s');
+    if (arguments.contains('--auto')) {
+      File file = new File(DEFAULT_DATA_FILE_NAME);
+      if (file.existsSync()) {
+        loadSerializedData = true;
+      } else {
+        saveSerializedData = true;
+      }
+    }
     return new Arguments(
         filename: filename,
         start: start,

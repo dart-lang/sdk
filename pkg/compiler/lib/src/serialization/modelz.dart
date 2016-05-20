@@ -1256,7 +1256,7 @@ class ForwardingConstructorElementZ extends ElementZ
 
   @override
   InterfaceType computeEffectiveTargetType(InterfaceType newType) {
-    return enclosingClass.thisType;
+    return enclosingClass.thisType.substByContext(newType);
   }
 
   @override

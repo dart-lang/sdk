@@ -572,6 +572,11 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1.computeEffectiveTargetType(element1.enclosingClass.thisType),
         element2.computeEffectiveTargetType(element2.enclosingClass.thisType),
         areTypesEquivalent);
+    check(
+        element1, element2, 'effectiveTargetType.raw',
+        element1.computeEffectiveTargetType(element1.enclosingClass.rawType),
+        element2.computeEffectiveTargetType(element2.enclosingClass.rawType),
+        areTypesEquivalent);
     checkElementIdentities(element1, element2, 'immediateRedirectionTarget',
         element1.immediateRedirectionTarget,
         element2.immediateRedirectionTarget);
