@@ -580,12 +580,43 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return value;
   };
   dart.const = function(obj) {
-    let objectKey = [dart.getReifiedType(obj)];
-    for (let name of dart.getOwnNamesAndSymbols(obj)) {
-      objectKey.push(name);
-      objectKey.push(obj[name]);
+    function lookupNonTerminal(map, key) {
+      let result = map.get(key);
+      if (result !== void 0) return result;
+      map.set(key, result = new Map());
+      return result;
     }
-    return dart.multiKeyPutIfAbsent(dart.constants, objectKey, () => obj);
+    let names = dart.getOwnNamesAndSymbols(obj);
+    let count = names.length;
+    let map = lookupNonTerminal(dart.constants, count);
+    for (let i = 0; i < count; i++) {
+      let name = names[i];
+      map = lookupNonTerminal(map, name);
+      map = lookupNonTerminal(map, obj[name]);
+    }
+    let type = dart.getReifiedType(obj);
+    let value = map.get(type);
+    if (value) return value;
+    map.set(type, obj);
+    return obj;
+  };
+  dart.constList = function(elements, elementType) {
+    function lookupNonTerminal(map, key) {
+      let result = map.get(key);
+      if (result !== void 0) return result;
+      map.set(key, result = new Map());
+      return result;
+    }
+    let count = elements.length;
+    let map = lookupNonTerminal(dart.constantLists, count);
+    for (let i = 0; i < count; i++) {
+      map = lookupNonTerminal(map, elements[i]);
+    }
+    let value = map.get(elementType);
+    if (value) return value;
+    value = dart.list(elements, elementType);
+    map.set(elementType, value);
+    return value;
   };
   dart.hashCode = function(obj) {
     if (obj == null) return 0;
@@ -1160,6 +1191,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart._stack = new WeakMap();
   dart._value = Symbol("_value");
   dart.constants = new Map();
+  dart.constantLists = new Map();
   dart.JsIterator = class JsIterator {
     constructor(dartIterator) {
       this.dartIterator = dartIterator;
@@ -3968,7 +4000,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return -core.double.INFINITY;
     }
   });
-  _internal.POWERS_OF_TEN = dart.const(dart.list([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22], core.double));
+  _internal.POWERS_OF_TEN = dart.constList([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22], core.double);
   const _string = Symbol('_string');
   collection.ListMixin$ = dart.generic(E => {
     dart.defineExtensionNames([
@@ -15107,7 +15139,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
             }, dart.dynamic, [T]), {onError: handleError});
           }
           if (remaining == 0) {
-            return async.Future$(core.List$(T)).value(const$3 || (const$3 = dart.const([])));
+            return async.Future$(core.List$(T)).value(const$3 || (const$3 = dart.constList([], dart.dynamic)));
           }
           values = core.List$(T).new(remaining);
           return result;
@@ -24928,7 +24960,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
         if ((dart.notNull(source[dartx.get](i)) & ~convert._ASCII_MASK) >>> 0 != 0) {
           if (dart.notNull(i) > dart.notNull(start)) this[_utf8Sink].addSlice(source, start, i, false);
-          this[_utf8Sink].add(const$25 || (const$25 = dart.const(dart.list([239, 191, 189], core.int))));
+          this[_utf8Sink].add(const$25 || (const$25 = dart.constList([239, 191, 189], core.int)));
           start = dart.notNull(i) + 1;
         }
       }
@@ -26874,7 +26906,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         let char = source[dartx.get](i);
         if (dart.notNull(char) > convert._LATIN1_MASK || dart.notNull(char) < 0) {
           if (dart.notNull(i) > dart.notNull(start)) this[_addSliceToSink](source, start, i, false);
-          this[_addSliceToSink](const$44 || (const$44 = dart.const(dart.list([65533], core.int))), 0, 1, false);
+          this[_addSliceToSink](const$44 || (const$44 = dart.constList([65533], core.int)), 0, 1, false);
           start = dart.notNull(i) + 1;
         }
       }
@@ -27777,7 +27809,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       convert: [dart.void, [core.List$(core.int), core.int, core.int]]
     })
   });
-  convert._Utf8Decoder._LIMITS = dart.const(dart.list([convert._ONE_BYTE_LIMIT, convert._TWO_BYTE_LIMIT, convert._THREE_BYTE_LIMIT, convert._FOUR_BYTE_LIMIT], core.int));
+  convert._Utf8Decoder._LIMITS = dart.constList([convert._ONE_BYTE_LIMIT, convert._TWO_BYTE_LIMIT, convert._THREE_BYTE_LIMIT, convert._FOUR_BYTE_LIMIT], core.int);
   core._symbolToString = function(symbol) {
     return _internal.Symbol.getName(dart.as(symbol, _internal.Symbol));
   };
@@ -29942,7 +29974,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       if (dart.test(pathToSplit[dartx.isNotEmpty]) && pathToSplit[dartx.codeUnitAt](0) == core.Uri._SLASH) {
         pathToSplit = pathToSplit[dartx.substring](1);
       }
-      result = pathToSplit == "" ? const$46 || (const$46 = dart.const(dart.list([], core.String))) : core.List$(core.String).unmodifiable(pathToSplit[dartx.split]("/")[dartx.map](core.String)(core.Uri.decodeComponent));
+      result = pathToSplit == "" ? const$46 || (const$46 = dart.constList([], core.String)) : core.List$(core.String).unmodifiable(pathToSplit[dartx.split]("/")[dartx.map](core.String)(core.Uri.decodeComponent));
       this[_pathSegments] = result;
       return result;
     }
@@ -30921,18 +30953,18 @@ dart_library.library('dart_sdk', null, /* Imports */[
   core.Uri._LOWER_CASE_Z = 122;
   core.Uri._BAR = 124;
   core.Uri._hexDigits = "0123456789ABCDEF";
-  core.Uri._unreservedTable = dart.const(dart.list([0, 0, 24576, 1023, 65534, 34815, 65534, 18431], core.int));
-  core.Uri._unreserved2396Table = dart.const(dart.list([0, 0, 26498, 1023, 65534, 34815, 65534, 18431], core.int));
-  core.Uri._encodeFullTable = dart.const(dart.list([0, 0, 65498, 45055, 65535, 34815, 65534, 18431], core.int));
-  core.Uri._schemeTable = dart.const(dart.list([0, 0, 26624, 1023, 65534, 2047, 65534, 2047], core.int));
-  core.Uri._schemeLowerTable = dart.const(dart.list([0, 0, 26624, 1023, 0, 0, 65534, 2047], core.int));
-  core.Uri._subDelimitersTable = dart.const(dart.list([0, 0, 32722, 11263, 65534, 34815, 65534, 18431], core.int));
-  core.Uri._genDelimitersTable = dart.const(dart.list([0, 0, 32776, 33792, 1, 10240, 0, 0], core.int));
-  core.Uri._userinfoTable = dart.const(dart.list([0, 0, 32722, 12287, 65534, 34815, 65534, 18431], core.int));
-  core.Uri._regNameTable = dart.const(dart.list([0, 0, 32754, 11263, 65534, 34815, 65534, 18431], core.int));
-  core.Uri._pathCharTable = dart.const(dart.list([0, 0, 32722, 12287, 65535, 34815, 65534, 18431], core.int));
-  core.Uri._pathCharOrSlashTable = dart.const(dart.list([0, 0, 65490, 12287, 65535, 34815, 65534, 18431], core.int));
-  core.Uri._queryCharTable = dart.const(dart.list([0, 0, 65490, 45055, 65535, 34815, 65534, 18431], core.int));
+  core.Uri._unreservedTable = dart.constList([0, 0, 24576, 1023, 65534, 34815, 65534, 18431], core.int);
+  core.Uri._unreserved2396Table = dart.constList([0, 0, 26498, 1023, 65534, 34815, 65534, 18431], core.int);
+  core.Uri._encodeFullTable = dart.constList([0, 0, 65498, 45055, 65535, 34815, 65534, 18431], core.int);
+  core.Uri._schemeTable = dart.constList([0, 0, 26624, 1023, 65534, 2047, 65534, 2047], core.int);
+  core.Uri._schemeLowerTable = dart.constList([0, 0, 26624, 1023, 0, 0, 65534, 2047], core.int);
+  core.Uri._subDelimitersTable = dart.constList([0, 0, 32722, 11263, 65534, 34815, 65534, 18431], core.int);
+  core.Uri._genDelimitersTable = dart.constList([0, 0, 32776, 33792, 1, 10240, 0, 0], core.int);
+  core.Uri._userinfoTable = dart.constList([0, 0, 32722, 12287, 65534, 34815, 65534, 18431], core.int);
+  core.Uri._regNameTable = dart.constList([0, 0, 32754, 11263, 65534, 34815, 65534, 18431], core.int);
+  core.Uri._pathCharTable = dart.constList([0, 0, 32722, 12287, 65535, 34815, 65534, 18431], core.int);
+  core.Uri._pathCharOrSlashTable = dart.constList([0, 0, 65490, 12287, 65535, 34815, 65534, 18431], core.int);
+  core.Uri._queryCharTable = dart.constList([0, 0, 65490, 45055, 65535, 34815, 65534, 18431], core.int);
   dart.defineLazy(core.Uri, {
     get _needsNoEncoding() {
       return core.RegExp.new('^[\\-\\.0-9A-Z_a-z~]*$');
@@ -31279,7 +31311,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     names: ['_writeUri', '_validateMimeType', 'parse', '_parse', '_uriEncodeBytes']
   });
   core.UriData._noScheme = -1;
-  core.UriData._tokenCharTable = dart.const(dart.list([0, 0, 27858, 1023, 65534, 51199, 65535, 32767], core.int));
+  core.UriData._tokenCharTable = dart.constList([0, 0, 27858, 1023, 65534, 51199, 65535, 32767], core.int);
   core.UriData._uricTable = core.Uri._queryCharTable;
   isolate.IsolateSpawnException = class IsolateSpawnException extends core.Object {
     new(message) {
@@ -35951,7 +35983,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   html$.Element._parseRange = null;
   html$.Element._defaultValidator = null;
   html$.Element._defaultSanitizer = null;
-  html$.Element._tagsForWhichCreateContextualFragmentIsNotSupported = dart.const(dart.list(['HEAD', 'AREA', 'BASE', 'BASEFONT', 'BR', 'COL', 'COLGROUP', 'EMBED', 'FRAME', 'FRAMESET', 'HR', 'IMAGE', 'IMG', 'INPUT', 'ISINDEX', 'LINK', 'META', 'PARAM', 'SOURCE', 'STYLE', 'TITLE', 'WBR'], core.String));
+  html$.Element._tagsForWhichCreateContextualFragmentIsNotSupported = dart.constList(['HEAD', 'AREA', 'BASE', 'BASEFONT', 'BR', 'COL', 'COLGROUP', 'EMBED', 'FRAME', 'FRAMESET', 'HR', 'IMAGE', 'IMG', 'INPUT', 'ISINDEX', 'LINK', 'META', 'PARAM', 'SOURCE', 'STYLE', 'TITLE', 'WBR'], core.String);
   dart.defineLazy(html$.Element, {
     get mouseWheelEvent() {
       return dart.const(new (html$._CustomEventStreamProvider$(html$.WheelEvent))(html$.Element._determineMouseWheelEventType));
@@ -70313,8 +70345,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }),
     names: ['_standardAttributeValidator', '_uriAttributeValidator']
   });
-  html$._Html5NodeValidator._standardAttributes = dart.const(dart.list(['*::class', '*::dir', '*::draggable', '*::hidden', '*::id', '*::inert', '*::itemprop', '*::itemref', '*::itemscope', '*::lang', '*::spellcheck', '*::title', '*::translate', 'A::accesskey', 'A::coords', 'A::hreflang', 'A::name', 'A::shape', 'A::tabindex', 'A::target', 'A::type', 'AREA::accesskey', 'AREA::alt', 'AREA::coords', 'AREA::nohref', 'AREA::shape', 'AREA::tabindex', 'AREA::target', 'AUDIO::controls', 'AUDIO::loop', 'AUDIO::mediagroup', 'AUDIO::muted', 'AUDIO::preload', 'BDO::dir', 'BODY::alink', 'BODY::bgcolor', 'BODY::link', 'BODY::text', 'BODY::vlink', 'BR::clear', 'BUTTON::accesskey', 'BUTTON::disabled', 'BUTTON::name', 'BUTTON::tabindex', 'BUTTON::type', 'BUTTON::value', 'CANVAS::height', 'CANVAS::width', 'CAPTION::align', 'COL::align', 'COL::char', 'COL::charoff', 'COL::span', 'COL::valign', 'COL::width', 'COLGROUP::align', 'COLGROUP::char', 'COLGROUP::charoff', 'COLGROUP::span', 'COLGROUP::valign', 'COLGROUP::width', 'COMMAND::checked', 'COMMAND::command', 'COMMAND::disabled', 'COMMAND::label', 'COMMAND::radiogroup', 'COMMAND::type', 'DATA::value', 'DEL::datetime', 'DETAILS::open', 'DIR::compact', 'DIV::align', 'DL::compact', 'FIELDSET::disabled', 'FONT::color', 'FONT::face', 'FONT::size', 'FORM::accept', 'FORM::autocomplete', 'FORM::enctype', 'FORM::method', 'FORM::name', 'FORM::novalidate', 'FORM::target', 'FRAME::name', 'H1::align', 'H2::align', 'H3::align', 'H4::align', 'H5::align', 'H6::align', 'HR::align', 'HR::noshade', 'HR::size', 'HR::width', 'HTML::version', 'IFRAME::align', 'IFRAME::frameborder', 'IFRAME::height', 'IFRAME::marginheight', 'IFRAME::marginwidth', 'IFRAME::width', 'IMG::align', 'IMG::alt', 'IMG::border', 'IMG::height', 'IMG::hspace', 'IMG::ismap', 'IMG::name', 'IMG::usemap', 'IMG::vspace', 'IMG::width', 'INPUT::accept', 'INPUT::accesskey', 'INPUT::align', 'INPUT::alt', 'INPUT::autocomplete', 'INPUT::autofocus', 'INPUT::checked', 'INPUT::disabled', 'INPUT::inputmode', 'INPUT::ismap', 'INPUT::list', 'INPUT::max', 'INPUT::maxlength', 'INPUT::min', 'INPUT::multiple', 'INPUT::name', 'INPUT::placeholder', 'INPUT::readonly', 'INPUT::required', 'INPUT::size', 'INPUT::step', 'INPUT::tabindex', 'INPUT::type', 'INPUT::usemap', 'INPUT::value', 'INS::datetime', 'KEYGEN::disabled', 'KEYGEN::keytype', 'KEYGEN::name', 'LABEL::accesskey', 'LABEL::for', 'LEGEND::accesskey', 'LEGEND::align', 'LI::type', 'LI::value', 'LINK::sizes', 'MAP::name', 'MENU::compact', 'MENU::label', 'MENU::type', 'METER::high', 'METER::low', 'METER::max', 'METER::min', 'METER::value', 'OBJECT::typemustmatch', 'OL::compact', 'OL::reversed', 'OL::start', 'OL::type', 'OPTGROUP::disabled', 'OPTGROUP::label', 'OPTION::disabled', 'OPTION::label', 'OPTION::selected', 'OPTION::value', 'OUTPUT::for', 'OUTPUT::name', 'P::align', 'PRE::width', 'PROGRESS::max', 'PROGRESS::min', 'PROGRESS::value', 'SELECT::autocomplete', 'SELECT::disabled', 'SELECT::multiple', 'SELECT::name', 'SELECT::required', 'SELECT::size', 'SELECT::tabindex', 'SOURCE::type', 'TABLE::align', 'TABLE::bgcolor', 'TABLE::border', 'TABLE::cellpadding', 'TABLE::cellspacing', 'TABLE::frame', 'TABLE::rules', 'TABLE::summary', 'TABLE::width', 'TBODY::align', 'TBODY::char', 'TBODY::charoff', 'TBODY::valign', 'TD::abbr', 'TD::align', 'TD::axis', 'TD::bgcolor', 'TD::char', 'TD::charoff', 'TD::colspan', 'TD::headers', 'TD::height', 'TD::nowrap', 'TD::rowspan', 'TD::scope', 'TD::valign', 'TD::width', 'TEXTAREA::accesskey', 'TEXTAREA::autocomplete', 'TEXTAREA::cols', 'TEXTAREA::disabled', 'TEXTAREA::inputmode', 'TEXTAREA::name', 'TEXTAREA::placeholder', 'TEXTAREA::readonly', 'TEXTAREA::required', 'TEXTAREA::rows', 'TEXTAREA::tabindex', 'TEXTAREA::wrap', 'TFOOT::align', 'TFOOT::char', 'TFOOT::charoff', 'TFOOT::valign', 'TH::abbr', 'TH::align', 'TH::axis', 'TH::bgcolor', 'TH::char', 'TH::charoff', 'TH::colspan', 'TH::headers', 'TH::height', 'TH::nowrap', 'TH::rowspan', 'TH::scope', 'TH::valign', 'TH::width', 'THEAD::align', 'THEAD::char', 'THEAD::charoff', 'THEAD::valign', 'TR::align', 'TR::bgcolor', 'TR::char', 'TR::charoff', 'TR::valign', 'TRACK::default', 'TRACK::kind', 'TRACK::label', 'TRACK::srclang', 'UL::compact', 'UL::type', 'VIDEO::controls', 'VIDEO::height', 'VIDEO::loop', 'VIDEO::mediagroup', 'VIDEO::muted', 'VIDEO::preload', 'VIDEO::width'], core.String));
-  html$._Html5NodeValidator._uriAttributes = dart.const(dart.list(['A::href', 'AREA::href', 'BLOCKQUOTE::cite', 'BODY::background', 'COMMAND::icon', 'DEL::cite', 'FORM::action', 'IMG::src', 'INPUT::src', 'INS::cite', 'Q::cite', 'VIDEO::poster'], core.String));
+  html$._Html5NodeValidator._standardAttributes = dart.constList(['*::class', '*::dir', '*::draggable', '*::hidden', '*::id', '*::inert', '*::itemprop', '*::itemref', '*::itemscope', '*::lang', '*::spellcheck', '*::title', '*::translate', 'A::accesskey', 'A::coords', 'A::hreflang', 'A::name', 'A::shape', 'A::tabindex', 'A::target', 'A::type', 'AREA::accesskey', 'AREA::alt', 'AREA::coords', 'AREA::nohref', 'AREA::shape', 'AREA::tabindex', 'AREA::target', 'AUDIO::controls', 'AUDIO::loop', 'AUDIO::mediagroup', 'AUDIO::muted', 'AUDIO::preload', 'BDO::dir', 'BODY::alink', 'BODY::bgcolor', 'BODY::link', 'BODY::text', 'BODY::vlink', 'BR::clear', 'BUTTON::accesskey', 'BUTTON::disabled', 'BUTTON::name', 'BUTTON::tabindex', 'BUTTON::type', 'BUTTON::value', 'CANVAS::height', 'CANVAS::width', 'CAPTION::align', 'COL::align', 'COL::char', 'COL::charoff', 'COL::span', 'COL::valign', 'COL::width', 'COLGROUP::align', 'COLGROUP::char', 'COLGROUP::charoff', 'COLGROUP::span', 'COLGROUP::valign', 'COLGROUP::width', 'COMMAND::checked', 'COMMAND::command', 'COMMAND::disabled', 'COMMAND::label', 'COMMAND::radiogroup', 'COMMAND::type', 'DATA::value', 'DEL::datetime', 'DETAILS::open', 'DIR::compact', 'DIV::align', 'DL::compact', 'FIELDSET::disabled', 'FONT::color', 'FONT::face', 'FONT::size', 'FORM::accept', 'FORM::autocomplete', 'FORM::enctype', 'FORM::method', 'FORM::name', 'FORM::novalidate', 'FORM::target', 'FRAME::name', 'H1::align', 'H2::align', 'H3::align', 'H4::align', 'H5::align', 'H6::align', 'HR::align', 'HR::noshade', 'HR::size', 'HR::width', 'HTML::version', 'IFRAME::align', 'IFRAME::frameborder', 'IFRAME::height', 'IFRAME::marginheight', 'IFRAME::marginwidth', 'IFRAME::width', 'IMG::align', 'IMG::alt', 'IMG::border', 'IMG::height', 'IMG::hspace', 'IMG::ismap', 'IMG::name', 'IMG::usemap', 'IMG::vspace', 'IMG::width', 'INPUT::accept', 'INPUT::accesskey', 'INPUT::align', 'INPUT::alt', 'INPUT::autocomplete', 'INPUT::autofocus', 'INPUT::checked', 'INPUT::disabled', 'INPUT::inputmode', 'INPUT::ismap', 'INPUT::list', 'INPUT::max', 'INPUT::maxlength', 'INPUT::min', 'INPUT::multiple', 'INPUT::name', 'INPUT::placeholder', 'INPUT::readonly', 'INPUT::required', 'INPUT::size', 'INPUT::step', 'INPUT::tabindex', 'INPUT::type', 'INPUT::usemap', 'INPUT::value', 'INS::datetime', 'KEYGEN::disabled', 'KEYGEN::keytype', 'KEYGEN::name', 'LABEL::accesskey', 'LABEL::for', 'LEGEND::accesskey', 'LEGEND::align', 'LI::type', 'LI::value', 'LINK::sizes', 'MAP::name', 'MENU::compact', 'MENU::label', 'MENU::type', 'METER::high', 'METER::low', 'METER::max', 'METER::min', 'METER::value', 'OBJECT::typemustmatch', 'OL::compact', 'OL::reversed', 'OL::start', 'OL::type', 'OPTGROUP::disabled', 'OPTGROUP::label', 'OPTION::disabled', 'OPTION::label', 'OPTION::selected', 'OPTION::value', 'OUTPUT::for', 'OUTPUT::name', 'P::align', 'PRE::width', 'PROGRESS::max', 'PROGRESS::min', 'PROGRESS::value', 'SELECT::autocomplete', 'SELECT::disabled', 'SELECT::multiple', 'SELECT::name', 'SELECT::required', 'SELECT::size', 'SELECT::tabindex', 'SOURCE::type', 'TABLE::align', 'TABLE::bgcolor', 'TABLE::border', 'TABLE::cellpadding', 'TABLE::cellspacing', 'TABLE::frame', 'TABLE::rules', 'TABLE::summary', 'TABLE::width', 'TBODY::align', 'TBODY::char', 'TBODY::charoff', 'TBODY::valign', 'TD::abbr', 'TD::align', 'TD::axis', 'TD::bgcolor', 'TD::char', 'TD::charoff', 'TD::colspan', 'TD::headers', 'TD::height', 'TD::nowrap', 'TD::rowspan', 'TD::scope', 'TD::valign', 'TD::width', 'TEXTAREA::accesskey', 'TEXTAREA::autocomplete', 'TEXTAREA::cols', 'TEXTAREA::disabled', 'TEXTAREA::inputmode', 'TEXTAREA::name', 'TEXTAREA::placeholder', 'TEXTAREA::readonly', 'TEXTAREA::required', 'TEXTAREA::rows', 'TEXTAREA::tabindex', 'TEXTAREA::wrap', 'TFOOT::align', 'TFOOT::char', 'TFOOT::charoff', 'TFOOT::valign', 'TH::abbr', 'TH::align', 'TH::axis', 'TH::bgcolor', 'TH::char', 'TH::charoff', 'TH::colspan', 'TH::headers', 'TH::height', 'TH::nowrap', 'TH::rowspan', 'TH::scope', 'TH::valign', 'TH::width', 'THEAD::align', 'THEAD::char', 'THEAD::charoff', 'THEAD::valign', 'TR::align', 'TR::bgcolor', 'TR::char', 'TR::charoff', 'TR::valign', 'TRACK::default', 'TRACK::kind', 'TRACK::label', 'TRACK::srclang', 'UL::compact', 'UL::type', 'VIDEO::controls', 'VIDEO::height', 'VIDEO::loop', 'VIDEO::mediagroup', 'VIDEO::muted', 'VIDEO::preload', 'VIDEO::width'], core.String);
+  html$._Html5NodeValidator._uriAttributes = dart.constList(['A::href', 'AREA::href', 'BLOCKQUOTE::cite', 'BODY::background', 'COMMAND::icon', 'DEL::cite', 'FORM::action', 'IMG::src', 'INPUT::src', 'INS::cite', 'Q::cite', 'VIDEO::poster'], core.String);
   dart.defineLazy(html$._Html5NodeValidator, {
     get _allowedElements() {
       return core.Set$(core.String).from(dart.list(['A', 'ABBR', 'ACRONYM', 'ADDRESS', 'AREA', 'ARTICLE', 'ASIDE', 'AUDIO', 'B', 'BDI', 'BDO', 'BIG', 'BLOCKQUOTE', 'BR', 'BUTTON', 'CANVAS', 'CAPTION', 'CENTER', 'CITE', 'CODE', 'COL', 'COLGROUP', 'COMMAND', 'DATA', 'DATALIST', 'DD', 'DEL', 'DETAILS', 'DFN', 'DIR', 'DIV', 'DL', 'DT', 'EM', 'FIELDSET', 'FIGCAPTION', 'FIGURE', 'FONT', 'FOOTER', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'HGROUP', 'HR', 'I', 'IFRAME', 'IMG', 'INPUT', 'INS', 'KBD', 'LABEL', 'LEGEND', 'LI', 'MAP', 'MARK', 'MENU', 'METER', 'NAV', 'NOBR', 'OL', 'OPTGROUP', 'OPTION', 'OUTPUT', 'P', 'PRE', 'PROGRESS', 'Q', 'S', 'SAMP', 'SECTION', 'SELECT', 'SMALL', 'SOURCE', 'SPAN', 'STRIKE', 'STRONG', 'SUB', 'SUMMARY', 'SUP', 'TABLE', 'TBODY', 'TD', 'TEXTAREA', 'TFOOT', 'TH', 'THEAD', 'TIME', 'TR', 'TRACK', 'TT', 'U', 'UL', 'VAR', 'VIDEO', 'WBR'], core.String));
@@ -71205,13 +71237,13 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let const$58;
   html$._SimpleNodeValidator = class _SimpleNodeValidator extends core.Object {
     static allowNavigation(uriPolicy) {
-      return new html$._SimpleNodeValidator(uriPolicy, {allowedElements: const$49 || (const$49 = dart.const(dart.list(['A', 'FORM'], core.String))), allowedAttributes: const$50 || (const$50 = dart.const(dart.list(['A::accesskey', 'A::coords', 'A::hreflang', 'A::name', 'A::shape', 'A::tabindex', 'A::target', 'A::type', 'FORM::accept', 'FORM::autocomplete', 'FORM::enctype', 'FORM::method', 'FORM::name', 'FORM::novalidate', 'FORM::target'], core.String))), allowedUriAttributes: const$51 || (const$51 = dart.const(dart.list(['A::href', 'FORM::action'], core.String)))});
+      return new html$._SimpleNodeValidator(uriPolicy, {allowedElements: const$49 || (const$49 = dart.constList(['A', 'FORM'], core.String)), allowedAttributes: const$50 || (const$50 = dart.constList(['A::accesskey', 'A::coords', 'A::hreflang', 'A::name', 'A::shape', 'A::tabindex', 'A::target', 'A::type', 'FORM::accept', 'FORM::autocomplete', 'FORM::enctype', 'FORM::method', 'FORM::name', 'FORM::novalidate', 'FORM::target'], core.String)), allowedUriAttributes: const$51 || (const$51 = dart.constList(['A::href', 'FORM::action'], core.String))});
     }
     static allowImages(uriPolicy) {
-      return new html$._SimpleNodeValidator(uriPolicy, {allowedElements: const$52 || (const$52 = dart.const(dart.list(['IMG'], core.String))), allowedAttributes: const$53 || (const$53 = dart.const(dart.list(['IMG::align', 'IMG::alt', 'IMG::border', 'IMG::height', 'IMG::hspace', 'IMG::ismap', 'IMG::name', 'IMG::usemap', 'IMG::vspace', 'IMG::width'], core.String))), allowedUriAttributes: const$54 || (const$54 = dart.const(dart.list(['IMG::src'], core.String)))});
+      return new html$._SimpleNodeValidator(uriPolicy, {allowedElements: const$52 || (const$52 = dart.constList(['IMG'], core.String)), allowedAttributes: const$53 || (const$53 = dart.constList(['IMG::align', 'IMG::alt', 'IMG::border', 'IMG::height', 'IMG::hspace', 'IMG::ismap', 'IMG::name', 'IMG::usemap', 'IMG::vspace', 'IMG::width'], core.String)), allowedUriAttributes: const$54 || (const$54 = dart.constList(['IMG::src'], core.String))});
     }
     static allowTextElements() {
-      return new html$._SimpleNodeValidator(null, {allowedElements: const$55 || (const$55 = dart.const(dart.list(['B', 'BLOCKQUOTE', 'BR', 'EM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'I', 'LI', 'OL', 'P', 'SPAN', 'UL'], core.String)))});
+      return new html$._SimpleNodeValidator(null, {allowedElements: const$55 || (const$55 = dart.constList(['B', 'BLOCKQUOTE', 'BR', 'EM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'I', 'LI', 'OL', 'P', 'SPAN', 'UL'], core.String))});
     }
     new(uriPolicy, opts) {
       let allowedElements = opts && 'allowedElements' in opts ? opts.allowedElements : null;
@@ -71221,9 +71253,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this.allowedAttributes = core.Set$(core.String).new();
       this.allowedUriAttributes = core.Set$(core.String).new();
       this.uriPolicy = uriPolicy;
-      this.allowedElements.addAll((allowedElements != null ? allowedElements : const$56 || (const$56 = dart.const(dart.list([], core.String)))));
-      allowedAttributes = allowedAttributes != null ? allowedAttributes : const$57 || (const$57 = dart.const(dart.list([], core.String)));
-      allowedUriAttributes = allowedUriAttributes != null ? allowedUriAttributes : const$58 || (const$58 = dart.const(dart.list([], core.String)));
+      this.allowedElements.addAll((allowedElements != null ? allowedElements : const$56 || (const$56 = dart.constList([], core.String))));
+      allowedAttributes = allowedAttributes != null ? allowedAttributes : const$57 || (const$57 = dart.constList([], core.String));
+      allowedUriAttributes = allowedUriAttributes != null ? allowedUriAttributes : const$58 || (const$58 = dart.constList([], core.String));
       let legalAttributes = allowedAttributes[dartx.where](dart.fn(x => !dart.notNull(html$._Html5NodeValidator._uriAttributes[dartx.contains](x)), core.bool, [core.String]));
       let extraUriAttributes = allowedAttributes[dartx.where](dart.fn(x => html$._Html5NodeValidator._uriAttributes[dartx.contains](x), core.bool, [core.String]));
       this.allowedAttributes.addAll(legalAttributes);
@@ -71314,7 +71346,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.setSignature(html$._TemplatingNodeValidator, {
     constructors: () => ({new: [html$._TemplatingNodeValidator, []]})
   });
-  html$._TemplatingNodeValidator._TEMPLATE_ATTRS = dart.const(dart.list(['bind', 'if', 'ref', 'repeat', 'syntax'], core.String));
+  html$._TemplatingNodeValidator._TEMPLATE_ATTRS = dart.constList(['bind', 'if', 'ref', 'repeat', 'syntax'], core.String);
   html$._SvgNodeValidator = class _SvgNodeValidator extends core.Object {
     allowsElement(element) {
       if (dart.is(element, svg$.ScriptElement)) {

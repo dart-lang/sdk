@@ -830,8 +830,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     // Create static values list
     var values = new JS.ArrayInitializer(new List<JS.Expression>.from(
         fields.map((f) => js.call('#.#', [id, f.name]))));
-    result.add(js.statement('#.values = dart.const(dart.list(#, #));',
-        [id, values, _emitType(type)]));
+    result.add(js.statement(
+        '#.values = dart.constList(#, #);', [id, values, _emitType(type)]));
 
     return _statement(result);
   }
@@ -3428,11 +3428,11 @@ class CodeGenerator extends GeneralizingAstVisitor
     return id;
   }
 
-  JS.Expression _emitConst(JS.Expression expr()) {
+  JS.Expression _cacheConst(JS.Expression expr()) {
     var savedTypeParams = _typeParamInConst;
     _typeParamInConst = [];
 
-    var jsExpr = js.call('dart.const(#)', expr());
+    var jsExpr = expr();
 
     bool usesTypeParams = _typeParamInConst.isNotEmpty;
     _typeParamInConst = savedTypeParams;
@@ -3446,6 +3446,9 @@ class CodeGenerator extends GeneralizingAstVisitor
     _moduleItems.add(js.statement('let #;', [temp]));
     return js.call('# || (# = #)', [temp, temp, jsExpr]);
   }
+
+  JS.Expression _emitConst(JS.Expression expr()) =>
+      _cacheConst(() => js.call('dart.const(#)', expr()));
 
   /// Returns a new expression, which can be be used safely *once* on the
   /// left hand side, and *once* on the right side of an assignment.
@@ -4151,6 +4154,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   @override
   visitListLiteral(ListLiteral node) {
+    var isConst = node.constKeyword != null;
     JS.Expression emitList() {
       JS.Expression list = new JS.ArrayInitializer(
           _visitList(node.elements) as List<JS.Expression>);
@@ -4159,14 +4163,16 @@ class CodeGenerator extends GeneralizingAstVisitor
       // TODO(jmesserly): analyzer will usually infer `List<Object>` because
       // that is the least upper bound of the element types. So we rarely
       // generate a plain `List<dynamic>` anymore.
-      if (!elementType.isDynamic) {
+      if (!elementType.isDynamic || isConst) {
         // dart.list helper internally depends on _interceptors.JSArray.
         _declareBeforeUse(_jsArray);
-        list = js.call('dart.list(#, #)', [list, _emitType(elementType)]);
+        var typeRep = _emitType(elementType);
+        var helper = (isConst) ? 'constList' : 'list';
+        list = js.call('dart.${helper}(#, #)', [list, typeRep]);
       }
       return list;
     }
-    if (node.constKeyword != null) return _emitConst(emitList);
+    if (isConst) return _cacheConst(emitList);
     return emitList();
   }
 
