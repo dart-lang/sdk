@@ -697,7 +697,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     _defineClass(classElem, className, classExpr, body);
 
     // Emit things that come after the ES6 `class ... { ... }`.
-    _setBaseClass(classElem, className, body);
+    var jsPeerName = _getJSPeerName(classElem);
+    _setBaseClass(classElem, className, jsPeerName, body);
     _defineNamedConstructors(ctors, body, className);
     _emitVirtualFieldSymbols(virtualFieldSymbols, body);
     _emitClassSignature(methods, classElem, ctors, extensions, className, body);
@@ -712,7 +713,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     body = <JS.Statement>[classDef];
     _emitStaticFields(staticFields, staticFieldOverrides, classElem, body);
-    _registerExtensionType(classElem, body);
+    _registerExtensionType(classElem, jsPeerName, body);
     return _statement(body);
   }
 
@@ -1141,30 +1142,24 @@ class CodeGenerator extends GeneralizingAstVisitor
     return jsPeerName;
   }
 
-  void _registerExtensionType(ClassElement classElem, List<JS.Statement> body) {
-    var jsPeerName = _getJSPeerName(classElem);
+  void _registerExtensionType(
+      ClassElement classElem, String jsPeerName, List<JS.Statement> body) {
     if (jsPeerName != null) {
-      // TODO(jmesserly): this copies the dynamic members.
-      // Probably fine for objects coming from JS, but not if we actually
-      // want to support construction of instances with generic types other
-      // than dynamic. See issue #154 for Array and List<E> related bug.
       body.add(js.statement('dart.registerExtension(dart.global.#, #);',
           [_propertyName(jsPeerName), _emitTopLevelName(classElem)]));
     }
   }
 
   void _setBaseClass(ClassElement classElem, JS.Expression className,
-      List<JS.Statement> body) {
-    String jsPeerName = _getJSPeerName(classElem);
-    JS.Expression newBaseClass;
+      String jsPeerName, List<JS.Statement> body) {
     if (jsPeerName != null && classElem.typeParameters.isNotEmpty) {
       // TODO(jmesserly): we should really just extend Array in the first place.
-      newBaseClass = js.call('dart.global.#', [jsPeerName]);
+      var newBaseClass = js.call('dart.global.#', [jsPeerName]);
+      body.add(js.statement(
+          'dart.setExtensionBaseClass(#, #);', [className, newBaseClass]));
     } else if (_hasDeferredSupertype.contains(classElem)) {
-      newBaseClass = _emitType(classElem.type.superclass,
+      var newBaseClass = _emitType(classElem.type.superclass,
           subClass: classElem, className: className);
-    }
-    if (newBaseClass != null) {
       body.add(
           js.statement('dart.setBaseClass(#, #);', [className, newBaseClass]));
     }

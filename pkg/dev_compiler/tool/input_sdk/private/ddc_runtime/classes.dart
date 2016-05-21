@@ -420,19 +420,23 @@ canonicalMember(obj, name) => JS('', '''(() => {
 })()''');
 
 /// Sets the type of `obj` to be `type`
-setType(obj, type) => JS('', '''(() => {
-  $obj.__proto__ = $type.prototype;
-  // TODO(vsm): This should be set in registerExtension, but that is only
-  // invoked on the generic type (e.g., JSArray<dynamic>, not JSArray<int>).
-  $obj.__proto__[$_extensionType] = $type;
-  return $obj;
-})()''');
+setType(obj, type) {
+  JS('', '#.__proto__ = #.prototype', obj, type);
+  return obj;
+}
 
 /// Sets the element type of a list literal.
 list(obj, elementType) =>
     JS('', '$setType($obj, ${getGenericClass(JSArray)}($elementType))');
 
-setBaseClass(derived, base) => JS('', '''(() => {
-  // Link the extension to the type it's extending as a base class.
-  $derived.prototype.__proto__ = $base.prototype;
-})()''');
+/// Link the extension to the type it's extending as a base class.
+setBaseClass(derived, base) {
+  JS('', '#.prototype.__proto__ = #.prototype', derived, base);
+}
+
+/// Like [setBaseClass] but for generic extension types, e.g. `JSArray<E>`
+setExtensionBaseClass(derived, base) {
+  // Mark the generic type as an extension type.
+  JS('', '#.prototype[#] = #', derived, _extensionType, derived);
+  setBaseClass(derived, base);
+}

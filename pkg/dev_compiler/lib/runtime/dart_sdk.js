@@ -272,7 +272,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.setType = function(obj, type) {
     obj.__proto__ = type.prototype;
-    obj.__proto__[dart._extensionType] = type;
     return obj;
   };
   dart.list = function(obj, elementType) {
@@ -280,6 +279,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.setBaseClass = function(derived, base) {
     derived.prototype.__proto__ = base.prototype;
+  };
+  dart.setExtensionBaseClass = function(derived, base) {
+    derived.prototype[dart._extensionType] = derived;
+    dart.setBaseClass(derived, base);
   };
   dart.throwCastError = function(actual, type) {
     dart.throw(new _js_helper.CastErrorImplementation(dart.typeName(actual), dart.typeName(type)));
@@ -2760,7 +2763,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
         return new (_internal.ListMapView$(E))(this);
       }
     }
-    dart.setBaseClass(JSArray, dart.global.Array);
+    dart.setExtensionBaseClass(JSArray, dart.global.Array);
     JSArray[dart.implements] = () => [core.List$(E), _interceptors.JSIndexable];
     dart.setSignature(JSArray, {
       constructors: () => ({
