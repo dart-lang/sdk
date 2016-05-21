@@ -3618,15 +3618,25 @@ class HideElementCombinatorImpl implements HideElementCombinator {
 class ImportElementImpl extends UriReferencedElementImpl
     implements ImportElement {
   /**
+   * The unlinked representation of the import in the summary.
+   */
+  final UnlinkedImport _unlinkedImport;
+
+  /**
+   * The index of the dependency in the `imports` list.
+   */
+  final int _linkedDependency;
+
+  /**
    * The offset of the prefix of this import in the file that contains the this
    * import directive, or `-1` if this import is synthetic.
    */
-  int prefixOffset = 0;
+  int _prefixOffset = 0;
 
   /**
    * The library that is imported into this library by this import directive.
    */
-  LibraryElement importedLibrary;
+  LibraryElement _importedLibrary;
 
   /**
    * The combinators that were specified as part of the import directive in the
@@ -3638,18 +3648,29 @@ class ImportElementImpl extends UriReferencedElementImpl
    * The prefix that was specified as part of the import directive, or `null` if
    * there was no prefix specified.
    */
-  PrefixElement prefix;
+  PrefixElement _prefix;
 
   /**
    * Initialize a newly created import element at the given [offset].
    * The offset may be `-1` if the import is synthetic.
    */
-  ImportElementImpl(int offset) : super(null, offset);
+  ImportElementImpl(int offset)
+      : _unlinkedImport = null,
+        _linkedDependency = null,
+        super(null, offset);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  ImportElementImpl.forSerialized(this._unlinkedImport, this._linkedDependency,
+      LibraryElementImpl enclosingLibrary)
+      : super.forSerialized(enclosingLibrary);
 
   /**
    * Set whether this import is for a deferred library.
    */
   void set deferred(bool isDeferred) {
+    assert(_unlinkedImport == null);
     setModifier(Modifier.DEFERRED, isDeferred);
   }
 
@@ -3657,10 +3678,154 @@ class ImportElementImpl extends UriReferencedElementImpl
   String get identifier => "${importedLibrary.identifier}@$nameOffset";
 
   @override
-  bool get isDeferred => hasModifier(Modifier.DEFERRED);
+  LibraryElement get importedLibrary {
+    if (_linkedDependency != null) {
+      if (_importedLibrary == null) {
+        LibraryElementImpl library = enclosingElement as LibraryElementImpl;
+        if (_linkedDependency == 0) {
+          _importedLibrary = library;
+        } else {
+          _importedLibrary = library.resynthesizerContext
+              .buildImportedLibrary(_linkedDependency);
+        }
+      }
+    }
+    return _importedLibrary;
+  }
+
+  void set importedLibrary(LibraryElement importedLibrary) {
+    assert(_unlinkedImport == null);
+    _importedLibrary = importedLibrary;
+  }
+
+  @override
+  bool get isDeferred {
+    if (_unlinkedImport != null) {
+      return _unlinkedImport.isDeferred;
+    }
+    return hasModifier(Modifier.DEFERRED);
+  }
+
+  @override
+  bool get isSynthetic {
+    if (_unlinkedImport != null) {
+      return _unlinkedImport.isImplicit;
+    }
+    return super.isSynthetic;
+  }
 
   @override
   ElementKind get kind => ElementKind.IMPORT;
+
+  @override
+  List<ElementAnnotation> get metadata {
+    if (_unlinkedImport != null) {
+      if (_metadata == null) {
+        CompilationUnitElementImpl definingUnit =
+            library.definingCompilationUnit as CompilationUnitElementImpl;
+        return _metadata ??= _unlinkedImport.annotations
+            .map((a) =>
+                definingUnit.resynthesizerContext.buildAnnotation(this, a))
+            .toList();
+      }
+    }
+    return super.metadata;
+  }
+
+  void set metadata(List<ElementAnnotation> metadata) {
+    assert(_unlinkedImport == null);
+    super.metadata = metadata;
+  }
+
+  @override
+  int get nameOffset {
+    if (_unlinkedImport != null) {
+      if (_unlinkedImport.isImplicit) {
+        return -1;
+      }
+      return _unlinkedImport.offset;
+    }
+    return super.nameOffset;
+  }
+
+  PrefixElement get prefix {
+    if (_unlinkedImport != null) {
+      if (_unlinkedImport.prefixReference != 0) {
+        LibraryElementImpl library = enclosingElement as LibraryElementImpl;
+        _prefix = new PrefixElementImpl.forSerialized(_unlinkedImport, library);
+      }
+    }
+    return _prefix;
+  }
+
+  void set prefix(PrefixElement prefix) {
+    assert(_unlinkedImport == null);
+    _prefix = prefix;
+  }
+
+  @override
+  int get prefixOffset {
+    if (_unlinkedImport != null) {
+      return _unlinkedImport.prefixOffset;
+    }
+    return _prefixOffset;
+  }
+
+  void set prefixOffset(int prefixOffset) {
+    assert(_unlinkedImport == null);
+    _prefixOffset = prefixOffset;
+  }
+
+  @override
+  String get uri {
+    if (_unlinkedImport != null) {
+      if (_unlinkedImport.isImplicit) {
+        return null;
+      }
+      return _unlinkedImport.uri;
+    }
+    return super.uri;
+  }
+
+  @override
+  void set uri(String uri) {
+    assert(_unlinkedImport == null);
+    super.uri = uri;
+  }
+
+  @override
+  int get uriEnd {
+    if (_unlinkedImport != null) {
+      if (_unlinkedImport.isImplicit) {
+        return -1;
+      }
+      return _unlinkedImport.uriEnd;
+    }
+    return super.uriEnd;
+  }
+
+  @override
+  void set uriEnd(int uriEnd) {
+    assert(_unlinkedImport == null);
+    super.uriEnd = uriEnd;
+  }
+
+  @override
+  int get uriOffset {
+    if (_unlinkedImport != null) {
+      if (_unlinkedImport.isImplicit) {
+        return -1;
+      }
+      return _unlinkedImport.uriOffset;
+    }
+    return super.uriOffset;
+  }
+
+  @override
+  void set uriOffset(int uriOffset) {
+    assert(_unlinkedImport == null);
+    super.uriOffset = uriOffset;
+  }
 
   @override
   accept(ElementVisitor visitor) => visitor.visitImportElement(this);
@@ -4428,6 +4593,8 @@ abstract class LibraryResynthesizerContext {
    * Return the export namespace of the library.
    */
   Namespace buildExportNamespace();
+
+  LibraryElement buildImportedLibrary(int dependency);
 
   /**
    * Return the public namespace of the library.
@@ -5486,15 +5653,34 @@ abstract class ParameterElementMixin implements ParameterElement {
  */
 class PrefixElementImpl extends ElementImpl implements PrefixElement {
   /**
+   * The unlinked representation of the import in the summary.
+   */
+  final UnlinkedImport _unlinkedImport;
+
+  /**
    * Initialize a newly created method element to have the given [name] and
    * [nameOffset].
    */
-  PrefixElementImpl(String name, int nameOffset) : super(name, nameOffset);
+  PrefixElementImpl(String name, int nameOffset)
+      : _unlinkedImport = null,
+        super(name, nameOffset);
 
   /**
    * Initialize a newly created prefix element to have the given [name].
    */
-  PrefixElementImpl.forNode(Identifier name) : super.forNode(name);
+  PrefixElementImpl.forNode(Identifier name)
+      : _unlinkedImport = null,
+        super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  PrefixElementImpl.forSerialized(
+      this._unlinkedImport, LibraryElementImpl enclosingLibrary)
+      : super.forSerialized(enclosingLibrary);
+
+  @override
+  String get displayName => name;
 
   @override
   LibraryElement get enclosingElement =>
@@ -5508,6 +5694,26 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
 
   @override
   ElementKind get kind => ElementKind.PREFIX;
+
+  @override
+  String get name {
+    if (_unlinkedImport != null) {
+      if (_name == null) {
+        LibraryElementImpl library = enclosingElement as LibraryElementImpl;
+        int prefixId = _unlinkedImport.prefixReference;
+        return _name = library._unlinkedDefiningUnit.references[prefixId].name;
+      }
+    }
+    return super.name;
+  }
+
+  @override
+  int get nameOffset {
+    if (_unlinkedImport != null) {
+      return _unlinkedImport.prefixOffset;
+    }
+    return super.nameOffset;
+  }
 
   @override
   accept(ElementVisitor visitor) => visitor.visitPrefixElement(this);

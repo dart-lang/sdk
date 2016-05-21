@@ -1082,9 +1082,10 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   void compareUriReferencedElements(UriReferencedElementImpl resynthesized,
       UriReferencedElementImpl original, String desc) {
     compareElements(resynthesized, original, desc);
-    expect(resynthesized.uri, original.uri);
-    expect(resynthesized.uriOffset, original.uriOffset, reason: desc);
-    expect(resynthesized.uriEnd, original.uriEnd, reason: desc);
+    expect(resynthesized.uri, original.uri, reason: '$desc uri');
+    expect(resynthesized.uriOffset, original.uriOffset,
+        reason: '$desc uri uriOffset');
+    expect(resynthesized.uriEnd, original.uriEnd, reason: '$desc uriEnd');
   }
 
   void compareVariableElements(

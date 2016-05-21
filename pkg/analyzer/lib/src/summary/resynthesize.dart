@@ -1195,37 +1195,8 @@ class _LibraryResynthesizer {
       UnlinkedImport serializedImport,
       int dependency,
       LibraryElement libraryBeingResynthesized) {
-    bool isSynthetic = serializedImport.isImplicit;
-    ImportElementImpl importElement =
-        new ImportElementImpl(isSynthetic ? -1 : serializedImport.offset);
-    if (dependency == 0) {
-      importElement.importedLibrary = libraryBeingResynthesized;
-    } else {
-      String absoluteUri = summaryResynthesizer.sourceFactory
-          .resolveUri(librarySource, linkedLibrary.dependencies[dependency].uri)
-          .uri
-          .toString();
-      importElement.importedLibrary = new LibraryElementHandle(
-          summaryResynthesizer,
-          new ElementLocationImpl.con3(<String>[absoluteUri]));
-    }
-    if (isSynthetic) {
-      importElement.synthetic = true;
-    } else {
-      importElement.uri = serializedImport.uri;
-      importElement.uriOffset = serializedImport.uriOffset;
-      importElement.uriEnd = serializedImport.uriEnd;
-      importElement.deferred = serializedImport.isDeferred;
-      definingUnitResynthesizer.buildAnnotations(
-          importElement, serializedImport.annotations);
-    }
-    importElement.prefixOffset = serializedImport.prefixOffset;
-    if (serializedImport.prefixReference != 0) {
-      UnlinkedReference serializedPrefix =
-          unlinkedUnits[0].references[serializedImport.prefixReference];
-      importElement.prefix = new PrefixElementImpl(
-          serializedPrefix.name, serializedImport.prefixOffset);
-    }
+    ImportElementImpl importElement = new ImportElementImpl.forSerialized(
+        serializedImport, dependency, library);
     importElement.combinators =
         serializedImport.combinators.map(buildCombinator).toList();
     return importElement;
@@ -1401,6 +1372,17 @@ class _LibraryResynthesizerContext implements LibraryResynthesizerContext {
     LibraryElementImpl library = resynthesizer.library;
     return resynthesizer.buildExportNamespace(
         library.publicNamespace, resynthesizer.linkedLibrary.exportNames);
+  }
+
+  @override
+  LibraryElement buildImportedLibrary(int dependency) {
+    String depUri = resynthesizer.linkedLibrary.dependencies[dependency].uri;
+    String absoluteUri = resynthesizer.summaryResynthesizer.sourceFactory
+        .resolveUri(resynthesizer.librarySource, depUri)
+        .uri
+        .toString();
+    return new LibraryElementHandle(resynthesizer.summaryResynthesizer,
+        new ElementLocationImpl.con3(<String>[absoluteUri]));
   }
 
   @override
