@@ -3976,6 +3976,11 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   Namespace _publicNamespace;
 
   /**
+   * A bit-encoded form of the capabilities associated with this library.
+   */
+  int _resolutionCapabilities = 0;
+
+  /**
    * Initialize a newly created library element in the given [context] to have
    * the given [name] and [offset].
    */
@@ -4002,6 +4007,10 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       : super.forSerialized(null) {
     _name = name;
     _nameOffset = offset;
+    setResolutionCapability(
+        LibraryResolutionCapability.resolvedTypeNames, true);
+    setResolutionCapability(
+        LibraryResolutionCapability.constantExpressions, true);
   }
 
   @override
@@ -4507,6 +4516,16 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return _safeIsUpToDate(this, timeStamp, visitedLibraries);
   }
 
+  /**
+   * Set whether the library has the given [capability] to
+   * correspond to the given [value].
+   */
+  void setResolutionCapability(
+      LibraryResolutionCapability capability, bool value) {
+    _resolutionCapabilities =
+        BooleanArray.set(_resolutionCapabilities, capability.index, value);
+  }
+
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
@@ -4547,6 +4566,15 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   /**
+   * Return `true` if the [library] has the given [capability].
+   */
+  static bool hasResolutionCapability(
+      LibraryElement library, LibraryResolutionCapability capability) {
+    return library is LibraryElementImpl &&
+        BooleanArray.get(library._resolutionCapabilities, capability.index);
+  }
+
+  /**
    * Return `true` if the given [library] is up to date with respect to the
    * given [timeStamp]. The set of [visitedLibraries] is used to prevent
    * infinite recursion in the case of mutually dependent libraries.
@@ -4583,6 +4611,22 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     }
     return true;
   }
+}
+
+/**
+ * Enum of possible resolution capabilities that a [LibraryElementImpl] has.
+ */
+enum LibraryResolutionCapability {
+  /**
+   * All elements have their types resolved.
+   */
+  resolvedTypeNames,
+
+  /**
+   * All (potentially) constants expressions are set into corresponding
+   * elements.
+   */
+  constantExpressions,
 }
 
 /**

@@ -6301,8 +6301,11 @@ class ResolverVisitor extends ScopedVisitor {
     }
     // Clone the ASTs for default formal parameters, so that we can use them
     // during constant evaluation.
-    (element as ConstVariableElement).constantInitializer =
-        new ConstantAstCloner().cloneNode(node.defaultValue);
+    if (!LibraryElementImpl.hasResolutionCapability(
+        definingLibrary, LibraryResolutionCapability.constantExpressions)) {
+      (element as ConstVariableElement).constantInitializer =
+          new ConstantAstCloner().cloneNode(node.defaultValue);
+    }
     return null;
   }
 
@@ -9190,15 +9193,20 @@ class TypeParameterBoundsResolver {
       for (TypeParameter typeParameter in typeParameters.typeParameters) {
         TypeName bound = typeParameter.bound;
         if (bound != null) {
-          libraryScope ??= new LibraryScope(library, errorListener);
-          typeParametersScope ??= createTypeParametersScope();
-          typeNameResolver ??= new TypeNameResolver(new TypeSystemImpl(),
-              typeProvider, library, source, errorListener);
-          typeNameResolver.nameScope = typeParametersScope;
-          _resolveTypeName(bound);
           Element typeParameterElement = typeParameter.name.staticElement;
           if (typeParameterElement is TypeParameterElementImpl) {
-            typeParameterElement.bound = bound.type;
+            if (LibraryElementImpl.hasResolutionCapability(
+                library, LibraryResolutionCapability.resolvedTypeNames)) {
+              bound.type = typeParameterElement.bound;
+            } else {
+              libraryScope ??= new LibraryScope(library, errorListener);
+              typeParametersScope ??= createTypeParametersScope();
+              typeNameResolver ??= new TypeNameResolver(new TypeSystemImpl(),
+                  typeProvider, library, source, errorListener);
+              typeNameResolver.nameScope = typeParametersScope;
+              _resolveTypeName(bound);
+              typeParameterElement.bound = bound.type;
+            }
           }
         }
       }
