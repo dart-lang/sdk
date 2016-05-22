@@ -3750,7 +3750,7 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   PrefixElement get prefix {
     if (_unlinkedImport != null) {
-      if (_unlinkedImport.prefixReference != 0) {
+      if (_unlinkedImport.prefixReference != 0 && _prefix == null) {
         LibraryElementImpl library = enclosingElement as LibraryElementImpl;
         _prefix = new PrefixElementImpl.forSerialized(_unlinkedImport, library);
       }
@@ -3981,6 +3981,11 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   int _resolutionCapabilities = 0;
 
   /**
+   * The cached list of prefixes.
+   */
+  List<PrefixElement> _prefixes;
+
+  /**
    * Initialize a newly created library element in the given [context] to have
    * the given [name] and [offset].
    */
@@ -4168,6 +4173,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       }
     }
     this._imports = imports;
+    this._prefixes = null;
   }
 
   @override
@@ -4340,14 +4346,17 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<PrefixElement> get prefixes {
-    HashSet<PrefixElement> prefixes = new HashSet<PrefixElement>();
-    for (ImportElement element in _imports) {
-      PrefixElement prefix = element.prefix;
-      if (prefix != null) {
-        prefixes.add(prefix);
+    if (_prefixes == null) {
+      HashSet<PrefixElement> prefixes = new HashSet<PrefixElement>();
+      for (ImportElement element in _imports) {
+        PrefixElement prefix = element.prefix;
+        if (prefix != null) {
+          prefixes.add(prefix);
+        }
       }
+      _prefixes = prefixes.toList();
     }
-    return new List.from(prefixes);
+    return _prefixes;
   }
 
   @override
