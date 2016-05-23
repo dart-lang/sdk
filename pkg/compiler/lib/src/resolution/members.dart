@@ -1824,7 +1824,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       return const NoneResult();
     }
     MembersCreator.computeClassMembersByName(
-        compiler, receiverClass.declaration, name);
+        resolution, receiverClass.declaration, name);
     Element member = receiverClass.lookupLocalMember(name);
     if (member == null) {
       return handleUnresolvedStaticMemberAccess(
@@ -1849,7 +1849,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     String name = memberName.text;
     receiverClass.ensureResolved(resolution);
     MembersCreator.computeClassMembersByName(
-        compiler, receiverClass.declaration, name);
+        resolution, receiverClass.declaration, name);
     Element member = receiverClass.lookupLocalMember(name);
     if (member == null) {
       return handleUnresolvedStaticMemberUpdate(

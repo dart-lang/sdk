@@ -716,7 +716,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     // Lookup the class or interface member [name] in [interface].
     MemberSignature lookupMemberSignature(Name name, InterfaceType interface) {
       MembersCreator.computeClassMembersByName(
-          compiler, interface.element, name.text);
+          resolution, interface.element, name.text);
       return lookupClassMember || analyzingInitializer
           ? interface.lookupClassMember(name)
           : interface.lookupInterfaceMember(name);
@@ -799,7 +799,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           }
         }
         // TODO(johnniwinther): Avoid computation of all class members.
-        MembersCreator.computeAllClassMembers(compiler, interface.element);
+        MembersCreator.computeAllClassMembers(resolution, interface.element);
         if (lookupClassMember) {
           interface.element.forEachClassMember(findPrivateMember);
         } else {

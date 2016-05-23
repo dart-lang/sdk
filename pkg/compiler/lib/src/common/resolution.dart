@@ -7,8 +7,8 @@ library dart2js.common.resolution;
 import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart' show ConstantExpression;
-import '../core_types.dart' show CoreTypes;
-import '../dart_types.dart' show DartType, InterfaceType;
+import '../core_types.dart' show CoreClasses, CoreTypes;
+import '../dart_types.dart' show DartType, InterfaceType, Types;
 import '../elements/elements.dart'
     show
         AstElement,
@@ -17,6 +17,7 @@ import '../elements/elements.dart'
         ExecutableElement,
         FunctionElement,
         FunctionSignature,
+        LibraryElement,
         MetadataAnnotation,
         ResolvedAst,
         TypedefElement;
@@ -195,11 +196,22 @@ abstract class Frontend {
   ResolutionImpact getResolutionImpact(Element element);
 }
 
+/// Interface defining target-specific behavior for resolution.
+abstract class Target {
+  /// Returns `true` if [library] is a target specific library whose members
+  /// have special treatment, such as being allowed to extends blacklisted
+  /// classes or members being eagerly resolved.
+  bool isTargetSpecificLibrary(LibraryElement element);
+}
+
 // TODO(johnniwinther): Rename to `Resolver` or `ResolverContext`.
 abstract class Resolution implements Frontend {
   ParsingContext get parsingContext;
   DiagnosticReporter get reporter;
+  CoreClasses get coreClasses;
   CoreTypes get coreTypes;
+  Types get types;
+  Target get target;
 
   /// If set to `true` resolution caches will not be cleared. Use this only for
   /// testing.

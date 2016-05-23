@@ -15,7 +15,12 @@ import 'common/names.dart' show Selectors;
 import 'common/names.dart' show Identifiers, Uris;
 import 'common/registry.dart' show EagerRegistry, Registry;
 import 'common/resolution.dart'
-    show ParsingContext, Resolution, ResolutionWorkItem, ResolutionImpact;
+    show
+        ParsingContext,
+        Resolution,
+        ResolutionWorkItem,
+        ResolutionImpact,
+        Target;
 import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
 import 'common/work.dart' show ItemCompilationContext, WorkItem;
 import 'common.dart';
@@ -1033,7 +1038,7 @@ abstract class Compiler implements LibraryLoaderListener {
       if (identical(e.kind, ElementKind.GENERATIVE_CONSTRUCTOR)) {
         resolved.remove(e);
       }
-      if (backend.isBackendLibrary(e.library)) {
+      if (backend.isTargetSpecificLibrary(e.library)) {
         resolved.remove(e);
       }
     }
@@ -1557,6 +1562,9 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     }
   }
 
+  @override
+  bool get hasReportedError => compiler.compilationFailed;
+
   /**
    * Perform an operation, [f], returning the return value from [f].  If an
    * error occurs then report it as having occurred during compilation of
@@ -1886,7 +1894,16 @@ class _CompilerResolution implements Resolution {
   ParsingContext get parsingContext => compiler.parsingContext;
 
   @override
+  CoreClasses get coreClasses => compiler.coreClasses;
+
+  @override
   CoreTypes get coreTypes => compiler.coreTypes;
+
+  @override
+  Types get types => compiler.types;
+
+  @override
+  Target get target => compiler.backend;
 
   @override
   void registerClass(ClassElement cls) {

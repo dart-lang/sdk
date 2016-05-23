@@ -238,7 +238,14 @@ main() => new C();'''
     'main.dart': '''
 main() => const Duration();
 ''',
-  })
+  }),
+
+  const Test(const {
+    'main.dart': '''
+import 'dart:collection';
+main() => new UnmodifiableListView(null);
+''',
+  }),
 ];
 
 class Test {

@@ -73,4 +73,7 @@ abstract class DiagnosticReporterWrapper extends DiagnosticReporter {
   withCurrentElement(Element element, f()) {
     return reporter.withCurrentElement(element, f);
   }
+
+  @override
+  bool get hasReportedError => reporter.hasReportedError;
 }

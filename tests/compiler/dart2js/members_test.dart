@@ -219,7 +219,7 @@ void testClassMembers() {
                 functionType: env.functionType(String_, []));
 
     InterfaceType A = env['A'];
-    MembersCreator.computeAllClassMembers(env.compiler, A.element);
+    MembersCreator.computeAllClassMembers(env.resolution, A.element);
 
     checkMemberCount(A, 5 /*inherited*/ + 9 /*non-static declared*/,
                      interfaceMembers: true);
@@ -264,7 +264,7 @@ void testClassMembers() {
                 isStatic: true, functionType: env.functionType(dynamic_, []));
 
     ClassElement B = env.getElement('B');
-    MembersCreator.computeAllClassMembers(env.compiler, B);
+    MembersCreator.computeAllClassMembers(env.resolution, B);
     InterfaceType B_this = B.thisType;
     TypeVariableType B_T = B_this.typeArguments.first;
     checkMemberCount(B_this, 4 /*inherited*/ + 4 /*non-static declared*/,
@@ -290,7 +290,7 @@ void testClassMembers() {
                                                optionalParameters: [B_T]));
 
     ClassElement C = env.getElement('C');
-    MembersCreator.computeAllClassMembers(env.compiler, C);
+    MembersCreator.computeAllClassMembers(env.resolution, C);
     InterfaceType C_this = C.thisType;
     TypeVariableType C_S = C_this.typeArguments.first;
     checkMemberCount(C_this, 8 /*inherited*/, interfaceMembers: true);
@@ -317,7 +317,7 @@ void testClassMembers() {
                                                optionalParameters: [C_S]));
 
     InterfaceType D = env['D'];
-    MembersCreator.computeAllClassMembers(env.compiler, D.element);
+    MembersCreator.computeAllClassMembers(env.resolution, D.element);
     checkMemberCount(D, 8 /*inherited*/, interfaceMembers: true);
     checkMemberCount(D, 8 /*inherited*/, interfaceMembers: false);
     InterfaceType B_int = instantiate(B, [int_]);
@@ -342,7 +342,7 @@ void testClassMembers() {
                                                optionalParameters: [int_]));
 
     InterfaceType E = env['E'];
-    MembersCreator.computeAllClassMembers(env.compiler, E.element);
+    MembersCreator.computeAllClassMembers(env.resolution, E.element);
     checkMemberCount(E, 8 /*inherited*/, interfaceMembers: true);
     checkMemberCount(E, 8 /*inherited*/, interfaceMembers: false);
 
@@ -425,7 +425,7 @@ void testInterfaceMembers() {
     InterfaceType D = env['D'];
 
     // Ensure that members have been computed on all classes.
-    MembersCreator.computeAllClassMembers(env.compiler, D.element);
+    MembersCreator.computeAllClassMembers(env.resolution, D.element);
 
     // A: num method1()
     // B: int method1()
@@ -593,7 +593,7 @@ void testClassVsInterfaceMembers() {
     InterfaceType C = env['C'];
 
     // Ensure that members have been computed on all classes.
-    MembersCreator.computeAllClassMembers(env.compiler, C.element);
+    MembersCreator.computeAllClassMembers(env.resolution, C.element);
 
     // A: method1()
     // B: method1()
@@ -654,7 +654,7 @@ void testMixinMembers() {
     InterfaceType B_V = instantiate(B, [C_V]);
 
     // Ensure that members have been computed on all classes.
-    MembersCreator.computeAllClassMembers(env.compiler, C);
+    MembersCreator.computeAllClassMembers(env.resolution, C);
 
     // A: method1()
     // B: method1()
@@ -725,7 +725,7 @@ void testMixinMembersWithoutImplements() {
     InterfaceType C = env['C'];
 
     // Ensure that members have been computed on all classes.
-    MembersCreator.computeAllClassMembers(env.compiler, C.element);
+    MembersCreator.computeAllClassMembers(env.resolution, C.element);
 
     checkMember(C, 'm', checkType: NO_CLASS_MEMBER,
                 inheritedFrom: A,

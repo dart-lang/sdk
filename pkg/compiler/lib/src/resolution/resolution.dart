@@ -417,8 +417,7 @@ class ResolverTask extends CompilerTask {
     return result;
   }
 
-  void resolveRedirectionChain(
-      ConstructorElement constructor, Spannable node) {
+  void resolveRedirectionChain(ConstructorElement constructor, Spannable node) {
     ConstructorElement target = constructor;
     InterfaceType targetType;
     List<Element> seen = new List<Element>();
@@ -429,8 +428,8 @@ class ResolverTask extends CompilerTask {
         // We found a constructor that already has been processed.
         // TODO(johnniwinther): Should `effectiveTargetType` be part of the
         // interface?
-        targetType = target.computeEffectiveTargetType(
-            target.enclosingClass.thisType);
+        targetType =
+            target.computeEffectiveTargetType(target.enclosingClass.thisType);
         assert(invariant(target, targetType != null,
             message: 'Redirection target type has not been computed for '
                 '$target'));
@@ -668,11 +667,11 @@ class ResolverTask extends CompilerTask {
   }
 
   void computeClassMembers(ClassElement element) {
-    MembersCreator.computeAllClassMembers(compiler, element);
+    MembersCreator.computeAllClassMembers(resolution, element);
   }
 
   void computeClassMember(ClassElement element, String name) {
-    MembersCreator.computeClassMembersByName(compiler, element, name);
+    MembersCreator.computeClassMembersByName(resolution, element, name);
   }
 
   void checkClass(ClassElement element) {
