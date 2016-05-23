@@ -47,7 +47,7 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
 
   parser
     ..addFlag("help",
-        abbr: "h", negatable: false, help: "Shows usage information.")
+        abbr: "h", negatable: false, help: "Show usage information.")
     ..addFlag("stats",
         abbr: "s", negatable: false, help: "Show lint statistics.")
     ..addFlag('visit-transitive-closure',
@@ -59,12 +59,15 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
         negatable: false)
     ..addOption('config', abbr: 'c', help: 'Use configuration from this file.')
     ..addOption('dart-sdk', help: 'Custom path to a Dart SDK.')
-    ..addOption('lints', help: 'A list of lints to run.', allowMultiple: true)
-    ..addOption('packages',
+    ..addOption('lints',
         help:
-            'Path to the package resolution configuration file, which supplies '
-            'a mapping of package names to paths.  This option cannot be used '
-            'with --package-root.')
+            'A list of lint rules to run. For example: '
+            'avoid_as,annotate_overrides',
+        allowMultiple: true)
+    ..addOption('packages',
+        help: 'Path to the package resolution configuration file, which\n'
+            'supplies a mapping of package names to paths.  This option\n'
+            'cannot be used with --package-root.')
     ..addOption('package-root',
         abbr: 'p', help: 'Custom package root. (Discouraged.)');
 
