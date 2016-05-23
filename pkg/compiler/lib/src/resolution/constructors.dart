@@ -719,17 +719,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
   ConstructorResult constructorResultForType(Node node, DartType type,
       {PrefixElement prefix}) {
     String name = type.name;
-    if (type.isTypeVariable) {
-      return reportAndCreateErroneousConstructorElement(
-          node,
-          ConstructorResultKind.INVALID_TYPE,
-          type,
-          resolver.enclosingElement,
-          name,
-          MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
-          {'typeVariableName': name});
-    } else if (type.isMalformed) {
-      // `type is MalformedType`: `MethodTypeVariableType` is handled above.
+    if (type.isMalformed) {
       return new ConstructorResult.forError(
           ConstructorResultKind.INVALID_TYPE, type.element, type);
     } else if (type.isInterfaceType) {
@@ -743,6 +733,15 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
           name,
           MessageKind.CANNOT_INSTANTIATE_TYPEDEF,
           {'typedefName': name});
+    } else if (type.isTypeVariable) {
+      return reportAndCreateErroneousConstructorElement(
+          node,
+          ConstructorResultKind.INVALID_TYPE,
+          type,
+          resolver.enclosingElement,
+          name,
+          MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
+          {'typeVariableName': name});
     }
     return reporter.internalError(node, "Unexpected constructor type $type");
   }

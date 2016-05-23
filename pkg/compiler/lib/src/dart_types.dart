@@ -10,7 +10,7 @@ import 'common/resolution.dart' show Resolution;
 import 'common.dart';
 import 'core_types.dart';
 import 'elements/elements.dart';
-import 'elements/modelx.dart' show TypeDeclarationElementX, ErroneousElementX;
+import 'elements/modelx.dart' show TypeDeclarationElementX;
 import 'ordered_typeset.dart' show OrderedTypeSet;
 import 'util/util.dart' show equalElements;
 
@@ -124,7 +124,7 @@ abstract class DartType {
   bool get isTypeVariable => kind == TypeKind.TYPE_VARIABLE;
 
   /// Is [: true :] if this type is a malformed type.
-  bool get isMalformed => false;
+  bool get isMalformed => kind == TypeKind.MALFORMED_TYPE;
 
   /// Is `true` if this type is declared by an enum.
   bool get isEnumType => false;
@@ -164,15 +164,6 @@ abstract class DartType {
       type.accept(visitor, argument);
     }
   }
-
-  /// Returns a [DartType] which corresponds to [this] except that each
-  /// contained [MethodTypeVariableType] is replaced by a [DynamicType].
-  /// GENERIC_METHODS: Temporary, only used with '--generic-method-syntax'.
-  DartType get dynamifyMethodTypeVariableType => this;
-
-  /// Returns true iff [this] is or contains a [MethodTypeVariableType].
-  /// GENERIC_METHODS: Temporary, only used with '--generic-method-syntax'
-  bool get containsMethodTypeVariableType => false;
 }
 
 /**
@@ -241,25 +232,6 @@ class TypeVariableType extends DartType {
   }
 
   String toString() => name;
-}
-
-/// Provides a thin model of method type variables: They are treated as if
-/// their value were `dynamic` when used in a type annotation, and as a
-/// malformed type when used in an `as` or `is` expression.
-class MethodTypeVariableType extends TypeVariableType {
-  MethodTypeVariableType(TypeVariableElement element) : super(element);
-
-  @override
-  bool get treatAsDynamic => true;
-
-  @override
-  bool get isMalformed => true;
-
-  @override
-  DartType get dynamifyMethodTypeVariableType => const DynamicType();
-
-  @override
-  get containsMethodTypeVariableType => true;
 }
 
 /// Internal type representing the result of analyzing a statement.
@@ -341,9 +313,6 @@ class MalformedType extends DartType {
   // Malformed types are treated as dynamic.
   bool get treatAsDynamic => true;
 
-  @override
-  bool get isMalformed => true;
-
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitMalformedType(this, argument);
   }
@@ -372,13 +341,9 @@ abstract class GenericType extends DartType {
   final TypeDeclarationElement element;
   final List<DartType> typeArguments;
 
-  GenericType(TypeDeclarationElement element, List<DartType> typeArguments,
+  GenericType(TypeDeclarationElement element, this.typeArguments,
       {bool checkTypeArgumentCount: true})
-      : this.element = element,
-        this.typeArguments = typeArguments,
-        this.containsMethodTypeVariableType =
-            typeArguments.any(_typeContainsMethodTypeVariableType)
-  {
+      : this.element = element {
     assert(invariant(CURRENT_ELEMENT_SPANNABLE, element != null,
         message: "Missing element for generic type."));
     assert(invariant(element, () {
@@ -438,17 +403,6 @@ abstract class GenericType extends DartType {
       sb.write('>');
     }
     return sb.toString();
-  }
-
-  @override
-  final bool containsMethodTypeVariableType;
-
-  @override
-  DartType get dynamifyMethodTypeVariableType {
-    if (!containsMethodTypeVariableType) return this;
-    List<DartType> newTypeArguments = typeArguments.map(
-        (DartType type) => type.dynamifyMethodTypeVariableType).toList();
-    return createInstantiation(newTypeArguments);
   }
 
   int get hashCode {
@@ -632,21 +586,11 @@ class FunctionType extends DartType {
   }
 
   FunctionType.internal(FunctionTypedElement this.element,
-      [DartType returnType = const DynamicType(),
-      List<DartType> parameterTypes = const <DartType>[],
-      List<DartType> optionalParameterTypes = const <DartType>[],
-      List<String> namedParameters = const <String>[],
-      List<DartType> namedParameterTypes = const <DartType>[]])
-      : this.returnType = returnType,
-        this.parameterTypes = parameterTypes,
-        this.optionalParameterTypes = optionalParameterTypes,
-        this.namedParameters = namedParameters,
-        this.namedParameterTypes = namedParameterTypes,
-        this.containsMethodTypeVariableType =
-          returnType.containsMethodTypeVariableType ||
-          parameterTypes.any(_typeContainsMethodTypeVariableType) ||
-          optionalParameterTypes.any(_typeContainsMethodTypeVariableType) ||
-          namedParameterTypes.any(_typeContainsMethodTypeVariableType) {
+      [DartType this.returnType = const DynamicType(),
+      this.parameterTypes = const <DartType>[],
+      this.optionalParameterTypes = const <DartType>[],
+      this.namedParameters = const <String>[],
+      this.namedParameterTypes = const <DartType>[]]) {
     assert(invariant(
         CURRENT_ELEMENT_SPANNABLE, element == null || element.isDeclaration));
     // Assert that optional and named parameters are not used at the same time.
@@ -774,28 +718,6 @@ class FunctionType extends DartType {
 
   int computeArity() => parameterTypes.length;
 
-  @override
-  DartType get dynamifyMethodTypeVariableType {
-    if (!containsMethodTypeVariableType) return this;
-    DartType eraseIt(DartType type) => type.dynamifyMethodTypeVariableType;
-    DartType newReturnType = returnType.dynamifyMethodTypeVariableType;
-    List<DartType> newParameterTypes = parameterTypes.map(eraseIt).toList();
-    List<DartType> newOptionalParameterTypes =
-        optionalParameterTypes.map(eraseIt).toList();
-    List<DartType> newNamedParameterTypes =
-        namedParameterTypes.map(eraseIt).toList();
-    return new FunctionType.internal(
-        element,
-        newReturnType,
-        newParameterTypes,
-        newOptionalParameterTypes,
-        namedParameters,
-        newNamedParameterTypes);
-  }
-
-  @override
-  final bool containsMethodTypeVariableType;
-
   int get hashCode {
     int hash = 3 * returnType.hashCode;
     for (DartType parameter in parameterTypes) {
@@ -822,9 +744,6 @@ class FunctionType extends DartType {
         equalElements(namedParameterTypes, other.namedParameterTypes);
   }
 }
-
-bool _typeContainsMethodTypeVariableType(DartType type) =>
-    type.containsMethodTypeVariableType;
 
 class TypedefType extends GenericType {
   DartType _unaliased;
@@ -1428,15 +1347,6 @@ class Types implements DartTypes {
   static ClassElement getClassContext(DartType type) {
     TypeVariableType typeVariable = type.typeVariableOccurrence;
     if (typeVariable == null) return null;
-    // GENERIC_METHODS: When generic method support is complete enough to
-    // include a runtime value for method type variables this must be updated.
-    // For full support the global assumption that all type variables are
-    // declared by the same enclosing class will not hold: Both an enclosing
-    // method and an enclosing class may define type variables, so the return
-    // type cannot be [ClassElement] and the caller must be prepared to look in
-    // two locations, not one. Currently we ignore method type variables by
-    // returning in the next statement.
-    if (typeVariable.element.typeDeclaration is! ClassElement) return null;
     return typeVariable.element.typeDeclaration;
   }
 

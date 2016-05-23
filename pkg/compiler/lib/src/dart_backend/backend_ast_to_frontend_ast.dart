@@ -495,8 +495,7 @@ class TreePrinter {
           : makeFunctionBody(exp.body);
       result = new tree.FunctionExpression(
           constructorName(exp),
-          // GENERIC_METHODS: In order to support generic methods fully,
-          // we must retrieve and pass the actual type variables here.
+          // TODO(eernst): retrieve and pass the actual type variables.
           null, // typeVariables
           parameters,
           body,
@@ -517,8 +516,7 @@ class TreePrinter {
       tree.Node body = makeFunctionBody(exp.body);
       result = new tree.FunctionExpression(
           functionName(exp),
-          // GENERIC_METHODS: In order to support generic methods fully,
-          // we must retrieve and pass the actual type variables here.
+          // TODO(eernst): retrieve and pass the actual type variables.
           null, // typeVariables
           parameters,
           body,
@@ -804,8 +802,7 @@ class TreePrinter {
     } else if (stmt is FunctionDeclaration) {
       tree.FunctionExpression function = new tree.FunctionExpression(
           stmt.name != null ? makeIdentifier(stmt.name) : null,
-          // GENERIC_METHODS: In order to support generic methods fully,
-          // we must retrieve and pass the actual type variables here.
+          // TODO(eernst): retrieve and pass the actual type variables.
           null, // typeVariables
           makeParameters(stmt.parameters),
           makeFunctionBody(stmt.body),
@@ -974,8 +971,7 @@ class TreePrinter {
     if (param.isFunction) {
       tree.Node definition = new tree.FunctionExpression(
           makeIdentifier(param.name),
-          // GENERIC_METHODS: In order to support generic methods fully,
-          // we must retrieve and pass the actual type variables here.
+          // TODO(eernst): retrieve and pass the actual type variables.
           null, // typeVariables
           makeParameters(param.parameters),
           null, // body

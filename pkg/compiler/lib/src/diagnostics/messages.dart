@@ -430,7 +430,6 @@ enum MessageKind {
   TYPE_ARGUMENT_COUNT_MISMATCH,
   TYPE_VARIABLE_IN_CONSTANT,
   TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
-  TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED,
   TYPEDEF_FORMAL_WITH_DEFAULT,
   UNARY_OPERATOR_BAD_ARITY,
   UNBOUND_LABEL,
@@ -1152,38 +1151,6 @@ class C<T> {
 void main() => new C().m(null);
 """
           ]),
-
-      MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED: const MessageTemplate(
-          MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED,
-          "Method type variables are not reified.",
-          howToFix: "Try using the intended upper bound of the "
-              "type variable, or dynamic."
-// TODO(eernst): These examples should be commented in with an `options:`
-// specifying "--generic-method-syntax" and made to work; moreover, the
-// compiler/dart2js test 'generic_method_type_usage' should be transformed to
-// similar examples of the relevant `MessageKind` entries.
-//
-//        examples: const [
-//            """
-// // Method type variables are not reified, so they cannot be returned.
-// Type f<T>() => T;
-//
-// main() => f<int>();
-// """,
-//            """
-// // Method type variables are not reified, so they cannot be tested dynamically.
-// bool f<T>(Object o) => o is T;
-//
-// main() => f<int>(42);
-// """,
-//            """
-// // Method type variables are not reified, so they cannot be tested dynamically.
-// bool f<T>(Object o) => o as T;
-//
-// main() => f<int>(42);
-// """
-//    ]
-      ),
 
       MessageKind.INVALID_TYPE_VARIABLE_BOUND: const MessageTemplate(
           MessageKind.INVALID_TYPE_VARIABLE_BOUND,

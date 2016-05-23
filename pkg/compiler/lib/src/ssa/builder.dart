@@ -2578,17 +2578,13 @@ class SsaBuilder extends ast.Visitor
             "${localsHandler.contextClass}.");
   }
 
-  /// Build a [HTypeConversion] for converting [original] to type [type].
+  /// Build a [HTypeConversion] for convertion [original] to type [type].
   ///
   /// Invariant: [type] must be valid in the context.
   /// See [LocalsHandler.substInContext].
   HInstruction buildTypeConversion(
       HInstruction original, DartType type, int kind) {
     if (type == null) return original;
-    // GENERIC_METHODS: The following statement was added for parsing and
-    // ignoring method type variables; must be generalized for full support of
-    // generic methods.
-    type = type.dynamifyMethodTypeVariableType;
     type = type.unaliased;
     assert(assertTypeInContext(type, original));
     if (type.isInterfaceType && !type.treatAsRaw) {
@@ -3809,15 +3805,8 @@ class SsaBuilder extends ast.Visitor
   void visitAs(ast.Send node, ast.Node expression, DartType type, _) {
     HInstruction expressionInstruction = visitAndPop(expression);
     if (type.isMalformed) {
-      String message;
-      if (type is MalformedType) {
-        ErroneousElement element = type.element;
-        message = element.message;
-      } else {
-        assert(type is MethodTypeVariableType);
-        message = "Method type variables are not reified.";
-      }
-      generateTypeError(node, message);
+      ErroneousElement element = type.element;
+      generateTypeError(node, element.message);
     } else {
       HInstruction converted = buildTypeConversion(expressionInstruction,
           localsHandler.substInContext(type), HTypeConversion.CAST_TYPE_CHECK);
@@ -3843,20 +3832,7 @@ class SsaBuilder extends ast.Visitor
   HInstruction buildIsNode(
       ast.Node node, DartType type, HInstruction expression) {
     type = localsHandler.substInContext(type).unaliased;
-    if (type.isMalformed) {
-      String message;
-      if (type is MethodTypeVariableType) {
-        message = "Method type variables are not reified, "
-            "so they cannot be tested with an `is` expression.";
-      } else {
-        assert(type is MalformedType);
-        ErroneousElement element = type.element;
-        message = element.message;
-      }
-      generateTypeError(node, message);
-      HInstruction call = pop();
-      return new HIs.compound(type, expression, call, backend.boolType);
-    } else if (type.isFunctionType) {
+    if (type.isFunctionType) {
       List arguments = [buildFunctionType(type), expression];
       pushInvokeDynamic(
           node,
@@ -3889,6 +3865,11 @@ class SsaBuilder extends ast.Visitor
         asFieldName
       ];
       pushInvokeStatic(node, helper, inputs, typeMask: backend.boolType);
+      HInstruction call = pop();
+      return new HIs.compound(type, expression, call, backend.boolType);
+    } else if (type.isMalformed) {
+      ErroneousElement element = type.element;
+      generateTypeError(node, element.message);
       HInstruction call = pop();
       return new HIs.compound(type, expression, call, backend.boolType);
     } else {
@@ -5356,19 +5337,12 @@ class SsaBuilder extends ast.Visitor
   /// Generate the literal for [typeVariable] in the current context.
   void generateTypeVariableLiteral(
       ast.Send node, TypeVariableType typeVariable) {
-    // GENERIC_METHODS: This provides thin support for method type variables
-    // by treating them as malformed when evaluated as a literal. For full
-    // support of generic methods this must be revised.
-    if (typeVariable is MethodTypeVariableType) {
-      generateTypeError(node, "Method type variables are not reified");
-    } else {
-      DartType type = localsHandler.substInContext(typeVariable);
-      HInstruction value = analyzeTypeArgument(type,
-          sourceInformation: sourceInformationBuilder.buildGet(node));
-      pushInvokeStatic(node, helpers.runtimeTypeToString, [value],
-          typeMask: backend.stringType);
-      pushInvokeStatic(node, helpers.createRuntimeType, [pop()]);
-    }
+    DartType type = localsHandler.substInContext(typeVariable);
+    HInstruction value = analyzeTypeArgument(type,
+        sourceInformation: sourceInformationBuilder.buildGet(node));
+    pushInvokeStatic(node, helpers.runtimeTypeToString, [value],
+        typeMask: backend.stringType);
+    pushInvokeStatic(node, helpers.createRuntimeType, [pop()]);
   }
 
   /// Generate a call to a type literal.

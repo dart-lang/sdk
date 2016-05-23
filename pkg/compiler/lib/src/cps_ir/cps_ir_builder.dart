@@ -2734,18 +2734,10 @@ class IrBuilder {
     type = program.unaliasType(type);
 
     if (type.isMalformed) {
-      String message;
-      if (type is MalformedType) {
-        ErroneousElement element = type.element;
-        message = element.message;
-      } else {
-        assert(type is MethodTypeVariableType);
-        message = "Method type variables are not reified, "
-            "so they cannot be tested dynamically";
-      }
-      ir.Primitive irMessage = buildStringConstant(message);
+      ErroneousElement element = type.element;
+      ir.Primitive message = buildStringConstant(element.message);
       return buildStaticFunctionInvocation(program.throwTypeErrorHelper,
-          <ir.Primitive>[irMessage], sourceInformation);
+          <ir.Primitive>[message], sourceInformation);
     }
 
     List<ir.Primitive> typeArguments = const <ir.Primitive>[];

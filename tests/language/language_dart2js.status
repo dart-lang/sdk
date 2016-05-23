@@ -50,8 +50,6 @@ generic_functions_test: CompileTimeError # DartOptions not passed to compiler.
 generic_local_functions_test: CompileTimeError # DartOptions not passed to compiler.
 generic_methods_test: CompileTimeError # DartOptions not passed to compiler.
 generic_sends_test: CompileTimeError # DartOptions not passed to compiler.
-generic_methods_new_test: CompiletimeError # DartOptions not passed to compiler.
-generic_methods_function_type_test: CompiletimeError # DartOptions not passed to compiler.
 
 [ $compiler == dart2js ]
 invocation_mirror_empty_arguments_test: Fail # Issue 24331
@@ -134,6 +132,9 @@ malbounded_type_test_test/03: Fail # Issue 14121
 malbounded_type_test_test/04: Fail # Issue 14121
 malbounded_type_test2_test: Fail # Issue 14121
 default_factory2_test/01: Fail # Issue 14121
+generic_functions_test: Crash # Issue 26436
+generic_local_functions_test: Crash # Issue 26436
+generic_methods_test: Crash # Issue 26436
 
 [ $compiler == dart2js && $unchecked ]
 type_checks_in_factory_method_test: RuntimeError # Issue 12746

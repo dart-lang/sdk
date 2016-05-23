@@ -780,8 +780,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return inputType.isInMask(checkedType, classWorld) ? input : node;
   }
 
-  HInstruction removeCheck(HCheck node) => node.checkedInput;
-
   VariableElement findConcreteFieldForDynamicAccess(
       HInstruction receiver, Selector selector) {
     TypeMask receiverType = receiver.instructionType;
