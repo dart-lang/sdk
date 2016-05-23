@@ -22,6 +22,7 @@ class FastUri implements Uri {
   final int _cacheGeneration;
   final String _text;
   final String _scheme;
+  final bool _hasEmptyAuthority;
   final String _path;
 
   /**
@@ -36,8 +37,8 @@ class FastUri implements Uri {
 
   Uri _cachedFallbackUri;
 
-  FastUri._(this._cacheGeneration, this._text, this._scheme, this._path,
-      this._lastSlashIndex);
+  FastUri._(this._cacheGeneration, this._text, this._scheme,
+      this._hasEmptyAuthority, this._path, this._lastSlashIndex);
 
   @override
   String get authority => '';
@@ -52,7 +53,7 @@ class FastUri implements Uri {
   bool get hasAbsolutePath => path.startsWith('/');
 
   @override
-  bool get hasAuthority => false;
+  bool get hasAuthority => _hasEmptyAuthority;
 
   @override
   bool get hasEmptyPath => _path.isEmpty;
@@ -62,8 +63,21 @@ class FastUri implements Uri {
 
   @override
   int get hashCode {
-    _hashCode ??= (scheme.hashCode * 31 + path.hashCode) & 0x3FFFFFFF;
-    return _hashCode;
+    // This code is copied from the standard Uri implementation.
+    // It is important that Uri and FastUri generate compatible hashCodes
+    // because Uri and FastUri may be used as keys in the same map.
+    int combine(part, current) {
+      // The sum is truncated to 30 bits to make sure it fits into a Smi.
+      return (current * 31 + part.hashCode) & 0x3FFFFFFF;
+    }
+    return _hashCode ??= combine(
+        scheme,
+        combine(
+            userInfo,
+            combine(
+                host,
+                combine(port,
+                    combine(path, combine(query, combine(fragment, 1)))))));
   }
 
   @override
@@ -262,11 +276,16 @@ class FastUri implements Uri {
       }
     }
     String scheme = schemeEnd != null ? text.substring(0, schemeEnd) : '';
+    bool hasEmptyAuthority = false;
     String path = text.substring(pathStart);
     if (path.startsWith('//')) {
+      hasEmptyAuthority = true;
       path = path.substring(2);
+      if (!path.startsWith('/')) {
+        return null;
+      }
     }
-    return new FastUri._(
-        _currentCacheGeneration, text, scheme, path, lastSlashIndex);
+    return new FastUri._(_currentCacheGeneration, text, scheme,
+        hasEmptyAuthority, path, lastSlashIndex);
   }
 }

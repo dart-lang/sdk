@@ -35,7 +35,12 @@ class _FastUriTest {
     _compareTextWithCoreUri('package:analyzer/src/util/fast_uri.dart');
   }
 
-  void test_parse_notFast() {
+  void test_parse_notFast_hasAuthority() {
+    Uri uri = FastUri.parse('http://www.google.com/pages/about.html');
+    expect(uri, isNot(isFastUri));
+  }
+
+  void test_parse_notFast_hasPort() {
     Uri uri = FastUri.parse('http://www.google.com:8080/pages/about.html');
     expect(uri, isNot(isFastUri));
   }
@@ -137,7 +142,8 @@ class _FastUriTest {
     expect(fastUri.data, coreUri.data);
     expect(fastUri.fragment, coreUri.fragment);
     expect(fastUri.hasAbsolutePath, coreUri.hasAbsolutePath);
-    expect(fastUri.hasAuthority, coreUri.hasEmptyPath);
+    expect(fastUri.hasAuthority, coreUri.hasAuthority);
+    expect(fastUri.hasEmptyPath, coreUri.hasEmptyPath);
     expect(fastUri.hasFragment, coreUri.hasFragment);
     expect(fastUri.hasPort, coreUri.hasPort);
     expect(fastUri.hasQuery, coreUri.hasQuery);
@@ -155,5 +161,9 @@ class _FastUriTest {
     expect(fastUri.queryParametersAll, coreUri.queryParametersAll);
     expect(fastUri.scheme, coreUri.scheme);
     expect(fastUri.userInfo, coreUri.userInfo);
+    // Object
+    expect(fastUri.hashCode, coreUri.hashCode);
+    expect(fastUri == coreUri, isTrue);
+    expect(coreUri == fastUri, isTrue);
   }
 }
