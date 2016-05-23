@@ -115,6 +115,7 @@ class DartUtils {
   static bool IsDartIOLibURL(const char* url_name);
   static bool IsDartBuiltinLibURL(const char* url_name);
   static bool IsHttpSchemeURL(const char* url_name);
+  static const char* RemoveScheme(const char* url);
   static void* MapExecutable(const char* name, intptr_t* file_len);
   static void* OpenFile(const char* name, bool write);
   static void ReadFile(const uint8_t** data, intptr_t* file_len, void* stream);
@@ -232,8 +233,7 @@ class DartUtils {
 
  private:
   static Dart_Handle SetWorkingDirectory();
-  static Dart_Handle ExtensionPathFromUri(Dart_Handle extension_uri);
-
+  static Dart_Handle LibraryFilePath(Dart_Handle library_uri);
   static Dart_Handle PrepareBuiltinLibrary(Dart_Handle builtin_lib,
                                            Dart_Handle internal_lib,
                                            bool is_service_isolate,
