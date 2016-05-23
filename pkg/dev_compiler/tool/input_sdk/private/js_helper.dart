@@ -412,49 +412,49 @@ class Primitives {
   // that the result is really an integer, because the JavaScript implementation
   // may return -0.0 instead of 0.
 
-  static getYear(receiver) {
+  static getYear(DateTime receiver) {
     return (receiver.isUtc)
       ? JS('int', r'(#.getUTCFullYear() + 0)', lazyAsJsDate(receiver))
       : JS('int', r'(#.getFullYear() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getMonth(receiver) {
+  static getMonth(DateTime receiver) {
     return (receiver.isUtc)
       ? JS('int', r'#.getUTCMonth() + 1', lazyAsJsDate(receiver))
       : JS('int', r'#.getMonth() + 1', lazyAsJsDate(receiver));
   }
 
-  static getDay(receiver) {
+  static getDay(DateTime receiver) {
     return (receiver.isUtc)
       ? JS('int', r'(#.getUTCDate() + 0)', lazyAsJsDate(receiver))
       : JS('int', r'(#.getDate() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getHours(receiver) {
+  static getHours(DateTime receiver) {
     return (receiver.isUtc)
       ? JS('int', r'(#.getUTCHours() + 0)', lazyAsJsDate(receiver))
       : JS('int', r'(#.getHours() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getMinutes(receiver) {
+  static getMinutes(DateTime receiver) {
     return (receiver.isUtc)
       ? JS('int', r'(#.getUTCMinutes() + 0)', lazyAsJsDate(receiver))
       : JS('int', r'(#.getMinutes() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getSeconds(receiver) {
+  static getSeconds(DateTime receiver) {
     return (receiver.isUtc)
       ? JS('int', r'(#.getUTCSeconds() + 0)', lazyAsJsDate(receiver))
       : JS('int', r'(#.getSeconds() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getMilliseconds(receiver) {
+  static getMilliseconds(DateTime receiver) {
     return (receiver.isUtc)
       ? JS('int', r'(#.getUTCMilliseconds() + 0)', lazyAsJsDate(receiver))
       : JS('int', r'(#.getMilliseconds() + 0)', lazyAsJsDate(receiver));
   }
 
-  static getWeekday(receiver) {
+  static getWeekday(DateTime receiver) {
     int weekday = (receiver.isUtc)
       ? JS('int', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
       : JS('int', r'#.getDay() + 0', lazyAsJsDate(receiver));

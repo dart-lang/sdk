@@ -9314,28 +9314,28 @@ dart_library.library('dart_sdk', null, /* Imports */[
       return receiver.date;
     }
     static getYear(receiver) {
-      return dart.test(dart.as(dart.dload(receiver, 'isUtc'), core.bool)) ? _js_helper.Primitives.lazyAsJsDate(receiver).getUTCFullYear() + 0 : _js_helper.Primitives.lazyAsJsDate(receiver).getFullYear() + 0;
+      return dart.test(receiver.isUtc) ? _js_helper.Primitives.lazyAsJsDate(receiver).getUTCFullYear() + 0 : _js_helper.Primitives.lazyAsJsDate(receiver).getFullYear() + 0;
     }
     static getMonth(receiver) {
-      return dart.test(dart.as(dart.dload(receiver, 'isUtc'), core.bool)) ? _js_helper.Primitives.lazyAsJsDate(receiver).getUTCMonth() + 1 : _js_helper.Primitives.lazyAsJsDate(receiver).getMonth() + 1;
+      return dart.test(receiver.isUtc) ? _js_helper.Primitives.lazyAsJsDate(receiver).getUTCMonth() + 1 : _js_helper.Primitives.lazyAsJsDate(receiver).getMonth() + 1;
     }
     static getDay(receiver) {
-      return dart.test(dart.as(dart.dload(receiver, 'isUtc'), core.bool)) ? _js_helper.Primitives.lazyAsJsDate(receiver).getUTCDate() + 0 : _js_helper.Primitives.lazyAsJsDate(receiver).getDate() + 0;
+      return dart.test(receiver.isUtc) ? _js_helper.Primitives.lazyAsJsDate(receiver).getUTCDate() + 0 : _js_helper.Primitives.lazyAsJsDate(receiver).getDate() + 0;
     }
     static getHours(receiver) {
-      return dart.test(dart.as(dart.dload(receiver, 'isUtc'), core.bool)) ? _js_helper.Primitives.lazyAsJsDate(receiver).getUTCHours() + 0 : _js_helper.Primitives.lazyAsJsDate(receiver).getHours() + 0;
+      return dart.test(receiver.isUtc) ? _js_helper.Primitives.lazyAsJsDate(receiver).getUTCHours() + 0 : _js_helper.Primitives.lazyAsJsDate(receiver).getHours() + 0;
     }
     static getMinutes(receiver) {
-      return dart.test(dart.as(dart.dload(receiver, 'isUtc'), core.bool)) ? _js_helper.Primitives.lazyAsJsDate(receiver).getUTCMinutes() + 0 : _js_helper.Primitives.lazyAsJsDate(receiver).getMinutes() + 0;
+      return dart.test(receiver.isUtc) ? _js_helper.Primitives.lazyAsJsDate(receiver).getUTCMinutes() + 0 : _js_helper.Primitives.lazyAsJsDate(receiver).getMinutes() + 0;
     }
     static getSeconds(receiver) {
-      return dart.test(dart.as(dart.dload(receiver, 'isUtc'), core.bool)) ? _js_helper.Primitives.lazyAsJsDate(receiver).getUTCSeconds() + 0 : _js_helper.Primitives.lazyAsJsDate(receiver).getSeconds() + 0;
+      return dart.test(receiver.isUtc) ? _js_helper.Primitives.lazyAsJsDate(receiver).getUTCSeconds() + 0 : _js_helper.Primitives.lazyAsJsDate(receiver).getSeconds() + 0;
     }
     static getMilliseconds(receiver) {
-      return dart.test(dart.as(dart.dload(receiver, 'isUtc'), core.bool)) ? _js_helper.Primitives.lazyAsJsDate(receiver).getUTCMilliseconds() + 0 : _js_helper.Primitives.lazyAsJsDate(receiver).getMilliseconds() + 0;
+      return dart.test(receiver.isUtc) ? _js_helper.Primitives.lazyAsJsDate(receiver).getUTCMilliseconds() + 0 : _js_helper.Primitives.lazyAsJsDate(receiver).getMilliseconds() + 0;
     }
     static getWeekday(receiver) {
-      let weekday = dart.test(dart.as(dart.dload(receiver, 'isUtc'), core.bool)) ? _js_helper.Primitives.lazyAsJsDate(receiver).getUTCDay() + 0 : _js_helper.Primitives.lazyAsJsDate(receiver).getDay() + 0;
+      let weekday = dart.test(receiver.isUtc) ? _js_helper.Primitives.lazyAsJsDate(receiver).getUTCDay() + 0 : _js_helper.Primitives.lazyAsJsDate(receiver).getDay() + 0;
       return (weekday + 6)[dartx['%']](7) + 1;
     }
     static valueFromDateString(str) {
@@ -9385,14 +9385,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
       valueFromDecomposedDate: [dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]],
       patchUpY2K: [dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic]],
       lazyAsJsDate: [dart.dynamic, [dart.dynamic]],
-      getYear: [dart.dynamic, [dart.dynamic]],
-      getMonth: [dart.dynamic, [dart.dynamic]],
-      getDay: [dart.dynamic, [dart.dynamic]],
-      getHours: [dart.dynamic, [dart.dynamic]],
-      getMinutes: [dart.dynamic, [dart.dynamic]],
-      getSeconds: [dart.dynamic, [dart.dynamic]],
-      getMilliseconds: [dart.dynamic, [dart.dynamic]],
-      getWeekday: [dart.dynamic, [dart.dynamic]],
+      getYear: [dart.dynamic, [core.DateTime]],
+      getMonth: [dart.dynamic, [core.DateTime]],
+      getDay: [dart.dynamic, [core.DateTime]],
+      getHours: [dart.dynamic, [core.DateTime]],
+      getMinutes: [dart.dynamic, [core.DateTime]],
+      getSeconds: [dart.dynamic, [core.DateTime]],
+      getMilliseconds: [dart.dynamic, [core.DateTime]],
+      getWeekday: [dart.dynamic, [core.DateTime]],
       valueFromDateString: [dart.dynamic, [dart.dynamic]],
       getProperty: [dart.dynamic, [dart.dynamic, dart.dynamic]],
       setProperty: [dart.void, [dart.dynamic, dart.dynamic, dart.dynamic]],
