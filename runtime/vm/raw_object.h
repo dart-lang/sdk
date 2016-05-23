@@ -1135,15 +1135,12 @@ class RawCode : public RawObject {
   RawObject* owner_;  // Function, Null, or a Class.
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
-  RawCodeSourceMap* code_source_map_;
   RawArray* stackmaps_;
-  RawObject** to_snapshot() {
-    return reinterpret_cast<RawObject**>(&ptr()->stackmaps_);
-  }
   RawArray* deopt_info_array_;
   RawArray* static_calls_target_table_;  // (code-offset, function, code).
   RawLocalVarDescriptors* var_descriptors_;
   RawArray* inlined_metadata_;
+  RawCodeSourceMap* code_source_map_;
   RawArray* comments_;
   // If return_address_metadata_ is a Smi, it is the offset to the prologue.
   // Else, return_address_metadata_ is null.

@@ -242,6 +242,11 @@ void Precompiler::DoCompileAll(
     // dead instances of classes we will remove.
     I->object_store()->set_compile_time_constants(Array::null_array());
     I->object_store()->set_unique_dynamic_targets(Array::null_array());
+    Class& null_class = Class::Handle(Z);
+    I->object_store()->set_future_class(null_class);
+    I->object_store()->set_completer_class(null_class);
+    I->object_store()->set_stream_iterator_class(null_class);
+    I->object_store()->set_symbol_class(null_class);
 
     DropClasses();
     DropLibraries();
