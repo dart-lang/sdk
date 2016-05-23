@@ -6678,10 +6678,14 @@ class UnitExplicitTopLevelAccessors {
  * corresponding implicit top-level property accessors.
  */
 class UnitExplicitTopLevelVariables {
-  final List<TopLevelVariableElementImpl> variables =
-      <TopLevelVariableElementImpl>[];
+  final List<TopLevelVariableElementImpl> variables;
   final List<PropertyAccessorElementImpl> implicitAccessors =
       <PropertyAccessorElementImpl>[];
+
+  UnitExplicitTopLevelVariables(int numberOfVariables)
+      : variables = numberOfVariables != 0
+            ? new List<TopLevelVariableElementImpl>(numberOfVariables)
+            : const <TopLevelVariableElementImpl>[];
 }
 
 /**

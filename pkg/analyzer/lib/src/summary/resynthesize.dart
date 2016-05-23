@@ -2622,9 +2622,12 @@ class _UnitResynthesizer {
   }
 
   UnitExplicitTopLevelVariables buildUnitExplicitTopLevelVariables() {
+    List<UnlinkedVariable> unlinkedVariables = unlinkedUnit.variables;
+    int numberOfVariables = unlinkedVariables.length;
     UnitExplicitTopLevelVariables variablesData =
-        new UnitExplicitTopLevelVariables();
-    for (UnlinkedVariable unlinkedVariable in unlinkedUnit.variables) {
+        new UnitExplicitTopLevelVariables(numberOfVariables);
+    for (int i = 0; i < numberOfVariables; i++) {
+      UnlinkedVariable unlinkedVariable = unlinkedVariables[i];
       TopLevelVariableElementImpl element;
       if (unlinkedVariable.constExpr != null && unlinkedVariable.isConst) {
         ConstTopLevelVariableElementImpl constElement =
@@ -2639,7 +2642,7 @@ class _UnitResynthesizer {
       }
       buildPropertyIntroducingElementCommonParts(element, unlinkedVariable,
           isLazilyResynthesized: true);
-      variablesData.variables.add(element);
+      variablesData.variables[i] = element;
       // implicit accessors
       String name = element.name;
       DartType type = element.type;
