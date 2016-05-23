@@ -2079,25 +2079,22 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
 
   /**
    * Given some [NodeList] of [Statement]s, from either a [Block] or
-   * [SwitchMember], this loops through the list searching for dead statements.
+   * [SwitchMember], this loops through the list in reverse order searching for statements
+   * after a return, unlabeled break or unlabeled continue statement to mark them as dead code.
    *
    * @param statements some ordered list of statements in a [Block] or [SwitchMember]
    */
   void _checkForDeadStatementsInNodeList(NodeList<Statement> statements) {
-    bool statementExits(Statement statement) {
-      if (statement is BreakStatement) {
-        return statement.label == null;
-      } else if (statement is ContinueStatement) {
-        return statement.label == null;
-      }
-      return ExitDetector.exits(statement);
-    }
-
     int size = statements.length;
     for (int i = 0; i < size; i++) {
       Statement currentStatement = statements[i];
       currentStatement?.accept(this);
-      if (statementExits(currentStatement) && i != size - 1) {
+      bool returnOrBreakingStatement = currentStatement is ReturnStatement ||
+          (currentStatement is BreakStatement &&
+              currentStatement.label == null) ||
+          (currentStatement is ContinueStatement &&
+              currentStatement.label == null);
+      if (returnOrBreakingStatement && i != size - 1) {
         Statement nextStatement = statements[i + 1];
         Statement lastStatement = statements[size - 1];
         int offset = nextStatement.offset;

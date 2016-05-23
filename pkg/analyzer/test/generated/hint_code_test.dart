@@ -21,7 +21,7 @@ main() {
 
 @reflectiveTest
 class HintCodeTest extends ResolverTestCase {
-  void test_deadCode_statementAfterRethrow() {
+  void fail_deadCode_statementAfterRehrow() {
     Source source = addSource(r'''
 f() {
   try {
@@ -36,7 +36,7 @@ f() {
     verify([source]);
   }
 
-  void test_deadCode_statementAfterThrow() {
+  void fail_deadCode_statementAfterThrow() {
     Source source = addSource(r'''
 f() {
   var one = 1;
@@ -613,21 +613,6 @@ f() {
   var two = 2;
   return;
   var three = 3;
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.DEAD_CODE]);
-    verify([source]);
-  }
-
-  void test_deadCode_statementAfterExitingIf_returns() {
-    Source source = addSource(r'''
-f() {
-  if (1 > 2) {
-    return;
-  } else {
-    return;
-  }
-  var one = 1;
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEAD_CODE]);
