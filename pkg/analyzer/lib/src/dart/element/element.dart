@@ -3090,26 +3090,145 @@ abstract class ExecutableElementImpl extends ElementImpl
 class ExportElementImpl extends UriReferencedElementImpl
     implements ExportElement {
   /**
+   * The unlinked representation of the export in the summary.
+   */
+  final UnlinkedExportPublic _unlinkedExportPublic;
+
+  /**
+   * The unlinked representation of the export in the summary.
+   */
+  final UnlinkedExportNonPublic _unlinkedExportNonPublic;
+
+  /**
    * The library that is exported from this library by this export directive.
    */
-  LibraryElement exportedLibrary;
+  LibraryElement _exportedLibrary;
 
   /**
    * The combinators that were specified as part of the export directive in the
    * order in which they were specified.
    */
-  List<NamespaceCombinator> combinators = NamespaceCombinator.EMPTY_LIST;
+  List<NamespaceCombinator> _combinators;
 
   /**
    * Initialize a newly created export element at the given [offset].
    */
-  ExportElementImpl(int offset) : super(null, offset);
+  ExportElementImpl(int offset)
+      : _unlinkedExportPublic = null,
+        _unlinkedExportNonPublic = null,
+        super(null, offset);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  ExportElementImpl.forSerialized(this._unlinkedExportPublic,
+      this._unlinkedExportNonPublic, LibraryElementImpl enclosingLibrary)
+      : super.forSerialized(enclosingLibrary);
+
+  @override
+  List<NamespaceCombinator> get combinators {
+    if (_unlinkedExportPublic != null && _combinators == null) {
+      _combinators = ImportElementImpl
+          ._buildCombinators(_unlinkedExportPublic.combinators);
+    }
+    return _combinators ?? const <NamespaceCombinator>[];
+  }
+
+  void set combinators(List<NamespaceCombinator> combinators) {
+    assert(_unlinkedExportPublic == null);
+    _combinators = combinators;
+  }
+
+  @override
+  LibraryElement get exportedLibrary {
+    if (_unlinkedExportNonPublic != null && _exportedLibrary == null) {
+      LibraryElementImpl library = enclosingElement as LibraryElementImpl;
+      _exportedLibrary = library.resynthesizerContext
+          .buildExportedLibrary(_unlinkedExportPublic.uri);
+    }
+    return _exportedLibrary;
+  }
+
+  void set exportedLibrary(LibraryElement exportedLibrary) {
+    assert(_unlinkedExportNonPublic == null);
+    _exportedLibrary = exportedLibrary;
+  }
 
   @override
   String get identifier => exportedLibrary.name;
 
   @override
   ElementKind get kind => ElementKind.EXPORT;
+
+  @override
+  List<ElementAnnotation> get metadata {
+    if (_unlinkedExportNonPublic != null) {
+      if (_metadata == null) {
+        CompilationUnitElementImpl definingUnit =
+            library.definingCompilationUnit as CompilationUnitElementImpl;
+        return _metadata ??= _unlinkedExportNonPublic.annotations
+            .map((a) =>
+                definingUnit.resynthesizerContext.buildAnnotation(this, a))
+            .toList();
+      }
+    }
+    return super.metadata;
+  }
+
+  void set metadata(List<ElementAnnotation> metadata) {
+    assert(_unlinkedExportNonPublic == null);
+    super.metadata = metadata;
+  }
+
+  @override
+  int get nameOffset {
+    if (_unlinkedExportNonPublic != null) {
+      return _unlinkedExportNonPublic.offset;
+    }
+    return super.nameOffset;
+  }
+
+  @override
+  String get uri {
+    if (_unlinkedExportPublic != null) {
+      return _unlinkedExportPublic.uri;
+    }
+    return super.uri;
+  }
+
+  @override
+  void set uri(String uri) {
+    assert(_unlinkedExportPublic == null);
+    super.uri = uri;
+  }
+
+  @override
+  int get uriEnd {
+    if (_unlinkedExportNonPublic != null) {
+      return _unlinkedExportNonPublic.uriEnd;
+    }
+    return super.uriEnd;
+  }
+
+  @override
+  void set uriEnd(int uriEnd) {
+    assert(_unlinkedExportNonPublic == null);
+    super.uriEnd = uriEnd;
+  }
+
+  @override
+  int get uriOffset {
+    if (_unlinkedExportNonPublic != null) {
+      return _unlinkedExportNonPublic.uriOffset;
+    }
+    return super.uriOffset;
+  }
+
+  @override
+  void set uriOffset(int uriOffset) {
+    assert(_unlinkedExportNonPublic == null);
+    super.uriOffset = uriOffset;
+  }
 
   @override
   accept(ElementVisitor visitor) => visitor.visitExportElement(this);
@@ -3694,22 +3813,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   @override
   List<NamespaceCombinator> get combinators {
     if (_unlinkedImport != null && _combinators == null) {
-      List<UnlinkedCombinator> unlinkedCombinators =
-          _unlinkedImport.combinators;
-      int length = unlinkedCombinators.length;
-      if (length != 0) {
-        List<NamespaceCombinator> combinators =
-            new List<NamespaceCombinator>(length);
-        for (int i = 0; i < length; i++) {
-          UnlinkedCombinator unlinkedCombinator = unlinkedCombinators[i];
-          combinators[i] = unlinkedCombinator.shows.isNotEmpty
-              ? new ShowElementCombinatorImpl.forSerialized(unlinkedCombinator)
-              : new HideElementCombinatorImpl.forSerialized(unlinkedCombinator);
-        }
-        _combinators = combinators;
-      } else {
-        _combinators = const <NamespaceCombinator>[];
-      }
+      _combinators = _buildCombinators(_unlinkedImport.combinators);
     }
     return _combinators ?? const <NamespaceCombinator>[];
   }
@@ -3894,6 +3998,24 @@ class ImportElementImpl extends UriReferencedElementImpl
     super.visitChildren(visitor);
     prefix?.accept(visitor);
   }
+
+  static List<NamespaceCombinator> _buildCombinators(
+      List<UnlinkedCombinator> unlinkedCombinators) {
+    int length = unlinkedCombinators.length;
+    if (length != 0) {
+      List<NamespaceCombinator> combinators =
+          new List<NamespaceCombinator>(length);
+      for (int i = 0; i < length; i++) {
+        UnlinkedCombinator unlinkedCombinator = unlinkedCombinators[i];
+        combinators[i] = unlinkedCombinator.shows.isNotEmpty
+            ? new ShowElementCombinatorImpl.forSerialized(unlinkedCombinator)
+            : new HideElementCombinatorImpl.forSerialized(unlinkedCombinator);
+      }
+      return combinators;
+    } else {
+      return const <NamespaceCombinator>[];
+    }
+  }
 }
 
 /**
@@ -3990,7 +4112,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * A list containing specifications of all of the exports defined in this
    * library.
    */
-  List<ExportElement> _exports = ExportElement.EMPTY_LIST;
+  List<ExportElement> _exports;
 
   /**
    * A list containing the strongly connected component in the import/export
@@ -4137,7 +4259,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   List<LibraryElement> get exportedLibraries {
     HashSet<LibraryElement> libraries = new HashSet<LibraryElement>();
-    for (ExportElement element in _exports) {
+    for (ExportElement element in exports) {
       LibraryElement library = element.exportedLibrary;
       if (library != null) {
         libraries.add(library);
@@ -4159,13 +4281,39 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
-  List<ExportElement> get exports => _exports;
+  List<ExportElement> get exports {
+    if (_unlinkedDefiningUnit != null && _exports == null) {
+      List<UnlinkedExportNonPublic> unlinkedNonPublicExports =
+          _unlinkedDefiningUnit.exports;
+      List<UnlinkedExportPublic> unlinkedPublicExports =
+          _unlinkedDefiningUnit.publicNamespace.exports;
+      assert(
+          _unlinkedDefiningUnit.exports.length == unlinkedPublicExports.length);
+      int length = unlinkedNonPublicExports.length;
+      if (length != 0) {
+        List<ExportElement> exports = new List<ExportElement>(length);
+        for (int i = 0; i < length; i++) {
+          UnlinkedExportPublic serializedExportPublic =
+              unlinkedPublicExports[i];
+          UnlinkedExportNonPublic serializedExportNonPublic =
+              unlinkedNonPublicExports[i];
+          exports[i] = new ExportElementImpl.forSerialized(
+              serializedExportPublic, serializedExportNonPublic, library);
+        }
+        _exports = exports;
+      } else {
+        _exports = const <ExportElement>[];
+      }
+    }
+    return _exports ?? const <ExportElement>[];
+  }
 
   /**
    * Set the specifications of all of the exports defined in this library to the
    * given list of [exports].
    */
   void set exports(List<ExportElement> exports) {
+    assert(_unlinkedDefiningUnit == null);
     for (ExportElement exportElement in exports) {
       (exportElement as ExportElementImpl).enclosingElement = this;
     }
@@ -4500,7 +4648,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         return importElementImpl;
       }
     }
-    for (ExportElement exportElement in _exports) {
+    for (ExportElement exportElement in exports) {
       ExportElementImpl exportElementImpl = exportElement;
       if (exportElementImpl.identifier == identifier) {
         return exportElementImpl;
@@ -4611,7 +4759,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     _definingCompilationUnit?.accept(visitor);
-    safelyVisitChildren(_exports, visitor);
+    safelyVisitChildren(exports, visitor);
     safelyVisitChildren(imports, visitor);
     safelyVisitChildren(_parts, visitor);
   }
@@ -4636,7 +4784,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     }
     // add exported libraries
     if (includeExports) {
-      for (ExportElement exportElement in _exports) {
+      for (ExportElement exportElement in exports) {
         LibraryElement exportedLibrary = exportElement.exportedLibrary;
         if (exportedLibrary != null) {
           (exportedLibrary as LibraryElementImpl)
@@ -4721,10 +4869,19 @@ abstract class LibraryResynthesizerContext {
   LinkedLibrary get linkedLibrary;
 
   /**
+   * Return the exported [LibraryElement] for with the given [relativeUri].
+   */
+  LibraryElement buildExportedLibrary(String relativeUri);
+
+  /**
    * Return the export namespace of the library.
    */
   Namespace buildExportNamespace();
 
+  /**
+   * Return the imported [LibraryElement] for the given dependency in the
+   * linked library.
+   */
   LibraryElement buildImportedLibrary(int dependency);
 
   /**

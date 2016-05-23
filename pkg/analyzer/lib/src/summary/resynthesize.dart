@@ -1096,32 +1096,6 @@ class _LibraryResynthesizer {
   }
 
   /**
-   * Resynthesize an [ExportElement],
-   */
-  ExportElement buildExport(
-      _UnitResynthesizer definingUnitResynthesizer,
-      UnlinkedExportPublic serializedExportPublic,
-      UnlinkedExportNonPublic serializedExportNonPublic) {
-    ExportElementImpl exportElement =
-        new ExportElementImpl(serializedExportNonPublic.offset);
-    String exportedLibraryUri = summaryResynthesizer.sourceFactory
-        .resolveUri(librarySource, serializedExportPublic.uri)
-        .uri
-        .toString();
-    exportElement.exportedLibrary = new LibraryElementHandle(
-        summaryResynthesizer,
-        new ElementLocationImpl.con3(<String>[exportedLibraryUri]));
-    exportElement.uri = serializedExportPublic.uri;
-    exportElement.combinators =
-        serializedExportPublic.combinators.map(buildCombinator).toList();
-    exportElement.uriOffset = serializedExportNonPublic.uriOffset;
-    exportElement.uriEnd = serializedExportNonPublic.uriEnd;
-    definingUnitResynthesizer.buildAnnotations(
-        exportElement, serializedExportNonPublic.annotations);
-    return exportElement;
-  }
-
-  /**
    * Build an [ElementHandle] referring to the entity referred to by the given
    * [exportName].
    */
@@ -1211,17 +1185,6 @@ class _LibraryResynthesizer {
       partResynthesizers.add(partResynthesizer);
     }
     library.parts = partResynthesizers.map((r) => r.unit).toList();
-    // Create exports.
-    List<ExportElement> exports = <ExportElement>[];
-    assert(unlinkedDefiningUnit.exports.length ==
-        unlinkedDefiningUnit.publicNamespace.exports.length);
-    for (int i = 0; i < unlinkedDefiningUnit.exports.length; i++) {
-      exports.add(buildExport(
-          definingUnitResynthesizer,
-          unlinkedDefiningUnit.publicNamespace.exports[i],
-          unlinkedDefiningUnit.exports[i]));
-    }
-    library.exports = exports;
     // Populate units.
     populateUnit(definingUnitResynthesizer);
     for (_UnitResynthesizer partResynthesizer in partResynthesizers) {
@@ -1336,6 +1299,11 @@ class _LibraryResynthesizerContext implements LibraryResynthesizerContext {
   LinkedLibrary get linkedLibrary => resynthesizer.linkedLibrary;
 
   @override
+  LibraryElement buildExportedLibrary(String relativeUri) {
+    return _getLibraryByRelativeUri(relativeUri);
+  }
+
+  @override
   Namespace buildExportNamespace() {
     LibraryElementImpl library = resynthesizer.library;
     return resynthesizer.buildExportNamespace(
@@ -1345,12 +1313,7 @@ class _LibraryResynthesizerContext implements LibraryResynthesizerContext {
   @override
   LibraryElement buildImportedLibrary(int dependency) {
     String depUri = resynthesizer.linkedLibrary.dependencies[dependency].uri;
-    String absoluteUri = resynthesizer.summaryResynthesizer.sourceFactory
-        .resolveUri(resynthesizer.librarySource, depUri)
-        .uri
-        .toString();
-    return new LibraryElementHandle(resynthesizer.summaryResynthesizer,
-        new ElementLocationImpl.con3(<String>[absoluteUri]));
+    return _getLibraryByRelativeUri(depUri);
   }
 
   @override
@@ -1374,6 +1337,15 @@ class _LibraryResynthesizerContext implements LibraryResynthesizerContext {
   void patchTopLevelAccessors() {
     LibraryElementImpl library = resynthesizer.library;
     BuildLibraryElementUtils.patchTopLevelAccessors(library);
+  }
+
+  LibraryElementHandle _getLibraryByRelativeUri(String depUri) {
+    String absoluteUri = resynthesizer.summaryResynthesizer.sourceFactory
+        .resolveUri(resynthesizer.librarySource, depUri)
+        .uri
+        .toString();
+    return new LibraryElementHandle(resynthesizer.summaryResynthesizer,
+        new ElementLocationImpl.con3(<String>[absoluteUri]));
   }
 }
 

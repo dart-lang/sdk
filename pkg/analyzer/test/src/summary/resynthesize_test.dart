@@ -110,16 +110,18 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     expect(resynthesized.hasExtUri, original.hasExtUri);
     compareCompilationUnitElements(resynthesized.definingCompilationUnit,
         original.definingCompilationUnit);
-    expect(resynthesized.parts.length, original.parts.length);
+    expect(resynthesized.parts.length, original.parts.length, reason: 'parts');
     for (int i = 0; i < resynthesized.parts.length; i++) {
       compareCompilationUnitElements(resynthesized.parts[i], original.parts[i]);
     }
-    expect(resynthesized.imports.length, original.imports.length);
+    expect(resynthesized.imports.length, original.imports.length,
+        reason: 'imports');
     for (int i = 0; i < resynthesized.imports.length; i++) {
       compareImportElements(resynthesized.imports[i], original.imports[i],
           'import ${original.imports[i].uri}');
     }
-    expect(resynthesized.exports.length, original.exports.length);
+    expect(resynthesized.exports.length, original.exports.length,
+        reason: 'exports');
     for (int i = 0; i < resynthesized.exports.length; i++) {
       compareExportElements(resynthesized.exports[i], original.exports[i],
           'export ${original.exports[i].uri}');
