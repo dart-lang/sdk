@@ -506,3 +506,5 @@ generic_functions_test: CompileTimeError # Issue 25868
 generic_local_functions_test: CompileTimeError # Issue 25868
 generic_methods_test: CompileTimeError # Issue 25868
 generic_sends_test: CompileTimeError # Issue 25868
+generic_methods_new_test: CompiletimeError # Issue 25868
+generic_methods_function_type_test: CompiletimeError # Issue 25868

@@ -2703,7 +2703,12 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           if (type.isTypedef) {
             backend.compiler.world.allTypedefs.add(type.element);
           }
-          if (type.isTypeVariable) {
+          if (type.isTypeVariable && type is! MethodTypeVariableType) {
+            // GENERIC_METHODS: The `is!` test above filters away method type
+            // variables, because they have the value `dynamic` with the
+            // incomplete support for generic methods offered with
+            // '--generic-method-syntax'. This must be revised in order to
+            // support generic methods fully.
             ClassElement cls = type.element.enclosingClass;
             backend.rti.registerClassUsingTypeVariableExpression(cls);
             registerBackendImpact(transformed, impacts.typeVariableExpression);

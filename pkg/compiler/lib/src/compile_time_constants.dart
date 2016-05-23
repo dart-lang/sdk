@@ -246,9 +246,17 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
         ConstantValue value = getConstantValue(expression);
         if (elementType.isMalformed && !value.isNull) {
           if (isConst) {
-            ErroneousElement element = elementType.element;
-            reporter.reportErrorMessage(
-                node, element.messageKind, element.messageArguments);
+            // TODO(johnniwinther): Check that it is possible to reach this
+            // point in a situation where `elementType is! MalformedType`.
+            if (elementType is MalformedType) {
+              ErroneousElement element = elementType.element;
+              reporter.reportErrorMessage(
+                  node, element.messageKind, element.messageArguments);
+            } else {
+              assert(elementType is MethodTypeVariableType);
+              reporter.reportErrorMessage(
+                  node, MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED);
+            }
           } else {
             // We need to throw an exception at runtime.
             expression = null;
