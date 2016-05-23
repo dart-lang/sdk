@@ -158,6 +158,19 @@ f() {
     verify([source]);
   }
 
+  void test_deadCode_statementAfterIfWithoutElse() {
+    Source source = addSource(r'''
+f() {
+  if (1 < 0) {
+    return;
+  }
+  int a = 1;
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_deprecatedMemberUse_inDeprecatedClass() {
     Source source = addSource(r'''
 @deprecated
