@@ -444,7 +444,7 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
  *
  * The structure is efficient for any queue or stack usage.
  */
-class ListQueue<E> extends Iterable<E> implements Queue<E> {
+class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   static const int _INITIAL_CAPACITY = 8;
   List<E> _table;
   int _head;
@@ -478,7 +478,7 @@ class ListQueue<E> extends Iterable<E> implements Queue<E> {
   factory ListQueue.from(Iterable elements) {
     if (elements is List) {
       int length = elements.length;
-      ListQueue<E> queue = new ListQueue(length + 1);
+      ListQueue<E> queue = new ListQueue<E>(length + 1);
       assert(queue._table.length > length);
       for (int i = 0; i < length; i++) {
         queue._table[i] = elements[i] as Object/*=E*/;
