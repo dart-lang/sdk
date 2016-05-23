@@ -3592,10 +3592,35 @@ class FunctionTypeAliasElementImpl extends ElementImpl
  */
 class HideElementCombinatorImpl implements HideElementCombinator {
   /**
+   * The unlinked representation of the combinator in the summary.
+   */
+  final UnlinkedCombinator _unlinkedCombinator;
+
+  /**
    * The names that are not to be made visible in the importing library even if
    * they are defined in the imported library.
    */
-  List<String> hiddenNames = StringUtilities.EMPTY_ARRAY;
+  List<String> _hiddenNames;
+
+  HideElementCombinatorImpl() : _unlinkedCombinator = null;
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  HideElementCombinatorImpl.forSerialized(this._unlinkedCombinator);
+
+  @override
+  List<String> get hiddenNames {
+    if (_unlinkedCombinator != null) {
+      _hiddenNames ??= _unlinkedCombinator.hides.toList(growable: false);
+    }
+    return _hiddenNames ?? const <String>[];
+  }
+
+  void set hiddenNames(List<String> hiddenNames) {
+    assert(_unlinkedCombinator == null);
+    _hiddenNames = hiddenNames;
+  }
 
   @override
   String toString() {
@@ -3642,7 +3667,7 @@ class ImportElementImpl extends UriReferencedElementImpl
    * The combinators that were specified as part of the import directive in the
    * order in which they were specified.
    */
-  List<NamespaceCombinator> combinators = NamespaceCombinator.EMPTY_LIST;
+  List<NamespaceCombinator> _combinators;
 
   /**
    * The prefix that was specified as part of the import directive, or `null` if
@@ -3665,6 +3690,34 @@ class ImportElementImpl extends UriReferencedElementImpl
   ImportElementImpl.forSerialized(this._unlinkedImport, this._linkedDependency,
       LibraryElementImpl enclosingLibrary)
       : super.forSerialized(enclosingLibrary);
+
+  @override
+  List<NamespaceCombinator> get combinators {
+    if (_unlinkedImport != null && _combinators == null) {
+      List<UnlinkedCombinator> unlinkedCombinators =
+          _unlinkedImport.combinators;
+      int length = unlinkedCombinators.length;
+      if (length != 0) {
+        List<NamespaceCombinator> combinators =
+            new List<NamespaceCombinator>(length);
+        for (int i = 0; i < length; i++) {
+          UnlinkedCombinator unlinkedCombinator = unlinkedCombinators[i];
+          combinators[i] = unlinkedCombinator.shows.isNotEmpty
+              ? new ShowElementCombinatorImpl.forSerialized(unlinkedCombinator)
+              : new HideElementCombinatorImpl.forSerialized(unlinkedCombinator);
+        }
+        _combinators = combinators;
+      } else {
+        _combinators = const <NamespaceCombinator>[];
+      }
+    }
+    return _combinators ?? const <NamespaceCombinator>[];
+  }
+
+  void set combinators(List<NamespaceCombinator> combinators) {
+    assert(_unlinkedImport == null);
+    _combinators = combinators;
+  }
 
   /**
    * Set whether this import is for a deferred library.
@@ -3931,7 +3984,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * A list containing specifications of all of the imports defined in this
    * library.
    */
-  List<ImportElement> _imports = ImportElement.EMPTY_LIST;
+  List<ImportElement> _imports;
 
   /**
    * A list containing specifications of all of the exports defined in this
@@ -4148,7 +4201,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   List<LibraryElement> get importedLibraries {
     HashSet<LibraryElement> libraries = new HashSet<LibraryElement>();
-    for (ImportElement element in _imports) {
+    for (ImportElement element in imports) {
       LibraryElement library = element.importedLibrary;
       if (library != null) {
         libraries.add(library);
@@ -4158,13 +4211,31 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
-  List<ImportElement> get imports => _imports;
+  List<ImportElement> get imports {
+    if (_unlinkedDefiningUnit != null && _imports == null) {
+      List<UnlinkedImport> unlinkedImports = _unlinkedDefiningUnit.imports;
+      int length = unlinkedImports.length;
+      if (length != 0) {
+        List<ImportElement> imports = new List<ImportElement>(length);
+        LinkedLibrary linkedLibrary = resynthesizerContext.linkedLibrary;
+        for (int i = 0; i < length; i++) {
+          imports[i] = new ImportElementImpl.forSerialized(
+              unlinkedImports[i], linkedLibrary.importDependencies[i], library);
+        }
+        _imports = imports;
+      } else {
+        _imports = const <ImportElement>[];
+      }
+    }
+    return _imports ?? ImportElement.EMPTY_LIST;
+  }
 
   /**
    * Set the specifications of all of the imports defined in this library to the
    * given list of [imports].
    */
   void set imports(List<ImportElement> imports) {
+    assert(_unlinkedDefiningUnit == null);
     for (ImportElement importElement in imports) {
       (importElement as ImportElementImpl).enclosingElement = this;
       PrefixElementImpl prefix = importElement.prefix as PrefixElementImpl;
@@ -4348,7 +4419,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   List<PrefixElement> get prefixes {
     if (_prefixes == null) {
       HashSet<PrefixElement> prefixes = new HashSet<PrefixElement>();
-      for (ImportElement element in _imports) {
+      for (ImportElement element in imports) {
         PrefixElement prefix = element.prefix;
         if (prefix != null) {
           prefixes.add(prefix);
@@ -4423,7 +4494,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         return partImpl;
       }
     }
-    for (ImportElement importElement in _imports) {
+    for (ImportElement importElement in imports) {
       ImportElementImpl importElementImpl = importElement;
       if (importElementImpl.identifier == identifier) {
         return importElementImpl;
@@ -4440,11 +4511,12 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<ImportElement> getImportsWithPrefix(PrefixElement prefixElement) {
-    int count = _imports.length;
+    var imports = this.imports;
+    int count = imports.length;
     List<ImportElement> importList = new List<ImportElement>();
     for (int i = 0; i < count; i++) {
-      if (identical(_imports[i].prefix, prefixElement)) {
-        importList.add(_imports[i]);
+      if (identical(imports[i].prefix, prefixElement)) {
+        importList.add(imports[i]);
       }
     }
     return importList;
@@ -4540,7 +4612,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     super.visitChildren(visitor);
     _definingCompilationUnit?.accept(visitor);
     safelyVisitChildren(_exports, visitor);
-    safelyVisitChildren(_imports, visitor);
+    safelyVisitChildren(imports, visitor);
     safelyVisitChildren(_parts, visitor);
   }
 
@@ -4555,7 +4627,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       return;
     }
     // add imported libraries
-    for (ImportElement importElement in _imports) {
+    for (ImportElement importElement in imports) {
       LibraryElement importedLibrary = importElement.importedLibrary;
       if (importedLibrary != null) {
         (importedLibrary as LibraryElementImpl)
@@ -4642,6 +4714,12 @@ enum LibraryResolutionCapability {
  * The context in which the library is resynthesized.
  */
 abstract class LibraryResynthesizerContext {
+  /**
+   * Return the [LinkedLibrary] that corresponds to the library being
+   * resynthesized.
+   */
+  LinkedLibrary get linkedLibrary;
+
   /**
    * Return the export namespace of the library.
    */
@@ -6056,21 +6134,72 @@ abstract class ResynthesizerContext {
  */
 class ShowElementCombinatorImpl implements ShowElementCombinator {
   /**
+   * The unlinked representation of the combinator in the summary.
+   */
+  final UnlinkedCombinator _unlinkedCombinator;
+
+  /**
    * The names that are to be made visible in the importing library if they are
    * defined in the imported library.
    */
-  List<String> shownNames = StringUtilities.EMPTY_ARRAY;
+  List<String> _shownNames;
 
   /**
    * The offset of the character immediately following the last character of
    * this node.
    */
-  int end = -1;
+  int _end = -1;
 
   /**
    * The offset of the 'show' keyword of this element.
    */
-  int offset = 0;
+  int _offset = 0;
+
+  ShowElementCombinatorImpl() : _unlinkedCombinator = null;
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  ShowElementCombinatorImpl.forSerialized(this._unlinkedCombinator);
+
+  @override
+  int get end {
+    if (_unlinkedCombinator != null) {
+      return _unlinkedCombinator.end;
+    }
+    return _end;
+  }
+
+  void set end(int end) {
+    assert(_unlinkedCombinator == null);
+    _end = end;
+  }
+
+  @override
+  int get offset {
+    if (_unlinkedCombinator != null) {
+      return _unlinkedCombinator.offset;
+    }
+    return _offset;
+  }
+
+  void set offset(int offset) {
+    assert(_unlinkedCombinator == null);
+    _offset = offset;
+  }
+
+  @override
+  List<String> get shownNames {
+    if (_unlinkedCombinator != null) {
+      _shownNames ??= _unlinkedCombinator.shows.toList(growable: false);
+    }
+    return _shownNames ?? const <String>[];
+  }
+
+  void set shownNames(List<String> shownNames) {
+    assert(_unlinkedCombinator == null);
+    _shownNames = shownNames;
+  }
 
   @override
   String toString() {

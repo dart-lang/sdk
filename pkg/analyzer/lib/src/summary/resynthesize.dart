@@ -1089,19 +1089,9 @@ class _LibraryResynthesizer {
    */
   NamespaceCombinator buildCombinator(UnlinkedCombinator serializedCombinator) {
     if (serializedCombinator.shows.isNotEmpty) {
-      ShowElementCombinatorImpl combinator = new ShowElementCombinatorImpl();
-      // Note: we call toList() so that we don't retain a reference to the
-      // deserialized data structure.
-      combinator.shownNames = serializedCombinator.shows.toList();
-      combinator.offset = serializedCombinator.offset;
-      combinator.end = serializedCombinator.end;
-      return combinator;
+      return new ShowElementCombinatorImpl.forSerialized(serializedCombinator);
     } else {
-      HideElementCombinatorImpl combinator = new HideElementCombinatorImpl();
-      // Note: we call toList() so that we don't retain a reference to the
-      // deserialized data structure.
-      combinator.hiddenNames = serializedCombinator.hides.toList();
-      return combinator;
+      return new HideElementCombinatorImpl.forSerialized(serializedCombinator);
     }
   }
 
@@ -1188,21 +1178,6 @@ class _LibraryResynthesizer {
   }
 
   /**
-   * Resynthesize an [ImportElement].
-   */
-  ImportElement buildImport(
-      _UnitResynthesizer definingUnitResynthesizer,
-      UnlinkedImport serializedImport,
-      int dependency,
-      LibraryElement libraryBeingResynthesized) {
-    ImportElementImpl importElement = new ImportElementImpl.forSerialized(
-        serializedImport, dependency, library);
-    importElement.combinators =
-        serializedImport.combinators.map(buildCombinator).toList();
-    return importElement;
-  }
-
-  /**
    * Main entry point.  Resynthesize the [LibraryElement] and return it.
    */
   LibraryElement buildLibrary() {
@@ -1236,16 +1211,6 @@ class _LibraryResynthesizer {
       partResynthesizers.add(partResynthesizer);
     }
     library.parts = partResynthesizers.map((r) => r.unit).toList();
-    // Create imports.
-    List<ImportElement> imports = <ImportElement>[];
-    for (int i = 0; i < unlinkedDefiningUnit.imports.length; i++) {
-      imports.add(buildImport(
-          definingUnitResynthesizer,
-          unlinkedDefiningUnit.imports[i],
-          linkedLibrary.importDependencies[i],
-          library));
-    }
-    library.imports = imports;
     // Create exports.
     List<ExportElement> exports = <ExportElement>[];
     assert(unlinkedDefiningUnit.exports.length ==
@@ -1366,6 +1331,9 @@ class _LibraryResynthesizerContext implements LibraryResynthesizerContext {
   final _LibraryResynthesizer resynthesizer;
 
   _LibraryResynthesizerContext(this.resynthesizer);
+
+  @override
+  LinkedLibrary get linkedLibrary => resynthesizer.linkedLibrary;
 
   @override
   Namespace buildExportNamespace() {

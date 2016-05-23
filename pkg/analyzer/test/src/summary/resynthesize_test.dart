@@ -783,15 +783,18 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       ImportElementImpl original, String desc) {
     compareUriReferencedElements(resynthesized, original, desc);
     expect(resynthesized.importedLibrary.location,
-        original.importedLibrary.location);
-    expect(resynthesized.prefixOffset, original.prefixOffset);
+        original.importedLibrary.location,
+        reason: '$desc importedLibrary location');
+    expect(resynthesized.prefixOffset, original.prefixOffset,
+        reason: '$desc prefixOffset');
     if (original.prefix == null) {
-      expect(resynthesized.prefix, isNull);
+      expect(resynthesized.prefix, isNull, reason: '$desc prefix');
     } else {
       comparePrefixElements(
           resynthesized.prefix, original.prefix, original.prefix.name);
     }
-    expect(resynthesized.combinators.length, original.combinators.length);
+    expect(resynthesized.combinators.length, original.combinators.length,
+        reason: '$desc combinators');
     for (int i = 0; i < resynthesized.combinators.length; i++) {
       compareNamespaceCombinators(
           resynthesized.combinators[i], original.combinators[i]);
@@ -858,12 +861,14 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       NamespaceCombinator resynthesized, NamespaceCombinator original) {
     if (original is ShowElementCombinatorImpl &&
         resynthesized is ShowElementCombinatorImpl) {
-      expect(resynthesized.shownNames, original.shownNames);
-      expect(resynthesized.offset, original.offset);
-      expect(resynthesized.end, original.end);
+      expect(resynthesized.shownNames, original.shownNames,
+          reason: 'shownNames');
+      expect(resynthesized.offset, original.offset, reason: 'offset');
+      expect(resynthesized.end, original.end, reason: 'end');
     } else if (original is HideElementCombinatorImpl &&
         resynthesized is HideElementCombinatorImpl) {
-      expect(resynthesized.hiddenNames, original.hiddenNames);
+      expect(resynthesized.hiddenNames, original.hiddenNames,
+          reason: 'hiddenNames');
     } else if (resynthesized.runtimeType != original.runtimeType) {
       fail(
           'Type mismatch: expected ${original.runtimeType}, got ${resynthesized.runtimeType}');
