@@ -184,7 +184,7 @@ class CompilerOptions {
       this.sourceMapComment: true,
       this.summarizeApi: true,
       this.unsafeForceCompile: false,
-      this.emitMetadata: true,
+      this.emitMetadata: false,
       this.closure: false,
       this.destructureNamedParams: false,
       this.moduleFormat: ModuleFormat.legacy});
@@ -217,7 +217,7 @@ class CompilerOptions {
         defaultsTo: 'legacy')
     ..addFlag('emit-metadata',
         help: 'emit metadata annotations queriable via mirrors',
-        defaultsTo: true)
+        defaultsTo: false)
     ..addFlag('closure-experimental',
         help: 'emit Closure Compiler-friendly code (experimental)',
         defaultsTo: false)
