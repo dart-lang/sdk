@@ -252,7 +252,12 @@ class _RuntimeTypes implements RuntimeTypes {
     compiler.resolverWorld.isChecks.forEach((DartType type) {
       if (type.isTypeVariable) {
         TypeVariableElement variable = type.element;
-        classesUsingTypeVariableTests.add(variable.typeDeclaration);
+        // GENERIC_METHODS: When generic method support is complete enough to
+        // include a runtime value for method type variables, this may need to
+        // be updated: It simply ignores method type arguments.
+        if (variable.typeDeclaration is ClassElement) {
+          classesUsingTypeVariableTests.add(variable.typeDeclaration);
+        }
       }
     });
     // Add is-checks that result from classes using type variables in checks.
