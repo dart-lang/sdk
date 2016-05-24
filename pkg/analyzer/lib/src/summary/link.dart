@@ -314,6 +314,21 @@ typedef LinkedLibrary GetDependencyCallback(String absoluteUri);
 typedef UnlinkedUnit GetUnitCallback(String absoluteUri);
 
 /**
+ * Stub implementation of [AnalysisOptions] used during linking.
+ */
+class AnalysisOptionsForLink implements AnalysisOptions {
+  final Linker _linker;
+
+  AnalysisOptionsForLink(this._linker);
+
+  @override
+  bool get strongMode => _linker.strongMode;
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/**
  * Element representing a class or enum resynthesized from a summary
  * during linking.
  */
@@ -344,6 +359,9 @@ abstract class ClassElementForLink extends Object
 
   @override
   List<ConstructorElementForLink> get constructors;
+
+  @override
+  CompilationUnitElementForLink get enclosingUnit => enclosingElement;
 
   @override
   List<FieldElementForLink> get fields;
@@ -482,6 +500,9 @@ class ClassElementForLink_Class extends ClassElementForLink
   }
 
   @override
+  ContextForLink get context => enclosingUnit.context;
+
+  @override
   String get displayName => _unlinkedClass.name;
 
   @override
@@ -574,7 +595,8 @@ class ClassElementForLink_Class extends ClassElementForLink
       return new InterfaceTypeImpl.elementWithNameAndArgs(this, name, () {
         List<DartType> typeArguments = new List<DartType>(numTypeParameters);
         for (int i = 0; i < numTypeParameters; i++) {
-          typeArguments[i] = getTypeArgument(i);
+          typeArguments[i] =
+              getTypeArgument(i) ?? computeDefaultTypeArgument(i);
         }
         return typeArguments;
       });
@@ -814,6 +836,9 @@ abstract class CompilationUnitElementForLink
   }
 
   @override
+  ContextForLink get context => library.context;
+
+  @override
   LibraryElementForLink get enclosingElement;
 
   @override
@@ -945,39 +970,6 @@ abstract class CompilationUnitElementForLink
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
-  @override
-  DartType resolveTypeRef(
-      EntityRef type, TypeParameterizedElementMixin typeParameterContext,
-      {bool defaultVoid: false, bool instantiateToBoundsAllowed: true}) {
-    if (type == null) {
-      if (defaultVoid) {
-        return VoidTypeImpl.instance;
-      } else {
-        return DynamicTypeImpl.instance;
-      }
-    }
-    if (type.paramReference != 0) {
-      return typeParameterContext.getTypeParameterType(type.paramReference);
-    } else if (type.syntheticReturnType != null) {
-      // TODO(paulberry): implement.
-      throw new UnimplementedError();
-    } else if (type.implicitFunctionTypeIndices.isNotEmpty) {
-      // TODO(paulberry): implement.
-      throw new UnimplementedError();
-    } else {
-      DartType getTypeArgument(int i) {
-        if (i < type.typeArguments.length) {
-          return resolveTypeRef(type.typeArguments[i], typeParameterContext);
-        } else {
-          return DynamicTypeImpl.instance;
-        }
-      }
-      ReferenceableElementForLink element = resolveRef(type.reference);
-      return element.buildType(
-          getTypeArgument, type.implicitFunctionTypeIndices);
-    }
-  }
-
   /**
    * Return the element referred to by the given [index] in
    * [UnlinkedUnit.references].  If the reference is unresolved,
@@ -1025,6 +1017,42 @@ abstract class CompilationUnitElementForLink
       }
     }
     return _references[index];
+  }
+
+  @override
+  DartType resolveTypeRef(
+      EntityRef type, TypeParameterizedElementMixin typeParameterContext,
+      {bool defaultVoid: false, bool instantiateToBoundsAllowed: true}) {
+    if (type == null) {
+      if (defaultVoid) {
+        return VoidTypeImpl.instance;
+      } else {
+        return DynamicTypeImpl.instance;
+      }
+    }
+    if (type.paramReference != 0) {
+      return typeParameterContext.getTypeParameterType(type.paramReference);
+    } else if (type.syntheticReturnType != null) {
+      // TODO(paulberry): implement.
+      throw new UnimplementedError();
+    } else if (type.implicitFunctionTypeIndices.isNotEmpty) {
+      // TODO(paulberry): implement.
+      throw new UnimplementedError();
+    } else {
+      DartType getTypeArgument(int i) {
+        if (i < type.typeArguments.length) {
+          return resolveTypeRef(type.typeArguments[i], typeParameterContext);
+        } else if (!instantiateToBoundsAllowed) {
+          // Do not allow buildType to instantiate the bounds; force dynamic.
+          return DynamicTypeImpl.instance;
+        } else {
+          return null;
+        }
+      }
+      ReferenceableElementForLink element = resolveRef(type.reference);
+      return element.buildType(
+          getTypeArgument, type.implicitFunctionTypeIndices);
+    }
   }
 
   @override
@@ -1618,6 +1646,9 @@ class ContextForLink implements AnalysisContext {
   ContextForLink(this._linker);
 
   @override
+  AnalysisOptionsForLink get analysisOptions => _linker.analysisOptions;
+
+  @override
   TypeSystem get typeSystem => _linker.typeSystem;
 
   @override
@@ -1772,6 +1803,9 @@ abstract class ExecutableElementForLink extends Object
   final CompilationUnitElementForLink compilationUnit;
 
   ExecutableElementForLink(this.compilationUnit, this._unlinkedExecutable);
+
+  @override
+  ContextForLink get context => compilationUnit.context;
 
   /**
    * If the executable element had an explicitly declared return type, return
@@ -2279,16 +2313,9 @@ class ExprTypeComputer {
         if (i < ref.typeArguments.length) {
           return unit.resolveTypeRef(
               ref.typeArguments[i], variable._typeParameterContext);
+        } else {
+          return null;
         }
-        // In strong mode, type argument defaults to bound (if any).
-        if (linker.strongMode) {
-          TypeParameterElement typeParameter = enclosingClass.typeParameters[i];
-          if (typeParameter.bound != null) {
-            return typeParameter.bound;
-          }
-        }
-        // Otherwise type argument defaults to `dynamic`.
-        return DynamicTypeImpl.instance;
       }, const []));
     } else {
       stack.add(DynamicTypeImpl.instance);
@@ -2862,6 +2889,9 @@ class FunctionTypeAliasElementForLink extends Object
   }
 
   @override
+  ContextForLink get context => enclosingElement.context;
+
+  @override
   TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
 
   @override
@@ -2903,7 +2933,7 @@ class FunctionTypeAliasElementForLink extends Object
     if (numTypeParameters != 0) {
       List<DartType> typeArguments = new List<DartType>(numTypeParameters);
       for (int i = 0; i < numTypeParameters; i++) {
-        typeArguments[i] = getTypeArgument(i);
+        typeArguments[i] = getTypeArgument(i) ?? computeDefaultTypeArgument(i);
       }
       return new FunctionTypeImpl.elementWithNameAndArgs(
           this, name, typeArguments, true);
@@ -3369,6 +3399,7 @@ class Linker {
   SpecialTypeElementForLink _dynamicElement;
   SpecialTypeElementForLink _bottomElement;
   ContextForLink _context;
+  AnalysisOptionsForLink _analysisOptions;
 
   Linker(Map<String, LinkedLibraryBuilder> linkedLibraries, this.getDependency,
       this.getUnit, this.strongMode) {
@@ -3381,6 +3412,12 @@ class Linker {
           new LibraryElementInBuildUnit(this, uri, linkedLibrary));
     });
   }
+
+  /**
+   * Get an instance of [AnalysisOptions] for use during linking.
+   */
+  AnalysisOptionsForLink get analysisOptions =>
+      _analysisOptions ??= new AnalysisOptionsForLink(this);
 
   /**
    * Get the library element for `dart:async`.
@@ -4096,6 +4133,10 @@ abstract class ReferenceableElementForLink implements Element {
    * Return the type indicated by this element when it is used in a
    * type instantiation context.  If this element can't legally be
    * instantiated as a type, return the dynamic type.
+   *
+   * If the type is parameterized, [getTypeArgument] will be called to retrieve
+   * the type parameters.  It should return `null` for unspecified type
+   * parameters.
    */
   DartType buildType(DartType getTypeArgument(int i),
           List<int> implicitFunctionTypeIndices) =>
