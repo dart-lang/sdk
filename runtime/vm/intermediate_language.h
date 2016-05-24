@@ -8194,6 +8194,17 @@ class Environment : public ZoneAllocated {
   // from the copy.
   Environment* DeepCopy(Zone* zone, intptr_t length) const;
 
+#if defined(TARGET_ARCH_DBC)
+  // Return/ReturnTOS instruction drops incoming arguments so
+  // we have to drop outgoing arguments from the innermost environment.
+  // On all other architectures caller drops outgoing arguments itself
+  // hence the difference.
+  // Note: this method can only be used at the code generation stage because
+  // it mutates environment in unsafe way (e.g. does not update def-use
+  // chains).
+  void DropArguments(intptr_t argc);
+#endif
+
  private:
   friend class ShallowIterator;
 

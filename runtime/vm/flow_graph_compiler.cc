@@ -644,15 +644,7 @@ void FlowGraphCompiler::VisitBlocks() {
 
 
 void FlowGraphCompiler::Bailout(const char* reason) {
-  const Function& function = parsed_function_.function();
-  Report::MessageF(Report::kBailout,
-                   Script::Handle(function.script()),
-                   function.token_pos(),
-                   Report::AtLocation,
-                   "FlowGraphCompiler Bailout: %s %s",
-                   String::Handle(function.name()).ToCString(),
-                   reason);
-  UNREACHABLE();
+  parsed_function_.Bailout("FlowGraphCompiler", reason);
 }
 
 

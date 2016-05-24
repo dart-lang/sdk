@@ -3110,6 +3110,8 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   }
 #else
+  call_ic_data = &ICData::ZoneHandle(call_ic_data->Original());
+
   // Emit smi fast path instruction. If fast-path succeeds it skips the next
   // instruction otherwise it falls through.
   if (function_name().raw() == Symbols::Plus().raw()) {
@@ -3131,13 +3133,18 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t call_ic_data_kidx = __ AddConstant(*call_ic_data);
   switch (call_ic_data->NumArgsTested()) {
     case 1:
-      __ InstanceCall(ArgumentCount(), call_ic_data_kidx);
+      if (compiler->is_optimizing()) {
+        __ InstanceCall1Opt(ArgumentCount(), call_ic_data_kidx);
+      } else {
+        __ InstanceCall1(ArgumentCount(), call_ic_data_kidx);
+      }
       break;
     case 2:
-      __ InstanceCall2(ArgumentCount(), call_ic_data_kidx);
-      break;
-    case 3:
-      __ InstanceCall3(ArgumentCount(), call_ic_data_kidx);
+      if (compiler->is_optimizing()) {
+        __ InstanceCall2Opt(ArgumentCount(), call_ic_data_kidx);
+      } else {
+        __ InstanceCall2(ArgumentCount(), call_ic_data_kidx);
+      }
       break;
     default:
       UNIMPLEMENTED();
@@ -3146,6 +3153,11 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->AddCurrentDescriptor(RawPcDescriptors::kIcCall,
                                  deopt_id(),
                                  token_pos());
+  compiler->RecordAfterCall(this);
+
+  if (compiler->is_optimizing()) {
+    __ PopLocal(locs()->out(0).reg());
+  }
 #endif  // !defined(TARGET_ARCH_DBC)
 }
 
@@ -3252,6 +3264,12 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->AddCurrentDescriptor(RawPcDescriptors::kUnoptStaticCall,
                                  deopt_id(),
                                  token_pos());
+
+  compiler->RecordAfterCall(this);
+
+  if (compiler->is_optimizing()) {
+    __ PopLocal(locs()->out(0).reg());
+  }
 #endif  // !defined(TARGET_ARCH_DBC)
 }
 
@@ -3266,7 +3284,10 @@ void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // DBC does not use LocationSummaries in the same way as other architectures.
 #if !defined(TARGET_ARCH_DBC)
   ASSERT(locs()->in(0).reg() == locs()->out(0).reg());
-#endif
+#else
+  ASSERT(!compiler->is_optimizing() ||
+         (locs()->in(0).reg() == locs()->out(0).reg()));
+#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 

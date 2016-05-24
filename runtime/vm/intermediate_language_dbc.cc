@@ -119,36 +119,40 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 
 // Location summaries actually are not used by the unoptimizing DBC compiler
 // because we don't allocate any registers.
-static LocationSummary* CreateLocationSummary(Zone* zone,
-                                              intptr_t num_inputs,
-                                              bool has_result) {
+static LocationSummary* CreateLocationSummary(
+    Zone* zone,
+    intptr_t num_inputs,
+    Location output = Location::NoLocation(),
+    LocationSummary::ContainsCall contains_call = LocationSummary::kNoCall) {
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new(zone) LocationSummary(
-      zone, num_inputs, kNumTemps, LocationSummary::kNoCall);
+      zone, num_inputs, kNumTemps, contains_call);
   for (intptr_t i = 0; i < num_inputs; i++) {
-    locs->set_in(i, Location::RequiresRegister());
+    locs->set_in(i, (contains_call == LocationSummary::kNoCall) ?
+        Location::RequiresRegister() : Location::RegisterLocation(i));
   }
-  if (has_result) {
-    locs->set_out(0, Location::RequiresRegister());
+  if (!output.IsInvalid()) {
+    // For instructions that call we default to returning result in R0.
+    locs->set_out(0, output);
   }
   return locs;
 }
 
 
-#define DEFINE_MAKE_LOCATION_SUMMARY(Name, In, Out)                            \
+#define DEFINE_MAKE_LOCATION_SUMMARY(Name, ...)                                \
   LocationSummary* Name##Instr::MakeLocationSummary(Zone* zone, bool opt)      \
       const {                                                                  \
-    return CreateLocationSummary(zone, In, Out);                               \
+    return CreateLocationSummary(zone, __VA_ARGS__);                           \
   }                                                                            \
 
-#define EMIT_NATIVE_CODE(Name, In, Out)                                        \
-  DEFINE_MAKE_LOCATION_SUMMARY(Name, In, Out);                                 \
+#define EMIT_NATIVE_CODE(Name, ...)                                            \
+  DEFINE_MAKE_LOCATION_SUMMARY(Name, __VA_ARGS__);                             \
   void Name##Instr::EmitNativeCode(FlowGraphCompiler* compiler)                \
 
 #define DEFINE_UNIMPLEMENTED_MAKE_LOCATION_SUMMARY(Name)                       \
   LocationSummary* Name##Instr::MakeLocationSummary(Zone* zone, bool opt)      \
       const {                                                                  \
-    UNIMPLEMENTED();                                                           \
+    if (!opt) UNIMPLEMENTED();                                                 \
     return NULL;                                                               \
   }                                                                            \
 
@@ -181,51 +185,63 @@ DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(RelationalOp)
 DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(EqualityCompare)
 
 
-DEFINE_MAKE_LOCATION_SUMMARY(AssertAssignable, 2, true);
+DEFINE_MAKE_LOCATION_SUMMARY(AssertAssignable, 2, Location::SameAsFirstInput());
 
 
-EMIT_NATIVE_CODE(AssertBoolean, 1, true) {
+EMIT_NATIVE_CODE(AssertBoolean,
+                 1, Location::SameAsFirstInput(),
+                 LocationSummary::kCall) {
+  if (compiler->is_optimizing()) {
+    __ Push(locs()->in(0).reg());
+  }
   __ AssertBoolean(Isolate::Current()->type_checks() ? 1 : 0);
+  compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
                                  deopt_id(),
                                  token_pos());
+  if (compiler->is_optimizing()) {
+    __ Drop1();
+  }
 }
 
 
-LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(Zone* zone,
-                                                        bool optimizing) const {
+LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
+    Zone* zone, bool optimizing) const {
   return MakeCallSummary(zone);
 }
 
 
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  compiler->Bailout(ToCString());
 }
 
 
-EMIT_NATIVE_CODE(CheckStackOverflow, 0, false) {
+EMIT_NATIVE_CODE(CheckStackOverflow,
+                 0, Location::NoLocation(),
+                 LocationSummary::kCall) {
   __ CheckStack();
+  compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
                                  Thread::kNoDeoptId,
                                  token_pos());
 }
 
 
-EMIT_NATIVE_CODE(PushArgument, 1, false) {
+EMIT_NATIVE_CODE(PushArgument, 1) {
   if (compiler->is_optimizing()) {
     __ Push(locs()->in(0).reg());
   }
 }
 
 
-EMIT_NATIVE_CODE(LoadLocal, 0, false) {
+EMIT_NATIVE_CODE(LoadLocal, 0) {
   ASSERT(!compiler->is_optimizing());
   ASSERT(local().index() != 0);
   __ Push((local().index() > 0) ? (-local().index()) : (-local().index() - 1));
 }
 
 
-EMIT_NATIVE_CODE(StoreLocal, 0, false) {
+EMIT_NATIVE_CODE(StoreLocal, 0) {
   ASSERT(!compiler->is_optimizing());
   ASSERT(local().index() != 0);
   if (HasTemp()) {
@@ -238,7 +254,7 @@ EMIT_NATIVE_CODE(StoreLocal, 0, false) {
 }
 
 
-EMIT_NATIVE_CODE(LoadClassId, 1, true) {
+EMIT_NATIVE_CODE(LoadClassId, 1, Location::RequiresRegister()) {
   if (compiler->is_optimizing()) {
     __ LoadClassId(locs()->out(0).reg(), locs()->in(0).reg());
   } else {
@@ -247,40 +263,80 @@ EMIT_NATIVE_CODE(LoadClassId, 1, true) {
 }
 
 
-EMIT_NATIVE_CODE(Constant, 0, true) {
-  const intptr_t kidx = __ AddConstant(value());
+EMIT_NATIVE_CODE(Constant, 0, Location::RequiresRegister()) {
   if (compiler->is_optimizing()) {
-    __ LoadConstant(locs()->out(0).reg(), kidx);
+    __ LoadConstant(locs()->out(0).reg(), value());
   } else {
-    __ PushConstant(kidx);
+    __ PushConstant(value());
   }
 }
 
 
-EMIT_NATIVE_CODE(Return, 1, false) {
-  __ ReturnTOS();
+EMIT_NATIVE_CODE(Return, 1) {
+  if (compiler->is_optimizing()) {
+    __ Return(locs()->in(0).reg());
+  } else {
+    __ ReturnTOS();
+  }
 }
 
 
-EMIT_NATIVE_CODE(StoreStaticField, 1, false) {
-  const intptr_t kidx = __ AddConstant(field());
-  __ StoreStaticTOS(kidx);
+LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(
+    Zone* zone, bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs = new(zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  for (intptr_t i = 0; i < kNumInputs; i++) {
+    locs->set_in(i, Location::RequiresRegister());
+  }
+  for (intptr_t i = 0; i < kNumTemps; i++) {
+    locs->set_temp(i, Location::RequiresRegister());
+  }
+  return locs;
 }
 
 
-EMIT_NATIVE_CODE(LoadStaticField, 1, true) {
-  const intptr_t kidx = __ AddConstant(StaticField());
-  __ PushStatic(kidx);
+void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (compiler->is_optimizing()) {
+    __ LoadConstant(locs()->temp(0).reg(),
+                    Field::ZoneHandle(field().Original()));
+    __ StoreField(locs()->temp(0).reg(),
+                  Field::static_value_offset() / kWordSize,
+                  locs()->in(0).reg());
+  } else {
+    const intptr_t kidx = __ AddConstant(field());
+    __ StoreStaticTOS(kidx);
+  }
 }
 
 
-EMIT_NATIVE_CODE(InitStaticField, 0, false) {
+EMIT_NATIVE_CODE(LoadStaticField, 1, Location::RequiresRegister()) {
+  if (compiler->is_optimizing()) {
+    __ LoadField(locs()->out(0).reg(),
+                 locs()->in(0).reg(),
+                 Field::static_value_offset() / kWordSize);
+  } else {
+    const intptr_t kidx = __ AddConstant(StaticField());
+    __ PushStatic(kidx);
+  }
+}
+
+
+EMIT_NATIVE_CODE(InitStaticField, 0) {
   ASSERT(!compiler->is_optimizing());
   __ InitStaticTOS();
 }
 
 
-EMIT_NATIVE_CODE(ClosureCall, 0, false) {
+EMIT_NATIVE_CODE(ClosureCall,
+                 1,
+                 Location::RegisterLocation(0),
+                 LocationSummary::kCall) {
+  if (compiler->is_optimizing()) {
+    __ Push(locs()->in(0).reg());
+  }
+
   intptr_t argument_count = ArgumentCount();
   const Array& arguments_descriptor =
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
@@ -288,20 +344,11 @@ EMIT_NATIVE_CODE(ClosureCall, 0, false) {
   const intptr_t argdesc_kidx =
       compiler->assembler()->AddConstant(arguments_descriptor);
   __ StaticCall(argument_count, argdesc_kidx);
+  compiler->RecordAfterCall(this);
 
-  compiler->RecordSafepoint(locs());
-  // Marks either the continuation point in unoptimized code or the
-  // deoptimization point in optimized code, after call.
-  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id());
   if (compiler->is_optimizing()) {
-    compiler->AddDeoptIndexAtCall(deopt_id_after, token_pos());
+    __ PopLocal(locs()->out(0).reg());
   }
-  // Add deoptimization continuation point after the call and before the
-  // arguments are removed.
-  // In optimized code this descriptor is needed for exception handling.
-  compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
-                                 deopt_id_after,
-                                 token_pos());
 }
 
 
@@ -327,18 +374,39 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                  BranchLabels labels) {
   ASSERT((kind() == Token::kNE_STRICT) ||
          (kind() == Token::kEQ_STRICT));
-  const Bytecode::Opcode eq_op = needs_number_check() ?
-      Bytecode::kIfEqStrictNumTOS : Bytecode::kIfEqStrictTOS;
-  const Bytecode::Opcode ne_op = needs_number_check() ?
-      Bytecode::kIfNeStrictNumTOS : Bytecode::kIfNeStrictTOS;
 
-  if (kind() == Token::kEQ_STRICT) {
-    __ Emit((labels.fall_through == labels.false_label) ? eq_op : ne_op);
+  if (!compiler->is_optimizing()) {
+    const Bytecode::Opcode eq_op = needs_number_check() ?
+        Bytecode::kIfEqStrictNumTOS : Bytecode::kIfEqStrictTOS;
+    const Bytecode::Opcode ne_op = needs_number_check() ?
+        Bytecode::kIfNeStrictNumTOS : Bytecode::kIfNeStrictTOS;
+
+    if (kind() == Token::kEQ_STRICT) {
+      __ Emit((labels.fall_through == labels.false_label) ? eq_op : ne_op);
+    } else {
+      __ Emit((labels.fall_through == labels.false_label) ? ne_op : eq_op);
+    }
   } else {
-    __ Emit((labels.fall_through == labels.false_label) ? ne_op : eq_op);
+    const Bytecode::Opcode eq_op = needs_number_check() ?
+        Bytecode::kIfEqStrictNum : Bytecode::kIfEqStrict;
+    const Bytecode::Opcode ne_op = needs_number_check() ?
+        Bytecode::kIfNeStrictNum : Bytecode::kIfNeStrict;
+
+    if (kind() == Token::kEQ_STRICT) {
+      __ Emit(Bytecode::Encode(
+          (labels.fall_through == labels.false_label) ? eq_op : ne_op,
+          locs()->in(0).reg(),
+          locs()->in(1).reg()));
+    } else {
+      __ Emit(Bytecode::Encode(
+          (labels.fall_through == labels.false_label) ? ne_op : eq_op,
+          locs()->in(0).reg(),
+          locs()->in(1).reg()));
+    }
   }
 
   if (needs_number_check() && token_pos().IsReal()) {
+    compiler->RecordSafepoint(locs());
     compiler->AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
                                    Thread::kNoDeoptId,
                                    token_pos());
@@ -358,7 +426,11 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 }
 
 
-EMIT_NATIVE_CODE(StrictCompare, 2, true) {
+EMIT_NATIVE_CODE(StrictCompare,
+                 2,
+                 Location::RequiresRegister(),
+                 needs_number_check() ? LocationSummary::kCall
+                                      : LocationSummary::kNoCall) {
   ASSERT((kind() == Token::kEQ_STRICT) ||
          (kind() == Token::kNE_STRICT));
 
@@ -367,18 +439,31 @@ EMIT_NATIVE_CODE(StrictCompare, 2, true) {
   Condition true_condition = EmitComparisonCode(compiler, labels);
   EmitBranchOnCondition(compiler, true_condition, labels);
   Label done;
-  __ Bind(&is_false);
-  __ PushConstant(Bool::False());
-  __ Jump(&done);
-  __ Bind(&is_true);
-  __ PushConstant(Bool::True());
-  __ Bind(&done);
+  if (compiler->is_optimizing()) {
+    const Register result = locs()->out(0).reg();
+    __ Bind(&is_false);
+    __ LoadConstant(result, Bool::False());
+    __ Jump(&done);
+    __ Bind(&is_true);
+    __ LoadConstant(result, Bool::True());
+    __ Bind(&done);
+  } else {
+    __ Bind(&is_false);
+    __ PushConstant(Bool::False());
+    __ Jump(&done);
+    __ Bind(&is_true);
+    __ PushConstant(Bool::True());
+    __ Bind(&done);
+  }
 }
 
 
 LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone,
                                                   bool opt) const {
   comparison()->InitializeLocationSummary(zone, opt);
+  if (!comparison()->HasLocs()) {
+    return NULL;
+  }
   // Branches don't produce a result.
   comparison()->locs()->set_out(0, Location::NoLocation());
   return comparison()->locs();
@@ -390,7 +475,7 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-EMIT_NATIVE_CODE(Goto, 0, false) {
+EMIT_NATIVE_CODE(Goto, 0) {
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
@@ -402,28 +487,60 @@ EMIT_NATIVE_CODE(Goto, 0, false) {
 }
 
 
-EMIT_NATIVE_CODE(CreateArray, 2, true) {
+EMIT_NATIVE_CODE(CreateArray,
+                 2, Location::RequiresRegister(),
+                 LocationSummary::kCall) {
+  if (compiler->is_optimizing()) {
+    __ Push(locs()->in(0).reg());
+    __ Push(locs()->in(1).reg());
+  }
   __ CreateArrayTOS();
+  compiler->RecordSafepoint(locs());
+  if (compiler->is_optimizing()) {
+    __ PopLocal(locs()->out(0).reg());
+  }
 }
 
 
-EMIT_NATIVE_CODE(StoreIndexed, 3, false) {
-  ASSERT(class_id() == kArrayCid);
-  __ StoreIndexedTOS();
+EMIT_NATIVE_CODE(StoreIndexed, 3) {
+  if (compiler->is_optimizing()) {
+    if (class_id() != kArrayCid) {
+      compiler->Bailout(ToCString());
+    }
+
+    __ StoreIndexed(locs()->in(kArrayPos).reg(),
+                    locs()->in(kIndexPos).reg(),
+                    locs()->in(kValuePos).reg());
+  } else {
+    ASSERT(class_id() == kArrayCid);
+    __ StoreIndexedTOS();
+  }
 }
 
 
-EMIT_NATIVE_CODE(StringInterpolate, 0, false) {
+EMIT_NATIVE_CODE(StringInterpolate,
+                 1, Location::RegisterLocation(0),
+                 LocationSummary::kCall) {
+  if (compiler->is_optimizing()) {
+    __ Push(locs()->in(0).reg());
+  }
   const intptr_t kArgumentCount = 1;
   const Array& arguments_descriptor = Array::Handle(
       ArgumentsDescriptor::New(kArgumentCount, Object::null_array()));
   __ PushConstant(CallFunction());
   const intptr_t argdesc_kidx = __ AddConstant(arguments_descriptor);
   __ StaticCall(kArgumentCount, argdesc_kidx);
+  compiler->RecordAfterCall(this);
+
+  if (compiler->is_optimizing()) {
+    __ PopLocal(locs()->out(0).reg());
+  }
 }
 
 
-EMIT_NATIVE_CODE(NativeCall, 0, false) {
+EMIT_NATIVE_CODE(NativeCall,
+                 0, Location::NoLocation(),
+                 LocationSummary::kCall) {
   SetupNative();
 
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
@@ -441,13 +558,16 @@ EMIT_NATIVE_CODE(NativeCall, 0, false) {
   } else {
     __ NativeCall();
   }
+  compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
                                  Thread::kNoDeoptId,
                                  token_pos());
 }
 
 
-EMIT_NATIVE_CODE(AllocateObject, 0, true) {
+EMIT_NATIVE_CODE(AllocateObject,
+                 0, Location::RequiresRegister(),
+                 LocationSummary::kCall) {
   if (ArgumentCount() == 1) {
     __ PushConstant(cls());
     __ AllocateT();
@@ -461,10 +581,14 @@ EMIT_NATIVE_CODE(AllocateObject, 0, true) {
                                    Thread::kNoDeoptId,
                                    token_pos());
   }
+  compiler->RecordSafepoint(locs());
+  if (compiler->is_optimizing()) {
+    __ PopLocal(locs()->out(0).reg());
+  }
 }
 
 
-EMIT_NATIVE_CODE(StoreInstanceField, 2, false) {
+EMIT_NATIVE_CODE(StoreInstanceField, 2) {
   ASSERT(!HasTemp());
   ASSERT(offset_in_bytes() % kWordSize == 0);
   if (compiler->is_optimizing()) {
@@ -477,34 +601,52 @@ EMIT_NATIVE_CODE(StoreInstanceField, 2, false) {
 }
 
 
-EMIT_NATIVE_CODE(LoadField, 1, true) {
+EMIT_NATIVE_CODE(LoadField, 1, Location::RequiresRegister()) {
   ASSERT(offset_in_bytes() % kWordSize == 0);
-  __ LoadFieldTOS(offset_in_bytes() / kWordSize);
+  if (compiler->is_optimizing()) {
+    const Register result = locs()->out(0).reg();
+    const Register instance = locs()->in(0).reg();
+    __ LoadField(result, instance, offset_in_bytes() / kWordSize);
+  } else {
+    __ LoadFieldTOS(offset_in_bytes() / kWordSize);
+  }
 }
 
 
-EMIT_NATIVE_CODE(BooleanNegate, 1, true) {
-  __ BooleanNegateTOS();
+EMIT_NATIVE_CODE(BooleanNegate, 1, Location::RequiresRegister()) {
+  if (compiler->is_optimizing()) {
+    __ BooleanNegate(locs()->out(0).reg(), locs()->in(0).reg());
+  } else {
+    __ BooleanNegateTOS();
+  }
 }
 
 
-EMIT_NATIVE_CODE(AllocateContext, 0, false) {
+EMIT_NATIVE_CODE(AllocateContext,
+                 0, Location::RequiresRegister(),
+                 LocationSummary::kCall) {
+  ASSERT(!compiler->is_optimizing());
   __ AllocateContext(num_context_variables());
+  compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
                                  Thread::kNoDeoptId,
                                  token_pos());
 }
 
 
-EMIT_NATIVE_CODE(CloneContext, 0, false) {
+EMIT_NATIVE_CODE(CloneContext,
+                 1, Location::RequiresRegister(),
+                 LocationSummary::kCall) {
+  ASSERT(!compiler->is_optimizing());
   __ CloneContext();
+  compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
                                  Thread::kNoDeoptId,
                                  token_pos());
 }
 
 
-EMIT_NATIVE_CODE(CatchBlockEntry, 0, false) {
+EMIT_NATIVE_CODE(CatchBlockEntry, 0) {
   __ Bind(compiler->GetJumpLabel(this));
   compiler->AddExceptionHandler(catch_try_index(),
                                 try_index(),
@@ -519,8 +661,9 @@ EMIT_NATIVE_CODE(CatchBlockEntry, 0, false) {
 }
 
 
-EMIT_NATIVE_CODE(Throw, 0, false) {
+EMIT_NATIVE_CODE(Throw, 0, Location::NoLocation(), LocationSummary::kCall) {
   __ Throw(0);
+  compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
                                  deopt_id(),
                                  token_pos());
@@ -528,29 +671,48 @@ EMIT_NATIVE_CODE(Throw, 0, false) {
 }
 
 
-EMIT_NATIVE_CODE(ReThrow, 0, false) {
+EMIT_NATIVE_CODE(ReThrow, 0, Location::NoLocation(), LocationSummary::kCall) {
   compiler->SetNeedsStacktrace(catch_try_index());
   __ Throw(1);
+  compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
                                  deopt_id(),
                                  token_pos());
   __ Trap();
 }
 
-EMIT_NATIVE_CODE(InstantiateType, 1, true) {
+EMIT_NATIVE_CODE(InstantiateType,
+                 1, Location::RequiresRegister(),
+                 LocationSummary::kCall) {
+  if (compiler->is_optimizing()) {
+    __ Push(locs()->in(0).reg());
+  }
   __ InstantiateType(__ AddConstant(type()));
+  compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
                                  deopt_id(),
                                  token_pos());
+  if (compiler->is_optimizing()) {
+    __ PopLocal(locs()->out(0).reg());
+  }
 }
 
-EMIT_NATIVE_CODE(InstantiateTypeArguments, 1, true) {
+EMIT_NATIVE_CODE(InstantiateTypeArguments,
+                 1, Location::RequiresRegister(),
+                 LocationSummary::kCall) {
+  if (compiler->is_optimizing()) {
+    __ Push(locs()->in(0).reg());
+  }
   __ InstantiateTypeArgumentsTOS(
       type_arguments().IsRawInstantiatedRaw(type_arguments().Length()),
       __ AddConstant(type_arguments()));
+  compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
                                  deopt_id(),
                                  token_pos());
+  if (compiler->is_optimizing()) {
+    __ PopLocal(locs()->out(0).reg());
+  }
 }
 
 
@@ -570,7 +732,9 @@ void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* Instruction::MakeCallSummary(Zone* zone) {
   LocationSummary* result = new(zone) LocationSummary(
       zone, 0, 0, LocationSummary::kCall);
-  result->set_out(0, Location::RequiresRegister());
+  // TODO(vegorov) support allocating out registers for calls.
+  // Currently we require them to be fixed.
+  result->set_out(0, Location::RegisterLocation(0));
   return result;
 }
 
@@ -624,6 +788,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
     case kTypedDataUint16ArrayCid:
     case kOneByteStringCid:
     case kTwoByteStringCid:
+    case kExternalOneByteStringCid:
+    case kExternalTwoByteStringCid:
       return CompileType::FromCid(kSmiCid);
 
     case kTypedDataInt32ArrayCid:
@@ -650,6 +816,8 @@ Representation LoadIndexedInstr::representation() const {
     case kTypedDataUint16ArrayCid:
     case kOneByteStringCid:
     case kTwoByteStringCid:
+    case kExternalOneByteStringCid:
+    case kExternalTwoByteStringCid:
       return kTagged;
     case kTypedDataInt32ArrayCid:
       return kUnboxedInt32;
@@ -680,6 +848,9 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
   switch (class_id_) {
     case kArrayCid:
     case kOneByteStringCid:
+    case kTwoByteStringCid:
+    case kExternalOneByteStringCid:
+    case kExternalTwoByteStringCid:
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ArrayCid:
@@ -706,6 +877,23 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
       return kTagged;
   }
 }
+
+
+void Environment::DropArguments(intptr_t argc) {
+#if defined(DEBUG)
+    // Check that we are in the backend - register allocation has been run.
+    ASSERT(locations_ != NULL);
+
+    // Check that we are only dropping PushArgument instructions from the
+    // environment.
+    ASSERT(argc <= values_.length());
+    for (intptr_t i = 0; i < argc; i++) {
+      ASSERT(values_[values_.length() - i - 1]->definition()->IsPushArgument());
+    }
+#endif
+    values_.TruncateTo(values_.length() - argc);
+}
+
 
 }  // namespace dart
 

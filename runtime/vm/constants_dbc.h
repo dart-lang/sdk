@@ -119,6 +119,12 @@ namespace dart {
 //    Note: rX is signed so it can be used to address parameters which are
 //    at negative indices with respect to FP.
 //
+//  - Swap rA, rX
+//
+//    FP[rA], FP[rX] <- FP[rX], FP[rA]
+//    Note: rX is signed so it can be used to address parameters which are
+//    at negative indices with respect to FP.
+//
 //  - Push rX
 //
 //    Push FP[rX] to the stack.
@@ -137,10 +143,10 @@ namespace dart {
 //    Invoke function in SP[0] with arguments SP[-(1+ArgC)], ..., SP[-1] and
 //    argument descriptor PP[D].
 //
-//  - InstanceCall ArgC, D; InstanceCall2 ArgC, D; InstanceCall3 ArgC, D
+//  - InstanceCall<N> ArgC, D; InstanceCall<N>Opt ArgC, D
 //
-//    Lookup and invoke method using ICData in PP[D] with arguments
-//    SP[-(1+ArgC)], ..., SP[-1].
+//    Lookup and invoke method with N checked arguments using ICData in PP[D]
+//    with arguments SP[-(1+ArgC)], ..., SP[-1].
 //
 //  - NativeCall, NativeBootstrapCall
 //
@@ -166,7 +172,10 @@ namespace dart {
 //
 //    Takes static field from TOS and ensures that it is initialized.
 //
-//  - IfNeStrictTOS; IfEqStrictTOS; IfNeStrictNumTOS; IfEqStrictNumTOS
+//  - If<Cond>(Num)TOS
+//    If<Cond>(Num) rA, rD
+//
+//    Cond is either NeStrict or EqStrict
 //
 //    Skips the next instruction unless the given condition holds. 'Num'
 //    variants perform number check while non-Num variants just compare
@@ -194,6 +203,11 @@ namespace dart {
 //    Store SP[0] into array SP[-2] at index SP[-1]. No typechecking is done.
 //    SP[-2] is assumed to be a RawArray, SP[-1] to be a smi.
 //
+//  - StoreIndexed rA, rB, rC
+//
+//    Store rC into array rA at index rB. No typechecking is done.
+//    rA is assumed to be a RawArray, rB to be a smi.
+//
 //  - StoreField rA, B, rC
 //
 //    Store value FP[rC] into object FP[rA] at offset (in words) B.
@@ -214,6 +228,10 @@ namespace dart {
 //
 //    SP[0] = !SP[0]
 //
+//  - BooleanNegate rA, rD
+//
+//    FP[rA] = !FP[rD]
+//
 //  - Throw A
 //
 //    Throw (Rethrow if A != 0) exception. Exception object and stack object
@@ -226,7 +244,7 @@ namespace dart {
 //        B - number of local slots to reserve;
 //        rC - specifies context register to initialize with empty context.
 //
-//  - EntryOpt A, B, C
+//  - EntryOptional A, B, C
 //
 //    Function prologue for the function with optional or named arguments:
 //        A - expected number of positional arguments;
@@ -235,18 +253,35 @@ namespace dart {
 //
 //    Only one of B and C can be not 0.
 //
-//    If B is not 0 then EntryOpt bytecode is followed by B LoadConstant
+//    If B is not 0 then EntryOptional bytecode is followed by B LoadConstant
 //    bytecodes specifying default values for optional arguments.
 //
-//    If C is not 0 then EntryOpt is followed by 2 * B LoadConstant bytecodes.
+//    If C is not 0 then EntryOptional is followed by 2 * B LoadConstant
+//    bytecodes.
 //    Bytecode at 2 * i specifies name of the i-th named argument and at
 //    2 * i + 1 default value. rA part of the LoadConstant bytecode specifies
 //    the location of the parameter on the stack. Here named arguments are
 //    sorted alphabetically to enable linear matching similar to how function
 //    prologues are implemented on other architectures.
 //
-//    Note: Unlike Entry bytecode EntryOpt does not setup the frame for
+//    Note: Unlike Entry bytecode EntryOptional does not setup the frame for
 //    local variables this is done by a separate bytecode Frame.
+//
+//  - EntryOptimized A, D
+//
+//    Function prologue for optimized functions with no optional or named
+//    arguments.
+//        A - expected number of positional arguments;
+//        B - number of local slots to reserve for registers;
+//
+//    Note: reserved slots are not initialized because optimized code
+//    has stack maps attached to call sites.
+//
+//  - HotCheck A, D
+//
+//    Increment current function's usage counter by A and check if it
+//    exceeds D. If it does trigger (re)optimization of the current
+//    function.
 //
 //  - Frame D
 //
@@ -302,14 +337,29 @@ namespace dart {
 //    match patched call's argument count so that Return instructions continue
 //    to work.
 //
+// TODO(vegorov) the way we replace calls with DebugBreak does not work
+//               with our smi fast paths because DebugBreak is simply skipped.
+//
 //  - LoadClassIdTOS, LoadClassId rA, D
 //
 //    LoadClassIdTOS loads the class id from the object at SP[0] and stores it
 //    to SP[0]. LoadClassId loads the class id from FP[rA] and stores it to
 //    FP[D].
 //
-// TODO(vegorov) the way we replace calls with DebugBreak does not work
-//               with our smi fast paths because DebugBreak is simply skipped.
+//  - Deopt ArgC, D
+//
+//    If D != 0 then trigger eager deoptimization with deopt id (D - 1).
+//    If D == 0 then trigger lazy deoptimization.
+//
+//    The meaning of operand ArgC (encoded as A operand) matches that of an
+//    ArgC operand in call instructions. This is needed because we could
+//    potentially patch calls instructions with a lazy deopt and we need to
+//    ensure that any Return/ReturnTOS instructions
+//    returning from the patched calls will continue to function,
+//    e.g. in bytecode sequences like
+//
+//    InstanceCall ... <- lazy deopt inside first call
+//    InstanceCall ... <- patches seconds call with Deopt
 //
 // BYTECODE LIST FORMAT
 //
@@ -336,14 +386,16 @@ namespace dart {
 #define BYTECODES_LIST(V)                              \
   V(Trap,                            0, ___, ___, ___) \
   V(Compile,                         0, ___, ___, ___) \
+  V(HotCheck,                      A_D, num, num, ___) \
   V(Intrinsic,                       A, num, ___, ___) \
   V(Drop1,                           0, ___, ___, ___) \
   V(DropR,                           A, num, ___, ___) \
   V(Drop,                            A, num, ___, ___) \
   V(Jump,                            T, tgt, ___, ___) \
-  V(Return,                          A, num, ___, ___) \
+  V(Return,                          A, reg, ___, ___) \
   V(ReturnTOS,                       0, ___, ___, ___) \
   V(Move,                          A_X, reg, xeg, ___) \
+  V(Swap,                          A_X, reg, xeg, ___) \
   V(Push,                            X, xeg, ___, ___) \
   V(LoadConstant,                  A_D, reg, lit, ___) \
   V(LoadClassId,                   A_D, reg, reg, ___) \
@@ -352,9 +404,10 @@ namespace dart {
   V(StoreLocal,                      X, xeg, ___, ___) \
   V(PopLocal,                        X, xeg, ___, ___) \
   V(StaticCall,                    A_D, num, num, ___) \
-  V(InstanceCall,                  A_D, num, num, ___) \
+  V(InstanceCall1,                  A_D, num, num, ___) \
   V(InstanceCall2,                 A_D, num, num, ___) \
-  V(InstanceCall3,                 A_D, num, num, ___) \
+  V(InstanceCall1Opt,              A_D, num, num, ___) \
+  V(InstanceCall2Opt,              A_D, num, num, ___) \
   V(NativeCall,                      0, ___, ___, ___) \
   V(NativeBootstrapCall,             0, ___, ___, ___) \
   V(AddTOS,                          0, ___, ___, ___) \
@@ -372,18 +425,25 @@ namespace dart {
   V(IfEqStrictTOS,                   0, ___, ___, ___) \
   V(IfNeStrictNumTOS,                0, ___, ___, ___) \
   V(IfEqStrictNumTOS,                0, ___, ___, ___) \
+  V(IfNeStrict,                    A_D, reg, reg, ___) \
+  V(IfEqStrict,                    A_D, reg, reg, ___) \
+  V(IfNeStrictNum,                 A_D, reg, reg, ___) \
+  V(IfEqStrictNum,                 A_D, reg, reg, ___) \
   V(CreateArrayTOS,                  0, ___, ___, ___) \
   V(Allocate,                        D, lit, ___, ___) \
   V(AllocateT,                       0, ___, ___, ___) \
   V(StoreIndexedTOS,                 0, ___, ___, ___) \
-  V(StoreField,                  A_B_C, reg, reg, reg) \
+  V(StoreIndexed,                A_B_C, reg, reg, reg) \
+  V(StoreField,                  A_B_C, reg, num, reg) \
   V(StoreFieldTOS,                   D, num, ___, ___) \
-  V(LoadField,                   A_B_C, reg, reg, reg) \
+  V(LoadField,                   A_B_C, reg, reg, num) \
   V(LoadFieldTOS,                    D, num, ___, ___) \
   V(BooleanNegateTOS,                0, ___, ___, ___) \
+  V(BooleanNegate,                 A_D, reg, reg, ___) \
   V(Throw,                           A, num, ___, ___) \
   V(Entry,                       A_B_C, num, num, num) \
-  V(EntryOpt,                    A_B_C, num, num, num) \
+  V(EntryOptional,               A_B_C, num, num, num) \
+  V(EntryOptimized,                A_D, num, num, ___) \
   V(Frame,                           D, num, ___, ___) \
   V(SetFrame,                        A, num, ___, num) \
   V(AllocateContext,                 D, num, ___, ___) \
@@ -396,6 +456,7 @@ namespace dart {
   V(CheckStack,                      0, ___, ___, ___) \
   V(DebugStep,                       0, ___, ___, ___) \
   V(DebugBreak,                      A, num, ___, ___) \
+  V(Deopt,                         A_D, num, num, ___) \
 
 typedef uint32_t Instr;
 
@@ -457,15 +518,23 @@ BYTECODES_LIST(DECLARE_BYTECODE)
     return static_cast<Opcode>(bc & 0xFF);
   }
 
+  DART_FORCE_INLINE static bool IsCallOpcode(Instr instr) {
+    switch (DecodeOpcode(instr)) {
+      case Bytecode::kStaticCall:
+      case Bytecode::kInstanceCall1:
+      case Bytecode::kInstanceCall2:
+      case Bytecode::kInstanceCall1Opt:
+      case Bytecode::kInstanceCall2Opt:
+      case Bytecode::kDebugBreak:
+        return true;
+
+      default:
+        return false;
+    }
+  }
+
   DART_FORCE_INLINE static uint8_t DecodeArgc(Instr call) {
-#if defined(DEBUG)
-    const Opcode op = DecodeOpcode(call);
-    ASSERT((op == Bytecode::kStaticCall) ||
-           (op == Bytecode::kInstanceCall) ||
-           (op == Bytecode::kInstanceCall2) ||
-           (op == Bytecode::kInstanceCall3) ||
-           (op == Bytecode::kDebugBreak));
-#endif
+    ASSERT(IsCallOpcode(call));
     return (call >> 8) & 0xFF;
   }
 
@@ -484,7 +553,7 @@ typedef int16_t Register;
 const int16_t FPREG = 0;
 const int16_t SPREG = 1;
 const intptr_t kNumberOfCpuRegisters = 20;
-const intptr_t kDartAvailableCpuRegs = 0;
+const intptr_t kDartAvailableCpuRegs = -1;
 const intptr_t kNoRegister = -1;
 const intptr_t kReservedCpuRegisters = 0;
 const intptr_t ARGS_DESC_REG = 0;

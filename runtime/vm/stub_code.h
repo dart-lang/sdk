@@ -69,6 +69,8 @@ class SnapshotWriter;
 #define VM_STUB_CODE_LIST(V)                                                   \
   V(LazyCompile)                                                               \
   V(FixCallersTarget)                                                          \
+  V(Deoptimize)                                                                \
+  V(DeoptimizeLazy)                                                            \
 
 #endif  // !defined(TARGET_ARCH_DBC)
 

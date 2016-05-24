@@ -89,7 +89,6 @@ void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(thread() == Thread::Current());
   ASSERT(visitor != NULL);
-#if !defined(TARGET_ARCH_DBC)
   // NOTE: This code runs while GC is in progress and runs within
   // a NoHandleScope block. Hence it is not ok to use regular Zone or
   // Scope handles. We use direct stack handles, the raw pointers in
@@ -113,6 +112,7 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
                         Instructions::HeaderSize();
     map = code.GetStackmap(pc() - entry, &maps, &map);
     if (!map.IsNull()) {
+#if !defined(TARGET_ARCH_DBC)
       RawObject** first = reinterpret_cast<RawObject**>(sp());
       RawObject** last = reinterpret_cast<RawObject**>(
           fp() + (kFirstLocalSlotFromFp * kWordSize));
@@ -157,24 +157,59 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
       last = reinterpret_cast<RawObject**>(
           fp() + (kFirstObjectSlotFromFp * kWordSize));
       visitor->VisitPointers(first, last);
+#else
+      RawObject** first = reinterpret_cast<RawObject**>(fp());
+      RawObject** last = reinterpret_cast<RawObject**>(sp());
+
+      // Visit fixed prefix of the frame.
+      ASSERT((first + kFirstObjectSlotFromFp) < first);
+      visitor->VisitPointers(first + kFirstObjectSlotFromFp, first - 1);
+
+      // A stack map is present in the code object, use the stack map to
+      // visit frame slots which are marked as having objects.
+      //
+      // The layout of the frame is (lower addresses to the left):
+      // | registers | outgoing arguments |
+      // |XXXXXXXXXXX|--------------------|
+      //
+      // The DBC registers are described in the stack map.
+      // The outgoing arguments are assumed to be tagged; the number
+      // of outgoing arguments is not explicitly tracked.
+      ASSERT(map.SlowPathBitCount() == 0);
+
+      // Visit DBC registers that contain tagged values.
+      intptr_t length = map.Length();
+      for (intptr_t bit = 0; bit < length; ++bit) {
+        if (map.IsObject(bit)) {
+          visitor->VisitPointer(first + bit);
+        }
+      }
+
+      // Visit outgoing arguments.
+      if ((first + length) <= last) {
+        visitor->VisitPointers(first + length, last);
+      }
+#endif  // !defined(TARGET_ARCH_DBC)
       return;
     }
 
     // No stack map, fall through.
   }
+
+#if !defined(TARGET_ARCH_DBC)
   // For normal unoptimized Dart frames and Stub frames each slot
   // between the first and last included are tagged objects.
   RawObject** first = reinterpret_cast<RawObject**>(sp());
   RawObject** last = reinterpret_cast<RawObject**>(
       fp() + (kFirstObjectSlotFromFp * kWordSize));
-  visitor->VisitPointers(first, last);
 #else
   // On DBC stack grows upwards: fp() <= sp().
   RawObject** first = reinterpret_cast<RawObject**>(
       fp() + (kFirstObjectSlotFromFp * kWordSize));
   RawObject** last = reinterpret_cast<RawObject**>(sp());
-  visitor->VisitPointers(first, last);
 #endif  // !defined(TARGET_ARCH_DBC)
+
+  visitor->VisitPointers(first, last);
 }
 
 

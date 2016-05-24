@@ -613,6 +613,10 @@ class FlowGraphCompiler : public ValueObject {
   void BeginCodeSourceRange();
   bool EndCodeSourceRange(TokenPosition token_pos);
 
+#if defined(TARGET_ARCH_DBC)
+  void RecordAfterCall(Instruction* instr);
+#endif
+
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
 

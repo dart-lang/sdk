@@ -170,6 +170,19 @@ void ParsedFunction::AddToGuardedFields(const Field* field) const {
 }
 
 
+void ParsedFunction::Bailout(const char* origin, const char* reason) const {
+  Report::MessageF(Report::kBailout,
+                   Script::Handle(function_.script()),
+                   function_.token_pos(),
+                   Report::AtLocation,
+                   "%s Bailout in %s: %s",
+                   origin,
+                   String::Handle(function_.name()).ToCString(),
+                   reason);
+  UNREACHABLE();
+}
+
+
 LocalVariable* ParsedFunction::EnsureExpressionTemp() {
   if (!has_expression_temp_var()) {
     LocalVariable* temp =

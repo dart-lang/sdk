@@ -156,15 +156,6 @@ class Simulator {
                      uint32_t** pc,
                      RawObject*** B, RawObject*** SP);
 
-  void InstanceCall3(Thread* thread,
-                     RawICData* icdata,
-                     RawObject** call_base,
-                     RawObject** call_top,
-                     RawArray** argdesc,
-                     RawObjectPool** pp,
-                     uint32_t** pc,
-                     RawObject*** B, RawObject*** SP);
-
   // Longjmp support for exceptions.
   SimulatorSetjmpBuffer* last_setjmp_buffer() {
     return last_setjmp_buffer_;

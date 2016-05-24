@@ -230,6 +230,8 @@ class ParsedFunction : public ZoneAllocated {
   // relevant.
   void AddToGuardedFields(const Field* field) const;
 
+  void Bailout(const char* origin, const char* reason) const;
+
  private:
   Thread* thread_;
   const Function& function_;
