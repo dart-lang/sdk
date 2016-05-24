@@ -2753,8 +2753,6 @@ class CHACodeArray : public WeakCodeReferences {
     }
   }
 
-  virtual void IncrementInvalidationGen() {}
-
  private:
   const Class& cls_;
   DISALLOW_COPY_AND_ASSIGN(CHACodeArray);
@@ -7684,10 +7682,6 @@ class FieldDependentArray : public WeakCodeReferences {
     }
   }
 
-  virtual void IncrementInvalidationGen() {
-    Isolate::Current()->IncrFieldInvalidationGen();
-  }
-
  private:
   const Field& field_;
   DISALLOW_COPY_AND_ASSIGN(FieldDependentArray);
@@ -7706,11 +7700,16 @@ void Field::RegisterDependentCode(const Code& code) const {
 void Field::DeoptimizeDependentCode() const {
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsOriginal());
-  if (FLAG_background_compilation) {
-    Isolate::Current()->AddDisablingField(*this);
-  }
   FieldDependentArray a(*this);
   a.DisableCode();
+}
+
+
+bool Field::IsConsistentWith(const Field& other) const {
+  return (raw_ptr()->guarded_cid_ == other.raw_ptr()->guarded_cid_) &&
+         (raw_ptr()->is_nullable_ == other.raw_ptr()->is_nullable_) &&
+         (raw_ptr()->guarded_list_length_ ==
+             other.raw_ptr()->guarded_list_length_);
 }
 
 
@@ -10973,8 +10972,6 @@ class PrefixDependentArray : public WeakCodeReferences {
           Function::Handle(code.function()).ToCString());
     }
   }
-
-  virtual void IncrementInvalidationGen() {}
 
  private:
   const LibraryPrefix& prefix_;

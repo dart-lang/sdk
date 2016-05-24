@@ -448,12 +448,8 @@ class CompileParsedFunctionHelper : public ValueObject {
         optimized_(optimized),
         osr_id_(osr_id),
         thread_(Thread::Current()),
-        field_invalidation_gen_at_start_(isolate()->field_invalidation_gen()),
         loading_invalidation_gen_at_start_(
             isolate()->loading_invalidation_gen()) {
-    if (Compiler::IsBackgroundCompilation()) {
-      isolate()->ClearDisablingFieldList();
-    }
   }
 
   bool Compile(CompilationPipeline* pipeline);
@@ -464,9 +460,6 @@ class CompileParsedFunctionHelper : public ValueObject {
   intptr_t osr_id() const { return osr_id_; }
   Thread* thread() const { return thread_; }
   Isolate* isolate() const { return thread_->isolate(); }
-  intptr_t field_invalidation_gen_at_start() const {
-    return field_invalidation_gen_at_start_;
-  }
   intptr_t loading_invalidation_gen_at_start() const {
     return loading_invalidation_gen_at_start_;
   }
@@ -479,33 +472,10 @@ class CompileParsedFunctionHelper : public ValueObject {
   const bool optimized_;
   const intptr_t osr_id_;
   Thread* const thread_;
-  const intptr_t field_invalidation_gen_at_start_;
   const intptr_t loading_invalidation_gen_at_start_;
 
   DISALLOW_COPY_AND_ASSIGN(CompileParsedFunctionHelper);
 };
-
-
-// Returns true if any of disabling fields is inside the guarded_fields.
-// The number of guarded_fields and disabling-fields is expected to be small
-// (less than 5).
-static bool CheckDisablingFields(
-    Thread* thread,
-    const ZoneGrowableArray<const Field*>& guarded_fields) {
-  Isolate* isolate = thread->isolate();
-  Zone* zone = thread->zone();
-  Field& field = Field::Handle(zone, isolate->GetDisablingField());
-  while (!field.IsNull()) {
-    for (intptr_t i = 0; i < guarded_fields.length(); i++) {
-      if (guarded_fields.At(i)->raw() == field.raw()) {
-        return true;
-      }
-    }
-    // Get next field.
-    field = isolate->GetDisablingField();
-  }
-  return false;
-}
 
 
 void CompileParsedFunctionHelper::FinalizeCompilation(
@@ -593,17 +563,21 @@ NOT_IN_PRODUCT(
           FLAG_trace_compiler || FLAG_trace_optimizing_compiler;
       bool code_is_valid = true;
       if (!flow_graph->parsed_function().guarded_fields()->is_empty()) {
-        if (field_invalidation_gen_at_start() !=
-            isolate()->field_invalidation_gen()) {
-          const ZoneGrowableArray<const Field*>& guarded_fields =
-              *flow_graph->parsed_function().guarded_fields();
-          bool field_conflict = CheckDisablingFields(thread(), guarded_fields);
-          if (field_conflict) {
+        const ZoneGrowableArray<const Field*>& guarded_fields =
+            *flow_graph->parsed_function().guarded_fields();
+        Field& original = Field::Handle();
+        for (intptr_t i = 0; i < guarded_fields.length(); i++) {
+          const Field& field = *guarded_fields[i];
+          ASSERT(!field.IsOriginal());
+          original = field.Original();
+          if (!field.IsConsistentWith(original)) {
             code_is_valid = false;
             if (trace_compiler) {
-              THR_Print("--> FAIL: Field invalidation.");
+              THR_Print("--> FAIL: Field %s guarded state changed.",
+                        field.ToCString());
             }
-         }
+            break;
+          }
         }
       }
       if (loading_invalidation_gen_at_start() !=
@@ -646,9 +620,10 @@ NOT_IN_PRODUCT(
 
       const ZoneGrowableArray<const Field*>& guarded_fields =
           *flow_graph->parsed_function().guarded_fields();
+      Field& field = Field::Handle();
       for (intptr_t i = 0; i < guarded_fields.length(); i++) {
-        const Field* field = guarded_fields[i];
-        field->RegisterDependentCode(code);
+        field = guarded_fields[i]->Original();
+        field.RegisterDependentCode(code);
       }
     }
   } else {  // not optimized.
