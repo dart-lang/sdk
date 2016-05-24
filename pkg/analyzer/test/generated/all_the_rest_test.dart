@@ -3531,6 +3531,10 @@ class ExitDetectorTest extends ParserTestCase {
     _assertFalse("for (;;) { break; }");
   }
 
+  void test_forStatement_implicitTrue_if_break() {
+    _assertFalse("{ for (;;) { if (1==2) { var a = 1; } else { break; } } }");
+  }
+
   void test_forStatement_initialization() {
     _assertTrue("for (i = throw 0;;) {}");
   }

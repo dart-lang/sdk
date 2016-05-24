@@ -3690,7 +3690,9 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     if (thenStatement == null || elseStatement == null) {
       return false;
     }
-    return _nodeExits(thenStatement) && _nodeExits(elseStatement);
+    bool thenExits = _nodeExits(thenStatement);
+    bool elseExits = _nodeExits(elseStatement);
+    return thenExits && elseExits;
   }
 
   @override
