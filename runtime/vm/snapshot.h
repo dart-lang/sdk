@@ -297,7 +297,6 @@ class BaseReader {
 
   intptr_t ReadTags() {
     const intptr_t tags = static_cast<intptr_t>(Read<int8_t>()) & 0xff;
-    ASSERT(SerializedHeaderTag::decode(tags) != kObjectId);
     return tags;
   }
 
@@ -757,7 +756,6 @@ class BaseWriter : public StackResource {
   }
 
   void WriteTags(intptr_t tags) {
-    ASSERT(SerializedHeaderTag::decode(tags) != kObjectId);
     const intptr_t flags = tags & 0xff;
     Write<int8_t>(static_cast<int8_t>(flags));
   }

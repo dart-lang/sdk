@@ -22411,7 +22411,9 @@ RawWeakProperty* WeakProperty::New(Heap::Space space) {
   RawObject* raw = Object::Allocate(WeakProperty::kClassId,
                                     WeakProperty::InstanceSize(),
                                     space);
-  return reinterpret_cast<RawWeakProperty*>(raw);
+  RawWeakProperty* result = reinterpret_cast<RawWeakProperty*>(raw);
+  result->ptr()->next_ = 0;  // Init the list to NULL.
+  return result;
 }
 
 
