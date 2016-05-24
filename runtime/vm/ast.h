@@ -540,15 +540,16 @@ class ClosureNode : public AstNode {
   ClosureNode(TokenPosition token_pos,
               const Function& function,
               AstNode* receiver,  // Non-null for implicit instance closures.
-              LocalScope* scope)  // Null for implicit closures.
+              LocalScope* scope)  // Null for implicit closures or functions
+                                  // that already have a ContextScope because
+                                  // they were compiled before.
       : AstNode(token_pos),
         function_(function),
         receiver_(receiver),
         scope_(scope),
         is_deferred_reference_(false) {
     ASSERT(function_.IsZoneHandle());
-    ASSERT((function_.IsNonImplicitClosureFunction() &&
-            (receiver_ == NULL) && (scope_ != NULL)) ||
+    ASSERT((function_.IsNonImplicitClosureFunction() && (receiver_ == NULL)) ||
            (function_.IsImplicitInstanceClosureFunction() &&
             (receiver_ != NULL) && (scope_ == NULL)) ||
            (function_.IsImplicitStaticClosureFunction() &&
