@@ -189,9 +189,13 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
       return result;
     }
     if (element.hasConstant) {
-      if (element.constant != null &&
-          compiler.serialization.supportsDeserialization) {
-        evaluate(element.constant);
+      if (element.constant != null) {
+        if (compiler.serialization.supportsDeserialization) {
+          evaluate(element.constant);
+        }
+        assert(invariant(element, hasConstantValue(element.constant),
+            message: "Constant expression has not been evaluated: "
+                "${element.constant.toStructuredText()}."));
       }
       return element.constant;
     }
@@ -592,7 +596,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     if (send.isPropertyAccess) {
       AstConstant result;
       if (Elements.isStaticOrTopLevelFunction(element)) {
-        FunctionElementX function = element;
+        FunctionElement function = element;
         function.computeType(resolution);
         result = new AstConstant(
             context,

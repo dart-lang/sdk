@@ -246,6 +246,13 @@ import 'dart:collection';
 main() => new UnmodifiableListView(null);
 ''',
   }),
+
+  const Test(const {
+    'main.dart': '''
+var myIdentical = identical;
+main() => myIdentical;
+''',
+  }),
 ];
 
 class Test {
