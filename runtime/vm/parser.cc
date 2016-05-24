@@ -9299,8 +9299,10 @@ void Parser::AddNodeForFinallyInlining(AstNode* node) {
     return;
   }
   ASSERT(node->IsReturnNode() || node->IsJumpNode());
+  const intptr_t func_level = current_block_->scope->function_level();
   TryStack* iterator = try_stack_;
-  while (iterator != NULL) {
+  while ((iterator != NULL) &&
+      (iterator->try_block()->scope->function_level() == func_level)) {
     // For continue and break node check if the target label is in scope.
     if (node->IsJumpNode()) {
       SourceLabel* label = node->AsJumpNode()->label();
