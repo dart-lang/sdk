@@ -15246,16 +15246,17 @@ bool Instance::CheckAndCanonicalizeFields(Thread* thread,
     // other instances to be canonical otherwise report error (return false).
     Zone* zone = thread->zone();
     Object& obj = Object::Handle(zone);
-    intptr_t end_field_offset = SizeFromClass() - kWordSize;
-    for (intptr_t field_offset = 0;
-         field_offset <= end_field_offset;
-         field_offset += kWordSize) {
-      obj = *this->FieldAddrAtOffset(field_offset);
+    const intptr_t instance_size = SizeFromClass();
+    ASSERT(instance_size != 0);
+    for (intptr_t offset = Instance::NextFieldOffset();
+         offset < instance_size;
+         offset += kWordSize) {
+      obj = *this->FieldAddrAtOffset(offset);
       if (obj.IsInstance() && !obj.IsSmi() && !obj.IsCanonical()) {
         if (obj.IsNumber() || obj.IsString()) {
           obj = Instance::Cast(obj).CheckAndCanonicalize(thread, NULL);
           ASSERT(!obj.IsNull());
-          this->SetFieldAtOffset(field_offset, obj);
+          this->SetFieldAtOffset(offset, obj);
         } else {
           ASSERT(error_str != NULL);
           char* chars = OS::SCreate(zone, "field: %s\n", obj.ToCString());
