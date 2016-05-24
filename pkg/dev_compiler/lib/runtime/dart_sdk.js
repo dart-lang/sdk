@@ -1,5 +1,5 @@
 dart_library.library('dart_sdk', null, /* Imports */[
-], function(exports) {
+], function load__dart_sdk(exports) {
   'use strict';
   const dart = Object.create(null);
   const dartx = Object.create(null);
