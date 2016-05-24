@@ -262,6 +262,7 @@ class AnalyzerLoader implements ReferenceLevelLoader {
   }
 
   void loadEverything() {
+    ensureLibraryIsLoaded(getLibraryReference(getDartCoreLibrary()));
     int libraryIndex = 0;
     bool changed = true;
     while (changed) {
