@@ -125,6 +125,7 @@ class ThreadPool {
   void ReapExitedIdleThreads();
 
   // Worker operations.
+  void SetIdleLocked(Worker* worker);  // Assumes mutex_ is held.
   void SetIdleAndReapExited(Worker* worker);
   bool ReleaseIdleWorker(Worker* worker);
 

@@ -91,7 +91,7 @@ int OSThread::Start(const char* name,
 
 
 const ThreadId OSThread::kInvalidThreadId = 0;
-const ThreadJoinId OSThread::kInvalidThreadJoinId = 0;
+const ThreadJoinId OSThread::kInvalidThreadJoinId = NULL;
 
 
 ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
@@ -130,27 +130,25 @@ ThreadId OSThread::GetCurrentThreadTraceId() {
 }
 
 
-ThreadJoinId OSThread::GetCurrentThreadJoinId() {
-  // TODO(zra): Use the thread handle as the join id in order to have a more
-  // reliable join on windows.
-  return ::GetCurrentThreadId();
+ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
+  ASSERT(thread != NULL);
+  // Make sure we're filling in the join id for the current thread.
+  ThreadId id = GetCurrentThreadId();
+  ASSERT(thread->id() == id);
+  // Make sure the join_id_ hasn't been set, yet.
+  DEBUG_ASSERT(thread->join_id_ == kInvalidThreadJoinId);
+  HANDLE handle = OpenThread(SYNCHRONIZE, false, id);
+  ASSERT(handle != NULL);
+#if defined(DEBUG)
+  thread->join_id_ = handle;
+#endif
+  return handle;
 }
 
 
 void OSThread::Join(ThreadJoinId id) {
-  HANDLE handle = OpenThread(SYNCHRONIZE, false, id);
-
-  // TODO(zra): OSThread::Start() closes the handle to the thread. Thus, by the
-  // time we try to join the thread, its resources may have already been
-  // reclaimed, and joining will fail. This can be avoided in a couple of ways.
-  // First, GetCurrentThreadJoinId could call OpenThread and return a handle.
-  // This is bad, because each of those handles would have to be closed.
-  // Second OSThread could be refactored to no longer be AllStatic. Then the
-  // handle could be cached in the object by the Start method.
-  if (handle == NULL) {
-    return;
-  }
-
+  HANDLE handle = static_cast<HANDLE>(id);
+  ASSERT(handle != NULL);
   DWORD res = WaitForSingleObject(handle, INFINITE);
   CloseHandle(handle);
   ASSERT(res == WAIT_OBJECT_0);

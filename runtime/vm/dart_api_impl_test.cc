@@ -9714,8 +9714,7 @@ class GlobalTimelineThreadData {
   GlobalTimelineThreadData()
       : monitor_(new Monitor()),
         data_(new AppendData()),
-        running_(true),
-        join_id_(OSThread::kInvalidThreadJoinId) {
+        running_(true) {
   }
 
   ~GlobalTimelineThreadData() {
@@ -9733,16 +9732,13 @@ class GlobalTimelineThreadData {
   AppendData* data() const { return data_; }
   uint8_t* buffer() const { return data_->buffer; }
   intptr_t buffer_length() const { return data_->buffer_length; }
-  ThreadJoinId join_id() const { return join_id_; }
 
   void set_running(bool running) { running_ = running; }
-  void set_join_id(ThreadJoinId join_id) { join_id_ = join_id; }
 
  private:
   Monitor* monitor_;
   AppendData* data_;
   bool running_;
-  ThreadJoinId join_id_;
 };
 
 
@@ -9758,7 +9754,6 @@ static void GlobalTimelineThread(uword parameter) {
         Dart_GlobalTimelineGetTrace(AppendStreamConsumer, data->data());
     EXPECT(success);
     data->set_running(false);
-    data->set_join_id(OSThread::Current()->join_id());
     ml.Notify();
   }
 }
@@ -9805,7 +9800,6 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace_Threaded) {
     }
     buffer = reinterpret_cast<char*>(data.buffer());
     buffer_length = data.buffer_length();
-    OSThread::Join(data.join_id());
   }
   EXPECT(buffer_length > 0);
   EXPECT(buffer != NULL);
@@ -9847,7 +9841,6 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace_Threaded) {
     }
     buffer = reinterpret_cast<char*>(data2.buffer());
     buffer_length = data2.buffer_length();
-    OSThread::Join(data2.join_id());
   }
 
   EXPECT(buffer_length > 0);

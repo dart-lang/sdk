@@ -18,7 +18,7 @@ namespace dart {
 
 typedef DWORD ThreadLocalKey;
 typedef DWORD ThreadId;
-typedef DWORD ThreadJoinId;
+typedef HANDLE ThreadJoinId;
 
 
 static const ThreadLocalKey kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
