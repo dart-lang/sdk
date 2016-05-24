@@ -880,6 +880,7 @@ class DeserializerPlugin {
 class DeserializationContext {
   Map<Uri, LibraryElement> _uriMap = <Uri, LibraryElement>{};
   List<Deserializer> deserializers = <Deserializer>[];
+  List<DeserializerPlugin> plugins = <DeserializerPlugin>[];
 
   LibraryElement lookupLibrary(Uri uri) {
     return _uriMap.putIfAbsent(uri, () {
@@ -900,7 +901,6 @@ class DeserializationContext {
 class Deserializer {
   final DeserializationContext context;
   final SerializationDecoder decoder;
-  List<DeserializerPlugin> plugins = <DeserializerPlugin>[];
   ObjectDecoder _headerObject;
   ListDecoder _elementList;
   ListDecoder _typeList;
@@ -911,7 +911,6 @@ class Deserializer {
 
   Deserializer.fromText(this.context, String text, this.decoder) {
     _headerObject = new ObjectDecoder(this, decoder.decode(text));
-    context.deserializers.add(this);
   }
 
   /// Returns the [ListDecoder] for the [Element]s in this deserializer.
@@ -1000,7 +999,7 @@ class Deserializer {
       MapDecoder pluginData = decoder.getMap(Key.DATA, isOptional: true);
       // Call plugins even when there is no data, so they can take action in
       // this case.
-      for (DeserializerPlugin plugin in plugins) {
+      for (DeserializerPlugin plugin in context.plugins) {
         plugin.onElement(element,
             (String tag) => pluginData?.getObject(tag, isOptional: true));
       }

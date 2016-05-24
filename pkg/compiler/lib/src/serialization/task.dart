@@ -112,13 +112,15 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
 
   void deserializeFromText(String serializedData) {
     measure(() {
+      if (deserializer == null) {
+        deserializer = new DeserializerSystemImpl(
+            compiler, compiler.backend.impactTransformer);
+      }
+      DeserializerSystemImpl deserializerImpl = deserializer;
+      DeserializationContext context = deserializerImpl.deserializationContext;
       Deserializer dataDeserializer = new Deserializer.fromText(
-          new DeserializationContext(),
-          serializedData,
-          const JsonSerializationDecoder());
-      dataDeserializer.plugins.add(compiler.backend.serialization.deserializer);
-      deserializer = new DeserializerSystemImpl(
-          compiler, dataDeserializer, compiler.backend.impactTransformer);
+          context, serializedData, const JsonSerializationDecoder());
+      context.deserializers.add(dataDeserializer);
     });
   }
 }

@@ -28,43 +28,39 @@ import 'task.dart';
 
 class DeserializerSystemImpl extends DeserializerSystem {
   final Compiler _compiler;
-  final Deserializer _deserializer;
+  final DeserializationContext deserializationContext;
   final List<LibraryElement> deserializedLibraries = <LibraryElement>[];
   final ResolutionImpactDeserializer _resolutionImpactDeserializer;
   final ResolvedAstDeserializerPlugin _resolvedAstDeserializer;
   final ImpactTransformer _impactTransformer;
 
-  factory DeserializerSystemImpl(Compiler compiler, Deserializer deserializer,
-      ImpactTransformer impactTransformer) {
-    List<DeserializerPlugin> plugins = <DeserializerPlugin>[];
+  factory DeserializerSystemImpl(
+      Compiler compiler, ImpactTransformer impactTransformer) {
+    DeserializationContext context = new DeserializationContext();
     DeserializerPlugin backendDeserializer =
         compiler.backend.serialization.deserializer;
-    deserializer.plugins.add(backendDeserializer);
+    context.plugins.add(backendDeserializer);
     ResolutionImpactDeserializer resolutionImpactDeserializer =
         new ResolutionImpactDeserializer(backendDeserializer);
-    deserializer.plugins.add(resolutionImpactDeserializer);
+    context.plugins.add(resolutionImpactDeserializer);
     ResolvedAstDeserializerPlugin resolvedAstDeserializer =
         new ResolvedAstDeserializerPlugin(
             compiler.parsingContext, backendDeserializer);
-    deserializer.plugins.add(resolvedAstDeserializer);
-    return new DeserializerSystemImpl._(
-        compiler,
-        deserializer,
-        impactTransformer,
-        resolutionImpactDeserializer,
-        resolvedAstDeserializer);
+    context.plugins.add(resolvedAstDeserializer);
+    return new DeserializerSystemImpl._(compiler, context, impactTransformer,
+        resolutionImpactDeserializer, resolvedAstDeserializer);
   }
 
   DeserializerSystemImpl._(
       this._compiler,
-      this._deserializer,
+      this.deserializationContext,
       this._impactTransformer,
       this._resolutionImpactDeserializer,
       this._resolvedAstDeserializer);
 
   @override
   Future<LibraryElement> readLibrary(Uri resolvedUri) {
-    LibraryElement library = _deserializer.lookupLibrary(resolvedUri);
+    LibraryElement library = deserializationContext.lookupLibrary(resolvedUri);
     if (library != null) {
       deserializedLibraries.add(library);
       return Future.forEach(library.compilationUnits,

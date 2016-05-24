@@ -4,6 +4,7 @@
 
 library dart2js.serialization_library_test;
 
+import 'dart:async';
 import 'dart:io';
 import '../memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
@@ -47,20 +48,26 @@ main(List<String> arguments) {
     entryPoint = Uris.dart_core;
   }
   asyncTest(() async {
-    CompilationResult result = await runCompiler(
+    Compiler compiler = await compilerFor(
         entryPoint: entryPoint, options: [Flags.analyzeAll]);
-    Compiler compiler = result.compiler;
-    testSerialization(compiler.libraryLoader.libraries,
-                      outPath: outPath,
-                      prettyPrint: prettyPrint,
-                      shardCount: shardCount);
+    compiler.serialization.supportSerialization = true;
+    await compiler.run(entryPoint);
+    List<String> data =
+        createData(compiler,
+                   outPath: outPath,
+                   prettyPrint: prettyPrint,
+                   shardCount: shardCount);
+    testEquivalence(data, compiler.libraryLoader.libraries);
+    await testAnalysis(data, entryPoint);
   });
 }
 
-void testSerialization(Iterable<LibraryElement> libraries1,
-                       {String outPath,
-                        bool prettyPrint,
-                        int shardCount: 3}) {
+List<String> createData(
+    Compiler compiler,
+    {String outPath,
+     bool prettyPrint,
+     int shardCount: 3}) {
+  Iterable<LibraryElement> libraries1 = compiler.libraryLoader.libraries;
   if (shardCount < 1 || shardCount > libraries1.length) {
     shardCount = libraries1.length;
   }
@@ -81,11 +88,8 @@ void testSerialization(Iterable<LibraryElement> libraries1,
   List<String> texts = <String>[];
   for (int shard = 0; shard < shardCount; shard++) {
     List<LibraryElement> libraries = librarySplits[shard];
-    Serializer serializer = new Serializer(
-        shouldInclude: (e) => libraries.contains(e.library));
-    for (LibraryElement library in libraries) {
-      serializer.serialize(library);
-    }
+    Serializer serializer =
+        compiler.serialization.createSerializer(libraries);
     String text = serializer.toText(const JsonSerializationEncoder());
     String outText = text;
     if (prettyPrint) {
@@ -105,13 +109,17 @@ void testSerialization(Iterable<LibraryElement> libraries1,
     }
     texts.add(text);
   }
+  return texts;
+}
+
+void testEquivalence(List<String> data, Iterable<LibraryElement> libraries1) {
   DeserializationContext deserializationContext =
       new DeserializationContext();
-  for (int shard = 0; shard < shardCount; shard++) {
-    new Deserializer.fromText(
-        deserializationContext, texts[shard], const JsonSerializationDecoder());
+  for (String shardData in data) {
+    Deserializer deserializer = new Deserializer.fromText(
+        deserializationContext, shardData, const JsonSerializationDecoder());
+    deserializationContext.deserializers.add(deserializer);
   }
-  List<LibraryElement> libraries2 = <LibraryElement>[];
   for (LibraryElement library1 in libraries1) {
     LibraryElement library2 =
         deserializationContext.lookupLibrary(library1.canonicalUri);
@@ -119,6 +127,14 @@ void testSerialization(Iterable<LibraryElement> libraries1,
       throw new ArgumentError('No library ${library1.canonicalUri} found.');
     }
     checkLibraryContent('library1', 'library2', 'library', library1, library2);
-    libraries2.add(library2);
   }
+}
+
+Future testAnalysis(List<String> data, Uri entryPoint) async {
+  Compiler compiler = compilerFor(entryPoint: entryPoint,
+      options: [Flags.analyzeAll]);
+  for (String shardData in data) {
+    compiler.serialization.deserializeFromText(shardData);
+  }
+  await compiler.run(entryPoint);
 }
