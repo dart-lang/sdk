@@ -253,6 +253,17 @@ var myIdentical = identical;
 main() => myIdentical;
 ''',
   }),
+
+  const Test(const {
+    'main.dart': '''
+class Foo {
+  String toString() => super.toString();
+}
+main() {
+  print(new Foo());
+}
+''',
+  }),
 ];
 
 class Test {

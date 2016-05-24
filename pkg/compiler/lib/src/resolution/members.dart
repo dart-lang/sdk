@@ -24,7 +24,6 @@ import '../elements/modelx.dart'
         JumpTargetX,
         LocalFunctionElementX,
         LocalParameterElementX,
-        MethodElementX,
         ParameterElementX,
         VariableElementX,
         VariableList;
@@ -1546,7 +1545,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       bool isIncompatibleInvoke = false;
       switch (semantics.kind) {
         case AccessKind.SUPER_METHOD:
-          MethodElementX superMethod = semantics.element;
+          MethodElement superMethod = semantics.element;
           superMethod.computeType(resolution);
           if (!callStructure.signatureApplies(superMethod.functionSignature)) {
             registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
