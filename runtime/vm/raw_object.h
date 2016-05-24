@@ -262,7 +262,7 @@ class RawObject {
     kRememberedBit = 3,
     kReservedTagPos = 4,  // kReservedBit{100K,1M,10M}
 #if defined(ARCH_IS_32_BIT)
-    kReservedTagSize = 3,
+    kReservedTagSize = 4,
     kSizeTagPos = kReservedTagPos + kReservedTagSize,  // = 8
     kSizeTagSize = 8,
     kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 16
