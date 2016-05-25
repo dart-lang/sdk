@@ -10029,17 +10029,17 @@ dart_library.library('dart_sdk', null, /* Imports */[
       _js_helper.checkInt(seconds);
       _js_helper.checkInt(milliseconds);
       _js_helper.checkBool(isUtc);
-      let jsMonth = dart.dsend(month, '-', 1);
+      let jsMonth = dart.notNull(month) - 1;
       let value = null;
       if (dart.test(isUtc)) {
         value = Date.UTC(years, jsMonth, day, hours, minutes, seconds, milliseconds);
       } else {
         value = new Date(years, jsMonth, day, hours, minutes, seconds, milliseconds).valueOf();
       }
-      if (dart.test(dart.dload(value, 'isNaN')) || dart.test(dart.dsend(value, '<', -MAX_MILLISECONDS_SINCE_EPOCH)) || dart.test(dart.dsend(value, '>', MAX_MILLISECONDS_SINCE_EPOCH))) {
+      if (dart.test(value[dartx.isNaN]) || dart.notNull(value) < -MAX_MILLISECONDS_SINCE_EPOCH || dart.notNull(value) > MAX_MILLISECONDS_SINCE_EPOCH) {
         return null;
       }
-      if (dart.test(dart.dsend(years, '<=', 0)) || dart.test(dart.dsend(years, '<', 100))) return _js_helper.Primitives.patchUpY2K(value, years, isUtc);
+      if (dart.notNull(years) <= 0 || dart.notNull(years) < 100) return dart.as(_js_helper.Primitives.patchUpY2K(value, years, isUtc), core.num);
       return value;
     }
     static patchUpY2K(value, years, isUtc) {
@@ -10126,7 +10126,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       flattenString: dart.definiteFunctionType(core.String, [core.String]),
       getTimeZoneName: dart.definiteFunctionType(core.String, [core.DateTime]),
       getTimeZoneOffsetInMinutes: dart.definiteFunctionType(core.int, [core.DateTime]),
-      valueFromDecomposedDate: dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]),
+      valueFromDecomposedDate: dart.definiteFunctionType(core.num, [core.int, core.int, core.int, core.int, core.int, core.int, core.int, core.bool]),
       patchUpY2K: dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic]),
       lazyAsJsDate: dart.definiteFunctionType(dart.dynamic, [core.DateTime]),
       getYear: dart.definiteFunctionType(dart.dynamic, [core.DateTime]),
@@ -29115,7 +29115,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       this[_value$] = _js_helper.Primitives.dateNow();
     }
     static _brokenDownDateToValue(year, month, day, hour, minute, second, millisecond, microsecond, isUtc) {
-      return dart.as(_js_helper.Primitives.valueFromDecomposedDate(year, month, day, hour, minute, second, dart.notNull(millisecond) + dart.notNull(core.DateTime._microsecondInRoundedMilliseconds(microsecond)), isUtc), core.int);
+      return dart.asInt(_js_helper.Primitives.valueFromDecomposedDate(year, month, day, hour, minute, second, dart.notNull(millisecond) + dart.notNull(core.DateTime._microsecondInRoundedMilliseconds(microsecond)), isUtc));
     }
     get millisecondsSinceEpoch() {
       return this[_value$];

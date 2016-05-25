@@ -360,8 +360,8 @@ class Primitives {
     return -JS('int', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
   }
 
-  static valueFromDecomposedDate(years, month, day, hours, minutes, seconds,
-                                 milliseconds, isUtc) {
+  static num valueFromDecomposedDate(int years, int month, int day, int hours,
+        int minutes, int seconds, int milliseconds, bool isUtc) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     checkInt(years);
     checkInt(month);
@@ -372,7 +372,7 @@ class Primitives {
     checkInt(milliseconds);
     checkBool(isUtc);
     var jsMonth = month - 1;
-    var value;
+    num value;
     if (isUtc) {
       value = JS('num', r'Date.UTC(#, #, #, #, #, #, #)',
                  years, jsMonth, day, hours, minutes, seconds, milliseconds);
