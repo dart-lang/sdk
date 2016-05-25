@@ -26,8 +26,8 @@ dart/data_uri_import_test/none: SkipByDesign
 cc/CorelibIsolateStartup: Skip
 # Negative tests of VerifiedMemory should crash iff in DEBUG mode.
 # TODO(koda): Improve support for negative tests.
-cc/VerifyImplicit_Crash: Crash, Timeout  # Timeout: Issue #24596
-cc/VerifyExplicit_Crash: Crash, Timeout  # Timeout: Issue #24596
+cc/VerifyImplicit_Crash: Crash
+cc/VerifyExplicit_Crash: Crash
 # It can take some time for all the isolates to shutdown in a Debug build.
 dart/spawn_shutdown_test: Pass, Slow  # VM Shutdown test
 
