@@ -59,9 +59,8 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
         negatable: false)
     ..addOption('config', abbr: 'c', help: 'Use configuration from this file.')
     ..addOption('dart-sdk', help: 'Custom path to a Dart SDK.')
-    ..addOption('lints',
-        help:
-            'A list of lint rules to run. For example: '
+    ..addOption('rules',
+        help: 'A list of lint rules to run. For example: '
             'avoid_as,annotate_overrides',
         allowMultiple: true)
     ..addOption('packages',
@@ -100,7 +99,7 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
     lintOptions.configure(config);
   }
 
-  var lints = options['lints'];
+  var lints = options['rules'];
   if (lints != null && !lints.isEmpty) {
     var rules = <LintRule>[];
     for (var lint in lints) {
