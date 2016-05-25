@@ -2686,7 +2686,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       [dartx.sort](compare) {
         if (compare === void 0) compare = null;
         this[dartx.checkMutable]('sort');
-        _internal.Sort.sort(this, compare == null ? core.Comparable.compare : compare);
+        _internal.Sort.sort(dart.dynamic)(this, compare == null ? core.Comparable.compare : compare);
       }
       [dartx.shuffle](random) {
         if (random === void 0) random = null;
@@ -4315,9 +4315,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       sort(compare) {
         if (compare === void 0) compare = null;
         if (compare == null) {
-          _internal.Sort.sort(this, core.Comparable.compare);
+          _internal.Sort.sort(dart.dynamic)(this, core.Comparable.compare);
         } else {
-          _internal.Sort.sort(this, compare);
+          _internal.Sort.sort(E)(this, compare);
         }
       }
       shuffle(random) {
@@ -6537,231 +6537,241 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.lazyFn(_internal.printToConsole, () => [dart.void, [core.String]]);
   _internal.Sort = class Sort extends core.Object {
-    static sort(a, compare) {
-      _internal.Sort._doSort(a, 0, dart.notNull(a[dartx.length]) - 1, compare);
+    static sort(E) {
+      return (a, compare) => {
+        _internal.Sort._doSort(E)(a, 0, dart.notNull(a[dartx.length]) - 1, compare);
+      };
     }
-    static sortRange(a, from, to, compare) {
-      if (dart.notNull(from) < 0 || dart.notNull(to) > dart.notNull(a[dartx.length]) || dart.notNull(to) < dart.notNull(from)) {
-        dart.throw("OutOfRange");
-      }
-      _internal.Sort._doSort(a, from, dart.notNull(to) - 1, compare);
-    }
-    static _doSort(a, left, right, compare) {
-      if (dart.notNull(right) - dart.notNull(left) <= _internal.Sort._INSERTION_SORT_THRESHOLD) {
-        _internal.Sort._insertionSort(a, left, right, compare);
-      } else {
-        _internal.Sort._dualPivotQuicksort(a, left, right, compare);
-      }
-    }
-    static _insertionSort(a, left, right, compare) {
-      for (let i = dart.notNull(left) + 1; i <= dart.notNull(right); i++) {
-        let el = a[dartx.get](i);
-        let j = i;
-        while (j > dart.notNull(left) && dart.notNull(dart.dcall(compare, a[dartx.get](j - 1), el)) > 0) {
-          a[dartx.set](j, a[dartx.get](j - 1));
-          j--;
+    static sortRange(E) {
+      return (a, from, to, compare) => {
+        if (dart.notNull(from) < 0 || dart.notNull(to) > dart.notNull(a[dartx.length]) || dart.notNull(to) < dart.notNull(from)) {
+          dart.throw("OutOfRange");
         }
-        a[dartx.set](j, el);
-      }
+        _internal.Sort._doSort(E)(a, from, dart.notNull(to) - 1, compare);
+      };
     }
-    static _dualPivotQuicksort(a, left, right, compare) {
-      dart.assert(dart.notNull(right) - dart.notNull(left) > _internal.Sort._INSERTION_SORT_THRESHOLD);
-      let sixth = ((dart.notNull(right) - dart.notNull(left) + 1) / 6)[dartx.truncate]();
-      let index1 = dart.notNull(left) + sixth;
-      let index5 = dart.notNull(right) - sixth;
-      let index3 = ((dart.notNull(left) + dart.notNull(right)) / 2)[dartx.truncate]();
-      let index2 = index3 - sixth;
-      let index4 = index3 + sixth;
-      let el1 = a[dartx.get](index1);
-      let el2 = a[dartx.get](index2);
-      let el3 = a[dartx.get](index3);
-      let el4 = a[dartx.get](index4);
-      let el5 = a[dartx.get](index5);
-      if (dart.notNull(dart.dcall(compare, el1, el2)) > 0) {
-        let t = el1;
-        el1 = el2;
-        el2 = t;
-      }
-      if (dart.notNull(dart.dcall(compare, el4, el5)) > 0) {
-        let t = el4;
-        el4 = el5;
-        el5 = t;
-      }
-      if (dart.notNull(dart.dcall(compare, el1, el3)) > 0) {
-        let t = el1;
-        el1 = el3;
-        el3 = t;
-      }
-      if (dart.notNull(dart.dcall(compare, el2, el3)) > 0) {
-        let t = el2;
-        el2 = el3;
-        el3 = t;
-      }
-      if (dart.notNull(dart.dcall(compare, el1, el4)) > 0) {
-        let t = el1;
-        el1 = el4;
-        el4 = t;
-      }
-      if (dart.notNull(dart.dcall(compare, el3, el4)) > 0) {
-        let t = el3;
-        el3 = el4;
-        el4 = t;
-      }
-      if (dart.notNull(dart.dcall(compare, el2, el5)) > 0) {
-        let t = el2;
-        el2 = el5;
-        el5 = t;
-      }
-      if (dart.notNull(dart.dcall(compare, el2, el3)) > 0) {
-        let t = el2;
-        el2 = el3;
-        el3 = t;
-      }
-      if (dart.notNull(dart.dcall(compare, el4, el5)) > 0) {
-        let t = el4;
-        el4 = el5;
-        el5 = t;
-      }
-      let pivot1 = el2;
-      let pivot2 = el4;
-      a[dartx.set](index1, el1);
-      a[dartx.set](index3, el3);
-      a[dartx.set](index5, el5);
-      a[dartx.set](index2, a[dartx.get](left));
-      a[dartx.set](index4, a[dartx.get](right));
-      let less = dart.notNull(left) + 1;
-      let great = dart.notNull(right) - 1;
-      let pivots_are_equal = dart.dcall(compare, pivot1, pivot2) == 0;
-      if (pivots_are_equal) {
-        let pivot = pivot1;
-        for (let k = less; k <= great; k++) {
-          let ak = a[dartx.get](k);
-          let comp = dart.dcall(compare, ak, pivot);
-          if (comp == 0) continue;
-          if (dart.notNull(comp) < 0) {
-            if (k != less) {
-              a[dartx.set](k, a[dartx.get](less));
-              a[dartx.set](less, ak);
-            }
-            less++;
-          } else {
-            while (true) {
-              comp = dart.dcall(compare, a[dartx.get](great), pivot);
-              if (dart.notNull(comp) > 0) {
-                great--;
-                continue;
-              } else if (dart.notNull(comp) < 0) {
-                a[dartx.set](k, a[dartx.get](less));
-                a[dartx.set](less++, a[dartx.get](great));
-                a[dartx.set](great--, ak);
-                break;
-              } else {
-                a[dartx.set](k, a[dartx.get](great));
-                a[dartx.set](great--, ak);
-                break;
-              }
-            }
+    static _doSort(E) {
+      return (a, left, right, compare) => {
+        if (dart.notNull(right) - dart.notNull(left) <= _internal.Sort._INSERTION_SORT_THRESHOLD) {
+          _internal.Sort._insertionSort(E)(a, left, right, compare);
+        } else {
+          _internal.Sort._dualPivotQuicksort(E)(a, left, right, compare);
+        }
+      };
+    }
+    static _insertionSort(E) {
+      return (a, left, right, compare) => {
+        for (let i = dart.notNull(left) + 1; i <= dart.notNull(right); i++) {
+          let el = a[dartx.get](i);
+          let j = i;
+          while (j > dart.notNull(left) && dart.notNull(compare(a[dartx.get](j - 1), el)) > 0) {
+            a[dartx.set](j, a[dartx.get](j - 1));
+            j--;
           }
+          a[dartx.set](j, el);
         }
-      } else {
-        for (let k = less; k <= great; k++) {
-          let ak = a[dartx.get](k);
-          let comp_pivot1 = dart.dcall(compare, ak, pivot1);
-          if (dart.notNull(comp_pivot1) < 0) {
-            if (k != less) {
-              a[dartx.set](k, a[dartx.get](less));
-              a[dartx.set](less, ak);
-            }
-            less++;
-          } else {
-            let comp_pivot2 = dart.dcall(compare, ak, pivot2);
-            if (dart.notNull(comp_pivot2) > 0) {
+      };
+    }
+    static _dualPivotQuicksort(E) {
+      return (a, left, right, compare) => {
+        dart.assert(dart.notNull(right) - dart.notNull(left) > _internal.Sort._INSERTION_SORT_THRESHOLD);
+        let sixth = ((dart.notNull(right) - dart.notNull(left) + 1) / 6)[dartx.truncate]();
+        let index1 = dart.notNull(left) + sixth;
+        let index5 = dart.notNull(right) - sixth;
+        let index3 = ((dart.notNull(left) + dart.notNull(right)) / 2)[dartx.truncate]();
+        let index2 = index3 - sixth;
+        let index4 = index3 + sixth;
+        let el1 = a[dartx.get](index1);
+        let el2 = a[dartx.get](index2);
+        let el3 = a[dartx.get](index3);
+        let el4 = a[dartx.get](index4);
+        let el5 = a[dartx.get](index5);
+        if (dart.notNull(compare(el1, el2)) > 0) {
+          let t = el1;
+          el1 = el2;
+          el2 = t;
+        }
+        if (dart.notNull(compare(el4, el5)) > 0) {
+          let t = el4;
+          el4 = el5;
+          el5 = t;
+        }
+        if (dart.notNull(compare(el1, el3)) > 0) {
+          let t = el1;
+          el1 = el3;
+          el3 = t;
+        }
+        if (dart.notNull(compare(el2, el3)) > 0) {
+          let t = el2;
+          el2 = el3;
+          el3 = t;
+        }
+        if (dart.notNull(compare(el1, el4)) > 0) {
+          let t = el1;
+          el1 = el4;
+          el4 = t;
+        }
+        if (dart.notNull(compare(el3, el4)) > 0) {
+          let t = el3;
+          el3 = el4;
+          el4 = t;
+        }
+        if (dart.notNull(compare(el2, el5)) > 0) {
+          let t = el2;
+          el2 = el5;
+          el5 = t;
+        }
+        if (dart.notNull(compare(el2, el3)) > 0) {
+          let t = el2;
+          el2 = el3;
+          el3 = t;
+        }
+        if (dart.notNull(compare(el4, el5)) > 0) {
+          let t = el4;
+          el4 = el5;
+          el5 = t;
+        }
+        let pivot1 = el2;
+        let pivot2 = el4;
+        a[dartx.set](index1, el1);
+        a[dartx.set](index3, el3);
+        a[dartx.set](index5, el5);
+        a[dartx.set](index2, a[dartx.get](left));
+        a[dartx.set](index4, a[dartx.get](right));
+        let less = dart.notNull(left) + 1;
+        let great = dart.notNull(right) - 1;
+        let pivots_are_equal = compare(pivot1, pivot2) == 0;
+        if (pivots_are_equal) {
+          let pivot = pivot1;
+          for (let k = less; k <= great; k++) {
+            let ak = a[dartx.get](k);
+            let comp = compare(ak, pivot);
+            if (comp == 0) continue;
+            if (dart.notNull(comp) < 0) {
+              if (k != less) {
+                a[dartx.set](k, a[dartx.get](less));
+                a[dartx.set](less, ak);
+              }
+              less++;
+            } else {
               while (true) {
-                let comp = dart.dcall(compare, a[dartx.get](great), pivot2);
+                comp = compare(a[dartx.get](great), pivot);
                 if (dart.notNull(comp) > 0) {
                   great--;
-                  if (great < k) break;
                   continue;
+                } else if (dart.notNull(comp) < 0) {
+                  a[dartx.set](k, a[dartx.get](less));
+                  a[dartx.set](less++, a[dartx.get](great));
+                  a[dartx.set](great--, ak);
+                  break;
                 } else {
-                  comp = dart.dcall(compare, a[dartx.get](great), pivot1);
-                  if (dart.notNull(comp) < 0) {
-                    a[dartx.set](k, a[dartx.get](less));
-                    a[dartx.set](less++, a[dartx.get](great));
-                    a[dartx.set](great--, ak);
-                  } else {
-                    a[dartx.set](k, a[dartx.get](great));
-                    a[dartx.set](great--, ak);
-                  }
+                  a[dartx.set](k, a[dartx.get](great));
+                  a[dartx.set](great--, ak);
                   break;
                 }
               }
             }
           }
-        }
-      }
-      a[dartx.set](left, a[dartx.get](less - 1));
-      a[dartx.set](less - 1, pivot1);
-      a[dartx.set](right, a[dartx.get](great + 1));
-      a[dartx.set](great + 1, pivot2);
-      _internal.Sort._doSort(a, left, less - 2, compare);
-      _internal.Sort._doSort(a, great + 2, right, compare);
-      if (pivots_are_equal) {
-        return;
-      }
-      if (less < index1 && great > index5) {
-        while (dart.dcall(compare, a[dartx.get](less), pivot1) == 0) {
-          less++;
-        }
-        while (dart.dcall(compare, a[dartx.get](great), pivot2) == 0) {
-          great--;
-        }
-        for (let k = less; k <= great; k++) {
-          let ak = a[dartx.get](k);
-          let comp_pivot1 = dart.dcall(compare, ak, pivot1);
-          if (comp_pivot1 == 0) {
-            if (k != less) {
-              a[dartx.set](k, a[dartx.get](less));
-              a[dartx.set](less, ak);
+        } else {
+          for (let k = less; k <= great; k++) {
+            let ak = a[dartx.get](k);
+            let comp_pivot1 = compare(ak, pivot1);
+            if (dart.notNull(comp_pivot1) < 0) {
+              if (k != less) {
+                a[dartx.set](k, a[dartx.get](less));
+                a[dartx.set](less, ak);
+              }
+              less++;
+            } else {
+              let comp_pivot2 = compare(ak, pivot2);
+              if (dart.notNull(comp_pivot2) > 0) {
+                while (true) {
+                  let comp = compare(a[dartx.get](great), pivot2);
+                  if (dart.notNull(comp) > 0) {
+                    great--;
+                    if (great < k) break;
+                    continue;
+                  } else {
+                    comp = compare(a[dartx.get](great), pivot1);
+                    if (dart.notNull(comp) < 0) {
+                      a[dartx.set](k, a[dartx.get](less));
+                      a[dartx.set](less++, a[dartx.get](great));
+                      a[dartx.set](great--, ak);
+                    } else {
+                      a[dartx.set](k, a[dartx.get](great));
+                      a[dartx.set](great--, ak);
+                    }
+                    break;
+                  }
+                }
+              }
             }
+          }
+        }
+        a[dartx.set](left, a[dartx.get](less - 1));
+        a[dartx.set](less - 1, pivot1);
+        a[dartx.set](right, a[dartx.get](great + 1));
+        a[dartx.set](great + 1, pivot2);
+        _internal.Sort._doSort(E)(a, left, less - 2, compare);
+        _internal.Sort._doSort(E)(a, great + 2, right, compare);
+        if (pivots_are_equal) {
+          return;
+        }
+        if (less < index1 && great > index5) {
+          while (compare(a[dartx.get](less), pivot1) == 0) {
             less++;
-          } else {
-            let comp_pivot2 = dart.dcall(compare, ak, pivot2);
-            if (comp_pivot2 == 0) {
-              while (true) {
-                let comp = dart.dcall(compare, a[dartx.get](great), pivot2);
-                if (comp == 0) {
-                  great--;
-                  if (great < k) break;
-                  continue;
-                } else {
-                  comp = dart.dcall(compare, a[dartx.get](great), pivot1);
-                  if (dart.notNull(comp) < 0) {
-                    a[dartx.set](k, a[dartx.get](less));
-                    a[dartx.set](less++, a[dartx.get](great));
-                    a[dartx.set](great--, ak);
+          }
+          while (compare(a[dartx.get](great), pivot2) == 0) {
+            great--;
+          }
+          for (let k = less; k <= great; k++) {
+            let ak = a[dartx.get](k);
+            let comp_pivot1 = compare(ak, pivot1);
+            if (comp_pivot1 == 0) {
+              if (k != less) {
+                a[dartx.set](k, a[dartx.get](less));
+                a[dartx.set](less, ak);
+              }
+              less++;
+            } else {
+              let comp_pivot2 = compare(ak, pivot2);
+              if (comp_pivot2 == 0) {
+                while (true) {
+                  let comp = compare(a[dartx.get](great), pivot2);
+                  if (comp == 0) {
+                    great--;
+                    if (great < k) break;
+                    continue;
                   } else {
-                    a[dartx.set](k, a[dartx.get](great));
-                    a[dartx.set](great--, ak);
+                    comp = compare(a[dartx.get](great), pivot1);
+                    if (dart.notNull(comp) < 0) {
+                      a[dartx.set](k, a[dartx.get](less));
+                      a[dartx.set](less++, a[dartx.get](great));
+                      a[dartx.set](great--, ak);
+                    } else {
+                      a[dartx.set](k, a[dartx.get](great));
+                      a[dartx.set](great--, ak);
+                    }
+                    break;
                   }
-                  break;
                 }
               }
             }
           }
+          _internal.Sort._doSort(E)(a, less, great, compare);
+        } else {
+          _internal.Sort._doSort(E)(a, less, great, compare);
         }
-        _internal.Sort._doSort(a, less, great, compare);
-      } else {
-        _internal.Sort._doSort(a, less, great, compare);
-      }
+      };
     }
   };
   dart.setSignature(_internal.Sort, {
     statics: () => ({
-      sort: [dart.void, [core.List, dart.functionType(core.int, [dart.dynamic, dart.dynamic])]],
-      sortRange: [dart.void, [core.List, core.int, core.int, dart.functionType(core.int, [dart.dynamic, dart.dynamic])]],
-      _doSort: [dart.void, [core.List, core.int, core.int, dart.functionType(core.int, [dart.dynamic, dart.dynamic])]],
-      _insertionSort: [dart.void, [core.List, core.int, core.int, dart.functionType(core.int, [dart.dynamic, dart.dynamic])]],
-      _dualPivotQuicksort: [dart.void, [core.List, core.int, core.int, dart.functionType(core.int, [dart.dynamic, dart.dynamic])]]
+      sort: [E => [dart.void, [core.List$(E), dart.functionType(core.int, [E, E])]]],
+      sortRange: [E => [dart.void, [core.List$(E), core.int, core.int, dart.functionType(core.int, [E, E])]]],
+      _doSort: [E => [dart.void, [core.List$(E), core.int, core.int, dart.functionType(core.int, [E, E])]]],
+      _insertionSort: [E => [dart.void, [core.List$(E), core.int, core.int, dart.functionType(core.int, [E, E])]]],
+      _dualPivotQuicksort: [E => [dart.void, [core.List$(E), core.int, core.int, dart.functionType(core.int, [E, E])]]]
     }),
     names: ['sort', 'sortRange', '_doSort', '_insertionSort', '_dualPivotQuicksort']
   });

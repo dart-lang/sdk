@@ -3111,7 +3111,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       var args = _visit(argumentList) as List<JS.Expression>;
       return isFactory ? new JS.Call(ctor, args) : new JS.New(ctor, args);
     }
-    if (_isObjectLiteral(element.enclosingElement)) {
+    if (element != null && _isObjectLiteral(element.enclosingElement)) {
       return _emitObjectLiteral(argumentList);
     }
     if (isConst) return _emitConst(emitNew);
