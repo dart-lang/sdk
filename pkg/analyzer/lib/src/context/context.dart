@@ -116,6 +116,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   AnalysisCache _cache;
 
+  @override
+  final ReentrantSynchronousStream<InvalidatedResult> onResultInvalidated =
+      new ReentrantSynchronousStream<InvalidatedResult>();
+
+  ReentrantSynchronousStreamSubscription onResultInvalidatedSubscription = null;
+
   /**
    * Configuration data associated with this context.
    */
@@ -421,6 +427,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     factory.context = this;
     _sourceFactory = factory;
+    _cache?.dispose();
     _cache = createCacheFromSourceFactory(factory);
     for (WorkManager workManager in workManagers) {
       workManager.onSourceFactoryChanged();
@@ -678,18 +685,25 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * Create an analysis cache based on the given source [factory].
    */
   AnalysisCache createCacheFromSourceFactory(SourceFactory factory) {
-    if (factory == null) {
-      return new AnalysisCache(<CachePartition>[_privatePartition]);
+    AnalysisCache createCache() {
+      if (factory == null) {
+        return new AnalysisCache(<CachePartition>[_privatePartition]);
+      }
+      DartSdk sdk = factory.dartSdk;
+      if (sdk == null) {
+        return new AnalysisCache(<CachePartition>[_privatePartition]);
+      }
+      return new AnalysisCache(<CachePartition>[
+        AnalysisEngine.instance.partitionManager.forSdk(sdk),
+        _privatePartition
+      ]);
     }
-    DartSdk sdk = factory.dartSdk;
-    if (sdk == null) {
-      return new AnalysisCache(<CachePartition>[_privatePartition]);
-    }
-    AnalysisCache cache = new AnalysisCache(<CachePartition>[
-      AnalysisEngine.instance.partitionManager.forSdk(sdk),
-      _privatePartition
-    ]);
-    cache.onResultInvalidated.listen((InvalidatedResult event) {
+
+    AnalysisCache cache = createCache();
+    onResultInvalidatedSubscription?.cancel();
+    onResultInvalidatedSubscription =
+        cache.onResultInvalidated.listen((InvalidatedResult event) {
+      onResultInvalidated.add(event);
       StreamController<ResultChangedEvent> controller =
           _resultChangedControllers[event.descriptor];
       if (controller != null) {
@@ -1079,6 +1093,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * to do.
    */
   void invalidateCachedResults() {
+    _cache?.dispose();
     _cache = createCacheFromSourceFactory(_sourceFactory);
     for (WorkManager workManager in workManagers) {
       workManager.onAnalysisOptionsChanged();

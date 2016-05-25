@@ -774,9 +774,16 @@ class _InternalAnalysisContextMock extends TypedMock
 
   Map<Source, ChangeNoticeImpl> _pendingNotices = <Source, ChangeNoticeImpl>{};
 
+  @override
+  final ReentrantSynchronousStream<InvalidatedResult> onResultInvalidated =
+      new ReentrantSynchronousStream<InvalidatedResult>();
+
   _InternalAnalysisContextMock() {
     privateAnalysisCachePartition = new UniversalCachePartition(this);
     analysisCache = new AnalysisCache([privateAnalysisCachePartition]);
+    analysisCache.onResultInvalidated.listen((InvalidatedResult event) {
+      onResultInvalidated.add(event);
+    });
   }
 
   @override

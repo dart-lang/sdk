@@ -54,6 +54,7 @@ class AnalysisCache {
    */
   AnalysisCache(this._partitions) {
     for (CachePartition partition in _partitions) {
+      partition.containingCaches.add(this);
       ReentrantSynchronousStreamSubscription<InvalidatedResult> subscription =
           partition.onResultInvalidated.listen((InvalidatedResult event) {
         onResultInvalidated.add(event);
@@ -95,6 +96,9 @@ class AnalysisCache {
     for (ReentrantSynchronousStreamSubscription subscription
         in onResultInvalidatedPartitionSubscriptions) {
       subscription.cancel();
+    }
+    for (CachePartition partition in _partitions) {
+      partition.containingCaches.remove(this);
     }
   }
 
@@ -349,12 +353,18 @@ class CacheEntry {
    * Notifies the entry that the client is going to stop using it.
    */
   void dispose() {
-    _resultMap.forEach((descriptor, data) {
+    _resultMap.forEach((ResultDescriptor descriptor, ResultData data) {
       TargetedResult result = new TargetedResult(target, descriptor);
       for (TargetedResult dependedOnResult in data.dependedOnResults) {
-        ResultData dependedOnData = _partition._getDataFor(dependedOnResult);
-        if (dependedOnData != null) {
-          dependedOnData.dependentResults.remove(result);
+        for (AnalysisCache cache in _partition.containingCaches) {
+          CacheEntry entry = cache.get(dependedOnResult.target);
+          if (entry != null) {
+            ResultData data =
+                entry.getResultDataOrNull(dependedOnResult.result);
+            if (data != null) {
+              data.dependentResults.remove(result);
+            }
+          }
         }
       }
     });
@@ -375,12 +385,19 @@ class CacheEntry {
   }
 
   /**
-   * Look up the [ResultData] of [descriptor], or add a new one if it isn't
-   * there.
+   * Return the result data associated with the [descriptor], creating one if it
+   * isn't there.
    */
   ResultData getResultData(ResultDescriptor descriptor) {
     return _resultMap.putIfAbsent(descriptor, () => new ResultData(descriptor));
   }
+
+  /**
+   * Return the result data associated with the [descriptor], or `null` if there
+   * is no data currently associated with the descriptor.
+   */
+  ResultData getResultDataOrNull(ResultDescriptor descriptor) =>
+      _resultMap[descriptor];
 
   /**
    * Return the state of the result represented by the given [descriptor].
@@ -584,11 +601,19 @@ class CacheEntry {
 //      }
     }
     // Stop depending on other results.
-    TargetedResult thisResult = new TargetedResult(target, descriptor);
-    for (TargetedResult dependedOnResult in thisData.dependedOnResults) {
-      ResultData data = _partition._getDataFor(dependedOnResult);
-      if (data != null && deltaResult != DeltaResult.KEEP_CONTINUE) {
-        data.dependentResults.remove(thisResult);
+    if (deltaResult != DeltaResult.KEEP_CONTINUE) {
+      TargetedResult thisResult = new TargetedResult(target, descriptor);
+      for (TargetedResult dependedOnResult in thisData.dependedOnResults) {
+        for (AnalysisCache cache in _partition.containingCaches) {
+          CacheEntry entry = cache.get(dependedOnResult.target);
+          if (entry != null) {
+            ResultData data =
+                entry.getResultDataOrNull(dependedOnResult.result);
+            if (data != null) {
+              data.dependentResults.remove(thisResult);
+            }
+          }
+        }
       }
     }
     // Invalidate results that depend on this result.
@@ -621,11 +646,15 @@ class CacheEntry {
    */
   void _invalidateDependentResults(
       int id, ResultData thisData, Delta delta, int level) {
+    // It is necessary to copy the results to a list to avoid a concurrent
+    // modification of the set of dependent results.
     List<TargetedResult> dependentResults = thisData.dependentResults.toList();
     for (TargetedResult dependentResult in dependentResults) {
-      CacheEntry entry = _partition.get(dependentResult.target);
-      if (entry != null) {
-        entry._invalidate(id, dependentResult.result, delta, level);
+      for (AnalysisCache cache in _partition.containingCaches) {
+        CacheEntry entry = cache.get(dependentResult.target);
+        if (entry != null) {
+          entry._invalidate(id, dependentResult.result, delta, level);
+        }
       }
     }
   }
@@ -645,16 +674,26 @@ class CacheEntry {
   void _setDependedOnResults(ResultData thisData, TargetedResult thisResult,
       List<TargetedResult> dependedOn) {
     thisData.dependedOnResults.forEach((TargetedResult dependedOnResult) {
-      ResultData data = _partition._getDataFor(dependedOnResult);
-      if (data != null) {
-        data.dependentResults.remove(thisResult);
+      for (AnalysisCache cache in _partition.containingCaches) {
+        CacheEntry entry = cache.get(dependedOnResult.target);
+        if (entry != null) {
+          ResultData data = entry.getResultDataOrNull(dependedOnResult.result);
+          if (data != null) {
+            data.dependentResults.remove(thisResult);
+          }
+        }
       }
     });
     thisData.dependedOnResults = dependedOn;
     thisData.dependedOnResults.forEach((TargetedResult dependedOnResult) {
-      ResultData data = _partition._getDataFor(dependedOnResult);
-      if (data != null) {
-        data.dependentResults.add(thisResult);
+      for (AnalysisCache cache in _partition.containingCaches) {
+        CacheEntry entry = cache.get(dependedOnResult.target);
+        if (entry != null) {
+          ResultData data = entry.getResultDataOrNull(dependedOnResult.result);
+          if (data != null) {
+            data.dependentResults.add(thisResult);
+          }
+        }
       }
     });
   }
@@ -671,8 +710,12 @@ class CacheEntry {
     thisData.value = descriptor.defaultValue;
     // Propagate the error state.
     thisData.dependentResults.forEach((TargetedResult dependentResult) {
-      CacheEntry entry = _partition.get(dependentResult.target);
-      entry._setErrorState(dependentResult.result, exception);
+      for (AnalysisCache cache in _partition.containingCaches) {
+        CacheEntry entry = cache.get(dependentResult.target);
+        if (entry != null) {
+          entry._setErrorState(dependentResult.result, exception);
+        }
+      }
     });
   }
 
@@ -865,6 +908,12 @@ abstract class CachePartition {
   final InternalAnalysisContext context;
 
   /**
+   * A list of the caches that contain this partition. This includes the cache
+   * associated with the context that owns this partition.
+   */
+  final List<AnalysisCache> containingCaches = <AnalysisCache>[];
+
+  /**
    * A table mapping caching policies to the cache flush managers.
    */
   final HashMap<ResultCachingPolicy, CacheFlushManager> _flushManagerMap =
@@ -1011,11 +1060,6 @@ abstract class CachePartition {
       String fullName = target.fullName;
       pathToSource.putIfAbsent(fullName, () => <Source>[]).add(target);
     }
-  }
-
-  ResultData _getDataFor(TargetedResult result) {
-    CacheEntry entry = context.analysisCache.get(result.target);
-    return entry != null ? entry._resultMap[result.result] : null;
   }
 
   /**

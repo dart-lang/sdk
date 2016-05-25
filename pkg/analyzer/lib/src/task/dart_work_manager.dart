@@ -82,7 +82,7 @@ class DartWorkManager implements WorkManager {
    * Initialize a newly created manager.
    */
   DartWorkManager(this.context) {
-    analysisCache.onResultInvalidated.listen((InvalidatedResult event) {
+    context.onResultInvalidated.listen((InvalidatedResult event) {
       if (event.descriptor == LIBRARY_ERRORS_READY) {
         CacheEntry entry = event.entry;
         if (entry.explicitlyAdded &&
