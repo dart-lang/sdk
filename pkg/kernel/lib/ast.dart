@@ -112,7 +112,7 @@ abstract class Node {
 /// This is anything other than [Name] and [DartType] nodes.
 abstract class TreeNode extends Node {
   static int _hashCounter = 0;
-  final int hashCode = _hashCounter = (_hashCounter + 1) & 0x7fffffff;
+  final int hashCode = _hashCounter = (_hashCounter + 1) & 0x3fffffff;
 
   TreeNode parent;
 
@@ -2377,20 +2377,13 @@ class _PublicName extends Name {
 /// cyclic structures that are constructed by mutation.
 ///
 /// The `==` operator on [DartType]s compare based on type equality, not
-/// object identity.  The [hashCode] function throws an exception because
-/// canonicalization of generic function types is too expensive for hash codes
-/// to have any practical use.
-//
-// TODO: Maybe we should just have a really crappy hash code for generic
-//   function types so users can rely on hashCode if they know there will be
-//   very few or no generic function types.
+/// object identity.
 abstract class DartType extends Node {
   const DartType();
 
   accept(DartTypeVisitor v);
 
   bool operator ==(Object other);
-  int get hashCode => throw 'DartType.hashCode is not allowed.';
 }
 
 /// The type arising from invalid type annotations.
@@ -2398,35 +2391,36 @@ abstract class DartType extends Node {
 /// Can usually be treated as 'dynamic', but should occasionally be handled
 /// differently, e.g. `x is ERROR` should evaluate to false.
 class InvalidType extends DartType {
+  final int hashCode = 12345;
+
   const InvalidType();
 
   accept(DartTypeVisitor v) => v.visitInvalidType(this);
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is InvalidType;
-  int get hashCode => super.hashCode;
 }
 
 class DynamicType extends DartType {
+  final int hashCode = 54321;
+
   const DynamicType();
 
   accept(DartTypeVisitor v) => v.visitDynamicType(this);
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is DynamicType;
-
-  int get hashCode => super.hashCode;
 }
 
 class VoidType extends DartType {
+  final int hashCode = 123121;
+
   const VoidType();
 
   accept(DartTypeVisitor v) => v.visitVoidType(this);
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is VoidType;
-
-  int get hashCode => super.hashCode;
 }
 
 class InterfaceType extends DartType {
@@ -2470,7 +2464,13 @@ class InterfaceType extends DartType {
     }
   }
 
-  int get hashCode => super.hashCode;
+  int get hashCode {
+    int hash = 0x3fffffff & classNode.hashCode;
+    for (int i = 0; i < typeArguments.length; ++i) {
+      hash = 0x3fffffff & (hash * 31 + (hash ^ typeArguments[i].hashCode));
+    }
+    return hash;
+  }
 }
 
 /// A possibly generic function type.
@@ -2480,6 +2480,7 @@ class FunctionType extends DartType {
   final List<DartType> positionalParameters;
   final Map<String, DartType> namedParameters;
   final DartType returnType;
+  int _hashCode;
 
   FunctionType(List<DartType> positionalParameters, this.returnType,
       {this.namedParameters: const <String, DartType>{},
@@ -2543,7 +2544,43 @@ class FunctionType extends DartType {
         requiredParameterCount: requiredParameterCount,
         namedParameters: namedParameters);
   }
+
+  int get hashCode => _hashCode ??= _computeHashCode();
+
+  int _computeHashCode() {
+    int hash = 1237;
+    hash = 0x3fffffff & (hash * 31 + requiredParameterCount);
+    for (int i = 0; i < typeParameters.length; ++i) {
+      TypeParameter parameter = typeParameters[i];
+      _temporaryHashCodeTable[parameter] = _temporaryHashCodeTable.length;
+      hash = 0x3fffffff & (hash * 31 + parameter.bound.hashCode);
+    }
+    for (int i = 0; i < positionalParameters.length; ++i) {
+      hash = 0x3fffffff & (hash * 31 + positionalParameters[i].hashCode);
+    }
+    // TODO: Using a sorted list of names would be better than a map here.
+    namedParameters.forEach((String name, DartType type) {
+      // Note that we use only addition and truncation here, so that we do not
+      // rely on the iteration of the of the map.
+      hash = 0x3fffffff & (hash + name.hashCode);
+      hash = 0x3fffffff & (hash + type.hashCode);
+    });
+    hash = 0x3fffffff & (hash * 31 + returnType.hashCode);
+    for (int i = 0; i < typeParameters.length; ++i) {
+      // Remove the type parameters from the scope again.
+      _temporaryHashCodeTable.remove(typeParameters[i]);
+    }
+    return hash;
+  }
 }
+
+/// Stores the hash code of function type parameters while computing the hash
+/// code of a [FunctionType] object.
+///
+/// This ensures that distinct [FunctionType] objects get the same hash code
+/// if they represent the same type, even though their type parameters are
+/// represented by different objects.
+final Map<TypeParameter, int> _temporaryHashCodeTable = <TypeParameter, int>{};
 
 /// Reference to a type variable.
 class TypeParameterType extends DartType {
@@ -2559,7 +2596,7 @@ class TypeParameterType extends DartType {
     return other is TypeParameterType && parameter == other.parameter;
   }
 
-  int get hashCode => super.hashCode;
+  int get hashCode => _temporaryHashCodeTable[parameter] ?? parameter.hashCode;
 }
 
 /// Declaration of a type variable.

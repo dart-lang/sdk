@@ -28,6 +28,7 @@ class Token {
   static const int LeftBrace = 9;
   static const int RightBrace = 10;
   static const int Arrow = 11; // '=>'
+  static const int Colon = 12;
   static const int Invalid = 100;
 }
 
@@ -77,7 +78,7 @@ class DartTypeParser {
       tokenText = string.substring(startIndex, index);
       return Token.Name;
     } else {
-      tokenText = string[index-1];
+      tokenText = string[index - 1];
       int type = getTokenType(x);
       return type;
     }
@@ -109,6 +110,8 @@ class DartTypeParser {
         return Token.LeftBrace;
       case 125:
         return Token.RightBrace;
+      case 58:
+        return Token.Colon;
       default:
         if (isIdentifierChar(character)) return Token.Name;
         return Token.Invalid;
@@ -144,28 +147,62 @@ class DartTypeParser {
         return fail("Unexpected lookup result for $name: $target");
 
       case Token.LeftParen:
-        // TODO: Support rest of function type features.
-        var parameters = parseList(Token.LeftParen, Token.RightParen);
+        List<DartType> parameters = <DartType>[];
+        Map<String, DartType> namedParameters = <String, DartType>{};
+        parseParameterList(parameters, namedParameters);
         consumeString('=>');
         var returnType = parseType();
-        return new FunctionType(parameters, returnType);
+        return new FunctionType(parameters, returnType,
+            namedParameters: namedParameters);
 
       case Token.LeftAngle:
-        var typeParameters =
-            parseAndPushTypeParameterList();
-        var parameters = parseList(Token.LeftParen, Token.RightParen);
+        var typeParameters = parseAndPushTypeParameterList();
+        List<DartType> parameters = <DartType>[];
+        Map<String, DartType> namedParameters = <String, DartType>{};
+        parseParameterList(parameters, namedParameters);
         consumeString('=>');
         var returnType = parseType();
         popTypeParameters(typeParameters);
         return new FunctionType(parameters, returnType,
-            typeParameters: typeParameters);
+            typeParameters: typeParameters, namedParameters: namedParameters);
 
       default:
         return fail('Unexpected token: $tokenText');
     }
   }
 
-  List<DartType> parseList(int open, int close) {
+  void parseParameterList(
+      List<DartType> positional, Map<String, DartType> named) {
+    int token = scanToken();
+    assert(token == Token.LeftParen);
+    token = peekToken();
+    while (token != Token.RightParen) {
+      var type = parseType(); // Could be a named parameter name.
+      token = scanToken();
+      if (token == Token.Colon) {
+        String name = convertTypeToParameterName(type);
+        named[name] = parseType();
+        token = scanToken();
+      } else {
+        positional.add(type);
+      }
+      if (token != Token.Comma && token != Token.RightParen) {
+        return fail('Unterminated parameter list');
+      }
+    }
+  }
+
+  String convertTypeToParameterName(DartType type) {
+    if (type is InterfaceType && type.typeArguments.isEmpty) {
+      return type.classNode.name;
+    } else if (type is TypeParameterType) {
+      return type.parameter.name;
+    } else {
+      return fail('Unexpected colon after $type');
+    }
+  }
+
+  List<DartType> parseTypeList(int open, int close) {
     int token = scanToken();
     assert(token == open);
     List<DartType> types = <DartType>[];
@@ -173,8 +210,7 @@ class DartTypeParser {
     while (token != close) {
       types.add(parseType());
       token = scanToken();
-      if (token == Token.Comma) {
-      } else if (token != close) {
+      if (token != Token.Comma && token != close) {
         return fail('Unterminated list');
       }
     }
@@ -183,7 +219,7 @@ class DartTypeParser {
 
   List<DartType> parseOptionalList(int open, int close) {
     if (peekToken() != open) return null;
-    return parseList(open, close);
+    return parseTypeList(open, close);
   }
 
   List<DartType> parseOptionalTypeArgumentList() {
@@ -202,8 +238,7 @@ class DartTypeParser {
     while (token != Token.RightAngle) {
       typeParameters.add(parseAndPushTypeParameter());
       token = scanToken();
-      if (token == Token.Comma) {
-      } else if (token != Token.RightAngle) {
+      if (token != Token.Comma && token != Token.RightAngle) {
         return fail('Unterminated type parameter list');
       }
     }
@@ -230,8 +265,9 @@ class LazyTypeEnvironment {
   final Map<String, TreeNode> environment = <String, TreeNode>{};
 
   TreeNode lookup(String name) {
-    return environment.putIfAbsent(name, () =>
-        name.length == 1
+    return environment.putIfAbsent(
+        name,
+        () => name.length == 1
             ? new TypeParameter(name)
             : new NormalClass(null, name: name));
   }
