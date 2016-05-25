@@ -14485,6 +14485,11 @@ void ParsedFunction::AllocateIrregexpVariables(intptr_t num_stack_locals) {
 }
 
 
+void ParsedFunction::Bailout(const char* origin, const char* reason) const {
+  UNREACHABLE();
+}
+
+
 void Parser::ParseCompilationUnit(const Library& library,
                                   const Script& script) {
   UNREACHABLE();
