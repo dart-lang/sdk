@@ -154,9 +154,7 @@ getMethodType(obj, name) => JS('', '''(() => {
 getMethodTypeFromType(type, name) => JS('', '''(() => {
   let sigObj = $type[$_methodSig];
   if (sigObj === void 0) return void 0;
-  let parts = sigObj[$name];
-  if (parts === void 0) return void 0;
-  return $definiteFunctionType.apply(null, parts);
+  return sigObj[$name];
 })()''');
 
 /// Get the type of a constructor from a class using the stored signature
@@ -168,9 +166,7 @@ classGetConstructorType(cls, name) => JS('', '''(() => {
   if ($cls == null) return void 0;
   let sigCtor = $cls[$_constructorSig];
   if (sigCtor === void 0) return void 0;
-  let parts = sigCtor[$name];
-  if (parts === void 0) return void 0;
-  return $definiteFunctionType.apply(null, parts);
+  return sigCtor[$name];
 })()''');
 
 /// Given an object and a method name, tear off the method.
@@ -226,8 +222,7 @@ _setStaticTypes(f, names) => JS('', '''(() => {
     // TODO(vsm): Need to generate static methods.
     if (!$f[name]) continue;
     $tagLazy($f[name], function() {
-      let parts = $f[$_staticSig][name];
-      return $definiteFunctionType.apply(null, parts);
+      return $f[$_staticSig][name];
     })
   }
 })()''');

@@ -55,28 +55,20 @@ part of dart._runtime;
 /// Note that since we are producing a type for a concrete function,
 /// it is sound to use the definite arrow type.
 ///
-fn(closure, rType, argsT, extras) {
-  var t;
-  if (rType == null) {
+fn(closure, t) {
+  if (t == null) {
     // No type arguments, it's all dynamic
     t = definiteFunctionType(
         JS('', '#', dynamic),
         JS('', 'Array(#.length).fill(#)', closure, dynamic),
         JS('', 'void 0'));
-  } else {
-    // We're passed the piecewise components of the function type,
-    // construct it.
-    t = definiteFunctionType(rType, argsT, extras);
   }
   tag(closure, t);
   return closure;
 }
 
-lazyFn(closure, computeTypeParts) {
-  tagLazy(closure, JS('', '''() => {
-    let parts = #();
-    return #(parts[0], parts[1], parts[2]);
-  }''', computeTypeParts, definiteFunctionType));
+lazyFn(closure, computeType) {
+  tagLazy(closure, computeType);
   return closure;
 }
 

@@ -159,6 +159,18 @@ class CompilerOptions {
   /// Whether to emit Closure Compiler-friendly code.
   final bool closure;
 
+  /// Hoist the types at instance creation sites
+  final bool hoistInstanceCreation;
+
+  /// Hoist types from class signatures
+  final bool hoistSignatureTypes;
+
+  /// Name types in type tests
+  final bool nameTypeTests;
+
+  /// Hoist types in type tests
+  final bool hoistTypeTests;
+
   /// Enable ES6 destructuring of named parameters. Off by default.
   ///
   /// Older V8 versions do not accept default values with destructuring in
@@ -187,7 +199,11 @@ class CompilerOptions {
       this.emitMetadata: false,
       this.closure: false,
       this.destructureNamedParams: false,
-      this.moduleFormat: ModuleFormat.legacy});
+      this.moduleFormat: ModuleFormat.legacy,
+      this.hoistInstanceCreation: true,
+      this.hoistSignatureTypes: false,
+      this.nameTypeTests: true,
+      this.hoistTypeTests: true});
 
   CompilerOptions.fromArguments(ArgResults args)
       : sourceMap = args['source-map'],
@@ -197,7 +213,11 @@ class CompilerOptions {
         emitMetadata = args['emit-metadata'],
         closure = args['closure-experimental'],
         destructureNamedParams = args['destructure-named-params'],
-        moduleFormat = parseModuleFormat(args['modules']);
+        moduleFormat = parseModuleFormat(args['modules']),
+        hoistInstanceCreation = args['hoist-instance-creation'],
+        hoistSignatureTypes = args['hoist-signature-types'],
+        nameTypeTests = args['name-type-tests'],
+        hoistTypeTests = args['hoist-type-tests'];
 
   static ArgParser addArguments(ArgParser parser) => parser
     ..addFlag('summarize', help: 'emit an API summary file', defaultsTo: true)
@@ -226,7 +246,16 @@ class CompilerOptions {
     ..addFlag('unsafe-force-compile',
         help: 'Compile code even if it has errors. ಠ_ಠ\n'
             'This has undefined behavior!',
-        defaultsTo: false);
+        defaultsTo: false)
+    ..addFlag('hoist-instance-creation',
+        help: 'Hoist the class type from generic instance creations',
+        defaultsTo: true)
+    ..addFlag('hoist-signature-types',
+        help: 'Hoist types from class signatures', defaultsTo: false)
+    ..addFlag('name-type-tests',
+        help: 'Name types used in type tests', defaultsTo: true)
+    ..addFlag('hoist-type-tests',
+        help: 'Hoist types used in type tests', defaultsTo: true);
 }
 
 /// A unit of Dart code that can be built into a single JavaScript module.

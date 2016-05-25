@@ -153,52 +153,60 @@ suite('instanceOf', () => {
   // TODO(vsm): Revisit when we encode types on functions properly.
   // A bar1(C c, String s) => null;
   function bar1(c, s) { return null; }
-  dart.fn(bar1, A, [C, String]);
+  dart.fn(bar1, dart.definiteFunctionType(A, [C, String]));
 
   // bar2(B b, String s) => null;
   function bar2(b, s) { return null; }
-  dart.fn(bar2, dynamic, [B, String]);
+  dart.fn(bar2, dart.definiteFunctionType(dynamic, [B, String]));
 
   // B bar3(B b, Object o) => null;
   function bar3(b, o) { return null; }
-  dart.fn(bar3, B, [B, Object]);
+  dart.fn(bar3, dart.definiteFunctionType(B, [B, Object]));
 
   // B bar4(B b, o) => null;
   function bar4(b, o) { return null; }
-  dart.fn(bar4, B, [B, dynamic]);
+  dart.fn(bar4, dart.definiteFunctionType(B, [B, dynamic]));
 
   // C bar5(A a, Object o) => null;
   function bar5(a, o) { return null; }
-  dart.fn(bar5, C, [A, Object]);
+  dart.fn(bar5, dart.definiteFunctionType(C, [A, Object]));
 
   // B bar6(B b, String s, String o) => null;
   function bar6(b, s, o) { return null; }
-  dart.fn(bar6, B, [B, String, String]);
+  dart.fn(bar6, dart.definiteFunctionType(B, [B, String, String]));
 
   // B bar7(B b, String s, [Object o]) => null;
   function bar7(b, s, o) { return null; }
-  dart.fn(bar7, B, [B, String], [Object]);
+  dart.fn(bar7, dart.definiteFunctionType(B, [B, String], [Object]));
 
   // B bar8(B b, String s, {Object p}) => null;
   function bar8(b, s, o) { return null; }
-  dart.fn(bar8, B, [B, String], {p: Object});
+  dart.fn(bar8, dart.definiteFunctionType(B, [B, String], {p: Object}));
 
-  let cls1 = dart.fn((c, s) => { return null; }, A, [C, String]);
+  let cls1 = dart.fn((c, s) => { return null; }, 
+                     dart.definiteFunctionType(A, [C, String]));
 
-  let cls2 = dart.fn((b, s) => { return null; }, dynamic, [B, String]);
+  let cls2 = dart.fn((b, s) => { return null; }, 
+                     dart.definiteFunctionType(dynamic, [B, String]));
 
-  let cls3 = dart.fn((b, o) => { return null; }, B, [B, Object]);
+  let cls3 = dart.fn((b, o) => { return null; }, 
+                     dart.definiteFunctionType(B, [B, Object]));
 
-  let cls4 = dart.fn((b, o) => { return null; }, B, [B, dynamic]);
+  let cls4 = dart.fn((b, o) => { return null; }, 
+                     dart.definiteFunctionType(B, [B, dynamic]));
 
-  let cls5 = dart.fn((a, o) => { return null; }, C, [A, Object]);
+  let cls5 = dart.fn((a, o) => { return null; }, 
+                     dart.definiteFunctionType(C, [A, Object]));
 
-  let cls6 = dart.fn((b, s, o) => { return null; }, B, [B, String, String]);
+  let cls6 = dart.fn((b, s, o) => { return null; }, 
+                     dart.definiteFunctionType(B, [B, String, String]));
 
-  let cls7 = dart.fn((b, s, o) => { return null; }, B, [B, String], [Object]);
+  let cls7 = dart.fn((b, s, o) => { return null; }, 
+                     dart.definiteFunctionType(B, [B, String], [Object]));
 
   let cls8 =
-    dart.fn((b, s, o) => { return null; }, B, [B, String], {p: Object});
+    dart.fn((b, s, o) => { return null; }, 
+            dart.definiteFunctionType(B, [B, String], {p: Object}));
 
   function checkType(x, type, expectedTrue, strongOnly) {
     if (expectedTrue === undefined) expectedTrue = true;
@@ -343,8 +351,8 @@ suite('instanceOf', () => {
     dart.defineNamedConstructor(C, 'named');
     dart.setSignature(C, {
       constructors: () => ({
-        C: [C, [core.int]],
-        named: [C, [core.int, core.int]]
+        C: dart.definiteFunctionType(C, [core.int]),
+        named: dart.definiteFunctionType(C, [core.int, core.int])
       })
     });
     let getType = dart.classGetConstructorType;
@@ -498,11 +506,12 @@ suite('instanceOf', () => {
     function dd2d(x, y) {return x};
     dart.fn(dd2d);
     function ii2i(x, y) {return x};
-    dart.fn(ii2i, core.int, [core.int, core.int]);
+    dart.fn(ii2i, dart.definiteFunctionType(core.int, [core.int, core.int]));
     function ii_2i(x, y) {return x};
-    dart.fn(ii_2i, core.int, [core.int], [core.int]);
+    dart.fn(ii_2i, dart.definiteFunctionType(core.int, [core.int], [core.int]));
     function i_i2i(x, opts) {return x};
-    dart.fn(i_i2i, core.int, [core.int], {extra: core.int});
+    dart.fn(i_i2i, 
+            dart.definiteFunctionType(core.int, [core.int], {extra: core.int}));
 
     assert.equal(dart.dcall(dd2d, 0, 1), 0);
     assert.equal(dart.dcall(dd2d, "hello", "world"), "hello");
@@ -532,7 +541,8 @@ suite('instanceOf', () => {
   test('dsend', () => {
     class Tester extends core.Object {
       new() {
-        this.f = dart.fn(x => x, core.int, [core.int]);
+        this.f = dart.fn(x => x, 
+                         dart.definiteFunctionType(core.int, [core.int]));
         this.me = this;
       }
       m(x, y) {return x;}
@@ -541,11 +551,11 @@ suite('instanceOf', () => {
     }
     dart.setSignature(Tester, {
       methods: () => ({
-        m: [core.int, [core.int, core.int]],
-        call: [core.int, [core.int]]
+        m: dart.definiteFunctionType(core.int, [core.int, core.int]),
+        call: dart.definiteFunctionType(core.int, [core.int])
       }),
       statics: () => ({
-        s: [core.String, [core.String]]
+        s: dart.definiteFunctionType(core.String, [core.String])
       }),
       names: ['s']
     })
@@ -602,21 +612,23 @@ suite('instanceOf', () => {
 
     // Set the type eagerly
     function ii2i(x, y) {return x};
-    dart.fn(ii2i, core.int, [core.int, core.int]);
+    dart.fn(ii2i, dart.definiteFunctionType(core.int, [core.int, core.int]));
     checkType(ii2i, dart.functionType(core.int,
                                       [core.int, core.int]));
 
     // Set the type lazily
     function ss2s(x, y) {return x};
     var coreString;
-    dart.lazyFn(ss2s, () => [coreString, [coreString, coreString]]);
+    dart.lazyFn(ss2s, 
+                () => dart.definiteFunctionType(coreString, 
+                                                [coreString, coreString]));
     coreString = core.String;
     checkType(ss2s, dart.functionType(core.String,
                                       [core.String, core.String]));
 
     // Optional types
     function ii_2i(x, y) {return x};
-    dart.fn(ii_2i, core.int, [core.int], [core.int]);
+    dart.fn(ii_2i, dart.definiteFunctionType(core.int, [core.int], [core.int]));
     checkType(ii_2i, dart.functionType(core.int, [core.int],
                                        [core.int]));
     checkType(ii_2i, dart.functionType(core.int, [core.int,
@@ -629,7 +641,8 @@ suite('instanceOf', () => {
 
     // Named types
     function i_i2i(x, opts) {return x};
-    dart.fn(i_i2i, core.int, [core.int], {extra: core.int});
+    dart.fn(i_i2i, dart.definiteFunctionType(core.int, [core.int], 
+                                             {extra: core.int}));
     checkType(i_i2i, dart.functionType(core.int, [core.int],
                                        {extra: core.int}));
     checkType(i_i2i, dart.functionType(core.int,
@@ -700,7 +713,7 @@ suite('instanceOf', () => {
     };
     dart.setSignature(Base, {
       methods: () => ({
-        m: [core.int, [core.int]],
+        m: dart.definiteFunctionType(core.int, [core.int]),
       })
     });
 
@@ -709,7 +722,7 @@ suite('instanceOf', () => {
     };
     dart.setSignature(M1, {
       methods: () => ({
-        m: [core.num, [core.int]],
+        m: dart.definiteFunctionType(core.num, [core.int]),
       })
     });
 
@@ -718,7 +731,7 @@ suite('instanceOf', () => {
     };
     dart.setSignature(M2, {
       methods: () => ({
-        m: [core.Object, [core.int]],
+        m: dart.definiteFunctionType(core.Object, [core.int]),
       })
     });
 

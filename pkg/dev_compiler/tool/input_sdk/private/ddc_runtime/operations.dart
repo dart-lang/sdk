@@ -556,6 +556,8 @@ noSuchMethod(obj, Invocation invocation) {
   return JS('', '#.noSuchMethod(#)', obj, invocation);
 }
 
+constFn(x) => JS('', '() => x');
+
 runtimeType(obj) {
   // Handle primitives where the method isn't on the object.
   var result = _checkPrimitiveType(obj);
