@@ -29,7 +29,7 @@ class Sort {
    * The function's behavior must be consistent. It must not return different
    * results for the same values.
    */
-  static void sort(List a, int compare(a, b)) {
+  static void sort/*<E>*/(List/*<E>*/ a, int compare(dynamic /*=E*/ a, dynamic /*=E*/ b)) {
     _doSort(a, 0, a.length - 1, compare);
   }
 
@@ -42,7 +42,7 @@ class Sort {
    *
    * See [:sort:] for requirements of the [:compare:] function.
    */
-  static void sortRange(List a, int from, int to, int compare(a, b)) {
+  static void sortRange/*<E>*/(List/*<E>*/ a, int from, int to, int compare(dynamic /*=E*/ a, dynamic /*=E*/ b)) {
     if ((from < 0) || (to > a.length) || (to < from)) {
       throw "OutOfRange";
     }
@@ -52,7 +52,7 @@ class Sort {
   /**
    * Sorts the list in the interval [:left:] to [:right:] (both inclusive).
    */
-  static void _doSort(List a, int left, int right, int compare(a, b)) {
+  static void _doSort/*<E>*/(List/*<E>*/ a, int left, int right, int compare(dynamic /*=E*/ a, dynamic /*=E*/ b)) {
     if ((right - left) <= _INSERTION_SORT_THRESHOLD) {
       _insertionSort(a, left, right, compare);
     } else {
@@ -60,7 +60,7 @@ class Sort {
     }
   }
 
-  static void _insertionSort(List a, int left, int right, int compare(a, b)) {
+  static void _insertionSort/*<E>*/(List/*<E>*/ a, int left, int right, int compare(dynamic /*=E*/ a, dynamic /*=E*/ b)) {
     for (int i = left + 1; i <= right; i++) {
       var el = a[i];
       int j = i;
@@ -72,9 +72,9 @@ class Sort {
     }
   }
 
-  static void _dualPivotQuicksort(List a,
+  static void _dualPivotQuicksort/*<E>*/(List/*<E>*/ a,
                                   int left, int right,
-                                  int compare(a, b)) {
+                                  int compare(dynamic /*=E*/ a, dynamic /*=E*/ b)) {
     assert(right - left > _INSERTION_SORT_THRESHOLD);
 
     // Compute the two pivots by looking at 5 elements.
