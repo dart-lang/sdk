@@ -2318,12 +2318,201 @@ var f = () {};
     expect(f.type.toString(), '() → dynamic');
   }
 
+  void test_inferredType_customBinaryOp() {
+    var mainUnit = checkFile('''
+class C {
+  bool operator*(C other) => true;
+}
+C c;
+var x = c*c;
+''');
+    var x = mainUnit.topLevelVariables[1];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'bool');
+  }
+
+  void test_inferredType_customBinaryOp_viaInterface() {
+    var mainUnit = checkFile('''
+class I {
+  bool operator*(C other) => true;
+}
+abstract class C implements I {}
+C c;
+var x = c*c;
+''');
+    var x = mainUnit.topLevelVariables[1];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'bool');
+  }
+
+  void test_inferredType_customIndexOp() {
+    var mainUnit = checkFile('''
+class C {
+  bool operator[](int index) => true;
+}
+C c;
+var x = c[0];
+''');
+    var x = mainUnit.topLevelVariables[1];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'bool');
+  }
+
+  void test_inferredType_customIndexOp_viaInterface() {
+    var mainUnit = checkFile('''
+class I {
+  bool operator[](int index) => true;
+}
+abstract class C implements I {}
+C c;
+var x = c[0];
+''');
+    var x = mainUnit.topLevelVariables[1];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'bool');
+  }
+
+  void test_inferredType_customUnaryOp() {
+    var mainUnit = checkFile('''
+class C {
+  bool operator-() => true;
+}
+C c;
+var x = -c;
+''');
+    var x = mainUnit.topLevelVariables[1];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'bool');
+  }
+
+  void test_inferredType_customUnaryOp_viaInterface() {
+    var mainUnit = checkFile('''
+class I {
+  bool operator-() => true;
+}
+abstract class C implements I {}
+C c;
+var x = -c;
+''');
+    var x = mainUnit.topLevelVariables[1];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'bool');
+  }
+
+  void test_inferredType_extractMethodTearOff() {
+    var mainUnit = checkFile('''
+class C {
+  bool g() => true;
+}
+C f() => null;
+var x = f().g;
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.name, 'x');
+    expect(x.type.toString(), '() → bool');
+  }
+
+  void test_inferredType_extractMethodTearOff_viaInterface() {
+    var mainUnit = checkFile('''
+class I {
+  bool g() => true;
+}
+abstract class C implements I {}
+C f() => null;
+var x = f().g;
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.name, 'x');
+    expect(x.type.toString(), '() → bool');
+  }
+
+  void test_inferredType_extractProperty() {
+    var mainUnit = checkFile('''
+class C {
+  bool b;
+}
+C f() => null;
+var x = f().b;
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'bool');
+  }
+
+  void test_inferredType_extractProperty_prefixedIdentifier() {
+    var mainUnit = checkFile('''
+class C {
+  bool b;
+}
+C c;
+var x = c.b;
+''');
+    var x = mainUnit.topLevelVariables[1];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'bool');
+  }
+
+  void test_inferredType_extractProperty_prefixedIdentifier_viaInterface() {
+    var mainUnit = checkFile('''
+class I {
+  bool b;
+}
+abstract class C implements I {}
+C c;
+var x = c.b;
+''');
+    var x = mainUnit.topLevelVariables[1];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'bool');
+  }
+
+  void test_inferredType_extractProperty_viaInterface() {
+    var mainUnit = checkFile('''
+class I {
+  bool b;
+}
+abstract class C implements I {}
+C f() => null;
+var x = f().b;
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'bool');
+  }
+
   void test_inferredType_fromTopLevelExecutableTearoff() {
     var mainUnit = checkFile('''
 var v = print;
 ''');
     var v = mainUnit.topLevelVariables[0];
     expect(v.type.toString(), '(Object) → void');
+  }
+
+  void test_inferredType_invokeMethod() {
+    var mainUnit = checkFile('''
+class C {
+  bool g() => true;
+}
+C f() => null;
+var x = f().g();
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'bool');
+  }
+
+  void test_inferredType_invokeMethod_viaInterface() {
+    var mainUnit = checkFile('''
+class I {
+  bool g() => true;
+}
+abstract class C implements I {}
+C f() => null;
+var x = f().g();
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'bool');
   }
 
   void test_inferredType_isEnum() {
@@ -2360,6 +2549,60 @@ final x = <String, F<int>>{};
 ''');
     var x = mainUnit.topLevelVariables[0];
     expect(x.type.toString(), 'Map<String, () → int>');
+  }
+
+  void test_inferredType_opAssignToProperty_prefixedIdentifier() {
+    var mainUnit = checkFile('''
+class C {
+  num n;
+}
+C c;
+var x = (c.n *= null);
+''');
+    var x = mainUnit.topLevelVariables[1];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'num');
+  }
+
+  void test_inferredType_opAssignToProperty_prefixedIdentifier_viaInterface() {
+    var mainUnit = checkFile('''
+class I {
+  num n;
+}
+abstract class C implements I {}
+C c;
+var x = (c.n *= null);
+''');
+    var x = mainUnit.topLevelVariables[1];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'num');
+  }
+
+  void test_inferredType_opAssignToProperty() {
+    var mainUnit = checkFile('''
+class C {
+  num n;
+}
+C f() => null;
+var x = (f().n *= null);
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'num');
+  }
+
+  void test_inferredType_opAssignToProperty_viaInterface() {
+    var mainUnit = checkFile('''
+class I {
+  num n;
+}
+abstract class C implements I {}
+C f() => null;
+var x = (f().n *= null);
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'num');
   }
 
   void test_inferStaticsTransitively() {

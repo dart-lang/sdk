@@ -511,6 +511,19 @@ var b = a.m();
     super.test_inferenceInCyclesIsDeterministic();
   }
 
+  @override
+  @failingTest
+  void test_inferredType_opAssignToProperty_prefixedIdentifier() {
+    super.test_inferredType_opAssignToProperty_prefixedIdentifier();
+  }
+
+  @override
+  @failingTest
+  void test_inferredType_opAssignToProperty_prefixedIdentifier_viaInterface() {
+    super
+        .test_inferredType_opAssignToProperty_prefixedIdentifier_viaInterface();
+  }
+
   void test_invokeMethod_notGeneric_genericClass() {
     var unit = checkFile(r'''
 class C<T> {

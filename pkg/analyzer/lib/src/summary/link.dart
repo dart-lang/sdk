@@ -2182,7 +2182,8 @@ class ExprTypeComputer {
   void _computePrefixExpressionType(String operatorName) {
     DartType operand = stack.removeLast();
     if (operand is InterfaceType) {
-      MethodElement method = operand.lookUpMethod(operatorName, library);
+      MethodElement method =
+          operand.lookUpInheritedMethod(operatorName, library: library);
       if (method != null) {
         DartType type = method.returnType;
         stack.add(type);
@@ -2268,7 +2269,8 @@ class ExprTypeComputer {
     DartType target = stack.removeLast();
     stack.add(() {
       if (target is InterfaceType) {
-        MethodElement method = target.lookUpMethod('[]', library);
+        MethodElement method =
+            target.lookUpInheritedMethod('[]', library: library);
         if (method != null) {
           return method.returnType;
         }
@@ -2282,14 +2284,15 @@ class ExprTypeComputer {
     String propertyName = _getNextString();
     stack.add(() {
       if (target is InterfaceType) {
-        PropertyAccessorElement getter =
-            target.lookUpGetter(propertyName, library);
-        if (getter != null) {
-          return getter.returnType;
-        }
-        MethodElement method = target.lookUpMethod(propertyName, library);
-        if (method != null) {
-          return method.type;
+        ExecutableElement element = target
+            .lookUpInheritedGetterOrMethod(propertyName, library: library);
+        if (element != null) {
+          if (element is PropertyAccessorElement) {
+            return element.returnType;
+          } else {
+            // Method tear-off
+            return element.type;
+          }
         }
       }
       return DynamicTypeImpl.instance;
@@ -2334,7 +2337,8 @@ class ExprTypeComputer {
     DartType target = stack.removeLast();
     stack.add(() {
       if (target is InterfaceType) {
-        MethodElement method = target.lookUpMethod(methodName, library);
+        MethodElement method =
+            target.lookUpInheritedMethod(methodName, library: library);
         FunctionType rawType = method?.type;
         FunctionType inferredType = _inferExecutableType(rawType, numNamed,
             numPositional, namedArgNames, namedArgTypeList, positionalArgTypes);
@@ -2454,7 +2458,9 @@ class ExprTypeComputer {
    */
   DartType _getPropertyType(DartType targetType, String propertyName) {
     return targetType is InterfaceType
-        ? targetType.lookUpGetter(propertyName, library)?.returnType
+        ? targetType
+            .lookUpInheritedGetter(propertyName, library: library)
+            ?.returnType
         : DynamicTypeImpl.instance;
   }
 
@@ -2518,7 +2524,8 @@ class ExprTypeComputer {
   void _pushBinaryOperatorType(
       DartType left, TokenType operator, DartType right) {
     if (left is InterfaceType) {
-      MethodElement method = left.lookUpMethod(operator.lexeme, library);
+      MethodElement method =
+          left.lookUpInheritedMethod(operator.lexeme, library: library);
       if (method != null) {
         DartType type = method.returnType;
         type = linker.typeSystem.refineBinaryExpressionType(
@@ -3608,14 +3615,15 @@ class NonstaticMemberElementForLink extends Object
     if (_library._linker.strongMode) {
       DartType targetType = _target.asStaticType;
       if (targetType is InterfaceType) {
-        PropertyAccessorElement getter =
-            targetType.lookUpGetter(_name, _library);
-        if (getter != null) {
-          return getter.returnType;
-        }
-        MethodElement method = targetType.lookUpMethod(_name, _library);
-        if (method != null) {
-          return method.type;
+        ExecutableElement element =
+            targetType.lookUpInheritedGetterOrMethod(_name, library: _library);
+        if (element != null) {
+          if (element is PropertyAccessorElement) {
+            return element.returnType;
+          } else {
+            // Method tear-off
+            return element.type;
+          }
         }
       }
       // TODO(paulberry): handle .call on function types and .toString or
