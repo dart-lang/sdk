@@ -32,15 +32,26 @@ namespace dart {
 intptr_t Intrinsifier::ParameterSlotFromSp() { return 0; }
 
 
+static bool IsABIPreservedRegister(Register reg) {
+  return ((1 << reg) & CallingConventions::kCalleeSaveCpuRegisters) != 0;
+}
+
+
 void Intrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
+  ASSERT(IsABIPreservedRegister(CODE_REG));
+  ASSERT(!IsABIPreservedRegister(ARGS_DESC_REG));
+  ASSERT(IsABIPreservedRegister(CALLEE_SAVED_TEMP));
+  ASSERT(CALLEE_SAVED_TEMP != CODE_REG);
+  ASSERT(CALLEE_SAVED_TEMP != ARGS_DESC_REG);
+
   assembler->Comment("IntrinsicCallPrologue");
-  assembler->movq(CALLEE_SAVED_TEMP, R10);
+  assembler->movq(CALLEE_SAVED_TEMP, ARGS_DESC_REG);
 }
 
 
 void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
   assembler->Comment("IntrinsicCallEpilogue");
-  assembler->movq(R10, CALLEE_SAVED_TEMP);
+  assembler->movq(ARGS_DESC_REG, CALLEE_SAVED_TEMP);
 }
 
 

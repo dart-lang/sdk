@@ -5186,6 +5186,8 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
       (recognized_kind() == MethodRecognizer::kMathDoublePow) ? 3 : 1;
   LocationSummary* result = new(zone) LocationSummary(
       zone, InputCount(), kNumTemps, LocationSummary::kCall);
+  ASSERT(R13 != CALLEE_SAVED_TEMP);
+  ASSERT(((1 << R13) & CallingConventions::kCalleeSaveCpuRegisters) != 0);
   result->set_temp(0, Location::RegisterLocation(R13));
   result->set_in(0, Location::FpuRegisterLocation(XMM2));
   if (InputCount() == 2) {
