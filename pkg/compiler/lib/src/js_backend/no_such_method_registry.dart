@@ -207,6 +207,11 @@ class NoSuchMethodRegistry {
       }
     }
     if (expr is Send &&
+        expr.isTypeCast &&
+        expr.typeAnnotationFromIsCheckOrCast.typeName.source == "dynamic") {
+      expr = expr.receiver;
+    }
+    if (expr is Send &&
         expr.isSuperCall &&
         expr.selector is Identifier &&
         (expr.selector as Identifier).source == Identifiers.noSuchMethod_) {
