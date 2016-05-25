@@ -1991,6 +1991,37 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
                 .map((p) => new ast.TypeParameterType(p))
                 .toList()));
     procedure.function = function..parent = procedure;
+    if (node.redirectedConstructor != null) {
+      assert(function.body == null);
+      ConstructorElement targetElement =
+          node.redirectedConstructor.staticElement;
+      ast.Member target = targetElement.isFactory
+          ? scope.resolveMethod(targetElement)
+          : scope.resolveConstructor(targetElement);
+      if (targetElement == null ||
+          !targetElement.isFactory &&
+              targetElement.enclosingElement.isAbstract) {
+        log.warning('Unresolved redirecting factory in ${scope.location}');
+        // TODO: Preserve enough information to throw the right exception.
+        function.body = new ast.InvalidStatement()..parent = function;
+      } else {
+        var positional = function.positionalParameters
+            .map((p) => new ast.VariableGet(p))
+            .toList();
+        var named = function.namedParameters
+            .map((p) => new ast.NamedExpression(p.name, new ast.VariableGet(p)))
+            .toList();
+        var types = function.typeParameters
+            .map((p) => new ast.TypeParameterType(p))
+            .toList();
+        var arguments =
+            new ast.Arguments(positional, named: named, types: types);
+        var invocation = target is ast.Constructor
+            ? new ast.ConstructorInvocation(target, arguments)
+            : new ast.StaticInvocation(target, arguments);
+        function.body = new ast.ReturnStatement(invocation)..parent = function;
+      }
+    }
   }
 
   visitMethodDeclaration(MethodDeclaration node) {
