@@ -14,6 +14,7 @@
 #include "vm/stack_frame.h"
 #include "vm/store_buffer.h"
 #include "vm/thread_registry.h"
+#include "vm/timeline.h"
 #include "vm/verified_memory.h"
 #include "vm/verifier.h"
 #include "vm/visitor.h"
@@ -778,7 +779,8 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   // will continue with its scavenge after waiting for the winner to complete.
   // TODO(koda): Consider moving SafepointThreads into allocation failure/retry
   // logic to avoid needless collections.
-  SafepointOperationScope safepoint_scope(Thread::Current());
+  Thread* thread = Thread::Current();
+  SafepointOperationScope safepoint_scope(thread);
 
   // Scavenging is not reentrant. Make sure that is the case.
   ASSERT(!scavenging_);
@@ -802,7 +804,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   // The API prologue/epilogue may create/destroy zones, so we must not
   // depend on zone allocations surviving beyond the epilogue callback.
   {
-    StackZone zone(Thread::Current());
+    StackZone zone(thread);
     // Setup the visitor and run the scavenge.
     ScavengerVisitor visitor(isolate, this, from);
     page_space->AcquireDataLock();
@@ -810,8 +812,11 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
     int64_t start = OS::GetCurrentTimeMicros();
     ProcessToSpace(&visitor);
     int64_t middle = OS::GetCurrentTimeMicros();
-    ScavengerWeakVisitor weak_visitor(this);
-    IterateWeakRoots(isolate, &weak_visitor);
+    {
+      TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
+      ScavengerWeakVisitor weak_visitor(this);
+      IterateWeakRoots(isolate, &weak_visitor);
+    }
     ProcessWeakReferences();
     page_space->ReleaseDataLock();
 

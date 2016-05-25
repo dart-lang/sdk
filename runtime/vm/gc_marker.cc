@@ -652,7 +652,8 @@ void GCMarker::MarkObjects(Isolate* isolate,
   // The API prologue/epilogue may create/destroy zones, so we must not
   // depend on zone allocations surviving beyond the epilogue callback.
   {
-    StackZone stack_zone(Thread::Current());
+    Thread* thread = Thread::Current();
+    StackZone stack_zone(thread);
     Zone* zone = stack_zone.GetZone();
     MarkingStack marking_stack;
     marked_bytes_ = 0;
@@ -665,8 +666,11 @@ void GCMarker::MarkObjects(Isolate* isolate,
                                 skipped_code_functions);
       IterateRoots(isolate, &mark, 0, 1);
       mark.DrainMarkingStack();
-      MarkingWeakVisitor mark_weak;
-      IterateWeakRoots(isolate, &mark_weak);
+      {
+        TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
+        MarkingWeakVisitor mark_weak;
+        IterateWeakRoots(isolate, &mark_weak);
+      }
       // All marking done; detach code, etc.
       FinalizeResultsFrom(&mark);
     } else {
@@ -687,8 +691,11 @@ void GCMarker::MarkObjects(Isolate* isolate,
       barrier.Sync();
 
       // Phase 2: Weak processing on main thread.
-      MarkingWeakVisitor mark_weak;
-      IterateWeakRoots(isolate, &mark_weak);
+      {
+        TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
+        MarkingWeakVisitor mark_weak;
+        IterateWeakRoots(isolate, &mark_weak);
+      }
       barrier.Sync();
 
       // Phase 3: Finalize results from all markers (detach code, etc.).
