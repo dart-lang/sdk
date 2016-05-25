@@ -474,6 +474,9 @@ class ClassElementImpl extends ElementImpl
   }
 
   @override
+  TypeParameterizedElementMixin get typeParameterContext => this;
+
+  @override
   List<TypeParameterElement> get typeParameters {
     if (_unlinkedClass != null) {
       return super.typeParameters;
@@ -1268,6 +1271,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   String get identifier => source.encoding;
+
   @override
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
 
@@ -1331,6 +1335,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     }
     this._typeAliases = typeAliases;
   }
+
+  @override
+  TypeParameterizedElementMixin get typeParameterContext => null;
 
   @override
   List<ClassElement> get types => _types;
@@ -2345,6 +2352,15 @@ abstract class ElementImpl implements Element {
     setModifier(Modifier.SYNTHETIC, isSynthetic);
   }
 
+  /**
+   * Return the context to resolve type parameters in, or `null` if neither this
+   * element nor any of its ancestors is of a kind that can declare type
+   * parameters.
+   */
+  TypeParameterizedElementMixin get typeParameterContext {
+    return _enclosingElement?.typeParameterContext;
+  }
+
   @override
   CompilationUnit get unit => context.resolveCompilationUnit(source, library);
 
@@ -2987,6 +3003,9 @@ abstract class ExecutableElementImpl extends ElementImpl
   }
 
   @override
+  TypeParameterizedElementMixin get typeParameterContext => this;
+
+  @override
   List<TypeParameterElement> get typeParameters => _typeParameters;
 
   /**
@@ -3392,11 +3411,7 @@ class FunctionElementImpl extends ExecutableElementImpl
 
   @override
   TypeParameterizedElementMixin get enclosingTypeParameterContext {
-    Element enclosingElement = this.enclosingElement;
-    if (enclosingElement is TypeParameterizedElementMixin) {
-      return enclosingElement;
-    }
-    return null;
+    return (enclosingElement as ElementImpl).typeParameterContext;
   }
 
   @override
@@ -3620,6 +3635,9 @@ class FunctionTypeAliasElementImpl extends ElementImpl
     }
     this._parameters = parameters;
   }
+
+  @override
+  TypeParameterizedElementMixin get typeParameterContext => this;
 
   @override
   List<TypeParameterElement> get typeParameters {
@@ -6076,11 +6094,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   @override
   TypeParameterizedElementMixin get enclosingTypeParameterContext {
-    Element enclosingElement = this.enclosingElement;
-    if (enclosingElement is TypeParameterizedElementMixin) {
-      return enclosingElement;
-    }
-    return null;
+    return (enclosingElement as ElementImpl).typeParameterContext;
   }
 
   /**
@@ -6239,12 +6253,12 @@ abstract class ResynthesizerContext {
   /**
    * Build [ElementAnnotationImpl] for the given [UnlinkedConst].
    */
-  ElementAnnotationImpl buildAnnotation(Element context, UnlinkedConst uc);
+  ElementAnnotationImpl buildAnnotation(ElementImpl context, UnlinkedConst uc);
 
   /**
    * Build [Expression] for the given [UnlinkedConst].
    */
-  Expression buildExpression(Element context, UnlinkedConst uc);
+  Expression buildExpression(ElementImpl context, UnlinkedConst uc);
 
   /**
    * Build explicit top-level property accessors.

@@ -299,11 +299,8 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
  */
 class _ConstExprBuilder {
   final _UnitResynthesizer resynthesizer;
-  final Element context;
+  final ElementImpl context;
   final UnlinkedConst uc;
-
-  bool _typeParameterContextReady = false;
-  TypeParameterizedElementMixin _typeParameterContext;
 
   int intPtr = 0;
   int doublePtr = 0;
@@ -312,19 +309,6 @@ class _ConstExprBuilder {
   final List<Expression> stack = <Expression>[];
 
   _ConstExprBuilder(this.resynthesizer, this.context, this.uc);
-
-  TypeParameterizedElementMixin get typeParameterContext {
-    if (!_typeParameterContextReady) {
-      for (Element e = context; e != null; e = e.enclosingElement) {
-        if (e is TypeParameterizedElementMixin) {
-          _typeParameterContext = e;
-          break;
-        }
-      }
-      _typeParameterContextReady = true;
-    }
-    return _typeParameterContext;
-  }
 
   Expression build() {
     if (!uc.isValidConst) {
@@ -636,7 +620,7 @@ class _ConstExprBuilder {
             '${info.element?.runtimeType}');
       }
       InterfaceType definingType = resynthesizer._createConstructorDefiningType(
-          typeParameterContext, info, ref.typeArguments);
+          context?.typeParameterContext, info, ref.typeArguments);
       constructorElement =
           resynthesizer._createConstructorElement(definingType, info);
       typeNode = _buildTypeAst(definingType);
@@ -1537,12 +1521,12 @@ class _ResynthesizerContext implements ResynthesizerContext {
   _ResynthesizerContext(this._unitResynthesizer);
 
   @override
-  ElementAnnotationImpl buildAnnotation(Element context, UnlinkedConst uc) {
+  ElementAnnotationImpl buildAnnotation(ElementImpl context, UnlinkedConst uc) {
     return _unitResynthesizer.buildAnnotation(context, uc);
   }
 
   @override
-  Expression buildExpression(Element context, UnlinkedConst uc) {
+  Expression buildExpression(ElementImpl context, UnlinkedConst uc) {
     return _unitResynthesizer._buildConstExpression(context, uc);
   }
 
@@ -1697,7 +1681,7 @@ class _UnitResynthesizer {
   /**
    * Build [ElementAnnotationImpl] for the given [UnlinkedConst].
    */
-  ElementAnnotationImpl buildAnnotation(Element context, UnlinkedConst uc) {
+  ElementAnnotationImpl buildAnnotation(ElementImpl context, UnlinkedConst uc) {
     ElementAnnotationImpl elementAnnotation = new ElementAnnotationImpl(unit);
     Expression constExpr = _buildConstExpression(context, uc);
     if (constExpr is Identifier) {
@@ -2934,7 +2918,7 @@ class _UnitResynthesizer {
     }
   }
 
-  Expression _buildConstExpression(Element context, UnlinkedConst uc) {
+  Expression _buildConstExpression(ElementImpl context, UnlinkedConst uc) {
     return new _ConstExprBuilder(this, context, uc).build();
   }
 
