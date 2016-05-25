@@ -120,6 +120,25 @@ void ObjectStore::Init(Isolate* isolate) {
 }
 
 
+void ObjectStore::PrintToJSONObject(JSONObject* jsobj, bool ref) {
+  if (!FLAG_support_service) {
+    return;
+  }
+  jsobj->AddProperty("type", (ref ? "@_ObjectStore" : "_ObjectStore"));
+  jsobj->AddFixedServiceId("object_store");
+
+  {
+    JSONObject fields(jsobj, "fields");
+    Object& value = Object::Handle();
+#define PRINT_OBJECT_STORE_FIELD(type, name)                                   \
+    value = name;                                                              \
+    fields.AddProperty(#name, value);
+OBJECT_STORE_FIELD_LIST(PRINT_OBJECT_STORE_FIELD);
+#undef PRINT_OBJECT_STORE_FIELD
+  }
+}
+
+
 RawError* ObjectStore::PreallocateObjects() {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();

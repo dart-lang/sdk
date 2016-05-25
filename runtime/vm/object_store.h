@@ -498,92 +498,100 @@ class ObjectStore {
 
   static void Init(Isolate* isolate);
 
+  void PrintToJSONObject(JSONObject* jsobj, bool ref = true);
+
  private:
   ObjectStore();
 
+#define OBJECT_STORE_FIELD_LIST(V)                                             \
+  V(RawClass*, object_class_)                                                  \
+  V(RawType*, object_type_)                                                    \
+  V(RawClass*, null_class_)                                                    \
+  V(RawType*, null_type_)                                                      \
+  V(RawType*, function_type_)                                                  \
+  V(RawClass*, closure_class_)                                                 \
+  V(RawType*, number_type_)                                                    \
+  V(RawType*, int_type_)                                                       \
+  V(RawClass*, integer_implementation_class_)                                  \
+  V(RawClass*, smi_class_)                                                     \
+  V(RawType*, smi_type_)                                                       \
+  V(RawClass*, mint_class_)                                                    \
+  V(RawType*, mint_type_)                                                      \
+  V(RawClass*, bigint_class_)                                                  \
+  V(RawClass*, double_class_)                                                  \
+  V(RawType*, double_type_)                                                    \
+  V(RawType*, float32x4_type_)                                                 \
+  V(RawType*, int32x4_type_)                                                   \
+  V(RawType*, float64x2_type_)                                                 \
+  V(RawType*, string_type_)                                                    \
+  V(RawClass*, future_class_)                                                  \
+  V(RawClass*, completer_class_)                                               \
+  V(RawClass*, stream_iterator_class_)                                         \
+  V(RawClass*, symbol_class_)                                                  \
+  V(RawClass*, one_byte_string_class_)                                         \
+  V(RawClass*, two_byte_string_class_)                                         \
+  V(RawClass*, external_one_byte_string_class_)                                \
+  V(RawClass*, external_two_byte_string_class_)                                \
+  V(RawType*, bool_type_)                                                      \
+  V(RawClass*, bool_class_)                                                    \
+  V(RawClass*, array_class_)                                                   \
+  V(RawType*, array_type_)                                                     \
+  V(RawClass*, immutable_array_class_)                                         \
+  V(RawClass*, growable_object_array_class_)                                   \
+  V(RawClass*, linked_hash_map_class_)                                         \
+  V(RawClass*, float32x4_class_)                                               \
+  V(RawClass*, int32x4_class_)                                                 \
+  V(RawClass*, float64x2_class_)                                               \
+  V(RawClass*, error_class_)                                                   \
+  V(RawClass*, weak_property_class_)                                           \
+  V(RawArray*, symbol_table_)                                                  \
+  V(RawArray*, canonical_types_)                                               \
+  V(RawArray*, canonical_type_arguments_)                                      \
+  V(RawLibrary*, async_library_)                                               \
+  V(RawLibrary*, builtin_library_)                                             \
+  V(RawLibrary*, core_library_)                                                \
+  V(RawLibrary*, collection_library_)                                          \
+  V(RawLibrary*, convert_library_)                                             \
+  V(RawLibrary*, developer_library_)                                           \
+  V(RawLibrary*, internal_library_)                                            \
+  V(RawLibrary*, isolate_library_)                                             \
+  V(RawLibrary*, math_library_)                                                \
+  V(RawLibrary*, mirrors_library_)                                             \
+  V(RawLibrary*, native_wrappers_library_)                                     \
+  V(RawLibrary*, profiler_library_)                                            \
+  V(RawLibrary*, root_library_)                                                \
+  V(RawLibrary*, typed_data_library_)                                          \
+  V(RawLibrary*, vmservice_library_)                                           \
+  V(RawGrowableObjectArray*, libraries_)                                       \
+  V(RawArray*, libraries_map_)                                                 \
+  V(RawGrowableObjectArray*, closure_functions_)                               \
+  V(RawGrowableObjectArray*, pending_classes_)                                 \
+  V(RawGrowableObjectArray*, pending_deferred_loads_)                          \
+  V(RawGrowableObjectArray*, resume_capabilities_)                             \
+  V(RawGrowableObjectArray*, exit_listeners_)                                  \
+  V(RawGrowableObjectArray*, error_listeners_)                                 \
+  V(RawContext*, empty_context_)                                               \
+  V(RawInstance*, stack_overflow_)                                             \
+  V(RawInstance*, out_of_memory_)                                              \
+  V(RawUnhandledException*, preallocated_unhandled_exception_)                 \
+  V(RawStacktrace*, preallocated_stack_trace_)                                 \
+  V(RawFunction*, lookup_port_handler_)                                        \
+  V(RawTypedData*, empty_uint32_array_)                                        \
+  V(RawFunction*, handle_message_function_)                                    \
+  V(RawArray*, library_load_error_table_)                                      \
+  V(RawArray*, compile_time_constants_)                                        \
+  V(RawArray*, unique_dynamic_targets_)                                        \
+  V(RawGrowableObjectArray*, token_objects_)                                   \
+  V(RawArray*, token_objects_map_)                                             \
+  V(RawGrowableObjectArray*, megamorphic_cache_table_)                         \
+  V(RawCode*, megamorphic_miss_code_)                                          \
+  V(RawFunction*, megamorphic_miss_function_)                                  \
+
   RawObject** from() { return reinterpret_cast<RawObject**>(&object_class_); }
-  RawClass* object_class_;
-  RawType* object_type_;
-  RawClass* null_class_;
-  RawType* null_type_;
-  RawType* function_type_;
-  RawClass* closure_class_;
-  RawType* number_type_;
-  RawType* int_type_;
-  RawClass* integer_implementation_class_;
-  RawClass* smi_class_;
-  RawType* smi_type_;
-  RawClass* mint_class_;
-  RawType* mint_type_;
-  RawClass* bigint_class_;
-  RawClass* double_class_;
-  RawType* double_type_;
-  RawType* float32x4_type_;
-  RawType* int32x4_type_;
-  RawType* float64x2_type_;
-  RawType* string_type_;
-  RawClass* future_class_;
-  RawClass* completer_class_;
-  RawClass* stream_iterator_class_;
-  RawClass* symbol_class_;
-  RawClass* one_byte_string_class_;
-  RawClass* two_byte_string_class_;
-  RawClass* external_one_byte_string_class_;
-  RawClass* external_two_byte_string_class_;
-  RawType* bool_type_;
-  RawClass* bool_class_;
-  RawClass* array_class_;
-  RawType* array_type_;
-  RawClass* immutable_array_class_;
-  RawClass* growable_object_array_class_;
-  RawClass* linked_hash_map_class_;
-  RawClass* float32x4_class_;
-  RawClass* int32x4_class_;
-  RawClass* float64x2_class_;
-  RawClass* error_class_;
-  RawClass* weak_property_class_;
-  RawArray* symbol_table_;
-  RawArray* canonical_types_;
-  RawArray* canonical_type_arguments_;
-  RawLibrary* async_library_;
-  RawLibrary* builtin_library_;
-  RawLibrary* core_library_;
-  RawLibrary* collection_library_;
-  RawLibrary* convert_library_;
-  RawLibrary* developer_library_;
-  RawLibrary* internal_library_;
-  RawLibrary* isolate_library_;
-  RawLibrary* math_library_;
-  RawLibrary* mirrors_library_;
-  RawLibrary* native_wrappers_library_;
-  RawLibrary* profiler_library_;
-  RawLibrary* root_library_;
-  RawLibrary* typed_data_library_;
-  RawLibrary* vmservice_library_;
-  RawGrowableObjectArray* libraries_;
-  RawArray* libraries_map_;
-  RawGrowableObjectArray* closure_functions_;
-  RawGrowableObjectArray* pending_classes_;
-  RawGrowableObjectArray* pending_deferred_loads_;
-  RawGrowableObjectArray* resume_capabilities_;
-  RawGrowableObjectArray* exit_listeners_;
-  RawGrowableObjectArray* error_listeners_;
-  RawContext* empty_context_;
-  RawInstance* stack_overflow_;
-  RawInstance* out_of_memory_;
-  RawUnhandledException* preallocated_unhandled_exception_;
-  RawStacktrace* preallocated_stack_trace_;
-  RawFunction* lookup_port_handler_;
-  RawTypedData* empty_uint32_array_;
-  RawFunction* handle_message_function_;
-  RawArray* library_load_error_table_;
-  RawArray* compile_time_constants_;
-  RawArray* unique_dynamic_targets_;
-  RawGrowableObjectArray* token_objects_;
-  RawArray* token_objects_map_;
-  RawGrowableObjectArray* megamorphic_cache_table_;
-  RawCode* megamorphic_miss_code_;
-  RawFunction* megamorphic_miss_function_;
+#define DECLARE_OBJECT_STORE_FIELD(type, name)                                 \
+  type name;
+OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD)
+#undef DECLARE_OBJECT_STORE_FIELD
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&megamorphic_miss_function_);
   }

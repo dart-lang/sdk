@@ -125,6 +125,10 @@ class AnyServiceRefElement extends ObservatoryElement {
         ServiceRefElement element = new Element.tag('object-ref');
         element.ref = ref;
         return element;
+      case '_ObjectStore':
+        ServiceRefElement element = new Element.tag('objectstore-ref');
+        element.ref = ref;
+        return element;
       case 'Script':
         ServiceRefElement element = new Element.tag('script-ref');
         element.ref = ref;

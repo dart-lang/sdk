@@ -43,6 +43,8 @@ export 'package:observatory/src/elements/nav_bar.dart';
 export 'package:observatory/src/elements/object_common.dart';
 export 'package:observatory/src/elements/object_view.dart';
 export 'package:observatory/src/elements/objectpool_view.dart';
+export 'package:observatory/src/elements/objectstore_ref.dart';
+export 'package:observatory/src/elements/objectstore_view.dart';
 export 'package:observatory/src/elements/observatory_application.dart';
 export 'package:observatory/src/elements/observatory_element.dart';
 export 'package:observatory/src/elements/persistent_handles.dart';

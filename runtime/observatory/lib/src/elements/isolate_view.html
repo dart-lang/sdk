@@ -5,6 +5,7 @@
 <link rel="import" href="function_ref.html">
 <link rel="import" href="isolate_summary.html">
 <link rel="import" href="library_ref.html">
+<link rel="import" href="objectstore_ref.html">
 <link rel="import" href="nav_bar.html">
 <link rel="import" href="observatory_element.html">
 <link rel="import" href="script_inset.html">
@@ -93,6 +94,12 @@
             <div class="memberItem">
               <div class="memberName">service protocol extensions</div>
               <div class="memberValue">{{ isolate.extensionRPCs }}</div>
+            </div>
+            <div class="memberItem">
+              <div class="memberName">object store</div>
+              <div class="memberValue">
+                <objectstore-ref ref="{{ isolate.objectStore }}"></objectstore-ref>
+              </div>
             </div>
 
             <div class="memberItem">
