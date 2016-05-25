@@ -798,8 +798,8 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
     //     var y = x + 1;
     //   }
     //
-    // The block is not strictly necessary for single-variable declarations,
-    // but they are so rare that the overhead makes no difference.
+    // Note that the use of a block here is required by the kernel language,
+    // even if there is only one variable declaration.
     List<ast.Statement> statements = <ast.Statement>[];
     buildBlockMember(node, statements);
     return new ast.Block(statements);
