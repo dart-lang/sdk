@@ -146,8 +146,12 @@ import 'tokens/token.dart' show StringToken, Token;
 class PatchParserTask extends CompilerTask {
   final String name = "Patching Parser";
   final ParserOptions parserOptions;
+  final Compiler compiler;
+  DiagnosticReporter get reporter => compiler.reporter;
 
-  PatchParserTask(Compiler compiler, this.parserOptions) : super(compiler);
+  PatchParserTask(Compiler compiler, this.parserOptions)
+      : compiler = compiler,
+        super(compiler.measurer);
 
   /**
    * Scans a library patch file, applies the method patches and

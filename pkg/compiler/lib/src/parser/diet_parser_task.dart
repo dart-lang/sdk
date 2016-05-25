@@ -6,8 +6,7 @@ library dart2js.parser.diet.task;
 
 import '../common.dart';
 import '../common/backend_api.dart' show Backend;
-import '../common/tasks.dart' show CompilerTask;
-import '../compiler.dart' show Compiler;
+import '../common/tasks.dart' show CompilerTask, Measurer;
 import '../elements/elements.dart' show CompilationUnitElement;
 import '../id_generator.dart';
 import '../tokens/token.dart' show Token;
@@ -23,9 +22,9 @@ class DietParserTask extends CompilerTask {
   final Backend _backend;
   final DiagnosticReporter _reporter;
 
-  DietParserTask(Compiler compiler, this._parserOptions, this._idGenerator,
-      this._backend, this._reporter)
-      : super(compiler);
+  DietParserTask(this._parserOptions, this._idGenerator, this._backend,
+      this._reporter, Measurer measurer)
+      : super(measurer);
 
   final String name = 'Diet Parser';
 

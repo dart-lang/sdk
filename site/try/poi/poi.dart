@@ -565,7 +565,7 @@ class ScriptOnlyFilter implements QueueFilter {
 }
 
 class PoiTask extends CompilerTask {
-  PoiTask(Compiler compiler) : super(compiler);
+  PoiTask(Compiler compiler) : super(compiler.measurer);
 
   String get name => 'POI';
 }

@@ -19,6 +19,7 @@ class CodeEmitterTask extends CompilerTask {
   NativeEmitter nativeEmitter;
   MetadataCollector metadataCollector;
   Emitter emitter;
+  final Compiler compiler;
 
   /// Records if a type variable is read dynamically for type tests.
   final Set<TypeVariableElement> readTypeVariables =
@@ -35,9 +36,10 @@ class CodeEmitterTask extends CompilerTask {
 
   CodeEmitterTask(Compiler compiler, Namer namer, bool generateSourceMap,
       bool useStartupEmitter)
-      : super(compiler),
+      : compiler = compiler,
         this.namer = namer,
-        this.typeTestRegistry = new TypeTestRegistry(compiler) {
+        this.typeTestRegistry = new TypeTestRegistry(compiler),
+        super(compiler.measurer) {
     nativeEmitter = new NativeEmitter(this);
     if (USE_LAZY_EMITTER) {
       emitter = new lazy_js_emitter.Emitter(compiler, namer, nativeEmitter);

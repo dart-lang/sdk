@@ -36,7 +36,7 @@ class SsaOptimizerTask extends CompilerTask {
   final JavaScriptBackend backend;
   SsaOptimizerTask(JavaScriptBackend backend)
       : this.backend = backend,
-        super(backend.compiler);
+        super(backend.compiler.measurer);
   String get name => 'SSA optimizer';
   Compiler get compiler => backend.compiler;
   Map<HInstruction, Range> ranges = <HInstruction, Range>{};

@@ -91,13 +91,15 @@ class SsaBuilderTask extends CompilerTask {
   final CodeEmitterTask emitter;
   final JavaScriptBackend backend;
   final SourceInformationStrategy sourceInformationFactory;
+  final Compiler compiler;
 
   String get name => 'SSA builder';
 
   SsaBuilderTask(JavaScriptBackend backend, this.sourceInformationFactory)
       : emitter = backend.emitter,
         backend = backend,
-        super(backend.compiler);
+        compiler = backend.compiler,
+        super(backend.compiler.measurer);
 
   DiagnosticReporter get reporter => compiler.reporter;
 

@@ -6,7 +6,7 @@ library dart2js.compile_time_constant_evaluator;
 
 import 'common.dart';
 import 'common/resolution.dart' show Resolution;
-import 'common/tasks.dart' show CompilerTask;
+import 'common/tasks.dart' show CompilerTask, Measurer;
 import 'compiler.dart' show Compiler;
 import 'constant_system_dart.dart';
 import 'constants/constant_system.dart';
@@ -110,7 +110,7 @@ abstract class BackendConstantEnvironment extends ConstantEnvironment {
 /// frontend and backend interpretation of compile-time constants.
 abstract class ConstantCompilerTask extends CompilerTask
     implements ConstantCompiler {
-  ConstantCompilerTask(Compiler compiler) : super(compiler);
+  ConstantCompilerTask(Measurer measurer) : super(measurer);
 
   /// Copy all cached constant values from [task].
   ///

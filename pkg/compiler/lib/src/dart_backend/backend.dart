@@ -457,7 +457,7 @@ class DartConstantTask extends ConstantCompilerTask
 
   DartConstantTask(Compiler compiler)
       : this.constantCompiler = new DartConstantCompiler(compiler),
-        super(compiler);
+        super(compiler.measurer);
 
   String get name => 'ConstantHandler';
 

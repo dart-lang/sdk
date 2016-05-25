@@ -152,11 +152,15 @@ class DeferredLoadTask extends CompilerTask {
 
   Set<Element> _mainElements = new Set<Element>();
 
-  DeferredLoadTask(Compiler compiler) : super(compiler) {
+  final Compiler compiler;
+  DeferredLoadTask(Compiler compiler)
+      : compiler = compiler,
+        super(compiler.measurer) {
     mainOutputUnit.imports.add(_fakeMainImport);
   }
 
   Backend get backend => compiler.backend;
+  DiagnosticReporter get reporter => compiler.reporter;
 
   /// Returns the [OutputUnit] where [element] belongs.
   OutputUnit outputUnitForElement(Element element) {
@@ -629,7 +633,7 @@ class DeferredLoadTask extends CompilerTask {
     _constantsDeferredBy = new Map<_DeferredImport, Set<ConstantValue>>();
     _importedDeferredBy[_fakeMainImport] = _mainElements;
 
-    measureElement(mainLibrary, () {
+    reporter.withCurrentElement(mainLibrary, () => measure(() {
       // Starting from main, traverse the program and find all dependencies.
       _mapDependencies(element: compiler.mainFunction, import: _fakeMainImport);
 
@@ -710,7 +714,7 @@ class DeferredLoadTask extends CompilerTask {
 
       // Generate a unique name for each OutputUnit.
       _assignNamesToOutputUnits(allOutputUnits);
-    });
+    }));
     // Notify the impact strategy impacts are no longer needed for deferred
     // load.
     compiler.impactStrategy.onImpactUsed(IMPACT_USE);

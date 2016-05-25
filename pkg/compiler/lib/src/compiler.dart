@@ -90,11 +90,7 @@ typedef CompilerDiagnosticReporter MakeReporterFunction(
     Compiler compiler, CompilerOptions options);
 
 abstract class Compiler implements LibraryLoaderListener {
-  /// Helper instance for measurements in [CompilerTask].
-  ///
-  /// Note: MUST be first field to ensure [Measurer.wallclock] is started
-  /// before other computations.
-  final Measurer measurer = new Measurer();
+  Measurer get measurer;
 
   final IdGenerator idGenerator = new IdGenerator();
   World world;
@@ -249,8 +245,6 @@ abstract class Compiler implements LibraryLoaderListener {
   ti.TypesTask typesTask;
   Backend backend;
 
-  GenericTask reuseLibraryTask;
-
   GenericTask selfTask;
 
   /// The constant environment for the frontend interpretation of compile-time
@@ -264,8 +258,6 @@ abstract class Compiler implements LibraryLoaderListener {
 
   /// A customizable filter that is applied to enqueued work items.
   QueueFilter enqueuerFilter = new QueueFilter();
-
-  static const String CREATE_INVOCATION_MIRROR = 'createInvocationMirror';
 
   bool enabledRuntimeType = false;
   bool enabledFunctionApply = false;
@@ -344,7 +336,7 @@ abstract class Compiler implements LibraryLoaderListener {
 
     tasks = [
       dietParser =
-          new DietParserTask(this, options, idGenerator, backend, reporter),
+          new DietParserTask(options, idGenerator, backend, reporter, measurer),
       scanner = createScannerTask(),
       serialization = new SerializationTask(this),
       libraryLoader = new LibraryLoaderTask(
@@ -366,8 +358,7 @@ abstract class Compiler implements LibraryLoaderListener {
       mirrorUsageAnalyzerTask = new MirrorUsageAnalyzerTask(this),
       enqueuer = backend.makeEnqueuer(),
       dumpInfoTask = new DumpInfoTask(this),
-      reuseLibraryTask = new GenericTask('Reuse library', this),
-      selfTask = new GenericTask('self', this),
+      selfTask = new GenericTask('self', measurer),
     ];
     if (options.resolveOnly) {
       serialization.supportSerialization = true;
@@ -382,8 +373,9 @@ abstract class Compiler implements LibraryLoaderListener {
   /// Creates the scanner task.
   ///
   /// Override this to mock the scanner for testing.
-  ScannerTask createScannerTask() => new ScannerTask(this, dietParser,
-      preserveComments: options.preserveComments, commentMap: commentMap);
+  ScannerTask createScannerTask() =>
+      new ScannerTask(dietParser, reporter, measurer,
+          preserveComments: options.preserveComments, commentMap: commentMap);
 
   /// Creates the resolver task.
   ///

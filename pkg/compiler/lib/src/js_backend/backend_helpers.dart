@@ -553,7 +553,7 @@ class BackendHelpers {
   }
 
   Element get createInvocationMirror {
-    return findHelper(Compiler.CREATE_INVOCATION_MIRROR);
+    return findHelper('createInvocationMirror');
   }
 
   Element get cyclicThrowHelper {

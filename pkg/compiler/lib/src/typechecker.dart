@@ -46,8 +46,13 @@ import 'tree/tree.dart';
 import 'util/util.dart' show Link, LinkBuilder;
 
 class TypeCheckerTask extends CompilerTask {
-  TypeCheckerTask(Compiler compiler) : super(compiler);
+  final Compiler compiler;
+  TypeCheckerTask(Compiler compiler)
+      : compiler = compiler,
+        super(compiler.measurer);
+
   String get name => "Type checker";
+  DiagnosticReporter get reporter => compiler.reporter;
 
   void check(AstElement element) {
     if (element.isClass) return;

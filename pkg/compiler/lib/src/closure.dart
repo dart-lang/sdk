@@ -24,11 +24,15 @@ import 'universe/universe.dart' show Universe;
 
 class ClosureTask extends CompilerTask {
   Map<Node, ClosureClassMap> closureMappingCache;
+  Compiler compiler;
   ClosureTask(Compiler compiler)
       : closureMappingCache = new Map<Node, ClosureClassMap>(),
-        super(compiler);
+        compiler = compiler,
+        super(compiler.measurer);
 
   String get name => "Closure Simplifier";
+
+  DiagnosticReporter get reporter => compiler.reporter;
 
   ClosureClassMap computeClosureToClassMapping(ResolvedAst resolvedAst) {
     return measure(() {

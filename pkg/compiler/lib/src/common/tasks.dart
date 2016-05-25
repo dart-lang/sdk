@@ -7,43 +7,36 @@ library dart2js.common.tasks;
 import 'dart:async'
     show Future, Zone, ZoneDelegate, ZoneSpecification, runZoned;
 
-import '../common.dart';
-import '../compiler.dart' show Compiler;
-import '../elements/elements.dart' show Element;
-
-typedef void DeferredAction();
-
-class DeferredTask {
-  final Element element;
-  final DeferredAction action;
-
-  DeferredTask(this.element, this.action);
-}
-
-/// A [CompilerTask] is used to measure where time is spent in the compiler.
-/// The main entry points are [measure] and [measureIo].
-class CompilerTask {
-  final Compiler compiler;
-  final Stopwatch watch;
+/// Used to measure where time is spent in the compiler.
+///
+/// This exposes [measure] and [measureIo], which wrap an action and associate
+/// the time spent during that action with this task. Nested measurementsccan be
+/// introduced by using [measureSubtask].
+// TODO(sigmund): rename to MeasurableTask
+abstract class CompilerTask {
+  final Measurer measurer;
+  final Stopwatch _watch;
   final Map<String, GenericTask> _subtasks = <String, GenericTask>{};
 
   int asyncCount = 0;
 
-  CompilerTask(Compiler compiler)
-      : this.compiler = compiler,
-        watch = (compiler.options.verbose) ? new Stopwatch() : null;
+  CompilerTask(Measurer measurer)
+      : measurer = measurer,
+        _watch = measurer.enableTaskMeasurements ? new Stopwatch() : null;
 
-  DiagnosticReporter get reporter => compiler.reporter;
+  /// Whether measurement is disabled. The functions [measure] and [measureIo]
+  /// only measure time if measurements are enabled.
+  bool get _isDisabled => _watch == null;
 
-  Measurer get measurer => compiler.measurer;
-
+  /// Name to use for reporting timing information. Subclasses should override
+  /// this with a proper name, otherwise we use the runtime type of the task.
   String get name => "Unknown task '${this.runtimeType}'";
 
-  bool get isRunning => watch?.isRunning == true;
+  bool get isRunning => _watch?.isRunning == true;
 
   int get timing {
-    if (watch == null) return 0;
-    int total = watch.elapsedMilliseconds;
+    if (_isDisabled) return 0;
+    int total = _watch.elapsedMilliseconds;
     for (GenericTask subtask in _subtasks.values) {
       total += subtask.timing;
     }
@@ -51,40 +44,40 @@ class CompilerTask {
   }
 
   Duration get duration {
-    if (watch == null) return Duration.ZERO;
-    Duration total = watch.elapsed;
+    if (_isDisabled) return Duration.ZERO;
+    Duration total = _watch.elapsed;
     for (GenericTask subtask in _subtasks.values) {
       total += subtask.duration;
     }
     return total;
   }
 
-  /// Perform [action] and use [watch] to measure its runtime (including any
-  /// asynchronous callbacks, such as, [Future.then], but excluding code
-  /// measured by other tasks).
-  measure(action()) => watch == null ? action() : measureZoned(action);
+  /// Perform [action] and measure its runtime (including any asynchronous
+  /// callbacks, such as, [Future.then], but excluding code measured by other
+  /// tasks).
+  measure(action()) => _isDisabled ? action() : _measureZoned(action);
 
   /// Helper method that starts measuring with this [CompilerTask], that is,
   /// make this task the currently measured task.
-  CompilerTask start() {
-    if (watch == null) return null;
+  CompilerTask _start() {
+    if (_isDisabled) return null;
     CompilerTask previous = measurer.currentTask;
     measurer.currentTask = this;
-    if (previous != null) previous.watch.stop();
+    if (previous != null) previous._watch.stop();
     // Regardless of whether [previous] is `null` we've returned from the
     // eventloop.
     measurer.stopAsyncWallClock();
-    watch.start();
+    _watch.start();
     return previous;
   }
 
   /// Helper method that stops measuring with this [CompilerTask], that is,
   /// make [previous] the currently measured task.
-  void stop(CompilerTask previous) {
-    if (watch == null) return;
-    watch.stop();
+  void _stop(CompilerTask previous) {
+    if (_isDisabled) return;
+    _watch.stop();
     if (previous != null) {
-      previous.watch.start();
+      previous._watch.start();
     } else {
       // If there's no previous task, we're about to return control to the
       // event loop. Start counting that as waiting asynchronous I/O.
@@ -93,55 +86,53 @@ class CompilerTask {
     measurer.currentTask = previous;
   }
 
-  /// Helper method for [measure]. Don't call this method directly as it
-  /// assumes that [watch] isn't null.
-  measureZoned(action()) {
+  _measureZoned(action()) {
     // Using zones, we're able to track asynchronous operations correctly, as
     // our zone will be asked to invoke `then` blocks. Then blocks (the closure
     // passed to runZoned, and other closures) are run via the `run` functions
     // below.
 
-    assert(watch != null);
+    assert(_watch != null);
 
     // The current zone is already measuring `this` task.
     if (Zone.current[measurer] == this) return action();
 
     /// Run [f] in [zone]. Running must be delegated to [parent] to ensure that
     /// various state is set up correctly (in particular that `Zone.current`
-    /// has the right value). Since [measureZoned] can be called recursively
+    /// has the right value). Since [_measureZoned] can be called recursively
     /// (synchronously), some of the measuring zones we create will be parents
     /// of other measuring zones, but we still need to call through the parent
     /// chain. Consequently, we use a zone value keyed by [measurer] to see if
     /// we should measure or not when delegating.
     run(Zone self, ZoneDelegate parent, Zone zone, f()) {
       if (zone[measurer] != this) return parent.run(zone, f);
-      CompilerTask previous = start();
+      CompilerTask previous = _start();
       try {
         return parent.run(zone, f);
       } finally {
-        stop(previous);
+        _stop(previous);
       }
     }
 
     /// Same as [run] except that [f] takes one argument, [arg].
     runUnary(Zone self, ZoneDelegate parent, Zone zone, f(arg), arg) {
       if (zone[measurer] != this) return parent.runUnary(zone, f, arg);
-      CompilerTask previous = start();
+      CompilerTask previous = _start();
       try {
         return parent.runUnary(zone, f, arg);
       } finally {
-        stop(previous);
+        _stop(previous);
       }
     }
 
     /// Same as [run] except that [f] takes two arguments ([a1] and [a2]).
     runBinary(Zone self, ZoneDelegate parent, Zone zone, f(a1, a2), a1, a2) {
       if (zone[measurer] != this) return parent.runBinary(zone, f, a1, a2);
-      CompilerTask previous = start();
+      CompilerTask previous = _start();
       try {
         return parent.runBinary(zone, f, a1, a2);
       } finally {
-        stop(previous);
+        _stop(previous);
       }
     }
 
@@ -159,13 +150,8 @@ class CompilerTask {
   /// provider, but it could be used by other tasks as long as the input
   /// provider will not be called by those tasks.
   measureIo(Future action()) {
-    return watch == null ? action() : measureIoHelper(action);
-  }
+    if (_isDisabled) return action();
 
-  /// Helper method for [measureIo]. Don't call this directly as it assumes
-  /// that [watch] isn't null.
-  Future measureIoHelper(Future action()) {
-    assert(watch != null);
     if (measurer.currentAsyncTask == null) {
       measurer.currentAsyncTask = this;
     } else if (measurer.currentAsyncTask != this) {
@@ -179,36 +165,16 @@ class CompilerTask {
     });
   }
 
-  /// Convenience function for combining
-  /// [DiagnosticReporter.withCurrentElement] and [measure].
-  measureElement(Element element, action()) {
-    return watch == null
-        ? reporter.withCurrentElement(element, action)
-        : measureElementHelper(element, action);
-  }
-
-  /// Helper method for [measureElement]. Don't call this directly as it
-  /// assumes that [watch] isn't null.
-  measureElementHelper(Element element, action()) {
-    assert(watch != null);
-    return reporter.withCurrentElement(element, () => measure(action));
-  }
-
   /// Measure the time spent in [action] (if in verbose mode) and accumulate it
   /// under a subtask with the given name.
   measureSubtask(String name, action()) {
-    return watch == null ? action() : measureSubtaskHelper(name, action);
-  }
+    if (_isDisabled) return action();
 
-  /// Helper method for [measureSubtask]. Don't call this directly as it
-  /// assumes that [watch] isn't null.
-  measureSubtaskHelper(String name, action()) {
-    assert(watch != null);
     // Use a nested CompilerTask for the measurement to ensure nested [measure]
     // calls work correctly. The subtasks will never themselves have nested
     // subtasks because they are not accessible outside.
     GenericTask subtask =
-        _subtasks.putIfAbsent(name, () => new GenericTask(name, compiler));
+        _subtasks.putIfAbsent(name, () => new GenericTask(name, measurer));
     return subtask.measure(action);
   }
 
@@ -217,23 +183,35 @@ class CompilerTask {
   int getSubtaskTime(String subtask) => _subtasks[subtask].timing;
 
   bool getSubtaskIsRunning(String subtask) => _subtasks[subtask].isRunning;
+
+  /// Used by the dart2js_incremental to provide measurements on each
+  /// incremental compile.
+  clearMeasurements() {
+    if (_isDisabled) return;
+    _watch.reset();
+    _subtasks.values.forEach((s) => s.clearMeasurements());
+  }
 }
 
 class GenericTask extends CompilerTask {
   final String name;
-
-  GenericTask(this.name, Compiler compiler) : super(compiler);
+  GenericTask(this.name, Measurer measurer) : super(measurer);
 }
 
 class Measurer {
   /// Measures the total runtime from this object was constructed.
   ///
-  /// Note: MUST be first field to ensure [wallclock] is started before other
-  /// computations.
+  /// Note: MUST be the first field of this class to ensure [wallclock] is
+  /// started before other computations.
   final Stopwatch wallClock = new Stopwatch()..start();
 
   /// Measures gaps between zoned closures due to asynchronicity.
   final Stopwatch asyncWallClock = new Stopwatch();
+
+  /// Whether measurement of tasks is enabled.
+  final bool enableTaskMeasurements;
+
+  Measurer({this.enableTaskMeasurements: false});
 
   /// The currently running task, that is, the task whose [Stopwatch] is
   /// currently running.
@@ -255,7 +233,7 @@ class Measurer {
   /// Call this before returning to the eventloop.
   void startAsyncWallClock() {
     if (currentAsyncTask != null) {
-      currentAsyncTask.watch.start();
+      currentAsyncTask._watch.start();
     } else {
       asyncWallClock.start();
     }
@@ -264,7 +242,7 @@ class Measurer {
   /// Call this when the eventloop returns control to us.
   void stopAsyncWallClock() {
     if (currentAsyncTask != null) {
-      currentAsyncTask.watch.stop();
+      currentAsyncTask._watch.stop();
     }
     asyncWallClock.stop();
   }

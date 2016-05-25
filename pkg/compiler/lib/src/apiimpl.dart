@@ -31,6 +31,7 @@ import 'serialization/system.dart';
 /// Implements the [Compiler] using a [api.CompilerInput] for supplying the
 /// sources.
 class CompilerImpl extends Compiler {
+  final Measurer measurer;
   api.CompilerInput provider;
   api.CompilerDiagnostics handler;
   Packages packages;
@@ -50,7 +51,10 @@ class CompilerImpl extends Compiler {
   CompilerImpl(this.provider, api.CompilerOutput outputProvider, this.handler,
       CompilerOptions options,
       {MakeBackendFuncion makeBackend, MakeReporterFunction makeReporter})
-      : resolvedUriTranslator = new ForwardingResolvedUriTranslator(),
+      // NOTE: allocating measurer is done upfront to ensure the wallclock is
+      // started before other computations.
+      : measurer = new Measurer(enableTaskMeasurements: options.verbose),
+        resolvedUriTranslator = new ForwardingResolvedUriTranslator(),
         super(
             options: options,
             outputProvider: outputProvider,
@@ -60,9 +64,10 @@ class CompilerImpl extends Compiler {
     _Environment env = environment;
     env.compiler = this;
     tasks.addAll([
-      userHandlerTask = new GenericTask('Diagnostic handler', this),
-      userProviderTask = new GenericTask('Input provider', this),
-      userPackagesDiscoveryTask = new GenericTask('Package discovery', this),
+      userHandlerTask = new GenericTask('Diagnostic handler', measurer),
+      userProviderTask = new GenericTask('Input provider', measurer),
+      userPackagesDiscoveryTask =
+          new GenericTask('Package discovery', measurer),
     ]);
   }
 

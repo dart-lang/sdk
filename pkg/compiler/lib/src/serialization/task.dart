@@ -27,7 +27,10 @@ abstract class LibraryDeserializer {
 
 /// Task that supports deserialization of elements.
 class SerializationTask extends CompilerTask implements LibraryDeserializer {
-  SerializationTask(Compiler compiler) : super(compiler);
+  final Compiler compiler;
+  SerializationTask(Compiler compiler)
+      : compiler = compiler,
+        super(compiler.measurer);
 
   DeserializerSystem deserializer;
 

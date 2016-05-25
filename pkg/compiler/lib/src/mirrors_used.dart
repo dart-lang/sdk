@@ -80,8 +80,11 @@ import 'tree/tree.dart' show NamedArgument, NewExpression, Node;
 class MirrorUsageAnalyzerTask extends CompilerTask {
   Set<LibraryElement> librariesWithUsage;
   MirrorUsageAnalyzer analyzer;
+  final Compiler compiler;
 
-  MirrorUsageAnalyzerTask(Compiler compiler) : super(compiler) {
+  MirrorUsageAnalyzerTask(Compiler compiler)
+      : compiler = compiler,
+        super(compiler.measurer) {
     analyzer = new MirrorUsageAnalyzer(compiler, this);
   }
 
@@ -150,9 +153,8 @@ class MirrorUsageAnalyzer {
   final Map<ConstantValue, List<Element>> cachedElements;
   MirrorUsage mergedMirrorUsage;
 
-  MirrorUsageAnalyzer(Compiler compiler, this.task)
-      : compiler = compiler,
-        librariesWithUsage = new Set<LibraryElement>(),
+  MirrorUsageAnalyzer(this.compiler, this.task)
+      : librariesWithUsage = new Set<LibraryElement>(),
         cachedStrings = new Map<ConstantValue, List<String>>(),
         cachedElements = new Map<ConstantValue, List<Element>>();
 

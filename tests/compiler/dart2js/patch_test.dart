@@ -206,7 +206,7 @@ Future testPatchVersioned() async {
         }
 
         compiler.analyzeElement(origin);
-        compiler.enqueuer.resolution.emptyDeferredTaskQueue();
+        compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
 
         DiagnosticCollector collector = compiler.diagnosticCollector;
         Expect.isTrue(collector.warnings.isEmpty,

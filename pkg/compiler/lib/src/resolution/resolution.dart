@@ -59,10 +59,15 @@ import 'typedefs.dart';
 
 class ResolverTask extends CompilerTask {
   final ConstantCompiler constantCompiler;
+  final Compiler compiler;
 
-  ResolverTask(Compiler compiler, this.constantCompiler) : super(compiler);
+  ResolverTask(Compiler compiler, this.constantCompiler)
+      : compiler = compiler,
+        super(compiler.measurer);
 
   String get name => 'Resolver';
+
+  DiagnosticReporter get reporter => compiler.reporter;
 
   Resolution get resolution => compiler.resolution;
 
