@@ -603,8 +603,14 @@ class CacheEntry {
     // Stop depending on other results.
     if (deltaResult != DeltaResult.KEEP_CONTINUE) {
       TargetedResult thisResult = new TargetedResult(target, descriptor);
-      for (TargetedResult dependedOnResult in thisData.dependedOnResults) {
-        for (AnalysisCache cache in _partition.containingCaches) {
+      List<AnalysisCache> caches = _partition.containingCaches;
+      int cacheLength = caches.length;
+      List<TargetedResult> results = thisData.dependedOnResults;
+      int resultLength = results.length;
+      for (int i = 0; i < resultLength; i++) {
+        TargetedResult dependedOnResult = results[i];
+        for (int j = 0; j < cacheLength; j++) {
+          AnalysisCache cache = caches[j];
           CacheEntry entry = cache.get(dependedOnResult.target);
           if (entry != null) {
             ResultData data =
@@ -636,7 +642,9 @@ class CacheEntry {
    */
   void _invalidateAll() {
     List<ResultDescriptor> results = _resultMap.keys.toList();
-    for (ResultDescriptor result in results) {
+    int length = results.length;
+    for (int i = 0; i < length; i++) {
+      ResultDescriptor result = results[i];
       _invalidate(nextInvalidateId++, result, null, 0);
     }
   }
@@ -648,9 +656,14 @@ class CacheEntry {
       int id, ResultData thisData, Delta delta, int level) {
     // It is necessary to copy the results to a list to avoid a concurrent
     // modification of the set of dependent results.
+    List<AnalysisCache> caches = _partition.containingCaches;
+    int cacheLength = caches.length;
     List<TargetedResult> dependentResults = thisData.dependentResults.toList();
-    for (TargetedResult dependentResult in dependentResults) {
-      for (AnalysisCache cache in _partition.containingCaches) {
+    int resultLength = dependentResults.length;
+    for (int i = 0; i < resultLength; i++) {
+      TargetedResult dependentResult = dependentResults[i];
+      for (int j = 0; j < cacheLength; j++) {
+        AnalysisCache cache = caches[j];
         CacheEntry entry = cache.get(dependentResult.target);
         if (entry != null) {
           entry._invalidate(id, dependentResult.result, delta, level);
@@ -673,8 +686,15 @@ class CacheEntry {
    */
   void _setDependedOnResults(ResultData thisData, TargetedResult thisResult,
       List<TargetedResult> dependedOn) {
-    thisData.dependedOnResults.forEach((TargetedResult dependedOnResult) {
-      for (AnalysisCache cache in _partition.containingCaches) {
+    List<AnalysisCache> caches = _partition.containingCaches;
+    int cacheLength = caches.length;
+
+    List<TargetedResult> oldResults = thisData.dependedOnResults;
+    int oldLength = oldResults.length;
+    for (int i = 0; i < oldLength; i++) {
+      TargetedResult dependedOnResult = oldResults[i];
+      for (int j = 0; j < cacheLength; j++) {
+        AnalysisCache cache = caches[j];
         CacheEntry entry = cache.get(dependedOnResult.target);
         if (entry != null) {
           ResultData data = entry.getResultDataOrNull(dependedOnResult.result);
@@ -683,10 +703,13 @@ class CacheEntry {
           }
         }
       }
-    });
+    }
     thisData.dependedOnResults = dependedOn;
-    thisData.dependedOnResults.forEach((TargetedResult dependedOnResult) {
-      for (AnalysisCache cache in _partition.containingCaches) {
+    int newLength = dependedOn.length;
+    for (int i = 0; i < newLength; i++) {
+      TargetedResult dependedOnResult = dependedOn[i];
+      for (int j = 0; j < cacheLength; j++) {
+        AnalysisCache cache = caches[j];
         CacheEntry entry = cache.get(dependedOnResult.target);
         if (entry != null) {
           ResultData data = entry.getResultDataOrNull(dependedOnResult.result);
@@ -695,7 +718,7 @@ class CacheEntry {
           }
         }
       }
-    });
+    }
   }
 
   /**
@@ -709,8 +732,11 @@ class CacheEntry {
     thisData.state = CacheState.ERROR;
     thisData.value = descriptor.defaultValue;
     // Propagate the error state.
+    List<AnalysisCache> caches = _partition.containingCaches;
+    int cacheLength = caches.length;
     thisData.dependentResults.forEach((TargetedResult dependentResult) {
-      for (AnalysisCache cache in _partition.containingCaches) {
+      for (int i = 0; i < cacheLength; i++) {
+        AnalysisCache cache = caches[i];
         CacheEntry entry = cache.get(dependentResult.target);
         if (entry != null) {
           entry._setErrorState(dependentResult.result, exception);

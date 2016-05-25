@@ -57,11 +57,15 @@ class ClassScope extends EnclosedScope {
    * Define the instance members defined by the given [classElement].
    */
   void _defineMembers(ClassElement classElement) {
-    for (PropertyAccessorElement accessor in classElement.accessors) {
-      define(accessor);
+    List<PropertyAccessorElement> accessors = classElement.accessors;
+    int accessorLength = accessors.length;
+    for (int i = 0; i < accessorLength; i++) {
+      define(accessors[i]);
     }
-    for (MethodElement method in classElement.methods) {
-      define(method);
+    List<MethodElement> methods = classElement.methods;
+    int methodLength = methods.length;
+    for (int i = 0; i < methodLength; i++) {
+      define(methods[i]);
     }
   }
 }
@@ -174,7 +178,10 @@ class FunctionScope extends EnclosedScope {
     }
     _parametersDefined = true;
     Scope parameterScope = enclosingScope;
-    for (ParameterElement parameter in _functionElement.parameters) {
+    List<ParameterElement> parameters = _functionElement.parameters;
+    int length = parameters.length;
+    for (int i = 0; i < length; i++) {
+      ParameterElement parameter = parameters[i];
       if (!parameter.isInitializingFormal) {
         parameterScope.define(parameter);
       }
@@ -186,8 +193,10 @@ class FunctionScope extends EnclosedScope {
    */
   void _defineTypeParameters() {
     Scope typeParameterScope = enclosingScope.enclosingScope;
-    for (TypeParameterElement typeParameter
-        in _functionElement.typeParameters) {
+    List<TypeParameterElement> typeParameters = _functionElement.typeParameters;
+    int length = typeParameters.length;
+    for (int i = 0; i < length; i++) {
+      TypeParameterElement typeParameter = typeParameters[i];
       typeParameterScope.define(typeParameter);
     }
   }

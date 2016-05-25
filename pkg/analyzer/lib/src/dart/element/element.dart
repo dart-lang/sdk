@@ -617,7 +617,9 @@ class ClassElementImpl extends ElementImpl
 
   @override
   PropertyAccessorElement getGetter(String getterName) {
-    for (PropertyAccessorElement accessor in _accessors) {
+    int length = _accessors.length;
+    for (int i = 0; i < length; i++) {
+      PropertyAccessorElement accessor = _accessors[i];
       if (accessor.isGetter && accessor.name == getterName) {
         return accessor;
       }
@@ -627,7 +629,9 @@ class ClassElementImpl extends ElementImpl
 
   @override
   MethodElement getMethod(String methodName) {
-    for (MethodElement method in _methods) {
+    int length = _methods.length;
+    for (int i = 0; i < length; i++) {
+      MethodElement method = _methods[i];
       if (method.name == methodName) {
         return method;
       }

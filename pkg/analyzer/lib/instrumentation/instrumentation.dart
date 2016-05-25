@@ -320,9 +320,10 @@ class InstrumentationService {
   String _join(List<String> fields) {
     StringBuffer buffer = new StringBuffer();
     buffer.write(_timestamp);
-    for (String field in fields) {
+    int length = fields.length;
+    for (int i = 0; i < length; i++) {
       buffer.write(':');
-      _escape(buffer, field);
+      _escape(buffer, fields[i]);
     }
     return buffer.toString();
   }

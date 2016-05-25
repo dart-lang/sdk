@@ -266,6 +266,7 @@ class CacheEntryTest extends AbstractCacheTest {
     ResultDescriptor result = new ResultDescriptor('test', null);
     CaughtException exception = new CaughtException(null, null);
     CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     entry.setErrorState(exception, <ResultDescriptor>[result]);
     entry.fixExceptionState();
     expect(entry.getState(result), CacheState.ERROR);
@@ -352,6 +353,7 @@ class CacheEntryTest extends AbstractCacheTest {
     ResultDescriptor result = new ResultDescriptor('test', null);
     CaughtException exception = new CaughtException(null, null);
     CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     entry.setErrorState(exception, <ResultDescriptor>[result]);
     expect(entry.hasErrorState(), true);
   }
@@ -360,6 +362,7 @@ class CacheEntryTest extends AbstractCacheTest {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
     CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     entry.setValue(result, 'value', TargetedResult.EMPTY_LIST);
     entry.invalidateAllInformation();
     expect(entry.getState(result), CacheState.INVALID);
@@ -373,6 +376,7 @@ class CacheEntryTest extends AbstractCacheTest {
     ResultDescriptor result3 = new ResultDescriptor('res3', 3);
     // prepare some good state
     CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     entry.setValue(result1, 10, TargetedResult.EMPTY_LIST);
     entry.setValue(result2, 20, TargetedResult.EMPTY_LIST);
     entry.setValue(result3, 30, TargetedResult.EMPTY_LIST);
@@ -460,6 +464,7 @@ class CacheEntryTest extends AbstractCacheTest {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
     CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     entry.setValue(result, 42, TargetedResult.EMPTY_LIST);
     // an invalid state change
     expect(() {
@@ -474,6 +479,7 @@ class CacheEntryTest extends AbstractCacheTest {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', 1);
     CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     // set VALID
     entry.setValue(result, 10, TargetedResult.EMPTY_LIST);
     expect(entry.getState(result), CacheState.VALID);
@@ -488,6 +494,7 @@ class CacheEntryTest extends AbstractCacheTest {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', 1);
     CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     // set VALID
     entry.setValue(result, 10, TargetedResult.EMPTY_LIST);
     expect(entry.getState(result), CacheState.VALID);
@@ -674,6 +681,7 @@ class CacheEntryTest extends AbstractCacheTest {
     ResultDescriptor result = new ResultDescriptor('test', null);
     String value = 'value';
     CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     entry.setValue(result, value, TargetedResult.EMPTY_LIST);
     expect(entry.getState(result), CacheState.VALID);
     expect(entry.getValue(result), value);
@@ -769,6 +777,7 @@ class CacheEntryTest extends AbstractCacheTest {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('test', null);
     CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
     entry.setValue(result, 42, TargetedResult.EMPTY_LIST);
     expect(entry.toString(), isNotNull);
   }

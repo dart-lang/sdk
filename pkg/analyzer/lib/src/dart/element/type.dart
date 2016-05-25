@@ -864,13 +864,16 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    */
   void _forEachParameterType(
       ParameterKind kind, callback(String name, DartType type)) {
-    if (baseParameters.isEmpty) {
+    List<ParameterElement> parameters = baseParameters;
+    if (parameters.isEmpty) {
       return;
     }
 
     List<DartType> typeParameters =
         TypeParameterTypeImpl.getTypes(this.typeParameters);
-    for (ParameterElement parameter in baseParameters) {
+    int length = parameters.length;
+    for (int i = 0; i < length; i++) {
+      ParameterElement parameter = parameters[i];
       if (parameter.parameterKind == kind) {
         TypeImpl type = parameter.type ?? DynamicTypeImpl.instance;
         if (typeArguments.length != 0 &&
@@ -1184,13 +1187,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   InterfaceTypeImpl._(Element element, String name, this.prunedTypedefs)
       : super(element, name);
 
-
   @override
   List<PropertyAccessorElement> get accessors {
     if (_accessors == null) {
       List<PropertyAccessorElement> accessors = element.accessors;
       List<PropertyAccessorElement> members =
-      new List<PropertyAccessorElement>(accessors.length);
+          new List<PropertyAccessorElement>(accessors.length);
       for (int i = 0; i < accessors.length; i++) {
         members[i] = PropertyAccessorMember.from(accessors[i], this);
       }
@@ -1198,7 +1200,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     return _accessors;
   }
-
 
   @override
   List<ConstructorElement> get constructors {

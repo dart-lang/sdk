@@ -7194,7 +7194,10 @@ class ResolverVisitor extends ScopedVisitor {
    * Try to infer types of parameters of the [FunctionExpression] arguments.
    */
   void _inferFunctionExpressionsParametersTypes(ArgumentList argumentList) {
-    for (Expression argument in argumentList.arguments) {
+    NodeList<Expression> arguments = argumentList.arguments;
+    int length = arguments.length;
+    for (int i = 0; i < length; i++) {
+      Expression argument = arguments[i];
       ParameterElement parameter = argument.propagatedParameterElement;
       if (parameter == null) {
         parameter = argument.staticParameterElement;
@@ -9940,7 +9943,10 @@ class TypeResolverVisitor extends ScopedVisitor {
     // types of field formal parameters can be correctly resolved.
     //
     List<ClassMember> nonFields = new List<ClassMember>();
-    for (ClassMember member in node.members) {
+    NodeList<ClassMember> members = node.members;
+    int length = members.length;
+    for (int i = 0; i < length; i++) {
+      ClassMember member = members[i];
       if (member is ConstructorDeclaration) {
         nonFields.add(member);
       } else {
