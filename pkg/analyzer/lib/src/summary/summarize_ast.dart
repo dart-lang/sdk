@@ -901,7 +901,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
           variables.type == null) {
         Expression initializer = variable.initializer;
         if (initializer != null) {
-          b.constExpr = serializeConstExpr(localClosureIndexMap, initializer);
+          b.initializer.bodyExpr =
+              serializeConstExpr(localClosureIndexMap, initializer);
         }
       }
       if (variable.initializer != null &&

@@ -1472,17 +1472,17 @@ table UnlinkedConst {
  */
 table UnlinkedConstructorInitializer {
   /**
-   * If [kind] is `thisInvocation` or `superInvocation`, the arguments of the
-   * invocation.  Otherwise empty.
-   */
-  arguments:[UnlinkedConst] (id: 3);
-
-  /**
    * If there are `m` [arguments] and `n` [argumentNames], then each argument
    * from [arguments] with index `i` such that `n + i - m >= 0`, should be used
    * with the name at `n + i - m`.
    */
   argumentNames:[string] (id: 4);
+
+  /**
+   * If [kind] is `thisInvocation` or `superInvocation`, the arguments of the
+   * invocation.  Otherwise empty.
+   */
+  arguments:[UnlinkedConst] (id: 3);
 
   /**
    * If [kind] is `field`, the expression of the field initializer.
@@ -1595,6 +1595,13 @@ table UnlinkedExecutable {
    * Annotations for this executable.
    */
   annotations:[UnlinkedConst] (id: 6);
+
+  /**
+   * If this executable's function body is declared using `=>`, the expression
+   * to the right of the `=>`.  May be omitted if neither type inference nor
+   * constant evaluation depends on the function body.
+   */
+  bodyExpr:UnlinkedConst (id: 29);
 
   /**
    * Code range of the executable.
@@ -2296,14 +2303,7 @@ table UnlinkedVariable {
   /**
    * Code range of the variable.
    */
-  codeRange:CodeRange (id: 14);
-
-  /**
-   * If [isConst] is true, and the variable has an initializer, the constant
-   * expression in the initializer.  Note that the presence of this expression
-   * does not mean that it is a valid, check [UnlinkedConst.isInvalid].
-   */
-  constExpr:UnlinkedConst (id: 5);
+  codeRange:CodeRange (id: 5);
 
   /**
    * Documentation comment for the variable, or `null` if there is no

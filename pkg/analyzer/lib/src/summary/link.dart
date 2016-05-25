@@ -1630,7 +1630,7 @@ class ConstVariableNode extends ConstNode {
     List<ConstNode> dependencies = <ConstNode>[];
     collectDependencies(
         dependencies,
-        variableElement.unlinkedVariable.constExpr,
+        variableElement.unlinkedVariable.initializer?.bodyExpr,
         variableElement.compilationUnit);
     return dependencies;
   }
@@ -1993,7 +1993,7 @@ class ExprTypeComputer {
     library = unit.enclosingElement;
     linker = library._linker;
     typeProvider = linker.typeProvider;
-    unlinkedConst = variableElement.unlinkedVariable.constExpr;
+    unlinkedConst = variableElement.unlinkedVariable.initializer?.bodyExpr;
   }
 
   DartType compute() {
@@ -4388,7 +4388,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
     List<TypeInferenceNode> dependencies = <TypeInferenceNode>[];
     collectDependencies(
         dependencies,
-        variableElement.unlinkedVariable.constExpr,
+        variableElement.unlinkedVariable.initializer?.bodyExpr,
         variableElement.compilationUnit);
     return dependencies;
   }
@@ -4602,7 +4602,8 @@ abstract class VariableElementForLink
   final CompilationUnitElementForLink compilationUnit;
 
   VariableElementForLink(this.unlinkedVariable, this.compilationUnit) {
-    if (compilationUnit.isInBuildUnit && unlinkedVariable.constExpr != null) {
+    if (compilationUnit.isInBuildUnit &&
+        unlinkedVariable.initializer?.bodyExpr != null) {
       _constNode = new ConstVariableNode(this);
       if (unlinkedVariable.type == null) {
         _typeInferenceNode = new TypeInferenceNode(this);

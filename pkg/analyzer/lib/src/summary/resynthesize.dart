@@ -2293,13 +2293,14 @@ class _UnitResynthesizer {
   LocalVariableElement buildLocalVariable(UnlinkedVariable serializedVariable,
       ExecutableElementImpl enclosingExecutable) {
     LocalVariableElementImpl element;
-    if (serializedVariable.constExpr != null && serializedVariable.isConst) {
+    if (serializedVariable.initializer?.bodyExpr != null &&
+        serializedVariable.isConst) {
       ConstLocalVariableElementImpl constElement =
           new ConstLocalVariableElementImpl.forSerialized(
               serializedVariable, enclosingExecutable);
       element = constElement;
       constElement.constantInitializer = _buildConstExpression(
-          enclosingExecutable, serializedVariable.constExpr);
+          enclosingExecutable, serializedVariable.initializer.bodyExpr);
     } else {
       element = new LocalVariableElementImpl.forSerialized(
           serializedVariable, enclosingExecutable);
@@ -2611,13 +2612,14 @@ class _UnitResynthesizer {
     for (int i = 0; i < numberOfVariables; i++) {
       UnlinkedVariable unlinkedVariable = unlinkedVariables[i];
       TopLevelVariableElementImpl element;
-      if (unlinkedVariable.constExpr != null && unlinkedVariable.isConst) {
+      if (unlinkedVariable.initializer?.bodyExpr != null &&
+          unlinkedVariable.isConst) {
         ConstTopLevelVariableElementImpl constElement =
             new ConstTopLevelVariableElementImpl.forSerialized(
                 unlinkedVariable, unit);
         element = constElement;
         constElement.constantInitializer =
-            _buildConstExpression(null, unlinkedVariable.constExpr);
+            _buildConstExpression(null, unlinkedVariable.initializer.bodyExpr);
       } else {
         element = new TopLevelVariableElementImpl.forSerialized(
             unlinkedVariable, unit);
@@ -2647,15 +2649,15 @@ class _UnitResynthesizer {
       throw new UnimplementedError('Must be lazy');
     } else {
       FieldElementImpl element;
-      if (serializedVariable.constExpr != null &&
+      if (serializedVariable.initializer?.bodyExpr != null &&
           (serializedVariable.isConst ||
               serializedVariable.isFinal && !serializedVariable.isStatic)) {
         ConstFieldElementImpl constElement =
             new ConstFieldElementImpl.forSerialized(
                 serializedVariable, enclosingClass);
         element = constElement;
-        constElement.constantInitializer =
-            _buildConstExpression(enclosingClass, serializedVariable.constExpr);
+        constElement.constantInitializer = _buildConstExpression(
+            enclosingClass, serializedVariable.initializer.bodyExpr);
       } else {
         element = new FieldElementImpl.forSerialized(
             serializedVariable, enclosingClass);
