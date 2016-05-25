@@ -205,11 +205,11 @@ main(List<String> args) {
   for (int i = 0; i < depth.length; ++i) {
     int parentDepth = 0;
     var classNode = classHierarchy.classes[i];
-    for (var superType in classNode.supers) {
-      var superClass = superType.classNode;
-      int index = classHierarchy.getClassIndex(superClass);
+    for (var supertype in classNode.supers) {
+      var superclass = supertype.classNode;
+      int index = classHierarchy.getClassIndex(superclass);
       if (!(index < i)) {
-        throw '${classNode.name}($i) extends ${superClass.name}($index)';
+        throw '${classNode.name}($i) extends ${superclass.name}($index)';
       }
       assert(index < i);
       parentDepth = max(parentDepth, depth[index]);

@@ -11,10 +11,10 @@ import 'package:kernel/ast.dart';
 /// A simple implementation of the class hierarchy interface using
 /// hash tables for everything.
 class BasicClassHierarchy implements ClassHierarchy {
-  final Map<Class, Set<Class>> superClasses = <Class, Set<Class>>{};
+  final Map<Class, Set<Class>> superclasses = <Class, Set<Class>>{};
   final Map<Class, Set<Class>> superMixtures = <Class, Set<Class>>{};
-  final Map<Class, Set<Class>> superTypes = <Class, Set<Class>>{};
-  final Map<Class, Map<Class, InterfaceType>> superTypeInstantiations =
+  final Map<Class, Set<Class>> supertypes = <Class, Set<Class>>{};
+  final Map<Class, Map<Class, InterfaceType>> supertypeInstantiations =
       <Class, Map<Class, InterfaceType>>{};
   final Map<Class, Map<Name, Member>> gettersAndCalls =
       <Class, Map<Name, Member>>{};
@@ -33,39 +33,39 @@ class BasicClassHierarchy implements ClassHierarchy {
   }
 
   void buildSuperTypeSets(Class node) {
-    if (superClasses.containsKey(node)) return;
-    superClasses[node] = new Set<Class>()..add(node);
+    if (superclasses.containsKey(node)) return;
+    superclasses[node] = new Set<Class>()..add(node);
     superMixtures[node] = new Set<Class>()..add(node);
-    superTypes[node] = new Set<Class>()..add(node);
-    if (node.superType != null) {
-      buildSuperTypeSets(node.superType.classNode);
-      superClasses[node].addAll(superClasses[node.superType.classNode]);
-      superMixtures[node].addAll(superMixtures[node.superType.classNode]);
-      superTypes[node].addAll(superTypes[node.superType.classNode]);
+    supertypes[node] = new Set<Class>()..add(node);
+    if (node.supertype != null) {
+      buildSuperTypeSets(node.supertype.classNode);
+      superclasses[node].addAll(superclasses[node.supertype.classNode]);
+      superMixtures[node].addAll(superMixtures[node.supertype.classNode]);
+      supertypes[node].addAll(supertypes[node.supertype.classNode]);
     }
     if (node.mixedInType != null) {
       buildSuperTypeSets(node.mixedInType.classNode);
       superMixtures[node].addAll(superMixtures[node.mixedInType.classNode]);
-      superTypes[node].addAll(superTypes[node.mixedInType.classNode]);
+      supertypes[node].addAll(supertypes[node.mixedInType.classNode]);
     }
-    for (var superType in node.implementedTypes) {
-      buildSuperTypeSets(superType.classNode);
-      superTypes[node].addAll(superTypes[superType.classNode]);
+    for (var supertype in node.implementedTypes) {
+      buildSuperTypeSets(supertype.classNode);
+      supertypes[node].addAll(supertypes[supertype.classNode]);
     }
     classes.add(node);
     classIndex[node] = classes.length - 1;
   }
 
   void buildSuperTypeInstantiations(Class node) {
-    if (superTypeInstantiations.containsKey(node)) return;
-    superTypeInstantiations[node] = <Class, InterfaceType>{node: node.thisType};
-    for (var superType in node.supers) {
-      var superClass = superType.classNode;
-      buildSuperTypeInstantiations(superClass);
+    if (supertypeInstantiations.containsKey(node)) return;
+    supertypeInstantiations[node] = <Class, InterfaceType>{node: node.thisType};
+    for (var supertype in node.supers) {
+      var superclass = supertype.classNode;
+      buildSuperTypeInstantiations(superclass);
       var substitution = new Map<TypeParameter, DartType>.fromIterables(
-          superClass.typeParameters, superType.typeArguments);
-      superTypeInstantiations[superClass].forEach((key, type) {
-        superTypeInstantiations[node][key] = substitute(type, substitution);
+          superclass.typeParameters, supertype.typeArguments);
+      supertypeInstantiations[superclass].forEach((key, type) {
+        supertypeInstantiations[node][key] = substitute(type, substitution);
       });
     }
   }
@@ -74,10 +74,10 @@ class BasicClassHierarchy implements ClassHierarchy {
     if (gettersAndCalls.containsKey(node)) return;
     gettersAndCalls[node] = <Name, Member>{};
     setters[node] = <Name, Member>{};
-    if (node.superType != null) {
-      buildDispatchTable(node.superType.classNode);
-      gettersAndCalls[node].addAll(gettersAndCalls[node.superType.classNode]);
-      setters[node].addAll(setters[node.superType.classNode]);
+    if (node.supertype != null) {
+      buildDispatchTable(node.supertype.classNode);
+      gettersAndCalls[node].addAll(gettersAndCalls[node.supertype.classNode]);
+      setters[node].addAll(setters[node.supertype.classNode]);
     }
     // Overwrite map entries with declared members.
     Class mixin = node.mixedInType?.classNode ?? node;
@@ -99,7 +99,7 @@ class BasicClassHierarchy implements ClassHierarchy {
   }
 
   bool isSubclassOf(Class subtype, Class supertype) {
-    return superClasses[subtype].contains(supertype);
+    return superclasses[subtype].contains(supertype);
   }
 
   bool isSubmixtureOf(Class subtype, Class supertype) {
@@ -107,11 +107,11 @@ class BasicClassHierarchy implements ClassHierarchy {
   }
 
   bool isSubtypeOf(Class subtype, Class supertype) {
-    return superTypes[subtype].contains(supertype);
+    return supertypes[subtype].contains(supertype);
   }
 
-  InterfaceType getClassAsInstanceOf(Class type, Class superType) {
-    return superTypeInstantiations[type][superType];
+  InterfaceType getClassAsInstanceOf(Class type, Class supertype) {
+    return supertypeInstantiations[type][supertype];
   }
 
   Member getDispatchTarget(Class class_, Name name, {bool setter: false}) {

@@ -67,6 +67,20 @@ String debugTypeParameterName(TypeParameter node) {
   return node.name ?? globalDebuggingNames.nameTypeParameter(node);
 }
 
+String debugQualifiedTypeParameterName(TypeParameter node) {
+  if (node.parent is Class) {
+    return debugQualifiedClassName(node.parent) +
+        '::' +
+        debugTypeParameterName(node);
+  }
+  if (node.parent is Member) {
+    return debugQualifiedMemberName(node.parent) +
+        '::' +
+        debugTypeParameterName(node);
+  }
+  return debugTypeParameterName(node);
+}
+
 String debugVariableDeclarationName(VariableDeclaration node) {
   return node.name ?? globalDebuggingNames.nameVariable(node);
 }
@@ -291,9 +305,13 @@ class Printer extends Visitor<Null> {
   }
 
   void writeFunction(FunctionNode function,
-      {Name name, List<Initializer> initializers, bool terminateLine: true}) {
-    if (name != null) {
+      {name, List<Initializer> initializers, bool terminateLine: true}) {
+    if (name is String) {
+      writeWord(name);
+    } else if (name is Name) {
       writeName(name);
+    } else {
+      assert(name == null);
     }
     writeTypeParameterList(function.typeParameters);
     writeParameterList(function.positionalParameters, function.namedParameters,
@@ -563,9 +581,9 @@ class Printer extends Visitor<Null> {
     writeWord('class');
     writeWord(getClassName(node));
     writeTypeParameterList(node.typeParameters);
-    if (node.superType != null) {
+    if (node.supertype != null) {
       writeWord('extends');
-      writeType(node.superType);
+      writeType(node.supertype);
     }
     if (node.implementedTypes.isNotEmpty) {
       writeWord('implements');
@@ -588,7 +606,7 @@ class Printer extends Visitor<Null> {
     writeWord(getClassName(node));
     writeTypeParameterList(node.typeParameters);
     writeSpaced('=');
-    writeType(node.superType);
+    writeType(node.supertype);
     writeSpaced('with');
     writeType(node.mixedInType);
     if (node.implementedTypes.isNotEmpty) {
@@ -1087,8 +1105,7 @@ class Printer extends Visitor<Null> {
   visitFunctionDeclaration(FunctionDeclaration node) {
     writeIndentation();
     writeWord('function');
-    writeFunction(node.function,
-        name: new Name(getVariableName(node.variable)));
+    writeFunction(node.function, name: getVariableName(node.variable));
   }
 
   void writeVariableDeclaration(VariableDeclaration node,

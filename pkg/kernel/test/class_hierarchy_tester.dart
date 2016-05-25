@@ -75,14 +75,12 @@ void testClassHierarchyOnProgram(Program program, {bool verbose: false}) {
       Member actualSetter = classHierarchy
           .getDispatchTarget(classNode, name, setter: true);
       if (actualGetter != expectedGetter) {
-        fail('lookupGetter(${classNode.debugName}, $name) returned '
-            '${actualGetter.debugName} but should be '
-            '${expectedGetter.debugName}');
+        fail('lookupGetter($classNode, $name) returned '
+            '$actualGetter but should be $expectedGetter');
       }
       if (actualSetter != expectedSetter) {
-        fail('lookupSetter(${classNode.debugName}, $name) returned '
-            '${actualSetter.debugName} but should be '
-            '${expectedSetter.debugName}');
+        fail('lookupSetter($classNode, $name) returned '
+            '$actualSetter but should be $expectedSetter');
       }
     }
     ++progress;

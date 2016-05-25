@@ -25,25 +25,25 @@ class ClassHierarchy {
   /// Returns the index of [class_] in the [classes] list.
   int getClassIndex(Class class_) => _infoFor[class_].topologicalIndex;
 
-  /// True if [subclass] inherits from [superClass] though zero or more
+  /// True if [subclass] inherits from [superclass] though zero or more
   /// `extends` relationships.
-  bool isSubclassOf(Class subclass, Class superClass) {
-    if (identical(subclass, superClass)) return true;
-    return _infoFor[subclass].isSubclassOf(_infoFor[superClass]);
+  bool isSubclassOf(Class subclass, Class superclass) {
+    if (identical(subclass, superclass)) return true;
+    return _infoFor[subclass].isSubclassOf(_infoFor[superclass]);
   }
 
-  /// True if [submixture] inherits from [superClass] though zero or more
+  /// True if [submixture] inherits from [superclass] though zero or more
   /// `extends` and `with` relationships.
-  bool isSubmixtureOf(Class submixture, Class superClass) {
-    if (identical(submixture, superClass)) return true;
-    return _infoFor[submixture].isSubmixtureOf(_infoFor[superClass]);
+  bool isSubmixtureOf(Class submixture, Class superclass) {
+    if (identical(submixture, superclass)) return true;
+    return _infoFor[submixture].isSubmixtureOf(_infoFor[superclass]);
   }
 
-  /// True if [subtype] inherits from [superClass] though zero or more
+  /// True if [subtype] inherits from [superclass] though zero or more
   /// `extends`, `with`, and `implements` relationships.
-  bool isSubtypeOf(Class subtype, Class superClass) {
-    if (identical(subtype, superClass)) return true;
-    return _infoFor[subtype].isSubtypeOf(_infoFor[superClass]);
+  bool isSubtypeOf(Class subtype, Class superclass) {
+    if (identical(subtype, superclass)) return true;
+    return _infoFor[subtype].isSubtypeOf(_infoFor[superclass]);
   }
 
   /// True if the given class is the direct super class of another class.
@@ -62,21 +62,21 @@ class ClassHierarchy {
     return _infoFor[class_].directImplementers.isNotEmpty;
   }
 
-  /// Returns the instantiation of [superType] that is implemented by [type],
-  /// or `null` if [type] does not implement [superType] at all.
-  InterfaceType getClassAsInstanceOf(Class type, Class superType) {
-    if (identical(type, superType)) return type.thisType;
+  /// Returns the instantiation of [supertype] that is implemented by [type],
+  /// or `null` if [type] does not implement [supertype] at all.
+  InterfaceType getClassAsInstanceOf(Class type, Class supertype) {
+    if (identical(type, supertype)) return type.thisType;
     _ClassInfo info = _infoFor[type];
-    _ClassInfo superInfo = _infoFor[superType];
+    _ClassInfo superInfo = _infoFor[supertype];
     if (!info.isSubtypeOf(superInfo)) return null;
-    if (superType.typeParameters.isEmpty) return superType.rawType;
-    return info.genericSuperTypes[superType];
+    if (supertype.typeParameters.isEmpty) return supertype.rawType;
+    return info.genericSuperTypes[supertype];
   }
 
-  /// Returns the instantiation of [superType] that is implemented by [type],
-  /// or `null` if [type] does not implement [superType] at all.
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superType) {
-    InterfaceType castedType = getClassAsInstanceOf(type.classNode, superType);
+  /// Returns the instantiation of [supertype] that is implemented by [type],
+  /// or `null` if [type] does not implement [supertype] at all.
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class supertype) {
+    InterfaceType castedType = getClassAsInstanceOf(type.classNode, supertype);
     if (castedType == null) return null;
     return substitutePairwise(
         castedType, type.classNode.typeParameters, type.typeArguments);
@@ -131,14 +131,14 @@ class ClassHierarchy {
     for (int i = 0; i < classes.length; ++i) {
       var class_ = classes[i];
       var info = _infoFor[class_];
-      if (class_.superType != null) {
-        _infoFor[class_.superType.classNode].directExtenders.add(info);
+      if (class_.supertype != null) {
+        _infoFor[class_.supertype.classNode].directExtenders.add(info);
       }
       if (class_.mixedInType != null) {
         _infoFor[class_.mixedInType.classNode].directMixers.add(info);
       }
-      for (var superType in class_.implementedTypes) {
-        _infoFor[superType.classNode].directImplementers.add(info);
+      for (var supertype in class_.implementedTypes) {
+        _infoFor[supertype.classNode].directImplementers.add(info);
       }
     }
 
@@ -160,17 +160,17 @@ class ClassHierarchy {
     }
     _infoFor[classNode] = info = new _ClassInfo(classNode);
     info.isBeingVisited = true;
-    if (classNode.superType != null) {
-      _topologicalSortVisit(classNode.superType.classNode);
-      _recordSuperTypes(info, classNode.superType);
+    if (classNode.supertype != null) {
+      _topologicalSortVisit(classNode.supertype.classNode);
+      _recordSuperTypes(info, classNode.supertype);
     }
     if (classNode.mixedInType != null) {
       _topologicalSortVisit(classNode.mixedInType.classNode);
       _recordSuperTypes(info, classNode.mixedInType);
     }
-    for (var superType in classNode.implementedTypes) {
-      _topologicalSortVisit(superType.classNode);
-      _recordSuperTypes(info, superType);
+    for (var supertype in classNode.implementedTypes) {
+      _topologicalSortVisit(supertype.classNode);
+      _recordSuperTypes(info, supertype);
     }
     _buildDeclaredMembers(classNode, info);
     _buildImplementedMembers(classNode, info);
@@ -211,10 +211,10 @@ class ClassHierarchy {
   void _buildImplementedMembers(Class classNode, _ClassInfo info) {
     List<Member> inheritedMembers;
     List<Member> inheritedSetters;
-    if (classNode.superType == null) {
+    if (classNode.supertype == null) {
       inheritedMembers = inheritedSetters = const <Member>[];
     } else {
-      _ClassInfo superInfo = _infoFor[classNode.superType.classNode];
+      _ClassInfo superInfo = _infoFor[classNode.supertype.classNode];
       inheritedMembers = superInfo.implementedGettersAndCalls;
       inheritedSetters = superInfo.implementedSetters;
     }
@@ -261,9 +261,9 @@ class ClassHierarchy {
     return result;
   }
 
-  void _recordSuperTypes(_ClassInfo subInfo, InterfaceType superType) {
-    _ClassInfo superInfo = _infoFor[superType.classNode];
-    if (superType.typeArguments.isEmpty) {
+  void _recordSuperTypes(_ClassInfo subInfo, InterfaceType supertype) {
+    _ClassInfo superInfo = _infoFor[supertype.classNode];
+    if (supertype.typeArguments.isEmpty) {
       if (superInfo.genericSuperTypes == null) return;
       // Since the immediate super type is not generic, all entries in its
       // super type map are also valid entries for this class.
@@ -283,15 +283,15 @@ class ClassHierarchy {
       }
     } else {
       // Copy over all transitive generic super types, and substitute the
-      // free variables with those provided in [superType].
-      Class superClass = superType.classNode;
+      // free variables with those provided in [supertype].
+      Class superclass = supertype.classNode;
       var substitution = new Map<TypeParameter, DartType>.fromIterables(
-          superClass.typeParameters, superType.typeArguments);
+          superclass.typeParameters, supertype.typeArguments);
       subInfo.genericSuperTypes ??= <Class, InterfaceType>{};
       superInfo.genericSuperTypes?.forEach((Class key, InterfaceType type) {
         subInfo.genericSuperTypes[key] = substitute(type, substitution);
       });
-      subInfo.genericSuperTypes[superClass] = superType;
+      subInfo.genericSuperTypes[superclass] = supertype;
     }
   }
 

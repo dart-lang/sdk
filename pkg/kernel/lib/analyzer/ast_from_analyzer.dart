@@ -1734,21 +1734,21 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
     // separate mixin classes.
     bool isRootClass = node.element.supertype == null;
     if (!isRootClass) {
-      ast.DartType superClass =
+      ast.DartType superclass =
           scope.buildOptionalTypeAnnotation(node.extendsClause?.superclass) ??
               new ast.InterfaceType(scope.getRootClassReference());
-      if (superClass is! ast.InterfaceType) {
+      if (superclass is! ast.InterfaceType) {
         // TODO: Handle the error case where the super class is InvalidType.
         log.warning('Unresolved type super type '
             '${node.extendsClause?.superclass} for ${node.element}');
-        classNode.superType =
+        classNode.supertype =
             new ast.InterfaceType(scope.getRootClassReference());
       } else {
         if (node.withClause != null) {
-          superClass = buildMixinType(superClass,
+          superclass = buildMixinType(superclass,
               node.withClause.mixinTypes.map(scope.buildTypeAnnotation));
         }
-        classNode.superType = superClass;
+        classNode.supertype = superclass;
       }
     }
     addImplementedClasses(node.implementsClause);
@@ -1776,7 +1776,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
 
   visitEnumDeclaration(EnumDeclaration node) {
     ast.NormalClass classNode = currentClass;
-    classNode.superType = new ast.InterfaceType(scope.getRootClassReference());
+    classNode.supertype = new ast.InterfaceType(scope.getRootClassReference());
     var intType =
         new ast.InterfaceType(scope.loader.getCoreClassReference('int'));
     var indexField =
@@ -1827,7 +1827,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
     addTypeParameterBounds(node.typeParameters);
     var baseType = scope.buildTypeAnnotation(node.superclass);
     var mixins = node.withClause.mixinTypes.map(scope.buildTypeAnnotation);
-    classNode.superType =
+    classNode.supertype =
         buildMixinType(baseType, mixins.take(mixins.length - 1));
     classNode.mixedInType = mixins.last;
     addImplementedClasses(node.implementsClause);

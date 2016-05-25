@@ -238,7 +238,7 @@ class BinaryPrinter extends Visitor {
     writeStringReference(node.name ?? '');
     _typeParameterIndexer.push(node.typeParameters);
     writeNodeList(node.typeParameters);
-    writeOptionalNode(node.superType);
+    writeOptionalNode(node.supertype);
     writeNodeList(node.implementedTypes);
     writeNodeList(node.fields);
     writeNodeList(node.constructors);
@@ -252,7 +252,7 @@ class BinaryPrinter extends Visitor {
     writeStringReference(node.name ?? '');
     _typeParameterIndexer.push(node.typeParameters);
     writeNodeList(node.typeParameters);
-    writeNode(node.superType);
+    writeNode(node.supertype);
     writeNode(node.mixedInType);
     writeNodeList(node.implementedTypes);
     writeNodeList(node.constructors);

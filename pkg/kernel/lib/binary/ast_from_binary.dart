@@ -292,7 +292,7 @@ class BinaryBuilder {
     node.name = readStringOrNullIfEmpty();
     debugPath.add(node.name ?? 'normal-class');
     readAndPushTypeParameterList(node.typeParameters, node);
-    node.superType = readDartTypeOption();
+    node.supertype = readDartTypeOption();
     _fillNonTreeNodeList(node.implementedTypes, readDartType);
     _fillLazilyLoadedList(node.fields, (int tag, int index) {
       readField(loader.getClassMemberReference(node, tag, index), tag);
@@ -313,7 +313,7 @@ class BinaryBuilder {
     node.name = readStringOrNullIfEmpty();
     debugPath.add(node.name ?? 'mixin-class');
     readAndPushTypeParameterList(node.typeParameters, node);
-    node.superType = readDartType();
+    node.supertype = readDartType();
     node.mixedInType = readDartType();
     _fillNonTreeNodeList(node.implementedTypes, readDartType);
     _fillLazilyLoadedList(node.constructors, (int tag, int index) {

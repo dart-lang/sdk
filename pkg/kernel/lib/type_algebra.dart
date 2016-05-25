@@ -33,6 +33,19 @@ DartType substitutePairwise(DartType type, List<TypeParameter> typeParameters,
           typeParameters, typeArguments));
 }
 
+/// Returns [type] where the type parameters declared on the class of [thisType]
+/// have been substituted with the type arguments provided in [thisType].
+///
+/// For example, if [thisType] is `Iterable<String>`, this will substitute
+/// `Iterable::E` with `String` in [type].
+///
+/// If `thisType` is null, nothing is substituted.
+DartType substituteThisType(DartType type, InterfaceType thisType) {
+  if (thisType == null) return type;
+  return substitutePairwise(
+      type, thisType.classNode.typeParameters, thisType.typeArguments);
+}
+
 /// Like [substitute], except when a type in the [substitution] map references
 /// another substituted type variable, the mapping for that type is recursively
 /// inserted.
@@ -418,26 +431,25 @@ class _OccurrenceVisitor extends DartTypeVisitor<bool> {
   }
 
   bool visitFunctionType(FunctionType node) {
-    return node.typeParameters.any(visitDeclaredTypeParameter) ||
+    return node.typeParameters.any(handleTypeParameter) ||
         node.positionalParameters.any(visit) ||
         node.namedParameters.values.any(visit) ||
         visit(node.returnType);
   }
 
   bool visitTypeParameterType(TypeParameterType node) {
-    return variables.contains(node.parameter);
+    return variables == null || variables.contains(node.parameter);
   }
 
-  bool visitDeclaredTypeParameter(TypeParameter node) {
+  bool handleTypeParameter(TypeParameter node) {
     assert(!variables.contains(node));
     return node.bound.accept(this);
   }
 }
 
-Map<dynamic /*=K*/, dynamic /*=W*/ > _mapValues /*<K,V,W>*/ (
-    Map<dynamic /*=K*/, dynamic /*=V*/ > map,
-    dynamic /*=W*/ fn(dynamic /*=V*/)) {
-  Map<dynamic /*=K*/, dynamic /*=W*/ > result = {};
+Map<dynamic/*=K*/, dynamic/*=W*/ > _mapValues/*<K,V,W>*/(
+    Map<dynamic/*=K*/, dynamic/*=V*/ > map, dynamic/*=W*/ fn(dynamic/*=V*/)) {
+  Map<dynamic/*=K*/, dynamic/*=W*/ > result = {};
   map.forEach((key, value) {
     result[key] = fn(value);
   });

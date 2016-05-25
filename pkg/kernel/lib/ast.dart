@@ -104,6 +104,10 @@ abstract class Node {
   ///
   /// Synthetic names are cached globally to retain consistency across different
   /// [toString] calls (hence the memory leak).
+  ///
+  /// Nodes that are named, such as [Class] and [Member], return their
+  /// (possibly synthesized) name, whereas other AST nodes return the complete
+  /// textual representation of their subtree.
   String toString() => debugNodeToString(this);
 }
 
@@ -192,10 +196,17 @@ class Library extends TreeNode implements Comparable<Library> {
       : this.classes = classes ?? <Class>[],
         this.procedures = procedures ?? <Procedure>[],
         this.fields = fields ?? <Field>[] {
-    _setParents(this.classes, this);
-    _setParents(this.procedures, this);
-    _setParents(this.fields, this);
+    setParents(this.classes, this);
+    setParents(this.procedures, this);
+    setParents(this.fields, this);
   }
+
+  /// Returns the top-level fields and procedures defined in this library.
+  ///
+  /// This getter is for convenience, not efficiency.  Consider manually
+  /// iterating the members to speed up code in production.
+  Iterable<Member> get members =>
+      <Iterable<Member>>[fields, procedures].expand((x) => x);
 
   void addMember(Member member) {
     member.parent = this;
@@ -216,25 +227,25 @@ class Library extends TreeNode implements Comparable<Library> {
   accept(TreeVisitor v) => v.visitLibrary(this);
 
   visitChildren(Visitor v) {
-    _visitList(classes, v);
-    _visitList(procedures, v);
-    _visitList(fields, v);
+    visitList(classes, v);
+    visitList(procedures, v);
+    visitList(fields, v);
   }
 
   transformChildren(Transformer v) {
-    _transformList(classes, v, this);
-    _transformList(procedures, v, this);
-    _transformList(fields, v, this);
+    transformList(classes, v, this);
+    transformList(procedures, v, this);
+    transformList(fields, v, this);
   }
-
-  /// Returns a possibly synthesized name for this library, consistent with
-  /// the names used in [toString] calls.
-  String get debugName => debugLibraryName(this);
 
   static int _libraryIdCounter = 0;
   int _libraryId = ++_libraryIdCounter;
 
   int compareTo(Library other) => _libraryId - other._libraryId;
+
+  /// Returns a possibly synthesized name for this library, consistent with
+  /// the names across all [toString] calls.
+  String toString() => debugLibraryName(this);
 }
 
 /// A class declaration.
@@ -252,7 +263,7 @@ abstract class Class extends TreeNode {
   final List<TypeParameter> typeParameters;
 
   /// The immediate super type, or `null` if this is the root class.
-  InterfaceType superType;
+  InterfaceType supertype;
 
   /// The types from the `implements` clause.
   final List<InterfaceType> implementedTypes;
@@ -270,16 +281,25 @@ abstract class Class extends TreeNode {
   /// For mixin applications this is an immutable empty list.
   final List<Procedure> procedures;
 
-  Class(this.name, this.isAbstract, this.typeParameters, this.superType,
+  Class(this.name, this.isAbstract, this.typeParameters, this.supertype,
       this.implementedTypes, this.fields, this.constructors, this.procedures) {
-    _setParents(typeParameters, this);
-    _setParents(constructors, this);
-    _setParents(procedures, this);
-    _setParents(fields, this);
+    setParents(typeParameters, this);
+    setParents(constructors, this);
+    setParents(procedures, this);
+    setParents(fields, this);
   }
 
-  /// Returns the mixed-in type if this is a mixin application, otherwise null.
+  /// The immediate super class, or `null` if this is the root class.
+  Class get superclass => supertype?.classNode;
+
+  /// The mixed-in type if this is a mixin application, otherwise `null`.
   InterfaceType get mixedInType => null;
+
+  /// The mixed-in class if this is a mixin application, otherwise `null`.
+  Class get mixedInClass => mixedInType?.classNode;
+
+  /// The class itself or the mixed-in class if this is a mixin application.
+  Class get mixin => mixedInClass ?? this;
 
   bool get isMixinApplication => false;
 
@@ -295,7 +315,7 @@ abstract class Class extends TreeNode {
   /// This getter is for convenience, not efficiency.  Consider manually
   /// iterating the super types to speed up code in production.
   Iterable<InterfaceType> get supers => <Iterable<InterfaceType>>[
-        superType == null ? const [] : [superType],
+        supertype == null ? const [] : [supertype],
         mixedInType == null ? const [] : [mixedInType],
         implementedTypes
       ].expand((x) => x);
@@ -335,13 +355,13 @@ abstract class Class extends TreeNode {
   }
 
   /// Returns a possibly synthesized name for this class, consistent with
-  /// the names used in [toString] calls.
-  String get debugName => debugQualifiedClassName(this);
+  /// the names used across all [toString] calls.
+  String toString() => debugQualifiedClassName(this);
 }
 
 /// A class that is not a mixin application.
 class NormalClass extends Class {
-  NormalClass(InterfaceType superType,
+  NormalClass(InterfaceType supertype,
       {String name,
       bool isAbstract: false,
       List<TypeParameter> typeParameters,
@@ -353,7 +373,7 @@ class NormalClass extends Class {
             name,
             isAbstract,
             typeParameters ?? <TypeParameter>[],
-            superType,
+            supertype,
             implementedClasses ?? <InterfaceType>[],
             fields ?? <Field>[],
             constructors ?? <Constructor>[],
@@ -364,23 +384,23 @@ class NormalClass extends Class {
   acceptReference(ClassReferenceVisitor v) => v.visitNormalClassReference(this);
 
   visitChildren(Visitor v) {
-    _visitList(typeParameters, v);
-    superType?.accept(v);
-    _visitList(implementedTypes, v);
-    _visitList(constructors, v);
-    _visitList(procedures, v);
-    _visitList(fields, v);
+    visitList(typeParameters, v);
+    supertype?.accept(v);
+    visitList(implementedTypes, v);
+    visitList(constructors, v);
+    visitList(procedures, v);
+    visitList(fields, v);
   }
 
   transformChildren(Transformer v) {
-    _transformList(typeParameters, v, this);
-    _transformList(constructors, v, this);
-    _transformList(procedures, v, this);
-    _transformList(fields, v, this);
+    transformList(typeParameters, v, this);
+    transformList(constructors, v, this);
+    transformList(procedures, v, this);
+    transformList(fields, v, this);
   }
 }
 
-/// The result of mixing two classes [superType] and [mixedInType].
+/// The result of mixing two classes [supertype] and [mixedInType].
 ///
 /// A class declaration `class A extends B with C` is represented as a
 /// normal class `A` with the mixin class `B with C` as its super class.
@@ -394,7 +414,7 @@ class NormalClass extends Class {
 class MixinClass extends Class {
   InterfaceType mixedInType;
 
-  MixinClass(InterfaceType superType, this.mixedInType,
+  MixinClass(InterfaceType supertype, this.mixedInType,
       {String name,
       bool isAbstract: false,
       List<TypeParameter> typeParameters,
@@ -404,7 +424,7 @@ class MixinClass extends Class {
             name,
             isAbstract,
             typeParameters ?? <TypeParameter>[],
-            superType,
+            supertype,
             implementedClasses ?? <InterfaceType>[],
             const <Field>[],
             constructors ?? <Constructor>[],
@@ -417,16 +437,16 @@ class MixinClass extends Class {
   acceptReference(ClassReferenceVisitor v) => v.visitMixinClassReference(this);
 
   visitChildren(Visitor v) {
-    _visitList(typeParameters, v);
-    superType?.accept(v);
+    visitList(typeParameters, v);
+    supertype?.accept(v);
     mixedInType?.accept(v);
-    _visitList(implementedTypes, v);
-    _visitList(constructors, v);
+    visitList(implementedTypes, v);
+    visitList(constructors, v);
   }
 
   transformChildren(Transformer v) {
-    _transformList(typeParameters, v, this);
-    _transformList(constructors, v, this);
+    transformList(typeParameters, v, this);
+    transformList(constructors, v, this);
   }
 }
 
@@ -450,9 +470,12 @@ abstract class Member extends TreeNode {
   /// Returns true if this is an abstract procedure.
   bool get isAbstract => false;
 
+  /// True if this is a non-static field or procedure.
+  bool get isInstanceMember;
+
   /// Returns a possibly synthesized name for this member, consistent with
-  /// the names used in [toString] calls.
-  String get debugName => debugQualifiedMemberName(this);
+  /// the names used across all [toString] calls.
+  String toString() => debugQualifiedMemberName(this);
 }
 
 /// A field declaration.
@@ -499,6 +522,7 @@ class Field extends Member {
 
   /// True if the field is neither final nor const.
   bool get isMutable => flags & (FlagStatic | FlagConst) == 0;
+  bool get isInstanceMember => !isStatic;
 
   accept(MemberVisitor v) => v.visitField(this);
 
@@ -540,7 +564,7 @@ class Constructor extends Member {
       : this.initializers = initializers ?? <Initializer>[],
         super(name) {
     function?.parent = this;
-    _setParents(this.initializers, this);
+    setParents(this.initializers, this);
     this.isConst = isConst;
     this.isExternal = isExternal;
   }
@@ -559,6 +583,8 @@ class Constructor extends Member {
     flags = value ? (flags | FlagExternal) : (flags & ~FlagExternal);
   }
 
+  bool get isInstanceMember => false;
+
   accept(MemberVisitor v) => v.visitConstructor(this);
 
   acceptReference(MemberReferenceVisitor v) =>
@@ -567,7 +593,7 @@ class Constructor extends Member {
   visitChildren(Visitor v) {
     name?.accept(v);
     function?.accept(v);
-    _visitList(initializers, v);
+    visitList(initializers, v);
   }
 
   transformChildren(Transformer v) {
@@ -575,7 +601,7 @@ class Constructor extends Member {
       function = function.accept(v);
       function?.parent = this;
     }
-    _transformList(initializers, v, this);
+    transformList(initializers, v, this);
   }
 }
 
@@ -643,6 +669,11 @@ class Procedure extends Member {
   void set isConst(bool value) {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
   }
+
+  bool get isInstanceMember => !isStatic;
+  bool get isGetter => kind == ProcedureKind.Getter;
+  bool get isSetter => kind == ProcedureKind.Setter;
+  bool get isAccessor => isGetter || isSetter;
 
   accept(MemberVisitor v) => v.visitProcedure(this);
 
@@ -816,26 +847,26 @@ class FunctionNode extends TreeNode {
             requiredParameterCount ?? positionalParameters?.length ?? 0,
         this.namedParameters = namedParameters ?? <VariableDeclaration>[],
         this.typeParameters = typeParameters ?? <TypeParameter>[] {
-    _setParents(this.typeParameters, this);
-    _setParents(this.positionalParameters, this);
-    _setParents(this.namedParameters, this);
+    setParents(this.typeParameters, this);
+    setParents(this.positionalParameters, this);
+    setParents(this.namedParameters, this);
     body?.parent = this;
   }
 
   accept(TreeVisitor v) => v.visitFunctionNode(this);
 
   visitChildren(Visitor v) {
-    _visitList(typeParameters, v);
-    _visitList(positionalParameters, v);
-    _visitList(namedParameters, v);
+    visitList(typeParameters, v);
+    visitList(positionalParameters, v);
+    visitList(namedParameters, v);
     returnType?.accept(v);
     body?.accept(v);
   }
 
   transformChildren(Transformer v) {
-    _transformList(typeParameters, v, this);
-    _transformList(positionalParameters, v, this);
-    _transformList(namedParameters, v, this);
+    transformList(typeParameters, v, this);
+    transformList(positionalParameters, v, this);
+    transformList(namedParameters, v, this);
     if (body != null) {
       body = body.accept(v);
       body?.parent = this;
@@ -1062,8 +1093,8 @@ class Arguments extends TreeNode {
       {List<DartType> types, List<NamedExpression> named})
       : this.types = types ?? <DartType>[],
         this.named = named ?? <NamedExpression>[] {
-    _setParents(this.positional, this);
-    _setParents(this.named, this);
+    setParents(this.positional, this);
+    setParents(this.named, this);
   }
 
   Arguments.empty()
@@ -1074,14 +1105,14 @@ class Arguments extends TreeNode {
   accept(TreeVisitor v) => v.visitArguments(this);
 
   visitChildren(Visitor v) {
-    _visitList(types, v);
-    _visitList(positional, v);
-    _visitList(named, v);
+    visitList(types, v);
+    visitList(positional, v);
+    visitList(named, v);
   }
 
   transformChildren(Transformer v) {
-    _transformList(positional, v, this);
-    _transformList(named, v, this);
+    transformList(positional, v, this);
+    transformList(named, v, this);
   }
 }
 
@@ -1246,6 +1277,12 @@ class ConstructorInvocation extends Expression {
       arguments?.parent = this;
     }
   }
+
+  InterfaceType get constructedType {
+    return arguments.types.isEmpty
+        ? target.enclosingClass.rawType
+        : new InterfaceType(target.enclosingClass, arguments.types);
+  }
 }
 
 /// Expression of form `!x`.
@@ -1350,17 +1387,17 @@ class StringConcatenation extends Expression {
   final List<Expression> expressions;
 
   StringConcatenation(this.expressions) {
-    _setParents(expressions, this);
+    setParents(expressions, this);
   }
 
   accept(ExpressionVisitor v) => v.visitStringConcatenation(this);
 
   visitChildren(Visitor v) {
-    _visitList(expressions, v);
+    visitList(expressions, v);
   }
 
   transformChildren(Transformer v) {
-    _transformList(expressions, v, this);
+    transformList(expressions, v, this);
   }
 }
 
@@ -1525,18 +1562,18 @@ class ListLiteral extends Expression {
 
   ListLiteral(this.expressions,
       {this.typeArgument: const DynamicType(), this.isConst: false}) {
-    _setParents(expressions, this);
+    setParents(expressions, this);
   }
 
   accept(ExpressionVisitor v) => v.visitListLiteral(this);
 
   visitChildren(Visitor v) {
     typeArgument?.accept(v);
-    _visitList(expressions, v);
+    visitList(expressions, v);
   }
 
   transformChildren(Transformer v) {
-    _transformList(expressions, v, this);
+    transformList(expressions, v, this);
   }
 }
 
@@ -1550,7 +1587,7 @@ class MapLiteral extends Expression {
       {this.keyType: const DynamicType(),
       this.valueType: const DynamicType(),
       this.isConst: false}) {
-    _setParents(entries, this);
+    setParents(entries, this);
   }
 
   accept(ExpressionVisitor v) => v.visitMapLiteral(this);
@@ -1558,11 +1595,11 @@ class MapLiteral extends Expression {
   visitChildren(Visitor v) {
     keyType?.accept(v);
     valueType?.accept(v);
-    _visitList(entries, v);
+    visitList(entries, v);
   }
 
   transformChildren(Transformer v) {
-    _transformList(entries, v, this);
+    transformList(entries, v, this);
   }
 }
 
@@ -1712,17 +1749,17 @@ class Block extends Statement {
   final List<Statement> statements;
 
   Block(this.statements) {
-    _setParents(statements, this);
+    setParents(statements, this);
   }
 
   accept(StatementVisitor v) => v.visitBlock(this);
 
   visitChildren(Visitor v) {
-    _visitList(statements, v);
+    visitList(statements, v);
   }
 
   transformChildren(Transformer v) {
-    _transformList(statements, v, this);
+    transformList(statements, v, this);
   }
 }
 
@@ -1881,28 +1918,28 @@ class ForStatement extends Statement {
   Statement body;
 
   ForStatement(this.variables, this.condition, this.updates, this.body) {
-    _setParents(variables, this);
+    setParents(variables, this);
     condition?.parent = this;
-    _setParents(updates, this);
+    setParents(updates, this);
     body?.parent = this;
   }
 
   accept(StatementVisitor v) => v.visitForStatement(this);
 
   visitChildren(Visitor v) {
-    _visitList(variables, v);
+    visitList(variables, v);
     condition?.accept(v);
-    _visitList(updates, v);
+    visitList(updates, v);
     body?.accept(v);
   }
 
   transformChildren(Transformer v) {
-    _transformList(variables, v, this);
+    transformList(variables, v, this);
     if (condition != null) {
       condition = condition.accept(v);
       condition?.parent = this;
     }
-    _transformList(updates, v, this);
+    transformList(updates, v, this);
     if (body != null) {
       body = body.accept(v);
       body?.parent = this;
@@ -1957,14 +1994,14 @@ class SwitchStatement extends Statement {
 
   SwitchStatement(this.expression, this.cases) {
     expression?.parent = this;
-    _setParents(cases, this);
+    setParents(cases, this);
   }
 
   accept(StatementVisitor v) => v.visitSwitchStatement(this);
 
   visitChildren(Visitor v) {
     expression?.accept(v);
-    _visitList(cases, v);
+    visitList(cases, v);
   }
 
   transformChildren(Transformer v) {
@@ -1972,7 +2009,7 @@ class SwitchStatement extends Statement {
       expression = expression.accept(v);
       expression?.parent = this;
     }
-    _transformList(cases, v, this);
+    transformList(cases, v, this);
   }
 }
 
@@ -1985,7 +2022,7 @@ class SwitchCase extends TreeNode {
   bool isDefault;
 
   SwitchCase(this.expressions, this.body, {this.isDefault: false}) {
-    _setParents(expressions, this);
+    setParents(expressions, this);
     body?.parent = this;
   }
 
@@ -2003,12 +2040,12 @@ class SwitchCase extends TreeNode {
   accept(TreeVisitor v) => v.visitSwitchCase(this);
 
   visitChildren(Visitor v) {
-    _visitList(expressions, v);
+    visitList(expressions, v);
     body?.accept(v);
   }
 
   transformChildren(Transformer v) {
-    _transformList(expressions, v, this);
+    transformList(expressions, v, this);
     if (body != null) {
       body = body.accept(v);
       body?.parent = this;
@@ -2090,14 +2127,14 @@ class TryCatch extends Statement {
 
   TryCatch(this.body, this.catches) {
     body?.parent = this;
-    _setParents(catches, this);
+    setParents(catches, this);
   }
 
   accept(StatementVisitor v) => v.visitTryCatch(this);
 
   visitChildren(Visitor v) {
     body?.accept(v);
-    _visitList(catches, v);
+    visitList(catches, v);
   }
 
   transformChildren(Transformer v) {
@@ -2105,7 +2142,7 @@ class TryCatch extends Statement {
       body = body.accept(v);
       body?.parent = this;
     }
-    _transformList(catches, v, this);
+    transformList(catches, v, this);
   }
 }
 
@@ -2124,6 +2161,7 @@ class Catch extends TreeNode {
   accept(TreeVisitor v) => v.visitCatch(this);
 
   visitChildren(Visitor v) {
+    guard?.accept(v);
     exception?.accept(v);
     stackTrace?.accept(v);
     body?.accept(v);
@@ -2262,8 +2300,8 @@ class VariableDeclaration extends Statement {
   }
 
   /// Returns a possibly synthesized name for this variable, consistent with
-  /// the names used in [toString] calls.
-  String get debugName => debugVariableDeclarationName(this);
+  /// the names used across all [toString] calls.
+  String toString() => debugVariableDeclarationName(this);
 }
 
 /// Declaration a local function.
@@ -2323,6 +2361,7 @@ abstract class Name implements Node {
     /// Use separate subclasses for the public and private case to save memory
     /// for public names.
     if (name.startsWith('_')) {
+      assert(library != null);
       return new _PrivateName(name, library);
     } else {
       return new _PublicName(name);
@@ -2348,7 +2387,7 @@ class _PrivateName extends Name {
       : this.library = library,
         super._internal(_computeHashCode(name, library), name);
 
-  String toString() => library != null ? '${library.name}::$name' : name;
+  String toString() => library != null ? '$library::$name' : name;
 
   static int _computeHashCode(String name, Library library) {
     return 131 * name.hashCode + 17 * library.hashCode;
@@ -2447,7 +2486,7 @@ class InterfaceType extends DartType {
 
   visitChildren(Visitor v) {
     classNode.acceptReference(v);
-    _visitList(typeArguments, v);
+    visitList(typeArguments, v);
   }
 
   bool operator ==(Object other) {
@@ -2493,9 +2532,9 @@ class FunctionType extends DartType {
   accept(DartTypeVisitor v) => v.visitFunctionType(this);
 
   visitChildren(Visitor v) {
-    _visitList(typeParameters, v);
-    _visitList(positionalParameters, v);
-    _visitIterable(namedParameters.values, v);
+    visitList(typeParameters, v);
+    visitList(positionalParameters, v);
+    visitIterable(namedParameters.values, v);
     returnType.accept(v);
   }
 
@@ -2625,8 +2664,8 @@ class TypeParameter extends TreeNode {
   transformChildren(Transformer v) {}
 
   /// Returns a possibly synthesized name for this type parameter, consistent
-  /// with the names used in [toString] calls.
-  String get debugName => debugTypeParameterName(this);
+  /// with the names used across all [toString] calls.
+  String toString() => debugQualifiedTypeParameterName(this);
 }
 
 // ------------------------------------------------------------------------
@@ -2641,18 +2680,18 @@ class Program extends TreeNode {
   Procedure mainMethod;
 
   Program([List<Library> libraries]) : libraries = libraries ?? <Library>[] {
-    _setParents(libraries, this);
+    setParents(libraries, this);
   }
 
   accept(TreeVisitor v) => v.visitProgram(this);
 
   visitChildren(Visitor v) {
-    _visitList(libraries, v);
+    visitList(libraries, v);
     mainMethod?.acceptReference(v);
   }
 
   transformChildren(Transformer v) {
-    _transformList(libraries, v, this);
+    transformList(libraries, v, this);
   }
 }
 
@@ -2660,26 +2699,25 @@ class Program extends TreeNode {
 //                             INTERNAL FUNCTIONS
 // ------------------------------------------------------------------------
 
-void _setParents(List<TreeNode> nodes, TreeNode parent) {
+void setParents(List<TreeNode> nodes, TreeNode parent) {
   for (int i = 0; i < nodes.length; ++i) {
     nodes[i].parent = parent;
   }
 }
 
-void _visitList(List<Node> nodes, Visitor visitor) {
+void visitList(List<Node> nodes, Visitor visitor) {
   for (int i = 0; i < nodes.length; ++i) {
     nodes[i].accept(visitor);
   }
 }
 
-void _visitIterable(Iterable<Node> nodes, Visitor visitor) {
+void visitIterable(Iterable<Node> nodes, Visitor visitor) {
   for (var node in nodes) {
     node.accept(visitor);
   }
 }
 
-void _transformList(
-    List<TreeNode> nodes, Transformer visitor, TreeNode parent) {
+void transformList(List<TreeNode> nodes, Transformer visitor, TreeNode parent) {
   int storeIndex = 0;
   for (int i = 0; i < nodes.length; ++i) {
     var result = nodes[i].accept(visitor);
