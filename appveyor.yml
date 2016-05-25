@@ -3,8 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 install:
-# TODO: Switch back to chocolatey once 1.12.0 is available.
-#  - choco install -y dart-sdk -version 1.11.1
   - ps: wget https://gsdview.appspot.com/dart-archive/channels/dev/raw/latest/sdk/dartsdk-windows-x64-release.zip -OutFile dart-sdk.zip
   - cmd: echo "Unzipping dart-sdk..."
   - cmd: 7z x dart-sdk.zip -o"C:\tools" -y > nul
