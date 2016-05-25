@@ -192,62 +192,63 @@ void Precompiler::DoCompileAll(
     StackZone stack_zone(T);
     zone_ = stack_zone.GetZone();
 
-    // Make sure class hierarchy is stable before compilation so that CHA
-    // can be used. Also ensures lookup of entry points won't miss functions
-    // because their class hasn't been finalized yet.
-    FinalizeAllClasses();
+    { HANDLESCOPE(T);
+      // Make sure class hierarchy is stable before compilation so that CHA
+      // can be used. Also ensures lookup of entry points won't miss functions
+      // because their class hasn't been finalized yet.
+      FinalizeAllClasses();
 
-    // Precompile static initializers to compute result type information.
-    PrecompileStaticInitializers();
+      // Precompile static initializers to compute result type information.
+      PrecompileStaticInitializers();
 
-    for (intptr_t round = 0; round < FLAG_precompiler_rounds; round++) {
-      if (FLAG_trace_precompiler) {
-        THR_Print("Precompiler round %" Pd "\n", round);
+      for (intptr_t round = 0; round < FLAG_precompiler_rounds; round++) {
+        if (FLAG_trace_precompiler) {
+          THR_Print("Precompiler round %" Pd "\n", round);
+        }
+
+        if (round > 0) {
+          ResetPrecompilerState();
+        }
+
+        // TODO(rmacnak): We should be able to do a more thorough job and drop
+        // some
+        //  - implicit static closures
+        //  - field initializers
+        //  - invoke-field-dispatchers
+        //  - method-extractors
+        // that are needed in early iterations but optimized away in later
+        // iterations.
+        ClearAllCode();
+
+        CollectDynamicFunctionNames();
+
+        // Start with the allocations and invocations that happen from C++.
+        AddRoots(embedder_entry_points);
+
+        // Compile newly found targets and add their callees until we reach a
+        // fixed point.
+        Iterate();
       }
 
-      if (round > 0) {
-        ResetPrecompilerState();
-      }
+      I->set_compilation_allowed(false);
 
-      // TODO(rmacnak): We should be able to do a more thorough job and drop
-      // some
-      //  - implicit static closures
-      //  - field initializers
-      //  - invoke-field-dispatchers
-      //  - method-extractors
-      // that are needed in early iterations but optimized away in later
-      // iterations.
-      ClearAllCode();
+      TraceForRetainedFunctions();
+      DropFunctions();
+      DropFields();
+      TraceTypesFromRetainedClasses();
+      DropTypes();
+      DropTypeArguments();
 
-      CollectDynamicFunctionNames();
-
-      // Start with the allocations and invocations that happen from C++.
-      AddRoots(embedder_entry_points);
-
-      // Compile newly found targets and add their callees until we reach a
-      // fixed point.
-      Iterate();
+      // Clear these before dropping classes as they may hold onto otherwise
+      // dead instances of classes we will remove.
+      I->object_store()->set_compile_time_constants(Array::null_array());
+      I->object_store()->set_unique_dynamic_targets(Array::null_array());
+      Class& null_class = Class::Handle(Z);
+      I->object_store()->set_future_class(null_class);
+      I->object_store()->set_completer_class(null_class);
+      I->object_store()->set_stream_iterator_class(null_class);
+      I->object_store()->set_symbol_class(null_class);
     }
-
-    I->set_compilation_allowed(false);
-
-    TraceForRetainedFunctions();
-    DropFunctions();
-    DropFields();
-    TraceTypesFromRetainedClasses();
-    DropTypes();
-    DropTypeArguments();
-
-    // Clear these before dropping classes as they may hold onto otherwise
-    // dead instances of classes we will remove.
-    I->object_store()->set_compile_time_constants(Array::null_array());
-    I->object_store()->set_unique_dynamic_targets(Array::null_array());
-    Class& null_class = Class::Handle(Z);
-    I->object_store()->set_future_class(null_class);
-    I->object_store()->set_completer_class(null_class);
-    I->object_store()->set_stream_iterator_class(null_class);
-    I->object_store()->set_symbol_class(null_class);
-
     DropClasses();
     DropLibraries();
 
@@ -329,6 +330,8 @@ void Precompiler::PrecompileStaticInitializers() {
     Field& field_;
     Function& function_;
   };
+
+  HANDLESCOPE(T);
   StaticInitializerVisitor visitor(Z);
   VisitClasses(&visitor);
 }
