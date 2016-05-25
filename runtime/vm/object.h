@@ -5032,6 +5032,7 @@ class MegamorphicCache : public Object {
 
  private:
   friend class Class;
+  friend class MegamorphicCacheTable;
 
   static RawMegamorphicCache* New();
 

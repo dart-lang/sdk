@@ -1608,9 +1608,11 @@ void Isolate::LowLevelShutdown() {
   FinalizeWeakPersistentHandlesVisitor visitor;
   api_state()->weak_persistent_handles().VisitHandles(&visitor);
 
+  if (FLAG_dump_megamorphic_stats) {
+    MegamorphicCacheTable::PrintSizes(this);
+  }
   if (FLAG_trace_isolates) {
     heap()->PrintSizes();
-    MegamorphicCacheTable::PrintSizes(this);
     Symbols::DumpStats();
     OS::Print("[-] Stopping isolate:\n"
               "\tisolate:    %s\n", name());

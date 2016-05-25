@@ -165,7 +165,7 @@ RawClass* Object::unhandled_exception_class_ =
 RawClass* Object::unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 
 
-const double MegamorphicCache::kLoadFactor = 0.75;
+const double MegamorphicCache::kLoadFactor = 0.50;
 
 
 static void AppendSubString(Zone* zone,
