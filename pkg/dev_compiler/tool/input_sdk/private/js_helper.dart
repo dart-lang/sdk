@@ -321,7 +321,7 @@ class Primitives {
     return JS('String', "#.charCodeAt(0) == 0 ? # : #", str, str, str);
   }
 
-  static String getTimeZoneName(receiver) {
+  static String getTimeZoneName(DateTime receiver) {
     // Firefox and Chrome emit the timezone in parenthesis.
     // Example: "Wed May 16 2012 21:13:00 GMT+0200 (CEST)".
     // We extract this name using a regexp.
@@ -355,7 +355,7 @@ class Primitives {
     return "";
   }
 
-  static int getTimeZoneOffsetInMinutes(receiver) {
+  static int getTimeZoneOffsetInMinutes(DateTime receiver) {
     // Note that JS and Dart disagree on the sign of the offset.
     return -JS('int', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
   }
@@ -400,7 +400,7 @@ class Primitives {
   }
 
   // Lazily keep a JS Date stored in the JS object.
-  static lazyAsJsDate(receiver) {
+  static lazyAsJsDate(DateTime receiver) {
     if (JS('bool', r'#.date === (void 0)', receiver)) {
       JS('void', r'#.date = new Date(#)', receiver,
          receiver.millisecondsSinceEpoch);

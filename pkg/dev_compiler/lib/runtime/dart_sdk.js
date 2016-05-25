@@ -9309,7 +9309,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     static lazyAsJsDate(receiver) {
       if (receiver.date === void 0) {
-        receiver.date = new Date(dart.dload(receiver, 'millisecondsSinceEpoch'));
+        receiver.date = new Date(receiver.millisecondsSinceEpoch);
       }
       return receiver.date;
     }
@@ -9380,11 +9380,11 @@ dart_library.library('dart_sdk', null, /* Imports */[
       stringFromCharCode: [core.String, [core.int]],
       stringConcatUnchecked: [core.String, [core.String, core.String]],
       flattenString: [core.String, [core.String]],
-      getTimeZoneName: [core.String, [dart.dynamic]],
-      getTimeZoneOffsetInMinutes: [core.int, [dart.dynamic]],
+      getTimeZoneName: [core.String, [core.DateTime]],
+      getTimeZoneOffsetInMinutes: [core.int, [core.DateTime]],
       valueFromDecomposedDate: [dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]],
       patchUpY2K: [dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic]],
-      lazyAsJsDate: [dart.dynamic, [dart.dynamic]],
+      lazyAsJsDate: [dart.dynamic, [core.DateTime]],
       getYear: [dart.dynamic, [core.DateTime]],
       getMonth: [dart.dynamic, [core.DateTime]],
       getDay: [dart.dynamic, [core.DateTime]],
