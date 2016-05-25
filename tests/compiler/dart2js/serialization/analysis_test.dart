@@ -17,7 +17,8 @@ import 'test_data.dart';
 main(List<String> args) {
   asyncTest(() async {
     Arguments arguments = new Arguments.from(args);
-    String serializedData = await serializeDartCore(arguments: arguments);
+    SerializedData serializedData =
+        await serializeDartCore(arguments: arguments);
     if (arguments.filename != null) {
       Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
       await analyze(serializedData, entryPoint, null);
@@ -30,7 +31,7 @@ main(List<String> args) {
   });
 }
 
-Future analyze(String serializedData, Uri entryPoint, Test test,
+Future analyze(SerializedData serializedData, Uri entryPoint, Test test,
                {int index}) async {
   String testDescription =
   test != null ? test.sourceFiles[entryPoint.path] : '${entryPoint}';
@@ -40,12 +41,11 @@ Future analyze(String serializedData, Uri entryPoint, Test test,
   DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
   await runCompiler(
       entryPoint: entryPoint,
-      memorySourceFiles: test != null ? test.sourceFiles : const {},
+      resolutionInputs: serializedData.toUris(),
+      memorySourceFiles: serializedData.toMemorySourceFiles(
+          test != null ? test.sourceFiles : null),
       options: [Flags.analyzeOnly],
-      diagnosticHandler: diagnosticCollector,
-      beforeRun: (Compiler compiler) {
-        compiler.serialization.deserializeFromText(serializedData);
-      });
+      diagnosticHandler: diagnosticCollector);
   if (test != null) {
     Expect.equals(test.expectedErrorCount, diagnosticCollector.errors.length,
         "Unexpected error count.");

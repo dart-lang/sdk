@@ -81,17 +81,18 @@ class Arguments {
 }
 
 
-Future<String> serializeDartCore(
+Future<SerializedData> serializeDartCore(
     {Arguments arguments: const Arguments()}) async {
+  Uri uri = Uri.parse('memory:${arguments.serializedDataFileName}');
   print('------------------------------------------------------------------');
   print('serialize dart:core');
   print('------------------------------------------------------------------');
-  String serializedData;
+  SerializedData serializedData;
   if (arguments.loadSerializedData) {
     File file = new File(arguments.serializedDataFileName);
     if (file.existsSync()) {
       print('Loading data from $file');
-      serializedData = file.readAsStringSync();
+      serializedData = new SerializedData(uri, file.readAsStringSync());
     }
   }
   if (serializedData == null) {
@@ -102,12 +103,47 @@ Future<String> serializeDartCore(
     BufferedEventSink sink = new BufferedEventSink();
     compiler.serialization.serializeToSink(
         sink, compiler.libraryLoader.libraries);
-    serializedData = sink.text;
+    serializedData = new SerializedData(uri, sink.text);
     if (arguments.saveSerializedData) {
       File file = new File(arguments.serializedDataFileName);
       print('Saving data to $file');
-      file.writeAsStringSync(serializedData);
+      file.writeAsStringSync(serializedData.data);
     }
   }
   return serializedData;
+}
+
+class SerializedData {
+  final Uri uri;
+  final String data;
+
+  SerializedData(this.uri, this.data);
+
+  Map<String, String> toMemorySourceFiles([Map<String, String> input]) {
+    Map<String, String> sourceFiles = <String, String>{};
+    if (input != null) {
+      sourceFiles.addAll(input);
+    }
+    expandMemorySourceFiles(sourceFiles);
+    return sourceFiles;
+  }
+
+  void expandMemorySourceFiles(Map<String, String> sourceFiles) {
+    if (uri.scheme == 'memory') {
+      sourceFiles[uri.path] = data;
+    }
+  }
+
+  List<Uri> toUris([List<Uri> input]) {
+    List<Uri> uris = <Uri>[];
+    if (input != null) {
+      uris.addAll(input);
+    }
+    expandUris(uris);
+    return uris;
+  }
+
+  void expandUris(List<Uri> uris) {
+    uris.add(uri);
+  }
 }

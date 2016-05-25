@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 import '../memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/common.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/compiler.dart';
@@ -15,8 +16,12 @@ import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/serialization/json_serializer.dart';
 import 'package:compiler/src/serialization/serialization.dart';
+import 'package:expect/expect.dart';
 
 import 'equivalence_test.dart';
+import 'test_helper.dart';
+import 'resolved_ast_test.dart';
+import 'helper.dart';
 
 main(List<String> arguments) {
   // Ensure that we can print out constant expressions.
@@ -52,17 +57,16 @@ main(List<String> arguments) {
         entryPoint: entryPoint, options: [Flags.analyzeAll]);
     compiler.serialization.supportSerialization = true;
     await compiler.run(entryPoint);
-    List<String> data =
+    List<SerializedData> data =
         createData(compiler,
                    outPath: outPath,
                    prettyPrint: prettyPrint,
                    shardCount: shardCount);
-    testEquivalence(data, compiler.libraryLoader.libraries);
-    await testAnalysis(data, entryPoint);
+    await testAnalysis(compiler, data, entryPoint);
   });
 }
 
-List<String> createData(
+List<SerializedData> createData(
     Compiler compiler,
     {String outPath,
      bool prettyPrint,
@@ -85,7 +89,7 @@ List<String> createData(
     offset += shardSize;
   }
   print(librarySplits.join('\n'));
-  List<String> texts = <String>[];
+  List<SerializedData> data = <SerializedData>[];
   for (int shard = 0; shard < shardCount; shard++) {
     List<LibraryElement> libraries = librarySplits[shard];
     Serializer serializer =
@@ -107,34 +111,37 @@ List<String> createData(
     } else if (prettyPrint) {
       print(outText);
     }
-    texts.add(text);
+    data.add(new SerializedData(Uri.parse('memory:out$shard.data'), text));
   }
-  return texts;
+  return data;
 }
 
-void testEquivalence(List<String> data, Iterable<LibraryElement> libraries1) {
-  DeserializationContext deserializationContext =
-      new DeserializationContext();
-  for (String shardData in data) {
-    Deserializer deserializer = new Deserializer.fromText(
-        deserializationContext, shardData, const JsonSerializationDecoder());
-    deserializationContext.deserializers.add(deserializer);
+Future testAnalysis(
+    Compiler compiler1,
+    List<SerializedData> data,
+    Uri entryPoint) async {
+  Map<String, String> memorySourceFiles = <String, String>{};
+  List<Uri> resolutionInputs = <Uri>[];
+  for (int index = 0; index < data.length; index++) {
+    SerializedData serializedData = data[index];
+    serializedData.expandMemorySourceFiles(memorySourceFiles);
+    serializedData.expandUris(resolutionInputs);
   }
-  for (LibraryElement library1 in libraries1) {
+  CompilationResult result = await runCompiler(
+      entryPoint: entryPoint,
+      memorySourceFiles: memorySourceFiles,
+      resolutionInputs: resolutionInputs,
+      options: [Flags.analyzeAll]);
+  Compiler compiler2 = result.compiler;
+  for (LibraryElement library1 in compiler1.libraryLoader.libraries) {
     LibraryElement library2 =
-        deserializationContext.lookupLibrary(library1.canonicalUri);
+        compiler2.libraryLoader.lookupLibrary(library1.canonicalUri);
     if (library2 == null) {
       throw new ArgumentError('No library ${library1.canonicalUri} found.');
     }
     checkLibraryContent('library1', 'library2', 'library', library1, library2);
+    checkAllResolvedAsts(compiler1, compiler2);
+    checkAllImpacts(compiler1, compiler2);
   }
-}
-
-Future testAnalysis(List<String> data, Uri entryPoint) async {
-  Compiler compiler = compilerFor(entryPoint: entryPoint,
-      options: [Flags.analyzeAll]);
-  for (String shardData in data) {
-    compiler.serialization.deserializeFromText(shardData);
-  }
-  await compiler.run(entryPoint);
+  Expect.isFalse(compiler2.reporter.hasReportedError, "Unexpected errors");
 }

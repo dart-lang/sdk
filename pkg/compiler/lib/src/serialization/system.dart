@@ -36,7 +36,8 @@ class DeserializerSystemImpl extends DeserializerSystem {
 
   factory DeserializerSystemImpl(
       Compiler compiler, ImpactTransformer impactTransformer) {
-    DeserializationContext context = new DeserializationContext();
+    DeserializationContext context =
+        new DeserializationContext(compiler.reporter);
     DeserializerPlugin backendDeserializer =
         compiler.backend.serialization.deserializer;
     context.plugins.add(backendDeserializer);

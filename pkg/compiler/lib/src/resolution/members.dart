@@ -3033,7 +3033,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (element is! ClassElement) return null;
     ClassElement cls = element;
     cls.ensureResolved(resolution);
-    return cls.computeType(resolution);
+    cls.computeType(resolution);
+    return cls.rawType;
   }
 
   /// Handle index operations like `a[b] = c`, `a[b] += c`, and `a[b]++`.

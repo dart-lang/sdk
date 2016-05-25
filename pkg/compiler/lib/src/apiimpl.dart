@@ -205,11 +205,13 @@ class CompilerImpl extends Compiler {
 
   Future<Null> setupSdk() {
     Future future = new Future.value(null);
-    if (options.resolutionInput != null) {
-      reporter.log('Reading serialized data from ${options.resolutionInput}');
-      future = callUserProvider(options.resolutionInput)
-          .then((SourceFile sourceFile) {
-        serialization.deserializeFromText(sourceFile.slowText());
+    if (options.resolutionInputs != null) {
+      future = Future.forEach(options.resolutionInputs, (Uri resolutionInput) {
+        reporter.log('Reading serialized data from ${resolutionInput}');
+        return callUserProvider(resolutionInput).then((SourceFile sourceFile) {
+          serialization.deserializeFromText(
+              resolutionInput, sourceFile.slowText());
+        });
       });
     }
     if (resolvedUriTranslator.isNotSet) {

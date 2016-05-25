@@ -177,6 +177,7 @@ enum MessageKind {
   DUPLICATE_IMPORT,
   DUPLICATE_INITIALIZER,
   DUPLICATE_LABEL,
+  DUPLICATE_SERIALIZED_LIBRARY,
   DUPLICATE_SUPER_INITIALIZER,
   DUPLICATE_TYPE_VARIABLE_NAME,
   DUPLICATED_LIBRARY_NAME,
@@ -3671,6 +3672,11 @@ $MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING#{importChain}"""),
           MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP,
           "Unsupported version of package:lookup_map.",
           howToFix: DONT_KNOW_HOW_TO_FIX),
+
+      MessageKind.DUPLICATE_SERIALIZED_LIBRARY: const MessageTemplate(
+          MessageKind.DUPLICATE_SERIALIZED_LIBRARY,
+          "Library '#{libraryUri}' found in both '#{sourceUri1}' and "
+          "'#{sourceUri2}'."),
     }); // End of TEMPLATES.
 
   /// Padding used before and between import chains in the message for

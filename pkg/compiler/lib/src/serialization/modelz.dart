@@ -371,6 +371,9 @@ class LibraryElementZ extends DeserializedElementZ
   String get name => entryCompilationUnit.name;
 
   @override
+  SourceSpan get sourcePosition => entryCompilationUnit.sourcePosition;
+
+  @override
   accept(ElementVisitor visitor, arg) {
     return visitor.visitLibraryElement(this, arg);
   }
@@ -555,6 +558,9 @@ class CompilationUnitElementZ extends DeserializedElementZ
 
   @override
   Element get enclosingElement => library;
+
+  @override
+  SourceSpan get sourcePosition => new SourceSpan(script.resourceUri, 0, 0);
 
   @override
   accept(ElementVisitor visitor, arg) {

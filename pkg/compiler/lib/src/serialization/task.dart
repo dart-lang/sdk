@@ -84,7 +84,8 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
     return measure(() {
       assert(supportSerialization);
 
-      Serializer serializer = new Serializer();
+      Serializer serializer =
+          new Serializer(shouldInclude: (e) => libraries.contains(e.library));
       SerializerPlugin backendSerializer =
           compiler.backend.serialization.serializer;
       serializer.plugins.add(backendSerializer);
@@ -110,7 +111,7 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
     });
   }
 
-  void deserializeFromText(String serializedData) {
+  void deserializeFromText(Uri sourceUri, String serializedData) {
     measure(() {
       if (deserializer == null) {
         deserializer = new DeserializerSystemImpl(
@@ -119,7 +120,7 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
       DeserializerSystemImpl deserializerImpl = deserializer;
       DeserializationContext context = deserializerImpl.deserializationContext;
       Deserializer dataDeserializer = new Deserializer.fromText(
-          context, serializedData, const JsonSerializationDecoder());
+          context, sourceUri, serializedData, const JsonSerializationDecoder());
       context.deserializers.add(dataDeserializer);
     });
   }

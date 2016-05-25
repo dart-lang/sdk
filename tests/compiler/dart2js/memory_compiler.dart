@@ -71,6 +71,7 @@ Future<CompilationResult> runCompiler(
     {Map<String, String> memorySourceFiles: const <String, String>{},
      Uri entryPoint,
      List<Uri> entryPoints,
+     List<Uri> resolutionInputs,
      CompilerDiagnostics diagnosticHandler,
      CompilerOutput outputProvider,
      List<String> options: const <String>[],
@@ -85,6 +86,7 @@ Future<CompilationResult> runCompiler(
   }
   CompilerImpl compiler = compilerFor(
       entryPoint: entryPoint,
+      resolutionInputs: resolutionInputs,
       memorySourceFiles: memorySourceFiles,
       diagnosticHandler: diagnosticHandler,
       outputProvider: outputProvider,
@@ -104,6 +106,7 @@ Future<CompilationResult> runCompiler(
 
 CompilerImpl compilerFor(
     {Uri entryPoint,
+     List<Uri> resolutionInputs,
      Map<String, String> memorySourceFiles: const <String, String>{},
      CompilerDiagnostics diagnosticHandler,
      CompilerOutput outputProvider,
@@ -147,6 +150,7 @@ CompilerImpl compilerFor(
       diagnosticHandler,
       new CompilerOptions.parse(
           entryPoint: entryPoint,
+          resolutionInputs: resolutionInputs,
           libraryRoot: libraryRoot,
           packageRoot: packageRoot,
           options: options,
