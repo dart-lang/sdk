@@ -1534,6 +1534,13 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
    * Initialize a newly created field element to have the given [name].
    */
   ConstFieldElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  ConstFieldElementImpl.forSerialized(
+      UnlinkedVariable unlinkedVariable, ElementImpl enclosingElement)
+      : super.forSerialized(unlinkedVariable, enclosingElement);
 }
 
 /**
@@ -3284,6 +3291,13 @@ class FieldElementImpl extends PropertyInducingElementImpl
    * Initialize a newly created field element to have the given [name].
    */
   FieldElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  FieldElementImpl.forSerialized(
+      UnlinkedVariable unlinkedVariable, ElementImpl enclosingElement)
+      : super.forSerialized(unlinkedVariable, enclosingElement);
 
   @override
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;

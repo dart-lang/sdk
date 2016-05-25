@@ -2308,8 +2308,7 @@ class _UnitResynthesizer {
       element.setVisibleRange(
           serializedVariable.visibleOffset, serializedVariable.visibleLength);
     }
-    buildVariableCommonParts(element, serializedVariable,
-        isLazilyResynthesized: true);
+    buildVariableCommonParts(element, serializedVariable);
     return element;
   }
 
@@ -2421,10 +2420,9 @@ class _UnitResynthesizer {
    * Handle the parts that are common to top level variables and fields.
    */
   void buildPropertyIntroducingElementCommonParts(
-      PropertyInducingElementImpl element, UnlinkedVariable serializedVariable,
-      {bool isLazilyResynthesized: false}) {
-    buildVariableCommonParts(element, serializedVariable,
-        isLazilyResynthesized: isLazilyResynthesized);
+      PropertyInducingElementImpl element,
+      UnlinkedVariable serializedVariable) {
+    buildVariableCommonParts(element, serializedVariable);
     element.propagatedType = buildLinkedType(
         serializedVariable.propagatedTypeSlot,
         _currentTypeParameterizedElement);
@@ -2624,8 +2622,7 @@ class _UnitResynthesizer {
         element = new TopLevelVariableElementImpl.forSerialized(
             unlinkedVariable, unit);
       }
-      buildPropertyIntroducingElementCommonParts(element, unlinkedVariable,
-          isLazilyResynthesized: true);
+      buildPropertyIntroducingElementCommonParts(element, unlinkedVariable);
       variablesData.variables[i] = element;
       // implicit accessors
       String name = element.name;
@@ -2653,14 +2650,15 @@ class _UnitResynthesizer {
       if (serializedVariable.constExpr != null &&
           (serializedVariable.isConst ||
               serializedVariable.isFinal && !serializedVariable.isStatic)) {
-        ConstFieldElementImpl constElement = new ConstFieldElementImpl(
-            serializedVariable.name, serializedVariable.nameOffset);
+        ConstFieldElementImpl constElement =
+            new ConstFieldElementImpl.forSerialized(
+                serializedVariable, enclosingClass);
         element = constElement;
         constElement.constantInitializer =
             _buildConstExpression(enclosingClass, serializedVariable.constExpr);
       } else {
-        element = new FieldElementImpl(
-            serializedVariable.name, serializedVariable.nameOffset);
+        element = new FieldElementImpl.forSerialized(
+            serializedVariable, enclosingClass);
       }
       buildPropertyIntroducingElementCommonParts(element, serializedVariable);
       element.static = serializedVariable.isStatic;
@@ -2674,19 +2672,10 @@ class _UnitResynthesizer {
    * Handle the parts that are common to variables.
    */
   void buildVariableCommonParts(
-      VariableElementImpl element, UnlinkedVariable serializedVariable,
-      {bool isLazilyResynthesized: false}) {
+      VariableElementImpl element, UnlinkedVariable serializedVariable) {
     element.type = buildLinkedType(serializedVariable.inferredTypeSlot,
             _currentTypeParameterizedElement) ??
         buildType(serializedVariable.type, _currentTypeParameterizedElement);
-    if (!isLazilyResynthesized) {
-      element.const3 = serializedVariable.isConst;
-      element.final2 = serializedVariable.isFinal;
-      element.hasImplicitType = serializedVariable.type == null;
-      buildDocumentation(element, serializedVariable.documentationComment);
-      buildAnnotations(element, serializedVariable.annotations);
-      buildCodeRange(element, serializedVariable.codeRange);
-    }
     buildVariableInitializer(element, serializedVariable.initializer);
   }
 
