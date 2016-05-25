@@ -3962,7 +3962,7 @@ void f() {
     _assertNthStatementExits(source, 0);
   }
 
-  void _assertHasReturn(bool expectedResult, String source, int n) {
+  void _assertHasReturn(bool expectedResult, Source source, int n) {
     LibraryElement element = resolve2(source);
     CompilationUnit unit = resolveCompilationUnit(source, element);
     FunctionDeclaration function = unit.declarations.last;
@@ -3973,13 +3973,13 @@ void f() {
 
   // Assert that the [n]th statement in the last function declaration of
   // [source] exits.
-  void _assertNthStatementExits(String source, int n) {
+  void _assertNthStatementExits(Source source, int n) {
     _assertHasReturn(true, source, n);
   }
 
   // Assert that the [n]th statement in the last function declaration of
   // [source] does not exit.
-  void _assertNthStatementDoesNotExit(String source, int n) {
+  void _assertNthStatementDoesNotExit(Source source, int n) {
     _assertHasReturn(false, source, n);
   }
 }
