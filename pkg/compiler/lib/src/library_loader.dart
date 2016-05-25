@@ -365,9 +365,9 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         }
       }
 
-      List<Future<LibraryElement>> reusedLibrariesFuture =
-          measureSubtask(_reuseLibrarySubtaskName,
-              () => libraryCanonicalUriMap.values.map(wrapper).toList());
+      List<Future<LibraryElement>> reusedLibrariesFuture = measureSubtask(
+          _reuseLibrarySubtaskName,
+          () => libraryCanonicalUriMap.values.map(wrapper).toList());
 
       return Future
           .wait(reusedLibrariesFuture)

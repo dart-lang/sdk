@@ -633,88 +633,97 @@ class DeferredLoadTask extends CompilerTask {
     _constantsDeferredBy = new Map<_DeferredImport, Set<ConstantValue>>();
     _importedDeferredBy[_fakeMainImport] = _mainElements;
 
-    reporter.withCurrentElement(mainLibrary, () => measure(() {
-      // Starting from main, traverse the program and find all dependencies.
-      _mapDependencies(element: compiler.mainFunction, import: _fakeMainImport);
+    reporter.withCurrentElement(
+        mainLibrary,
+        () => measure(() {
+              // Starting from main, traverse the program and find all
+              // dependencies.
+              _mapDependencies(
+                  element: compiler.mainFunction, import: _fakeMainImport);
 
-      // Also add "global" dependencies to the main OutputUnit.  These are
-      // things that the backend needs but cannot associate with a particular
-      // element, for example, startRootIsolate.  This set also contains
-      // elements for which we lack precise information.
-      for (Element element in compiler.globalDependencies.otherDependencies) {
-        _mapDependencies(element: element, import: _fakeMainImport);
-      }
+              // Also add "global" dependencies to the main OutputUnit.  These
+              // are things that the backend needs but cannot associate with a
+              // particular element, for example, startRootIsolate.  This set
+              // also contains elements for which we lack precise information.
+              for (Element element
+                  in compiler.globalDependencies.otherDependencies) {
+                _mapDependencies(element: element, import: _fakeMainImport);
+              }
 
-      // Now check to see if we have to add more elements due to mirrors.
-      if (compiler.mirrorsLibrary != null) {
-        _addMirrorElements();
-      }
+              // Now check to see if we have to add more elements due to
+              // mirrors.
+              if (compiler.mirrorsLibrary != null) {
+                _addMirrorElements();
+              }
 
-      // Build the OutputUnits using these two maps.
-      Map<Element, OutputUnit> elementToOutputUnitBuilder =
-          new Map<Element, OutputUnit>();
-      Map<ConstantValue, OutputUnit> constantToOutputUnitBuilder =
-          new Map<ConstantValue, OutputUnit>();
+              // Build the OutputUnits using these two maps.
+              Map<Element, OutputUnit> elementToOutputUnitBuilder =
+                  new Map<Element, OutputUnit>();
+              Map<ConstantValue, OutputUnit> constantToOutputUnitBuilder =
+                  new Map<ConstantValue, OutputUnit>();
 
-      // Reverse the mappings. For each element record an OutputUnit collecting
-      // all deferred imports mapped to this element. Same for constants.
-      for (_DeferredImport import in _importedDeferredBy.keys) {
-        for (Element element in _importedDeferredBy[import]) {
-          // Only one file should be loaded when the program starts, so make
-          // sure that only one OutputUnit is created for [fakeMainImport].
-          if (import == _fakeMainImport) {
-            elementToOutputUnitBuilder[element] = mainOutputUnit;
-          } else {
-            elementToOutputUnitBuilder
-                .putIfAbsent(element, () => new OutputUnit())
-                .imports
-                .add(import);
-          }
-        }
-      }
-      for (_DeferredImport import in _constantsDeferredBy.keys) {
-        for (ConstantValue constant in _constantsDeferredBy[import]) {
-          // Only one file should be loaded when the program starts, so make
-          // sure that only one OutputUnit is created for [fakeMainImport].
-          if (import == _fakeMainImport) {
-            constantToOutputUnitBuilder[constant] = mainOutputUnit;
-          } else {
-            constantToOutputUnitBuilder
-                .putIfAbsent(constant, () => new OutputUnit())
-                .imports
-                .add(import);
-          }
-        }
-      }
+              // Reverse the mappings. For each element record an OutputUnit
+              // collecting all deferred imports mapped to this element. Same
+              // for constants.
+              for (_DeferredImport import in _importedDeferredBy.keys) {
+                for (Element element in _importedDeferredBy[import]) {
+                  // Only one file should be loaded when the program starts, so
+                  // make sure that only one OutputUnit is created for
+                  // [fakeMainImport].
+                  if (import == _fakeMainImport) {
+                    elementToOutputUnitBuilder[element] = mainOutputUnit;
+                  } else {
+                    elementToOutputUnitBuilder
+                        .putIfAbsent(element, () => new OutputUnit())
+                        .imports
+                        .add(import);
+                  }
+                }
+              }
+              for (_DeferredImport import in _constantsDeferredBy.keys) {
+                for (ConstantValue constant in _constantsDeferredBy[import]) {
+                  // Only one file should be loaded when the program starts, so
+                  // make sure that only one OutputUnit is created for
+                  // [fakeMainImport].
+                  if (import == _fakeMainImport) {
+                    constantToOutputUnitBuilder[constant] = mainOutputUnit;
+                  } else {
+                    constantToOutputUnitBuilder
+                        .putIfAbsent(constant, () => new OutputUnit())
+                        .imports
+                        .add(import);
+                  }
+                }
+              }
 
-      // Release maps;
-      _importedDeferredBy = null;
-      _constantsDeferredBy = null;
+              // Release maps;
+              _importedDeferredBy = null;
+              _constantsDeferredBy = null;
 
-      // Find all the output units elements/constants have been mapped to, and
-      // canonicalize them.
-      elementToOutputUnitBuilder
-          .forEach((Element element, OutputUnit outputUnit) {
-        OutputUnit representative = allOutputUnits.lookup(outputUnit);
-        if (representative == null) {
-          representative = outputUnit;
-          allOutputUnits.add(representative);
-        }
-        _elementToOutputUnit[element] = representative;
-      });
-      constantToOutputUnitBuilder
-          .forEach((ConstantValue constant, OutputUnit outputUnit) {
-        OutputUnit representative = allOutputUnits.lookup(outputUnit);
-        if (representative == null) {
-          representative = outputUnit;
-          allOutputUnits.add(representative);
-        }
-        _constantToOutputUnit[constant] = representative;
-      });
+              // Find all the output units elements/constants have been mapped
+              // to, and canonicalize them.
+              elementToOutputUnitBuilder
+                  .forEach((Element element, OutputUnit outputUnit) {
+                OutputUnit representative = allOutputUnits.lookup(outputUnit);
+                if (representative == null) {
+                  representative = outputUnit;
+                  allOutputUnits.add(representative);
+                }
+                _elementToOutputUnit[element] = representative;
+              });
+              constantToOutputUnitBuilder
+                  .forEach((ConstantValue constant, OutputUnit outputUnit) {
+                OutputUnit representative = allOutputUnits.lookup(outputUnit);
+                if (representative == null) {
+                  representative = outputUnit;
+                  allOutputUnits.add(representative);
+                }
+                _constantToOutputUnit[constant] = representative;
+              });
 
-      // Generate a unique name for each OutputUnit.
-      _assignNamesToOutputUnits(allOutputUnits);
-    }));
+              // Generate a unique name for each OutputUnit.
+              _assignNamesToOutputUnits(allOutputUnits);
+            }));
     // Notify the impact strategy impacts are no longer needed for deferred
     // load.
     compiler.impactStrategy.onImpactUsed(IMPACT_USE);

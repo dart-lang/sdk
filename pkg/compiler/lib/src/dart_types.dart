@@ -377,8 +377,7 @@ abstract class GenericType extends DartType {
       : this.element = element,
         this.typeArguments = typeArguments,
         this.containsMethodTypeVariableType =
-            typeArguments.any(_typeContainsMethodTypeVariableType)
-  {
+            typeArguments.any(_typeContainsMethodTypeVariableType) {
     assert(invariant(CURRENT_ELEMENT_SPANNABLE, element != null,
         message: "Missing element for generic type."));
     assert(invariant(element, () {
@@ -446,8 +445,9 @@ abstract class GenericType extends DartType {
   @override
   DartType get dynamifyMethodTypeVariableType {
     if (!containsMethodTypeVariableType) return this;
-    List<DartType> newTypeArguments = typeArguments.map(
-        (DartType type) => type.dynamifyMethodTypeVariableType).toList();
+    List<DartType> newTypeArguments = typeArguments
+        .map((DartType type) => type.dynamifyMethodTypeVariableType)
+        .toList();
     return createInstantiation(newTypeArguments);
   }
 
@@ -642,11 +642,11 @@ class FunctionType extends DartType {
         this.optionalParameterTypes = optionalParameterTypes,
         this.namedParameters = namedParameters,
         this.namedParameterTypes = namedParameterTypes,
-        this.containsMethodTypeVariableType =
-          returnType.containsMethodTypeVariableType ||
-          parameterTypes.any(_typeContainsMethodTypeVariableType) ||
-          optionalParameterTypes.any(_typeContainsMethodTypeVariableType) ||
-          namedParameterTypes.any(_typeContainsMethodTypeVariableType) {
+        this.containsMethodTypeVariableType = returnType
+                .containsMethodTypeVariableType ||
+            parameterTypes.any(_typeContainsMethodTypeVariableType) ||
+            optionalParameterTypes.any(_typeContainsMethodTypeVariableType) ||
+            namedParameterTypes.any(_typeContainsMethodTypeVariableType) {
     assert(invariant(
         CURRENT_ELEMENT_SPANNABLE, element == null || element.isDeclaration));
     // Assert that optional and named parameters are not used at the same time.
@@ -784,13 +784,8 @@ class FunctionType extends DartType {
         optionalParameterTypes.map(eraseIt).toList();
     List<DartType> newNamedParameterTypes =
         namedParameterTypes.map(eraseIt).toList();
-    return new FunctionType.internal(
-        element,
-        newReturnType,
-        newParameterTypes,
-        newOptionalParameterTypes,
-        namedParameters,
-        newNamedParameterTypes);
+    return new FunctionType.internal(element, newReturnType, newParameterTypes,
+        newOptionalParameterTypes, namedParameters, newNamedParameterTypes);
   }
 
   @override
