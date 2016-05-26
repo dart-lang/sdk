@@ -1310,7 +1310,7 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
       this.constructorParameterNames);
 
   @override
-  bool isConstructorParameterName(String name) {
+  bool isParameterName(String name) {
     return constructorParameterNames?.contains(name) ?? false;
   }
 

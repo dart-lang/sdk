@@ -1124,10 +1124,10 @@ enum UnlinkedConstOperation {
   pushNull,
 
   /**
-   * Push the value of the constant constructor parameter with
-   * the name obtained from [UnlinkedConst.strings].
+   * Push the value of the function parameter with the name obtained from
+   * [UnlinkedConst.strings].
    */
-  pushConstructorParameter,
+  pushParameter,
 
   /**
    * Evaluate a (potentially qualified) identifier expression and push the

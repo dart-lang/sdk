@@ -37,17 +37,17 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   final Map<int, int> localClosureIndexMap;
 
   /**
-   * If a constructor initializer expression is being serialized, the names of
-   * the constructor parameters.  Otherwise `null`.
+   * If the expression being serialized appears inside a function body, the names
+   * of parameters that are in scope.  Otherwise `null`.
    */
-  final Set<String> constructorParameterNames;
+  final Set<String> parameterNames;
 
   _ConstExprSerializer(
-      this.visitor, this.localClosureIndexMap, this.constructorParameterNames);
+      this.visitor, this.localClosureIndexMap, this.parameterNames);
 
   @override
-  bool isConstructorParameterName(String name) {
-    return constructorParameterNames?.contains(name) ?? false;
+  bool isParameterName(String name) {
+    return parameterNames?.contains(name) ?? false;
   }
 
   @override
@@ -353,6 +353,12 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   bool _serializeClosureBodyExprs = false;
 
   /**
+   * If a closure function body is being serialized, the set of closure
+   * parameter names which are currently in scope.  Otherwise `null`.
+   */
+  Set<String> _parameterNames;
+
+  /**
    * Create a slot id for storing a propagated or inferred type or const cycle
    * info.
    */
@@ -529,9 +535,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    */
   UnlinkedConstBuilder serializeConstExpr(
       Map<int, int> localClosureIndexMap, Expression expression,
-      [Set<String> constructorParameterNames]) {
-    _ConstExprSerializer serializer = new _ConstExprSerializer(
-        this, localClosureIndexMap, constructorParameterNames);
+      [Set<String> parameterNames]) {
+    _ConstExprSerializer serializer =
+        new _ConstExprSerializer(this, localClosureIndexMap, parameterNames);
     serializer.serialize(expression);
     return serializer.toBuilder();
   }
@@ -654,7 +660,15 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     }
     b.visibleOffset = enclosingBlock?.offset;
     b.visibleLength = enclosingBlock?.length;
+    Set<String> oldParameterNames = _parameterNames;
+    if (formalParameters != null && formalParameters.parameters.isNotEmpty) {
+      _parameterNames =
+          _parameterNames == null ? new Set<String>() : _parameterNames.toSet();
+      _parameterNames.addAll(formalParameters.parameters
+          .map((FormalParameter p) => p.identifier.name));
+    }
     serializeFunctionBody(b, null, body, serializeBodyExpr);
+    _parameterNames = oldParameterNames;
     scopes.removeLast();
     assert(scopes.length == oldScopesLength);
     return b;
@@ -705,9 +719,11 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     body.accept(this);
     if (serializeBodyExpr) {
       if (body is Expression) {
-        b.bodyExpr = serializeConstExpr(_localClosureIndexMap, body);
+        b.bodyExpr =
+            serializeConstExpr(_localClosureIndexMap, body, _parameterNames);
       } else if (body is ExpressionFunctionBody) {
-        b.bodyExpr = serializeConstExpr(_localClosureIndexMap, body.expression);
+        b.bodyExpr = serializeConstExpr(
+            _localClosureIndexMap, body.expression, _parameterNames);
       } else {
         // TODO(paulberry): serialize other types of function bodies.
       }

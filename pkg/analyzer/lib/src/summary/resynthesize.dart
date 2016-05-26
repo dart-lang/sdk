@@ -468,7 +468,7 @@ class _ConstExprBuilder {
         case UnlinkedConstOperation.invokeConstructor:
           _pushInstanceCreation();
           break;
-        case UnlinkedConstOperation.pushConstructorParameter:
+        case UnlinkedConstOperation.pushParameter:
           String name = uc.strings[stringPtr++];
           SimpleIdentifier identifier = AstFactory.identifier3(name);
           identifier.staticElement = resynthesizer.currentConstructor.parameters

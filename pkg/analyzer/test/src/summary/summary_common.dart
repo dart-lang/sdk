@@ -1756,8 +1756,7 @@ class C {
 }
 ''');
     _assertUnlinkedConst(cls.executables[0].constantInitializers[0].expression,
-        operators: [UnlinkedConstOperation.pushConstructorParameter],
-        strings: ['a']);
+        operators: [UnlinkedConstOperation.pushParameter], strings: ['a']);
   }
 
   test_constExpr_constructorParam_shadows_typeParam() {
@@ -1768,8 +1767,7 @@ class C<T> {
 }
 ''');
     _assertUnlinkedConst(cls.executables[0].constantInitializers[0].expression,
-        operators: [UnlinkedConstOperation.pushConstructorParameter],
-        strings: ['T']);
+        operators: [UnlinkedConstOperation.pushParameter], strings: ['T']);
   }
 
   test_constExpr_functionExpression_asArgument() {
@@ -3462,8 +3460,7 @@ class C {
     expect(initializer.kind, UnlinkedConstructorInitializerKind.field);
     expect(initializer.name, 'x');
     _assertUnlinkedConst(initializer.expression,
-        operators: [UnlinkedConstOperation.pushConstructorParameter],
-        strings: ['p']);
+        operators: [UnlinkedConstOperation.pushParameter], strings: ['p']);
     expect(initializer.arguments, isEmpty);
   }
 
@@ -7081,6 +7078,54 @@ final v = ((a, b) => 42)(1, 2);
     // to participate in type inference.
     UnlinkedVariable variable = serializeVariableText('Object v = () => 1;');
     expect(variable.initializer.localFunctions[0].bodyExpr, isNull);
+  }
+
+  test_expr_inClosure_refersToOuterParam() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable =
+        serializeVariableText('var v = (x) => (y) => x;');
+    _assertUnlinkedConst(
+        variable.initializer.localFunctions[0].localFunctions[0].bodyExpr,
+        operators: [UnlinkedConstOperation.pushParameter],
+        strings: ['x']);
+  }
+
+  test_expr_inClosure_refersToParam() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('var v = (x) => x;');
+    _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
+        operators: [UnlinkedConstOperation.pushParameter], strings: ['x']);
+  }
+
+  test_expr_inClosure_refersToParam_outOfScope() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable =
+        serializeVariableText('var x; var v = (b) => (b ? (x) => x : x);');
+    _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
+        isValidConst: false,
+        operators: [
+          UnlinkedConstOperation.pushParameter,
+          UnlinkedConstOperation.pushLocalFunctionReference,
+          UnlinkedConstOperation.pushReference,
+          UnlinkedConstOperation.conditional,
+        ],
+        strings: [
+          'b'
+        ],
+        ints: [
+          0,
+          0
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, null, null, 'x',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor)
+        ]);
   }
 
   test_expr_invokeMethod_instance() {
