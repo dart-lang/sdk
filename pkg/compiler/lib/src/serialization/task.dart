@@ -5,6 +5,7 @@
 library dart2js.serialization.task;
 
 import 'dart:async' show EventSink, Future;
+import '../common.dart';
 import '../common/resolution.dart' show ResolutionImpact, ResolutionWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../common/work.dart' show ItemCompilationContext;
@@ -26,7 +27,10 @@ abstract class LibraryDeserializer {
 
 /// Task that supports deserialization of elements.
 class SerializationTask extends CompilerTask implements LibraryDeserializer {
-  SerializationTask(Compiler compiler) : super(compiler);
+  final Compiler compiler;
+  SerializationTask(Compiler compiler)
+      : compiler = compiler,
+        super(compiler.measurer);
 
   DeserializerSystem deserializer;
 
@@ -83,7 +87,8 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
     return measure(() {
       assert(supportSerialization);
 
-      Serializer serializer = new Serializer();
+      Serializer serializer =
+          new Serializer(shouldInclude: (e) => libraries.contains(e.library));
       SerializerPlugin backendSerializer =
           compiler.backend.serialization.serializer;
       serializer.plugins.add(backendSerializer);
@@ -109,15 +114,17 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
     });
   }
 
-  void deserializeFromText(String serializedData) {
+  void deserializeFromText(Uri sourceUri, String serializedData) {
     measure(() {
+      if (deserializer == null) {
+        deserializer = new DeserializerSystemImpl(
+            compiler, compiler.backend.impactTransformer);
+      }
+      DeserializerSystemImpl deserializerImpl = deserializer;
+      DeserializationContext context = deserializerImpl.deserializationContext;
       Deserializer dataDeserializer = new Deserializer.fromText(
-          new DeserializationContext(),
-          serializedData,
-          const JsonSerializationDecoder());
-      dataDeserializer.plugins.add(compiler.backend.serialization.deserializer);
-      deserializer = new DeserializerSystemImpl(
-          compiler, dataDeserializer, compiler.backend.impactTransformer);
+          context, sourceUri, serializedData, const JsonSerializationDecoder());
+      context.deserializers.add(dataDeserializer);
     });
   }
 }

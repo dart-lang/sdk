@@ -822,12 +822,10 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       all_classes_finalized_(false),
       next_(NULL),
       pause_loop_monitor_(NULL),
-      field_invalidation_gen_(kInvalidGen),
       loading_invalidation_gen_(kInvalidGen),
       top_level_parsing_count_(0),
       field_list_mutex_(new Mutex()),
       boxed_field_list_(GrowableObjectArray::null()),
-      disabling_field_list_(GrowableObjectArray::null()),
       spawn_count_monitor_(new Monitor()),
       spawn_count_(0),
       has_attempted_reload_(false),
@@ -1610,9 +1608,11 @@ void Isolate::LowLevelShutdown() {
   FinalizeWeakPersistentHandlesVisitor visitor;
   api_state()->weak_persistent_handles().VisitHandles(&visitor);
 
+  if (FLAG_dump_megamorphic_stats) {
+    MegamorphicCacheTable::PrintSizes(this);
+  }
   if (FLAG_trace_isolates) {
     heap()->PrintSizes();
-    MegamorphicCacheTable::PrintSizes(this);
     Symbols::DumpStats();
     OS::Print("[-] Stopping isolate:\n"
               "\tisolate:    %s\n", name());
@@ -1765,12 +1765,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // is guarded with a monitor. This means that we can visit it only
   // when at safepoint or the field_list_mutex_ lock has been taken.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&boxed_field_list_));
-
-  // Visit the disabling_field_list.
-  // 'disabling_field_list_' access via mutator and background compilation
-  // threads is guarded with a monitor. This means that we can visit it only
-  // when at safepoint or the field_list_mutex_ lock has been taken.
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&disabling_field_list_));
 
   // Visit objects in the debugger.
   if (FLAG_support_debugger) {
@@ -2017,50 +2011,6 @@ void Isolate::set_pending_service_extension_calls(
 void Isolate::set_registered_service_extension_handlers(
     const GrowableObjectArray& value) {
   registered_service_extension_handlers_ = value.raw();
-}
-
-
-// Used by mutator thread to notify background compiler which fields
-// triggered code invalidation.
-void Isolate::AddDisablingField(const Field& field) {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  SafepointMutexLocker ml(field_list_mutex_);
-  if (disabling_field_list_ == GrowableObjectArray::null()) {
-    disabling_field_list_ = GrowableObjectArray::New(Heap::kOld);
-  }
-  const GrowableObjectArray& array =
-      GrowableObjectArray::Handle(disabling_field_list_);
-  array.Add(field, Heap::kOld);
-}
-
-
-RawField* Isolate::GetDisablingField() {
-  ASSERT(Compiler::IsBackgroundCompilation() &&
-         (!Isolate::Current()->HasMutatorThread() ||
-         Isolate::Current()->mutator_thread()->IsAtSafepoint()));
-  ASSERT(Thread::Current()->IsAtSafepoint());
-  if (disabling_field_list_ == GrowableObjectArray::null()) {
-    return Field::null();
-  }
-  const GrowableObjectArray& array =
-      GrowableObjectArray::Handle(disabling_field_list_);
-  if (array.Length() == 0) {
-    return Field::null();
-  }
-  return Field::RawCast(array.RemoveLast());
-}
-
-
-void Isolate::ClearDisablingFieldList() {
-  MutexLocker ml(field_list_mutex_);
-  if (disabling_field_list_ == GrowableObjectArray::null()) {
-    return;
-  }
-  const GrowableObjectArray& array =
-      GrowableObjectArray::Handle(disabling_field_list_);
-  if (array.Length() > 0) {
-    array.SetLength(0);
-  }
 }
 
 

@@ -110,16 +110,18 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     expect(resynthesized.hasExtUri, original.hasExtUri);
     compareCompilationUnitElements(resynthesized.definingCompilationUnit,
         original.definingCompilationUnit);
-    expect(resynthesized.parts.length, original.parts.length);
+    expect(resynthesized.parts.length, original.parts.length, reason: 'parts');
     for (int i = 0; i < resynthesized.parts.length; i++) {
       compareCompilationUnitElements(resynthesized.parts[i], original.parts[i]);
     }
-    expect(resynthesized.imports.length, original.imports.length);
+    expect(resynthesized.imports.length, original.imports.length,
+        reason: 'imports');
     for (int i = 0; i < resynthesized.imports.length; i++) {
       compareImportElements(resynthesized.imports[i], original.imports[i],
           'import ${original.imports[i].uri}');
     }
-    expect(resynthesized.exports.length, original.exports.length);
+    expect(resynthesized.exports.length, original.exports.length,
+        reason: 'exports');
     for (int i = 0; i < resynthesized.exports.length; i++) {
       compareExportElements(resynthesized.exports[i], original.exports[i],
           'export ${original.exports[i].uri}');
@@ -260,13 +262,15 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     compareUriReferencedElements(resynthesized, original, desc);
     expect(resynthesized.source, original.source);
     expect(resynthesized.librarySource, original.librarySource);
-    expect(resynthesized.types.length, original.types.length);
+    expect(resynthesized.types.length, original.types.length,
+        reason: '$desc types');
     for (int i = 0; i < resynthesized.types.length; i++) {
       compareClassElements(
           resynthesized.types[i], original.types[i], original.types[i].name);
     }
     expect(resynthesized.topLevelVariables.length,
-        original.topLevelVariables.length);
+        original.topLevelVariables.length,
+        reason: '$desc topLevelVariables');
     for (int i = 0; i < resynthesized.topLevelVariables.length; i++) {
       String name = resynthesized.topLevelVariables[i].name;
       compareTopLevelVariableElements(
@@ -275,25 +279,29 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
               .singleWhere((TopLevelVariableElement e) => e.name == name),
           'variable $name');
     }
-    expect(resynthesized.functions.length, original.functions.length);
+    expect(resynthesized.functions.length, original.functions.length,
+        reason: '$desc functions');
     for (int i = 0; i < resynthesized.functions.length; i++) {
       compareFunctionElements(resynthesized.functions[i], original.functions[i],
           'function ${original.functions[i].name}');
     }
     expect(resynthesized.functionTypeAliases.length,
-        original.functionTypeAliases.length);
+        original.functionTypeAliases.length,
+        reason: '$desc functionTypeAliases');
     for (int i = 0; i < resynthesized.functionTypeAliases.length; i++) {
       compareFunctionTypeAliasElements(
           resynthesized.functionTypeAliases[i],
           original.functionTypeAliases[i],
           original.functionTypeAliases[i].name);
     }
-    expect(resynthesized.enums.length, original.enums.length);
+    expect(resynthesized.enums.length, original.enums.length,
+        reason: '$desc enums');
     for (int i = 0; i < resynthesized.enums.length; i++) {
       compareClassElements(
           resynthesized.enums[i], original.enums[i], original.enums[i].name);
     }
-    expect(resynthesized.accessors.length, original.accessors.length);
+    expect(resynthesized.accessors.length, original.accessors.length,
+        reason: '$desc accessors');
     for (int i = 0; i < resynthesized.accessors.length; i++) {
       String name = resynthesized.accessors[i].name;
       if (original.accessors[i].isGetter) {
@@ -509,8 +517,13 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         expect(rType, isNotNull, reason: desc);
         compareConstAsts(rType.name, oType.name, desc);
         compareConstAsts(rConstructor.name, oConstructor.name, desc);
-        compareConstAstLists(rType.typeArguments?.arguments,
-            oType.typeArguments?.arguments, desc);
+        // In strong mode type inference is performed, so that
+        // `C<int> v = new C();` is serialized as `C<int> v = new C<int>();`.
+        // So, if there are not type arguments originally, not need to check.
+        if (oType.typeArguments?.arguments?.isNotEmpty ?? false) {
+          compareConstAstLists(rType.typeArguments?.arguments,
+              oType.typeArguments?.arguments, desc);
+        }
         compareConstAstLists(
             r.argumentList.arguments, o.argumentList.arguments, desc);
       } else if (o is AnnotationImpl && r is AnnotationImpl) {
@@ -772,15 +785,18 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       ImportElementImpl original, String desc) {
     compareUriReferencedElements(resynthesized, original, desc);
     expect(resynthesized.importedLibrary.location,
-        original.importedLibrary.location);
-    expect(resynthesized.prefixOffset, original.prefixOffset);
+        original.importedLibrary.location,
+        reason: '$desc importedLibrary location');
+    expect(resynthesized.prefixOffset, original.prefixOffset,
+        reason: '$desc prefixOffset');
     if (original.prefix == null) {
-      expect(resynthesized.prefix, isNull);
+      expect(resynthesized.prefix, isNull, reason: '$desc prefix');
     } else {
       comparePrefixElements(
           resynthesized.prefix, original.prefix, original.prefix.name);
     }
-    expect(resynthesized.combinators.length, original.combinators.length);
+    expect(resynthesized.combinators.length, original.combinators.length,
+        reason: '$desc combinators');
     for (int i = 0; i < resynthesized.combinators.length; i++) {
       compareNamespaceCombinators(
           resynthesized.combinators[i], original.combinators[i]);
@@ -847,12 +863,14 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       NamespaceCombinator resynthesized, NamespaceCombinator original) {
     if (original is ShowElementCombinatorImpl &&
         resynthesized is ShowElementCombinatorImpl) {
-      expect(resynthesized.shownNames, original.shownNames);
-      expect(resynthesized.offset, original.offset);
-      expect(resynthesized.end, original.end);
+      expect(resynthesized.shownNames, original.shownNames,
+          reason: 'shownNames');
+      expect(resynthesized.offset, original.offset, reason: 'offset');
+      expect(resynthesized.end, original.end, reason: 'end');
     } else if (original is HideElementCombinatorImpl &&
         resynthesized is HideElementCombinatorImpl) {
-      expect(resynthesized.hiddenNames, original.hiddenNames);
+      expect(resynthesized.hiddenNames, original.hiddenNames,
+          reason: 'hiddenNames');
     } else if (resynthesized.runtimeType != original.runtimeType) {
       fail(
           'Type mismatch: expected ${original.runtimeType}, got ${resynthesized.runtimeType}');
@@ -1071,9 +1089,10 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   void compareUriReferencedElements(UriReferencedElementImpl resynthesized,
       UriReferencedElementImpl original, String desc) {
     compareElements(resynthesized, original, desc);
-    expect(resynthesized.uri, original.uri);
-    expect(resynthesized.uriOffset, original.uriOffset, reason: desc);
-    expect(resynthesized.uriEnd, original.uriEnd, reason: desc);
+    expect(resynthesized.uri, original.uri, reason: '$desc uri');
+    expect(resynthesized.uriOffset, original.uriOffset,
+        reason: '$desc uri uriOffset');
+    expect(resynthesized.uriEnd, original.uriEnd, reason: '$desc uriEnd');
   }
 
   void compareVariableElements(
@@ -2872,6 +2891,71 @@ class C {
 class D {
   final x;
   D() : x = new C();
+}
+''');
+  }
+
+  test_defaultValue_refersToGenericClass_constructor() {
+    checkLibrary('''
+class B<T> {
+  const B();
+}
+class C<T> {
+  const C([B<T> b = const B()]);
+}
+''');
+  }
+
+  test_defaultValue_refersToGenericClass_constructor2() {
+    checkLibrary('''
+abstract class A<T> {}
+class B<T> implements A<T> {
+  const B();
+}
+class C<T> implements A<Iterable<T>> {
+  const C([A<T> a = const B()]);
+}
+''');
+  }
+
+  test_defaultValue_refersToGenericClass_functionG() {
+    checkLibrary('''
+class B<T> {
+  const B();
+}
+void foo<T>([B<T> b = const B()]) {}
+''');
+  }
+
+  test_defaultValue_refersToGenericClass_methodG() {
+    checkLibrary('''
+class B<T> {
+  const B();
+}
+class C {
+  void foo<T>([B<T> b = const B()]) {}
+}
+''');
+  }
+
+  test_defaultValue_refersToGenericClass_methodG_classG() {
+    checkLibrary('''
+class B<T1, T2> {
+  const B();
+}
+class C<E1> {
+  void foo<E2>([B<E1, E2> b = const B()]) {}
+}
+''');
+  }
+
+  test_defaultValue_refersToGenericClass_methodNG() {
+    checkLibrary('''
+class B<T> {
+  const B();
+}
+class C<T> {
+  void foo([B<T> b = const B()]) {}
 }
 ''');
   }

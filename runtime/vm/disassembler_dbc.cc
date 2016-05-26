@@ -63,7 +63,11 @@ static void Fmtreg(char** buf, intptr_t* size, uword pc, int32_t value) {
 
 
 static void Fmtxeg(char** buf, intptr_t* size, uword pc, int32_t value) {
-  FormatOperand(buf, size, "R(%d)", value);
+  if (value < 0) {
+    FormatOperand(buf, size, "FP[%d]", value);
+  } else {
+    Fmtreg(buf, size, pc, value);
+  }
 }
 
 

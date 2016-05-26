@@ -36,7 +36,7 @@ class SsaOptimizerTask extends CompilerTask {
   final JavaScriptBackend backend;
   SsaOptimizerTask(JavaScriptBackend backend)
       : this.backend = backend,
-        super(backend.compiler);
+        super(backend.compiler.measurer);
   String get name => 'SSA optimizer';
   Compiler get compiler => backend.compiler;
   Map<HInstruction, Range> ranges = <HInstruction, Range>{};
@@ -779,6 +779,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     TypeMask inputType = input.instructionType;
     return inputType.isInMask(checkedType, classWorld) ? input : node;
   }
+
+  HInstruction removeCheck(HCheck node) => node.checkedInput;
 
   VariableElement findConcreteFieldForDynamicAccess(
       HInstruction receiver, Selector selector) {

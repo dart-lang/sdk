@@ -14,6 +14,46 @@ import re
 from htmlrenamer import custom_html_constructors, html_interface_renames, \
     typed_array_renames
 
+_pure_interfaces = monitored.Set('generator._pure_interfaces', [
+    'AbstractWorker',
+    'CanvasPathMethods',
+    'ChildNode',
+    'DocumentAnimation',
+    'DocumentFontFaceSet',
+    'DocumentFullscreen',
+    'DocumentXPathEvaluator',
+    'ElementAnimation',
+    'ElementFullscreen',
+    'EventListener',
+    'GlobalEventHandlers',
+    'ImageBitmapFactories',
+    'MediaQueryListListener',
+    'MouseEventHitRegion',
+    'MutationCallback',
+    'NavigatorCPU',
+    'NavigatorEvents',
+    'NavigatorID',
+    'NavigatorLanguage',
+    'NavigatorOnLine',
+    'ParentNode',
+    'SVGDocument',
+    'SVGExternalResourcesRequired',
+    'SVGFilterPrimitiveStandardAttributes',
+    'SVGFitToViewBox',
+    'SVGTests',
+    'SVGURIReference',
+    'SVGZoomAndPan',
+    'TimeoutHandler',
+    'URLUtils',
+    'URLUtilsReadOnly',
+    'WebGLRenderingContextBase',
+    'WindowBase64',
+    'WindowEventHandlers',
+    'WindowImageBitmapFactories',
+    'WindowPagePopup',
+    'WindowTimers',
+    ])
+
 _safe_interfaces = monitored.Set('generator._safe_interfaces', [
     'double',
     'Float32Array',
@@ -149,6 +189,8 @@ _safe_interfaces_legacy = monitored.Set('generator._safe_interfaces_legacy', [
 # SpeechGrammarList and friends
 
 def IsPureInterface(interface_name, database):
+  if (interface_name in _pure_interfaces):
+    return True
   if (interface_name in _safe_interfaces or
       interface_name in _safe_interfaces_legacy or
       database.HasInterface(interface_name)):

@@ -1953,6 +1953,12 @@ abstract class InternalAnalysisContext implements AnalysisContext {
   List<AnalysisTarget> get explicitTargets;
 
   /**
+   * Return the [StreamController] reporting [InvalidatedResult]s for everything
+   * in this context's cache.
+   */
+  ReentrantSynchronousStream<InvalidatedResult> get onResultInvalidated;
+
+  /**
    * Return a list containing all of the sources that have been marked as
    * priority sources. Clients must not modify the returned list.
    */

@@ -18,7 +18,7 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
   JavaScriptConstantTask(Compiler compiler)
       : this.dartConstantCompiler = new DartConstantCompiler(compiler),
         this.jsConstantCompiler = new JavaScriptConstantCompiler(compiler),
-        super(compiler);
+        super(compiler.measurer);
 
   String get name => 'ConstantHandler';
 

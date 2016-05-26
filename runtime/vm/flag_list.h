@@ -61,6 +61,8 @@ R(disassemble, false, bool, false,                                             \
   "Disassemble dart code.")                                                    \
 R(disassemble_optimized, false, bool, false,                                   \
   "Disassemble optimized code.")                                               \
+R(dump_megamorphic_stats, false, bool, false,                                  \
+  "Dump megamorphic cache statistics")                                         \
 R(dump_symbol_stats, false, bool, false,                                       \
   "Dump symbol table statistics")                                              \
 R(enable_asserts, false, bool, false,                                          \

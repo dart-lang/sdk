@@ -336,8 +336,9 @@ abstract class Iterable<E> {
    * The elements are in iteration order.
    * The list is fixed-length if [growable] is false.
    */
-  List<E> toList({ bool growable: true }) =>
-      new List<E>.from(this, growable: growable);
+  List<E> toList({bool growable: true}) {
+    return new List<E>.from(this, growable: growable);
+  }
 
   /**
    * Creates a [Set] containing the same elements as this iterable.

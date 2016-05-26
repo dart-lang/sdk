@@ -1639,8 +1639,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     }
 
     // If no embedded URI resolver was provided, defer to a locator-backed one.
-    embedderUriResolver ??=
-        new EmbedderUriResolver(context.embedderYamlLocator.embedderYamls);
+    embedderUriResolver ??= new EmbedderUriResolver(
+        new EmbedderSdk(context.embedderYamlLocator.embedderYamls));
     if (embedderUriResolver.length == 0) {
       // The embedder uri resolver has no mappings. Use the default Dart SDK
       // uri resolver.

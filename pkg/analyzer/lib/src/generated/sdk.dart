@@ -372,10 +372,6 @@ class SdkLibraryImpl implements SdkLibrary {
    */
   static int VM_PLATFORM = 2;
 
-  /**
-   * The short name of the library. This is the name used after 'dart:' in a
-   * URI.
-   */
   @override
   final String shortName;
 

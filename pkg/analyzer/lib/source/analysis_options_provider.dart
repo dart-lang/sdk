@@ -14,8 +14,9 @@ import 'package:yaml/yaml.dart';
 
 /// Provide the options found in the analysis options file.
 class AnalysisOptionsProvider {
-  /// Provide the options found in either [root]/[ANALYSIS_OPTIONS_FILE] or
-  /// [root]/[ANALYSIS_OPTIONS_YAML_FILE].
+  /// Provide the options found in either
+  /// [root]/[AnalysisEngine.ANALYSIS_OPTIONS_FILE] or
+  /// [root]/[AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE].
   /// Return an empty options map if the file does not exist.
   Map<String, YamlNode> getOptions(Folder root, {bool crawlUp: false}) {
     Resource resource;

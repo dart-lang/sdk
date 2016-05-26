@@ -500,6 +500,12 @@ class Uri {
         if (i == start) _fail(uri, start, "Invalid empty scheme");
         scheme = _makeScheme(uri, start, i);
         i++;
+        if (scheme == "data") {
+          // This generates a URI that is (potentially) not path normalized.
+          // Applying part normalization to a non-hierarchial URI isn't
+          // meaningful.
+          return UriData._parse(uri, i, null).uri;
+        }
         pathStart = i;
         if (i == end) {
           char = EOI;
@@ -3040,9 +3046,10 @@ class UriData {
       end = queryIndex;
     }
     path = _text.substring(colonIndex + 1, end);
-    // TODO(lrn): This is probably too simple. We should ensure URI
-    // normalization before passing in the raw strings, maybe using
-    // Uri._makePath, Uri._makeQuery.
+    // TODO(lrn): This can generate a URI that isn't path normalized.
+    // That's perfectly reasonable - data URIs are not hierarchical,
+    // but it may make some consumers stumble.
+    // Should we at least do escape normalization?
     _uriCache = new Uri._internal("data", "", null, null, path, query, null);
     return _uriCache;
   }

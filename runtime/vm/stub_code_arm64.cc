@@ -2106,7 +2106,8 @@ void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
   __ ldr(R1, FieldAddress(R5, MegamorphicCache::mask_offset()));
   // R2: cache buckets array.
   // R1: mask.
-  __ mov(R3, R0);
+  __ LoadImmediate(TMP, MegamorphicCache::kSpreadFactor);
+  __ mul(R3, R0, TMP);
   // R3: probe.
 
   Label loop, update, load_target_function;

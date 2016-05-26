@@ -508,6 +508,56 @@ class D extends C {
         'int');
   }
 
+  void test_instantiate_param_of_param_to_bounds() {
+    createLinker('''
+class C<T> {}
+class D<T extends num> {}
+final x = new C<D>();
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+    PropertyAccessorElementForLink_Variable x = library.getContainedName('x');
+    ParameterizedType type1 = x.returnType;
+    expect(type1.element.name, 'C');
+    expect(type1.typeArguments, hasLength(1));
+    ParameterizedType type2 = type1.typeArguments[0];
+    expect(type2.element.name, 'D');
+    expect(type2.typeArguments, hasLength(1));
+    DartType type3 = type2.typeArguments[0];
+    expect(type3.toString(), 'num');
+  }
+
+  void test_instantiate_param_to_bounds_class() {
+    createLinker('''
+class C<T extends num> {}
+final x = new C();
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+    PropertyAccessorElementForLink_Variable x = library.getContainedName('x');
+    ParameterizedType type1 = x.returnType;
+    expect(type1.element.name, 'C');
+    expect(type1.typeArguments, hasLength(1));
+    DartType type2 = type1.typeArguments[0];
+    expect(type2.toString(), 'num');
+  }
+
+  void test_instantiate_param_to_bounds_typedef() {
+    createLinker('''
+typedef T F<T extends num>();
+final x = new List<F>();
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+    PropertyAccessorElementForLink_Variable x = library.getContainedName('x');
+    ParameterizedType type1 = x.returnType;
+    expect(type1.element.name, 'List');
+    expect(type1.typeArguments, hasLength(1));
+    FunctionType type2 = type1.typeArguments[0];
+    expect(type2.element.name, 'F');
+    expect(type2.returnType.toString(), 'num');
+  }
+
   void test_leastUpperBound_functionAndClass() {
     createLinker('''
 class C {}

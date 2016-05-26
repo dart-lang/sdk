@@ -444,13 +444,14 @@ bool FlowGraph::InstanceCallNeedsClassCheck(InstanceCallInstr* call,
         ? String::Handle(zone(), Field::NameFromGetter(call->function_name()))
         : call->function_name();
     const Class& cls = Class::Handle(zone(), function().Owner());
-    if (!thread()->cha()->HasOverride(cls, name)) {
+    intptr_t subclass_count = 0;
+    if (!thread()->cha()->HasOverride(cls, name, &subclass_count)) {
       if (FLAG_trace_cha) {
         THR_Print("  **(CHA) Instance call needs no check, "
             "no overrides of '%s' '%s'\n",
             name.ToCString(), cls.ToCString());
       }
-      thread()->cha()->AddToLeafClasses(cls);
+      thread()->cha()->AddToGuardedClasses(cls, subclass_count);
       return false;
     }
   }

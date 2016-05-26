@@ -68,9 +68,11 @@ class CpsFunctionCompiler implements FunctionCompiler {
         constantSystem = backend.constantSystem,
         compiler = compiler,
         glue = new Glue(compiler),
-        cpsOptimizationTask = new GenericTask('CPS optimization', compiler),
-        treeBuilderTask = new GenericTask('Tree builder', compiler),
-        treeOptimizationTask = new GenericTask('Tree optimization', compiler) {
+        cpsOptimizationTask =
+            new GenericTask('CPS optimization', compiler.measurer),
+        treeBuilderTask = new GenericTask('Tree builder', compiler.measurer),
+        treeOptimizationTask =
+            new GenericTask('Tree optimization', compiler.measurer) {
     inliner = new Inliner(this);
   }
 

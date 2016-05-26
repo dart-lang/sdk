@@ -56,6 +56,7 @@ class ExplicitReceiverParameter implements Local {
 /// takes.
 class IrBuilderTask extends CompilerTask {
   final SourceInformationStrategy sourceInformationStrategy;
+  final Compiler compiler;
 
   String bailoutMessage = null;
 
@@ -65,7 +66,8 @@ class IrBuilderTask extends CompilerTask {
 
   IrBuilderTask(Compiler compiler, this.sourceInformationStrategy,
       [this.builderCallback])
-      : super(compiler);
+      : compiler = compiler,
+        super(compiler.measurer);
 
   String get name => 'CPS builder';
 
@@ -76,7 +78,7 @@ class IrBuilderTask extends CompilerTask {
 
       ResolvedAst resolvedAst = element.resolvedAst;
       element = element.implementation;
-      return reporter.withCurrentElement(element, () {
+      return compiler.reporter.withCurrentElement(element, () {
         SourceInformationBuilder sourceInformationBuilder =
             sourceInformationStrategy.createBuilderForContext(resolvedAst);
 

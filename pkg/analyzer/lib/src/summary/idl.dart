@@ -41,6 +41,8 @@
  */
 library analyzer.tool.summary.idl;
 
+import 'package:analyzer/dart/element/element.dart';
+
 import 'base.dart' as base;
 import 'base.dart' show Id, TopLevel;
 import 'format.dart' as generated;
@@ -1468,19 +1470,19 @@ enum UnlinkedConstOperation {
  */
 abstract class UnlinkedConstructorInitializer extends base.SummaryClass {
   /**
-   * If [kind] is `thisInvocation` or `superInvocation`, the arguments of the
-   * invocation.  Otherwise empty.
-   */
-  @Id(3)
-  List<UnlinkedConst> get arguments;
-
-  /**
    * If there are `m` [arguments] and `n` [argumentNames], then each argument
    * from [arguments] with index `i` such that `n + i - m >= 0`, should be used
    * with the name at `n + i - m`.
    */
   @Id(4)
   List<String> get argumentNames;
+
+  /**
+   * If [kind] is `thisInvocation` or `superInvocation`, the arguments of the
+   * invocation.  Otherwise empty.
+   */
+  @Id(3)
+  List<UnlinkedConst> get arguments;
 
   /**
    * If [kind] is `field`, the expression of the field initializer.
@@ -1634,6 +1636,14 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
    */
   @Id(6)
   List<UnlinkedConst> get annotations;
+
+  /**
+   * If this executable's function body is declared using `=>`, the expression
+   * to the right of the `=>`.  May be omitted if neither type inference nor
+   * constant evaluation depends on the function body.
+   */
+  @Id(29)
+  UnlinkedConst get bodyExpr;
 
   /**
    * Code range of the executable.
@@ -2620,16 +2630,8 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    * Code range of the variable.
    */
   @informative
-  @Id(14)
-  CodeRange get codeRange;
-
-  /**
-   * If [isConst] is true, and the variable has an initializer, the constant
-   * expression in the initializer.  Note that the presence of this expression
-   * does not mean that it is a valid, check [UnlinkedConst.isInvalid].
-   */
   @Id(5)
-  UnlinkedConst get constExpr;
+  CodeRange get codeRange;
 
   /**
    * Documentation comment for the variable, or `null` if there is no

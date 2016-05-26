@@ -16,13 +16,14 @@ import '../output_collector.dart';
 main(List<String> args) {
   asyncTest(() async {
     Arguments arguments = new Arguments.from(args);
-    String serializedData = await serializeDartCore(arguments: arguments);
+    SerializedData serializedData =
+        await serializeDartCore(arguments: arguments);
     if (arguments.filename != null) {
       Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
       await compile(serializedData, entryPoint, null);
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
-      arguments.forEachTest(TESTS, (int index, Test test) async {
+      await arguments.forEachTest(TESTS, (int index, Test test) async {
         await compile(serializedData, entryPoint, test,
                       index: index,
                       verbose: arguments.verbose);
@@ -31,7 +32,7 @@ main(List<String> args) {
   });
 }
 
-Future compile(String serializedData, Uri entryPoint, Test test,
+Future compile(SerializedData serializedData, Uri entryPoint, Test test,
                {int index, bool verbose: false}) async {
   String testDescription =
       test != null ? test.sourceFiles[entryPoint.path] : '${entryPoint}';
@@ -41,12 +42,11 @@ Future compile(String serializedData, Uri entryPoint, Test test,
   OutputCollector outputCollector = new OutputCollector();
   await runCompiler(
       entryPoint: entryPoint,
-      memorySourceFiles: test != null ? test.sourceFiles : const {},
+      resolutionInputs: serializedData.toUris(),
+      memorySourceFiles: serializedData.toMemorySourceFiles(
+          test != null ? test.sourceFiles : null),
       options: [],
-      outputProvider: outputCollector,
-      beforeRun: (Compiler compiler) {
-        compiler.serialization.deserializeFromText(serializedData);
-      });
+      outputProvider: outputCollector);
   if (verbose) {
     print(outputCollector.getOutput('', 'js'));
   }

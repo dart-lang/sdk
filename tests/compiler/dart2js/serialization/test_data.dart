@@ -217,6 +217,53 @@ class C {
 }
 main() => const C();'''
   }),
+
+  const Test(const {
+    'main.dart': '''
+class C {
+  factory C() = Object;
+}
+main() => new C();'''
+  }),
+
+  const Test(const {
+    'main.dart': '''
+abstract class C implements List {
+  factory C([_]) = List;
+}
+main() => new C();'''
+  }),
+
+  const Test(const {
+    'main.dart': '''
+main() => const Duration();
+''',
+  }),
+
+  const Test(const {
+    'main.dart': '''
+import 'dart:collection';
+main() => new UnmodifiableListView(null);
+''',
+  }),
+
+  const Test(const {
+    'main.dart': '''
+var myIdentical = identical;
+main() => myIdentical;
+''',
+  }),
+
+  const Test(const {
+    'main.dart': '''
+class Foo {
+  String toString() => super.toString();
+}
+main() {
+  print(new Foo());
+}
+''',
+  }),
 ];
 
 class Test {

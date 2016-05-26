@@ -356,6 +356,8 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
         new CheckSmiInstr(assert->value()->Copy(zone()),
                           assert->env()->deopt_id(),
                           check->token_pos());
+    check_clone->AsCheckSmi()->set_licm_hoisted(
+        check->AsCheckSmi()->licm_hoisted());
   } else {
     ASSERT(check->IsCheckClass());
     check_clone =
@@ -363,6 +365,8 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
                             assert->env()->deopt_id(),
                             check->AsCheckClass()->unary_checks(),
                             check->token_pos());
+    check_clone->AsCheckClass()->set_licm_hoisted(
+        check->AsCheckClass()->licm_hoisted());
   }
   ASSERT(check_clone != NULL);
   ASSERT(assert->deopt_id() == assert->env()->deopt_id());
@@ -504,7 +508,7 @@ intptr_t CompileType::ToNullableCid() {
                 type_class.ToCString());
           }
           if (FLAG_use_cha_deopt) {
-            cha->AddToLeafClasses(type_class);
+            cha->AddToGuardedClasses(type_class, /*subclass_count=*/0);
           }
           cid_ = type_class.id();
         } else {
@@ -752,7 +756,8 @@ CompileType ParameterInstr::ComputeType() const {
                   type_class.ToCString());
             }
             if (FLAG_use_cha_deopt) {
-              thread->cha()->AddToLeafClasses(type_class);
+              thread->cha()->AddToGuardedClasses(
+                  type_class, /*subclass_count=*/0);
             }
             cid = type_class.id();
           }

@@ -14,32 +14,38 @@ import '../memory_compiler.dart';
 import 'helper.dart';
 import 'test_data.dart';
 
-main(List<String> arguments) {
+main(List<String> args) {
   asyncTest(() async {
-    String serializedData = await serializeDartCore();
-
-    if (arguments.isNotEmpty) {
-      Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.last));
+    Arguments arguments = new Arguments.from(args);
+    SerializedData serializedData =
+        await serializeDartCore(arguments: arguments);
+    if (arguments.filename != null) {
+      Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
       await analyze(serializedData, entryPoint, null);
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
-      for (Test test in TESTS) {
+      await arguments.forEachTest(TESTS, (int index, Test test) async {
         await analyze(serializedData, entryPoint, test);
-      }
+      });
     }
   });
 }
 
-Future analyze(String serializedData, Uri entryPoint, Test test) async {
+Future analyze(SerializedData serializedData, Uri entryPoint, Test test,
+               {int index}) async {
+  String testDescription =
+  test != null ? test.sourceFiles[entryPoint.path] : '${entryPoint}';
+  print('------------------------------------------------------------------');
+  print('analyze ${index != null ? '$index:' :''}${testDescription}');
+  print('------------------------------------------------------------------');
   DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
   await runCompiler(
       entryPoint: entryPoint,
-      memorySourceFiles: test != null ? test.sourceFiles : const {},
+      resolutionInputs: serializedData.toUris(),
+      memorySourceFiles: serializedData.toMemorySourceFiles(
+          test != null ? test.sourceFiles : null),
       options: [Flags.analyzeOnly],
-      diagnosticHandler: diagnosticCollector,
-      beforeRun: (Compiler compiler) {
-        compiler.serialization.deserializeFromText(serializedData);
-      });
+      diagnosticHandler: diagnosticCollector);
   if (test != null) {
     Expect.equals(test.expectedErrorCount, diagnosticCollector.errors.length,
         "Unexpected error count.");

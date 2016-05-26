@@ -14,7 +14,12 @@ import '../elements/modelx.dart';
 import '../tree/tree.dart';
 
 class PatchResolverTask extends CompilerTask {
-  PatchResolverTask(Compiler compiler) : super(compiler);
+  final Compiler compiler;
+  PatchResolverTask(Compiler compiler)
+      : compiler = compiler,
+        super(compiler.measurer);
+
+  DiagnosticReporter get reporter => compiler.reporter;
 
   Resolution get resolution => compiler.resolution;
 

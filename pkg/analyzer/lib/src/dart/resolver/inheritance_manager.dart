@@ -525,7 +525,9 @@ class InheritanceManager {
     //
     // Interface elements
     //
-    for (InterfaceType interfaceType in interfaces) {
+    int interfaceLength = interfaces.length;
+    for (int i = 0; i < interfaceLength; i++) {
+      InterfaceType interfaceType = interfaces[i];
       ClassElement interfaceElement = interfaceType.element;
       if (interfaceElement != null) {
         if (!visitedInterfaces.contains(interfaceElement)) {
@@ -561,26 +563,27 @@ class InheritanceManager {
   }
 
   /**
-   * Given some [ClassElement], this method finds and returns the [ExecutableElement] of
-   * the passed name in the class element. Static members, members in super types and members not
-   * accessible from the current library are not considered.
-   *
-   * @param classElt the class element to query
-   * @param memberName the name of the member to lookup in the class
-   * @return the found [ExecutableElement], or `null` if no such member was found
+   * Given some [classElement], this method finds and returns the executable
+   * element with the given [memberName] in the class element. Static members,
+   * members in super types and members not accessible from the current library
+   * are not considered.
    */
   ExecutableElement _lookupMemberInClass(
-      ClassElement classElt, String memberName) {
-    List<MethodElement> methods = classElt.methods;
-    for (MethodElement method in methods) {
+      ClassElement classElement, String memberName) {
+    List<MethodElement> methods = classElement.methods;
+    int methodLength = methods.length;
+    for (int i = 0; i < methodLength; i++) {
+      MethodElement method = methods[i];
       if (memberName == method.name &&
           method.isAccessibleIn(_library) &&
           !method.isStatic) {
         return method;
       }
     }
-    List<PropertyAccessorElement> accessors = classElt.accessors;
-    for (PropertyAccessorElement accessor in accessors) {
+    List<PropertyAccessorElement> accessors = classElement.accessors;
+    int accessorLength = accessors.length;
+    for (int i = 0; i < accessorLength; i++) {
+      PropertyAccessorElement accessor = accessors[i];
       if (memberName == accessor.name &&
           accessor.isAccessibleIn(_library) &&
           !accessor.isStatic) {

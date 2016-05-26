@@ -30,10 +30,6 @@ const Map<String, List/*<String|MessageKind>*/> WHITE_LIST = const {
       "Library 'package:async/async.dart' doesn't export a "
       "'ForkableStream' declaration.",
   ],
-  "mirrors_test.dart": const [
-      MessageKind.INVALID_SYMBOL,
-      MessageKind.PRIVATE_IDENTIFIER,
-  ],
 };
 
 const List<String> SKIP_LIST = const <String>[
@@ -49,11 +45,6 @@ const List<String> SKIP_LIST = const <String>[
   "quarantined/http_test.dart",
   // Package directory
   "packages/",
-];
-
-const List<MessageKind> MESSAGE_SKIP_LIST = const <MessageKind>[
-  // TODO(johnniwinther): Support checking of this warning. (Issue 26132)
-  MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
 ];
 
 main(List<String> arguments) {
@@ -108,7 +99,6 @@ main(List<String> arguments) {
         uriList,
         WHITE_LIST,
         mode: AnalysisMode.URI,
-        options: options,
-        skipList: MESSAGE_SKIP_LIST);
+        options: options);
   });
 }

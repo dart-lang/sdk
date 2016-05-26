@@ -45,7 +45,7 @@ class BeginTokenWithComment extends BeginToken implements TokenWithComment {
   /**
    * Initialize a newly created token to have the given [type] at the given
    * [offset] and to be preceded by the comments reachable from the given
-   * [comment].
+   * [_precedingComment].
    */
   BeginTokenWithComment(TokenType type, int offset, this._precedingComment)
       : super(type, offset) {
@@ -174,7 +174,7 @@ class KeywordTokenWithComment extends KeywordToken implements TokenWithComment {
   /**
    * Initialize a newly created token to to represent the given [keyword] at the
    * given [offset] and to be preceded by the comments reachable from the given
-   * [comment].
+   * [_precedingComment].
    */
   KeywordTokenWithComment(Keyword keyword, int offset, this._precedingComment)
       : super(keyword, offset) {

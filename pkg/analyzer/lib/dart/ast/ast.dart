@@ -373,7 +373,7 @@ abstract class AssertStatement extends Statement {
 
   /**
    * Set the condition that is being asserted to be `true` to the given
-   * [expression].
+   * [condition].
    */
   void set condition(Expression condition);
 
@@ -1188,7 +1188,7 @@ abstract class CascadeExpression extends Expression {
   Expression get target;
 
   /**
-   * Set the target of the cascade sections to the given [expression].
+   * Set the target of the cascade sections to the given [target].
    */
   void set target(Expression target);
 }
@@ -1394,7 +1394,7 @@ abstract class ClassDeclaration extends NamedCompilationUnitMember {
   void set abstractKeyword(Token token);
 
   /**
-   * Return the token representing the 'class' keyword to the given [token].
+   * Return the token representing the 'class' keyword.
    */
   Token get classKeyword;
 

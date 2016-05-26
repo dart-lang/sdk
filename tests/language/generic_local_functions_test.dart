@@ -7,7 +7,7 @@
 /// Dart test verifying that the parser can handle type parameterization of
 /// local function declarations, and declarations of function parameters.
 
-library generic_functions_test;
+library generic_local_functions_test;
 
 import "package:expect/expect.dart";
 

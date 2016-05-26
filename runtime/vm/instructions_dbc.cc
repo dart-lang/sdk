@@ -114,9 +114,10 @@ static bool HasLoadFromPool(Instr instr) {
     case Bytecode::kLoadConstant:
     case Bytecode::kPushConstant:
     case Bytecode::kStaticCall:
-    case Bytecode::kInstanceCall:
+    case Bytecode::kInstanceCall1:
     case Bytecode::kInstanceCall2:
-    case Bytecode::kInstanceCall3:
+    case Bytecode::kInstanceCall1Opt:
+    case Bytecode::kInstanceCall2Opt:
     case Bytecode::kStoreStaticTOS:
     case Bytecode::kPushStatic:
     case Bytecode::kAllocate:
@@ -165,7 +166,9 @@ void CallPattern::SetTargetCode(const Code& target_code) const {
 
 
 void CallPattern::InsertDeoptCallAt(uword pc, uword target_address) {
-  UNIMPLEMENTED();
+  const uint8_t argc = Bytecode::IsCallOpcode(Bytecode::At(pc)) ?
+      Bytecode::DecodeArgc(Bytecode::At(pc)) : 0;
+  *reinterpret_cast<Instr*>(pc) = Bytecode::Encode(Bytecode::kDeopt, argc, 0);
 }
 
 

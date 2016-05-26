@@ -557,7 +557,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   isBlackListed(DartType type) {
     LibraryElement lib = element.library;
     return !identical(lib, compiler.coreLibrary) &&
-        !compiler.backend.isBackendLibrary(lib) &&
+        !resolution.target.isTargetSpecificLibrary(lib) &&
         (type.isDynamic ||
             type == coreTypes.boolType ||
             type == coreTypes.numType ||

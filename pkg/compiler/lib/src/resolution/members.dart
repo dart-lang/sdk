@@ -24,7 +24,6 @@ import '../elements/modelx.dart'
         JumpTargetX,
         LocalFunctionElementX,
         LocalParameterElementX,
-        MethodElementX,
         ParameterElementX,
         VariableElementX,
         VariableList;
@@ -1122,6 +1121,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       type = resolveTypeAnnotation(typeNode);
       sendStructure = new IsStructure(type);
     }
+
+    // GENERIC_METHODS: Method type variables are not reified so we must warn
+    // about the error which will occur at runtime.
+    if (type is MethodTypeVariableType) {
+      reporter.reportWarningMessage(
+          node, MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED);
+    }
+
     registry.registerTypeUse(new TypeUse.isCheck(type));
     registry.registerSendStructure(node, sendStructure);
     return const NoneResult();
@@ -1134,6 +1141,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     Node typeNode = node.arguments.head;
     DartType type = resolveTypeAnnotation(typeNode);
+
+    // GENERIC_METHODS: Method type variables are not reified so we must warn
+    // about the error which will occur at runtime.
+    if (type is MethodTypeVariableType) {
+      reporter.reportWarningMessage(
+          node, MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED);
+    }
+
     registry.registerTypeUse(new TypeUse.asCast(type));
     registry.registerSendStructure(node, new AsStructure(type));
     return const NoneResult();
@@ -1546,7 +1561,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       bool isIncompatibleInvoke = false;
       switch (semantics.kind) {
         case AccessKind.SUPER_METHOD:
-          MethodElementX superMethod = semantics.element;
+          MethodElement superMethod = semantics.element;
           superMethod.computeType(resolution);
           if (!callStructure.signatureApplies(superMethod.functionSignature)) {
             registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
@@ -1824,7 +1839,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       return const NoneResult();
     }
     MembersCreator.computeClassMembersByName(
-        compiler, receiverClass.declaration, name);
+        resolution, receiverClass.declaration, name);
     Element member = receiverClass.lookupLocalMember(name);
     if (member == null) {
       return handleUnresolvedStaticMemberAccess(
@@ -1849,7 +1864,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     String name = memberName.text;
     receiverClass.ensureResolved(resolution);
     MembersCreator.computeClassMembersByName(
-        compiler, receiverClass.declaration, name);
+        resolution, receiverClass.declaration, name);
     Element member = receiverClass.lookupLocalMember(name);
     if (member == null) {
       return handleUnresolvedStaticMemberUpdate(
@@ -1889,6 +1904,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // TODO(johnniwinther): Clean up registration of elements and selectors
       // for this case.
     } else {
+      // GENERIC_METHODS: Method type variables are not reified so we must warn
+      // about the error which will occur at runtime.
+      if (element.type is MethodTypeVariableType) {
+        reporter.reportWarningMessage(
+            node, MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED);
+      }
       semantics = new StaticAccess.typeParameterTypeLiteral(element);
     }
 
@@ -3012,7 +3033,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (element is! ClassElement) return null;
     ClassElement cls = element;
     cls.ensureResolved(resolution);
-    return cls.computeType(resolution);
+    cls.computeType(resolution);
+    return cls.rawType;
   }
 
   /// Handle index operations like `a[b] = c`, `a[b] += c`, and `a[b]++`.

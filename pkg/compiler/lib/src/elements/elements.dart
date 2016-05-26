@@ -1005,6 +1005,8 @@ abstract class VariableElement extends ExecutableElement {
 
   Expression get initializer;
 
+  bool get hasConstant;
+
   /// The constant expression defining the (initial) value of the variable.
   ///
   /// If the variable is `const` the value is always non-null, possibly an
@@ -1236,6 +1238,10 @@ abstract class LocalFunctionElement extends FunctionElement
 /// A constructor.
 abstract class ConstructorElement extends FunctionElement
     implements MemberElement {
+  /// Returns `true` if [effectiveTarget] has been computed for this
+  /// constructor.
+  bool get hasEffectiveTarget;
+
   /// The effective target of this constructor, that is the non-redirecting
   /// constructor that is called on invocation of this constructor.
   ///

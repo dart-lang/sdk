@@ -3531,6 +3531,10 @@ class ExitDetectorTest extends ParserTestCase {
     _assertFalse("for (;;) { break; }");
   }
 
+  void test_forStatement_implicitTrue_if_break() {
+    _assertFalse("{ for (;;) { if (1==2) { var a = 1; } else { break; } } }");
+  }
+
   void test_forStatement_initialization() {
     _assertTrue("for (i = throw 0;;) {}");
   }
@@ -3852,6 +3856,20 @@ class ExitDetectorTest extends ParserTestCase {
  */
 @reflectiveTest
 class ExitDetectorTest2 extends ResolverTestCase {
+  void test_forStatement_implicitTrue_breakWithLabel() {
+    Source source = addSource(r'''
+void f() {
+  x: for (;;) {
+    if (1 < 2) {
+      break x;
+    }
+    return;
+  }
+}
+''');
+    _assertNthStatementDoesNotExit(source, 0);
+  }
+
   void test_switch_withEnum_false_noDefault() {
     Source source = addSource(r'''
 enum E { A, B }
@@ -3866,12 +3884,7 @@ String f(E e) {
   return x;
 }
 ''');
-    LibraryElement element = resolve2(source);
-    CompilationUnit unit = resolveCompilationUnit(source, element);
-    FunctionDeclaration function = unit.declarations.last;
-    BlockFunctionBody body = function.functionExpression.body;
-    Statement statement = body.block.statements[1];
-    expect(ExitDetector.exits(statement), false);
+    _assertNthStatementDoesNotExit(source, 1);
   }
 
   void test_switch_withEnum_false_withDefault() {
@@ -3888,12 +3901,7 @@ String f(E e) {
   return x;
 }
 ''');
-    LibraryElement element = resolve2(source);
-    CompilationUnit unit = resolveCompilationUnit(source, element);
-    FunctionDeclaration function = unit.declarations.last;
-    BlockFunctionBody body = function.functionExpression.body;
-    Statement statement = body.block.statements[1];
-    expect(ExitDetector.exits(statement), false);
+    _assertNthStatementDoesNotExit(source, 1);
   }
 
   void test_switch_withEnum_true_noDefault() {
@@ -3908,12 +3916,7 @@ String f(E e) {
   }
 }
 ''');
-    LibraryElement element = resolve2(source);
-    CompilationUnit unit = resolveCompilationUnit(source, element);
-    FunctionDeclaration function = unit.declarations.last;
-    BlockFunctionBody body = function.functionExpression.body;
-    Statement statement = body.block.statements[0];
-    expect(ExitDetector.exits(statement), true);
+    _assertNthStatementExits(source, 0);
   }
 
   void test_switch_withEnum_true_withDefault() {
@@ -3928,12 +3931,56 @@ String f(E e) {
   }
 }
 ''');
+    _assertNthStatementExits(source, 0);
+  }
+
+  void test_whileStatement_breakWithLabel() {
+    Source source = addSource(r'''
+void f() {
+  x: while (true) {
+    if (1 < 2) {
+      break x;
+    }
+    return;
+  }
+}
+''');
+    _assertNthStatementDoesNotExit(source, 0);
+  }
+
+  void test_whileStatement_breakWithLabel_afterExting() {
+    Source source = addSource(r'''
+void f() {
+  x: while (true) {
+    return;
+    if (1 < 2) {
+      break x;
+    }
+  }
+}
+''');
+    _assertNthStatementExits(source, 0);
+  }
+
+  void _assertHasReturn(bool expectedResult, Source source, int n) {
     LibraryElement element = resolve2(source);
     CompilationUnit unit = resolveCompilationUnit(source, element);
     FunctionDeclaration function = unit.declarations.last;
     BlockFunctionBody body = function.functionExpression.body;
-    Statement statement = body.block.statements[0];
-    expect(ExitDetector.exits(statement), true);
+    Statement statement = body.block.statements[n];
+    expect(ExitDetector.exits(statement), expectedResult);
+  }
+
+  // Assert that the [n]th statement in the last function declaration of
+  // [source] exits.
+  void _assertNthStatementExits(Source source, int n) {
+    _assertHasReturn(true, source, n);
+  }
+
+  // Assert that the [n]th statement in the last function declaration of
+  // [source] does not exit.
+  void _assertNthStatementDoesNotExit(Source source, int n) {
+    _assertHasReturn(false, source, n);
   }
 }
 

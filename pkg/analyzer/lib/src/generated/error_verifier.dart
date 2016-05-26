@@ -3813,7 +3813,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         }
         // Check methods.
         List<MethodElement> methodElements = superclassElement.methods;
-        for (MethodElement methodElement in methodElements) {
+        int length = methodElements.length;
+        for (int i = 0; i < length; i++) {
+          MethodElement methodElement = methodElements[i];
           // We need the same name.
           if (methodElement.name != executableElementName) {
             continue;

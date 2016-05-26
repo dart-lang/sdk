@@ -7,9 +7,8 @@ library dart2js.library_loader;
 import 'dart:async';
 
 import 'common/names.dart' show Uris;
-import 'common/tasks.dart' show CompilerTask;
+import 'common/tasks.dart' show CompilerTask, Measurer;
 import 'common.dart';
-import 'compiler.dart' show Compiler;
 import 'elements/elements.dart'
     show
         CompilationUnitElement,
@@ -115,8 +114,8 @@ typedef Future<Iterable<LibraryElement>> ReuseLibrariesFunction(
  * A 'resource URI' is an absolute URI with a scheme supported by the input
  * provider. For the standard implementation this means a URI with the 'file'
  * scheme. Readable URIs are converted into resource URIs as part of the
- * [Compiler.readScript] method. In the standard implementation the package URIs
- * are converted to file URIs using the package root URI provided on the
+ * [ScriptLoader.readScript] method. In the standard implementation the package
+ * URIs are converted to file URIs using the package root URI provided on the
  * command line as base. If the package root URI is
  * 'file:///current/working/dir/' then the package URI 'package:foo/bar.dart'
  * will be resolved to the resource URI
@@ -134,13 +133,14 @@ typedef Future<Iterable<LibraryElement>> ReuseLibrariesFunction(
  */
 abstract class LibraryLoaderTask implements CompilerTask {
   factory LibraryLoaderTask(
-      Compiler compiler,
       ResolvedUriTranslator uriTranslator,
       ScriptLoader scriptLoader,
       ElementScanner scriptScanner,
       LibraryDeserializer deserializer,
       LibraryLoaderListener listener,
-      Environment environment) = _LibraryLoaderTask;
+      Environment environment,
+      DiagnosticReporter reporter,
+      Measurer measurer) = _LibraryLoaderTask;
 
   /// Returns all libraries that have been loaded.
   Iterable<LibraryElement> get libraries;
@@ -297,10 +297,12 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   /// conditional imports.
   final Environment environment;
 
-  _LibraryLoaderTask(Compiler compiler, this.uriTranslator, this.scriptLoader,
-      this.scanner, this.deserializer, this.listener, this.environment)
-      // TODO(sigmund): make measurements separate from compiler
-      : super(compiler);
+  final DiagnosticReporter reporter;
+
+  _LibraryLoaderTask(this.uriTranslator, this.scriptLoader,
+      this.scanner, this.deserializer, this.listener, this.environment,
+      this.reporter, Measurer measurer)
+      : super(measurer);
 
   String get name => 'LibraryLoader';
 
@@ -325,8 +327,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
 
       Iterable<LibraryElement> reusedLibraries = null;
       if (reuseLibrary != null) {
-        // TODO(sigmund): make measurements separate from compiler
-        reusedLibraries = compiler.reuseLibraryTask.measure(() {
+        reusedLibraries = measureSubtask(_reuseLibrarySubtaskName, () {
           // Call [toList] to force eager calls to [reuseLibrary].
           return libraryCanonicalUriMap.values.where(reuseLibrary).toList();
         });
@@ -363,10 +364,9 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         }
       }
 
-      List<Future<LibraryElement>> reusedLibrariesFuture =
-          // TODO(sigmund): make measurements separate from compiler
-          compiler.reuseLibraryTask.measure(
-              () => libraryCanonicalUriMap.values.map(wrapper).toList());
+      List<Future<LibraryElement>> reusedLibrariesFuture = measureSubtask(
+          _reuseLibrarySubtaskName,
+          () => libraryCanonicalUriMap.values.map(wrapper).toList());
 
       return Future
           .wait(reusedLibrariesFuture)
@@ -380,12 +380,12 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
       Future<Iterable<LibraryElement>> reuseLibraries(
           Iterable<LibraryElement> libraries)) {
     assert(currentHandler == null);
-    return compiler.reuseLibraryTask.measure(() {
+    return measureSubtask(_reuseLibrarySubtaskName, () {
       return new Future<Iterable<LibraryElement>>(() {
         // Wrap in Future to shield against errors in user code.
         return reuseLibraries(libraryCanonicalUriMap.values);
       }).catchError((exception, StackTrace trace) {
-        compiler.reportCrashInUserCode(
+        reporter.onCrashInUserCode(
             'Uncaught exception in reuseLibraries', exception, trace);
         throw exception; // Async rethrow.
       }).then((Iterable<LibraryElement> reusedLibraries) {
@@ -1508,3 +1508,5 @@ abstract class LibraryLoaderListener {
   /// Called whenever a library is scanned from a script file.
   Future onLibraryScanned(LibraryElement library, LibraryLoader loader);
 }
+
+const _reuseLibrarySubtaskName = "Reuse library";

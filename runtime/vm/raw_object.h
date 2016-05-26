@@ -256,21 +256,19 @@ class RawObject {
   // The tags field which is a part of the object header uses the following
   // bit fields for storing tags.
   enum TagBits {
-    kWatchedBit = 0,
-    kMarkBit = 1,
-    kCanonicalBit = 2,
-    kVMHeapObjectBit = 3,
-    kRememberedBit = 4,
+    kMarkBit = 0,
+    kCanonicalBit = 1,
+    kVMHeapObjectBit = 2,
+    kRememberedBit = 3,
+    kReservedTagPos = 4,  // kReservedBit{100K,1M,10M}
 #if defined(ARCH_IS_32_BIT)
-    kReservedTagPos = 5,  // kReservedBit{100K,1M,10M}
-    kReservedTagSize = 3,
+    kReservedTagSize = 4,
     kSizeTagPos = kReservedTagPos + kReservedTagSize,  // = 8
     kSizeTagSize = 8,
     kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 16
     kClassIdTagSize = 16,
 #elif defined(ARCH_IS_64_BIT)
-    kReservedTagPos = 5,  // kReservedBit{100K,1M,10M}
-    kReservedTagSize = 11,
+    kReservedTagSize = 12,
     kSizeTagPos = kReservedTagPos + kReservedTagSize,  // = 16
     kSizeTagSize = 16,
     kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 32
@@ -372,21 +370,6 @@ class RawObject {
   // TODO(koda): Add "must use result" annotation here, after we add support.
   bool TryAcquireMarkBit() {
     return TryAcquireTagBit<MarkBit>();
-  }
-
-  // Support for GC watched bit.
-  // TODO(iposva): Get rid of this.
-  bool IsWatched() const {
-    return WatchedBit::decode(ptr()->tags_);
-  }
-  void SetWatchedBitUnsynchronized() {
-    ASSERT(!IsWatched());
-    uword tags = ptr()->tags_;
-    ptr()->tags_ = WatchedBit::update(true, tags);
-  }
-  void ClearWatchedBitUnsynchronized() {
-    uword tags = ptr()->tags_;
-    ptr()->tags_ = WatchedBit::update(false, tags);
   }
 
   // Support for object tags.
@@ -520,8 +503,6 @@ CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
 
  private:
   uword tags_;  // Various object tags (bits).
-
-  class WatchedBit : public BitField<uword, bool, kWatchedBit, 1> {};
 
   class MarkBit : public BitField<uword, bool, kMarkBit, 1> {};
 
@@ -1135,15 +1116,12 @@ class RawCode : public RawObject {
   RawObject* owner_;  // Function, Null, or a Class.
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
-  RawCodeSourceMap* code_source_map_;
   RawArray* stackmaps_;
-  RawObject** to_snapshot() {
-    return reinterpret_cast<RawObject**>(&ptr()->stackmaps_);
-  }
   RawArray* deopt_info_array_;
   RawArray* static_calls_target_table_;  // (code-offset, function, code).
   RawLocalVarDescriptors* var_descriptors_;
   RawArray* inlined_metadata_;
+  RawCodeSourceMap* code_source_map_;
   RawArray* comments_;
   // If return_address_metadata_ is a Smi, it is the offset to the prologue.
   // Else, return_address_metadata_ is null.
@@ -2183,7 +2161,10 @@ class RawWeakProperty : public RawInstance {
     return reinterpret_cast<RawObject**>(&ptr()->value_);
   }
 
-  friend class DelaySet;
+  // Linked list is chaining all pending weak properties.
+  // Untyped to make it clear that it is not to be visited by GC.
+  uword next_;
+
   friend class GCMarker;
   template<bool> friend class MarkingVisitorBase;
   friend class Scavenger;

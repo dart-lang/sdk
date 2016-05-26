@@ -1443,11 +1443,6 @@ RawCode* Code::ReadFrom(SnapshotReader* reader,
 
   (*reader->PassiveObjectHandle()) ^= reader->ReadObjectImpl(kAsReference);
   result.StorePointer(reinterpret_cast<RawObject*const*>(
-                          &result.raw_ptr()->code_source_map_),
-                      reader->PassiveObjectHandle()->raw());
-
-  (*reader->PassiveObjectHandle()) ^= reader->ReadObjectImpl(kAsReference);
-  result.StorePointer(reinterpret_cast<RawObject*const*>(
                           &result.raw_ptr()->stackmaps_),
                       reader->PassiveObjectHandle()->raw());
 
@@ -1459,6 +1454,8 @@ RawCode* Code::ReadFrom(SnapshotReader* reader,
                       LocalVarDescriptors::null());
   result.StorePointer(&result.raw_ptr()->inlined_metadata_,
                       Array::null());
+  result.StorePointer(&result.raw_ptr()->code_source_map_,
+                      CodeSourceMap::null());
   result.StorePointer(&result.raw_ptr()->comments_,
                       Array::null());
   result.StorePointer(&result.raw_ptr()->return_address_metadata_,
@@ -1520,7 +1517,6 @@ void RawCode::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectImpl(ptr()->owner_, kAsReference);
   writer->WriteObjectImpl(ptr()->exception_handlers_, kAsReference);
   writer->WriteObjectImpl(ptr()->pc_descriptors_, kAsReference);
-  writer->WriteObjectImpl(ptr()->code_source_map_, kAsReference);
   writer->WriteObjectImpl(ptr()->stackmaps_, kAsReference);
 }
 

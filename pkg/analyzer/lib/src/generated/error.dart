@@ -21,6 +21,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 
 /**
  * The descriptor used to associate error processors with analysis contexts in
@@ -893,7 +894,7 @@ class CompileTimeErrorCode extends ErrorCode {
    * 1: the number of type parameters that were declared
    * 2: the number of type arguments provided
    *
-   * See [CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS], and
+   * See [StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS], and
    * [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS].
    */
   static const CompileTimeErrorCode CONST_WITH_INVALID_TYPE_PARAMETERS =

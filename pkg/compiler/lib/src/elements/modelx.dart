@@ -256,6 +256,8 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   bool get hasFunctionSignature => false;
 
+  bool get hasEffectiveTarget => true;
+
   get effectiveTarget => this;
 
   computeEffectiveTargetType(InterfaceType newType) => unsupported();
@@ -1391,6 +1393,11 @@ class VariableList implements DeclarationSite {
 abstract class ConstantVariableMixin implements VariableElement {
   ConstantExpression constantCache;
 
+  // TODO(johnniwinther): Update the on `constant = ...` when evaluation of
+  // constant expression can handle references to unanalyzed constant variables.
+  @override
+  bool get hasConstant => false;
+
   ConstantExpression get constant {
     if (isPatch) {
       ConstantVariableMixin originVariable = origin;
@@ -2198,6 +2205,8 @@ abstract class ConstructorElementX extends FunctionElementX
   ConstructorElement effectiveTargetInternal;
   DartType _effectiveTargetType;
   bool _isEffectiveTargetMalformed;
+
+  bool get hasEffectiveTarget => effectiveTargetInternal != null;
 
   void setEffectiveTarget(ConstructorElement target, DartType type,
       {bool isMalformed: false}) {

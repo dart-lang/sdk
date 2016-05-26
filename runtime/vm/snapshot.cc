@@ -143,11 +143,6 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
   ASSERT(kLengthIndex == length_offset());
   ASSERT((kSnapshotFlagIndex * sizeof(int64_t)) == kind_offset());
   ASSERT((kHeapObjectTag & kInlined));
-  // The kWatchedBit and kMarkBit are only set during GC operations. This
-  // allows the two low bits in the header to be used for snapshotting.
-  ASSERT(kObjectId ==
-         ((1 << RawObject::kWatchedBit) | (1 << RawObject::kMarkBit)));
-  ASSERT((kObjectAlignmentMask & kObjectId) == kObjectId);
   const Snapshot* snapshot = reinterpret_cast<const Snapshot*>(raw_memory);
   // If the raw length is negative or greater than what the local machine can
   // handle, then signal an error.

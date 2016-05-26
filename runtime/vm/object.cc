@@ -165,7 +165,7 @@ RawClass* Object::unhandled_exception_class_ =
 RawClass* Object::unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 
 
-const double MegamorphicCache::kLoadFactor = 0.75;
+const double MegamorphicCache::kLoadFactor = 0.50;
 
 
 static void AppendSubString(Zone* zone,
@@ -2752,8 +2752,6 @@ class CHACodeArray : public WeakCodeReferences {
                 cls_.ToCString());
     }
   }
-
-  virtual void IncrementInvalidationGen() {}
 
  private:
   const Class& cls_;
@@ -7684,10 +7682,6 @@ class FieldDependentArray : public WeakCodeReferences {
     }
   }
 
-  virtual void IncrementInvalidationGen() {
-    Isolate::Current()->IncrFieldInvalidationGen();
-  }
-
  private:
   const Field& field_;
   DISALLOW_COPY_AND_ASSIGN(FieldDependentArray);
@@ -7706,11 +7700,16 @@ void Field::RegisterDependentCode(const Code& code) const {
 void Field::DeoptimizeDependentCode() const {
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsOriginal());
-  if (FLAG_background_compilation) {
-    Isolate::Current()->AddDisablingField(*this);
-  }
   FieldDependentArray a(*this);
   a.DisableCode();
+}
+
+
+bool Field::IsConsistentWith(const Field& other) const {
+  return (raw_ptr()->guarded_cid_ == other.raw_ptr()->guarded_cid_) &&
+         (raw_ptr()->is_nullable_ == other.raw_ptr()->is_nullable_) &&
+         (raw_ptr()->guarded_list_length_ ==
+             other.raw_ptr()->guarded_list_length_);
 }
 
 
@@ -10973,8 +10972,6 @@ class PrefixDependentArray : public WeakCodeReferences {
           Function::Handle(code.function()).ToCString());
     }
   }
-
-  virtual void IncrementInvalidationGen() {}
 
  private:
   const LibraryPrefix& prefix_;
@@ -14735,7 +14732,7 @@ void MegamorphicCache::Insert(const Smi& class_id,
          (kLoadFactor * static_cast<double>(mask() + 1)));
   const Array& backing_array = Array::Handle(buckets());
   intptr_t id_mask = mask();
-  intptr_t index = class_id.Value() & id_mask;
+  intptr_t index = (class_id.Value() * kSpreadFactor) & id_mask;
   intptr_t i = index;
   do {
     if (Smi::Value(Smi::RawCast(GetClassId(backing_array, i))) == kIllegalCid) {
@@ -15249,16 +15246,17 @@ bool Instance::CheckAndCanonicalizeFields(Thread* thread,
     // other instances to be canonical otherwise report error (return false).
     Zone* zone = thread->zone();
     Object& obj = Object::Handle(zone);
-    intptr_t end_field_offset = SizeFromClass() - kWordSize;
-    for (intptr_t field_offset = 0;
-         field_offset <= end_field_offset;
-         field_offset += kWordSize) {
-      obj = *this->FieldAddrAtOffset(field_offset);
+    const intptr_t instance_size = SizeFromClass();
+    ASSERT(instance_size != 0);
+    for (intptr_t offset = Instance::NextFieldOffset();
+         offset < instance_size;
+         offset += kWordSize) {
+      obj = *this->FieldAddrAtOffset(offset);
       if (obj.IsInstance() && !obj.IsSmi() && !obj.IsCanonical()) {
         if (obj.IsNumber() || obj.IsString()) {
           obj = Instance::Cast(obj).CheckAndCanonicalize(thread, NULL);
           ASSERT(!obj.IsNull());
-          this->SetFieldAtOffset(field_offset, obj);
+          this->SetFieldAtOffset(offset, obj);
         } else {
           ASSERT(error_str != NULL);
           char* chars = OS::SCreate(zone, "field: %s\n", obj.ToCString());
@@ -22414,7 +22412,9 @@ RawWeakProperty* WeakProperty::New(Heap::Space space) {
   RawObject* raw = Object::Allocate(WeakProperty::kClassId,
                                     WeakProperty::InstanceSize(),
                                     space);
-  return reinterpret_cast<RawWeakProperty*>(raw);
+  RawWeakProperty* result = reinterpret_cast<RawWeakProperty*>(raw);
+  result->ptr()->next_ = 0;  // Init the list to NULL.
+  return result;
 }
 
 

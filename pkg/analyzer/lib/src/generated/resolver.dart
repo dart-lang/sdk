@@ -3470,6 +3470,11 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
    */
   bool _enclosingBlockContainsBreak = false;
 
+  /**
+   * Add node when a labelled `break` is encountered.
+   */
+  Set<AstNode> _enclosingBlockBreaksLabel = new Set<AstNode>();
+
   @override
   bool visitArgumentList(ArgumentList node) =>
       _visitExpressions(node.arguments);
@@ -3545,6 +3550,9 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   @override
   bool visitBreakStatement(BreakStatement node) {
     _enclosingBlockContainsBreak = true;
+    if (node.label != null) {
+      _enclosingBlockBreaksLabel.add(node.target);
+    }
     return false;
   }
 
@@ -3634,13 +3642,13 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       if (_visitExpressions(node.updaters)) {
         return true;
       }
+      bool blockReturns = _nodeExits(node.body);
       // TODO(jwren) Do we want to take all constant expressions into account?
       // If for(; true; ) (or for(;;)), and the body doesn't return or the body
       // doesn't have a break, then return true.
       bool implicitOrExplictTrue = conditionExpression == null ||
           (conditionExpression is BooleanLiteral && conditionExpression.value);
       if (implicitOrExplictTrue) {
-        bool blockReturns = _nodeExits(node.body);
         if (blockReturns || !_enclosingBlockContainsBreak) {
           return true;
         }
@@ -3680,17 +3688,19 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     // TODO(jwren) Do we want to take all constant expressions into account?
     if (conditionExpression is BooleanLiteral) {
       if (conditionExpression.value) {
-        // if(true) ...
+        // if (true) ...
         return _nodeExits(thenStatement);
       } else if (elseStatement != null) {
         // if (false) ...
         return _nodeExits(elseStatement);
       }
     }
+    bool thenExits = _nodeExits(thenStatement);
+    bool elseExits = _nodeExits(elseStatement);
     if (thenStatement == null || elseStatement == null) {
       return false;
     }
-    return _nodeExits(thenStatement) && _nodeExits(elseStatement);
+    return thenExits && elseExits;
   }
 
   @override
@@ -3716,8 +3726,16 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   bool visitLabel(Label node) => false;
 
   @override
-  bool visitLabeledStatement(LabeledStatement node) =>
-      node.statement.accept(this);
+  bool visitLabeledStatement(LabeledStatement node) {
+    try {
+      bool statementExits = _nodeExits(node.statement);
+      bool neverBrokeFromLabel =
+          !_enclosingBlockBreaksLabel.contains(node.statement);
+      return statementExits && neverBrokeFromLabel;
+    } finally {
+      _enclosingBlockBreaksLabel.remove(node.statement);
+    }
+  }
 
   @override
   bool visitLiteral(Literal node) => false;
@@ -3871,11 +3889,11 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       if (conditionExpression.accept(this)) {
         return true;
       }
+      bool blockReturns = node.body.accept(this);
       // TODO(jwren) Do we want to take all constant expressions into account?
       if (conditionExpression is BooleanLiteral) {
         // If while(true), and the body doesn't return or the body doesn't have
         // a break, then return true.
-        bool blockReturns = node.body.accept(this);
         if (conditionExpression.value &&
             (blockReturns || !_enclosingBlockContainsBreak)) {
           return true;
@@ -3910,7 +3928,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   bool _visitStatements(NodeList<Statement> statements) {
-    for (int i = statements.length - 1; i >= 0; i--) {
+    for (int i = 0; i < statements.length; i++) {
       if (statements[i].accept(this)) {
         return true;
       }
@@ -6301,8 +6319,11 @@ class ResolverVisitor extends ScopedVisitor {
     }
     // Clone the ASTs for default formal parameters, so that we can use them
     // during constant evaluation.
-    (element as ConstVariableElement).constantInitializer =
-        new ConstantAstCloner().cloneNode(node.defaultValue);
+    if (!LibraryElementImpl.hasResolutionCapability(
+        definingLibrary, LibraryResolutionCapability.constantExpressions)) {
+      (element as ConstVariableElement).constantInitializer =
+          new ConstantAstCloner().cloneNode(node.defaultValue);
+    }
     return null;
   }
 
@@ -7189,7 +7210,10 @@ class ResolverVisitor extends ScopedVisitor {
    * Try to infer types of parameters of the [FunctionExpression] arguments.
    */
   void _inferFunctionExpressionsParametersTypes(ArgumentList argumentList) {
-    for (Expression argument in argumentList.arguments) {
+    NodeList<Expression> arguments = argumentList.arguments;
+    int length = arguments.length;
+    for (int i = 0; i < length; i++) {
+      Expression argument = arguments[i];
       ParameterElement parameter = argument.propagatedParameterElement;
       if (parameter == null) {
         parameter = argument.staticParameterElement;
@@ -9190,15 +9214,20 @@ class TypeParameterBoundsResolver {
       for (TypeParameter typeParameter in typeParameters.typeParameters) {
         TypeName bound = typeParameter.bound;
         if (bound != null) {
-          libraryScope ??= new LibraryScope(library, errorListener);
-          typeParametersScope ??= createTypeParametersScope();
-          typeNameResolver ??= new TypeNameResolver(new TypeSystemImpl(),
-              typeProvider, library, source, errorListener);
-          typeNameResolver.nameScope = typeParametersScope;
-          _resolveTypeName(bound);
           Element typeParameterElement = typeParameter.name.staticElement;
           if (typeParameterElement is TypeParameterElementImpl) {
-            typeParameterElement.bound = bound.type;
+            if (LibraryElementImpl.hasResolutionCapability(
+                library, LibraryResolutionCapability.resolvedTypeNames)) {
+              bound.type = typeParameterElement.bound;
+            } else {
+              libraryScope ??= new LibraryScope(library, errorListener);
+              typeParametersScope ??= createTypeParametersScope();
+              typeNameResolver ??= new TypeNameResolver(new TypeSystemImpl(),
+                  typeProvider, library, source, errorListener);
+              typeNameResolver.nameScope = typeParametersScope;
+              _resolveTypeName(bound);
+              typeParameterElement.bound = bound.type;
+            }
           }
         }
       }
@@ -9930,7 +9959,10 @@ class TypeResolverVisitor extends ScopedVisitor {
     // types of field formal parameters can be correctly resolved.
     //
     List<ClassMember> nonFields = new List<ClassMember>();
-    for (ClassMember member in node.members) {
+    NodeList<ClassMember> members = node.members;
+    int length = members.length;
+    for (int i = 0; i < length; i++) {
+      ClassMember member = members[i];
       if (member is ConstructorDeclaration) {
         nonFields.add(member);
       } else {

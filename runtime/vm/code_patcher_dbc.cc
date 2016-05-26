@@ -31,8 +31,7 @@ void CodePatcher::PatchStaticCallAt(uword return_address,
 
 
 void CodePatcher::InsertDeoptimizationCallAt(uword start, uword target) {
-  // The inserted call should not overlap the lazy deopt jump code.
-  ASSERT(start + CallPattern::DeoptCallPatternLengthInBytes() <= target);
+  ASSERT(target == 0);  // Always 0 on DBC.
   CallPattern::InsertDeoptCallAt(start, target);
 }
 

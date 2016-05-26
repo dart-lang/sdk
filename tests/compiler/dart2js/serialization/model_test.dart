@@ -24,7 +24,8 @@ import 'test_helper.dart';
 main(List<String> args) {
   asyncTest(() async {
     Arguments arguments = new Arguments.from(args);
-    String serializedData = await serializeDartCore(arguments: arguments);
+    SerializedData serializedData =
+        await serializeDartCore(arguments: arguments);
     if (arguments.filename != null) {
       Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
       await checkModels(serializedData, entryPoint);
@@ -36,7 +37,7 @@ main(List<String> args) {
         await checkModels(
           serializedData,
           entryPoint,
-          sourceFiles: test.sourceFiles,
+          memorySourceFiles: test.sourceFiles,
           verbose: arguments.verbose);
       });
     }
@@ -44,16 +45,16 @@ main(List<String> args) {
 }
 
 Future checkModels(
-  String serializedData,
-  Uri entryPoint,
-  {Map<String, String> sourceFiles: const <String, String>{},
+    SerializedData serializedData,
+    Uri entryPoint,
+  {Map<String, String> memorySourceFiles: const <String, String>{},
    bool verbose: false}) async {
 
   print('------------------------------------------------------------------');
   print('compile normal');
   print('------------------------------------------------------------------');
   Compiler compilerNormal = compilerFor(
-      memorySourceFiles: sourceFiles,
+      memorySourceFiles: memorySourceFiles,
       options: [Flags.analyzeOnly]);
   compilerNormal.resolution.retainCachesForTesting = true;
   await compilerNormal.run(entryPoint);
@@ -65,10 +66,10 @@ Future checkModels(
   print('compile deserialized');
   print('------------------------------------------------------------------');
   Compiler compilerDeserialized = compilerFor(
-      memorySourceFiles: sourceFiles,
+      memorySourceFiles: serializedData.toMemorySourceFiles(memorySourceFiles),
+      resolutionInputs: serializedData.toUris(),
       options: [Flags.analyzeOnly]);
   compilerDeserialized.resolution.retainCachesForTesting = true;
-  compilerDeserialized.serialization.deserializeFromText(serializedData);
   await compilerDeserialized.run(entryPoint);
   compilerDeserialized.phase = Compiler.PHASE_DONE_RESOLVING;
   compilerDeserialized.world.populate();

@@ -161,12 +161,42 @@ void ParsedFunction::AddToGuardedFields(const Field* field) const {
       (field->guarded_cid() == kIllegalCid)) {
     return;
   }
+
   for (intptr_t j = 0; j < guarded_fields_->length(); j++) {
-    if ((*guarded_fields_)[j]->raw() == field->raw()) {
+    const Field* other = (*guarded_fields_)[j];
+    if (field->Original() == other->Original()) {
+      // Abort background compilation early if the guarded state of this field
+      // has changed during compilation. We will not be able to commit
+      // the resulting code anyway.
+      if (Compiler::IsBackgroundCompilation()) {
+        if (!other->IsConsistentWith(*field)) {
+          Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
+              "Field's guarded state changed during compilation");
+        }
+      }
       return;
     }
   }
-  guarded_fields_->Add(&Field::ZoneHandle(Z, field->Original()));
+
+  // Note: the list of guarded fields must contain copies during background
+  // compilation because we will look at their guarded_cid when copying
+  // the array of guarded fields from callee into the caller during
+  // inlining.
+  ASSERT(!field->IsOriginal() || Thread::Current()->IsMutatorThread());
+  guarded_fields_->Add(&Field::ZoneHandle(Z, field->raw()));
+}
+
+
+void ParsedFunction::Bailout(const char* origin, const char* reason) const {
+  Report::MessageF(Report::kBailout,
+                   Script::Handle(function_.script()),
+                   function_.token_pos(),
+                   Report::AtLocation,
+                   "%s Bailout in %s: %s",
+                   origin,
+                   String::Handle(function_.name()).ToCString(),
+                   reason);
+  UNREACHABLE();
 }
 
 
@@ -9269,8 +9299,10 @@ void Parser::AddNodeForFinallyInlining(AstNode* node) {
     return;
   }
   ASSERT(node->IsReturnNode() || node->IsJumpNode());
+  const intptr_t func_level = current_block_->scope->function_level();
   TryStack* iterator = try_stack_;
-  while (iterator != NULL) {
+  while ((iterator != NULL) &&
+      (iterator->try_block()->scope->function_level() == func_level)) {
     // For continue and break node check if the target label is in scope.
     if (node->IsJumpNode()) {
       SourceLabel* label = node->AsJumpNode()->label();
@@ -14449,6 +14481,11 @@ void ParsedFunction::AllocateVariables() {
 
 
 void ParsedFunction::AllocateIrregexpVariables(intptr_t num_stack_locals) {
+  UNREACHABLE();
+}
+
+
+void ParsedFunction::Bailout(const char* origin, const char* reason) const {
   UNREACHABLE();
 }
 

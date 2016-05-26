@@ -36,8 +36,10 @@ patch class List<E> {
     if (elements is EfficientLength) {
       int length = elements.length;
       var list = growable ? new _GrowableList<E>(length) : new _List<E>(length);
-      int i = 0;
-      for (var element in elements) { list[i++] = element; }
+      if (length > 0) {  // Avoid creating iterator unless necessary.
+        int i = 0;
+        for (var element in elements) { list[i++] = element; }
+      }
       return list;
     }
     List<E> list = new _GrowableList<E>(0);
@@ -47,7 +49,7 @@ patch class List<E> {
     if (growable) return list;
     if (list.length == 0) {
       // Avoid getting an immutable list from makeListFixedLength.
-      return new List<E>(0);
+      return new _List<E>(0);
     }
     return makeListFixedLength(list);
   }

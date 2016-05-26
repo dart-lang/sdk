@@ -24,11 +24,15 @@ import 'universe/universe.dart' show Universe;
 
 class ClosureTask extends CompilerTask {
   Map<Node, ClosureClassMap> closureMappingCache;
+  Compiler compiler;
   ClosureTask(Compiler compiler)
       : closureMappingCache = new Map<Node, ClosureClassMap>(),
-        super(compiler);
+        compiler = compiler,
+        super(compiler.measurer);
 
   String get name => "Closure Simplifier";
+
+  DiagnosticReporter get reporter => compiler.reporter;
 
   ClosureClassMap computeClosureToClassMapping(ResolvedAst resolvedAst) {
     return measure(() {
@@ -171,6 +175,9 @@ class ClosureFieldElement extends ElementX
   List<FunctionElement> get nestedClosures => const <FunctionElement>[];
 
   @override
+  bool get hasConstant => false;
+
+  @override
   ConstantExpression get constant => null;
 }
 
@@ -308,6 +315,9 @@ class BoxFieldElement extends ElementX
   ResolvedAst get resolvedAst {
     throw new UnsupportedError("BoxFieldElement.resolvedAst");
   }
+
+  @override
+  bool get hasConstant => false;
 
   @override
   ConstantExpression get constant => null;
@@ -1050,7 +1060,7 @@ class ClosureTranslator extends Visitor {
     MemberElement enclosing = element.memberContext;
     enclosing.nestedClosures.add(callElement);
     globalizedElement.addMember(callElement, reporter);
-    globalizedElement.computeAllClassMembers(compiler);
+    globalizedElement.computeAllClassMembers(compiler.resolution);
     // The nested function's 'this' is the same as the one for the outer
     // function. It could be [null] if we are inside a static method.
     ThisLocal thisElement = closureData.thisLocal;

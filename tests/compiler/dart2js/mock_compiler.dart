@@ -41,6 +41,7 @@ import 'package:compiler/src/elements/modelx.dart' show
     FunctionElementX;
 
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/common/tasks.dart' show Measurer;
 
 import 'package:compiler/src/deferred_load.dart' show
     DeferredLoadTask,
@@ -69,6 +70,7 @@ class MockCompiler extends Compiler {
   final DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
   final ResolvedUriTranslator resolvedUriTranslator =
       new MockResolvedUriTranslator();
+  final Measurer measurer = new Measurer();
 
   MockCompiler.internal(
       {Map<String, String> coreSource,

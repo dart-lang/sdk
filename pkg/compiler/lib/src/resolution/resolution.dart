@@ -59,10 +59,15 @@ import 'typedefs.dart';
 
 class ResolverTask extends CompilerTask {
   final ConstantCompiler constantCompiler;
+  final Compiler compiler;
 
-  ResolverTask(Compiler compiler, this.constantCompiler) : super(compiler);
+  ResolverTask(Compiler compiler, this.constantCompiler)
+      : compiler = compiler,
+        super(compiler.measurer);
 
   String get name => 'Resolver';
+
+  DiagnosticReporter get reporter => compiler.reporter;
 
   Resolution get resolution => compiler.resolution;
 
@@ -417,21 +422,23 @@ class ResolverTask extends CompilerTask {
     return result;
   }
 
-  void resolveRedirectionChain(
-      ConstructorElementX constructor, Spannable node) {
-    ConstructorElementX target = constructor;
+  void resolveRedirectionChain(ConstructorElement constructor, Spannable node) {
+    ConstructorElement target = constructor;
     InterfaceType targetType;
     List<Element> seen = new List<Element>();
     bool isMalformed = false;
     // Follow the chain of redirections and check for cycles.
     while (target.isRedirectingFactory || target.isPatched) {
-      if (target.effectiveTargetInternal != null) {
+      if (target.hasEffectiveTarget) {
         // We found a constructor that already has been processed.
-        targetType = target.effectiveTargetType;
+        // TODO(johnniwinther): Should `effectiveTargetType` be part of the
+        // interface?
+        targetType =
+            target.computeEffectiveTargetType(target.enclosingClass.thisType);
         assert(invariant(target, targetType != null,
             message: 'Redirection target type has not been computed for '
                 '$target'));
-        target = target.effectiveTargetInternal;
+        target = target.effectiveTarget;
         break;
       }
 
@@ -665,11 +672,11 @@ class ResolverTask extends CompilerTask {
   }
 
   void computeClassMembers(ClassElement element) {
-    MembersCreator.computeAllClassMembers(compiler, element);
+    MembersCreator.computeAllClassMembers(resolution, element);
   }
 
   void computeClassMember(ClassElement element, String name) {
-    MembersCreator.computeClassMembersByName(compiler, element, name);
+    MembersCreator.computeClassMembersByName(resolution, element, name);
   }
 
   void checkClass(ClassElement element) {

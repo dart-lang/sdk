@@ -177,6 +177,7 @@ enum MessageKind {
   DUPLICATE_IMPORT,
   DUPLICATE_INITIALIZER,
   DUPLICATE_LABEL,
+  DUPLICATE_SERIALIZED_LIBRARY,
   DUPLICATE_SUPER_INITIALIZER,
   DUPLICATE_TYPE_VARIABLE_NAME,
   DUPLICATED_LIBRARY_NAME,
@@ -430,6 +431,7 @@ enum MessageKind {
   TYPE_ARGUMENT_COUNT_MISMATCH,
   TYPE_VARIABLE_IN_CONSTANT,
   TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
+  TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED,
   TYPEDEF_FORMAL_WITH_DEFAULT,
   UNARY_OPERATOR_BAD_ARITY,
   UNBOUND_LABEL,
@@ -1149,6 +1151,33 @@ class C<T> {
 }
 
 void main() => new C().m(null);
+"""
+          ]),
+
+      MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED: const MessageTemplate(
+          MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED,
+          "Method type variables do not have a runtime value.",
+          options: const ["--generic-method-syntax"],
+          howToFix: "Try using the upper bound of the type variable, "
+              "or refactor the code to avoid needing this runtime value.",
+          examples: const [
+            """
+// Method type variables are not reified, so they cannot be returned.
+Type f<T>() => T;
+
+main() => f<int>();
+""",
+            """
+// Method type variables are not reified, so they cannot be tested dynamically.
+bool f<T>(Object o) => o is T;
+
+main() => f<int>(42);
+""",
+            """
+// Method type variables are not reified, so they cannot be tested dynamically.
+bool f<T>(Object o) => o as T;
+
+main() => f<int>(42);
 """
           ]),
 
@@ -3643,6 +3672,11 @@ $MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING#{importChain}"""),
           MessageKind.UNRECOGNIZED_VERSION_OF_LOOKUP_MAP,
           "Unsupported version of package:lookup_map.",
           howToFix: DONT_KNOW_HOW_TO_FIX),
+
+      MessageKind.DUPLICATE_SERIALIZED_LIBRARY: const MessageTemplate(
+          MessageKind.DUPLICATE_SERIALIZED_LIBRARY,
+          "Library '#{libraryUri}' found in both '#{sourceUri1}' and "
+          "'#{sourceUri2}'."),
     }); // End of TEMPLATES.
 
   /// Padding used before and between import chains in the message for

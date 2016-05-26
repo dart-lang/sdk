@@ -187,8 +187,8 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
   /// Whether to emit URIs in the reflection metadata.
   final bool preserveUris;
 
-  /// The location of serialized data used for resolution.
-  final Uri resolutionInput;
+  /// The locations of serialized data used for resolution.
+  final List<Uri> resolutionInputs;
 
   /// The location of the serialized data from resolution.
   final Uri resolutionOutput;
@@ -256,7 +256,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       Uri libraryRoot,
       Uri packageRoot,
       Uri packageConfig,
-      Uri resolutionInput,
+      List<Uri> resolutionInputs,
       Uri resolutionOutput,
       PackagesDiscoveryProvider packagesDiscoveryProvider,
       Map<String, dynamic> environment: const <String, dynamic>{},
@@ -309,7 +309,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
             _resolvePlatformConfigFromOptions(libraryRoot, options),
         preserveComments: _hasOption(options, Flags.preserveComments),
         preserveUris: _hasOption(options, Flags.preserveUris),
-        resolutionInput: resolutionInput,
+        resolutionInputs: resolutionInputs,
         resolutionOutput: resolutionOutput,
         resolveOnly: _hasOption(options, Flags.resolveOnly),
         sourceMapUri: _extractUriOption(options, '--source-map='),
@@ -373,7 +373,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       Uri platformConfigUri: null,
       bool preserveComments: false,
       bool preserveUris: false,
-      Uri resolutionInput: null,
+      List<Uri> resolutionInputs: null,
       Uri resolutionOutput: null,
       bool resolveOnly: false,
       Uri sourceMapUri: null,
@@ -448,7 +448,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
                 libraryRoot, null, !emitJavaScript, const []),
         preserveComments: preserveComments,
         preserveUris: preserveUris,
-        resolutionInput: resolutionInput,
+        resolutionInputs: resolutionInputs,
         resolutionOutput: resolutionOutput,
         resolveOnly: resolveOnly,
         sourceMapUri: sourceMapUri,
@@ -499,7 +499,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       this.platformConfigUri: null,
       this.preserveComments: false,
       this.preserveUris: false,
-      this.resolutionInput: null,
+      this.resolutionInputs: null,
       this.resolutionOutput: null,
       this.resolveOnly: false,
       this.sourceMapUri: null,

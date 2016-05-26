@@ -4,8 +4,8 @@
 
 library dart2js.scanner.task;
 
-import '../common/tasks.dart' show CompilerTask;
-import '../compiler.dart' show Compiler;
+import '../common/tasks.dart' show CompilerTask, Measurer;
+import '../diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
 import '../elements/elements.dart' show CompilationUnitElement, LibraryElement;
 import '../script.dart' show Script;
 import '../parser/diet_parser_task.dart' show DietParserTask;
@@ -20,12 +20,13 @@ class ScannerTask extends CompilerTask {
   final DietParserTask _dietParser;
   final bool _preserveComments;
   final TokenMap _commentMap;
+  final DiagnosticReporter reporter;
 
-  ScannerTask(Compiler compiler, this._dietParser,
+  ScannerTask(this._dietParser, this.reporter, Measurer measurer,
       {bool preserveComments: false, TokenMap commentMap})
       : _preserveComments = preserveComments,
         _commentMap = commentMap,
-        super(compiler) {
+        super(measurer) {
     if (_preserveComments && _commentMap == null) {
       throw new ArgumentError(
           "commentMap must be provided if preserveComments is true");

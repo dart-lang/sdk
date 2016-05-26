@@ -190,10 +190,14 @@ class SourcesChangedListener {
 }
 
 /**
- * Instances of the class `TestAnalysisContext` implement an analysis context in which every
- * method will cause a test to fail when invoked.
+ * An analysis context in which almost every method will cause a test to fail
+ * when invoked.
  */
 class TestAnalysisContext implements InternalAnalysisContext {
+  @override
+  final ReentrantSynchronousStream<InvalidatedResult> onResultInvalidated =
+      new ReentrantSynchronousStream<InvalidatedResult>();
+
   @override
   ResultProvider resultProvider;
 

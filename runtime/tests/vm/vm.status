@@ -26,8 +26,8 @@ dart/data_uri_import_test/none: SkipByDesign
 cc/CorelibIsolateStartup: Skip
 # Negative tests of VerifiedMemory should crash iff in DEBUG mode.
 # TODO(koda): Improve support for negative tests.
-cc/VerifyImplicit_Crash: Crash, Timeout  # Timeout: Issue #24596
-cc/VerifyExplicit_Crash: Crash, Timeout  # Timeout: Issue #24596
+cc/VerifyImplicit_Crash: Crash
+cc/VerifyExplicit_Crash: Crash
 # It can take some time for all the isolates to shutdown in a Debug build.
 dart/spawn_shutdown_test: Pass, Slow  # VM Shutdown test
 
@@ -190,3 +190,29 @@ cc/RegenerateAllocStubs: Skip
 cc/Debug_InspectStack_Optimized: Skip
 cc/Debug_InspectStackWithClosure_Optimized: Skip
 
+# Isolate reload code assumes that all static calls have ICData attached to
+# them. However this is not the case on DBC.
+cc/IsolateReload_LiveStack: Skip
+cc/IsolateReload_StaticValuePreserved: Skip
+cc/IsolateReload_TopLevelFieldAdded: Skip
+cc/IsolateReload_ConstructorChanged: Skip
+cc/IsolateReload_ImplicitConstructorChanged: Skip
+cc/IsolateReload_MixinChanged: Skip
+cc/IsolateReload_SuperClassChanged: Skip
+cc/IsolateReload_ComplexInheritanceChange: Skip
+cc/IsolateReload_LibraryImportAdded: Skip
+cc/IsolateReload_LibraryHide: Skip
+cc/IsolateReload_LibraryLookup: Skip
+cc/IsolateReload_LibraryShow: Skip
+cc/IsolateReload_LiveStack: Skip
+cc/IsolateReload_StaticValuePreserved: Skip
+cc/IsolateReload_TopLevelFieldAdded: Skip
+cc/IsolateReload_ConstructorChanged: Skip
+cc/IsolateReload_ImplicitConstructorChanged: Skip
+cc/IsolateReload_MixinChanged: Skip
+cc/IsolateReload_SuperClassChanged: Skip
+cc/IsolateReload_ComplexInheritanceChange: Skip
+cc/IsolateReload_LibraryImportAdded: Skip
+cc/IsolateReload_LibraryHide: Skip
+cc/IsolateReload_LibraryLookup: Skip
+cc/IsolateReload_LibraryShow: Skip

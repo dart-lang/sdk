@@ -29,11 +29,13 @@ import 'variable_allocator.dart';
 
 class SsaCodeGeneratorTask extends CompilerTask {
   final JavaScriptBackend backend;
+  final Compiler compiler;
   final SourceInformationStrategy sourceInformationFactory;
 
   SsaCodeGeneratorTask(JavaScriptBackend backend, this.sourceInformationFactory)
       : this.backend = backend,
-        super(backend.compiler);
+        this.compiler = backend.compiler,
+        super(backend.compiler.measurer);
 
   String get name => 'SSA code generator';
   NativeEmitter get nativeEmitter => backend.emitter.nativeEmitter;

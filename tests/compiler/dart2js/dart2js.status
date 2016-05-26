@@ -56,6 +56,8 @@ sourcemaps/source_mapping_invokes_test: Pass, Slow
 
 check_elements_invariants_test: Slow, Pass, Timeout # Slow due to inlining in the CPS backend
 
+uri_retention_test: Fail # Issue 26504
+
 [ $unchecked ]
 exit_code_test: Skip # This tests requires checked mode.
 

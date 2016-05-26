@@ -20,7 +20,8 @@ import 'test_helper.dart';
 main(List<String> args) {
   Arguments arguments = new Arguments.from(args);
   asyncTest(() async {
-    String serializedData = await serializeDartCore(arguments: arguments);
+    SerializedData serializedData =
+        await serializeDartCore(arguments: arguments);
     if (arguments.filename != null) {
       Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
       await check(serializedData, entryPoint);
@@ -35,7 +36,7 @@ main(List<String> args) {
 }
 
 Future check(
-  String serializedData,
+  SerializedData serializedData,
   Uri entryPoint,
   [Map<String, String> sourceFiles = const <String, String>{}]) async {
 
@@ -46,10 +47,10 @@ Future check(
   await compilerNormal.run(entryPoint);
 
   Compiler compilerDeserialized = compilerFor(
-      memorySourceFiles: sourceFiles,
+      memorySourceFiles: serializedData.toMemorySourceFiles(sourceFiles),
+      resolutionInputs: serializedData.toUris(),
       options: [Flags.analyzeAll]);
   compilerDeserialized.resolution.retainCachesForTesting = true;
-  compilerDeserialized.serialization.deserializeFromText(serializedData);
   await compilerDeserialized.run(entryPoint);
 
   checkAllResolvedAsts(compilerNormal, compilerDeserialized, verbose: true);

@@ -3125,10 +3125,19 @@ class Field : public Object {
   // Return class id that any non-null value read from this field is guaranteed
   // to have or kDynamicCid if such class id is not known.
   // Stores to this field must update this information hence the name.
-  intptr_t guarded_cid() const { return raw_ptr()->guarded_cid_; }
+  intptr_t guarded_cid() const {
+#if defined(DEGUG)
+    Thread* thread = Thread::Current();
+    ASSERT(!IsOriginal() || thread->IsMutator() || thread->IsAtSafepoint());
+#endif
+    return raw_ptr()->guarded_cid_;
+  }
 
   void set_guarded_cid(intptr_t cid) const {
-    ASSERT(Thread::Current()->IsMutatorThread());
+#if defined(DEGUG)
+    Thread* thread = Thread::Current();
+    ASSERT(!IsOriginal() || thread->IsMutator() || thread->IsAtSafepoint());
+#endif
     StoreNonPointer(&raw_ptr()->guarded_cid_, cid);
   }
   static intptr_t guarded_cid_offset() {
@@ -3212,6 +3221,10 @@ class Field : public Object {
 
   // Deoptimize all dependent code objects.
   void DeoptimizeDependentCode() const;
+
+  // Used by background compiler to check consistency of field copy with its
+  // original.
+  bool IsConsistentWith(const Field& field) const;
 
   bool IsUninitialized() const;
 
@@ -4975,7 +4988,8 @@ class ContextScope : public Object {
 
 class MegamorphicCache : public Object {
  public:
-  static const int kInitialCapacity = 16;
+  static const intptr_t kInitialCapacity = 16;
+  static const intptr_t kSpreadFactor = 7;
   static const double kLoadFactor;
 
   RawArray* buckets() const;
@@ -5018,6 +5032,7 @@ class MegamorphicCache : public Object {
 
  private:
   friend class Class;
+  friend class MegamorphicCacheTable;
 
   static RawMegamorphicCache* New();
 
@@ -8398,6 +8413,7 @@ class WeakProperty : public Instance {
   }
 
   static void Clear(RawWeakProperty* raw_weak) {
+    ASSERT(raw_weak->ptr()->next_ == 0);
     raw_weak->StorePointer(&(raw_weak->ptr()->key_), Object::null());
     raw_weak->StorePointer(&(raw_weak->ptr()->value_), Object::null());
   }

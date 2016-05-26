@@ -3032,7 +3032,8 @@ class TestCidsInstr : public ComparisonInstr {
                 const ZoneGrowableArray<intptr_t>& cid_results,
                 intptr_t deopt_id)
       : ComparisonInstr(token_pos, kind, value, NULL, deopt_id),
-        cid_results_(cid_results) {
+        cid_results_(cid_results),
+        licm_hoisted_(false) {
     ASSERT((kind == Token::kIS) || (kind == Token::kISNOT));
     set_operation_cid(kObjectCid);
   }
@@ -3067,10 +3068,13 @@ class TestCidsInstr : public ComparisonInstr {
   virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
                                        BranchLabels labels);
 
+  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
+
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
   const ZoneGrowableArray<intptr_t>& cid_results_;
+  bool licm_hoisted_;
   DISALLOW_COPY_AND_ASSIGN(TestCidsInstr);
 };
 
@@ -7788,6 +7792,7 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const;
 
+  bool licm_hoisted() const { return licm_hoisted_; }
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -7823,6 +7828,7 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
+  bool licm_hoisted() const { return licm_hoisted_; }
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
  private:
@@ -8187,6 +8193,17 @@ class Environment : public ZoneAllocated {
   // environment's length in order to drop values (e.g., passed arguments)
   // from the copy.
   Environment* DeepCopy(Zone* zone, intptr_t length) const;
+
+#if defined(TARGET_ARCH_DBC)
+  // Return/ReturnTOS instruction drops incoming arguments so
+  // we have to drop outgoing arguments from the innermost environment.
+  // On all other architectures caller drops outgoing arguments itself
+  // hence the difference.
+  // Note: this method can only be used at the code generation stage because
+  // it mutates environment in unsafe way (e.g. does not update def-use
+  // chains).
+  void DropArguments(intptr_t argc);
+#endif
 
  private:
   friend class ShallowIterator;

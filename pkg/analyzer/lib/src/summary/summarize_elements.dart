@@ -1133,11 +1133,15 @@ class _CompilationUnitSerializer {
     b.isConst = variable.isConst;
     b.documentationComment = serializeDocumentation(variable);
     b.annotations = serializeAnnotations(variable);
+    // TODO(scheglov) VariableMember.initializer is not implemented
+    if (variable is! VariableMember && variable.initializer != null) {
+      b.initializer = serializeExecutable(variable.initializer);
+    }
     if (variable is ConstVariableElement) {
       ConstVariableElement constVariable = variable as ConstVariableElement;
       Expression initializer = constVariable.constantInitializer;
       if (initializer != null) {
-        b.constExpr =
+        b.initializer?.bodyExpr =
             serializeConstExpr(variable, variable.initializer, initializer);
       }
     }
@@ -1161,10 +1165,6 @@ class _CompilationUnitSerializer {
         b.visibleOffset = visibleRange.offset;
         b.visibleLength = visibleRange.length;
       }
-    }
-    // TODO(scheglov) VariableMember.initializer is not implemented
-    if (variable is! VariableMember && variable.initializer != null) {
-      b.initializer = serializeExecutable(variable.initializer);
     }
     return b;
   }

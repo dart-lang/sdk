@@ -368,8 +368,11 @@ abstract class InfoReporter {
 
 class DumpInfoTask extends CompilerTask implements InfoReporter {
   static const ImpactUseCase IMPACT_USE = const ImpactUseCase('Dump info');
+  final Compiler compiler;
 
-  DumpInfoTask(Compiler compiler) : super(compiler);
+  DumpInfoTask(Compiler compiler)
+      : compiler = compiler,
+        super(compiler.measurer);
 
   String get name => "Dump Info";
 
@@ -588,7 +591,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     ChunkedConversionSink<Object> sink = encoder.startChunkedConversion(
         new StringConversionSink.fromStringSink(buffer));
     sink.add(new AllInfoJsonCodec().encode(result));
-    reporter.reportInfo(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+    compiler.reporter.reportInfo(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
       'text': "View the dumped .info.json file at "
           "https://dart-lang.github.io/dump-info-visualizer"
     });

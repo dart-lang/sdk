@@ -108,7 +108,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
   Uri libraryRoot = currentDirectory;
   Uri out = currentDirectory.resolve('out.js');
   Uri sourceMapOut = currentDirectory.resolve('out.js.map');
-  Uri resolutionInput;
+  List<Uri> resolutionInputs;
   Uri packageConfig = null;
   Uri packageRoot = null;
   List<String> options = new List<String>();
@@ -190,8 +190,11 @@ Future<api.CompilationResult> compile(List<String> argv) {
   }
 
   void setResolutionInput(String argument) {
-    resolutionInput =
-        currentDirectory.resolve(extractPath(argument, isDirectory: false));
+    resolutionInputs = <Uri>[];
+    String parts = extractParameter(argument);
+    for (String part in parts.split(',')) {
+      resolutionInputs.add(currentDirectory.resolve(nativeToUriPath(part)));
+    }
   }
 
   void setResolveOnly(String argument) {
@@ -525,7 +528,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
       packageRoot: packageRoot,
       packageConfig: packageConfig,
       packagesDiscoveryProvider: findPackages,
-      resolutionInput: resolutionInput,
+      resolutionInputs: resolutionInputs,
       resolutionOutput: resolutionOutput,
       options: options,
       environment: environment);
@@ -834,6 +837,9 @@ void batchMain(List<String> batchArguments) {
 final bool USE_SERIALIZED_DART_CORE =
     Platform.environment['USE_SERIALIZED_DART_CORE'] == 'true';
 
+/// Mock URI used only in testing when [USE_SERIALIZED_DART_CORE] is enabled.
+final Uri _SERIALIZED_URI = Uri.parse('file:fake.data');
+
 void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
   String serializedData;
 
@@ -844,7 +850,7 @@ void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
       api.CompilerOutput compilerOutput) async {
     CompilerImpl compiler = new CompilerImpl(
         compilerInput, compilerOutput, compilerDiagnostics, compilerOptions);
-    compiler.serialization.deserializeFromText(serializedData);
+    compiler.serialization.deserializeFromText(_SERIALIZED_URI, serializedData);
     return compiler.run(compilerOptions.entryPoint).then((bool success) {
       return new api.CompilationResult(compiler, isSuccess: success);
     });
@@ -865,7 +871,7 @@ void _useSerializedDataForDartCore(CompileFunc oldCompileFunc) {
             packagesDiscoveryProvider:
                 compilerOptions.packagesDiscoveryProvider,
             environment: compilerOptions.environment,
-            resolutionOutput: Uri.parse('file:fake.data'),
+            resolutionOutput: _SERIALIZED_URI,
             options: [Flags.resolveOnly]),
         compilerInput,
         compilerDiagnostics,

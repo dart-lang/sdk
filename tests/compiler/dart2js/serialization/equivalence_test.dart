@@ -8,6 +8,7 @@ import 'dart:io';
 import '../memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/common.dart';
 import 'package:compiler/src/constants/constructors.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/invariant.dart';
@@ -18,6 +19,7 @@ import 'package:compiler/src/serialization/element_serialization.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/serialization/json_serializer.dart';
 import 'package:compiler/src/serialization/serialization.dart';
+import 'package:expect/expect.dart';
 import 'test_helper.dart';
 
 main(List<String> arguments) {
@@ -51,14 +53,19 @@ main(List<String> arguments) {
         entryPoint: entryPoint, options: [Flags.analyzeAll]);
     Compiler compiler = result.compiler;
     testSerialization(compiler.libraryLoader.libraries,
+                      compiler.reporter,
                       outPath: outPath,
                       prettyPrint: prettyPrint);
+    Expect.isFalse(compiler.reporter.hasReportedError,
+        "Unexpected errors occured.");
   });
 }
 
-void testSerialization(Iterable<LibraryElement> libraries1,
-                       {String outPath,
-                        bool prettyPrint}) {
+void testSerialization(
+    Iterable<LibraryElement> libraries1,
+    DiagnosticReporter reporter,
+    {String outPath,
+     bool prettyPrint}) {
   Serializer serializer = new Serializer();
   for (LibraryElement library1 in libraries1) {
     serializer.serialize(library1);
@@ -75,7 +82,7 @@ void testSerialization(Iterable<LibraryElement> libraries1,
   }
 
   Deserializer deserializer = new Deserializer.fromText(
-      new DeserializationContext(),
+      new DeserializationContext(reporter), Uri.parse('out1.data'),
       text, const JsonSerializationDecoder());
   List<LibraryElement> libraries2 = <LibraryElement>[];
   for (LibraryElement library1 in libraries1) {
@@ -95,7 +102,7 @@ void testSerialization(Iterable<LibraryElement> libraries1,
   String text2 = serializer2.toText(const JsonSerializationEncoder());
 
   Deserializer deserializer3 = new Deserializer.fromText(
-      new DeserializationContext(),
+      new DeserializationContext(reporter), Uri.parse('out2.data'),
       text2, const JsonSerializationDecoder());
   for (LibraryElement library1 in libraries1) {
     LibraryElement library2 =
@@ -571,6 +578,11 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1, element2, 'effectiveTargetType',
         element1.computeEffectiveTargetType(element1.enclosingClass.thisType),
         element2.computeEffectiveTargetType(element2.enclosingClass.thisType),
+        areTypesEquivalent);
+    check(
+        element1, element2, 'effectiveTargetType.raw',
+        element1.computeEffectiveTargetType(element1.enclosingClass.rawType),
+        element2.computeEffectiveTargetType(element2.enclosingClass.rawType),
         areTypesEquivalent);
     checkElementIdentities(element1, element2, 'immediateRedirectionTarget',
         element1.immediateRedirectionTarget,

@@ -51,6 +51,19 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 }
 
 
+// These deoptimization stubs are only used to populate stack frames
+// with something meaningful to make sure GC can scan the stack during
+// the last phase of deoptimization which materializes objects.
+void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
+  __ Trap();
+}
+
+
+void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
+  __ Trap();
+}
+
+
 // Print the stop message.
 DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, 1, const char* message) {
   OS::Print("Stop message: %s\n", message);

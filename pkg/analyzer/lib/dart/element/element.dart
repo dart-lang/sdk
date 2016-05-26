@@ -763,7 +763,7 @@ abstract class Element implements AnalysisTarget {
   /**
    * Return a display name for the given element that includes the path to the
    * compilation unit in which the type is defined. If [shortName] is `null`
-   * then [getDisplayName] will be used as the name of this element. Otherwise
+   * then [displayName] will be used as the name of this element. Otherwise
    * the provided name will be used.
    */
   // TODO(brianwilkerson) Make the parameter optional.

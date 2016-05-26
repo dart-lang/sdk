@@ -8,7 +8,7 @@ import 'dart:async' show Future;
 
 import '../common.dart';
 import '../common/codegen.dart' show CodegenImpact;
-import '../common/resolution.dart' show ResolutionImpact, Frontend;
+import '../common/resolution.dart' show ResolutionImpact, Frontend, Target;
 import '../compile_time_constants.dart'
     show BackendConstantEnvironment, ConstantCompilerTask;
 import '../compiler.dart' show Compiler;
@@ -44,7 +44,7 @@ import 'registry.dart' show Registry;
 import 'tasks.dart' show CompilerTask;
 import 'work.dart' show ItemCompilationContext;
 
-abstract class Backend {
+abstract class Backend implements Target {
   final Compiler compiler;
 
   Backend(this.compiler);
@@ -256,10 +256,8 @@ abstract class Backend {
   /// defines the implementation of [element].
   MethodElement resolveExternalFunction(MethodElement element) => element;
 
-  /// Returns `true` if [library] is a backend specific library whose members
-  /// have special treatment, such as being allowed to extends blacklisted
-  /// classes or member being eagerly resolved.
-  bool isBackendLibrary(LibraryElement library) {
+  @override
+  bool isTargetSpecificLibrary(LibraryElement library) {
     // TODO(johnniwinther): Remove this when patching is only done by the
     // JavaScript backend.
     Uri canonicalUri = library.canonicalUri;

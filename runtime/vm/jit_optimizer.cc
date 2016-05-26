@@ -2391,7 +2391,7 @@ bool JitOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
             type_class.ToCString());
       }
       if (FLAG_use_cha_deopt) {
-        thread()->cha()->AddToLeafClasses(type_class);
+        thread()->cha()->AddToGuardedClasses(type_class, /*subclass_count=*/0);
       }
     } else {
       return false;
@@ -2917,9 +2917,10 @@ void JitOptimizer::VisitStoreInstanceField(
     // usage count of at least 1/kGetterSetterRatio of the getter usage count.
     // This is to avoid unboxing fields where the setter is never or rarely
     // executed.
-    const Field& field = Field::ZoneHandle(Z, instr->field().Original());
+    const Field& field = instr->field();
     const String& field_name = String::Handle(Z, field.name());
-    const Class& owner = Class::Handle(Z, field.Owner());
+    const Class& owner =
+        Class::Handle(Z, Field::Handle(Z, field.Original()).Owner());
     const Function& getter =
         Function::Handle(Z, owner.LookupGetterFunction(field_name));
     const Function& setter =
@@ -2954,6 +2955,7 @@ void JitOptimizer::VisitStoreInstanceField(
           OS::Print("  getter usage count: %" Pd "\n", getter.usage_counter());
         }
       }
+      ASSERT(field.IsOriginal());
       field.set_is_unboxing_candidate(false);
       field.DeoptimizeDependentCode();
     } else {

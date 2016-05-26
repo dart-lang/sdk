@@ -137,10 +137,11 @@ class TestDiagnosticReporter extends DiagnosticReporterWrapper {
 }
 
 class TestScanner extends ScannerTask {
-  TestScanner(TestCompiler compiler)
-      : super(compiler, compiler.dietParser);
+  final TestCompiler compiler;
 
-  TestCompiler get compiler => super.compiler;
+  TestScanner(TestCompiler compiler)
+      : compiler = compiler,
+        super(compiler.dietParser, compiler.reporter, compiler.measurer);
 
   void scanElements(CompilationUnitElement compilationUnit) {
     compiler.test('ScannerTask.scanElements');

@@ -1604,7 +1604,9 @@ void DeoptimizeAt(const Code& optimized_code, uword pc) {
   // Patch call site (lazy deoptimization is quite rare, patching it twice
   // is not a performance issue).
   uword lazy_deopt_jump = optimized_code.GetLazyDeoptPc();
+#if !defined(TARGET_ARCH_DBC)
   ASSERT(lazy_deopt_jump != 0);
+#endif
   const Instructions& instrs =
       Instructions::Handle(zone, optimized_code.instructions());
   {
@@ -1637,14 +1639,22 @@ void DeoptimizeFunctionsOnStack() {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(TARGET_ARCH_DBC)
+static const intptr_t kNumberOfSavedCpuRegisters = kNumberOfCpuRegisters;
+static const intptr_t kNumberOfSavedFpuRegisters = kNumberOfFpuRegisters;
+#else
+static const intptr_t kNumberOfSavedCpuRegisters = 0;
+static const intptr_t kNumberOfSavedFpuRegisters = 0;
+#endif
+
 static void CopySavedRegisters(uword saved_registers_address,
                                fpu_register_t** fpu_registers,
                                intptr_t** cpu_registers) {
   ASSERT(sizeof(fpu_register_t) == kFpuRegisterSize);
   fpu_register_t* fpu_registers_copy =
-      new fpu_register_t[kNumberOfFpuRegisters];
+      new fpu_register_t[kNumberOfSavedFpuRegisters];
   ASSERT(fpu_registers_copy != NULL);
-  for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
+  for (intptr_t i = 0; i < kNumberOfSavedFpuRegisters; i++) {
     fpu_registers_copy[i] =
         *reinterpret_cast<fpu_register_t*>(saved_registers_address);
     saved_registers_address += kFpuRegisterSize;
@@ -1652,9 +1662,9 @@ static void CopySavedRegisters(uword saved_registers_address,
   *fpu_registers = fpu_registers_copy;
 
   ASSERT(sizeof(intptr_t) == kWordSize);
-  intptr_t* cpu_registers_copy = new intptr_t[kNumberOfCpuRegisters];
+  intptr_t* cpu_registers_copy = new intptr_t[kNumberOfSavedCpuRegisters];
   ASSERT(cpu_registers_copy != NULL);
-  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
+  for (intptr_t i = 0; i < kNumberOfSavedCpuRegisters; i++) {
     cpu_registers_copy[i] =
         *reinterpret_cast<intptr_t*>(saved_registers_address);
     saved_registers_address += kWordSize;
@@ -1681,12 +1691,13 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
 
   // All registers have been saved below last-fp as if they were locals.
   const uword last_fp = saved_registers_address
-                        + (kNumberOfCpuRegisters * kWordSize)
-                        + (kNumberOfFpuRegisters * kFpuRegisterSize)
+                        + (kNumberOfSavedCpuRegisters * kWordSize)
+                        + (kNumberOfSavedFpuRegisters * kFpuRegisterSize)
                         - ((kFirstLocalSlotFromFp + 1) * kWordSize);
 
   // Get optimized code and frame that need to be deoptimized.
   DartFrameIterator iterator(last_fp);
+
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
   const Code& optimized_code = Code::Handle(caller_frame->LookupDartCode());
@@ -1760,11 +1771,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
   }
 #endif
 
-  // TODO(turnidge): Compute the start of the dest frame in the
-  // DeoptContext instead of passing it in here.
-  intptr_t* start = reinterpret_cast<intptr_t*>(
-      caller_frame->sp() - (kDartFrameFixedSize * kWordSize));
-  deopt_context->set_dest_frame(start);
+  deopt_context->set_dest_frame(caller_frame);
   deopt_context->FillDestFrame();
 #else
   UNREACHABLE();

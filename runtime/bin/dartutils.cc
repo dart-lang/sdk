@@ -180,6 +180,16 @@ bool DartUtils::IsDartBuiltinLibURL(const char* url_name) {
 }
 
 
+const char* DartUtils::RemoveScheme(const char* url) {
+  const char* colon = strchr(url, ':');
+  if (colon == NULL) {
+    return url;
+  } else {
+    return colon + 1;
+  }
+}
+
+
 void* DartUtils::MapExecutable(const char* name, intptr_t* len) {
   File* file = File::Open(name, File::kRead);
   if (file == NULL) {
@@ -346,12 +356,12 @@ Dart_Handle DartUtils::FilePathFromUri(Dart_Handle script_uri) {
 }
 
 
-Dart_Handle DartUtils::ExtensionPathFromUri(Dart_Handle extension_uri) {
+Dart_Handle DartUtils::LibraryFilePath(Dart_Handle library_uri) {
   const int kNumArgs = 1;
   Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = extension_uri;
+  dart_args[0] = library_uri;
   return Dart_Invoke(DartUtils::BuiltinLib(),
-                     NewString("_extensionPathFromUri"),
+                     NewString("_libraryFilePath"),
                      kNumArgs,
                      dart_args);
 }
@@ -452,25 +462,18 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
     if (tag != Dart_kImportTag) {
       return NewError("Dart extensions must use import: '%s'", url_string);
     }
-    Dart_Handle path_parts = DartUtils::ExtensionPathFromUri(url);
-    if (Dart_IsError(path_parts)) {
-      return path_parts;
+    Dart_Handle library_file_path = DartUtils::LibraryFilePath(library_url);
+    const char* lib_path_str = NULL;
+    Dart_StringToCString(library_file_path, &lib_path_str);
+    const char* extension_path = DartUtils::RemoveScheme(url_string);
+    if (strchr(extension_path, '/') != NULL ||
+        (IsWindowsHost() && strchr(extension_path, '\\') != NULL)) {
+      return NewError(
+          "Relative paths for dart extensions are not supported: '%s'",
+          extension_path);
     }
-#if defined(DEBUG)
-    intptr_t path_parts_length;
-    result = Dart_ListLength(path_parts, &path_parts_length);
-    if (Dart_IsError(result)) {
-      return result;
-    }
-    ASSERT(path_parts_length == 2);
-#endif
-    const char* extension_directory = NULL;
-    Dart_StringToCString(Dart_ListGetAt(path_parts, 0), &extension_directory);
-    const char* extension_name = NULL;
-    Dart_StringToCString(Dart_ListGetAt(path_parts, 1), &extension_name);
-
-    return Extensions::LoadExtension(extension_directory,
-                                     extension_name,
+    return Extensions::LoadExtension(lib_path_str,
+                                     extension_path,
                                      library);
   }
 

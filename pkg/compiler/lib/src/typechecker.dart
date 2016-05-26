@@ -46,8 +46,13 @@ import 'tree/tree.dart';
 import 'util/util.dart' show Link, LinkBuilder;
 
 class TypeCheckerTask extends CompilerTask {
-  TypeCheckerTask(Compiler compiler) : super(compiler);
+  final Compiler compiler;
+  TypeCheckerTask(Compiler compiler)
+      : compiler = compiler,
+        super(compiler.measurer);
+
   String get name => "Type checker";
+  DiagnosticReporter get reporter => compiler.reporter;
 
   void check(AstElement element) {
     if (element.isClass) return;
@@ -716,7 +721,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     // Lookup the class or interface member [name] in [interface].
     MemberSignature lookupMemberSignature(Name name, InterfaceType interface) {
       MembersCreator.computeClassMembersByName(
-          compiler, interface.element, name.text);
+          resolution, interface.element, name.text);
       return lookupClassMember || analyzingInitializer
           ? interface.lookupClassMember(name)
           : interface.lookupInterfaceMember(name);
@@ -799,7 +804,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           }
         }
         // TODO(johnniwinther): Avoid computation of all class members.
-        MembersCreator.computeAllClassMembers(compiler, interface.element);
+        MembersCreator.computeAllClassMembers(resolution, interface.element);
         if (lookupClassMember) {
           interface.element.forEachClassMember(findPrivateMember);
         } else {

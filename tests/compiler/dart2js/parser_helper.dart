@@ -92,6 +92,9 @@ class LoggerCanceler extends DiagnosticReporter {
         null, spannable,
         new Message(MessageTemplate.TEMPLATES[messageKind], arguments, false));
   }
+
+  @override
+  bool get hasReportedError => false;
 }
 
 Token scan(String text) =>

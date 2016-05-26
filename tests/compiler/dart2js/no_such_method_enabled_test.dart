@@ -271,6 +271,25 @@ main() {
           clsA.lookupMember('noSuchMethod')));
 }
 
+Future dummyImplTest13() async {
+  String source = """
+class A {
+  noSuchMethod(x) => super.noSuchMethod(x) as dynamic;
+}
+main() {
+  print(new A().foo());
+}
+""";
+  Uri uri = new Uri(scheme: 'source');
+  var compiler = compilerFor(source, uri);
+  await compiler.run(uri);
+  Expect.isFalse(compiler.backend.enabledNoSuchMethod);
+  ClassElement clsA = findElement(compiler, 'A');
+  Expect.isTrue(
+      compiler.backend.noSuchMethodRegistry.defaultImpls.contains(
+          clsA.lookupMember('noSuchMethod')));
+}
+
 main() {
   asyncTest(() async {
     await dummyImplTest();
@@ -285,5 +304,6 @@ main() {
     await dummyImplTest10();
     await dummyImplTest11();
     await dummyImplTest12();
+    await dummyImplTest13();
   });
 }

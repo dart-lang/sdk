@@ -51,7 +51,7 @@ enum SerializedElementKind {
   LOCAL_VARIABLE,
   EXTERNAL_LIBRARY,
   EXTERNAL_LIBRARY_MEMBER,
-  EXTERNAL_STATIC_MEMBER,
+  EXTERNAL_CLASS_MEMBER,
   EXTERNAL_CONSTRUCTOR,
 }
 
@@ -730,7 +730,7 @@ class ElementDeserializer {
         return new LocalVariableElementZ(decoder);
       case SerializedElementKind.EXTERNAL_LIBRARY:
       case SerializedElementKind.EXTERNAL_LIBRARY_MEMBER:
-      case SerializedElementKind.EXTERNAL_STATIC_MEMBER:
+      case SerializedElementKind.EXTERNAL_CLASS_MEMBER:
       case SerializedElementKind.EXTERNAL_CONSTRUCTOR:
         break;
     }

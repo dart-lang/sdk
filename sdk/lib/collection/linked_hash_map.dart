@@ -79,8 +79,8 @@ abstract class LinkedHashMap<K, V> implements HashMap<K, V> {
    *
    * Effectively a shorthand for:
    *
-   *     new LinkedHashMap(equals: identical,
-   *                       hashCode: identityHashCode)
+   *     new LinkedHashMap<K, V>(equals: identical,
+   *                             hashCode: identityHashCode)
    */
   external factory LinkedHashMap.identity();
 

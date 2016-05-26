@@ -860,7 +860,7 @@ Definition* EffectGraphVisitor::BuildStoreLocal(const LocalVariable& local,
                                                 Value* value,
                                                 TokenPosition token_pos) {
   if (local.is_captured()) {
-    LocalVariable* tmp_var = EnterTempLocalScope(value, token_pos);
+    LocalVariable* tmp_var = EnterTempLocalScope(value);
     intptr_t delta =
         owner()->context_level() - local.owner()->context_level();
     ASSERT(delta >= 0);
@@ -878,7 +878,7 @@ Definition* EffectGraphVisitor::BuildStoreLocal(const LocalVariable& local,
                                        kEmitStoreBarrier,
                                        token_pos);
     Do(store);
-    return ExitTempLocalScope(tmp_var, token_pos);
+    return ExitTempLocalScope(value);
   } else {
     return new(Z) StoreLocalInstr(local, value, token_pos);
   }
@@ -1318,20 +1318,17 @@ void EffectGraphVisitor::VisitAssignableNode(AssignableNode* node) {
   ValueGraphVisitor for_value(owner());
   node->expr()->Visit(&for_value);
   Append(for_value);
-  Definition* checked_value;
   if (CanSkipTypeCheck(node->expr()->token_pos(),
                        for_value.value(),
                        node->type(),
                        node->dst_name())) {
-    // Drop the value and 0 additional temporaries.
-    checked_value = new(Z) DropTempsInstr(0, for_value.value());
+    ReturnValue(for_value.value());
   } else {
-    checked_value = BuildAssertAssignable(node->expr()->token_pos(),
-                                          for_value.value(),
-                                          node->type(),
-                                          node->dst_name());
+    ReturnDefinition(BuildAssertAssignable(node->expr()->token_pos(),
+                                           for_value.value(),
+                                           node->type(),
+                                           node->dst_name()));
   }
-  ReturnDefinition(checked_value);
 }
 
 
@@ -2245,8 +2242,7 @@ intptr_t EffectGraphVisitor::GetCurrentTempLocalIndex() const {
 }
 
 
-LocalVariable* EffectGraphVisitor::EnterTempLocalScope(
-    Value* value, TokenPosition token_pos) {
+LocalVariable* EffectGraphVisitor::EnterTempLocalScope(Value* value) {
   ASSERT(value->definition()->temp_index() == (owner()->temp_count() - 1));
   intptr_t index = GetCurrentTempLocalIndex();
   char name[64];
@@ -2260,12 +2256,8 @@ LocalVariable* EffectGraphVisitor::EnterTempLocalScope(
 }
 
 
-Definition* EffectGraphVisitor::ExitTempLocalScope(
-    LocalVariable* var, TokenPosition token_pos) {
-  Value* tmp = Bind(new(Z) LoadLocalInstr(*var, token_pos));
-  owner()->DeallocateTemps(1);
-  ASSERT(GetCurrentTempLocalIndex() == var->index());
-  return new(Z) DropTempsInstr(1, tmp);
+Definition* EffectGraphVisitor::ExitTempLocalScope(Value* value) {
+  return new(Z) DropTempsInstr(0, value);
 }
 
 
@@ -2337,7 +2329,7 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
                                                      num_elements);
   Value* array_val = Bind(create);
 
-  { LocalVariable* tmp_var = EnterTempLocalScope(array_val, node->token_pos());
+  { LocalVariable* tmp_var = EnterTempLocalScope(array_val);
     const intptr_t class_id = kArrayCid;
     const intptr_t deopt_id = Thread::kNoDeoptId;
     for (int i = 0; i < node->length(); ++i) {
@@ -2359,7 +2351,7 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
           index_scale, class_id, deopt_id, node->token_pos());
       Do(store);
     }
-    ReturnDefinition(ExitTempLocalScope(tmp_var, node->token_pos()));
+    ReturnDefinition(ExitTempLocalScope(array_val));
   }
 }
 
@@ -2452,8 +2444,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   alloc->set_closure_function(function);
 
   Value* closure_val = Bind(alloc);
-  { LocalVariable* closure_tmp_var = EnterTempLocalScope(closure_val,
-                                                         node->token_pos());
+  { LocalVariable* closure_tmp_var = EnterTempLocalScope(closure_val);
     // Store type arguments if scope class is generic.
     const Type& function_type = Type::ZoneHandle(Z, function.SignatureType());
     const Class& scope_cls = Class::ZoneHandle(Z, function_type.type_class());
@@ -2489,8 +2480,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
       Value* allocated_context =
           Bind(new(Z) AllocateContextInstr(node->token_pos(),
                                            kNumContextVariables));
-      { LocalVariable* context_tmp_var =
-            EnterTempLocalScope(allocated_context, node->token_pos());
+      { LocalVariable* context_tmp_var = EnterTempLocalScope(allocated_context);
         // Store receiver in context.
         Value* context_tmp_val =
             Bind(new(Z) LoadLocalInstr(*context_tmp_var, node->token_pos()));
@@ -2513,7 +2503,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
                                           context_tmp_val,
                                           kEmitStoreBarrier,
                                           node->token_pos()));
-        Do(ExitTempLocalScope(context_tmp_var, node->token_pos()));
+        Do(ExitTempLocalScope(allocated_context));
       }
     } else {
       // Store current context in closure.
@@ -2526,7 +2516,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
                                         kEmitStoreBarrier,
                                         node->token_pos()));
     }
-    ReturnDefinition(ExitTempLocalScope(closure_tmp_var, node->token_pos()));
+    ReturnDefinition(ExitTempLocalScope(closure_val));
   }
 }
 
@@ -2687,8 +2677,8 @@ void EffectGraphVisitor::BuildClosureCall(
   node->closure()->Visit(&for_closure);
   Append(for_closure);
 
-  LocalVariable* tmp_var =
-      EnterTempLocalScope(for_closure.value(), node->token_pos());
+  Value* closure_value = for_closure.value();
+  LocalVariable* tmp_var = EnterTempLocalScope(closure_value);
 
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new(Z) ZoneGrowableArray<PushArgumentInstr*>(node->arguments()->length());
@@ -2714,7 +2704,7 @@ void EffectGraphVisitor::BuildClosureCall(
   } else {
     Do(closure_call);
   }
-  ReturnDefinition(ExitTempLocalScope(tmp_var, node->token_pos()));
+  ReturnDefinition(ExitTempLocalScope(closure_value));
 }
 
 
@@ -2953,12 +2943,12 @@ void ValueGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
   //   tn       <- LoadLocal(temp)
 
   Value* allocate = BuildObjectAllocation(node);
-  { LocalVariable* tmp_var = EnterTempLocalScope(allocate, node->token_pos());
+  { LocalVariable* tmp_var = EnterTempLocalScope(allocate);
     Value* allocated_tmp =
         Bind(new(Z) LoadLocalInstr(*tmp_var, node->token_pos()));
     PushArgumentInstr* push_allocated_value = PushArgument(allocated_tmp);
     BuildConstructorCall(node, push_allocated_value);
-    ReturnDefinition(ExitTempLocalScope(tmp_var, node->token_pos()));
+    ReturnDefinition(ExitTempLocalScope(allocate));
   }
 }
 
@@ -3974,8 +3964,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     Value* allocated_context =
         Bind(new(Z) AllocateContextInstr(node->token_pos(),
                                          num_context_variables));
-    { LocalVariable* tmp_var =
-          EnterTempLocalScope(allocated_context, node->token_pos());
+    { LocalVariable* tmp_var = EnterTempLocalScope(allocated_context);
       if (!is_top_level_sequence || HasContextScope()) {
         ASSERT(is_top_level_sequence ||
                (nested_block.ContextLevel() ==
@@ -3990,7 +3979,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
                                           node->token_pos()));
       }
       Do(BuildStoreContext(
-          Bind(ExitTempLocalScope(tmp_var, node->token_pos())),
+          Bind(ExitTempLocalScope(allocated_context)),
           node->token_pos()));
     }
 
@@ -4605,15 +4594,7 @@ void FlowGraphBuilder::PruneUnreachable() {
 
 
 void FlowGraphBuilder::Bailout(const char* reason) const {
-  const Function& function = parsed_function_.function();
-  Report::MessageF(Report::kBailout,
-                   Script::Handle(function.script()),
-                   function.token_pos(),
-                   Report::AtLocation,
-                   "FlowGraphBuilder Bailout: %s %s",
-                   String::Handle(function.name()).ToCString(),
-                   reason);
-  UNREACHABLE();
+  parsed_function_.Bailout("FlowGraphBuilder", reason);
 }
 
 }  // namespace dart

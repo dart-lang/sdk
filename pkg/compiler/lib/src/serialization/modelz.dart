@@ -10,6 +10,7 @@
 library dart2js.serialization.modelz;
 
 import '../common.dart';
+import '../common/names.dart';
 import '../common/resolution.dart' show Resolution;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
@@ -370,6 +371,9 @@ class LibraryElementZ extends DeserializedElementZ
   String get name => entryCompilationUnit.name;
 
   @override
+  SourceSpan get sourcePosition => entryCompilationUnit.sourcePosition;
+
+  @override
   accept(ElementVisitor visitor, arg) {
     return visitor.visitLibraryElement(this, arg);
   }
@@ -554,6 +558,9 @@ class CompilationUnitElementZ extends DeserializedElementZ
 
   @override
   Element get enclosingElement => library;
+
+  @override
+  SourceSpan get sourcePosition => new SourceSpan(script.resourceUri, 0, 0);
 
   @override
   accept(ElementVisitor visitor, arg) {
@@ -772,7 +779,10 @@ abstract class FunctionTypedElementMixin
   List<DartType> get typeVariables => functionSignature.typeVariables;
 }
 
-abstract class ClassElementMixin implements ElementZ, ClassElement {
+abstract class ClassElementMixin
+    implements ElementZ, ClassElement, class_members.ClassMemberMixin {
+  bool _isResolved = false;
+
   InterfaceType _createType(List<DartType> typeArguments) {
     return new InterfaceType(this, typeArguments);
   }
@@ -806,7 +816,12 @@ abstract class ClassElementMixin implements ElementZ, ClassElement {
 
   @override
   void ensureResolved(Resolution resolution) {
-    resolution.registerClass(this);
+    if (!_isResolved) {
+      _isResolved = true;
+      class_members.MembersCreator
+          .computeClassMembersByName(resolution, this, Identifiers.call);
+      resolution.registerClass(this);
+    }
   }
 }
 
@@ -903,6 +918,7 @@ class ClassElementZ extends DeserializedElementZ
   @override
   FunctionType get callType {
     _ensureSuperHierarchy();
+    // TODO(johnniwinther): Why can't this always be computed in ensureResolved?
     return _callType;
   }
 }
@@ -967,8 +983,11 @@ class UnnamedMixinApplicationElementZ extends ElementZ
       for (ConstructorElement definingConstructor in superclass.constructors) {
         if (definingConstructor.isGenerativeConstructor &&
             definingConstructor.memberName.isAccessibleFrom(library)) {
-          builder.addLast(
-              new ForwardingConstructorElementZ(this, definingConstructor));
+          ForwardingConstructorElementZ constructor =
+              new ForwardingConstructorElementZ(this, definingConstructor);
+          constructor.resolvedAst = new SynthesizedResolvedAst(
+              constructor, ResolvedAstKind.FORWARDING_CONSTRUCTOR);
+          builder.addLast(constructor);
         }
       }
       _constructors = builder.toLink();
@@ -1106,6 +1125,9 @@ abstract class ConstructorElementZ extends DeserializedElementZ
 
   @override
   ConstructorElement get definingConstructor => null;
+
+  @override
+  bool get hasEffectiveTarget => true;
 
   @override
   ConstructorElement get effectiveTarget {
@@ -1256,7 +1278,7 @@ class ForwardingConstructorElementZ extends ElementZ
 
   @override
   InterfaceType computeEffectiveTargetType(InterfaceType newType) {
-    return enclosingClass.thisType;
+    return enclosingClass.thisType.substByContext(newType);
   }
 
   @override
@@ -1267,6 +1289,9 @@ class ForwardingConstructorElementZ extends ElementZ
 
   @override
   ConstantConstructor get constantConstructor => null;
+
+  @override
+  bool get hasEffectiveTarget => true;
 
   @override
   ConstructorElement get effectiveTarget => this;
@@ -1403,6 +1428,9 @@ abstract class FieldElementZ extends DeserializedElementZ
     _ensureConstant();
     return _isConst;
   }
+
+  @override
+  bool get hasConstant => true;
 
   @override
   ConstantExpression get constant {
@@ -1852,6 +1880,9 @@ abstract class ParameterElementZ extends DeserializedElementZ
   bool get isConst => false;
 
   @override
+  bool get hasConstant => true;
+
+  @override
   ConstantExpression get constant {
     if (isOptional) {
       if (_constant == null) {
@@ -1978,6 +2009,9 @@ class LocalVariableElementZ extends DeserializedElementZ
     }
     return _isConst;
   }
+
+  @override
+  bool get hasConstant => true;
 
   @override
   ConstantExpression get constant {

@@ -2092,6 +2092,7 @@ void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
   // RDI: cache buckets array.
   // RBX: mask.
   __ movq(RCX, RAX);
+  __ imulq(RCX, Immediate(MegamorphicCache::kSpreadFactor));
 
   Label loop, update, load_target_function;
   __ jmp(&loop);

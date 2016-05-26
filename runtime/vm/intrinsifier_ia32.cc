@@ -41,16 +41,16 @@ intptr_t Intrinsifier::ParameterSlotFromSp() { return 0; }
 
 
 void Intrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
+  COMPILE_ASSERT(CALLEE_SAVED_TEMP != ARGS_DESC_REG);
+
   assembler->Comment("IntrinsicCallPrologue");
-  assembler->movl(CALLEE_SAVED_TEMP, ICREG);
-  assembler->movl(CALLEE_SAVED_TEMP2, ARGS_DESC_REG);
+  assembler->movl(CALLEE_SAVED_TEMP, ARGS_DESC_REG);
 }
 
 
 void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
   assembler->Comment("IntrinsicCallEpilogue");
-  assembler->movl(ICREG, CALLEE_SAVED_TEMP);
-  assembler->movl(ARGS_DESC_REG, CALLEE_SAVED_TEMP2);
+  assembler->movl(ARGS_DESC_REG, CALLEE_SAVED_TEMP);
 }
 
 

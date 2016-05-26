@@ -15,7 +15,12 @@ import 'common/names.dart' show Selectors;
 import 'common/names.dart' show Identifiers, Uris;
 import 'common/registry.dart' show EagerRegistry, Registry;
 import 'common/resolution.dart'
-    show ParsingContext, Resolution, ResolutionWorkItem, ResolutionImpact;
+    show
+        ParsingContext,
+        Resolution,
+        ResolutionWorkItem,
+        ResolutionImpact,
+        Target;
 import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
 import 'common/work.dart' show ItemCompilationContext, WorkItem;
 import 'common.dart';
@@ -85,11 +90,7 @@ typedef CompilerDiagnosticReporter MakeReporterFunction(
     Compiler compiler, CompilerOptions options);
 
 abstract class Compiler implements LibraryLoaderListener {
-  /// Helper instance for measurements in [CompilerTask].
-  ///
-  /// Note: MUST be first field to ensure [Measurer.wallclock] is started
-  /// before other computations.
-  final Measurer measurer = new Measurer();
+  Measurer get measurer;
 
   final IdGenerator idGenerator = new IdGenerator();
   World world;
@@ -244,8 +245,6 @@ abstract class Compiler implements LibraryLoaderListener {
   ti.TypesTask typesTask;
   Backend backend;
 
-  GenericTask reuseLibraryTask;
-
   GenericTask selfTask;
 
   /// The constant environment for the frontend interpretation of compile-time
@@ -259,8 +258,6 @@ abstract class Compiler implements LibraryLoaderListener {
 
   /// A customizable filter that is applied to enqueued work items.
   QueueFilter enqueuerFilter = new QueueFilter();
-
-  static const String CREATE_INVOCATION_MIRROR = 'createInvocationMirror';
 
   bool enabledRuntimeType = false;
   bool enabledFunctionApply = false;
@@ -339,17 +336,18 @@ abstract class Compiler implements LibraryLoaderListener {
 
     tasks = [
       dietParser =
-          new DietParserTask(this, options, idGenerator, backend, reporter),
+          new DietParserTask(options, idGenerator, backend, reporter, measurer),
       scanner = createScannerTask(),
       serialization = new SerializationTask(this),
       libraryLoader = new LibraryLoaderTask(
-          this,
-          this.resolvedUriTranslator,
+          resolvedUriTranslator,
           new _ScriptLoader(this),
           new _ElementScanner(scanner),
-          this.serialization,
+          serialization,
           this,
-          environment),
+          environment,
+          reporter,
+          measurer),
       parser = new ParserTask(this, options),
       patchParser = new PatchParserTask(this, options),
       resolver = createResolverTask(),
@@ -361,8 +359,7 @@ abstract class Compiler implements LibraryLoaderListener {
       mirrorUsageAnalyzerTask = new MirrorUsageAnalyzerTask(this),
       enqueuer = backend.makeEnqueuer(),
       dumpInfoTask = new DumpInfoTask(this),
-      reuseLibraryTask = new GenericTask('Reuse library', this),
-      selfTask = new GenericTask('self', this),
+      selfTask = new GenericTask('self', measurer),
     ];
     if (options.resolveOnly) {
       serialization.supportSerialization = true;
@@ -377,8 +374,9 @@ abstract class Compiler implements LibraryLoaderListener {
   /// Creates the scanner task.
   ///
   /// Override this to mock the scanner for testing.
-  ScannerTask createScannerTask() => new ScannerTask(this, dietParser,
-      preserveComments: options.preserveComments, commentMap: commentMap);
+  ScannerTask createScannerTask() =>
+      new ScannerTask(dietParser, reporter, measurer,
+          preserveComments: options.preserveComments, commentMap: commentMap);
 
   /// Creates the resolver task.
   ///
@@ -1033,7 +1031,7 @@ abstract class Compiler implements LibraryLoaderListener {
       if (identical(e.kind, ElementKind.GENERATIVE_CONSTRUCTOR)) {
         resolved.remove(e);
       }
-      if (backend.isBackendLibrary(e.library)) {
+      if (backend.isTargetSpecificLibrary(e.library)) {
         resolved.remove(e);
       }
     }
@@ -1557,6 +1555,9 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     }
   }
 
+  @override
+  bool get hasReportedError => compiler.compilationFailed;
+
   /**
    * Perform an operation, [f], returning the return value from [f].  If an
    * error occurs then report it as having occurred during compilation of
@@ -1886,7 +1887,16 @@ class _CompilerResolution implements Resolution {
   ParsingContext get parsingContext => compiler.parsingContext;
 
   @override
+  CoreClasses get coreClasses => compiler.coreClasses;
+
+  @override
   CoreTypes get coreTypes => compiler.coreTypes;
+
+  @override
+  Types get types => compiler.types;
+
+  @override
+  Target get target => compiler.backend;
 
   @override
   void registerClass(ClassElement cls) {
