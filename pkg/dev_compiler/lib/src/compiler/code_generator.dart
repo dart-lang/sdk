@@ -126,6 +126,8 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   bool _superAllowed = true;
 
+  bool _inAngularTemplate = false;
+
   List<JS.TemporaryId> _superHelperSymbols = <JS.TemporaryId>[];
   List<JS.Method> _superHelpers = <JS.Method>[];
 
@@ -424,6 +426,9 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   @override
   void visitCompilationUnit(CompilationUnit unit) {
+    _inAngularTemplate =
+        unit.element.source.fullName.endsWith(".template.dart");
+
     _constField = new ConstFieldVisitor(types, unit.element.source);
 
     for (var declaration in unit.declarations) {
@@ -437,6 +442,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     for (var directive in unit.directives) {
       directive.accept(this);
     }
+    _inAngularTemplate = false;
   }
 
   @override
@@ -542,6 +548,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var type = _emitType(to,
         nameType: options.nameTypeTests || options.hoistTypeTests,
         hoistType: options.hoistTypeTests);
+    if (_inAngularTemplate) return jsFrom;
     return js.call('dart.as(#, #)', [jsFrom, type]);
   }
 
@@ -1720,7 +1727,9 @@ class CodeGenerator extends GeneralizingAstVisitor
         var castType = _emitType(paramType,
             nameType: options.nameTypeTests || options.hoistTypeTests,
             hoistType: options.hoistTypeTests);
-        body.add(js.statement('dart.as(#, #);', [jsParam, castType]));
+        if (!_inAngularTemplate) {
+          body.add(js.statement('dart.as(#, #);', [jsParam, castType]));
+        }
       }
     }
     return body.isEmpty ? null : _statement(body);
@@ -2517,6 +2526,9 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
 
     if (target != null && DynamicInvoke.get(target)) {
+      if (_inAngularTemplate) {
+        return _visit(rhs).toAssignExpression(_visit(lhs));
+      }
       return js.call('dart.dput(#, #, #)',
           [_visit(target), _emitMemberName(id.name), _visit(rhs)]);
     }
@@ -2647,6 +2659,11 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     JS.Expression jsTarget = _visit(target);
     if (DynamicInvoke.get(target) || DynamicInvoke.get(node.methodName)) {
+      if (_inAngularTemplate) {
+        jsTarget = new JS.PropertyAccess(jsTarget, memberName);
+        if (typeArgs != null) jsTarget = new JS.Call(jsTarget, typeArgs);
+        return new JS.Call(jsTarget, args);
+      }
       if (typeArgs != null) {
         return js.call('dart.dgsend(#, #, #, #)',
             [jsTarget, new JS.ArrayInitializer(typeArgs), memberName, args]);
@@ -2676,6 +2693,9 @@ class CodeGenerator extends GeneralizingAstVisitor
         return js.call('dart.dgcall(#, #, #)',
             [fn, new JS.ArrayInitializer(typeArgs), args]);
       } else {
+        if (_inAngularTemplate) {
+          return new JS.Call(fn, args);
+        }
         return js.call('dart.dcall(#, #)', [fn, args]);
       }
     } else {
@@ -3854,6 +3874,9 @@ class CodeGenerator extends GeneralizingAstVisitor
     var name = _emitMemberName(memberName,
         type: getStaticType(target), isStatic: isStatic);
     if (DynamicInvoke.get(target)) {
+      if (_inAngularTemplate) {
+        return js.call('#.#', [_visit(target), name]);
+      }
       return js.call('dart.dload(#, #)', [_visit(target), name]);
     }
 
@@ -3904,8 +3927,13 @@ class CodeGenerator extends GeneralizingAstVisitor
         return js.call(
             'dart.$dynamicHelper(#, #)', [_visit(target), _visitList(args)]);
       }
-      return js.call('dart.dsend(#, #, #)',
-          [_visit(target), memberName, _visitList(args)]);
+      if (_inAngularTemplate) {
+        return js
+            .call('#.#(#)', [_visit(target), memberName, _visitList(args)]);
+      } else {
+        return js.call('dart.dsend(#, #, #)',
+            [_visit(target), memberName, _visitList(args)]);
+      }
     }
 
     // Generic dispatch to a statically known method.
