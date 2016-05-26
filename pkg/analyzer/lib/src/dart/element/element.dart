@@ -1682,6 +1682,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
   ElementKind get kind => ElementKind.CONSTRUCTOR;
 
   @override
+  DartType get returnType => enclosingElement.type;
+
+  @override
   accept(ElementVisitor visitor) => visitor.visitConstructorElement(this);
 
   @override
@@ -2806,7 +2809,7 @@ abstract class ExecutableElementImpl extends ElementImpl
   /**
    * The return type defined by this executable element.
    */
-  DartType returnType;
+  DartType _returnType;
 
   /**
    * The type of function defined by this executable element.
@@ -3037,6 +3040,26 @@ abstract class ExecutableElementImpl extends ElementImpl
       (parameter as ParameterElementImpl).enclosingElement = this;
     }
     this._parameters = parameters;
+  }
+
+  @override
+  DartType get returnType {
+    if (serializedExecutable != null && _returnType == null) {
+      bool isSetter =
+          serializedExecutable.kind == UnlinkedExecutableKind.setter;
+      _returnType = enclosingUnit.resynthesizerContext.resolveLinkedType(
+              serializedExecutable.inferredReturnTypeSlot,
+              typeParameterContext) ??
+          enclosingUnit.resynthesizerContext.resolveTypeRef(
+              serializedExecutable.returnType, typeParameterContext,
+              defaultVoid: isSetter && context.analysisOptions.strongMode);
+    }
+    return _returnType;
+  }
+
+  void set returnType(DartType returnType) {
+    assert(serializedExecutable == null);
+    _returnType = returnType;
   }
 
   @override
@@ -3631,7 +3654,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   /**
    * The return type defined by this type alias.
    */
-  DartType returnType;
+  DartType _returnType;
 
   /**
    * The type of function defined by this type alias.
@@ -3759,6 +3782,20 @@ class FunctionTypeAliasElementImpl extends ElementImpl
       }
     }
     this._parameters = parameters;
+  }
+
+  @override
+  DartType get returnType {
+    if (_unlinkedTypedef != null && _returnType == null) {
+      _returnType = enclosingUnit.resynthesizerContext
+          .resolveTypeRef(_unlinkedTypedef.returnType, this);
+    }
+    return _returnType;
+  }
+
+  void set returnType(DartType returnType) {
+    assert(_unlinkedTypedef == null);
+    _returnType = returnType;
   }
 
   @override

@@ -1879,7 +1879,6 @@ class _UnitResynthesizer {
       currentConstructor.periodOffset = serializedExecutable.periodOffset;
     }
     constructors[serializedExecutable.name] = currentConstructor;
-    currentConstructor.returnType = classElement.type;
     buildExecutableCommonParts(currentConstructor, serializedExecutable);
     currentConstructor.constantInitializers = serializedExecutable
         .constantInitializers
@@ -2106,17 +2105,6 @@ class _UnitResynthesizer {
         }
         executableElement.parameters = parameters;
       }
-    }
-    if (serializedExecutable.kind == UnlinkedExecutableKind.constructor) {
-      // Caller handles setting the return type.
-      assert(serializedExecutable.returnType == null);
-    } else {
-      bool isSetter =
-          serializedExecutable.kind == UnlinkedExecutableKind.setter;
-      executableElement.returnType = buildLinkedType(
-              serializedExecutable.inferredReturnTypeSlot, executableElement) ??
-          buildType(serializedExecutable.returnType, executableElement,
-              defaultVoid: isSetter && summaryResynthesizer.strongMode);
     }
     executableElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
         executableElement, null, getCurrentTypeArguments(skipLevels: 1), false);
@@ -2456,8 +2444,6 @@ class _UnitResynthesizer {
     functionTypeAliasElement.parameters = serializedTypedef.parameters
         .map((p) => buildParameter(p, functionTypeAliasElement))
         .toList();
-    functionTypeAliasElement.returnType =
-        buildType(serializedTypedef.returnType, functionTypeAliasElement);
     functionTypeAliasElement.type =
         new FunctionTypeImpl.forTypedef(functionTypeAliasElement);
     unitHolder.addTypeAlias(functionTypeAliasElement);
