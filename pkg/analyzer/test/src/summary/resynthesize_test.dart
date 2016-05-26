@@ -676,7 +676,13 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       // any evaluation result.
       expect(rImpl.evaluationResult, isNull);
     } else {
-      expect(rImpl.runtimeType, oImpl.runtimeType);
+      Type rRuntimeType;
+      if (rImpl is FunctionElementImpl) {
+        rRuntimeType = FunctionElementImpl;
+      } else {
+        rRuntimeType = rImpl.runtimeType;
+      }
+      expect(rRuntimeType, oImpl.runtimeType);
     }
     expect(resynthesized.kind, original.kind);
     expect(resynthesized.location, original.location, reason: desc);
@@ -3416,14 +3422,6 @@ Stream s;
     checkLibrary('import "a.dart"; import "b.dart"; C c; D d;');
   }
 
-  void test_inferedType_usesSyntheticFunctionType_functionTypedParam() {
-    checkLibrary('''
-int f(int x(String y)) => null;
-String g(int x(String y)) => null;
-var v = [f, g];
-''');
-  }
-
   test_inferred_function_type_for_variable_in_generic_function() {
     // In the code below, `x` has an inferred type of `() => int`, with 2
     // (unused) type parameters from the enclosing top level function.
@@ -3572,6 +3570,14 @@ var v = f(g: (x, y) {});
   test_inferred_type_refers_to_setter_function_typed_parameter_type() {
     checkLibrary('class C extends D { void set f(g) {} }'
         ' abstract class D { void set f(int g(String s)); }');
+  }
+
+  void test_inferredType_usesSyntheticFunctionType_functionTypedParam() {
+    checkLibrary('''
+int f(int x(String y)) => null;
+String g(int x(String y)) => null;
+var v = [f, g];
+''');
   }
 
   test_initializer_executable_with_return_type_from_closure() {

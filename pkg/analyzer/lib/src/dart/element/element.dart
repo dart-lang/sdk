@@ -1798,6 +1798,32 @@ class DefaultFieldFormalParameterElementImpl
    */
   DefaultFieldFormalParameterElementImpl.forNode(Identifier name)
       : super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  DefaultFieldFormalParameterElementImpl.forSerialized(
+      UnlinkedParam unlinkedParam, ElementImpl enclosingElement)
+      : super.forSerialized(unlinkedParam, enclosingElement);
+
+  @override
+  Expression get constantInitializer {
+    if (_unlinkedParam != null) {
+      UnlinkedConst defaultValue = _unlinkedParam.initializer?.bodyExpr;
+      if (defaultValue == null) {
+        return null;
+      }
+      return super.constantInitializer ??= enclosingUnit.resynthesizerContext
+          .buildExpression(this, defaultValue);
+    }
+    return super.constantInitializer;
+  }
+
+  @override
+  void set constantInitializer(Expression initializer) {
+    assert(_unlinkedParam == null);
+    super.constantInitializer = initializer;
+  }
 }
 
 /**
@@ -3338,7 +3364,7 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   /**
    * The field associated with this field formal parameter.
    */
-  FieldElement field;
+  FieldElement _field;
 
   /**
    * Initialize a newly created parameter element to have the given [name] and
@@ -3353,8 +3379,45 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   FieldFormalParameterElementImpl.forNode(Identifier name)
       : super.forNode(name);
 
+  /**
+   * Initialize using the given serialized information.
+   */
+  FieldFormalParameterElementImpl.forSerialized(
+      UnlinkedParam unlinkedParam, ElementImpl enclosingElement)
+      : super.forSerialized(unlinkedParam, enclosingElement);
+
+  @override
+  FieldElement get field {
+    if (_unlinkedParam != null && _field == null) {
+      Element enclosingClass = enclosingElement?.enclosingElement;
+      if (enclosingClass is ClassElement) {
+        _field = enclosingClass.getField(_unlinkedParam.name);
+      }
+    }
+    return _field;
+  }
+
+  void set field(FieldElement field) {
+    assert(_unlinkedParam == null);
+    _field = field;
+  }
+
   @override
   bool get isInitializingFormal => true;
+
+  @override
+  DartType get type {
+    if (_unlinkedParam != null && _unlinkedParam.type == null) {
+      _type ??= field?.type ?? DynamicTypeImpl.instance;
+    }
+    return super.type;
+  }
+
+  @override
+  void set type(DartType type) {
+    assert(_unlinkedParam == null);
+    _type = type;
+  }
 
   @override
   accept(ElementVisitor visitor) =>
@@ -3503,6 +3566,50 @@ class FunctionElementImpl extends ExecutableElementImpl
   void shareTypeParameters(List<TypeParameterElement> typeParameters) {
     this._typeParameters = typeParameters;
   }
+}
+
+/**
+ * Implementation of [FunctionElementImpl] for a function typed parameter.
+ */
+class FunctionElementImpl_forFunctionTypedParameter
+    extends FunctionElementImpl {
+  @override
+  final CompilationUnitElementImpl enclosingUnit;
+
+  /**
+   * The enclosing function typed [ParameterElementImpl].
+   */
+  final ParameterElementImpl _parameter;
+
+  FunctionElementImpl_forFunctionTypedParameter(
+      this.enclosingUnit, this._parameter)
+      : super('', -1);
+
+  @override
+  TypeParameterizedElementMixin get enclosingTypeParameterContext =>
+      _parameter.typeParameterContext;
+
+  @override
+  bool get isSynthetic => true;
+}
+
+/**
+ * Implementation of [FunctionElementImpl] for a synthetic function element
+ * that was synthesized by a LUB computation.
+ */
+class FunctionElementImpl_forLUB extends FunctionElementImpl {
+  @override
+  final CompilationUnitElementImpl enclosingUnit;
+
+  @override
+  final TypeParameterizedElementMixin enclosingTypeParameterContext;
+
+  FunctionElementImpl_forLUB(
+      this.enclosingUnit, this.enclosingTypeParameterContext)
+      : super('', -1);
+
+  @override
+  bool get isSynthetic => true;
 }
 
 /**
@@ -5855,6 +5962,17 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   @override
+  DartType get type {
+    if (_unlinkedParam != null && _type == null) {
+      _type = enclosingUnit.resynthesizerContext.resolveLinkedType(
+              _unlinkedParam.inferredTypeSlot, typeParameterContext) ??
+          enclosingUnit.resynthesizerContext
+              .resolveTypeRef(_unlinkedParam.type, typeParameterContext);
+    }
+    return super.type;
+  }
+
+  @override
   List<TypeParameterElement> get typeParameters => _typeParameters;
 
   /**
@@ -6292,6 +6410,13 @@ abstract class ResynthesizerContext {
    * Build explicit top-level variables.
    */
   UnitExplicitTopLevelVariables buildTopLevelVariables();
+
+  /**
+   * Build the appropriate [DartType] object corresponding to a slot id in the
+   * [LinkedUnit.types] table.
+   */
+  DartType resolveLinkedType(
+      int slot, TypeParameterizedElementMixin typeParameterContext);
 
   /**
    * Resolve an [EntityRef] into a type.  If the reference is
@@ -6777,7 +6902,7 @@ abstract class VariableElementImpl extends ElementImpl
   /**
    * The declared type of this variable.
    */
-  DartType type;
+  DartType _type;
 
   /**
    * A synthetic function representing this variable's initializer, or `null` if
@@ -6894,6 +7019,13 @@ abstract class VariableElementImpl extends ElementImpl
 
   @override
   bool get isStatic => hasModifier(Modifier.STATIC);
+
+  @override
+  DartType get type => _type;
+
+  void set type(DartType type) {
+    _type = type;
+  }
 
   @override
   void appendTo(StringBuffer buffer) {
