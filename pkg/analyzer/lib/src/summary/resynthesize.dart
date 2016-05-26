@@ -2326,18 +2326,6 @@ class _UnitResynthesizer {
     return parameterElement;
   }
 
-  /**
-   * Handle the parts that are common to top level variables and fields.
-   */
-  void buildPropertyIntroducingElementCommonParts(
-      PropertyInducingElementImpl element,
-      UnlinkedVariable serializedVariable) {
-    buildVariableCommonParts(element, serializedVariable);
-    element.propagatedType = buildLinkedType(
-        serializedVariable.propagatedTypeSlot,
-        _currentTypeParameterizedElement);
-  }
-
   List<FunctionElementImpl> buildTopLevelFunctions() {
     List<FunctionElementImpl> functions = <FunctionElementImpl>[];
     List<UnlinkedExecutable> executables = unlinkedUnit.executables;
@@ -2529,7 +2517,7 @@ class _UnitResynthesizer {
         element = new TopLevelVariableElementImpl.forSerialized(
             unlinkedVariable, unit);
       }
-      buildPropertyIntroducingElementCommonParts(element, unlinkedVariable);
+      buildVariableCommonParts(element, unlinkedVariable);
       variablesData.variables[i] = element;
       // implicit accessors
       variablesData.implicitAccessors.add(buildImplicitGetter(element));
@@ -2559,7 +2547,7 @@ class _UnitResynthesizer {
         element = new FieldElementImpl.forSerialized(
             serializedVariable, enclosingClass);
       }
-      buildPropertyIntroducingElementCommonParts(element, serializedVariable);
+      buildVariableCommonParts(element, serializedVariable);
       element.static = serializedVariable.isStatic;
       holder.addField(element);
       buildImplicitAccessors(element, holder);

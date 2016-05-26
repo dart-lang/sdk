@@ -6614,7 +6614,7 @@ abstract class PropertyInducingElementImpl
    * The propagated type of this variable, or `null` if type propagation has not
    * been performed.
    */
-  DartType propagatedType;
+  DartType _propagatedType;
 
   /**
    * Initialize a newly created synthetic element to have the given [name] and
@@ -6633,6 +6633,20 @@ abstract class PropertyInducingElementImpl
   PropertyInducingElementImpl.forSerialized(
       UnlinkedVariable unlinkedVariable, ElementImpl enclosingElement)
       : super.forSerialized(unlinkedVariable, enclosingElement);
+
+  @override
+  DartType get propagatedType {
+    if (_unlinkedVariable != null && _propagatedType == null) {
+      _propagatedType = enclosingUnit.resynthesizerContext.resolveLinkedType(
+          _unlinkedVariable.propagatedTypeSlot, typeParameterContext);
+    }
+    return _propagatedType;
+  }
+
+  void set propagatedType(DartType propagatedType) {
+    assert(_unlinkedVariable == null);
+    _propagatedType = propagatedType;
+  }
 }
 
 /**
