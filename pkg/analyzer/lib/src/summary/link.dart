@@ -1541,7 +1541,7 @@ class ConstParameterNode extends ConstNode {
     List<ConstNode> dependencies = <ConstNode>[];
     collectDependencies(
         dependencies,
-        parameterElement._unlinkedParam.defaultValue,
+        parameterElement._unlinkedParam.initializer?.bodyExpr,
         parameterElement.compilationUnit);
     return dependencies;
   }
@@ -3688,7 +3688,7 @@ class ParameterElementForLink implements ParameterElementImpl {
 
   ParameterElementForLink(this.enclosingElement, this._unlinkedParam,
       this._typeParameterContext, this.compilationUnit, this._parameterIndex) {
-    if (_unlinkedParam.defaultValue != null) {
+    if (_unlinkedParam.initializer?.bodyExpr != null) {
       _constNode = new ConstParameterNode(this);
     }
   }

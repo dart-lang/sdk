@@ -1044,15 +1044,15 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   UnlinkedParamBuilder visitDefaultFormalParameter(
       DefaultFormalParameter node) {
     UnlinkedParamBuilder b = node.parameter.accept(this);
+    b.initializer = serializeInitializerFunction(node.defaultValue);
     if (node.defaultValue != null) {
       // Closures can't appear inside default values, so we don't need a
       // localClosureIndexMap.
       Map<int, int> localClosureIndexMap = null;
-      b.defaultValue =
+      b.initializer?.bodyExpr =
           serializeConstExpr(localClosureIndexMap, node.defaultValue);
       b.defaultValueCode = node.defaultValue.toSource();
     }
-    b.initializer = serializeInitializerFunction(node.defaultValue);
     b.codeRange = serializeCodeRange(node);
     return b;
   }

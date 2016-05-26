@@ -2332,9 +2332,9 @@ class _UnitResynthesizer {
             new DefaultFieldFormalParameterElementImpl(
                 serializedParameter.name, nameOffset);
         initializingParameter = defaultParameter;
-        if (serializedParameter.defaultValue != null) {
+        if (serializedParameter.initializer?.bodyExpr != null) {
           defaultParameter.constantInitializer = _buildConstExpression(
-              enclosingElement, serializedParameter.defaultValue);
+              enclosingElement, serializedParameter.initializer.bodyExpr);
           defaultParameter.defaultValueCode =
               serializedParameter.defaultValueCode;
         }

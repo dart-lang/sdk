@@ -1921,14 +1921,7 @@ table UnlinkedParam {
   /**
    * Code range of the parameter.
    */
-  codeRange:CodeRange (id: 14);
-
-  /**
-   * If the parameter has a default value, the constant expression in the
-   * default value.  Note that the presence of this expression does not mean
-   * that it is a valid, check [UnlinkedConst.isInvalid].
-   */
-  defaultValue:UnlinkedConst (id: 7);
+  codeRange:CodeRange (id: 7);
 
   /**
    * If the parameter has a default value, the source text of the constant

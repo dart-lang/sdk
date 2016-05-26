@@ -1827,7 +1827,7 @@ class DefaultParameterElementImpl extends ParameterElementImpl
   @override
   Expression get constantInitializer {
     if (_unlinkedParam != null) {
-      UnlinkedConst defaultValue = _unlinkedParam.defaultValue;
+      UnlinkedConst defaultValue = _unlinkedParam.initializer?.bodyExpr;
       if (defaultValue == null) {
         return null;
       }
@@ -5748,7 +5748,7 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   String get defaultValueCode {
     if (_unlinkedParam != null) {
-      if (_unlinkedParam.defaultValue == null) {
+      if (_unlinkedParam.initializer?.bodyExpr == null) {
         return null;
       }
       return _unlinkedParam.defaultValueCode;

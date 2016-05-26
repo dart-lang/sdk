@@ -3702,7 +3702,7 @@ int foo() => 0;
     expect(param.isFunctionTyped, isTrue);
     expect(param.kind, UnlinkedParamKind.positional);
     expect(param.defaultValueCode, 'foo');
-    _assertUnlinkedConst(param.defaultValue, operators: [
+    _assertUnlinkedConst(param.initializer.bodyExpr, operators: [
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'foo',
@@ -3734,7 +3734,7 @@ int foo() => 0;
             .executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.kind, UnlinkedParamKind.named);
-    expect(parameter.defaultValue, isNull);
+    expect(parameter.initializer, isNull);
     expect(parameter.defaultValueCode, isEmpty);
   }
 
@@ -3747,7 +3747,7 @@ int foo() => 0;
     expect(parameter.initializer, isNotNull);
     expect(parameter.defaultValueCode, '42');
     _assertCodeRange(parameter.codeRange, 13, 10);
-    _assertUnlinkedConst(parameter.defaultValue,
+    _assertUnlinkedConst(parameter.initializer.bodyExpr,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
 
@@ -3765,7 +3765,7 @@ int foo() => 0;
             .executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.kind, UnlinkedParamKind.positional);
-    expect(parameter.defaultValue, isNull);
+    expect(parameter.initializer, isNull);
     expect(parameter.defaultValueCode, isEmpty);
   }
 
@@ -3779,7 +3779,7 @@ int foo() => 0;
     expect(parameter.initializer, isNotNull);
     expect(parameter.defaultValueCode, '42');
     _assertCodeRange(parameter.codeRange, 13, 11);
-    _assertUnlinkedConst(parameter.defaultValue,
+    _assertUnlinkedConst(parameter.initializer.bodyExpr,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
 
@@ -3811,7 +3811,7 @@ class C {
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.positional);
     expect(param.defaultValueCode, '42');
-    _assertUnlinkedConst(param.defaultValue,
+    _assertUnlinkedConst(param.initializer.bodyExpr,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
 
@@ -5806,7 +5806,7 @@ int foo(int a, String b) => 0;
     expect(param.kind, UnlinkedParamKind.positional);
     expect(param.initializer, isNotNull);
     expect(param.defaultValueCode, 'foo');
-    _assertUnlinkedConst(param.defaultValue, operators: [
+    _assertUnlinkedConst(param.initializer.bodyExpr, operators: [
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'foo',
@@ -5819,7 +5819,6 @@ int foo(int a, String b) => 0;
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.named);
     expect(param.initializer, isNull);
-    expect(param.defaultValue, isNull);
     expect(param.defaultValueCode, isEmpty);
   }
 
@@ -5830,7 +5829,7 @@ int foo(int a, String b) => 0;
     expect(param.initializer, isNotNull);
     expect(param.defaultValueCode, '42');
     _assertCodeRange(param.codeRange, 3, 5);
-    _assertUnlinkedConst(param.defaultValue,
+    _assertUnlinkedConst(param.initializer.bodyExpr,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
 
@@ -5839,7 +5838,6 @@ int foo(int a, String b) => 0;
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.positional);
     expect(param.initializer, isNull);
-    expect(param.defaultValue, isNull);
     expect(param.defaultValueCode, isEmpty);
   }
 
@@ -5850,7 +5848,7 @@ int foo(int a, String b) => 0;
     expect(param.initializer, isNotNull);
     expect(param.defaultValueCode, '42');
     _assertCodeRange(param.codeRange, 3, 6);
-    _assertUnlinkedConst(param.defaultValue,
+    _assertUnlinkedConst(param.initializer.bodyExpr,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
 
@@ -5859,7 +5857,6 @@ int foo(int a, String b) => 0;
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.required);
     expect(param.initializer, isNull);
-    expect(param.defaultValue, isNull);
     expect(param.defaultValueCode, isEmpty);
   }
 
