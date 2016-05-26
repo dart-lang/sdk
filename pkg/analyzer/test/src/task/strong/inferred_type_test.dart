@@ -479,6 +479,32 @@ test1() {
 ''');
   }
 
+  void test_circularReference_viaClosures() {
+    var mainUnit = checkFile('''
+var x = () => y;
+var y = () => x;
+''');
+    var x = mainUnit.topLevelVariables[0];
+    var y = mainUnit.topLevelVariables[1];
+    expect(x.name, 'x');
+    expect(y.name, 'y');
+    expect(x.type.toString(), 'dynamic');
+    expect(y.type.toString(), 'dynamic');
+  }
+
+  void test_circularReference_viaClosures_initializerTypes() {
+    var mainUnit = checkFile('''
+var x = () => y;
+var y = () => x;
+''');
+    var x = mainUnit.topLevelVariables[0];
+    var y = mainUnit.topLevelVariables[1];
+    expect(x.name, 'x');
+    expect(y.name, 'y');
+    expect(x.initializer.returnType.toString(), '() → dynamic');
+    expect(y.initializer.returnType.toString(), '() → dynamic');
+  }
+
   void test_conflictsCanHappen() {
     checkFile('''
 class I1 {
@@ -2551,6 +2577,19 @@ final x = <String, F<int>>{};
     expect(x.type.toString(), 'Map<String, () → int>');
   }
 
+  void test_inferredType_opAssignToProperty() {
+    var mainUnit = checkFile('''
+class C {
+  num n;
+}
+C f() => null;
+var x = (f().n *= null);
+''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'num');
+  }
+
   void test_inferredType_opAssignToProperty_prefixedIdentifier() {
     var mainUnit = checkFile('''
 class C {
@@ -2574,19 +2613,6 @@ C c;
 var x = (c.n *= null);
 ''');
     var x = mainUnit.topLevelVariables[1];
-    expect(x.name, 'x');
-    expect(x.type.toString(), 'num');
-  }
-
-  void test_inferredType_opAssignToProperty() {
-    var mainUnit = checkFile('''
-class C {
-  num n;
-}
-C f() => null;
-var x = (f().n *= null);
-''');
-    var x = mainUnit.topLevelVariables[0];
     expect(x.name, 'x');
     expect(x.type.toString(), 'num');
   }

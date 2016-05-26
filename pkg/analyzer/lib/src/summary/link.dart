@@ -4330,21 +4330,33 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
   bool get isEvaluated => variableElement._inferredType != null;
 
   /**
-   * Collect the type inference dependencies in [unlinkedConst] (which should be
-   * interpreted relative to [compilationUnit]) and store them in
+   * Collect the type inference dependencies in [unlinkedExecutable] (which
+   * should be interpreted relative to [compilationUnit]) and store them in
    * [dependencies].
    */
   void collectDependencies(
       List<TypeInferenceNode> dependencies,
-      UnlinkedConst unlinkedConst,
+      UnlinkedExecutable unlinkedExecutable,
       CompilationUnitElementForLink compilationUnit) {
+    UnlinkedConst unlinkedConst = unlinkedExecutable?.bodyExpr;
     if (unlinkedConst == null) {
       return;
     }
     int refPtr = 0;
+    int intPtr = 0;
 
     for (UnlinkedConstOperation operation in unlinkedConst.operations) {
       switch (operation) {
+        case UnlinkedConstOperation.pushInt:
+          intPtr++;
+          break;
+        case UnlinkedConstOperation.pushLongInt:
+          int numInts = unlinkedConst.ints[intPtr++];
+          intPtr += numInts;
+          break;
+        case UnlinkedConstOperation.concatenate:
+          intPtr++;
+          break;
         case UnlinkedConstOperation.pushReference:
           EntityRef ref = unlinkedConst.references[refPtr++];
           // TODO(paulberry): cache these resolved references for
@@ -4355,12 +4367,21 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
             dependencies.add(dependency);
           }
           break;
-        case UnlinkedConstOperation.makeTypedList:
         case UnlinkedConstOperation.invokeConstructor:
           refPtr++;
+          intPtr += 2;
+          break;
+        case UnlinkedConstOperation.makeUntypedList:
+        case UnlinkedConstOperation.makeUntypedMap:
+          intPtr++;
+          break;
+        case UnlinkedConstOperation.makeTypedList:
+          refPtr++;
+          intPtr++;
           break;
         case UnlinkedConstOperation.makeTypedMap:
           refPtr += 2;
+          intPtr++;
           break;
         case UnlinkedConstOperation.assignToRef:
           // TODO(paulberry): if this reference refers to a variable, should it
@@ -4371,16 +4392,29 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
           // TODO(paulberry): if this reference refers to a variable, should it
           // be considered a type inference dependency?
           refPtr++;
+          intPtr += 2;
+          break;
+        case UnlinkedConstOperation.invokeMethod:
+          intPtr += 2;
           break;
         case UnlinkedConstOperation.typeCast:
         case UnlinkedConstOperation.typeCheck:
           refPtr++;
+          break;
+        case UnlinkedConstOperation.pushLocalFunctionReference:
+          int popCount = unlinkedConst.ints[intPtr++];
+          assert(popCount == 0); // TODO(paulberry): handle the nonzero case.
+          collectDependencies(
+              dependencies,
+              unlinkedExecutable.localFunctions[unlinkedConst.ints[intPtr++]],
+              compilationUnit);
           break;
         default:
           break;
       }
     }
     assert(refPtr == unlinkedConst.references.length);
+    assert(intPtr == unlinkedConst.ints.length);
   }
 
   @override
@@ -4388,7 +4422,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
     List<TypeInferenceNode> dependencies = <TypeInferenceNode>[];
     collectDependencies(
         dependencies,
-        variableElement.unlinkedVariable.initializer?.bodyExpr,
+        variableElement.unlinkedVariable.initializer,
         variableElement.compilationUnit);
     return dependencies;
   }

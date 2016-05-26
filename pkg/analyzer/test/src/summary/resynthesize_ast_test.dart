@@ -154,6 +154,12 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
+  void test_circularReference_viaClosures_initializerTypes() {
+    super.test_circularReference_viaClosures_initializerTypes();
+  }
+
+  @override
+  @failingTest
   void test_genericMethods_inferJSBuiltin() {
     super.test_genericMethods_inferJSBuiltin();
   }
