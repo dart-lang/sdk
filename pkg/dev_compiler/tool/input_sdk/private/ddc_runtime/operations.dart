@@ -253,8 +253,7 @@ instanceOf(obj, type) => JS('', '''(() => {
 
 @JSExportName('as')
 cast(obj, type) {
-  if (obj == null) return obj;
-
+  if (JS('bool', '# == #', type, dynamic) || obj == null) return obj;
   bool result = strongInstanceOf(obj, type, true);
   if (JS('bool', '#', result)) return obj;
   _throwCastError(obj, type, result);

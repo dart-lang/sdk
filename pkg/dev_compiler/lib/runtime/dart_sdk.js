@@ -1124,7 +1124,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     dart.throwStrongModeError('Strong mode is check failure: ' + dart.typeName(actual) + ' does not soundly subtype ' + dart.typeName(type));
   };
   dart.as = function(obj, type) {
-    if (obj == null) return obj;
+    if (type == dart.dynamic || obj == null) return obj;
     let result = dart.strongInstanceOf(obj, type, true);
     if (result) return obj;
     dart._throwCastError(obj, type, result);
