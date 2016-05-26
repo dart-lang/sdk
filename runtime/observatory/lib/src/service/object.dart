@@ -253,9 +253,6 @@ abstract class ServiceObject extends Observable {
             break;
         }
         break;
-      case '_ObjectStore':
-        obj = new ObjectStore._empty(owner);
-        break;
       case 'Event':
         obj = new ServiceEvent._empty(owner);
         break;
@@ -1337,7 +1334,6 @@ class Isolate extends ServiceObjectOwner {
   Map<int, Class> _classesByCid = new Map<int, Class>();
 
   @observable Library rootLibrary;
-  @observable ObjectStore objectStore;
   @observable ObservableList<Library> libraries =
       new ObservableList<Library>();
   @observable Frame topFrame;
@@ -1419,7 +1415,6 @@ class Isolate extends ServiceObjectOwner {
     _upgradeCollection(map, isolate);
     originNumber = int.parse(map['_originNumber'], onError:(_) => null);
     rootLibrary = map['rootLib'];
-    objectStore = map['_objectStore'];
     if (map['entry'] != null) {
       entry = map['entry'];
     }
@@ -1748,36 +1743,6 @@ class Isolate extends ServiceObjectOwner {
 
   String toString() => "Isolate($name)";
 }
-
-
-class NamedField {
-  final String name;
-  final ServiceObject value;
-  NamedField(this.name, this.value);
-}
-
-
-class ObjectStore extends ServiceObject {
-  @observable List<NamedField> fields = new List<NamedField>();
-
-  ObjectStore._empty(ServiceObjectOwner owner) : super._empty(owner);
-
-  void _update(ObservableMap map, bool mapIsRef) {
-    // Extract full properties.
-    _upgradeCollection(map, isolate);
-
-    if (mapIsRef) {
-      return;
-    }
-
-    fields.clear();
-    map['fields'].forEach((key, value) {
-      fields.add(new NamedField(key, value));
-    });
-    _loaded = true;
-  }
-}
-
 
 /// A [ServiceObject] which implements [ObservableMap].
 class ServiceMap extends ServiceObject implements ObservableMap {

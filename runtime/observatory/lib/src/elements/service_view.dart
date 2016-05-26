@@ -104,11 +104,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
               return element;
           }
         }(object);
-      case '_ObjectStore':
-        ObjectStoreViewElement element =
-            new Element.tag('objectstore-view');
-        element.objectStore = object;
-        return element;
       case 'SocketList':
         IOSocketListViewElement element =
             new Element.tag('io-socket-list-view');

@@ -3592,12 +3592,6 @@ static bool GetObject(Thread* thread, JSONStream* js) {
     return true;
   }
 
-  if (strcmp(id, "object_store") == 0) {
-    JSONObject jsobj(js);
-    thread->isolate()->object_store()->PrintToJSONObject(&jsobj, false);
-    return true;
-  }
-
   PrintInvalidParamError(js, "objectId");
   return true;
 }

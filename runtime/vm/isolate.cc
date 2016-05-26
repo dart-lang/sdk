@@ -1901,11 +1901,6 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   }
 
   {
-    JSONObject objectStore(&jsobj, "_objectStore");
-    object_store()->PrintToJSONObject(&objectStore);
-  }
-
-  {
     JSONObject tagCounters(&jsobj, "_tagCounters");
     vm_tag_counters()->PrintToJSONObject(&tagCounters);
   }
