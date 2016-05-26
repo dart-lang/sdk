@@ -760,6 +760,20 @@ class GetHandler {
             "right"
           ]);
           buffer.write('</table>');
+
+          Map<ResultDescriptor, int> recomputedCounts =
+              CacheEntry.recomputedCounts;
+          List<ResultDescriptor> descriptors = recomputedCounts.keys.toList();
+          descriptors.sort(ResultDescriptor.SORT_BY_NAME);
+          buffer.write('<p><b>Results computed after being flushed</b></p>');
+          buffer.write(
+              '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+          _writeRow(buffer, ['Result', 'Count'], header: true);
+          for (ResultDescriptor descriptor in descriptors) {
+            _writeRow(buffer, [descriptor.name, recomputedCounts[descriptor]],
+                classes: [null, "right"]);
+          }
+          buffer.write('</table>');
         }, (StringBuffer buffer) {
           //
           // Write task model timing information.
@@ -986,8 +1000,7 @@ class GetHandler {
             SOURCE_QUERY_PARAM: sourceUri
           };
           List<ResultDescriptor> results = _getExpectedResults(entry);
-          results.sort((ResultDescriptor first, ResultDescriptor second) =>
-              first.toString().compareTo(second.toString()));
+          results.sort(ResultDescriptor.SORT_BY_NAME);
 
           buffer.write('<h3>');
           buffer.write(HTML_ESCAPE.convert(entry.target.toString()));
