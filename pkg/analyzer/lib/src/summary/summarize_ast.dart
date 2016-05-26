@@ -346,6 +346,13 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   Map<int, int> _localClosureIndexMap;
 
   /**
+   * Indicates whether closure function bodies should be serialized.  This flag
+   * is set while visiting the bodies of initializer expressions that will be
+   * needed by type inference.
+   */
+  bool _serializeClosureBodyExprs = false;
+
+  /**
    * Create a slot id for storing a propagated or inferred type or const cycle
    * info.
    */
@@ -580,6 +587,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   /**
    * Serialize a [FunctionDeclaration] or [MethodDeclaration] into an
    * [UnlinkedExecutable].
+   *
+   * If [serializeBodyExpr] is `true`, then the function definition is stored
+   * in [UnlinkedExecutableBuilder.bodyExpr].
    */
   UnlinkedExecutableBuilder serializeExecutable(
       AstNode node,
@@ -595,7 +605,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       Comment documentationComment,
       NodeList<Annotation> annotations,
       TypeParameterList typeParameters,
-      bool isExternal) {
+      bool isExternal,
+      bool serializeBodyExpr) {
     int oldScopesLength = scopes.length;
     _TypeParameterScope typeParameterScope = new _TypeParameterScope();
     scopes.add(typeParameterScope);
@@ -643,7 +654,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     }
     b.visibleOffset = enclosingBlock?.offset;
     b.visibleLength = enclosingBlock?.length;
-    serializeFunctionBody(b, null, body, false);
+    serializeFunctionBody(b, null, body, serializeBodyExpr);
     scopes.removeLast();
     assert(scopes.length == oldScopesLength);
     return b;
@@ -658,7 +669,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * are serialized first.
    *
    * If [serializeBodyExpr] is `true`, then the function definition is stored
-   * in [UnlinkedExecutableBuilder.bodyExpr].
+   * in [UnlinkedExecutableBuilder.bodyExpr], and closures occurring inside
+   * [initializers] and [body] have their function bodies serialized as well.
    *
    * The return value is a map whose keys are the offsets of local function
    * nodes representing closures inside [initializers] and [body], and whose
@@ -679,10 +691,12 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     List<UnlinkedLabelBuilder> oldLabels = labels;
     List<UnlinkedVariableBuilder> oldVariables = variables;
     Map<int, int> oldLocalClosureIndexMap = _localClosureIndexMap;
+    bool oldSerializeClosureBodyExprs = _serializeClosureBodyExprs;
     executables = <UnlinkedExecutableBuilder>[];
     labels = <UnlinkedLabelBuilder>[];
     variables = <UnlinkedVariableBuilder>[];
     _localClosureIndexMap = <int, int>{};
+    _serializeClosureBodyExprs = serializeBodyExpr;
     if (initializers != null) {
       for (ConstructorInitializer initializer in initializers) {
         initializer.accept(this);
@@ -692,6 +706,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     if (serializeBodyExpr) {
       if (body is Expression) {
         b.bodyExpr = serializeConstExpr(_localClosureIndexMap, body);
+      } else if (body is ExpressionFunctionBody) {
+        b.bodyExpr = serializeConstExpr(_localClosureIndexMap, body.expression);
       } else {
         // TODO(paulberry): serialize other types of function bodies.
       }
@@ -704,6 +720,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     labels = oldLabels;
     variables = oldVariables;
     _localClosureIndexMap = oldLocalClosureIndexMap;
+    _serializeClosureBodyExprs = oldSerializeClosureBodyExprs;
     return localClosureIndexMap;
   }
 
@@ -1158,7 +1175,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         node.documentationComment,
         node.metadata,
         node.functionExpression.typeParameters,
-        node.externalKeyword != null));
+        node.externalKeyword != null,
+        false));
   }
 
   @override
@@ -1181,7 +1199,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
           null,
           null,
           node.typeParameters,
-          false));
+          false,
+          _serializeClosureBodyExprs));
     }
   }
 
@@ -1280,7 +1299,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         node.documentationComment,
         node.metadata,
         node.typeParameters,
-        node.externalKeyword != null));
+        node.externalKeyword != null,
+        false));
   }
 
   @override

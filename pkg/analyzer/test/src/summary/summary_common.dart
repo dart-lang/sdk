@@ -7067,6 +7067,22 @@ final v = ((a, b) => 42)(1, 2);
         isValidConst: false, operators: [UnlinkedConstOperation.pushNull]);
   }
 
+  test_expr_inClosure() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('var v = () => 1;');
+    _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
+        operators: [UnlinkedConstOperation.pushInt], ints: [1]);
+  }
+
+  test_expr_inClosure_noTypeInferenceNeeded() {
+    // We don't serialize closure body expressions for closures that don't need
+    // to participate in type inference.
+    UnlinkedVariable variable = serializeVariableText('Object v = () => 1;');
+    expect(variable.initializer.localFunctions[0].bodyExpr, isNull);
+  }
+
   test_expr_invokeMethod_instance() {
     if (skipNonConstInitializers) {
       return;
