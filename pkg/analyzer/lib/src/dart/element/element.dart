@@ -5778,7 +5778,7 @@ class ParameterElementImpl extends VariableElementImpl
   /**
    * The kind of this parameter.
    */
-  ParameterKind parameterKind;
+  ParameterKind _parameterKind;
 
   /**
    * The Dart code of the default value.
@@ -5945,6 +5945,29 @@ class ParameterElementImpl extends VariableElementImpl
       return _unlinkedParam.nameOffset;
     }
     return super.nameOffset;
+  }
+
+  @override
+  ParameterKind get parameterKind {
+    if (_unlinkedParam != null && _parameterKind == null) {
+      switch (_unlinkedParam.kind) {
+        case UnlinkedParamKind.named:
+          _parameterKind = ParameterKind.NAMED;
+          break;
+        case UnlinkedParamKind.positional:
+          _parameterKind = ParameterKind.POSITIONAL;
+          break;
+        case UnlinkedParamKind.required:
+          _parameterKind = ParameterKind.REQUIRED;
+          break;
+      }
+    }
+    return _parameterKind;
+  }
+
+  void set parameterKind(ParameterKind parameterKind) {
+    assert(_unlinkedParam == null);
+    _parameterKind = parameterKind;
   }
 
   @override

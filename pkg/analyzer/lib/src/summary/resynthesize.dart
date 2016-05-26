@@ -2367,17 +2367,6 @@ class _UnitResynthesizer {
       parameterTypeElement.type = parameterElement.type;
     }
     buildVariableInitializer(parameterElement, serializedParameter.initializer);
-    switch (serializedParameter.kind) {
-      case UnlinkedParamKind.named:
-        parameterElement.parameterKind = ParameterKind.NAMED;
-        break;
-      case UnlinkedParamKind.positional:
-        parameterElement.parameterKind = ParameterKind.POSITIONAL;
-        break;
-      case UnlinkedParamKind.required:
-        parameterElement.parameterKind = ParameterKind.REQUIRED;
-        break;
-    }
     return parameterElement;
   }
 

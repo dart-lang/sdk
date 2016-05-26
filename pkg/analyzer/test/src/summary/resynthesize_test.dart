@@ -916,7 +916,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     compareVariableElements(resynthesized, original, desc);
     compareParameterElementLists(
         resynthesized.parameters, original.parameters, desc);
-    expect(resynthesized.parameterKind, original.parameterKind);
+    expect(resynthesized.parameterKind, original.parameterKind, reason: desc);
     expect(resynthesized.isInitializingFormal, original.isInitializingFormal,
         reason: desc);
     expect(resynthesized is FieldFormalParameterElementImpl,
