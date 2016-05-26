@@ -1756,8 +1756,7 @@ class C {
 }
 ''');
     _assertUnlinkedConst(cls.executables[0].constantInitializers[0].expression,
-        operators: [UnlinkedConstOperation.pushConstructorParameter],
-        strings: ['a']);
+        operators: [UnlinkedConstOperation.pushParameter], strings: ['a']);
   }
 
   test_constExpr_constructorParam_shadows_typeParam() {
@@ -1768,8 +1767,7 @@ class C<T> {
 }
 ''');
     _assertUnlinkedConst(cls.executables[0].constantInitializers[0].expression,
-        operators: [UnlinkedConstOperation.pushConstructorParameter],
-        strings: ['T']);
+        operators: [UnlinkedConstOperation.pushParameter], strings: ['T']);
   }
 
   test_constExpr_functionExpression_asArgument() {
@@ -3462,8 +3460,7 @@ class C {
     expect(initializer.kind, UnlinkedConstructorInitializerKind.field);
     expect(initializer.name, 'x');
     _assertUnlinkedConst(initializer.expression,
-        operators: [UnlinkedConstOperation.pushConstructorParameter],
-        strings: ['p']);
+        operators: [UnlinkedConstOperation.pushParameter], strings: ['p']);
     expect(initializer.arguments, isEmpty);
   }
 
@@ -3702,7 +3699,7 @@ int foo() => 0;
     expect(param.isFunctionTyped, isTrue);
     expect(param.kind, UnlinkedParamKind.positional);
     expect(param.defaultValueCode, 'foo');
-    _assertUnlinkedConst(param.defaultValue, operators: [
+    _assertUnlinkedConst(param.initializer.bodyExpr, operators: [
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'foo',
@@ -3734,7 +3731,7 @@ int foo() => 0;
             .executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.kind, UnlinkedParamKind.named);
-    expect(parameter.defaultValue, isNull);
+    expect(parameter.initializer, isNull);
     expect(parameter.defaultValueCode, isEmpty);
   }
 
@@ -3747,7 +3744,7 @@ int foo() => 0;
     expect(parameter.initializer, isNotNull);
     expect(parameter.defaultValueCode, '42');
     _assertCodeRange(parameter.codeRange, 13, 10);
-    _assertUnlinkedConst(parameter.defaultValue,
+    _assertUnlinkedConst(parameter.initializer.bodyExpr,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
 
@@ -3765,7 +3762,7 @@ int foo() => 0;
             .executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.kind, UnlinkedParamKind.positional);
-    expect(parameter.defaultValue, isNull);
+    expect(parameter.initializer, isNull);
     expect(parameter.defaultValueCode, isEmpty);
   }
 
@@ -3779,7 +3776,7 @@ int foo() => 0;
     expect(parameter.initializer, isNotNull);
     expect(parameter.defaultValueCode, '42');
     _assertCodeRange(parameter.codeRange, 13, 11);
-    _assertUnlinkedConst(parameter.defaultValue,
+    _assertUnlinkedConst(parameter.initializer.bodyExpr,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
 
@@ -3811,7 +3808,7 @@ class C {
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.positional);
     expect(param.defaultValueCode, '42');
-    _assertUnlinkedConst(param.defaultValue,
+    _assertUnlinkedConst(param.initializer.bodyExpr,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
 
@@ -5806,7 +5803,7 @@ int foo(int a, String b) => 0;
     expect(param.kind, UnlinkedParamKind.positional);
     expect(param.initializer, isNotNull);
     expect(param.defaultValueCode, 'foo');
-    _assertUnlinkedConst(param.defaultValue, operators: [
+    _assertUnlinkedConst(param.initializer.bodyExpr, operators: [
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'foo',
@@ -5819,7 +5816,6 @@ int foo(int a, String b) => 0;
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.named);
     expect(param.initializer, isNull);
-    expect(param.defaultValue, isNull);
     expect(param.defaultValueCode, isEmpty);
   }
 
@@ -5830,7 +5826,7 @@ int foo(int a, String b) => 0;
     expect(param.initializer, isNotNull);
     expect(param.defaultValueCode, '42');
     _assertCodeRange(param.codeRange, 3, 5);
-    _assertUnlinkedConst(param.defaultValue,
+    _assertUnlinkedConst(param.initializer.bodyExpr,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
 
@@ -5839,7 +5835,6 @@ int foo(int a, String b) => 0;
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.positional);
     expect(param.initializer, isNull);
-    expect(param.defaultValue, isNull);
     expect(param.defaultValueCode, isEmpty);
   }
 
@@ -5850,7 +5845,7 @@ int foo(int a, String b) => 0;
     expect(param.initializer, isNotNull);
     expect(param.defaultValueCode, '42');
     _assertCodeRange(param.codeRange, 3, 6);
-    _assertUnlinkedConst(param.defaultValue,
+    _assertUnlinkedConst(param.initializer.bodyExpr,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
 
@@ -5859,7 +5854,6 @@ int foo(int a, String b) => 0;
     UnlinkedParam param = executable.parameters[0];
     expect(param.kind, UnlinkedParamKind.required);
     expect(param.initializer, isNull);
-    expect(param.defaultValue, isNull);
     expect(param.defaultValueCode, isEmpty);
   }
 
@@ -7068,6 +7062,70 @@ final v = ((a, b) => 42)(1, 2);
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false, operators: [UnlinkedConstOperation.pushNull]);
+  }
+
+  test_expr_inClosure() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('var v = () => 1;');
+    _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
+        operators: [UnlinkedConstOperation.pushInt], ints: [1]);
+  }
+
+  test_expr_inClosure_noTypeInferenceNeeded() {
+    // We don't serialize closure body expressions for closures that don't need
+    // to participate in type inference.
+    UnlinkedVariable variable = serializeVariableText('Object v = () => 1;');
+    expect(variable.initializer.localFunctions[0].bodyExpr, isNull);
+  }
+
+  test_expr_inClosure_refersToOuterParam() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable =
+        serializeVariableText('var v = (x) => (y) => x;');
+    _assertUnlinkedConst(
+        variable.initializer.localFunctions[0].localFunctions[0].bodyExpr,
+        operators: [UnlinkedConstOperation.pushParameter],
+        strings: ['x']);
+  }
+
+  test_expr_inClosure_refersToParam() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('var v = (x) => x;');
+    _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
+        operators: [UnlinkedConstOperation.pushParameter], strings: ['x']);
+  }
+
+  test_expr_inClosure_refersToParam_outOfScope() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable =
+        serializeVariableText('var x; var v = (b) => (b ? (x) => x : x);');
+    _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
+        isValidConst: false,
+        operators: [
+          UnlinkedConstOperation.pushParameter,
+          UnlinkedConstOperation.pushLocalFunctionReference,
+          UnlinkedConstOperation.pushReference,
+          UnlinkedConstOperation.conditional,
+        ],
+        strings: [
+          'b'
+        ],
+        ints: [
+          0,
+          0
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, null, null, 'x',
+              expectedKind: ReferenceKind.topLevelPropertyAccessor)
+        ]);
   }
 
   test_expr_invokeMethod_instance() {

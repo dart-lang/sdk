@@ -71,8 +71,8 @@ class DeserializerSystemImpl extends DeserializerSystem {
             .readScript(script.readableUri)
             .then((Script newScript) {
           script.file = newScript.file;
-          _resolvedAstDeserializer.sourceFiles[script.resourceUri] =
-              newScript.file;
+          script.isSynthesized = newScript.isSynthesized;
+          _resolvedAstDeserializer.scripts[script.resourceUri] = script;
         });
       }).then((_) => library);
     }
@@ -200,7 +200,7 @@ class ResolvedAstSerializerPlugin extends SerializerPlugin {
 class ResolvedAstDeserializerPlugin extends DeserializerPlugin {
   final ParsingContext parsingContext;
   final DeserializerPlugin nativeDataDeserializer;
-  final Map<Uri, SourceFile> sourceFiles = <Uri, SourceFile>{};
+  final Map<Uri, Script> scripts = <Uri, Script>{};
 
   Map<MemberElement, ObjectDecoder> _decoderMap =
       <MemberElement, ObjectDecoder>{};
@@ -232,13 +232,15 @@ class ResolvedAstDeserializerPlugin extends DeserializerPlugin {
 
   Token findToken(Uri uri, int offset) {
     Token beginToken = beginTokenMap.putIfAbsent(uri, () {
-      SourceFile sourceFile = sourceFiles[uri];
-      if (sourceFile == null) {
-        throw 'No source file found for $uri in:\n '
-            '${sourceFiles.keys.join('\n ')}';
+      Script script = scripts[uri];
+      if (script == null) {
+        parsingContext.reporter.internalError(NO_LOCATION_SPANNABLE,
+            'No source file found for $uri in:\n ${scripts.keys.join('\n ')}');
       }
-      return new Scanner(sourceFile).tokenize();
+      if (script.isSynthesized) return null;
+      return new Scanner(script.file).tokenize();
     });
+    if (beginToken == null) return null;
     return ResolvedAstDeserializer.findTokenInStream(beginToken, offset);
   }
 

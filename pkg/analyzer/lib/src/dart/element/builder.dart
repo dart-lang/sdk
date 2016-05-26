@@ -1303,7 +1303,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     int count = fields.length;
     for (int i = 0; i < count; i++) {
       FieldElement field = fields[i];
-      _fieldMap[field.name] = field;
+      _fieldMap[field.name] ??= field;
     }
   }
 

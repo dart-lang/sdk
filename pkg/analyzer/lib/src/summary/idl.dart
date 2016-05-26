@@ -1124,10 +1124,10 @@ enum UnlinkedConstOperation {
   pushNull,
 
   /**
-   * Push the value of the constant constructor parameter with
-   * the name obtained from [UnlinkedConst.strings].
+   * Push the value of the function parameter with the name obtained from
+   * [UnlinkedConst.strings].
    */
-  pushConstructorParameter,
+  pushParameter,
 
   /**
    * Evaluate a (potentially qualified) identifier expression and push the
@@ -2149,16 +2149,8 @@ abstract class UnlinkedParam extends base.SummaryClass {
    * Code range of the parameter.
    */
   @informative
-  @Id(14)
-  CodeRange get codeRange;
-
-  /**
-   * If the parameter has a default value, the constant expression in the
-   * default value.  Note that the presence of this expression does not mean
-   * that it is a valid, check [UnlinkedConst.isInvalid].
-   */
   @Id(7)
-  UnlinkedConst get defaultValue;
+  CodeRange get codeRange;
 
   /**
    * If the parameter has a default value, the source text of the constant

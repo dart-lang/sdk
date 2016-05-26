@@ -286,6 +286,13 @@ class CacheEntry {
   static int nextInvalidateId = 0;
 
   /**
+   * A table containing the number of times the value of a result descriptor was
+   * recomputed after having been flushed.
+   */
+  static final Map<ResultDescriptor, int> recomputedCounts =
+      new HashMap<ResultDescriptor, int>();
+
+  /**
    * The target this entry is about.
    */
   final AnalysisTarget target;
@@ -530,6 +537,10 @@ class CacheEntry {
     }
     ResultData data = getResultData(descriptor);
     _setDependedOnResults(data, thisResult, dependedOn);
+    if (data.state == CacheState.FLUSHED) {
+      int count = recomputedCounts[descriptor] ?? 0;
+      recomputedCounts[descriptor] = count + 1;
+    }
     data.state = CacheState.VALID;
     data.value = value ?? descriptor.defaultValue;
   }

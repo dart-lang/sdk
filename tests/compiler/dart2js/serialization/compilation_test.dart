@@ -20,31 +20,34 @@ main(List<String> args) {
         await serializeDartCore(arguments: arguments);
     if (arguments.filename != null) {
       Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
-      await compile(serializedData, entryPoint, null);
+      await compile(
+          entryPoint,
+          resolutionInputs: serializedData.toUris(),
+          sourceFiles: serializedData.toMemorySourceFiles());
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
-      await arguments.forEachTest(TESTS, (int index, Test test) async {
-        await compile(serializedData, entryPoint, test,
-                      index: index,
-                      verbose: arguments.verbose);
-      });
+      await arguments.forEachTest(serializedData, TESTS, compile);
     }
   });
 }
 
-Future compile(SerializedData serializedData, Uri entryPoint, Test test,
-               {int index, bool verbose: false}) async {
-  String testDescription =
-      test != null ? test.sourceFiles[entryPoint.path] : '${entryPoint}';
+Future compile(
+    Uri entryPoint,
+    {Map<String, String> sourceFiles: const <String, String>{},
+     List<Uri> resolutionInputs,
+     int index,
+     Test test,
+     bool verbose: false}) async {
+  String testDescription = test != null ? test.name : '${entryPoint}';
+  String id = index != null ? '$index: ' : '';
   print('------------------------------------------------------------------');
-  print('compile ${index != null ? '$index:' :''}${testDescription}');
+  print('compile ${id}${testDescription}');
   print('------------------------------------------------------------------');
   OutputCollector outputCollector = new OutputCollector();
   await runCompiler(
       entryPoint: entryPoint,
-      resolutionInputs: serializedData.toUris(),
-      memorySourceFiles: serializedData.toMemorySourceFiles(
-          test != null ? test.sourceFiles : null),
+      memorySourceFiles: sourceFiles,
+      resolutionInputs: resolutionInputs,
       options: [],
       outputProvider: outputCollector);
   if (verbose) {

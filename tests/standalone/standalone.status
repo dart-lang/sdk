@@ -18,15 +18,15 @@ verified_mem_test: Pass, Slow, Timeout # Does verify before and after GC.
 
 issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
 
-[ ($runtime != vm && $runtime != dart_precompiled && $runtime != dart_product) && ($runtime != drt || $compiler != none)) ]
+[ ($runtime != vm && $runtime != dart_precompiled && $runtime != dart_app) && ($runtime != drt || $compiler != none)) ]
 no_assert_test: Fail, OK # This is testing a vm flag.
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
 package/package_isolate_test: Fail # Issue 12474
 io/observatory_test: Fail
 package/scenarios/invalid/same_package_twice_test: Pass # Issue 24119
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $checked ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $checked ]
 # These tests have type errors on purpose.
 io/process_invalid_arguments_test: Fail, OK
 io/directory_invalid_arguments_test: Fail, OK
@@ -39,7 +39,7 @@ io/stdout_bad_argument_test: Fail, OK
 io/file_fuzz_test: Skip
 io/directory_fuzz_test: Skip
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $system == macos ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $system == macos ]
 # This test fails with "Too many open files" on the Mac OS buildbot.
 # This is expected as MacOS by default runs with a very low number
 # of allowed open files ('ulimit -n' says something like 256).
@@ -112,7 +112,7 @@ regress_25335_test: Skip # Int64List not supported.
 [ $compiler == dart2js && $cps_ir && $checked ]
 *: Skip # `assert` not implemented
 
-[ ($runtime == vm || $runtime == dart_product) && ($arch == arm || $arch == arm64) ]
+[ ($runtime == vm || $runtime == dart_app) && ($arch == arm || $arch == arm64) ]
 io/file_stream_test: Skip # Issue 26109
 io/file_typed_data_test: Skip # Issue 26109
 io/file_input_stream_test: Skip # Issue 26109
@@ -186,13 +186,13 @@ io/sleep_test: Pass, Fail # Issue 25757
 [ $arch != ia32 && $arch != x64 && $arch != simarm && $arch != simarmv5te && $mode == debug ]
 verified_mem_test: Skip  # Not yet implemented.
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $mode == debug && $builder_tag == asan ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $mode == debug && $builder_tag == asan ]
 full_coverage_test: Skip  # Timeout.
 io/file_lock_test: Skip  # Timeout.
 io/test_runner_test: Skip  # Timeout.
 io/http_client_stays_alive_test: Skip  # Timeout.
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
 # Failures in secure networking while NSS is replaced with BoringSSL
 io/https_client_certificate_test: RuntimeError # Issue 24070
 io/secure_socket_renegotiate_test: RuntimeError
@@ -209,6 +209,8 @@ assert_test: Pass, RuntimeError
 [ $noopt || $compiler == precompiler ]
 map_insert_remove_oom_test: Skip # Heap limit too low. Increasing iteration count to make a higher limit a meaningful test makes it too slow for simarm[64] bots.
 io/web_socket_test: Pass, RuntimeError # Issue 24674
+
+[ $noopt || $compiler == precompiler || $compiler == dart2appjit ]
 io/test_extension_test: Skip # Platform.executable
 io/test_extension_fail_test: Skip # Platform.executable
 io/platform_test: Skip # Platform.executable
@@ -216,13 +218,13 @@ io/code_collection_test: Skip # Platform.executable
 full_coverage_test: Skip # Platform.executable
 regress_26031_test: Skip # Platform.resolvedExecutable
 
-[ $compiler == precompiler || $compiler == dart2app ]
+[ $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit ]
 io/compile_all_test: Skip # Incompatible flag --compile_all
 
-[ $runtime == dart_product ]
+[ $runtime == dart_app ]
 io/stdout_bad_argument_test: Skip # Test exits and so can't generate snapshot.
 
-[ $runtime == dart_precompiled || $runtime == dart_product ]
+[ $runtime == dart_precompiled || $runtime == dart_app ]
 full_coverage_test: Skip # Platform.executable
 http_launch_test: Skip # Platform.executable
 io/addlatexhash_test: Skip # Platform.executable
@@ -258,7 +260,7 @@ io/named_pipe_script_test: Skip # Platform.executable
 io/regress_7679_test: Skip # Platform.executable
 io/process_*: Skip # Most use Platform.executable
 
-[ $runtime == dart_precompiled || $runtime == dart_product || $mode == product ]
+[ $runtime == dart_precompiled || $runtime == dart_app || $mode == product ]
 debugger/*: Skip
 assert_test: SkipByDesign # Requires checked mode.
 no_assert_test: SkipByDesign # Requires checked mode.
@@ -278,8 +280,8 @@ no_support_il_printer_test: SkipByDesign
 no_support_service_test: SkipByDesign
 no_support_timeline_test: SkipByDesign
 
-# Following tests are skipped on dart_product as package mapping is not supported.
-[ $runtime == dart_precompiled || $runtime == dart_product ]
+# Following tests are skipped on dart_app as package mapping is not supported.
+[ $runtime == dart_precompiled || $runtime == dart_app ]
 package/scenarios/packages_file_strange_formatting/mixed_line_ends_test: Skip
 package/scenarios/packages_file_strange_formatting/empty_lines_test: Skip
 package/scenarios/invalid/invalid_utf8_test: Skip

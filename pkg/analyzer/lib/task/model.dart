@@ -457,6 +457,13 @@ abstract class ResultCachingPolicy<T> {
  */
 abstract class ResultDescriptor<V> {
   /**
+   * A comparator that can be used to sort result descriptors by their name.
+   */
+  static final Comparator<ResultDescriptor> SORT_BY_NAME =
+      (ResultDescriptor first, ResultDescriptor second) =>
+          first.name.compareTo(second.name);
+
+  /**
    * Initialize a newly created analysis result to have the given [name] and
    * [defaultValue].
    *

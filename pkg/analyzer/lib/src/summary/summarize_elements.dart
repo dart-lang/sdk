@@ -919,20 +919,20 @@ class _CompilationUnitSerializer {
         b.type = serializeTypeRef(type, context);
       }
     }
+    // TODO(scheglov) VariableMember.initializer is not implemented
+    if (parameter is! VariableMember && parameter.initializer != null) {
+      b.initializer = serializeExecutable(parameter.initializer);
+    }
     if (parameter is ConstVariableElement) {
       ConstVariableElement constParameter = parameter as ConstVariableElement;
       Expression initializer = constParameter.constantInitializer;
       if (initializer != null) {
-        b.defaultValue = serializeConstExpr(
+        b.initializer?.bodyExpr = serializeConstExpr(
             parameter,
             parameter.getAncestor((Element e) => e is ExecutableElement),
             initializer);
         b.defaultValueCode = parameter.defaultValueCode;
       }
-    }
-    // TODO(scheglov) VariableMember.initializer is not implemented
-    if (parameter is! VariableMember && parameter.initializer != null) {
-      b.initializer = serializeExecutable(parameter.initializer);
     }
     {
       SourceRange visibleRange = parameter.visibleRange;
@@ -1310,7 +1310,7 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
       this.constructorParameterNames);
 
   @override
-  bool isConstructorParameterName(String name) {
+  bool isParameterName(String name) {
     return constructorParameterNames?.contains(name) ?? false;
   }
 

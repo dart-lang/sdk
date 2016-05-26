@@ -29,7 +29,7 @@ main(List<String> args) {
       Uri entryPoint = Uri.parse('memory:main.dart');
       // TODO(johnniwinther): Change to test all serialized resolved ast instead
       // only those used in the test.
-      Test test = TESTS.last;
+      Test test = TESTS.first;
       await check(serializedData, entryPoint, test.sourceFiles);
     }
   });

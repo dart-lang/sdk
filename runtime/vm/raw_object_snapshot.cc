@@ -1300,7 +1300,7 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
                      kAsReference);
   if (kind == Snapshot::kAppNoJIT) {
     prefix.StorePointer(&prefix.raw_ptr()->imports_,
-                        Array::null());
+                        Object::empty_array().raw());
   }
   prefix.StorePointer(&prefix.raw_ptr()->dependent_code_,
                       Array::null());

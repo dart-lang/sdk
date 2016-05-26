@@ -1232,7 +1232,7 @@ static void GeneratePrecompiledJITSnapshot() {
   intptr_t instructions_blob_size = 0;
   uint8_t* rodata_blob_buffer = NULL;
   intptr_t rodata_blob_size = 0;
-  Dart_Handle result = Dart_CreatePrecompiledJITSnapshotBlob(
+  Dart_Handle result = Dart_CreateAppJITSnapshot(
       &vm_isolate_buffer,
       &vm_isolate_size,
       &isolate_buffer,

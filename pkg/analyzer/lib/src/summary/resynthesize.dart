@@ -468,7 +468,7 @@ class _ConstExprBuilder {
         case UnlinkedConstOperation.invokeConstructor:
           _pushInstanceCreation();
           break;
-        case UnlinkedConstOperation.pushConstructorParameter:
+        case UnlinkedConstOperation.pushParameter:
           String name = uc.strings[stringPtr++];
           SimpleIdentifier identifier = AstFactory.identifier3(name);
           identifier.staticElement = resynthesizer.currentConstructor.parameters
@@ -1546,6 +1546,12 @@ class _ResynthesizerContext implements ResynthesizerContext {
   }
 
   @override
+  DartType resolveLinkedType(
+      int slot, TypeParameterizedElementMixin typeParameterContext) {
+    return _unitResynthesizer.buildLinkedType(slot, typeParameterContext);
+  }
+
+  @override
   DartType resolveTypeRef(
       EntityRef type, TypeParameterizedElementMixin typeParameterContext,
       {bool defaultVoid: false, bool instantiateToBoundsAllowed: true}) {
@@ -1873,7 +1879,6 @@ class _UnitResynthesizer {
       currentConstructor.periodOffset = serializedExecutable.periodOffset;
     }
     constructors[serializedExecutable.name] = currentConstructor;
-    currentConstructor.returnType = classElement.type;
     buildExecutableCommonParts(currentConstructor, serializedExecutable);
     currentConstructor.constantInitializers = serializedExecutable
         .constantInitializers
@@ -2101,19 +2106,6 @@ class _UnitResynthesizer {
         executableElement.parameters = parameters;
       }
     }
-    if (serializedExecutable.kind == UnlinkedExecutableKind.constructor) {
-      // Caller handles setting the return type.
-      assert(serializedExecutable.returnType == null);
-    } else {
-      bool isSetter =
-          serializedExecutable.kind == UnlinkedExecutableKind.setter;
-      executableElement.returnType = buildLinkedType(
-              serializedExecutable.inferredReturnTypeSlot,
-              _currentTypeParameterizedElement) ??
-          buildType(
-              serializedExecutable.returnType, _currentTypeParameterizedElement,
-              defaultVoid: isSetter && summaryResynthesizer.strongMode);
-    }
     executableElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
         executableElement, null, getCurrentTypeArguments(skipLevels: 1), false);
     {
@@ -2320,49 +2312,32 @@ class _UnitResynthesizer {
       UnlinkedParam serializedParameter, ElementImpl enclosingElement,
       {bool synthetic: false}) {
     ParameterElementImpl parameterElement;
-    bool isLazilyResynthesized = false;
-    int nameOffset = synthetic ? -1 : serializedParameter.nameOffset;
     if (serializedParameter.isInitializingFormal) {
-      FieldFormalParameterElementImpl initializingParameter;
       if (serializedParameter.kind == UnlinkedParamKind.required) {
-        initializingParameter = new FieldFormalParameterElementImpl(
-            serializedParameter.name, nameOffset);
+        parameterElement = new FieldFormalParameterElementImpl.forSerialized(
+            serializedParameter, enclosingElement);
       } else {
-        DefaultFieldFormalParameterElementImpl defaultParameter =
-            new DefaultFieldFormalParameterElementImpl(
-                serializedParameter.name, nameOffset);
-        initializingParameter = defaultParameter;
-        if (serializedParameter.defaultValue != null) {
-          defaultParameter.constantInitializer = _buildConstExpression(
-              enclosingElement, serializedParameter.defaultValue);
-          defaultParameter.defaultValueCode =
-              serializedParameter.defaultValueCode;
-        }
+        parameterElement =
+            new DefaultFieldFormalParameterElementImpl.forSerialized(
+                serializedParameter, enclosingElement);
       }
-      parameterElement = initializingParameter;
-      initializingParameter.field = fields[serializedParameter.name];
     } else {
       if (serializedParameter.kind == UnlinkedParamKind.required) {
         parameterElement = new ParameterElementImpl.forSerialized(
             serializedParameter, enclosingElement);
-        isLazilyResynthesized = true;
       } else {
-        DefaultParameterElementImpl defaultParameter =
-            new DefaultParameterElementImpl.forSerialized(
-                serializedParameter, enclosingElement);
-        isLazilyResynthesized = true;
-        parameterElement = defaultParameter;
+        parameterElement = new DefaultParameterElementImpl.forSerialized(
+            serializedParameter, enclosingElement);
       }
     }
     parameterElement.synthetic = synthetic;
-    if (!isLazilyResynthesized) {
-      buildAnnotations(parameterElement, serializedParameter.annotations);
-      buildCodeRange(parameterElement, serializedParameter.codeRange);
-    }
     if (serializedParameter.isFunctionTyped) {
       FunctionElementImpl parameterTypeElement =
-          new FunctionElementImpl('', -1);
-      parameterTypeElement.synthetic = true;
+          new FunctionElementImpl_forFunctionTypedParameter(
+              unit, parameterElement);
+      if (!synthetic) {
+        parameterTypeElement.enclosingElement = parameterElement;
+      }
       List<ParameterElement> subParameters = serializedParameter.parameters
           .map((UnlinkedParam p) =>
               buildParameter(p, parameterTypeElement, synthetic: synthetic))
@@ -2372,48 +2347,14 @@ class _UnitResynthesizer {
       } else {
         parameterElement.parameters = subParameters;
         parameterTypeElement.shareParameters(subParameters);
-        parameterTypeElement.enclosingElement = parameterElement;
       }
       parameterTypeElement.returnType =
           buildType(serializedParameter.type, _currentTypeParameterizedElement);
       parameterElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
           parameterTypeElement, null, getCurrentTypeArguments(), false);
       parameterTypeElement.type = parameterElement.type;
-    } else {
-      if (serializedParameter.isInitializingFormal &&
-          serializedParameter.type == null) {
-        // The type is inherited from the matching field.
-        parameterElement.type =
-            fields[serializedParameter.name]?.type ?? DynamicTypeImpl.instance;
-      } else {
-        parameterElement.type = buildLinkedType(
-                serializedParameter.inferredTypeSlot,
-                _currentTypeParameterizedElement) ??
-            buildType(
-                serializedParameter.type, _currentTypeParameterizedElement);
-      }
-      if (!isLazilyResynthesized) {
-        parameterElement.hasImplicitType = serializedParameter.type == null;
-      }
     }
     buildVariableInitializer(parameterElement, serializedParameter.initializer);
-    switch (serializedParameter.kind) {
-      case UnlinkedParamKind.named:
-        parameterElement.parameterKind = ParameterKind.NAMED;
-        break;
-      case UnlinkedParamKind.positional:
-        parameterElement.parameterKind = ParameterKind.POSITIONAL;
-        break;
-      case UnlinkedParamKind.required:
-        parameterElement.parameterKind = ParameterKind.REQUIRED;
-        break;
-    }
-    if (!isLazilyResynthesized) {
-      if (serializedParameter.visibleOffset != 0) {
-        parameterElement.setVisibleRange(serializedParameter.visibleOffset,
-            serializedParameter.visibleLength);
-      }
-    }
     return parameterElement;
   }
 
@@ -2462,8 +2403,8 @@ class _UnitResynthesizer {
     if (type.paramReference != 0) {
       return typeParameterContext.getTypeParameterType(type.paramReference);
     } else if (type.syntheticReturnType != null) {
-      FunctionElementImpl element = new FunctionElementImpl('', -1);
-      element.synthetic = true;
+      FunctionElementImpl element =
+          new FunctionElementImpl_forLUB(unit, typeParameterContext);
       element.parameters = type.syntheticParams
           .map((UnlinkedParam param) =>
               buildParameter(param, element, synthetic: true))
@@ -2503,8 +2444,6 @@ class _UnitResynthesizer {
     functionTypeAliasElement.parameters = serializedTypedef.parameters
         .map((p) => buildParameter(p, functionTypeAliasElement))
         .toList();
-    functionTypeAliasElement.returnType =
-        buildType(serializedTypedef.returnType, functionTypeAliasElement);
     functionTypeAliasElement.type =
         new FunctionTypeImpl.forTypedef(functionTypeAliasElement);
     unitHolder.addTypeAlias(functionTypeAliasElement);
@@ -2676,8 +2615,8 @@ class _UnitResynthesizer {
   void buildVariableCommonParts(
       VariableElementImpl element, UnlinkedVariable serializedVariable) {
     element.type = buildLinkedType(serializedVariable.inferredTypeSlot,
-            _currentTypeParameterizedElement) ??
-        buildType(serializedVariable.type, _currentTypeParameterizedElement);
+            element.typeParameterContext) ??
+        buildType(serializedVariable.type, element.typeParameterContext);
     buildVariableInitializer(element, serializedVariable.initializer);
   }
 

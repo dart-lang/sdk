@@ -2016,7 +2016,7 @@ void Isolate::set_registered_service_extension_handlers(
 
 void Isolate::AddDeoptimizingBoxedField(const Field& field) {
   ASSERT(Compiler::IsBackgroundCompilation());
-  ASSERT(field.IsOriginal());
+  ASSERT(!field.IsOriginal());
   // The enclosed code allocates objects and can potentially trigger a GC,
   // ensure that we account for safepoints when grabbing the lock.
   SafepointMutexLocker ml(field_list_mutex_);
@@ -2025,7 +2025,7 @@ void Isolate::AddDeoptimizingBoxedField(const Field& field) {
   }
   const GrowableObjectArray& array =
       GrowableObjectArray::Handle(boxed_field_list_);
-  array.Add(field, Heap::kOld);
+  array.Add(Field::Handle(field.Original()), Heap::kOld);
 }
 
 

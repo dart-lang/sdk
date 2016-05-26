@@ -1763,11 +1763,11 @@ class StandardTestSuite extends TestSuite {
   }
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
-    var COMPILERS = const ['none', 'precompiler', 'dart2app'];
+    var COMPILERS = const ['none', 'precompiler', 'dart2app', 'dart2appjit'];
     var RUNTIMES = const [
       'none',
       'dart_precompiled',
-      'dart_product',
+      'dart_app',
       'vm',
       'drt',
       'dartium',
@@ -2183,7 +2183,9 @@ class TestUtils {
   }
 
   static deleteTempSnapshotDirectory(Map configuration) {
-    if (configuration['compiler'] == 'dart2app') {
+    if (configuration['compiler'] == 'dart2app' ||
+        configuration['compiler'] == 'dart2appjit' ||
+        configuration['compiler'] == 'precompiler') {
       var checked = configuration['checked'] ? '-checked' : '';
       var minified = configuration['minified'] ? '-minified' : '';
       var csp = configuration['csp'] ? '-csp' : '';

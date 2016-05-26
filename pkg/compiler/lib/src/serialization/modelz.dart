@@ -495,6 +495,7 @@ class LibraryElementZ extends DeserializedElementZ
 class ScriptZ implements Script {
   final Uri resourceUri;
   SourceFile _file;
+  bool _isSynthesized = false;
 
   ScriptZ(this.resourceUri);
 
@@ -518,7 +519,11 @@ class ScriptZ implements Script {
   // TODO(johnniwinther): Decide if it is meaningful to serialize erroneous
   // elements.
   @override
-  bool get isSynthesized => false;
+  bool get isSynthesized => _isSynthesized;
+
+  void set isSynthesized(bool value) {
+    _isSynthesized = value;
+  }
 
   @override
   String get name {

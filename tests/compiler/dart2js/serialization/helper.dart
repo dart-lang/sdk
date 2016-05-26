@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/elements/elements.dart';
 
 import '../memory_compiler.dart';
 import 'test_data.dart';
@@ -70,16 +71,45 @@ class Arguments {
         saveSerializedData: saveSerializedData);
   }
 
-  Future forEachTest(List<Test> tests, Future f(int index, Test test)) async {
+  Future forEachTest(
+      SerializedData serializedData,
+      List<Test> tests,
+      TestFunction testFunction) async {
+    Uri entryPoint = Uri.parse('memory:main.dart');
     int first = start ?? 0;
     int last = end ?? tests.length - 1;
+
     for (int index = first; index <= last; index++) {
       Test test = TESTS[index];
-      await f(index, test);
+      List<SerializedData> dataList =
+          await preserializeData(serializedData, test);
+      Map<String, String> sourceFiles = <String, String>{};
+      sourceFiles.addAll(test.sourceFiles);
+      if (test.preserializedSourceFiles != null) {
+        sourceFiles.addAll(test.preserializedSourceFiles);
+      }
+      List<Uri> resolutionInputs = <Uri>[];
+      for (SerializedData data in dataList) {
+        data.expandMemorySourceFiles(sourceFiles);
+        data.expandUris(resolutionInputs);
+      }
+      await testFunction(entryPoint,
+          sourceFiles: sourceFiles,
+          resolutionInputs: resolutionInputs,
+          index: index,
+          test: test,
+          verbose: verbose);
     }
   }
 }
 
+typedef Future TestFunction(
+    Uri entryPoint,
+    {Map<String, String> sourceFiles,
+     List<Uri> resolutionInputs,
+     int index,
+     Test test,
+     bool verbose});
 
 Future<SerializedData> serializeDartCore(
     {Arguments arguments: const Arguments()}) async {
@@ -146,4 +176,40 @@ class SerializedData {
   void expandUris(List<Uri> uris) {
     uris.add(uri);
   }
+}
+
+String extractSerializedData(
+    Compiler compiler, Iterable<LibraryElement> libraries) {
+  BufferedEventSink sink = new BufferedEventSink();
+  compiler.serialization.serializeToSink(sink, libraries);
+  return sink.text;
+}
+
+Future<List<SerializedData>> preserializeData(
+    SerializedData serializedData, Test test) async {
+  if (test == null ||
+      test.preserializedSourceFiles == null ||
+      test.preserializedSourceFiles.isEmpty) {
+    return <SerializedData>[serializedData];
+  }
+  List<Uri> uriList = <Uri>[];
+  for (String key in test.preserializedSourceFiles.keys) {
+    uriList.add(Uri.parse('memory:$key'));
+  }
+  Compiler compiler = compilerFor(
+      memorySourceFiles:
+          serializedData.toMemorySourceFiles(test.preserializedSourceFiles),
+      resolutionInputs: serializedData.toUris(),
+      options: [Flags.analyzeOnly, Flags.analyzeMain]);
+  compiler.librariesToAnalyzeWhenRun = uriList;
+  compiler.serialization.supportSerialization = true;
+  await compiler.run(null);
+  List<LibraryElement> libraries = <LibraryElement>[];
+  for (Uri uri in uriList) {
+    libraries.add(compiler.libraryLoader.lookupLibrary(uri));
+  }
+  SerializedData additionalSerializedData =
+      new SerializedData(Uri.parse('memory:additional.data'),
+      extractSerializedData(compiler, libraries));
+  return <SerializedData>[serializedData, additionalSerializedData];
 }

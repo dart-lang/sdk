@@ -102,10 +102,9 @@ abstract class AbstractConstExprSerializer {
   final List<EntityRefBuilder> references = <EntityRefBuilder>[];
 
   /**
-   * Return `true` if a constructor initializer expression is being serialized
-   * and the given [name] is a constructor parameter reference.
+   * Return `true` if the given [name] is a parameter reference.
    */
-  bool isConstructorParameterName(String name);
+  bool isParameterName(String name);
 
   /**
    * Serialize the given [expr] expression into this serializer state.
@@ -267,9 +266,9 @@ abstract class AbstractConstExprSerializer {
     } else if (expr is NullLiteral) {
       operations.add(UnlinkedConstOperation.pushNull);
     } else if (expr is Identifier) {
-      if (expr is SimpleIdentifier && isConstructorParameterName(expr.name)) {
+      if (expr is SimpleIdentifier && isParameterName(expr.name)) {
         strings.add(expr.name);
-        operations.add(UnlinkedConstOperation.pushConstructorParameter);
+        operations.add(UnlinkedConstOperation.pushParameter);
       } else {
         references.add(serializeIdentifier(expr));
         operations.add(UnlinkedConstOperation.pushReference);

@@ -2919,8 +2919,7 @@ void JitOptimizer::VisitStoreInstanceField(
     // executed.
     const Field& field = instr->field();
     const String& field_name = String::Handle(Z, field.name());
-    const Class& owner =
-        Class::Handle(Z, Field::Handle(Z, field.Original()).Owner());
+    const Class& owner = Class::Handle(Z, field.Owner());
     const Function& getter =
         Function::Handle(Z, owner.LookupGetterFunction(field_name));
     const Function& setter =

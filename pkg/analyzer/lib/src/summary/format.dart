@@ -5925,7 +5925,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
 
   List<UnlinkedConstBuilder> _annotations;
   CodeRangeBuilder _codeRange;
-  UnlinkedConstBuilder _defaultValue;
   String _defaultValueCode;
   int _inferredTypeSlot;
   UnlinkedExecutableBuilder _initializer;
@@ -5959,19 +5958,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   void set codeRange(CodeRangeBuilder _value) {
     assert(!_finished);
     _codeRange = _value;
-  }
-
-  @override
-  UnlinkedConstBuilder get defaultValue => _defaultValue;
-
-  /**
-   * If the parameter has a default value, the constant expression in the
-   * default value.  Note that the presence of this expression does not mean
-   * that it is a valid, check [UnlinkedConst.isInvalid].
-   */
-  void set defaultValue(UnlinkedConstBuilder _value) {
-    assert(!_finished);
-    _defaultValue = _value;
   }
 
   @override
@@ -6123,10 +6109,9 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     _visibleOffset = _value;
   }
 
-  UnlinkedParamBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedConstBuilder defaultValue, String defaultValueCode, int inferredTypeSlot, UnlinkedExecutableBuilder initializer, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type, int visibleLength, int visibleOffset})
+  UnlinkedParamBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, String defaultValueCode, int inferredTypeSlot, UnlinkedExecutableBuilder initializer, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type, int visibleLength, int visibleOffset})
     : _annotations = annotations,
       _codeRange = codeRange,
-      _defaultValue = defaultValue,
       _defaultValueCode = defaultValueCode,
       _inferredTypeSlot = inferredTypeSlot,
       _initializer = initializer,
@@ -6146,7 +6131,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   void flushInformative() {
     _annotations?.forEach((b) => b.flushInformative());
     _codeRange = null;
-    _defaultValue?.flushInformative();
     _defaultValueCode = null;
     _initializer?.flushInformative();
     _nameOffset = null;
@@ -6159,7 +6143,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     _finished = true;
     fb.Offset offset_annotations;
     fb.Offset offset_codeRange;
-    fb.Offset offset_defaultValue;
     fb.Offset offset_defaultValueCode;
     fb.Offset offset_initializer;
     fb.Offset offset_name;
@@ -6170,9 +6153,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     }
     if (_codeRange != null) {
       offset_codeRange = _codeRange.finish(fbBuilder);
-    }
-    if (_defaultValue != null) {
-      offset_defaultValue = _defaultValue.finish(fbBuilder);
     }
     if (_defaultValueCode != null) {
       offset_defaultValueCode = fbBuilder.writeString(_defaultValueCode);
@@ -6194,10 +6174,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
       fbBuilder.addOffset(9, offset_annotations);
     }
     if (offset_codeRange != null) {
-      fbBuilder.addOffset(14, offset_codeRange);
-    }
-    if (offset_defaultValue != null) {
-      fbBuilder.addOffset(7, offset_defaultValue);
+      fbBuilder.addOffset(7, offset_codeRange);
     }
     if (offset_defaultValueCode != null) {
       fbBuilder.addOffset(13, offset_defaultValueCode);
@@ -6254,7 +6231,6 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
 
   List<idl.UnlinkedConst> _annotations;
   idl.CodeRange _codeRange;
-  idl.UnlinkedConst _defaultValue;
   String _defaultValueCode;
   int _inferredTypeSlot;
   idl.UnlinkedExecutable _initializer;
@@ -6276,14 +6252,8 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
 
   @override
   idl.CodeRange get codeRange {
-    _codeRange ??= const _CodeRangeReader().vTableGet(_bc, _bcOffset, 14, null);
+    _codeRange ??= const _CodeRangeReader().vTableGet(_bc, _bcOffset, 7, null);
     return _codeRange;
-  }
-
-  @override
-  idl.UnlinkedConst get defaultValue {
-    _defaultValue ??= const _UnlinkedConstReader().vTableGet(_bc, _bcOffset, 7, null);
-    return _defaultValue;
   }
 
   @override
@@ -6365,7 +6335,6 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
     Map<String, Object> _result = <String, Object>{};
     if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
     if (codeRange != null) _result["codeRange"] = codeRange.toJson();
-    if (defaultValue != null) _result["defaultValue"] = defaultValue.toJson();
     if (defaultValueCode != '') _result["defaultValueCode"] = defaultValueCode;
     if (inferredTypeSlot != 0) _result["inferredTypeSlot"] = inferredTypeSlot;
     if (initializer != null) _result["initializer"] = initializer.toJson();
@@ -6385,7 +6354,6 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
   Map<String, Object> toMap() => {
     "annotations": annotations,
     "codeRange": codeRange,
-    "defaultValue": defaultValue,
     "defaultValueCode": defaultValueCode,
     "inferredTypeSlot": inferredTypeSlot,
     "initializer": initializer,
