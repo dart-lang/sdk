@@ -194,13 +194,7 @@ import 'a.dart';
 var y = x;
 ''');
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
-    expect(
-        library
-            .getContainedName('y')
-            .asTypeInferenceNode
-            .variableElement
-            .inferredType
-            .toString(),
+    expect(_getVariable(library.getContainedName('y')).inferredType.toString(),
         '() → dynamic');
   }
 
@@ -277,12 +271,10 @@ class C {
 }
 ''');
     expect(
-        linker
-            .getLibrary(linkerInputs.testDartUri)
-            .getContainedName('C')
-            .getContainedName('y')
-            .asTypeInferenceNode
-            .variableElement
+        _getVariable(linker
+                .getLibrary(linkerInputs.testDartUri)
+                .getContainedName('C')
+                .getContainedName('y'))
             .inferredType
             .toString(),
         'dynamic');
@@ -294,11 +286,9 @@ dynamic x = null;
 var y = x;
 ''');
     expect(
-        linker
-            .getLibrary(linkerInputs.testDartUri)
-            .getContainedName('y')
-            .asTypeInferenceNode
-            .variableElement
+        _getVariable(linker
+                .getLibrary(linkerInputs.testDartUri)
+                .getContainedName('y'))
             .inferredType
             .toString(),
         'dynamic');
@@ -317,13 +307,7 @@ import 'a.dart';
 var z = y; // Inferred type: dynamic
 ''');
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
-    expect(
-        library
-            .getContainedName('z')
-            .asTypeInferenceNode
-            .variableElement
-            .inferredType
-            .toString(),
+    expect(_getVariable(library.getContainedName('z')).inferredType.toString(),
         'dynamic');
   }
 
@@ -341,13 +325,7 @@ import 'a.dart';
 var x = new C().f; // Inferred type: int
 ''');
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
-    expect(
-        library
-            .getContainedName('x')
-            .asTypeInferenceNode
-            .variableElement
-            .inferredType
-            .toString(),
+    expect(_getVariable(library.getContainedName('x')).inferredType.toString(),
         'int');
   }
 
@@ -388,13 +366,7 @@ import 'a.dart';
 var x = new C().f(0); // Inferred type: int
 ''');
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
-    expect(
-        library
-            .getContainedName('x')
-            .asTypeInferenceNode
-            .variableElement
-            .inferredType
-            .toString(),
+    expect(_getVariable(library.getContainedName('x')).inferredType.toString(),
         'int');
   }
 
@@ -442,13 +414,7 @@ import 'a.dart';
 var x = new C().f(); // Inferred type: int
 ''');
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
-    expect(
-        library
-            .getContainedName('x')
-            .asTypeInferenceNode
-            .variableElement
-            .inferredType
-            .toString(),
+    expect(_getVariable(library.getContainedName('x')).inferredType.toString(),
         'int');
   }
 
@@ -483,11 +449,9 @@ class D extends C {
     addBundle(bundle);
     createLinker('import "a.dart"; var x = C.f;', path: '/b.dart');
     expect(
-        linker
-            .getLibrary(linkerInputs.testDartUri)
-            .getContainedName('x')
-            .asTypeInferenceNode
-            .variableElement
+        _getVariable(linker
+                .getLibrary(linkerInputs.testDartUri)
+                .getContainedName('x'))
             .inferredType
             .toString(),
         'int');
@@ -498,11 +462,9 @@ class D extends C {
     addBundle(bundle);
     createLinker('import "a.dart"; var b = a;', path: '/b.dart');
     expect(
-        linker
-            .getLibrary(linkerInputs.testDartUri)
-            .getContainedName('b')
-            .asTypeInferenceNode
-            .variableElement
+        _getVariable(linker
+                .getLibrary(linkerInputs.testDartUri)
+                .getContainedName('b'))
             .inferredType
             .toString(),
         'int');
@@ -674,13 +636,7 @@ import 'a.dart';
 var y = x;
 ''');
     LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
-    expect(
-        library
-            .getContainedName('y')
-            .asTypeInferenceNode
-            .variableElement
-            .inferredType
-            .toString(),
+    expect(_getVariable(library.getContainedName('y')).inferredType.toString(),
         'dynamic');
   }
 
@@ -822,5 +778,9 @@ var v = 0;
     expect(j.variable.initializer, isNull);
     PropertyAccessorElementForLink_Variable v = library.getContainedName('v');
     expect(v.variable.initializer, isNotNull);
+  }
+
+  VariableElementForLink _getVariable(ReferenceableElementForLink element) {
+    return (element as PropertyAccessorElementForLink_Variable).variable;
   }
 }

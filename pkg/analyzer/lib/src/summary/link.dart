@@ -1972,13 +1972,12 @@ abstract class ExecutableElementForLink_NonLocal
 }
 
 class ExprTypeComputer {
-  VariableElementForLink variable;
-  FunctionElementForLink_Initializer initializer;
-  CompilationUnitElementForLink unit;
-  LibraryElementForLink library;
-  Linker linker;
-  TypeProvider typeProvider;
-  UnlinkedConst unlinkedConst;
+  final FunctionElementForLink_Local function;
+  final CompilationUnitElementForLink unit;
+  final LibraryElementForLink library;
+  final Linker linker;
+  final TypeProvider typeProvider;
+  final UnlinkedConst unlinkedConst;
 
   final List<DartType> stack = <DartType>[];
   int intPtr = 0;
@@ -1986,17 +1985,25 @@ class ExprTypeComputer {
   int strPtr = 0;
   int assignmentOperatorPtr = 0;
 
-  ExprTypeComputer(VariableElementForLink variableElement) {
-    this.variable = variableElement;
-    initializer = variableElement.initializer;
-    unit = variableElement.compilationUnit;
-    library = unit.enclosingElement;
-    linker = library._linker;
-    typeProvider = linker.typeProvider;
-    unlinkedConst = variableElement.unlinkedVariable.initializer?.bodyExpr;
+  factory ExprTypeComputer(FunctionElementForLink_Local functionElement) {
+    CompilationUnitElementForLink unit = functionElement.compilationUnit;
+    LibraryElementForLink library = unit.enclosingElement;
+    Linker linker = library._linker;
+    TypeProvider typeProvider = linker.typeProvider;
+    UnlinkedConst unlinkedConst = functionElement._unlinkedExecutable.bodyExpr;
+    return new ExprTypeComputer._(
+        functionElement, unit, library, linker, typeProvider, unlinkedConst);
   }
 
+  ExprTypeComputer._(this.function, this.unit, this.library, this.linker,
+      this.typeProvider, this.unlinkedConst);
+
   DartType compute() {
+    if (unlinkedConst == null) {
+      // No function body was stored for this function, so we can't infer its
+      // return type.  Assume `dynamic`.
+      return DynamicTypeImpl.instance;
+    }
     // Perform RPN evaluation of the constant, using a stack of inferred types.
     for (UnlinkedConstOperation operation in unlinkedConst.operations) {
       switch (operation) {
@@ -2158,7 +2165,7 @@ class ExprTypeComputer {
         case UnlinkedConstOperation.pushLocalFunctionReference:
           int popCount = _getNextInt();
           assert(popCount == 0); // TODO(paulberry): handle the nonzero case.
-          stack.add(initializer.functions[_getNextInt()].type);
+          stack.add(function.functions[_getNextInt()].type);
           break;
         default:
           // TODO(paulberry): implement.
@@ -2315,7 +2322,7 @@ class ExprTypeComputer {
         // Type argument explicitly specified.
         if (i < ref.typeArguments.length) {
           return unit.resolveTypeRef(
-              ref.typeArguments[i], variable._typeParameterContext);
+              ref.typeArguments[i], function.typeParameterContext);
         } else {
           return null;
         }
@@ -2448,7 +2455,7 @@ class ExprTypeComputer {
 
   DartType _getNextTypeRef() {
     EntityRef ref = _getNextRef();
-    return unit.resolveTypeRef(ref, variable._typeParameterContext);
+    return unit.resolveTypeRef(ref, function.typeParameterContext);
   }
 
   /**
@@ -2758,7 +2765,7 @@ class FunctionElementForLink_FunctionTypedParam extends Object
  * Element representing the initializer expression of a variable.
  */
 class FunctionElementForLink_Initializer extends Object
-    with ReferenceableElementForLink
+    with ReferenceableElementForLink, TypeParameterizedElementMixin
     implements FunctionElementForLink_Local {
   /**
    * The variable for which this element is the initializer.
@@ -2770,12 +2777,19 @@ class FunctionElementForLink_Initializer extends Object
   FunctionElementForLink_Initializer(this._variable);
 
   @override
+  CompilationUnitElementForLink get compilationUnit =>
+      _variable.compilationUnit;
+
+  @override
   VariableElementForLink get enclosingElement => _variable;
 
   TypeParameterizedElementMixin get enclosingTypeParameterContext =>
       _variable.enclosingElement is ClassElementForLink
           ? _variable.enclosingElement
           : null;
+
+  @override
+  CompilationUnitElementForLink get enclosingUnit => _variable.compilationUnit;
 
   @override
   List<FunctionElementForLink_Local_NonSynthetic> get functions =>
@@ -2807,10 +2821,17 @@ class FunctionElementForLink_Initializer extends Object
   }
 
   @override
-  int get typeParameterNestingLevel =>
-      enclosingTypeParameterContext?.typeParameterNestingLevel ?? 0;
+  TypeParameterizedElementMixin get typeParameterContext => this;
 
-  List<TypeParameterElement> get typeParameters => const [];
+  @override
+  List<UnlinkedTypeParam> get unlinkedTypeParams => const [];
+
+  @override
+  bool get _hasTypeBeenInferred => _variable._inferredType != null;
+
+  @override
+  UnlinkedExecutable get _unlinkedExecutable =>
+      _variable.unlinkedVariable.initializer;
 
   @override
   FunctionElementForLink_Local getLocalFunction(int index) {
@@ -2820,6 +2841,12 @@ class FunctionElementForLink_Initializer extends Object
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  void _setInferredType(DartType type) {
+    assert(!_hasTypeBeenInferred);
+    _variable._inferredType = type;
+  }
 }
 
 /**
@@ -2829,7 +2856,18 @@ abstract class FunctionElementForLink_Local
     implements
         ExecutableElementForLink,
         FunctionElementImpl,
-        ReferenceableElementForLink {}
+        ReferenceableElementForLink {
+  /**
+   * Indicates whether type inference has completed for this function.
+   */
+  bool get _hasTypeBeenInferred;
+
+  /**
+   * Stores the given [type] as the inferred return type for this function.
+   * Should only be called if [_hasTypeBeenInferred] is `false`.
+   */
+  void _setInferredType(DartType type);
+}
 
 /**
  * Element representing a local function (possibly a closure) inside another
@@ -2852,6 +2890,12 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
       enclosingElement;
 
   @override
+  bool get _hasTypeBeenInferred {
+    // TODO(paulberry): add logic to infer types of nonsynthetic functions.
+    return true;
+  }
+
+  @override
   DartType buildType(
       DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
     assert(implicitFunctionTypeIndices.isEmpty);
@@ -2866,6 +2910,12 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  void _setInferredType(DartType type) {
+    // TODO(paulberry): add logic to infer types of nonsynthetic functions.
+    throw new UnimplementedError();
+  }
 }
 
 /**
@@ -4319,15 +4369,14 @@ class TypeInferenceDependencyWalker
  */
 class TypeInferenceNode extends Node<TypeInferenceNode> {
   /**
-   * The [FieldElement] or [TopLevelVariableElement] to which this
-   * node refers.
+   * The [FunctionElementForLink_Local] to which this node refers.
    */
-  final VariableElementForLink variableElement;
+  final FunctionElementForLink_Local functionElement;
 
-  TypeInferenceNode(this.variableElement);
+  TypeInferenceNode(this.functionElement);
 
   @override
-  bool get isEvaluated => variableElement._inferredType != null;
+  bool get isEvaluated => functionElement._hasTypeBeenInferred;
 
   /**
    * Collect the type inference dependencies in [unlinkedExecutable] (which
@@ -4420,24 +4469,22 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
   @override
   List<TypeInferenceNode> computeDependencies() {
     List<TypeInferenceNode> dependencies = <TypeInferenceNode>[];
-    collectDependencies(
-        dependencies,
-        variableElement.unlinkedVariable.initializer,
-        variableElement.compilationUnit);
+    collectDependencies(dependencies, functionElement._unlinkedExecutable,
+        functionElement.compilationUnit);
     return dependencies;
   }
 
   void evaluate(bool inCycle) {
     if (inCycle) {
-      variableElement._inferredType = DynamicTypeImpl.instance;
+      functionElement._setInferredType(DynamicTypeImpl.instance);
     } else {
-      variableElement._inferredType =
-          new ExprTypeComputer(variableElement).compute();
+      functionElement
+          ._setInferredType(new ExprTypeComputer(functionElement).compute());
     }
   }
 
   @override
-  String toString() => 'TypeInferenceNode($variableElement)';
+  String toString() => 'TypeInferenceNode($functionElement)';
 }
 
 class TypeProviderForLink implements TypeProvider {
@@ -4640,7 +4687,7 @@ abstract class VariableElementForLink
         unlinkedVariable.initializer?.bodyExpr != null) {
       _constNode = new ConstVariableNode(this);
       if (unlinkedVariable.type == null) {
-        _typeInferenceNode = new TypeInferenceNode(this);
+        _typeInferenceNode = new TypeInferenceNode(initializer);
       }
     }
   }
