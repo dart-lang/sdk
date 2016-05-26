@@ -28,33 +28,31 @@ main(List<String> args) {
         await serializeDartCore(arguments: arguments);
     if (arguments.filename != null) {
       Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
-      await checkModels(serializedData, entryPoint);
+      await checkModels(entryPoint,
+          sourceFiles: serializedData.toMemorySourceFiles(),
+          resolutionInputs: serializedData.toUris());
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
-      arguments.forEachTest(TESTS, (int index, Test test) async {
-        print('==============================================================');
-        print(test.sourceFiles);
-        await checkModels(
-          serializedData,
-          entryPoint,
-          memorySourceFiles: test.sourceFiles,
-          verbose: arguments.verbose);
-      });
+      arguments.forEachTest(serializedData, TESTS, checkModels);
     }
   });
 }
 
 Future checkModels(
-    SerializedData serializedData,
     Uri entryPoint,
-  {Map<String, String> memorySourceFiles: const <String, String>{},
-   bool verbose: false}) async {
+    {Map<String, String> sourceFiles: const <String, String>{},
+     List<Uri> resolutionInputs,
+     int index,
+     Test test,
+     bool verbose: false}) async {
 
+  String testDescription = test != null ? test.name : '${entryPoint}';
+  String id = index != null ? '$index: ' : '';
   print('------------------------------------------------------------------');
-  print('compile normal');
+  print('compile normal ${id}${testDescription}');
   print('------------------------------------------------------------------');
   Compiler compilerNormal = compilerFor(
-      memorySourceFiles: memorySourceFiles,
+      memorySourceFiles: sourceFiles,
       options: [Flags.analyzeOnly]);
   compilerNormal.resolution.retainCachesForTesting = true;
   await compilerNormal.run(entryPoint);
@@ -63,11 +61,11 @@ Future checkModels(
   compilerNormal.backend.onResolutionComplete();
 
   print('------------------------------------------------------------------');
-  print('compile deserialized');
+  print('compile deserialized ${id}${testDescription}');
   print('------------------------------------------------------------------');
   Compiler compilerDeserialized = compilerFor(
-      memorySourceFiles: serializedData.toMemorySourceFiles(memorySourceFiles),
-      resolutionInputs: serializedData.toUris(),
+      memorySourceFiles: sourceFiles,
+      resolutionInputs: resolutionInputs,
       options: [Flags.analyzeOnly]);
   compilerDeserialized.resolution.retainCachesForTesting = true;
   await compilerDeserialized.run(entryPoint);

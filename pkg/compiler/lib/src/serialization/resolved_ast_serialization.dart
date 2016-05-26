@@ -379,6 +379,8 @@ class ResolvedAstDeserializer {
       int charOffset = objectDecoder.getInt(Key.OFFSET);
       Token beginToken = getBeginToken(uri, charOffset);
       if (beginToken == null) {
+        // TODO(johnniwinther): Handle unfound tokens by adding an erronous
+        // resolved ast kind.
         reporter.internalError(
             element, "No token found for $element in $uri @ $charOffset");
       }
