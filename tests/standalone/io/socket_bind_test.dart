@@ -113,13 +113,14 @@ testListenCloseListenClose(String host) async {
 }
 
 Future<int> freeIPv4AndIPv6Port() async {
-  var socket = await ServerSocket.bind(InternetAddress.ANY_IP_V6, 0, v6Only: false);
+  var socket =
+    await ServerSocket.bind(InternetAddress.ANY_IP_V6, 0, v6Only: false);
   int port = socket.port;
   await socket.close();
   return port;
 }
 
-void main() async {
+main() async {
   asyncStart();
   await testBindDifferentAddresses(InternetAddress.ANY_IP_V6,
                                    InternetAddress.ANY_IP_V4,
