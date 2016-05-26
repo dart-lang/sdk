@@ -1812,12 +1812,6 @@ class _UnitResynthesizer {
     } else if (!libraryResynthesizer.isCoreLibrary) {
       classElement.supertype = typeProvider.objectType;
     }
-    classElement.interfaces = serializedClass.interfaces
-        .map((EntityRef t) => buildType(t, classElement))
-        .toList();
-    classElement.mixins = serializedClass.mixins
-        .map((EntityRef t) => buildType(t, classElement))
-        .toList();
     // TODO(scheglov) move to ClassElementImpl
     correspondingType.typeArguments = classElement.typeParameterTypes;
     classElement.type = correspondingType;
@@ -2444,8 +2438,6 @@ class _UnitResynthesizer {
     functionTypeAliasElement.parameters = serializedTypedef.parameters
         .map((p) => buildParameter(p, functionTypeAliasElement))
         .toList();
-    functionTypeAliasElement.type =
-        new FunctionTypeImpl.forTypedef(functionTypeAliasElement);
     unitHolder.addTypeAlias(functionTypeAliasElement);
     // TODO(scheglov) remove this after delaying parameters and their types
     currentTypeParameters.removeLast();
@@ -2614,9 +2606,6 @@ class _UnitResynthesizer {
    */
   void buildVariableCommonParts(
       VariableElementImpl element, UnlinkedVariable serializedVariable) {
-    element.type = buildLinkedType(serializedVariable.inferredTypeSlot,
-            element.typeParameterContext) ??
-        buildType(serializedVariable.type, element.typeParameterContext);
     buildVariableInitializer(element, serializedVariable.initializer);
   }
 

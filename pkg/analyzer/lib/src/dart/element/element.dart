@@ -96,14 +96,12 @@ class ClassElementImpl extends ElementImpl
    * A list containing all of the mixins that are applied to the class being
    * extended in order to derive the superclass of this class.
    */
-  @override
-  List<InterfaceType> mixins = InterfaceType.EMPTY_LIST;
+  List<InterfaceType> _mixins;
 
   /**
    * A list containing all of the interfaces that are implemented by this class.
    */
-  @override
-  List<InterfaceType> interfaces = InterfaceType.EMPTY_LIST;
+  List<InterfaceType> _interfaces;
 
   /**
    * A list containing all of the methods contained in this class.
@@ -374,6 +372,22 @@ class ClassElementImpl extends ElementImpl
   }
 
   @override
+  List<InterfaceType> get interfaces {
+    if (_unlinkedClass != null && _interfaces == null) {
+      ResynthesizerContext context = enclosingUnit.resynthesizerContext;
+      _interfaces = _unlinkedClass.interfaces
+          .map((EntityRef t) => context.resolveTypeRef(t, this))
+          .toList();
+    }
+    return _interfaces ?? const <InterfaceType>[];
+  }
+
+  void set interfaces(List<InterfaceType> interfaces) {
+    assert(_unlinkedClass == null);
+    _interfaces = interfaces;
+  }
+
+  @override
   bool get isAbstract {
     if (_unlinkedClass != null) {
       return _unlinkedClass.isAbstract;
@@ -455,6 +469,22 @@ class ClassElementImpl extends ElementImpl
   void set mixinApplication(bool isMixinApplication) {
     assert(_unlinkedClass == null);
     setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
+  }
+
+  @override
+  List<InterfaceType> get mixins {
+    if (_unlinkedClass != null && _mixins == null) {
+      ResynthesizerContext context = enclosingUnit.resynthesizerContext;
+      _mixins = _unlinkedClass.mixins
+          .map((EntityRef t) => context.resolveTypeRef(t, this))
+          .toList();
+    }
+    return _mixins ?? const <InterfaceType>[];
+  }
+
+  void set mixins(List<InterfaceType> mixins) {
+    assert(_unlinkedClass == null);
+    _mixins = mixins;
   }
 
   @override
@@ -3659,7 +3689,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   /**
    * The type of function defined by this type alias.
    */
-  FunctionType type;
+  FunctionType _type;
 
   /**
    * A list containing all of the type parameters defined for this type.
@@ -3796,6 +3826,19 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   void set returnType(DartType returnType) {
     assert(_unlinkedTypedef == null);
     _returnType = returnType;
+  }
+
+  @override
+  FunctionType get type {
+    if (_unlinkedTypedef != null && _type == null) {
+      _type = new FunctionTypeImpl.forTypedef(this);
+    }
+    return _type;
+  }
+
+  void set type(FunctionType type) {
+    assert(_unlinkedTypedef == null);
+    _type = type;
   }
 
   @override
@@ -5784,6 +5827,22 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
       return _unlinkedVariable.nameOffset;
     }
     return super.nameOffset;
+  }
+
+  @override
+  DartType get type {
+    if (_unlinkedVariable != null && _type == null) {
+      _type = enclosingUnit.resynthesizerContext.resolveLinkedType(
+              _unlinkedVariable.inferredTypeSlot, typeParameterContext) ??
+          enclosingUnit.resynthesizerContext
+              .resolveTypeRef(_unlinkedVariable.type, typeParameterContext);
+    }
+    return super.type;
+  }
+
+  void set type(DartType type) {
+    assert(_unlinkedVariable == null);
+    _type = type;
   }
 }
 

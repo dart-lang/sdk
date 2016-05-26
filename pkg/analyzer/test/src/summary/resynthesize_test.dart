@@ -222,16 +222,18 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       compareFieldElements(r.fields[i], o.fields[i], '$desc.field $name');
     }
     compareTypes(r.supertype, o.supertype, '$desc supertype');
-    expect(r.interfaces.length, o.interfaces.length);
+    expect(r.interfaces.length, o.interfaces.length,
+        reason: '$desc interfaces.length');
     for (int i = 0; i < r.interfaces.length; i++) {
       compareTypes(r.interfaces[i], o.interfaces[i],
           '$desc interface ${o.interfaces[i].name}');
     }
-    expect(r.mixins.length, o.mixins.length);
+    expect(r.mixins.length, o.mixins.length, reason: '$desc mixins.length');
     for (int i = 0; i < r.mixins.length; i++) {
       compareTypes(r.mixins[i], o.mixins[i], '$desc mixin ${o.mixins[i].name}');
     }
-    expect(r.typeParameters.length, o.typeParameters.length);
+    expect(r.typeParameters.length, o.typeParameters.length,
+        reason: '$desc typeParameters.length');
     for (int i = 0; i < r.typeParameters.length; i++) {
       compareTypeParameterElements(r.typeParameters[i], o.typeParameters[i],
           '$desc type parameter ${o.typeParameters[i].name}');
@@ -242,12 +244,13 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       compareConstructorElements(r.constructors[i], o.constructors[i],
           '$desc constructor ${o.constructors[i].name}');
     }
-    expect(r.accessors.length, o.accessors.length);
+    expect(r.accessors.length, o.accessors.length,
+        reason: '$desc accessors.length');
     for (int i = 0; i < r.accessors.length; i++) {
       comparePropertyAccessorElements(r.accessors[i], o.accessors[i],
           '$desc accessor ${o.accessors[i].name}');
     }
-    expect(r.methods.length, o.methods.length);
+    expect(r.methods.length, o.methods.length, reason: '$desc methods.length');
     for (int i = 0; i < r.methods.length; i++) {
       compareMethodElements(
           r.methods[i], o.methods[i], '$desc.${o.methods[i].name}');
