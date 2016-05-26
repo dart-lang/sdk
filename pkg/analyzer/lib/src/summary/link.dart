@@ -242,6 +242,13 @@ EntityRefBuilder _createLinkedType(
   throw new UnimplementedError('${type.runtimeType}');
 }
 
+DartType _dynamicIfNull(DartType type) {
+  if (type == null || type.isBottom || type.isVoid) {
+    return DynamicTypeImpl.instance;
+  }
+  return type;
+}
+
 /**
  * Create an [UnlinkedParam] representing the given [parameter], which should be
  * a parameter of a synthetic function type (e.g. one produced during type
@@ -2180,7 +2187,7 @@ class ExprTypeComputer {
     assert(strPtr == unlinkedConst.strings.length);
     assert(assignmentOperatorPtr == unlinkedConst.assignmentOperators.length);
     assert(stack.length == 1);
-    return _dynamicIfNull(stack[0]);
+    return stack[0];
   }
 
   void _computeBinaryExpressionType(TokenType operator) {
@@ -2620,13 +2627,6 @@ class ExprTypeComputer {
         return TokenType.MINUS_MINUS;
     }
   }
-
-  static DartType _dynamicIfNull(DartType type) {
-    if (type == null || type.isBottom || type.isVoid) {
-      return DynamicTypeImpl.instance;
-    }
-    return type;
-  }
 }
 
 /**
@@ -2806,6 +2806,7 @@ class FunctionElementForLink_Initializer extends Object
   TypeInferenceNode _typeInferenceNode;
 
   List<FunctionElementForLink_Local_NonSynthetic> _functions;
+  DartType _inferredReturnType;
 
   FunctionElementForLink_Initializer(this._variable);
 
@@ -2864,7 +2865,7 @@ class FunctionElementForLink_Initializer extends Object
   List<UnlinkedTypeParam> get unlinkedTypeParams => const [];
 
   @override
-  bool get _hasTypeBeenInferred => _variable._inferredType != null;
+  bool get _hasTypeBeenInferred => _inferredReturnType != null;
 
   @override
   UnlinkedExecutable get _unlinkedExecutable =>
@@ -2881,6 +2882,8 @@ class FunctionElementForLink_Initializer extends Object
    * [compilationUnit].
    */
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
+    compilationUnit._storeLinkedType(_unlinkedExecutable.inferredReturnTypeSlot,
+        _inferredReturnType, typeParameterContext);
     for (FunctionElementForLink_Local_NonSynthetic function in functions) {
       function.link(compilationUnit);
     }
@@ -2892,7 +2895,8 @@ class FunctionElementForLink_Initializer extends Object
   @override
   void _setInferredType(DartType type) {
     assert(!_hasTypeBeenInferred);
-    _variable._inferredType = type;
+    _inferredReturnType = type;
+    _variable._inferredType = _dynamicIfNull(type);
   }
 }
 
@@ -2990,7 +2994,7 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
   void _setInferredType(DartType type) {
     // TODO(paulberry): store the inferred return type in the summary.
     assert(!_hasTypeBeenInferred);
-    _inferredReturnType = type;
+    _inferredReturnType = _dynamicIfNull(type);
   }
 }
 

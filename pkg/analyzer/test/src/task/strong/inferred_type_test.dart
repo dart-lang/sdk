@@ -449,6 +449,29 @@ var f = /*info:INFERRED_TYPE_CLOSURE*/() sync* {
     expect(f.type.toString(), '() → Iterable<num>');
   }
 
+  void test_bottom() {
+    // When a type is inferred from the expression `null`, the inferred type is
+    // `dynamic`, but the inferred type of the initializer is `bottom`.
+    // TODO(paulberry): Is this intentional/desirable?
+    var mainUnit = checkFile('''
+var v = null;
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'dynamic');
+    expect(v.initializer.type.toString(), '() → <bottom>');
+  }
+
+  void test_bottom_inClosure() {
+    // When a closure's return type is inferred from the expression `null`, the
+    // inferred type is `dynamic`.
+    var mainUnit = checkFile('''
+var v = () => null;
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), '() → dynamic');
+    expect(v.initializer.type.toString(), '() → () → dynamic');
+  }
+
   void test_canInferAlsoFromStaticAndInstanceFieldsFlagOn() {
     addFile(
         '''
