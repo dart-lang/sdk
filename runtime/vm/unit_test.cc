@@ -146,7 +146,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
        reinterpret_cast<const char*>(
            OSThread::GetThreadLocal(script_reload_key));
     ASSERT(script_source != NULL);
-    OSThread::SetThreadLocal(script_reload_key, NULL);
+    OSThread::SetThreadLocal(script_reload_key, 0);
     return Dart_LoadScript(url,
                            NewString(script_source),
                            0,
