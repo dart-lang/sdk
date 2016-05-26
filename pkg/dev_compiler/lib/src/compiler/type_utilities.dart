@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection' show HashMap, HashSet;
+import 'dart:collection' show HashMap, HashSet, LinkedHashMap;
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -33,7 +33,10 @@ Set<TypeParameterElement> freeTypeParameters(DartType t) {
 /// are emitted in place with a hoisted variable for a cache.
 class _CacheTable {
   /// Mapping from types to their canonical names.
-  final _names = new HashMap<DartType, JS.TemporaryId>();
+  // Use a LinkedHashMap to maintain key insertion order so the generated code
+  // is stable under slight perturbation.  (If this is not good enough we could
+  // sort by name to canonicalize order.)
+  final _names = new LinkedHashMap<DartType, JS.TemporaryId>();
   Iterable<DartType> get keys => _names.keys.toList();
 
   JS.Statement _dischargeType(DartType type) {
