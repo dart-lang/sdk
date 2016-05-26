@@ -1040,7 +1040,6 @@ class RawLibrary : public RawObject {
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;
   RawString* url_;
-  RawScript* script_;
   RawString* private_key_;
   RawArray* dictionary_;         // Top-level names in this library.
   RawGrowableObjectArray* metadata_;  // Metadata on classes, methods etc.
