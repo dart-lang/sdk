@@ -76,22 +76,35 @@ lazyFn(closure, computeType) {
 final _runtimeType = JS('', 'Symbol("_runtimeType")');
 
 _checkPrimitiveType(obj) {
-  // TODO(jmesserly): JS is used to prevent type literal wrapping.
-  // Is there a better way we can handle this?
+  // TODO(jmesserly): JS is used to prevent type literal wrapping.  Is there a
+  // better way we can handle this?  (sra: It is super dodgy that the values
+  // passed to JS are different to the values passed to a regular function - the
+  // semantics are not longer that of calling an interpreter. dart2js has other
+  // special functions, we could do the same.)
 
   // Check for null and undefined
   if (obj == null) return JS('', '#', Null);
-  switch (JS('String', 'typeof #', obj)) {
-    case "number":
-      return JS('bool', 'Math.floor(#) == # ? # : #', obj, obj, int, double);
-    case "boolean":
-      return JS('', '#', bool);
-    case "string":
-      return JS('', '#', String);
-    case "symbol":
-      // Note: this is a JS Symbol, not a Dart one.
-      return JS('', '#', jsobject);
+
+  if (JS('bool', 'typeof # == "number"', obj)) {
+    if (JS('bool', 'Math.floor(#) == #', obj, obj)) {
+      return JS('', '#', int);
+    }
+    return JS('', '#', double);
   }
+
+  if (JS('bool', 'typeof # == "boolean"', obj)) {
+    return JS('', '#', bool);
+  }
+
+  if (JS('bool', 'typeof # == "string"', obj)) {
+    return JS('', '#', String);
+  }
+
+  if (JS('bool', 'typeof # == "symbol"', obj)) {
+    // Note: this is a JS Symbol, not a Dart one.
+    return JS('', '#', jsobject);
+  }
+
   return null;
 }
 

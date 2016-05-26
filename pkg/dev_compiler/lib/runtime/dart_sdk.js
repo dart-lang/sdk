@@ -1332,23 +1332,20 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart._checkPrimitiveType = function(obj) {
     if (obj == null) return core.Null;
-    switch (typeof obj) {
-      case "number":
-      {
-        return Math.floor(obj) == obj ? core.int : core.double;
+    if (typeof obj == "number") {
+      if (Math.floor(obj) == obj) {
+        return core.int;
       }
-      case "boolean":
-      {
-        return core.bool;
-      }
-      case "string":
-      {
-        return core.String;
-      }
-      case "symbol":
-      {
-        return dart.jsobject;
-      }
+      return core.double;
+    }
+    if (typeof obj == "boolean") {
+      return core.bool;
+    }
+    if (typeof obj == "string") {
+      return core.String;
+    }
+    if (typeof obj == "symbol") {
+      return dart.jsobject;
     }
     return null;
   };
