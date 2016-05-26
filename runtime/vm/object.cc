@@ -7709,7 +7709,8 @@ bool Field::IsConsistentWith(const Field& other) const {
   return (raw_ptr()->guarded_cid_ == other.raw_ptr()->guarded_cid_) &&
          (raw_ptr()->is_nullable_ == other.raw_ptr()->is_nullable_) &&
          (raw_ptr()->guarded_list_length_ ==
-             other.raw_ptr()->guarded_list_length_);
+             other.raw_ptr()->guarded_list_length_) &&
+         (is_unboxing_candidate() == other.is_unboxing_candidate());
 }
 
 
