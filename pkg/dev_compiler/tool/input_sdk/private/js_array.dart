@@ -22,6 +22,16 @@ class JSArray<E> implements List<E>, JSIndexable {
       // TODO(jmesserly): skip this when E is dynamic and Object.
       JS('-dynamic', 'dart.list(#, #)', allocation, E);
 
+  /**
+   * Constructor for adding type parameters to an existing JavaScript
+   * Array. Used for creating literal lists.
+   */
+  factory JSArray.of(allocation) {
+    // TODO(sra): Move this to core.List for better readability.
+    // Capture the parameterized ES6 'JSArray' class.
+    return JS('-dynamic', 'dart.setType(#, JSArray)', allocation);
+  }
+
   // TODO(jmesserly): consider a fixed array subclass instead.
   factory JSArray.markFixed(allocation) =>
       new JSArray<E>.typed(markFixedList(allocation));

@@ -4235,9 +4235,14 @@ class CodeGenerator extends GeneralizingAstVisitor
       if (!elementType.isDynamic || isConst) {
         // dart.list helper internally depends on _interceptors.JSArray.
         _declareBeforeUse(_jsArray);
-        var typeRep = _emitType(elementType);
-        var helper = (isConst) ? 'constList' : 'list';
-        list = js.call('dart.${helper}(#, #)', [list, typeRep]);
+        if (isConst) {
+          var typeRep = _emitType(elementType);
+          list = js.call('dart.constList(#, #)', [list, typeRep]);
+        } else {
+          // Call `new JSArray<E>.of(list)`
+          var jsArrayType = _jsArray.type.instantiate(type.typeArguments);
+          list = js.call('#.of(#)', [_emitType(jsArrayType), list]);
+        }
       }
       return list;
     }
