@@ -148,7 +148,7 @@ void MegamorphicCacheTable::PrintSizes(Isolate* isolate) {
               static_cast<double>(cumulative_entries) /
               static_cast<double>(entry_count));
   }
-  delete probe_counts;
+  delete[] probe_counts;
 }
 
 }  // namespace dart
