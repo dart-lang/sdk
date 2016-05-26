@@ -73,9 +73,9 @@ class TestOptionsParser {
           (only valid with the following runtimes: none)
 
    dart2app: Compile the Dart code into an app snapshot before running the test
-          (only valid with the following runtimes: dart_product)''',
+          (only valid with the following runtimes: dart_app)''',
           ['-c', '--compiler'],
-          ['none', 'precompiler', 'dart2js', 'dart2analyzer', 'dart2app'],
+          ['none', 'precompiler', 'dart2js', 'dart2analyzer', 'dart2app', 'dart2appjit'],
           'none'),
       // TODO(antonm): fix the option drt.
       new _TestOptionSpecification(
@@ -86,7 +86,7 @@ class TestOptionsParser {
     dart_precompiled: Run a precompiled snapshot on a variant of the standalone
                       dart vm lacking a JIT.
 
-    dart_product: Run a full app snapshot in product mode.
+    dart_app: Run a full app snapshot, with or without cached unoptimized code.
 
     d8: Run JavaScript from the command line using v8.
 
@@ -111,7 +111,7 @@ class TestOptionsParser {
           [
             'vm',
             'dart_precompiled',
-            'dart_product',
+            'dart_app',
             'd8',
             'jsshell',
             'drt',
@@ -645,7 +645,10 @@ Note: currently only implemented for dart2js.''',
         validRuntimes = const ['none'];
         break;
       case 'dart2app':
-        validRuntimes = const ['dart_product'];
+        validRuntimes = const ['dart_app'];
+        break;
+      case 'dart2appjit':
+        validRuntimes = const ['dart_app'];
         break;
       case 'precompiler':
         validRuntimes = const ['dart_precompiled'];

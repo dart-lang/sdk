@@ -50,8 +50,8 @@ class RuntimeConfiguration {
       case 'vm':
         return new StandaloneDartRuntimeConfiguration();
 
-      case 'dart_product':
-        return new DartProductRuntimeConfiguration();
+      case 'dart_app':
+        return new DartAppRuntimeConfiguration(useBlobs: useBlobs);
 
       case 'dart_precompiled':
         if (configuration['system'] == 'android') {
@@ -224,7 +224,10 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
   }
 }
 
-class DartProductRuntimeConfiguration extends DartVmRuntimeConfiguration {
+class DartAppRuntimeConfiguration extends DartVmRuntimeConfiguration {
+  final bool useBlobs;
+  DartAppRuntimeConfiguration({bool useBlobs}) : useBlobs = useBlobs;
+
   List<Command> computeRuntimeCommands(
       TestSuite suite,
       CommandBuilder commandBuilder,
@@ -234,11 +237,14 @@ class DartProductRuntimeConfiguration extends DartVmRuntimeConfiguration {
     String script = artifact.filename;
     String type = artifact.mimeType;
     if (script != null && type != 'application/dart-snapshot') {
-      throw "dart_product cannot run files of type '$type'.";
+      throw "dart_app cannot run files of type '$type'.";
     }
 
     var augmentedArgs = new List();
     augmentedArgs.add("--run-app-snapshot=${artifact.filename}");
+    if (useBlobs) {
+      augmentedArgs.add("--use-blobs");
+    }
     augmentedArgs.addAll(arguments);
 
     return <Command>[

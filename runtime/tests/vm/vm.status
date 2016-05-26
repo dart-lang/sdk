@@ -103,7 +103,7 @@ cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 dart/inline_stack_frame_test: Pass, RuntimeError
 dart/optimized_stacktrace_test: Pass, RuntimeError
 
-[ $runtime == dart_product || $runtime == dart_precompiled ]
+[ $runtime == dart_app || $runtime == dart_precompiled ]
 dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 dart/optimized_stacktrace_test: SkipByDesign # Requires line numbers
 

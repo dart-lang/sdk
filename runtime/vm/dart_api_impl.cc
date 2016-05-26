@@ -1463,7 +1463,7 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
   API_TIMELINE_DURATION;
   Isolate* I = T->isolate();
   if (!FLAG_load_deferred_eagerly) {
-    return Dart_NewApiError(
+    return Api::NewError(
         "Creating full snapshots requires --load_deferred_eagerly");
   }
   if (vm_isolate_snapshot_buffer != NULL &&
@@ -6131,10 +6131,13 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
 DART_EXPORT Dart_Handle Dart_Precompile(
     Dart_QualifiedFunctionName entry_points[],
     bool reset_fields) {
+#if defined(TARGET_ARCH_IA32)
+  return Api::NewError("Precompilation is not supported on IA32.");
+#else
   API_TIMELINE_BEGIN_END;
   DARTSCOPE(Thread::Current());
   if (!FLAG_precompiled_mode) {
-    return Dart_NewApiError("Flag --precompilation was not specified.");
+    return Api::NewError("Flag --precompilation was not specified.");
   }
   Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);
   if (::Dart_IsError(result)) {
@@ -6147,6 +6150,7 @@ DART_EXPORT Dart_Handle Dart_Precompile(
     return Api::NewHandle(T, error.raw());
   }
   return Api::Success();
+#endif
 }
 
 
@@ -6157,12 +6161,15 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
     intptr_t* isolate_snapshot_size,
     uint8_t** assembly_buffer,
     intptr_t* assembly_size) {
+#if defined(TARGET_ARCH_IA32)
+  return Api::NewError("Snapshots with code are not supported on IA32.");
+#else
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
   if (I->compilation_allowed()) {
-    return Dart_NewApiError("Isolate is not precompiled. "
-                            "Did you forget to call Dart_Precompile?");
+    return Api::NewError("Isolate is not precompiled. "
+                         "Did you forget to call Dart_Precompile?");
   }
   ASSERT(FLAG_load_deferred_eagerly);
   if (vm_isolate_snapshot_buffer == NULL) {
@@ -6201,6 +6208,7 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
   *assembly_size = instructions_writer.AssemblySize();
 
   return Api::Success();
+#endif
 }
 
 
@@ -6213,12 +6221,15 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
     intptr_t* instructions_blob_size,
     uint8_t** rodata_blob_buffer,
     intptr_t* rodata_blob_size) {
+#if defined(TARGET_ARCH_IA32)
+  return Api::NewError("Snapshots with code are not supported on IA32.");
+#else
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
   if (I->compilation_allowed()) {
-    return Dart_NewApiError("Isolate is not precompiled. "
-                            "Did you forget to call Dart_Precompile?");
+    return Api::NewError("Isolate is not precompiled. "
+                         "Did you forget to call Dart_Precompile?");
   }
   ASSERT(FLAG_load_deferred_eagerly);
   if (vm_isolate_snapshot_buffer == NULL) {
@@ -6265,6 +6276,7 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotBlob(
   *rodata_blob_size = instructions_writer.RodataBlobSize();
 
   return Api::Success();
+#endif
 }
 #endif  // DART_PRECOMPILER
 
@@ -6301,7 +6313,7 @@ DART_EXPORT Dart_Handle Dart_PrecompileJIT() {
 }
 
 
-DART_EXPORT Dart_Handle Dart_CreatePrecompiledJITSnapshotBlob(
+DART_EXPORT Dart_Handle Dart_CreateAppJITSnapshot(
     uint8_t** vm_isolate_snapshot_buffer,
     intptr_t* vm_isolate_snapshot_size,
     uint8_t** isolate_snapshot_buffer,
@@ -6310,11 +6322,14 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledJITSnapshotBlob(
     intptr_t* instructions_blob_size,
     uint8_t** rodata_blob_buffer,
     intptr_t* rodata_blob_size) {
+#if defined(TARGET_ARCH_IA32)
+  return Api::NewError("Snapshots with code are not supported on IA32.");
+#else
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
   if (!FLAG_load_deferred_eagerly) {
-    return Dart_NewApiError(
+    return Api::NewError(
         "Creating full snapshots requires --load_deferred_eagerly");
   }
   if (vm_isolate_snapshot_buffer == NULL) {
@@ -6366,6 +6381,7 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledJITSnapshotBlob(
   *rodata_blob_size = instructions_writer.RodataBlobSize();
 
   return Api::Success();
+#endif
 }
 
 
