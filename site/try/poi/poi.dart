@@ -455,7 +455,7 @@ Future<Element> runPoiInternal(
     int position) {
   bool isFullCompile = cachedCompiler != newCompiler;
   cachedCompiler = newCompiler;
-  if (poiTask == null || poiTask.compiler != cachedCompiler) {
+  if (poiTask == null) {
     poiTask = new PoiTask(cachedCompiler);
     cachedCompiler.tasks.add(poiTask);
   }
