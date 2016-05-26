@@ -3407,19 +3407,10 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Create a getter that corresponds to the given field.
-   *
-   * @param field the field for which a getter is to be created
-   * @return the getter that was created
+   * Create a getter that corresponds to the given [field].
    */
   PropertyAccessorElement _createGetter(FieldElementImpl field) {
-    PropertyAccessorElementImpl getter =
-        new PropertyAccessorElementImpl.forVariable(field);
-    getter.getter = true;
-    getter.returnType = field.type;
-    getter.type = new FunctionTypeImpl(getter);
-    field.getter = getter;
-    return getter;
+    return new PropertyAccessorElementImpl_ImplicitGetter(field);
   }
 }
 
@@ -10216,26 +10207,8 @@ class TypeResolverVisitor extends ScopedVisitor {
       declaredType = _typeNameResolver._getType(typeName);
     }
     Element element = node.name.staticElement;
-    if (element is VariableElement) {
-      (element as VariableElementImpl).type = declaredType;
-      if (element is PropertyInducingElement) {
-        PropertyAccessorElementImpl getter =
-            element.getter as PropertyAccessorElementImpl;
-        getter.returnType = declaredType;
-        getter.type = new FunctionTypeImpl(getter);
-        PropertyAccessorElementImpl setter =
-            element.setter as PropertyAccessorElementImpl;
-        if (setter != null) {
-          List<ParameterElement> parameters = setter.parameters;
-          if (parameters.length > 0) {
-            (parameters[0] as ParameterElementImpl).type = declaredType;
-          }
-          setter.returnType = VoidTypeImpl.instance;
-          setter.type = new FunctionTypeImpl(setter);
-        }
-      }
-    } else {
-      // TODO(brianwilkerson) Report the internal error.
+    if (element is VariableElementImpl) {
+      element.type = declaredType;
     }
     return null;
   }

@@ -20,7 +20,6 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
 /**
@@ -2150,14 +2149,10 @@ class _UnitResynthesizer {
    */
   void buildImplicitAccessors(
       PropertyInducingElementImpl element, ElementHolder holder) {
-    String name = element.name;
-    DartType type = element.type;
-    PropertyAccessorElementImpl getter =
-        buildImplicitGetter(element, name, type);
+    PropertyAccessorElementImpl getter = buildImplicitGetter(element);
     holder?.addAccessor(getter);
     if (!(element.isConst || element.isFinal)) {
-      PropertyAccessorElementImpl setter =
-          buildImplicitSetter(element, name, type);
+      PropertyAccessorElementImpl setter = buildImplicitSetter(element);
       holder?.addAccessor(setter);
     }
   }
@@ -2188,18 +2183,10 @@ class _UnitResynthesizer {
    * [property] and to its enclosing element.
    */
   PropertyAccessorElementImpl buildImplicitGetter(
-      PropertyInducingElementImpl property, String name, DartType type) {
-    PropertyAccessorElementImpl getter =
-        new PropertyAccessorElementImpl(name, property.nameOffset);
+      PropertyInducingElementImpl property) {
+    PropertyAccessorElementImpl_ImplicitGetter getter =
+        new PropertyAccessorElementImpl_ImplicitGetter(property);
     getter.enclosingElement = property.enclosingElement;
-    getter.getter = true;
-    getter.static = property.isStatic;
-    getter.synthetic = true;
-    getter.returnType = type;
-    getter.type = new FunctionTypeImpl(getter);
-    getter.variable = property;
-    getter.hasImplicitReturnType = property.hasImplicitType;
-    property.getter = getter;
     return getter;
   }
 
@@ -2208,23 +2195,10 @@ class _UnitResynthesizer {
    * [property] and to its enclosing element.
    */
   PropertyAccessorElementImpl buildImplicitSetter(
-      PropertyInducingElementImpl property, String name, DartType type) {
-    PropertyAccessorElementImpl setter =
-        new PropertyAccessorElementImpl(name, property.nameOffset);
+      PropertyInducingElementImpl property) {
+    PropertyAccessorElementImpl_ImplicitSetter setter =
+        new PropertyAccessorElementImpl_ImplicitSetter(property);
     setter.enclosingElement = property.enclosingElement;
-    setter.setter = true;
-    setter.static = property.isStatic;
-    setter.synthetic = true;
-    setter.parameters = <ParameterElement>[
-      new ParameterElementImpl('_$name', property.nameOffset)
-        ..synthetic = true
-        ..type = type
-        ..parameterKind = ParameterKind.REQUIRED
-    ];
-    setter.returnType = VoidTypeImpl.instance;
-    setter.type = new FunctionTypeImpl(setter);
-    setter.variable = property;
-    property.setter = setter;
     return setter;
   }
 
@@ -2558,13 +2532,9 @@ class _UnitResynthesizer {
       buildPropertyIntroducingElementCommonParts(element, unlinkedVariable);
       variablesData.variables[i] = element;
       // implicit accessors
-      String name = element.name;
-      DartType type = element.type;
-      variablesData.implicitAccessors
-          .add(buildImplicitGetter(element, name, type));
+      variablesData.implicitAccessors.add(buildImplicitGetter(element));
       if (!(element.isConst || element.isFinal)) {
-        variablesData.implicitAccessors
-            .add(buildImplicitSetter(element, name, type));
+        variablesData.implicitAccessors.add(buildImplicitSetter(element));
       }
     }
     return variablesData;

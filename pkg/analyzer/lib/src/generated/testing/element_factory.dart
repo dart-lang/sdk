@@ -222,27 +222,9 @@ class ElementFactory {
     if (isConst) {
       (field as ConstFieldElementImpl).constantInitializer = initializer;
     }
-    PropertyAccessorElementImpl getter =
-        new PropertyAccessorElementImpl.forVariable(field);
-    getter.getter = true;
-    getter.synthetic = true;
-    getter.variable = field;
-    getter.returnType = type;
-    field.getter = getter;
-    FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
-    getter.type = getterType;
+    new PropertyAccessorElementImpl_ImplicitGetter(field);
     if (!isConst && !isFinal) {
-      PropertyAccessorElementImpl setter =
-          new PropertyAccessorElementImpl.forVariable(field);
-      setter.setter = true;
-      setter.synthetic = true;
-      setter.variable = field;
-      setter.parameters = <ParameterElement>[
-        requiredParameter2("_$name", type)
-      ];
-      setter.returnType = VoidTypeImpl.instance;
-      setter.type = new FunctionTypeImpl(setter);
-      field.setter = setter;
+      new PropertyAccessorElementImpl_ImplicitSetter(field);
     }
     return field;
   }
@@ -564,7 +546,7 @@ class ElementFactory {
     field.synthetic = true;
     field.type = type;
     PropertyAccessorElementImpl getter =
-        new PropertyAccessorElementImpl.forVariable(field);
+        new PropertyAccessorElementImpl(name, -1);
     getter.getter = true;
     getter.variable = field;
     getter.returnType = type;
@@ -573,7 +555,7 @@ class ElementFactory {
     getter.type = getterType;
     ParameterElementImpl parameter = requiredParameter2("a", type);
     PropertyAccessorElementImpl setter =
-        new PropertyAccessorElementImpl.forVariable(field);
+        new PropertyAccessorElementImpl(name, -1);
     setter.setter = true;
     setter.synthetic = true;
     setter.variable = field;
@@ -614,28 +596,9 @@ class ElementFactory {
     variable.final2 = isFinal;
     variable.synthetic = false;
     variable.type = type;
-    PropertyAccessorElementImpl getter =
-        new PropertyAccessorElementImpl.forVariable(variable);
-    getter.getter = true;
-    getter.synthetic = true;
-    getter.variable = variable;
-    getter.returnType = type;
-    variable.getter = getter;
-    FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
-    getter.type = getterType;
+    new PropertyAccessorElementImpl_ImplicitGetter(variable);
     if (!isConst && !isFinal) {
-      PropertyAccessorElementImpl setter =
-          new PropertyAccessorElementImpl.forVariable(variable);
-      setter.setter = true;
-      setter.static = true;
-      setter.synthetic = true;
-      setter.variable = variable;
-      setter.parameters = <ParameterElement>[
-        requiredParameter2("_$name", type)
-      ];
-      setter.returnType = VoidTypeImpl.instance;
-      setter.type = new FunctionTypeImpl(setter);
-      variable.setter = setter;
+      new PropertyAccessorElementImpl_ImplicitSetter(variable);
     }
     return variable;
   }

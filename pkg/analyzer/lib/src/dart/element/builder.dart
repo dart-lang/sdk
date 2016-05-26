@@ -645,7 +645,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       constantField.type = enumType;
       setElementDocumentationComment(constantField, constant);
       fields.add(constantField);
-      _createGetter(constantField);
+      new PropertyAccessorElementImpl_ImplicitGetter(constantField);
       constantName.staticElement = constantField;
     }
     enumElement.fields = fields;
@@ -1247,25 +1247,13 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       holder.validate();
     }
     if (element is PropertyInducingElementImpl) {
-      PropertyAccessorElementImpl getter =
-          new PropertyAccessorElementImpl.forVariable(element);
-      getter.getter = true;
-      if (element.hasImplicitType) {
-        getter.hasImplicitReturnType = true;
-      }
+      PropertyAccessorElementImpl_ImplicitGetter getter =
+          new PropertyAccessorElementImpl_ImplicitGetter(element);
       _currentHolder.addAccessor(getter);
-      element.getter = getter;
       if (!isConst && !isFinal) {
-        PropertyAccessorElementImpl setter =
-            new PropertyAccessorElementImpl.forVariable(element);
-        setter.setter = true;
-        ParameterElementImpl parameter =
-            new ParameterElementImpl("_${element.name}", element.nameOffset);
-        parameter.synthetic = true;
-        parameter.parameterKind = ParameterKind.REQUIRED;
-        setter.parameters = <ParameterElement>[parameter];
+        PropertyAccessorElementImpl_ImplicitSetter setter =
+            new PropertyAccessorElementImpl_ImplicitSetter(element);
         _currentHolder.addAccessor(setter);
-        element.setter = setter;
       }
     }
     return null;
@@ -1339,18 +1327,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       a.elementAnnotation = elementAnnotation;
       return elementAnnotation;
     }).toList();
-  }
-
-  /**
-   * Create a getter that corresponds to the given [field].
-   */
-  void _createGetter(FieldElementImpl field) {
-    PropertyAccessorElementImpl getter =
-        new PropertyAccessorElementImpl.forVariable(field);
-    getter.getter = true;
-    getter.returnType = field.type;
-    getter.type = new FunctionTypeImpl(getter);
-    field.getter = getter;
   }
 
   /**

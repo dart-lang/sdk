@@ -2828,7 +2828,7 @@ abstract class ExecutableElementImpl extends ElementImpl
   /**
    * A list containing all of the parameters defined by this executable element.
    */
-  List<ParameterElement> _parameters = ParameterElement.EMPTY_LIST;
+  List<ParameterElement> _parameters;
 
   /**
    * A list containing all of the type parameters defined for this executable
@@ -2844,7 +2844,7 @@ abstract class ExecutableElementImpl extends ElementImpl
   /**
    * The type of function defined by this executable element.
    */
-  FunctionType type;
+  FunctionType _type;
 
   /**
    * Initialize a newly created executable element to have the given [name] and
@@ -3059,7 +3059,9 @@ abstract class ExecutableElementImpl extends ElementImpl
   }
 
   @override
-  List<ParameterElement> get parameters => _parameters;
+  List<ParameterElement> get parameters {
+    return _parameters ?? const <ParameterElement>[];
+  }
 
   /**
    * Set the parameters defined by this executable element to the given
@@ -3090,6 +3092,13 @@ abstract class ExecutableElementImpl extends ElementImpl
   void set returnType(DartType returnType) {
     assert(serializedExecutable == null);
     _returnType = returnType;
+  }
+
+  @override
+  FunctionType get type => _type;
+
+  void set type(FunctionType type) {
+    _type = type;
   }
 
   @override
@@ -3130,12 +3139,12 @@ abstract class ExecutableElementImpl extends ElementImpl
       buffer.write("(");
       String closing = null;
       ParameterKind kind = ParameterKind.REQUIRED;
-      int parameterCount = _parameters.length;
+      int parameterCount = parameters.length;
       for (int i = 0; i < parameterCount; i++) {
         if (i > 0) {
           buffer.write(", ");
         }
-        ParameterElement parameter = _parameters[i];
+        ParameterElement parameter = parameters[i];
         ParameterKind parameterKind = parameter.parameterKind;
         if (parameterKind != kind) {
           if (closing != null) {
@@ -3185,7 +3194,7 @@ abstract class ExecutableElementImpl extends ElementImpl
         return variableImpl;
       }
     }
-    for (ParameterElement parameter in _parameters) {
+    for (ParameterElement parameter in parameters) {
       ParameterElementImpl parameterImpl = parameter;
       if (parameterImpl.identifier == identifier) {
         return parameterImpl;
@@ -3200,7 +3209,7 @@ abstract class ExecutableElementImpl extends ElementImpl
     safelyVisitChildren(_functions, visitor);
     safelyVisitChildren(_labels, visitor);
     safelyVisitChildren(_localVariables, visitor);
-    safelyVisitChildren(_parameters, visitor);
+    safelyVisitChildren(parameters, visitor);
   }
 }
 
@@ -6175,6 +6184,30 @@ class ParameterElementImpl extends VariableElementImpl
 }
 
 /**
+ * The parameter of an implicit setter.
+ */
+class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
+  final PropertyAccessorElementImpl_ImplicitSetter setter;
+
+  ParameterElementImpl_ofImplicitSetter(
+      PropertyAccessorElementImpl_ImplicitSetter setter)
+      : setter = setter,
+        super('_${setter.variable.name}', setter.variable.nameOffset) {
+    enclosingElement = setter;
+    synthetic = true;
+    parameterKind = ParameterKind.REQUIRED;
+  }
+
+  @override
+  DartType get type => setter.variable.type;
+
+  @override
+  void set type(FunctionType type) {
+    assert(false); // Should never be called.
+  }
+}
+
+/**
  * A mixin that provides a common implementation for methods defined in
  * [ParameterElement].
  */
@@ -6456,6 +6489,88 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
       return getNodeMatching((node) => node is FunctionDeclaration);
     }
     return null;
+  }
+}
+
+/**
+ * Implicit getter for a [PropertyInducingElementImpl].
+ */
+class PropertyAccessorElementImpl_ImplicitGetter
+    extends PropertyAccessorElementImpl {
+  /**
+   * Create the implicit getter and bind it to the [property].
+   */
+  PropertyAccessorElementImpl_ImplicitGetter(
+      PropertyInducingElementImpl property)
+      : super.forVariable(property) {
+    property.getter = this;
+  }
+
+  @override
+  bool get hasImplicitReturnType => variable.hasImplicitType;
+
+  @override
+  bool get isGetter => true;
+
+  @override
+  DartType get returnType => variable.type;
+
+  @override
+  void set returnType(DartType returnType) {
+    assert(false); // Should never be called.
+  }
+
+  @override
+  DartType get type {
+    return _type ??= new FunctionTypeImpl(this);
+  }
+
+  @override
+  void set type(FunctionType type) {
+    assert(false); // Should never be called.
+  }
+}
+
+/**
+ * Implicit setter for a [PropertyInducingElementImpl].
+ */
+class PropertyAccessorElementImpl_ImplicitSetter
+    extends PropertyAccessorElementImpl {
+  /**
+   * Create the implicit setter and bind it to the [property].
+   */
+  PropertyAccessorElementImpl_ImplicitSetter(
+      PropertyInducingElementImpl property)
+      : super.forVariable(property) {
+    property.setter = this;
+  }
+
+  @override
+  bool get isSetter => true;
+
+  @override
+  List<ParameterElement> get parameters {
+    return _parameters ??= <ParameterElement>[
+      new ParameterElementImpl_ofImplicitSetter(this)
+    ];
+  }
+
+  @override
+  DartType get returnType => VoidTypeImpl.instance;
+
+  @override
+  void set returnType(DartType returnType) {
+    assert(false); // Should never be called.
+  }
+
+  @override
+  DartType get type {
+    return _type ??= new FunctionTypeImpl(this);
+  }
+
+  @override
+  void set type(FunctionType type) {
+    assert(false); // Should never be called.
   }
 }
 
