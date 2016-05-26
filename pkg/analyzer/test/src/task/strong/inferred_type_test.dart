@@ -2631,6 +2631,42 @@ var x = (f().n *= null);
     expect(x.type.toString(), 'num');
   }
 
+  void test_inferredType_viaClosure_multipleLevelsOfNesting() {
+    var mainUnit = checkFile('''
+class C {
+  static final f = (bool b) => (int i) => /*info:INFERRED_TYPE_LITERAL*/{i: b};
+}
+''');
+    var f = mainUnit.getType('C').fields[0];
+    expect(f.type.toString(), '(bool) → (int) → Map<int, bool>');
+  }
+
+  void test_inferredType_viaClosure_typeDependsOnArgs() {
+    var mainUnit = checkFile('''
+class C {
+  static final f = (bool b) => b;
+}
+''');
+    var f = mainUnit.getType('C').fields[0];
+    expect(f.type.toString(), '(bool) → bool');
+  }
+
+  void test_inferredType_viaClosure_typeIndependentOfArgs_field() {
+    var mainUnit = checkFile('''
+class C {
+  static final f = (bool b) => 1;
+}
+''');
+    var f = mainUnit.getType('C').fields[0];
+    expect(f.type.toString(), '(bool) → int');
+  }
+
+  void test_inferredType_viaClosure_typeIndependentOfArgs_topLevel() {
+    var mainUnit = checkFile('final f = (bool b) => 1;');
+    var f = mainUnit.topLevelVariables[0];
+    expect(f.type.toString(), '(bool) → int');
+  }
+
   void test_inferStaticsTransitively() {
     addFile(
         '''

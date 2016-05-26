@@ -2167,6 +2167,9 @@ class ExprTypeComputer {
           assert(popCount == 0); // TODO(paulberry): handle the nonzero case.
           stack.add(function.functions[_getNextInt()].type);
           break;
+        case UnlinkedConstOperation.pushParameter:
+          stack.add(_findParameterType(_getNextString()));
+          break;
         default:
           // TODO(paulberry): implement.
           throw new UnimplementedError('$operation');
@@ -2435,6 +2438,29 @@ class ExprTypeComputer {
     }
   }
 
+  /**
+   * Find the parameter in scope called [parameterName] and return its type.
+   */
+  DartType _findParameterType(String parameterName) {
+    FunctionElementForLink_Local f = this.function;
+    while (true) {
+      for (ParameterElement parameter in f.parameters) {
+        if (parameter.name == parameterName) {
+          return parameter.type;
+        }
+      }
+      Element parent = f.enclosingElement;
+      if (parent is FunctionElementForLink_Local) {
+        f = parent;
+      } else {
+        // Parameter not found.  This should never happen in a well-formed
+        // summary.
+        assert(false);
+        return DynamicTypeImpl.instance;
+      }
+    }
+  }
+
   int _getNextInt() {
     return unlinkedConst.ints[intPtr++];
   }
@@ -2657,6 +2683,7 @@ class FieldElementForLink_ClassField extends VariableElementForLink
           unlinkedVariable.inferredTypeSlot,
           isStatic ? inferredType : _inferredInstanceType,
           _typeParameterContext);
+      initializer?.link(compilationUnit);
     }
   }
 
@@ -2772,9 +2799,19 @@ class FunctionElementForLink_Initializer extends Object
    */
   final VariableElementForLink _variable;
 
+  /**
+   * The type inference node for this function, or `null` if it hasn't been
+   * computed yet.
+   */
+  TypeInferenceNode _typeInferenceNode;
+
   List<FunctionElementForLink_Local_NonSynthetic> _functions;
 
   FunctionElementForLink_Initializer(this._variable);
+
+  @override
+  TypeInferenceNode get asTypeInferenceNode =>
+      _typeInferenceNode ??= new TypeInferenceNode(this);
 
   @override
   CompilationUnitElementForLink get compilationUnit =>
@@ -2839,6 +2876,16 @@ class FunctionElementForLink_Initializer extends Object
     return index < functions.length ? functions[index] : null;
   }
 
+  /**
+   * Store the results of type inference for this initializer in
+   * [compilationUnit].
+   */
+  void link(CompilationUnitElementInBuildUnit compilationUnit) {
+    for (FunctionElementForLink_Local_NonSynthetic function in functions) {
+      function.link(compilationUnit);
+    }
+  }
+
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
@@ -2879,6 +2926,14 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
   @override
   final ExecutableElementForLink enclosingElement;
 
+  List<FunctionElementForLink_Local_NonSynthetic> _functions;
+
+  /**
+   * The type inference node for this function, or `null` if it hasn't been
+   * computed yet.
+   */
+  TypeInferenceNode _typeInferenceNode;
+
   FunctionElementForLink_Local_NonSynthetic(
       CompilationUnitElementForLink compilationUnit,
       this.enclosingElement,
@@ -2886,14 +2941,23 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
       : super(compilationUnit, unlinkedExecutable);
 
   @override
+  TypeInferenceNode get asTypeInferenceNode =>
+      _typeInferenceNode ??= new TypeInferenceNode(this);
+
+  @override
   TypeParameterizedElementMixin get enclosingTypeParameterContext =>
       enclosingElement;
 
   @override
-  bool get _hasTypeBeenInferred {
-    // TODO(paulberry): add logic to infer types of nonsynthetic functions.
-    return true;
-  }
+  List<FunctionElementForLink_Local_NonSynthetic> get functions =>
+      _functions ??= _unlinkedExecutable.localFunctions
+          .map((UnlinkedExecutable ex) =>
+              new FunctionElementForLink_Local_NonSynthetic(
+                  compilationUnit, this, ex))
+          .toList();
+
+  @override
+  bool get _hasTypeBeenInferred => _inferredReturnType != null;
 
   @override
   DartType buildType(
@@ -2904,8 +2968,19 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
 
   @override
   FunctionElementForLink_Local getLocalFunction(int index) {
-    // TODO(paulberry): implement.
-    throw new UnimplementedError();
+    List<FunctionElementForLink_Local_NonSynthetic> functions = this.functions;
+    return index < functions.length ? functions[index] : null;
+  }
+
+  /**
+   * Store the results of type inference for this function in [compilationUnit].
+   */
+  void link(CompilationUnitElementInBuildUnit compilationUnit) {
+    compilationUnit._storeLinkedType(
+        _unlinkedExecutable.inferredReturnTypeSlot, inferredReturnType, this);
+    for (FunctionElementForLink_Local_NonSynthetic function in functions) {
+      function.link(compilationUnit);
+    }
   }
 
   @override
@@ -2913,8 +2988,9 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
 
   @override
   void _setInferredType(DartType type) {
-    // TODO(paulberry): add logic to infer types of nonsynthetic functions.
-    throw new UnimplementedError();
+    // TODO(paulberry): store the inferred return type in the summary.
+    assert(!_hasTypeBeenInferred);
+    _inferredReturnType = type;
   }
 }
 
@@ -4340,6 +4416,7 @@ class TopLevelVariableElementForLink extends VariableElementForLink
         compilationUnit._storeLinkedType(
             unlinkedVariable.inferredTypeSlot, inferredType, null);
       }
+      initializer?.link(compilationUnit);
     }
   }
 }
@@ -4453,10 +4530,9 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
         case UnlinkedConstOperation.pushLocalFunctionReference:
           int popCount = unlinkedConst.ints[intPtr++];
           assert(popCount == 0); // TODO(paulberry): handle the nonzero case.
-          collectDependencies(
-              dependencies,
-              unlinkedExecutable.localFunctions[unlinkedConst.ints[intPtr++]],
-              compilationUnit);
+          dependencies.add(functionElement
+              .getLocalFunction(unlinkedConst.ints[intPtr++])
+              .asTypeInferenceNode);
           break;
         default:
           break;
@@ -4687,7 +4763,7 @@ abstract class VariableElementForLink
         unlinkedVariable.initializer?.bodyExpr != null) {
       _constNode = new ConstVariableNode(this);
       if (unlinkedVariable.type == null) {
-        _typeInferenceNode = new TypeInferenceNode(initializer);
+        _typeInferenceNode = initializer.asTypeInferenceNode;
       }
     }
   }
