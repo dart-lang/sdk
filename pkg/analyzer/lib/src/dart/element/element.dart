@@ -1571,6 +1571,25 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   ConstFieldElementImpl.forSerialized(
       UnlinkedVariable unlinkedVariable, ElementImpl enclosingElement)
       : super.forSerialized(unlinkedVariable, enclosingElement);
+
+  @override
+  Expression get constantInitializer {
+    if (_unlinkedVariable != null) {
+      UnlinkedConst defaultValue = _unlinkedVariable.initializer?.bodyExpr;
+      if (defaultValue == null) {
+        return null;
+      }
+      return super.constantInitializer ??= enclosingUnit.resynthesizerContext
+          .buildExpression(this, defaultValue);
+    }
+    return super.constantInitializer;
+  }
+
+  @override
+  void set constantInitializer(Expression initializer) {
+    assert(_unlinkedVariable == null);
+    super.constantInitializer = initializer;
+  }
 }
 
 /**

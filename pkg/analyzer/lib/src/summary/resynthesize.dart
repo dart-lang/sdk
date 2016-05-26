@@ -574,8 +574,8 @@ class _ConstExprBuilder {
    */
   TypeName _newTypeName() {
     EntityRef typeRef = uc.references[refPtr++];
-    DartType type = resynthesizer.buildType(
-        typeRef, resynthesizer._currentTypeParameterizedElement);
+    DartType type =
+        resynthesizer.buildType(typeRef, context?.typeParameterContext);
     return _buildTypeAst(type);
   }
 
@@ -2553,12 +2553,8 @@ class _UnitResynthesizer {
       if (serializedVariable.initializer?.bodyExpr != null &&
           (serializedVariable.isConst ||
               serializedVariable.isFinal && !serializedVariable.isStatic)) {
-        ConstFieldElementImpl constElement =
-            new ConstFieldElementImpl.forSerialized(
-                serializedVariable, enclosingClass);
-        element = constElement;
-        constElement.constantInitializer = _buildConstExpression(
-            enclosingClass, serializedVariable.initializer.bodyExpr);
+        element = new ConstFieldElementImpl.forSerialized(
+            serializedVariable, enclosingClass);
       } else {
         element = new FieldElementImpl.forSerialized(
             serializedVariable, enclosingClass);
