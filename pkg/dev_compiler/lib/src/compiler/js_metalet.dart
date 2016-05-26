@@ -153,7 +153,7 @@ class MetaLet extends Expression {
     return (args) => new MetaLet(
         new Map.fromIterables(
             variables.keys, valueInstantiators.map((i) => i(args))),
-        bodyInstantiators.map((i) => i(args)).toList(),
+        bodyInstantiators.map((i) => i(args) as Expression).toList(),
         statelessResult: statelessResult);
   }
 
@@ -255,7 +255,8 @@ class MetaLet extends Expression {
       assign = value.toAssignExpression(left);
     }
 
-    var newBody = new Expression.binary([assign]..addAll(body), ',');
+    assert(body.isNotEmpty);
+    Binary newBody = new Expression.binary([assign]..addAll(body), ',');
     newBody = _substitute(newBody, {result: left});
     return new MetaLet(vars, newBody.commaToExpressionList(),
         statelessResult: statelessResult);

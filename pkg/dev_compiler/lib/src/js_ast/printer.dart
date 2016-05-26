@@ -1406,7 +1406,9 @@ class VarCollector extends BaseVisitor {
       nested = true;
       if (fun.params != null) {
         for (var param in fun.params) {
-          params.add(param.name);
+          // TODO(jmesserly): add ES6 support. Currently not needed because
+          // dart2js does not emit ES6 rest param or destructuring.
+          params.add((param as Identifier).name);
         }
       }
       fun.body.accept(this);

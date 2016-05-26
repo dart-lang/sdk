@@ -102,7 +102,7 @@ void main(List<String> args) {
       : new Directory(tmp)..createSync();
   for (var module in orderedModules) {
     var file = tmpdir.path + path.separator + module + '.js';
-    var command = new List.from(template)..addAll(['-o', file]);
+    var command = template.toList()..addAll(['-o', file]);
     var dependences = transitiveDependenceMap[module];
     for (var dependence in dependences) {
       var summary = tmpdir.path + path.separator + dependence + '.sum';
@@ -111,9 +111,9 @@ void main(List<String> args) {
     var infiles = fileMap[module];
     command.addAll(infiles);
 
-    var immediateDeps =
-        dependenceMap.containsKey(module) ? dependenceMap[module] : <String>[];
-    var waitList = immediateDeps.map((dep) => readyMap[dep]);
+    var waitList = dependenceMap.containsKey(module)
+        ? dependenceMap[module].map((dep) => readyMap[dep])
+        : <Future>[];
     var future = Future.wait(waitList);
     readyMap[module] = future.then((_) {
       var ready = Process.run(dartPath, command);

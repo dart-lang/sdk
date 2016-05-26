@@ -21,7 +21,7 @@ import 'element_helpers.dart' show getStaticType, isInlineJS;
 // TODO(vsm): Revisit whether we really need this when we get
 // better non-nullability in the type system.
 abstract class NullableTypeInference {
-  LibraryElement dartCoreLibrary;
+  LibraryElement get dartCoreLibrary;
   bool isPrimitiveType(DartType type);
   bool isObjectMember(String name);
 

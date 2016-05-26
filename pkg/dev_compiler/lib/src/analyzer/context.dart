@@ -4,6 +4,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
+import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
@@ -64,13 +65,13 @@ class AnalyzerOptions {
       : dartSdkPath = dartSdkPath ?? getSdkDir().path;
 
   AnalyzerOptions.fromArguments(ArgResults args)
-      : summaryPaths = args['summary'],
+      : summaryPaths = args['summary'] as List<String>,
         useMockSdk = false,
         dartSdkPath = args['dart-sdk'] ?? getSdkDir().path,
         dartSdkSummaryPath = args['dart-sdk-summary'],
         customUrlMappings = _parseUrlMappings(args['url-mapping']),
         packageRoot = args['package-root'],
-        packagePaths = args['package-paths']?.split(',') ?? [];
+        packagePaths = (args['package-paths'] as String)?.split(',') ?? [];
 
   /// Whether to resolve 'package:' uris using the multi-package resolver.
   bool get useMultiPackage => packagePaths.isNotEmpty;
@@ -139,7 +140,7 @@ AnalysisContext createAnalysisContextWithSources(AnalyzerOptions options,
 }
 
 /// Creates an analysis context that contains our restricted typing rules.
-AnalysisContext createAnalysisContext() {
+AnalysisContextImpl createAnalysisContext() {
   var res = AnalysisEngine.instance.createAnalysisContext();
   res.analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
   return res;

@@ -305,7 +305,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       void add(node) {
         if (node is EmptyStatement) return;
         if (node is Iterable) {
-          statements.addAll(node);
+          for (var n in node) statements.add(n);
         } else {
           statements.add(node.toStatement());
         }
@@ -324,7 +324,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       void add(node) {
         if (node is EmptyStatement) return;
         if (node is Iterable) {
-          statements.addAll(node);
+          for (var n in node) statements.add(n);
         } else if (node is Block) {
           statements.addAll(node.statements);
         } else {
@@ -490,7 +490,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       return new Switch(
           makeKey(arguments),
           makeCases
-              .map((Instantiator makeCase) => makeCase(arguments))
+              .map((makeCase) => makeCase(arguments) as SwitchClause)
               .toList());
     };
   }
@@ -568,10 +568,12 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   }
 
   Instantiator visitNew(New node) =>
-      handleCallOrNew(node, (target, arguments) => new New(target, arguments));
+      handleCallOrNew(node, (target, arguments) =>
+          new New(target, arguments as List<Expression>));
 
   Instantiator visitCall(Call node) =>
-      handleCallOrNew(node, (target, arguments) => new Call(target, arguments));
+      handleCallOrNew(node, (target, arguments) =>
+          new Call(target, arguments as List<Expression>));
 
   Instantiator handleCallOrNew(Call node, finish(target, arguments)) {
     Instantiator makeTarget = visit(node.target);
@@ -586,7 +588,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       for (Instantiator instantiator in argumentMakers) {
         var result = instantiator(arguments);
         if (result is Iterable) {
-          callArguments.addAll(result);
+          for (var r in result) callArguments.add(r);
         } else {
           callArguments.add(result);
         }
@@ -654,7 +656,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       for (Instantiator instantiator in paramMakers) {
         var result = instantiator(arguments);
         if (result is Iterable) {
-          params.addAll(result);
+          for (var r in result) params.add(r);
         } else {
           params.add(result);
         }
@@ -692,7 +694,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         node.elements.map(visit).toList(growable: false);
     return (arguments) {
       List<Expression> elements = elementMakers
-          .map((Instantiator instantiator) => instantiator(arguments))
+          .map((instantiator) => instantiator(arguments) as Expression)
           .toList(growable: false);
       return new ArrayInitializer(elements);
     };
@@ -710,7 +712,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       for (Instantiator instantiator in propertyMakers) {
         var result = instantiator(arguments);
         if (result is Iterable) {
-          properties.addAll(result);
+          for (var r in result) properties.add(r);
         } else {
           properties.add(result);
         }
@@ -766,7 +768,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       for (Instantiator instantiator in makeMethods) {
         var result = instantiator(arguments);
         if (result is Iterable) {
-          methods.addAll(result);
+          for (var r in result) methods.add(r);
         } else {
           methods.add(result);
         }
@@ -863,7 +865,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     List<Instantiator> makeVars = node.variables.map(this.visit).toList();
     return (arguments) {
       return new ArrayBindingPattern(
-          makeVars.map((m) => m(arguments)).toList());
+          makeVars.map((m) => m(arguments) as DestructuredVariable).toList());
     };
   }
 
@@ -872,7 +874,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     List<Instantiator> makeVars = node.variables.map(this.visit).toList();
     return (arguments) {
       return new ObjectBindingPattern(
-          makeVars.map((m) => m(arguments)).toList());
+          makeVars.map((m) => m(arguments) as DestructuredVariable).toList());
     };
   }
 

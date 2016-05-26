@@ -41,7 +41,7 @@ main() {
     });
 
     test('can compile in worker mode', () async {
-      var args = new List.from(executableArgs)..add('--persistent_worker');
+      var args = executableArgs.toList()..add('--persistent_worker');
       var process = await Process.start('dart', args);
       var messageGrouper = new AsyncMessageGrouper(process.stdout);
 
@@ -73,7 +73,7 @@ main() {
     });
 
     test('can compile in basic mode', () {
-      var args = new List.from(executableArgs)..addAll(compilerArgs);
+      var args = executableArgs.toList()..addAll(compilerArgs);
       var result = Process.runSync('dart', args);
 
       expect(result.exitCode, EXIT_CODE_OK);
@@ -85,7 +85,7 @@ main() {
     test('can compile in basic mode with args in a file', () async {
       argsFile.createSync();
       argsFile.writeAsStringSync(compilerArgs.join('\n'));
-      var args = new List.from(executableArgs)..add('@${argsFile.path}');
+      var args = executableArgs.toList()..add('@${argsFile.path}');
       var process = await Process.start('dart', args);
       stderr.addStream(process.stderr);
       var futureProcessOutput = process.stdout.map(UTF8.decode).toList();
@@ -260,7 +260,7 @@ main() {
 }
 
 Future<WorkResponse> _readResponse(MessageGrouper messageGrouper) async {
-  var buffer = await messageGrouper.next;
+  var buffer = (await messageGrouper.next) as List<int>;
   try {
     return new WorkResponse.fromBuffer(buffer);
   } catch (_) {

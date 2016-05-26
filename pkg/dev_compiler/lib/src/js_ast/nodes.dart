@@ -845,7 +845,9 @@ abstract class BindingPattern extends Expression implements VariableBinding {
 class SimpleBindingPattern extends BindingPattern {
   final Identifier name;
   SimpleBindingPattern(Identifier name)
-      : super([new DestructuredVariable(name: name)]), this.name = name;
+      : name = name,
+        super([new DestructuredVariable(name: name)]);
+
   accept(NodeVisitor visitor) => visitor.visitSimpleBindingPattern(this);
 
   /// Avoid parenthesis when pretty-printing.
@@ -964,7 +966,7 @@ class Binary extends Expression {
 
   List<Expression> commaToExpressionList() {
     if (!isCommaOperator) throw new StateError('not a comma expression');
-    var exprs = [];
+    var exprs = <Expression>[];
     _flattenComma(exprs, left);
     _flattenComma(exprs, right);
     return exprs;

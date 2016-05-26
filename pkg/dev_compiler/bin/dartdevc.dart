@@ -75,7 +75,7 @@ class _CompilerWorker extends AsyncWorkerLoop {
 
   /// Performs each individual work request.
   Future<WorkResponse> performRequest(WorkRequest request) async {
-    var args = new List.from(_startupArgs)..addAll(request.arguments);
+    var args = _startupArgs.toList()..addAll(request.arguments);
 
     var output = new StringBuffer();
     var exitCode = await _runCommand(args, messageHandler: output.writeln);

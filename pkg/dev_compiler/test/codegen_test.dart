@@ -63,7 +63,7 @@ final packageUrlMappings = {
 
 final codeCoverage = Platform.environment.containsKey('COVERALLS_TOKEN');
 
-main(arguments) {
+main(List<String> arguments) {
   if (arguments == null) arguments = [];
   ArgResults args = argParser.parse(arguments);
   var filePattern = new RegExp(args.rest.length > 0 ? args.rest[0] : '.');
@@ -275,7 +275,7 @@ String _moduleForLibrary(Source source) {
 }
 
 List<String> _setUpTests(List<String> testDirs, RegExp filePattern) {
-  var testFiles = [];
+  var testFiles = <String>[];
 
   for (var testDir in testDirs) {
     for (var file in _listFiles(path.join(codegenDir, testDir), filePattern,

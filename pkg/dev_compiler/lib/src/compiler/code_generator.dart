@@ -285,12 +285,12 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
 
     var libraryJSName = getAnnotationName(e.library, isPublicJSAnnotation);
-    var libraryPrefix = [];
+    var libraryPrefix = <String>[];
     if (libraryJSName != null && libraryJSName.isNotEmpty) {
       libraryPrefix.addAll(libraryJSName.split('.'));
     }
 
-    var elementJSName;
+    String elementJSName;
     if (findAnnotation(e, isPublicJSAnnotation) != null) {
       elementJSName = getAnnotationName(e, isPublicJSAnnotation) ?? '';
     }
@@ -302,7 +302,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
     if (elementJSName == null) return null;
 
-    var elementJSParts = [];
+    var elementJSParts = <String>[];
     if (elementJSName.isNotEmpty) {
       elementJSParts.addAll(elementJSName.split('.'));
     } else {
@@ -316,7 +316,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var jsName = _getJSName(e);
     if (jsName == null) return null;
     var fullName = ['global']..addAll(jsName);
-    var access = _runtimeLibVar;
+    JS.Expression access = _runtimeLibVar;
     for (var part in fullName) {
       access = new JS.PropertyAccess(access, js.string(part));
     }
@@ -699,7 +699,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       className = _emitTopLevelName(classElem);
     }
 
-    var allFields = new List.from(fields)..addAll(staticFields);
+    var allFields = fields.toList()..addAll(staticFields);
     var superclasses = getSuperclasses(classElem);
     var virtualFields = <FieldElement, JS.TemporaryId>{};
     var virtualFieldSymbols = <JS.Statement>[];
@@ -949,7 +949,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var jsMethods = <JS.Method>[];
     if (!node.isStatic) {
       for (var decl in node.fields.variables) {
-        var field = decl.element;
+        var field = decl.element as FieldElement;
         var name = getAnnotationName(field, isJsName) ?? field.name;
         // Generate getter
         var fn = new JS.Fun([], js.statement('{ return this.#; }', [name]));
@@ -1351,12 +1351,12 @@ class CodeGenerator extends GeneralizingAstVisitor
           dartxNames.add(_elementMemberName(m.element, useExtension: false));
         }
       }
-      for (var f in fields) {
-        if (!f.isStatic) {
-          for (var d in f.fields.variables) {
-            if (d.element.isPublic) {
-              dartxNames.add(
-                  _elementMemberName(d.element.getter, useExtension: false));
+      for (var fieldDecl in fields) {
+        if (!fieldDecl.isStatic) {
+          for (var field in fieldDecl.fields.variables) {
+            var e = field.element as FieldElement;
+            if (e.isPublic) {
+              dartxNames.add(_elementMemberName(e.getter, useExtension: false));
             }
           }
         }
@@ -1542,7 +1542,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   JS.Statement visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     var ctor = node.staticElement;
-    var cls = ctor.enclosingElement as ClassElement;
+    var cls = ctor.enclosingElement;
     // We can't dispatch to the constructor with `this.new` as that might hit a
     // derived class constructor with the same name.
     return js.statement('#.prototype.#.call(this, #);', [
@@ -1848,7 +1848,8 @@ class CodeGenerator extends GeneralizingAstVisitor
       var props = <JS.Method>[_emitTopLevelProperty(node)];
       var setter = element.correspondingSetter;
       if (setter != null) {
-        props.add(_loader.emitDeclaration(setter, _emitTopLevelProperty));
+        props.add(_loader.emitDeclaration(
+            setter, (node) => _emitTopLevelProperty(node)));
       }
       return js.statement('dart.copyProperties(#, { # });',
           [emitLibraryName(currentLibrary), props]);
@@ -1858,7 +1859,8 @@ class CodeGenerator extends GeneralizingAstVisitor
       var props = <JS.Method>[_emitTopLevelProperty(node)];
       var getter = element.correspondingGetter;
       if (getter != null) {
-        props.add(_loader.emitDeclaration(getter, _emitTopLevelProperty));
+        props.add(_loader.emitDeclaration(
+            getter, (node) => _emitTopLevelProperty(node)));
       }
       return js.statement('dart.copyProperties(#, { # });',
           [emitLibraryName(currentLibrary), props]);
@@ -1983,7 +1985,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   JS.ArrowFun _emitArrowFunction(FunctionExpression node) {
     JS.Fun f = _emitFunctionBody(node.element, node.parameters, node.body);
-    var body = f.body;
+    JS.Node body = f.body;
 
     // Simplify `=> { return e; }` to `=> e`
     if (body is JS.Block) {
@@ -1999,25 +2001,24 @@ class CodeGenerator extends GeneralizingAstVisitor
     var fn = new JS.ArrowFun(f.params, body,
         typeParams: f.typeParams, returnType: f.returnType);
 
-    return annotate(_makeGenericFunction(fn), node);
+    return annotate(_makeGenericArrowFun(fn), node);
   }
 
-  JS.FunctionExpression/*=T*/ _makeGenericFunction
-  /*<T extends JS.FunctionExpression>*/(JS.FunctionExpression/*=T*/ fn) {
+  JS.ArrowFun _makeGenericArrowFun(JS.ArrowFun fn) {
+    if (fn.typeParams == null || fn.typeParams.isEmpty) return fn;
+    return new JS.ArrowFun(fn.typeParams, fn);
+  }
+
+  JS.Fun _makeGenericFunction(JS.Fun fn) {
     if (fn.typeParams == null || fn.typeParams.isEmpty) return fn;
 
     // TODO(jmesserly): we could make these default to `dynamic`.
-    var typeParams = fn.typeParams;
-    if (fn is JS.ArrowFun) {
-      return new JS.ArrowFun(typeParams, fn);
-    }
-    var f = fn as JS.Fun;
     return new JS.Fun(
-        typeParams,
+        fn.typeParams,
         new JS.Block([
           // Convert the function to an => function, to ensure `this` binding.
-          new JS.Return(new JS.ArrowFun(f.params, f.body,
-              typeParams: f.typeParams, returnType: f.returnType))
+          new JS.Return(new JS.ArrowFun(fn.params, fn.body,
+              typeParams: fn.typeParams, returnType: fn.returnType))
         ]));
   }
 
@@ -2091,7 +2092,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     // `await` is generated as `yield`.
     // runtime/_generators.js has an example of what the code is generated as.
     var savedController = _asyncStarController;
-    List jsParams = visitFormalParameterList(parameters);
+    var jsParams = visitFormalParameterList(parameters);
     if (kind == 'asyncStar') {
       _asyncStarController = new JS.TemporaryId('stream');
       jsParams.insert(0, _asyncStarController);
@@ -2285,8 +2286,8 @@ class CodeGenerator extends GeneralizingAstVisitor
           _emitType(types[i], nameType: nameType, hoistType: hoistType);
       var value = typeName;
       if (options.emitMetadata && metadata.isNotEmpty) {
-        metadata = metadata.map(_instantiateAnnotation).toList();
-        value = new JS.ArrayInitializer([typeName]..addAll(metadata));
+        value = new JS.ArrayInitializer(
+            [typeName]..addAll(metadata.map(_instantiateAnnotation)));
       }
       result.add(value);
     }
@@ -2599,7 +2600,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   }
 
   JS.Expression _emitMethodCall(Expression target, MethodInvocation node) {
-    List<JS.Expression> args = _visit(node.argumentList);
+    var args = _visit(node.argumentList) as List<JS.Expression>;
     var typeArgs = _emitInvokeTypeArguments(node);
 
     if (target is SuperExpression && !_superAllowed) {
@@ -2686,7 +2687,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// an expression.
   JS.Expression _emitFunctionCall(InvocationExpression node) {
     var fn = _visit(node.function);
-    var args = _visit(node.argumentList);
+    var args = _visit(node.argumentList) as List<JS.Expression>;
     if (DynamicInvoke.get(node.function)) {
       var typeArgs = _emitInvokeTypeArguments(node);
       if (typeArgs != null) {
@@ -2766,7 +2767,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       var args = node.argumentList.arguments;
       // arg[0] is static return type, used in `RestrictedStaticTypeAnalyzer`
       var code = args[1];
-      var templateArgs;
+      List<AstNode> templateArgs;
       var source;
       if (code is StringInterpolation) {
         if (args.length > 2) {
@@ -2783,7 +2784,7 @@ class CodeGenerator extends GeneralizingAstVisitor
           }
         }).join();
       } else {
-        templateArgs = args.skip(2);
+        templateArgs = args.skip(2).toList();
         source = (code as StringLiteral).stringValue;
       }
 
@@ -4065,7 +4066,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     // full desugaring seems okay.
     var streamIterator = rules.instantiateToBounds(_asyncStreamIterator);
     var createStreamIter = _emitInstanceCreationExpression(
-        streamIterator.element.unnamedConstructor,
+        (streamIterator.element as ClassElement).unnamedConstructor,
         streamIterator,
         null,
         AstBuilder.argumentList([node.iterable]),
@@ -4366,7 +4367,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   List/*<T>*/ _visitList/*<T extends AstNode>*/(Iterable/*<T>*/ nodes) {
     if (nodes == null) return null;
     var result = /*<T>*/ [];
-    for (var node in nodes) result.add(_visit(node));
+    for (var node in nodes) result.add(_visit(node) as dynamic/*=T*/);
     return result;
   }
 
@@ -4499,7 +4500,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       // Dart "extension" methods. Used for JS Array, Boolean, Number, String.
       var baseType = type;
       while (baseType is TypeParameterType) {
-        baseType = baseType.element.bound;
+        baseType = (baseType.element as TypeParameterElement).bound;
       }
       useExtension = baseType != null &&
           _extensionTypes.hasNativeSubtype(baseType) &&
@@ -4539,7 +4540,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       [Element element]) {
     if (options.closure && element != null) {
       node = node.withClosureAnnotation(closureAnnotationFor(
-          node, original, element, namedArgumentTemp.name));
+          node, original, element, namedArgumentTemp.name)) as dynamic/*=T*/;
     }
     return node..sourceInformation = original;
   }

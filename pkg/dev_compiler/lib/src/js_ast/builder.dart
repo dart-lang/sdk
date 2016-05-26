@@ -1154,7 +1154,7 @@ class MiniJsParser {
   /** Parse a variable declaration list, with `var` or `let` [keyword] */
   VariableDeclarationList parseVariableDeclarationList(
       String keyword, [String firstIdentifier])  {
-    var initialization = [];
+    var initialization = <VariableInitialization>[];
 
     do {
       var declarator;
@@ -1514,7 +1514,7 @@ class MiniJsParser {
       }
       expectCategory(COLON);
     }
-    List statements = new List<Statement>();
+    var statements = <Statement>[];
     while (lastCategory != RBRACE &&
            lastToken != 'case' &&
            lastToken != 'default') {

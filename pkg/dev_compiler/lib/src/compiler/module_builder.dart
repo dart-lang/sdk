@@ -108,7 +108,7 @@ class LegacyModuleBuilder extends _ModuleBuilder {
 /// Generates node modules.
 class NodeModuleBuilder extends _ModuleBuilder {
   Program build(Program module) {
-    var importStatements = [];
+    var importStatements = <Statement>[];
 
     // Collect imports/exports/statements.
     visitProgram(module);

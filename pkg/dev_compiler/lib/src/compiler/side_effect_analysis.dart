@@ -38,7 +38,7 @@ bool isStateless(FunctionBody function, Expression node, [AstNode context]) {
   if (node is Identifier) {
     var e = node.staticElement;
     if (e is PropertyAccessorElement) {
-      e = e.variable;
+      e = (e as PropertyAccessorElement).variable;
     }
     if (e is VariableElement && !e.isSynthetic) {
       if (e.isFinal) return true;

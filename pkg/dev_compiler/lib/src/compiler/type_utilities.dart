@@ -165,7 +165,7 @@ class TypeTable {
   /// definitions tracked by the table.  If [formals] is present, only
   /// emit the definitions which depend on the formals.
   List<JS.Statement> discharge([List<TypeParameterElement> formals]) {
-    var filter = formals?.expand((p) => _scopeDependencies[p] ?? []);
+    var filter = formals?.expand((p) => _scopeDependencies[p] ?? <DartType>[]);
     var stmts = [
       _cacheNames,
       _definiteCacheNames,

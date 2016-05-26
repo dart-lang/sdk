@@ -116,7 +116,7 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
   }
 
   /*=T*/ _clone/*<T extends AstNode>*/(/*=T*/ node) {
-    var copy = node.accept(cloner);
+    var copy = node.accept(cloner) as dynamic/*=T*/;
     ResolutionCopier.copyResolutionData(node, copy);
     return copy;
   }
@@ -131,14 +131,14 @@ class _TreeCloner extends analyzer.AstCloner {
   }
 
   @override
-  AstNode cloneNode(AstNode node) {
+  /*=E*/ cloneNode/*<E extends AstNode>*/(/*=E*/ node) {
     var clone = super.cloneNode(node);
     _cloneProperties(clone, node);
     return clone;
   }
 
   @override
-  List cloneNodeList(List list) {
+  List/*<E>*/ cloneNodeList/*<E extends AstNode>*/(NodeList/*<E>*/ list) {
     var clone = super.cloneNodeList(list);
     for (int i = 0, len = list.length; i < len; i++) {
       _cloneProperties(clone[i], list[i]);

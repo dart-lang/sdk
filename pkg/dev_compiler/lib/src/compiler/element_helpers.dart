@@ -18,7 +18,8 @@ import 'package:analyzer/dart/element/element.dart'
 import 'package:analyzer/dart/element/type.dart'
     show DartType, InterfaceType, ParameterizedType;
 import 'package:analyzer/src/dart/element/type.dart' show DynamicTypeImpl;
-import 'package:analyzer/src/generated/constant.dart' show DartObject;
+import 'package:analyzer/src/generated/constant.dart'
+    show DartObject, DartObjectImpl;
 
 class Tuple2<T0, T1> {
   final T0 e0;
@@ -28,8 +29,10 @@ class Tuple2<T0, T1> {
 
 /*=T*/ fillDynamicTypeArgs/*<T extends DartType>*/(/*=T*/ t) {
   if (t is ParameterizedType) {
-    var dyn = new List.filled(t.typeArguments.length, DynamicTypeImpl.instance);
-    return t.substitute2(dyn, t.typeArguments);
+    var pt = t as ParameterizedType;
+    var dyn = new List<DartType>.filled(
+        pt.typeArguments.length, DynamicTypeImpl.instance);
+    return pt.substitute2(dyn, pt.typeArguments) as dynamic/*=T*/;
   }
   return t;
 }
@@ -47,7 +50,7 @@ class Tuple2<T0, T1> {
 ///
 ///    (v) => v.type.name == 'Deprecated' && v.type.element.library.isDartCore
 ///
-DartObject findAnnotation(Element element, bool test(DartObject value)) {
+DartObject findAnnotation(Element element, bool test(DartObjectImpl value)) {
   for (var metadata in element.metadata) {
     var value = metadata.constantValue;
     if (value != null && test(value)) return value;
@@ -116,5 +119,5 @@ ExecutableElement getFunctionBodyElement(FunctionBody body) {
 ///
 /// If we match the annotation for the `@MyAnnotation('FooBar')` this will
 /// return the string 'FooBar'.
-String getAnnotationName(Element element, bool match(DartObject value)) =>
+String getAnnotationName(Element element, bool match(DartObjectImpl value)) =>
     findAnnotation(element, match)?.getField('name')?.toStringValue();

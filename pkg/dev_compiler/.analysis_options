@@ -1,4 +1,5 @@
 analyzer:
+  strong-mode: true
   exclude:
     - doc/api/**
     - gen/**

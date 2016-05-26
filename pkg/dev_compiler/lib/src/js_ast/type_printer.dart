@@ -148,14 +148,14 @@ class ClosureTypePrinter extends _TypePrinterBase implements NodeVisitor {
   @override
   visitAccess(PropertyAccess node) {
     var selector = node.selector;
-    assert(selector is LiteralString);
-    if (selector is! LiteralString) {
+    if (selector is LiteralString) {
+      visit(node.receiver);
+      out(".");
+      out(selector.valueWithoutQuotes);
+    } else {
+      assert(false);
       out("?");
-      return;
     }
-    visit(node.receiver);
-    out(".");
-    out(selector.valueWithoutQuotes);
   }
 
   @override toString() => _buffer.toString();
