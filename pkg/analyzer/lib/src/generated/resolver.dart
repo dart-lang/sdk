@@ -3896,6 +3896,9 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     }
   }
 
+  @override
+  bool visitYieldStatement(YieldStatement node) => _nodeExits(node.expression);
+
   /**
    * Return `true` if the given node exits.
    *

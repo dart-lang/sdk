@@ -3962,6 +3962,42 @@ void f() {
     _assertNthStatementExits(source, 0);
   }
 
+  void test_yieldStatement_plain() {
+    Source source = addSource(r'''
+void f() sync* {
+  yield 1;
+}
+''');
+    _assertNthStatementDoesNotExit(source, 0);
+  }
+
+  void test_yieldStatement_throw() {
+    Source source = addSource(r'''
+void f() sync* {
+  yield throw '';
+}
+''');
+    _assertNthStatementExits(source, 0);
+  }
+
+  void test_yieldStatement_star_plain() {
+    Source source = addSource(r'''
+void f() sync* {
+  yield* 1;
+}
+''');
+    _assertNthStatementDoesNotExit(source, 0);
+  }
+
+  void test_yieldStatement_star_throw() {
+    Source source = addSource(r'''
+void f() sync* {
+  yield* throw '';
+}
+''');
+    _assertNthStatementExits(source, 0);
+  }
+
   void _assertHasReturn(bool expectedResult, Source source, int n) {
     LibraryElement element = resolve2(source);
     CompilationUnit unit = resolveCompilationUnit(source, element);
