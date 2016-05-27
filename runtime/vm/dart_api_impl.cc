@@ -480,6 +480,9 @@ Dart_Handle Api::NewError(const char* format, ...) {
   CHECK_API_SCOPE(T);
   HANDLESCOPE(T);
   CHECK_CALLBACK_STATE(T);
+  // Ensure we transition safepoint state to VM if we are not already in
+  // that state.
+  TransitionToVM transition(T);
 
   va_list args;
   va_start(args, format);
@@ -847,23 +850,20 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception) {
 
 DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle) {
   Thread* thread = Thread::Current();
-  {
-    const Object& obj = Object::Handle(thread->zone(),
-        Api::UnwrapHandle(handle));
-    if (!obj.IsError()) {
-      return Api::NewError(
-          "%s expects argument 'handle' to be an error handle.  "
-          "Did you forget to check Dart_IsError first?",
-          CURRENT_FUNC);
-    }
+  TransitionNativeToVM transition(thread);
+  const Object& obj = Object::Handle(thread->zone(),
+                                     Api::UnwrapHandle(handle));
+  if (!obj.IsError()) {
+    return Api::NewError(
+        "%s expects argument 'handle' to be an error handle.  "
+        "Did you forget to check Dart_IsError first?",
+        CURRENT_FUNC);
   }
   if (thread->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
     // propagate an error here.
     return Api::NewError("No Dart frames on stack, cannot propagate error.");
   }
-
-  TransitionNativeToVM transition(thread);
   // Unwind all the API scopes till the exit frame before propagating.
   const Error* error;
   {
@@ -975,6 +975,7 @@ DART_EXPORT Dart_Handle Dart_HandleFromPersistent(
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
+  NoSafepointScope no_safepoint_scope;
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   PersistentHandle* ref = PersistentHandle::Cast(object);
@@ -987,6 +988,7 @@ DART_EXPORT Dart_Handle Dart_HandleFromWeakPersistent(
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
+  NoSafepointScope no_safepoint_scope;
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   FinalizablePersistentHandle* weak_ref =
@@ -1061,6 +1063,7 @@ DART_EXPORT Dart_WeakPersistentHandle Dart_NewWeakPersistentHandle(
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
+  NoSafepointScope no_safepoint_scope;
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   PersistentHandle* ref = PersistentHandle::Cast(object);
@@ -1076,6 +1079,7 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
     Dart_WeakPersistentHandle object) {
   Isolate* isolate = reinterpret_cast<Isolate*>(current_isolate);
   CHECK_ISOLATE(isolate);
+  NoSafepointScope no_safepoint_scope;
   ASSERT(isolate == Isolate::Current());
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
@@ -1091,8 +1095,10 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
 DART_EXPORT Dart_Handle Dart_SetGcCallbacks(
     Dart_GcPrologueCallback prologue_callback,
     Dart_GcEpilogueCallback epilogue_callback) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
+  DARTSCOPE(thread);
   if (prologue_callback != NULL) {
     if (isolate->gc_prologue_callback() != NULL) {
       return Api::NewError(
@@ -1309,6 +1315,7 @@ DART_EXPORT Dart_Isolate Dart_CurrentIsolate() {
 DART_EXPORT void* Dart_CurrentIsolateData() {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
+  NoSafepointScope no_safepoint_scope;
   return isolate->init_callback_data();
 }
 
@@ -1318,6 +1325,7 @@ DART_EXPORT void* Dart_IsolateData(Dart_Isolate isolate) {
     FATAL1("%s expects argument 'isolate' to be non-null.",  CURRENT_FUNC);
   }
   // TODO(16615): Validate isolate parameter.
+  NoSafepointScope no_safepoint_scope;
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   return iso->init_callback_data();
 }
@@ -1371,6 +1379,7 @@ DART_EXPORT void Dart_ThreadEnableProfiling() {
 DART_EXPORT bool Dart_ShouldPauseOnStart() {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
+  NoSafepointScope no_safepoint_scope;
   return isolate->message_handler()->should_pause_on_start();
 }
 
@@ -1378,6 +1387,7 @@ DART_EXPORT bool Dart_ShouldPauseOnStart() {
 DART_EXPORT void Dart_SetShouldPauseOnStart(bool should_pause) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
+  NoSafepointScope no_safepoint_scope;
   if (isolate->is_runnable()) {
     FATAL1("%s expects the current isolate to not be runnable yet.",
            CURRENT_FUNC);
@@ -1389,6 +1399,7 @@ DART_EXPORT void Dart_SetShouldPauseOnStart(bool should_pause) {
 DART_EXPORT bool Dart_IsPausedOnStart() {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
+  NoSafepointScope no_safepoint_scope;
   return isolate->message_handler()->is_paused_on_start();
 }
 
@@ -1396,6 +1407,7 @@ DART_EXPORT bool Dart_IsPausedOnStart() {
 DART_EXPORT void Dart_SetPausedOnStart(bool paused) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
+  NoSafepointScope no_safepoint_scope;
   if (isolate->message_handler()->is_paused_on_start() != paused) {
     isolate->message_handler()->PausedOnStart(paused);
   }
@@ -1405,6 +1417,7 @@ DART_EXPORT void Dart_SetPausedOnStart(bool paused) {
 DART_EXPORT bool Dart_ShouldPauseOnExit() {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
+  NoSafepointScope no_safepoint_scope;
   return isolate->message_handler()->should_pause_on_exit();
 }
 
@@ -1412,6 +1425,7 @@ DART_EXPORT bool Dart_ShouldPauseOnExit() {
 DART_EXPORT void Dart_SetShouldPauseOnExit(bool should_pause) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
+  NoSafepointScope no_safepoint_scope;
   return isolate->message_handler()->set_should_pause_on_exit(should_pause);
 }
 
@@ -1419,6 +1433,7 @@ DART_EXPORT void Dart_SetShouldPauseOnExit(bool should_pause) {
 DART_EXPORT bool Dart_IsPausedOnExit() {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
+  NoSafepointScope no_safepoint_scope;
   return isolate->message_handler()->is_paused_on_exit();
 }
 
@@ -1426,6 +1441,7 @@ DART_EXPORT bool Dart_IsPausedOnExit() {
 DART_EXPORT void Dart_SetPausedOnExit(bool paused) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
+  NoSafepointScope no_safepoint_scope;
   if (isolate->message_handler()->is_paused_on_exit() != paused) {
     isolate->message_handler()->PausedOnExit(paused);
   }
@@ -1557,6 +1573,7 @@ DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate) {
     FATAL1("%s expects argument 'isolate' to be non-null.",  CURRENT_FUNC);
   }
   // TODO(16615): Validate isolate parameter.
+  TransitionNativeToVM transition(Thread::Current());
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   iso->SendInternalLibMessage(Isolate::kInterruptMsg, iso->pause_capability());
 }
@@ -1584,6 +1601,7 @@ DART_EXPORT void Dart_SetMessageNotifyCallback(
     Dart_MessageNotifyCallback message_notify_callback) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
+  NoSafepointScope no_safepoint_scope;
   isolate->set_message_notify_callback(message_notify_callback);
 }
 
@@ -1591,6 +1609,7 @@ DART_EXPORT void Dart_SetMessageNotifyCallback(
 DART_EXPORT Dart_MessageNotifyCallback Dart_GetMessageNotifyCallback() {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
+  NoSafepointScope no_safepoint_scope;
   return isolate->message_notify_callback();
 }
 
@@ -1700,6 +1719,7 @@ DART_EXPORT bool Dart_HandleServiceMessages() {
 DART_EXPORT bool Dart_HasServiceMessages() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate);
+  NoSafepointScope no_safepoint_scope;
   return isolate->message_handler()->HasOOBMessages();
 }
 
@@ -1707,6 +1727,7 @@ DART_EXPORT bool Dart_HasServiceMessages() {
 DART_EXPORT bool Dart_HasLivePorts() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate);
+  NoSafepointScope no_safepoint_scope;
   return isolate->message_handler()->HasLivePorts();
 }
 
@@ -1784,6 +1805,7 @@ DART_EXPORT void Dart_EnterScope() {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
+  NoSafepointScope no_safepoint_scope;
   ApiLocalScope* new_scope = thread->api_reusable_scope();
   if (new_scope == NULL) {
     new_scope = new ApiLocalScope(thread->api_top_scope(),
@@ -1802,6 +1824,7 @@ DART_EXPORT void Dart_EnterScope() {
 DART_EXPORT void Dart_ExitScope() {
   Thread* T = Thread::Current();
   CHECK_API_SCOPE(T);
+  NoSafepointScope no_safepoint_scope;
   ApiLocalScope* scope = T->api_top_scope();
   ApiLocalScope* reusable_scope = T->api_reusable_scope();
   T->set_api_top_scope(scope->previous());  // Reset top scope to previous.
@@ -4577,20 +4600,16 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
   if (Api::IsError(exception)) {
     ::Dart_PropagateError(exception);
   }
-
-  {
-    const Instance& excp = Api::UnwrapInstanceHandle(zone, exception);
-    if (excp.IsNull()) {
-      RETURN_TYPE_ERROR(zone, exception, Instance);
-    }
+  TransitionNativeToVM transition(thread);
+  const Instance& excp = Api::UnwrapInstanceHandle(zone, exception);
+  if (excp.IsNull()) {
+    RETURN_TYPE_ERROR(zone, exception, Instance);
   }
   if (thread->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
     // throw an exception here.
     return Api::NewError("No Dart frames on stack, cannot throw exception");
   }
-
-  TransitionNativeToVM transition(thread);
   // Unwind all the API scopes till the exit frame before throwing an
   // exception.
   const Instance* saved_exception;
@@ -4613,6 +4632,7 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
   Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
   CHECK_CALLBACK_STATE(thread);
+  TransitionNativeToVM transition(thread);
   {
     const Instance& excp = Api::UnwrapInstanceHandle(zone, exception);
     if (excp.IsNull()) {
@@ -4628,8 +4648,6 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
     // throw an exception here.
     return Api::NewError("No Dart frames on stack, cannot throw exception");
   }
-
-  TransitionNativeToVM transition(thread);
   // Unwind all the API scopes till the exit frame before throwing an
   // exception.
   const Instance* saved_exception;
@@ -5124,6 +5142,7 @@ DART_EXPORT void Dart_SetIntegerReturnValue(Dart_NativeArguments args,
   } else {
     // Slow path for Mints and Bigints.
     ASSERT_CALLBACK_STATE(arguments->thread());
+    TransitionNativeToVM transition(arguments->thread());
     Api::SetIntegerReturnValue(arguments, retval);
   }
 }
@@ -5133,6 +5152,7 @@ DART_EXPORT void Dart_SetDoubleReturnValue(Dart_NativeArguments args,
                                            double retval) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   ASSERT_CALLBACK_STATE(arguments->thread());
+  TransitionNativeToVM transition(arguments->thread());
   Api::SetDoubleReturnValue(arguments, retval);
 }
 
