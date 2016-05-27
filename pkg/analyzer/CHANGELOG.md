@@ -1,3 +1,7 @@
+## 0.27.4-alpha.8
+* Ignore processing performance improvements.
+* EmbedderUriResolver API updates.
+
 ## 0.27.4
 
 * Added support for 'analysis_options.yaml' files as an alternative to '.analysis_options' files.
