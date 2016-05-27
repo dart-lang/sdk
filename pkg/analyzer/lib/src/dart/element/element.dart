@@ -6038,6 +6038,34 @@ class ParameterElementImpl extends VariableElementImpl
       : super.forSerialized(enclosingElement);
 
   /**
+   * Initialize using the given serialized information.
+   */
+  factory ParameterElementImpl.forSerializedFactory(
+      UnlinkedParam unlinkedParameter, ElementImpl enclosingElement,
+      {bool synthetic: false}) {
+    ParameterElementImpl element;
+    if (unlinkedParameter.isInitializingFormal) {
+      if (unlinkedParameter.kind == UnlinkedParamKind.required) {
+        element = new FieldFormalParameterElementImpl.forSerialized(
+            unlinkedParameter, enclosingElement);
+      } else {
+        element = new DefaultFieldFormalParameterElementImpl.forSerialized(
+            unlinkedParameter, enclosingElement);
+      }
+    } else {
+      if (unlinkedParameter.kind == UnlinkedParamKind.required) {
+        element = new ParameterElementImpl.forSerialized(
+            unlinkedParameter, enclosingElement);
+      } else {
+        element = new DefaultParameterElementImpl.forSerialized(
+            unlinkedParameter, enclosingElement);
+      }
+    }
+    element.synthetic = synthetic;
+    return element;
+  }
+
+  /**
    * Creates a synthetic parameter with [name], [type] and [kind].
    */
   factory ParameterElementImpl.synthetic(
@@ -6208,7 +6236,10 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   @override
-  List<ParameterElement> get parameters => _parameters;
+  List<ParameterElement> get parameters {
+    _resynthesizeTypeAndParameters();
+    return _parameters;
+  }
 
   /**
    * Set the parameters defined by this executable element to the given
@@ -6223,12 +6254,7 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   DartType get type {
-    if (_unlinkedParam != null && _type == null) {
-      _type = enclosingUnit.resynthesizerContext.resolveLinkedType(
-              _unlinkedParam.inferredTypeSlot, typeParameterContext) ??
-          enclosingUnit.resynthesizerContext
-              .resolveTypeRef(_unlinkedParam.type, typeParameterContext);
-    }
+    _resynthesizeTypeAndParameters();
     return super.type;
   }
 
@@ -6311,7 +6337,48 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    safelyVisitChildren(_parameters, visitor);
+    safelyVisitChildren(parameters, visitor);
+  }
+
+  /**
+   * If this element is resynthesized, and its type and parameters have not
+   * been build yet, build them and remember in the corresponding fields.
+   */
+  void _resynthesizeTypeAndParameters() {
+    if (_unlinkedParam != null && _type == null) {
+      if (_unlinkedParam.isFunctionTyped) {
+        CompilationUnitElementImpl enclosingUnit = this.enclosingUnit;
+        FunctionElementImpl parameterTypeElement =
+            new FunctionElementImpl_forFunctionTypedParameter(
+                enclosingUnit, this);
+        if (!isSynthetic) {
+          parameterTypeElement.enclosingElement = this;
+        }
+        List<ParameterElement> subParameters = _unlinkedParam.parameters
+            .map((UnlinkedParam p) =>
+                new ParameterElementImpl.forSerializedFactory(p, this,
+                    synthetic: isSynthetic))
+            .toList(growable: false);
+        if (isSynthetic) {
+          parameterTypeElement.parameters = subParameters;
+        } else {
+          _parameters = subParameters;
+          parameterTypeElement.shareParameters(subParameters);
+        }
+        parameterTypeElement.returnType = enclosingUnit.resynthesizerContext
+            .resolveTypeRef(_unlinkedParam.type, typeParameterContext);
+        FunctionTypeImpl parameterType =
+            new FunctionTypeImpl.elementWithNameAndArgs(parameterTypeElement,
+                null, typeParameterContext.allTypeParameterTypes, false);
+        parameterTypeElement.type = parameterType;
+        _type = parameterType;
+      } else {
+        _type = enclosingUnit.resynthesizerContext.resolveLinkedType(
+                _unlinkedParam.inferredTypeSlot, typeParameterContext) ??
+            enclosingUnit.resynthesizerContext
+                .resolveTypeRef(_unlinkedParam.type, typeParameterContext);
+      }
+    }
   }
 }
 
@@ -7148,6 +7215,9 @@ abstract class TypeParameterizedElementMixin
   List<TypeParameterType> get allTypeParameterTypes {
     if (_allTypeParameterTypes == null) {
       _allTypeParameterTypes = <TypeParameterType>[];
+      // The most logical order would be (enclosing, this).
+      // But we have to have it like this to be consistent with (inconsistent
+      // by itself) element builder for generic functions.
       _allTypeParameterTypes.addAll(typeParameterTypes);
       _allTypeParameterTypes.addAll(allEnclosingTypeParameterTypes);
     }

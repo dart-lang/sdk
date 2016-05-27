@@ -2100,8 +2100,8 @@ class _UnitResynthesizer {
         List<ParameterElementImpl> parameters =
             new List<ParameterElementImpl>(length);
         for (int i = 0; i < length; i++) {
-          parameters[i] =
-              buildParameter(unlinkedParameters[i], executableElement);
+          parameters[i] = new ParameterElementImpl.forSerializedFactory(
+              unlinkedParameters[i], executableElement);
         }
         executableElement.parameters = parameters;
       }
@@ -2238,58 +2238,6 @@ class _UnitResynthesizer {
         serializedLabel.isOnSwitchMember);
   }
 
-  /**
-   * Resynthesize a [ParameterElement].
-   */
-  ParameterElement buildParameter(
-      UnlinkedParam serializedParameter, ElementImpl enclosingElement,
-      {bool synthetic: false}) {
-    ParameterElementImpl parameterElement;
-    if (serializedParameter.isInitializingFormal) {
-      if (serializedParameter.kind == UnlinkedParamKind.required) {
-        parameterElement = new FieldFormalParameterElementImpl.forSerialized(
-            serializedParameter, enclosingElement);
-      } else {
-        parameterElement =
-            new DefaultFieldFormalParameterElementImpl.forSerialized(
-                serializedParameter, enclosingElement);
-      }
-    } else {
-      if (serializedParameter.kind == UnlinkedParamKind.required) {
-        parameterElement = new ParameterElementImpl.forSerialized(
-            serializedParameter, enclosingElement);
-      } else {
-        parameterElement = new DefaultParameterElementImpl.forSerialized(
-            serializedParameter, enclosingElement);
-      }
-    }
-    parameterElement.synthetic = synthetic;
-    if (serializedParameter.isFunctionTyped) {
-      FunctionElementImpl parameterTypeElement =
-          new FunctionElementImpl_forFunctionTypedParameter(
-              unit, parameterElement);
-      if (!synthetic) {
-        parameterTypeElement.enclosingElement = parameterElement;
-      }
-      List<ParameterElement> subParameters = serializedParameter.parameters
-          .map((UnlinkedParam p) =>
-              buildParameter(p, parameterTypeElement, synthetic: synthetic))
-          .toList();
-      if (synthetic) {
-        parameterTypeElement.parameters = subParameters;
-      } else {
-        parameterElement.parameters = subParameters;
-        parameterTypeElement.shareParameters(subParameters);
-      }
-      parameterTypeElement.returnType =
-          buildType(serializedParameter.type, _currentTypeParameterizedElement);
-      parameterElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
-          parameterTypeElement, null, getCurrentTypeArguments(), false);
-      parameterTypeElement.type = parameterElement.type;
-    }
-    return parameterElement;
-  }
-
   List<FunctionElementImpl> buildTopLevelFunctions() {
     List<FunctionElementImpl> functions = <FunctionElementImpl>[];
     List<UnlinkedExecutable> executables = unlinkedUnit.executables;
@@ -2327,7 +2275,8 @@ class _UnitResynthesizer {
           new FunctionElementImpl_forLUB(unit, typeParameterContext);
       element.parameters = type.syntheticParams
           .map((UnlinkedParam param) =>
-              buildParameter(param, element, synthetic: true))
+              new ParameterElementImpl.forSerializedFactory(param, element,
+                  synthetic: true))
           .toList();
       element.returnType =
           buildType(type.syntheticReturnType, typeParameterContext);
@@ -2362,7 +2311,8 @@ class _UnitResynthesizer {
     // TODO(scheglov) remove this after delaying parameters and their types
     currentTypeParameters.add(functionTypeAliasElement.typeParameters);
     functionTypeAliasElement.parameters = serializedTypedef.parameters
-        .map((p) => buildParameter(p, functionTypeAliasElement))
+        .map((p) => new ParameterElementImpl.forSerializedFactory(
+            p, functionTypeAliasElement))
         .toList();
     unitHolder.addTypeAlias(functionTypeAliasElement);
     // TODO(scheglov) remove this after delaying parameters and their types
