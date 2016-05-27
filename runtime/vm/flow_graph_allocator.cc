@@ -156,8 +156,9 @@ void SSALivenessAnalysis::ComputeInitialSets() {
       // TODO(vegorov) remove this once we have ported all necessary
       // instructions to DBC.
       if (!current->HasLocs()) {
-        graph_entry_->parsed_function().Bailout("SSALivenessAnalysis",
-                                                current->ToCString());
+        const char* msg = "SSALivenessAnalysis::ComputeInitialSets";
+        NOT_IN_PRODUCT(msg = current->ToCString());
+        graph_entry_->parsed_function().Bailout("SSALivenessAnalysis", msg);
       }
 #endif
 

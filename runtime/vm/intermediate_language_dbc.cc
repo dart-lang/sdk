@@ -212,7 +212,11 @@ LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
 
 
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+#if defined(PRODUCT)
+  compiler->Bailout("PolymorphicInstanceCallInstr::EmitNativeCode");
+#else  // defined(PRODUCT)
   compiler->Bailout(ToCString());
+#endif  // defined(PRODUCT)
 }
 
 
@@ -505,7 +509,11 @@ EMIT_NATIVE_CODE(CreateArray,
 EMIT_NATIVE_CODE(StoreIndexed, 3) {
   if (compiler->is_optimizing()) {
     if (class_id() != kArrayCid) {
+#if defined(PRODUCT)
+      compiler->Bailout("StoreIndexed");
+#else  // defined(PRODUCT)
       compiler->Bailout(ToCString());
+#endif  // defined(PRODUCT)
     }
 
     __ StoreIndexed(locs()->in(kArrayPos).reg(),
