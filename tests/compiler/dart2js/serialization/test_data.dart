@@ -316,6 +316,17 @@ main() {}
 ''',
   },
       expectedWarningCount: 1),
+
+  const Test('Serialized symbol literal', const {
+    'main.dart': '''
+import 'lib.dart';
+main() => m();
+''',
+  }, preserializedSourceFiles: const {
+    'lib.dart': '''
+m() => print(#main);
+''',
+  }),
 ];
 
 class Test {
