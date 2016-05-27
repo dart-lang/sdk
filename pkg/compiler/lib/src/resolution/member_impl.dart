@@ -138,13 +138,17 @@ class InheritedMember implements DeclaredMember {
   }
 
   DeclaredMember inheritFrom(InterfaceType newInstance) {
-    assert(() {
+    assert(invariant(declaration.element, () {
       // Assert that if [instance] contains type variables, then these are
       // defined in the declaration of [newInstance] and will therefore be
       // substituted into the context of [newInstance] in the created member.
       ClassElement contextClass = Types.getClassContext(instance);
       return contextClass == null || contextClass == newInstance.element;
-    });
+    }, message: () {
+      return "Context mismatch: Context class "
+          "${Types.getClassContext(instance)} from $instance does match "
+          "the new instance $newInstance.";
+    }));
     return _newInheritedMember(newInstance);
   }
 
@@ -169,7 +173,7 @@ class InheritedMember implements DeclaredMember {
 
   String toString() {
     StringBuffer sb = new StringBuffer();
-    printOn(sb, instance);
+    printOn(sb, type);
     return sb.toString();
   }
 }

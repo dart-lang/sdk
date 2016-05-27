@@ -594,3 +594,16 @@ abstract class MixinApplicationElementCommon
     });
   }
 }
+
+abstract class AbstractFieldElementCommon implements AbstractFieldElement {
+  @override
+  bool get isInstanceMember {
+    return isClassMember && !isStatic;
+  }
+
+  @override
+  bool get isAbstract {
+    return getter != null && getter.isAbstract ||
+        setter != null && setter.isAbstract;
+  }
+}

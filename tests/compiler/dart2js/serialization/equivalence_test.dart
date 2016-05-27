@@ -135,7 +135,10 @@ checkLibraryContent(
 checkElementProperties(
     Object object1, object2, String property,
     Element element1, Element element2) {
+  currentCheck =
+      new Check(currentCheck, object1, object2, property, element1, element2);
   const ElementPropertyEquivalence().visit(element1, element2);
+  currentCheck = currentCheck.parent;
 }
 
 /// Checks the equivalence of [constructor1] and [constructor2].
@@ -255,6 +258,16 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1.isFinal, element2.isFinal);
     check(element1, element2, 'isConst',
         element1.isConst, element2.isConst);
+    check(element1, element2, 'isAbstract',
+        element1.isAbstract, element2.isAbstract);
+    check(element1, element2, 'isStatic',
+        element1.isStatic, element2.isStatic);
+    check(element1, element2, 'isTopLevel',
+        element1.isTopLevel, element2.isTopLevel);
+    check(element1, element2, 'isClassMember',
+        element1.isClassMember, element2.isClassMember);
+    check(element1, element2, 'isInstanceMember',
+        element1.isInstanceMember, element2.isInstanceMember);
   }
 
   @override
@@ -360,7 +373,10 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
           throw message;
         }
       }
+      currentCheck = new Check(currentCheck, element1, element1,
+          'member:$name', member1, member2);
       visit(member1, member2);
+      currentCheck = currentCheck.parent;
     }
   }
 
@@ -369,14 +385,28 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
     checkElementIdentities(null, null, null, element1, element2);
     check(element1, element2, 'name',
           element1.name, element2.name);
-    check(element1, element2, 'sourcePosition',
+    if (!element1.isUnnamedMixinApplication) {
+      check(element1, element2, 'sourcePosition',
           element1.sourcePosition, element2.sourcePosition);
+    } else {
+      check(element1, element2, 'sourcePosition.uri',
+          element1.sourcePosition.uri, element2.sourcePosition.uri);
+    }
     checkElementIdentities(
         element1, element2, 'library',
         element1.library, element2.library);
     checkElementIdentities(
         element1, element2, 'compilationUnit',
         element1.compilationUnit, element2.compilationUnit);
+    checkTypeLists(
+        element1, element2, 'typeVariables',
+        element1.typeVariables, element2.typeVariables);
+    checkTypes(
+        element1, element2, 'thisType',
+        element1.thisType, element2.thisType);
+    checkTypes(
+        element1, element2, 'rawType',
+        element1.rawType, element2.rawType);
     check(element1, element2, 'isObject',
         element1.isObject, element2.isObject);
     checkTypeLists(element1, element2, 'typeVariables',
@@ -436,6 +466,15 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         getConstructors(element2));
 
     visitMembers(element1, element2);
+
+    ClassElement superclass1 = element1.superclass;
+    ClassElement superclass2 = element2.superclass;
+    while (superclass1 != null && superclass1.isMixinApplication) {
+      checkElementProperties(element1, element2, 'supermixin',
+          superclass1, superclass2);
+      superclass1 = superclass1.superclass;
+      superclass2 = superclass2.superclass;
+    }
   }
 
   @override
@@ -550,8 +589,13 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
     check(
         element1, element2, 'name',
         element1.name, element2.name);
-    check(element1, element2, 'sourcePosition',
+    if (!element1.isSynthesized) {
+      check(element1, element2, 'sourcePosition',
           element1.sourcePosition, element2.sourcePosition);
+    } else {
+      check(element1, element2, 'sourcePosition.uri',
+          element1.sourcePosition.uri, element2.sourcePosition.uri);
+    }
     checkListEquivalence(
         element1, element2, 'parameters',
         element1.parameters, element2.parameters,

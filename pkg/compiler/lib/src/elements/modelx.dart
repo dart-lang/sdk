@@ -1845,7 +1845,9 @@ class ErroneousInitializingFormalElementX extends ParameterElementX
   DynamicType get type => const DynamicType();
 }
 
-class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
+class AbstractFieldElementX extends ElementX
+    with AbstractFieldElementCommon
+    implements AbstractFieldElement {
   GetterElementX getter;
   SetterElementX setter;
 
@@ -1888,17 +1890,8 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
     }
   }
 
-  bool get isInstanceMember {
-    return isClassMember && !isStatic;
-  }
-
   accept(ElementVisitor visitor, arg) {
     return visitor.visitAbstractFieldElement(this, arg);
-  }
-
-  bool get isAbstract {
-    return getter != null && getter.isAbstract ||
-        setter != null && setter.isAbstract;
   }
 }
 

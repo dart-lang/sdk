@@ -478,6 +478,7 @@ class FunctionSerializer implements ElementSerializer {
     }
     SerializerUtil.serializeParentRelation(element, encoder);
     encoder.setBool(Key.IS_EXTERNAL, element.isExternal);
+    encoder.setBool(Key.IS_ABSTRACT, element.isAbstract);
     if (element.isLocal) {
       LocalFunctionElement localFunction = element;
       encoder.setElement(

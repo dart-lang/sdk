@@ -299,9 +299,15 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
 
   final DiagnosticReporter reporter;
 
-  _LibraryLoaderTask(this.uriTranslator, this.scriptLoader,
-      this.scanner, this.deserializer, this.listener, this.environment,
-      this.reporter, Measurer measurer)
+  _LibraryLoaderTask(
+      this.uriTranslator,
+      this.scriptLoader,
+      this.scanner,
+      this.deserializer,
+      this.listener,
+      this.environment,
+      this.reporter,
+      Measurer measurer)
       : super(measurer);
 
   String get name => 'LibraryLoader';

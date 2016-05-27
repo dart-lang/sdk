@@ -4,6 +4,7 @@
 
 library dart2js.serialization_test_helper;
 
+import 'dart:collection';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/dart_types.dart';
@@ -11,6 +12,40 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/tree/nodes.dart';
+
+Check currentCheck;
+
+class Check {
+  final Check parent;
+  final Object object1;
+  final Object object2;
+  final String property;
+  final Object value1;
+  final Object value2;
+
+  Check(this.parent, this.object1, this.object2, this.property, this.value1, this.value2);
+
+  String printOn(StringBuffer sb, String indent) {
+    if (parent != null) {
+      indent = parent.printOn(sb, indent);
+      sb.write('\n$indent|\n');
+    }
+    sb.write("${indent}property='$property'\n ");
+    sb.write("${indent}object1=$object1 (${object1.runtimeType})\n ");
+    sb.write("${indent}value=${value1 == null ? "null" : "'$value1'"} ");
+    sb.write("(${value1.runtimeType}) vs\n ");
+    sb.write("${indent}object2=$object2 (${object2.runtimeType})\n ");
+    sb.write("${indent}value=${value2 == null ? "null" : "'$value2'"} ");
+    sb.write("(${value2.runtimeType})");
+    return ' $indent';
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    printOn(sb, '');
+    return sb.toString();
+  }
+}
 
 /// Strategy for checking equivalence.
 ///
@@ -99,15 +134,12 @@ class CheckStrategy implements TestStrategy {
 /// [value2] respectively, are equal and throw otherwise.
 bool check(var object1, var object2, String property, var value1, var value2,
            [bool equivalence(a, b) = equality]) {
+  currentCheck = new Check(
+      currentCheck, object1, object2, property, value1, value2);
   if (!equivalence(value1, value2)) {
-    throw "property='$property'\n "
-          "object1=$object1 (${object1.runtimeType})\n "
-          "value=${value1 == null ? "null" : "'$value1'"} "
-          "(${value1.runtimeType}) <>\n "
-          "object2=$object2 (${object2.runtimeType})\n "
-          "value=${value2 == null ? "null" : "'$value2'"} "
-          "(${value2.runtimeType})";
+    throw currentCheck;
   }
+  currentCheck = currentCheck.parent;
   return true;
 }
 
@@ -119,6 +151,8 @@ bool checkListEquivalence(
     Object object1, Object object2, String property,
     Iterable list1, Iterable list2,
     void checkEquivalence(o1, o2, property, a, b)) {
+  currentCheck =
+      new Check(currentCheck, object1, object2, property, list1, list2);
   for (int i = 0; i < list1.length && i < list2.length; i++) {
     checkEquivalence(
         object1, object2, property,
@@ -138,6 +172,7 @@ bool checkListEquivalence(
         '`${property}` on $object1:\n ${list1.join('\n ')}\n'
         '`${property}` on $object2:\n ${list2.join('\n ')}';
   }
+  currentCheck = currentCheck.parent;
   return true;
 }
 
@@ -244,7 +279,8 @@ bool checkTypes(
   if (type1 == null || type2 == null) {
     return check(object1, object2, property, type1, type2);
   } else {
-    return const TypeEquivalence(const CheckStrategy()).visit(type1, type2);
+    return check(object1, object2, property, type1, type2,
+        (a, b) => const TypeEquivalence(const CheckStrategy()).visit(a, b));
   }
 }
 
@@ -268,7 +304,8 @@ bool checkConstants(
   if (exp1 == null || exp2 == null) {
     return check(object1, object2, property, exp1, exp2);
   } else {
-    return const ConstantEquivalence(const CheckStrategy()).visit(exp1, exp2);
+    return check(object1, object2, property, exp1, exp2,
+        (a, b) => const ConstantEquivalence(const CheckStrategy()).visit(a, b));
   }
 }
 
