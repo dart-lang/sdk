@@ -1317,6 +1317,14 @@ int get y => null;
     expect(x.type.toString(), 'int');
   }
 
+  void test_futureThen() {
+    checkFile('''
+import 'dart:async';
+Future f;
+Future<int> t1 = f.then((_) => new Future<int>.value(42));
+''');
+  }
+
   void test_genericMethods_basicDownwardInference() {
     checkFile(r'''
 /*=T*/ f/*<S, T>*/(/*=S*/ s) => null;
