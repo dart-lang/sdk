@@ -4464,20 +4464,41 @@ main(p1, p2, p3, p4) {
 
 @reflectiveTest
 class ScanDartTaskTest extends _AbstractDartTaskTest {
+  test_ignore_info() {
+    _performScanTask('''
+//ignore: error_code
+var x = '';
+foo(); // ignore:   error_code_2
+bar(); //ignore: error_code, error_code_2
+''');
+
+    IgnoreInfo info = outputs[IGNORE_INFO];
+    expect(info.ignores.keys, hasLength(3));
+    expect(info.ignores[1].first, 'error_code');
+    expect(info.ignores[3].first, 'error_code_2');
+    expect(info.ignores[4], unorderedEquals(['error_code', 'error_code_2']));
+  }
+
   test_perform_errors() {
     _performScanTask('import "');
-    expect(outputs, hasLength(3));
+    expect(outputs, hasLength(4));
     expect(outputs[LINE_INFO], isNotNull);
     expect(outputs[SCAN_ERRORS], hasLength(1));
     expect(outputs[TOKEN_STREAM], isNotNull);
+    IgnoreInfo ignoreInfo = outputs[IGNORE_INFO];
+    expect(ignoreInfo, isNotNull);
+    expect(ignoreInfo.hasIgnores, isFalse);
   }
 
   test_perform_noErrors() {
     _performScanTask('class A {}');
-    expect(outputs, hasLength(3));
+    expect(outputs, hasLength(4));
     expect(outputs[LINE_INFO], isNotNull);
     expect(outputs[SCAN_ERRORS], hasLength(0));
     expect(outputs[TOKEN_STREAM], isNotNull);
+    IgnoreInfo ignoreInfo = outputs[IGNORE_INFO];
+    expect(ignoreInfo, isNotNull);
+    expect(ignoreInfo.hasIgnores, isFalse);
   }
 
   test_perform_script() {
